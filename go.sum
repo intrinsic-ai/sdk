@@ -61,7 +61,7 @@ cloud.google.com/go/analytics v0.19.0/go.mod h1:k8liqf5/HCnOUkbawNtrWWc+UAzyDlW8
 cloud.google.com/go/apigateway v1.3.0/go.mod h1:89Z8Bhpmxu6AmUxuVRg/ECRGReEdiP3vQtk4Z1J9rJk=
 cloud.google.com/go/apigateway v1.4.0/go.mod h1:pHVY9MKGaH9PQ3pJ4YLzoj6U5FUDeDFBllIz7WmzJoc=
 cloud.google.com/go/apigateway v1.5.0/go.mod h1:GpnZR3Q4rR7LVu5951qfXPJCHquZt02jf7xQx7kpqN8=
-cloud.google.com/go/apigeeconnect v1.3.0/go.mod h1:G/AwINTRINSICKo0gIXkPTVfZDd2qA1TxBXJ3MgMRBQkIi9jc=
+cloud.google.com/go/apigeeconnect v1.3.0/go.mod h1:G/AwXFAKo0gIXkPTVfZDd2qA1TxBXJ3MgMRBQkIi9jc=
 cloud.google.com/go/apigeeconnect v1.4.0/go.mod h1:kV4NwOKqjvt2JYR0AoIWo2QGfoRtn/pkS3QlHp0Ni04=
 cloud.google.com/go/apigeeconnect v1.5.0/go.mod h1:KFaCqvBRU6idyhSNyn3vlHXc8VMDJdRmwDF6JyFRqZ8=
 cloud.google.com/go/apigeeregistry v0.4.0/go.mod h1:EUG4PGcsZvxOXAdyEghIdXwAEi/4MEaoqLMLDMIwKXY=
