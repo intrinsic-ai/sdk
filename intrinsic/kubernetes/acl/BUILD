@@ -9,6 +9,12 @@ package(default_visibility = [
 ])
 
 go_library(
+    name = "cookies",
+    srcs = ["cookies.go"],
+    deps = ["@org_golang_google_grpc//metadata:go_default_library"],
+)
+
+go_library(
     name = "jwt",
     srcs = ["jwt.go"],
     deps = ["@com_github_pkg_errors//:go_default_library"],

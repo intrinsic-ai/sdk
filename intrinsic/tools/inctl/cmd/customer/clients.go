@@ -7,7 +7,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/pkg/errors"
 	"go.opencensus.io/plugin/ocgrpc"
@@ -18,6 +17,7 @@ import (
 	"intrinsic/config/environments"
 	accaccesscontrolgrpcpb "intrinsic/kubernetes/accounts/service/api/accesscontrol/v1/accesscontrol_go_grpc_proto"
 	accresourcemanagergrpcpb "intrinsic/kubernetes/accounts/service/api/resourcemanager/v1/resourcemanager_go_grpc_proto"
+	"intrinsic/kubernetes/acl/cookies"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/orgutil"
 )
@@ -103,8 +103,6 @@ func newConn(ctx context.Context, addr string, opts ...grpc.DialOption) (*grpc.C
 }
 
 const (
-	// cookieHeaderName is the name of the header / metadata field used for cookies
-	cookieHeaderName = "Cookie"
 	// orgIDCookie is the cookie key for the organization identifier.
 	orgIDCookie = "org-id"
 )
@@ -112,16 +110,6 @@ const (
 // withOrgID adds the org ID to the outgoing RCP context.
 func withOrgID(ctx context.Context) context.Context {
 	o := vipr.GetString(orgutil.KeyOrganization)
-	md := ToMDString(&http.Cookie{Name: orgIDCookie, Value: o})
+	md := cookies.ToMDString(&http.Cookie{Name: orgIDCookie, Value: o})
 	return metadata.AppendToOutgoingContext(ctx, md...)
-}
-
-// ToMDString converts a list of http.Cookie objects to a string that can be used as a metadata
-// value.
-func ToMDString(cs ...*http.Cookie) []string {
-	cookiesKV := []string{}
-	for _, c := range cs {
-		cookiesKV = append(cookiesKV, (&http.Cookie{Name: c.Name, Value: c.Value}).String())
-	}
-	return []string{cookieHeaderName, strings.Join(cookiesKV, "; ")}
 }

@@ -17,6 +17,7 @@ go_library(
         "//intrinsic/config:environments",
         "//intrinsic/kubernetes/accounts/service/api/accesscontrol/v1:accesscontrol_go_grpc_proto",
         "//intrinsic/kubernetes/accounts/service/api/resourcemanager/v1:resourcemanager_go_grpc_proto",
+        "//intrinsic/kubernetes/acl:cookies",
         "//intrinsic/tools/inctl/auth",
         "//intrinsic/tools/inctl/cmd:root",
         "//intrinsic/tools/inctl/util:cobrautil",
