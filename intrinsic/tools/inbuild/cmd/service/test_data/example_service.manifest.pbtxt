@@ -1,0 +1,31 @@
+# Copyright 2023 Intrinsic Innovation LLC
+
+# proto-file: intrinsic/assets/services/proto/service_manifest.proto
+# proto-message: intrinsic_proto.services.ServiceManifest
+
+metadata {
+  id {
+    package: "com.example"
+    name: "my_service"
+  }
+  vendor {
+    display_name: "Example Company"
+  }
+  documentation {
+    description: "An example service."
+  }
+  display_name: "Example Service"
+}
+service_def {
+  service_proto_prefixes: "/intrinsic_proto.services.ExampleService/"
+  real_spec {
+    image {
+      archive_filename: "example_service_py_image.tar"
+    }
+  }
+  sim_spec {
+    image {
+      archive_filename: "example_service_py_image.tar"
+    }
+  }
+}

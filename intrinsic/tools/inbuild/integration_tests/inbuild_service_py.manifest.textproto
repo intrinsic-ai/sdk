@@ -1,0 +1,29 @@
+# Copyright 2023 Intrinsic Innovation LLC
+
+# proto-file: intrinsic/assets/services/proto/service_manifest.proto
+# proto-message: intrinsic_proto.services.ServiceManifest
+metadata {
+  id {
+    package: "com.example"
+    name: "inbuild_service_py"
+  }
+  vendor {
+    display_name: "Intrinsic"
+  }
+  documentation {
+    description: "A service that is built with inbuild."
+  }
+  display_name: "Inbuild Python Service"
+}
+service_def {
+  real_spec {
+    image {
+      archive_filename: "inbuild_service_py_image.tar"
+    }
+  }
+  sim_spec {
+    image {
+      archive_filename: "inbuild_service_py_image.tar"
+    }
+  }
+}

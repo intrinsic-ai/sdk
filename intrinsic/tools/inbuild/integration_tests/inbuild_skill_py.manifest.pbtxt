@@ -1,0 +1,27 @@
+# Copyright 2023 Intrinsic Innovation LLC
+
+# proto-file: intrinsic/skills/proto/skill_manifest.proto
+# proto-message: intrinsic_proto.skills.SkillManifest
+
+id {
+  package: "com.example"
+  name: "inbuild_skill_py"
+}
+display_name: "Inbuild Skill Python"
+vendor {
+  display_name: "Intrinsic"
+}
+documentation {
+  description: "A skill that is created with inbuild."
+}
+options {
+  supports_cancellation: false
+  python_config {
+    skill_module: "intrinsic.tools.inbuild.integration_tests.inbuild_skill"
+    proto_module: "intrinsic.tools.inbuild.integration_tests.inbuild_skill_pb2"
+    create_skill: "intrinsic.tools.inbuild.integration_tests.inbuild_skill.InbuildSkill"
+  }
+}
+parameter {
+  message_full_name: "intrinsic_proto.skills.InbuildSkillParams"
+}

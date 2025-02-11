@@ -1,0 +1,25 @@
+# Copyright 2023 Intrinsic Innovation LLC
+
+# proto-file: intrinsic/skills/proto/skill_manifest.proto
+# proto-message: intrinsic_proto.skills.SkillManifest
+
+id {
+  package: "com.example"
+  name: "inbuild_skill_cc"
+}
+display_name: "Inbuild Skill C++"
+vendor {
+  display_name: "Intrinsic"
+}
+documentation {
+  description: "A skill that is created with inbuild."
+}
+options {
+  supports_cancellation: false
+  cc_config {
+    create_skill: "::intrinsic::skills::InbuildSkill::CreateSkill"
+  }
+}
+parameter {
+  message_full_name: "intrinsic_proto.skills.InbuildSkillParams"
+}

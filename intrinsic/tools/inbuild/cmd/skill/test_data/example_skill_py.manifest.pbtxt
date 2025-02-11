@@ -1,0 +1,27 @@
+# Copyright 2023 Intrinsic Innovation LLC
+
+# proto-file: intrinsic/skills/proto/skill_manifest.proto
+# proto-message: intrinsic_proto.skills.SkillManifest
+
+id {
+  package: "com.example"
+  name: "example_skill"
+}
+display_name: "Example Skill"
+vendor {
+  display_name: "Intrinsic"
+}
+documentation {
+  description: "A skill that does nothing."
+}
+options {
+  supports_cancellation: false
+  python_config {
+    skill_module: "intrinsic.tools.inbuild.cmd.skill.test_data.example_skill"
+    proto_module: "intrinsic.tools.inbuild.cmd.skill.test_data.example_skill_pb2"
+    create_skill: "intrinsic.tools.inbuild.cmd.skill.test_data.example_skill.ExampleSkill"
+  }
+}
+parameter {
+  message_full_name: "intrinsic_proto.skills.ExampleSkillParams"
+}

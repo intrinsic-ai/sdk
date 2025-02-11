@@ -1,0 +1,30 @@
+# Copyright 2023 Intrinsic Innovation LLC
+
+# proto-file: intrinsic/assets/services/proto/service_manifest.proto
+# proto-message: intrinsic_proto.services.ServiceManifest
+
+metadata {
+  id {
+    package: "com.example"
+    name: "inbuild_service_cc"
+  }
+  vendor {
+    display_name: "Intrinsic"
+  }
+  documentation {
+    description: "A simple inbuild service."
+  }
+  display_name: "Inbuild C++ Service"
+}
+service_def {
+  real_spec {
+    image {
+      archive_filename: "inbuild_service_cc_image.tar"
+    }
+  }
+  sim_spec {
+    image {
+      archive_filename: "inbuild_service_cc_image.tar"
+    }
+  }
+}
