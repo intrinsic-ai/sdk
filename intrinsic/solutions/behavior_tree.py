@@ -4029,7 +4029,7 @@ class BehaviorTree:
     if proto_object.HasField('description'):
       bt._description = skills_pb2.Skill()
       bt._description.CopyFrom(proto_object.description)
-    if proto_object.HasField('return_value_expression'):
+    if proto_object.return_value_expression:
       bt._return_value_expression = proto_object.return_value_expression
 
     return bt
