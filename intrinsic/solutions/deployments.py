@@ -55,7 +55,7 @@ from intrinsic.util.grpc import error_handling
 
 
 _DEFAULT_HOSTPORT = "localhost:17080"
-_XFA_BOX_ADDRESS_ENVIRONMENT_VAR = "XFA_BOX_ADDRESS"
+_CLUSTER_ADDRESS_ENVIRONMENT_VAR = "CLUSTER_ADDR"
 _GRPC_OPTIONS = [
     # Remove limit on message size for e.g. images.
     ("grpc.max_receive_message_length", -1),
@@ -524,7 +524,7 @@ def create_grpc_channel(
   ]):
     # Legacy behavior: Use default hostport if called without params.
     default_address = os.environ.get(
-        _XFA_BOX_ADDRESS_ENVIRONMENT_VAR, _DEFAULT_HOSTPORT
+        _CLUSTER_ADDRESS_ENVIRONMENT_VAR, _DEFAULT_HOSTPORT
     )
     params = dialerutil.CreateChannelParams(address=default_address)
   elif grpc_channel_or_hostport:
