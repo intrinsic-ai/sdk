@@ -10,7 +10,9 @@ package(default_visibility = ["//visibility:public"])
 go_library(
     name = "environments",
     srcs = ["environments.go"],
-    visibility = ["//intrinsic:__subpackages__"],
+    visibility = [
+        "//visibility:public",
+    ],
 )
 
 go_test(
