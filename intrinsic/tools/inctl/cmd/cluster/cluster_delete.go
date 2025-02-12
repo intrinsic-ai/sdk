@@ -17,7 +17,7 @@ import (
 func deleteCluster(ctx context.Context, conn *grpc.ClientConn, cluster string) error {
 	client := clusterdeletiongrpcpb.NewClusterDeletionServiceClient(conn)
 	if _, err := client.DeleteCluster(
-		ctx, &clusterdeletionpb.DeleteClusterRequest{ClusterName: cluster}); err != nil {
+		ctx, &clusterdeletionpb.DeleteClusterRequestObsolete{ClusterName: cluster}); err != nil {
 		return fmt.Errorf("request to delete cluster: %w", err)
 	}
 

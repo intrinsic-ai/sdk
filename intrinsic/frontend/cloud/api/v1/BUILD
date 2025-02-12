@@ -16,7 +16,6 @@ proto_library(
     name = "clustermanager_api_proto",
     srcs = ["clustermanager_api.proto"],
     deps = [
-        "//intrinsic/frontend/cloud/api:clusterdeletion_api_proto",
         "//intrinsic/util/status:extended_status_proto",
         "@com_github_grpc_ecosystem_grpc_gateway_v2//protoc-gen-openapiv2/options:options_proto",
         "@com_google_googleapis//google/api:annotations_proto",
@@ -33,7 +32,6 @@ go_proto_library(
     go_deps = [
         "@org_golang_google_genproto_googleapis_api//annotations",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
-        "//intrinsic/frontend/cloud/api:clusterdeletion_api_go_grpc_proto",
         "//intrinsic/util/status:extended_status_go_proto",
         "@com_github_grpc_ecosystem_grpc_gateway_v2//protoc-gen-openapiv2/options:options",
     ],
@@ -44,7 +42,6 @@ go_grpc_library(
     name = "clustermanager_api_go_grpc_proto",
     srcs = [":clustermanager_api_proto"],
     deps = [
-        "//intrinsic/frontend/cloud/api:clusterdeletion_api_go_grpc_proto",
         "//intrinsic/util/status:extended_status_go_proto",
         "@com_github_grpc_ecosystem_grpc_gateway_v2//protoc-gen-openapiv2/options",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
