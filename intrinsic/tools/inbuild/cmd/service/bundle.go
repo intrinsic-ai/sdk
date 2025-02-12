@@ -34,7 +34,7 @@ func resetBundleCommand() {
 	}
 
 	BundleCmd.Flags().StringVar(&flagDefaultConfig, "default_config", "", "Optional path to default config proto.")
-	BundleCmd.Flags().StringArrayVar(&flagFileDescriptorSets, "file_descriptor_set", nil, "Path to binary file descriptor set protos to be used to resolve the configuration message. Must be given at least once.")
+	BundleCmd.Flags().StringArrayVar(&flagFileDescriptorSets, "file_descriptor_set", nil, "Path to binary file descriptor set protos to be used to resolve the configuration message.")
 	BundleCmd.Flags().StringArrayVar(&flagOciImages, "oci_image", nil, "Path to tar archive of an OCI image. Must be given at least once, and no more than twice.")
 	BundleCmd.Flags().StringVar(&flagManifest, "manifest", "", "Path to a ServiceManifest textproto file.")
 	BundleCmd.Flags().StringVar(&flagOutput, "output", "service.bundle.tar", "Path to write service bundle to")
@@ -57,8 +57,8 @@ func run(cmd *cobra.Command, args []string) error {
 	if flagManifest == "" {
 		return fmt.Errorf("--manifest is required")
 	}
-	if len(flagFileDescriptorSets) == 0 {
-		return fmt.Errorf("at least one --file_descriptor_set is required")
+	if flagDefaultConfig != "" && len(flagFileDescriptorSets) == 0 {
+		return fmt.Errorf("at least one --file_descriptor_set is required when --default_config is used")
 	}
 	if len(flagOciImages) == 0 || len(flagOciImages) > 2 {
 		return fmt.Errorf("at least one --oci_image is required, and no more than two are allowed")

@@ -4,6 +4,7 @@ package bundle
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -78,9 +79,10 @@ func mustResolve(t *testing.T, path string) string {
 
 func TestBundleCreate(t *testing.T) {
 	tests := []struct {
-		name   string
-		args   []string
-		checks []bundleCheck
+		name      string
+		args      []string
+		checks    []bundleCheck
+		wantError string
 	}{
 		{
 			name: "create service",
@@ -118,6 +120,25 @@ func TestBundleCreate(t *testing.T) {
 				checkBundleHasDefaultConfig(t, "service.bundle.tar", mustResolve(t, exampleDefaultConfigPath)),
 			},
 		},
+		{
+			name: "create with no config",
+			args: []string{
+				"--manifest", mustResolve(t, exampleManifestPath),
+				"--oci_image", mustResolve(t, exampleImagePath),
+			},
+			checks: []bundleCheck{
+				checkManifestHasID(t, "service.bundle.tar", "com.example", "my_service"),
+			},
+		},
+		{
+			name: "create with config but no file descriptor sets",
+			args: []string{
+				"--manifest", mustResolve(t, exampleManifestPath),
+				"--oci_image", mustResolve(t, exampleImagePath),
+				"--default_config", mustResolve(t, exampleDefaultConfigPath),
+			},
+			wantError: "--file_descriptor_set is required when --default_config is used",
+		},
 	}
 
 	for _, tt := range tests {
@@ -129,7 +150,16 @@ func TestBundleCreate(t *testing.T) {
 
 			BundleCmd.SetArgs(tt.args)
 
-			if err := BundleCmd.Execute(); err != nil {
+			err := BundleCmd.Execute()
+			if tt.wantError != "" {
+				if err == nil {
+					t.Fatalf("Want BundleCmd.Execute() to err; got no err")
+				}
+				if !strings.Contains(err.Error(), tt.wantError) {
+					t.Fatalf("Want error to contain %v, got %v", tt.wantError, err)
+				}
+			}
+			if tt.wantError == "" && err != nil {
 				t.Fatalf("BundleCmd.Execute() failed: %v", err)
 			}
 
