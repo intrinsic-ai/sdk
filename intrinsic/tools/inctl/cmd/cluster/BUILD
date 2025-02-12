@@ -17,7 +17,6 @@ go_library(
     ],
     deps = [
         "//intrinsic/assets:baseclientutils",
-        "//intrinsic/frontend/cloud/api:clusterdeletion_api_go_grpc_proto",
         "//intrinsic/frontend/cloud/api:clusterdiscovery_api_go_grpc_proto",
         "//intrinsic/frontend/cloud/api/v1:clustermanager_api_go_grpc_proto",
         "//intrinsic/frontend/cloud/devicemanager:version",
