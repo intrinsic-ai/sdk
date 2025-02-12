@@ -8,9 +8,24 @@ go_library(
     name = "assetcmd",
     srcs = ["assetcmd.go"],
     deps = [
+        ":list",
         ":listreleased",
         ":listreleasedversions",
+        ":uninstall",
         "//intrinsic/tools/inctl/cmd:root",
+        "@com_github_spf13_cobra//:go_default_library",
+    ],
+)
+
+go_library(
+    name = "list",
+    srcs = ["list.go"],
+    deps = [
+        "//intrinsic/assets:clientutils",
+        "//intrinsic/assets:cmdutils",
+        "//intrinsic/assets:idutils",
+        "//intrinsic/assets/proto:installed_assets_go_grpc_proto",
+        "//intrinsic/assets/proto/v1:search_go_proto",
         "@com_github_spf13_cobra//:go_default_library",
     ],
 )
@@ -24,7 +39,6 @@ go_library(
         "//intrinsic/assets:idutils",
         "//intrinsic/assets:listutils",
         "//intrinsic/assets/catalog/proto/v1:asset_catalog_go_grpc_proto",
-        "//intrinsic/assets/proto:asset_type_go_proto",
         "//intrinsic/assets/proto:view_go_proto",
         "//intrinsic/tools/inctl/cmd:root",
         "//intrinsic/tools/inctl/util:printer",
@@ -42,12 +56,25 @@ go_library(
         "//intrinsic/assets:listutils",
         "//intrinsic/assets/catalog:assetdescriptions",
         "//intrinsic/assets/catalog/proto/v1:asset_catalog_go_grpc_proto",
-        "//intrinsic/assets/proto:asset_type_go_proto",
         "//intrinsic/assets/proto:view_go_proto",
         "//intrinsic/tools/inctl/cmd:root",
         "//intrinsic/tools/inctl/util:printer",
         "@com_github_pkg_errors//:go_default_library",
         "@com_github_spf13_cobra//:go_default_library",
         "@org_golang_google_protobuf//proto",
+    ],
+)
+
+go_library(
+    name = "uninstall",
+    srcs = ["uninstall.go"],
+    deps = [
+        "//intrinsic/assets:clientutils",
+        "//intrinsic/assets:cmdutils",
+        "//intrinsic/assets:idutils",
+        "//intrinsic/assets/proto:installed_assets_go_grpc_proto",
+        "@com_github_spf13_cobra//:go_default_library",
+        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
+        "@org_golang_google_grpc//status:go_default_library",
     ],
 )

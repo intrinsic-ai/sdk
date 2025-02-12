@@ -29,8 +29,8 @@ const (
 	KeyAddress = "address"
 	// KeyAPIKey is the name of the arg to specify the api-key to use.
 	KeyAPIKey = "api_key"
-	// KeyAssetType is the name of the asset type flag.
-	KeyAssetType = "asset_type"
+	// KeyAssetTypes is the name of the asset types flag.
+	KeyAssetTypes = "asset_types"
 	// KeyAuthUser is the name of the auth user flag.
 	KeyAuthUser = "auth_user"
 	// KeyAuthPassword is the name of the auth password flag.
@@ -123,20 +123,34 @@ func (cf *CmdFlags) SetCommand(cmd *cobra.Command) {
 	cf.cmd = cmd
 }
 
-// AddFlagAssetType adds a flag for the asset type.
-func (cf *CmdFlags) AddFlagAssetType() {
+// AddFlagAssetTypes adds a flag for an optional list of asset types.
+func (cf *CmdFlags) AddFlagAssetTypes() {
 	types := typeutils.AllAssetTypes()
 	names := make([]string, len(types))
 	for i, t := range types {
 		names[i] = typeutils.NameFromAssetType(t)
 	}
 
-	cf.RequiredString(KeyAssetType, fmt.Sprintf("The asset type. One of: %v.", strings.Join(names, ", ")))
+	cf.OptionalString(KeyAssetTypes, "", fmt.Sprintf("A comma-separated list of asset types (choose from: %v).", strings.Join(names, ", ")))
 }
 
-// GetFlagAssetType gets the (enum) value of the asset type flag added by AddFlagAssetType.
-func (cf *CmdFlags) GetFlagAssetType() (atypepb.AssetType, error) {
-	return typeutils.AssetTypeFromName(cf.GetString(KeyAssetType))
+// GetFlagAssetTypes gets the (enum) values of the asset types flag added by AddFlagAssetTypes.
+func (cf *CmdFlags) GetFlagAssetTypes() ([]atypepb.AssetType, error) {
+	assetTypesValue := cf.GetString(KeyAssetTypes)
+	if assetTypesValue == "" {
+		return nil, nil
+	}
+	assetTypeNames := strings.Split(assetTypesValue, ",")
+	assetTypes := make([]atypepb.AssetType, len(assetTypeNames))
+	for i, name := range assetTypeNames {
+		var err error
+		assetTypes[i], err = typeutils.AssetTypeFromName(name)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return assetTypes, nil
 }
 
 // AddFlagsCatalogInProcEnvironment adds flags for using an in-proc catalog and specifying the

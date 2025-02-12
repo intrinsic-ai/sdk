@@ -1,6 +1,6 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package install defines the service install command that sideloads a service.
+// Package install defines the command to install a Service.
 package install
 
 import (
@@ -23,14 +23,14 @@ import (
 	"intrinsic/skills/tools/skill/cmd/directupload/directupload"
 )
 
-// GetCommand returns a command to install (sideload) the service bundle.
+// GetCommand returns a command to install a Service.
 func GetCommand() *cobra.Command {
 	flags := cmdutils.NewCmdFlags()
 	cmd := &cobra.Command{
-		Use:   "install bundle",
-		Short: "Install service",
+		Use:   "install <bundle>",
+		Short: "Install a Service",
 		Example: `
-	Install a service to the specified solution:
+	Install a Service to the specified solution:
 	$ inctl service install abc/service_bundle.tar \
 			--org my_org \
 			--solution my_solution_id
@@ -38,7 +38,7 @@ func GetCommand() *cobra.Command {
 	To find a running solution's id, run:
 	$ inctl solution list --project my-project --filter "running_on_hw,running_in_sim" --output json
 
-	The service can also be installed by specifying the cluster on which the solution is running:
+	The Service can also be installed by specifying the cluster on which the solution is running:
 	$ inctl service install abc/service_bundle.tar \
 			--org my_org \
 			--cluster my_cluster
@@ -93,7 +93,7 @@ func GetCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("invalid id: %v", err)
 			}
-			log.Printf("Installing service %q", id)
+			log.Printf("Installing Service %q", id)
 
 			client := iagrpcpb.NewInstalledAssetsClient(conn)
 			authCtx := clientutils.AuthInsecureConn(ctx, address, flags.GetFlagProject())
@@ -108,7 +108,7 @@ func GetCommand() *cobra.Command {
 				},
 			})
 			if err != nil {
-				return fmt.Errorf("could not install the service: %v", err)
+				return fmt.Errorf("could not install the Service: %v", err)
 			}
 
 			log.Printf("Awaiting completion of the installation")

@@ -16,7 +16,6 @@ import (
 	"intrinsic/assets/cmdutils"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/listutils"
-	atpb "intrinsic/assets/proto/asset_type_go_proto"
 	viewpb "intrinsic/assets/proto/view_go_proto"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/printer"
@@ -43,7 +42,7 @@ func GetCommand() *cobra.Command {
 				return err
 			}
 
-			at, err := flags.GetFlagAssetType()
+			assetTypes, err := flags.GetFlagAssetTypes()
 			if err != nil {
 				return err
 			}
@@ -54,7 +53,7 @@ func GetCommand() *cobra.Command {
 				pageSize,
 				viewpb.AssetViewType_ASSET_VIEW_TYPE_BASIC,
 				&acpb.ListAssetsRequest_AssetFilter{
-					AssetTypes:  []atpb.AssetType{at},
+					AssetTypes:  assetTypes,
 					OnlyDefault: proto.Bool(true),
 				},
 			)
@@ -76,7 +75,7 @@ func GetCommand() *cobra.Command {
 		},
 	}
 	flags.SetCommand(cmd)
-	flags.AddFlagAssetType()
+	flags.AddFlagAssetTypes()
 
 	return cmd
 }
