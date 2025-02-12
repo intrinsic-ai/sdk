@@ -189,6 +189,11 @@ class ObjectWorldClient {
   absl::StatusOr<Pose3d> GetTransform(const TransformNode& node_a,
                                       const TransformNode& node_b) const;
 
+  // Returns the transform 'a_t_b', i.e., the pose of 'node' in the space of
+  // the root object. Equivalent to calling something like
+  // GetTransform(GetRootObject().value(), node).
+  absl::StatusOr<Pose3d> GetTransform(const TransformNode& node) const;
+
   // Returns the transform 'a_t_b', i.e., the pose of the entity within 'node_b'
   // described by the given filter in the space of the entity within 'node_a'
   // described by the given filter. 'node_a' and 'node_b' can be arbitrary nodes
@@ -197,6 +202,14 @@ class ObjectWorldClient {
       const TransformNode& node_a,
       std::optional<ObjectEntityFilter> node_a_filter,
       const TransformNode& node_b,
+      std::optional<ObjectEntityFilter> node_b_filter) const;
+
+  // Similar to the one above, but takes the ids of the nodes instead of the
+  // nodes themselves.s
+  absl::StatusOr<Pose3d> GetTransform(
+      const ObjectWorldResourceId& node_a_id,
+      std::optional<ObjectEntityFilter> node_a_filter,
+      const ObjectWorldResourceId& node_b_id,
       std::optional<ObjectEntityFilter> node_b_filter) const;
 
   // Updates the pose between two neighboring nodes 'node_a' and 'node_b' such

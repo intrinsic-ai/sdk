@@ -498,15 +498,28 @@ absl::StatusOr<Pose3d> ObjectWorldClient::GetTransform(
 }
 
 absl::StatusOr<Pose3d> ObjectWorldClient::GetTransform(
+    const TransformNode& node) const {
+  return GetTransform(RootObjectId(), std::nullopt, node.Id(), std::nullopt);
+}
+
+absl::StatusOr<Pose3d> ObjectWorldClient::GetTransform(
     const TransformNode& node_a,
     std::optional<ObjectEntityFilter> node_a_filter,
     const TransformNode& node_b,
     std::optional<ObjectEntityFilter> node_b_filter) const {
+  return GetTransform(node_a.Id(), node_a_filter, node_b.Id(), node_b_filter);
+}
+
+absl::StatusOr<Pose3d> ObjectWorldClient::GetTransform(
+    const ObjectWorldResourceId& node_a_id,
+    std::optional<ObjectEntityFilter> node_a_filter,
+    const ObjectWorldResourceId& node_b_id,
+    std::optional<ObjectEntityFilter> node_b_filter) const {
   grpc::ClientContext ctx;
   intrinsic_proto::world::GetTransformRequest request;
   request.set_world_id(world_id_);
-  request.mutable_node_a()->set_id(node_a.Id().value());
-  request.mutable_node_b()->set_id(node_b.Id().value());
+  request.mutable_node_a()->set_id(node_a_id.value());
+  request.mutable_node_b()->set_id(node_b_id.value());
 
   if (node_a_filter.has_value()) {
     *request.mutable_node_a_filter() = node_a_filter->ToProto();
