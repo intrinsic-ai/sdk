@@ -142,17 +142,20 @@ TEST_P(StatusSpecsTest, AllOptionsAreSet) {
   context_status_2.mutable_status_code()->set_code(234);
 
   EXPECT_THAT(
-      CreateExtendedStatus(10001, "error 1",
-                           {.timestamp = t,
-                            .debug_message = "Int message",
-                            .log_context = log_context,
-                            .context = {context_status_1, context_status_2}}),
+      CreateExtendedStatus(
+          10001, "error 1",
+          {.timestamp = t,
+           .debug_message = "Int message",
+           .log_context = log_context,
+           .severity = intrinsic_proto::status::ExtendedStatus::ERROR,
+           .context = {context_status_1, context_status_2}}),
       EqualsProto(R"pb(
         status_code { component: "ai.intrinsic.test" code: 10001 }
         timestamp { seconds: 1711453873 }
         title: "Error 1"
         user_report { message: "error 1" instructions: "Test instructions 1" }
         debug_report { message: "Int message" }
+        severity: ERROR
         related_to { log_context { executive_plan_id: 3354 } }
         context { status_code { component: "Context" code: 123 } }
         context { status_code { component: "Context" code: 234 } }

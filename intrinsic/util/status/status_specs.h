@@ -65,6 +65,7 @@ struct ExtendedStatusOptions {
   std::optional<absl::Time> timestamp;
   std::optional<std::string_view> debug_message;
   std::optional<intrinsic_proto::data_logger::Context> log_context;
+  std::optional<intrinsic_proto::status::ExtendedStatus::Severity> severity;
   std::vector<intrinsic_proto::status::ExtendedStatus> context;
 };
 

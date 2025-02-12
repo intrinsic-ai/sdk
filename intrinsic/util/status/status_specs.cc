@@ -212,6 +212,9 @@ intrinsic_proto::status::ExtendedStatus CreateExtendedStatus(
   if (options.log_context.has_value()) {
     *es.mutable_related_to()->mutable_log_context() = *options.log_context;
   }
+  if (options.severity.has_value()) {
+    es.set_severity(*options.severity);
+  }
   if (!options.context.empty()) {
     es.mutable_context()->Assign(options.context.begin(),
                                  options.context.end());
