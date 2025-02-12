@@ -2,6 +2,7 @@
 
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
+load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "proto_source_code_info_transitive_descriptor_set")
 
 package(default_visibility = [
     "//visibility:public",
@@ -17,6 +18,11 @@ proto_library(
         "@com_google_googleapis//google/longrunning:operations_proto",
         "@com_google_protobuf//:empty_proto",
     ],
+)
+
+proto_source_code_info_transitive_descriptor_set(
+    name = "resourcemanager_proto_descriptor_set",
+    deps = [":resourcemanager_proto"],
 )
 
 go_proto_library(
