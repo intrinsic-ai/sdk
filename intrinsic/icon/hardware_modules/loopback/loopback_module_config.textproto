@@ -6,17 +6,9 @@
 [type.googleapis.com/intrinsic_proto.icon.HardwareModuleConfig] {
   module_config {
     [type.googleapis.com/intrinsic_proto.icon.LoopbackConfig] {
-      cycle_duration: {
-        seconds: 0
-        nanos: 4000000
-      }
+      # Empty, but needs to be there and have the correct type
     }
   }
   drives_realtime_clock: false
-  simulation_module_config {
-    cycle_duration: {
-      seconds: 0
-      nanos: 4000000
-    }
-  }
+  control_frequency_hz: 250
 }
