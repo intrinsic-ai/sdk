@@ -33,6 +33,7 @@ using ::protobuf_matchers::proto::IgnoringFieldPaths;
 using ::protobuf_matchers::proto::IgnoringFields;
 using ::protobuf_matchers::proto::IgnoringRepeatedFieldOrdering;
 using ::protobuf_matchers::proto::Partially;
+using ::protobuf_matchers::proto::TreatingNaNsAsEqual;
 using ::protobuf_matchers::proto::WhenDeserialized;
 using ::protobuf_matchers::proto::WhenDeserializedAs;
 
