@@ -11,8 +11,8 @@ from intrinsic.manipulation.grasping import grasp_pb2
 from intrinsic.manipulation.grasping import grasp_planner_params_pb2
 from intrinsic.manipulation.grasping import grasp_planning_interfaces
 from intrinsic.manipulation.grasping import grasp_ranker_params_pb2
-from intrinsic.manipulation.service import grasp_planner_service_pb2
-from intrinsic.manipulation.service import grasp_planner_service_pb2_grpc
+from intrinsic.manipulation.service.grasp_planner_service.v1 import grasp_planner_service_pb2
+from intrinsic.manipulation.service.grasp_planner_service.v1 import grasp_planner_service_pb2_grpc
 from intrinsic.world.proto import object_world_refs_pb2
 import numpy as np
 

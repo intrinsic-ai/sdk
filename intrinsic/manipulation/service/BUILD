@@ -14,32 +14,6 @@ package(
 )
 
 proto_library(
-    name = "grasp_planner_service_proto",
-    srcs = ["grasp_planner_service.proto"],
-    deps = [
-        "//intrinsic/icon/proto:joint_space_proto",
-        "//intrinsic/manipulation/grasping:grasp_execution_planner_params_proto",
-        "//intrinsic/manipulation/grasping:grasp_planner_params_proto",
-        "//intrinsic/manipulation/grasping:grasp_proto",
-        "//intrinsic/manipulation/grasping:grasp_ranker_params_proto",
-        "//intrinsic/world/proto:object_world_refs_proto",
-        "@com_google_protobuf//:empty_proto",
-    ],
-)
-
-py_proto_library(
-    name = "grasp_planner_service_py_pb2",
-    deps = [":grasp_planner_service_proto"],
-)
-
-py_grpc_library(
-    name = "grasp_planner_service_py_pb2_grpc",
-    srcs = [":grasp_planner_service_proto"],
-    grpc_library = requirement("grpcio"),
-    deps = [":grasp_planner_service_py_pb2"],
-)
-
-proto_library(
     name = "grasp_annotator_service_proto",
     srcs = ["grasp_annotator_service.proto"],
     deps = [
