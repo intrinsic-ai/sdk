@@ -54,26 +54,6 @@ go_proto_library(
 )
 
 proto_library(
-    name = "frame_proto",
-    srcs = ["frame.proto"],
-    deps = [
-        ":camera_params_proto",
-        ":image_buffer_proto",
-        "@com_google_protobuf//:timestamp_proto",
-    ],
-)
-
-cc_proto_library(
-    name = "frame_cc_proto",
-    deps = [":frame_proto"],
-)
-
-py_proto_library(
-    name = "frame_py_pb2",
-    deps = [":frame_proto"],
-)
-
-proto_library(
     name = "post_processing_proto",
     srcs = ["post_processing.proto"],
     deps = [
@@ -419,15 +399,6 @@ go_proto_library(
 py_proto_library(
     name = "dimensions_py_pb2",
     deps = [":dimensions_proto"],
-)
-
-go_proto_library(
-    name = "frame_go_proto",
-    go_deps = [
-        ":camera_params_go_proto",
-        ":image_buffer_go_proto",
-    ],
-    deps = [":frame_proto"],
 )
 
 cc_proto_library(
