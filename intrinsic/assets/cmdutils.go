@@ -227,9 +227,9 @@ func (cf *CmdFlags) GetFlagAddress() string {
 // AddFlagsAddressClusterSolution adds flags for the address, cluster, and solution when installing
 // or working with installed assets.
 func (cf *CmdFlags) AddFlagsAddressClusterSolution() {
-	cf.OptionalString(KeyAddress, "", "Internal flag to directly set the API server address.")
-	cf.OptionalEnvString(KeyCluster, "", "The target Kubernetes cluster.")
-	cf.OptionalEnvString(KeySolution, "", "The target solution. Must be deployed.")
+	cf.OptionalString(KeyAddress, "", "Internal flag to directly set the API server address. Normally, you should use --org instead, which tells inctl to connect via the cloud.")
+	cf.OptionalEnvString(KeyCluster, "", "The target Kubernetes cluster ID. If you set this, you must not set --solution.")
+	cf.OptionalEnvString(KeySolution, "", "The target solution. Must be running. If you set this, you must not set --cluster.")
 
 	cf.cmd.MarkFlagsMutuallyExclusive(KeyCluster, KeySolution)
 }
