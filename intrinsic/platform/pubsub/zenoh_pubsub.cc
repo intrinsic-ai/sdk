@@ -1,6 +1,7 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
 #include <cstddef>
+#include <cstring>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -11,11 +12,13 @@
 #include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/strings/match.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
+#include "absl/types/span.h"
 #include "intrinsic/platform/pubsub/adapters/pubsub.pb.h"
 #include "intrinsic/platform/pubsub/kvstore.h"
 #include "intrinsic/platform/pubsub/publisher.h"

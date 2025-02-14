@@ -75,6 +75,7 @@ cc_library(
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/synchronization",
         "@com_google_absl//absl/time",
+        "@com_google_absl//absl/types:span",
         "@com_google_googleapis//google/rpc:status_cc_proto",
         "@com_google_protobuf//:protobuf",
     ],
@@ -222,7 +223,6 @@ cc_library(
         ":zenoh_pubsub_data",
         ":zenoh_subscription_data",
         "//intrinsic/platform/pubsub/adapters:pubsub_cc_proto",
-        "//intrinsic/platform/pubsub/zenoh_util:zenoh_config",
         "//intrinsic/platform/pubsub/zenoh_util:zenoh_handle",
         "//intrinsic/util/status:status_macros",
         "@com_google_absl//absl/base:core_headers",
@@ -232,6 +232,7 @@ cc_library(
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/synchronization",
         "@com_google_absl//absl/time",
+        "@com_google_absl//absl/types:span",
     ],
 )
 
