@@ -181,7 +181,7 @@ func remoteOpt() remote.Option {
 
 var releaseExamples = strings.Join(
 	[]string{
-		`Upload and release a skill image to the skill catalog:
+		`Upload and release a skill to the asset catalog:
   $ inctl skill release /path/to/skill.bundle.tar ...`,
 	},
 	"\n\n",
