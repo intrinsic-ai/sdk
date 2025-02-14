@@ -5,12 +5,12 @@ load("//bazel:go_macros.bzl", "go_library")
 go_library(
     name = "customer",
     srcs = [
-        "adduser.go",
         "clients.go",
         "customer.go",
         "organizations.go",
         "rolebindings.go",
         "roles.go",
+        "users.go",
     ],
     visibility = ["//intrinsic/tools/inctl:__pkg__"],
     deps = [
