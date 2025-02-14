@@ -11,7 +11,7 @@ package intrinsic_proto.data_logger;
 // particular execution of the skill. There can be multiple active Contexts in
 // the stack at a given layer at a time, for example if two skills are executing
 // concurrently.
-// Next ID: 11
+// Next ID: 12
 message Context {
   // Logging associated with operations to acquire a perception scene.
   optional string scene_id = 10;
@@ -48,4 +48,8 @@ message Context {
   // Check has_icon_session_id to distinguish between an unset action ID and an
   // actual action with ID==0.
   optional uint64 icon_action_id = 9;
+
+  // The visualization context this log item is associated with.
+  // Used for visualizing Intrinsic recordings.
+  optional uint64 visualization_context_id = 11;
 }

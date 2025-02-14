@@ -1,0 +1,121 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+// Messages for defining contextual data for visualizing Intrinsic recordings.
+//
+// All of the messages here are used to augment an Intrinsic recording with
+// extra information used for visualizations.
+//
+// They are generally recordings-only concepts and are not used for general
+// logging, even though they will be plugged into the logging pipelines as part
+// of recording creation and upload.
+syntax = "proto3";
+
+package intrinsic_proto.data_logger;
+
+import "intrinsic/geometry/proto/renderable.proto";
+import "intrinsic/logging/proto/blob.proto";
+import "intrinsic/world/proto/geometry_component.proto";
+
+// The world at time of requesting the recording.
+message VisualizationWorld {
+  // Either:
+  //   - The data itself or;
+  //   - A reference to the data, serialized as a blob.
+  oneof data {
+    BlobReference blob_reference = 2;
+  }
+}
+
+// A visualizable geometry in the world at time of requesting the recording.
+// A renderable geometry, with a fingerprint to identify it.
+message VisualizationGeometry {
+  // The fingerprint of the geometry to uniquely identify it.
+  //
+  // Use this to join with the geometry components in the
+  // VisualizationFrameResources, which contain references to visualizable
+  // geometries via their fingerprints, alongside further affine transformations
+  // to be applied.
+  string geometry_fingerprint = 1;
+
+  // Either:
+  //   - The data itself or;
+  //   - A reference to the data, serialized as a blob.
+  oneof data {
+    // We place the Renderable message in here so the descriptor data is
+    // included in the Intrinsic recording for visualization.
+    intrinsic_proto.geometry.Renderable renderable = 2;
+    BlobReference blob_reference = 3;
+  }
+}
+
+// The resources associated with a single ROS TF frame ID.
+message VisualizationFrameResources {
+  string fully_qualified_tf_frame = 1;
+
+  // The geometry component associated with this frame.
+  //
+  // Contains the geometry references and transformations, to be joined with
+  // the visualization geometries referenced in the VisualizationContext.
+  //
+  // Either:
+  //   - The data itself or;
+  //   - A reference to the data, serialized as a blob.
+  oneof data {
+    // We place the GeometryComponent message in here so the descriptor data is
+    // included in the Intrinsic recording for visualization.
+    intrinsic_proto.world.GeometryComponent geometry = 2;
+    BlobReference blob_reference = 3;
+  }
+}
+
+// Additional context for visualizing Intrinsic recordings.
+//
+// Some items contained in here are references to blobs in other LogItems that
+// should have been logged after the context is logged. Be sure to join them
+// with the `context.visualization_context_id` field.
+//
+// The information included in the context can be used throughout a recording,
+// such as:
+//   - World and entities
+//   - Renderable geometries
+//   - Mappings of ROS TF frames to fully qualified TF frames
+message VisualizationContext {
+  // The belief world at time of requesting the recording.
+  // Used to generate geometry mappings, amongst other things.
+  //
+  // NOTE:
+  //   Will be slightly desynchronized from the world at the start of the
+  //   recording.
+  //
+  //   To elaborate, Intrinsic recordings are a snapshot of some timerange of
+  //   logs, requested in some time after that timerange has passed.
+  //
+  //   For example:
+  //     0s (start) ----> 5s ----> 10s (end) --...--> REQUEST TIME.
+  //
+  //   The visualization context messages here are information gathered at time
+  //   of requesting the recording, which is necessarily in the future.
+  //
+  //   What we truly want is the world (and all related data) at 0s.
+  //   But since we cannot be saving the world every time because it will blow
+  //   up the on-prem disk storage, we instead substitute in the world at
+  //   recording request time (in the future).
+  //
+  //   This means that there is a potential desync between the world at 0s and
+  //   the world at request time.
+  VisualizationWorld world = 1;
+
+  // Mappings of geometry fingerprints to their corresponding visualization
+  // geometries.
+  //
+  // These differ from the geometries in VisualizationFrameResources in that
+  // the frame resource geometries contain transforms and references to these
+  // visualization context geometries.
+  map<string, VisualizationGeometry> geometries = 2;
+
+  // Mappings of ROS-style TF frames IDs to frame-related data.
+  //
+  // Used to interpret ROS TF messages in the recording and join them with
+  // data in the visualization context.
+  map<string, VisualizationFrameResources> frame_resources = 3;
+}

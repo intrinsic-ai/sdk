@@ -35,3 +35,21 @@ message Blob {
   // except when logging the blob itself (i.e.  in LogItem.blob_payload).
   bytes data = 2;
 }
+
+// All of the data that is needed to reference a blob in the cloud.
+message BlobReference {
+  string blob_id = 1;
+
+  // The cluster the blob originated from.
+  string workcell_name = 2;
+
+  // The organization ID prefixes the bucket that logs are uploaded into.
+  string organization_id = 3;
+
+  // The event source of the blob, if any.
+  //
+  // Used to further prefix the blob ID to prevent collisions between blobs from
+  // different event sources.
+  string event_source = 4;
+  optional string bag_id = 5;
+}

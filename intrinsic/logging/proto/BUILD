@@ -17,11 +17,13 @@ proto_library(
         ":context_proto",
         ":critical_event_log",
         ":flowstate_event",
+        ":visualization_context_proto",
         "//intrinsic/executive/proto:log_items_proto",
         "//intrinsic/icon/proto:cart_space_proto",
         "//intrinsic/icon/proto:joint_space_proto",
         "//intrinsic/icon/proto:part_status_proto",
         "//intrinsic/logging/errors/proto:error_report_proto",
+        "//intrinsic/math/proto:tf_message_proto",
         "//intrinsic/perception/proto:frame_proto",
         "//intrinsic/perception/proto:hand_eye_calibration",
         "//intrinsic/perception/proto:pose_estimation_result",
@@ -45,6 +47,7 @@ go_proto_library(
         ":bag_metadata_go_proto",
         ":critical_event_log_go_proto",
         ":flowstate_event_go_proto",
+        ":visualization_context_go_proto",
         "//intrinsic/executive/proto:log_items_go_proto",
         "//intrinsic/icon/proto:cart_space_go_proto",
         "//intrinsic/icon/proto:joint_space_go_proto",
@@ -54,6 +57,7 @@ go_proto_library(
         "//intrinsic/math/proto:point_go_proto",
         "//intrinsic/math/proto:quaternion_go_proto",
         "//intrinsic/math/proto:pose_go_proto",
+        "//intrinsic/math/proto:tf_message_go_proto",
         "//intrinsic/kinematics/proto:kinematics_go_proto",
         "//intrinsic/kinematics/proto:skeleton_go_proto",
         "//intrinsic/kinematics/types:joint_limits_go_proto",
@@ -287,6 +291,36 @@ py_proto_library(
     deps = [":pubsub_listener_service"],
 )
 
+proto_library(
+    name = "visualization_context_proto",
+    srcs = ["visualization_context.proto"],
+    deps = [
+        ":blob_proto",
+        "//intrinsic/geometry/proto:renderable_proto",
+        "//intrinsic/world/proto:geometry_component_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "visualization_context_cc_proto",
+    deps = [":visualization_context_proto"],
+)
+
+py_proto_library(
+    name = "visualization_context_py_pb2",
+    deps = [":visualization_context_proto"],
+)
+
+go_proto_library(
+    name = "visualization_context_go_proto",
+    go_deps = [
+        ":blob_go_proto",
+        "//intrinsic/geometry/proto:renderable_go_proto",
+        "//intrinsic/world/proto:geometry_component_go_proto",
+    ],
+    deps = [":visualization_context_proto"],
+)
+
 py_grpc_library(
     name = "pubsub_listener_service_py_pb2_grpc",
     srcs = [":pubsub_listener_service"],
@@ -332,6 +366,7 @@ py_grpc_library(
 go_proto_library(
     name = "log_dispatcher_service_go_proto",
     go_deps = [
+        ":bag_metadata_go_proto",
         ":blob_go_proto",
         ":log_item_go_proto",
     ],
