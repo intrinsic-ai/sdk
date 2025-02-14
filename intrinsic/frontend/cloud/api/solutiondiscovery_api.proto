@@ -4,7 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.frontend.v1;
 
-import "intrinsic/frontend/cloud/api/clusterdiscovery_api.proto";
+import "intrinsic/frontend/cloud/api/v1/clusterdiscovery_api.proto";
 
 // Details about a solution.
 message SolutionDescription {

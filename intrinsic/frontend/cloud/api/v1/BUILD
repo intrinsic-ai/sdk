@@ -13,6 +13,22 @@ package(default_visibility = [
 ])
 
 proto_library(
+    name = "clusterdiscovery_api_proto",
+    srcs = ["clusterdiscovery_api.proto"],
+)
+
+go_proto_library(
+    name = "clusterdiscovery_api_go_proto",
+    deps = [":clusterdiscovery_api_proto"],
+)
+
+go_grpc_library(
+    name = "clusterdiscovery_api_go_grpc_proto",
+    srcs = [":clusterdiscovery_api_proto"],
+    deps = [":clusterdiscovery_api_go_proto"],
+)
+
+proto_library(
     name = "clustermanager_api_proto",
     srcs = ["clustermanager_api.proto"],
     deps = [

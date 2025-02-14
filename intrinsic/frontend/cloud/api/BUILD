@@ -15,25 +15,9 @@ package(default_visibility = [
 ])
 
 proto_library(
-    name = "clusterdiscovery_api_proto",
-    srcs = ["clusterdiscovery_api.proto"],
-)
-
-go_proto_library(
-    name = "clusterdiscovery_api_go_proto",
-    deps = [":clusterdiscovery_api_proto"],
-)
-
-go_grpc_library(
-    name = "clusterdiscovery_api_go_grpc_proto",
-    srcs = [":clusterdiscovery_api_proto"],
-    deps = [":clusterdiscovery_api_go_proto"],
-)
-
-proto_library(
     name = "solutiondiscovery_api_proto",
     srcs = ["solutiondiscovery_api.proto"],
-    deps = [":clusterdiscovery_api_proto"],
+    deps = ["//intrinsic/frontend/cloud/api/v1:clusterdiscovery_api_proto"],
 )
 
 py_proto_library(
@@ -50,7 +34,7 @@ py_grpc_library(
 
 go_proto_library(
     name = "solutiondiscovery_api_go_proto",
-    go_deps = [":clusterdiscovery_api_go_proto"],
+    go_deps = ["//intrinsic/frontend/cloud/api/v1:clusterdiscovery_api_go_grpc_proto"],
     deps = [
         ":solutiondiscovery_api_proto",
     ],
@@ -60,8 +44,8 @@ go_grpc_library(
     name = "solutiondiscovery_api_go_grpc_proto",
     srcs = [":solutiondiscovery_api_proto"],
     deps = [
-        ":clusterdiscovery_api_go_grpc_proto",
         ":solutiondiscovery_api_go_proto",
+        "//intrinsic/frontend/cloud/api/v1:clusterdiscovery_api_go_grpc_proto",
     ],
 )
 
