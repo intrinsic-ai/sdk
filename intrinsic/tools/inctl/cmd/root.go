@@ -51,7 +51,6 @@ var (
 	// FlagOutput holds the value of the --output flag.
 	FlagOutput = printer.TextOutputFormat
 
-	// FlagPrintTrace prints the trace identifier to stderr on exit.
 )
 
 // RootCmd is the top level command of inctl.
@@ -95,6 +94,7 @@ func (e *executionContext) RewriteError(err error, cmdNames []string) string {
 			return fmt.Sprintf("%v\nThe GCP project given by --project is not reachable at the "+
 				"moment or is not valid.", err)
 		}
+
 	}
 
 	// Some commands don't have the --project flag as a hard requirement but have
