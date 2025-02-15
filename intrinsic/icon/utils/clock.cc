@@ -2,8 +2,7 @@
 
 #include "intrinsic/icon/utils/clock.h"
 
-#include <cstdio>
-#include <cstring>
+#include <cstdint>
 #include <ctime>
 #include <memory>
 #include <utility>

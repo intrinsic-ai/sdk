@@ -6,13 +6,10 @@
 #include <pthread.h>
 #include <sched.h>
 
-#include <algorithm>
 #include <atomic>
 #include <cstdio>
 #include <cstring>
-#include <iostream>
 #include <memory>
-#include <ostream>
 #include <thread>  // NOLINT(build/c++11)
 #include <utility>
 

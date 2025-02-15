@@ -19,10 +19,12 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "absl/types/span.h"
+#include "google/protobuf/struct.pb.h"
 #include "intrinsic/icon/testing/realtime_annotations.h"
 #include "intrinsic/icon/utils/log.h"
 #include "intrinsic/icon/utils/realtime_status.h"
 #include "intrinsic/icon/utils/realtime_status_macro.h"
+#include "intrinsic/performance/analysis/proto/performance_metrics.pb.h"
 #include "intrinsic/util/status/status_macros.h"
 
 namespace intrinsic::icon {

@@ -4,10 +4,10 @@
 
 #include <cinttypes>
 #include <cmath>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <ctime>
 #include <string>
 
 namespace intrinsic {

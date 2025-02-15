@@ -2,8 +2,6 @@
 
 #include "intrinsic/icon/utils/realtime_status.h"
 
-#include <algorithm>
-
 #include "absl/status/status.h"
 #include "absl/strings/string_view.h"
 #include "intrinsic/icon/utils/realtime_guard.h"
