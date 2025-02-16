@@ -4,8 +4,10 @@
 package bundleio
 
 import (
+	"errors"
 	"fmt"
 	"io"
+	"os"
 
 	"archive/tar"
 	"google.golang.org/protobuf/proto"
@@ -115,4 +117,54 @@ func readBinaryProto(r io.Reader, p proto.Message) error {
 	}
 
 	return nil
+}
+
+// BundleType is used to return the type of a bundle file.
+type BundleType int
+
+// The different bundle types that can be detected from a file.
+const (
+	BundleTypeSkill BundleType = iota
+	BundleTypeService
+)
+
+var (
+	errNoValidTypeDetected   = errors.New("no recognized manifest detected")
+	errMultipleTypesDetected = errors.New("unsupported bundle")
+)
+
+// DetectBundleType will return the type of bundle a file represents.  It does
+// not do any validation of the particular file, just provides an indication
+// what sort of processing should be done on the file.
+func DetectBundleType(path string) (BundleType, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return 0, fmt.Errorf("could not open %q: %v", path, err)
+	}
+	defer f.Close()
+
+	lookup := map[string]BundleType{
+		serviceManifestPathInTar:       BundleTypeService,
+		skillManifestPathInTar:         BundleTypeSkill,
+	}
+
+	var bt BundleType
+	var found int
+	if err := walkTarFile(tar.NewReader(f), map[string]handler{}, func(path string, _ io.Reader) error {
+		if val, ok := lookup[path]; ok {
+			found++
+			bt = val
+		}
+		return nil
+	}); err != nil {
+		return bt, err
+	}
+	switch found {
+	case 0:
+		return 0, errNoValidTypeDetected
+	case 1:
+		return bt, nil
+	default:
+		return 0, errMultipleTypesDetected
+	}
 }
