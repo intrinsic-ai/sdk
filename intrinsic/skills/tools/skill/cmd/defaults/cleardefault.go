@@ -48,7 +48,7 @@ func clearDefaultVersion(ctx context.Context, cmd *cobra.Command, id string) err
 	defer conn.Close()
 
 	if cmdFlags.GetFlagDryRun() {
-		log.Printf("Skipping call to skill catalog (dry-run)")
+		log.Printf("Skipping call to asset catalog (dry-run)")
 	} else if _, err := acgrpcpb.NewAssetCatalogClient(conn).ClearDefault(ctx, req); err != nil {
 		return fmt.Errorf("could not clear the default version for skill %q: %v", id, err)
 	} else {

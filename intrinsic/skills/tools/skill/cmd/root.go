@@ -12,5 +12,5 @@ import (
 var SkillCmd = &cobra.Command{
 	Use:   root.SkillCmdName,
 	Short: "Manages skills",
-	Long:  "Manages skills in a workcell, in a local repository or in the skill catalog",
+	Long:  "Manages skills in a workcell, in a local repository or in the asset catalog",
 }
