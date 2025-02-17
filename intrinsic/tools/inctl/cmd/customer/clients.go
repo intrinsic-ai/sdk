@@ -34,7 +34,7 @@ func authFromVipr() (string, string) {
 }
 
 // Aliases for convenience
-var newResourceManagerV1Client = func(ctx context.Context) (resourceManagerV1Client, error) {
+var newresourcemanagerClient = func(ctx context.Context) (resourcemanagerClient, error) {
 	env, org := authFromVipr()
 	return newSecureAccountsResourceManagerAPIKeyClient(ctx, env, org)
 }
@@ -45,7 +45,7 @@ var newAccessControlV1Client = func(ctx context.Context) (accessControlV1Client,
 }
 
 // Aliases for convenience
-type resourceManagerV1Client = accresourcemanagergrpcpb.ResourceManagerServiceClient
+type resourcemanagerClient = accresourcemanagergrpcpb.ResourceManagerServiceClient
 type accessControlV1Client = accaccesscontrolgrpcpb.AccessControlServiceClient
 
 func newSecureAccountsAccessControlAPIKeyClient(ctx context.Context, env, org string) (accaccesscontrolgrpcpb.AccessControlServiceClient, error) {

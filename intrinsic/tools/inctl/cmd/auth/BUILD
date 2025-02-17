@@ -16,7 +16,7 @@ go_library(
     ],
     deps = [
         "//intrinsic/config:environments",
-        "//intrinsic/kubernetes/accounts/service/api:discoveryv1api_go_grpc_proto",
+        "//intrinsic/kubernetes/accounts/service/api/v1:discoveryapi_go_grpc_proto",
         "//intrinsic/skills/tools/skill/cmd:dialerutil",
         "//intrinsic/tools/inctl/auth",
         "//intrinsic/tools/inctl/cmd:root",

@@ -19,7 +19,7 @@ import (
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/orgutil"
 
-	accdiscoverv1grpcpb "intrinsic/kubernetes/accounts/service/api/discoveryv1api_go_grpc_proto"
+	accdiscoverv1grpcpb "intrinsic/kubernetes/accounts/service/api/v1/discoveryapi_go_grpc_proto"
 )
 
 var (

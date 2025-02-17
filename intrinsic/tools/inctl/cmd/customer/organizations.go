@@ -47,7 +47,7 @@ var createCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
 		ctx = withOrgID(ctx)
-		cl, err := newResourceManagerV1Client(ctx)
+		cl, err := newresourcemanagerClient(ctx)
 		if err != nil {
 			return err
 		}
