@@ -4,6 +4,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "intrinsic/eigenmath/types.h"
 #include "intrinsic/kinematics/validate_link_parameters.h"
 #include "intrinsic/math/almost_equals.h"
 #include "intrinsic/math/inertia_utils.h"
