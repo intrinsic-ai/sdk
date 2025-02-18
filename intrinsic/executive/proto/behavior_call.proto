@@ -28,6 +28,14 @@ message BehaviorCall {
   google.protobuf.Any parameters = 3;
   message ParameterAssignment {
     oneof target {
+      // Proto field path into the parameters message. Examples of supported
+      // path syntax:
+      // - Top-level field: "target_pose"
+      // - Nested field: "target_pose.position.x"
+      // - Repeated field: "target_poses[3]" or "target_poses[3].position"
+      // - Append to repeated field: "target_poses[*]" ([*] is only allowed in
+      //   the last path element, i.e., after the last ".")
+      // Map fields are not supported.
       string parameter_path = 1;
     }
     oneof source {
