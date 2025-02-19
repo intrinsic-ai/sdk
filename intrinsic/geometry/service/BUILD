@@ -146,8 +146,3 @@ go_proto_library(
     ],
     deps = [":transformed_geometry_storage_refs_proto"],
 )
-
-exports_files(
-    srcs = ["geomservice.yaml"],
-    visibility = ["//intrinsic:__subpackages__"],
-)
