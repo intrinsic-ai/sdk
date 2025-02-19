@@ -178,9 +178,11 @@ absl::StatusOr<std::shared_ptr<::grpc::Channel>> CreateClientChannel(
     const absl::string_view address, absl::Time deadline,
     const ::grpc::ChannelArguments& channel_args,
     bool use_default_application_credentials) {
-  LOG(INFO) << "Connecting to " << address;
-  absl::Status status =
-      absl::DeadlineExceededError("Deadline in past in CreateClientChannel");
+  LOG(INFO) << "Connecting to " << address << " (timeout "
+            << (deadline - absl::Now()) << ")";
+  absl::Status status = absl::DeadlineExceededError(absl::StrFormat(
+      "Deadline in past in CreateClientChannel while connecting to %s",
+      address));
   while (absl::Now() < deadline) {
     std::shared_ptr<::grpc::Channel> channel;
     if (use_default_application_credentials) {
@@ -206,7 +208,7 @@ absl::StatusOr<std::shared_ptr<::grpc::Channel>> CreateClientChannel(
       // use a short timeout to allow time to retry after.
       status = CheckChannelHealth(channel, /*timeout=*/absl::Seconds(1));
       if (!status.ok()) {
-        LOG(ERROR) << "Unhealthy channel: " << status;
+        LOG(ERROR) << "Unhealthy channel for " << address << ": " << status;
         continue;
       }
     }
@@ -215,6 +217,7 @@ absl::StatusOr<std::shared_ptr<::grpc::Channel>> CreateClientChannel(
     return channel;
   }
 
+  LOG(ERROR) << "Failed to connect to " << address << ": " << status;
   return status;
 }
 
