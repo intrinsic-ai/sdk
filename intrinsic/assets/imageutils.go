@@ -330,45 +330,6 @@ func ReadImage(imagePath string) (containerregistry.Image, error) {
 	return image, nil
 }
 
-// InstallContainerParams holds parameters for InstallContainer.
-type InstallContainerParams struct {
-	Address    string
-	Connection *grpc.ClientConn
-	Request    *installerpb.InstallContainerAddonRequest
-}
-
-// InstallContainer uses the installer service to install a new container.
-func InstallContainer(ctx context.Context, params *InstallContainerParams) error {
-
-	client := installerservicegrpcpb.NewInstallerServiceClient(params.Connection)
-	_, err := client.InstallContainerAddon(ctx, params.Request)
-	if status.Code(err) == codes.Unimplemented {
-		return fmt.Errorf("installer service not implemented at server side (is it running and accessible at %s?): %v", params.Address, err)
-	} else if err != nil {
-		return fmt.Errorf("InstallContainerAddon failed: %v", err)
-	}
-
-	return nil
-}
-
-// InstallContainers uses the installer service to install multiple new containers.
-func InstallContainers(ctx context.Context, requests []*installerpb.InstallContainerAddonRequest, address string, conn *grpc.ClientConn) error {
-	client := installerservicegrpcpb.NewInstallerServiceClient(conn)
-
-	req := &installerpb.InstallContainerAddonsRequest{
-		Requests: requests,
-	}
-
-	_, err := client.InstallContainerAddons(ctx, req)
-	if status.Code(err) == codes.Unimplemented {
-		return fmt.Errorf("installer service not implemented at server side (is it running and accessible at %s?): %v", address, err)
-	} else if err != nil {
-		return fmt.Errorf("InstallContainerAddons failed: %v", err)
-	}
-
-	return nil
-}
-
 // RemoveContainerParams holds parameters for RemoveContainer.
 type RemoveContainerParams struct {
 	Address    string
