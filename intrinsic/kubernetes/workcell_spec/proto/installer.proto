@@ -148,6 +148,10 @@ service InstallerService {
   // Blocks for up to 1s.
   rpc GetInstalledSpec(google.protobuf.Empty)
       returns (GetInstalledSpecResponse) {
+    // This rpc is deprecated and will be removed in the future. Use
+    // SolutionService.GetStatus() instead.
+    option deprecated = true;
+
     // errors: NOT_FOUND if no workcell spec has been installed yet
   }
 
