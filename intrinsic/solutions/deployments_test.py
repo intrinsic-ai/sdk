@@ -82,7 +82,7 @@ class DeploymentsTest(absltest.TestCase):
         grpc_channel_or_hostport=channel,
     )
     mock_create_channel.assert_not_called()
-    mock_for_channel.assert_called_with(channel, options=None)
+    mock_for_channel.assert_called_with(channel)
 
   @mock.patch.object(deployments.Solution, "for_channel")
   @mock.patch.object(dialerutil, "create_channel")
@@ -99,7 +99,7 @@ class DeploymentsTest(absltest.TestCase):
         grpc_channel=channel,
     )
     mock_create_channel.assert_not_called()
-    mock_for_channel.assert_called_with(channel, options=None)
+    mock_for_channel.assert_called_with(channel)
 
   @mock.patch.object(deployments.Solution, "for_channel")
   @mock.patch.object(dialerutil, "create_channel")

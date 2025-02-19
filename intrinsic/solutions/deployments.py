@@ -20,7 +20,7 @@ import enum
 import inspect
 import os
 import sys
-from typing import Any, Dict, Optional, Union
+from typing import Optional, Union
 import warnings
 
 from google.protobuf import empty_pb2
@@ -176,25 +176,18 @@ class Solution:
   def for_channel(
       cls,
       grpc_channel: grpc.Channel,
-      *,
-      options: Optional[Dict[str, Any]] = None,
   ) -> "Solution":
     """Creates a Solution for the given channel and options.
 
     Args:
       grpc_channel: gRPC channel to the cluster which hosts the deployed
         solution.
-      options: An optional Dict[str, Any] containing additional options. See
-        'deployments.connect()' for available values.
 
     Returns:
       A fully initialized Workcell instance.
     """
 
     print("Connecting to deployed solution...")
-
-    if options is None:
-      options = {}
 
     installer_stub = installer_pb2_grpc.InstallerServiceStub(grpc_channel)
     try:
@@ -376,7 +369,6 @@ def connect(
     org: Optional[str] = None,
     solution: Optional[str] = None,
     cluster: Optional[str] = None,
-    options: Optional[Dict[str, Any]] = None,
 ) -> "Solution":
   # pyformat: disable
   """Connects to a deployed solution.
@@ -388,7 +380,6 @@ def connect(
     org: Organization of the solution to connect to.
     solution: Id (not display name!) of the solution to connect to.
     cluster: Name of cluster to connect to (instead of specifying 'solution').
-    options: An optional Dict[str, Any] containing additional options.
 
   Raises:
     ValueError: if parameter combination is incorrect.
@@ -428,7 +419,7 @@ def connect(
         cluster=cluster,
     )
 
-  return Solution.for_channel(channel, options=options)
+  return Solution.for_channel(channel)
 
 
 _NO_SOLUTION_SELECTED_ERROR = (
@@ -437,19 +428,13 @@ _NO_SOLUTION_SELECTED_ERROR = (
 )
 
 
-def connect_to_selected_solution(
-    *,
-    options: Optional[Dict[str, Any]] = None,
-) -> "Solution":
+def connect_to_selected_solution() -> "Solution":
   """Connects to the deployed solution that is currently selected.
 
   Connects to the deployed solution that is selected in the current environment.
   E.g., in VS Code you can use the Intrinsic extension to select a deployed
   solution from a list of available solutions and then use this method to
   connect to this solution.
-
-  Args:
-    options: Same as for connect().
 
   Raises:
     NotFoundError: If no solution selection can be found in the current
@@ -467,7 +452,7 @@ def connect_to_selected_solution(
       config.get(userconfig.SELECTED_SOLUTION_TYPE, None)
       == userconfig.SELECTED_SOLUTION_TYPE_LOCAL
   ):
-    return connect(options=options)
+    return connect()
 
   # If we reach this point, config.get(userconfig.SELECTED_SOLUTION_TYPE) is
   # either None or userconfig.SELECTED_SOLUTION_TYPE_REMOTE. For backward
@@ -485,7 +470,7 @@ def connect_to_selected_solution(
         _NO_SOLUTION_SELECTED_ERROR + " No solution selected."
     )
 
-  return connect(org=selected_org, solution=selected_solution, options=options)
+  return connect(org=selected_org, solution=selected_solution)
 
 
 def create_grpc_channel(
