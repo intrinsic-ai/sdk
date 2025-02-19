@@ -6,6 +6,7 @@ package intrinsic_proto.scene_object.v1;
 
 import "intrinsic/kinematics/types/joint_limits.proto";
 import "intrinsic/math/proto/pose.proto";
+import "intrinsic/scene/proto/v1/collision_rules.proto";
 import "intrinsic/scene/proto/v1/object_properties.proto";
 
 // Similar to SceneObjectUpdate but restricted in the types of updates that can
@@ -21,6 +22,7 @@ message SceneObjectInstanceUpdate {
     UpdateJointsRequest update_joints = 5;
     CartesianLimitsUpdate cartesian_limits = 6;
     RenameEntityUpdate rename_entity = 7;
+    UpdateCollisionRules update_collision_rules = 8;
   }
 }
 
@@ -133,4 +135,38 @@ message RenameEntityUpdate {
 
   // The new name to give the entity.
   string new_entity_name = 2;
+}
+
+// Apply the given update to the collision rules.
+message UpdateCollisionRules {
+  // The policy to use when updating the given rule.
+  enum UpdateCollisionRulesPolicy {
+    // Same as POLICY_APPEND.
+    POLICY_UNSPECIFIED = 0;
+    // Append the new rule to the end of the existing rules.
+    POLICY_APPEND = 1;
+    // Similar to POLICY_REPLACE but if there is no match then
+    // append the new rule to the end of the existing rule set. If multiple
+    // rules match then they will all be updated.
+    POLICY_REPLACE_OR_APPEND = 2;
+    // Remove the rules that match their entity fields. If multiple rules match
+    // then they will all be removed.
+    POLICY_REMOVE = 3;
+    // Clear any existing rules within the respective rule set and replace them
+    // with the rules specified here. If the specified rule is a margin rule,
+    // all margin rules will be removed, if the specified rule is an exclusion
+    // rule, all exclusion rules will be removed before appending the new rule.
+    POLICY_CLEAR_AND_REPLACE = 4;
+    // Clear all existing rules. Ignores the rule field specified below.
+    POLICY_CLEAR_ALL = 5;
+  }
+
+  // The policy to use when updating the given rule.
+  UpdateCollisionRulesPolicy policy = 1;
+
+  // The rule to use with the given policy for updating the collision rules.
+  oneof rule {
+    CollisionMarginRule margin_rule = 3;
+    CollisionExclusionRule exclusion_rule = 4;
+  }
 }
