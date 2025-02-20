@@ -4,8 +4,6 @@ syntax = "proto3";
 
 package intrinsic_proto.assets.v1;
 
-import "intrinsic/assets/proto/id.proto";
-
 // A directed acyclic graph of assets.
 message AssetGraph {
   // A map from node names to asset nodes.
@@ -20,8 +18,11 @@ message AssetGraph {
 
 // A node in an AssetGraph.
 message AssetNode {
-  // The ID of the asset, which is defined elsewhere.
-  intrinsic_proto.assets.Id id = 1;
+  // The ID of the asset assigned to this node. The asset itself is defined
+  // elsewhere. E.g., if this graph is part of a HardwareDeviceManifest, then
+  // this value corresponds to the key of the asset in the
+  // HardwareDeviceManifest.assets map.
+  string asset = 1;
 }
 
 // An edge between two asset nodes in an AssetGraph.

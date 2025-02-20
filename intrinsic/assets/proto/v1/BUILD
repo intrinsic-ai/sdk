@@ -9,7 +9,6 @@ proto_library(
     name = "asset_graph_proto",
     srcs = ["asset_graph.proto"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = ["//intrinsic/assets/proto:id_proto"],
 )
 
 cc_proto_library(
@@ -26,9 +25,6 @@ py_proto_library(
 
 go_proto_library(
     name = "asset_graph_go_proto",
-    go_deps = [
-        "//intrinsic/assets/proto:id_go_proto",
-    ],
     visibility = ["//intrinsic:public_api_users"],
     deps = [":asset_graph_proto"],
 )
