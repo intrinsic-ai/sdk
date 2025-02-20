@@ -107,6 +107,11 @@ func NewIDVersionParts(idVersion string) (*IDVersionParts, error) {
 	}, nil
 }
 
+// NewIDVersionPartsFromProto creates a new IDVersionParts from an IdVersion proto.
+func NewIDVersionPartsFromProto(idVersion *idpb.IdVersion) (*IDVersionParts, error) {
+	return NewIDVersionParts(IDVersionFromProtoUnchecked(idVersion))
+}
+
 // ID returns the id part of id_version.
 func (p *IDVersionParts) ID() string {
 	return p.id
