@@ -6,7 +6,10 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "absl/strings/str_cat.h"
 #include "google/protobuf/duration.pb.h"
+#include "intrinsic/icon/proto/joint_space.pb.h"
 
 namespace intrinsic {
 
