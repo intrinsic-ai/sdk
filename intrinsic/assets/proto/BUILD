@@ -6,6 +6,30 @@ load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
 
 proto_library(
+    name = "field_metadata_proto",
+    srcs = ["field_metadata.proto"],
+    visibility = ["//intrinsic:__subpackages__"],
+    deps = ["@com_google_protobuf//:descriptor_proto"],
+)
+
+cc_proto_library(
+    name = "field_metadata_cc_proto",
+    visibility = ["//intrinsic:__subpackages__"],
+    deps = [":field_metadata_proto"],
+)
+
+go_proto_library(
+    name = "field_metadata_go_proto",
+    visibility = ["//intrinsic:__subpackages__"],
+    deps = [":field_metadata_proto"],
+)
+
+py_proto_library(
+    name = "field_metadata_py_pb2",
+    deps = [":field_metadata_proto"],
+)
+
+proto_library(
     name = "asset_tag_proto",
     srcs = ["asset_tag.proto"],
     visibility = ["//intrinsic:__subpackages__"],
