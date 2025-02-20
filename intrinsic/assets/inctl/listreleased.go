@@ -75,7 +75,7 @@ func GetCommand() *cobra.Command {
 		},
 	}
 	flags.SetCommand(cmd)
-	flags.AddFlagAssetTypes()
+	flags.AddFlagAssetTypes("")
 
 	return cmd
 }

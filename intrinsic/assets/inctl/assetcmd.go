@@ -19,7 +19,7 @@ var assetCmd = &cobra.Command{
 }
 
 func init() {
-	assetCmd.AddCommand(list.GetCommand())
+	assetCmd.AddCommand(list.GetCommand(""))
 	assetCmd.AddCommand(listreleased.GetCommand())
 	assetCmd.AddCommand(listreleasedversions.GetCommand())
 	assetCmd.AddCommand(uninstall.GetCommand())

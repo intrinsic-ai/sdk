@@ -27,7 +27,7 @@ const (
 var allOutputTypes = []outputType{outputTypeID, outputTypeIDVersion}
 
 // GetCommand returns the command to list installed assets in a cluster.
-func GetCommand() *cobra.Command {
+func GetCommand(defaultTypes string) *cobra.Command {
 	flags := cmdutils.NewCmdFlags()
 
 	cmd := &cobra.Command{
@@ -103,7 +103,7 @@ func GetCommand() *cobra.Command {
 	}
 
 	flags.SetCommand(cmd)
-	flags.AddFlagAssetTypes()
+	flags.AddFlagAssetTypes(defaultTypes)
 	flags.AddFlagsAddressClusterSolution()
 	flags.AddFlagsProjectOrg()
 	flags.OptionalString(keyOutputType, "id", fmt.Sprintf("The output type of the list command. One of: %v.", allOutputTypes))

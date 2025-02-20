@@ -11,10 +11,10 @@ go_library(
         ":add",
         ":delete",
         ":install",
-        ":list",
         ":listreleased",
         ":listreleasedversions",
         ":release",
+        "//intrinsic/assets/inctl:list",
         "//intrinsic/assets/inctl:uninstall",
         "//intrinsic/tools/inctl/cmd:root",
         "@com_github_spf13_cobra//:go_default_library",
@@ -67,20 +67,6 @@ go_library(
         "@com_github_spf13_cobra//:go_default_library",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
         "@org_golang_google_grpc//status:go_default_library",
-    ],
-)
-
-go_library(
-    name = "list",
-    srcs = ["list.go"],
-    deps = [
-        "//intrinsic/assets:clientutils",
-        "//intrinsic/assets:cmdutils",
-        "//intrinsic/assets:idutils",
-        "//intrinsic/assets/proto:asset_type_go_proto",
-        "//intrinsic/assets/proto:installed_assets_go_grpc_proto",
-        "//intrinsic/util/go:pointer",
-        "@com_github_spf13_cobra//:go_default_library",
     ],
 )
 

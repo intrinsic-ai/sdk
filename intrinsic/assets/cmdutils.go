@@ -124,14 +124,14 @@ func (cf *CmdFlags) SetCommand(cmd *cobra.Command) {
 }
 
 // AddFlagAssetTypes adds a flag for an optional list of asset types.
-func (cf *CmdFlags) AddFlagAssetTypes() {
+func (cf *CmdFlags) AddFlagAssetTypes(defaultTypes string) {
 	types := typeutils.AllAssetTypes()
 	names := make([]string, len(types))
 	for i, t := range types {
 		names[i] = typeutils.NameFromAssetType(t)
 	}
 
-	cf.OptionalString(KeyAssetTypes, "", fmt.Sprintf("A comma-separated list of asset types (choose from: %v).", strings.Join(names, ", ")))
+	cf.OptionalString(KeyAssetTypes, defaultTypes, fmt.Sprintf("A comma-separated list of asset types (choose from: %v).", strings.Join(names, ", ")))
 }
 
 // GetFlagAssetTypes gets the (enum) values of the asset types flag added by AddFlagAssetTypes.
