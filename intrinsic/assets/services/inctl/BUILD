@@ -15,7 +15,7 @@ go_library(
         ":listreleased",
         ":listreleasedversions",
         ":release",
-        ":uninstall",
+        "//intrinsic/assets/inctl:uninstall",
         "//intrinsic/tools/inctl/cmd:root",
         "@com_github_spf13_cobra//:go_default_library",
     ],
@@ -81,21 +81,6 @@ go_library(
         "//intrinsic/assets/proto:installed_assets_go_grpc_proto",
         "//intrinsic/util/go:pointer",
         "@com_github_spf13_cobra//:go_default_library",
-    ],
-)
-
-go_library(
-    name = "uninstall",
-    srcs = ["uninstall.go"],
-    deps = [
-        "//intrinsic/assets:clientutils",
-        "//intrinsic/assets:cmdutils",
-        "//intrinsic/assets:idutils",
-        "//intrinsic/assets/proto:id_go_proto",
-        "//intrinsic/assets/proto:installed_assets_go_grpc_proto",
-        "@com_github_spf13_cobra//:go_default_library",
-        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
-        "@org_golang_google_grpc//status:go_default_library",
     ],
 )
 
