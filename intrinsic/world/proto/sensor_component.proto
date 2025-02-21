@@ -41,6 +41,7 @@ message SensorComponent {
     enum Type {
       TYPE_UNSPECIFIED = 0;
       TYPE_GAUSSIAN = 1;
+      TYPE_GAUSSIAN_QUANTIZED = 2;
     }
 
     // The type of noise.
@@ -51,6 +52,20 @@ message SensorComponent {
 
     // The standard deviation of the noise model distribution.
     double stddev = 3;
+
+    // See http://sdformat.org/spec?ver=1.12&elem=sensor#x_noise for details
+    // about these variables.
+    double bias_mean = 4;
+    double bias_stddev = 5;
+    double dynamic_bias_stddev = 6;
+    double dynamic_bias_correlation_time = 7;
+    double precision = 8;
+  }
+
+  message Noise3D {
+    Noise x = 1;
+    Noise y = 2;
+    Noise z = 3;
   }
 
   message Intrinsics {
@@ -170,6 +185,9 @@ message SensorComponent {
 
     // If present, the ForceTorqueDevicePlugin is enabled.
     ForceTorqueDevicePluginSpec force_torque_device_plugin = 3;
+
+    Noise3D force_noise = 4;
+    Noise3D torque_noise = 5;
   }
 
   message Scan {
