@@ -7,10 +7,7 @@ import html
 from typing import Any, List, Sequence
 
 from google.longrunning import operations_pb2
-from google.protobuf import empty_pb2
 from google.rpc import code_pb2
-from intrinsic.kubernetes.workcell_spec.proto import installer_pb2
-from intrinsic.kubernetes.workcell_spec.proto import installer_pb2_grpc
 from intrinsic.logging.errors.proto import error_report_pb2
 from intrinsic.solutions import errors as solutions_errors
 from intrinsic.solutions import ipython
@@ -256,23 +253,17 @@ class ErrorInstance:
 class ErrorGroup:
   """List of error summaries with utilities.
 
-  Attributes: errors
-    workcell_health_issue: Empty if the workcell was healthy when this object
-      was constructed, otherwise a description of the health status.
+  Attributes:
+    errors: List of ErrorInstance objects.
   """
 
-  def __init__(
-      self, errors: List[ErrorInstance], workcell_health_issue: str = ''
-  ):
+  def __init__(self, errors: List[ErrorInstance]):
     """Constructs an ErrorGroup object.
 
     Args:
       errors: List of ErrorInstance objects.
-      workcell_health_issue: Empty if the workcell is healthy when this object
-        is constructed, otherwise a description of the health status.
     """
     self._errors: List[ErrorInstance] = errors
-    self.workcell_health_issue: str = workcell_health_issue
 
   def __str__(self) -> str:
     return self.summary
@@ -289,8 +280,6 @@ class ErrorGroup:
       String representing the summary view
     """
     result = ''
-    if self.workcell_health_issue:
-      result += self.workcell_health_issue
     if not self.errors:
       result += NO_ERROR_FOUND_MSG
     else:
@@ -354,7 +343,6 @@ class ErrorGroup:
       body = f"""
  <fieldset>
  {_ERROR_INTRO_HTML}
- {html.escape(self.workcell_health_issue)}
  {"".join(errors_repr)}
  </fieldset>
  {_COLLAPSIBLE_SCRIPT_HTML}
@@ -375,19 +363,6 @@ class ErrorsLoader:
   components at runtime and then returned by the Executive as part of a failed
   operation.
   """
-
-  def __init__(
-      self,
-      installer_service_stub: installer_pb2_grpc.InstallerServiceStub,
-  ):
-    """Constructs an Entity object.
-
-    Args:
-      installer_service_stub: Installer service to check the workcell health.
-    """
-    self._installer_service_stub: installer_pb2_grpc.InstallerServiceStub = (
-        installer_service_stub
-    )
 
   def extract_error_data(
       self, failed_operation: operations_pb2.Operation
@@ -414,43 +389,4 @@ class ErrorsLoader:
             ErrorInstance(error_report)
             for error_report in error_reports.error_reports
         ],
-        workcell_health_issue=self._load_workcell_health(),
-    )
-
-  def _load_workcell_health(self) -> str:
-    """Loads the workcell health and returns an error message if not healthy.
-
-    No retries, to avoid blocking the summary of errors.
-
-    Returns:
-      Empty if healthy, description otherwise.
-    """
-    try:
-      response = self._installer_service_stub.GetInstalledSpec(
-          empty_pb2.Empty()
-      )
-      error_reason = ''
-      if isinstance(response.error_reason, str) and response.error_reason:
-        error_reason = '\n\tError reason: ' + response.error_reason
-      if response.status == installer_pb2.GetInstalledSpecResponse.HEALTHY:
-        return ''
-      elif response.status == installer_pb2.GetInstalledSpecResponse.PENDING:
-        return (
-            'WORKCELL NOT HEALTHY: Workcell backends not healthy now but '
-            'expected to become healthy again automatically.'
-            + error_reason
-            + '\n'
-        )
-      elif response.status == installer_pb2.GetInstalledSpecResponse.ERROR:
-        return (
-            'WORKCELL NOT HEALTHY: Workcell backend is unhealthy and not '
-            'expected to recover without intervention. Try restarting your '
-            'app.'
-            + error_reason
-            + '\n'
-        )
-    except Exception:  # pylint: disable=broad-except
-      return 'WORKCELL HEALTH UNKNOWN: Could not load the workcell status.\n'
-    return (
-        'WORKCELL HEALTH UNKNOWN: Unknown health status of workcell detected.\n'
     )

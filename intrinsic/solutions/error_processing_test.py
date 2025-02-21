@@ -7,9 +7,7 @@ from unittest import mock
 
 from absl.testing import absltest
 from google.longrunning import operations_pb2
-from google.protobuf import empty_pb2
 from google.protobuf import text_format
-from intrinsic.kubernetes.workcell_spec.proto import installer_pb2
 from intrinsic.logging.errors.proto import error_report_pb2
 from intrinsic.solutions import error_processing
 from intrinsic.solutions.testing import compare
@@ -21,13 +19,7 @@ class ErrorProcessingTest(absltest.TestCase):
   def setUp(self):
     super().setUp()
 
-    installer_stub = mock.MagicMock()
-    installer_service_response = installer_pb2.GetInstalledSpecResponse
-    installer_service_response.status = (
-        installer_pb2.GetInstalledSpecResponse.HEALTHY
-    )
-    installer_stub.GetInstalledSpec.return_value = installer_service_response
-    self._error_module = error_processing.ErrorsLoader(installer_stub)
+    self._error_module = error_processing.ErrorsLoader()
 
   def _create_failed_operation(self, error_reports=None):
     operation = operations_pb2.Operation(done=True)
@@ -68,141 +60,6 @@ class ErrorProcessingTest(absltest.TestCase):
     compare.assertProto2Equal(
         self, error_group.errors[1].error_report_proto, error_report
     )
-
-  def test_extract_errors_with_unhealthy_workcell(self):
-    """Tests that unhealthy (pending) workcell is detected."""
-    installer_stub = mock.MagicMock()
-    installer_service_response = installer_pb2.GetInstalledSpecResponse
-    installer_service_response.status = (
-        installer_pb2.GetInstalledSpecResponse.PENDING
-    )
-    installer_stub.GetInstalledSpec.return_value = installer_service_response
-    operation = self._create_failed_operation()
-
-    error_module = error_processing.ErrorsLoader(
-        installer_service_stub=installer_stub
-    )
-    error_group = error_module.extract_error_data(operation)
-
-    expected_substring = 'expected to become healthy again automatically'
-    self.assertRegex(error_group.workcell_health_issue, expected_substring)
-    self.assertRegex(error_group.summary, expected_substring)
-    self.assertRegex(error_group._repr_html_(), expected_substring)
-    installer_stub.GetInstalledSpec.assert_called_once_with(empty_pb2.Empty())
-
-  def test_extract_errors_with_not_recoverable_workcell(self):
-    """Tests that unhealthy (not recoverable) workcell is detected."""
-    installer_stub = mock.MagicMock()
-    installer_service_response = installer_pb2.GetInstalledSpecResponse
-    installer_service_response.status = (
-        installer_pb2.GetInstalledSpecResponse.ERROR
-    )
-    installer_stub.GetInstalledSpec.return_value = installer_service_response
-    operation = self._create_failed_operation()
-
-    error_module = error_processing.ErrorsLoader(
-        installer_service_stub=installer_stub
-    )
-    error_group = error_module.extract_error_data(operation)
-
-    expected_substring = 'Try restarting'
-    self.assertRegex(error_group.workcell_health_issue, expected_substring)
-    installer_stub.GetInstalledSpec.assert_called_once_with(empty_pb2.Empty())
-
-  def test_extract_errors_with_unavailable_workcell_status(self):
-    """Tests that oes not crash on unavailable installer service."""
-    installer_stub = mock.MagicMock()
-    installer_stub.GetInstalledSpec.side_effect = Exception('not available')
-    operation = self._create_failed_operation()
-
-    error_module = error_processing.ErrorsLoader(
-        installer_service_stub=installer_stub
-    )
-    error_group = error_module.extract_error_data(operation)
-
-    expected_substring = 'Could not load the workcell status'
-    self.assertRegex(error_group.workcell_health_issue, expected_substring)
-    installer_stub.GetInstalledSpec.assert_called_once_with(empty_pb2.Empty())
-
-  def test_extract_errors_with_unknown_workcell_status(self):
-    """Tests that unknown workcell status is documented."""
-    installer_stub = mock.MagicMock()
-    installer_service_response = installer_pb2.GetInstalledSpecResponse
-    installer_service_response.status = (
-        installer_pb2.GetInstalledSpecResponse.UNKNOWN
-    )
-    installer_stub.GetInstalledSpec.return_value = installer_service_response
-    operation = self._create_failed_operation()
-
-    error_module = error_processing.ErrorsLoader(
-        installer_service_stub=installer_stub
-    )
-    error_group = error_module.extract_error_data(operation)
-
-    self.assertRegex(error_group.workcell_health_issue, 'Unknown')
-    installer_stub.GetInstalledSpec.assert_called_once_with(empty_pb2.Empty())
-
-  def test_extract_errors_with_healthy_workcell(self):
-    """Tests that healthy workcell is detected."""
-    installer_stub = mock.MagicMock()
-    installer_service_response = installer_pb2.GetInstalledSpecResponse
-    installer_service_response.status = (
-        installer_pb2.GetInstalledSpecResponse.HEALTHY
-    )
-    installer_stub.GetInstalledSpec.return_value = installer_service_response
-    operation = self._create_failed_operation()
-
-    error_module = error_processing.ErrorsLoader(
-        installer_service_stub=installer_stub
-    )
-    error_group = error_module.extract_error_data(operation)
-
-    self.assertEmpty(error_group.workcell_health_issue)
-    self.assertNotRegex(error_group.summary, 'WORKCELL NOT HEALTHY')
-    self.assertNotRegex(error_group._repr_html_(), 'WORKCELL NOT HEALTHY')
-    installer_stub.GetInstalledSpec.assert_called_once_with(empty_pb2.Empty())
-
-  def test_handle_empty_error_reason(self):
-    """Tests that healthy workcell is detected."""
-    installer_stub = mock.MagicMock()
-    installer_service_response = installer_pb2.GetInstalledSpecResponse
-    installer_service_response.status = (
-        installer_pb2.GetInstalledSpecResponse.PENDING
-    )
-    # Here, we inject an empty string.
-    installer_service_response.error_reason = ''
-    installer_stub.GetInstalledSpec.return_value = installer_service_response
-    operation = self._create_failed_operation()
-
-    error_module = error_processing.ErrorsLoader(
-        installer_service_stub=installer_stub
-    )
-    error_group = error_module.extract_error_data(operation)
-
-    # Validate that an empty 'error_reason' is not surfaced.
-    undesired_match = 'Error reason: '
-    self.assertNotRegex(error_group.workcell_health_issue, undesired_match)
-
-  def test_handle_error_reason(self):
-    """Tests that healthy workcell is detected."""
-    installer_stub = mock.MagicMock()
-    installer_service_response = installer_pb2.GetInstalledSpecResponse
-    installer_service_response.status = (
-        installer_pb2.GetInstalledSpecResponse.PENDING
-    )
-    # Here, we inject an empty string.
-    installer_service_response.error_reason = 'this is the error'
-    installer_stub.GetInstalledSpec.return_value = installer_service_response
-    operation = self._create_failed_operation()
-
-    error_module = error_processing.ErrorsLoader(
-        installer_service_stub=installer_stub
-    )
-    error_group = error_module.extract_error_data(operation)
-
-    # Validate that the passed error is surfaced.
-    desired_match = 'Error reason: ' + installer_service_response.error_reason
-    self.assertRegex(error_group.workcell_health_issue, desired_match)
 
   def test_extract_errors_empty(self):
     """Tests that an empty list is returned for no errors."""

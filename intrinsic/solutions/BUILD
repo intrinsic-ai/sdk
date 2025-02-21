@@ -169,13 +169,10 @@ py_library(
     deps = [
         ":errors",
         ":ipython",
-        "//intrinsic/kubernetes/workcell_spec/proto:installer_py_pb2",
-        "//intrinsic/kubernetes/workcell_spec/proto:installer_py_pb2_grpc",
         "//intrinsic/logging/errors/proto:error_report_py_pb2",
         requirement("grpcio"),  # buildcleaner: keep
         "@com_google_googleapis//google/longrunning:operations_py_proto",
         "@com_google_googleapis//google/rpc:code_py_proto",
-        "@com_google_protobuf//:protobuf_python",
     ],
 )
 
@@ -184,7 +181,6 @@ py_test(
     srcs = ["error_processing_test.py"],
     deps = [
         ":error_processing",
-        "//intrinsic/kubernetes/workcell_spec/proto:installer_py_pb2",
         "//intrinsic/logging/errors/proto:error_report_py_pb2",
         "//intrinsic/solutions/testing:compare",
         "@com_google_absl_py//absl/testing:absltest",

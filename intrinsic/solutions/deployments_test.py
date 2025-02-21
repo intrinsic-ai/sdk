@@ -286,8 +286,7 @@ class SolutionTest(absltest.TestCase):
 
     self._executive_stub = mock.MagicMock()
 
-    self._installer_stub = mock.MagicMock()
-    errors = error_processing.ErrorsLoader(self._installer_stub)
+    errors = error_processing.ErrorsLoader()
 
     self._object_world_service_stub = mock.MagicMock()
     object_world = worlds.ObjectWorld("world", self._object_world_service_stub)
@@ -338,7 +337,6 @@ class SolutionTest(absltest.TestCase):
         self._simulation,
         self._errors,
         self._pose_estimators,
-        self._installer_stub,
     )
 
   def test_initializes(self):

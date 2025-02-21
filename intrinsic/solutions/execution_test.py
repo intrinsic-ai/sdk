@@ -66,9 +66,8 @@ class ExecutiveTest(parameterized.TestCase):
 
   def setUp(self):
     super().setUp()
-    self._installer_stub = mock.MagicMock()
-    self._errors: error_processing.ErrorsLoader = error_processing.ErrorsLoader(
-        self._installer_stub
+    self._errors: error_processing.ErrorsLoader = (
+        error_processing.ErrorsLoader()
     )
     self._executive_service_stub: (
         executive_service_pb2_grpc.ExecutiveServiceStub

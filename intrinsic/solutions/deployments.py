@@ -132,7 +132,6 @@ class Solution:
       simulator: Optional[simulation.Simulation],
       errors: error_processing.ErrorsLoader,
       pose_estimators: Optional[pose_estimation.PoseEstimators],
-      installer: installer_pb2_grpc.InstallerServiceStub,
       pbt_registry: Optional[pbt_registration.BehaviorTreeRegistry] = None,
       proto_builder: Optional[proto_building.ProtoBuilder] = None,
   ):
@@ -149,7 +148,6 @@ class Solution:
 
     self.world: worlds.ObjectWorld = object_world
     self.simulator: Optional[simulation.Simulation] = simulator
-    self._installer_service_stub = installer
 
     self.behavior_trees = behavior_tree_providing.BehaviorTrees(
         self._solution_service
@@ -199,8 +197,7 @@ class Solution:
       simulator = simulation.Simulation.connect(grpc_channel)
 
     # Required backends.
-    installer_stub = installer_pb2_grpc.InstallerServiceStub(grpc_channel)
-    error_loader = error_processing.ErrorsLoader(installer_stub)
+    error_loader = error_processing.ErrorsLoader()
     executive = execution.Executive.connect(
         grpc_channel, error_loader, simulator
     )
@@ -240,7 +237,6 @@ class Solution:
         simulator,
         error_loader,
         pose_estimators,
-        installer_stub,
         pbt_registry,
         proto_builder,
     )
