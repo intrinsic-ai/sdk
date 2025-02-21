@@ -101,8 +101,9 @@ py_library(
         ":worlds",
         "//intrinsic/frontend/cloud/api:solutiondiscovery_api_py_pb2",
         "//intrinsic/frontend/cloud/api:solutiondiscovery_api_py_pb2_grpc",
+        "//intrinsic/frontend/solution_service/proto:solution_service_py_pb2",
         "//intrinsic/frontend/solution_service/proto:solution_service_py_pb2_grpc",
-        "//intrinsic/kubernetes/workcell_spec/proto:installer_py_pb2",
+        "//intrinsic/frontend/solution_service/proto:status_py_pb2",
         "//intrinsic/kubernetes/workcell_spec/proto:installer_py_pb2_grpc",
         "//intrinsic/resources/client:resource_registry_client",
         "//intrinsic/scene/product/client:product_client",
@@ -114,7 +115,6 @@ py_library(
         "//intrinsic/solutions/internal:stubs",
         "//intrinsic/util/grpc:error_handling",
         requirement("grpcio"),
-        "@com_google_protobuf//:protobuf_python",
     ],
 )
 
@@ -131,7 +131,8 @@ py_test(
         ":simulation",
         ":userconfig",
         ":worlds",
-        "//intrinsic/kubernetes/workcell_spec/proto:installer_py_pb2",
+        "//intrinsic/frontend/solution_service/proto:solution_service_py_pb2",
+        "//intrinsic/frontend/solution_service/proto:status_py_pb2",
         "//intrinsic/skills/client:skill_registry_client",
         "//intrinsic/skills/proto:skill_registry_py_pb2",
         requirement("grpcio"),

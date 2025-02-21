@@ -23,12 +23,12 @@ import sys
 from typing import Optional, Union
 import warnings
 
-from google.protobuf import empty_pb2
 import grpc
 from intrinsic.frontend.cloud.api import solutiondiscovery_api_pb2
 from intrinsic.frontend.cloud.api import solutiondiscovery_api_pb2_grpc
+from intrinsic.frontend.solution_service.proto import solution_service_pb2
 from intrinsic.frontend.solution_service.proto import solution_service_pb2_grpc
-from intrinsic.kubernetes.workcell_spec.proto import installer_pb2
+from intrinsic.frontend.solution_service.proto import status_pb2 as solution_status_pb2
 from intrinsic.kubernetes.workcell_spec.proto import installer_pb2_grpc
 from intrinsic.resources.client import resource_registry_client
 from intrinsic.scene.product.client import product_client as product_client_mod
@@ -60,14 +60,6 @@ _GRPC_OPTIONS = [
     # Remove limit on message size for e.g. images.
     ("grpc.max_receive_message_length", -1),
     ("grpc.max_send_message_length", -1),
-]
-
-# If an app is missing any of those services, the connect() method will raise an
-# error.
-_REQUIRED_BACKENDS = [
-    "executive",
-    "resource-registry",
-    "skill-registry",
 ]
 
 _CSS_FAILURE_STYLE = (
@@ -189,37 +181,25 @@ class Solution:
 
     print("Connecting to deployed solution...")
 
-    installer_stub = installer_pb2_grpc.InstallerServiceStub(grpc_channel)
+    solution_service = solution_service_pb2_grpc.SolutionServiceStub(
+        grpc_channel
+    )
+
     try:
-      solution_status = _get_solution_status_with_retry(installer_stub)
+      solution_status = _get_solution_status_with_retry(solution_service)
     except solution_errors.BackendNoWorkcellError as e:
       ipython.display_html_or_print_msg(
           f'<span style="{_CSS_FAILURE_STYLE}">{str(e)}</span>', str(e)
       )
       raise
 
-    # Note that the ports of the services in the 'solution_status' are
-    # irrelevant, as we use the Ingress by default.
-    backend_names = [s.name for s in solution_status.services]
-
-    missing = list(filter(lambda x: x not in backend_names, _REQUIRED_BACKENDS))
-
-    if missing:
-      raise solution_errors.NotFoundError(
-          "n\nMissing backend.\nRequired backends: {}\nExisting backends: {}"
-          "\nMissing: {}".format(
-              ", ".join(_REQUIRED_BACKENDS),
-              ", ".join(backend_names),
-              missing,
-          )
-      )
-
     # Optional backends.
     simulator = None
     if solution_status.simulated:
       simulator = simulation.Simulation.connect(grpc_channel)
 
-    # Required backends. (see _REQUIRED_BACKENDS)
+    # Required backends.
+    installer_stub = installer_pb2_grpc.InstallerServiceStub(grpc_channel)
     error_loader = error_processing.ErrorsLoader(installer_stub)
     executive = execution.Executive.connect(
         grpc_channel, error_loader, simulator
@@ -232,25 +212,21 @@ class Solution:
     )
 
     # Remaining backends.
-    solution_service = solution_service_pb2_grpc.SolutionServiceStub(
-        grpc_channel
-    )
     product_client = product_client_mod.ProductClient.connect(grpc_channel)
 
     object_world = worlds.ObjectWorld.connect(_WORLD_ID, grpc_channel)
 
-    pose_estimators = None
-    if "perception" in backend_names:
-      pose_estimators = pose_estimation.PoseEstimators(
-          resource_registry,
-      )
+    pose_estimators = pose_estimation.PoseEstimators(
+        resource_registry,
+    )
 
     pbt_registry = pbt_registration.BehaviorTreeRegistry.connect(grpc_channel)
     proto_builder = proto_building.ProtoBuilder.connect(grpc_channel)
 
     print(
-        f'Connected successfully to "{solution_status.display_name}'
-        f'({solution_status.version})" at "{solution_status.workcell_name}".'
+        "Connected successfully to"
+        f' "{solution_status.display_name}({solution_status.platform_version})"'
+        f' at "{solution_status.cluster_name}".'
     )
     return cls(
         grpc_channel,
@@ -277,14 +253,14 @@ class Solution:
     Returns:
       Health status of solution backend
     """
-    status = self._installer_service_stub.GetInstalledSpec(
-        empty_pb2.Empty()
-    ).status
-    if status == installer_pb2.GetInstalledSpecResponse.HEALTHY:
+    status = self._solution_service.GetStatus(
+        solution_service_pb2.GetStatusRequest()
+    ).state
+    if status == solution_status_pb2.Status.State.READY:
       return self.HealthStatus.HEALTHY
-    if status == installer_pb2.GetInstalledSpecResponse.PENDING:
+    if status == solution_status_pb2.Status.State.DEPLOYING:
       return self.HealthStatus.PENDING
-    if status == installer_pb2.GetInstalledSpecResponse.ERROR:
+    if status == solution_status_pb2.Status.State.ERROR:
       return self.HealthStatus.ERROR
     return self.HealthStatus.UNKNOWN
 
@@ -595,49 +571,59 @@ def _get_cluster_from_solution(project: str, solution_id: str) -> str:
 @solution_errors.retry_on_pending_backend
 @error_handling.retry_on_grpc_unavailable
 def _get_solution_status_with_retry(
-    stub: installer_pb2_grpc.InstallerServiceStub,
-) -> installer_pb2.GetInstalledSpecResponse:
+    stub: solution_service_pb2_grpc.SolutionServiceStub,
+) -> solution_status_pb2.Status:
   """Loads a solution's status.
 
   Args:
-    stub: Installer service to query health.
+    stub: Solution service to query health.
 
   Returns:
-    Workcell status
+    Solution status
 
   Raises:
     solution_errors.BackendPendingError: Will lead to retry.
     solution_errors.BackendHealthError: Not recoverable.
   """
   try:
-    response = stub.GetInstalledSpec(empty_pb2.Empty())
+    response = stub.GetStatus(solution_service_pb2.GetStatusRequest())
 
-    if response.status != installer_pb2.GetInstalledSpecResponse.HEALTHY:
-      if response.status == installer_pb2.GetInstalledSpecResponse.PENDING:
-        print("Solution backends not healthy yet. Retrying...")
-        print(f"Reason: {response.error_reason}")
+    if response.state != solution_status_pb2.Status.State.READY:
+      if response.state in [
+          solution_status_pb2.Status.State.PLATFORM_DEPLOYING,
+          solution_status_pb2.Status.State.PLATFORM_READY,
+          solution_status_pb2.Status.State.DEPLOYING,
+      ]:
+        print("Solution not ready yet. Retrying...")
+        print(f"Reason: {response.state_reason}")
         # Note this error leads to a retry given the retry_on_pending_backend
         # decorator.
         raise solution_errors.BackendPendingError(
-            f"Workcell backends not healthy yet. {response.error_reason}"
+            f"Solution not ready yet. {response.state_reason}"
         )
-      if response.status == installer_pb2.GetInstalledSpecResponse.ERROR:
+      if response.state == solution_status_pb2.Status.State.ERROR:
         raise solution_errors.BackendHealthError(
-            "Workcell backend is unhealthy and not expected to recover "
+            "Solution backend is unhealthy and not expected to recover "
             "without intervention. Try restarting your solution. "
-            f"{response.error_reason}"
+            f"{response.state_reason}"
         )
       else:
         raise solution_errors.BackendHealthError(
-            "Unexpected solution health status. Try restarting your "
-            f"solution. {response.error_reason}"
+            "Unexpected solution status. Try restarting your "
+            f"solution. {response.state_reason}"
         )
     return response
   except grpc.RpcError as e:
     if hasattr(e, "code"):
+      if e.code() in [
+          grpc.StatusCode.UNIMPLEMENTED,
+          grpc.StatusCode.UNAVAILABLE,
+      ]:
+        raise solution_errors.BackendPendingError(
+            "Transfer service is not available yet."
+        )
       if e.code() == grpc.StatusCode.NOT_FOUND:
         raise solution_errors.BackendNoWorkcellError(
-            "No workcell spec has been installed. "
-            "Start a solution before connecting."
+            "No solution has been started. Start a solution before connecting."
         )
     raise

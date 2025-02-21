@@ -8,7 +8,8 @@ from unittest import mock
 from absl.testing import absltest
 from google.protobuf import empty_pb2
 import grpc
-from intrinsic.kubernetes.workcell_spec.proto import installer_pb2
+from intrinsic.frontend.solution_service.proto import solution_service_pb2
+from intrinsic.frontend.solution_service.proto import status_pb2 as solution_status_pb2
 from intrinsic.skills.client import skill_registry_client
 from intrinsic.skills.proto import skill_registry_pb2
 from intrinsic.solutions import auth
@@ -267,7 +268,7 @@ class DeploymentsTest(absltest.TestCase):
         return self._code
 
     mock_stub = mock.MagicMock()
-    mock_stub.GetInstalledSpec.side_effect = FakeGrpcError(
+    mock_stub.GetStatus.side_effect = FakeGrpcError(
         code=grpc.StatusCode.NOT_FOUND
     )
 
@@ -361,19 +362,15 @@ class SolutionTest(absltest.TestCase):
     """Tests that the health of the workcell backend can be queried."""
     solution = self.init_solution()
 
-    installer_service_response = installer_pb2.GetInstalledSpecResponse
-    installer_service_response.status = (
-        installer_pb2.GetInstalledSpecResponse.HEALTHY
-    )
-    self._installer_stub.GetInstalledSpec.return_value = (
-        installer_service_response
-    )
+    solution_service_response = solution_status_pb2.Status
+    solution_service_response.state = solution_status_pb2.Status.State.READY
+    self._solution_service.GetStatus.return_value = solution_service_response
 
     self.assertEqual(
         solution.get_health_status(), deployments.Solution.HealthStatus.HEALTHY
     )
-    self._installer_stub.GetInstalledSpec.assert_called_once_with(
-        empty_pb2.Empty()
+    self._solution_service.GetStatus.assert_called_once_with(
+        solution_service_pb2.GetStatusRequest()
     )
 
   def test_skills_overview(self):
