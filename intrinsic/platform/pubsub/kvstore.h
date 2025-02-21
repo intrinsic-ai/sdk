@@ -5,6 +5,7 @@
 
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -133,11 +134,13 @@ class KeyValueStore {
       absl::Duration timeout = kDefaultGetTimeout);
 
  private:
-  KeyValueStore() = default;
+  explicit KeyValueStore(std::optional<std::string> prefix_override);
 
   absl::StatusOr<google::protobuf::Any> GetAny(absl::string_view key,
                                                const NamespaceConfig& config,
                                                absl::Duration timeout);
+
+  std::string key_prefix_;
 };
 
 }  // namespace intrinsic

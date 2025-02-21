@@ -8,6 +8,7 @@
 #include <pybind11/stl.h>
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -78,8 +79,9 @@ absl::StatusOr<Subscription> CreateSubscription(
                                       std::move(err_callback));
 }
 
-absl::StatusOr<KeyValueStore> CreateKeyValueStore(PubSub* self) {
-  return self->KeyValueStore();
+absl::StatusOr<KeyValueStore> CreateKeyValueStore(
+    PubSub* self, std::optional<std::string> prefix_override) {
+  return self->KeyValueStore(prefix_override);
 }
 
 absl::StatusOr<KVQuery> GetAll(KeyValueStore* self, const std::string& key,
@@ -150,7 +152,8 @@ PYBIND11_MODULE(pubsub, m) {
       .def("CreateSubscription", &CreateSubscription, pybind11::arg("topic"),
            pybind11::arg("exemplar"), pybind11::arg("msg_callback") = nullptr,
            pybind11::arg("error_callback") = nullptr)
-      .def("KeyValueStore", &CreateKeyValueStore);
+      .def("KeyValueStore", &CreateKeyValueStore,
+           pybind11::arg("prefix_override") = std::nullopt);
 
   pybind11::class_<Publisher>(m, "Publisher")
       .def("Publish",

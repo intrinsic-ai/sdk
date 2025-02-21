@@ -11,7 +11,6 @@
 
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
-#include "absl/time/time.h"
 
 namespace intrinsic {
 
@@ -134,7 +133,8 @@ struct ZenohHandle {
   std::add_pointer_t<const char *const()> imw_version;
 
   static absl::StatusOr<std::string> add_topic_prefix(absl::string_view topic);
-  static absl::StatusOr<std::string> add_key_prefix(absl::string_view key);
+  static absl::StatusOr<std::string> add_key_prefix(
+      absl::string_view key, absl::string_view key_prefix);
   static absl::StatusOr<std::string> remove_topic_prefix(
       absl::string_view topic);
 

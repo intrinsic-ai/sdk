@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -22,11 +23,20 @@
 
 namespace intrinsic {
 
+namespace {
+constexpr static absl::string_view kDefaultKeyPrefix = "kv_store";
+}
+
+KeyValueStore::KeyValueStore(std::optional<std::string> prefix_override)
+    : key_prefix_(prefix_override.has_value() ? prefix_override.value()
+                                              : kDefaultKeyPrefix) {}
+
 absl::Status KeyValueStore::Set(absl::string_view key,
                                 const google::protobuf::Any& value,
                                 const NamespaceConfig& config) {
   INTR_RETURN_IF_ERROR(intrinsic::ValidZenohKeyexpr(key));
-  absl::StatusOr<std::string> prefixed_name = ZenohHandle::add_key_prefix(key);
+  absl::StatusOr<std::string> prefixed_name =
+      ZenohHandle::add_key_prefix(key, key_prefix_);
   if (!prefixed_name.ok()) {
     // Should not happen since ValidKeyexpr was called before this.
     return prefixed_name.status();
@@ -46,7 +56,7 @@ absl::StatusOr<google::protobuf::Any> KeyValueStore::GetAny(
     absl::Duration timeout) {
   INTR_RETURN_IF_ERROR(intrinsic::ValidZenohKey(key));
   INTR_ASSIGN_OR_RETURN(absl::StatusOr<std::string> prefixed_name,
-                        ZenohHandle::add_key_prefix(key));
+                        ZenohHandle::add_key_prefix(key, key_prefix_));
   if (timeout < absl::ZeroDuration()) {
     return absl::InvalidArgumentError("Timeout must be zero or positive");
   }
@@ -98,7 +108,7 @@ absl::StatusOr<KVQuery> KeyValueStore::GetAll(absl::string_view keyexpr,
                                               OnDoneCallback on_done) {
   INTR_RETURN_IF_ERROR(intrinsic::ValidZenohKey(keyexpr));
   INTR_ASSIGN_OR_RETURN(absl::StatusOr<std::string> prefixed_name,
-                        ZenohHandle::add_key_prefix(keyexpr));
+                        ZenohHandle::add_key_prefix(keyexpr, key_prefix_));
   auto functor = std::make_unique<imw_callback_functor_t>(
       [callback = std::move(callback)](const char* key,
                                        const void* response_bytes,
@@ -129,8 +139,9 @@ absl::StatusOr<std::vector<std::string>> KeyValueStore::ListAllKeys(
   std::vector<std::string> keys;
   absl::string_view query_keyexpr = "**";
   INTR_RETURN_IF_ERROR(intrinsic::ValidZenohKey(query_keyexpr));
-  INTR_ASSIGN_OR_RETURN(absl::StatusOr<std::string> prefixed_name,
-                        ZenohHandle::add_key_prefix(query_keyexpr));
+  INTR_ASSIGN_OR_RETURN(
+      absl::StatusOr<std::string> prefixed_name,
+      ZenohHandle::add_key_prefix(query_keyexpr, key_prefix_));
   absl::Notification notif;
   auto callback = std::make_unique<imw_callback_functor_t>(
       [&keys, &notif](const char* keyexpr, const void* unused_response_bytes,
@@ -161,7 +172,7 @@ absl::Status KeyValueStore::Delete(absl::string_view key,
                                    const NamespaceConfig& config) {
   INTR_RETURN_IF_ERROR(intrinsic::ValidZenohKey(key));
   INTR_ASSIGN_OR_RETURN(absl::StatusOr<std::string> prefixed_name,
-                        ZenohHandle::add_key_prefix(key));
+                        ZenohHandle::add_key_prefix(key, key_prefix_));
   imw_ret_t ret = Zenoh().imw_delete_keyexpr(prefixed_name->c_str());
   if (ret != IMW_OK) {
     return absl::InternalError(

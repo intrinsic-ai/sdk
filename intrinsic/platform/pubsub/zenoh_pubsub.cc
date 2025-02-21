@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstring>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -193,8 +194,9 @@ absl::StatusOr<bool> PubSub::KeyexprIncludes(absl::string_view left,
   }
 }
 
-absl::StatusOr<intrinsic::KeyValueStore> PubSub::KeyValueStore() const {
-  return intrinsic::KeyValueStore();
+absl::StatusOr<intrinsic::KeyValueStore> PubSub::KeyValueStore(
+    std::optional<std::string> prefix_override) const {
+  return intrinsic::KeyValueStore(prefix_override);
 }
 
 namespace {

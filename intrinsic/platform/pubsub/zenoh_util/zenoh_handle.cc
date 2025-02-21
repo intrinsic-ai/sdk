@@ -139,13 +139,14 @@ absl::StatusOr<std::string> ZenohHandle::add_topic_prefix(
   }
 }
 
-absl::StatusOr<std::string> ZenohHandle::add_key_prefix(absl::string_view key) {
+absl::StatusOr<std::string> ZenohHandle::add_key_prefix(
+    absl::string_view key, absl::string_view key_prefix) {
   if (key.empty()) {
     return absl::InvalidArgumentError("Empty key string");
   } else if (key[0] == '/') {
     return absl::InvalidArgumentError("Key can't start with /");
   } else {
-    return absl::StrCat("kv_store/", key);
+    return absl::StrCat(key_prefix, "/", key);
   }
 }
 

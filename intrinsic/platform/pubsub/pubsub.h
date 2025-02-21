@@ -225,7 +225,8 @@ class PubSub {
 
   // Returns a KeyValueStore implementation. This is only supported when
   // building with Zenoh. See go/intrinsic-kv-store for more details.
-  absl::StatusOr<intrinsic::KeyValueStore> KeyValueStore() const;
+  absl::StatusOr<intrinsic::KeyValueStore> KeyValueStore(
+      std::optional<std::string> prefix_override = std::nullopt) const;
 
   // Returns if the enabled pubsub implementation supports queryables.
   bool SupportsQueryables() const;
