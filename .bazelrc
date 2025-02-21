@@ -73,7 +73,4 @@ build:remote_cache --host_platform=//bazel:linux_x86_64
 # See https://github.com/google/googletest/issues/2883#issuecomment-647540343
 build --define absl=1
 
-# Avoid building grpc with xDS support to reduce build time
-build --define=grpc_no_xds=true
-
 build:intrinsic -c opt
