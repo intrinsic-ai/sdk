@@ -232,7 +232,7 @@ class Camera:
     if not camera_config:
       raise RuntimeError(
           "Could not parse camera config from resource handle: %s."
-          % self.resource_name
+          % self.display_name
       )
     self.config = data_classes.CameraConfig(camera_config)
     self.factory_config = None
@@ -279,14 +279,14 @@ class Camera:
     """Create camera handle from resources."""
     if self._resource_registry is not None:
       self._resource_handle = self._resource_registry.get_resource_instance(
-          self.resource_name
+          self.display_name
       ).resource_handle
       camera_config = _camera_utils.unpack_camera_config(
           self._resource_handle.resource_data
       )
       if camera_config is None:
         raise ValueError(
-            "CameraConfig not found in resource handle %s" % self.resource_name
+            "CameraConfig not found in resource handle %s" % self.display_name
         ) from error
       self.config = data_classes.CameraConfig(camera_config)
     self._client.create_camera(self.config.proto, deadline=deadline)
@@ -303,20 +303,20 @@ class Camera:
 
   @property
   def equipment_name(self) -> str:
-    """Deprecated: Use resource_name instead.
+    """Deprecated: Use display_name instead.
 
     Camera equipment name.
     """
     warnings.warn(
-        "equipment_name() is deprecated. Use resource_name() instead.",
+        "equipment_name() is deprecated. Use display_name() instead.",
         DeprecationWarning,
         stacklevel=2,
     )
     return self._resource_handle.name
 
   @property
-  def resource_name(self) -> str:
-    """Camera resource name."""
+  def display_name(self) -> str:
+    """Camera display name."""
     return self._resource_handle.name
 
   @property
@@ -364,84 +364,93 @@ class Camera:
       self,
       sensor_name: Optional[str] = None,
   ) -> Optional[np.ndarray]:
-    """Get the camera intrinsic matrix or that of a specific sensor (for multisensor cameras), falling back to factory settings or the camera intrinsic matrix if intrinsic params are missing from the requested sensor config.
+    """Get the camera intrinsic matrix or that of a specific sensor (for multi-sensor cameras), falling back to factory settings or the camera intrinsic matrix if intrinsic params are missing from the requested sensor config.
 
     Args:
-      sensor_name: The desired sensor name, or None for the camera intrinsic
-        matrix (deprecated).
+      sensor_name: The desired sensor name, or None for the primary sensor
+        intrinsic matrix or to fall back to the camera intrinsic matrix
+        (deprecated).
 
     Returns:
-      The sensor's intrinsic matrix or None if it couldn't be found.
+      The sensor's intrinsic matrix or the deprecated camera intrinsic matrix or
+      None if no intrinsic matrix could be found.
     """
     if sensor_name is None:
+      sensor_name = next(iter(self.sensor_names)) if self.sensor_names else None
+
+    if sensor_name is None or sensor_name not in self.factory_sensor_info:
       warnings.warn(
-          "Calling camera.intrinsic_matrix() without a sensor name is"
-          " deprecated. Please provide a sensor name.",
+          "Using deprecated camera.intrinsic_matrix() because the primary"
+          " sensor could not be found.",
           DeprecationWarning,
           stacklevel=2,
       )
       return self.config.intrinsic_matrix
 
-    if sensor_name not in self.factory_sensor_info:
-      return None
     sensor_info = self.factory_sensor_info[sensor_name]
     sensor_id = sensor_info.sensor_id
-
     sensor_config = (
         self.config.sensor_configs[sensor_id]
         if sensor_id in self.config.sensor_configs
         else None
     )
 
+    # If the camera config provides sensor config overrides, return those.
+    # Otherwise, fall back to the factory settings if available or finally the
+    # deprecated camera config intrinsic matrix.
     if sensor_config is not None and sensor_config.camera_params is not None:
       return sensor_config.camera_params.intrinsic_matrix
     if sensor_info is not None:
       factory_camera_params = sensor_info.factory_camera_params
       if factory_camera_params is not None:
         return factory_camera_params.intrinsic_matrix
-    return None
+    return self.config.intrinsic_matrix
 
   def distortion_params(
       self,
       sensor_name: Optional[str] = None,
   ) -> Optional[np.ndarray]:
-    """Get the camera distortion params or that of a specific sensor (for multisensor cameras), falling back to factory settings if distortion params are missing from the sensor config.
+    """Get the camera distortion params or that of a specific sensor (for multi-sensor cameras), falling back to factory settings if distortion params are missing from the sensor config.
 
     Args:
-      sensor_name: The desired sensor name, or None for the camera distortion
-        params (deprecated).
+      sensor_name: The desired sensor name, or None for the primary sensor
+        distortion params or to fall back to the camera distortion params
+        (deprecated).
 
     Returns:
       The distortion params (k1, k2, p1, p2, k3, [k4, k5, k6]) or None if it
         couldn't be found.
     """
     if sensor_name is None:
+      sensor_name = next(iter(self.sensor_names)) if self.sensor_names else None
+
+    if sensor_name is None or sensor_name not in self.factory_sensor_info:
       warnings.warn(
-          "Calling camera.distortion_params() without a sensor name is"
-          " deprecated. Please provide a sensor name.",
+          "Using deprecated camera.distortion_params() because the primary"
+          " sensor could not be found.",
           DeprecationWarning,
           stacklevel=2,
       )
       return self.config.distortion_params
 
-    if sensor_name not in self.factory_sensor_info:
-      return None
     sensor_info = self.factory_sensor_info[sensor_name]
     sensor_id = sensor_info.sensor_id
-
     sensor_config = (
         self.config.sensor_configs[sensor_id]
         if sensor_id in self.config.sensor_configs
         else None
     )
 
+    # If the camera config provides sensor config overrides, return those.
+    # Otherwise, fall back to the factory settings if available or finally the
+    # deprecated camera config distortion params.
     if sensor_config is not None and sensor_config.camera_params is not None:
       return sensor_config.camera_params.distortion_params
     if sensor_info is not None:
       factory_camera_params = sensor_info.factory_camera_params
       if factory_camera_params is not None:
         return factory_camera_params.distortion_params
-    return None
+    return self.config.distortion_params
 
   @property
   def world_object(self) -> Optional[object_world_resources.WorldObject]:
@@ -636,8 +645,10 @@ class Camera:
           sensor_ids=sensor_ids,
           skip_undistortion=skip_undistortion,
       )
-      first_sensor_name = capture_result.sensor_names[0]
-      return capture_result.sensor_images[first_sensor_name]
+      if sensor_name is not None:
+        return capture_result.sensor_images[sensor_name]
+      else:
+        return next(iter(capture_result.sensor_images.values()))
     except grpc.RpcError as e:
       logging.warning("Could not capture from camera.")
       raise e
