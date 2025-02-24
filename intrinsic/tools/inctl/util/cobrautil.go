@@ -21,10 +21,7 @@ func ParentOfNestedSubcommandsPreRun(use string, short string, persistentPreRunE
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("%s requires a valid subcommand.\n%s", cmd.Name(), cmd.UsageString())
 		},
-		// Flags are parsed before "RunE" so this should result in a better error if the command is invoked without a subcommand.
-		// This is also used by orgutil to ensure the above RunE can run.
-		DisableFlagParsing: true,
-		PersistentPreRunE:  persistentPreRunE,
+		PersistentPreRunE: persistentPreRunE,
 	}
 }
 
