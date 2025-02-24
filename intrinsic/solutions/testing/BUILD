@@ -12,6 +12,7 @@ package(
 
 proto_library(
     name = "test_skill_params_proto",
+    testonly = True,
     srcs = ["test_skill_params.proto"],
     deps = [
         "//intrinsic/executive/proto:test_message_proto",
@@ -28,11 +29,13 @@ proto_library(
 
 py_proto_library(
     name = "test_skill_params_py_pb2",
+    testonly = True,
     deps = [":test_skill_params_proto"],
 )
 
 proto_source_code_info_transitive_descriptor_set(
     name = "test_skill_params_proto_descriptors",
+    testonly = True,
     visibility = [
         "//intrinsic/executive/clips_cpp:__subpackages__",
         "//intrinsic/solutions:__subpackages__",

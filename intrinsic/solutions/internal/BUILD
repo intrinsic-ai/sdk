@@ -275,6 +275,7 @@ py_test(
 
 proto_library(
     name = "stubs_test_proto",
+    testonly = True,
     srcs = ["stubs_test.proto"],
     deps = [
         "//intrinsic/math/proto:pose_proto",
@@ -285,11 +286,13 @@ proto_library(
 
 py_proto_library(
     name = "stubs_test_py_pb2",
+    testonly = True,
     deps = [":stubs_test_proto"],
 )
 
 proto_source_code_info_transitive_descriptor_set(
     name = "stubs_test_proto_descriptors",
+    testonly = True,
     deps = [":stubs_test_proto"],
 )
 

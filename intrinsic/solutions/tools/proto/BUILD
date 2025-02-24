@@ -9,10 +9,12 @@ package(default_visibility = [
 
 proto_library(
     name = "my_msg_proto",
+    testonly = True,
     srcs = ["my_msg.proto"],
 )
 
 go_proto_library(
     name = "my_msg_go_proto",
+    testonly = True,
     deps = [":my_msg_proto"],
 )

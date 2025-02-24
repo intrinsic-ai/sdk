@@ -486,6 +486,7 @@ go_proto_library(
 # test message
 proto_library(
     name = "test_message_proto",
+    testonly = True,
     srcs = ["test_message.proto"],
     deps = [
         "@com_google_protobuf//:any_proto",
@@ -495,11 +496,13 @@ proto_library(
 
 proto_source_code_info_transitive_descriptor_set(
     name = "test_message_proto_descriptor_set",
+    testonly = True,
     deps = [":test_message_proto"],
 )
 
 cc_proto_library(
     name = "test_message_cc_proto",
+    testonly = True,
     deps = [
         ":test_message_proto",
     ],
@@ -507,6 +510,7 @@ cc_proto_library(
 
 py_proto_library(
     name = "test_message_py_pb2",
+    testonly = True,
     deps = [":test_message_proto"],
 )
 
