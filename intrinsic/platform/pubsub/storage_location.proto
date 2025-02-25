@@ -1,0 +1,14 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.kvstore;
+
+// Represents a reference to an entry in a key-value store, which can be passed
+// around e.g. between skills and services.
+message StorageLocation {
+  // The store (or `key_expr` prefix in Zenoh terms) to be used.
+  string store = 1;
+  // The key of the entry.
+  string key = 2;
+}

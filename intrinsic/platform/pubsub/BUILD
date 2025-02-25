@@ -4,6 +4,8 @@
 # for robotics systems.
 
 load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
+load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
+load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -101,6 +103,16 @@ cc_library(
         "@com_google_absl//absl/time",
         "@com_google_protobuf//:protobuf",
     ],
+)
+
+proto_library(
+    name = "storage_location",
+    srcs = ["storage_location.proto"],
+)
+
+cc_proto_library(
+    name = "storage_location_cc_proto",
+    deps = [":storage_location"],
 )
 
 cc_library(
