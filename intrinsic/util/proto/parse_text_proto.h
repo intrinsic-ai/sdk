@@ -7,21 +7,22 @@
 #include <type_traits>
 
 #include "absl/log/check.h"
-#include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/string_view.h"
+#include "google/protobuf/message.h"
 #include "google/protobuf/text_format.h"
-#include "intrinsic/util/status/status_macros.h"
 
 namespace intrinsic {
+
 template <typename T, typename = std::enable_if_t<
                           std::is_base_of_v<google::protobuf::Message, T>>>
 absl::StatusOr<T> ParseTextProto(absl::string_view asciipb) {
   T message;
   if (!google::protobuf::TextFormat::ParseFromString(std::string(asciipb),
                                                      &message)) {
-    return absl::InvalidArgumentError(
-        absl::StrCat("Cannot parse protobuf ", typeid(T).name(), " from text"));
+    return absl::InvalidArgumentError(absl::StrCat(
+        "Cannot parse protobuf ", T::descriptor()->full_name(), " from text"));
   }
   return message;
 }
@@ -52,6 +53,7 @@ template <typename T, typename = std::enable_if_t<
 T ParseTextOrDie(absl::string_view asciipb) {
   return ParseTextProtoOrDie(asciipb);
 }
+
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_UTIL_PROTO_PARSE_TEXT_PROTO_H_
