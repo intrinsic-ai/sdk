@@ -23,7 +23,7 @@ absl::StatusOr<intrinsic::ConnectionParams> GetConnectionParamsFromHandle(
         "Resource handle \"%s\" does not specify grpc connection_info",
         handle.name()));
   }
-  return icon::ConnectionParams{
+  return intrinsic::ConnectionParams{
       .address = handle.connection_info().grpc().address(),
       .instance_name = handle.connection_info().grpc().server_instance(),
       .header = handle.connection_info().grpc().header(),

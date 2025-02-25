@@ -45,6 +45,20 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "connection_cache",
+    hdrs = ["connection_cache.h"],
+    deps = [
+        ":channel",
+        ":connection_params",
+        "//intrinsic/util/status:status_macros",
+        "@com_google_absl//absl/base:core_headers",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/synchronization",
+    ],
+)
+
 py_library(
     name = "connection",
     srcs = [
