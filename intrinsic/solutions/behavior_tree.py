@@ -20,7 +20,7 @@ import abc
 import collections
 import enum
 import textwrap
-from typing import Any as AnyType, Callable, Iterable, List, Mapping, Optional, Sequence as SequenceType, Tuple, Union
+from typing import Any as AnyType, Callable, Iterable, List, Mapping, Optional, Sequence as SequenceType, Tuple, Union, cast
 import uuid
 
 from google.protobuf import any_pb2
@@ -2019,6 +2019,8 @@ class NodeWithChildren(Node):
     proto: The proto representation of the node.
   """
 
+  children: list[Node]
+
   def __init__(
       self,
       children: Optional[SequenceType[Union[Node, actions.ActionBase]]],
@@ -2026,7 +2028,7 @@ class NodeWithChildren(Node):
     if not children:
       self.children = []
     else:
-      self.children: List[Node] = [  # pytype: disable=annotation-type-mismatch  # always-use-return-annotations
+      self.children = [  # pytype: disable=annotation-type-mismatch  # always-use-return-annotations
           _transform_to_optional_node(x) for x in children
       ]
     super().__init__()
@@ -4149,6 +4151,29 @@ class BehaviorTree:
 
     self.visit(search_matching_name)
     return node_identifiers
+
+  def find_nodes_by_name(self, node_name: str) -> list[Node]:
+    """Searches the tree recursively for nodes with given display name.
+
+    Args:
+      node_name: Name of a node to search for in the tree.
+
+    Returns:
+      A list of nodes that have the given (display) name. Node that the name is
+      not necessariy unique, which is why there can be multiple such nodes.
+    """
+    nodes: list[Node] = []
+
+    def search_matching_name(
+        containing_tree: BehaviorTree,
+        tree_object: Union[BehaviorTree, Node, Condition],
+    ):
+      del containing_tree  # unused
+      if isinstance(tree_object, Node) and tree_object.name == node_name:
+        nodes.append(cast(Node, tree_object))
+
+    self.visit(search_matching_name)
+    return nodes
 
   def validate_id_uniqueness(self) -> None:
     """Validates if all ids in the tree are unique.
