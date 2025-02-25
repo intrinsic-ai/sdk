@@ -24,6 +24,7 @@ proto_library(
         "//intrinsic/perception/proto:dimensions_proto",
         "//intrinsic/perception/proto:image_buffer_proto",
         "//intrinsic/perception/proto:post_processing_proto",
+        "//intrinsic/platform/pubsub:storage_location",
         "@com_google_protobuf//:duration_proto",
     ],
 )

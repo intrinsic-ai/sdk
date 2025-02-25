@@ -14,6 +14,7 @@ import "intrinsic/perception/proto/capture_result.proto";
 import "intrinsic/perception/proto/dimensions.proto";
 import "intrinsic/perception/proto/image_buffer.proto";
 import "intrinsic/perception/proto/post_processing.proto";
+import "intrinsic/platform/pubsub/storage_location.proto";
 
 service CameraServer {
   // Returns all available cameras connected on the server side.
@@ -129,10 +130,17 @@ message CaptureRequest {
   // whether the image should be undistorted, cropped, resized and encoding
   // formats.
   optional PostProcessing post_processing = 4;
+
+  // If set the capture result will be stored in the specified key value store
+  // location, which will also be returned instead of the capture result itself.
+  optional kvstore.StorageLocation capture_result_location = 7;
 }
 
 message CaptureResponse {
-  CaptureResult capture_result = 1;
+  oneof response {
+    CaptureResult capture_result = 1;
+    kvstore.StorageLocation capture_result_location = 2;
+  }
 }
 
 message ReadCameraSettingAccessRequest {
