@@ -13,6 +13,7 @@ import (
 	_ "intrinsic/tools/inctl/cmd/logs/logs"
 	_ "intrinsic/tools/inctl/cmd/notebook/notebook"
 	_ "intrinsic/tools/inctl/cmd/process/process"
+	_ "intrinsic/tools/inctl/cmd/recordings/recordings"
 	"intrinsic/tools/inctl/cmd/root"
 	_ "intrinsic/tools/inctl/cmd/skill"
 	_ "intrinsic/tools/inctl/cmd/solution/solution"
