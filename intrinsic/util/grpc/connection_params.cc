@@ -17,7 +17,7 @@ ConnectionParams ConnectionParams::ResourceInstance(
     std::string_view instance_name) {
   return ConnectionParams::ResourceInstance(
       /*instance_name=*/instance_name,
-      /*address=*/"xfa.lan:17080");
+      /*address=*/"istio-ingressgateway.app-ingress.svc.cluster.local:80");
 }
 
 // static

@@ -14,8 +14,8 @@ namespace intrinsic {
 
 struct ConnectionParams {
   // Constructs ConnectionParams to connect to a resource using the
-  // cluster ingress on `xfa.lan:17080`. This is the default when running on a
-  // cluster.
+  // cluster ingress on `istio-ingressgateway.app-ingress.svc.cluster.local:80`.
+  // This is the default when running within a cluster.
   static ConnectionParams ResourceInstance(std::string_view instance_name);
 
   // Constructs ConnectionParams to connect to a resource.
