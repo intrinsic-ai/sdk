@@ -6,6 +6,7 @@
 load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
+load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -112,6 +113,11 @@ proto_library(
 
 cc_proto_library(
     name = "storage_location_cc_proto",
+    deps = [":storage_location"],
+)
+
+go_proto_library(
+    name = "storage_location_go_proto",
     deps = [":storage_location"],
 )
 
