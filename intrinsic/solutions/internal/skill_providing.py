@@ -246,6 +246,9 @@ class Skills(providers.SkillProvider):
       )
     return skill_class
 
+  def __len__(self) -> int:
+    return len(self._skills_by_id)
+
   def __dir__(self) -> list[str]:
     global_skill_names = {
         name
@@ -270,6 +273,13 @@ class Skills(providers.SkillProvider):
           " an available skill skill id. Use update() or reconnect to the"
           " deployed solution to update the available skills."
       )
+
+  def __contains__(self, skill_id: str) -> bool:
+    return skill_id in self._skills_by_id
+
+  def __iter__(self):
+    for skill_id in self._skills_by_id.keys():
+      yield self[skill_id]
 
   def get_skill_ids(self) -> Iterable[str]:
     return self._skills_by_id.keys()

@@ -178,6 +178,7 @@ py_library(
     deps = [
         ":actions",
         ":skill_utils",
+        "//intrinsic/assets:id_utils_py",
         "//intrinsic/executive/proto:behavior_call_py_pb2",
         "//intrinsic/skills/proto:skills_py_pb2",
         "//intrinsic/solutions:blackboard_value",

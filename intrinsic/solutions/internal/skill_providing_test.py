@@ -2636,6 +2636,60 @@ Fields:
     self.assertEqual(my_skill.VARIOUS_ENUMS_ENUM_ONE, 1)
     self.assertEqual(my_skill.VARIOUS_ENUMS_ENUM_TWO, 2)
 
+  def test_skills_len(self):
+    skill_infos = [
+        self._utils.create_parameterless_skill_info('ai.intr.intr_skill_one'),
+        self._utils.create_parameterless_skill_info('ai.intr.intr_skill_two'),
+        self._utils.create_parameterless_skill_info('ai.ai_skill'),
+    ]
+    skills = skill_providing.Skills(
+        self._utils.create_skill_registry_for_skill_infos(skill_infos),
+        self._utils.create_empty_resource_registry(),
+    )
+
+    self.assertLen(skills, 3)
+
+  def test_skills_contains(self):
+    skill_infos = [
+        self._utils.create_parameterless_skill_info('ai.intr.intr_skill_one'),
+        self._utils.create_parameterless_skill_info('ai.intr.intr_skill_two'),
+        self._utils.create_parameterless_skill_info('ai.ai_skill'),
+    ]
+    skills = skill_providing.Skills(
+        self._utils.create_skill_registry_for_skill_infos(skill_infos),
+        self._utils.create_empty_resource_registry(),
+    )
+
+    self.assertIn('ai.intr.intr_skill_one', skills)
+    self.assertIn('ai.intr.intr_skill_two', skills)
+    self.assertIn('ai.ai_skill', skills)
+    self.assertNotIn('ai.foo_skill', skills)
+    self.assertNotIn('ai.bar_skill', skills)
+
+  def test_skills_iter(self):
+    skill_infos = [
+        self._utils.create_parameterless_skill_info('ai.intr.intr_skill_one'),
+        self._utils.create_parameterless_skill_info('ai.intr.intr_skill_two'),
+        self._utils.create_parameterless_skill_info('ai.ai_skill'),
+    ]
+    skills = skill_providing.Skills(
+        self._utils.create_skill_registry_for_skill_infos(skill_infos),
+        self._utils.create_empty_resource_registry(),
+    )
+
+    iterated_skills = []
+    for skill in skills:
+      iterated_skills.append(skill)
+
+    self.assertEqual(
+        iterated_skills,
+        [
+            skills['ai.intr.intr_skill_one'],
+            skills['ai.intr.intr_skill_two'],
+            skills['ai.ai_skill'],
+        ],
+    )
+
 
 if __name__ == '__main__':
   absltest.main()

@@ -16,6 +16,7 @@ from google.protobuf import descriptor
 from google.protobuf import descriptor_pb2
 from google.protobuf import descriptor_pool
 from google.protobuf import message
+from intrinsic.assets import id_utils
 from intrinsic.executive.proto import behavior_call_pb2
 from intrinsic.skills.proto import skills_pb2
 from intrinsic.solutions import blackboard_value
@@ -139,6 +140,10 @@ class SkillInfoImpl(provided.SkillInfo):
     return self._skill_proto.id_version
 
   @property
+  def version(self) -> str:
+    return id_utils.version_from(self._skill_proto.id_version)
+
+  @property
   def skill_name(self) -> str:
     # Use skill ID as ground truth. Don't use the 'skill_name' in the proto
     # which is a display name that might contain, e.g., spaces.
@@ -155,6 +160,16 @@ class SkillInfoImpl(provided.SkillInfo):
   @property
   def skill_proto(self) -> skills_pb2.Skill:
     return self._skill_proto
+
+  @property
+  def parameter_message_full_name(self) -> str:
+    return self._skill_proto.parameter_description.parameter_message_full_name
+
+  @property
+  def return_value_message_full_name(self) -> str:
+    return (
+        self._skill_proto.return_value_description.return_value_message_full_name
+    )
 
   def create_param_message(self) -> message.Message:
     return self._message_classes[
