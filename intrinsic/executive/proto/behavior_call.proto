@@ -24,8 +24,11 @@ message BehaviorCall {
   // that are being used in a process.
   optional string instance_name = 2;
 
-  // Single-message parameters for the skill.
+  // Single-message parameters for the skill. The executive will never modify
+  // this. The parameters actually used during execution may be (partially)
+  // resolved from parameter assignments instead.
   google.protobuf.Any parameters = 3;
+
   message ParameterAssignment {
     oneof target {
       // Proto field path into the parameters message. Examples of supported
