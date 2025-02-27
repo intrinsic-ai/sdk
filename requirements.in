@@ -10,7 +10,7 @@
 # py_library(
 #   ...
 #   deps = [
-#     @pip//numpy,
+#     @ai_intrinsic_sdks_pip_deps//numpy,
 #   ],
 # )
 
