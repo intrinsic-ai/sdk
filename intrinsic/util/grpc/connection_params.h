@@ -14,7 +14,7 @@ namespace intrinsic {
 
 struct ConnectionParams {
   // Constructs ConnectionParams to connect to a resource using the
-  // cluster ingress on `istio-ingressgateway.app-ingress.svc.cluster.local:80`.
+  // cluster internal ingress.
   // This is the default when running within a cluster.
   static ConnectionParams ResourceInstance(std::string_view instance_name);
 
