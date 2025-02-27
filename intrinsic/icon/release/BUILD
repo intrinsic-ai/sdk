@@ -1,6 +1,6 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-load("@rules_python//python:defs.bzl", "py_library", "py_test")
+load("@rules_python//python:defs.bzl", "py_library")
 
 package(default_visibility = [
     "//visibility:public",
@@ -61,18 +61,4 @@ cc_library(
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/time",
     ],
-)
-
-# A trivial test that prints hello world. This test only exists to validate
-# that our release codebase's python toolchain works.
-py_test(
-    name = "hello_world_py_test",
-    srcs = ["hello_world_py_test.py"],
-)
-
-# A trivial test that prints hello world. This test only exists to validate
-# that our release codebase's C++ toolchain works.
-cc_test(
-    name = "hello_world_cc_test",
-    srcs = ["hello_world.cc"],
 )
