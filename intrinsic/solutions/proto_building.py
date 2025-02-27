@@ -18,17 +18,19 @@ from intrinsic.util.proto import descriptors
 class ProtoBuilder:
   """Wrapper for the proto builder gRPC service."""
 
+  _stub: proto_builder_pb2_grpc.ProtoBuilderStub
+
   def __init__(self, stub: proto_builder_pb2_grpc.ProtoBuilderStub):
     """Constructs a new ProtoBuilder object.
 
     Args:
       stub: The gRPC stub to be used for communication with the service.
     """
-    self._stub: proto_builder_pb2_grpc.ProtoBuilderStub = stub
+    self._stub = stub
 
   @classmethod
   def connect(cls, grpc_channel: grpc.Channel) -> ProtoBuilder:
-    """Connect to a running proto builder.
+    """Connects to a proto builder for an existing channel.
 
     Args:
       grpc_channel: Channel to the gRPC service.
