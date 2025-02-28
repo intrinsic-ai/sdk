@@ -88,7 +88,7 @@ message ListAvailableCamerasResponse {
 message CreateCameraRequest {
   oneof camera_config_or_identifier {
     // The configuration of the camera which should be created.
-    CameraConfig camera_config = 1;
+    CameraConfig camera_config = 1 [deprecated = true];
     CameraIdentifier camera_identifier = 2;
   }
 }
@@ -106,7 +106,7 @@ message CaptureRequest {
 
   oneof camera_handle_or_config {
     // Handle for the camera to capture from
-    string camera_handle = 1;
+    string camera_handle = 1 [deprecated = true];
     CameraConfig camera_config = 6;
   }
 
