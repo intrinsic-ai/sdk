@@ -13,6 +13,7 @@ message SimulationSpec {
   // simulation.).
   bool is_static = 2;
 
+  // Scene multi camera plugin specification.
   MultiCameraPluginSpec multi_camera_plugin = 3;
 
   // These are extra plugin definitions that we did not parse directly but need
@@ -28,7 +29,7 @@ message MultiCameraPluginSpec {
     string name = 2;
   }
   repeated Sensor sensors = 1;
-  string device_id = 2;
+  string device_id = 2 [deprecated = true];
 }
 
 // Simulation plugin specification for a robot.
