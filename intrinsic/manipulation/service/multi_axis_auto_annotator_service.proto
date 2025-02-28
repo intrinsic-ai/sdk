@@ -48,6 +48,31 @@ message GetAnnotationsAndCommandsResponse {
   optional string debug_message = 3;
 }
 
+message ShowAnnotationsRequest {
+  // The annotations generated for the given part, returned by GetAnnotations or
+  // GetAnnotationsAndCommands.
+  repeated intrinsic_proto.grasping.SchmalzMultiAxisGraspAnnotation
+      annotations = 1;
+
+  // The world to show the annotations in.
+  string world_id = 2;
+
+  // The object name of the part to show the annotations for.
+  string object_name = 3;
+
+  // The time between annotations, in seconds. Default is 2 seconds if not
+  // specified.
+  optional double time_between_annotations_in_sec = 4;
+}
+
+message ShowAnnotationsResponse {
+  // True if the visualization is successful.
+  bool success = 1;
+
+  // Any message to help debugging.
+  optional string debug_message = 2;
+}
+
 message MultiAxisAutoAnnotatorServiceConfig {
   // The ingress address for connecting to all services.
   string ingress_address = 1;
@@ -62,6 +87,12 @@ service MultiAxisAutoAnnotatorService {
   // Returns the annotations and commands for the given part.
   rpc GetAnnotationsAndCommands(GetAnnotationsAndCommandsRequest)
       returns (GetAnnotationsAndCommandsResponse) {
+    // errors: no annotations available
+  }
+
+  // Shows the annotations for the given part.
+  rpc ShowAnnotations(ShowAnnotationsRequest)
+      returns (ShowAnnotationsResponse) {
     // errors: no annotations available
   }
 }
