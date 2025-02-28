@@ -70,12 +70,14 @@ cc_library(
     name = "grpc",
     srcs = ["grpc.cc"],
     hdrs = ["grpc.h"],
-    visibility = ["//visibility:public"],
+    visibility = ["//intrinsic:public_api_users"],
     deps = [
+        ":limits",
         "//intrinsic/icon/release:grpc_time_support",
         "//intrinsic/util/status:status_conversion_grpc",
         "//intrinsic/util/thread",
         "@com_github_grpc_grpc//:grpc++",
+        "@com_github_grpc_grpc//:grpc_security_base",
         "@com_github_grpc_grpc//src/proto/grpc/health/v1:health_cc_grpc",
         "@com_github_grpc_grpc//src/proto/grpc/health/v1:health_cc_proto",
         "@com_google_absl//absl/log",
@@ -86,6 +88,12 @@ cc_library(
         "@com_google_absl//absl/synchronization",
         "@com_google_absl//absl/time",
     ],
+)
+
+cc_library(
+    name = "limits",
+    hdrs = ["limits.h"],
+    visibility = ["//intrinsic:public_api_users"],
 )
 
 py_library(

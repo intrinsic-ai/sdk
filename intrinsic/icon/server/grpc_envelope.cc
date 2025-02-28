@@ -38,6 +38,7 @@
 #include "intrinsic/icon/server/icon_api_service.h"
 #include "intrinsic/icon/utils/exit_code.h"
 #include "intrinsic/icon/utils/realtime_guard.h"
+#include "intrinsic/util/grpc/limits.h"
 #include "intrinsic/util/status/status_conversion_grpc.h"
 #include "intrinsic/util/status/status_macros.h"
 #include "intrinsic/util/status/status_macros_grpc.h"
@@ -492,8 +493,10 @@ void GrpcEnvelope::StartServer() {
   // b/275280379).
   builder.SetMaxReceiveMessageSize((512 * 1024 * 1024));
   builder.AddChannelArgument(GRPC_ARG_ALLOW_REUSEPORT, 0);
-  // Set to 16KB
-  builder.AddChannelArgument(GRPC_ARG_MAX_METADATA_SIZE, 16 * 1024);
+  builder.AddChannelArgument(GRPC_ARG_MAX_METADATA_SIZE,
+                             kGrpcRecommendedMaxMetadataSoftLimit);
+  builder.AddChannelArgument(GRPC_ARG_ABSOLUTE_MAX_METADATA_SIZE,
+                             kGrpcRecommendedMaxMetadataHardLimit);
   builder.RegisterService(wrapper_service_.get());
   builder.RegisterService(gpio_wrapper_service_.get());
   std::string server_description = "In-Process ICON Server";

@@ -33,6 +33,7 @@ cc_library(
         "//intrinsic/icon/proto:types_cc_proto",
         "//intrinsic/icon/utils:exit_code",
         "//intrinsic/icon/utils:realtime_guard",
+        "//intrinsic/util/grpc:limits",
         "//intrinsic/util/status:status_conversion_grpc",
         "//intrinsic/util/status:status_macros",
         "//intrinsic/util/status:status_macros_grpc",

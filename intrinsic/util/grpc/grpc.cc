@@ -19,8 +19,10 @@
 #include "absl/synchronization/notification.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
+#include "grpc/grpc.h"
 #include "grpcpp/grpcpp.h"
 #include "intrinsic/icon/release/grpc_time_support.h"
+#include "intrinsic/util/grpc/limits.h"
 #include "intrinsic/util/status/status_conversion_grpc.h"
 #include "intrinsic/util/thread/thread.h"
 #include "src/proto/grpc/health/v1/health.grpc.pb.h"
@@ -77,12 +79,28 @@ absl::Status CheckChannelHealth(std::shared_ptr<::grpc::Channel> channel,
  */
 absl::StatusOr<std::unique_ptr<::grpc::Server>> CreateServer(
     const absl::string_view address,
-    const std::vector<::grpc::Service*>& services) {
+    const std::vector<::grpc::Service*>& services,
+    const CreateServerOptions& options) {
   ::grpc::ServerBuilder builder;
+
   builder.AddListeningPort(
       std::string(address),
       ::grpc::                       // NOLINTNEXTLINE
       InsecureServerCredentials());  // NO_LINT(grpc_insecure_credential_linter)
+
+  if (options.max_receive_message_size.has_value()) {
+    builder.SetMaxReceiveMessageSize(*options.max_receive_message_size);
+  }
+
+  // "0" means no port reuse. Allowing other servers on the same port could
+  // introduce hard-to-debug behavior or flaky tests.
+  builder.AddChannelArgument(GRPC_ARG_ALLOW_REUSEPORT, 0);
+
+  builder.AddChannelArgument(GRPC_ARG_MAX_METADATA_SIZE,
+                             kGrpcRecommendedMaxMetadataSoftLimit);
+  builder.AddChannelArgument(GRPC_ARG_ABSOLUTE_MAX_METADATA_SIZE,
+                             kGrpcRecommendedMaxMetadataHardLimit);
+
   for (const auto& service : services) {
     builder.RegisterService(service);
   }
@@ -96,9 +114,10 @@ absl::StatusOr<std::unique_ptr<::grpc::Server>> CreateServer(
 }
 
 absl::StatusOr<std::unique_ptr<::grpc::Server>> CreateServer(
-    uint16_t listen_port, const std::vector<::grpc::Service*>& services) {
+    uint16_t listen_port, const std::vector<::grpc::Service*>& services,
+    const CreateServerOptions& options) {
   std::string address = "0.0.0.0:" + std::to_string(listen_port);
-  return CreateServer(address, services);
+  return CreateServer(address, services, options);
 }
 
 void ConfigureClientContext(::grpc::ClientContext* client_context) {
@@ -157,8 +176,14 @@ absl::Status WaitForChannelConnected(absl::string_view address,
   channel_args.SetInt(GRPC_ARG_KEEPALIVE_PERMIT_WITHOUT_CALLS, 0);
 
   // Increase metadata size, this includes, for example, the size of the
-  // information gathered from an absl::Status on error. Default is 8KB.
-  channel_args.SetInt(GRPC_ARG_MAX_METADATA_SIZE, 16 * 1024);
+  // information gathered from an absl::Status on error.
+  // Soft limit
+  channel_args.SetInt(GRPC_ARG_MAX_METADATA_SIZE,
+                      kGrpcRecommendedMaxMetadataSoftLimit);
+  // Hard limit, some requests exceeding the soft limit but are below the hard
+  // limit will be rejected. Anything exceeding the hard limit will be rejected.
+  channel_args.SetInt(GRPC_ARG_ABSOLUTE_MAX_METADATA_SIZE,
+                      kGrpcRecommendedMaxMetadataHardLimit);
 
   // Disable DNS resolution for service config. These calls can impact
   // performance negatively on some DNS servers (i.e. Vodafone LTE on-site in

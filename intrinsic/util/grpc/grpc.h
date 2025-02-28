@@ -25,12 +25,26 @@ constexpr absl::Duration kGrpcClientConnectDefaultTimeout = absl::Seconds(5);
 constexpr absl::Duration kGrpcClientServiceCallDefaultTimeout =
     absl::Seconds(60);
 
+// Options for CreateServer calls.
+struct CreateServerOptions {
+  // Set the maximum receive message size.
+  std::optional<int> max_receive_message_size;
+};
+
 /**
  * Create a grpc server using the listen port on the default interface
  * and the set of services provided
  */
 absl::StatusOr<std::unique_ptr<::grpc::Server>> CreateServer(
-    uint16_t listen_port, const std::vector<::grpc::Service*>& services);
+    uint16_t listen_port, const std::vector<::grpc::Service*>& services,
+    const CreateServerOptions& options = CreateServerOptions());
+
+/**
+ * Create a grpc server using a specific address to listen to.
+ */
+absl::StatusOr<std::unique_ptr<::grpc::Server>> CreateServer(
+    absl::string_view address, const std::vector<::grpc::Service*>& services,
+    const CreateServerOptions& options = CreateServerOptions());
 
 /**
  * Apply the default configuration of our project to the given ClientContext.
