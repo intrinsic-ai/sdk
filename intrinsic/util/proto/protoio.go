@@ -6,6 +6,7 @@ package protoio
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 
 	"github.com/protocolbuffers/txtpbfmt/parser"
@@ -78,6 +79,23 @@ func ReadTextProto(path string, p proto.Message, opts ...TextReadOption) error {
 // ReadBinaryProto reads a binary encoded proto message from a file.
 func ReadBinaryProto(path string, p proto.Message, opts ...BinaryReadOption) error {
 	b, err := os.ReadFile(path)
+	if err != nil {
+		return fmt.Errorf("failed to read %q: %w", path, err)
+	}
+
+	options := new(proto.UnmarshalOptions)
+	for _, opt := range opts {
+		opt(options)
+	}
+	if err := options.Unmarshal(b, p); err != nil {
+		return fmt.Errorf("parsing the message from %q failed: %w", path, err)
+	}
+	return nil
+}
+
+// ReadBinaryProtoFS reads a binary encoded proto message from a file in a fs.FS.
+func ReadBinaryProtoFS(fsys fs.FS, path string, p proto.Message, opts ...BinaryReadOption) error {
+	b, err := fs.ReadFile(fsys, path)
 	if err != nil {
 		return fmt.Errorf("failed to read %q: %w", path, err)
 	}

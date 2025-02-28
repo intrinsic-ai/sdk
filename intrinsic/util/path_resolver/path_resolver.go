@@ -15,23 +15,19 @@ import (
 
 const repoName = "ai_intrinsic_sdks"
 
+// ResolveRunfilesFsRoot gets an fs.FS for runfiles root.
+func ResolveRunfilesFsRoot() (fs.FS, error) {
+	return runfiles.New()
+}
+
 // ResolveRunfilesFs gets an fs.FS for runfiles relative to the repo root.
 func ResolveRunfilesFs() (fs.FS, error) {
-	r, err := runfiles.New()
-	if err != nil {
-		return nil, fmt.Errorf("unable to create runfiles object: %v", err)
-	}
-	baseDirFs, err := fs.Sub(r, repoName)
+	root, err := ResolveRunfilesFsRoot()
+	baseDirFs, err := fs.Sub(root, repoName)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get runfiles sub: %v", err)
 	}
 	return baseDirFs, nil
-}
-
-// RunfilesWithRepo returns the runfiles dir for the current repo based on the given runfiles directory.
-// This is a helper as Go runfiles works differently in Bazel and Bazel.
-func RunfilesWithRepo(root string) string {
-	return path.Join(root, repoName)
 }
 
 // ResolveRunfilesPath gets the runfiles location of a file.
