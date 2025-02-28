@@ -2,7 +2,11 @@
 
 #include "intrinsic/math/gaussian_noise.h"
 
+#include <cstddef>
+
+#include "absl/random/bit_gen_ref.h"
 #include "absl/random/distributions.h"
+#include "intrinsic/eigenmath/types.h"
 
 namespace intrinsic {
 
