@@ -1,0 +1,14 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.perception;
+
+import "intrinsic/math/proto/pose.proto";
+import "intrinsic/platform/pubsub/storage_location.proto";
+
+// A container for the data returned by the CaptureImages skill.
+message CaptureData {
+  kvstore.StorageLocation capture_result_location = 1;
+  Pose world_t_camera = 2;
+}

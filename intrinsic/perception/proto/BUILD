@@ -263,6 +263,25 @@ py_proto_library(
 )
 
 proto_library(
+    name = "capture_data_proto",
+    srcs = ["capture_data.proto"],
+    deps = [
+        "//intrinsic/math/proto:pose_proto",
+        "//intrinsic/platform/pubsub:storage_location",
+    ],
+)
+
+cc_proto_library(
+    name = "capture_data_cc_proto",
+    deps = [":capture_data_proto"],
+)
+
+py_proto_library(
+    name = "capture_data_py_pb2",
+    deps = [":capture_data_proto"],
+)
+
+proto_library(
     name = "camera_settings_proto",
     srcs = ["camera_settings.proto"],
     deps = [
