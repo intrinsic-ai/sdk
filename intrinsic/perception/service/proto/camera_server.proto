@@ -131,6 +131,10 @@ message CaptureRequest {
   // formats.
   optional PostProcessing post_processing = 4;
 
+  // Additional post processing options for each sensor. If present, sensor post
+  // processing options will override the global post processing options.
+  map<int64, PostProcessing> post_processing_by_sensor_id = 8;
+
   // If set the capture result will be stored in the specified key value store
   // location, which will also be returned instead of the capture result itself.
   optional kvstore.StorageLocation capture_result_location = 7;
