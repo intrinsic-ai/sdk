@@ -306,6 +306,7 @@ message ObjectComponent {
 
   // User data associated with this object.
   map<string, google.protobuf.Any> user_data = 9;
+
 }
 
 // A reference to a world resource that includes both its resource id as well as
