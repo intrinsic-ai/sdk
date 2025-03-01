@@ -2,7 +2,7 @@
 
 """Helpers for viewing and manipulating proto descriptors."""
 
-import typing
+from typing import Dict, Iterable
 
 from google.protobuf import descriptor
 from google.protobuf import descriptor_pb2
@@ -10,7 +10,7 @@ from google.protobuf import descriptor_pool
 
 
 def _add_file_and_imports(
-    file_descriptors: typing.Dict[str, descriptor.FileDescriptor],
+    file_descriptors: Dict[str, descriptor.FileDescriptor],
     current_file: descriptor.FileDescriptor,
 ):
   """Adds the current file to file_descriptors if not present.
@@ -32,22 +32,28 @@ def _add_file_and_imports(
 
 
 def gen_file_descriptor_set(
-    msg_descriptor: descriptor.Descriptor,
+    msg_descriptor: descriptor.Descriptor | Iterable[descriptor.Descriptor],
 ) -> descriptor_pb2.FileDescriptorSet:
   """Generates a FileDescriptorSet given a Descriptor.
 
   Args:
-    msg_descriptor: The message descriptor of interest.
+    msg_descriptor: The message descriptor(s) of interest.
 
   Returns:
     A descriptor_pb2.FileDescriptorSet containing the file descriptors of all
     transitive dependencies of msg_descriptor.
   """
-  file_descriptors = {}
-  _add_file_and_imports(file_descriptors, msg_descriptor.file)
+  msg_descriptors: Iterable[descriptor.Descriptor] = (
+      msg_descriptor
+      if isinstance(msg_descriptor, Iterable)
+      else [msg_descriptor]
+  )
   file_descriptor_set = descriptor_pb2.FileDescriptorSet()
-  for file_descriptor in file_descriptors.values():
-    file_descriptor.CopyToProto(file_descriptor_set.file.add())
+  file_descriptors: dict[str, descriptor.FileDescriptor] = {}
+  for msg_descriptor in msg_descriptors:
+    _add_file_and_imports(file_descriptors, msg_descriptor.file)
+    for file_descriptor in file_descriptors.values():
+      file_descriptor.CopyToProto(file_descriptor_set.file.add())
   return file_descriptor_set
 
 
