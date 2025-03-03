@@ -9,12 +9,14 @@ import (
 	"fmt"
 	"time"
 
+	log "github.com/golang/glog"
 	statuspb "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	contextpb "intrinsic/logging/proto/context_go_proto"
+	"intrinsic/util/grpc/grpclimits"
 	espb "intrinsic/util/status/extended_status_go_proto"
 )
 
@@ -304,6 +306,26 @@ func (e *Error) Error() string {
 
 // GRPCStatus implements the golang grpc status interface and returns a gRPC status.
 func (e *Error) GRPCStatus() *status.Status {
+	metadataSize := proto.Size(e.es.GRPCStatus().Proto())
+	if metadataSize > grpclimits.GrpcRecommendedMaxMetadataHardLimit {
+		log.Warningf(
+			"ExtendedStatus converted to RPC status is larger than "+
+				"recommended metadata hard limit (%d > %d)."+
+				"Will very likely result in error",
+			metadataSize, grpclimits.GrpcRecommendedMaxMetadataHardLimit)
+	} else if metadataSize > grpclimits.GrpcRecommendedMaxMetadataSoftLimit {
+		log.Warningf(
+			"ExtendedStatus converted to RPC status is larger than "+
+				"recommended metadata soft limit (%d > %d)."+
+				"Will likely result in error",
+			metadataSize, grpclimits.GrpcRecommendedMaxMetadataSoftLimit)
+	} else if metadataSize > (grpclimits.GrpcRecommendedMaxMetadataSoftLimit / 2) {
+		log.Warningf(
+			"ExtendedStatus converted to RPC status is larger than "+
+				"half the recommended metadata soft limit (%d > %d)."+
+				"Will possibly result in error",
+			metadataSize, grpclimits.GrpcRecommendedMaxMetadataSoftLimit/2)
+	}
 	return e.es.GRPCStatus()
 }
 

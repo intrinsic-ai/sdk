@@ -2,15 +2,18 @@
 
 #include "intrinsic/util/status/status_conversion_rpc.h"
 
+#include <cstddef>
 #include <string>
 
 #include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/strings/cord.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
 #include "google/protobuf/any.pb.h"
 #include "google/rpc/status.pb.h"
+#include "intrinsic/util/grpc/limits.h"
 #include "intrinsic/util/proto/type_url.h"
 
 namespace intrinsic {
@@ -32,6 +35,27 @@ google::rpc::Status ToGoogleRpcStatus(const absl::Status& status) {
           any->set_value(std::string(payload));
         }
       });
+  const size_t absolute_payload_size = ret.ByteSizeLong();
+  if (absolute_payload_size > kGrpcRecommendedMaxMetadataHardLimit) {
+    LOG(WARNING) << absl::StrFormat(
+        "absl::Status converted to RPC or gRPC status is larger than "
+        "recommended metadata hard limit (%zu > %zu). Will very likely result "
+        "in error.",
+        absolute_payload_size, kGrpcRecommendedMaxMetadataHardLimit);
+  } else if (absolute_payload_size > kGrpcRecommendedMaxMetadataSoftLimit) {
+    LOG(WARNING) << absl::StrFormat(
+        "absl::Status converted to RPC or gRPC status is larger than "
+        "recommended metadata soft limit (%zu > %zu). Will likely result in "
+        "error.",
+        absolute_payload_size, kGrpcRecommendedMaxMetadataSoftLimit);
+  } else if (absolute_payload_size >
+             (kGrpcRecommendedMaxMetadataSoftLimit / 2)) {
+    LOG(WARNING) << absl::StrFormat(
+        "absl::Status converted to RPC or gRPC status is larger than half the "
+        "recommended metadata soft limit (%zu > %zu). Will possibly result in "
+        "error.",
+        absolute_payload_size, (kGrpcRecommendedMaxMetadataSoftLimit / 2));
+  }
   return ret;
 }
 

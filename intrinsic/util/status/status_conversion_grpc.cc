@@ -151,7 +151,7 @@ grpc::Status ToGrpcStatus(const absl::Status& status) {
 
   return grpc::Status(FromAbslStatusCode(status.code()),
                       std::string(status.message()),
-                      SaveStatusAsRpcStatus(status).SerializeAsString());
+                      ToGoogleRpcStatus(status).SerializeAsString());
 }
 
 absl::Status ToAbslStatus(const grpc::Status& status) {
@@ -164,7 +164,7 @@ absl::Status ToAbslStatus(const grpc::Status& status) {
   if (!status.error_details().empty()) {
     google::rpc::Status status_proto;
     if (status_proto.ParseFromString(status.error_details())) {
-      return MakeStatusFromRpcStatusWithPayloads(
+      return ToAbslStatusWithPayloads(
           status_proto, /*copy_payloads_from=*/status_with_payloads);
     } else {
       LOG(ERROR) << "Failed to parse error_details to google::rpc::Status";

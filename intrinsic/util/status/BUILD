@@ -67,11 +67,13 @@ cc_library(
     srcs = ["status_conversion_rpc.cc"],
     hdrs = ["status_conversion_rpc.h"],
     deps = [
+        "//intrinsic/util/grpc:limits",
         "//intrinsic/util/proto:type_url",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/strings:cord",
+        "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/strings:string_view",
         "@com_google_googleapis//google/rpc:status_cc_proto",
         "@com_google_protobuf//:protobuf",
@@ -410,6 +412,7 @@ py_library(
     deps = [
         ":extended_status_py_pb2",
         "//intrinsic/logging/proto:context_py_pb2",
+        "//intrinsic/util/grpc:limits_py",
         requirement("grpcio"),
         "@com_google_googleapis//google/rpc:code_py_proto",
         "@com_google_googleapis//google/rpc:status_py_proto",
@@ -491,6 +494,8 @@ go_library(
     deps = [
         ":extended_status_go_proto",
         "//intrinsic/logging/proto:context_go_proto",
+        "//intrinsic/util/grpc:grpclimits",
+        "@com_github_golang_glog//:go_default_library",
         "@org_golang_google_genproto_googleapis_rpc//status",
         "@org_golang_google_grpc//codes:go_default_library",
         "@org_golang_google_grpc//status:go_default_library",

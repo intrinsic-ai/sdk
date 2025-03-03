@@ -97,6 +97,18 @@ cc_library(
 )
 
 py_library(
+    name = "limits_py",
+    srcs = ["limits.py"],
+    visibility = ["//intrinsic:public_api_users"],
+)
+
+go_library(
+    name = "grpclimits",
+    srcs = ["limits.go"],
+    visibility = ["//intrinsic:public_api_users"],
+)
+
+py_library(
     name = "interceptor",
     srcs = ["interceptor.py"],
     deps = [

@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import datetime
+import logging
 import textwrap
 import traceback
 from typing import Optional, Sequence, Tuple, Union
@@ -14,6 +15,7 @@ from google.rpc import code_pb2
 from google.rpc import status_pb2
 import grpc
 from intrinsic.logging.proto import context_pb2
+from intrinsic.util.grpc import limits as grpc_limits
 from intrinsic.util.status import extended_status_pb2
 
 # This key is taken from the grpc implementation and generates special behavior
@@ -339,4 +341,27 @@ class ExtendedStatusError(Exception, grpc.Status):
     rpc_status.details.add().Pack(self._extended_status)
     for detail in self._rpc_details:
       rpc_status.details.add().Pack(detail)
-    return ((_GRPC_DETAILS_METADATA_KEY, rpc_status.SerializeToString()),)
+    data = rpc_status.SerializeToString()
+    if len(data) > grpc_limits.GRPC_RECOMMENDED_MAX_METADATA_HARD_LIMIT:
+      logging.warning(
+          "Status as trailing metadata is larger than recommended metadata"
+          " hard limit (%d > %d). Will very likely result in error.",
+          len(data),
+          grpc_limits.GRPC_RECOMMENDED_MAX_METADATA_HARD_LIMIT,
+      )
+    elif len(data) > grpc_limits.GRPC_RECOMMENDED_MAX_METADATA_SOFT_LIMIT:
+      logging.warning(
+          "Status as trailing metadata is larger than recommended metadata"
+          " soft limit (%d > %d). Will likely result in error.",
+          len(data),
+          grpc_limits.GRPC_RECOMMENDED_MAX_METADATA_SOFT_LIMIT,
+      )
+    elif len(data) > (grpc_limits.GRPC_RECOMMENDED_MAX_METADATA_SOFT_LIMIT / 2):
+      logging.warning(
+          "Status as trailing metadata is larger than half the recommended"
+          " metadata soft limit (%d > %d). Will possibly result in error.",
+          len(data),
+          grpc_limits.GRPC_RECOMMENDED_MAX_METADATA_SOFT_LIMIT / 2,
+      )
+
+    return ((_GRPC_DETAILS_METADATA_KEY, data),)
