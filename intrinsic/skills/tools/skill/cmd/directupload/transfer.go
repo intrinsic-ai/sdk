@@ -15,7 +15,7 @@ import (
 	"go.uber.org/atomic"
 	"intrinsic/assets/imagetransfer"
 	"intrinsic/storage/artifacts/client/client"
-	artifactgrpcpb "intrinsic/storage/artifacts/proto/artifact_go_grpc_proto"
+	artifactgrpcpb "intrinsic/storage/artifacts/proto/v1/artifact_go_grpc_proto"
 )
 
 // ErrUnsupported is returned for operations which are not supported by this

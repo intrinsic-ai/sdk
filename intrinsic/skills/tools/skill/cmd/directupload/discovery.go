@@ -9,8 +9,8 @@ import (
 
 	"google.golang.org/grpc"
 	"intrinsic/storage/artifacts/client/client"
-	articatgrpcpb "intrinsic/storage/artifacts/proto/articat_go_grpc_proto"
-	artifactgrpcpb "intrinsic/storage/artifacts/proto/artifact_go_grpc_proto"
+	articatgrpcpb "intrinsic/storage/artifacts/proto/v1/articat_go_grpc_proto"
+	artifactgrpcpb "intrinsic/storage/artifacts/proto/v1/artifact_go_grpc_proto"
 )
 
 // TargetDiscovery interface represent an implementation of the discovery

@@ -18,8 +18,8 @@ import (
 	"github.com/pborman/uuid"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc/metadata"
-	artifactgrpcpb "intrinsic/storage/artifacts/proto/artifact_go_grpc_proto"
-	artifactpb "intrinsic/storage/artifacts/proto/artifact_go_grpc_proto"
+	artifactgrpcpb "intrinsic/storage/artifacts/proto/v1/artifact_go_grpc_proto"
+	artifactpb "intrinsic/storage/artifacts/proto/v1/artifact_go_grpc_proto"
 )
 
 const (
