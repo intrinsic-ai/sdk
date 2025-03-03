@@ -14,11 +14,9 @@ import (
 	containerregistry "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/tarball"
 	"github.com/pkg/errors"
-	"github.com/rs/xid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"intrinsic/assets/idutils"
 	"intrinsic/assets/imagetransfer"
 	"intrinsic/kubernetes/workcell_spec/imagetags"
 	ipb "intrinsic/kubernetes/workcell_spec/proto/image_go_proto"
@@ -68,49 +66,15 @@ func buildExec(buildCommand string, buildArgs ...string) ([]byte, error) {
 	return out, nil
 }
 
-// ValidateImageProto verifies that the specified image proto is valid for the specified project.
-func ValidateImageProto(image *ipb.Image, project string) error {
-	if err := ValidateRegistry(image.GetRegistry(), project); err != nil {
-		return err
+func getOutputFiles(target string) ([]string, error) {
+	buildArgs := []string{"cquery"}
+	buildArgs = append(buildArgs, buildConfigArgs...)
+	buildArgs = append(buildArgs, "--output=files", target)
+	out, err := build(buildCommand, buildArgs...)
+	if err != nil {
+		return nil, fmt.Errorf("could not get output files: %v\n%s", err, out)
 	}
-	return nil
-}
-
-// ValidateRegistry verifies that the specified registry is valid for the specified project.
-func ValidateRegistry(registry string, project string) error {
-	expectedRegistry := GetRegistry(project)
-	if registry != expectedRegistry {
-		return status.Errorf(codes.InvalidArgument, "unexpected registry specified (expected %q, got %q)", expectedRegistry, registry)
-	}
-	return nil
-}
-
-// GetRegistry returns the registry to use for images in the specified project.
-func GetRegistry(project string) string {
-	return fmt.Sprintf("%s/%s", registryDomain, project)
-}
-
-// GetAssetVersionImageTag returns the image tag to use for an asset version.
-//
-// imageType is a user-chosen string that can be used to distinguish different images within the
-// same asset version.
-func GetAssetVersionImageTag(imageType string, version string) (string, error) {
-	tag := ""
-
-	if tag == "" {
-		imageTypeVersion := strings.ReplaceAll(fmt.Sprintf("%s.%s", imageType, version), "+", "_")
-		imageTypeVersionLabel, err := idutils.ToLabelNonReversible(imageTypeVersion)
-		if err != nil {
-			return "", fmt.Errorf("could not convert image type + version %q to label: %v", imageTypeVersion, err)
-		}
-		tag = fmt.Sprintf("%s-%s", imageTypeVersionLabel, xid.New().String())
-	}
-
-	if len(tag) > maxImageTagLength {
-		return "", fmt.Errorf("tag %q exceeds maximum length %d", tag, maxImageTagLength)
-	}
-
-	return tag, nil
+	return strings.Split(strings.TrimSpace(string(out)), "\n"), nil
 }
 
 // buildImage builds the given target. The built image's file path is returned.
@@ -138,6 +102,21 @@ func buildImage(target string) (string, error) {
 	}
 	log.Printf("Finished building and the output filepath is %q", tarFile)
 	return string(tarFile), nil
+}
+
+// GetImagePath returns the image path.
+func GetImagePath(target string, targetType TargetType) (string, error) {
+	switch targetType {
+	case Build:
+		if !strings.HasSuffix(target, ".tar") {
+			return "", fmt.Errorf("target should end with .tar")
+		}
+		return buildImage(target)
+	case Archive:
+		return target, nil
+	default:
+		return "", fmt.Errorf("unimplemented target type: %v", targetType)
+	}
 }
 
 // WithDefaultTag creates ImageOptions with a specific name and a default tag.
@@ -235,91 +214,6 @@ func PushArchive(opener tarball.Opener, opts ImageOptions, reg RegistryOptions) 
 	return PushImage(img, opts, reg)
 }
 
-// GetImagePath returns the image path.
-func GetImagePath(target string, targetType TargetType) (string, error) {
-	switch targetType {
-	case Build:
-		if !strings.HasSuffix(target, ".tar") {
-			return "", fmt.Errorf("target should end with .tar")
-		}
-		return buildImage(target)
-	case Archive:
-		return target, nil
-	default:
-		return "", fmt.Errorf("unimplemented target type: %v", targetType)
-	}
-}
-
-// GetImage returns an Image from the given target and registry.
-func GetImage(target string, targetType TargetType) (containerregistry.Image, error) {
-	switch targetType {
-	case Build, Archive:
-		imagePath, err := GetImagePath(target, targetType)
-		if err != nil {
-			return nil, fmt.Errorf("could not find valid image path: %v", err)
-		}
-		image, err := ReadImage(imagePath)
-		if err != nil {
-			return nil, fmt.Errorf("could not read image: %v", err)
-		}
-		return image, nil
-	default:
-		return nil, fmt.Errorf("unimplemented target type: %v", targetType)
-	}
-}
-
-// GetImageFromRef returns an Image from the given image reference.
-func GetImageFromRef(imgRef string, t imagetransfer.Transferer) (containerregistry.Image, error) {
-	ref, err := name.ParseReference(imgRef)
-	if err != nil {
-		return nil, fmt.Errorf("could not parse image reference %q: %v", imgRef, err)
-	}
-	image, err := t.Read(ref)
-	if err != nil {
-		return nil, fmt.Errorf("could not access image %s: %v", ref.Name(), err)
-	}
-	return image, nil
-}
-
-func getOutputFiles(target string) ([]string, error) {
-	buildArgs := []string{"cquery"}
-	buildArgs = append(buildArgs, buildConfigArgs...)
-	buildArgs = append(buildArgs, "--output=files", target)
-	out, err := build(buildCommand, buildArgs...)
-	if err != nil {
-		return nil, fmt.Errorf("could not get output files: %v\n%s", err, out)
-	}
-	return strings.Split(strings.TrimSpace(string(out)), "\n"), nil
-}
-
-func getOneOutputFile(target string) (string, error) {
-	files, err := getOutputFiles(target)
-	if err != nil {
-		return "", err
-	}
-	if len(files) != 1 {
-		return "", fmt.Errorf("expected 1 output file, got %d", len(files))
-	}
-	return files[0], nil
-}
-
-// GetArchiveFromBazelLabel takes a bazel label for an image target and gets the path to the created archive in the bazel output files.
-func GetArchiveFromBazelLabel(target string) (string, error) {
-	log.Printf("Locating archive from target: %s", target)
-	// py_skill and cc_skill starlark macros enforce target name ending in _image.
-	// They also create a target that builds an archive with the same label + ".tar".
-	if strings.HasSuffix(target, "_image.tar") {
-		return getOneOutputFile(target)
-	}
-	if strings.HasSuffix(target, "_image") {
-		return getOneOutputFile(target + ".tar")
-	}
-	if strings.HasSuffix(target, "_image_bundle") {
-		return getOneOutputFile(strings.TrimSuffix(target, "_bundle") + ".tar")
-	}
-	return "", fmt.Errorf("given build target does not appear to be a skill image rule")
-}
-
 // ReadImage reads the image from the given path.
 func ReadImage(imagePath string) (containerregistry.Image, error) {
 	log.Printf("Reading image tarball %q", imagePath)
@@ -349,4 +243,9 @@ func RemoveContainer(ctx context.Context, params *RemoveContainerParams) error {
 	}
 
 	return nil
+}
+
+// GetRegistry returns the registry to use for images in the specified project.
+func GetRegistry(project string) string {
+	return fmt.Sprintf("%s/%s", registryDomain, project)
 }

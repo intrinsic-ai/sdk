@@ -8,7 +8,6 @@ import (
 	"fmt"
 
 	backoff "github.com/cenkalti/backoff/v4"
-	log "github.com/golang/glog"
 	"github.com/google/go-containerregistry/pkg/name"
 	containerregistry "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
@@ -22,7 +21,6 @@ const remoteWriteTries = 5
 // Transferer provides methods to read and write images to a container registry.
 type Transferer interface {
 	Write(ref name.Reference, img containerregistry.Image) error
-	Read(ref name.Reference) (containerregistry.Image, error)
 }
 
 type remoteImage struct {
@@ -48,11 +46,6 @@ func (r remoteImage) Write(ref name.Reference, img containerregistry.Image) erro
 	return nil
 }
 
-// Read fetches an image from a container registry.
-func (r remoteImage) Read(ref name.Reference) (containerregistry.Image, error) {
-	return remote.Image(ref, r.Opts...)
-}
-
 // RemoteTransferer returns a new Transferer using the passed-in options.
 func RemoteTransferer(opts ...remote.Option) Transferer {
 	return remoteImage{
@@ -60,35 +53,8 @@ func RemoteTransferer(opts ...remote.Option) Transferer {
 	}
 }
 
-type readonly struct {
-	Opts []remote.Option
-}
-
-// Write pushes an image to a container registry.
-func (r *readonly) Write(ref name.Reference, img containerregistry.Image) error {
-	log.Infof("Skipping write to %q", ref.Name())
-	return nil
-}
-
-// Read fetches an image from a container registry.
-func (r *readonly) Read(ref name.Reference) (containerregistry.Image, error) {
-	return remote.Image(ref, r.Opts...)
-}
-
-// Readonly generates a transferer that will read from a remote registry, but
-// not write to it.
-func Readonly(opts ...remote.Option) Transferer {
-	return &readonly{
-		Opts: opts,
-	}
-}
-
 // NoOpTransferer errors if any attempt is made to read or write an image.
 type NoOpTransferer struct{}
-
-func (NoOpTransferer) Read(ref name.Reference) (containerregistry.Image, error) {
-	return nil, fmt.Errorf("NoOpTransferer forbids reading an image")
-}
 
 func (NoOpTransferer) Write(ref name.Reference, img containerregistry.Image) error {
 	return fmt.Errorf("NoOpTransferer forbids writing an image")

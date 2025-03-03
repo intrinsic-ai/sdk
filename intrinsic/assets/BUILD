@@ -113,7 +113,6 @@ go_library(
     ],
     deps = [
         "@com_github_cenkalti_backoff_v4//:go_default_library",
-        "@com_github_golang_glog//:go_default_library",
         "@com_github_google_go_containerregistry//pkg/name:go_default_library",
         "@com_github_google_go_containerregistry//pkg/v1:go_default_library",
         "@com_github_google_go_containerregistry//pkg/v1/remote:go_default_library",
@@ -127,7 +126,6 @@ go_library(
     srcs = ["imageutils.go"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
-        ":idutils",
         ":imagetransfer",
         "//intrinsic/kubernetes/workcell_spec:imagetags",
         "//intrinsic/kubernetes/workcell_spec/proto:image_go_proto",
@@ -136,7 +134,6 @@ go_library(
         "@com_github_google_go_containerregistry//pkg/v1:go_default_library",
         "@com_github_google_go_containerregistry//pkg/v1/tarball:go_default_library",
         "@com_github_pkg_errors//:go_default_library",
-        "@com_github_rs_xid//:go_default_library",
         "@io_opencensus_go//trace:go_default_library",
         "@org_golang_google_grpc//:go_default_library",
         "@org_golang_google_grpc//codes:go_default_library",

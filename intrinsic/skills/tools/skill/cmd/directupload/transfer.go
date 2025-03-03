@@ -18,10 +18,6 @@ import (
 	artifactgrpcpb "intrinsic/storage/artifacts/proto/v1/artifact_go_grpc_proto"
 )
 
-// ErrUnsupported is returned for operations which are not supported by this
-// implementation. It is by default returned from read operations of transferer.
-var ErrUnsupported = errors.New("unsupported operation")
-
 // Option allows setting direct upload transferer options.
 type Option func(transfer *directTransfer)
 
@@ -142,16 +138,6 @@ func (dt *directTransfer) Write(ref name.Reference, img crv1.Image) error {
 		return fmt.Errorf("image write failed: %w", err)
 	}
 	return nil
-}
-
-func (dt *directTransfer) Read(ref name.Reference) (crv1.Image, error) {
-	// Note (@rkomara): Direct upload is "write-only" operation. There is no
-	// meaningful way to scan for presence of images in remote workcell repository.
-	// Supporting such read operation would allow for potentially unwanted
-	// data exfiltration. Caveat: client.CheckImage() method allows for
-	// checking if system knows particular image, but only very limited
-	// knowledge can be glanced from its response.
-	return nil, fmt.Errorf("cannot fetch %q: %w", ref, ErrUnsupported)
 }
 
 func (dt *directTransfer) getClient() (artifactgrpcpb.ArtifactServiceApiClient, error) {
