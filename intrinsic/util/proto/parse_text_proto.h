@@ -4,36 +4,44 @@
 #define INTRINSIC_UTIL_PROTO_PARSE_TEXT_PROTO_H_
 
 #include <string>
+#include <string_view>
 #include <type_traits>
 
 #include "absl/log/check.h"
+#include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "google/protobuf/message.h"
-#include "google/protobuf/text_format.h"
+#include "intrinsic/util/status/status_macros.h"
 
 namespace intrinsic {
+namespace internal {
 
+absl::Status ParseTextProtoImpl(std::string_view asciipb,
+                                google::protobuf::Message& message);
+}
+
+// Parses the given text proto as a protocol message of type 'T' and returns the
+// result in a StatusOr<T>.
 template <typename T, typename = std::enable_if_t<
                           std::is_base_of_v<google::protobuf::Message, T>>>
 absl::StatusOr<T> ParseTextProto(absl::string_view asciipb) {
   T message;
-  if (!google::protobuf::TextFormat::ParseFromString(std::string(asciipb),
-                                                     &message)) {
-    return absl::InvalidArgumentError(absl::StrCat(
-        "Cannot parse protobuf ", T::descriptor()->full_name(), " from text"));
-  }
+  INTR_RETURN_IF_ERROR(internal::ParseTextProtoImpl(asciipb, message));
   return message;
 }
 
+namespace internal {
+
+// Internal helper class for ParseTextProtoOrDie() / ParseTextOrDie().
+// Do not use directly.
 class ParseTextProtoHelper {
  public:
   explicit ParseTextProtoHelper(absl::string_view text) : text_(text) {}
 
   template <typename T, typename = std::enable_if_t<
                             std::is_base_of_v<google::protobuf::Message, T>>>
-  operator T() const {
+  operator T() const {  // NOLINT(google-explicit-constructor)
     auto parse_result = ParseTextProto<T>(text_);
     CHECK_OK(parse_result.status());
     return *parse_result;
@@ -44,10 +52,18 @@ class ParseTextProtoHelper {
   friend ParseTextProtoHelper ParseTextProtoOrDie(absl::string_view);
 };
 
-inline ParseTextProtoHelper ParseTextProtoOrDie(absl::string_view asciipb) {
-  return ParseTextProtoHelper(asciipb);
+}  // namespace internal
+
+// Parses the given text proto as a protocol message whose type is automatically
+// inferred from the return type. If the parsing fails, prints a failure message
+// and terminates the program.
+inline internal::ParseTextProtoHelper ParseTextProtoOrDie(
+    absl::string_view asciipb) {
+  return internal::ParseTextProtoHelper(asciipb);
 }
 
+// Parses the given text proto as a protocol message of type 'T'. If the parsing
+// fails, prints a failure message and terminates the program.
 template <typename T, typename = std::enable_if_t<
                           std::is_base_of_v<google::protobuf::Message, T>>>
 T ParseTextOrDie(absl::string_view asciipb) {

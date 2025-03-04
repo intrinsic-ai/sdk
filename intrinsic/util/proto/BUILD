@@ -167,13 +167,39 @@ cc_test(
 )
 
 cc_library(
+    name = "error_collector",
+    hdrs = ["error_collector.h"],
+    deps = [
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/strings:str_format",
+        "@com_google_absl//absl/strings:string_view",
+        "@com_google_protobuf//src/google/protobuf/io:tokenizer",
+    ],
+)
+
+cc_library(
     name = "parse_text_proto",
+    srcs = ["parse_text_proto.cc"],
     hdrs = ["parse_text_proto.h"],
     deps = [
+        ":error_collector",
+        "//intrinsic/util/status:status_macros",
         "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/strings:string_view",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_test(
+    name = "parse_text_proto_test",
+    srcs = ["parse_text_proto_test.cc"],
+    deps = [
+        ":parse_text_proto",
+        "//intrinsic/util/testing:gtest_wrapper_main",
+        "@com_google_absl//absl/status",
         "@com_google_protobuf//:protobuf",
     ],
 )
