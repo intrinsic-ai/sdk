@@ -259,6 +259,11 @@ proto_library(
     ],
 )
 
+proto_source_code_info_transitive_descriptor_set(
+    name = "blackboard_service_proto_descriptor_set",
+    deps = [":blackboard_service_proto"],
+)
+
 py_proto_library(
     name = "blackboard_service_py_pb2",
     deps = [":blackboard_service_proto"],
