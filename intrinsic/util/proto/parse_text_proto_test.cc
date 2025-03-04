@@ -19,6 +19,26 @@ using ::intrinsic::testing::EqualsProto;
 using ::testing::AllOf;
 using ::testing::HasSubstr;
 
+TEST(ParseTextProtoTest, ParseTextProtoInto) {
+  google::protobuf::Int32Value int32_value;
+
+  EXPECT_THAT(ParseTextProtoInto("value: 1", &int32_value),
+              ::absl_testing::IsOk());
+
+  EXPECT_THAT(int32_value, EqualsProto("value: 1"));
+}
+
+TEST(ParseTextProtoTest, ParseTextProtoIntoFails) {
+  google::protobuf::Int32Value int32_value;
+
+  EXPECT_THAT(
+      ParseTextProtoInto("non_existent_field: 1", &int32_value),
+      StatusIs(
+          absl::StatusCode::kInvalidArgument,
+          AllOf(HasSubstr("Cannot parse protobuf google.protobuf.Int32Value"),
+                HasSubstr("non_existent_field"))));
+}
+
 TEST(ParseTextProtoTest, ParseTextProto) {
   EXPECT_THAT(ParseTextProto<google::protobuf::Int32Value>("value: 1"),
               IsOkAndHolds(EqualsProto("value: 1")));

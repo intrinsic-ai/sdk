@@ -14,8 +14,6 @@
 #include "intrinsic/util/proto/error_collector.h"
 
 namespace intrinsic {
-namespace internal {
-
 namespace {
 
 // Exactly the same as the default Finder implementation except that it does not
@@ -33,21 +31,20 @@ class Finder : public google::protobuf::TextFormat::Finder {
 
 }  // namespace
 
-absl::Status ParseTextProtoImpl(std::string_view asciipb,
-                                google::protobuf::Message& message) {
+absl::Status ParseTextProtoInto(std::string_view asciipb,
+                                google::protobuf::Message* message) {
   google::protobuf::TextFormat::Parser parser;
   Finder finder;
   parser.SetFinder(&finder);
   SimpleErrorCollector error_collector;
   parser.RecordErrorsTo(&error_collector);
 
-  if (!parser.ParseFromString(asciipb, &message)) {
+  if (!parser.ParseFromString(asciipb, message)) {
     return absl::InvalidArgumentError(absl::StrCat(
-        "Cannot parse protobuf ", message.GetDescriptor()->full_name(),
+        "Cannot parse protobuf ", message->GetDescriptor()->full_name(),
         " from text: ", error_collector.str()));
   }
   return absl::OkStatus();
 }
 
-}  // namespace internal
 }  // namespace intrinsic

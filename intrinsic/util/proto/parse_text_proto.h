@@ -15,11 +15,12 @@
 #include "intrinsic/util/status/status_macros.h"
 
 namespace intrinsic {
-namespace internal {
 
-absl::Status ParseTextProtoImpl(std::string_view asciipb,
-                                google::protobuf::Message& message);
-}
+// Parses the given text proto into the given message. Returns an error if the
+// parsing fails, e.g., if the text proto does not match the type of the given
+// message.
+absl::Status ParseTextProtoInto(std::string_view asciipb,
+                                google::protobuf::Message* message);
 
 // Parses the given text proto as a protocol message of type 'T' and returns the
 // result in a StatusOr<T>.
@@ -27,7 +28,7 @@ template <typename T, typename = std::enable_if_t<
                           std::is_base_of_v<google::protobuf::Message, T>>>
 absl::StatusOr<T> ParseTextProto(absl::string_view asciipb) {
   T message;
-  INTR_RETURN_IF_ERROR(internal::ParseTextProtoImpl(asciipb, message));
+  INTR_RETURN_IF_ERROR(ParseTextProtoInto(asciipb, &message));
   return message;
 }
 
