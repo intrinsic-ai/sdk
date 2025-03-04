@@ -329,27 +329,10 @@ def _intrinsic_skill(name, image, manifest, **kwargs):
                 a skill_manifest() target.
       **kwargs: additional arguments passed to the container_image rule, such as visibility.
     """
-    skill_service_config_name = "_%s_skill_service_config" % name
-    _skill_service_config_manifest(
-        name = skill_service_config_name,
-        manifest = manifest,
-        testonly = kwargs.get("testonly"),
-        visibility = ["//visibility:private"],
-        tags = ["manual", "avoid_dep"],
-    )
-
     image_name = "%s_image" % name
     container_image(
         name = image_name,
         base = image,
-        directory = _SKILL_USER_DIR,
-        files = [
-            skill_service_config_name,
-        ],
-        data_path = "/",
-        symlinks = {
-            "/skills/skill_service_config.proto.bin": paths.join(_SKILL_USER_DIR, native.package_name(), skill_service_config_name + ".pbbin"),
-        },
         **kwargs
     )
 
@@ -360,11 +343,6 @@ def _intrinsic_skill(name, image, manifest, **kwargs):
         visibility = kwargs.get("visibility"),
         testonly = kwargs.get("testonly"),
     )
-
-def build_symlinks(skill_service_name):
-    return {
-        "/skills/skill_service": paths.join(_SKILL_USER_DIR, native.package_name(), skill_service_name),
-    }
 
 def cc_skill(
         name,
@@ -398,6 +376,15 @@ def cc_skill(
         tags = ["manual", "avoid_dep"],
     )
 
+    skill_service_config_name = "_%s_skill_service_config" % name
+    _skill_service_config_manifest(
+        name = skill_service_config_name,
+        manifest = manifest,
+        testonly = kwargs.get("testonly"),
+        visibility = ["//visibility:private"],
+        tags = ["manual", "avoid_dep"],
+    )
+
     service_image_name = "_%s_service_image" % name
     container_image(
         name = service_image_name,
@@ -405,9 +392,13 @@ def cc_skill(
         directory = _SKILL_USER_DIR,
         files = [
             skill_service_name,
+            skill_service_config_name,
         ],
         data_path = "/",
-        symlinks = build_symlinks(skill_service_name),
+        symlinks = {
+            "/skills/skill_service": paths.join(_SKILL_USER_DIR, native.package_name(), skill_service_name),
+            "/skills/skill_service_config.proto.bin": paths.join(_SKILL_USER_DIR, native.package_name(), skill_service_config_name + ".pbbin"),
+        },
         compatible_with = kwargs.get("compatible_with"),
         visibility = ["//visibility:private"],
         testonly = kwargs.get("testonly"),
@@ -451,6 +442,15 @@ def py_skill(
         tags = ["manual", "avoid_dep"],
     )
 
+    skill_service_config_name = "_%s_skill_service_config" % name
+    _skill_service_config_manifest(
+        name = skill_service_config_name,
+        manifest = manifest,
+        testonly = kwargs.get("testonly"),
+        visibility = ["//visibility:private"],
+        tags = ["manual", "avoid_dep"],
+    )
+
     service_image_name = "_%s_service_image" % name
     python_oci_image(
         name = service_image_name,
@@ -458,8 +458,13 @@ def py_skill(
         binary = binary_name,
         directory = _SKILL_USER_DIR,
         data_path = "/",
-        symlinks = build_symlinks(binary_name) | {
+        files = [
+            skill_service_config_name,
+        ],
+        symlinks = {
+            "/skills/skill_service": paths.join(_SKILL_USER_DIR, native.package_name(), binary_name),
             "/skills/skill_service.runfiles": paths.join(_SKILL_USER_DIR, native.repo_name(), native.package_name(), binary_name + ".runfiles"),
+            "/skills/skill_service_config.proto.bin": paths.join(_SKILL_USER_DIR, native.package_name(), skill_service_config_name + ".pbbin"),
         },
         workdir = "/",
         compatible_with = kwargs.get("compatible_with"),
