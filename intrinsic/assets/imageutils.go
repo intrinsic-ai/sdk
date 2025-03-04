@@ -12,7 +12,6 @@ import (
 
 	"github.com/google/go-containerregistry/pkg/name"
 	containerregistry "github.com/google/go-containerregistry/pkg/v1"
-	"github.com/google/go-containerregistry/pkg/v1/tarball"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -196,32 +195,6 @@ func PushImage(img containerregistry.Image, opts ImageOptions, reg RegistryOptio
 		AuthUser:     reg.User,
 		AuthPassword: reg.Pwd,
 	}, nil
-}
-
-// PushArchive takes an image archive provided by opener pushes it to the
-// specified registry.
-func PushArchive(opener tarball.Opener, opts ImageOptions, reg RegistryOptions) (*ipb.Image, error) {
-	// tarball.Image optionally takes a name.Tag as the second parameter.
-	// That's only needed if there are multiple images in the provided tarball,
-	// since it then uses the reference to find it.  This is different than how
-	// we use the reference constructed above, which is to specify where we'll
-	// push the image we're reading.  We're basically giving ourselves license
-	// to rename whatever the image is in the tarball during the push.
-	img, err := tarball.Image(opener, nil)
-	if err != nil {
-		return nil, fmt.Errorf("could not create tarball image: %v", err)
-	}
-	return PushImage(img, opts, reg)
-}
-
-// ReadImage reads the image from the given path.
-func ReadImage(imagePath string) (containerregistry.Image, error) {
-	log.Printf("Reading image tarball %q", imagePath)
-	image, err := tarball.ImageFromPath(imagePath, nil)
-	if err != nil {
-		return nil, errors.Wrapf(err, "creating tarball image from %q", imagePath)
-	}
-	return image, nil
 }
 
 // RemoveContainerParams holds parameters for RemoveContainer.

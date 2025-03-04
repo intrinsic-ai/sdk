@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/google/go-containerregistry/pkg/v1/tarball"
 	"intrinsic/assets/bundleio"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/imageutils"
@@ -51,6 +52,10 @@ func CreateImageProcessor(reg imageutils.RegistryOptions) bundleio.ImageProcesso
 			return nil, fmt.Errorf("could not process tar file %q: %v", filename, err)
 		}
 		defer cleanup()
-		return imageutils.PushArchive(func() (io.ReadCloser, error) { return opener() }, opts, reg)
+		img, err := tarball.Image(tarball.Opener(opener), nil)
+		if err != nil {
+			return nil, fmt.Errorf("could not create tarball image: %v", err)
+		}
+		return imageutils.PushImage(img, opts, reg)
 	}
 }

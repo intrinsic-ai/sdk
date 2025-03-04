@@ -14,6 +14,7 @@ go_library(
         "//intrinsic/assets:imageutils",
         "//intrinsic/assets/proto:id_go_proto",
         "//intrinsic/kubernetes/workcell_spec/proto:image_go_proto",
+        "@com_github_google_go_containerregistry//pkg/v1/tarball:go_default_library",
     ],
 )
 
