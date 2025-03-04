@@ -10,15 +10,9 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/google/go-containerregistry/pkg/name"
-	containerregistry "github.com/google/go-containerregistry/pkg/v1"
-	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"intrinsic/assets/imagetransfer"
-	"intrinsic/kubernetes/workcell_spec/imagetags"
-	ipb "intrinsic/kubernetes/workcell_spec/proto/image_go_proto"
 	installerpb "intrinsic/kubernetes/workcell_spec/proto/installer_go_grpc_proto"
 	installerservicegrpcpb "intrinsic/kubernetes/workcell_spec/proto/installer_go_grpc_proto"
 )
@@ -116,85 +110,6 @@ func GetImagePath(target string, targetType TargetType) (string, error) {
 	default:
 		return "", fmt.Errorf("unimplemented target type: %v", targetType)
 	}
-}
-
-// WithDefaultTag creates ImageOptions with a specific name and a default tag.
-func WithDefaultTag(name string) (ImageOptions, error) {
-	// Use the rapid candidate name if provided or a placeholder tag otherwise.
-	// For Rapid workflows, the deployed chart references the image by
-	// candidate name. For dev workflows, we reference by digest.
-	tag, err := imagetags.DefaultTag()
-	if err != nil {
-		return ImageOptions{}, errors.Wrap(err, "generating tag")
-	}
-	return ImageOptions{
-		Name: name,
-		Tag:  tag,
-	}, nil
-}
-
-// ImageOptions is used to configure Push of a specific image.
-type ImageOptions struct {
-	// The name to be given to the image.
-	Name string
-	// The tag to be given to the image.
-	Tag string
-}
-
-// BasicAuth provides the necessary fields to perform basic authentication with
-// a resource registry.
-type BasicAuth struct {
-	// User is the username used to access the registry.
-	User string
-	// Pwd is the password used to authenticate registry access.
-	Pwd string
-}
-
-// RegistryOptions is used to configure Push to a specific registry
-type RegistryOptions struct {
-	// URI of the container registry
-	URI string
-	// The transferer performs the work to send the container to the registry.
-	imagetransfer.Transferer
-	// The optional parameters required to perform basic authentication with
-	// the registry.
-	BasicAuth
-}
-
-// PushImage takes an image and pushes it to the specified registry with the
-// given options.
-func PushImage(img containerregistry.Image, opts ImageOptions, reg RegistryOptions) (*ipb.Image, error) {
-	registry := strings.TrimSuffix(reg.URI, "/")
-	if len(registry) == 0 {
-		return nil, fmt.Errorf("registry is empty")
-	}
-
-	// A tag is required for retention.  Infra uses an img being untagged as
-	// a signal it can be removed.
-	dst := fmt.Sprintf("%s/%s:%s", registry, opts.Name, opts.Tag)
-	ref, err := name.NewTag(dst)
-	if err != nil {
-		return nil, errors.Wrapf(err, "name.NewReference(%q)", dst)
-	}
-
-	digest, err := img.Digest()
-	if err != nil {
-		return nil, fmt.Errorf("could not get the sha256 of the image: %v", err)
-	}
-
-	if err := reg.Transferer.Write(ref, img); err != nil {
-		return nil, fmt.Errorf("could not write image %q: %v", dst, err)
-	}
-
-	// Always provide a spec in terms of the digest, since that is
-	// reproducible, while a tag may not be.
-	return &ipb.Image{
-		Registry:     registry,
-		Name:         opts.Name,
-		Tag:          "@" + digest.String(),
-		AuthUser:     reg.User,
-		AuthPassword: reg.Pwd,
-	}, nil
 }
 
 // RemoveContainerParams holds parameters for RemoveContainer.

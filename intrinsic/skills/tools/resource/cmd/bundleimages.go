@@ -9,11 +9,15 @@ import (
 	"path/filepath"
 	"strings"
 
+	crname "github.com/google/go-containerregistry/pkg/name"
+	containerregistry "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/tarball"
+	"github.com/pkg/errors"
 	"intrinsic/assets/bundleio"
 	"intrinsic/assets/idutils"
-	"intrinsic/assets/imageutils"
+	"intrinsic/assets/imagetransfer"
 	idpb "intrinsic/assets/proto/id_go_proto"
+	"intrinsic/kubernetes/workcell_spec/imagetags"
 	ipb "intrinsic/kubernetes/workcell_spec/proto/image_go_proto"
 	"intrinsic/skills/tools/resource/cmd/readeropener"
 )
@@ -27,7 +31,7 @@ const (
 // CreateImageProcessor returns a closure to handle images within a bundle.  It
 // pushes images to the registry using a default tag.  The image is named with
 // the id of the resource with the basename image filename appended.
-func CreateImageProcessor(reg imageutils.RegistryOptions) bundleio.ImageProcessor {
+func CreateImageProcessor(reg RegistryOptions) bundleio.ImageProcessor {
 	return func(idProto *idpb.Id, filename string, r io.Reader) (*ipb.Image, error) {
 		id, err := idutils.IDFromProto(idProto)
 		if err != nil {
@@ -36,10 +40,6 @@ func CreateImageProcessor(reg imageutils.RegistryOptions) bundleio.ImageProcesso
 
 		fileNoExt := strings.TrimSuffix(filepath.Base(filename), filepath.Ext(filename))
 		name := fmt.Sprintf("%s.%s", id, fileNoExt)
-		opts, err := imageutils.WithDefaultTag(name)
-		if err != nil {
-			return nil, fmt.Errorf("unable to get tag for image: %v", err)
-		}
 
 		// Some images can be quite large (>1GB) and cause out-of-memory issues when
 		// read into a byte buffer. We use the readeropener utility to use an
@@ -56,6 +56,69 @@ func CreateImageProcessor(reg imageutils.RegistryOptions) bundleio.ImageProcesso
 		if err != nil {
 			return nil, fmt.Errorf("could not create tarball image: %v", err)
 		}
-		return imageutils.PushImage(img, opts, reg)
+		return PushImage(img, name, reg)
 	}
+}
+
+// BasicAuth provides the necessary fields to perform basic authentication with
+// a resource registry.
+type BasicAuth struct {
+	// User is the username used to access the registry.
+	User string
+	// Pwd is the password used to authenticate registry access.
+	Pwd string
+}
+
+// RegistryOptions is used to configure Push to a specific registry
+type RegistryOptions struct {
+	// URI of the container registry
+	URI string
+	// The transferer performs the work to send the container to the registry.
+	imagetransfer.Transferer
+	// The optional parameters required to perform basic authentication with
+	// the registry.
+	BasicAuth
+}
+
+// PushImage takes an image and pushes it to the specified registry with the
+// given options.
+func PushImage(img containerregistry.Image, name string, reg RegistryOptions) (*ipb.Image, error) {
+	registry := strings.TrimSuffix(reg.URI, "/")
+	if len(registry) == 0 {
+		return nil, fmt.Errorf("registry is empty")
+	}
+	// Use the rapid candidate name if provided or a placeholder tag otherwise.
+	// For Rapid workflows, the deployed chart references the image by
+	// candidate name. For dev workflows, we reference by digest.
+	tag, err := imagetags.DefaultTag()
+	if err != nil {
+		return nil, errors.Wrap(err, "generating tag")
+	}
+
+	// A tag is required for retention.  Infra uses an img being untagged as
+	// a signal it can be removed.
+	dst := fmt.Sprintf("%s/%s:%s", registry, name, tag)
+	ref, err := crname.NewTag(dst)
+	if err != nil {
+		return nil, errors.Wrapf(err, "name.NewReference(%q)", dst)
+	}
+
+	digest, err := img.Digest()
+	if err != nil {
+		return nil, fmt.Errorf("could not get the sha256 of the image: %v", err)
+	}
+
+	if err := reg.Transferer.Write(ref, img); err != nil {
+		return nil, fmt.Errorf("could not write image %q: %v", dst, err)
+	}
+
+	// Always provide a spec in terms of the digest, since that is
+	// reproducible, while a tag may not be.
+	return &ipb.Image{
+		Registry:     registry,
+		Name:         name,
+		Tag:          "@" + digest.String(),
+		AuthUser:     reg.User,
+		AuthPassword: reg.Pwd,
+	}, nil
 }

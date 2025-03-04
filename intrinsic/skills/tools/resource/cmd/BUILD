@@ -11,10 +11,14 @@ go_library(
         ":readeropener",
         "//intrinsic/assets:bundleio",
         "//intrinsic/assets:idutils",
-        "//intrinsic/assets:imageutils",
+        "//intrinsic/assets:imagetransfer",
         "//intrinsic/assets/proto:id_go_proto",
+        "//intrinsic/kubernetes/workcell_spec:imagetags",
         "//intrinsic/kubernetes/workcell_spec/proto:image_go_proto",
+        "@com_github_google_go_containerregistry//pkg/name:go_default_library",
+        "@com_github_google_go_containerregistry//pkg/v1:go_default_library",
         "@com_github_google_go_containerregistry//pkg/v1/tarball:go_default_library",
+        "@com_github_pkg_errors//:go_default_library",
     ],
 )
 

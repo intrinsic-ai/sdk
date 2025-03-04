@@ -29,6 +29,7 @@ import (
 	"intrinsic/assets/imageutils"
 	"intrinsic/icon/hal/tools/hwmodule/cmd/cmd"
 	"intrinsic/icon/hal/tools/hwmodule/cmd/imageutil"
+	"intrinsic/skills/tools/resource/cmd/bundleimages"
 	"intrinsic/skills/tools/skill/cmd/dialerutil"
 	"intrinsic/skills/tools/skill/cmd/directupload/directupload"
 )
@@ -196,21 +197,14 @@ var startCmd = &cobra.Command{
 		if err != nil {
 			return errors.Wrap(err, "could not extract labels from image object")
 		}
-		imgOpts, err := imageutils.WithDefaultTag(installerParams.ImageName)
-		if err != nil {
-			return fmt.Errorf("could not create a tag for the image %q: %v", installerParams.ImageName, err)
-		}
-		reg := imageutils.RegistryOptions{
+		if _, err = bundleimages.PushImage(image, installerParams.ImageName, bundleimages.RegistryOptions{
 			URI:        registryName,
 			Transferer: transfer,
-			BasicAuth: imageutils.BasicAuth{
+			BasicAuth: bundleimages.BasicAuth{
 				User: authUser,
 				Pwd:  authPassword,
 			},
-		}
-
-		_, err = imageutils.PushImage(image, imgOpts, reg)
-		if err != nil {
+		}); err != nil {
 			return fmt.Errorf("could not push target %q to the container registry: %v", target, err)
 		}
 

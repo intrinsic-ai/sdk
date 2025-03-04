@@ -20,6 +20,7 @@ go_library(
         "//intrinsic/assets:imageutils",
         "//intrinsic/kubernetes/workcell_spec/proto:image_go_proto",
         "//intrinsic/kubernetes/workcell_spec/proto:installer_go_grpc_proto",
+        "//intrinsic/skills/tools/resource/cmd:bundleimages",
         "//intrinsic/skills/tools/skill/cmd:dialerutil",
         "//intrinsic/skills/tools/skill/cmd/directupload",
         "@com_github_google_go_containerregistry//pkg/authn:go_default_library",

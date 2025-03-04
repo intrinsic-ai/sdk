@@ -88,13 +88,12 @@ func processAsset(target string, transferer imagetransfer.Transferer, flags *cmd
 		}, nil
 	}
 
-	opts := bundleio.ProcessSkillOpts{
-		ImageProcessor: bundleimages.CreateImageProcessor(imageutils.RegistryOptions{
+	psm, err := bundleio.ProcessSkill(target, bundleio.ProcessSkillOpts{
+		ImageProcessor: bundleimages.CreateImageProcessor(bundleimages.RegistryOptions{
 			Transferer: transferer,
 			URI:        imageutils.GetRegistry(clientutils.ResolveCatalogProjectFromInctl(flags)),
 		}),
-	}
-	psm, err := bundleio.ProcessSkill(target, opts)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to process skill bundle: %v", err)
 	}

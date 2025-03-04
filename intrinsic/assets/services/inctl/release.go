@@ -96,7 +96,7 @@ func processAsset(target string, transferer imagetransfer.Transferer, flags *cmd
 	}
 
 	opts := bundleio.ProcessServiceOpts{
-		ImageProcessor: bundleimages.CreateImageProcessor(imageutils.RegistryOptions{
+		ImageProcessor: bundleimages.CreateImageProcessor(bundleimages.RegistryOptions{
 			Transferer: transferer,
 			URI:        imageutils.GetRegistry(clientutils.ResolveCatalogProjectFromInctl(flags)),
 		}),

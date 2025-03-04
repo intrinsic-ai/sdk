@@ -21,6 +21,7 @@ import (
 	atypepb "intrinsic/assets/proto/asset_type_go_proto"
 	iapb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
 	"intrinsic/assets/typeutils"
+	"intrinsic/skills/tools/resource/cmd/bundleimages"
 	"intrinsic/tools/inctl/util/orgutil"
 )
 
@@ -575,12 +576,12 @@ func parseNonNegativeDuration(durationStr string) (time.Duration, error) {
 	return duration, nil
 }
 
-func (cf *CmdFlags) createBasicAuth() *imageutils.BasicAuth {
+func (cf *CmdFlags) createBasicAuth() *bundleimages.BasicAuth {
 	user, pwd := cf.GetFlagsRegistryAuthUserPassword()
 	if len(user) == 0 || len(pwd) == 0 {
 		return nil
 	}
-	return &imageutils.BasicAuth{
+	return &bundleimages.BasicAuth{
 		User: user,
 		Pwd:  pwd,
 	}
@@ -597,7 +598,7 @@ func (cf *CmdFlags) authOpt() remote.Option {
 }
 
 // CreateRegistryOpts creates registry options for processing images.
-func (cf *CmdFlags) CreateRegistryOpts(ctx context.Context) imageutils.RegistryOptions {
+func (cf *CmdFlags) CreateRegistryOpts(ctx context.Context) bundleimages.RegistryOptions {
 	return cf.CreateRegistryOptsWithTransferer(
 		ctx,
 		imagetransfer.RemoteTransferer(remote.WithContext(ctx), cf.authOpt()),
@@ -606,8 +607,8 @@ func (cf *CmdFlags) CreateRegistryOpts(ctx context.Context) imageutils.RegistryO
 }
 
 // CreateRegistryOptsWithTransferer creates registry options for processing images.
-func (cf *CmdFlags) CreateRegistryOptsWithTransferer(ctx context.Context, transferer imagetransfer.Transferer, registry string) imageutils.RegistryOptions {
-	opts := imageutils.RegistryOptions{
+func (cf *CmdFlags) CreateRegistryOptsWithTransferer(ctx context.Context, transferer imagetransfer.Transferer, registry string) bundleimages.RegistryOptions {
+	opts := bundleimages.RegistryOptions{
 		Transferer: transferer,
 		URI:        registry,
 	}
