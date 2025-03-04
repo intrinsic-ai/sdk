@@ -878,6 +878,7 @@ TEST(StatusBuilderTest, ExtendedStatusConstructor) {
                         {.title = "Test title",
                          .timestamp = t,
                          .user_message = "User message",
+                         .user_instructions = "User instructions",
                          .debug_message = "Debug message",
                          .log_context = log_context,
                          .context = {context_status_1, context_status_2}});
@@ -890,7 +891,10 @@ TEST(StatusBuilderTest, ExtendedStatusConstructor) {
                     title: "Test title"
                     timestamp { seconds: 1711453873 }
                     related_to { log_context { executive_plan_id: 3354 } }
-                    user_report { message: "User message" }
+                    user_report {
+                      message: "User message"
+                      instructions: "User instructions"
+                    }
                     debug_report { message: "Debug message" }
                     context { status_code { component: "Context" code: 123 } }
                     context { status_code { component: "Context" code: 234 } }
@@ -915,6 +919,7 @@ TEST(StatusBuilderTest, SetExtendedStatusFromOptions) {
                             {.title = "Test title",
                              .timestamp = t,
                              .user_message = "User message",
+                             .user_instructions = "User instructions",
                              .debug_message = "Debug message",
                              .log_context = log_context,
                              .context = {context_status_1, context_status_2}});
@@ -931,7 +936,10 @@ TEST(StatusBuilderTest, SetExtendedStatusFromOptions) {
                   related_to { log_context { executive_plan_id: 3354 } }
                   context { status_code { component: "Context" code: 123 } }
                   context { status_code { component: "Context" code: 234 } }
-                  user_report { message: "User message" }
+                  user_report {
+                    message: "User message"
+                    instructions: "User instructions"
+                  }
                   debug_report { message: "Debug message" }
                 )pb"))));
 }

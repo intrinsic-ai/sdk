@@ -178,6 +178,43 @@ cc_library(
 )
 
 cc_library(
+    name = "status_specs",
+    hdrs = ["status_specs.h"],
+    deps = [
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_library(
+    name = "parsed_type_url",
+    srcs = ["parsed_type_url.cc"],
+    hdrs = [
+        "parsed_type_url.h",
+    ],
+    deps = [
+        ":status_specs",
+        ":type_url",
+        "//intrinsic/util/status:status_builder",
+        "@com_google_absl//absl/base:core_headers",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings:str_format",
+        "@com_google_absl//absl/strings:string_view",
+    ],
+)
+
+cc_test(
+    name = "parsed_type_url_test",
+    srcs = ["parsed_type_url_test.cc"],
+    deps = [
+        ":parsed_type_url",
+        "//intrinsic/util/testing:gtest_wrapper_main",
+        "@com_google_absl//absl/status",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_library(
     name = "parse_text_proto",
     srcs = ["parse_text_proto.cc"],
     hdrs = ["parse_text_proto.h"],

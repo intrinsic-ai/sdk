@@ -14,6 +14,7 @@
 namespace intrinsic {
 
 constexpr std::string_view kIntrinsicTypeUrlPrefix = "type.intrinsic.ai/";
+constexpr std::string_view kIntrinsicTypeUrlAreaSkills = "skills";
 constexpr std::string_view kTypeUrlPrefix = "type.googleapis.com/";
 constexpr std::string_view kTypeUrlSeparator = "/";
 

@@ -53,6 +53,7 @@ class ABSL_MUST_USE_RESULT StatusBuilder {
     std::optional<std::string> title;
     std::optional<absl::Time> timestamp;
     std::optional<std::string> user_message;
+    std::optional<std::string> user_instructions;
     std::optional<std::string> debug_message;
     std::optional<intrinsic_proto::data_logger::Context> log_context;
     std::vector<intrinsic_proto::status::ExtendedStatus> context;
@@ -815,6 +816,9 @@ inline void FillExtendedStatusProtoFromOptions(
   }
   if (options.user_message.has_value()) {
     es.mutable_user_report()->set_message(*options.user_message);
+  }
+  if (options.user_instructions.has_value()) {
+    es.mutable_user_report()->set_instructions(*options.user_instructions);
   }
   if (options.debug_message.has_value()) {
     es.mutable_debug_report()->set_message(*options.debug_message);
