@@ -69,8 +69,6 @@ message GetBlackboardValueRequest {
   // "PROCESS_TREE" for an item in the process tree. For example to
   // retrieve the return value of a skill that just ran. This is the default for
   // most use cases. This is the default, if scope is not set.
-  // "SYSTEM_TREE" for an item within the system tree.
-  // "GLOBAL" for global items, e.g., inflows.
   optional string scope = 2;
 
   string operation_name = 3;
