@@ -7,6 +7,7 @@ package(default_visibility = ["//visibility:public"])
 go_library(
     name = "printer",
     srcs = ["printer.go"],
+    deps = ["@com_github_spf13_cobra//:go_default_library"],
 )
 
 go_library(
