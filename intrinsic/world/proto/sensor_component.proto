@@ -122,10 +122,6 @@ message SensorComponent {
     uint32 visibility_mask = 7;
   }
 
-  message RgbCameraPluginSpec {
-    // Empty
-  }
-
   message CameraPluginSpec {
     intrinsic_proto.perception.CameraIdentifier camera_identifier = 1;
   }
@@ -134,25 +130,24 @@ message SensorComponent {
   // frame of the owning entity).
   message Camera {
     CommonCameraProperties properties = 1;
-    // If present the RgbCameraPlugin is enabled.
-    RgbCameraPluginSpec rgb_camera_plugin = 2 [deprecated = true];
 
     // If present the CameraPlugin is enabled.
     CameraPluginSpec camera_plugin = 3;
-  }
 
-  message RgbdCameraPluginSpec {
-    // Empty
+    reserved 2;
+    reserved "rgb_camera_plugin";
   }
 
   // Cameras use the following convention: z forward, x right, y down (in the
   // frame of the owning entity).
   message DepthCamera {
     CommonCameraProperties properties = 1;
-    RgbdCameraPluginSpec rgbd_camera_plugin = 2 [deprecated = true];
 
     // If present the CameraPlugin is enabled.
     CameraPluginSpec camera_plugin = 3;
+
+    reserved 2;
+    reserved "rgbd_camera_plugin";
   }
 
   message ForceTorqueDevicePluginSpec {
