@@ -412,6 +412,42 @@ message DeleteClusterRequest {
 
 message DeleteOperationMetadata {}
 
+message LogReceiver {
+  // The host to connect to. Disables log receiver if empty.
+  string host = 1;
+  // Default to 514.
+  int32 port = 2;
+  enum Transport {
+    // Default to TCP.
+    TRANSPORT_DEFAULT = 0;
+    TRANSPORT_TCP = 1;
+    TRANSPORT_UDP = 2;
+  }
+  Transport transport = 3;
+  enum Format {
+    // Default to RFC5424.
+    FORMAT_DEFAULT = 0;
+    FORMAT_RFC5424 = 1;
+    FORMAT_RFC3164 = 2;
+  }
+  Format format = 4;
+}
+
+message GetLogReceiverRequest {
+  string project = 1 [(google.api.field_behavior) = REQUIRED];
+  string org = 2 [(google.api.field_behavior) = REQUIRED];
+  string cluster_id = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+message CreateLogReceiverUpdateRequest {
+  string project = 1 [(google.api.field_behavior) = REQUIRED];
+  string org = 2 [(google.api.field_behavior) = REQUIRED];
+  string cluster_id = 3 [(google.api.field_behavior) = REQUIRED];
+  LogReceiver log_receiver = 4 [(google.api.field_behavior) = REQUIRED];
+}
+
+message LogReceiverUpdate {}
+
 // ClustersService holds a set of methods to interact with clusters.
 service ClustersService {
 
@@ -609,4 +645,29 @@ service ClustersService {
   // At this point, this is unimplemented for ClustersService.
   rpc WaitOperation(google.longrunning.WaitOperationRequest)
       returns (google.longrunning.Operation);
+
+  // GetLogReceiver retrieves the last known log receiver configuration for a
+  // cluster.
+  rpc GetLogReceiver(GetLogReceiverRequest) returns (LogReceiver) {
+    option (google.api.http) = {
+      get: "/v1/project/{project}/org/{org}/clusters/{cluster_id}/config/log_receiver"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "GetLogReceiver"
+    };
+  }
+
+  // CreateLogReceiverUpdate creates a new update entry to set the log receiver
+  // for a cluster.
+  // The update will be applied the next time the cluster is reachable.
+  rpc CreateLogReceiverUpdate(CreateLogReceiverUpdateRequest)
+      returns (LogReceiverUpdate) {
+    option (google.api.http) = {
+      post: "/v1/project/{project}/org/{org}/clusters/{cluster_id}/config/log_receiver_update"
+      body: "log_receiver"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "CreateLogReceiverUpdate"
+    };
+  }
 }
