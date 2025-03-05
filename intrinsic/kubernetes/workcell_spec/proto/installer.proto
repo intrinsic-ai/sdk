@@ -5,55 +5,7 @@ syntax = "proto3";
 package intrinsic_proto.workcell_spec.v1;
 
 import "google/protobuf/empty.proto";
-import "google/protobuf/timestamp.proto";
 import "intrinsic/kubernetes/workcell_spec/proto/image.proto";
-
-message GetInstalledSpecResponse {
-  // The identifier of the currently running workcell spec.
-  string name = 1;
-
-  // The health status of the workcell. Currently ERROR is never returned.
-  enum WorkcellStatus {
-    UNKNOWN = 0;
-    // Ready to receive requests.
-    HEALTHY = 1;
-    // Not ready to receive requests, but should fix itself.
-    PENDING = 2;
-    // Non-recoverable error.
-    ERROR = 3;
-    // The workcell spec is about to be deleted.
-    STOPPING = 4;
-  }
-  WorkcellStatus status = 3;
-  // If status != HEALTHY, a human-readable explanation of why.
-  // Note that after (re-)installing an app, the expectation is for it to go
-  // through a few unhealthy states before it's healthy.
-  string error_reason = 4;
-
-  // A list of services that are available.
-  repeated Service services = 2;
-  message Service {
-    string name = 1;
-  }
-
-  // The version of the installed workcell spec.
-  string version = 5;
-
-  // A project wide unique name of the workcell.
-  string workcell_name = 6;
-
-  // The human readable name of the currently running workcell spec.
-  string display_name = 7;
-
-  reserved 8;
-  reserved "icon_instance_names";
-
-  // Whether it's a simulated workcell or physical.
-  bool simulated = 9;
-
-  // The time at which the workcellspec was deployed.
-  google.protobuf.Timestamp started_at = 10;
-}
 
 enum AddonType {
   ADDON_TYPE_UNKNOWN = 0;
@@ -143,17 +95,6 @@ message InstallContainerAddonsRequest {
 }
 
 service InstallerService {
-
-  // Returns information about the currently running (if any) workcell spec.
-  // Blocks for up to 1s.
-  rpc GetInstalledSpec(google.protobuf.Empty)
-      returns (GetInstalledSpecResponse) {
-    // This rpc is deprecated and will be removed in the future. Use
-    // SolutionService.GetStatus() instead.
-    option deprecated = true;
-
-    // errors: NOT_FOUND if no workcell spec has been installed yet
-  }
 
   // Installs a (eg. 3rd party) container addon into the cluster
   rpc InstallContainerAddon(InstallContainerAddonRequest)

@@ -30,7 +30,6 @@ proto_library(
     deps = [
         ":image_proto",
         "@com_google_protobuf//:empty_proto",
-        "@com_google_protobuf//:timestamp_proto",
     ],
 )
 
