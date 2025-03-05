@@ -138,9 +138,21 @@ func allDependencies(fullNames []string, graph map[string]map[string]struct{}) m
 
 func anyMessageInDepSet(file *dpb.FileDescriptorProto, depSet map[string]struct{}) bool {
 	pkg := file.GetPackage()
-	for _, mt := range file.GetMessageType() {
-		fullName := pkg + "." + mt.GetName()
+	var checkfn func(path string, msgDesc *dpb.DescriptorProto, depSet map[string]struct{}) bool
+	checkfn = func(path string, msgDesc *dpb.DescriptorProto, depSet map[string]struct{}) bool {
+		fullName := path + "." + msgDesc.GetName()
 		if _, exists := depSet[fullName]; exists {
+			return true
+		}
+		for _, nmt := range msgDesc.GetNestedType() {
+			if exists := checkfn(fullName, nmt, depSet); exists {
+				return true
+			}
+		}
+		return false
+	}
+	for _, mt := range file.GetMessageType() {
+		if exists := checkfn(pkg, mt, depSet); exists {
 			return true
 		}
 	}

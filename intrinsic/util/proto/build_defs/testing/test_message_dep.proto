@@ -7,4 +7,9 @@ package intrinsic.build_def.testing;
 message SubMessage {
   // Your favorite double of all time.
   optional double my_double = 1;
+
+  message NestedMessage {
+    // A nested message.
+    string hello = 1;
+  }
 }

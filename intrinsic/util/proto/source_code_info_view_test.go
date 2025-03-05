@@ -205,8 +205,15 @@ func TestDependencyGraph(t *testing.T) {
 		"intrinsic.build_def.testing.SubMessage": map[string]struct{}{
 			"intrinsic.build_def.testing.SubMessage": {},
 		},
+		"intrinsic.build_def.testing.SubMessage.NestedMessage": map[string]struct{}{
+			"intrinsic.build_def.testing.SubMessage.NestedMessage": {},
+		},
 		"intrinsic.build_def.testing.SubMessageB": map[string]struct{}{
 			"intrinsic.build_def.testing.SubMessageB": {},
+		},
+		"intrinsic.build_def.testing.TestMessageC": map[string]struct{}{
+			"intrinsic.build_def.testing.SubMessage.NestedMessage": {},
+			"intrinsic.build_def.testing.TestMessageC":             {},
 		},
 		"intrinsic.build_def.testing.TestService": map[string]struct{}{
 			"intrinsic.build_def.testing.TestService":     {},
@@ -393,6 +400,15 @@ func TestPruneSourceCodeInfo(t *testing.T) {
 				"google/protobuf/duration.proto":                                 false,
 				"intrinsic/util/proto/build_defs/testing/test_message.proto":     true,
 				"intrinsic/util/proto/build_defs/testing/test_message_dep.proto": false,
+			},
+		},
+		{
+			name:      "intrinsic.build_def.testing.TestMessageC",
+			fullNames: []string{"intrinsic.build_def.testing.TestMessageC"},
+			want: map[string]bool{
+				"google/protobuf/duration.proto":                                 false,
+				"intrinsic/util/proto/build_defs/testing/test_message.proto":     true,
+				"intrinsic/util/proto/build_defs/testing/test_message_dep.proto": true,
 			},
 		},
 	}

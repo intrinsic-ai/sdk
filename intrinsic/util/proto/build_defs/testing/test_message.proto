@@ -53,3 +53,9 @@ message GetInfoRequest {
 
 // A test response message
 message GetInfoResponse {}
+
+// A test message with a nested message field.
+message TestMessageC {
+  // A submessage.
+  SubMessage.NestedMessage submessage = 1;
+}
