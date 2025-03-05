@@ -32,6 +32,7 @@ from intrinsic.executive.proto import any_list_pb2
 from intrinsic.executive.proto import any_with_assignments_pb2
 from intrinsic.executive.proto import behavior_call_pb2
 from intrinsic.executive.proto import behavior_tree_pb2
+from intrinsic.executive.proto import code_execution_pb2
 from intrinsic.executive.proto import world_query_pb2
 from intrinsic.skills.proto import skills_pb2
 from intrinsic.solutions import blackboard_value
@@ -1467,6 +1468,7 @@ class Task(Node):
 
   _action: Optional[actions.ActionBase]
   _behavior_call_proto: Optional[behavior_call_pb2.BehaviorCall]
+  _code_execution_proto: Optional[code_execution_pb2.CodeExecution]
   _decorators: Optional[Decorators]
   _name: Optional[str]
   _node_id: Optional[int]
@@ -1475,10 +1477,15 @@ class Task(Node):
 
   def __init__(
       self,
-      action: Union[actions.ActionBase, behavior_call_pb2.BehaviorCall],
+      action: Union[
+          actions.ActionBase,
+          behavior_call_pb2.BehaviorCall,
+          code_execution_pb2.CodeExecution,
+      ],
       name: Optional[str] = None,
   ):
     self._behavior_call_proto = None
+    self._code_execution_proto = None
     self._decorators = None
     self._user_data_protos = {}
     if isinstance(action, actions.ActionBase):
@@ -1486,6 +1493,8 @@ class Task(Node):
       self._action = action
     elif isinstance(action, behavior_call_pb2.BehaviorCall):
       self._behavior_call_proto = action
+    elif isinstance(action, code_execution_pb2.CodeExecution):
+      self._code_execution_proto = action
     else:
       raise solutions_errors.InvalidArgumentError(
           f'Unknown action specification: {action}'
@@ -1497,7 +1506,12 @@ class Task(Node):
 
   def __repr__(self) -> str:
     """Returns a compact, human-readable string representation."""
-    return f'{type(self).__name__}({self._name_repr()}action=behavior_call.Action(skill_id="{self._behavior_call_proto.skill_id}"))'
+    action_str = ''
+    if self._behavior_call_proto:
+      action_str = f'skill_id="{self._behavior_call_proto.skill_id}"'
+    elif self._code_execution_proto:
+      action_str = 'CodeExecution()'
+    return f'{type(self).__name__}({self._name_repr()}action=behavior_call.Action({action_str}))'
 
   @property
   def name(self) -> Optional[str]:
@@ -1524,6 +1538,8 @@ class Task(Node):
     proto_object = super().proto
     if self._behavior_call_proto:
       proto_object.task.call_behavior.CopyFrom(self._behavior_call_proto)
+    if self._code_execution_proto:
+      proto_object.task.execute_code.CopyFrom(self._code_execution_proto)
     return proto_object
 
   @property
@@ -1566,6 +1582,8 @@ class Task(Node):
   def _create_from_proto(
       cls, proto_object: behavior_tree_pb2.BehaviorTree.TaskNode
   ) -> Task:
+    if proto_object.HasField('execute_code'):
+      return cls(proto_object.execute_code)
     return cls(proto_object.call_behavior)
 
   def dot_graph(  # pytype: disable=signature-mismatch  # overriding-parameter-count-checks
@@ -1577,6 +1595,11 @@ class Task(Node):
         name += f' ({self._behavior_call_proto.skill_id})'
       else:
         name += f'Skill {self._behavior_call_proto.skill_id}'
+    if self._code_execution_proto:
+      if name:
+        name += ' (CodeExecution)'
+      else:
+        name += 'CodeExecution'
     return super().dot_graph(node_id_suffix, name)
 
 

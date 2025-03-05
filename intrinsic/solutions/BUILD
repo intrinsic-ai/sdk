@@ -24,6 +24,7 @@ py_library(
         "//intrinsic/executive/proto:any_with_assignments_py_pb2",
         "//intrinsic/executive/proto:behavior_call_py_pb2",
         "//intrinsic/executive/proto:behavior_tree_py_pb2",
+        "//intrinsic/executive/proto:code_execution_py_pb2",
         "//intrinsic/executive/proto:world_query_py_pb2",
         "//intrinsic/skills/proto:skills_py_pb2",
         "//intrinsic/solutions/internal:actions",

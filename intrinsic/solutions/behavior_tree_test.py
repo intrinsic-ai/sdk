@@ -1791,6 +1791,20 @@ class BehaviorTreeTaskTest(absltest.TestCase):
         node_proto,
     )
 
+  def test_to_proto_and_from_proto_code_execution(self):
+    """Tests if conversion to and from a proto representation works.
+
+    This tests the specific case of using the execute_code oneof option.
+    """
+    node_proto = behavior_tree_pb2.BehaviorTree.Node(name='foo')
+    node_proto.task.execute_code.python_code.function_body = 'test_code()'
+
+    compare.assertProto2Equal(
+        self,
+        bt.Node.create_from_proto(node_proto).proto,
+        node_proto,
+    )
+
   def test_attributes(self):
     """Tests the name and node_id attributes."""
     my_node = bt.Task(behavior_call.Action(skill_id='ai.intrinsic.skill-0'))
