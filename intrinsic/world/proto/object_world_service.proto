@@ -354,8 +354,8 @@ message KinematicObjectComponent {
   // If set these will be the updated limits used by this kinematic object.
   optional intrinsic_proto.icon.CartesianLimits cartesian_limits = 6;
 
-  // If set this will be the updated control frequency used.
-  optional double control_frequency_hz = 7;
+  // Unused.
+  optional double control_frequency_hz = 7 [deprecated = true];
 
   // The payload mounted to the robot. Empty if no payload is defined.
   optional RobotPayload mounted_payload = 10;

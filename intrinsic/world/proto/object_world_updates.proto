@@ -357,8 +357,8 @@ message UpdateKinematicObjectPropertiesRequest {
   // If set these will be the updated limits to use.
   intrinsic_proto.icon.CartesianLimits cartesian_limits = 5;
 
-  // If set this will be the updated control frequency to use
-  optional double control_frequency_hz = 6;
+  // Unused.
+  optional double control_frequency_hz = 6 [deprecated = true];
 
   // The payload attached to the robot flange.
   optional RobotPayload mounted_payload = 8;

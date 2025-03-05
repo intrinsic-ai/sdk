@@ -7,6 +7,7 @@
 #include <optional>
 #include <vector>
 
+#include "absl/base/attributes.h"
 #include "absl/status/statusor.h"
 #include "intrinsic/eigenmath/types.h"
 #include "intrinsic/kinematics/types/cartesian_limits.h"
@@ -94,6 +95,9 @@ class KinematicObject : public WorldObject {
     JointLimitsXd joint_system_limits_;
     JointLimitsXd joint_application_limits_;
     intrinsic::CartesianLimits cartesian_limits_;
+    ABSL_DEPRECATED(
+        "The control frequency in the world is unused. Use the control rate in "
+        "the HardwareModuleConfig instead.")
     std::optional<double> control_frequency_hz_;
     std::optional<RobotPayload> mounted_payload_;
   };
