@@ -18,6 +18,7 @@
 #include "absl/log/log_sink.h"
 #include "absl/status/status.h"
 #include "absl/strings/cord.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
@@ -61,7 +62,8 @@ class ABSL_MUST_USE_RESULT StatusBuilder {
     // This can be set for compatibility with legacy client code, i.e., code
     // that only looks for the general status code and not extended status.
     // Note: this option is only observed by the respective constructor, not by
-    // SetExtendedStatus(options)!
+    // OverwriteExtendedStatus(options), AttachExtendedStatus(options),
+    // WrapExtendedStatus(options)!
     std::optional<absl::StatusCode> generic_code;
   };
   explicit StatusBuilder(std::string_view component, uint32_t code,
@@ -167,27 +169,64 @@ class ABSL_MUST_USE_RESULT StatusBuilder {
   StatusBuilder& SetPayload(std::string_view type_url, absl::Cord payload) &;
   StatusBuilder&& SetPayload(std::string_view type_url, absl::Cord payload) &&;
 
-  StatusBuilder& SetExtendedStatus(
+  // Sets the given ExtendedStatus as the ExtendedStatus of this status. If an
+  // ExtendedStatus is already present it is overwritten.
+  StatusBuilder& OverwriteExtendedStatus(
       const intrinsic_proto::status::ExtendedStatus& extended_status) &;
-  StatusBuilder&& SetExtendedStatus(
+  StatusBuilder&& OverwriteExtendedStatus(
       const intrinsic_proto::status::ExtendedStatus& extended_status) &&;
-  StatusBuilder& SetExtendedStatus(
+  StatusBuilder& OverwriteExtendedStatus(
       std::string_view component, uint32_t code,
       const ExtendedStatusOptions& options = ExtendedStatusOptions()) &;
-  StatusBuilder&& SetExtendedStatus(
+  StatusBuilder&& OverwriteExtendedStatus(
       std::string_view component, uint32_t code,
       const ExtendedStatusOptions& options = ExtendedStatusOptions()) &&;
 
+  // Creates an ExtendedStatus with the specified code on this Status. Any
+  // ExtendedStatus already on the Status will be moved to the context of the
+  // specified ExtendedStatus.
+  StatusBuilder& AttachExtendedStatus(
+      std::string_view component, uint32_t code,
+      const ExtendedStatusOptions& options = ExtendedStatusOptions(),
+      intrinsic::SourceLocation location =
+          intrinsic::SourceLocation::current()) &;
+  StatusBuilder&& AttachExtendedStatus(
+      std::string_view component, uint32_t code,
+      const ExtendedStatusOptions& options = ExtendedStatusOptions(),
+      intrinsic::SourceLocation location =
+          intrinsic::SourceLocation::current()) &&;
+  StatusBuilder& AttachExtendedStatus(
+      intrinsic_proto::status::ExtendedStatus extended_status) &;
+  StatusBuilder&& AttachExtendedStatus(
+      intrinsic_proto::status::ExtendedStatus extended_status) &&;
+
+  // Creates an ExtendedStatus with the given code like AttachExtendedStatus,
+  // but when the wrapped status does not have an ExtendedStatus the legacy
+  // absl::Status is kept.
+  enum WrapExtendedStatusMode {
+    // Appends the legacy Status' message to the debug report's message.
+    LEGACY_AS_DEBUG_REPORT,
+    // Creates an ExtendedStatus with a generic code from the legacy Status.
+    LEGACY_IN_CONTEXT,
+  };
   StatusBuilder& WrapExtendedStatus(
       std::string_view component, uint32_t code,
+      WrapExtendedStatusMode wrap_mode,
       const ExtendedStatusOptions& options = ExtendedStatusOptions(),
       intrinsic::SourceLocation location =
           intrinsic::SourceLocation::current()) &;
   StatusBuilder&& WrapExtendedStatus(
       std::string_view component, uint32_t code,
+      WrapExtendedStatusMode wrap_mode,
       const ExtendedStatusOptions& options = ExtendedStatusOptions(),
       intrinsic::SourceLocation location =
           intrinsic::SourceLocation::current()) &&;
+  StatusBuilder& WrapExtendedStatus(
+      intrinsic_proto::status::ExtendedStatus extended_status,
+      WrapExtendedStatusMode wrap_mode) &;
+  StatusBuilder&& WrapExtendedStatus(
+      intrinsic_proto::status::ExtendedStatus extended_status,
+      WrapExtendedStatusMode wrap_mode) &&;
 
   StatusBuilder& SetExtendedStatusCode(std::string_view component,
                                        uint32_t code) &;
@@ -402,6 +441,24 @@ class ABSL_MUST_USE_RESULT StatusBuilder {
   static absl::Status AnnotateStatus(const absl::Status& s,
                                      std::string_view msg);
 
+  // Creates a new ExtendedStatus as given and if an extended status is set
+  // puts that ExtendedStatus in its context. If there is no ExtendedStatus
+  // present the absl::Status will be wrapped according to wrap_mode. If
+  // wrap_mode is not given the absl::Status will not be included in the
+  // ExtendedStatus.
+  StatusBuilder& WrapExtendedStatusImpl(
+      intrinsic_proto::status::ExtendedStatus extended_status,
+      std::optional<WrapExtendedStatusMode> wrap_mode,
+      const ExtendedStatusOptions& options = ExtendedStatusOptions(),
+      intrinsic::SourceLocation location =
+          intrinsic::SourceLocation::current()) &;
+  StatusBuilder&& WrapExtendedStatusImpl(
+      intrinsic_proto::status::ExtendedStatus extended_status,
+      std::optional<WrapExtendedStatusMode> wrap_mode,
+      const ExtendedStatusOptions& options = ExtendedStatusOptions(),
+      intrinsic::SourceLocation location =
+          intrinsic::SourceLocation::current()) &&;
+
   // Infrequently set builder options, instantiated lazily. This reduces
   // average construction/destruction time (e.g. the `stream` is fairly
   // expensive). Stacks can also be blown if StatusBuilder grows too large.
@@ -580,7 +637,7 @@ inline StatusBuilder::StatusBuilder(std::string_view component, uint32_t code,
                                     intrinsic::SourceLocation location)
     : status_(MakeCanonicalStatusFromOptions(options, location)),
       loc_(location) {
-  SetExtendedStatus(component, code, options);
+  OverwriteExtendedStatus(component, code, options);
 }
 
 inline StatusBuilder& StatusBuilder::operator=(const StatusBuilder& sb) {
@@ -789,7 +846,7 @@ inline intrinsic::SourceLocation StatusBuilder::source_location() const {
   return loc_;
 }
 
-inline StatusBuilder& StatusBuilder::SetExtendedStatus(
+inline StatusBuilder& StatusBuilder::OverwriteExtendedStatus(
     const intrinsic_proto::status::ExtendedStatus& extended_status) & {
   if (rep_ == nullptr) {
     rep_ = std::make_unique<Rep>();
@@ -832,21 +889,19 @@ inline void FillExtendedStatusProtoFromOptions(
   }
 }
 
-inline StatusBuilder&& StatusBuilder::SetExtendedStatus(
+inline StatusBuilder&& StatusBuilder::OverwriteExtendedStatus(
     const intrinsic_proto::status::ExtendedStatus& extended_status) && {
-  return std::move(SetExtendedStatus(extended_status));
+  return std::move(OverwriteExtendedStatus(extended_status));
 }
 
-inline StatusBuilder& StatusBuilder::WrapExtendedStatus(
-    std::string_view component, uint32_t code,
+inline StatusBuilder& StatusBuilder::WrapExtendedStatusImpl(
+    intrinsic_proto::status::ExtendedStatus extended_status,
+    std::optional<WrapExtendedStatusMode> wrap_mode,
     const StatusBuilder::ExtendedStatusOptions& options,
     intrinsic::SourceLocation location) & {
   if (rep_ == nullptr) {
     rep_ = std::make_unique<Rep>();
   }
-
-  intrinsic_proto::status::ExtendedStatus es;
-  FillExtendedStatusProtoFromOptions(component, code, options, es);
 
   if (options.emit_stacktrace_to_debug_report.has_value()) {
     rep_->extended_status_emit_stacktrace =
@@ -854,43 +909,125 @@ inline StatusBuilder& StatusBuilder::WrapExtendedStatus(
   }
 
   if (rep_->extended_status) {
-    *es.add_context() = std::move(*rep_->extended_status);
+    *extended_status.add_context() = std::move(*rep_->extended_status);
   } else {
     rep_->extended_status =
         std::make_unique<intrinsic_proto::status::ExtendedStatus>();
-
     intrinsic_proto::status::ExtendedStatus context_es;
     std::optional<absl::Cord> extended_status_payload = status_.GetPayload(
         AddTypeUrlPrefix<intrinsic_proto::status::ExtendedStatus>());
-    if (!extended_status_payload.has_value() ||
-        !context_es.ParseFromCord(*extended_status_payload)) {
-      context_es.mutable_status_code()->set_code(
-          static_cast<uint32_t>(status_.code()));
-      context_es.set_title(
-          absl::StrFormat("Generic failure (code %s)",
-                          absl::StatusCodeToString(status_.code())));
-      context_es.mutable_user_report()->set_message(status_.message());
-      context_es.mutable_debug_report()->set_message(absl::StrFormat(
-          "Error source location: %s:%u", loc_.file_name(), loc_.line()));
+    if (extended_status_payload.has_value() &&
+        context_es.ParseFromCord(*extended_status_payload)) {
+      *extended_status.add_context() = std::move(context_es);
+    } else if (wrap_mode.has_value()) {
+      // No ES already present or as payload on the status_. Wrap the present
+      // absl::Status in status_.
+      switch (*wrap_mode) {
+        case LEGACY_AS_DEBUG_REPORT: {
+          std::string connector_str = "";
+          if (!extended_status.debug_report().message().empty()) {
+            connector_str = ": ";
+          }
+          absl::StrAppend(
+              extended_status.mutable_debug_report()->mutable_message(),
+              connector_str,
+              absl::StrFormat("Generic failure (code %s): %s",
+                              absl::StatusCodeToString(status_.code()),
+                              status_.message()));
+        } break;
+        case LEGACY_IN_CONTEXT:
+          context_es.mutable_status_code()->set_code(
+              static_cast<uint32_t>(status_.code()));
+          context_es.set_title(
+              absl::StrFormat("Generic failure (code %s)",
+                              absl::StatusCodeToString(status_.code())));
+          context_es.mutable_user_report()->set_message(status_.message());
+          context_es.mutable_debug_report()->set_message(absl::StrFormat(
+              "Error source location: %s:%u", loc_.file_name(), loc_.line()));
+          *extended_status.add_context() = std::move(context_es);
+          break;
+      }
     }
-    *es.add_context() = std::move(context_es);
   }
-  status_ = MakeCanonicalStatusFromOptions(options, location);
 
   loc_ = location;
-  *rep_->extended_status = std::move(es);
+  *rep_->extended_status = std::move(extended_status);
 
   return *this;
 }
 
-inline StatusBuilder&& StatusBuilder::WrapExtendedStatus(
-    std::string_view component, uint32_t code,
+inline StatusBuilder&& StatusBuilder::WrapExtendedStatusImpl(
+    intrinsic_proto::status::ExtendedStatus extended_status,
+    std::optional<WrapExtendedStatusMode> wrap_mode,
     const StatusBuilder::ExtendedStatusOptions& options,
     intrinsic::SourceLocation location) && {
-  return std::move(WrapExtendedStatus(component, code, options, location));
+  return std::move(
+      WrapExtendedStatusImpl(extended_status, wrap_mode, options, location));
 }
 
-inline StatusBuilder& StatusBuilder::SetExtendedStatus(
+inline StatusBuilder& StatusBuilder::AttachExtendedStatus(
+    std::string_view component, uint32_t code,
+    const ExtendedStatusOptions& options,
+    intrinsic::SourceLocation location) & {
+  intrinsic_proto::status::ExtendedStatus es;
+  FillExtendedStatusProtoFromOptions(component, code, options, es);
+  return WrapExtendedStatusImpl(std::move(es), std::nullopt, options, location);
+}
+
+inline StatusBuilder&& StatusBuilder::AttachExtendedStatus(
+    std::string_view component, uint32_t code,
+    const ExtendedStatusOptions& options,
+    intrinsic::SourceLocation location) && {
+  intrinsic_proto::status::ExtendedStatus es;
+  FillExtendedStatusProtoFromOptions(component, code, options, es);
+  return std::move(
+      WrapExtendedStatusImpl(std::move(es), std::nullopt, options, location));
+}
+
+inline StatusBuilder& StatusBuilder::AttachExtendedStatus(
+    intrinsic_proto::status::ExtendedStatus extended_status) & {
+  return WrapExtendedStatusImpl(std::move(extended_status), std::nullopt);
+}
+
+inline StatusBuilder&& StatusBuilder::AttachExtendedStatus(
+    intrinsic_proto::status::ExtendedStatus extended_status) && {
+  return std::move(
+      WrapExtendedStatusImpl(std::move(extended_status), std::nullopt));
+}
+
+inline StatusBuilder& StatusBuilder::WrapExtendedStatus(
+    std::string_view component, uint32_t code, WrapExtendedStatusMode wrap_mode,
+    const ExtendedStatusOptions& options,
+    intrinsic::SourceLocation location) & {
+  intrinsic_proto::status::ExtendedStatus es;
+  FillExtendedStatusProtoFromOptions(component, code, options, es);
+  return WrapExtendedStatusImpl(std::move(es), wrap_mode, options, location);
+}
+
+inline StatusBuilder&& StatusBuilder::WrapExtendedStatus(
+    std::string_view component, uint32_t code, WrapExtendedStatusMode wrap_mode,
+    const ExtendedStatusOptions& options,
+    intrinsic::SourceLocation location) && {
+  intrinsic_proto::status::ExtendedStatus es;
+  FillExtendedStatusProtoFromOptions(component, code, options, es);
+  return std::move(
+      WrapExtendedStatusImpl(std::move(es), wrap_mode, options, location));
+}
+
+inline StatusBuilder& StatusBuilder::WrapExtendedStatus(
+    intrinsic_proto::status::ExtendedStatus extended_status,
+    WrapExtendedStatusMode wrap_mode) & {
+  return WrapExtendedStatusImpl(std::move(extended_status), wrap_mode);
+}
+
+inline StatusBuilder&& StatusBuilder::WrapExtendedStatus(
+    intrinsic_proto::status::ExtendedStatus extended_status,
+    WrapExtendedStatusMode wrap_mode) && {
+  return std::move(
+      WrapExtendedStatusImpl(std::move(extended_status), wrap_mode));
+}
+
+inline StatusBuilder& StatusBuilder::OverwriteExtendedStatus(
     std::string_view component, uint32_t code,
     const StatusBuilder::ExtendedStatusOptions& options) & {
   if (rep_ == nullptr) {
@@ -909,10 +1046,10 @@ inline StatusBuilder& StatusBuilder::SetExtendedStatus(
   return *this;
 }
 
-inline StatusBuilder&& StatusBuilder::SetExtendedStatus(
+inline StatusBuilder&& StatusBuilder::OverwriteExtendedStatus(
     std::string_view component, uint32_t code,
     const StatusBuilder::ExtendedStatusOptions& options) && {
-  return std::move(SetExtendedStatus(component, code, options));
+  return std::move(OverwriteExtendedStatus(component, code, options));
 }
 
 inline StatusBuilder& StatusBuilder::SetExtendedStatusCode(

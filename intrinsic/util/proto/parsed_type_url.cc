@@ -22,7 +22,7 @@ absl::StatusOr<ParsedUrl> ParseTypeUrl(
 
   if (!type_url.starts_with(kIntrinsicTypeUrlPrefix)) {
     return StatusBuilder(absl::StatusCode::kInvalidArgument)
-        .SetExtendedStatus(
+        .AttachExtendedStatus(
             util::proto::kExtendedStatusComponent, util::proto::kInvalidUrlCode,
             {.title = util::proto::kInvalidUrlTitle,
              .user_message =
@@ -37,7 +37,7 @@ absl::StatusOr<ParsedUrl> ParseTypeUrl(
       type_url.find(kTypeUrlSeparator, kIntrinsicTypeUrlPrefix.length());
   if (second_slash_pos == std::string_view::npos) {
     return StatusBuilder(absl::StatusCode::kInvalidArgument)
-        .SetExtendedStatus(
+        .AttachExtendedStatus(
             util::proto::kExtendedStatusComponent, util::proto::kInvalidUrlCode,
             {.title = util::proto::kInvalidUrlTitle,
              .user_message = absl::StrFormat(
@@ -53,7 +53,7 @@ absl::StatusOr<ParsedUrl> ParseTypeUrl(
       type_url.find_last_of(kTypeUrlSeparator);
   if (last_slash_pos <= second_slash_pos) {
     return StatusBuilder(absl::StatusCode::kInvalidArgument)
-        .SetExtendedStatus(
+        .AttachExtendedStatus(
             util::proto::kExtendedStatusComponent, util::proto::kInvalidUrlCode,
             {.title = util::proto::kInvalidUrlTitle,
              .user_message = absl::StrFormat(

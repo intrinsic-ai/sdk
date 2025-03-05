@@ -715,7 +715,7 @@ TEST(StatusBuilderTest, SetExtendedStatus) {
   extended_status.mutable_debug_report()->set_message("Int Message");
   StatusBuilder builder(absl::StatusCode::kInvalidArgument);
   ASSERT_FALSE(builder.ok());
-  builder.SetExtendedStatus(extended_status);
+  builder.OverwriteExtendedStatus(extended_status);
   absl::Status result = builder;
 
   EXPECT_THAT(result,
@@ -915,14 +915,15 @@ TEST(StatusBuilderTest, SetExtendedStatusFromOptions) {
 
   StatusBuilder builder(absl::InvalidArgumentError("Foo"));
   ASSERT_FALSE(builder.ok());
-  builder.SetExtendedStatus("ai.intrinsic.test", 2345,
-                            {.title = "Test title",
-                             .timestamp = t,
-                             .user_message = "User message",
-                             .user_instructions = "User instructions",
-                             .debug_message = "Debug message",
-                             .log_context = log_context,
-                             .context = {context_status_1, context_status_2}});
+  builder.AttachExtendedStatus(
+      "ai.intrinsic.test", 2345,
+      {.title = "Test title",
+       .timestamp = t,
+       .user_message = "User message",
+       .user_instructions = "User instructions",
+       .debug_message = "Debug message",
+       .log_context = log_context,
+       .context = {context_status_1, context_status_2}});
   ASSERT_FALSE(builder.ok());
   absl::Status result = builder;
   EXPECT_THAT(
@@ -969,7 +970,60 @@ TEST(StatusBuilderTest, SetExtendedStatusFromOptionsWithGenericCode) {
                 )pb"))));
 }
 
-TEST(StatusBuilderTest, WrapExtendedStatus) {
+TEST(StatusBuilderTest, AttachExtendedStatusWithExtendedStatus) {
+  intrinsic_proto::data_logger::Context log_context;
+  log_context.set_executive_plan_id(3354);
+  absl::Time t = absl::FromCivil(absl::CivilSecond(2024, 3, 26, 11, 51, 13),
+                                 absl::UTCTimeZone());
+  intrinsic_proto::status::ExtendedStatus context_status_1;
+  context_status_1.mutable_status_code()->set_component("Context");
+  context_status_1.mutable_status_code()->set_code(123);
+  intrinsic_proto::status::ExtendedStatus context_status_2;
+  context_status_2.mutable_status_code()->set_component("Context");
+  context_status_2.mutable_status_code()->set_code(234);
+
+  // Note: This call chain looks overcomplicated here. In practice this happens
+  // when a StatusBuilder is returned from somewhere that might have called
+  // AttachExtendedStatus and then someone calls AttachExtendedStatus from
+  // another function, e.g., in the context of INTR_RETURN_IF_ERROR.
+  absl::Status result =
+      StatusBuilder(absl::InvalidArgumentError("Foo"))
+          .AttachExtendedStatus("ai.intrinsic.test", 2345,
+                                {.title = "Test title",
+                                 .user_message = "User message",
+                                 .debug_message = "Debug message",
+                                 .log_context = log_context})
+          .AttachExtendedStatus(
+              "ai.intrinsic.outer", 3456,
+              {.title = "Outer title",
+               .timestamp = t,
+               .user_message = "Outer User message",
+               .debug_message = "Outer Debug message",
+               .log_context = log_context,
+               .context = {context_status_1, context_status_2}});
+
+  EXPECT_THAT(result,
+              StatusHasProtoPayload<intrinsic_proto::status::ExtendedStatus>(
+                  EqualsProto(R"pb(
+                    status_code { component: "ai.intrinsic.outer" code: 3456 }
+                    timestamp { seconds: 1711453873 }
+                    title: "Outer title"
+                    user_report { message: "Outer User message" }
+                    debug_report { message: "Outer Debug message" }
+                    related_to { log_context { executive_plan_id: 3354 } }
+                    context { status_code { component: "Context" code: 123 } }
+                    context { status_code { component: "Context" code: 234 } }
+                    context {
+                      status_code { component: "ai.intrinsic.test" code: 2345 }
+                      title: "Test title"
+                      related_to { log_context { executive_plan_id: 3354 } }
+                      user_report { message: "User message" }
+                      debug_report { message: "Debug message" }
+                    }
+                  )pb")));
+}
+
+TEST(StatusBuilderTest, AttachExtendedStatusWithExtendedStatusPayload) {
   intrinsic_proto::data_logger::Context log_context;
   log_context.set_executive_plan_id(3354);
   absl::Time t = absl::FromCivil(absl::CivilSecond(2024, 3, 26, 11, 51, 13),
@@ -982,14 +1036,14 @@ TEST(StatusBuilderTest, WrapExtendedStatus) {
   context_status_2.mutable_status_code()->set_code(234);
 
   absl::Status s = StatusBuilder(absl::InvalidArgumentError("Foo"))
-                       .SetExtendedStatus("ai.intrinsic.test", 2345,
-                                          {.title = "Test title",
-                                           .user_message = "User message",
-                                           .debug_message = "Debug message",
-                                           .log_context = log_context});
+                       .AttachExtendedStatus("ai.intrinsic.test", 2345,
+                                             {.title = "Test title",
+                                              .user_message = "User message",
+                                              .debug_message = "Debug message",
+                                              .log_context = log_context});
   StatusBuilder builder(s);
   ASSERT_FALSE(builder.ok());
-  absl::Status result = builder.WrapExtendedStatus(
+  absl::Status result = builder.AttachExtendedStatus(
       "ai.intrinsic.outer", 3456,
       {.title = "Outer title",
        .timestamp = t,
@@ -1019,7 +1073,7 @@ TEST(StatusBuilderTest, WrapExtendedStatus) {
                   )pb")));
 }
 
-TEST(StatusBuilderTest, WrapExtendedStatusFromPlainStatus) {
+TEST(StatusBuilderTest, WrapExtendedStatusFromPlainStatusToContext) {
   intrinsic_proto::data_logger::Context log_context;
   log_context.set_executive_plan_id(3354);
   absl::Time t = absl::FromCivil(absl::CivilSecond(2024, 3, 26, 11, 51, 13),
@@ -1035,7 +1089,7 @@ TEST(StatusBuilderTest, WrapExtendedStatusFromPlainStatus) {
                         Locs::kBar);
   ASSERT_FALSE(builder.ok());
   absl::Status result = builder.WrapExtendedStatus(
-      "ai.intrinsic.outer", 3456,
+      "ai.intrinsic.outer", 3456, StatusBuilder::LEGACY_IN_CONTEXT,
       {.title = "Outer title",
        .timestamp = t,
        .user_message = "Outer User message",
@@ -1045,7 +1099,6 @@ TEST(StatusBuilderTest, WrapExtendedStatusFromPlainStatus) {
 
   EXPECT_THAT(result,
               StatusHasProtoPayload<intrinsic_proto::status::ExtendedStatus>(
-
                   EqualsProto(R"pb(
                     status_code { component: "ai.intrinsic.outer" code: 3456 }
                     timestamp { seconds: 1711453873 }
@@ -1064,6 +1117,87 @@ TEST(StatusBuilderTest, WrapExtendedStatusFromPlainStatus) {
                       }
                     }
                   )pb")));
+}
+
+TEST(StatusBuilderTest, WrapExtendedStatusFromPlainStatusToDebugReport) {
+  intrinsic_proto::data_logger::Context log_context;
+  log_context.set_executive_plan_id(3354);
+  absl::Time t = absl::FromCivil(absl::CivilSecond(2024, 3, 26, 11, 51, 13),
+                                 absl::UTCTimeZone());
+  intrinsic_proto::status::ExtendedStatus context_status_1;
+  context_status_1.mutable_status_code()->set_component("Context");
+  context_status_1.mutable_status_code()->set_code(123);
+  intrinsic_proto::status::ExtendedStatus context_status_2;
+  context_status_2.mutable_status_code()->set_component("Context");
+  context_status_2.mutable_status_code()->set_code(234);
+
+  StatusBuilder builder(absl::InvalidArgumentError("Plain message"),
+                        Locs::kBar);
+  ASSERT_FALSE(builder.ok());
+  absl::Status result = builder.WrapExtendedStatus(
+      "ai.intrinsic.outer", 3456, StatusBuilder::LEGACY_AS_DEBUG_REPORT,
+      {.title = "Outer title",
+       .timestamp = t,
+       .user_message = "Outer User message",
+       .log_context = log_context,
+       .context = {context_status_1, context_status_2}});
+
+  EXPECT_THAT(
+      result,
+      StatusHasProtoPayload<intrinsic_proto::status::ExtendedStatus>(
+          EqualsProto(R"pb(
+            status_code { component: "ai.intrinsic.outer" code: 3456 }
+            timestamp { seconds: 1711453873 }
+            title: "Outer title"
+            user_report { message: "Outer User message" }
+            debug_report {
+              message: "Generic failure (code INVALID_ARGUMENT): Plain message"
+            }
+            related_to { log_context { executive_plan_id: 3354 } }
+            context { status_code { component: "Context" code: 123 } }
+            context { status_code { component: "Context" code: 234 } }
+          )pb")));
+}
+
+TEST(StatusBuilderTest,
+     WrapExtendedStatusFromPlainStatusToDebugReportWithPresentDebugReport) {
+  intrinsic_proto::data_logger::Context log_context;
+  log_context.set_executive_plan_id(3354);
+  absl::Time t = absl::FromCivil(absl::CivilSecond(2024, 3, 26, 11, 51, 13),
+                                 absl::UTCTimeZone());
+  intrinsic_proto::status::ExtendedStatus context_status_1;
+  context_status_1.mutable_status_code()->set_component("Context");
+  context_status_1.mutable_status_code()->set_code(123);
+  intrinsic_proto::status::ExtendedStatus context_status_2;
+  context_status_2.mutable_status_code()->set_component("Context");
+  context_status_2.mutable_status_code()->set_code(234);
+
+  StatusBuilder builder(absl::InvalidArgumentError("Plain message"),
+                        Locs::kBar);
+  ASSERT_FALSE(builder.ok());
+  absl::Status result = builder.WrapExtendedStatus(
+      "ai.intrinsic.outer", 3456, StatusBuilder::LEGACY_AS_DEBUG_REPORT,
+      {.title = "Outer title",
+       .timestamp = t,
+       .user_message = "Outer User message",
+       .debug_message = "Outer Debug message",
+       .log_context = log_context,
+       .context = {context_status_1, context_status_2}});
+
+  EXPECT_THAT(
+      result, StatusHasProtoPayload<
+                  intrinsic_proto::status::ExtendedStatus>(EqualsProto(R"pb(
+        status_code { component: "ai.intrinsic.outer" code: 3456 }
+        timestamp { seconds: 1711453873 }
+        title: "Outer title"
+        user_report { message: "Outer User message" }
+        debug_report {
+          message: "Outer Debug message: Generic failure (code INVALID_ARGUMENT): Plain message"
+        }
+        related_to { log_context { executive_plan_id: 3354 } }
+        context { status_code { component: "Context" code: 123 } }
+        context { status_code { component: "Context" code: 234 } }
+      )pb")));
 }
 
 #line 1337 "/foo/secret.cc"

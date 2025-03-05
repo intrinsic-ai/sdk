@@ -27,6 +27,7 @@ namespace {
 using ::absl_testing::StatusIs;
 using ::intrinsic::ParseTextProtoOrDie;
 using ::intrinsic::testing::EqualsProto;
+using ::intrinsic::testing::Partially;
 using ::intrinsic::testing::StatusHasProtoPayload;
 using ::testing::HasSubstr;
 using ::testing::ValuesIn;
@@ -272,6 +273,98 @@ TEST_P(StatusSpecsTest, AttachExtendedStatusInAssignMacro) {
                     }
                     debug_report { message: "Internal" }
                   )pb")));
+}
+
+TEST_P(StatusSpecsTest, WrapExtendedStatusInReturnMacroWithExtendedStatus) {
+  auto erroring_func = [] {
+    return static_cast<absl::Status>(
+        StatusBuilder(absl::StatusCode::kInvalidArgument)
+            .AttachExtendedStatus("inner_component", 10042));
+  };
+  auto macro_func = [erroring_func]() -> absl::StatusOr<std::string> {
+    absl::Time t = absl::FromCivil(absl::CivilSecond(2024, 3, 26, 11, 51, 13),
+                                   absl::UTCTimeZone());
+    INTR_RETURN_IF_ERROR(erroring_func())
+        .With(WrapExtendedStatus(
+            10001, "error 1", StatusBuilder::LEGACY_AS_DEBUG_REPORT,
+            {.timestamp = t, .debug_message = "Internal"}));
+    return "";
+  };
+
+  EXPECT_THAT(
+      macro_func(),
+      StatusHasProtoPayload<intrinsic_proto::status::ExtendedStatus>(
+          EqualsProto(R"pb(
+            status_code { component: "ai.intrinsic.test" code: 10001 }
+            timestamp { seconds: 1711453873 }
+            title: "Error 1"
+            user_report {
+              message: "error 1"
+              instructions: "Test instructions 1"
+            }
+            debug_report { message: "Internal" }
+            context { status_code { component: "inner_component" code: 10042 } }
+          )pb")));
+}
+
+TEST_P(StatusSpecsTest, WrapExtendedStatusInReturnMacroAsDebugReport) {
+  auto erroring_func = [] { return absl::InvalidArgumentError("Foo"); };
+  auto macro_func = [erroring_func]() -> absl::StatusOr<std::string> {
+    absl::Time t = absl::FromCivil(absl::CivilSecond(2024, 3, 26, 11, 51, 13),
+                                   absl::UTCTimeZone());
+    INTR_RETURN_IF_ERROR(erroring_func())
+        .With(WrapExtendedStatus(
+            10001, "error 1", StatusBuilder::LEGACY_AS_DEBUG_REPORT,
+            {.timestamp = t, .debug_message = "Internal"}));
+    return "";
+  };
+
+  EXPECT_THAT(
+      macro_func(),
+      StatusHasProtoPayload<intrinsic_proto::status::ExtendedStatus>(
+          EqualsProto(R"pb(
+            status_code { component: "ai.intrinsic.test" code: 10001 }
+            timestamp { seconds: 1711453873 }
+            title: "Error 1"
+            user_report {
+              message: "error 1"
+              instructions: "Test instructions 1"
+            }
+            debug_report {
+              message: "Internal: Generic failure (code INVALID_ARGUMENT): Foo"
+            }
+          )pb")));
+}
+
+TEST_P(StatusSpecsTest, WrapExtendedStatusInReturnMacroInContext) {
+  auto erroring_func = [] { return absl::InvalidArgumentError("Foo"); };
+  auto macro_func = [erroring_func]() -> absl::StatusOr<std::string> {
+    absl::Time t = absl::FromCivil(absl::CivilSecond(2024, 3, 26, 11, 51, 13),
+                                   absl::UTCTimeZone());
+    INTR_RETURN_IF_ERROR(erroring_func())
+        .With(WrapExtendedStatus(
+            10001, "error 1", StatusBuilder::LEGACY_IN_CONTEXT,
+            {.timestamp = t, .debug_message = "Internal"}));
+    return "";
+  };
+
+  EXPECT_THAT(macro_func(),
+              StatusHasProtoPayload<intrinsic_proto::status::ExtendedStatus>(
+                  Partially(EqualsProto(R"pb(
+                    status_code { component: "ai.intrinsic.test" code: 10001 }
+                    timestamp { seconds: 1711453873 }
+                    title: "Error 1"
+                    user_report {
+                      message: "error 1"
+                      instructions: "Test instructions 1"
+                    }
+                    debug_report { message: "Internal" }
+                    context {
+                      status_code { code: 3 }
+                      title: "Generic failure (code INVALID_ARGUMENT)"
+                      user_report { message: "Foo" }
+                    }
+                  )pb"))));
 }
 
 }  // namespace

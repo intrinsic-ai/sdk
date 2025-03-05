@@ -240,8 +240,21 @@ std::function<StatusBuilder && (StatusBuilder&&)> AttachExtendedStatus(
       CreateExtendedStatus(code, user_message, options);
   return
       [es = std::move(es)](StatusBuilder&& status_builder) -> StatusBuilder&& {
-        return std::move(status_builder).SetExtendedStatus(std::move(es));
+        return std::move(status_builder).AttachExtendedStatus(std::move(es));
       };
+}
+
+std::function<StatusBuilder && (StatusBuilder&&)> WrapExtendedStatus(
+    uint32_t code, std::string_view user_message,
+    StatusBuilder::WrapExtendedStatusMode wrap_mode,
+    const ExtendedStatusOptions& options) {
+  intrinsic_proto::status::ExtendedStatus es =
+      CreateExtendedStatus(code, user_message, options);
+  return [es = std::move(es), wrap_mode = wrap_mode](
+             StatusBuilder&& status_builder) -> StatusBuilder&& {
+    return std::move(status_builder)
+        .WrapExtendedStatus(std::move(es), wrap_mode);
+  };
 }
 
 }  // namespace intrinsic

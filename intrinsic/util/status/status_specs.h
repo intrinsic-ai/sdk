@@ -117,6 +117,18 @@ std::function<StatusBuilder && (StatusBuilder&&)> AttachExtendedStatus(
     uint32_t code, std::string_view user_message,
     const ExtendedStatusOptions& options = {});
 
+// Policy function for use with StatusBuilder::With() that allows wrapping
+// legacy status according to wrap_mode. If the wrapped Status does not have an
+// ExtendedStatus it is included in the created ExtendedStatus either as a debug
+// report or as a generic ExtendedStatus in the context. For details see
+// StatusBuilder::WrapExtendedStatus.
+//
+// For invocation examples, see AttachExtendedStatus docs above.
+std::function<StatusBuilder && (StatusBuilder&&)> WrapExtendedStatus(
+    uint32_t code, std::string_view user_message,
+    StatusBuilder::WrapExtendedStatusMode wrap_mode,
+    const ExtendedStatusOptions& options = {});
+
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_UTIL_STATUS_STATUS_SPECS_H_
