@@ -11,7 +11,6 @@ go_library(
         ":readeropener",
         "//intrinsic/assets:bundleio",
         "//intrinsic/assets:idutils",
-        "//intrinsic/assets:imagetransfer",
         "//intrinsic/assets/proto:id_go_proto",
         "//intrinsic/kubernetes/workcell_spec:imagetags",
         "//intrinsic/kubernetes/workcell_spec/proto:image_go_proto",

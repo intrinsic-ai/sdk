@@ -15,7 +15,6 @@ import (
 	"github.com/pkg/errors"
 	"intrinsic/assets/bundleio"
 	"intrinsic/assets/idutils"
-	"intrinsic/assets/imagetransfer"
 	idpb "intrinsic/assets/proto/id_go_proto"
 	"intrinsic/kubernetes/workcell_spec/imagetags"
 	ipb "intrinsic/kubernetes/workcell_spec/proto/image_go_proto"
@@ -60,6 +59,11 @@ func CreateImageProcessor(reg RegistryOptions) bundleio.ImageProcessor {
 	}
 }
 
+// writer is the interface required to push an Image to a particular reference.
+type writer interface {
+	Write(crname.Reference, containerregistry.Image) error
+}
+
 // BasicAuth provides the necessary fields to perform basic authentication with
 // a resource registry.
 type BasicAuth struct {
@@ -73,8 +77,8 @@ type BasicAuth struct {
 type RegistryOptions struct {
 	// URI of the container registry
 	URI string
-	// The transferer performs the work to send the container to the registry.
-	imagetransfer.Transferer
+	// The transferer performs the work to write the container to the registry.
+	Transferer writer
 	// The optional parameters required to perform basic authentication with
 	// the registry.
 	BasicAuth
