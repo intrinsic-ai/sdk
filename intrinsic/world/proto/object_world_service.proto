@@ -527,6 +527,7 @@ message Entity {
   // Sensor properties of this entity. Only set if this entity models the
   // sensor of an object.
   intrinsic_proto.world.SensorComponent sensor_component = 11;
+
 }
 
 // -----------------------------------------------------------------------------
