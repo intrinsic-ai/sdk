@@ -10,35 +10,10 @@ load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@rules_python//python:defs.bzl", "py_library")
 
-py_proto_library(
-    name = "grasp_ranker_params_py_pb2",
-    visibility = ["//intrinsic:internal_api_users"],
-    deps = [":grasp_ranker_params_proto"],
-)
-
 cc_proto_library(
     name = "grasp_cc_proto",
     visibility = ["//intrinsic:public_api_users"],
     deps = [":grasp_proto"],
-)
-
-py_proto_library(
-    name = "grasp_annotations_py_pb2",
-    visibility = [
-        "//intrinsic:internal_api_users",
-        "//intrinsic/apps:__subpackages__",
-    ],
-    deps = [":grasp_annotations_proto"],
-)
-
-proto_library(
-    name = "grasp_annotations_proto",
-    srcs = ["grasp_annotations.proto"],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [
-        "//intrinsic/math/proto:pose_proto",
-        "//intrinsic/math/proto:vector3_proto",
-    ],
 )
 
 proto_library(
@@ -90,6 +65,12 @@ py_proto_library(
     deps = [":grasp_execution_planner_params_proto"],
 )
 
+cc_proto_library(
+    name = "grasp_execution_planner_params_cc_proto",
+    visibility = ["//visibility:private"],
+    deps = [":grasp_execution_planner_params_proto"],
+)
+
 proto_library(
     name = "grasp_planner_params_proto",
     srcs = ["grasp_planner_params.proto"],
@@ -109,6 +90,12 @@ py_proto_library(
     deps = [":grasp_planner_params_proto"],
 )
 
+cc_proto_library(
+    name = "grasp_planner_params_cc_proto",
+    visibility = ["//visibility:private"],
+    deps = [":grasp_planner_params_proto"],
+)
+
 proto_library(
     name = "grasp_ranker_params_proto",
     srcs = ["grasp_ranker_params.proto"],
@@ -119,6 +106,18 @@ proto_library(
     ],
 )
 
+py_proto_library(
+    name = "grasp_ranker_params_py_pb2",
+    visibility = ["//intrinsic:internal_api_users"],
+    deps = [":grasp_ranker_params_proto"],
+)
+
+cc_proto_library(
+    name = "grasp_ranker_params_cc_proto",
+    visibility = ["//visibility:private"],
+    deps = [":grasp_ranker_params_proto"],
+)
+
 proto_library(
     name = "grasp_adapter_params_proto",
     srcs = ["grasp_adapter_params.proto"],
@@ -126,9 +125,34 @@ proto_library(
 )
 
 py_proto_library(
-    name = "grasp_annotator_py_pb2",
+    name = "grasp_adapter_params_py_pb2",
+    visibility = ["//visibility:private"],
+    deps = [":grasp_adapter_params_proto"],
+)
+
+cc_proto_library(
+    name = "grasp_adapter_params_cc_proto",
+    visibility = ["//visibility:private"],
+    deps = [":grasp_adapter_params_proto"],
+)
+
+proto_library(
+    name = "grasp_annotations_proto",
+    srcs = ["grasp_annotations.proto"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = [":grasp_annotator_proto"],
+    deps = [
+        "//intrinsic/math/proto:pose_proto",
+        "//intrinsic/math/proto:vector3_proto",
+    ],
+)
+
+py_proto_library(
+    name = "grasp_annotations_py_pb2",
+    visibility = [
+        "//intrinsic:internal_api_users",
+        "//intrinsic/apps:__subpackages__",
+    ],
+    deps = [":grasp_annotations_proto"],
 )
 
 proto_library(
@@ -140,6 +164,18 @@ proto_library(
         "//intrinsic/math/proto:pose_proto",
         "//intrinsic/math/proto:vector2_proto",
     ],
+)
+
+py_proto_library(
+    name = "grasp_annotator_py_pb2",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":grasp_annotator_proto"],
+)
+
+cc_proto_library(
+    name = "grasp_annotator_cc_proto",
+    visibility = ["//visibility:private"],
+    deps = [":grasp_annotator_proto"],
 )
 
 py_library(
