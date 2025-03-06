@@ -47,15 +47,119 @@ TEST(ParseTextProtoTest, ParseTextProto) {
 TEST(ParseTextProtoTest, ParseTextProtoWorksWithCustomAnyTypeUrlPrefix) {
   google::protobuf::Int32Value int32_value;
   int32_value.set_value(1);
+
+  // Use Option because it is a well-known type which has an Any field.
   google::protobuf::Option option;
   option.mutable_value()->PackFrom(int32_value);
 
+  EXPECT_THAT(ParseTextProto<google::protobuf::Option>(R"pb(
+                value: {
+                  [type.intrinsic.ai/google.protobuf.Int32Value] { value: 1 }
+                }
+              )pb"),
+              IsOkAndHolds(EqualsProto(option)));
   EXPECT_THAT(
       ParseTextProto<google::protobuf::Option>(R"pb(
-        value {
-          [custom.type.prefix.com/google.protobuf.Int32Value] { value: 1 }
-        })pb"),
+        value: {
+          [type.intrinsic.ai/skills/google.protobuf.Int32Value] { value: 1 }
+        }
+      )pb"),
       IsOkAndHolds(EqualsProto(option)));
+  EXPECT_THAT(ParseTextProto<google::protobuf::Option>(R"pb(
+                value: {
+                  [type.intrinsic.ai/skills/ai.intrinsic.test/
+                   google.protobuf.Int32Value] { value: 1 }
+                }
+              )pb"),
+              IsOkAndHolds(EqualsProto(option)));
+  EXPECT_THAT(ParseTextProto<google::protobuf::Option>(R"pb(
+                value: {
+                  [type.intrinsic.ai/skills/ai.intrinsic.test/0.0.1/
+                   google.protobuf.Int32Value] { value: 1 }
+                }
+              )pb"),
+              IsOkAndHolds(EqualsProto(option)));
+  EXPECT_THAT(ParseTextProto<google::protobuf::Option>(R"(
+                value: {
+                  [type.intrinsic.ai/skills/0.0.1-alpha-0aZ+buildspec/
+                   google.protobuf.Int32Value] { value: 1 }
+                }
+              )"),
+              IsOkAndHolds(EqualsProto(option)));
+
+  // Test multiple Any type URLs in one text proto.
+  // Use Type because it is a well-known type which has a repeated Option
+  // field (and each Option has an Any field).
+  google::protobuf::Type type_with_two_options;
+  type_with_two_options.add_options()->mutable_value()->PackFrom(int32_value);
+  type_with_two_options.add_options()->mutable_value()->PackFrom(int32_value);
+  EXPECT_THAT(
+      ParseTextProto<google::protobuf::Type>(R"pb(
+        options: {
+          value: {
+            [type.intrinsic.ai/skills/google.protobuf.Int32Value] { value: 1 }
+          }
+        }
+        options: {
+          value: {
+            [type.intrinsic.ai/skills/0.0.1/google.protobuf.Int32Value] {
+              value: 1
+            }
+          }
+        }
+      )pb"),
+      IsOkAndHolds(EqualsProto(type_with_two_options)));
+
+  // Test that the list syntax ("options: [...]") does not break anything.
+  EXPECT_THAT(
+      ParseTextProto<google::protobuf::Type>(R"pb(
+        options:
+        [ {
+          value: {
+            [type.intrinsic.ai/skills/google.protobuf.Int32Value] { value: 1 }
+          }
+        }
+          , {
+            value: {
+              [type.intrinsic.ai/skills/0.0.1/google.protobuf.Int32Value] {
+                value: 1
+              }
+            }
+          }]
+      )pb"),
+      IsOkAndHolds(EqualsProto(type_with_two_options)));
+
+  // Test that type URLs of nested Any protos work.
+  google::protobuf::Option inner_option, outer_option;
+  inner_option.mutable_value()->PackFrom(int32_value);
+  outer_option.mutable_value()->PackFrom(inner_option);
+  EXPECT_THAT(
+      ParseTextProto<google::protobuf::Option>(R"pb(
+        value: {
+          [type.intrinsic.ai/skills/0.0.1/google.protobuf.Option] {
+            value: {
+              [type.intrinsic.ai/skills/0.0.1/google.protobuf.Int32Value] {
+                value: 1
+              }
+            }
+          }
+        }
+      )pb"),
+      IsOkAndHolds(EqualsProto(outer_option)));
+}
+
+TEST(ParseTextProtoTest, ParseTextProtoExtensions) {
+  // Test that extensions are parsed correctly and not interfered with by the
+  // rewriting of Any type URLs. The following should give an error about the
+  // extension not being defined and not a syntax error.
+  EXPECT_THAT(ParseTextProto<google::protobuf::Type>(R"pb(
+                options: {
+                  [com.example.extension_field]: 20
+                }
+              )pb"),
+              StatusIs(absl::StatusCode::kInvalidArgument,
+                       AllOf(HasSubstr("com.example.extension_field"),
+                             HasSubstr("is not defined"))));
 }
 
 TEST(ParseTextProtoTest, ParseTextProtoInvalidInput) {
