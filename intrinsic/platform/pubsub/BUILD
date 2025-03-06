@@ -3,6 +3,7 @@
 # Home of pubsub, a non-real-time Publish-Subscribe messaging
 # for robotics systems.
 
+load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_proto_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
@@ -89,6 +90,11 @@ cc_library(
 proto_library(
     name = "storage_location",
     srcs = ["storage_location.proto"],
+)
+
+py_proto_library(
+    name = "storage_location_py_pb2",
+    deps = [":storage_location"],
 )
 
 cc_proto_library(
