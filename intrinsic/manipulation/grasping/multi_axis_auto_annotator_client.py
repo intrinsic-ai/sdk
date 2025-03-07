@@ -105,3 +105,26 @@ class MultiAxisAutoAnnotatorClient:
         **self._connection_params,
     )
     return response.annotations, response.commands
+
+  def show_annotations(
+      self,
+      show_annotations_request: multi_axis_auto_annotator_service_pb2.ShowAnnotationsRequest,
+  ) -> bool:
+    """Show annotations for a given part.
+
+    This visualizes the annotations in the world with
+    time_between_annotations_in_sec time between spawning annotations. The
+    annotations are shown in the order they are provided. The plates and cups
+    are deleted after all annotations are shown.
+
+    Args:
+      show_annotations_request: The parameters used to show annotations.
+
+    Returns:
+      True if the annotations are shown successfully, False otherwise.
+    """
+    response = self._stub.ShowAnnotations(
+        show_annotations_request,
+        **self._connection_params,
+    )
+    return response.success
