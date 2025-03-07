@@ -11,6 +11,7 @@ import "intrinsic/logging/proto/context.proto";
 import "intrinsic/math/proto/pose.proto";
 import "intrinsic/motion_planning/proto/compute_ik.proto";
 import "intrinsic/motion_planning/proto/motion_planner_config.proto";
+import "intrinsic/motion_planning/proto/motion_planning_error.proto";
 import "intrinsic/motion_planning/proto/motion_specification.proto";
 import "intrinsic/motion_planning/proto/robot_specification.proto";
 import "intrinsic/world/proto/collision_settings.proto";

@@ -25,6 +25,7 @@ proto_library(
         "//intrinsic/logging/proto:context_proto",
         "//intrinsic/math/proto:point_proto",
         "//intrinsic/math/proto:pose_proto",
+        "//intrinsic/motion_planning/proto:motion_planning_error_proto",
         "//intrinsic/world/proto:collision_settings_proto",
         "//intrinsic/world/proto:geometric_constraints_proto",
         "//intrinsic/world/proto:object_world_refs_proto",
