@@ -27,7 +27,8 @@ message RobotSpecification {
 
   // Default cartesian robot limits to apply to the motion. These limits are
   // currently only applied to linear Cartesian motions.
-  intrinsic_proto.icon.CartesianLimits default_cartesian_limits = 3;
+  optional intrinsic_proto.icon.CartesianLimits default_cartesian_limits = 3
+      [deprecated = true];
 
   reserved 4;
   reserved "l1_joint_limits";
