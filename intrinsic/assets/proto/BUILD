@@ -1,6 +1,7 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_proto_library")
+load("@ai_intrinsic_sdks_pip_deps//:requirements.bzl", "requirement")
+load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library", "py_proto_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
@@ -179,7 +180,10 @@ cc_proto_library(
 
 py_proto_library(
     name = "metadata_py_pb2",
-    visibility = ["//visibility:private"],
+    visibility = [
+        "//intrinsic/solutions:__pkg__",
+        "//visibility:private",
+    ],
     deps = [":metadata_proto"],
 )
 
@@ -323,6 +327,20 @@ go_proto_library(
     ],
     visibility = ["//intrinsic:__subpackages__"],
     deps = [":installed_assets_proto"],
+)
+
+py_proto_library(
+    name = "installed_assets_py_pb2",
+    visibility = ["//intrinsic/solutions:__pkg__"],
+    deps = [":installed_assets_proto"],
+)
+
+py_grpc_library(
+    name = "installed_assets_pb2_grpc",
+    srcs = [":installed_assets_proto"],
+    grpc_library = requirement("grpcio"),
+    visibility = ["//intrinsic/solutions:__pkg__"],
+    deps = [":installed_assets_py_pb2"],
 )
 
 go_grpc_library(

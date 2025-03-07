@@ -24,6 +24,7 @@ from typing import Optional, Union
 import warnings
 
 import grpc
+from intrinsic.assets.proto import installed_assets_pb2_grpc
 from intrinsic.frontend.cloud.api import solutiondiscovery_api_pb2
 from intrinsic.frontend.cloud.api import solutiondiscovery_api_pb2_grpc
 from intrinsic.frontend.solution_service.proto import solution_service_pb2
@@ -212,9 +213,12 @@ class Solution:
     product_client = product_client_mod.ProductClient.connect(grpc_channel)
 
     object_world = worlds.ObjectWorld.connect(_WORLD_ID, grpc_channel)
-
+    installed_assets_stub = installed_assets_pb2_grpc.InstalledAssetsStub(
+        grpc_channel
+    )
     pose_estimators = pose_estimation.PoseEstimators(
         resource_registry,
+        installed_assets_stub,
     )
 
     pbt_registry = pbt_registration.BehaviorTreeRegistry.connect(grpc_channel)

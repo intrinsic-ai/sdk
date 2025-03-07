@@ -100,6 +100,7 @@ py_library(
         ":simulation",
         ":userconfig",
         ":worlds",
+        "//intrinsic/assets/proto:installed_assets_pb2_grpc",
         "//intrinsic/frontend/cloud/api:solutiondiscovery_api_py_pb2",
         "//intrinsic/frontend/cloud/api:solutiondiscovery_api_py_pb2_grpc",
         "//intrinsic/frontend/solution_service/proto:solution_service_py_pb2",
@@ -331,8 +332,12 @@ py_library(
     srcs = ["pose_estimation.py"],
     deps = [
         ":ipython",
+        "//intrinsic/assets/proto:asset_type_py_pb2",
+        "//intrinsic/assets/proto:installed_assets_pb2_grpc",
+        "//intrinsic/assets/proto:installed_assets_py_pb2",
         "//intrinsic/resources/client:resource_registry_client",
         "//intrinsic/util/grpc:error_handling",
+        requirement("grpcio"),
     ],
 )
 
@@ -341,6 +346,10 @@ py_test(
     srcs = ["pose_estimation_test.py"],
     deps = [
         ":pose_estimation",
+        "//intrinsic/assets/proto:asset_type_py_pb2",
+        "//intrinsic/assets/proto:id_py_pb2",
+        "//intrinsic/assets/proto:installed_assets_py_pb2",
+        "//intrinsic/assets/proto:metadata_py_pb2",
         "//intrinsic/resources/proto:resource_registry_py_pb2",
         "@com_google_absl_py//absl/testing:absltest",
     ],
