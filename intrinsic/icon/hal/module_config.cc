@@ -2,6 +2,8 @@
 
 #include "intrinsic/icon/hal/module_config.h"
 
+#include <cmath>
+#include <limits>
 #include <string>
 
 #include "absl/container/flat_hash_set.h"
@@ -72,6 +74,14 @@ absl::StatusOr<absl::Duration> ModuleConfig::GetControlPeriod() const {
             absl::StrCat("Control frequency must be positive, but is ",
                          config_.control_frequency_hz()));
       }
+      if (config_.control_frequency_hz() ==
+          std::numeric_limits<float>::infinity()) {
+        return absl::InvalidArgumentError("Control frequency must be finite.");
+      }
+      if (std::isnan(config_.control_frequency_hz())) {
+        return absl::InvalidArgumentError("Control frequency is not a number.");
+      }
+
       return absl::Seconds(1.0 / config_.control_frequency_hz());
     }
     case intrinsic_proto::icon::HardwareModuleConfig::kControlPeriodNs: {

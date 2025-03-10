@@ -85,7 +85,7 @@ class ModuleConfig {
   // Returns NotFoundError if the config does not have a control period *or*
   // control frequency value.
   // Returns InvalidArgumentError if the control period / frequency is invalid
-  // (less than or equal to zero).
+  // (less than or equal to zero, or infinite).
   absl::StatusOr<absl::Duration> GetControlPeriod() const;
 
  private:
