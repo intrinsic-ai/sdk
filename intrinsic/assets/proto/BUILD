@@ -72,7 +72,10 @@ cc_proto_library(
 
 py_proto_library(
     name = "asset_type_py_pb2",
-    visibility = ["//intrinsic:__subpackages__"],
+    visibility = [
+        "//intrinsic:__subpackages__",
+        "//intrinsic:public_api_users",
+    ],
     deps = [":asset_type_proto"],
 )
 
@@ -138,7 +141,10 @@ proto_library(
 
 py_proto_library(
     name = "id_py_pb2",
-    visibility = ["//intrinsic:__subpackages__"],
+    visibility = [
+        "//intrinsic:__subpackages__",
+        "//intrinsic:public_api_users",
+    ],
     deps = [":id_proto"],
 )
 
@@ -250,6 +256,15 @@ go_proto_library(
     deps = [":view_proto"],
 )
 
+py_proto_library(
+    name = "view_py_pb2",
+    visibility = [
+        "//intrinsic:__subpackages__",
+        "//intrinsic:public_api_users",
+    ],
+    deps = [":view_proto"],
+)
+
 proto_library(
     name = "asset_deployment_proto",
     srcs = ["asset_deployment.proto"],
@@ -305,6 +320,7 @@ proto_library(
         ":asset_type_proto",
         ":id_proto",
         ":metadata_proto",
+        ":view_proto",
         "//intrinsic/assets/proto/v1:search_proto",
         "//intrinsic/assets/scene_objects/proto:scene_object_manifest_proto",
         "//intrinsic/assets/services/proto:service_manifest_proto",
@@ -319,6 +335,7 @@ go_proto_library(
         ":asset_type_go_proto",
         ":id_go_proto",
         ":metadata_go_proto",
+        ":view_go_proto",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
         "//intrinsic/assets/proto/v1:search_go_proto",
         "//intrinsic/assets/scene_objects/proto:scene_object_manifest_go_proto",
@@ -331,7 +348,10 @@ go_proto_library(
 
 py_proto_library(
     name = "installed_assets_py_pb2",
-    visibility = ["//intrinsic/solutions:__pkg__"],
+    visibility = [
+        "//intrinsic:public_api_users",
+        "//intrinsic/solutions:__pkg__",
+    ],
     deps = [":installed_assets_proto"],
 )
 
@@ -339,7 +359,10 @@ py_grpc_library(
     name = "installed_assets_pb2_grpc",
     srcs = [":installed_assets_proto"],
     grpc_library = requirement("grpcio"),
-    visibility = ["//intrinsic/solutions:__pkg__"],
+    visibility = [
+        "//intrinsic:public_api_users",
+        "//intrinsic/solutions:__pkg__",
+    ],
     deps = [":installed_assets_py_pb2"],
 )
 
@@ -351,6 +374,7 @@ go_grpc_library(
         ":asset_type_go_proto",
         ":id_go_proto",
         ":metadata_go_proto",
+        ":view_go_proto",
         "//intrinsic/assets/proto/v1:search_go_proto",
         "//intrinsic/assets/scene_objects/proto:scene_object_manifest_go_proto",
         "//intrinsic/assets/services/proto:service_manifest_go_proto",

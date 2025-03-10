@@ -9,6 +9,7 @@ import "intrinsic/assets/proto/asset_type.proto";
 import "intrinsic/assets/proto/id.proto";
 import "intrinsic/assets/proto/metadata.proto";
 import "intrinsic/assets/proto/v1/search.proto";
+import "intrinsic/assets/proto/view.proto";
 import "intrinsic/assets/scene_objects/proto/scene_object_manifest.proto";
 import "intrinsic/assets/services/proto/service_manifest.proto";
 import "intrinsic/skills/proto/processed_skill_manifest.proto";
@@ -78,6 +79,8 @@ message ListInstalledAssetsRequest {
 
   // If true, sort assets in descending order.
   bool sort_descending = 5;
+
+  intrinsic_proto.catalog.AssetViewType view = 6;
 }
 
 message InstalledAsset {
@@ -93,6 +96,7 @@ message ListInstalledAssetsResponse {
 
 message GetInstalledAssetRequest {
   Id id = 1;
+  intrinsic_proto.catalog.AssetViewType view = 2;
 }
 
 enum UpdatePolicy {
