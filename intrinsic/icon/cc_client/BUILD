@@ -72,7 +72,6 @@ cc_library(
         "//intrinsic/production/external/intops:strong_int",
         "//intrinsic/util:atomic_sequence_num",
         "//intrinsic/util:proto_time",
-        "//intrinsic/util/grpc",
         "//intrinsic/util/grpc:channel_interface",
         "//intrinsic/util/status:status_builder",
         "//intrinsic/util/status:status_conversion_grpc",

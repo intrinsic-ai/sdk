@@ -2,6 +2,7 @@
 
 #include "intrinsic/icon/cc_client/robot_config.h"
 
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -59,6 +60,13 @@ RobotConfig::GetPartFeatureInterfaces(absl::string_view part_name) const {
   }
   return out;
 }
+
+absl::StatusOr<std::string> RobotConfig::GetHardwareResourceName(
+    absl::string_view part_name) const {
+  INTR_ASSIGN_OR_RETURN(intrinsic_proto::icon::PartConfig part_config,
+                        FindPartConfig(part_name));
+  return part_config.hardware_resource_name();
+};
 
 double RobotConfig::GetControlFrequency() const {
   return config_proto_.control_frequency_hz();

@@ -257,6 +257,8 @@ message PartConfig {
   // GenericPartConfig.
   google.protobuf.Any config = 4;
 
+  string hardware_resource_name = 10;
+
   // The Feature Interfaces that this Part supports.
   repeated FeatureInterfaceTypes feature_interfaces = 5;
 

@@ -53,6 +53,13 @@ class RobotConfig {
   absl::StatusOr<std::vector<intrinsic_proto::icon::FeatureInterfaceTypes>>
   GetPartFeatureInterfaces(absl::string_view part_name) const;
 
+  // Returns the hardware resource name for the part with name `part_name`. The
+  // hardware resource name is used to identify the resource which brings in
+  // world object for this part. This can be used, for example, to lookup the
+  // kinematic object for an arm part.
+  absl::StatusOr<std::string> GetHardwareResourceName(
+      absl::string_view part_name) const;
+
   // Returns the ICON control frequency, in Hz.
   double GetControlFrequency() const;
 
