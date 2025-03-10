@@ -343,7 +343,6 @@ go_proto_library(
 proto_library(
     name = "sensor_component_proto",
     srcs = ["sensor_component.proto"],
-    deps = ["//intrinsic/perception/proto:camera_identifier_proto"],
 )
 
 cc_proto_library(
@@ -353,9 +352,6 @@ cc_proto_library(
 
 go_proto_library(
     name = "sensor_component_go_proto",
-    go_deps = [
-        "//intrinsic/perception/proto:camera_identifier_go_proto",
-    ],
     deps = ["sensor_component_proto"],
 )
 

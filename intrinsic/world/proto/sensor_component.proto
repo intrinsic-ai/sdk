@@ -4,8 +4,6 @@ syntax = "proto3";
 
 package intrinsic_proto.world;
 
-import "intrinsic/perception/proto/camera_identifier.proto";
-
 // Component indicating the owning Entity is a sensor (e.g. camera).
 //
 // Next tag: 11
@@ -123,7 +121,10 @@ message SensorComponent {
   }
 
   message CameraPluginSpec {
-    intrinsic_proto.perception.CameraIdentifier camera_identifier = 1;
+    string camera_identifier_proto = 2;
+
+    reserved 1;
+    reserved "camera_identifier";
   }
 
   // Cameras use the following convention: z forward, x right, y down (in the
