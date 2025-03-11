@@ -1,0 +1,32 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.data.v1;
+
+import "google/protobuf/any.proto";
+import "google/protobuf/descriptor.proto";
+import "intrinsic/assets/proto/metadata.proto";
+
+// A processed, portable representation of a Data asset.
+message DataAsset {
+  // Metadata about the asset, such as package, ID, release notes, etc.
+  intrinsic_proto.assets.Metadata metadata = 1;
+
+  // The Data asset payload.
+  //
+  // ReferencedData contained in the proto must be portable within the context
+  // in which this asset will be used. E.g.:
+  //  - file references should only be used if the DataAsset will only be
+  //    consumed locally;
+  //  - CAS IDs must be unambiguous and the corresponding CAS document
+  //    accessible to any consumer.
+  google.protobuf.Any data = 2;
+
+  // A complete descriptor for the data message type.
+  google.protobuf.FileDescriptorSet file_descriptor_set = 3;
+}
+
+message DataAssetList {
+  repeated DataAsset data_assets = 1;
+}

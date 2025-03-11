@@ -1,0 +1,38 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.data.v1;
+
+import "google/protobuf/any.proto";
+import "intrinsic/assets/proto/documentation.proto";
+import "intrinsic/assets/proto/id.proto";
+import "intrinsic/assets/proto/vendor.proto";
+
+// Specifies a Data asset
+message DataManifest {
+  message Metadata {
+    // The Data asset's id.
+    intrinsic_proto.assets.Id id = 1;
+    // The display name of this asset to be shown in UIs.
+    string display_name = 2;
+    // Documentation about the asset which will be shown to users.
+    intrinsic_proto.assets.Documentation documentation = 3;
+    // The asset's vendor.
+    intrinsic_proto.assets.Vendor vendor = 4;
+  }
+
+  // Metadata about the data asset.
+  Metadata metadata = 1;
+
+  // The Data asset payload.
+  //
+  // May contain any ReferencedData values, but references must be valid within
+  // the context in which this manifest will be processed. E.g., if files are
+  // referenced, then those files must be available at the specified locations
+  // when the manifest is processed.
+  //
+  // Referenced files may be either absolute or relative to the directory in
+  // which the manifest is saved.
+  google.protobuf.Any data = 2;
+}

@@ -1,0 +1,156 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.data.v1;
+
+import "intrinsic/assets/data/proto/v1/data_asset.proto";
+import "intrinsic/assets/data/proto/v1/referenced_data.proto";
+import "intrinsic/assets/proto/id.proto";
+import "intrinsic/assets/proto/metadata.proto";
+
+// Provides read-only access to Data assets within a solution.
+//
+// Data assets can be installed and updated via InstalledAssets.
+service DataAssets {
+  // Lists installed Data assets.
+  rpc ListDataAssets(ListDataAssetsRequest) returns (ListDataAssetsResponse) {}
+
+  // Lists only the metadata of installed Data assets.
+  rpc ListDataAssetMetadata(ListDataAssetMetadataRequest)
+      returns (ListDataAssetMetadataResponse) {}
+
+  // Gets a specific Data asset.
+  rpc GetDataAsset(GetDataAssetRequest) returns (DataAsset) {}
+
+  // Streams the bytes referenced by ReferencedData in an installed Data asset.
+  rpc StreamReferencedData(StreamReferencedDataRequest)
+      returns (stream StreamReferencedDataResponse) {}
+}
+
+// Used to filter responses from requests to list Data assets.
+message DataAssetFilter {
+  // Restrict results to Data assets of the specified fully qualified proto
+  // name (without leading dot and not a type URL). For example:
+  // "intrinsic_proto.data.v1.DataAsset".
+  optional string proto_name = 1;
+}
+
+message ListDataAssetsRequest {
+  // Maximum number of assets to return (fewer may be returned).
+  int64 page_size = 1;
+
+  // A page token received from a previous `ListDataAssets` call. Provide this
+  // token to retrieve the next page of results.
+  string page_token = 2;
+
+  // Optional filter to apply to the query to retrieve a filtered list of
+  // assets.
+  optional DataAssetFilter strict_filter = 3;
+}
+
+message ListDataAssetsResponse {
+  repeated DataAsset data_assets = 1;
+
+  // Pass this token to a subsequent list request to obtain the next page.
+  string next_page_token = 2;
+}
+
+message ListDataAssetMetadataRequest {
+  // Maximum number of assets to return (fewer may be returned).
+  int64 page_size = 1;
+
+  // A page token received from a previous `ListDataAssetMetadata` call. Provide
+  // this token to retrieve the next page of results.
+  string page_token = 2;
+
+  // Optional filter to apply to the query to retrieve a filtered list of
+  // assets.
+  optional DataAssetFilter strict_filter = 3;
+}
+
+message ListDataAssetMetadataResponse {
+  repeated intrinsic_proto.assets.Metadata metadata = 1;
+
+  // Pass this token to a subsequent list request to obtain the next page.
+  string next_page_token = 2;
+}
+
+message GetDataAssetRequest {
+  // The ID of the Data asset to retrieve.
+  intrinsic_proto.assets.Id id = 1;
+}
+
+message StreamReferencedDataRequest {
+  // A path to a ReferencedData field within an installed Data asset proto.
+  message ReferencedDataPath {
+    // A single element of the field path.
+    message FieldPathElement {
+      // The name of the field to access.
+      string field = 1;
+
+      oneof element {
+        // If the field is a list, the index of the element to access.
+        int64 index = 2;
+        // If the field is a map, the key of the entry to access.
+        string key = 3;
+      }
+    }
+
+    // The ID of the installed Data asset that contains the referenced data.
+    intrinsic_proto.assets.Id id = 1;
+
+    // The path to the ReferencedData field within the installed Data asset
+    // proto.
+    //
+    // For example, for the following Data asset proto:
+    // ```
+    // message MyData {
+    //   message ListOfData {
+    //     repeated ReferencedData data_list = 1;
+    //   }
+    //   map<string,  ListOfData> data_map = 1;
+    // }
+    // ```
+    // The path to the 2nd data_list value within the data_map entry at key
+    // "foo" would be:
+    // ```
+    // field_path { field: "data_map" key: "foo" }
+    // field_path { field: "data_list" index: 1 }
+    // ```
+    //
+    // If the Data asset proto is itself a ReferencedData value, then this path
+    // is empty.
+    repeated FieldPathElement field_path = 2;
+  }
+
+  oneof reference {
+    // The ReferencedData whose data should be streamed.
+    //
+    // File references are not valid.
+    ReferencedData data = 1;
+
+    // The path to the ReferencedData field within an installed Data asset
+    // proto.
+    //
+    // This option can be used to stream data from a Data asset without first
+    // retrieving the asset itself.
+    ReferencedDataPath path = 2;
+  }
+
+  // The maximum number of bytes to stream per response.
+  //
+  // If omitted, the server will choose a sensible default value.
+  optional int64 buffer_size = 3;
+}
+
+message StreamReferencedDataResponse {
+  // A chunk of data from the ReferencedData.
+  bytes chunk = 1;
+
+  // The total size of the referenced data.
+  int64 total_size = 2;
+
+  // The offset of the chunk within the referenced data.
+  int64 offset = 3;
+}

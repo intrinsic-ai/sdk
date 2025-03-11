@@ -1,0 +1,31 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.data.v1;
+
+// Data that may be stored either inline or elsewhere and only referenced here.
+message ReferencedData {
+  oneof data {
+    // A reference to data stored elsewhere (e.g., as a file or in
+    // content-addressable storage [CAS]).
+    //
+    // The value is a URI to the referenced data. Can be one of the following:
+    //   - a CAS ID of the form "intcas://...";
+    //   - a file path of the form "file://...";
+    //   - a file path without protocol prefix, either absolute or relative.
+    //
+    // If a relative file path is provided, then its base path must be
+    // unambiguous in the context in which this proto is used.
+    string reference = 1;
+
+    // The inlined data.
+    bytes inlined = 3;
+  }
+
+  // An optional digest of the referenced data, prefixed with the hashing
+  // algorithm (e.g., "sha256:<hash>").
+  //
+  // Can be used to ensure that the referenced data have not changed.
+  string digest = 4;
+}
