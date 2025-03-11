@@ -8,6 +8,7 @@ import "google/protobuf/any.proto";
 import "google/protobuf/duration.proto";
 import "intrinsic/hardware/gpio/gpio_service.proto";
 import "intrinsic/hardware/gpio/signal.proto";
+import "intrinsic/resources/proto/resource_handle.proto";
 import "intrinsic/world/proto/object_world_updates.proto";
 
 message GpioServiceConfig {
@@ -17,6 +18,10 @@ message GpioServiceConfig {
     // Config for the GPIO service that would communicate with the backend
     // server (e.g. opcua).
     google.protobuf.Any config = 1;
+
+    // Connection info that describes how to connect to a remote GPIO service
+    // instead of starting one.
+    intrinsic_proto.resources.ResourceConnectionInfo connection_info = 2;
   }
 }
 
