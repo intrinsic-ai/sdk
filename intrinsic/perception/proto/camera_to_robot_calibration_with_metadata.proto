@@ -1,0 +1,24 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.perception;
+
+import "intrinsic/perception/proto/hand_eye_calibration.proto";
+
+message CameraToRobotCalibrationResultWithMetadata {
+  // The hand eye calibration result.
+  HandEyeCalibrationResult hand_eye_calibration_result = 1;
+
+  // The hand eye calibration request.
+  HandEyeCalibrationRequest hand_eye_calibration_request = 2;
+
+  // Camera name.
+  string camera_name = 3;
+
+  // Robot name.
+  string robot_name = 4;
+
+  // The calibration object name.
+  string calibration_object_name = 5;
+}

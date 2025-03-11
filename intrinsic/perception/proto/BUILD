@@ -110,6 +110,14 @@ proto_library(
 )
 
 proto_library(
+    name = "camera_to_robot_calibration_with_metadata",
+    srcs = ["camera_to_robot_calibration_with_metadata.proto"],
+    deps = [
+        ":hand_eye_calibration",
+    ],
+)
+
+proto_library(
     name = "image_buffer_proto",
     srcs = ["image_buffer.proto"],
     deps = [":dimensions_proto"],
@@ -445,6 +453,24 @@ go_proto_library(
         "//intrinsic/perception/proto:pattern_detection_result_go_proto",
     ],
     deps = [":hand_eye_calibration"],
+)
+
+cc_proto_library(
+    name = "camera_to_robot_calibration_with_metadata_cc_proto",
+    deps = [":camera_to_robot_calibration_with_metadata"],
+)
+
+py_proto_library(
+    name = "camera_to_robot_calibration_with_metadata_py_pb2",
+    deps = [":camera_to_robot_calibration_with_metadata"],
+)
+
+go_proto_library(
+    name = "camera_to_robot_calibration_with_metadata_go_proto",
+    go_deps = [
+        ":hand_eye_calibration_go_proto",
+    ],
+    deps = [":camera_to_robot_calibration_with_metadata"],
 )
 
 go_proto_library(
