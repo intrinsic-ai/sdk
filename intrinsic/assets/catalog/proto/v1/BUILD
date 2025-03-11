@@ -23,6 +23,7 @@ proto_library(
         "//intrinsic/assets/proto/v1:search_proto",
         "//intrinsic/assets/services/proto:service_manifest_proto",
         "//intrinsic/skills/proto:processed_skill_manifest_proto",
+        "@com_google_googleapis//google/api:field_behavior_proto",
     ],
 )
 
