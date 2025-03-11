@@ -239,6 +239,7 @@ cc_test(
         ":parse_text_proto",
         "//intrinsic/util/testing:gtest_wrapper_main",
         "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
         "@com_google_protobuf//:protobuf",
     ],
 )

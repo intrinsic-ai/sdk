@@ -10,6 +10,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_replace.h"
 #include "absl/strings/string_view.h"
+#include "google/protobuf/any.pb.h"
 #include "google/protobuf/descriptor.h"
 #include "google/protobuf/message.h"
 #include "google/protobuf/text_format.h"
@@ -23,6 +24,17 @@ constexpr absl::string_view kSlashReplacement = "_SLSH_";
 constexpr absl::string_view kDotReplacement = "_DOT_";
 constexpr absl::string_view kHyphenReplacement = "_HYPH_";
 constexpr absl::string_view kPlusReplacement = "_PLUS_";
+
+constexpr absl::string_view kAnyTypeUrlFieldName = "type_url";
+
+std::string UnrewriteTypeUrl(absl::string_view type_url) {
+  return absl::StrReplaceAll(type_url, {
+                                           {kSlashReplacement, "/"},
+                                           {kDotReplacement, "."},
+                                           {kHyphenReplacement, "-"},
+                                           {kPlusReplacement, "+"},
+                                       });
+}
 
 // Exactly the same as the default Finder implementation except that it does not
 // error out if the type URL prefix of an Any proto is not one of
@@ -41,7 +53,7 @@ class Finder : public google::protobuf::TextFormat::Finder {
 // rejected by TextFormat::Parser. This workaround is currently necessary to
 // support Intrinsic-style type URLs. The performed replacements are easy to
 // revert so that a custom TextFormat::Finder can reconstruct the original type
-// URLs from the rewritten ones.
+// URLs from the rewritten ones. Use UnrewriteTypeUrls to apply this to a proto.
 //
 // Example:
 //     value: {
@@ -101,6 +113,73 @@ std::string RewriteAnyTypeUrls(std::string_view asciipb) {
   return asciipb_rewritten;
 }
 
+void UnrewriteTypeUrlAny(google::protobuf::Message* any) {
+  if (any == nullptr) {
+    LOG(ERROR) << "Cannot unrewrite Any as the message is not set";
+    return;
+  }
+  const google::protobuf::Descriptor* any_desc = any->GetDescriptor();
+  const google::protobuf::Reflection* any_refl = any->GetReflection();
+  if (any_desc == nullptr) {
+    LOG(ERROR) << "Cannot get descriptor for unrewriting Any";
+    return;
+  }
+  if (any_refl == nullptr) {
+    LOG(ERROR) << "Cannot get reflection for unrewriting Any";
+    return;
+  }
+
+  const google::protobuf::FieldDescriptor* type_url_field =
+      any_desc->FindFieldByName(kAnyTypeUrlFieldName);
+  if (type_url_field == nullptr ||
+      type_url_field->type() !=
+          google::protobuf::FieldDescriptor::TYPE_STRING) {
+    return;
+  }
+
+  std::string type_url = any_refl->GetString(*any, type_url_field);
+  std::string unrewritten_type_url = UnrewriteTypeUrl(type_url);
+  if (type_url != unrewritten_type_url) {
+    any_refl->SetString(any, type_url_field, unrewritten_type_url);
+  }
+}
+
+void UnrewriteTypeUrls(google::protobuf::Message* message) {
+  const google::protobuf::Descriptor* descriptor = message->GetDescriptor();
+  const google::protobuf::Reflection* reflection = message->GetReflection();
+
+  for (int i = 0; i < descriptor->field_count(); ++i) {
+    const google::protobuf::FieldDescriptor* field = descriptor->field(i);
+
+    if (field->type() == google::protobuf::FieldDescriptor::TYPE_MESSAGE) {
+      if (field->is_repeated()) {
+        int count = reflection->FieldSize(*message, field);
+        for (int j = 0; j < count; ++j) {
+          google::protobuf::Message* sub_message =
+              reflection->MutableRepeatedMessage(message, field, j);
+          if (field->message_type()->full_name() ==
+              google::protobuf::Any::descriptor()->full_name()) {
+            UnrewriteTypeUrlAny(sub_message);
+          } else {
+            UnrewriteTypeUrls(sub_message);
+          }
+        }
+      } else {
+        if (reflection->HasField(*message, field)) {
+          google::protobuf::Message* sub_message =
+              reflection->MutableMessage(message, field);
+          if (field->message_type()->full_name() ==
+              google::protobuf::Any::descriptor()->full_name()) {
+            UnrewriteTypeUrlAny(sub_message);
+          } else {
+            UnrewriteTypeUrls(sub_message);
+          }
+        }
+      }
+    }
+  }
+}
+
 }  // namespace
 
 absl::Status ParseTextProtoInto(std::string_view asciipb,
@@ -118,6 +197,9 @@ absl::Status ParseTextProtoInto(std::string_view asciipb,
         "Cannot parse protobuf ", message->GetDescriptor()->full_name(),
         " from text: ", error_collector.str()));
   }
+
+  UnrewriteTypeUrls(message);
+
   return absl::OkStatus();
 }
 

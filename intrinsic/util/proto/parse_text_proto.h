@@ -19,6 +19,11 @@ namespace intrinsic {
 // Parses the given text proto into the given message. Returns an error if the
 // parsing fails, e.g., if the text proto does not match the type of the given
 // message.
+//
+// Note that ParseTextProtoInto and all other ParseTextProto* functions might
+// replace parts of custom Intrinsic type URLs with markers like _DOT_, etc.
+// during the parsing process. This is automatically undone after parsing unless
+// there are nested Any protos (i.e., an Any encoded within an Any).
 absl::Status ParseTextProtoInto(std::string_view asciipb,
                                 google::protobuf::Message* message);
 

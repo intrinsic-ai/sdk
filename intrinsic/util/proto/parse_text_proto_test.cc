@@ -6,6 +6,7 @@
 #include <gtest/gtest.h>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "google/protobuf/type.pb.h"
 #include "google/protobuf/wrappers.pb.h"
 #include "intrinsic/util/testing/gtest_wrapper.h"
@@ -17,7 +18,9 @@ using ::absl_testing::IsOkAndHolds;
 using ::absl_testing::StatusIs;
 using ::intrinsic::testing::EqualsProto;
 using ::testing::AllOf;
+using ::testing::Eq;
 using ::testing::HasSubstr;
+using ::testing::Property;
 
 TEST(ParseTextProtoTest, ParseTextProtoInto) {
   google::protobuf::Int32Value int32_value;
@@ -52,40 +55,79 @@ TEST(ParseTextProtoTest, ParseTextProtoWorksWithCustomAnyTypeUrlPrefix) {
   google::protobuf::Option option;
   option.mutable_value()->PackFrom(int32_value);
 
-  EXPECT_THAT(ParseTextProto<google::protobuf::Option>(R"pb(
-                value: {
-                  [type.intrinsic.ai/google.protobuf.Int32Value] { value: 1 }
-                }
-              )pb"),
-              IsOkAndHolds(EqualsProto(option)));
-  EXPECT_THAT(
+  absl::StatusOr<google::protobuf::Option> actual_option =
       ParseTextProto<google::protobuf::Option>(R"pb(
         value: {
-          [type.intrinsic.ai/skills/google.protobuf.Int32Value] { value: 1 }
+          [type.intrinsic.ai/google.protobuf.Int32Value] { value: 1 }
         }
-      )pb"),
-      IsOkAndHolds(EqualsProto(option)));
-  EXPECT_THAT(ParseTextProto<google::protobuf::Option>(R"pb(
-                value: {
-                  [type.intrinsic.ai/skills/ai.intrinsic.test/
-                   google.protobuf.Int32Value] { value: 1 }
-                }
-              )pb"),
-              IsOkAndHolds(EqualsProto(option)));
-  EXPECT_THAT(ParseTextProto<google::protobuf::Option>(R"pb(
-                value: {
-                  [type.intrinsic.ai/skills/ai.intrinsic.test/0.0.1/
-                   google.protobuf.Int32Value] { value: 1 }
-                }
-              )pb"),
-              IsOkAndHolds(EqualsProto(option)));
-  EXPECT_THAT(ParseTextProto<google::protobuf::Option>(R"(
-                value: {
-                  [type.intrinsic.ai/skills/0.0.1-alpha-0aZ+buildspec/
-                   google.protobuf.Int32Value] { value: 1 }
-                }
-              )"),
-              IsOkAndHolds(EqualsProto(option)));
+      )pb");
+  EXPECT_THAT(actual_option, IsOkAndHolds(EqualsProto(option)));
+  EXPECT_THAT(
+      actual_option,
+      IsOkAndHolds(Property(
+          &google::protobuf::Option::value,
+          Property(&google::protobuf::Any::type_url,
+                   Eq("type.intrinsic.ai/google.protobuf.Int32Value")))));
+
+  actual_option = ParseTextProto<google::protobuf::Option>(R"pb(
+    value: {
+      [type.intrinsic.ai/skills/google.protobuf.Int32Value] { value: 1 }
+    }
+  )pb");
+  EXPECT_THAT(actual_option, IsOkAndHolds(EqualsProto(option)));
+  EXPECT_THAT(
+      actual_option,
+      IsOkAndHolds(Property(
+          &google::protobuf::Option::value,
+          Property(
+              &google::protobuf::Any::type_url,
+              Eq("type.intrinsic.ai/skills/google.protobuf.Int32Value")))));
+
+  actual_option = ParseTextProto<google::protobuf::Option>(R"pb(
+    value: {
+      [type.intrinsic.ai/skills/ai.intrinsic.test/google.protobuf.Int32Value] {
+        value: 1
+      }
+    }
+  )pb");
+  EXPECT_THAT(actual_option, IsOkAndHolds(EqualsProto(option)));
+  EXPECT_THAT(actual_option,
+              IsOkAndHolds(Property(
+                  &google::protobuf::Option::value,
+                  Property(&google::protobuf::Any::type_url,
+                           Eq("type.intrinsic.ai/skills/ai.intrinsic.test/"
+                              "google.protobuf.Int32Value")))));
+
+  actual_option = ParseTextProto<google::protobuf::Option>(R"pb(
+    value: {
+      [type.intrinsic.ai/skills/ai.intrinsic.test/0.0.1/
+       google.protobuf.Int32Value] { value: 1 }
+    }
+  )pb");
+  EXPECT_THAT(actual_option, IsOkAndHolds(EqualsProto(option)));
+  EXPECT_THAT(actual_option,
+              IsOkAndHolds(Property(
+                  &google::protobuf::Option::value,
+                  Property(&google::protobuf::Any::type_url,
+                           Eq("type.intrinsic.ai/skills/ai.intrinsic.test/"
+                              "0.0.1/google.protobuf.Int32Value")))));
+
+  actual_option = ParseTextProto<google::protobuf::Option>(R"(
+    value: {
+      [type.intrinsic.ai/skills/ai.intrinsic.test/0.0.1-alpha-0aZ+buildspec/google.protobuf.Int32Value] {
+        value: 1
+      }
+    }
+  )");
+  EXPECT_THAT(actual_option, IsOkAndHolds(EqualsProto(option)));
+  EXPECT_THAT(
+      actual_option,
+      IsOkAndHolds(Property(
+          &google::protobuf::Option::value,
+          Property(
+              &google::protobuf::Any::type_url,
+              Eq("type.intrinsic.ai/skills/ai.intrinsic.test/"
+                 "0.0.1-alpha-0aZ+buildspec/google.protobuf.Int32Value")))));
 
   // Test multiple Any type URLs in one text proto.
   // Use Type because it is a well-known type which has a repeated Option
@@ -146,6 +188,9 @@ TEST(ParseTextProtoTest, ParseTextProtoWorksWithCustomAnyTypeUrlPrefix) {
         }
       )pb"),
       IsOkAndHolds(EqualsProto(outer_option)));
+
+  // Note: Type URLs of nested Anys will be parsed, but contain replacements
+  // like _DOT_.
 }
 
 TEST(ParseTextProtoTest, ParseTextProtoExtensions) {
