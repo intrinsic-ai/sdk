@@ -45,7 +45,6 @@ go_grpc_library(
     deps = [
         ":image_go_proto",
         "@org_golang_google_protobuf//types/known/emptypb",
-        "@org_golang_google_protobuf//types/known/timestamppb",
     ],
 )
 
