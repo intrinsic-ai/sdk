@@ -15,6 +15,7 @@ proto_library(
     name = "asset_catalog_proto",
     srcs = ["asset_catalog.proto"],
     deps = [
+        "//intrinsic/assets/data/proto/v1:data_asset_proto",
         "//intrinsic/assets/proto:asset_tag_proto",
         "//intrinsic/assets/proto:asset_type_proto",
         "//intrinsic/assets/proto:id_proto",
@@ -43,6 +44,7 @@ cc_grpc_library(
 go_proto_library(
     name = "asset_catalog_go_proto",
     go_deps = [
+        "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
         "//intrinsic/assets/proto:asset_tag_go_proto",
         "//intrinsic/assets/proto:asset_type_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
@@ -59,6 +61,7 @@ go_grpc_library(
     name = "asset_catalog_go_grpc_proto",
     srcs = [":asset_catalog_proto"],
     deps = [
+        "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
         "//intrinsic/assets/proto:asset_tag_go_proto",
         "//intrinsic/assets/proto:asset_type_go_proto",
         "//intrinsic/assets/proto:id_go_proto",

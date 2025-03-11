@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.catalog.v1;
 
+import "intrinsic/assets/data/proto/v1/data_asset.proto";
 import "intrinsic/assets/proto/asset_tag.proto";
 import "intrinsic/assets/proto/asset_type.proto";
 import "intrinsic/assets/proto/id.proto";
@@ -30,6 +31,13 @@ service AssetCatalog {
 
 // A specific version of an asset in the catalog.
 message Asset {
+  message DataMetadata {
+    // The fully qualified proto name of the data payload.
+    string proto_name = 1;
+  }
+  message DataDeploymentData {
+    intrinsic_proto.data.v1.DataAsset data = 1;
+  }
   message ServiceMetadata {
     // The list of gRPC service names that the service exposes.
     repeated string service_proto_prefixes = 1;
@@ -44,6 +52,7 @@ message Asset {
   }
   message AssetDeploymentData {
     oneof asset_specific_deployment_data {
+      DataDeploymentData data_specific_deployment_data = 3;
       ServiceDeploymentData service_specific_deployment_data = 1;
       SkillDeploymentData skill_specific_deployment_data = 2;
     }
@@ -53,6 +62,7 @@ message Asset {
   intrinsic_proto.assets.Metadata metadata = 1;
 
   oneof asset_specific_metadata {
+    DataMetadata data_specific_metadata = 4;
     ServiceMetadata service_specific_metadata = 2;
   }
 
