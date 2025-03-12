@@ -1,6 +1,6 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 load("//bazel:go_macros.bzl", "go_library", "go_test")
 
 # Application, process, product, and resource set describe all user-accessible configuration of a

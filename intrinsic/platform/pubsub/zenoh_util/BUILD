@@ -2,7 +2,7 @@
 
 # Provides the bindings and other utility with externally built zenoh pubsub
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 exports_files(
     [
