@@ -10,6 +10,7 @@ import (
 	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
@@ -106,6 +107,34 @@ func TestGetAvoidsFetchWhenCached(t *testing.T) {
 		if got := calls; got != want {
 			t.Errorf("got %d calls, want %d", got, want)
 		}
+	}
+}
+
+func TestManyConcurrentGetCalls(t *testing.T) {
+	ctx := context.Background()
+	calls := 0
+	rc := NewResolverCache(
+		FetchForFileDescriptorSet(func(_ context.Context, _ string) (*descriptorpb.FileDescriptorSet, error) {
+			calls++
+			return aSet, nil
+		}),
+	)
+
+	id := "anything"
+	var group errgroup.Group
+
+	for range 100 {
+		group.Go(func() error {
+			for range 1000 {
+				if _, err := rc.Get(ctx, id); err != nil {
+					return err
+				}
+			}
+			return nil
+		})
+	}
+	if err := group.Wait(); err != nil {
+		t.Errorf("Unexpected error from concurrent Get calls: %v", err)
 	}
 }
 

@@ -6,6 +6,7 @@ package resolvercache
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"google.golang.org/protobuf/reflect/protoregistry"
@@ -32,6 +33,7 @@ type FetchFn func(ctx context.Context, id string) (Resolver, error)
 type ResolverCache struct {
 	fetch FetchFn
 	data  map[string]Resolver
+	mu    sync.Mutex
 }
 
 // NewResolverCache creates a new cache given the function to fetch types.
@@ -61,21 +63,32 @@ func FetchForFileDescriptorSet(fetch func(context.Context, string) (*dpb.FileDes
 
 // Get returns a resolver for the given id, using the cache if possible.
 func (rc *ResolverCache) Get(ctx context.Context, id string) (Resolver, error) {
+	rc.mu.Lock()
+	defer rc.mu.Unlock()
+
 	types, ok := rc.data[id]
 	if ok {
 		return types, nil
 	}
-	return rc.Force(ctx, id)
+	return rc.force(ctx, id)
+}
+
+func (rc *ResolverCache) force(ctx context.Context, id string) (Resolver, error) {
+	types, err := rc.fetch(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get resolver for %q: %w", id, err)
+	}
+
+	rc.data[id] = types
+	return types, nil
 }
 
 // Force returns a resolver for the given id.  It always updates the cache, and
 // thus can be used if there is reason to suspect the cache for this id is
 // invalid.
 func (rc *ResolverCache) Force(ctx context.Context, id string) (Resolver, error) {
-	types, err := rc.fetch(ctx, id)
-	if err != nil {
-		return nil, fmt.Errorf("unable to get resolver for %q: %w", id, err)
-	}
-	rc.data[id] = types
-	return types, nil
+	rc.mu.Lock()
+	defer rc.mu.Unlock()
+
+	return rc.force(ctx, id)
 }
