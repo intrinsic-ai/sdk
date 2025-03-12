@@ -24,8 +24,6 @@ require (
 	github.com/bits-and-blooms/bitset v1.20.0
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/containerd/containerd v1.7.20
-	github.com/dsnet/compress v0.0.1
-	github.com/evanphx/json-patch v5.6.0+incompatible
 	github.com/fsouza/fake-gcs-server v1.47.4
 	github.com/gobuffalo/flect v1.0.2
 	github.com/golang-jwt/jwt/v4 v4.4.2
@@ -74,6 +72,8 @@ require (
 	k8s.io/client-go v0.28.2
 	sigs.k8s.io/yaml v1.3.0
 )
+
+require github.com/evanphx/json-patch v5.6.0+incompatible // indirect
 
 require (
 	cel.dev/expr v0.19.0 // indirect
