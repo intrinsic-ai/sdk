@@ -2,6 +2,8 @@
 
 # Testing utilities for assets.
 
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
 package(
     default_testonly = True,
     default_visibility = ["//visibility:public"],

@@ -1,5 +1,6 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
+load("@rules_cc//cc:defs.bzl", "cc_library")
 load("//bazel:go_macros.bzl", "go_library")
 
 # Helper utilities for handling testing.

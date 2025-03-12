@@ -1,5 +1,7 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
 # Component to log structured data with context.
 package(default_visibility = ["//visibility:public"])
 
