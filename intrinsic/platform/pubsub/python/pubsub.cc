@@ -181,7 +181,8 @@ PYBIND11_MODULE(pubsub, m) {
   pybind11::class_<KeyValueStore>(m, "KeyValueStore")
       .def("Set", &KeyValueStore::Set<google::protobuf::Message>,
            pybind11::arg("key"), pybind11::arg("value"),
-           pybind11::arg("config") = NamespaceConfig{})
+           pybind11::arg("config") = NamespaceConfig{},
+           pybind11::arg("high_consistency") = false)
       .def("Get", &Get, pybind11::arg("key"),
            pybind11::arg("config") = NamespaceConfig{},
            pybind11::arg("timeout") = 10)

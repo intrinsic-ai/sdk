@@ -80,13 +80,15 @@ class KeyValueStore {
   // Sets the value for the given key. A key can't include any of the following
   // characters: /, *, ?, #, [ and ].
   absl::Status Set(absl::string_view key, const google::protobuf::Any& value,
-                   const NamespaceConfig& config);
+                   const NamespaceConfig& config,
+                   std::optional<bool> high_consistency = std::nullopt);
 
   // Sets the value for the given key. A key can't include any of the following
   // characters: /, *, ?, #, [ and ].
   template <typename T>
   absl::Status Set(absl::string_view key, T&& value,
-                   const NamespaceConfig& config)
+                   const NamespaceConfig& config,
+                   std::optional<bool> high_consistency = std::nullopt)
     requires(
         std::is_base_of_v<google::protobuf::Message, std::remove_cvref_t<T>> &&
         !std::is_same_v<google::protobuf::Any, std::remove_cvref_t<T>>)
@@ -96,7 +98,7 @@ class KeyValueStore {
       return absl::InternalError(
           absl::StrCat("Failed to pack value for the key: ", key));
     }
-    return Set(key, any, config);
+    return Set(key, any, config, high_consistency);
   }
 
   template <typename T>

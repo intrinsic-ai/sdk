@@ -15,6 +15,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
 #include "absl/synchronization/notification.h"
+#include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "google/protobuf/any.pb.h"
 #include "intrinsic/platform/pubsub/zenoh_util/zenoh_handle.h"
@@ -25,7 +26,8 @@ namespace intrinsic {
 
 namespace {
 constexpr static absl::string_view kDefaultKeyPrefix = "kv_store";
-}
+constexpr static absl::Duration kHighConsistencyTimeout = absl::Seconds(30);
+}  // namespace
 
 KeyValueStore::KeyValueStore(std::optional<std::string> prefix_override)
     : key_prefix_(prefix_override.has_value() ? prefix_override.value()
@@ -33,7 +35,8 @@ KeyValueStore::KeyValueStore(std::optional<std::string> prefix_override)
 
 absl::Status KeyValueStore::Set(absl::string_view key,
                                 const google::protobuf::Any& value,
-                                const NamespaceConfig& config) {
+                                const NamespaceConfig& config,
+                                std::optional<bool> high_consistency) {
   INTR_RETURN_IF_ERROR(intrinsic::ValidZenohKeyexpr(key));
   absl::StatusOr<std::string> prefixed_name =
       ZenohHandle::add_key_prefix(key, key_prefix_);
@@ -47,6 +50,30 @@ absl::Status KeyValueStore::Set(absl::string_view key,
   if (ret != IMW_OK) {
     return absl::InternalError(
         absl::StrFormat("Error setting a key, return code: %d", ret));
+  }
+  // If high consistency is set, we need to block until the key value is
+  // committed.
+  if (high_consistency.has_value() && *high_consistency) {
+    absl::Time deadline = absl::Now() + kHighConsistencyTimeout;
+    while (true) {
+      auto set_result = GetAny(key, config, absl::Seconds(10));
+      if (set_result.value().SerializeAsString() == value.SerializeAsString()) {
+        // Key value is committed.
+        return absl::OkStatus();
+      } else {
+        if (!set_result.ok() &&
+            set_result.status() != absl::NotFoundError("Key not found")) {
+          return absl::InternalError(
+              absl::StrFormat("Unexpected error, return code: %d", ret));
+        }
+        if (absl::Now() > deadline) {
+          return absl::DeadlineExceededError(
+              "Timeout waiting for high consistency");
+        }
+        // Small wait before retrying.
+        absl::SleepFor(absl::Milliseconds(100));
+      }
+    }
   }
   return absl::OkStatus();
 }
