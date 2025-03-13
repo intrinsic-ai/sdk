@@ -81,8 +81,8 @@ cc_binary(
 container_image(
     name = "calculator-image",
     base = "@distroless_base",
+    cmd = ["intrinsic/assets/services/examples/calcserver/calc_server_main"],
     data_path = "/",
-    entrypoint = ["intrinsic/assets/services/examples/calcserver/calc_server_main"],
     files = [":calc_server_main"],
 )
 

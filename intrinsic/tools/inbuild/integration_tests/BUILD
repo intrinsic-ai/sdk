@@ -230,8 +230,8 @@ cc_binary(
 container_image(
     name = "inbuild_service_cc_image",
     base = "@distroless_base",
+    cmd = ["intrinsic/tools/inbuild/integration_tests/inbuild_service_cc_bin"],
     data_path = "/",
-    entrypoint = ["intrinsic/tools/inbuild/integration_tests/inbuild_service_cc_bin"],
     files = [":inbuild_service_cc_bin"],
 )
 
