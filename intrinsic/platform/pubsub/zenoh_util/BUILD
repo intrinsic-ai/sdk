@@ -29,7 +29,6 @@ cc_library(
     ],
     deps = [
         ":zenoh_helpers",
-        "//intrinsic/util/path_resolver",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
@@ -58,6 +57,8 @@ cc_library(
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/strings:string_view",
+        "@or_tools//ortools/base:path",
+        "@rules_cc//cc/runfiles",
     ],
 )
 
@@ -74,7 +75,6 @@ cc_library(
     ],
     deps = [
         ":zenoh_helpers",
-        "//intrinsic/util/path_resolver",
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/log",
     ],

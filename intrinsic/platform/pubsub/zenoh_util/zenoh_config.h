@@ -12,7 +12,6 @@
 #include "absl/flags/flag.h"
 #include "absl/log/log.h"
 #include "intrinsic/platform/pubsub/zenoh_util/zenoh_helpers.h"
-#include "intrinsic/util/path_resolver/path_resolver.h"
 
 ABSL_DECLARE_FLAG(std::string, zenoh_router);
 
@@ -23,12 +22,8 @@ inline std::string GetZenohPeerConfig() {
   const std::string config_path =
       "intrinsic/platform/pubsub/zenoh_util/peer_config.json";
 
-  std::string path = config_path;
-  if (RunningUnderTest()) {
-    path = PathResolver::ResolveRunfilesPathForTest(config_path);
-  } else if (!RunningInKubernetes()) {
-    path = PathResolver::ResolveRunfilesPath(config_path);
-  }
+  std::string path = GetZenohRunfilesPath(config_path);
+
   std::ifstream file(path);
   if (file.is_open()) {
     // Read the entire file into a string

@@ -10,8 +10,12 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_split.h"
 #include "absl/strings/string_view.h"
+#include "ortools/base/path.h"
+#include "rules_cc/cc/runfiles/runfiles.h"
 
 namespace intrinsic {
+
+using ::rules_cc::cc::runfiles::Runfiles;
 
 bool RunningUnderTest() {
   return (getenv("TEST_TMPDIR") != nullptr) ||
@@ -20,6 +24,28 @@ bool RunningUnderTest() {
 
 bool RunningInKubernetes() {
   return getenv("KUBERNETES_SERVICE_HOST") != nullptr;
+}
+
+std::string GetZenohRunfilesPath(absl::string_view file_path) {
+  std::string error;
+  std::string path = std::string(file_path);
+  std::unique_ptr<Runfiles> runfiles;
+  std::string repository = BAZEL_CURRENT_REPOSITORY;
+  if (repository == "") {
+    // If empty, running in current repository.
+    repository = "_main";
+  }
+
+  if (RunningUnderTest()) {
+    std::string error;
+    runfiles = std::unique_ptr<Runfiles>(Runfiles::CreateForTest(&error));
+    path = runfiles->Rlocation(file::JoinPath(repository, file_path));
+  } else if (!RunningInKubernetes()) {
+    runfiles = std::unique_ptr<Runfiles>(
+        Runfiles::Create(program_invocation_name, &error));
+    path = runfiles->Rlocation(file::JoinPath(repository, file_path));
+  }
+  return path;
 }
 
 absl::Status ValidZenohKeyexpr(absl::string_view keyexpr) {

@@ -3,6 +3,8 @@
 #ifndef INTRINSIC_PLATFORM_PUBSUB_ZENOH_UTIL_ZENOH_HELPERS_H_
 #define INTRINSIC_PLATFORM_PUBSUB_ZENOH_UTIL_ZENOH_HELPERS_H_
 
+#include <string>
+
 #include "absl/status/status.h"
 #include "absl/strings/string_view.h"
 
@@ -11,6 +13,13 @@ namespace intrinsic {
 bool RunningUnderTest();
 
 bool RunningInKubernetes();
+
+// Returns the path to the given file.
+//
+// If running under test, the path is resolved using Runfiles::CreateForTest. If
+// running in kubernetes, the path is returned using Runfiles::Create that
+// supports direct program invocation. Otherwise, returns the path as is.
+std::string GetZenohRunfilesPath(absl::string_view file_path);
 
 // Returns true if the given keyexpr is follows the zenoh keyexpr format
 // listed at https://zenoh.io/docs/manual/abstractions/.

@@ -12,7 +12,6 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "intrinsic/platform/pubsub/zenoh_util/zenoh_helpers.h"
-#include "intrinsic/util/path_resolver/path_resolver.h"
 
 #define GET_FUNCTION_PTR(handle, func) GetFunctionHandle(handle, #func, &func);
 
@@ -74,13 +73,7 @@ void ZenohHandle::Initialize() {
     (void)libTestTsanZenohPath;
     library_path = libZenohPath;
   }
-
-  std::string path = library_path;
-  if (RunningUnderTest()) {
-    path = PathResolver::ResolveRunfilesPathForTest(library_path);
-  } else if (!RunningInKubernetes()) {
-    path = PathResolver::ResolveRunfilesPath(library_path);
-  }
+  std::string path = GetZenohRunfilesPath(library_path);
 
 #if defined(MEMORY_SANITIZER) || defined(THREAD_SANITIZER) || \
     defined(ADDRESS_SANITIZER)
