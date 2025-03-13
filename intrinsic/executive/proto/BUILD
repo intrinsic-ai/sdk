@@ -35,7 +35,7 @@ cc_proto_library(
 go_proto_library(
     name = "behavior_call_go_proto",
     go_deps = [
-        "//intrinsic/executive/proto:annotations_go_proto",
+        ":annotations_go_proto",
         "//intrinsic/skills/proto:footprint_go_proto",
     ],
     deps = [":behavior_call_proto"],
@@ -63,9 +63,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "code_execution_go_proto",
-    go_deps = [
-        ":any_with_assignments_go_proto",
-    ],
+    go_deps = [":any_with_assignments_go_proto"],
     deps = [":code_execution_proto"],
 )
 
@@ -176,8 +174,8 @@ go_proto_library(
         ":behavior_tree_go_proto",
         ":executive_execution_mode_go_proto",
         ":run_metadata_go_proto",
-        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
         "@org_golang_google_genproto_googleapis_api//annotations",
+        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
     ],
     deps = [":executive_service_proto"],
 )
@@ -191,6 +189,9 @@ go_grpc_library(
         ":run_metadata_go_proto",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
         "@org_golang_google_genproto_googleapis_api//annotations",
+        "@org_golang_google_protobuf//types/known/anypb",
+        "@org_golang_google_protobuf//types/known/emptypb",
+        "@org_golang_google_protobuf//types/known/fieldmaskpb",
     ],
 )
 
@@ -223,8 +224,8 @@ go_proto_library(
     go_deps = [
         ":behavior_tree_go_proto",
         ":executive_execution_mode_go_proto",
-        "//intrinsic/util/status:extended_status_go_proto",
         "//intrinsic/logging/proto:context_go_proto",
+        "//intrinsic/util/status:extended_status_go_proto",
     ],
     deps = [":run_metadata_proto"],
 )
@@ -245,6 +246,11 @@ py_proto_library(
 
 cc_proto_library(
     name = "run_response_cc_proto",
+    deps = [":run_response_proto"],
+)
+
+go_proto_library(
+    name = "run_response_go_proto",
     deps = [":run_response_proto"],
 )
 
@@ -400,14 +406,13 @@ py_proto_library(
 go_proto_library(
     name = "behavior_tree_go_proto",
     go_deps = [
-        "//intrinsic/executive/proto:annotations_go_proto",
-        "//intrinsic/executive/proto:any_list_go_proto",
-        "//intrinsic/executive/proto:any_with_assignments_go_proto",
-        "//intrinsic/executive/proto:behavior_call_go_proto",
-        "//intrinsic/executive/proto:code_execution_go_proto",
-        "//intrinsic/executive/proto:domain_go_proto",
-        "//intrinsic/executive/proto:executive_execution_mode_go_proto",
-        "//intrinsic/executive/proto:world_query_go_proto",
+        ":annotations_go_proto",
+        ":any_list_go_proto",
+        ":any_with_assignments_go_proto",
+        ":behavior_call_go_proto",
+        ":code_execution_go_proto",
+        ":domain_go_proto",
+        ":executive_execution_mode_go_proto",
         "//intrinsic/skills/proto:skills_go_proto",
         "//intrinsic/util/status:extended_status_go_proto",
     ],

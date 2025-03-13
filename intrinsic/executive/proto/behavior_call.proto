@@ -97,6 +97,7 @@ message BehaviorCall {
     // call to predict to the call of execute on the exact same skill, it can
     // know what to expect.
     bytes internal_data = 2;
+
   }
   optional SkillExecutionData skill_execution_data = 8;
 }
