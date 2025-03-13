@@ -19,7 +19,7 @@ const (
 	// packages.
 	NameCharLength = 45
 	// DisplayNameCharLength sets character limits for the asset display name.
-	DisplayNameCharLength = 45
+	DisplayNameCharLength = 80
 	// VersionCharLength sets character limits for asset versions.
 	// Semver does not have restrictions on character limits for versions, and leaves it to best
 	// judgement: https://semver.org/#does-semver-have-a-size-limit-on-the-version-string. An
