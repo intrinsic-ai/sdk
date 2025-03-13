@@ -104,6 +104,7 @@ go_library(
     name = "metadatafieldlimits",
     srcs = ["metadata_field_limits.go"],
     visibility = ["//intrinsic:internal_api_users"],
+    deps = ["//intrinsic/assets/proto:asset_type_go_proto"],
 )
 
 go_library(

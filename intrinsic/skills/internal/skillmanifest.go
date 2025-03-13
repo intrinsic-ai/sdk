@@ -10,6 +10,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/metadatafieldlimits"
+	atypepb "intrinsic/assets/proto/asset_type_go_proto"
 	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 	"intrinsic/util/proto/sourcecodeinfoview"
 )
@@ -36,7 +37,7 @@ func ValidateManifest(m *smpb.SkillManifest, types *protoregistry.Types) error {
 			return fmt.Errorf("problem with return message name %q: %w", name, err)
 		}
 	}
-	if err := metadatafieldlimits.ValidateNameLength(m.GetId().GetName()); err != nil {
+	if err := metadatafieldlimits.ValidateNameLength(m.GetId().GetName(), atypepb.AssetType_ASSET_TYPE_SKILL); err != nil {
 		return fmt.Errorf("invalid name for skill: %v", err)
 	}
 	if err := metadatafieldlimits.ValidateDescriptionLength(m.GetDocumentation().GetDescription()); err != nil {
