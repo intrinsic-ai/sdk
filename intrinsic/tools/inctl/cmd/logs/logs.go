@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/signal"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -88,7 +89,16 @@ func runLogsCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	return readLogsFromSolution(cmd.Context(), params, cmd.OutOrStdout())
+	ctx, cancelFx := signal.NotifyContext(cmd.Context(), os.Interrupt, os.Kill)
+	defer cancelFx()
+
+	err = readLogsFromSolution(ctx, params, cmd.OutOrStdout())
+	if err != nil {
+		cmd.PrintErrln("Error reading logs. Issue is non-transient and cannot be handled automatically. Please run command again.")
+		cmd.PrintErrf("Details: %s\n", err)
+		os.Exit(1) // we are doing custom exit, as we are doing custom error handling
+	}
+	return nil
 }
 
 func getResourceID(resType resourceType, target string) (string, error) {

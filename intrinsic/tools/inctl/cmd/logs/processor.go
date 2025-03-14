@@ -4,15 +4,20 @@ package logs
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"os"
 	"path"
+	"reflect"
+	"strconv"
 	"time"
 
+	backoff "github.com/cenkalti/backoff/v4"
 	"intrinsic/skills/tools/skill/cmd/dialerutil"
 	"intrinsic/skills/tools/skill/cmd/solutionutil"
 	"intrinsic/tools/inctl/auth/auth"
@@ -25,6 +30,8 @@ const (
 	paramTimestamps = "timestamps"
 	paramTailLines  = "tailLines"
 	paramSinceSec   = "sinceSeconds"
+
+	headerRetryAfter = "Retry-After"
 )
 
 const (
@@ -34,12 +41,16 @@ const (
 var (
 	verboseDebug           = false
 	verboseOut   io.Writer = os.Stderr
+	httpClient             = &http.Client{
+		Timeout:   15 * time.Second,
+		Transport: http.DefaultTransport,
+	}
 )
 
 type endpoint struct {
-	url       *url.URL
-	xsrfToken string
-	authToken *auth.ProjectToken
+	url           *url.URL
+	authToken     *auth.ProjectToken
+	xsrfTokenFunc func(ctx context.Context, params *cmdParams) (string, error)
 }
 
 func getClusterName(ctx context.Context, params *cmdParams) (string, error) {
@@ -110,15 +121,6 @@ func createEndpoint(ctx context.Context, params *cmdParams) (*endpoint, error) {
 		}
 	}
 
-	xsrfToken, err := callEndpoint(ctx, http.MethodGet, xsrfTokenURL, authToken, nil, nil,
-		func(_ context.Context, body io.Reader) (string, error) {
-			token, err := io.ReadAll(body)
-			return string(token), err
-		})
-	if err != nil {
-		return nil, fmt.Errorf("could not obtain xsrf token: %w", err)
-	}
-
 	var logsURL *url.URL
 	if localAddress != "" {
 		logsURL = &url.URL{
@@ -136,8 +138,14 @@ func createEndpoint(ctx context.Context, params *cmdParams) (*endpoint, error) {
 
 	return &endpoint{
 		url:       logsURL,
-		xsrfToken: xsrfToken,
 		authToken: authToken,
+		xsrfTokenFunc: func(ctx context.Context, params *cmdParams) (string, error) {
+			return callEndpoint(ctx, http.MethodGet, xsrfTokenURL, authToken, nil, nil,
+				func(_ context.Context, body io.Reader) (string, error) {
+					token, err := io.ReadAll(body)
+					return string(token), err
+				})
+		},
 	}, nil
 }
 
@@ -146,6 +154,8 @@ type bodyReader = func(context.Context, io.Reader) (string, error)
 type resourceType int
 
 const (
+	maxConnectionRetries = 1024 // this is humongous number, but reasonable upper bound in case things go VERY wrong.
+
 	rtService resourceType = iota
 	rtSkill
 	rtResource
@@ -193,18 +203,92 @@ func readLogsFromSolution(ctx context.Context, params *cmdParams, w io.Writer) e
 	}
 
 	consoleLogsURL.RawQuery = consoleLogsQuery.Encode()
-
-	xsrfHeader := http.Header{"X-XSRF-TOKEN": []string{endpoint.xsrfToken}}
-
-	_, err = callEndpoint(ctx, http.MethodGet, consoleLogsURL, endpoint.authToken, xsrfHeader, nil,
-		func(_ context.Context, body io.Reader) (string, error) {
-			if _, err := io.Copy(w, body); err != nil {
-				return "", fmt.Errorf("error reading/writing logs: %w", err)
+	notify := clientNotify(w)
+	backOff := backoff.NewExponentialBackOff()
+	backOff.MaxElapsedTime = 10 * time.Minute // if we were not able to obtain response in 10 minutes, we should give up.
+	var xsrfToken string
+	for reconnectCount := 0; ctx.Err() == nil && reconnectCount < maxConnectionRetries; reconnectCount++ {
+		err = backoff.RetryNotify(func() error {
+			xsrfToken, err = endpoint.xsrfTokenFunc(ctx, params)
+			if err != nil && shouldTerminate(err) {
+				return backoff.Permanent(err)
 			}
-			return "", nil
-		})
+			if rat, ok := err.(*tooManyRequestsErr); ok {
+				// we are going to forcibly wait to ensure we do not hammer server unnecessarily
+				// this will stack with next backoff, but we don't have good way to skip next backoff
+				select {
+				case <-ctx.Done():
+					return backoff.Permanent(ctx.Err())
+				case <-time.After(rat.retryAfter):
+					return rat
+				}
+			}
+			return err
+		}, backOff, notify)
+		if err != nil {
+			return fmt.Errorf("cannot obtain XSRF token: %w", err)
+		}
 
-	return err
+		xsrfHeader := http.Header{"X-XSRF-TOKEN": []string{xsrfToken}}
+
+		_, err = callEndpoint(ctx, http.MethodGet, consoleLogsURL, endpoint.authToken, xsrfHeader, nil,
+			func(_ context.Context, body io.Reader) (string, error) {
+				if _, copyErr := io.Copy(w, body); copyErr != nil {
+					return "", copyErr
+				}
+				return "", nil
+			})
+
+		if err == nil {
+			return nil // We are done here, we received EOF from server.
+		}
+
+		if shouldTerminate(err) {
+			return fmt.Errorf("terminal error: %w", err)
+		}
+
+		// adding arbitrary wait of up to a second to ensure we don't stomp the server
+		arbitraryWait := time.Duration(500+rand.Int63n(501)) * time.Millisecond
+		notify(err, arbitraryWait)
+		select {
+		case <-time.After(arbitraryWait):
+			continue
+		case <-ctx.Done():
+			return nil
+		}
+	}
+	return nil
+}
+
+func shouldTerminate(err error) bool {
+	if _, ok := err.(*tooManyRequestsErr); ok {
+		return false
+	}
+	if se, ok := err.(*statusErr); ok {
+		// we are going to terminate if we get status below 500.
+		// Status 500+ indicates that we could have some issue in relay, thus we retry
+		return se.httpCode < 500 || se.httpCode == http.StatusNotImplemented
+	}
+
+	if errors.Is(err, context.Canceled) || errors.Is(err, io.EOF) {
+		return true
+	}
+
+	if unwrapErr := errors.Unwrap(err); unwrapErr != nil {
+		err = unwrapErr
+	}
+
+	if err != nil {
+		if verboseDebug {
+			fmt.Fprintf(verboseOut, "Type: %v; err: %s\n", reflect.TypeOf(err), err)
+		}
+		// Check if we have some sort of net/url error.
+		if tErr, ok := err.(timeout); ok {
+			return !tErr.Timeout()
+		}
+	}
+
+	return false
 }
 
 func setResourceID(resType resourceType, id string) url.Values {
@@ -244,15 +328,19 @@ func callEndpoint(ctx context.Context, method string, endpoint *url.URL, authTok
 	}
 
 	printRequest(req)
-	response, err := http.DefaultClient.Do(req)
+	response, err := httpClient.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("request to target failed: %w", err)
 	}
+	defer response.Body.Close()
 	if response.StatusCode != http.StatusOK {
 		printResponse(response)
-		return "", fmt.Errorf("unexpected response: %s", response.Status)
+		content, _ := io.ReadAll(response.Body)
+		if response.StatusCode == http.StatusTooManyRequests {
+			return "", retryAfter(response, string(content))
+		}
+		return "", &statusErr{httpCode: response.StatusCode, extra: string(content)}
 	}
-	defer response.Body.Close()
 	if bodyFx != nil {
 		return bodyFx(ctx, response.Body)
 	}
@@ -332,4 +420,58 @@ func getAuthToken(project string) (*auth.ProjectToken, error) {
 		return nil, err
 	}
 	return config.GetDefaultCredentials()
+}
+
+type statusErr struct {
+	httpCode int
+	extra    string
+}
+
+func (s *statusErr) Error() string {
+	return fmt.Sprintf("error reading from server: %s (%d) %s", http.StatusText(s.httpCode), s.httpCode, s.extra)
+}
+
+type tooManyRequestsErr struct {
+	statusErr
+	retryAfter time.Duration
+}
+
+func (tmr *tooManyRequestsErr) Error() string {
+	return fmt.Sprintf("too many requests, retry in %dms", tmr.retryAfter.Milliseconds())
+}
+
+func retryAfter(response *http.Response, content string) error {
+	retryAfterH := response.Header[headerRetryAfter]
+	tmrErr := &tooManyRequestsErr{
+		statusErr:  statusErr{httpCode: response.StatusCode, extra: content},
+		retryAfter: 100 * time.Millisecond, // reasonable default
+	}
+	if len(retryAfterH) > 0 {
+		// we don't care about errors really, so we are going to mostly ignore them.
+		// this can have either time, or duration in seconds, let's try duration first
+		atoi, err := strconv.Atoi(retryAfterH[0])
+		if err == nil {
+			tmrErr.retryAfter = time.Duration(atoi) * time.Second
+		} else {
+			// we fail to parse string as simple number, let's parse as time
+			rat, err := http.ParseTime(retryAfterH[0])
+			if err == nil {
+				tmrErr.retryAfter = rat.Sub(time.Now())
+			}
+		}
+	}
+	return tmrErr
+}
+
+func clientNotify(w io.Writer) backoff.Notify {
+	return func(err error, duration time.Duration) {
+		fmt.Fprintf(w, "[client] Connection lost, retrying in %dms...\n", duration.Milliseconds())
+		if verboseDebug {
+			fmt.Fprintf(verboseOut, "Details: %s\n", err)
+		}
+	}
+}
+
+type timeout interface {
+	Timeout() bool
 }
