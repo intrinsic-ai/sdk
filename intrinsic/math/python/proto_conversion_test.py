@@ -205,7 +205,10 @@ class ProtoConversionTest(parameterized.TestCase):
     pose_proto = pose_pb2.Pose(
         position=point_pb2.Point(x=-1.32635246, y=-0.20890486, z=-0.16996824),
         orientation=quaternion_pb2.Quaternion(
-            x=-0.53663178, y=-0.49717722, z=0.24928427, w=-0.6345853
+            x=-0.5366317784871225,
+            y=-0.4971772185983531,
+            z=0.24928426929721537,
+            w=-0.634585298210971,
         ),
     )
     result_proto = proto_conversion.pose_to_proto(

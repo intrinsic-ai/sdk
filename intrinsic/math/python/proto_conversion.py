@@ -14,6 +14,8 @@ from intrinsic.math.proto import vector3_pb2
 from intrinsic.math.python import data_types
 import numpy as np
 
+_QUATERNION_UNITY_TOLERANCE = np.finfo(np.float64).eps * 32
+
 
 def ndarray_from_proto(array_proto: array_pb2.Array) -> np.ndarray:
   """Converts Array proto to np.ndarray."""
@@ -197,7 +199,7 @@ def pose_from_proto(pose_proto: pose_pb2.Pose) -> data_types.Pose3:
   )
   # We expect the quaternion in the input proto to be normalized. Pose3 does not
   # require this so we check this explicitly.
-  rotation.quaternion.check_normalized()
+  rotation.quaternion.check_normalized(_QUATERNION_UNITY_TOLERANCE)
   return data_types.Pose3(translation=point, rotation=rotation)
 
 
