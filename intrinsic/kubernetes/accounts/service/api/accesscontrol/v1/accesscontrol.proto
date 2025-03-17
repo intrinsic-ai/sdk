@@ -181,6 +181,7 @@ service AccessControlService {
       returns (OrganizationInvitation) {
     option (google.api.http) = {
       post: "/accesscontrol/v1/{parent=organizations/*}/invitations"
+      body: "invitation"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "CreateInvitation"
