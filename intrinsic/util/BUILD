@@ -64,7 +64,6 @@ cc_library(
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/strings:str_format",
-        "@com_google_protobuf//:protobuf",
     ],
 )
 
@@ -77,6 +76,7 @@ cc_test(
         "//intrinsic/eigenmath:rotation_utils",
         "//intrinsic/math:pose3",
         "//intrinsic/util/testing:gtest_wrapper_main",
+        "@com_google_protobuf//:protobuf_lite",
     ],
 )
 

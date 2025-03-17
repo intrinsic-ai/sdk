@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 
+#include "google/protobuf/repeated_field.h"
 #include "intrinsic/eigenmath/rotation_utils.h"
 #include "intrinsic/eigenmath/types.h"
 #include "intrinsic/math/pose3.h"
@@ -38,6 +39,18 @@ TEST(UtilEigen, VectorXdUtils) {
   std::array<double, 6> array_value = VectorXdToArray<6>(value);
   EXPECT_EQ(array_value.size(), value.size());
   EXPECT_EQ(value, ArrayToVectorXd(array_value));
+}
+
+TEST(UtilEigen, MatrixXdUtils) {
+  std::vector<eigenmath::VectorXd> vector_of_vectorxd = {
+      (eigenmath::VectorXd(4) << 1.2, 4.5, 7.8, 10.1).finished(),
+      (eigenmath::VectorXd(4) << 2.3, 5.6, 8.9, 11.2).finished(),
+      (eigenmath::VectorXd(4) << 3.4, 6.7, 9.0, 12.3).finished()};
+  eigenmath::MatrixXd matrixxd = VectorOfVectorXdToMatrixXd(vector_of_vectorxd);
+  eigenmath::MatrixXd expected_matrixxd(4, 3);
+  expected_matrixxd << 1.2, 2.3, 3.4, 4.5, 5.6, 6.7, 7.8, 8.9, 9.0, 10.1, 11.2,
+      12.3;
+  EXPECT_EQ(matrixxd, expected_matrixxd);
 }
 
 TEST(UtilEigen, VectorUtils) {

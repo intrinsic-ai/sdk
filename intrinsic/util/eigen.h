@@ -4,7 +4,6 @@
 #define INTRINSIC_UTIL_EIGEN_H_
 
 #include <array>
-#include <cfloat>
 #include <cstddef>
 #include <sstream>
 #include <string>
@@ -14,6 +13,7 @@
 #include "absl/log/check.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
+#include "absl/types/span.h"
 #include "google/protobuf/repeated_field.h"
 #include "intrinsic/eigenmath/types.h"
 #include "intrinsic/math/pose3.h"
@@ -73,6 +73,19 @@ inline void VectorNdToRepeatedDouble(
 // Convert a std vector to vectorXd
 inline eigenmath::VectorXd VectorToVectorXd(const std::vector<double>& values) {
   return eigen_details::ConvertVector<eigenmath::VectorXd>(values);
+}
+
+// Convert an std::vector of VectorXd to a MatrixXd.
+inline eigenmath::MatrixXd VectorOfVectorXdToMatrixXd(
+    const std::vector<eigenmath::VectorXd>& vectors) {
+  CHECK_GT(vectors.size(), 0) << absl::StrFormat(
+      "The number of VectorXd's should be greater than 0, but got %lu instead.",
+      vectors.size());
+  eigenmath::MatrixXd matrixxd(vectors[0].size(), vectors.size());
+  for (size_t i = 0; i < vectors.size(); ++i) {
+    matrixxd.col(i) = vectors[i];
+  }
+  return matrixxd;
 }
 
 inline std::vector<double> VectorXdToVector(const eigenmath::VectorXd& values) {
