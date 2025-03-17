@@ -19,12 +19,36 @@ var (
 func init() {
 	authCmd.AddCommand(printAPIKeyCmd)
 	printAPIKeyCmd.Flags().StringP(orgutil.KeyProject, keyProjectShort, "", "Name of the Google cloud project to authorize for")
-	printAPIKeyCmd.MarkFlagRequired(orgutil.KeyProject)
+	printAPIKeyCmd.Flags().StringP(orgutil.KeyOrganization, "", "", "Name of the organization to authorize for. Specify only one of --project or --organization.")
+	printAPIKeyCmd.MarkFlagsMutuallyExclusive(orgutil.KeyProject, orgutil.KeyOrganization)
 
 	authCmd.AddCommand(printAccessTokenCmd)
 	printAccessTokenCmd.Flags().StringP(orgutil.KeyProject, keyProjectShort, "", "Name of the Google cloud project to authorize for")
-	printAccessTokenCmd.MarkFlagRequired(orgutil.KeyProject)
+	printAccessTokenCmd.Flags().StringP(orgutil.KeyOrganization, "", "", "Name of the organization to authorize for. Specify only one of --project or --organization.")
+	printAccessTokenCmd.MarkFlagsMutuallyExclusive(orgutil.KeyProject, orgutil.KeyOrganization)
 	printAccessTokenCmd.Flags().StringVar(&flagFlowstateAddr, "flowstate", "flowstate.intrinsic.ai", "Flowstate address.")
+}
+
+func projectFromFlags(cmd *cobra.Command) (string, error) {
+	org, err := cmd.Flags().GetString(orgutil.KeyOrganization)
+	if err != nil {
+		return "", err
+	}
+	project, err := cmd.Flags().GetString(orgutil.KeyProject)
+	if err != nil {
+		return "", err
+	}
+	if project != "" {
+		return project, nil
+	}
+	if org != "" {
+		orgInfo, err := authStore.ReadOrgInfo(org)
+		if err != nil {
+			return "", fmt.Errorf("failed to get organization info for %q: %v", org, err)
+		}
+		return orgInfo.Project, nil
+	}
+	return "", fmt.Errorf("either --%s or --%s is required", orgutil.KeyOrganization, orgutil.KeyProject)
 }
 
 var printAPIKeyCmd = &cobra.Command{
@@ -33,9 +57,9 @@ var printAPIKeyCmd = &cobra.Command{
 	Long:  "Prints the API key for a project.",
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		project, err := cmd.Flags().GetString(orgutil.KeyProject)
+		project, err := projectFromFlags(cmd)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to determine project: %v", err)
 		}
 		store, err := authStore.GetConfiguration(project)
 		if err != nil {
@@ -61,11 +85,11 @@ Can be used to authenticate with the Flowstate API.
 
 Example:
 
-		inctl auth print-access-token --project=intrinsic-prod-us
+		inctl auth print-access-token --org=myorganization
 
 Example (curl):
 
-		curl -s -X GET -H "Authorization: Bearer $(inctl auth print-access-token --project intrinsic-prod-us)" https://flowstate.intrinsic.ai/api/v1/cloud-projects-orgs -H 'Content-Type: application/json'
+		curl -s -X GET -H "Authorization: Bearer $(inctl auth print-access-token --org=myorganization)" https://flowstate.intrinsic.ai/api/v1/cloud-projects-orgs -H 'Content-Type: application/json'
 `
 
 var printAccessTokenCmd = &cobra.Command{
@@ -74,10 +98,9 @@ var printAccessTokenCmd = &cobra.Command{
 	Long:  printAccessTokenHelp,
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := cmd.Context()
-		project, err := cmd.Flags().GetString(orgutil.KeyProject)
+		project, err := projectFromFlags(cmd)
 		if err != nil {
-			return fmt.Errorf("failed to get project: %v", err)
+			return fmt.Errorf("failed to determine project: %v", err)
 		}
 		store, err := authStore.GetConfiguration(project)
 		if err != nil {
@@ -87,6 +110,7 @@ var printAccessTokenCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("failed to get default API key for project %q: %v", project, err)
 		}
+		ctx := cmd.Context()
 		resp, err := auth.GetIDToken(ctx, makeHTTPClient(), flagFlowstateAddr, &auth.GetIDTokenRequest{
 			APIKey:   key.APIKey,
 			DoFanOut: true,
