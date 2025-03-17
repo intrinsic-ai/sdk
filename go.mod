@@ -24,6 +24,7 @@ require (
 	github.com/bits-and-blooms/bitset v1.20.0
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/containerd/containerd v1.7.20
+	github.com/fsnotify/fsnotify v1.6.0
 	github.com/fsouza/fake-gcs-server v1.47.4
 	github.com/gobuffalo/flect v1.0.2
 	github.com/golang-jwt/jwt/v4 v4.4.2
@@ -35,6 +36,7 @@ require (
 	github.com/google/subcommands v1.2.0
 	github.com/google/uuid v1.6.0
 	github.com/googlecloudrobotics/core/src v0.0.0-20230426093931-c9725477ada9
+	github.com/gorilla/websocket v1.5.0
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/kylelemons/godebug v1.1.0
 	github.com/minio/highwayhash v1.0.2
@@ -56,6 +58,7 @@ require (
 	go.uber.org/atomic v1.11.0
 	golang.org/x/crypto v0.32.0
 	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0
+	golang.org/x/net v0.34.0
 	golang.org/x/oauth2 v0.25.0
 	golang.org/x/sync v0.10.0
 	golang.org/x/sys v0.29.0
@@ -117,7 +120,6 @@ require (
 	github.com/envoyproxy/go-control-plane v0.13.1 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.2.1 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
-	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
@@ -190,7 +192,6 @@ require (
 	go.opentelemetry.io/otel/sdk v1.32.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.32.0 // indirect
 	go.opentelemetry.io/otel/trace v1.32.0 // indirect
-	golang.org/x/net v0.34.0 // indirect
 	golang.org/x/term v0.28.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
