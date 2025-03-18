@@ -53,6 +53,7 @@ require (
 	github.com/stoewer/go-strcase v1.3.0
 	github.com/stripe/stripe-go/v79 v79.12.0
 	github.com/tdewolff/parse v2.3.4+incompatible
+	github.com/traviswt/gke-auth-plugin v0.0.0-20230623230742-7b40450b6d49
 	go.etcd.io/bbolt v1.3.10
 	go.opencensus.io v0.24.0
 	go.uber.org/atomic v1.11.0
