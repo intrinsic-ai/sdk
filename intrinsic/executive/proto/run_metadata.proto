@@ -12,6 +12,21 @@ import "intrinsic/logging/proto/context.proto";
 import "intrinsic/util/status/extended_status.proto";
 
 message RunMetadata {
+  // Describes the overall state of the Operation.
+  enum State {
+    UNSPECIFIED = 0;  // Default value, will not occur on retrieval.
+    ACCEPTED = 10;    // Operation has been loaded successfully.
+    PREPARING = 20;   // Operation is preparing to start execution.
+    RUNNING = 30;     // Operation is currently executing.
+    SUSPENDING = 40;  // Operation is waiting for in-flight actions to complete.
+    SUSPENDED = 50;   // Operation has been paused (and can be resumed),
+    CANCELING = 60;   // Operation is waiting for cancellation to finish.
+    SUCCEEDED = 70;   // Operation has finished execution successfully.
+    FAILED = 80;      // Operation has failed to execute.
+    CANCELED = 90;    // Operation was canceled as requested.
+  }
+  State operation_state = 30;
+
   oneof runnable_type {
     BehaviorTree behavior_tree = 1;
   }
