@@ -5,11 +5,11 @@ package cookies
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 
+	log "github.com/golang/glog"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -70,11 +70,39 @@ func FromContext(ctx context.Context) ([]*http.Cookie, error) {
 		return nil, nil
 	}
 
-	// If there's more than one cookie header, reject them.
-	// This runs the danger of confusion when different services use first/last/arbitrary.
+	// If there's more than one cookie header, we attempt to merge them.
 	if len(cookies) > 1 {
-		return nil, errors.New("multiple cookies in header")
+		log.WarningContextf(ctx, "Multiple cookie headers found, attempting to merge them...")
+		return mergeCookies(cookies...)
 	}
 
 	return parseCookies(cookies[0])
+}
+
+func mergeCookies(cs ...string) ([]*http.Cookie, error) {
+	mergedCookies := make(map[string]*http.Cookie)
+
+	for _, cval := range cs {
+		cookies, err := parseCookies(cval)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse cookies: %v", err)
+		}
+
+		for _, cookie := range cookies {
+			mc, ok := mergedCookies[cookie.Name]
+			// If the cookie already exists, check if the value is the same.
+			if ok && mc.Value != cookie.Value { // unhappy path
+				return nil, fmt.Errorf("conflicting cookie values for key %s", cookie.Name)
+			}
+			// If the cookie does not exist or the value is the same, just add/overwrite it.
+			mergedCookies[cookie.Name] = cookie
+		}
+	}
+
+	result := make([]*http.Cookie, 0, len(mergedCookies))
+	for _, cookie := range mergedCookies {
+		result = append(result, cookie)
+	}
+
+	return result, nil
 }

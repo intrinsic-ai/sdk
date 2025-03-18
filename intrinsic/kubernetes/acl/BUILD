@@ -11,7 +11,10 @@ package(default_visibility = [
 go_library(
     name = "cookies",
     srcs = ["cookies.go"],
-    deps = ["@org_golang_google_grpc//metadata:go_default_library"],
+    deps = [
+        "@com_github_golang_glog//:go_default_library",
+        "@org_golang_google_grpc//metadata:go_default_library",
+    ],
 )
 
 go_library(
