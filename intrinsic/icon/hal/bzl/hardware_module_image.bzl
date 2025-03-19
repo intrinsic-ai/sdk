@@ -78,7 +78,7 @@ def hardware_module_image(
     init_hwm_path = "/init_hwm"
 
     # Resources use the resource_context for configuration. They should not be called with `--config_pbtxt_file`.
-    resource_entrypoint = [
+    resource_cmd = [
         init_hwm_path,
         "--",
         _path_in_container(native.package_relative_label(hardware_module_binary)),
@@ -94,7 +94,7 @@ def hardware_module_image(
         data_path = "/",
         files = [hardware_module_binary] + extra_files,
         symlinks = symlinks,
-        entrypoint = resource_entrypoint,
+        cmd = resource_cmd,
         labels = {
             "ai.intrinsic.hardware-module-image-name": name,
         },
