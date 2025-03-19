@@ -36,4 +36,5 @@ message PoseEstimationResult {
   // Optional: Input image with overlaid pose estimations.
   // This field will be only populated if requested in the run config.
   ImageBuffer annotated_image = 2;
+
 }
