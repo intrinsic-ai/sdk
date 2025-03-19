@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Dict, Iterator, List, Set, Type, Union
+from typing import Any, Dict, ItemsView, Iterator, KeysView, List, Set, Type, Union, ValuesView
 
 from google.protobuf import descriptor
 from google.protobuf import message
@@ -244,8 +244,10 @@ class SkillCompatibleResourcesMap:
   Used for convenient auto-completion.
   """
 
-  def __init__(self, resources: Dict[str, ResourceList]):
-    self._resources: Dict[str, ResourceList] = resources
+  _resources: dict[str, ResourceList]
+
+  def __init__(self, resources: dict[str, ResourceList]):
+    self._resources = resources
 
   def __dir__(self) -> List[str]:
     return [str(k) for k in self._resources.keys()]
@@ -255,9 +257,7 @@ class SkillCompatibleResourcesMap:
 
   def __getitem__(self, resource_slot: str) -> ResourceList:
     if resource_slot not in self._resources:
-      raise AttributeError(
-          f"Resource {resource_slot} not compatible or unknown"
-      )
+      raise KeyError(f"Resource {resource_slot} not compatible or unknown")
     return self._resources[resource_slot]
 
   def __getattr__(self, resource_slot: str) -> ResourceList:
@@ -266,6 +266,18 @@ class SkillCompatibleResourcesMap:
           f"Resource {resource_slot} not compatible or unknown"
       )
     return self._resources[resource_slot]
+
+  def __iter__(self) -> Iterator[str]:
+    return iter(self._resources)
+
+  def keys(self) -> KeysView[str]:
+    return self._resources.keys()
+
+  def values(self) -> ValuesView[ResourceList]:
+    return self._resources.values()
+
+  def items(self) -> ItemsView[str, ResourceList]:
+    return self._resources.items()
 
 
 class SkillBase(actions.ActionBase):
