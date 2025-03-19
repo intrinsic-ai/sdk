@@ -11,6 +11,7 @@ import (
 	_ "intrinsic/tools/inctl/cmd/customer/customer"
 	_ "intrinsic/tools/inctl/cmd/device/device"
 	_ "intrinsic/tools/inctl/cmd/logs/logs"
+	_ "intrinsic/tools/inctl/cmd/markdown"
 	_ "intrinsic/tools/inctl/cmd/notebook/notebook"
 	_ "intrinsic/tools/inctl/cmd/process/process"
 	_ "intrinsic/tools/inctl/cmd/recordings/recordings"

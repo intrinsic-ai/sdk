@@ -10,6 +10,7 @@ go_binary(
     deps = [
         "//intrinsic/assets/inctl:assetcmd",
         "//intrinsic/assets/services/inctl:service",
+        "//intrinsic/tools/inctl/cmd:markdown",
         "//intrinsic/tools/inctl/cmd:root",
         "//intrinsic/tools/inctl/cmd:skill",
         "//intrinsic/tools/inctl/cmd/auth",

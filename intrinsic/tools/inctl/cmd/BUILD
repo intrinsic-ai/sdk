@@ -39,3 +39,14 @@ go_library(
         "@org_golang_x_exp//slices",
     ],
 )
+
+go_library(
+    name = "markdown",
+    srcs = ["markdown.go"],
+    deps = [
+        ":root",
+        "//intrinsic/util/archive:tartooling",
+        "@com_github_spf13_cobra//:go_default_library",
+        "@com_github_spf13_cobra//doc:go_default_library",
+    ],
+)
