@@ -26,8 +26,8 @@ go_library(
     deps = [
         ":baseclientutils",
         ":cmdutils",
-        "//intrinsic/frontend/cloud/api:solutiondiscovery_api_go_grpc_proto",
         "//intrinsic/frontend/cloud/api/v1:clusterdiscovery_api_go_grpc_proto",
+        "//intrinsic/frontend/cloud/api/v1:solutiondiscovery_api_go_grpc_proto",
         "//intrinsic/tools/inctl/auth",
         "@com_github_golang_glog//:go_default_library",
         "@com_github_google_go_containerregistry//pkg/authn:go_default_library",

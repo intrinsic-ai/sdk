@@ -25,8 +25,8 @@ import warnings
 
 import grpc
 from intrinsic.assets.proto import installed_assets_pb2_grpc
-from intrinsic.frontend.cloud.api import solutiondiscovery_api_pb2
-from intrinsic.frontend.cloud.api import solutiondiscovery_api_pb2_grpc
+from intrinsic.frontend.cloud.api.v1 import solutiondiscovery_api_pb2
+from intrinsic.frontend.cloud.api.v1 import solutiondiscovery_api_pb2_grpc
 from intrinsic.frontend.solution_service.proto import solution_service_pb2
 from intrinsic.frontend.solution_service.proto import solution_service_pb2_grpc
 from intrinsic.frontend.solution_service.proto import status_pb2 as solution_status_pb2

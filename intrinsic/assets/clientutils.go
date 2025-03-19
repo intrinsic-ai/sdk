@@ -21,9 +21,9 @@ import (
 	"google.golang.org/grpc/metadata"
 	"intrinsic/assets/baseclientutils"
 	"intrinsic/assets/cmdutils"
-	solutiondiscoverygrpcpb "intrinsic/frontend/cloud/api/solutiondiscovery_api_go_grpc_proto"
-	solutiondiscoverypb "intrinsic/frontend/cloud/api/solutiondiscovery_api_go_grpc_proto"
 	clusterdiscoverypb "intrinsic/frontend/cloud/api/v1/clusterdiscovery_api_go_grpc_proto"
+	solutiondiscoverygrpcpb "intrinsic/frontend/cloud/api/v1/solutiondiscovery_api_go_grpc_proto"
+	solutiondiscoverypb "intrinsic/frontend/cloud/api/v1/solutiondiscovery_api_go_grpc_proto"
 	"intrinsic/tools/inctl/auth/auth"
 )
 
