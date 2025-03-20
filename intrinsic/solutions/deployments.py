@@ -52,7 +52,6 @@ from intrinsic.solutions.internal import products as products_mod
 from intrinsic.solutions.internal import resources as resources_mod
 from intrinsic.solutions.internal import skill_providing
 from intrinsic.solutions.internal import stubs
-from intrinsic.util.grpc import error_handling
 
 
 _DEFAULT_HOSTPORT = "localhost:17080"
@@ -569,7 +568,6 @@ def _get_cluster_from_solution(project: str, solution_id: str) -> str:
 
 
 @solution_errors.retry_on_pending_backend
-@error_handling.retry_on_grpc_unavailable
 def _get_solution_status_with_retry(
     stub: solution_service_pb2_grpc.SolutionServiceStub,
 ) -> solution_status_pb2.Status:
