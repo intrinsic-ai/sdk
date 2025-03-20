@@ -10,6 +10,7 @@ import "google/longrunning/operations.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
 import "intrinsic/util/status/extended_status.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
@@ -52,7 +53,7 @@ enum UpdateState {
 // This is the publicly accessible subset of the intrinsic_proto.config.Cluster
 // object.
 //
-// next number is 24
+// next number is 25
 message Cluster {
   // name shown to admins - globally unique
   string cluster_name = 1;
@@ -75,6 +76,7 @@ message Cluster {
   repeated IPCNode ipc_nodes = 21;
   IntrinsicBaseManager intrinsic_base_manager = 22;
   repeated intrinsic_proto.status.ExtendedStatus extended_statuses = 23;
+  google.protobuf.Timestamp last_seen = 24;
   // removed fields:
   reserved 10, 11, 12;
   reserved "is_public", "is_mine", "is_shared";
@@ -86,6 +88,7 @@ message IPCNode {
   string os_version = 2;
   ClusterState cluster_state = 3;
   bool is_control_plane = 4;
+  google.protobuf.Timestamp last_seen = 5;
 }
 
 message ListClustersRequest {

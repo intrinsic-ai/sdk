@@ -42,6 +42,7 @@ proto_library(
         "@com_google_protobuf//:duration_proto",
         "@com_google_protobuf//:empty_proto",
         "@com_google_protobuf//:field_mask_proto",
+        "@com_google_protobuf//:timestamp_proto",
     ],
 )
 
