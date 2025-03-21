@@ -80,8 +80,12 @@ var grantRoleBindingCmd = &cobra.Command{
 		if flagDebugRequests {
 			protoPrint(lrop)
 		}
-		if err := waitForOperation(ctx, cl.GetOperation, lrop, 10*time.Minute); err != nil {
+		lrop, err = waitForOperation(ctx, cl.GetOperation, lrop, 10*time.Minute)
+		if err != nil {
 			return fmt.Errorf("failed to wait for operation: %w", err)
+		}
+		if flagDebugRequests {
+			protoPrint(lrop)
 		}
 		return nil
 	},
@@ -116,8 +120,12 @@ var revokeRoleBindingCmd = &cobra.Command{
 		if flagDebugRequests {
 			protoPrint(lrop)
 		}
-		if err := waitForOperation(ctx, cl.GetOperation, lrop, 10*time.Minute); err != nil {
+		lrop, err = waitForOperation(ctx, cl.GetOperation, lrop, 10*time.Minute)
+		if err != nil {
 			return fmt.Errorf("failed to wait for operation: %w", err)
+		}
+		if flagDebugRequests {
+			protoPrint(lrop)
 		}
 		return nil
 	},

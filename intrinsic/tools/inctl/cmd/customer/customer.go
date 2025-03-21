@@ -75,13 +75,13 @@ const (
 	pollInterval = time.Second * 5
 )
 
-func waitForOperation(ctx context.Context, getLongOp getOperationFunc, lro *lropb.Operation, timeout time.Duration) error {
+func waitForOperation(ctx context.Context, getLongOp getOperationFunc, lro *lropb.Operation, timeout time.Duration) (*lropb.Operation, error) {
 	if lro == nil {
-		return fmt.Errorf("no operation to wait for")
+		return nil, fmt.Errorf("no operation to wait for")
 	}
 	if lro.Done {
 		fmt.Printf("Operation (%q) completed\n", lro.Name)
-		return nil
+		return lro, nil
 	}
 
 	fmt.Printf("Waiting for operation (%q) to complete (%.1f seconds timeout, %v poll interval).\n",
@@ -102,17 +102,17 @@ func waitForOperation(ctx context.Context, getLongOp getOperationFunc, lro *lrop
 		case <-ticker.C:
 			lro, err := getLongOp(ctx, &req)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			if !lro.GetDone() {
 				continue
 			}
 			if lro.GetError() != nil {
-				return fmt.Errorf("operation %q failed: %v", lro.GetName(), lro.GetError())
+				return nil, fmt.Errorf("operation %q failed: %v", lro.GetName(), lro.GetError())
 			}
-			return nil
+			return lro, nil
 		case <-ctx.Done():
-			return fmt.Errorf("operation %q timed out", lro.GetName())
+			return nil, fmt.Errorf("operation %q timed out", lro.GetName())
 		}
 	}
 }

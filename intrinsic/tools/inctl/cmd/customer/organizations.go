@@ -68,8 +68,12 @@ var createCmd = &cobra.Command{
 		if flagDebugRequests {
 			protoPrint(op)
 		}
-		if err := waitForOperation(ctx, cl.GetOperation, op, 10*time.Minute); err != nil {
+		op, err = waitForOperation(ctx, cl.GetOperation, op, 10*time.Minute)
+		if err != nil {
 			return fmt.Errorf("failed to wait for operation: %w", err)
+		}
+		if flagDebugRequests {
+			protoPrint(op)
 		}
 		if flagSkipPaymentPlan {
 			fmt.Println("Warning: skipping payment plan creation. The organization will have no quota assigned.")
@@ -89,8 +93,12 @@ var createCmd = &cobra.Command{
 		if flagDebugRequests {
 			protoPrint(op)
 		}
-		if err := waitForOperation(ctx, cl.GetOperation, op, 10*time.Minute); err != nil {
+		op, err = waitForOperation(ctx, cl.GetOperation, op, 10*time.Minute)
+		if err != nil {
 			return fmt.Errorf("failed to wait for operation: %w", err)
+		}
+		if flagDebugRequests {
+			protoPrint(op)
 		}
 		return nil
 	},
