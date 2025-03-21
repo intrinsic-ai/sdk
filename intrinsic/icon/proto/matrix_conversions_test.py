@@ -1,7 +1,5 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-"""Tests for matrix_conversions."""
-
 from absl.testing import absltest
 from intrinsic.icon.proto import matrix_conversions
 from intrinsic.icon.proto import matrix_pb2

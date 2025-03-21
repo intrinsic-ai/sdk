@@ -1,7 +1,5 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-"""Tests for intrinsic.skills.python.skill_registry_client."""
-
 from unittest import mock
 
 from absl.testing import absltest

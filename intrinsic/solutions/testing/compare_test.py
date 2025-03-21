@@ -1,7 +1,5 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-"""Tests for intrinsic.solutions.testing.compare."""
-
 import copy
 # pylint:disable-next=g-importing-member
 from intrinsic.executive.proto.test_message_pb2 import TestMessage

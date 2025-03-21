@@ -1,7 +1,5 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-"""Tests for intrinsic.platform.pubsub.python.pubsub."""
-
 import threading
 
 from absl.testing import absltest

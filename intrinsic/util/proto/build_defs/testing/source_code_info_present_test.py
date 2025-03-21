@@ -1,7 +1,5 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-"""Tests for source_code_info_present."""
-
 import os
 
 from absl import flags

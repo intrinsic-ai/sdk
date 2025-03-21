@@ -1,7 +1,5 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-"""Tests for ExtendedStatusError."""
-
 import datetime
 from typing import Optional
 
