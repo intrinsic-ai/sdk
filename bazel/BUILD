@@ -3,6 +3,7 @@
 # Shared Bazel macros for use in external workspaces and general Bazel helpers.
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load(":exec_properties.bzl", "DEFAULT")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -44,9 +45,6 @@ platform(
         "@platforms//cpu:x86_64",
         "@bazel_tools//tools/cpp:clang",
     ],
-    exec_properties = {
-        "container-image": "docker://gcr.io/cloud-robotics-releases/bazel-rbe-executor@sha256:0214faa0cb79068bc722639ef2a8c571783e98a54e8b0755f84ea56e6207de93",
-        "OSFamily": "Linux",
-    },
+    exec_properties = DEFAULT,
     parents = ["@local_config_platform//:host"],
 )
