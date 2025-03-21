@@ -1,7 +1,5 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-"""Tests for intrinsic.icon.python.reactions."""
-
 import threading
 from unittest import mock
 

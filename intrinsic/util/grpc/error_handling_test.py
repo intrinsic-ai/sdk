@@ -1,7 +1,5 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-"""Tests for intrinsic.util.grpc."""
-
 import time
 from unittest import mock
 

@@ -1,7 +1,5 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-"""Tests for object_world_ids."""
-
 from absl.testing import absltest
 from intrinsic.world.python import object_world_ids
 

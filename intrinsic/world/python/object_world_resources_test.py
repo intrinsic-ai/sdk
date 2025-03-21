@@ -1,7 +1,5 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-"""Tests for object_world_resources."""
-
 from unittest import mock
 
 import grpc  # pylint: disable=unused-import

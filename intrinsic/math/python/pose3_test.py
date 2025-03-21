@@ -1,7 +1,5 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-"""Tests for intrinsic.math.python.pose3."""
-
 from absl.testing import absltest
 from absl.testing import parameterized
 from intrinsic.math.python import math_test

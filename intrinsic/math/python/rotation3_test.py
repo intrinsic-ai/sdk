@@ -1,7 +1,5 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-"""Tests for intrinsic.math.python.rotation3."""
-
 from collections import abc
 import math
 

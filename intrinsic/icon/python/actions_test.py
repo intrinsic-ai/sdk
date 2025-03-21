@@ -1,7 +1,5 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-"""Tests for intrinsic.icon.python.actions."""
-
 from absl.testing import absltest
 from intrinsic.icon.actions import point_to_point_move_pb2
 from intrinsic.icon.python import actions

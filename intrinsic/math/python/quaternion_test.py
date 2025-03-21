@@ -1,7 +1,5 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-"""Tests for intrinsic.math.python.quaternion."""
-
 from collections import abc
 
 from absl import logging

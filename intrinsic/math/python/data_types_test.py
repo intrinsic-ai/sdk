@@ -1,7 +1,5 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-"""Tests for intrinsic.math.data_types."""
-
 from absl.testing import absltest
 from intrinsic.icon.proto import cart_space_pb2
 from intrinsic.math.python import data_types
