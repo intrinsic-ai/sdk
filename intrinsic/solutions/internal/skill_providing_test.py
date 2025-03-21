@@ -1,7 +1,5 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-"""Tests for intrinsic.executive.workcell.public.workcell."""
-
 import datetime
 import enum
 import inspect

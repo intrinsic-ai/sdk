@@ -1,7 +1,5 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-"""Tests for intrinsic.executive.workcell.public.plan."""
-
 import datetime
 
 from absl.testing import absltest
