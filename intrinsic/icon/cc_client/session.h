@@ -13,15 +13,14 @@
 #include <variant>
 #include <vector>
 
+#include "absl/base/thread_annotations.h"
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/time/time.h"
-#include "absl/types/optional.h"
 #include "absl/types/span.h"
-#include "absl/types/variant.h"
 #include "google/protobuf/any.pb.h"
 #include "google/rpc/status.pb.h"
 #include "grpcpp/client_context.h"
@@ -209,6 +208,8 @@ class Action {
 // A `Session` scopes control of a set of parts to a single session. The
 // `Session` provides the ability to manipulate those parts by adding actions
 // and/or reactions.
+// All functions in this class are thread-safe. Often, `QuitWatcherLoop()` or
+// `End()` are called from other threads to implement skill cancellation.
 class Session {
  public:
   // Creates a Session for the `parts` and starts it.
@@ -357,8 +358,7 @@ class Session {
 
   // Stops running watchers after the current event is finished processing, if
   // they are running. Watchers may be restarted again by calling RunWatchers().
-  // This method is thread-safe.
-  void QuitWatcherLoop();
+  void QuitWatcherLoop() ABSL_LOCKS_EXCLUDED(reactions_queue_writer_mutex_);
 
   // Creates a StreamWriter for the given `input_name` of the given action.
   //
@@ -382,7 +382,8 @@ class Session {
 
   // Ends the session and returns the session end status. Returns a precondition
   // failed status if the session has already ended.
-  absl::Status End();
+  absl::Status End()
+      ABSL_LOCKS_EXCLUDED(session_mutex_, reactions_queue_writer_mutex_);
 
   SessionId Id() const { return session_id_; }
 
@@ -397,11 +398,11 @@ class Session {
       std::optional<absl::Time> deadline);
 
   Session(std::shared_ptr<ChannelInterface> icon_channel,
-          std::unique_ptr<grpc::ClientContext> action_context,
+          std::unique_ptr<grpc::ClientContext> session_context,
           std::unique_ptr<grpc::ClientReaderWriterInterface<
               intrinsic_proto::icon::OpenSessionRequest,
               intrinsic_proto::icon::OpenSessionResponse>>
-              action_stream,
+              session_stream,
           std::unique_ptr<grpc::ClientContext> watcher_context,
           std::unique_ptr<::grpc::ClientReaderInterface<
               intrinsic_proto::icon::WatchReactionsResponse>>
@@ -419,25 +420,30 @@ class Session {
   // ReactionHandle that appears more than once *across both*
   // `reaction_descriptors` and `reaction_handle_to_id_and_loc_`.
   absl::Status CheckReactionHandlesUnique(
-      absl::Span<const ReactionDescriptor> reaction_descriptors) const;
+      absl::Span<const ReactionDescriptor> reaction_descriptors) const
+      ABSL_LOCKS_EXCLUDED(session_mutex_);
 
   // Saves any callbacks and ReactionHandles contained in
   // `reaction_descriptors_by_id` to `reaction_callback_map_` and
   // `reaction_handle_to_id_and_loc_`.
   void SaveReactionData(
       const absl::flat_hash_map<ReactionId, ReactionDescriptor>&
-          reaction_descriptors_by_id);
+          reaction_descriptors_by_id) ABSL_LOCKS_EXCLUDED(session_mutex_);
 
   absl::StatusOr<intrinsic_proto::icon::OpenSessionResponse> GetResponseOrEnd(
-      const intrinsic_proto::icon::OpenSessionRequest& request);
+      const intrinsic_proto::icon::OpenSessionRequest& request)
+      ABSL_LOCKS_EXCLUDED(session_mutex_, reactions_queue_writer_mutex_);
 
   // Triggers the reaction callbacks for the given `reaction`.
   void TriggerReactionCallbacks(
-      const intrinsic_proto::icon::WatchReactionsResponse& reaction);
+      const intrinsic_proto::icon::WatchReactionsResponse& reaction)
+      ABSL_LOCKS_EXCLUDED(session_mutex_, watch_reactions_mutex_,
+                          reactions_queue_reader_mutex_,
+                          reactions_queue_writer_mutex_);
 
   // Reads out the reaction watcher buffer and finishes the call. Logs any
   // additional reactions received, and any call errors.
-  void CleanUpWatcherCall();
+  void CleanUpWatcherCall() ABSL_LOCKS_EXCLUDED(reactions_queue_reader_mutex_);
 
   // Converts the `status` to an absl::Status. Ends the session if its code is
   // absl::Status::Code::kAborted and logs the session call status.
@@ -445,45 +451,68 @@ class Session {
   // an error).
   // Returns the absl::Status version of `status` otherwise. In this case, the
   // Session remains active.
-  absl::Status EndAndLogOnAbort(const ::google::rpc::Status& status);
+  absl::Status EndAndLogOnAbort(const ::google::rpc::Status& status)
+      ABSL_LOCKS_EXCLUDED(session_mutex_, reactions_queue_writer_mutex_);
 
   // Reads from watcher stream, and queues new reactions into the
   // `reactions_queue_`.
   void WatchReactionsThreadBody();
+
+  // We need multiple mutexes to run some functions in parallel. Define some
+  // total order for acquiring to avoid deadlocks.
+  mutable absl::Mutex session_mutex_
+      ABSL_ACQUIRED_BEFORE(watch_reactions_mutex_);
+  absl::Mutex watch_reactions_mutex_
+      ABSL_ACQUIRED_BEFORE(reactions_queue_writer_mutex_);
+  absl::Mutex reactions_queue_writer_mutex_
+      ABSL_ACQUIRED_BEFORE(reactions_queue_reader_mutex_);
+  absl::Mutex reactions_queue_reader_mutex_;
 
   // Hold onto the channel, if any, so that callers do not need to worry about
   // its lifetime. May be nullptr depending on the version of Start used to
   // construct this session.
   std::shared_ptr<ChannelInterface> channel_;
 
-  // Indicates whether the call is already dead. If so, the `action_stream_`
+  // Indicates whether the call is already dead. If so, the `session_stream_`
   // and `watcher_stream_` should no longer be accessed.
-  bool session_ended_;
+  std::atomic<bool> session_ended_ = false;
 
-  std::unique_ptr<grpc::ClientContext> action_context_;
+  // Must outlive `session_stream_`.
+  std::unique_ptr<grpc::ClientContext> session_context_
+      ABSL_GUARDED_BY(session_mutex_);
   std::unique_ptr<grpc::ClientReaderWriterInterface<
       intrinsic_proto::icon::OpenSessionRequest,
       intrinsic_proto::icon::OpenSessionResponse>>
-      action_stream_;
+      session_stream_ ABSL_GUARDED_BY(session_mutex_);
 
-  std::unique_ptr<grpc::ClientContext> watcher_context_;
-
+  // Must outlive `watcher_stream_`.
+  std::unique_ptr<grpc::ClientContext> watcher_context_
+      ABSL_GUARDED_BY(watch_reactions_mutex_);
   // Only call watcher_stream_::Read() on `watcher_read_thread_` until
   // `watcher_read_thread_` has joined.
   std::unique_ptr<grpc::ClientReaderInterface<
       intrinsic_proto::icon::WatchReactionsResponse>>
-      watcher_stream_;
+      watcher_stream_ ABSL_GUARDED_BY(watch_reactions_mutex_);
 
   // A map of callbacks registered to reactions, keyed by the reaction id.
-  absl::flat_hash_map<ReactionId, std::function<void()>> reaction_callback_map_;
+  absl::flat_hash_map<ReactionId, std::function<void()>> reaction_callback_map_
+      ABSL_GUARDED_BY(session_mutex_);
 
   // Reaction events are written to the `reactions_queue_` from the
   // `watcher_read_thread_`, and read during `RunWatcherLoop()` on the calling
   // thread. Passing a nullopt quits the watcher loop.
-  absl::Mutex reactions_queue_writer_mutex_;  // we write from two threads
   RealtimeWriteQueue<absl::StatusOr<
       std::optional<intrinsic_proto::icon::WatchReactionsResponse>>>
-      reactions_queue_;
+      internal_reactions_queue_ ABSL_GUARDED_BY(reactions_queue_writer_mutex_)
+          ABSL_GUARDED_BY(reactions_queue_reader_mutex_);
+  RealtimeWriteQueue<absl::StatusOr<std::optional<
+      intrinsic_proto::icon::WatchReactionsResponse>>>::NonRtReader&
+      reactions_queue_reader_ ABSL_GUARDED_BY(reactions_queue_reader_mutex_){
+          internal_reactions_queue_.Reader()};
+  RealtimeWriteQueue<absl::StatusOr<
+      std::optional<intrinsic_proto::icon::WatchReactionsResponse>>>::RtWriter&
+      reactions_queue_writer_ ABSL_GUARDED_BY(reactions_queue_writer_mutex_){
+          internal_reactions_queue_.Writer()};
   std::atomic<bool> quit_watcher_loop_ = false;
 
   // Used to read reaction events in the background. `watcher_stream_::Read()`
@@ -494,17 +523,18 @@ class Session {
   std::unique_ptr<intrinsic_proto::icon::IconApi::StubInterface> stub_;
 
   // Used to generate unique ReactionIds.
-  SequenceNumber<ReactionId> reaction_id_sequence_;
+  SequenceNumber<ReactionId> reaction_id_sequence_
+      ABSL_GUARDED_BY(session_mutex_);
   absl::flat_hash_map<ReactionHandle,
                       std::pair<ReactionId, intrinsic::SourceLocation>>
-      reaction_handle_to_id_and_loc_;
+      reaction_handle_to_id_and_loc_ ABSL_GUARDED_BY(session_mutex_);
 
-  SessionId session_id_;
+  const SessionId session_id_;
 
   // Factory function that produces ::grpc::ClientContext objects before each
   // gRPC request. This is required to make new grpc calls on the fly since we
   // need to propagate the original icon connection parameters stored in here.
-  ClientContextFactory client_context_factory_;
+  const ClientContextFactory client_context_factory_;
 };
 
 }  // namespace icon

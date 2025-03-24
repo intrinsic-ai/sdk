@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "absl/algorithm/container.h"
+#include "absl/base/thread_annotations.h"
 #include "absl/container/flat_hash_map.h"
 #include "absl/log/check.h"
 #include "absl/log/log.h"
@@ -22,9 +23,7 @@
 #include "absl/strings/string_view.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/time/time.h"
-#include "absl/types/optional.h"
 #include "absl/types/span.h"
-#include "absl/types/variant.h"
 #include "google/protobuf/any.pb.h"
 #include "google/rpc/status.pb.h"
 #include "grpcpp/client_context.h"
@@ -293,9 +292,9 @@ absl::StatusOr<std::unique_ptr<Session>> Session::StartImpl(
   std::unique_ptr<grpc::ClientReaderWriterInterface<
       intrinsic_proto::icon::OpenSessionRequest,
       intrinsic_proto::icon::OpenSessionResponse>>
-      action_stream = stub->OpenSession(start_session_context.get());
+      session_stream = stub->OpenSession(start_session_context.get());
   INTR_ASSIGN_OR_RETURN(SessionId session_id,
-                        InitializeSessionOrEndCall(action_stream.get(), parts,
+                        InitializeSessionOrEndCall(session_stream.get(), parts,
                                                    context, deadline));
 
   // Initialize the watcher stream at session start, so that no reactions can
@@ -328,7 +327,7 @@ absl::StatusOr<std::unique_ptr<Session>> Session::StartImpl(
 
   return absl::WrapUnique(
       new Session(std::move(icon_channel), std::move(start_session_context),
-                  std::move(action_stream), std::move(watcher_context),
+                  std::move(session_stream), std::move(watcher_context),
                   std::move(watcher_stream), std::move(stub), session_id,
                   context, client_context_factory));
 }
@@ -393,6 +392,7 @@ absl::StatusOr<std::vector<Action>> Session::AddActions(
           action_descriptor.fixed_params_.value();
     }
 
+    absl::MutexLock l(&session_mutex_);
     for (const ReactionDescriptor& reaction_descriptor :
          action_descriptor.reaction_descriptors_) {
       ReactionId reaction_id = reaction_id_sequence_.GetNext();
@@ -432,6 +432,7 @@ absl::Status Session::AddFreestandingReactions(
       reaction_descriptors_by_id;
   intrinsic_proto::icon::OpenSessionRequest request;
   for (const ReactionDescriptor& reaction_descriptor : reaction_descriptors) {
+    absl::MutexLock l(&session_mutex_);
     const ReactionId reaction_id = reaction_id_sequence_.GetNext();
     CHECK(reaction_descriptors_by_id.insert({reaction_id, reaction_descriptor})
               .second)
@@ -519,8 +520,11 @@ absl::Status Session::RunWatcherLoop(absl::Time deadline) {
   while (true) {
     absl::StatusOr<std::optional<intrinsic_proto::icon::WatchReactionsResponse>>
         response;
-    ReadResult result =
-        reactions_queue_.Reader().ReadWithTimeout(response, deadline);
+    ReadResult result;
+    {
+      absl::MutexLock l(&reactions_queue_reader_mutex_);
+      result = reactions_queue_reader_.ReadWithTimeout(response, deadline);
+    }
     if (result == ReadResult::kDeadlineExceeded) {
       return absl::DeadlineExceededError(
           "Deadline exceeded in RunWatcherLoop()");
@@ -563,12 +567,12 @@ void Session::QuitWatcherLoop() {
   quit_watcher_loop_ = true;
   // The queue is already closed, so return early, since there's no need to wake
   // up the watcher loop.
-  if (reactions_queue_.Writer().Closed()) {
+  if (reactions_queue_writer_.Closed()) {
     return;
   }
 
   // send a null event to wake up the watcher loop
-  if (!reactions_queue_.Writer().Write(std::nullopt)) {
+  if (!reactions_queue_writer_.Write(std::nullopt)) {
     LOG(ERROR) << "Failed to quit watcher loop, event queue full.";
   }
 }
@@ -613,25 +617,37 @@ Session::GetPlannedTrajectory(ActionInstanceId id) {
 
 absl::Status Session::RunWatcherLoopUntilReaction(
     ReactionHandle reaction_handle, absl::Time deadline) {
-  auto maybe_id = reaction_handle_to_id_and_loc_.find(reaction_handle);
-  if (maybe_id == reaction_handle_to_id_and_loc_.end()) {
-    return absl::NotFoundError(
-        absl::StrCat("There is no reaction with ReactionHandle(",
-                     reaction_handle.value(), ")"));
-  }
-  const ReactionId reaction_id = maybe_id->second.first;
-  auto [it, inserted] = reaction_callback_map_.insert(
-      {reaction_id, [this, reaction_id] {
-         reaction_callback_map_.erase(reaction_id);
-         this->QuitWatcherLoop();
-       }});
-  if (!inserted) {
-    std::function<void()> previous_callback = it->second;
-    it->second = [this, previous_callback, reaction_id] {
-      previous_callback();
-      reaction_callback_map_.insert_or_assign(reaction_id, previous_callback);
-      this->QuitWatcherLoop();
-    };
+  {
+    absl::MutexLock l(&session_mutex_);
+    auto maybe_id = reaction_handle_to_id_and_loc_.find(reaction_handle);
+    if (maybe_id == reaction_handle_to_id_and_loc_.end()) {
+      return absl::NotFoundError(
+          absl::StrCat("There is no reaction with ReactionHandle(",
+                       reaction_handle.value(), ")"));
+    }
+    const ReactionId reaction_id = maybe_id->second.first;
+    auto [it, inserted] = reaction_callback_map_.insert(
+        {reaction_id,
+         [this, reaction_id]() ABSL_LOCKS_EXCLUDED(session_mutex_) {
+           {
+             absl::MutexLock l(&session_mutex_);
+             reaction_callback_map_.erase(reaction_id);
+           }
+           this->QuitWatcherLoop();
+         }});
+    if (!inserted) {
+      std::function<void()> previous_callback = it->second;
+      it->second = [this, previous_callback, reaction_id]()
+                       ABSL_LOCKS_EXCLUDED(session_mutex_) {
+                         previous_callback();
+                         {
+                           absl::MutexLock l(&session_mutex_);
+                           reaction_callback_map_.insert_or_assign(
+                               reaction_id, previous_callback);
+                         }
+                         this->QuitWatcherLoop();
+                       };
+    }
   }
   return RunWatcherLoop(deadline);
 }
@@ -643,12 +659,13 @@ absl::Status Session::End() {
   session_ended_ = true;
   QuitWatcherLoop();  // stop triggering client callbacks.
 
+  absl::MutexLock lock(&session_mutex_);
   // Close the action session call
-  action_stream_->WritesDone();
+  session_stream_->WritesDone();
   // The server ends all watcher streams when the action session ends, so we
   // must clean up the action session first.
   absl::Status session_call_status =
-      CleanUpCallAfterClientWritesDone(action_stream_.get());
+      CleanUpCallAfterClientWritesDone(session_stream_.get());
 
   // Ensure that we've stopped reading reactions from the `watcher_stream_`
   // before finishing the watch reactions call to avoid calling
@@ -660,11 +677,11 @@ absl::Status Session::End() {
 
 Session::Session(
     std::shared_ptr<ChannelInterface> icon_channel,
-    std::unique_ptr<grpc::ClientContext> action_context,
+    std::unique_ptr<grpc::ClientContext> session_context,
     std::unique_ptr<grpc::ClientReaderWriterInterface<
         intrinsic_proto::icon::OpenSessionRequest,
         intrinsic_proto::icon::OpenSessionResponse>>
-        action_stream,
+        session_stream,
     std::unique_ptr<grpc::ClientContext> watcher_context,
     std::unique_ptr<grpc::ClientReaderInterface<
         intrinsic_proto::icon::WatchReactionsResponse>>
@@ -673,9 +690,8 @@ Session::Session(
     SessionId session_id, const intrinsic_proto::data_logger::Context& context,
     ClientContextFactory client_context_factory)
     : channel_(std::move(icon_channel)),
-      session_ended_(false),
-      action_context_(std::move(action_context)),
-      action_stream_(std::move(action_stream)),
+      session_context_(std::move(session_context)),
+      session_stream_(std::move(session_stream)),
       watcher_context_(std::move(watcher_context)),
       watcher_stream_(std::move(watcher_stream)),
       watcher_read_thread_(&Session::WatchReactionsThreadBody, this),
@@ -685,6 +701,7 @@ Session::Session(
 
 absl::Status Session::CheckReactionHandlesUnique(
     absl::Span<const ReactionDescriptor> reaction_descriptors) const {
+  absl::MutexLock l(&session_mutex_);
   absl::flat_hash_map<ReactionHandle, intrinsic::SourceLocation>
       new_reaction_handles;
   for (const auto& [reaction_handle, id_and_loc] :
@@ -713,6 +730,7 @@ absl::Status Session::CheckReactionHandlesUnique(
 void Session::SaveReactionData(
     const absl::flat_hash_map<ReactionId, ReactionDescriptor>&
         reaction_descriptors_by_id) {
+  absl::MutexLock lock(&session_mutex_);
   for (const auto& [reaction_id, reaction_descriptor] :
        reaction_descriptors_by_id) {
     if (reaction_descriptor.reaction_handle_) {
@@ -742,9 +760,12 @@ void Session::SaveReactionData(
 absl::StatusOr<intrinsic_proto::icon::OpenSessionResponse>
 Session::GetResponseOrEnd(
     const intrinsic_proto::icon::OpenSessionRequest& request) {
-  absl::StatusOr<intrinsic_proto::icon::OpenSessionResponse>
-      status_or_response =
-          WriteMessageAndReadResponse(request, action_stream_.get());
+  absl::StatusOr<intrinsic_proto::icon::OpenSessionResponse> status_or_response;
+  {
+    absl::MutexLock l(&session_mutex_);
+    status_or_response =
+        WriteMessageAndReadResponse(request, session_stream_.get());
+  }
   if (!status_or_response.ok()) {
     LOG(ERROR) << "Call died while completing message exchange: "
                << status_or_response.status();
@@ -762,19 +783,24 @@ void Session::TriggerReactionCallbacks(
   if (!reaction.has_reaction_event()) {
     return;
   }
-
   ReactionId reaction_id(reaction.reaction_event().reaction_id());
-  auto reaction_callback = reaction_callback_map_.find(reaction_id);
-  if (reaction_callback == reaction_callback_map_.end()) {
-    return;
+  std::function<void()> reaction_callback;
+  {
+    absl::MutexLock l(&session_mutex_);
+    auto it = reaction_callback_map_.find(reaction_id);
+    if (it == reaction_callback_map_.end()) {
+      return;
+    }
+    reaction_callback = it->second;
   }
-  reaction_callback->second();
+  reaction_callback();
 }
 
 void Session::CleanUpWatcherCall() {
+  absl::MutexLock l(&reactions_queue_reader_mutex_);
   absl::StatusOr<std::optional<intrinsic_proto::icon::WatchReactionsResponse>>
       response = std::nullopt;
-  while (reactions_queue_.Reader().Read(response) == ReadResult::kConsumed) {
+  while (reactions_queue_reader_.Read(response) == ReadResult::kConsumed) {
     if (response.ok() && response->has_value()) {
       DLOG(INFO) << "Had reaction event in queue after quitting watcher loop: "
                  << response->value();
@@ -801,6 +827,7 @@ absl::Status Session::EndAndLogOnAbort(const ::google::rpc::Status& status) {
 }
 
 void Session::WatchReactionsThreadBody() {
+  absl::MutexLock watch_lock(&watch_reactions_mutex_);
   intrinsic_proto::icon::WatchReactionsResponse watcher_reactions_response;
   // Read will return false when the call ends. The call normally ends when the
   // session is over. If the call ends earlier, it's due to a connection failure
@@ -808,17 +835,17 @@ void Session::WatchReactionsThreadBody() {
   while (watcher_stream_->Read(&watcher_reactions_response)) {
     // Block until the response can be written to the queue.
     absl::MutexLock l(&reactions_queue_writer_mutex_);
-    while (!reactions_queue_.Writer().Write(watcher_reactions_response)) {
+    while (!reactions_queue_writer_.Write(watcher_reactions_response)) {
     }
   }
   grpc::Status grpc_status = watcher_stream_->Finish();
   absl::MutexLock l(&reactions_queue_writer_mutex_);
   if (!grpc_status.ok()) {
     absl::Status error = ToAbslStatus(grpc_status);  // Only allowed for errors.
-    while (!reactions_queue_.Writer().Write(error)) {
+    while (!reactions_queue_writer_.Write(error)) {
     }
   }
-  reactions_queue_.Writer().Close();
+  reactions_queue_writer_.Close();
 }
 
 // static
