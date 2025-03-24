@@ -20,16 +20,16 @@ cc_library(
 
 cc_library(
     name = "realtime_write_queue",
-    srcs = ["realtime_write_queue.cc"],
     hdrs = ["realtime_write_queue.h"],
     deps = [
         ":rt_queue_buffer",
-        "//intrinsic/platform/common/buffers/internal:event_fd",
+        "//intrinsic/icon/interprocess:binary_futex",
+        "//intrinsic/icon/utils:realtime_status",
         "@com_google_absl//absl/base:core_headers",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status",
         "@com_google_absl//absl/time",
-        "@com_google_absl//absl/types:optional",
     ],
 )
 
