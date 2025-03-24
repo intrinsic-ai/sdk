@@ -1,7 +1,5 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-"""Tests for intrinsic.executive.jupyter.workcell.pose_estimators."""
-
 from unittest import mock
 
 from absl.testing import absltest

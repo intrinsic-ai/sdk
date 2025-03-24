@@ -1,7 +1,5 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-"""Tests for ipython."""
-
 import io
 import sys
 from unittest import mock

@@ -1,7 +1,5 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-"""Tests for simulation_smoke."""
-
 from unittest import mock
 
 from absl.testing import absltest

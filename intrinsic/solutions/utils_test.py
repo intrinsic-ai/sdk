@@ -1,7 +1,5 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-"""Tests for utils."""
-
 import enum
 
 from absl.testing import absltest

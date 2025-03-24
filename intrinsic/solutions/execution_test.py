@@ -1,7 +1,5 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-"""Tests for intrinsic.solutions.execution."""
-
 import datetime
 import time
 from unittest import mock

@@ -1,7 +1,5 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-"""Tests for deployments."""
-
 import io
 from unittest import mock
 

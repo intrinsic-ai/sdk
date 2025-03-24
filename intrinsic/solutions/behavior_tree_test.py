@@ -1,7 +1,5 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-"""Tests for intrinsic.solutions.behavior_tree."""
-
 import copy
 import textwrap
 from typing import Union, cast

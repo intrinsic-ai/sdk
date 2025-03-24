@@ -1,7 +1,5 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-"""Tests for intrinsic.executive.jupyter.workcell.error_processing."""
-
 import io
 from unittest import mock
 
