@@ -156,13 +156,12 @@ void RotationToRPY(const Matrix3<Scalar, Options>& A, Scalar* roll,
   RotationToRPY(q, roll, pitch, yaw);
 }
 
-// Returns an angle-axis vector (a vector with the length of the rotation angle
-// pointing to the direction of the rotation axis) representing the same
-// rotation as the given 'quaternion'. This conversion is particularly
-// numerically stable for auto differentiation, due to the linearization for
-// small angles (in comparison to the Eigen::AngleAxis conversion).
+// Returns a 3-d rotation vector angle-times-axis representing the same rotation
+// as the given 'quaternion'. This conversion is particularly numerically stable
+// for auto differentiation, due to the linearization for small angles (in
+// comparison to the Eigen::AngleAxis conversion).
 template <typename T, int Options>
-Vector3<T> QuaternionToAngleAxisVector(Quaternion<T, Options> quaternion) {
+Vector3<T> QuaternionToAngleTimesAxis(Quaternion<T, Options> quaternion) {
   quaternion.normalize();
   // We choose the quaternion with positive 'w', i.e., the one with a smaller
   // angle that represents this orientation.
@@ -189,6 +188,8 @@ Vector3<T> QuaternionToAngleAxisVector(Quaternion<T, Options> quaternion) {
   }
 }
 
+// Converts a 3-d rotation vector angle-times-axis to its corresponding
+// angle-axis representation.
 template <typename T>
 AngleAxis<T> AngleTimesAxisToAngleAxis(const Vector3<T>& angle_times_axis) {
   double angle = angle_times_axis.norm();
@@ -205,6 +206,8 @@ AngleAxis<T> AngleTimesAxisToAngleAxis(const Vector3<T>& angle_times_axis) {
   return {AngleAxis<T>(angle, axis)};
 }
 
+// Converts an angle-axis representation to its corresponding 3-d rotation
+// vector angle-times-axis.
 template <typename T>
 Vector3<T> AngleAxisToAngleTimesAxis(const AngleAxis<T>& angle_axis) {
   return (angle_axis.angle() * angle_axis.axis());
@@ -224,9 +227,9 @@ Vector4<T, Options> AngleTimesAxisToQuaternionDerivative(
 }
 
 // Converts a tangent vector to the 3d-sphere S3, `q_dot`, into a vector of the
-// tangent space of SO(3) at the Identity, i.e., a 3d angular rate (angle times
-// axis) vector. `q_dot` is a 4d vector (x_dot, y_dot, z_dot, w_dot)
-// representing the time derivative of the components of quaternion `q`
+// tangent space of SO(3) at the Identity, i.e., a 3-d angular rate
+// (angle-times-axis) vector. `q_dot` is a 4d vector (x_dot, y_dot, z_dot,
+// w_dot) representing the time derivative of the components of quaternion `q`
 // expressed in the reference frame.
 template <typename T, int Options>
 Vector3<T> QuaternionDerivativeToAngleTimesAxis(
