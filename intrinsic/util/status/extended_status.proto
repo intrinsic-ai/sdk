@@ -73,6 +73,11 @@ message ExtendedStatus {
   // information can be passed on by the system user to investigate an
   // error. This is publicly visible, but is not necessarily expected to be
   // digestible to the user.
+  //
+  // Include information meaningful to a debugging journey. There is a limit of
+  // the overall amount of data that can be sent in response to an error. This
+  // limit applies to the overall hierarchical extended status. Therefore, be
+  // mindful and aim for less than 10kB of text for the debug report.
   message DebugReport {
     string message = 1;
 
