@@ -3,17 +3,18 @@
 #ifndef INTRINSIC_PLATFORM_COMMON_BUFFERS_REALTIME_WRITE_QUEUE_H_
 #define INTRINSIC_PLATFORM_COMMON_BUFFERS_REALTIME_WRITE_QUEUE_H_
 
+#include <cerrno>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <optional>
 
 #include "absl/base/attributes.h"
 #include "absl/log/check.h"
 #include "absl/log/log.h"
-#include "absl/status/status.h"
 #include "absl/time/time.h"
-#include "intrinsic/icon/interprocess/binary_futex.h"
-#include "intrinsic/icon/utils/realtime_status.h"
+#include "absl/types/optional.h"
+#include "intrinsic/platform/common/buffers/internal/event_fd.h"
 #include "intrinsic/platform/common/buffers/rt_queue_buffer.h"
 
 namespace intrinsic {
@@ -74,13 +75,16 @@ class RealtimeWriteQueue {
    private:
     friend RealtimeWriteQueue;
     explicit NonRtReader(internal::RtQueueBuffer<T>& buffer,
-                         icon::BinaryFutex& notification);
+                         internal::EventFd& count_event_fd,
+                         internal::EventFd& closed_event_fd);
     void PollEvents(absl::Time deadline);
 
     internal::RtQueueBuffer<T>& buffer_;
-    icon::BinaryFutex& notification_;
+    internal::EventFd& count_event_fd_;
+    internal::EventFd& closed_event_fd_;
 
     bool closed_ = false;
+    bool timedout_ = false;
     uint64_t count_available_ = 0;
   };
 
@@ -100,9 +104,11 @@ class RealtimeWriteQueue {
    private:
     friend RealtimeWriteQueue;
     explicit RtWriter(internal::RtQueueBuffer<T>& buffer,
-                      icon::BinaryFutex& notification);
+                      internal::EventFd& count_event_fd,
+                      internal::EventFd& closed_event_fd);
     internal::RtQueueBuffer<T>& buffer_;
-    icon::BinaryFutex& notification_;
+    internal::EventFd& count_event_fd_;
+    internal::EventFd& closed_event_fd_;
 
     bool closed_ = false;
   };
@@ -116,9 +122,13 @@ class RealtimeWriteQueue {
   RtWriter& Writer() { return writer_; }
 
  private:
+  void InitEventFds();
+
   internal::RtQueueBuffer<T> buffer_;
-  icon::BinaryFutex notification_ =
-      icon::BinaryFutex(/*posted=*/false, /*private_futex=*/true);
+  // A non-blocking eventfd to signal when and how many items are in the queue.
+  internal::EventFd count_event_fd_;
+  // A non-blocking eventfd to signal when the queue is closed.
+  internal::EventFd closed_event_fd_;
 
   NonRtReader reader_;
   RtWriter writer_;
@@ -127,20 +137,17 @@ class RealtimeWriteQueue {
 template <typename T>
 ReadResult RealtimeWriteQueue<T>::NonRtReader::ReadWithTimeout(
     T& item, absl::Time deadline) {
+  // Block until items are ready.
   if (count_available_ == 0 && closed_) {
     return ReadResult::kClosed;
   }
 
   if (count_available_ == 0) {
-    // Block until items are ready.
-    icon::RealtimeStatus status = notification_.WaitUntil(deadline);
-    if (status.code() == absl::StatusCode::kDeadlineExceeded) {
-      return ReadResult::kDeadlineExceeded;
-    }
-    if (!status.ok()) {
-      closed_ = true;
-    }
-    count_available_ = buffer_.Size();
+    PollEvents(deadline);
+  }
+
+  if (timedout_) {
+    return ReadResult::kDeadlineExceeded;
   }
 
   if (count_available_ == 0) {
@@ -161,8 +168,36 @@ ReadResult RealtimeWriteQueue<T>::NonRtReader::ReadWithTimeout(
 
 template <typename T>
 RealtimeWriteQueue<T>::NonRtReader::NonRtReader(
-    internal::RtQueueBuffer<T>& buffer, icon::BinaryFutex& notification)
-    : buffer_(buffer), notification_(notification) {}
+    internal::RtQueueBuffer<T>& buffer, internal::EventFd& count_event_fd,
+    internal::EventFd& closed_event_fd)
+    : buffer_(buffer),
+      count_event_fd_(count_event_fd),
+      closed_event_fd_(closed_event_fd) {}
+
+namespace internal {
+
+struct Events {
+  std::optional<uint64_t> count = std::nullopt;
+  bool closed = false;
+  bool timedout = false;
+};
+
+Events PollEvents(const internal::EventFd& count_event_fd,
+                  const internal::EventFd& closed_event_fd,
+                  absl::Time deadline);
+
+}  // namespace internal
+
+template <typename T>
+void RealtimeWriteQueue<T>::NonRtReader::PollEvents(absl::Time deadline) {
+  internal::Events events =
+      internal::PollEvents(count_event_fd_, closed_event_fd_, deadline);
+  closed_ = events.closed;
+  timedout_ = events.timedout;
+  if (events.count) {
+    count_available_ = *events.count;
+  }
+}
 
 template <typename T>
 bool RealtimeWriteQueue<T>::RtWriter::Write(const T& item) {
@@ -173,13 +208,14 @@ bool RealtimeWriteQueue<T>::RtWriter::Write(const T& item) {
   }
   *element = item;
   buffer_.FinishInsert();
-  return notification_.Post().ok();
+  count_event_fd_.Signal();
+  return true;
 }
 
 template <typename T>
 void RealtimeWriteQueue<T>::RtWriter::Close() {
   closed_ = true;
-  notification_.Close();
+  closed_event_fd_.Signal();
 }
 
 template <typename T>
@@ -189,20 +225,41 @@ bool RealtimeWriteQueue<T>::RtWriter::Closed() const {
 
 template <typename T>
 RealtimeWriteQueue<T>::RtWriter::RtWriter(internal::RtQueueBuffer<T>& buffer,
-                                          icon::BinaryFutex& notification)
-    : buffer_(buffer), notification_(notification) {}
+                                          internal::EventFd& count_event_fd,
+                                          internal::EventFd& closed_event_fd)
+    : buffer_(buffer),
+      count_event_fd_(count_event_fd),
+      closed_event_fd_(closed_event_fd) {}
 
 template <typename T>
 RealtimeWriteQueue<T>::RealtimeWriteQueue()
     : buffer_(kDefaultBufferCapacity),
-      reader_(buffer_, notification_),
-      writer_(buffer_, notification_) {}
+      reader_(buffer_, count_event_fd_, closed_event_fd_),
+      writer_(buffer_, count_event_fd_, closed_event_fd_) {
+  InitEventFds();
+}
 
 template <typename T>
 RealtimeWriteQueue<T>::RealtimeWriteQueue(size_t capacity)
     : buffer_(capacity),
-      reader_(buffer_, notification_),
-      writer_(buffer_, notification_) {}
+      reader_(buffer_, count_event_fd_, closed_event_fd_),
+      writer_(buffer_, count_event_fd_, closed_event_fd_) {
+  InitEventFds();
+}
+
+template <typename T>
+void RealtimeWriteQueue<T>::InitEventFds() {
+  bool count_inited = count_event_fd_.Init();
+  // NB: This can only fail due to limits on file descriptors allowed by the
+  // OS being exceeded or insufficient memory or inability to mount, which
+  // are all indicitive of an unrecoverable state for the process.
+  CHECK(count_inited) << "Failed to init count_event_fd_ with error: "
+                      << std::strerror(errno);
+
+  bool closed_inited = closed_event_fd_.Init();
+  CHECK(closed_inited) << "Failed to init closed_event_fd_ with error: "
+                       << std::strerror(errno);
+}
 
 }  // namespace intrinsic
 
