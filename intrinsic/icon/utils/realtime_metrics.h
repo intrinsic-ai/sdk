@@ -28,7 +28,7 @@
 // The CycleTimeMetricsHelper can be configured to log warnings/errors when the
 // cycle time is breached, or a single operation took too long.
 //
-// Metrics can be exported as
+// The cumulative Metrics can be exported as
 // intrinsic_proto::performance::analysis::proto::PerformanceMetrics proto for
 // storage and analysis.
 //
@@ -50,19 +50,23 @@
 // * Use a RealtimeWriteQueue to send the histograms to a non-rt thread.
 // * Use helper.Metrics() for a read only reference to the data.
 //
-// When appropriate e.g. never, or during Activate:
+// When appropriate e.g. never, or during Activate/EnableMotion:
 // * Call helper.Reset() to reset all measurements.
 //   or helper.ResetReadStatusStart() to only reset the read_status_start_ time.
+//   NOTE: Measurements are also reset when a bucket is full.
 //
 // In a non-rt thread:
 // * Export the histogram.
+//
+// Histogram data is cumulative so that no data is lost when the export is
+// throttled.
 namespace intrinsic::icon {
 
 // Histogram to measure the distribution of a cyclic event without overwhelming
-// a realtime thread by storing the measurements in buckets/slots.
+// a realtime thread by storing the measurements in cumulative buckets/slots.
 //
-// The histogram stores the count of events occur within the configured
-// 2x`cycle_duration` in the respective bucket.
+// The histogram stores the cumulative count of events occur within the
+// configured 2x`cycle_duration` in the respective bucket.
 //
 // The template parameter `kNumBucketsPerCycleDuration` defines the number of
 // buckets for the cycle duration. The full number of buckets is
