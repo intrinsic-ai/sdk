@@ -156,6 +156,16 @@ void RotationToRPY(const Matrix3<Scalar, Options>& A, Scalar* roll,
   RotationToRPY(q, roll, pitch, yaw);
 }
 
+// Returns a unit quaternion representing the same rotation as the given 3-d
+// rotation vector `angle_times_axis`.
+template <typename T, int Options>
+Quaternion<T, Options> AngleTimesAxisToQuaternion(
+    const Vector3<T, Options>& angle_times_axis) {
+  const double half_angle = angle_times_axis.norm() / T(2.);
+  const Vector3<T, Options> axis = angle_times_axis.normalized();
+  return Quaternion<T, Options>(cos(half_angle), axis * std::sin(half_angle));
+}
+
 // Returns a 3-d rotation vector angle-times-axis representing the same rotation
 // as the given 'quaternion'. This conversion is particularly numerically stable
 // for auto differentiation, due to the linearization for small angles (in
