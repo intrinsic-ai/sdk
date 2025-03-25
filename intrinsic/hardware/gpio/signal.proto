@@ -79,8 +79,8 @@ message SignalDescription {
   // The type of the signal.
   SignalType type = 5;
 
-  // The name of the DDS topic this signal's value is published to.
-  string dds_topic_name = 6;
+  // The name of the PubSub topic this signal's value is published to.
+  string pubsub_topic_name = 6;
 
   // Optional human readable description of the signal.
   string description = 7;
