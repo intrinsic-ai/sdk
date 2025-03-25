@@ -307,29 +307,6 @@ cc_test(
 )
 
 cc_library(
-    name = "multiple_producer_single_consumer_async_buffer",
-    hdrs = ["multiple_producer_single_consumer_async_buffer.h"],
-    deps = [
-        ":async_buffer",
-        "//intrinsic/icon/testing:realtime_annotations",
-        "@com_google_absl//absl/base:core_headers",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/synchronization",
-    ],
-)
-
-cc_test(
-    name = "multiple_producer_single_consumer_async_buffer_test",
-    srcs = ["multiple_producer_single_consumer_async_buffer_test.cc"],
-    deps = [
-        ":multiple_producer_single_consumer_async_buffer",
-        "//intrinsic/util/testing:gtest_wrapper_main",
-        "//intrinsic/util/thread",
-        "@com_google_absl//absl/synchronization",
-    ],
-)
-
-cc_library(
     name = "async_request",
     hdrs = ["async_request.h"],
     deps = [
