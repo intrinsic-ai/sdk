@@ -6,9 +6,12 @@ package intrinsic_proto.assets;
 
 import "intrinsic/assets/proto/asset_type.proto";
 
-/* A tag that identifies the category of an asset.
+/* A tag to help users search for assets by keyword.
 
-Not all tags are applicable to every asset type (see AssetTagMetadata). */
+Not all tags are applicable to every asset type (see AssetTagMetadata).
+
+Not to be confused with ReleaseTag, which helps identify a specific release of
+an asset. */
 enum AssetTag {
   ASSET_TAG_UNSPECIFIED = 0;
   ASSET_TAG_CAMERA = 1;

@@ -17,12 +17,15 @@ import "intrinsic/assets/proto/vendor.proto";
 // General metadata for a specific version of an asset.
 message Metadata {
   // The asset's id and version.
+  // Required when creating assets.
   IdVersion id_version = 1;
 
   // The display name of the asset to be shown in UIs.
+  // Required when creating assets.
   string display_name = 2;
 
   // The asset's vendor.
+  // Required when creating assets.
   Vendor vendor = 3;
 
   // Documentation for the asset.
@@ -31,7 +34,7 @@ message Metadata {
   // Release notes for this version of the asset.
   string release_notes = 5;
 
-  // Release tag for this version of the asset.
+  // A tag to help users identify a specific release of an asset.
   ReleaseTag release_tag = 6;
 
   // The time at which this version of the asset became available.
@@ -40,7 +43,7 @@ message Metadata {
   // The type of the asset.
   AssetType asset_type = 8;
 
-  // A tag identifying the category of the asset.
+  // A tag to help users search for assets by keyword.
   AssetTag asset_tag = 9;
 
   // A descriptor set for the asset's protos.

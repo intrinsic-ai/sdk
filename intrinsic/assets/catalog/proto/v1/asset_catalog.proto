@@ -23,6 +23,11 @@ service AssetCatalog {
   rpc ListAssets(ListAssetsRequest) returns (ListAssetsResponse);
 
   // Adds a new version of an asset to the catalog.
+  //
+  // The caller must have access to the organization that owns the package
+  // (asset.metadata.id_version.package) to create an asset within it. The first
+  // two elements of the package are the top-level package (eg "ai.intrinsic").
+  // If the package does not exist, this will fail.
   rpc CreateAsset(CreateAssetRequest) returns (Asset);
 
   // Clears the default version of the specified asset.
@@ -92,7 +97,7 @@ message ListAssetsRequest {
     // Filter assets by type (OR).
     repeated intrinsic_proto.assets.AssetType asset_types = 1;
 
-    // Filter assets by exact ID.
+    // Filter assets by exact ID. Either id or only_default must be set.
     optional string id = 2;
 
     // Filter assets by display name (case-insensitive substring search).
@@ -125,8 +130,8 @@ message ListAssetsRequest {
   // The type of view to return. Defaults to ASSET_VIEW_TYPE_BASIC.
   AssetViewType view = 3;
 
-  // Optional filter to apply to the query to retrieve a filtered list of
-  // assets.
+  // Filter to apply when listing assets. Required: Either id or only_default
+  // must be set.
   optional AssetFilter strict_filter = 4;
 
   // Order by which to sort the assets.
