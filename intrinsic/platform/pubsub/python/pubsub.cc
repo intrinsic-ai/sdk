@@ -12,6 +12,7 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
@@ -96,6 +97,11 @@ absl::StatusOr<google::protobuf::Any> Get(KeyValueStore* self,
                                           const NamespaceConfig& config,
                                           int timeout) {
   return self->Get<google::protobuf::Any>(key, config, absl::Seconds(timeout));
+}
+
+absl::StatusOr<std::vector<std::string>> ListAllKeys(KeyValueStore* self,
+                                                     int timeout) {
+  return self->ListAllKeys(absl::Seconds(timeout));
 }
 
 struct PySubscriptionDeleter {
@@ -187,6 +193,7 @@ PYBIND11_MODULE(pubsub, m) {
            pybind11::arg("config") = NamespaceConfig{},
            pybind11::arg("timeout") = 10)
       .def("GetAll", &GetAll)
+      .def("List", &ListAllKeys, pybind11::arg("timeout") = 10)
       .def("Delete", &KeyValueStore::Delete, pybind11::arg("key"),
            pybind11::arg("config") = NamespaceConfig{});
 
