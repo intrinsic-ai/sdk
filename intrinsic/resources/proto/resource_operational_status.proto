@@ -5,10 +5,7 @@ syntax = "proto3";
 package intrinsic_proto.resources;
 
 // NOTE(b/388324748): This is in the process of being deprecated and
-// removed. Please use ServiceState instead:
-// intrinsic/assets/services/proto/v1/service_state.proto
-// See go/intrinsic-service-state-design for details.
-
+// removed. Its replacement and documentation will be available soon.
 message OperationalStatus {
   option deprecated = true;
 

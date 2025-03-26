@@ -7,10 +7,7 @@ package intrinsic_proto.resources;
 import "intrinsic/resources/proto/resource_operational_status.proto";
 
 // NOTE(b/388324748): This service is in the process of being deprecated and
-// removed. Please use ServiceState instead:
-// intrinsic/assets/services/proto/v1/service_state.proto
-// See go/intrinsic-service-state-design for details.
-
+// removed. Its replacement and documentation will be available soon.
 message ResourceHealthStatusRequest {}
 message ResourceHealthStatusResponse {
   option deprecated = true;
