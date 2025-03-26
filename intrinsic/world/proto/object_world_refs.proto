@@ -5,17 +5,13 @@ syntax = "proto3";
 package intrinsic_proto.world;
 
 // Identifies an object within a world by means of its unique name.
-// Only works when the name is explicitly flagged as a globally unique name.
-// See Object.name_is_global_alias.
 message ObjectReferenceByName {
   // Unique name of the object. Can be "root".
   string object_name = 1;
 }
 
 // Identifies a frame within a world by a unique combination of the name of the
-// frame itself and the name of its parent object. Only works when the name is
-// explicitly flagged as a globally unique name. See
-// Object.name_is_global_alias.
+// frame itself and the name of its parent object.
 message FrameReferenceByName {
   // Unique name of the frame's parent object. Can be "root".
   string object_name = 1;
@@ -26,6 +22,20 @@ message FrameReferenceByName {
 
 // Identifies a node in the transform tree of the world by a combination of
 // name(s) that uniquely identifies an object or a frame.
+// Example for an object:
+// ```textproto
+// object {
+//   object_name: "gripper"
+// }
+// ```
+//
+// Example for a frame "tool_frame" that belongs to an object "gripper":
+// ```textproto
+// frame {
+//   object_name: "gripper"
+//   frame_name: "tool_frame"
+// }
+// ```
 message TransformNodeReferenceByName {
   oneof transform_node_reference_by_name {
     // Unique name of an object.
@@ -40,11 +50,11 @@ message TransformNodeReferenceByName {
 // Identifies an object within a world.
 message ObjectReference {
   oneof object_reference {
-    // Id of the object. Can be "root".
+    // Id of the object. Can be "root". Generally not stable for objects other
+    // than "root", strongly prefer by_name.
     string id = 1;
 
-    // Unique name of the object. Only works when the name is explicitly flagged
-    // as a globally unique name. See Object.name_is_global_alias.
+    // Unique name of the object.
     ObjectReferenceByName by_name = 2;
   }
 
@@ -60,8 +70,7 @@ message FrameReference {
     string id = 1;
 
     // Unique combination of object name and frame name which identifies a
-    // frame. Only works when the object name is explicitly flagged as a
-    // globally unique name. See Object.name_is_global_alias.
+    // frame.
     FrameReferenceByName by_name = 2;
   }
   // Human readable information for debugging
@@ -72,12 +81,44 @@ message FrameReference {
 // Identifies a node in the transform tree of the world which can either be an
 // object or a frame. Options are:
 //   - The root object (= the world origin)
+//     Example to reference the root object:
+//     ```
+//     id: "root"
+//     ```
 //   - A child frame of the root object (= a global frame)
+//     Example to a global frame "pregrasp" which is child of root:
+//     ```
+//     by_name {
+//       frame {
+//         object_name: "root"
+//         frame_name: "pregrasp"
+//       }
+//     }
+//     ```
 //   - A non-root object (= the origin/base of a robot, camera, workpiece, ...)
+//     Example to access an object "connector" which is child of root:
+//     ```
+//     by_name {
+//       object {
+//         object_name: "camera"
+//       }
+//     }
+//     ```
 //   - A child frame of a non-root object (= a local frame)
+//     Example to a frame "tool_frame" which is child of the object "gripper":
+//     ```
+//     by_name {
+//       frame {
+//         object_name: "gripper"
+//         frame_name: "tool_frame"
+//       }
+//     }
+//     ```
 message TransformNodeReference {
   oneof transform_node_reference {
     // Id of the object or frame from the shared id-namespace. Can be "root".
+    // IDs other than root are generally not long-term stable, prefer to
+    // reference by name.
     string id = 1;
 
     // Combination of name(s) that uniquely identifies an object or a frame.
