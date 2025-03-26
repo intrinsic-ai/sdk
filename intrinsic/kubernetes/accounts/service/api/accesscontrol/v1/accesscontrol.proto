@@ -66,11 +66,16 @@ message CreateRoleBindingRequest {
   RoleBinding role_binding = 1;
 }
 
+// deprecated, not used
 message CreateRoleBindingResponse {
-  // The resource name of the role binding.
-  // Format: /rolebindings/{role_binding}
   string name = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
+
+// CreateRoleBindingMetadata is the metadata of a running create role binding
+// job.
+message CreateRoleBindingMetadata {}
+// CreateRoleBindingResponse is the result of a successful create role binding
+// job.
 
 message DeleteRoleBindingRequest {
   // The resource name of the role binding to delete.
@@ -213,6 +218,10 @@ service AccessControlService {
   // CreateRoleBinding creates a new role binding.
   rpc CreateRoleBinding(CreateRoleBindingRequest)
       returns (google.longrunning.Operation) {
+    option (google.longrunning.operation_info) = {
+      response_type: "RoleBinding"
+      metadata_type: "CreateRoleBindingMetadata"
+    };
     option (google.api.http) = {
       post: "/accesscontrol/v1/rolebindings"
       body: "role_binding"
