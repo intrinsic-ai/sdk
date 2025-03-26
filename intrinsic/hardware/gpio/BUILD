@@ -65,12 +65,6 @@ proto_library(
     visibility = ["//intrinsic:__subpackages__"],
 )
 
-proto_library(
-    name = "realtime_control_service_gpio_config_proto",
-    srcs = ["realtime_control_service_gpio_config.proto"],
-    visibility = ["//visibility:private"],
-)
-
 cc_grpc_library(
     name = "gpio_service_cc_grpc_proto",
     srcs = [":gpio_service_proto"],
