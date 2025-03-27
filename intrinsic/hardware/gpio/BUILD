@@ -59,12 +59,6 @@ cc_proto_library(
     deps = [":gpio_service_proto"],
 )
 
-proto_library(
-    name = "opcua_gpio_service_config_proto",
-    srcs = ["opcua_gpio_service_config.proto"],
-    visibility = ["//intrinsic:__subpackages__"],
-)
-
 cc_grpc_library(
     name = "gpio_service_cc_grpc_proto",
     srcs = [":gpio_service_proto"],
