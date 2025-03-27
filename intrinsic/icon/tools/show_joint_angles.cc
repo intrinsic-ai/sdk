@@ -55,7 +55,7 @@ To print the joint values once and immediately exit, use:
 
 namespace {
 
-using intrinsic::icon::Channel;
+using intrinsic::Channel;
 using intrinsic::icon::Client;
 using intrinsic::icon::OperationalStatus;
 using intrinsic::icon::ToString;

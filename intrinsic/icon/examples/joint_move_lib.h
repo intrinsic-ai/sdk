@@ -17,7 +17,7 @@ namespace intrinsic::icon::examples {
 // Controls the part defined by `part_name` using the provided `icon_channel`.
 absl::Status RunJointMove(
     absl::string_view part_name,
-    std::shared_ptr<intrinsic::icon::ChannelInterface> icon_channel);
+    std::shared_ptr<intrinsic::ChannelInterface> icon_channel);
 }  // namespace intrinsic::icon::examples
 
 #endif  // INTRINSIC_ICON_EXAMPLES_JOINT_MOVE_LIB_H_

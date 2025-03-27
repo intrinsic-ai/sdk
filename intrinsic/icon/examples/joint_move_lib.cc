@@ -25,7 +25,7 @@ namespace intrinsic::icon::examples {
 
 absl::Status RunJointMove(
     absl::string_view part_name,
-    std::shared_ptr<intrinsic::icon::ChannelInterface> icon_channel) {
+    std::shared_ptr<intrinsic::ChannelInterface> icon_channel) {
   // Compute two feasible joint configurations based on the joint limits.
   eigenmath::VectorNd jpos_1, jpos_2;
   {

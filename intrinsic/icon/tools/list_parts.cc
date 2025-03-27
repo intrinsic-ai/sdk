@@ -27,7 +27,7 @@ namespace {
 
 absl::Status Run(const intrinsic::ConnectionParams& connection_params) {
   INTR_ASSIGN_OR_RETURN(auto icon_channel,
-                        intrinsic::icon::Channel::Make(connection_params));
+                        intrinsic::Channel::Make(connection_params));
   INTR_ASSIGN_OR_RETURN(auto parts,
                         intrinsic::icon::Client(icon_channel).ListParts());
   for (const auto& part_name : parts) {

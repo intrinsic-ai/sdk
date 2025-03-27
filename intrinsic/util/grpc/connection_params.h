@@ -66,9 +66,6 @@ struct ConnectionParams {
   friend std::ostream& operator<<(std::ostream& os, const ConnectionParams& p);
 };
 
-namespace icon {
-using ::intrinsic::ConnectionParams;
-}  // namespace icon
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_UTIL_GRPC_CONNECTION_PARAMS_H_

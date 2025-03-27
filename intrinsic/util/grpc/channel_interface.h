@@ -18,29 +18,27 @@ using ClientContextFactory =
 // Returns `std::make_unique<::grpc::ClientContext>()`.
 std::unique_ptr<::grpc::ClientContext> DefaultClientContextFactory();
 
-// Provides a channel to an ICON server.
+// A channel to an Intrinsic gRPC service.
 //
+// Internally, it can contain a specific address, a specific resource
+// instance (i.e. one of multiple real-time control services), or a connection
+// to an in-process fake server.
 class ChannelInterface {
  public:
   virtual ~ChannelInterface() {}
 
-  // Returns a grpc::channel to the server.
+  // Returns a grpc::Channel to the server.
   virtual std::shared_ptr<grpc::Channel> GetChannel() const = 0;
 
   // Returns a factory function that produces a ::grpc::ClientContext. By
   // default, uses `std::make_unique<::grpc::ClientContext>`. This may be
   // overridden in order to set client metadata, or other ClientContext
-  // settings, for all ICON API requests that use this channel.
+  // settings, for all requests that use this channel.
   virtual ClientContextFactory GetClientContextFactory() const {
     return DefaultClientContextFactory;
   }
 };
 
-namespace icon {
-using ::intrinsic::ChannelInterface;
-using ::intrinsic::ClientContextFactory;
-using ::intrinsic::DefaultClientContextFactory;
-}  // namespace icon
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_UTIL_GRPC_CHANNEL_INTERFACE_H_

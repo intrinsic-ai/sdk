@@ -51,14 +51,14 @@ CreateAnimationParameterSequence(
 absl::Status SendDigitalOutput(
     absl::string_view part_name,
     const ADIOActionInfo::FixedParams& action_parameters,
-    std::shared_ptr<intrinsic::icon::ChannelInterface> icon_channel);
+    std::shared_ptr<intrinsic::ChannelInterface> icon_channel);
 
 // Sets the two lowest bits of 'output_block' of `part_name` to high, prints
 // the part status to std::cout, then waits 10s, clears the output bits and
 // prints the part status to std::cout.
 absl::Status ExampleSetDigitalOutput(
     absl::string_view part_name, absl::string_view output_block_name,
-    std::shared_ptr<intrinsic::icon::ChannelInterface> icon_channel);
+    std::shared_ptr<intrinsic::ChannelInterface> icon_channel);
 
 }  // namespace intrinsic::icon::examples
 

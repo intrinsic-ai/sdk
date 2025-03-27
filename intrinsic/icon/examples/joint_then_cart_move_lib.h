@@ -19,7 +19,7 @@ namespace intrinsic::icon::examples {
 // `icon_channel`.
 absl::Status JointThenCartMove(
     absl::string_view part_name,
-    std::shared_ptr<intrinsic::icon::ChannelInterface> icon_channel);
+    std::shared_ptr<intrinsic::ChannelInterface> icon_channel);
 
 }  // namespace intrinsic::icon::examples
 

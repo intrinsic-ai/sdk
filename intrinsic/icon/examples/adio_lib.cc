@@ -106,7 +106,7 @@ CreateAnimationParameterSequence(
 absl::Status SendDigitalOutput(
     absl::string_view part_name,
     const ADIOActionInfo::FixedParams& action_parameters,
-    std::shared_ptr<intrinsic::icon::ChannelInterface> icon_channel) {
+    std::shared_ptr<intrinsic::ChannelInterface> icon_channel) {
   INTR_ASSIGN_OR_RETURN(
       std::unique_ptr<intrinsic::icon::Session> session,
       intrinsic::icon::Session::Start(icon_channel, {std::string(part_name)}));
@@ -134,7 +134,7 @@ absl::Status SendDigitalOutput(
 
 absl::Status ExampleSetDigitalOutput(
     absl::string_view part_name, absl::string_view output_block_name,
-    std::shared_ptr<intrinsic::icon::ChannelInterface> icon_channel) {
+    std::shared_ptr<intrinsic::ChannelInterface> icon_channel) {
   if (part_name.empty()) {
     return absl::FailedPreconditionError("No part name provided.");
   }

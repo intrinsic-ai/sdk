@@ -15,7 +15,7 @@ namespace intrinsic::icon::examples {
 // connection to an ICON server is passed in using the parameter `icon_channel`.
 absl::Status RunBlendedCartesianMove(
     absl::string_view part_name,
-    std::shared_ptr<intrinsic::icon::ChannelInterface> icon_channel);
+    std::shared_ptr<intrinsic::ChannelInterface> icon_channel);
 
 }  // namespace intrinsic::icon::examples
 

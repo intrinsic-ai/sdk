@@ -39,7 +39,7 @@ const char kUsage[] =
 
 namespace {
 
-absl::Status Run(const intrinsic::icon::ConnectionParams& connection_params,
+absl::Status Run(const intrinsic::ConnectionParams& connection_params,
                  std::string_view part_name, absl::Duration duration,
                  std::string_view joint_move_position_config) {
   if (connection_params.address.empty()) {
@@ -50,7 +50,7 @@ absl::Status Run(const intrinsic::icon::ConnectionParams& connection_params,
   }
 
   INTR_ASSIGN_OR_RETURN(auto icon_channel,
-                        intrinsic::icon::Channel::Make(connection_params));
+                        intrinsic::Channel::Make(connection_params));
 
   std::optional<intrinsic_proto::icon::JointMovePositions>
       joint_move_positions = std::nullopt;
@@ -69,7 +69,7 @@ absl::Status Run(const intrinsic::icon::ConnectionParams& connection_params,
 int main(int argc, char** argv) {
   InitXfa(kUsage, argc, argv);
   QCHECK_OK(Run(
-      intrinsic::icon::ConnectionParams{
+      intrinsic::ConnectionParams{
           .address = absl::GetFlag(FLAGS_server),
           .instance_name = absl::GetFlag(FLAGS_instance),
           .header = absl::GetFlag(FLAGS_header),

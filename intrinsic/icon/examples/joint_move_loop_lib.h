@@ -24,7 +24,7 @@ namespace intrinsic::icon::examples {
 // `icon_channel`.
 absl::Status RunJointMoveLoop(
     absl::string_view part_name, absl::Duration duration,
-    std::shared_ptr<intrinsic::icon::ChannelInterface> icon_channel,
+    std::shared_ptr<intrinsic::ChannelInterface> icon_channel,
     std::optional<intrinsic_proto::icon::JointMovePositions>
         joint_move_positions = std::nullopt);
 

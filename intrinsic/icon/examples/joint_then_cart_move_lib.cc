@@ -118,7 +118,7 @@ eigenmath::VectorXd GetSensedJointPosition(
 
 absl::Status JointThenCartMove(
     absl::string_view part_name,
-    std::shared_ptr<intrinsic::icon::ChannelInterface> icon_channel) {
+    std::shared_ptr<intrinsic::ChannelInterface> icon_channel) {
   if (part_name.empty()) {
     return absl::InvalidArgumentError("`part_name` must not be empty.");
   }

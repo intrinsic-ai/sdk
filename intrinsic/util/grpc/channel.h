@@ -41,9 +41,6 @@ class Channel : public ChannelInterface {
   ConnectionParams params_;
 };
 
-namespace icon {
-using ::intrinsic::Channel;
-}  // namespace icon
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_UTIL_GRPC_CHANNEL_H_
