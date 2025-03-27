@@ -1,7 +1,8 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
+load("@ai_intrinsic_sdks_pip_deps//:requirements.bzl", "requirement")
 load("@com_github_grpc_grpc//bazel:cc_grpc_library.bzl", "cc_grpc_library")
-load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_proto_library")
+load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library", "py_proto_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
@@ -182,4 +183,12 @@ py_proto_library(
     name = "data_assets_py_pb2",
     visibility = ["//intrinsic:public_api_users"],
     deps = [":data_assets_proto"],
+)
+
+py_grpc_library(
+    name = "data_assets_py_pb2_grpc",
+    srcs = [":data_assets_proto"],
+    grpc_library = requirement("grpcio"),
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":data_assets_py_pb2"],
 )
