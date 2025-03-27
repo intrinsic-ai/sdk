@@ -1,0 +1,19 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.assets.v1;
+
+import "intrinsic/assets/proto/asset_type.proto";
+import "intrinsic/assets/proto/id.proto";
+
+message CatalogAsset {
+  intrinsic_proto.assets.AssetType asset_type = 1;
+  intrinsic_proto.assets.IdVersion id_version = 2;
+}
+
+message LocalAsset {
+  intrinsic_proto.assets.AssetType asset_type = 1;
+  intrinsic_proto.assets.Id id = 2;
+  string bundle_path = 3;
+}
