@@ -141,50 +141,6 @@ cc_binary(
 )
 
 cc_library(
-    name = "blended_joint_move_lib",
-    srcs = ["blended_joint_move_lib.cc"],
-    hdrs = ["blended_joint_move_lib.h"],
-    visibility = ["//visibility:private"],
-    deps = [
-        "//intrinsic/eigenmath",
-        "//intrinsic/icon/actions:blended_move_action_info",
-        "//intrinsic/icon/actions:point_to_point_move_info",
-        "//intrinsic/icon/cc_client:client",
-        "//intrinsic/icon/cc_client:client_utils",
-        "//intrinsic/icon/cc_client:condition",
-        "//intrinsic/icon/cc_client:session",
-        "//intrinsic/icon/common:builtins",
-        "//intrinsic/icon/common:id_types",
-        "//intrinsic/icon/proto:generic_part_config_cc_proto",
-        "//intrinsic/icon/proto:joint_space_cc_proto",
-        "//intrinsic/kinematics/types:joint_limits",
-        "//intrinsic/motion_planning/trajectory_planning:blended_joint_move_cc_proto",
-        "//intrinsic/util:proto_time",
-        "//intrinsic/util/grpc:channel_interface",
-        "//intrinsic/util/status:status_macros",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/strings",
-    ],
-)
-
-cc_binary(
-    name = "blended_joint_move",
-    srcs = ["blended_joint_move.cc"],
-    deps = [
-        ":blended_joint_move_lib",
-        "//intrinsic/icon/release/portable:init_xfa_absl",
-        "//intrinsic/util/grpc:channel",
-        "//intrinsic/util/grpc:connection_params",
-        "//intrinsic/util/status:status_macros",
-        "@com_google_absl//absl/flags:flag",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/strings",
-    ],
-)
-
-cc_library(
     name = "blended_cartesian_move_lib",
     srcs = ["blended_cartesian_move_lib.cc"],
     hdrs = ["blended_cartesian_move_lib.h"],
