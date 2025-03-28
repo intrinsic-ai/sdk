@@ -20,7 +20,7 @@ namespace {
 TEST(MultipleProducerSingleConsumerAsyncBuffer, UpdateBufferWithConstRef) {
   MultipleProducerSingleConsumerAsyncBuffer<int> buffer;
   const int expected_value = 42;
-  EXPECT_THAT(buffer.UpdateBuffer(expected_value), ::absl_testing::IsOk());
+  EXPECT_OK(buffer.UpdateBuffer(expected_value));
 
   int* value;
   EXPECT_TRUE(buffer.GetActiveBuffer(&value));
@@ -31,8 +31,7 @@ TEST(MultipleProducerSingleConsumerAsyncBuffer, UpdateBufferWithRValue) {
   MultipleProducerSingleConsumerAsyncBuffer<std::unique_ptr<int>> buffer;
   auto expected_value = std::make_unique<int>(42);
   auto* ptr = expected_value.get();
-  EXPECT_THAT(buffer.UpdateBuffer(std::move(expected_value)),
-              ::absl_testing::IsOk());
+  EXPECT_OK(buffer.UpdateBuffer(std::move(expected_value)));
 
   std::unique_ptr<int>* value;
   EXPECT_TRUE(buffer.GetActiveBuffer(&value));

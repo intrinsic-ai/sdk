@@ -49,7 +49,7 @@ TEST(FlatbufferUtilsTest, CopiesFlatbufferDoubleVector) {
   for (int i = 0; i < kNDof; ++i) {
     EXPECT_EQ(zeros.at(i), vector2->Get(i));
   }
-  EXPECT_THAT(CopyFbsVector(*vector, *vector2), ::absl_testing::IsOk());
+  EXPECT_OK(CopyFbsVector(*vector, *vector2));
   for (int i = 0; i < kNDof; ++i) {
     EXPECT_EQ(ones.at(i), vector2->Get(i));
   }
@@ -95,7 +95,7 @@ TEST(FlatbufferUtilsTest, CopiesFlatbufferPointVector) {
   for (int i = 0; i < kNDof; ++i) {
     EXPECT_EQ(zero, vector2->Get(i));
   }
-  EXPECT_THAT(CopyFbsVector(*vector, *vector2), ::absl_testing::IsOk());
+  EXPECT_OK(CopyFbsVector(*vector, *vector2));
   for (int i = 0; i < kNDof; ++i) {
     EXPECT_EQ(one, vector2->Get(i));
   }

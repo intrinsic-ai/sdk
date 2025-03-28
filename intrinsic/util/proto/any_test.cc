@@ -45,7 +45,7 @@ TEST(UnpackAny, UnpackAnyToParamWorks) {
   google::protobuf::Any any;
   any.PackFrom(float_value);
   google::protobuf::FloatValue recovered;
-  ASSERT_THAT(UnpackAny(any, recovered), ::absl_testing::IsOk());
+  ASSERT_OK(UnpackAny(any, recovered));
   EXPECT_THAT(recovered, EqualsProto(float_value));
 }
 

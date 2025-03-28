@@ -24,7 +24,7 @@ TEST(RealtimeQueueMultiWriterTest, SingleInsert) {
   RealtimeQueue<int> queue;
   RealtimeQueueMultiWriter<int> writer(*queue.writer());
 
-  ASSERT_THAT(writer.Insert(123), ::absl_testing::IsOk());
+  ASSERT_OK(writer.Insert(123));
   ASSERT_THAT(queue.reader()->Pop(), Optional(123));
 }
 
@@ -33,7 +33,7 @@ TEST(RealtimeQueueMultiWriterTest, ReportsFullQueue) {
   RealtimeQueueMultiWriter<int> writer(*queue.writer());
 
   // Fill up the one available slot in the queue.
-  ASSERT_THAT(writer.Insert(123), ::absl_testing::IsOk());
+  ASSERT_OK(writer.Insert(123));
   EXPECT_TRUE(queue.Full());
 
   EXPECT_THAT(writer.Insert(456),
@@ -52,15 +52,13 @@ TEST(RealtimeQueueMultiWriterTest, ConcurrentInsert) {
   // This thread inserts even integers.
   intrinsic::Thread write_thread_1([&writer]() {
     for (int i = 0; i < kIterations; i += 2) {
-      ASSERT_THAT(writer.Insert(std::make_unique<int>(i)),
-                  ::absl_testing::IsOk());
+      ASSERT_OK(writer.Insert(std::make_unique<int>(i)));
     }
   });
   // This thread inserts odd integers.
   intrinsic::Thread write_thread_2([&writer]() {
     for (int i = 1; i < kIterations; i += 2) {
-      ASSERT_THAT(writer.Insert(std::make_unique<int>(i)),
-                  ::absl_testing::IsOk());
+      ASSERT_OK(writer.Insert(std::make_unique<int>(i)));
     }
   });
 

@@ -25,8 +25,7 @@ using ::testing::Property;
 TEST(ParseTextProtoTest, ParseTextProtoInto) {
   google::protobuf::Int32Value int32_value;
 
-  EXPECT_THAT(ParseTextProtoInto("value: 1", &int32_value),
-              ::absl_testing::IsOk());
+  EXPECT_OK(ParseTextProtoInto("value: 1", &int32_value));
 
   EXPECT_THAT(int32_value, EqualsProto("value: 1"));
 }

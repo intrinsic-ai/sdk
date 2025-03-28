@@ -48,8 +48,7 @@ TEST(ExecuteSkillTest, ExecuteSkillCallsExecute) {
       skill_test_factory.MakeExecuteContext({});
 
   intrinsic_proto::skills::EchoSkillReturn result;
-  ASSERT_THAT(ExecuteSkill(skill, request, *context, &result),
-              ::absl_testing::IsOk());
+  ASSERT_OK(ExecuteSkill(skill, request, *context, &result));
 
   EXPECT_EQ(result.foo(), "foo");
 }
@@ -64,7 +63,7 @@ TEST(ExecuteSkillTest, ExecuteSkillNoResult) {
       skill_test_factory.MakeExecuteContext({});
 
   intrinsic_proto::skills::EchoSkillReturn result;
-  ASSERT_THAT(ExecuteSkill(skill, request, *context), ::absl_testing::IsOk());
+  ASSERT_OK(ExecuteSkill(skill, request, *context));
 }
 
 TEST(ExecuteSkillTest, WrongResultTypeReturnsError) {
@@ -93,8 +92,7 @@ TEST(PreviewSkillTest, PreviewSkillCallsPreview) {
       skill_test_factory.MakePreviewContext({});
 
   intrinsic_proto::skills::EchoSkillReturn result;
-  ASSERT_THAT(PreviewSkill(skill, request, *context, &result),
-              ::absl_testing::IsOk());
+  ASSERT_OK(PreviewSkill(skill, request, *context, &result));
 
   EXPECT_EQ(result.foo(), "foo");
 }
@@ -108,7 +106,7 @@ TEST(PreviewSkillTest, PreviewSkillNoResult) {
   std::unique_ptr<PreviewContext> context =
       skill_test_factory.MakePreviewContext({});
 
-  ASSERT_THAT(PreviewSkill(skill, request, *context), ::absl_testing::IsOk());
+  ASSERT_OK(PreviewSkill(skill, request, *context));
 }
 
 TEST(PreviewSkillTest, WrongResultTypeReturnsError) {

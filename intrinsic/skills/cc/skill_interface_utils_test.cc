@@ -66,8 +66,7 @@ TEST(PreviewViaExecuteTest, PreviewViaExecuteCallsExecute) {
   auto context = skill_test_factory.MakePreviewContext({});
 
   intrinsic_proto::skills::EchoSkillReturn result;
-  ASSERT_THAT(PreviewSkill(skill, request, *context, &result),
-              ::absl_testing::IsOk());
+  ASSERT_OK(PreviewSkill(skill, request, *context, &result));
 
   EXPECT_EQ(result.foo(), "foo");
 }

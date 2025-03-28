@@ -98,7 +98,7 @@ absl::Status PreviewSkill(SkillExecuteInterface& skill,
 //      ExecuteRequest request = skill_test_factory.MakeExecuteRequest(params);
 //      std::unique_ptr<ExecuteContext> context =
 //        skill_test_factory.MakeExecuteContext({});
-//      ASSERT_THAT(skill->Execute(request, context), ::absl_testing::IsOk());
+//      ASSERT_OK(skill->Execute(request, context));
 //    }
 //
 // Example: Test that an Execute method supports cancellation.
@@ -114,8 +114,8 @@ absl::Status PreviewSkill(SkillExecuteInterface& skill,
 //        skill_test_factory.MakeExecuteContext({.canceller = &canceller});
 //
 //      Thread cancel_skill([&canceller]() {
-//        ASSERT_THAT(canceller.WaitForReady(), ::absl_testing::IsOk());
-//        ASSERT_THAT(canceller.Cancel(), ::absl_testing::IsOk());
+//        ASSERT_OK(canceller.WaitForReady());
+//        ASSERT_OK(canceller.Cancel());
 //      });
 //
 //      auto result = skill->Execute(request, *context);
@@ -134,13 +134,12 @@ absl::Status PreviewSkill(SkillExecuteInterface& skill,
 //      SomeServiceImpl some_service;
 //      auto resource_handle = skill_test_factory.RunService(&some_service);
 //      EquipmentPack equipment;
-//      ASSERT_THAT(equipment.Add("some_slot", resource_handle),
-//      ::absl_testing::IsOk());
+//      ASSERT_OK(equipment.Add("some_slot", resource_handle));
 //
 //      ExecuteRequest request = skill_test_factory.MakeExecuteRequest(params);
 //      std::unique_ptr<ExecuteContext> context =
 //        skill_test_factory.MakeExecuteContext({.equipment_pack = equipment});
-//      ASSERT_THAT(skill->Execute(request, context), ::absl_testing::IsOk());
+//      ASSERT_OK(skill->Execute(request, context));
 //    }
 //
 // Example: Test Preview method on a skill that has no dependencies in its
@@ -154,7 +153,7 @@ absl::Status PreviewSkill(SkillExecuteInterface& skill,
 //      PreviewRequest request = skill_test_factory.MakePreviewRequest(params);
 //      std::unique_ptr<PreviewContext> context =
 //        skill_test_factory.MakePreviewContext({});
-//      ASSERT_THAT(skill->Preview(request, context), ::absl_testing::IsOk());
+//      ASSERT_OK(skill->Preview(request, context));
 //    }
 //
 // Example: Test GetFootprint method on a skill that has no dependencies in its
@@ -169,8 +168,7 @@ absl::Status PreviewSkill(SkillExecuteInterface& skill,
 //      skill_test_factory.MakeGetFootprintRequest(params);
 //      std::unique_ptr<GetFootprintContext> context =
 //        skill_test_factory.MakeGetFootprintContext({});
-//      ASSERT_THAT(skill->GetFootprint(request, context),
-//      ::absl_testing::IsOk());
+//      ASSERT_OK(skill->GetFootprint(request, context));
 //    }
 //
 class SkillTestFactory final {
