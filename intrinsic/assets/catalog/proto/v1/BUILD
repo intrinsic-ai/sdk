@@ -16,15 +16,19 @@ proto_library(
     srcs = ["asset_catalog.proto"],
     deps = [
         "//intrinsic/assets/data/proto/v1:data_asset_proto",
+        "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_proto",
         "//intrinsic/assets/proto:asset_tag_proto",
         "//intrinsic/assets/proto:asset_type_proto",
         "//intrinsic/assets/proto:id_proto",
         "//intrinsic/assets/proto:metadata_proto",
         "//intrinsic/assets/proto:view_proto",
         "//intrinsic/assets/proto/v1:search_proto",
+        "//intrinsic/assets/scene_objects/proto:scene_object_manifest_proto",
         "//intrinsic/assets/services/proto:service_manifest_proto",
         "//intrinsic/skills/proto:processed_skill_manifest_proto",
+        "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_googleapis//google/api:field_behavior_proto",
+        "@com_google_protobuf//:descriptor_proto",
     ],
 )
 
@@ -44,13 +48,16 @@ cc_grpc_library(
 go_proto_library(
     name = "asset_catalog_go_proto",
     go_deps = [
+        "@org_golang_google_genproto_googleapis_api//annotations",
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
+        "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",
         "//intrinsic/assets/proto:asset_tag_go_proto",
         "//intrinsic/assets/proto:asset_type_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
         "//intrinsic/assets/proto:metadata_go_proto",
         "//intrinsic/assets/proto:view_go_proto",
         "//intrinsic/assets/proto/v1:search_go_proto",
+        "//intrinsic/assets/scene_objects/proto:scene_object_manifest_go_proto",
         "//intrinsic/assets/services/proto:service_manifest_go_proto",
         "//intrinsic/skills/proto:processed_skill_manifest_go_proto",
     ],
@@ -62,14 +69,18 @@ go_grpc_library(
     srcs = [":asset_catalog_proto"],
     deps = [
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
+        "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",
         "//intrinsic/assets/proto:asset_tag_go_proto",
         "//intrinsic/assets/proto:asset_type_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
         "//intrinsic/assets/proto:metadata_go_proto",
         "//intrinsic/assets/proto:view_go_proto",
         "//intrinsic/assets/proto/v1:search_go_proto",
+        "//intrinsic/assets/scene_objects/proto:scene_object_manifest_go_proto",
         "//intrinsic/assets/services/proto:service_manifest_go_proto",
         "//intrinsic/skills/proto:processed_skill_manifest_go_proto",
+        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
+        "@org_golang_google_genproto_googleapis_api//annotations",
     ],
 )
 

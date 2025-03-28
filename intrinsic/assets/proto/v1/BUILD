@@ -30,6 +30,38 @@ go_proto_library(
 )
 
 proto_library(
+    name = "reference_proto",
+    srcs = ["reference.proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        "//intrinsic/assets/proto:asset_type_proto",
+        "//intrinsic/assets/proto:id_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "reference_cc_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":reference_proto"],
+)
+
+go_proto_library(
+    name = "reference_go_proto",
+    go_deps = [
+        "//intrinsic/assets/proto:asset_type_go_proto",
+        "//intrinsic/assets/proto:id_go_proto",
+    ],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":reference_proto"],
+)
+
+py_proto_library(
+    name = "reference_py_pb2",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":reference_proto"],
+)
+
+proto_library(
     name = "search_proto",
     srcs = ["search.proto"],
     visibility = ["//intrinsic:public_api_users"],

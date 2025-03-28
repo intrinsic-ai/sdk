@@ -4,13 +4,17 @@ syntax = "proto3";
 
 package intrinsic_proto.catalog.v1;
 
+import "google/api/field_behavior.proto";
+import "google/protobuf/descriptor.proto";
 import "intrinsic/assets/data/proto/v1/data_asset.proto";
+import "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest.proto";
 import "intrinsic/assets/proto/asset_tag.proto";
 import "intrinsic/assets/proto/asset_type.proto";
 import "intrinsic/assets/proto/id.proto";
 import "intrinsic/assets/proto/metadata.proto";
 import "intrinsic/assets/proto/v1/search.proto";
 import "intrinsic/assets/proto/view.proto";
+import "intrinsic/assets/scene_objects/proto/scene_object_manifest.proto";
 import "intrinsic/assets/services/proto/service_manifest.proto";
 import "intrinsic/skills/proto/processed_skill_manifest.proto";
 
@@ -43,6 +47,19 @@ message Asset {
   message DataDeploymentData {
     intrinsic_proto.data.v1.DataAsset data = 1;
   }
+  message SceneObjectDeploymentData {
+    // The scene object manifest.
+    intrinsic_proto.scene_objects.ProcessedSceneObjectManifest manifest = 1;
+  }
+  message HardwareDeviceDeploymentData {
+    // The hardware device manifest.
+    intrinsic_proto.hardware_devices.v1.ProcessedHardwareDeviceManifest
+        manifest = 1;
+    // The file descriptor set for the hardware device and all of its composed
+    // assets.
+    google.protobuf.FileDescriptorSet file_descriptor_set = 2
+        [(google.api.field_behavior) = OUTPUT_ONLY];
+  }
   message ServiceMetadata {
     // The list of gRPC service names that the service exposes.
     repeated string service_proto_prefixes = 1;
@@ -58,6 +75,8 @@ message Asset {
   message AssetDeploymentData {
     oneof asset_specific_deployment_data {
       DataDeploymentData data_specific_deployment_data = 3;
+      SceneObjectDeploymentData scene_object_specific_deployment_data = 4;
+      HardwareDeviceDeploymentData hardware_device_specific_deployment_data = 5;
       ServiceDeploymentData service_specific_deployment_data = 1;
       SkillDeploymentData skill_specific_deployment_data = 2;
     }

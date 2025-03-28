@@ -6,6 +6,7 @@ package intrinsic_proto.assets.v1;
 
 import "google/longrunning/operations.proto";
 import "intrinsic/assets/data/proto/v1/data_asset.proto";
+import "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest.proto";
 import "intrinsic/assets/proto/asset_type.proto";
 import "intrinsic/assets/proto/id.proto";
 import "intrinsic/assets/proto/metadata.proto";
@@ -123,6 +124,8 @@ message CreateInstalledAssetRequest {
           3;
       intrinsic_proto.skills.ProcessedSkillManifest skill = 4;
       intrinsic_proto.data.v1.DataAsset data = 5;
+      intrinsic_proto.hardware_devices.v1.ProcessedHardwareDeviceManifest
+          hardware_device = 6;
     }
   }
 
@@ -141,6 +144,8 @@ message CreateInstalledAssetsRequest {
           3;
       intrinsic_proto.skills.ProcessedSkillManifest skill = 4;
       intrinsic_proto.data.v1.DataAsset data = 5;
+      intrinsic_proto.hardware_devices.v1.ProcessedHardwareDeviceManifest
+          hardware_device = 6;
     }
   }
 
