@@ -38,6 +38,11 @@ bzl_library(
     srcs = ["go_macros.bzl"],
 )
 
+bzl_library(
+    name = "sh_macros",
+    srcs = ["sh_macros.bzl"],
+)
+
 platform(
     name = "linux_x86_64",
     constraint_values = [

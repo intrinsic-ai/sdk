@@ -9,6 +9,9 @@ bzl_library(
     name = "build_defs_bzl",
     srcs = ["build_defs.bzl"],
     visibility = ["//visibility:private"],
+    deps = [
+        "//bazel:sh_macros",
+    ],
 )
 
 go_library(
