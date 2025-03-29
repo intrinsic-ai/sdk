@@ -7,7 +7,6 @@
 
 #include "Eigen/Core"
 #include "absl/log/check.h"
-#include "absl/types/optional.h"
 #include "intrinsic/eigenmath/types.h"
 #include "intrinsic/icon/control/c_api/c_types.h"
 #include "intrinsic/icon/control/joint_position_command.h"
