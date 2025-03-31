@@ -169,31 +169,6 @@ cc_library(
     deps = [":trajectory_tracking_action_cc_proto"],
 )
 
-proto_library(
-    name = "blended_move_action_proto",
-    srcs = ["blended_move_action.proto"],
-    deps = [
-        "//intrinsic/icon/proto:blended_cartesian_move_proto",
-        "//intrinsic/motion_planning/trajectory_planning:blended_joint_move_proto",
-    ],
-)
-
-cc_proto_library(
-    name = "blended_move_action_cc_proto",
-    deps = [":blended_move_action_proto"],
-)
-
-py_proto_library(
-    name = "blended_move_action_py_pb2",
-    deps = [":blended_move_action_proto"],
-)
-
-cc_library(
-    name = "blended_move_action_info",
-    hdrs = ["blended_move_action_info.h"],
-    deps = [":blended_move_action_cc_proto"],
-)
-
 cc_library(
     name = "stop_info",
     srcs = [],

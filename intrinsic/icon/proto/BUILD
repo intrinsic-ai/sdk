@@ -378,17 +378,6 @@ go_proto_library(
 )
 
 proto_library(
-    name = "blended_cartesian_move_proto",
-    srcs = ["blended_cartesian_move.proto"],
-    deps = [
-        ":cart_space_proto",
-        ":joint_space_proto",
-        "//intrinsic/kinematics/types:joint_limits_proto",
-        "//intrinsic/math/proto:pose_proto",
-    ],
-)
-
-proto_library(
     name = "joint_position_pid_torque_controller_config_proto",
     srcs = [
         "joint_position_pid_torque_controller_config.proto",
@@ -420,16 +409,6 @@ go_proto_library(
     deps = [":safety_status_proto"],
 )
 
-cc_proto_library(
-    name = "blended_cartesian_move_cc_proto",
-    deps = [":blended_cartesian_move_proto"],
-)
-
-py_proto_library(
-    name = "blended_cartesian_move_py_pb2",
-    deps = [":blended_cartesian_move_proto"],
-)
-
 proto_library(
     name = "logging_mode_proto",
     srcs = ["logging_mode.proto"],
@@ -453,7 +432,6 @@ py_proto_library(
 proto_library(
     name = "icon_protos",
     deps = [
-        ":blended_cartesian_move_proto",
         ":cart_space_proto",
         ":generic_part_config_proto",
         ":ik_options_proto",
