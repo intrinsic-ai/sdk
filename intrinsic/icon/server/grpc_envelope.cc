@@ -32,9 +32,9 @@
 #include "grpcpp/support/sync_stream.h"
 #include "intrinsic/hardware/gpio/gpio_service.grpc.pb.h"
 #include "intrinsic/hardware/gpio/gpio_service.pb.h"
-#include "intrinsic/icon/proto/service.grpc.pb.h"
-#include "intrinsic/icon/proto/service.pb.h"
 #include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/service.grpc.pb.h"
+#include "intrinsic/icon/proto/v1/service.pb.h"
 #include "intrinsic/icon/server/icon_api_service.h"
 #include "intrinsic/icon/utils/exit_code.h"
 #include "intrinsic/icon/utils/realtime_guard.h"
@@ -55,8 +55,8 @@ class GrpcEnvelope::WrapperService : public intrinsic::icon::IconApiService {
 
   ::grpc::Status GetActionSignatureByName(
       ::grpc::ServerContext* context,
-      const intrinsic_proto::icon::GetActionSignatureByNameRequest* request,
-      intrinsic_proto::icon::GetActionSignatureByNameResponse* response)
+      const intrinsic_proto::icon::v1::GetActionSignatureByNameRequest* request,
+      intrinsic_proto::icon::v1::GetActionSignatureByNameResponse* response)
       override {
     absl::ReaderMutexLock l(&envelope_.icon_impl_mutex_);
     INTR_ASSIGN_OR_RETURN_GRPC(IconApiService * icon_service,
@@ -66,8 +66,8 @@ class GrpcEnvelope::WrapperService : public intrinsic::icon::IconApiService {
 
   ::grpc::Status GetConfig(
       ::grpc::ServerContext* context,
-      const intrinsic_proto::icon::GetConfigRequest* request,
-      intrinsic_proto::icon::GetConfigResponse* response) override {
+      const intrinsic_proto::icon::v1::GetConfigRequest* request,
+      intrinsic_proto::icon::v1::GetConfigResponse* response) override {
     absl::ReaderMutexLock l(&envelope_.icon_impl_mutex_);
     INTR_ASSIGN_OR_RETURN_GRPC(IconApiService * icon_service,
                                envelope_.IconService());
@@ -76,8 +76,8 @@ class GrpcEnvelope::WrapperService : public intrinsic::icon::IconApiService {
 
   ::grpc::Status GetStatus(
       ::grpc::ServerContext* context,
-      const intrinsic_proto::icon::GetStatusRequest* request,
-      intrinsic_proto::icon::GetStatusResponse* response) override {
+      const intrinsic_proto::icon::v1::GetStatusRequest* request,
+      intrinsic_proto::icon::v1::GetStatusResponse* response) override {
     absl::ReaderMutexLock l(&envelope_.icon_impl_mutex_);
     INTR_ASSIGN_OR_RETURN_GRPC(IconApiService * icon_service,
                                envelope_.IconService());
@@ -86,8 +86,9 @@ class GrpcEnvelope::WrapperService : public intrinsic::icon::IconApiService {
 
   ::grpc::Status IsActionCompatible(
       ::grpc::ServerContext* context,
-      const intrinsic_proto::icon::IsActionCompatibleRequest* request,
-      intrinsic_proto::icon::IsActionCompatibleResponse* response) override {
+      const intrinsic_proto::icon::v1::IsActionCompatibleRequest* request,
+      intrinsic_proto::icon::v1::IsActionCompatibleResponse* response)
+      override {
     absl::ReaderMutexLock l(&envelope_.icon_impl_mutex_);
     INTR_ASSIGN_OR_RETURN_GRPC(IconApiService * icon_service,
                                envelope_.IconService());
@@ -96,8 +97,9 @@ class GrpcEnvelope::WrapperService : public intrinsic::icon::IconApiService {
 
   ::grpc::Status ListActionSignatures(
       ::grpc::ServerContext* context,
-      const intrinsic_proto::icon::ListActionSignaturesRequest* request,
-      intrinsic_proto::icon::ListActionSignaturesResponse* response) override {
+      const intrinsic_proto::icon::v1::ListActionSignaturesRequest* request,
+      intrinsic_proto::icon::v1::ListActionSignaturesResponse* response)
+      override {
     absl::ReaderMutexLock l(&envelope_.icon_impl_mutex_);
     INTR_ASSIGN_OR_RETURN_GRPC(IconApiService * icon_service,
                                envelope_.IconService());
@@ -106,8 +108,9 @@ class GrpcEnvelope::WrapperService : public intrinsic::icon::IconApiService {
 
   ::grpc::Status ListCompatibleParts(
       ::grpc::ServerContext* context,
-      const intrinsic_proto::icon::ListCompatiblePartsRequest* request,
-      intrinsic_proto::icon::ListCompatiblePartsResponse* response) override {
+      const intrinsic_proto::icon::v1::ListCompatiblePartsRequest* request,
+      intrinsic_proto::icon::v1::ListCompatiblePartsResponse* response)
+      override {
     absl::ReaderMutexLock l(&envelope_.icon_impl_mutex_);
     INTR_ASSIGN_OR_RETURN_GRPC(IconApiService * icon_service,
                                envelope_.IconService());
@@ -116,8 +119,8 @@ class GrpcEnvelope::WrapperService : public intrinsic::icon::IconApiService {
 
   ::grpc::Status ListParts(
       ::grpc::ServerContext* context,
-      const intrinsic_proto::icon::ListPartsRequest* request,
-      intrinsic_proto::icon::ListPartsResponse* response) override {
+      const intrinsic_proto::icon::v1::ListPartsRequest* request,
+      intrinsic_proto::icon::v1::ListPartsResponse* response) override {
     absl::ReaderMutexLock l(&envelope_.icon_impl_mutex_);
     INTR_ASSIGN_OR_RETURN_GRPC(IconApiService * icon_service,
                                envelope_.IconService());
@@ -126,8 +129,8 @@ class GrpcEnvelope::WrapperService : public intrinsic::icon::IconApiService {
 
   ::grpc::Status OpenSession(
       ::grpc::ServerContext* context,
-      ::grpc::ServerReaderWriter<intrinsic_proto::icon::OpenSessionResponse,
-                                 intrinsic_proto::icon::OpenSessionRequest>*
+      ::grpc::ServerReaderWriter<intrinsic_proto::icon::v1::OpenSessionResponse,
+                                 intrinsic_proto::icon::v1::OpenSessionRequest>*
           stream) override {
     absl::ReaderMutexLock l(&envelope_.icon_impl_mutex_);
     INTR_ASSIGN_OR_RETURN_GRPC(IconApiService * icon_service,
@@ -137,8 +140,8 @@ class GrpcEnvelope::WrapperService : public intrinsic::icon::IconApiService {
 
   ::grpc::Status WatchReactions(
       ::grpc::ServerContext* context,
-      const intrinsic_proto::icon::WatchReactionsRequest* request,
-      ::grpc::ServerWriter<intrinsic_proto::icon::WatchReactionsResponse>*
+      const intrinsic_proto::icon::v1::WatchReactionsRequest* request,
+      ::grpc::ServerWriter<intrinsic_proto::icon::v1::WatchReactionsResponse>*
           writer) override {
     absl::ReaderMutexLock l(&envelope_.icon_impl_mutex_);
     INTR_ASSIGN_OR_RETURN_GRPC(IconApiService * icon_service,
@@ -148,9 +151,9 @@ class GrpcEnvelope::WrapperService : public intrinsic::icon::IconApiService {
 
   ::grpc::Status OpenWriteStream(
       ::grpc::ServerContext* context,
-      ::grpc::ServerReaderWriter<intrinsic_proto::icon::OpenWriteStreamResponse,
-                                 intrinsic_proto::icon::OpenWriteStreamRequest>*
-          stream) override {
+      ::grpc::ServerReaderWriter<
+          intrinsic_proto::icon::v1::OpenWriteStreamResponse,
+          intrinsic_proto::icon::v1::OpenWriteStreamRequest>* stream) override {
     absl::ReaderMutexLock l(&envelope_.icon_impl_mutex_);
     INTR_ASSIGN_OR_RETURN_GRPC(IconApiService * icon_service,
                                envelope_.IconService());
@@ -159,8 +162,8 @@ class GrpcEnvelope::WrapperService : public intrinsic::icon::IconApiService {
 
   ::grpc::Status GetLatestStreamingOutput(
       ::grpc::ServerContext* context,
-      const intrinsic_proto::icon::GetLatestStreamingOutputRequest* request,
-      intrinsic_proto::icon::GetLatestStreamingOutputResponse* response)
+      const intrinsic_proto::icon::v1::GetLatestStreamingOutputRequest* request,
+      intrinsic_proto::icon::v1::GetLatestStreamingOutputResponse* response)
       override {
     absl::ReaderMutexLock l(&envelope_.icon_impl_mutex_);
     INTR_ASSIGN_OR_RETURN_GRPC(IconApiService * icon_service,
@@ -170,9 +173,10 @@ class GrpcEnvelope::WrapperService : public intrinsic::icon::IconApiService {
 
   ::grpc::Status GetPlannedTrajectory(
       ::grpc::ServerContext* context,
-      const intrinsic_proto::icon::GetPlannedTrajectoryRequest* request,
-      ::grpc::ServerWriter<intrinsic_proto::icon::GetPlannedTrajectoryResponse>*
-          stream) override {
+      const intrinsic_proto::icon::v1::GetPlannedTrajectoryRequest* request,
+      ::grpc::ServerWriter<
+          intrinsic_proto::icon::v1::GetPlannedTrajectoryResponse>* stream)
+      override {
     absl::ReaderMutexLock l(&envelope_.icon_impl_mutex_);
     INTR_ASSIGN_OR_RETURN_GRPC(IconApiService * icon_service,
                                envelope_.IconService());
@@ -181,8 +185,8 @@ class GrpcEnvelope::WrapperService : public intrinsic::icon::IconApiService {
 
   ::grpc::Status Enable(
       ::grpc::ServerContext* context,
-      const intrinsic_proto::icon::EnableRequest* request,
-      intrinsic_proto::icon::EnableResponse* response) override {
+      const intrinsic_proto::icon::v1::EnableRequest* request,
+      intrinsic_proto::icon::v1::EnableResponse* response) override {
     absl::ReaderMutexLock l(&envelope_.icon_impl_mutex_);
     INTR_ASSIGN_OR_RETURN_GRPC(IconApiService * icon_service,
                                envelope_.IconService());
@@ -191,8 +195,8 @@ class GrpcEnvelope::WrapperService : public intrinsic::icon::IconApiService {
 
   ::grpc::Status Disable(
       ::grpc::ServerContext* context,
-      const intrinsic_proto::icon::DisableRequest* request,
-      intrinsic_proto::icon::DisableResponse* response) override {
+      const intrinsic_proto::icon::v1::DisableRequest* request,
+      intrinsic_proto::icon::v1::DisableResponse* response) override {
     absl::ReaderMutexLock l(&envelope_.icon_impl_mutex_);
     INTR_ASSIGN_OR_RETURN_GRPC(IconApiService * icon_service,
                                envelope_.IconService());
@@ -201,8 +205,8 @@ class GrpcEnvelope::WrapperService : public intrinsic::icon::IconApiService {
 
   ::grpc::Status ClearFaults(
       ::grpc::ServerContext* context,
-      const intrinsic_proto::icon::ClearFaultsRequest* request,
-      intrinsic_proto::icon::ClearFaultsResponse* response) override {
+      const intrinsic_proto::icon::v1::ClearFaultsRequest* request,
+      intrinsic_proto::icon::v1::ClearFaultsResponse* response) override {
     absl::Status error = absl::OkStatus();
     {
       absl::ReaderMutexLock l(&envelope_.icon_impl_mutex_);
@@ -222,8 +226,9 @@ class GrpcEnvelope::WrapperService : public intrinsic::icon::IconApiService {
 
   ::grpc::Status GetOperationalStatus(
       ::grpc::ServerContext* context,
-      const intrinsic_proto::icon::GetOperationalStatusRequest* request,
-      intrinsic_proto::icon::GetOperationalStatusResponse* response) override {
+      const intrinsic_proto::icon::v1::GetOperationalStatusRequest* request,
+      intrinsic_proto::icon::v1::GetOperationalStatusResponse* response)
+      override {
     absl::ReaderMutexLock l(&envelope_.icon_impl_mutex_);
     absl::StatusOr<absl::Nonnull<IconApiService*>> icon_service =
         envelope_.IconService();
@@ -248,8 +253,8 @@ class GrpcEnvelope::WrapperService : public intrinsic::icon::IconApiService {
 
   ::grpc::Status SetSpeedOverride(
       ::grpc::ServerContext* context,
-      const intrinsic_proto::icon::SetSpeedOverrideRequest* request,
-      intrinsic_proto::icon::SetSpeedOverrideResponse* response) override {
+      const intrinsic_proto::icon::v1::SetSpeedOverrideRequest* request,
+      intrinsic_proto::icon::v1::SetSpeedOverrideResponse* response) override {
     absl::ReaderMutexLock l(&envelope_.icon_impl_mutex_);
     INTR_ASSIGN_OR_RETURN_GRPC(IconApiService * icon_service,
                                envelope_.IconService());
@@ -258,8 +263,8 @@ class GrpcEnvelope::WrapperService : public intrinsic::icon::IconApiService {
 
   ::grpc::Status GetSpeedOverride(
       ::grpc::ServerContext* context,
-      const intrinsic_proto::icon::GetSpeedOverrideRequest* request,
-      intrinsic_proto::icon::GetSpeedOverrideResponse* response) override {
+      const intrinsic_proto::icon::v1::GetSpeedOverrideRequest* request,
+      intrinsic_proto::icon::v1::GetSpeedOverrideResponse* response) override {
     absl::ReaderMutexLock l(&envelope_.icon_impl_mutex_);
     INTR_ASSIGN_OR_RETURN_GRPC(IconApiService * icon_service,
                                envelope_.IconService());
@@ -268,8 +273,8 @@ class GrpcEnvelope::WrapperService : public intrinsic::icon::IconApiService {
 
   ::grpc::Status SetLoggingMode(
       ::grpc::ServerContext* context,
-      const intrinsic_proto::icon::SetLoggingModeRequest* request,
-      intrinsic_proto::icon::SetLoggingModeResponse* response) override {
+      const intrinsic_proto::icon::v1::SetLoggingModeRequest* request,
+      intrinsic_proto::icon::v1::SetLoggingModeResponse* response) override {
     absl::ReaderMutexLock l(&envelope_.icon_impl_mutex_);
     INTR_ASSIGN_OR_RETURN_GRPC(IconApiService * icon_service,
                                envelope_.IconService());
@@ -278,8 +283,8 @@ class GrpcEnvelope::WrapperService : public intrinsic::icon::IconApiService {
 
   ::grpc::Status GetLoggingMode(
       ::grpc::ServerContext* context,
-      const intrinsic_proto::icon::GetLoggingModeRequest* request,
-      intrinsic_proto::icon::GetLoggingModeResponse* response) override {
+      const intrinsic_proto::icon::v1::GetLoggingModeRequest* request,
+      intrinsic_proto::icon::v1::GetLoggingModeResponse* response) override {
     absl::ReaderMutexLock l(&envelope_.icon_impl_mutex_);
     INTR_ASSIGN_OR_RETURN_GRPC(IconApiService * icon_service,
                                envelope_.IconService());
@@ -288,8 +293,8 @@ class GrpcEnvelope::WrapperService : public intrinsic::icon::IconApiService {
 
   ::grpc::Status GetPartProperties(
       ::grpc::ServerContext* context,
-      const intrinsic_proto::icon::GetPartPropertiesRequest* request,
-      intrinsic_proto::icon::GetPartPropertiesResponse* response) override {
+      const intrinsic_proto::icon::v1::GetPartPropertiesRequest* request,
+      intrinsic_proto::icon::v1::GetPartPropertiesResponse* response) override {
     absl::ReaderMutexLock l(&envelope_.icon_impl_mutex_);
     INTR_ASSIGN_OR_RETURN_GRPC(IconApiService * icon_service,
                                envelope_.IconService());
@@ -298,8 +303,8 @@ class GrpcEnvelope::WrapperService : public intrinsic::icon::IconApiService {
 
   ::grpc::Status SetPartProperties(
       ::grpc::ServerContext* context,
-      const intrinsic_proto::icon::SetPartPropertiesRequest* request,
-      intrinsic_proto::icon::SetPartPropertiesResponse* response) override {
+      const intrinsic_proto::icon::v1::SetPartPropertiesRequest* request,
+      intrinsic_proto::icon::v1::SetPartPropertiesResponse* response) override {
     absl::ReaderMutexLock l(&envelope_.icon_impl_mutex_);
     INTR_ASSIGN_OR_RETURN_GRPC(IconApiService * icon_service,
                                envelope_.IconService());
@@ -308,8 +313,8 @@ class GrpcEnvelope::WrapperService : public intrinsic::icon::IconApiService {
 
   ::grpc::Status SetPayload(
       ::grpc::ServerContext* context,
-      const intrinsic_proto::icon::SetPayloadRequest* request,
-      intrinsic_proto::icon::SetPayloadResponse* response) override {
+      const intrinsic_proto::icon::v1::SetPayloadRequest* request,
+      intrinsic_proto::icon::v1::SetPayloadResponse* response) override {
     absl::ReaderMutexLock l(&envelope_.icon_impl_mutex_);
     INTR_ASSIGN_OR_RETURN_GRPC(IconApiService * icon_service,
                                envelope_.IconService());
@@ -318,8 +323,8 @@ class GrpcEnvelope::WrapperService : public intrinsic::icon::IconApiService {
 
   ::grpc::Status GetPayload(
       ::grpc::ServerContext* context,
-      const intrinsic_proto::icon::GetPayloadRequest* request,
-      intrinsic_proto::icon::GetPayloadResponse* response) override {
+      const intrinsic_proto::icon::v1::GetPayloadRequest* request,
+      intrinsic_proto::icon::v1::GetPayloadResponse* response) override {
     absl::ReaderMutexLock l(&envelope_.icon_impl_mutex_);
     INTR_ASSIGN_OR_RETURN_GRPC(IconApiService * icon_service,
                                envelope_.IconService());

@@ -12,8 +12,8 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "google/protobuf/any.pb.h"
-#include "intrinsic/icon/proto/service.pb.h"
 #include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/service.pb.h"
 #include "intrinsic/util/status/status_macros.h"
 
 namespace intrinsic {

@@ -35,7 +35,7 @@ cc_library(
     srcs = ["part_properties.cc"],
     hdrs = ["part_properties.h"],
     deps = [
-        "//intrinsic/icon/proto:service_cc_proto",
+        "//intrinsic/icon/proto/v1:service_cc_proto",
         "//intrinsic/production/external/intops:strong_int",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/status",

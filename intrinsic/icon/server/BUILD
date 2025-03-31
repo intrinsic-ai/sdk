@@ -9,7 +9,9 @@ package(default_visibility = [
 cc_library(
     name = "icon_api_service",
     hdrs = ["icon_api_service.h"],
-    deps = ["//intrinsic/icon/proto:service_cc_grpc_proto"],
+    deps = [
+        "//intrinsic/icon/proto/v1:service_cc_grpc_proto",
+    ],
 )
 
 cc_library(
@@ -30,9 +32,9 @@ cc_library(
         ":icon_api_service",
         "//intrinsic/hardware/gpio:gpio_service_cc_grpc_proto",
         "//intrinsic/hardware/gpio:gpio_service_cc_proto",
-        "//intrinsic/icon/proto:service_cc_grpc_proto",
-        "//intrinsic/icon/proto:service_cc_proto",
         "//intrinsic/icon/proto:types_cc_proto",
+        "//intrinsic/icon/proto/v1:service_cc_grpc_proto",
+        "//intrinsic/icon/proto/v1:service_cc_proto",
         "//intrinsic/icon/utils:exit_code",
         "//intrinsic/icon/utils:realtime_guard",
         "//intrinsic/util/grpc:limits",

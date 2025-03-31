@@ -15,8 +15,8 @@
 #include "grpcpp/client_context.h"
 #include "grpcpp/support/sync_stream.h"
 #include "intrinsic/icon/common/id_types.h"
-#include "intrinsic/icon/proto/service.grpc.pb.h"
-#include "intrinsic/icon/proto/service.pb.h"
+#include "intrinsic/icon/proto/v1/service.grpc.pb.h"
+#include "intrinsic/icon/proto/v1/service.pb.h"
 #include "intrinsic/icon/release/grpc_time_support.h"
 #include "intrinsic/util/grpc/channel_interface.h"
 #include "intrinsic/util/status/status_macros.h"
@@ -42,8 +42,8 @@ class GenericStreamWriter {
  public:
   GenericStreamWriter(std::unique_ptr<::grpc::ClientContext> channel_context,
                       std::unique_ptr<::grpc::ClientReaderWriterInterface<
-                          intrinsic_proto::icon::OpenWriteStreamRequest,
-                          intrinsic_proto::icon::OpenWriteStreamResponse>>
+                          intrinsic_proto::icon::v1::OpenWriteStreamRequest,
+                          intrinsic_proto::icon::v1::OpenWriteStreamResponse>>
                           grpc_stream)
       : channel_context_(std::move(channel_context)),
         grpc_stream_(std::move(grpc_stream)) {}
@@ -60,8 +60,8 @@ class GenericStreamWriter {
  private:
   std::unique_ptr<::grpc::ClientContext> channel_context_;
   std::unique_ptr<::grpc::ClientReaderWriterInterface<
-      intrinsic_proto::icon::OpenWriteStreamRequest,
-      intrinsic_proto::icon::OpenWriteStreamResponse>>
+      intrinsic_proto::icon::v1::OpenWriteStreamRequest,
+      intrinsic_proto::icon::v1::OpenWriteStreamResponse>>
       grpc_stream_;
   // If set, gprc_stream_ must not be used.
   std::optional<absl::Status> finish_status_;
@@ -76,7 +76,7 @@ class StreamWriter : public StreamWriterInterface<T> {
   static absl::StatusOr<std::unique_ptr<StreamWriter<T>>> Open(
       SessionId session_id, ActionInstanceId action_instance_id,
       absl::string_view input_name,
-      intrinsic_proto::icon::IconApi::StubInterface* stub,
+      intrinsic_proto::icon::v1::IconApi::StubInterface* stub,
       const ClientContextFactory& client_context_factory = nullptr) {
     std::unique_ptr<::grpc::ClientContext> context;
     if (client_context_factory) {

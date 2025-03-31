@@ -10,7 +10,7 @@
 #include "google/protobuf/any.pb.h"
 #include "grpcpp/support/sync_stream.h"
 #include "intrinsic/icon/common/id_types.h"
-#include "intrinsic/icon/proto/service.pb.h"
+#include "intrinsic/icon/proto/v1/service.pb.h"
 #include "intrinsic/util/status/status_conversion_grpc.h"
 #include "intrinsic/util/status/status_conversion_rpc.h"
 #include "intrinsic/util/status/status_macros.h"
@@ -28,7 +28,7 @@ absl::Status GenericStreamWriter::OpenStreamWriter(
     absl::string_view input_name) {
   constexpr absl::string_view kAbortedErrorMessage =
       "Communication with server failed.";
-  intrinsic_proto::icon::OpenWriteStreamRequest initial_req;
+  intrinsic_proto::icon::v1::OpenWriteStreamRequest initial_req;
   initial_req.set_session_id(session_id.value());
   initial_req.mutable_add_write_stream()->set_action_id(
       action_instance_id.value());
@@ -41,14 +41,14 @@ absl::Status GenericStreamWriter::OpenStreamWriter(
     return absl::AbortedError(kAbortedErrorMessage);
   }
 
-  intrinsic_proto::icon::OpenWriteStreamResponse initial_resp;
+  intrinsic_proto::icon::v1::OpenWriteStreamResponse initial_resp;
   if (!grpc_stream_->Read(&initial_resp)) {
     INTR_RETURN_IF_ERROR(FinishIfNeeded());
     return absl::UnknownError(kAbortedErrorMessage);
   }
 
   if (initial_resp.stream_operation_response_case() !=
-      intrinsic_proto::icon::OpenWriteStreamResponse::kAddStreamResponse) {
+      intrinsic_proto::icon::v1::OpenWriteStreamResponse::kAddStreamResponse) {
     return absl::UnknownError(
         "Received unexpected response from stream stream.");
   }
@@ -61,7 +61,7 @@ absl::Status GenericStreamWriter::OpenStreamWriter(
 
 absl::Status GenericStreamWriter::WriteToStream(
     const google::protobuf::Message& value) {
-  intrinsic_proto::icon::OpenWriteStreamRequest req;
+  intrinsic_proto::icon::v1::OpenWriteStreamRequest req;
   req.mutable_write_value()->mutable_value()->PackFrom(value);
 
   if (!grpc_stream_->Write(req)) {
@@ -69,7 +69,7 @@ absl::Status GenericStreamWriter::WriteToStream(
     return absl::AbortedError("Failed to write to stream.");
   }
 
-  intrinsic_proto::icon::OpenWriteStreamResponse resp;
+  intrinsic_proto::icon::v1::OpenWriteStreamResponse resp;
   if (!grpc_stream_->Read(&resp)) {
     INTR_RETURN_IF_ERROR(FinishIfNeeded());
     return absl::AbortedError("Failed to write to stream.");
@@ -91,7 +91,7 @@ absl::Status GenericStreamWriter::FinishIfNeeded() {
   }
   // WritesDone must be called only once.
   if (!grpc_stream_->WritesDone()) {
-    intrinsic_proto::icon::OpenWriteStreamResponse resp;
+    intrinsic_proto::icon::v1::OpenWriteStreamResponse resp;
     while (grpc_stream_->Read(&resp)) {
       LOG(ERROR) << "Received unexpected response from the server:" << resp;
     }

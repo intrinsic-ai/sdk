@@ -3,11 +3,11 @@
 #ifndef INTRINSIC_ICON_SERVER_ICON_API_SERVICE_H_
 #define INTRINSIC_ICON_SERVER_ICON_API_SERVICE_H_
 
-#include "intrinsic/icon/proto/service.grpc.pb.h"
+#include "intrinsic/icon/proto/v1/service.grpc.pb.h"
 
 namespace intrinsic::icon {
 
-class IconApiService : public intrinsic_proto::icon::IconApi::Service {
+class IconApiService : public intrinsic_proto::icon::v1::IconApi::Service {
  public:
   // Tries to cancel all grpc streams.
   // Does not block. It is not guaranteed that all streams and sessions

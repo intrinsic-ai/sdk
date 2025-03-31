@@ -19,8 +19,8 @@
 #include "intrinsic/icon/proto/cart_space.pb.h"
 #include "intrinsic/icon/proto/io_block.pb.h"
 #include "intrinsic/icon/proto/part_status.pb.h"
-#include "intrinsic/icon/proto/service.pb.h"
 #include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/service.pb.h"
 #include "intrinsic/icon/release/portable/init_xfa.h"
 #include "intrinsic/util/grpc/channel.h"
 #include "intrinsic/util/grpc/connection_params.h"
@@ -200,7 +200,7 @@ absl::Status Run(const intrinsic::ConnectionParams& connection_params) {
               << std::endl;
   }
 
-  INTR_ASSIGN_OR_RETURN(intrinsic_proto::icon::GetStatusResponse status,
+  INTR_ASSIGN_OR_RETURN(intrinsic_proto::icon::v1::GetStatusResponse status,
                         client.GetStatus());
 
   for (const auto& part : parts) {

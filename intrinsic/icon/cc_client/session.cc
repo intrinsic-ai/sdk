@@ -33,9 +33,9 @@
 #include "intrinsic/icon/common/slot_part_map.h"
 #include "intrinsic/icon/proto/concatenate_trajectory_protos.h"
 #include "intrinsic/icon/proto/joint_space.pb.h"
-#include "intrinsic/icon/proto/service.grpc.pb.h"
-#include "intrinsic/icon/proto/service.pb.h"
 #include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/service.grpc.pb.h"
+#include "intrinsic/icon/proto/v1/service.pb.h"
 #include "intrinsic/icon/release/grpc_time_support.h"
 #include "intrinsic/icon/release/source_location.h"
 #include "intrinsic/logging/proto/context.pb.h"
@@ -59,9 +59,9 @@ constexpr char kAlreadyEndedErrorMessage[] = "The Session has already ended.";
 // the call status.
 absl::Status CleanUpCallAfterClientWritesDone(
     grpc::ClientReaderWriterInterface<
-        intrinsic_proto::icon::OpenSessionRequest,
-        intrinsic_proto::icon::OpenSessionResponse>* stream) {
-  intrinsic_proto::icon::OpenSessionResponse response_message;
+        intrinsic_proto::icon::v1::OpenSessionRequest,
+        intrinsic_proto::icon::v1::OpenSessionResponse>* stream) {
+  intrinsic_proto::icon::v1::OpenSessionResponse response_message;
   // Clear out any response messages from the read queue. Our API suggests
   // that there shouldn't be any, since we haven't sent a request, but to
   // protect against server-side bugs that would deadlock or crash the client
@@ -76,18 +76,18 @@ absl::Status CleanUpCallAfterClientWritesDone(
 
 // Writes a message to the server and reads the response. Returns an error if
 // either reading or writing fails, in which case the call is dead.
-absl::StatusOr<intrinsic_proto::icon::OpenSessionResponse>
+absl::StatusOr<intrinsic_proto::icon::v1::OpenSessionResponse>
 WriteMessageAndReadResponse(
-    const intrinsic_proto::icon::OpenSessionRequest& request,
+    const intrinsic_proto::icon::v1::OpenSessionRequest& request,
     grpc::ClientReaderWriterInterface<
-        intrinsic_proto::icon::OpenSessionRequest,
-        intrinsic_proto::icon::OpenSessionResponse>* stream) {
+        intrinsic_proto::icon::v1::OpenSessionRequest,
+        intrinsic_proto::icon::v1::OpenSessionResponse>* stream) {
   constexpr char kAbortedErrorMsg[] = "Communication with server failed.";
   if (!stream->Write(request)) {
     return absl::AbortedError(kAbortedErrorMsg);
   }
 
-  intrinsic_proto::icon::OpenSessionResponse response;
+  intrinsic_proto::icon::v1::OpenSessionResponse response;
   if (!stream->Read(&response)) {
     return absl::AbortedError(kAbortedErrorMsg);
   }
@@ -100,12 +100,12 @@ WriteMessageAndReadResponse(
 // initial_session_data.
 absl::StatusOr<SessionId> InitializeSessionOrEndCall(
     grpc::ClientReaderWriterInterface<
-        intrinsic_proto::icon::OpenSessionRequest,
-        intrinsic_proto::icon::OpenSessionResponse>* stream,
+        intrinsic_proto::icon::v1::OpenSessionRequest,
+        intrinsic_proto::icon::v1::OpenSessionResponse>* stream,
     absl::Span<const std::string> parts,
     const intrinsic_proto::data_logger::Context& context,
     std::optional<absl::Time> deadline) {
-  intrinsic_proto::icon::OpenSessionRequest request_message;
+  intrinsic_proto::icon::v1::OpenSessionRequest request_message;
   *request_message.mutable_initial_session_data()
        ->mutable_allocate_parts()
        ->mutable_part() = {parts.begin(), parts.end()};
@@ -115,7 +115,7 @@ absl::StatusOr<SessionId> InitializeSessionOrEndCall(
   }
   *request_message.mutable_log_context() = context;
 
-  absl::StatusOr<intrinsic_proto::icon::OpenSessionResponse>
+  absl::StatusOr<intrinsic_proto::icon::v1::OpenSessionResponse>
       status_or_response = WriteMessageAndReadResponse(request_message, stream);
 
   if (!status_or_response.ok()) {
@@ -123,7 +123,7 @@ absl::StatusOr<SessionId> InitializeSessionOrEndCall(
     return status_or_response.status();
   }
 
-  const intrinsic_proto::icon::OpenSessionResponse& response_message =
+  const intrinsic_proto::icon::v1::OpenSessionResponse& response_message =
       *status_or_response;
 
   if (absl::Status status =
@@ -264,12 +264,12 @@ absl::StatusOr<std::unique_ptr<Session>> Session::Start(
     std::optional<absl::Time> deadline) {
   return StartImpl(
       context, icon_channel,
-      intrinsic_proto::icon::IconApi::NewStub(icon_channel->GetChannel()),
+      intrinsic_proto::icon::v1::IconApi::NewStub(icon_channel->GetChannel()),
       parts, icon_channel->GetClientContextFactory(), deadline);
 }
 
 absl::StatusOr<std::unique_ptr<Session>> Session::Start(
-    std::unique_ptr<intrinsic_proto::icon::IconApi::StubInterface> stub,
+    std::unique_ptr<intrinsic_proto::icon::v1::IconApi::StubInterface> stub,
     absl::Span<const std::string> parts,
     const ClientContextFactory& client_context_factory,
     const intrinsic_proto::data_logger::Context& context,
@@ -281,7 +281,7 @@ absl::StatusOr<std::unique_ptr<Session>> Session::Start(
 absl::StatusOr<std::unique_ptr<Session>> Session::StartImpl(
     const intrinsic_proto::data_logger::Context& context,
     std::shared_ptr<ChannelInterface> icon_channel,
-    std::unique_ptr<intrinsic_proto::icon::IconApi::StubInterface> stub,
+    std::unique_ptr<intrinsic_proto::icon::v1::IconApi::StubInterface> stub,
     absl::Span<const std::string> parts,
     const ClientContextFactory& client_context_factory,
     std::optional<absl::Time> deadline) {
@@ -290,8 +290,8 @@ absl::StatusOr<std::unique_ptr<Session>> Session::StartImpl(
   // Streaming call that requires indefinite deadline
   start_session_context->set_deadline(absl::InfiniteFuture());
   std::unique_ptr<grpc::ClientReaderWriterInterface<
-      intrinsic_proto::icon::OpenSessionRequest,
-      intrinsic_proto::icon::OpenSessionResponse>>
+      intrinsic_proto::icon::v1::OpenSessionRequest,
+      intrinsic_proto::icon::v1::OpenSessionResponse>>
       session_stream = stub->OpenSession(start_session_context.get());
   INTR_ASSIGN_OR_RETURN(SessionId session_id,
                         InitializeSessionOrEndCall(session_stream.get(), parts,
@@ -305,14 +305,14 @@ absl::StatusOr<std::unique_ptr<Session>> Session::StartImpl(
       client_context_factory();
   // Streaming call that requires indefinite deadline
   watcher_context->set_deadline(absl::InfiniteFuture());
-  intrinsic_proto::icon::WatchReactionsRequest watch_reactions_request;
+  intrinsic_proto::icon::v1::WatchReactionsRequest watch_reactions_request;
   watch_reactions_request.set_session_id(session_id.value());
   std::unique_ptr<grpc::ClientReaderInterface<
-      intrinsic_proto::icon::WatchReactionsResponse>>
+      intrinsic_proto::icon::v1::WatchReactionsResponse>>
       watcher_stream =
           stub->WatchReactions(watcher_context.get(), watch_reactions_request);
 
-  intrinsic_proto::icon::WatchReactionsResponse response;
+  intrinsic_proto::icon::v1::WatchReactionsResponse response;
   if (!watcher_stream->Read(&response)) {
     return ToAbslStatus(watcher_stream->Finish());
   }
@@ -376,7 +376,7 @@ absl::StatusOr<std::vector<Action>> Session::AddActions(
 
   absl::flat_hash_map<ReactionId, ReactionDescriptor>
       reaction_descriptors_by_id;
-  intrinsic_proto::icon::OpenSessionRequest request;
+  intrinsic_proto::icon::v1::OpenSessionRequest request;
 
   for (const ActionDescriptor& action_descriptor : action_descriptors) {
     intrinsic_proto::icon::ActionInstance* action_instance =
@@ -406,7 +406,7 @@ absl::StatusOr<std::vector<Action>> Session::AddActions(
                                       action_descriptor.action_id_);
     }
   }
-  INTR_ASSIGN_OR_RETURN(intrinsic_proto::icon::OpenSessionResponse response,
+  INTR_ASSIGN_OR_RETURN(intrinsic_proto::icon::v1::OpenSessionResponse response,
                         GetResponseOrEnd(request));
   INTR_RETURN_IF_ERROR(EndAndLogOnAbort(response.status()));
 
@@ -430,7 +430,7 @@ absl::Status Session::AddFreestandingReactions(
 
   absl::flat_hash_map<ReactionId, ReactionDescriptor>
       reaction_descriptors_by_id;
-  intrinsic_proto::icon::OpenSessionRequest request;
+  intrinsic_proto::icon::v1::OpenSessionRequest request;
   for (const ReactionDescriptor& reaction_descriptor : reaction_descriptors) {
     absl::MutexLock l(&session_mutex_);
     const ReactionId reaction_id = reaction_id_sequence_.GetNext();
@@ -443,7 +443,7 @@ absl::Status Session::AddFreestandingReactions(
                                     std::nullopt);
   }
   INTR_ASSIGN_OR_RETURN(
-      const intrinsic_proto::icon::OpenSessionResponse response,
+      const intrinsic_proto::icon::v1::OpenSessionResponse response,
       GetResponseOrEnd(request));
   INTR_RETURN_IF_ERROR(EndAndLogOnAbort(response.status()));
 
@@ -463,13 +463,13 @@ absl::Status Session::RemoveActions(
     return absl::FailedPreconditionError(kAlreadyEndedErrorMessage);
   }
 
-  intrinsic_proto::icon::OpenSessionRequest request;
+  intrinsic_proto::icon::v1::OpenSessionRequest request;
   for (ActionInstanceId action_id : action_ids) {
     request.mutable_remove_action_and_reaction_ids()->add_action_instance_ids(
         action_id.value());
   }
 
-  INTR_ASSIGN_OR_RETURN(intrinsic_proto::icon::OpenSessionResponse response,
+  INTR_ASSIGN_OR_RETURN(intrinsic_proto::icon::v1::OpenSessionResponse response,
                         GetResponseOrEnd(request));
 
   return EndAndLogOnAbort(response.status());
@@ -480,9 +480,9 @@ absl::Status Session::ClearAllActionsAndReactions() {
     return absl::FailedPreconditionError(kAlreadyEndedErrorMessage);
   }
 
-  intrinsic_proto::icon::OpenSessionRequest request;
+  intrinsic_proto::icon::v1::OpenSessionRequest request;
   request.mutable_clear_all_actions_reactions();
-  INTR_ASSIGN_OR_RETURN(intrinsic_proto::icon::OpenSessionResponse response,
+  INTR_ASSIGN_OR_RETURN(intrinsic_proto::icon::v1::OpenSessionResponse response,
                         GetResponseOrEnd(request));
 
   return EndAndLogOnAbort(response.status());
@@ -498,15 +498,15 @@ absl::Status Session::StartActions(absl::Span<const Action> actions,
   if (session_ended_) {
     return absl::FailedPreconditionError(kAlreadyEndedErrorMessage);
   }
-  intrinsic_proto::icon::OpenSessionRequest::StartActionsRequestData
+  intrinsic_proto::icon::v1::OpenSessionRequest::StartActionsRequestData
       start_actions_request;
   start_actions_request.set_stop_active_actions(stop_active_actions);
   for (const Action& action : actions) {
     start_actions_request.add_action_instance_ids(action.id().value());
   }
-  intrinsic_proto::icon::OpenSessionRequest request;
+  intrinsic_proto::icon::v1::OpenSessionRequest request;
   *request.mutable_start_actions_request() = start_actions_request;
-  INTR_ASSIGN_OR_RETURN(intrinsic_proto::icon::OpenSessionResponse response,
+  INTR_ASSIGN_OR_RETURN(intrinsic_proto::icon::v1::OpenSessionResponse response,
                         GetResponseOrEnd(request));
   return EndAndLogOnAbort(response.status());
 }
@@ -518,7 +518,8 @@ absl::Status Session::StopAllActions() {
 absl::Status Session::RunWatcherLoop(absl::Time deadline) {
   quit_watcher_loop_ = false;
   while (true) {
-    absl::StatusOr<std::optional<intrinsic_proto::icon::WatchReactionsResponse>>
+    absl::StatusOr<
+        std::optional<intrinsic_proto::icon::v1::WatchReactionsResponse>>
         response;
     ReadResult result;
     {
@@ -581,10 +582,10 @@ absl::StatusOr<::intrinsic_proto::icon::StreamingOutput>
 Session::GetLatestOutput(ActionInstanceId id, absl::Time deadline) {
   std::unique_ptr<grpc::ClientContext> context = client_context_factory_();
   context->set_deadline(absl::ToChronoTime(deadline));
-  ::intrinsic_proto::icon::GetLatestStreamingOutputRequest request;
+  ::intrinsic_proto::icon::v1::GetLatestStreamingOutputRequest request;
   request.set_session_id(session_id_.value());
   request.set_action_id(id.value());
-  ::intrinsic_proto::icon::GetLatestStreamingOutputResponse response;
+  ::intrinsic_proto::icon::v1::GetLatestStreamingOutputResponse response;
   INTR_RETURN_IF_ERROR(ToAbslStatus(
       stub_->GetLatestStreamingOutput(context.get(), request, &response)));
   return response.output();
@@ -595,15 +596,15 @@ Session::GetPlannedTrajectory(ActionInstanceId id) {
   std::unique_ptr<grpc::ClientContext> context = client_context_factory_();
   // Streaming call that requires indefinite deadline
   context->set_deadline(absl::InfiniteFuture());
-  ::intrinsic_proto::icon::GetPlannedTrajectoryRequest request;
+  ::intrinsic_proto::icon::v1::GetPlannedTrajectoryRequest request;
   request.set_session_id(session_id_.value());
   request.set_action_id(id.value());
 
   std::unique_ptr<::grpc::ClientReaderInterface<
-      ::intrinsic_proto::icon::GetPlannedTrajectoryResponse>>
+      ::intrinsic_proto::icon::v1::GetPlannedTrajectoryResponse>>
       stream = stub_->GetPlannedTrajectory(context.get(), request);
 
-  ::intrinsic_proto::icon::GetPlannedTrajectoryResponse response;
+  ::intrinsic_proto::icon::v1::GetPlannedTrajectoryResponse response;
   std::vector<::intrinsic_proto::icon::JointTrajectoryPVA>
       planned_trajectory_segments;
   while (stream->Read(&response)) {
@@ -679,14 +680,14 @@ Session::Session(
     std::shared_ptr<ChannelInterface> icon_channel,
     std::unique_ptr<grpc::ClientContext> session_context,
     std::unique_ptr<grpc::ClientReaderWriterInterface<
-        intrinsic_proto::icon::OpenSessionRequest,
-        intrinsic_proto::icon::OpenSessionResponse>>
+        intrinsic_proto::icon::v1::OpenSessionRequest,
+        intrinsic_proto::icon::v1::OpenSessionResponse>>
         session_stream,
     std::unique_ptr<grpc::ClientContext> watcher_context,
     std::unique_ptr<grpc::ClientReaderInterface<
-        intrinsic_proto::icon::WatchReactionsResponse>>
+        intrinsic_proto::icon::v1::WatchReactionsResponse>>
         watcher_stream,
-    std::unique_ptr<intrinsic_proto::icon::IconApi::StubInterface> stub,
+    std::unique_ptr<intrinsic_proto::icon::v1::IconApi::StubInterface> stub,
     SessionId session_id, const intrinsic_proto::data_logger::Context& context,
     ClientContextFactory client_context_factory)
     : channel_(std::move(icon_channel)),
@@ -757,10 +758,11 @@ void Session::SaveReactionData(
   }
 }
 
-absl::StatusOr<intrinsic_proto::icon::OpenSessionResponse>
+absl::StatusOr<intrinsic_proto::icon::v1::OpenSessionResponse>
 Session::GetResponseOrEnd(
-    const intrinsic_proto::icon::OpenSessionRequest& request) {
-  absl::StatusOr<intrinsic_proto::icon::OpenSessionResponse> status_or_response;
+    const intrinsic_proto::icon::v1::OpenSessionRequest& request) {
+  absl::StatusOr<intrinsic_proto::icon::v1::OpenSessionResponse>
+      status_or_response;
   {
     absl::MutexLock l(&session_mutex_);
     status_or_response =
@@ -779,7 +781,7 @@ Session::GetResponseOrEnd(
 }
 
 void Session::TriggerReactionCallbacks(
-    const intrinsic_proto::icon::WatchReactionsResponse& reaction) {
+    const intrinsic_proto::icon::v1::WatchReactionsResponse& reaction) {
   if (!reaction.has_reaction_event()) {
     return;
   }
@@ -798,7 +800,8 @@ void Session::TriggerReactionCallbacks(
 
 void Session::CleanUpWatcherCall() {
   absl::MutexLock l(&reactions_queue_reader_mutex_);
-  absl::StatusOr<std::optional<intrinsic_proto::icon::WatchReactionsResponse>>
+  absl::StatusOr<
+      std::optional<intrinsic_proto::icon::v1::WatchReactionsResponse>>
       response = std::nullopt;
   while (reactions_queue_reader_.Read(response) == ReadResult::kConsumed) {
     if (response.ok() && response->has_value()) {
@@ -828,7 +831,7 @@ absl::Status Session::EndAndLogOnAbort(const ::google::rpc::Status& status) {
 
 void Session::WatchReactionsThreadBody() {
   absl::MutexLock watch_lock(&watch_reactions_mutex_);
-  intrinsic_proto::icon::WatchReactionsResponse watcher_reactions_response;
+  intrinsic_proto::icon::v1::WatchReactionsResponse watcher_reactions_response;
   // Read will return false when the call ends. The call normally ends when the
   // session is over. If the call ends earlier, it's due to a connection failure
   // or a bug on the server.

@@ -20,9 +20,9 @@
 #include "intrinsic/icon/common/slot_part_map.h"
 #include "intrinsic/icon/control/logging_mode.h"
 #include "intrinsic/icon/proto/part_status.pb.h"
-#include "intrinsic/icon/proto/service.grpc.pb.h"
-#include "intrinsic/icon/proto/service.pb.h"
 #include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/service.grpc.pb.h"
+#include "intrinsic/icon/proto/v1/service.pb.h"
 #include "intrinsic/util/grpc/channel_interface.h"
 #include "intrinsic/world/robot_payload/robot_payload.h"
 
@@ -53,7 +53,7 @@ class Client {
   // The resulting client uses `client_context_factory()` to obtain
   // ::grpc::ClientContext objects before each gRPC request.
   explicit Client(
-      std::unique_ptr<intrinsic_proto::icon::IconApi::StubInterface> stub,
+      std::unique_ptr<intrinsic_proto::icon::v1::IconApi::StubInterface> stub,
       ClientContextFactory client_context_factory =
           DefaultClientContextFactory);
 
@@ -91,12 +91,13 @@ class Client {
   //
   // Example:
   //
-  //  INTR_ASSIGN_OR_RETURN(intrinsic_proto::icon::GetStatusResponse
+  //  INTR_ASSIGN_OR_RETURN(intrinsic_proto::icon::v1::GetStatusResponse
   //  robot_status,
   //                   icon_client.GetRobotStatus());
   //  intrinsic_proto::icon::PartStatus my_part_status =
   //  robot_status.part_status.at("my_part");
-  absl::StatusOr<intrinsic_proto::icon::GetStatusResponse> GetStatus() const;
+  absl::StatusOr<intrinsic_proto::icon::v1::GetStatusResponse> GetStatus()
+      const;
 
   // Makes a request to the server to get a snapshot of the server-side status,
   // including part-specific status, then looks up the Part status for
@@ -105,7 +106,7 @@ class Client {
   // Each call makes a new requests, so *do not use this* if you are
   //
   // a) Interested in the server-wide data contained in
-  //    intrinsic_proto::icon::GetStatusResponse
+  //    intrinsic_proto::icon::v1::GetStatusResponse
   // b) Inspecting data for multiple parts
   //
   // Returns NotFoundError if a response was received, but does not contain a
@@ -205,7 +206,7 @@ class Client {
   std::shared_ptr<ChannelInterface> channel_;
 
   // The stub for communicating with the backend.
-  std::unique_ptr<intrinsic_proto::icon::IconApi::StubInterface> stub_;
+  std::unique_ptr<intrinsic_proto::icon::v1::IconApi::StubInterface> stub_;
 
   // The timeout to apply to all requests made through this Client.
   absl::Duration timeout_;

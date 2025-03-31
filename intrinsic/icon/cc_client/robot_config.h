@@ -14,8 +14,8 @@
 #include "absl/strings/string_view.h"
 #include "google/protobuf/any.pb.h"
 #include "intrinsic/icon/proto/generic_part_config.pb.h"
-#include "intrinsic/icon/proto/service.pb.h"
 #include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/service.pb.h"
 #include "intrinsic/util/status/status_macros.h"
 
 namespace intrinsic {
@@ -25,7 +25,8 @@ namespace icon {
 class RobotConfig {
  public:
   // Constructs a RobotConfig from a `proto::GetConfigResponse`.
-  explicit RobotConfig(intrinsic_proto::icon::GetConfigResponse config_proto)
+  explicit RobotConfig(
+      intrinsic_proto::icon::v1::GetConfigResponse config_proto)
       : config_proto_(std::move(config_proto)) {}
 
   // Obtains the generic config for `part_name` from this RobotConfig. The
@@ -70,7 +71,7 @@ class RobotConfig {
   absl::StatusOr<intrinsic_proto::icon::PartConfig> FindPartConfig(
       absl::string_view part_name) const;
 
-  intrinsic_proto::icon::GetConfigResponse config_proto_;
+  intrinsic_proto::icon::v1::GetConfigResponse config_proto_;
 };
 
 //

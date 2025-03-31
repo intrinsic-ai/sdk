@@ -11,7 +11,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/time/time.h"
-#include "intrinsic/icon/proto/service.pb.h"
+#include "intrinsic/icon/proto/v1/service.pb.h"
 #include "intrinsic/production/external/intops/strong_int.h"
 
 namespace intrinsic::icon {
@@ -40,11 +40,11 @@ struct PartPropertyMap {
       properties;
 };
 
-::intrinsic_proto::icon::PartPropertyValue ToProto(
+::intrinsic_proto::icon::v1::PartPropertyValue ToProto(
     const PartPropertyValue& value);
 
 absl::StatusOr<PartPropertyValue> FromProto(
-    const ::intrinsic_proto::icon::PartPropertyValue& value);
+    const ::intrinsic_proto::icon::v1::PartPropertyValue& value);
 
 // Visitor to assign one PropertyValue (variant<double, bool>) to another
 // without changing the type of the held value. Returns an error if `dst` holds
