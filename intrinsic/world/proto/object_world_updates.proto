@@ -411,14 +411,14 @@ message UpdateEntityPropertiesRequest {
   // DEPRECATED. Use 'UpdateCollisionSettingsRequest' instead
   CollisionAction collision_action = 5 [deprecated = true];
 
-  // If set, updates the object's geometry component to the given one. Creates a
-  // new geometry component if none exists or otherwise overrides the existing
-  // geometry component.
+  // If set, updates the object's geometry component to the given one. It is an
+  // error to set this if the associated entity does not already have a geometry
+  // component.
   intrinsic_proto.world.GeometryComponent geometry_component = 4;
 
-  // If set, updates the object's physics component to the given one. Creates a
-  // new physics component if none exists or otherwise overrides the existing
-  // physics component.
+  // If set, updates the object's physics component to the given one. It is an
+  // error to set this if the associated entity does not already have a physics
+  // component.
   intrinsic_proto.world.PhysicsComponent physics_component = 3;
 
 }
