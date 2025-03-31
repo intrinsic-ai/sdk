@@ -157,6 +157,26 @@ class ProtoConversionTest(parameterized.TestCase):
     with self.assertRaises(ValueError):
       proto_conversion.pose_from_proto(pose_proto_expected)
 
+  def test_pose_from_proto_quaternion_normalizing(self):
+    pose_proto_expected = pose_pb2.Pose(
+        position=point_pb2.Point(x=0.1, y=0.2, z=0.3),
+        orientation=quaternion_pb2.Quaternion(x=0.4, y=0.5, z=0.6, w=0.7),
+    )
+
+    quaternion = np.array([0.4, 0.5, 0.6, 0.7])
+    pose_expected = data_types.Pose3(
+        translation=[0.1, 0.2, 0.3],
+        rotation=data_types.Rotation3(
+            quat=data_types.Quaternion(quaternion / np.linalg.norm(quaternion))
+        ),
+    )
+
+    normalized_pose = proto_conversion.pose_from_proto(
+        pose_proto_expected, normalize_quaternion=True
+    )
+
+    self.assertEqual(normalized_pose, pose_expected)
+
   def test_pose_from_proto(self):
     pose_proto_expected = pose_pb2.Pose(
         position=point_pb2.Point(x=0.1, y=0.2, z=0.3),

@@ -191,11 +191,14 @@ def quaternion_to_proto(
   return quaternion_pb2.Quaternion(x=quat.x, y=quat.y, z=quat.z, w=quat.w)
 
 
-def pose_from_proto(pose_proto: pose_pb2.Pose) -> data_types.Pose3:
+def pose_from_proto(
+    pose_proto: pose_pb2.Pose, normalize_quaternion: bool = False
+) -> data_types.Pose3:
   """Convert a pose proto to a pose."""
   point = ndarray_from_point_proto(pose_proto.position)
   rotation = data_types.Rotation3(
-      quat=quaternion_from_proto(pose_proto.orientation)
+      quat=quaternion_from_proto(pose_proto.orientation),
+      normalize=normalize_quaternion,
   )
   # We expect the quaternion in the input proto to be normalized. Pose3 does not
   # require this so we check this explicitly.
