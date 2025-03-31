@@ -118,7 +118,6 @@ proto_library(
     name = "robot_specification_proto",
     srcs = ["robot_specification.proto"],
     deps = [
-        "//intrinsic/icon/proto:cart_space_proto",
         "//intrinsic/icon/proto:joint_space_proto",
         "//intrinsic/world/proto:object_world_refs_proto",
     ],

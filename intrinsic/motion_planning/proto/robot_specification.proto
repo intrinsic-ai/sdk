@@ -4,7 +4,6 @@ syntax = "proto3";
 
 package intrinsic_proto.motion_planning;
 
-import "intrinsic/icon/proto/cart_space.proto";
 import "intrinsic/icon/proto/joint_space.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 
@@ -25,11 +24,6 @@ message RobotSpecification {
   // current position in the world will be used.
   optional intrinsic_proto.icon.JointVec start_configuration = 2;
 
-  // Default cartesian robot limits to apply to the motion. These limits are
-  // currently only applied to linear Cartesian motions.
-  optional intrinsic_proto.icon.CartesianLimits default_cartesian_limits = 3
-      [deprecated = true];
-
-  reserved 4;
-  reserved "l1_joint_limits";
+  reserved 3, 4;
+  reserved "l1_joint_limits", "default_cartesian_limits";
 }
