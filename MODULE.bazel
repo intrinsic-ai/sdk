@@ -94,6 +94,15 @@ pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 
 [
     pip.parse(
+        # Enable the Bazel downloader for whl fetches, see
+        # https://rules-python.readthedocs.io/en/latest/pypi-dependencies.html#bazel-downloader-and-multi-platform-wheel-hub-repository.
+        experimental_index_url = "https://pypi.org/simple",
+        experimental_index_url_overrides = {
+            "blender-headless": "https://us-central1-python.pkg.dev/intrinsic-mirror/intrinsic-public-python/simple",
+            "cadexchanger": "https://download.cadexchanger.com/python",
+            "proto-breaking-change-detector": "https://github.com/googleapis",
+            "tf-models-official-intrinsic": "https://us-central1-python.pkg.dev/intrinsic-mirror/intrinsic-public-python/simple",
+        },
         hub_name = "ai_intrinsic_sdks_pip_deps",
         python_version = python_version,
         requirements_lock = "//:requirements.txt",

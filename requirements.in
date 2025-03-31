@@ -3,7 +3,7 @@
 # Add requirements you need for bazel py_* rules here.
 #
 # Generate requirements.txt with:
- pipx run --spec pip-compile requirements.in > requirements.txt
+ bazel run //:requirements.update
 #
 # Reference the dependencies with:
 #
