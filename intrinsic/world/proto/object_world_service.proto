@@ -836,18 +836,18 @@ message CompareWorldsRequest {
   // The world with changes.
   string changed_world_id = 2;
 
-  enum UniqueIdMode {
-    // Default is OBJECT_ID.
-    UNIQUE_IDENTIFIER_UNSPECIFIED = 0;
-    // Use the object id as the unique identifier for object and frame
-    // comparisons. This is useful for comparing worlds branched by updates.
-    OBJECT_ID = 1;
-    // Use the object name as the unique identifier.
-    // This is useful for comparing worlds composed from different composition
+  enum IdentificationMode {
+    // Default is BY_ID.
+    IDENTIFICATION_MODE_UNSPECIFIED = 0;
+    // Use ids as the unique identifier for objects, frames and entities. This
+    // is useful for comparing worlds branched by updates.
+    BY_ID = 1;
+    // Use names as the unique identifier for objects, frames and entities. This
+    // is useful for comparing worlds composed from different composition
     // processes.
-    OBJECT_NAME = 2;
+    BY_NAME = 2;
   }
-  UniqueIdMode unique_id_mode = 4;
+  IdentificationMode unique_id_mode = 4;
 
   // The view of the objects from both worlds. If view == FULL or BASIC, then
   // returns the objects from both worlds with the appropriate view.
