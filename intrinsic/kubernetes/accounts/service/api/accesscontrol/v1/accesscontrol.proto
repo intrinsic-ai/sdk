@@ -66,16 +66,9 @@ message CreateRoleBindingRequest {
   RoleBinding role_binding = 1;
 }
 
-// deprecated, not used
-message CreateRoleBindingResponse {
-  string name = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
-}
-
 // CreateRoleBindingMetadata is the metadata of a running create role binding
 // job.
 message CreateRoleBindingMetadata {}
-// CreateRoleBindingResponse is the result of a successful create role binding
-// job.
 
 message DeleteRoleBindingRequest {
   // The resource name of the role binding to delete.
