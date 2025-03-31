@@ -1,0 +1,20 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.perception.v1;
+
+import "intrinsic/perception/proto/v1/image_buffer.proto";
+
+// Helper message that contains a reference to an image file and the info on
+// kind of data it contains.
+message ImageFileReference {
+  // Path to the image file (relative or absolute).
+  string filename = 1;
+  // Type of the pixel, e.g. intensity vs depth.
+  PixelType pixel_type = 2;
+  // Number of channels in the image.
+  int32 num_channels = 3;
+  // Optional source sensor_id
+  optional int64 sensor_id = 4;
+}

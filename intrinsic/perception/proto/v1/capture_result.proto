@@ -1,0 +1,23 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.perception.v1;
+
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+import "intrinsic/perception/proto/v1/sensor_image.proto";
+
+// This message represents a perception CaptureResult.
+// A container for sensor images and any associated capture metadata.
+message CaptureResult {
+  // Timestamp at which the images were captured. Value matches each
+  // sensor_image's acquisition_time, and is duplicated for capture result
+  // processing convenience.
+  google.protobuf.Timestamp capture_at = 1;
+  // Images for each of the captured sensors
+  repeated SensorImage sensor_images = 2;
+  // Duration needed to capture all images excluding post processing like HDR.
+  // Not all camera drivers will provide it.
+  optional google.protobuf.Duration capture_duration = 3;
+}

@@ -1,0 +1,21 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.perception.v1;
+
+import "intrinsic/assets/data/proto/v1/referenced_data.proto";
+import "intrinsic/perception/proto/v1/pose_estimation_config.proto";
+
+// PerceptionModel describes the configuration of a perception model abstracting
+// over different kind of model configurations.
+message PerceptionModel {
+  // Stores the configuration of the perception model.
+  oneof config {
+    intrinsic_proto.perception.v1.PoseEstimationConfig pose_estimation_config =
+        1;
+  }
+  // This entry maps the reference data needed by the perception model to a
+  // local target.
+  map<string, intrinsic_proto.data.v1.ReferencedData> data_references = 2;
+}

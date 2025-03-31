@@ -1,0 +1,19 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.perception.v1;
+
+import "google/protobuf/timestamp.proto";
+import "intrinsic/perception/proto/v1/image_buffer.proto";
+import "intrinsic/perception/proto/v1/sensor_config.proto";
+
+// Contains an image from a single sensor on a multiframe camera.
+message SensorImage {
+  // Configuration (calibration) for the sensor
+  SensorConfig sensor_config = 1;
+  // Timestamp at which the image was captured
+  google.protobuf.Timestamp acquisition_time = 2;
+  // Frame data
+  ImageBuffer buffer = 3;
+}

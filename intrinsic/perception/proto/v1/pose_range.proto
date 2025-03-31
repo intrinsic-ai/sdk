@@ -1,0 +1,71 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.perception.v1;
+
+// Encodes prior knowledge about the pose of an object.
+message PoseRange {
+  oneof view_space {
+    // Encodes icosahedron vertices which represent individual views.
+    Icosahedron icosahedron = 1;
+    // Encodes all views of a hemisphere.
+    Hemisphere hemisphere = 2;
+    // View space parameterization using latitude/longitude parameterization.
+    LatitudeLongitudeViewSpace latitude_longitude_view_space = 3;
+  }
+  // Minimal distance of the object's origin to the camera in meters.
+  float min_distance = 4;
+  // Maximal distance of the object's origin to the camera in meters.
+  float max_distance = 5;
+}
+
+// Encodes vertices of a recursively subdivided icosahedron.
+message Icosahedron {
+  // Recursion depth of the icosahedron. 0 means no subdivision with possible
+  // vertex indices from [0,12).
+  int32 depth = 1;
+  // Vertex index for the respective recursion depth.
+  repeated int32 vertex = 2;
+}
+
+// Encodes hemisphere in a configurable direction.
+enum Hemisphere {
+  HEMISPHERE_UNKNOWN = 0;
+  HEMISPHERE_POSITIVE_X = 1;
+  HEMISPHERE_NEGATIVE_X = 2;
+  HEMISPHERE_POSITIVE_Y = 3;
+  HEMISPHERE_NEGATIVE_Y = 4;
+  HEMISPHERE_POSITIVE_Z = 5;
+  HEMISPHERE_NEGATIVE_Z = 6;
+  HEMISPHERE_ALL = 7;
+}
+
+// Defines a min/max range for latitude/longitude/roll angles.
+message LatitudeLongitudeViewSpace {
+  // Minimum rotation of the camera along longitude  (in degree).
+  double min_longitude = 1;
+
+  // Maximum rotation of the camera along longitude (in degree).
+  double max_longitude = 2;
+
+  // Minimum rotation of the camera along latitude  (in degree).
+  double min_latitude = 3;
+
+  // Maximum rotation of the camera along latitude (in degree).
+  double max_latitude = 4;
+
+  // Minimum camera roll angle (in degrees).
+  double min_camera_roll = 5;
+
+  // Maximum camera roll angle (in degrees).
+  double max_camera_roll = 6;
+
+  // Optional. Reference rotation frame of the model to be trained. These
+  // parameters only influence from which angles the model is seen during
+  // training not the resulting poses during inference. The rotation is
+  // parameterized by angles around the x,y,z axis in degree.
+  double reference_rotation_x = 7;
+  double reference_rotation_y = 8;
+  double reference_rotation_z = 9;
+}

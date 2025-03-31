@@ -1,0 +1,24 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.perception.v1;
+
+// This message declares different camera drivers. Each driver references a
+// specific implementation which is used to control and communicate with
+// cameras.
+message CameraDrivers {
+  // The default driver which is used when communicating with GenICam cameras
+  // (Aravis).
+  message GenICam {
+    string device_id = 1;
+  }
+
+  // The driver which is used to communicate with the Photoneo.
+  message Photoneo {
+    // Note that the driver (PhoXiControl) must be running on the workstation to
+    // be able to connect to the Photoneo.
+    string device_id = 1;
+  }
+
+}

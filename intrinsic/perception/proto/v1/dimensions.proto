@@ -1,0 +1,13 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.perception.v1;
+
+message Dimensions {
+  // Image resolution along x axis, in pixels.
+  int32 cols = 1;
+
+  // Image resolution along y axis, in pixels.
+  int32 rows = 2;
+}

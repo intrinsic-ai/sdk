@@ -1,0 +1,28 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.perception.v1;
+
+import "intrinsic/perception/proto/v1/camera_identifier.proto";
+import "intrinsic/perception/proto/v1/camera_settings.proto";
+import "intrinsic/perception/proto/v1/sensor_config.proto";
+
+// Specification of a single camera.
+// The specification includes the driver to be used, connection parameters,
+// but also intrinsic calibration info and optional per-sensor configuration.
+message CameraConfig {
+  // A unique identifier of a specific camera.
+  // This identifier determines which underlying driver is used to access a
+  // camera.
+  CameraIdentifier identifier = 1;
+
+  // A list of camera settings. Camera settings are applied in the order in
+  // which they are defined. The specification of camera settings is optional.
+  repeated CameraSetting camera_settings = 2;
+
+  // A list of per-sensor configurations. These include per-sensor calibrations
+  // and poses.
+  // The specification of sensor configurations is optional.
+  repeated SensorConfig sensor_configs = 3;
+}

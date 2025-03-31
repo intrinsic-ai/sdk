@@ -1,0 +1,44 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.perception.v1;
+import "intrinsic/math/proto/vector3.proto";
+
+message AxisAngle {
+  // Axis of rotation. Does not need to be normalized.
+  intrinsic_proto.Vector3 axis = 1;
+  // Angle of rotation specified in radians.
+  float angle = 2;
+}
+
+// Symmetries as defined at https://arxiv.org/pdf/1612.04631.pdf
+message Symmetry {
+  message FiniteNonTrivialSymmetry {
+    // Required symmetry center.
+    intrinsic_proto.Vector3 center = 1;
+
+    // Required symmetry axis and symmetry angle represented in angle-axis
+    // representation. Currently we only support one symmetry axis.
+    AxisAngle axis_angle = 2;
+  }
+
+  message RevolutionSymmetryWithoutRotoReflection {
+    // Required symmetry center.
+    intrinsic_proto.Vector3 center = 1;
+    // Required normalized symmetry axis.
+    intrinsic_proto.Vector3 axis = 2;
+  }
+
+  message SphericalSymmetry {
+    // Required symmetry center.
+    intrinsic_proto.Vector3 center = 1;
+  }
+
+  oneof symmetry {
+    FiniteNonTrivialSymmetry finite_non_trivial_symmetry = 1;
+    RevolutionSymmetryWithoutRotoReflection
+        revolution_symmetry_without_rotoreflection = 2;
+    SphericalSymmetry spherical_symmetry = 3;
+  }
+}

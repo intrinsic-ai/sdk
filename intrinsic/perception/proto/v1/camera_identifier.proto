@@ -1,0 +1,18 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.perception.v1;
+
+import "intrinsic/perception/proto/v1/camera_drivers.proto";
+
+// A unique identifier for a specific, physical camera.
+//
+// Each driver uses a different underlying implementation and within each driver
+// a specific hardware ID binds the identifier to a single physical camera.
+message CameraIdentifier {
+  oneof drivers {
+    CameraDrivers.GenICam genicam = 3;
+    CameraDrivers.Photoneo photoneo = 6;
+  }
+}

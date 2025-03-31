@@ -1,0 +1,26 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.perception.v1;
+
+import "intrinsic/math/proto/pose.proto";
+import "intrinsic/perception/proto/v1/camera_params.proto";
+
+// Specification of a single sensor within a camera. This includes intrinsic
+// calibration (including distortion params) and sensor pose relative to the
+// device coordinate system. Minimal specification includes sensor ID only.
+message SensorConfig {
+  // ComponentIDValue or 0 for GenICam, sensor number for other cameras (e.g.
+  // IPS PU)
+  int64 id = 1;
+  // Transforms the sensor data into the reference coordinate system of the
+  // camera.
+  optional intrinsic_proto.Pose camera_t_sensor = 2;
+  // Sensor camera parameters.
+  optional CameraParams camera_params = 3;
+}
+
+message SensorConfigs {
+  repeated SensorConfig sensor_configs = 1;
+}

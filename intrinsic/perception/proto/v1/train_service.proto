@@ -1,0 +1,133 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.perception.v1;
+
+import "google/longrunning/operations.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "intrinsic/assets/proto/id.proto";
+import "intrinsic/perception/proto/v1/pose_estimation_config.proto";
+import "intrinsic/scene/proto/v1/scene_object.proto";
+import "intrinsic/util/status/extended_status.proto";
+
+// Trains pose estimation models.
+service TrainService {
+  // Trains a pose estimation model.
+  // Returns a longrunning.Operation with:
+  //   metadata of type TrainingJobStatus (progress information, etc.)
+  // Training errors are reported through the longrunning.Operation.error field.
+  rpc CreateTrainingJob(CreateTrainingJobRequest)
+      returns (google.longrunning.Operation);
+
+  // Save a training job into a data asset.
+  rpc SaveTrainingJob(SaveTrainingJobRequest) returns (SaveTrainingJobResponse);
+
+  // Lists training job operations that match the specified filter in the
+  // request.
+  rpc ListTrainingJobs(google.longrunning.ListOperationsRequest)
+      returns (google.longrunning.ListOperationsResponse);
+
+  // Gets the latest state of a training job operation.  Clients can use this
+  // method to poll the operation result at intervals.
+  rpc GetTrainingJob(google.longrunning.GetOperationRequest)
+      returns (google.longrunning.Operation);
+
+  // Deletes a training job operation. Only training jobs which have been
+  // successfully cancelled or which are not running can be deleted.
+  rpc DeleteTrainingJob(google.longrunning.DeleteOperationRequest)
+      returns (google.protobuf.Empty);
+
+  // Starts asynchronous cancellation on a training job operation. The server
+  // makes a best effort to cancel the operation, but success is not
+  // guaranteed. On successful cancellation, the operation is not deleted;
+  // instead, it becomes an operation with an [Operation.error][] value with a
+  // [google.rpc.Status.code][] of 1, corresponding to `Code.CANCELLED`.
+  rpc CancelTrainingJob(google.longrunning.CancelOperationRequest)
+      returns (google.protobuf.Empty);
+
+  // Checks an incoming CreateTrainingJobRequest for potential issues and
+  // provides feedback on the selected training configuration..
+  rpc VerifyTrainingJob(CreateTrainingJobRequest)
+      returns (VerifyTrainingJobResponse);
+}
+
+enum ParameterAutoFill {
+  AUTO_FILL_UNSPECIFIED = 0;
+  AUTO_FILL_EDGE_BASED = 1;
+  AUTO_FILL_SURFACE_BASED = 2;
+  AUTO_FILL_SINGLE_VIEW_ML = 3;
+  AUTO_FILL_MULTI_VIEW_ML = 4;
+}
+
+message CreateTrainingJobRequest {
+  // Pose estimation config to be trained. All file paths specified in this
+  // config must match the target paths in the file_references below.
+  intrinsic_proto.perception.v1.PoseEstimationConfig pose_estimation_config = 1;
+
+  // Auto-fill option for the pose estimation config. If set, the params and
+  // inference_params fields in the pose_estimation_config will be auto-filled
+  // with default values. If the auto-fill option is set, the params and
+  // inference_params fields in the pose_estimation_config must not be set.
+  ParameterAutoFill parameter_auto_fill = 8;
+
+  // Contains a list of scene objects which the model is trained on. The map key
+  // matches the target paths in the config above.
+  map<string, intrinsic_proto.scene_object.v1.SceneObject> scene_objects = 2;
+
+  // A generic proto with user-specific custom data attached to the training
+  // job. The proto will be returned to the caller in the TrainingJobStatus
+  // message.
+  optional google.protobuf.Any custom_data = 3;
+
+  // Required: Maximum duration of the training job.
+  google.protobuf.Duration maximum_job_duration = 4;
+
+  // Name of the parent resource in which the job is being created, for
+  // instance: "/applications/{application_id}".
+  string parent_name = 5;
+  // Name of the data asset that will be created.
+  AssetMetadata asset_metadata = 6;
+}
+
+message AssetMetadata {
+  // Name of the data asset that will be created.
+  string asset_name = 1;
+  // The ID and version of the training job to save. If not set, the default
+  // package will be used (ai.intrinsic) and asset_name will be used as name.
+  optional intrinsic_proto.assets.IdVersion id_version = 2;
+}
+
+// Meta data field (returned in google.longrunning.Operation):
+message TrainingJobStatus {
+  // Progress indicator of the training job between [0, 1]. Not all training
+  // jobs provide this information.
+  optional float progress = 1;
+
+  // Custom data attached by the caller during CreateTrainingJob.
+  optional google.protobuf.Any custom_data = 2;
+
+  // Timestamp when this job was submitted for training.
+  google.protobuf.Timestamp create_time = 3;
+}
+
+message SaveTrainingJobRequest {
+  // The name of the training job to save.
+  string name = 1;
+  // The ID of the data asset that will be updated. If package is not set, the
+  // default package will be used (ai.intrinsic).
+  intrinsic_proto.assets.Id asset_id = 2;
+}
+
+message SaveTrainingJobResponse {
+  // The ID of the created data asset.
+  intrinsic_proto.assets.IdVersion id_version = 1;
+}
+
+message VerifyTrainingJobResponse {
+  // Repeated list of potential issues with the provided training configuration.
+  repeated intrinsic_proto.status.ExtendedStatus status = 1;
+}

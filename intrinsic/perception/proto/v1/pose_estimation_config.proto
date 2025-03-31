@@ -1,0 +1,29 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.perception.v1;
+
+import "google/protobuf/any.proto";
+import "intrinsic/perception/proto/v1/intrinsic_params.proto";
+import "intrinsic/perception/proto/v1/target.proto";
+
+message PoseEstimationConfig {
+  // A list of targets that the pose estimator should detect.
+  repeated Target targets = 1;
+
+  // Pose-estimator-specific training configuration.
+  google.protobuf.Any params = 2;
+
+  // Pose-estimator-specific inference configuration.
+  google.protobuf.Any inference_params = 3;
+
+  // Intrinsic camera parameters. This parameter might be required depending on
+  // the selected pose estimator; see individual pose estimator types for
+  // details.
+  IntrinsicParams intrinsic_params = 4;
+
+  // String indicating the source of the config, such as a GCS path or ml job
+  // name.
+  optional string origin = 5;
+}

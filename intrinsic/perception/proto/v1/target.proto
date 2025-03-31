@@ -1,0 +1,60 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.perception.v1;
+import "intrinsic/math/proto/affine.proto";
+import "intrinsic/perception/proto/v1/charuco_pattern.proto";
+import "intrinsic/perception/proto/v1/pose_range.proto";
+import "intrinsic/perception/proto/v1/symmetry.proto";
+
+message MeshObject {
+  // Path to a mesh. Preferrably a glb file.
+  string filename = 1;
+  // Initial translation, rotation, and scaling of the mesh in target
+  // coordinates.
+  optional intrinsic_proto.Affine3d target_t_mesh = 2;
+}
+
+message MarkerObject {
+  message ARTag {
+    // AR tag bit pattern.
+    uint64 id = 1;
+    // Defines the pattern bit size (maximal 8).
+    uint32 bits_per_side = 2;
+    // Physical size of marker in meters.
+    float size = 3;
+  }
+  oneof type {
+    ARTag ar_tag = 1;
+    intrinsic_proto.perception.v1.CharucoPattern charuco_pattern = 2;
+  }
+}
+
+// Defines a target object to detect.
+message Target {
+  // Id will be reported back to the client to identify this object.
+  // May encode class and object id in the following way: {class}/{object_id},
+  // for example "chair/grey_chair0".
+  string id = 1;
+
+  // The type of the target object.
+  oneof Type {
+    MeshObject mesh = 2;
+    MarkerObject marker = 3;
+  }
+
+  // Restricts the pose range (orientation and position) of the object.
+  // Note: This serves as a hint during training but won't guarantee that all
+  // poses are from that pose range; poses outside the pose range may still be
+  // detected and returned to the client.
+  intrinsic_proto.perception.v1.PoseRange pose_range = 4;
+
+  // Stores symmetry type and related parameters such as symmetry axis.
+  repeated intrinsic_proto.perception.v1.Symmetry symmetry = 5;
+}
+
+// Defines a list of targets.
+message Targets {
+  repeated Target targets = 1;
+}
