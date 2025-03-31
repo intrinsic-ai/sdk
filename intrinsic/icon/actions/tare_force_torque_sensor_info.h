@@ -26,7 +26,8 @@ struct TareForceTorqueSensorInfo {
       "After the Action reports it is done, the sensor represented by this "
       "Part is finished taring.";
 
-  using FixedParams = xfa::icon::actions::proto::TareForceTorqueSensorParams;
+  using FixedParams =
+      intrinsic_proto::icon::actions::proto::TareForceTorqueSensorParams;
 };
 
 }  // namespace icon

@@ -34,7 +34,7 @@ struct ADIOActionInfo {
       "True if the commanded output values have been set on the device. Always "
       "`false` if no outputs are provided in the action parameters.";
 
-  using FixedParams = ::xfa::icon::actions::proto::ADIOFixedParams;
+  using FixedParams = ::intrinsic_proto::icon::actions::proto::ADIOFixedParams;
 };
 
 }  // namespace icon

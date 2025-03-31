@@ -32,7 +32,7 @@
 namespace intrinsic::icon::examples {
 
 using ::intrinsic::icon::ADIOActionInfo;
-using ::xfa::icon::actions::proto::DigitalBlock;
+using ::intrinsic_proto::icon::actions::proto::DigitalBlock;
 
 absl::StatusOr<intrinsic_proto::icon::PartStatus> GetPartStatus(
     absl::string_view part_name, intrinsic::icon::Client& icon_client) {

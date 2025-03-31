@@ -2,7 +2,7 @@
 
 syntax = "proto3";
 
-package xfa.icon.actions.proto;
+package intrinsic_proto.icon.actions.proto;
 
 import "intrinsic/icon/proto/joint_space.proto";
 import "intrinsic/kinematics/types/joint_limits.proto";

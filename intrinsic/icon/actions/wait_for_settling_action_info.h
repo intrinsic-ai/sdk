@@ -31,7 +31,7 @@ struct WaitForSettlingActionInfo {
       "time in [rad/s].";
 
   using FixedParams =
-      ::xfa::icon::actions::proto::WaitForSettlingActionFixedParams;
+      ::intrinsic_proto::icon::actions::proto::WaitForSettlingActionFixedParams;
 };
 
 }  // namespace intrinsic::icon

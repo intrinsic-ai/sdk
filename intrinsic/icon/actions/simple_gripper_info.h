@@ -30,7 +30,8 @@ struct SimpleGripperActionInfo {
   static constexpr char kSlotDescription[] =
       "A Part that implements the SimpleGripper Feature Interface.";
 
-  using FixedParams = ::xfa::icon::actions::proto::SimpleGripperFixedParams;
+  using FixedParams =
+      ::intrinsic_proto::icon::actions::proto::SimpleGripperFixedParams;
 };
 
 }  // namespace intrinsic::icon

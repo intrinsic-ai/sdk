@@ -2,7 +2,7 @@
 
 syntax = "proto3";
 
-package xfa.icon.actions.proto;
+package intrinsic_proto.icon.actions.proto;
 
 message TareForceTorqueSensorParams {
   // The number of real-time control cycles over which the force torque sensor

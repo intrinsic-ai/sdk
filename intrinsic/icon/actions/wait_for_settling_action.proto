@@ -2,7 +2,7 @@
 
 syntax = "proto3";
 
-package xfa.icon.actions.proto;
+package intrinsic_proto.icon.actions.proto;
 
 message WaitForSettlingActionFixedParams {
   // The uncertainty value below which the `WaitForSettlingAction` is considered

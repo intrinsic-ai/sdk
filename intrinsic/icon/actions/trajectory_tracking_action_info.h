@@ -72,7 +72,8 @@ struct TrajectoryTrackingActionInfo {
       "path-accurate stop is guaranteed to be time-optimal w.r.t. the given "
       "system limits.";
 
-  using FixedParams = xfa::icon::actions::TrajectoryTrackingActionFixedParams;
+  using FixedParams =
+      intrinsic_proto::icon::actions::TrajectoryTrackingActionFixedParams;
 };
 
 }  // namespace intrinsic::icon

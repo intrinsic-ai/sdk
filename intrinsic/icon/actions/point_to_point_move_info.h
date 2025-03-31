@@ -57,7 +57,8 @@ struct PointToPointMoveInfo {
       "setpoint). Conditions that use this variable will always evaluate to "
       "false until then.";
 
-  using FixedParams = ::xfa::icon::actions::proto::PointToPointMoveFixedParams;
+  using FixedParams =
+      ::intrinsic_proto::icon::actions::proto::PointToPointMoveFixedParams;
 };
 
 // Returns a set of fixed params for this action that specifies the

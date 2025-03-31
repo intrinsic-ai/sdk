@@ -2,7 +2,7 @@
 
 syntax = "proto3";
 
-package xfa.icon.actions;
+package intrinsic_proto.icon.actions;
 
 import "intrinsic/icon/proto/joint_space.proto";
 

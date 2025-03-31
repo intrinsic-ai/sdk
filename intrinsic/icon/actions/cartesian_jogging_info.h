@@ -39,9 +39,10 @@ struct CartesianJoggingInfo {
   // commands a Zero Twist.
   static constexpr double kWatchdogTimeoutInSeconds = 0.25;
 
-  using FixedParams = ::xfa::icon::actions::proto::CartesianJoggingFixedParams;
+  using FixedParams =
+      ::intrinsic_proto::icon::actions::proto::CartesianJoggingFixedParams;
   using StreamingParams =
-      ::xfa::icon::actions::proto::CartesianJoggingStreamingParams;
+      ::intrinsic_proto::icon::actions::proto::CartesianJoggingStreamingParams;
 };
 
 }  // namespace icon

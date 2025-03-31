@@ -2,7 +2,7 @@
 
 syntax = "proto3";
 
-package xfa.icon.actions.proto;
+package intrinsic_proto.icon.actions.proto;
 
 // A Comparison is used to evaluate an Analog Input value with the
 // `expected_value` using `operation`.

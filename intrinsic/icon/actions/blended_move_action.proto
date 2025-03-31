@@ -2,7 +2,7 @@
 
 syntax = "proto3";
 
-package xfa.icon.actions;
+package intrinsic_proto.icon.actions;
 
 import "intrinsic/icon/proto/blended_cartesian_move.proto";
 import "intrinsic/motion_planning/trajectory_planning/blended_joint_move.proto";

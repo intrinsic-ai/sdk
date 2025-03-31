@@ -2,7 +2,7 @@
 
 syntax = "proto3";
 
-package xfa.icon.actions.proto;
+package intrinsic_proto.icon.actions.proto;
 
 // Fixed parameters for a SimpleGripper action. These are provided once by the
 // user when the action is created, and remain the same for the lifetime of the

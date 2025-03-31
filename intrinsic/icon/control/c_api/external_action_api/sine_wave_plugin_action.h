@@ -48,7 +48,8 @@ class SineWavePluginAction final : public IconActionInterface {
   // The INTRINSIC_ICON_REGISTER_ICON_ACTION_PLUGIN macro uses these using
   // declarations to build the wrapper functions required for an ICON Action
   // plugin.
-  using ParameterProto = ::xfa::icon::external_actions::SineWaveFixedParams;
+  using ParameterProto =
+      ::intrinsic_proto::icon::external_actions::SineWaveFixedParams;
   using StreamingOutputProto = ::google::protobuf::Duration;
   using StreamingInputProto = ::google::protobuf::FloatValue;
 

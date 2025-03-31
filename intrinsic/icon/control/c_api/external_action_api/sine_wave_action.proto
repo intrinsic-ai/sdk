@@ -2,7 +2,7 @@
 
 syntax = "proto3";
 
-package xfa.icon.external_actions;
+package intrinsic_proto.icon.external_actions;
 
 // Fixed parameters for SineWaveAction.
 // This action calculates the value of a sine wave with the given parameters

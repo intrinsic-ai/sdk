@@ -58,7 +58,8 @@ struct BlendedMoveActionInfo {
       "in the cycle that the final setpoint is commanded and in all cycles "
       "before that.";
 
-  using FixedParams = xfa::icon::actions::BlendedMoveActionFixedParams;
+  using FixedParams =
+      intrinsic_proto::icon::actions::BlendedMoveActionFixedParams;
 };
 
 }  // namespace intrinsic::icon
