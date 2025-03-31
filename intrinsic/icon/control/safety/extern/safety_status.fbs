@@ -1,6 +1,6 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-namespace intrinsic.safety.messages;
+namespace intrinsic_fbs;
 
 // Describes the mode of safe operation of the robot.
 // ModesOfSafeOperation (MSO) define modes in which certain safety measures may

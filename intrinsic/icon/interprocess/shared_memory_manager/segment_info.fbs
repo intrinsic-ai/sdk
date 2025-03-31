@@ -1,6 +1,6 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-namespace intrinsic.icon;
+namespace intrinsic_fbs;
 
 struct SegmentName {
   // Fixed size string correspondig to the max size of a

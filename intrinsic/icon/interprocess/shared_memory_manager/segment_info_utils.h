@@ -16,16 +16,16 @@ namespace intrinsic::icon {
 
 // Extracts the SegmentNames from the SegmentInfo struct.
 std::vector<std::string> GetNamesFromSegmentInfo(
-    const SegmentInfo& segment_info);
+    const intrinsic_fbs::SegmentInfo& segment_info);
 
 // Extracts the SegmentNames from the FileDescriptorNames struct.
 std::vector<std::string> GetNamesFromFileDescriptorNames(
-    const FileDescriptorNames& file_descriptor_names);
+    const intrinsic_fbs::FileDescriptorNames& file_descriptor_names);
 
 // Extracts the SegmentNames that are marked as required from the SegmentInfo
 // struct.
 std::vector<std::string> GetRequiredInterfaceNamesFromSegmentInfo(
-    const SegmentInfo& segment_info);
+    const intrinsic_fbs::SegmentInfo& segment_info);
 
 }  // namespace intrinsic::icon
 

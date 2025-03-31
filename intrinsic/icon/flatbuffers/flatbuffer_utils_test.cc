@@ -23,8 +23,8 @@ namespace {
 using ::absl_testing::StatusIs;
 
 TEST(FlatbufferArrayNumElementsTest, ReturnsCorrectNumElements) {
-  EXPECT_EQ(FlatbufferArrayNumElements(&intrinsic::icon::SegmentInfo::names),
-            intrinsic::icon::SegmentInfo{}.names()->size());
+  EXPECT_EQ(FlatbufferArrayNumElements(&SegmentInfo::names),
+            SegmentInfo{}.names()->size());
 }
 
 TEST(FlatbufferUtilsTest, CopiesFlatbufferDoubleVector) {

@@ -2,7 +2,7 @@
 
 include "intrinsic/icon/control/safety/extern/safety_status.fbs";
 
-namespace intrinsic.safety.messages;
+namespace intrinsic_fbs;
 
 enum ButtonStatus : ubyte {
     // The state is unknown.

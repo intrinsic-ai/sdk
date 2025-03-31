@@ -254,7 +254,7 @@ DomainSocketServer::PrepareMessages(
          // Cannot add more names than we got as inputs
          (map_it != segment_name_to_file_descriptor_map.end());
          ++map_it, fd_names.mutate_size(fd_names.size() + 1)) {
-      SegmentName segment_name;
+      intrinsic_fbs::SegmentName segment_name;
       const int kMaxSegmentStringSize = segment_name.value()->size();
       const auto& name = map_it->first;
       // fbs doesn't have char as datatype, only int8_t which is byte
@@ -323,10 +323,11 @@ absl::Status DomainSocketServer::AddSegmentInfoServeShmDescriptors(
   // intrinsic/icon/hal/hardware_module_proxy.h
   // It can in theory be replaced by the SegmentInfo shared in the data of the
   // domain socket message.
-  INTR_RETURN_IF_ERROR(shared_memory_manager.AddSegment<SegmentInfo>(
-      /*name=*/hal::kModuleInfoName, /**must_be_used=*/false,
-      shared_memory_manager.GetSegmentInfo(),
-      /*type_id=*/hal::kModuleInfoName));
+  INTR_RETURN_IF_ERROR(
+      shared_memory_manager.AddSegment<intrinsic_fbs::SegmentInfo>(
+          /*name=*/hal::kModuleInfoName, /**must_be_used=*/false,
+          shared_memory_manager.GetSegmentInfo(),
+          /*type_id=*/hal::kModuleInfoName));
 
   return ServeShmDescriptors(
       shared_memory_manager.SegmentNameToFileDescriptorMap());

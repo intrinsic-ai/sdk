@@ -93,7 +93,7 @@ class LoopbackHardwareModule final
       intrinsic_fbs::JointLimits>>
       joint_system_limits_;
   intrinsic::icon::MutableHardwareInterfaceHandle<
-      intrinsic::safety::messages::SafetyStatusMessage>
+      intrinsic_fbs::SafetyStatusMessage>
       safety_status_;
 
   std::atomic<ModuleState> module_state_;
@@ -110,8 +110,8 @@ class LoopbackHardwareModule final
 // Register the additional interfaces we use.
 namespace intrinsic::icon {
 namespace hardware_interface_traits {
-INTRINSIC_ADD_HARDWARE_INTERFACE(safety::messages::SafetyStatusMessage,
-                                 safety::messages::BuildSafetyStatusMessage,
+INTRINSIC_ADD_HARDWARE_INTERFACE(intrinsic_fbs::SafetyStatusMessage,
+                                 intrinsic_fbs::BuildSafetyStatusMessage,
                                  "intrinsic_fbs.SafetyStatus")
 }  // namespace hardware_interface_traits
 }  // namespace intrinsic::icon

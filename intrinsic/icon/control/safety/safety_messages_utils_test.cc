@@ -13,7 +13,7 @@
 #include "intrinsic/icon/control/safety/extern/safety_status.fbs.h"
 #include "intrinsic/icon/control/safety/safety_messages.fbs.h"
 
-namespace intrinsic::safety::messages {
+namespace intrinsic_fbs {
 namespace {
 
 TEST(SafetyStatusMessage, BuildSafetyStatusMessageCreatesFullyMutableBuffer) {
@@ -179,4 +179,4 @@ TEST(ExtractRequestedBehavior, WhenInSS1OrSS2) {
 }
 
 }  // namespace
-}  // namespace intrinsic::safety::messages
+}  // namespace intrinsic_fbs

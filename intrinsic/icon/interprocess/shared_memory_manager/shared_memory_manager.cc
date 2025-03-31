@@ -39,10 +39,10 @@ using ::intrinsic_fbs::FlatbufferArrayNumElements;
 
 // Max string size as defined in `segment_info.fbs`
 inline constexpr size_t kMaxSegmentStringSize =
-    FlatbufferArrayNumElements(&intrinsic::icon::SegmentName::value);
+    FlatbufferArrayNumElements(&intrinsic_fbs::SegmentName::value);
 
 inline constexpr size_t kMaxNumberOfSegments =
-    FlatbufferArrayNumElements(&intrinsic::icon::SegmentInfo::names);
+    FlatbufferArrayNumElements(&intrinsic_fbs::SegmentInfo::names);
 
 namespace {
 absl::Status VerifyName(absl::string_view name) {
@@ -63,13 +63,13 @@ absl::Status VerifyName(absl::string_view name) {
   return absl::OkStatus();
 }
 
-SegmentInfo SegmentInfoFromHashMap(
+intrinsic_fbs::SegmentInfo SegmentInfoFromHashMap(
     const absl::flat_hash_map<
         std::string, SharedMemoryManager::MemorySegmentInfo>& segments) {
-  SegmentInfo segment_info(segments.size());
+  intrinsic_fbs::SegmentInfo segment_info(segments.size());
   uint32_t index = 0;
   for (const auto& [memory_name, buf] : segments) {
-    SegmentName segment;
+    intrinsic_fbs::SegmentName segment;
     segment.mutate_must_be_used(buf.must_be_used);
     // fbs doesn't have char as datatype, only int8_t which is byte compatible.
     auto* data = reinterpret_cast<char*>(segment.mutable_value()->Data());
@@ -252,7 +252,7 @@ std::string SharedMemoryManager::SharedMemoryNamespace() const {
   return shared_memory_namespace_;
 }
 
-SegmentInfo SharedMemoryManager::GetSegmentInfo() const {
+intrinsic_fbs::SegmentInfo SharedMemoryManager::GetSegmentInfo() const {
   return SegmentInfoFromHashMap(memory_segments_);
 }
 

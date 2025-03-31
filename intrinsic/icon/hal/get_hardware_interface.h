@@ -220,15 +220,16 @@ GetMutableStrictInterfaceHandle(
 }
 
 // Returns information about the exported interfaces from a hardware module.
-inline absl::StatusOr<ReadOnlyMemorySegment<SegmentInfo>> GetHardwareModuleInfo(
+inline absl::StatusOr<ReadOnlyMemorySegment<intrinsic_fbs::SegmentInfo>>
+GetHardwareModuleInfo(
     const SegmentNameToFileDescriptorMap& segment_name_to_file_descriptor_map) {
-  return ReadOnlyMemorySegment<SegmentInfo>::Get(
+  return ReadOnlyMemorySegment<intrinsic_fbs::SegmentInfo>::Get(
       segment_name_to_file_descriptor_map, hal::kModuleInfoName);
 }
 
 // Extracts the names of the shared memory segments.
 inline std::vector<std::string> GetInterfacesFromModuleInfo(
-    const SegmentInfo& segment_info) {
+    const intrinsic_fbs::SegmentInfo& segment_info) {
   return GetNamesFromSegmentInfo(segment_info);
 }
 
@@ -236,7 +237,7 @@ inline std::vector<std::string> GetInterfacesFromModuleInfo(
 //
 // Subset of GetInterfacesFromModuleInfo.
 inline std::vector<std::string> GetRequiredInterfacesFromModuleInfo(
-    const SegmentInfo& segment_info) {
+    const intrinsic_fbs::SegmentInfo& segment_info) {
   return GetRequiredInterfaceNamesFromSegmentInfo(segment_info);
 }
 

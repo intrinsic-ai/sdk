@@ -47,14 +47,14 @@ namespace loopback_module {
 
 using ::intrinsic::icon::OkStatus;
 using ::intrinsic::icon::RealtimeStatus;
-using ::intrinsic::safety::messages::ButtonStatus;
-using ::intrinsic::safety::messages::ModeOfSafeOperation;
-using ::intrinsic::safety::messages::RequestedBehavior;
-using ::intrinsic::safety::messages::SafetyStatusMessage;
+using ::intrinsic_fbs::ButtonStatus;
 using ::intrinsic_fbs::JointAccelerationState;
 using ::intrinsic_fbs::JointPositionCommand;
 using ::intrinsic_fbs::JointPositionState;
 using ::intrinsic_fbs::JointVelocityState;
+using ::intrinsic_fbs::ModeOfSafeOperation;
+using ::intrinsic_fbs::RequestedBehavior;
+using ::intrinsic_fbs::SafetyStatusMessage;
 
 void LoopbackHardwareModule::RuntimeLoop() {
   const intrinsic::Duration roundtrip(

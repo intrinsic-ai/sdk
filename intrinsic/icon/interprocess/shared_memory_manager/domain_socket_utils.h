@@ -34,8 +34,8 @@ using ::intrinsic_fbs::FlatbufferArrayNumElements;
 // The absolute maximum is defined by the kernel constant SCM_MAX_FD, which is
 // 253, or 255 in kernels before 2.6.38.
 inline constexpr size_t kMaxFdsPerMessage =
-    FlatbufferArrayNumElements(&intrinsic::icon::FileDescriptorNames::names);
-inline constexpr size_t kDomainSocketProtocolVersion = 1;
+    FlatbufferArrayNumElements(&intrinsic_fbs::FileDescriptorNames::names);
+inline constexpr size_t kDomainSocketProtocolVersion = 2;
 
 inline constexpr absl::string_view kSocketSuffix = ".sock";
 
@@ -52,7 +52,7 @@ struct TransferData {
   // Note that the server will always transmit messages in order. That is, the
   // client can stop receiving when num_messages == message_index
   size_t message_index = 0;
-  FileDescriptorNames file_descriptor_names;
+  intrinsic_fbs::FileDescriptorNames file_descriptor_names;
 };
 
 struct ShmDescriptors {

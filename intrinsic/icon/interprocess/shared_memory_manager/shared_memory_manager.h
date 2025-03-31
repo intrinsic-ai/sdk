@@ -252,7 +252,7 @@ class SharedMemoryManager final {
 
   // Returns a SegmentInfo struct containing the list of registered memory
   // segments.
-  SegmentInfo GetSegmentInfo() const;
+  intrinsic_fbs::SegmentInfo GetSegmentInfo() const;
 
   // Name of the module owning this SharedMemoryManager.
   std::string ModuleName() const;

@@ -13,7 +13,7 @@
 #include "intrinsic/icon/control/safety/extern/safety_status.fbs.h"
 #include "intrinsic/icon/control/safety/safety_messages.fbs.h"
 
-namespace intrinsic::safety::messages {
+namespace intrinsic_fbs {
 
 // Build a SafetyStatusMessage.
 flatbuffers::DetachedBuffer BuildSafetyStatusMessage(
@@ -29,33 +29,33 @@ constexpr auto AsIndex(const EnumType value) ->
 }
 
 void SetSafetyStatusMessage(
-    ::intrinsic::safety::messages::ModeOfSafeOperation mode_of_safe_operation,
-    ::intrinsic::safety::messages::ButtonStatus estop_button_status,
-    ::intrinsic::safety::messages::ButtonStatus enable_button_status,
-    ::intrinsic::safety::messages::RequestedBehavior requested_behavior,
-    ::intrinsic::safety::messages::SafetyStatusMessage& message);
+    ::intrinsic_fbs::ModeOfSafeOperation mode_of_safe_operation,
+    ::intrinsic_fbs::ButtonStatus estop_button_status,
+    ::intrinsic_fbs::ButtonStatus enable_button_status,
+    ::intrinsic_fbs::RequestedBehavior requested_behavior,
+    ::intrinsic_fbs::SafetyStatusMessage& message);
 
 // Extract ModeOfSafeOperation from safety inputs.
 // The safety inputs are expected to follow the order as in
-// safety::messages::SafetyStatusBit.
+// intrinsic_fbs::SafetyStatusBit.
 ModeOfSafeOperation ExtractModeOfSafeOperation(
     const std::bitset<8>& safety_inputs);
 
 // Extract the status of the e-stop button from safety inputs.
 // The safety inputs are expected to follow the order as in
-// safety::messages::SafetyStatusBit.
+// intrinsic_fbs::SafetyStatusBit.
 ButtonStatus ExtractEStopButtonStatus(const std::bitset<8>& safety_inputs);
 
 // Extract the status of the enable button from safety inputs.
 // The safety inputs are expected to follow the order as in
-// safety::messages::SafetyStatusBit.
+// intrinsic_fbs::SafetyStatusBit.
 ButtonStatus ExtractEnableButtonStatus(const std::bitset<8>& safety_inputs);
 
 // Extract the requested behavior from safety inputs.
 // The safety inputs are expected to follow the order as in
-// safety::messages::SafetyStatusBit.
+// intrinsic_fbs::SafetyStatusBit.
 RequestedBehavior ExtractRequestedBehavior(const std::bitset<8>& safety_inputs);
 
-}  // namespace intrinsic::safety::messages
+}  // namespace intrinsic_fbs
 
 #endif  // INTRINSIC_ICON_CONTROL_SAFETY_SAFETY_MESSAGES_UTILS_H_
