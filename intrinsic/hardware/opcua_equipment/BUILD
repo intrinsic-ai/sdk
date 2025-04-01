@@ -8,6 +8,8 @@ load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 
 package(default_visibility = ["//visibility:public"])
 
+exports_files(["opcua_equipment_service.proto"])
+
 proto_library(
     name = "opcua_equipment_service_proto",
     srcs = ["opcua_equipment_service.proto"],
