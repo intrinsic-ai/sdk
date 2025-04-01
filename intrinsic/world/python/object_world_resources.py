@@ -2,8 +2,10 @@
 
 """Defines the resources used for the object world python api."""
 
+from __future__ import annotations
+
 import abc
-from typing import Dict, List, Optional, Protocol
+from typing import Dict, ItemsView, Iterator, KeysView, List, Optional, Protocol, ValuesView
 
 from google.protobuf import any_pb2
 from intrinsic.icon.proto import cart_space_pb2
@@ -563,8 +565,13 @@ class JointConfiguration:
     joint_position: [float] storing the joint position values.
   """
 
-  def __init__(self, joint_position: List[float]):
-    self.joint_position: List[float] = joint_position
+  joint_position: list[float]
+
+  def __init__(self, joint_position: list[float]):
+    self.joint_position = joint_position
+
+  def __eq__(self, other: JointConfiguration) -> bool:
+    return self.joint_position == other.joint_position
 
 
 class JointConfigurations:
@@ -573,13 +580,47 @@ class JointConfigurations:
   JointConfigurations has named motion targets as attributes which are created
   after the creation.
 
-  Attributes:
-    joint_configuration_name: A JointConfiguration.
+  You can use dir() to get the names of known configurations. You can access
+  configurations as attributes or as items.
+
+  The class supports dict-like behavior (contains check, iteration, as well as
+  item, key, and value access).
   """
 
-  def __init__(self, joint_motion_targets: Dict[str, JointConfiguration]):
-    for name, target in joint_motion_targets.items():
-      setattr(self, name, target)
+  _joint_motion_targets: dict[str, JointConfiguration]
+
+  def __init__(self, joint_motion_targets: dict[str, JointConfiguration]):
+    self._joint_motion_targets = joint_motion_targets
+
+  def __dir__(self) -> list[str]:
+    return list(self._joint_motion_targets.keys())
+
+  def __getitem__(self, joint_config_name: str) -> JointConfiguration:
+    if joint_config_name not in self._joint_motion_targets:
+      raise KeyError(f'Joint configuration {joint_config_name} is unknown')
+    return self._joint_motion_targets[joint_config_name]
+
+  def __getattr__(self, joint_config_name: str) -> JointConfiguration:
+    if joint_config_name not in self._joint_motion_targets:
+      raise AttributeError(
+          f'Joint configuration {joint_config_name} is unknown'
+      )
+    return self._joint_motion_targets[joint_config_name]
+
+  def __contains__(self, joint_config_name: str) -> bool:
+    return joint_config_name in self._joint_motion_targets
+
+  def __iter__(self) -> Iterator[str]:
+    return iter(self._joint_motion_targets)
+
+  def keys(self) -> KeysView[str]:
+    return self._joint_motion_targets.keys()
+
+  def values(self) -> ValuesView[JointConfiguration]:
+    return self._joint_motion_targets.values()
+
+  def items(self) -> ItemsView[str, JointConfiguration]:
+    return self._joint_motion_targets.items()
 
 
 class KinematicObject(WorldObject):

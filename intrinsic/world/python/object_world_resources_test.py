@@ -1,5 +1,6 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
+from typing import KeysView, ValuesView, ItemsView
 from unittest import mock
 
 import grpc  # pylint: disable=unused-import
@@ -1260,6 +1261,125 @@ class RobotConfigurationsTest(absltest.TestCase):
     )
     self.assertEqual(
         my_robot_motion_targets.my_motion_target.joint_position, [1.0, 2.0, 3.0]
+    )
+
+  def test_has_motion_target_item(self):
+    my_robot_motion_targets = object_world_resources.JointConfigurations({
+        'my_motion_target': object_world_resources.JointConfiguration(
+            [1.0, 2.0, 3.0]
+        )
+    })
+
+    self.assertIsInstance(
+        my_robot_motion_targets['my_motion_target'],
+        object_world_resources.JointConfiguration,
+    )
+    self.assertEqual(
+        my_robot_motion_targets['my_motion_target'].joint_position,
+        [1.0, 2.0, 3.0],
+    )
+
+  def test_dir(self):
+    my_robot_motion_targets = object_world_resources.JointConfigurations({
+        'my_motion_target': object_world_resources.JointConfiguration(
+            [1.0, 2.0, 3.0]
+        ),
+        'other_target': object_world_resources.JointConfiguration(
+            [6.0, 5.0, 4.0]
+        ),
+    })
+
+    self.assertEqual(
+        dir(my_robot_motion_targets), ['my_motion_target', 'other_target']
+    )
+
+  def test_contains(self):
+    my_robot_motion_targets = object_world_resources.JointConfigurations({
+        'my_motion_target': object_world_resources.JointConfiguration(
+            [1.0, 2.0, 3.0]
+        ),
+    })
+
+    self.assertIn('my_motion_target', my_robot_motion_targets)
+    self.assertNotIn('unknown', my_robot_motion_targets)
+
+  def test_iter(self):
+    my_robot_motion_targets = object_world_resources.JointConfigurations({
+        'my_motion_target': object_world_resources.JointConfiguration(
+            [1.0, 2.0, 3.0]
+        ),
+        'other_target': object_world_resources.JointConfiguration(
+            [6.0, 5.0, 4.0]
+        ),
+    })
+
+    configs = []
+    for name in my_robot_motion_targets:
+      configs.append(name)
+
+    self.assertEqual(sorted(configs), ['my_motion_target', 'other_target'])
+
+  def test_keys(self):
+    my_robot_motion_targets = object_world_resources.JointConfigurations({
+        'my_motion_target': object_world_resources.JointConfiguration(
+            [1.0, 2.0, 3.0]
+        ),
+        'other_target': object_world_resources.JointConfiguration(
+            [6.0, 5.0, 4.0]
+        ),
+    })
+
+    self.assertIsInstance(my_robot_motion_targets.keys(), KeysView)
+
+    self.assertEqual(
+        sorted(my_robot_motion_targets.keys()),
+        ['my_motion_target', 'other_target'],
+    )
+
+  def test_values(self):
+    my_robot_motion_targets = object_world_resources.JointConfigurations({
+        'my_motion_target': object_world_resources.JointConfiguration(
+            [1.0, 2.0, 3.0]
+        ),
+        'other_target': object_world_resources.JointConfiguration(
+            [6.0, 5.0, 4.0]
+        ),
+    })
+
+    self.assertIsInstance(my_robot_motion_targets.values(), ValuesView)
+
+    values = list(my_robot_motion_targets.values())
+    self.assertEqual(
+        values,
+        [
+            object_world_resources.JointConfiguration([1.0, 2.0, 3.0]),
+            object_world_resources.JointConfiguration([6.0, 5.0, 4.0]),
+        ],
+    )
+
+  def test_items(self):
+    my_robot_motion_targets = object_world_resources.JointConfigurations({
+        'my_motion_target': object_world_resources.JointConfiguration(
+            [1.0, 2.0, 3.0]
+        ),
+        'other_target': object_world_resources.JointConfiguration(
+            [6.0, 5.0, 4.0]
+        ),
+    })
+
+    self.assertIsInstance(my_robot_motion_targets.items(), ItemsView)
+
+    items = {name: value for name, value in my_robot_motion_targets.items()}
+    self.assertEqual(
+        items,
+        {
+            'my_motion_target': object_world_resources.JointConfiguration(
+                [1.0, 2.0, 3.0]
+            ),
+            'other_target': object_world_resources.JointConfiguration(
+                [6.0, 5.0, 4.0]
+            ),
+        },
     )
 
 
