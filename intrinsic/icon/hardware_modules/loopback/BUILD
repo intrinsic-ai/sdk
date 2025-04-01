@@ -11,7 +11,6 @@ package(default_visibility = ["//visibility:public"])
 proto_library(
     name = "loopback_config_proto",
     srcs = ["loopback_config.proto"],
-    deps = ["@com_google_protobuf//:duration_proto"],
 )
 
 cc_proto_library(
@@ -53,7 +52,6 @@ cc_library(
         "//intrinsic/icon/utils:realtime_status_macro",
         "//intrinsic/icon/utils:time",
         "//intrinsic/math:gaussian_noise",
-        "//intrinsic/util:proto_time",
         "//intrinsic/util/status:status_macros",
         "//intrinsic/util/thread",
         "//intrinsic/util/thread:thread_options",

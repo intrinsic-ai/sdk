@@ -36,7 +36,6 @@
 #include "intrinsic/icon/utils/realtime_status.h"
 #include "intrinsic/icon/utils/realtime_status_macro.h"
 #include "intrinsic/math/gaussian_noise.h"
-#include "intrinsic/util/proto_time.h"
 #include "intrinsic/util/status/status_macros.h"
 #include "intrinsic/util/thread/rt_thread.h"
 #include "intrinsic/util/thread/thread.h"
@@ -154,15 +153,8 @@ absl::Status LoopbackHardwareModule::Init(
     LOG(INFO) << "ICON is driving the loopback hardware module clock.";
   } else {
     LOG(INFO) << "The loopback hardware module is driving ICON's clock.";
-    if (auto control_period_from_module_config = config.GetControlPeriod();
-        !absl::IsNotFound(control_period_from_module_config.status())) {
-      INTR_RETURN_IF_ERROR(control_period_from_module_config.status());
-      cycle_duration_ = control_period_from_module_config.value();
-    } else {
-      INTR_ASSIGN_OR_RETURN(
-          cycle_duration_,
-          intrinsic::ToAbslDuration(loopback_config.cycle_duration()));
-    }
+
+    INTR_ASSIGN_OR_RETURN(cycle_duration_, config.GetControlPeriod());
 
     intrinsic::ThreadOptions thread_options = config.GetIconThreadOptions();
     thread_options.SetName("LoopbackHardwareModuleThread");
