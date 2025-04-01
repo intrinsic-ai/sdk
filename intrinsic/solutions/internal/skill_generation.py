@@ -493,7 +493,6 @@ def _gen_init_fun(
     # can actually access the protected method.
     GeneratedSkill.__init__(self)
     self._resources: ResourceMap = {}
-    self._plan_params: dict[str, str] = {}
     params_set = self._set_params(**kwargs)  # pylint: disable=protected-access
     resource_set = self._set_resources(**kwargs)  # pylint: disable=protected-access
     return_value_key_set = self._set_return_value_key(**kwargs)  # pylint: disable=protected-access
@@ -702,7 +701,6 @@ class GeneratedSkill(provided.SkillBase):
 
     self._resources: ResourceMap = {}
     self._param_message: message.Message = None
-    self._plan_params: dict[str, str] = {}
     self._blackboard_params: dict[str, Any] = {}
     self._return_value_key = (
         self._info.skill_name + "_" + str(uuid.uuid4()).replace("-", "_")
@@ -929,9 +927,6 @@ class GeneratedSkill(provided.SkillBase):
       )
 
     return proto
-
-  def set_plan_param(self, param_name: str, param_value: str) -> None:
-    self._plan_params[param_name] = param_value
 
   def __repr__(self) -> str:
     params = []

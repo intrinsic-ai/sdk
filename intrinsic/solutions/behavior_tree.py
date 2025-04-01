@@ -990,10 +990,6 @@ class Condition(abc.ABC):
       return SubTreeCondition._create_from_proto(proto_object.behavior_tree)
     elif condition_type == 'blackboard':
       return Blackboard._create_from_proto(proto_object.blackboard)
-    elif condition_type == 'domain_formula':
-      raise NotImplementedError(
-          'DomainFormular conditions are not yet supported.'
-      )
     elif condition_type == 'all_of':
       return AllOf._create_from_proto(proto_object.all_of)
     elif condition_type == 'any_of':

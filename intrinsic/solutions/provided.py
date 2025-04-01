@@ -299,25 +299,6 @@ class SkillBase(actions.ActionBase):
     ...
 
   @abc.abstractmethod
-  def set_plan_param(self, param_name: str, param_value: str) -> None:
-    """Sets planning-specific parameter for skill.
-
-    This sets planning specific parameters based on operators associated with
-    this skill. Consider the following operator
-    (:action pick-up
-     :parameters (?b - block)
-     ...)
-
-    Here you can set the parameter ?b (pass "b" as param_name) to the name of
-    an object of type block.
-
-    Args:
-      param_name: name of operator parameter (see domain operators)
-      param_value: symbol to be set as value (see domain objects)
-    """
-    ...
-
-  @abc.abstractmethod
   def __repr__(self) -> str:
     """Converts SkillBase to Python (pseudocode) representation."""
     ...

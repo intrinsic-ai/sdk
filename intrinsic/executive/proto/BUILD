@@ -114,27 +114,6 @@ go_grpc_library(
     ],
 )
 
-# domain
-proto_library(
-    name = "domain_proto",
-    srcs = ["domain.proto"],
-)
-
-py_proto_library(
-    name = "domain_py_pb2",
-    deps = [":domain_proto"],
-)
-
-cc_proto_library(
-    name = "domain_cc_proto",
-    deps = [":domain_proto"],
-)
-
-go_proto_library(
-    name = "domain_go_proto",
-    deps = [":domain_proto"],
-)
-
 # executive_service
 proto_library(
     name = "executive_service_proto",
@@ -385,7 +364,6 @@ proto_library(
         ":any_with_assignments_proto",
         ":behavior_call_proto",
         ":code_execution_proto",
-        ":domain_proto",
         ":executive_execution_mode_proto",
         "//intrinsic/skills/proto:skills_proto",
         "//intrinsic/util/status:extended_status_proto",
@@ -411,7 +389,6 @@ go_proto_library(
         ":any_with_assignments_go_proto",
         ":behavior_call_go_proto",
         ":code_execution_go_proto",
-        ":domain_go_proto",
         ":executive_execution_mode_go_proto",
         "//intrinsic/skills/proto:skills_go_proto",
         "//intrinsic/util/status:extended_status_go_proto",
