@@ -29,6 +29,11 @@ bzl_library(
 )
 
 bzl_library(
+    name = "python_paths_aspect_bzl",
+    srcs = ["python_paths_aspect.bzl"],
+)
+
+bzl_library(
     name = "label",
     srcs = ["label.bzl"],
 )
