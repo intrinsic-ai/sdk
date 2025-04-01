@@ -40,31 +40,6 @@ py_proto_library(
 )
 
 proto_library(
-    name = "service_proto",
-    srcs = ["service.proto"],
-    deps = [
-        ":joint_space_proto",
-        ":logging_mode_proto",
-        ":part_status_proto",
-        ":safety_status_proto",
-        ":streaming_output_proto",
-        ":types_proto",
-        "//intrinsic/logging/proto:context_proto",
-        "//intrinsic/world/proto:robot_payload_proto",
-        "@com_google_googleapis//google/rpc:status_proto",
-        "@com_google_protobuf//:any_proto",
-        "@com_google_protobuf//:duration_proto",
-        "@com_google_protobuf//:empty_proto",
-        "@com_google_protobuf//:timestamp_proto",
-    ],
-)
-
-cc_proto_library(
-    name = "service_cc_proto",
-    deps = [":service_proto"],
-)
-
-proto_library(
     name = "generic_part_config_proto",
     srcs = ["generic_part_config.proto"],
     deps = [
