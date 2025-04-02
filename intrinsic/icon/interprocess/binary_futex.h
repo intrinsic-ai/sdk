@@ -165,13 +165,12 @@ class BinaryFutex {
   // Real-time safe.
   uint32_t Value() const;
 
-  // Marks this BinaryFutex as closed. Any subsequent calls to `Post()`,
+  // Marks this BinaryFutex as closed and stops all blocking operations.
+  //
+  // Wakes all waiters, so all ongoing calls to `WaitUntil()` or `WaitFor()`
+  // will immediately return AbortedError.  Any subsequent calls to `Post()`,
   // `TryWait()`, `WaitFor()` or `WaitUntil()` will *immediately* return
   // AbortedError (or, in `TryWait()`'s case, `false`).
-  //
-  // Like `Post()`, this wakes up to one waiting thread, so if there is an
-  // ongoing call to `WaitUntil()` or `WaitFor()`, that call will end and return
-  // AbortedError.
   void Close();
 
  private:

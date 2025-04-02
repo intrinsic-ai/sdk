@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 
 #include <cstdint>
+#include <memory>
 #include <random>
 
 #include "absl/strings/str_cat.h"
@@ -204,6 +205,43 @@ TEST_F(AsyncBufferTest, ReturnValueSemantics) {
   ASSERT_TRUE(async.GetActiveBuffer(&other_buffer));
   ASSERT_NE(active_buffer, other_buffer);
   ASSERT_NE(other_buffer, nullptr);
+}
+
+TEST(AsyncBufferSimpleTest, GetLatest) {
+  AsyncBuffer<int> buffer;
+  int* free_buffer = buffer.GetFreeBuffer();
+  EXPECT_NE(free_buffer, nullptr);
+  *free_buffer = 2;
+  buffer.CommitFreeBuffer();
+  int* active_buffer = nullptr;
+  EXPECT_TRUE(buffer.GetActiveBuffer(&active_buffer));
+  EXPECT_EQ(*active_buffer, 2);
+}
+
+TEST(AsyncBufferSimpleTest, GetLatestAfterMultipleWrites) {
+  AsyncBuffer<int> buffer;
+  int* free_buffer = buffer.GetFreeBuffer();
+  EXPECT_NE(free_buffer, nullptr);
+  *free_buffer = 2;
+  buffer.CommitFreeBuffer();
+  free_buffer = buffer.GetFreeBuffer();
+  EXPECT_NE(free_buffer, nullptr);
+  *free_buffer = 3;
+  buffer.CommitFreeBuffer();
+  int* active_buffer = nullptr;
+  EXPECT_TRUE(buffer.GetActiveBuffer(&active_buffer));
+  EXPECT_EQ(*active_buffer, 3);
+}
+
+TEST(AsyncBufferSimpleTest, EmptyReadsDefaultValue) {
+  struct TestStruct {
+    int value = 2;
+  };
+  AsyncBuffer<TestStruct> buffer;
+  TestStruct* result = nullptr;
+  EXPECT_FALSE(buffer.GetActiveBuffer(&result));
+  EXPECT_NE(result, nullptr);
+  EXPECT_EQ(result->value, 2);
 }
 
 }  // namespace

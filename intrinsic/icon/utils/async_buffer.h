@@ -195,9 +195,10 @@ template <typename T>
 inline bool AsyncBuffer<T>::GetActiveBuffer(T** buffer) {
   using async_buffer_internal::kStateLookupTable;
 
-  uint8_t cur_state = raw_state_.load();
-  uint8_t next_state = 0;
+  uint8_t cur_state;
+  uint8_t next_state;
   do {
+    cur_state = raw_state_.load();
     next_state = kStateLookupTable[cur_state].get_active;
   } while (!raw_state_.compare_exchange_strong(cur_state, next_state));
 
@@ -213,9 +214,10 @@ inline bool AsyncBuffer<T>::CommitFreeBuffer() {
     return false;
   }
 
-  uint8_t cur_state = raw_state_.load();
-  uint8_t next_state = 0;
+  uint8_t cur_state;
+  uint8_t next_state;
   do {
+    cur_state = raw_state_.load();
     next_state = kStateLookupTable[cur_state].commit_free;
   } while (!raw_state_.compare_exchange_strong(cur_state, next_state));
 
