@@ -355,9 +355,9 @@ message UniformGeometricConstraintIntersection {
 
 message GeometricConstraint {
   oneof constraint {
+    intrinsic_proto.icon.JointVec joint_position = 13;
     JointPositionLimits joint_position_limits = 1;
     PositionEquality position_equality = 2;
-    JointPositionEquality joint_position_equality = 3;
     RotationEquality rotation_equality = 6;
     RotationCone rotation_cone = 7;
     PoseEquality pose_equality = 8;
@@ -366,6 +366,10 @@ message GeometricConstraint {
     PointAt point_at = 12;
     ConstraintIntersection constraint_intersection = 10;
   }
+
+  // Deprecated fields.
+  reserved "joint_position_equality";
+  reserved 3;
 }
 
 message UniformGeometricConstraint {
