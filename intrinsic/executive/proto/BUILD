@@ -15,8 +15,9 @@ proto_library(
     name = "behavior_call_proto",
     srcs = ["behavior_call.proto"],
     deps = [
-        ":annotations_proto",
         "//intrinsic/skills/proto:footprint_proto",
+        "@com_google_googleapis//google/api:annotations_proto",
+        "@com_google_googleapis//google/api:field_behavior_proto",
         "@com_google_protobuf//:any_proto",
         "@com_google_protobuf//:duration_proto",
     ],
@@ -35,7 +36,7 @@ cc_proto_library(
 go_proto_library(
     name = "behavior_call_go_proto",
     go_deps = [
-        ":annotations_go_proto",
+        "@org_golang_google_genproto_googleapis_api//annotations",
         "//intrinsic/skills/proto:footprint_go_proto",
     ],
     deps = [":behavior_call_proto"],
@@ -332,34 +333,11 @@ go_proto_library(
     deps = [":log_items_proto"],
 )
 
-# annotations
-proto_library(
-    name = "annotations_proto",
-    srcs = ["annotations.proto"],
-    deps = ["@com_google_protobuf//:descriptor_proto"],
-)
-
-cc_proto_library(
-    name = "annotations_cc_proto",
-    deps = [":annotations_proto"],
-)
-
-py_proto_library(
-    name = "annotations_py_pb2",
-    deps = [":annotations_proto"],
-)
-
-go_proto_library(
-    name = "annotations_go_proto",
-    deps = [":annotations_proto"],
-)
-
 # behavior tree
 proto_library(
     name = "behavior_tree_proto",
     srcs = ["behavior_tree.proto"],
     deps = [
-        ":annotations_proto",
         ":any_list_proto",
         ":any_with_assignments_proto",
         ":behavior_call_proto",
@@ -367,6 +345,8 @@ proto_library(
         ":executive_execution_mode_proto",
         "//intrinsic/skills/proto:skills_proto",
         "//intrinsic/util/status:extended_status_proto",
+        "@com_google_googleapis//google/api:annotations_proto",
+        "@com_google_googleapis//google/api:field_behavior_proto",
         "@com_google_protobuf//:any_proto",
     ],
 )
@@ -384,12 +364,12 @@ py_proto_library(
 go_proto_library(
     name = "behavior_tree_go_proto",
     go_deps = [
-        ":annotations_go_proto",
         ":any_list_go_proto",
         ":any_with_assignments_go_proto",
         ":behavior_call_go_proto",
         ":code_execution_go_proto",
         ":executive_execution_mode_go_proto",
+        "@org_golang_google_genproto_googleapis_api//annotations",
         "//intrinsic/skills/proto:skills_go_proto",
         "//intrinsic/util/status:extended_status_go_proto",
     ],

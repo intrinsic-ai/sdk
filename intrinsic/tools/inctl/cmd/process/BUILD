@@ -13,7 +13,6 @@ go_library(
     ],
     deps = [
         "//intrinsic/executive/go:behaviortree",
-        "//intrinsic/executive/proto:annotations_go_proto",
         "//intrinsic/executive/proto:behavior_tree_go_proto",
         "//intrinsic/executive/proto:executive_service_go_grpc_proto",
         "//intrinsic/executive/proto:run_metadata_go_proto",
@@ -31,6 +30,7 @@ go_library(
         "@com_github_spf13_viper//:go_default_library",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
+        "@org_golang_google_genproto_googleapis_api//annotations",
         "@org_golang_google_grpc//:go_default_library",
         "@org_golang_google_protobuf//encoding/prototext:go_default_library",
         "@org_golang_google_protobuf//proto",

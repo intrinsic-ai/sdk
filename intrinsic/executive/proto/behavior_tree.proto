@@ -4,8 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.executive;
 
+import "google/api/field_behavior.proto";
 import "google/protobuf/any.proto";
-import "intrinsic/executive/proto/annotations.proto";
 import "intrinsic/executive/proto/any_list.proto";
 import "intrinsic/executive/proto/any_with_assignments.proto";
 import "intrinsic/executive/proto/behavior_call.proto";
@@ -111,12 +111,12 @@ message BehaviorTree {
 
     // This is only set by the executive on retrieval. It is ignored when
     // uploading a tree.
-    optional State state = 7 [(output_only) = true];
+    optional State state = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
 
     // This is only set by the executive and ignored when loading a tree. The
     // field is set if and only if the state is FINISHED and reflects the
     // outcome of the evaluation of this condition.
-    optional bool satisfied = 8 [(output_only) = true];
+    optional bool satisfied = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
   }
 
   // Children in the sequence will be executed in the given order.
@@ -179,7 +179,7 @@ message BehaviorTree {
   message RetryNode {
     Node child = 1;
     uint32 max_tries = 2;
-    optional uint32 num_tries = 3 [(output_only) = true];
+    optional uint32 num_tries = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
     string retry_counter_blackboard_key = 4;
     Node recovery = 5;
   }
@@ -267,7 +267,7 @@ message BehaviorTree {
     // Maximum number of iterations to perform. This cannot be set in the case
     // of a for_each loop.
     optional uint32 max_times = 3;
-    optional uint32 num_times = 4 [(output_only) = true];
+    optional uint32 num_times = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
     string loop_counter_blackboard_key = 5;
   }
 
@@ -296,7 +296,7 @@ message BehaviorTree {
 
     // This is only set by the executive on retrieval. It is ignored when
     // uploading a tree.
-    optional State state = 1 [(output_only) = true];
+    optional State state = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
 
     oneof task_type {
       // Call a skill or Parameterizable Behavior Tree.
@@ -309,7 +309,8 @@ message BehaviorTree {
     // parameterizable behavior tree.
     // This is only set by the executive on retrieval. It is an error when
     // uploading a tree.
-    optional BehaviorTree called_tree_state = 4 [(output_only) = true];
+    optional BehaviorTree called_tree_state = 4
+        [(google.api.field_behavior) = OUTPUT_ONLY];
 
     reserved "call_skill";
     reserved 2;
@@ -514,8 +515,9 @@ message BehaviorTree {
 
     // This is only set on retrieval by the executive. It is ignored when
     // uploading a tree.
-    optional State state = 13 [(output_only) = true];
-    optional FailureReason failure_reason = 14 [(output_only) = true];
+    optional State state = 13 [(google.api.field_behavior) = OUTPUT_ONLY];
+    optional FailureReason failure_reason = 14
+        [(google.api.field_behavior) = OUTPUT_ONLY];
 
     // An optional (display) name for the node.
     optional string name = 15;
@@ -609,11 +611,12 @@ message BehaviorTree {
 
   // The blackboard scope that any blackboard key in this behavior tree is in.
   // This is an output only field.
-  optional string blackboard_scope = 8 [(output_only) = true];
+  optional string blackboard_scope = 8
+      [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // This is only set on retrieval by the executive. It is ignored when
   // uploading a tree.
-  optional State state = 7 [(output_only) = true];
+  optional State state = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   intrinsic_proto.skills.Skill description = 4;
   string return_value_expression = 5;

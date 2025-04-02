@@ -17,12 +17,12 @@ import (
 
 	lrpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	"github.com/pkg/errors"
+	fbpb "google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
-	apb "intrinsic/executive/proto/annotations_go_proto"
 	btpb "intrinsic/executive/proto/behavior_tree_go_proto"
 	execgrpcpb "intrinsic/executive/proto/executive_service_go_grpc_proto"
 	exsvcpb "intrinsic/executive/proto/executive_service_go_grpc_proto"
@@ -96,10 +96,13 @@ func clearTree(m proto.Message, clearTreeID bool, clearNodeIDs bool) error {
 			continue
 		}
 		options := field.Options().(*descriptorpb.FieldOptions)
-		outputOnly := proto.GetExtension(options, apb.E_OutputOnly).(bool)
-
-		if outputOnly {
-			refl.Clear(field)
+		if proto.HasExtension(options, fbpb.E_FieldBehavior) {
+			behaviors := proto.GetExtension(options, fbpb.E_FieldBehavior).([]fbpb.FieldBehavior)
+			for _, behavior := range behaviors {
+				if behavior == fbpb.FieldBehavior_OUTPUT_ONLY {
+					refl.Clear(field)
+				}
+			}
 		}
 
 		if field.Kind() == protoreflect.MessageKind {
