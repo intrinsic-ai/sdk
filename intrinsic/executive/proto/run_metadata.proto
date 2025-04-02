@@ -32,7 +32,8 @@ message RunMetadata {
   }
 
   oneof state_type {
-    BehaviorTree.State behavior_tree_state = 10;
+    // Use the operation_state for a canonical state of the operation.
+    BehaviorTree.State behavior_tree_state = 10 [deprecated = true];
   }
 
   string world_id = 19;
