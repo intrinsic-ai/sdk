@@ -14,7 +14,7 @@
 #include "absl/strings/str_join.h"
 #include "absl/strings/string_view.h"
 #include "absl/types/span.h"
-#include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 
 namespace intrinsic {
 namespace icon {
@@ -22,7 +22,7 @@ namespace {
 
 struct Content {
   struct Entry {
-    intrinsic_proto::icon::ActionSignature signature;
+    intrinsic_proto::icon::v1::ActionSignature signature;
     std::optional<std::vector<std::string>> parts;
   };
 
@@ -50,7 +50,7 @@ std::string GrammaticalJoin(const absl::Span<std::string> strings,
 
 std::string DisplayEntryMarkdown(const Content::Entry& entry) {
   std::string out;
-  const intrinsic_proto::icon::ActionSignature& signature = entry.signature;
+  const intrinsic_proto::icon::v1::ActionSignature& signature = entry.signature;
   absl::StrAppend(&out, "## ", signature.action_type_name(), "\n\n");
 
   const bool has_fixed_parameters =
@@ -106,8 +106,8 @@ std::string DisplayEntryMarkdown(const Content::Entry& entry) {
 
   if (has_streaming_input) {
     absl::StrAppend(&out, "\n### Streaming Inputs\n\n");
-    for (const intrinsic_proto::icon::ActionSignature::ParameterInfo& param :
-         signature.streaming_input_infos()) {
+    for (const intrinsic_proto::icon::v1::ActionSignature::ParameterInfo&
+             param : signature.streaming_input_infos()) {
       absl::StrAppend(&out, "#### ", param.parameter_name(), "\n");
       absl::StrAppend(&out, param.text_description(), "\n");
     }
@@ -123,7 +123,7 @@ std::string DisplayEntryMarkdown(const Content::Entry& entry) {
 
   if (has_realtime_signals) {
     absl::StrAppend(&out, "\n### Realtime Signals\n\n");
-    for (const intrinsic_proto::icon::ActionSignature::RealtimeSignalInfo&
+    for (const intrinsic_proto::icon::v1::ActionSignature::RealtimeSignalInfo&
              param : signature.realtime_signal_infos()) {
       absl::StrAppend(&out, "#### ", param.signal_name(), "\n");
       absl::StrAppend(&out, param.text_description(), "\n");
@@ -132,19 +132,19 @@ std::string DisplayEntryMarkdown(const Content::Entry& entry) {
 
   if (has_state_variables) {
     absl::StrAppend(&out, "\n### State Variables\n\n");
-    for (const intrinsic_proto::icon::ActionSignature::StateVariableInfo&
+    for (const intrinsic_proto::icon::v1::ActionSignature::StateVariableInfo&
              state_var : signature.state_variable_infos()) {
       absl::StrAppend(&out, "#### ", state_var.state_variable_name(), " ");
       switch (state_var.type()) {
-        case intrinsic_proto::icon::ActionSignature::StateVariableInfo::
+        case intrinsic_proto::icon::v1::ActionSignature::StateVariableInfo::
             TYPE_DOUBLE:
           absl::StrAppend(&out, "(double)\n");
           break;
-        case intrinsic_proto::icon::ActionSignature::StateVariableInfo::
+        case intrinsic_proto::icon::v1::ActionSignature::StateVariableInfo::
             TYPE_INT64:
           absl::StrAppend(&out, "(int64)\n");
           break;
-        case intrinsic_proto::icon::ActionSignature::StateVariableInfo::
+        case intrinsic_proto::icon::v1::ActionSignature::StateVariableInfo::
             TYPE_BOOL:
           absl::StrAppend(&out, "(bool)\n");
           break;
@@ -191,27 +191,27 @@ Book: /_book.yaml
 }  // namespace
 
 std::string GenerateActionNames(
-    absl::Span<const intrinsic_proto::icon::ActionSignature> signatures) {
+    absl::Span<const intrinsic_proto::icon::v1::ActionSignature> signatures) {
   std::vector<std::string> entry_strings;
   std::transform(signatures.begin(), signatures.end(),
                  std::back_inserter(entry_strings),
-                 [](const intrinsic_proto::icon::ActionSignature& signature)
+                 [](const intrinsic_proto::icon::v1::ActionSignature& signature)
                      -> std::string { return signature.action_type_name(); });
   return absl::StrCat(absl::StrJoin(entry_strings, "\n"), "\n");
 }
 
 absl::StatusOr<std::string> GenerateSingleActionDocumentation(
-    const intrinsic_proto::icon::ActionSignature& signature) {
+    const intrinsic_proto::icon::v1::ActionSignature& signature) {
   return GenerateDocumentation({signature}, {}, false, true);
 }
 
 absl::StatusOr<std::string> GenerateDocumentation(
-    absl::Span<const intrinsic_proto::icon::ActionSignature> signatures) {
+    absl::Span<const intrinsic_proto::icon::v1::ActionSignature> signatures) {
   return GenerateDocumentation(signatures, {});
 }
 
 absl::StatusOr<std::string> GenerateDocumentation(
-    absl::Span<const intrinsic_proto::icon::ActionSignature> signatures,
+    absl::Span<const intrinsic_proto::icon::v1::ActionSignature> signatures,
     absl::Span<const std::vector<std::string>> compatible_parts,
     bool with_toc_header, bool with_devsite_header) {
   if (signatures.empty()) {
@@ -225,7 +225,7 @@ absl::StatusOr<std::string> GenerateDocumentation(
 
   Content content;
   for (int i = 0; i < signatures.size(); ++i) {
-    const intrinsic_proto::icon::ActionSignature& signature = signatures[i];
+    const intrinsic_proto::icon::v1::ActionSignature& signature = signatures[i];
     Content::Entry entry;
     entry.signature = signature;
     if (!compatible_parts.empty()) {

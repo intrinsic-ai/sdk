@@ -28,7 +28,7 @@
 #include "intrinsic/icon/control/c_api/wrappers/streaming_io_wrapper.h"
 #include "intrinsic/icon/control/c_api/wrappers/string_wrapper.h"
 #include "intrinsic/icon/control/streaming_io_types.h"
-#include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 #include "intrinsic/icon/utils/realtime_status_or.h"
 
 namespace intrinsic::icon {
@@ -41,7 +41,7 @@ namespace intrinsic::icon {
 class IconStreamingIoRegistryFake {
  public:
   explicit IconStreamingIoRegistryFake(
-      const ::intrinsic_proto::icon::ActionSignature& signature)
+      const ::intrinsic_proto::icon::v1::ActionSignature& signature)
       : signature_(signature) {}
 
   IconStreamingIoAccess MakeIconStreamingIoAccess();
@@ -336,7 +336,7 @@ class IconStreamingIoRegistryFake {
   // member variables.
   static XfaIconStreamingIoRealtimeAccessVtable GetCApiVtable();
 
-  const ::intrinsic_proto::icon::ActionSignature signature_;
+  const ::intrinsic_proto::icon::v1::ActionSignature signature_;
   absl::flat_hash_map<StreamingInputId, InputParser>
       streaming_input_parser_map_;
   absl::flat_hash_map<std::string, StreamingInputId> input_name_to_id_;

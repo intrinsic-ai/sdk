@@ -4,12 +4,12 @@ syntax = "proto3";
 
 package intrinsic_proto.icon;
 
-import "intrinsic/icon/control/parts/hal/hal_part_config.proto";
+import "intrinsic/icon/control/parts/hal/v1/hal_part_config.proto";
 
 message HalLinearGripperPartConfig {
   // Interfaces for linear gripper.
-  intrinsic_proto.icon.HardwareInterface status_interface = 1;
-  intrinsic_proto.icon.HardwareInterface command_interface = 2;
+  intrinsic_proto.icon.v1.HardwareInterface status_interface = 1;
+  intrinsic_proto.icon.v1.HardwareInterface command_interface = 2;
 
   // These are REQUIRED fields (with optional set so we can presence test them).
   optional double default_grasp_width = 4;

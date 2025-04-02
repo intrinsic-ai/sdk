@@ -13,7 +13,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "intrinsic/icon/cc_client/client.h"
-#include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 #include "intrinsic/icon/release/portable/init_xfa.h"
 #include "intrinsic/icon/tools/generate_documentation.h"
 #include "intrinsic/util/grpc/channel.h"
@@ -96,7 +96,7 @@ absl::StatusOr<std::string> Run(
   INTR_ASSIGN_OR_RETURN(auto icon_channel, Channel::Make(connection_params));
   Client icon_client(icon_channel);
   INTR_ASSIGN_OR_RETURN(
-      std::vector<intrinsic_proto::icon::ActionSignature> signatures,
+      std::vector<intrinsic_proto::icon::v1::ActionSignature> signatures,
       icon_client.ListActionSignatures());
   if (signatures.empty()) {
     return "(No actions available)\n";
@@ -107,7 +107,8 @@ absl::StatusOr<std::string> Run(
   }
 
   std::vector<std::vector<std::string>> actions_compatible_parts;
-  for (const intrinsic_proto::icon::ActionSignature& signature : signatures) {
+  for (const intrinsic_proto::icon::v1::ActionSignature& signature :
+       signatures) {
     std::vector<std::string> compatible_parts;
     if (auto status_or_parts =
             icon_client.ListCompatibleParts({signature.action_type_name()});

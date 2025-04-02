@@ -14,8 +14,8 @@
 #include "absl/strings/string_view.h"
 #include "google/protobuf/any.pb.h"
 #include "intrinsic/icon/proto/generic_part_config.pb.h"
-#include "intrinsic/icon/proto/types.pb.h"
 #include "intrinsic/icon/proto/v1/service.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 #include "intrinsic/util/status/status_macros.h"
 
 namespace intrinsic {
@@ -51,7 +51,7 @@ class RobotConfig {
       absl::string_view part_name) const;
 
   // Obtains the list of feature interfaces implemented by part `part_name`.
-  absl::StatusOr<std::vector<intrinsic_proto::icon::FeatureInterfaceTypes>>
+  absl::StatusOr<std::vector<intrinsic_proto::icon::v1::FeatureInterfaceTypes>>
   GetPartFeatureInterfaces(absl::string_view part_name) const;
 
   // Returns the hardware resource name for the part with name `part_name`. The
@@ -68,7 +68,7 @@ class RobotConfig {
   std::string_view GetServerName() const;
 
  private:
-  absl::StatusOr<intrinsic_proto::icon::PartConfig> FindPartConfig(
+  absl::StatusOr<intrinsic_proto::icon::v1::PartConfig> FindPartConfig(
       absl::string_view part_name) const;
 
   intrinsic_proto::icon::v1::GetConfigResponse config_proto_;

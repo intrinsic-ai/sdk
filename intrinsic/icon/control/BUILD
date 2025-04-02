@@ -34,7 +34,7 @@ cc_library(
     name = "slot_types",
     hdrs = ["slot_types.h"],
     deps = [
-        "//intrinsic/icon/proto:types_cc_proto",
+        "//intrinsic/icon/proto/v1:types_cc_proto",
         "//intrinsic/production/external/intops:strong_int",
     ],
 )

@@ -9,8 +9,8 @@ from intrinsic.icon.proto import joint_space_pb2
 from intrinsic.icon.proto import matrix_pb2
 from intrinsic.icon.proto import part_status_pb2
 from intrinsic.icon.proto import streaming_output_pb2
-from intrinsic.icon.proto import types_pb2
 from intrinsic.icon.proto.v1 import service_pb2
+from intrinsic.icon.proto.v1 import types_pb2
 from absl.testing import absltest
 # pylint: enable=unused-import
 

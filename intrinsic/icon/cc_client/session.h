@@ -31,9 +31,9 @@
 #include "intrinsic/icon/common/slot_part_map.h"
 #include "intrinsic/icon/proto/joint_space.pb.h"
 #include "intrinsic/icon/proto/streaming_output.pb.h"
-#include "intrinsic/icon/proto/types.pb.h"
 #include "intrinsic/icon/proto/v1/service.grpc.pb.h"
 #include "intrinsic/icon/proto/v1/service.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 #include "intrinsic/icon/release/source_location.h"
 #include "intrinsic/logging/proto/context.pb.h"
 #include "intrinsic/platform/common/buffers/realtime_write_queue.h"
@@ -127,7 +127,7 @@ class ReactionDescriptor {
   // Creates a reaction from `reaction_descriptor`, applied to the action
   // identified by `action_id` or as a free-standing reaction if `action_id` is
   // not set.
-  static intrinsic_proto::icon::Reaction ToProto(
+  static intrinsic_proto::icon::v1::Reaction ToProto(
       const ReactionDescriptor& reaction_descriptor, ReactionId reaction_id,
       const std::optional<ActionInstanceId>& action_id);
 

@@ -10,7 +10,7 @@ from typing import Iterable, Mapping, Optional, Union
 
 from google.protobuf import any_pb2
 from google.protobuf import message as _message
-from intrinsic.icon.proto import types_pb2
+from intrinsic.icon.proto.v1 import types_pb2
 from intrinsic.icon.python import reactions as _reactions
 
 

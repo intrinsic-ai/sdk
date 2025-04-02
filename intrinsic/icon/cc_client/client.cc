@@ -21,9 +21,9 @@
 #include "intrinsic/icon/common/part_properties.h"
 #include "intrinsic/icon/common/slot_part_map.h"
 #include "intrinsic/icon/control/logging_mode.h"
-#include "intrinsic/icon/proto/types.pb.h"
 #include "intrinsic/icon/proto/v1/service.grpc.pb.h"
 #include "intrinsic/icon/proto/v1/service.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 #include "intrinsic/icon/release/grpc_time_support.h"
 #include "intrinsic/util/grpc/channel_interface.h"
 #include "intrinsic/util/proto_time.h"
@@ -49,7 +49,7 @@ Client::Client(
       timeout_(kClientDefaultTimeout),
       client_context_factory_(std::move(client_context_factory)) {}
 
-absl::StatusOr<intrinsic_proto::icon::ActionSignature>
+absl::StatusOr<intrinsic_proto::icon::v1::ActionSignature>
 Client::GetActionSignatureByName(absl::string_view action_type_name) const {
   std::unique_ptr<::grpc::ClientContext> context = client_context_factory_();
   context->set_deadline(::grpc::DeadlineFromDuration(timeout_));
@@ -138,7 +138,7 @@ absl::StatusOr<bool> Client::IsActionCompatible(
   return response.is_compatible();
 }
 
-absl::StatusOr<std::vector<intrinsic_proto::icon::ActionSignature>>
+absl::StatusOr<std::vector<intrinsic_proto::icon::v1::ActionSignature>>
 Client::ListActionSignatures() const {
   std::unique_ptr<::grpc::ClientContext> context = client_context_factory_();
   context->set_deadline(::grpc::DeadlineFromDuration(timeout_));
@@ -146,12 +146,12 @@ Client::ListActionSignatures() const {
   intrinsic_proto::icon::v1::ListActionSignaturesResponse response;
   INTR_RETURN_IF_ERROR(ToAbslStatus(
       stub_->ListActionSignatures(context.get(), request, &response)));
-  std::vector<intrinsic_proto::icon::ActionSignature> out(
+  std::vector<intrinsic_proto::icon::v1::ActionSignature> out(
       response.action_signatures().begin(), response.action_signatures().end());
   std::sort(
       out.begin(), out.end(),
-      [](const intrinsic_proto::icon::ActionSignature& a,
-         const intrinsic_proto::icon::ActionSignature& b) {
+      [](const intrinsic_proto::icon::v1::ActionSignature& a,
+         const intrinsic_proto::icon::v1::ActionSignature& b) {
         if ((&a != &b) && (a.action_type_name() == b.action_type_name())) {
           LOG(WARNING) << "Server returned duplicate action type name \""
                        << a.action_type_name() << "\"";

@@ -5,6 +5,7 @@ load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = [
+    "//intrinsic/icon/control/parts/hal:__subpackages__",
     "//visibility:public",
 ])
 

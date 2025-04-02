@@ -10,7 +10,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
-#include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 
 namespace intrinsic::icon {
 
@@ -54,7 +54,7 @@ bool IsFaulted(const OperationalStatus& status) {
 }
 
 std::string ToString(OperationalState state) {
-  return intrinsic_proto::icon::OperationalState_Name(ToProto(state));
+  return intrinsic_proto::icon::v1::OperationalState_Name(ToProto(state));
 }
 
 std::string ToString(const OperationalStatus& status) {
@@ -72,34 +72,34 @@ std::ostream& operator<<(std::ostream& os, const OperationalStatus& status) {
   return os << ToString(status);
 }
 
-intrinsic_proto::icon::OperationalState ToProto(OperationalState state) {
+intrinsic_proto::icon::v1::OperationalState ToProto(OperationalState state) {
   switch (state) {
     case OperationalState::kDisabled:
-      return intrinsic_proto::icon::OperationalState::DISABLED;
+      return intrinsic_proto::icon::v1::OperationalState::DISABLED;
     case OperationalState::kFaulted:
-      return intrinsic_proto::icon::OperationalState::FAULTED;
+      return intrinsic_proto::icon::v1::OperationalState::FAULTED;
     case OperationalState::kEnabled:
-      return intrinsic_proto::icon::OperationalState::ENABLED;
+      return intrinsic_proto::icon::v1::OperationalState::ENABLED;
   }
-  return intrinsic_proto::icon::OperationalState::UNKNOWN;
+  return intrinsic_proto::icon::v1::OperationalState::UNKNOWN;
 }
 
-intrinsic_proto::icon::OperationalStatus ToProto(
+intrinsic_proto::icon::v1::OperationalStatus ToProto(
     const OperationalStatus& status) {
-  intrinsic_proto::icon::OperationalStatus out;
+  intrinsic_proto::icon::v1::OperationalStatus out;
   out.set_state(ToProto(status.state()));
   out.set_fault_reason(status.fault_reason());
   return out;
 }
 
 absl::StatusOr<OperationalState> FromProto(
-    const intrinsic_proto::icon::OperationalState& proto) {
+    const intrinsic_proto::icon::v1::OperationalState& proto) {
   switch (proto) {
-    case intrinsic_proto::icon::OperationalState::DISABLED:
+    case intrinsic_proto::icon::v1::OperationalState::DISABLED:
       return OperationalState::kDisabled;
-    case intrinsic_proto::icon::OperationalState::FAULTED:
+    case intrinsic_proto::icon::v1::OperationalState::FAULTED:
       return OperationalState::kFaulted;
-    case intrinsic_proto::icon::OperationalState::ENABLED:
+    case intrinsic_proto::icon::v1::OperationalState::ENABLED:
       return OperationalState::kEnabled;
     default:
       return absl::InvalidArgumentError(absl::StrCat(
@@ -108,20 +108,20 @@ absl::StatusOr<OperationalState> FromProto(
 }
 
 absl::StatusOr<OperationalStatus> FromProto(
-    const intrinsic_proto::icon::OperationalStatus& proto) {
+    const intrinsic_proto::icon::v1::OperationalStatus& proto) {
   if (!proto.fault_reason().empty() &&
-      proto.state() != intrinsic_proto::icon::OperationalState::FAULTED) {
+      proto.state() != intrinsic_proto::icon::v1::OperationalState::FAULTED) {
     return absl::InvalidArgumentError(
         absl::StrCat("Invalid proto::OperationalStatus: fault_reason is "
                      "non-empty but state is not FAULTED: proto=",
                      proto));
   }
   switch (proto.state()) {
-    case intrinsic_proto::icon::OperationalState::DISABLED:
+    case intrinsic_proto::icon::v1::OperationalState::DISABLED:
       return OperationalStatus::Disabled();
-    case intrinsic_proto::icon::OperationalState::FAULTED:
+    case intrinsic_proto::icon::v1::OperationalState::FAULTED:
       return OperationalStatus::Faulted(proto.fault_reason());
-    case intrinsic_proto::icon::OperationalState::ENABLED:
+    case intrinsic_proto::icon::v1::OperationalState::ENABLED:
       return OperationalStatus::Enabled();
     default:
       return absl::InvalidArgumentError(absl::StrCat(

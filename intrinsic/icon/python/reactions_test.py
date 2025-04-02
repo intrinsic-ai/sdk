@@ -4,7 +4,7 @@ import threading
 from unittest import mock
 
 from absl.testing import absltest
-from intrinsic.icon.proto import types_pb2
+from intrinsic.icon.proto.v1 import types_pb2
 from intrinsic.icon.python import reactions
 
 

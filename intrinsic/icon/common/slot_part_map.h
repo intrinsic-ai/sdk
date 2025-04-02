@@ -7,7 +7,7 @@
 
 #include "absl/container/btree_map.h"
 #include "absl/container/flat_hash_map.h"
-#include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 
 namespace intrinsic::icon {
 
@@ -18,8 +18,8 @@ namespace intrinsic::icon {
 using SlotPartMap = absl::btree_map<std::string, std::string>;
 
 SlotPartMap SlotPartMapFromProto(
-    const intrinsic_proto::icon::SlotPartMap& proto);
-intrinsic_proto::icon::SlotPartMap ToProto(const SlotPartMap& part_map);
+    const intrinsic_proto::icon::v1::SlotPartMap& proto);
+intrinsic_proto::icon::v1::SlotPartMap ToProto(const SlotPartMap& part_map);
 
 }  // namespace intrinsic::icon
 

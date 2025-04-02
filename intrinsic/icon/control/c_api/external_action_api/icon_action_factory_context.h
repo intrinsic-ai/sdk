@@ -17,7 +17,7 @@
 #include "intrinsic/icon/control/realtime_signal_types.h"
 #include "intrinsic/icon/control/slot_types.h"
 #include "intrinsic/icon/control/streaming_io_types.h"
-#include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 #include "intrinsic/util/status/status_macros.h"
 
 namespace intrinsic::icon {
@@ -37,7 +37,7 @@ class IconActionFactoryContext {
             std::move(icon_action_factory_context_vtable)) {}
 
   // Returns the ServerConfig for the server this context belongs to.
-  intrinsic_proto::icon::ServerConfig ServerConfig() const;
+  intrinsic_proto::icon::v1::ServerConfig ServerConfig() const;
 
   // Returns a SlotInfo object for the given `slot_name`.
   // Use this to

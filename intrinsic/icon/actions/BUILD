@@ -13,7 +13,7 @@ cc_library(
     srcs = ["action_utils.cc"],
     hdrs = ["action_utils.h"],
     deps = [
-        "//intrinsic/icon/proto:types_cc_proto",
+        "//intrinsic/icon/proto/v1:types_cc_proto",
         "//intrinsic/icon/release:source_location",
         "//intrinsic/util/proto:descriptors",
         "@com_google_absl//absl/container:flat_hash_set",

@@ -19,7 +19,7 @@
 #include "intrinsic/icon/control/c_api/convert_c_types.h"
 #include "intrinsic/icon/control/joint_position_command.h"
 #include "intrinsic/icon/proto/generic_part_config.pb.h"
-#include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 #include "intrinsic/icon/utils/realtime_status.h"
 #include "intrinsic/icon/utils/realtime_status_or.h"
 #include "intrinsic/kinematics/types/joint_limits.h"
@@ -31,11 +31,11 @@
 namespace intrinsic::icon {
 
 // static
-absl::StatusOr<::intrinsic_proto::icon::PartConfig>
+absl::StatusOr<::intrinsic_proto::icon::v1::PartConfig>
 LoopbackFakeArm::GetPartConfig(absl::string_view name,
                                std::optional<JointLimits> application_limits,
                                std::optional<JointLimits> system_limits) {
-  ::intrinsic_proto::icon::PartConfig config;
+  ::intrinsic_proto::icon::v1::PartConfig config;
   config.set_name(std::string(name));
   config.set_part_type_name("loopback_fake_arm");
   ::intrinsic_proto::icon::GenericPartConfig* generic_config =

@@ -2,12 +2,12 @@
 
 #include "intrinsic/icon/common/slot_part_map.h"
 
-#include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 
 namespace intrinsic::icon {
 
 SlotPartMap SlotPartMapFromProto(
-    const intrinsic_proto::icon::SlotPartMap& proto) {
+    const intrinsic_proto::icon::v1::SlotPartMap& proto) {
   SlotPartMap map;
 
   for (const auto& [slot_name, part_name] : proto.slot_name_to_part_name()) {
@@ -17,8 +17,8 @@ SlotPartMap SlotPartMapFromProto(
   return map;
 }
 
-intrinsic_proto::icon::SlotPartMap ToProto(const SlotPartMap& part_map) {
-  intrinsic_proto::icon::SlotPartMap proto;
+intrinsic_proto::icon::v1::SlotPartMap ToProto(const SlotPartMap& part_map) {
+  intrinsic_proto::icon::v1::SlotPartMap proto;
   for (const auto& [slot_name, part_name] : part_map) {
     proto.mutable_slot_name_to_part_name()->insert({slot_name, part_name});
   }

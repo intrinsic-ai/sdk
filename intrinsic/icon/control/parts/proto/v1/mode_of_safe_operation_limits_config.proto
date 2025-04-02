@@ -2,7 +2,7 @@
 
 syntax = "proto3";
 
-package intrinsic_proto.icon;
+package intrinsic_proto.icon.v1;
 
 // This contains the individual configurations for limits under each necessary
 // ModeOfSafeOperation ( as defined in

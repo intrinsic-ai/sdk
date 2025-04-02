@@ -33,9 +33,9 @@
 #include "intrinsic/icon/common/slot_part_map.h"
 #include "intrinsic/icon/proto/concatenate_trajectory_protos.h"
 #include "intrinsic/icon/proto/joint_space.pb.h"
-#include "intrinsic/icon/proto/types.pb.h"
 #include "intrinsic/icon/proto/v1/service.grpc.pb.h"
 #include "intrinsic/icon/proto/v1/service.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 #include "intrinsic/icon/release/grpc_time_support.h"
 #include "intrinsic/icon/release/source_location.h"
 #include "intrinsic/logging/proto/context.pb.h"
@@ -202,15 +202,15 @@ ReactionDescriptor& ReactionDescriptor::WithRealtimeSignalOnCondition(
 }
 
 // static
-intrinsic_proto::icon::Reaction ReactionDescriptor::ToProto(
+intrinsic_proto::icon::v1::Reaction ReactionDescriptor::ToProto(
     const ReactionDescriptor& reaction_descriptor, ReactionId reaction_id,
     const std::optional<ActionInstanceId>& action_id) {
-  intrinsic_proto::icon::Reaction reaction;
+  intrinsic_proto::icon::v1::Reaction reaction;
   *reaction.mutable_condition() =
       ::intrinsic::icon::ToProto(reaction_descriptor.condition_);
   reaction.set_fire_once(reaction_descriptor.fire_once_);
   if (action_id.has_value()) {
-    ::intrinsic_proto::icon::Reaction_ActionAssociation action_association;
+    ::intrinsic_proto::icon::v1::Reaction_ActionAssociation action_association;
     action_association.set_action_instance_id(action_id->value());
     action_association.set_stop_associated_action(
         reaction_descriptor.stop_associated_action_);
@@ -351,7 +351,7 @@ absl::StatusOr<Action> Session::AddAction(
 }
 
 struct FillSlotData {
-  intrinsic_proto::icon::ActionInstance& action_instance_proto;
+  intrinsic_proto::icon::v1::ActionInstance& action_instance_proto;
   void operator()(const SlotPartMap& slot_part_map) {
     *action_instance_proto.mutable_slot_part_map() = ToProto(slot_part_map);
   }
@@ -379,7 +379,7 @@ absl::StatusOr<std::vector<Action>> Session::AddActions(
   intrinsic_proto::icon::v1::OpenSessionRequest request;
 
   for (const ActionDescriptor& action_descriptor : action_descriptors) {
-    intrinsic_proto::icon::ActionInstance* action_instance =
+    intrinsic_proto::icon::v1::ActionInstance* action_instance =
         request.mutable_add_actions_and_reactions()->add_action_instances();
     action_instance->set_action_type_name(action_descriptor.action_type_name_);
     action_instance->set_action_instance_id(

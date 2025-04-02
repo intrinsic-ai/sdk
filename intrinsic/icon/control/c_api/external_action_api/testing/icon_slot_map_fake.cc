@@ -16,7 +16,7 @@
 #include "intrinsic/icon/control/c_api/external_action_api/icon_realtime_slot_map.h"
 #include "intrinsic/icon/control/c_api/external_action_api/testing/loopback_fake_arm.h"
 #include "intrinsic/icon/control/slot_types.h"
-#include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 #include "intrinsic/kinematics/types/joint_limits.h"
 
 namespace intrinsic::icon {
@@ -44,7 +44,7 @@ absl::StatusOr<LoopbackFakeArm*> IconSlotMapFake::AddLoopbackFakeArmSlot(
   }
 
   RealtimeSlotId slot_id(next_slot_index_);
-  absl::StatusOr<::intrinsic_proto::icon::PartConfig> config =
+  absl::StatusOr<::intrinsic_proto::icon::v1::PartConfig> config =
       LoopbackFakeArm::GetPartConfig(absl::StrCat("fake_arm_", slot_id.value()),
                                      application_limits, system_limits);
   if (!config.ok()) {

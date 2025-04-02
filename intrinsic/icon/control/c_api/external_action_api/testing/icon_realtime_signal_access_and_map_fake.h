@@ -14,7 +14,7 @@
 #include "intrinsic/icon/control/c_api/c_realtime_signal_access.h"
 #include "intrinsic/icon/control/c_api/external_action_api/icon_realtime_signal_access.h"
 #include "intrinsic/icon/control/realtime_signal_types.h"
-#include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 #include "intrinsic/icon/utils/realtime_status_or.h"
 
 namespace intrinsic::icon {
@@ -22,7 +22,7 @@ namespace intrinsic::icon {
 class IconRealtimeSignalAccessAndMapFake {
  public:
   explicit IconRealtimeSignalAccessAndMapFake(
-      const ::intrinsic_proto::icon::ActionSignature& signature);
+      const ::intrinsic_proto::icon::v1::ActionSignature& signature);
 
   RealtimeStatusOr<SignalValue> ReadSignal(RealtimeSignalId id);
 
@@ -37,7 +37,7 @@ class IconRealtimeSignalAccessAndMapFake {
  private:
   static XfaIconRealtimeSignalAccessVtable GetCApiVtable();
 
-  const ::intrinsic_proto::icon::ActionSignature signature_;
+  const ::intrinsic_proto::icon::v1::ActionSignature signature_;
   std::unique_ptr<absl::FixedArray<SignalValue>> signal_ids_;
   absl::flat_hash_map<std::string, RealtimeSignalId> signal_id_map_;
 };

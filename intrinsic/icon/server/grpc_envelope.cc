@@ -32,9 +32,9 @@
 #include "grpcpp/support/sync_stream.h"
 #include "intrinsic/hardware/gpio/v1/gpio_service.grpc.pb.h"
 #include "intrinsic/hardware/gpio/v1/gpio_service.pb.h"
-#include "intrinsic/icon/proto/types.pb.h"
 #include "intrinsic/icon/proto/v1/service.grpc.pb.h"
 #include "intrinsic/icon/proto/v1/service.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 #include "intrinsic/icon/server/icon_api_service.h"
 #include "intrinsic/icon/utils/exit_code.h"
 #include "intrinsic/icon/utils/realtime_guard.h"
@@ -234,7 +234,7 @@ class GrpcEnvelope::WrapperService : public intrinsic::icon::IconApiService {
         envelope_.IconService();
     if (!icon_service.ok()) {
       response->mutable_operational_status()->set_state(
-          intrinsic_proto::icon::OperationalState::FAULTED);
+          intrinsic_proto::icon::v1::OperationalState::FAULTED);
       response->mutable_operational_status()->set_fault_reason(
           icon_service.status().ToString());
       return ToGrpcStatus(absl::OkStatus());

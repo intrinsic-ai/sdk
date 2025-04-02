@@ -4,7 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.icon;
 
-import "intrinsic/icon/control/parts/hal/hal_part_config.proto";
+import "intrinsic/icon/control/parts/hal/v1/hal_part_config.proto";
 import "intrinsic/icon/equipment/force_control_settings.proto";
 import "intrinsic/icon/proto/linear_joint_acceleration_filter_config.proto";
 
@@ -21,12 +21,12 @@ message HalForceTorqueSensorPartConfig {
     // are computed from the external joint torques. This requires that a proper
     // kinematics model is provided since the Jacobian is needed to compute
     // force and torque values.
-    intrinsic_proto.icon.HardwareInterface force_torque_state = 1;
-    intrinsic_proto.icon.HardwareInterface external_joint_torque_state = 15;
+    intrinsic_proto.icon.v1.HardwareInterface force_torque_state = 1;
+    intrinsic_proto.icon.v1.HardwareInterface external_joint_torque_state = 15;
   }
   // Must be provided if force_torque_state is provided. If not provided, taring
   // happens within this part instead of on the device.
-  optional intrinsic_proto.icon.HardwareInterface force_torque_command = 2;
+  optional intrinsic_proto.icon.v1.HardwareInterface force_torque_command = 2;
 
   // Used to find the correct robot_collection entity in the world. If this is
   // missing, the hardware_resource_name takes precedence.
@@ -39,11 +39,11 @@ message HalForceTorqueSensorPartConfig {
   // assumed attachment to any robot. In this case only force_torque_state,
   // force_torque_command and optionally num_acceptable_constant_readings are
   // used.
-  optional intrinsic_proto.icon.HardwareInterface joint_position_state = 4;
+  optional intrinsic_proto.icon.v1.HardwareInterface joint_position_state = 4;
 
   // Joint velocity data for arm to which FT sensor is attached to. This is only
   // required if `estimate_post_sensor_dynamic_load` is set true.
-  optional intrinsic_proto.icon.HardwareInterface joint_velocity_state = 5;
+  optional intrinsic_proto.icon.v1.HardwareInterface joint_velocity_state = 5;
 
   // Joint acceleration data for arm to which FT sensor is attached to. This is
   // only required if `estimate_post_sensor_dynamic_load` is set true. The joint
@@ -51,7 +51,7 @@ message HalForceTorqueSensorPartConfig {
   // linear filter is used which uses the position and velocity state
   // measurements.
   oneof joint_acceleration {
-    intrinsic_proto.icon.HardwareInterface joint_acceleration_state = 6;
+    intrinsic_proto.icon.v1.HardwareInterface joint_acceleration_state = 6;
     intrinsic_proto.icon.LinearJointAccelerationFilterConfig
         linear_joint_acceleration_filter_config = 7;
   }

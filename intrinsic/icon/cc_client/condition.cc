@@ -16,7 +16,7 @@
 #include "absl/strings/string_view.h"
 #include "absl/types/span.h"
 #include "google/protobuf/text_format.h"
-#include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 #include "intrinsic/util/status/status_macros.h"
 
 namespace intrinsic {
@@ -38,7 +38,7 @@ std::string ProtoToString(const google::protobuf::Message& message) {
 }  // namespace
 
 Comparison::Comparison(absl::string_view state_variable_name,
-                       intrinsic_proto::icon::Comparison::OpEnum operation,
+                       intrinsic_proto::icon::v1::Comparison::OpEnum operation,
                        ComparisonValue value, double max_abs_error)
     : state_variable_name_(state_variable_name),
       operation_(operation),
@@ -49,8 +49,8 @@ Comparison::Comparison(absl::string_view state_variable_name,
                        BooleanOperator operation, bool value)
     : state_variable_name_(state_variable_name),
       // Validity of static_cast is tested in condition_test.cc
-      operation_(
-          static_cast<intrinsic_proto::icon::Comparison::OpEnum>(operation)),
+      operation_(static_cast<intrinsic_proto::icon::v1::Comparison::OpEnum>(
+          operation)),
       value_(value),
       max_abs_error_(kDefaultMaxAbsError) {}
 
@@ -59,8 +59,8 @@ Comparison::Comparison(absl::string_view state_variable_name,
                        double max_abs_error)
     : state_variable_name_(state_variable_name),
       // Validity of static_cast is tested in condition_test.cc
-      operation_(
-          static_cast<intrinsic_proto::icon::Comparison::OpEnum>(operation)),
+      operation_(static_cast<intrinsic_proto::icon::v1::Comparison::OpEnum>(
+          operation)),
       value_(value),
       max_abs_error_(max_abs_error) {}
 
@@ -68,8 +68,8 @@ Comparison::Comparison(absl::string_view state_variable_name,
                        IntOperator operation, int64_t value)
     : state_variable_name_(state_variable_name),
       // Validity of static_cast is tested in condition_test.cc
-      operation_(
-          static_cast<intrinsic_proto::icon::Comparison::OpEnum>(operation)),
+      operation_(static_cast<intrinsic_proto::icon::v1::Comparison::OpEnum>(
+          operation)),
       value_(value),
       max_abs_error_(kDefaultMaxAbsError) {}
 
@@ -80,32 +80,32 @@ absl::string_view Comparison::state_variable_name() const {
 // static
 absl::StatusOr<Comparison> Comparison::Create(
     absl::string_view state_variable_name,
-    intrinsic_proto::icon::Comparison::OpEnum operation, ComparisonValue value,
-    double max_abs_error) {
+    intrinsic_proto::icon::v1::Comparison::OpEnum operation,
+    ComparisonValue value, double max_abs_error) {
   if (std::holds_alternative<bool>(value)) {
-    if (!(operation == intrinsic_proto::icon::Comparison::EQUAL ||
-          operation == intrinsic_proto::icon::Comparison::NOT_EQUAL)) {
+    if (!(operation == intrinsic_proto::icon::v1::Comparison::EQUAL ||
+          operation == intrinsic_proto::icon::v1::Comparison::NOT_EQUAL)) {
       return absl::InvalidArgumentError(absl::StrCat(
           "Cannot create Condition for state variable \"", state_variable_name,
           "\": boolean value is incompatible with operation \"",
-          intrinsic_proto::icon::Comparison_OpEnum_Name(operation), "\""));
+          intrinsic_proto::icon::v1::Comparison_OpEnum_Name(operation), "\""));
     }
   } else if (std::holds_alternative<double>(value)) {
-    if (operation == intrinsic_proto::icon::Comparison::EQUAL ||
-        operation == intrinsic_proto::icon::Comparison::NOT_EQUAL) {
+    if (operation == intrinsic_proto::icon::v1::Comparison::EQUAL ||
+        operation == intrinsic_proto::icon::v1::Comparison::NOT_EQUAL) {
       return absl::InvalidArgumentError(absl::StrCat(
           "Cannot create Condition for state variable \"", state_variable_name,
           "\": double value is incompatible with operation \"",
-          intrinsic_proto::icon::Comparison_OpEnum_Name(operation),
+          intrinsic_proto::icon::v1::Comparison_OpEnum_Name(operation),
           "\" Use Approx-Comparison."));
     }
   } else if (std::holds_alternative<int64_t>(value)) {
-    if (operation == intrinsic_proto::icon::Comparison::APPROX_EQUAL ||
-        operation == intrinsic_proto::icon::Comparison::APPROX_NOT_EQUAL) {
+    if (operation == intrinsic_proto::icon::v1::Comparison::APPROX_EQUAL ||
+        operation == intrinsic_proto::icon::v1::Comparison::APPROX_NOT_EQUAL) {
       return absl::InvalidArgumentError(absl::StrCat(
           "Cannot create Condition for state variable \"", state_variable_name,
           "\": integer value is incompatible with operation \"",
-          intrinsic_proto::icon::Comparison_OpEnum_Name(operation),
+          intrinsic_proto::icon::v1::Comparison_OpEnum_Name(operation),
           "\". Use Equal-Comparison."));
     }
   }
@@ -113,16 +113,16 @@ absl::StatusOr<Comparison> Comparison::Create(
 }
 
 absl::StatusOr<Comparison> FromProto(
-    const intrinsic_proto::icon::Comparison& proto) {
+    const intrinsic_proto::icon::v1::Comparison& proto) {
   ComparisonValue value;
   switch (proto.value_case()) {
-    case intrinsic_proto::icon::Comparison::kDoubleValue:
+    case intrinsic_proto::icon::v1::Comparison::kDoubleValue:
       value = proto.double_value();
       break;
-    case intrinsic_proto::icon::Comparison::kInt64Value:
+    case intrinsic_proto::icon::v1::Comparison::kInt64Value:
       value = proto.int64_value();
       break;
-    case intrinsic_proto::icon::Comparison::kBoolValue:
+    case intrinsic_proto::icon::v1::Comparison::kBoolValue:
       value = proto.bool_value();
       break;
     default:
@@ -135,8 +135,8 @@ absl::StatusOr<Comparison> FromProto(
                             value, proto.max_abs_error());
 }
 
-intrinsic_proto::icon::Comparison ToProto(const Comparison& condition) {
-  intrinsic_proto::icon::Comparison out;
+intrinsic_proto::icon::v1::Comparison ToProto(const Comparison& condition) {
+  intrinsic_proto::icon::v1::Comparison out;
 
   out.set_state_variable_name(std::string(condition.state_variable_name()));
   out.set_operation(condition.operation());
@@ -240,44 +240,44 @@ Comparison IsGreaterThan(absl::string_view state_variable_name, double value) {
 namespace {
 struct ToProtoVisitor {
   template <typename T>
-  intrinsic_proto::icon::Condition operator()(const T&);
+  intrinsic_proto::icon::v1::Condition operator()(const T&);
 };
 
 template <>
-intrinsic_proto::icon::Condition ToProtoVisitor::operator()(
+intrinsic_proto::icon::v1::Condition ToProtoVisitor::operator()(
     const Comparison& c) {
-  intrinsic_proto::icon::Condition result;
+  intrinsic_proto::icon::v1::Condition result;
   *result.mutable_comparison() = ToProto(c);
   return result;
 }
 
 template <>
-intrinsic_proto::icon::Condition ToProtoVisitor::operator()(
+intrinsic_proto::icon::v1::Condition ToProtoVisitor::operator()(
     const ConjunctionCondition& c) {
-  intrinsic_proto::icon::Condition result;
+  intrinsic_proto::icon::v1::Condition result;
   *result.mutable_conjunction_condition() = ToProto(c);
   return result;
 }
 
 template <>
-intrinsic_proto::icon::Condition ToProtoVisitor::operator()(
+intrinsic_proto::icon::v1::Condition ToProtoVisitor::operator()(
     const NegatedCondition& c) {
-  intrinsic_proto::icon::Condition result;
+  intrinsic_proto::icon::v1::Condition result;
   *result.mutable_negated_condition() = ToProto(c);
   return result;
 }
 }  // namespace
 
-intrinsic_proto::icon::Condition ToProto(const Condition& condition) {
+intrinsic_proto::icon::v1::Condition ToProto(const Condition& condition) {
   return std::visit(ToProtoVisitor(), condition);
 }
 
 absl::StatusOr<Condition> FromProto(
-    const intrinsic_proto::icon::Condition& proto) {
+    const intrinsic_proto::icon::v1::Condition& proto) {
   switch (proto.condition_case()) {
-    case (intrinsic_proto::icon::Condition::kComparison):
+    case (intrinsic_proto::icon::v1::Condition::kComparison):
       return FromProto(proto.comparison());
-    case (intrinsic_proto::icon::Condition::kConjunctionCondition):
+    case (intrinsic_proto::icon::v1::Condition::kConjunctionCondition):
       return FromProto(proto.conjunction_condition());
     default:
       return absl::InvalidArgumentError("Unhandled condition type.");
@@ -316,11 +316,11 @@ NegatedCondition& NegatedCondition::operator=(
   return *this;
 }
 
-intrinsic_proto::icon::ConjunctionCondition ToProto(
+intrinsic_proto::icon::v1::ConjunctionCondition ToProto(
     const ConjunctionCondition& condition) {
-  intrinsic_proto::icon::ConjunctionCondition result;
+  intrinsic_proto::icon::v1::ConjunctionCondition result;
   result.set_operation(
-      static_cast<intrinsic_proto::icon::ConjunctionCondition::OpEnum>(
+      static_cast<intrinsic_proto::icon::v1::ConjunctionCondition::OpEnum>(
           condition.GetOperation()));
   for (const auto& c : condition.GetConditions()) {
     *result.add_conditions() = ToProto(c);
@@ -329,7 +329,7 @@ intrinsic_proto::icon::ConjunctionCondition ToProto(
 }
 
 absl::StatusOr<ConjunctionCondition> FromProto(
-    const intrinsic_proto::icon::ConjunctionCondition& proto) {
+    const intrinsic_proto::icon::v1::ConjunctionCondition& proto) {
   std::vector<Condition> conditions;
   for (const auto& c : proto.conditions()) {
     INTR_ASSIGN_OR_RETURN(auto case_value, FromProto(c));
@@ -354,9 +354,9 @@ NegatedCondition Not(const Condition& condition) {
   return NegatedCondition(condition);
 }
 
-intrinsic_proto::icon::NegatedCondition ToProto(
+intrinsic_proto::icon::v1::NegatedCondition ToProto(
     const NegatedCondition& condition) {
-  intrinsic_proto::icon::NegatedCondition result;
+  intrinsic_proto::icon::v1::NegatedCondition result;
   *result.mutable_condition() = ToProto(condition.GetCondition());
   return result;
 }

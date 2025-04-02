@@ -4,7 +4,7 @@ syntax = "proto3";
 
 // This file defines message types used in the ICON Application Layer.
 
-package intrinsic_proto.icon;
+package intrinsic_proto.icon.v1;
 
 import "google/protobuf/any.proto";
 import "google/protobuf/descriptor.proto";

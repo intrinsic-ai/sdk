@@ -4,12 +4,13 @@ syntax = "proto3";
 
 package intrinsic_proto.icon;
 
-import "intrinsic/icon/control/parts/hal/hal_part_config.proto";
-import "intrinsic/icon/control/parts/proto/realtime_part_config.proto";
+import "intrinsic/icon/control/parts/hal/v1/hal_part_config.proto";
+import "intrinsic/icon/control/parts/proto/v1/realtime_part_config.proto";
 
 message RealtimeControlConfig {
   // List of parts supported by this RealtimeControlManager, keyed by part name.
-  map<string, intrinsic_proto.RealtimePartConfig> parts_by_name = 1;
+  map<string, intrinsic_proto.v1.RealtimePartConfig> parts_by_name = 1;
 
-  optional intrinsic_proto.icon.HardwareInterface safety_hardware_interface = 2;
+  optional intrinsic_proto.icon.v1.HardwareInterface safety_hardware_interface =
+      2;
 }

@@ -26,7 +26,7 @@
 #include "intrinsic/icon/control/joint_position_command.h"
 #include "intrinsic/icon/control/streaming_io_types.h"
 #include "intrinsic/icon/proto/generic_part_config.pb.h"
-#include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 #include "intrinsic/icon/utils/realtime_status.h"
 #include "intrinsic/icon/utils/realtime_status_or.h"
 #include "intrinsic/kinematics/types/joint_limits.h"
@@ -77,24 +77,25 @@ bool SineWavePluginAction::SolvedParams::IsValid(size_t ndof) const {
   return amplitudes.size() == ndof && frequencies.size() == ndof;
 }
 
-intrinsic_proto::icon::ActionSignature SineWavePluginAction::GetSignature() {
+intrinsic_proto::icon::v1::ActionSignature
+SineWavePluginAction::GetSignature() {
   ActionSignatureBuilder b(SineWavePluginAction::kName, "Waves a Sine!");
   (void)b.AddPartSlot(SineWavePluginAction::kSlotName, "an arm",
                       /*required_feature_interfaces=*/
                       {
-                          intrinsic_proto::icon::FeatureInterfaceTypes::
+                          intrinsic_proto::icon::v1::FeatureInterfaceTypes::
                               FEATURE_INTERFACE_JOINT_LIMITS,
-                          intrinsic_proto::icon::FeatureInterfaceTypes::
+                          intrinsic_proto::icon::v1::FeatureInterfaceTypes::
                               FEATURE_INTERFACE_JOINT_POSITION,
-                          intrinsic_proto::icon::FeatureInterfaceTypes::
+                          intrinsic_proto::icon::v1::FeatureInterfaceTypes::
                               FEATURE_INTERFACE_JOINT_POSITION_SENSOR,
                       });
   (void)b.SetFixedParametersType<SineWavePluginAction::ParameterProto>();
-  (void)b.AddStateVariable<
-      intrinsic_proto::icon::ActionSignature::StateVariableInfo::TYPE_DOUBLE>(
+  (void)b.AddStateVariable<intrinsic_proto::icon::v1::ActionSignature::
+                               StateVariableInfo::TYPE_DOUBLE>(
       kStateVariableTimeSinceStart, "seconds since the Action was started.");
-  (void)b.AddStateVariable<
-      intrinsic_proto::icon::ActionSignature::StateVariableInfo::TYPE_DOUBLE>(
+  (void)b.AddStateVariable<intrinsic_proto::icon::v1::ActionSignature::
+                               StateVariableInfo::TYPE_DOUBLE>(
       kStateVariableNumber,
       "reports the latest value received via the streaming input 'number'.");
   (void)b.AddStreamingInput<StreamingInputProto>(

@@ -22,17 +22,17 @@
 #include "intrinsic/icon/control/c_api/convert_c_types.h"
 #include "intrinsic/icon/control/c_api/external_action_api/icon_realtime_signal_access.h"
 #include "intrinsic/icon/control/realtime_signal_types.h"
-#include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 #include "intrinsic/icon/utils/realtime_status.h"
 #include "intrinsic/icon/utils/realtime_status_or.h"
 
 namespace intrinsic::icon {
 
 IconRealtimeSignalAccessAndMapFake::IconRealtimeSignalAccessAndMapFake(
-    const ::intrinsic_proto::icon::ActionSignature& signature)
+    const ::intrinsic_proto::icon::v1::ActionSignature& signature)
     : signature_(signature) {
   size_t next_index = 0;
-  for (const ::intrinsic_proto::icon::ActionSignature::RealtimeSignalInfo&
+  for (const ::intrinsic_proto::icon::v1::ActionSignature::RealtimeSignalInfo&
            signal_info : signature.realtime_signal_infos()) {
     auto [signal_id_it, inserted] =
         signal_id_map_.try_emplace(signal_info.signal_name());

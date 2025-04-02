@@ -10,7 +10,7 @@ package(default_visibility = [
 proto_library(
     name = "hal_laser_tracker_part_config_proto",
     srcs = ["hal_laser_tracker_part_config.proto"],
-    deps = ["//intrinsic/icon/control/parts/hal:hal_part_config_proto"],
+    deps = ["//intrinsic/icon/control/parts/hal/v1:hal_part_config_proto"],
 )
 
 cc_proto_library(

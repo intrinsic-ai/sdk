@@ -23,7 +23,7 @@
 #include "intrinsic/icon/control/c_api/external_action_api/sine_wave_action.pb.h"
 #include "intrinsic/icon/control/slot_types.h"
 #include "intrinsic/icon/control/streaming_io_types.h"
-#include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 #include "intrinsic/icon/utils/realtime_status.h"
 #include "intrinsic/icon/utils/realtime_status_or.h"
 #include "intrinsic/kinematics/types/joint_limits.h"
@@ -88,7 +88,7 @@ class SineWavePluginAction final : public IconActionInterface {
   //
   // INTRINSIC_ICON_REGISTER_ICON_ACTION_PLUGIN requires this function to work
   // (and will fail to compile if it is missing)!
-  static intrinsic_proto::icon::ActionSignature GetSignature();
+  static intrinsic_proto::icon::v1::ActionSignature GetSignature();
 
   // Creates an instance of SineWavePluginAction with the given `parameters`.
   // Uses `context` to

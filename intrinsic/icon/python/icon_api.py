@@ -14,9 +14,9 @@ import warnings
 
 import grpc
 from intrinsic.icon.proto import logging_mode_pb2
-from intrinsic.icon.proto import types_pb2
 from intrinsic.icon.proto.v1 import service_pb2
 from intrinsic.icon.proto.v1 import service_pb2_grpc
+from intrinsic.icon.proto.v1 import types_pb2
 from intrinsic.icon.python import _session
 from intrinsic.icon.python import actions
 from intrinsic.icon.python import errors

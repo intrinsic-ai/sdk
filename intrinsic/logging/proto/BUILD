@@ -62,7 +62,7 @@ go_proto_library(
         "//intrinsic/kinematics/proto:skeleton_go_proto",
         "//intrinsic/kinematics/types:joint_limits_go_proto",
         "//intrinsic/icon/proto:generic_part_config_go_proto",
-        "//intrinsic/icon/proto:types_go_proto",
+        "//intrinsic/icon/proto/v1:types_go_proto",
         "//intrinsic/math/proto:vector3_go_proto",
         "//intrinsic/icon/proto:part_status_go_proto",
         "//intrinsic/util/status:extended_status_go_proto",

@@ -17,7 +17,7 @@ extern "C" {
 // Plugins call this to register one or more Action types.
 // `action_type_name` and `action_signature_proto` are owned by the caller.
 // `action_signature_proto` is a serialized
-// intrinsic_proto::icon::ActionSignature proto.
+// intrinsic_proto::icon::v1::ActionSignature proto.
 //
 // Returns OkStatus on success.
 // Returns AlreadyExists if `action_type_name` is not unique (i.e. there is

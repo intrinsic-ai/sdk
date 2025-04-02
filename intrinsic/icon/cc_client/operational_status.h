@@ -10,7 +10,7 @@
 #include "absl/base/attributes.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
-#include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 
 namespace intrinsic::icon {
 
@@ -98,13 +98,13 @@ std::ostream& operator<<(std::ostream& os, OperationalState state);
 std::ostream& operator<<(std::ostream& os, const OperationalStatus& status);
 
 // These functions convert the types declared in this header to/from proto.
-intrinsic_proto::icon::OperationalState ToProto(OperationalState state);
-intrinsic_proto::icon::OperationalStatus ToProto(
+intrinsic_proto::icon::v1::OperationalState ToProto(OperationalState state);
+intrinsic_proto::icon::v1::OperationalStatus ToProto(
     const OperationalStatus& status);
 absl::StatusOr<OperationalState> FromProto(
-    const intrinsic_proto::icon::OperationalState& proto);
+    const intrinsic_proto::icon::v1::OperationalState& proto);
 absl::StatusOr<OperationalStatus> FromProto(
-    const intrinsic_proto::icon::OperationalStatus& proto);
+    const intrinsic_proto::icon::v1::OperationalStatus& proto);
 
 }  // namespace intrinsic::icon
 

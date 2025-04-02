@@ -11,8 +11,8 @@ from google.protobuf import empty_pb2
 from google.protobuf import timestamp_pb2
 import grpc
 from intrinsic.icon.proto import streaming_output_pb2
-from intrinsic.icon.proto import types_pb2
 from intrinsic.icon.proto.v1 import service_pb2
+from intrinsic.icon.proto.v1 import types_pb2
 from intrinsic.icon.python import _session
 from intrinsic.icon.python import actions as _actions
 from intrinsic.icon.python import errors

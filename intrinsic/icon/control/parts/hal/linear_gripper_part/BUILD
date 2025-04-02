@@ -12,14 +12,14 @@ proto_library(
     name = "hal_linear_gripper_part_config_proto",
     srcs = ["hal_linear_gripper_part_config.proto"],
     deps = [
-        "//intrinsic/icon/control/parts/hal:hal_part_config_proto",
+        "//intrinsic/icon/control/parts/hal/v1:hal_part_config_proto",
     ],
 )
 
 go_proto_library(
     name = "hal_linear_gripper_part_config_go_proto",
     go_deps = [
-        "//intrinsic/icon/control/parts/hal:hal_part_config_go_proto",
+        "//intrinsic/icon/control/parts/hal/v1:hal_part_config_go_proto",
     ],
     visibility = ["//visibility:private"],
     deps = [":hal_linear_gripper_part_config_proto"],

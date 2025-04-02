@@ -97,8 +97,8 @@ struct XfaIconStreamingOutputConverterFnInstance {
 
 struct XfaIconSlotInfo {
   uint64_t realtime_slot_id;
-  // Contains a serialized intrinsic_proto.icon.PartConfig proto message. Make
-  // sure to delete this using the corresponding
+  // Contains a serialized intrinsic_proto.icon.v1.PartConfig proto message.
+  // Make sure to delete this using the corresponding
   // XfaconActionFactoryContextVtable's `destroy_string` function.
   XfaIconString* part_config_buffer;
 };
@@ -108,9 +108,9 @@ struct XfaIconActionFactoryContext;
 struct XfaIconActionFactoryContextVtable {
   XfaIconStringDestroy destroy_string;
   // Returns a pointer to a string-serialized
-  // ::intrinsic_proto::icon::ServerConfig proto, and sets `proto_size_out` to
-  // indicate its size. Caller takes ownership of the returned pointer, but must
-  // only destroy it using `destroy_string`.
+  // ::intrinsic_proto::icon::v1::ServerConfig proto, and sets `proto_size_out`
+  // to indicate its size. Caller takes ownership of the returned pointer, but
+  // must only destroy it using `destroy_string`.
   XfaIconString* (*server_config)(const XfaIconActionFactoryContext* self);
   // Tries to find SlotInfo for `slot_name`, and writes it into `slot_info_out`
   // on success.

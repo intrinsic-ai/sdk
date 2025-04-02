@@ -13,7 +13,7 @@
 #include "absl/strings/string_view.h"
 #include "google/protobuf/descriptor.pb.h"
 #include "google/protobuf/message.h"
-#include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 #include "intrinsic/icon/release/source_location.h"
 #include "intrinsic/util/proto/descriptors.h"
 
@@ -113,7 +113,7 @@ class ActionSignatureBuilder {
   //
   // Returns AlreadyExistsError if another state variable with the same name has
   // already been registered with this builder.
-  template <intrinsic_proto::icon::ActionSignature::StateVariableInfo::Type
+  template <intrinsic_proto::icon::v1::ActionSignature::StateVariableInfo::Type
                 StateVariableType>
   absl::Status AddStateVariable(
       absl::string_view state_variable_name,
@@ -146,9 +146,9 @@ class ActionSignatureBuilder {
   // Returns AlreadyExistsError if `slot_name` is already taken.
   absl::Status AddPartSlot(
       absl::string_view slot_name, absl::string_view slot_description,
-      absl::flat_hash_set<intrinsic_proto::icon::FeatureInterfaceTypes>
+      absl::flat_hash_set<intrinsic_proto::icon::v1::FeatureInterfaceTypes>
           required_feature_interfaces,
-      absl::flat_hash_set<intrinsic_proto::icon::FeatureInterfaceTypes>
+      absl::flat_hash_set<intrinsic_proto::icon::v1::FeatureInterfaceTypes>
           optional_feature_interfaces = {},
       intrinsic::SourceLocation loc = intrinsic::SourceLocation::current());
 
@@ -162,7 +162,9 @@ class ActionSignatureBuilder {
       absl::string_view signal_name, absl::string_view signal_description,
       intrinsic::SourceLocation loc = intrinsic::SourceLocation::current());
 
-  intrinsic_proto::icon::ActionSignature Finish() const { return signature_; }
+  intrinsic_proto::icon::v1::ActionSignature Finish() const {
+    return signature_;
+  }
 
  private:
   static absl::Status SetFixedParametersTypeImpl(
@@ -170,9 +172,9 @@ class ActionSignatureBuilder {
       const google::protobuf::FileDescriptorSet&
           fixed_parameters_descriptor_set,
       intrinsic::SourceLocation loc,
-      intrinsic_proto::icon::ActionSignature& dest_signature);
+      intrinsic_proto::icon::v1::ActionSignature& dest_signature);
 
-  intrinsic_proto::icon::ActionSignature signature_;
+  intrinsic_proto::icon::v1::ActionSignature signature_;
   absl::flat_hash_set<std::string> fixed_param_names_;
   absl::flat_hash_set<std::string> streaming_input_names_;
   absl::flat_hash_set<std::string> state_variable_names_;

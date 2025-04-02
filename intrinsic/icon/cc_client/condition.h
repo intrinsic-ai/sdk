@@ -14,7 +14,7 @@
 #include "absl/strings/string_view.h"
 #include "absl/types/span.h"
 #include "absl/types/variant.h"
-#include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 
 namespace intrinsic {
 namespace icon {
@@ -49,7 +49,7 @@ class Comparison {
     kEqual = 1,
     kNotEqual = 2,
     // Skips index 3 and 4 to stay compatible with
-    // intrinsic/icon/proto/types.proto.
+    // intrinsic/icon/proto/v1/types.proto.
     kLessThanOrEqual = 5,
     kLessThan = 6,
     kGreaterThanOrEqual = 7,
@@ -59,7 +59,7 @@ class Comparison {
   // The set of comparison operations available for floating point conditions.
   enum class FloatOperator {
     // Skips index 1 and 2 to stay compatible with
-    // intrinsic/icon/proto/types.proto.
+    // intrinsic/icon/proto/v1/types.proto.
     kApproxEqual = 3,
     kApproxNotEqual = 4,
     kLessThanOrEqual = 5,
@@ -77,7 +77,7 @@ class Comparison {
   // anything other than EQUAL or NOT_EQUAL.
   static absl::StatusOr<Comparison> Create(
       absl::string_view state_variable_name,
-      intrinsic_proto::icon::Comparison::OpEnum operation,
+      intrinsic_proto::icon::v1::Comparison::OpEnum operation,
       ComparisonValue value, double max_abs_error = kDefaultMaxAbsError);
 
   // Constructs a Comparison between `state_variable_name` and `value`.
@@ -100,7 +100,7 @@ class Comparison {
   absl::string_view state_variable_name() const;
 
   // Gets the comparison operation to perform.
-  intrinsic_proto::icon::Comparison::OpEnum operation() const {
+  intrinsic_proto::icon::v1::Comparison::OpEnum operation() const {
     return operation_;
   }
 
@@ -122,12 +122,12 @@ class Comparison {
 
  private:
   Comparison(absl::string_view state_variable_name,
-             intrinsic_proto::icon::Comparison::OpEnum operation,
+             intrinsic_proto::icon::v1::Comparison::OpEnum operation,
              ComparisonValue value, double max_abs_error);
   // Name of state variable to use as first operand.
   std::string state_variable_name_;
   // Comparison operation to perform.
-  intrinsic_proto::icon::Comparison::OpEnum operation_;
+  intrinsic_proto::icon::v1::Comparison::OpEnum operation_;
   // Value to use as second operand.
   ComparisonValue value_;
   // Epsilon to use for approx comparisons.
@@ -208,10 +208,10 @@ Comparison IsGreaterThan(absl::string_view state_variable_name, double value);
 
 // Creates a Comparison from proto representation.
 absl::StatusOr<Comparison> FromProto(
-    const intrinsic_proto::icon::Comparison& proto);
+    const intrinsic_proto::icon::v1::Comparison& proto);
 
 // Converts a Comparison to proto representation.
-intrinsic_proto::icon::Comparison ToProto(const Comparison& condition);
+intrinsic_proto::icon::v1::Comparison ToProto(const Comparison& condition);
 
 class ConjunctionCondition;
 class NegatedCondition;
@@ -319,24 +319,24 @@ NegatedCondition Not(const Condition& condition);
 
 // Creates a ConjunctionCondition from proto representation.
 absl::StatusOr<ConjunctionCondition> FromProto(
-    const intrinsic_proto::icon::ConjunctionCondition& proto);
+    const intrinsic_proto::icon::v1::ConjunctionCondition& proto);
 
 // Converts a ConjunctionCondition to proto representation.
-intrinsic_proto::icon::ConjunctionCondition ToProto(
+intrinsic_proto::icon::v1::ConjunctionCondition ToProto(
     const ConjunctionCondition& condition);
 
-intrinsic_proto::icon::NegatedCondition ToProto(
+intrinsic_proto::icon::v1::NegatedCondition ToProto(
     const NegatedCondition& condition);
 
 // Creates a Condition from proto representation.
 absl::StatusOr<Condition> FromProto(
-    const intrinsic_proto::icon::Condition& proto);
+    const intrinsic_proto::icon::v1::Condition& proto);
 
 absl::StatusOr<NegatedCondition> FromProto(
-    const intrinsic_proto::icon::NegatedCondition& proto);
+    const intrinsic_proto::icon::v1::NegatedCondition& proto);
 
 // Converts a Condition to proto representation.
-intrinsic_proto::icon::Condition ToProto(const Condition& condition);
+intrinsic_proto::icon::v1::Condition ToProto(const Condition& condition);
 
 }  // namespace icon
 }  // namespace intrinsic

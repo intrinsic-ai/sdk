@@ -23,7 +23,7 @@ import "intrinsic/icon/proto/logging_mode.proto";
 import "intrinsic/icon/proto/part_status.proto";
 import "intrinsic/icon/proto/safety_status.proto";
 import "intrinsic/icon/proto/streaming_output.proto";
-import "intrinsic/icon/proto/types.proto";
+import "intrinsic/icon/proto/v1/types.proto";
 import "intrinsic/logging/proto/context.proto";
 import "intrinsic/world/proto/robot_payload.proto";
 

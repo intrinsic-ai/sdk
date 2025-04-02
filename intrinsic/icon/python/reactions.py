@@ -11,7 +11,7 @@ import dataclasses
 import datetime
 import threading
 from typing import Callable, Iterable, Optional, Sequence, Union
-from intrinsic.icon.proto import types_pb2
+from intrinsic.icon.proto.v1 import types_pb2
 from intrinsic.icon.python import errors
 ReactionCallback = Callable[
     [datetime.datetime, Optional[int], Optional[int]], None

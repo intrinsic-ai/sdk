@@ -4,8 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.icon;
 
-import "intrinsic/icon/control/parts/hal/hal_part_config.proto";
-import "intrinsic/icon/control/parts/proto/mode_of_safe_operation_limits_config.proto";
+import "intrinsic/icon/control/parts/hal/v1/hal_part_config.proto";
+import "intrinsic/icon/control/parts/proto/v1/mode_of_safe_operation_limits_config.proto";
 import "intrinsic/icon/proto/joint_position_pid_torque_controller_config.proto";
 import "intrinsic/icon/proto/linear_joint_acceleration_filter_config.proto";
 
@@ -14,25 +14,25 @@ import "intrinsic/icon/proto/linear_joint_acceleration_filter_config.proto";
 // interface.
 // Next ID: 26
 message HalArmPartConfig {
-  HardwareInterface joint_position_command = 1;
-  HardwareInterface joint_commanded_position = 25;
-  HardwareInterface joint_velocity_command = 2;
-  HardwareInterface joint_torque_command = 3;
-  HardwareInterface joint_position_state = 4;
-  HardwareInterface joint_velocity_state = 5;
-  HardwareInterface joint_acceleration_state = 6;
-  HardwareInterface joint_torque_state = 7;
-  HardwareInterface process_wrench_command = 18;
-  HardwareInterface hand_guiding_command = 19;
+  intrinsic_proto.icon.v1.HardwareInterface joint_position_command = 1;
+  intrinsic_proto.icon.v1.HardwareInterface joint_commanded_position = 25;
+  intrinsic_proto.icon.v1.HardwareInterface joint_velocity_command = 2;
+  intrinsic_proto.icon.v1.HardwareInterface joint_torque_command = 3;
+  intrinsic_proto.icon.v1.HardwareInterface joint_position_state = 4;
+  intrinsic_proto.icon.v1.HardwareInterface joint_velocity_state = 5;
+  intrinsic_proto.icon.v1.HardwareInterface joint_acceleration_state = 6;
+  intrinsic_proto.icon.v1.HardwareInterface joint_torque_state = 7;
+  intrinsic_proto.icon.v1.HardwareInterface process_wrench_command = 18;
+  intrinsic_proto.icon.v1.HardwareInterface hand_guiding_command = 19;
   // If present, then the control mode state feature interface will be available
   // and provide the current control mode of the arm.
-  HardwareInterface control_mode_state = 20;
-  HardwareInterface payload_command = 21;
+  intrinsic_proto.icon.v1.HardwareInterface control_mode_state = 20;
+  intrinsic_proto.icon.v1.HardwareInterface payload_command = 21;
   // `payload_state` requires a `payload_command` to be present.
   // `payload_command` can be used independently.
-  HardwareInterface payload_state = 22;
+  intrinsic_proto.icon.v1.HardwareInterface payload_state = 22;
   // The system limits are written to this hardware interface.
-  HardwareInterface joint_system_limits = 23;
+  intrinsic_proto.icon.v1.HardwareInterface joint_system_limits = 23;
 
   // If present, the kinematics model name needs to correspond to one of the
   // kinematics models available via KinematicsService. Which models are
@@ -78,7 +78,7 @@ message HalArmPartConfig {
   // Cartesian), which are to be used under specific modes of safe operation as
   // determined by the part SafetyStatus. Otherwise the limits determined from
   // the hardware interfaces will be used for all modes of operation.
-  optional ModeOfSafeOperationLimitsConfig
+  optional intrinsic_proto.icon.v1.ModeOfSafeOperationLimitsConfig
       mode_of_safe_operation_limits_config = 15;
 
   // If present, then the joint velocity state feature interface velocity

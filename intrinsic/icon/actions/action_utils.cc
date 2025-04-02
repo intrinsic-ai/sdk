@@ -11,7 +11,7 @@
 #include "absl/strings/str_join.h"
 #include "absl/strings/string_view.h"
 #include "google/protobuf/descriptor.pb.h"
-#include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 #include "intrinsic/icon/release/source_location.h"
 
 namespace intrinsic {
@@ -19,9 +19,11 @@ namespace icon {
 
 namespace {
 struct FeatureInterfaceNameFormatter {
-  void operator()(std::string* out,
-                  const intrinsic_proto::icon::FeatureInterfaceTypes& t) const {
-    absl::StrAppend(out, intrinsic_proto::icon::FeatureInterfaceTypes_Name(t));
+  void operator()(
+      std::string* out,
+      const intrinsic_proto::icon::v1::FeatureInterfaceTypes& t) const {
+    absl::StrAppend(out,
+                    intrinsic_proto::icon::v1::FeatureInterfaceTypes_Name(t));
   }
 };
 }  // namespace
@@ -30,7 +32,7 @@ absl::Status ActionSignatureBuilder::SetFixedParametersTypeImpl(
     absl::string_view fixed_parameters_message_type,
     const google::protobuf::FileDescriptorSet& fixed_parameters_descriptor_set,
     intrinsic::SourceLocation loc,
-    intrinsic_proto::icon::ActionSignature& dest_signature) {
+    intrinsic_proto::icon::v1::ActionSignature& dest_signature) {
   if (!dest_signature.fixed_parameters_message_type().empty()) {
     return absl::AlreadyExistsError(
         absl::StrCat(loc.file_name(), ":", loc.line(),
@@ -46,9 +48,9 @@ absl::Status ActionSignatureBuilder::SetFixedParametersTypeImpl(
 
 absl::Status ActionSignatureBuilder::AddPartSlot(
     absl::string_view slot_name, absl::string_view slot_description,
-    absl::flat_hash_set<intrinsic_proto::icon::FeatureInterfaceTypes>
+    absl::flat_hash_set<intrinsic_proto::icon::v1::FeatureInterfaceTypes>
         required_feature_interfaces,
-    absl::flat_hash_set<intrinsic_proto::icon::FeatureInterfaceTypes>
+    absl::flat_hash_set<intrinsic_proto::icon::v1::FeatureInterfaceTypes>
         optional_feature_interfaces,
     intrinsic::SourceLocation loc) {
   if (bool inserted = part_slot_names_.emplace(slot_name).second; !inserted) {
@@ -56,7 +58,7 @@ absl::Status ActionSignatureBuilder::AddPartSlot(
         absl::StrCat(loc.file_name(), ":", loc.line(),
                      " Duplicate Part Slot name \"", slot_name, "\""));
   }
-  absl::flat_hash_set<intrinsic_proto::icon::FeatureInterfaceTypes>
+  absl::flat_hash_set<intrinsic_proto::icon::v1::FeatureInterfaceTypes>
       feature_interfaces_intersection;
   for (const auto& interface : required_feature_interfaces) {
     if (optional_feature_interfaces.contains(interface)) {
@@ -72,7 +74,7 @@ absl::Status ActionSignatureBuilder::AddPartSlot(
         absl::StrJoin(feature_interfaces_intersection, ", ",
                       FeatureInterfaceNameFormatter())));
   }
-  intrinsic_proto::icon::ActionSignature::PartSlotInfo info;
+  intrinsic_proto::icon::v1::ActionSignature::PartSlotInfo info;
   info.set_description(std::string(slot_description));
   *(info.mutable_required_feature_interfaces()) = {
       required_feature_interfaces.begin(), required_feature_interfaces.end()};
@@ -91,7 +93,7 @@ absl::Status ActionSignatureBuilder::AddRealtimeSignal(
         absl::StrCat(loc.file_name(), ":", loc.line(),
                      " Duplicate Realtime Signal name \"", signal_name, "\""));
   }
-  intrinsic_proto::icon::ActionSignature::RealtimeSignalInfo* signal_info =
+  intrinsic_proto::icon::v1::ActionSignature::RealtimeSignalInfo* signal_info =
       signature_.add_realtime_signal_infos();
   signal_info->set_signal_name(signal_name);
   signal_info->set_text_description(std::string(signal_description));

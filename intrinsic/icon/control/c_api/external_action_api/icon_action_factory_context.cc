@@ -13,7 +13,7 @@
 #include "intrinsic/icon/control/c_api/wrappers/string_wrapper.h"
 #include "intrinsic/icon/control/realtime_signal_types.h"
 #include "intrinsic/icon/control/slot_types.h"
-#include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 #include "intrinsic/util/status/status_macros.h"
 
 namespace intrinsic::icon {
@@ -24,13 +24,13 @@ struct DestroyIconString {
 };
 }  // namespace
 
-intrinsic_proto::icon::ServerConfig IconActionFactoryContext::ServerConfig()
+intrinsic_proto::icon::v1::ServerConfig IconActionFactoryContext::ServerConfig()
     const {
   std::unique_ptr<XfaIconString, DestroyIconString> server_config_string(
       icon_action_factory_context_vtable_.server_config(
           icon_action_factory_context_),
       DestroyIconString{icon_action_factory_context_vtable_.destroy_string});
-  intrinsic_proto::icon::ServerConfig config_proto;
+  intrinsic_proto::icon::v1::ServerConfig config_proto;
   config_proto.ParseFromArray(server_config_string->data,
                               server_config_string->size);
   return config_proto;

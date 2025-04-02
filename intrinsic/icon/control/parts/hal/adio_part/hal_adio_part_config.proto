@@ -4,7 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.icon;
 
-import "intrinsic/icon/control/parts/hal/hal_part_config.proto";
+import "intrinsic/icon/control/parts/hal/v1/hal_part_config.proto";
 
 // Config used to create an `ADIOPart` providing access to the configured inputs
 // and outputs.
@@ -18,7 +18,7 @@ message HalADIOPartConfig {
   // A block is a logical group of inputs or outputs.
   message HalBlockConfig {
     // Uniquely identifies an interface.
-    intrinsic_proto.icon.HardwareInterface interface = 1;
+    intrinsic_proto.icon.v1.HardwareInterface interface = 1;
     //  `export_name` can be used to overwrite the name generated from
     //  `interface`.
     // Interface names need to be unique within a HalBlockConfig.

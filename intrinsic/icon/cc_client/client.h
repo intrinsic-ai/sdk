@@ -20,9 +20,9 @@
 #include "intrinsic/icon/common/slot_part_map.h"
 #include "intrinsic/icon/control/logging_mode.h"
 #include "intrinsic/icon/proto/part_status.pb.h"
-#include "intrinsic/icon/proto/types.pb.h"
 #include "intrinsic/icon/proto/v1/service.grpc.pb.h"
 #include "intrinsic/icon/proto/v1/service.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 #include "intrinsic/util/grpc/channel_interface.h"
 #include "intrinsic/world/robot_payload/robot_payload.h"
 
@@ -63,7 +63,7 @@ class Client {
   // Returns `NotFoundError` if the action type name is not found if the action
   // type name is not found.
   // Propagates gRPC communication errors.
-  absl::StatusOr<intrinsic_proto::icon::ActionSignature>
+  absl::StatusOr<intrinsic_proto::icon::v1::ActionSignature>
   GetActionSignatureByName(absl::string_view action_type_name) const;
 
   // Makes a request to the server to get part-specific config properties.
@@ -128,7 +128,7 @@ class Client {
 
   // Makes a request to the server to list all available Action Signatures. The
   // results are sorted by Action type name.
-  absl::StatusOr<std::vector<intrinsic_proto::icon::ActionSignature>>
+  absl::StatusOr<std::vector<intrinsic_proto::icon::v1::ActionSignature>>
   ListActionSignatures() const;
 
   // Makes a request to the server to list all parts that are compatible with

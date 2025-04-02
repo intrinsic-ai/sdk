@@ -5,6 +5,7 @@ load("@com_github_grpc_grpc//bazel:cc_grpc_library.bzl", "cc_grpc_library")
 load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library", "py_proto_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
+load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(
     default_visibility = [
@@ -16,12 +17,12 @@ proto_library(
     name = "service_proto",
     srcs = ["service.proto"],
     deps = [
+        ":types_proto",
         "//intrinsic/icon/proto:joint_space_proto",
         "//intrinsic/icon/proto:logging_mode_proto",
         "//intrinsic/icon/proto:part_status_proto",
         "//intrinsic/icon/proto:safety_status_proto",
         "//intrinsic/icon/proto:streaming_output_proto",
-        "//intrinsic/icon/proto:types_proto",
         "//intrinsic/logging/proto:context_proto",
         "//intrinsic/world/proto:robot_payload_proto",
         "@com_google_googleapis//google/rpc:status_proto",
@@ -55,4 +56,30 @@ py_grpc_library(
     srcs = [":service_proto"],
     grpc_library = requirement("grpcio"),
     deps = [":service_py_pb2"],
+)
+
+proto_library(
+    name = "types_proto",
+    srcs = ["types.proto"],
+    deps = [
+        "//intrinsic/icon/proto:generic_part_config_proto",
+        "@com_google_protobuf//:any_proto",
+        "@com_google_protobuf//:descriptor_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "types_cc_proto",
+    deps = [":types_proto"],
+)
+
+go_proto_library(
+    name = "types_go_proto",
+    go_deps = ["//intrinsic/icon/proto:generic_part_config_go_proto"],
+    deps = [":types_proto"],
+)
+
+py_proto_library(
+    name = "types_py_pb2",
+    deps = [":types_proto"],
 )

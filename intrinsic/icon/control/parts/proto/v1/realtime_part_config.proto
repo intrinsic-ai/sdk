@@ -2,7 +2,7 @@
 
 syntax = "proto3";
 
-package intrinsic_proto;
+package intrinsic_proto.v1;
 
 import "google/protobuf/any.proto";
 

@@ -19,8 +19,8 @@
 #include "intrinsic/icon/proto/cart_space.pb.h"
 #include "intrinsic/icon/proto/io_block.pb.h"
 #include "intrinsic/icon/proto/part_status.pb.h"
-#include "intrinsic/icon/proto/types.pb.h"
 #include "intrinsic/icon/proto/v1/service.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 #include "intrinsic/icon/release/portable/init_xfa.h"
 #include "intrinsic/util/grpc/channel.h"
 #include "intrinsic/util/grpc/connection_params.h"
@@ -44,7 +44,7 @@ namespace {
 // which result in very long DebugString() representations without giving much
 // information to a human reader.
 std::string PrettyPrintParameterInfo(
-    const intrinsic_proto::icon::ActionSignature::ParameterInfo&
+    const intrinsic_proto::icon::v1::ActionSignature::ParameterInfo&
         parameter_info) {
   std::stringstream sstream;
   sstream << "Parameter name: " << parameter_info.parameter_name() << "\n";
@@ -54,20 +54,19 @@ std::string PrettyPrintParameterInfo(
 }
 
 std::string PrettyPrintStateVariableInfo(
-    const intrinsic_proto::icon::ActionSignature::StateVariableInfo&
+    const intrinsic_proto::icon::v1::ActionSignature::StateVariableInfo&
         state_variable_info) {
   std::stringstream sstream;
-  sstream
-      << state_variable_info.state_variable_name() << " ("
-      << intrinsic_proto::icon::ActionSignature::StateVariableInfo::Type_Name(
-             state_variable_info.type())
-      << ")\n";
+  sstream << state_variable_info.state_variable_name() << " ("
+          << intrinsic_proto::icon::v1::ActionSignature::StateVariableInfo::
+                 Type_Name(state_variable_info.type())
+          << ")\n";
   sstream << "  " << state_variable_info.text_description() << "\n";
   return sstream.str();
 }
 
 std::string PrettyPrintActionSignature(
-    const intrinsic_proto::icon::ActionSignature& action_signature) {
+    const intrinsic_proto::icon::v1::ActionSignature& action_signature) {
   std::stringstream sstream;
   sstream << "Action type name: " << action_signature.action_type_name()
           << "\n";
@@ -115,7 +114,7 @@ std::string PrettyPrintActionSignature(
     } else {
       for (int fi : slot_info.required_feature_interfaces()) {
         sstream << "      "
-                << intrinsic_proto::icon::FeatureInterfaceTypes_Name(fi)
+                << intrinsic_proto::icon::v1::FeatureInterfaceTypes_Name(fi)
                 << "\n";
       }
     }
@@ -123,7 +122,7 @@ std::string PrettyPrintActionSignature(
       sstream << "    Optional feature interfaces:" << "\n";
       for (int fi : slot_info.optional_feature_interfaces()) {
         sstream << "      "
-                << intrinsic_proto::icon::FeatureInterfaceTypes_Name(fi)
+                << intrinsic_proto::icon::v1::FeatureInterfaceTypes_Name(fi)
                 << "\n";
       }
     }
@@ -150,16 +149,16 @@ absl::Status Run(const intrinsic::ConnectionParams& connection_params) {
       sstream << "  " << part << "\n";
       sstream << "    Supported feature interfaces:\n";
       INTR_ASSIGN_OR_RETURN(
-          std::vector<intrinsic_proto::icon::FeatureInterfaceTypes>
+          std::vector<intrinsic_proto::icon::v1::FeatureInterfaceTypes>
               feature_interfaces,
           config.GetPartFeatureInterfaces(part));
       if (feature_interfaces.empty()) {
         sstream << "      (none)\n";
       } else {
-        for (const intrinsic_proto::icon::FeatureInterfaceTypes fi :
+        for (const intrinsic_proto::icon::v1::FeatureInterfaceTypes fi :
              feature_interfaces) {
           const google::protobuf::EnumDescriptor* descriptor =
-              intrinsic_proto::icon::FeatureInterfaceTypes_descriptor();
+              intrinsic_proto::icon::v1::FeatureInterfaceTypes_descriptor();
           sstream << "      " << descriptor->FindValueByNumber(fi)->name()
                   << "\n";
         }
@@ -178,7 +177,7 @@ absl::Status Run(const intrinsic::ConnectionParams& connection_params) {
   }
 
   INTR_ASSIGN_OR_RETURN(
-      std::vector<intrinsic_proto::icon::ActionSignature> action_signatures,
+      std::vector<intrinsic_proto::icon::v1::ActionSignature> action_signatures,
       client.ListActionSignatures());
   std::cout << "Available Actions:";
   for (const auto& signature : action_signatures) {

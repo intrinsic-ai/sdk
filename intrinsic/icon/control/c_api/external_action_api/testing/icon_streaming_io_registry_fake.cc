@@ -20,7 +20,7 @@
 #include "intrinsic/icon/control/c_api/convert_c_realtime_status.h"
 #include "intrinsic/icon/control/c_api/external_action_api/icon_streaming_io_access.h"
 #include "intrinsic/icon/control/streaming_io_types.h"
-#include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 
 namespace intrinsic::icon {
 
@@ -71,7 +71,7 @@ absl::StatusOr<StreamingInputId> IconStreamingIoRegistryFake::AddInputParser(
   auto input_info = absl::c_find_if(
       signature_.streaming_input_infos(),
       [&input_name](
-          const ::intrinsic_proto::icon::ActionSignature::ParameterInfo&
+          const ::intrinsic_proto::icon::v1::ActionSignature::ParameterInfo&
               input_info) {
         return input_info.parameter_name() == input_name;
       });

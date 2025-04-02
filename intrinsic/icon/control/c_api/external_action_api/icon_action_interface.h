@@ -16,7 +16,7 @@
 #include "intrinsic/icon/control/c_api/external_action_api/icon_realtime_signal_access.h"
 #include "intrinsic/icon/control/c_api/external_action_api/icon_realtime_slot_map.h"
 #include "intrinsic/icon/control/c_api/external_action_api/icon_streaming_io_access.h"
-#include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 #include "intrinsic/icon/utils/realtime_status.h"
 
 namespace intrinsic::icon {
@@ -50,7 +50,7 @@ class IconActionInterface {
   // function on startup to generate the ActionSignature proto that it returns
   // to ICON API clients asking about an Action type.
   using GetSignatureProto =
-      std::function<::intrinsic_proto::icon::ActionSignature()>;
+      std::function<::intrinsic_proto::icon::v1::ActionSignature()>;
 
   virtual ~IconActionInterface() = default;
 

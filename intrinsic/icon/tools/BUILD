@@ -27,7 +27,7 @@ cc_library(
     srcs = ["generate_documentation.cc"],
     hdrs = ["generate_documentation.h"],
     deps = [
-        "//intrinsic/icon/proto:types_cc_proto",
+        "//intrinsic/icon/proto/v1:types_cc_proto",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
@@ -41,7 +41,7 @@ cc_binary(
     deps = [
         ":generate_documentation",
         "//intrinsic/icon/cc_client:client",
-        "//intrinsic/icon/proto:types_cc_proto",
+        "//intrinsic/icon/proto/v1:types_cc_proto",
         "//intrinsic/icon/release/portable:init_xfa_absl",
         "//intrinsic/util/grpc:channel",
         "//intrinsic/util/grpc:connection_params",

@@ -12,7 +12,7 @@
 #include "intrinsic/eigenmath/types.h"
 #include "intrinsic/icon/control/c_api/c_feature_interfaces.h"
 #include "intrinsic/icon/control/joint_position_command.h"
-#include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 #include "intrinsic/icon/utils/realtime_status.h"
 #include "intrinsic/icon/utils/realtime_status_or.h"
 #include "intrinsic/kinematics/types/joint_limits.h"
@@ -42,7 +42,7 @@ class LoopbackFakeArm final {
   // Returns a PartConfig proto for a fake arm called `name`, with the given
   // joint limits. This is the same proto that the Factory of an Action using
   // this Part receives from its ActionFactoryContext.
-  static absl::StatusOr<::intrinsic_proto::icon::PartConfig> GetPartConfig(
+  static absl::StatusOr<::intrinsic_proto::icon::v1::PartConfig> GetPartConfig(
       absl::string_view name,
       std::optional<JointLimits> application_limits = std::nullopt,
       std::optional<JointLimits> system_limits = std::nullopt);

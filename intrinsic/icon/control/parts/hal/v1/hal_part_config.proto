@@ -2,7 +2,7 @@
 
 syntax = "proto3";
 
-package intrinsic_proto.icon;
+package intrinsic_proto.icon.v1;
 
 // Tuple of module and interface name to uniquely address a hardware interface.
 message HardwareInterface {

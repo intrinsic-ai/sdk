@@ -14,32 +14,6 @@ package(
 )
 
 proto_library(
-    name = "types_proto",
-    srcs = ["types.proto"],
-    deps = [
-        ":generic_part_config_proto",
-        "@com_google_protobuf//:any_proto",
-        "@com_google_protobuf//:descriptor_proto",
-    ],
-)
-
-cc_proto_library(
-    name = "types_cc_proto",
-    deps = [":types_proto"],
-)
-
-go_proto_library(
-    name = "types_go_proto",
-    go_deps = [":generic_part_config_go_proto"],
-    deps = [":types_proto"],
-)
-
-py_proto_library(
-    name = "types_py_pb2",
-    deps = [":types_proto"],
-)
-
-proto_library(
     name = "generic_part_config_proto",
     srcs = ["generic_part_config.proto"],
     deps = [
@@ -78,7 +52,7 @@ proto_library(
         ":cart_space_proto",
         ":io_block_proto",
         ":safety_status_proto",
-        ":types_proto",
+        "//intrinsic/icon/proto/v1:types_proto",
         "//intrinsic/math/proto:pose_proto",
         "//intrinsic/math/proto:quaternion_proto",
         "//intrinsic/math/proto:vector3_proto",
@@ -98,7 +72,7 @@ py_proto_library(
 go_proto_library(
     name = "part_status_go_proto",
     go_deps = [
-        ":types_go_proto",
+        "//intrinsic/icon/proto/v1:types_go_proto",
         ":cart_space_go_proto",
         "//intrinsic/math/proto:quaternion_go_proto",
         "//intrinsic/math/proto:pose_go_proto",
@@ -394,7 +368,7 @@ proto_library(
         ":part_status_proto",
         ":safety_status_proto",
         ":streaming_output_proto",
-        ":types_proto",
         "//intrinsic/icon/proto/v1:service_proto",
+        "//intrinsic/icon/proto/v1:types_proto",
     ],
 )

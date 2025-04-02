@@ -4,12 +4,12 @@ syntax = "proto3";
 
 package intrinsic_proto.icon;
 
-import "intrinsic/icon/control/parts/hal/hal_part_config.proto";
+import "intrinsic/icon/control/parts/hal/v1/hal_part_config.proto";
 import "intrinsic/math/proto/pose.proto";
 
 message HalRangefinderPartConfig {
   // Interface to the hardware module.
-  intrinsic_proto.icon.HardwareInterface interface = 1;
+  intrinsic_proto.icon.v1.HardwareInterface interface = 1;
 
   intrinsic_proto.Pose flange_t_sensor = 2;
 }

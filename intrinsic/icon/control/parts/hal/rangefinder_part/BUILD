@@ -12,7 +12,7 @@ proto_library(
     name = "hal_rangefinder_part_config_proto",
     srcs = ["hal_rangefinder_part_config.proto"],
     deps = [
-        "//intrinsic/icon/control/parts/hal:hal_part_config_proto",
+        "//intrinsic/icon/control/parts/hal/v1:hal_part_config_proto",
         "//intrinsic/math/proto:pose_proto",
     ],
 )
@@ -20,7 +20,7 @@ proto_library(
 go_proto_library(
     name = "hal_rangefinder_part_config_go_proto",
     go_deps = [
-        "//intrinsic/icon/control/parts/hal:hal_part_config_go_proto",
+        "//intrinsic/icon/control/parts/hal/v1:hal_part_config_go_proto",
         "//intrinsic/math/proto:pose_go_proto",
     ],
     visibility = ["//visibility:private"],

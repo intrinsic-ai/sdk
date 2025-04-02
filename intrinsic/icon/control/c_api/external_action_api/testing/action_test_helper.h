@@ -14,7 +14,7 @@
 #include "intrinsic/icon/control/c_api/external_action_api/testing/icon_realtime_signal_access_and_map_fake.h"
 #include "intrinsic/icon/control/c_api/external_action_api/testing/icon_slot_map_fake.h"
 #include "intrinsic/icon/control/c_api/external_action_api/testing/icon_streaming_io_registry_fake.h"
-#include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 #include "intrinsic/icon/utils/realtime_status.h"
 
 namespace intrinsic::icon {
@@ -30,7 +30,7 @@ class ActionTestHelper {
   // attempting to build an Action.
   explicit ActionTestHelper(
       double control_frequency_hz,
-      const ::intrinsic_proto::icon::ActionSignature& signature,
+      const ::intrinsic_proto::icon::v1::ActionSignature& signature,
       absl::string_view server_name = "");
 
   // Invokes ActionT::Create() with the given `params`, as well as an
@@ -78,7 +78,7 @@ class ActionTestHelper {
   IconSlotMapFake slot_map_;
   IconStreamingIoRegistryFake streaming_io_registry_;
   IconRealtimeSignalAccessAndMapFake signal_access_and_map_;
-  ::intrinsic_proto::icon::ServerConfig server_config_;
+  ::intrinsic_proto::icon::v1::ServerConfig server_config_;
 };
 
 }  // namespace intrinsic::icon

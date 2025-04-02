@@ -69,7 +69,6 @@ proto_library(
     srcs = ["realtime_control_config.proto"],
     # Always depend on all default HAL part proto types to mainloop targets simpler.
     deps = [
-        "//intrinsic/icon/control/parts/hal:hal_part_config_proto",
         "//intrinsic/icon/control/parts/hal/adio_part:hal_adio_part_config_proto",  # buildcleaner: keep
         "//intrinsic/icon/control/parts/hal/arm_part:hal_arm_part_config_proto",  # buildcleaner: keep
         "//intrinsic/icon/control/parts/hal/force_torque_sensor_part:hal_force_torque_sensor_part_config_proto",  # buildcleaner: keep
@@ -77,7 +76,8 @@ proto_library(
         "//intrinsic/icon/control/parts/hal/laser_tracker_part:hal_laser_tracker_part_config_proto",  # buildcleaner: keep
         "//intrinsic/icon/control/parts/hal/linear_gripper_part:hal_linear_gripper_part_config_proto",  # buildcleaner: keep
         "//intrinsic/icon/control/parts/hal/rangefinder_part:hal_rangefinder_part_config_proto",  # buildcleaner: keep
-        "//intrinsic/icon/control/parts/proto:realtime_part_config_proto",
+        "//intrinsic/icon/control/parts/hal/v1:hal_part_config_proto",
+        "//intrinsic/icon/control/parts/proto/v1:realtime_part_config_proto",
     ],
 )
 
@@ -89,8 +89,8 @@ cc_proto_library(
 go_proto_library(
     name = "realtime_control_config_go_proto",
     go_deps = [
-        "//intrinsic/icon/control/parts/proto:realtime_part_config_go_proto",
-        "//intrinsic/icon/control/parts/hal:hal_part_config_go_proto",
+        "//intrinsic/icon/control/parts/proto/v1:realtime_part_config_go_proto",
+        "//intrinsic/icon/control/parts/hal/v1:hal_part_config_go_proto",
     ],
     deps = [":realtime_control_config_proto"],
 )

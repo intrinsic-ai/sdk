@@ -5,7 +5,7 @@
 
 #include <cstdint>
 
-#include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 #include "intrinsic/production/external/intops/strong_int.h"
 
 namespace intrinsic::icon {
@@ -17,7 +17,7 @@ struct SlotInfo {
   // which types are supported) number of DoFs, maximum limits, etc.
   //
   // Actions may need this information in their Non-RT initialization routine.
-  intrinsic_proto::icon::PartConfig config;
+  intrinsic_proto::icon::v1::PartConfig config;
   // Action Factories should save this ID and use it to access this slot from
   // realtime functions.
   RealtimeSlotId slot_id;

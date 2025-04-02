@@ -24,7 +24,7 @@ cc_library(
     srcs = ["slot_part_map.cc"],
     hdrs = ["slot_part_map.h"],
     deps = [
-        "//intrinsic/icon/proto:types_cc_proto",
+        "//intrinsic/icon/proto/v1:types_cc_proto",
         "@com_google_absl//absl/container:btree",
         "@com_google_absl//absl/container:flat_hash_map",
     ],

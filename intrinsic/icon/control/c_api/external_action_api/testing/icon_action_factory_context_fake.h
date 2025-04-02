@@ -13,7 +13,7 @@
 #include "intrinsic/icon/control/c_api/external_action_api/testing/icon_realtime_signal_access_and_map_fake.h"
 #include "intrinsic/icon/control/c_api/external_action_api/testing/icon_slot_map_fake.h"
 #include "intrinsic/icon/control/c_api/external_action_api/testing/icon_streaming_io_registry_fake.h"
-#include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 
 namespace intrinsic::icon {
 
@@ -28,7 +28,7 @@ class IconActionFactoryContextFake {
   // Keeps a reference to `streaming_io_registry`. You can test any streaming
   // input / output handlers by calling methods on `streaming_io_registry`.
   IconActionFactoryContextFake(
-      intrinsic_proto::icon::ServerConfig server_config,
+      intrinsic_proto::icon::v1::ServerConfig server_config,
       IconSlotMapFake& slot_map,
       IconStreamingIoRegistryFake& streaming_io_registry,
       IconRealtimeSignalAccessAndMapFake& realtime_signal_access_and_map)
@@ -45,7 +45,7 @@ class IconActionFactoryContextFake {
  private:
   static XfaIconActionFactoryContextVtable GetCApiVtable();
 
-  const intrinsic_proto::icon::ServerConfig server_config_;
+  const intrinsic_proto::icon::v1::ServerConfig server_config_;
 
   IconSlotMapFake& slot_map_;
   IconStreamingIoRegistryFake& streaming_io_registry_;

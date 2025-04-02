@@ -26,7 +26,7 @@
 #include "intrinsic/icon/control/c_api/external_action_api/icon_realtime_slot_map.h"
 #include "intrinsic/icon/control/c_api/external_action_api/icon_streaming_io_access.h"
 #include "intrinsic/icon/control/c_api/wrappers/string_wrapper.h"
-#include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 #include "intrinsic/icon/utils/realtime_status.h"
 
 namespace intrinsic::icon {
@@ -186,7 +186,8 @@ template <typename ActionT,
               std::enable_if_t<std::is_base_of_v<IconActionInterface, ActionT>>>
 XfaIconRealtimeStatus RegisterIconAction(
     XfaIconRegisterActionType register_action_type_fn) {
-  intrinsic_proto::icon::ActionSignature signature = ActionT::GetSignature();
+  intrinsic_proto::icon::v1::ActionSignature signature =
+      ActionT::GetSignature();
   const std::string signature_string = signature.SerializeAsString();
   const std::string action_type_name(ActionT::kName);
 

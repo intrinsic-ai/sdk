@@ -8,22 +8,22 @@
 
 #include "absl/status/statusor.h"
 #include "absl/types/span.h"
-#include "intrinsic/icon/proto/types.pb.h"
+#include "intrinsic/icon/proto/v1/types.pb.h"
 
 namespace intrinsic {
 namespace icon {
 
 std::string GenerateActionNames(
-    absl::Span<const intrinsic_proto::icon::ActionSignature> signatures);
+    absl::Span<const intrinsic_proto::icon::v1::ActionSignature> signatures);
 
 absl::StatusOr<std::string> GenerateSingleActionDocumentation(
-    const intrinsic_proto::icon::ActionSignature& signature);
+    const intrinsic_proto::icon::v1::ActionSignature& signature);
 
 absl::StatusOr<std::string> GenerateDocumentation(
-    absl::Span<const intrinsic_proto::icon::ActionSignature> signatures);
+    absl::Span<const intrinsic_proto::icon::v1::ActionSignature> signatures);
 
 absl::StatusOr<std::string> GenerateDocumentation(
-    absl::Span<const intrinsic_proto::icon::ActionSignature> signatures,
+    absl::Span<const intrinsic_proto::icon::v1::ActionSignature> signatures,
     absl::Span<const std::vector<std::string>> compatible_parts,
     bool with_toc_header = true, bool with_devsite_header = false);
 
