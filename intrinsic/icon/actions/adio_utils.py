@@ -7,12 +7,12 @@ import dataclasses
 from intrinsic.icon.actions import adio_pb2
 from intrinsic.icon.python import actions
 
-ACTION_TYPE_NAME = "xfa.adio"
+ACTION_TYPE_NAME = "intrinsic.adio"
 
 
 @dataclasses.dataclass(frozen=True)
 class StateVariables:
-  OUTPUTS_SET = "xfa.outputs_set"
+  OUTPUTS_SET = "intrinsic.outputs_set"
 
 
 def create_digital_output_action(

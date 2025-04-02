@@ -9,7 +9,7 @@ namespace intrinsic {
 namespace icon {
 
 struct CartesianJoggingInfo {
-  static constexpr char kActionTypeName[] = "xfa.cartesian_jogging";
+  static constexpr char kActionTypeName[] = "intrinsic.cartesian_jogging";
   static constexpr char kActionDescription[] =
       "Generates and executes a Cartesian move with the given twist, using the "
       "default tracking and tool frames. The action starts with a zero twist "
@@ -29,7 +29,7 @@ struct CartesianJoggingInfo {
       "Movement is stopped if no streaming command is received within "
       "'kWatchdogTimeoutInSeconds' of the most recent streaming command.";
 
-  static constexpr char kTimedOut[] = "xfa.timed_out";
+  static constexpr char kTimedOut[] = "intrinsic.timed_out";
   static constexpr char kTimedOutDescription[] =
       "`Unavailable` before the action receives a streaming command. Switches "
       "to `False` when a streaming command is received.\n"

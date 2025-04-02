@@ -38,8 +38,8 @@ By default, the output only shows action type names:
     list_actions
 
 ```
-xfa.point_to_point_move
-xfa.cartesian_position
+intrinsic.point_to_point_move
+intrinsic.joint_jogging
 ```
 
 Add `--show_details` to also show details in markdown format which include the
@@ -49,7 +49,7 @@ streaming outputs, and state variables.
     list_actions --show_details
 
 ```
-# xfa.joint_position_move
+# intrinsic.point_to_point_move
 Move part to goal position in joint space.
 
 ## Compatible Parts

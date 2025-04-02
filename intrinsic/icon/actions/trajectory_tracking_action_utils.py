@@ -6,7 +6,7 @@ from intrinsic.icon.actions import trajectory_tracking_action_pb2
 from intrinsic.icon.proto import joint_space_pb2
 from intrinsic.icon.python import actions
 
-ACTION_TYPE_NAME: str = 'xfa.trajectory_tracking'
+ACTION_TYPE_NAME: str = 'intrinsic.trajectory_tracking'
 
 
 # If the initial robot position deviates more from the first trajectory position

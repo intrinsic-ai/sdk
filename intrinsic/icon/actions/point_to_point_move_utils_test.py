@@ -16,7 +16,9 @@ class PointToPointMoveUtilsTest(absltest.TestCase):
     self.assertEqual(action.proto.action_instance_id, 14)
     self.assertEqual(action.proto.part_name, "arm_part")
     self.assertEmpty(action.reactions)
-    self.assertEqual(action.proto.action_type_name, "xfa.point_to_point_move")
+    self.assertEqual(
+        action.proto.action_type_name, "intrinsic.point_to_point_move"
+    )
 
     got_params = point_to_point_move_pb2.PointToPointMoveFixedParams()
     self.assertTrue(action.proto.fixed_parameters.Unpack(got_params))
@@ -39,7 +41,9 @@ class PointToPointMoveUtilsTest(absltest.TestCase):
     self.assertEqual(action.proto.action_instance_id, 14)
     self.assertEqual(action.proto.part_name, "arm_part")
     self.assertEmpty(action.reactions)
-    self.assertEqual(action.proto.action_type_name, "xfa.point_to_point_move")
+    self.assertEqual(
+        action.proto.action_type_name, "intrinsic.point_to_point_move"
+    )
 
     got_params = point_to_point_move_pb2.PointToPointMoveFixedParams()
     self.assertTrue(action.proto.fixed_parameters.Unpack(got_params))
@@ -69,7 +73,9 @@ class PointToPointMoveUtilsTest(absltest.TestCase):
     self.assertEqual(action.proto.action_instance_id, 14)
     self.assertEqual(action.proto.part_name, "arm_part")
     self.assertEmpty(action.reactions)
-    self.assertEqual(action.proto.action_type_name, "xfa.point_to_point_move")
+    self.assertEqual(
+        action.proto.action_type_name, "intrinsic.point_to_point_move"
+    )
 
     got_params = point_to_point_move_pb2.PointToPointMoveFixedParams()
     self.assertTrue(action.proto.fixed_parameters.Unpack(got_params))

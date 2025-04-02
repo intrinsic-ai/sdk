@@ -15,7 +15,7 @@ namespace icon {
 // move action.
 struct PointToPointMoveInfo {
   // PointToPointMove action type name and description
-  static constexpr char kActionTypeName[] = "xfa.point_to_point_move";
+  static constexpr char kActionTypeName[] = "intrinsic.point_to_point_move";
   static constexpr char kActionDescription[] =
       "Generates and executes a jerk-limited time-optimal trajectory to move "
       "the part's joints to the desired target position. Uses Reflexxes for "
@@ -28,14 +28,14 @@ struct PointToPointMoveInfo {
       "consistent and time-optimal way. This action also holds a settling "
       "state estimator which monitors residual oscillations or tracking error "
       "transients after the trajectory has been played back. See state "
-      "variable documentation of `xfa.is_settled` for details.";
+      "variable documentation of `intrinsic.is_settled` for details.";
   static constexpr char kSlotName[] = "arm";
   static constexpr char kSlotDescription[] =
       "The action moves this Part in joint space.";
   static constexpr char kIsDoneDescription[] =
       "This Action reports 'done' as soon as the last setpoint is commanded. "
       "This might not coincide with the robot actually reaching that setpoint.";
-  static constexpr char kIsSettled[] = "xfa.is_settled";
+  static constexpr char kIsSettled[] = "intrinsic.is_settled";
   static constexpr char kIsSettledDescription[] =
       "This Action reports 'settled' as soon as the robot has reached a "
       "settled state with zero joint velocity after executing the motion.";
@@ -44,12 +44,12 @@ struct PointToPointMoveInfo {
       "Reports the uncertainty in the belief if the robot has settled or not "
       "as a continuous measure in the range [0,1]. 1 means maximum uncertainty "
       "(robot is not settled), and 0 minimum uncertainty (robot has settled). ";
-  static constexpr char kDistanceToSensed[] = "xfa.distance_to_sensed";
+  static constexpr char kDistanceToSensed[] = "intrinsic.distance_to_sensed";
   static constexpr char kDistanceToSensedDescription[] =
       "Euclidean norm of the difference between the final setpoint and the "
       "sensed joint position.";
   static constexpr char kSetpointDoneForSeconds[] =
-      "xfa.setpoint_done_for_seconds";
+      "intrinsic.setpoint_done_for_seconds";
   static constexpr char kSetpointDoneForSecondsDescription[] =
       "Time (in seconds) since the final setpoint was commanded. Can be zero "
       "in the cycle that the final setpoint is commanded. Only "

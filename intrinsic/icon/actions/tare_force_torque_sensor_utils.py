@@ -7,7 +7,7 @@ from typing import Optional
 from intrinsic.icon.actions import tare_force_torque_sensor_pb2
 from intrinsic.icon.python import actions
 
-ACTION_TYPE_NAME = "xfa.tare_force_torque_sensor"
+ACTION_TYPE_NAME = "intrinsic.tare_force_torque_sensor"
 
 
 def create_tare_force_torque_sensor_action(

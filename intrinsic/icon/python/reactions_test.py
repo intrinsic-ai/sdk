@@ -15,7 +15,7 @@ class ConditionTest(absltest.TestCase):
         reactions.Condition.is_done().proto,
         types_pb2.Condition(
             comparison=types_pb2.Comparison(
-                state_variable_name='xfa.is_done',
+                state_variable_name='intrinsic.is_done',
                 operation=types_pb2.Comparison.OpEnum.EQUAL,
                 bool_value=True,
             )

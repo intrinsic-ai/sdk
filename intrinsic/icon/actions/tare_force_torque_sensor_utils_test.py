@@ -18,7 +18,7 @@ class TareForceTorqueSensorUtilsTest(absltest.TestCase):
     self.assertEqual(action.proto.part_name, "sensor_part")
     self.assertEmpty(action.reactions)
     self.assertEqual(
-        action.proto.action_type_name, "xfa.tare_force_torque_sensor"
+        action.proto.action_type_name, "intrinsic.tare_force_torque_sensor"
     )
 
     got_params = tare_force_torque_sensor_pb2.TareForceTorqueSensorParams()
@@ -36,7 +36,7 @@ class TareForceTorqueSensorUtilsTest(absltest.TestCase):
     self.assertEqual(action.proto.part_name, "sensor_part")
     self.assertEmpty(action.reactions)
     self.assertEqual(
-        action.proto.action_type_name, "xfa.tare_force_torque_sensor"
+        action.proto.action_type_name, "intrinsic.tare_force_torque_sensor"
     )
 
     got_params = tare_force_torque_sensor_pb2.TareForceTorqueSensorParams()

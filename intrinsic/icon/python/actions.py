@@ -40,7 +40,7 @@ class Action:
       action_id: The client-assigned ID for this action. Must be unique for the
         duration of the session.
       action_type: The type of action, corresponding to the type of an available
-        ActionSignature on the server (e.g. 'xfa.point_to_point_move').
+        ActionSignature on the server (e.g. 'intrinsic.point_to_point_move').
       part_name_or_slot_part_map: Takes either the name of a single part for the
         action to control, or a map from the action's slot names to part names.
       params: Fixed parameters specific to this action, corresponding to the

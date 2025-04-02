@@ -465,7 +465,7 @@ class Session:
     final_action_settled = session.add_action_sequence([
           action_1,
           (action_2, _reactions.Condition.is_greater_than('my_variable', 15.3)),
-          (action_3, _reactions.Condition.is_true('xfa.is_settled')),
+          (action_3, _reactions.Condition.is_true('intrinsic.is_settled')),
       ])
 
     Args:

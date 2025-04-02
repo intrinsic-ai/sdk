@@ -8,20 +8,21 @@
 namespace intrinsic::icon {
 
 struct SimpleGripperActionInfo {
-  static constexpr char kActionTypeName[] = "xfa.simple_gripper";
+  static constexpr char kActionTypeName[] = "intrinsic.simple_gripper";
   static constexpr char kActionDescription[] =
       "Controls a simple binary state (open/closed) gripper.";
 
-  static constexpr char kSentCommand[] = "xfa.simple_gripper.sent_command";
+  static constexpr char kSentCommand[] =
+      "intrinsic.simple_gripper.sent_command";
   static constexpr char kSentCommandDescription[] =
       "The action has sent the command to the GripperPart.";
 
-  static constexpr char kGrasped[] = "xfa.grasped";
+  static constexpr char kGrasped[] = "intrinsic.grasped";
   static constexpr char kGraspedDescription[] =
       "Gripper is in the GRASPED state. The exact meaning depends on the "
       "part and Gripper setup.";
 
-  static constexpr char kReleased[] = "xfa.released";
+  static constexpr char kReleased[] = "intrinsic.released";
   static constexpr char kReleasedDescription[] =
       "Gripper is in the RELEASED state. The exact meaning depends on the "
       "part and Gripper setup.";

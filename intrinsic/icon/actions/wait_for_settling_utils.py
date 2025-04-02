@@ -7,7 +7,7 @@ from typing import Optional
 from intrinsic.icon.actions import wait_for_settling_action_pb2
 from intrinsic.icon.python import actions
 
-ACTION_TYPE_NAME = "xfa.wait_for_settling_action"
+ACTION_TYPE_NAME = "intrinsic.wait_for_settling_action"
 
 
 def create_wait_for_settling_action(

@@ -17,7 +17,7 @@ struct TrajectoryTrackingActionInfo {
              // first trajectory position than this threshold, the Action will
              // return kFailedPrecondition.
 
-  static constexpr char kActionTypeName[] = "xfa.trajectory_tracking";
+  static constexpr char kActionTypeName[] = "intrinsic.trajectory_tracking";
   static constexpr char kActionDescription[] =
       "Tracks a given JointTrajectoryPVA provided as action parameter. The "
       "trajectory to be tracked is given as triples of joint positions, "

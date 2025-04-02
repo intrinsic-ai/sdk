@@ -21,7 +21,7 @@ class AdioUtilsTest(absltest.TestCase):
     self.assertEqual(action.proto.action_instance_id, 18)
     self.assertEqual(action.proto.part_name, "adio_part")
     self.assertEmpty(action.reactions)
-    self.assertEqual(action.proto.action_type_name, "xfa.adio")
+    self.assertEqual(action.proto.action_type_name, "intrinsic.adio")
 
     got_params = adio_pb2.ADIOFixedParams()
     self.assertTrue(action.proto.fixed_parameters.Unpack(got_params))
@@ -35,7 +35,7 @@ class AdioUtilsTest(absltest.TestCase):
   def test_outputs_set_is_valid(self):
     self.assertEqual(
         adio_utils.StateVariables.OUTPUTS_SET,
-        "xfa.outputs_set",
+        "intrinsic.outputs_set",
     )
 
 

@@ -5,7 +5,7 @@
 import dataclasses
 from intrinsic.icon.python import actions
 
-ACTION_TYPE_NAME = "xfa.stop"
+ACTION_TYPE_NAME = "intrinsic.stop"
 
 
 @dataclasses.dataclass(frozen=True)

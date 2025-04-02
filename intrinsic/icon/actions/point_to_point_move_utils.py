@@ -8,7 +8,7 @@ from intrinsic.icon.proto import joint_space_pb2
 from intrinsic.icon.python import actions
 from intrinsic.kinematics.types import joint_limits_pb2
 
-ACTION_TYPE_NAME = "xfa.point_to_point_move"
+ACTION_TYPE_NAME = "intrinsic.point_to_point_move"
 
 
 def create_point_to_point_move_action(
@@ -30,7 +30,7 @@ def create_point_to_point_move_action(
   consistent and time-optimal way. This action also holds a settling state
   estimator which monitors residual oscillations or tracking error transients
   after the trajectory has been played back. See state variable documentation of
-  `xfa.is_settled` for details.
+  `intrinsic.is_settled` for details.
 
   Args:
     action_id: The ID of the action.

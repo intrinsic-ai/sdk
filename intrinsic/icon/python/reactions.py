@@ -97,13 +97,14 @@ class Condition:
   def is_done(cls) -> 'Condition':
     """Describes a comparison with whether an action has completed.
 
-    The condition is satisfied when the builtin state variable 'xfa.is_done'
+    The condition is satisfied when the builtin state variable
+    'intrinsic.is_done'
     is `True`.
 
     Returns:
       A Condition object.
     """
-    return Condition.is_true('xfa.is_done')
+    return Condition.is_true('intrinsic.is_done')
 
   @classmethod
   def is_true(cls, state_variable_name: str) -> 'Condition':

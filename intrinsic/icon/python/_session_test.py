@@ -705,7 +705,7 @@ class SessionTest(absltest.TestCase):
                           reaction_instance_id=1,
                           condition=types_pb2.Condition(
                               comparison=types_pb2.Comparison(
-                                  state_variable_name='xfa.is_done',
+                                  state_variable_name='intrinsic.is_done',
                                   operation=types_pb2.Comparison.EQUAL,
                                   bool_value=True,
                               ),
@@ -721,7 +721,7 @@ class SessionTest(absltest.TestCase):
                           reaction_instance_id=2,
                           condition=types_pb2.Condition(
                               comparison=types_pb2.Comparison(
-                                  state_variable_name='xfa.is_done',
+                                  state_variable_name='intrinsic.is_done',
                                   operation=types_pb2.Comparison.EQUAL,
                                   bool_value=True,
                               ),
@@ -737,7 +737,7 @@ class SessionTest(absltest.TestCase):
                           reaction_instance_id=3,
                           condition=types_pb2.Condition(
                               comparison=types_pb2.Comparison(
-                                  state_variable_name='xfa.is_done',
+                                  state_variable_name='intrinsic.is_done',
                                   operation=types_pb2.Comparison.EQUAL,
                                   bool_value=True,
                               ),
@@ -769,7 +769,7 @@ class SessionTest(absltest.TestCase):
               action_2,
               _reactions.Condition.is_greater_than('my_variable', 15.3),
           ),
-          (action_3, _reactions.Condition.is_true('xfa.is_settled')),
+          (action_3, _reactions.Condition.is_true('intrinsic.is_settled')),
       ])
 
       mock_request_stream.write.assert_called_with(
@@ -800,7 +800,7 @@ class SessionTest(absltest.TestCase):
                           reaction_instance_id=1,
                           condition=types_pb2.Condition(
                               comparison=types_pb2.Comparison(
-                                  state_variable_name='xfa.is_done',
+                                  state_variable_name='intrinsic.is_done',
                                   operation=types_pb2.Comparison.EQUAL,
                                   bool_value=True,
                               ),
@@ -832,7 +832,7 @@ class SessionTest(absltest.TestCase):
                           reaction_instance_id=3,
                           condition=types_pb2.Condition(
                               comparison=types_pb2.Comparison(
-                                  state_variable_name='xfa.is_settled',
+                                  state_variable_name='intrinsic.is_settled',
                                   operation=types_pb2.Comparison.EQUAL,
                                   bool_value=True,
                               ),
@@ -942,7 +942,7 @@ class SessionTest(absltest.TestCase):
                       reaction_instance_id=1,
                       condition=types_pb2.Condition(
                           comparison=types_pb2.Comparison(
-                              state_variable_name='xfa.is_done',
+                              state_variable_name='intrinsic.is_done',
                               operation=types_pb2.Comparison.OpEnum.EQUAL,
                               bool_value=True,
                           )

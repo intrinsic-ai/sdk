@@ -15,7 +15,7 @@ class StopUtilsTest(absltest.TestCase):
     self.assertEqual(action.proto.action_instance_id, 17)
     self.assertEqual(action.proto.part_name, "my_part")
     self.assertEmpty(action.reactions)
-    self.assertEqual(action.proto.action_type_name, "xfa.stop")
+    self.assertEqual(action.proto.action_type_name, "intrinsic.stop")
     self.assertEqual(action.proto.fixed_parameters, any_pb2.Any())
 
   def test_is_setteld_variable_name_is_correct(self):

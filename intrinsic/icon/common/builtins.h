@@ -9,7 +9,7 @@ namespace intrinsic {
 namespace icon {
 
 // Name and description of the builtin Stop action.
-inline constexpr char kStopAction[] = "xfa.stop";
+inline constexpr char kStopAction[] = "intrinsic.stop";
 inline constexpr char kStopActionDescription[] =
     "Stops all motion of the part while respecting joint limits. Computes a "
     "time-optimal stopping trajectory with zero terminal velocity subject to "
@@ -28,20 +28,20 @@ inline constexpr char kStopPartSlotDescription[] =
 // Name of the builtin state variable that tells if an action has completed.
 // All actions expose this, but the semantics are action-specific and actions
 // are allowed to never be done. Value is a boolean.
-inline constexpr char kIsDone[] = "xfa.is_done";
+inline constexpr char kIsDone[] = "intrinsic.is_done";
 inline constexpr char kIsDoneDescription[] =
     "Builtin state variable that tells whether an action has completed";
 // Name of the builtin state variable that tells if an action has brought the
 // robot to a stop. Stop actions must expose this. Other actions may optionally
 // expose this. Value is a boolean.
-inline constexpr char kIsStopped[] = "xfa.is_stopped";
+inline constexpr char kIsStopped[] = "intrinsic.is_stopped";
 inline constexpr char kIsStoppedDescription[] =
     "Builtin state variable that tells if an action has brought the robot to a "
     "stop";
 // Name of the builtin state variable that reports the amount of time since an
 // action became active, in seconds. Actions optionally expose this.
 // Value is a double.
-inline constexpr char kActionElapsedTime[] = "xfa.action_elapsed_time";
+inline constexpr char kActionElapsedTime[] = "intrinsic.action_elapsed_time";
 inline constexpr char kActionElapsedTimeDescription[] =
     "Builtin state variable that reports the amount of time since an action "
     "became active, in seconds";

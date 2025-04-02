@@ -30,7 +30,9 @@ class TrajectoryTrackingActionUtilsTest(absltest.TestCase):
     self.assertEqual(action.proto.action_instance_id, 5)
     self.assertEqual(action.proto.part_name, 'my_arm')
     self.assertEmpty(action.reactions)
-    self.assertEqual(action.proto.action_type_name, 'xfa.trajectory_tracking')
+    self.assertEqual(
+        action.proto.action_type_name, 'intrinsic.trajectory_tracking'
+    )
 
     got_params = (
         trajectory_tracking_action_pb2.TrajectoryTrackingActionFixedParams()

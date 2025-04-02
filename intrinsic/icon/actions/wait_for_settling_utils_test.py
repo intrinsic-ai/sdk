@@ -15,7 +15,7 @@ class WaitForSettlingUtilsTest(absltest.TestCase):
     self.assertEqual(action.proto.action_instance_id, 238)
     self.assertEqual(action.proto.part_name, "my_arm_part")
     self.assertEqual(
-        action.proto.action_type_name, "xfa.wait_for_settling_action"
+        action.proto.action_type_name, "intrinsic.wait_for_settling_action"
     )
 
     got_params = wait_for_settling_action_pb2.WaitForSettlingActionFixedParams()
@@ -30,7 +30,7 @@ class WaitForSettlingUtilsTest(absltest.TestCase):
     self.assertEqual(action.proto.action_instance_id, 238)
     self.assertEqual(action.proto.part_name, "my_arm_part")
     self.assertEqual(
-        action.proto.action_type_name, "xfa.wait_for_settling_action"
+        action.proto.action_type_name, "intrinsic.wait_for_settling_action"
     )
 
     got_params = wait_for_settling_action_pb2.WaitForSettlingActionFixedParams()

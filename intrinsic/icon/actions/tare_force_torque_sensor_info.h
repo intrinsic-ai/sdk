@@ -9,7 +9,8 @@ namespace intrinsic {
 namespace icon {
 
 struct TareForceTorqueSensorInfo {
-  static constexpr char kActionTypeName[] = "xfa.tare_force_torque_sensor";
+  static constexpr char kActionTypeName[] =
+      "intrinsic.tare_force_torque_sensor";
   static constexpr char kActionDescription[] =
       "Resets the force-torque sensor bias under the assumption that no forces "
       "or torques are applied to the sensor, other than those resulting from "

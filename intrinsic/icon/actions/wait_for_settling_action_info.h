@@ -8,7 +8,8 @@
 namespace intrinsic::icon {
 
 struct WaitForSettlingActionInfo {
-  static constexpr char kActionTypeName[] = "xfa.wait_for_settling_action";
+  static constexpr char kActionTypeName[] =
+      "intrinsic.wait_for_settling_action";
   static constexpr char kActionDescription[] =
       "Action that monitors joint velocity signals and waits until all "
       "long-lasting transients have vanished.";
