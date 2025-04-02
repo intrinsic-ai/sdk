@@ -2,7 +2,7 @@
 
 syntax = "proto3";
 
-package intrinsic_proto.gpio;
+package intrinsic_proto.gpio.v1;
 
 // 8-bit signed type.
 message Int8 {

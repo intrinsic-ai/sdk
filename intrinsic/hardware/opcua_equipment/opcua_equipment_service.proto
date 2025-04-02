@@ -6,8 +6,8 @@ package intrinsic_proto.hardware.opcua_equipment;
 
 import "google/protobuf/any.proto";
 import "google/protobuf/duration.proto";
-import "intrinsic/hardware/gpio/gpio_service.proto";
-import "intrinsic/hardware/gpio/signal.proto";
+import "intrinsic/hardware/gpio/v1/gpio_service.proto";
+import "intrinsic/hardware/gpio/v1/signal.proto";
 import "intrinsic/resources/proto/resource_handle.proto";
 import "intrinsic/world/proto/object_world_updates.proto";
 
@@ -49,7 +49,7 @@ message OpcuaEquipmentConfig {
     // Mapping from input signal names to their desired values. Desired values
     // can be left empty if they will be provided as part of `ControlRequest`'s
     // `user_input` field.
-    map<string, gpio.SignalValue> signal_values = 1;
+    map<string, intrinsic_proto.gpio.v1.SignalValue> signal_values = 1;
 
     // Duration to wait after setting the values (if given). It is allowed to
     // only set the duration and not the values, which has the effect of adding
@@ -79,15 +79,15 @@ message OpcuaEquipmentConfig {
     // Optional condition to check if the control command was successful.
     // Condition is met when the values for the signals specified here match
     // with the values read from the opcua server.
-    optional gpio.WaitForValueRequest wait_for_condition = 3;
+    optional intrinsic_proto.gpio.v1.WaitForValueRequest wait_for_condition = 3;
 
     // Optional command to execute if `wait_for_condition` is met.
     // This is not executed if `wait_for_condition` is not specified.
-    map<string, gpio.SignalValue> on_success = 4;
+    map<string, intrinsic_proto.gpio.v1.SignalValue> on_success = 4;
 
     // Optional command to execute if `wait_for_condition` is not met.
     // This is not executed if `wait_for_condition` is not specified.
-    map<string, gpio.SignalValue> on_failure = 5;
+    map<string, intrinsic_proto.gpio.v1.SignalValue> on_failure = 5;
 
     // Optional belief world updates to make on completion. This is executed if
     // `wait_for_condition` is met or unspecified.
@@ -103,7 +103,7 @@ message OpcuaEquipmentConfig {
     // Describes the matching condition for the command. The condition is
     // considered to be met when the values read from the opcua server match the
     // values specified based on the matching criteria like any_of or all_of.
-    gpio.WaitForValueRequest condition = 2;
+    intrinsic_proto.gpio.v1.WaitForValueRequest condition = 2;
   }
 
   // Describes a command to read signal names from the opcua server.
@@ -142,7 +142,7 @@ message ControlRequest {
   // Optionally, these can be used to override the default values themselves. If
   // a signal name appears multiple times in the sequential commands, then all
   // the values would be overridden (and not just the first match).
-  map<string, gpio.SignalValue> user_input = 2;
+  map<string, intrinsic_proto.gpio.v1.SignalValue> user_input = 2;
 
   // Timeout for the control command's `wait_for_condition` to be met.
   optional google.protobuf.Duration timeout = 3;
@@ -179,7 +179,7 @@ message GetStatusRequest {
 
 message GetStatusResponse {
   // Contains values read for the signals corresponding to the status command.
-  map<string, gpio.SignalValue> status = 1;
+  map<string, intrinsic_proto.gpio.v1.SignalValue> status = 1;
 }
 
 message ListCommandsRequest {}

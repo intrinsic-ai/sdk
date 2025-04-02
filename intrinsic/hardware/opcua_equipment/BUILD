@@ -14,8 +14,8 @@ proto_library(
     name = "opcua_equipment_service_proto",
     srcs = ["opcua_equipment_service.proto"],
     deps = [
-        "//intrinsic/hardware/gpio:gpio_service_proto",
-        "//intrinsic/hardware/gpio:signal_proto",
+        "//intrinsic/hardware/gpio/v1:gpio_service_proto",
+        "//intrinsic/hardware/gpio/v1:signal_proto",
         "//intrinsic/resources/proto:resource_handle_proto",
         "//intrinsic/world/proto:object_world_updates_proto",
         "@com_google_protobuf//:any_proto",

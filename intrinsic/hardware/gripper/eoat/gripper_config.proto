@@ -4,7 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.eoat;
 
-import "intrinsic/hardware/gpio/signal.proto";
+import "intrinsic/hardware/gpio/v1/signal.proto";
 
 message SignalConfig {
   // `oneof` is used to allow for future handling of more types
@@ -14,7 +14,7 @@ message SignalConfig {
     // are written to the port address.
     // For sensing (e.g. gripping_indicated), the bool values are matched
     // against the current values.
-    gpio.SignalValueSet value_set = 1;
+    intrinsic_proto.gpio.v1.SignalValueSet value_set = 1;
   }
 }
 

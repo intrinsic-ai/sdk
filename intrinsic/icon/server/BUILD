@@ -30,8 +30,8 @@ cc_library(
     hdrs = ["grpc_envelope.h"],
     deps = [
         ":icon_api_service",
-        "//intrinsic/hardware/gpio:gpio_service_cc_grpc_proto",
-        "//intrinsic/hardware/gpio:gpio_service_cc_proto",
+        "//intrinsic/hardware/gpio/v1:gpio_service_cc_grpc_proto",
+        "//intrinsic/hardware/gpio/v1:gpio_service_cc_proto",
         "//intrinsic/icon/proto:types_cc_proto",
         "//intrinsic/icon/proto/v1:service_cc_grpc_proto",
         "//intrinsic/icon/proto/v1:service_cc_proto",

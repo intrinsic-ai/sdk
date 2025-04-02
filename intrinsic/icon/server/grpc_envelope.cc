@@ -30,8 +30,8 @@
 #include "grpcpp/support/server_interceptor.h"
 #include "grpcpp/support/status.h"
 #include "grpcpp/support/sync_stream.h"
-#include "intrinsic/hardware/gpio/gpio_service.grpc.pb.h"
-#include "intrinsic/hardware/gpio/gpio_service.pb.h"
+#include "intrinsic/hardware/gpio/v1/gpio_service.grpc.pb.h"
+#include "intrinsic/hardware/gpio/v1/gpio_service.pb.h"
 #include "intrinsic/icon/proto/types.pb.h"
 #include "intrinsic/icon/proto/v1/service.grpc.pb.h"
 #include "intrinsic/icon/proto/v1/service.pb.h"
@@ -336,39 +336,40 @@ class GrpcEnvelope::WrapperService : public intrinsic::icon::IconApiService {
 };
 
 class GrpcEnvelope::GpioWrapperService
-    : public intrinsic_proto::gpio::GPIOService::Service {
+    : public intrinsic_proto::gpio::v1::GPIOService::Service {
  public:
   explicit GpioWrapperService(GrpcEnvelope& envelope) : envelope_(envelope) {}
 
   ::grpc::Status GetSignalDescriptions(
       ::grpc::ServerContext* context,
-      const intrinsic_proto::gpio::GetSignalDescriptionsRequest* request,
-      intrinsic_proto::gpio::GetSignalDescriptionsResponse* response) override {
+      const intrinsic_proto::gpio::v1::GetSignalDescriptionsRequest* request,
+      intrinsic_proto::gpio::v1::GetSignalDescriptionsResponse* response)
+      override {
     absl::ReaderMutexLock l(&envelope_.icon_impl_mutex_);
     INTR_ASSIGN_OR_RETURN_GRPC(
-        intrinsic_proto::gpio::GPIOService::Service * gpio_service,
+        intrinsic_proto::gpio::v1::GPIOService::Service * gpio_service,
         envelope_.GpioService());
     return gpio_service->GetSignalDescriptions(context, request, response);
   }
 
   ::grpc::Status ReadSignals(
       ::grpc::ServerContext* context,
-      const intrinsic_proto::gpio::ReadSignalsRequest* request,
-      intrinsic_proto::gpio::ReadSignalsResponse* response) override {
+      const intrinsic_proto::gpio::v1::ReadSignalsRequest* request,
+      intrinsic_proto::gpio::v1::ReadSignalsResponse* response) override {
     absl::ReaderMutexLock l(&envelope_.icon_impl_mutex_);
     INTR_ASSIGN_OR_RETURN_GRPC(
-        intrinsic_proto::gpio::GPIOService::Service * gpio_service,
+        intrinsic_proto::gpio::v1::GPIOService::Service * gpio_service,
         envelope_.GpioService());
     return gpio_service->ReadSignals(context, request, response);
   }
 
   ::grpc::Status WaitForValue(
       ::grpc::ServerContext* context,
-      const intrinsic_proto::gpio::WaitForValueRequest* request,
-      intrinsic_proto::gpio::WaitForValueResponse* response) override {
+      const intrinsic_proto::gpio::v1::WaitForValueRequest* request,
+      intrinsic_proto::gpio::v1::WaitForValueResponse* response) override {
     absl::ReaderMutexLock l(&envelope_.icon_impl_mutex_);
     INTR_ASSIGN_OR_RETURN_GRPC(
-        intrinsic_proto::gpio::GPIOService::Service * gpio_service,
+        intrinsic_proto::gpio::v1::GPIOService::Service * gpio_service,
         envelope_.GpioService());
     return gpio_service->WaitForValue(context, request, response);
   }
@@ -376,11 +377,12 @@ class GrpcEnvelope::GpioWrapperService
   ::grpc::Status OpenWriteSession(
       ::grpc::ServerContext* context,
       ::grpc::ServerReaderWriter<
-          intrinsic_proto::gpio::OpenWriteSessionResponse,
-          intrinsic_proto::gpio::OpenWriteSessionRequest>* stream) override {
+          intrinsic_proto::gpio::v1::OpenWriteSessionResponse,
+          intrinsic_proto::gpio::v1::OpenWriteSessionRequest>* stream)
+      override {
     absl::ReaderMutexLock l(&envelope_.icon_impl_mutex_);
     INTR_ASSIGN_OR_RETURN_GRPC(
-        intrinsic_proto::gpio::GPIOService::Service * gpio_service,
+        intrinsic_proto::gpio::v1::GPIOService::Service * gpio_service,
         envelope_.GpioService());
     return gpio_service->OpenWriteSession(context, stream);
   }
@@ -418,7 +420,7 @@ absl::StatusOr<absl::Nonnull<IconApiService*>> GrpcEnvelope::IconService() {
   return icon_impl_.value()->IconService();
 }
 
-absl::StatusOr<absl::Nonnull<intrinsic_proto::gpio::GPIOService::Service*>>
+absl::StatusOr<absl::Nonnull<intrinsic_proto::gpio::v1::GPIOService::Service*>>
 GrpcEnvelope::GpioService() {
   INTR_RETURN_IF_ERROR(icon_impl_.status());
   return icon_impl_.value()->GpioService();

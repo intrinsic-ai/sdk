@@ -68,7 +68,7 @@ go_proto_library(
         "//intrinsic/util/status:extended_status_go_proto",
         "//intrinsic/logging/errors/proto:error_report_go_proto",
         "//intrinsic/hardware/gripper/service/proto:generic_gripper_go_proto",
-        "//intrinsic/hardware/gpio:signal_go_proto",
+        "//intrinsic/hardware/gpio/v1:signal_go_proto",
         "//intrinsic/hardware/gripper/eoat:gripper_config_go_proto",
         "//intrinsic/hardware/gripper/eoat:eoat_service_go_proto",
         "//intrinsic/hardware/proto:settings_go_proto",

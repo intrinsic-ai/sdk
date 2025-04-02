@@ -23,7 +23,7 @@ proto_library(
 go_proto_library(
     name = "eoat_service_go_proto",
     go_deps = [
-        "//intrinsic/hardware/gpio:gpio_service_go_grpc_proto",
+        "//intrinsic/hardware/gpio/v1:gpio_service_go_grpc_proto",
         "//intrinsic/hardware/gripper/eoat:gripper_config_go_proto",
     ],
     deps = [":eoat_service_proto"],
@@ -57,13 +57,13 @@ cc_grpc_library(
 proto_library(
     name = "gripper_config_proto",
     srcs = ["gripper_config.proto"],
-    deps = ["//intrinsic/hardware/gpio:signal_proto"],
+    deps = ["//intrinsic/hardware/gpio/v1:signal_proto"],
 )
 
 go_proto_library(
     name = "gripper_config_go_proto",
     go_deps = [
-        "//intrinsic/hardware/gpio:signal_go_proto",
+        "//intrinsic/hardware/gpio/v1:signal_go_proto",
     ],
     deps = [":gripper_config_proto"],
 )

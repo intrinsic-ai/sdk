@@ -18,7 +18,7 @@
 #include "grpcpp/channel.h"
 #include "grpcpp/server.h"
 #include "grpcpp/support/channel_arguments.h"
-#include "intrinsic/hardware/gpio/gpio_service.grpc.pb.h"
+#include "intrinsic/hardware/gpio/v1/gpio_service.grpc.pb.h"
 #include "intrinsic/icon/server/icon_api_service.h"
 
 namespace intrinsic::icon {
@@ -53,7 +53,7 @@ class IconImplInterface {
   //
   // Returns an error if the IconImplInterface is in an error state.
   virtual absl::StatusOr<
-      absl::Nonnull<intrinsic_proto::gpio::GPIOService::Service*>>
+      absl::Nonnull<intrinsic_proto::gpio::v1::GPIOService::Service*>>
   GpioService() ABSL_ATTRIBUTE_LIFETIME_BOUND = 0;
 };
 
@@ -106,7 +106,8 @@ class GrpcEnvelope {
 
   absl::StatusOr<absl::Nonnull<IconApiService*>> IconService()
       ABSL_SHARED_LOCKS_REQUIRED(icon_impl_mutex_);
-  absl::StatusOr<absl::Nonnull<intrinsic_proto::gpio::GPIOService::Service*>>
+  absl::StatusOr<
+      absl::Nonnull<intrinsic_proto::gpio::v1::GPIOService::Service*>>
   GpioService() ABSL_SHARED_LOCKS_REQUIRED(icon_impl_mutex_);
   // Tears down the current IconImplInterface and uses the factory in `config_`
   // to build a new one.

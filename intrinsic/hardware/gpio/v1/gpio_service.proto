@@ -2,17 +2,17 @@
 
 syntax = "proto3";
 
-package intrinsic_proto.gpio;
+package intrinsic_proto.gpio.v1;
 
 import "google/protobuf/timestamp.proto";
 import "google/rpc/status.proto";
-import "intrinsic/hardware/gpio/signal.proto";
+import "intrinsic/hardware/gpio/v1/signal.proto";
 
 message GetSignalDescriptionsRequest {}
 
 message GetSignalDescriptionsResponse {
   // The signal descriptions for all signals on the server.
-  repeated SignalDescription signal_descriptions = 1;
+  repeated intrinsic_proto.gpio.v1.SignalDescription signal_descriptions = 1;
 }
 
 message ReadSignalsRequest {
@@ -22,7 +22,7 @@ message ReadSignalsRequest {
 
 message ReadSignalsResponse {
   // The values of the signals that were read.
-  SignalValueSet signal_values = 1;
+  intrinsic_proto.gpio.v1.SignalValueSet signal_values = 1;
 }
 
 message WaitForValueRequest {
@@ -30,15 +30,15 @@ message WaitForValueRequest {
   // compare the measured and desired values.
   oneof condition {
     // Wait until all values in this set are matched.
-    SignalValueSet all_of = 1;
+    intrinsic_proto.gpio.v1.SignalValueSet all_of = 1;
     // Wait until any values in this set are matched.
-    SignalValueSet any_of = 2;
+    intrinsic_proto.gpio.v1.SignalValueSet any_of = 2;
   }
 }
 
 message WaitForValueResponse {
   // The values of the signals when the condition was met.
-  SignalValueSet values = 1;
+  intrinsic_proto.gpio.v1.SignalValueSet values = 1;
 
   // When the condition was first met, in server time.
   google.protobuf.Timestamp event_time = 2;
@@ -46,7 +46,7 @@ message WaitForValueResponse {
 
 message WriteSignalsRequest {
   // The values to write.
-  SignalValueSet signal_values = 1;
+  intrinsic_proto.gpio.v1.SignalValueSet signal_values = 1;
 }
 
 message OpenWriteSessionRequest {
