@@ -77,7 +77,7 @@ message BehaviorTree {
 
     message BlackboardExpression {
       oneof expression_type {
-        string cel_expression = 1;  // go/cel
+        string cel_expression = 1;  // https://cel.dev/
       }
     }
 
@@ -250,7 +250,7 @@ message BehaviorTree {
         // generated, e.g., by a DataNode, this is simply the data node's
         // blackboard_key to which the result was written (using
         // create_or_update).
-        string generator_cel_expression = 2;  // go/cel
+        string generator_cel_expression = 2;  // https://cel.dev/
       }
 
       // Blackboard key that the currently looped over value will be available
