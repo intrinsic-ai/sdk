@@ -13,6 +13,6 @@ import "intrinsic/perception/proto/v1/camera_drivers.proto";
 message CameraIdentifier {
   oneof drivers {
     CameraDrivers.GenICam genicam = 3;
-    CameraDrivers.Photoneo photoneo = 6;
+    CameraDrivers.Photoneo photoneo = 5;
   }
 }

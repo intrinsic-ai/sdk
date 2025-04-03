@@ -26,8 +26,6 @@ def extract_identifier(config: camera_config_pb2.CameraConfig) -> Optional[str]:
   camera_driver = identifier.WhichOneof("drivers")
   if camera_driver == "genicam":
     return identifier.genicam.device_id
-  elif camera_driver == "openni":
-    return identifier.openni.device_id
   elif camera_driver == "photoneo":
     return identifier.photoneo.device_id
   elif camera_driver == "realsense":
