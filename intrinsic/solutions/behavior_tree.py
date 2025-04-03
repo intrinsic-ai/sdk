@@ -2784,6 +2784,15 @@ class Loop(Node):
     self._check_consistency()
     super().__init__()
 
+    if (
+        self._for_each_protos is not None
+        or self._for_each_generator_cel_expression is not None
+    ):
+      print(
+          'For each loops have been deprecated. Prefer to use a while loop'
+          ' instead.'
+      )
+
   def set_do_child(self, do_child: Union[Node, actions.ActionBase]) -> Loop:
     self.do_child = _transform_to_optional_node(do_child)
     return self
@@ -3508,6 +3517,11 @@ class Data(Node):
       print(
           'The world_query option has been deprecated. Replace this, e.g., by a'
           ' custom skill or Python script node.'
+      )
+    if self._protos is not None:
+      print(
+          'The protos option has been deprecated. If used with a for each loop,'
+          ' replace that by a while loop.'
       )
 
   def __repr__(self) -> str:

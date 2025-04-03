@@ -202,9 +202,12 @@ message BehaviorTree {
         // unpacked. Therefore the proto must be of a type that is a well-known
         // or skill proto.
         google.protobuf.Any proto = 12;
+
         // All protos must be of a type that is a well-known or skill proto. The
         // protos are stored packed in the blackboard.
-        AnyList protos = 13;
+        // Deprecated: If used with a for each loop, replace that loop by a
+        // while loop.
+        AnyList protos = 13 [deprecated = true];
       }
     }
 
@@ -258,7 +261,8 @@ message BehaviorTree {
 
     oneof loop_type {
       Condition while = 1;
-      ForEach for_each = 6;
+      // Deprecated: Use a while loop instead
+      ForEach for_each = 6 [deprecated = true];
     }
 
     Node do = 2;
