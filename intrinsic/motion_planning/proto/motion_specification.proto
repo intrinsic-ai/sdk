@@ -125,18 +125,12 @@ message BlendingParameters {
   optional JointBlendingParameters joint_blending = 2;
 }
 
-message MotionTarget {
-  // Define the goal constraint of a given robot motion segment, either
-  // explicitly or implicitly (via a constraint).
-  intrinsic_proto.world.geometric_constraints.GeometricConstraint constraint =
-      1;
-}
-
 message MotionSegment {
-  // A motion target places a set of constraints on the final configuration of
-  // this segment.  Constraints can be specified in terms of either the joint
-  // position or the Cartesian pose.
-  MotionTarget target = 5;
+  // The motion target of the segment defines the final robot configuration for
+  // this segment. The target is defined as a set of constraints that can be
+  // specified in terms of either joint position or Cartesian constraints like
+  // a pose.
+  intrinsic_proto.world.geometric_constraints.GeometricConstraint target = 5;
   // Path constraints apply to the entire segment rather than just the final
   // configuration. Examples include Cartesian linear motion, joint position
   // limits, or orientation constraints that are applied to each point on the
