@@ -3498,6 +3498,13 @@ class Data(Node):
 
     super().__init__()
 
+    if self._cel_expression is not None:
+      print(
+          'The cel_expression option has been deprecated. Replace the'
+          ' blackboard_key with the cel_expression in all places that use the'
+          ' blackboard_key.'
+      )
+
   def __repr__(self) -> str:
     """Returns a compact, human-readable string representation."""
     return (

@@ -191,7 +191,8 @@ message BehaviorTree {
 
       oneof input_type {
         // Expression to create a proto to store.
-        string cel_expression = 10;
+        // Deprecated: Replace usages of blackboard_key by this cel_expression.
+        string cel_expression = 10 [deprecated = true];
         // The Any proto MUST be of type intrinsic_proto.executive.WorldQuery.
         AnyWithAssignments from_world = 11;
 
