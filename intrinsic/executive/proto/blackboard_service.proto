@@ -60,7 +60,6 @@ service ExecutiveBlackboard {
       delete: "/api/executive/blackboard/values/{operation}/{scope}/{key}"
     };
   }
-
 }
 
 message GetBlackboardValueRequest {
