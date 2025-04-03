@@ -190,7 +190,8 @@ message CreateOperationRequest {
     // The behavior tree to create the operation for
     BehaviorTree behavior_tree = 1;
     // If set to true, will load the default process specified for the solution.
-    bool use_default_plan = 2;
+    // Deprecated: Specify a behavior_tree explicitly.
+    bool use_default_plan = 2 [deprecated = true];
   }
 }
 
