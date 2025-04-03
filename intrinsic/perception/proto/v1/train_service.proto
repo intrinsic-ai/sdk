@@ -112,6 +112,9 @@ message TrainingJobStatus {
 
   // Timestamp when this job was submitted for training.
   google.protobuf.Timestamp create_time = 3;
+
+  // Asset ID that is associated with the training job.
+  intrinsic_proto.assets.Id asset_id = 4;
 }
 
 message SaveTrainingJobRequest {
