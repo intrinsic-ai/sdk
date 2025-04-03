@@ -2206,7 +2206,6 @@ class Parallel(NodeWithChildren):
   node fails.
 
   Attributes:
-    failure_behavior: Enum specifying how the node should fail.
     children: The list of child nodes of the given node, inherited from the
       parent class.
     proto: The proto representation of the node.
@@ -2219,24 +2218,9 @@ class Parallel(NodeWithChildren):
   _state: Optional[NodeState]
   _user_data_protos: dict[str, any_pb2.Any]
 
-  class FailureBehavior(enum.IntEnum):
-    """Specifies how a parallel node should fail.
-
-    See intrinsic_proto.executive.BehaviorTree.ParallelNode.FailureBehavior
-    for details.
-    """
-
-    DEFAULT = behavior_tree_pb2.BehaviorTree.ParallelNode.DEFAULT
-    WAIT_FOR_REMAINING_CHILDREN = (
-        behavior_tree_pb2.BehaviorTree.ParallelNode.WAIT_FOR_REMAINING_CHILDREN
-    )
-
-  failure_behavior: FailureBehavior
-
   def __init__(
       self,
       children: Optional[SequenceType[Union[Node, actions.ActionBase]]] = None,
-      failure_behavior: FailureBehavior = FailureBehavior.DEFAULT,
       name: Optional[str] = None,
   ):
     super().__init__(children)
@@ -2244,7 +2228,6 @@ class Parallel(NodeWithChildren):
     self._name = name
     self._node_id = None
     self._state = None
-    self.failure_behavior = failure_behavior
     self._user_data_protos = {}
 
   @property
@@ -2258,7 +2241,6 @@ class Parallel(NodeWithChildren):
           behavior_tree_pb2.BehaviorTree.ParallelNode()
       )
 
-    proto_object.parallel.failure_behavior = self.failure_behavior.value
     return proto_object
 
   @property
@@ -2315,9 +2297,7 @@ class Parallel(NodeWithChildren):
   def _create_from_proto(
       cls, proto_object: behavior_tree_pb2.BehaviorTree.ParallelNode
   ) -> Parallel:
-    node = cls(
-        failure_behavior=cls.FailureBehavior(proto_object.failure_behavior),
-    )
+    node = cls()
     for child_node_proto in proto_object.children:
       node.children.append(Node.create_from_proto(child_node_proto))
     return node

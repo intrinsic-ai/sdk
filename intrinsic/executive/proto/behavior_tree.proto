@@ -133,12 +133,8 @@ message BehaviorTree {
   // succeeds.
   message ParallelNode {
     repeated Node children = 1;
-    enum FailureBehavior {
-      DEFAULT = 0;  // defaults to WAIT_FOR_REMAINING_CHILDREN, to be changed
-      ABORT_REMAINING_CHILDREN = 1;
-      WAIT_FOR_REMAINING_CHILDREN = 2;
-    }
-    FailureBehavior failure_behavior = 2;
+    reserved "failure_behavior";
+    reserved 2;
   }
 
   // Try each child in the given order, only advance on unsatisfied condition.

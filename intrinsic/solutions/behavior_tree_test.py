@@ -2548,14 +2548,10 @@ class BehaviorTreeParallelTest(absltest.TestCase):
         bt.Task(behavior_call.Action(skill_id='skill_0')),
         bt.Task(behavior_call.Action(skill_id='skill_1')),
     )
-    node.failure_behavior = node.FailureBehavior.WAIT_FOR_REMAINING_CHILDREN
 
     node_proto = behavior_tree_pb2.BehaviorTree.Node(name='bar')
     node_proto.parallel.children.add().task.call_behavior.skill_id = 'skill_0'
     node_proto.parallel.children.add().task.call_behavior.skill_id = 'skill_1'
-    node_proto.parallel.failure_behavior = (
-        node_proto.parallel.FailureBehavior.WAIT_FOR_REMAINING_CHILDREN
-    )
     compare.assertProto2Equal(self, node.proto, node_proto)
 
   def test_init_with_actions(self):
@@ -2575,9 +2571,6 @@ class BehaviorTreeParallelTest(absltest.TestCase):
     node_proto.parallel.children.add().task.call_behavior.skill_id = 'skill_1'
     node_proto.parallel.children.add().task.call_behavior.skill_id = 'skill_2'
 
-    node_proto.parallel.failure_behavior = (
-        node_proto.parallel.FailureBehavior.DEFAULT
-    )
     compare.assertProto2Equal(self, node.proto, node_proto)
 
   def test_str_conversion(self):
@@ -2685,14 +2678,6 @@ class BehaviorTreeParallelTest(absltest.TestCase):
     compare.assertProto2Equal(
         self, bt.Node.create_from_proto(my_proto).proto, my_proto
     )
-
-  def test_proto_with_unspecified_failure_behavior_resolves_to_default(self):
-    node: bt.Parallel = bt.Node.create_from_proto(
-        behavior_tree_pb2.BehaviorTree.Node(
-            parallel=behavior_tree_pb2.BehaviorTree.ParallelNode()
-        )
-    )
-    self.assertEqual(node.failure_behavior, node.FailureBehavior.DEFAULT)
 
   def test_dot_graph_empty_node(self):
     """Tests if empty node conversion to a dot representation works."""
