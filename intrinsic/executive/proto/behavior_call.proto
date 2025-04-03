@@ -22,7 +22,8 @@ message BehaviorCall {
   // Name of a particular instance of the skill identified in the `name` field.
   // The instance name should be unique among all other existing skill instances
   // that are being used in a process.
-  optional string instance_name = 2;
+  // Deprecated: Do not set this field.
+  optional string instance_name = 2 [deprecated = true];
 
   // Single-message parameters for the skill. The executive will never modify
   // this. The parameters actually used during execution may be (partially)
