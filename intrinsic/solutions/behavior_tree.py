@@ -3504,6 +3504,11 @@ class Data(Node):
           ' blackboard_key with the cel_expression in all places that use the'
           ' blackboard_key.'
       )
+    if self._world_query is not None:
+      print(
+          'The world_query option has been deprecated. Replace this, e.g., by a'
+          ' custom skill or Python script node.'
+      )
 
   def __repr__(self) -> str:
     """Returns a compact, human-readable string representation."""

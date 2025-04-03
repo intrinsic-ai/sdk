@@ -194,7 +194,9 @@ message BehaviorTree {
         // Deprecated: Replace usages of blackboard_key by this cel_expression.
         string cel_expression = 10 [deprecated = true];
         // The Any proto MUST be of type intrinsic_proto.executive.WorldQuery.
-        AnyWithAssignments from_world = 11;
+        // Deprecated: Replace this, e.g., by a task node with Python code
+        // execution.
+        AnyWithAssignments from_world = 11 [deprecated = true];
 
         // When the proto is created/updated in the blackboard it is stored
         // unpacked. Therefore the proto must be of a type that is a well-known
