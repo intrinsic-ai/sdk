@@ -360,7 +360,7 @@ message GeometricConstraint {
     PositionEquality position_equality = 2;
     RotationEquality rotation_equality = 6;
     RotationCone rotation_cone = 7;
-    PoseEquality pose_equality = 8;
+    PoseEquality cartesian_pose = 8;
     PositionBoundingBox position_bounding_box = 9;
     JointPositionSumLimit joint_position_sum_limit = 11;
     PointAt point_at = 12;

@@ -111,12 +111,12 @@ absl::StatusOr<std::vector<eigenmath::VectorXd>> MotionPlannerClient::ComputeIk(
   // Convert CartesianMotionTarget to GeometricConstraint::PoseEquality.
   intrinsic_proto::world::geometric_constraints::GeometricConstraint
       geometric_target;
-  *geometric_target.mutable_pose_equality()->mutable_target_frame() =
+  *geometric_target.mutable_cartesian_pose()->mutable_target_frame() =
       cartesian_target.frame();
-  *geometric_target.mutable_pose_equality()->mutable_moving_frame() =
+  *geometric_target.mutable_cartesian_pose()->mutable_moving_frame() =
       cartesian_target.tool();
   if (cartesian_target.has_offset()) {
-    *geometric_target.mutable_pose_equality()->mutable_target_frame_offset() =
+    *geometric_target.mutable_cartesian_pose()->mutable_target_frame_offset() =
         cartesian_target.offset();
   }
 
