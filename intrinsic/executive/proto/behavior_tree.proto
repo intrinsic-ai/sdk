@@ -396,20 +396,6 @@ message BehaviorTree {
       // transitions to FAILED.
       Condition condition = 1;
 
-      // A sequence or parallel node in a system tree can become an extension
-      // node. Additional nodes will be added as a child.  Each extension point
-      // may be used at most once per sBT. An extension node must not have
-      // children nodes specified. System trees in resource types and resource
-      // sets cannot define an extension point.
-      enum ExtensionPointType {
-        EXTENSION_POINT_TYPE_UNSPECIFIED = 0;
-        // Initialization, expected to be executed once before pBTs can run.
-        EXTENSION_POINT_TYPE_SYSTEM_TREE_INIT = 1;
-        // Run-time, expected to run continuously and concurrently with pBTs.
-        EXTENSION_POINT_TYPE_SYSTEM_TREE_RUN = 2;
-      }
-      optional ExtensionPointType extension_point = 2;
-
       optional Breakpoint.Type breakpoint = 3;
 
       optional ExecutionSettings execution_settings = 4;
@@ -438,6 +424,9 @@ message BehaviorTree {
         ExtendedStatusSettings emit_extended_status = 1;
       }
       optional FailureSettings on_failure = 5;
+
+      reserved "extension_point";
+      reserved 2;
     }
 
     oneof node_type {
