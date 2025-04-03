@@ -123,7 +123,6 @@ proto_library(
         ":behavior_tree_proto",
         ":executive_execution_mode_proto",
         ":run_metadata_proto",
-        "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_googleapis//google/longrunning:operations_proto",
         "@com_google_protobuf//:any_proto",
         "@com_google_protobuf//:empty_proto",
@@ -239,7 +238,6 @@ proto_library(
     name = "blackboard_service_proto",
     srcs = ["blackboard_service.proto"],
     deps = [
-        "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_protobuf//:any_proto",
         "@com_google_protobuf//:empty_proto",
     ],

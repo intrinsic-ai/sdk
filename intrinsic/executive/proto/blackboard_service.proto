@@ -4,7 +4,6 @@ syntax = "proto3";
 
 package intrinsic_proto.executive;
 
-import "google/api/annotations.proto";
 import "google/protobuf/any.proto";
 import "google/protobuf/empty.proto";
 
@@ -18,48 +17,19 @@ message BlackboardValue {
 service ExecutiveBlackboard {
 
   // Retrieves a specified blackboard value.
-  rpc GetBlackboardValue(GetBlackboardValueRequest) returns (BlackboardValue) {
-    option (google.api.http) = {
-      get: "/api/executive/blackboard/values/{operation}/{scope}/{key}"
-    };
-  }
+  rpc GetBlackboardValue(GetBlackboardValueRequest) returns (BlackboardValue) {}
 
   // List all available entries on the blackboard.
   rpc ListBlackboardValues(ListBlackboardValuesRequest)
-      returns (ListBlackboardValuesResponse) {
-    option (google.api.http) = {
-      // Retrieves all values in the given operation and scope.
-      // You can append ?view=FULL to also retrieve all value protos in the
-      // response, otherwise (and if explicitly passing ?view?ANY_TYPEURL_ONLY)
-      // only the type_url field of the value Any protos is populated.
-      get: "/api/executive/blackboard/values/{operation}/{scope}"
-      additional_bindings {
-        // Retrieves all values in the given operation's PROCESS_TREE scope.
-        // You can append ?view=FULL to also retrieve all value protos in the
-        // response, otherwise (and if explicitly passing
-        // ?view?ANY_TYPEURL_ONLY) only the type_url field of the value Any
-        // protos is populated.
-        get: "/api/executive/blackboard/values/{operation}"
-      }
-    };
-  }
+      returns (ListBlackboardValuesResponse) {}
 
   // Update a specific value on the blackboard.
   rpc UpdateBlackboardValue(UpdateBlackboardValueRequest)
-      returns (BlackboardValue) {
-    option (google.api.http) = {
-      put: "/api/executive/blackboard/values/{operation}/{scope}/{key}"
-      body: "value"
-    };
-  }
+      returns (BlackboardValue) {}
 
   // Delete a specific value on the blackboard.
   rpc DeleteBlackboardValue(DeleteBlackboardValueRequest)
-      returns (google.protobuf.Empty) {
-    option (google.api.http) = {
-      delete: "/api/executive/blackboard/values/{operation}/{scope}/{key}"
-    };
-  }
+      returns (google.protobuf.Empty) {}
 }
 
 message GetBlackboardValueRequest {
