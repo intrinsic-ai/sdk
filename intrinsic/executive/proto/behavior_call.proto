@@ -101,5 +101,6 @@ message BehaviorCall {
     bytes internal_data = 2;
 
   }
-  optional SkillExecutionData skill_execution_data = 8;
+  // Deprecated: Do not fill or use this data.
+  optional SkillExecutionData skill_execution_data = 8 [deprecated = true];
 }
