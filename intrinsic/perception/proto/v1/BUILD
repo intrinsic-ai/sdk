@@ -326,28 +326,6 @@ go_proto_library(
 )
 
 proto_library(
-    name = "image_file_reference_proto",
-    srcs = ["image_file_reference.proto"],
-    deps = [":image_buffer_proto"],
-)
-
-cc_proto_library(
-    name = "image_file_reference_cc_proto",
-    deps = [":image_file_reference_proto"],
-)
-
-py_proto_library(
-    name = "image_file_reference_py_pb2",
-    deps = [":image_file_reference_proto"],
-)
-
-go_proto_library(
-    name = "image_file_reference_go_proto",
-    go_deps = [":image_buffer_go_proto"],
-    deps = [":image_file_reference_proto"],
-)
-
-proto_library(
     name = "intrinsic_params_proto",
     srcs = ["intrinsic_params.proto"],
     deps = [":dimensions_proto"],
