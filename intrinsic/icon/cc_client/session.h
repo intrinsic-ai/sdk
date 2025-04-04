@@ -6,6 +6,7 @@
 #include <atomic>
 #include <cstdint>
 #include <functional>
+#include <list>
 #include <memory>
 #include <optional>
 #include <string>
@@ -36,7 +37,6 @@
 #include "intrinsic/icon/proto/v1/types.pb.h"
 #include "intrinsic/icon/release/source_location.h"
 #include "intrinsic/logging/proto/context.pb.h"
-#include "intrinsic/platform/common/buffers/realtime_write_queue.h"
 #include "intrinsic/production/external/intops/strong_int.h"
 #include "intrinsic/util/atomic_sequence_num.h"
 #include "intrinsic/util/grpc/channel_interface.h"
@@ -358,7 +358,7 @@ class Session {
 
   // Stops running watchers after the current event is finished processing, if
   // they are running. Watchers may be restarted again by calling RunWatchers().
-  void QuitWatcherLoop() ABSL_LOCKS_EXCLUDED(reactions_queue_writer_mutex_);
+  void QuitWatcherLoop() ABSL_LOCKS_EXCLUDED(reactions_queue_mutex_);
 
   // Creates a StreamWriter for the given `input_name` of the given action.
   //
@@ -383,7 +383,7 @@ class Session {
   // Ends the session and returns the session end status. Returns a precondition
   // failed status if the session has already ended.
   absl::Status End()
-      ABSL_LOCKS_EXCLUDED(session_mutex_, reactions_queue_writer_mutex_);
+      ABSL_LOCKS_EXCLUDED(session_mutex_, reactions_queue_mutex_);
 
   SessionId Id() const { return session_id_; }
 
@@ -433,18 +433,17 @@ class Session {
 
   absl::StatusOr<intrinsic_proto::icon::v1::OpenSessionResponse>
   GetResponseOrEnd(const intrinsic_proto::icon::v1::OpenSessionRequest& request)
-      ABSL_LOCKS_EXCLUDED(session_mutex_, reactions_queue_writer_mutex_);
+      ABSL_LOCKS_EXCLUDED(session_mutex_, reactions_queue_mutex_);
 
   // Triggers the reaction callbacks for the given `reaction`.
   void TriggerReactionCallbacks(
       const intrinsic_proto::icon::v1::WatchReactionsResponse& reaction)
       ABSL_LOCKS_EXCLUDED(session_mutex_, watch_reactions_mutex_,
-                          reactions_queue_reader_mutex_,
-                          reactions_queue_writer_mutex_);
+                          reactions_queue_mutex_);
 
   // Reads out the reaction watcher buffer and finishes the call. Logs any
   // additional reactions received, and any call errors.
-  void CleanUpWatcherCall() ABSL_LOCKS_EXCLUDED(reactions_queue_reader_mutex_);
+  void CleanUpWatcherCall() ABSL_LOCKS_EXCLUDED(reactions_queue_mutex_);
 
   // Converts the `status` to an absl::Status. Ends the session if its code is
   // absl::Status::Code::kAborted and logs the session call status.
@@ -453,21 +452,25 @@ class Session {
   // Returns the absl::Status version of `status` otherwise. In this case, the
   // Session remains active.
   absl::Status EndAndLogOnAbort(const ::google::rpc::Status& status)
-      ABSL_LOCKS_EXCLUDED(session_mutex_, reactions_queue_writer_mutex_);
+      ABSL_LOCKS_EXCLUDED(session_mutex_, reactions_queue_mutex_);
 
   // Reads from watcher stream, and queues new reactions into the
   // `reactions_queue_`.
   void WatchReactionsThreadBody();
+
+  bool ShouldWakeWatcherLoop() const
+      ABSL_EXCLUSIVE_LOCKS_REQUIRED(reactions_queue_mutex_) {
+    return quit_watcher_loop_ || reactions_stream_closed_ ||
+           !reactions_queue_.empty();
+  }
 
   // We need multiple mutexes to run some functions in parallel. Define some
   // total order for acquiring to avoid deadlocks.
   mutable absl::Mutex session_mutex_
       ABSL_ACQUIRED_BEFORE(watch_reactions_mutex_);
   absl::Mutex watch_reactions_mutex_
-      ABSL_ACQUIRED_BEFORE(reactions_queue_writer_mutex_);
-  absl::Mutex reactions_queue_writer_mutex_
-      ABSL_ACQUIRED_BEFORE(reactions_queue_reader_mutex_);
-  absl::Mutex reactions_queue_reader_mutex_;
+      ABSL_ACQUIRED_BEFORE(reactions_queue_mutex_);
+  absl::Mutex reactions_queue_mutex_;
 
   // Hold onto the channel, if any, so that callers do not need to worry about
   // its lifetime. May be nullptr depending on the version of Start used to
@@ -501,20 +504,14 @@ class Session {
 
   // Reaction events are written to the `reactions_queue_` from the
   // `watcher_read_thread_`, and read during `RunWatcherLoop()` on the calling
-  // thread. Passing a nullopt quits the watcher loop.
-  RealtimeWriteQueue<absl::StatusOr<
-      std::optional<intrinsic_proto::icon::v1::WatchReactionsResponse>>>
-      internal_reactions_queue_ ABSL_GUARDED_BY(reactions_queue_writer_mutex_)
-          ABSL_GUARDED_BY(reactions_queue_reader_mutex_);
-  RealtimeWriteQueue<absl::StatusOr<std::optional<
-      intrinsic_proto::icon::v1::WatchReactionsResponse>>>::NonRtReader&
-      reactions_queue_reader_ ABSL_GUARDED_BY(reactions_queue_reader_mutex_){
-          internal_reactions_queue_.Reader()};
-  RealtimeWriteQueue<absl::StatusOr<std::optional<
-      intrinsic_proto::icon::v1::WatchReactionsResponse>>>::RtWriter&
-      reactions_queue_writer_ ABSL_GUARDED_BY(reactions_queue_writer_mutex_){
-          internal_reactions_queue_.Writer()};
-  std::atomic<bool> quit_watcher_loop_ = false;
+  // thread.
+  std::list<absl::StatusOr<intrinsic_proto::icon::v1::WatchReactionsResponse>>
+      reactions_queue_ ABSL_GUARDED_BY(reactions_queue_mutex_);
+  // Only needed for waking `RunWatcherLoop()` when the stream is closed from
+  // server side.
+  bool reactions_stream_closed_ ABSL_GUARDED_BY(reactions_queue_mutex_) = false;
+  // Signals RunWatcherLoop* to quit after processing the reaction queue.
+  bool quit_watcher_loop_ ABSL_GUARDED_BY(reactions_queue_mutex_) = false;
 
   // Used to read reaction events in the background. `watcher_stream_::Read()`
   // calls should only be made on this thread. It is ok for other

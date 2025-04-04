@@ -27,6 +27,7 @@
 #include "google/protobuf/any.pb.h"
 #include "google/rpc/status.pb.h"
 #include "grpcpp/client_context.h"
+#include "grpcpp/support/status.h"
 #include "grpcpp/support/sync_stream.h"
 #include "intrinsic/icon/cc_client/condition.h"
 #include "intrinsic/icon/common/id_types.h"
@@ -39,7 +40,6 @@
 #include "intrinsic/icon/release/grpc_time_support.h"
 #include "intrinsic/icon/release/source_location.h"
 #include "intrinsic/logging/proto/context.pb.h"
-#include "intrinsic/platform/common/buffers/realtime_write_queue.h"
 #include "intrinsic/util/grpc/channel_interface.h"
 #include "intrinsic/util/proto_time.h"
 #include "intrinsic/util/status/status_builder.h"
@@ -516,25 +516,33 @@ absl::Status Session::StopAllActions() {
 }
 
 absl::Status Session::RunWatcherLoop(absl::Time deadline) {
-  quit_watcher_loop_ = false;
+  {
+    absl::MutexLock l(&reactions_queue_mutex_);
+    quit_watcher_loop_ = false;
+  }
   while (true) {
-    absl::StatusOr<
-        std::optional<intrinsic_proto::icon::v1::WatchReactionsResponse>>
+    std::optional<
+        absl::StatusOr<intrinsic_proto::icon::v1::WatchReactionsResponse>>
         response;
-    ReadResult result;
     {
-      absl::MutexLock l(&reactions_queue_reader_mutex_);
-      result = reactions_queue_reader_.ReadWithTimeout(response, deadline);
-    }
-    if (result == ReadResult::kDeadlineExceeded) {
-      return absl::DeadlineExceededError(
-          "Deadline exceeded in RunWatcherLoop()");
-    } else if (result != ReadResult::kConsumed) {
-      // if the event queue has closed, we can still quit from a quit event
-      // triggered in a reaction callback by checking `quit_watcher_loop_`.
-      if (quit_watcher_loop_) {
+      absl::MutexLock l(&reactions_queue_mutex_);
+      if (!reactions_queue_mutex_.AwaitWithDeadline(
+              absl::Condition(this, &Session::ShouldWakeWatcherLoop),
+              deadline)) {
+        return absl::DeadlineExceededError(
+            "Deadline exceeded in RunWatcherLoop()");
+      }
+      if (reactions_queue_.empty() && quit_watcher_loop_) {
+        // If the event queue has closed, we can still quit from a quit event
+        // triggered in a reaction callback by checking `quit_watcher_loop_`.
         return absl::OkStatus();
       }
+      if (!reactions_queue_.empty()) {
+        response = reactions_queue_.front();
+        reactions_queue_.pop_front();
+      }
+    }
+    if (!response.has_value()) {
       absl::Status status = End();
       LOG(INFO) << "Session ended unexpectedly while running the watcher loop "
                    "with status: "
@@ -544,18 +552,12 @@ absl::Status Session::RunWatcherLoop(absl::Time deadline) {
     }
 
     // Grpc error from ICON server, end session and error.
-    if (!response.ok()) {
+    if (!response->ok()) {
       absl::Status status = End();
       LOG(INFO) << "Session ended unexpectedly while running the watcher loop "
                    "with status: "
-                << response.status() << "\n EndSession() status: " << status;
-      return response.status();
-    }
-
-    // nullopt is only a workaround to notify this thread that
-    // `quit_watcher_loop_` was set.
-    if (*response == std::nullopt) {
-      return absl::OkStatus();
+                << response->status() << "\n EndSession() status: " << status;
+      return response->status();
     }
 
     // Normal case, service reaction callbacks.
@@ -564,18 +566,8 @@ absl::Status Session::RunWatcherLoop(absl::Time deadline) {
 }
 
 void Session::QuitWatcherLoop() {
-  absl::MutexLock l(&reactions_queue_writer_mutex_);
+  absl::MutexLock l(&reactions_queue_mutex_);
   quit_watcher_loop_ = true;
-  // The queue is already closed, so return early, since there's no need to wake
-  // up the watcher loop.
-  if (reactions_queue_writer_.Closed()) {
-    return;
-  }
-
-  // send a null event to wake up the watcher loop
-  if (!reactions_queue_writer_.Write(std::nullopt)) {
-    LOG(ERROR) << "Failed to quit watcher loop, event queue full.";
-  }
 }
 
 absl::StatusOr<::intrinsic_proto::icon::StreamingOutput>
@@ -799,15 +791,17 @@ void Session::TriggerReactionCallbacks(
 }
 
 void Session::CleanUpWatcherCall() {
-  absl::MutexLock l(&reactions_queue_reader_mutex_);
+  absl::MutexLock l(&reactions_queue_mutex_);
   absl::StatusOr<
       std::optional<intrinsic_proto::icon::v1::WatchReactionsResponse>>
       response = std::nullopt;
-  while (reactions_queue_reader_.Read(response) == ReadResult::kConsumed) {
-    if (response.ok() && response->has_value()) {
+  while (!reactions_queue_.empty()) {
+    const auto& response = reactions_queue_.front();
+    if (response.ok()) {
       DLOG(INFO) << "Had reaction event in queue after quitting watcher loop: "
-                 << response->value();
+                 << *response;
     }
+    reactions_queue_.pop_front();
   }
   LOG(INFO) << "Ended watcher call";
 }
@@ -836,19 +830,22 @@ void Session::WatchReactionsThreadBody() {
   // session is over. If the call ends earlier, it's due to a connection failure
   // or a bug on the server.
   while (watcher_stream_->Read(&watcher_reactions_response)) {
-    // Block until the response can be written to the queue.
-    absl::MutexLock l(&reactions_queue_writer_mutex_);
-    while (!reactions_queue_writer_.Write(watcher_reactions_response)) {
+    absl::MutexLock l(&reactions_queue_mutex_);
+    reactions_queue_.push_back(watcher_reactions_response);
+    if (reactions_queue_.size() > 10) {
+      LOG_EVERY_N_SEC(WARNING, 10)
+          << "RunWatcherLoop has a large backlog of reactions. Please make "
+             "sure 1) you call RunWatcherLoop just after StartAction and 2) "
+             "any callback functions are quick.";
     }
   }
   grpc::Status grpc_status = watcher_stream_->Finish();
-  absl::MutexLock l(&reactions_queue_writer_mutex_);
+  absl::MutexLock l(&reactions_queue_mutex_);
   if (!grpc_status.ok()) {
     absl::Status error = ToAbslStatus(grpc_status);  // Only allowed for errors.
-    while (!reactions_queue_writer_.Write(error)) {
-    }
+    reactions_queue_.push_back(error);
   }
-  reactions_queue_writer_.Close();
+  reactions_stream_closed_ = true;
 }
 
 // static
