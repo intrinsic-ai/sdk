@@ -4,12 +4,13 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <cstdint>
-#include <memory>
 #include <random>
 
 #include "absl/strings/str_cat.h"
 #include "intrinsic/icon/release/source_location.h"
+#include "intrinsic/util/thread/thread.h"
 
 namespace intrinsic::icon {
 namespace {
@@ -58,94 +59,7 @@ class AsyncBufferTest : public testing::Test {
     ASSERT_NE(active, nullptr);
     active->Check(seq_no);
   }
-
-  static constexpr int kStateCount =
-      sizeof(async_buffer_internal::kStateLookupTable) /
-      sizeof(async_buffer_internal::kStateLookupTable[0]);
 };
-
-// Test the invariants of the internal state machine. See async_buffer.h for
-// a detailed explanation of the invariants.
-// These tests are run against a purely constant structure.
-TEST_F(AsyncBufferTest, OneToOneBufferIDToSlot) {
-  // Enforces for every state of the state machine, that each buffer ID must
-  // be represented exactly once in each of the slots.
-  for (const auto& s : async_buffer_internal::kStateLookupTable) {
-    // Active and free buf IDs must be in range.
-    EXPECT_LT(s.active_buf, 3);
-    EXPECT_LT(s.free_buf, 3);
-
-    // Active must not equal Free.
-    EXPECT_NE(s.active_buf, s.free_buf);
-
-    // Active and Free are on the range [0, 2], and Active != Free, we know
-    // that the implied Mailbox buffer is in range and unique.
-  }
-}
-
-TEST_F(AsyncBufferTest, GetActiveEmptiesMailbox) {
-  // Enforces after any GetActive state transition, that the system must be in
-  // one of the "mailbox empty" states (states 0-5).
-  for (const auto& s : async_buffer_internal::kStateLookupTable) {
-    EXPECT_LT(s.get_active, kStateCount / 2);
-  }
-}
-
-TEST_F(AsyncBufferTest, GetActiveWithEmptyMailboxHoldsState) {
-  // Enforces that if the system starts in a "mailbox empty" state, after a
-  // GetActive state transition, the system must be in the same state it
-  // started in.
-  for (uint8_t i = 0; i < kStateCount / 2; ++i) {
-    const auto& s = async_buffer_internal::kStateLookupTable[i];
-    EXPECT_EQ(s.get_active, i);
-  }
-}
-
-TEST_F(AsyncBufferTest,
-       GetActiveWithFullMailboxEmptiesMailboxAndSwapsActiveAndMailbox) {
-  // Enforces that if the system starts in a "mailbox full" state, after after
-  // a GetActive state transition, the buffer in the Free slot must be
-  // unchanged, and the buffer in the Active slot must have exchanged positions
-  // with the buffer in the Mailbox slot.  Since the buffer ID of the buffer in
-  // the mailbox slot is implied from the IDs in the Active and Free slots,
-  // this is the same as saying that the buffer in the Active slot is different
-  // from the buffer previously in the active slot, and not the same as the
-  // buffer in the Free slot.
-  for (uint8_t i = kStateCount / 2; i < kStateCount; ++i) {
-    const auto& s = async_buffer_internal::kStateLookupTable[i];
-
-    // It is unsafe to proceed if the next array index is invalid.  Also
-    // checks to make sure that the next state is an "empty mailbox" state.
-    ASSERT_LT(s.get_active, kStateCount / 2);
-
-    const auto& next = async_buffer_internal::kStateLookupTable[s.get_active];
-    EXPECT_EQ(s.free_buf, next.free_buf);
-    EXPECT_NE(s.active_buf, next.active_buf);
-  }
-}
-
-TEST_F(AsyncBufferTest, CommitFreeFillsMailbox) {
-  // Enforces that after any CommitFree state transition, the system must be in
-  // one of the "mailbox full" states (states 6-11)
-  for (const auto& s : async_buffer_internal::kStateLookupTable) {
-    EXPECT_GE(s.commit_free, kStateCount / 2);
-    EXPECT_LT(s.commit_free, kStateCount);
-  }
-}
-
-TEST_F(AsyncBufferTest, CommitFreeSwapsFreeAndMailbox) {
-  // Enforces after any CommitFree state transition, the buffer in the Active
-  // slot must be unchanged, and the buffer in the Free slot must have exchanged
-  // positions with the buffer in the Mailbox slot.
-  for (const auto& s : async_buffer_internal::kStateLookupTable) {
-    // It is unsafe to proceed if the next array index is invalid.
-    ASSERT_LT(s.commit_free, kStateCount);
-
-    const auto& next = async_buffer_internal::kStateLookupTable[s.commit_free];
-    EXPECT_NE(s.free_buf, next.free_buf);
-    EXPECT_EQ(s.active_buf, next.active_buf);
-  }
-}
 
 // Unit-tests for the AsyncBuffer<T> class.
 TEST_F(AsyncBufferTest, FillCheck) {
@@ -242,6 +156,41 @@ TEST(AsyncBufferSimpleTest, EmptyReadsDefaultValue) {
   EXPECT_FALSE(buffer.GetActiveBuffer(&result));
   EXPECT_NE(result, nullptr);
   EXPECT_EQ(result->value, 2);
+}
+
+TEST(AsyncBufferSimpleTest, ThreadSafe) {
+  struct TestStruct {
+    int i = 0;
+    double a = 3.14;
+  };
+  AsyncBuffer<TestStruct> buffer;
+  Thread write_thread([&]() {
+    for (int i = 0; i < 1000; ++i) {
+      TestStruct* b = buffer.GetFreeBuffer();
+      b->i = i;
+      buffer.CommitFreeBuffer();
+    }
+  });
+  int largest_i = 0;
+  for (int i = 0; i < 1000; ++i) {
+    TestStruct* s = nullptr;
+    bool new_data = buffer.GetActiveBuffer(&s);
+    EXPECT_GE(s->i, 0);
+    EXPECT_LT(s->i, 1000);
+    EXPECT_EQ(s->a, 3.14);
+    if (new_data) {
+      EXPECT_GT(s->i, largest_i)
+          << "Producer writes increasing values so new data should be larger.";
+      largest_i = std::max(largest_i, s->i);
+    } else {
+      EXPECT_EQ(s->i, largest_i) << "Consumer reads latest value.";
+    }
+    largest_i = std::max(largest_i, s->i);
+  }
+  write_thread.join();
+  TestStruct* s = nullptr;
+  buffer.GetActiveBuffer(&s);
+  EXPECT_EQ(s->i, 999);
 }
 
 }  // namespace

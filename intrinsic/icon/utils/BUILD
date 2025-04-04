@@ -293,6 +293,7 @@ cc_library(
 cc_library(
     name = "async_buffer",
     hdrs = ["async_buffer.h"],
+    deps = ["@com_google_absl//absl/log:check"],
 )
 
 cc_test(
@@ -302,6 +303,7 @@ cc_test(
         ":async_buffer",
         "//intrinsic/icon/release:source_location",
         "//intrinsic/util/testing:gtest_wrapper_main",
+        "//intrinsic/util/thread",
         "@com_google_absl//absl/strings",
     ],
 )

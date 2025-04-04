@@ -6,10 +6,16 @@
 #include <atomic>
 #include <cstdint>
 #include <memory>
+#include <utility>
+
+#include "absl/log/check.h"
 
 namespace intrinsic {
 
-// A real time safe producer/consumer buffer container
+// A real-time safe producer/consumer buffer container.
+// Writes by one producer thread and reads by one consumer thread may be
+// concurrent, anything else is not thread-safe.
+// Both reads and writes are real-time safe, and do not copy the data.
 //
 // AsyncBuffer implements a triple buffered single producer/single consumer
 // container.
@@ -60,6 +66,9 @@ class AsyncBuffer {
   // points to it. Returns false if the mailbox buffer was empty and the
   // returned pointer points to the buffer that was already active at the time
   // of this call.
+  //
+  // If nothing has been committed yet, *buffer points to a default constructed
+  // (potentially uninitialized) `T` afterwards.
   bool GetActiveBuffer(T** buffer);
 
   // Commits the free buffer by swapping it with the mailbox buffer.
@@ -74,7 +83,21 @@ class AsyncBuffer {
   T* GetFreeBuffer();
 
  private:
-  std::atomic<uint8_t> raw_state_ = 0;
+  // Indicates which is the active/mailbox/free buffer in `buffers_`.
+  struct State {
+    bool IsConsistent() const {
+      return active_index < 3 && mailbox_index < 3 && free_index < 3 &&
+             (active_index != mailbox_index) && (mailbox_index != free_index) &&
+             (free_index != active_index);
+    }
+    uint8_t active_index = 0;
+    uint8_t mailbox_index = 1;
+    uint8_t free_index = 2;
+    bool mailbox_full = false;
+  };
+
+  std::atomic<State> state_;
+  static_assert(decltype(state_)::is_always_lock_free);
   bool free_buffer_checked_out_ = false;
   // Buffers: active, mailbox, free.
   std::unique_ptr<T> buffers_[3];
@@ -88,17 +111,7 @@ inline AsyncBuffer<T>::AsyncBuffer(const InitArgs&... args) {
   }
 }
 
-// The async_buffer_internal holds the constant state machine lookup table
-// shared by all AsyncBuffer<T> objects.
-namespace async_buffer_internal {
-struct State {
-  uint8_t active_buf;
-  uint8_t free_buf;
-  uint8_t get_active;
-  uint8_t commit_free;
-};
-
-// Internally, the AsyncBuffer is represented as a state machine.  It manages 3
+// Implicitly, the AsyncBuffer `state_` is a state machine.  It manages 3
 // buffers which, at any instant in time, are distributed across 3 different
 // slots (Active, Mailbox and Free).
 //
@@ -122,105 +135,57 @@ struct State {
 // Operation #3 (fetching the active buffer) permutes the state of the system if
 // the mailbox is full (swapping Active and Mailbox and returning the new
 // Active), but not if the mailbox is empty.
-//
-// Given this, the state machine can be described as 12 states, each of which
-// defines which buffer is in which slot for each state.  It also needs to store
-// which state is the next state in the machine for each of the two state
-// permuting operations.
-//
-// All of this can be represented with 4 integers per state.  Only two are
-// needed to store the buffer-to-slot mapping (the ID of the Mailbox buffer is
-// always implied by the IDs of the Active and Free buffers).  Another 2 are
-// used to define the edges for the GetActive and CommitFree operations.
-//
-// While there are many valid representations of the state machine states, a
-// solution was chosen below which partitions the states a way in which the
-// "mailbox empty" states are states 0-5, and the "mailbox full" states are
-// states 6-11.
-//
-// To ensure that the state machine solution chosen below is a valid state
-// machine, there are a number of simple invariants which are checked in the
-// test code.
-//
-// \li For every state of the state machine, each buffer ID must be represented
-// exactly once in each of the slots.
-//
-// \li After any GetActive state transition, the system must be in one of the
-// "mailbox empty" states (states 0-5)
-//
-// \li If the system starts in a "mailbox empty" state, after a GetActive state
-// transition, the system must be in the same state it started in.
-//
-// \li If the system starts in a "mailbox full" state, after a GetActive
-// state transition, the buffer in the Free slot must be unchanged, and the
-// buffer in the Active slot must have exchanged positions with the buffer in
-// the Mailbox slot.  Since the buffer ID of the buffer in the mailbox slot is
-// implied from the IDs in the Active and Free slots, this is the same as saying
-// that the buffer in the Active slot is different from the buffer previously in
-// the active slot, and not the same as the buffer in the Free slot.
-//
-// \li After any CommitFree state transition, the system must be in one of the
-// "mailbox full" states (states 6-11)
-//
-// \li After any CommitFree state transition, the buffer in the Active slot must
-// be unchanged, and the buffer in the Free slot must have exchanged positions
-// with the buffer in the Mailbox slot.
-
-constexpr State kStateLookupTable[] = {
-    //   Empty Mailbox States
-    {.active_buf = 0, .free_buf = 2, .get_active = 0, .commit_free = 7},
-    {.active_buf = 0, .free_buf = 1, .get_active = 1, .commit_free = 6},
-    {.active_buf = 1, .free_buf = 2, .get_active = 2, .commit_free = 9},
-    {.active_buf = 1, .free_buf = 0, .get_active = 3, .commit_free = 8},
-    {.active_buf = 2, .free_buf = 1, .get_active = 4, .commit_free = 11},
-    {.active_buf = 2, .free_buf = 0, .get_active = 5, .commit_free = 10},
-    //   Full Mailbox States
-    {.active_buf = 0, .free_buf = 2, .get_active = 2, .commit_free = 7},
-    {.active_buf = 0, .free_buf = 1, .get_active = 4, .commit_free = 6},
-    {.active_buf = 1, .free_buf = 2, .get_active = 0, .commit_free = 9},
-    {.active_buf = 1, .free_buf = 0, .get_active = 5, .commit_free = 8},
-    {.active_buf = 2, .free_buf = 1, .get_active = 1, .commit_free = 11},
-    {.active_buf = 2, .free_buf = 0, .get_active = 3, .commit_free = 10}};
-
-}  // namespace async_buffer_internal
 
 template <typename T>
 inline T* AsyncBuffer<T>::GetFreeBuffer() {
-  using async_buffer_internal::kStateLookupTable;
   free_buffer_checked_out_ = true;
-  return buffers_[kStateLookupTable[raw_state_.load()].free_buf].get();
+  return buffers_[state_.load().free_index].get();
 }
 
 template <typename T>
 inline bool AsyncBuffer<T>::GetActiveBuffer(T** buffer) {
-  using async_buffer_internal::kStateLookupTable;
-
-  uint8_t cur_state;
-  uint8_t next_state;
+  State current;
+  State next;
   do {
-    cur_state = raw_state_.load();
-    next_state = kStateLookupTable[cur_state].get_active;
-  } while (!raw_state_.compare_exchange_strong(cur_state, next_state));
+    current = state_.load();
+    // If empty, nothing changes. If full, it gets empty and the active buffer
+    // swaps with the mailbox. (Never touches the free buffer. Mailbox is empty
+    // afterwards.)
+    next = current;
+    if (next.mailbox_full) {
+      std::swap(next.active_index, next.mailbox_index);
+      next.mailbox_full = false;
+    }
+  } while (!state_.compare_exchange_strong(current, next));
+  DCHECK_EQ(current.free_index, next.free_index);
+  DCHECK_EQ(next.mailbox_full, false);
+  DCHECK(next.IsConsistent());
 
-  *buffer = buffers_[kStateLookupTable[next_state].active_buf].get();
-  return next_state != cur_state;
+  *buffer = buffers_[next.active_index].get();
+  return current.mailbox_full;
 }
 
 template <typename T>
 inline bool AsyncBuffer<T>::CommitFreeBuffer() {
-  using async_buffer_internal::kStateLookupTable;
-
   if (!free_buffer_checked_out_) {
     return false;
   }
 
-  uint8_t cur_state;
-  uint8_t next_state;
+  State current;
+  State next;
   do {
-    cur_state = raw_state_.load();
-    next_state = kStateLookupTable[cur_state].commit_free;
-  } while (!raw_state_.compare_exchange_strong(cur_state, next_state));
-
+    current = state_.load();
+    // Same behavior whether full or empty, mailbox is always full afterwards.
+    // Free buffer swaps with mailbox. (Never touches the active buffer. Mailbox
+    // is full afterwards.)
+    next = {.active_index = current.active_index,
+            .mailbox_index = current.free_index,
+            .free_index = current.mailbox_index,
+            .mailbox_full = true};
+  } while (!state_.compare_exchange_strong(current, next));
+  DCHECK_EQ(current.active_index, next.active_index);
+  DCHECK_EQ(next.mailbox_full, true);
+  DCHECK(next.IsConsistent());
   free_buffer_checked_out_ = false;
   return true;
 }
