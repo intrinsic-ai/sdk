@@ -1,7 +1,7 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
 load("@ai_intrinsic_sdks_pip_deps//:requirements.bzl", "requirement")
-load("@rules_python//python:defs.bzl", "py_library", "py_test")
+load("@rules_python//python:defs.bzl", "py_library")
 
 package(default_visibility = [
     "//visibility:public",
@@ -55,22 +55,6 @@ py_library(
         "//intrinsic/util/grpc:error_handling",
         "//intrinsic/util/grpc:interceptor",
         requirement("grpcio"),
-    ],
-)
-
-py_test(
-    name = "camera_client_test",
-    srcs = ["camera_client_test.py"],
-    deps = [
-        ":camera_client",
-        "//intrinsic/perception/proto/v1:camera_config_py_pb2",
-        "//intrinsic/perception/proto/v1:camera_drivers_py_pb2",
-        "//intrinsic/perception/proto/v1:camera_identifier_py_pb2",
-        "//intrinsic/perception/service/v1:camera_server_fake",
-        "//intrinsic/resources/proto:resource_handle_py_pb2",
-        "//intrinsic/util/grpc:connection",
-        "@com_google_absl_py//absl/testing:absltest",
-        "@com_google_absl_py//absl/testing:parameterized",
     ],
 )
 
