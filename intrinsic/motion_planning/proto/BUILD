@@ -83,11 +83,10 @@ proto_library(
     name = "motion_specification_proto",
     srcs = ["motion_specification.proto"],
     deps = [
-        "//intrinsic/icon/proto:joint_space_proto",
+        "//intrinsic/kinematics/types:joint_limits_proto",
         "//intrinsic/skills/proto:skill_parameter_metadata_proto",
         "//intrinsic/world/proto:collision_settings_proto",
         "//intrinsic/world/proto:geometric_constraints_proto",
-        "//intrinsic/world/proto:object_world_refs_proto",
     ],
 )
 
