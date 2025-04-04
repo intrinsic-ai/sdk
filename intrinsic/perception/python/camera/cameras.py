@@ -11,8 +11,8 @@ import warnings
 from absl import logging
 from google.protobuf import empty_pb2
 import grpc
-from intrinsic.hardware.proto import settings_pb2
 from intrinsic.math.python import pose3
+from intrinsic.perception.proto.v1 import settings_pb2
 from intrinsic.perception.python.camera import _camera_utils
 from intrinsic.perception.python.camera import camera_client
 from intrinsic.perception.python.camera import data_classes

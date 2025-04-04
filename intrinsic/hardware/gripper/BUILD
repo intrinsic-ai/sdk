@@ -11,7 +11,7 @@ package(default_visibility = ["//visibility:public"])
 proto_library(
     name = "gripper_proto",
     srcs = ["gripper.proto"],
-    deps = ["//intrinsic/hardware/proto:settings_proto"],
+    deps = ["//intrinsic/perception/proto/v1:settings_proto"],
 )
 
 py_proto_library(

@@ -293,7 +293,7 @@ proto_library(
     name = "camera_settings_proto",
     srcs = ["camera_settings.proto"],
     deps = [
-        "//intrinsic/hardware/proto:settings_proto",
+        "//intrinsic/perception/proto/v1:settings_proto",
         "@com_google_protobuf//:empty_proto",
     ],
 )
@@ -310,7 +310,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "camera_settings_go_proto",
-    go_deps = ["//intrinsic/hardware/proto:settings_go_proto"],
+    go_deps = ["//intrinsic/perception/proto/v1:settings_go_proto"],
     deps = [":camera_settings_proto"],
 )
 

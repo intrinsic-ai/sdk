@@ -5,7 +5,7 @@ syntax = "proto3";
 package intrinsic_proto.perception;
 
 import "google/protobuf/empty.proto";
-import "intrinsic/hardware/proto/settings.proto";
+import "intrinsic/perception/proto/v1/settings.proto";
 
 // This message encapsulates camera settings conforming with the GenICam
 // Standard Features Naming Convention (SFNC).
@@ -39,9 +39,10 @@ message CameraSettingProperties {
   string name = 1;
 
   oneof setting_properties {
-    FloatSettingProperties float_properties = 2;
-    IntegerSettingProperties integer_properties = 3;
-    EnumSettingProperties enum_properties = 4;
+    intrinsic_proto.perception.v1.FloatSettingProperties float_properties = 2;
+    intrinsic_proto.perception.v1.IntegerSettingProperties integer_properties =
+        3;
+    intrinsic_proto.perception.v1.EnumSettingProperties enum_properties = 4;
   }
 }
 
