@@ -46,6 +46,9 @@ message ServiceDef {
   // True if this Service supports dynamic reconfiguration by serving the
   // DynamicReconfiguration service on its configured gRPC port.
   bool supports_dynamic_reconfiguration = 5;
+  // True if the Service supports service state interaction by serving the
+  // ServiceState service on its configured gRPC port.
+  bool supports_service_state = 6;
 }
 
 message ServicePodSpec {

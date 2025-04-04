@@ -4,7 +4,6 @@ syntax = "proto3";
 
 package intrinsic_proto.services.v1;
 
-import "intrinsic/assets/proto/metadata.proto";
 import "intrinsic/util/status/extended_status.proto";
 
 // Supports querying and modifying the state of a Service instance.
@@ -58,17 +57,3 @@ message DisableResponse {}
 
 message EnableRequest {}
 message EnableResponse {}
-
-message StatesWithMetadata {
-  message StateWithMetadata {
-    // The state of the Service.
-    State state = 1;
-    // Metadata for the Service.
-    intrinsic_proto.assets.Metadata metadata = 2;
-    // Instance name of the Service.
-    string instance_name = 3;
-  }
-
-  // A list of Service states with their metadata.
-  repeated StateWithMetadata states = 1;
-}

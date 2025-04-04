@@ -54,3 +54,54 @@ py_grpc_library(
     grpc_library = requirement("grpcio"),
     deps = [":dynamic_reconfiguration_py_pb2"],
 )
+
+proto_library(
+    name = "service_state_proto",
+    srcs = ["service_state.proto"],
+    deps = [
+        "//intrinsic/assets/proto:metadata_proto",
+        "//intrinsic/util/status:extended_status_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "service_state_cc_proto",
+    deps = [":service_state_proto"],
+)
+
+cc_grpc_library(
+    name = "service_state_cc_grpc_proto",
+    srcs = [":service_state_proto"],
+    grpc_only = True,
+    deps = [":service_state_cc_proto"],
+)
+
+go_proto_library(
+    name = "service_state_go_proto",
+    go_deps = [
+        "//intrinsic/assets/proto:metadata_go_proto",
+        "//intrinsic/util/status:extended_status_go_proto",
+    ],
+    deps = [":service_state_proto"],
+)
+
+go_grpc_library(
+    name = "service_state_go_grpc_proto",
+    srcs = [":service_state_proto"],
+    deps = [
+        "//intrinsic/assets/proto:metadata_go_proto",
+        "//intrinsic/util/status:extended_status_go_proto",
+    ],
+)
+
+py_proto_library(
+    name = "service_state_py_pb2",
+    deps = [":service_state_proto"],
+)
+
+py_grpc_library(
+    name = "service_state_py_pb2_grpc",
+    srcs = [":service_state_proto"],
+    grpc_library = requirement("grpcio"),
+    deps = [":service_state_py_pb2"],
+)
