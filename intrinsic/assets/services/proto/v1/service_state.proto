@@ -1,0 +1,74 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.services.v1;
+
+import "intrinsic/assets/proto/metadata.proto";
+import "intrinsic/util/status/extended_status.proto";
+
+// Supports querying and modifying the state of a Service instance.
+service ServiceState {
+  // Returns the current state of the Service instance.
+  rpc GetState(GetStateRequest) returns (State) {}
+
+  // Enables the running Service instance. If the state was previously in
+  // STATE_CODE_ERROR, it is expected for the Enable routine to perform the
+  // necessary steps to resolve the error before enabling.
+  // Enabling an already enabled Service should have no effect.
+  rpc Enable(EnableRequest) returns (EnableResponse) {}
+
+  // Disables the running Service instance. Disabling a Service that is already
+  // disabled or in an error state should have no effect since the Service
+  // should not be operating and should not be servicing requests.
+  rpc Disable(DisableRequest) returns (DisableResponse) {}
+}
+
+// Contains details about the state of a Service.
+message State {
+  enum StateCode {
+    // Indicates the Service instance is in an unspecified state.
+    STATE_CODE_UNSPECIFIED = 0;
+    // Indicates the Service instance is in an error state.
+    // When a state is in STATE_CODE_ERROR, the Service must now allow
+    // interaction with the services that it provides.
+    STATE_CODE_ERROR = 1;
+    // When a Service is disabled, it must not allow interaction with the
+    // services that it provides.
+    STATE_CODE_DISABLED = 2;
+    // When a Service is enabled, it allows interactions with the services that
+    // it provides.
+    STATE_CODE_ENABLED = 3;
+  }
+
+  // Current state code of the running Service instance.
+  StateCode state_code = 1;
+
+  // Optional explanation for the current Service's state, unless the Service
+  // is in STATE_CODE_ERROR. When in STATE_CODE_ERROR, it is expected that
+  // extended_status includes information on what and/or why the Service
+  // failed and how to resolve the failure state.
+  optional intrinsic_proto.status.ExtendedStatus extended_status = 2;
+}
+
+message GetStateRequest {}
+
+message DisableRequest {}
+message DisableResponse {}
+
+message EnableRequest {}
+message EnableResponse {}
+
+message StatesWithMetadata {
+  message StateWithMetadata {
+    // The state of the Service.
+    State state = 1;
+    // Metadata for the Service.
+    intrinsic_proto.assets.Metadata metadata = 2;
+    // Instance name of the Service.
+    string instance_name = 3;
+  }
+
+  // A list of Service states with their metadata.
+  repeated StateWithMetadata states = 1;
+}
