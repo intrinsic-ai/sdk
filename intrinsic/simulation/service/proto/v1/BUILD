@@ -1,12 +1,11 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-# Protos for the simulation service.
-
 load("@ai_intrinsic_sdks_pip_deps//:requirements.bzl", "requirement")
 load("@com_github_grpc_grpc//bazel:cc_grpc_library.bzl", "cc_grpc_library")
 load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library", "py_proto_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
+load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -16,7 +15,6 @@ proto_library(
         "simulation_service.proto",
     ],
     deps = [
-        "@com_google_protobuf//:duration_proto",
         "@com_google_protobuf//:empty_proto",
         "@com_google_protobuf//:wrappers_proto",
     ],
@@ -33,6 +31,20 @@ cc_grpc_library(
     generate_mocks = True,
     grpc_only = True,
     deps = [":simulation_service_cc_proto"],
+)
+
+go_proto_library(
+    name = "simulation_service_go_proto",
+    deps = [":simulation_service_proto"],
+)
+
+go_grpc_library(
+    name = "simulation_service_go_grpc_proto",
+    srcs = [":simulation_service_proto"],
+    deps = [
+        "@org_golang_google_protobuf//types/known/emptypb",
+        "@org_golang_google_protobuf//types/known/wrapperspb",
+    ],
 )
 
 py_proto_library(

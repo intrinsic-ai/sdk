@@ -14,8 +14,8 @@
 #include "grpcpp/channel.h"
 #include "grpcpp/client_context.h"
 #include "intrinsic/icon/release/portable/init_xfa.h"
-#include "intrinsic/simulation/service/proto/simulation_service.grpc.pb.h"
-#include "intrinsic/simulation/service/proto/simulation_service.pb.h"
+#include "intrinsic/simulation/service/proto/v1/simulation_service.grpc.pb.h"
+#include "intrinsic/simulation/service/proto/v1/simulation_service.pb.h"
 #include "intrinsic/util/grpc/grpc.h"
 #include "intrinsic/util/status/status_conversion_grpc.h"
 #include "intrinsic/util/status/status_macros.h"
@@ -47,17 +47,20 @@ absl::Status ResetSimulation(absl::string_view address) {
       std::shared_ptr<grpc::Channel> channel,
       intrinsic::CreateClientChannel(
           address, absl::Now() + intrinsic::kGrpcClientConnectDefaultTimeout));
-  std::unique_ptr<xfa::simulation::SimulationService::Stub> stub(
-      xfa::simulation::SimulationService::NewStub(channel));
+  std::unique_ptr<intrinsic_proto::simulation::v1::SimulationService::Stub>
+      stub(
+          intrinsic_proto::simulation::v1::SimulationService::NewStub(channel));
   if (stub == nullptr) {
     return absl::UnavailableError(
         "Could not create grpc stub to simulation server.");
   }
   grpc::ClientContext context;
   google::protobuf::Empty empty;
+  intrinsic_proto::simulation::v1::ResetSimulationResponse response;
   std::cout << "Starting resetting simulation." << std::endl;
   INTR_RETURN_IF_ERROR(intrinsic::ToAbslStatus(stub->ResetSimulation(
-      &context, xfa::simulation::ResetSimulationRequest(), &empty)));
+      &context, intrinsic_proto::simulation::v1::ResetSimulationRequest(),
+      &response)));
   std::cout << "Finished resetting simulation." << std::endl;
   return absl::OkStatus();
 }

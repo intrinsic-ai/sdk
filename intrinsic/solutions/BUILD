@@ -404,8 +404,8 @@ py_library(
     deps = [
         ":errors",
         "//intrinsic/math/python:proto_conversion",
-        "//intrinsic/simulation/service/proto:simulation_service_py_pb2",
-        "//intrinsic/simulation/service/proto:simulation_service_py_pb2_grpc",
+        "//intrinsic/simulation/service/proto/v1:simulation_service_py_pb2",
+        "//intrinsic/simulation/service/proto/v1:simulation_service_py_pb2_grpc",
         "//intrinsic/util/grpc:error_handling",
         "//intrinsic/world/proto:object_world_service_py_pb2",
         "//intrinsic/world/proto:object_world_service_py_pb2_grpc",
@@ -418,7 +418,7 @@ py_test(
     srcs = ["simulation_external_test.py"],
     deps = [
         ":simulation",
-        "//intrinsic/simulation/service/proto:simulation_service_py_pb2",
+        "//intrinsic/simulation/service/proto/v1:simulation_service_py_pb2",
         "@com_google_absl_py//absl/testing:absltest",
         "@com_google_protobuf//:protobuf_python",
     ],

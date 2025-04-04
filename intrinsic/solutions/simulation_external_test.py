@@ -4,7 +4,7 @@ from unittest import mock
 
 from absl.testing import absltest
 from google.protobuf import empty_pb2
-from intrinsic.simulation.service.proto import simulation_service_pb2
+from intrinsic.simulation.service.proto.v1 import simulation_service_pb2
 from intrinsic.solutions import simulation as simulation_mod
 
 

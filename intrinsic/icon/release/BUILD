@@ -37,8 +37,8 @@ cc_binary(
     srcs = ["reset_simulation.cc"],
     deps = [
         "//intrinsic/icon/release/portable:init_xfa_absl",
-        "//intrinsic/simulation/service/proto:simulation_service_cc_grpc_proto",
-        "//intrinsic/simulation/service/proto:simulation_service_cc_proto",
+        "//intrinsic/simulation/service/proto/v1:simulation_service_cc_grpc_proto",
+        "//intrinsic/simulation/service/proto/v1:simulation_service_cc_proto",
         "//intrinsic/util/grpc",
         "//intrinsic/util/status:status_conversion_grpc",
         "//intrinsic/util/status:status_macros",
