@@ -1,0 +1,14 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from geometry_msgs:msg/Point.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package geometry_msgs.msg.pb.jazzy;
+
+// This contains the position of a point in free space
+message Point {
+  double x = 215755280;
+  double y = 467354973;
+  double z = 47351635;
+}

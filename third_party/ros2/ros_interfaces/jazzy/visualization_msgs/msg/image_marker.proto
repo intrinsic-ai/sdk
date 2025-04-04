@@ -1,0 +1,54 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from visualization_msgs:msg/ImageMarker.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package visualization_msgs.msg.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg/duration.proto";
+import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/point.proto";
+import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/color_rgba.proto";
+import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
+
+message ImageMarker {
+  std_msgs.msg.pb.jazzy.Header header = 242399333;
+
+  // Namespace which is used with the id to form a unique id.
+  string ns = 330007540;
+
+  // Unique id within the namespace.
+  sfixed32 id = 523861702;
+
+  // One of the above types, e.g. CIRCLE, LINE_STRIP, etc.
+  sfixed32 type = 215902902;
+
+  // Either ADD or REMOVE.
+  sfixed32 action = 130848845;
+
+  // Two-dimensional coordinate position, in pixel-coordinates.
+  geometry_msgs.msg.pb.jazzy.Point position = 103608496;
+
+  // The scale of the object, e.g. the diameter for a CIRCLE.
+  float scale = 205931724;
+
+  // The outline color of the marker.
+  std_msgs.msg.pb.jazzy.ColorRGBA outline_color = 247312598;
+
+  // Whether or not to fill in the shape with color.
+  uint32 filled = 421866513;
+
+  // Fill color; in the range:
+  std_msgs.msg.pb.jazzy.ColorRGBA fill_color = 424528072;  // [0.0-1.0]
+
+  // How long the object should last before being automatically deleted.
+  // 0 indicates forever.
+  builtin_interfaces.msg.pb.jazzy.Duration lifetime = 501692506;
+
+  // Coordinates in 2D in pixel coords. Used for LINE_STRIP, LINE_LIST, POINTS,
+  // etc.
+  repeated geometry_msgs.msg.pb.jazzy.Point points = 129668603;
+
+  // The color for each line, point, etc. in the points field.
+  repeated std_msgs.msg.pb.jazzy.ColorRGBA outline_colors = 370286469;
+}

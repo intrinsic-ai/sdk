@@ -1,0 +1,46 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from sensor_msgs:msg/NavSatFix.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package sensor_msgs.msg.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/nav_sat_status.proto";
+import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
+
+// Navigation Satellite fix for any Global Navigation Satellite System
+//
+//  Specified using the WGS 84 reference ellipsoid
+message NavSatFix {
+  // header.stamp specifies the ROS time for this measurement (the
+  //        corresponding satellite time may be reported using the
+  //        sensor_msgs/TimeReference message).
+  //
+  // header.frame_id is the frame of reference reported by the satellite
+  //        receiver, usually the location of the antenna.  This is a
+  //        Euclidean frame relative to the vehicle, not a reference
+  //        ellipsoid.
+  std_msgs.msg.pb.jazzy.Header header = 242399333;
+
+  // Satellite fix status information.
+  sensor_msgs.msg.pb.jazzy.NavSatStatus status = 453014720;
+
+  // Latitude. Positive is north of equator; negative is south.
+  double latitude = 18406622;  // [degrees]
+
+  // Longitude. Positive is east of prime meridian; negative is west.
+  double longitude = 98665208;  // [degrees]
+
+  // Altitude. Positive is above the WGS 84 ellipsoid
+  //(quiet NaN if no altitude is available).
+  double altitude = 466271400;  // [m]
+
+  // Position covariance defined relative to a tangential plane
+  // through the reported position. The components are East, North, and
+  // Up (ENU), in row-major order.
+  //
+  // Beware: this coordinate system exhibits singularities at the poles.
+  repeated double position_covariance = 327947386;  // [m^2]
+  uint32 position_covariance_type = 526490547;
+}

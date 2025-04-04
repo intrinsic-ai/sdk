@@ -1,0 +1,24 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from sensor_msgs:msg/PointField.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package sensor_msgs.msg.pb.jazzy;
+
+// This message holds the description of one point entry in the
+//  PointCloud2 message format.
+message PointField {
+  // Common PointField names are x, y, z, intensity, rgb, rgba
+  // Name of field
+  string name = 505645505;
+
+  // Offset from start of point struct
+  fixed32 offset = 420140683;
+
+  // Datatype enumeration, see above
+  uint32 datatype = 87671539;
+
+  // How many elements in the field
+  fixed32 count = 98129903;
+}

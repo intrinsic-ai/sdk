@@ -1,0 +1,59 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from composition_interfaces:srv/LoadNode.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package composition_interfaces.srv.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/parameter.proto";
+
+option cc_generic_services = true;
+
+message LoadNode_Request {
+  string package_name = 91110166;
+
+  // A plugin within the ROS package "package_name".
+  string plugin_name = 395366948;
+
+  // The assigned name of the composable node. Leave empty to use the node's
+  // default name.
+  string node_name = 428345117;
+
+  // The assigned namespace of the composable node. Leave empty to use the
+  // node's default namespace.
+  string node_namespace = 140405511;
+
+  // The assigned log level of the composable node. Enum values are found in
+  // message rcl_interfaces/Log.
+  uint32 log_level = 445923012;
+
+  // Remapping rules for this composable node.
+  //
+  // For more info about static_remapping rules and their syntax, see
+  // https://design.ros2.org/articles/static_remapping.html
+  repeated string remap_rules = 358767357;
+
+  // The Parameters of this composable node to set.
+  repeated rcl_interfaces.msg.pb.jazzy.Parameter parameters = 110316775;
+
+  // key/value arguments that are specific to a type of container process.
+  repeated rcl_interfaces.msg.pb.jazzy.Parameter extra_arguments = 167440161;
+}
+
+message LoadNode_Response {
+  bool success = 251719510;
+
+  // Human readable error message if success is false, else empty string.
+  string error_message = 200894757;
+
+  // Name of the loaded composable node (including namespace).
+  string full_node_name = 41449725;
+
+  // A unique identifier for the loaded node.
+  fixed64 unique_id = 63349387;
+}
+
+service LoadNode {
+  rpc Call(LoadNode_Request) returns (LoadNode_Response);
+}

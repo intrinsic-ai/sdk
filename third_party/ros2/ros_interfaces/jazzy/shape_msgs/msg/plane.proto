@@ -1,0 +1,17 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from shape_msgs:msg/Plane.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package shape_msgs.msg.pb.jazzy;
+
+// Representation of a plane, using the plane equation ax + by + cz + d = 0.
+//
+//  a := coef[0]
+//  b := coef[1]
+//  c := coef[2]
+//  d := coef[3]
+message Plane {
+  repeated double coef = 386363307;
+}

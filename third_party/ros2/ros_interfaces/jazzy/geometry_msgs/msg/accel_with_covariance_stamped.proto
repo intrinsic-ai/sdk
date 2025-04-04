@@ -1,0 +1,17 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from geometry_msgs:msg/AccelWithCovarianceStamped.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package geometry_msgs.msg.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/accel_with_covariance.proto";
+import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
+
+// This represents an estimated accel with reference coordinate frame and
+// timestamp.
+message AccelWithCovarianceStamped {
+  std_msgs.msg.pb.jazzy.Header header = 242399333;
+  geometry_msgs.msg.pb.jazzy.AccelWithCovariance accel = 503071392;
+}

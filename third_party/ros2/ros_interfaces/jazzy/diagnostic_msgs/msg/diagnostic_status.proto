@@ -1,0 +1,27 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from diagnostic_msgs:msg/DiagnosticStatus.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package diagnostic_msgs.msg.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/diagnostic_msgs/msg/key_value.proto";
+
+// This message holds the status of an individual component of the robot.
+message DiagnosticStatus {
+  // Level of operation enumerated above.
+  uint32 level = 451600288;
+
+  // A description of the test/component reporting.
+  string name = 505645505;
+
+  // A description of the status.
+  string message = 381503477;
+
+  // A hardware unique string.
+  string hardware_id = 164401546;
+
+  // An array of values associated with the status.
+  repeated diagnostic_msgs.msg.pb.jazzy.KeyValue values = 447173816;
+}

@@ -1,0 +1,12 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from pcl_msgs:msg/Vertices.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package pcl_msgs.msg.pb.jazzy;
+
+// List of point indices
+message Vertices {
+  repeated fixed32 vertices = 18008104;
+}

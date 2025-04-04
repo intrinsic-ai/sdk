@@ -1,0 +1,21 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from shape_msgs:msg/SolidPrimitive.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package shape_msgs.msg.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/polygon.proto";
+
+// Defines box, sphere, cylinder, cone and prism.
+//  All shapes are defined to have their bounding boxes centered around 0,0,0.
+message SolidPrimitive {
+  // The type of the shape
+  uint32 type = 215902902;
+
+  // The dimensions of the shape
+  // At no point will dimensions have a length > 3.
+  repeated double dimensions = 41790189;
+  geometry_msgs.msg.pb.jazzy.Polygon polygon = 128203889;
+}

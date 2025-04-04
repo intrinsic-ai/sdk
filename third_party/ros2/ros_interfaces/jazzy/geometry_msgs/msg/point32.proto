@@ -1,0 +1,21 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from geometry_msgs:msg/Point32.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package geometry_msgs.msg.pb.jazzy;
+
+// This contains the position of a point in free space(with 32 bits of
+// precision).
+//  It is recommended to use Point wherever possible instead of Point32.
+//
+//  This recommendation is to promote interoperability.
+//
+//  This message is designed to take up less space when sending
+//  lots of points at once, as in the case of a PointCloud.
+message Point32 {
+  float x = 215755280;
+  float y = 467354973;
+  float z = 47351635;
+}

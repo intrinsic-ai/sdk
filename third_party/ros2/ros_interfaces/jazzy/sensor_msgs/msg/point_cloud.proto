@@ -1,0 +1,29 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from sensor_msgs:msg/PointCloud.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package sensor_msgs.msg.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/point32.proto";
+import "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/channel_float32.proto";
+import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
+
+// THIS MESSAGE IS DEPRECATED AS OF FOXY
+//  Please use sensor_msgs/PointCloud2
+message PointCloud {
+  // This message holds a collection of 3d points, plus optional additional
+  // information about each point.
+  // Time of sensor data acquisition, coordinate frame ID.
+  std_msgs.msg.pb.jazzy.Header header = 242399333;
+
+  // Array of 3d points. Each Point32 should be interpreted as a 3d point
+  // in the frame given in the header.
+  repeated geometry_msgs.msg.pb.jazzy.Point32 points = 129668603;
+
+  // Each channel should have the same number of elements as points array,
+  // and the data in each channel should correspond 1:1 with each point.
+  // Channel names in common practice are listed in ChannelFloat32.msg.
+  repeated sensor_msgs.msg.pb.jazzy.ChannelFloat32 channels = 320143870;
+}

@@ -1,0 +1,16 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from control_msgs:msg/InterfaceValue.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package control_msgs.msg.pb.jazzy;
+
+// List of resource interface names
+message InterfaceValue {
+  repeated string interface_names = 300503096;
+
+  // Values corresponding to the list of interfaces in `interface_names`, [1.0,
+  // 0.0] for example
+  repeated double values = 447173816;
+}

@@ -1,0 +1,31 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from test_msgs:msg/MultiNested.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package test_msgs.msg.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/arrays.proto";
+import "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/bounded_sequences.proto";
+import "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/unbounded_sequences.proto";
+
+// Mulitple levels of nested messages
+message MultiNested {
+  repeated test_msgs.msg.pb.jazzy.Arrays array_of_arrays = 479432755;
+  repeated test_msgs.msg.pb.jazzy.BoundedSequences array_of_bounded_sequences =
+      383917800;
+  repeated test_msgs.msg.pb.jazzy.UnboundedSequences
+      array_of_unbounded_sequences = 79566698;
+  repeated test_msgs.msg.pb.jazzy.Arrays bounded_sequence_of_arrays = 71918389;
+  repeated test_msgs.msg.pb.jazzy.BoundedSequences
+      bounded_sequence_of_bounded_sequences = 84875639;
+  repeated test_msgs.msg.pb.jazzy.UnboundedSequences
+      bounded_sequence_of_unbounded_sequences = 252605348;
+  repeated test_msgs.msg.pb.jazzy.Arrays unbounded_sequence_of_arrays =
+      213508165;
+  repeated test_msgs.msg.pb.jazzy.BoundedSequences
+      unbounded_sequence_of_bounded_sequences = 319571142;
+  repeated test_msgs.msg.pb.jazzy.UnboundedSequences
+      unbounded_sequence_of_unbounded_sequences = 414683591;
+}

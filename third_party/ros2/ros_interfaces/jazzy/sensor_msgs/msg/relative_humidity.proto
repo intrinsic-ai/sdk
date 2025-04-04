@@ -1,0 +1,27 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from sensor_msgs:msg/RelativeHumidity.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package sensor_msgs.msg.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
+
+// Single reading from a relative humidity sensor.
+//  Defines the ratio of partial pressure of water vapor to the saturated vapor
+//  pressure at a temperature.
+message RelativeHumidity {
+  // timestamp of the measurement
+  // frame_id is the location of the humidity sensor
+  std_msgs.msg.pb.jazzy.Header header = 242399333;
+
+  // Expression of the relative humidity
+  // from 0.0 to 1.0.
+  // 0.0 is no partial pressure of water vapor
+  // 1.0 represents partial pressure of saturation
+  double relative_humidity = 62676071;
+
+  // 0 is interpreted as variance unknown
+  double variance = 47148513;
+}

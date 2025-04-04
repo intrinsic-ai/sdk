@@ -1,0 +1,26 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from nav_msgs:msg/OccupancyGrid.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package nav_msgs.msg.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/nav_msgs/msg/map_meta_data.proto";
+import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
+
+// This represents a 2-D grid map
+message OccupancyGrid {
+  std_msgs.msg.pb.jazzy.Header header = 242399333;
+
+  // MetaData for the map
+  nav_msgs.msg.pb.jazzy.MapMetaData info = 193547446;
+
+  // The map data, in row-major order, starting with (0,0).
+  // Cell (1, 0) will be listed second, representing the next cell in the x
+  // direction. Cell (0, 1) will be at the index equal to info.width, followed
+  // by (1, 1). The values inside are application dependent, but frequently, 0
+  // represents unoccupied, 1 represents definitely occupied, and -1 represents
+  //unknown.
+  bytes data = 234097369;
+}

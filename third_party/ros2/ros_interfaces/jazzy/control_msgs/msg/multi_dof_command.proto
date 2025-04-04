@@ -1,0 +1,24 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from control_msgs:msg/MultiDOFCommand.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package control_msgs.msg.pb.jazzy;
+
+// The message defines command for multiple degrees of freedom (DoF) typically
+// used by many controllers.
+//  The message intentionally avoids 'joint' nomenclature because it can be
+//  generally use for command with different semantic meanings, e.g., joints,
+//  Cartesian axes, or have abstract meaning like GPIO interface.
+message MultiDOFCommand {
+  // names of degrees of freedom
+  repeated string dof_names = 266479376;
+
+  // values used by most of the controller
+  repeated double values = 447173816;
+
+  // First derivation of the values, e.g., velocity if values are positions.
+  // This is useful for PID and similar controllers.
+  repeated double values_dot = 86513613;
+}

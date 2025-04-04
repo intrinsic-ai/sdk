@@ -1,0 +1,21 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from test_msgs:msg/WStrings.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package test_msgs.msg.pb.jazzy;
+
+message WStrings {
+  bytes wstring_value = 442370364;
+  bytes wstring_value_default1 = 37850468;
+  bytes wstring_value_default2 = 457715578;
+  bytes wstring_value_default3 = 206510843;
+
+  // wstring WSTRING_CONST="Hello world!"
+  // wstring<=22 bounded_wstring_value
+  // wstring<=22 bounded_wstring_value_default1 "Hello world!"
+  repeated bytes array_of_wstrings = 347212834;
+  repeated bytes bounded_sequence_of_wstrings = 157757281;
+  repeated bytes unbounded_sequence_of_wstrings = 317313959;
+}

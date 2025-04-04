@@ -1,0 +1,14 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from std_msgs:msg/ColorRGBA.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package std_msgs.msg.pb.jazzy;
+
+message ColorRGBA {
+  float r = 201985857;
+  float g = 30678879;
+  float b = 297729949;
+  float a = 146267531;
+}

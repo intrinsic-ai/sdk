@@ -1,0 +1,17 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from geometry_msgs:msg/PoseWithCovarianceStamped.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package geometry_msgs.msg.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/pose_with_covariance.proto";
+import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
+
+// This expresses an estimated pose with a reference coordinate frame and
+// timestamp
+message PoseWithCovarianceStamped {
+  std_msgs.msg.pb.jazzy.Header header = 242399333;
+  geometry_msgs.msg.pb.jazzy.PoseWithCovariance pose = 272258129;
+}

@@ -1,0 +1,15 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from sensor_msgs:msg/LaserEcho.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package sensor_msgs.msg.pb.jazzy;
+
+// This message is a submessage of MultiEchoLaserScan and is not intended
+//  to be used separately.
+message LaserEcho {
+  // Multiple values of ranges or intensities.
+  // Each array represents data from the same angle increment.
+  repeated float echoes = 469166589;
+}

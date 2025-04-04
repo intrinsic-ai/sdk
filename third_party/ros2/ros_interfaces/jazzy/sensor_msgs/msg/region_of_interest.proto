@@ -1,0 +1,35 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from sensor_msgs:msg/RegionOfInterest.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package sensor_msgs.msg.pb.jazzy;
+
+// This message is used to specify a region of interest within an image.
+//
+//  When used to specify the ROI setting of the camera when the image was
+//  taken, the height and width fields should either match the height and
+//  width fields for the associated image; or height = width = 0
+//  indicates that the full resolution image was captured.
+message RegionOfInterest {
+  // Leftmost pixel of the ROI
+  //(0 if the ROI includes the left edge of the image)
+  fixed32 x_offset = 130199347;
+
+  // Topmost pixel of the ROI
+  //(0 if the ROI includes the top edge of the image)
+  fixed32 y_offset = 191416135;
+
+  // Height of ROI
+  fixed32 height = 357434455;
+
+  // Width of ROI
+  fixed32 width = 203053244;
+
+  // True if a distinct rectified ROI should be calculated from the "raw"
+  // ROI in this message. Typically this should be False if the full image
+  // is captured (ROI not used), and True if a subwindow is captured (ROI
+  // used).
+  bool do_rectify = 270795628;
+}

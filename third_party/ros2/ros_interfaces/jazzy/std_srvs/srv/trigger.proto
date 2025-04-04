@@ -1,0 +1,25 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from std_srvs:srv/Trigger.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package std_srvs.srv.pb.jazzy;
+
+option cc_generic_services = true;
+
+message Trigger_Request {
+  uint32 structure_needs_at_least_one_member = 407246362;
+}
+
+message Trigger_Response {
+  // indicate successful run of triggered service
+  bool success = 251719510;
+
+  // informational, e.g. for error messages
+  string message = 381503477;
+}
+
+service Trigger {
+  rpc Call(Trigger_Request) returns (Trigger_Response);
+}

@@ -1,0 +1,32 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from control_msgs:msg/JointTolerance.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package control_msgs.msg.pb.jazzy;
+
+// The tolerances specify the amount the position, velocity, and
+//  accelerations can vary from the setpoints.  For example, in the case
+//  of trajectory control, when the actual position varies beyond
+//  (desired position + position tolerance), the trajectory goal may
+//  abort.
+//
+//  There are two special values for tolerances:
+//   * 0 - The tolerance is unspecified and will remain at whatever the default
+//   is
+//   * -1 - The tolerance is "erased".  If there was a default, the joint will
+//   be
+//          allowed to move without restriction.
+message JointTolerance {
+  string name = 505645505;
+
+  // in radians or meters (for a revolute or prismatic joint, respectively)
+  double position = 103608496;
+
+  // in rad/sec or m/sec
+  double velocity = 517533215;
+
+  // in rad/sec^2 or m/sec^2
+  double acceleration = 443991327;
+}

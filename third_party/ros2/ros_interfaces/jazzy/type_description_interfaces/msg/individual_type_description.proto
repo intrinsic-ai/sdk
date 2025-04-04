@@ -1,0 +1,19 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from type_description_interfaces:msg/IndividualTypeDescription.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package type_description_interfaces.msg.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/type_description_interfaces/msg/field.proto";
+
+// Represents a single type, without the types it references, if any.
+message IndividualTypeDescription {
+  // Name of the type.
+  // This is limited to 255 characters.
+  string type_name = 153931419;
+
+  // Fields of the type.
+  repeated type_description_interfaces.msg.pb.jazzy.Field fields = 518386476;
+}

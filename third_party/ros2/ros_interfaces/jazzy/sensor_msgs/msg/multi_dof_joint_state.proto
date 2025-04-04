@@ -1,0 +1,41 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from sensor_msgs:msg/MultiDOFJointState.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package sensor_msgs.msg.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/transform.proto";
+import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/twist.proto";
+import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/wrench.proto";
+import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
+
+// Representation of state for joints with multiple degrees of freedom,
+//  following the structure of JointState which can only represent a single
+//  degree of freedom.
+//
+//  It is assumed that a joint in a system corresponds to a transform that gets
+//  applied along the kinematic chain. For example, a planar joint (as in URDF)
+//  is 3DOF (x, y, yaw) and those 3DOF can be expressed as a transformation
+//  matrix, and that transformation matrix can be converted back to (x, y, yaw)
+//
+//  Each joint is uniquely identified by its name
+//  The header specifies the time at which the joint states were recorded. All
+//  the joint states in one message have to be recorded at the same time.
+//
+//  This message consists of a multiple arrays, one for each part of the joint
+//  state. The goal is to make each of the fields optional. When e.g. your
+//  joints have no wrench associated with them, you can leave the wrench array
+//  empty.
+//
+//  All arrays in this message should have the same size, or be empty.
+//  This is the only way to uniquely associate the joint name with the correct
+//  states.
+message MultiDOFJointState {
+  std_msgs.msg.pb.jazzy.Header header = 242399333;
+  repeated string joint_names = 492788101;
+  repeated geometry_msgs.msg.pb.jazzy.Transform transforms = 320780885;
+  repeated geometry_msgs.msg.pb.jazzy.Twist twist = 149179994;
+  repeated geometry_msgs.msg.pb.jazzy.Wrench wrench = 134164228;
+}

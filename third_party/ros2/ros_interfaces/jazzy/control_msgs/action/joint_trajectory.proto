@@ -1,0 +1,56 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from control_msgs:action/JointTrajectory.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package control_msgs.action.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg/time.proto";
+import "third_party/ros2/ros_interfaces/jazzy/trajectory_msgs/msg/joint_trajectory.proto";
+import "third_party/ros2/ros_interfaces/jazzy/unique_identifier_msgs/msg/uuid.proto";
+
+option cc_generic_services = true;
+
+message JointTrajectory_Goal {
+  trajectory_msgs.msg.pb.jazzy.JointTrajectory trajectory = 72879695;
+}
+
+message JointTrajectory_SendGoal_Request {
+  unique_identifier_msgs.msg.pb.jazzy.UUID goal_id = 108866210;
+  control_msgs.action.pb.jazzy.JointTrajectory_Goal goal = 484248182;
+}
+
+message JointTrajectory_SendGoal_Response {
+  bool accepted = 371066354;
+  builtin_interfaces.msg.pb.jazzy.Time stamp = 357477059;
+}
+
+message JointTrajectory_Result {
+  uint32 structure_needs_at_least_one_member = 407246362;
+}
+
+message JointTrajectory_GetResult_Request {
+  unique_identifier_msgs.msg.pb.jazzy.UUID goal_id = 108866210;
+}
+
+message JointTrajectory_GetResult_Response {
+  int32 status = 453014720;
+  control_msgs.action.pb.jazzy.JointTrajectory_Result result = 325764348;
+}
+
+message JointTrajectory_Feedback {
+  uint32 structure_needs_at_least_one_member = 407246362;
+}
+
+message JointTrajectory_FeedbackMessage {
+  unique_identifier_msgs.msg.pb.jazzy.UUID goal_id = 108866210;
+  control_msgs.action.pb.jazzy.JointTrajectory_Feedback feedback = 304701367;
+}
+
+service JointTrajectory {
+  rpc SendGoal(JointTrajectory_SendGoal_Request)
+      returns (JointTrajectory_SendGoal_Response);
+  rpc GetResult(JointTrajectory_GetResult_Request)
+      returns (JointTrajectory_GetResult_Response);
+}

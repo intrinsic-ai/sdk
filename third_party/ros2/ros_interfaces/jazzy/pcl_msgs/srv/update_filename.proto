@@ -1,0 +1,21 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from pcl_msgs:srv/UpdateFilename.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package pcl_msgs.srv.pb.jazzy;
+
+option cc_generic_services = true;
+
+message UpdateFilename_Request {
+  string filename = 470544695;
+}
+
+message UpdateFilename_Response {
+  bool success = 251719510;
+}
+
+service UpdateFilename {
+  rpc Call(UpdateFilename_Request) returns (UpdateFilename_Response);
+}

@@ -1,0 +1,25 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from trajectory_msgs:msg/MultiDOFJointTrajectoryPoint.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package trajectory_msgs.msg.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg/duration.proto";
+import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/transform.proto";
+import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/twist.proto";
+
+// Each multi-dof joint can specify a transform (up to 6 DOF).
+message MultiDOFJointTrajectoryPoint {
+  repeated geometry_msgs.msg.pb.jazzy.Transform transforms = 320780885;
+
+  // There can be a velocity specified for the origin of the joint.
+  repeated geometry_msgs.msg.pb.jazzy.Twist velocities = 470602751;
+
+  // There can be an acceleration specified for the origin of the joint.
+  repeated geometry_msgs.msg.pb.jazzy.Twist accelerations = 480455785;
+
+  // Desired time from the trajectory start to arrive at this trajectory point.
+  builtin_interfaces.msg.pb.jazzy.Duration time_from_start = 244671567;
+}

@@ -1,0 +1,23 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from test_msgs:msg/Defaults.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package test_msgs.msg.pb.jazzy;
+
+message Defaults {
+  bool bool_value = 370315042;
+  uint32 byte_value = 495007756;
+  uint32 char_value = 534417465;
+  float float32_value = 240067438;
+  double float64_value = 92230297;
+  int32 int8_value = 264411149;
+  uint32 uint8_value = 146437860;
+  int32 int16_value = 103185752;
+  uint32 uint16_value = 178122878;
+  sfixed32 int32_value = 273437303;
+  fixed32 uint32_value = 486006607;
+  sfixed64 int64_value = 461141476;
+  fixed64 uint64_value = 398985234;
+}

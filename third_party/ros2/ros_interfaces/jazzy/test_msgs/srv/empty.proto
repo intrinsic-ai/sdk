@@ -1,0 +1,21 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from test_msgs:srv/Empty.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package test_msgs.srv.pb.jazzy;
+
+option cc_generic_services = true;
+
+message Empty_Request {
+  uint32 structure_needs_at_least_one_member = 407246362;
+}
+
+message Empty_Response {
+  uint32 structure_needs_at_least_one_member = 407246362;
+}
+
+service Empty {
+  rpc Call(Empty_Request) returns (Empty_Response);
+}

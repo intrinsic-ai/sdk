@@ -1,0 +1,18 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from control_msgs:msg/MultiDOFStateStamped.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package control_msgs.msg.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/single_dof_state.proto";
+import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
+
+// This message presents current controller state of multiple degrees of
+// freedom.
+message MultiDOFStateStamped {
+  // Header timestamp should be update time of controller state
+  std_msgs.msg.pb.jazzy.Header header = 242399333;
+  repeated control_msgs.msg.pb.jazzy.SingleDOFState dof_states = 457540557;
+}

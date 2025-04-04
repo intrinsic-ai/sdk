@@ -1,0 +1,26 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from std_srvs:srv/SetBool.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package std_srvs.srv.pb.jazzy;
+
+option cc_generic_services = true;
+
+message SetBool_Request {
+  // e.g. for hardware enabling / disabling
+  bool data = 234097369;
+}
+
+message SetBool_Response {
+  // indicate successful run of triggered service
+  bool success = 251719510;
+
+  // informational, e.g. for error messages
+  string message = 381503477;
+}
+
+service SetBool {
+  rpc Call(SetBool_Request) returns (SetBool_Response);
+}

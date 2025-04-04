@@ -1,0 +1,12 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from control_msgs:msg/GripperCommand.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package control_msgs.msg.pb.jazzy;
+
+message GripperCommand {
+  double position = 103608496;
+  double max_effort = 525338465;
+}

@@ -1,0 +1,29 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from nav_msgs:msg/Odometry.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package nav_msgs.msg.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/pose_with_covariance.proto";
+import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/twist_with_covariance.proto";
+import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
+
+// This represents an estimate of a position and velocity in free space.
+//  The pose in this message should be specified in the coordinate frame given
+//  by header.frame_id The twist in this message should be specified in the
+//  coordinate frame given by the child_frame_id
+message Odometry {
+  // Includes the frame id of the pose parent.
+  std_msgs.msg.pb.jazzy.Header header = 242399333;
+
+  // Frame id the pose points to. The twist is in this coordinate frame.
+  string child_frame_id = 363124313;
+
+  // Estimated pose that is typically relative to a fixed world frame.
+  geometry_msgs.msg.pb.jazzy.PoseWithCovariance pose = 272258129;
+
+  // Estimated linear and angular velocity relative to child_frame_id.
+  geometry_msgs.msg.pb.jazzy.TwistWithCovariance twist = 149179994;
+}

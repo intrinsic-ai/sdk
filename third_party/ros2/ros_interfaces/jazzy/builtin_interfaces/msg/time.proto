@@ -1,0 +1,17 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from builtin_interfaces:msg/Time.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package builtin_interfaces.msg.pb.jazzy;
+
+// This message communicates ROS Time defined here:
+//  https://design.ros2.org/articles/clock_and_time.html
+message Time {
+  // The seconds component, valid over all int32 values.
+  sfixed32 sec = 96972735;
+
+  // The nanoseconds component, valid in the range [0, 1e9).
+  fixed32 nanosec = 445411076;
+}

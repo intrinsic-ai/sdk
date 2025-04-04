@@ -1,0 +1,17 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from actionlib_msgs:msg/GoalStatusArray.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package actionlib_msgs.msg.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/actionlib_msgs/msg/goal_status.proto";
+import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
+
+// Stores the statuses for goals that are currently being tracked
+//  by an action server
+message GoalStatusArray {
+  std_msgs.msg.pb.jazzy.Header header = 242399333;
+  repeated actionlib_msgs.msg.pb.jazzy.GoalStatus status_list = 483288368;
+}

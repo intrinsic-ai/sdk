@@ -1,0 +1,24 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from trajectory_msgs:msg/JointTrajectory.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package trajectory_msgs.msg.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
+import "third_party/ros2/ros_interfaces/jazzy/trajectory_msgs/msg/joint_trajectory_point.proto";
+
+// The header is used to specify the coordinate frame and the reference time for
+//  the trajectory durations
+message JointTrajectory {
+  std_msgs.msg.pb.jazzy.Header header = 242399333;
+
+  // The names of the active joints in each trajectory point. These names are
+  // ordered and must correspond to the values in each trajectory point.
+  repeated string joint_names = 492788101;
+
+  // Array of trajectory points, which describe the positions, velocities,
+  // accelerations and/or efforts of the joints at each time point.
+  repeated trajectory_msgs.msg.pb.jazzy.JointTrajectoryPoint points = 129668603;
+}

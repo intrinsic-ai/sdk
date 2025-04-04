@@ -1,0 +1,17 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from lifecycle_msgs:msg/State.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package lifecycle_msgs.msg.pb.jazzy;
+
+// Primary state definitions as depicted in:
+//  http://design.ros2.org/articles/node_lifecycle.html
+message State {
+  // The state id value from the above definitions.
+  uint32 id = 523861702;
+
+  // A text label of the state.
+  string label = 245847249;
+}

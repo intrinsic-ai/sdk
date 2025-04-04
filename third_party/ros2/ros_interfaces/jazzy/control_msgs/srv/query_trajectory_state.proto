@@ -1,0 +1,32 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from control_msgs:srv/QueryTrajectoryState.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package control_msgs.srv.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg/time.proto";
+
+option cc_generic_services = true;
+
+message QueryTrajectoryState_Request {
+  builtin_interfaces.msg.pb.jazzy.Time time = 261400553;
+}
+
+message QueryTrajectoryState_Response {
+  // indicate successful run of triggered service
+  bool success = 251719510;
+
+  // informational, e.g. for error messages
+  string message = 381503477;
+  repeated string name = 505645505;
+  repeated double position = 103608496;
+  repeated double velocity = 517533215;
+  repeated double acceleration = 443991327;
+}
+
+service QueryTrajectoryState {
+  rpc Call(QueryTrajectoryState_Request)
+      returns (QueryTrajectoryState_Response);
+}

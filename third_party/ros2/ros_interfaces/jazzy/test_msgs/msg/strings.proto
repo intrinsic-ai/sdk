@@ -1,0 +1,22 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from test_msgs:msg/Strings.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package test_msgs.msg.pb.jazzy;
+
+message Strings {
+  string string_value = 159063816;
+  string string_value_default1 = 93575905;
+  string string_value_default2 = 479894179;
+  string string_value_default3 = 194883074;
+  string string_value_default4 = 368661315;
+  string string_value_default5 = 50208488;
+  string bounded_string_value = 145973692;
+  string bounded_string_value_default1 = 221717515;
+  string bounded_string_value_default2 = 339633361;
+  string bounded_string_value_default3 = 54096210;
+  string bounded_string_value_default4 = 492704665;
+  string bounded_string_value_default5 = 173729812;
+}

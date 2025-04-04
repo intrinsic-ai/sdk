@@ -1,0 +1,33 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from visualization_msgs:msg/InteractiveMarkerUpdate.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package visualization_msgs.msg.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg/interactive_marker.proto";
+import "third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg/interactive_marker_pose.proto";
+
+message InteractiveMarkerUpdate {
+  // Identifying string. Must be unique in the topic namespace
+  // that this server works on.
+  string server_id = 407169696;
+
+  // Sequence number.
+  // The client will use this to detect if it has missed an update.
+  fixed64 seq_num = 202062714;
+  uint32 type = 215902902;
+
+  // Note: No guarantees on the order of processing.
+  //       Contents must be kept consistent by sender.
+  // Markers to be added or updated
+  repeated visualization_msgs.msg.pb.jazzy.InteractiveMarker markers = 25815787;
+
+  // Poses of markers that should be moved
+  repeated visualization_msgs.msg.pb.jazzy.InteractiveMarkerPose poses =
+      461681993;
+
+  // Names of markers to be erased
+  repeated string erases = 239240594;
+}

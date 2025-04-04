@@ -1,0 +1,12 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from shape_msgs:msg/MeshTriangle.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package shape_msgs.msg.pb.jazzy;
+
+// Definition of a triangle's vertices.
+message MeshTriangle {
+  repeated fixed32 vertex_indices = 464020935;
+}

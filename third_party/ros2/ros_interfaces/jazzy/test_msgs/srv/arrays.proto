@@ -1,0 +1,85 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from test_msgs:srv/Arrays.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package test_msgs.srv.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/basic_types.proto";
+import "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/constants.proto";
+import "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/defaults.proto";
+
+option cc_generic_services = true;
+
+message Arrays_Request {
+  repeated bool bool_values = 431313499;
+  bytes byte_values = 48200771;
+  bytes char_values = 454329805;
+  repeated float float32_values = 192917791;
+  repeated double float64_values = 126342467;
+  bytes int8_values = 179276650;
+  bytes uint8_values = 101979788;
+  repeated int32 int16_values = 390002243;
+  repeated uint32 uint16_values = 71620735;
+  repeated sfixed32 int32_values = 495119260;
+  repeated fixed32 uint32_values = 251177728;
+  repeated sfixed64 int64_values = 293249216;
+  repeated fixed64 uint64_values = 33617628;
+  repeated string string_values = 349030074;
+  repeated test_msgs.msg.pb.jazzy.BasicTypes basic_types_values = 324707487;
+  repeated test_msgs.msg.pb.jazzy.Constants constants_values = 44862885;
+  repeated test_msgs.msg.pb.jazzy.Defaults defaults_values = 533242054;
+  repeated bool bool_values_default = 178264601;
+  bytes byte_values_default = 366965091;
+  bytes char_values_default = 468571145;
+  repeated float float32_values_default = 149849856;
+  repeated double float64_values_default = 265428341;
+  bytes int8_values_default = 297157005;
+  bytes uint8_values_default = 2361183;
+  repeated int32 int16_values_default = 211882958;
+  repeated uint32 uint16_values_default = 127845227;
+  repeated sfixed32 int32_values_default = 212656142;
+  repeated fixed32 uint32_values_default = 127110955;
+  repeated sfixed64 int64_values_default = 194211971;
+  repeated fixed64 uint64_values_default = 11335366;
+  repeated string string_values_default = 51595499;
+}
+
+message Arrays_Response {
+  repeated bool bool_values = 431313499;
+  bytes byte_values = 48200771;
+  bytes char_values = 454329805;
+  repeated float float32_values = 192917791;
+  repeated double float64_values = 126342467;
+  bytes int8_values = 179276650;
+  bytes uint8_values = 101979788;
+  repeated int32 int16_values = 390002243;
+  repeated uint32 uint16_values = 71620735;
+  repeated sfixed32 int32_values = 495119260;
+  repeated fixed32 uint32_values = 251177728;
+  repeated sfixed64 int64_values = 293249216;
+  repeated fixed64 uint64_values = 33617628;
+  repeated string string_values = 349030074;
+  repeated test_msgs.msg.pb.jazzy.BasicTypes basic_types_values = 324707487;
+  repeated test_msgs.msg.pb.jazzy.Constants constants_values = 44862885;
+  repeated test_msgs.msg.pb.jazzy.Defaults defaults_values = 533242054;
+  repeated bool bool_values_default = 178264601;
+  bytes byte_values_default = 366965091;
+  bytes char_values_default = 468571145;
+  repeated float float32_values_default = 149849856;
+  repeated double float64_values_default = 265428341;
+  bytes int8_values_default = 297157005;
+  bytes uint8_values_default = 2361183;
+  repeated int32 int16_values_default = 211882958;
+  repeated uint32 uint16_values_default = 127845227;
+  repeated sfixed32 int32_values_default = 212656142;
+  repeated fixed32 uint32_values_default = 127110955;
+  repeated sfixed64 int64_values_default = 194211971;
+  repeated fixed64 uint64_values_default = 11335366;
+  repeated string string_values_default = 51595499;
+}
+
+service Arrays {
+  rpc Call(Arrays_Request) returns (Arrays_Response);
+}

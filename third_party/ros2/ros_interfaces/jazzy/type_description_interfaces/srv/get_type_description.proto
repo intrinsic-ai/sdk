@@ -1,0 +1,52 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from type_description_interfaces:srv/GetTypeDescription.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package type_description_interfaces.srv.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/type_description_interfaces/msg/key_value.proto";
+import "third_party/ros2/ros_interfaces/jazzy/type_description_interfaces/msg/type_description.proto";
+import "third_party/ros2/ros_interfaces/jazzy/type_description_interfaces/msg/type_source.proto";
+
+option cc_generic_services = true;
+
+message GetTypeDescription_Request {
+  string type_name = 153931419;
+
+  // REP-2011 RIHS hash string.
+  string type_hash = 112700313;
+
+  // Whether to return the original idl/msg/etc. source file(s) in the response.
+  bool include_type_sources = 108832045;
+}
+
+message GetTypeDescription_Response {
+  bool successful = 86854949;
+
+  // If `successful` is false, contains a reason for failure.
+  // If `successful` is true, this is left empty.
+  string failure_reason = 271411921;
+
+  // The parsed type description which can be used programmatically.
+  type_description_interfaces.msg.pb.jazzy.TypeDescription type_description =
+      117284745;
+
+  // A list containing the interface definition source text of the requested
+  // type, plus all types it recursively depends on. Each source text is a copy
+  // of the original contents of the .msg, .srv, .action, .idl, or other file if
+  //it exists, including comments and whitespace. Sources can be matched with
+  // IndividualTypeDescriptions by their `type_name`. The `encoding` field of
+  // each entry informs how to interpret its contents.
+  repeated type_description_interfaces.msg.pb.jazzy.TypeSource type_sources =
+      444344655;
+
+  // Key-value pairs of extra information.
+  repeated type_description_interfaces.msg.pb.jazzy.KeyValue extra_information =
+      444913917;
+}
+
+service GetTypeDescription {
+  rpc Call(GetTypeDescription_Request) returns (GetTypeDescription_Response);
+}

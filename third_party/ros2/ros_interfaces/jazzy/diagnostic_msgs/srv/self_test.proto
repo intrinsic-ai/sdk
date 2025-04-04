@@ -1,0 +1,25 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from diagnostic_msgs:srv/SelfTest.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package diagnostic_msgs.srv.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/diagnostic_msgs/msg/diagnostic_status.proto";
+
+option cc_generic_services = true;
+
+message SelfTest_Request {
+  uint32 structure_needs_at_least_one_member = 407246362;
+}
+
+message SelfTest_Response {
+  string id = 523861702;
+  uint32 passed = 64626923;
+  repeated diagnostic_msgs.msg.pb.jazzy.DiagnosticStatus status = 453014720;
+}
+
+service SelfTest {
+  rpc Call(SelfTest_Request) returns (SelfTest_Response);
+}

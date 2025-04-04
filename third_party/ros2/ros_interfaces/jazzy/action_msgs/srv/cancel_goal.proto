@@ -1,0 +1,28 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from action_msgs:srv/CancelGoal.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package action_msgs.srv.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/action_msgs/msg/goal_info.proto";
+
+option cc_generic_services = true;
+
+message CancelGoal_Request {
+  // Goal info describing the goals to cancel, see above.
+  action_msgs.msg.pb.jazzy.GoalInfo goal_info = 364482644;
+}
+
+message CancelGoal_Response {
+  // Return code, see above definitions.
+  int32 return_code = 384009306;
+
+  // Goals that accepted the cancel request.
+  repeated action_msgs.msg.pb.jazzy.GoalInfo goals_canceling = 109915131;
+}
+
+service CancelGoal {
+  rpc Call(CancelGoal_Request) returns (CancelGoal_Response);
+}

@@ -1,0 +1,23 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from std_msgs:msg/MultiArrayDimension.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package std_msgs.msg.pb.jazzy;
+
+// This was originally provided as an example message.
+//  It is deprecated as of Foxy
+//  It is recommended to create your own semantically meaningful message.
+//  However if you would like to continue using this please use the equivalent
+//  in example_msgs.
+message MultiArrayDimension {
+  // label of given dimension
+  string label = 245847249;
+
+  // size of given dimension (in type units)
+  fixed32 size = 398476210;
+
+  // stride of given dimension
+  fixed32 stride = 174018204;
+}

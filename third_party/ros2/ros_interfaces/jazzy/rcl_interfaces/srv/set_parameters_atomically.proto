@@ -1,0 +1,25 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from rcl_interfaces:srv/SetParametersAtomically.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package rcl_interfaces.srv.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/parameter.proto";
+import "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/set_parameters_result.proto";
+
+option cc_generic_services = true;
+
+message SetParametersAtomically_Request {
+  repeated rcl_interfaces.msg.pb.jazzy.Parameter parameters = 110316775;
+}
+
+message SetParametersAtomically_Response {
+  rcl_interfaces.msg.pb.jazzy.SetParametersResult result = 325764348;
+}
+
+service SetParametersAtomically {
+  rpc Call(SetParametersAtomically_Request)
+      returns (SetParametersAtomically_Response);
+}

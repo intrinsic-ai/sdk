@@ -1,0 +1,27 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from visualization_msgs:srv/GetInteractiveMarkers.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package visualization_msgs.srv.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg/interactive_marker.proto";
+
+option cc_generic_services = true;
+
+message GetInteractiveMarkers_Request {
+  uint32 structure_needs_at_least_one_member = 407246362;
+}
+
+message GetInteractiveMarkers_Response {
+  fixed64 sequence_number = 310401669;
+
+  // All interactive markers provided by the server.
+  repeated visualization_msgs.msg.pb.jazzy.InteractiveMarker markers = 25815787;
+}
+
+service GetInteractiveMarkers {
+  rpc Call(GetInteractiveMarkers_Request)
+      returns (GetInteractiveMarkers_Response);
+}

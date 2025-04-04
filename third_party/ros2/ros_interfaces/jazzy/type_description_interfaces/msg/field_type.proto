@@ -1,0 +1,34 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from type_description_interfaces:msg/FieldType.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package type_description_interfaces.msg.pb.jazzy;
+
+// Represents the type of a field and related meta-data.
+message FieldType {
+  // Identifying number for the type of the field, using one of the above
+  // constants.
+  uint32 type_id = 88909810;
+
+  // Only used when the type is an array or a bounded sequence.
+  // In the case of an array, this is the fixed capacity of the array.
+  // In the case of a bounded sequence, this is the maximum capacity of the
+  // sequence. In all other cases this field is unused.
+  fixed64 capacity = 367577322;
+
+  // Only used when the type is a fixed or bounded string/wstring, or a
+  // array/sequence of those. In the case of a fixed string/wstring, it is the
+  // fixed length of the string. In the case of a bounded string/wstring, it is
+  // the maximum capacity of the string. In the case of an array/sequence of
+  // fixed string/wstring, it is the fixed length of the strings. In the case of
+  // an array/sequence of bounded string/wstring, it is the maximum capacity of
+  // the strings. It is not currently possible to have different string
+  // capacities per element in the array/sequence.
+  fixed64 string_capacity = 282744480;
+
+  // Only used when the type is a nested type or array/sequence of nested types.
+  // This is limited to 255 characters.
+  string nested_type_name = 524602179;
+}

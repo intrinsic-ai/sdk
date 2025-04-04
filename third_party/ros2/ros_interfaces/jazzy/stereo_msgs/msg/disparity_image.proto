@@ -1,0 +1,46 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from stereo_msgs:msg/DisparityImage.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package stereo_msgs.msg.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/image.proto";
+import "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/region_of_interest.proto";
+import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
+
+// Separate header for compatibility with current TimeSynchronizer.
+//  Likely to be removed in a later release, use image.header instead.
+message DisparityImage {
+  std_msgs.msg.pb.jazzy.Header header = 242399333;
+
+  // Floating point disparity image. The disparities are pre-adjusted for any
+  // x-offset between the principal points of the two cameras (in the case
+  // that they are verged). That is: d = x_l - x_r - (cx_l - cx_r)
+  sensor_msgs.msg.pb.jazzy.Image image = 87891902;
+
+  // Stereo geometry. For disparity d, the depth from the camera is Z = fT/d.
+  // Focal length, pixels
+  float f = 382942084;
+
+  // Baseline, world units
+  float t = 90861109;
+
+  // Subwindow of (potentially) valid disparity values.
+  sensor_msgs.msg.pb.jazzy.RegionOfInterest valid_window = 33107801;
+
+  // The range of disparities searched.
+  // In the disparity image, any disparity less than min_disparity is invalid.
+  // The disparity search range defines the horopter, or 3D volume that the
+  // stereo algorithm can "see". Points with Z outside of:
+  //     Z_min = fT / max_disparity
+  //     Z_max = fT / min_disparity
+  // could not be found.
+  float min_disparity = 26014952;
+  float max_disparity = 29607244;
+
+  // Smallest allowed disparity increment. The smallest achievable depth range
+  // resolution is delta_Z = (Z^2/fT)*delta_d.
+  float delta_d = 484100349;
+}

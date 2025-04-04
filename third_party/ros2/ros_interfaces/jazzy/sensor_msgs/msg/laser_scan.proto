@@ -1,0 +1,56 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from sensor_msgs:msg/LaserScan.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package sensor_msgs.msg.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
+
+// Single scan from a planar laser range-finder
+//
+//  If you have another ranging device with different behavior (e.g. a sonar
+//  array), please find or create a different message, since applications
+//  will make fairly laser-specific assumptions about this data
+message LaserScan {
+  // timestamp in the header is the acquisition time of
+  // the first ray in the scan.
+  //
+  // in frame frame_id, angles are measured around
+  // the positive Z axis (counterclockwise, if Z is up)
+  // with zero angle being forward along the x axis
+  std_msgs.msg.pb.jazzy.Header header = 242399333;
+
+  // start angle of the scan
+  float angle_min = 97634528;  // [rad]
+
+  // end angle of the scan
+  float angle_max = 433893920;  // [rad]
+
+  // angular distance between measurements
+  float angle_increment = 261435101;  // [rad]
+
+  // time between measurements - if your scanner
+  // is moving, this will be used in interpolating position
+  // of 3d points
+  float time_increment = 134113525;  // [seconds]
+
+  // time between scans
+  float scan_time = 451907179;  // [seconds]
+
+  // minimum range value
+  float range_min = 384009261;  // [m]
+
+  // maximum range value
+  float range_max = 183392139;  // [m]
+
+  // range data
+  //(Note: values < range_min or > range_max should be discarded)
+  repeated float ranges = 345879886;  // [m]
+
+  // intensity data.  If your
+  // device does not provide intensities, please leave
+  // the array empty.
+  repeated float intensities = 179583080;  // [device-specific units]
+}

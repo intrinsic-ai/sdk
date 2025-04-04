@@ -1,0 +1,21 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from control_msgs:msg/JointComponentTolerance.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package control_msgs.msg.pb.jazzy;
+
+// Version of JointTolerance.msg with added component field for joints with
+// multiple degrees of freedom
+//  The difference between two MultiDOFJointTrajectoryPoint cannot be
+//  represented as a single number, hence we use the component field to
+//  represent how to calculate the difference in a way that can be represented
+//  as a single number.
+message JointComponentTolerance {
+  string joint_name = 120563597;
+  uint32 component = 167685394;
+  double position = 103608496;
+  double velocity = 517533215;
+  double acceleration = 443991327;
+}

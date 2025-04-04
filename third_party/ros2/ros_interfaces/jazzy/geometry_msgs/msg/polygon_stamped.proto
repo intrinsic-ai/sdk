@@ -1,0 +1,16 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from geometry_msgs:msg/PolygonStamped.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package geometry_msgs.msg.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/polygon.proto";
+import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
+
+// This represents a Polygon with reference coordinate frame and timestamp
+message PolygonStamped {
+  std_msgs.msg.pb.jazzy.Header header = 242399333;
+  geometry_msgs.msg.pb.jazzy.Polygon polygon = 128203889;
+}

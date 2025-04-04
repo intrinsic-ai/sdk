@@ -1,0 +1,24 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from std_msgs:msg/Int16MultiArray.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package std_msgs.msg.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/multi_array_layout.proto";
+
+// This was originally provided as an example message.
+//  It is deprecated as of Foxy
+//  It is recommended to create your own semantically meaningful message.
+//  However if you would like to continue using this please use the equivalent
+//  in example_msgs.
+message Int16MultiArray {
+  // Please look at the MultiArrayLayout message definition for
+  // documentation on all multiarrays.
+  // specification of data layout
+  std_msgs.msg.pb.jazzy.MultiArrayLayout layout = 440038324;
+
+  // array of data
+  repeated int32 data = 234097369;
+}

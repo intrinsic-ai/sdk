@@ -1,0 +1,36 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from control_msgs:msg/SingleDOFState.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package control_msgs.msg.pb.jazzy;
+
+// This message presents current controller state of one degree of freedom.
+message SingleDOFState {
+  // DoF name, e.g., joint or Cartesian axis name
+  string name = 505645505;
+
+  // The set point, that is, desired state.
+  double reference = 245588105;
+
+  // Current value of the process (ie: latest sensor measurement on the
+  // controlled value).
+  double feedback = 304701367;
+
+  // First time-derivative of the process value. E.g., velocity.
+  double feedback_dot = 491279108;
+
+  // The error of the controlled value, essentially reference - feedback (for a
+  // regular PID implementation).
+  double error = 501073964;
+
+  // First time-derivative of the error of the controlled value.
+  double error_dot = 376588147;
+
+  // Time between two consecutive updates/execution of the control law.
+  double time_step = 235214425;
+
+  // Current output of the controller.
+  double output = 215887869;
+}

@@ -1,0 +1,14 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from visualization_msgs:msg/UVCoordinate.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package visualization_msgs.msg.pb.jazzy;
+
+// Location of the pixel as a ratio of the width of a 2D texture.
+//  Values should be in range:.
+message UVCoordinate {
+  float u = 309168518;
+  float v = 191122216;
+}

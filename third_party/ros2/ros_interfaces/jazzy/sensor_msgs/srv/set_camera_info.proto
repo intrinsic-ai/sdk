@@ -1,0 +1,28 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from sensor_msgs:srv/SetCameraInfo.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package sensor_msgs.srv.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/camera_info.proto";
+
+option cc_generic_services = true;
+
+message SetCameraInfo_Request {
+  // The camera_info to store
+  sensor_msgs.msg.pb.jazzy.CameraInfo camera_info = 23222486;
+}
+
+message SetCameraInfo_Response {
+  // True if the call succeeded
+  bool success = 251719510;
+
+  // Used to give details about success
+  string status_message = 510484336;
+}
+
+service SetCameraInfo {
+  rpc Call(SetCameraInfo_Request) returns (SetCameraInfo_Response);
+}

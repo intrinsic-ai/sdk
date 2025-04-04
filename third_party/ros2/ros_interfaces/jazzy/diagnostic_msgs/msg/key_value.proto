@@ -1,0 +1,15 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from diagnostic_msgs:msg/KeyValue.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package diagnostic_msgs.msg.pb.jazzy;
+
+// What to label this value when viewing.
+message KeyValue {
+  string key = 177258294;
+
+  // A value to track over time.
+  string value = 494361629;
+}

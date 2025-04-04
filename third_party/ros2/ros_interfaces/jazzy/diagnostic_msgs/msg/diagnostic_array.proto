@@ -1,0 +1,20 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from diagnostic_msgs:msg/DiagnosticArray.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package diagnostic_msgs.msg.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/diagnostic_msgs/msg/diagnostic_status.proto";
+import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
+
+// This message is used to send diagnostic information about the state of the
+// robot.
+message DiagnosticArray {
+  // for timestamp
+  std_msgs.msg.pb.jazzy.Header header = 242399333;
+
+  // an array of components being reported on
+  repeated diagnostic_msgs.msg.pb.jazzy.DiagnosticStatus status = 453014720;
+}

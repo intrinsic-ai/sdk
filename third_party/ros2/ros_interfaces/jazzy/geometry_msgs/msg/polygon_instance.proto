@@ -1,0 +1,18 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from geometry_msgs:msg/PolygonInstance.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package geometry_msgs.msg.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/polygon.proto";
+
+// A specification of a polygon where the first and last points are assumed to
+// be connected
+//  It includes a unique identification field for disambiguating multiple
+//  instances
+message PolygonInstance {
+  geometry_msgs.msg.pb.jazzy.Polygon polygon = 128203889;
+  sfixed64 id = 523861702;
+}

@@ -1,0 +1,17 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from visualization_msgs:msg/MeshFile.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package visualization_msgs.msg.pb.jazzy;
+
+// Used to send raw mesh files.
+message MeshFile {
+  // The filename is used for both debug purposes and to provide a file
+  // extension for whatever parser is used.
+  string filename = 470544695;
+
+  // This stores the raw text of the mesh file.
+  bytes data = 234097369;
+}

@@ -1,0 +1,23 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from nav_msgs:srv/GetMap.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package nav_msgs.srv.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/nav_msgs/msg/occupancy_grid.proto";
+
+option cc_generic_services = true;
+
+message GetMap_Request {
+  uint32 structure_needs_at_least_one_member = 407246362;
+}
+
+message GetMap_Response {
+  nav_msgs.msg.pb.jazzy.OccupancyGrid map = 330153544;
+}
+
+service GetMap {
+  rpc Call(GetMap_Request) returns (GetMap_Response);
+}

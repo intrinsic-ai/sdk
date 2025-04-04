@@ -1,0 +1,15 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from unique_identifier_msgs:msg/UUID.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package unique_identifier_msgs.msg.pb.jazzy;
+
+// A universally unique identifier (UUID).
+//
+//   http://en.wikipedia.org/wiki/Universally_unique_identifier
+//   http://tools.ietf.org/html/rfc4122.html
+message UUID {
+  bytes uuid = 293563397;
+}

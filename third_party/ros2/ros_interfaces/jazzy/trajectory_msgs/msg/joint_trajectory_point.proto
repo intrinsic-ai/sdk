@@ -1,0 +1,39 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from trajectory_msgs:msg/JointTrajectoryPoint.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package trajectory_msgs.msg.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg/duration.proto";
+
+// Each trajectory point specifies either positions[, velocities[,
+// accelerations]]
+//  or positions[, effort] for the trajectory to be executed.
+//  All specified values are in the same order as the joint names in
+//  JointTrajectory.msg.
+message JointTrajectoryPoint {
+  // Single DOF joint positions for each joint relative to their "0" position.
+  // The units depend on the specific joint type: radians for revolute or
+  // continuous joints, and meters for prismatic joints.
+  repeated double positions = 379584731;
+
+  // The rate of change in position of each joint. Units are joint type
+  // dependent. Radians/second for revolute or continuous joints, and
+  // meters/second for prismatic joints.
+  repeated double velocities = 470602751;
+
+  // Rate of change in velocity of each joint. Units are joint type dependent.
+  // Radians/second^2 for revolute or continuous joints, and meters/second^2 for
+  // prismatic joints.
+  repeated double accelerations = 480455785;
+
+  // The torque or the force to be applied at each joint. For
+  // revolute/continuous joints effort denotes a torque in newton-meters. For
+  // prismatic joints, effort denotes a force in newtons.
+  repeated double effort = 137254524;
+
+  // Desired time from the trajectory start to arrive at this trajectory point.
+  builtin_interfaces.msg.pb.jazzy.Duration time_from_start = 244671567;
+}

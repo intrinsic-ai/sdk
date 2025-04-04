@@ -1,0 +1,28 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from geometry_msgs:msg/Inertia.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package geometry_msgs.msg.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/vector3.proto";
+
+// Mass
+message Inertia {
+  double m = 16912816;
+
+  // Center of mass
+  geometry_msgs.msg.pb.jazzy.Vector3 com = 79091338;  // [m]
+
+  // Inertia Tensor
+  //     | ixx ixy ixz |
+  // I = | ixy iyy iyz |
+  //     | ixz iyz izz |
+  double ixx = 25110326;  // [kg-m^2]
+  double ixy = 376972159;
+  double ixz = 259088809;
+  double iyy = 258159166;
+  double iyz = 376083048;
+  double izz = 491207746;
+}

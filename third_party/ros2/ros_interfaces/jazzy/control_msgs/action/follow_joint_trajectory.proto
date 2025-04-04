@@ -1,0 +1,117 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from control_msgs:action/FollowJointTrajectory.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package control_msgs.action.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg/duration.proto";
+import "third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg/time.proto";
+import "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/joint_component_tolerance.proto";
+import "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/joint_tolerance.proto";
+import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
+import "third_party/ros2/ros_interfaces/jazzy/trajectory_msgs/msg/joint_trajectory.proto";
+import "third_party/ros2/ros_interfaces/jazzy/trajectory_msgs/msg/joint_trajectory_point.proto";
+import "third_party/ros2/ros_interfaces/jazzy/trajectory_msgs/msg/multi_dof_joint_trajectory.proto";
+import "third_party/ros2/ros_interfaces/jazzy/trajectory_msgs/msg/multi_dof_joint_trajectory_point.proto";
+import "third_party/ros2/ros_interfaces/jazzy/unique_identifier_msgs/msg/uuid.proto";
+
+option cc_generic_services = true;
+
+message FollowJointTrajectory_Goal {
+  trajectory_msgs.msg.pb.jazzy.JointTrajectory trajectory = 72879695;
+
+  // The trajectory for all planar or floating joints (i.e. individual joints
+  // with more than one DOF)
+  trajectory_msgs.msg.pb.jazzy.MultiDOFJointTrajectory multi_dof_trajectory =
+      359131408;
+
+  // Tolerances for the trajectory.  If the measured joint values fall
+  // outside the tolerances the trajectory goal is aborted.  Any
+  // tolerances that are not specified (by being omitted or set to 0) are
+  // set to the defaults for the action server (often taken from the
+  // parameter server).
+  // Tolerances applied to the joints as the trajectory is executed.  If
+  // violated, the goal aborts with error_code set to
+  // PATH_TOLERANCE_VIOLATED.
+  repeated control_msgs.msg.pb.jazzy.JointTolerance path_tolerance = 211241172;
+  repeated control_msgs.msg.pb.jazzy.JointComponentTolerance
+      component_path_tolerance = 467421339;
+
+  // To report success, the joints must be within goal_tolerance of the
+  // final trajectory value.  The goal must be achieved by time the
+  // trajectory ends plus goal_time_tolerance.  (goal_time_tolerance
+  // allows some leeway in time, so that the trajectory goal can still
+  // succeed even if the joints reach the goal some time after the
+  // precise end time of the trajectory).
+  //
+  // If the joints are not within goal_tolerance after "trajectory finish
+  // time" + goal_time_tolerance, the goal aborts with error_code set to
+  // GOAL_TOLERANCE_VIOLATED
+  repeated control_msgs.msg.pb.jazzy.JointTolerance goal_tolerance = 292315856;
+  repeated control_msgs.msg.pb.jazzy.JointComponentTolerance
+      component_goal_tolerance = 103240187;
+  builtin_interfaces.msg.pb.jazzy.Duration goal_time_tolerance = 513398654;
+}
+
+message FollowJointTrajectory_SendGoal_Request {
+  unique_identifier_msgs.msg.pb.jazzy.UUID goal_id = 108866210;
+  control_msgs.action.pb.jazzy.FollowJointTrajectory_Goal goal = 484248182;
+}
+
+message FollowJointTrajectory_SendGoal_Response {
+  bool accepted = 371066354;
+  builtin_interfaces.msg.pb.jazzy.Time stamp = 357477059;
+}
+
+message FollowJointTrajectory_Result {
+  sfixed32 error_code = 325256566;
+
+  // Human readable description of the error code. Contains complementary
+  // information that is especially useful when execution fails, for instance:
+  //- INVALID_GOAL: The reason for the invalid goal (e.g., the requested
+  //   trajectory is in the past).
+  //- INVALID_JOINTS: The mismatch between the expected controller joints
+  //   and those provided in the goal.
+  //- PATH_TOLERANCE_VIOLATED and GOAL_TOLERANCE_VIOLATED: Which joint
+  //   violated which tolerance, and by how much.
+  string error_string = 144192789;
+}
+
+message FollowJointTrajectory_GetResult_Request {
+  unique_identifier_msgs.msg.pb.jazzy.UUID goal_id = 108866210;
+}
+
+message FollowJointTrajectory_GetResult_Response {
+  int32 status = 453014720;
+  control_msgs.action.pb.jazzy.FollowJointTrajectory_Result result = 325764348;
+}
+
+message FollowJointTrajectory_Feedback {
+  std_msgs.msg.pb.jazzy.Header header = 242399333;
+  repeated string joint_names = 492788101;
+  trajectory_msgs.msg.pb.jazzy.JointTrajectoryPoint desired = 131111205;
+  trajectory_msgs.msg.pb.jazzy.JointTrajectoryPoint actual = 41787894;
+  trajectory_msgs.msg.pb.jazzy.JointTrajectoryPoint error = 501073964;
+  repeated string multi_dof_joint_names = 402342375;
+  trajectory_msgs.msg.pb.jazzy.MultiDOFJointTrajectoryPoint multi_dof_desired =
+      120091320;
+  trajectory_msgs.msg.pb.jazzy.MultiDOFJointTrajectoryPoint multi_dof_actual =
+      12813823;
+  trajectory_msgs.msg.pb.jazzy.MultiDOFJointTrajectoryPoint multi_dof_error =
+      296336147;
+}
+
+message FollowJointTrajectory_FeedbackMessage {
+  unique_identifier_msgs.msg.pb.jazzy.UUID goal_id = 108866210;
+  control_msgs.action.pb.jazzy.FollowJointTrajectory_Feedback feedback =
+      304701367;
+}
+
+service FollowJointTrajectory {
+  rpc SendGoal(FollowJointTrajectory_SendGoal_Request)
+      returns (FollowJointTrajectory_SendGoal_Response);
+  rpc GetResult(FollowJointTrajectory_GetResult_Request)
+      returns (FollowJointTrajectory_GetResult_Response);
+}
