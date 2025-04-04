@@ -23,7 +23,7 @@ exports_files(
 )
 
 compile_pip_requirements(
-    name = "requirements",
+    name = "requirements_sdk",
     src = "requirements.in",
     generate_hashes = True,
     requirements_txt = "requirements.txt",
