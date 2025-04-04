@@ -17,9 +17,6 @@ import "intrinsic/logging/proto/blob.proto";
 import "intrinsic/logging/proto/context.proto";
 import "intrinsic/logging/proto/visualization_context.proto";
 import "intrinsic/math/proto/tf_message.proto";
-import "intrinsic/perception/proto/camera_to_robot_calibration_with_metadata.proto";
-import "intrinsic/perception/proto/hand_eye_calibration.proto";
-import "intrinsic/perception/proto/pose_estimation_result.proto";
 
 import "intrinsic/skills/proto/skill_service.proto";
 
@@ -106,14 +103,6 @@ message LogItem {
       intrinsic_proto.status.ExtendedStatus executive_process_status = 54;
 
       // ===== Perception =====
-      intrinsic_proto.perception.PoseEstimationResult pose_estimation_result =
-          10;
-      intrinsic_proto.perception.HandEyeCalibrationResult
-          hand_eye_calibration_result = 26;
-      intrinsic_proto.perception.CameraToRobotCalibrationResultWithMetadata
-          camera_to_robot_calibration_result_with_metadata = 66;
-      intrinsic_proto.perception.HandEyeCalibrationRequest
-          hand_eye_calibration_request = 29;
       // ===== Icon =====
       intrinsic_proto.icon.JointState icon_l1_joint_state = 14;
       intrinsic_proto.icon.Wrench icon_ft_wrench = 17;
