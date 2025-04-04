@@ -855,6 +855,14 @@ message CompareWorldsRequest {
 }
 
 message CompareWorldsResponse {
+  message ModifiedObject {
+    // The object modified
+    ObjectReference object = 1;
+
+    // A human-readable string describing the modification
+    string modification = 2;
+  }
+
   // Objects added to the changed world.
   repeated ObjectReference added = 1;
 
@@ -862,7 +870,15 @@ message CompareWorldsResponse {
   repeated Object removed = 2;
 
   // Objects modified in the changed world.
-  repeated ObjectReference modified = 3;
+  repeated ModifiedObject modified = 3;
+
+  message ModifiedFrame {
+    // The frame modified
+    Frame frame = 1;
+
+    // A human-readable string describing the modification
+    string modification = 2;
+  }
 
   // Contains all frames from new objects and added frames to modified objects
   // in the changed world.
@@ -873,7 +889,7 @@ message CompareWorldsResponse {
   repeated Frame removed_frames = 5;
 
   // Contains all modified frames from modified objects in the changed world.
-  repeated Frame modified_frames = 6;
+  repeated ModifiedFrame modified_frames = 6;
 
   // Contains all objects from the base world if view == FULL.
   repeated Object base_world_objects = 7;
