@@ -2,7 +2,7 @@
 
 syntax = "proto3";
 
-package intrinsic_proto.motion_planning;
+package intrinsic_proto.motion_planning.v1;
 
 import "intrinsic/kinematics/types/joint_limits.proto";
 import "intrinsic/skills/proto/skill_parameter_metadata.proto";
@@ -151,7 +151,7 @@ message MotionSegment {
   // limits defined for the robot will be used for Cartesian linear motions and
   // unlimited limits will be used for all other motions. The limit constraints
   // apply to the origin of the moving frame defined in the motion target.
-  optional intrinsic_proto.motion_planning.DynamicCartesianLimits
+  optional intrinsic_proto.motion_planning.v1.DynamicCartesianLimits
       cartesian_limits = 18;
   reserved "joint_position", "target_constraints", "limit_constraint";
   reserved 1, 2, 4;

@@ -13,7 +13,7 @@
 #include "google/protobuf/message.h"
 #include "grpcpp/impl/service_type.h"
 #include "grpcpp/server.h"
-#include "intrinsic/motion_planning/proto/motion_planner_service.grpc.pb.h"
+#include "intrinsic/motion_planning/proto/v1/motion_planner_service.grpc.pb.h"
 #include "intrinsic/skills/cc/equipment_pack.h"
 #include "intrinsic/skills/cc/skill_canceller.h"
 #include "intrinsic/skills/cc/skill_interface.h"
@@ -238,8 +238,8 @@ class SkillTestFactory final {
     std::optional<EquipmentPack> equipment_pack;
     std::optional<SkillLoggingContext> logging_context;
     std::string world_id = "fake_world";
-    std::shared_ptr<
-        intrinsic_proto::motion_planning::MotionPlannerService::StubInterface>
+    std::shared_ptr<intrinsic_proto::motion_planning::v1::MotionPlannerService::
+                        StubInterface>
         motion_planner_service;
     std::shared_ptr<intrinsic_proto::world::ObjectWorldService::StubInterface>
         object_world_service;
@@ -262,8 +262,8 @@ class SkillTestFactory final {
     std::optional<EquipmentPack> equipment_pack;
     std::optional<SkillLoggingContext> logging_context;
     std::string world_id = "fake_world";
-    std::shared_ptr<
-        intrinsic_proto::motion_planning::MotionPlannerService::StubInterface>
+    std::shared_ptr<intrinsic_proto::motion_planning::v1::MotionPlannerService::
+                        StubInterface>
         motion_planner_service;
     std::shared_ptr<intrinsic_proto::world::ObjectWorldService::StubInterface>
         object_world_service;
@@ -284,8 +284,8 @@ class SkillTestFactory final {
   struct GetFootprintContextInitializer {
     std::optional<EquipmentPack> equipment_pack;
     std::string world_id = "fake_world";
-    std::shared_ptr<
-        intrinsic_proto::motion_planning::MotionPlannerService::StubInterface>
+    std::shared_ptr<intrinsic_proto::motion_planning::v1::MotionPlannerService::
+                        StubInterface>
         motion_planner_service;
     std::shared_ptr<intrinsic_proto::world::ObjectWorldService::StubInterface>
         object_world_service;

@@ -3,7 +3,7 @@
 """A wrapper of MotionPlannerClientExternal that is more convenient to use."""
 
 from intrinsic.motion_planning import motion_planner_client
-from intrinsic.motion_planning.proto import motion_planner_service_pb2_grpc
+from intrinsic.motion_planning.proto.v1 import motion_planner_service_pb2_grpc
 from intrinsic.solutions import deployments
 
 

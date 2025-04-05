@@ -2,7 +2,7 @@
 
 syntax = "proto3";
 
-package intrinsic_proto.motion_planning;
+package intrinsic_proto.motion_planning.v1;
 
 import "intrinsic/icon/proto/joint_space.proto";
 import "intrinsic/kinematics/types/joint_limits.proto";

@@ -2,18 +2,18 @@
 
 syntax = "proto3";
 
-package intrinsic_proto.motion_planning;
+package intrinsic_proto.motion_planning.v1;
 
 import "google/protobuf/empty.proto";
 import "intrinsic/geometry/service/transformed_geometry_storage_refs.proto";
 import "intrinsic/icon/proto/joint_space.proto";
 import "intrinsic/logging/proto/context.proto";
 import "intrinsic/math/proto/pose.proto";
-import "intrinsic/motion_planning/proto/compute_ik.proto";
-import "intrinsic/motion_planning/proto/motion_planner_config.proto";
-import "intrinsic/motion_planning/proto/motion_planning_error.proto";
-import "intrinsic/motion_planning/proto/motion_specification.proto";
-import "intrinsic/motion_planning/proto/robot_specification.proto";
+import "intrinsic/motion_planning/proto/v1/compute_ik.proto";
+import "intrinsic/motion_planning/proto/v1/motion_planner_config.proto";
+import "intrinsic/motion_planning/proto/v1/motion_planning_error.proto";
+import "intrinsic/motion_planning/proto/v1/motion_specification.proto";
+import "intrinsic/motion_planning/proto/v1/robot_specification.proto";
 import "intrinsic/world/proto/collision_settings.proto";
 import "intrinsic/world/proto/geometric_constraints.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
@@ -132,7 +132,7 @@ message IkResponse {
   // informs a user why specific configurations were excluded from the results.
   // In case of collision, it also provides the collision information to
   // identify the objects in collision.
-  intrinsic_proto.motion_planning.ComputeIkDebugInformation
+  intrinsic_proto.motion_planning.v1.ComputeIkDebugInformation
       ik_debug_information = 2;
 }
 

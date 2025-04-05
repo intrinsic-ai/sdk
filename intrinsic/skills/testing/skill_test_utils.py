@@ -14,7 +14,7 @@ from intrinsic.assets import id_utils
 from intrinsic.icon.release import file_helpers
 from intrinsic.logging.proto import context_pb2
 from intrinsic.motion_planning import motion_planner_client
-from intrinsic.motion_planning.proto import motion_planner_service_pb2_grpc
+from intrinsic.motion_planning.proto.v1 import motion_planner_service_pb2_grpc
 from intrinsic.resources.proto import resource_handle_pb2
 from intrinsic.skills.internal import execute_context_impl
 from intrinsic.skills.internal import get_footprint_context_impl

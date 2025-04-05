@@ -15,11 +15,11 @@
 #include "intrinsic/geometry/service/transformed_geometry_storage_refs.pb.h"
 #include "intrinsic/logging/proto/context.pb.h"
 #include "intrinsic/math/pose3.h"
-#include "intrinsic/motion_planning/proto/motion_planner_config.pb.h"
-#include "intrinsic/motion_planning/proto/motion_planner_service.grpc.pb.h"
-#include "intrinsic/motion_planning/proto/motion_planner_service.pb.h"
-#include "intrinsic/motion_planning/proto/motion_specification.pb.h"
 #include "intrinsic/motion_planning/proto/motion_target.pb.h"
+#include "intrinsic/motion_planning/proto/v1/motion_planner_config.pb.h"
+#include "intrinsic/motion_planning/proto/v1/motion_planner_service.grpc.pb.h"
+#include "intrinsic/motion_planning/proto/v1/motion_planner_service.pb.h"
+#include "intrinsic/motion_planning/proto/v1/motion_specification.pb.h"
 #include "intrinsic/world/objects/kinematic_object.h"
 #include "intrinsic/world/objects/transform_node.h"
 #include "intrinsic/world/proto/collision_settings.pb.h"
@@ -33,11 +33,10 @@ namespace motion_planning {
 class MotionPlannerClient {
  public:
   // Creates a client for the world with the given id.
-  MotionPlannerClient(
-      absl::string_view world_id,
-      std::shared_ptr<
-          intrinsic_proto::motion_planning::MotionPlannerService::StubInterface>
-          motion_planner_service);
+  MotionPlannerClient(absl::string_view world_id,
+                      std::shared_ptr<intrinsic_proto::motion_planning::v1::
+                                          MotionPlannerService::StubInterface>
+                          motion_planner_service);
 
   // Options for motion planning.
   struct MotionPlanningOptions {
@@ -50,7 +49,7 @@ class MotionPlannerClient {
     bool compute_swept_volume = false;
 
     // Optional configuration for saving or loading a motion.
-    std::optional<intrinsic_proto::motion_planning::LockMotionConfiguration>
+    std::optional<intrinsic_proto::motion_planning::v1::LockMotionConfiguration>
         lock_motion_configuration = std::nullopt;
 
     // If true, the cache will not check for fuzzy matches. Default to false.
@@ -80,9 +79,9 @@ class MotionPlannerClient {
   // caller_id: The id used for logging the request in the motion planner
   // service.
   absl::StatusOr<PlanTrajectoryResult> PlanTrajectory(
-      const intrinsic_proto::motion_planning::RobotSpecification&
+      const intrinsic_proto::motion_planning::v1::RobotSpecification&
           robot_specification,
-      const intrinsic_proto::motion_planning::MotionSpecification&
+      const intrinsic_proto::motion_planning::v1::MotionSpecification&
           motion_specification,
       const MotionPlanningOptions& options = MotionPlanningOptions::Defaults(),
       const std::string& caller_id = "Anonymous",
@@ -163,7 +162,7 @@ class MotionPlannerClient {
   };
 
   // Checks collisions for a given path.
-  absl::StatusOr<intrinsic_proto::motion_planning::CheckCollisionsResponse>
+  absl::StatusOr<intrinsic_proto::motion_planning::v1::CheckCollisionsResponse>
   CheckCollisions(const world::KinematicObject& robot,
                   const std::vector<eigenmath::VectorXd>& waypoints,
                   const CheckCollisionsOptions& options = {});
@@ -174,7 +173,7 @@ class MotionPlannerClient {
  private:
   std::string world_id_;
   std::shared_ptr<
-      intrinsic_proto::motion_planning::MotionPlannerService::StubInterface>
+      intrinsic_proto::motion_planning::v1::MotionPlannerService::StubInterface>
       motion_planner_service_;
 };
 

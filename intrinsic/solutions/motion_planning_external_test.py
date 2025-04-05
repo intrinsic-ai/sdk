@@ -6,7 +6,7 @@ from unittest import mock
 
 from absl.testing import absltest
 from google.protobuf import empty_pb2
-from intrinsic.motion_planning.proto import motion_planner_service_pb2_grpc
+from intrinsic.motion_planning.proto.v1 import motion_planner_service_pb2_grpc
 from intrinsic.solutions import motion_planning
 
 _WORLD_ID = "world"

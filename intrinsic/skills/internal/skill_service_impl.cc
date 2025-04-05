@@ -29,7 +29,7 @@
 #include "intrinsic/assets/id_utils.h"
 #include "intrinsic/logging/proto/context.pb.h"
 #include "intrinsic/motion_planning/motion_planner_client.h"
-#include "intrinsic/motion_planning/proto/motion_planner_service.grpc.pb.h"
+#include "intrinsic/motion_planning/proto/v1/motion_planner_service.grpc.pb.h"
 #include "intrinsic/skills/cc/equipment_pack.h"
 #include "intrinsic/skills/cc/skill_interface.h"
 #include "intrinsic/skills/cc/skill_logging_context.h"

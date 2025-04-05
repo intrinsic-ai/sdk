@@ -19,12 +19,12 @@ from google.protobuf import empty_pb2
 from intrinsic.icon.proto import joint_space_pb2
 from intrinsic.math.python import data_types
 from intrinsic.math.python import proto_conversion as math_proto_conversion
-from intrinsic.motion_planning.proto import motion_planner_config_pb2
-from intrinsic.motion_planning.proto import motion_planner_service_pb2
-from intrinsic.motion_planning.proto import motion_planner_service_pb2_grpc
-from intrinsic.motion_planning.proto import motion_specification_pb2
 from intrinsic.motion_planning.proto import motion_target_pb2
-from intrinsic.motion_planning.proto import robot_specification_pb2
+from intrinsic.motion_planning.proto.v1 import motion_planner_config_pb2
+from intrinsic.motion_planning.proto.v1 import motion_planner_service_pb2
+from intrinsic.motion_planning.proto.v1 import motion_planner_service_pb2_grpc
+from intrinsic.motion_planning.proto.v1 import motion_specification_pb2
+from intrinsic.motion_planning.proto.v1 import robot_specification_pb2
 from intrinsic.world.proto import collision_settings_pb2
 from intrinsic.world.proto import geometric_constraints_pb2
 from intrinsic.world.python import object_world_ids

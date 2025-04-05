@@ -16,8 +16,8 @@
 #include "grpcpp/server.h"
 #include "grpcpp/server_builder.h"
 #include "intrinsic/motion_planning/motion_planner_client.h"
-#include "intrinsic/motion_planning/proto/motion_planner_service.grpc.pb.h"
-#include "intrinsic/motion_planning/proto/motion_planner_service_mock.grpc.pb.h"
+#include "intrinsic/motion_planning/proto/v1/motion_planner_service.grpc.pb.h"
+#include "intrinsic/motion_planning/proto/v1/motion_planner_service_mock.grpc.pb.h"
 #include "intrinsic/skills/cc/equipment_pack.h"
 #include "intrinsic/skills/cc/execute_request.h"
 #include "intrinsic/skills/cc/skill_canceller.h"
@@ -34,8 +34,8 @@
 namespace intrinsic {
 namespace skills {
 
-using intrinsic_proto::motion_planning::MockMotionPlannerServiceStub;
-using intrinsic_proto::motion_planning::MotionPlannerService;
+using intrinsic_proto::motion_planning::v1::MockMotionPlannerServiceStub;
+using intrinsic_proto::motion_planning::v1::MotionPlannerService;
 using intrinsic_proto::world::MockObjectWorldServiceStub;
 using intrinsic_proto::world::ObjectWorldService;
 

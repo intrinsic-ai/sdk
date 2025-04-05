@@ -20,10 +20,10 @@
 #include "intrinsic/math/pose3.h"
 #include "intrinsic/math/proto_conversion.h"
 #include "intrinsic/motion_planning/conversions.h"
-#include "intrinsic/motion_planning/proto/motion_planner_config.pb.h"
-#include "intrinsic/motion_planning/proto/motion_planner_service.grpc.pb.h"
-#include "intrinsic/motion_planning/proto/motion_planner_service.pb.h"
 #include "intrinsic/motion_planning/proto/motion_target.pb.h"
+#include "intrinsic/motion_planning/proto/v1/motion_planner_config.pb.h"
+#include "intrinsic/motion_planning/proto/v1/motion_planner_service.grpc.pb.h"
+#include "intrinsic/motion_planning/proto/v1/motion_planner_service.pb.h"
 #include "intrinsic/util/eigen.h"
 #include "intrinsic/util/status/status_conversion_grpc.h"
 #include "intrinsic/util/status/status_macros.h"
@@ -49,21 +49,21 @@ MotionPlannerClient::MotionPlanningOptions::Defaults() {
 
 MotionPlannerClient::MotionPlannerClient(
     absl::string_view world_id,
-    std::shared_ptr<
-        intrinsic_proto::motion_planning::MotionPlannerService::StubInterface>
+    std::shared_ptr<intrinsic_proto::motion_planning::v1::MotionPlannerService::
+                        StubInterface>
         motion_planner_service)
     : world_id_(world_id),
       motion_planner_service_(std::move(motion_planner_service)) {}
 
 absl::StatusOr<MotionPlannerClient::PlanTrajectoryResult>
 MotionPlannerClient::PlanTrajectory(
-    const intrinsic_proto::motion_planning::RobotSpecification&
+    const intrinsic_proto::motion_planning::v1::RobotSpecification&
         robot_specification,
-    const intrinsic_proto::motion_planning::MotionSpecification&
+    const intrinsic_proto::motion_planning::v1::MotionSpecification&
         motion_specification,
     const MotionPlanningOptions& options, const std::string& caller_id,
     const intrinsic_proto::data_logger::Context& context) {
-  intrinsic_proto::motion_planning::MotionPlanningRequest request;
+  intrinsic_proto::motion_planning::v1::MotionPlanningRequest request;
   *request.mutable_robot_specification() = robot_specification;
   *request.mutable_motion_specification() = motion_specification;
   request.set_world_id(world_id_);
@@ -85,7 +85,7 @@ MotionPlannerClient::PlanTrajectory(
   request.set_caller_id(caller_id);
   *request.mutable_context() = context;
 
-  intrinsic_proto::motion_planning::TrajectoryPlanningResponse response;
+  intrinsic_proto::motion_planning::v1::TrajectoryPlanningResponse response;
   grpc::ClientContext ctx;
   INTR_RETURN_IF_ERROR(ToAbslStatus(
       motion_planner_service_->PlanTrajectory(&ctx, request, &response)));
@@ -128,7 +128,7 @@ absl::StatusOr<std::vector<eigenmath::VectorXd>> MotionPlannerClient::ComputeIk(
     const intrinsic_proto::world::geometric_constraints::GeometricConstraint&
         geometric_target,
     const IkOptions& options) {
-  intrinsic_proto::motion_planning::IkRequest request;
+  intrinsic_proto::motion_planning::v1::IkRequest request;
   request.set_world_id(world_id_);
   request.mutable_robot_reference()->mutable_object_id()->set_id(
       robot.Id().value());
@@ -153,7 +153,7 @@ absl::StatusOr<std::vector<eigenmath::VectorXd>> MotionPlannerClient::ComputeIk(
 
   request.set_prefer_same_branch(options.prefer_same_branch);
 
-  intrinsic_proto::motion_planning::IkResponse response;
+  intrinsic_proto::motion_planning::v1::IkResponse response;
   grpc::ClientContext ctx;
   INTR_RETURN_IF_ERROR(ToAbslStatus(
       motion_planner_service_->ComputeIk(&ctx, request, &response)));
@@ -170,9 +170,9 @@ absl::StatusOr<Pose3d> ComputeFkInternal(
     const intrinsic_proto::world::TransformNodeReference& reference,
     const intrinsic_proto::world::TransformNodeReference& target,
     const std::string& world_id,
-    intrinsic_proto::motion_planning::MotionPlannerService::StubInterface&
+    intrinsic_proto::motion_planning::v1::MotionPlannerService::StubInterface&
         motion_planner_service) {
-  intrinsic_proto::motion_planning::FkRequest request;
+  intrinsic_proto::motion_planning::v1::FkRequest request;
   request.set_world_id(world_id);
   request.mutable_robot_reference()->mutable_object_id()->set_id(
       robot.Id().value());
@@ -182,7 +182,7 @@ absl::StatusOr<Pose3d> ComputeFkInternal(
   *request.mutable_reference() = reference;
   *request.mutable_target() = target;
 
-  intrinsic_proto::motion_planning::FkResponse response;
+  intrinsic_proto::motion_planning::v1::FkResponse response;
   grpc::ClientContext ctx;
   INTR_RETURN_IF_ERROR(
       ToAbslStatus(motion_planner_service.ComputeFk(&ctx, request, &response)));
@@ -217,12 +217,12 @@ absl::StatusOr<Pose3d> MotionPlannerClient::ComputeFk(
                            world_id_, *motion_planner_service_);
 }
 
-absl::StatusOr<intrinsic_proto::motion_planning::CheckCollisionsResponse>
+absl::StatusOr<intrinsic_proto::motion_planning::v1::CheckCollisionsResponse>
 MotionPlannerClient::CheckCollisions(
     const world::KinematicObject& robot,
     const std::vector<eigenmath::VectorXd>& waypoints,
     const CheckCollisionsOptions& options) {
-  intrinsic_proto::motion_planning::CheckCollisionsRequest request;
+  intrinsic_proto::motion_planning::v1::CheckCollisionsRequest request;
   request.set_world_id(world_id_);
   request.mutable_robot_reference()->mutable_object_id()->set_id(
       robot.Id().value());
@@ -232,7 +232,7 @@ MotionPlannerClient::CheckCollisions(
     *request.mutable_collision_settings() = *options.collision_settings;
   }
 
-  intrinsic_proto::motion_planning::CheckCollisionsResponse response;
+  intrinsic_proto::motion_planning::v1::CheckCollisionsResponse response;
   grpc::ClientContext ctx;
   INTR_RETURN_IF_ERROR(ToAbslStatus(
       motion_planner_service_->CheckCollisions(&ctx, request, &response)));

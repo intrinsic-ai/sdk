@@ -16,8 +16,8 @@
 #include "intrinsic/assets/id_utils.h"
 #include "intrinsic/logging/proto/context.pb.h"
 #include "intrinsic/motion_planning/motion_planner_client.h"
-#include "intrinsic/motion_planning/proto/motion_planner_service.pb.h"
-#include "intrinsic/motion_planning/proto/motion_planner_service_mock.grpc.pb.h"
+#include "intrinsic/motion_planning/proto/v1/motion_planner_service.pb.h"
+#include "intrinsic/motion_planning/proto/v1/motion_planner_service_mock.grpc.pb.h"
 #include "intrinsic/skills/cc/equipment_pack.h"
 #include "intrinsic/skills/cc/skill_canceller.h"
 #include "intrinsic/skills/cc/skill_interface.h"
@@ -124,7 +124,7 @@ TEST(PreviewSkillTest, WrongResultTypeReturnsError) {
                        HasSubstr("Skill returned result of type")));
 }
 
-using intrinsic_proto::motion_planning::MockMotionPlannerServiceStub;
+using intrinsic_proto::motion_planning::v1::MockMotionPlannerServiceStub;
 using intrinsic_proto::world::MockObjectWorldServiceStub;
 
 TEST(SkillTestFactory, MakeExecuteContextProvideAlmostEverything) {

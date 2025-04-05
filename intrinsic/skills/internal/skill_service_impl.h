@@ -26,7 +26,7 @@
 #include "grpcpp/channel.h"
 #include "grpcpp/server_context.h"
 #include "grpcpp/support/status.h"
-#include "intrinsic/motion_planning/proto/motion_planner_service.grpc.pb.h"
+#include "intrinsic/motion_planning/proto/v1/motion_planner_service.grpc.pb.h"
 #include "intrinsic/skills/cc/skill_canceller.h"
 #include "intrinsic/skills/cc/skill_interface.h"
 #include "intrinsic/skills/internal/runtime_data.h"
@@ -254,7 +254,7 @@ class SkillProjectorServiceImpl
     : public intrinsic_proto::skills::Projector::Service {
   using ObjectWorldService = ::intrinsic_proto::world::ObjectWorldService;
   using MotionPlannerService =
-      ::intrinsic_proto::motion_planning::MotionPlannerService;
+      ::intrinsic_proto::motion_planning::v1::MotionPlannerService;
 
  public:
   // All of the given references will be kept for the lifetime of the created
@@ -292,7 +292,7 @@ class SkillExecutorServiceImpl
     : public intrinsic_proto::skills::Executor::Service {
   using ObjectWorldService = ::intrinsic_proto::world::ObjectWorldService;
   using MotionPlannerService =
-      ::intrinsic_proto::motion_planning::MotionPlannerService;
+      ::intrinsic_proto::motion_planning::v1::MotionPlannerService;
 
  public:
   // All of the given references will be kept for the lifetime of the created

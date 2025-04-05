@@ -23,7 +23,7 @@
 #include "grpcpp/server.h"
 #include "grpcpp/server_builder.h"
 #include "intrinsic/logging/data_logger_client.h"
-#include "intrinsic/motion_planning/proto/motion_planner_service.grpc.pb.h"
+#include "intrinsic/motion_planning/proto/v1/motion_planner_service.grpc.pb.h"
 #include "intrinsic/skills/internal/skill_registry_client.h"
 #include "intrinsic/skills/internal/skill_repository.h"
 #include "intrinsic/skills/internal/skill_service_impl.h"
@@ -38,16 +38,16 @@ namespace {
 
 using ObjectWorldService = ::intrinsic_proto::world::ObjectWorldService;
 using MotionPlannerService =
-    ::intrinsic_proto::motion_planning::MotionPlannerService;
+    ::intrinsic_proto::motion_planning::v1::MotionPlannerService;
 
 absl::StatusOr<std::shared_ptr<
-    intrinsic_proto::motion_planning::MotionPlannerService::Stub>>
+    intrinsic_proto::motion_planning::v1::MotionPlannerService::Stub>>
 CreateMotionPlannerServiceStub(absl::string_view motion_planner_service_address,
                                absl::Duration connection_timeout) {
   INTR_ASSIGN_OR_RETURN(const std::shared_ptr<grpc::Channel> channel,
                         CreateClientChannel(motion_planner_service_address,
                                             absl::Now() + connection_timeout));
-  return intrinsic_proto::motion_planning::MotionPlannerService::NewStub(
+  return intrinsic_proto::motion_planning::v1::MotionPlannerService::NewStub(
       channel);
 }
 
