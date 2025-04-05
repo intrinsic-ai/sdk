@@ -25,8 +25,8 @@ proto_library(
         "//intrinsic/hardware/gripper/eoat:eoat_service_proto",
         "//intrinsic/icon/proto:joint_space_proto",
         "//intrinsic/math/proto:pose_proto",
+        "//intrinsic/motion_planning/proto/v1:geometric_constraints_proto",
         "//intrinsic/perception/proto:pose_estimate_in_root_proto",
-        "//intrinsic/world/proto:geometric_constraints_proto",
         "//intrinsic/world/proto:object_world_refs_proto",
     ],
 )
@@ -46,7 +46,7 @@ py_library(
         "//intrinsic/icon/proto:joint_space_py_pb2",
         "//intrinsic/math/proto:pose_py_pb2",
         "//intrinsic/motion_planning:motion_planner_client_py",
-        "//intrinsic/world/proto:geometric_constraints_py_pb2",
+        "//intrinsic/motion_planning/proto/v1:geometric_constraints_py_pb2",
         "//intrinsic/world/proto:object_world_refs_py_pb2",
         "//intrinsic/world/python:object_world_client",
     ],

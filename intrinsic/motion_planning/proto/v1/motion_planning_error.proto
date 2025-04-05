@@ -7,8 +7,8 @@ package intrinsic_proto.motion_planning.v1;
 import "intrinsic/icon/proto/joint_space.proto";
 import "intrinsic/kinematics/types/joint_limits.proto";
 import "intrinsic/math/proto/pose.proto";
+import "intrinsic/motion_planning/proto/v1/geometric_constraints.proto";
 import "intrinsic/world/proto/collision_settings.proto";
-import "intrinsic/world/proto/geometric_constraints.proto";
 
 // Defines the context in which error occurred.
 // We use this field to create the frontend error messages.
@@ -115,8 +115,8 @@ message IKError {
   string error_message = 1;
   // Constraint for which the error was reported. This is an optional field that
   // is populated for all IK methods that have access to the object world.
-  optional intrinsic_proto.world.geometric_constraints.GeometricConstraint
-      constraint = 2;
+  optional intrinsic_proto.motion_planning.v1.GeometricConstraint constraint =
+      2;
   // Allows any additional information regarding context where the error
   // occurs.
   optional ErrorContext.Type error_context = 3;

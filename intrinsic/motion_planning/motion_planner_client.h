@@ -128,7 +128,7 @@ class MotionPlannerClient {
   // pick the number of solutions.
   absl::StatusOr<std::vector<eigenmath::VectorXd>> ComputeIk(
       const world::KinematicObject& robot,
-      const intrinsic_proto::world::geometric_constraints::GeometricConstraint&
+      const intrinsic_proto::motion_planning::v1::GeometricConstraint&
           geometric_target,
       const IkOptions& options = {.ensure_same_branch = false,
                                   .prefer_same_branch = false});

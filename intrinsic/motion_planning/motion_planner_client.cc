@@ -109,8 +109,7 @@ absl::StatusOr<std::vector<eigenmath::VectorXd>> MotionPlannerClient::ComputeIk(
         cartesian_target,
     const IkOptions& options) {
   // Convert CartesianMotionTarget to GeometricConstraint::PoseEquality.
-  intrinsic_proto::world::geometric_constraints::GeometricConstraint
-      geometric_target;
+  intrinsic_proto::motion_planning::v1::GeometricConstraint geometric_target;
   *geometric_target.mutable_cartesian_pose()->mutable_target_frame() =
       cartesian_target.frame();
   *geometric_target.mutable_cartesian_pose()->mutable_moving_frame() =
@@ -125,7 +124,7 @@ absl::StatusOr<std::vector<eigenmath::VectorXd>> MotionPlannerClient::ComputeIk(
 
 absl::StatusOr<std::vector<eigenmath::VectorXd>> MotionPlannerClient::ComputeIk(
     const world::KinematicObject& robot,
-    const intrinsic_proto::world::geometric_constraints::GeometricConstraint&
+    const intrinsic_proto::motion_planning::v1::GeometricConstraint&
         geometric_target,
     const IkOptions& options) {
   intrinsic_proto::motion_planning::v1::IkRequest request;

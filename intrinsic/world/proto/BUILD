@@ -369,20 +369,6 @@ go_proto_library(
 )
 
 proto_library(
-    name = "geometric_constraints_proto",
-    srcs = ["geometric_constraints.proto"],
-    deps = [
-        ":object_world_refs_proto",
-        "//intrinsic/icon/proto:joint_space_proto",
-        "//intrinsic/math/proto:point_proto",
-        "//intrinsic/math/proto:pose_proto",
-        "//intrinsic/math/proto:quaternion_proto",
-        "//intrinsic/math/proto:vector3_proto",
-        "//intrinsic/skills/proto:skill_parameter_metadata_proto",
-    ],
-)
-
-proto_library(
     name = "robot_payload_proto",
     srcs = ["robot_payload.proto"],
     deps = [
@@ -394,6 +380,11 @@ proto_library(
 py_proto_library(
     name = "robot_payload_py_pb2",
     deps = [":robot_payload_proto"],
+)
+
+py_proto_library(
+    name = "entity_search_py_pb2",
+    deps = [":entity_search_proto"],
 )
 
 go_proto_library(
@@ -415,25 +406,9 @@ cc_proto_library(
     deps = [":robot_payload_proto"],
 )
 
-cc_proto_library(
-    name = "geometric_constraints_cc_proto",
-    deps = [":geometric_constraints_proto"],
-)
-
-py_proto_library(
-    name = "geometric_constraints_py_pb2",
-    deps = [":geometric_constraints_proto"],
-)
-
-py_proto_library(
-    name = "entity_search_py_pb2",
-    deps = [":entity_search_proto"],
-)
-
 proto_library(
     name = "world_protos",
     deps = [
-        ":geometric_constraints_proto",
         ":geometry_component_proto",
         ":kinematics_component_proto",
         ":object_world_refs_proto",

@@ -8,8 +8,8 @@ import "intrinsic/hardware/gripper/eoat/eoat_service.proto";
 import "intrinsic/hardware/gripper/gripper.proto";
 import "intrinsic/icon/proto/joint_space.proto";
 import "intrinsic/math/proto/pose.proto";
+import "intrinsic/motion_planning/proto/v1/geometric_constraints.proto";
 import "intrinsic/perception/proto/pose_estimate_in_root.proto";
-import "intrinsic/world/proto/geometric_constraints.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 
 message GraspCommand {
@@ -36,13 +36,10 @@ message Grasp {
   }
 
   string grasp_id = 1;
-  intrinsic_proto.world.geometric_constraints.PoseEquality
-      pregrasp_motion_spec = 8;
-  intrinsic_proto.world.geometric_constraints.PoseEquality grasp_motion_spec =
-      2;
+  intrinsic_proto.motion_planning.v1.PoseEquality pregrasp_motion_spec = 8;
+  intrinsic_proto.motion_planning.v1.PoseEquality grasp_motion_spec = 2;
   GraspCommand grasp_command = 3;
-  intrinsic_proto.world.geometric_constraints.PoseEquality
-      postgrasp_motion_spec = 4;
+  intrinsic_proto.motion_planning.v1.PoseEquality postgrasp_motion_spec = 4;
   ObjectPose object_pose = 5;
   repeated GraspHistory history = 6;
   string object_category = 7;
@@ -108,7 +105,7 @@ message GraspTarget {
   message GraspConstraint {
     oneof grasp_constraint_type {
       Poses poses = 1;
-      intrinsic_proto.world.geometric_constraints.GeometricConstraint
+      intrinsic_proto.motion_planning.v1.GeometricConstraint
           geometric_constraint = 2;
     }
   }

@@ -5,9 +5,9 @@ syntax = "proto3";
 package intrinsic_proto.motion_planning.v1;
 
 import "intrinsic/kinematics/types/joint_limits.proto";
+import "intrinsic/motion_planning/proto/v1/geometric_constraints.proto";
 import "intrinsic/skills/proto/skill_parameter_metadata.proto";
 import "intrinsic/world/proto/collision_settings.proto";
-import "intrinsic/world/proto/geometric_constraints.proto";
 
 message PathConstraint {
   // Allows setting the motion type. ANY is the default motion
@@ -23,9 +23,8 @@ message PathConstraint {
 
   // Specifies geometric constraints that will be applied to the motion of the
   // robot.
-  optional
-      intrinsic_proto.world.geometric_constraints.UniformGeometricConstraint
-          uniform_geometric_constraint = 5;
+  optional intrinsic_proto.motion_planning.v1.UniformGeometricConstraint
+      uniform_geometric_constraint = 5;
 
   reserved "joint_position_limits";
   reserved 2, 3, 4;
@@ -118,7 +117,7 @@ message MotionSegment {
   // this segment. The target is defined as a set of constraints that can be
   // specified in terms of either joint position or Cartesian constraints like
   // a pose.
-  intrinsic_proto.world.geometric_constraints.GeometricConstraint target = 5;
+  intrinsic_proto.motion_planning.v1.GeometricConstraint target = 5;
   // Allows setting the motion type. ANY is the default motion
   // type that enables arbitrary collision free paths in configuration space.
   // LINEAR enforces Cartesian linear trajectories. JOINT
@@ -134,9 +133,8 @@ message MotionSegment {
   // Specifies geometric constraints that will be applied to the motion of the
   // robot. This will also add the constraint to the start and end configuration
   // of the robot.
-  optional
-      intrinsic_proto.world.geometric_constraints.UniformGeometricConstraint
-          path_constraints = 3;
+  optional intrinsic_proto.motion_planning.v1.UniformGeometricConstraint
+      path_constraints = 3;
 
   // Robot joint limits that allow to update the lower and upper position
   // limits, velocity, acceleration, and

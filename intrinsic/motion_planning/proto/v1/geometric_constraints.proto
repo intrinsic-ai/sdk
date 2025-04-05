@@ -2,7 +2,7 @@
 
 syntax = "proto3";
 
-package intrinsic_proto.world.geometric_constraints;
+package intrinsic_proto.motion_planning.v1;
 
 import "intrinsic/icon/proto/joint_space.proto";
 import "intrinsic/math/proto/point.proto";
@@ -19,7 +19,7 @@ message JointIds {
 // Requires one or more joints to have the given positions
 message JointPositionEquality {
   oneof joint_group {
-    ObjectReference object_id = 1;
+    intrinsic_proto.world.ObjectReference object_id = 1;
   }
 
   // The desired position, one element per joint.
@@ -29,7 +29,7 @@ message JointPositionEquality {
 // Defines lower and upper bounds on the positions of joints (e.g. for a robot).
 message JointPositionLimits {
   oneof joint_group {
-    ObjectReference object_id = 1;
+    intrinsic_proto.world.ObjectReference object_id = 1;
   }
 
   // Either one element per joint or empty, in which case the limits default to
@@ -47,7 +47,7 @@ message JointPositionLimits {
 // position.
 message JointPositionSumLimit {
   oneof joint_group {
-    ObjectReference object_id = 1;
+    intrinsic_proto.world.ObjectReference object_id = 1;
     JointIds joint_ids = 2;
   }
 
@@ -76,12 +76,12 @@ message JointPositionSumLimit {
 message PositionEquality {
   // Frame for `moving_frame_offset`, which will be constrained to be equal
   // to `target_frame_offset`. This typically is a tool or tcp frame.
-  TransformNodeReference moving_frame = 1;
+  intrinsic_proto.world.TransformNodeReference moving_frame = 1;
 
   // Frame for `target_frame_offset`, which will be constrained to be equal to
   // `moving_frame_offset`. For relative motions this typically equals the
   // moving frame. For absolute motions it can be any useful reference frame.
-  TransformNodeReference target_frame = 2;
+  intrinsic_proto.world.TransformNodeReference target_frame = 2;
 
   // The point attached to `moving_frame`. Defaults to (0, 0, 0) if unset.
   optional intrinsic_proto.Point moving_frame_offset = 3;
@@ -98,10 +98,10 @@ message PositionEquality {
 message PointAt {
   // Frame for `moving_frame_offset`, which will be constrained to point at the
   // target point.
-  TransformNodeReference moving_frame = 1;
+  intrinsic_proto.world.TransformNodeReference moving_frame = 1;
 
   // Frame for `target_frame_offset`, which will be pointed at.
-  TransformNodeReference target_frame = 2;
+  intrinsic_proto.world.TransformNodeReference target_frame = 2;
 
   // Axis used as direction from `moving_frame` to point at `target_frame`.
   // If unset, defaults to the z-axis of `moving_frame`. Does not need to be
@@ -147,12 +147,12 @@ message PointAt {
 message PositionBoundingBox {
   // Frame for `moving_frame_offset`, which will be constrained to lie in the
   // bounding box.
-  TransformNodeReference moving_frame = 1;
+  intrinsic_proto.world.TransformNodeReference moving_frame = 1;
 
   // Frame for bounding box.  This must be the base of a kinematic chain leading
   // to moving_frame, with >= one non-fixed DOF between them in the kinematic
   // chain.
-  TransformNodeReference target_frame = 2;
+  intrinsic_proto.world.TransformNodeReference target_frame = 2;
 
   // The point defined relative to `moving_frame` whose position must remain
   // within the bounding box attached to the `target_frame`. If unset,
@@ -187,10 +187,10 @@ message PositionBoundingBox {
 message PositionEllipsoid {
   // Frame for `moving_frame_offset` which will be constrained to lie in the
   // ellipsoid.
-  TransformNodeReference moving_frame = 1;
+  intrinsic_proto.world.TransformNodeReference moving_frame = 1;
 
   // Reference frame for the ellipsoid.
-  TransformNodeReference target_frame = 2;
+  intrinsic_proto.world.TransformNodeReference target_frame = 2;
 
   // The x-radius of the ellipsoid
   double rx = 3
@@ -223,10 +223,10 @@ message PositionEllipsoid {
 message PositionFrustum {
   // Frame for `moving_frame_offset`, which will be constrained to lie in the
   // frustrum.
-  TransformNodeReference moving_frame = 1;
+  intrinsic_proto.world.TransformNodeReference moving_frame = 1;
 
   // Reference frame for the frustrum.
-  TransformNodeReference target_frame = 2;
+  intrinsic_proto.world.TransformNodeReference target_frame = 2;
 
   // Angle between frustrum surface plane and x-z plane
   double x_angle = 3
@@ -263,11 +263,11 @@ message PositionFrustum {
 message RotationEquality {
   // Moving frame that will be constrained to have a fixed relative rotation
   // to the reference frame.
-  TransformNodeReference moving_frame = 1;
+  intrinsic_proto.world.TransformNodeReference moving_frame = 1;
 
   // Reference frame that will be constrained to have a fixed relative rotation
   // to the moving frame.
-  TransformNodeReference target_frame = 2;
+  intrinsic_proto.world.TransformNodeReference target_frame = 2;
 
   // The required rotation between `moving_frame` and `target_frame`.
   // If unset, defaults to the identity rotation.
@@ -279,11 +279,11 @@ message RotationEquality {
 message RotationBall {
   // Moving frame that will be constrained to have relative rotation to the
   // reference frame that is within some angular offset of a given rotation.
-  TransformNodeReference moving_frame = 1;
+  intrinsic_proto.world.TransformNodeReference moving_frame = 1;
 
   // Reference frame that will be constrained to have a relative rotation to the
   // moving frame that is within some angular offset of a given rotation.
-  TransformNodeReference target_frame = 2;
+  intrinsic_proto.world.TransformNodeReference target_frame = 2;
 
   // The radius of the ball. This is an upper bound on the
   // angular distance between `rotation_offset` defined below and
@@ -302,10 +302,10 @@ message RotationBall {
 // in a different rotation cone.
 message RotationCone {
   // Frame for the moving axis that will be constrained to lie within the cone.
-  TransformNodeReference moving_frame = 1;
+  intrinsic_proto.world.TransformNodeReference moving_frame = 1;
 
   // Frame for the reference axis that is the center of the cone.
-  TransformNodeReference target_frame = 2;
+  intrinsic_proto.world.TransformNodeReference target_frame = 2;
 
   // The direction of the axis in `moving_frame`. Must have non-zero norm.
   intrinsic_proto.Vector3 moving_axis = 3;
@@ -327,12 +327,12 @@ message RotationCone {
 message PoseEquality {
   // Moving frame that will be constrained to have a fixed relative pose to
   // the reference frame. This typically is a tool or tcp frame.
-  TransformNodeReference moving_frame = 1;
+  intrinsic_proto.world.TransformNodeReference moving_frame = 1;
 
   // Reference frame that will be constrained to have fixed relative pose to
   // the moving frame. For relative motions this typically equals the
   // moving frame. For absolute motions it can be any useful reference frame.
-  TransformNodeReference target_frame = 2;
+  intrinsic_proto.world.TransformNodeReference target_frame = 2;
 
   // The required relative pose between `moving_frame` and `target_frame`. If
   // unset, defaults to the identity pose. Always set both, position and

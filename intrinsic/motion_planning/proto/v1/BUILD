@@ -7,9 +7,7 @@ load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
-package(default_visibility = [
-    "//visibility:public",
-])
+package(default_visibility = ["//visibility:public"])
 
 proto_library(
     name = "motion_planner_service_proto",
@@ -26,8 +24,8 @@ proto_library(
         "//intrinsic/logging/proto:context_proto",
         "//intrinsic/math/proto:point_proto",
         "//intrinsic/math/proto:pose_proto",
+        "//intrinsic/motion_planning/proto/v1:geometric_constraints_proto",
         "//intrinsic/world/proto:collision_settings_proto",
-        "//intrinsic/world/proto:geometric_constraints_proto",
         "//intrinsic/world/proto:object_world_refs_proto",
         "@com_google_protobuf//:duration_proto",
         "@com_google_protobuf//:empty_proto",
@@ -64,9 +62,9 @@ proto_library(
     srcs = ["motion_specification.proto"],
     deps = [
         "//intrinsic/kinematics/types:joint_limits_proto",
+        "//intrinsic/motion_planning/proto/v1:geometric_constraints_proto",
         "//intrinsic/skills/proto:skill_parameter_metadata_proto",
         "//intrinsic/world/proto:collision_settings_proto",
-        "//intrinsic/world/proto:geometric_constraints_proto",
     ],
 )
 
@@ -77,8 +75,8 @@ proto_library(
         "//intrinsic/icon/proto:joint_space_proto",
         "//intrinsic/kinematics/types:joint_limits_proto",
         "//intrinsic/math/proto:pose_proto",
+        "//intrinsic/motion_planning/proto/v1:geometric_constraints_proto",
         "//intrinsic/world/proto:collision_settings_proto",
-        "//intrinsic/world/proto:geometric_constraints_proto",
     ],
 )
 
@@ -163,4 +161,35 @@ cc_proto_library(
 py_proto_library(
     name = "motion_specification_py_pb2",
     deps = [":motion_specification_proto"],
+)
+
+proto_library(
+    name = "geometric_constraints_proto",
+    srcs = ["geometric_constraints.proto"],
+    deps = [
+        "//intrinsic/icon/proto:joint_space_proto",
+        "//intrinsic/math/proto:point_proto",
+        "//intrinsic/math/proto:pose_proto",
+        "//intrinsic/math/proto:quaternion_proto",
+        "//intrinsic/math/proto:vector3_proto",
+        "//intrinsic/skills/proto:skill_parameter_metadata_proto",
+        "//intrinsic/world/proto:object_world_refs_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "geometric_constraints_cc_proto",
+    deps = [":geometric_constraints_proto"],
+)
+
+py_proto_library(
+    name = "geometric_constraints_py_pb2",
+    deps = [":geometric_constraints_proto"],
+)
+
+proto_library(
+    name = "motion_planning_v1_protos",
+    deps = [
+        ":geometric_constraints_proto",
+    ],
 )
