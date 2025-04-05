@@ -375,6 +375,16 @@ proto_library(
     srcs = ["status.proto"],
 )
 
+cc_proto_library(
+    name = "status_cc_proto",
+    deps = [":status_proto"],
+)
+
+go_proto_library(
+    name = "status_go_proto",
+    deps = [":status_proto"],
+)
+
 proto_library(
     name = "extended_status_proto",
     srcs = ["extended_status.proto"],
@@ -400,11 +410,6 @@ cc_proto_library(
 py_proto_library(
     name = "extended_status_py_pb2",
     deps = [":extended_status_proto"],
-)
-
-cc_proto_library(
-    name = "status_cc_proto",
-    deps = [":status_proto"],
 )
 
 py_library(
