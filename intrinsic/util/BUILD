@@ -105,6 +105,7 @@ cc_library(
     srcs = ["proto_time.cc"],
     hdrs = ["proto_time.h"],
     deps = [
+        "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:time_cc_proto",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",

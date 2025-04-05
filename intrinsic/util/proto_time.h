@@ -8,6 +8,7 @@
 #include "absl/time/time.h"
 #include "google/protobuf/duration.pb.h"
 #include "google/protobuf/timestamp.pb.h"
+#include "third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg/time.pb.h"
 
 namespace intrinsic {
 
@@ -143,6 +144,23 @@ absl::StatusOr<absl::Duration> ToAbslDurationRejectNegative(
 // google::protobuf::Duration.
 absl::Duration ToAbslDurationNoValidation(
     const google::protobuf::Duration& proto);
+
+/// builtin_interfaces::msg::pb::jazzy::Time
+// Converts a builtin_interfaces::msg::pb::jazzy::Time to an absl::Time.
+//
+// Returns an error if either end of the mapping involves a timestamp that is
+// outside the range allowed in `google/protobuf/timestamp.proto`.
+absl::StatusOr<absl::Time> ToAbslTime(
+    const builtin_interfaces::msg::pb::jazzy::Time& proto);
+
+// Converts a builtin_interfaces::msg::pb::jazzy::Time to an absl::Time,
+// allowing the input to be outside the valid range of
+// `google/protobuf/timestamp.proto`.
+//
+// This is because absl::Time supports a larger range of values than
+// builtin_interfaces::msg::pb::jazzy::Time.
+absl::Time ToAbslTimeNoValidation(
+    const builtin_interfaces::msg::pb::jazzy::Time& proto);
 
 }  // namespace intrinsic
 

@@ -153,9 +153,44 @@ absl::StatusOr<absl::Time> ToAbslTime(
   return ToAbslTimeNoValidation(proto);
 }
 
+namespace {
+// Validate the values of a builtin_interfaces::msg::pb::jazzy::Time.
+absl::Status ValidateROSTimeMembers(int32_t sec, int32_t ns) {
+  // We don't need to validate sec, since the proto can represent the full
+  // range of int32_t.
+
+  constexpr int32_t kMinNs = 0;
+  constexpr int32_t kMaxNs = 1000000000;
+
+  if (ns < kMinNs || ns >= kMaxNs) {
+    return absl::InvalidArgumentError(
+        absl::StrCat("Timestamp nanos out of range: `", ns, "`. Must be in [",
+                     kMinNs, ", ", kMaxNs, "]"));
+  }
+  return absl::OkStatus();
+}
+
+}  // namespace
+
+absl::StatusOr<absl::Time> ToAbslTime(
+    const builtin_interfaces::msg::pb::jazzy::Time& proto) {
+  if (absl::Status status =
+          ValidateROSTimeMembers(proto.sec(), proto.nanosec());
+      !status.ok()) {
+    return status;
+  }
+  return ToAbslTimeNoValidation(proto);
+}
+
 absl::Time ToAbslTimeNoValidation(const google::protobuf::Timestamp& proto) {
   return absl::FromUnixSeconds(proto.seconds()) +
          absl::Nanoseconds(proto.nanos());
+}
+
+absl::Time ToAbslTimeNoValidation(
+    const builtin_interfaces::msg::pb::jazzy::Time& proto) {
+  return absl::FromUnixSeconds(proto.sec()) +
+         absl::Nanoseconds(proto.nanosec());
 }
 
 /// google::protobuf::Timestamp <=> floating-point time quantity.
