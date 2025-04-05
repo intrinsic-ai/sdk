@@ -9,29 +9,26 @@ import "intrinsic/skills/proto/skill_parameter_metadata.proto";
 import "intrinsic/world/proto/collision_settings.proto";
 import "intrinsic/world/proto/geometric_constraints.proto";
 
-// Cartesian straight line constraint.
-message LinearCartesianPathConstraint {}
-
 message PathConstraint {
+  // Allows setting the motion type. ANY is the default motion
+  // type that enables arbitrary collision free paths in configuration space.
+  // LINEAR enforces Cartesian linear trajectories. JOINT
+  // enforces joint space interpolation.  A planning failure error will
+  // be returned if a motion cannot be found of the given type.
+  optional MotionSegment.MotionType motion_type = 6;
   // Local collision settings for the individual segments. If not defined,
   // segment will use the global collision settings if defined or the default
   // collision settings with zero margin if none are set.
   optional intrinsic_proto.world.CollisionSettings collision_settings = 1;
-  // Defines a linear Cartesian path constraint, i.e., that a defined frame
-  // will move linearly in Cartesian space. Cannot be combined with an enforce
-  // kinematic configuration space interpolation constraint.
-  optional LinearCartesianPathConstraint linear_path_constraint = 3;
-  // Enforces interpolation in the kinematic configuration (i.e., joint) space.
-  // If it is not possible to create a straight line in joint space due to
-  // collision settings, the skill will return an error and not execute the
-  // motion.
-  optional bool enforce_configuration_space_interpolation = 4;
+
+  // Specifies geometric constraints that will be applied to the motion of the
+  // robot.
   optional
       intrinsic_proto.world.geometric_constraints.UniformGeometricConstraint
           uniform_geometric_constraint = 5;
 
   reserved "joint_position_limits";
-  reserved 2;
+  reserved 2, 3, 4;
 }
 
 message DynamicCartesianLimits {
