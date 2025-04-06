@@ -27,8 +27,8 @@ const (
 	// is unavailable, so we also check for UNIMPLEMENTED.
 	retryPolicy = `{
 		"methodConfig": [{
+				"name": [{}],
 				"waitForReady": true,
-
 				"retryPolicy": {
 						"MaxAttempts": 4,
 						"InitialBackoff": ".5s",
