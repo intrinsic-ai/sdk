@@ -124,6 +124,8 @@ py_library(
     deps = [
         "@ai_intrinsic_sdks_pip_deps//retrying",
         requirement("grpcio"),
+        "@com_google_googleapis//google/rpc:status_py_proto",
+        "@com_google_protobuf//:protobuf_python",
     ],
 )
 
@@ -132,8 +134,11 @@ py_test(
     srcs = ["error_handling_test.py"],
     deps = [
         ":error_handling",
+        "//intrinsic/skills/proto:error_py_pb2",
+        "//intrinsic/util/status:extended_status_py_pb2",
         requirement("grpcio"),
         "@com_google_absl_py//absl/testing:absltest",
+        "@com_google_googleapis//google/rpc:status_py_proto",
     ],
 )
 

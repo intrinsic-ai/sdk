@@ -2,11 +2,12 @@
 
 """Shared handlers for grpc errors."""
 
-from typing import cast
+from typing import Iterable, cast
 
+from google.protobuf import message as protobuf_message
+from google.rpc import status_pb2
 import grpc
 import retrying
-
 
 # The Ingress will return UNIMPLEMENTED if the server it wants to forward to
 # is unavailable, so we check for both UNAVAILABLE and UNIMPLEMENTED.
@@ -14,6 +15,10 @@ _UNAVAILABLE_CODES = [
     grpc.StatusCode.UNAVAILABLE,
     grpc.StatusCode.UNIMPLEMENTED,
 ]
+
+# This key is taken from the grpc implementation and generates special behavior
+# when sending it as trailing metadata.
+_GRPC_DETAILS_METADATA_KEY = "grpc-status-details-bin"
 
 
 def is_resource_exhausted_grpc_status(exception: Exception) -> bool:
@@ -47,6 +52,38 @@ def is_unavailable_grpc_status(exception: Exception) -> bool:
   if isinstance(exception, grpc.Call):
     return cast(grpc.Call, exception).code() in _UNAVAILABLE_CODES
   return False
+
+
+def make_grpc_status(
+    code: grpc.StatusCode,
+    message: str,
+    details: Iterable[protobuf_message.Message],
+) -> grpc.Status:
+  """Generates a grpc status from the given data.
+
+  Args:
+    code: a grpc.StatusCode
+    message: human readable error message
+    details: iterable of additional information to include in the status.
+
+  This function does some special packing of the information in a way that grpc
+  recognizes, ensuring that all the data shows up on the other side of the call.
+
+  Returns:
+    a grpc.Status
+  """
+  my_status = status_pb2.Status(code=code.value[0], message=message)
+
+  for msg in details:
+    my_status.details.add().Pack(msg)
+
+  grpc_status = grpc.Status()
+  grpc_status.code = code
+  grpc_status.details = message
+  grpc_status.trailing_metadata = (
+      (_GRPC_DETAILS_METADATA_KEY, my_status.SerializeToString()),
+  )
+  return grpc_status
 
 
 def _is_resource_exhausted_grpc_status_with_logging(

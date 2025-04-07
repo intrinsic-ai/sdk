@@ -98,8 +98,8 @@ py_library(
     srcs = ["error_utils.py"],
     deps = [
         "//intrinsic/skills/proto:error_py_pb2",
+        "//intrinsic/util/grpc:error_handling",
         requirement("grpcio"),
-        "@com_google_googleapis//google/rpc:status_py_proto",
         "@pybind11_abseil//pybind11_abseil:import_status_module",
     ],
 )
