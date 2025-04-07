@@ -229,6 +229,36 @@ class Operation:
           return status_exception.ExtendedStatusError.create_from_proto(es)
     return None
 
+  def _operation_state_or_legacy_state(
+      self,
+  ) -> tuple[
+      Union[
+          run_metadata_pb2.RunMetadata.State,
+          behavior_tree_pb2.BehaviorTree.State,
+      ],
+      bool,
+  ]:
+    """Determines the state of the operation.
+
+    By default this will be the metadata's operation_state field. However, if
+    the workcell is on an older version it might not have the operation_state
+    field, yet. Then return the deprecated behavior_tree_state field instead.
+
+    Returns:
+      A tuple (state, is_operation_state): The first entry is the
+      operation_state or behavior_tree_state field respectively. The second
+      entry is a boolean signaling if this is actually the operation_state field
+      (or behavior_tree_state on False).
+    """
+    state = self.metadata.operation_state
+    if state != run_metadata_pb2.RunMetadata.UNSPECIFIED:
+      return state, True
+    state = self.metadata.behavior_tree_state
+    if state != behavior_tree_pb2.BehaviorTree.UNSPECIFIED:
+      return state, False
+    # Both values unspecified -> default to new value
+    return run_metadata_pb2.RunMetadata.UNSPECIFIED, True
+
   @error_handling.retry_on_grpc_unavailable
   def update(self) -> None:
     """Update the operation by querying the executive."""
@@ -463,11 +493,24 @@ class Executive:
       grpc.RpcError: On any other gRPC error.
     """
     cancellation_finished_states = {
+        run_metadata_pb2.RunMetadata.CANCELED,
+        run_metadata_pb2.RunMetadata.FAILED,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+    }
+    cancellation_unfinished_states = {
+        run_metadata_pb2.RunMetadata.ACCEPTED,
+        run_metadata_pb2.RunMetadata.PREPARING,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.SUSPENDING,
+        run_metadata_pb2.RunMetadata.SUSPENDED,
+        run_metadata_pb2.RunMetadata.CANCELING,
+    }
+    cancellation_finished_states_legacy = {
         behavior_tree_pb2.BehaviorTree.CANCELED,
         behavior_tree_pb2.BehaviorTree.FAILED,
         behavior_tree_pb2.BehaviorTree.SUCCEEDED,
     }
-    cancellation_unfinished_states = {
+    cancellation_unfinished_states_legacy = {
         behavior_tree_pb2.BehaviorTree.ACCEPTED,
         behavior_tree_pb2.BehaviorTree.RUNNING,
         behavior_tree_pb2.BehaviorTree.SUSPENDING,
@@ -475,16 +518,26 @@ class Executive:
         behavior_tree_pb2.BehaviorTree.CANCELING,
     }
 
+    def in_fininshed_states(state, is_operation_state):
+      if is_operation_state:
+        return state in cancellation_finished_states
+      return state in cancellation_finished_states_legacy
+
     self._cancel_with_retry()
 
-    state = self.operation.metadata.behavior_tree_state
+    state, is_operation_state = (
+        self.operation._operation_state_or_legacy_state()  # pylint:disable=protected-access
+    )
     if blocking:
-      while state not in cancellation_finished_states:
+      while not in_fininshed_states(state, is_operation_state):
         assert (
-            state in cancellation_unfinished_states
+            not is_operation_state or state in cancellation_unfinished_states
+        ), f"Unexpected state: {state}."
+        assert (
+            is_operation_state or state in cancellation_unfinished_states_legacy
         ), f"Unexpected state: {state}."
         time.sleep(self._polling_interval_in_seconds)
-        state = self.operation.metadata.behavior_tree_state
+        state, is_operation_state = self.operation._operation_state_or_legacy_state()  # pylint:disable=protected-access
 
   def suspend(self) -> None:
     """Requests to suspend plan execution and blocks until SUSPENDED.
@@ -526,7 +579,15 @@ class Executive:
       return
 
     while True:
-      if self.operation.metadata.behavior_tree_state in [
+      state, is_operation_state = self.operation._operation_state_or_legacy_state()  # pylint:disable=protected-access
+      if is_operation_state and state in [
+          run_metadata_pb2.RunMetadata.SUSPENDED,
+          run_metadata_pb2.RunMetadata.FAILED,
+          run_metadata_pb2.RunMetadata.SUCCEEDED,
+          run_metadata_pb2.RunMetadata.CANCELED,
+      ]:
+        break
+      if not is_operation_state and state in [
           behavior_tree_pb2.BehaviorTree.SUSPENDED,
           behavior_tree_pb2.BehaviorTree.FAILED,
           behavior_tree_pb2.BehaviorTree.SUCCEEDED,
@@ -905,8 +966,13 @@ class Executive:
       try:
         self.block_until_completed(silence_outputs=silence_outputs)
       except KeyboardInterrupt as e:
-        state = self.operation.metadata.behavior_tree_state
-        if state == behavior_tree_pb2.BehaviorTree.RUNNING:
+        state, is_operation_state = self.operation._operation_state_or_legacy_state()  # pylint:disable=protected-access
+        if (
+            is_operation_state
+            and state == run_metadata_pb2.RunMetadata.RUNNING
+            or not is_operation_state
+            and state == behavior_tree_pb2.BehaviorTree.RUNNING
+        ):
           ipython.display_html_or_print_msg(
               (
                   f'<span style="{_CSS_INTERRUPTED_STYLE}">Execution'
@@ -945,13 +1011,27 @@ class Executive:
 
     # States that are entered upon processing an action to completion.
     completed_states = {
+        run_metadata_pb2.RunMetadata.SUSPENDED,
+        run_metadata_pb2.RunMetadata.FAILED,
+        run_metadata_pb2.RunMetadata.CANCELED,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+    }
+    completed_states_legacy = {
         behavior_tree_pb2.BehaviorTree.SUSPENDED,
         behavior_tree_pb2.BehaviorTree.FAILED,
+        behavior_tree_pb2.BehaviorTree.CANCELED,
         behavior_tree_pb2.BehaviorTree.SUCCEEDED,
     }
 
     # States in which an action has not yet been completed.
     uncompleted_states = {
+        run_metadata_pb2.RunMetadata.ACCEPTED,
+        run_metadata_pb2.RunMetadata.PREPARING,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.SUSPENDING,
+        run_metadata_pb2.RunMetadata.CANCELING,
+    }
+    uncompleted_states_legacy = {
         behavior_tree_pb2.BehaviorTree.ACCEPTED,
         behavior_tree_pb2.BehaviorTree.RUNNING,
         behavior_tree_pb2.BehaviorTree.SUSPENDING,
@@ -959,15 +1039,25 @@ class Executive:
     }
 
     while True:
-      state = self.operation.metadata.behavior_tree_state
-      if state in completed_states:
+      state, is_operation_state = self.operation._operation_state_or_legacy_state()  # pylint:disable=protected-access
+      if is_operation_state and state in completed_states:
         break
-      assert state in uncompleted_states, f"Unexpected state: {state}"
+      if not is_operation_state and state in completed_states_legacy:
+        break
+      assert (
+          not is_operation_state or state in uncompleted_states
+      ), f"Unexpected state: {state}"
+      assert (
+          is_operation_state or state in uncompleted_states_legacy
+      ), f"Unexpected state: {state}"
       time.sleep(self._polling_interval_in_seconds)
 
+    state, is_operation_state = self.operation._operation_state_or_legacy_state()  # pylint:disable=protected-access
     if (
-        self.operation.metadata.behavior_tree_state
-        == behavior_tree_pb2.BehaviorTree.FAILED
+        is_operation_state
+        and state == run_metadata_pb2.RunMetadata.FAILED
+        or not is_operation_state
+        and state == behavior_tree_pb2.BehaviorTree.FAILED
     ):
       error_msg = (
           "Execution failed."

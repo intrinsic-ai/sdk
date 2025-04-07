@@ -83,6 +83,29 @@ class ExecutiveTest(parameterized.TestCase):
 
   def _create_operation_proto(
       self,
+      state: run_metadata_pb2.RunMetadata.State = run_metadata_pb2.RunMetadata.RUNNING,
+      bt_proto: behavior_tree_pb2.BehaviorTree = behavior_tree_pb2.BehaviorTree(),
+      name: str = _OPERATION_NAME,
+      response: run_response_pb2.RunResponse | None = None,
+  ):
+    metadata = run_metadata_pb2.RunMetadata(operation_state=state)
+    metadata.behavior_tree.CopyFrom(bt_proto)
+    done = False
+    if state in [
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.FAILED,
+        run_metadata_pb2.RunMetadata.CANCELED,
+    ]:
+      done = True
+    return operations_pb2.Operation(
+        name=name,
+        done=done,
+        metadata=_to_any(metadata),
+        response=_to_any(response) if response is not None else None,
+    )
+
+  def _create_operation_proto_legacy(
+      self,
       state: behavior_tree_pb2.BehaviorTree.State = behavior_tree_pb2.BehaviorTree.RUNNING,
       bt_proto: behavior_tree_pb2.BehaviorTree = behavior_tree_pb2.BehaviorTree(),
       name: str = _OPERATION_NAME,
@@ -110,7 +133,7 @@ class ExecutiveTest(parameterized.TestCase):
         # Lambda isn't long, the arguments are...
         # pylint: disable=g-long-lambda
         lambda request: self._create_operation_proto(
-            behavior_tree_pb2.BehaviorTree.ACCEPTED,
+            run_metadata_pb2.RunMetadata.ACCEPTED,
             bt_proto=request.behavior_tree,
         )
     )
@@ -122,7 +145,7 @@ class ExecutiveTest(parameterized.TestCase):
 
   def _setup_start_operation(self):
     start_response = self._create_operation_proto(
-        behavior_tree_pb2.BehaviorTree.RUNNING
+        run_metadata_pb2.RunMetadata.RUNNING
     )
     self._executive_service_stub.StartOperation.return_value = start_response
 
@@ -136,7 +159,7 @@ class ExecutiveTest(parameterized.TestCase):
 
   def _setup_get_operation(
       self,
-      state: behavior_tree_pb2.BehaviorTree.State = behavior_tree_pb2.BehaviorTree.RUNNING,
+      state: run_metadata_pb2.RunMetadata.State = run_metadata_pb2.RunMetadata.RUNNING,
       bt_proto: behavior_tree_pb2.BehaviorTree = behavior_tree_pb2.BehaviorTree(),
       operation_response: run_response_pb2.RunResponse | None = None,
   ):
@@ -148,11 +171,25 @@ class ExecutiveTest(parameterized.TestCase):
 
   def _setup_get_operation_sequence(
       self,
-      states: list[behavior_tree_pb2.BehaviorTree.State],
+      states: list[run_metadata_pb2.RunMetadata.State,],
   ):
     """Makes a GetOperation sequence."""
     self._executive_service_stub.GetOperation.side_effect = [
         self._create_operation_proto(state) for state in states
+    ]
+
+  def _setup_get_operation_sequence_behavior_tree_state(
+      self,
+      states: list[behavior_tree_pb2.BehaviorTree.State,],
+  ):
+    """Makes a GetOperation sequence.
+
+    Args:
+      states: The deprecated BehaviorTree.State will be filled in the
+        behavior_tree_state field.
+    """
+    self._executive_service_stub.GetOperation.side_effect = [
+        self._create_operation_proto_legacy(state) for state in states
     ]
 
   def test_load_works(self):
@@ -161,7 +198,7 @@ class ExecutiveTest(parameterized.TestCase):
     self._executive_service_stub.ListOperations.return_value = list_response
 
     response = self._create_operation_proto(
-        behavior_tree_pb2.BehaviorTree.ACCEPTED
+        run_metadata_pb2.RunMetadata.ACCEPTED
     )
     self._executive_service_stub.CreateOperation.return_value = response
 
@@ -191,7 +228,7 @@ class ExecutiveTest(parameterized.TestCase):
     """Tests if executive.unload() deletes the current operation."""
     operation = self._create_operation_proto(
         name=_OPERATION_NAME,
-        state=behavior_tree_pb2.BehaviorTree.SUCCEEDED,
+        state=run_metadata_pb2.RunMetadata.SUCCEEDED,
     )
     self._executive_service_stub.ListOperations.return_value = (
         operations_pb2.ListOperationsResponse(operations=[operation])
@@ -206,9 +243,9 @@ class ExecutiveTest(parameterized.TestCase):
   def test_run_async_works(self):
     """Tests if executive.run_async() calls start in the executive service."""
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.ACCEPTED)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.ACCEPTED)
     response = self._create_operation_proto(
-        behavior_tree_pb2.BehaviorTree.RUNNING
+        run_metadata_pb2.RunMetadata.RUNNING
     )
     self._executive_service_stub.StartOperation.return_value = response
 
@@ -229,7 +266,7 @@ class ExecutiveTest(parameterized.TestCase):
     my_bt.root.children[0].node_id = 2
     self._create_operation(my_bt)
     self._setup_get_operation(
-        behavior_tree_pb2.BehaviorTree.ACCEPTED, bt_proto=my_bt.proto
+        run_metadata_pb2.RunMetadata.ACCEPTED, bt_proto=my_bt.proto
     )
 
     self.assertEqual(
@@ -239,7 +276,7 @@ class ExecutiveTest(parameterized.TestCase):
   def test_run_async_fails_on_unavailable_error(self):
     """Tests if executive.run_async() translates UNAVAILABLE error correctly."""
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.ACCEPTED)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.ACCEPTED)
 
     self._executive_service_stub.StartOperation.side_effect = _GrpcError(
         grpc.StatusCode.UNAVAILABLE
@@ -259,7 +296,7 @@ class ExecutiveTest(parameterized.TestCase):
   def test_run_async_fails_on_grpc_error(self):
     """Tests if executive.run_async() forwards other grpc errors correctly."""
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.ACCEPTED)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.ACCEPTED)
 
     self._executive_service_stub.StartOperation.side_effect = _GrpcError(
         grpc.StatusCode.UNKNOWN
@@ -348,16 +385,36 @@ class ExecutiveTest(parameterized.TestCase):
         create_request
     )
 
-  def test_run_works(self):
+  @parameterized.named_parameters(
+      dict(
+          testcase_name='operation_state',
+          use_operation_state=True,
+          state_sequence=[
+              run_metadata_pb2.RunMetadata.RUNNING,
+              run_metadata_pb2.RunMetadata.RUNNING,
+              run_metadata_pb2.RunMetadata.SUCCEEDED,
+              run_metadata_pb2.RunMetadata.SUCCEEDED,
+          ],
+      ),
+      dict(
+          testcase_name='behavior_tree_state_deprecated',
+          use_operation_state=False,
+          state_sequence=[
+              behavior_tree_pb2.BehaviorTree.RUNNING,
+              behavior_tree_pb2.BehaviorTree.RUNNING,
+              behavior_tree_pb2.BehaviorTree.SUCCEEDED,
+              behavior_tree_pb2.BehaviorTree.SUCCEEDED,
+          ],
+      ),
+  )
+  def test_run_works(self, use_operation_state, state_sequence):
     """Tests if executive.run(action) waits for success."""
     self._setup_create_operation()
     self._setup_start_operation()
-    self._setup_get_operation_sequence([
-        behavior_tree_pb2.BehaviorTree.RUNNING,
-        behavior_tree_pb2.BehaviorTree.RUNNING,
-        behavior_tree_pb2.BehaviorTree.SUCCEEDED,
-        behavior_tree_pb2.BehaviorTree.SUCCEEDED,
-    ])
+    if use_operation_state:
+      self._setup_get_operation_sequence(state_sequence)
+    else:
+      self._setup_get_operation_sequence_behavior_tree_state(state_sequence)
 
     my_action = behavior_call.Action(skill_id='my_action')
     self._executive.run(my_action)
@@ -378,10 +435,10 @@ class ExecutiveTest(parameterized.TestCase):
     self._setup_create_operation()
     self._setup_start_operation()
     self._setup_get_operation_sequence([
-        behavior_tree_pb2.BehaviorTree.RUNNING,
-        behavior_tree_pb2.BehaviorTree.RUNNING,
-        behavior_tree_pb2.BehaviorTree.SUCCEEDED,
-        behavior_tree_pb2.BehaviorTree.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
     ])
 
     tree = bt.BehaviorTree()
@@ -411,7 +468,7 @@ class ExecutiveTest(parameterized.TestCase):
     """Tests if executive.has_operation returns true for an operation loaded."""
     response = operations_pb2.ListOperationsResponse()
     response.operations.append(
-        self._create_operation_proto(behavior_tree_pb2.BehaviorTree.ACCEPTED)
+        self._create_operation_proto(run_metadata_pb2.RunMetadata.ACCEPTED)
     )
     self._executive_service_stub.ListOperations.return_value = response
     self.assertTrue(self._executive.has_operation)
@@ -445,10 +502,10 @@ class ExecutiveTest(parameterized.TestCase):
     self._setup_create_operation()
     self._setup_start_operation()
     self._setup_get_operation_sequence([
-        behavior_tree_pb2.BehaviorTree.RUNNING,
-        behavior_tree_pb2.BehaviorTree.RUNNING,
-        behavior_tree_pb2.BehaviorTree.SUCCEEDED,
-        behavior_tree_pb2.BehaviorTree.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
     ])
 
     tree = bt.BehaviorTree()
@@ -490,10 +547,10 @@ class ExecutiveTest(parameterized.TestCase):
     self._setup_create_operation()
     self._setup_start_operation()
     self._setup_get_operation_sequence([
-        behavior_tree_pb2.BehaviorTree.RUNNING,
-        behavior_tree_pb2.BehaviorTree.RUNNING,
-        behavior_tree_pb2.BehaviorTree.SUCCEEDED,
-        behavior_tree_pb2.BehaviorTree.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
     ])
 
     tree = bt.BehaviorTree()
@@ -517,11 +574,11 @@ class ExecutiveTest(parameterized.TestCase):
     self._setup_create_operation()
     self._setup_start_operation()
     self._setup_get_operation_sequence([
-        behavior_tree_pb2.BehaviorTree.RUNNING,
-        behavior_tree_pb2.BehaviorTree.RUNNING,
-        behavior_tree_pb2.BehaviorTree.SUCCEEDED,
-        behavior_tree_pb2.BehaviorTree.SUCCEEDED,
-        behavior_tree_pb2.BehaviorTree.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
     ])
 
     my_action = behavior_call.Action(skill_id='my_action')
@@ -555,7 +612,7 @@ class ExecutiveTest(parameterized.TestCase):
     response.result.Pack(expected_result)
 
     self._setup_get_operation(
-        state=behavior_tree_pb2.BehaviorTree.SUCCEEDED,
+        state=run_metadata_pb2.RunMetadata.SUCCEEDED,
         bt_proto=tree_proto,
         operation_response=response,
     )
@@ -566,7 +623,7 @@ class ExecutiveTest(parameterized.TestCase):
     # retrieving the result.
     response = operations_pb2.ListOperationsResponse()
     response.operations.append(
-        self._create_operation_proto(behavior_tree_pb2.BehaviorTree.SUCCEEDED)
+        self._create_operation_proto(run_metadata_pb2.RunMetadata.SUCCEEDED)
     )
     self._executive_service_stub.ListOperations.return_value = response
     self.assertTrue(self._executive.operation.done)
@@ -579,9 +636,9 @@ class ExecutiveTest(parameterized.TestCase):
     self._setup_create_operation()
     self._setup_start_operation()
     self._setup_get_operation_sequence([
-        behavior_tree_pb2.BehaviorTree.RUNNING,
-        behavior_tree_pb2.BehaviorTree.SUCCEEDED,
-        behavior_tree_pb2.BehaviorTree.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
     ])
 
     my_action = behavior_call.Action(skill_id='my_action')
@@ -620,10 +677,10 @@ class ExecutiveTest(parameterized.TestCase):
     self._setup_create_operation()
     self._setup_start_operation()
     self._setup_get_operation_sequence([
-        behavior_tree_pb2.BehaviorTree.RUNNING,
-        behavior_tree_pb2.BehaviorTree.RUNNING,
-        behavior_tree_pb2.BehaviorTree.SUCCEEDED,
-        behavior_tree_pb2.BehaviorTree.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
     ])
 
     my_action = behavior_call.Action(skill_id='my_action')
@@ -655,7 +712,7 @@ class ExecutiveTest(parameterized.TestCase):
     self._create_operation()
 
     operation = self._create_operation_proto(
-        behavior_tree_pb2.BehaviorTree.RUNNING
+        run_metadata_pb2.RunMetadata.RUNNING
     )
     metadata = run_metadata_pb2.RunMetadata()
     operation.metadata.Unpack(metadata)
@@ -683,7 +740,7 @@ class ExecutiveTest(parameterized.TestCase):
     self._create_operation()
 
     operation = self._create_operation_proto(
-        behavior_tree_pb2.BehaviorTree.RUNNING
+        run_metadata_pb2.RunMetadata.RUNNING
     )
     metadata = run_metadata_pb2.RunMetadata()
     operation.metadata.Unpack(metadata)
@@ -703,9 +760,9 @@ class ExecutiveTest(parameterized.TestCase):
     self._setup_create_operation()
     self._setup_start_operation()
     self._setup_get_operation_sequence([
-        behavior_tree_pb2.BehaviorTree.RUNNING,
-        behavior_tree_pb2.BehaviorTree.SUCCEEDED,
-        behavior_tree_pb2.BehaviorTree.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
     ])
 
     my_action_list = [
@@ -759,9 +816,9 @@ class ExecutiveTest(parameterized.TestCase):
     self._setup_create_operation()
     self._setup_start_operation()
     self._setup_get_operation_sequence([
-        behavior_tree_pb2.BehaviorTree.RUNNING,
-        behavior_tree_pb2.BehaviorTree.SUCCEEDED,
-        behavior_tree_pb2.BehaviorTree.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
     ])
 
     bt_instance = bt.BehaviorTree('test_bt')
@@ -791,9 +848,9 @@ class ExecutiveTest(parameterized.TestCase):
     self._setup_create_operation()
     self._setup_start_operation()
     self._setup_get_operation_sequence([
-        behavior_tree_pb2.BehaviorTree.RUNNING,
-        behavior_tree_pb2.BehaviorTree.SUCCEEDED,
-        behavior_tree_pb2.BehaviorTree.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
     ])
 
     my_node = bt.Fail()
@@ -821,9 +878,9 @@ class ExecutiveTest(parameterized.TestCase):
     self._setup_create_operation()
     self._setup_start_operation()
     self._setup_get_operation_sequence([
-        behavior_tree_pb2.BehaviorTree.RUNNING,
-        behavior_tree_pb2.BehaviorTree.SUCCEEDED,
-        behavior_tree_pb2.BehaviorTree.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
     ])
 
     my_action = behavior_call.Action(skill_id='my_action')
@@ -838,17 +895,17 @@ class ExecutiveTest(parameterized.TestCase):
     """
     response = operations_pb2.ListOperationsResponse()
     response.operations.append(
-        self._create_operation_proto(behavior_tree_pb2.BehaviorTree.SUCCEEDED)
+        self._create_operation_proto(run_metadata_pb2.RunMetadata.SUCCEEDED)
     )
     self._executive_service_stub.ListOperations.return_value = response
 
     self._setup_create_operation(setup_empty_list_operations=False)
     self._setup_start_operation()
     self._setup_get_operation_sequence([
-        behavior_tree_pb2.BehaviorTree.SUCCEEDED,
-        behavior_tree_pb2.BehaviorTree.RUNNING,
-        behavior_tree_pb2.BehaviorTree.SUCCEEDED,
-        behavior_tree_pb2.BehaviorTree.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
     ])
 
     my_action = behavior_call.Action(skill_id='my_action')
@@ -883,12 +940,12 @@ class ExecutiveTest(parameterized.TestCase):
     )
 
     self._executive_service_stub.GetOperation.side_effect = [
-        create_operation(behavior_tree_pb2.BehaviorTree.RUNNING),
-        create_operation(behavior_tree_pb2.BehaviorTree.FAILED, [error_report]),
-        create_operation(behavior_tree_pb2.BehaviorTree.FAILED, [error_report]),
+        create_operation(run_metadata_pb2.RunMetadata.RUNNING),
+        create_operation(run_metadata_pb2.RunMetadata.FAILED, [error_report]),
+        create_operation(run_metadata_pb2.RunMetadata.FAILED, [error_report]),
         # extra call in error case as get_errors also accesses self.operation
-        create_operation(behavior_tree_pb2.BehaviorTree.FAILED, [error_report]),
-        create_operation(behavior_tree_pb2.BehaviorTree.FAILED, [error_report]),
+        create_operation(run_metadata_pb2.RunMetadata.FAILED, [error_report]),
+        create_operation(run_metadata_pb2.RunMetadata.FAILED, [error_report]),
     ]
 
     my_action = behavior_call.Action(skill_id='my_action')
@@ -897,16 +954,16 @@ class ExecutiveTest(parameterized.TestCase):
 
   @parameterized.product(
       start_state=[
-          behavior_tree_pb2.BehaviorTree.ACCEPTED,
-          behavior_tree_pb2.BehaviorTree.RUNNING,
-          behavior_tree_pb2.BehaviorTree.SUSPENDING,
-          behavior_tree_pb2.BehaviorTree.SUSPENDED,
-          behavior_tree_pb2.BehaviorTree.CANCELING,
+          run_metadata_pb2.RunMetadata.ACCEPTED,
+          run_metadata_pb2.RunMetadata.RUNNING,
+          run_metadata_pb2.RunMetadata.SUSPENDING,
+          run_metadata_pb2.RunMetadata.SUSPENDED,
+          run_metadata_pb2.RunMetadata.CANCELING,
       ],
       end_state=[
-          behavior_tree_pb2.BehaviorTree.CANCELED,
-          behavior_tree_pb2.BehaviorTree.FAILED,
-          behavior_tree_pb2.BehaviorTree.SUCCEEDED,
+          run_metadata_pb2.RunMetadata.CANCELED,
+          run_metadata_pb2.RunMetadata.FAILED,
+          run_metadata_pb2.RunMetadata.SUCCEEDED,
       ],
   )
   def test_cancel_calls_stub_and_waits_for_valid_state(
@@ -923,25 +980,74 @@ class ExecutiveTest(parameterized.TestCase):
         operations_pb2.GetOperationRequest(name=_OPERATION_NAME)
     )
 
+  @parameterized.product(
+      start_state=[
+          behavior_tree_pb2.BehaviorTree.ACCEPTED,
+          behavior_tree_pb2.BehaviorTree.RUNNING,
+          behavior_tree_pb2.BehaviorTree.SUSPENDING,
+          behavior_tree_pb2.BehaviorTree.SUSPENDED,
+          behavior_tree_pb2.BehaviorTree.CANCELING,
+      ],
+      end_state=[
+          behavior_tree_pb2.BehaviorTree.CANCELED,
+          behavior_tree_pb2.BehaviorTree.FAILED,
+          behavior_tree_pb2.BehaviorTree.SUCCEEDED,
+      ],
+  )
+  def test_cancel_calls_stub_and_waits_for_valid_deprecated_state(
+      self, start_state, end_state
+  ):
+    self._create_operation()
+    self._setup_get_operation_sequence_behavior_tree_state(
+        [start_state, end_state]
+    )
+
+    self._executive.cancel()
+    self._executive_service_stub.CancelOperation.assert_called_with(
+        operations_pb2.CancelOperationRequest(name=_OPERATION_NAME)
+    )
+    self._executive_service_stub.GetOperation.assert_called_with(
+        operations_pb2.GetOperationRequest(name=_OPERATION_NAME)
+    )
+
   def test_cancel_async_works(self):
     """Tests if executive.cancel_async() calls cancel."""
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.RUNNING)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.RUNNING)
     self._executive.cancel_async()
     self._executive_service_stub.CancelOperation.assert_called_with(
         operations_pb2.CancelOperationRequest(name=_OPERATION_NAME)
     )
 
-  def test_suspend_works(self):
+  @parameterized.named_parameters(
+      dict(
+          testcase_name='operation_state',
+          use_operation_state=True,
+          state_sequence=[
+              run_metadata_pb2.RunMetadata.SUSPENDING,
+              run_metadata_pb2.RunMetadata.SUSPENDING,
+              run_metadata_pb2.RunMetadata.SUSPENDED,
+          ],
+      ),
+      dict(
+          testcase_name='behavior_tree_state_deprecated',
+          use_operation_state=False,
+          state_sequence=[
+              behavior_tree_pb2.BehaviorTree.SUSPENDING,
+              behavior_tree_pb2.BehaviorTree.SUSPENDING,
+              behavior_tree_pb2.BehaviorTree.SUSPENDED,
+          ],
+      ),
+  )
+  def test_suspend_works(self, use_operation_state, state_sequence):
     """Tests if executive.suspend_async() calls suspends and waits until executive state changes to suspended."""
 
     self._create_operation()
 
-    self._setup_get_operation_sequence([
-        behavior_tree_pb2.BehaviorTree.SUSPENDING,
-        behavior_tree_pb2.BehaviorTree.SUSPENDING,
-        behavior_tree_pb2.BehaviorTree.SUSPENDED,
-    ])
+    if use_operation_state:
+      self._setup_get_operation_sequence(state_sequence)
+    else:
+      self._setup_get_operation_sequence_behavior_tree_state(state_sequence)
 
     self._executive.suspend()
 
@@ -957,9 +1063,9 @@ class ExecutiveTest(parameterized.TestCase):
     self._create_operation()
 
     self._setup_get_operation_sequence([
-        behavior_tree_pb2.BehaviorTree.SUSPENDING,
-        behavior_tree_pb2.BehaviorTree.SUSPENDING,
-        behavior_tree_pb2.BehaviorTree.SUSPENDED,
+        run_metadata_pb2.RunMetadata.SUSPENDING,
+        run_metadata_pb2.RunMetadata.SUSPENDING,
+        run_metadata_pb2.RunMetadata.SUSPENDED,
     ])
 
     self._executive.suspend_async()
@@ -971,7 +1077,7 @@ class ExecutiveTest(parameterized.TestCase):
   def test_suspend_fails_on_unavailable_error(self):
     """Tests if executive.suspend() translates UNAVAILABLE error correctly."""
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.RUNNING)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.RUNNING)
 
     self._executive_service_stub.SuspendOperation.side_effect = _GrpcError(
         grpc.StatusCode.UNAVAILABLE
@@ -990,7 +1096,7 @@ class ExecutiveTest(parameterized.TestCase):
   def test_suspend_fails_on_invalid_argument_error(self):
     """Tests if executive.suspend() translates INVALID_ARGUMENT error correctly."""
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.RUNNING)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.RUNNING)
 
     self._executive_service_stub.SuspendOperation.side_effect = _GrpcError(
         grpc.StatusCode.INVALID_ARGUMENT
@@ -1008,7 +1114,7 @@ class ExecutiveTest(parameterized.TestCase):
   def test_suspend_fails_on_grpc_error(self):
     """Tests if executive.suspend() forwards other grpc errors correctly."""
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.RUNNING)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.RUNNING)
 
     self._executive_service_stub.SuspendOperation.side_effect = _GrpcError(
         grpc.StatusCode.UNKNOWN
@@ -1024,10 +1130,10 @@ class ExecutiveTest(parameterized.TestCase):
   def test_resume_works(self):
     """Tests if executive.resume() calls resume of the executive service."""
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.SUSPENDED)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.SUSPENDED)
 
     self._executive_service_stub.ResumeOperation.return_value = (
-        self._create_operation_proto(behavior_tree_pb2.BehaviorTree.RUNNING)
+        self._create_operation_proto(run_metadata_pb2.RunMetadata.RUNNING)
     )
 
     self._executive.resume()
@@ -1039,7 +1145,7 @@ class ExecutiveTest(parameterized.TestCase):
   def test_resume_fails_on_unavailable_error(self):
     """Tests if executive.resume() translates UNAVAILABLE error correctly."""
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.SUSPENDED)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.SUSPENDED)
 
     self._executive_service_stub.ResumeOperation.side_effect = _GrpcError(
         grpc.StatusCode.UNAVAILABLE
@@ -1057,7 +1163,7 @@ class ExecutiveTest(parameterized.TestCase):
   def test_resume_fails_on_invalid_argument_error(self):
     """Tests if executive.resume() translates INVALID_ARGUMENT error correctly."""
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.SUSPENDED)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.SUSPENDED)
 
     self._executive_service_stub.ResumeOperation.side_effect = _GrpcError(
         grpc.StatusCode.INVALID_ARGUMENT
@@ -1073,7 +1179,7 @@ class ExecutiveTest(parameterized.TestCase):
   def test_resume_fails_on_grpc_error(self):
     """Tests if executive.resume() forwards other grpc errors correctly."""
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.SUSPENDED)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.SUSPENDED)
 
     self._executive_service_stub.ResumeOperation.side_effect = _GrpcError(
         grpc.StatusCode.UNKNOWN
@@ -1088,7 +1194,7 @@ class ExecutiveTest(parameterized.TestCase):
   def test_reset_works(self):
     """Tests if executive.reset() calls Reset of the executive service."""
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.SUCCEEDED)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.SUCCEEDED)
 
     self._executive.reset()
 
@@ -1099,7 +1205,7 @@ class ExecutiveTest(parameterized.TestCase):
   def test_reset_works_with_keep_blackboard(self):
     """Tests if executive.reset() calls Reset with keep_blackboard."""
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.SUCCEEDED)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.SUCCEEDED)
 
     self._executive.reset(keep_blackboard=True)
 
@@ -1112,7 +1218,7 @@ class ExecutiveTest(parameterized.TestCase):
   def test_reset_fails_on_unavailable_error(self):
     """Tests if executive.reset() translates UNAVAILABLE error correctly."""
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.SUCCEEDED)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.SUCCEEDED)
 
     self._executive_service_stub.ResetOperation.side_effect = _GrpcError(
         grpc.StatusCode.UNAVAILABLE
@@ -1130,7 +1236,7 @@ class ExecutiveTest(parameterized.TestCase):
   def test_reset_fails_on_grpc_error(self):
     """Tests if executive.reset() forwards other grpc errors correctly."""
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.SUCCEEDED)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.SUCCEEDED)
 
     self._executive_service_stub.ResetOperation.side_effect = _GrpcError(
         grpc.StatusCode.UNKNOWN
@@ -1147,10 +1253,12 @@ class ExecutiveTest(parameterized.TestCase):
 
     self._create_operation()
     self._setup_get_operation_sequence([
-        behavior_tree_pb2.BehaviorTree.RUNNING,
-        behavior_tree_pb2.BehaviorTree.RUNNING,
-        behavior_tree_pb2.BehaviorTree.SUCCEEDED,
-        behavior_tree_pb2.BehaviorTree.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.PREPARING,
+        run_metadata_pb2.RunMetadata.PREPARING,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
     ])
 
     self._executive.block_until_completed()
@@ -1164,9 +1272,9 @@ class ExecutiveTest(parameterized.TestCase):
 
     self._create_operation()
     self._setup_get_operation_sequence([
-        behavior_tree_pb2.BehaviorTree.SUSPENDED,
-        behavior_tree_pb2.BehaviorTree.RUNNING,
-        behavior_tree_pb2.BehaviorTree.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.SUSPENDED,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
     ])
 
     self._executive.block_until_completed()
@@ -1179,7 +1287,7 @@ class ExecutiveTest(parameterized.TestCase):
     """Tests if executive.block_until_completed() raises an exception if execution fails."""
 
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.FAILED)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.FAILED)
 
     with self.assertRaises(execution.ExecutionFailedError):
       self._executive.block_until_completed()
@@ -1188,7 +1296,7 @@ class ExecutiveTest(parameterized.TestCase):
     """Tests if executive.get_value() calls GetBlackboardValue of the executive service."""
 
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.ACCEPTED)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.ACCEPTED)
 
     response = blackboard_service_pb2.BlackboardValue()
     value = test_skill_params_pb2.TestMessage(my_double=1.1)
@@ -1214,7 +1322,7 @@ class ExecutiveTest(parameterized.TestCase):
     """Tests if executive.get_value() translates UNAVAILABLE error correctly."""
 
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.ACCEPTED)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.ACCEPTED)
 
     self._blackboard_stub.GetBlackboardValue.side_effect = _GrpcError(
         grpc.StatusCode.UNAVAILABLE
@@ -1236,7 +1344,7 @@ class ExecutiveTest(parameterized.TestCase):
     """Tests if executive.get_value() forwards other grpc errors correctly."""
 
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.ACCEPTED)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.ACCEPTED)
 
     self._blackboard_stub.GetBlackboardValue.side_effect = _GrpcError(
         grpc.StatusCode.UNKNOWN
@@ -1255,7 +1363,7 @@ class ExecutiveTest(parameterized.TestCase):
     """Tests if executive.get_value() calls GetBlackboardValue with given scope."""
 
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.ACCEPTED)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.ACCEPTED)
 
     response = blackboard_service_pb2.BlackboardValue()
     value = test_skill_params_pb2.TestMessage(my_double=1.1)
@@ -1286,7 +1394,7 @@ class ExecutiveTest(parameterized.TestCase):
     """Tests if executive.get_value() raises NotFoundError when value is not on blackboard."""
 
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.ACCEPTED)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.ACCEPTED)
 
     self._blackboard_stub.GetBlackboardValue.side_effect = _GrpcError(
         grpc.StatusCode.NOT_FOUND
@@ -1305,7 +1413,7 @@ class ExecutiveTest(parameterized.TestCase):
     """Tests if executive.is_value_available() returns whether the value is available."""
 
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.ACCEPTED)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.ACCEPTED)
 
     response = blackboard_service_pb2.ListBlackboardValuesResponse()
     response.values.add(
@@ -1331,7 +1439,7 @@ class ExecutiveTest(parameterized.TestCase):
     """Tests if executive.is_value_available() returns respecting the scope."""
 
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.ACCEPTED)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.ACCEPTED)
 
     response = blackboard_service_pb2.ListBlackboardValuesResponse()
     response.values.add(
@@ -1359,7 +1467,7 @@ class ExecutiveTest(parameterized.TestCase):
     """Tests if executive.is_value_available() returns whether the value is available."""
 
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.ACCEPTED)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.ACCEPTED)
 
     response = blackboard_service_pb2.ListBlackboardValuesResponse()
     response.values.add(
@@ -1384,7 +1492,7 @@ class ExecutiveTest(parameterized.TestCase):
     """Tests if executive.is_value_available() translates UNAVAILABLE error correctly."""
 
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.ACCEPTED)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.ACCEPTED)
 
     self._blackboard_stub.ListBlackboardValues.side_effect = _GrpcError(
         grpc.StatusCode.UNAVAILABLE
@@ -1406,7 +1514,7 @@ class ExecutiveTest(parameterized.TestCase):
     """Tests if executive.is_value_available() forwards other grpc errors correctly."""
 
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.ACCEPTED)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.ACCEPTED)
 
     self._blackboard_stub.ListBlackboardValues.side_effect = _GrpcError(
         grpc.StatusCode.UNKNOWN
@@ -1425,7 +1533,7 @@ class ExecutiveTest(parameterized.TestCase):
     """Tests if executive.await_value() returns once the value is available."""
 
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.ACCEPTED)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.ACCEPTED)
 
     empty_blackboard = blackboard_service_pb2.ListBlackboardValuesResponse()
     value_added = blackboard_service_pb2.ListBlackboardValuesResponse()
@@ -1456,7 +1564,7 @@ class ExecutiveTest(parameterized.TestCase):
     """Tests if executive.await_value() returns once the value is available in scope."""
 
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.ACCEPTED)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.ACCEPTED)
 
     empty_blackboard = blackboard_service_pb2.ListBlackboardValuesResponse()
     value_added = blackboard_service_pb2.ListBlackboardValuesResponse()
@@ -1489,7 +1597,7 @@ class ExecutiveTest(parameterized.TestCase):
     """Tests if executive.await_value() translates UNAVAILABLE error correctly."""
 
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.ACCEPTED)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.ACCEPTED)
 
     self._blackboard_stub.ListBlackboardValues.side_effect = _GrpcError(
         grpc.StatusCode.UNAVAILABLE
@@ -1511,7 +1619,7 @@ class ExecutiveTest(parameterized.TestCase):
     """Tests if executive.await_value() forwards other grpc errors correctly."""
 
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.ACCEPTED)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.ACCEPTED)
 
     self._blackboard_stub.ListBlackboardValues.side_effect = _GrpcError(
         grpc.StatusCode.UNKNOWN
@@ -1548,7 +1656,7 @@ class ExecutiveTest(parameterized.TestCase):
   ):
     """Tests if executive.resume(resume_mode) calls resume method correctly."""
     self._create_operation()
-    self._setup_get_operation(behavior_tree_pb2.BehaviorTree.SUSPENDED)
+    self._setup_get_operation(run_metadata_pb2.RunMetadata.SUSPENDED)
 
     self._executive_service_stub.ResumeOperation.return_value = (
         self._create_operation_proto()
