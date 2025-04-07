@@ -32,7 +32,7 @@ message RunMetadata {
   }
 
   oneof state_type {
-    // Use the operation_state for a canonical state of the operation.
+    // Deprecated: Use operation_state instead of behavior_tree_state.
     BehaviorTree.State behavior_tree_state = 10 [deprecated = true];
   }
 
