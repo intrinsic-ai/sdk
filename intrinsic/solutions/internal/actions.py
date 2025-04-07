@@ -7,7 +7,6 @@ import datetime
 from typing import Any, Optional
 
 from intrinsic.executive.proto import behavior_call_pb2
-from intrinsic.math.python import data_types
 from intrinsic.skills.proto import skills_pb2
 
 
@@ -22,14 +21,6 @@ def _format_string_vector(vector: skills_pb2.StringVector) -> str:
 def _format_nd_array(array: skills_pb2.VectorNdArray) -> str:
   rows = [_format_nd_vector(vector) for vector in array.array]
   return f'[{", ".join(rows)}]'
-
-
-def _format_pose3(pose: data_types.Pose3) -> str:
-  # NOTE: We do not use str() here because it does not generate copy&paste-able
-  # Python code: 'Pose3(Rotation3([0i + 0j + 0k + 1]),[1.1 2.2 3.3])'
-  return 'types.Pose3.from_vec7([{}, {}, {}, {}, {}, {}, {}, ])'.format(
-      *pose.vec7
-  )
 
 
 _MESSAGE_NAME_TO_STRING_MAP = {

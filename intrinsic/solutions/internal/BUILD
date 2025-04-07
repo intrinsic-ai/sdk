@@ -46,7 +46,6 @@ py_library(
     srcs = ["actions.py"],
     deps = [
         "//intrinsic/executive/proto:behavior_call_py_pb2",
-        "//intrinsic/math/python:data_types",
         "//intrinsic/skills/proto:skills_py_pb2",
     ],
 )
