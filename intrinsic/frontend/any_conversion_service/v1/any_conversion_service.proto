@@ -29,6 +29,7 @@ enum Encoding {
   // Unspecified/default encoding is treated the same as `ENCODING_JSON`.
   ENCODING_UNSPECIFIED = 0;
   ENCODING_JSON = 1;
+  ENCODING_TEXTPROTO = 2;
 }
 
 message EncodeRequest {
