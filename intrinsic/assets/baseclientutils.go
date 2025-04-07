@@ -25,6 +25,8 @@ const (
 	// https://pkg.go.dev/google.golang.org/grpc/examples/features/retry
 	// Note that the Ingress will return UNIMPLEMENTED if the server it wants to forward to
 	// is unavailable, so we also check for UNIMPLEMENTED.
+	// A policy specific to CAS copies the default, but adds retries on
+	// "UNKNOWN", see b/292473318.
 	retryPolicy = `{
 		"methodConfig": [{
 				"name": [{}],
@@ -35,6 +37,16 @@ const (
 						"MaxBackoff": ".5s",
 						"BackoffMultiplier": 1.5,
 						"RetryableStatusCodes": [ "UNAVAILABLE", "RESOURCE_EXHAUSTED", "UNIMPLEMENTED"]
+				}
+		}, {
+				"name": [{"service": "intrinsic_proto.content_addressable_storage.v1.ContentAddressableStorageService"}],
+				"waitForReady": true,
+				"retryPolicy": {
+						"MaxAttempts": 4,
+						"InitialBackoff": ".5s",
+						"MaxBackoff": ".5s",
+						"BackoffMultiplier": 1.5,
+						"RetryableStatusCodes": [ "UNAVAILABLE", "RESOURCE_EXHAUSTED", "UNIMPLEMENTED", "UNKNOWN"]
 				}
 		}]
 }`
