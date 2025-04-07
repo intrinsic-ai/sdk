@@ -6,17 +6,16 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"intrinsic/assets/cmdutils"
+	"github.com/spf13/viper"
 	"intrinsic/tools/inctl/util/orgutil"
+	"intrinsic/tools/inctl/util/viperutil"
 )
 
 const (
 	keyRevokeAll = "all"
 )
 
-var (
-	revokeCmdFlags = cmdutils.NewCmdFlagsWithViper(viperLocal)
-)
+var revokeParams *viper.Viper
 
 var revokeCmd = &cobra.Command{
 	Use:     "revoke",
@@ -28,13 +27,13 @@ var revokeCmd = &cobra.Command{
 }
 
 func revokeCredentialsE(cmd *cobra.Command, _ []string) error {
-	isRevokeAll := revokeCmdFlags.GetBool(keyRevokeAll)
+	isRevokeAll := revokeParams.GetBool(keyRevokeAll)
 	credName, isOrg := getConfigurationName()
 	if !isRevokeAll && credName == "" {
 		return fmt.Errorf("either --%s or --%s needs to be specified", orgutil.KeyOrganization, keyRevokeAll)
 	}
 
-	isBatch := revokeCmdFlags.GetBool(keyBatch)
+	isBatch := revokeParams.GetBool(keyBatch)
 
 	rw := newReadWriterForCmd(cmd)
 	if credName == "" && isRevokeAll {
@@ -66,19 +65,27 @@ func revokeCredentialsE(cmd *cobra.Command, _ []string) error {
 }
 
 func getConfigurationName() (name string, isOrg bool) {
-	if orgName := revokeCmdFlags.GetFlagOrganization(); orgName != "" {
-		return orgName, true
+	if revokeParams.IsSet(orgutil.KeyOrganization) {
+		return revokeParams.GetString(orgutil.KeyOrganization), true
 	}
-	if projectName := revokeCmdFlags.GetFlagProject(); projectName != "" {
-		return projectName, false
+	if revokeParams.IsSet(orgutil.KeyProject) {
+		return revokeParams.GetString(orgutil.KeyProject), false
 	}
+
 	return "", false
 }
 
 func init() {
 	authCmd.AddCommand(revokeCmd)
 
-	revokeCmdFlags.SetCommand(revokeCmd)
-	revokeCmdFlags.OptionalBool(keyRevokeAll, false, fmt.Sprintf("Revokes all existing credentials. If --%s is omitted, removes all known credentials", orgutil.KeyOrganization))
-	revokeCmdFlags.OptionalBool(keyBatch, false, "Suppresses command prompts and assume Yes or default as an answer. Use with shell scripts.")
+	flags := revokeCmd.Flags()
+
+	flags.StringP(orgutil.KeyProject, keyProjectShort, "", "Project to revoke credentials for")
+	flags.StringP(orgutil.KeyOrganization, "", "", "Name of the Intrinsic organization to remove credentials for")
+	flags.Bool(keyRevokeAll, false, fmt.Sprintf("Revokes all existing credentials. If --%s is omitted, removes all known credentials", orgutil.KeyOrganization))
+	flags.Bool(keyBatch, false, "Suppresses command prompts and assume Yes or default as an answer. Use with shell scripts.")
+
+	flags.MarkHidden(orgutil.KeyProject)
+
+	revokeParams = viperutil.BindToViper(flags, viperutil.BindToListEnv(orgutil.KeyProject))
 }

@@ -6,43 +6,25 @@ import (
 	"fmt"
 	"strings"
 
-	"intrinsic/assets/cmdutils"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/orgutil"
 	"intrinsic/tools/inctl/util/printer"
-
-	"github.com/spf13/cobra"
+	"intrinsic/tools/inctl/util/viperutil"
 )
 
 var (
-	listCmdFlags = cmdutils.NewCmdFlagsWithViper(viperLocal)
-)
-
-const (
-	keyPrefixSearch = "prefix"
+	listParams *viper.Viper
 )
 
 var listCmd = &cobra.Command{
 	Use:     "list",
 	Aliases: []string{"ls"},
 	Short:   "Lists available credentials",
-	Long: `
-	Lists available credentials present for current user
-
-	Example:
-	  inctl auth list
-	  inctl auth list --prefix <prefix_to_search>
-	`,
-	Args: cobra.NoArgs,
-	RunE: listCredentialsE,
-	// This is needed because authCmd PersistentPreRunE would throw error if neither
-	// project nor org is set. And we want to allow listCmd to run without any flags set.
-	PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
-		if viperLocal.GetString(orgutil.KeyProject) == "" {
-			return nil
-		}
-		return nil
-	},
+	Long:    "Lists available credentials present for current user",
+	Args:    cobra.NoArgs,
+	RunE:    listCredentialsE,
 }
 
 func configListing(store *auth.Store) (*configListView, error) {
@@ -56,7 +38,7 @@ func configListing(store *auth.Store) (*configListView, error) {
 		return nil, fmt.Errorf("list orgs: %w", err)
 	}
 
-	projectName := listCmdFlags.GetString(keyPrefixSearch)
+	projectName := listParams.GetString(orgutil.KeyProject)
 
 	result := &configListView{Configurations: make(map[string][]string, len(configurations)), Orgs: make([]auth.OrgInfo, 0, len(orgs))}
 	for _, config := range configurations {
@@ -143,6 +125,11 @@ func mapToKeysArray[K comparable, V any](in map[K]V) []K {
 
 func init() {
 	authCmd.AddCommand(listCmd)
-	listCmdFlags.SetCommand(listCmd)
-	listCmdFlags.OptionalString(keyPrefixSearch, "", "Prefix to search for in the list of credentials.")
+
+	flags := listCmd.Flags()
+
+	// local user may have multiple accounts for single project
+	flags.StringP(orgutil.KeyProject, keyProjectShort, "", "Show credentials for project starting with this prefix")
+
+	listParams = viperutil.BindToViper(flags, viperutil.BindToListEnv(orgutil.KeyProject))
 }
