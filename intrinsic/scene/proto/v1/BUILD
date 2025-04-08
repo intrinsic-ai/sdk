@@ -178,3 +178,29 @@ go_proto_library(
     name = "simulation_spec_go_proto",
     deps = [":simulation_spec_proto"],
 )
+
+proto_library(
+    name = "scene_object_config_proto",
+    srcs = ["scene_object_config.proto"],
+    deps = [
+        "@com_google_protobuf//:any_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "scene_object_config_cc_proto",
+    deps = [":scene_object_config_proto"],
+)
+
+go_proto_library(
+    name = "scene_object_config_go_proto",
+    deps = [":scene_object_config_proto"],
+)
+
+py_proto_library(
+    name = "scene_object_config_py_pb2",
+    visibility = [
+        "//visibility:public",
+    ],
+    deps = [":scene_object_config_proto"],
+)

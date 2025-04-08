@@ -1,0 +1,16 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.scene_object.v1;
+
+import "google/protobuf/any.proto";
+
+// Configuration message for a scene object. This message contains geometric
+// configuration data common to all scene objects in addition to object-specific
+// data that is supplied by the user and is opaque to all SceneObject
+// infrastructure.
+message SceneObjectConfig {
+  // Opaque user-supplied data for this scene object.
+  google.protobuf.Any user_data = 3;
+}
