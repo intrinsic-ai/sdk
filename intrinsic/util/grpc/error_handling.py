@@ -100,7 +100,10 @@ def _is_unavailable_grpc_status_with_logging(exception: Exception) -> bool:
   """Same as 'is_unavailable_grpc_status' but also logs to the console."""
   is_unavailable = is_unavailable_grpc_status(exception)
   if is_unavailable:
-    print("Backend unavailable. Retrying ...")
+    print(
+        "Backend unavailable ("
+        f"{cast(grpc.Call, exception).code()}). Retrying ..."
+    )
   return is_unavailable
 
 
