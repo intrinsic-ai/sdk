@@ -136,14 +136,22 @@ message BehaviorTree {
     reserved 2;
   }
 
-  // Try each child in the given order, only advance on unsatisfied condition.
-  // If a condition of a node is unsatisfied, continue and try the next node.
-  // If a condition of a node is satisfied, execute the child. The outcome of
-  // the child determines the outcome of the SelectorNode, i.e., if it fails,
-  // the selector node fails, if the child succeeds, the selector node succeeds.
-  // If the conditions of all children are unsatisfied, the selector node fails.
+  // Evaluate each branch condition in the given order. If a condition of a node
+  // is unsatisfied, continue and evaluate the next branch condition. If a
+  // condition of a node is satisfied, execute the child. The outcome of the
+  // child determines the outcome of the SelectorNode, i.e., if it fails, the
+  // selector node fails; if the child succeeds, the selector node succeeds. If
+  // the conditions of all children are unsatisfied, the selector node fails.
   message SelectorNode {
-    repeated Node children = 1;
+    message Branch {
+      Condition condition = 1;
+      // The node must not have a decorator condition.
+      Node node = 2;
+    }
+
+    // Exactly one of these fields must be set.
+    repeated Node children = 1;  // Do not use. Prefer branches.
+    repeated Branch branches = 2;
   }
 
   // Try each child in the given order, advance on any failure reason. This
