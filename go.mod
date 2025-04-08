@@ -2,7 +2,9 @@
 
 module intrinsic
 
-go 1.23
+go 1.23.0
+
+toolchain go1.23.1
 
 require (
 	cloud.google.com/go/compute/metadata v0.6.0
@@ -31,7 +33,7 @@ require (
 	github.com/golang/glog v1.2.3
 	github.com/golang/protobuf v1.5.4
 	github.com/google/go-cmp v0.6.0
-	github.com/google/go-containerregistry v0.16.1
+	github.com/google/go-containerregistry v0.20.3
 	github.com/google/safetext v0.0.0-20221026122733-23539d61753f
 	github.com/google/subcommands v1.2.0
 	github.com/google/uuid v1.6.0
@@ -79,8 +81,6 @@ require (
 	sigs.k8s.io/yaml v1.3.0
 )
 
-require github.com/evanphx/json-patch v5.6.0+incompatible // indirect
-
 require (
 	cel.dev/expr v0.19.0 // indirect
 	cloud.google.com/go v0.116.0 // indirect
@@ -92,10 +92,6 @@ require (
 	cloud.google.com/go/trace v1.11.2 // indirect
 	github.com/AdaLogics/go-fuzz-headers v0.0.0-20230811130428-ced1acdcaa24 // indirect
 	github.com/AdamKorcz/go-118-fuzz-build v0.0.0-20230306123547-8075edf89bb0 // indirect
-	github.com/GoogleCloudPlatform/grpc-gcp-go/grpcgcp v1.5.2 // indirect
-	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.25.0 // indirect
-	github.com/Microsoft/go-winio v0.6.2 // indirect
-	github.com/Microsoft/hcsshim v0.11.7 // indirect
 	github.com/aws/aws-sdk-go v1.44.129 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.4.1 // indirect
@@ -108,16 +104,15 @@ require (
 	github.com/containerd/fifo v1.1.0 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/containerd/platforms v0.2.1 // indirect
-	github.com/containerd/stargz-snapshotter/estargz v0.14.3 // indirect
+	github.com/containerd/stargz-snapshotter/estargz v0.16.3 // indirect
 	github.com/containerd/ttrpc v1.2.5 // indirect
 	github.com/containerd/typeurl/v2 v2.1.1 // indirect
-	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.6 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
-	github.com/docker/cli v24.0.0+incompatible // indirect
-	github.com/docker/distribution v2.8.2+incompatible // indirect
-	github.com/docker/docker v24.0.0+incompatible // indirect
-	github.com/docker/docker-credential-helpers v0.7.0 // indirect
+	github.com/docker/cli v27.5.0+incompatible // indirect
+	github.com/docker/distribution v2.8.3+incompatible // indirect
+	github.com/docker/docker-credential-helpers v0.8.2 // indirect
 	github.com/docker/go-events v0.0.0-20190806004212-e31b211e4f1c // indirect
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
 	github.com/envoyproxy/go-control-plane v0.13.1 // indirect
@@ -139,6 +134,8 @@ require (
 	github.com/google/s2a-go v0.1.8 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.4 // indirect
 	github.com/googleapis/gax-go/v2 v2.14.0 // indirect
+	github.com/GoogleCloudPlatform/grpc-gcp-go/grpcgcp v1.5.2 // indirect
+	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.25.0 // indirect
 	github.com/gorilla/handlers v1.5.1 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.0
@@ -149,10 +146,12 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/jzelinskie/stringz v0.0.3 // indirect
-	github.com/klauspost/compress v1.16.7 // indirect
+	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
+	github.com/Microsoft/go-winio v0.6.2 // indirect
+	github.com/Microsoft/hcsshim v0.11.7 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
@@ -186,16 +185,17 @@ require (
 	github.com/tdewolff/test v1.0.9 // indirect
 	github.com/tklauser/go-sysconf v0.3.14 // indirect
 	github.com/tklauser/numcpus v0.8.0 // indirect
-	github.com/vbatts/tar-split v0.11.3 // indirect
+	github.com/vbatts/tar-split v0.11.6 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
+	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/detectors/gcp v1.32.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.54.0 // indirect
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.54.0 // indirect
-	go.opentelemetry.io/otel v1.32.0 // indirect
-	go.opentelemetry.io/otel/metric v1.32.0 // indirect
-	go.opentelemetry.io/otel/sdk v1.32.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.58.0 // indirect
+	go.opentelemetry.io/otel v1.33.0 // indirect
+	go.opentelemetry.io/otel/metric v1.33.0 // indirect
+	go.opentelemetry.io/otel/sdk v1.33.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.32.0 // indirect
-	go.opentelemetry.io/otel/trace v1.32.0 // indirect
+	go.opentelemetry.io/otel/trace v1.33.0 // indirect
 	golang.org/x/term v0.28.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
@@ -209,4 +209,5 @@ require (
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 // indirect
+	github.com/evanphx/json-patch v5.6.0+incompatible // indirect
 )
