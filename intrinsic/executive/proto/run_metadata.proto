@@ -30,7 +30,6 @@ message RunMetadata {
   oneof runnable_type {
     BehaviorTree behavior_tree = 1;
   }
-
   oneof state_type {
     // Deprecated: Use operation_state instead of behavior_tree_state.
     BehaviorTree.State behavior_tree_state = 10 [deprecated = true];
