@@ -8,8 +8,10 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/cmd/root"
+	"intrinsic/tools/inctl/util/orgutil"
 	"intrinsic/tools/inctl/util/printer"
 )
 
@@ -29,14 +31,19 @@ func setPrinterFromOutputFlag(command *cobra.Command, args []string) (err error)
 	return
 }
 
-var authCmd = &cobra.Command{
+var (
+	viperLocal = viper.New()
+)
+
+var authCmd = orgutil.WrapCmd(&cobra.Command{
 	Use:   "auth",
 	Short: "Manages user authorization",
 	Long:  "Manages user authorization for accessing solutions in the project.",
 	// Catching common typos and potential alternatives
-	SuggestFor:        []string{"ath", "uath", "auht", "user", "credentials"},
-	PersistentPreRunE: setPrinterFromOutputFlag,
-}
+	SuggestFor:         []string{"ath", "uath", "auht", "user", "credentials"},
+	PersistentPreRunE:  setPrinterFromOutputFlag,
+	DisableFlagParsing: true,
+}, viperLocal)
 
 var (
 	userYesNoPositiveDefOpt = []string{"Y", "n"}
@@ -76,4 +83,5 @@ func newReadWriterForCmd(cmd *cobra.Command) *bufio.ReadWriter {
 
 func init() {
 	root.RootCmd.AddCommand(authCmd)
+	authCmd.Flags().MarkHidden(orgutil.KeyProject)
 }

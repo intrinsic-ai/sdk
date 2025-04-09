@@ -18,26 +18,14 @@ var (
 
 func init() {
 	authCmd.AddCommand(printAPIKeyCmd)
-	printAPIKeyCmd.Flags().StringP(orgutil.KeyProject, keyProjectShort, "", "Name of the Google cloud project to authorize for")
-	printAPIKeyCmd.Flags().StringP(orgutil.KeyOrganization, "", "", "Name of the organization to authorize for. Specify only one of --project or --organization.")
-	printAPIKeyCmd.MarkFlagsMutuallyExclusive(orgutil.KeyProject, orgutil.KeyOrganization)
 
 	authCmd.AddCommand(printAccessTokenCmd)
-	printAccessTokenCmd.Flags().StringP(orgutil.KeyProject, keyProjectShort, "", "Name of the Google cloud project to authorize for")
-	printAccessTokenCmd.Flags().StringP(orgutil.KeyOrganization, "", "", "Name of the organization to authorize for. Specify only one of --project or --organization.")
-	printAccessTokenCmd.MarkFlagsMutuallyExclusive(orgutil.KeyProject, orgutil.KeyOrganization)
 	printAccessTokenCmd.Flags().StringVar(&flagFlowstateAddr, "flowstate", "flowstate.intrinsic.ai", "Flowstate address.")
 }
 
 func projectFromFlags(cmd *cobra.Command) (string, error) {
-	org, err := cmd.Flags().GetString(orgutil.KeyOrganization)
-	if err != nil {
-		return "", err
-	}
-	project, err := cmd.Flags().GetString(orgutil.KeyProject)
-	if err != nil {
-		return "", err
-	}
+	org := viperLocal.GetString(orgutil.KeyOrganization)
+	project := viperLocal.GetString(orgutil.KeyProject)
 	if project != "" {
 		return project, nil
 	}

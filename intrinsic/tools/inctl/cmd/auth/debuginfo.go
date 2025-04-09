@@ -27,8 +27,6 @@ var (
 )
 
 func init() {
-	printDebugInfoCmd.Flags().StringVarP(&flagOrg, orgutil.KeyOrganization, "", "", "Name of the organization to debug.")
-	printDebugInfoCmd.MarkFlagRequired(orgutil.KeyOrganization)
 	authCmd.AddCommand(printDebugInfoCmd)
 }
 
@@ -49,6 +47,7 @@ var printDebugInfoCmd = &cobra.Command{
 	Long:  printDebugInfoCmdHelp,
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		flagOrg := viperLocal.GetString(orgutil.KeyOrganization)
 		ctx := cmd.Context()
 		for _, domain := range domains {
 			debugDomain(ctx, domain)
