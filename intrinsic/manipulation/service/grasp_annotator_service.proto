@@ -21,6 +21,13 @@ message GraspAnnotatorRequest {
   // The metrics weights to score annotation with. If not provided, the
   // annotation are not scored and the default score will be set to 1.0.
   optional MetricWeights annotation_metrics_weights = 4;
+  // Truncate the number of annotations to return to this number.
+  // If `grasp_annotator_metrics` is set, the top N annotations sorted by score
+  // will be returned in descending order (unordered in the absence of metrics).
+  // If not set, all feasible annotations will be returned.
+  optional int32 max_num_annotations = 5;
+  // Constraints to filter grasp poses.
+  optional intrinsic_proto.grasping.GraspAnnotationConstraint constraint = 6;
 }
 
 message GraspAnnotatorResponse {

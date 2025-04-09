@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.grasping;
 
+import "intrinsic/geometry/proto/oriented_bounding_box.proto";
 import "intrinsic/geometry/proto/triangle_mesh.proto";
 import "intrinsic/math/proto/pose.proto";
 import "intrinsic/math/proto/vector2.proto";
@@ -87,4 +88,18 @@ message MetricWeights {
   // The weight of the distance to bounding box corner metric. When unspecified,
   // the metric is not used for scoring annotation.
   optional float distance_to_bounding_box_corner_weight = 2;
+}
+
+message GraspAnnotationConstraint {
+  oneof Constraint {
+    // The bounding box to filter grasp poses, in base frame of the object.
+    BoundingBoxConstraint bounding_box_constraint = 1;
+  }
+
+  message BoundingBoxConstraint {
+    repeated intrinsic_proto.geometry.OrientedBoundingBox3
+        oriented_bounding_boxes = 1;
+    // Only select grasp poses outside the box, defaults to false.
+    optional bool exclude_poses_in_box = 2;
+  }
 }

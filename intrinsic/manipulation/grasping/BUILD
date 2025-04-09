@@ -160,6 +160,7 @@ proto_library(
     srcs = ["grasp_annotator.proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
+        "//intrinsic/geometry/proto:oriented_bounding_box_proto",
         "//intrinsic/geometry/proto:triangle_mesh_proto",
         "//intrinsic/math/proto:pose_proto",
         "//intrinsic/math/proto:vector2_proto",
