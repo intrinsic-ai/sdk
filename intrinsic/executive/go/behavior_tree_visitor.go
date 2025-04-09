@@ -101,6 +101,16 @@ func walkNode(node *btpb.BehaviorTree_Node, visitor Visitor) error {
 				return err
 			}
 		}
+		for _, c := range node.GetSelector().GetBranches() {
+			err := walkCondition(c.GetCondition(), visitor)
+			if err != nil {
+				return err
+			}
+			err = walkNode(c.GetNode(), visitor)
+			if err != nil {
+				return err
+			}
+		}
 
 	case *btpb.BehaviorTree_Node_Fallback:
 		for _, c := range node.GetFallback().GetChildren() {

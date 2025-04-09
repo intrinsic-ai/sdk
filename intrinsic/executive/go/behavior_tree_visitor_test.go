@@ -42,6 +42,61 @@ func TestNodes(t *testing.T) {
 								},
 							},
 						},
+						{
+							Name: proto.String("F"),
+							NodeType: &btpb.BehaviorTree_Node_Fallback{
+								Fallback: &btpb.BehaviorTree_FallbackNode{
+									Children: []*btpb.BehaviorTree_Node{
+										{Name: proto.String("G")},
+										{Name: proto.String("H")},
+									},
+								},
+							},
+						},
+						{
+							Name: proto.String("I"),
+							NodeType: &btpb.BehaviorTree_Node_Selector{
+								Selector: &btpb.BehaviorTree_SelectorNode{
+									Children: []*btpb.BehaviorTree_Node{
+										{Name: proto.String("J")},
+										{Name: proto.String("K")},
+									},
+								},
+							},
+						},
+						{
+							Name: proto.String("L"),
+							NodeType: &btpb.BehaviorTree_Node_Selector{
+								Selector: &btpb.BehaviorTree_SelectorNode{
+									Branches: []*btpb.BehaviorTree_SelectorNode_Branch{
+										{Node: &btpb.BehaviorTree_Node{Name: proto.String("M")}},
+										{
+											Condition: &btpb.BehaviorTree_Condition{
+												ConditionType: &btpb.BehaviorTree_Condition_AnyOf{
+													AnyOf: &btpb.BehaviorTree_Condition_LogicalCompound{},
+												},
+											},
+											Node: &btpb.BehaviorTree_Node{Name: proto.String("N")},
+										},
+										{
+											Condition: &btpb.BehaviorTree_Condition{
+												ConditionType: &btpb.BehaviorTree_Condition_BehaviorTree{
+													BehaviorTree: &btpb.BehaviorTree{
+														Root: &btpb.BehaviorTree_Node{
+															Name: proto.String("O"),
+															NodeType: &btpb.BehaviorTree_Node_Sequence{
+																Sequence: &btpb.BehaviorTree_SequenceNode{},
+															},
+														},
+													},
+												},
+											},
+											Node: &btpb.BehaviorTree_Node{Name: proto.String("P")},
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -49,7 +104,7 @@ func TestNodes(t *testing.T) {
 	}
 
 	visitor := &nodeNameCollector{}
-	want := []string{"A", "B", "C", "D", "E"}
+	want := []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"}
 	err := behaviortree.Walk(tree, visitor)
 	if err != nil {
 		t.Errorf("Tree walker failed on \n%v\ngot %v", tree, err)
