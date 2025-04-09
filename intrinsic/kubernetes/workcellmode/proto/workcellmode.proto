@@ -1,0 +1,42 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.workcellmode.v1;
+
+enum MODE {
+  MODE_UNSPECIFIED = 0;
+  // Throttles the total data upload rate to the cloud.
+  MODE_OPERATE = 1;
+  // The default mode of development where lenient restrictions are applied to
+  // the data upload rate.
+  MODE_DEVELOP = 2;
+  // The mode depicting an ongoing transition to operate mode.
+  MODE_TRANSITION_TO_OPERATE = 3;
+  // The mode depicting an ongoing transition to develop mode.
+  MODE_TRANSITION_TO_DEVELOP = 4;
+}
+
+message SetWorkcellModeRequest {
+  // The workcell mode to set.
+  MODE mode = 1;
+}
+
+message SetWorkcellModeResponse {}
+
+message GetWorkcellModeRequest {}
+
+message GetWorkcellModeResponse {
+  // The current workcell mode.
+  MODE mode = 1;
+}
+
+service WorkcellMode {
+  // Sets the workcell mode. Use to switch between develop and operate mode.
+  rpc SetWorkcellMode(SetWorkcellModeRequest)
+      returns (SetWorkcellModeResponse) {}
+
+  // Gets the current workcell mode.
+  rpc GetWorkcellMode(GetWorkcellModeRequest)
+      returns (GetWorkcellModeResponse) {}
+}
