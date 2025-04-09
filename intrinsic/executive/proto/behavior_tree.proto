@@ -154,13 +154,22 @@ message BehaviorTree {
     repeated Branch branches = 2;
   }
 
-  // Try each child in the given order, advance on any failure reason. This
-  // tries each child one in a sequence. If a child succeeds, the fallback node
-  // succeeds. If the child fails (for any reason, unsatisfied condition or
-  // failed execution) the next child is tried. If all children fail, the
-  // fallback node fails.
+  // This tries each child one by one sequentially. First a Try's condition is
+  // evaluated and when satisfied its node is executed. If a Try node succeeds,
+  // the fallback node succeeds. If a Try fails either due to an unsatisfied
+  // condition or an execution failure of the node, the next child is tried. If
+  // all tries fail, the fallback node fails.
   message FallbackNode {
-    repeated Node children = 1;
+    message Try {
+      // If the condition is not given, a "true" condition is assumed.
+      optional Condition condition = 1;
+      // The node must not have a decorator condition.
+      Node node = 2;
+    }
+
+    // Exactly one of these fields must be set.
+    repeated Node children = 1;  // Do not use. Prefer tries.
+    repeated Try tries = 2;
   }
 
   // Evaluate the "if" condition. If it is satisfied, execute the "then" branch,
