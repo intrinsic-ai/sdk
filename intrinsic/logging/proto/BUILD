@@ -71,7 +71,6 @@ go_proto_library(
         "//intrinsic/hardware/gpio/v1:signal_go_proto",
         "//intrinsic/hardware/gripper/eoat:gripper_config_go_proto",
         "//intrinsic/hardware/gripper/eoat:eoat_service_go_proto",
-        "//intrinsic/hardware/proto:settings_go_proto",
         "//intrinsic/kinematics/types:dynamic_limits_check_mode_go_proto",
         "//intrinsic/skills/proto:skill_parameter_metadata_go_proto",
         "//intrinsic/perception/proto:pose_estimate_in_root_go_proto",
