@@ -51,16 +51,29 @@ message GenerateBagResponse {
 message ListBagsRequest {
   string organization_id = 1;
   string workcell_name = 2;
-
   // Requested time range.
   google.protobuf.Timestamp start_time = 3;
   google.protobuf.Timestamp end_time = 4;
 
-  optional uint32 max_num_results = 5;
+  // Limits for the number of results per page.
+  optional uint32 max_num_results = 5;  // Defaults to 1000.
+
+  message Query {
+    string workcell_name = 1;
+    google.protobuf.Timestamp start_time = 2;
+    google.protobuf.Timestamp end_time = 3;
+  }
+
+  oneof query {
+    Query list_query = 6;
+    bytes cursor = 7;
+  }
 }
 
 message ListBagsResponse {
   repeated BagRecord bags = 1;
+  // Opaque cursor to the next page of results.
+  // If empty, no next page exists.
   optional bytes next_page_cursor = 2;
 }
 
