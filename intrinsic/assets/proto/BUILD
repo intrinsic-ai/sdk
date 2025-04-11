@@ -190,7 +190,7 @@ cc_proto_library(
 py_proto_library(
     name = "metadata_py_pb2",
     visibility = [
-        "//intrinsic/solutions/python:__pkg__",
+        "//intrinsic/solutions:__pkg__",
         "//visibility:private",
     ],
     deps = [":metadata_proto"],
@@ -357,7 +357,7 @@ py_proto_library(
     name = "installed_assets_py_pb2",
     visibility = [
         "//intrinsic:public_api_users",
-        "//intrinsic/solutions/python:__pkg__",
+        "//intrinsic/solutions:__pkg__",
     ],
     deps = [":installed_assets_proto"],
 )
@@ -368,7 +368,7 @@ py_grpc_library(
     grpc_library = requirement("grpcio"),
     visibility = [
         "//intrinsic:public_api_users",
-        "//intrinsic/solutions/python:__pkg__",
+        "//intrinsic/solutions:__pkg__",
     ],
     deps = [":installed_assets_py_pb2"],
 )

@@ -1,0 +1,171 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.test_data;
+
+import "google/protobuf/duration.proto";
+import "intrinsic/executive/proto/test_message.proto";
+import "intrinsic/icon/proto/joint_space.proto";
+import "intrinsic/math/proto/pose.proto";
+import "intrinsic/motion_planning/proto/motion_target.proto";
+import "intrinsic/perception/proto/pose_estimator_id.proto";
+import "intrinsic/world/proto/collision_settings.proto";
+import "intrinsic/world/proto/object_world_refs.proto";
+import "intrinsic/world/proto/robot_payload.proto";
+
+enum GlobalEnum {
+  GLOBAL_ENUM_UNSPECIFIED = 0;
+  GLOBAL_ENUM_ONE = 1;
+  GLOBAL_ENUM_TWO = 2;
+}
+
+message SubMessage {
+  string name = 1;
+}
+
+message TestMessage {
+  // Your favorite double of all time.
+  optional double my_double = 1;
+  optional float my_float = 2;
+  optional int32 my_int32 = 3;
+  optional int64 my_int64 = 4;
+  optional uint32 my_uint32 = 5;
+  optional uint64 my_uint64 = 6;
+  optional bool my_bool = 7;
+  optional string my_string = 8;
+  SubMessage sub_message = 9;
+  optional SubMessage optional_sub_message = 10;
+
+  repeated double my_repeated_doubles = 11;
+  repeated SubMessage repeated_submessages = 12;
+
+  int32 my_required_int32 = 14;
+
+  oneof my_oneof {
+    double my_oneof_double = 15;
+    SubMessage my_oneof_sub_message = 16;
+  }
+
+  // Special intrinsic-type support
+
+  // Handled differently than a normal protobuf submessage.
+  intrinsic_proto.Pose pose = 24;
+
+  message Foo {
+    message Bar {
+      string test = 1;
+    }
+    Bar bar = 1;
+  }
+  optional Foo foo = 25;
+
+  enum TestEnum {
+    // Explicitly test sparse enum values.
+    UNKNOWN = 0;
+    ONE = 1;
+    THREE = 3;
+    FIVE = 5;
+  }
+
+  optional TestEnum enum_v = 26;
+
+  map<string, int32> string_int32_map = 28;
+  map<int32, string> int32_string_map = 29;
+
+  message MessageMapValue {
+    string value = 1;
+  }
+  map<string, MessageMapValue> string_message_map = 30;
+
+  intrinsic_proto.executive.TestMessage executive_test_message = 27;
+
+  // Two fields with the same name but different types.
+  message AnotherType {}
+  message SomeType {
+    AnotherType non_unique_field_name = 1;
+  }
+  SomeType non_unique_field_name = 31;
+}
+
+message TestMessageWrapped {
+  TestMessage test_message = 1;
+}
+
+message ReturnValue {
+  int64 a_number = 1;
+}
+
+message TestMessageReturn {
+  ReturnValue return_value = 1;
+}
+
+message VariousEnumsMessage {
+  enum VariousEnumsEnum {
+    VARIOUS_ENUMS_ENUM_UNSPECIFIED = 0;
+    VARIOUS_ENUMS_ENUM_ONE = 1;
+    VARIOUS_ENUMS_ENUM_TWO = 2;
+  }
+
+  TestMessage.TestEnum test_enum = 1;
+  GlobalEnum global_enum = 2;
+  VariousEnumsEnum various_enums_enum = 3;
+}
+
+message ResourceConflict {
+  // param a
+  optional string a = 1;
+}
+
+message BytesSkill {
+  optional bytes param_bytes = 1;
+}
+
+message PoseSkill {
+  optional intrinsic_proto.Pose param_pose = 1;
+}
+
+message DurationSkill {
+  optional google.protobuf.Duration param_duration = 1;
+}
+
+message ObjectReferenceSkill {
+  optional intrinsic_proto.world.ObjectReference param_object = 1;
+  optional intrinsic_proto.world.FrameReference param_frame = 2;
+  optional intrinsic_proto.world.TransformNodeReference param_transform_node =
+      3;
+  optional intrinsic_proto.world.ObjectOrEntityReference
+      param_object_or_entity = 4;
+}
+
+message CartesianMotionTargetSkill {
+  optional intrinsic_proto.motion_planning.CartesianMotionTarget target = 1;
+}
+
+message JointMotionTargetSkill {
+  optional intrinsic_proto.icon.JointVec param_joint_motion_target = 1;
+}
+
+message CollisionSettingsSkill {
+  optional intrinsic_proto.world.CollisionSettings param_collision_settings = 1;
+}
+
+message PoseEstimatorSkill {
+  optional intrinsic_proto.perception.PoseEstimatorId pose_estimator = 1;
+}
+
+message RobotPayloadSkill {
+  optional intrinsic_proto.world.RobotPayload payload = 1;
+}
+
+message CombinedSkillParams {
+  GlobalEnum global_enum = 1;
+
+  TestMessage test_message = 2;
+
+  VariousEnumsMessage various_enums_message = 3;
+
+  ObjectReferenceSkill object_reference_skill = 4;
+
+  CartesianMotionTargetSkill cartesian_motion_target_skill = 5;
+}

@@ -37,7 +37,7 @@ py_test(
         "//intrinsic/icon/proto:cart_space_py_pb2",
         "//intrinsic/kinematics/types:joint_limits_py_pb2",
         "//intrinsic/math/python:data_types",
-        "//intrinsic/solutions/python/testing:compare",
+        "//intrinsic/solutions/testing:compare",
         "//intrinsic/world/proto:object_world_refs_py_pb2",
         "//intrinsic/world/proto:object_world_service_py_pb2",
         "@ai_intrinsic_sdks_pip_deps//numpy",

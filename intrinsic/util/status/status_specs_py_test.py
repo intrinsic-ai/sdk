@@ -2,7 +2,7 @@
 
 from absl.testing import absltest
 from intrinsic.assets.proto import status_spec_pb2
-from intrinsic.solutions.python.testing import compare
+from intrinsic.solutions.testing import compare
 from intrinsic.util.status import extended_status_pb2
 from intrinsic.util.status import status_specs
 

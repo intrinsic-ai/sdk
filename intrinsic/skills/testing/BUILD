@@ -234,7 +234,7 @@ py_test(
         "//intrinsic/logging/proto:log_item_py_pb2",
         "//intrinsic/skills/proto:skill_manifest_py_pb2",
         "//intrinsic/skills/python:skill_logging_context",
-        "//intrinsic/solutions/python/testing:compare",
+        "//intrinsic/solutions/testing:compare",
         requirement("grpcio"),
         "@com_google_absl_py//absl/testing:absltest",
         "@com_google_absl_py//absl/testing:parameterized",

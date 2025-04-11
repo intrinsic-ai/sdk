@@ -4,7 +4,7 @@ from absl.testing import absltest
 from absl.testing import parameterized
 from intrinsic.math.python import data_types
 from intrinsic.math.python import proto_conversion
-from intrinsic.solutions.python.testing import compare
+from intrinsic.solutions.testing import compare
 from intrinsic.world.proto import robot_payload_pb2
 from intrinsic.world.robot_payload.python import robot_payload
 import numpy as np

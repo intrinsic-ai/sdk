@@ -9,7 +9,7 @@ from google.rpc import code_pb2
 from google.rpc import status_pb2
 import grpc
 from intrinsic.logging.proto import context_pb2
-from intrinsic.solutions.python.testing import compare
+from intrinsic.solutions.testing import compare
 from intrinsic.util.status import extended_status_pb2
 from intrinsic.util.status import status_exception
 from pybind11_abseil import status as abseil_status
