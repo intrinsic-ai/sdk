@@ -224,7 +224,9 @@ use_repo(
     non_module_deps,
     # go/keep-sorted start
     "com_google_cel_cpp",
+    "dumb-init",
     "or_tools",
+    "xxd",
     # go/keep-sorted end
 )
 
