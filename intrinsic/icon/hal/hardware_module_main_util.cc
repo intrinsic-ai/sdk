@@ -29,6 +29,8 @@
 #include "grpcpp/security/server_credentials.h"
 #include "grpcpp/server.h"
 #include "grpcpp/server_builder.h"
+#include "intrinsic/assets/services/proto/v1/service_state.grpc.pb.h"
+#include "intrinsic/icon/hal/hardware_module_health_service.h"
 #include "intrinsic/icon/hal/hardware_module_runtime.h"
 #include "intrinsic/icon/hal/hardware_module_util.h"
 #include "intrinsic/icon/hal/proto/hardware_module_config.pb.h"
@@ -38,6 +40,7 @@
 #include "intrinsic/icon/utils/clock.h"
 #include "intrinsic/icon/utils/duration.h"
 #include "intrinsic/icon/utils/shutdown_signals.h"
+#include "intrinsic/resources/proto/runtime_context.pb.h"
 #include "intrinsic/util/proto/any.h"
 #include "intrinsic/util/proto/get_text_proto.h"
 #include "intrinsic/util/status/status_macros.h"
@@ -163,11 +166,36 @@ RunRuntimeWithGrpcServerAndWaitForShutdown(
   }
 
   std::optional<HardwareModuleExitCode> exit_code;
+  std::promise<HardwareModuleExitCode> exit_code_promise;
+  std::future<HardwareModuleExitCode> health_service_exit_code_future =
+      exit_code_promise.get_future();
+  intrinsic::icon::HardwareModuleHealthService health_service(
+      std::move(exit_code_promise));
+
   std::optional<int> grpc_server_port = std::nullopt;
   if (cli_grpc_server_port.has_value()) {
     grpc_server_port = cli_grpc_server_port;
     LOG(INFO) << "Using grpc port " << *grpc_server_port
               << " from command line";
+  }
+
+  // Check if the start up of the HWM failed. If not, expose error via
+  // ServiceState service.
+  if (main_config.ok()) {
+    if (runtime.ok()) {
+      health_service.SetHardwareModuleRuntime(&runtime.value());
+    }
+    if (!runtime.ok() || !runtime->IsStarted()) {
+      auto status = !runtime.ok() ? runtime.status() : hwm_run_error;
+      LOG(INFO) << "Starting lame duck mode due to init error: " << status;
+      health_service.ActivateLameDuckMode(status);
+    } else {
+      LOG(INFO) << "Hardware Module Runtime started.";
+    }
+  } else {
+    health_service.ActivateLameDuckMode(absl::FailedPreconditionError(
+        absl::StrCat("Failed to load hardware module config: ",
+                     main_config.status().message())));
   }
 
   // grpc server variable needs to live until shutdown, but must be destroyed
@@ -182,6 +210,10 @@ RunRuntimeWithGrpcServerAndWaitForShutdown(
         ::grpc::InsecureServerCredentials()  // NOLINT (insecure)
     );
 
+    server_builder.RegisterService(
+        static_cast<intrinsic_proto::services::v1::ServiceState::Service*>(
+            &health_service));
+
     grpc_server = server_builder.BuildAndStart();
     LOG(INFO) << "gRPC server started on port " << *grpc_server_port;
   } else {
@@ -195,6 +227,11 @@ RunRuntimeWithGrpcServerAndWaitForShutdown(
   const Duration kPollShutdownSignalEvery = intrinsic::Seconds(0.2);
   while (IsShutdownRequested() == ShutdownType::kNotRequested) {
     auto next_check_deadline = Clock::Now() + kPollShutdownSignalEvery;
+    if (ExitCodeFutureHasValue(health_service_exit_code_future,
+                               next_check_deadline)) {
+      exit_code = GetExitCodeFromFuture(health_service_exit_code_future);
+      break;
+    }
   }
   LOG(INFO) << "Shutdown signal received";
 

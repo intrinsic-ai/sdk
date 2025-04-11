@@ -281,22 +281,44 @@ cc_library(
 )
 
 cc_library(
+    name = "hardware_module_health_service",
+    srcs = ["hardware_module_health_service.cc"],
+    hdrs = ["hardware_module_health_service.h"],
+    deps = [
+        ":hardware_module_runtime",
+        ":hardware_module_util",
+        "//intrinsic/assets/services/proto/v1:service_state_cc_grpc_proto",
+        "//intrinsic/assets/services/proto/v1:service_state_cc_proto",
+        "//intrinsic/icon/hal/interfaces:hardware_module_state_fbs_cc",
+        "//intrinsic/icon/hal/interfaces:hardware_module_state_fbs_utils",
+        "//intrinsic/util/status:status_macros_grpc",
+        "@com_github_grpc_grpc//:grpc++",
+        "@com_google_absl//absl/base:core_headers",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/strings:string_view",
+        "@com_google_absl//absl/synchronization",
+    ],
+)
+
+cc_library(
     name = "hardware_module_main_util",
     srcs = ["hardware_module_main_util.cc"],
     hdrs = ["hardware_module_main_util.h"],
     deps = [
         ":hardware_module_config_cc_proto",
+        ":hardware_module_health_service",
         ":hardware_module_registry",
         ":hardware_module_runtime",
         ":hardware_module_util",
         ":module_config",
         ":realtime_clock",
+        "//intrinsic/assets/services/proto/v1:service_state_cc_grpc_proto",
         "//intrinsic/icon/interprocess/shared_memory_manager",
         "//intrinsic/icon/release:file_helpers",
         "//intrinsic/icon/utils:core_time",
         "//intrinsic/icon/utils:shutdown_signals",
         "//intrinsic/icon/utils:time",
-        "//intrinsic/resources/proto:resource_registry_cc_proto",
         "//intrinsic/resources/proto:runtime_context_cc_proto",
         "//intrinsic/util/proto:any",
         "//intrinsic/util/proto:get_text_proto",

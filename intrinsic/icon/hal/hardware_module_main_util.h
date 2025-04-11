@@ -17,12 +17,16 @@
 #include "intrinsic/icon/hal/proto/hardware_module_config.pb.h"
 #include "intrinsic/icon/hal/realtime_clock.h"
 #include "intrinsic/icon/interprocess/shared_memory_manager/shared_memory_manager.h"
+#include "intrinsic/resources/proto/runtime_context.pb.h"
 #include "intrinsic/util/thread/thread_options.h"
 
 namespace intrinsic::icon {
 
 // Helper struct containing configuration data the Hardware Module execution.
 struct HardwareModuleMainConfig {
+  // Runtime context to be used by this instance. Not set, if process does not
+  // run as resource.
+  std::optional<intrinsic_proto::config::RuntimeContext> runtime_context;
   // Either loaded from a proto file directly or from the runtime context.
   intrinsic_proto::icon::HardwareModuleConfig module_config;
   // Whether to use realtime scheduling for the mainloop threads and for custom
