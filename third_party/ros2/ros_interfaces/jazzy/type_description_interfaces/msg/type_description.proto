@@ -13,9 +13,9 @@ import "third_party/ros2/ros_interfaces/jazzy/type_description_interfaces/msg/in
 message TypeDescription {
   // Description of the type.
   type_description_interfaces.msg.pb.jazzy.IndividualTypeDescription
-      type_description = 117284745;
+      type_description = 1;
 
   // Descriptions of all referenced types, recursively.
   repeated type_description_interfaces.msg.pb.jazzy.IndividualTypeDescription
-      referenced_type_descriptions = 51397501;
+      referenced_type_descriptions = 2;
 }

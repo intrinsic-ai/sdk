@@ -13,15 +13,15 @@ option cc_generic_services = true;
 
 message SetMap_Request {
   // Requested 2D map to be set.
-  nav_msgs.msg.pb.jazzy.OccupancyGrid map = 330153544;
+  nav_msgs.msg.pb.jazzy.OccupancyGrid map = 1;
 
   // Estimated initial pose when setting new map.
-  geometry_msgs.msg.pb.jazzy.PoseWithCovarianceStamped initial_pose = 442464214;
+  geometry_msgs.msg.pb.jazzy.PoseWithCovarianceStamped initial_pose = 2;
 }
 
 message SetMap_Response {
   // True if the map was successfully set, false otherwise.
-  bool success = 251719510;
+  bool success = 1;
 }
 
 service SetMap {

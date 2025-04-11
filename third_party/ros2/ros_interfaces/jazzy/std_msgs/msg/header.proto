@@ -13,8 +13,8 @@ import "third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg/time.proto"
 //  in a particular coordinate frame.
 message Header {
   // Two-integer timestamp that is expressed as seconds and nanoseconds.
-  builtin_interfaces.msg.pb.jazzy.Time stamp = 357477059;
+  builtin_interfaces.msg.pb.jazzy.Time stamp = 1;
 
   // Transform frame with which this data is associated.
-  string frame_id = 530828057;
+  string frame_id = 2;
 }

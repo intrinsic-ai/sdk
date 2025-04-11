@@ -11,14 +11,14 @@ import "third_party/ros2/ros_interfaces/jazzy/lifecycle_msgs/msg/transition.prot
 
 // The time point at which this event occurred.
 message TransitionEvent {
-  fixed64 timestamp = 97975732;
+  fixed64 timestamp = 1;
 
   // The id and label of this transition event.
-  lifecycle_msgs.msg.pb.jazzy.Transition transition = 387303074;
+  lifecycle_msgs.msg.pb.jazzy.Transition transition = 2;
 
   // The starting state from which this event transitioned.
-  lifecycle_msgs.msg.pb.jazzy.State start_state = 382133097;
+  lifecycle_msgs.msg.pb.jazzy.State start_state = 3;
 
   // The end state of this transition event.
-  lifecycle_msgs.msg.pb.jazzy.State goal_state = 458568711;
+  lifecycle_msgs.msg.pb.jazzy.State goal_state = 4;
 }

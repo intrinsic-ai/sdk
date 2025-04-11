@@ -7,16 +7,16 @@ syntax = "proto3";
 package test_msgs.msg.pb.jazzy;
 
 message Strings {
-  string string_value = 159063816;
-  string string_value_default1 = 93575905;
-  string string_value_default2 = 479894179;
-  string string_value_default3 = 194883074;
-  string string_value_default4 = 368661315;
-  string string_value_default5 = 50208488;
-  string bounded_string_value = 145973692;
-  string bounded_string_value_default1 = 221717515;
-  string bounded_string_value_default2 = 339633361;
-  string bounded_string_value_default3 = 54096210;
-  string bounded_string_value_default4 = 492704665;
-  string bounded_string_value_default5 = 173729812;
+  string string_value = 1;
+  string string_value_default1 = 2;
+  string string_value_default2 = 3;
+  string string_value_default3 = 4;
+  string string_value_default4 = 5;
+  string string_value_default5 = 6;
+  string bounded_string_value = 7;
+  string bounded_string_value_default1 = 8;
+  string bounded_string_value_default2 = 9;
+  string bounded_string_value_default3 = 10;
+  string bounded_string_value_default4 = 11;
+  string bounded_string_value_default5 = 12;
 }

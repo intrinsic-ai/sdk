@@ -17,8 +17,8 @@ import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 //    which is the usual use-case in mobile robotics and is also known as a body
 //    twist.
 message VelocityStamped {
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
-  string body_frame_id = 103156577;
-  string reference_frame_id = 128563072;
-  geometry_msgs.msg.pb.jazzy.Twist velocity = 517533215;
+  std_msgs.msg.pb.jazzy.Header header = 1;
+  string body_frame_id = 2;
+  string reference_frame_id = 3;
+  geometry_msgs.msg.pb.jazzy.Twist velocity = 4;
 }

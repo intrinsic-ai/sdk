@@ -9,10 +9,10 @@ package rcl_interfaces.msg.pb.jazzy;
 // A true value of the same index indicates that the parameter was set
 //  successfully. A false value indicates the change was rejected.
 message SetParametersResult {
-  bool successful = 86854949;
+  bool successful = 1;
 
   // Reason why the setting was a failure. On success, the contents of this
   // field are undefined.  This should only be used for logging and user
   // interfaces.
-  string reason = 465080286;
+  string reason = 2;
 }

@@ -17,8 +17,8 @@ message UInt32MultiArray {
   // Please look at the MultiArrayLayout message definition for
   // documentation on all multiarrays.
   // specification of data layout
-  std_msgs.msg.pb.jazzy.MultiArrayLayout layout = 440038324;
+  std_msgs.msg.pb.jazzy.MultiArrayLayout layout = 1;
 
   // array of data
-  repeated fixed32 data = 234097369;
+  repeated fixed32 data = 2;
 }

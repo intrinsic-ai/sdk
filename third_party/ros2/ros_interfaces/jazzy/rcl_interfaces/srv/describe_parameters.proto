@@ -11,12 +11,11 @@ import "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/parameter_descr
 option cc_generic_services = true;
 
 message DescribeParameters_Request {
-  repeated string names = 305358984;
+  repeated string names = 1;
 }
 
 message DescribeParameters_Response {
-  repeated rcl_interfaces.msg.pb.jazzy.ParameterDescriptor descriptors =
-      352541593;
+  repeated rcl_interfaces.msg.pb.jazzy.ParameterDescriptor descriptors = 1;
 }
 
 service DescribeParameters {

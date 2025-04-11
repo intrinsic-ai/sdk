@@ -10,20 +10,20 @@ import "third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg/time.proto"
 
 message ServiceEventInfo {
   // The type of event this message represents
-  uint32 event_type = 320155407;
+  uint32 event_type = 1;
 
   // Timestamp for when the event occurred (sent or received time)
-  builtin_interfaces.msg.pb.jazzy.Time stamp = 357477059;
+  builtin_interfaces.msg.pb.jazzy.Time stamp = 2;
 
   // Unique identifier for the client that sent the service request
   // Note, this is only unique for the current session.
   // The size here has to match the size of rmw_dds_common/msg/Gid,
   // but unfortunately we cannot use that message directly due to a
   // circular dependency.
-  bytes client_gid = 194900576;
+  bytes client_gid = 3;
 
   // Sequence number for the request
   // Combined with the client ID, this creates a unique ID for the service
   // transaction
-  sfixed64 sequence_number = 310401669;
+  sfixed64 sequence_number = 4;
 }

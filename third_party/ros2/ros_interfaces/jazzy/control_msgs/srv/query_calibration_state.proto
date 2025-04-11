@@ -9,11 +9,11 @@ package control_msgs.srv.pb.jazzy;
 option cc_generic_services = true;
 
 message QueryCalibrationState_Request {
-  uint32 structure_needs_at_least_one_member = 407246362;
+  uint32 structure_needs_at_least_one_member = 1;
 }
 
 message QueryCalibrationState_Response {
-  bool is_calibrated = 305864896;
+  bool is_calibrated = 1;
 }
 
 service QueryCalibrationState {

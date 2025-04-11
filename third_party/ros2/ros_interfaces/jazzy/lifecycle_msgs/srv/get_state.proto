@@ -11,11 +11,11 @@ import "third_party/ros2/ros_interfaces/jazzy/lifecycle_msgs/msg/state.proto";
 option cc_generic_services = true;
 
 message GetState_Request {
-  uint32 structure_needs_at_least_one_member = 407246362;
+  uint32 structure_needs_at_least_one_member = 1;
 }
 
 message GetState_Response {
-  lifecycle_msgs.msg.pb.jazzy.State current_state = 126724584;
+  lifecycle_msgs.msg.pb.jazzy.State current_state = 1;
 }
 
 service GetState {

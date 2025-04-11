@@ -9,5 +9,5 @@ package rcl_interfaces.msg.pb.jazzy;
 // These types correspond to the value that is set in the ParameterValue
 // message.
 message ParameterType {
-  uint32 structure_needs_at_least_one_member = 407246362;
+  uint32 structure_needs_at_least_one_member = 1;
 }

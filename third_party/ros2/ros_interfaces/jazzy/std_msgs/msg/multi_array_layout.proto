@@ -35,8 +35,8 @@ message MultiArrayLayout {
   //
   // multiarray(i,j,k) refers to the ith row, jth column, and kth channel.
   // Array of dimension properties
-  repeated std_msgs.msg.pb.jazzy.MultiArrayDimension dim = 396591031;
+  repeated std_msgs.msg.pb.jazzy.MultiArrayDimension dim = 1;
 
   // padding bytes at front of data
-  fixed32 data_offset = 435487643;
+  fixed32 data_offset = 2;
 }

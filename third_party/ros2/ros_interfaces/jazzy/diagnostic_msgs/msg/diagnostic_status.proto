@@ -11,17 +11,17 @@ import "third_party/ros2/ros_interfaces/jazzy/diagnostic_msgs/msg/key_value.prot
 // This message holds the status of an individual component of the robot.
 message DiagnosticStatus {
   // Level of operation enumerated above.
-  uint32 level = 451600288;
+  uint32 level = 1;
 
   // A description of the test/component reporting.
-  string name = 505645505;
+  string name = 2;
 
   // A description of the status.
-  string message = 381503477;
+  string message = 3;
 
   // A hardware unique string.
-  string hardware_id = 164401546;
+  string hardware_id = 4;
 
   // An array of values associated with the status.
-  repeated diagnostic_msgs.msg.pb.jazzy.KeyValue values = 447173816;
+  repeated diagnostic_msgs.msg.pb.jazzy.KeyValue values = 5;
 }

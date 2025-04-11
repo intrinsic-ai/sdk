@@ -8,13 +8,13 @@ package sensor_msgs.msg.pb.jazzy;
 
 // Declare of the type of feedback
 message JoyFeedback {
-  uint32 type = 215902902;
+  uint32 type = 1;
 
   // This will hold an id number for each type of each feedback.
   // Example, the first led would be id=0, the second would be id=1
-  uint32 id = 523861702;
+  uint32 id = 2;
 
   // Intensity of the feedback, from 0.0 to 1.0, inclusive.  If device is
   // actually binary, driver should treat 0<=x<0.5 as off, 0.5<=x<=1 as on.
-  float intensity = 162715610;
+  float intensity = 3;
 }

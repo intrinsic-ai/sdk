@@ -21,7 +21,7 @@ message AddDiagnostics_Request {
   // and http://wiki.ros.org/diagnostics/Tutorials/Using%20the%20GenericAnalyzer
   // for examples of the structure of yaml files which are expected to have been
   // loaded into the namespace.
-  string load_namespace = 270344917;
+  string load_namespace = 1;
 }
 
 message AddDiagnostics_Response {
@@ -29,10 +29,10 @@ message AddDiagnostics_Response {
   // otherwise. A false return value means that either there is a bond in the
   // aggregator which already used the requested namespace, or the
   // initialization of analyzers failed.
-  bool success = 251719510;
+  bool success = 1;
 
   // Message with additional information about the success or failure
-  string message = 381503477;
+  string message = 2;
 }
 
 service AddDiagnostics {

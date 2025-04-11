@@ -18,25 +18,25 @@ import "third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg/menu_entry.
 //  Otherwise, you might receive feedback in a different frame.
 //  For rviz, this will be the current 'fixed frame' set by the user.
 message InteractiveMarker {
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
+  std_msgs.msg.pb.jazzy.Header header = 1;
 
   // Initial pose. Also, defines the pivot point for rotations.
-  geometry_msgs.msg.pb.jazzy.Pose pose = 272258129;
+  geometry_msgs.msg.pb.jazzy.Pose pose = 2;
 
   // Identifying string. Must be globally unique in
   // the topic that this message is sent through.
-  string name = 505645505;
+  string name = 3;
 
   // Short description (< 40 characters).
-  string description = 233066442;
+  string description = 4;
 
   // Scale to be used for default controls (default=1).
-  float scale = 205931724;
+  float scale = 5;
 
   // All menu and submenu entries associated with this marker.
-  repeated visualization_msgs.msg.pb.jazzy.MenuEntry menu_entries = 86230513;
+  repeated visualization_msgs.msg.pb.jazzy.MenuEntry menu_entries = 6;
 
   // List of controls displayed for this marker.
   repeated visualization_msgs.msg.pb.jazzy.InteractiveMarkerControl controls =
-      451783559;
+      7;
 }

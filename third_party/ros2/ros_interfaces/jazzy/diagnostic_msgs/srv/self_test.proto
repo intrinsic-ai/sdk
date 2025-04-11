@@ -11,13 +11,13 @@ import "third_party/ros2/ros_interfaces/jazzy/diagnostic_msgs/msg/diagnostic_sta
 option cc_generic_services = true;
 
 message SelfTest_Request {
-  uint32 structure_needs_at_least_one_member = 407246362;
+  uint32 structure_needs_at_least_one_member = 1;
 }
 
 message SelfTest_Response {
-  string id = 523861702;
-  uint32 passed = 64626923;
-  repeated diagnostic_msgs.msg.pb.jazzy.DiagnosticStatus status = 453014720;
+  string id = 1;
+  uint32 passed = 2;
+  repeated diagnostic_msgs.msg.pb.jazzy.DiagnosticStatus status = 3;
 }
 
 service SelfTest {

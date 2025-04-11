@@ -20,27 +20,27 @@ message Image {
   // If the frame_id here and the frame_id of the CameraInfo
   // message associated with the image conflict
   // the behavior is undefined
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
+  std_msgs.msg.pb.jazzy.Header header = 1;
 
   // image height, that is, number of rows
-  fixed32 height = 357434455;
+  fixed32 height = 2;
 
   // image width, that is, number of columns
-  fixed32 width = 203053244;
+  fixed32 width = 3;
 
   // The legal values for encoding are in file
   // include/sensor_msgs/image_encodings.hpp If you want to standardize a new
   // string format, join ros-users@lists.ros.org and send an email proposing a
   // new encoding. Encoding of pixels -- channel meaning, ordering, size taken
   // from the list of strings in include/sensor_msgs/image_encodings.hpp
-  string encoding = 139004147;
+  string encoding = 4;
 
   // is this data bigendian?
-  uint32 is_bigendian = 155505754;
+  uint32 is_bigendian = 5;
 
   // Full row length in bytes
-  fixed32 step = 62523895;
+  fixed32 step = 6;
 
   // actual matrix data, size is (step * rows)
-  bytes data = 234097369;
+  bytes data = 7;
 }

@@ -13,11 +13,11 @@ package std_msgs.msg.pb.jazzy;
 //  in example_msgs.
 message MultiArrayDimension {
   // label of given dimension
-  string label = 245847249;
+  string label = 1;
 
   // size of given dimension (in type units)
-  fixed32 size = 398476210;
+  fixed32 size = 2;
 
   // stride of given dimension
-  fixed32 stride = 174018204;
+  fixed32 stride = 3;
 }

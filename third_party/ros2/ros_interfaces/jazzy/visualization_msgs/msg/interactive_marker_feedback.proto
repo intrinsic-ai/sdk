@@ -12,30 +12,30 @@ import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
 // Time/frame info.
 message InteractiveMarkerFeedback {
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
+  std_msgs.msg.pb.jazzy.Header header = 1;
 
   // Identifying string. Must be unique in the topic namespace.
-  string client_id = 434859274;
+  string client_id = 2;
 
   // Feedback message sent back from the GUI, e.g.
   // when the status of an interactive marker was modified by the user.
   // Specifies which interactive marker and control this message refers to
-  string marker_name = 125206538;
-  string control_name = 214775849;
-  uint32 event_type = 320155407;
+  string marker_name = 3;
+  string control_name = 4;
+  uint32 event_type = 5;
 
   // Current pose of the marker
   // Note: Has to be valid for all feedback types.
-  geometry_msgs.msg.pb.jazzy.Pose pose = 272258129;
+  geometry_msgs.msg.pb.jazzy.Pose pose = 6;
 
   // Contains the ID of the selected menu entry
   // Only valid for MENU_SELECT events.
-  fixed32 menu_entry_id = 375857249;
+  fixed32 menu_entry_id = 7;
 
   // If event_type is BUTTON_CLICK, MOUSE_DOWN, or MOUSE_UP, mouse_point
   // may contain the 3 dimensional position of the event on the
   // control.  If it does, mouse_point_valid will be true.  mouse_point
   // will be relative to the frame listed in the header.
-  geometry_msgs.msg.pb.jazzy.Point mouse_point = 487718023;
-  bool mouse_point_valid = 88919179;
+  geometry_msgs.msg.pb.jazzy.Point mouse_point = 8;
+  bool mouse_point_valid = 9;
 }

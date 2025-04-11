@@ -12,10 +12,10 @@ import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/polygon.proto";
 //  All shapes are defined to have their bounding boxes centered around 0,0,0.
 message SolidPrimitive {
   // The type of the shape
-  uint32 type = 215902902;
+  uint32 type = 1;
 
   // The dimensions of the shape
   // At no point will dimensions have a length > 3.
-  repeated double dimensions = 41790189;
-  geometry_msgs.msg.pb.jazzy.Polygon polygon = 128203889;
+  repeated double dimensions = 2;
+  geometry_msgs.msg.pb.jazzy.Polygon polygon = 3;
 }

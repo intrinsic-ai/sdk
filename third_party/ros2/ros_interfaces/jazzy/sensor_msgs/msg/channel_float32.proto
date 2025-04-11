@@ -25,9 +25,9 @@ package sensor_msgs.msg.pb.jazzy;
 message ChannelFloat32 {
   // The channel name should give semantics of the channel (e.g.
   //"intensity" instead of "value").
-  string name = 505645505;
+  string name = 1;
 
   // The values array should be 1-1 with the elements of the associated
   // PointCloud.
-  repeated float values = 447173816;
+  repeated float values = 2;
 }

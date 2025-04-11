@@ -9,11 +9,11 @@ package std_srvs.srv.pb.jazzy;
 option cc_generic_services = true;
 
 message Empty_Request {
-  uint32 structure_needs_at_least_one_member = 407246362;
+  uint32 structure_needs_at_least_one_member = 1;
 }
 
 message Empty_Response {
-  uint32 structure_needs_at_least_one_member = 407246362;
+  uint32 structure_needs_at_least_one_member = 1;
 }
 
 service Empty {

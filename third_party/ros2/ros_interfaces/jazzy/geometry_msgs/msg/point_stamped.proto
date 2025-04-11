@@ -11,6 +11,6 @@ import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
 // This represents a Point with reference coordinate frame and timestamp
 message PointStamped {
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
-  geometry_msgs.msg.pb.jazzy.Point point = 396757658;
+  std_msgs.msg.pb.jazzy.Header header = 1;
+  geometry_msgs.msg.pb.jazzy.Point point = 2;
 }

@@ -15,18 +15,18 @@ message InteractiveMarkerControl {
   // Identifying string for this control.
   // You need to assign a unique value to this to receive feedback from the GUI
   // on what actions the user performs on this control (e.g. a button click).
-  string name = 505645505;
+  string name = 1;
 
   // Defines the local coordinate frame (relative to the pose of the parent
   // interactive marker) in which is being rotated and translated.
   // Default: Identity
-  geometry_msgs.msg.pb.jazzy.Quaternion orientation = 377539880;
-  uint32 orientation_mode = 335979733;
-  uint32 interaction_mode = 84842132;
+  geometry_msgs.msg.pb.jazzy.Quaternion orientation = 2;
+  uint32 orientation_mode = 3;
+  uint32 interaction_mode = 4;
 
   // If true, the contained markers will also be visible
   // when the gui is not in interactive mode.
-  bool always_visible = 486595203;
+  bool always_visible = 5;
 
   // Markers to be displayed as custom visual representation.
   // Leave this empty to use the default control handles.
@@ -36,15 +36,15 @@ message InteractiveMarkerControl {
   //   but will be transformed into the local frame of the interactive marker.
   //- If the header of a marker is empty, its pose will be interpreted as
   //   relative to the pose of the parent interactive marker.
-  repeated visualization_msgs.msg.pb.jazzy.Marker markers = 25815787;
+  repeated visualization_msgs.msg.pb.jazzy.Marker markers = 6;
 
   // In VIEW_FACING mode, set this to true if you don't want the markers
   // to be aligned with the camera view point. The markers will show up
   // as in INHERIT mode.
-  bool independent_marker_orientation = 117652892;
+  bool independent_marker_orientation = 7;
 
   // Short description (< 40 characters) of what this control does,
   // e.g. "Move the robot".
   // Default: A generic description based on the interaction mode
-  string description = 233066442;
+  string description = 8;
 }

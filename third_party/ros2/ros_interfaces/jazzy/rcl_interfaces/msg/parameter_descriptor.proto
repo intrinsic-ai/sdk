@@ -12,13 +12,13 @@ import "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/integer_range.p
 // This is the message to communicate a parameter's descriptor.
 message ParameterDescriptor {
   // The name of the parameter.
-  string name = 505645505;
+  string name = 1;
 
   // Enum values are defined in the `ParameterType.msg` message.
-  uint32 type = 215902902;
+  uint32 type = 2;
 
   // Description of the parameter, visible from introspection tools.
-  string description = 233066442;
+  string description = 3;
 
   // Parameter constraints
   // Plain English description of additional constraints which cannot be
@@ -26,13 +26,13 @@ message ParameterDescriptor {
   //
   // By convention, this should only be used to clarify constraints which cannot
   // be completely expressed with the parameter constraints below.
-  string additional_constraints = 405040159;
+  string additional_constraints = 4;
 
   // If 'true' then the value cannot change after it has been initialized.
-  bool read_only = 86900493;
+  bool read_only = 5;
 
   // If true, the parameter is allowed to change type.
-  bool dynamic_typing = 374494383;
+  bool dynamic_typing = 6;
 
   // If any of the following sequences are not empty, then the constraint inside
   // of them apply to this parameter.
@@ -40,8 +40,8 @@ message ParameterDescriptor {
   // FloatingPointRange and IntegerRange are mutually exclusive.
   // FloatingPointRange consists of a from_value, a to_value, and a step.
   repeated rcl_interfaces.msg.pb.jazzy.FloatingPointRange floating_point_range =
-      340239612;
+      7;
 
   // IntegerRange consists of a from_value, a to_value, and a step.
-  repeated rcl_interfaces.msg.pb.jazzy.IntegerRange integer_range = 231169884;
+  repeated rcl_interfaces.msg.pb.jazzy.IntegerRange integer_range = 8;
 }

@@ -8,6 +8,6 @@ package type_description_interfaces.msg.pb.jazzy;
 
 // Represents an arbitrary key-value pair for application-specific information.
 message KeyValue {
-  string key = 177258294;
-  string value = 494361629;
+  string key = 1;
+  string value = 2;
 }

@@ -27,17 +27,17 @@ import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 //  for a value of -1 in the first element of each covariance matrix, and
 //  disregard the associated estimate.
 message Imu {
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
-  geometry_msgs.msg.pb.jazzy.Quaternion orientation = 377539880;
+  std_msgs.msg.pb.jazzy.Header header = 1;
+  geometry_msgs.msg.pb.jazzy.Quaternion orientation = 2;
 
   // Row major about x, y, z axes
-  repeated double orientation_covariance = 357327938;
-  geometry_msgs.msg.pb.jazzy.Vector3 angular_velocity = 45838734;
+  repeated double orientation_covariance = 3;
+  geometry_msgs.msg.pb.jazzy.Vector3 angular_velocity = 4;
 
   // Row major about x, y, z axes
-  repeated double angular_velocity_covariance = 108817798;
-  geometry_msgs.msg.pb.jazzy.Vector3 linear_acceleration = 12661627;
+  repeated double angular_velocity_covariance = 5;
+  geometry_msgs.msg.pb.jazzy.Vector3 linear_acceleration = 6;
 
   // Row major x, y z
-  repeated double linear_acceleration_covariance = 227017240;
+  repeated double linear_acceleration_covariance = 7;
 }

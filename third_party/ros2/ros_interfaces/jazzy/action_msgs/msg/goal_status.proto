@@ -15,8 +15,8 @@ import "third_party/ros2/ros_interfaces/jazzy/action_msgs/msg/goal_info.proto";
 //  For more information, see http://design.ros2.org/articles/actions.html
 message GoalStatus {
   // Goal info (contains ID and timestamp).
-  action_msgs.msg.pb.jazzy.GoalInfo goal_info = 364482644;
+  action_msgs.msg.pb.jazzy.GoalInfo goal_info = 1;
 
   // Action goal state-machine status.
-  int32 status = 453014720;
+  int32 status = 2;
 }

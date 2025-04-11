@@ -24,8 +24,8 @@ message StatisticDataPoint {
   // The statistic type of this data point, defined in StatisticDataType.msg
   // Default value should be
   // StatisticDataType.STATISTICS_DATA_TYPE_UNINITIALIZED (0).
-  uint32 data_type = 395420829;
+  uint32 data_type = 1;
 
   // The value of the data point
-  double data = 234097369;
+  double data = 2;
 }

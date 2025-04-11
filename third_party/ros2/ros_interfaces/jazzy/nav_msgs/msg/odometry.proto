@@ -16,14 +16,14 @@ import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 //  coordinate frame given by the child_frame_id
 message Odometry {
   // Includes the frame id of the pose parent.
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
+  std_msgs.msg.pb.jazzy.Header header = 1;
 
   // Frame id the pose points to. The twist is in this coordinate frame.
-  string child_frame_id = 363124313;
+  string child_frame_id = 2;
 
   // Estimated pose that is typically relative to a fixed world frame.
-  geometry_msgs.msg.pb.jazzy.PoseWithCovariance pose = 272258129;
+  geometry_msgs.msg.pb.jazzy.PoseWithCovariance pose = 3;
 
   // Estimated linear and angular velocity relative to child_frame_id.
-  geometry_msgs.msg.pb.jazzy.TwistWithCovariance twist = 149179994;
+  geometry_msgs.msg.pb.jazzy.TwistWithCovariance twist = 4;
 }

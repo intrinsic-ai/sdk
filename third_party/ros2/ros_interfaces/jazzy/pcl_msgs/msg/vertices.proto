@@ -8,5 +8,5 @@ package pcl_msgs.msg.pb.jazzy;
 
 // List of point indices
 message Vertices {
-  repeated fixed32 vertices = 18008104;
+  repeated fixed32 vertices = 1;
 }

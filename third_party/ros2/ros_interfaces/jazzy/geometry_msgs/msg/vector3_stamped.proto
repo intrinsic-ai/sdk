@@ -14,6 +14,6 @@ message Vector3Stamped {
   // Note that this follows vector semantics with it always anchored at the
   // origin, so the rotational elements of a transform are the only parts
   // applied when transforming.
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
-  geometry_msgs.msg.pb.jazzy.Vector3 vector = 460213316;
+  std_msgs.msg.pb.jazzy.Header header = 1;
+  geometry_msgs.msg.pb.jazzy.Vector3 vector = 2;
 }

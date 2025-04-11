@@ -7,6 +7,6 @@ syntax = "proto3";
 package control_msgs.msg.pb.jazzy;
 
 message GripperCommand {
-  double position = 103608496;
-  double max_effort = 525338465;
+  double position = 1;
+  double max_effort = 2;
 }

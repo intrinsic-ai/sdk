@@ -8,8 +8,8 @@ package rcl_interfaces.msg.pb.jazzy;
 
 // True when succeed, false when failed.
 message SetLoggerLevelsResult {
-  bool successful = 86854949;
+  bool successful = 1;
 
   // Reason why the setting was either successful or a failure.
-  string reason = 465080286;
+  string reason = 2;
 }

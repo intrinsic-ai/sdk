@@ -8,8 +8,8 @@ package geometry_msgs.msg.pb.jazzy;
 
 // This represents an orientation in free space in quaternion form.
 message Quaternion {
-  double x = 215755280;
-  double y = 467354973;
-  double z = 47351635;
-  double w = 476253947;
+  double x = 1;
+  double y = 2;
+  double z = 3;
+  double w = 4;
 }

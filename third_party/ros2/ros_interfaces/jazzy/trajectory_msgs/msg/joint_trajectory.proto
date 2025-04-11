@@ -12,13 +12,13 @@ import "third_party/ros2/ros_interfaces/jazzy/trajectory_msgs/msg/joint_trajecto
 // The header is used to specify the coordinate frame and the reference time for
 //  the trajectory durations
 message JointTrajectory {
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
+  std_msgs.msg.pb.jazzy.Header header = 1;
 
   // The names of the active joints in each trajectory point. These names are
   // ordered and must correspond to the values in each trajectory point.
-  repeated string joint_names = 492788101;
+  repeated string joint_names = 2;
 
   // Array of trajectory points, which describe the positions, velocities,
   // accelerations and/or efforts of the joints at each time point.
-  repeated trajectory_msgs.msg.pb.jazzy.JointTrajectoryPoint points = 129668603;
+  repeated trajectory_msgs.msg.pb.jazzy.JointTrajectoryPoint points = 3;
 }

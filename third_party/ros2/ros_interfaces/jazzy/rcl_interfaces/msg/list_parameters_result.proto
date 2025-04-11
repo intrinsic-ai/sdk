@@ -8,8 +8,8 @@ package rcl_interfaces.msg.pb.jazzy;
 
 // The resulting parameters under the given prefixes.
 message ListParametersResult {
-  repeated string names = 305358984;
+  repeated string names = 1;
 
   // The resulting prefixes under the given prefixes.
-  repeated string prefixes = 293909964;
+  repeated string prefixes = 2;
 }

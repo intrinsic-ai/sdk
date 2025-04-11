@@ -12,5 +12,5 @@ package control_msgs.msg.pb.jazzy;
 //  Negative values are not allowed (Which should be checked by any instance
 //  consuming this message).
 message SpeedScalingFactor {
-  double factor = 221842248;
+  double factor = 1;
 }

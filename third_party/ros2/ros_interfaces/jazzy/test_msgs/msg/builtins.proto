@@ -10,6 +10,6 @@ import "third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg/duration.pr
 import "third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg/time.proto";
 
 message Builtins {
-  builtin_interfaces.msg.pb.jazzy.Duration duration_value = 26701315;
-  builtin_interfaces.msg.pb.jazzy.Time time_value = 403031299;
+  builtin_interfaces.msg.pb.jazzy.Duration duration_value = 1;
+  builtin_interfaces.msg.pb.jazzy.Time time_value = 2;
 }

@@ -9,10 +9,10 @@ package rcl_interfaces.msg.pb.jazzy;
 // Represents bounds and a step value for an integer typed parameter.
 message IntegerRange {
   // Start value for valid values, inclusive.
-  sfixed64 from_value = 67208445;
+  sfixed64 from_value = 1;
 
   // End value for valid values, inclusive.
-  sfixed64 to_value = 374041837;
+  sfixed64 to_value = 2;
 
   // Size of valid steps between the from and to bound.
   //
@@ -30,5 +30,5 @@ message IntegerRange {
   // is not a multiple of the step, then the "to" bound will always be a valid
   // value, e.g. if the range is defined as {from_value: 2, to_value: 5, step:
   // 2} then the valid values will be 2, 4, and 5.
-  fixed64 step = 62523895;
+  fixed64 step = 3;
 }

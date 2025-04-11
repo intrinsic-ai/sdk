@@ -15,21 +15,21 @@ package sensor_msgs.msg.pb.jazzy;
 message RegionOfInterest {
   // Leftmost pixel of the ROI
   //(0 if the ROI includes the left edge of the image)
-  fixed32 x_offset = 130199347;
+  fixed32 x_offset = 1;
 
   // Topmost pixel of the ROI
   //(0 if the ROI includes the top edge of the image)
-  fixed32 y_offset = 191416135;
+  fixed32 y_offset = 2;
 
   // Height of ROI
-  fixed32 height = 357434455;
+  fixed32 height = 3;
 
   // Width of ROI
-  fixed32 width = 203053244;
+  fixed32 width = 4;
 
   // True if a distinct rectified ROI should be calculated from the "raw"
   // ROI in this message. Typically this should be False if the full image
   // is captured (ROI not used), and True if a subwindow is captured (ROI
   // used).
-  bool do_rectify = 270795628;
+  bool do_rectify = 5;
 }

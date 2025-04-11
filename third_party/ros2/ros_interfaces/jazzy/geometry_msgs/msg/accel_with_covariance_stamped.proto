@@ -12,6 +12,6 @@ import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 // This represents an estimated accel with reference coordinate frame and
 // timestamp.
 message AccelWithCovarianceStamped {
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
-  geometry_msgs.msg.pb.jazzy.AccelWithCovariance accel = 503071392;
+  std_msgs.msg.pb.jazzy.Header header = 1;
+  geometry_msgs.msg.pb.jazzy.AccelWithCovariance accel = 2;
 }

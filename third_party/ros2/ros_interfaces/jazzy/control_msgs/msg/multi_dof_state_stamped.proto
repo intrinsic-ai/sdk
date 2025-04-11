@@ -13,6 +13,6 @@ import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 // freedom.
 message MultiDOFStateStamped {
   // Header timestamp should be update time of controller state
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
-  repeated control_msgs.msg.pb.jazzy.SingleDOFState dof_states = 457540557;
+  std_msgs.msg.pb.jazzy.Header header = 1;
+  repeated control_msgs.msg.pb.jazzy.SingleDOFState dof_states = 2;
 }

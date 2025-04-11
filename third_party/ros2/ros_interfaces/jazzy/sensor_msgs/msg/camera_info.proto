@@ -42,7 +42,7 @@ message CameraInfo {
   //+x should point to the right in the image
   //+y should point down in the image
   //+z should point into the plane of the image
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
+  std_msgs.msg.pb.jazzy.Header header = 1;
 
   //                     Calibration Parameters                         #
   //
@@ -58,17 +58,17 @@ message CameraInfo {
   //
   // The image dimensions with which the camera was calibrated.
   // Normally this will be the full camera resolution in pixels.
-  fixed32 height = 357434455;
-  fixed32 width = 203053244;
+  fixed32 height = 2;
+  fixed32 width = 3;
 
   // The distortion model used. Supported models are listed in
   // sensor_msgs/distortion_models.hpp. For most cameras, "plumb_bob" - a
   // simple model of radial and tangential distortion - is sufficent.
-  string distortion_model = 335801395;
+  string distortion_model = 4;
 
   // The distortion parameters, size depending on the distortion model.
   // For "plumb_bob", the 5 parameters are: (k1, k2, t1, t2, k3).
-  repeated double d = 417160793;
+  repeated double d = 5;
 
   // Intrinsic camera matrix for the raw (distorted) images.
   //     [fx  0 cx]
@@ -78,14 +78,14 @@ message CameraInfo {
   // coordinates using the focal lengths (fx, fy) and principal point
   //(cx, cy).
   // 3x3 row-major matrix
-  repeated double k = 140663622;
+  repeated double k = 6;
 
   // Rectification matrix (stereo cameras only)
   // A rotation matrix aligning the camera coordinate system to the ideal
   // stereo image plane so that epipolar lines in both stereo images are
   // parallel.
   // 3x3 row-major matrix
-  repeated double r = 201985857;
+  repeated double r = 7;
 
   // Projection/camera matrix
   //     [fx'  0  cx' Tx]
@@ -112,7 +112,7 @@ message CameraInfo {
   //         y = v / w
   //  This holds for both images of a stereo pair.
   // 3x4 row-major matrix
-  repeated double p = 34058814;
+  repeated double p = 8;
 
   //                     Operational Parameters                         #
   //
@@ -126,8 +126,8 @@ message CameraInfo {
   // (width / binning_x) x (height / binning_y).
   // The default values binning_x = binning_y = 0 is considered the same
   // as binning_x = binning_y = 1 (no subsampling).
-  fixed32 binning_x = 334613265;
-  fixed32 binning_y = 83277466;
+  fixed32 binning_x = 9;
+  fixed32 binning_y = 10;
 
   // Region of interest (subwindow of full camera resolution), given in
   //  full resolution (unbinned) image coordinates. A particular ROI
@@ -135,5 +135,5 @@ message CameraInfo {
   //  regardless of binning settings.
   // The default setting of roi (all values 0) is considered the same as
   //  full resolution (roi.width = width, roi.height = height).
-  sensor_msgs.msg.pb.jazzy.RegionOfInterest roi = 507501404;
+  sensor_msgs.msg.pb.jazzy.RegionOfInterest roi = 11;
 }

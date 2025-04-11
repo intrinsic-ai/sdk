@@ -11,6 +11,6 @@ import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/vector3.proto";
 // This represents force in free space, separated into its linear and angular
 // parts.
 message Wrench {
-  geometry_msgs.msg.pb.jazzy.Vector3 force = 392730293;
-  geometry_msgs.msg.pb.jazzy.Vector3 torque = 25598043;
+  geometry_msgs.msg.pb.jazzy.Vector3 force = 1;
+  geometry_msgs.msg.pb.jazzy.Vector3 torque = 2;
 }

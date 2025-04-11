@@ -10,13 +10,12 @@ import "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/interface_value.p
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
 message DynamicInterfaceGroupValues {
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
+  std_msgs.msg.pb.jazzy.Header header = 1;
 
   // List of interface group names , e.g. ["flange_analog_IOs", "flange_vacuum"]
-  repeated string interface_groups = 3280520;
+  repeated string interface_groups = 2;
 
   // Key-value pairs representing interfaces and their corresponding values for
   // each interface group listed in `interface_groups`
-  repeated control_msgs.msg.pb.jazzy.InterfaceValue interface_values =
-      184263400;
+  repeated control_msgs.msg.pb.jazzy.InterfaceValue interface_values = 3;
 }

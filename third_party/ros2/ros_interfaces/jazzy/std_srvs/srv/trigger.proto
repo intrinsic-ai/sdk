@@ -9,15 +9,15 @@ package std_srvs.srv.pb.jazzy;
 option cc_generic_services = true;
 
 message Trigger_Request {
-  uint32 structure_needs_at_least_one_member = 407246362;
+  uint32 structure_needs_at_least_one_member = 1;
 }
 
 message Trigger_Response {
   // indicate successful run of triggered service
-  bool success = 251719510;
+  bool success = 1;
 
   // informational, e.g. for error messages
-  string message = 381503477;
+  string message = 2;
 }
 
 service Trigger {

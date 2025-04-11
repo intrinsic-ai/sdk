@@ -12,39 +12,39 @@ import "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/defaults.proto";
 
 // Bounded sequences of different types
 message BoundedSequences {
-  repeated bool bool_values = 431313499;
-  bytes byte_values = 48200771;
-  bytes char_values = 454329805;
-  repeated float float32_values = 192917791;
-  repeated double float64_values = 126342467;
-  bytes int8_values = 179276650;
-  bytes uint8_values = 101979788;
-  repeated int32 int16_values = 390002243;
-  repeated uint32 uint16_values = 71620735;
-  repeated sfixed32 int32_values = 495119260;
-  repeated fixed32 uint32_values = 251177728;
-  repeated sfixed64 int64_values = 293249216;
-  repeated fixed64 uint64_values = 33617628;
-  repeated string string_values = 349030074;
-  repeated test_msgs.msg.pb.jazzy.BasicTypes basic_types_values = 324707487;
-  repeated test_msgs.msg.pb.jazzy.Constants constants_values = 44862885;
-  repeated test_msgs.msg.pb.jazzy.Defaults defaults_values = 533242054;
-  repeated bool bool_values_default = 178264601;
-  bytes byte_values_default = 366965091;
-  bytes char_values_default = 468571145;
-  repeated float float32_values_default = 149849856;
-  repeated double float64_values_default = 265428341;
-  bytes int8_values_default = 297157005;
-  bytes uint8_values_default = 2361183;
-  repeated int32 int16_values_default = 211882958;
-  repeated uint32 uint16_values_default = 127845227;
-  repeated sfixed32 int32_values_default = 212656142;
-  repeated fixed32 uint32_values_default = 127110955;
-  repeated sfixed64 int64_values_default = 194211971;
-  repeated fixed64 uint64_values_default = 11335366;
-  repeated string string_values_default = 51595499;
+  repeated bool bool_values = 1;
+  bytes byte_values = 2;
+  bytes char_values = 3;
+  repeated float float32_values = 4;
+  repeated double float64_values = 5;
+  bytes int8_values = 6;
+  bytes uint8_values = 7;
+  repeated int32 int16_values = 8;
+  repeated uint32 uint16_values = 9;
+  repeated sfixed32 int32_values = 10;
+  repeated fixed32 uint32_values = 11;
+  repeated sfixed64 int64_values = 12;
+  repeated fixed64 uint64_values = 13;
+  repeated string string_values = 14;
+  repeated test_msgs.msg.pb.jazzy.BasicTypes basic_types_values = 15;
+  repeated test_msgs.msg.pb.jazzy.Constants constants_values = 16;
+  repeated test_msgs.msg.pb.jazzy.Defaults defaults_values = 17;
+  repeated bool bool_values_default = 18;
+  bytes byte_values_default = 19;
+  bytes char_values_default = 20;
+  repeated float float32_values_default = 21;
+  repeated double float64_values_default = 22;
+  bytes int8_values_default = 23;
+  bytes uint8_values_default = 24;
+  repeated int32 int16_values_default = 25;
+  repeated uint32 uint16_values_default = 26;
+  repeated sfixed32 int32_values_default = 27;
+  repeated fixed32 uint32_values_default = 28;
+  repeated sfixed64 int64_values_default = 29;
+  repeated fixed64 uint64_values_default = 30;
+  repeated string string_values_default = 31;
 
   // Regression test: check alignment of basic field after a sequence field is
   // correct
-  sfixed32 alignment_check = 368025287;
+  sfixed32 alignment_check = 32;
 }

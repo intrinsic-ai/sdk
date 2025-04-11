@@ -18,41 +18,41 @@ import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/string.proto";
 // Admittance parameters
 message AdmittanceControllerState {
   // 6-vector of mass terms used in the admittance calculation
-  std_msgs.msg.pb.jazzy.Float64MultiArray mass = 201550602;
+  std_msgs.msg.pb.jazzy.Float64MultiArray mass = 1;
 
   // 6-vector of damping terms used in the admittance calculation
-  std_msgs.msg.pb.jazzy.Float64MultiArray damping = 68044325;
+  std_msgs.msg.pb.jazzy.Float64MultiArray damping = 2;
 
   // 6-vector of stiffness terms used in the admittance calculation
-  std_msgs.msg.pb.jazzy.Float64MultiArray stiffness = 154641293;
+  std_msgs.msg.pb.jazzy.Float64MultiArray stiffness = 3;
 
   // Frame information
   // quaternion describing the orientation of the control frame
-  geometry_msgs.msg.pb.jazzy.Quaternion rot_base_control = 502985066;
+  geometry_msgs.msg.pb.jazzy.Quaternion rot_base_control = 4;
 
   // force torque sensor transform at the reference joint configuration
-  geometry_msgs.msg.pb.jazzy.TransformStamped ref_trans_base_ft = 207656598;
+  geometry_msgs.msg.pb.jazzy.TransformStamped ref_trans_base_ft = 5;
 
   // 6-vector of 0/1 describing if admittance is enable in the corresponding
   // control frame axis
-  std_msgs.msg.pb.jazzy.Int8MultiArray selected_axes = 1692818;
+  std_msgs.msg.pb.jazzy.Int8MultiArray selected_axes = 6;
 
   // name of the force torque frame
-  std_msgs.msg.pb.jazzy.String ft_sensor_frame = 38276078;
+  std_msgs.msg.pb.jazzy.String ft_sensor_frame = 7;
 
   // State information
   // calculated admittance position in cartesian space
-  geometry_msgs.msg.pb.jazzy.TransformStamped admittance_position = 312218203;
+  geometry_msgs.msg.pb.jazzy.TransformStamped admittance_position = 8;
 
   // calculated admittance acceleration in cartesian space
-  geometry_msgs.msg.pb.jazzy.TwistStamped admittance_acceleration = 105799084;
+  geometry_msgs.msg.pb.jazzy.TwistStamped admittance_acceleration = 9;
 
   // calculated admittance velocity in cartesian space
-  geometry_msgs.msg.pb.jazzy.TwistStamped admittance_velocity = 174611318;
+  geometry_msgs.msg.pb.jazzy.TwistStamped admittance_velocity = 10;
 
   // wrench used in the admittance calculation
-  geometry_msgs.msg.pb.jazzy.WrenchStamped wrench_base = 419269376;
+  geometry_msgs.msg.pb.jazzy.WrenchStamped wrench_base = 11;
 
   // calculated admittance offsets in joint space
-  sensor_msgs.msg.pb.jazzy.JointState joint_state = 218094050;
+  sensor_msgs.msg.pb.jazzy.JointState joint_state = 12;
 }

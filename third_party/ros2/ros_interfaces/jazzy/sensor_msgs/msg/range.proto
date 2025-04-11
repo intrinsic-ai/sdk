@@ -20,11 +20,11 @@ import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 message Range {
   // timestamp in the header is the time the ranger
   // returned the distance reading
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
+  std_msgs.msg.pb.jazzy.Header header = 1;
 
   // the type of radiation used by the sensor
   //(sound, IR, etc)
-  uint32 radiation_type = 218446361;  // [enum]
+  uint32 radiation_type = 2;  // [enum]
 
   // the size of the arc that the distance reading is
   // valid for
@@ -32,14 +32,14 @@ message Range {
   // been anywhere within -field_of_view/2 and
   // field_of_view/2 at the measured range.
   // 0 angle corresponds to the x-axis of the sensor.
-  float field_of_view = 367074707;  // [rad]
+  float field_of_view = 3;  // [rad]
 
   // minimum range value
-  float min_range = 393611339;  // [m]
+  float min_range = 4;  // [m]
 
   // maximum range value
   // Fixed distance rangers require min_range==max_range
-  float max_range = 10380052;  // [m]
+  float max_range = 5;  // [m]
 
   // range data
   //(Note: values < range_min or > range_max should be discarded)
@@ -48,9 +48,9 @@ message Range {
   //(Detection too close to the sensor to quantify)
   //+Inf represents no detection within the fixed distance.
   //(Object out of range)
-  float range = 327642582;  // [m]
+  float range = 6;  // [m]
 
   // variance of the range sensor
   // 0 is interpreted as variance unknown
-  float variance = 47148513;
+  float variance = 7;
 }

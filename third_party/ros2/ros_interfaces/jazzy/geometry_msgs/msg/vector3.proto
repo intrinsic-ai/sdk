@@ -12,7 +12,7 @@ message Vector3 {
   // A vector is always anchored at the origin.
   // When a transform is applied to a vector, only the rotational component is
   // applied.
-  double x = 215755280;
-  double y = 467354973;
-  double z = 47351635;
+  double x = 1;
+  double y = 2;
+  double z = 3;
 }

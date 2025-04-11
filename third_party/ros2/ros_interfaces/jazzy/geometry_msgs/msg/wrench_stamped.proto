@@ -11,6 +11,6 @@ import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
 // A wrench with reference coordinate frame and timestamp
 message WrenchStamped {
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
-  geometry_msgs.msg.pb.jazzy.Wrench wrench = 134164228;
+  std_msgs.msg.pb.jazzy.Header header = 1;
+  geometry_msgs.msg.pb.jazzy.Wrench wrench = 2;
 }

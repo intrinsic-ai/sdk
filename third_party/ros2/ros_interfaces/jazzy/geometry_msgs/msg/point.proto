@@ -8,7 +8,7 @@ package geometry_msgs.msg.pb.jazzy;
 
 // This contains the position of a point in free space
 message Point {
-  double x = 215755280;
-  double y = 467354973;
-  double z = 47351635;
+  double x = 1;
+  double y = 2;
+  double z = 3;
 }

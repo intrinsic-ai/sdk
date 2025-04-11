@@ -9,11 +9,11 @@ package pcl_msgs.srv.pb.jazzy;
 option cc_generic_services = true;
 
 message UpdateFilename_Request {
-  string filename = 470544695;
+  string filename = 1;
 }
 
 message UpdateFilename_Response {
-  bool success = 251719510;
+  bool success = 1;
 }
 
 service UpdateFilename {

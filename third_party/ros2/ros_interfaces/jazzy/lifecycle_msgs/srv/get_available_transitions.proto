@@ -11,12 +11,12 @@ import "third_party/ros2/ros_interfaces/jazzy/lifecycle_msgs/msg/transition_desc
 option cc_generic_services = true;
 
 message GetAvailableTransitions_Request {
-  uint32 structure_needs_at_least_one_member = 407246362;
+  uint32 structure_needs_at_least_one_member = 1;
 }
 
 message GetAvailableTransitions_Response {
   repeated lifecycle_msgs.msg.pb.jazzy.TransitionDescription
-      available_transitions = 235384844;
+      available_transitions = 1;
 }
 
 service GetAvailableTransitions {

@@ -11,11 +11,11 @@ import "third_party/ros2/ros_interfaces/jazzy/lifecycle_msgs/msg/state.proto";
 option cc_generic_services = true;
 
 message GetAvailableStates_Request {
-  uint32 structure_needs_at_least_one_member = 407246362;
+  uint32 structure_needs_at_least_one_member = 1;
 }
 
 message GetAvailableStates_Response {
-  repeated lifecycle_msgs.msg.pb.jazzy.State available_states = 424797046;
+  repeated lifecycle_msgs.msg.pb.jazzy.State available_states = 1;
 }
 
 service GetAvailableStates {

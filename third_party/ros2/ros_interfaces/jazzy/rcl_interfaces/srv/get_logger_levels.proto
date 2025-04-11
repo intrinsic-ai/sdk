@@ -11,11 +11,11 @@ import "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/logger_level.pr
 option cc_generic_services = true;
 
 message GetLoggerLevels_Request {
-  repeated string names = 305358984;
+  repeated string names = 1;
 }
 
 message GetLoggerLevels_Response {
-  repeated rcl_interfaces.msg.pb.jazzy.LoggerLevel levels = 522876838;
+  repeated rcl_interfaces.msg.pb.jazzy.LoggerLevel levels = 1;
 }
 
 service GetLoggerLevels {

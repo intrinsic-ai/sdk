@@ -13,12 +13,12 @@ package control_msgs.msg.pb.jazzy;
 //  Cartesian axes, or have abstract meaning like GPIO interface.
 message MultiDOFCommand {
   // names of degrees of freedom
-  repeated string dof_names = 266479376;
+  repeated string dof_names = 1;
 
   // values used by most of the controller
-  repeated double values = 447173816;
+  repeated double values = 2;
 
   // First derivation of the values, e.g., velocity if values are positions.
   // This is useful for PID and similar controllers.
-  repeated double values_dot = 86513613;
+  repeated double values_dot = 3;
 }

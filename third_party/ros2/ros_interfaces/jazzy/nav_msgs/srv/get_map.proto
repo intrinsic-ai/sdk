@@ -11,11 +11,11 @@ import "third_party/ros2/ros_interfaces/jazzy/nav_msgs/msg/occupancy_grid.proto"
 option cc_generic_services = true;
 
 message GetMap_Request {
-  uint32 structure_needs_at_least_one_member = 407246362;
+  uint32 structure_needs_at_least_one_member = 1;
 }
 
 message GetMap_Response {
-  nav_msgs.msg.pb.jazzy.OccupancyGrid map = 330153544;
+  nav_msgs.msg.pb.jazzy.OccupancyGrid map = 1;
 }
 
 service GetMap {

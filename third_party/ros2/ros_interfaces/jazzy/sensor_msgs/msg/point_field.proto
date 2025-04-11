@@ -11,14 +11,14 @@ package sensor_msgs.msg.pb.jazzy;
 message PointField {
   // Common PointField names are x, y, z, intensity, rgb, rgba
   // Name of field
-  string name = 505645505;
+  string name = 1;
 
   // Offset from start of point struct
-  fixed32 offset = 420140683;
+  fixed32 offset = 2;
 
   // Datatype enumeration, see above
-  uint32 datatype = 87671539;
+  uint32 datatype = 3;
 
   // How many elements in the field
-  fixed32 count = 98129903;
+  fixed32 count = 4;
 }

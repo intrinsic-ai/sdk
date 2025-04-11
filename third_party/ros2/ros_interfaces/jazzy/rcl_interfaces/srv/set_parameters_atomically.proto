@@ -12,11 +12,11 @@ import "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/set_parameters_
 option cc_generic_services = true;
 
 message SetParametersAtomically_Request {
-  repeated rcl_interfaces.msg.pb.jazzy.Parameter parameters = 110316775;
+  repeated rcl_interfaces.msg.pb.jazzy.Parameter parameters = 1;
 }
 
 message SetParametersAtomically_Response {
-  rcl_interfaces.msg.pb.jazzy.SetParametersResult result = 325764348;
+  rcl_interfaces.msg.pb.jazzy.SetParametersResult result = 1;
 }
 
 service SetParametersAtomically {

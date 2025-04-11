@@ -9,28 +9,28 @@ package control_msgs.msg.pb.jazzy;
 // This message presents current controller state of one degree of freedom.
 message SingleDOFState {
   // DoF name, e.g., joint or Cartesian axis name
-  string name = 505645505;
+  string name = 1;
 
   // The set point, that is, desired state.
-  double reference = 245588105;
+  double reference = 2;
 
   // Current value of the process (ie: latest sensor measurement on the
   // controlled value).
-  double feedback = 304701367;
+  double feedback = 3;
 
   // First time-derivative of the process value. E.g., velocity.
-  double feedback_dot = 491279108;
+  double feedback_dot = 4;
 
   // The error of the controlled value, essentially reference - feedback (for a
   // regular PID implementation).
-  double error = 501073964;
+  double error = 5;
 
   // First time-derivative of the error of the controlled value.
-  double error_dot = 376588147;
+  double error_dot = 6;
 
   // Time between two consecutive updates/execution of the control law.
-  double time_step = 235214425;
+  double time_step = 7;
 
   // Current output of the controller.
-  double output = 215887869;
+  double output = 8;
 }

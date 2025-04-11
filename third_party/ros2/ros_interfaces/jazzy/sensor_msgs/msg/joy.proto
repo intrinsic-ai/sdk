@@ -11,11 +11,11 @@ import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 // Reports the state of a joystick's axes and buttons.
 message Joy {
   // The timestamp is the time at which data is received from the joystick.
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
+  std_msgs.msg.pb.jazzy.Header header = 1;
 
   // The axes measurements from a joystick.
-  repeated float axes = 163238344;
+  repeated float axes = 2;
 
   // The buttons measurements from a joystick.
-  repeated sfixed32 buttons = 56398193;
+  repeated sfixed32 buttons = 3;
 }

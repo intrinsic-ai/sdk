@@ -12,11 +12,11 @@ import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 message Temperature {
   // timestamp is the time the temperature was measured
   // frame_id is the location of the temperature reading
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
+  std_msgs.msg.pb.jazzy.Header header = 1;
 
   // Measurement of the Temperature in Degrees Celsius.
-  double temperature = 508445154;
+  double temperature = 2;
 
   // 0 is interpreted as variance unknown.
-  double variance = 47148513;
+  double variance = 3;
 }

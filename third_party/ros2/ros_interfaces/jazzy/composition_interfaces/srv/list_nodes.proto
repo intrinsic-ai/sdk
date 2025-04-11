@@ -9,14 +9,14 @@ package composition_interfaces.srv.pb.jazzy;
 option cc_generic_services = true;
 
 message ListNodes_Request {
-  uint32 structure_needs_at_least_one_member = 407246362;
+  uint32 structure_needs_at_least_one_member = 1;
 }
 
 message ListNodes_Response {
-  repeated string full_node_names = 60730215;
+  repeated string full_node_names = 1;
 
   // corresponding unique ids (must have same length as full_node_names).
-  repeated fixed64 unique_ids = 339228906;
+  repeated fixed64 unique_ids = 2;
 }
 
 service ListNodes {

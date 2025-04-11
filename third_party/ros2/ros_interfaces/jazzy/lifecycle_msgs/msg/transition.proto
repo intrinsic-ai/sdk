@@ -12,8 +12,8 @@ message Transition {
   // Fields
   //
   // The transition id from above definitions.
-  uint32 id = 523861702;
+  uint32 id = 1;
 
   // A text label of the transition.
-  string label = 245847249;
+  string label = 2;
 }

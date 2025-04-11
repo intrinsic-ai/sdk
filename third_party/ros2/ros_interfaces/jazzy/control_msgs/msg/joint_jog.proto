@@ -10,23 +10,23 @@ import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
 // Used in time-stamping the message.
 message JointJog {
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
+  std_msgs.msg.pb.jazzy.Header header = 1;
 
   // Name list of the joints. You don't need to specify all joints of the
   // robot. Joint names are case-sensitive.
-  repeated string joint_names = 492788101;
+  repeated string joint_names = 2;
 
   // A position command to the joints listed in joint_names.
   // The order must be identical.
   // Units are meters or radians.
   // If displacements and velocities are filled, a profiled motion is requested.
   // or position_deltas
-  repeated double displacements = 208783639;
+  repeated double displacements = 3;
 
   // A velocity command to the joints listed in joint_names.
   // The order must be identical.
   // Units are m/s or rad/s.
   // If displacements and velocities are filled, a profiled motion is requested.
-  repeated double velocities = 470602751;
-  double duration = 106927181;
+  repeated double velocities = 4;
+  double duration = 5;
 }

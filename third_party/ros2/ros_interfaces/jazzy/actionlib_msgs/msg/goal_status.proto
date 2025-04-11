@@ -9,9 +9,9 @@ package actionlib_msgs.msg.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/actionlib_msgs/msg/goal_id.proto";
 
 message GoalStatus {
-  actionlib_msgs.msg.pb.jazzy.GoalID goal_id = 108866210;
-  uint32 status = 453014720;
+  actionlib_msgs.msg.pb.jazzy.GoalID goal_id = 1;
+  uint32 status = 2;
 
   // Allow for the user to associate a string with GoalStatus for debugging.
-  string text = 462139289;
+  string text = 3;
 }

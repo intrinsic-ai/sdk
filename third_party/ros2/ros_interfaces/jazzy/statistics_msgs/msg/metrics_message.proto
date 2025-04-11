@@ -23,22 +23,21 @@ import "third_party/ros2/ros_interfaces/jazzy/statistics_msgs/msg/statistic_data
 //  These are all represented as different 'StatisticDataPoint's.
 message MetricsMessage {
   // Name metric measurement source, e.g., node, topic, or process name
-  string measurement_source_name = 269659380;
+  string measurement_source_name = 1;
 
   // Name of the metric being measured, e.g. cpu_percentage, free_memory_mb,
   // message_age, etc.
-  string metrics_source = 156566841;
+  string metrics_source = 2;
 
   // Unit of measure of the metric, e.g. percent, mb, seconds, etc.
-  string unit = 482027442;
+  string unit = 3;
 
   // Measurement window start time
-  builtin_interfaces.msg.pb.jazzy.Time window_start = 179876475;
+  builtin_interfaces.msg.pb.jazzy.Time window_start = 4;
 
   // Measurement window end time
-  builtin_interfaces.msg.pb.jazzy.Time window_stop = 417644925;
+  builtin_interfaces.msg.pb.jazzy.Time window_stop = 5;
 
   // A list of statistics data point, defined in StatisticDataPoint.msg
-  repeated statistics_msgs.msg.pb.jazzy.StatisticDataPoint statistics =
-      47426154;
+  repeated statistics_msgs.msg.pb.jazzy.StatisticDataPoint statistics = 6;
 }

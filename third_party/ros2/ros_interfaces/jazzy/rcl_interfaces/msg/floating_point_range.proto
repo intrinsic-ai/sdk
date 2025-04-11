@@ -9,10 +9,10 @@ package rcl_interfaces.msg.pb.jazzy;
 // Represents bounds and a step value for a floating point typed parameter.
 message FloatingPointRange {
   // Start value for valid values, inclusive.
-  double from_value = 67208445;
+  double from_value = 1;
 
   // End value for valid values, inclusive.
-  double to_value = 374041837;
+  double to_value = 2;
 
   // Size of valid steps between the from and to bound.
   //
@@ -33,5 +33,5 @@ message FloatingPointRange {
   // is not a multiple of the step, then the "to" bound will always be a valid
   // value, e.g. if the range is defined as {from_value: 2.0, to_value: 5.0,
   // step: 2.0} then the valid values will be 2.0, 4.0, and 5.0.
-  double step = 62523895;
+  double step = 3;
 }

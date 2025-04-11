@@ -13,5 +13,5 @@ package shape_msgs.msg.pb.jazzy;
 //  c := coef[2]
 //  d := coef[3]
 message Plane {
-  repeated double coef = 386363307;
+  repeated double coef = 1;
 }

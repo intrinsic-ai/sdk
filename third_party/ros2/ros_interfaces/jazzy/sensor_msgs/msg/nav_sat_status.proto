@@ -13,6 +13,6 @@ package sensor_msgs.msg.pb.jazzy;
 //  fix is valid when status >= STATUS_FIX.
 message NavSatStatus {
   // STATUS_UNKNOWN
-  int32 status = 453014720;
-  uint32 service = 27114010;
+  int32 status = 1;
+  uint32 service = 2;
 }

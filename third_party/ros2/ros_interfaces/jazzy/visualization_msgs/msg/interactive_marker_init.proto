@@ -11,7 +11,7 @@ import "third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg/interactive
 // Identifying string. Must be unique in the topic namespace
 //  that this server works on.
 message InteractiveMarkerInit {
-  string server_id = 407169696;
+  string server_id = 1;
 
   // Sequence number.
   // The client will use this to detect if it has missed a subsequent
@@ -19,8 +19,8 @@ message InteractiveMarkerInit {
   // an init message.  Clients will likely want to unsubscribe from the
   // init topic after a successful initialization to avoid receiving
   // duplicate data.
-  fixed64 seq_num = 202062714;
+  fixed64 seq_num = 2;
 
   // All markers.
-  repeated visualization_msgs.msg.pb.jazzy.InteractiveMarker markers = 25815787;
+  repeated visualization_msgs.msg.pb.jazzy.InteractiveMarker markers = 3;
 }

@@ -11,12 +11,12 @@ import "third_party/ros2/ros_interfaces/jazzy/lifecycle_msgs/msg/transition.prot
 option cc_generic_services = true;
 
 message ChangeState_Request {
-  lifecycle_msgs.msg.pb.jazzy.Transition transition = 387303074;
+  lifecycle_msgs.msg.pb.jazzy.Transition transition = 1;
 }
 
 message ChangeState_Response {
   // Indicates whether the service was able to initiate the state transition
-  bool success = 251719510;
+  bool success = 1;
 }
 
 service ChangeState {

@@ -9,7 +9,7 @@ package type_description_interfaces.msg.pb.jazzy;
 // Represents the original source of a ROS 2 interface definition.
 message TypeSource {
   // ROS interface type name, in PACKAGE/NAMESPACE/TYPENAME format.
-  string type_name = 153931419;
+  string type_name = 1;
 
   // The type of the original source file, typically matching the file
   // extension. Well-known encodings: "idl", "msg", "srv", "action", "dynamic",
@@ -18,9 +18,9 @@ message TypeSource {
   // a subtype of a complex type (service or action) - such as the request
   // message for a service. Implicit types will have no contents, the full
   // source will be available on the parent srv/action.
-  string encoding = 139004147;
+  string encoding = 2;
 
   // Dumped contents of the interface definition source file.
   // If `encoding` is "dynamic" or "implicit", this field will be empty.
-  string raw_file_contents = 139642259;
+  string raw_file_contents = 3;
 }

@@ -11,6 +11,6 @@ import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/vector3.proto";
 // This expresses velocity in free space broken into its linear and angular
 // parts.
 message Twist {
-  geometry_msgs.msg.pb.jazzy.Vector3 linear = 232701084;
-  geometry_msgs.msg.pb.jazzy.Vector3 angular = 377521384;
+  geometry_msgs.msg.pb.jazzy.Vector3 linear = 1;
+  geometry_msgs.msg.pb.jazzy.Vector3 angular = 2;
 }

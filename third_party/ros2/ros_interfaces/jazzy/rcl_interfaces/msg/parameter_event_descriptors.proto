@@ -12,10 +12,9 @@ import "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/parameter_descr
 //  It was an atomic update.
 //  A specific parameter name can only be in one of the three sets.
 message ParameterEventDescriptors {
-  repeated rcl_interfaces.msg.pb.jazzy.ParameterDescriptor new_parameters =
-      464307857;
+  repeated rcl_interfaces.msg.pb.jazzy.ParameterDescriptor new_parameters = 1;
   repeated rcl_interfaces.msg.pb.jazzy.ParameterDescriptor changed_parameters =
-      402691519;
+      2;
   repeated rcl_interfaces.msg.pb.jazzy.ParameterDescriptor deleted_parameters =
-      117296514;
+      3;
 }

@@ -11,5 +11,5 @@ package sensor_msgs.msg.pb.jazzy;
 message LaserEcho {
   // Multiple values of ranges or intensities.
   // Each array represents data from the same angle increment.
-  repeated float echoes = 469166589;
+  repeated float echoes = 1;
 }

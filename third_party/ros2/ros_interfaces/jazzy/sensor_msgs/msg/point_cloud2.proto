@@ -20,28 +20,28 @@ import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 message PointCloud2 {
   // Time of sensor data acquisition, and the coordinate frame ID (for 3d
   // points).
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
+  std_msgs.msg.pb.jazzy.Header header = 1;
 
   // 2D structure of the point cloud. If the cloud is unordered, height is
   // 1 and width is the length of the point cloud.
-  fixed32 height = 357434455;
-  fixed32 width = 203053244;
+  fixed32 height = 2;
+  fixed32 width = 3;
 
   // Describes the channels and their layout in the binary data blob.
-  repeated sensor_msgs.msg.pb.jazzy.PointField fields = 518386476;
+  repeated sensor_msgs.msg.pb.jazzy.PointField fields = 4;
 
   // Is this data bigendian?
-  bool is_bigendian = 155505754;
+  bool is_bigendian = 5;
 
   // Length of a point in bytes
-  fixed32 point_step = 171521213;
+  fixed32 point_step = 6;
 
   // Length of a row in bytes
-  fixed32 row_step = 405813661;
+  fixed32 row_step = 7;
 
   // Actual point data, size is (row_step*height)
-  bytes data = 234097369;
+  bytes data = 8;
 
   // True if there are no invalid points
-  bool is_dense = 286764710;
+  bool is_dense = 9;
 }

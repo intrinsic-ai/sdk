@@ -9,20 +9,20 @@ package control_msgs.msg.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
 message SteeringControllerStatus {
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
+  std_msgs.msg.pb.jazzy.Header header = 1;
 
   // positions of traction wheels if the robot is controlled by position
-  repeated double traction_wheels_position = 304369074;
+  repeated double traction_wheels_position = 2;
 
   // velocities of traction wheels if the robot is controlled by velocity
-  repeated double traction_wheels_velocity = 181405665;
+  repeated double traction_wheels_velocity = 3;
 
   // positions of steering joints
-  repeated double steer_positions = 249251287;
+  repeated double steer_positions = 4;
 
   // value commanded to tractions joint
-  repeated double linear_velocity_command = 189664302;
+  repeated double linear_velocity_command = 5;
 
   // values commanded to steering joints
-  repeated double steering_angle_command = 388043477;
+  repeated double steering_angle_command = 6;
 }

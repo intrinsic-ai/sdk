@@ -9,8 +9,8 @@ package rcl_interfaces.msg.pb.jazzy;
 // All available logger levels; these correspond to the enum in rcutils/logger.h
 message LoggerLevel {
   // The logger name.
-  string name = 505645505;
+  string name = 1;
 
   // The logger level
-  fixed32 level = 451600288;
+  fixed32 level = 2;
 }

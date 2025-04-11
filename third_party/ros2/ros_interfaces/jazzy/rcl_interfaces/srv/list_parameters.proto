@@ -12,17 +12,17 @@ option cc_generic_services = true;
 
 message ListParameters_Request {
   // The list of parameter prefixes to query.
-  repeated string prefixes = 293909964;
+  repeated string prefixes = 1;
 
   // Relative depth from given prefixes to return.
   //
   // Use DEPTH_RECURSIVE to get the recursive parameters and prefixes for each
   // prefix.
-  fixed64 depth = 446905265;
+  fixed64 depth = 2;
 }
 
 message ListParameters_Response {
-  rcl_interfaces.msg.pb.jazzy.ListParametersResult result = 325764348;
+  rcl_interfaces.msg.pb.jazzy.ListParametersResult result = 1;
 }
 
 service ListParameters {

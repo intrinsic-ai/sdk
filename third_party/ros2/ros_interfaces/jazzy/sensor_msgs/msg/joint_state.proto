@@ -29,9 +29,9 @@ import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 //  This is the only way to uniquely associate the joint name with the correct
 //  states.
 message JointState {
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
-  repeated string name = 505645505;
-  repeated double position = 103608496;
-  repeated double velocity = 517533215;
-  repeated double effort = 137254524;
+  std_msgs.msg.pb.jazzy.Header header = 1;
+  repeated string name = 2;
+  repeated double position = 3;
+  repeated double velocity = 4;
+  repeated double effort = 5;
 }

@@ -11,14 +11,14 @@ import "third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg/interactive
 option cc_generic_services = true;
 
 message GetInteractiveMarkers_Request {
-  uint32 structure_needs_at_least_one_member = 407246362;
+  uint32 structure_needs_at_least_one_member = 1;
 }
 
 message GetInteractiveMarkers_Response {
-  fixed64 sequence_number = 310401669;
+  fixed64 sequence_number = 1;
 
   // All interactive markers provided by the server.
-  repeated visualization_msgs.msg.pb.jazzy.InteractiveMarker markers = 25815787;
+  repeated visualization_msgs.msg.pb.jazzy.InteractiveMarker markers = 2;
 }
 
 service GetInteractiveMarkers {

@@ -7,15 +7,15 @@ syntax = "proto3";
 package test_msgs.msg.pb.jazzy;
 
 message WStrings {
-  bytes wstring_value = 442370364;
-  bytes wstring_value_default1 = 37850468;
-  bytes wstring_value_default2 = 457715578;
-  bytes wstring_value_default3 = 206510843;
+  bytes wstring_value = 1;
+  bytes wstring_value_default1 = 2;
+  bytes wstring_value_default2 = 3;
+  bytes wstring_value_default3 = 4;
 
   // wstring WSTRING_CONST="Hello world!"
   // wstring<=22 bounded_wstring_value
   // wstring<=22 bounded_wstring_value_default1 "Hello world!"
-  repeated bytes array_of_wstrings = 347212834;
-  repeated bytes bounded_sequence_of_wstrings = 157757281;
-  repeated bytes unbounded_sequence_of_wstrings = 317313959;
+  repeated bytes array_of_wstrings = 5;
+  repeated bytes bounded_sequence_of_wstrings = 6;
+  repeated bytes unbounded_sequence_of_wstrings = 7;
 }

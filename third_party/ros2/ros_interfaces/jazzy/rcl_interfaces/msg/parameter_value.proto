@@ -13,35 +13,35 @@ package rcl_interfaces.msg.pb.jazzy;
 message ParameterValue {
   // The type of this parameter, which corresponds to the appropriate field
   // below.
-  uint32 type = 215902902;
+  uint32 type = 1;
 
   //"Variant" style storage of the parameter value. Only the value corresponding
   // the type field will have valid information.
   // Boolean value, can be either true or false.
-  bool bool_value = 370315042;
+  bool bool_value = 2;
 
   // Integer value ranging from -9,223,372,036,854,775,808 to
   // 9,223,372,036,854,775,807.
-  sfixed64 integer_value = 53964091;
+  sfixed64 integer_value = 3;
 
   // A double precision floating point value following IEEE 754.
-  double double_value = 153086770;
+  double double_value = 4;
 
   // A textual value with no practical length limit.
-  string string_value = 159063816;
+  string string_value = 5;
 
   // An array of bytes, used for non-textual information.
-  bytes byte_array_value = 302741864;
+  bytes byte_array_value = 6;
 
   // An array of boolean values.
-  repeated bool bool_array_value = 445400710;
+  repeated bool bool_array_value = 7;
 
   // An array of 64-bit integer values.
-  repeated sfixed64 integer_array_value = 504163665;
+  repeated sfixed64 integer_array_value = 8;
 
   // An array of 64-bit floating point values.
-  repeated double double_array_value = 336354037;
+  repeated double double_array_value = 9;
 
   // An array of string values.
-  repeated string string_array_value = 459658909;
+  repeated string string_array_value = 10;
 }

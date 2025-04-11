@@ -12,14 +12,14 @@ import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/twist.proto";
 
 // Each multi-dof joint can specify a transform (up to 6 DOF).
 message MultiDOFJointTrajectoryPoint {
-  repeated geometry_msgs.msg.pb.jazzy.Transform transforms = 320780885;
+  repeated geometry_msgs.msg.pb.jazzy.Transform transforms = 1;
 
   // There can be a velocity specified for the origin of the joint.
-  repeated geometry_msgs.msg.pb.jazzy.Twist velocities = 470602751;
+  repeated geometry_msgs.msg.pb.jazzy.Twist velocities = 2;
 
   // There can be an acceleration specified for the origin of the joint.
-  repeated geometry_msgs.msg.pb.jazzy.Twist accelerations = 480455785;
+  repeated geometry_msgs.msg.pb.jazzy.Twist accelerations = 3;
 
   // Desired time from the trajectory start to arrive at this trajectory point.
-  builtin_interfaces.msg.pb.jazzy.Duration time_from_start = 244671567;
+  builtin_interfaces.msg.pb.jazzy.Duration time_from_start = 4;
 }

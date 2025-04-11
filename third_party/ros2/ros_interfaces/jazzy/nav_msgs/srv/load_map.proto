@@ -11,13 +11,13 @@ import "third_party/ros2/ros_interfaces/jazzy/nav_msgs/msg/occupancy_grid.proto"
 option cc_generic_services = true;
 
 message LoadMap_Request {
-  string map_url = 355362946;
+  string map_url = 1;
 }
 
 message LoadMap_Response {
   // Returned map is only valid if result equals RESULT_SUCCESS
-  nav_msgs.msg.pb.jazzy.OccupancyGrid map = 330153544;
-  uint32 result = 325764348;
+  nav_msgs.msg.pb.jazzy.OccupancyGrid map = 1;
+  uint32 result = 2;
 }
 
 service LoadMap {

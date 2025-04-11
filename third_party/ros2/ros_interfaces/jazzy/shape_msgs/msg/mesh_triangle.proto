@@ -8,5 +8,5 @@ package shape_msgs.msg.pb.jazzy;
 
 // Definition of a triangle's vertices.
 message MeshTriangle {
-  repeated fixed32 vertex_indices = 464020935;
+  repeated fixed32 vertex_indices = 1;
 }

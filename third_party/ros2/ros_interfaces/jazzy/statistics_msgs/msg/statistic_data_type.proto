@@ -12,5 +12,5 @@ package statistics_msgs.msg.pb.jazzy;
 //  Range of values: [0, 255].
 //  Unallowed values: any value that is not specified in this file.
 message StatisticDataType {
-  uint32 structure_needs_at_least_one_member = 407246362;
+  uint32 structure_needs_at_least_one_member = 1;
 }

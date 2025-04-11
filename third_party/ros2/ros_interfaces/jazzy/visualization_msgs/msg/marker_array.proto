@@ -9,5 +9,5 @@ package visualization_msgs.msg.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg/marker.proto";
 
 message MarkerArray {
-  repeated visualization_msgs.msg.pb.jazzy.Marker markers = 25815787;
+  repeated visualization_msgs.msg.pb.jazzy.Marker markers = 1;
 }

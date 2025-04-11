@@ -7,5 +7,5 @@ syntax = "proto3";
 package std_msgs.msg.pb.jazzy;
 
 message Empty {
-  uint32 structure_needs_at_least_one_member = 407246362;
+  uint32 structure_needs_at_least_one_member = 1;
 }

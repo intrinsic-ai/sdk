@@ -13,59 +13,59 @@ import "third_party/ros2/ros_interfaces/jazzy/unique_identifier_msgs/msg/uuid.pr
 option cc_generic_services = true;
 
 message GripperCommand_Goal {
-  control_msgs.msg.pb.jazzy.GripperCommand command = 248184417;
+  control_msgs.msg.pb.jazzy.GripperCommand command = 1;
 }
 
 message GripperCommand_SendGoal_Request {
-  unique_identifier_msgs.msg.pb.jazzy.UUID goal_id = 108866210;
-  control_msgs.action.pb.jazzy.GripperCommand_Goal goal = 484248182;
+  unique_identifier_msgs.msg.pb.jazzy.UUID goal_id = 1;
+  control_msgs.action.pb.jazzy.GripperCommand_Goal goal = 2;
 }
 
 message GripperCommand_SendGoal_Response {
-  bool accepted = 371066354;
-  builtin_interfaces.msg.pb.jazzy.Time stamp = 357477059;
+  bool accepted = 1;
+  builtin_interfaces.msg.pb.jazzy.Time stamp = 2;
 }
 
 message GripperCommand_Result {
   // The current gripper gap size (in meters)
-  double position = 103608496;
+  double position = 1;
 
   // The current effort exerted (in Newtons)
-  double effort = 137254524;
+  double effort = 2;
 
   // True iff the gripper is exerting max effort and not moving
-  bool stalled = 375736487;
+  bool stalled = 3;
 
   // True iff the gripper position has reached the commanded setpoint
-  bool reached_goal = 131262401;
+  bool reached_goal = 4;
 }
 
 message GripperCommand_GetResult_Request {
-  unique_identifier_msgs.msg.pb.jazzy.UUID goal_id = 108866210;
+  unique_identifier_msgs.msg.pb.jazzy.UUID goal_id = 1;
 }
 
 message GripperCommand_GetResult_Response {
-  int32 status = 453014720;
-  control_msgs.action.pb.jazzy.GripperCommand_Result result = 325764348;
+  int32 status = 1;
+  control_msgs.action.pb.jazzy.GripperCommand_Result result = 2;
 }
 
 message GripperCommand_Feedback {
   // The current gripper gap size (in meters)
-  double position = 103608496;
+  double position = 1;
 
   // The current effort exerted (in Newtons)
-  double effort = 137254524;
+  double effort = 2;
 
   // True iff the gripper is exerting max effort and not moving
-  bool stalled = 375736487;
+  bool stalled = 3;
 
   // True iff the gripper position has reached the commanded setpoint
-  bool reached_goal = 131262401;
+  bool reached_goal = 4;
 }
 
 message GripperCommand_FeedbackMessage {
-  unique_identifier_msgs.msg.pb.jazzy.UUID goal_id = 108866210;
-  control_msgs.action.pb.jazzy.GripperCommand_Feedback feedback = 304701367;
+  unique_identifier_msgs.msg.pb.jazzy.UUID goal_id = 1;
+  control_msgs.action.pb.jazzy.GripperCommand_Feedback feedback = 2;
 }
 
 service GripperCommand {

@@ -12,8 +12,8 @@ import "third_party/ros2/ros_interfaces/jazzy/shape_msgs/msg/mesh_triangle.proto
 // Definition of a mesh.
 message Mesh {
   // List of triangles; the index values refer to positions in vertices[].
-  repeated shape_msgs.msg.pb.jazzy.MeshTriangle triangles = 135093897;
+  repeated shape_msgs.msg.pb.jazzy.MeshTriangle triangles = 1;
 
   // The actual vertices that make up the mesh.
-  repeated geometry_msgs.msg.pb.jazzy.Point vertices = 18008104;
+  repeated geometry_msgs.msg.pb.jazzy.Point vertices = 2;
 }

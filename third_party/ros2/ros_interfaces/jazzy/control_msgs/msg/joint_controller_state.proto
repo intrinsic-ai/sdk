@@ -12,32 +12,32 @@ import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 message JointControllerState {
   // It is deprecated as of Humble in favor of SingleDOFStateStamped.msg
   // Header timestamp should be update time of controller state
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
+  std_msgs.msg.pb.jazzy.Header header = 1;
 
   // The set point, that is, desired state.
-  double set_point = 55842580;
+  double set_point = 2;
 
   // Current value of the process (ie: latest sensor measurement on the
   // controlled value).
-  double process_value = 187400576;
+  double process_value = 3;
 
   // First time-derivative of the process value.
-  double process_value_dot = 204393478;
+  double process_value_dot = 4;
 
   // The error of the controlled value, essentially process_value - set_point
   // (for a regular PID implementation).
-  double error = 501073964;
+  double error = 5;
 
   // Time between two consecutive updates/execution of the control law.
-  double time_step = 235214425;
+  double time_step = 6;
 
   // Current output of the controller.
-  double command = 248184417;
+  double command = 7;
 
   // Current PID parameters of the controller.
-  double p = 34058814;
-  double i = 107763129;
-  double d = 417160793;
-  double i_clamp = 414969974;
-  bool antiwindup = 190188536;
+  double p = 8;
+  double i = 9;
+  double d = 10;
+  double i_clamp = 11;
+  bool antiwindup = 12;
 }

@@ -11,11 +11,11 @@ import "third_party/ros2/ros_interfaces/jazzy/lifecycle_msgs/msg/transition.prot
 
 // The transition id and label of this description.
 message TransitionDescription {
-  lifecycle_msgs.msg.pb.jazzy.Transition transition = 387303074;
+  lifecycle_msgs.msg.pb.jazzy.Transition transition = 1;
 
   // The current state from which this transition transitions.
-  lifecycle_msgs.msg.pb.jazzy.State start_state = 382133097;
+  lifecycle_msgs.msg.pb.jazzy.State start_state = 2;
 
   // The desired target state of this transition.
-  lifecycle_msgs.msg.pb.jazzy.State goal_state = 458568711;
+  lifecycle_msgs.msg.pb.jazzy.State goal_state = 3;
 }

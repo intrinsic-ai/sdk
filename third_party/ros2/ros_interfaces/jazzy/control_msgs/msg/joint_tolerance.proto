@@ -19,14 +19,14 @@ package control_msgs.msg.pb.jazzy;
 //   be
 //          allowed to move without restriction.
 message JointTolerance {
-  string name = 505645505;
+  string name = 1;
 
   // in radians or meters (for a revolute or prismatic joint, respectively)
-  double position = 103608496;
+  double position = 2;
 
   // in rad/sec or m/sec
-  double velocity = 517533215;
+  double velocity = 3;
 
   // in rad/sec^2 or m/sec^2
-  double acceleration = 443991327;
+  double acceleration = 4;
 }

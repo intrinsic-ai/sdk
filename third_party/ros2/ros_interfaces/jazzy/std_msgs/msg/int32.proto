@@ -12,5 +12,5 @@ package std_msgs.msg.pb.jazzy;
 //  However if you would like to continue using this please use the equivalent
 //  in example_msgs.
 message Int32 {
-  sfixed32 data = 234097369;
+  sfixed32 data = 1;
 }

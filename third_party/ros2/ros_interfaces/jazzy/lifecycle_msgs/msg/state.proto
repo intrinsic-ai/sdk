@@ -10,8 +10,8 @@ package lifecycle_msgs.msg.pb.jazzy;
 //  http://design.ros2.org/articles/node_lifecycle.html
 message State {
   // The state id value from the above definitions.
-  uint32 id = 523861702;
+  uint32 id = 1;
 
   // A text label of the state.
-  string label = 245847249;
+  string label = 2;
 }

@@ -12,11 +12,11 @@ option cc_generic_services = true;
 
 message GetParameters_Request {
   // A list of parameter names to get.
-  repeated string names = 305358984;
+  repeated string names = 1;
 }
 
 message GetParameters_Response {
-  repeated rcl_interfaces.msg.pb.jazzy.ParameterValue values = 447173816;
+  repeated rcl_interfaces.msg.pb.jazzy.ParameterValue values = 1;
 }
 
 service GetParameters {

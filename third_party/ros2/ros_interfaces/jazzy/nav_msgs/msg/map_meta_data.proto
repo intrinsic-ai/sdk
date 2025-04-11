@@ -12,18 +12,18 @@ import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/pose.proto";
 // This hold basic information about the characteristics of the OccupancyGrid
 message MapMetaData {
   // The time at which the map was loaded
-  builtin_interfaces.msg.pb.jazzy.Time map_load_time = 449486208;
+  builtin_interfaces.msg.pb.jazzy.Time map_load_time = 1;
 
   // The map resolution
-  float resolution = 500379346;  // [m/cell]
+  float resolution = 2;  // [m/cell]
 
   // Map width
-  fixed32 width = 203053244;  // [cells]
+  fixed32 width = 3;  // [cells]
 
   // Map height
-  fixed32 height = 357434455;  // [cells]
+  fixed32 height = 4;  // [cells]
 
   // The origin of the map [m, m, rad].  This is the real-world pose of the
   // bottom left corner of cell (0,0) in the map.
-  geometry_msgs.msg.pb.jazzy.Pose origin = 519139709;
+  geometry_msgs.msg.pb.jazzy.Pose origin = 5;
 }

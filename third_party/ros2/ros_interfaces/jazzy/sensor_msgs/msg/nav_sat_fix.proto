@@ -21,26 +21,26 @@ message NavSatFix {
   //        receiver, usually the location of the antenna.  This is a
   //        Euclidean frame relative to the vehicle, not a reference
   //        ellipsoid.
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
+  std_msgs.msg.pb.jazzy.Header header = 1;
 
   // Satellite fix status information.
-  sensor_msgs.msg.pb.jazzy.NavSatStatus status = 453014720;
+  sensor_msgs.msg.pb.jazzy.NavSatStatus status = 2;
 
   // Latitude. Positive is north of equator; negative is south.
-  double latitude = 18406622;  // [degrees]
+  double latitude = 3;  // [degrees]
 
   // Longitude. Positive is east of prime meridian; negative is west.
-  double longitude = 98665208;  // [degrees]
+  double longitude = 4;  // [degrees]
 
   // Altitude. Positive is above the WGS 84 ellipsoid
   //(quiet NaN if no altitude is available).
-  double altitude = 466271400;  // [m]
+  double altitude = 5;  // [m]
 
   // Position covariance defined relative to a tangential plane
   // through the reported position. The components are East, North, and
   // Up (ENU), in row-major order.
   //
   // Beware: this coordinate system exhibits singularities at the poles.
-  repeated double position_covariance = 327947386;  // [m^2]
-  uint32 position_covariance_type = 526490547;
+  repeated double position_covariance = 6;  // [m^2]
+  uint32 position_covariance_type = 7;
 }

@@ -12,11 +12,11 @@ import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
 // Separate header for the polygonal surface
 message PolygonMesh {
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
+  std_msgs.msg.pb.jazzy.Header header = 1;
 
   // Vertices of the mesh as a point cloud
-  sensor_msgs.msg.pb.jazzy.PointCloud2 cloud = 308027046;
+  sensor_msgs.msg.pb.jazzy.PointCloud2 cloud = 2;
 
   // List of polygons
-  repeated pcl_msgs.msg.pb.jazzy.Vertices polygons = 141572522;
+  repeated pcl_msgs.msg.pb.jazzy.Vertices polygons = 3;
 }

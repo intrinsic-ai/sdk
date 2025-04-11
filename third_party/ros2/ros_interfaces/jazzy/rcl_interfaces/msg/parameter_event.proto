@@ -14,17 +14,17 @@ import "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/parameter.proto
 //  can only be in one of the three sets.
 message ParameterEvent {
   // The time stamp when this parameter event occurred.
-  builtin_interfaces.msg.pb.jazzy.Time stamp = 357477059;
+  builtin_interfaces.msg.pb.jazzy.Time stamp = 1;
 
   // Fully qualified ROS path to node.
-  string node = 92273618;
+  string node = 2;
 
   // New parameters that have been set for this node.
-  repeated rcl_interfaces.msg.pb.jazzy.Parameter new_parameters = 464307857;
+  repeated rcl_interfaces.msg.pb.jazzy.Parameter new_parameters = 3;
 
   // Parameters that have been changed during this event.
-  repeated rcl_interfaces.msg.pb.jazzy.Parameter changed_parameters = 402691519;
+  repeated rcl_interfaces.msg.pb.jazzy.Parameter changed_parameters = 4;
 
   // Parameters that have been deleted during this event.
-  repeated rcl_interfaces.msg.pb.jazzy.Parameter deleted_parameters = 117296514;
+  repeated rcl_interfaces.msg.pb.jazzy.Parameter deleted_parameters = 5;
 }

@@ -13,9 +13,9 @@ import "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/parameter_value
 //  the descriptor to select which value is active.
 message Parameter {
   // The full name of the parameter.
-  string name = 505645505;
+  string name = 1;
 
   // The parameter's value which can be one of several types, see
   //`ParameterValue.msg` and `ParameterType.msg`.
-  rcl_interfaces.msg.pb.jazzy.ParameterValue value = 494361629;
+  rcl_interfaces.msg.pb.jazzy.ParameterValue value = 2;
 }

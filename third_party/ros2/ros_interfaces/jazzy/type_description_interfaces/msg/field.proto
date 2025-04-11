@@ -11,14 +11,14 @@ import "third_party/ros2/ros_interfaces/jazzy/type_description_interfaces/msg/fi
 // Represents a single field in a type.
 message Field {
   // Name of the field.
-  string name = 505645505;
+  string name = 1;
 
   // Type of the field, including details about the type like length, nested
   // name, etc.
-  type_description_interfaces.msg.pb.jazzy.FieldType type = 215902902;
+  type_description_interfaces.msg.pb.jazzy.FieldType type = 2;
 
   // Literal default value of the field as a string, as it appeared in the
   // original message description file, whether that be .msg/.srv/.action or
   // .idl.
-  string default_value = 340863874;
+  string default_value = 3;
 }

@@ -11,6 +11,6 @@ import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/quaternion.proto
 
 // A representation of pose in free space, composed of position and orientation.
 message Pose {
-  geometry_msgs.msg.pb.jazzy.Point position = 103608496;
-  geometry_msgs.msg.pb.jazzy.Quaternion orientation = 377539880;
+  geometry_msgs.msg.pb.jazzy.Point position = 1;
+  geometry_msgs.msg.pb.jazzy.Quaternion orientation = 2;
 }

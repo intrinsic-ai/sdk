@@ -21,15 +21,15 @@ message MagneticField {
   // field was measured
   // frame_id is the location and orientation
   // of the field measurement
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
+  std_msgs.msg.pb.jazzy.Header header = 1;
 
   // x, y, and z components of the
   // field vector in Tesla
   // If your sensor does not output 3 axes,
   // put NaNs in the components not reported.
-  geometry_msgs.msg.pb.jazzy.Vector3 magnetic_field = 149234941;
+  geometry_msgs.msg.pb.jazzy.Vector3 magnetic_field = 2;
 
   // Row major about x, y, z axes
   // 0 is interpreted as variance unknown
-  repeated double magnetic_field_covariance = 373774074;
+  repeated double magnetic_field_covariance = 3;
 }

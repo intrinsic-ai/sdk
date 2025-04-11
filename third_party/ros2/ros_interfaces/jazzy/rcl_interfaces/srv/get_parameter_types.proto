@@ -9,11 +9,11 @@ package rcl_interfaces.srv.pb.jazzy;
 option cc_generic_services = true;
 
 message GetParameterTypes_Request {
-  repeated string names = 305358984;
+  repeated string names = 1;
 }
 
 message GetParameterTypes_Response {
-  bytes types = 422614251;
+  bytes types = 1;
 }
 
 service GetParameterTypes {

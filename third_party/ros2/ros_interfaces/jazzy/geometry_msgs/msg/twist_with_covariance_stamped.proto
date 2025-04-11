@@ -12,6 +12,6 @@ import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 // This represents an estimated twist with reference coordinate frame and
 // timestamp.
 message TwistWithCovarianceStamped {
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
-  geometry_msgs.msg.pb.jazzy.TwistWithCovariance twist = 149179994;
+  std_msgs.msg.pb.jazzy.Header header = 1;
+  geometry_msgs.msg.pb.jazzy.TwistWithCovariance twist = 2;
 }

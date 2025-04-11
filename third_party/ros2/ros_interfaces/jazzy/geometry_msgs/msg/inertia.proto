@@ -10,19 +10,19 @@ import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/vector3.proto";
 
 // Mass
 message Inertia {
-  double m = 16912816;
+  double m = 1;
 
   // Center of mass
-  geometry_msgs.msg.pb.jazzy.Vector3 com = 79091338;  // [m]
+  geometry_msgs.msg.pb.jazzy.Vector3 com = 2;  // [m]
 
   // Inertia Tensor
   //     | ixx ixy ixz |
   // I = | ixy iyy iyz |
   //     | ixz iyz izz |
-  double ixx = 25110326;  // [kg-m^2]
-  double ixy = 376972159;
-  double ixz = 259088809;
-  double iyy = 258159166;
-  double iyz = 376083048;
-  double izz = 491207746;
+  double ixx = 3;  // [kg-m^2]
+  double ixy = 4;
+  double ixz = 5;
+  double iyy = 6;
+  double iyz = 7;
+  double izz = 8;
 }

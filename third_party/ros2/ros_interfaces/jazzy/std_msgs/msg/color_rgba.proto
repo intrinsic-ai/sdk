@@ -7,8 +7,8 @@ syntax = "proto3";
 package std_msgs.msg.pb.jazzy;
 
 message ColorRGBA {
-  float r = 201985857;
-  float g = 30678879;
-  float b = 297729949;
-  float a = 146267531;
+  float r = 1;
+  float g = 2;
+  float b = 3;
+  float a = 4;
 }

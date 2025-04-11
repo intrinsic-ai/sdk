@@ -10,8 +10,8 @@ package builtin_interfaces.msg.pb.jazzy;
 //  https://design.ros2.org/articles/clock_and_time.html
 message Time {
   // The seconds component, valid over all int32 values.
-  sfixed32 sec = 96972735;
+  sfixed32 sec = 1;
 
   // The nanoseconds component, valid in the range [0, 1e9).
-  fixed32 nanosec = 445411076;
+  fixed32 nanosec = 2;
 }

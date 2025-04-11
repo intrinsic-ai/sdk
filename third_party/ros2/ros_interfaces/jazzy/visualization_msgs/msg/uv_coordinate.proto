@@ -9,6 +9,6 @@ package visualization_msgs.msg.pb.jazzy;
 // Location of the pixel as a ratio of the width of a 2D texture.
 //  Values should be in range:.
 message UVCoordinate {
-  float u = 309168518;
-  float v = 191122216;
+  float u = 1;
+  float v = 2;
 }

@@ -23,76 +23,76 @@ import "third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg/uv_coordina
 //  for more information on using this message with rviz.
 message Marker {
   // Header for timestamp and frame id.
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
+  std_msgs.msg.pb.jazzy.Header header = 1;
 
   // Namespace in which to place the object.
   // Used in conjunction with id to create a unique name for the object.
-  string ns = 330007540;
+  string ns = 2;
 
   // Object ID used in conjunction with the namespace for manipulating and
   // deleting the object later.
-  sfixed32 id = 523861702;
+  sfixed32 id = 3;
 
   // Type of object.
-  sfixed32 type = 215902902;
+  sfixed32 type = 4;
 
   // Action to take; one of:
   //  - 0 add/modify an object
   //  - 1 (deprecated)
   //  - 2 deletes an object (with the given ns and id)
   //  - 3 deletes all objects (or those with the given ns if any)
-  sfixed32 action = 130848845;
+  sfixed32 action = 5;
 
   // Pose of the object with respect the frame_id specified in the header.
-  geometry_msgs.msg.pb.jazzy.Pose pose = 272258129;
+  geometry_msgs.msg.pb.jazzy.Pose pose = 6;
 
   // Scale of the object; 1,1,1 means default (usually 1 meter square).
-  geometry_msgs.msg.pb.jazzy.Vector3 scale = 205931724;
+  geometry_msgs.msg.pb.jazzy.Vector3 scale = 7;
 
   // Color of the object; in the range:
-  std_msgs.msg.pb.jazzy.ColorRGBA color = 106322061;  // [0.0-1.0]
+  std_msgs.msg.pb.jazzy.ColorRGBA color = 8;  // [0.0-1.0]
 
   // How long the object should last before being automatically deleted.
   // 0 indicates forever.
-  builtin_interfaces.msg.pb.jazzy.Duration lifetime = 501692506;
+  builtin_interfaces.msg.pb.jazzy.Duration lifetime = 9;
 
   // If this marker should be frame-locked, i.e. retransformed into its frame
   // every timestep.
-  bool frame_locked = 528205640;
+  bool frame_locked = 10;
 
   // Only used if the type specified has some use for them (eg. POINTS,
   // LINE_STRIP, ARROW_STRIP, etc.)
-  repeated geometry_msgs.msg.pb.jazzy.Point points = 129668603;
+  repeated geometry_msgs.msg.pb.jazzy.Point points = 11;
 
   // Only used if the type specified has some use for them (eg. POINTS,
   // LINE_STRIP, etc.) The number of colors provided must either be 0 or equal
   // to the number of points provided. NOTE: alpha is not yet used
-  repeated std_msgs.msg.pb.jazzy.ColorRGBA colors = 46063358;
+  repeated std_msgs.msg.pb.jazzy.ColorRGBA colors = 12;
 
   // Texture resource is a special URI that can either reference a texture file
   // in a format acceptable to (resource retriever) or an embedded texture via a
   // string matching the format:
   //   "embedded://texture_name"
   string texture_resource =
-      203395996;  // [https://docs.ros.org/en/rolling/p/resource_retriever/]
+      13;  // [https://docs.ros.org/en/rolling/p/resource_retriever/]
 
   // An image to be loaded into the rendering engine as the texture for this
   // marker. This will be used iff texture_resource is set to embedded.
-  sensor_msgs.msg.pb.jazzy.CompressedImage texture = 40247551;
+  sensor_msgs.msg.pb.jazzy.CompressedImage texture = 14;
 
   // Location of each vertex within the texture; in the range:
   repeated visualization_msgs.msg.pb.jazzy.UVCoordinate uv_coordinates =
-      404269370;  // [0.0-1.0]
+      15;  // [0.0-1.0]
 
   // Only used for text markers
-  string text = 462139289;
+  string text = 16;
 
   // Only used for MESH_RESOURCE markers.
   // Similar to texture_resource, mesh_resource uses resource retriever to load
   // a mesh. Optionally, a mesh file can be sent in-message via the mesh_file
   // field. If doing so, use the following format for mesh_resource:
   //   "embedded://mesh_name"
-  string mesh_resource = 133315046;
-  visualization_msgs.msg.pb.jazzy.MeshFile mesh_file = 496060765;
-  bool mesh_use_embedded_materials = 141353978;
+  string mesh_resource = 17;
+  visualization_msgs.msg.pb.jazzy.MeshFile mesh_file = 18;
+  bool mesh_use_embedded_materials = 19;
 }

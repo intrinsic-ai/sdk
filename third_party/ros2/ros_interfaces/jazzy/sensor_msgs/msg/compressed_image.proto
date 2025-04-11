@@ -16,7 +16,7 @@ message CompressedImage {
   //+x should point to the right in the image
   //+y should point down in the image
   //+z should point into to plane of the image
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
+  std_msgs.msg.pb.jazzy.Header header = 1;
 
   // Specifies the format of the data
   // Acceptable values differ by the image transport used:
@@ -48,8 +48,8 @@ message CompressedImage {
   //- Other image transports can store whatever values they
   //   need for successful decoding of the image. Refer to
   //   documentation of the other transports for details.
-  string format = 515542590;  // [COMPRESSED_PIXFMT]
+  string format = 2;  // [COMPRESSED_PIXFMT]
 
   // Compressed image buffer
-  bytes data = 234097369;
+  bytes data = 3;
 }

@@ -12,20 +12,19 @@ import "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/unbounded_sequences.
 
 // Mulitple levels of nested messages
 message MultiNested {
-  repeated test_msgs.msg.pb.jazzy.Arrays array_of_arrays = 479432755;
+  repeated test_msgs.msg.pb.jazzy.Arrays array_of_arrays = 1;
   repeated test_msgs.msg.pb.jazzy.BoundedSequences array_of_bounded_sequences =
-      383917800;
+      2;
   repeated test_msgs.msg.pb.jazzy.UnboundedSequences
-      array_of_unbounded_sequences = 79566698;
-  repeated test_msgs.msg.pb.jazzy.Arrays bounded_sequence_of_arrays = 71918389;
+      array_of_unbounded_sequences = 3;
+  repeated test_msgs.msg.pb.jazzy.Arrays bounded_sequence_of_arrays = 4;
   repeated test_msgs.msg.pb.jazzy.BoundedSequences
-      bounded_sequence_of_bounded_sequences = 84875639;
+      bounded_sequence_of_bounded_sequences = 5;
   repeated test_msgs.msg.pb.jazzy.UnboundedSequences
-      bounded_sequence_of_unbounded_sequences = 252605348;
-  repeated test_msgs.msg.pb.jazzy.Arrays unbounded_sequence_of_arrays =
-      213508165;
+      bounded_sequence_of_unbounded_sequences = 6;
+  repeated test_msgs.msg.pb.jazzy.Arrays unbounded_sequence_of_arrays = 7;
   repeated test_msgs.msg.pb.jazzy.BoundedSequences
-      unbounded_sequence_of_bounded_sequences = 319571142;
+      unbounded_sequence_of_bounded_sequences = 8;
   repeated test_msgs.msg.pb.jazzy.UnboundedSequences
-      unbounded_sequence_of_unbounded_sequences = 414683591;
+      unbounded_sequence_of_unbounded_sequences = 9;
 }

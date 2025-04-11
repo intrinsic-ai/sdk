@@ -12,8 +12,8 @@ import "third_party/ros2/ros_interfaces/jazzy/type_description_interfaces/msg/fi
 message IndividualTypeDescription {
   // Name of the type.
   // This is limited to 255 characters.
-  string type_name = 153931419;
+  string type_name = 1;
 
   // Fields of the type.
-  repeated type_description_interfaces.msg.pb.jazzy.Field fields = 518386476;
+  repeated type_description_interfaces.msg.pb.jazzy.Field fields = 2;
 }

@@ -12,13 +12,12 @@ import "third_party/ros2/ros_interfaces/jazzy/trajectory_msgs/msg/multi_dof_join
 // The header is used to specify the coordinate frame and the reference time for
 // the trajectory durations
 message MultiDOFJointTrajectory {
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
+  std_msgs.msg.pb.jazzy.Header header = 1;
 
   // A representation of a multi-dof joint trajectory (each point is a
   // transformation) Each point along the trajectory will include an array of
   // positions/velocities/accelerations that has the same length as the array of
   // joint names, and has the same order of joints as the joint names array.
-  repeated string joint_names = 492788101;
-  repeated trajectory_msgs.msg.pb.jazzy.MultiDOFJointTrajectoryPoint points =
-      129668603;
+  repeated string joint_names = 2;
+  repeated trajectory_msgs.msg.pb.jazzy.MultiDOFJointTrajectoryPoint points = 3;
 }

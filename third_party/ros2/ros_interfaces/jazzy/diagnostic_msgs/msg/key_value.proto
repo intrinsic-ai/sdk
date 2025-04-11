@@ -8,8 +8,8 @@ package diagnostic_msgs.msg.pb.jazzy;
 
 // What to label this value when viewing.
 message KeyValue {
-  string key = 177258294;
+  string key = 1;
 
   // A value to track over time.
-  string value = 494361629;
+  string value = 2;
 }

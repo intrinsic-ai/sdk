@@ -12,15 +12,15 @@ option cc_generic_services = true;
 
 message SetCameraInfo_Request {
   // The camera_info to store
-  sensor_msgs.msg.pb.jazzy.CameraInfo camera_info = 23222486;
+  sensor_msgs.msg.pb.jazzy.CameraInfo camera_info = 1;
 }
 
 message SetCameraInfo_Response {
   // True if the call succeeded
-  bool success = 251719510;
+  bool success = 1;
 
   // Used to give details about success
-  string status_message = 510484336;
+  string status_message = 2;
 }
 
 service SetCameraInfo {

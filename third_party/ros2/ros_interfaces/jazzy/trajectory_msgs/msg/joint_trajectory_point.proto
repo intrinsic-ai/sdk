@@ -17,23 +17,23 @@ message JointTrajectoryPoint {
   // Single DOF joint positions for each joint relative to their "0" position.
   // The units depend on the specific joint type: radians for revolute or
   // continuous joints, and meters for prismatic joints.
-  repeated double positions = 379584731;
+  repeated double positions = 1;
 
   // The rate of change in position of each joint. Units are joint type
   // dependent. Radians/second for revolute or continuous joints, and
   // meters/second for prismatic joints.
-  repeated double velocities = 470602751;
+  repeated double velocities = 2;
 
   // Rate of change in velocity of each joint. Units are joint type dependent.
   // Radians/second^2 for revolute or continuous joints, and meters/second^2 for
   // prismatic joints.
-  repeated double accelerations = 480455785;
+  repeated double accelerations = 3;
 
   // The torque or the force to be applied at each joint. For
   // revolute/continuous joints effort denotes a torque in newton-meters. For
   // prismatic joints, effort denotes a force in newtons.
-  repeated double effort = 137254524;
+  repeated double effort = 4;
 
   // Desired time from the trajectory start to arrive at this trajectory point.
-  builtin_interfaces.msg.pb.jazzy.Duration time_from_start = 244671567;
+  builtin_interfaces.msg.pb.jazzy.Duration time_from_start = 5;
 }

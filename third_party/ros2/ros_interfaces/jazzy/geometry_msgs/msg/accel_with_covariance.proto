@@ -10,12 +10,12 @@ import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/accel.proto";
 
 // This expresses acceleration in free space with uncertainty.
 message AccelWithCovariance {
-  geometry_msgs.msg.pb.jazzy.Accel accel = 503071392;
+  geometry_msgs.msg.pb.jazzy.Accel accel = 1;
 
   // Row-major representation of the 6x6 covariance matrix
   // The orientation parameters use a fixed-axis representation.
   // In order, the parameters are:
   //(x, y, z, rotation about X axis, rotation about Y axis, rotation about Z
   // axis)
-  repeated double covariance = 493695971;
+  repeated double covariance = 2;
 }

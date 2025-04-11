@@ -10,15 +10,15 @@ option cc_generic_services = true;
 
 message SetBool_Request {
   // e.g. for hardware enabling / disabling
-  bool data = 234097369;
+  bool data = 1;
 }
 
 message SetBool_Response {
   // indicate successful run of triggered service
-  bool success = 251719510;
+  bool success = 1;
 
   // informational, e.g. for error messages
-  string message = 381503477;
+  string message = 2;
 }
 
 service SetBool {

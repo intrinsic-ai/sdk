@@ -10,10 +10,10 @@ import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/twist.proto";
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
 message MecanumDriveControllerState {
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
-  double front_left_wheel_velocity = 110980855;
-  double back_left_wheel_velocity = 191383638;
-  double back_right_wheel_velocity = 248131604;
-  double front_right_wheel_velocity = 149200027;
-  geometry_msgs.msg.pb.jazzy.Twist reference_velocity = 114466170;
+  std_msgs.msg.pb.jazzy.Header header = 1;
+  double front_left_wheel_velocity = 2;
+  double back_left_wheel_velocity = 3;
+  double back_right_wheel_velocity = 4;
+  double front_right_wheel_velocity = 5;
+  geometry_msgs.msg.pb.jazzy.Twist reference_velocity = 6;
 }

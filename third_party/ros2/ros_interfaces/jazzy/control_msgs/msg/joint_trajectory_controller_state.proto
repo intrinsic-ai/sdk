@@ -13,42 +13,42 @@ import "third_party/ros2/ros_interfaces/jazzy/trajectory_msgs/msg/multi_dof_join
 // This message presents current controller state of JTC
 message JointTrajectoryControllerState {
   // Header timestamp should be update time of controller state
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
-  repeated string joint_names = 492788101;
+  std_msgs.msg.pb.jazzy.Header header = 1;
+  repeated string joint_names = 2;
 
   // The set point, that is, desired state.
-  trajectory_msgs.msg.pb.jazzy.JointTrajectoryPoint reference = 245588105;
+  trajectory_msgs.msg.pb.jazzy.JointTrajectoryPoint reference = 3;
 
   // Current value of the process (ie: latest sensor measurement on the
   // controlled value).
-  trajectory_msgs.msg.pb.jazzy.JointTrajectoryPoint feedback = 304701367;
+  trajectory_msgs.msg.pb.jazzy.JointTrajectoryPoint feedback = 4;
 
   // The error of the controlled value, essentially reference - feedback (for a
   // regular PID implementation).
-  trajectory_msgs.msg.pb.jazzy.JointTrajectoryPoint error = 501073964;
+  trajectory_msgs.msg.pb.jazzy.JointTrajectoryPoint error = 5;
 
   // Current output of the controller.
-  trajectory_msgs.msg.pb.jazzy.JointTrajectoryPoint output = 215887869;
-  repeated string multi_dof_joint_names = 402342375;
+  trajectory_msgs.msg.pb.jazzy.JointTrajectoryPoint output = 6;
+  repeated string multi_dof_joint_names = 7;
 
   // The set point, that is, desired state.
   trajectory_msgs.msg.pb.jazzy.MultiDOFJointTrajectoryPoint
-      multi_dof_reference = 253512745;
+      multi_dof_reference = 8;
 
   // Current value of the process (ie: latest sensor measurement on the
   // controlled value).
   trajectory_msgs.msg.pb.jazzy.MultiDOFJointTrajectoryPoint multi_dof_feedback =
-      322103531;
+      9;
 
   // The error of the controlled value, essentially reference - feedback (for a
   // regular PID implementation).
   trajectory_msgs.msg.pb.jazzy.MultiDOFJointTrajectoryPoint multi_dof_error =
-      296336147;
+      10;
 
   // Current output of the controller.
   trajectory_msgs.msg.pb.jazzy.MultiDOFJointTrajectoryPoint multi_dof_output =
-      241241198;
+      11;
 
   // The speed scaling factor the trajectory is currently being executed with
-  double speed_scaling_factor = 41936931;
+  double speed_scaling_factor = 12;
 }

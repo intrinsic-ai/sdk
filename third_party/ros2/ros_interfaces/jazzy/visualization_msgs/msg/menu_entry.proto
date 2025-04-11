@@ -39,16 +39,16 @@ package visualization_msgs.msg.pb.jazzy;
 message MenuEntry {
   // ID is a number for each menu entry.  Must be unique within the
   // control, and should never be 0.
-  fixed32 id = 523861702;
+  fixed32 id = 1;
 
   // ID of the parent of this menu entry, if it is a submenu.  If this
   // menu entry is a top-level entry, set parent_id to 0.
-  fixed32 parent_id = 310041108;
+  fixed32 parent_id = 2;
 
   // menu / entry title
-  string title = 188121149;
+  string title = 3;
 
   // Arguments to command indicated by command_type (below)
-  string command = 248184417;
-  uint32 command_type = 225771894;
+  string command = 4;
+  uint32 command_type = 5;
 }

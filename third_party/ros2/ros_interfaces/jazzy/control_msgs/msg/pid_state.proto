@@ -10,33 +10,33 @@ import "third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg/duration.pr
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
 message PidState {
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
-  builtin_interfaces.msg.pb.jazzy.Duration timestep = 341026827;
+  std_msgs.msg.pb.jazzy.Header header = 1;
+  builtin_interfaces.msg.pb.jazzy.Duration timestep = 2;
 
   // error = target - state
-  double error = 501073964;
+  double error = 3;
 
   // derivative of error
-  double error_dot = 376588147;
+  double error_dot = 4;
 
   // weighted integral of error
-  double i_term = 3258160;
+  double i_term = 5;
 
   // proportional gain
-  double p_gain = 292693420;
+  double p_gain = 6;
 
   // integral gain
-  double i_gain = 363557014;
+  double i_gain = 7;
 
   // derivative gain
-  double d_gain = 154490509;
+  double d_gain = 8;
 
   // upper integral clamp.
-  double i_max = 56171972;
+  double i_max = 9;
 
   // lower integral clamp.
-  double i_min = 525618340;
+  double i_min = 10;
 
   // output of the PID controller
-  double output = 215887869;
+  double output = 11;
 }

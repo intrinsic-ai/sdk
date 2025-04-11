@@ -15,7 +15,7 @@ package geometry_msgs.msg.pb.jazzy;
 //  This message is designed to take up less space when sending
 //  lots of points at once, as in the case of a PointCloud.
 message Point32 {
-  float x = 215755280;
-  float y = 467354973;
-  float z = 47351635;
+  float x = 1;
+  float y = 2;
+  float z = 3;
 }

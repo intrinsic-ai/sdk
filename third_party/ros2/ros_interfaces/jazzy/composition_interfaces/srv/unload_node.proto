@@ -9,14 +9,14 @@ package composition_interfaces.srv.pb.jazzy;
 option cc_generic_services = true;
 
 message UnloadNode_Request {
-  fixed64 unique_id = 63349387;
+  fixed64 unique_id = 1;
 }
 
 message UnloadNode_Response {
-  bool success = 251719510;
+  bool success = 1;
 
   // Human readable error message if success is false, else empty string.
-  string error_message = 200894757;
+  string error_message = 2;
 }
 
 service UnloadNode {

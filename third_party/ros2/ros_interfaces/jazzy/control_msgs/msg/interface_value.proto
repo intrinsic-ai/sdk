@@ -8,9 +8,9 @@ package control_msgs.msg.pb.jazzy;
 
 // List of resource interface names
 message InterfaceValue {
-  repeated string interface_names = 300503096;
+  repeated string interface_names = 1;
 
   // Values corresponding to the list of interfaces in `interface_names`, [1.0,
   // 0.0] for example
-  repeated double values = 447173816;
+  repeated double values = 2;
 }

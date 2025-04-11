@@ -9,53 +9,53 @@ package sensor_msgs.msg.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
 message BatteryState {
-  std_msgs.msg.pb.jazzy.Header header = 242399333;
+  std_msgs.msg.pb.jazzy.Header header = 1;
 
   // Voltage in Volts (Mandatory)
-  float voltage = 228124592;
+  float voltage = 2;
 
   // Temperature in Degrees Celsius (If unmeasured NaN)
-  float temperature = 508445154;
+  float temperature = 3;
 
   // Negative when discharging (A)  (If unmeasured NaN)
-  float current = 485707626;
+  float current = 4;
 
   // Current charge in Ah  (If unmeasured NaN)
-  float charge = 359378927;
+  float charge = 5;
 
   // Capacity in Ah (last full capacity)  (If unmeasured NaN)
-  float capacity = 367577322;
+  float capacity = 6;
 
   // Capacity in Ah (design capacity)  (If unmeasured NaN)
-  float design_capacity = 248177366;
+  float design_capacity = 7;
 
   // Charge percentage on 0 to 1 range  (If unmeasured NaN)
-  float percentage = 319509451;
+  float percentage = 8;
 
   // The charging status as reported. Values defined above
-  uint32 power_supply_status = 245531152;
+  uint32 power_supply_status = 9;
 
   // The battery health metric. Values defined above
-  uint32 power_supply_health = 460861538;
+  uint32 power_supply_health = 10;
 
   // The battery chemistry. Values defined above
-  uint32 power_supply_technology = 236897352;
+  uint32 power_supply_technology = 11;
 
   // True if the battery is present
-  bool present = 498912607;
+  bool present = 12;
 
   // An array of individual cell voltages for each cell in the pack
   // If individual voltages unknown but number of cells known set each to NaN
-  repeated float cell_voltage = 149166356;
+  repeated float cell_voltage = 13;
 
   // An array of individual cell temperatures for each cell in the pack
   // If individual temperatures unknown but number of cells known set each to
   // NaN
-  repeated float cell_temperature = 80523750;
+  repeated float cell_temperature = 14;
 
   // The location into which the battery is inserted. (slot number or plug)
-  string location = 513709446;
+  string location = 15;
 
   // The best approximation of the battery serial number
-  string serial_number = 227840715;
+  string serial_number = 16;
 }

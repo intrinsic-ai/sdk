@@ -11,5 +11,5 @@ import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/point32.proto";
 // A specification of a polygon where the first and last points are assumed to
 // be connected
 message Polygon {
-  repeated geometry_msgs.msg.pb.jazzy.Point32 points = 129668603;
+  repeated geometry_msgs.msg.pb.jazzy.Point32 points = 1;
 }
