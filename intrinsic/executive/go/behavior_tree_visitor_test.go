@@ -54,6 +54,39 @@ func TestNodes(t *testing.T) {
 							},
 						},
 						{
+							Name: proto.String("F2"),
+							NodeType: &btpb.BehaviorTree_Node_Fallback{
+								Fallback: &btpb.BehaviorTree_FallbackNode{
+									Tries: []*btpb.BehaviorTree_FallbackNode_Try{
+										{Node: &btpb.BehaviorTree_Node{Name: proto.String("M2")}},
+										{
+											Condition: &btpb.BehaviorTree_Condition{
+												ConditionType: &btpb.BehaviorTree_Condition_AnyOf{
+													AnyOf: &btpb.BehaviorTree_Condition_LogicalCompound{},
+												},
+											},
+											Node: &btpb.BehaviorTree_Node{Name: proto.String("N2")},
+										},
+										{
+											Condition: &btpb.BehaviorTree_Condition{
+												ConditionType: &btpb.BehaviorTree_Condition_BehaviorTree{
+													BehaviorTree: &btpb.BehaviorTree{
+														Root: &btpb.BehaviorTree_Node{
+															Name: proto.String("O2"),
+															NodeType: &btpb.BehaviorTree_Node_Sequence{
+																Sequence: &btpb.BehaviorTree_SequenceNode{},
+															},
+														},
+													},
+												},
+											},
+											Node: &btpb.BehaviorTree_Node{Name: proto.String("P2")},
+										},
+									},
+								},
+							},
+						},
+						{
 							Name: proto.String("I"),
 							NodeType: &btpb.BehaviorTree_Node_Selector{
 								Selector: &btpb.BehaviorTree_SelectorNode{
@@ -104,7 +137,7 @@ func TestNodes(t *testing.T) {
 	}
 
 	visitor := &nodeNameCollector{}
-	want := []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"}
+	want := []string{"A", "B", "C", "D", "E", "F", "G", "H", "F2", "M2", "N2", "O2", "P2", "I", "J", "K", "L", "M", "N", "O", "P"}
 	err := behaviortree.Walk(tree, visitor)
 	if err != nil {
 		t.Errorf("Tree walker failed on \n%v\ngot %v", tree, err)
