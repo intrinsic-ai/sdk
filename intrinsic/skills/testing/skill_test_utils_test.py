@@ -12,7 +12,7 @@ from intrinsic.skills.proto import skill_manifest_pb2
 from intrinsic.skills.python import skill_logging_context
 from intrinsic.skills.testing import echo_skill_pb2
 from intrinsic.skills.testing import skill_test_utils
-from intrinsic.solutions.testing import compare
+from intrinsic.solutions.python.testing import compare
 
 _MANIFEST_PATH = 'intrinsic/skills/testing/echo_skill_py_manifest.pbbin'
 

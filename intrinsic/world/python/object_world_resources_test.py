@@ -13,7 +13,7 @@ from intrinsic.icon.proto import cart_space_pb2
 from intrinsic.kinematics.types import joint_limits_pb2
 from intrinsic.math.python import data_types
 
-from intrinsic.solutions.testing import compare
+from intrinsic.solutions.python.testing import compare
 from intrinsic.world.proto import object_world_refs_pb2
 from intrinsic.world.proto import object_world_service_pb2
 

@@ -7,7 +7,7 @@ from intrinsic.icon.python import icon_logging
 from intrinsic.logging.proto import log_item_pb2
 from intrinsic.math.proto import pose_pb2
 from intrinsic.math.proto import vector3_pb2
-from intrinsic.solutions.testing import compare
+from intrinsic.solutions.python.testing import compare
 
 
 class IconLoggingTest(absltest.TestCase):

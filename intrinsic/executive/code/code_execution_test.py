@@ -12,7 +12,7 @@ from google.protobuf import text_format
 from intrinsic.executive.code import code_execution
 from intrinsic.math.proto import point_pb2
 from intrinsic.skills.python import basic_compute_context
-from intrinsic.solutions.testing import compare
+from intrinsic.solutions.python.testing import compare
 from intrinsic.world.proto import object_world_refs_pb2
 from intrinsic.world.python import object_world_client
 

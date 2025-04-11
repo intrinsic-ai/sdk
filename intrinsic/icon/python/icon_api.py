@@ -23,7 +23,7 @@ from intrinsic.icon.python import errors
 from intrinsic.icon.python import reactions
 from intrinsic.icon.python import state_variable_path
 from intrinsic.logging.proto import context_pb2
-from intrinsic.solutions import deployments
+from intrinsic.solutions.python import deployments
 from intrinsic.util.grpc import connection
 from intrinsic.util.grpc import interceptor
 from intrinsic.world.robot_payload.python import robot_payload

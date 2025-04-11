@@ -462,7 +462,7 @@ py_test(
         ":extended_status_py_pb2",
         ":status_specs_py",
         "//intrinsic/assets/proto:status_spec_py_pb2",
-        "//intrinsic/solutions/testing:compare",
+        "//intrinsic/solutions/python/testing:compare",
         "@com_google_absl_py//absl/testing:absltest",
     ],
 )
@@ -484,7 +484,7 @@ py_test(
         ":extended_status_py_pb2",
         ":status_exception",
         "//intrinsic/logging/proto:context_py_pb2",
-        "//intrinsic/solutions/testing:compare",
+        "//intrinsic/solutions/python/testing:compare",
         requirement("grpcio"),
         "@com_google_absl_py//absl/testing:absltest",
         "@com_google_googleapis//google/rpc:code_py_proto",

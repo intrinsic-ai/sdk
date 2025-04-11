@@ -22,7 +22,7 @@ py_test(
         ":robot_payload",
         "//intrinsic/math/python:data_types",
         "//intrinsic/math/python:proto_conversion",
-        "//intrinsic/solutions/testing:compare",
+        "//intrinsic/solutions/python/testing:compare",
         "//intrinsic/world/proto:robot_payload_py_pb2",
         "@ai_intrinsic_sdks_pip_deps//numpy",
         "@com_google_absl_py//absl/testing:absltest",
