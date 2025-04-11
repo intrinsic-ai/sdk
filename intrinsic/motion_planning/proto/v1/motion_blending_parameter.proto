@@ -1,0 +1,32 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.motion_planning.v1;
+
+import "intrinsic/skills/proto/skill_parameter_metadata.proto";
+
+// Blending parameters for Cartesian linear trajectory generation.
+message CartesianBlendingParameters {
+  // Cartesian radius of the circular blend around a Cartesian waypoint corner.
+  optional double translation_corner_rounding = 1
+      [(intrinsic_proto.skills.skill_parameter_metadata).unit = "meters"];
+  // Radius of the circular blend around a waypoint corner (max angles-axis
+  // deviation).
+  optional double rotational_corner_rounding = 2
+      [(intrinsic_proto.skills.skill_parameter_metadata).unit = "radians"];
+}
+
+// Single waypoints blending parameter that apply to all
+// joint configuration way points.
+message JointBlendingParameters {
+  // Quantifies how closely the blend must pass by the joint configuration
+  // waypoint. It can be interpreted as the coordinate-wise distance at which
+  // the blending arc begins.
+  optional double desired_tightness_rad = 1
+      [(intrinsic_proto.skills.skill_parameter_metadata).unit = "radians"];
+}
+message BlendingParameters {
+  optional CartesianBlendingParameters cartesian_blending = 1;
+  optional JointBlendingParameters joint_blending = 2;
+}

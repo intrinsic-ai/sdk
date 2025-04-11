@@ -45,6 +45,41 @@ cc_grpc_library(
     deps = [":motion_planner_service_cc_proto"],
 )
 
+proto_library(
+    name = "motion_blending_parameter_proto",
+    srcs = ["motion_blending_parameter.proto"],
+    deps = ["//intrinsic/skills/proto:skill_parameter_metadata_proto"],
+)
+
+cc_proto_library(
+    name = "motion_blending_parameter_cc_proto",
+    deps = [":motion_blending_parameter_proto"],
+)
+
+py_proto_library(
+    name = "motion_blending_parameter_py_pb2",
+    deps = [":motion_blending_parameter_proto"],
+)
+
+proto_library(
+    name = "motion_planning_limits_proto",
+    srcs = ["motion_planning_limits.proto"],
+    deps = [
+        "//intrinsic/kinematics/types:joint_limits_proto",
+        "//intrinsic/skills/proto:skill_parameter_metadata_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "motion_planning_limits_cc_proto",
+    deps = [":motion_planning_limits_proto"],
+)
+
+py_proto_library(
+    name = "motion_planning_limits_py_pb2",
+    deps = [":motion_planning_limits_proto"],
+)
+
 py_proto_library(
     name = "motion_planner_service_py_pb2",
     deps = [":motion_planner_service_proto"],
@@ -61,8 +96,9 @@ proto_library(
     name = "motion_specification_proto",
     srcs = ["motion_specification.proto"],
     deps = [
-        "//intrinsic/kinematics/types:joint_limits_proto",
-        "//intrinsic/motion_planning/proto/v1:geometric_constraints_proto",
+        ":geometric_constraints_proto",
+        ":motion_blending_parameter_proto",
+        ":motion_planning_limits_proto",
         "//intrinsic/skills/proto:skill_parameter_metadata_proto",
         "//intrinsic/world/proto:collision_settings_proto",
     ],

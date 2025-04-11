@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.grasping;
 
+import "intrinsic/motion_planning/proto/v1/motion_planning_limits.proto";
 import "intrinsic/motion_planning/proto/v1/motion_specification.proto";
 
 message GraspExecutionPlannerParams {

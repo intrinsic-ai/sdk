@@ -56,7 +56,10 @@ proto_library(
     name = "grasp_execution_planner_params_proto",
     srcs = ["grasp_execution_planner_params.proto"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = ["//intrinsic/motion_planning/proto/v1:motion_specification_proto"],
+    deps = [
+        "//intrinsic/motion_planning/proto/v1:motion_planning_limits_proto",
+        "//intrinsic/motion_planning/proto/v1:motion_specification_proto",
+    ],
 )
 
 py_proto_library(
