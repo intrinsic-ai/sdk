@@ -216,6 +216,34 @@ go_proto_library(
 )
 
 proto_library(
+    name = "capture_data_proto",
+    srcs = ["capture_data.proto"],
+    deps = [
+        "//intrinsic/math/proto:pose_proto",
+        "//intrinsic/platform/pubsub:storage_location",
+    ],
+)
+
+cc_proto_library(
+    name = "capture_data_cc_proto",
+    deps = [":capture_data_proto"],
+)
+
+py_proto_library(
+    name = "capture_data_py_pb2",
+    deps = [":capture_data_proto"],
+)
+
+go_proto_library(
+    name = "capture_data_go_proto",
+    go_deps = [
+        "//intrinsic/math/proto:pose_go_proto",
+        "//intrinsic/platform/pubsub:storage_location_go_proto",
+    ],
+    deps = [":capture_data_proto"],
+)
+
+proto_library(
     name = "capture_result_proto",
     srcs = ["capture_result.proto"],
     deps = [

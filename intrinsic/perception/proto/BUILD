@@ -273,6 +273,7 @@ py_proto_library(
 proto_library(
     name = "capture_data_proto",
     srcs = ["capture_data.proto"],
+    deprecation = "This proto is deprecated. Please use //intrinsic/perception/proto/v1:capture_data_proto instead.",
     deps = [
         "//intrinsic/math/proto:pose_proto",
         "//intrinsic/platform/pubsub:storage_location",

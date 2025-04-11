@@ -2,12 +2,10 @@
 
 syntax = "proto3";
 
-package intrinsic_proto.perception;
+package intrinsic_proto.perception.v1;
 
 import "intrinsic/math/proto/pose.proto";
 import "intrinsic/platform/pubsub/storage_location.proto";
-
-option deprecated = true;
 
 // A container for the data returned by the CaptureImages skill.
 message CaptureData {
