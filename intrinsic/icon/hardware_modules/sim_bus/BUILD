@@ -14,7 +14,6 @@ proto_library(
     deps = [
         "//intrinsic/icon/server/config:dio_config_proto",
         "//intrinsic/simulation/gazebo/plugins:sim_hardware_module_config_proto",
-        "@com_google_protobuf//:duration_proto",
     ],
 )
 

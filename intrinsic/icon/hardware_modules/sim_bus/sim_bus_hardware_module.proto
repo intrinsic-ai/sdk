@@ -4,7 +4,6 @@ syntax = "proto3";
 
 package intrinsic_proto.icon;
 
-import "google/protobuf/duration.proto";
 import "intrinsic/icon/server/config/dio_config.proto";
 import "intrinsic/simulation/gazebo/plugins/sim_hardware_module_config.proto";
 
@@ -147,11 +146,6 @@ message SimBusModuleConfig {
   // you're writing a SimBusModuleConfig proto, you probably know how to deal
   // with this.
   optional intrinsic_proto.icon.DigitalIOs dio_config = 5;
-  // Duration of a single control cycle. Use this to override any value from the
-  // World. Should only be needed for testing.
-  //
-  // DEPRECATED: use the control_rate oneof in HardwareModuleConfig instead
-  optional google.protobuf.Duration cycle_duration = 6 [deprecated = true];
   // Overrides sim server address (in hostname:port format). Only use this for
   // testing! If omitted, the HWM retrieves the hostname from the ModuleConfig,
   // and the port from the World entity.
@@ -169,4 +163,7 @@ message SimBusModuleConfig {
   // HWM. <joint> tags automatically become controllable joints, force/torque
   // sensors are made available, and so on.
   optional intrinsic_proto.sim.SimHardwareModuleConfig new_sim_api_config = 9;
+
+  reserved 6;
+  reserved "cycle_duration";
 }
