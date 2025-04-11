@@ -30,6 +30,35 @@ go_proto_library(
 )
 
 proto_library(
+    name = "instance_proto",
+    srcs = ["instance.proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        "//intrinsic/scene/proto/v1:scene_object_config_proto",
+        "@com_google_protobuf//:any_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "instance_cc_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":instance_proto"],
+)
+
+go_proto_library(
+    name = "instance_go_proto",
+    go_deps = ["//intrinsic/scene/proto/v1:scene_object_config_go_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":instance_proto"],
+)
+
+py_proto_library(
+    name = "instance_py_pb2",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":instance_proto"],
+)
+
+proto_library(
     name = "reference_proto",
     srcs = ["reference.proto"],
     visibility = ["//intrinsic:public_api_users"],
