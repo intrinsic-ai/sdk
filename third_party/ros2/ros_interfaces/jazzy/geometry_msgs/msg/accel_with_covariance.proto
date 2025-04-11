@@ -16,6 +16,6 @@ message AccelWithCovariance {
   // The orientation parameters use a fixed-axis representation.
   // In order, the parameters are:
   //(x, y, z, rotation about X axis, rotation about Y axis, rotation about Z
-  //axis)
+  // axis)
   repeated double covariance = 493695971;
 }

@@ -36,7 +36,7 @@ message GetTypeDescription_Response {
   // A list containing the interface definition source text of the requested
   // type, plus all types it recursively depends on. Each source text is a copy
   // of the original contents of the .msg, .srv, .action, .idl, or other file if
-  //it exists, including comments and whitespace. Sources can be matched with
+  // it exists, including comments and whitespace. Sources can be matched with
   // IndividualTypeDescriptions by their `type_name`. The `encoding` field of
   // each entry informs how to interpret its contents.
   repeated type_description_interfaces.msg.pb.jazzy.TypeSource type_sources =

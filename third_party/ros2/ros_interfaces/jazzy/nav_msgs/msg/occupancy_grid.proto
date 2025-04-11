@@ -21,6 +21,6 @@ message OccupancyGrid {
   // direction. Cell (0, 1) will be at the index equal to info.width, followed
   // by (1, 1). The values inside are application dependent, but frequently, 0
   // represents unoccupied, 1 represents definitely occupied, and -1 represents
-  //unknown.
+  // unknown.
   bytes data = 234097369;
 }
