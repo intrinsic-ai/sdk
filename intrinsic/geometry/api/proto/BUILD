@@ -1,6 +1,6 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-""" Intrinsic package geometry/proto. """
+""" Intrinsic package geometry/api/proto. """
 
 load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_proto_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")

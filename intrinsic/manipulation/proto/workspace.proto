@@ -4,7 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.manipulation;
 
-import "intrinsic/geometry/proto/oriented_bounding_box.proto";
+import "intrinsic/geometry/api/proto/oriented_bounding_box.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 
 // An oriented 3-D bounding box in a specific frame.

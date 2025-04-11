@@ -4,8 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.geometry;
 
-import "intrinsic/geometry/proto/lazy_exact_geometry.proto";
-import "intrinsic/geometry/proto/renderable.proto";
+import "intrinsic/geometry/api/proto/lazy_exact_geometry.proto";
+import "intrinsic/geometry/api/proto/renderable.proto";
 
 // Shared Geometry representation. Contains both the computational geometry data
 // as well as an optional renderable data available for the shape.

@@ -4,7 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.geometry;
 
-import "intrinsic/geometry/proto/axis_aligned_bounding_box.proto";
+import "intrinsic/geometry/api/proto/axis_aligned_bounding_box.proto";
 
 // Octree representation.
 message Octree {

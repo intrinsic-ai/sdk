@@ -4,7 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.geometry;
 
-import "intrinsic/geometry/service/geometry_storage_refs.proto";
+import "intrinsic/geometry/api/service/geometry_storage_refs.proto";
 import "intrinsic/math/proto/matrix.proto";
 
 // A proto holding the Geometry refs and a transform similar to the

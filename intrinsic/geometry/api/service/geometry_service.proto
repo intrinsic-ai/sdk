@@ -4,8 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.geometry;
 
-import "intrinsic/geometry/service/geometry_service_types.proto";
-import "intrinsic/geometry/service/geometry_storage_refs.proto";
+import "intrinsic/geometry/api/service/geometry_service_types.proto";
+import "intrinsic/geometry/api/service/geometry_storage_refs.proto";
 
 // Geometry service is a mechanism for storing and retrieving geometry like
 // meshes or primitives used within a world instance.

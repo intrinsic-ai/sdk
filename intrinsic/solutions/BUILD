@@ -507,7 +507,7 @@ py_library(
     srcs = ["worlds.py"],
     deps = [
         ":utils",
-        "//intrinsic/geometry/service:geometry_service_py_pb2_grpc",
+        "//intrinsic/geometry/api/service:geometry_service_py_pb2_grpc",
         "//intrinsic/math/python:data_types",
         "//intrinsic/math/python:proto_conversion",
         "//intrinsic/motion_planning/proto:motion_target_py_pb2",

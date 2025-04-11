@@ -20,7 +20,7 @@ from google.protobuf import message_factory
 from google.rpc import status_pb2
 import grpc
 from intrinsic.assets import id_utils
-from intrinsic.geometry.service import geometry_service_pb2_grpc
+from intrinsic.geometry.api.service import geometry_service_pb2_grpc
 from intrinsic.logging.proto import context_pb2
 from intrinsic.motion_planning import motion_planner_client
 from intrinsic.motion_planning.proto.v1 import motion_planner_service_pb2_grpc

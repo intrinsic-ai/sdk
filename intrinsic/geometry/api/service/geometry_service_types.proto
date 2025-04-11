@@ -4,10 +4,10 @@ syntax = "proto3";
 
 package intrinsic_proto.geometry;
 
-import "intrinsic/geometry/proto/geometry.proto";
-import "intrinsic/geometry/proto/lazy_exact_geometry.proto";
-import "intrinsic/geometry/proto/renderable.proto";
-import "intrinsic/geometry/service/geometry_storage_refs.proto";
+import "intrinsic/geometry/api/proto/geometry.proto";
+import "intrinsic/geometry/api/proto/lazy_exact_geometry.proto";
+import "intrinsic/geometry/api/proto/renderable.proto";
+import "intrinsic/geometry/api/service/geometry_storage_refs.proto";
 import "intrinsic/math/proto/matrix.proto";
 
 // Response message for getting geometry from the geometry service.

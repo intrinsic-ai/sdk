@@ -18,7 +18,7 @@ proto_library(
         ":motion_planning_error_proto",
         ":motion_specification_proto",
         ":robot_specification_proto",
-        "//intrinsic/geometry/service:transformed_geometry_storage_refs_proto",
+        "//intrinsic/geometry/api/service:transformed_geometry_storage_refs_proto",
         "//intrinsic/icon/proto:joint_space_proto",
         "//intrinsic/kinematics/types:joint_limits_proto",
         "//intrinsic/logging/proto:context_proto",

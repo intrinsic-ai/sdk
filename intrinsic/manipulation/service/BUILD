@@ -38,7 +38,7 @@ proto_library(
     name = "multi_axis_auto_annotator_service_proto",
     srcs = ["multi_axis_auto_annotator_service.proto"],
     deps = [
-        "//intrinsic/geometry/proto:triangle_mesh_proto",
+        "//intrinsic/geometry/api/proto:triangle_mesh_proto",
         "//intrinsic/manipulation/grasping:schmalz_multi_axis_grasp_proto",
     ],
 )

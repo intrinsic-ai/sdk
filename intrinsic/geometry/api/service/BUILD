@@ -1,6 +1,6 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-""" Intrinsic package geometry/service. """
+""" Intrinsic package geometry/api/service. """
 
 load("@ai_intrinsic_sdks_pip_deps//:requirements.bzl", "requirement")
 load("@com_github_grpc_grpc//bazel:cc_grpc_library.bzl", "cc_grpc_library")
@@ -64,9 +64,9 @@ proto_library(
     srcs = ["geometry_service_types.proto"],
     deps = [
         ":geometry_storage_refs_proto",
-        "//intrinsic/geometry/proto:geometry_proto",
-        "//intrinsic/geometry/proto:lazy_exact_geometry_proto",
-        "//intrinsic/geometry/proto:renderable_proto",
+        "//intrinsic/geometry/api/proto:geometry_proto",
+        "//intrinsic/geometry/api/proto:lazy_exact_geometry_proto",
+        "//intrinsic/geometry/api/proto:renderable_proto",
         "//intrinsic/math/proto:matrix_proto",
     ],
 )
@@ -85,9 +85,9 @@ go_proto_library(
     name = "geometry_service_types_go_proto",
     go_deps = [
         ":geometry_storage_refs_go_proto",
-        "//intrinsic/geometry/proto:geometry_go_proto",
-        "//intrinsic/geometry/proto:lazy_exact_geometry_go_proto",
-        "//intrinsic/geometry/proto:renderable_go_proto",
+        "//intrinsic/geometry/api/proto:geometry_go_proto",
+        "//intrinsic/geometry/api/proto:lazy_exact_geometry_go_proto",
+        "//intrinsic/geometry/api/proto:renderable_go_proto",
         "//intrinsic/math/proto:matrix_go_proto",
     ],
     deps = [":geometry_service_types_proto"],

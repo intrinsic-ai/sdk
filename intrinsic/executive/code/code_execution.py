@@ -12,7 +12,7 @@ from google.protobuf import descriptor_pool
 from google.protobuf import message
 from google.protobuf.internal import builder
 import grpc
-from intrinsic.geometry.service import geometry_service_pb2_grpc
+from intrinsic.geometry.api.service import geometry_service_pb2_grpc
 from intrinsic.skills.internal import basic_compute_context_impl
 from intrinsic.skills.python import basic_compute_context
 from intrinsic.world.proto import object_world_service_pb2_grpc

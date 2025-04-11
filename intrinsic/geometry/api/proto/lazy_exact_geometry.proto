@@ -4,9 +4,9 @@ syntax = "proto3";
 
 package intrinsic_proto.geometry;
 
-import "intrinsic/geometry/proto/mesh_octree_wrapping.proto";
-import "intrinsic/geometry/proto/primitives.proto";
-import "intrinsic/geometry/proto/triangle_mesh.proto";
+import "intrinsic/geometry/api/proto/mesh_octree_wrapping.proto";
+import "intrinsic/geometry/api/proto/primitives.proto";
+import "intrinsic/geometry/api/proto/triangle_mesh.proto";
 
 // Computational geometry representation of Geometry.
 message LazyExactGeometry {

@@ -5,7 +5,7 @@ syntax = "proto3";
 package intrinsic_proto.motion_planning.v1;
 
 import "google/protobuf/empty.proto";
-import "intrinsic/geometry/service/transformed_geometry_storage_refs.proto";
+import "intrinsic/geometry/api/service/transformed_geometry_storage_refs.proto";
 import "intrinsic/icon/proto/joint_space.proto";
 import "intrinsic/logging/proto/context.proto";
 import "intrinsic/math/proto/pose.proto";

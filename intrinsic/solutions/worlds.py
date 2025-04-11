@@ -5,7 +5,7 @@
 from typing import Optional, Union
 
 import grpc
-from intrinsic.geometry.service import geometry_service_pb2_grpc
+from intrinsic.geometry.api.service import geometry_service_pb2_grpc
 from intrinsic.math.python import data_types
 from intrinsic.math.python import proto_conversion as math_proto_conversion
 from intrinsic.motion_planning.proto import motion_target_pb2

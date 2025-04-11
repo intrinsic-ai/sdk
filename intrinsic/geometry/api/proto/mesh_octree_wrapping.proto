@@ -4,7 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.geometry;
 
-import "intrinsic/geometry/proto/octree.proto";
+import "intrinsic/geometry/api/proto/octree.proto";
 
 // Wrapping context for describing how a octree wraps a mesh. This data
 // structure contains both the octree and the associations between octree voxels

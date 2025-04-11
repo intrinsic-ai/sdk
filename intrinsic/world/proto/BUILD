@@ -63,7 +63,7 @@ proto_library(
     name = "geometry_component_proto",
     srcs = ["geometry_component.proto"],
     deps = [
-        "//intrinsic/geometry/service:geometry_storage_refs_proto",
+        "//intrinsic/geometry/api/service:geometry_storage_refs_proto",
         "//intrinsic/math/proto:matrix_proto",
     ],
 )
@@ -82,7 +82,7 @@ go_proto_library(
     name = "geometry_component_go_proto",
     go_deps = [
         "//intrinsic/math/proto:matrix_go_proto",
-        "//intrinsic/geometry/service:geometry_storage_refs_go_proto",
+        "//intrinsic/geometry/api/service:geometry_storage_refs_go_proto",
     ],
     deps = [":geometry_component_proto"],
 )

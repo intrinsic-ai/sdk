@@ -193,7 +193,7 @@ py_library(
     ],
     deps = [
         "//intrinsic/assets:id_utils_py",
-        "//intrinsic/geometry/service:geometry_service_py_pb2_grpc",
+        "//intrinsic/geometry/api/service:geometry_service_py_pb2_grpc",
         "//intrinsic/icon/release:file_helpers_py",
         "//intrinsic/logging/proto:context_py_pb2",
         "//intrinsic/motion_planning:motion_planner_client_py",

@@ -10,7 +10,7 @@ py_library(
     name = "code_execution",
     srcs = ["code_execution.py"],
     deps = [
-        "//intrinsic/geometry/service:geometry_service_py_pb2_grpc",
+        "//intrinsic/geometry/api/service:geometry_service_py_pb2_grpc",
         "//intrinsic/skills/internal:basic_compute_context_impl_py",
         "//intrinsic/skills/python:basic_compute_context",
         "//intrinsic/world/proto:object_world_service_py_pb2_grpc",

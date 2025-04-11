@@ -15,7 +15,7 @@ cc_library(
     deps = [
         ":conversions",
         "//intrinsic/eigenmath",
-        "//intrinsic/geometry/service:transformed_geometry_storage_refs_cc_proto",
+        "//intrinsic/geometry/api/service:transformed_geometry_storage_refs_cc_proto",
         "//intrinsic/icon/proto:joint_space_cc_proto",
         "//intrinsic/logging/proto:context_cc_proto",
         "//intrinsic/math:pose3",

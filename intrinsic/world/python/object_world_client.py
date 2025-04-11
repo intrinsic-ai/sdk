@@ -12,9 +12,9 @@ import warnings
 from google.protobuf import any_pb2
 from google.protobuf import struct_pb2
 import grpc
-from intrinsic.geometry.service import geometry_service_pb2
-from intrinsic.geometry.service import geometry_service_pb2_grpc
-from intrinsic.geometry.service import geometry_storage_refs_pb2
+from intrinsic.geometry.api.service import geometry_service_pb2
+from intrinsic.geometry.api.service import geometry_service_pb2_grpc
+from intrinsic.geometry.api.service import geometry_storage_refs_pb2
 from intrinsic.icon.equipment import icon_equipment_pb2
 from intrinsic.icon.proto import cart_space_pb2
 from intrinsic.kinematics.types import joint_limits_pb2
