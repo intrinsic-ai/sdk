@@ -16,6 +16,7 @@
 
 black==24.8.0
 graphviz==0.20.3
+google-re2==1.1.20240702
 grpcio==1.71.0
 grpcio-status==1.71.0
 hypothesis==6.112.2
