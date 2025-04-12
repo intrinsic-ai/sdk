@@ -2,11 +2,9 @@
 
 syntax = "proto3";
 
-package intrinsic_proto.perception;
+package intrinsic_proto.perception.v1;
 
 import "intrinsic/math/proto/pose.proto";
-
-option deprecated = true;
 
 // A pose estimate in the root frame for skill APIs.
 message PoseEstimateInRoot {

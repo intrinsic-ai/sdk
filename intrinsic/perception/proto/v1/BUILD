@@ -404,6 +404,32 @@ cc_proto_library(
 )
 
 proto_library(
+    name = "pose_estimate_in_root_proto",
+    srcs = ["pose_estimate_in_root.proto"],
+    deps = [
+        "//intrinsic/math/proto:pose_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "pose_estimate_in_root_cc_proto",
+    deps = [":pose_estimate_in_root_proto"],
+)
+
+py_proto_library(
+    name = "pose_estimate_in_root_py_pb2",
+    deps = [":pose_estimate_in_root_proto"],
+)
+
+go_proto_library(
+    name = "pose_estimate_in_root_go_proto",
+    go_deps = [
+        "//intrinsic/math/proto:pose_go_proto",
+    ],
+    deps = [":pose_estimate_in_root_proto"],
+)
+
+proto_library(
     name = "pose_estimation_config",
     srcs = ["pose_estimation_config.proto"],
     deps = [

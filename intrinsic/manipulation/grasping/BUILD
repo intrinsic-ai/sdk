@@ -26,7 +26,7 @@ proto_library(
         "//intrinsic/icon/proto:joint_space_proto",
         "//intrinsic/math/proto:pose_proto",
         "//intrinsic/motion_planning/proto/v1:geometric_constraints_proto",
-        "//intrinsic/perception/proto:pose_estimate_in_root_proto",
+        "//intrinsic/perception/proto/v1:pose_estimate_in_root_proto",
         "//intrinsic/world/proto:object_world_refs_proto",
     ],
 )

@@ -531,6 +531,7 @@ proto_library(
 proto_library(
     name = "pose_estimate_in_root_proto",
     srcs = ["pose_estimate_in_root.proto"],
+    deprecation = "This proto is deprecated. Please use //intrinsic/perception/proto/v1:pose_estimate_in_root_proto instead.",
     deps = [
         "//intrinsic/math/proto:pose_proto",
     ],

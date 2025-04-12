@@ -9,7 +9,7 @@ import "intrinsic/hardware/gripper/gripper.proto";
 import "intrinsic/icon/proto/joint_space.proto";
 import "intrinsic/math/proto/pose.proto";
 import "intrinsic/motion_planning/proto/v1/geometric_constraints.proto";
-import "intrinsic/perception/proto/pose_estimate_in_root.proto";
+import "intrinsic/perception/proto/v1/pose_estimate_in_root.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 
 message GraspCommand {
@@ -185,7 +185,7 @@ message AttemptedGrasp {
 
 message PoseEstimatesTarget {
   // Pose estimates for objects in the scene.
-  repeated perception.PoseEstimateInRoot estimates = 1;
+  repeated perception.v1.PoseEstimateInRoot estimates = 1;
   // The object category of the estimates. This is used to spawn objects
   // in the scene corresponding to the estimates.
   string category = 2;

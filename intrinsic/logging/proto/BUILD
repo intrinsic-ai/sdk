@@ -73,7 +73,7 @@ go_proto_library(
         "//intrinsic/hardware/gripper/eoat:eoat_service_go_proto",
         "//intrinsic/kinematics/types:dynamic_limits_check_mode_go_proto",
         "//intrinsic/skills/proto:skill_parameter_metadata_go_proto",
-        "//intrinsic/perception/proto:pose_estimate_in_root_go_proto",
+        "//intrinsic/perception/proto/v1:pose_estimate_in_root_go_proto",
         "//intrinsic/world/proto:object_world_refs_go_proto",
         "//intrinsic/world/proto:collision_action_go_proto",
         "//intrinsic/world/proto:collision_settings_go_proto",
