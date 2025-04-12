@@ -9,6 +9,7 @@ import "google/protobuf/any.proto";
 import "intrinsic/assets/proto/asset_type.proto";
 import "intrinsic/assets/proto/id.proto";
 import "intrinsic/math/proto/pose.proto";
+import "intrinsic/scene/proto/v1/scene_object_config.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 
 // Service to manage the deployment of assets, specifically, resource instances
@@ -80,8 +81,12 @@ message ResourceInstanceConfiguration {
   // the resource set.
   string name = 1;
 
-  // Optional resource instance specific runtime configuration.
+  // Service configuration, if the asset has a service component.
   optional google.protobuf.Any configuration = 2;
+
+  // Scene object configuration, if the asset has a scene object component.
+  optional intrinsic_proto.scene_object.v1.SceneObjectConfig
+      scene_object_config = 6;
 
   // Optional parent where to attach the new resource instance to.
   // This may only be specified if the resource type associated with this

@@ -6,6 +6,7 @@ package intrinsic_proto.resources;
 
 import "google/protobuf/any.proto";
 import "intrinsic/resources/proto/resource_handle.proto";
+import "intrinsic/scene/proto/v1/scene_object_config.proto";
 
 service ResourceRegistry {
 
@@ -29,8 +30,12 @@ message ResourceInstance {
   // Resource family identifier, useful for grouping and filtering.
   string resource_family_id = 6;
 
-  // Resource configuration.
+  // Service configuration, if the asset has a service component.
   google.protobuf.Any configuration = 3;
+
+  // Scene object configuration, if the asset has a scene object component.
+  optional intrinsic_proto.scene_object.v1.SceneObjectConfig
+      scene_object_config = 13;
 
   // The handle containing connection information and resource capabilitiies.
   ResourceHandle resource_handle = 11;

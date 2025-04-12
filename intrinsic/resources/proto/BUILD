@@ -16,6 +16,7 @@ proto_library(
     srcs = ["resource_registry.proto"],
     deps = [
         ":resource_handle_proto",
+        "//intrinsic/scene/proto/v1:scene_object_config_proto",
         "@com_google_protobuf//:any_proto",
     ],
 )
@@ -26,6 +27,7 @@ go_proto_library(
         "//intrinsic/assets/proto:metadata_go_proto",
         "//intrinsic/assets/proto:view_go_proto",
         "//intrinsic/resources/proto:resource_handle_go_proto",
+        "//intrinsic/scene/proto/v1:scene_object_config_go_proto",
     ],
     deps = [":resource_registry_proto"],
 )
@@ -37,6 +39,7 @@ go_grpc_library(
         "//intrinsic/assets/proto:metadata_go_proto",
         "//intrinsic/assets/proto:view_go_proto",
         "//intrinsic/resources/proto:resource_handle_go_proto",
+        "//intrinsic/scene/proto/v1:scene_object_config_go_proto",
         "@org_golang_google_protobuf//types/known/anypb",
     ],
 )
