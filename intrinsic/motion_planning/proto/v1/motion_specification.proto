@@ -7,7 +7,6 @@ package intrinsic_proto.motion_planning.v1;
 import "intrinsic/motion_planning/proto/v1/geometric_constraints.proto";
 import "intrinsic/motion_planning/proto/v1/motion_blending_parameter.proto";
 import "intrinsic/motion_planning/proto/v1/motion_planning_limits.proto";
-import "intrinsic/skills/proto/skill_parameter_metadata.proto";
 import "intrinsic/world/proto/collision_settings.proto";
 
 message PathConstraint {

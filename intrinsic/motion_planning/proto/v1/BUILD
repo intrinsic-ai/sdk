@@ -48,7 +48,9 @@ cc_grpc_library(
 proto_library(
     name = "motion_blending_parameter_proto",
     srcs = ["motion_blending_parameter.proto"],
-    deps = ["//intrinsic/skills/proto:skill_parameter_metadata_proto"],
+    deps = [
+        "//intrinsic/skills/proto:skill_parameter_metadata_proto",
+    ],
 )
 
 cc_proto_library(
@@ -99,7 +101,6 @@ proto_library(
         ":geometric_constraints_proto",
         ":motion_blending_parameter_proto",
         ":motion_planning_limits_proto",
-        "//intrinsic/skills/proto:skill_parameter_metadata_proto",
         "//intrinsic/world/proto:collision_settings_proto",
     ],
 )
