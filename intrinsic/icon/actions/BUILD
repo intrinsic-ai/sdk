@@ -324,4 +324,5 @@ cc_library(
 cc_library(
     name = "force_stop_action_info",
     hdrs = ["force_stop_action_info.h"],
+    visibility = ["//intrinsic/icon/control/actions:__pkg__"],
 )
