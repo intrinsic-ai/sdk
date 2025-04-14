@@ -20,6 +20,7 @@ message InstanceConfig {
     google.protobuf.Any service_config = 1;
     // Hostname on which the service should be run.
     optional string scheduled_node_hostname = 2;
+
   }
 
   oneof variant {

@@ -47,7 +47,9 @@ cc_proto_library(
 
 go_proto_library(
     name = "instance_go_proto",
-    go_deps = ["//intrinsic/scene/proto/v1:scene_object_config_go_proto"],
+    go_deps = [
+        "//intrinsic/scene/proto/v1:scene_object_config_go_proto",
+    ],
     visibility = ["//intrinsic:public_api_users"],
     deps = [":instance_proto"],
 )
