@@ -14,14 +14,6 @@ go_library(
 )
 
 go_library(
-    name = "messages",
-    srcs = ["messages.go"],
-    visibility = [
-        "//intrinsic/tools/inctl/cmd/cluster:__pkg__",
-    ],
-)
-
-go_library(
     name = "version",
     srcs = ["version.go"],
     visibility = ["//intrinsic/tools/inctl/cmd/cluster:__subpackages__"],
