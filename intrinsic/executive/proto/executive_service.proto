@@ -263,6 +263,7 @@ message StartOperationRequest {
 
   // This is a map from slot to the name of the resource handle.
   map<string, string> resources = 8;
+
 }
 
 message SuspendOperationRequest {
