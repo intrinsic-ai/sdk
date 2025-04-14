@@ -230,7 +230,7 @@ class GrpcEnvelope::WrapperService : public intrinsic::icon::IconApiService {
       intrinsic_proto::icon::v1::GetOperationalStatusResponse* response)
       override {
     absl::ReaderMutexLock l(&envelope_.icon_impl_mutex_);
-    absl::StatusOr<absl::Nonnull<IconApiService*>> icon_service =
+    absl::StatusOr<IconApiService* /*absl_nonnull*/> icon_service =
         envelope_.IconService();
     if (!icon_service.ok()) {
       response->mutable_operational_status()->set_state(
@@ -415,12 +415,13 @@ GrpcEnvelope::~GrpcEnvelope() {
   // 2. Now that there's no more gRPC requests using it, destroy `icon_impl_`.
 }
 
-absl::StatusOr<absl::Nonnull<IconApiService*>> GrpcEnvelope::IconService() {
+absl::StatusOr<IconApiService* /*absl_nonnull*/> GrpcEnvelope::IconService() {
   INTR_RETURN_IF_ERROR(icon_impl_.status());
   return icon_impl_.value()->IconService();
 }
 
-absl::StatusOr<absl::Nonnull<intrinsic_proto::gpio::v1::GPIOService::Service*>>
+absl::StatusOr<
+    intrinsic_proto::gpio::v1::GPIOService::Service* /*absl_nonnull*/>
 GrpcEnvelope::GpioService() {
   INTR_RETURN_IF_ERROR(icon_impl_.status());
   return icon_impl_.value()->GpioService();

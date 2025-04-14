@@ -46,14 +46,14 @@ class IconImplInterface {
   // for the lifetime of the IconImplInterface.
   //
   // Returns an error if the IconImplInterface is in an error state.
-  virtual absl::StatusOr<absl::Nonnull<icon::IconApiService*>> IconService()
+  virtual absl::StatusOr<icon::IconApiService* /*absl_nonnull*/> IconService()
       ABSL_ATTRIBUTE_LIFETIME_BOUND = 0;
   // Returns a reference to a GPIOService. This reference must be valid for the
   // lifetime of the IconImplInterface.
   //
   // Returns an error if the IconImplInterface is in an error state.
   virtual absl::StatusOr<
-      absl::Nonnull<intrinsic_proto::gpio::v1::GPIOService::Service*>>
+      intrinsic_proto::gpio::v1::GPIOService::Service* /*absl_nonnull*/>
   GpioService() ABSL_ATTRIBUTE_LIFETIME_BOUND = 0;
 };
 
@@ -104,10 +104,10 @@ class GrpcEnvelope {
 
   void StartServer();
 
-  absl::StatusOr<absl::Nonnull<IconApiService*>> IconService()
+  absl::StatusOr<IconApiService* /*absl_nonnull*/> IconService()
       ABSL_SHARED_LOCKS_REQUIRED(icon_impl_mutex_);
   absl::StatusOr<
-      absl::Nonnull<intrinsic_proto::gpio::v1::GPIOService::Service*>>
+      intrinsic_proto::gpio::v1::GPIOService::Service* /*absl_nonnull*/>
   GpioService() ABSL_SHARED_LOCKS_REQUIRED(icon_impl_mutex_);
   // Tears down the current IconImplInterface and uses the factory in `config_`
   // to build a new one.
