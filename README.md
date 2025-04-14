@@ -11,7 +11,7 @@ robotic solutions from concept to deployment.
 In addition to this
 [SDK repository](https://github.com/intrinsic-ai/sdk), there is a
 companion repository with
-[examples](https://github.com/intrinsic-dev/sdk-examples) and a dev container
+[examples](https://github.com/intrinsic-ai/sdk-examples) and a dev container
 [project template](https://github.com/intrinsic-dev/project-template).
 
 ## Disclaimer
