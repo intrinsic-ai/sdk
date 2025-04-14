@@ -78,23 +78,29 @@ def hardware_module_image(
     init_hwm_path = "/init_hwm"
 
     # Resources use the resource_context for configuration. They should not be called with `--config_pbtxt_file`.
+    # dumb-init is required to correctly forward signals to all threads/processes in the container.
+    # Not using it can result in e.g. a 30s shutdown delay.
     resource_cmd = [
-        init_hwm_path,
+        "/dumb-init",
         "--",
+        init_hwm_path,
         _path_in_container(native.package_relative_label(hardware_module_binary)),
     ]
 
     layers = kwargs.get("layers", [])
     layers.append(init_hwm_tar)
     kwargs["layers"] = layers
+    for file in ["@dumb-init"]:
+       symlinks.update(_build_symlink(file, "/"))
 
     container_image(
         name = name,
         base = base_image,
         data_path = "/",
-        files = [hardware_module_binary] + extra_files,
+        files = ["@dumb-init"] + [hardware_module_binary] + extra_files,
         symlinks = symlinks,
-        cmd = resource_cmd,
+        #   Using `entrypoint` instead of `cmd` so custom commands can be passed to the hwm binary using `args` in the yaml template intrinsic/icon/hal/templates/hardware-module-addon.yaml .
+        entrypoint = resource_cmd,
         labels = {
             "ai.intrinsic.hardware-module-image-name": name,
         },
