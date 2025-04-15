@@ -47,6 +47,8 @@ func TestValidateMetadata(t *testing.T) {
 	mInvalidPackage.IdVersion.Id.Package = "_invalid_package"
 	mInvalidVersion := proto.Clone(m).(*metadatapb.Metadata)
 	mInvalidVersion.IdVersion.Version = "bob"
+	mMissingVersion := proto.Clone(m).(*metadatapb.Metadata)
+	mMissingVersion.IdVersion.Version = ""
 	mNoDisplayName := proto.Clone(m).(*metadatapb.Metadata)
 	mNoDisplayName.DisplayName = ""
 	mNoVendor := proto.Clone(m).(*metadatapb.Metadata)
@@ -69,11 +71,34 @@ func TestValidateMetadata(t *testing.T) {
 	tests := []struct {
 		name          string
 		m             *metadatapb.Metadata
+		opts          []ValidateMetadataOption
 		wantErrorCode codes.Code
 	}{
 		{
 			name: "valid",
 			m:    m,
+		},
+		{
+			name: "valid with version required",
+			m:    m,
+			opts: []ValidateMetadataOption{WithRequireVersion(true)},
+		},
+		{
+			name: "valid with version not required",
+			m:    mMissingVersion,
+			opts: []ValidateMetadataOption{WithRequireVersion(false)},
+		},
+		{
+			name:          "missing version",
+			m:             mMissingVersion,
+			opts:          []ValidateMetadataOption{WithRequireVersion(true)},
+			wantErrorCode: codes.InvalidArgument,
+		},
+		{
+			name:          "missing version for catalog",
+			m:             mMissingVersion,
+			opts:          WithCatalogOptions(),
+			wantErrorCode: codes.InvalidArgument,
 		},
 		{
 			name:          "invalid name",
@@ -103,6 +128,13 @@ func TestValidateMetadata(t *testing.T) {
 		{
 			name:          "no update time",
 			m:             mNoUpdateTime,
+			opts:          []ValidateMetadataOption{WithRequireUpdateTime(true)},
+			wantErrorCode: codes.InvalidArgument,
+		},
+		{
+			name:          "no update time for catalog",
+			m:             mNoUpdateTime,
+			opts:          WithCatalogOptions(),
 			wantErrorCode: codes.InvalidArgument,
 		},
 		{
@@ -139,7 +171,7 @@ func TestValidateMetadata(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			err := ValidateMetadata(tc.m)
+			err := ValidateMetadata(tc.m, tc.opts...)
 			if tc.wantErrorCode != codes.OK {
 				if err == nil {
 					t.Errorf("ValidateMetadata(%v) = nil, want error", tc.m)

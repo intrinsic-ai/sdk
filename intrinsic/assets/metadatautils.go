@@ -54,10 +54,50 @@ var (
 	}
 )
 
+// ValidateMetadataOptions contains options for ValidateMetadata.
+type ValidateMetadataOptions struct {
+	requireUpdateTime bool
+	requireVersion    bool
+}
+
+// ValidateMetadataOption is a functional option for ValidateMetadata.
+type ValidateMetadataOption func(*ValidateMetadataOptions)
+
+// WithRequireUpdateTime requires that the metadata has an update time.
+func WithRequireUpdateTime(requireUpdateTime bool) ValidateMetadataOption {
+	return func(opts *ValidateMetadataOptions) {
+		opts.requireUpdateTime = requireUpdateTime
+	}
+}
+
+// WithRequireVersion requires that the metadata has a version.
+func WithRequireVersion(requireVersion bool) ValidateMetadataOption {
+	return func(opts *ValidateMetadataOptions) {
+		opts.requireVersion = requireVersion
+	}
+}
+
+// WithCatalogOptions adds options for validating metadata for use in the catalog.
+func WithCatalogOptions() []ValidateMetadataOption {
+	return []ValidateMetadataOption{
+		WithRequireUpdateTime(true),
+		WithRequireVersion(true),
+	}
+}
+
 // ValidateMetadata validates asset metadata.
-func ValidateMetadata(m *metadatapb.Metadata) error {
-	if err := idutils.ValidateIDVersionProto(m.GetIdVersion()); err != nil {
-		return status.Errorf(codes.InvalidArgument, "invalid id version: %v", err)
+func ValidateMetadata(m *metadatapb.Metadata, options ...ValidateMetadataOption) error {
+	opts := &ValidateMetadataOptions{}
+	for _, opt := range options {
+		opt(opts)
+	}
+
+	if opts.requireVersion || m.GetIdVersion().GetVersion() != "" {
+		if err := idutils.ValidateIDVersionProto(m.GetIdVersion()); err != nil {
+			return status.Errorf(codes.InvalidArgument, "invalid id version: %v", err)
+		}
+	} else if err := idutils.ValidateIDProto(m.GetIdVersion().GetId()); err != nil {
+		return status.Errorf(codes.InvalidArgument, "invalid id: %v", err)
 	}
 	id := idutils.IDFromProtoUnchecked(m.GetIdVersion().GetId())
 
@@ -67,7 +107,7 @@ func ValidateMetadata(m *metadatapb.Metadata) error {
 	if m.GetVendor().GetDisplayName() == "" {
 		return status.Errorf(codes.InvalidArgument, "no vendor specified for %q", id)
 	}
-	if m.GetUpdateTime() == nil {
+	if opts.requireUpdateTime && m.GetUpdateTime() == nil {
 		return status.Errorf(codes.InvalidArgument, "no update time specified for %q", id)
 	}
 	if m.GetAssetType() == atypepb.AssetType_ASSET_TYPE_UNSPECIFIED {
