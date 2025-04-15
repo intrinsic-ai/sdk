@@ -5,15 +5,6 @@
 load("//bazel:go_macros.bzl", "go_library", "go_test")
 
 go_library(
-    name = "info",
-    srcs = ["info.go"],
-    visibility = [
-        "//intrinsic/kubernetes/inversion:__pkg__",
-        "//intrinsic/tools/inctl/cmd/cluster:__pkg__",
-    ],
-)
-
-go_library(
     name = "version",
     srcs = ["version.go"],
     visibility = ["//intrinsic/tools/inctl/cmd/cluster:__subpackages__"],

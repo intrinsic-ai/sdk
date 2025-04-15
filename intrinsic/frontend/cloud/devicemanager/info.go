@@ -1,7 +1,6 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package info contains shared struct definitions about update info
-package info
+package device
 
 import (
 	"time"
