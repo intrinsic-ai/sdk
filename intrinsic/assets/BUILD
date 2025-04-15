@@ -4,7 +4,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 load("@rules_python//python:defs.bzl", "py_library")
-load("//bazel:go_macros.bzl", "go_library")
+load("//bazel:go_macros.bzl", "go_library", "go_test")
 
 go_library(
     name = "baseclientutils",
@@ -101,13 +101,6 @@ go_library(
 )
 
 go_library(
-    name = "metadatafieldlimits",
-    srcs = ["metadata_field_limits.go"],
-    visibility = ["//intrinsic:internal_api_users"],
-    deps = ["//intrinsic/assets/proto:asset_type_go_proto"],
-)
-
-go_library(
     name = "imagetransfer",
     srcs = ["imagetransfer.go"],
     visibility = [
@@ -191,5 +184,36 @@ go_library(
         "//intrinsic/assets/catalog/proto/v1:asset_catalog_go_grpc_proto",
         "//intrinsic/assets/proto:view_go_proto",
         "@org_golang_google_grpc//:go_default_library",
+    ],
+)
+
+go_library(
+    name = "metadatautils",
+    srcs = ["metadatautils.go"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        ":idutils",
+        "//intrinsic/assets/proto:asset_type_go_proto",
+        "//intrinsic/assets/proto:metadata_go_proto",
+        "@org_golang_google_grpc//codes:go_default_library",
+        "@org_golang_google_grpc//status:go_default_library",
+        "@org_golang_google_protobuf//proto",
+    ],
+)
+
+go_test(
+    name = "metadatautils_test",
+    srcs = ["metadatautils_test.go"],
+    library = ":metadatautils",
+    deps = [
+        "//intrinsic/assets/proto:asset_type_go_proto",
+        "//intrinsic/assets/proto:documentation_go_proto",
+        "//intrinsic/assets/proto:id_go_proto",
+        "//intrinsic/assets/proto:metadata_go_proto",
+        "//intrinsic/assets/proto:vendor_go_proto",
+        "@org_golang_google_grpc//codes:go_default_library",
+        "@org_golang_google_grpc//status:go_default_library",
+        "@org_golang_google_protobuf//proto",
+        "@org_golang_google_protobuf//types/known/timestamppb",
     ],
 )

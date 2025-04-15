@@ -607,7 +607,7 @@ go_library(
     ],
     deps = [
         "//intrinsic/assets:idutils",
-        "//intrinsic/assets:metadatafieldlimits",
+        "//intrinsic/assets:metadatautils",
         "//intrinsic/assets/proto:asset_type_go_proto",
         "//intrinsic/skills/proto:skill_manifest_go_proto",
         "//intrinsic/util/proto:sourcecodeinfoview",

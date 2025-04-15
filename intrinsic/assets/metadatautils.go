@@ -1,12 +1,17 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package metadatafieldlimits defines size restrictions on various fields for asset metadata.
-package metadatafieldlimits
+// Package metadatautils contains utilities for asset metadata.
+package metadatautils
 
 import (
 	"fmt"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
+	"intrinsic/assets/idutils"
 	atypepb "intrinsic/assets/proto/asset_type_go_proto"
+	metadatapb "intrinsic/assets/proto/metadata_go_proto"
 )
 
 const (
@@ -25,6 +30,8 @@ const (
 	// The character limits for release notes were set arbitrarily based on the length of
 	// description.
 	RelNotesCharLength = 2400
+	// MaxMetadataSize is the maximum size of a Metadata message.
+	MaxMetadataSize = 750 * 1024 // 750 kiB
 )
 
 var (
@@ -46,6 +53,49 @@ var (
 		atypepb.AssetType_ASSET_TYPE_DATA:            80,
 	}
 )
+
+// ValidateMetadata validates asset metadata.
+func ValidateMetadata(m *metadatapb.Metadata) error {
+	if err := idutils.ValidateIDVersionProto(m.GetIdVersion()); err != nil {
+		return status.Errorf(codes.InvalidArgument, "invalid id version: %v", err)
+	}
+	id := idutils.IDFromProtoUnchecked(m.GetIdVersion().GetId())
+
+	if m.GetDisplayName() == "" {
+		return status.Errorf(codes.InvalidArgument, "no display name specified for %q", id)
+	}
+	if m.GetVendor().GetDisplayName() == "" {
+		return status.Errorf(codes.InvalidArgument, "no vendor specified for %q", id)
+	}
+	if m.GetUpdateTime() == nil {
+		return status.Errorf(codes.InvalidArgument, "no update time specified for %q", id)
+	}
+	if m.GetAssetType() == atypepb.AssetType_ASSET_TYPE_UNSPECIFIED {
+		return status.Errorf(codes.InvalidArgument, "no asset type specified for %q", id)
+	}
+
+	// Validate metadata size limits.
+	if err := ValidateNameLength(m.GetIdVersion().GetId().GetName(), m.GetAssetType()); err != nil {
+		return status.Errorf(codes.ResourceExhausted, "invalid name for %q: %v", id, err)
+	}
+	if err := ValidateDisplayNameLength(m.GetDisplayName()); err != nil {
+		return status.Errorf(codes.ResourceExhausted, "invalid display name for %q: %v", id, err)
+	}
+	if err := ValidateVersionLength(m.GetIdVersion().GetVersion()); err != nil {
+		return status.Errorf(codes.ResourceExhausted, "invalid version for %q: %v", id, err)
+	}
+	if err := ValidateDescriptionLength(m.GetDocumentation().GetDescription()); err != nil {
+		return status.Errorf(codes.ResourceExhausted, "invalid description for %q: %v", id, err)
+	}
+	if err := ValidateRelNotesLength(m.GetReleaseNotes()); err != nil {
+		return status.Errorf(codes.ResourceExhausted, "invalid release notes for %q: %v", id, err)
+	}
+	if sz := proto.Size(m); sz > MaxMetadataSize {
+		return status.Errorf(codes.ResourceExhausted, "metadata size of %q is too large: %d bytes > max %d bytes (Try reducing size of release notes and/or documentation.)", id, sz, MaxMetadataSize)
+	}
+
+	return nil
+}
 
 // ValidateNameLength validates the length of asset names.
 func ValidateNameLength(name string, at atypepb.AssetType) error {
