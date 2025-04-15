@@ -98,7 +98,7 @@ message CollisionError {
 // Each collision debug message corresponds to a collision check.
 message CollisionDebug {
   // Error message reported.
-  string error_message = 1;
+  optional string error_message = 1;
   // Joint positions for which collision was checked.
   intrinsic_proto.icon.JointVec joint_positions = 2;
   // Left entity for the reported collision.
@@ -112,7 +112,7 @@ message CollisionDebug {
 }
 
 message IKError {
-  string error_message = 1;
+  optional string error_message = 1;
   // Constraint for which the error was reported. This is an optional field that
   // is populated for all IK methods that have access to the object world.
   optional intrinsic_proto.motion_planning.v1.GeometricConstraint constraint =
@@ -129,7 +129,7 @@ message IKError {
 // This error also includes the desired base to tip transform and the
 // joint limits used as optional fields.
 message FinePathIKError {
-  string error_message = 1;
+  optional string error_message = 1;
   intrinsic_proto.icon.JointVec previous_ik_solution = 2;
   intrinsic_proto.icon.JointVec current_ik_hint = 3;
   intrinsic_proto.icon.JointVec current_ik_solution = 4;
@@ -145,7 +145,7 @@ message FinePathIKError {
 // holds the target joint positions that the planner tries to plan for and the
 // final joint positions it was able to reach.
 message LinearCartesianMotionPathPlannerError {
-  string error_message = 1;
+  optional string error_message = 1;
   // Target joint positions that the planner tried to plan to.
   optional intrinsic_proto.icon.JointVec target_joint_positions = 3;
   // Final joint positions where the path planner was able to reach.
@@ -158,7 +158,7 @@ message LinearCartesianMotionPathPlannerError {
 // `JointLimitsError` corresponds to an error generated when the joint limits
 // are violated during planning.
 message JointLimitError {
-  string error_message = 1;
+  optional string error_message = 1;
   // Joint limits that are enforced.
   optional intrinsic_proto.JointLimits joint_limits = 2;
   // Joint positions that violate the joint limits.
