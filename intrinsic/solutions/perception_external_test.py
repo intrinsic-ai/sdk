@@ -11,7 +11,6 @@ class CamerasTest(absltest.TestCase):
     _ = perception.Camera(
         channel=mock.MagicMock(),
         resource_handle=mock.MagicMock(),
-        resource_registry=mock.MagicMock(),
         executive=mock.MagicMock(),
         is_simulated=False,
     )

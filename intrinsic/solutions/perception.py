@@ -5,13 +5,13 @@
 import datetime
 import enum
 import math
-from typing import Optional, Tuple, cast
+from typing import Optional, Tuple
 
 import grpc
-from intrinsic.perception.proto import image_buffer_pb2
-from intrinsic.perception.python.camera import _camera_utils
-from intrinsic.perception.python.camera import camera_client
-from intrinsic.perception.python.camera import data_classes
+from intrinsic.perception.client.v1.python.camera import _camera_utils
+from intrinsic.perception.client.v1.python.camera import camera_client
+from intrinsic.perception.client.v1.python.camera import data_classes
+from intrinsic.perception.proto.v1 import image_buffer_pb2
 from intrinsic.resources.client import resource_registry_client
 from intrinsic.resources.proto import resource_handle_pb2
 from intrinsic.solutions import deployments
@@ -45,30 +45,28 @@ class Camera:
 
   _client: camera_client.CameraClient
   _resource_handle: resource_handle_pb2.ResourceHandle
-  _resource_id: str
-  _resource_registry: resource_registry_client.ResourceRegistryClient
   _executive: execution.Executive
   _is_simulated: bool
+
+  config: data_classes.CameraConfig
 
   def __init__(
       self,
       channel: grpc.Channel,
       resource_handle: resource_handle_pb2.ResourceHandle,
-      resource_registry: resource_registry_client.ResourceRegistryClient,
       executive: execution.Executive,
       is_simulated: bool,
   ):
     """Creates a Camera object.
 
     During construction the camera is not yet open. Opening the camera on the
-    camera server will happen once it's needed: first, the current camera
-    config will be requested from the resource registry, then, the camera
-    handle will be created on the camera server.
+    camera server will happen once it is needed as this function only requests
+    the current camera config from the resource registry. The camera will be
+    created during the first capture() call.
 
     Args:
       channel: The grpc channel to the respective camera server.
       resource_handle: Resource handle for the camera.
-      resource_registry: Resource registry to fetch camera resources from.
       executive: The executive for checking the state.
       is_simulated: Whether or not the world is being simulated.
 
@@ -83,6 +81,7 @@ class Camera:
           % resource_handle.name
       )
 
+    self.config = data_classes.CameraConfig(camera_config)
     grpc_info = resource_handle.connection_info.grpc
     connection_params = connection.ConnectionParams(
         grpc_info.address, grpc_info.server_instance, grpc_info.header
@@ -90,11 +89,10 @@ class Camera:
     self._client = camera_client.CameraClient(
         channel,
         connection_params,
-        camera_config,
+        camera_config.identifier,
     )
 
     self._resource_handle = resource_handle
-    self._resource_registry = resource_registry
     self._executive = executive
     self._is_simulated = is_simulated
 
@@ -105,6 +103,7 @@ class Camera:
 
   def capture(
       self,
+      camera_config: Optional[data_classes.CameraConfig] = None,
       timeout: datetime.timedelta = datetime.timedelta(
           seconds=_MAX_FRAME_WAIT_TIME_SECONDS
       ),
@@ -113,11 +112,10 @@ class Camera:
   ) -> data_classes.CaptureResult:
     """Performs grpc request to capture sensor images from the camera.
 
-    If the camera handle is no longer valid (eg, if the server returns a
-    NOT_FOUND status), the camera will be reopened (once) on the camera server;
-    if re-opening the camera fails an exception is raised.
-
     Args:
+      camera_config: Optional. The camera config to use. If not specified, the
+        config that was used to instantiate this class will be used. This can be
+        the camera config which was retrieved from the resource handle.
       timeout: Timeout duration for Capture() service calls.
       sensor_ids: List of selected sensor identifiers for Capture() service
         calls.
@@ -127,6 +125,8 @@ class Camera:
       The acquired list of sensor images.
 
     Raises:
+      ValueError: The identifier in camera_config does not match the identifier
+        this camera was instantiated with.
       grpc.RpcError from the camera or resource service.
     """
 
@@ -138,32 +138,24 @@ class Camera:
             'Note: The image could be showing an outdated simulation state. Run'
             ' `simulation.reset()` to resolve this.'
         )
+    if camera_config is None:
+      camera_config = self.config
+    elif camera_config.identifier != self.config.identifier:
+      raise ValueError(
+          'The identifier in camera_config does not match the identifier found'
+          ' in the resource handle this camera was instantiated with.'
+      )
 
     deadline = datetime.datetime.now() + timeout
-    if not self._client.created:
-      self._reinitialize_from_resources(deadline)
-
     sensor_ids = sensor_ids or []
-    try:
-      result = self._client.capture(
-          timeout=timeout,
-          deadline=deadline,
-          sensor_ids=sensor_ids,
-          skip_undistortion=skip_undistortion,
-      )
-    except grpc.RpcError as e:
-      if cast(grpc.Call, e).code() != grpc.StatusCode.NOT_FOUND:
-        raise
-      # If the camera was not found, recreate the camera. This can happen when
-      # switching between sim/real or when a service restarts.
-      self._reinitialize_from_resources(deadline)
-      result = self._client.capture(
-          timeout=timeout,
-          deadline=deadline,
-          sensor_ids=sensor_ids,
-          skip_undistortion=skip_undistortion,
-      )
-    return data_classes.CaptureResult(result)
+    capture_result = self._client.capture(
+        camera_config=camera_config.proto,
+        timeout=timeout,
+        deadline=deadline,
+        sensor_ids=sensor_ids,
+        skip_undistortion=skip_undistortion,
+    )
+    return data_classes.CaptureResult(capture_result)
 
   def show_capture(
       self,
@@ -195,19 +187,6 @@ class Camera:
       plt.axis('off')
       plt.title(f'Sensor {sensor_image.sensor_id}')
 
-  def _reinitialize_from_resources(self, deadline: datetime.datetime) -> None:
-    """Create camera handle from resources."""
-    resource_handle = self._resource_registry.get_resource_instance(
-        name=self._resource_name,
-    ).resource_handle
-    camera_config = _camera_utils.unpack_camera_config(resource_handle)
-    if camera_config is None:
-      raise ValueError(
-          'CameraConfig not found in resource handle %s' % self._resource_name
-      )
-    self._client.create_camera(camera_config, deadline=deadline)
-    self._resource_handle = resource_handle
-
 
 def _create_cameras(
     resource_registry: resource_registry_client.ResourceRegistryClient,
@@ -217,8 +196,8 @@ def _create_cameras(
 ) -> dict[str, Camera]:
   """Creates cameras for each resource handle that is a camera.
 
-  Please note that the cameras are not opened directly on the camera service.
-  The CreateCamera request is delayed until first use of get_frame.
+  Please note that by calling this function the cameras are not opened on the
+  camera server yet. They will be created during the first capture() call.
 
   Args:
     resource_registry: Resource registry to fetch camera resources from.
@@ -240,7 +219,6 @@ def _create_cameras(
     cameras[resource_handle.name] = Camera(
         channel=grpc_channel,
         resource_handle=resource_handle,
-        resource_registry=resource_registry,
         executive=executive,
         is_simulated=is_simulated,
     )

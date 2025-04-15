@@ -11,10 +11,12 @@ py_library(
     name = "_camera_utils",
     srcs = ["_camera_utils.py"],
     deps = [
+        "//intrinsic/perception/client/v1/python/camera:_camera_utils",
         "//intrinsic/perception/proto:camera_config_py_pb2",
         "//intrinsic/perception/proto:dimensions_py_pb2",
         "//intrinsic/perception/proto:distortion_params_py_pb2",
         "//intrinsic/perception/proto:intrinsic_params_py_pb2",
+        "//intrinsic/perception/proto/v1:camera_config_py_pb2",
         "//intrinsic/resources/proto:resource_handle_py_pb2",
         "//intrinsic/skills/python:proto_utils",
         "@ai_intrinsic_sdks_pip_deps//numpy",

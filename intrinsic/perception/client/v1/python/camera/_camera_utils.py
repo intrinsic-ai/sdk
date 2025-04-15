@@ -8,10 +8,22 @@ from typing import Mapping, Optional, Tuple
 
 from absl import logging
 import grpc
+from intrinsic.perception.proto import camera_config_pb2 as camera_config_v0_pb2
+from intrinsic.perception.proto import camera_identifier_pb2 as camera_identifier_v0_pb2
+from intrinsic.perception.proto import camera_params_pb2 as camera_params_v0_pb2
+from intrinsic.perception.proto import camera_settings_pb2 as camera_settings_v0_pb2
+from intrinsic.perception.proto import dimensions_pb2 as dimensions_v0_pb2
+from intrinsic.perception.proto import distortion_params_pb2 as distortion_params_v0_pb2
+from intrinsic.perception.proto import intrinsic_params_pb2 as intrinsic_params_v0_pb2
+from intrinsic.perception.proto import sensor_config_pb2 as sensor_config_v0_pb2
 from intrinsic.perception.proto.v1 import camera_config_pb2
+from intrinsic.perception.proto.v1 import camera_identifier_pb2
+from intrinsic.perception.proto.v1 import camera_params_pb2
+from intrinsic.perception.proto.v1 import camera_settings_pb2
 from intrinsic.perception.proto.v1 import dimensions_pb2
 from intrinsic.perception.proto.v1 import distortion_params_pb2
 from intrinsic.perception.proto.v1 import intrinsic_params_pb2
+from intrinsic.perception.proto.v1 import sensor_config_pb2
 from intrinsic.resources.proto import resource_handle_pb2
 from intrinsic.skills.python import proto_utils
 import numpy as np
@@ -88,9 +100,14 @@ def unpack_camera_config(
   try:
     camera_config = camera_config_pb2.CameraConfig()
     proto_utils.unpack_any(config.contents, camera_config)
-  except TypeError as e:
-    logging.exception("Failed to unpack camera config: %s", e)
-    return None
+  except TypeError:
+    try:
+      camera_config_v0 = camera_config_v0_pb2.CameraConfig()
+      proto_utils.unpack_any(config.contents, camera_config_v0)
+      camera_config = to_v1_camera_config(camera_config_v0)
+    except TypeError as e:
+      logging.exception("Failed to unpack camera config: %s", e)
+      return None
 
   return camera_config
 
@@ -110,3 +127,269 @@ def initialize_camera_grpc_channel(
   else:
     channel = grpc.insecure_channel(grpc_info.address, options=options)
   return channel
+
+
+def from_v1_camera_identifier(
+    camera_identifier: camera_identifier_pb2.CameraIdentifier,
+) -> camera_identifier_v0_pb2.CameraIdentifier:
+  """Converts camera identifier from v1 to v0."""
+  camera_identifier_v0 = camera_identifier_v0_pb2.CameraIdentifier()
+  if camera_identifier.HasField("genicam"):
+    camera_identifier_v0.genicam.device_id = camera_identifier.genicam.device_id
+  elif camera_identifier.HasField("photoneo"):
+    camera_identifier_v0.photoneo.device_id = (
+        camera_identifier.photoneo.device_id
+    )
+  else:
+    raise ValueError(
+        "Unsupported camera identifier type: %s"
+        % camera_identifier.WhichOneof("drivers")
+    )
+  return camera_identifier_v0
+
+
+def to_v1_camera_identifier(
+    camera_identifier: camera_identifier_v0_pb2.CameraIdentifier,
+) -> camera_identifier_pb2.CameraIdentifier:
+  """Converts camera identifier from v0 to v1."""
+  camera_identifier_v1 = camera_identifier_pb2.CameraIdentifier()
+  if camera_identifier.HasField("genicam"):
+    camera_identifier_v1.genicam.device_id = camera_identifier.genicam.device_id
+  elif camera_identifier.HasField("photoneo"):
+    camera_identifier_v1.photoneo.device_id = (
+        camera_identifier.photoneo.device_id
+    )
+  else:
+    raise ValueError(
+        "Unsupported camera identifier type: %s"
+        % camera_identifier.WhichOneof("drivers")
+    )
+  return camera_identifier_v1
+
+
+def from_v1_camera_setting(
+    camera_setting: camera_settings_pb2.CameraSetting,
+) -> camera_settings_v0_pb2.CameraSetting:
+  """Converts CameraSettingProperties from v1 to v0."""
+  camera_setting_v0 = camera_settings_v0_pb2.CameraSetting(
+      name=camera_setting.name
+  )
+  if camera_setting.HasField("integer_value"):
+    camera_setting_v0.integer_value = camera_setting.integer_value
+  elif camera_setting.HasField("float_value"):
+    camera_setting_v0.float_value = camera_setting.float_value
+  elif camera_setting.HasField("bool_value"):
+    camera_setting_v0.bool_value = camera_setting.bool_value
+  elif camera_setting.HasField("string_value"):
+    camera_setting_v0.string_value = camera_setting.string_value
+  elif camera_setting.HasField("enumeration_value"):
+    camera_setting_v0.enumeration_value = camera_setting.enumeration_value
+  elif camera_setting.HasField("command_value"):
+    camera_setting_v0.command_value.CopyFrom(camera_setting.command_value)
+  return camera_setting_v0
+
+
+def to_v1_camera_setting(
+    camera_setting: camera_settings_v0_pb2.CameraSetting,
+) -> camera_settings_pb2.CameraSetting:
+  """Converts CameraSettingProperties from v0 to v1."""
+  camera_setting_v1 = camera_settings_pb2.CameraSetting(
+      name=camera_setting.name
+  )
+  if camera_setting.HasField("integer_value"):
+    camera_setting_v1.integer_value = camera_setting.integer_value
+  elif camera_setting.HasField("float_value"):
+    camera_setting_v1.float_value = camera_setting.float_value
+  elif camera_setting.HasField("bool_value"):
+    camera_setting_v1.bool_value = camera_setting.bool_value
+  elif camera_setting.HasField("string_value"):
+    camera_setting_v1.string_value = camera_setting.string_value
+  elif camera_setting.HasField("enumeration_value"):
+    camera_setting_v1.enumeration_value = camera_setting.enumeration_value
+  elif camera_setting.HasField("command_value"):
+    camera_setting_v1.command_value.CopyFrom(camera_setting.command_value)
+  return camera_setting_v1
+
+
+def from_v1_sensor_config(
+    sensor_config: sensor_config_pb2.SensorConfig,
+) -> sensor_config_v0_pb2.SensorConfig:
+  """Converts SensorConfig from v1 to v0."""
+  sensor_config_v0 = sensor_config_v0_pb2.SensorConfig(id=sensor_config.id)
+  if sensor_config.HasField("camera_t_sensor"):
+    sensor_config_v0.camera_t_sensor.CopyFrom(sensor_config.camera_t_sensor)
+  if sensor_config.HasField("camera_params"):
+    sensor_config_v0.camera_params.CopyFrom(
+        from_v1_camera_params(sensor_config.camera_params)
+    )
+  return sensor_config_v0
+
+
+def to_v1_sensor_config(
+    sensor_config: sensor_config_v0_pb2.SensorConfig,
+) -> sensor_config_pb2.SensorConfig:
+  """Converts SensorConfig from v0 to v1."""
+  sensor_config_v1 = sensor_config_pb2.SensorConfig(id=sensor_config.id)
+  if sensor_config.HasField("camera_t_sensor"):
+    sensor_config_v1.camera_t_sensor.CopyFrom(sensor_config.camera_t_sensor)
+  if sensor_config.HasField("camera_params"):
+    sensor_config_v1.camera_params.CopyFrom(
+        to_v1_camera_params(sensor_config.camera_params)
+    )
+  return sensor_config_v1
+
+
+def from_v1_dimensions(
+    dimensions: dimensions_pb2.Dimensions,
+) -> dimensions_v0_pb2.Dimensions:
+  """Converts Dimensions from v1 to v0."""
+  dimensions_v0 = dimensions_v0_pb2.Dimensions(
+      cols=dimensions.cols, rows=dimensions.rows
+  )
+  return dimensions_v0
+
+
+def to_v1_dimensions(
+    dimensions: dimensions_v0_pb2.Dimensions,
+) -> dimensions_pb2.Dimensions:
+  """Converts Dimensions from v0 to v1."""
+  dimensions_v1 = dimensions_pb2.Dimensions(
+      cols=dimensions.cols, rows=dimensions.rows
+  )
+  return dimensions_v1
+
+
+def from_v1_intrinsic_params(
+    intrinsic_params: intrinsic_params_pb2.IntrinsicParams,
+) -> intrinsic_params_v0_pb2.IntrinsicParams:
+  """Converts IntrinsicParams from v1 to v0."""
+  intrinsic_params_v0 = intrinsic_params_v0_pb2.IntrinsicParams(
+      focal_length_x=intrinsic_params.focal_length_x,
+      focal_length_y=intrinsic_params.focal_length_y,
+      principal_point_x=intrinsic_params.principal_point_x,
+      principal_point_y=intrinsic_params.principal_point_y,
+  )
+  intrinsic_params_v0.dimensions.CopyFrom(
+      from_v1_dimensions(intrinsic_params.dimensions)
+  )
+  return intrinsic_params_v0
+
+
+def to_v1_intrinsic_params(
+    intrinsic_params: intrinsic_params_v0_pb2.IntrinsicParams,
+) -> intrinsic_params_pb2.IntrinsicParams:
+  """Converts IntrinsicParams from v0 to v1."""
+  intrinsic_params_v1 = intrinsic_params_pb2.IntrinsicParams(
+      focal_length_x=intrinsic_params.focal_length_x,
+      focal_length_y=intrinsic_params.focal_length_y,
+      principal_point_x=intrinsic_params.principal_point_x,
+      principal_point_y=intrinsic_params.principal_point_y,
+  )
+  intrinsic_params_v1.dimensions.CopyFrom(
+      to_v1_dimensions(intrinsic_params.dimensions)
+  )
+  return intrinsic_params_v1
+
+
+def from_v1_distortion_params(
+    distortion_params: distortion_params_pb2.DistortionParams,
+) -> distortion_params_v0_pb2.DistortionParams:
+  """Converts DistortionParams from v1 to v0."""
+  distortion_params_v0 = distortion_params_v0_pb2.DistortionParams(
+      k1=distortion_params.k1,
+      k2=distortion_params.k2,
+      k3=distortion_params.k3,
+      p1=distortion_params.p1,
+      p2=distortion_params.p2,
+  )
+  if distortion_params.HasField("k4"):
+    distortion_params_v0.k4 = distortion_params.k4
+  if distortion_params.HasField("k5"):
+    distortion_params_v0.k5 = distortion_params.k5
+  if distortion_params.HasField("k6"):
+    distortion_params_v0.k6 = distortion_params.k6
+  return distortion_params_v0
+
+
+def to_v1_distortion_params(
+    distortion_params: distortion_params_v0_pb2.DistortionParams,
+) -> distortion_params_pb2.DistortionParams:
+  """Converts DistortionParams from v0 to v1."""
+  distortion_params_v1 = distortion_params_pb2.DistortionParams(
+      k1=distortion_params.k1,
+      k2=distortion_params.k2,
+      k3=distortion_params.k3,
+      p1=distortion_params.p1,
+      p2=distortion_params.p2,
+  )
+  if distortion_params.HasField("k4"):
+    distortion_params_v1.k4 = distortion_params.k4
+  if distortion_params.HasField("k5"):
+    distortion_params_v1.k5 = distortion_params.k5
+  if distortion_params.HasField("k6"):
+    distortion_params_v1.k6 = distortion_params.k6
+  return distortion_params_v1
+
+
+def from_v1_camera_params(
+    camera_params: camera_params_pb2.CameraParams,
+) -> camera_params_v0_pb2.CameraParams:
+  """Converts CameraParams from v1 to v0."""
+  camera_params_v0 = camera_params_v0_pb2.CameraParams()
+  camera_params_v0.intrinsic_params.CopyFrom(
+      from_v1_intrinsic_params(camera_params.intrinsic_params)
+  )
+  if camera_params.HasField("distortion_params"):
+    camera_params_v0.distortion_params.CopyFrom(
+        from_v1_distortion_params(camera_params.distortion_params)
+    )
+  return camera_params_v0
+
+
+def to_v1_camera_params(
+    camera_params: camera_params_v0_pb2.CameraParams,
+) -> camera_params_pb2.CameraParams:
+  """Converts CameraParams from v0 to v1."""
+  camera_params_v1 = camera_params_pb2.CameraParams()
+  camera_params_v1.intrinsic_params.CopyFrom(
+      to_v1_intrinsic_params(camera_params.intrinsic_params)
+  )
+  if camera_params.HasField("distortion_params"):
+    camera_params_v1.distortion_params.CopyFrom(
+        to_v1_distortion_params(camera_params.distortion_params)
+    )
+  return camera_params_v1
+
+
+def from_v1_camera_config(
+    camera_config: camera_config_pb2.CameraConfig,
+) -> camera_config_v0_pb2.CameraConfig:
+  """Converts camera config from v1 to v0."""
+  camera_config_v0 = camera_config_v0_pb2.CameraConfig()
+  camera_config_v0.identifier.CopyFrom(
+      from_v1_camera_identifier(camera_config.identifier)
+  )
+  for camera_setting in camera_config.camera_settings:
+    camera_config_v0.camera_settings.append(
+        from_v1_camera_setting(camera_setting)
+    )
+  for sensor_config in camera_config.sensor_configs:
+    camera_config_v0.sensor_configs.append(from_v1_sensor_config(sensor_config))
+  return camera_config_v0
+
+
+def to_v1_camera_config(
+    camera_config: camera_config_v0_pb2.CameraConfig,
+) -> camera_config_pb2.CameraConfig:
+  """Converts camera config from v0 to v1."""
+  camera_config_v1 = camera_config_pb2.CameraConfig()
+  camera_config_v1.identifier.CopyFrom(
+      to_v1_camera_identifier(camera_config.identifier)
+  )
+  for camera_setting in camera_config.camera_settings:
+    camera_config_v1.camera_settings.append(
+        to_v1_camera_setting(camera_setting)
+    )
+  for sensor_config in camera_config.sensor_configs:
+    camera_config_v1.sensor_configs.append(to_v1_sensor_config(sensor_config))
+  return camera_config_v1
