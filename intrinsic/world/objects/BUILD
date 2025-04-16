@@ -4,14 +4,11 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = [
-    "//visibility:public",
-])
-
 cc_library(
     name = "frame",
     srcs = ["frame.cc"],
     hdrs = ["frame.h"],
+    visibility = ["//intrinsic:public_api_users"],
     deps = [
         ":object_world_ids",
         ":transform_node",
@@ -28,6 +25,7 @@ cc_library(
     name = "object_entity_filter",
     srcs = ["object_entity_filter.cc"],
     hdrs = ["object_entity_filter.h"],
+    visibility = ["//intrinsic:public_api_users"],
     deps = [
         ":object_world_ids",
         "//intrinsic/world/proto:object_world_refs_cc_proto",
@@ -39,6 +37,7 @@ cc_library(
     name = "object_world_ids",
     srcs = ["object_world_ids.cc"],
     hdrs = ["object_world_ids.h"],
+    visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/util:string_type",
         "@com_google_absl//absl/strings",
@@ -49,6 +48,7 @@ cc_library(
     name = "transform_node",
     srcs = ["transform_node.cc"],
     hdrs = ["transform_node.h"],
+    visibility = ["//intrinsic:public_api_users"],
     deps = [
         ":object_world_ids",
         "//intrinsic/math:pose3",
@@ -60,6 +60,7 @@ cc_library(
     name = "world_object",
     srcs = ["world_object.cc"],
     hdrs = ["world_object.h"],
+    visibility = ["//intrinsic:public_api_users"],
     deps = [
         ":frame",
         ":object_entity_filter",
@@ -85,6 +86,7 @@ cc_library(
     name = "kinematic_object",
     srcs = ["kinematic_object.cc"],
     hdrs = ["kinematic_object.h"],
+    visibility = ["//intrinsic:public_api_users"],
     deps = [
         ":frame",
         ":object_world_ids",
@@ -110,6 +112,7 @@ cc_library(
     name = "object_world_client",
     srcs = ["object_world_client.cc"],
     hdrs = ["object_world_client.h"],
+    visibility = ["//intrinsic:public_api_users"],
     deps = [
         ":frame",
         ":kinematic_object",
@@ -154,6 +157,7 @@ cc_library(
     name = "object_world_client_utils",
     srcs = ["object_world_client_utils.cc"],
     hdrs = ["object_world_client_utils.h"],
+    visibility = ["//intrinsic:public_api_users"],
     deps = [
         ":frame",
         ":object_world_client",

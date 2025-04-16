@@ -5,13 +5,10 @@ load("@rules_python//python:defs.bzl", "py_library", "py_test")
 
 # Libraries for the Python object world client.
 
-package(default_visibility = [
-    "//visibility:public",
-])
-
 py_library(
     name = "object_world_resources",
     srcs = ["object_world_resources.py"],
+    visibility = ["//intrinsic:public_api_users"],
     deps = [
         ":object_world_ids",
         "//intrinsic/icon/proto:cart_space_py_pb2",
@@ -50,6 +47,7 @@ py_test(
 py_library(
     name = "object_world_ids",
     srcs = ["object_world_ids.py"],
+    visibility = ["//intrinsic:public_api_users"],
 )
 
 py_test(
@@ -64,6 +62,7 @@ py_test(
 py_library(
     name = "object_world_client",
     srcs = ["object_world_client.py"],
+    visibility = ["//intrinsic:public_api_users"],
     deps = [
         ":object_world_ids",
         ":object_world_resources",
