@@ -4,14 +4,11 @@ load("@ai_intrinsic_sdks_pip_deps//:requirements.bzl", "requirement")
 load("@rules_cc//cc:defs.bzl", "cc_library")
 load("@rules_python//python:defs.bzl", "py_library")
 
-package(default_visibility = [
-    "//visibility:public",
-])
-
 cc_library(
     name = "motion_planner_client",
     srcs = ["motion_planner_client.cc"],
     hdrs = ["motion_planner_client.h"],
+    visibility = ["//intrinsic:public_api_users"],
     deps = [
         ":conversions",
         "//intrinsic/eigenmath",
@@ -42,6 +39,7 @@ cc_library(
 py_library(
     name = "motion_planner_client_py",
     srcs = ["motion_planner_client.py"],
+    visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/icon/proto:joint_space_py_pb2",
         "//intrinsic/math/python:data_types",
@@ -64,6 +62,7 @@ cc_library(
     name = "conversions",
     srcs = ["conversions.cc"],
     hdrs = ["conversions.h"],
+    visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/eigenmath",
         "//intrinsic/icon/proto:joint_space_cc_proto",
