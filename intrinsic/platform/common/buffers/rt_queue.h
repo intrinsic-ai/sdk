@@ -230,9 +230,6 @@ RealtimeQueue<T>::RealtimeQueue(std::optional<size_t> capacity,
 
 template <typename T>
 std::optional<T> RealtimeQueue<T>::Reader::Pop() {
-  if (!std::is_trivially_copyable<T>::value) {
-    INTRINSIC_ASSERT_NON_REALTIME();
-  }
   const T* front_ptr = buffer_.Front();
   if (front_ptr) {
     T front = *front_ptr;
@@ -245,9 +242,6 @@ std::optional<T> RealtimeQueue<T>::Reader::Pop() {
 
 template <typename T>
 bool RealtimeQueue<T>::Writer::Insert(const T& item) {
-  if (!std::is_trivially_copyable<T>::value) {
-    INTRINSIC_ASSERT_NON_REALTIME();
-  }
   T* item_ptr = PrepareInsert();
   if (item_ptr) {
     *item_ptr = item;
