@@ -61,6 +61,7 @@ enum ParameterAutoFill {
   AUTO_FILL_SURFACE_BASED = 2;
   AUTO_FILL_SINGLE_VIEW_ML = 3;
   AUTO_FILL_MULTI_VIEW_ML = 4;
+  AUTO_FILL_ONE_SHOT = 5;
 }
 
 message CreateTrainingJobRequest {
@@ -91,6 +92,10 @@ message CreateTrainingJobRequest {
   string parent_name = 5;
   // Name of the data asset that will be created.
   AssetMetadata asset_metadata = 6;
+  // The ID of the one-shot base model asset that will be used to populate the
+  // pose estimator perception model. This is only used for one-shot pose
+  // estimators creation.
+  intrinsic_proto.assets.Id one_shot_asset_id = 7;
 }
 
 message AssetMetadata {
