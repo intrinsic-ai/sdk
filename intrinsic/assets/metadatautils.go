@@ -9,9 +9,17 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
+	datamanifestpb "intrinsic/assets/data/proto/v1/data_manifest_go_proto"
+	hdmpb "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest_go_proto"
 	"intrinsic/assets/idutils"
 	atypepb "intrinsic/assets/proto/asset_type_go_proto"
+	documentationpb "intrinsic/assets/proto/documentation_go_proto"
+	idpb "intrinsic/assets/proto/id_go_proto"
 	metadatapb "intrinsic/assets/proto/metadata_go_proto"
+	vendorpb "intrinsic/assets/proto/vendor_go_proto"
+	sceneobjectmanifestpb "intrinsic/assets/scene_objects/proto/scene_object_manifest_go_proto"
+	servicemanifestpb "intrinsic/assets/services/proto/service_manifest_go_proto"
+	skillmanifestpb "intrinsic/skills/proto/skill_manifest_go_proto"
 )
 
 const (
@@ -53,6 +61,14 @@ var (
 		atypepb.AssetType_ASSET_TYPE_DATA:            80,
 	}
 )
+
+// ManifestMetadata is an interface for an asset manifest proto used to specify metadata.
+type ManifestMetadata interface {
+	GetDisplayName() string
+	GetDocumentation() *documentationpb.Documentation
+	GetId() *idpb.Id
+	GetVendor() *vendorpb.Vendor
+}
 
 // ValidateMetadataOptions contains options for ValidateMetadata.
 type ValidateMetadataOptions struct {
@@ -135,6 +151,35 @@ func ValidateMetadata(m *metadatapb.Metadata, options ...ValidateMetadataOption)
 	}
 
 	return nil
+}
+
+// ValidateManifestMetadata validates asset manifest metadata.
+func ValidateManifestMetadata(m ManifestMetadata) error {
+	var at atypepb.AssetType
+	switch m := m.(type) {
+	case *skillmanifestpb.SkillManifest:
+		at = atypepb.AssetType_ASSET_TYPE_SKILL
+	case *servicemanifestpb.ServiceMetadata:
+		at = atypepb.AssetType_ASSET_TYPE_SERVICE
+	case *sceneobjectmanifestpb.SceneObjectMetadata:
+		at = atypepb.AssetType_ASSET_TYPE_SCENE_OBJECT
+	case *datamanifestpb.DataManifest_Metadata:
+		at = atypepb.AssetType_ASSET_TYPE_DATA
+	case *hdmpb.HardwareDeviceMetadata:
+		at = atypepb.AssetType_ASSET_TYPE_HARDWARE_DEVICE
+	default:
+		return fmt.Errorf("unsupported manifest type: %T", m)
+	}
+
+	return ValidateMetadata(&metadatapb.Metadata{
+		AssetType:     at,
+		DisplayName:   m.GetDisplayName(),
+		Documentation: m.GetDocumentation(),
+		IdVersion: &idpb.IdVersion{
+			Id: m.GetId(), // ID only, since manifests do not specify versions.
+		},
+		Vendor: m.GetVendor(),
+	})
 }
 
 // ValidateNameLength validates the length of asset names.
