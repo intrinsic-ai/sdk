@@ -3,7 +3,7 @@
 load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 load("@rules_python//python:defs.bzl", "py_library")
-load("//bazel:go_macros.bzl", "go_library")
+load("//bazel:go_macros.bzl", "go_library", "go_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -30,6 +30,27 @@ cc_test(
         "//intrinsic/util/testing:gtest_wrapper_main",
         "@com_google_absl//absl/status",
         "@com_google_protobuf//:protobuf",
+    ],
+)
+
+go_library(
+    name = "descriptor",
+    srcs = ["descriptor.go"],
+    deps = [
+        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
+        "@org_golang_google_protobuf//proto",
+    ],
+)
+
+go_test(
+    name = "descriptor_test",
+    srcs = ["descriptor_test.go"],
+    library = ":descriptor",
+    deps = [
+        "@com_github_google_go_cmp//cmp:go_default_library",
+        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
+        "@org_golang_google_protobuf//proto",
+        "@org_golang_google_protobuf//testing/protocmp:go_default_library",
     ],
 )
 
