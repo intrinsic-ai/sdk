@@ -175,7 +175,7 @@ func ValidateService(manifest *smpb.ServiceManifest, inlinedFiles map[string][]b
 	for desc, path := range assets {
 		if path != "" {
 			if _, ok := inlinedFiles[path]; !ok {
-				return fmt.Errorf("the resource manifest's %s %q is not in the bundle. files are %s", desc, path, fileNames)
+				return fmt.Errorf("the service manifest's %s %q is not in the bundle. files are %s", desc, path, fileNames)
 			}
 			delete(usedFiles, path)
 		}

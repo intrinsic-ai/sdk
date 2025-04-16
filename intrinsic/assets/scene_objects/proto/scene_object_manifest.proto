@@ -4,11 +4,13 @@ syntax = "proto3";
 
 package intrinsic_proto.scene_objects;
 
+import "google/protobuf/descriptor.proto";
 import "intrinsic/assets/proto/asset_tag.proto";
 import "intrinsic/assets/proto/documentation.proto";
 import "intrinsic/assets/proto/id.proto";
 import "intrinsic/assets/proto/vendor.proto";
 import "intrinsic/scene/proto/v1/scene_object.proto";
+import "intrinsic/scene/proto/v1/scene_object_config.proto";
 
 message SceneObjectMetadata {
   // The scene object's id.
@@ -30,24 +32,38 @@ message SceneObjectAssets {
   // The name of the root scene object specified by the given gzf files.
   // This is optional if there is only one gzf file; The most common case.
   string root_scene_object_name = 2;
+
+  // The binary proto file containing the default user_data for the scene
+  // object's SceneObjectConfig.
+  optional string default_user_data_filename = 3;
+
+  // The binary proto file containing the file descriptor set for the
+  // SceneObject (including, e.g., the descriptors for the SceneObjectConfig's
+  // user_data).
+  optional string file_descriptor_set_filename = 4;
 }
 
 message SceneObjectManifest {
   // Metadata associated with this scene object (e.g., id, documentation, etc.)
   SceneObjectMetadata metadata = 1;
-  // Scene Object's assets (e.g. geometric representation).
+  // Scene Object's assets (e.g., geometric representation).
   SceneObjectAssets assets = 2;
 }
 
 message ProcessedSceneObjectAssets {
+  // The scene object's geometric representation.
   intrinsic_proto.scene_object.v1.SceneObject scene_object_model = 1;
+  // The default scene object config for instances of the scene object.
+  intrinsic_proto.scene_object.v1.SceneObjectConfig
+      default_scene_object_config = 2;
+  // A complete descriptor set for the scene object.
+  google.protobuf.FileDescriptorSet file_descriptor_set = 3;
 }
 
 message ProcessedSceneObjectManifest {
   // Metadata associated with this scene object (e.g., id, documentation, etc.)
   SceneObjectMetadata metadata = 1;
   // The processed version of the scene object assets.
-  // Currently, this is the same as SceneObjectAssets.
   ProcessedSceneObjectAssets assets = 2;
 }
 
