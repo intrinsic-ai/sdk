@@ -40,12 +40,6 @@ def extract_identifier(config: camera_config_pb2.CameraConfig) -> Optional[str]:
     return identifier.genicam.device_id
   elif camera_driver == "photoneo":
     return identifier.photoneo.device_id
-  elif camera_driver == "realsense":
-    return identifier.realsense.device_id
-  elif camera_driver == "plenoptic_unit":
-    return identifier.plenoptic_unit.device_id
-  elif camera_driver == "fake_genicam":
-    return "fake_genicam"
   else:
     return None
 
