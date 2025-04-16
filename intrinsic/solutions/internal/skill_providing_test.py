@@ -105,7 +105,7 @@ class SkillsTest(parameterized.TestCase):
     super().setUp()
 
     self._utils = skill_test_utils.SkillTestUtils(
-        'testing/test_skill_params_proto_descriptors_transitive_set_sci.proto.bin'
+        'intrinsic/solutions/testing/test_skill_params_proto_descriptors_transitive_set_sci.proto.bin'
     )
 
   def assertSignature(self, actual, expected):

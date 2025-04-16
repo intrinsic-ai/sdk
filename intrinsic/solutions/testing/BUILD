@@ -68,7 +68,7 @@ py_library(
     name = "skill_test_utils",
     testonly = True,
     srcs = ["skill_test_utils.py"],
-    visibility = ["//intrinsic/solutions:__subpackages__"],
+    visibility = ["//intrinsic:public_api_users"],
     deps = [
         ":test_skill_params_py_pb2",
         "//intrinsic/resources/client:resource_registry_client",

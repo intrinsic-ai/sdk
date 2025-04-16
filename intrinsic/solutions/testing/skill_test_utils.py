@@ -2,7 +2,6 @@
 
 """Utilities for testing skills in the solution building library."""
 
-import os
 from typing import Optional
 from unittest import mock
 
@@ -30,23 +29,21 @@ def _read_message_from_pbbin_file(filename):
 
 
 def _get_test_message_file_descriptor_set(
-    file_descriptor_set_pbbin_relative_filename: str,
+    file_descriptor_set_pbbin_runfiles_path: str,
 ) -> descriptor_pb2.FileDescriptorSet:
   """Returns the file descriptor set loaded from the given file.
 
   Requires FLAGS to be parsed prior to invocation.
 
   Args:
-    file_descriptor_set_pbbin_relative_filename: The filename of the file
-      descriptor set binary proto file relative to the ".../solutions" folder.
+    file_descriptor_set_pbbin_runfiles_path: The filename of the file descriptor
+      set binary proto file relative to the runfiles folder.
 
   Returns:
     The file descriptor set.
   """
-  test_data_path = path_resolver.resolve_runfiles_path('intrinsic/solutions')
-  file_descriptor_set_pbbin_filename = os.path.join(
-      test_data_path,
-      file_descriptor_set_pbbin_relative_filename,
+  file_descriptor_set_pbbin_filename = path_resolver.resolve_runfiles_path(
+      file_descriptor_set_pbbin_runfiles_path,
   )
   return _read_message_from_pbbin_file(file_descriptor_set_pbbin_filename)
 
@@ -57,17 +54,17 @@ class SkillTestUtils:
   Provides helpers for creating SkillProvider instances.
   """
 
-  def __init__(self, file_descriptor_set_pbbin_relative_filename: str):
+  def __init__(self, file_descriptor_set_pbbin_runfiles_path: str):
     """Initializes a new instance.
 
     Args:
-      file_descriptor_set_pbbin_relative_filename: The filename of a file
-        descriptor set binary proto file relative to the ".../solutions" folder.
-        This file descriptor set will be used for all skills that are created
-        with this instance and which have parameters or return values.
+      file_descriptor_set_pbbin_runfiles_path: The filename of a file descriptor
+        set binary proto file relative to the ".../solutions" folder. This file
+        descriptor set will be used for all skills that are created with this
+        instance and which have parameters or return values.
     """
     self._file_descriptor_set = _get_test_message_file_descriptor_set(
-        file_descriptor_set_pbbin_relative_filename
+        file_descriptor_set_pbbin_runfiles_path
     )
 
   def create_parameterless_skill_info(self, skill_id: str) -> skills_pb2.Skill:

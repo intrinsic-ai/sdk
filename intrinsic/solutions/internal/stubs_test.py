@@ -27,7 +27,7 @@ class StubsTest(absltest.TestCase):
   def setUp(self):
     super().setUp()
     self._utils = skill_test_utils.SkillTestUtils(
-        "internal/stubs_test_proto_descriptors_transitive_set_sci.proto.bin"
+        "intrinsic/solutions/internal/stubs_test_proto_descriptors_transitive_set_sci.proto.bin"
     )
 
   def assert_regex_with_pretty_printing(

@@ -191,6 +191,7 @@ py_library(
 py_library(
     name = "skill_providing",
     srcs = ["skill_providing.py"],
+    visibility = ["//visibility:public"],
     deps = [
         ":resources",
         ":skill_generation",
