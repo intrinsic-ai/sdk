@@ -11,6 +11,38 @@ load(
 )
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 
+def _container_import_impl(ctx):
+    output = ctx.actions.declare_directory(ctx.label.name)
+    ctx.actions.run(
+        outputs = [output],
+        inputs = [ctx.file.tarball],
+        executable = ctx.toolchains["@rules_oci//oci:regctl_toolchain_type"].regctl_info.binary,
+        arguments = [
+            "image",
+            "import",
+            "ocidir://%s" % output.path,
+            ctx.file.tarball.path,
+        ],
+        mnemonic = "ExtractContainerTarball",
+    )
+    return DefaultInfo(
+        files = depset([output]),
+        runfiles = ctx.runfiles(files = [output]),
+    )
+
+container_import = rule(
+    implementation = _container_import_impl,
+    doc = "Imports an image tarball into an oci-layout directory",
+    attrs = {
+        "tarball": attr.label(
+            allow_single_file = [".tar"],
+        ),
+    },
+    toolchains = [
+        "@rules_oci//oci:regctl_toolchain_type",
+    ],
+)
+
 def _symlink_tarball_impl(ctx):
     ctx.actions.symlink(output = ctx.outputs.output, target_file = ctx.attr.src[OutputGroupInfo].tarball.to_list()[0])
 
