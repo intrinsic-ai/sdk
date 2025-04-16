@@ -545,7 +545,7 @@ class HardwareModuleRuntime::CallbackHandler final {
 
       request_queue_.reader()->DropFront();
 
-      absl::Status status;
+      RealtimeStatus status;
       if (newest_data.timestamp >= hardware_module_state_update_time_ &&
           newest_data.from == hardware_module_state_code_) {
         const bool allowed = SetStateDirectly(
