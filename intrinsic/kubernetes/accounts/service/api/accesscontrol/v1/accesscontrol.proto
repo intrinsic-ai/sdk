@@ -114,6 +114,8 @@ message OrganizationInvitation {
   string email = 3;
   // The roles to be granted to the user upon accepting the invitation.
   repeated string roles = 4;
+  // The state of the invitation.
+  string state = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
 message CreateOrganizationInvitationRequest {
