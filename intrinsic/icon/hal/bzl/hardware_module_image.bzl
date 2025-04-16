@@ -5,10 +5,13 @@
 load("//bazel:container.bzl", "container_image")
 load("//intrinsic/icon/hal/bzl:hardware_module_binary.bzl", hardware_module_binary_macro = "hardware_module_binary")
 
+# intrinsic:dev:strip_begin
 def _remap(path, prefix, replacement):
     if path.startswith(prefix):
         return replacement + path[len(prefix):]
     return path
+
+# intrinsic:dev:strip_end
 
 def _path_in_container(target):
     """Calculates the absolute path to the executable of a Bazel target.
@@ -23,6 +26,12 @@ def _path_in_container(target):
     if target.package != "":
         path = path + "/" + target.package
     path = path + "/" + target.name
+
+    # intrinsic:dev:strip_begin
+    path = _remap(path, "/external/ai_intrinsic_sdks~override/", "")
+    path = _remap(path, "/external/ai_intrinsic_sdks~/", "")
+    path = _remap(path, "/external/ai_intrinsic_sdks+/", "")
+    # intrinsic:dev:strip_end
 
     return path
 
