@@ -50,7 +50,34 @@ message ProtoComposeResponse {
 }
 
 message GetWellKnownTypesRequest {}
+
+message TypeVersion {
+  string message_full_name = 1;
+
+  // A short display name for the version, e.g., "v1" or "unversioned". May be
+  // empty if a type has only one version.
+  string display_version = 2;
+}
+
+message TypeWithVersions {
+  // A short name for the type, e.g., "Pose" or "ObjectReference". Typically the
+  // message name without the package.
+  string display_name = 1;
+
+  // All versions for this type identified by their full message name.
+  // Contains at least one element. The first element is the recommended
+  // version which, e.g., can be shown by UIs as the default choice.
+  repeated TypeVersion versions = 2;
+}
+
 message GetWellKnownTypesResponse {
+  // Flat list of all full message names in [types_with_versions].
   repeated string type_names = 1;
+
+  // Nested list of all well-known types in which all versions of "the same
+  // type" are grouped together.
+  repeated TypeWithVersions types_with_versions = 3;
+
+  // Transitively closed file descriptor set containing all well-known types.
   google.protobuf.FileDescriptorSet file_descriptor_set = 2;
 }
