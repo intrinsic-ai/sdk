@@ -22,6 +22,15 @@ proto_library(
     ],
 )
 
+go_proto_library(
+    name = "descriptors_test_go_proto",
+    go_deps = [
+        ":descriptors_test_left_wrapper_go_proto",
+        ":descriptors_test_right_wrapper_go_proto",
+    ],
+    deps = [":descriptors_test_proto"],
+)
+
 cc_proto_library(
     name = "descriptors_test_cc_proto",
     deps = [":descriptors_test_proto"],
@@ -40,6 +49,11 @@ proto_library(
     ],
 )
 
+go_proto_library(
+    name = "descriptors_test_left_wrapper_go_proto",
+    deps = [":descriptors_test_left_wrapper_proto"],
+)
+
 cc_proto_library(
     name = "descriptors_test_left_wrapper_cc_proto",
     deps = [":descriptors_test_left_wrapper_proto"],
@@ -56,6 +70,11 @@ proto_library(
     deps = [
         "@com_google_protobuf//:wrappers_proto",
     ],
+)
+
+go_proto_library(
+    name = "descriptors_test_right_wrapper_go_proto",
+    deps = [":descriptors_test_right_wrapper_proto"],
 )
 
 cc_proto_library(

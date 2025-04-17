@@ -8,6 +8,8 @@ import (
 
 	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protodesc"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 // mergeFileDescriptorSetsOptions contains options for MergeFileDescriptorSets.
@@ -77,4 +79,35 @@ func MergeFileDescriptorSets(fdss []*dpb.FileDescriptorSet, options ...MergeFile
 	}
 
 	return merged, nil
+}
+
+// FileDescriptorSetFrom constructs a FileDescriptorSet for the specified message.
+func FileDescriptorSetFrom(msg proto.Message) *dpb.FileDescriptorSet {
+	return &dpb.FileDescriptorSet{
+		File: collectDependencies(msg.ProtoReflect().Descriptor().ParentFile(), make(map[string]bool)),
+	}
+}
+
+// collectDependencies collects all dependencies of the specified file descriptor.
+//
+// Only returns the dependencies that are not already in the seen map. Initial callers should pass
+// in an empty map.
+func collectDependencies(desc protoreflect.FileDescriptor, seen map[string]bool) []*dpb.FileDescriptorProto {
+	if desc == nil || seen[desc.Path()] {
+		return []*dpb.FileDescriptorProto{}
+	}
+	seen[desc.Path()] = true
+	result := []*dpb.FileDescriptorProto{
+		protodesc.ToFileDescriptorProto(desc),
+	}
+
+	fileImports := desc.Imports()
+	for i := 0; i < fileImports.Len(); i++ {
+		for _, dep := range collectDependencies(fileImports.Get(i), seen) {
+			result = append(result, dep)
+			seen[dep.GetName()] = true
+		}
+	}
+
+	return result
 }
