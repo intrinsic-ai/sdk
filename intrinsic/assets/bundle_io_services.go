@@ -11,8 +11,11 @@ import (
 
 	"archive/tar"
 	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"google.golang.org/protobuf/reflect/protodesc"
+	"google.golang.org/protobuf/reflect/protoregistry"
 	anypb "google.golang.org/protobuf/types/known/anypb"
 	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
+	"intrinsic/assets/services/servicemanifest"
 	ipb "intrinsic/kubernetes/workcell_spec/proto/image_go_proto"
 	"intrinsic/util/archive/tartooling"
 )
@@ -241,6 +244,20 @@ func WriteService(path string, opts WriteServiceOpts) error {
 			return fmt.Errorf("unable to write %q to bundle: %v", path, err)
 		}
 	}
+
+	var files *protoregistry.Files
+	if opts.Descriptors != nil {
+		files, err = protodesc.NewFiles(opts.Descriptors)
+		if err != nil {
+			return fmt.Errorf("failed to create proto files: %v", err)
+		}
+	}
+	if err := servicemanifest.ValidateServiceManifest(opts.Manifest,
+		servicemanifest.WithFiles(files),
+	); err != nil {
+		return fmt.Errorf("invalid manifest: %v", err)
+	}
+
 	// Now we can write the manifest, since assets have been completed.
 	if err := tartooling.AddBinaryProto(opts.Manifest, tw, "service_manifest.binarypb"); err != nil {
 		return fmt.Errorf("unable to write FileDescriptorSet to bundle: %v", err)

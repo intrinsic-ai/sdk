@@ -7,3 +7,5 @@ package intrinsic_proto.services;
 message ExampleConfig {
   string hello_world = 1;
 }
+
+service ExampleService {}
