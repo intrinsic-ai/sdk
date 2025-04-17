@@ -16,7 +16,7 @@ import (
 
 var (
 	flagDefaultConfig      = flag.String("default_config", "", "Optional path to default config proto.")
-	flagFileDescriptorSets = flag.String("file_descriptor_sets", "", "Comma separated paths to binary file descriptor set protos to be used to resolve the configuration and behavior tree messages.")
+	flagFileDescriptorSets = flag.String("file_descriptor_sets", "", "Comma separated paths to binary file descriptor set protos associated with the manifest.")
 	flagImageTars          = flag.String("image_tars", "", "Comma separated full paths to tar archives for images.")
 	flagManifest           = flag.String("manifest", "", "Path to a ServiceManifest pbtxt file.")
 	flagOutputBundle       = flag.String("output_bundle", "", "Bundle tar path.")

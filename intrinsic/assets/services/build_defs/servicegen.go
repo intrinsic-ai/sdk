@@ -20,7 +20,7 @@ import (
 type ServiceData struct {
 	// Optional path to default config proto.
 	DefaultConfig string
-	// Paths to binary file descriptor set protos to be used to resolve the configuration and behavior tree messages.
+	// Paths to binary file descriptor set protos associated with the manifest.
 	FileDescriptorSets []string
 	// Paths to tar archives for images.
 	ImageTars []string
