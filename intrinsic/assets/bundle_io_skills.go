@@ -7,14 +7,15 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"archive/tar"
 	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"google.golang.org/protobuf/proto"
+	"intrinsic/skills/internal/skillmanifest"
 	psmpb "intrinsic/skills/proto/processed_skill_manifest_go_proto"
 	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 	"intrinsic/util/archive/tartooling"
+	"intrinsic/util/proto/registryutil"
 )
 
 const (
@@ -192,41 +193,6 @@ func ProcessSkill(path string, opts ProcessSkillOpts) (*psmpb.ProcessedSkillMani
 	return psm, nil
 }
 
-// ValidateSkill checks that the assets of a skill bundle are all
-// contained within the inlined file map.
-func ValidateSkill(manifest *smpb.SkillManifest, inlinedFiles map[string][]byte) error {
-	files := make([]string, 0, len(inlinedFiles))
-	usedFiles := make(map[string]bool)
-	for f := range inlinedFiles {
-		files = append(files, f)
-		usedFiles[f] = true
-	}
-	fileNames := strings.Join(files, ", ")
-	// Check that every defined asset is in the inlined filemap.
-	assets := map[string]string{
-		"image tar":           manifest.GetAssets().GetImageFilename(),
-		"behavior tree file":  manifest.GetAssets().GetBehaviorTreeFilename(),
-		"file descriptor set": manifest.GetAssets().GetFileDescriptorSetFilename(),
-	}
-	for desc, path := range assets {
-		if path != "" {
-			if _, ok := inlinedFiles[path]; !ok {
-				return fmt.Errorf("the skill manifest's %s %q is not in the bundle. files are %s", desc, path, fileNames)
-			}
-			delete(usedFiles, path)
-		}
-	}
-	if len(usedFiles) > 0 {
-		files := make([]string, 0, len(usedFiles))
-		for f := range usedFiles {
-			files = append(files, f)
-		}
-		fileNames := strings.Join(files, ", ")
-		return fmt.Errorf("found unexpected files in the archive: %s", fileNames)
-	}
-	return nil
-}
-
 // WriteSkillOpts provides the details to construct a skill bundle.
 type WriteSkillOpts struct {
 	Manifest    *smpb.SkillManifest
@@ -245,6 +211,7 @@ func WriteSkill(path string, opts WriteSkillOpts) error {
 	if opts.ImageTar != "" && opts.PBT != "" {
 		return fmt.Errorf("opts.ImageTar and opts.PBT cannot both be set")
 	}
+
 	out, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		return fmt.Errorf("failed to open %q for writing: %w", path, err)
@@ -278,6 +245,17 @@ func WriteSkill(path string, opts WriteSkillOpts) error {
 			return fmt.Errorf("unable to write %q to bundle: %v", path, err)
 		}
 	}
+
+	types, err := registryutil.NewTypesFromFileDescriptorSet(opts.Descriptors)
+	if err != nil {
+		return fmt.Errorf("failed to populate the registry: %v", err)
+	}
+	if err := skillmanifest.ValidateSkillManifest(opts.Manifest,
+		skillmanifest.WithTypes(types),
+	); err != nil {
+		return fmt.Errorf("failed to validate manifest: %v", err)
+	}
+
 	// Now we can write the manifest, since assets have been completed.
 	if err := tartooling.AddBinaryProto(opts.Manifest, tw, skillManifestPathInTar); err != nil {
 		return fmt.Errorf("unable to write skill manifest to bundle: %v", err)

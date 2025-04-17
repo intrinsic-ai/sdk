@@ -45,7 +45,6 @@ go_binary(
     visibility = ["//visibility:public"],
     deps = [
         "//intrinsic/assets:bundleio",
-        "//intrinsic/assets:idutils",
         "//intrinsic/production:intrinsic",
         "//intrinsic/skills/proto:skill_manifest_go_proto",
         "//intrinsic/util/proto:protoio",

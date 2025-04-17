@@ -43,11 +43,22 @@ func TestValidateManifest(t *testing.T) {
 	tests := []struct {
 		name      string
 		manifest  *smpb.SkillManifest
+		opts      []ValidateSkillManifestOption
 		wantError bool
 	}{
 		{
 			name:      "C++ no op",
 			manifest:  mustLoadManifest(t, manifestFilename),
+			wantError: false,
+		},
+		{
+			name: "C++ no op with types",
+			manifest: func() *smpb.SkillManifest {
+				m := proto.Clone(mustLoadManifest(t, manifestFilename)).(*smpb.SkillManifest)
+				m.Parameter.MessageFullName = "intrinsic_proto.skills.NoOpSkillParams"
+				return m
+			}(),
+			opts:      []ValidateSkillManifestOption{WithTypes(types)},
 			wantError: false,
 		},
 		{
@@ -95,9 +106,20 @@ func TestValidateManifest(t *testing.T) {
 			}(),
 			wantError: true,
 		},
+		{
+			name: "C++ no op invalid parameter type",
+			manifest: func() *smpb.SkillManifest {
+				m := proto.Clone(mustLoadManifest(t, manifestFilename)).(*smpb.SkillManifest)
+				m.Parameter.MessageFullName = "invalid.type"
+				return m
+			}(),
+			opts:      []ValidateSkillManifestOption{WithTypes(types)},
+			wantError: true,
+		},
 	}
+
 	for _, tc := range tests {
-		err := ValidateManifest(tc.manifest, types)
+		err := ValidateSkillManifest(tc.manifest, tc.opts...)
 		if gotError := (err != nil); tc.wantError != gotError {
 			t.Fatalf("wantErr: %v gotError: %v err: %v", tc.wantError, gotError, err)
 		}

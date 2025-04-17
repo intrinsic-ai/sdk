@@ -10,42 +10,50 @@ import (
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/metadatautils"
-	atypepb "intrinsic/assets/proto/asset_type_go_proto"
 	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 	"intrinsic/util/proto/sourcecodeinfoview"
 )
 
-// ValidateManifest checks that a SkillManifest is consistent and valid.
-func ValidateManifest(m *smpb.SkillManifest, types *protoregistry.Types) error {
-	id, err := idutils.IDFromProto(m.GetId())
-	if err != nil {
-		return fmt.Errorf("invalid name or package: %v", err)
+// ValidateSkillManifestOptions contains options for validating a SkillManifest.
+type ValidateSkillManifestOptions struct {
+	types *protoregistry.Types
+}
+
+// ValidateSkillManifestOption is an option for validating a SkillManifest.
+type ValidateSkillManifestOption func(*ValidateSkillManifestOptions)
+
+// WithTypes adds the proto types to the validation options.
+func WithTypes(types *protoregistry.Types) ValidateSkillManifestOption {
+	return func(opts *ValidateSkillManifestOptions) {
+		opts.types = types
 	}
-	if m.GetDisplayName() == "" {
-		return fmt.Errorf("missing display name for skill %q", id)
+}
+
+// ValidateSkillManifest checks that a SkillManifest is consistent and valid.
+func ValidateSkillManifest(m *smpb.SkillManifest, options ...ValidateSkillManifestOption) error {
+	opts := &ValidateSkillManifestOptions{}
+	for _, opt := range options {
+		opt(opts)
 	}
-	if m.GetVendor().GetDisplayName() == "" {
-		return fmt.Errorf("missing vendor display name")
+
+	if err := metadatautils.ValidateManifestMetadata(m); err != nil {
+		return fmt.Errorf("invalid manifest: %w", err)
 	}
-	if name := m.GetParameter().GetMessageFullName(); name != "" {
-		if _, err := types.FindMessageByURL(name); err != nil {
-			return fmt.Errorf("problem with parameter message name %q: %w", name, err)
+	id := idutils.IDFromProtoUnchecked(m.GetId())
+
+	if opts.types != nil {
+		if name := m.GetParameter().GetMessageFullName(); name != "" {
+			if _, err := opts.types.FindMessageByURL(name); err != nil {
+				return fmt.Errorf("cannot find parameter message %q for Skill %q: %w", name, id, err)
+			}
+		}
+		if name := m.GetReturnType().GetMessageFullName(); name != "" {
+			if _, err := opts.types.FindMessageByURL(name); err != nil {
+				return fmt.Errorf("cannot find return type message %q for Skill %q: %w", name, id, err)
+			}
 		}
 	}
-	if name := m.GetReturnType().GetMessageFullName(); name != "" {
-		if _, err := types.FindMessageByURL(name); err != nil {
-			return fmt.Errorf("problem with return message name %q: %w", name, err)
-		}
-	}
-	if err := metadatautils.ValidateNameLength(m.GetId().GetName(), atypepb.AssetType_ASSET_TYPE_SKILL); err != nil {
-		return fmt.Errorf("invalid name for skill: %v", err)
-	}
-	if err := metadatautils.ValidateDescriptionLength(m.GetDocumentation().GetDescription()); err != nil {
-		return fmt.Errorf("invalid description for skill: %v", err)
-	}
-	if err := metadatautils.ValidateDisplayNameLength(m.GetDisplayName()); err != nil {
-		return fmt.Errorf("invalid display name for skill: %v", err)
-	}
+
 	return nil
 }
 

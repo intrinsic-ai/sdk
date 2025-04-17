@@ -601,14 +601,10 @@ cc_library(
 go_library(
     name = "skillmanifest",
     srcs = ["skillmanifest.go"],
-    visibility = [
-        "//intrinsic/skills:__subpackages__",
-        "//intrinsic/tools/inbuild:__subpackages__",
-    ],
+    visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/assets:idutils",
         "//intrinsic/assets:metadatautils",
-        "//intrinsic/assets/proto:asset_type_go_proto",
         "//intrinsic/skills/proto:skill_manifest_go_proto",
         "//intrinsic/util/proto:sourcecodeinfoview",
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",

@@ -1,6 +1,6 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package skillmanifest has utilities used by inbuild to work with skill manifests
+// Package skillmanifest has utilities used by inbuild to work with skill manifests.
 package skillmanifest
 
 import (
@@ -30,7 +30,9 @@ func LoadManifestAndFileDescriptorSets(manifestPath string, fdsPaths []string) (
 	if err := protoio.ReadTextProto(manifestPath, m, protoio.WithResolver(types)); err != nil {
 		return nil, nil, fmt.Errorf("failed to read manifest: %v", err)
 	}
-	if err := skillmanifest.ValidateManifest(m, types); err != nil {
+	if err := skillmanifest.ValidateSkillManifest(m,
+		skillmanifest.WithTypes(types),
+	); err != nil {
 		return nil, nil, fmt.Errorf("failed to validate manifest: %v", err)
 	}
 	skillmanifest.PruneSourceCodeInfo(m, fds)

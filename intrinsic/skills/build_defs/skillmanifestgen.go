@@ -42,7 +42,9 @@ func createSkillManifest() error {
 	if err := protoio.ReadTextProto(*flagManifest, m, protoio.WithResolver(types)); err != nil {
 		return fmt.Errorf("failed to read manifest: %v", err)
 	}
-	if err := skillmanifest.ValidateManifest(m, types); err != nil {
+	if err := skillmanifest.ValidateSkillManifest(m,
+		skillmanifest.WithTypes(types),
+	); err != nil {
 		return err
 	}
 	if err := protoio.WriteBinaryProto(*flagOutput, m, protoio.WithDeterministic(true)); err != nil {

@@ -4,13 +4,10 @@
 package main
 
 import (
-	"fmt"
-
 	"flag"
 	log "github.com/golang/glog"
 	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"intrinsic/assets/bundleio"
-	"intrinsic/assets/idutils"
 	intrinsic "intrinsic/production/intrinsic"
 	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 	"intrinsic/util/proto/protoio"
@@ -25,31 +22,17 @@ var (
 	flagOutputBundle = flag.String("output_bundle", "", "Output path.")
 )
 
-func validateManifest(m *smpb.SkillManifest) error {
-	if err := idutils.ValidateIDProto(m.GetId()); err != nil {
-		return fmt.Errorf("invalid name or package: %v", err)
-	}
-	if m.GetVendor().GetDisplayName() == "" {
-		return fmt.Errorf("vendor.display_name must be specified")
-	}
-	return nil
-}
-
 func main() {
 	intrinsic.Init()
-
-	m := new(smpb.SkillManifest)
-	if err := protoio.ReadBinaryProto(*flagManifest, m); err != nil {
-		log.Exitf("failed to read manifest: %v", err)
-	}
-
-	if err := validateManifest(m); err != nil {
-		log.Exitf("invalid manifest: %v", err)
-	}
 
 	fds := &descriptorpb.FileDescriptorSet{}
 	if err := protoio.ReadBinaryProto(*flagFileDescriptorSet, fds); err != nil {
 		log.Exitf("failed to read file descriptor set: %v", err)
+	}
+
+	m := new(smpb.SkillManifest)
+	if err := protoio.ReadBinaryProto(*flagManifest, m); err != nil {
+		log.Exitf("failed to read manifest: %v", err)
 	}
 
 	if err := bundleio.WriteSkill(*flagOutputBundle, bundleio.WriteSkillOpts{
