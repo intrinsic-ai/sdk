@@ -152,6 +152,7 @@ go_library(
         ":idutils",
         "//intrinsic/assets/proto:asset_type_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
+        "//intrinsic/assets/scene_objects:sceneobjectmanifest",
         "//intrinsic/assets/services:servicemanifest",
         "//intrinsic/assets/services/proto:service_manifest_go_proto",
         "//intrinsic/kubernetes/workcell_spec/proto:image_go_proto",
