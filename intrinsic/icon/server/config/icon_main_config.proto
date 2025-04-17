@@ -26,8 +26,6 @@ message IconMainConfig {
   ServicesConfig services = 3;
   // Configuration of the realtime control manager.
   RealtimeControlConfig realtime_control_config = 4;
-  // High realtime priority for the Main loop thread.
-  bool main_loop_realtime_priority = 5;
   // Hardware module names. These should match the `name` specified in each
   // HardwareModuleConfig.
   repeated string hardware_module_names = 6;
@@ -56,5 +54,6 @@ message IconMainConfig {
   // startup.
   DeactivatedHardwareConfiguration deactivated_hardware_configuration = 15;
 
-  reserved 9;
+  reserved 5, 9;
+  reserved "main_loop_realtime_priority";
 }
