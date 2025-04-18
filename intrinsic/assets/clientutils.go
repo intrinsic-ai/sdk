@@ -110,6 +110,7 @@ func DialCatalog(ctx context.Context, opts DialCatalogOptions) (*grpc.ClientConn
 	}
 
 	options := baseclientutils.BaseDialOptions()
+
 	if baseclientutils.IsLocalAddress(opts.Address) { // Use insecure creds.
 		options = append(options, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	} else { // Use api-key creds.
