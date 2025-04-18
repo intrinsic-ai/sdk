@@ -4,7 +4,6 @@
 Bazel rules for service types.
 """
 
-load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "ProtoSourceCodeInfo", "gen_source_code_info_descriptor_set")
 
 ServiceTypeInfo = provider(
@@ -15,20 +14,8 @@ ServiceTypeInfo = provider(
 def _intrinsic_service_impl(ctx):
     bundle_output = ctx.outputs.bundle_out
 
-    inputs = []
-    transitive_inputs = []
-    runfiles = []
-    transitive_runfiles = []
-
-    image_tars = []
     basenames = {}
-    for target in ctx.attr.images:
-        transitive_inputs.extend([target.files])
-        transitive_runfiles.extend([target.files])
-        if len(target.files.to_list()) > 1:
-            fail("Image targets must have exactly one file")
-        file = target.files.to_list()[0]
-        image_tars.append(file.path)
+    for file in ctx.files.images:
         if file.basename in basenames:
             # This is a requirement based on how we place the files into the tar
             # archive.  The files are placed into the root of the tar file
@@ -41,10 +28,9 @@ def _intrinsic_service_impl(ctx):
         f[ProtoSourceCodeInfo].transitive_descriptor_sets
         for f in ctx.attr.deps
     ])
-    transitive_inputs.append(transitive_descriptor_sets)
 
-    inputs.append(ctx.file.manifest)
-
+    inputs = [ctx.file.manifest] + ctx.files.images
+    transitive_inputs = [transitive_descriptor_sets]
     args = ctx.actions.args().add(
         "--manifest",
         ctx.file.manifest,
@@ -53,7 +39,7 @@ def _intrinsic_service_impl(ctx):
         bundle_output,
     ).add_joined(
         "--image_tars",
-        image_tars,
+        ctx.files.images,
         join_with = ",",
     ).add_joined(
         "--file_descriptor_sets",
@@ -70,15 +56,12 @@ def _intrinsic_service_impl(ctx):
         executable = ctx.executable._servicegen,
         arguments = [args],
         mnemonic = "Servicebundle",
-        progress_message = "Service bundle %s" % bundle_output.short_path,
+        progress_message = "Creating service bundle %{output} for %{label}",
     )
 
     return [
         DefaultInfo(
             executable = bundle_output,
-            runfiles = ctx.runfiles(
-                transitive_files = depset(runfiles, transitive = transitive_runfiles),
-            ),
         ),
         ServiceTypeInfo(
             bundle_tar = bundle_output,
