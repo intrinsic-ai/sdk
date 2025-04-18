@@ -30,6 +30,7 @@ cc_library(
         ":object_world_ids",
         "//intrinsic/world/proto:object_world_refs_cc_proto",
         "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/types:span",
     ],
 )
 

@@ -7,6 +7,7 @@
 #include <utility>
 
 #include "absl/strings/string_view.h"
+#include "absl/types/span.h"
 #include "intrinsic/world/objects/object_world_ids.h"
 #include "intrinsic/world/proto/object_world_refs.pb.h"
 
@@ -87,6 +88,24 @@ ObjectEntityFilter ObjectEntityFilter::FromProto(
   }
   result.entity_names_ = std::set<std::string>{
       entity_filter.entity_names().begin(), entity_filter.entity_names().end()};
+  return result;
+}
+
+// Returns an ObjectEntityFilter that includes all the named entities.
+ObjectEntityFilter ObjectEntityFilter::FromEntityNames(
+    absl::Span<const absl::string_view> entity_names) {
+  ObjectEntityFilter result;
+  result.entity_names_ =
+      std::set<std::string>{entity_names.begin(), entity_names.end()};
+  return result;
+}
+
+// Returns an ObjectEntityFilter that includes all the ID'd entities.
+ObjectEntityFilter ObjectEntityFilter::FromEntityIds(
+    absl::Span<const ObjectWorldResourceId> entity_ids) {
+  ObjectEntityFilter result;
+  result.entity_ids_ =
+      std::set<ObjectWorldResourceId>{entity_ids.begin(), entity_ids.end()};
   return result;
 }
 
