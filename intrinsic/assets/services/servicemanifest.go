@@ -5,7 +5,6 @@ package servicemanifest
 
 import (
 	"fmt"
-	"regexp"
 	"slices"
 	"strings"
 
@@ -14,11 +13,10 @@ import (
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/metadatautils"
 	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
+	"intrinsic/util/proto/names"
 )
 
 var (
-	regexServiceProtoPrefix = regexp.MustCompile(`^/[a-zA-Z0-9_]+\.[a-zA-Z0-9\._]+/$`)
-
 )
 
 // ValidateServiceManifestOptions contains options for validating a ServiceManifest.
@@ -53,8 +51,8 @@ func ValidateServiceManifest(m *smpb.ServiceManifest, options ...ValidateService
 	}
 
 	for _, p := range m.GetServiceDef().GetServiceProtoPrefixes() {
-		if !regexServiceProtoPrefix.MatchString(p) {
-			return fmt.Errorf("service proto prefix %q is not valid for Service %q. expected format: /proto.package.service_name/", p, id)
+		if err := names.ValidateProtoPrefix(p); err != nil {
+			return fmt.Errorf("service proto prefix %q is not valid for Service %q: %w", p, id, err)
 		}
 	}
 

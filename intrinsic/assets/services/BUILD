@@ -10,6 +10,7 @@ go_library(
         "//intrinsic/assets:idutils",
         "//intrinsic/assets:metadatautils",
         "//intrinsic/assets/services/proto:service_manifest_go_proto",
+        "//intrinsic/util/proto:names",
         "@com_github_golang_glog//:go_default_library",
         "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
         "@org_golang_google_protobuf//reflect/protoregistry:go_default_library",
