@@ -3,7 +3,7 @@
 load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 load("@rules_python//python:defs.bzl", "py_library")
-load("//bazel:go_macros.bzl", "go_library")
+load("//bazel:go_macros.bzl", "go_library", "go_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -264,4 +264,15 @@ go_library(
         "@org_golang_google_protobuf//reflect/protodesc:go_default_library",
         "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
     ],
+)
+
+go_library(
+    name = "names",
+    srcs = ["names.go"],
+)
+
+go_test(
+    name = "names_test",
+    srcs = ["names_test.go"],
+    library = ":names",
 )
