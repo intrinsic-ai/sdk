@@ -269,10 +269,17 @@ go_library(
 go_library(
     name = "names",
     srcs = ["names.go"],
+    deps = ["@org_golang_google_protobuf//types/known/anypb"],
 )
 
 go_test(
     name = "names_test",
     srcs = ["names_test.go"],
     library = ":names",
+    deps = [
+        "//intrinsic/util/proto/testing:diamond_a_go_proto",
+        "@org_golang_google_protobuf//proto",
+        "@org_golang_google_protobuf//types/known/anypb",
+        "@org_golang_google_protobuf//types/known/emptypb",
+    ],
 )

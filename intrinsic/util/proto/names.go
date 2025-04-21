@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+
+	anypb "google.golang.org/protobuf/types/known/anypb"
 )
 
 var (
@@ -36,4 +38,13 @@ func ValidateProtoPrefix(protoPrefix string) error {
 		return fmt.Errorf("%w: expected prefix formatted as '/<package>.<message>/', got %q", errInvalidProtoPrefix, protoPrefix)
 	}
 	return nil
+}
+
+// AnyToProtoName retrieves the proto name from an Any proto message.
+func AnyToProtoName(m *anypb.Any) (string, error) {
+	typeURLParts := strings.Split(m.GetTypeUrl(), "/")
+	if len(typeURLParts) < 1 {
+		return "", fmt.Errorf("cannot extract proto name from type URL %q", m.GetTypeUrl())
+	}
+	return typeURLParts[len(typeURLParts)-1], nil
 }

@@ -5,6 +5,11 @@ package names
 import (
 	"errors"
 	"testing"
+
+	"google.golang.org/protobuf/proto"
+	anypb "google.golang.org/protobuf/types/known/anypb"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
+	diamondapb "intrinsic/util/proto/testing/diamond_a_go_proto"
 )
 
 func TestValidateProtoName(t *testing.T) {
@@ -244,6 +249,47 @@ func TestValidateProtoPrefix(t *testing.T) {
 			}
 			if tc.wantError && !errors.Is(err, errInvalidProtoPrefix) {
 				t.Errorf("ValidateProtoPrefix(%q) returned error %v, want error %v", tc.protoPrefix, err, errInvalidProtoPrefix)
+			}
+		})
+	}
+}
+
+func TestAnyToProtoName(t *testing.T) {
+	tests := []struct {
+		name      string
+		msg       proto.Message
+		wantName  string
+		wantError bool
+	}{
+		{
+			name:     "empty",
+			msg:      &emptypb.Empty{},
+			wantName: "google.protobuf.Empty",
+		},
+		{
+			name:     "diamond a",
+			msg:      &diamondapb.A{Value: "foo"},
+			wantName: "intrinsic_proto.test.A",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			msgAny, err := anypb.New(tc.msg)
+			if err != nil {
+				t.Fatalf("anypb.New(%v) returned error %v, want nil", tc.msg, err)
+			}
+			gotName, err := AnyToProtoName(msgAny)
+			if tc.wantError {
+				if err == nil {
+					t.Errorf("AnyToProtoName(%v) returned nil error, want non-nil", msgAny)
+				}
+			} else if err != nil {
+				t.Errorf("AnyToProtoName(%v) returned error %v, want nil", msgAny, err)
+			} else if gotName != tc.wantName {
+				t.Errorf("AnyToProtoName(%v) returned name %q, want %q", msgAny, gotName, tc.wantName)
+			} else if err := ValidateProtoName(gotName); err != nil {
+				t.Errorf("AnyToProtoName(%v) returned invalid name %q: %v", msgAny, gotName, err)
 			}
 		})
 	}
