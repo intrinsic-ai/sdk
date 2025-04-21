@@ -65,6 +65,8 @@ const (
 	KeyPolicy = "policy"
 	// KeyProject is used as central flag name for passing a project name to inctl.
 	KeyProject = orgutil.KeyProject
+	// KeyProvides is the name of the provided interfaces flag.
+	KeyProvides = "provides"
 	// KeyRegistry is the name of the registry flag.
 	KeyRegistry = "registry"
 	// KeyReleaseNotes is the name of the release notes flag.
@@ -264,7 +266,7 @@ func (cf *CmdFlags) GetFlagsManifest() (string, string, error) {
 	mt := cf.GetString(KeyManifestTarget)
 
 	if mf == "" && mt == "" {
-		return "", "", fmt.Errorf("one of --%s or --%s must provided", KeyManifestFile, KeyManifestTarget)
+		return "", "", fmt.Errorf("one of --%s or --%s must be provided", KeyManifestFile, KeyManifestTarget)
 	}
 
 	return mf, mt, nil
@@ -315,6 +317,26 @@ func (cf *CmdFlags) AddFlagProjectOptional() {
 // GetFlagProject gets the value of the project flag added by AddFlagProject.
 func (cf *CmdFlags) GetFlagProject() string {
 	return cf.GetString(KeyProject)
+}
+
+// AddFlagProvides adds a flag for specifying provided interfaces.
+func (cf *CmdFlags) AddFlagProvides() {
+	cf.OptionalString(KeyProvides, "", fmt.Sprintf("A comma-separated list of interfaces that assets must provide in order to be included in the output."))
+}
+
+// GetFlagProvides gets the value of the provides flag added by AddFlagProvides.
+func (cf *CmdFlags) GetFlagProvides() ([]string, error) {
+	providesValue := cf.GetString(KeyProvides)
+	if providesValue == "" {
+		return nil, nil
+	}
+
+	provides := strings.Split(providesValue, ",")
+	for i, provide := range provides {
+		provides[i] = strings.TrimSpace(provide)
+	}
+
+	return provides, nil
 }
 
 // GetFlagOrganization gets the value of the project flag added by AddFlagProject.

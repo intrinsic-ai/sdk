@@ -47,6 +47,11 @@ func GetCommand() *cobra.Command {
 				return err
 			}
 
+			provides, err := flags.GetFlagProvides()
+			if err != nil {
+				return err
+			}
+
 			assets, err := listutils.ListAllAssets(
 				cmd.Context(),
 				client,
@@ -55,6 +60,7 @@ func GetCommand() *cobra.Command {
 				&acpb.ListAssetsRequest_AssetFilter{
 					AssetTypes:  assetTypes,
 					OnlyDefault: proto.Bool(true),
+					Provides:    provides,
 				},
 			)
 			if err != nil {
@@ -76,6 +82,7 @@ func GetCommand() *cobra.Command {
 	}
 	flags.SetCommand(cmd)
 	flags.AddFlagAssetTypes("")
+	flags.AddFlagProvides()
 
 	return cmd
 }
