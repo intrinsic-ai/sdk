@@ -86,7 +86,35 @@ message ListInstalledAssetsRequest {
 }
 
 message InstalledAsset {
+  message DataMetadata {
+    // The fully qualified proto name of the data payload.
+    string proto_name = 1;
+  }
+  message DataDeploymentData {
+    intrinsic_proto.data.v1.DataAsset data = 1;
+  }
+  message SceneObjectDeploymentData {
+    intrinsic_proto.scene_objects.ProcessedSceneObjectManifest manifest = 1;
+  }
+  message ServiceMetadata {
+    // The list of gRPC services that the Service exposes.
+    repeated string service_proto_prefixes = 1;
+  }
+  message DeploymentData {
+    oneof variant {
+      DataDeploymentData data = 1;
+      SceneObjectDeploymentData scene_object = 2;
+    }
+  }
+
   Metadata metadata = 1;
+
+  oneof asset_specific_metadata {
+    DataMetadata data_specific_metadata = 4;
+    ServiceMetadata service_specific_metadata = 3;
+  }
+
+  DeploymentData deployment_data = 2;
 }
 
 message ListInstalledAssetsResponse {
