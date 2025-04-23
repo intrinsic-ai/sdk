@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "absl/base/no_destructor.h"
 #include "absl/status/statusor.h"
 
 namespace environments {
@@ -45,7 +46,7 @@ constexpr char AssetsDomainStaging[] = "assets-qa.intrinsic.ai";
 constexpr char AssetsDomainProd[] = "assets.intrinsic.ai";
 
 // All environments
-extern const std::vector<std::string> All;
+extern const absl::NoDestructor<std::vector<std::string>> All;
 
 absl::StatusOr<std::string> FromDomain(const std::string& domain);
 absl::StatusOr<std::string> FromProject(const std::string& project);

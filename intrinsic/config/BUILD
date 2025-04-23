@@ -16,6 +16,7 @@ cc_library(
         "//visibility:public",
     ],
     deps = [
+        "@com_google_absl//absl/base:no_destructor",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
     ],

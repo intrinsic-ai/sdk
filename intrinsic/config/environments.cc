@@ -3,11 +3,15 @@
 #include "intrinsic/config/environments.h"
 
 #include <string>
+#include <vector>
 
+#include "absl/base/no_destructor.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 
 namespace environments {
+
+const absl::NoDestructor<std::vector<std::string>> All({Prod, Staging, Dev});
 
 absl::StatusOr<std::string> FromDomain(const std::string& domain) {
   if (domain == PortalDomainProd || domain == AccountsDomainProd ||
