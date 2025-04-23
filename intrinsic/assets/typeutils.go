@@ -35,6 +35,15 @@ func AllAssetTypes() []atypepb.AssetType {
 	return assetTypes
 }
 
+// AssetTypesWithInstances returns the asset types that have instances.
+func AssetTypesWithInstances() []atypepb.AssetType {
+	return []atypepb.AssetType{
+		atypepb.AssetType_ASSET_TYPE_HARDWARE_DEVICE,
+		atypepb.AssetType_ASSET_TYPE_SERVICE,
+		atypepb.AssetType_ASSET_TYPE_SCENE_OBJECT,
+	}
+}
+
 // UniqueAssetTypes returns the unique asset types from a list.
 //
 // Order is arbitrary, and the unspecified asset type is ignored.
