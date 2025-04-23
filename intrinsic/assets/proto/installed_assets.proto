@@ -63,6 +63,18 @@ service InstalledAssets {
   }
 }
 
+// A read-only version of InstalledAssets, for contexts in which the solution
+// definition should not be modified.
+service InstalledAssetsReader {
+
+  // Lists the currently installed assets.
+  rpc ListInstalledAssets(ListInstalledAssetsRequest)
+      returns (ListInstalledAssetsResponse);
+
+  // Gets a specific installed asset.
+  rpc GetInstalledAsset(GetInstalledAssetRequest) returns (InstalledAsset);
+}
+
 message ListInstalledAssetsRequest {
   message Filter {
     // Deprecated: use asset_types instead.
