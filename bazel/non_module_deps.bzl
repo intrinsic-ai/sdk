@@ -95,12 +95,12 @@ cc_library(
     #      go/insrc-g3-to-oss      #
     ################################
 
-    XLS_COMMIT = "507b33b5bdd696adb7933a6617b65c70e46d4703"  # 2024-03-06
+    XLS_COMMIT = "2e60753b05cb653cb166f4e74ebf6692c5ae393d"  # 2025-04-20
     http_file(
         name = "com_google_xls_strong_int_h",
         downloaded_file_path = "strong_int.h",
         urls = ["https://raw.githubusercontent.com/google/xls/%s/xls/common/strong_int.h" % XLS_COMMIT],
-        sha256 = "4daad402bc0913e05b83d0bded9dd699738935e6d59d1424c99c944d6e0c2897",
+        sha256 = "8029a5dd05cb020997cfe80469abd3be0ec63044e8c1ae4da88982214186c608",
     )
 
 non_module_deps_ext = module_extension(implementation = _non_module_deps_impl)
