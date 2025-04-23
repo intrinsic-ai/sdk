@@ -72,6 +72,11 @@ void CycleTimeMetricsHelper::Reset() {
   apply_command_end_ = absl::InfinitePast();
   read_status_start_ = absl::InfinitePast();
   read_status_end_ = absl::InfinitePast();
+
+  previous_read_status_duration_ = absl::InfiniteDuration();
+  previous_apply_command_duration_ = absl::InfiniteDuration();
+  previous_process_duration_ = absl::InfiniteDuration();
+  previous_execution_duration_ = absl::InfiniteDuration();
 }
 
 void CycleTimeMetricsHelper::ResetReadStatusStart() {
@@ -91,6 +96,12 @@ RealtimeStatus CycleTimeMetricsHelper::ReadStatusStart() {
     INTRINSIC_RT_LOG(INFO) << "Metrics reset due to overflow.";
   }
 
+  if (apply_command_end_ != absl::InfinitePast()) [[likely]] {
+    previous_execution_duration_ = now - apply_command_end_;
+    INTRINSIC_RT_RETURN_IF_ERROR(
+        metrics_.execution_duration.Add(previous_execution_duration_));
+  }
+
   if (read_status_start_ != absl::InfinitePast()) [[likely]] {
     INTRINSIC_RT_RETURN_IF_ERROR(
         metrics_.duration_between_read_status_calls.Add(
@@ -103,7 +114,11 @@ RealtimeStatus CycleTimeMetricsHelper::ReadStatusStart() {
       INTRINSIC_RT_LOG_THROTTLED(WARNING)
           << "Long duration between read_status_calls: "
           << duration_between_read_status_calls
-          << " expected: " << cycle_duration;
+          << " expected: " << cycle_duration
+          << " [previous: rs=" << previous_read_status_duration_
+          << ", proc=" << previous_process_duration_
+          << ", ac=" << previous_apply_command_duration_
+          << ", exec=" << previous_execution_duration_ << "]";
     }
 
     if (log_cycle_time_warnings_ &&
@@ -113,14 +128,14 @@ RealtimeStatus CycleTimeMetricsHelper::ReadStatusStart() {
       INTRINSIC_RT_LOG_THROTTLED(WARNING)
           << "Short duration between read_status_calls: "
           << duration_between_read_status_calls
-          << " expected: " << cycle_duration;
+          << " expected: " << cycle_duration
+          << " [previous: rs=" << previous_read_status_duration_
+          << ", proc=" << previous_process_duration_
+          << ", ac=" << previous_apply_command_duration_
+          << ", exec=" << previous_execution_duration_ << "]";
     }
   }
 
-  if (apply_command_end_ != absl::InfinitePast()) [[likely]] {
-    INTRINSIC_RT_RETURN_IF_ERROR(
-        metrics_.execution_duration.Add(now - apply_command_end_));
-  }
   read_status_start_ = now;
   return OkStatus();
 }
@@ -144,9 +159,14 @@ RealtimeStatus CycleTimeMetricsHelper::ReadStatusEnd() {
     // Non Throttled so we see all occurrences.
     INTRINSIC_RT_LOG_THROTTLED(WARNING)
         << "Long duration of ReadStatus: " << duration
-        << " max: " << max_op_duration;
+        << " max: " << max_op_duration
+        << " [previous: rs=" << previous_read_status_duration_
+        << ", proc=" << previous_process_duration_
+        << ", ac=" << previous_apply_command_duration_
+        << ", exec=" << previous_execution_duration_ << "]";
   }
 
+  previous_read_status_duration_ = duration;
   return OkStatus();
 };
 
@@ -154,8 +174,9 @@ RealtimeStatus CycleTimeMetricsHelper::ApplyCommandStart() {
   const absl::Time now = absl::Now();
 
   if (read_status_end_ != absl::InfinitePast()) [[likely]] {
+    previous_process_duration_ = now - read_status_end_;
     INTRINSIC_RT_RETURN_IF_ERROR(
-        metrics_.process_duration.Add(now - read_status_end_));
+        metrics_.process_duration.Add(previous_process_duration_));
   }
 
   apply_command_start_ = now;
@@ -181,9 +202,13 @@ RealtimeStatus CycleTimeMetricsHelper::ApplyCommandEnd() {
     // Non throttled so we see all occurrences.
     INTRINSIC_RT_LOG_THROTTLED(WARNING)
         << "Long duration of ApplyCommand: " << duration
-        << " max: " << max_op_duration;
+        << " max: " << max_op_duration
+        << " [previous: ac=" << previous_apply_command_duration_
+        << ", exec=" << previous_execution_duration_
+        << ", rs=" << previous_read_status_duration_
+        << ", proc=" << previous_process_duration_ << "]";
   }
-
+  previous_apply_command_duration_ = duration;
   return OkStatus();
 }
 

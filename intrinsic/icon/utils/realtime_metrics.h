@@ -398,6 +398,11 @@ class CycleTimeMetricsHelper {
   absl::Time read_status_start_ = absl::InfinitePast();
   absl::Time read_status_end_ = absl::InfinitePast();
   CycleTimeMetrics metrics_;
+
+  absl::Duration previous_read_status_duration_ = absl::InfiniteDuration();
+  absl::Duration previous_apply_command_duration_ = absl::InfiniteDuration();
+  absl::Duration previous_process_duration_ = absl::InfiniteDuration();
+  absl::Duration previous_execution_duration_ = absl::InfiniteDuration();
 };
 
 // Helper that automatically calls ReadStatusStart() on creation and
