@@ -28,7 +28,7 @@ from intrinsic.math.proto import pose_pb2
 from intrinsic.math.python import data_types
 from intrinsic.math.python import proto_conversion as math_proto_conversion
 from intrinsic.motion_planning.proto import motion_target_pb2
-from intrinsic.perception.proto import pose_estimator_id_pb2
+from intrinsic.perception.proto.v1 import pose_estimator_id_pb2
 from intrinsic.skills.client import skill_registry_client
 from intrinsic.skills.proto import skills_pb2
 from intrinsic.solutions import blackboard_value

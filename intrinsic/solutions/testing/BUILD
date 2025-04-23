@@ -19,7 +19,7 @@ proto_library(
         "//intrinsic/icon/proto:joint_space_proto",
         "//intrinsic/math/proto:pose_proto",
         "//intrinsic/motion_planning/proto:motion_target_proto",
-        "//intrinsic/perception/proto:pose_estimator_id_proto",
+        "//intrinsic/perception/proto/v1:pose_estimator_id_proto",
         "//intrinsic/world/proto:collision_settings_proto",
         "//intrinsic/world/proto:object_world_refs_proto",
         "//intrinsic/world/proto:robot_payload_proto",

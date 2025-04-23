@@ -9,7 +9,7 @@ import "intrinsic/executive/proto/test_message.proto";
 import "intrinsic/icon/proto/joint_space.proto";
 import "intrinsic/math/proto/pose.proto";
 import "intrinsic/motion_planning/proto/motion_target.proto";
-import "intrinsic/perception/proto/pose_estimator_id.proto";
+import "intrinsic/perception/proto/v1/pose_estimator_id.proto";
 import "intrinsic/world/proto/collision_settings.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 import "intrinsic/world/proto/robot_payload.proto";
@@ -151,7 +151,7 @@ message CollisionSettingsSkill {
 }
 
 message PoseEstimatorSkill {
-  optional intrinsic_proto.perception.PoseEstimatorId pose_estimator = 1;
+  optional intrinsic_proto.perception.v1.PoseEstimatorId pose_estimator = 1;
 }
 
 message RobotPayloadSkill {

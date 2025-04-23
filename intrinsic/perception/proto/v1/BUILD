@@ -459,6 +459,26 @@ go_proto_library(
 )
 
 proto_library(
+    name = "pose_estimator_id_proto",
+    srcs = ["pose_estimator_id.proto"],
+)
+
+cc_proto_library(
+    name = "pose_estimator_id_cc_proto",
+    deps = [":pose_estimator_id_proto"],
+)
+
+py_proto_library(
+    name = "pose_estimator_id_py_pb2",
+    deps = [":pose_estimator_id_proto"],
+)
+
+go_proto_library(
+    name = "pose_estimator_id_go_proto",
+    deps = [":pose_estimator_id_proto"],
+)
+
+proto_library(
     name = "pose_range_proto",
     srcs = ["pose_range.proto"],
 )

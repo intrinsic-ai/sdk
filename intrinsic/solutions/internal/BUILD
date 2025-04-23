@@ -135,7 +135,7 @@ py_library(
         "//intrinsic/math/python:data_types",
         "//intrinsic/math/python:proto_conversion",
         "//intrinsic/motion_planning/proto:motion_target_py_pb2",
-        "//intrinsic/perception/proto:pose_estimator_id_py_pb2",
+        "//intrinsic/perception/proto/v1:pose_estimator_id_py_pb2",
         "//intrinsic/skills/client:skill_registry_client",
         "//intrinsic/skills/proto:skills_py_pb2",
         "//intrinsic/solutions:blackboard_value",

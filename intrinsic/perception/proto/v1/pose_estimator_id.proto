@@ -2,9 +2,7 @@
 
 syntax = "proto3";
 
-package intrinsic_proto.perception;
-
-option deprecated = true;
+package intrinsic_proto.perception.v1;
 
 // Encapsulates pose estimator id.
 // This message type allows the UI to interpret the field as a pose estimator

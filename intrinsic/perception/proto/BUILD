@@ -492,6 +492,7 @@ go_proto_library(
 proto_library(
     name = "pose_estimator_id_proto",
     srcs = ["pose_estimator_id.proto"],
+    deprecation = "This proto is deprecated. Please use //intrinsic/perception/proto/v1:pose_estimator_id_proto instead.",
 )
 
 cc_proto_library(

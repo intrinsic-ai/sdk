@@ -1417,7 +1417,7 @@ class SkillsTest(parameterized.TestCase):
               # pyformat: disable
               '(*, '
               'pose_estimator: Union[intrinsic.solutions.pose_estimation.PoseEstimatorId, '
-              'intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.perception.PoseEstimatorId, '
+              'intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.perception.v1.PoseEstimatorId, '
               'intrinsic.solutions.blackboard_value.BlackboardValue, '
               'intrinsic.solutions.cel.CelExpression, '
               'NoneType] = None)'
