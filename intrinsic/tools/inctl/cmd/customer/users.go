@@ -9,6 +9,7 @@ import (
 	"slices"
 	"strings"
 	"text/tabwriter"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -45,6 +46,11 @@ func addUserInit(root *cobra.Command) {
 	listUsers.Flags().StringVar(&flagOrganization, "organization", "", "The organization to list memberships for.")
 	listUsers.MarkFlagRequired("organization")
 	root.AddCommand(listUsers)
+	removeUser.Flags().StringVar(&flagEmail, "email", "", "The email address of the user to remove.")
+	removeUser.Flags().StringVar(&flagOrganization, "organization", "", "The organization to remove the user from.")
+	removeUser.MarkFlagRequired("email")
+	removeUser.MarkFlagRequired("organization")
+	root.AddCommand(removeUser)
 }
 
 var addUserHelp = `
@@ -83,6 +89,47 @@ var addUser = &cobra.Command{
 			return fmt.Errorf("failed to create organization: %w", err)
 		}
 		if flagDebugRequests {
+			protoPrint(op)
+		}
+		return nil
+	},
+}
+
+var removeUserHelp = `
+Remove a user from an organization by email address.
+
+Example:
+
+		inctl customer remove-user --email=user@example.com --organization=exampleorg
+`
+
+var removeUser = &cobra.Command{
+	Use:   "remove-user",
+	Short: "Remove a user from an organization by email address.",
+	Long:  removeUserHelp,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		ctx := withOrgID(cmd.Context())
+		cl, err := newAccessControlV1Client(ctx)
+		if err != nil {
+			return err
+		}
+		req := pb.DeleteOrganizationMembershipByEmailRequest{
+			Parent: addPrefix(flagOrganization, "organizations/"),
+			Email:  flagEmail,
+		}
+		if flagDebugRequests {
+			protoPrint(&req)
+		}
+		op, err := cl.DeleteOrganizationMembershipByEmail(ctx, &req)
+		if err != nil {
+			return fmt.Errorf("failed to remove member: %w", err)
+		}
+		if flagDebugRequests {
+			protoPrint(op)
+		}
+		if op, err := waitForOperation(ctx, cl.GetOperation, op, 30*time.Second); err != nil {
+			return fmt.Errorf("failed to remove member (long operation): %w", err)
+		} else {
 			protoPrint(op)
 		}
 		return nil

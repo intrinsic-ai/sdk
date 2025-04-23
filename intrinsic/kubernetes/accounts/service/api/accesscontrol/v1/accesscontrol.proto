@@ -87,6 +87,14 @@ message ListOrganizationRoleBindingsResponse {
   repeated RoleBinding role_bindings = 1;
 }
 
+message DeleteOrganizationMembershipByEmailRequest {
+  // The organization to remove the user from.
+  // Format: /organizations/{organization}
+  string parent = 1 [(google.api.field_behavior) = REQUIRED];
+  // The email of the user to remove from the organization.
+  string email = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
 message GetOrganizationPermissionsGrantedRequest {
   // The organization and permission to get permissions granted for.
   // Format: /organizations/{organization}/permissions/{permission}
@@ -207,6 +215,25 @@ service AccessControlService {
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "ListOrganizationMemberships"
+    };
+  }
+
+  // DeleteOrganizationMembershipByEmail removes a user's membership from an
+  // organization by email address. We currently only support removing a user
+  // by email address because there is no exposed membership identifier.
+  rpc DeleteOrganizationMembershipByEmail(
+      DeleteOrganizationMembershipByEmailRequest)
+      returns (google.longrunning.Operation) {
+    option (google.api.http) = {
+      post: "/accesscontrol/v1/{parent=organizations/*}/memberships:deleteByEmail"
+      body: "*"
+    };
+    option (google.longrunning.operation_info) = {
+      response_type: "google.protobuf.Empty"
+      metadata_type: "google.protobuf.Empty"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "DeleteOrganizationMembershipByEmail"
     };
   }
 
