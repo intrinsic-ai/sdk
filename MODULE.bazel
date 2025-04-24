@@ -38,7 +38,6 @@ use_repo(
     "com_github_google_go_containerregistry",
     "com_github_google_subcommands",
     "com_github_gorilla_websocket",
-    "com_github_grpc_ecosystem_grpc_gateway_v2",
     "com_github_pborman_uuid",
     "com_github_pkg_errors",
     "com_github_protocolbuffers_txtpbfmt",
@@ -211,6 +210,7 @@ bazel_dep(name = "google_benchmark", version = "1.8.3", repo_name = "com_github_
 bazel_dep(name = "googleapis", version = "0.0.0-20240819-fe8ba054a", repo_name = "com_google_googleapis")
 bazel_dep(name = "googletest", version = "1.15.2", repo_name = "com_google_googletest")
 bazel_dep(name = "grpc", version = "1.71.0", repo_name = "com_github_grpc_grpc")
+bazel_dep(name = "grpc_ecosystem_grpc_gateway", version = "2.26.1", repo_name = "com_github_grpc_ecosystem_grpc_gateway_v2")
 bazel_dep(name = "jsonnet", version = "0.20.0.bcr.1")
 bazel_dep(name = "opencensus-cpp", version = "0.0.0-20230502-50eb5de", repo_name = "io_opencensus_cpp")
 bazel_dep(name = "protobuf", version = "29.1", repo_name = "com_google_protobuf")
