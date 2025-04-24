@@ -31,6 +31,8 @@ service IpcUpdater {
 message IntrinsicVersion {
   // An opaque string that identifies the version.
   string version_id = 1;
+  // Information about the version pulled from InversionSpec.UpdateNotes.
+  optional string update_notes = 2;
 }
 
 message Progress {
