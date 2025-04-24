@@ -37,7 +37,7 @@ def _display_html(html: str, newline_after_html: bool = False) -> None:
   try:
     # pytype: disable=import-error
     # pylint: disable=g-import-not-at-top
-    from IPython.core import display
+    from IPython import display
     # pytype: enable=import-error
     # pylint: enable=g-import-not-at-top
     display.display(display.HTML(html))
@@ -162,7 +162,7 @@ def display_if_ipython(python_object: Any) -> None:
     try:
       # pytype: disable=import-error
       # pylint: disable=g-import-not-at-top
-      from IPython.core import display
+      from IPython import display
       # pytype: enable=import-error
       # pylint: enable=g-import-not-at-top
       display.display(python_object)
