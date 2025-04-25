@@ -417,6 +417,50 @@ var acceptCmd = &cobra.Command{
 	},
 }
 
+// reportCmd is the command to report information about an upgrade.
+var reportCmd = &cobra.Command{
+	Use:   "report",
+	Short: "Report information about an upgrade on the target cluster",
+	Long:  "Report information about an upgrade of Intrinsic software (OS and intrinsic-base) on the target cluster.",
+	Args:  cobra.NoArgs,
+	RunE: func(cmd *cobra.Command, _ []string) error {
+		ctx := cmd.Context()
+
+		consoleIO := bufio.NewWriter(cmd.OutOrStdout())
+
+		projectName := ClusterCmdViper.GetString(orgutil.KeyProject)
+		orgName := ClusterCmdViper.GetString(orgutil.KeyOrganization)
+
+		ctx, conn, err := newIPCGRPCClient(ctx, projectName, orgName, clusterName)
+		if err != nil {
+			return fmt.Errorf("cluster upgrade client:\n%w", err)
+		}
+		defer conn.Close()
+
+		client := inversiongrpcpb.NewIpcUpdaterClient(conn)
+		uir, err := client.ReportUpdateInfo(ctx, &inversionpb.GetUpdateInfoRequest{})
+		if err != nil {
+			return fmt.Errorf("update info request: %w", err)
+		}
+
+		switch uir.GetState() {
+		case inversionpb.UpdateInfo_STATE_UPDATE_RUNNING:
+			fmt.Fprintf(consoleIO, "Upgrade is running.\n")
+		case inversionpb.UpdateInfo_STATE_UPDATE_AVAILABLE:
+			fmt.Fprintf(consoleIO, "Upgrade to %q is available.\n", uir.GetAvailable().GetVersionId())
+			if uir.GetAvailable().GetUpdateNotes() != "" {
+				fmt.Fprintf(consoleIO, "Upgrade notes:\n%q\n", uir.GetAvailable().GetUpdateNotes())
+			}
+		case inversionpb.UpdateInfo_STATE_UP_TO_DATE:
+			fmt.Fprintf(consoleIO, "Cluster is up to date.\n")
+		default:
+			fmt.Fprintf(consoleIO, "System is in an unexpected state %q. Please contact support for further assistance.", uir.GetState())
+		}
+		consoleIO.Flush()
+		return nil
+	},
+}
+
 func newIPCGRPCClient(ctx context.Context, projectName, orgName, clusterName string) (context.Context, *grpc.ClientConn, error) {
 	address := fmt.Sprintf("dns:///www.endpoints.%s.cloud.goog:443", projectName)
 	configuration, err := auth.NewStore().GetConfiguration(projectName)
@@ -455,4 +499,5 @@ func init() {
 	runCmd.PersistentFlags().StringVar(&userDataFlag, "user-data", "", "Optional data describing the update.")
 	clusterUpgradeCmd.AddCommand(modeCmd)
 	clusterUpgradeCmd.AddCommand(acceptCmd)
+	clusterUpgradeCmd.AddCommand(reportCmd)
 }
