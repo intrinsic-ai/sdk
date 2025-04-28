@@ -9,8 +9,8 @@ common --incompatible_disallow_empty_glob=false
 
 # Custom downloader configs. This makes it so that external URLs to download dependencies from
 # can be rewritten at build time and, for example, support custom mirrors.
-common               --experimental_downloader_config=bazel/content_mirror/permissive.cfg
-common:strict_mirror --experimental_downloader_config=bazel/content_mirror/strict.cfg
+common               --downloader_config=bazel/content_mirror/permissive.cfg
+common:strict_mirror --downloader_config=bazel/content_mirror/strict.cfg
 
 # Static linking to workaround OpenCV symbol lookup errors: https://github.com/bazelbuild/rules_foreign_cc/issues/1164
 build --dynamic_mode=off
