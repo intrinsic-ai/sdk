@@ -76,7 +76,7 @@ func main() {
 		}
 		// Ignore exit failures after a shutdown request.
 		if shutdownRequested {
-			log.Info("Not restarting ICON after external shutdown request.")
+			log.Info("Shutdown requested. Exiting init wrapper.")
 			return
 		}
 
