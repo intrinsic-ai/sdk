@@ -34,11 +34,6 @@ bzl_library(
 )
 
 bzl_library(
-    name = "label",
-    srcs = ["label.bzl"],
-)
-
-bzl_library(
     name = "go_macros",
     srcs = ["go_macros.bzl"],
 )
