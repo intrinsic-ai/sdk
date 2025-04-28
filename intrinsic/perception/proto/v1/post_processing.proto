@@ -32,6 +32,8 @@ message SensorImagePostProcessing {
     Dimensions resize = 4;
     // Resize width. Height is set automatically to aspect ratio.
     int32 resize_width = 5;
+    // Resize height. Width is set automatically to aspect ratio.
+    int32 resize_height = 6;
   }
 }
 
