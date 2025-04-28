@@ -28,7 +28,7 @@ message Id {
   // replaced with a hyphen (-) and periods to be replaced with two hyphens (--)
   // in order to convert asset ids to kubernetes labels without possibility of
   // collisions.
- string package = 1;
+  string package = 1;
 
   // The name of the asset within the package.
   //
