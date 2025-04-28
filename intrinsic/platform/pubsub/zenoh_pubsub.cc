@@ -31,7 +31,6 @@
 #include "intrinsic/platform/pubsub/zenoh_subscription_data.h"
 #include "intrinsic/platform/pubsub/zenoh_util/zenoh_handle.h"
 #include "intrinsic/util/status/status_macros.h"
-
 namespace intrinsic {
 
 constexpr char kIntrospectionTopicPrefix[] = "in/_introspection/";

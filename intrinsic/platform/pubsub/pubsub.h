@@ -34,7 +34,6 @@
 #include "intrinsic/util/proto/type_url.h"
 #include "intrinsic/util/status/status_conversion_rpc.h"
 #include "intrinsic/util/status/status_macros.h"
-
 // The PubSub class implements an interface to a publisher-subscriber
 // system, a one-to-many communication bus that allows sending protocol buffers
 // across a non-real-time context with a relatively low-latency.
