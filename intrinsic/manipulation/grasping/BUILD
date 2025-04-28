@@ -167,6 +167,7 @@ proto_library(
         "//intrinsic/geometry/api/proto:triangle_mesh_proto",
         "//intrinsic/math/proto:pose_proto",
         "//intrinsic/math/proto:vector2_proto",
+        "//intrinsic/math/proto:vector3_proto",
     ],
 )
 

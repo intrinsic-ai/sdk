@@ -8,6 +8,7 @@ import "intrinsic/geometry/api/proto/oriented_bounding_box.proto";
 import "intrinsic/geometry/api/proto/triangle_mesh.proto";
 import "intrinsic/math/proto/pose.proto";
 import "intrinsic/math/proto/vector2.proto";
+import "intrinsic/math/proto/vector3.proto";
 
 message MeshData {
   message MeshBytesData {
@@ -94,6 +95,8 @@ message GraspAnnotationConstraint {
   oneof Constraint {
     // The bounding box to filter grasp poses, in base frame of the object.
     BoundingBoxConstraint bounding_box_constraint = 1;
+    // Axis constraint to filter grasp poses.
+    AxisConstraint axis_constraint = 2;
   }
 
   message BoundingBoxConstraint {
@@ -101,5 +104,15 @@ message GraspAnnotationConstraint {
         oriented_bounding_boxes = 1;
     // Only select grasp poses outside the box, defaults to false.
     optional bool exclude_poses_in_box = 2;
+  }
+
+  message AxisConstraint {
+    // The axis to filter grasp poses by, in the base frame of the object.
+    // Grasp poses are filtered out if the Z-axis of the grasp pose is not
+    // aligned and in the same direction as the axis.
+    repeated intrinsic_proto.Vector3 axis = 1;
+    // The angle tolerance in radians to filter grasp poses. The default value
+    // is 0.01 radians.
+    optional float angle_tolerance_in_radians = 2;
   }
 }
