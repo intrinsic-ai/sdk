@@ -1205,6 +1205,21 @@ class BehaviorTreeVisitorTest(absltest.TestCase):
                     bt.Fail(name='selector_child1'),
                 ],
             ),
+            bt.Selector(
+                name='selector_branches',
+                branches=[
+                    bt.Selector.Branch(
+                        condition=None,
+                        node=bt.Fail(name='selector_branches_child0'),
+                    ),
+                    bt.Selector.Branch(
+                        condition=bt.Blackboard(
+                            cel_expression='selector_condition'
+                        ),
+                        node=bt.Fail(name='selector_branches_child1'),
+                    ),
+                ],
+            ),
             bt.Retry(
                 name='retry',
                 child=bt.Fail(name='retry_child'),
@@ -1253,6 +1268,10 @@ class BehaviorTreeVisitorTest(absltest.TestCase):
             'selector',
             'selector_child0',
             'selector_child1',
+            'selector_branches',
+            'selector_branches_child0',
+            'selector_condition',
+            'selector_branches_child1',
             'retry',
             'retry_child',
             'retry_recovery',
@@ -2755,10 +2774,71 @@ class BehaviorTreeSelectorTest(absltest.TestCase):
     node_proto.selector.children.add().task.call_behavior.skill_id = 'skill_2'
     compare.assertProto2Equal(self, node.proto, node_proto)
 
+  def test_init_with_conditions(self):
+    """Tests if BehaviorTree.Selector is correctly constructed from Branch."""
+    node = bt.Selector(
+        name='bar',
+        branches=[
+            bt.Selector.Branch(
+                condition=None,
+                node=bt.Task(behavior_call.Action(skill_id='skill_0')),
+            ),
+            bt.Selector.Branch(
+                condition=bt.Blackboard(cel_expression='cond'),
+                node=bt.Task(behavior_call.Action(skill_id='skill_1')),
+            ),
+        ],
+    )
+    node_proto = behavior_tree_pb2.BehaviorTree.Node(name='bar')
+    node_proto.selector.branches.add().node.task.call_behavior.skill_id = (
+        'skill_0'
+    )
+    node2 = node_proto.selector.branches.add()
+    node2.condition.blackboard.cel_expression = 'cond'
+    node2.node.task.call_behavior.skill_id = 'skill_1'
+
+    compare.assertProto2Equal(self, node.proto, node_proto)
+
+  def test_init_with_conditions_setter(self):
+    """Tests if BehaviorTree.Selector is correctly constructed from Branch."""
+    node = bt.Selector(name='bar')
+    node.set_branches(
+        bt.Selector.Branch(
+            condition=None,
+            node=bt.Task(behavior_call.Action(skill_id='skill_0')),
+        )
+    )
+    node_proto = behavior_tree_pb2.BehaviorTree.Node(name='bar')
+    node_proto.selector.branches.add().node.task.call_behavior.skill_id = (
+        'skill_0'
+    )
+
+    compare.assertProto2Equal(self, node.proto, node_proto)
+
+    node.set_branches(
+        bt.Selector.Branch(
+            condition=None,
+            node=bt.Task(behavior_call.Action(skill_id='skill_1')),
+        ),
+        bt.Selector.Branch(
+            condition=bt.Blackboard(cel_expression='cond'),
+            node=bt.Task(behavior_call.Action(skill_id='skill_2')),
+        ),
+    )
+
+    node_proto = behavior_tree_pb2.BehaviorTree.Node(name='bar')
+    node_proto.selector.branches.add().node.task.call_behavior.skill_id = (
+        'skill_1'
+    )
+    node2 = node_proto.selector.branches.add()
+    node2.condition.blackboard.cel_expression = 'cond'
+    node2.node.task.call_behavior.skill_id = 'skill_2'
+    compare.assertProto2Equal(self, node.proto, node_proto)
+
   def test_str_conversion(self):
     """Tests if conversion to string works."""
     node = bt.Selector()
-    self.assertEqual(str(node), 'Selector(children=[])')
+    self.assertEqual(str(node), 'Selector(branches=[])')
     node.set_children(
         bt.Task(behavior_call.Action(skill_id='skill_0')),
         bt.Task(behavior_call.Action(skill_id='skill_1')),
@@ -2797,6 +2877,35 @@ class BehaviorTreeSelectorTest(absltest.TestCase):
 
     node.set_decorators(_create_test_decorator())
     node_proto.decorators.condition.blackboard.cel_expression = 'foo'
+
+    compare.assertProto2Equal(self, node.proto, node_proto)
+    compare.assertProto2Equal(
+        self,
+        bt.Node.create_from_proto(node_proto).proto,
+        node_proto,
+    )
+
+  def test_to_proto_and_from_proto_branches(self):
+    """Tests if conversion to and from a proto representation works."""
+    node = bt.Selector(name='bar')
+    node_proto = behavior_tree_pb2.BehaviorTree.Node(name='bar')
+
+    node.set_branches(
+        bt.Selector.Branch(
+            condition=None,
+            node=bt.Task(behavior_call.Action(skill_id='skill_0')),
+        ),
+        bt.Selector.Branch(
+            condition=bt.Blackboard(cel_expression='cond'),
+            node=bt.Task(behavior_call.Action(skill_id='skill_1')),
+        ),
+    )
+    node_proto.selector.branches.add().node.task.call_behavior.skill_id = (
+        'skill_0'
+    )
+    node2 = node_proto.selector.branches.add()
+    node2.condition.blackboard.cel_expression = 'cond'
+    node2.node.task.call_behavior.skill_id = 'skill_1'
 
     compare.assertProto2Equal(self, node.proto, node_proto)
     compare.assertProto2Equal(

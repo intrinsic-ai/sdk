@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import abc
 import collections
+import dataclasses
 import enum
 import textwrap
 from typing import Any as AnyType, Callable, Iterable, List, Mapping, Optional, Sequence as SequenceType, Tuple, Union, cast
@@ -2312,11 +2313,43 @@ class Selector(NodeWithChildren):
   If all the children fail, the node fails.
 
   Attributes:
+    branches: The list of selector branches, i.e., children with conditions.
     children: The list of child nodes of the given node, inherited from the
       parent class.
     proto: The proto representation of the node.
     node_type: A string label of the node type.
   """
+
+  @dataclasses.dataclass
+  class Branch:
+    """Represents a SelectorNode.Branch."""
+
+    condition: Condition | None
+    node: Node
+
+    @property
+    def proto(
+        self,
+    ) -> behavior_tree_pb2.BehaviorTree.SelectorNode.Branch:
+      return behavior_tree_pb2.BehaviorTree.SelectorNode.Branch(
+          condition=self.condition.proto
+          if self.condition is not None
+          else None,
+          node=self.node.proto,
+      )
+
+    @classmethod
+    def _create_from_proto(
+        cls,
+        proto_object: behavior_tree_pb2.BehaviorTree.SelectorNode.Branch,
+    ) -> Selector.Branch:
+      node = cls(
+          condition=Condition.create_from_proto(proto_object.condition)
+          if proto_object.HasField('condition')
+          else None,
+          node=Node.create_from_proto(proto_object.node),
+      )
+      return node
 
   _decorators: Optional[Decorators]
   _name: Optional[str]
@@ -2324,22 +2357,85 @@ class Selector(NodeWithChildren):
   _state: Optional[NodeState]
   _user_data_protos: dict[str, any_pb2.Any]
 
+  # Either the children: list[Node] from the super class or this must be filled,
+  # but never both
+  branches: list[Selector.Branch]
+
   def __init__(
       self,
-      children: Optional[SequenceType[Union[Node, actions.ActionBase]]] = None,
+      branches: Optional[
+          SequenceType[Union[Node, actions.ActionBase, Selector.Branch]]
+      ] = None,
       name: Optional[str] = None,
+      *,
+      children: Optional[SequenceType[Union[Node, actions.ActionBase]]] = None,
   ):
-    super().__init__(children=children)
+    if branches and children:
+      raise solutions_errors.InvalidArgumentError(
+          'Either branches or children can be set, but not both.'
+      )
+    node_children = []
+    node_branches = []
+    if branches is not None:
+      for branch_child in branches:
+        if isinstance(branch_child, Selector.Branch):
+          node_branches.append(branch_child)
+        else:
+          node_children.append(branch_child)
+    if children is not None:
+      node_children = children
+
+    if node_children and node_branches:
+      raise TypeError(
+          'The children passed to a SelectorNode must either all be all'
+          ' Selector.Branch or all Nodes, but not mixed.'
+      )
+
+    if node_children:
+      super().__init__(children=node_children)
+      self.branches = []
+    else:
+      super().__init__(children=[])
+      self.branches = node_branches
     self._decorators = None
     self._name = name
     self._node_id = None
     self._state = None
     self._user_data_protos = {}
 
+  def set_children(self, *children: Node) -> Node:
+    self.branches = []
+    return super().set_children(*children)
+
+  def set_branches(self, *branches: Selector.Branch) -> Node:
+    if isinstance(branches[0], list):
+      self.branches = branches[0]
+    else:
+      self.branches = list(branches)
+    self.children = []
+    return self
+
+  def __repr__(self) -> str:
+    """Returns a compact, human-readable string representation."""
+    representation = f'{type(self).__name__}({self._name_repr()}'
+    if self.children:
+      representation += 'children=['
+      representation += ', '.join(map(str, self.children))
+      representation += ']'
+    if self.branches or not self.children:
+      representation += 'branches=['
+      representation += ', '.join(map(str, self.branches))
+      representation += ']'
+    representation += ')'
+    return representation
+
   @property
   def proto(self) -> behavior_tree_pb2.BehaviorTree.Node:
     proto_object = super().proto
-    if self.children:
+    if self.branches:
+      for branch in self.branches:
+        proto_object.selector.branches.append(branch.proto)
+    elif self.children:
       for child in self.children:
         proto_object.selector.children.append(child.proto)
     else:
@@ -2402,10 +2498,57 @@ class Selector(NodeWithChildren):
   def _create_from_proto(
       cls, proto_object: behavior_tree_pb2.BehaviorTree.SelectorNode
   ) -> Selector:
+    """Creates a SelectorNode from a proto."""
     node = cls()
+    if proto_object.children and proto_object.branches:
+      raise ValueError(
+          'The selector proto contains children and branches. Only one is'
+          f' valid: {proto_object}'
+      )
     for child_node_proto in proto_object.children:
       node.children.append(Node.create_from_proto(child_node_proto))
+    for branch_node_proto in proto_object.branches:
+      node.branches.append(
+          Selector.Branch._create_from_proto(branch_node_proto)  # pylint:disable=protected-access
+      )
     return node
+
+  def dot_graph(  # pytype: disable=signature-mismatch  # overriding-parameter-count-checks
+      self, node_id_suffix: str = ''
+  ) -> Tuple[graphviz.Digraph, str]:
+    dot_graph, node_name = Node.dot_graph(
+        self, node_id_suffix=node_id_suffix, name=self.name
+    )
+    if self.children:
+      _dot_append_children(
+          dot_graph, node_name, self.children, node_id_suffix, 0
+      )
+    elif self.branches:
+      branch_children = [b.node for b in self.branches]
+      _dot_append_children(
+          dot_graph, node_name, branch_children, node_id_suffix, 0
+      )
+    box_dot_graph = _dot_wrap_in_box(
+        child_graph=dot_graph,
+        name=(self.name or '') + node_id_suffix,
+        label=self.name or '',
+    )
+    return box_dot_graph, node_name
+
+  def visit(
+      self,
+      containing_tree: BehaviorTree,
+      callback: Callable[
+          [BehaviorTree, Union[BehaviorTree, Node, Condition]], None
+      ],
+  ) -> None:
+    Node.visit(self, containing_tree, callback)
+    for child in self.children:
+      child.visit(containing_tree, callback)
+    for branch in self.branches:
+      if branch.condition:
+        branch.condition.visit(containing_tree, callback)
+      branch.node.visit(containing_tree, callback)
 
 
 class Retry(Node):
