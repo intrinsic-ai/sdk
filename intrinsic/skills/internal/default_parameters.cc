@@ -13,4 +13,6 @@
 #include "intrinsic/util/proto/merge.h"
 #include "intrinsic/util/status/status_macros.h"
 
-namespace intrinsic::skills {}  // namespace intrinsic::skills
+namespace intrinsic::skills {
+
+}  // namespace intrinsic::skills
