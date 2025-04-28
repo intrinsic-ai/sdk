@@ -374,7 +374,7 @@ def _skill_provider_classdef_for_skill_package(
       )
   )
 
-  return ast.ClassDef(
+  return ast.ClassDef(  # pytype: disable=missing-parameter
       name=skill_package.relative_package_name,
       bases=[],
       keywords=[],
@@ -759,7 +759,7 @@ def _function_to_ast_function_def(
       kwonlyargs.append(ast_arg)
       kw_defaults.append(ast_default)
 
-  return ast.FunctionDef(
+  return ast.FunctionDef(  # pytype: disable=missing-parameter
       name=name,
       args=ast.arguments(
           # Our skill and message wrapper classes don't use position-only-args.
@@ -829,7 +829,7 @@ def _ast_class_def_for_enum_wrapper(
   # Add "import enum"
   enum_module_name = _add_ast_import(imports, module=enum.__name__)
 
-  return ast.ClassDef(
+  return ast.ClassDef(  # pytype: disable=missing-parameter
       name=enum_type.__name__,
       bases=[
           # Declare "enum.IntEnum" as base class
@@ -866,7 +866,7 @@ def _ast_class_def_for_message_wrapper_namespace(
       value=ast.Constant(value=message_wrapper_namespace.__doc__)
   )
 
-  return ast.ClassDef(  # pytype: disable=wrong-arg-types
+  return ast.ClassDef(  # pytype: disable=missing-parameter,wrong-arg-types
       name=message_wrapper_namespace.__name__,
       # Don't declare skill_utils.MessageWrapperNamespace as base class in the
       # stub. This class is an internal implementation helper and does not
@@ -912,7 +912,7 @@ def _ast_class_def_for_message_wrapper(
       message_wrapper, module_name, imports
   )
 
-  return ast.ClassDef(
+  return ast.ClassDef(  # pytype: disable=missing-parameter
       name=message_wrapper.__name__,
       bases=[],
       keywords=[],
@@ -1056,7 +1056,7 @@ def _ast_module_stub_for_skill_package(
         imports, module=skill_generation.__name__
     )
     class_defs.append(
-        ast.ClassDef(
+        ast.ClassDef(  # pytype: disable=missing-parameter
             name=skill.__name__,
             bases=[
                 dot_expr_to_ast_attribute_or_name(
