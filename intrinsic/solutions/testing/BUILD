@@ -23,6 +23,7 @@ proto_library(
         "//intrinsic/world/proto:collision_settings_proto",
         "//intrinsic/world/proto:object_world_refs_proto",
         "//intrinsic/world/proto:robot_payload_proto",
+        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:pose_proto",
         "@com_google_protobuf//:duration_proto",
     ],
 )

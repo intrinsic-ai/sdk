@@ -43,6 +43,37 @@ py_test(
 )
 
 py_library(
+    name = "ros_proto_conversion",
+    srcs = ["ros_proto_conversion.py"],
+    deps = [
+        ":data_types",
+        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:point_py_pb2",
+        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:pose_py_pb2",
+        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:quaternion_py_pb2",
+        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:twist_py_pb2",
+        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:vector3_py_pb2",
+        "@ai_intrinsic_sdks_pip_deps//numpy",
+    ],
+)
+
+py_test(
+    name = "ros_proto_conversion_test",
+    srcs = ["ros_proto_conversion_test.py"],
+    deps = [
+        ":data_types",
+        ":ros_proto_conversion",
+        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:point_py_pb2",
+        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:pose_py_pb2",
+        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:quaternion_py_pb2",
+        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:twist_py_pb2",
+        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:vector3_py_pb2",
+        "@ai_intrinsic_sdks_pip_deps//numpy",
+        "@com_google_absl_py//absl/testing:absltest",
+        "@com_google_absl_py//absl/testing:parameterized",
+    ],
+)
+
+py_library(
     name = "data_types",
     srcs = ["data_types.py"],
     deps = [

@@ -31,6 +31,9 @@ from intrinsic.solutions.internal import skill_utils
 from intrinsic.solutions.testing import compare
 from intrinsic.solutions.testing import skill_test_utils
 from intrinsic.solutions.testing import test_skill_params_pb2
+from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import point_pb2 as ros_point_pb2
+from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import pose_pb2 as ros_pose_pb2
+from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import quaternion_pb2 as ros_quaternion_pb2
 
 _SKILL_PARAMETER_DICT = {
     'my_double': 2.2,
@@ -49,6 +52,7 @@ _SKILL_PARAMETER_DICT = {
     ],
     'my_oneof_double': 1.1,
     'pose': data_types.Pose3.from_vec7([4, 5, 6, 0, 1, 0, 0]),
+    'ros_pose': data_types.Pose3.from_vec7([7, 8, 9, 0, 0, 1, 0]),
 }
 
 _DEFAULT_TEST_MESSAGE = test_skill_params_pb2.TestMessage(
@@ -72,6 +76,10 @@ _DEFAULT_TEST_MESSAGE = test_skill_params_pb2.TestMessage(
     pose=pose_pb2.Pose(
         position=point_pb2.Point(),
         orientation=quaternion_pb2.Quaternion(x=0.5, y=0.5, z=0.5, w=0.5),
+    ),
+    ros_pose=ros_pose_pb2.Pose(
+        position=ros_point_pb2.Point(),
+        orientation=ros_quaternion_pb2.Quaternion(x=0.5, y=0.5, z=0.5, w=0.5),
     ),
     foo=test_skill_params_pb2.TestMessage.Foo(
         bar=test_skill_params_pb2.TestMessage.Foo.Bar(test='test')
@@ -487,6 +495,9 @@ class SkillsTest(parameterized.TestCase):
         "int32_string_map={3: 'foobar'}, "
         'string_message_map={"bar": value: "baz"\n}, '
         'non_unique_field_name=non_unique_field_name {\n}\n, '
+        'ros_pose=position {\n}\norientation {\n  x: 0.5\n  y: 0.5\n  z:'
+        ' 0.5\n  w:'
+        ' 0.5\n}\n, '
         'a={handle: "some-name"})'
     )
     self.assertEqual(str(skill), skill_str)
@@ -1213,6 +1224,10 @@ class SkillsTest(parameterized.TestCase):
         'intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.Pose, '
         'intrinsic.solutions.blackboard_value.BlackboardValue, '
         'intrinsic.solutions.cel.CelExpression], '
+        'ros_pose: Union[intrinsic.math.python.pose3.Pose3, '
+        'intrinsic.solutions.skills.ai.intrinsic.my_skill.geometry_msgs.msg.pb.jazzy.Pose, '
+        'intrinsic.solutions.blackboard_value.BlackboardValue, '
+        'intrinsic.solutions.cel.CelExpression], '
         'executive_test_message: Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.executive.TestMessage, '
         'intrinsic.solutions.blackboard_value.BlackboardValue, '
         'intrinsic.solutions.cel.CelExpression], '
@@ -1522,6 +1537,15 @@ class SkillsTest(parameterized.TestCase):
         '0.5])),array([0., '
         '0., '
         '0.])), '
+        'ros_pose: Union[intrinsic.math.python.pose3.Pose3, '
+        'intrinsic.solutions.skills.ai.intrinsic.my_skill.geometry_msgs.msg.pb.jazzy.Pose, '
+        'intrinsic.solutions.blackboard_value.BlackboardValue, '
+        'intrinsic.solutions.cel.CelExpression] = Pose3(Rotation3(Quaternion([0.5, '
+        '0.5, '
+        '0.5, '
+        '0.5])),array([0., '
+        '0., '
+        '0.])), '
         'foo: Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.TestMessage.Foo, '
         'intrinsic.solutions.blackboard_value.BlackboardValue, '
         'intrinsic.solutions.cel.CelExpression] = bar {\n  test: "test"\n}\n, '
@@ -1579,6 +1603,7 @@ This is an awesome skill."""
 Initializes an instance of the skill ai.intrinsic.my_skill.
 
 This method accepts the following proto messages:
+  - my_skill.geometry_msgs.msg.pb.jazzy.Pose
   - my_skill.intrinsic_proto.Pose
   - my_skill.intrinsic_proto.executive.TestMessage"""
     docstring += """
@@ -1667,6 +1692,9 @@ Args:
         Default value: [name: "foo"
 , name: "bar"
 ]
+    ros_pose:
+        Mockup comment
+        Default value: Pose3(Rotation3([0.5i + 0.5j + 0.5k + 0.5]),[0. 0. 0.])
     string_int32_map:
         Mockup comment
         Default value: {'foo': 1}
@@ -1722,6 +1750,8 @@ Returns:
         Mockup comment
     repeated_submessages:
         Mockup comment
+    ros_pose:
+        Mockup comment
     string_int32_map:
         Mockup comment
     string_message_map:
@@ -1770,6 +1800,8 @@ Returns:
         "int32_string_map={3: 'foobar'}, "
         'string_message_map={"bar": value: "baz"\n}, '
         'non_unique_field_name=non_unique_field_name {\n}\n, '
+        'ros_pose=position {\n}\n'
+        'orientation {\n  x: 0.5\n  y: 0.5\n  z: 0.5\n  w: 0.5\n}\n, '
         'a={handle: "resource_a"}, '
         'b={handle: "resource_b"})'
     )
@@ -2230,6 +2262,7 @@ Returns:
 Initializes an instance of my_skill.intrinsic_proto.test_data.TestMessage.
 
 This method accepts the following proto messages:
+  - my_skill.geometry_msgs.msg.pb.jazzy.Pose
   - my_skill.intrinsic_proto.Pose
   - my_skill.intrinsic_proto.executive.TestMessage"""
     docstring += """
@@ -2284,6 +2317,8 @@ Fields:
         Mockup comment
     repeated_submessages:
         Mockup comment
+    ros_pose:
+        Mockup comment
     string_int32_map:
         Mockup comment
     string_message_map:
@@ -2320,6 +2355,10 @@ Fields:
         'intrinsic.solutions.cel.CelExpression], '
         'pose: Union[intrinsic.math.python.pose3.Pose3, '
         'intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.Pose, '
+        'intrinsic.solutions.blackboard_value.BlackboardValue, '
+        'intrinsic.solutions.cel.CelExpression], '
+        'ros_pose: Union[intrinsic.math.python.pose3.Pose3, '
+        'intrinsic.solutions.skills.ai.intrinsic.my_skill.geometry_msgs.msg.pb.jazzy.Pose, '
         'intrinsic.solutions.blackboard_value.BlackboardValue, '
         'intrinsic.solutions.cel.CelExpression], '
         'executive_test_message: Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.executive.TestMessage, '

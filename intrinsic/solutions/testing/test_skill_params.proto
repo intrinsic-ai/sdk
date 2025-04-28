@@ -13,6 +13,7 @@ import "intrinsic/perception/proto/v1/pose_estimator_id.proto";
 import "intrinsic/world/proto/collision_settings.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 import "intrinsic/world/proto/robot_payload.proto";
+import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/pose.proto";
 
 enum GlobalEnum {
   GLOBAL_ENUM_UNSPECIFIED = 0;
@@ -51,6 +52,7 @@ message TestMessage {
 
   // Handled differently than a normal protobuf submessage.
   intrinsic_proto.Pose pose = 24;
+  geometry_msgs.msg.pb.jazzy.Pose ros_pose = 32;
 
   message Foo {
     message Bar {

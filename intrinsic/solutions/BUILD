@@ -556,6 +556,7 @@ py_package(
     name = "solutions_py_package",
     packages = [
         "intrinsic",
+        "third_party",
     ],
     deps = [
         ":solutions_lib",

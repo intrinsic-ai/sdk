@@ -27,6 +27,7 @@ from intrinsic.icon.proto import joint_space_pb2
 from intrinsic.math.proto import pose_pb2
 from intrinsic.math.python import data_types
 from intrinsic.math.python import proto_conversion as math_proto_conversion
+from intrinsic.math.python import ros_proto_conversion
 from intrinsic.motion_planning.proto import motion_target_pb2
 from intrinsic.perception.proto.v1 import pose_estimator_id_pb2
 from intrinsic.skills.client import skill_registry_client
@@ -44,6 +45,7 @@ from intrinsic.world.proto import object_world_refs_pb2
 from intrinsic.world.proto import robot_payload_pb2
 from intrinsic.world.python import object_world_resources
 from intrinsic.world.robot_payload.python import robot_payload
+from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import pose_pb2 as ros_pose_pb2
 
 _PYTHON_PACKAGE_SEPARATOR = "."
 _PROTO_PACKAGE_SEPARATOR = "."
@@ -148,6 +150,7 @@ _MESSAGE_NAME_TO_PYTHON_VALUE = {
     "intrinsic_proto.skills.VectorNdArray": lambda f: list(f.array),
     "intrinsic_proto.skills.VectorNdValue": lambda f: list(f.value),
     "intrinsic_proto.Pose": math_proto_conversion.pose_from_proto,
+    "geometry_msgs.msg.pb.jazzy.Pose": ros_proto_conversion.pose_from_proto,
 }
 
 
@@ -236,6 +239,13 @@ def _field_to_pose_3d(field_value: data_types.Pose3) -> pose_pb2.Pose:
   if not isinstance(field_value, data_types.Pose3):
     raise TypeError(f"Value {field_value} not a Pose3")
   return math_proto_conversion.pose_to_proto(field_value)
+
+
+def _field_to_ros_pose_3d(field_value: data_types.Pose3) -> ros_pose_pb2.Pose:
+  """Converts the field_value to pose_pb2.Pose."""
+  if not isinstance(field_value, data_types.Pose3):
+    raise TypeError(f"Value {field_value} not a Pose3")
+  return ros_proto_conversion.pose_to_proto(field_value)
 
 
 def _field_to_object_reference(
@@ -430,6 +440,9 @@ _PYTHONIC_TO_MESSAGE_AUTO_CONVERSIONS = {
         _field_to_vector_nd_value
     ),
     pose_pb2.Pose.DESCRIPTOR.full_name: _AutoConversion(_field_to_pose_3d),
+    ros_pose_pb2.Pose.DESCRIPTOR.full_name: _AutoConversion(
+        _field_to_ros_pose_3d
+    ),
     joint_space_pb2.JointVec.DESCRIPTOR.full_name: _AutoConversion(
         _field_to_joint_vec_target
     ),
