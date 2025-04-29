@@ -12,7 +12,6 @@ import "intrinsic/math/proto/pose.proto";
 import "intrinsic/motion_planning/proto/v1/compute_ik.proto";
 import "intrinsic/motion_planning/proto/v1/geometric_constraints.proto";
 import "intrinsic/motion_planning/proto/v1/motion_planner_config.proto";
-import "intrinsic/motion_planning/proto/v1/motion_planning_error.proto";
 import "intrinsic/motion_planning/proto/v1/motion_specification.proto";
 import "intrinsic/motion_planning/proto/v1/robot_specification.proto";
 import "intrinsic/world/proto/collision_settings.proto";

@@ -15,8 +15,6 @@ import "intrinsic/util/status/extended_status.proto";
 import "intrinsic/logging/errors/proto/error_report.proto";
 import "intrinsic/logging/proto/blob.proto";
 import "intrinsic/logging/proto/context.proto";
-import "intrinsic/logging/proto/visualization_context.proto";
-import "intrinsic/math/proto/tf_message.proto";
 
 import "intrinsic/skills/proto/skill_service.proto";
 
