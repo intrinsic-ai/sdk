@@ -253,6 +253,12 @@ proto_library(
     visibility = ["//intrinsic:__subpackages__"],
 )
 
+cc_proto_library(
+    name = "view_cc_proto",
+    visibility = ["//intrinsic:__subpackages__"],
+    deps = [":view_proto"],
+)
+
 go_proto_library(
     name = "view_go_proto",
     visibility = ["//intrinsic:__subpackages__"],
