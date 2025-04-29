@@ -26,7 +26,10 @@ var getRecordingE = func(cmd *cobra.Command, _ []string) error {
 	}
 	resp, err := client.GetBag(cmd.Context(), req)
 	if err != nil {
-		if strings.Contains(err.Error(), "does not exist") {
+		if strings.Contains(err.Error(), "file does not exist") {
+			return fmt.Errorf("download URL requested for recording with id %q, but file is not generated yet, please generate it first with `inctl recordings generate`", flagBagID)
+		}
+		if strings.Contains(err.Error(), "failed to get bag record") {
 			return fmt.Errorf("recording with id %q does not exist", flagBagID)
 		}
 		return err

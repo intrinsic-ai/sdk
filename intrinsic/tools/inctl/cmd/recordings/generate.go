@@ -67,7 +67,7 @@ var generateRecordingE = func(cmd *cobra.Command, _ []string) error {
 		},
 		OrganizationId: cmdFlags.GetString(orgutil.KeyOrganization),
 	}
-	resp, err := client.GenerateBag(cmd.Context(), generateReq)
+	_, err = client.GenerateBag(cmd.Context(), generateReq)
 	if err != nil {
 		// A server timeout is expected if the recording is large, this is usually not an error.
 		//
@@ -97,7 +97,7 @@ var generateRecordingE = func(cmd *cobra.Command, _ []string) error {
 	}
 
 	fmt.Println("")
-	fmt.Println(fmt.Sprintf("Generated recording file for recording ID %s", resp.GetBag().GetBagMetadata().GetBagId()))
+	fmt.Println(fmt.Sprintf("Generated recording file for recording ID %s", flagBagID))
 	fmt.Println("")
 	return nil
 }
