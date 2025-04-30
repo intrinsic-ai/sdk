@@ -14,11 +14,4 @@ message CameraDrivers {
     string device_id = 1;
   }
 
-  // The driver which is used to communicate with the Photoneo.
-  message Photoneo {
-    // Note that the driver (PhoXiControl) must be running on the workstation to
-    // be able to connect to the Photoneo.
-    string device_id = 1;
-  }
-
 }
