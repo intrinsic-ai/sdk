@@ -39,6 +39,8 @@ def _python_paths_aspect_impl(target, ctx):
     as the main script for every py_binary:
     https://github.com/bazelbuild/bazel/blob/0696ba32a789bbf3100f62fa2c1547fc74e36006/tools/python/python_bootstrap_template.txt#L444-L446
     """
+    if PyInfo not in target:
+        return []
 
     py_info = target[PyInfo]
 
@@ -54,10 +56,10 @@ def _python_paths_aspect_impl(target, ctx):
             paths[sourcePath.owner.workspace_name] = ""
 
     paths_struct = struct(python_paths = sorted(paths.keys()))
+    paths_json = json.encode(paths_struct)
 
     file = ctx.actions.declare_file("%s.python_paths.json" % ctx.label.name)
-
-    ctx.actions.write(output = file, content = paths_struct.to_json() + "\n")
+    ctx.actions.write(output = file, content = paths_json + "\n")
 
     return [
         DefaultInfo(files = depset([file])),
@@ -66,7 +68,6 @@ def _python_paths_aspect_impl(target, ctx):
 
 python_paths_aspect = aspect(
     implementation = _python_paths_aspect_impl,
-    required_providers = [[PyInfo]],
     # Do not propagate automatically. PyInfo.imports and
     # PyInfo.transitive_sources are already accumulated across all transitive
     # dependencies so no additional traversal is necessary.
