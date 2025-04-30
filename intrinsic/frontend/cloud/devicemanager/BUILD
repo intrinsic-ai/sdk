@@ -4,6 +4,8 @@
 
 load("//bazel:go_macros.bzl", "go_library", "go_test")
 
+package(default_visibility = ["//visibility:public"])
+
 go_library(
     name = "version",
     srcs = ["version.go"],
