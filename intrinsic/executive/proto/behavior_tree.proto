@@ -207,8 +207,42 @@ message BehaviorTree {
       reserved 2 to 9;
 
       oneof input_type {
-        // Expression to create a proto to store.
-        // Deprecated: Replace usages of blackboard_key by this cel_expression.
+        // Expression to set the value of the blackboard key.
+        //
+        // Deprecated: Replace references to blackboard_key in the behavior tree
+        // by inlining this cel_expression.
+        //
+        // For example, given a data node:
+        // data {
+        //   create_or_update {
+        //     blackboard_key: "foo"
+        //     cel_expression: "skill_return.bar"
+        //   }
+        // }
+        //
+        // is used in a skill call as:
+        // task {
+        //   call_behavior {
+        //     skill_id: "ai.intrinsic.some_skill"
+        //     assignments {
+        //       parameter_path: "my_param"
+        //       cel_expression: "foo"
+        //     }
+        //   }
+        // }
+        //
+        // then it should be replaced by:
+        // task {
+        //   call_behavior {
+        //     skill_id: "ai.intrinsic.some_skill"
+        //     assignments {
+        //       parameter_path: "my_param"
+        //       cel_expression: "skill_return.bar"
+        //     }
+        //   }
+        // }
+        //
+        // and eliminate the data node entirely.
         string cel_expression = 10 [deprecated = true];
         // The Any proto MUST be of type intrinsic_proto.executive.WorldQuery.
         // Deprecated: Replace this, e.g., by a task node with Python code

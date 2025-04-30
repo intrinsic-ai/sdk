@@ -1103,10 +1103,44 @@ class Blackboard(Condition):
   def __init__(self, cel_expression: Union[str, cel.CelExpression]):
     self._cel_expression: str = str(cel_expression)
 
+  # Returns the expression that sets the value of the blackboard key.
+  #
+  # Deprecated: Replace references to blackboard_key in the behavior tree
+  # by inlining this cel_expression.
+  #
+  # For example, given a data node:
+  # bt.Data(blackboard_key="foo", cel_expression="skill_return.bar")
+  #
+  # is used in a skill call as:
+  # my_skill = ai.intrinsic.some_skill(
+  #     my_param=CelExpression("foo"))
+  #
+  # then it should be replaced by:
+  # my_skill = ai.intrinsic.some_skill(
+  #     my_param=CelExpression("skill_return.bar"))
+  #
+  # and eliminate the data node entirely.
   @property
   def cel_expression(self) -> Optional[str]:
     return self._cel_expression
 
+  # Assigns the expression that sets the value of the blackboard key.
+  #
+  # Deprecated: Replace references to blackboard_key in the behavior tree
+  # by inlining this cel_expression.
+  #
+  # For example, given a data node:
+  # bt.Data(blackboard_key="foo", cel_expression="skill_return.bar")
+  #
+  # is used in a skill call as:
+  # my_skill = ai.intrinsic.some_skill(
+  #     my_param=CelExpression("foo"))
+  #
+  # then it should be replaced by:
+  # my_skill = ai.intrinsic.some_skill(
+  #     my_param=CelExpression("skill_return.bar"))
+  #
+  # and eliminate the data node entirely.
   @cel_expression.setter
   def cel_expression(self, expression: str):
     self._cel_expression = expression
@@ -3652,9 +3686,9 @@ class Data(Node):
 
     if self._cel_expression is not None:
       print(
-          'The cel_expression option has been deprecated. Replace the'
-          ' blackboard_key with the cel_expression in all places that use the'
-          ' blackboard_key.'
+          'The cel_expression field on Data nodes has been deprecated. In all'
+          ' places that referenced the blackboard_key, inline the expression'
+          ' from the deprecated cel_expression field instead.'
       )
     if self._world_query is not None:
       print(
