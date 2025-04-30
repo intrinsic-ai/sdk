@@ -16,7 +16,6 @@ go_library(
         "//intrinsic/tools/inctl:__subpackages__",
     ],
     deps = [
-        "//intrinsic/assets:baseclientutils",
         "//intrinsic/frontend/cloud/api/v1:clusterdiscovery_api_go_grpc_proto",
         "//intrinsic/frontend/cloud/api/v1:clustermanager_api_go_grpc_proto",
         "//intrinsic/frontend/cloud/devicemanager:version",
@@ -25,12 +24,12 @@ go_library(
         "//intrinsic/tools/inctl/auth",
         "//intrinsic/tools/inctl/cmd:root",
         "//intrinsic/tools/inctl/util:cobrautil",
+        "//intrinsic/tools/inctl/util:grpc",
         "//intrinsic/tools/inctl/util:orgutil",
         "//intrinsic/tools/inctl/util:printer",
         "@com_github_spf13_cobra//:go_default_library",
         "@com_github_spf13_viper//:go_default_library",
         "@org_golang_google_grpc//:go_default_library",
-        "@org_golang_google_grpc//metadata:go_default_library",
         "@org_golang_google_protobuf//types/known/fieldmaskpb",
     ],
 )

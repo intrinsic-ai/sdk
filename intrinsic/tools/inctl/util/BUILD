@@ -17,6 +17,17 @@ go_library(
 )
 
 go_library(
+    name = "grpc",
+    srcs = ["grpc.go"],
+    deps = [
+        "//intrinsic/assets:baseclientutils",
+        "//intrinsic/tools/inctl/auth",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//metadata:go_default_library",
+    ],
+)
+
+go_library(
     name = "templateutil",
     srcs = ["templateutil.go"],
 )

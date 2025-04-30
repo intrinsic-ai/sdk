@@ -13,9 +13,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
 	fmpb "google.golang.org/protobuf/types/known/fieldmaskpb"
-	"intrinsic/assets/baseclientutils"
 	clustermanagergrpcpb "intrinsic/frontend/cloud/api/v1/clustermanager_api_go_grpc_proto"
 	clustermanagerpb "intrinsic/frontend/cloud/api/v1/clustermanager_api_go_grpc_proto"
 	"intrinsic/frontend/cloud/devicemanager/version"
@@ -23,6 +21,7 @@ import (
 	inversionpb "intrinsic/kubernetes/inversion/v1/inversion_go_grpc_proto"
 	"intrinsic/skills/tools/skill/cmd/dialerutil"
 	"intrinsic/tools/inctl/auth/auth"
+	utilgrpc "intrinsic/tools/inctl/util/grpc"
 	"intrinsic/tools/inctl/util/orgutil"
 )
 
@@ -378,7 +377,7 @@ var acceptCmd = &cobra.Command{
 		projectName := ClusterCmdViper.GetString(orgutil.KeyProject)
 		orgName := ClusterCmdViper.GetString(orgutil.KeyOrganization)
 
-		ctx, conn, err := newIPCGRPCClient(ctx, projectName, orgName, clusterName)
+		ctx, conn, err := utilgrpc.NewIPCGRPCClient(ctx, projectName, orgName, clusterName)
 		if err != nil {
 			return fmt.Errorf("cluster upgrade client:\n%w", err)
 		}
@@ -431,7 +430,7 @@ var reportCmd = &cobra.Command{
 		projectName := ClusterCmdViper.GetString(orgutil.KeyProject)
 		orgName := ClusterCmdViper.GetString(orgutil.KeyOrganization)
 
-		ctx, conn, err := newIPCGRPCClient(ctx, projectName, orgName, clusterName)
+		ctx, conn, err := utilgrpc.NewIPCGRPCClient(ctx, projectName, orgName, clusterName)
 		if err != nil {
 			return fmt.Errorf("cluster upgrade client:\n%w", err)
 		}
@@ -459,33 +458,6 @@ var reportCmd = &cobra.Command{
 		consoleIO.Flush()
 		return nil
 	},
-}
-
-func newIPCGRPCClient(ctx context.Context, projectName, orgName, clusterName string) (context.Context, *grpc.ClientConn, error) {
-	address := fmt.Sprintf("dns:///www.endpoints.%s.cloud.goog:443", projectName)
-	configuration, err := auth.NewStore().GetConfiguration(projectName)
-	if err != nil {
-		return ctx, nil, fmt.Errorf("credentials not found: %w", err)
-	}
-	creds, err := configuration.GetDefaultCredentials()
-	if err != nil {
-		return ctx, nil, fmt.Errorf("get default credentials: %w", err)
-	}
-	tcOption, err := baseclientutils.GetTransportCredentialsDialOption()
-	if err != nil {
-		return ctx, nil, fmt.Errorf("cannot retrieve transport credentials: %w", err)
-	}
-	dialerOpts := append(baseclientutils.BaseDialOptions(),
-		grpc.WithPerRPCCredentials(creds),
-		tcOption,
-	)
-	conn, err := grpc.NewClient(address, dialerOpts...)
-	if err != nil {
-		return ctx, nil, fmt.Errorf("dialing context: %w", err)
-	}
-	ctx = metadata.AppendToOutgoingContext(ctx, auth.OrgIDHeader, orgName)
-	ctx = metadata.AppendToOutgoingContext(ctx, "x-server-name", clusterName)
-	return ctx, conn, nil
 }
 
 func init() {
