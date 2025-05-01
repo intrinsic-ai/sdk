@@ -3,8 +3,8 @@
 """Supports cooperative cancellation of skills by the skill service."""
 
 import abc
+from collections.abc import Callable
 import threading
-from typing import Callable
 
 
 class CallbackAlreadyRegisteredError(RuntimeError):
