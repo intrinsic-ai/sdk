@@ -2,8 +2,8 @@
 
 """Matchers for tests with ExtendedStatusError."""
 
+from collections.abc import Callable
 import re
-from typing import Callable
 
 from intrinsic.util.status import status_exception
 

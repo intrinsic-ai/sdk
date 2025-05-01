@@ -5,7 +5,8 @@
 from __future__ import annotations
 
 import abc
-from typing import Dict, ItemsView, Iterator, KeysView, List, Optional, Protocol, ValuesView
+from collections.abc import ItemsView, Iterator, KeysView, ValuesView
+from typing import Optional, Protocol
 
 from google.protobuf import any_pb2
 from intrinsic.icon.proto import cart_space_pb2
@@ -21,7 +22,7 @@ from intrinsic.world.python import object_world_ids
 from intrinsic.world.robot_payload.python import robot_payload
 
 
-def _list_public_methods(instance: object) -> List[str]:
+def _list_public_methods(instance: object) -> list[str]:
   """Returns all public methods of the given instance.
 
   Args:
@@ -168,14 +169,14 @@ class Frame(TransformNode):
     )
 
   @property
-  def child_frame_ids(self) -> List[object_world_ids.ObjectWorldResourceId]:
+  def child_frame_ids(self) -> list[object_world_ids.ObjectWorldResourceId]:
     return [
         object_world_ids.ObjectWorldResourceId(id_and_name.id)
         for id_and_name in self._proto.child_frames
     ]
 
   @property
-  def child_frame_names(self) -> List[object_world_ids.FrameName]:
+  def child_frame_names(self) -> list[object_world_ids.FrameName]:
     return [
         object_world_ids.FrameName(id_and_name.name)
         for id_and_name in self._proto.child_frames
@@ -350,26 +351,26 @@ class WorldObject(TransformNode):
     return self._proto.name_is_global_alias
 
   @property
-  def frame_ids(self) -> List[object_world_ids.ObjectWorldResourceId]:
+  def frame_ids(self) -> list[object_world_ids.ObjectWorldResourceId]:
     return [
         object_world_ids.ObjectWorldResourceId(frame.id)
         for frame in self._proto.frames
     ]
 
   @property
-  def frame_names(self) -> List[object_world_ids.FrameName]:
+  def frame_names(self) -> list[object_world_ids.FrameName]:
     return [
         object_world_ids.FrameName(frame.name) for frame in self._proto.frames
     ]
 
   @property
-  def frames(self) -> List[Frame]:
+  def frames(self) -> list[Frame]:
     return [
         Frame(frame_proto, self._stub) for frame_proto in self._proto.frames
     ]
 
   @property
-  def child_frame_ids(self) -> List[object_world_ids.ObjectWorldResourceId]:
+  def child_frame_ids(self) -> list[object_world_ids.ObjectWorldResourceId]:
     return [
         object_world_ids.ObjectWorldResourceId(frame.id)
         for frame in self._proto.frames
@@ -377,7 +378,7 @@ class WorldObject(TransformNode):
     ]
 
   @property
-  def child_frame_names(self) -> List[object_world_ids.FrameName]:
+  def child_frame_names(self) -> list[object_world_ids.FrameName]:
     return [
         object_world_ids.FrameName(frame.name)
         for frame in self._proto.frames
@@ -385,7 +386,7 @@ class WorldObject(TransformNode):
     ]
 
   @property
-  def child_frames(self) -> List[Frame]:
+  def child_frames(self) -> list[Frame]:
     return [
         Frame(frame_proto, self._stub)
         for frame_proto in self._proto.frames
@@ -447,14 +448,14 @@ class WorldObject(TransformNode):
     return object_world_ids.ObjectWorldResourceId(self._proto.parent.id)
 
   @property
-  def child_ids(self) -> List[object_world_ids.ObjectWorldResourceId]:
+  def child_ids(self) -> list[object_world_ids.ObjectWorldResourceId]:
     return [
         object_world_ids.ObjectWorldResourceId(child.id)
         for child in self._proto.children
     ]
 
   @property
-  def child_names(self) -> List[object_world_ids.WorldObjectName]:
+  def child_names(self) -> list[object_world_ids.WorldObjectName]:
     return [
         object_world_ids.WorldObjectName(child.name)
         for child in self._proto.children
@@ -515,7 +516,7 @@ class WorldObject(TransformNode):
     )
 
   @property
-  def user_data(self) -> Dict[str, any_pb2.Any]:
+  def user_data(self) -> dict[str, any_pb2.Any]:
     return dict(self._proto.object_component.user_data)
 
   def __getattr__(self, child_name: str) -> TransformNode:
@@ -531,7 +532,7 @@ class WorldObject(TransformNode):
         f'member with name "{child_name}".'
     )
 
-  def __dir__(self) -> List[str]:
+  def __dir__(self) -> list[str]:
     return sorted(
         list(self.frame_names)
         + list(self.child_names)
@@ -542,7 +543,7 @@ class WorldObject(TransformNode):
     return f'<{self.__class__.__name__}(name={self.name}, id={self.id})>'
 
   def __str__(self):
-    lines: List[str] = []
+    lines: list[str] = []
     lines.append(f'{self.name}: {self.__class__.__name__}(id={self.id})')
     lines += [
         f' |=> {child_name} (id={child_id})'
@@ -669,21 +670,21 @@ class KinematicObject(WorldObject):
     super().__init__(world_object, stub)
 
   @property
-  def joint_positions(self) -> List[float]:
+  def joint_positions(self) -> list[float]:
     return [
         float(joint_position)
         for joint_position in self._proto.kinematic_object_component.joint_positions
     ]
 
   @property
-  def joint_entity_ids(self) -> List[str]:
+  def joint_entity_ids(self) -> list[str]:
     return [
         str(joint_entity_id)
         for joint_entity_id in self._proto.kinematic_object_component.joint_entity_ids
     ]
 
   @property
-  def joint_entity_names(self) -> List[str]:
+  def joint_entity_names(self) -> list[str]:
     return [
         self._proto.entities[joint_entity_id].name
         for joint_entity_id in self._proto.kinematic_object_component.joint_entity_ids
@@ -704,21 +705,21 @@ class KinematicObject(WorldObject):
   @property
   def iso_flange_frame_ids(
       self,
-  ) -> List[object_world_ids.ObjectWorldResourceId]:
+  ) -> list[object_world_ids.ObjectWorldResourceId]:
     return [
         object_world_ids.ObjectWorldResourceId(id_and_name.id)
         for id_and_name in self._proto.kinematic_object_component.iso_flange_frames
     ]
 
   @property
-  def iso_flange_frame_names(self) -> List[object_world_ids.FrameName]:
+  def iso_flange_frame_names(self) -> list[object_world_ids.FrameName]:
     return [
         object_world_ids.FrameName(id_and_name.name)
         for id_and_name in self._proto.kinematic_object_component.iso_flange_frames
     ]
 
   @property
-  def iso_flange_frames(self) -> List[Frame]:
+  def iso_flange_frames(self) -> list[Frame]:
     flanges = self.iso_flange_frame_ids
     return [
         Frame(frame, self._stub)

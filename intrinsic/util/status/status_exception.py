@@ -4,11 +4,12 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 import datetime
 import logging
 import textwrap
 import traceback
-from typing import Optional, Sequence, Tuple, Union
+from typing import Optional, Union
 
 from google.protobuf import message as proto_message
 from google.rpc import code_pb2
@@ -329,7 +330,7 @@ class ExtendedStatusError(Exception, grpc.Status):
   @property
   def trailing_metadata(
       self,
-  ) -> Optional[Sequence[Tuple[str, Union[str, bytes]]]]:
+  ) -> Optional[Sequence[tuple[str, Union[str, bytes]]]]:
     """Returns GRPC trailing metadata encoding this extended status.
 
     Only added to comply with grpc.Status interface.

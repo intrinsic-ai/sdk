@@ -6,7 +6,8 @@ The ObjectWorldClient is used to access all elements in the object world in
 Python.
 """
 
-from typing import Dict, Iterable, List, Mapping, Optional, Tuple, Union, cast
+from collections.abc import Iterable, Mapping
+from typing import Optional, Union, cast
 import warnings
 
 from google.protobuf import any_pb2
@@ -64,7 +65,7 @@ class CreateObjectError(ValueError):
 
 def list_world_ids(
     stub: object_world_service_pb2_grpc.ObjectWorldServiceStub,
-) -> List[str]:
+) -> list[str]:
   """Lists all worlds in the world service.
 
   Args:
@@ -89,7 +90,7 @@ def _has_grpc_status(
 
 def _get_path_from_root(
     world_object: object_world_resources.WorldObject,
-    id_to_object: Dict[
+    id_to_object: dict[
         object_world_ids.ObjectWorldResourceId,
         object_world_resources.WorldObject,
     ],
@@ -108,7 +109,7 @@ def _get_path_from_root(
   if world_object.id == object_world_ids.ROOT_OBJECT_ID:
     return ''
 
-  names: List[str] = [world_object.name]
+  names: list[str] = [world_object.name]
   parent_id = world_object.parent_id
   while parent_id != object_world_ids.ROOT_OBJECT_ID:
     parent = id_to_object[parent_id]
@@ -194,7 +195,7 @@ class ObjectWorldClient:
 
     self._world_id: str = world_id
 
-  def list_object_names(self) -> List[object_world_ids.WorldObjectName]:
+  def list_object_names(self) -> list[object_world_ids.WorldObjectName]:
     """Lists the names of all objects in the world service.
 
     Returns:
@@ -203,7 +204,7 @@ class ObjectWorldClient:
     object_names = self._get_object_names()
     return object_names
 
-  def list_object_full_paths(self) -> List[str]:
+  def list_object_full_paths(self) -> list[str]:
     """Lists the full path names of all objects from the world namespace.
 
     Returns:
@@ -212,7 +213,7 @@ class ObjectWorldClient:
     """
     objects = self.list_objects()
     id_to_object = {world_object.id: world_object for world_object in objects}
-    result: List[str] = []
+    result: list[str] = []
     for world_object in objects:
       if world_object.id == object_world_ids.ROOT_OBJECT_ID:
         continue
@@ -230,9 +231,9 @@ class ObjectWorldClient:
   def list_objects(
       self,
       query_objects: Optional[
-          List[object_world_refs_pb2.ObjectReference]
+          list[object_world_refs_pb2.ObjectReference]
       ] = None,
-  ) -> List[object_world_resources.WorldObject]:
+  ) -> list[object_world_resources.WorldObject]:
     """List all objects in the world service.
 
     Args:
@@ -653,8 +654,8 @@ class ObjectWorldClient:
   def update_joint_positions(
       self,
       kinematic_object: object_world_resources.KinematicObject,
-      joint_positions: List[float],
-      joint_names: Optional[List[str]] = None,
+      joint_positions: list[float],
+      joint_names: Optional[list[str]] = None,
   ) -> None:
     """Sets the joint positions of the kinematic object to the given values.
 
@@ -967,12 +968,12 @@ class ObjectWorldClient:
   @error_handling.retry_on_grpc_unavailable
   def _get_objects_and_frames_under_root(
       self,
-  ) -> Tuple[
-      Dict[
+  ) -> tuple[
+      dict[
           object_world_ids.WorldObjectName,
           object_world_refs_pb2.ObjectReference,
       ],
-      Dict[object_world_ids.FrameName, object_world_refs_pb2.FrameReference],
+      dict[object_world_ids.FrameName, object_world_refs_pb2.FrameReference],
   ]:
     """Returns name to reference dicts for both objects and frames under the root object namespace."""
     # This is a special helper method to enable __dir__ and __get_attr__ with
@@ -984,10 +985,10 @@ class ObjectWorldClient:
         )
     ).objects
 
-    object_name_to_ref: Dict[
+    object_name_to_ref: dict[
         object_world_ids.WorldObjectName, object_world_refs_pb2.ObjectReference
     ] = dict()
-    frame_name_to_ref: Dict[
+    frame_name_to_ref: dict[
         object_world_ids.FrameName, object_world_refs_pb2.FrameReference
     ] = dict()
 
@@ -1012,7 +1013,7 @@ class ObjectWorldClient:
     return object_name_to_ref, frame_name_to_ref
 
   @error_handling.retry_on_grpc_unavailable
-  def _get_object_names(self) -> List[object_world_ids.WorldObjectName]:
+  def _get_object_names(self) -> list[object_world_ids.WorldObjectName]:
     """Returns the object names and the root object with a single Rpc."""
     world_objects_proto = self._stub.ListObjects(
         object_world_service_pb2.ListObjectsRequest(
@@ -1021,7 +1022,7 @@ class ObjectWorldClient:
         )
     ).objects
 
-    object_names: List[object_world_ids.WorldObjectName] = list()
+    object_names: list[object_world_ids.WorldObjectName] = list()
 
     for world_object in world_objects_proto:
       object_names.append(world_object.name)
@@ -1053,7 +1054,7 @@ class ObjectWorldClient:
           ' "name_is_global_alias" option enabled.'
       )
 
-  def __dir__(self) -> List[str]:
+  def __dir__(self) -> list[str]:
     object_name_to_ref, frame_name_to_ref = (
         self._get_objects_and_frames_under_root()
     )
@@ -1069,10 +1070,10 @@ class ObjectWorldClient:
   def _create_frame_string_lines(
       self,
       frame: object_world_resources.Frame,
-      frame_map: Dict[object_world_ids.FrameName, object_world_resources.Frame],
-  ) -> List[str]:
+      frame_map: dict[object_world_ids.FrameName, object_world_resources.Frame],
+  ) -> list[str]:
     """Creates a frame string with all child frames."""
-    elements: List[str] = []
+    elements: list[str] = []
     elements += [f'{frame.name}: Frame(id={frame.id})']
 
     for frame_name in sorted(frame.child_frame_names):
@@ -1085,16 +1086,16 @@ class ObjectWorldClient:
   def _create_object_string_lines(
       self,
       node: object_world_resources.WorldObject,
-      node_map: Dict[
+      node_map: dict[
           object_world_ids.ObjectWorldResourceId,
           object_world_resources.WorldObject,
       ],
-  ) -> List[str]:
+  ) -> list[str]:
     """Creates a nice object string with all child objects."""
-    elements: List[str] = []
+    elements: list[str] = []
     elements.append(f'{node.name}: {node.__class__.__name__}(id={node.id})')
-    child_id_and_names: List[
-        Tuple[object_world_ids.ObjectWorldResourceId, str]
+    child_id_and_names: list[
+        tuple[object_world_ids.ObjectWorldResourceId, str]
     ] = [(child_id, node_map[child_id].name) for child_id in node.child_ids]
 
     for child_id, _ in sorted(child_id_and_names, key=lambda x: x[1]):
@@ -1102,7 +1103,7 @@ class ObjectWorldClient:
           self._create_object_string_lines(node_map[child_id], node_map)
       )
 
-    frame_map: Dict[
+    frame_map: dict[
         object_world_ids.FrameName, object_world_resources.Frame
     ] = {frame.name: frame for frame in node.frames}
     for frame_name in node.child_frame_names:
@@ -1114,13 +1115,13 @@ class ObjectWorldClient:
 
   def _add_indent(
       self,
-      object_string_lines: List[str],
+      object_string_lines: list[str],
       *,
       is_frame: bool = False,
       is_top_level: bool = False,
-  ) -> List[str]:
+  ) -> list[str]:
     """Indents the string to create a tree like structure."""
-    lines: List[str] = []
+    lines: list[str] = []
     for line_idx, line in enumerate(object_string_lines):
       if line_idx == 0:
         if is_frame:
@@ -1135,11 +1136,11 @@ class ObjectWorldClient:
     return lines
 
   def __str__(self) -> str:
-    world_objects_map: Dict[
+    world_objects_map: dict[
         object_world_ids.ObjectWorldResourceId,
         object_world_resources.WorldObject,
     ] = {world_object.id: world_object for world_object in self.list_objects()}
-    lines: List[str] = []
+    lines: list[str] = []
     lines.append(f'World(world_id={self._world_id})')
     lines += self._add_indent(
         self._create_object_string_lines(

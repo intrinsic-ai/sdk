@@ -2,8 +2,9 @@
 
 """Helper Classes for creating gRPC interceptors."""
 
+from collections.abc import Callable, Container, Sequence
 import dataclasses
-from typing import Callable, Container, Optional, Sequence, Tuple
+from typing import Optional
 
 import grpc
 from intrinsic.util.decorators import overrides
@@ -30,7 +31,7 @@ class ClientCallDetails(grpc.ClientCallDetails):
 
   method: str
   timeout: Optional[float]
-  metadata: Optional[Sequence[Tuple[str, str]]]
+  metadata: Optional[Sequence[tuple[str, str]]]
   credentials: Optional[grpc.CallCredentials]
   wait_for_ready: Optional[bool]
 
@@ -129,7 +130,7 @@ class ClientCallDetailsInterceptor(
 
 
 def _AddHeaders(
-    headers_func: Callable[[], Sequence[Tuple[str, str]]],
+    headers_func: Callable[[], Sequence[tuple[str, str]]],
 ) -> Callable[[ClientCallDetails], ClientCallDetails]:
   """Returns a function that adds headers to client call details."""
 
@@ -157,7 +158,7 @@ def _AddHeaders(
 
 
 def HeaderAdderInterceptor(
-    headers_func: Callable[[], Sequence[Tuple[str, str]]],
+    headers_func: Callable[[], Sequence[tuple[str, str]]],
 ) -> ClientCallDetailsInterceptor:
   """Returns an interceptor that adds headers generated lazily by header_func.
 
@@ -172,11 +173,11 @@ def HeaderAdderInterceptor(
 class RequiredMetadataInterceptor(grpc.ServerInterceptor):
   """Rejects requests from server without the required meta data."""
 
-  def __init__(self, required_metadata: Tuple[str, str]):
+  def __init__(self, required_metadata: tuple[str, str]):
     self._required_metadata = required_metadata
 
   def _has_required_metadata(
-      self, metadata: Container[Tuple[str, str]]
+      self, metadata: Container[tuple[str, str]]
   ) -> bool:
     return self._required_metadata in metadata
 

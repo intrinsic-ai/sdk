@@ -3,7 +3,6 @@
 """Implementation of SkillRepository to store skills in a map."""
 
 import threading
-from typing import Dict, List
 
 from intrinsic.skills.internal import runtime_data as rd
 from intrinsic.skills.internal import single_skill_factory as skill_factory
@@ -17,7 +16,7 @@ class MapSkillRepository(repo.SkillRepository):
 
   def __init__(
       self,
-      skill_factories: Dict[str, skill_factory.SingleSkillFactory],
+      skill_factories: dict[str, skill_factory.SingleSkillFactory],
   ):
     """Initializes the MapSkillRepository.
 
@@ -25,7 +24,7 @@ class MapSkillRepository(repo.SkillRepository):
       skill_factories: Maps a skill alias to a single skill factory.
     """
     self._lock = threading.Lock()
-    self._skill_factories: Dict[str, skill_factory.SingleSkillFactory] = (
+    self._skill_factories: dict[str, skill_factory.SingleSkillFactory] = (
         skill_factories
     )
 
@@ -106,7 +105,7 @@ class MapSkillRepository(repo.SkillRepository):
     return factory.get_skill_runtime_data(skill_alias)
 
   @overrides(repo.SkillRepository)
-  def get_skill_aliases(self) -> List[str]:
+  def get_skill_aliases(self) -> list[str]:
     """Returns the list of aliases of all registered skills."""
     with self._lock:
       return self._skill_factories.keys()

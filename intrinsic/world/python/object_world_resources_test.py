@@ -1,6 +1,6 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-from typing import KeysView, ValuesView, ItemsView
+from collections.abc import ItemsView, KeysView, ValuesView
 from unittest import mock
 
 import grpc  # pylint: disable=unused-import

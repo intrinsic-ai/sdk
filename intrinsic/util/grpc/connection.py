@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 import dataclasses
-from typing import List, Optional, Tuple
+from typing import Optional
 
 
 @dataclasses.dataclass
@@ -46,7 +46,7 @@ class ConnectionParams:
     """
     return cls(f"localhost:{port}", None, None)
 
-  def headers(self) -> Optional[List[Tuple[str, str]]]:
+  def headers(self) -> Optional[list[tuple[str, str]]]:
     """Generates the http headers needed to route to the appropriate ingress."""
     if not self.header or not self.instance_name:
       return None

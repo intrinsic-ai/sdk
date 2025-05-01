@@ -2,7 +2,8 @@
 
 """Shared handlers for grpc errors."""
 
-from typing import Iterable, cast
+from collections.abc import Iterable
+from typing import cast
 
 from google.protobuf import message as protobuf_message
 from google.rpc import status_pb2

@@ -18,8 +18,8 @@ This API is intended to be used for a specific component which is run as a
 process, it is not to be used in API libraries.
 """
 
+from collections.abc import Mapping
 import datetime
-from typing import Mapping
 
 from google.protobuf import timestamp_pb2
 import grpc
