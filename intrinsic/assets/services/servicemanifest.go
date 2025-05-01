@@ -78,8 +78,10 @@ func ValidateServiceManifest(m *smpb.ServiceManifest, options ...ValidateService
 		for _, prefix := range m.GetServiceDef().GetServiceProtoPrefixes() {
 			strippedPrefix := strings.TrimSuffix(strings.TrimPrefix(prefix, "/"), "/")
 			name := protoreflect.FullName(strippedPrefix)
-			if _, err := opts.files.FindDescriptorByName(name); err != nil {
+			if _, err := opts.files.FindDescriptorByName(name); err == protoregistry.NotFound {
 				return fmt.Errorf("could not find service proto prefix %q in provided descriptors for Service %q: %w", prefix, id, err)
+			} else if err != nil {
+				return fmt.Errorf("checking against the file descriptor set failed unexpectedly: %w", err)
 			}
 		}
 	}
