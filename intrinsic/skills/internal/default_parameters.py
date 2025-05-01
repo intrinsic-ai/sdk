@@ -2,7 +2,8 @@
 
 """Implementation of default handling for python Skills."""
 
-import typing
+from collections.abc import Iterable
+from typing import Any
 
 from google.protobuf import any_pb2
 from google.protobuf import descriptor
@@ -13,8 +14,8 @@ from pybind11_abseil import status
 
 
 def _one_ofs_set(
-    field_descriptors: typing.Iterable[descriptor.FieldDescriptor],
-) -> typing.Set[descriptor.FieldDescriptor]:
+    field_descriptors: Iterable[descriptor.FieldDescriptor],
+) -> set[descriptor.FieldDescriptor]:
   """Returns a set of the oneofs that have been set in the msg."""
   one_ofs_set = set()
   for field in field_descriptors:
@@ -27,7 +28,7 @@ def _one_ofs_set(
 
 
 def _set_fields(
-    fields: typing.Dict[descriptor.FieldDescriptor, typing.Any],
+    fields: dict[descriptor.FieldDescriptor, Any],
     msg: message.Message,
 ):
   """Sets the fields in msg to the values contained in fields.

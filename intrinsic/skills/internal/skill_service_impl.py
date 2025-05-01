@@ -4,11 +4,12 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from concurrent import futures
 import textwrap
 import threading
 import traceback
-from typing import Callable, Dict, NoReturn, Optional, cast
+from typing import NoReturn, Optional, cast
 
 from absl import logging
 from google.longrunning import operations_pb2
@@ -717,7 +718,7 @@ class _SkillOperations:
 
   def __init__(self):
     self._lock = threading.Lock()
-    self._operations: Dict[str, _SkillOperation] = {}
+    self._operations: dict[str, _SkillOperation] = {}
 
   def add(self, operation: _SkillOperation) -> None:
     """Adds an operation to the collection.

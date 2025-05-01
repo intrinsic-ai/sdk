@@ -7,9 +7,9 @@ to provide our internal framework access to metadata about skills. Classes
 defined here should not be used in user-facing contexts.
 """
 
+from collections.abc import Mapping, Sequence
 import dataclasses
 import datetime
-from typing import Mapping, Sequence
 
 from google.protobuf import any_pb2
 from google.protobuf import descriptor as proto_descriptor

@@ -2,8 +2,8 @@
 
 """Implements a SkillRepository to only serve a single skill."""
 
+from collections.abc import Callable
 import threading
-from typing import Callable, List
 
 from intrinsic.assets import id_utils
 from intrinsic.skills.internal import runtime_data as rd
@@ -92,7 +92,7 @@ class SingleSkillFactory(repo.SkillRepository):
     return self._skill_runtime_data
 
   @overrides(repo.SkillRepository)
-  def get_skill_aliases(self) -> List[str]:
+  def get_skill_aliases(self) -> list[str]:
     """Returns the list of aliases of the registered skill."""
     return [self._skill_alias]
 

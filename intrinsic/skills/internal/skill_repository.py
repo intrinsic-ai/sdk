@@ -3,7 +3,6 @@
 """Provides access to a collection of skills."""
 
 import abc
-from typing import List
 
 from intrinsic.skills.internal import runtime_data as rd
 from intrinsic.skills.python import skill_interface as skl
@@ -75,7 +74,7 @@ class SkillRepository(metaclass=abc.ABCMeta):
     raise NotImplementedError('Method not implemented!')
 
   @abc.abstractmethod
-  def get_skill_aliases(self) -> List[str]:
+  def get_skill_aliases(self) -> list[str]:
     """Returns the aliases of all Skills registered to this repository."""
     raise NotImplementedError('Method not implemented!')
 
