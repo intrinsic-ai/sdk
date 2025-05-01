@@ -4,8 +4,6 @@
 
 from __future__ import annotations
 
-from typing import List
-
 from google.protobuf import empty_pb2
 import grpc
 from intrinsic.skills.proto import skill_registry_pb2
@@ -40,7 +38,7 @@ class SkillRegistryClient:
     return cls(stub)
 
   @error_handling.retry_on_grpc_unavailable
-  def get_skills(self) -> List[skills_pb2.Skill]:
+  def get_skills(self) -> list[skills_pb2.Skill]:
     """Retrieves the list of skills.
 
     Returns:

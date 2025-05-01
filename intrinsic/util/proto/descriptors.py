@@ -2,7 +2,7 @@
 
 """Helpers for viewing and manipulating proto descriptors."""
 
-from typing import Dict, Iterable
+from collections.abc import Iterable
 
 from google.protobuf import descriptor
 from google.protobuf import descriptor_pb2
@@ -10,7 +10,7 @@ from google.protobuf import descriptor_pool
 
 
 def _add_file_and_imports(
-    file_descriptors: Dict[str, descriptor.FileDescriptor],
+    file_descriptors: dict[str, descriptor.FileDescriptor],
     current_file: descriptor.FileDescriptor,
 ):
   """Adds the current file to file_descriptors if not present.

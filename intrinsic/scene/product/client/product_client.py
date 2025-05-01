@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import grpc
 from intrinsic.scene.product.proto import product_pb2
