@@ -2,7 +2,7 @@
 
 """Defines the GraspPlannerClient class."""
 
-from typing import Sequence, Tuple
+from collections.abc import Sequence
 from absl import logging
 from google.protobuf import empty_pb2
 import grpc
@@ -50,7 +50,7 @@ class GraspPlannerClient:
       cls,
       address: str = DEFAULT_GRASP_PLANNER_SERVICE_ADDRESS,
       instance_name: str = DEFAULT_GRASP_PLANNER_SERVICE_INSTANCE_NAME,
-  ) -> Tuple[grpc.Channel, "GraspPlannerClient"]:
+  ) -> tuple[grpc.Channel, "GraspPlannerClient"]:
     """Connects to the grasp planner service.
 
     Args:
