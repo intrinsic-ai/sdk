@@ -4,8 +4,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 import datetime
-from typing import List, Mapping, Optional, Tuple, Union, cast
+from typing import Optional, Union, cast
 import warnings
 
 from absl import logging
@@ -325,7 +326,7 @@ class Camera:
     return self._resource_handle
 
   @property
-  def dimensions(self) -> Optional[Tuple[int, int]]:
+  def dimensions(self) -> Optional[tuple[int, int]]:
     """Deprecated: Use the sensor_dimensions property instead.
 
     Camera intrinsic dimensions (width, height).
@@ -338,12 +339,12 @@ class Camera:
     return self.config.dimensions
 
   @property
-  def sensor_names(self) -> List[str]:
+  def sensor_names(self) -> list[str]:
     """List of sensor names."""
     return list(self.factory_sensor_info.keys())
 
   @property
-  def sensor_ids(self) -> List[int]:
+  def sensor_ids(self) -> list[int]:
     """List of sensor ids."""
     return list(self.sensor_id_to_name.keys())
 
@@ -353,7 +354,7 @@ class Camera:
     return self._sensor_id_to_name
 
   @property
-  def sensor_dimensions(self) -> Mapping[str, Tuple[int, int]]:
+  def sensor_dimensions(self) -> Mapping[str, tuple[int, int]]:
     """Mapping of sensor name to the sensor's intrinsic dimensions (width, height)."""
     return {
         sensor_name: sensor_info.dimensions
@@ -570,7 +571,7 @@ class Camera:
       self,
       timeout: Optional[datetime.timedelta] = None,
       deadline: Optional[datetime.datetime] = None,
-      sensor_ids: Optional[List[int]] = None,
+      sensor_ids: Optional[list[int]] = None,
       skip_undistortion: bool = False,
   ) -> data_classes.CaptureResult:
     """Capture from the camera and return a CaptureResult."""
@@ -655,7 +656,7 @@ class Camera:
 
   def multi_sensor_capture(
       self,
-      sensor_names: Optional[List[str]] = None,
+      sensor_names: Optional[list[str]] = None,
       timeout: Optional[datetime.timedelta] = None,
       skip_undistortion: bool = False,
   ) -> data_classes.CaptureResult:
@@ -694,7 +695,7 @@ class Camera:
               "No factory sensor info found, cannot find sensor ids for"
               f" {sensor_names}"
           )
-        sensor_ids: List[int] = []
+        sensor_ids: list[int] = []
         for sensor_name in sensor_names:
           if sensor_name not in self.factory_sensor_info:
             raise ValueError(f"Invalid sensor name: {sensor_name}")

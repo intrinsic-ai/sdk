@@ -4,7 +4,8 @@
 
 from __future__ import annotations
 
-from typing import Mapping, Optional, Tuple
+from collections.abc import Mapping
+from typing import Optional
 
 from absl import logging
 import grpc
@@ -42,14 +43,14 @@ def extract_identifier(config: camera_config_pb2.CameraConfig) -> Optional[str]:
 
 def extract_dimensions(
     dimensions: dimensions_pb2.Dimensions,
-) -> Tuple[int, int]:
+) -> tuple[int, int]:
   """Extract dimensions into a tuple."""
   return (dimensions.cols, dimensions.rows)
 
 
 def extract_intrinsic_dimensions(
     ip: intrinsic_params_pb2.IntrinsicParams,
-) -> Tuple[int, int]:
+) -> tuple[int, int]:
   """Extract dimensions from intrinsic params into a tuple."""
   return extract_dimensions(ip.dimensions)
 

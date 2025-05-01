@@ -4,8 +4,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 import datetime
-from typing import Dict, List, Mapping, Optional, Tuple
+from typing import Optional
 import warnings
 
 from intrinsic.math.python import pose3
@@ -38,7 +39,7 @@ class CameraParams:
     return self._proto
 
   @property
-  def dimensions(self) -> Tuple[int, int]:
+  def dimensions(self) -> tuple[int, int]:
     """Camera intrinsic dimensions (width, height)."""
     ip = self._proto.intrinsic_params
     return _camera_utils.extract_intrinsic_dimensions(ip)
@@ -113,7 +114,7 @@ class SensorInformation:
     return math_proto_conversion.pose_from_proto(self._proto.camera_t_sensor)
 
   @property
-  def dimensions(self) -> Tuple[int, int]:
+  def dimensions(self) -> tuple[int, int]:
     """Sensor dimensions (width, height)."""
     dimensions = self._proto.dimensions
     return _camera_utils.extract_dimensions(dimensions)
@@ -155,7 +156,7 @@ class SensorConfig:
     return CameraParams(self._proto.camera_params)
 
   @property
-  def dimensions(self) -> Optional[Tuple[int, int]]:
+  def dimensions(self) -> Optional[tuple[int, int]]:
     """Sensor intrinsic dimensions (width, height)."""
     camera_params = self.camera_params
     if camera_params is None:
@@ -207,7 +208,7 @@ class CameraConfig:
     return _camera_utils.extract_identifier(self._proto)
 
   @property
-  def dimensions(self) -> Optional[Tuple[int, int]]:
+  def dimensions(self) -> Optional[tuple[int, int]]:
     """Deprecated: Use the dimensions from the desired sensor config instead.
 
     Intrinsic dimensions (width, height) of the first camera sensor.
@@ -339,7 +340,7 @@ class SensorImage:
     return self.config.camera_params
 
   @property
-  def dimensions(self) -> Optional[Tuple[int, int]]:
+  def dimensions(self) -> Optional[tuple[int, int]]:
     """Sensor intrinsic dimensions (width, height)."""
     return self.config.dimensions
 
@@ -364,7 +365,7 @@ class SensorImage:
     return self._sensor_image_buffer
 
   @property
-  def shape(self) -> Tuple[int, int, int]:
+  def shape(self) -> tuple[int, int, int]:
     """Returns the shape of the sensor image."""
     return self._sensor_image_buffer.shape
 
@@ -374,7 +375,7 @@ class CaptureResult:
 
   _proto: capture_result_pb2.CaptureResult
   _sensor_names: Optional[Mapping[int, str]]
-  _sensor_images: Dict[str, SensorImage]
+  _sensor_images: dict[str, SensorImage]
 
   def __init__(
       self,
@@ -420,7 +421,7 @@ class CaptureResult:
     return self._proto.capture_at.ToDatetime()
 
   @property
-  def sensor_names(self) -> List[str]:
+  def sensor_names(self) -> list[str]:
     """Returns the sensor names from the capture result."""
     return list(self._sensor_images.keys())
 

@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 import datetime
-from typing import List, Optional
+from typing import Optional
 
 import grpc
 from intrinsic.perception.proto.v1 import camera_config_pb2
@@ -71,7 +71,7 @@ class CameraClient:
       camera_config: Optional[camera_config_pb2.CameraConfig] = None,
       timeout: Optional[datetime.timedelta] = None,
       deadline: Optional[datetime.datetime] = None,
-      sensor_ids: Optional[List[int]] = None,
+      sensor_ids: Optional[list[int]] = None,
       skip_undistortion: bool = False,
   ) -> capture_result_pb2.CaptureResult:
     """Captures image data from the requested sensors of the specified camera.
@@ -128,7 +128,7 @@ class CameraClient:
       self,
       camera_config: camera_config_pb2.CameraConfig,
       deadline: Optional[datetime.datetime],
-      sensor_ids: List[int],
+      sensor_ids: list[int],
       skip_undistortion: bool,
   ) -> capture_result_pb2.CaptureResult:
     """Captures image data from the requested sensors of the specified camera."""
