@@ -3,7 +3,7 @@
 """Miscellaneous image helper methods."""
 
 import io
-from typing import Optional, Tuple, Type, Union
+from typing import Optional, Union
 
 from intrinsic.perception.proto import dimensions_pb2
 from intrinsic.perception.proto import image_buffer_pb2
@@ -13,7 +13,7 @@ from PIL import Image
 
 def _image_buffer_data_type(
     image_buffer: image_buffer_pb2.ImageBuffer,
-) -> Union[np.dtype, Type[np.generic]]:
+) -> Union[np.dtype, type[np.generic]]:
   """Returns the data type of the given image buffer."""
   data_type = image_buffer.type
   if data_type == image_buffer_pb2.DataType.TYPE_8U:
@@ -91,7 +91,7 @@ def _image_buffer_decoded(
 
 def _image_buffer_shape(
     image_buffer: image_buffer_pb2.ImageBuffer,
-) -> Union[Tuple[int, int], Tuple[int, int, int]]:
+) -> Union[tuple[int, int], tuple[int, int, int]]:
   """Returns the shape of the given image buffer."""
   if image_buffer.num_channels == 1:
     return (
