@@ -5,8 +5,9 @@
 from __future__ import annotations
 
 import abc
+from collections.abc import Sequence
 import dataclasses
-from typing import Optional, Sequence
+from typing import Optional
 
 from intrinsic.icon.proto import joint_space_pb2
 from intrinsic.manipulation.grasping import grasp_pb2

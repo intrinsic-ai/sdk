@@ -2,7 +2,6 @@
 
 """Defines the GraspAnnotatorClient class."""
 
-from typing import Tuple
 from absl import logging
 import grpc
 from intrinsic.manipulation.grasping import grasp_annotations_pb2
@@ -43,7 +42,7 @@ class GraspAnnotatorClient:
       cls,
       address: str = DEFAULT_GRASP_ANNOTATOR_SERVICE_ADDRESS,
       instance_name: str = DEFAULT_GRASP_ANNOTATOR_SERVICE_INSTANCE_NAME,
-  ) -> Tuple[grpc.Channel, "GraspAnnotatorClient"]:
+  ) -> tuple[grpc.Channel, "GraspAnnotatorClient"]:
     """Connects to the grasp annotator service.
 
     Args:

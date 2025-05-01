@@ -2,7 +2,6 @@
 
 """Defines the MultiAxisAutoAnnotatorClient class."""
 
-from typing import List, Tuple
 from absl import logging
 import grpc
 from intrinsic.manipulation.grasping import schmalz_multi_axis_grasp_pb2
@@ -45,7 +44,7 @@ class MultiAxisAutoAnnotatorClient:
       cls,
       address: str = DEFAULT_SERVICE_ADDRESS,
       instance_name: str = DEFAULT_SERVICE_INSTANCE_NAME,
-  ) -> Tuple[grpc.Channel, "MultiAxisAutoAnnotatorClient"]:
+  ) -> tuple[grpc.Channel, "MultiAxisAutoAnnotatorClient"]:
     """Connects to the auto annotator service.
 
     Args:
@@ -69,7 +68,7 @@ class MultiAxisAutoAnnotatorClient:
   def get_annotations(
       self,
       get_annotations_request: multi_axis_auto_annotator_service_pb2.GetAnnotationsRequest,
-  ) -> List[schmalz_multi_axis_grasp_pb2.SchmalzMultiAxisGraspAnnotation]:
+  ) -> list[schmalz_multi_axis_grasp_pb2.SchmalzMultiAxisGraspAnnotation]:
     """Get annotations for a given triangle mesh.
 
     Args:
@@ -88,8 +87,8 @@ class MultiAxisAutoAnnotatorClient:
       self,
       get_annotations_and_commands_request: multi_axis_auto_annotator_service_pb2.GetAnnotationsAndCommandsRequest,
   ) -> tuple[
-      List[schmalz_multi_axis_grasp_pb2.SchmalzMultiAxisGraspAnnotation],
-      List[schmalz_multi_axis_grasp_pb2.SchmalzMultiAxisGraspCommand],
+      list[schmalz_multi_axis_grasp_pb2.SchmalzMultiAxisGraspAnnotation],
+      list[schmalz_multi_axis_grasp_pb2.SchmalzMultiAxisGraspCommand],
   ]:
     """Get annotations and grasp commands for a given triangle mesh.
 
