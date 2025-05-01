@@ -8,8 +8,9 @@ wish to interact with ICON-compatible robots.
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping
 import enum
-from typing import Iterable, List, Mapping, Optional, Union
+from typing import Optional, Union
 import warnings
 
 import grpc
@@ -285,7 +286,7 @@ class Client:
 
   def list_compatible_parts(
       self, action_type_names: Iterable[str]
-  ) -> List[str]:
+  ) -> list[str]:
     """Lists the parts that are compatible with all of the listed action types.
 
     Args:
@@ -302,7 +303,7 @@ class Client:
         timeout=self._rpc_timeout_seconds,
     ).parts
 
-  def list_parts(self) -> List[str]:
+  def list_parts(self) -> list[str]:
     """Lists all available parts.
 
     Returns:
@@ -313,7 +314,7 @@ class Client:
     ).parts
 
   def start_session(
-      self, parts: List[str], context: Optional[context_pb2.Context] = None
+      self, parts: list[str], context: Optional[context_pb2.Context] = None
   ) -> _session.Session:
     """Starts a new `Session` for the given parts.
 

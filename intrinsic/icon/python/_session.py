@@ -16,11 +16,12 @@ the ICON Client. For example:
 """
 
 import collections
+from collections.abc import Iterable, Sequence
 import datetime
 import itertools
 import queue
 import threading
-from typing import Iterable, List, Optional, Sequence, Tuple, Union
+from typing import Optional, Union
 
 from absl import logging
 from google.protobuf import message as _message
@@ -37,13 +38,13 @@ from intrinsic.icon.python import reactions as _reactions
 from intrinsic.logging.proto import context_pb2
 
 ActionOrActionWithCondition = Union[
-    _actions.Action, Tuple[_actions.Action, _reactions.Condition]
+    _actions.Action, tuple[_actions.Action, _reactions.Condition]
 ]
 
 
 def _get_action_and_condition(
     element: ActionOrActionWithCondition,
-) -> Tuple[_actions.Action, _reactions.Condition]:
+) -> tuple[_actions.Action, _reactions.Condition]:
   if isinstance(element, _actions.Action):
     return (element, _reactions.Condition.is_done())
 
@@ -63,7 +64,7 @@ class Session:
   def __init__(
       self,
       stub: service_pb2_grpc.IconApiStub,
-      parts: List[str],
+      parts: list[str],
       context: Optional[context_pb2.Context] = None,
   ):
     """Creates a new Session to control the given parts.

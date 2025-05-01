@@ -6,7 +6,8 @@ An Action describes how the real-time control layer should control one or more
 parts.
 """
 
-from typing import Iterable, Mapping, Optional, Union
+from collections.abc import Iterable, Mapping
+from typing import Optional, Union
 
 from google.protobuf import any_pb2
 from google.protobuf import message as _message

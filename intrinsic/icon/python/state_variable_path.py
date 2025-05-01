@@ -8,7 +8,7 @@ fields that can be used in an ICON reaction.
 """
 
 import enum
-from typing import List, Optional, Tuple
+from typing import Optional
 
 _STATE_VARIABLE_PATH_PREFIX = "@"
 _STATE_VARIABLE_PATH_SEPARATOR = "."
@@ -65,7 +65,7 @@ class _StateVariablePathBuilder:
   """
 
   def __init__(self):
-    self._nodes: list[Tuple[str, Optional[int]]] = []
+    self._nodes: list[tuple[str, Optional[int]]] = []
 
   def add_node_with_index(
       self, node_name: str, index: int
@@ -82,7 +82,7 @@ class _StateVariablePathBuilder:
     self._nodes.append((node_name, index))
     return self
 
-  def add_nodes(self, node_names: List[str]) -> "_StateVariablePathBuilder":
+  def add_nodes(self, node_names: list[str]) -> "_StateVariablePathBuilder":
     """Adds multiple nodes with the given `node_names` to the path.
 
     Args:

@@ -2,7 +2,7 @@
 
 """Helpers to handle ICON logs."""
 
-from typing import List, Tuple, Type, TypeVar
+from typing import TypeVar
 
 from google.protobuf import message as proto_message
 from intrinsic.icon.proto import streaming_output_pb2
@@ -13,8 +13,8 @@ TPayload = TypeVar("TPayload", bound=proto_message.Message)
 
 
 def unpack_streaming_output_logitem(
-    item: log_item_pb2.LogItem, class_to_unpack_to: Type[TPayload]
-) -> Tuple[TPayload, float]:
+    item: log_item_pb2.LogItem, class_to_unpack_to: type[TPayload]
+) -> tuple[TPayload, float]:
   """Unpacks the payload in a StreamingOutputWithMetadata LogItem.
 
   Args:
@@ -40,8 +40,8 @@ def unpack_streaming_output_logitem(
 
 
 def unpack_streaming_outputs(
-    items: List[log_item_pb2.LogItem], class_to_unpack_to: Type[TPayload]
-) -> Tuple[List[TPayload], List[float]]:
+    items: list[log_item_pb2.LogItem], class_to_unpack_to: type[TPayload]
+) -> tuple[list[TPayload], list[float]]:
   """Unpacks the payload in a list of StreamingOutputWithMetadata LogItems.
 
   Args:

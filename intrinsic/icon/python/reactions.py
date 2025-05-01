@@ -7,10 +7,11 @@ Layer, along with a Response describing what should happen when the Condition is
 satisfied.
 """
 
+from collections.abc import Callable, Iterable, Sequence
 import dataclasses
 import datetime
 import threading
-from typing import Callable, Iterable, Optional, Sequence, Union
+from typing import Optional, Union
 from intrinsic.icon.proto.v1 import types_pb2
 from intrinsic.icon.python import errors
 ReactionCallback = Callable[
