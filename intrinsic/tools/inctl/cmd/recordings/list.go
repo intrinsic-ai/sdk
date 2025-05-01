@@ -18,7 +18,7 @@ import (
 var (
 	flagStartTimestamp string
 	flagEndTimestamp   string
-	workcellName       string
+	flagWorkcellName   string
 )
 
 var listRecordingsE = func(cmd *cobra.Command, _ []string) error {
@@ -45,7 +45,7 @@ var listRecordingsE = func(cmd *cobra.Command, _ []string) error {
 	}
 	req := &pb.ListBagsRequest{
 		OrganizationId: cmdFlags.GetString(orgutil.KeyOrganization),
-		WorkcellName:   workcellName,
+		WorkcellName:   flagWorkcellName,
 		StartTime:      timestamppb.New(startTime),
 		EndTime:        timestamppb.New(endTime),
 	}
@@ -96,7 +96,8 @@ func init() {
 	recordingsCmd.AddCommand(listCmd)
 	flags := listCmd.Flags()
 
-	flags.StringVar(&workcellName, "workcell", "w", "The Kubernetes cluster to use.")
+	flags.StringVar(&flagWorkcellName, "workcell", "", "The Kubernetes cluster to use.")
 	flags.StringVar(&flagStartTimestamp, "start_timestamp", "", "Start timestamp in RFC3339 format for fetching recordings. eg. 2024-08-20T12:00:00Z")
 	flags.StringVar(&flagEndTimestamp, "end_timestamp", "", "End timestamp in RFC3339 format for fetching recordings. eg. 2024-08-20T12:00:00Z")
+	listCmd.MarkFlagRequired("workcell")
 }
