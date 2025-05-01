@@ -9,7 +9,7 @@ This includes:
 """
 
 import dataclasses
-from typing import List, Optional
+from typing import Optional
 
 # This import is required to use the *_grpc imports.
 # pylint: disable=unused-import
@@ -31,8 +31,8 @@ from intrinsic.world.python import object_world_ids
 
 
 def _repeated_vec_to_list_of_floats(
-    vectors: List[joint_space_pb2.JointVec],
-) -> List[List[float]]:
+    vectors: list[joint_space_pb2.JointVec],
+) -> list[list[float]]:
   return [list(vector.joints) for vector in vectors]
 
 
@@ -169,9 +169,9 @@ class MotionPlannerClient(MotionPlannerClientBase):
           motion_target_pb2.CartesianMotionTarget
           | geometric_constraints_pb2.GeometricConstraint
       ),
-      starting_joints: Optional[List[float]] = None,
+      starting_joints: Optional[list[float]] = None,
       options: Optional[IKOptions] = None,
-  ) -> List[List[float]]:
+  ) -> list[list[float]]:
     """Calls the ComputeIk rpc, doing argument conversion as necessary.
 
     Args:
@@ -216,7 +216,7 @@ class MotionPlannerClient(MotionPlannerClientBase):
   def compute_fk(
       self,
       robot_name: object_world_ids.WorldObjectName,
-      joints: List[float],
+      joints: list[float],
       reference: object_world_ids.WorldObjectName,
       target: object_world_ids.WorldObjectName,
       reference_frame: Optional[object_world_ids.FrameName] = None,
