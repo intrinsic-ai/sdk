@@ -5,9 +5,8 @@
 # not needed to be included directly when authoring a Skill.
 
 load("@ai_intrinsic_sdks_pip_deps//:requirements.bzl", "requirement")
-load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
 load("@rules_cc//cc:defs.bzl", "cc_library")
-load("@rules_python//python:defs.bzl", "py_library")
+load("@rules_python//python:defs.bzl", "py_library", "py_test")
 load("//bazel:go_macros.bzl", "go_library", "go_test")
 
 package(default_visibility = ["//intrinsic/skills:__subpackages__"])
@@ -104,14 +103,19 @@ py_library(
     ],
 )
 
-pybind_extension(
+py_library(
     name = "error_bindings",
-    srcs = ["error_bindings.cc"],
+    srcs = ["error_bindings.py"],
+    deps = ["@pybind11_abseil//pybind11_abseil:import_status_module"],
+)
+
+py_test(
+    name = "error_bindings_test",
+    srcs = ["error_bindings_test.py"],
     deps = [
-        ":error_utils",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/strings",
-        "@pybind11_abseil//pybind11_abseil:status_casters",
+        ":error_bindings",
+        "@com_google_absl_py//absl/testing:absltest",
+        "@pybind11_abseil//pybind11_abseil:import_status_module",
     ],
 )
 
