@@ -6,7 +6,8 @@ Showcases how to use the ICON Python client API to command point-to-point moves
 on the server.
 """
 
-from typing import Sequence
+from collections.abc import Sequence
+
 from absl import app
 from absl import flags
 import grpc
