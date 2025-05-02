@@ -1,0 +1,143 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.scene_object.v1;
+
+import "google/longrunning/operations.proto";
+import "intrinsic/geometry/api/processing/pipeline_config.proto";
+import "intrinsic/geometry/api/proto/v1/material.proto";
+import "intrinsic/math/proto/quaternion.proto";
+import "intrinsic/scene/proto/v1/scene_object.proto";
+
+// SceneObjectImport provides APIs to import external scene
+// representations like CAD files, SDF files and other formats into an Intrinsic
+// SceneObject proto representation for use in a solution.
+service SceneObjectImport {
+  // Imports a scene file as a SceneObject.
+  //
+  // Returns a longrunning.Operation where metadata reports the progress of the
+  // import and the response contains the imported SceneObject.
+  rpc ImportSceneObject(ImportSceneObjectRequest)
+      returns (google.longrunning.Operation) {
+    option (google.longrunning.operation_info) = {
+      metadata_type: "ImportSceneObjectMetadata"
+      response_type: "ImportSceneObjectResponse"
+    };
+  }
+}
+
+// Request message for ImportSceneObject.
+message ImportSceneObjectRequest {
+  // The scene file data to import.
+  SceneFileData file = 1;
+
+  // Configuration for the import process.
+  optional ImportSceneObjectConfig config = 2;
+}
+
+message ImportSceneObjectMetadata {
+}
+
+// Response message for ImportSceneObject.
+message ImportSceneObjectResponse {
+  // The imported scene object.
+  SceneObject scene_object = 1;
+}
+
+// The contents of a scene file.
+message SceneFileData {
+  reserved 1;
+  reserved "file_name";
+
+  // The raw data of the scene file.
+  bytes data = 2;
+
+  enum Type {
+    // If unspecified, the service will treat the file as a ZIP_BUNDLE.
+    UNSPECIFIED = 0;
+    // Zipped bundle of SDF files or a single supported file type zipped.
+    ZIP_BUNDLE = 1;
+    // An OBJ file.
+    OBJ = 2;
+    // A STL file.
+    STL = 3;
+    // A GLTF file.
+    GLTF = 4;
+    // A GLB file.
+    GLB = 5;
+    // A STEP file.
+    STEP = 6;
+    // A SDF file.
+    SDF = 7;
+  }
+  // The type of the scene file.
+  Type file_type = 3;
+}
+
+// Configurations for a ImportSceneObject operation.
+message ImportSceneObjectConfig {
+  // Applies length unit conversion on imported geometry. Only supported in file
+  // types that are unit less (e.g., obj, stl, gltf).
+  optional LengthUnitConversion length_unit_conversion = 1;
+
+  // Geometry operations to apply to the imported geometry.
+  optional GeometryOperations geometry_operations = 2;
+
+  // Transforms to apply to the imported scene object.
+  optional TransformSceneObject transform_scene_object = 3;
+
+  // Geometry import resolution for non-mesh geometry types. Determines the
+  // fidelity of the converted mesh geometry.
+  optional GeometryImportResolution geometry_import_resolution = 4;
+
+  // Material properties to apply to all imported geometries.
+  optional intrinsic_proto.geometry.v1.MaterialProperties material_properties =
+      5;
+
+  // If present, the imported SceneObject will be named by this name.
+  optional string scene_object_name = 6;
+
+}
+
+// Specifies how an import operation should adjust for length unit differences.
+message LengthUnitConversion {
+  // Scale factor to be applied to the length properties in the scene object.
+  // Intrinsic SceneObject length units are by default in meters.
+  // For example, to convert a scene file in millimeters, set this to 0.001.
+  double scale_factor = 1;
+}
+
+// Transforms applied to the imported scene object relative to the origin.
+message TransformSceneObject {
+  // Scale applied to the imported scene object.
+  optional double uniform_scale = 1;
+
+  // Rotation to apply to the imported scene object. The rotation is applied to
+  // the scene object after scaling.
+  optional intrinsic_proto.Quaternion rotation = 2;
+}
+
+// Geometry operations to apply to the imported geometries in the scene object.
+message GeometryOperations {
+  // Operations to apply for each type of geometry.
+  map<string, intrinsic_proto.geometry.PipelineConfiguration> operations = 1;
+
+  // Geometry types to remove. Usually used to remove collision
+  // geometries (Intrinsic_Collision) when collision are not needed.
+  repeated string remove_types = 2;
+}
+
+// Specifies the resolution of non-mesh to mesh geometry conversion to create
+// the imported scene object. For example when tessellating BRep in CAD files
+// to triangular mesh.
+message GeometryImportResolution {
+  // The resolution to use for the conversion.
+  enum Resolution {
+    // Defaults to COARSE.
+    RESOLUTION_UNSPECIFIED = 0;
+    COARSE = 1;
+    FINE = 2;
+  }
+  Resolution resolution = 1;
+}
