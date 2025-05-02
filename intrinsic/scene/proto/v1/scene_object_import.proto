@@ -5,7 +5,6 @@ syntax = "proto3";
 package intrinsic_proto.scene_object.v1;
 
 import "google/longrunning/operations.proto";
-import "intrinsic/geometry/api/processing/pipeline_config.proto";
 import "intrinsic/geometry/api/proto/v1/material.proto";
 import "intrinsic/math/proto/quaternion.proto";
 import "intrinsic/scene/proto/v1/scene_object.proto";
@@ -120,9 +119,6 @@ message TransformSceneObject {
 
 // Geometry operations to apply to the imported geometries in the scene object.
 message GeometryOperations {
-  // Operations to apply for each type of geometry.
-  map<string, intrinsic_proto.geometry.PipelineConfiguration> operations = 1;
-
   // Geometry types to remove. Usually used to remove collision
   // geometries (Intrinsic_Collision) when collision are not needed.
   repeated string remove_types = 2;

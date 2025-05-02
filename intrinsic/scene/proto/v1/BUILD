@@ -1,9 +1,11 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_proto_library")
+load("@ai_intrinsic_sdks_pip_deps//:requirements.bzl", "requirement")
+load("@com_github_grpc_grpc//bazel:cc_grpc_library.bzl", "cc_grpc_library")
+load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library", "py_proto_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
-load("//bazel:go_macros.bzl", "go_proto_library")
+load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
 
 package(default_visibility = [
     "//visibility:public",
@@ -127,6 +129,64 @@ py_proto_library(
         "//visibility:public",
     ],
     deps = [":scene_object_proto"],
+)
+
+proto_library(
+    name = "scene_object_import_proto",
+    srcs = ["scene_object_import.proto"],
+    deps = [
+        ":scene_object_proto",
+        "//intrinsic/geometry/api/proto/v1:material_proto",
+        "//intrinsic/math/proto:quaternion_proto",
+        "@com_google_googleapis//google/longrunning:operations_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "scene_object_import_cc_proto",
+    deps = [":scene_object_import_proto"],
+)
+
+go_proto_library(
+    name = "scene_object_import_go_proto",
+    go_deps = [
+        ":scene_object_go_proto",
+        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
+        "//intrinsic/geometry/api/proto/v1:material_go_proto",
+        "//intrinsic/math/proto:quaternion_go_proto",
+    ],
+    deps = [":scene_object_import_proto"],
+)
+
+py_proto_library(
+    name = "scene_object_import_py_pb2",
+    deps = [":scene_object_import_proto"],
+)
+
+cc_grpc_library(
+    name = "scene_object_import_cc_grpc_proto",
+    srcs = [":scene_object_import_proto"],
+    generate_mocks = True,
+    grpc_only = True,
+    deps = [":scene_object_import_cc_proto"],
+)
+
+go_grpc_library(
+    name = "scene_object_import_go_grpc_proto",
+    srcs = [":scene_object_import_proto"],
+    deps = [
+        ":scene_object_go_proto",
+        "//intrinsic/geometry/api/proto/v1:material_go_proto",
+        "//intrinsic/math/proto:quaternion_go_proto",
+        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
+    ],
+)
+
+py_grpc_library(
+    name = "scene_object_import_py_pb2_grpc",
+    srcs = [":scene_object_import_proto"],
+    grpc_library = requirement("grpcio"),
+    deps = [":scene_object_import_py_pb2"],
 )
 
 proto_library(
