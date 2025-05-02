@@ -1,0 +1,49 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.services;
+
+// VolumeMount specifies how a Volume is mounted in the service.
+// Its name must match a specified volume.
+// See: https://kubernetes.io/docs/concepts/storage/volumes/
+message VolumeMount {
+  string name = 1;
+  string mount_path = 2;
+  bool read_only = 3;
+}
+
+// Volume represents a named volume in the pod that may be accessed by the
+// service through a VolumeMount.
+// See: https://kubernetes.io/docs/concepts/storage/volumes/
+message Volume {
+  string name = 1;
+  oneof source {
+    HostPathVolumeSource host_path = 2;
+    EmptyDirVolumeSource empty_dir = 3;
+  }
+}
+
+// HostPathVolumeSource describes a path on the host machine that should be made
+// accessible to the resource.
+// See: https://kubernetes.io/docs/concepts/storage/volumes/#hostpath
+message HostPathVolumeSource {
+  // The path on the host to make available.
+  string path = 1;
+}
+
+// Empty dir medium determines where the empty dir volume is stored.
+// See: https://kubernetes.io/docs/concepts/storage/volumes/#emptydir
+enum EmptyDirMedium {
+  // Unspecified uses the host system's default.
+  EMPTY_DIR_MEDIUM_UNSPECIFIED = 0;
+  EMPTY_DIR_MEDIUM_MEMORY = 1;
+}
+
+// EmptyDirVolumeSource describes a volume created for use by the service.
+// See: https://kubernetes.io/docs/concepts/storage/volumes/#emptydir
+message EmptyDirVolumeSource {
+  // The medium used to store the volume. If unspecified, the host system's
+  // default is used.
+  EmptyDirMedium medium = 1;
+}

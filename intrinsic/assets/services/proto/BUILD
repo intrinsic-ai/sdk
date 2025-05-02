@@ -14,6 +14,7 @@ proto_library(
     deps = [
         ":service_http_config_proto",
         ":service_permissions_proto",
+        ":service_volume_proto",
         "//intrinsic/assets/proto:asset_tag_proto",
         "//intrinsic/assets/proto:documentation_proto",
         "//intrinsic/assets/proto:id_proto",
@@ -29,6 +30,7 @@ go_proto_library(
     go_deps = [
         ":service_http_config_go_proto",
         ":service_permissions_go_proto",
+        ":service_volume_go_proto",
         "//intrinsic/assets/proto:asset_tag_go_proto",
         "//intrinsic/assets/proto:documentation_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
@@ -56,6 +58,21 @@ go_proto_library(
 py_proto_library(
     name = "service_http_config_py_pb2",
     deps = [":service_http_config_proto"],
+)
+
+proto_library(
+    name = "service_volume_proto",
+    srcs = ["service_volume.proto"],
+)
+
+go_proto_library(
+    name = "service_volume_go_proto",
+    deps = [":service_volume_proto"],
+)
+
+py_proto_library(
+    name = "service_volume_py_pb2",
+    deps = [":service_volume_proto"],
 )
 
 proto_library(

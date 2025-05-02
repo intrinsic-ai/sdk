@@ -12,6 +12,7 @@ import "intrinsic/assets/proto/id.proto";
 import "intrinsic/assets/proto/vendor.proto";
 import "intrinsic/assets/services/proto/service_http_config.proto";
 import "intrinsic/assets/services/proto/service_permissions.proto";
+import "intrinsic/assets/services/proto/service_volume.proto";
 import "intrinsic/kubernetes/workcell_spec/proto/image.proto";
 
 message ServiceMetadata {
@@ -54,6 +55,17 @@ message ServiceDef {
 message ServicePodSpec {
   // The image to be used in simulated or real environments.
   ServiceImage image = 1;
+  // The settings for this pod.
+  ServicePodSettings settings = 2;
+}
+
+message ServicePodSettings {
+  // If true, use the host's network namespace.
+  bool host_network = 1;
+  // A list of named volumes that can be mounted by a resource image.
+  repeated Volume volumes = 2;
+  // Security settings for the pod and all its containers.
+  PodSecurityContext security_context = 3;
 }
 
 message ServiceImage {
@@ -64,8 +76,14 @@ message ServiceImage {
 }
 
 message ServiceImageSettings {
+  // A list of volumes to be mounted in the image.
+  repeated VolumeMount volume_mounts = 1;
+  // Security permissions for the image.
+  SecurityContext security_context = 2;
   // The compute resource requirements for the container running the service.
   ResourceRequirements resource_requirements = 3;
+  // If true, this image must be scheduled on a real-time node.
+  bool requires_rtpc_node = 4;
 }
 
 message ServiceAssets {

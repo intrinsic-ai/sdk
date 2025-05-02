@@ -13,3 +13,41 @@ message ResourceRequirements {
   // as the requested amount of resources by default.
   map<string, string> limits = 1;
 }
+
+// SecurityContext defines security related permissions the service will be
+// given.
+// See:
+// https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+message SecurityContext {
+  PosixCapabilities posix_capabilities = 1;
+  bool privileged = 2;
+}
+
+// Each PosixCapability grants the service extra permissions. We currently
+// support a limited subset of POSIX capabilities.
+enum PosixCapability {
+  // Unspecified is not a valid capability and should not be used.
+  POSIX_CAPABILITY_UNSPECIFIED = 0;
+  POSIX_CAPABILITY_SYS_RAWIO = 1;
+  POSIX_CAPABILITY_SYS_NICE = 2;
+  POSIX_CAPABILITY_IPC_LOCK = 3;
+}
+
+message PosixCapabilities {
+  // POSIX capabilities to be granted to the service.
+  repeated PosixCapability add = 1;
+}
+
+// Sysctl defines a sysctl setting to be set for the particular pod.
+//
+// This request may be allowlisted in particular contexts.
+// See:
+// https://kubernetes.io/docs/tasks/administer-cluster/sysctl-cluster/#setting-sysctls-for-a-pod
+message Sysctl {
+  string name = 1;
+  string value = 2;
+}
+
+message PodSecurityContext {
+  repeated Sysctl sysctls = 3;
+}
