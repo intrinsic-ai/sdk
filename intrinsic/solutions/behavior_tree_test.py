@@ -2556,6 +2556,49 @@ class BehaviorTreeSequenceTest(absltest.TestCase):
         ''.join(str(node.dot_graph()[0]).split()), ''.join(dot_string.split())
     )
 
+  def test_has_child(self):
+    node = bt.Sequence(
+        children=[
+            bt.Task(behavior_call.Action(skill_id='skill_0')),
+            bt.Task(behavior_call.Action(skill_id='skill_1')),
+            bt.Task(behavior_call.Action(skill_id='skill_2')),
+        ]
+    )
+
+    for child in node.children:
+      child.generate_and_set_unique_id()
+
+    for child in node.children:
+      self.assertTrue(node.has_child(child.node_id))
+
+    self.assertFalse(node.has_child(123))
+
+  def test_remove_child(self):
+    """Tests if conversion to string works."""
+    node = bt.Sequence(
+        children=[
+            bt.Task(behavior_call.Action(skill_id='skill_0')),
+            bt.Task(behavior_call.Action(skill_id='skill_1')),
+            bt.Task(behavior_call.Action(skill_id='skill_2')),
+        ]
+    )
+
+    for child in node.children:
+      child.generate_and_set_unique_id()
+
+    node.remove_child(node.children[1].node_id)
+
+    node_proto = behavior_tree_pb2.BehaviorTree.Node()
+    node_proto.sequence.children.add().task.call_behavior.skill_id = 'skill_0'
+    node_proto.sequence.children.add().task.call_behavior.skill_id = 'skill_2'
+
+    compare.assertProto2Equal(
+        self,
+        node.proto,
+        node_proto,
+        ignored_fields=['id', 'sequence.children.id'],
+    )
+
 
 class BehaviorTreeParallelTest(absltest.TestCase):
   """Tests the method functions of BehaviorTree.Parallel."""
@@ -3197,6 +3240,28 @@ class BehaviorTreeRetryTest(absltest.TestCase):
         ' '.join(dot_string.split()),
     )
 
+  def test_has_child(self):
+    node = bt.Retry(
+        child=bt.Task(behavior_call.Action(skill_id='skill_0')),
+    )
+
+    node.child.generate_and_set_unique_id()
+
+    self.assertTrue(node.has_child(node.child.node_id))
+    self.assertFalse(node.has_child(123))
+
+  def test_remove_child(self):
+    """Tests child can be removed."""
+    node = bt.Retry(
+        child=bt.Task(behavior_call.Action(skill_id='skill_0')),
+    )
+
+    node.child.generate_and_set_unique_id()
+
+    self.assertIsNotNone(node.child)
+    node.remove_child(node.child.node_id)
+    self.assertIsNone(node.child)
+
 
 class BehaviorTreeFallbackTest(absltest.TestCase):
   """Tests the method functions of BehaviorTree.Fallback."""
@@ -3789,6 +3854,28 @@ class BehaviorTreeLoopTest(absltest.TestCase):
         ''.join(str(node.dot_graph()[0]).split()), ''.join(dot_string.split())
     )
 
+  def test_has_child(self):
+    node = bt.Loop(
+        do_child=bt.Task(behavior_call.Action(skill_id='skill_0')),
+    )
+
+    node.do_child.generate_and_set_unique_id()
+
+    self.assertTrue(node.has_child(node.do_child.node_id))
+    self.assertFalse(node.has_child(123))
+
+  def test_remove_child(self):
+    """Tests child can be removed."""
+    node = bt.Loop(
+        do_child=bt.Task(behavior_call.Action(skill_id='skill_0')),
+    )
+
+    node.do_child.generate_and_set_unique_id()
+
+    self.assertIsNotNone(node.do_child)
+    node.remove_child(node.do_child.node_id)
+    self.assertIsNone(node.do_child)
+
 
 class BehaviorTreeBranchTest(absltest.TestCase):
   """Tests the method functions of BehaviorTree.Branch."""
@@ -3980,6 +4067,37 @@ class BehaviorTreeBranchTest(absltest.TestCase):
     self.assertEqual(
         ''.join(str(node.dot_graph()[0]).split()), ''.join(dot_string.split())
     )
+
+  def test_has_child(self):
+    node = bt.Branch(
+        then_child=bt.Task(behavior_call.Action(skill_id='skill_0')),
+        else_child=bt.Task(behavior_call.Action(skill_id='skill_1')),
+    )
+
+    node.then_child.generate_and_set_unique_id()
+    node.else_child.generate_and_set_unique_id()
+
+    self.assertTrue(node.has_child(node.then_child.node_id))
+    self.assertTrue(node.has_child(node.else_child.node_id))
+    self.assertFalse(node.has_child(123))
+
+  def test_remove_child(self):
+    """Tests child can be removed."""
+    node = bt.Branch(
+        then_child=bt.Task(behavior_call.Action(skill_id='skill_0')),
+        else_child=bt.Task(behavior_call.Action(skill_id='skill_1')),
+    )
+
+    node.then_child.generate_and_set_unique_id()
+    node.else_child.generate_and_set_unique_id()
+
+    self.assertIsNotNone(node.then_child)
+    node.remove_child(node.then_child.node_id)
+    self.assertIsNone(node.then_child)
+
+    self.assertIsNotNone(node.else_child)
+    node.remove_child(node.else_child.node_id)
+    self.assertIsNone(node.else_child)
 
 
 class BehaviorTreeDataTest(parameterized.TestCase):

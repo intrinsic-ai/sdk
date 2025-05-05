@@ -852,6 +852,34 @@ class Node(abc.ABC):
     ...
 
   @abc.abstractmethod
+  def has_child(self, node_id: int) -> bool:
+    """Checks if the node has a direct child with the given ID.
+
+    Args:
+      node_id: ID of child to check for. Which specific children are checked
+        depends on the specific node implementation. This shall not recurse and
+        not check children with other tree IDs (i.e., not in sub-trees).
+
+    Returns:
+      True if node has a direct child with the given ID, False otherwise.
+    """
+    ...
+
+  @abc.abstractmethod
+  def remove_child(self, node_id: int) -> None:
+    """Removes a direct child with the given ID.
+
+    Args:
+      node_id: ID of child to remove. Which specific children are considered
+        depends on the specific node implementation. This shall not recurse and
+        not check children with other tree IDs (i.e., not in sub-trees).
+
+    Raises:
+      ValueError if node cannot remove a child or the child is not found.
+    """
+    ...
+
+  @abc.abstractmethod
   def set_user_data_proto(
       self, key: str, proto: protobuf_message.Message
   ) -> Node:
@@ -1609,6 +1637,12 @@ class Task(Node):
   def user_data_protos(self) -> dict[str, any_pb2.Any]:
     return self._user_data_protos
 
+  def has_child(self, node_id: int) -> bool:
+    return False
+
+  def remove_child(self, node_id: int) -> None:
+    raise ValueError('Task node does not have children to remove')
+
   @classmethod
   def _create_from_proto(
       cls, proto_object: behavior_tree_pb2.BehaviorTree.TaskNode
@@ -1755,6 +1789,15 @@ class SubTree(Node):
   @property
   def decorators(self) -> Optional[Decorators]:
     return self._decorators
+
+  def has_child(self, node_id: int) -> bool:
+    return False
+
+  def remove_child(self, node_id: int) -> None:
+    raise ValueError(
+        'Subtree node does not support child removal, call on immediate parent'
+        ' of node to remove.'
+    )
 
   def set_user_data_proto(
       self, key: str, proto: protobuf_message.Message
@@ -1918,6 +1961,12 @@ class Fail(Node):
   def decorators(self) -> Optional[Decorators]:
     return self._decorators
 
+  def has_child(self, node_id: int) -> bool:
+    return False
+
+  def remove_child(self, node_id: int) -> None:
+    raise ValueError('Fail node does not have children to remove')
+
   def set_user_data_proto(
       self, key: str, proto: protobuf_message.Message
   ) -> Node:
@@ -2035,6 +2084,12 @@ class Debug(Node):
   def decorators(self) -> Optional[Decorators]:
     return self._decorators
 
+  def has_child(self, node_id: int) -> bool:
+    return False
+
+  def remove_child(self, node_id: int) -> None:
+    raise ValueError('Debug node does not have children to remove')
+
   def set_user_data_proto(
       self, key: str, proto: protobuf_message.Message
   ) -> Node:
@@ -2094,6 +2149,15 @@ class NodeWithChildren(Node):
       self.children = [_transform_to_optional_node(x) for x in children]  # pytype: disable=annotation-type-mismatch  # always-use-return-annotations
 
     return self
+
+  def has_child(self, node_id: int) -> bool:
+    return any(child.node_id == node_id for child in self.children)
+
+  def remove_child(self, node_id: int) -> None:
+    for i, child in enumerate(self.children):
+      if child.node_id == node_id:
+        del self.children[i]
+        break
 
   def __repr__(self) -> str:
     """Returns a compact, human-readable string representation."""
@@ -2638,6 +2702,21 @@ class Retry(Node):
     self.child = _transform_to_optional_node(child)
     return self
 
+  def has_child(self, node_id: int) -> bool:
+    return self.child.node_id == node_id
+
+  def remove_child(self, node_id: int) -> None:
+    if self.child is None:
+      raise ValueError('Retry node has no child set')
+
+    if self.child.node_id != node_id:
+      raise ValueError(
+          f"Retry node's child has different ID {self.child.node_id} (expected"
+          f' {node_id}'
+      )
+
+    self.child = None
+
   def set_recovery(self, recovery: Union[Node, actions.ActionBase]) -> Retry:
     self.recovery = _transform_to_optional_node(recovery)
     return self
@@ -2973,6 +3052,21 @@ class Loop(Node):
   def set_do_child(self, do_child: Union[Node, actions.ActionBase]) -> Loop:
     self.do_child = _transform_to_optional_node(do_child)
     return self
+
+  def has_child(self, node_id: int) -> bool:
+    return self.do_child.node_id == node_id
+
+  def remove_child(self, node_id: int) -> None:
+    if self.do_child is None:
+      raise ValueError('Loop node has no do child set')
+
+    if self.do_child.node_id != node_id:
+      raise ValueError(
+          "Loop node's do child has different ID"
+          f' {self.do_child.node_id} (expected {node_id}'
+      )
+
+    self.do_child = None
 
   def set_while_condition(self, while_condition: Condition) -> Loop:
     """Sets the while condition for the loop.
@@ -3468,6 +3562,26 @@ class Branch(Node):
     self.if_condition = if_condition
     return self
 
+  def has_child(self, node_id: int) -> bool:
+    return (
+        self.then_child is not None and self.then_child.node_id == node_id
+    ) or (self.else_child is not None and self.else_child.node_id == node_id)
+
+  def remove_child(self, node_id: int) -> None:
+    if self.then_child is not None and self.then_child.node_id == node_id:
+      self.then_child = None
+      return
+
+    if self.else_child is not None and self.else_child.node_id == node_id:
+      self.else_child = None
+      return
+
+    raise ValueError(
+        "Branch node's then and else children have different ID"
+        f' {self.then_child.node_id} and {self.else_child.node_id} (expected'
+        f' {node_id}'
+    )
+
   def __repr__(self) -> str:
     """Returns a compact, human-readable string representation."""
     representation = f'{type(self).__name__}({self._name_repr()}'
@@ -3795,6 +3909,12 @@ class Data(Node):
   def decorators(self) -> Optional[Decorators]:
     return self._decorators
 
+  def has_child(self, node_id: int) -> bool:
+    return False
+
+  def remove_child(self, node_id: int) -> None:
+    raise ValueError('Data node does not have children to remove')
+
   def set_user_data_proto(
       self, key: str, proto: protobuf_message.Message
   ) -> Node:
@@ -4092,13 +4212,14 @@ class Data(Node):
 class IdRecorder:
   """A visitor callable object that records tree ids and node ids."""
 
+  tree_to_node_id_to_nodes: Mapping[BehaviorTree, Mapping[int, list[Node]]]
+  tree_id_to_trees: Mapping[str, list[BehaviorTree]]
+
   def __init__(self):
-    self.tree_to_node_id_to_nodes: Mapping[
-        BehaviorTree, Mapping[int, list[Node]]
-    ] = collections.defaultdict(lambda: collections.defaultdict(list))
-    self.tree_id_to_trees: Mapping[str, list[BehaviorTree]] = (
-        collections.defaultdict(list)
+    self.tree_to_node_id_to_nodes = collections.defaultdict(
+        lambda: collections.defaultdict(list)
     )
+    self.tree_id_to_trees = collections.defaultdict(list)
 
   def __call__(
       self,
@@ -4140,7 +4261,10 @@ class BehaviorTree:
   """
   # pyformat: enable
 
-  tree_id: Optional[str]
+  tree_id: str | None
+  root: Node | None
+  _description: skills_pb2.Skill | None
+  _return_value_expression: str | None
 
   def __init__(
       self,
@@ -4158,7 +4282,7 @@ class BehaviorTree:
       bt: BehaviorTree instance or BehaviorTree proto. The value of the `name`
         argument overwrites the value from the `bt` proto argument, if set.
     """
-    root: Optional[Node] = _transform_to_optional_node(root)
+    root = _transform_to_optional_node(root)
     self.tree_id = None
     if bt is not None:
       bt_copy = None
@@ -4173,7 +4297,7 @@ class BehaviorTree:
       self.tree_id = bt_copy.tree_id
 
     self.name: str = name or ''
-    self.root: Optional[Node] = root
+    self.root = root
     self._description = None
     self._return_value_expression = None
 
@@ -4184,6 +4308,12 @@ class BehaviorTree:
       A behavior tree formatted as string using Python syntax.
     """
     return f'BehaviorTree({self._name_repr()}root={repr(self.root)})'
+
+  def __eq__(self, other: BehaviorTree) -> bool:
+    return self.proto == other.proto
+
+  def __hash__(self) -> int:
+    return hash(self.proto.SerializeToString(deterministic=True))
 
   def _name_repr(self) -> str:
     """Returns a snippet for the name attribute to be used in __repr__."""
@@ -4247,6 +4377,27 @@ class BehaviorTree:
       )
     self.tree_id = str(uuid.uuid4())
     return self.tree_id
+
+  def ensure_all_unique_ids(self) -> None:
+    """Sets unique tree ID and IDs for all nodes in the tree where unset."""
+
+    def ensure_node_unique_id(
+        containing_tree: BehaviorTree,
+        tree_object: Union[BehaviorTree, Node, Condition],
+    ):
+      del containing_tree  # unused
+
+      if isinstance(tree_object, BehaviorTree):
+        tree = cast(BehaviorTree, tree_object)
+        if tree.tree_id is None:
+          tree.generate_and_set_unique_id()
+
+      elif isinstance(tree_object, Node):
+        node = cast(Node, tree_object)
+        if node.node_id is None:
+          node.generate_and_set_unique_id()
+
+    self.visit(ensure_node_unique_id)
 
   def visit(
       self,
@@ -4376,6 +4527,45 @@ class BehaviorTree:
 
     self.visit(search_matching_name)
     return nodes
+
+  def remove_node(self, node_id: int) -> None:
+    """Removes a given node from this behavior tree.
+
+    This is a local operation on this tree. It will recurse but only delete a
+    node in this tree, not in encapsulated sub trees (not in sub tree nodes).
+
+    This requires that the tree has a valid tree id set (tree_id is not None).
+
+    Args:
+      node_id: ID of node to remove. This is only unique with respect to this
+        tree (but not named sub trees).
+
+    Raises:
+      RuntimeError: if this behavior tree has no tree_id set.
+    """
+
+    if self.tree_id is None:
+      raise RuntimeError(
+          'Nodes can only be removed for trees with a valid tree ID'
+      )
+
+    def remove_matching_tree_and_node_id(
+        containing_tree: BehaviorTree,
+        tree_object: Union[BehaviorTree, Node, Condition],
+    ):
+      if containing_tree.tree_id != self.tree_id:
+        return
+
+      if isinstance(tree_object, BehaviorTree):
+        tree = cast(BehaviorTree, tree_object)
+        if tree.root is not None and tree.root.node_id == node_id:
+          self.root = None
+      elif isinstance(tree_object, Node):
+        node = cast(Node, tree_object)
+        if node.has_child(node_id):
+          node.remove_child(node_id)
+
+    self.visit(remove_matching_tree_and_node_id)
 
   def validate_id_uniqueness(self) -> None:
     """Validates if all ids in the tree are unique.
