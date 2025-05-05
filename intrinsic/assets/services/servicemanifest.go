@@ -16,9 +16,6 @@ import (
 	"intrinsic/util/proto/names"
 )
 
-var (
-)
-
 // ValidateServiceManifestOptions contains options for validating a ServiceManifest.
 type ValidateServiceManifestOptions struct {
 	files *protoregistry.Files
