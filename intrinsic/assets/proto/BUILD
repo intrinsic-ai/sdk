@@ -66,7 +66,9 @@ proto_library(
 
 cc_proto_library(
     name = "asset_type_cc_proto",
-    visibility = ["//visibility:private"],
+    visibility = [
+        "//intrinsic/world/tools:__pkg__",
+    ],
     deps = [":asset_type_proto"],
 )
 

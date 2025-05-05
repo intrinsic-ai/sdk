@@ -1,6 +1,7 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
 load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_proto_library")
+load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
@@ -40,6 +41,12 @@ go_proto_library(
 
 py_proto_library(
     name = "hardware_device_manifest_py_pb2",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":hardware_device_manifest_proto"],
+)
+
+cc_proto_library(
+    name = "hardware_device_manifest_cc_proto",
     visibility = ["//intrinsic:public_api_users"],
     deps = [":hardware_device_manifest_proto"],
 )
