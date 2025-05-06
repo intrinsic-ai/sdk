@@ -210,7 +210,7 @@ message DescribeCameraRequest {
 }
 
 message DescribeCameraResponse {
-  CameraConfig camera_config = 1;
+  CameraConfig camera_config = 1 [deprecated = true];
   repeated SensorInformation sensors = 2;
 }
 
