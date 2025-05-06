@@ -1,0 +1,192 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.icon.v1;
+
+import "google/protobuf/duration.proto";
+import "intrinsic/icon/proto/cart_space.proto";
+import "intrinsic/kinematics/types/joint_limits.proto";
+import "intrinsic/world/proto/object_world_refs.proto";
+
+// ----------------------------  InitialJoggingData ----------------------------
+
+message JogInStaticFrame {
+  // If specified the jogging will occur about this particular frame but in the
+  // coordinates of the reference_frame. For example a commanded jogging
+  // rotation about the Y-axis will rotate the point defined by `jogging_frame`
+  // around the Y-axis of the reference_frame.
+  //
+  // If not specified the robot tip frame is used.
+  optional intrinsic_proto.world.FrameReference jogging_frame = 1;
+
+  // If specified will jog in the orientation of the `reference_frame`.
+  //
+  // If not specified will jog in the orientation of the robot base frame. Only
+  // the orientation of this frame is used, the position has no effect.
+  optional intrinsic_proto.world.FrameReference reference_frame = 2;
+}
+
+message JogInToolFrame {
+  // Specifies the frame to jog in. The robot will jog according to the
+  // coordinate frame of this frame.
+  intrinsic_proto.world.FrameReference jogging_frame = 1;
+}
+
+// Defines the initial jogging data for a jogging session which defines the part
+// and mode of jogging used. The first request sent to the JogRobot stream must
+// contain this message.
+message InitialJoggingData {
+  // This defines the jogging session to expect joint jogging commands.
+  message InitialJointJogging {}
+
+  // This defines the jogging session to expect cartesian jogging commands. This
+  // message also defines the jogging frames specification which defines the
+  // interpretation of the Cartesianjogging commands.
+  message InitialCartesianJogging {
+    oneof jogging_frame {
+      JogInStaticFrame jog_in_static_frame = 1;
+      JogInToolFrame jog_in_tool_frame = 2;
+    }
+  }
+
+  // The name of the part to jog. This must correspond to one of the parts
+  // returned by GetAvailableParts().
+  string part_name = 1;
+
+  // The initial jogging specification defines the mode of jogging used.
+  oneof initial_jogging_spec {
+    InitialJointJogging initial_joint_jogging_spec = 2;
+    InitialCartesianJogging initial_cartesian_jogging_spec = 3;
+  }
+
+  // User-defined name of the client. This is used to identify the client
+  // which is holding a particular part and surface this information.
+  string client_name = 4;
+}
+
+// ----------------------------  Jogging Commands ------------------------------
+
+// Defines the direction of a Cartesian jogging command. The direction is
+// defined in the coordinate frame specified in the InitialJoggingData message.
+//
+// x, y and z define the translation along the respective axis.
+//
+// rx, ry and rz define rotations about a vector in the respective axis using
+// the right-hand convention.
+//
+// The normalized velocity components scale the magnitude of the jogging
+// command.
+//
+// It represents a multiplier compared to the default maximum speed of jogging
+// for the part. The maximum is defined by the limits of the part. These can
+// be found with the GetAvailableParts() RPC. The global `speed_override`
+// in the ICON instance will still be applied and slow down all commands.
+//
+// The normalized velocity, which must be in the range [-1, 1], allows the user
+// to command speeds between the minimum and maximum speed limits as defined
+// above.
+message CartesianNormalizedVelocity {
+  oneof vector {
+    double x = 1;
+    double y = 2;
+    double z = 3;
+    double rx = 4;
+    double ry = 5;
+    double rz = 6;
+  }
+}
+
+message CartesianJoggingCommand {
+  CartesianNormalizedVelocity normalized_velocity = 1;
+}
+
+// The normalized velocity scales the magnitude of the jogging command.
+//
+// It represents a multiplier compared to the default maximum speed of jogging
+// for the part. The maximum is defined by the limits of the part. These can
+// be found with the GetAvailableParts() RPC. The global `speed_override`
+// in the ICON instance will still be applied and slow down all commands.
+//
+// The normalized velocity, which must be in the range [-1, 1], allows the user
+// to command speeds between the minimum and maximum speed limits as defined
+// above.
+message JointJoggingCommand {
+  int64 joint_index = 1;
+  double normalized_velocity = 2;
+}
+
+// Defines the jogging commands which must be repetitively sent to the JogRobot
+// stream. In particular, the jogging_command must match the jogging mode used
+// in the InitialJoggingData message.
+//
+// From then on, each jogging command must be sent at an interval of less than
+// the jogging_stopping_timeout obtained from GetAvailableParts(). If a command
+// is not received within this time, the robot will stop, but the session will
+// not be closed. In other words, one can send a new command to restart the
+// jogging.
+//
+// If successive commands contain a different jogging direction, but the same
+// mode, expect a small period of blending while the motion in the previously
+// commanded degree of freedom is finished.
+message JoggingCommand {
+  oneof jogging_command {
+    JointJoggingCommand joint_jogging_command = 1;
+    CartesianJoggingCommand cartesian_jogging_command = 2;
+  }
+}
+
+message JoggingRequest {
+  // The first request must contain the initial_jogging_data which defines the
+  // part and type of jogging used. All subsequent requests must contain the
+  // jogging command matching the jogging mode used.
+  oneof request {
+    InitialJoggingData initial_jogging_data = 1;
+    JoggingCommand jogging_command = 2;
+  }
+}
+
+message JoggingResponse {}
+
+// ----------------------------  Helper Messages ------------------------------
+
+message AvailablePartsRequest {}
+
+message PartJoggingInfo {
+  string part_name = 1;
+  int64 num_dofs = 2;
+  // The names of the DoFs of the part ordered by joint index.
+  repeated string dof_names = 3;
+  bool cartesian_jogging_available = 4;
+  repeated intrinsic_proto.world.FrameReference static_jogging_frames = 5;
+  repeated intrinsic_proto.world.FrameReference tool_jogging_frames = 6;
+
+  // The joint and Cartesian limits of the part.
+  // The maximum speed, acceleration and jerk limits are the smaller of:
+  // - the part's application limits (Cartesian and joint)
+  // - an absolute ceiling imposed by the Jogging server.
+  intrinsic_proto.JointLimits joint_limits = 7;
+  intrinsic_proto.icon.CartesianLimits cartesian_limits = 8;
+  // The jogging server will stop the robot if it does not receive any commands
+  // for this duration during an active jogging session.
+  google.protobuf.Duration stop_timeout = 9;
+}
+
+message AvailablePartsResponse {
+  // Ordered list of parts that support jogging. For parts that are
+  // kinematically connected, the parent part will be listed first.
+  repeated PartJoggingInfo parts = 1;
+}
+
+// ------------------------------  Service  ---------------------------
+
+service JoggingService {
+  // JogRobot allows jogging a robot in joint or Cartesian space. The successful
+  // opening of a JogRobot stream results in ownership of the underlying ICON
+  // parts specified in the InitialJoggingData request.
+  rpc JogRobot(stream JoggingRequest) returns (stream JoggingResponse);
+
+  // GetAvailableJoggingParts returns a list of available jogging parts and the
+  // information about the part's capabilities.
+  rpc GetAvailableParts(AvailablePartsRequest) returns (AvailablePartsResponse);
+}
