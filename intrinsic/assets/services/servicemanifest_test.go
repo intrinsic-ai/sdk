@@ -72,8 +72,9 @@ func TestValidateServiceManifest(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			desc:  "valid service manifest",
-			given: m,
+			desc:    "valid service manifest, but no descriptors given",
+			given:   m,
+			wantErr: true,
 		},
 		{
 			desc:  "valid service manifest without service def",

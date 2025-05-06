@@ -125,6 +125,7 @@ func TestBundleCreate(t *testing.T) {
 			args: []string{
 				"--manifest", mustResolve(t, exampleManifestPath),
 				"--oci_image", mustResolve(t, exampleImagePath),
+				"--file_descriptor_set", mustResolve(t, exampleFileDescriptorSetPath),
 			},
 			checks: []bundleCheck{
 				checkManifestHasID(t, "service.bundle.tar", "com.example", "my_service"),
