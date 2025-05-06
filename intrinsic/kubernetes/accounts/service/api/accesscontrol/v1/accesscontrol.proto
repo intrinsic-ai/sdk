@@ -206,7 +206,7 @@ service AccessControlService {
 
   // CancelInvitation cancels an invitation.
   rpc CancelOrganizationInvitation(CancelOrganizationInvitationRequest)
-      returns (OrganizationInvitation) {
+      returns (google.protobuf.Empty) {
     option (google.api.http) = {
       post: "/accesscontrol/v1/{parent=organizations/*}/invitations/{token}:cancel"
     };
