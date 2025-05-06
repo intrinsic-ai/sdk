@@ -209,6 +209,9 @@ intrinsic_proto::status::ExtendedStatus CreateExtendedStatus(
   if (options.debug_message.has_value()) {
     es.mutable_debug_report()->set_message(*options.debug_message);
   }
+  if (options.related_to.has_value()) {
+    *es.mutable_related_to() = *options.related_to;
+  }
   if (options.log_context.has_value()) {
     *es.mutable_related_to()->mutable_log_context() = *options.log_context;
   }
