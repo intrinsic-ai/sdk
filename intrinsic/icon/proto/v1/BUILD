@@ -83,3 +83,27 @@ py_proto_library(
     name = "types_py_pb2",
     deps = [":types_proto"],
 )
+
+proto_library(
+    name = "jogging_service_proto",
+    srcs = ["jogging_service.proto"],
+    deps = [
+        "//intrinsic/icon/proto:cart_space_proto",
+        "//intrinsic/kinematics/types:joint_limits_proto",
+        "//intrinsic/world/proto:object_world_refs_proto",
+        "@com_google_protobuf//:duration_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "jogging_service_cc_proto",
+    deps = [":jogging_service_proto"],
+)
+
+cc_grpc_library(
+    name = "jogging_service_cc_grpc_proto",
+    srcs = [":jogging_service_proto"],
+    generate_mocks = True,
+    grpc_only = True,
+    deps = [":jogging_service_cc_proto"],
+)
