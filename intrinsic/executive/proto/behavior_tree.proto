@@ -150,7 +150,8 @@ message BehaviorTree {
     }
 
     // Exactly one of these fields must be set.
-    repeated Node children = 1;  // Do not use. Prefer branches.
+    repeated Node children = 1
+        [deprecated = true];  // Use the branches field instead.
     repeated Branch branches = 2;
   }
 

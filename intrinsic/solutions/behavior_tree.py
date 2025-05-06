@@ -2492,6 +2492,10 @@ class Selector(NodeWithChildren):
     if node_children:
       super().__init__(children=node_children)
       self.branches = []
+      print(
+          'Passing nodes or skills directly to a selector is deprecated. Use a'
+          ' Selector.Branch that contains a node and its condition explicitly.'
+      )
     else:
       super().__init__(children=[])
       self.branches = node_branches
