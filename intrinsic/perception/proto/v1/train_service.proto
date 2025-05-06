@@ -16,6 +16,7 @@ import "intrinsic/util/status/extended_status.proto";
 
 // Trains pose estimation models.
 service TrainService {
+
   // Trains a pose estimation model.
   // Returns a longrunning.Operation with:
   //   metadata of type TrainingJobStatus (progress information, etc.)
