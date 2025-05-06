@@ -1,0 +1,14 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.catalog.v1;
+
+// Specifies release metadata about an asset version in the AssetCatalog.
+message ReleaseMetadata {
+  // True if the released asset is the default version.
+  bool default = 1;
+  // True if the released asset is hidden from users who aren't a member of the
+  // organization that owns the asset.
+  bool org_private = 2;
+}
