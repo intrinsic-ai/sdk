@@ -30,10 +30,13 @@ go_library(
     deps = [
         "//intrinsic/assets:clientutils",
         "//intrinsic/assets:cmdutils",
+        "//intrinsic/assets:idutils",
         "//intrinsic/assets:imageutils",
-        "//intrinsic/kubernetes/workcell_spec/proto:installer_go_grpc_proto",
+        "//intrinsic/assets/proto:installed_assets_go_grpc_proto",
         "//intrinsic/skills/tools/skill/cmd",
         "//intrinsic/skills/tools/skill/cmd:skillio",
         "@com_github_spf13_cobra//:go_default_library",
+        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
+        "@org_golang_google_grpc//status:go_default_library",
     ],
 )

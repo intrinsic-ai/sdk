@@ -7,11 +7,16 @@ import (
 	"fmt"
 	"log"
 
+	lrogrpcpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
+	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc/status"
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
+	"intrinsic/assets/idutils"
 	"intrinsic/assets/imageutils"
-	installerpb "intrinsic/kubernetes/workcell_spec/proto/installer_go_grpc_proto"
+	iagrpcpb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
+	iapb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
 	"intrinsic/skills/tools/skill/cmd/cmd"
 	"intrinsic/skills/tools/skill/cmd/skillio"
 )
@@ -54,25 +59,40 @@ $ inctl skill uninstall --type=id com.foo.skill
 		default:
 			return fmt.Errorf("unimplemented target type: %v", targetType)
 		}
+		asset, err := idutils.NewIDProto(skillID)
+		if err != nil {
+			return fmt.Errorf("invalid id: %w", err)
+		}
 
-		ctx, conn, address, err := clientutils.DialClusterFromInctl(ctx, cmdFlags)
+		ctx, conn, _, err := clientutils.DialClusterFromInctl(ctx, cmdFlags)
 		if err != nil {
 			return err
 		}
 		defer conn.Close()
 
-		log.Printf("Removing skill %q", skillID)
-		if err := imageutils.RemoveContainer(ctx, &imageutils.RemoveContainerParams{
-			Address:    address,
-			Connection: conn,
-			Request: &installerpb.RemoveContainerAddonRequest{
-				Id:   skillID,
-				Type: installerpb.AddonType_ADDON_TYPE_SKILL,
-			},
-		}); err != nil {
-			return fmt.Errorf("could not remove the skill: %w", err)
+		log.Printf("Uninstalling skill %q", skillID)
+		client := iagrpcpb.NewInstalledAssetsClient(conn)
+		op, err := client.DeleteInstalledAsset(ctx, &iapb.DeleteInstalledAssetRequest{
+			Asset: asset,
+		})
+		if err != nil {
+			return fmt.Errorf("could not install the skill: %v", err)
 		}
-		log.Print("Finished removing the skill")
+		log.Printf("Awaiting completion of the uninstall")
+		lroClient := lrogrpcpb.NewOperationsClient(conn)
+		for !op.GetDone() {
+			op, err = lroClient.WaitOperation(ctx, &lropb.WaitOperationRequest{
+				Name: op.GetName(),
+			})
+			if err != nil {
+				return fmt.Errorf("unable to check status of uninstall: %v", err)
+			}
+		}
+
+		if err := status.ErrorProto(op.GetError()); err != nil {
+			return fmt.Errorf("uninstall failed: %w", err)
+		}
+		log.Print("Finished uninstalling the skill")
 
 		return nil
 	},
