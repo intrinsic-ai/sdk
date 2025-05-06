@@ -2,17 +2,7 @@
 
 # Package containing integration tests for Intrinsic.
 
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//bazel:go_macros.bzl", "go_library")
-
-bzl_library(
-    name = "build_defs_bzl",
-    srcs = ["build_defs.bzl"],
-    visibility = ["//visibility:private"],
-    deps = [
-        "//bazel:sh_macros",
-    ],
-)
 
 go_library(
     name = "grpctest",
