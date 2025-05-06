@@ -1,6 +1,6 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package listreleased defines the list_released command that lists services in a ServiceCatalog.
+// Package listreleased defines the list_released command that lists services in an AssetCatalog.
 package listreleased
 
 import (

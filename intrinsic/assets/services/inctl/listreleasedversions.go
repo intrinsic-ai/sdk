@@ -1,6 +1,6 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package listreleasedversions defines the list_released_versions command that lists versions of a service in a ServiceCatalog.
+// Package listreleasedversions defines the list_released_versions command that lists versions of a service in an AssetCatalog.
 package listreleasedversions
 
 import (
