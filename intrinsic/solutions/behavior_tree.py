@@ -1542,6 +1542,7 @@ class Task(Node):
           code_execution_pb2.CodeExecution,
       ],
       name: Optional[str] = None,
+      node_id: int | None = None,
   ):
     self._behavior_call_proto = None
     self._code_execution_proto = None
@@ -1559,7 +1560,7 @@ class Task(Node):
           f'Unknown action specification: {action}'
       )
     self._name = name
-    self._node_id = None
+    self._node_id = node_id
     self._state = None
     super().__init__()
 
@@ -1690,6 +1691,7 @@ class SubTree(Node):
       self,
       behavior_tree: Optional[Union[Node, BehaviorTree]] = None,
       name: Optional[str] = None,
+      node_id: int | None = None,
   ):
     """Creates a SubTree node.
 
@@ -1698,11 +1700,12 @@ class SubTree(Node):
         passing a root node you must also provide the name argument.
       name: name of the behavior tree, if behavior_tree is a node, i.e., a root
         node of a tree; otherwise, the name of this node.
+      node_id: Pre-determined node ID, must be unique in the tree.
     """
     self.behavior_tree: Optional[BehaviorTree] = None
     self._decorators = None
     self._name = None
-    self._node_id = None
+    self._node_id = node_id
     self._state = None
     self._user_data_protos = {}
     if behavior_tree is not None:
@@ -1893,11 +1896,12 @@ class Fail(Node):
       self,
       failure_message: str = '',
       name: Optional[str] = None,
+      node_id: int | None = None,
   ):
     self._decorators = None
     self.failure_message = failure_message
     self._name = name
-    self._node_id = None
+    self._node_id = node_id
     self._state = None
     self._user_data_protos = {}
     super().__init__()
@@ -2029,11 +2033,12 @@ class Debug(Node):
       self,
       fail_on_resume: Optional[bool] = False,
       name: Optional[str] = None,
+      node_id: int | None = None,
   ):
     self._decorators = None
     self.fail_on_resume: Optional[bool] = fail_on_resume
     self._name = name
-    self._node_id = None
+    self._node_id = node_id
     self._state = None
     self._user_data_protos = {}
     super().__init__()
@@ -2217,11 +2222,13 @@ class Sequence(NodeWithChildren):
       self,
       children: Optional[SequenceType[Union[Node, actions.ActionBase]]] = None,
       name: Optional[str] = None,
+      *,
+      node_id: int | None = None,
   ):
     super().__init__(children=children)
     self._decorators = None
     self._name = name
-    self._node_id = None
+    self._node_id = node_id
     self._state = None
     self._user_data_protos = {}
 
@@ -2321,11 +2328,13 @@ class Parallel(NodeWithChildren):
       self,
       children: Optional[SequenceType[Union[Node, actions.ActionBase]]] = None,
       name: Optional[str] = None,
+      *,
+      node_id: int | None = None,
   ):
     super().__init__(children)
     self._decorators = None
     self._name = name
-    self._node_id = None
+    self._node_id = node_id
     self._state = None
     self._user_data_protos = {}
 
@@ -2467,6 +2476,7 @@ class Selector(NodeWithChildren):
       name: Optional[str] = None,
       *,
       children: Optional[SequenceType[Union[Node, actions.ActionBase]]] = None,
+      node_id: int | None = None,
   ):
     if branches and children:
       raise solutions_errors.InvalidArgumentError(
@@ -2501,7 +2511,7 @@ class Selector(NodeWithChildren):
       self.branches = node_branches
     self._decorators = None
     self._name = name
-    self._node_id = None
+    self._node_id = node_id
     self._state = None
     self._user_data_protos = {}
 
@@ -2688,13 +2698,15 @@ class Retry(Node):
       recovery: Optional[Union[Node, actions.ActionBase]] = None,
       name: Optional[str] = None,
       retry_counter_key: Optional[str] = None,
+      *,
+      node_id: int | None = None,
   ):
     self._decorators = None
     self.child = _transform_to_optional_node(child)
     self.recovery = _transform_to_optional_node(recovery)
     self.max_tries = max_tries
     self._name = name
-    self._node_id = None
+    self._node_id = node_id
     self._state = None
     self._user_data_protos = {}
     self._retry_counter_key = retry_counter_key or 'retry_counter_' + str(
@@ -2878,11 +2890,13 @@ class Fallback(NodeWithChildren):
       self,
       children: Optional[SequenceType[Union[Node, actions.ActionBase]]] = None,
       name: Optional[str] = None,
+      *,
+      node_id: int | None = None,
   ):
     super().__init__(children=children)
     self._decorators = None
     self._name = name
-    self._node_id = None
+    self._node_id = node_id
     self._state = None
     self._user_data_protos = {}
 
@@ -3017,6 +3031,7 @@ class Loop(Node):
           List[Union[protobuf_message.Message, skill_utils.MessageWrapper]]
       ] = None,
       for_each_generator_cel_expression: Optional[str] = None,
+      node_id: int | None = None,
   ):
     self._decorators = None
     self._user_data_protos = {}
@@ -3028,7 +3043,7 @@ class Loop(Node):
         uuid.uuid4()
     ).replace('-', '_')
     self._name = name
-    self._node_id = None
+    self._node_id = node_id
     self._state = None
     self._for_each_value_key = for_each_value_key
     self._for_each_value = None
@@ -3539,13 +3554,15 @@ class Branch(Node):
       then_child: Optional[Union[Node, actions.ActionBase]] = None,
       else_child: Optional[Union[Node, actions.ActionBase]] = None,
       name: Optional[str] = None,
+      *,
+      node_id: int | None = None,
   ):
     self._decorators = None
     self.then_child: Optional[Node] = _transform_to_optional_node(then_child)
     self.else_child: Optional[Node] = _transform_to_optional_node(else_child)
     self.if_condition: Optional[Condition] = if_condition
     self._name = name
-    self._node_id = None
+    self._node_id = node_id
     self._state = None
     self._user_data_protos = {}
     super().__init__()
@@ -3787,6 +3804,7 @@ class Data(Node):
           List[protobuf_message.Message | skill_utils.MessageWrapper]
       ] = None,
       name: Optional[str] = None,
+      node_id: int | None = None,
   ):
     self._decorators = None
     self._blackboard_key = blackboard_key
@@ -3796,7 +3814,7 @@ class Data(Node):
     self._proto = proto
     self._protos = protos
     self._name = name
-    self._node_id = None
+    self._node_id = node_id
     self._state = None
     self._user_data_protos = {}
 
@@ -4275,6 +4293,8 @@ class BehaviorTree:
       name: Optional[str] = None,
       root: Optional[Union[Node, actions.ActionBase]] = None,
       bt: Union[BehaviorTree, behavior_tree_pb2.BehaviorTree, None] = None,
+      *,
+      tree_id: str | None = None,
   ):
     """Creates an empty object or an object from another object / a plan proto.
 
@@ -4285,9 +4305,11 @@ class BehaviorTree:
       root: a node of type Node to be set as the root of this tree,
       bt: BehaviorTree instance or BehaviorTree proto. The value of the `name`
         argument overwrites the value from the `bt` proto argument, if set.
+      tree_id: Pre-determined tree ID, the format match the regex
+        `[a-zA-Z0-9][a-zA-Z0-9_-]*` (for details see BehaviorTree proto docs).
     """
     root = _transform_to_optional_node(root)
-    self.tree_id = None
+    self.tree_id = tree_id
     if bt is not None:
       bt_copy = None
       if isinstance(bt, BehaviorTree):
