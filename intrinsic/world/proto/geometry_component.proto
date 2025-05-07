@@ -19,14 +19,6 @@ message GeometryOptions {
 // etc.).
 message GeometryComponent {
   message Geometry {
-    // Geometry id for this object's shape. The id represents a unique
-    // piece of geometry, multiple entities within the world may have the
-    // same id. If multiple entities in the same world have the same id,
-    // those entities all reference the same piece of geometry. The id is
-    // not guaranteed to be globaly unique and the same id in different
-    // world protos may point to different pieces of geometry.
-    string geometry_id = 1 [deprecated = true];
-
     // Geometry storage refs is intended to be an (mostly) opaque container of
     // references to storage objects e.g. CAS URIs. The constituent fields
     // provide no guarantees of uniqueness.
@@ -36,6 +28,9 @@ message GeometryComponent {
     intrinsic_proto.Matrixd ref_t_shape_aff = 4;
     // Runtime options for this geometry.
     GeometryOptions options = 7;
+
+    reserved 1;
+    reserved "geometry_id";
   }
 
   // Used for the value type in proto map below.

@@ -26,18 +26,15 @@ service GeometryService {
 
 // Request message for getting geometry from the geometry service.
 message GetGeometryRequest {
-  // The geometry id being requested. Deprecated: Use geometry_storage_refs.
-  string geometry_id = 1 [deprecated = true];
-
   // The references to the stored geometry being requested.
   GeometryStorageRefs geometry_storage_refs = 2;
+
+  reserved 1;
+  reserved "geometry_id";
 }
 
 // Request message for getting renderable data from the geometry service.
 message GetRenderableRequest {
-  // The geometry id being requested.
-  string geometry_id = 1 [deprecated = true];
-
   // The references to the stored geometry being requested.
   GeometryStorageRefs geometry_storage_refs = 3;
 
@@ -45,6 +42,9 @@ message GetRenderableRequest {
   // quality and any number above that will simplify the geometry. The higher
   // the number the more simplified it will be.
   uint32 lod_level = 2;
+
+  reserved 1;
+  reserved "geometry_id";
 }
 
 // Request message for adding new geometry to the geometry service

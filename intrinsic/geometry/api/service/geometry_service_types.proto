@@ -12,21 +12,18 @@ import "intrinsic/math/proto/matrix.proto";
 
 // Response message for getting geometry from the geometry service.
 message GeometryWithMetadata {
-  // The id of the held geometry.
-  string geometry_id = 1 [deprecated = true];
-
   // The references to the stored geometry artifacts.
   GeometryStorageRefs geometry_storage_refs = 3;
 
   // The geometry data for the requested geometry object.
   Geometry geometry = 2;
+
+  reserved 1;
+  reserved "geometry_id";
 }
 
 // Response message for getting renderable data from the geometry service.
 message RenderableWithMetadata {
-  // The id of the held geometry.
-  string geometry_id = 1 [deprecated = true];
-
   // The references to the stored geometry artifacts.
   GeometryStorageRefs geometry_storage_refs = 4;
 
@@ -37,6 +34,9 @@ message RenderableWithMetadata {
 
   // The renderable data itself.
   Renderable renderable = 3;
+
+  reserved 1;
+  reserved "geometry_id";
 }
 
 message GeometryData {
@@ -59,9 +59,6 @@ message PosedGeometryData {
     // Geometry data for this object's shape.
     GeometryData geometry_data = 1;
 
-    // Geometry id already present in geometry storage.
-    string geometry_id = 2 [deprecated = true];
-
     // The references to the stored geometry artifacts.
     GeometryStorageRefs geometry_storage_refs = 6;
   }
@@ -69,4 +66,6 @@ message PosedGeometryData {
   // A 4x4 affine transform from entity frame to this shape.
   intrinsic_proto.Matrixd ref_t_shape_aff = 5;
 
+  reserved 2, 3, 4;
+  reserved "geometry_id", "ref_t_shape", "scale";
 }
