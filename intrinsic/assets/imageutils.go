@@ -4,17 +4,10 @@
 package imageutils
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"os/exec"
 	"strings"
-
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-	installerpb "intrinsic/kubernetes/workcell_spec/proto/installer_go_grpc_proto"
-	installerservicegrpcpb "intrinsic/kubernetes/workcell_spec/proto/installer_go_grpc_proto"
 )
 
 var (
@@ -110,27 +103,6 @@ func GetImagePath(target string, targetType TargetType) (string, error) {
 	default:
 		return "", fmt.Errorf("unimplemented target type: %v", targetType)
 	}
-}
-
-// RemoveContainerParams holds parameters for RemoveContainer.
-type RemoveContainerParams struct {
-	Address    string
-	Connection *grpc.ClientConn
-	Request    *installerpb.RemoveContainerAddonRequest
-}
-
-// RemoveContainer uses the installer service to remove a new container.
-func RemoveContainer(ctx context.Context, params *RemoveContainerParams) error {
-
-	client := installerservicegrpcpb.NewInstallerServiceClient(params.Connection)
-	_, err := client.RemoveContainerAddon(ctx, params.Request)
-	if status.Code(err) == codes.Unimplemented {
-		return fmt.Errorf("installer service not implemented at server side (is it running and accessible at %s?): %v", params.Address, err)
-	} else if err != nil {
-		return fmt.Errorf("RemoveContainerAddon failed: %v", err)
-	}
-
-	return nil
 }
 
 // GetRegistry returns the registry to use for images in the specified project.

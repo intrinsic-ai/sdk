@@ -121,13 +121,6 @@ go_library(
     name = "imageutils",
     srcs = ["imageutils.go"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = [
-        "//intrinsic/kubernetes/workcell_spec/proto:installer_go_grpc_proto",
-        "@io_opencensus_go//trace:go_default_library",
-        "@org_golang_google_grpc//:go_default_library",
-        "@org_golang_google_grpc//codes:go_default_library",
-        "@org_golang_google_grpc//status:go_default_library",
-    ],
 )
 
 go_library(
