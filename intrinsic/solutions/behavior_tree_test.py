@@ -866,6 +866,41 @@ user_data {
     self.assertEqual(nodes[1].node_id, 4)
     self.assertEqual(nodes[1].name, 'same name')
 
+  def test_find_node_by_id(self):
+    my_bt = bt.BehaviorTree('my_bt', tree_id='tree')
+    my_bt.set_root(
+        bt.Sequence(name='root_node', node_id=1).set_children(
+            bt.Task(
+                name='child_node',
+                action=behavior_call.Action(skill_id='ai.intrinsic.skill-0'),
+                node_id=2,
+            ),
+            bt.Task(
+                name='second_child',
+                action=behavior_call.Action(skill_id='ai.intrinsic.skill-0'),
+                node_id=3,
+            ),
+        )
+    )
+
+    node = my_bt.find_node_by_id(1)
+    self.assertIsNotNone(node)
+    self.assertEqual(node.node_id, 1)
+    self.assertEqual(node.name, 'root_node')
+
+    node = my_bt.find_node_by_id(2)
+    self.assertIsNotNone(node)
+    self.assertEqual(node.node_id, 2)
+    self.assertEqual(node.name, 'child_node')
+
+    node = my_bt.find_node_by_id(3)
+    self.assertIsNotNone(node)
+    self.assertEqual(node.node_id, 3)
+    self.assertEqual(node.name, 'second_child')
+
+    node = my_bt.find_node_by_id(400)
+    self.assertIsNone(node)
+
   def test_find_node_validates(self):
     my_bt = bt.BehaviorTree('my_bt', tree_id='tree')
     my_bt.set_root(

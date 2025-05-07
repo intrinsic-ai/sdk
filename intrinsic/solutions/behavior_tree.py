@@ -4549,10 +4549,39 @@ class BehaviorTree:
     ):
       del containing_tree  # unused
       if isinstance(tree_object, Node) and tree_object.name == node_name:
+        nonlocal nodes
         nodes.append(cast(Node, tree_object))
 
     self.visit(search_matching_name)
     return nodes
+
+  def find_node_by_id(self, node_id: int) -> Node | None:
+    """Searches the tree recursively for a node with the given ID.
+
+    This will only look in this tree, it will not recurse into subtrees. An ID
+    is only uniquely identified within the context of a single tree.
+
+    Args:
+      node_id: ID to search for in the tree.
+
+    Returns:
+      The node if found in this tree, None if no node found with the ID.
+    """
+    node: Node | None = None
+
+    def search_matching_id(
+        containing_tree: BehaviorTree,
+        tree_object: Union[BehaviorTree, Node, Condition],
+    ):
+      if containing_tree.tree_id != self.tree_id:
+        return
+
+      if isinstance(tree_object, Node) and tree_object.node_id == node_id:
+        nonlocal node
+        node = cast(Node, tree_object)
+
+    self.visit(search_matching_id)
+    return node
 
   def remove_node(self, node_id: int) -> None:
     """Removes a given node from this behavior tree.
