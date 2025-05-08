@@ -6,6 +6,7 @@ package intrinsic_proto.catalog.v1;
 
 import "google/api/field_behavior.proto";
 import "google/protobuf/descriptor.proto";
+import "intrinsic/assets/catalog/proto/v1/release_metadata.proto";
 import "intrinsic/assets/data/proto/v1/data_asset.proto";
 import "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest.proto";
 import "intrinsic/assets/proto/asset_tag.proto";
@@ -89,6 +90,9 @@ message Asset {
     DataMetadata data_specific_metadata = 4;
     ServiceMetadata service_specific_metadata = 2;
   }
+
+  // Release-related metadata about the asset.
+  ReleaseMetadata release_metadata = 5;
 
   // Asset deployment data.
   AssetDeploymentData deployment_data = 3;
@@ -185,11 +189,8 @@ message CreateAssetRequest {
   // The asset to create.
   Asset asset = 1;
 
-  // True if this version of the asset should be hidden from users who aren't a
-  // member of the organization that owns the asset.
-  //
-  // Cannot be true if the asset is the default version.
-  optional bool org_private = 2;
+  // Use asset.release_metadata.org_private instead.
+  optional bool org_private = 2 [deprecated = true];
 }
 
 message ClearDefaultRequest {

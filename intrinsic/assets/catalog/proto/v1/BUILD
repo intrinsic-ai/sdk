@@ -15,6 +15,7 @@ proto_library(
     name = "asset_catalog_proto",
     srcs = ["asset_catalog.proto"],
     deps = [
+        ":release_metadata_proto",
         "//intrinsic/assets/data/proto/v1:data_asset_proto",
         "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_proto",
         "//intrinsic/assets/proto:asset_tag_proto",
@@ -48,6 +49,7 @@ cc_grpc_library(
 go_proto_library(
     name = "asset_catalog_go_proto",
     go_deps = [
+        ":release_metadata_go_proto",
         "@org_golang_google_genproto_googleapis_api//annotations",
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
         "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",
@@ -68,6 +70,7 @@ go_grpc_library(
     name = "asset_catalog_go_grpc_proto",
     srcs = [":asset_catalog_proto"],
     deps = [
+        ":release_metadata_go_proto",
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
         "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",
         "//intrinsic/assets/proto:asset_tag_go_proto",
@@ -94,4 +97,24 @@ py_grpc_library(
     srcs = [":asset_catalog_proto"],
     grpc_library = requirement("grpcio"),
     deps = [":asset_catalog_py_pb2"],
+)
+
+proto_library(
+    name = "release_metadata_proto",
+    srcs = ["release_metadata.proto"],
+)
+
+py_proto_library(
+    name = "release_metadata_py_pb2",
+    deps = [":release_metadata_proto"],
+)
+
+cc_proto_library(
+    name = "release_metadata_cc_proto",
+    deps = [":release_metadata_proto"],
+)
+
+go_proto_library(
+    name = "release_metadata_go_proto",
+    deps = [":release_metadata_proto"],
 )

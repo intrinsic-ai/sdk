@@ -123,6 +123,7 @@ go_library(
         "//intrinsic/assets:imagetransfer",
         "//intrinsic/assets:imageutils",
         "//intrinsic/assets/catalog/proto/v1:asset_catalog_go_grpc_proto",
+        "//intrinsic/assets/catalog/proto/v1:release_metadata_go_proto",
         "//intrinsic/assets/proto:asset_type_go_proto",
         "//intrinsic/assets/proto:metadata_go_proto",
         "//intrinsic/assets/proto:release_tag_go_proto",

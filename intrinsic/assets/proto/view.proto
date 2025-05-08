@@ -35,9 +35,10 @@ enum AssetViewType {
   // * asset_type
   // * id_version
   // * release_notes
-  // * release_tag
   // * update_time
   // * vendor
+  //
+  // Also includes release metadata.
   ASSET_VIEW_TYPE_VERSIONS = 3;
 
   // Provides all metadata fields.

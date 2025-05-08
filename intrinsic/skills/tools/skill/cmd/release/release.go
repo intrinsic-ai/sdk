@@ -18,6 +18,7 @@ import (
 	"intrinsic/assets/bundleio"
 	acgrpcpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
 	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
+	rmpb "intrinsic/assets/catalog/proto/v1/release_metadata_go_proto"
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/assets/idutils"
@@ -83,7 +84,6 @@ func processAsset(target string, transferer imagetransfer.Transferer, flags *cmd
 				Documentation: manifest.GetDocumentation(),
 				Vendor:        manifest.GetVendor(),
 				ReleaseNotes:  flags.GetFlagReleaseNotes(),
-				ReleaseTag:    releaseTag,
 			},
 		}, nil
 	}
@@ -110,7 +110,11 @@ func processAsset(target string, transferer imagetransfer.Transferer, flags *cmd
 			Documentation: metadata.GetDocumentation(),
 			Vendor:        metadata.GetVendor(),
 			ReleaseNotes:  flags.GetFlagReleaseNotes(),
-			ReleaseTag:    releaseTag,
+			ReleaseTag: releaseTag,
+		},
+		ReleaseMetadata: &rmpb.ReleaseMetadata{
+			Default:    flags.GetFlagDefault(),
+			OrgPrivate: flags.GetFlagOrgPrivate(),
 		},
 		DeploymentData: &acpb.Asset_AssetDeploymentData{
 			AssetSpecificDeploymentData: &acpb.Asset_AssetDeploymentData_SkillSpecificDeploymentData{
@@ -229,7 +233,7 @@ var releaseCmd = &cobra.Command{
 		}
 		client := acgrpcpb.NewAssetCatalogClient(conn)
 		req := &acpb.CreateAssetRequest{
-			Asset:      asset,
+			Asset: asset,
 			OrgPrivate: proto.Bool(cmdFlags.GetFlagOrgPrivate()),
 		}
 		return release(cmd.Context(), client, req, cmdFlags.GetFlagIgnoreExisting(), printer)

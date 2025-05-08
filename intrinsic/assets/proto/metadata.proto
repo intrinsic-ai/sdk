@@ -34,8 +34,8 @@ message Metadata {
   // Release notes for this version of the asset.
   string release_notes = 5;
 
-  // A tag to help users identify a specific release of an asset.
-  ReleaseTag release_tag = 6;
+  // Use Asset.release_metadata.default instead.
+  ReleaseTag release_tag = 6 [deprecated = true];
 
   // The time at which this version of the asset became available.
   google.protobuf.Timestamp update_time = 7;
