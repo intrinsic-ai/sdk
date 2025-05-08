@@ -34,6 +34,11 @@ message FieldMetadata {
   // can be used to designate a particular field in the UI that should be used
   // to select a part name.
   bool is_icon2_position_part = 2;
+
+  // Designator for a intrinsic_proto.assets.Id field that holds an installed
+  // scene object asset. This can be used to designate a particular field
+  // in the UI that should be used to select a scene object asset.
+  bool is_installed_scene_object_asset = 3;
 }
 
 extend google.protobuf.FieldOptions {
