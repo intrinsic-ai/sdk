@@ -21,7 +21,6 @@ exports_files(
         "//intrinsic/kubernetes:__subpackages__",
         "//intrinsic/perception:__subpackages__",
         "//intrinsic/platform/pubsub:__subpackages__",
-        "//visibility:public",
     ],
 )
 
