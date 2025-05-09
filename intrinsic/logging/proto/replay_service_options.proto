@@ -1,0 +1,183 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.replay;
+
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+
+// Shared options components.
+
+// Options to filter recorded logs.
+//
+// A recorded log will be included if it passes all specified filters.
+message FilterOptions {
+  // Filter by time range.
+  message TimeRangeFilterOptions {
+    // If set, excludes candidates before this time.
+    optional google.protobuf.Timestamp start_time = 1;
+
+    // If set, excludes candidates after this time.
+    optional google.protobuf.Timestamp end_time = 2;
+  }
+
+  // Filter by regex patterns.
+  //
+  // Filter elements must be valid RE2 regex patterns, and will be used as such.
+  message RegexFilterOptions {
+    // Candidates to include.
+    // If empty, defaults to ".*", which includes all candidates.
+    repeated string allowlist_regexes = 1;
+
+    // Candidates to exclude, will be applied after the allowlist.
+    repeated string denylist_regexes = 2;
+  }
+
+  // Filter by downsampling.
+  //
+  // If multiple sampling intervals are set, the candidate will only be sampled
+  // if all intervals are met.
+  //
+  // Downsampling happens on a per candidate ID basis, treating each candidate
+  // ID as an independent stream to be sampled from.
+  message DownsamplingFilterOptions {
+    // Downsamples candidate IDs that match these regex patterns.
+    // Must be valid RE2 regex patterns.
+    repeated string match_regexes = 1;
+
+    // If set, downsamples the candidates by time interval.
+    // This is the minimum time interval between each sample.
+    optional google.protobuf.Duration sampling_interval_time = 2;
+
+    // If set, downsamples the candidates by sampling count.
+    // This is the minimum number of candidates between each sample.
+    optional uint32 sampling_interval_count = 3;
+  }
+
+  // Applies the following filters in order, if set.
+  optional TimeRangeFilterOptions time_range = 1;
+  optional RegexFilterOptions event_sources = 2;
+
+  // Downsampling will take into account prior filter applications.
+  //
+  // If multiple downsamplers match the same candidate, the candidate will be
+  // downsampled according to the strictest matching downsampler.
+  repeated DownsamplingFilterOptions downsamplers = 3;
+}
+
+// Visualization options.
+
+// Options for layout generation, where a heuristic layout is generated based
+// on the recorded logs.
+//
+// Visualizers are able to gather state from recorded logs to automatically
+// generate suitable layout components. For example, the perception visualizer
+// gathers seen pose estimations to generate the views for that pose
+// estimator.
+//
+// You can still manually create and edit a layout on the visualization
+// frontend.
+message LayoutGenerationOptions {
+  // If true, enables layout generation.
+  bool enabled = 1;
+
+  // The float percentage of the recording time at which to generate the
+  // heuristic visualization layout.
+  //
+  // This value must be in the range [0, 1].
+  // Defaults to 0.3, which causes the layout to be generated after 30% of the
+  // recording time has been parsed.
+  //
+  // If this threshold is too low, then the visualizers might not have
+  // encountered the necessary state to generate all desired layouts. But if
+  // this threshold is too high, then for a large recording, visualization
+  // layouts might take a long time to be generated.
+  optional float layout_generation_threshold = 2;
+}
+
+// Options for the RawMessage visualizer, which visualizes:
+//   - Raw message data
+message RawMessageVisualizerOptions {
+  // If true, enables the visualizer.
+  bool enabled = 1;
+
+  // Options for filtering out recorded logs going into the visualizer.
+  optional FilterOptions filters = 2;
+
+  // Maximum number of bytes to display in bytes fields.
+  optional uint32 bytes_max_display_length = 3;
+}
+
+// Options for the Scene visualizer, which visualizes:
+//   - World transforms (including robot and scene)
+//   - World renderable geometries
+message SceneVisualizerOptions {
+  // If true, enables the visualizer.
+  bool enabled = 1;
+
+  // Options for filtering out recorded logs going into the visualizer.
+  optional FilterOptions filters = 2;
+}
+
+// Options for the Perception visualizer, which visualizes:
+//   - Captured camera images
+//   - Pose estimations
+message PerceptionVisualizerOptions {
+  message ImageCompressionOptions {
+    // If true, compresses images to JPEG.
+    bool enabled = 1;
+
+    // The JPEG quality to use when compressing images to JPEG for
+    // visualization. In the range [0, 100].
+    optional uint32 quality = 3;
+  }
+
+  // If true, enables the visualizer.
+  bool enabled = 1;
+
+  // Options for filtering out recorded logs going into the visualizer.
+  optional FilterOptions filters = 2;
+
+  // The number of ImageWithMetadata messages to buffer.
+  //
+  // Use a higher number if there are many concurrent skill runs
+  // or perception estimators.
+  optional uint32 buffer_size = 3;
+
+  // Options for image compression.
+  optional ImageCompressionOptions image_compression = 4;
+}
+
+message VisualizationOptions {
+  message VisualizerOptions {
+    // Options for the RawMessage visualizer.
+    optional RawMessageVisualizerOptions raw_message = 1;
+
+    // Options for the Scene visualizer.
+    optional SceneVisualizerOptions scene = 3;
+
+    // Options for the Perception visualizer.
+    optional PerceptionVisualizerOptions perception = 4;
+  }
+
+  // An optional name for the visualization.
+  // If not set, defaults to a random UUID.
+  optional string name = 1;
+
+  // Default options for filtering out recorded logs that will be set on all
+  // visualizers.
+  //
+  // Use this if you want to filter out some logs across all visualizers by
+  // default (e.g., for high frequency event sources).
+  //
+  // You can still override these defaults by setting options on each
+  // visualizer.
+  optional FilterOptions default_visualizer_filters = 2;
+
+  // Options for layout generation.
+  optional LayoutGenerationOptions layout_generation = 3;
+
+  // Options for visualizers.
+  optional VisualizerOptions visualizers = 4;
+}

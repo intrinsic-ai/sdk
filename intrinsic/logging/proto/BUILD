@@ -381,6 +381,76 @@ go_grpc_library(
 )
 
 proto_library(
+    name = "replay_service",
+    srcs = ["replay_service.proto"],
+    deps = [":replay_service_options"],
+)
+
+cc_proto_library(
+    name = "replay_service_cc_proto",
+    deps = [":replay_service"],
+)
+
+cc_grpc_library(
+    name = "replay_service_cc_grpc",
+    srcs = [":replay_service"],
+    generate_mocks = True,
+    grpc_only = True,
+    deps = [":replay_service_cc_proto"],
+)
+
+py_proto_library(
+    name = "replay_service_py_pb2",
+    deps = [":replay_service"],
+)
+
+py_grpc_library(
+    name = "replay_service_py_pb2_grpc",
+    srcs = [":replay_service"],
+    grpc_library = requirement("grpcio"),
+    deps = [":replay_service_py_pb2"],
+)
+
+go_proto_library(
+    name = "replay_service_go_proto",
+    go_deps = [":replay_service_options_go_proto"],
+    deps = [":replay_service"],
+)
+
+go_grpc_library(
+    name = "replay_service_go_grpc_proto",
+    srcs = [":replay_service"],
+    deps = [
+        ":replay_service_go_proto",
+        ":replay_service_options_go_proto",
+    ],
+)
+
+proto_library(
+    name = "replay_service_options",
+    srcs = ["replay_service_options.proto"],
+    deps = [
+        "@com_google_protobuf//:duration_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "replay_service_options_cc_proto",
+    deps = [":replay_service_options"],
+)
+
+py_proto_library(
+    name = "replay_service_options_py_pb2",
+    deps = [":replay_service_options"],
+)
+
+go_proto_library(
+    name = "replay_service_options_go_proto",
+    deps = [":replay_service_options"],
+)
+
+proto_library(
     name = "bag_metadata_proto",
     srcs = ["bag_metadata.proto"],
     deps = [
