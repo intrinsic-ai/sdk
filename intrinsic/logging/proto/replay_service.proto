@@ -1,0 +1,32 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.replay;
+
+import "intrinsic/logging/proto/replay_service_options.proto";
+
+message VisualizeRecordingRequest {
+  // The recording to visualize.
+  string recording_id = 1;
+
+  // Visualization options for the message visualizer.
+  //
+  // Sane defaults are already set for each visualizer (e.g., downsampling high
+  // frequency event sources) and other options (e.g., layout generation).
+  //
+  // Setting options here will override those defaults on a per option basis.
+  optional VisualizationOptions visualization_options = 2;
+}
+
+message VisualizeRecordingResponse {
+  // The URL to the visualization.
+  string url = 1;
+}
+
+service Replay {
+
+  // Visualize a recording.
+  rpc VisualizeRecording(VisualizeRecordingRequest)
+      returns (VisualizeRecordingResponse) {}
+}
