@@ -1,0 +1,77 @@
+name: 'Download Versioned IntrinsicOS SBOM from GCS'
+description: 'Reads a stable version from platform version, constructs a GCS path, and downloads the corresponding SBOM.'
+
+inputs:
+  versions-jsonnet-path:
+    description: 'Path to the versions.jsonnet file.'
+    required: false
+    default: 'intrinsic/production/versions/versions.jsonnet'
+  gcs-sbom-bucket-path:
+    description: 'Base GCS path for SBOMs.'
+    required: false
+    default: 'gs://intrinsic-os-releases-us/realtime'
+  gcs-sbom-filename:
+    description: 'Filename of the SBOM within the versioned GCS folder.'
+    required: false
+    default: 'sbom.spdx.json'
+  local-sbom-filename-prefix:
+    description: 'Prefix for the locally downloaded SBOM filename.'
+    required: false
+    default: 'sbom.intrinsic-os'
+outputs:
+  sbom-local-path:
+    description: 'The local path to the downloaded SBOM file, if successful.'
+    value: ${{ steps.get_sbom.outputs.sbom-local-path }}
+  stable-version:
+    description: 'The extracted stable version string.'
+    value: ${{ steps.get_sbom.outputs.stable-version }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Dependencies (Jsonnet, jq)
+      shell: bash
+      run: |
+        echo "Installing dependencies: jsonnet, jq..."
+        sudo apt-get update -y && sudo apt-get install -y jsonnet jq
+
+    - name: Set up Cloud SDK (gcloud/gsutil)
+      uses: google-github-actions/setup-gcloud@77e7a554d41e2ee56fc945c52dfd3f33d12def9a  # v2.1.4
+
+    - name: Extract Stable Version and Download SBOM
+      id: get_sbom # Give ID to access outputs easily later if needed internally
+      shell: bash
+      run: |
+        VERSIONS_FILE="${{ inputs.versions-jsonnet-path }}"
+        GCS_BASE="${{ inputs.gcs-sbom-bucket-path }}"
+        GCS_FILENAME="${{ inputs.gcs-sbom-filename }}"
+        LOCAL_PREFIX="${{ inputs.local-sbom-filename-prefix }}"
+
+        echo "::group::Extracting Stable Version"
+        echo "Reading stable version from ${VERSIONS_FILE}"
+        if [[ ! -f "$VERSIONS_FILE" ]]; then
+          echo "Error: Versions file not found at ${VERSIONS_FILE}"
+          exit 1;
+        fi
+        STABLE_VERSION=$(jsonnet "${VERSIONS_FILE}" | jq -r .stable)
+        if [[ -z "$STABLE_VERSION" || "$STABLE_VERSION" == "null" ]]; then
+          echo "Error: Could not extract 'stable' version from ${VERSIONS_FILE}"
+          exit 1;
+        fi
+        echo "Found stable OS version: ${STABLE_VERSION}"
+        echo "::set-output name=stable-version::${STABLE_VERSION}" # Set stable-version output
+        echo "::endgroup::"
+
+        echo "::group::Downloading SBOM"
+        GCS_SBOM_PATH="${GCS_BASE}/xfa.${STABLE_VERSION}/${GCS_FILENAME}"
+        LOCAL_SBOM_FILENAME="${LOCAL_PREFIX}.${STABLE_VERSION}.spdx.json"
+        echo "Attempting to download SBOM from ${GCS_SBOM_PATH} to ${LOCAL_SBOM_FILENAME}"
+
+        if gsutil cp "${GCS_SBOM_PATH}" "${LOCAL_SBOM_FILENAME}"; then
+          echo "Successfully downloaded SBOM to ${LOCAL_SBOM_FILENAME}"
+          echo "::set-output name=sbom-local-path::${LOCAL_SBOM_FILENAME}" # Set sbom-local-path output ONLY on success
+          echo "::endgroup::"
+        else
+          echo "Error: Failed to download SBOM from ${GCS_SBOM_PATH}"
+          exit 1;
+        fi

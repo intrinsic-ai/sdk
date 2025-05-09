@@ -1,0 +1,8 @@
+# Bazel config for CI/CD builds.
+
+# Default to keep going
+build --keep_going
+
+# Show meaningful error messages in CI output
+build --verbose_failures
+test --test_output=errors
