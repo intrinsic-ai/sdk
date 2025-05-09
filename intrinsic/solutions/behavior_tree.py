@@ -70,6 +70,27 @@ NodeIdentifierType = collections.namedtuple(
 )
 
 
+def generate_unique_node_id() -> int:
+  """Generates a unique node ID suitable to use in a behavior tree.
+
+  Returns:
+    32 bit portion as int from an UUID that can be used as a randomized node ID.
+  """
+  uid = uuid.uuid4()
+  uid_128 = uid.int
+  # The proto only specifies uint32, so a 128-bit UUID wouldn't fit. XOR
+  # this together to retain sufficient randomness to prevent collisions.
+  # Node Ids must be unique only within the behavior tree that is being
+  # created.
+  uid_32 = (
+      (uid_128 & 0xFFFFFFFF)
+      ^ (uid_128 & (0xFFFFFFFF << 32)) >> 32
+      ^ (uid_128 & (0xFFFFFFFF << 64)) >> 64
+      ^ (uid_128 & (0xFFFFFFFF << 96)) >> 96
+  )
+  return int(uid_32)
+
+
 def _transform_to_node(node: Union[Node, actions.ActionBase]) -> Node:
   if isinstance(node, actions.ActionBase):
     return Task(node)
@@ -749,19 +770,7 @@ class Node(abc.ABC):
           'Warning: Creating a new unique id, but this node already had an id'
           f' ({self.node_id})'
       )
-    uid = uuid.uuid4()
-    uid_128 = uid.int
-    # The proto only specifies uint32, so a 128-bit UUID wouldn't fit. XOR
-    # this together to retain sufficient randomness to prevent collisions.
-    # Node Ids must be unique only within the behavior tree that is being
-    # created.
-    uid_32 = (
-        (uid_128 & 0xFFFFFFFF)
-        ^ (uid_128 & (0xFFFFFFFF << 32)) >> 32
-        ^ (uid_128 & (0xFFFFFFFF << 64)) >> 64
-        ^ (uid_128 & (0xFFFFFFFF << 96)) >> 96
-    )
-    self.node_id = uid_32
+    self.node_id = generate_unique_node_id()
     return self.node_id
 
   @property
