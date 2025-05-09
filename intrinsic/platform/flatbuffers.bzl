@@ -322,9 +322,6 @@ def _make_cc_flatbuffers_aspect(*, suffix = "", generate_object_api, generate_co
                 default = Label("@com_github_google_flatbuffers//:flatbuffers"),
                 providers = [CcInfo],
             ),
-            "_cc_toolchain": attr.label(
-                default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
-            ),
         }, _flatc),
         fragments = ["google_cpp", "cpp"],
         required_aspect_providers = [FlatBuffersInfo],

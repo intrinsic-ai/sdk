@@ -168,7 +168,6 @@ _gen_flatbuffers_cc = aspect(
             executable = True,
         ),
         "_flatbuffers_lib": attr.label(default = Label("//third_party/flatbuffers:runtime_cc")),
-        "_cc_toolchain": attr.label(default = "@bazel_tools//tools/cpp:current_cc_toolchain"),
     },
     toolchains = use_cpp_toolchain(),
 )
