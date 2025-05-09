@@ -771,9 +771,9 @@ class Node(abc.ABC):
       self._failure_settings = Node.FailureSettings(self)
     return self._failure_settings
 
-  @property
+  @utils.classproperty
   @abc.abstractmethod
-  def node_type(self) -> str:
+  def node_type(cls) -> str:  # pylint:disable=no-self-argument
     ...
 
   @abc.abstractmethod
@@ -1602,8 +1602,8 @@ class Task(Node):
       proto_object.task.execute_code.CopyFrom(self._code_execution_proto)
     return proto_object
 
-  @property
-  def node_type(self) -> str:
+  @utils.classproperty
+  def node_type(cls) -> str:  # pylint:disable=no-self-argument
     return 'task'
 
   @property
@@ -1781,8 +1781,8 @@ class SubTree(Node):
     proto_object.sub_tree.tree.CopyFrom(self.behavior_tree.proto)
     return proto_object
 
-  @property
-  def node_type(self) -> str:
+  @utils.classproperty
+  def node_type(cls) -> str:  # pylint:disable=no-self-argument
     return 'sub_tree'
 
   def set_decorators(self, decorators: Optional[Decorators]) -> Node:
@@ -1953,8 +1953,8 @@ class Fail(Node):
   def state(self) -> Optional[NodeState]:
     return self._state
 
-  @property
-  def node_type(self) -> str:
+  @utils.classproperty
+  def node_type(cls) -> str:  # pylint:disable=no-self-argument
     return 'fail'
 
   def set_decorators(self, decorators: Optional[Decorators]) -> Node:
@@ -2077,8 +2077,8 @@ class Debug(Node):
   def state(self) -> Optional[NodeState]:
     return self._state
 
-  @property
-  def node_type(self) -> str:
+  @utils.classproperty
+  def node_type(cls) -> str:  # pylint:disable=no-self-argument
     return 'debug'
 
   def set_decorators(self, decorators: Optional[Decorators]) -> Node:
@@ -2244,9 +2244,9 @@ class Sequence(NodeWithChildren):
       )
     return proto_object
 
-  @property
-  def node_type(self) -> str:
-    return 'Sequence'
+  @utils.classproperty
+  def node_type(cls) -> str:  # pylint:disable=no-self-argument
+    return 'sequence'
 
   @property
   def name(self) -> Optional[str]:
@@ -2351,9 +2351,9 @@ class Parallel(NodeWithChildren):
 
     return proto_object
 
-  @property
-  def node_type(self) -> str:
-    return 'Parallel'
+  @utils.classproperty
+  def node_type(cls) -> str:  # pylint:disable=no-self-argument
+    return 'parallel'
 
   @property
   def name(self) -> Optional[str]:
@@ -2556,9 +2556,9 @@ class Selector(NodeWithChildren):
       )
     return proto_object
 
-  @property
-  def node_type(self) -> str:
-    return 'Selector'
+  @utils.classproperty
+  def node_type(cls) -> str:  # pylint:disable=no-self-argument
+    return 'selector'
 
   @property
   def name(self) -> Optional[str]:
@@ -2785,8 +2785,8 @@ class Retry(Node):
   def retry_counter(self) -> str:
     return self._retry_counter_key
 
-  @property
-  def node_type(self) -> str:
+  @utils.classproperty
+  def node_type(cls) -> str:  # pylint:disable=no-self-argument
     return 'retry'
 
   def set_decorators(self, decorators: Optional[Decorators]) -> Node:
@@ -2912,9 +2912,9 @@ class Fallback(NodeWithChildren):
       )
     return proto_object
 
-  @property
-  def node_type(self) -> str:
-    return 'Fallback'
+  @utils.classproperty
+  def node_type(cls) -> str:  # pylint:disable=no-self-argument
+    return 'fallback'
 
   @property
   def name(self) -> Optional[str]:
@@ -3419,8 +3419,8 @@ class Loop(Node):
   def for_each_generator_cel_expression(self) -> Optional[str]:
     return self._for_each_generator_cel_expression
 
-  @property
-  def node_type(self) -> str:
+  @utils.classproperty
+  def node_type(cls) -> str:  # pylint:disable=no-self-argument
     return 'loop'
 
   def set_decorators(self, decorators: Optional[Decorators]) -> Node:
@@ -3660,8 +3660,8 @@ class Branch(Node):
       else_proto.CopyFrom(self.else_child.proto)
     return proto_message
 
-  @property
-  def node_type(self) -> str:
+  @utils.classproperty
+  def node_type(cls) -> str:  # pylint:disable=no-self-argument
     return 'branch'
 
   def set_decorators(self, decorators: Optional[Decorators]) -> Node:
@@ -3918,8 +3918,8 @@ class Data(Node):
 
     return proto_message
 
-  @property
-  def node_type(self) -> str:
+  @utils.classproperty
+  def node_type(cls) -> str:  # pylint:disable=no-self-argument
     return 'data'
 
   def set_decorators(self, decorators: Optional[Decorators]) -> Node:

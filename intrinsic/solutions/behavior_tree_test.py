@@ -1758,6 +1758,11 @@ class BehaviorTreeTaskTest(absltest.TestCase):
         'Task(action=behavior_call.Action(skill_id="ai.intrinsic.skill-0"))',
     )
 
+  def test_node_type(self):
+    self.assertEqual(bt.Task.node_type, 'task')
+    node = bt.Task(behavior_call.Action(skill_id='ai.intrinsic.skill-0'))
+    self.assertEqual(node.node_type, 'task')
+
   def test_to_proto_and_from_proto(self):
     """Tests if conversion to and from a proto representation works."""
     node = bt.Task(
@@ -1896,6 +1901,16 @@ class BehaviorTreeSubTreeTest(absltest.TestCase):
     compare.assertProto2Equal(
         self, node.proto, node_proto, ignored_fields=['sub_tree.tree.tree_id']
     )
+
+  def test_node_type(self):
+    self.assertEqual(bt.SubTree.node_type, 'sub_tree')
+    node = bt.SubTree(
+        behavior_tree=bt.BehaviorTree(
+            'some_sub_tree',
+            bt.Task(behavior_call.Action(skill_id='some_skill')),
+        )
+    )
+    self.assertEqual(node.node_type, 'sub_tree')
 
   def test_init_name(self):
     """Tests if name is correctly set during construction."""
@@ -2105,6 +2120,11 @@ class BehaviorTreeFailTest(absltest.TestCase):
     )
     compare.assertProto2Equal(self, node.proto, node_proto)
 
+  def test_node_type(self):
+    self.assertEqual(bt.Fail.node_type, 'fail')
+    node = bt.Fail('Fail')
+    self.assertEqual(node.node_type, 'fail')
+
   def test_str_conversion(self):
     """Tests if conversion to string works."""
     node = bt.Fail()
@@ -2247,6 +2267,11 @@ class BehaviorTreeDebugTest(absltest.TestCase):
     node_proto.debug.suspend.fail_on_resume = True
     compare.assertProto2Equal(self, node.proto, node_proto)
 
+  def test_node_type(self):
+    self.assertEqual(bt.Debug.node_type, 'debug')
+    node = bt.Debug(fail_on_resume=True, name='pause')
+    self.assertEqual(node.node_type, 'debug')
+
   def test_str_conversion(self):
     """Tests if conversion to string works."""
     node = bt.Debug()
@@ -2366,6 +2391,11 @@ class BehaviorTreeSequenceTest(absltest.TestCase):
     node_proto.sequence.children.add().task.call_behavior.skill_id = 'skill_1'
 
     compare.assertProto2Equal(self, node.proto, node_proto)
+
+  def test_node_type(self):
+    self.assertEqual(bt.Sequence.node_type, 'sequence')
+    node = bt.Sequence()
+    self.assertEqual(node.node_type, 'sequence')
 
   def test_init_with_action(self):
     """Tests if BehaviorTree.Sequence is correctly constructed from actions."""
@@ -2616,6 +2646,11 @@ class BehaviorTreeParallelTest(absltest.TestCase):
     node_proto.parallel.children.add().task.call_behavior.skill_id = 'skill_1'
     compare.assertProto2Equal(self, node.proto, node_proto)
 
+  def test_node_type(self):
+    self.assertEqual(bt.Parallel.node_type, 'parallel')
+    node = bt.Parallel()
+    self.assertEqual(node.node_type, 'parallel')
+
   def test_init_with_actions(self):
     """Tests if BehaviorTree.Parallel is correctly constructed from actions."""
     node = bt.Parallel(children=[behavior_call.Action(skill_id='skill_0')])
@@ -2798,6 +2833,11 @@ class BehaviorTreeSelectorTest(absltest.TestCase):
     node_proto.selector.children.add().task.call_behavior.skill_id = 'skill_0'
     node_proto.selector.children.add().task.call_behavior.skill_id = 'skill_1'
     compare.assertProto2Equal(self, node.proto, node_proto)
+
+  def test_node_type(self):
+    self.assertEqual(bt.Selector.node_type, 'selector')
+    node = bt.Selector()
+    self.assertEqual(node.node_type, 'selector')
 
   def test_init_with_actions(self):
     """Tests if BehaviorTree.Selector is correctly constructed from actions."""
@@ -3071,6 +3111,11 @@ class BehaviorTreeRetryTest(absltest.TestCase):
 
     compare.assertProto2Equal(self, node.proto, node_proto)
 
+  def test_node_type(self):
+    self.assertEqual(bt.Retry.node_type, 'retry')
+    node = bt.Retry()
+    self.assertEqual(node.node_type, 'retry')
+
   def test_init_from_action(self):
     """Tests if BehaviorTree.Retry is correctly constructed from actions."""
     node = bt.Retry(2, behavior_call.Action(skill_id='skill_0'))
@@ -3280,6 +3325,11 @@ class BehaviorTreeFallbackTest(absltest.TestCase):
     node_proto.fallback.children.add().task.call_behavior.skill_id = 'skill_1'
     compare.assertProto2Equal(self, node.proto, node_proto)
 
+  def test_node_type(self):
+    self.assertEqual(bt.Fallback.node_type, 'fallback')
+    node = bt.Fallback()
+    self.assertEqual(node.node_type, 'fallback')
+
   def test_init_with_action(self):
     """Tests if BehaviorTree.Fallback is correctly constructed from actions."""
     node = bt.Fallback([behavior_call.Action(skill_id='skill_0')])
@@ -3463,6 +3513,11 @@ class BehaviorTreeLoopTest(absltest.TestCase):
     node_proto.loop.loop_counter_blackboard_key = node.loop_counter
 
     compare.assertProto2Equal(self, node.proto, node_proto)
+
+  def test_node_type(self):
+    self.assertEqual(bt.Loop.node_type, 'loop')
+    node = bt.Loop()
+    self.assertEqual(node.node_type, 'loop')
 
   def test_init_from_action(self):
     """Tests if BehaviorTree.Loop is correctly constructed from actions."""
@@ -3895,6 +3950,11 @@ class BehaviorTreeBranchTest(absltest.TestCase):
 
     compare.assertProto2Equal(self, node.proto, node_proto)
 
+  def test_node_type(self):
+    self.assertEqual(bt.Branch.node_type, 'branch')
+    node = bt.Branch()
+    self.assertEqual(node.node_type, 'branch')
+
   def test_init_from_action(self):
     """Tests if BehaviorTree.Branch is correctly constructed from actions."""
     node = bt.Branch(else_child=behavior_call.Action(skill_id='skill_0'))
@@ -4115,6 +4175,11 @@ class BehaviorTreeDataTest(parameterized.TestCase):
     node_proto.data.create_or_update.blackboard_key = 'bbfoo'
 
     compare.assertProto2Equal(self, node.proto, node_proto)
+
+  def test_node_type(self):
+    self.assertEqual(bt.Data.node_type, 'data')
+    node = bt.Data()
+    self.assertEqual(node.node_type, 'data')
 
   def test_init_message_wrapper(self):
     """Tests if BehaviorTree.Data is correctly constructed."""
