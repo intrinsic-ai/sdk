@@ -49,22 +49,77 @@
 
 namespace intrinsic::icon {
 
+namespace {
+
+absl::StatusOr<HardwareModuleMainConfig> LoadHardwareModuleConfig(
+    intrinsic_proto::config::RuntimeContext&& context) {
+  INTR_ASSIGN_OR_RETURN(
+      auto module_config,
+      intrinsic::UnpackAny<intrinsic_proto::icon::HardwareModuleConfig>(
+          context.config()),
+      _ << "Unpacking module config");
+
+  if (!module_config.name().empty()) {
+    LOG(INFO) << "Explicit hardware module name '" << module_config.name()
+              << "' specified. Consider removing the name field from the "
+                 "hardware module config.";
+  } else {
+    module_config.set_name(context.name());
+  }
+
+  module_config.set_simulation_server_address(
+      context.simulation_server_address());
+
+  // override the realtime flag based upon what mode we're running in.
+  const bool use_realtime_scheduling = [&context]() {
+    switch (context.level()) {
+      case intrinsic_proto::config::RuntimeContext::REALITY:
+        return true;
+      case intrinsic_proto::config::RuntimeContext::PHYSICS_SIM:
+        return false;
+      case intrinsic_proto::config::RuntimeContext::UNSPECIFIED:
+      default:
+        LOG(WARNING) << "Received unexpected runtime context level of "
+                     << context.level()
+                     << ".  Running with realtime priority disabled.";
+        return false;
+    }
+  }();
+  return HardwareModuleMainConfig{std::move(context), module_config,
+                                  use_realtime_scheduling};
+}
+
+}  // namespace
+
 absl::StatusOr<HardwareModuleMainConfig> LoadConfig(
     absl::string_view module_config_file,
     absl::string_view runtime_context_file, bool use_realtime_scheduling) {
-  if (module_config_file.empty()) {
-    LOG(ERROR) << "PUBLIC: Expected "
-      << "--module_config_file=<path>";
-    return absl::InvalidArgumentError("No config file "
-      "specified. Please run the execution with "
-      "--module_config_file=<path>/<to>/config.pbtxt");
+  if (module_config_file.empty() && runtime_context_file.empty()) {
+    return absl::InvalidArgumentError(
+        "Either runtime context file or module config file must be set");
   }
-  intrinsic_proto::icon::HardwareModuleConfig config;
-  INTR_RETURN_IF_ERROR(intrinsic::GetTextProto(
-    module_config_file, config));
-  return HardwareModuleMainConfig{
-      .module_config = config,
-      .use_realtime_scheduling = use_realtime_scheduling};
+  if (!module_config_file.empty()) {
+    LOG(INFO) << "Not running as a resource. Loading textproto from "
+              << module_config_file;
+    intrinsic_proto::icon::HardwareModuleConfig module_config;
+    INTR_RETURN_IF_ERROR(
+        intrinsic::GetTextProto(module_config_file, module_config));
+    return HardwareModuleMainConfig{
+        .module_config = module_config,
+        .use_realtime_scheduling = use_realtime_scheduling};
+  }
+
+  // Shall never fail based on user configuration.
+  INTR_ASSIGN_OR_RETURN(
+      auto runtime_context,
+      intrinsic::GetBinaryProto<intrinsic_proto::config::RuntimeContext>(
+          runtime_context_file));
+
+  LOG(INFO) << "Running as a resource. Loading runtime context from binary "
+               "proto from "
+            << runtime_context_file;
+  // Could fail due to user configuration.
+  return LoadHardwareModuleConfig(std::move(runtime_context));
 }
 
 absl::StatusOr<HardwareModuleRtSchedulingData> SetupRtScheduling(
@@ -173,10 +228,13 @@ RunRuntimeWithGrpcServerAndWaitForShutdown(
       std::move(exit_code_promise));
 
   std::optional<int> grpc_server_port = std::nullopt;
-  if (cli_grpc_server_port.has_value()) {
+  if (main_config.ok() && main_config->runtime_context.has_value()) {
+    grpc_server_port = main_config->runtime_context->port();
+    LOG(INFO) << "Health Service port: " << *grpc_server_port;
+  } else if (cli_grpc_server_port.has_value()) {
     grpc_server_port = cli_grpc_server_port;
-    LOG(INFO) << "Using grpc port " << *grpc_server_port
-              << " from command line";
+    LOG(WARNING) << "No runtime context provided. Using grpc port "
+                 << *grpc_server_port << " from command line ";
   }
 
   // Check if the start up of the HWM failed. If not, expose error via
