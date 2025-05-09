@@ -144,6 +144,7 @@ class SkillTestUtils:
       resource_selectors: Optional[dict[str, str]] = None,
       skill_description: Optional[str] = None,
       return_value_defaults: message.Message | None = None,
+      skill_version: str | None = None,
   ) -> skills_pb2.Skill:
     """Creates a skill proto for a skill with parameters and return values.
 
@@ -157,11 +158,21 @@ class SkillTestUtils:
       skill_description: The description of the skill.
       return_value_defaults: Defaults values for the skill's return value. If
         not set the parameter_defaults are taken.
+      skill_version: An optional version string to generate id_version.
 
     Returns:
       The skill proto.
     """
-    skill_info = skills_pb2.Skill(id=skill_id)
+    id_parts = skill_id.split('.')
+    id_version = None
+    if skill_version is not None:
+      id_version = f'{skill_id}.{skill_version}'
+    skill_info = skills_pb2.Skill(
+        id=skill_id,
+        id_version=id_version,
+        skill_name=id_parts[-1],
+        package_name='.'.join(id_parts[:-1]),
+    )
 
     if skill_description is not None:
       skill_info.description = skill_description
@@ -180,14 +191,10 @@ class SkillTestUtils:
         self._file_descriptor_set
     )
 
-    return_value_message_full_name = parameter_defaults.DESCRIPTOR.full_name
     if return_value_defaults is not None:
-      return_value_message_full_name = (
+      skill_info.return_value_description.return_value_message_full_name = (
           return_value_defaults.DESCRIPTOR.full_name
       )
-    skill_info.return_value_description.return_value_message_full_name = (
-        return_value_message_full_name
-    )
 
     # Prevents infinite recursion due to recursive messages
     messages_done: set[str] = set()

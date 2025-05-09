@@ -956,6 +956,7 @@ class SkillsTest(parameterized.TestCase):
     skill_info = self._utils.create_test_skill_info_with_return_value(
         skill_id='ai.intrinsic.my_skill',
         parameter_defaults=test_skill_params_pb2.SubMessage(),
+        return_value_defaults=test_skill_params_pb2.SubMessage(),
     )
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
@@ -1208,6 +1209,7 @@ class SkillsTest(parameterized.TestCase):
     skill_info = self._utils.create_test_skill_info_with_return_value(
         skill_id='ai.intrinsic.my_skill',
         parameter_defaults=test_skill_params_pb2.TestMessage(),
+        return_value_defaults=test_skill_params_pb2.TestMessage(),
     )
     parameters = _SKILL_PARAMETER_DICT
 
@@ -1578,6 +1580,7 @@ class SkillsTest(parameterized.TestCase):
     skill_info = self._utils.create_test_skill_info_with_return_value(
         skill_id='ai.intrinsic.my_skill',
         parameter_defaults=_DEFAULT_TEST_MESSAGE,
+        return_value_defaults=_DEFAULT_TEST_MESSAGE,
         skill_description='This is an awesome skill.',
         resource_selectors={'a': 'some-type-a', 'b': 'some-type-b'},
     )
@@ -1597,6 +1600,7 @@ This is an awesome skill."""
     skill_info = self._utils.create_test_skill_info_with_return_value(
         skill_id='ai.intrinsic.my_skill',
         parameter_defaults=_DEFAULT_TEST_MESSAGE,
+        return_value_defaults=_DEFAULT_TEST_MESSAGE,
         resource_selectors={'a': 'some-type-a', 'b': 'some-type-b'},
     )
     docstring = """\
@@ -1771,6 +1775,7 @@ Returns:
     skill_info = self._utils.create_test_skill_info_with_return_value(
         skill_id='ai.intrinsic.my_skill',
         parameter_defaults=_DEFAULT_TEST_MESSAGE,
+        return_value_defaults=_DEFAULT_TEST_MESSAGE,
         resource_selectors={'a': 'some-type-a', 'b': 'some-type-b'},
     )
     parameters = {'my_float': 1.25, 'my_bool': True}
@@ -2083,6 +2088,7 @@ Returns:
     skill_info = self._utils.create_test_skill_info_with_return_value(
         skill_id='ai.intrinsic.my_skill',
         parameter_defaults=_DEFAULT_TEST_MESSAGE,
+        return_value_defaults=_DEFAULT_TEST_MESSAGE,
     )
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
@@ -2257,6 +2263,7 @@ Returns:
     skill_info = self._utils.create_test_skill_info_with_return_value(
         skill_id='ai.intrinsic.my_skill',
         parameter_defaults=test_skill_params_pb2.TestMessageWrapped(),
+        return_value_defaults=test_skill_params_pb2.TestMessageWrapped(),
     )
     docstring = """\
 Initializes an instance of my_skill.intrinsic_proto.test_data.TestMessage.

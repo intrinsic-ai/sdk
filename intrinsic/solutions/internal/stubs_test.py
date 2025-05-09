@@ -195,6 +195,7 @@ class skill_two\(skill_generation.GeneratedSkill\):
     skill_info = self._utils.create_test_skill_info_with_return_value(
         "ai.intr.my_skill",
         parameter_defaults=stubs_test_pb2.BasicParams(),
+        return_value_defaults=stubs_test_pb2.BasicParams(),
     )
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
