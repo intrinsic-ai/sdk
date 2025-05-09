@@ -6,14 +6,6 @@ package(default_visibility = [
     "//visibility:public",
 ])
 
-exports_files(srcs = [
-    "BUILD",
-    "robot_payload.cc",
-    "robot_payload.h",
-    "robot_payload_base.cc",
-    "robot_payload_base.h",
-])
-
 cc_library(
     name = "robot_payload",
     srcs = ["robot_payload.cc"],
