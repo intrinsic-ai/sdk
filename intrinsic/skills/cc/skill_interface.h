@@ -104,7 +104,7 @@ class SkillExecuteInterface {
   //
   // Refer to absl status documentation for other errors:
   // https://github.com/abseil/abseil-cpp/blob/master/absl/status/status.h
-  virtual absl::StatusOr<std::unique_ptr<google::protobuf::Message>> Execute(
+  virtual absl::StatusOr<std::unique_ptr<::google::protobuf::Message>> Execute(
       const ExecuteRequest& request, ExecuteContext& context) = 0;
 
   // Previews the expected outcome of executing the skill.

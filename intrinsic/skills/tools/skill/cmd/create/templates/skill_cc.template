@@ -49,7 +49,7 @@ absl::StatusOr<std::unique_ptr<::google::protobuf::Message>> {{.SkillNameUpperCa
     return absl::UnimplementedError("Skill has not implemented `Preview`.");
 }
 
-absl::StatusOr<std::unique_ptr<google::protobuf::Message>> {{.SkillNameUpperCamelCase}}::Execute(
+absl::StatusOr<std::unique_ptr<::google::protobuf::Message>> {{.SkillNameUpperCamelCase}}::Execute(
     const ExecuteRequest& request, ExecuteContext& context) {
 
   // Get parameters.
