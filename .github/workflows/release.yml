@@ -60,8 +60,8 @@ jobs:
       - name: Stamp Build
         run: |
           CANDIDATE_NAME="${GITHUB_REF_NAME##*/}"  # remove prefix
-          echo "build --stamp" >> .github/ci/.bazelrc
-          echo "build --workspace_status_command=\"echo STABLE_SDK_VERSION ${CANDIDATE_NAME}\""  >> .github/ci/.bazelrc
+          echo "build --stamp" >> .bazelrc
+          echo "build --workspace_status_command=\"echo STABLE_SDK_VERSION ${CANDIDATE_NAME}\""  >> .bazelrc
 
       - name: Build inctl and inbuild
         run: |
