@@ -3,13 +3,10 @@
 load("@ai_intrinsic_sdks_pip_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_library")
 
-package(default_visibility = [
-    "//visibility:public",
-])
-
 py_library(
     name = "_camera_utils",
     srcs = ["_camera_utils.py"],
+    visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/perception/proto:camera_config_py_pb2",
         "//intrinsic/perception/proto:camera_identifier_py_pb2",
@@ -38,6 +35,7 @@ py_library(
 py_library(
     name = "data_classes",
     srcs = ["data_classes.py"],
+    visibility = ["//intrinsic:public_api_users"],
     deps = [
         ":_camera_utils",
         "//intrinsic/math/python:pose3",
@@ -56,6 +54,7 @@ py_library(
 py_library(
     name = "camera_client",
     srcs = ["camera_client.py"],
+    visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/perception/proto/v1:camera_config_py_pb2",
         "//intrinsic/perception/proto/v1:camera_identifier_py_pb2",
@@ -73,6 +72,7 @@ py_library(
 py_library(
     name = "cameras",
     srcs = ["cameras.py"],
+    visibility = ["//intrinsic:public_api_users"],
     deps = [
         ":_camera_utils",
         ":camera_client",

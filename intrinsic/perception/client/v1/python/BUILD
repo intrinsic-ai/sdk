@@ -4,14 +4,10 @@
 
 load("@rules_python//python:defs.bzl", "py_library")
 
-# Unless we have more mature tests, the library remains unreleased.
-package(default_visibility = [
-    "//visibility:public",
-])
-
 py_library(
     name = "image_utils",
     srcs = ["image_utils.py"],
+    visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/perception/proto/v1:dimensions_py_pb2",
         "//intrinsic/perception/proto/v1:image_buffer_py_pb2",
