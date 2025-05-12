@@ -6,6 +6,14 @@ package(default_visibility = ["//visibility:public"])
 
 exports_files(
     srcs = [
+        "copy.bara.sky",
+        "sdk_files.bara.sky",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+exports_files(
+    srcs = [
         "intrinsic.bazelrc",
         "intrinsic.bazelversion",
     ],
