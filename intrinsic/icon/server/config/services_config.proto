@@ -38,5 +38,15 @@ message ServicesConfig {
   // service to be registered.
   optional DynamicsServiceConfig dynamics_from_kinematics_service_config = 5;
 
+  // If true, allow non-realtime safe inverse kinematics solvers to be used.
+  // For example, the kinematic_chain solver which works for generic chain
+  // kinematics can be used. Be careful when using this, as it may result
+  // in timing violations when using actions which call inverse kinematics. This
+  // should only be used for testing and in experimental development with
+  // non-real-time safe solvers.
+  //
+  // Otherwise, only realtime inverse kinematics solvers are allowed.
+  optional bool allow_non_real_time_inverse_kinematics = 6;
+
   reserved 1;
 }
