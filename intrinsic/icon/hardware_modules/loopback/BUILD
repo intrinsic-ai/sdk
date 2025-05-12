@@ -3,8 +3,10 @@
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@rules_cc//cc:defs.bzl", "cc_library")
+load("//intrinsic/assets/services/build_defs:services.bzl", "intrinsic_service")
 load("//intrinsic/icon/hal/bzl:hardware_module_binary.bzl", "hardware_module_binary")
 load("//intrinsic/icon/hal/bzl:hardware_module_image.bzl", "hardware_module_image")
+load("//intrinsic/icon/hal/bzl:resources.bzl", "hardware_module_manifest")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -75,4 +77,22 @@ hardware_module_binary(
 hardware_module_image(
     name = "loopback_hardware_module_image",
     hardware_module_binary = "loopback_hardware_module_main",
+)
+
+hardware_module_manifest(
+    name = "loopback_hal_module_service_manifest",
+    image = ":loopback_hardware_module_image.tar",
+    image_sim = ":loopback_hardware_module_image.tar",
+    manifest = "loopback_service_manifest.textproto",
+)
+
+intrinsic_service(
+    name = "loopback_hardware_module_service",
+    default_config = ":loopback_module_config.textproto",
+    images = [":loopback_hardware_module_image.tar"],
+    manifest = ":loopback_hal_module_service_manifest",
+    deps = [
+        ":loopback_config_proto",
+        "//intrinsic/icon/hal:hardware_module_config_proto",
+    ],
 )

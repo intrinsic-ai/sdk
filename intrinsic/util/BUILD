@@ -2,6 +2,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 load("@rules_python//python:defs.bzl", "py_library")
+load("//bazel:go_macros.bzl", "go_library")
 
 package(
     default_visibility = ["//visibility:public"],
@@ -124,4 +125,9 @@ cc_library(
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings",
     ],
+)
+
+go_library(
+    name = "flag",
+    srcs = ["flag.go"],
 )

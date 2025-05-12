@@ -1,0 +1,18 @@
+# Copyright 2023 Intrinsic Innovation LLC
+
+# proto-file: intrinsic/assets/services/proto/services_manifest.proto
+# proto-message: intrinsic_proto.services.ServiceManifest
+
+metadata {
+  id {
+    package: "ai.intrinsic"
+    name: "loopback_hardware_module"
+  }
+  vendor {
+    display_name: "Intrinsic"
+  }
+  documentation {
+    description: "A loopback hardware module for testing."
+  }
+  display_name: "Loopback Hardware Module"
+}
