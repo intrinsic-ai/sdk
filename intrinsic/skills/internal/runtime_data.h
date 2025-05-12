@@ -135,7 +135,6 @@ class SkillRuntimeData {
   SkillRuntimeData() = default;
   SkillRuntimeData(
       const ParameterData& parameter_data,
-      const ReturnTypeData& return_type_data,
       const ExecutionOptions& execution_options,
       const ResourceData& resource_data, const StatusSpecs& status_specs,
       absl::string_view id);
@@ -157,7 +156,6 @@ class SkillRuntimeData {
 
  private:
   ParameterData parameter_data_;
-  ReturnTypeData return_type_data_;
   ExecutionOptions execution_options_;
   ResourceData resource_data_;
   StatusSpecs status_specs_;
