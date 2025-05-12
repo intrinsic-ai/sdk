@@ -30,6 +30,7 @@ proto_library(
         "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_googleapis//google/api:field_behavior_proto",
         "@com_google_protobuf//:descriptor_proto",
+        "@com_google_protobuf//:field_mask_proto",
     ],
 )
 

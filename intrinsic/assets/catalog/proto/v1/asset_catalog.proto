@@ -6,6 +6,7 @@ package intrinsic_proto.catalog.v1;
 
 import "google/api/field_behavior.proto";
 import "google/protobuf/descriptor.proto";
+import "google/protobuf/field_mask.proto";
 import "intrinsic/assets/catalog/proto/v1/release_metadata.proto";
 import "intrinsic/assets/data/proto/v1/data_asset.proto";
 import "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest.proto";
@@ -34,6 +35,13 @@ service AssetCatalog {
   // two elements of the package are the top-level package (eg "ai.intrinsic").
   // If the package does not exist, this will fail.
   rpc CreateAsset(CreateAssetRequest) returns (Asset);
+
+  // Updates the release metadata of the specified asset.
+  //
+  // NOTE: If this RPC is used to remove the org-private flag on an asset, that
+  // flag CANNOT be re-added later.
+  rpc UpdateReleaseMetadata(UpdateReleaseMetadataRequest)
+      returns (ReleaseMetadata);
 
   // Clears the default version of the specified asset.
   rpc ClearDefault(ClearDefaultRequest) returns (ClearDefaultResponse);
@@ -191,6 +199,17 @@ message CreateAssetRequest {
 
   // Use asset.release_metadata.org_private instead.
   optional bool org_private = 2 [deprecated = true];
+}
+
+message UpdateReleaseMetadataRequest {
+  // The IDVersion of the asset to update.
+  intrinsic_proto.assets.IdVersion id_version = 1;
+
+  // The release metadata to update.
+  ReleaseMetadata release_metadata = 2;
+
+  // The list of fields to update.
+  google.protobuf.FieldMask update_mask = 3;
 }
 
 message ClearDefaultRequest {
