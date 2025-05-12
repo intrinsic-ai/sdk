@@ -2,7 +2,7 @@
 
 """Build rules for creating Hardware Module container images."""
 
-load("//bazel:container.bzl", "container_image")
+load("//bazel:container.bzl", "container_image", "container_layer")
 load("//intrinsic/icon/hal/bzl:hardware_module_binary.bzl", hardware_module_binary_macro = "hardware_module_binary")
 
 def _path_in_container(target):
@@ -72,6 +72,9 @@ def hardware_module_image(
     init_hwm_tar = Label("//intrinsic/icon/utils:init_hwm_tar")
     init_hwm_path = "/init_hwm"
 
+    layers = kwargs.pop("layers", [])
+    layers.append(init_hwm_tar)
+
     # Resources use the resource_context for configuration. They should not be called with `--config_pbtxt_file`.
     # dumb-init is required to correctly forward signals to all threads/processes in the container.
     # Not using it can result in e.g. a 30s shutdown delay.
@@ -82,17 +85,27 @@ def hardware_module_image(
         _path_in_container(native.package_relative_label(hardware_module_binary)),
     ]
 
-    layers = kwargs.get("layers", [])
-    layers.append(init_hwm_tar)
-    kwargs["layers"] = layers
+    hardware_module_binary_layer = name + "_binary_layer"
+    container_layer(
+        name = hardware_module_binary_layer,
+        files = [hardware_module_binary],
+        include_runfiles = True,  # Include dynamic libraries
+        data_path = "/",
+        visibility = ["//visibility:private"],
+        compatible_with = kwargs.get("compatible_with"),
+        testonly = kwargs.get("testonly"),
+    )
+    layers.append(hardware_module_binary_layer)
     for file in ["@dumb-init"]:
        symlinks.update(_build_symlink(file, "/"))
+    extra_files = ["@dumb-init"] + extra_files
 
     container_image(
         name = name,
         base = base_image,
         data_path = "/",
-        files = ["@dumb-init"] + [hardware_module_binary] + extra_files,
+        files = extra_files,
+        layers = layers,
         symlinks = symlinks,
         #   Using `entrypoint` instead of `cmd` so custom commands can be passed to the hwm binary using `args` in the yaml template intrinsic/icon/hal/templates/hardware-module-addon.yaml .
         entrypoint = resource_cmd,
