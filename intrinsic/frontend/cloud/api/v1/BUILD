@@ -64,7 +64,7 @@ go_grpc_library(
 proto_library(
     name = "solutiondiscovery_api_proto",
     srcs = ["solutiondiscovery_api.proto"],
-    deps = ["//intrinsic/frontend/cloud/api/v1:clusterdiscovery_api_proto"],
+    deps = [":clusterdiscovery_api_proto"],
 )
 
 py_proto_library(
