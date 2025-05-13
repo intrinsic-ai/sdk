@@ -148,6 +148,7 @@ cc_library(
         "//intrinsic/util:proto_time",
         "//intrinsic/util/status:status_macros",
         "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings:string_view",
         "@com_google_absl//absl/time",
         "@com_google_protobuf//:protobuf",

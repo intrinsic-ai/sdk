@@ -5,6 +5,7 @@
 #include <utility>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
@@ -22,6 +23,17 @@
 namespace intrinsic {
 
 Publisher::Publisher(Publisher&&) = default;
+
+absl::StatusOr<bool> Publisher::HasMatchingSubscribers() {
+  bool result;
+  // check error
+  if (imw_ret_t status = Zenoh().imw_publisher_has_matching_subscribers(
+          publisher_data_->prefixed_name.c_str(), &result);
+      status != IMW_OK) {
+    return absl::InternalError("Error getting matching subscribers.");
+  }
+  return result;
+}
 
 Publisher& Publisher::operator=(Publisher&& other) {
   if (publisher_data_ && !publisher_data_->prefixed_name.empty()) {

@@ -107,6 +107,7 @@ void ZenohHandle::Initialize() {
   GET_FUNCTION_PTR(handle, imw_create_publisher);
   GET_FUNCTION_PTR(handle, imw_destroy_publisher);
   GET_FUNCTION_PTR(handle, imw_publish);
+  GET_FUNCTION_PTR(handle, imw_publisher_has_matching_subscribers);
   GET_FUNCTION_PTR(handle, imw_create_subscription);
   GET_FUNCTION_PTR(handle, imw_destroy_subscription);
   GET_FUNCTION_PTR(handle, imw_keyexpr_includes);

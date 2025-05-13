@@ -166,7 +166,8 @@ PYBIND11_MODULE(pubsub, m) {
            static_cast<absl::Status (Publisher::*)(
                const google::protobuf::Message&) const>(&Publisher::Publish),
            pybind11::arg("message"))
-      .def("TopicName", &Publisher::TopicName);
+      .def("TopicName", &Publisher::TopicName)
+      .def("HasMatchingSubscribers", &Publisher::HasMatchingSubscribers);
 
   pybind11::class_<NamespaceConfig>(m, "NamespaceConfig")
       .def(pybind11::init<>())

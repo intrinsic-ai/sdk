@@ -84,6 +84,9 @@ struct ZenohHandle {
                                const size_t bytes_len)>
       imw_publish;
 
+  std::add_pointer_t<imw_ret_t(const char *keyexpr, bool *has_matching)>
+      imw_publisher_has_matching_subscribers;
+
   std::add_pointer_t<imw_ret_t(const char *keyexpr,
                                imw_subscription_callback_fn *callback,
                                const char *qos, void *user_context)>

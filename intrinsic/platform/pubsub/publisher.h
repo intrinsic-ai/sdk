@@ -7,6 +7,7 @@
 #include <string>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
@@ -44,6 +45,8 @@ class Publisher {
   }
 
   absl::string_view TopicName() const { return topic_name_; }
+
+  absl::StatusOr<bool> HasMatchingSubscribers();
 
  private:
   std::string topic_name_ = {};

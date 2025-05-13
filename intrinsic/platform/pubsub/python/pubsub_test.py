@@ -137,6 +137,18 @@ class PubsubTest(parameterized.TestCase):
     with condition:
       condition.wait_for(lambda: call_type != CallbackType.NONE, 1)
 
+  def test_has_matching_subscribers(self):
+    config = pubsub.TopicConfig()
+    publisher = self.pubsub.CreatePublisher('some_new_topic', config)
+    self.assertFalse(publisher.HasMatchingSubscribers())
+
+    subscription = self.pubsub.CreateSubscription(  # pylint:disable=unused-variable
+        topic='some_new_topic',
+        exemplar=test_pb2.TestMessageStock(),
+        msg_callback=lambda msg: None,
+    )
+    self.assertTrue(publisher.HasMatchingSubscribers())
+
 
 if __name__ == '__main__':
   absltest.main()
