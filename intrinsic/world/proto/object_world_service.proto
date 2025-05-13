@@ -305,6 +305,10 @@ message ObjectComponent {
   intrinsic_proto.world.GripperComponent gripper_component = 7;
 
   // User data associated with this object.
+  // Special keys for the user data:
+  // - `FLOWSTATE_ASSET_USER_DATA`: User-defined metadata populated from the
+  //    corresponding SceneObject asset if the world object was created from
+  //    one.
   map<string, google.protobuf.Any> user_data = 9;
 
 }
