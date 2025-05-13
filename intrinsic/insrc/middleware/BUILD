@@ -4,8 +4,6 @@
 
 exports_files(
     srcs = [
-        "libimw_intraprocess_only_msan.so.1",
-        "libimw_intraprocess_only_tsan.so.1",
         "libimw_zenoh.so.1",
         "libzbackend_fs.so.1",
         "libzplugin_storage_manager.so.1",
