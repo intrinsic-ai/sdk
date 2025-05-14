@@ -109,6 +109,10 @@ message CollisionDebug {
   // one right entity. If we use the merge collision checker, it probable there
   // are multiple entities.
   string right_entities = 4;
+  // Left entity id for the reported collision.
+  int64 left_entity_id = 5;
+  // Right entity ids for the reported collision.
+  repeated int64 right_entity_ids = 6;
 }
 
 message IKError {
