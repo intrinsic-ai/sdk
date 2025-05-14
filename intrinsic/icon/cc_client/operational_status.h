@@ -22,16 +22,30 @@ namespace intrinsic::icon {
 
 // Enum of possible operational states of the server.
 enum class OperationalState {
-  // Indicates that server is not ready for sessions to start.
-  // `icon_client.Enable()` must be called first.
+  // Indicates that server is not ready for sessions to start, expect for
+  // read-only sessions which are possible.
+  // Part status is being published.
+  // `icon_client.Enable()` should be called first.
   kDisabled,
 
-  // Indicates that a part (or the server as a whole) is in an erroneous state.
-  // `icon_client.ClearFaults()` must be called to return the system to a
-  // disabled state before attempting other operations.
+  // Indicates that at least one part, possibly the entire real-time control
+  // service, is faulted. `icon_client.ClearFaults()` is needed to re-enable
+  // control.
+  // Depending on the fault, real-time control may or may not be running the
+  // safety actions.
+  // An example for a single part fault is a robot hardware module reporting
+  // an emergency stop but still being connected.
+  // An example for a global fault that cannot be cleared is a mistake in the
+  // hardware module names in the config.
+  // An example for a global fault that can be cleared is a timeout in a
+  // simulation reset.
+  // If a part is not faulted, read-only sessions reading from them can
+  // continue, and part status may still be published.
   kFaulted,
 
-  // Indicates that the server is ready for a session to begin.
+  // Indicates that the server is ready for a session to begin and all parts are
+  // enabled.
+  // Part status is being published.
   kEnabled
 };
 
