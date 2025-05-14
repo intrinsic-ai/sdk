@@ -1,6 +1,6 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-edition = "2023";
+syntax = "proto3";
 
 package intrinsic_proto.frontend.v1;
 
@@ -13,8 +13,6 @@ import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
 import "intrinsic/util/status/extended_status.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
-
-option features.field_presence = IMPLICIT;
 
 // Clusterwide states that describe the overall state of the cluster.
 //
@@ -109,7 +107,7 @@ message Cluster {
   UpdateProgress update_progress = 25 [(google.api.field_behavior) = OPTIONAL];
   // removed fields:
   reserved 10, 11, 12;
-  reserved is_public, is_mine, is_shared;
+  reserved "is_public", "is_mine", "is_shared";
 }
 
 message IPCNode {
@@ -178,7 +176,6 @@ message SchedulePlatformUpdateRequest {
   }
 
   UpdateType update_type = 4 [(google.api.field_behavior) = REQUIRED];
-
   // The versions to update to. Only used for UPDATE_TYPE_VERSIONED.
   UpdateVersions versions = 5 [(google.api.field_behavior) = OPTIONAL];
 }
@@ -243,6 +240,7 @@ message CreateOperationMetadata {
     CREATE_OPERATION_PROGRESS_NEW = 1;
     CREATE_OPERATION_PROGRESS_INITIALIZING = 2;
     CREATE_OPERATION_PROGRESS_DONE = 3;
+
     CREATE_OPERATION_PROGRESS_UPDATING = 4;
     CREATE_OPERATION_PROGRESS_SETUP_CLUSTER = 5;
   }
@@ -334,8 +332,7 @@ message IntOSInterfaceStatus {
   // Blank it for now, since the google linters call it out as privacy
   // sensitive.
   reserved 2;
-  reserved mac_address;
-
+  reserved "mac_address";
   // The configured MTU on the device.
   // Should match configuration or auto-detection.
   int32 mtu = 3 [(google.api.field_behavior) = OPTIONAL];
