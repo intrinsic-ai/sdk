@@ -48,13 +48,6 @@ def cc_oci_image(
     if kwargs.get("cmd") == None:
         kwargs["cmd"] = [binary_path]
 
-    # By default, the runfiles path is prefixed by the repo name while the binary path is not. Adding a symlink to fix the runfiles detection logic in case the repo is not empty.
-    if native.repo_name():
-        binary_runfiles_path = paths.join("/", kwargs.get("directory", ""), native.repo_name(), binary_label.package, binary_label.name + ".runfiles")
-        symlinks = (symlinks or {}) | {
-            binary_path + ".runfiles": binary_runfiles_path,
-        }
-
     if extra_tars:
         layers.extend(extra_tars)
 
