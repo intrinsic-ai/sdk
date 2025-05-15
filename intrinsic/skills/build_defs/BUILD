@@ -19,6 +19,7 @@ bzl_library(
     srcs = ["skill.bzl"],
     deps = [
         ":manifest_bzl",
+        "//bazel:cc_oci_image_bzl",
         "//bazel:container_bzl",
         "//bazel:python_oci_image_bzl",
         "@bazel_skylib//lib:paths",

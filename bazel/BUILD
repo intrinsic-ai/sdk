@@ -19,6 +19,15 @@ bzl_library(
 )
 
 bzl_library(
+    name = "cc_oci_image_bzl",
+    srcs = ["cc_oci_image.bzl"],
+    deps = [
+        ":container_bzl",
+        "@bazel_skylib//lib:paths",
+    ],
+)
+
+bzl_library(
     name = "python_oci_image_bzl",
     srcs = ["python_oci_image.bzl"],
     deps = [

@@ -3,7 +3,9 @@
 """Build rules for creating Skill artifacts."""
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_python//python:defs.bzl", "py_binary")
+load("//bazel:cc_oci_image.bzl", "cc_oci_image")
 load("//bazel:container.bzl", "container_image")
 load("//bazel:python_oci_image.bzl", "python_oci_image")
 load(
@@ -96,7 +98,7 @@ def _cc_skill_service(name, deps, manifest, **kwargs):
         tags = ["manual", "avoid_dep"],
     )
 
-    native.cc_binary(
+    cc_binary(
         name = name,
         srcs = [gen_main_name],
         deps = deps + [
@@ -348,7 +350,7 @@ def cc_skill(
         name,
         deps,
         manifest,
-        base_image = Label("@distroless_base"),
+        base_image = None,
         **kwargs):
     """Creates cpp skill targets.
 
@@ -366,9 +368,9 @@ def cc_skill(
       base_image: The base container_image target to use for the skill service image.
       **kwargs: additional arguments passed to the container_image rule, such as visibility.
     """
-    skill_service_name = "_%s_service" % name
+    binary_name = "_%s_binary" % name
     _cc_skill_service(
-        name = skill_service_name,
+        name = binary_name,
         deps = deps,
         manifest = manifest,
         testonly = kwargs.get("testonly"),
@@ -386,19 +388,20 @@ def cc_skill(
     )
 
     service_image_name = "_%s_service_image" % name
-    container_image(
+    cc_oci_image(
         name = service_image_name,
         base = base_image,
+        binary = binary_name,
         directory = _SKILL_USER_DIR,
+        data_path = "/",
         files = [
-            skill_service_name,
             skill_service_config_name,
         ],
-        data_path = "/",
         symlinks = {
-            "/skills/skill_service": paths.join(_SKILL_USER_DIR, native.package_name(), skill_service_name),
+            "/skills/skill_service": paths.join(_SKILL_USER_DIR, native.package_name(), binary_name),
             "/skills/skill_service_config.proto.bin": paths.join(_SKILL_USER_DIR, native.package_name(), skill_service_config_name + ".pbbin"),
         },
+        workdir = "/",
         compatible_with = kwargs.get("compatible_with"),
         visibility = ["//visibility:private"],
         testonly = kwargs.get("testonly"),
