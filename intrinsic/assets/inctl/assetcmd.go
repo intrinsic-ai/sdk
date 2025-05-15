@@ -10,6 +10,7 @@ import (
 	"intrinsic/assets/inctl/listreleased"
 	"intrinsic/assets/inctl/listreleasedversions"
 	"intrinsic/assets/inctl/uninstall"
+	"intrinsic/assets/inctl/updatereleasemetadata"
 	"intrinsic/tools/inctl/cmd/root"
 )
 
@@ -25,6 +26,7 @@ func init() {
 	assetCmd.AddCommand(listreleased.GetCommand())
 	assetCmd.AddCommand(listreleasedversions.GetCommand())
 	assetCmd.AddCommand(uninstall.GetCommand())
+	assetCmd.AddCommand(updatereleasemetadata.GetCommand())
 
 	root.RootCmd.AddCommand(assetCmd)
 }

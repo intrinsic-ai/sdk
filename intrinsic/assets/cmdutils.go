@@ -76,6 +76,8 @@ const (
 	KeyReleaseNotes = "release_notes"
 	// KeySkipDirectUpload is boolean flag controlling direct upload behavior
 	KeySkipDirectUpload = "skip_direct_upload"
+	// KeySkipPrompts is the name of the flag to skip user prompts.
+	KeySkipPrompts = "skip_prompts"
 	// KeySolution is the name of the solution flag.
 	KeySolution = "solution"
 	// KeyType is the name of the type flag.
@@ -199,6 +201,11 @@ func (cf *CmdFlags) GetFlagDefault() bool {
 	return cf.GetBool(KeyDefault)
 }
 
+// GetFlagDefaultIsSet returns whether the default flag was set.
+func (cf *CmdFlags) GetFlagDefaultIsSet() bool {
+	return cf.viperLocal.IsSet(KeyDefault)
+}
+
 // AddFlagDryRun adds a flag for performing a dry run.
 func (cf *CmdFlags) AddFlagDryRun() {
 	cf.OptionalBool(KeyDryRun, false, "Dry-run by validating but not performing any actions.")
@@ -285,6 +292,11 @@ func (cf *CmdFlags) AddFlagOrgPrivate() {
 // GetFlagOrgPrivate gets the value of the org_private flag added by AddFlagOrgPrivate.
 func (cf *CmdFlags) GetFlagOrgPrivate() bool {
 	return cf.GetBool(KeyOrgPrivate)
+}
+
+// GetFlagOrgPrivateIsSet returns whether the org_private flag was set.
+func (cf *CmdFlags) GetFlagOrgPrivateIsSet() bool {
+	return cf.viperLocal.IsSet(KeyOrgPrivate)
 }
 
 // AddFlagPolicy adds a flag for the update policy.
@@ -475,6 +487,16 @@ func (cf *CmdFlags) AddFlagSkipDirectUpload(assetType string) {
 // GetFlagSkipDirectUpload gets the value of the flag added by AddFlagSkipDirectUpload
 func (cf *CmdFlags) GetFlagSkipDirectUpload() bool {
 	return cf.GetBool(KeySkipDirectUpload)
+}
+
+// AddFlagSkipPrompts adds a flag for disabling user prompts.
+func (cf *CmdFlags) AddFlagSkipPrompts() {
+	cf.OptionalBool(KeySkipPrompts, false, "True to skip user prompts.")
+}
+
+// GetFlagSkipPrompts gets the value of the flag added by AddFlagSkipPrompts
+func (cf *CmdFlags) GetFlagSkipPrompts() bool {
+	return cf.GetBool(KeySkipPrompts)
 }
 
 // AddFlagVendor adds a flag for the asset vendor.
