@@ -6,6 +6,7 @@ package cmdutils
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -20,7 +21,9 @@ import (
 	"intrinsic/assets/imageutils"
 	atypepb "intrinsic/assets/proto/asset_type_go_proto"
 	iapb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
+	viewpb "intrinsic/assets/proto/view_go_proto"
 	"intrinsic/assets/typeutils"
+	"intrinsic/assets/viewutils"
 	"intrinsic/skills/tools/resource/cmd/bundleimages"
 	"intrinsic/tools/inctl/util/orgutil"
 )
@@ -87,6 +90,8 @@ const (
 	KeyVendor = "vendor"
 	// KeyVersion is the name of the version flag.
 	KeyVersion = "version"
+	// KeyView is the name of the view flag.
+	KeyView = "view"
 
 	envPrefix = "intrinsic"
 )
@@ -490,6 +495,21 @@ func (cf *CmdFlags) AddFlagVersion(assetType string) {
 // GetFlagVersion gets the value of the version flag added by AddFlagVersion.
 func (cf *CmdFlags) GetFlagVersion() string {
 	return cf.GetString(KeyVersion)
+}
+
+// AddFlagView adds a flag for the asset view.
+func (cf *CmdFlags) AddFlagView() {
+	shortStrings := make([]string, 0, len(viewpb.AssetViewType_value))
+	for _, v := range viewpb.AssetViewType_value {
+		shortStrings = append(shortStrings, viewutils.ShortStringFromEnum(viewpb.AssetViewType(v)))
+	}
+	slices.Sort(shortStrings)
+	cf.OptionalString(KeyView, "", fmt.Sprintf("The view of the asset to return. Can be: %v", shortStrings))
+}
+
+// GetFlagView gets the value of the view flag added by AddFlagView.
+func (cf *CmdFlags) GetFlagView() (viewpb.AssetViewType, error) {
+	return viewutils.EnumFromShortString(cf.GetString(KeyView))
 }
 
 // String adds a new string flag.

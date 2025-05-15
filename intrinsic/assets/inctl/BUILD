@@ -8,11 +8,26 @@ go_library(
     name = "assetcmd",
     srcs = ["assetcmd.go"],
     deps = [
+        ":getreleased",
         ":list",
         ":listreleased",
         ":listreleasedversions",
         ":uninstall",
         "//intrinsic/tools/inctl/cmd:root",
+        "@com_github_spf13_cobra//:go_default_library",
+    ],
+)
+
+go_library(
+    name = "getreleased",
+    srcs = ["getreleased.go"],
+    deps = [
+        "//intrinsic/assets:clientutils",
+        "//intrinsic/assets:cmdutils",
+        "//intrinsic/assets:idutils",
+        "//intrinsic/assets/catalog/proto/v1:asset_catalog_go_grpc_proto",
+        "//intrinsic/tools/inctl/cmd:root",
+        "//intrinsic/tools/inctl/util:printer",
         "@com_github_spf13_cobra//:go_default_library",
     ],
 )

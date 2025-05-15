@@ -1,6 +1,6 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package viewutils provides utilities for working with view proto.
+// Package viewutils provides utilities for working with asset views.
 package viewutils
 
 import (

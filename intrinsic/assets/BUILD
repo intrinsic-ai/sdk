@@ -50,8 +50,10 @@ go_library(
         ":imagetransfer",
         ":imageutils",
         ":typeutils",
+        ":viewutils",
         "//intrinsic/assets/proto:asset_type_go_proto",
         "//intrinsic/assets/proto:installed_assets_go_grpc_proto",
+        "//intrinsic/assets/proto:view_go_proto",
         "//intrinsic/skills/tools/resource/cmd:bundleimages",
         "//intrinsic/tools/inctl/util:orgutil",
         "@com_github_google_go_containerregistry//pkg/authn:go_default_library",
@@ -130,6 +132,21 @@ go_library(
     deps = [
         "//intrinsic/assets/proto:asset_type_go_proto",
         "@org_golang_x_exp//slices",
+    ],
+)
+
+go_library(
+    name = "viewutils",
+    srcs = ["viewutils.go"],
+    visibility = ["//intrinsic:internal_api_users"],
+    deps = [
+        "//intrinsic/assets/proto:metadata_go_proto",
+        "//intrinsic/assets/proto:view_go_proto",
+        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
+        "@org_golang_google_grpc//codes:go_default_library",
+        "@org_golang_google_grpc//status:go_default_library",
+        "@org_golang_google_protobuf//proto",
+        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
     ],
 )
 
