@@ -71,22 +71,6 @@ TEST(PreviewViaExecuteTest, PreviewViaExecuteCallsExecute) {
   EXPECT_EQ(result.foo(), "foo");
 }
 
-intrinsic_proto::skills::TimedWorldUpdate MakeUpdate(
-    std::optional<int> start_time_seconds, int time_until_update_seconds,
-    absl::string_view frame_name) {
-  intrinsic_proto::skills::TimedWorldUpdate update;
-  if (start_time_seconds.has_value()) {
-    update.mutable_start_time()->set_seconds(*start_time_seconds);
-  }
-  update.mutable_time_until_update()->set_seconds(time_until_update_seconds);
-  update.mutable_world_updates()
-      ->add_updates()
-      ->mutable_create_frame()
-      ->set_new_frame_name(frame_name);
-
-  return update;
-}
-
 }  // namespace
 }  // namespace skills
 }  // namespace intrinsic
