@@ -78,15 +78,20 @@ jobs:
       - name: Create GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG_NAME: ${{ steps.checkout_ref.outputs.ref }}
         run: |
-          echo "Creating new release for tag ${TAG_NAME}"
+          set -euo pipefail
+
+          echo "Creating new release for tag ${{ steps.checkout_ref.outputs.ref }}"
           .github/ci/generate_changelog.sh ${{ steps.checkout_ref.outputs.ref }} > RELEASE_NOTES.md
-          SBOM_PATH="${{ steps.sbom_download.outputs.sbom-local-path }}"
-          gh release create "$TAG_NAME" \
+
+          echo "== Generated release notes =="
+          cat RELEASE_NOTES.md
+          echo "============================="
+
+          gh release create "${{ steps.checkout_ref.outputs.ref }}" \
             ./inbuild-linux-amd64 \
             ./inctl-linux-amd64 \
-            $SBOM_PATH \
-            --title "Intrinsic SDK $TAG_NAME" \
+            "${{ steps.sbom_download.outputs.sbom-local-path}}" \
+            --title "Intrinsic SDK ${{ steps.checkout_ref.outputs.ref }}" \
             --notes-file RELEASE_NOTES.md \
             --draft=false
