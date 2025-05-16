@@ -42,15 +42,34 @@ EOF
 }
 
 generate_devcontainer_config() {
-  local version="$1"
+    local version="$1"
+    local dev_image_base_name
+    local dev_image_tag
 
-  # Remove leading 'v' if present
-  version="${version#v}"
+    if [[ -z "$version" ]]; then # Default if called directly with no version
+        version="latest" # Or align with generate_changelog's default
+    fi
 
-  cat <<EOF
+    if [[ "$version" == "main" || "$version" == "latest" ]]; then
+        dev_image_base_name="ghcr.io/intrinsic-ai/intrinsic-dev-img"
+        dev_image_tag="$version"
+    elif [[ "$version" =~ ^candidate/intrinsic\.platform\.([0-9]{8})\.(RC[0-9]+)$ ]]; then
+        # New candidate format: candidate/intrinsic.platform.20250512.RC05
+        # Dev image: ghcr.io/intrinsic-ai/intrinsic-dev-img-staging:0.20250512.0-RC05
+        dev_image_base_name="ghcr.io/intrinsic-ai/intrinsic-dev-img-staging"
+        local date_part="${BASH_REMATCH[1]}" # 20250512
+        local rc_part="${BASH_REMATCH[2]}"   # RC05
+        dev_image_tag="0.${date_part}.0-${rc_part}"
+    else
+        # Standard versions like v1.2.3 or 1.2.3
+        dev_image_base_name="ghcr.io/intrinsic-ai/intrinsic-dev-img"
+        dev_image_tag="${version#v}" # Remove leading 'v' if present (e.g. v1.2.3 -> 1.2.3)
+    fi
+
+    cat <<EOF
 {
     "name": "intrinsic-flowstate-devcontainer",
-    "image": "ghcr.io/intrinsic-ai/intrinsic-dev-img:${version}",
+    "image": "${dev_image_base_name}:${dev_image_tag}",
     "runArgs": [
         "--network=host"
     ],
@@ -68,14 +87,17 @@ EOF
 validate_version() {
   local version="$1"
 
-  # Check if version is blank, "main", "latest", or a valid tag
-  if [[ -z "$version" || "$version" == "main" || "$version" == "latest" || "$version" =~ ^[v]?[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    return 0 # Valid version
+  # Check if version is blank, "main", "latest", a valid semver tag, or the new candidate format
+  if [[ -z "$version" || \
+        "$version" == "main" || \
+        "$version" == "latest" || \
+        "$version" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ || \
+        "$version" =~ ^candidate/intrinsic\.platform\.[0-9]{8}\.RC[0-9]+$ ]]; then
+      return 0 # Valid version
   else
-    return 1 # Invalid version
+      return 1 # Invalid version
   fi
 }
-
 
 generate_changelog()
 {
@@ -102,12 +124,15 @@ generate_changelog()
 }
 
 if [[ -z "$1" ]]; then
-  generate_changelog "latest" # or main, or a default version.
+    generate_changelog "latest" # Default to "latest"
 else
-  if validate_version "$1"; then
-    generate_changelog "$1"
-  else
-    echo "Error: Invalid version format. Must be blank, 'main', 'latest', or a tag like v1.2.3 or 1.2.3"
-    exit 1
-  fi
+    if validate_version "$1"; then
+        generate_changelog "$1"
+    else
+        echo "Error: Invalid version format."
+        echo "Supported formats are: blank (defaults to 'latest'), 'main', 'latest',"
+        echo "semantic versions like 'v1.2.3' or '1.2.3',"
+        echo "or candidate tags like 'candidate/intrinsic.platform.YYYYMMDD.RCXX'."
+        exit 1
+    fi
 fi
