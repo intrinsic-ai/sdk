@@ -672,7 +672,6 @@ proto_library(
         "//intrinsic/util/status:extended_status_proto",
         "@com_google_googleapis//google/longrunning:operations_proto",
         "@com_google_protobuf//:any_proto",
-        "@com_google_protobuf//:duration_proto",
         "@com_google_protobuf//:empty_proto",
         "@com_google_protobuf//:timestamp_proto",
     ],

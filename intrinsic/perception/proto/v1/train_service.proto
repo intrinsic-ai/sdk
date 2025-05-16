@@ -6,7 +6,6 @@ package intrinsic_proto.perception.v1;
 
 import "google/longrunning/operations.proto";
 import "google/protobuf/any.proto";
-import "google/protobuf/duration.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "intrinsic/assets/proto/id.proto";
@@ -85,9 +84,6 @@ message CreateTrainingJobRequest {
   // message.
   optional google.protobuf.Any custom_data = 3;
 
-  // Required: Maximum duration of the training job.
-  google.protobuf.Duration maximum_job_duration = 4;
-
   // Name of the parent resource in which the job is being created, for
   // instance: "/applications/{application_id}".
   string parent_name = 5;
@@ -99,6 +95,9 @@ message CreateTrainingJobRequest {
   // pose estimator perception model. This is only used for one-shot pose
   // estimators creation.
   intrinsic_proto.assets.Id one_shot_asset_id = 7;
+
+  reserved 4;
+  reserved "maximum_job_duration";
 }
 
 message AssetMetadata {
