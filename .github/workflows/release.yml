@@ -80,7 +80,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set -euo pipefail
+          set -euox pipefail
 
           echo "Creating new release for tag ${{ steps.checkout_ref.outputs.ref }}"
           .github/ci/generate_changelog.sh ${{ steps.checkout_ref.outputs.ref }} > RELEASE_NOTES.md
