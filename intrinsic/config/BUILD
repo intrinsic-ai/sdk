@@ -1,6 +1,7 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_python//python:defs.bzl", "py_library", "py_test")
 load("//bazel:go_macros.bzl", "go_library", "go_test")
 
 # Application, process, product, and resource set describe all user-accessible configuration of a
@@ -30,6 +31,24 @@ cc_test(
         "//intrinsic/util/testing:gtest_wrapper_main",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
+    ],
+)
+
+py_library(
+    name = "environments_py",
+    srcs = ["environments.py"],
+    visibility = [
+        "//visibility:public",
+    ],
+)
+
+py_test(
+    name = "environments_test_py",
+    srcs = ["environments_test.py"],
+    main = "environments_test.py",
+    deps = [
+        ":environments_py",
+        "@com_google_absl_py//absl/testing:absltest",
     ],
 )
 

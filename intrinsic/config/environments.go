@@ -4,7 +4,6 @@
 package environments
 
 import "fmt"
-
 const (
 	// Prod is the production environment.
 	Prod = "prod"
