@@ -76,10 +76,10 @@ jobs:
       - name: Create GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG_NAME: ${{ github.ref_name }}
+          TAG_NAME: ${{ steps.checkout_ref.outputs.ref }}
         run: |
           echo "Creating new release for tag ${TAG_NAME}"
-          .github/ci/generate_changelog.sh ${GITHUB_REF_NAME##*/} > RELEASE_NOTES.md
+          .github/ci/generate_changelog.sh ${{ steps.checkout_ref.outputs.ref }} > RELEASE_NOTES.md
           SBOM_PATH="${{ steps.sbom_download.outputs.sbom-local-path }}"
           gh release create "$TAG_NAME" \
             ./inbuild-linux-amd64 \
