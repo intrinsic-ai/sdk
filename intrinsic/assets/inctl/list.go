@@ -78,9 +78,9 @@ func GetCommand(defaultTypes string) *cobra.Command {
 			}
 			defer conn.Close()
 
+			client := iagrpcpb.NewInstalledAssetsClient(conn)
 			var pageToken string
 			for {
-				client := iagrpcpb.NewInstalledAssetsClient(conn)
 				resp, err := client.ListInstalledAssets(ctx, &iapb.ListInstalledAssetsRequest{
 					StrictFilter: filter,
 					OrderBy:      spb.OrderBy_ORDER_BY_ID,
