@@ -161,10 +161,14 @@ func AssetToView[T Asset](asset T, view viewpb.AssetViewType, options ...AssetTo
 			return assetView, err
 		}
 		if opts.DeploymentData != nil {
-			if dd, err := opts.DeploymentData(); err != nil {
+			dd, err := opts.DeploymentData()
+			if err != nil {
 				return assetView, err
-			} else if err := setFieldValue(assetView, deploymentDataFieldName, dd); err != nil {
-				return assetView, err
+			}
+			if dd != nil {
+				if err := setFieldValue(assetView, deploymentDataFieldName, dd); err != nil {
+					return assetView, err
+				}
 			}
 		} else if err := copyFieldValue(asset, assetView, deploymentDataFieldName); err != nil {
 			return assetView, err
