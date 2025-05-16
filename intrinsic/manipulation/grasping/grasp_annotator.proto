@@ -4,8 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.grasping;
 
-import "intrinsic/geometry/api/proto/oriented_bounding_box.proto";
-import "intrinsic/geometry/api/proto/triangle_mesh.proto";
+import "intrinsic/geometry/proto/oriented_bounding_box.proto";
+import "intrinsic/geometry/proto/triangle_mesh.proto";
 import "intrinsic/math/proto/pose.proto";
 import "intrinsic/math/proto/vector2.proto";
 import "intrinsic/math/proto/vector3.proto";

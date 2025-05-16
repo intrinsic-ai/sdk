@@ -5,7 +5,7 @@ syntax = "proto3";
 package intrinsic_proto.scene_object.v1;
 
 import "google/longrunning/operations.proto";
-import "intrinsic/geometry/api/proto/v1/material.proto";
+import "intrinsic/geometry/proto/v1/material.proto";
 import "intrinsic/math/proto/quaternion.proto";
 import "intrinsic/scene/proto/v1/scene_object.proto";
 

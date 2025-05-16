@@ -147,7 +147,7 @@ py_library(
     name = "get_footprint_context_impl_py",
     srcs = ["get_footprint_context_impl.py"],
     deps = [
-        "//intrinsic/geometry/api/service:geometry_service_py_pb2_grpc",
+        "//intrinsic/geometry/proto:geometry_service_py_pb2_grpc",
         "//intrinsic/motion_planning:motion_planner_client_py",
         "//intrinsic/resources/proto:resource_handle_py_pb2",
         "//intrinsic/skills/python:get_footprint_context",
@@ -178,7 +178,7 @@ py_library(
     name = "execute_context_impl_py",
     srcs = ["execute_context_impl.py"],
     deps = [
-        "//intrinsic/geometry/api/service:geometry_service_py_pb2_grpc",
+        "//intrinsic/geometry/proto:geometry_service_py_pb2_grpc",
         "//intrinsic/motion_planning:motion_planner_client_py",
         "//intrinsic/resources/proto:resource_handle_py_pb2",
         "//intrinsic/skills/python:execute_context",
@@ -240,7 +240,7 @@ py_library(
     name = "preview_context_impl_py",
     srcs = ["preview_context_impl.py"],
     deps = [
-        "//intrinsic/geometry/api/service:geometry_service_py_pb2_grpc",
+        "//intrinsic/geometry/proto:geometry_service_py_pb2_grpc",
         "//intrinsic/motion_planning:motion_planner_client_py",
         "//intrinsic/resources/proto:resource_handle_py_pb2",
         "//intrinsic/skills/proto:prediction_py_pb2",
@@ -268,7 +268,7 @@ py_library(
         ":runtime_data_py",
         ":skill_repository_py",
         "//intrinsic/assets:id_utils_py",
-        "//intrinsic/geometry/api/service:geometry_service_py_pb2_grpc",
+        "//intrinsic/geometry/proto:geometry_service_py_pb2_grpc",
         "//intrinsic/logging/proto:context_py_pb2",
         "//intrinsic/motion_planning:motion_planner_client_py",
         "//intrinsic/motion_planning/proto/v1:motion_planner_service_py_pb2_grpc",
@@ -437,7 +437,7 @@ py_library(
     deps = [
         ":skill_repository_py",
         ":skill_service_impl_py",
-        "//intrinsic/geometry/api/service:geometry_service_py_pb2_grpc",
+        "//intrinsic/geometry/proto:geometry_service_py_pb2_grpc",
         "//intrinsic/motion_planning/proto/v1:motion_planner_service_py_pb2_grpc",
         "//intrinsic/skills/proto:skill_service_config_py_pb2",
         "//intrinsic/skills/proto:skill_service_py_pb2_grpc",

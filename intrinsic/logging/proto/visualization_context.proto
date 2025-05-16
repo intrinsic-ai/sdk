@@ -12,7 +12,7 @@ syntax = "proto3";
 
 package intrinsic_proto.data_logger;
 
-import "intrinsic/geometry/api/proto/renderable.proto";
+import "intrinsic/geometry/proto/renderable.proto";
 import "intrinsic/logging/proto/blob.proto";
 import "intrinsic/world/proto/geometry_component.proto";
 

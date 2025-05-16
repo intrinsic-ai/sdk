@@ -12,7 +12,7 @@ proto_library(
     name = "workspace_proto",
     srcs = ["workspace.proto"],
     deps = [
-        "//intrinsic/geometry/api/proto:oriented_bounding_box_proto",
+        "//intrinsic/geometry/proto:oriented_bounding_box_proto",
         "//intrinsic/world/proto:object_world_refs_proto",
     ],
 )

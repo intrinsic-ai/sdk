@@ -12,7 +12,7 @@
 #include "absl/strings/string_view.h"
 #include "google/protobuf/empty.pb.h"
 #include "intrinsic/eigenmath/types.h"
-#include "intrinsic/geometry/api/service/transformed_geometry_storage_refs.pb.h"
+#include "intrinsic/geometry/proto/transformed_geometry_storage_refs.pb.h"
 #include "intrinsic/logging/proto/context.pb.h"
 #include "intrinsic/math/pose3.h"
 #include "intrinsic/motion_planning/proto/motion_target.pb.h"

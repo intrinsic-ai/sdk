@@ -288,7 +288,7 @@ proto_library(
     name = "footprint_proto",
     srcs = ["footprint.proto"],
     deps = [
-        "//intrinsic/geometry/api/service:transformed_geometry_storage_refs_proto",
+        "//intrinsic/geometry/proto:transformed_geometry_storage_refs_proto",
         "//intrinsic/world/proto:object_world_refs_proto",
     ],
 )
@@ -306,7 +306,7 @@ cc_proto_library(
 go_proto_library(
     name = "footprint_go_proto",
     go_deps = [
-        "//intrinsic/geometry/api/service:transformed_geometry_storage_refs_go_proto",
+        "//intrinsic/geometry/proto:transformed_geometry_storage_refs_go_proto",
         "//intrinsic/world/proto:object_world_refs_go_proto",
     ],
     deps = [":footprint_proto"],

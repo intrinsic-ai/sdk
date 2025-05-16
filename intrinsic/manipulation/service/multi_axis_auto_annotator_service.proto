@@ -5,7 +5,7 @@ syntax = "proto3";
 
 package intrinsic_proto.grasping.service;
 
-import "intrinsic/geometry/api/proto/triangle_mesh.proto";
+import "intrinsic/geometry/proto/triangle_mesh.proto";
 import "intrinsic/manipulation/grasping/schmalz_multi_axis_grasp.proto";
 
 message GetAnnotationsRequest {

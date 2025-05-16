@@ -136,7 +136,7 @@ proto_library(
     srcs = ["scene_object_import.proto"],
     deps = [
         ":scene_object_proto",
-        "//intrinsic/geometry/api/proto/v1:material_proto",
+        "//intrinsic/geometry/proto/v1:material_proto",
         "//intrinsic/math/proto:quaternion_proto",
         "@com_google_googleapis//google/longrunning:operations_proto",
     ],
@@ -152,7 +152,7 @@ go_proto_library(
     go_deps = [
         ":scene_object_go_proto",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
-        "//intrinsic/geometry/api/proto/v1:material_go_proto",
+        "//intrinsic/geometry/proto/v1:material_go_proto",
         "//intrinsic/math/proto:quaternion_go_proto",
     ],
     deps = [":scene_object_import_proto"],
@@ -176,7 +176,7 @@ go_grpc_library(
     srcs = [":scene_object_import_proto"],
     deps = [
         ":scene_object_go_proto",
-        "//intrinsic/geometry/api/proto/v1:material_go_proto",
+        "//intrinsic/geometry/proto/v1:material_go_proto",
         "//intrinsic/math/proto:quaternion_go_proto",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
     ],

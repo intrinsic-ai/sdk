@@ -7,7 +7,7 @@ package intrinsic_proto.product;
 import "google/protobuf/empty.proto";
 import "google/protobuf/struct.proto";
 import "intrinsic/assets/proto/id.proto";
-import "intrinsic/geometry/api/proto/primitives.proto";
+import "intrinsic/geometry/proto/primitives.proto";
 import "intrinsic/scene/product/proto/product.proto";
 import "intrinsic/scene/proto/v1/scene_object.proto";
 import "intrinsic/scene/proto/v1/scene_object_updates.proto";

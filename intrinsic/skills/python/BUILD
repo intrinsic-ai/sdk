@@ -37,7 +37,7 @@ py_library(
     name = "get_footprint_context",
     srcs = ["get_footprint_context.py"],
     deps = [
-        "//intrinsic/geometry/api/service:geometry_service_py_pb2_grpc",
+        "//intrinsic/geometry/proto:geometry_service_py_pb2_grpc",
         "//intrinsic/motion_planning:motion_planner_client_py",
         "//intrinsic/world/python:object_world_client",
         "//intrinsic/world/python:object_world_ids",
@@ -65,7 +65,7 @@ py_library(
     deps = [
         ":skill_canceller",
         ":skill_logging_context",
-        "//intrinsic/geometry/api/service:geometry_service_py_pb2_grpc",
+        "//intrinsic/geometry/proto:geometry_service_py_pb2_grpc",
         "//intrinsic/motion_planning:motion_planner_client_py",
         "//intrinsic/resources/proto:resource_handle_py_pb2",
         "//intrinsic/world/python:object_world_client",
@@ -84,7 +84,7 @@ py_library(
     deps = [
         ":skill_canceller",
         ":skill_logging_context",
-        "//intrinsic/geometry/api/service:geometry_service_py_pb2_grpc",
+        "//intrinsic/geometry/proto:geometry_service_py_pb2_grpc",
         "//intrinsic/motion_planning:motion_planner_client_py",
         "//intrinsic/world/proto:object_world_updates_py_pb2",
         "//intrinsic/world/python:object_world_client",
