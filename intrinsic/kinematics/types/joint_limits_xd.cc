@@ -29,6 +29,11 @@ bool IsInfiniteVector(const eigenmath::VectorXd& vec) {
                      [](double v) { return std::isinf(v); });
 }
 
+bool AllInfinite(const eigenmath::VectorXd& vec) {
+  return std::all_of(vec.begin(), vec.end(),
+                     [](double v) { return std::isinf(v); });
+}
+
 }  // namespace
 
 JointLimitsXd JointLimitsXd::Unlimited(size_t size) {
@@ -221,12 +226,16 @@ absl::StatusOr<JointLimitsXd> ToJointLimitsXd(
 intrinsic_proto::JointLimitsUpdate ToJointLimitsUpdate(
     const JointLimitsXd& limits) {
   intrinsic_proto::JointLimitsUpdate limits_proto;
-  VectorXdToRepeatedDouble(
-      limits.min_position,
-      limits_proto.mutable_min_position()->mutable_values());
-  VectorXdToRepeatedDouble(
-      limits.max_position,
-      limits_proto.mutable_max_position()->mutable_values());
+  if (!AllInfinite(limits.min_position)) {
+    VectorXdToRepeatedDouble(
+        limits.min_position,
+        limits_proto.mutable_min_position()->mutable_values());
+  }
+  if (!AllInfinite(limits.max_position)) {
+    VectorXdToRepeatedDouble(
+        limits.max_position,
+        limits_proto.mutable_max_position()->mutable_values());
+  }
   if (!IsInfiniteVector(limits.max_velocity)) {
     VectorXdToRepeatedDouble(
         limits.max_velocity,

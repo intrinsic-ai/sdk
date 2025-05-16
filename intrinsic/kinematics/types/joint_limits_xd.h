@@ -74,6 +74,10 @@ intrinsic_proto::JointLimits ToProto(const JointLimitsXd& limits);
 absl::StatusOr<JointLimitsXd> ToJointLimitsXd(
     const intrinsic_proto::JointLimits& limits_proto);
 
+// Constructs JointLimitsUpdate from JointLimitsXd. If all of the positions
+// limits are infinite, no position limits will be set. If any of the velocity,
+// acceleration, jerk, or effort limits are infinite, the corresponding field
+// will not be set.
 intrinsic_proto::JointLimitsUpdate ToJointLimitsUpdate(
     const JointLimitsXd& limits);
 
