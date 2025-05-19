@@ -309,6 +309,28 @@ class SkillTestUtils:
         resource_registry_stub
     )
 
+  def create_resource_registry_with_single_type_handles(
+      self, handles: dict[str, str]
+  ) -> resource_registry_client.ResourceRegistryClient:
+    """Creates a client for a resource registry with a single handle.
+
+    Args:
+      handles: Map from resource handle name to resource handle type.
+
+    Returns:
+      The mock resource registry client.
+    """
+    return self.create_resource_registry_with_handles([
+        text_format.Parse(
+            f"""name: '{name}'
+                    resource_data {{
+                      key: '{type_name}'
+                    }}""",
+            resource_handle_pb2.ResourceHandle(),
+        )
+        for name, type_name in handles.items()
+    ])
+
   def create_resource_registry_with_single_handle(
       self, name: str, type_name: str
   ) -> resource_registry_client.ResourceRegistryClient:
