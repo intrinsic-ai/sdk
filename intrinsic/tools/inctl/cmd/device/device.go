@@ -12,8 +12,6 @@ import (
 )
 
 const (
-	keyHostname = "hostname"
-
 	keyClusterName = "cluster_name"
 )
 
@@ -41,8 +39,6 @@ func init() {
 	deviceCmd.PersistentFlags().StringVarP(&clusterName, keyClusterName, "", "",
 		`The cluster to join. Required for workers, ignored on control-plane.
 		You can set the environment variable INTRINSIC_CLUSTER_NAME=cluster_name to set a default cluster_name.`)
-	deviceCmd.PersistentFlags().StringP(keyHostname, "", "",
-		`The hostname for the device. If it's a control plane this will be the cluster name.`)
 
 	viperutil.BindFlags(viperLocal, deviceCmd.PersistentFlags(), viperutil.BindToListEnv(keyClusterName))
 }

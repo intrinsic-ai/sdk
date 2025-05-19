@@ -22,6 +22,7 @@ import (
 )
 
 const (
+	keyHostname = "hostname"
 	// https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#dns-label-names
 	hostnameRegexString = `^[a-z0-9]([a-z0-9-]{0,40}[a-z0-9])?`
 	replaceKey          = "replace"
@@ -269,4 +270,7 @@ func init() {
 	registerCmd.Flags().BoolVarP(&replaceDevice, replaceKey, "", false, "If set to 'true', an existing cluster with the same name will be replaced.\nThis is equivalent to calling 'inctl cluster delete' first")
 	registerCmd.Flags().BoolVarP(&noWait, "no-wait", "", false, "Set to true to avoid waiting for the cluster initialization.")
 	registerCmd.Flags().BoolVarP(&noUpdate, "no-update", "", false, "Do not enroll the cluster into automatic updates.")
+	registerCmd.Flags().StringP(keyHostname, "", "",
+		`The hostname for the device. If it's a control plane this will be the cluster name.`)
+
 }

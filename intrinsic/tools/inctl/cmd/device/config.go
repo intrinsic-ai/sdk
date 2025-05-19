@@ -77,6 +77,11 @@ var configGetCmd = &cobra.Command{
 		projectName := viperLocal.GetString(orgutil.KeyProject)
 		orgName := viperLocal.GetString(orgutil.KeyOrganization)
 
+		if clusterName == "" {
+			// deviceID is required but clusterName is optional. They're normally the same for single-node
+			// clusters.
+			clusterName = deviceID
+		}
 		ctx, client, err := newClient(cmd.Context(), projectName, orgName, clusterName)
 		if err != nil {
 			return fmt.Errorf("get project client: %w", err)
@@ -125,6 +130,11 @@ var configSetCmd = &cobra.Command{
 		configString := args[0]
 		projectName := viperLocal.GetString(orgutil.KeyProject)
 		orgName := viperLocal.GetString(orgutil.KeyOrganization)
+		if clusterName == "" {
+			// deviceID is required but clusterName is optional. They're normally the same for single-node
+			// clusters.
+			clusterName = deviceID
+		}
 		ctx, client, err := newClient(cmd.Context(), projectName, orgName, clusterName)
 		if err != nil {
 			return fmt.Errorf("get project client: %w", err)
