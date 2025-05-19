@@ -42,17 +42,19 @@ type customViewValue struct {
 	Views []viewpb.AssetViewType
 }
 
+type fDeploymentData func() (proto.Message, error)
+
 type assetToViewOptions struct {
 	// CustomViewValues are custom values to set for some asset views.
 	CustomViewValues []customViewValue
-	// DeploymentData returns the deployment data for the asset view.
+	// FullDeploymentData returns the deployment data for the asset for the FULL view.
 	//
 	// This option is a function rather than a message so the value doesn't need to be computed unless
 	// it is actually needed.
 	//
-	// If provided, the returned deployment data is used to populate the deployment data instead of
-	// the deployment data from the input asset.
-	DeploymentData func() (proto.Message, error)
+	// If provided, the returned deployment data is used to populate the deployment data. If omitted,
+	// then the returned asset view will not have deployment data.
+	FullDeploymentData fDeploymentData
 	// FileDescriptorSet returns a FileDescriptorSet for the asset metadata.
 	//
 	// This option is a function rather than a message so the value doesn't need to be computed unless
@@ -80,11 +82,11 @@ func WithCustomViewValue(field string, views []viewpb.AssetViewType, value func(
 	}
 }
 
-// WithDeploymentData returns an AssetToViewOption that specifies a function to compute the
-// DeploymentData.
-func WithDeploymentData(dd func() (proto.Message, error)) AssetToViewOption {
+// WithFullDeploymentData returns an AssetToViewOption that specifies a function to compute the
+// DeploymentData for the FULL view.
+func WithFullDeploymentData(dd fDeploymentData) AssetToViewOption {
 	return func(opts *assetToViewOptions) {
-		opts.DeploymentData = dd
+		opts.FullDeploymentData = dd
 	}
 }
 
@@ -156,12 +158,21 @@ func AssetToView[T Asset](asset T, view viewpb.AssetViewType, options ...AssetTo
 		if err := mergeAllMetadataToView(asset, assetView, opts); err != nil {
 			return assetView, err
 		}
-	case viewpb.AssetViewType_ASSET_VIEW_TYPE_ALL:
+	case viewpb.AssetViewType_ASSET_VIEW_TYPE_FULL:
 		if err := mergeAllMetadataToView(asset, assetView, opts); err != nil {
 			return assetView, err
 		}
-		if opts.DeploymentData != nil {
-			dd, err := opts.DeploymentData()
+
+		// Optionally set the view's deployment data.
+		var fDD fDeploymentData
+		switch view {
+		case viewpb.AssetViewType_ASSET_VIEW_TYPE_FULL:
+			fDD = opts.FullDeploymentData
+		default:
+			return assetView, status.Errorf(codes.Internal, "unexpected asset view type %v", view.String())
+		}
+		if fDD != nil {
+			dd, err := fDD()
 			if err != nil {
 				return assetView, err
 			}
@@ -170,8 +181,6 @@ func AssetToView[T Asset](asset T, view viewpb.AssetViewType, options ...AssetTo
 					return assetView, err
 				}
 			}
-		} else if err := copyFieldValue(asset, assetView, deploymentDataFieldName); err != nil {
-			return assetView, err
 		}
 	default:
 		return assetView, status.Errorf(codes.InvalidArgument, "unsupported asset view type %v", view.String())
@@ -189,6 +198,16 @@ func AssetToView[T Asset](asset T, view viewpb.AssetViewType, options ...AssetTo
 	}
 
 	return assetView, nil
+}
+
+// ViewHasDeploymentData returns true if the view has deployment data.
+func ViewHasDeploymentData(view viewpb.AssetViewType) bool {
+	switch view {
+	case viewpb.AssetViewType_ASSET_VIEW_TYPE_FULL:
+		return true
+	default:
+		return false
+	}
 }
 
 func mergeAllMetadataToView[T Asset](asset T, assetView T, opts assetToViewOptions) error {

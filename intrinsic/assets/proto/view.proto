@@ -44,6 +44,7 @@ enum AssetViewType {
   // Provides all metadata fields.
   ASSET_VIEW_TYPE_ALL_METADATA = 4;
 
-  // Provides all metadata and deployment data fields.
-  ASSET_VIEW_TYPE_ALL = 5;
+  // Provides all metadata fields and all available deployment data.
+  ASSET_VIEW_TYPE_FULL = 6;
+
 }
