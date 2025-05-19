@@ -9,49 +9,13 @@ def calculate_importpath(name, importpath):
     label = native.package_relative_label(name)
     return label.package + "/" + label.name
 
-def _symlink_go_binary_impl(ctx):
-    output = ctx.actions.declare_file(ctx.label.name)
-    ctx.actions.symlink(
-        output = output,
-        target_file = ctx.attr.src[DefaultInfo].files.to_list()[0],
-        is_executable = True,
-    )
-    return [
-        DefaultInfo(
-            files = depset([output], transitive = [ctx.attr.src[DefaultInfo].files]),
-            runfiles = ctx.runfiles(files = [output]).merge(ctx.attr.src[DefaultInfo].default_runfiles),
-            executable = output,
-        ),
-    ]
-
-_symlink_go_binary = rule(
-    implementation = _symlink_go_binary_impl,
-    doc = "Creates a symlink to go_binary in src's DefaultInfo",
-    attrs = {
-        "src": attr.label(
-            mandatory = True,
-        ),
-    },
-    executable = True,
-)
-
 def go_binary(name, **kwargs):
-    binary_name = name
     if kwargs.get("linkmode", None) in (None, "normal", "pie"):  # executables
-        binary_name = "%s_binary" % name
-        _symlink_go_binary(
-            name = name,
-            src = binary_name,
-            compatible_with = kwargs.get("compatible_with"),
-            visibility = kwargs.get("visibility"),
-            testonly = kwargs.get("testonly"),
-        )
-
-        # keep old output path for compatibility with existing helm charts
-        kwargs["out"] = "%s_/%s" % (name, name)
+        # Create the output binary at "name" instead of "name_/name"
+        kwargs["out"] = name
 
     _go_binary(
-        name = binary_name,
+        name = name,
         importpath = calculate_importpath(name, kwargs.pop("importpath", None)),
         **kwargs
     )
