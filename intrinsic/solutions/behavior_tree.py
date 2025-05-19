@@ -1611,6 +1611,52 @@ class Task(Node):
       proto_object.task.execute_code.CopyFrom(self._code_execution_proto)
     return proto_object
 
+  @property
+  def behavior_call_proto(self) -> behavior_call_pb2.BehaviorCall | None:
+    """BehaviorCall proto (if this task node was initialized for a skill)."""
+    return self._behavior_call_proto
+
+  @property
+  def code_execution_proto(self) -> code_execution_pb2.CodeExecution | None:
+    """CodeExecution proto (if this node was initialized for code execution)."""
+    return self._code_execution_proto
+
+  def update_behavior_call(
+      self, behavior_call_proto: behavior_call_pb2.BehaviorCall
+  ) -> None:
+    """Updates the behavior call.
+
+    Args:
+      behavior_call_proto: New behavior call proto to use.
+
+    Raises:
+      TypeError: This task node was not initialized from a behavior call.
+    """
+    if self._behavior_call_proto is None:
+      raise TypeError(
+          f'Task node {self.node_id} was not initialized from a behavior call.'
+      )
+
+    self._behavior_call_proto = behavior_call_proto
+
+  def update_code_execution(
+      self, code_execution_proto: code_execution_pb2.CodeExecution
+  ) -> None:
+    """Updates the code execution configuration.
+
+    Args:
+      code_execution_proto: New code execution proto to use.
+
+    Raises:
+      TypeError: This task node was not initialized for code execution.
+    """
+    if self._code_execution_proto is None:
+      raise TypeError(
+          f'Task node {self.node_id} was not initialized for code execution.'
+      )
+
+    self._code_execution_proto = code_execution_proto
+
   @utils.classproperty
   def node_type(cls) -> str:  # pylint:disable=no-self-argument
     return 'task'
