@@ -76,6 +76,14 @@ jobs:
         id: sbom_download
         uses: ./.github/actions/download-intrinsic-os-sbom
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+         python-version: '3.x' # Or specific version like 3.9, 3.10, 3.11, 3.12
+
+      - name: Install dependencies
+        run: pip install PyGit
+
       - name: Create GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -83,7 +91,11 @@ jobs:
           set -euox pipefail
 
           echo "Creating new release for tag ${{ steps.checkout_ref.outputs.ref }}"
-          .github/ci/generate_changelog.sh ${{ steps.checkout_ref.outputs.ref }} > RELEASE_NOTES.md
+
+          # Execute the Python script, passing arguments directly
+          python3 doc_gen/release_notes_gen.py \
+            --repo-path "${GITHUB_WORKSPACE}" \
+            --last-release-tag "${{ steps.checkout_ref.outputs.ref }}"
 
           echo "== Generated release notes =="
           cat RELEASE_NOTES.md
