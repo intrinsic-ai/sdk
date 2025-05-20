@@ -50,10 +50,10 @@ message GenerateBagResponse {
 // Request to list all registered bags.
 message ListBagsRequest {
   string organization_id = 1;
-  string workcell_name = 2;
+  string workcell_name = 2 [deprecated = true];
   // Requested time range.
-  google.protobuf.Timestamp start_time = 3;
-  google.protobuf.Timestamp end_time = 4;
+  google.protobuf.Timestamp start_time = 3 [deprecated = true];
+  google.protobuf.Timestamp end_time = 4 [deprecated = true];
 
   // Limits for the number of results per page.
   optional uint32 max_num_results = 5;  // Defaults to 1000.
