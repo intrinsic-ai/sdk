@@ -6,7 +6,6 @@ package intrinsic_proto.accountsdiscovery.v1;
 
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
-import "protoc-gen-openapiv2/options/annotations.proto";
 
 message PingResponse {}
 
@@ -44,18 +43,12 @@ service AccountsDiscoveryService {
     option (google.api.http) = {
       get: "/v1/accountsdiscovery/organizations"
     };
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      operation_id: "ListOrganizations"
-    };
   }
 
   // ListMembers lists the members of an organization.
   rpc ListMembers(ListMembersRequest) returns (ListMembersResponse) {
     option (google.api.http) = {
       get: "/v1/accountsdiscovery/organizations/{organization}/members"
-    };
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      operation_id: "ListMembers"
     };
   }
 
