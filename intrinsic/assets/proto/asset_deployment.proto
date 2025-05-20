@@ -60,6 +60,9 @@ message ResourceConfiguration {
   // Hostname on which the service should be run.
   optional string scheduled_node_hostname = 3;
 
+  // Optional scene object configuration.
+  optional scene_object.v1.SceneObjectConfig scene_object_config = 6;
+
   reserved 4, 5;
   reserved "parent", "parent_t_this";
 }
