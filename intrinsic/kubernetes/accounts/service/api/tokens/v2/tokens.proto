@@ -1,0 +1,51 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.accounts.tokens.v2;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+message GetIPCTokenRequest {
+  IPCCredential credential = 1;
+}
+
+message GetIPCTokenResponse {
+  string ipc_token = 1;
+}
+
+message IPCCredential {
+  oneof oneOf {
+    RobotJWT robot_jwt = 1;
+  }
+}
+
+message RobotJWT {
+  // The robot JWT issued by the metadata server to exchange for an IPC token.
+  string jwt = 1;
+}
+
+message PingResponse {
+  google.protobuf.Timestamp timestamp = 1;
+}
+
+service AccountsTokensService {
+  // Ping returns the current timestamp. Can be used for latency and
+  // availability probes.
+  rpc Ping(google.protobuf.Empty) returns (PingResponse) {
+    option (google.api.http) = {
+      get: "/tokens/v2:ping"
+    };
+  }
+
+  // GetIPCToken returns an IPC token for the given credential.
+  // With the returned token an IPC can access the Intrinsic cloud platform.
+  rpc GetIPCToken(GetIPCTokenRequest) returns (GetIPCTokenResponse) {
+    option (google.api.http) = {
+      post: "/tokens/v2/ipctoken"
+      body: "*"
+    };
+  }
+}
