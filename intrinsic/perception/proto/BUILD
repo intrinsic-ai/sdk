@@ -524,8 +524,8 @@ proto_library(
     name = "point_cloud_proto",
     srcs = ["point_cloud.proto"],
     deps = [
-        ":sensor_image",
         "//intrinsic/math/proto:pose_proto",
+        "//intrinsic/perception/proto/v1:sensor_image_proto",
     ],
 )
 

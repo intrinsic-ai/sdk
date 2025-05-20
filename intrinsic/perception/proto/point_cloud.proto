@@ -5,10 +5,10 @@ syntax = "proto3";
 package intrinsic_proto.perception;
 
 import "intrinsic/math/proto/pose.proto";
-import "intrinsic/perception/proto/sensor_image.proto";
+import "intrinsic/perception/proto/v1/sensor_image.proto";
 
 message SingleView {
-  perception.SensorImage sensor_image = 1;
+  perception.v1.SensorImage sensor_image = 1;
   // Camera position in the world coordinate system.
   intrinsic_proto.Pose camera_t_world = 2;
 }
