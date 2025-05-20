@@ -10,6 +10,217 @@ load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
 package(default_visibility = ["//visibility:public"])
 
 proto_library(
+    name = "bag_metadata_proto",
+    srcs = ["bag_metadata.proto"],
+    deps = [
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "bag_metadata_cc_proto",
+    deps = [":bag_metadata_proto"],
+)
+
+go_proto_library(
+    name = "bag_metadata_go_proto",
+    deps = [":bag_metadata_proto"],
+)
+
+py_proto_library(
+    name = "bag_metadata_py_pb2",
+    deps = [":bag_metadata_proto"],
+)
+
+proto_library(
+    name = "bag_packager_service",
+    srcs = ["bag_packager_service.proto"],
+    deps = [
+        ":bag_metadata_proto",
+        "@com_google_protobuf//:empty_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "bag_packager_service_cc_proto",
+    deps = [":bag_packager_service"],
+)
+
+cc_grpc_library(
+    name = "bag_packager_service_cc_grpc",
+    srcs = [":bag_packager_service"],
+    grpc_only = True,
+    deps = [":bag_packager_service_cc_proto"],
+)
+
+go_proto_library(
+    name = "bag_packager_service_go_proto",
+    go_deps = [
+        ":bag_metadata_go_proto",
+    ],
+    deps = [":bag_packager_service"],
+)
+
+go_grpc_library(
+    name = "bag_packager_service_go_grpc_proto",
+    srcs = [":bag_packager_service"],
+    deps = [
+        ":bag_metadata_go_proto",
+        ":bag_packager_service_go_proto",
+    ],
+)
+
+py_proto_library(
+    name = "bag_packager_service_py_pb2",
+    deps = [":bag_packager_service"],
+)
+
+py_grpc_library(
+    name = "bag_packager_service_py_pb2_grpc",
+    srcs = [":bag_packager_service"],
+    grpc_library = requirement("grpcio"),
+    deps = [":bag_packager_service_py_pb2"],
+)
+
+proto_library(
+    name = "blob_proto",
+    srcs = ["blob.proto"],
+)
+
+cc_proto_library(
+    name = "blob_cc_proto",
+    deps = [":blob_proto"],
+)
+
+go_proto_library(
+    name = "blob_go_proto",
+    deps = [":blob_proto"],
+)
+
+py_proto_library(
+    name = "blob_py_pb2",
+    deps = [":blob_proto"],
+)
+
+proto_library(
+    name = "context_proto",
+    srcs = ["context.proto"],
+)
+
+cc_proto_library(
+    name = "context_cc_proto",
+    deps = [":context_proto"],
+)
+
+go_proto_library(
+    name = "context_go_proto",
+    visibility = ["//intrinsic:__subpackages__"],
+    deps = [":context_proto"],
+)
+
+py_proto_library(
+    name = "context_py_pb2",
+    deps = [":context_proto"],
+)
+
+proto_library(
+    name = "critical_event_log",
+    srcs = ["critical_event_log.proto"],
+)
+
+cc_proto_library(
+    name = "critical_event_log_cc_proto",
+    deps = [":critical_event_log"],
+)
+
+go_proto_library(
+    name = "critical_event_log_go_proto",
+    deps = [":critical_event_log"],
+)
+
+py_proto_library(
+    name = "critical_event_log_py_pb2",
+    deps = [":critical_event_log"],
+)
+
+proto_library(
+    name = "flowstate_event",
+    srcs = ["flowstate_event.proto"],
+    visibility = ["//visibility:private"],
+)
+
+cc_proto_library(
+    name = "flowstate_event_cc_proto",
+    deps = [":flowstate_event"],
+)
+
+go_proto_library(
+    name = "flowstate_event_go_proto",
+    deps = [":flowstate_event"],
+)
+
+py_proto_library(
+    name = "flowstate_event_py_pb2",
+    deps = [":flowstate_event"],
+)
+
+proto_library(
+    name = "log_dispatcher_service",
+    srcs = ["log_dispatcher_service.proto"],
+    deps = [
+        ":blob_proto",
+        ":log_item_proto",
+        "@com_google_protobuf//:empty_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "log_dispatcher_service_cc_proto",
+    deps = [":log_dispatcher_service"],
+)
+
+cc_grpc_library(
+    name = "log_dispatcher_service_cc_grpc",
+    srcs = [":log_dispatcher_service"],
+    grpc_only = True,
+    deps = [":log_dispatcher_service_cc_proto"],
+)
+
+go_proto_library(
+    name = "log_dispatcher_service_go_proto",
+    go_deps = [
+        ":bag_metadata_go_proto",
+        ":blob_go_proto",
+        ":log_item_go_proto",
+    ],
+    deps = [":log_dispatcher_service"],
+)
+
+go_grpc_library(
+    name = "log_dispatcher_service_go_grpc_proto",
+    srcs = [":log_dispatcher_service"],
+    deps = [
+        ":blob_go_proto",
+        ":log_dispatcher_service_go_proto",
+        ":log_item_go_proto",
+    ],
+)
+
+py_proto_library(
+    name = "log_dispatcher_service_py_pb2",
+    deps = [":log_dispatcher_service"],
+)
+
+py_grpc_library(
+    name = "log_dispatcher_service_py_pb2_grpc",
+    srcs = [":log_dispatcher_service"],
+    grpc_library = requirement("grpcio"),
+    deps = [":log_dispatcher_service_py_pb2"],
+)
+
+proto_library(
     name = "log_item_proto",
     srcs = ["log_item.proto"],
     deps = [
@@ -131,88 +342,6 @@ py_proto_library(
 )
 
 proto_library(
-    name = "blob_proto",
-    srcs = ["blob.proto"],
-)
-
-cc_proto_library(
-    name = "blob_cc_proto",
-    deps = [":blob_proto"],
-)
-
-go_proto_library(
-    name = "blob_go_proto",
-    deps = [":blob_proto"],
-)
-
-py_proto_library(
-    name = "blob_py_pb2",
-    deps = [":blob_proto"],
-)
-
-proto_library(
-    name = "context_proto",
-    srcs = ["context.proto"],
-)
-
-proto_library(
-    name = "critical_event_log",
-    srcs = ["critical_event_log.proto"],
-)
-
-cc_proto_library(
-    name = "critical_event_log_cc_proto",
-    deps = [":critical_event_log"],
-)
-
-py_proto_library(
-    name = "critical_event_log_py_pb2",
-    deps = [":critical_event_log"],
-)
-
-go_proto_library(
-    name = "critical_event_log_go_proto",
-    deps = [":critical_event_log"],
-)
-
-proto_library(
-    name = "flowstate_event",
-    srcs = ["flowstate_event.proto"],
-    visibility = ["//visibility:private"],
-)
-
-cc_proto_library(
-    name = "flowstate_event_cc_proto",
-    deps = [":flowstate_event"],
-)
-
-go_proto_library(
-    name = "flowstate_event_go_proto",
-    deps = [":flowstate_event"],
-)
-
-py_proto_library(
-    name = "flowstate_event_py_pb2",
-    deps = [":flowstate_event"],
-)
-
-py_proto_library(
-    name = "context_py_pb2",
-    deps = [":context_proto"],
-)
-
-cc_proto_library(
-    name = "context_cc_proto",
-    deps = [":context_proto"],
-)
-
-go_proto_library(
-    name = "context_go_proto",
-    visibility = ["//intrinsic:__subpackages__"],
-    deps = [":context_proto"],
-)
-
-proto_library(
     name = "logger_service",
     srcs = ["logger_service.proto"],
     deps = [
@@ -235,18 +364,6 @@ cc_grpc_library(
     deps = [":logger_service_cc_proto"],
 )
 
-py_proto_library(
-    name = "logger_service_py_pb2",
-    deps = [":logger_service"],
-)
-
-py_grpc_library(
-    name = "logger_service_py_pb2_grpc",
-    srcs = [":logger_service"],
-    grpc_library = requirement("grpcio"),
-    deps = [":logger_service_py_pb2"],
-)
-
 go_proto_library(
     name = "logger_service_go_proto",
     go_deps = [
@@ -264,6 +381,18 @@ go_grpc_library(
         ":log_item_go_proto",
         ":logger_service_go_proto",
     ],
+)
+
+py_proto_library(
+    name = "logger_service_py_pb2",
+    deps = [":logger_service"],
+)
+
+py_grpc_library(
+    name = "logger_service_py_pb2_grpc",
+    srcs = [":logger_service"],
+    grpc_library = requirement("grpcio"),
+    deps = [":logger_service_py_pb2"],
 )
 
 proto_library(
@@ -288,96 +417,11 @@ py_proto_library(
     deps = [":pubsub_listener_service"],
 )
 
-proto_library(
-    name = "visualization_context_proto",
-    srcs = ["visualization_context.proto"],
-    deps = [
-        ":blob_proto",
-        "//intrinsic/geometry/proto:renderable_proto",
-        "//intrinsic/world/proto:geometry_component_proto",
-    ],
-)
-
-cc_proto_library(
-    name = "visualization_context_cc_proto",
-    deps = [":visualization_context_proto"],
-)
-
-py_proto_library(
-    name = "visualization_context_py_pb2",
-    deps = [":visualization_context_proto"],
-)
-
-go_proto_library(
-    name = "visualization_context_go_proto",
-    go_deps = [
-        ":blob_go_proto",
-        "//intrinsic/geometry/proto:renderable_go_proto",
-        "//intrinsic/world/proto:geometry_component_go_proto",
-    ],
-    deps = [":visualization_context_proto"],
-)
-
 py_grpc_library(
     name = "pubsub_listener_service_py_pb2_grpc",
     srcs = [":pubsub_listener_service"],
     grpc_library = requirement("grpcio"),
     deps = [":pubsub_listener_service_py_pb2"],
-)
-
-proto_library(
-    name = "log_dispatcher_service",
-    srcs = ["log_dispatcher_service.proto"],
-    deps = [
-        ":blob_proto",
-        ":log_item_proto",
-        "@com_google_protobuf//:empty_proto",
-        "@com_google_protobuf//:timestamp_proto",
-    ],
-)
-
-cc_proto_library(
-    name = "log_dispatcher_service_cc_proto",
-    deps = [":log_dispatcher_service"],
-)
-
-cc_grpc_library(
-    name = "log_dispatcher_service_cc_grpc",
-    srcs = [":log_dispatcher_service"],
-    grpc_only = True,
-    deps = [":log_dispatcher_service_cc_proto"],
-)
-
-py_proto_library(
-    name = "log_dispatcher_service_py_pb2",
-    deps = [":log_dispatcher_service"],
-)
-
-py_grpc_library(
-    name = "log_dispatcher_service_py_pb2_grpc",
-    srcs = [":log_dispatcher_service"],
-    grpc_library = requirement("grpcio"),
-    deps = [":log_dispatcher_service_py_pb2"],
-)
-
-go_proto_library(
-    name = "log_dispatcher_service_go_proto",
-    go_deps = [
-        ":bag_metadata_go_proto",
-        ":blob_go_proto",
-        ":log_item_go_proto",
-    ],
-    deps = [":log_dispatcher_service"],
-)
-
-go_grpc_library(
-    name = "log_dispatcher_service_go_grpc_proto",
-    srcs = [":log_dispatcher_service"],
-    deps = [
-        ":blob_go_proto",
-        ":log_dispatcher_service_go_proto",
-        ":log_item_go_proto",
-    ],
 )
 
 proto_library(
@@ -399,18 +443,6 @@ cc_grpc_library(
     deps = [":replay_service_cc_proto"],
 )
 
-py_proto_library(
-    name = "replay_service_py_pb2",
-    deps = [":replay_service"],
-)
-
-py_grpc_library(
-    name = "replay_service_py_pb2_grpc",
-    srcs = [":replay_service"],
-    grpc_library = requirement("grpcio"),
-    deps = [":replay_service_py_pb2"],
-)
-
 go_proto_library(
     name = "replay_service_go_proto",
     go_deps = [":replay_service_options_go_proto"],
@@ -424,6 +456,18 @@ go_grpc_library(
         ":replay_service_go_proto",
         ":replay_service_options_go_proto",
     ],
+)
+
+py_proto_library(
+    name = "replay_service_py_pb2",
+    deps = [":replay_service"],
+)
+
+py_grpc_library(
+    name = "replay_service_py_pb2_grpc",
+    srcs = [":replay_service"],
+    grpc_library = requirement("grpcio"),
+    deps = [":replay_service_py_pb2"],
 )
 
 proto_library(
@@ -440,86 +484,42 @@ cc_proto_library(
     deps = [":replay_service_options"],
 )
 
-py_proto_library(
-    name = "replay_service_options_py_pb2",
-    deps = [":replay_service_options"],
-)
-
 go_proto_library(
     name = "replay_service_options_go_proto",
     deps = [":replay_service_options"],
 )
 
+py_proto_library(
+    name = "replay_service_options_py_pb2",
+    deps = [":replay_service_options"],
+)
+
 proto_library(
-    name = "bag_metadata_proto",
-    srcs = ["bag_metadata.proto"],
+    name = "visualization_context_proto",
+    srcs = ["visualization_context.proto"],
     deps = [
-        "@com_google_protobuf//:timestamp_proto",
+        ":blob_proto",
+        "//intrinsic/geometry/proto:renderable_proto",
+        "//intrinsic/world/proto:geometry_component_proto",
     ],
 )
 
 cc_proto_library(
-    name = "bag_metadata_cc_proto",
-    deps = [":bag_metadata_proto"],
-)
-
-py_proto_library(
-    name = "bag_metadata_proto_py_pb2",
-    deps = [":bag_metadata_proto"],
+    name = "visualization_context_cc_proto",
+    deps = [":visualization_context_proto"],
 )
 
 go_proto_library(
-    name = "bag_metadata_go_proto",
-    deps = [":bag_metadata_proto"],
-)
-
-proto_library(
-    name = "bag_packager_service",
-    srcs = ["bag_packager_service.proto"],
-    deps = [
-        ":bag_metadata_proto",
-        "@com_google_protobuf//:empty_proto",
-        "@com_google_protobuf//:timestamp_proto",
-    ],
-)
-
-cc_proto_library(
-    name = "bag_packager_service_cc_proto",
-    deps = [":bag_packager_service"],
-)
-
-cc_grpc_library(
-    name = "bag_packager_service_cc_grpc",
-    srcs = [":bag_packager_service"],
-    grpc_only = True,
-    deps = [":bag_packager_service_cc_proto"],
-)
-
-py_proto_library(
-    name = "bag_packager_service_py_pb2",
-    deps = [":bag_packager_service"],
-)
-
-py_grpc_library(
-    name = "bag_packager_service_py_pb2_grpc",
-    srcs = [":bag_packager_service"],
-    grpc_library = requirement("grpcio"),
-    deps = [":bag_packager_service_py_pb2"],
-)
-
-go_proto_library(
-    name = "bag_packager_service_go_proto",
+    name = "visualization_context_go_proto",
     go_deps = [
-        ":bag_metadata_go_proto",
+        ":blob_go_proto",
+        "//intrinsic/geometry/proto:renderable_go_proto",
+        "//intrinsic/world/proto:geometry_component_go_proto",
     ],
-    deps = [":bag_packager_service"],
+    deps = [":visualization_context_proto"],
 )
 
-go_grpc_library(
-    name = "bag_packager_service_go_grpc_proto",
-    srcs = [":bag_packager_service"],
-    deps = [
-        ":bag_metadata_go_proto",
-        ":bag_packager_service_go_proto",
-    ],
+py_proto_library(
+    name = "visualization_context_py_pb2",
+    deps = [":visualization_context_proto"],
 )
