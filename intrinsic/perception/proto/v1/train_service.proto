@@ -55,13 +55,13 @@ service TrainService {
       returns (VerifyTrainingJobResponse);
 }
 
-enum ParameterAutoFill {
-  AUTO_FILL_UNSPECIFIED = 0;
-  AUTO_FILL_EDGE_BASED = 1;
-  AUTO_FILL_SURFACE_BASED = 2;
-  AUTO_FILL_SINGLE_VIEW_ML = 3;
-  AUTO_FILL_MULTI_VIEW_ML = 4;
-  AUTO_FILL_ONE_SHOT = 5;
+enum PoseEstimatorType {
+  POSE_ESTIMATOR_TYPE_UNSPECIFIED = 0;
+  POSE_ESTIMATOR_TYPE_EDGE_BASED = 1;
+  POSE_ESTIMATOR_TYPE_SURFACE_BASED = 2;
+  POSE_ESTIMATOR_TYPE_SINGLE_VIEW_ML = 3;
+  POSE_ESTIMATOR_TYPE_MULTI_VIEW_ML = 4;
+  POSE_ESTIMATOR_TYPE_ONE_SHOT = 5;
 }
 
 message CreateTrainingJobRequest {
@@ -69,11 +69,12 @@ message CreateTrainingJobRequest {
   // config must match the target paths in the file_references below.
   intrinsic_proto.perception.v1.PoseEstimationConfig pose_estimation_config = 1;
 
-  // Auto-fill option for the pose estimation config. If set, the params and
-  // inference_params fields in the pose_estimation_config will be auto-filled
-  // with default values. If the auto-fill option is set, the params and
-  // inference_params fields in the pose_estimation_config must not be set.
-  ParameterAutoFill parameter_auto_fill = 8;
+  // Type of pose estimator to be trained. If POSE_ESTIMATOR_TYPE_UNSPECIFIED is
+  // selected, the params and inference_params fields of pose_estimation_config
+  // must be set. If any other pose estimator type is selected, the params and
+  // inference_params fields will be auto-filled with default values according
+  // to the pose estimator type.
+  PoseEstimatorType pose_estimator_type = 8;
 
   // Contains a list of scene objects which the model is trained on. The map key
   // matches the target paths in the config above.
