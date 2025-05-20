@@ -18,6 +18,7 @@ go_library(
         "//intrinsic/assets:cmdutils",
         "//intrinsic/kubernetes/acl:identity",
         "//intrinsic/kubernetes/vmpool/manager/api/v1:lease_api_go_grpc_proto",
+        "//intrinsic/logging/proto:bag_metadata_go_proto",
         "//intrinsic/logging/proto:bag_packager_service_go_grpc_proto",
         "//intrinsic/logging/proto:replay_service_go_grpc_proto",
         "//intrinsic/tools/inctl/auth",
