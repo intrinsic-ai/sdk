@@ -2,8 +2,6 @@
 
 // The `list_parts` binary is a tool that lists available robot parts from an
 // Icon Application Layer Service.
-//
-//
 #include <iostream>
 #include <ostream>
 #include <string>

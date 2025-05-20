@@ -2,9 +2,12 @@
 
 load("//intrinsic/platform:flatbuffers.bzl", "cc_flatbuffers_library", "flatbuffers_library")
 
-package(default_visibility = [
-    "//visibility:public",
-])
+package(
+    # No package outside of "safety" should see this.
+    default_visibility = [
+        "//visibility:public",
+    ],
+)
 
 flatbuffers_library(
     name = "safety_status_fbs",

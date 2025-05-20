@@ -17,7 +17,6 @@ namespace intrinsic::icon {
 // SharedMemoryLockstep is a Lockstep synchronization primitive that is stored
 // in shared memory. This can be used for synchronization across process
 // boundaries.
-//
 class SharedMemoryLockstep {
  public:
   // Null SharedMemoryLockstep. Dereferencing this will check-fail. This allows

@@ -1,6 +1,10 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-"""Empty test that imports ICON python protos."""
+"""Empty test that imports ICON python protos.
+
+Validates that Python protobuf codegen is working correctly in the released ICON
+codebase built with Bazel.
+"""
 
 # pylint: disable=unused-import
 from intrinsic.icon.proto import cart_space_pb2
