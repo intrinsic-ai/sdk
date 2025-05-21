@@ -16,14 +16,16 @@ var (
 	// See: https://protobuf.com/docs/language-spec.
 	nameRegex = regexp.MustCompile(`^([A-Za-z_][A-Za-z0-9_]*\.)+[A-Za-z_][A-Za-z0-9_]*$`)
 
-	errInvalidProtoName   = errors.New("invalid proto name")
-	errInvalidProtoPrefix = errors.New("invalid proto prefix")
+	// ErrInvalidProtoName is returned when a proto name is invalid.
+	ErrInvalidProtoName = errors.New("invalid proto name")
+	// ErrInvalidProtoPrefix is returned when a proto prefix is invalid.
+	ErrInvalidProtoPrefix = errors.New("invalid proto prefix")
 )
 
 // ValidateProtoName validates a proto name.
 func ValidateProtoName(protoName string) error {
 	if !nameRegex.MatchString(protoName) {
-		return fmt.Errorf("%w: expected name formatted as '<package>.<message>', got %q", errInvalidProtoName, protoName)
+		return fmt.Errorf("%w: expected name formatted as '<package>.<message>', got %q", ErrInvalidProtoName, protoName)
 	}
 	return nil
 }
@@ -31,11 +33,11 @@ func ValidateProtoName(protoName string) error {
 // ValidateProtoPrefix validates a proto prefix.
 func ValidateProtoPrefix(protoPrefix string) error {
 	if len(protoPrefix) < 2 || !strings.HasPrefix(protoPrefix, "/") || !strings.HasSuffix(protoPrefix, "/") {
-		return fmt.Errorf("%w: expected prefix formatted as '/<package>.<message>/', got %q", errInvalidProtoPrefix, protoPrefix)
+		return fmt.Errorf("%w: expected prefix formatted as '/<package>.<message>/', got %q", ErrInvalidProtoPrefix, protoPrefix)
 	}
 	protoName := protoPrefix[1 : len(protoPrefix)-1]
 	if !nameRegex.MatchString(protoName) {
-		return fmt.Errorf("%w: expected prefix formatted as '/<package>.<message>/', got %q", errInvalidProtoPrefix, protoPrefix)
+		return fmt.Errorf("%w: expected prefix formatted as '/<package>.<message>/', got %q", ErrInvalidProtoPrefix, protoPrefix)
 	}
 	return nil
 }
