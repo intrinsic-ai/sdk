@@ -68,8 +68,7 @@ cc_library(
         ":peer_config.json",
     ],
     visibility = [
-        "//intrinsic/platform/pubsub:__subpackages__",
-        "//intrinsic/platform/ros:__subpackages__",
+        "//visibility:public",
     ],
     deps = [
         ":zenoh_helpers",
