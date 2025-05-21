@@ -542,7 +542,9 @@ def create_grpc_channel(
     if cluster is not None:
       resolved_cluster = cluster
     if solution is not None:
-      resolved_cluster = _get_cluster_from_solution(resolved_project, solution)
+      resolved_cluster = _get_cluster_from_solution(
+          solution, resolved_project, org
+      )
 
     params = dialerutil.CreateChannelParams(
         organization_name=org,
@@ -553,10 +555,15 @@ def create_grpc_channel(
   return dialerutil.create_channel(params, grpc_options=_GRPC_OPTIONS)
 
 
-def _get_cluster_from_solution(project: str, solution_id: str) -> str:
+def _get_cluster_from_solution(
+    solution_id: str, project: str, org: str | None
+) -> str:
+  """Returns the name of the cluster in which the given solution is running."""
   # Open a temporary gRPC channel to the cloud cluster to resolve the cluster
   # on which the solution is running.
-  params = dialerutil.CreateChannelParams(project_name=project)
+  params = dialerutil.CreateChannelParams(
+      project_name=project, organization_name=org
+  )
   channel = dialerutil.create_channel(params)
   stub = solutiondiscovery_api_pb2_grpc.SolutionDiscoveryServiceStub(channel)
   response = stub.GetSolutionDescription(
