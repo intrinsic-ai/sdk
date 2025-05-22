@@ -7,6 +7,7 @@ load("@bazel_skylib//lib:paths.bzl", "paths")
 load(
     "//bazel:container.bzl",
     "container_image",
+    "container_layer",
 )
 
 def python_layers(name, binary, **kwargs):
@@ -164,11 +165,18 @@ def python_oci_image(
         kwargs["cmd"] = [binary_path]
 
     # By default, the runfiles path is prefixed by the repo name while the binary path is not. Adding a symlink to fix the runfiles detection logic in case the repo is not empty.
-    if native.repo_name():
-        binary_runfiles_path = paths.join("/", kwargs.get("directory", ""), native.repo_name(), binary_label.package, binary_label.name + ".runfiles")
+    if binary_label.repo_name:
+        binary_runfiles_path = paths.join("/", kwargs.get("directory", ""), binary_label.repo_name, binary_label.package, binary_label.name + ".runfiles")
         symlinks = (symlinks or {}) | {
             binary_path + ".runfiles": binary_runfiles_path,
         }
+
+        # Create "_main" folder in runfiles since the Python bootstrap script runs `assert os.path.exists(".../binary.runfiles/_main/../ai_intrinsic_sdks+")` which fails when "_main" doesn't exist
+        container_layer(
+            name = name + "_dummy_layer",
+            empty_dirs = [binary_runfiles_path + "/_main"],
+        )
+        layers.append(":" + name + "_dummy_layer")
 
     if extra_tars:
         layers.extend(extra_tars)
