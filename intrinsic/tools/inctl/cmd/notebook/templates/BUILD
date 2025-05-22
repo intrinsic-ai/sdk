@@ -5,7 +5,6 @@ package(default_visibility = ["//intrinsic/tools/inctl/cmd/bazel:__subpackages__
 
 exports_files(
     srcs = [
-        "BUILD",
         "empty_notebook.ipynb.template",
     ],
     visibility = [
