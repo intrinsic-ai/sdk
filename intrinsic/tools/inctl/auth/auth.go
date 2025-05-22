@@ -38,6 +38,9 @@ const (
 	// tokenExchangeServer is the address of the token exchange server.
 	// Points to the GRPC gateway.
 	tokenExchangeServer = "flowstate.intrinsic.ai"
+
+	// NoLoginHint is the hint shown when the user does not have an API key configured.
+	NoLoginHint = "\n\tIt seems like you don't have an API key configured. Did you run 'inctl auth login --org <org>@%s'?\n\n"
 )
 
 // RFC3339Time is type alias to correct (un)marshaling time.Time in RFC3339 format
