@@ -67,6 +67,14 @@ build:remote_cache --google_default_credentials=true
 build:remote       --host_platform=//bazel:linux_x86_64
 build:remote_cache --host_platform=//bazel:linux_x86_64
 
+# Docker Sandbox Mode
+# https://bazel.build/remote/sandbox
+build:docker --experimental_docker_image="docker://gcr.io/cloud-robotics-releases/bazel-rbe-executor@sha256:0214faa0cb79068bc722639ef2a8c571783e98a54e8b0755f84ea56e6207de93"
+build:docker --spawn_strategy=docker --genrule_strategy=docker
+build:docker --experimental_docker_verbose
+build:docker --experimental_enable_docker_sandbox
+build:docker --host_platform=//bazel:linux_x86_64
+
 # Enable absl support in googletest. If this define is set, googletest's default
 # main function initializes absl, including the command line flag subsystem.
 #
