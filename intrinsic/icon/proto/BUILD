@@ -356,6 +356,7 @@ py_proto_library(
     deps = [":logging_mode_proto"],
 )
 
+# Convenience proto library to add icon protos to icon python wheel
 proto_library(
     name = "icon_protos",
     deps = [

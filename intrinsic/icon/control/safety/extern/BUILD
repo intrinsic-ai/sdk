@@ -3,7 +3,6 @@
 load("//intrinsic/platform:flatbuffers.bzl", "cc_flatbuffers_library", "flatbuffers_library")
 
 package(
-    # No package outside of "safety" should see this.
     default_visibility = [
         "//visibility:public",
     ],
