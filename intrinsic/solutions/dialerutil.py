@@ -58,7 +58,7 @@ class _OrgName(grpc.AuthMetadataPlugin):
     self._organization_name = organization_name.split("@")[0]
 
   def __call__(self, context, callback):
-    callback(((auth.ORG_ID_HEADER, self._organization_name),), None)
+    callback((("org-id", self._organization_name),), None)
 
 
 class CredentialsRequiredError(ValueError):

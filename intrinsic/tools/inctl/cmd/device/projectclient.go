@@ -44,7 +44,7 @@ type authedClient struct {
 func (c *authedClient) do(req *http.Request) (*http.Response, error) {
 	req, err := c.tokenSource.HTTPAuthorization(req)
 	if c.organization != "" {
-		req.AddCookie(&http.Cookie{Name: auth.OrgIDHeader, Value: c.organization})
+		req.AddCookie(&http.Cookie{Name: "org-id", Value: c.organization})
 	}
 
 	if err != nil {

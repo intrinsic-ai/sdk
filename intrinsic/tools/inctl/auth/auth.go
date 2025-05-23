@@ -17,6 +17,8 @@ import (
 	log "github.com/golang/glog"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
+	"intrinsic/kubernetes/acl/cookies"
+	"intrinsic/kubernetes/acl/org"
 )
 
 const (
@@ -27,9 +29,6 @@ const (
 	storeDirectory      = "intrinsic/projects"
 	orgStoreDirectory   = "intrinsic/organizations"
 	authConfigExtension = ".user-token"
-
-	// OrgIDHeader is the header name for providing the org in requests to our services.
-	OrgIDHeader = "org-id"
 
 	directoryMode  os.FileMode = 0700
 	fileMode       os.FileMode = 0600
@@ -42,6 +41,15 @@ const (
 	// NoLoginHint is the hint shown when the user does not have an API key configured.
 	NoLoginHint = "\n\tIt seems like you don't have an API key configured. Did you run 'inctl auth login --org <org>@%s'?\n\n"
 )
+
+// OrgToContext adds the org ID to the outgoing context. If the orgName is empty, the
+// context is returned unchanged.
+func OrgToContext(ctx context.Context, orgName string) context.Context {
+	if orgName == "" {
+		return ctx
+	}
+	return metadata.AppendToOutgoingContext(ctx, cookies.ToMDString(org.IDCookie(orgName))...)
+}
 
 // RFC3339Time is type alias to correct (un)marshaling time.Time in RFC3339 format
 type RFC3339Time time.Time

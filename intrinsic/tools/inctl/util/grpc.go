@@ -36,7 +36,7 @@ func NewIPCGRPCClient(ctx context.Context, projectName, orgName, clusterName str
 	if err != nil {
 		return ctx, nil, fmt.Errorf("dialing context: %w", err)
 	}
-	ctx = metadata.AppendToOutgoingContext(ctx, auth.OrgIDHeader, orgName)
+	ctx = auth.OrgToContext(ctx, orgName)
 	ctx = metadata.AppendToOutgoingContext(ctx, "x-server-name", clusterName)
 	return ctx, conn, nil
 }
