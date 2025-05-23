@@ -17,7 +17,6 @@ from intrinsic.skills.client import skill_registry_client
 from intrinsic.skills.proto import skill_registry_pb2
 from intrinsic.skills.proto import skills_pb2
 from intrinsic.solutions.testing import test_skill_params_pb2
-from intrinsic.util.path_resolver import path_resolver
 
 
 FLAGS = flags.FLAGS
@@ -29,22 +28,19 @@ def _read_message_from_pbbin_file(filename):
 
 
 def _get_test_message_file_descriptor_set(
-    file_descriptor_set_pbbin_runfiles_path: str,
+    file_descriptor_set_pbbin_filename: str,
 ) -> descriptor_pb2.FileDescriptorSet:
   """Returns the file descriptor set loaded from the given file.
 
   Requires FLAGS to be parsed prior to invocation.
 
   Args:
-    file_descriptor_set_pbbin_runfiles_path: The filename of the file descriptor
-      set binary proto file relative to the runfiles folder.
+    file_descriptor_set_pbbin_filename: The filename of the file descriptor set
+      binary proto file.
 
   Returns:
     The file descriptor set.
   """
-  file_descriptor_set_pbbin_filename = path_resolver.resolve_runfiles_path(
-      file_descriptor_set_pbbin_runfiles_path,
-  )
   return _read_message_from_pbbin_file(file_descriptor_set_pbbin_filename)
 
 
@@ -54,17 +50,17 @@ class SkillTestUtils:
   Provides helpers for creating SkillProvider instances.
   """
 
-  def __init__(self, file_descriptor_set_pbbin_runfiles_path: str):
+  def __init__(self, file_descriptor_set_pbbin_filename: str):
     """Initializes a new instance.
 
     Args:
-      file_descriptor_set_pbbin_runfiles_path: The filename of a file descriptor
-        set binary proto file relative to the ".../solutions" folder. This file
-        descriptor set will be used for all skills that are created with this
-        instance and which have parameters or return values.
+      file_descriptor_set_pbbin_filename: The filename of a file descriptor set
+        binary proto file. This file descriptor set will be used for all skills
+        that are created with this instance and which have parameters or return
+        values.
     """
     self._file_descriptor_set = _get_test_message_file_descriptor_set(
-        file_descriptor_set_pbbin_runfiles_path
+        file_descriptor_set_pbbin_filename
     )
 
   def create_parameterless_skill_info(self, skill_id: str) -> skills_pb2.Skill:

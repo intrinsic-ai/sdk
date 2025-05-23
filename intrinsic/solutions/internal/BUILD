@@ -119,6 +119,7 @@ py_test(
         "//intrinsic/skills/proto:skills_py_pb2",
         "//intrinsic/solutions/testing:skill_test_utils",
         "//intrinsic/solutions/testing:test_skill_params_py_pb2",
+        "//intrinsic/util/path_resolver:path_resolver_py",
         "@com_google_absl_py//absl/testing:absltest",
         "@com_google_absl_py//absl/testing:parameterized",
     ],
@@ -232,6 +233,7 @@ py_test(
         "//intrinsic/solutions/testing:compare",
         "//intrinsic/solutions/testing:skill_test_utils",
         "//intrinsic/solutions/testing:test_skill_params_py_pb2",
+        "//intrinsic/util/path_resolver:path_resolver_py",
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:point_py_pb2",
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:pose_py_pb2",
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:quaternion_py_pb2",
@@ -313,6 +315,7 @@ py_test(
         ":stubs",
         ":stubs_test_py_pb2",
         "//intrinsic/solutions/testing:skill_test_utils",
+        "//intrinsic/util/path_resolver:path_resolver_py",
         "@com_google_absl_py//absl/testing:absltest",
     ],
 )
