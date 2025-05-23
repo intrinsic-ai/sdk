@@ -13,6 +13,8 @@ import (
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/metadatautils"
 	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
+	svpb "intrinsic/assets/services/proto/service_volume_go_proto"
+	"intrinsic/util/go/validate"
 	"intrinsic/util/proto/names"
 )
 
@@ -48,22 +50,25 @@ func ValidateServiceManifest(m *smpb.ServiceManifest, options ...ValidateService
 	}
 	id := idutils.IDFromProtoUnchecked(m.GetMetadata().GetId())
 
-	if m.GetServiceDef() != nil && m.GetServiceDef().GetSimSpec() == nil {
-		return fmt.Errorf("a sim_spec must be specified if a service_def is provided for Service %q", id)
-	}
-
-	for _, p := range m.GetServiceDef().GetServiceProtoPrefixes() {
-		if err := names.ValidateProtoPrefix(p); err != nil {
-			return fmt.Errorf("service proto prefix %q is not valid for Service %q: %w", p, id, err)
+	// Collect the Service's pod specs (verifying that at least a sim spec is specified).
+	servicePodSpecs := map[string]*smpb.ServicePodSpec{}
+	if m.GetServiceDef() != nil {
+		if m.GetServiceDef().GetRealSpec() != nil {
+			servicePodSpecs["real"] = m.GetServiceDef().GetRealSpec()
 		}
+
+		if m.GetServiceDef().GetSimSpec() == nil {
+			return fmt.Errorf("a sim_spec must be specified if a service_def is provided for Service %q", id)
+		}
+		servicePodSpecs["sim"] = m.GetServiceDef().GetSimSpec()
 	}
 
+	// Validate the Service's images.
 	expectedImagePaths := map[string]struct{}{}
-	if name := m.GetServiceDef().GetRealSpec().GetImage().GetArchiveFilename(); name != "" {
-		expectedImagePaths[name] = struct{}{}
-	}
-	if name := m.GetServiceDef().GetSimSpec().GetImage().GetArchiveFilename(); name != "" {
-		expectedImagePaths[name] = struct{}{}
+	for _, spec := range servicePodSpecs {
+		if name := spec.GetImage().GetArchiveFilename(); name != "" {
+			expectedImagePaths[name] = struct{}{}
+		}
 	}
 	for p := range expectedImagePaths {
 		if !slices.Contains(m.GetAssets().GetImageFilenames(), p) {
@@ -76,7 +81,19 @@ func ValidateServiceManifest(m *smpb.ServiceManifest, options ...ValidateService
 		}
 	}
 
+	// Validate the Service's volumes.
+	for podType, spec := range servicePodSpecs {
+		if err := validateServicePodSpecVolumes(spec); err != nil {
+			return fmt.Errorf("invalid volumes in the %s spec for Service %q: %w", podType, id, err)
+		}
+	}
+
+	// Validate the Service's proto prefixes.
 	for _, prefix := range m.GetServiceDef().GetServiceProtoPrefixes() {
+		if err := names.ValidateProtoPrefix(prefix); err != nil {
+			return fmt.Errorf("service proto prefix %q is not valid for Service %q: %w", prefix, id, err)
+		}
+
 		strippedPrefix := strings.TrimSuffix(strings.TrimPrefix(prefix, "/"), "/")
 		name := protoreflect.FullName(strippedPrefix)
 		inAllowlist := slices.Contains(missingServiceAllowlist, strippedPrefix)
@@ -90,6 +107,67 @@ func ValidateServiceManifest(m *smpb.ServiceManifest, options ...ValidateService
 			}
 		} else if err != nil {
 			return fmt.Errorf("checking against the file descriptor set failed unexpectedly: %w", err)
+		}
+	}
+
+	return nil
+}
+
+// ValidateVolume verifies that a Volume is valid.
+func ValidateVolume(volume *svpb.Volume) error {
+	if err := validate.DNSLabel(volume.GetName()); err != nil {
+		return fmt.Errorf("invalid volume name %q: %w", volume.GetName(), err)
+	}
+
+	switch volume.GetSource().(type) {
+	case *svpb.Volume_HostPath:
+		if err := validate.UserString(volume.GetHostPath().GetPath()); err != nil {
+			return fmt.Errorf("invalid host path %q: %w", volume.GetHostPath().GetPath(), err)
+		}
+	case *svpb.Volume_EmptyDir:
+	case nil:
+		return fmt.Errorf("volume %q did not specify a source", volume.GetName())
+	default:
+		return fmt.Errorf("unsupported volume source type %T for volume %q", volume.GetSource(), volume.GetName())
+	}
+
+	return nil
+}
+
+// ValidateVolumeMount verifies that a VolumeMount is valid.
+func ValidateVolumeMount(mount *svpb.VolumeMount) error {
+	if err := validate.DNSLabel(mount.GetName()); err != nil {
+		return fmt.Errorf("invalid volume name %q: %w", mount.GetName(), err)
+	}
+	if err := validate.UserString(mount.GetMountPath()); err != nil {
+		return fmt.Errorf("invalid mount path %q: %w", mount.GetMountPath(), err)
+	}
+	return nil
+}
+
+func validateServicePodSpecVolumes(spec *smpb.ServicePodSpec) error {
+	// Validate the defined volumes.
+	volumeNames := map[string]struct{}{}
+	for _, volume := range spec.GetSettings().GetVolumes() {
+		if err := ValidateVolume(volume); err != nil {
+			return err
+		}
+
+		name := volume.GetName()
+		if _, ok := volumeNames[name]; ok {
+			return fmt.Errorf("volume %q is specified multiple times", name)
+		}
+		volumeNames[name] = struct{}{}
+	}
+
+	// Validate the volume mounts.
+	for _, mount := range spec.GetImage().GetSettings().GetVolumeMounts() {
+		if err := ValidateVolumeMount(mount); err != nil {
+			return err
+		}
+
+		if _, ok := volumeNames[mount.GetName()]; !ok {
+			return fmt.Errorf("volume mount references non-existent volume %q", mount.GetName())
 		}
 	}
 
