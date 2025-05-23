@@ -9,6 +9,9 @@ from python.runfiles import runfiles
 
 def resolve_runfiles_path(path: str) -> str:
   """Returns the runfiles path for the given path."""
+  if os.path.isabs(path):
+    return path
+
   for prefix in ['_main', 'ai_intrinsic_sdks']:
     test_path = os.path.normpath(
         runfiles.Create().Rlocation(os.path.join(prefix, path))
