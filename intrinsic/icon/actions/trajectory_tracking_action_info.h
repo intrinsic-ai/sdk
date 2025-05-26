@@ -54,6 +54,14 @@ struct TrajectoryTrackingActionInfo {
       "nominal trajectory, where 1.0 means that the final setpoint has been "
       "reached. Describes the progress along setpoints, and not the actual "
       "physical robot state.";
+  static constexpr char kTimeSinceTrajectoryStartSeconds[] =
+      "time_since_trajectory_start";
+  static constexpr char kTimeSinceTrajectoryStartSecondsDescription[] =
+      "Wall time in seconds since the start of the trajectory. This does not "
+      "consider variations due to clock errors but simply accumulates the "
+      "fixed time step each cycle. The incrementing of this value is "
+      "independent of global speed override values and always increments by a "
+      "fixed value every cycle.";
   static constexpr char kDistanceToFinalSetpoint[] =
       "distance_to_final_setpoint";
   static constexpr char kDistanceToFinalSetpointDescription[] =
