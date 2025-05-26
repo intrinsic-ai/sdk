@@ -12,11 +12,10 @@
 #include <utility>
 #include <vector>
 
-#include "absl/container/flat_hash_map.h"
-#include "absl/container/flat_hash_set.h"
 #include "absl/hash/hash_testing.h"
 #include "intrinsic/util/aggregate_type.h"
 #include "intrinsic/util/testing/gtest_wrapper.h"
+#include "intrinsic/world/hashing/hashing.h"
 
 namespace intrinsic {
 namespace {
@@ -53,13 +52,13 @@ TEST(EntityHandle, SupportsTupleAbslHash) {
 }
 
 TEST(EntityHandle, HashSetWithTuple) {
-  absl::flat_hash_set<std::tuple<PhysicalEntityId, PhysicalEntityId>> set;
+  WorldHashSet<std::tuple<PhysicalEntityId, PhysicalEntityId>> set;
   set.insert(std::make_tuple(PhysicalEntityId(2), PhysicalEntityId(4)));
   EXPECT_THAT(set, ::testing::SizeIs(1));
 }
 
 TEST(EntityHandle, HashMapWithTuple) {
-  absl::flat_hash_map<std::tuple<PhysicalEntityId, PhysicalEntityId>, bool> map;
+  WorldHashMap<std::tuple<PhysicalEntityId, PhysicalEntityId>, bool> map;
   map[std::make_tuple(PhysicalEntityId(2), PhysicalEntityId(4))] = true;
   EXPECT_THAT(map, ::testing::SizeIs(1));
 }
@@ -309,7 +308,7 @@ TEST(EntityHandleContainers, HashSet) {
   LinkEntityId link(4);
   PhysicalEntityId object(5);
 
-  absl::flat_hash_set<EntityHandle> container;
+  WorldHashSet<EntityHandle> container;
   container.insert(entity);
   container.emplace(entity);
 
@@ -373,7 +372,7 @@ TEST(EntityHandleContainers, HashMap_Key) {
   LinkEntityId link(4);
   PhysicalEntityId object(5);
 
-  absl::flat_hash_map<EntityHandle, int> container;
+  WorldHashMap<EntityHandle, int> container;
   container.insert(std::pair(entity, 1));
   container.emplace(entity, 2);
   container[entity] = 3;
