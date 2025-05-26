@@ -135,11 +135,9 @@ message CreateOrganizationInvitationRequest {
 }
 
 message CancelOrganizationInvitationRequest {
-  // The organization parent resource to cancel the invitation for.
-  // Format: /organizations/{organization}
-  string parent = 1 [(google.api.field_behavior) = REQUIRED];
-  // The token of the invitation to cancel.
-  string token = 2 [(google.api.field_behavior) = REQUIRED];
+  // The resource name of the invitation to cancel.
+  // Format: /organizations/{organization}/invitations/{invitation}
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
 message ResendOrganizationInvitationRequest {
@@ -214,7 +212,7 @@ service AccessControlService {
   rpc CancelOrganizationInvitation(CancelOrganizationInvitationRequest)
       returns (google.protobuf.Empty) {
     option (google.api.http) = {
-      post: "/accesscontrol/v1/{parent=organizations/*}/invitations/{token}:cancel"
+      post: "/accesscontrol/v1/{name=organizations/*/invitations/*}:cancel"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "CancelOrganizationInvitation"
@@ -225,7 +223,7 @@ service AccessControlService {
   rpc ResendOrganizationInvitation(ResendOrganizationInvitationRequest)
       returns (google.protobuf.Empty) {
     option (google.api.http) = {
-      post: "/accesscontrol/v1/{parent=organizations/*}/invitations/{token}:resend"
+      post: "/accesscontrol/v1/{name=organizations/*/invitations/*}:resend"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "ResendOrganizationInvitation"
