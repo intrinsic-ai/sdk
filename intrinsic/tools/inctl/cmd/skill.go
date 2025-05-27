@@ -6,7 +6,6 @@ package skill
 import (
 	"intrinsic/skills/tools/skill/cmd/cmd"
 	_ "intrinsic/skills/tools/skill/cmd/create/create"             // Add subcommand "skill create"
-	_ "intrinsic/skills/tools/skill/cmd/defaults/cleardefault"     // Add subcommand "skill clear_default"
 	_ "intrinsic/skills/tools/skill/cmd/install/install"           // Add subcommand "skill install".
 	_ "intrinsic/skills/tools/skill/cmd/install/uninstall"         // Add subcommand "skill uninstall".
 	_ "intrinsic/skills/tools/skill/cmd/list/list"                 // Add subcommand "skill list".
