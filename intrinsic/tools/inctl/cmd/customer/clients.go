@@ -90,14 +90,14 @@ func newConnAuthStore(ctx context.Context, addr, org string) (*grpc.ClientConn, 
 
 func newConn(ctx context.Context, addr string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
 	// create connection
-	var grpcOpts = []grpc.DialOption{
+	grpcOpts := append(
+		opts,
 		grpc.WithStatsHandler(new(ocgrpc.ClientHandler)),
 		grpc.WithTransportCredentials(grpccredentials.NewTLS(&tls.Config{})),
-	}
-	grpcOpts = append(grpcOpts, opts...)
+	)
 	conn, err := grpc.NewClient(addr+":443", grpcOpts...)
 	if err != nil {
-		return nil, errors.Wrapf(err, "grpc.Dial(%q)", addr)
+		return nil, errors.Wrapf(err, "grpc.NewClient(%q)", addr)
 	}
 	return conn, nil
 }
