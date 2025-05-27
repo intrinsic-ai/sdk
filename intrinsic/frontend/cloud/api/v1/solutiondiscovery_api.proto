@@ -21,20 +21,15 @@ message SolutionDescription {
   // Name of the cluster this solution is deployed to. Only filled if solution
   // is running (see 'state').
   string cluster_name = 4;
-}
 
-enum SolutionType {
-  SOLUTION_TYPE_UNSPECIFIED = 0;
-  SOLUTION_TYPE_BRANCHES = 1;
+  // The version of the solution (only applicable for versioned solutions).
+  string version = 5;
 }
 
 message ListSolutionDescriptionsRequest {
   // Only return solutions which have any of the given states. If empty, return
   // all solutions.
   repeated SolutionState filters = 1;
-
-  // The type of the solutions to return.
-  SolutionType type = 2;
 }
 
 message ListSolutionDescriptionsResponse {
