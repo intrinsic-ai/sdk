@@ -85,7 +85,6 @@ def generate_release_notes(repo_path, last_release_tag, version="latest", output
     commit_messages = ""
     try:
         # Load the repository
-        print(git.__path__)
         repo = Repo(repo_path)
 
         # Get the last release tag
