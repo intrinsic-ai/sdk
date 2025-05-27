@@ -1,7 +1,6 @@
-#!/usr/bin/env python3
-
 import argparse
 import git
+from git.repo import Repo
 from git.exc import InvalidGitRepositoryError
 import os
 import re
@@ -59,7 +58,8 @@ def generate_release_notes(repo_path, last_release_tag, version="latest", output
     Reads commit messages from a Git repository after a specific release tag,
     skipping commits with messages starting with "SDK Update", and generates
     a markdown document with bullet points, joining subsequent non-empty lines with ". ",
-    and removing the last line if it starts with "GitOrigin-RevId:".
+    and removing the last line if it starts with "GitOrigin-RevId:",
+    and prepends Bazel and devcontainer configuration.
 
     Args:
         repo_path (str): The path to the Git repository.
@@ -85,7 +85,8 @@ def generate_release_notes(repo_path, last_release_tag, version="latest", output
     commit_messages = ""
     try:
         # Load the repository
-        repo = git.Repo(repo_path)
+        print(git.__path__)
+        repo = Repo(repo_path)
 
         # Get the last release tag
         try:
@@ -103,7 +104,7 @@ def generate_release_notes(repo_path, last_release_tag, version="latest", output
             return
 
         # Prepare the markdown content for commit messages
-        commit_messages += "## Release Notes\n\n"
+        commit_messages += "## Commit History\n\n"
         for commit in commits:
             message_lines = commit.message.strip().split('\n')
             if message_lines and not message_lines[0].startswith("SDK update"):
@@ -136,7 +137,6 @@ def generate_release_notes(repo_path, last_release_tag, version="latest", output
 
     print(f"Release notes generated successfully in '{output_file}'.")
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate release notes for a Git repository, including Bazel and Devcontainer configurations.")
 
@@ -162,7 +162,7 @@ if __name__ == "__main__":
         "--output-file",
         type=str,
         default="RELEASE_NOTES.md",
-        help="The desired output filename for the release notes. Defaults to 'RELEASE_NOTES.md'."
+        help="The desired output filename for the release notes. Defaults to 'release_notes.md'."
     )
 
     args = parser.parse_args()

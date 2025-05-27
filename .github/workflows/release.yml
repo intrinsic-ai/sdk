@@ -76,13 +76,8 @@ jobs:
         id: sbom_download
         uses: ./.github/actions/download-intrinsic-os-sbom
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-         python-version: '3.x' # Or specific version like 3.9, 3.10, 3.11, 3.12
-
       - name: Install dependencies
-        run: pip install PyGit
+        run: pip install GitPython==3.1.44
 
       - name: Create GitHub Release
         env:
