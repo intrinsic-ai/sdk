@@ -7,7 +7,7 @@ py_library(
     name = "ipcidentity_py",
     srcs = ["ipcidentity.py"],
     # This is intended as a utility library for all solution builders.
-    visibility = ["//intrinsic:__subpackages__"],
+    visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/config:environments_py",
         "//intrinsic/kubernetes/accounts/service/api/tokens/v2:tokens_py_pb2",
