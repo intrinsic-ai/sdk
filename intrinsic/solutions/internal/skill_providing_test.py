@@ -31,6 +31,7 @@ from intrinsic.solutions.internal import skill_utils
 from intrinsic.solutions.testing import compare
 from intrinsic.solutions.testing import skill_test_utils
 from intrinsic.solutions.testing import test_skill_params_pb2
+from intrinsic.util.path_resolver import path_resolver
 from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import point_pb2 as ros_point_pb2
 from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import pose_pb2 as ros_pose_pb2
 from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import quaternion_pb2 as ros_quaternion_pb2
@@ -113,7 +114,9 @@ class SkillsTest(parameterized.TestCase):
     super().setUp()
 
     self._utils = skill_test_utils.SkillTestUtils(
-        'intrinsic/solutions/testing/test_skill_params_proto_descriptors_transitive_set_sci.proto.bin'
+        path_resolver.resolve_runfiles_path(
+            'intrinsic/solutions/testing/test_skill_params_proto_descriptors_transitive_set_sci.proto.bin'
+        )
     )
 
   def assertSignature(self, actual, expected):

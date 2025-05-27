@@ -115,7 +115,7 @@ func parseCurrentStep(currentStepStr string) clustermanagerpb.UpdateProgressStep
 	case "ApplyBaseUpdate":
 		return clustermanagerpb.UpdateProgressStep_UPDATE_PROGRESS_APPLY_BASE_UPDATE
 	default:
-		slog.Warn("Invalid UpdateProgressStep: %s", currentStepStr)
+		slog.Warn("Invalid UpdateProgressStep", slog.String("currentStep", currentStepStr))
 		return clustermanagerpb.UpdateProgressStep_UPDATE_PROGRESS_UNSPECIFIED
 	}
 }

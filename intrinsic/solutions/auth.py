@@ -18,7 +18,6 @@ ALIAS_DEFAULT_TOKEN = "default"
 AUTH_CONFIG_EXTENSION = ".user-token"
 STORE_DIRECTORY = "intrinsic/projects"
 ORG_STORE_DIRECTORY = "intrinsic/organizations"
-ORG_ID_HEADER = "org-id"
 
 
 @dataclasses.dataclass()

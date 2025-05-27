@@ -1,6 +1,6 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-# proto-file: intrinsic/assets/services/proto/services_manifest.proto
+# proto-file: intrinsic/assets/services/proto/service_manifest.proto
 # proto-message: intrinsic_proto.services.ServiceManifest
 
 metadata {

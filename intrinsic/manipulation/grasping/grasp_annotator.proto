@@ -79,6 +79,18 @@ message ParameterizedPinchGripperSpecs {
   optional Pose gripper_origin_t_tool_frame = 5;
 }
 
+message ParameterizedCentricGripperSpecs {
+  // The maximum opening radius of the gripper in meters.
+  float opening_radius_in_meters = 1;
+  // The minimum closing radius of the gripper in meters, must be less than the
+  // opening radius.
+  float closing_radius_in_meters = 2;
+  // The length of the gripper fingers in meters.
+  float finger_length_in_meters = 3;
+  // The thickness of fingers in meters, defaults to 0.01 meters.
+  optional float finger_thickness_in_meters = 4;
+}
+
 // The weights of the metrics to use for scoring annotation. Weights should be
 // non-negative, and are used to compute the weighted geometric mean of the
 // respective metrics. Only specified metrics are used for scoring annotation.

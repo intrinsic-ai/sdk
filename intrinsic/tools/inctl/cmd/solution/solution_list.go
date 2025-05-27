@@ -25,8 +25,9 @@ var (
 )
 
 type listSolutionsParams struct {
-	filter  []string
-	printer printer.Printer
+	filter                    []string
+	printer                   printer.Printer
+	solutionVersioningEnabled bool
 }
 
 // ListSolutionDescriptionsResponse embeds solutiondiscoverypb.ListSolutionDescriptionsResponse.
@@ -41,6 +42,7 @@ func (res *ListSolutionDescriptionsResponse) MarshalJSON() ([]byte, error) {
 		State       string `json:"state,omitempty"`
 		DisplayName string `json:"displayName,omitempty"`
 		ClusterName string `json:"clusterName,omitempty"`
+		Version     string `json:"version,omitempty"`
 	}
 	solutions := make([]solution, len(res.m.GetSolutions()))
 	for i, c := range res.m.GetSolutions() {
@@ -49,6 +51,7 @@ func (res *ListSolutionDescriptionsResponse) MarshalJSON() ([]byte, error) {
 			State:       c.GetState().String(),
 			DisplayName: c.GetDisplayName(),
 			ClusterName: c.GetClusterName(),
+			Version:     c.GetVersion(),
 		}
 	}
 	return json.Marshal(struct {
@@ -59,9 +62,9 @@ func (res *ListSolutionDescriptionsResponse) MarshalJSON() ([]byte, error) {
 
 // String converts a ListSolutionDescriptionsResponse to a string
 func (res *ListSolutionDescriptionsResponse) String() string {
-	const formatString = "%-50s %-15s %-50s"
+	const formatString = "%-50s %-15s %-50s %-50s"
 	lines := []string{
-		fmt.Sprintf(formatString, "Name", "State", "ID"),
+		fmt.Sprintf(formatString, "Name", "State", "ID", "Version"),
 	}
 	for _, c := range res.m.GetSolutions() {
 		name := c.GetDisplayName()
@@ -74,9 +77,14 @@ func (res *ListSolutionDescriptionsResponse) String() string {
 			statusStr = fmt.Sprintf("%s on %s", statusStr, c.GetClusterName())
 		}
 
+		versionStr := "Legacy"
+		if c.GetVersion() != "" {
+			versionStr = c.GetVersion()
+		}
+
 		lines = append(
 			lines,
-			fmt.Sprintf(formatString, name, statusStr, c.GetName()))
+			fmt.Sprintf(formatString, name, statusStr, c.GetName(), versionStr))
 	}
 	return strings.Join(lines, "\n")
 }
@@ -108,9 +116,10 @@ func listSolutions(ctx context.Context, conn *grpc.ClientConn, params *listSolut
 		return err
 	}
 
+	listSolutionsRequest := &solutiondiscoverypb.ListSolutionDescriptionsRequest{Filters: filters}
 	client := solutiondiscoverygrpcpb.NewSolutionDiscoveryServiceClient(conn)
 	resp, err := client.ListSolutionDescriptions(
-		ctx, &solutiondiscoverypb.ListSolutionDescriptionsRequest{Filters: filters})
+		ctx, listSolutionsRequest)
 
 	if err != nil {
 		return fmt.Errorf("request to list solutions failed: %w", err)

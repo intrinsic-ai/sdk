@@ -85,10 +85,6 @@ message CreateTrainingJobRequest {
   // message.
   optional google.protobuf.Any custom_data = 3;
 
-  // Name of the parent resource in which the job is being created, for
-  // instance: "/applications/{application_id}".
-  string parent_name = 5;
-
   // Name of the data asset that will be created.
   AssetMetadata asset_metadata = 6;
 
@@ -97,8 +93,8 @@ message CreateTrainingJobRequest {
   // estimators creation.
   intrinsic_proto.assets.Id one_shot_asset_id = 7;
 
-  reserved 4;
-  reserved "maximum_job_duration";
+  reserved 4, 5;
+  reserved "maximum_job_duration", "parent_name";
 }
 
 message AssetMetadata {

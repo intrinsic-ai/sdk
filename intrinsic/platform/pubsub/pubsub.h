@@ -441,13 +441,13 @@ class PubSub {
                           const intrinsic_proto::pubsub::PubSubPacket& packet,
                           const google::protobuf::Message& payload) {
     if (error_callback == nullptr) {
-      LOG(ERROR) << (packet.DebugString(),
-                     absl::InvalidArgumentError(absl::StrCat(
-                         "Expected payload of type ", payload.GetTypeName(),
-                         " but got ", packet.payload().type_url())));
+      LOG(ERROR) << absl::StrCat(packet)
+                 << absl::InvalidArgumentError(absl::StrCat(
+                        "Expected payload of type ", payload.GetTypeName(),
+                        " but got ", packet.payload().type_url()));
       return;
     }
-    error_callback(packet.DebugString(),
+    error_callback(absl::StrCat(packet),
                    absl::InvalidArgumentError(absl::StrCat(
                        "Expected payload of type ", payload.GetTypeName(),
                        " but got ", packet.payload().type_url())));

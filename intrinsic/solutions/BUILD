@@ -60,6 +60,7 @@ py_test(
         "//intrinsic/solutions/testing:compare",
         "//intrinsic/solutions/testing:skill_test_utils",
         "//intrinsic/solutions/testing:test_skill_params_py_pb2",
+        "//intrinsic/util/path_resolver:path_resolver_py",
         "//intrinsic/util/status:extended_status_py_pb2",
         "//intrinsic/world/proto:object_world_refs_py_pb2",
         "//intrinsic/world/proto:object_world_service_py_pb2",

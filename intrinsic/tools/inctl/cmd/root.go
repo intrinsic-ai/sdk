@@ -31,6 +31,7 @@ const (
 	ClusterCmdName = "cluster"
 	// DataCmdName is the name of the `inctl data` command.
 	DataCmdName = "data"
+
 	// HardwareDeviceCmdName is the name of the `inctl hardware_device` command.
 	HardwareDeviceCmdName = "hardware_device"
 	// ProcessCmdName is the name of the `inctl process` command.

@@ -21,6 +21,9 @@ message SolutionDescription {
   // Name of the cluster this solution is deployed to. Only filled if solution
   // is running (see 'state').
   string cluster_name = 4;
+
+  // The version of the solution (only applicable for versioned solutions).
+  string version = 5;
 }
 
 message ListSolutionDescriptionsRequest {

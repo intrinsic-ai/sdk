@@ -8,6 +8,7 @@ from intrinsic.skills.proto import skills_pb2
 from intrinsic.solutions.internal import skill_parameters
 from intrinsic.solutions.testing import skill_test_utils
 from intrinsic.solutions.testing import test_skill_params_pb2
+from intrinsic.util.path_resolver import path_resolver
 
 _MESSAGE_WITHOUT_DEFAULTS = test_skill_params_pb2.TestMessage()
 _MESSAGE_WITH_DEFAULT_VALUES = test_skill_params_pb2.TestMessage(
@@ -41,7 +42,9 @@ class SkillParametersTest(parameterized.TestCase):
     super().setUp()
 
     self._utils = skill_test_utils.SkillTestUtils(
-        'intrinsic/solutions/testing/test_skill_params_proto_descriptors_transitive_set_sci.proto.bin'
+        path_resolver.resolve_runfiles_path(
+            'intrinsic/solutions/testing/test_skill_params_proto_descriptors_transitive_set_sci.proto.bin'
+        )
     )
 
   @parameterized.named_parameters(

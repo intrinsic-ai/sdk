@@ -9,6 +9,7 @@ from intrinsic.solutions.internal import skill_providing
 from intrinsic.solutions.internal import stubs
 from intrinsic.solutions.internal import stubs_test_pb2
 from intrinsic.solutions.testing import skill_test_utils
+from intrinsic.util.path_resolver import path_resolver
 
 
 _INTRINSIC_STUBS_SOLUTIONS_PATH = (
@@ -27,7 +28,9 @@ class StubsTest(absltest.TestCase):
   def setUp(self):
     super().setUp()
     self._utils = skill_test_utils.SkillTestUtils(
-        "intrinsic/solutions/internal/stubs_test_proto_descriptors_transitive_set_sci.proto.bin"
+        path_resolver.resolve_runfiles_path(
+            "intrinsic/solutions/internal/stubs_test_proto_descriptors_transitive_set_sci.proto.bin"
+        )
     )
 
   def assert_regex_with_pretty_printing(

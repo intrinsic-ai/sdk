@@ -111,8 +111,8 @@ func TestValidateProtoName(t *testing.T) {
 			if tc.wantError != (err != nil) {
 				t.Errorf("ValidateProtoName(%q) returned error %v, want error %v", tc.protoName, err, tc.wantError)
 			}
-			if tc.wantError && !errors.Is(err, errInvalidProtoName) {
-				t.Errorf("ValidateProtoName(%q) returned error %v, want error %v", tc.protoName, err, errInvalidProtoName)
+			if tc.wantError && !errors.Is(err, ErrInvalidProtoName) {
+				t.Errorf("ValidateProtoName(%q) returned error %v, want error %v", tc.protoName, err, ErrInvalidProtoName)
 			}
 		})
 	}
@@ -247,8 +247,8 @@ func TestValidateProtoPrefix(t *testing.T) {
 			if tc.wantError != (err != nil) {
 				t.Errorf("ValidateProtoPrefix(%q) returned error %v, want error %v", tc.protoPrefix, err, tc.wantError)
 			}
-			if tc.wantError && !errors.Is(err, errInvalidProtoPrefix) {
-				t.Errorf("ValidateProtoPrefix(%q) returned error %v, want error %v", tc.protoPrefix, err, errInvalidProtoPrefix)
+			if tc.wantError && !errors.Is(err, ErrInvalidProtoPrefix) {
+				t.Errorf("ValidateProtoPrefix(%q) returned error %v, want error %v", tc.protoPrefix, err, ErrInvalidProtoPrefix)
 			}
 		})
 	}

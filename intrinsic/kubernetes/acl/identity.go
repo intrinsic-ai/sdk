@@ -15,7 +15,7 @@ import (
 // OrgToContext returns a new context that has the org-id stored in its metadata.
 func OrgToContext(ctx context.Context, orgID string) context.Context {
 	if orgID == "" {
-		log.WarningContextf(ctx, "No org-id in context, returning unchanged context")
+		log.WarningContextf(ctx, "orgID is emptry, returning unchanged context")
 		return ctx
 	}
 	return metadata.AppendToOutgoingContext(ctx, cookies.ToMDString(org.IDCookie(orgID))...)

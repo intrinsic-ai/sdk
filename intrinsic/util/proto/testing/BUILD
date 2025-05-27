@@ -13,6 +13,14 @@ package(
     default_visibility = ["//visibility:public"],
 )
 
+exports_files(
+    srcs = [
+        "get_text_proto_bad.textproto",
+        "get_text_proto_good.textproto",
+        "get_text_proto_good_any.textproto",
+    ],
+)
+
 proto_library(
     name = "descriptors_test_proto",
     srcs = ["descriptors_test.proto"],

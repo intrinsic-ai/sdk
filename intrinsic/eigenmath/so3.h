@@ -208,9 +208,8 @@ class SO3 {
 
   // Computes and returns the magnitude of the rotation in radians.
   EIGEN_DEVICE_FUNC Scalar norm() const {
-    using std::abs;
-    using std::asin;
-    return abs(asin(Scalar(2.0) * quaternion_.vec().norm() * quaternion_.w()));
+    return Scalar(2) * std::atan2(quaternion_.vec().norm(),
+                                  Eigen::numext::abs(quaternion_.w()));
   }
 
   // Returns the corresponding 3D rotation matrix.

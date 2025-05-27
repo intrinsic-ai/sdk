@@ -321,6 +321,12 @@ func (cf *CmdFlags) AddFlagsProjectOrg() {
 	orgutil.WrapCmd(cf.cmd, cf.viperLocal)
 }
 
+// AddFlagsProjectOrgOptional adds both the project and org flag as optional, including the necessary handling.
+func (cf *CmdFlags) AddFlagsProjectOrgOptional() {
+	// While WrapCmd returns the pointer to make it inline, it's modifying, so we can use it here.
+	orgutil.WrapCmdOptional(cf.cmd, cf.viperLocal)
+}
+
 // AddFlagProject adds a flag for the GCP project.
 func (cf *CmdFlags) AddFlagProject() {
 	cf.RequiredEnvString(KeyProject, "", "The Google Cloud Platform (GCP) project to use.")

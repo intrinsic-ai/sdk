@@ -24,6 +24,7 @@ import (
 	clusterdiscoverypb "intrinsic/frontend/cloud/api/v1/clusterdiscovery_api_go_grpc_proto"
 	solutiondiscoverygrpcpb "intrinsic/frontend/cloud/api/v1/solutiondiscovery_api_go_grpc_proto"
 	solutiondiscoverypb "intrinsic/frontend/cloud/api/v1/solutiondiscovery_api_go_grpc_proto"
+	"intrinsic/kubernetes/acl/identity"
 	"intrinsic/tools/inctl/auth/auth"
 )
 
@@ -256,7 +257,7 @@ func dialInfoCtx(ctx context.Context, params dialInfoParams) (context.Context, *
 	params.Address = address
 
 	if params.CredOrg != "" {
-		ctx = metadata.AppendToOutgoingContext(ctx, auth.OrgIDHeader, strings.Split(params.CredOrg, "@")[0])
+		ctx = identity.OrgToContext(ctx, strings.Split(params.CredOrg, "@")[0])
 	}
 
 	if baseclientutils.UseInsecureCredentials(params.Address) {

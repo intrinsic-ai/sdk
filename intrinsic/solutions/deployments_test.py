@@ -147,7 +147,7 @@ class DeploymentsTest(absltest.TestCase):
 
     mock_read_org_info.assert_called_with("test-org")
     mock_get_cluster_from_solution.assert_called_with(
-        "test-project", "test-solution"
+        "test-solution", "test-project", "test-org"
     )
     mock_create_channel.assert_called_with(
         dialerutil.CreateChannelParams(
@@ -242,7 +242,7 @@ class DeploymentsTest(absltest.TestCase):
 
     mock_read_org_info.assert_called_with("test-org")
     mock_get_cluster_from_solution.assert_called_with(
-        "test-project", "test-solution"
+        "test-solution", "test-project", "test-org"
     )
     mock_create_channel.assert_called_with(
         dialerutil.CreateChannelParams(

@@ -169,3 +169,26 @@ go_test(
         "@org_golang_google_protobuf//types/known/emptypb",
     ],
 )
+
+py_library(
+    name = "grpc_utils",
+    srcs = ["grpc_utils.py"],
+    deps = [
+        ":interceptor",
+        "//intrinsic/config:environments_py",
+        "//intrinsic/kubernetes/acl/ipcidentity:ipcidentity_py",
+        "//intrinsic/kubernetes/acl/ipcidentity/internal:metadata",
+        requirement("grpcio"),
+    ],
+)
+
+py_test(
+    name = "grpc_utils_test",
+    srcs = ["grpc_utils_test.py"],
+    deps = [
+        ":grpc_utils",
+        "//intrinsic/kubernetes/acl/ipcidentity:ipcidentity_py",
+        requirement("grpcio"),
+        "@com_google_absl_py//absl/testing:absltest",
+    ],
+)

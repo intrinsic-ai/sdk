@@ -25,6 +25,7 @@ from intrinsic.solutions.internal import skill_providing
 from intrinsic.solutions.testing import compare
 from intrinsic.solutions.testing import skill_test_utils
 from intrinsic.solutions.testing import test_skill_params_pb2
+from intrinsic.util.path_resolver import path_resolver
 from intrinsic.util.status import extended_status_pb2
 from intrinsic.world.proto import object_world_refs_pb2
 from intrinsic.world.proto import object_world_service_pb2
@@ -198,7 +199,9 @@ class BehaviorTreeMadeParametrizableTest(absltest.TestCase):
 
     # Verify the transitive file descriptor set has been recovered in full
     expected_fd_set = skill_test_utils._get_test_message_file_descriptor_set(
-        'intrinsic/solutions/testing/test_skill_params_proto_descriptors_transitive_set_sci.proto.bin'
+        path_resolver.resolve_runfiles_path(
+            'intrinsic/solutions/testing/test_skill_params_proto_descriptors_transitive_set_sci.proto.bin'
+        )
     )
     descriptors_by_name = {
         file.name: file
@@ -4184,7 +4187,9 @@ class BehaviorTreeDataTest(parameterized.TestCase):
   def test_init_message_wrapper(self):
     """Tests if BehaviorTree.Data is correctly constructed."""
     skill_utils = skill_test_utils.SkillTestUtils(
-        'intrinsic/solutions/testing/test_skill_params_proto_descriptors_transitive_set_sci.proto.bin'
+        path_resolver.resolve_runfiles_path(
+            'intrinsic/solutions/testing/test_skill_params_proto_descriptors_transitive_set_sci.proto.bin'
+        )
     )
     skill_info = skill_utils.create_test_skill_info(
         skill_id='ai.intrinsic.my_skill',
@@ -4223,7 +4228,9 @@ class BehaviorTreeDataTest(parameterized.TestCase):
   def test_init_message_wrapper_list(self):
     """Tests if BehaviorTree.Data is correctly constructed."""
     skill_utils = skill_test_utils.SkillTestUtils(
-        'intrinsic/solutions/testing/test_skill_params_proto_descriptors_transitive_set_sci.proto.bin'
+        path_resolver.resolve_runfiles_path(
+            'intrinsic/solutions/testing/test_skill_params_proto_descriptors_transitive_set_sci.proto.bin'
+        )
     )
     skill_info = skill_utils.create_test_skill_info(
         skill_id='ai.intrinsic.my_skill',

@@ -122,7 +122,7 @@ func dialInfoCtx(ctx context.Context, params DialInfoParams) (context.Context, *
 	params.Address = address
 
 	if params.CredOrg != "" {
-		ctx = metadata.AppendToOutgoingContext(ctx, auth.OrgIDHeader, strings.Split(params.CredOrg, "@")[0])
+		ctx = auth.OrgToContext(ctx, strings.Split(params.CredOrg, "@")[0])
 	}
 
 	if UseInsecureCredentials(params.Address) {
