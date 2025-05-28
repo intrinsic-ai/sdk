@@ -48,7 +48,7 @@ var listReleasedVersionsCmd = &cobra.Command{
 	Short: "List versions of a released skill in the catalog",
 	Args:  cobra.ExactArgs(1), // skillId
 	RunE: func(cmd *cobra.Command, args []string) error {
-		conn, err := clientutils.DialCatalogFromInctl(cmd, cmdFlags)
+		ctx, conn, err := clientutils.DialCatalogFromInctl(cmd, cmdFlags)
 		if err != nil {
 			return errors.Wrap(err, "failed to create client connection")
 		}
@@ -58,12 +58,13 @@ var listReleasedVersionsCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		return listReleasedVersions(cmd.Context(), client, args[0], prtr)
+		return listReleasedVersions(ctx, client, args[0], prtr)
 	},
 }
 
 func init() {
 	skillCmd.SkillCmd.AddCommand(listReleasedVersionsCmd)
 	cmdFlags.SetCommand(listReleasedVersionsCmd)
+	cmdFlags.AddFlagOrganizationOptional()
 
 }

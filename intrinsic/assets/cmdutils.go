@@ -315,6 +315,18 @@ func (cf *CmdFlags) GetFlagPolicy() (iapb.UpdatePolicy, error) {
 	return iapb.UpdatePolicy_UPDATE_POLICY_UNSPECIFIED, fmt.Errorf("%q provided for --%v is invalid; valid values are: %v", policy, KeyPolicy, maps.Keys(policyMap))
 }
 
+// AddFlagOrganizationOptional adds an optional flag for the organization.
+func (cf *CmdFlags) AddFlagOrganizationOptional() {
+	cf.OptionalEnvString(KeyOrganization, "",
+		`The Intrinsic organization to use. You can set the environment variable
+		INTRINSIC_ORG=organization to set a default organization.`)
+}
+
+// GetFlagOrganization gets the value of the organization flag added by AddFlagOrganizationOptional.
+func (cf *CmdFlags) GetFlagOrganization() string {
+	return cf.GetString(KeyOrganization)
+}
+
 // AddFlagsProjectOrg adds both the project and org flag, including the necessary handling.
 func (cf *CmdFlags) AddFlagsProjectOrg() {
 	// While WrapCmd returns the pointer to make it inline, it's modifying, so we can use it here.
@@ -329,12 +341,23 @@ func (cf *CmdFlags) AddFlagsProjectOrgOptional() {
 
 // AddFlagProject adds a flag for the GCP project.
 func (cf *CmdFlags) AddFlagProject() {
-	cf.RequiredEnvString(KeyProject, "", "The Google Cloud Platform (GCP) project to use.")
+	cf.RequiredEnvString(KeyProject, "",
+		`The Google Cloud Project (GCP) project to use. You can set the environment variable
+		INTRINSIC_PROJECT=project_name to set a default project name.`)
+}
+
+// AddFlagCatalogProjectOptional adds an optional flag for the GCP project to use for the catalog.
+func (cf *CmdFlags) AddFlagCatalogProjectOptional() {
+	cf.OptionalEnvString(KeyProject, "",
+		`The Google Cloud Project (GCP) project to use for the catalog. You can set the environment
+		variable INTRINSIC_PROJECT=project_name to set a default project name.`)
 }
 
 // AddFlagProjectOptional adds an optional flag for the GCP project.
 func (cf *CmdFlags) AddFlagProjectOptional() {
-	cf.OptionalEnvString(KeyProject, "", "The Google Cloud Platform (GCP) project to use.")
+	cf.OptionalEnvString(KeyProject, "",
+		`The Google Cloud Project (GCP) project to use. You can set the environment variable
+		INTRINSIC_PROJECT=project_name to set a default project name.`)
 }
 
 // GetFlagProject gets the value of the project flag added by AddFlagProject.
@@ -360,11 +383,6 @@ func (cf *CmdFlags) GetFlagProvides() ([]string, error) {
 	}
 
 	return provides, nil
-}
-
-// GetFlagOrganization gets the value of the project flag added by AddFlagProject.
-func (cf *CmdFlags) GetFlagOrganization() string {
-	return cf.GetString(KeyOrganization)
 }
 
 // AddFlagRegistry adds a flag for the registry when side-loading an asset.

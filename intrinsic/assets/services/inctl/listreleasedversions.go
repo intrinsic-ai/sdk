@@ -47,7 +47,7 @@ func GetCommand() *cobra.Command {
 		Short: "List versions of a released service in the catalog",
 		Args:  cobra.ExactArgs(1), // serviceId
 		RunE: func(cmd *cobra.Command, args []string) error {
-			conn, err := clientutils.DialCatalogFromInctl(cmd, flags)
+			ctx, conn, err := clientutils.DialCatalogFromInctl(cmd, flags)
 			if err != nil {
 				return errors.Wrap(err, "failed to create client connection")
 			}
@@ -57,9 +57,11 @@ func GetCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return listReleasedVersions(cmd.Context(), client, args[0], prtr)
+			return listReleasedVersions(ctx, client, args[0], prtr)
 		},
 	}
 	flags.SetCommand(cmd)
+	flags.AddFlagOrganizationOptional()
+
 	return cmd
 }

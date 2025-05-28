@@ -41,14 +41,14 @@ func GetCommand() *cobra.Command {
 				return fmt.Errorf("failed to parse view: %v", err)
 			}
 
-			conn, err := clientutils.DialCatalogFromInctl(cmd, flags)
+			ctx, conn, err := clientutils.DialCatalogFromInctl(cmd, flags)
 			if err != nil {
 				return fmt.Errorf("failed to create client connection: %v", err)
 			}
 			defer conn.Close()
 
 			client := acgrpcpb.NewAssetCatalogClient(conn)
-			asset, err := client.GetAsset(cmd.Context(), &acpb.GetAssetRequest{
+			asset, err := client.GetAsset(ctx, &acpb.GetAssetRequest{
 				AssetId: &acpb.GetAssetRequest_IdVersion{
 					IdVersion: ivp.IDVersionProto(),
 				},
@@ -69,9 +69,8 @@ func GetCommand() *cobra.Command {
 	}
 
 	flags.SetCommand(cmd)
+	flags.AddFlagOrganizationOptional()
 	flags.AddFlagView()
-	flags.AddFlagsCredentials()
-	flags.AddFlagProjectOptional()
 
 	return cmd
 }

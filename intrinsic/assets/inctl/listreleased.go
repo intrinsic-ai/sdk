@@ -31,7 +31,7 @@ func GetCommand() *cobra.Command {
 		Short: "List assets from the catalog.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			conn, err := clientutils.DialCatalogFromInctl(cmd, flags)
+			ctx, conn, err := clientutils.DialCatalogFromInctl(cmd, flags)
 			if err != nil {
 				return fmt.Errorf("cannot create client connection: %w", err)
 			}
@@ -53,7 +53,7 @@ func GetCommand() *cobra.Command {
 			}
 
 			assets, err := listutils.ListAllAssets(
-				cmd.Context(),
+				ctx,
 				client,
 				pageSize,
 				viewpb.AssetViewType_ASSET_VIEW_TYPE_BASIC,
@@ -82,6 +82,7 @@ func GetCommand() *cobra.Command {
 	}
 	flags.SetCommand(cmd)
 	flags.AddFlagAssetTypes("")
+	flags.AddFlagOrganizationOptional()
 	flags.AddFlagProvides()
 
 	return cmd

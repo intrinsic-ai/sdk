@@ -49,7 +49,7 @@ var listReleasedCmd = &cobra.Command{
 	Short: "List released skills in the catalog",
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, _ []string) error {
-		conn, err := clientutils.DialCatalogFromInctl(cmd, cmdFlags)
+		ctx, conn, err := clientutils.DialCatalogFromInctl(cmd, cmdFlags)
 		if err != nil {
 			return fmt.Errorf("failed to create client connection: %v", err)
 		}
@@ -59,12 +59,13 @@ var listReleasedCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		return listAllSkills(cmd.Context(), client, prtr)
+		return listAllSkills(ctx, client, prtr)
 	},
 }
 
 func init() {
 	skillCmd.SkillCmd.AddCommand(listReleasedCmd)
 	cmdFlags.SetCommand(listReleasedCmd)
+	cmdFlags.AddFlagOrganizationOptional()
 
 }
