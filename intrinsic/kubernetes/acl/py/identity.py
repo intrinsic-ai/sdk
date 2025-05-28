@@ -4,6 +4,7 @@
 
 import http.cookies
 import re
+from typing import List
 
 from absl import logging
 import grpc
@@ -114,6 +115,34 @@ def OrgFromContext(context: grpc.ServicerContext) -> Organization:
 
   logging.error('No organization information in context.')
   raise KeyError('no org-id found')
+
+
+def CookiesToGRPCMetadata(
+    cookies: http.cookies.BaseCookie,
+) -> List[tuple[str, str]]:
+  """Converts cookies to a GRPC metadata entry.
+
+  Args:
+    cookies: The cookies to convert.
+
+  Returns:
+    A tuple of (key, value) pairs.
+  """
+  return [(COOKIE_KEY, cookies.output(header=''))]
+
+
+def OrgIDToGRPCMetadata(org_id: str) -> List[tuple[str, str]]:
+  """Writes an org-id to a GRPC metadata entry.
+
+  Args:
+    org_id: The org-id to convert.
+
+  Returns:
+    A tuple of (key, value) pairs containing the org-id as a cookie.
+  """
+  return CookiesToGRPCMetadata(
+      http.cookies.SimpleCookie({ORG_ID_COOKIE: org_id})
+  )
 
 
 def CanonicalizeEmail(email: str) -> str:

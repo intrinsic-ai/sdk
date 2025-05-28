@@ -1,6 +1,7 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
 import collections
+import http.cookies
 import unittest.mock
 
 from absl.testing import absltest
@@ -56,6 +57,18 @@ class IdentityTest(parameterized.TestCase):
     u = identity.UserFromContext(ctx)
     self.assertIsNotNone(u)
 
+  @unittest.mock.patch.multiple(TestContext, __abstractmethods__=set())
+  def test_from_context_with_cookies(self):
+    ctx = TestContext(
+        identity.CookiesToGRPCMetadata(
+            http.cookies.SimpleCookie(
+                {identity.PORTAL_TOKEN_COOKIE_NAME: TOKEN}
+            )
+        )
+    )
+    u = identity.UserFromContext(ctx)
+    self.assertIsNotNone(u)
+
 
 class OrgTest(absltest.TestCase):
   @unittest.mock.patch.multiple(TestContext, __abstractmethods__=set())
@@ -68,9 +81,7 @@ class OrgTest(absltest.TestCase):
   @unittest.mock.patch.multiple(TestContext, __abstractmethods__=set())
   def test_from_context_cookie_field(self):
     organization_name = 'my-organization'
-    ctx = TestContext((
-        (identity.COOKIE_KEY, f'{identity.ORG_ID_COOKIE}={organization_name}'),
-    ))
+    ctx = TestContext(identity.OrgIDToGRPCMetadata(organization_name))
     organization = identity.OrgFromContext(ctx)
     self.assertEqual(organization.org_id, organization_name)
 

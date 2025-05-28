@@ -463,6 +463,7 @@ py_library(
     srcs = ["dialerutil.py"],
     deps = [
         ":auth",
+        "//intrinsic/kubernetes/acl/py:identity",
         requirement("grpcio"),
     ],
 )
@@ -568,6 +569,7 @@ py_wheel(
     name = "solutions_wheel",
     distribution = "solutions",
     requires = [
+        "absl-py",
         "black",
         "googleapis-common-protos",
         "graphviz",

@@ -9,6 +9,7 @@ This file implements a subset of the
 import dataclasses
 from typing import Any, List, Optional, Tuple
 import grpc
+from intrinsic.kubernetes.acl.py import identity
 from intrinsic.solutions import auth
 
 
@@ -58,7 +59,7 @@ class _OrgName(grpc.AuthMetadataPlugin):
     self._organization_name = organization_name.split("@")[0]
 
   def __call__(self, context, callback):
-    callback((("org-id", self._organization_name),), None)
+    callback(identity.OrgIDToGRPCMetadata(self._organization_name), None)
 
 
 class CredentialsRequiredError(ValueError):
