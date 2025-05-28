@@ -53,7 +53,7 @@ def generate_devcontainer_config(version="latest"):
 }}"""
     return devcontainer_config
 
-def generate_release_notes(repo_path, last_release_tag, version="latest", output_file="release_notes.md"):
+def generate_release_notes(repo_path, last_release_tag, version="latest"):
     """
     Reads commit messages from a Git repository after a specific release tag,
     skipping commits with messages starting with "SDK Update", and generates
@@ -100,7 +100,7 @@ def generate_release_notes(repo_path, last_release_tag, version="latest", output
 
         if not commits:
             print(f"No commits found after tag '{last_release_tag}'.")
-            return
+            return bazel_info + devcontainer_info
 
         # Prepare the markdown content for commit messages
         commit_messages += "## Commit History\n\n"
@@ -128,13 +128,14 @@ def generate_release_notes(repo_path, last_release_tag, version="latest", output
         print(f"An error occurred: {e}")
 
     # Combine all parts
-    full_output = bazel_info + devcontainer_info + commit_messages
+    return bazel_info + devcontainer_info + commit_messages
 
+def write_output_file (file_path, file_output):
     # Write the markdown content to a file
-    with open(output_file, 'w') as f:
-        f.write(full_output)
+    with open(file_path, 'w') as f:
+        f.write(file_output)
 
-    print(f"Release notes generated successfully in '{output_file}'.")
+    print(f"Release notes generated successfully in '{file_path}'.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate release notes for a Git repository, including Bazel and Devcontainer configurations.")
@@ -166,9 +167,10 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    generate_release_notes(
+    final_output = generate_release_notes(
         repo_path=args.repo_path,
         last_release_tag=args.last_release_tag,
-        version=args.version,
-        output_file=args.output_file
+        version=args.version
     )
+
+    write_output_file(args.output_file, final_output)
