@@ -203,9 +203,10 @@ var releaseCmd = &cobra.Command{
 
 		var conn *grpc.ClientConn
 		var transferer imagetransfer.Transferer
+		ctx := cmd.Context()
 		if !dryRun {
 			var err error
-			conn, err = clientutils.DialCatalogFromInctl(cmd, cmdFlags)
+			ctx, conn, err = clientutils.DialCatalogFromInctl(cmd, cmdFlags)
 			if err != nil {
 				return fmt.Errorf("failed to create client connection: %v", err)
 			}
@@ -236,7 +237,7 @@ var releaseCmd = &cobra.Command{
 			Asset: asset,
 			OrgPrivate: proto.Bool(cmdFlags.GetFlagOrgPrivate()),
 		}
-		return release(cmd.Context(), client, req, cmdFlags.GetFlagIgnoreExisting(), printer)
+		return release(ctx, client, req, cmdFlags.GetFlagIgnoreExisting(), printer)
 	},
 }
 
@@ -247,6 +248,7 @@ func init() {
 	cmdFlags.AddFlagDefault("skill")
 	cmdFlags.AddFlagDryRun()
 	cmdFlags.AddFlagIgnoreExisting("skill")
+	cmdFlags.AddFlagOrganizationOptional()
 	cmdFlags.AddFlagOrgPrivate()
 	cmdFlags.AddFlagReleaseNotes("skill")
 	cmdFlags.AddFlagVersion("skill")

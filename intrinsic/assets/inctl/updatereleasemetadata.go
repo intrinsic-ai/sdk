@@ -41,7 +41,7 @@ func GetCommand() *cobra.Command {
 				return fmt.Errorf("failed to parse id_version: %v", err)
 			}
 
-			conn, err := clientutils.DialCatalogFromInctl(cmd, flags)
+			ctx, conn, err := clientutils.DialCatalogFromInctl(cmd, flags)
 			if err != nil {
 				return fmt.Errorf("failed to create client connection: %v", err)
 			}
@@ -73,7 +73,7 @@ func GetCommand() *cobra.Command {
 			}
 
 			client := acgrpcpb.NewAssetCatalogClient(conn)
-			newRM, err := client.UpdateReleaseMetadata(cmd.Context(), &acpb.UpdateReleaseMetadataRequest{
+			newRM, err := client.UpdateReleaseMetadata(ctx, &acpb.UpdateReleaseMetadataRequest{
 				IdVersion:       ivp.IDVersionProto(),
 				ReleaseMetadata: rm,
 				UpdateMask:      &fmpb.FieldMask{Paths: updateMask},
@@ -93,10 +93,9 @@ func GetCommand() *cobra.Command {
 	}
 
 	flags.SetCommand(cmd)
-	flags.AddFlagsCredentials()
 	flags.AddFlagDefault("asset")
+	flags.AddFlagOrganizationOptional()
 	flags.AddFlagOrgPrivate()
-	flags.AddFlagProjectOptional()
 	flags.AddFlagSkipPrompts()
 
 	return cmd

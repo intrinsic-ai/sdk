@@ -27,7 +27,7 @@ func GetCommand() *cobra.Command {
 		Short: "List versions of a released asset in the catalog",
 		Args:  cobra.ExactArgs(1), // id
 		RunE: func(cmd *cobra.Command, args []string) error {
-			conn, err := clientutils.DialCatalogFromInctl(cmd, flags)
+			ctx, conn, err := clientutils.DialCatalogFromInctl(cmd, flags)
 			if err != nil {
 				return errors.Wrap(err, "failed to create client connection")
 			}
@@ -47,7 +47,7 @@ func GetCommand() *cobra.Command {
 				Id:         proto.String(args[0]),
 				AssetTypes: assetTypes,
 			}
-			assets, err := listutils.ListAllAssets(cmd.Context(), client, pageSize, viewpb.AssetViewType_ASSET_VIEW_TYPE_VERSIONS, filter)
+			assets, err := listutils.ListAllAssets(ctx, client, pageSize, viewpb.AssetViewType_ASSET_VIEW_TYPE_VERSIONS, filter)
 			if err != nil {
 				return errors.Wrap(err, "could not list asset versions")
 			}
@@ -62,6 +62,7 @@ func GetCommand() *cobra.Command {
 	}
 	flags.SetCommand(cmd)
 	flags.AddFlagAssetTypes("")
+	flags.AddFlagOrganizationOptional()
 
 	return cmd
 }

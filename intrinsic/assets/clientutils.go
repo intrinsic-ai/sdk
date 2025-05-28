@@ -6,6 +6,7 @@ package clientutils
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"regexp"
 	"strings"
 
@@ -40,14 +41,9 @@ var (
 		"dev": "dev",
 		"qa":  "staging",
 	}
-)
 
-// DialCatalogOptions specifies the options for DialCatalog.
-type DialCatalogOptions struct {
-	Address      string
-	APIKey       string
-	Project      string // Defaults to the global assets project.
-}
+	errNoInfoToAuthenticate = errors.New("GCP project or api-key is required for authentication, but neither could be determined (try providing `--org=<org>@<project>` to specify the project)")
+)
 
 // DialClusterFromInctl creates a connection to a cluster from an inctl command.
 func DialClusterFromInctl(ctx context.Context, flags *cmdutils.CmdFlags) (context.Context, *grpc.ClientConn, string, error) {
@@ -60,9 +56,9 @@ func DialClusterFromInctl(ctx context.Context, flags *cmdutils.CmdFlags) (contex
 
 	if solution != "" {
 		ctx, conn, _, err := dialConnectionCtx(ctx, dialInfoParams{
-			Address:  address,
-			CredName: project,
-			CredOrg:  org,
+			Address: address,
+			CredOrg: org,
+			Project: project,
 		})
 		if err != nil {
 			return ctx, nil, "", fmt.Errorf("could not create connection options for cluster: %v", err)
@@ -76,10 +72,10 @@ func DialClusterFromInctl(ctx context.Context, flags *cmdutils.CmdFlags) (contex
 	}
 
 	ctx, conn, address, err := dialConnectionCtx(ctx, dialInfoParams{
-		Address:  address,
-		Cluster:  cluster,
-		CredName: project,
-		CredOrg:  org,
+		Address: address,
+		Cluster: cluster,
+		CredOrg: org,
+		Project: project,
 	})
 	if err != nil {
 		return ctx, nil, "", fmt.Errorf("could not create connection options for the installer: %v", err)
@@ -89,44 +85,63 @@ func DialClusterFromInctl(ctx context.Context, flags *cmdutils.CmdFlags) (contex
 }
 
 // DialCatalogFromInctl creates a connection to an asset catalog service from an inctl command.
-func DialCatalogFromInctl(cmd *cobra.Command, flags *cmdutils.CmdFlags) (*grpc.ClientConn, error) {
+func DialCatalogFromInctl(cmd *cobra.Command, flags *cmdutils.CmdFlags) (context.Context, *grpc.ClientConn, error) {
 
 	return DialCatalog(
 		cmd.Context(), DialCatalogOptions{
 			Address:      "",
 			APIKey: "",
-			Project:      ResolveCatalogProjectFromInctl(flags),
+			Org:          flags.GetFlagOrganization(),
+			Project:      flags.GetFlagProject(),
 		},
 	)
 }
 
+// DialCatalogOptions specifies the options for DialCatalog.
+type DialCatalogOptions struct {
+	Address      string
+	APIKey       string
+	Org          string
+	Project      string // Defaults to the global assets project.
+}
+
 // DialCatalog creates a connection to a asset catalog service.
-func DialCatalog(ctx context.Context, opts DialCatalogOptions) (*grpc.ClientConn, error) {
-	opts.Project = ResolveCatalogProject(opts.Project)
-
+func DialCatalog(ctx context.Context, opts DialCatalogOptions) (context.Context, *grpc.ClientConn, error) {
+	catalogProject := ResolveCatalogProject(opts.Project)
 	// Get the catalog address.
-	address, err := resolveCatalogAddress(ctx, opts)
+	address, err := resolveCatalogAddress(ctx, resolveCatalogAddressOptions{
+		Address:      opts.Address,
+		Project:      catalogProject,
+	})
 	if err != nil {
-		return nil, errors.Wrap(err, "cannot resolve address")
+		return nil, nil, fmt.Errorf("cannot resolve catalog address: %w", err)
 	}
 
-	options := baseclientutils.BaseDialOptions()
-
-	if baseclientutils.IsLocalAddress(opts.Address) { // Use insecure creds.
-		options = append(options, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	} else { // Use api-key creds.
-		rpcCreds, err := getAPIKeyPerRPCCredentials(opts.APIKey, opts.Project)
-		if err != nil {
-			return nil, errors.Wrap(err, "cannot get api-key credentials")
+	optsOpts := getDialContextOptionsOptions{
+		Address:                     address,
+		APIKey:                      opts.APIKey,
+		CredOrg:                     opts.Org,
+		SkipCredsForInsecureAddress: true,
+	}
+	dialCtx, dialOpts, err := getDialContextOptions(ctx, optsOpts)
+	if err != nil {
+		// If we don't have enough info to authenticate, try one more time using the catalog project
+		// as the credential project. (This supports mainly legacy usage where the project is specified
+		// but not the org, and the user can authenticate in the catalog project.)
+		if errors.Is(err, errNoInfoToAuthenticate) {
+			optsOpts.CredProject = catalogProject
+			dialCtx, dialOpts, err = getDialContextOptions(ctx, optsOpts)
 		}
-		tcOption, err := baseclientutils.GetTransportCredentialsDialOption()
 		if err != nil {
-			return nil, errors.Wrap(err, "cannot get transport credentials")
+			return nil, nil, fmt.Errorf("cannot get dial context options for catalog: %w", err)
 		}
-		options = append(options, grpc.WithPerRPCCredentials(rpcCreds), tcOption)
 	}
 
-	return grpc.DialContext(ctx, address, options...)
+	conn, err := grpc.DialContext(dialCtx, address, dialOpts...)
+	if err != nil {
+		return nil, nil, fmt.Errorf("cannot dial catalog: %w", err)
+	}
+	return dialCtx, conn, nil
 }
 
 // ResolveCatalogProjectFromInctl returns the project to use for communicating with a catalog.
@@ -154,7 +169,12 @@ func RemoteOpt(flags *cmdutils.CmdFlags) (remote.Option, error) {
 	return remote.WithAuthFromKeychain(google.Keychain), nil
 }
 
-func resolveCatalogAddress(ctx context.Context, opts DialCatalogOptions) (string, error) {
+type resolveCatalogAddressOptions struct {
+	Address      string
+	Project      string
+}
+
+func resolveCatalogAddress(ctx context.Context, opts resolveCatalogAddressOptions) (string, error) {
 	// Check for user-provided address.
 	if opts.Address != "" {
 		return opts.Address, nil
@@ -162,7 +182,7 @@ func resolveCatalogAddress(ctx context.Context, opts DialCatalogOptions) (string
 
 	// Derive the address from the project.
 	if opts.Project == "" {
-		return "", fmt.Errorf("project is empty")
+		return "", fmt.Errorf("cannot determine catalog address when project is empty")
 	}
 	address, err := getCatalogAddressForProject(ctx, opts)
 	if err != nil {
@@ -177,7 +197,7 @@ func resolveCatalogAddress(ctx context.Context, opts DialCatalogOptions) (string
 	return address, nil
 }
 
-func defaultGetCatalogAddressForProject(ctx context.Context, opts DialCatalogOptions) (address string, err error) {
+func defaultGetCatalogAddressForProject(ctx context.Context, opts resolveCatalogAddressOptions) (address string, err error) {
 	if opts.Project != "intrinsic-assets-prod" {
 		return "", fmt.Errorf("unsupported project %s", opts.Project)
 	}
@@ -190,102 +210,155 @@ var (
 	getCatalogAddressForProject = defaultGetCatalogAddressForProject
 )
 
-// getAPIKeyPerRPCCredentials returns api-key PerRPCCredentials.
-func getAPIKeyPerRPCCredentials(apiKey string, project string) (credentials.PerRPCCredentials, error) {
-	var token *auth.ProjectToken
+type getDialContextOptionsOptions struct {
+	Address                     string
+	APIKey                      string
+	CredOrg                     string
+	CredProject                 string
+	SkipCredsForInsecureAddress bool
+}
 
-	if apiKey != "" {
-		// User-provided api-key.
-		token = &auth.ProjectToken{APIKey: apiKey}
-	} else {
-		// Load api-key from the auth store.
-		configuration, err := auth.NewStore().GetConfiguration(project)
+// getDialContextOptions returns metadata for dialing a gRPC connection to a cloud/on-prem cluster.
+//
+// It uses the provided ctx to manage the lifecycle of connection created. ctx may be modified, so
+// the caller should use the returned context instead.
+func getDialContextOptions(ctx context.Context, opts getDialContextOptionsOptions) (context.Context, []grpc.DialOption, error) {
+	credProject := opts.CredProject
+	if opts.CredOrg != "" {
+		info, err := getOrgInfo(opts.CredOrg)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-
-		token, err = configuration.GetDefaultCredentials()
-		if err != nil {
-			return nil, err
+		// If the credential project has not been specified, use the project from the org.
+		if credProject == "" {
+			credProject = info.Project
 		}
+		ctx = identity.OrgToContext(ctx, info.Organization)
 	}
 
-	return token, nil
+	dialOpts := baseclientutils.BaseDialOptions()
+
+	creds, err := getPerRPCCredentials(getPerRPCCredentialsOptions{
+		Address:                     opts.Address,
+		APIKey:                      opts.APIKey,
+		CredProject:                 credProject,
+		SkipCredsForInsecureAddress: opts.SkipCredsForInsecureAddress,
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+	if creds != nil {
+		dialOpts = append(dialOpts, grpc.WithPerRPCCredentials(creds))
+	}
+
+	var tcOption grpc.DialOption
+	if creds == nil && baseclientutils.UseInsecureCredentials(opts.Address) {
+		tcOption = grpc.WithTransportCredentials(insecure.NewCredentials())
+	} else {
+		var err error
+		tcOption, err = baseclientutils.GetTransportCredentialsDialOption()
+		if err != nil {
+			return nil, nil, fmt.Errorf("cannot get transport credentials: %w", err)
+		}
+	}
+	dialOpts = append(dialOpts, tcOption)
+
+	return ctx, dialOpts, nil
+}
+
+func getOrgInfo(org string) (auth.OrgInfo, error) {
+	// Try first to parse the org and project directly from the org string, so we don't read the
+	// org info from disk unless we need to.
+	orgAndProject := strings.Split(org, "@")
+	if len(orgAndProject) == 2 {
+		return auth.OrgInfo{
+			Organization: orgAndProject[0],
+			Project:      orgAndProject[1],
+		}, nil
+	}
+
+	info, err := auth.NewStore().ReadOrgInfo(org)
+	if err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
+			return auth.OrgInfo{Organization: org}, nil
+		}
+		return auth.OrgInfo{}, err
+	}
+	return info, nil
+}
+
+type getPerRPCCredentialsOptions struct {
+	Address     string
+	APIKey      string
+	CredProject string
+	// SkipCredsForInsecureAddress is a flag to skip adding credentials to the connection if the
+	// address is a candidate for an insecure connection.
+	SkipCredsForInsecureAddress bool
+}
+
+func getPerRPCCredentials(opts getPerRPCCredentialsOptions) (credentials.PerRPCCredentials, error) {
+	addressIsInsecure := baseclientutils.UseInsecureCredentials(opts.Address) || baseclientutils.IsLocalAddress(opts.Address)
+	if addressIsInsecure && opts.SkipCredsForInsecureAddress {
+		return nil, nil
+	}
+
+	if opts.APIKey != "" {
+		// User-provided api-key.
+		return &auth.ProjectToken{APIKey: opts.APIKey}, nil
+	}
+
+	if opts.CredProject != "" {
+		configuration, err := auth.NewStore().GetConfiguration(opts.CredProject)
+		if err != nil {
+			return nil, err
+		}
+
+		return configuration.GetDefaultCredentials()
+	}
+
+	if addressIsInsecure {
+		return nil, nil
+	}
+
+	return nil, errNoInfoToAuthenticate
 }
 
 type dialInfoParams struct {
 	Address   string // The address of a cloud/on-prem cluster
 	Cluster   string // The name of the server to install to
-	CredName  string // The name of the credentials to load from auth.Store
-	CredAlias string // Optional alias for key to load
 	CredOrg   string // Optional the org-id header to set
 	CredToken string // Optional the credential value itself. This bypasses the store
+	Project   string // The current GCP project
 }
 
 func dialConnectionCtx(ctx context.Context, params dialInfoParams) (context.Context, *grpc.ClientConn, string, error) {
 
-	ctx, dialerOpts, address, err := dialInfoCtx(ctx, params)
-	if err != nil {
-		return nil, nil, "", fmt.Errorf("dial info: %w", err)
-	}
-
-	conn, err := grpc.DialContext(ctx, address, *dialerOpts...)
-	if err != nil {
-		return nil, nil, "", fmt.Errorf("dialing context: %w", err)
-	}
-
-	return ctx, conn, address, nil
-}
-
-// dialInfoCtx returns the metadata for dialing a gRPC connection to a cloud/on-prem cluster.
-//
-// Function uses provided ctx to manage lifecycle of connection created. Ctx may be
-// modified on return, caller is encouraged to switch to returned context if appropriate.
-//
-// DialInfoParams.Cluster optionally has to be set to the name of the target cluster if
-// DialInfoParams.Address is the address of a cloud cluster and the connection will be used to send
-// a request to an on-prem service via the relay running in the cloud cluster.
-//
-// Returns insecure connection data if the address is a local network address (such as
-// `localhost:17080`), otherwise retrieves cert from system cert pool, and sets up the metadata for
-// a TLS cert with per-RPC basic auth credentials.
-func dialInfoCtx(ctx context.Context, params dialInfoParams) (context.Context, *[]grpc.DialOption, string, error) {
-	address, err := resolveClusterAddress(params.Address, params.CredName)
+	address, err := resolveClusterAddress(params.Address, params.Project)
 	if err != nil {
 		return ctx, nil, "", err
 	}
-	params.Address = address
 
-	if params.CredOrg != "" {
-		ctx = identity.OrgToContext(ctx, strings.Split(params.CredOrg, "@")[0])
-	}
-
-	if baseclientutils.UseInsecureCredentials(params.Address) {
-		finalOpts := append(baseclientutils.BaseDialOptions(),
-			grpc.WithTransportCredentials(insecure.NewCredentials()),
-		)
-		return ctx, &finalOpts, params.Address, nil
+	ctx, dialOpts, err := getDialContextOptions(ctx, getDialContextOptionsOptions{
+		Address:                     address,
+		APIKey:                      params.CredToken,
+		CredOrg:                     params.CredOrg,
+		CredProject:                 params.Project,
+		SkipCredsForInsecureAddress: true,
+	})
+	if err != nil {
+		return ctx, nil, "", fmt.Errorf("cannot get dial context options for cluster: %w", err)
 	}
 
 	if params.Cluster != "" {
 		ctx = metadata.AppendToOutgoingContext(ctx, "x-server-name", params.Cluster)
 	}
 
-	rpcCredentials, err := createCredentials(params)
+	conn, err := grpc.DialContext(ctx, address, dialOpts...)
 	if err != nil {
-		return nil, nil, "", fmt.Errorf("cannot retrieve connection credentials: %w", err)
-	}
-	tcOption, err := baseclientutils.GetTransportCredentialsDialOption()
-	if err != nil {
-		return nil, nil, "", fmt.Errorf("cannot retrieve transport credentials: %w", err)
+		return ctx, nil, "", fmt.Errorf("could not dial context: %w", err)
 	}
 
-	finalOpts := append(baseclientutils.BaseDialOptions(),
-		grpc.WithPerRPCCredentials(rpcCredentials),
-		tcOption,
-	)
-
-	return ctx, &finalOpts, params.Address, nil
+	return ctx, conn, address, nil
 }
 
 // AuthInsecureConn returns a context with authentication information if the address is insecure.
@@ -305,32 +378,6 @@ func resolveClusterAddress(address string, project string) (string, error) {
 	}
 
 	return fmt.Sprintf("dns:///www.endpoints.%s.cloud.goog:443", project), nil
-}
-
-func createCredentials(params dialInfoParams) (credentials.PerRPCCredentials, error) {
-	if params.CredToken != "" {
-		return &auth.ProjectToken{APIKey: params.CredToken}, nil
-	}
-
-	if params.CredName != "" {
-		configuration, err := auth.NewStore().GetConfiguration(params.CredName)
-		if err != nil {
-			return nil, fmt.Errorf("credentials not found: %w", err)
-		}
-
-		if params.CredAlias == "" {
-			return configuration.GetDefaultCredentials()
-		}
-		return configuration.GetCredentials(params.CredAlias)
-	}
-
-	if baseclientutils.IsLocalAddress(params.Address) {
-		// local calls do not require any authentication
-		return nil, nil
-	}
-	// credential name is required for non-local calls to resolve
-	// the corresponding API key.
-	return nil, fmt.Errorf("credential name is required")
 }
 
 // getClusterNameFromSolution returns the cluster in which a solution currently runs.

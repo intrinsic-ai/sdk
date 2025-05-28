@@ -42,9 +42,6 @@ service AssetCatalog {
   // flag CANNOT be re-added later.
   rpc UpdateReleaseMetadata(UpdateReleaseMetadataRequest)
       returns (ReleaseMetadata);
-
-  // Clears the default version of the specified asset.
-  rpc ClearDefault(ClearDefaultRequest) returns (ClearDefaultResponse);
 }
 
 // A specific version of an asset in the catalog.
@@ -211,13 +208,3 @@ message UpdateReleaseMetadataRequest {
   // The list of fields to update.
   google.protobuf.FieldMask update_mask = 3;
 }
-
-message ClearDefaultRequest {
-  // The asset ID.
-  intrinsic_proto.assets.Id id = 1;
-
-  // intrinsic_strip:*:begin(internal_only)
-  intrinsic_proto.assets.AssetType asset_type = 3 [deprecated = true];
-}
-
-message ClearDefaultResponse {}

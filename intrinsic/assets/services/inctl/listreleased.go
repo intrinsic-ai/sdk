@@ -48,7 +48,7 @@ func GetCommand() *cobra.Command {
 		Short: "List services from the catalog",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			conn, err := clientutils.DialCatalogFromInctl(cmd, flags)
+			ctx, conn, err := clientutils.DialCatalogFromInctl(cmd, flags)
 			if err != nil {
 				return errors.Wrap(err, "failed to create client connection")
 			}
@@ -58,9 +58,11 @@ func GetCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return listAllServices(cmd.Context(), client, prtr)
+			return listAllServices(ctx, client, prtr)
 		},
 	}
 	flags.SetCommand(cmd)
+	flags.AddFlagOrganizationOptional()
+
 	return cmd
 }
