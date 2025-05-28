@@ -64,14 +64,12 @@ cc_grpc_library(
     srcs = [":gpio_service_proto"],
     generate_mocks = True,
     grpc_only = True,
-    visibility = ["//intrinsic:__subpackages__"],
     deps = [":gpio_service_cc_proto"],
 )
 
 go_grpc_library(
     name = "gpio_service_go_grpc_proto",
     srcs = [":gpio_service_proto"],
-    visibility = ["//intrinsic:__subpackages__"],
     deps = [
         ":gpio_service_go_proto",
         "//intrinsic/hardware/gpio/v1:signal_go_proto",
