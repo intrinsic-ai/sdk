@@ -23,6 +23,7 @@ import enum
 import textwrap
 from typing import Any as AnyType, Callable, Iterable, List, Mapping, Optional, Sequence as SequenceType, Tuple, Union, cast
 import uuid
+import warnings
 
 from google.protobuf import any_pb2
 from google.protobuf import descriptor
@@ -3203,6 +3204,12 @@ class Loop(Node):
     Returns:
       The modified loop node.
     """
+    warnings.warn(
+        'For each loops have been deprecated. Prefer to use a while loop'
+        ' instead.',
+        DeprecationWarning,
+        stacklevel=2,
+    )
     self._for_each_protos = Loop._for_each_proto_input_to_protos(protos)
     self._check_consistency()
     self._ensure_for_each_value_key()
@@ -3229,6 +3236,12 @@ class Loop(Node):
     Returns:
       The modified loop node.
     """
+    warnings.warn(
+        'For each loops have been deprecated. Prefer to use a while loop'
+        ' instead.',
+        DeprecationWarning,
+        stacklevel=2,
+    )
     self.set_for_each_generator_cel_expression(
         generator_value.value_access_path()
     )
@@ -3253,6 +3266,12 @@ class Loop(Node):
     Returns:
       The modified loop node.
     """
+    warnings.warn(
+        'For each loops have been deprecated. Prefer to use a while loop'
+        ' instead.',
+        DeprecationWarning,
+        stacklevel=2,
+    )
     self._for_each_generator_cel_expression = cel_expression
     self._check_consistency()
     self._ensure_for_each_value_key()
