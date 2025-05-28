@@ -69,8 +69,8 @@ jobs:
       - name: Build inctl and inbuild
         run: |
           bazel build //intrinsic/tools/inctl:inctl_external //intrinsic/tools/inbuild:inbuild
-          cp bazel-bin/intrinsic/tools/inctl/inctl_external_/inctl_external inctl-linux-amd64
-          cp bazel-bin/intrinsic/tools/inbuild/inbuild_/inbuild inbuild-linux-amd64
+          cp "$(bazel cquery --output=files //intrinsic/tools/inctl:inctl_external)" inctl-linux-amd64
+          cp "$(bazel cquery --output=files //intrinsic/tools/inbuild:inbuild)" inbuild-linux-amd64
 
       - name: Download Versioned IntrinsicOS SBOM
         id: sbom_download
