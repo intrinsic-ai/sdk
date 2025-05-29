@@ -12,32 +12,194 @@ on:
       - '*'
 
 jobs:
-  build-inctl-inbuild-release:
-    runs-on: ubuntu-latest
+  determine-checkout-ref:
+    runs-on: ubuntu-22.04
     permissions:
-      contents: write
+      contents: read
+    outputs:
+      checkout_ref: ${{ steps.checkout_ref.outputs.ref }}
+      prerelease: ${{ steps.checkout_ref.outputs.prerelease }}
+      is_tag: ${{ steps.checkout_ref.outputs.is_tag}}
     steps:
       - name: Determine Checkout Ref
         id: checkout_ref
         run: |
+          IS_TAG="false"
+          PRERELEASE="false"
           REF=""
+
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             if [[ -n "${{ github.event.inputs.tag }}" ]]; then
               REF="${{ github.event.inputs.tag }}"
+              IS_TAG="true"
               echo "Checking out specified tag: $REF"
             else
               echo "No tag specified for manual dispatch. This workflow requires a tag for manual dispatch."
               exit 1
             fi
           elif [[ "${{ github.event_name }}" == "push" ]]; then
-            REF="${{ github.ref }}"
-            echo "Checking out pushed tag: $REF"
+            if [[ "${{ github.ref_type }}" == "tag" ]]; then
+              REF="${{ github.ref_name }}"
+              IS_TAG="true"
+              echo "Event: push. Checking out pushed tag: $REF"
+            else
+              REF="${{ github.ref_name }}"
+              IS_TAG="false"
+              echo "Event: push. Ref is a branch, not a tag: $REF"
+            fi
+          else
+              echo "Error: This job is only configured to run on 'workflow_dispatch' or 'push' events."
+              exit 1
           fi
+
+          if [[ "$IS_TAG" == "true" && "$REF" == *candidate* ]]; then
+            PRERELEASE="true"
+            echo "Tag contains 'candidate', marking as a prerelease."
+          fi
+
           echo "ref=$REF" >> $GITHUB_OUTPUT 
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+          echo "prerelease=$PRERELEASE" >> $GITHUB_OUTPUT 
+          echo "is_tag=$IS_TAG" >> $GITHUB_OUTPUT 
+
+  package-sdk:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+    needs: determine-checkout-ref
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
         with:
-          ref: ${{steps.checkout_ref.outputs.ref }}
+          ref: ${{ needs.determine-checkout-ref.outputs.checkout_ref }}
           fetch-depth: 0
+          path: sdk
+      - name: Cleanup
+        working-directory: sdk
+        run: rm -rf .devcontainer .git .github .vscode .gitignore examples
+      - name: Package
+        run: tar --create --owner=root --group=root --numeric-owner --directory sdk --gzip --file sdk.tar.gz .
+      - name: Save build artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # 4.6.2
+        with:
+          name: sources
+          path: sdk.tar.gz
+          if-no-files-found: error
+
+  create-release-notes:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+    needs: determine-checkout-ref
+    steps:
+      - name: Checkout CI artifacts
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          path: sdk_main
+
+      - name: Checkout Tag
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          ref: ${{ needs.determine-checkout-ref.outputs.checkout_ref }}
+          fetch-depth: 0
+          path: sdk_ref
+
+      - name: Install dependencies
+        run: pip install GitPython==3.1.44
+
+      - name: Create Release notes
+        run: |
+          REF="${{ needs.determine-checkout-ref.outputs.checkout_ref }}"
+          echo "Creating new release for tag $REF"
+          python3 sdk_main/.github/ci/release_notes_gen.py \
+            --repo-path "sdk_ref" \
+            --version "$REF" \
+            --output-file RELEASE_NOTES.md
+
+      - name: Save build artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # 4.6.2
+        with:
+          name: release_notes 
+          path: RELEASE_NOTES.md 
+          if-no-files-found: error
+
+  intrinsic-os-sbom:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+    needs: 
+      - package-sdk
+    steps:
+      - name: Download sources
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0
+        with:
+          name: sources
+
+      - name: Extract sources
+        run: |
+          mkdir sdk_build
+          tar --extract --directory sdk_build --file sdk.tar.gz
+
+      - name: Install Dependencies (Jsonnet, jq)
+        shell: bash
+        run: |
+          echo "Installing dependencies: jsonnet, jq..."
+          sudo apt-get update -y && sudo apt-get install -y jsonnet jq
+
+      - name: Set up Cloud SDK (gcloud/gsutil)
+        uses: google-github-actions/setup-gcloud@77e7a554d41e2ee56fc945c52dfd3f33d12def9a  # v2.1.4
+
+      - name: Extract Stable Version and Download SBOM
+        id: get_sbom # Give ID to access outputs easily later if needed internally
+        shell: bash
+        run: |
+          VERSIONS_FILE="sdk_build/intrinsic/production/versions/versions.jsonnet"
+          GCS_BASE="gs://intrinsic-os-releases-us/realtime"
+          GCS_FILENAME="sbom.spdx.json"
+          LOCAL_PREFIX="sbom.intrinsic-os"
+
+          echo "::group::Extracting Stable Version"
+          echo "Reading stable version from ${VERSIONS_FILE}"
+          if [[ ! -f "$VERSIONS_FILE" ]]; then
+            echo "Error: Versions file not found at ${VERSIONS_FILE}"
+            exit 1;
+          fi
+          STABLE_VERSION=$(jsonnet "${VERSIONS_FILE}" | jq -r .stable)
+          if [[ -z "$STABLE_VERSION" || "$STABLE_VERSION" == "null" ]]; then
+            echo "Error: Could not extract 'stable' version from ${VERSIONS_FILE}"
+            exit 1;
+          fi
+          echo "Found stable OS version: ${STABLE_VERSION}"
+          echo "::endgroup::"
+
+          echo "::group::Downloading SBOM"
+          GCS_SBOM_PATH="${GCS_BASE}/xfa.${STABLE_VERSION}/${GCS_FILENAME}"
+          LOCAL_SBOM_FILENAME="${LOCAL_PREFIX}.${STABLE_VERSION}.spdx.json"
+          echo "Attempting to download SBOM from ${GCS_SBOM_PATH} to ${LOCAL_SBOM_FILENAME}"
+
+          if gsutil cp "${GCS_SBOM_PATH}" "${LOCAL_SBOM_FILENAME}"; then
+            echo "Successfully downloaded SBOM to ${LOCAL_SBOM_FILENAME}"
+            echo "sbom-local-path=$LOCAL_SBOM_FILENAME" >> $GITHUB_OUTPUT
+            echo "::endgroup::"
+          else
+            echo "Error: Failed to download SBOM from ${GCS_SBOM_PATH}"
+            exit 1;
+          fi
+
+      - name: Save build artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # 4.6.2
+        with:
+          name: intrinsic-os-sbom
+          path: ${{ steps.get_sbom.outputs.sbom-local-path }}
+          if-no-files-found: error
+
+  build-sdk-artifacts:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+    needs:
+      - package-sdk
+      - determine-checkout-ref
+    steps:
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be  # v1.3.1
         with:
@@ -60,46 +222,89 @@ jobs:
          # Share repository cache between workflows.
          repository-cache: true
 
-      - name: Stamp Build
+      - name: Download sources
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0
+        with:
+          name: sources
+
+      - name: Extract sources
         run: |
-          CANDIDATE_NAME="${GITHUB_REF_NAME##*/}"  # remove prefix
+          mkdir sdk_build
+          tar --extract --directory sdk_build --file sdk.tar.gz
+
+      - name: Stamp Build
+        working-directory: sdk_build
+        run: |
+          CANDIDATE_NAME="${{ needs.determine-checkout-ref.outputs.checkout_ref }}"
           echo "build --stamp" >> .bazelrc
           echo "build --workspace_status_command=\"echo STABLE_SDK_VERSION ${CANDIDATE_NAME}\""  >> .bazelrc
 
       - name: Build inctl and inbuild
+        working-directory: sdk_build
         run: |
-          bazel build //intrinsic/tools/inctl:inctl_external //intrinsic/tools/inbuild:inbuild
-          cp "$(bazel cquery --output=files //intrinsic/tools/inctl:inctl_external)" inctl-linux-amd64
-          cp "$(bazel cquery --output=files //intrinsic/tools/inbuild:inbuild)" inbuild-linux-amd64
+          bazel build \
+            //intrinsic/tools/inctl:inctl_external \
+            //intrinsic/tools/inbuild:inbuild \
+            //intrinsic/solutions:solutions_wheel \
+            //intrinsic/executive/code:code_execution_wheel
 
-      - name: Download Versioned IntrinsicOS SBOM
-        id: sbom_download
-        uses: ./.github/actions/download-intrinsic-os-sbom
+          mkdir release
+          cp "$(bazel cquery --output=files //intrinsic/tools/inctl:inctl_external)" release/inctl-linux-amd64
+          cp "$(bazel cquery --output=files //intrinsic/tools/inbuild:inbuild)" release/inbuild-linux-amd64
+          cp "$(bazel cquery --output=files //intrinsic/solutions:solutions_wheel)" release/solutions-0.0.1-py3-none-any.whl
+          cp "$(bazel cquery --output=files //intrinsic/executive/code:code_execution_wheel)" release/code_execution-0.0.1-py3-none-any.whl
+          ls -la release
 
-      - name: Install dependencies
-        run: pip install GitPython==3.1.44
+      - name: Save build artifacts 
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # 4.6.2
+        with:
+          name: sdk-binaries
+          path: sdk_build/release/*
+          if-no-files-found: error
+
+  create-sdk-release:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    needs:
+      - determine-checkout-ref
+      - package-sdk
+      - build-sdk-artifacts
+      - intrinsic-os-sbom
+      - create-release-notes
+    steps:
+      - name: Download sources
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0
+        with:
+          name: sources
+
+      - name: Download Intrinsic OS SBOM 
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0
+        with:
+          name: intrinsic-os-sbom
+
+      - name: Download binary artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0
+        with:
+          name: sdk-binaries
+
+      - name: Download release notes
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0
+        with:
+          name: release_notes
 
       - name: Create GitHub Release
+        if: needs.determine-checkout-ref.outputs.is_tag == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set -euox pipefail
+          PRERELEASE_ARGS=""
+          if [[ "${{ needs.determine-checkout-ref.outputs.prerelease }}" == "true" ]]; then
+            echo "Marking this as a pre-release."
+            PRERELEASE_ARGS="--prerelease"
+          fi
 
-          echo "Creating new release for tag ${{ steps.checkout_ref.outputs.ref }}"
-
-          # Execute the Python script, passing arguments directly
-          python3 doc_gen/release_notes_gen.py \
-            --repo-path "${GITHUB_WORKSPACE}" \
-            --last-release-tag "${{ steps.checkout_ref.outputs.ref }}"
-
-          echo "== Generated release notes =="
-          cat RELEASE_NOTES.md
-          echo "============================="
-
-          gh release create "${{ steps.checkout_ref.outputs.ref }}" \
-            ./inbuild-linux-amd64 \
-            ./inctl-linux-amd64 \
-            "${{ steps.sbom_download.outputs.sbom-local-path}}" \
-            --title "Intrinsic SDK ${{ steps.checkout_ref.outputs.ref }}" \
+          find . -type f -exec gh release create "${{ needs.determine-checkout-ref.outputs.checkout_ref }}" \
             --notes-file RELEASE_NOTES.md \
-            --draft=false
+            --draft=false \
+            $PRERELEASE_ARGS "{}" \+
