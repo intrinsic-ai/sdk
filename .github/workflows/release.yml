@@ -69,12 +69,15 @@ jobs:
       - name: Build inctl and inbuild
         run: |
           bazel build //intrinsic/tools/inctl:inctl_external //intrinsic/tools/inbuild:inbuild
-          cp bazel-bin/intrinsic/tools/inctl/inctl_external_/inctl_external inctl-linux-amd64
-          cp bazel-bin/intrinsic/tools/inbuild/inbuild_/inbuild inbuild-linux-amd64
+          cp "$(bazel cquery --output=files //intrinsic/tools/inctl:inctl_external)" inctl-linux-amd64
+          cp "$(bazel cquery --output=files //intrinsic/tools/inbuild:inbuild)" inbuild-linux-amd64
 
       - name: Download Versioned IntrinsicOS SBOM
         id: sbom_download
         uses: ./.github/actions/download-intrinsic-os-sbom
+
+      - name: Install dependencies
+        run: pip install GitPython==3.1.44
 
       - name: Create GitHub Release
         env:
@@ -83,7 +86,11 @@ jobs:
           set -euox pipefail
 
           echo "Creating new release for tag ${{ steps.checkout_ref.outputs.ref }}"
-          .github/ci/generate_changelog.sh ${{ steps.checkout_ref.outputs.ref }} > RELEASE_NOTES.md
+
+          # Execute the Python script, passing arguments directly
+          python3 doc_gen/release_notes_gen.py \
+            --repo-path "${GITHUB_WORKSPACE}" \
+            --last-release-tag "${{ steps.checkout_ref.outputs.ref }}"
 
           echo "== Generated release notes =="
           cat RELEASE_NOTES.md
