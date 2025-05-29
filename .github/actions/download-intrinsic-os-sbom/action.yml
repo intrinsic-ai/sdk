@@ -59,7 +59,7 @@ runs:
           exit 1;
         fi
         echo "Found stable OS version: ${STABLE_VERSION}"
-        echo "::set-output name=stable-version::${STABLE_VERSION}" # Set stable-version output
+        echo "stable-version=$STABLE_VERSION" >> $GITHUB_OUTPUT
         echo "::endgroup::"
 
         echo "::group::Downloading SBOM"
@@ -69,7 +69,7 @@ runs:
 
         if gsutil cp "${GCS_SBOM_PATH}" "${LOCAL_SBOM_FILENAME}"; then
           echo "Successfully downloaded SBOM to ${LOCAL_SBOM_FILENAME}"
-          echo "::set-output name=sbom-local-path::${LOCAL_SBOM_FILENAME}" # Set sbom-local-path output ONLY on success
+          echo "sbom-local-path=$LOCAL_SBOM_FILENAME" >> $GITHUB_OUTPUT
           echo "::endgroup::"
         else
           echo "Error: Failed to download SBOM from ${GCS_SBOM_PATH}"
