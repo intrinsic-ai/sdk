@@ -44,13 +44,6 @@ service AssetDeploymentService {
       response_type: "Resource"
     };
   }
-
-  // Gets the latest state of a long-running operation.  Clients can use this
-  // method to poll the operation result, similar to `GetOperation` in
-  // `google.longrunning.Operations` service:
-  // https://github.com/googleapis/googleapis/blob/master/google/longrunning/operations.proto
-  rpc GetOperation(google.longrunning.GetOperationRequest)
-      returns (google.longrunning.Operation) {}
 }
 
 message ResourceConfiguration {
