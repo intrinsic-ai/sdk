@@ -112,11 +112,11 @@ message GetAssetRequest {
     intrinsic_proto.assets.IdVersion id_version = 2;
   }
 
-  // intrinsic_strip:*:begin(internal_only)
-  intrinsic_proto.assets.AssetType asset_type = 3 [deprecated = true];
-
   // The type of view to return. Defaults to ASSET_VIEW_TYPE_BASIC.
   AssetViewType view = 4;
+
+  reserved 3;
+  reserved "asset_type";
 }
 
 message ListAssetsRequest {
