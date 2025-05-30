@@ -35,6 +35,7 @@ require (
 	github.com/golang/protobuf v1.5.4
 	github.com/google/go-cmp v0.6.0
 	github.com/google/go-containerregistry v0.20.3
+	github.com/google/safehtml v0.1.0
 	github.com/google/safetext v0.0.0-20221026122733-23539d61753f
 	github.com/google/subcommands v1.2.0
 	github.com/google/uuid v1.6.0
