@@ -57,7 +57,8 @@ absl::Status KeyValueStore::Set(absl::string_view key,
     absl::Time deadline = absl::Now() + kHighConsistencyTimeout;
     while (true) {
       auto set_result = GetAny(key, config, absl::Seconds(10));
-      if (set_result.value().SerializeAsString() == value.SerializeAsString()) {
+      if (set_result.ok() &&
+          set_result.value().SerializeAsString() == value.SerializeAsString()) {
         // Key value is committed.
         return absl::OkStatus();
       } else {
