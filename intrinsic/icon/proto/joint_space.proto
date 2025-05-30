@@ -63,4 +63,8 @@ message JointTrajectoryPVA {
   repeated google.protobuf.Duration time_since_start = 2;
   intrinsic_proto.DynamicLimitsCheckMode joint_dynamic_limits_check_mode = 3;
   JointTrajectoryInterpolationType interpolation_type = 4;
+  // The Cartesian arc length in meters tracked by the specified joint
+  // trajectory. This is optional and can be left empty. If this field is used,
+  // it should be the same length as the time_since_start.
+  repeated double cartesian_arc_length_meters = 5;
 }
