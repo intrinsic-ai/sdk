@@ -306,7 +306,7 @@ jobs:
 
           find . -type f -not -name "RELEASE_NOTES.md" -exec gh release create "${{ needs.determine-checkout-ref.outputs.checkout_ref }}" \
             --repo ${GITHUB_REPOSITORY} \
-            --title "${{ needs.determine-checkout-ref.outputs.checkout_ref }}"
+            --title "${{ needs.determine-checkout-ref.outputs.checkout_ref }}" \
             --notes-file RELEASE_NOTES.md \
             --draft=false \
             $PRERELEASE_ARGS "{}" \+
