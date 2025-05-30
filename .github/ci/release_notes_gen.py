@@ -42,15 +42,17 @@ def generate_devcontainer_config(version="latest") -> str:
 Update your devcontainer configuration to use the latest base image:
 
 ```json
-"name": "intrinsic-flowstate-devcontainer",
-"image": "ghcr.io/intrinsic-ai/intrinsic-dev-img:{version}",
-"runArgs": [
-    "--network=host"
-],
-"customizations": {{
-    "vscode": {{
-        "settings": {{
-            "intrinsic.defaultSdkRepository": "https://github.com/intrinsic-ai/sdk.git"
+{{
+    "name": "intrinsic-flowstate-devcontainer",
+    "image": "ghcr.io/intrinsic-ai/intrinsic-dev-img:{version}",
+    "runArgs": [
+        "--network=host"
+    ],
+    "customizations": {{
+        "vscode": {{
+            "settings": {{
+                "intrinsic.defaultSdkRepository": "https://github.com/intrinsic-ai/sdk.git"
+            }}
         }}
     }}
 }}
@@ -65,8 +67,6 @@ def generate_changelog(repo: git.Repo, last_release_tag: git.TagReference) -> st
 
     if commits:
         messages = []
-        messages.append("## Commit History\n")
-
         for commit in commits:
             message_lines = commit.message.strip().split('\n')
             if message_lines and not message_lines[0].startswith("SDK update"):
@@ -152,7 +152,7 @@ if __name__ == "__main__":
     bazel_config = generate_bazel_dep(args.version)
     devcontainer_config = generate_devcontainer_config(args.version)
 
-    output = f"""# {args.version}
+    output = f"""## Changes since {last_release}
 
 {changelog}
 
