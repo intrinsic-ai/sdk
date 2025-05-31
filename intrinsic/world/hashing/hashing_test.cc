@@ -7,8 +7,6 @@
 
 #include <gtest/gtest.h>
 
-#include <utility>
-
 #include "intrinsic/world/entity_id.h"
 #include "intrinsic/world/labels.h"
 
