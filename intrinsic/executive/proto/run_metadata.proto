@@ -37,6 +37,15 @@ message RunMetadata {
 
   string world_id = 19;
 
+
+  // The scene ID that is associated with this operation. This is the starting
+  // state for the world in which this operation is running/ ran.
+  // This is only set once the operation transitions from ACCEPTED to RUNNING,
+  // and only if it was set when starting the operation. It is cleared when the
+  // operation is reset.
+  string scene_id = 29;
+
+
   // These fields will be initialized when starting a behavior tree (not
   // immediately when creating it).
   ExecutionMode execution_mode = 20;
