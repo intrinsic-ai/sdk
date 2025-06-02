@@ -264,6 +264,13 @@ message StartOperationRequest {
   // This is a map from slot to the name of the resource handle.
   map<string, string> resources = 8;
 
+
+  // The scene ID to be associated with this operation.
+  // This specifies the starting state for the world in which this operation
+  // will run. If this value is not set, the operation will run in the world in
+  // its current state.
+  optional string scene_id = 9;
+
 }
 
 message SuspendOperationRequest {
