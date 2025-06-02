@@ -1,0 +1,5 @@
+# Ignore folders from git archive
+.gitattributes export-ignore
+.github export-ignore
+.github/** export-ignore
+.gitignore export-ignore
