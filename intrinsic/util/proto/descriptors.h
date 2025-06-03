@@ -26,6 +26,19 @@ google::protobuf::FileDescriptorSet GenFileDescriptorSet() {
   return GenFileDescriptorSet(*ProtoT::GetDescriptor());
 }
 
+// Merges files from a descriptor into an existing file descriptor set without
+// adding duplicates.
+void MergeFileDescriptorSet(const google::protobuf::Descriptor& descriptor,
+                            google::protobuf::FileDescriptorSet& set);
+
+// Merges files from the descriptor for ProtoT into an existing file descriptor
+// set without adding duplicates.
+template <class ProtoT, typename = std::enable_if_t<std::is_base_of_v<
+                            google::protobuf::Message, ProtoT>>>
+void MergeFileDescriptorSet(google::protobuf::FileDescriptorSet& set) {
+  return MergeFileDescriptorSet(*ProtoT::GetDescriptor(), set);
+}
+
 // Populates the given descriptor database with all file descriptors in the
 // given FileDescriptorSet.
 absl::Status PopulateDescriptorDatabase(

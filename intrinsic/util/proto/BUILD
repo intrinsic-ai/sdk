@@ -51,6 +51,7 @@ cc_library(
     deps = [
         "//intrinsic/util/status:status_macros",
         "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/container:flat_hash_set",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_protobuf//:protobuf",
