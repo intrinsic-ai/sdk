@@ -227,6 +227,7 @@ class SkillProjectorServicer(skill_service_pb2_grpc.ProjectorServicer):
 
     return skill_service_pb2.GetFootprintResult(footprint=skill_footprint)
 
+  # pylint: disable=line-too-long
   def Predict(
       self,
       predict_request: skill_service_pb2.PredictRequest,
@@ -238,6 +239,7 @@ class SkillProjectorServicer(skill_service_pb2_grpc.ProjectorServicer):
         ],
         internal_data=predict_request.internal_data,
     )
+  # pylint: enable=line-too-long
 
 
 class SkillExecutorServicer(skill_service_pb2_grpc.ExecutorServicer):
