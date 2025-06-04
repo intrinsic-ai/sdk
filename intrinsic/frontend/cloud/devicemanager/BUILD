@@ -9,7 +9,10 @@ package(default_visibility = ["//visibility:public"])
 go_library(
     name = "version",
     srcs = ["version.go"],
-    visibility = ["//intrinsic/tools/inctl/cmd/cluster:__subpackages__"],
+    visibility = [
+        "//intrinsic/tools/inctl/cmd/cluster:__subpackages__",
+        "//visibility:public",
+    ],
 )
 
 go_test(

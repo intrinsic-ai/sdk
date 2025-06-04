@@ -12,5 +12,6 @@ go_library(
     visibility = [
         "//intrinsic/frontend:__subpackages__",
         "//intrinsic/kubernetes/acl:__pkg__",
+        "//visibility:public",
     ],
 )
