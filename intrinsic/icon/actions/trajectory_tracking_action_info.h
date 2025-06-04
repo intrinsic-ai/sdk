@@ -62,6 +62,13 @@ struct TrajectoryTrackingActionInfo {
       "fixed time step each cycle. The incrementing of this value is "
       "independent of global speed override values and always increments by a "
       "fixed value every cycle.";
+  static constexpr char kCartesianArcLengthAlongTrajectoryMeters[] =
+      "cartesian_arc_length_along_trajectory";
+  static constexpr char kCartesianArcLengthAlongTrajectoryMetersDescription[] =
+      "The current Cartesian arc length along the trajectory since trajectory "
+      "start in meters. The Cartesian arc length is defined as the "
+      "translational distance traversed by the tip, as defined in the "
+      "trajectory planning";
   static constexpr char kDistanceToFinalSetpoint[] =
       "distance_to_final_setpoint";
   static constexpr char kDistanceToFinalSetpointDescription[] =
