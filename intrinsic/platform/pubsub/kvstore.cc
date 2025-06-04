@@ -35,7 +35,6 @@ KeyValueStore::KeyValueStore(std::optional<std::string> prefix_override)
 
 absl::Status KeyValueStore::Set(absl::string_view key,
                                 const google::protobuf::Any& value,
-                                const NamespaceConfig& config,
                                 std::optional<bool> high_consistency) {
   INTR_RETURN_IF_ERROR(intrinsic::ValidZenohKeyexpr(key));
   absl::StatusOr<std::string> prefixed_name =
@@ -56,7 +55,7 @@ absl::Status KeyValueStore::Set(absl::string_view key,
   if (high_consistency.has_value() && *high_consistency) {
     absl::Time deadline = absl::Now() + kHighConsistencyTimeout;
     while (true) {
-      auto set_result = GetAny(key, config, absl::Seconds(10));
+      auto set_result = GetAny(key, absl::Seconds(10));
       if (set_result.ok() &&
           set_result.value().SerializeAsString() == value.SerializeAsString()) {
         // Key value is committed.
@@ -80,8 +79,7 @@ absl::Status KeyValueStore::Set(absl::string_view key,
 }
 
 absl::StatusOr<google::protobuf::Any> KeyValueStore::GetAny(
-    absl::string_view key, const NamespaceConfig& config,
-    absl::Duration timeout) {
+    absl::string_view key, absl::Duration timeout) {
   INTR_RETURN_IF_ERROR(intrinsic::ValidZenohKey(key));
   INTR_ASSIGN_OR_RETURN(absl::StatusOr<std::string> prefixed_name,
                         ZenohHandle::add_key_prefix(key, key_prefix_));
@@ -131,7 +129,6 @@ absl::StatusOr<google::protobuf::Any> KeyValueStore::GetAny(
 }
 
 absl::StatusOr<KVQuery> KeyValueStore::GetAll(absl::string_view keyexpr,
-                                              const WildcardQueryConfig& config,
                                               KeyValueCallback callback,
                                               OnDoneCallback on_done) {
   INTR_RETURN_IF_ERROR(intrinsic::ValidZenohKey(keyexpr));
@@ -196,8 +193,7 @@ absl::StatusOr<std::vector<std::string>> KeyValueStore::ListAllKeys(
   return std::move(keys);
 }
 
-absl::Status KeyValueStore::Delete(absl::string_view key,
-                                   const NamespaceConfig& config) {
+absl::Status KeyValueStore::Delete(absl::string_view key) {
   INTR_RETURN_IF_ERROR(intrinsic::ValidZenohKey(key));
   INTR_ASSIGN_OR_RETURN(absl::StatusOr<std::string> prefixed_name,
                         ZenohHandle::add_key_prefix(key, key_prefix_));

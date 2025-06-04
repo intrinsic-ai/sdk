@@ -86,17 +86,14 @@ absl::StatusOr<KeyValueStore> CreateKeyValueStore(
 }
 
 absl::StatusOr<KVQuery> GetAll(KeyValueStore* self, const std::string& key,
-                               const WildcardQueryConfig& config,
                                KeyValueCallback callback,
                                OnDoneCallback on_done) {
-  return self->GetAll(key, config, callback, on_done);
+  return self->GetAll(key, callback, on_done);
 }
 
 absl::StatusOr<google::protobuf::Any> Get(KeyValueStore* self,
-                                          const std::string& key,
-                                          const NamespaceConfig& config,
-                                          int timeout) {
-  return self->Get<google::protobuf::Any>(key, config, absl::Seconds(timeout));
+                                          const std::string& key, int timeout) {
+  return self->Get<google::protobuf::Any>(key, absl::Seconds(timeout));
 }
 
 absl::StatusOr<std::vector<std::string>> ListAllKeys(KeyValueStore* self,
@@ -169,34 +166,14 @@ PYBIND11_MODULE(pubsub, m) {
       .def("TopicName", &Publisher::TopicName)
       .def("HasMatchingSubscribers", &Publisher::HasMatchingSubscribers);
 
-  pybind11::class_<NamespaceConfig>(m, "NamespaceConfig")
-      .def(pybind11::init<>())
-      .def_readwrite("add_workcell_namespace",
-                     &NamespaceConfig::add_workcell_namespace)
-      .def_readwrite("add_solution_id_namespace",
-                     &NamespaceConfig::add_solution_id_namespace)
-      .def_readwrite("environment", &NamespaceConfig::environment)
-      .def_readwrite("version", &NamespaceConfig::version);
-
-  pybind11::class_<WildcardQueryConfig>(m, "WildcardQueryConfig")
-      .def(pybind11::init<>())
-      .def_readwrite("workcell", &WildcardQueryConfig::workcell)
-      .def_readwrite("solution_id", &WildcardQueryConfig::solution_id)
-      .def_readwrite("environment", &WildcardQueryConfig::environment)
-      .def_readwrite("version", &WildcardQueryConfig::version);
-
   pybind11::class_<KeyValueStore>(m, "KeyValueStore")
       .def("Set", &KeyValueStore::Set<google::protobuf::Message>,
            pybind11::arg("key"), pybind11::arg("value"),
-           pybind11::arg("config") = NamespaceConfig{},
            pybind11::arg("high_consistency") = false)
-      .def("Get", &Get, pybind11::arg("key"),
-           pybind11::arg("config") = NamespaceConfig{},
-           pybind11::arg("timeout") = 10)
+      .def("Get", &Get, pybind11::arg("key"), pybind11::arg("timeout") = 10)
       .def("GetAll", &GetAll)
       .def("List", &ListAllKeys, pybind11::arg("timeout") = 10)
-      .def("Delete", &KeyValueStore::Delete, pybind11::arg("key"),
-           pybind11::arg("config") = NamespaceConfig{});
+      .def("Delete", &KeyValueStore::Delete, pybind11::arg("key"));
 
   // The python GIL does not need to be locked during the entire destructor
   // of this class. Instead, the custom deleter provided during its
