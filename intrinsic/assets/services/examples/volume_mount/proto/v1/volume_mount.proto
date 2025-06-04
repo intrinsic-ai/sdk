@@ -1,0 +1,63 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.services.v1;
+
+// VolumeMountConfig configures a volume mount service.
+message VolumeMountConfig {
+  // A map of files to be added to the mounted volumes on startup.
+  //
+  // Keys are the paths of the files to be added, relative to the root mount
+  // path (/volumes). Values are the contents of the files.
+  map<string, bytes> initial_files = 1;
+}
+
+// VolumeMountService is a service that reads the contents of mounted volumes.
+//
+// All paths are relative to the root mount path (/volumes).
+service VolumeMountService {
+  // ListDir lists the contents of the mounted volume.
+  rpc ListDir(ListDirRequest) returns (ListDirResponse) {}
+
+  // ReadFile reads a file from the mounted volume.
+  rpc ReadFile(ReadFileRequest) returns (ReadFileResponse) {}
+
+  // WriteFile writes a file to the mounted volume, creating the directory and
+  // file if necessary and overwriting any existing file at that path.
+  rpc WriteFile(WriteFileRequest) returns (WriteFileResponse) {}
+}
+
+message ListDirRequest {
+  // The path (relative to the root mount path) to the directory to list.
+  string path = 1;
+  // If true, return the contents of the subdirectories recursively.
+  bool recursive = 2;
+}
+
+message ListDirResponse {
+  message Entry {
+    string path = 1;
+    bool is_directory = 2;
+  }
+
+  repeated Entry entries = 1;
+}
+
+message ReadFileRequest {
+  // The path to the file to be read (relative to the root mount path).
+  string path = 1;
+}
+
+message ReadFileResponse {
+  bytes contents = 1;
+}
+
+message WriteFileRequest {
+  // The path to the file to be written (relative to the root mount path).
+  string path = 1;
+  // The contents of the file to be written.
+  bytes contents = 2;
+}
+
+message WriteFileResponse {}

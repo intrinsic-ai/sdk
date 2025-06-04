@@ -1,0 +1,50 @@
+# Copyright 2023 Intrinsic Innovation LLC
+
+# proto-file: intrinsic/assets/services/proto/service_manifest.proto
+# proto-message: intrinsic_proto.services.ServiceManifest
+
+metadata {
+  id {
+    package: "ai.intrinsic"
+    name: "volume_mount"
+  }
+  vendor {
+    display_name: "Intrinsic"
+  }
+  documentation {
+    description: "An example service that mounts volumes."
+  }
+  display_name: "Volume Mount Example"
+}
+service_def {
+  service_proto_prefixes: "/intrinsic_proto.services.v1.VolumeMountService/"
+  sim_spec {
+    image {
+      archive_filename: "volume_mount_image.tar"
+      settings {
+        volume_mounts {
+          name: "example-host-volume"
+          mount_path: "/volumes/host"
+        }
+        volume_mounts {
+          name: "example-memory-volume"
+          mount_path: "/volumes/memory"
+        }
+      }
+    }
+    settings {
+      volumes {
+        name: "example-host-volume"
+        host_path {
+          path: "/tmp"
+        }
+      }
+      volumes {
+        name: "example-memory-volume"
+        empty_dir {
+          medium: EMPTY_DIR_MEDIUM_MEMORY
+        }
+      }
+    }
+  }
+}
