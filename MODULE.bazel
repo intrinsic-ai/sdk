@@ -192,9 +192,12 @@ use_repo(
 # Missing Google OSS files #
 ############################
 
-# go/keep-sorted start
-use_repo(non_module_deps, "com_google_xls_strong_int_h")
-# go/keep-sorted end
+use_repo(
+    non_module_deps,
+    # go/keep-sorted start
+    "com_google_xls_strong_int_h",
+    # go/keep-sorted end
+)
 
 ##########
 # Other  #
