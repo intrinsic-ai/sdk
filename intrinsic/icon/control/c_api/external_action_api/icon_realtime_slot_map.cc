@@ -8,7 +8,7 @@
 
 namespace intrinsic::icon {
 
-const IconConstFeatureInterfaces IconRealtimeSlotMap::FeatureInterfacesForSlot(
+IconConstFeatureInterfaces IconRealtimeSlotMap::FeatureInterfacesForSlot(
     RealtimeSlotId slot_id) const {
   auto feature_interfaces =
       realtime_slot_map_vtable_.get_feature_interfaces_for_slot(
@@ -26,8 +26,7 @@ IconFeatureInterfaces IconRealtimeSlotMap::MutableFeatureInterfacesForSlot(
                                    feature_interfaces_vtable_);
 }
 
-const IconConstFeatureInterfaces
-IconConstRealtimeSlotMap::FeatureInterfacesForSlot(
+IconConstFeatureInterfaces IconConstRealtimeSlotMap::FeatureInterfacesForSlot(
     RealtimeSlotId slot_id) const {
   auto feature_interfaces =
       realtime_slot_map_vtable_.get_feature_interfaces_for_slot(

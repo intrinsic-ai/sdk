@@ -27,7 +27,7 @@ class IconRealtimeSlotMap {
   //
   // Returns a struct with all members set to std::nullopt for invalid
   // `slot_id`s.
-  const IconConstFeatureInterfaces FeatureInterfacesForSlot(
+  IconConstFeatureInterfaces FeatureInterfacesForSlot(
       RealtimeSlotId slot_id) const;
 
   // Returns the FeatureInterfaces for `slot_id`.
@@ -56,7 +56,7 @@ class IconConstRealtimeSlotMap {
   //
   // Returns a struct with all members set to std::nullopt for invalid
   // `slot_id`s.
-  const IconConstFeatureInterfaces FeatureInterfacesForSlot(
+  IconConstFeatureInterfaces FeatureInterfacesForSlot(
       RealtimeSlotId slot_id) const;
 
  private:
