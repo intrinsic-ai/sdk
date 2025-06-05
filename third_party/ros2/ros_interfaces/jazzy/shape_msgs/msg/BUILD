@@ -13,8 +13,8 @@ proto_library(
     name = "mesh_proto",
     srcs = ["mesh.proto"],
     deps = [
+        ":mesh_triangle_proto",
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:point_proto",
-        "//third_party/ros2/ros_interfaces/jazzy/shape_msgs/msg:mesh_triangle_proto",
     ],
 )
 

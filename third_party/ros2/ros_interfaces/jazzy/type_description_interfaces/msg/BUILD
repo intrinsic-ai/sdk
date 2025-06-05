@@ -12,7 +12,7 @@ package(
 proto_library(
     name = "field_proto",
     srcs = ["field.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/type_description_interfaces/msg:field_type_proto"],
+    deps = [":field_type_proto"],
 )
 
 py_proto_library(
@@ -56,7 +56,7 @@ go_proto_library(
 proto_library(
     name = "individual_type_description_proto",
     srcs = ["individual_type_description.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/type_description_interfaces/msg:field_proto"],
+    deps = [":field_proto"],
 )
 
 py_proto_library(
@@ -100,7 +100,7 @@ go_proto_library(
 proto_library(
     name = "type_description_proto",
     srcs = ["type_description.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/type_description_interfaces/msg:individual_type_description_proto"],
+    deps = [":individual_type_description_proto"],
 )
 
 py_proto_library(

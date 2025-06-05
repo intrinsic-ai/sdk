@@ -53,8 +53,8 @@ proto_library(
     name = "transition_description_proto",
     srcs = ["transition_description.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/lifecycle_msgs/msg:state_proto",
-        "//third_party/ros2/ros_interfaces/jazzy/lifecycle_msgs/msg:transition_proto",
+        ":state_proto",
+        ":transition_proto",
     ],
 )
 
@@ -81,8 +81,8 @@ proto_library(
     name = "transition_event_proto",
     srcs = ["transition_event.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/lifecycle_msgs/msg:state_proto",
-        "//third_party/ros2/ros_interfaces/jazzy/lifecycle_msgs/msg:transition_proto",
+        ":state_proto",
+        ":transition_proto",
     ],
 )
 

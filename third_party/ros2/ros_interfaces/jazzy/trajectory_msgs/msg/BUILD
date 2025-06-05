@@ -13,8 +13,8 @@ proto_library(
     name = "joint_trajectory_proto",
     srcs = ["joint_trajectory.proto"],
     deps = [
+        ":joint_trajectory_point_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
-        "//third_party/ros2/ros_interfaces/jazzy/trajectory_msgs/msg:joint_trajectory_point_proto",
     ],
 )
 
@@ -65,8 +65,8 @@ proto_library(
     name = "multi_dof_joint_trajectory_proto",
     srcs = ["multi_dof_joint_trajectory.proto"],
     deps = [
+        ":multi_dof_joint_trajectory_point_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
-        "//third_party/ros2/ros_interfaces/jazzy/trajectory_msgs/msg:multi_dof_joint_trajectory_point_proto",
     ],
 )
 

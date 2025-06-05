@@ -53,7 +53,7 @@ proto_library(
     name = "dynamic_interface_group_values_proto",
     srcs = ["dynamic_interface_group_values.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/control_msgs/msg:interface_value_proto",
+        ":interface_value_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
     ],
 )
@@ -81,7 +81,7 @@ proto_library(
     name = "dynamic_interface_values_proto",
     srcs = ["dynamic_interface_values.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/control_msgs/msg:interface_value_proto",
+        ":interface_value_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
     ],
 )
@@ -109,7 +109,7 @@ proto_library(
     name = "dynamic_joint_state_proto",
     srcs = ["dynamic_joint_state.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/control_msgs/msg:interface_value_proto",
+        ":interface_value_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
     ],
 )
@@ -343,7 +343,7 @@ proto_library(
     name = "multi_dof_state_stamped_proto",
     srcs = ["multi_dof_state_stamped.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/control_msgs/msg:single_dof_state_proto",
+        ":single_dof_state_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
     ],
 )
@@ -419,7 +419,7 @@ proto_library(
     name = "single_dof_state_stamped_proto",
     srcs = ["single_dof_state_stamped.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/control_msgs/msg:single_dof_state_proto",
+        ":single_dof_state_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
     ],
 )

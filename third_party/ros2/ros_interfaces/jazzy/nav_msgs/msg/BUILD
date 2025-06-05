@@ -10,6 +10,34 @@ package(
 )
 
 proto_library(
+    name = "goals_proto",
+    srcs = ["goals.proto"],
+    deps = [
+        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:pose_stamped_proto",
+        "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
+    ],
+)
+
+py_proto_library(
+    name = "goals_py_pb2",
+    deps = ["goals_proto"],
+)
+
+cc_proto_library(
+    name = "goals_cc_proto",
+    deps = ["goals_proto"],
+)
+
+go_proto_library(
+    name = "goals_go_proto",
+    go_deps = [
+        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:pose_stamped_go_proto",
+        "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
+    ],
+    deps = ["goals_proto"],
+)
+
+proto_library(
     name = "grid_cells_proto",
     srcs = ["grid_cells.proto"],
     deps = [
@@ -69,7 +97,7 @@ proto_library(
     name = "occupancy_grid_proto",
     srcs = ["occupancy_grid.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/nav_msgs/msg:map_meta_data_proto",
+        ":map_meta_data_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
     ],
 )

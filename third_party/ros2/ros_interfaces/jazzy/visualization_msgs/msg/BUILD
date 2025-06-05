@@ -45,10 +45,10 @@ proto_library(
     name = "interactive_marker_proto",
     srcs = ["interactive_marker.proto"],
     deps = [
+        ":interactive_marker_control_proto",
+        ":menu_entry_proto",
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:pose_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
-        "//third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg:interactive_marker_control_proto",
-        "//third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg:menu_entry_proto",
     ],
 )
 
@@ -77,8 +77,8 @@ proto_library(
     name = "interactive_marker_control_proto",
     srcs = ["interactive_marker_control.proto"],
     deps = [
+        ":marker_proto",
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:quaternion_proto",
-        "//third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg:marker_proto",
     ],
 )
 
@@ -134,7 +134,7 @@ go_proto_library(
 proto_library(
     name = "interactive_marker_init_proto",
     srcs = ["interactive_marker_init.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg:interactive_marker_proto"],
+    deps = [":interactive_marker_proto"],
 )
 
 py_proto_library(
@@ -187,8 +187,8 @@ proto_library(
     name = "interactive_marker_update_proto",
     srcs = ["interactive_marker_update.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg:interactive_marker_pose_proto",
-        "//third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg:interactive_marker_proto",
+        ":interactive_marker_pose_proto",
+        ":interactive_marker_proto",
     ],
 )
 
@@ -215,6 +215,8 @@ proto_library(
     name = "marker_proto",
     srcs = ["marker.proto"],
     deps = [
+        ":mesh_file_proto",
+        ":uv_coordinate_proto",
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:duration_proto",
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:point_proto",
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:pose_proto",
@@ -222,8 +224,6 @@ proto_library(
         "//third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg:compressed_image_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:color_rgba_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
-        "//third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg:mesh_file_proto",
-        "//third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg:uv_coordinate_proto",
     ],
 )
 
@@ -256,7 +256,7 @@ go_proto_library(
 proto_library(
     name = "marker_array_proto",
     srcs = ["marker_array.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg:marker_proto"],
+    deps = [":marker_proto"],
 )
 
 py_proto_library(

@@ -116,7 +116,7 @@ go_proto_library(
 proto_library(
     name = "parameter_proto",
     srcs = ["parameter.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg:parameter_value_proto"],
+    deps = [":parameter_value_proto"],
 )
 
 py_proto_library(
@@ -141,8 +141,8 @@ proto_library(
     name = "parameter_descriptor_proto",
     srcs = ["parameter_descriptor.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg:floating_point_range_proto",
-        "//third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg:integer_range_proto",
+        ":floating_point_range_proto",
+        ":integer_range_proto",
     ],
 )
 
@@ -169,8 +169,8 @@ proto_library(
     name = "parameter_event_proto",
     srcs = ["parameter_event.proto"],
     deps = [
+        ":parameter_proto",
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:time_proto",
-        "//third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg:parameter_proto",
     ],
 )
 
@@ -196,7 +196,7 @@ go_proto_library(
 proto_library(
     name = "parameter_event_descriptors_proto",
     srcs = ["parameter_event_descriptors.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg:parameter_descriptor_proto"],
+    deps = [":parameter_descriptor_proto"],
 )
 
 py_proto_library(

@@ -61,7 +61,7 @@ proto_library(
     name = "polygon_mesh_proto",
     srcs = ["polygon_mesh.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/pcl_msgs/msg:vertices_proto",
+        ":vertices_proto",
         "//third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg:point_cloud2_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
     ],

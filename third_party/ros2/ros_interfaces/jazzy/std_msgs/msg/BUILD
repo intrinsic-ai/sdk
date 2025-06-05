@@ -52,7 +52,7 @@ go_proto_library(
 proto_library(
     name = "byte_multi_array_proto",
     srcs = ["byte_multi_array.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:multi_array_layout_proto"],
+    deps = [":multi_array_layout_proto"],
 )
 
 py_proto_library(
@@ -156,7 +156,7 @@ go_proto_library(
 proto_library(
     name = "float32_multi_array_proto",
     srcs = ["float32_multi_array.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:multi_array_layout_proto"],
+    deps = [":multi_array_layout_proto"],
 )
 
 py_proto_library(
@@ -200,7 +200,7 @@ go_proto_library(
 proto_library(
     name = "float64_multi_array_proto",
     srcs = ["float64_multi_array.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:multi_array_layout_proto"],
+    deps = [":multi_array_layout_proto"],
 )
 
 py_proto_library(
@@ -268,7 +268,7 @@ go_proto_library(
 proto_library(
     name = "int16_multi_array_proto",
     srcs = ["int16_multi_array.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:multi_array_layout_proto"],
+    deps = [":multi_array_layout_proto"],
 )
 
 py_proto_library(
@@ -312,7 +312,7 @@ go_proto_library(
 proto_library(
     name = "int32_multi_array_proto",
     srcs = ["int32_multi_array.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:multi_array_layout_proto"],
+    deps = [":multi_array_layout_proto"],
 )
 
 py_proto_library(
@@ -356,7 +356,7 @@ go_proto_library(
 proto_library(
     name = "int64_multi_array_proto",
     srcs = ["int64_multi_array.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:multi_array_layout_proto"],
+    deps = [":multi_array_layout_proto"],
 )
 
 py_proto_library(
@@ -400,7 +400,7 @@ go_proto_library(
 proto_library(
     name = "int8_multi_array_proto",
     srcs = ["int8_multi_array.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:multi_array_layout_proto"],
+    deps = [":multi_array_layout_proto"],
 )
 
 py_proto_library(
@@ -444,7 +444,7 @@ go_proto_library(
 proto_library(
     name = "multi_array_layout_proto",
     srcs = ["multi_array_layout.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:multi_array_dimension_proto"],
+    deps = [":multi_array_dimension_proto"],
 )
 
 py_proto_library(
@@ -508,7 +508,7 @@ go_proto_library(
 proto_library(
     name = "u_int16_multi_array_proto",
     srcs = ["u_int16_multi_array.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:multi_array_layout_proto"],
+    deps = [":multi_array_layout_proto"],
 )
 
 py_proto_library(
@@ -552,7 +552,7 @@ go_proto_library(
 proto_library(
     name = "u_int32_multi_array_proto",
     srcs = ["u_int32_multi_array.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:multi_array_layout_proto"],
+    deps = [":multi_array_layout_proto"],
 )
 
 py_proto_library(
@@ -596,7 +596,7 @@ go_proto_library(
 proto_library(
     name = "u_int64_multi_array_proto",
     srcs = ["u_int64_multi_array.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:multi_array_layout_proto"],
+    deps = [":multi_array_layout_proto"],
 )
 
 py_proto_library(
@@ -640,7 +640,7 @@ go_proto_library(
 proto_library(
     name = "u_int8_multi_array_proto",
     srcs = ["u_int8_multi_array.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:multi_array_layout_proto"],
+    deps = [":multi_array_layout_proto"],
 )
 
 py_proto_library(

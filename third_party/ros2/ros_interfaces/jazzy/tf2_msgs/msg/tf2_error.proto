@@ -1,0 +1,12 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from tf2_msgs:msg/TF2Error.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package tf2_msgs.msg.pb.jazzy;
+
+message TF2Error {
+  uint32 error = 1;
+  string error_string = 2;
+}

@@ -12,7 +12,7 @@ package(
 proto_library(
     name = "accel_proto",
     srcs = ["accel.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:vector3_proto"],
+    deps = [":vector3_proto"],
 )
 
 py_proto_library(
@@ -37,7 +37,7 @@ proto_library(
     name = "accel_stamped_proto",
     srcs = ["accel_stamped.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:accel_proto",
+        ":accel_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
     ],
 )
@@ -64,7 +64,7 @@ go_proto_library(
 proto_library(
     name = "accel_with_covariance_proto",
     srcs = ["accel_with_covariance.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:accel_proto"],
+    deps = [":accel_proto"],
 )
 
 py_proto_library(
@@ -89,7 +89,7 @@ proto_library(
     name = "accel_with_covariance_stamped_proto",
     srcs = ["accel_with_covariance_stamped.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:accel_with_covariance_proto",
+        ":accel_with_covariance_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
     ],
 )
@@ -116,7 +116,7 @@ go_proto_library(
 proto_library(
     name = "inertia_proto",
     srcs = ["inertia.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:vector3_proto"],
+    deps = [":vector3_proto"],
 )
 
 py_proto_library(
@@ -141,7 +141,7 @@ proto_library(
     name = "inertia_stamped_proto",
     srcs = ["inertia_stamped.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:inertia_proto",
+        ":inertia_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
     ],
 )
@@ -209,7 +209,7 @@ proto_library(
     name = "point_stamped_proto",
     srcs = ["point_stamped.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:point_proto",
+        ":point_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
     ],
 )
@@ -236,7 +236,7 @@ go_proto_library(
 proto_library(
     name = "polygon_proto",
     srcs = ["polygon.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:point32_proto"],
+    deps = [":point32_proto"],
 )
 
 py_proto_library(
@@ -260,7 +260,7 @@ go_proto_library(
 proto_library(
     name = "polygon_instance_proto",
     srcs = ["polygon_instance.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:polygon_proto"],
+    deps = [":polygon_proto"],
 )
 
 py_proto_library(
@@ -285,7 +285,7 @@ proto_library(
     name = "polygon_instance_stamped_proto",
     srcs = ["polygon_instance_stamped.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:polygon_instance_proto",
+        ":polygon_instance_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
     ],
 )
@@ -313,7 +313,7 @@ proto_library(
     name = "polygon_stamped_proto",
     srcs = ["polygon_stamped.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:polygon_proto",
+        ":polygon_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
     ],
 )
@@ -341,8 +341,8 @@ proto_library(
     name = "pose_proto",
     srcs = ["pose.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:point_proto",
-        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:quaternion_proto",
+        ":point_proto",
+        ":quaternion_proto",
     ],
 )
 
@@ -389,7 +389,7 @@ proto_library(
     name = "pose_array_proto",
     srcs = ["pose_array.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:pose_proto",
+        ":pose_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
     ],
 )
@@ -417,7 +417,7 @@ proto_library(
     name = "pose_stamped_proto",
     srcs = ["pose_stamped.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:pose_proto",
+        ":pose_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
     ],
 )
@@ -444,7 +444,7 @@ go_proto_library(
 proto_library(
     name = "pose_with_covariance_proto",
     srcs = ["pose_with_covariance.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:pose_proto"],
+    deps = [":pose_proto"],
 )
 
 py_proto_library(
@@ -469,7 +469,7 @@ proto_library(
     name = "pose_with_covariance_stamped_proto",
     srcs = ["pose_with_covariance_stamped.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:pose_with_covariance_proto",
+        ":pose_with_covariance_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
     ],
 )
@@ -517,7 +517,7 @@ proto_library(
     name = "quaternion_stamped_proto",
     srcs = ["quaternion_stamped.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:quaternion_proto",
+        ":quaternion_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
     ],
 )
@@ -545,8 +545,8 @@ proto_library(
     name = "transform_proto",
     srcs = ["transform.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:quaternion_proto",
-        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:vector3_proto",
+        ":quaternion_proto",
+        ":vector3_proto",
     ],
 )
 
@@ -573,7 +573,7 @@ proto_library(
     name = "transform_stamped_proto",
     srcs = ["transform_stamped.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:transform_proto",
+        ":transform_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
     ],
 )
@@ -600,7 +600,7 @@ go_proto_library(
 proto_library(
     name = "twist_proto",
     srcs = ["twist.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:vector3_proto"],
+    deps = [":vector3_proto"],
 )
 
 py_proto_library(
@@ -625,7 +625,7 @@ proto_library(
     name = "twist_stamped_proto",
     srcs = ["twist_stamped.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:twist_proto",
+        ":twist_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
     ],
 )
@@ -652,7 +652,7 @@ go_proto_library(
 proto_library(
     name = "twist_with_covariance_proto",
     srcs = ["twist_with_covariance.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:twist_proto"],
+    deps = [":twist_proto"],
 )
 
 py_proto_library(
@@ -677,7 +677,7 @@ proto_library(
     name = "twist_with_covariance_stamped_proto",
     srcs = ["twist_with_covariance_stamped.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:twist_with_covariance_proto",
+        ":twist_with_covariance_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
     ],
 )
@@ -725,7 +725,7 @@ proto_library(
     name = "vector3_stamped_proto",
     srcs = ["vector3_stamped.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:vector3_proto",
+        ":vector3_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
     ],
 )
@@ -753,7 +753,7 @@ proto_library(
     name = "velocity_stamped_proto",
     srcs = ["velocity_stamped.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:twist_proto",
+        ":twist_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
     ],
 )
@@ -780,7 +780,7 @@ go_proto_library(
 proto_library(
     name = "wrench_proto",
     srcs = ["wrench.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:vector3_proto"],
+    deps = [":vector3_proto"],
 )
 
 py_proto_library(
@@ -805,7 +805,7 @@ proto_library(
     name = "wrench_stamped_proto",
     srcs = ["wrench_stamped.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:wrench_proto",
+        ":wrench_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
     ],
 )

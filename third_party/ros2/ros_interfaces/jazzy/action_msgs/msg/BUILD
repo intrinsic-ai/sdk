@@ -40,7 +40,7 @@ go_proto_library(
 proto_library(
     name = "goal_status_proto",
     srcs = ["goal_status.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/action_msgs/msg:goal_info_proto"],
+    deps = [":goal_info_proto"],
 )
 
 py_proto_library(
@@ -64,7 +64,7 @@ go_proto_library(
 proto_library(
     name = "goal_status_array_proto",
     srcs = ["goal_status_array.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/action_msgs/msg:goal_status_proto"],
+    deps = [":goal_status_proto"],
 )
 
 py_proto_library(

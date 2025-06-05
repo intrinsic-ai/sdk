@@ -13,8 +13,8 @@ proto_library(
     name = "metrics_message_proto",
     srcs = ["metrics_message.proto"],
     deps = [
+        ":statistic_data_point_proto",
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:time_proto",
-        "//third_party/ros2/ros_interfaces/jazzy/statistics_msgs/msg:statistic_data_point_proto",
     ],
 )
 

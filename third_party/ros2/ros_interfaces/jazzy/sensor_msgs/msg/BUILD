@@ -37,7 +37,7 @@ proto_library(
     name = "camera_info_proto",
     srcs = ["camera_info.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg:region_of_interest_proto",
+        ":region_of_interest_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
     ],
 )
@@ -278,7 +278,7 @@ go_proto_library(
 proto_library(
     name = "joy_feedback_array_proto",
     srcs = ["joy_feedback_array.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg:joy_feedback_proto"],
+    deps = [":joy_feedback_proto"],
 )
 
 py_proto_library(
@@ -407,7 +407,7 @@ proto_library(
     name = "multi_echo_laser_scan_proto",
     srcs = ["multi_echo_laser_scan.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg:laser_echo_proto",
+        ":laser_echo_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
     ],
 )
@@ -435,7 +435,7 @@ proto_library(
     name = "nav_sat_fix_proto",
     srcs = ["nav_sat_fix.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg:nav_sat_status_proto",
+        ":nav_sat_status_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
     ],
 )
@@ -483,8 +483,8 @@ proto_library(
     name = "point_cloud_proto",
     srcs = ["point_cloud.proto"],
     deps = [
+        ":channel_float32_proto",
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:point32_proto",
-        "//third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg:channel_float32_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
     ],
 )
@@ -513,7 +513,7 @@ proto_library(
     name = "point_cloud2_proto",
     srcs = ["point_cloud2.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg:point_field_proto",
+        ":point_field_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
     ],
 )

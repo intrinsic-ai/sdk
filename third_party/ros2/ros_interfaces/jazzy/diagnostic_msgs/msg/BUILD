@@ -13,7 +13,7 @@ proto_library(
     name = "diagnostic_array_proto",
     srcs = ["diagnostic_array.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/diagnostic_msgs/msg:diagnostic_status_proto",
+        ":diagnostic_status_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_proto",
     ],
 )
@@ -40,7 +40,7 @@ go_proto_library(
 proto_library(
     name = "diagnostic_status_proto",
     srcs = ["diagnostic_status.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/diagnostic_msgs/msg:key_value_proto"],
+    deps = [":key_value_proto"],
 )
 
 py_proto_library(

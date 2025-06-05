@@ -19,24 +19,30 @@ message PidState {
   // derivative of error
   double error_dot = 4;
 
+  // equals error
+  double p_error = 5;
+
   // weighted integral of error
-  double i_term = 5;
+  double i_error = 6;
+
+  // equals derivative of error
+  double d_error = 7;
 
   // proportional gain
-  double p_gain = 6;
+  double p_term = 8;
 
   // integral gain
-  double i_gain = 7;
+  double i_term = 9;
 
   // derivative gain
-  double d_gain = 8;
+  double d_term = 10;
 
   // upper integral clamp.
-  double i_max = 9;
+  double i_max = 11;
 
   // lower integral clamp.
-  double i_min = 10;
+  double i_min = 12;
 
   // output of the PID controller
-  double output = 11;
+  double output = 13;
 }

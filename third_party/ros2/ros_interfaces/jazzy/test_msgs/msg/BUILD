@@ -13,9 +13,9 @@ proto_library(
     name = "arrays_proto",
     srcs = ["arrays.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:basic_types_proto",
-        "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:constants_proto",
-        "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:defaults_proto",
+        ":basic_types_proto",
+        ":constants_proto",
+        ":defaults_proto",
     ],
 )
 
@@ -63,9 +63,9 @@ proto_library(
     name = "bounded_plain_sequences_proto",
     srcs = ["bounded_plain_sequences.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:basic_types_proto",
-        "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:constants_proto",
-        "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:defaults_proto",
+        ":basic_types_proto",
+        ":constants_proto",
+        ":defaults_proto",
     ],
 )
 
@@ -93,9 +93,9 @@ proto_library(
     name = "bounded_sequences_proto",
     srcs = ["bounded_sequences.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:basic_types_proto",
-        "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:constants_proto",
-        "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:defaults_proto",
+        ":basic_types_proto",
+        ":constants_proto",
+        ":defaults_proto",
     ],
 )
 
@@ -211,9 +211,9 @@ proto_library(
     name = "multi_nested_proto",
     srcs = ["multi_nested.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:arrays_proto",
-        "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:bounded_sequences_proto",
-        "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:unbounded_sequences_proto",
+        ":arrays_proto",
+        ":bounded_sequences_proto",
+        ":unbounded_sequences_proto",
     ],
 )
 
@@ -240,7 +240,7 @@ go_proto_library(
 proto_library(
     name = "nested_proto",
     srcs = ["nested.proto"],
-    deps = ["//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:basic_types_proto"],
+    deps = [":basic_types_proto"],
 )
 
 py_proto_library(
@@ -285,9 +285,9 @@ proto_library(
     name = "unbounded_sequences_proto",
     srcs = ["unbounded_sequences.proto"],
     deps = [
-        "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:basic_types_proto",
-        "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:constants_proto",
-        "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:defaults_proto",
+        ":basic_types_proto",
+        ":constants_proto",
+        ":defaults_proto",
     ],
 )
 

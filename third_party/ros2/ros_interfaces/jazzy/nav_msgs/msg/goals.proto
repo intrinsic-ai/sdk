@@ -1,0 +1,26 @@
+// generated from rosidl_adapter_proto/resource/idl.proto.em
+// with input from nav_msgs:msg/Goals.idl
+// generated code does not contain a copyright notice
+
+syntax = "proto3";
+
+package nav_msgs.msg.pb.jazzy;
+
+import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/pose_stamped.proto";
+import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
+
+// An array of navigation goals
+message Goals {
+  // This header will store the time at which the poses were computed (not to be
+  // confused with the stamps of the poses themselves) In the case that
+  // individual poses do not have their frame_id set or their timetamp set they
+  // will use the default value here.
+  std_msgs.msg.pb.jazzy.Header header = 1;
+
+  // An array of goals to for navigation to achieve.
+  // The goals should be executed in the order of the array.
+  // The header and stamp are intended to be used for computing the position of
+  // the goals. They may vary to support cases of goals that are moving with
+  // respect to the robot.
+  repeated geometry_msgs.msg.pb.jazzy.PoseStamped goals = 2;
+}
