@@ -47,9 +47,10 @@ func (t *nonStreamingTask) runWithCtx(ctx context.Context) error {
 	var ctxErr error = nil
 	for ctxErr = ctx.Err(); ctxErr == nil; ctxErr = ctx.Err() {
 		action := artifactpb.UpdateAction_UPDATE_ACTION_UPDATE
-		length, err := t.reader.Read(contentBuffer)
+		length, err := io.ReadFull(t.reader, contentBuffer)
 		if err != nil {
-			if err != io.EOF {
+			// io.ErrUnexpectedEOF just means we read less than full buffer.
+			if err != io.EOF && err != io.ErrUnexpectedEOF {
 				abortRun(t.name, firstChunk, idTracker, t.sender(ctx))
 				return fmt.Errorf("failed to read from source: %w", err)
 			}
