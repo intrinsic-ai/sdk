@@ -11,6 +11,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/flags/declare.h"
 #include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
@@ -22,9 +23,14 @@
 #include "intrinsic/platform/pubsub/zenoh_util/zenoh_handle.h"
 #include "intrinsic/util/status/status_macros.h"
 
+ABSL_DECLARE_FLAG(bool, use_replicated_kv_store);
+
 namespace intrinsic {
 
 constexpr absl::Duration kDefaultGetTimeout = absl::Seconds(10);
+constexpr absl::Duration kDefaultAdminCloudCopyTimeout = absl::Seconds(20);
+constexpr absl::string_view kDefaultKeyPrefix = "kv_store";
+constexpr absl::string_view kReplicationPrefix = "kv_store_repl";
 
 using KeyValueCallback = std::function<void(
     absl::string_view key, std::unique_ptr<google::protobuf::Any> value)>;
@@ -108,6 +114,18 @@ class KeyValueStore {
   // Lists all keys in the KVStore.
   absl::StatusOr<std::vector<std::string>> ListAllKeys(
       absl::Duration timeout = kDefaultGetTimeout);
+
+  // Use this method to copy local key-value pairs to the cloud key value
+  // store. For eg, you can use this method to copy kv_store/<current_ipc>/key
+  // to kv_store_repl/<destination_ipc>/key. To use this method, the you must be
+  // running on a cluster with credentials that allow cloud ingress access. The
+  // timeout is not enforced for the entire duration of the copy, but rather for
+  // the call to the cloud server. endpoint is the address of the cloud
+  // server. You can get this by reading {{ .Values.domain }}
+  absl::Status AdminCloudCopy(absl::string_view source_key,
+                              absl::string_view target_key,
+                              absl::string_view endpoint,
+                              absl::Duration timeout = kDefaultGetTimeout);
 
  private:
   explicit KeyValueStore(std::optional<std::string> prefix_override);

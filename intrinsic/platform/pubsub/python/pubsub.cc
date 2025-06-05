@@ -85,6 +85,10 @@ absl::StatusOr<KeyValueStore> CreateKeyValueStore(
   return self->KeyValueStore(prefix_override);
 }
 
+absl::StatusOr<KeyValueStore> CreateReplicationKVStore(PubSub* self) {
+  return self->KeyValueStore(std::string(intrinsic::kReplicationPrefix));
+}
+
 absl::StatusOr<KVQuery> GetAll(KeyValueStore* self, const std::string& key,
                                KeyValueCallback callback,
                                OnDoneCallback on_done) {
@@ -156,7 +160,8 @@ PYBIND11_MODULE(pubsub, m) {
            pybind11::arg("exemplar"), pybind11::arg("msg_callback") = nullptr,
            pybind11::arg("error_callback") = nullptr)
       .def("KeyValueStore", &CreateKeyValueStore,
-           pybind11::arg("prefix_override") = std::nullopt);
+           pybind11::arg("prefix_override") = std::nullopt)
+      .def("ReplicationKeyValueStore", &CreateReplicationKVStore);
 
   pybind11::class_<Publisher>(m, "Publisher")
       .def("Publish",
@@ -173,7 +178,10 @@ PYBIND11_MODULE(pubsub, m) {
       .def("Get", &Get, pybind11::arg("key"), pybind11::arg("timeout") = 10)
       .def("GetAll", &GetAll)
       .def("List", &ListAllKeys, pybind11::arg("timeout") = 10)
-      .def("Delete", &KeyValueStore::Delete, pybind11::arg("key"));
+      .def("Delete", &KeyValueStore::Delete, pybind11::arg("key"))
+      .def("AdminCloudCopy", &KeyValueStore::AdminCloudCopy,
+           pybind11::arg("source_key"), pybind11::arg("target_key"),
+           pybind11::arg("endpoint"), pybind11::arg("timeout") = 10);
 
   // The python GIL does not need to be locked during the entire destructor
   // of this class. Instead, the custom deleter provided during its

@@ -86,9 +86,13 @@ cc_library(
     srcs = ["kvstore.cc"],
     hdrs = ["kvstore.h"],
     deps = [
+        "//intrinsic/platform/pubsub/admin_set_grpc/v1:admin_set_cc_grpc",
+        "//intrinsic/platform/pubsub/admin_set_grpc/v1:admin_set_cc_proto",
         "//intrinsic/platform/pubsub/zenoh_util:zenoh_handle",
         "//intrinsic/platform/pubsub/zenoh_util:zenoh_helpers",
         "//intrinsic/util/status:status_macros",
+        "@com_github_grpc_grpc//:grpc++",
+        "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",

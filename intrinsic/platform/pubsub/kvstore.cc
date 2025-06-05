@@ -10,6 +10,8 @@
 #include <utility>
 #include <vector>
 
+#include "absl/flags/flag.h"
+#include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
@@ -18,20 +20,32 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "google/protobuf/any.pb.h"
+#include "grpcpp/client_context.h"
+#include "grpcpp/create_channel.h"
+#include "grpcpp/security/credentials.h"
+#include "grpcpp/support/channel_arguments.h"
+#include "intrinsic/platform/pubsub/admin_set_grpc/v1/admin_set.grpc.pb.h"
+#include "intrinsic/platform/pubsub/admin_set_grpc/v1/admin_set.pb.h"
 #include "intrinsic/platform/pubsub/zenoh_util/zenoh_handle.h"
 #include "intrinsic/platform/pubsub/zenoh_util/zenoh_helpers.h"
 #include "intrinsic/util/status/status_macros.h"
 
+ABSL_FLAG(bool, use_replicated_kv_store, false,
+          "If true, use the replicated KV store.");
+
 namespace intrinsic {
 
 namespace {
-constexpr static absl::string_view kDefaultKeyPrefix = "kv_store";
 constexpr static absl::Duration kHighConsistencyTimeout = absl::Seconds(30);
-}  // namespace
+}
 
 KeyValueStore::KeyValueStore(std::optional<std::string> prefix_override)
     : key_prefix_(prefix_override.has_value() ? prefix_override.value()
-                                              : kDefaultKeyPrefix) {}
+                                              : kDefaultKeyPrefix) {
+  if (absl::GetFlag(FLAGS_use_replicated_kv_store)) {
+    key_prefix_ = kReplicationPrefix;
+  }
+}
 
 absl::Status KeyValueStore::Set(absl::string_view key,
                                 const google::protobuf::Any& value,
@@ -202,6 +216,55 @@ absl::Status KeyValueStore::Delete(absl::string_view key) {
     return absl::InternalError(
         absl::StrFormat("Error deleting a key, return code: %d", ret));
   }
+  return absl::OkStatus();
+}
+
+// We need to make a grpc call to the admin set service to copy the key value
+// from the source key to the target key. We can't implement the logic of the
+// admin set service here because we can't easily extract the ADC credentials
+// from the C++ code.
+absl::Status KeyValueStore::AdminCloudCopy(absl::string_view source_key,
+                                           absl::string_view target_key,
+                                           absl::string_view endpoint,
+                                           absl::Duration timeout) {
+  INTR_RETURN_IF_ERROR(intrinsic::ValidZenohKey(source_key));
+  INTR_RETURN_IF_ERROR(intrinsic::ValidZenohKey(target_key));
+  INTR_ASSIGN_OR_RETURN(absl::StatusOr<std::string> source_prefixed_name,
+                        ZenohHandle::add_key_prefix(source_key, key_prefix_));
+  ;
+
+  INTR_ASSIGN_OR_RETURN(google::protobuf::Any value,
+                        GetAny(source_key, timeout));
+
+  // Create a gRPC stub.
+  std::shared_ptr<::grpc::Channel> channel = ::grpc::CreateCustomChannel(
+      std::string(endpoint), grpc::GoogleDefaultCredentials(),
+      ::grpc::ChannelArguments());
+  if (channel == nullptr) {
+    return absl::InternalError("Failed to create channel");
+  }
+  auto stub =
+      intrinsic_proto::pubsub::admin_set_grpc::v1::AdminSetService::NewStub(
+          channel);
+  if (stub == nullptr) {
+    return absl::InternalError("Failed to create stub");
+  }
+
+  // Create a request to the admin set gRPC service.
+  intrinsic_proto::pubsub::admin_set_grpc::v1::AdminSetRequest request;
+  request.set_key(target_key);
+  *request.mutable_value() = value;
+  request.set_timeout_ms(absl::ToInt64Milliseconds(timeout));
+
+  // Make the gRPC call.
+  grpc::ClientContext context;
+  intrinsic_proto::pubsub::admin_set_grpc::v1::AdminSetResponse response;
+  grpc::Status status = stub->AdminCopy(&context, request, &response);
+  if (!status.ok()) {
+    return absl::InternalError(
+        absl::StrFormat("gRPC call failed: %s", status.error_message()));
+  }
+
   return absl::OkStatus();
 }
 
