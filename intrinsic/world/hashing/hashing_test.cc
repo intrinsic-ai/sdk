@@ -1,7 +1,7 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-#ifndef INTRINSIC_WORLD_HASHING_UTILS_TEST_H_
-#define INTRINSIC_WORLD_HASHING_UTILS_TEST_H_
+#ifndef INTRINSIC_WORLD_HASHING_HASHING_TEST_CC_
+#define INTRINSIC_WORLD_HASHING_HASHING_TEST_CC_
 
 #include "intrinsic/world/hashing/hashing.h"
 
@@ -34,4 +34,4 @@ TEST(LabelIdHasher, Works) {
 }  // namespace
 }  // namespace intrinsic
 
-#endif  // INTRINSIC_WORLD_HASHING_UTILS_TEST_H_
+#endif  // INTRINSIC_WORLD_HASHING_HASHING_TEST_CC_
