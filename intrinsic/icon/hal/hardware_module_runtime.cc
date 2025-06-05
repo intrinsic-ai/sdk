@@ -12,9 +12,11 @@
 #include <utility>
 #include <vector>
 
+#include "absl/base/nullability.h"
 #include "absl/base/thread_annotations.h"
 #include "absl/log/check.h"
 #include "absl/log/log.h"
+#include "absl/memory/memory.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
@@ -658,7 +660,8 @@ class HardwareModuleRuntime::CallbackHandler final {
   absl::Time next_metrics_export_ = absl::InfinitePast();
 };
 
-absl::StatusOr<HardwareModuleRuntime> HardwareModuleRuntime::Create(
+absl::StatusOr</*absl_nonnull*/ std::unique_ptr<HardwareModuleRuntime>>
+HardwareModuleRuntime::Create(
     std::unique_ptr<SharedMemoryManager> shared_memory_manager,
     HardwareModule hardware_module) {
   // Locks the name used by this module. Ensures only a single instance can
@@ -677,10 +680,10 @@ absl::StatusOr<HardwareModuleRuntime> HardwareModuleRuntime::Create(
   // HardwareInterfaceRegistry "in-place", or its constructor might access the
   // moved-from unique_ptr that shared_memory_manager leaves behind.
   auto registry = HardwareInterfaceRegistry(*shared_memory_manager);
-  HardwareModuleRuntime runtime(std::move(hardware_module), std::move(registry),
-                                std::move(shared_memory_manager),
-                                std::move(domain_socket_server));
-  INTR_RETURN_IF_ERROR(runtime.Connect());
+  auto runtime = absl::WrapUnique(new HardwareModuleRuntime(
+      std::move(hardware_module), std::move(registry),
+      std::move(shared_memory_manager), std::move(domain_socket_server)));
+  INTR_RETURN_IF_ERROR(runtime->Connect());
   return runtime;
 }
 
@@ -717,53 +720,6 @@ HardwareModuleRuntime::~HardwareModuleRuntime() {
            "callbacks such as EnableMotion";
     state_change_thread_.join();
   }
-}
-
-HardwareModuleRuntime::HardwareModuleRuntime(HardwareModuleRuntime&& other)
-    : interface_registry_(std::move(other.interface_registry_)),
-      shared_memory_manager_(std::move(other.shared_memory_manager_)),
-      hardware_module_(std::exchange(other.hardware_module_, HardwareModule())),
-      domain_socket_server_(std::move(other.domain_socket_server_)),
-      callback_handler_(std::exchange(other.callback_handler_, nullptr)),
-      activate_server_(std::exchange(other.activate_server_, nullptr)),
-      deactivate_server_(std::exchange(other.deactivate_server_, nullptr)),
-      prepare_server_(std::exchange(other.prepare_server_, nullptr)),
-      enable_motion_server_(
-          std::exchange(other.enable_motion_server_, nullptr)),
-      disable_motion_server_(
-          std::exchange(other.disable_motion_server_, nullptr)),
-      clear_faults_server_(std::exchange(other.clear_faults_server_, nullptr)),
-      read_status_server_(std::exchange(other.read_status_server_, nullptr)),
-      apply_command_server_(
-          std::exchange(other.apply_command_server_, nullptr)),
-      hardware_module_state_interface_(
-          std::move(other.hardware_module_state_interface_)),
-      stop_requested_(std::exchange(other.stop_requested_, nullptr)),
-      state_change_thread_(std::move(other.state_change_thread_)) {}
-
-HardwareModuleRuntime& HardwareModuleRuntime::operator=(
-    HardwareModuleRuntime&& other) {
-  if (&other == this) {
-    return *this;
-  }
-  interface_registry_ = std::move(other.interface_registry_);
-  shared_memory_manager_ = std::move(other.shared_memory_manager_);
-  hardware_module_ = std::exchange(other.hardware_module_, HardwareModule());
-  domain_socket_server_ = std::move(other.domain_socket_server_),
-  callback_handler_ = std::exchange(other.callback_handler_, nullptr);
-  activate_server_ = std::exchange(other.activate_server_, nullptr);
-  deactivate_server_ = std::exchange(other.deactivate_server_, nullptr);
-  prepare_server_ = std::exchange(other.prepare_server_, nullptr);
-  enable_motion_server_ = std::exchange(other.enable_motion_server_, nullptr);
-  disable_motion_server_ = std::exchange(other.disable_motion_server_, nullptr);
-  clear_faults_server_ = std::exchange(other.clear_faults_server_, nullptr);
-  read_status_server_ = std::exchange(other.read_status_server_, nullptr);
-  apply_command_server_ = std::exchange(other.apply_command_server_, nullptr);
-  hardware_module_state_interface_ =
-      std::move(other.hardware_module_state_interface_);
-  stop_requested_ = std::exchange(other.stop_requested_, nullptr);
-  state_change_thread_ = std::move(other.state_change_thread_);
-  return *this;
 }
 
 absl::Status HardwareModuleRuntime::Connect() {

@@ -7,6 +7,7 @@
 #include <optional>
 #include <vector>
 
+#include "absl/base/nullability.h"
 #include "absl/container/flat_hash_set.h"
 #include "absl/log/check.h"
 #include "absl/log/log.h"
@@ -61,7 +62,9 @@ absl::StatusOr<HardwareModuleRtSchedulingData> SetupRtScheduling(
 std::optional<HardwareModuleExitCode>
 RunRuntimeWithGrpcServerAndWaitForShutdown(
     const absl::StatusOr<HardwareModuleMainConfig>& main_config,
-    absl::StatusOr<intrinsic::icon::HardwareModuleRuntime>& runtime,
+    absl::StatusOr</*absl_nonnull*/
+                   std::unique_ptr<intrinsic::icon::HardwareModuleRuntime>>&
+        runtime,
     std::optional<int> cli_grpc_server_port,
     const std::vector<int>& cpu_affinity);
 

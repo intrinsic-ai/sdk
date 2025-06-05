@@ -8,6 +8,7 @@
 #include <string_view>
 #include <vector>
 
+#include "absl/base/nullability.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "grpcpp/server_builder.h"
@@ -56,17 +57,23 @@ class HardwareModuleRuntime final {
   // Stops any ongoing threads and servers.
   ~HardwareModuleRuntime();
 
-  // Move Constructor and Operator.
-  HardwareModuleRuntime(HardwareModuleRuntime&& other);
-  HardwareModuleRuntime& operator=(HardwareModuleRuntime&& other);
+  // Move Constructor and Operator not possible due to usage of binding member
+  // functions in the RemoteTriggerServer. When binding member functions the
+  // `this` pointer is stored with the function-object. When
+  // copying/moving/assigning this object, the function objects are copied with
+  // the same `this` pointer, but the `this` pointer changes. Thus rendering the
+  // function objects invalid. Therefore, we delete the move constructor and
+  // operator as well.
+  HardwareModuleRuntime(HardwareModuleRuntime&& other) = delete;
+  HardwareModuleRuntime& operator=(HardwareModuleRuntime&& other) = delete;
 
   // Creates a HardwareModuleRuntime taking ownership of the
   // `shared_memory_manager` and `hardware_module`.
   // Forwards errors from creating the DomainSocketServer for exposing the
   // shared memory segments across process boundaries.
-  static absl::StatusOr<HardwareModuleRuntime> Create(
-      std::unique_ptr<SharedMemoryManager> shared_memory_manager,
-      HardwareModule hardware_module);
+  static absl::StatusOr</*absl_nonnull*/ std::unique_ptr<HardwareModuleRuntime>>
+  Create(std::unique_ptr<SharedMemoryManager> shared_memory_manager,
+         HardwareModule hardware_module);
 
   // Starts the execution of the module.
   // The module services will be run asynchronously in their own thread, which

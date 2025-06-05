@@ -17,6 +17,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/base/nullability.h"
 #include "absl/container/flat_hash_set.h"
 #include "absl/log/check.h"
 #include "absl/log/log.h"
@@ -198,7 +199,9 @@ std::optional<HardwareModuleExitCode> GetExitCodeFromFuture(
 std::optional<HardwareModuleExitCode>
 RunRuntimeWithGrpcServerAndWaitForShutdown(
     const absl::StatusOr<HardwareModuleMainConfig>& main_config,
-    absl::StatusOr<intrinsic::icon::HardwareModuleRuntime>& runtime,
+    absl::StatusOr</*absl_nonnull*/
+                   std::unique_ptr<intrinsic::icon::HardwareModuleRuntime>>&
+        runtime,
     std::optional<int> cli_grpc_server_port,
     const std::vector<int>& cpu_affinity) {
   absl::Status hwm_run_error;
@@ -211,7 +214,7 @@ RunRuntimeWithGrpcServerAndWaitForShutdown(
         << "Runtime OK but config not OK - this is a bug";
     LOG(INFO) << "PUBLIC: Starting hardware module "
               << main_config->module_config.name();
-    auto status = runtime->Run(
+    auto status = runtime.value()->Run(
         server_builder, main_config->use_realtime_scheduling, cpu_affinity);
     if (!status.ok()) {
       LOG(ERROR) << "PUBLIC: Error running hardware module: "
@@ -241,9 +244,9 @@ RunRuntimeWithGrpcServerAndWaitForShutdown(
   // ServiceState service.
   if (main_config.ok()) {
     if (runtime.ok()) {
-      health_service.SetHardwareModuleRuntime(&runtime.value());
+      health_service.SetHardwareModuleRuntime(runtime.value().get());
     }
-    if (!runtime.ok() || !runtime->IsStarted()) {
+    if (!runtime.ok() || !runtime.value()->IsStarted()) {
       auto status = !runtime.ok() ? runtime.status() : hwm_run_error;
       LOG(INFO) << "Starting lame duck mode due to init error: " << status;
       health_service.ActivateLameDuckMode(status);

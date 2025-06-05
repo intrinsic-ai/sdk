@@ -16,6 +16,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/base/nullability.h"
 #include "absl/flags/flag.h"
 #include "absl/log/check.h"
 #include "absl/log/log.h"
@@ -87,8 +88,9 @@ absl::StatusOr<HardwareModuleExitCode> ModuleMain(int argc, char** argv) {
       LoadConfig(absl::GetFlag(FLAGS_module_config_file), runtime_context_file,
                  absl::GetFlag(FLAGS_realtime));
 
-  absl::StatusOr<intrinsic::icon::HardwareModuleRuntime> runtime =
-      absl::FailedPreconditionError("Config not OK");
+  absl::StatusOr<
+      /*absl_nonnull*/ std::unique_ptr<intrinsic::icon::HardwareModuleRuntime>>
+      runtime = absl::FailedPreconditionError("Config not OK");
   std::promise<HardwareModuleExitCode> hwm_exit_code_promise;
   std::future<HardwareModuleExitCode> hwm_exit_code_future =
       hwm_exit_code_promise.get_future();
@@ -140,7 +142,7 @@ absl::StatusOr<HardwareModuleExitCode> ModuleMain(int argc, char** argv) {
   // Stop the runtime and shutdown fully.
   if (runtime.ok()) {
     LOG(INFO) << "PUBLIC: Stopping hardware module. Shutting down ...";
-    auto status = runtime->Stop();
+    auto status = runtime.value()->Stop();
     if (!status.ok()) {
       // If there is no explicit exit code, we return the status. Otherwise, we
       // log the error and don't want to mess up the desired exit code.

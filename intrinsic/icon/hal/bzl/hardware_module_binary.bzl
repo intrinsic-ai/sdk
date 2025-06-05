@@ -26,6 +26,7 @@ def hardware_module_binary(
         name = name,
         srcs = [Label("//intrinsic/icon/hal:hardware_module_main")],
         deps = [hardware_module_lib] + [
+            "@com_google_absl//absl/base:nullability",
             "@com_google_absl//absl/container:flat_hash_set",
             "@com_google_absl//absl/flags:flag",
             "@com_google_absl//absl/log",
