@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <memory>
 #include <optional>
+#include <string>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -81,7 +82,8 @@ absl::Status WaitForChannelConnected(absl::string_view address,
 absl::StatusOr<std::shared_ptr<::grpc::Channel>> CreateClientChannel(
     absl::string_view address, absl::Time deadline,
     const ::grpc::ChannelArguments& channel_args = DefaultGrpcChannelArgs(),
-    bool use_default_application_credentials = false);
+    bool use_default_application_credentials = false,
+    std::optional<std::string> server_instance_name = std::nullopt);
 
 // Parameters to configure the shutdown behavior of a gRPC server.
 struct ShutdownParams {
