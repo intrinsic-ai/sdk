@@ -42,6 +42,7 @@ py_skill(
     name = "no_op_skill_py_new",
     manifest = ":no_op_skill_py_manifest",
     # Allow use of this image in tests of skill tooling.
+    visibility = ["//intrinsic/skills:__subpackages__"],
     deps = [
         "//intrinsic/skills/testing:no_op_skill_py",
         "//intrinsic/skills/testing:no_op_skill_py_pb2",
