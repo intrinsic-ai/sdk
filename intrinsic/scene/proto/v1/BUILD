@@ -104,6 +104,7 @@ proto_library(
         ":entity_proto",
         ":object_properties_proto",
         ":simulation_spec_proto",
+        "@com_google_protobuf//:any_proto",
     ],
 )
 

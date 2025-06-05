@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.scene_object.v1;
 
+import "google/protobuf/any.proto";
 import "intrinsic/scene/proto/v1/collision_rules.proto";
 import "intrinsic/scene/proto/v1/entity.proto";
 import "intrinsic/scene/proto/v1/object_properties.proto";
@@ -38,5 +39,9 @@ message SceneObject {
   // Collision rules for the scene object. These rules specify any margins or
   // exclusions between the entities of this scene object.
   optional CollisionRules collision_rules = 6;
+
+  // Additional user-data associated with this scene object. Currently, only the
+  // key 'FLOWSTATE_ASSET_USER_DATA' is reserved for backwards compatibility.
+  map<string, google.protobuf.Any> user_data = 7;
 
 }
