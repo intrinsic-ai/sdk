@@ -42,6 +42,7 @@ use_repo(
     "com_github_pborman_uuid",
     "com_github_pkg_errors",
     "com_github_protocolbuffers_txtpbfmt",
+    "com_github_robfig_cron_v3",
     "com_github_rs_xid",
     "com_github_spf13_cobra",
     "com_github_spf13_pflag",
