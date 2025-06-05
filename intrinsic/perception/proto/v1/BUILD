@@ -147,6 +147,12 @@ proto_library(
     ],
 )
 
+proto_source_code_info_transitive_descriptor_set(
+    name = "camera_server_proto_descriptor_set",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":camera_server_proto"],
+)
+
 cc_proto_library(
     name = "camera_server_cc_proto",
     visibility = ["//intrinsic:public_api_users"],
