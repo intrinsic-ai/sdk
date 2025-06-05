@@ -23,9 +23,10 @@ func init() {
 }
 
 var (
-	flagEmail        string
-	flagOrganization string
-	flagRoleCSV      string
+	flagEmail           string
+	flagOrganization    string
+	flagInvitationToken string
+	flagRoleCSV         string
 )
 
 func parseCSV(s string) []string {
@@ -51,6 +52,16 @@ func addUserInit(root *cobra.Command) {
 	removeUser.MarkFlagRequired("email")
 	removeUser.MarkFlagRequired("organization")
 	root.AddCommand(removeUser)
+	withdrawInvitation.Flags().StringVar(&flagOrganization, "organization", "", "The organization where the user was invited to.")
+	withdrawInvitation.Flags().StringVar(&flagInvitationToken, "token", "", "The token of the invitation to withdraw.")
+	withdrawInvitation.MarkFlagRequired("organization")
+	withdrawInvitation.MarkFlagRequired("token")
+	root.AddCommand(withdrawInvitation)
+	resendInvitation.Flags().StringVar(&flagOrganization, "organization", "", "The organization where the user was invited to.")
+	resendInvitation.Flags().StringVar(&flagInvitationToken, "token", "", "The token of the invitation to resend.")
+	resendInvitation.MarkFlagRequired("organization")
+	resendInvitation.MarkFlagRequired("token")
+	root.AddCommand(resendInvitation)
 }
 
 var addUserHelp = `
@@ -149,7 +160,7 @@ func (us *users) String() string {
 	b := new(bytes.Buffer)
 	w := tabwriter.NewWriter(b,
 		/*minwidth=*/ 1 /*tabwidth=*/, 1 /*padding=*/, 1 /*padchar=*/, ' ' /*flags=*/, 0)
-	fmt.Fprintf(w, "%s\t%s\t%s\n", "Email", "Roles", "Status")
+	fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", "Email", "Roles", "Status", "Token")
 	// iterate memberships
 	slices.SortFunc(us.ms, func(a, b *pb.OrganizationMembership) int {
 		return strings.Compare(a.GetEmail(), b.GetEmail())
@@ -157,14 +168,14 @@ func (us *users) String() string {
 	urs := userRoles(us.rs)
 	for _, m := range us.ms {
 		roles := urs[m.GetEmail()]
-		fmt.Fprintf(w, "%s\t%s\t%s\n", m.GetEmail(), formatRoles(roles), "active")
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", m.GetEmail(), formatRoles(roles), "active", "")
 	}
 	// iterate invitations
 	slices.SortFunc(us.is, func(a, b *pb.OrganizationInvitation) int {
 		return strings.Compare(a.GetEmail(), b.GetEmail())
 	})
 	for _, o := range us.is {
-		fmt.Fprintf(w, "%s\t%s\t%s\n", o.GetEmail(), formatRoles(o.GetRoles()), "pending")
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", o.GetEmail(), formatRoles(o.GetRoles()), "pending", extractToken(o.GetName()))
 	}
 	w.Flush()
 	// Remove the trailing newline as the pretty-printer wrapper will add one.
@@ -278,4 +289,86 @@ func listInvitations(ctx context.Context, cl accessControlV1Client) ([]*pb.Organ
 		protoPrint(op)
 	}
 	return op.GetInvitations(), nil
+}
+
+var withdrawInvitationHelp = `
+Withdraw an invitation sent to an email address. This command marks an invitation as cancelled
+making it no longer available to the user.
+
+Example:
+
+		inctl customer withdraw-invitation --organization=exampleorg --token=24d7ab1f-8c55-4903-9352-4ce421bef264
+`
+
+var withdrawInvitation = &cobra.Command{
+	Use:   "withdraw-invitation",
+	Short: "Withdraw an invitation",
+	Long:  withdrawInvitationHelp,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		ctx := withOrgID(cmd.Context())
+		cl, err := newAccessControlV1Client(ctx)
+		if err != nil {
+			return err
+		}
+		name := addPrefix(flagOrganization, "organizations/") + "/" + addPrefix(flagInvitationToken, "invitations/")
+		req := pb.CancelOrganizationInvitationRequest{
+			Name: name,
+		}
+		if flagDebugRequests {
+			protoPrint(&req)
+		}
+		_, err = cl.CancelOrganizationInvitation(ctx, &req)
+		if err != nil {
+			return err
+		}
+		prtr, err := printer.NewPrinter(root.FlagOutput)
+		if err != nil {
+			return err
+		}
+		prtr.PrintSf("Invitation %s was successfully withdrawn.", name)
+		return nil
+	},
+}
+
+var resendInvitationHelp = `
+Resend an existing invitation to an email address.
+
+Example:
+
+		inctl customer resend-invitation --organization=exampleorg --token=24d7ab1f-8c55-4903-9352-4ce421bef264
+`
+
+var resendInvitation = &cobra.Command{
+	Use:   "resend-invitation",
+	Short: "Resend an invitation",
+	Long:  resendInvitationHelp,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		ctx := withOrgID(cmd.Context())
+		cl, err := newAccessControlV1Client(ctx)
+		if err != nil {
+			return err
+		}
+		name := addPrefix(flagOrganization, "organizations/") + "/" + addPrefix(flagInvitationToken, "invitations/")
+		req := pb.ResendOrganizationInvitationRequest{
+			Name: name,
+		}
+		if flagDebugRequests {
+			protoPrint(&req)
+		}
+		_, err = cl.ResendOrganizationInvitation(ctx, &req)
+		if err != nil {
+			return err
+		}
+		prtr, err := printer.NewPrinter(root.FlagOutput)
+		if err != nil {
+			return err
+		}
+		prtr.PrintSf("Invitation %s was successfully resent.", name)
+		return nil
+	},
+}
+
+func extractToken(name string) string {
+	parts := strings.Split(name, "/")
+	return parts[len(parts)-1]
 }
