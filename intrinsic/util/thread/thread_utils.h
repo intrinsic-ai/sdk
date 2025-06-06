@@ -3,7 +3,6 @@
 #ifndef INTRINSIC_UTIL_THREAD_THREAD_UTILS_H_
 #define INTRINSIC_UTIL_THREAD_THREAD_UTILS_H_
 
-#include <functional>
 #include <thread>  // NOLINT(build/c++11)
 #include <tuple>
 #include <type_traits>

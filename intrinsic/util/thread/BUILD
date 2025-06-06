@@ -83,44 +83,10 @@ cc_test(
 )
 
 cc_library(
-    name = "periodic",
-    srcs = ["periodic.cc"],
-    hdrs = ["periodic.h"],
+    name = "sysinfo",
+    srcs = ["sysinfo.cc"],
+    hdrs = ["sysinfo.h"],
     deps = [
-        ":thread",
-        ":thread_options",
-        ":thread_utils",
-        "//intrinsic/util/status:status_macros",
-        "@com_google_absl//absl/base:core_headers",
-        "@com_google_absl//absl/functional:any_invocable",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/synchronization",
-        "@com_google_absl//absl/time",
-    ],
-)
-
-cc_test(
-    name = "periodic_test",
-    srcs = ["periodic_test.cc"],
-    deps = [
-        ":periodic",
-        "//intrinsic/util/testing:gtest_wrapper_main",
-        "@com_google_absl//absl/functional:any_invocable",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/synchronization",
-        "@com_google_absl//absl/time",
-    ],
-)
-
-cc_library(
-    name = "lockstep",
-    srcs = ["lockstep.cc"],
-    hdrs = ["lockstep.h"],
-    deps = [
-        "//intrinsic/icon/interprocess:binary_futex",
-        "//intrinsic/icon/utils:log",
-        "//intrinsic/icon/utils:realtime_status",
-        "//intrinsic/icon/utils:realtime_status_macro",
         "@com_google_absl//absl/time",
     ],
 )
@@ -144,20 +110,48 @@ cc_library(
     ],
 )
 
-cc_library(
-    name = "sysinfo",
-    srcs = ["sysinfo.cc"],
-    hdrs = ["sysinfo.h"],
+cc_test(
+    name = "util_test",
+    srcs = ["util_test.cc"],
     deps = [
+        ":thread",
+        ":util",
+        "//intrinsic/util/testing:gtest_wrapper_main",
+        "@com_google_absl//absl/container:flat_hash_set",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
         "@com_google_absl//absl/time",
+        "@or_tools//ortools/base:file",
+        "@or_tools//ortools/base:path",
     ],
 )
 
 cc_library(
-    name = "lockable_mutex",
-    hdrs = ["lockable_mutex.h"],
+    name = "lockstep",
+    srcs = ["lockstep.cc"],
+    hdrs = ["lockstep.h"],
     deps = [
-        "@com_google_absl//absl/base:core_headers",
+        "//intrinsic/icon/interprocess:binary_futex",
+        "//intrinsic/icon/utils:log",
+        "//intrinsic/icon/utils:realtime_status",
+        "//intrinsic/icon/utils:realtime_status_macro",
+        "@com_google_absl//absl/time",
+    ],
+)
+
+cc_test(
+    name = "lockstep_test",
+    srcs = ["lockstep_test.cc"],
+    deps = [
+        ":lockstep",
+        ":thread",
+        "//intrinsic/icon/utils:realtime_status",
+        "//intrinsic/icon/utils:realtime_status_matchers",
+        "//intrinsic/util/testing:gtest_wrapper_main",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status",
         "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/time",
     ],
 )

@@ -62,6 +62,19 @@ cc_library(
 )
 
 cc_library(
+    name = "realtime_status_matchers",
+    testonly = True,
+    hdrs = ["realtime_status_matchers.h"],
+    deps = [
+        ":realtime_status",
+        ":realtime_status_macro",
+        ":realtime_status_or",
+        "//intrinsic/util/testing:gtest_wrapper",
+        "@com_google_absl//absl/status",
+    ],
+)
+
+cc_library(
     name = "realtime_status_macro",
     hdrs = ["realtime_status_macro.h"],
     deps = [
