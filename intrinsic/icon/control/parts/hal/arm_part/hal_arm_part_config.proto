@@ -14,25 +14,28 @@ import "intrinsic/icon/proto/linear_joint_acceleration_filter_config.proto";
 // interface.
 // Next ID: 26
 message HalArmPartConfig {
-  intrinsic_proto.icon.v1.HardwareInterface joint_position_command = 1;
-  intrinsic_proto.icon.v1.HardwareInterface joint_commanded_position = 25;
-  intrinsic_proto.icon.v1.HardwareInterface joint_velocity_command = 2;
-  intrinsic_proto.icon.v1.HardwareInterface joint_torque_command = 3;
-  intrinsic_proto.icon.v1.HardwareInterface joint_position_state = 4;
-  intrinsic_proto.icon.v1.HardwareInterface joint_velocity_state = 5;
-  intrinsic_proto.icon.v1.HardwareInterface joint_acceleration_state = 6;
-  intrinsic_proto.icon.v1.HardwareInterface joint_torque_state = 7;
-  intrinsic_proto.icon.v1.HardwareInterface process_wrench_command = 18;
-  intrinsic_proto.icon.v1.HardwareInterface hand_guiding_command = 19;
+  optional intrinsic_proto.icon.v1.HardwareInterface joint_position_command = 1;
+  optional intrinsic_proto.icon.v1.HardwareInterface joint_commanded_position =
+      25;
+  optional intrinsic_proto.icon.v1.HardwareInterface joint_velocity_command = 2;
+  optional intrinsic_proto.icon.v1.HardwareInterface joint_torque_command = 3;
+  optional intrinsic_proto.icon.v1.HardwareInterface joint_position_state = 4;
+  optional intrinsic_proto.icon.v1.HardwareInterface joint_velocity_state = 5;
+  optional intrinsic_proto.icon.v1.HardwareInterface joint_acceleration_state =
+      6;
+  optional intrinsic_proto.icon.v1.HardwareInterface joint_torque_state = 7;
+  optional intrinsic_proto.icon.v1.HardwareInterface process_wrench_command =
+      18;
+  optional intrinsic_proto.icon.v1.HardwareInterface hand_guiding_command = 19;
   // If present, then the control mode state feature interface will be available
   // and provide the current control mode of the arm.
-  intrinsic_proto.icon.v1.HardwareInterface control_mode_state = 20;
-  intrinsic_proto.icon.v1.HardwareInterface payload_command = 21;
+  optional intrinsic_proto.icon.v1.HardwareInterface control_mode_state = 20;
+  optional intrinsic_proto.icon.v1.HardwareInterface payload_command = 21;
   // `payload_state` requires a `payload_command` to be present.
   // `payload_command` can be used independently.
-  intrinsic_proto.icon.v1.HardwareInterface payload_state = 22;
+  optional intrinsic_proto.icon.v1.HardwareInterface payload_state = 22;
   // The system limits are written to this hardware interface.
-  intrinsic_proto.icon.v1.HardwareInterface joint_system_limits = 23;
+  optional intrinsic_proto.icon.v1.HardwareInterface joint_system_limits = 23;
 
   // If present, the kinematics model name needs to correspond to one of the
   // kinematics models available via KinematicsService. Which models are
