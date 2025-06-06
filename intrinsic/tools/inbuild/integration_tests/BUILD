@@ -9,16 +9,16 @@ load("//bazel:container.bzl", "container_image")
 load("//bazel:python_oci_image.bzl", "python_oci_image")
 load("//intrinsic/tools/inbuild/integration_tests:inbuild.bzl", "inbuild_service_bundle", "inbuild_skill_bundle", "inbuild_skill_generate_config", "inbuild_skill_generate_entrypoint_cc", "inbuild_skill_generate_entrypoint_py")
 
-package(default_visibility = ["//visibility:private"])
-
 proto_library(
     name = "inbuild_skill_proto",
     srcs = ["inbuild_skill.proto"],
+    visibility = ["//intrinsic:internal_api_users"],
 )
 
 proto_library(
     name = "inbuild_service_proto",
     srcs = ["inbuild_service.proto"],
+    visibility = ["//intrinsic:internal_api_users"],
 )
 
 ###################
@@ -26,6 +26,7 @@ proto_library(
 ###################
 py_proto_library(
     name = "inbuild_skill_py_pb2",
+    visibility = ["//intrinsic:internal_api_users"],
     deps = [":inbuild_skill_proto"],
 )
 
@@ -87,6 +88,7 @@ inbuild_skill_bundle(
     manifest = "inbuild_skill_py.manifest.pbtxt",
     oci_image = "inbuild_skill_py_image.tar",
     proto = ":inbuild_skill_proto",
+    visibility = ["//intrinsic:internal_api_users"],
 )
 
 ###################
@@ -94,6 +96,7 @@ inbuild_skill_bundle(
 ###################
 cc_proto_library(
     name = "inbuild_skill_cc_proto",
+    visibility = ["//intrinsic:internal_api_users"],
     deps = [":inbuild_skill_proto"],
 )
 
@@ -164,6 +167,7 @@ inbuild_skill_bundle(
     manifest = "inbuild_skill_cc.manifest.pbtxt",
     oci_image = "inbuild_skill_cc_image.tar",
     proto = ":inbuild_skill_proto",
+    visibility = ["//intrinsic:internal_api_users"],
 )
 
 ###################
@@ -172,6 +176,7 @@ inbuild_skill_bundle(
 
 py_proto_library(
     name = "inbuild_service_py_pb2",
+    visibility = ["//intrinsic:internal_api_users"],
     deps = [":inbuild_service_proto"],
 )
 
@@ -198,6 +203,7 @@ inbuild_service_bundle(
     manifest = "inbuild_service_py.manifest.textproto",
     oci_image = "inbuild_service_py_image.tar",
     proto = ":inbuild_service_proto",
+    visibility = ["//intrinsic:internal_api_users"],
 )
 
 ###################
@@ -206,6 +212,7 @@ inbuild_service_bundle(
 
 cc_proto_library(
     name = "inbuild_service_cc_proto",
+    visibility = ["//intrinsic:internal_api_users"],
     deps = [":inbuild_service_proto"],
 )
 
@@ -241,4 +248,5 @@ inbuild_service_bundle(
     manifest = "inbuild_service_cc.manifest.textproto",
     oci_image = "inbuild_service_cc_image.tar",
     proto = ":inbuild_service_proto",
+    visibility = ["//intrinsic:internal_api_users"],
 )
