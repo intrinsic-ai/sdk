@@ -7,6 +7,7 @@ package intrinsic_proto.icon;
 import "google/protobuf/any.proto";
 import "intrinsic/icon/hardware_modules/sim_bus/sim_bus_hardware_module.proto";
 
+// Next ID: 11
 message HardwareModuleConfig {
   // The name will be automatically deduced from the resource context and set to
   // the resource instance name. It should not be set manually.
@@ -14,6 +15,11 @@ message HardwareModuleConfig {
   // that are connecting to the same icon instance. Shared memory modules are
   // indexed by this name.
   string name = 1;
+
+  // The name as specified in the resource context this hardware module is
+  // running in. This is typically the instance name of the module under which
+  // the module is shown in Flowstate.
+  string context_name = 10;
 
   // The module-specific config passed via the ModuleConfig to a HardwareModule.
   // Individual hardware modules should create their own configs that reflect

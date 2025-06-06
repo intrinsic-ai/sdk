@@ -44,6 +44,10 @@ intrinsic_proto::icon::SimBusModuleConfig ModuleConfig::GetSimulationConfig()
 
 const std::string& ModuleConfig::GetName() const { return config_.name(); }
 
+const std::string& ModuleConfig::GetContextName() const {
+  return config_.context_name();
+}
+
 ThreadOptions ModuleConfig::GetIconThreadOptions() const {
   return icon_thread_options_;
 }

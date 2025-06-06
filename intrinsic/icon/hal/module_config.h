@@ -63,7 +63,12 @@ class ModuleConfig {
   // Returns the simulation module config.
   intrinsic_proto::icon::SimBusModuleConfig GetSimulationConfig() const;
 
+  // Returns the name of the module.
+  // This will be the same as the context name, unless the module config has a
+  // name set.
   const std::string& GetName() const;
+  // Returns the name of the context in which the module is running.
+  const std::string& GetContextName() const;
 
   // Returns thread options used by ICON.
   ThreadOptions GetIconThreadOptions() const;

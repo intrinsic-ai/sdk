@@ -67,6 +67,8 @@ absl::StatusOr<HardwareModuleMainConfig> LoadHardwareModuleConfig(
   } else {
     module_config.set_name(context.name());
   }
+  // Always set the context name, even if the module config has a name.
+  module_config.set_context_name(context.name());
 
   module_config.set_simulation_server_address(
       context.simulation_server_address());
