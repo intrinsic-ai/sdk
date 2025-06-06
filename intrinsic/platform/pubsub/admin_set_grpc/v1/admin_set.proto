@@ -1,0 +1,23 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.pubsub.admin_set_grpc.v1;
+
+import "google/protobuf/any.proto";
+
+message AdminSetRequest {
+  string key = 1;
+  google.protobuf.Any value = 2;
+  int64 timeout_ms = 3;
+}
+
+message AdminSetResponse {}
+
+// AdminSetService is used to copy key-value pairs from one key to another by
+// talking to the cloud router via its admin API.
+service AdminSetService {
+  // AdminCopy is used to copy key-value pairs from one key to another by
+  // talking to the cloud router via its admin API.
+  rpc AdminCopy(AdminSetRequest) returns (AdminSetResponse) {}
+}
