@@ -37,6 +37,7 @@ go_library(
         "//intrinsic/util/proto:names",
         "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
         "@org_golang_google_protobuf//reflect/protoregistry:go_default_library",
+        "@org_golang_google_protobuf//types/known/anypb",
     ],
 )
 

@@ -31,8 +31,19 @@ message ServiceMetadata {
 message ServiceDef {
   // The list of gRPC service names that this service will expose.
   //
+  // Descriptors for each service in this list must be included in the file
+  // descriptor set in the manifest's ServiceAssets.
+  //
   // Do not include DynamicReconfiguration or ServiceState in this list.
   repeated string service_proto_prefixes = 1;
+  // The full name of the proto message used to configure this service.
+  //
+  // For each instance of the service in a solution, a message of this type is
+  // specified and provided to the service container.
+  //
+  // A descriptor for this message must be included in the file descriptor set
+  // in the manifest's ServiceAssets.
+  string config_message_full_name = 7;
   // The pod spec to be used in real environments.
   ServicePodSpec real_spec = 2;
   // The pod spec to be used in simulated environments.

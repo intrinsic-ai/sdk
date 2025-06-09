@@ -68,6 +68,9 @@ func CreateService(d *ServiceData) error {
 		if err := protoio.ReadTextProto(d.DefaultConfig, defaultConfig, protoio.WithResolver(types)); err != nil {
 			return fmt.Errorf("failed to read default config proto: %v", err)
 		}
+		if d.Manifest.GetServiceDef().GetConfigMessageFullName() == "" {
+			d.Manifest.GetServiceDef().ConfigMessageFullName = string(defaultConfig.MessageName())
+		}
 	}
 	if err := pruneSourceCodeInfo(defaultConfig, set); err != nil {
 		return fmt.Errorf("unable to process source code info: %v", err)

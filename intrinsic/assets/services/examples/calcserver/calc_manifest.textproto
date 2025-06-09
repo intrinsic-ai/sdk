@@ -18,6 +18,7 @@ metadata {
 }
 service_def {
   service_proto_prefixes: "/intrinsic_proto.services.Calculator/"
+  config_message_full_name: "intrinsic_proto.services.CalculatorConfig"
   real_spec {
     image {
       archive_filename: "calculator-image.tar"

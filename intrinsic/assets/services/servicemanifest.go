@@ -10,6 +10,7 @@ import (
 
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
+	anypb "google.golang.org/protobuf/types/known/anypb"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/metadatautils"
 	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
@@ -25,7 +26,8 @@ var (
 
 // ValidateServiceManifestOptions contains options for validating a ServiceManifest.
 type ValidateServiceManifestOptions struct {
-	files *protoregistry.Files
+	files         *protoregistry.Files
+	defaultConfig *anypb.Any
 }
 
 // ValidateServiceManifestOption is an option for validating a ServiceManifest.
@@ -38,7 +40,17 @@ func WithFiles(files *protoregistry.Files) ValidateServiceManifestOption {
 	}
 }
 
-// ValidateServiceManifest checks that a ServiceManifest is consistent and valid.
+// WithDefaultConfig adds the Service's default config to the validation options.
+//
+// If specified, ValidateServiceManifest verifies that the default config is of the type specified
+// in the manifest.
+func WithDefaultConfig(defaultConfig *anypb.Any) ValidateServiceManifestOption {
+	return func(opts *ValidateServiceManifestOptions) {
+		opts.defaultConfig = defaultConfig
+	}
+}
+
+// ValidateServiceManifest verifies that a ServiceManifest is consistent and valid.
 func ValidateServiceManifest(m *smpb.ServiceManifest, options ...ValidateServiceManifestOption) error {
 	opts := &ValidateServiceManifestOptions{}
 	for _, opt := range options {
@@ -85,6 +97,23 @@ func ValidateServiceManifest(m *smpb.ServiceManifest, options ...ValidateService
 	for podType, spec := range servicePodSpecs {
 		if err := validateServicePodSpecVolumes(spec); err != nil {
 			return fmt.Errorf("invalid volumes in the %s spec for Service %q: %w", podType, id, err)
+		}
+	}
+
+	// Verify that the Service's config message is in the file descriptor set.
+	if m.GetServiceDef().GetConfigMessageFullName() != "" {
+		if opts.files == nil {
+			return fmt.Errorf("config message %q specified, but no descriptors provided", m.GetServiceDef().GetConfigMessageFullName())
+		}
+		if _, err := opts.files.FindDescriptorByName(protoreflect.FullName(m.GetServiceDef().GetConfigMessageFullName())); err != nil {
+			return fmt.Errorf("could not find config message %q in provided descriptors for Service %q: %w", m.GetServiceDef().GetConfigMessageFullName(), id, err)
+		}
+
+		// If a default config is specified, verify that it is of the specified config message type.
+		if opts.defaultConfig != nil {
+			if string(opts.defaultConfig.MessageName()) != m.GetServiceDef().GetConfigMessageFullName() {
+				return fmt.Errorf("default config for Service %q is of type %q, but manifest specifies config type %q", id, opts.defaultConfig.MessageName(), m.GetServiceDef().GetConfigMessageFullName())
+			}
 		}
 	}
 

@@ -254,6 +254,7 @@ func WriteService(path string, opts WriteServiceOpts) error {
 	}
 	if err := servicemanifest.ValidateServiceManifest(opts.Manifest,
 		servicemanifest.WithFiles(files),
+		servicemanifest.WithDefaultConfig(opts.Config),
 	); err != nil {
 		return fmt.Errorf("invalid manifest: %v", err)
 	}

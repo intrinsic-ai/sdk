@@ -28,8 +28,9 @@ func TestValidateServiceManifest(t *testing.T) {
 			},
 		},
 		ServiceDef: &smpb.ServiceDef{
-			ServiceProtoPrefixes: []string{"/intrinsic_proto.services.Calculator/"},
-			SimSpec:              &smpb.ServicePodSpec{},
+			ServiceProtoPrefixes:  []string{"/intrinsic_proto.services.Calculator/"},
+			ConfigMessageFullName: "intrinsic_proto.services.CalculatorConfig",
+			SimSpec:               &smpb.ServicePodSpec{},
 		},
 	}
 
@@ -47,6 +48,8 @@ func TestValidateServiceManifest(t *testing.T) {
 	mNoSimSpec.ServiceDef = &smpb.ServiceDef{}
 	mInvalidServiceProtoPrefix := proto.Clone(m).(*smpb.ServiceManifest)
 	mInvalidServiceProtoPrefix.GetServiceDef().ServiceProtoPrefixes = []string{"intrinsic_proto.services.Calculator"}
+	mInvalidConfigMessageFullName := proto.Clone(m).(*smpb.ServiceManifest)
+	mInvalidConfigMessageFullName.GetServiceDef().ConfigMessageFullName = "invalid.config.Message"
 
 	fds := &descriptorpb.FileDescriptorSet{
 		File: []*descriptorpb.FileDescriptorProto{
@@ -56,6 +59,15 @@ func TestValidateServiceManifest(t *testing.T) {
 				MessageType: []*descriptorpb.DescriptorProto{
 					&descriptorpb.DescriptorProto{
 						Name: proto.String("Calculator"),
+					},
+				},
+			},
+			&descriptorpb.FileDescriptorProto{
+				Name:    proto.String("intrinsic_proto.services.CalculatorConfig"),
+				Package: proto.String("intrinsic_proto.services"),
+				MessageType: []*descriptorpb.DescriptorProto{
+					&descriptorpb.DescriptorProto{
+						Name: proto.String("CalculatorConfig"),
 					},
 				},
 			},
@@ -127,6 +139,11 @@ func TestValidateServiceManifest(t *testing.T) {
 		{
 			desc:    "invalid service proto prefix",
 			given:   mInvalidServiceProtoPrefix,
+			wantErr: true,
+		},
+		{
+			desc:    "invalid config message full name",
+			given:   mInvalidConfigMessageFullName,
 			wantErr: true,
 		},
 		{
