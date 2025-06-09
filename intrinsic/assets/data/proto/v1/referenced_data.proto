@@ -28,4 +28,15 @@ message ReferencedData {
   //
   // Can be used to ensure that the referenced data have not changed.
   string digest = 4;
+
+  // If the ReferencedData references CAS data in an ambiguous context (e.g.,
+  // releasing to the catalog a Data asset that references existing CAS data),
+  // then this field can be used to specify the target project for the
+  // reference.
+  //
+  // The consumer of this reference must have access to the source project.
+  //
+  // Not providing this value may be an error in contexts in which the target
+  // project is needed and not known otherwise.
+  optional string source_project = 5;
 }
