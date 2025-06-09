@@ -47,8 +47,6 @@ const (
 	KeyContext = "context"
 	// KeyDefault is the name of the default flag.
 	KeyDefault = "default"
-	// KeyEnvironment is the name of the environment flag.
-	KeyEnvironment = "environment"
 	// KeyDryRun is the name of the dry run flag.
 	KeyDryRun = "dry_run"
 	// KeyFilter is the name of the filter flag.
@@ -86,8 +84,6 @@ const (
 	KeyTimeout = "timeout"
 	// KeyUseBorgCredentials is the name of the flag to use borg credentials.
 	KeyUseBorgCredentials = "use_borg_credentials"
-	// KeyUseInProcCatalog is the name of the flag for using an in-proc catalog.
-	KeyUseInProcCatalog = "use_in_proc_catalog"
 	// KeyVendor is the name of the vendor flag.
 	KeyVendor = "vendor"
 	// KeyVersion is the name of the version flag.
@@ -161,20 +157,6 @@ func (cf *CmdFlags) GetFlagAssetTypes() ([]atypepb.AssetType, error) {
 	}
 
 	return assetTypes, nil
-}
-
-// AddFlagsCatalogInProcEnvironment adds flags for using an in-proc catalog and specifying the
-// Firestore environment.
-func (cf *CmdFlags) AddFlagsCatalogInProcEnvironment() {
-	cf.OptionalBool(KeyUseInProcCatalog, false, "DEPRECATED DO NOT USE. Whether to use an in-proc catalog service.")
-	cf.OptionalString(KeyEnvironment, "", "DEPRECATED DO NOT USE. The Firestore DB environment (only used with the in-proc catalog).")
-	cf.cmd.MarkFlagsRequiredTogether(KeyUseInProcCatalog, KeyEnvironment)
-}
-
-// GetFlagsCatalogInProcEnvironment gets the values of the in-proc catalog and environment flags
-// added by AddFlagsCatalogInProcEnvironment.
-func (cf *CmdFlags) GetFlagsCatalogInProcEnvironment() (bool, string) {
-	return cf.GetBool(KeyUseInProcCatalog), cf.GetString(KeyEnvironment)
 }
 
 // AddFlagsCredentials adds args for specifying credentials.
