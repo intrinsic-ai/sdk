@@ -26,6 +26,7 @@ go_library(
         "//intrinsic/util/proto:registryutil",
         "//intrinsic/util/proto:sourcecodeinfoview",
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
+        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
         "@org_golang_google_protobuf//types/known/anypb",
     ],
 )

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	anypb "google.golang.org/protobuf/types/known/anypb"
 	"intrinsic/assets/bundleio"
 	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
@@ -70,6 +71,13 @@ func CreateService(d *ServiceData) error {
 		}
 		if d.Manifest.GetServiceDef().GetConfigMessageFullName() == "" {
 			d.Manifest.GetServiceDef().ConfigMessageFullName = string(defaultConfig.MessageName())
+		}
+	} else if d.Manifest.GetServiceDef().GetConfigMessageFullName() != "" {
+		// Use an empty message as the default config.
+		if msgType, err := types.FindMessageByName(protoreflect.FullName(d.Manifest.GetServiceDef().GetConfigMessageFullName())); err != nil {
+			return fmt.Errorf("cannot find config message %q in provided descriptors: %w", d.Manifest.GetServiceDef().GetConfigMessageFullName(), err)
+		} else if defaultConfig, err = anypb.New(msgType.New().Interface()); err != nil {
+			return fmt.Errorf("failed to create default config: %w", err)
 		}
 	}
 	if err := pruneSourceCodeInfo(defaultConfig, set); err != nil {

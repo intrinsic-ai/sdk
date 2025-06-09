@@ -73,6 +73,9 @@ intrinsic_service = rule(
     attrs = {
         "default_config": attr.label(
             allow_single_file = [".pbtxt", ".textproto"],
+            doc = """The path to the default configuration text proto for the service. If
+            unspecified, the default configuration will be an empty message of the type specified in
+            the manifest's ServiceDef.config_message_full_name.""",
         ),
         "images": attr.label_list(
             allow_empty = True,

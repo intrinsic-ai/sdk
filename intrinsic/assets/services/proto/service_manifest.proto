@@ -99,6 +99,9 @@ message ServiceImageSettings {
 
 message ServiceAssets {
   // The binary proto file containing the default configuration.
+  //
+  // If unspecified, the default configuration will be an empty message of the
+  // type specified in the manifest's ServiceDef.config_message_full_name.
   optional string default_configuration_filename = 1;
   // The file descriptor set containing the service's parameters.
   optional string parameter_descriptor_filename = 2;
