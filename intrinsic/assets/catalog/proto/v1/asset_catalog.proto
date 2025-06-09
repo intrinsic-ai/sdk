@@ -92,8 +92,10 @@ message Asset {
   intrinsic_proto.assets.Metadata metadata = 1;
 
   oneof asset_specific_metadata {
-    DataMetadata data_specific_metadata = 4;
-    ServiceMetadata service_specific_metadata = 2;
+    DataMetadata data_specific_metadata = 4
+        [(google.api.field_behavior) = OUTPUT_ONLY];
+    ServiceMetadata service_specific_metadata = 2
+        [(google.api.field_behavior) = OUTPUT_ONLY];
   }
 
   // Release-related metadata about the asset.
