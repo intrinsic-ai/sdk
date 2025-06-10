@@ -23,7 +23,11 @@ type TextReadOption = func(*prototext.UnmarshalOptions)
 // ReadBinaryProto
 type BinaryReadOption = func(*proto.UnmarshalOptions)
 
-// BinaryWriteOption  provides a way to update MarshalOptions used in
+// TextWriteOption provides a way to update MarshalOptions used in
+// WriteStableTextProto.
+type TextWriteOption = func(*prototext.MarshalOptions)
+
+// BinaryWriteOption provides a way to update MarshalOptions used in
 // WriteBinaryProto
 type BinaryWriteOption = func(*proto.MarshalOptions)
 
@@ -47,6 +51,14 @@ func WithResolver(resolver Resolver) TextReadOption {
 func WithMerge(value bool) BinaryReadOption {
 	return func(options *proto.UnmarshalOptions) {
 		options.Merge = value
+	}
+}
+
+// WithWriteResolver is a helper to create a TextWriteOption for use with
+// WriteStableTextProto. Often protoregistry.Type is used as the resolver.
+func WithWriteResolver(resolver Resolver) TextWriteOption {
+	return func(options *prototext.MarshalOptions) {
+		options.Resolver = resolver
 	}
 }
 
@@ -129,8 +141,12 @@ func WriteBinaryProto(path string, p proto.Message, opts ...BinaryWriteOption) e
 
 // WriteStableTextProto writes out a textproto that has been formatted by
 // standard formatting txtpbfmt, and thus is stable to use in build rules.
-func WriteStableTextProto(path string, p proto.Message) error {
-	b, err := prototext.Marshal(p)
+func WriteStableTextProto(path string, p proto.Message, opts ...TextWriteOption) error {
+	options := new(prototext.MarshalOptions)
+	for _, opt := range opts {
+		opt(options)
+	}
+	b, err := options.Marshal(p)
 	if err != nil {
 		return fmt.Errorf("failed to serialize: %v", err)
 	}
