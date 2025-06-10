@@ -88,6 +88,7 @@ require (
 	k8s.io/apimachinery v0.30.3
 	k8s.io/client-go v0.30.3
 	k8s.io/kubelet v0.30.3
+	k8s.io/metrics v0.33.1
 	sigs.k8s.io/yaml v1.3.0
 )
 
