@@ -45,6 +45,11 @@ bzl_library(
 bzl_library(
     name = "go_macros",
     srcs = ["go_macros.bzl"],
+    deps = [
+        "@bazel_skylib//lib:paths",
+        "@io_bazel_rules_go//go:def",
+        "@io_bazel_rules_go//proto:def",
+    ],
 )
 
 bzl_library(
