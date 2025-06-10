@@ -40,8 +40,7 @@ message SceneObject {
   // exclusions between the entities of this scene object.
   optional CollisionRules collision_rules = 6;
 
-  // Additional user-data associated with this scene object. Currently, only the
-  // key 'FLOWSTATE_ASSET_USER_DATA' is reserved for backwards compatibility.
+  // Additional user-data associated with this scene object.
   map<string, google.protobuf.Any> user_data = 7;
 
 }
