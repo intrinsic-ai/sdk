@@ -5,6 +5,7 @@ syntax = "proto3";
 package intrinsic_proto.scene_object.v1;
 
 import "google/longrunning/operations.proto";
+import "google/protobuf/any.proto";
 import "intrinsic/geometry/proto/v1/material.proto";
 import "intrinsic/math/proto/quaternion.proto";
 import "intrinsic/scene/proto/v1/scene_object.proto";
@@ -96,6 +97,9 @@ message ImportSceneObjectConfig {
 
   // If present, the imported SceneObject will be named by this name.
   optional string scene_object_name = 6;
+
+  // Optional user data to associate with the imported scene object.
+  map<string, google.protobuf.Any> user_data = 7;
 
 }
 

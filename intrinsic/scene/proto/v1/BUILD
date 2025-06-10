@@ -140,6 +140,7 @@ proto_library(
         "//intrinsic/geometry/proto/v1:material_proto",
         "//intrinsic/math/proto:quaternion_proto",
         "@com_google_googleapis//google/longrunning:operations_proto",
+        "@com_google_protobuf//:any_proto",
     ],
 )
 
