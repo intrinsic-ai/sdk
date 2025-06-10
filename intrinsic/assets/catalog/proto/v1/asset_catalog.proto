@@ -57,6 +57,10 @@ message Asset {
     // The scene object manifest.
     intrinsic_proto.scene_objects.ProcessedSceneObjectManifest manifest = 1;
   }
+  message HardwareDeviceMetadata {
+    // The list of gRPC service names that the hardware device exposes.
+    repeated string service_proto_prefixes = 1;
+  }
   message HardwareDeviceDeploymentData {
     // The hardware device manifest.
     intrinsic_proto.hardware_devices.v1.ProcessedHardwareDeviceManifest
@@ -93,6 +97,8 @@ message Asset {
 
   oneof asset_specific_metadata {
     DataMetadata data_specific_metadata = 4
+        [(google.api.field_behavior) = OUTPUT_ONLY];
+    HardwareDeviceMetadata hardware_device_specific_metadata = 6
         [(google.api.field_behavior) = OUTPUT_ONLY];
     ServiceMetadata service_specific_metadata = 2
         [(google.api.field_behavior) = OUTPUT_ONLY];
