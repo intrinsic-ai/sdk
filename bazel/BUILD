@@ -55,6 +55,9 @@ bzl_library(
 bzl_library(
     name = "sh_macros",
     srcs = ["sh_macros.bzl"],
+    deps = [
+        "@bazel_skylib//lib:paths",
+    ],
 )
 
 platform(
