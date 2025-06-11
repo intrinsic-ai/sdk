@@ -35,6 +35,8 @@ message ParameterizedGripperSpecs {
     ParameterizedSuctionGripperSpecs suction_gripper_specs = 1;
     // The specifications for a parameterized pinch type gripper.
     ParameterizedPinchGripperSpecs pinch_gripper_specs = 2;
+    // The specifications for a parameterized centric type gripper.
+    ParameterizedCentricGripperSpecs centric_gripper_specs = 3;
   }
 }
 
@@ -89,6 +91,15 @@ message ParameterizedCentricGripperSpecs {
   float finger_length_in_meters = 3;
   // The thickness of fingers in meters, defaults to 0.01 meters.
   optional float finger_thickness_in_meters = 4;
+  // The number of rotations to search for grasp annotations.
+  // The default value is 8.
+  optional int32 num_rotations = 5;
+  // Minimum increment in meter to search for along the axis of the cylinder.
+  // The default value is 0.005, must be greater than 0.001.
+  optional float min_search_increment_in_meters = 6;
+  // The transform to apply to the centric gripper relative to its origin.
+  // By default, the gripper z-axis points towards the object.
+  optional Pose gripper_origin_t_tool_frame = 7;
 }
 
 // The weights of the metrics to use for scoring annotation. Weights should be
