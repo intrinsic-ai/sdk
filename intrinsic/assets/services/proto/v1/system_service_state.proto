@@ -1,0 +1,152 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+package intrinsic_proto.services.system_state.v1;
+
+import "intrinsic/util/status/extended_status.proto";
+
+// Supports querying and modifying the state of a service instance.
+//
+// Unlike `ServiceState`, that is implemented by Service authors on a
+// per-Service basis, `SystemServiceState` is a solution-wide service that can
+// be used to introspect and/or modify the state of a Service instance running
+// in the workcell. It also monitors the state of the running kubernetes
+// container of the Service, and is capable of surfacing errors, if any.
+//
+// A note on terminology:
+//
+// - Upper case "Service" is used to refer to an asset of type Service.
+// - Lower case "service" is used to refer to an API service.
+service SystemServiceState {
+  // Returns the current state of the requested Service instance.
+  rpc GetState(GetStateRequest) returns (State) {}
+
+  // Enables the requested running Service instance if supported.
+  //
+  //  - If the Service is in STATE_CODE_STOPPED, this will return a
+  //    FailedPrecondition error.
+  //  - If the Service is in STATE_CODE_ENABLED:
+  //    - If it does not support reporting its state (read from
+  //    `supports_service_state` in its manifest), this method will return an
+  //    UnimplementedError.
+  //    - If the Service supports reporting states, this call should have no
+  //    effect, but is left to the Service author to implement.
+  //  - If the Service is in STATE_CODE_ERROR:
+  //    - If it is due to errors in the running kubernetes container, this
+  //    method will return a FailedPrecondition error.
+  //    - If it is the self-reported state of the Service, then this call is
+  //    expected to perform the necessary steps to resolve the error before
+  //    enabling the Service. This is left to the Service author to implement.
+  //  - If the Service is in STATE_CODE_DISABLED, this call should enable the
+  //    Service, but is left to the Service author to implement.
+  rpc EnableService(EnableServiceRequest) returns (EnableServiceResponse) {}
+
+  // Disables the requested running Service instance if supported.
+  //
+  //  - If the Service is in STATE_CODE_STOPPED, this will return a
+  //    FailedPrecondition error.
+  //  - If the Service is in STATE_CODE_ENABLED:
+  //    - If it does not support reporting its state (read from
+  //    `supports_service_state` in its manifest), this method will return an
+  //    UnimplementedError.
+  //    - If the Service supports reporting states, this call should disable the
+  //    Service, but is left to the Service author to implement.
+  //  - If the Service is in STATE_CODE_ERROR:
+  //    - If it is due to errors in the running kubernetes container, this
+  //    method will return a FailedPrecondition error.
+  //    - If it is the self-reported state of the Service, then this call should
+  //    have no effect since the Service should not be operating and should not
+  //    be servicing requests. It is left to the Service author to implement.
+  //  - If the Service is in STATE_CODE_DISABLED, this call should
+  //    have no effect since the Service should not be operating and should not
+  //    be servicing requests. It is left to the Service author to implement.
+  rpc DisableService(DisableServiceRequest) returns (DisableServiceResponse) {}
+
+  // Restarts the running service instance.
+  //
+  // A restart request can be received by a Service instance regardless of
+  // its state. A restart request received during an ongoing restart will
+  // trigger a new operation immediately.
+  //
+  // Note: This will stop all ongoing processes in the service.
+  rpc RestartService(RestartServiceRequest) returns (RestartServiceResponse) {}
+
+  // Returns the last known state of all service instances in the solution.
+  //
+  // This method does not guarantee that the returned state is still the
+  // current state of the service instances. Prefer using `GetState` to get
+  // the updated current state of a specific service instance.
+  rpc ListLastKnownServiceStates(ListLastKnownServiceStatesRequest)
+      returns (ListLastKnownServiceStatesResponse) {}
+}
+
+// Contains details about the state of a Service.
+//
+// This state is the operational state of a Service instance. It can include
+// information about the state of the running kubernetes container of the
+// Service instance. For example, an error in the running container would
+// result in an error state with an explanation.
+//
+// If the container is running and is healthy, this State will be a reflection
+// of the self-reported state of the Service instance. If the Service does not
+// report its state, the state will be set to STATE_CODE_ENABLED by default.
+message State {
+  enum StateCode {
+    // Indicates the service instance is in an unspecified state.
+    STATE_CODE_UNSPECIFIED = 0;
+    // Indicates the service instance is in an error state.
+    STATE_CODE_ERROR = 1;
+    // When a service is disabled, it must not allow interaction with the
+    // services that it provides.
+    STATE_CODE_DISABLED = 2;
+    // When a service is enabled, it allows interactions with the services that
+    // it provides.
+    STATE_CODE_ENABLED = 3;
+    // Indicates that the service instance is in a stopped state. This is
+    // different from STATE_CODE_DISABLED in that the service instance is
+    // not capable of accepting API requests.
+    STATE_CODE_STOPPED = 4;
+  }
+
+  // Current state code of the running service instance.
+  StateCode state_code = 1;
+
+  // Optional explanation for the current service's state, unless the service
+  // is in STATE_CODE_ERROR. When in STATE_CODE_ERROR, this field includes
+  // information on what and/or why the service failed and how to resolve the
+  // failure state.
+  optional intrinsic_proto.status.ExtendedStatus extended_status = 2;
+}
+
+message GetStateRequest {
+  // The name of the service instance.
+  string name = 1;
+}
+
+message DisableServiceRequest {
+  // The name of the service instance.
+  string name = 1;
+}
+
+message DisableServiceResponse {}
+
+message EnableServiceRequest {
+  // The name of the service instance.
+  string name = 1;
+}
+
+message EnableServiceResponse {}
+
+message RestartServiceRequest {
+  // The name of the service instance.
+  string name = 1;
+}
+
+message RestartServiceResponse {}
+
+message ListLastKnownServiceStatesRequest {}
+
+message ListLastKnownServiceStatesResponse {
+  // A map of service instance names to their current state.
+  map<string, State> states = 1;
+}
