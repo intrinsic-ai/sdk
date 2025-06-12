@@ -29,7 +29,9 @@ using ::intrinsic::ParseTextProtoOrDie;
 using ::intrinsic::testing::EqualsProto;
 using ::intrinsic::testing::Partially;
 using ::intrinsic::testing::StatusHasProtoPayload;
+using ::testing::Eq;
 using ::testing::HasSubstr;
+using ::testing::Property;
 using ::testing::ValuesIn;
 
 struct StatusSpecTestCase {
@@ -161,18 +163,27 @@ TEST_P(StatusSpecsTest, AllOptionsAreSet) {
         context { status_code { component: "Context" code: 123 } }
         context { status_code { component: "Context" code: 234 } }
       )pb"));
+
+  // Default severity is DEFAULT.
+  EXPECT_THAT(CreateExtendedStatus(10001, "error 1", {}),
+              Property(&intrinsic_proto::status::ExtendedStatus::severity,
+                       Eq(intrinsic_proto::status::ExtendedStatus::DEFAULT)));
 }
 
 TEST_P(StatusSpecsTest, CreateStatus) {
   absl::Time t = absl::FromCivil(absl::CivilSecond(2024, 3, 26, 11, 51, 13),
                                  absl::UTCTimeZone());
   EXPECT_THAT(
-      CreateStatus(10001, "error 1", absl::StatusCode::kInvalidArgument,
-                   {.timestamp = t, .debug_message = "Internal"}),
+      CreateStatus(
+          10001, "error 1", absl::StatusCode::kInvalidArgument,
+          {.timestamp = t,
+           .debug_message = "Internal",
+           .severity = intrinsic_proto::status::ExtendedStatus::WARNING}),
       AllOf(StatusIs(absl::StatusCode::kInvalidArgument),
             StatusHasProtoPayload<intrinsic_proto::status::ExtendedStatus>(
                 EqualsProto(R"pb(
                   status_code { component: "ai.intrinsic.test" code: 10001 }
+                  severity: WARNING
                   timestamp { seconds: 1711453873 }
                   title: "Error 1"
                   user_report {
@@ -181,27 +192,48 @@ TEST_P(StatusSpecsTest, CreateStatus) {
                   }
                   debug_report { message: "Internal" }
                 )pb"))));
+
+  // Default severity is ERROR.
+  EXPECT_THAT(
+      CreateStatus(10001, "error 1", absl::StatusCode::kInvalidArgument, {}),
+      StatusHasProtoPayload<intrinsic_proto::status::ExtendedStatus>(
+          Property(&intrinsic_proto::status::ExtendedStatus::severity,
+                   Eq(intrinsic_proto::status::ExtendedStatus::ERROR))));
 }
 
 TEST_P(StatusSpecsTest, AttachExtendedStatus) {
   absl::Time t = absl::FromCivil(absl::CivilSecond(2024, 3, 26, 11, 51, 13),
                                  absl::UTCTimeZone());
-  EXPECT_THAT(static_cast<absl::Status>(
-                  StatusBuilder(absl::StatusCode::kInternal)
-                      .With(AttachExtendedStatus(
-                          10001, "error 1",
-                          {.timestamp = t, .debug_message = "Internal"}))),
-              StatusHasProtoPayload<intrinsic_proto::status::ExtendedStatus>(
-                  EqualsProto(R"pb(
-                    status_code { component: "ai.intrinsic.test" code: 10001 }
-                    timestamp { seconds: 1711453873 }
-                    title: "Error 1"
-                    user_report {
-                      message: "error 1"
-                      instructions: "Test instructions 1"
-                    }
-                    debug_report { message: "Internal" }
-                  )pb")));
+  EXPECT_THAT(
+      static_cast<absl::Status>(
+          StatusBuilder(absl::StatusCode::kInternal)
+              .With(AttachExtendedStatus(
+                  10001, "error 1",
+                  {.timestamp = t,
+                   .debug_message = "Internal",
+                   .severity =
+                       intrinsic_proto::status::ExtendedStatus::WARNING}))),
+      StatusHasProtoPayload<intrinsic_proto::status::ExtendedStatus>(
+          EqualsProto(R"pb(
+            status_code { component: "ai.intrinsic.test" code: 10001 }
+            severity: WARNING
+            timestamp { seconds: 1711453873 }
+            title: "Error 1"
+            user_report {
+              message: "error 1"
+              instructions: "Test instructions 1"
+            }
+            debug_report { message: "Internal" }
+          )pb")));
+
+  // Default severity is ERROR.
+  EXPECT_THAT(
+      static_cast<absl::Status>(
+          StatusBuilder(absl::StatusCode::kInternal)
+              .With(AttachExtendedStatus(10001, "error 1", {}))),
+      StatusHasProtoPayload<intrinsic_proto::status::ExtendedStatus>(
+          Property(&intrinsic_proto::status::ExtendedStatus::severity,
+                   Eq(intrinsic_proto::status::ExtendedStatus::ERROR))));
 }
 
 TEST(StatusSpecsInvalidTest, DuplicateFails) {
@@ -237,6 +269,7 @@ TEST_P(StatusSpecsTest, AttachExtendedStatusInReturnMacro) {
               StatusHasProtoPayload<intrinsic_proto::status::ExtendedStatus>(
                   EqualsProto(R"pb(
                     status_code { component: "ai.intrinsic.test" code: 10001 }
+                    severity: ERROR
                     timestamp { seconds: 1711453873 }
                     title: "Error 1"
                     user_report {
@@ -265,6 +298,7 @@ TEST_P(StatusSpecsTest, AttachExtendedStatusInAssignMacro) {
               StatusHasProtoPayload<intrinsic_proto::status::ExtendedStatus>(
                   EqualsProto(R"pb(
                     status_code { component: "ai.intrinsic.test" code: 10001 }
+                    severity: ERROR
                     timestamp { seconds: 1711453873 }
                     title: "Error 1"
                     user_report {
@@ -296,6 +330,7 @@ TEST_P(StatusSpecsTest, WrapExtendedStatusInReturnMacroWithExtendedStatus) {
       StatusHasProtoPayload<intrinsic_proto::status::ExtendedStatus>(
           EqualsProto(R"pb(
             status_code { component: "ai.intrinsic.test" code: 10001 }
+            severity: ERROR
             timestamp { seconds: 1711453873 }
             title: "Error 1"
             user_report {
@@ -324,6 +359,7 @@ TEST_P(StatusSpecsTest, WrapExtendedStatusInReturnMacroAsDebugReport) {
       StatusHasProtoPayload<intrinsic_proto::status::ExtendedStatus>(
           EqualsProto(R"pb(
             status_code { component: "ai.intrinsic.test" code: 10001 }
+            severity: ERROR
             timestamp { seconds: 1711453873 }
             title: "Error 1"
             user_report {

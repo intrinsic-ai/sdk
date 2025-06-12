@@ -162,9 +162,14 @@ void ClearExtendedStatusSpecs() {
   status_specs_metadata = std::nullopt;
 }
 
-intrinsic_proto::status::ExtendedStatus CreateExtendedStatus(
+namespace {
+
+// Creates an ExtendedStatus with the specified options. 'default_severity' is
+// used if no severity is set in 'options'.
+intrinsic_proto::status::ExtendedStatus CreateExtendedStatusImpl(
     uint32_t code, std::string_view user_message,
-    const ExtendedStatusOptions& options) {
+    const ExtendedStatusOptions& options,
+    intrinsic_proto::status::ExtendedStatus::Severity default_severity) {
   const std::optional<StatusSpecsMetadata>& metadata = GetStatusSpecsMetadata();
   QCHECK(metadata.has_value())
       << "Call InitExtendedStatusSpecs before invoking CreateExtendedStatus.";
@@ -215,14 +220,22 @@ intrinsic_proto::status::ExtendedStatus CreateExtendedStatus(
   if (options.log_context.has_value()) {
     *es.mutable_related_to()->mutable_log_context() = *options.log_context;
   }
-  if (options.severity.has_value()) {
-    es.set_severity(*options.severity);
-  }
+  es.set_severity(options.severity.value_or(default_severity));
   if (!options.context.empty()) {
     es.mutable_context()->Assign(options.context.begin(),
                                  options.context.end());
   }
   return es;
+}
+
+}  // namespace
+
+intrinsic_proto::status::ExtendedStatus CreateExtendedStatus(
+    uint32_t code, std::string_view user_message,
+    const ExtendedStatusOptions& options) {
+  return CreateExtendedStatusImpl(
+      code, user_message, options,
+      /*default_severity=*/intrinsic_proto::status::ExtendedStatus::DEFAULT);
 }
 
 absl::Status CreateStatus(uint32_t code, std::string_view user_message,
@@ -235,12 +248,14 @@ absl::Status CreateStatus(uint32_t code, std::string_view user_message,
 std::function<StatusBuilder && (StatusBuilder&&)> AttachExtendedStatus(
     uint32_t code, std::string_view user_message,
     const ExtendedStatusOptions& options) {
-  // Create and ExtendedStatus moved into the lambda closure to avoid having to
+  // Create an ExtendedStatus moved into the lambda closure to avoid having to
   // copy all parameters, in particular options. We also ensure that the
   // timestamp, if not set in options, is as close to the actual event as
   // possible.
-  intrinsic_proto::status::ExtendedStatus es =
-      CreateExtendedStatus(code, user_message, options);
+  intrinsic_proto::status::ExtendedStatus es = CreateExtendedStatusImpl(
+      code, user_message, options,
+      // We are in the context of creating an absl::Status (i.e., an error).
+      /*default_severity=*/intrinsic_proto::status::ExtendedStatus::ERROR);
   return
       [es = std::move(es)](StatusBuilder&& status_builder) -> StatusBuilder&& {
         return std::move(status_builder).AttachExtendedStatus(std::move(es));
@@ -251,8 +266,10 @@ std::function<StatusBuilder && (StatusBuilder&&)> WrapExtendedStatus(
     uint32_t code, std::string_view user_message,
     StatusBuilder::WrapExtendedStatusMode wrap_mode,
     const ExtendedStatusOptions& options) {
-  intrinsic_proto::status::ExtendedStatus es =
-      CreateExtendedStatus(code, user_message, options);
+  intrinsic_proto::status::ExtendedStatus es = CreateExtendedStatusImpl(
+      code, user_message, options,
+      // We are in the context of creating an absl::Status (i.e., an error).
+      /*default_severity=*/intrinsic_proto::status::ExtendedStatus::ERROR);
   return [es = std::move(es), wrap_mode = wrap_mode](
              StatusBuilder&& status_builder) -> StatusBuilder&& {
     return std::move(status_builder)

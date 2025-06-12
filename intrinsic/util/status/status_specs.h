@@ -84,6 +84,13 @@ intrinsic_proto::status::ExtendedStatus CreateExtendedStatus(
     uint32_t code, std::string_view user_message,
     const ExtendedStatusOptions& options = {});
 
+// Creates an absl::Status which has the given 'generic_code' and which has
+// an ExtendedStatus with the given extended status 'code' and 'user_message'.
+//
+// For the 'user_message' and extended status 'options', also see the
+// description of CreateExtendedStatus() above. If the given 'options' do not
+// have an explicit severity value set, the created ExtendedStatus defaults to
+// severity ERROR.
 absl::Status CreateStatus(
     uint32_t code, std::string_view user_message,
     absl::StatusCode generic_code = absl::StatusCode::kUnknown,
@@ -114,6 +121,9 @@ absl::Status CreateStatus(
 // This invokes CreateExtendedStatus() and then attaches that status to the
 // given StatusBuilder. This is a pure policy for the StatusBuilder that may
 // be chained (see StatusBuilder documentation).
+//
+// If the given 'options' do not have an explicit severity value set, the
+// created ExtendedStatus defaults to severity ERROR.
 std::function<StatusBuilder && (StatusBuilder&&)> AttachExtendedStatus(
     uint32_t code, std::string_view user_message,
     const ExtendedStatusOptions& options = {});
@@ -123,6 +133,9 @@ std::function<StatusBuilder && (StatusBuilder&&)> AttachExtendedStatus(
 // ExtendedStatus it is included in the created ExtendedStatus either as a debug
 // report or as a generic ExtendedStatus in the context. For details see
 // StatusBuilder::WrapExtendedStatus.
+//
+// If the given 'options' do not have an explicit severity value set, the
+// created ExtendedStatus defaults to severity ERROR.
 //
 // For invocation examples, see AttachExtendedStatus docs above.
 std::function<StatusBuilder && (StatusBuilder&&)> WrapExtendedStatus(
