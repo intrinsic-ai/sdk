@@ -829,3 +829,17 @@ go_grpc_library(
         "@org_golang_google_protobuf//types/known/timestamppb",
     ],
 )
+
+py_proto_library(
+    name = "train_service_py_pb2",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":train_service_proto"],
+)
+
+py_grpc_library(
+    name = "train_service_py_pb2_grpc",
+    srcs = [":train_service_proto"],
+    grpc_library = requirement("grpcio"),
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":train_service_py_pb2"],
+)
