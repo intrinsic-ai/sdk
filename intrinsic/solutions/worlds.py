@@ -56,7 +56,7 @@ def _object_world_resource_to_transform_node_reference(
   )
 
 
-class ObjectWorldExternal(object_world_client.ObjectWorldClient):
+class ObjectWorld(object_world_client.ObjectWorldClient):
   """Extends an ObjectWorldClient with a connect method."""
 
   @classmethod
@@ -64,13 +64,10 @@ class ObjectWorldExternal(object_world_client.ObjectWorldClient):
       cls,
       world_id: str,
       grpc_channel: grpc.Channel,
-  ) -> "ObjectWorldExternal":
+  ) -> "ObjectWorld":
     stub = object_world_service_pb2_grpc.ObjectWorldServiceStub(grpc_channel)
     geometry_stub = geometry_service_pb2_grpc.GeometryServiceStub(grpc_channel)
     return cls(world_id, stub, geometry_stub)
-
-
-ObjectWorld = ObjectWorldExternal
 
 
 class CollisionSettings:

@@ -32,7 +32,7 @@ class ObjectWorldExternalTest(absltest.TestCase):
       mock_object_world_service_stub.return_value = stub
       channel = mock.MagicMock()
 
-      world = worlds.ObjectWorldExternal.connect('world', channel)
+      world = worlds.ObjectWorld.connect('world', channel)
       self.assertEqual(world.my_object.name, 'my_object')
 
 
