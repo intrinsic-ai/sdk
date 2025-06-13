@@ -9,7 +9,6 @@
 #include <unistd.h>
 
 #include <csignal>
-#include <future>  // NOLINT(build/c++11)
 #include <memory>
 #include <optional>
 #include <string>
@@ -19,6 +18,7 @@
 #include "absl/base/nullability.h"
 #include "absl/flags/flag.h"
 #include "absl/log/check.h"
+#include "absl/log/flags.h"
 #include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
@@ -91,10 +91,10 @@ absl::StatusOr<HardwareModuleExitCode> ModuleMain(int argc, char** argv) {
   absl::StatusOr<
       /*absl_nonnull*/ std::unique_ptr<intrinsic::icon::HardwareModuleRuntime>>
       runtime = absl::FailedPreconditionError("Config not OK");
-  std::promise<HardwareModuleExitCode> hwm_exit_code_promise;
-  std::future<HardwareModuleExitCode> hwm_exit_code_future =
-      hwm_exit_code_promise.get_future();
+
   std::vector<int> cpu_affinity;
+  auto exit_code_promise =
+      std::make_shared<SharedPromiseWrapper<HardwareModuleExitCode>>();
 
   if (hwm_main_config.ok()) {
     std::string shared_memory_namespace =
@@ -128,16 +128,18 @@ absl::StatusOr<HardwareModuleExitCode> ModuleMain(int argc, char** argv) {
             intrinsic::icon::ModuleConfig(
                 hwm_main_config->module_config, shared_memory_namespace,
                 realtime_clock.get(), server_thread_options),
-            std::move(realtime_clock)));
+            std::move(realtime_clock)),
+        exit_code_promise);
   } else {
     LOG(ERROR) << "Failed to load hardware module config: "
                << hwm_main_config.status();
   }
 
-  std::optional<HardwareModuleExitCode> exit_code =
+  INTR_ASSIGN_OR_RETURN(
+      std::optional<HardwareModuleExitCode> exit_code,
       RunRuntimeWithGrpcServerAndWaitForShutdown(
-          hwm_main_config, runtime, absl::GetFlag(FLAGS_grpc_server_port),
-          cpu_affinity);
+          hwm_main_config, exit_code_promise, runtime,
+          absl::GetFlag(FLAGS_grpc_server_port), cpu_affinity));
 
   // Stop the runtime and shutdown fully.
   if (runtime.ok()) {
@@ -160,6 +162,7 @@ absl::StatusOr<HardwareModuleExitCode> ModuleMain(int argc, char** argv) {
 
 int main(int argc, char** argv) {
   InitXfa(intrinsic::icon::kUsageString, argc, argv);
+  LOG(INFO) << "PUBLIC: Starting hardware module main";
   constexpr int prefault_memory = 256 * 1024;
   QCHECK_OK((intrinsic::LockMemory<prefault_memory, prefault_memory>()));
   absl::StatusOr<intrinsic::icon::HardwareModuleExitCode> exit_code =

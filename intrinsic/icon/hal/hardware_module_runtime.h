@@ -9,12 +9,14 @@
 #include <vector>
 
 #include "absl/base/nullability.h"
+#include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "grpcpp/server_builder.h"
 #include "intrinsic/icon/hal/hardware_interface_handle.h"
 #include "intrinsic/icon/hal/hardware_interface_registry.h"
 #include "intrinsic/icon/hal/hardware_module_interface.h"
+#include "intrinsic/icon/hal/hardware_module_util.h"
 #include "intrinsic/icon/hal/interfaces/hardware_module_state.fbs.h"
 #include "intrinsic/icon/hal/interfaces/icon_state.fbs.h"
 #include "intrinsic/icon/interprocess/remote_trigger/remote_trigger_server.h"
@@ -71,9 +73,15 @@ class HardwareModuleRuntime final {
   // `shared_memory_manager` and `hardware_module`.
   // Forwards errors from creating the DomainSocketServer for exposing the
   // shared memory segments across process boundaries.
+  // If set, the HardwareModuleRuntime signals `exit_code_promise` when it
+  // receives a restart request. Note that other components also have access to
+  // `exit_code_promise` and may signal it for other reasons. This class should
+  // handle this case gracefully.
   static absl::StatusOr</*absl_nonnull*/ std::unique_ptr<HardwareModuleRuntime>>
   Create(std::unique_ptr<SharedMemoryManager> shared_memory_manager,
-         HardwareModule hardware_module);
+         HardwareModule hardware_module,
+         std::weak_ptr<SharedPromiseWrapper<HardwareModuleExitCode>>
+             exit_code_promise = {});
 
   // Starts the execution of the module.
   // The module services will be run asynchronously in their own thread, which
@@ -116,7 +124,13 @@ class HardwareModuleRuntime final {
   // rest of the ICON IPC. We internally call this in the `Create` function
   // after we've initialized our object. That way we can connect our service
   // callbacks correctly to class member instances (i.e. `PartRegistry`).
-  absl::Status Connect();
+  // `exit_code_promise` is used by this class to signal the hardware module
+  // process to exit with a specific exit code. Other components also use this
+  // promise to signal the hardware module process to exit. This class should
+  // handle this case gracefully.
+  absl::Status Connect(
+      std::weak_ptr<SharedPromiseWrapper<HardwareModuleExitCode>>
+          exit_code_promise);
   HardwareInterfaceRegistry interface_registry_;
   // Closes the shared memory file descriptors that it owns on destruction, so
   // it must go before hardware_module_ and domain_socket_server_:
@@ -131,7 +145,9 @@ class HardwareModuleRuntime final {
   std::unique_ptr<DomainSocketServer> domain_socket_server_;
 
   class CallbackHandler;
+  // Must outlive `restart_server_`.
   std::unique_ptr<CallbackHandler> callback_handler_;
+  std::unique_ptr<RemoteTriggerServer> restart_server_;
   std::unique_ptr<RemoteTriggerServer> activate_server_;
   std::unique_ptr<RemoteTriggerServer> deactivate_server_;
   std::unique_ptr<RemoteTriggerServer> prepare_server_;

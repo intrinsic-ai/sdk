@@ -2,6 +2,7 @@
 
 #include "intrinsic/icon/hal/hardware_module_health_service.h"
 
+#include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/strings/string_view.h"
 #include "absl/synchronization/mutex.h"
@@ -55,9 +56,14 @@ HardwareModuleHealthService::~HardwareModuleHealthService() {
 
 void HardwareModuleHealthService::NotifyWithExitCode(
     HardwareModuleExitCode exit_code) {
-  if (hardware_module_exit_code_promise_.has_value()) {
-    hardware_module_exit_code_promise_->set_value(exit_code);
-    hardware_module_exit_code_promise_.reset();
+  if (auto promise_wrapper = hardware_module_exit_code_promise_.lock();
+      promise_wrapper != nullptr) {
+    if (promise_wrapper->HasBeenSet()) {
+      return;
+    }
+    if (auto status = promise_wrapper->SetValue(exit_code); !status.ok()) {
+      LOG(ERROR) << "Failed to set exit code: " << status;
+    }
   }
 }
 

@@ -20,6 +20,8 @@ const (
 
 var (
 	// We avoid bringing these constants in via cgo because it leads to bad packaging interactions with pkg_tar.
+	// Corresponds to intrinsic::icon::HardwareModuleExitCode::kRestartRequested
+	hardwareModuleRestartRequested = 110
 	// Corresponds to intrinsic::icon::HardwareModuleExitCode::kFatalFaultDuringInit
 	hardwareModuleFatalFaultDuringInit = 111
 	// Corresponds to intrinsic::icon::HardwareModuleExitCode::kFatalFaultDuringExec
@@ -82,6 +84,9 @@ func main() {
 
 		exitCode := cmd.ProcessState.ExitCode()
 		switch exitCode {
+		case hardwareModuleRestartRequested:
+			log.Error("Hardware Module requested a restart. Restarting.")
+			continue
 		case hardwareModuleFatalFaultDuringInit:
 			log.Error("Hardware Module faulted during initialization. Restarting.")
 			continue

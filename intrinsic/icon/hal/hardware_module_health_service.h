@@ -3,8 +3,7 @@
 #ifndef INTRINSIC_ICON_HAL_HARDWARE_MODULE_HEALTH_SERVICE_H_
 #define INTRINSIC_ICON_HAL_HARDWARE_MODULE_HEALTH_SERVICE_H_
 
-#include <future>  // NOLINT(build/c++11)
-#include <optional>
+#include <memory>
 #include <utility>
 
 #include "absl/base/thread_annotations.h"
@@ -29,7 +28,8 @@ class HardwareModuleHealthService :
     public intrinsic_proto::services::v1::ServiceState::Service {
  public:
   explicit HardwareModuleHealthService(
-      std::promise<HardwareModuleExitCode>&& exit_code_promise)
+      std::weak_ptr<SharedPromiseWrapper<HardwareModuleExitCode>>
+          exit_code_promise)
       : hardware_module_exit_code_promise_(std::move(exit_code_promise)) {}
 
   ~HardwareModuleHealthService() override;
@@ -72,10 +72,8 @@ class HardwareModuleHealthService :
   absl::Status latched_init_fault_ ABSL_GUARDED_BY(mutex_);
   HardwareModuleRuntime* hardware_module_runtime_ ABSL_GUARDED_BY(mutex_) =
       nullptr;
-  std::optional<std::promise<HardwareModuleExitCode>>
-      hardware_module_exit_code_promise_
-          ABSL_GUARDED_BY(mutex_);  // Optional so that we can reset it
-                                    // after use.
+  std::weak_ptr<SharedPromiseWrapper<HardwareModuleExitCode>>
+      hardware_module_exit_code_promise_ ABSL_GUARDED_BY(mutex_);
 };
 
 }  // namespace intrinsic::icon

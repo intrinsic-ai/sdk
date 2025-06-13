@@ -173,7 +173,7 @@ namespace {
 // reaching deadline.
 // Returns true, if `exit_code_future` has a value set.
 bool ExitCodeFutureHasValue(
-    std::future<HardwareModuleExitCode>& exit_code_future,
+    std::shared_future<HardwareModuleExitCode>& exit_code_future,
     Clock::time_point deadline) {
   if (!exit_code_future.valid()) {
     return false;
@@ -182,7 +182,7 @@ bool ExitCodeFutureHasValue(
 }
 
 std::optional<HardwareModuleExitCode> GetExitCodeFromFuture(
-    std::future<HardwareModuleExitCode>& exit_code_future,
+    std::shared_future<HardwareModuleExitCode>& exit_code_future,
     Clock::time_point deadline) {
   if (!ExitCodeFutureHasValue(exit_code_future, deadline)) {
     return std::nullopt;
@@ -191,16 +191,18 @@ std::optional<HardwareModuleExitCode> GetExitCodeFromFuture(
 }
 
 std::optional<HardwareModuleExitCode> GetExitCodeFromFuture(
-    std::future<HardwareModuleExitCode>& exit_code_future,
+    std::shared_future<HardwareModuleExitCode>& exit_code_future,
     Duration timeout = Milliseconds(0)) {
   return GetExitCodeFromFuture(exit_code_future, Clock::Now() + timeout);
 }
 
 }  // namespace
 
-std::optional<HardwareModuleExitCode>
+absl::StatusOr<std::optional<HardwareModuleExitCode>>
 RunRuntimeWithGrpcServerAndWaitForShutdown(
     const absl::StatusOr<HardwareModuleMainConfig>& main_config,
+    const std::shared_ptr<SharedPromiseWrapper<HardwareModuleExitCode>>&
+        exit_code_promise,
     absl::StatusOr</*absl_nonnull*/
                    std::unique_ptr<intrinsic::icon::HardwareModuleRuntime>>&
         runtime,
@@ -211,9 +213,13 @@ RunRuntimeWithGrpcServerAndWaitForShutdown(
   server_builder.AddChannelArgument(GRPC_ARG_ALLOW_REUSEPORT, 0);
   server_builder.AddChannelArgument(GRPC_ARG_MAX_METADATA_SIZE,
                                     16 * 1024);  // Set to 16KB
+  std::shared_future<HardwareModuleExitCode> exit_code_future =
+      exit_code_promise->GetSharedFuture();
+
   if (runtime.ok()) {
-    QCHECK_OK(main_config.status())
-        << "Runtime OK but config not OK - this is a bug";
+    INTR_RETURN_IF_ERROR(main_config.status())
+        << "Runtime OK but config not OK - this is a bug: "
+        << main_config.status();
     LOG(INFO) << "PUBLIC: Starting hardware module "
               << main_config->module_config.name();
     auto status = runtime.value()->Run(
@@ -225,12 +231,8 @@ RunRuntimeWithGrpcServerAndWaitForShutdown(
     }
   }
 
-  std::optional<HardwareModuleExitCode> exit_code;
-  std::promise<HardwareModuleExitCode> exit_code_promise;
-  std::future<HardwareModuleExitCode> health_service_exit_code_future =
-      exit_code_promise.get_future();
   intrinsic::icon::HardwareModuleHealthService health_service(
-      std::move(exit_code_promise));
+      exit_code_promise);
 
   std::optional<int> grpc_server_port = std::nullopt;
   if (main_config.ok() && main_config->runtime_context.has_value()) {
@@ -288,11 +290,11 @@ RunRuntimeWithGrpcServerAndWaitForShutdown(
   // from the signal handler and a future isn't signal-safe
   // either.
   const Duration kPollShutdownSignalEvery = intrinsic::Seconds(0.2);
+  std::optional<HardwareModuleExitCode> exit_code;
   while (IsShutdownRequested() == ShutdownType::kNotRequested) {
     auto next_check_deadline = Clock::Now() + kPollShutdownSignalEvery;
-    if (ExitCodeFutureHasValue(health_service_exit_code_future,
-                               next_check_deadline)) {
-      exit_code = GetExitCodeFromFuture(health_service_exit_code_future);
+    if (ExitCodeFutureHasValue(exit_code_future, next_check_deadline)) {
+      exit_code = GetExitCodeFromFuture(exit_code_future);
       break;
     }
   }

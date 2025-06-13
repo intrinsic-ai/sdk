@@ -59,9 +59,11 @@ absl::StatusOr<HardwareModuleRtSchedulingData> SetupRtScheduling(
 
 // Runs HWM runtime and the gRPC server and waits for runtime to shutdown as
 // signaled by system signals or the resource health service.
-std::optional<HardwareModuleExitCode>
+absl::StatusOr<std::optional<HardwareModuleExitCode>>
 RunRuntimeWithGrpcServerAndWaitForShutdown(
     const absl::StatusOr<HardwareModuleMainConfig>& main_config,
+    const std::shared_ptr<SharedPromiseWrapper<HardwareModuleExitCode>>&
+        exit_code_promise,
     absl::StatusOr</*absl_nonnull*/
                    std::unique_ptr<intrinsic::icon::HardwareModuleRuntime>>&
         runtime,

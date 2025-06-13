@@ -663,7 +663,9 @@ class HardwareModuleRuntime::CallbackHandler final {
 absl::StatusOr</*absl_nonnull*/ std::unique_ptr<HardwareModuleRuntime>>
 HardwareModuleRuntime::Create(
     std::unique_ptr<SharedMemoryManager> shared_memory_manager,
-    HardwareModule hardware_module) {
+    HardwareModule hardware_module,
+    std::weak_ptr<SharedPromiseWrapper<HardwareModuleExitCode>>
+        exit_code_promise) {
   // Locks the name used by this module. Ensures only a single instance can
   // run at a time. Fails if the lock can't be acquired within the timeout.
   INTR_ASSIGN_OR_RETURN(auto domain_socket_server,
@@ -683,7 +685,7 @@ HardwareModuleRuntime::Create(
   auto runtime = absl::WrapUnique(new HardwareModuleRuntime(
       std::move(hardware_module), std::move(registry),
       std::move(shared_memory_manager), std::move(domain_socket_server)));
-  INTR_RETURN_IF_ERROR(runtime->Connect());
+  INTR_RETURN_IF_ERROR(runtime->Connect(exit_code_promise));
   return runtime;
 }
 
@@ -697,6 +699,7 @@ HardwareModuleRuntime::HardwareModuleRuntime(
       hardware_module_(std::move(hardware_module)),
       domain_socket_server_(std::move(domain_socket_server)),
       callback_handler_(nullptr),
+      restart_server_(nullptr),
       activate_server_(nullptr),
       deactivate_server_(nullptr),
       prepare_server_(nullptr),
@@ -722,7 +725,9 @@ HardwareModuleRuntime::~HardwareModuleRuntime() {
   }
 }
 
-absl::Status HardwareModuleRuntime::Connect() {
+absl::Status HardwareModuleRuntime::Connect(
+    std::weak_ptr<SharedPromiseWrapper<HardwareModuleExitCode>>
+        exit_code_promise) {
   // Adds an "inbuilt" status segment for the hardware module state.
   INTR_ASSIGN_OR_RETURN(
       hardware_module_state_interface_,
@@ -741,6 +746,65 @@ absl::Status HardwareModuleRuntime::Connect() {
       icon_state_interface_,
       interface_registry_.AdvertiseInterface<intrinsic_fbs::IconState>(
           kIconStateInterfaceName));
+
+  INTR_ASSIGN_OR_RETURN(
+      auto restart_server,
+      RemoteTriggerServer::Create(
+          *shared_memory_manager_, "restart",
+          [this,
+           // Since `exit_code_promise` is a weak pointer, we can and must copy
+           // it into the lambda.
+           exit_code_promise] {
+            if (auto promise_wrapper = exit_code_promise.lock();
+                promise_wrapper != nullptr && !promise_wrapper->HasBeenSet()) {
+              // Its safe to use callback_handler_ here because
+              // callback_handler_ is destroyed after restart_server_ is
+              // destroyed.
+
+              HardwareModuleExitCode exit_code;
+              switch (callback_handler_->GetHardwareModuleState().code()) {
+                case intrinsic_fbs::StateCode::kMotionEnabled:
+                  LOG(WARNING)
+                      << "Restarting the hardware module is not allowed "
+                         "while the module is enabled.";
+                  return;  // Reject the restart request. Do not set the exit
+                           // code promise in this case and return directly.
+                           // Since there is no return value, we can only log
+                           // the issue.
+                case intrinsic_fbs::StateCode::kInitFailed:
+                  exit_code = HardwareModuleExitCode::kFatalFaultDuringInit;
+                  break;
+                case intrinsic_fbs::StateCode::kFatallyFaulted:
+                  exit_code = HardwareModuleExitCode::kFatalFaultDuringExec;
+                  break;
+                // All other cases are handled as a restart request.
+                default:
+                  exit_code = HardwareModuleExitCode::kRestartRequested;
+              };
+              LOG(INFO) << "Restarting hardware module with exit code: "
+                        << static_cast<int>(exit_code);
+              // We need to destroy the domain socket server before we set
+              // the exit code promise, because we need to prevent new
+              // connections to the domain socket server after we set the exit
+              // code promise. In practice, this is needed since the ICON
+              // server usually restarts faster than the hardware module.
+              // Otherwise, ICON connects to the old instance and then loses the
+              // connection when the new HWM instance is started.
+              domain_socket_server_.reset();
+              // Set the exit code promise to indicate that the module
+              // should be restarted.
+              if (auto status = promise_wrapper->SetValue(exit_code);
+                  !status.ok()) {
+                LOG(ERROR) << "Failed to set exit code: " << status;
+              }
+
+            } else {
+              LOG(ERROR) << "Exit code promise wrapper is already set/deleted. "
+                            "Cannot request to restart the module again.";
+            }
+          }));
+  restart_server_ =
+      std::make_unique<RemoteTriggerServer>(std::move(restart_server));
 
   INTR_ASSIGN_OR_RETURN(
       auto activate_server,
@@ -825,6 +889,10 @@ absl::Status HardwareModuleRuntime::Run(grpc::ServerBuilder& server_builder,
         "PUBLIC: Hardware module does not seem to be connected. Did you call "
         "`Connect()`?");
   }
+  // We need to start the restart-server before the HWM init function is
+  // called so that the HWM can be restarted even if it fails to
+  // initialize the HWM.
+  INTR_RETURN_IF_ERROR(restart_server_->StartAsync());
 
   // Helper lambda to set the state to kInitFailed if any of the
   // initialization steps below fail.
@@ -965,6 +1033,7 @@ absl::Status HardwareModuleRuntime::Stop() {
   clear_faults_server_->RequestStop();
   prepare_server_->RequestStop();
   activate_server_->RequestStop();
+  restart_server_->RequestStop();
   stop_requested_->store(true);
   auto status = hardware_module_.instance->Shutdown();
   apply_command_server_->JoinAsyncThread();
