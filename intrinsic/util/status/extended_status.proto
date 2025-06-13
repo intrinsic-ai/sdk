@@ -94,4 +94,5 @@ message ExtendedStatus {
   // helpful to the user to investigate an issue, but to the component developer
   // to investigate a reported issue.
   optional DebugReport debug_report = 13;
+
 }
