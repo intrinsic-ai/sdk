@@ -1,0 +1,42 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.geometry.v1;
+
+import "intrinsic/geometry/proto/v1/geometry_storage_refs.proto";
+import "intrinsic/geometry/proto/v1/inline_geometry.proto";
+import "intrinsic/geometry/proto/v1/material.proto";
+
+// Information about a previous version of a geometry. Importantly this does not
+// include the ref_t_shape from a transformed geometry in the history.
+message GeometryProvenance {
+  // Use as a descriptor for what operation was performed to update the geometry
+  // from oneof data.
+  string human_readable_update_reason = 1;
+
+  oneof data {
+    // A reference to the stored geometry proto e.g. a CAS URI that represents
+    // the previous version of this geometry.
+    // Encoded as intrinsic_proto.geometry.v1.Geometry instance.
+    string geometry_data_uri = 2;
+
+    // The actual data for the previous version of this geometry.
+    Geometry geometry_data = 3;
+  }
+}
+
+// A single piece of geometry represented as a reference to a stored geometry
+// proto or as the inlined geometry proto itself.
+message Geometry {
+  oneof data {
+    GeometryStorageRefs geo_ref = 2;
+    InlineGeometry inline_geometry_data = 3;
+  }
+
+  // Overrides to apply to the renderable.
+  optional MaterialProperties material_overrides = 4;
+
+  // The previous version of this geometry data if one existed.
+  GeometryProvenance provenance = 5;
+}

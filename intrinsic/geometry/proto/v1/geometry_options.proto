@@ -1,0 +1,16 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.geometry.v1;
+
+// Runtime options for a Geometry.
+message GeometryOptions {
+  // If set, the octree will be filled on the inside when constructing the
+  // octree for distance queries. This is only used when generating new octree
+  // wrappings from an existing mesh or point cloud. This is not used when
+  // loading a pre-existing octree wrapping like the one stored in the
+  // ExactGeometry proto.
+  optional bool fill_inside_for_distance_queries = 1;
+
+}

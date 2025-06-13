@@ -1,0 +1,28 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.geometry.v1;
+
+import "intrinsic/geometry/proto/v1/geometry_options.proto";
+import "intrinsic/geometry/proto/v1/octree_wrapping.proto";
+import "intrinsic/geometry/proto/v1/transformed_primitive_shape_set.proto";
+import "intrinsic/geometry/proto/v1/triangle_mesh.proto";
+
+// Computational geometry representation of Geometry.
+message ExactGeometry {
+  // The data representation of this Geometry.
+  oneof data {
+    TransformedPrimitiveShapeSet primitive_set = 1;
+
+    // The mesh representation of this Geometry.
+    TriangleMesh triangle_mesh = 2;
+
+  }
+
+  // An optional Octree based wrapping that segments the raw data into an octree
+  optional OctreeWrapping octree_wrapping = 4;
+
+  // Runtime options for this geometry.
+  GeometryOptions options = 5;
+}

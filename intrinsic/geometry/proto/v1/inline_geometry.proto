@@ -1,0 +1,23 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.geometry.v1;
+
+import "intrinsic/geometry/proto/v1/exact_geometry.proto";
+import "intrinsic/geometry/proto/v1/renderable.proto";
+
+message InlineGeometry {
+  // The computational geometry representation.
+  ExactGeometry exact_geometry = 1;
+
+  // The optional renderable data.
+  oneof renderable_type {
+    // If renderable is specified then this proto contains a unique (user
+    // provided) renderable that should be maintained.
+    Renderable renderable = 2;
+    // If generated_renderable is specified then this proto contains a cached
+    // generated renderable and does not have to be maintained.
+    Renderable generated_renderable = 3;
+  }
+}

@@ -1,0 +1,19 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.geometry.v1;
+
+import "intrinsic/geometry/proto/v1/primitives.proto";
+
+// A primitives based representation of a geometric shape.
+message PrimitiveShape {
+  oneof shape {
+    Box box = 1;
+    Capsule capsule = 2;
+    Cylinder cylinder = 3;
+    Ellipsoid ellipsoid = 4;
+    Frustum frustum = 5;
+    Sphere sphere = 6;
+  }
+}

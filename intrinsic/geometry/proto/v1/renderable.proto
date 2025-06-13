@@ -1,0 +1,12 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.geometry.v1;
+
+// Renderable representation of Geometry.
+message Renderable {
+  // GLB representation of a geometric shape. May have gone through a lossy
+  // process to be generated.
+  bytes glb_bytes = 1;
+}
