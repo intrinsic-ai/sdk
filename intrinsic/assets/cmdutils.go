@@ -316,9 +316,10 @@ func (cf *CmdFlags) AddFlagsProjectOrg() {
 }
 
 // AddFlagsProjectOrgOptional adds both the project and org flag as optional, including the necessary handling.
-func (cf *CmdFlags) AddFlagsProjectOrgOptional() {
+// If enableOrgExistsCheck is true, it will also check if the org exists in the project.
+func (cf *CmdFlags) AddFlagsProjectOrgOptional(enableOrgExistsCheck func() bool) {
 	// While WrapCmd returns the pointer to make it inline, it's modifying, so we can use it here.
-	orgutil.WrapCmdOptional(cf.cmd, cf.viperLocal)
+	orgutil.WrapCmdOptionalNoOrgCheck(cf.cmd, cf.viperLocal, enableOrgExistsCheck)
 }
 
 // AddFlagProject adds a flag for the GCP project.
