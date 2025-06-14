@@ -4184,6 +4184,36 @@ class BehaviorTreeDataTest(parameterized.TestCase):
     node = bt.Data()
     self.assertEqual(node.node_type, 'data')
 
+  def test_init_from_proto(self):
+    """Tests if BehaviorTree.Data is correctly constructed."""
+    test_msg = test_message_pb2.TestMessage(int64_value=123)
+    node = bt.Data(name='foo')
+    node.set_operation(bt.Data.OperationType.CREATE_OR_UPDATE)
+    node.set_blackboard_key('bbfoo')
+    node.set_input_proto(test_msg)
+
+    node_proto = behavior_tree_pb2.BehaviorTree.Node(name='foo')
+    node_proto.data.create_or_update.proto.Pack(test_msg)
+    node_proto.data.create_or_update.blackboard_key = 'bbfoo'
+
+    compare.assertProto2Equal(self, node.proto, node_proto)
+
+  def test_init_from_protos(self):
+    """Tests if BehaviorTree.Data is correctly constructed."""
+    test_msg_1 = test_message_pb2.TestMessage(int64_value=123)
+    test_msg_2 = test_message_pb2.TestMessage(int32_value=345)
+    node = bt.Data(name='foo')
+    node.set_operation(bt.Data.OperationType.CREATE_OR_UPDATE)
+    node.set_blackboard_key('bbfoo')
+    node.set_input_protos([test_msg_1, test_msg_2])
+
+    node_proto = behavior_tree_pb2.BehaviorTree.Node(name='foo')
+    node_proto.data.create_or_update.protos.items.add().Pack(test_msg_1)
+    node_proto.data.create_or_update.protos.items.add().Pack(test_msg_2)
+    node_proto.data.create_or_update.blackboard_key = 'bbfoo'
+
+    compare.assertProto2Equal(self, node.proto, node_proto)
+
   def test_init_message_wrapper(self):
     """Tests if BehaviorTree.Data is correctly constructed."""
     skill_utils = skill_test_utils.SkillTestUtils(

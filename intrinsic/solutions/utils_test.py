@@ -3,6 +3,7 @@
 import enum
 
 from absl.testing import absltest
+from intrinsic.executive.proto import test_message_pb2
 from intrinsic.solutions import utils
 
 
@@ -45,6 +46,100 @@ class PrefixOptionsTest(absltest.TestCase):
     self.assertEqual(options.xfa_prefix, 'my_xfa')
     self.assertEqual(options.world_prefix, 'my_world')
     self.assertEqual(options.skill_prefix, 'my_skills')
+
+
+class ProtoEnumTest(absltest.TestCase):
+  """Tests utils.protoenum decorator."""
+
+  def test_maps_all_values(self):
+    """Tests that all proto enum values are mapped indeed."""
+
+    @utils.protoenum(proto_enum_type=test_message_pb2.TestEnum)
+    class TestEnum:
+      pass
+
+    self.assertEqual(
+        TestEnum.TEST_ENUM_UNSPECIFIED.value,
+        test_message_pb2.TestEnum.TEST_ENUM_UNSPECIFIED,
+    )
+    self.assertEqual(
+        TestEnum.TEST_ENUM_1.value,
+        test_message_pb2.TestEnum.TEST_ENUM_1,
+    )
+    self.assertEqual(
+        TestEnum.TEST_ENUM_2.value,
+        test_message_pb2.TestEnum.TEST_ENUM_2,
+    )
+    self.assertEqual(
+        TestEnum.TEST_ENUM_3.value,
+        test_message_pb2.TestEnum.TEST_ENUM_3,
+    )
+
+  def test_does_not_map_unspecified_if_mapped_to_none(self):
+    """Tests that the unspecified value does not appear in enum when mapped to None."""
+
+    @utils.protoenum(
+        proto_enum_type=test_message_pb2.TestEnum,
+        unspecified_proto_enum_map_to_none=test_message_pb2.TestEnum.TEST_ENUM_UNSPECIFIED,
+    )
+    class TestEnum:
+      pass
+
+    with self.assertRaises(AttributeError):
+      _ = TestEnum.TEST_ENUM_UNSPECIFIED
+
+  def test_strip_prefix(self):
+    """Tests that prefixes are properly stripped from member names."""
+
+    @utils.protoenum(
+        proto_enum_type=test_message_pb2.TestEnum,
+        unspecified_proto_enum_map_to_none=test_message_pb2.TestEnum.TEST_ENUM_UNSPECIFIED,
+        strip_prefix='TEST_',
+    )
+    class TestEnum:
+      pass
+
+    self.assertEqual(
+        TestEnum.ENUM_1.value,
+        test_message_pb2.TestEnum.TEST_ENUM_1,
+    )
+    self.assertEqual(
+        TestEnum.ENUM_2.value,
+        test_message_pb2.TestEnum.TEST_ENUM_2,
+    )
+    self.assertEqual(
+        TestEnum.ENUM_3.value,
+        test_message_pb2.TestEnum.TEST_ENUM_3,
+    )
+
+  def test_from_proto(self):
+    """Tests from_proto method of wrapped enum."""
+
+    @utils.protoenum(
+        proto_enum_type=test_message_pb2.TestEnum,
+        unspecified_proto_enum_map_to_none=test_message_pb2.TestEnum.TEST_ENUM_UNSPECIFIED,
+    )
+    class TestEnum(enum.Enum):
+      pass
+
+    self.assertIsNone(TestEnum.from_proto(None))
+
+    self.assertIsNone(
+        TestEnum.from_proto(test_message_pb2.TestEnum.TEST_ENUM_UNSPECIFIED)
+    )
+
+    self.assertEqual(
+        TestEnum.from_proto(test_message_pb2.TestEnum.TEST_ENUM_1),
+        TestEnum.TEST_ENUM_1,
+    )
+    self.assertEqual(
+        TestEnum.from_proto(test_message_pb2.TestEnum.TEST_ENUM_2),
+        TestEnum.TEST_ENUM_2,
+    )
+    self.assertEqual(
+        TestEnum.from_proto(test_message_pb2.TestEnum.TEST_ENUM_3),
+        TestEnum.TEST_ENUM_3,
+    )
 
 
 if __name__ == '__main__':

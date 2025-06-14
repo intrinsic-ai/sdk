@@ -13,7 +13,6 @@ _WORLD_ID = "world"
 
 
 class MotionPlannerClientTest(absltest.TestCase):
-
   def setUp(self):
     super().setUp()
     self.stub = mock.create_autospec(

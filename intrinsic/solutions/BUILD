@@ -3,7 +3,7 @@
 # Solution building Python libraries.
 
 load("@ai_intrinsic_sdks_pip_deps//:requirements.bzl", "requirement")
-load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
+load("@rules_python//python:defs.bzl", "py_library", "py_test")
 load("@rules_python//python:packaging.bzl", "py_package", "py_wheel")
 
 package(default_visibility = [
@@ -272,15 +272,6 @@ py_test(
     ],
 )
 
-# Pseudo binary target with all dependendies of the solutions lib.
-py_binary(
-    name = "main",
-    srcs = ["main.py"],
-    deps = [
-        ":solutions_lib",
-    ],
-)
-
 # Collection of all "public" modules for packaging.
 py_library(
     name = "solutions_lib",
@@ -502,6 +493,7 @@ py_test(
     srcs = ["utils_test.py"],
     deps = [
         ":utils",
+        "//intrinsic/executive/proto:test_message_py_pb2",
         "@com_google_absl_py//absl/testing:absltest",
     ],
 )

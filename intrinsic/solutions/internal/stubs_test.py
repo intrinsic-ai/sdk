@@ -12,9 +12,7 @@ from intrinsic.solutions.testing import skill_test_utils
 from intrinsic.util.path_resolver import path_resolver
 
 
-_INTRINSIC_STUBS_SOLUTIONS_PATH = (
-    "intrinsic-stubs/solutions"
-)
+_INTRINSIC_STUBS_SOLUTIONS_PATH = "intrinsic-stubs/solutions"
 _INTRINSIC_STUBS_PATH = "intrinsic-stubs"
 
 

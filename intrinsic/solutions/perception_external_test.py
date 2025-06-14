@@ -6,7 +6,6 @@ from intrinsic.solutions import perception
 
 
 class CamerasTest(absltest.TestCase):
-
   def test_camera_init_smoke(self):
     _ = perception.Camera(
         channel=mock.MagicMock(),

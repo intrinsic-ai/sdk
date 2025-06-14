@@ -1058,6 +1058,13 @@ class SkillsTest(parameterized.TestCase):
 
     skills = skill_providing.Skills(skill_registry, resource_registry)
 
+    # Normal assignment to known field should work
+    m = skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.SubMessage(
+        name='hello'
+    )
+    expected_proto = test_skill_params_pb2.SubMessage(name='hello')
+    compare.assertProto2Equal(self, expected_proto, m.wrapped_message)
+
     # Assignment to unknown field should fail
     with self.assertRaisesRegex(KeyError, 'not_a_field.*does not exist'):
       skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.SubMessage(
@@ -2085,6 +2092,23 @@ Returns:
   def test_skill_info_package_name(self, skill, expected_package_name):
     info = skill_generation.SkillInfoImpl(skill)
     self.assertEqual(info.package_name, expected_package_name)
+
+  def test_construct_skill_info_incomplete_fileset(self):
+    skill = self._utils.create_test_skill_info(
+        skill_id='ai.intrinsic.my_skill',
+        parameter_defaults=test_skill_params_pb2.TestMessage(),
+    )
+    file_descriptor = descriptor_pb2.FileDescriptorProto()
+    test_skill_params_pb2.TestMessage.DESCRIPTOR.file.CopyToProto(
+        file_descriptor
+    )
+    skill.parameter_description.parameter_descriptor_fileset.Clear()
+    skill.parameter_description.parameter_descriptor_fileset.file.append(
+        file_descriptor
+    )
+
+    with self.assertRaises(KeyError):
+      skill_generation.SkillInfoImpl(skill)
 
   def test_result_access(self):
     """Tests if BlackboardValue gets created when accessing result."""

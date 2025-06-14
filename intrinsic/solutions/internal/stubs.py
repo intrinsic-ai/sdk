@@ -27,7 +27,7 @@ _STUBS_SUFFIX = "-stubs"
 _ROOT_NAMESPACE_PACKAGE = "intrinsic"
 
 # Import names from the following modules directly, i.e., prefer:
-#   from typing Import Union
+#   from typing import Union
 #   Union
 # over:
 #   import typing

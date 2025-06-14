@@ -9,7 +9,6 @@ from intrinsic.solutions import simulation as simulation_mod
 
 
 class SimulationTest(absltest.TestCase):
-
   def setUp(self):
     super().setUp()
     self.simulation_service_stub = mock.MagicMock()
