@@ -23,7 +23,6 @@ from intrinsic.solutions import blackboard_value
 from intrinsic.solutions import cel
 from intrinsic.solutions import provided
 from intrinsic.solutions import utils
-from intrinsic.solutions.internal import actions
 from intrinsic.solutions.internal import skill_utils
 
 # Typing aliases
@@ -610,13 +609,6 @@ def _field_to_repr(field: descriptor.FieldDescriptor, field_value: Any) -> str:
         field.type == descriptor.FieldDescriptor.TYPE_MESSAGE
         and field.message_type.GetOptions().map_entry
     ):
-      value_type = field.message_type.fields_by_name["value"]
-      value_convert = lambda v: repr(v)  # pylint:disable=unnecessary-lambda
-      if value_type.type == descriptor.FieldDescriptor.TYPE_MESSAGE:
-        value_convert = lambda v: actions.message_to_repr_string(
-            field.message_type.fields_by_name["value"].message_type.full_name,
-            v,
-        )
 
       def quote_str(value):
         if isinstance(value, str):
@@ -625,18 +617,13 @@ def _field_to_repr(field: descriptor.FieldDescriptor, field_value: Any) -> str:
           return value
 
       item_strs = [
-          f"{quote_str(k)}: {value_convert(v)}"
-          for (k, v) in field_value.items()
+          f"{quote_str(k)}: {repr(v)}" for (k, v) in field_value.items()
       ]
       return f'{{{", ".join(item_strs)}}}'
     else:
-      return (
-          f'[{", ".join(actions.message_to_repr_string(field.message_type.full_name, value) for value in field_value)}]'
-      )
+      return f'[{", ".join(repr(value) for value in field_value)}]'
 
-  return actions.message_to_repr_string(
-      field.message_type.full_name, field_value
-  )
+  return repr(field_value)
 
 
 _SKILL_ID_VERSION_REGEX = (

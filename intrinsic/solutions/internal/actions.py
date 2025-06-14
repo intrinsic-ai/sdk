@@ -4,51 +4,9 @@
 
 import abc
 import datetime
-from typing import Any, Optional
+from typing import Optional
 
 from intrinsic.executive.proto import behavior_call_pb2
-from intrinsic.skills.proto import skills_pb2
-
-
-def _format_nd_vector(vector: skills_pb2.VectorNdValue) -> str:
-  return f'[{", ".join(str(value) for value in vector.value)}]'
-
-
-def _format_string_vector(vector: skills_pb2.StringVector) -> str:
-  return f'[{", ".join(repr(value) for value in vector.values)}]'
-
-
-def _format_nd_array(array: skills_pb2.VectorNdArray) -> str:
-  rows = [_format_nd_vector(vector) for vector in array.array]
-  return f'[{", ".join(rows)}]'
-
-
-_MESSAGE_NAME_TO_STRING_MAP = {
-    'intrinsic_proto.skills.StringVector': _format_string_vector,
-    'intrinsic_proto.skills.VectorNdValue': _format_nd_vector,
-    'intrinsic_proto.skills.VectorNdArray': _format_nd_array,
-}
-
-
-def message_to_repr_string(message_name: str, value: Any) -> str:
-  """Returns the string representation of value.
-
-  value is associated with the protobuf type message_name in the workcell API.
-  The returned string should be usable in the ways that repr() normally implies
-  to construct an object of the correct type with the given value.
-
-  If the message_name does not have a custom type associated with it in the
-  Workcell API, this defaults to returning repr(value).
-
-  Args:
-    message_name: The Protobuf type associated with the value in Workcell API
-    value: The value to create a representation of
-  """
-  if message_name in _MESSAGE_NAME_TO_STRING_MAP:
-    return _MESSAGE_NAME_TO_STRING_MAP[message_name](value)
-  # For messages that we don't have a intrinsic-native pythonic-type support
-  # just fallback to protobuf message repr.
-  return repr(value)
 
 
 class ActionBase(abc.ABC):

@@ -146,9 +146,6 @@ _PYTHONIC_SCALAR_DEFAULT_VALUE = {
 
 
 _MESSAGE_NAME_TO_PYTHON_VALUE = {
-    "intrinsic_proto.skills.StringVector": lambda f: list(f.values),
-    "intrinsic_proto.skills.VectorNdArray": lambda f: list(f.array),
-    "intrinsic_proto.skills.VectorNdValue": lambda f: list(f.value),
     "intrinsic_proto.Pose": math_proto_conversion.pose_from_proto,
     "geometry_msgs.msg.pb.jazzy.Pose": ros_proto_conversion.pose_from_proto,
 }
@@ -193,45 +190,6 @@ def pythonic_field_type(
     return enum_classes[field_descriptor.enum_type.full_name]
 
   return _PYTHONIC_SCALAR_FIELD_TYPE[field_descriptor.type]
-
-
-def _field_to_string_vector(
-    field_value: Sequence[str],
-) -> skills_pb2.StringVector:
-  """Converts the field_value to skills_pb2.StringVector."""
-  if isinstance(field_value, list) and all(
-      isinstance(s, str) for s in field_value
-  ):
-    field_message = skills_pb2.StringVector()
-    field_message.values.extend(field_value)
-    return field_message
-  raise TypeError(f"Value {field_value} not a list of strings")
-
-
-def _field_to_vector_nd_array(
-    field_value: Sequence[skills_pb2.VectorNdValue],
-) -> skills_pb2.VectorNdArray:
-  """Converts the field_value to skills_pb2.VectorNdArray."""
-  if isinstance(field_value, list) and all(
-      isinstance(v, skills_pb2.VectorNdValue) for v in field_value
-  ):
-    field_message = skills_pb2.VectorNdArray()
-    field_message.array.extend(field_value)
-    return field_message
-  raise TypeError(f"Value {field_value} is not convertible to a VectorNdArray")
-
-
-def _field_to_vector_nd_value(
-    field_value: Sequence[float],
-) -> skills_pb2.VectorNdValue:
-  """Converts the field_value to skills_pb2.VectorNdValue."""
-  if isinstance(field_value, list) and all(
-      isinstance(s, float) for s in field_value
-  ):
-    field_message = skills_pb2.VectorNdValue()
-    field_message.value.extend(field_value)
-    return field_message
-  raise TypeError(f"Value {field_value} not a VectorNdValue")
 
 
 def _field_to_pose_3d(field_value: data_types.Pose3) -> pose_pb2.Pose:
@@ -430,15 +388,6 @@ class _AutoConversion:
 
 
 _PYTHONIC_TO_MESSAGE_AUTO_CONVERSIONS = {
-    skills_pb2.StringVector.DESCRIPTOR.full_name: _AutoConversion(
-        _field_to_string_vector
-    ),
-    skills_pb2.VectorNdArray.DESCRIPTOR.full_name: _AutoConversion(
-        _field_to_vector_nd_array
-    ),
-    skills_pb2.VectorNdValue.DESCRIPTOR.full_name: _AutoConversion(
-        _field_to_vector_nd_value
-    ),
     pose_pb2.Pose.DESCRIPTOR.full_name: _AutoConversion(_field_to_pose_3d),
     ros_pose_pb2.Pose.DESCRIPTOR.full_name: _AutoConversion(
         _field_to_ros_pose_3d

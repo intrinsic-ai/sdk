@@ -44,10 +44,7 @@ py_test(
 py_library(
     name = "actions",
     srcs = ["actions.py"],
-    deps = [
-        "//intrinsic/executive/proto:behavior_call_py_pb2",
-        "//intrinsic/skills/proto:skills_py_pb2",
-    ],
+    deps = ["//intrinsic/executive/proto:behavior_call_py_pb2"],
 )
 
 py_library(
@@ -116,7 +113,6 @@ py_test(
         ":skill_parameters",
         "//intrinsic/math/python:data_types",
         "//intrinsic/math/python:proto_conversion",
-        "//intrinsic/skills/proto:skills_py_pb2",
         "//intrinsic/solutions/testing:skill_test_utils",
         "//intrinsic/solutions/testing:test_skill_params_py_pb2",
         "//intrinsic/util/path_resolver:path_resolver_py",
@@ -178,7 +174,6 @@ py_library(
     name = "skill_generation",
     srcs = ["skill_generation.py"],
     deps = [
-        ":actions",
         ":skill_utils",
         "//intrinsic/assets:id_utils_py",
         "//intrinsic/executive/proto:behavior_call_py_pb2",

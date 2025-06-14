@@ -49,7 +49,6 @@ message TestMessage {
   }
 
   // Special intrinsic-type support
-
   // Handled differently than a normal protobuf submessage.
   intrinsic_proto.Pose pose = 24;
   geometry_msgs.msg.pb.jazzy.Pose ros_pose = 32;

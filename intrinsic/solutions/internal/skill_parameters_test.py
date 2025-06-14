@@ -4,7 +4,6 @@ from absl.testing import absltest
 from absl.testing import parameterized
 from intrinsic.math.python import data_types
 from intrinsic.math.python import proto_conversion as math_proto_conversion
-from intrinsic.skills.proto import skills_pb2
 from intrinsic.solutions.internal import skill_parameters
 from intrinsic.solutions.testing import skill_test_utils
 from intrinsic.solutions.testing import test_skill_params_pb2

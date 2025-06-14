@@ -1619,8 +1619,7 @@ Initializes an instance of the skill ai.intrinsic.my_skill.
 This method accepts the following proto messages:
   - my_skill.geometry_msgs.msg.pb.jazzy.Pose
   - my_skill.intrinsic_proto.Pose
-  - my_skill.intrinsic_proto.executive.TestMessage"""
-    docstring += """
+  - my_skill.intrinsic_proto.executive.TestMessage
   - my_skill.intrinsic_proto.test_data.SubMessage
   - my_skill.intrinsic_proto.test_data.TestMessage.Foo
   - my_skill.intrinsic_proto.test_data.TestMessage.Int32StringMapEntry
@@ -1715,13 +1714,11 @@ Args:
     string_message_map:
         Mockup comment
         Default value: {'bar': value: "baz"
-}"""
-    docstring += """
+}
     sub_message:
         Mockup comment
         Default value: name: "baz"
-"""
-    docstring += """
+
 
 Returns:
     enum_v:
@@ -1769,8 +1766,7 @@ Returns:
     string_int32_map:
         Mockup comment
     string_message_map:
-        Mockup comment"""
-    docstring += """
+        Mockup comment
     sub_message:
         Mockup comment"""
 
@@ -2298,8 +2294,7 @@ Initializes an instance of my_skill.intrinsic_proto.test_data.TestMessage.
 This method accepts the following proto messages:
   - my_skill.geometry_msgs.msg.pb.jazzy.Pose
   - my_skill.intrinsic_proto.Pose
-  - my_skill.intrinsic_proto.executive.TestMessage"""
-    docstring += """
+  - my_skill.intrinsic_proto.executive.TestMessage
   - my_skill.intrinsic_proto.test_data.SubMessage
   - my_skill.intrinsic_proto.test_data.TestMessage.Foo
   - my_skill.intrinsic_proto.test_data.TestMessage.Int32StringMapEntry
@@ -2356,8 +2351,7 @@ Fields:
     string_int32_map:
         Mockup comment
     string_message_map:
-        Mockup comment"""
-    docstring += """
+        Mockup comment
     sub_message:
         Mockup comment"""
 
