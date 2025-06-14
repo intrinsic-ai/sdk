@@ -1,0 +1,49 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.data_logger;
+
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+
+// Downsampler options.
+//
+// If multiple sampling intervals are set, the candidate will only be sampled
+// if all intervals are met.
+//
+message DownsamplerOptions {
+  // We deliberately mirror intrinsic_proto.replay.DownsamplingFilterOptions.
+  // This is so we can potentially synchronize them in the future.
+  reserved 1;
+  reserved "match_regexes";
+
+  // If set, downsamples the candidates by time interval.
+  // Setting this samples once every N periods.
+  //
+  // For example:
+  //   - List: [1s, 2s, 3s, 4s, 5s, 6s, 7s, 8s, 9s, 10s]
+  //   - sampling_interval_time: 2s
+  //   - Downsampled Output: [1, 3, 5, 7, 9]
+  optional google.protobuf.Duration sampling_interval_time = 2;
+
+  // If set, downsamples the candidates by count.
+  // Setting this samples once every N samples.
+  //
+  // For example:
+  //   - List: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+  //   - sample_interval_count: 2
+  //   - Downsampled Output: [1, 3, 5, 7, 9]
+  optional int32 sampling_interval_count = 3;
+}
+
+// Tracks the state of an event source in the downsampler.
+message DownsamplerEventSourceState {
+  google.protobuf.Timestamp last_use_time = 1;
+  int32 count_since_last_use = 2;
+}
+
+// Tracks the state of the downsampler.
+message DownsamplerState {
+  map<string, DownsamplerEventSourceState> event_source_states = 1;
+}

@@ -145,6 +145,30 @@ py_proto_library(
 )
 
 proto_library(
+    name = "downsampler_proto",
+    srcs = ["downsampler.proto"],
+    deps = [
+        "@com_google_protobuf//:duration_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "downsampler_cc_proto",
+    deps = [":downsampler_proto"],
+)
+
+go_proto_library(
+    name = "downsampler_go_proto",
+    deps = [":downsampler_proto"],
+)
+
+py_proto_library(
+    name = "downsampler_py_pb2",
+    deps = [":downsampler_proto"],
+)
+
+proto_library(
     name = "flowstate_event",
     srcs = ["flowstate_event.proto"],
     visibility = ["//visibility:private"],
@@ -170,6 +194,7 @@ proto_library(
     srcs = ["log_dispatcher_service.proto"],
     deps = [
         ":blob_proto",
+        ":downsampler_proto",
         ":log_item_proto",
         "@com_google_protobuf//:empty_proto",
         "@com_google_protobuf//:timestamp_proto",
@@ -193,6 +218,7 @@ go_proto_library(
     go_deps = [
         ":bag_metadata_go_proto",
         ":blob_go_proto",
+        ":downsampler_go_proto",
         ":log_item_go_proto",
     ],
     deps = [":log_dispatcher_service"],
@@ -202,6 +228,7 @@ go_grpc_library(
     name = "log_dispatcher_service_go_grpc_proto",
     srcs = [":log_dispatcher_service"],
     deps = [
+        "downsampler_go_proto",
         ":blob_go_proto",
         ":log_dispatcher_service_go_proto",
         ":log_item_go_proto",
