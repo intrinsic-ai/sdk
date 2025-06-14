@@ -19,7 +19,7 @@ import "intrinsic/util/status/extended_status.proto";
 // - Lower case "service" is used to refer to an API service.
 service SystemServiceState {
   // Returns the current state of the requested Service instance.
-  rpc GetState(GetStateRequest) returns (State) {}
+  rpc GetInstanceState(GetInstanceStateRequest) returns (InstanceState) {}
 
   // Enables the requested running Service instance if supported.
   //
@@ -71,13 +71,16 @@ service SystemServiceState {
   // Note: This will stop all ongoing processes in the service.
   rpc RestartService(RestartServiceRequest) returns (RestartServiceResponse) {}
 
-  // Returns the last known state of all service instances in the solution.
-  //
-  // This method does not guarantee that the returned state is still the
-  // current state of the service instances. Prefer using `GetState` to get
-  // the updated current state of a specific service instance.
-  rpc ListLastKnownServiceStates(ListLastKnownServiceStatesRequest)
-      returns (ListLastKnownServiceStatesResponse) {}
+  // Returns the states for all service instances in the solution.
+  rpc ListInstanceStates(ListInstanceStatesRequest)
+      returns (ListInstanceStatesResponse) {}
+}
+
+message InstanceState {
+  // The name of the service instance.
+  string name = 1;
+  // The current state of the service instance.
+  State state = 2;
 }
 
 // Contains details about the state of a Service.
@@ -118,7 +121,7 @@ message State {
   optional intrinsic_proto.status.ExtendedStatus extended_status = 2;
 }
 
-message GetStateRequest {
+message GetInstanceStateRequest {
   // The name of the service instance.
   string name = 1;
 }
@@ -144,9 +147,9 @@ message RestartServiceRequest {
 
 message RestartServiceResponse {}
 
-message ListLastKnownServiceStatesRequest {}
+message ListInstanceStatesRequest {}
 
-message ListLastKnownServiceStatesResponse {
-  // A map of service instance names to their current state.
-  map<string, State> states = 1;
+message ListInstanceStatesResponse {
+  // The states of all service instances in the solution.
+  repeated InstanceState states = 1;
 }
