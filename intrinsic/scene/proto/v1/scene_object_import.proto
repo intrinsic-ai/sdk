@@ -14,6 +14,7 @@ import "intrinsic/scene/proto/v1/scene_object.proto";
 // representations like CAD files, SDF files and other formats into an Intrinsic
 // SceneObject proto representation for use in a solution.
 service SceneObjectImport {
+
   // Imports a scene file as a SceneObject.
   //
   // Returns a longrunning.Operation where metadata reports the progress of the
