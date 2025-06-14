@@ -290,10 +290,12 @@ py_library(
         ":deployments",
         ":errors",
         ":execution",
+        ":installed_assets",
         ":motion_planning",
         ":perception",
         ":pose_estimation",
         ":providers",
+        ":scene_object_import",
         ":simulation",
         ":worlds",
     ],
@@ -501,6 +503,33 @@ py_test(
     deps = [
         ":utils",
         "@com_google_absl_py//absl/testing:absltest",
+    ],
+)
+
+py_library(
+    name = "scene_object_import",
+    deps = [
+        "//intrinsic/geometry/proto/v1:material_py_pb2",
+        "//intrinsic/scene/proto/v1:scene_object_import_py_pb2",
+        "//intrinsic/scene/proto/v1:scene_object_import_py_pb2_grpc",
+        "//intrinsic/scene/proto/v1:scene_object_py_pb2",
+        "@ai_intrinsic_sdks_pip_deps//googleapis_common_protos",
+        "@com_google_googleapis//google/longrunning:operations_py_proto",
+    ],
+)
+
+py_library(
+    name = "installed_assets",
+    deps = [
+        "//intrinsic/assets/proto:asset_type_py_pb2",
+        "//intrinsic/assets/proto:id_py_pb2",
+        "//intrinsic/assets/proto:installed_assets_pb2_grpc",
+        "//intrinsic/assets/proto:installed_assets_py_pb2",
+        "//intrinsic/assets/proto:metadata_py_pb2",
+        "//intrinsic/assets/proto:view_py_pb2",
+        "//intrinsic/assets/scene_objects/proto:scene_object_manifest_py_proto",
+        "@ai_intrinsic_sdks_pip_deps//googleapis_common_protos",
+        "@com_google_googleapis//google/longrunning:operations_py_proto",
     ],
 )
 
