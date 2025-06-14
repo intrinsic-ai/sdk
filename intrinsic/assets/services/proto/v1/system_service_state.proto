@@ -151,5 +151,7 @@ message ListInstanceStatesRequest {}
 
 message ListInstanceStatesResponse {
   // The states of all service instances in the solution.
+  //
+  // The order of the returned states is not guaranteed to be consistent.
   repeated InstanceState states = 1;
 }
