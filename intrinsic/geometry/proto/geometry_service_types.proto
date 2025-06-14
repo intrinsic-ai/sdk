@@ -8,7 +8,6 @@ import "intrinsic/geometry/proto/geometry.proto";
 import "intrinsic/geometry/proto/geometry_storage_refs.proto";
 import "intrinsic/geometry/proto/lazy_exact_geometry.proto";
 import "intrinsic/geometry/proto/renderable.proto";
-import "intrinsic/math/proto/matrix.proto";
 
 // Response message for getting geometry from the geometry service.
 message GeometryWithMetadata {
@@ -52,20 +51,4 @@ message GeometryData {
     // Stl file format, in binary format or 8bit ASCII encoding.
     bytes stl_bytes = 5;
   }
-}
-
-message PosedGeometryData {
-  oneof data_or_id {
-    // Geometry data for this object's shape.
-    GeometryData geometry_data = 1;
-
-    // The references to the stored geometry artifacts.
-    GeometryStorageRefs geometry_storage_refs = 6;
-  }
-
-  // A 4x4 affine transform from entity frame to this shape.
-  intrinsic_proto.Matrixd ref_t_shape_aff = 5;
-
-  reserved 2, 3, 4;
-  reserved "geometry_id", "ref_t_shape", "scale";
 }

@@ -124,6 +124,7 @@ message ObjectSpecForSingleEntityObject {
 
   // The geometry component associated with the object's entity.
   intrinsic_proto.world.GeometryComponent geometry_component = 3;
+
 }
 
 // Specifies to create an object by instantiating a SceneObject.

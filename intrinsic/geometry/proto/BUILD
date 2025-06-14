@@ -151,7 +151,6 @@ proto_library(
         ":geometry_storage_refs_proto",
         ":lazy_exact_geometry_proto",
         ":renderable_proto",
-        "//intrinsic/math/proto:matrix_proto",
     ],
 )
 
