@@ -167,7 +167,7 @@ func Execute(ec executionContext) bool {
 	success := true
 	if err := RootCmd.ExecuteContext(ctx); err != nil {
 		cmdNames, _ := getCommandNames() // ignore error, cmdNames will simply be nil
-		fmt.Fprintln(os.Stderr, "Error:", ec.RewriteError(err, cmdNames))
+		RootCmd.PrintErrln("Error:", ec.RewriteError(err, cmdNames), "TraceID:", span.SpanContext().TraceID)
 		success = false
 	}
 
