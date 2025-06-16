@@ -110,7 +110,10 @@ go_grpc_library(
 proto_library(
     name = "behavior_tree_registry_proto",
     srcs = ["behavior_tree_registry.proto"],
-    deps = [":skill_registry_config_proto"],
+    deps = [
+        ":skill_registry_config_proto",
+        "@com_google_protobuf//:empty_proto",
+    ],
 )
 
 cc_proto_library(

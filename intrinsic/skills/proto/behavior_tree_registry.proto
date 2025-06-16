@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.skills;
 
+import "google/protobuf/empty.proto";
 import "intrinsic/skills/proto/skill_registry_config.proto";
 
 message RegisterOrUpdateBehaviorTreeRequest {
@@ -13,9 +14,18 @@ message RegisterOrUpdateBehaviorTreeRequest {
 
 message RegisterOrUpdateBehaviorTreeResponse {}
 
+message UnregisterBehaviorTreeRequest {
+  // The id of the behavior tree's skill representation to remove.
+  string id = 1;
+}
+
 service BehaviorTreeRegistry {
 
   // Register a BehaviorTree skill in the skill registry.
   rpc RegisterOrUpdateBehaviorTree(RegisterOrUpdateBehaviorTreeRequest)
       returns (RegisterOrUpdateBehaviorTreeResponse) {}
+
+  // Unregister a BehaviorTree skill from the skill registry.
+  rpc UnregisterBehaviorTree(UnregisterBehaviorTreeRequest)
+      returns (google.protobuf.Empty) {}
 }

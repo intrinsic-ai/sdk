@@ -259,6 +259,24 @@ absl::Status SkillRegistryClient::RegisterOrUpdateBehaviorTree(
       bt_stub_->RegisterOrUpdateBehaviorTree(&context, request, &response));
 }
 
+absl::Status SkillRegistryClient::UnregisterBehaviorTree(
+    std::string skill_id) const {
+  return UnregisterBehaviorTree(skill_id, kClientDefaultTimeout);
+}
+
+absl::Status SkillRegistryClient::UnregisterBehaviorTree(
+    std::string skill_id, absl::Duration timeout) const {
+  ::grpc::ClientContext context;
+  context.set_deadline(absl::ToChronoTime(absl::Now() + timeout));
+
+  intrinsic_proto::skills::UnregisterBehaviorTreeRequest request;
+  *request.mutable_id() = skill_id;
+
+  google::protobuf::Empty response;
+  return ToAbslStatus(
+      bt_stub_->UnregisterBehaviorTree(&context, request, &response));
+}
+
 absl::Status SkillRegistryClient::ResetInstanceIds() const {
   return ResetInstanceIds(kClientDefaultTimeout);
 }

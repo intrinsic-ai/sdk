@@ -106,6 +106,10 @@ class SkillRegistryClient : public SkillRegistryClientInterface {
           behavior_tree_registration,
       absl::Duration timeout) const final;
 
+  absl::Status UnregisterBehaviorTree(std::string skill_id) const final;
+  absl::Status UnregisterBehaviorTree(std::string skill_id,
+                                      absl::Duration timeout) const final;
+
   absl::Status ResetInstanceIds() const final;
   absl::Status ResetInstanceIds(absl::Duration timeout) const final;
 

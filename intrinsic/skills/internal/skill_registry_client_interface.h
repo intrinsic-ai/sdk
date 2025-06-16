@@ -6,7 +6,6 @@
 #include <string>
 #include <vector>
 
-#include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
@@ -135,6 +134,16 @@ class SkillRegistryClientInterface {
       intrinsic_proto::skills::BehaviorTreeRegistration
           behavior_tree_registration,
       absl::Duration timeout) const = 0;
+
+  // Unregisters a BehaviorTree from the skill registry.
+  //
+  // This makes a blocking GRPC request.
+  //
+  // Returns any errors from the GRPC invocation; Returns any errors reported by
+  // the Skill Registry Service.
+  virtual absl::Status UnregisterBehaviorTree(std::string skill_id) const = 0;
+  virtual absl::Status UnregisterBehaviorTree(std::string skill_id,
+                                              absl::Duration timeout) const = 0;
 
   // Resets the set of already-used instance ids. This allows clients to reuse
   // an instance id that has already been assigned.
