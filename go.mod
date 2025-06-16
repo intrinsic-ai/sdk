@@ -12,6 +12,7 @@ require (
 	cloud.google.com/go/firestore v1.17.0
 	cloud.google.com/go/logging v1.12.0
 	cloud.google.com/go/longrunning v0.6.2
+	cloud.google.com/go/monitoring v1.21.2
 	cloud.google.com/go/secretmanager v1.14.2
 	cloud.google.com/go/spanner v1.73.0
 	cloud.google.com/go/storage v1.43.0
@@ -34,6 +35,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.4.2
 	github.com/golang/glog v1.2.3
 	github.com/golang/protobuf v1.5.4
+	github.com/googleapis/gax-go/v2 v2.14.0
 	github.com/google/brotli/go/cbrotli v1.1.0
 	github.com/google/go-cmp v0.6.0
 	github.com/google/go-containerregistry v0.20.3
@@ -93,28 +95,11 @@ require (
 )
 
 require (
-	github.com/pion/datachannel v1.5.10 // indirect
-	github.com/pion/dtls/v3 v3.0.6 // indirect
-	github.com/pion/interceptor v0.1.37 // indirect
-	github.com/pion/logging v0.2.3 // indirect
-	github.com/pion/mdns/v2 v2.0.7 // indirect
-	github.com/pion/randutil v0.1.0 // indirect
-	github.com/pion/rtp v1.8.15 // indirect
-	github.com/pion/sctp v1.8.39 // indirect
-	github.com/pion/sdp/v3 v3.0.11 // indirect
-	github.com/pion/srtp/v3 v3.0.4 // indirect
-	github.com/pion/stun/v3 v3.0.0 // indirect
-	github.com/wlynxg/anet v0.0.5 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
-)
-
-require (
 	cel.dev/expr v0.19.0 // indirect
 	cloud.google.com/go v0.116.0 // indirect
 	cloud.google.com/go/auth v0.13.0 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.6 // indirect
 	cloud.google.com/go/iam v1.2.2 // indirect
-	cloud.google.com/go/monitoring v1.21.2 // indirect
 	cloud.google.com/go/pubsub v1.45.1
 	cloud.google.com/go/trace v1.11.2 // indirect
 	github.com/AdaLogics/go-fuzz-headers v0.0.0-20230811130428-ced1acdcaa24 // indirect
@@ -168,7 +153,6 @@ require (
 	github.com/google/renameio/v2 v2.0.0 // indirect
 	github.com/google/s2a-go v0.1.8 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.4 // indirect
-	github.com/googleapis/gax-go/v2 v2.14.0 // indirect
 	github.com/gorilla/handlers v1.5.1 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.0
@@ -201,6 +185,18 @@ require (
 	github.com/paul-mannino/go-fuzzywuzzy v0.0.0-20241117160931-a1769aeb6b21
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
 	github.com/pierrec/lz4/v4 v4.1.18 // indirect
+	github.com/pion/datachannel v1.5.10 // indirect
+	github.com/pion/dtls/v3 v3.0.6 // indirect
+	github.com/pion/interceptor v0.1.37 // indirect
+	github.com/pion/logging v0.2.3 // indirect
+	github.com/pion/mdns/v2 v2.0.7 // indirect
+	github.com/pion/randutil v0.1.0 // indirect
+	github.com/pion/rtcp v1.2.15 // indirect
+	github.com/pion/rtp v1.8.15 // indirect
+	github.com/pion/sctp v1.8.39 // indirect
+	github.com/pion/sdp/v3 v3.0.11 // indirect
+	github.com/pion/srtp/v3 v3.0.4 // indirect
+	github.com/pion/stun/v3 v3.0.0 // indirect
 	github.com/pkg/xattr v0.4.9 // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
 	github.com/prometheus/client_golang v1.16.0 // indirect
@@ -221,6 +217,7 @@ require (
 	github.com/tklauser/go-sysconf v0.3.14 // indirect
 	github.com/tklauser/numcpus v0.8.0 // indirect
 	github.com/vbatts/tar-split v0.11.6 // indirect
+	github.com/wlynxg/anet v0.0.5 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
@@ -243,6 +240,7 @@ require (
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.5.0
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 	k8s.io/klog/v2 v2.120.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20240228011516-70dd3763d340 // indirect
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b // indirect
