@@ -105,6 +105,13 @@ absl::StatusOr<std::vector<std::string>> ListAllKeys(KeyValueStore* self,
   return self->ListAllKeys(absl::Seconds(timeout));
 }
 
+absl::Status AdminCloudCopy(KeyValueStore* self, const std::string& source_key,
+                            const std::string& target_key,
+                            const std::string& endpoint, int timeout) {
+  return self->AdminCloudCopy(source_key, target_key, endpoint,
+                              absl::Seconds(timeout));
+}
+
 struct PySubscriptionDeleter {
   void operator()(Subscription* s) {
     // To avoid deadlock, the call to Zenoh.imw_destroy_subscription() needs to
@@ -171,6 +178,8 @@ PYBIND11_MODULE(pubsub, m) {
       .def("TopicName", &Publisher::TopicName)
       .def("HasMatchingSubscribers", &Publisher::HasMatchingSubscribers);
 
+  pybind11::class_<KVQuery>(m, "KVQuery");
+
   pybind11::class_<KeyValueStore>(m, "KeyValueStore")
       .def("Set", &KeyValueStore::Set<google::protobuf::Message>,
            pybind11::arg("key"), pybind11::arg("value"),
@@ -179,9 +188,9 @@ PYBIND11_MODULE(pubsub, m) {
       .def("GetAll", &GetAll)
       .def("List", &ListAllKeys, pybind11::arg("timeout") = 10)
       .def("Delete", &KeyValueStore::Delete, pybind11::arg("key"))
-      .def("AdminCloudCopy", &KeyValueStore::AdminCloudCopy,
-           pybind11::arg("source_key"), pybind11::arg("target_key"),
-           pybind11::arg("endpoint"), pybind11::arg("timeout") = 10);
+      .def("AdminCloudCopy", &AdminCloudCopy, pybind11::arg("source_key"),
+           pybind11::arg("target_key"), pybind11::arg("endpoint"),
+           pybind11::arg("timeout") = 10);
 
   // The python GIL does not need to be locked during the entire destructor
   // of this class. Instead, the custom deleter provided during its
