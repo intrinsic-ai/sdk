@@ -23,6 +23,8 @@ var (
 	ErrUnauthenticated = errors.New("unauthenticated")
 	// ErrMissingOrgID indicates that the there was no org-id found.
 	ErrMissingOrgID = errors.New("no org-id found")
+	// ErrInvalidRequest indicates that the request is invalid.
+	ErrInvalidRequest = errors.New("invalid request")
 )
 
 // The following vars are implementation details and should not be used by a consumer of this lib.
@@ -48,6 +50,8 @@ var (
 	errNoOrgIDCookie = errors.New("org-id cookie missing")
 	// errOrdIDEmpty indicates that the org-id cookie was empty.
 	errOrgIDEmpty = errors.New("org-id cookie is empty")
+	// errMetadataKeyConflict indicates that multiple possible values were found in context metadata for a single key.
+	errMetadataKeyConflict = errors.New("multiple possible values found in context metadata for a single key")
 
 	emailRegex     = regexp.MustCompile(`(^(?P<prefix>[^@]+)@(?P<domain>.+)$)`)
 	obfuscateRegex = regexp.MustCompile(`(^(.).*(.)$)`)

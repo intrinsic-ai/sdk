@@ -102,7 +102,7 @@ func TestUserToRequest(t *testing.T) {
 }
 
 func TestUserFromMetadata(t *testing.T) {
-	ctx := metadata.NewIncomingContext(context.Background(),
+	ctx := metadata.NewIncomingContext(t.Context(),
 		metadata.Pairs(cookies.CookieHeaderName, authProxyCookieName+"="+token))
 
 	u, err := UserFromContext(ctx)
@@ -115,7 +115,7 @@ func TestUserFromMetadata(t *testing.T) {
 }
 
 func TestUserToContext(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	u := &User{jwt: token}
 	ctx = UserToContext(ctx, u)
 	md, _ := metadata.FromOutgoingContext(ctx)
@@ -125,7 +125,7 @@ func TestUserToContext(t *testing.T) {
 }
 
 func TestUserToIncomingContext(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	u := &User{jwt: token}
 	ctx = UserToIncomingContext(ctx, u)
 	md, _ := metadata.FromIncomingContext(ctx)
@@ -441,12 +441,12 @@ type UserFromContextVerifiedTest struct {
 }
 
 func TestUserFromContextVerified(t *testing.T) {
-	withAuthCookie := metadata.NewIncomingContext(context.Background(),
+	withAuthCookie := metadata.NewIncomingContext(t.Context(),
 		metadata.Pairs(cookies.CookieHeaderName, authProxyCookieName+"="+token))
 	tests := []UserFromContextVerifiedTest{
 		{
 			desc:    "no auth",
-			ctx:     context.TODO(),
+			ctx:     t.Context(),
 			wantErr: true,
 		},
 		{
@@ -549,32 +549,47 @@ func TestCanonicalizeEmail(t *testing.T) {
 }
 
 type ToContextFromIncomingTest struct {
-	desc     string
-	incoming context.Context
-	wantMd   metadata.MD
+	desc        string
+	incoming    context.Context
+	wantMd      metadata.MD
+	wantChanged bool
+	wantError   bool
 }
 
 func TestToContextFromIncoming(t *testing.T) {
 	tests := []ToContextFromIncomingTest{
 		{
-			desc:     "no incoming",
-			incoming: context.Background(),
+			desc:     "blank context",
+			incoming: t.Context(),
 			wantMd:   metadata.MD{},
 		},
 		{
-			desc: "incoming cookie",
-			incoming: metadata.NewIncomingContext(context.TODO(),
-				metadata.Pairs(
-					cookies.CookieHeaderName, "something",
+			desc: "keep metadata in outgoing if incoming has nothing to copyover",
+			incoming: metadata.NewIncomingContext(
+				metadata.NewOutgoingContext(t.Context(),
+					metadata.Pairs(cookies.CookieHeaderName, "something"),
 				),
+				metadata.Pairs(),
 			),
 			wantMd: metadata.MD{
 				"cookie": []string{"something"},
 			},
 		},
 		{
+			desc: "copy cookie from incoming to outgoing",
+			incoming: metadata.NewIncomingContext(t.Context(),
+				metadata.Pairs(
+					cookies.CookieHeaderName, "something=somethingelse",
+				),
+			),
+			wantMd: metadata.MD{
+				"cookie": []string{"something=somethingelse"},
+			},
+			wantChanged: true,
+		},
+		{
 			desc: "incoming auth-proxy and cookie with multiple values",
-			incoming: metadata.NewIncomingContext(context.TODO(),
+			incoming: metadata.NewIncomingContext(t.Context(),
 				metadata.Pairs(
 					authProxyCookieName, "anything", // do not copy over deprecated auth-proxy
 					cookies.CookieHeaderName, "something",
@@ -584,135 +599,190 @@ func TestToContextFromIncoming(t *testing.T) {
 			wantMd: metadata.MD{
 				"cookie": []string{"something", "something2"},
 			},
+			wantChanged: true,
 		},
 		{
 			desc: "incoming authorization header",
-			incoming: metadata.NewIncomingContext(context.TODO(),
+			incoming: metadata.NewIncomingContext(t.Context(),
 				metadata.Pairs(authHeaderName, "some-token"),
 			),
 			wantMd: metadata.MD{
 				authHeaderName: []string{"some-token"},
 			},
+			wantChanged: true,
 		},
 		{
 			desc: "multiple incoming authorization headers are ignored",
-			incoming: metadata.NewIncomingContext(context.TODO(),
+			incoming: metadata.NewIncomingContext(t.Context(),
 				metadata.Pairs(
 					authHeaderName, "some-token",
 					authHeaderName, "other-token",
 				),
 			),
-			wantMd: metadata.MD{},
+			wantError: true,
 		},
 		{
-			desc: "incoming and outgoing auth-proxy",
+			desc: "cookie comparison",
+			incoming: metadata.NewIncomingContext(
+				metadata.NewOutgoingContext(t.Context(),
+					metadata.MD{
+						"cookie": []string{"something=somethingelse", "something2=somethingelse2"},
+					},
+				),
+				metadata.MD{
+					"cookie":       []string{"something2=somethingelse2", "something=somethingelse"},
+					authHeaderName: []string{"some-token"},
+				},
+			),
+			wantMd: metadata.MD{
+				"cookie":       []string{"something=somethingelse", "something2=somethingelse2"},
+				authHeaderName: []string{"some-token"},
+			},
+			wantChanged: true,
+		},
+		{
+			desc: "cookie comparison reverse",
+			incoming: metadata.NewIncomingContext(
+				metadata.NewOutgoingContext(t.Context(),
+					metadata.MD{
+						"cookie": []string{"something2=somethingelse2", "something=somethingelse"},
+					},
+				),
+				metadata.MD{
+					"cookie":       []string{"something=somethingelse", "something2=somethingelse2"},
+					authHeaderName: []string{"some-token"},
+				},
+			),
+			wantMd: metadata.MD{
+				"cookie":       []string{"something2=somethingelse2", "something=somethingelse"},
+				authHeaderName: []string{"some-token"},
+			},
+			wantChanged: true,
+		},
+		{
+			desc: "cookies are not compared inside the cookie-MDstring",
+			incoming: metadata.NewIncomingContext(
+				metadata.NewOutgoingContext(t.Context(),
+					metadata.MD{
+						"cookie": []string{"something=somethingelse; something2=somethingelse2"},
+					},
+				),
+				metadata.MD{
+					"cookie": []string{"something2=somethingelse2; something=somethingelse"},
+				},
+			),
+			wantError: true,
+		},
+		{
+			desc: "incoming authorization header collides with outgoing",
+			incoming: metadata.NewIncomingContext(
+				metadata.NewOutgoingContext(t.Context(), metadata.Pairs(authHeaderName, "some-token")),
+				metadata.Pairs(
+					authHeaderName, "other-token",
+				),
+			),
+			wantError: true,
+		},
+		{
+			desc: "incoming malformed cookies",
 			incoming: metadata.NewIncomingContext(
 				metadata.NewOutgoingContext(
-					context.TODO(), metadata.Pairs(cookies.CookieHeaderName, "anything"),
+					t.Context(), metadata.Pairs(cookies.CookieHeaderName, "anything"),
 				),
 				metadata.Pairs(cookies.CookieHeaderName, "something"),
 			),
+			wantError: true,
+		},
+		{
+			desc: "multiple incoming apikey tokens",
+			incoming: metadata.NewIncomingContext(
+				t.Context(),
+				metadata.Pairs(ApikeyTokenHeaderName, "something", ApikeyTokenHeaderName, "something2"),
+			),
+			wantError: true,
+		},
+		{
+			desc: "incoming apikey token and outgoing collide",
+			incoming: metadata.NewIncomingContext(
+				metadata.NewOutgoingContext(t.Context(), metadata.Pairs(ApikeyTokenHeaderName, "anything")),
+				metadata.Pairs(ApikeyTokenHeaderName, "something"),
+			),
+			wantError: true,
+		},
+		{
+			desc: "happy case - merge incoming metadata with outgoing metadata",
+			incoming: metadata.NewIncomingContext(
+				metadata.NewOutgoingContext(
+					t.Context(),
+					metadata.Pairs(
+						cookies.CookieHeaderName, "something=somethingelse; something2=somethingelse2",
+						"other-key", "other-value", // present pairs in outgoing should not be overwritten
+					),
+				),
+				metadata.Pairs(
+					cookies.CookieHeaderName, "something=somethingelse; something2=somethingelse2",
+					authHeaderName, "some-token",
+					ApikeyTokenHeaderName, "something2",
+					"non identity relevant header", "irrelevant-value",
+				),
+			),
 			wantMd: metadata.MD{
-				"cookie": []string{"anything", "something"},
+				"cookie":              []string{"something=somethingelse; something2=somethingelse2"},
+				authHeaderName:        []string{"some-token"},
+				ApikeyTokenHeaderName: []string{"something2"},
+				"other-key":           []string{"other-value"},
 			},
+			wantChanged: true,
+		},
+		{
+			desc: "happy case - multiple cookies",
+			incoming: metadata.NewIncomingContext(
+				t.Context(),
+				metadata.MD{
+					cookies.CookieHeaderName: []string{"something", "something2"},
+				},
+			),
+			wantMd: metadata.MD{
+				"cookie": []string{"something", "something2"},
+			},
+			wantChanged: true,
 		},
 	}
 	for _, test := range tests {
-		t.Run(test.desc, func(t *testing.T) {
-			ctx := ToContextFromIncoming(test.incoming)
-			gotMd, _ := metadata.FromOutgoingContext(ctx)
-			if diff := cmp.Diff(test.wantMd, gotMd, cmpopts.EquateEmpty()); diff != "" {
-				t.Errorf("metadata.FromOutgoingContext(..) returned diff (-want +got):\n%s", diff)
+		t.Run("ToContextFromIncomingChecked "+test.desc, func(t *testing.T) {
+			ctx, changed, err := ToContextFromIncomingChecked(test.incoming)
+			if err != nil {
+				if test.wantError {
+					return
+				}
+				t.Errorf("ToContextFromIncomingChecked(..) returned error %v, want nil", err)
 			}
-		})
-	}
-}
-
-type ToContextFromIncomingCheckedTest struct {
-	desc        string
-	incoming    context.Context
-	wantMd      metadata.MD
-	wantChanged bool
-}
-
-func TestToContextFromIncomingChecked(t *testing.T) {
-	tests := []ToContextFromIncomingCheckedTest{
-		{
-			desc:        "no incoming",
-			incoming:    context.Background(),
-			wantMd:      metadata.MD{},
-			wantChanged: false,
-		},
-		{
-			desc: "incoming cookie",
-			incoming: metadata.NewIncomingContext(context.TODO(),
-				metadata.Pairs(
-					cookies.CookieHeaderName, "something",
-				),
-			),
-			wantMd: metadata.MD{
-				"cookie": []string{"something"},
-			},
-			wantChanged: true,
-		},
-		{
-			desc: "incoming auth-proxy and cookie with multiple values",
-			incoming: metadata.NewIncomingContext(context.TODO(),
-				metadata.Pairs(
-					authProxyCookieName, "anything", // do not copy over deprecated auth-proxy
-					cookies.CookieHeaderName, "something",
-					cookies.CookieHeaderName, "something2",
-				),
-			),
-			wantMd: metadata.MD{
-				"cookie": []string{"something", "something2"},
-			},
-			wantChanged: true,
-		},
-		{
-			desc: "incoming authorization header",
-			incoming: metadata.NewIncomingContext(context.TODO(),
-				metadata.Pairs(authHeaderName, "some-token"),
-			),
-			wantMd: metadata.MD{
-				authHeaderName: []string{"some-token"},
-			},
-			wantChanged: true,
-		},
-		{
-			desc: "multiple incoming authorization headers are ignored",
-			incoming: metadata.NewIncomingContext(context.TODO(),
-				metadata.Pairs(
-					authHeaderName, "some-token",
-					authHeaderName, "other-token",
-				),
-			),
-			wantMd:      metadata.MD{},
-			wantChanged: false,
-		},
-		{
-			desc: "incoming and outgoing auth-proxy",
-			incoming: metadata.NewIncomingContext(
-				metadata.NewOutgoingContext(
-					context.TODO(), metadata.Pairs(cookies.CookieHeaderName, "anything"),
-				),
-				metadata.Pairs(cookies.CookieHeaderName, "something"),
-			),
-			wantMd: metadata.MD{
-				"cookie": []string{"anything", "something"},
-			},
-			wantChanged: true,
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.desc, func(t *testing.T) {
-			ctx, changed := ToContextFromIncomingChecked(test.incoming)
+			if test.wantError {
+				t.Errorf("ToContextFromIncomingChecked(..) did not return error, want error")
+			}
 			gotMd, _ := metadata.FromOutgoingContext(ctx)
 			if diff := cmp.Diff(test.wantMd, gotMd, cmpopts.EquateEmpty()); diff != "" {
 				t.Errorf("metadata.FromOutgoingContext(..) returned diff (-want +got):\n%s", diff)
 			}
 			if changed != test.wantChanged {
 				t.Errorf("ToContextFromIncomingChecked(..) returned changed=%v, want %v", changed, test.wantChanged)
+			}
+		})
+
+		t.Run("ToContextFromIncoming "+test.desc, func(t *testing.T) {
+			ctx, err := ToContextFromIncoming(test.incoming)
+			if err != nil {
+				if test.wantError {
+					return
+				}
+				t.Errorf("ToContextFromIncoming(..) returned error %v, want nil", err)
+			}
+			if test.wantError {
+				t.Errorf("ToContextFromIncoming(..) did not return error, want error")
+			}
+			gotMd, _ := metadata.FromOutgoingContext(ctx)
+			if diff := cmp.Diff(test.wantMd, gotMd, cmpopts.EquateEmpty()); diff != "" {
+				t.Errorf("metadata.FromOutgoingContext(..) returned diff (-want +got):\n%s", diff)
 			}
 		})
 	}
@@ -745,7 +815,7 @@ func TestContextToRequest(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			ctx := metadata.NewIncomingContext(context.Background(), tc.meta)
+			ctx := metadata.NewIncomingContext(t.Context(), tc.meta)
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
 			err := ContextToRequest(ctx, req)
 			if err != nil {
@@ -787,7 +857,7 @@ func TestOrgToRequest(t *testing.T) {
 }
 
 func TestOrgToContext(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	ctx = OrgToContext(ctx, "testorg")
 	md, _ := metadata.FromOutgoingContext(ctx)
 	if md.Get(cookies.CookieHeaderName)[0] != org.OrgIDCookie+"=testorg" {
@@ -796,7 +866,7 @@ func TestOrgToContext(t *testing.T) {
 }
 
 func TestOrgToIncomingContext(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	ctx = OrgToIncomingContext(ctx, "testorg")
 	md, _ := metadata.FromIncomingContext(ctx)
 	if md.Get(cookies.CookieHeaderName)[0] != org.OrgIDCookie+"=testorg" {
@@ -869,7 +939,7 @@ func TestOrgFromContext(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			ctx := metadata.NewIncomingContext(context.Background(), tc.md)
+			ctx := metadata.NewIncomingContext(t.Context(), tc.md)
 			o, err := OrgFromContext(ctx)
 			if tc.wantErr {
 				if err == nil {
@@ -989,7 +1059,7 @@ func TestClearContextUser(t *testing.T) {
 	testMD := metadata.Pairs(cookies.ToMDString(testCookies...)...)
 	testMD.Set(authHeaderName, "testuser")
 	testMD.Set(ApikeyTokenHeaderName, "testuser")
-	ctx := metadata.NewOutgoingContext(context.Background(), testMD)
+	ctx := metadata.NewOutgoingContext(t.Context(), testMD)
 	ctx, err := ClearContextUser(ctx)
 	if err != nil {
 		t.Fatalf("ClearContextUser(..) = _, %v, want no error", err)
@@ -1057,7 +1127,7 @@ func TestUserOrgRetrieval(t *testing.T) {
 }
 
 func runUserOrgRetrievalContext(t *testing.T, tc *UserOrgRetrievalTest) {
-	ctx := ToIncomingContext(context.Background(), tc.user, tc.org)
+	ctx := ToIncomingContext(t.Context(), tc.user, tc.org)
 	uo, err := UserOrgFromContext(ctx)
 	if tc.wantErr {
 		if err == nil {
@@ -1125,7 +1195,7 @@ func TestErrStatusCodes(t *testing.T) {
 		{
 			name: "UserFromContext no metadata",
 			exec: func() error {
-				_, err := UserFromContext(context.Background())
+				_, err := UserFromContext(t.Context())
 				return err
 			},
 			wantHTTP: http.StatusUnauthorized,
@@ -1134,7 +1204,7 @@ func TestErrStatusCodes(t *testing.T) {
 		{
 			name: "OrgFromContext no metadata",
 			exec: func() error {
-				_, err := OrgFromContext(context.Background())
+				_, err := OrgFromContext(t.Context())
 				return err
 			},
 			wantHTTP: http.StatusBadRequest,
