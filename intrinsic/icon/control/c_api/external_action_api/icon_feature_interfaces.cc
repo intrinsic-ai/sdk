@@ -96,7 +96,7 @@ IconManipulatorKinematics::ComputeChainJacobian(
   return Convert(out);
 }
 
-const IconConstFeatureInterfaces FromCApiFeatureInterfaces(
+IconConstFeatureInterfaces FromCApiFeatureInterfaces(
     XfaIconConstFeatureInterfacesForSlot const_feature_interfaces,
     const XfaIconFeatureInterfaceVtable feature_interface_vtable) {
   IconConstFeatureInterfaces out;

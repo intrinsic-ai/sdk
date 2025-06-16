@@ -231,7 +231,7 @@ struct IconConstFeatureInterfaces {
 // `feature_interface_vtable`.
 //
 // Sets the entries for interfaces whose pointers are nullptr to std::nullopt.
-const IconConstFeatureInterfaces FromCApiFeatureInterfaces(
+IconConstFeatureInterfaces FromCApiFeatureInterfaces(
     XfaIconConstFeatureInterfacesForSlot const_feature_interfaces,
     XfaIconFeatureInterfaceVtable feature_interface_vtable);
 
