@@ -3,7 +3,6 @@
 package cookies
 
 import (
-	"context"
 	"net/http"
 	"testing"
 
@@ -14,7 +13,7 @@ import (
 
 func TestCookiesFromContext(t *testing.T) {
 	t.Run("no-metadata", func(t *testing.T) {
-		result, err := FromContext(context.Background())
+		result, err := FromContext(t.Context())
 		if len(result) != 0 {
 			t.Errorf("TestCookiesFromContext() = %v, want empty", result)
 		}
@@ -25,7 +24,7 @@ func TestCookiesFromContext(t *testing.T) {
 	})
 
 	t.Run("no-cookie-header", func(t *testing.T) {
-		ctx := metadata.NewIncomingContext(context.Background(), metadata.MD{})
+		ctx := metadata.NewIncomingContext(t.Context(), metadata.MD{})
 
 		result, err := FromContext(ctx)
 		if len(result) != 0 {
@@ -38,7 +37,7 @@ func TestCookiesFromContext(t *testing.T) {
 	})
 
 	t.Run("empty cookie header", func(t *testing.T) {
-		ctx := metadata.NewIncomingContext(context.Background(), metadata.New(map[string]string{CookieHeaderName: ""}))
+		ctx := metadata.NewIncomingContext(t.Context(), metadata.New(map[string]string{CookieHeaderName: ""}))
 
 		result, err := FromContext(ctx)
 		if len(result) != 0 {
@@ -53,7 +52,7 @@ func TestCookiesFromContext(t *testing.T) {
 	t.Run("merge-cookie-headers", func(t *testing.T) {
 		md := metadata.New(map[string]string{CookieHeaderName: "org-id=exampleorg; user-id=doe@example.com"})
 		md.Append(CookieHeaderName, "org-id=exampleorg")
-		ctx := metadata.NewIncomingContext(context.Background(), md)
+		ctx := metadata.NewIncomingContext(t.Context(), md)
 
 		result, err := FromContext(ctx)
 		if err != nil {
@@ -73,7 +72,7 @@ func TestCookiesFromContext(t *testing.T) {
 	t.Run("too-many-cookie-headers", func(t *testing.T) {
 		md := metadata.New(map[string]string{CookieHeaderName: "org-id=exampleorg; user-id=doe@example.com"})
 		md.Append(CookieHeaderName, "org-id=exampleorg; user-id=john@example.com")
-		ctx := metadata.NewIncomingContext(context.Background(), md)
+		ctx := metadata.NewIncomingContext(t.Context(), md)
 
 		result, err := FromContext(ctx)
 		if len(result) != 0 {
@@ -92,7 +91,7 @@ func TestCookiesFromContext(t *testing.T) {
 			&http.Cookie{Name: "two", Value: "val2"},
 		}
 		md := metadata.New(map[string]string{CookieHeaderName: "one=val1; two=val2"})
-		ctx := metadata.NewIncomingContext(context.Background(), md)
+		ctx := metadata.NewIncomingContext(t.Context(), md)
 
 		result, err := FromContext(ctx)
 		if err != nil {
