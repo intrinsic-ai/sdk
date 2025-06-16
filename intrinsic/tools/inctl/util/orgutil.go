@@ -198,14 +198,43 @@ func PreRunOrganization(cmd *cobra.Command, vipr *viper.Viper) error {
 	return nil
 }
 
-// WrapCmdOptionalNoOrgCheck injects KeyProject and KeyOrganization as PersistentFlags into the command and
+// WrapCmdOption is an interface for options that configure the behavior of
+// WrapCmd and WrapCmdOptional.
+type WrapCmdOption interface {
+	set(*wrapCmdOptions)
+}
+
+type wrapCmdOptions struct {
+	enableOrgExistsCheck func() bool
+}
+
+type wrapCmdOption func(*wrapCmdOptions)
+
+func (o wrapCmdOption) set(opts *wrapCmdOptions) {
+	o(opts)
+}
+
+// WithOrgExistsCheck provides a way to selectively enable or disable the org
+// credentials check in a command.  It's provided as a closure to allow it to
+// be evaluated after flag parsing has occurred.
+func WithOrgExistsCheck(enable func() bool) WrapCmdOption {
+	return wrapCmdOption(func(opts *wrapCmdOptions) {
+		opts.enableOrgExistsCheck = enable
+	})
+}
+
+// WrapCmdOptional injects KeyProject and KeyOrganization as PersistentFlags into the command and
 // sets up shared handling for them.
 //
 // However, it lets the user skip setting --org in case they prefer --context with a local context /
 // alias.
-//
-// If enableOrgExistsCheck is true, it will also check if the org exists in the project.
-func WrapCmdOptionalNoOrgCheck(cmd *cobra.Command, vipr *viper.Viper, enableOrgExistsCheck func() bool) *cobra.Command {
+func WrapCmdOptional(cmd *cobra.Command, vipr *viper.Viper, options ...WrapCmdOption) *cobra.Command {
+	opts := &wrapCmdOptions{
+		enableOrgExistsCheck: func() bool { return true },
+	}
+	for _, option := range options {
+		option.set(opts)
+	}
 	cmd.PersistentFlags().StringP(KeyProject, "p", "",
 		`The Google Cloud Project (GCP) project to use. You can set the environment variable
 	INTRINSIC_PROJECT=project_name to set a default project name.`)
@@ -220,7 +249,7 @@ func WrapCmdOptionalNoOrgCheck(cmd *cobra.Command, vipr *viper.Viper, enableOrgE
 		// causes cobra to run the PersistentPreRunE either way. So we need to short-circuit
 		// the flag handling here.
 		if !c.DisableFlagParsing {
-			if err := preRunOrganizationOptional(cmd, vipr, enableOrgExistsCheck); err != nil {
+			if err := preRunOrganizationOptional(cmd, vipr, opts.enableOrgExistsCheck); err != nil {
 				return err
 			}
 		}
@@ -234,24 +263,14 @@ func WrapCmdOptionalNoOrgCheck(cmd *cobra.Command, vipr *viper.Viper, enableOrgE
 	viperutil.BindFlags(vipr, cmd.PersistentFlags(), viperutil.BindToListEnv(KeyOrganization))
 
 	return cmd
-
-}
-
-// WrapCmdOptional injects KeyProject and KeyOrganization as PersistentFlags into the command and
-// sets up shared handling for them.
-//
-// However, it lets the user skip setting --org in case they prefer --context with a local context /
-// alias.
-func WrapCmdOptional(cmd *cobra.Command, vipr *viper.Viper) *cobra.Command {
-	return WrapCmdOptionalNoOrgCheck(cmd, vipr, func() bool { return true })
 }
 
 // WrapCmd injects KeyProject and KeyOrganization as PersistentFlags into the command and sets up
 // shared handling for them.
 //
 // It enforces that exactly one of --project or --org is set.
-func WrapCmd(cmd *cobra.Command, vipr *viper.Viper) *cobra.Command {
-	cmd = WrapCmdOptional(cmd, vipr)
+func WrapCmd(cmd *cobra.Command, vipr *viper.Viper, options ...WrapCmdOption) *cobra.Command {
+	cmd = WrapCmdOptional(cmd, vipr, options...)
 
 	oldPreRunE := cmd.PersistentPreRunE
 	cmd.PersistentPreRunE = func(c *cobra.Command, args []string) error {
