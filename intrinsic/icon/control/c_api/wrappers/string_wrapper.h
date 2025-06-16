@@ -21,7 +21,7 @@ XfaIconString* Wrap(absl::string_view str);
 
 // Wraps a string_view into an XfaIconString that can be passed to API functions
 // as an immutable, non-owned parameter.
-const XfaIconStringView WrapView(absl::string_view str);
+XfaIconStringView WrapView(absl::string_view str);
 
 }  // namespace intrinsic::icon
 

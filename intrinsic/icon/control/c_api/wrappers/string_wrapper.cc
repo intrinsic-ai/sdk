@@ -23,7 +23,7 @@ XfaIconString* Wrap(absl::string_view str) {
   return new XfaIconString({.data = data, .size = str.size()});
 }
 
-const XfaIconStringView WrapView(absl::string_view str) {
+XfaIconStringView WrapView(absl::string_view str) {
   return {.data = str.data(), .size = str.size()};
 }
 
