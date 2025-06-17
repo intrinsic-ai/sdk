@@ -326,7 +326,7 @@ message RotationCone {
 // the end pose.
 message PoseEquality {
   // Moving frame that will be constrained to have a fixed relative pose to
-  // the reference frame. This typically is a tool or tcp frame.
+  // the reference frame. This typically is a tool or tip frame.
   intrinsic_proto.world.TransformNodeReference moving_frame = 1;
 
   // Reference frame that will be constrained to have fixed relative pose to
@@ -339,6 +339,75 @@ message PoseEquality {
   // orientation of the offset. To specify only one, use the identify for the
   // other, i.e., (x=y=z=0) for position or (w=1, x=y=z=0) for orientation.
   optional intrinsic_proto.Pose target_frame_offset = 3;
+}
+
+// Requires a point attached to `moving_frame` to translate by
+// `relative_position` from its starting position. By default,
+// `relative_position` is with respect to starting orientation of
+// `moving_frame`. If optional field `reference_frame` is set,
+// `relative_position` is with respect to `reference_frame`.
+message RelativePositionEquality {
+  // Moving frame that will be constrained to a new position that is offset by
+  // `relative_position` from its starting position. Typically a tool or tip
+  // frame.
+  intrinsic_proto.world.TransformNodeReference moving_frame = 1;
+
+  // The translation to apply to position of moving_frame. By default, this is
+  // relative to the orientation of `moving_frame` at the start of the
+  // motion. If optional field `reference_frame` is set, then
+  // `relative_position` is relative to `reference_frame`.
+  intrinsic_proto.Point relative_position = 2;
+
+  // Optional frame that can be used as a reference for
+  // `relative_position`. This is useful for describing motions where the motion
+  // direction does not depend on the starting orientation of `moving_frame`.
+  optional intrinsic_proto.world.TransformNodeReference reference_frame = 3;
+
+  // The point attached to `moving_frame`. Defaults to (0, 0, 0) if unset.
+  optional intrinsic_proto.Point moving_frame_offset = 4;
+}
+
+// Requires `moving_frame` to rotate by `relative_rotation` from its starting
+// pose. By default, `relative_rotation` is with respect to starting orientation
+// of `moving_frame`. If optional field `reference_frame` is set,
+// `relative_rotation` is with respect to `reference_frame`.
+message RelativeRotationEquality {
+  // Moving frame that will be constrained to a new orientation that is offset
+  // by `relative_rotation` from its starting orientation. Typically a tool or
+  // tip frame.
+  intrinsic_proto.world.TransformNodeReference moving_frame = 1;
+
+  // The rotation to apply to orientation of moving_frame. By default, this is
+  // relative to the orientation of `moving_frame` at the start of the
+  // motion. If optional field `reference_frame` is set, then
+  // `relative_rotation` is relative to `reference_frame`.
+  intrinsic_proto.Quaternion relative_rotation = 2;
+
+  // Optional frame that can be used as a reference for
+  // `relative_rotation`. This is useful for describing motions where the motion
+  // direction does not depend on the starting orientation of `moving_frame`.
+  optional intrinsic_proto.world.TransformNodeReference reference_frame = 3;
+}
+
+// Requires `moving_frame` to translate and rotate by `relative_pose` from its
+// starting pose. By default, `relative_pose` is with respect to starting pose
+// of `moving_frame`. If optional field `reference_frame` is set,
+// `relative_pose` is with respect to `reference_frame`.
+message RelativePoseEquality {
+  // Moving frame that will be constrained to a new pose that is offset by
+  // `relative_pose` from its starting pose. Typically a tool or tip frame.
+  intrinsic_proto.world.TransformNodeReference moving_frame = 1;
+
+  // The pose offset to apply to the pose of moving_frame. By default, this is
+  // relative to the pose of `moving_frame` at the start of the motion. If
+  // optional field `reference_frame` is set, then `relative_pose` is relative
+  // to `reference_frame`.
+  intrinsic_proto.Pose relative_pose = 2;
+
+  // Optional frame that can be used as a reference for `relative_pose`. This is
+  // useful for describing motions where the motion direction does not depend on
+  // the starting orientation of `moving_frame`.
+  optional intrinsic_proto.world.TransformNodeReference reference_frame = 3;
 }
 
 // Satisfied if all of the contained constraints are satisfied.
@@ -355,12 +424,16 @@ message UniformGeometricConstraintIntersection {
 
 message GeometricConstraint {
   oneof constraint {
+    // Next ID: 17
     intrinsic_proto.icon.JointVec joint_position = 13;
     JointPositionLimits joint_position_limits = 1;
     PositionEquality position_equality = 2;
     RotationEquality rotation_equality = 6;
     RotationCone rotation_cone = 7;
     PoseEquality cartesian_pose = 8;
+    RelativePositionEquality relative_position_equality = 14;
+    RelativeRotationEquality relative_rotation_equality = 15;
+    RelativePoseEquality relative_cartesian_pose = 16;
     PositionBoundingBox position_bounding_box = 9;
     JointPositionSumLimit joint_position_sum_limit = 11;
     PointAt point_at = 12;
