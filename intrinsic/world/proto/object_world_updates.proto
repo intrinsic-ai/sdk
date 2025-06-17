@@ -14,11 +14,9 @@ import "intrinsic/world/proto/collision_action.proto";
 import "intrinsic/world/proto/collision_settings.proto";
 import "intrinsic/world/proto/geometry_component.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
-import "intrinsic/world/proto/outfeed_component.proto";
 import "intrinsic/world/proto/physics_component.proto";
 import "intrinsic/world/proto/robot_payload.proto";
 import "intrinsic/world/proto/simulation_component.proto";
-import "intrinsic/world/proto/spawner_component.proto";
 
 // A single update to an object world resource such as a frame or object.
 message ObjectWorldUpdate {
@@ -385,19 +383,11 @@ message UpdateObjectPropertiesRequest {
   // existing simulation component.
   intrinsic_proto.world.SimulationComponent simulation_component = 3;
 
-  // If set, updates the object's spawner component to the given one. Returns an
-  // error if the object did not have a spawner component previously.
-  intrinsic_proto.world.SpawnerComponent spawner_component = 6;
-
-  // If set, updates the object's outfeed component to the given one. Returns an
-  // error if the object did not have an outfeed component previously.
-  intrinsic_proto.world.OutfeedComponent outfeed_component = 8;
-
   // Requested object view for the returned, updated object.
   ObjectView view = 5;
 
-  reserved 7;
-  reserved "gripper_component";
+  reserved 6, 7, 8;
+  reserved "gripper_component", "spawner_component", "outfeed_component";
 }
 
 // Request to update advanced properties of an entity such as its optional

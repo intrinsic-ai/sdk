@@ -159,12 +159,10 @@ proto_library(
         ":kinematics_component_proto",
         ":object_world_refs_proto",
         ":object_world_updates_proto",
-        ":outfeed_component_proto",
         ":physics_component_proto",
         ":robot_payload_proto",
         ":sensor_component_proto",
         ":simulation_component_proto",
-        ":spawner_component_proto",
         "//intrinsic/icon/proto:cart_space_proto",
         "//intrinsic/kinematics/types:joint_limits_proto",
         "//intrinsic/math/proto:pose_proto",
@@ -214,11 +212,9 @@ proto_library(
         ":collision_settings_proto",
         ":geometry_component_proto",
         ":object_world_refs_proto",
-        ":outfeed_component_proto",
         ":physics_component_proto",
         ":robot_payload_proto",
         ":simulation_component_proto",
-        ":spawner_component_proto",
         "//intrinsic/icon/proto:cart_space_proto",
         "//intrinsic/kinematics/types:joint_limits_proto",
         "//intrinsic/math/proto:pose_proto",
@@ -248,10 +244,8 @@ go_proto_library(
         ":geometry_component_go_proto",
         ":gripper_component_go_proto",
         ":robot_payload_go_proto",
-        ":outfeed_component_go_proto",
         ":physics_component_go_proto",
         ":simulation_component_go_proto",
-        ":spawner_component_go_proto",
         ":object_world_refs_go_proto",
         "//intrinsic/icon/proto:cart_space_go_proto",
         "//intrinsic/kinematics/types:joint_limits_go_proto",
@@ -318,66 +312,6 @@ go_proto_library(
     name = "simulation_component_go_proto",
     visibility = ["//intrinsic:public_api_users"],
     deps = [":simulation_component_proto"],
-)
-
-proto_library(
-    name = "spawner_component_proto",
-    srcs = ["spawner_component.proto"],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [
-        "//intrinsic/math/proto:vector3_proto",
-    ],
-)
-
-py_proto_library(
-    name = "spawner_component_py_pb2",
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":spawner_component_proto"],
-)
-
-cc_proto_library(
-    name = "spawner_component_cc_proto",
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":spawner_component_proto"],
-)
-
-go_proto_library(
-    name = "spawner_component_go_proto",
-    go_deps = [
-        "//intrinsic/math/proto:vector3_go_proto",
-    ],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":spawner_component_proto"],
-)
-
-proto_library(
-    name = "outfeed_component_proto",
-    srcs = ["outfeed_component.proto"],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [
-        "//intrinsic/math/proto:vector3_proto",
-    ],
-)
-
-py_proto_library(
-    name = "outfeed_component_py_pb2",
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":outfeed_component_proto"],
-)
-
-cc_proto_library(
-    name = "outfeed_component_cc_proto",
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":outfeed_component_proto"],
-)
-
-go_proto_library(
-    name = "outfeed_component_go_proto",
-    go_deps = [
-        "//intrinsic/math/proto:vector3_go_proto",
-    ],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":outfeed_component_proto"],
 )
 
 proto_library(
@@ -468,10 +402,8 @@ proto_library(
         ":kinematics_component_proto",
         ":object_world_refs_proto",
         ":object_world_service_proto",
-        ":outfeed_component_proto",
         ":physics_component_proto",
         ":simulation_component_proto",
-        ":spawner_component_proto",
         "//intrinsic/world/proto:entity_search_proto",
     ],
 )
