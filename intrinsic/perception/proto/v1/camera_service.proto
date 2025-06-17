@@ -16,7 +16,7 @@ import "intrinsic/perception/proto/v1/image_buffer.proto";
 import "intrinsic/perception/proto/v1/post_processing.proto";
 import "intrinsic/platform/pubsub/storage_location.proto";
 
-service CameraServer {
+service CameraService {
   // Returns all available cameras connected on the server side.
   rpc ListAvailableCameras(ListAvailableCamerasRequest)
       returns (ListAvailableCamerasResponse) {}
@@ -54,6 +54,38 @@ service CameraServer {
   // Note: When updating camera parameters, beware that the modifications will
   //   apply to all instances. I.e. it will also affect all other clients who
   //   are using the same camera.
+  rpc UpdateCameraSetting(UpdateCameraSettingRequest)
+      returns (UpdateCameraSettingResponse) {}
+}
+
+// DEPRECATED: Use CameraService instead.
+service CameraServer {
+  option deprecated = true;
+
+  // See CameraService.ListAvailableCameras.
+  rpc ListAvailableCameras(ListAvailableCamerasRequest)
+      returns (ListAvailableCamerasResponse) {}
+
+  // See CameraService.DescribeCamera.
+  rpc DescribeCamera(DescribeCameraRequest) returns (DescribeCameraResponse) {}
+
+  // See CameraService.Capture.
+  rpc Capture(CaptureRequest) returns (CaptureResponse) {
+  }
+
+  // See CameraService.ReadCameraSettingAccess.
+  rpc ReadCameraSettingAccess(ReadCameraSettingAccessRequest)
+      returns (ReadCameraSettingAccessResponse) {}
+
+  // See CameraService.ReadCameraSettingProperties.
+  rpc ReadCameraSettingProperties(ReadCameraSettingPropertiesRequest)
+      returns (ReadCameraSettingPropertiesResponse) {}
+
+  // See CameraService.ReadCameraSetting.
+  rpc ReadCameraSetting(ReadCameraSettingRequest)
+      returns (ReadCameraSettingResponse) {}
+
+  // See CameraService.UpdateCameraSetting.
   rpc UpdateCameraSetting(UpdateCameraSettingRequest)
       returns (UpdateCameraSettingResponse) {}
 }

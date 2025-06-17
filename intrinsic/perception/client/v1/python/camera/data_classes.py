@@ -14,7 +14,7 @@ from intrinsic.perception.client.v1.python import image_utils
 from intrinsic.perception.client.v1.python.camera import _camera_utils
 from intrinsic.perception.proto.v1 import camera_config_pb2
 from intrinsic.perception.proto.v1 import camera_params_pb2
-from intrinsic.perception.proto.v1 import camera_server_pb2
+from intrinsic.perception.proto.v1 import camera_service_pb2
 from intrinsic.perception.proto.v1 import capture_result_pb2
 from intrinsic.perception.proto.v1 import sensor_config_pb2
 from intrinsic.perception.proto.v1 import sensor_image_pb2
@@ -61,16 +61,16 @@ class CameraParams:
 class SensorInformation:
   """Convenience wrapper for SensorInformation."""
 
-  _proto: camera_server_pb2.SensorInformation
+  _proto: camera_service_pb2.SensorInformation
 
-  def __init__(self, sensor_information: camera_server_pb2.SensorInformation):
+  def __init__(self, sensor_information: camera_service_pb2.SensorInformation):
     if sensor_information is None:
       raise ValueError("Sensor information cannot be None.")
 
     self._proto = sensor_information
 
   @property
-  def proto(self) -> camera_server_pb2.SensorInformation:
+  def proto(self) -> camera_service_pb2.SensorInformation:
     """Returns the sensor information proto."""
     return self._proto
 

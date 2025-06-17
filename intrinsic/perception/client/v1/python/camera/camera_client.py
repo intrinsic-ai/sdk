@@ -10,8 +10,8 @@ from typing import Optional
 import grpc
 from intrinsic.perception.proto.v1 import camera_config_pb2
 from intrinsic.perception.proto.v1 import camera_identifier_pb2
-from intrinsic.perception.proto.v1 import camera_server_pb2
-from intrinsic.perception.proto.v1 import camera_server_pb2_grpc
+from intrinsic.perception.proto.v1 import camera_service_pb2
+from intrinsic.perception.proto.v1 import camera_service_pb2_grpc
 from intrinsic.perception.proto.v1 import camera_settings_pb2
 from intrinsic.perception.proto.v1 import capture_result_pb2
 from intrinsic.util.grpc import connection
@@ -27,7 +27,7 @@ class CameraClient:
   """
 
   camera_identifier: camera_identifier_pb2.CameraIdentifier
-  _camera_stub: camera_server_pb2_grpc.CameraServerStub
+  _camera_stub: camera_service_pb2_grpc.CameraServerStub
 
   def __init__(
       self,
@@ -43,14 +43,14 @@ class CameraClient:
         camera_channel,
         interceptor.HeaderAdderInterceptor(connection_params.headers),
     )
-    self._camera_stub = camera_server_pb2_grpc.CameraServerStub(
+    self._camera_stub = camera_service_pb2_grpc.CameraServerStub(
         intercepted_camera_channel
     )
 
   @error_handling.retry_on_grpc_unavailable
   def describe_camera(
       self,
-  ) -> camera_server_pb2.DescribeCameraResponse:
+  ) -> camera_service_pb2.DescribeCameraResponse:
     """Enumerates connected sensors.
 
     Returns:
@@ -60,7 +60,7 @@ class CameraClient:
     Raises:
       grpc.RpcError: A gRPC error occurred.
     """
-    request = camera_server_pb2.DescribeCameraRequest(
+    request = camera_service_pb2.DescribeCameraRequest(
         camera_identifier=self.camera_identifier
     )
     response = self._camera_stub.DescribeCamera(request)
@@ -137,7 +137,7 @@ class CameraClient:
       timeout = deadline - datetime.datetime.now()
       if timeout <= datetime.timedelta(seconds=0):
         raise grpc.RpcError(grpc.StatusCode.DEADLINE_EXCEEDED)
-    request = camera_server_pb2.CaptureRequest(camera_config=camera_config)
+    request = camera_service_pb2.CaptureRequest(camera_config=camera_config)
     if timeout is not None:
       request.timeout.FromTimedelta(timeout)
     request.sensor_ids[:] = sensor_ids
@@ -184,7 +184,7 @@ class CameraClient:
     Raises:
       grpc.RpcError: A gRPC error occurred.
     """
-    request = camera_server_pb2.ReadCameraSettingPropertiesRequest(
+    request = camera_service_pb2.ReadCameraSettingPropertiesRequest(
         camera_identifier=self.camera_identifier,
         name=name,
     )
@@ -210,7 +210,7 @@ class CameraClient:
     Raises:
       grpc.RpcError: A gRPC error occurred.
     """
-    request = camera_server_pb2.ReadCameraSettingRequest(
+    request = camera_service_pb2.ReadCameraSettingRequest(
         camera_identifier=self.camera_identifier,
         name=name,
     )
@@ -235,7 +235,7 @@ class CameraClient:
     Raises:
       grpc.RpcError: A gRPC error occurred.
     """
-    request = camera_server_pb2.UpdateCameraSettingRequest(
+    request = camera_service_pb2.UpdateCameraSettingRequest(
         camera_identifier=self.camera_identifier,
         setting=setting,
     )
