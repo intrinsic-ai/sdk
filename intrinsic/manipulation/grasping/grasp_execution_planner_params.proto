@@ -6,6 +6,7 @@ package intrinsic_proto.grasping;
 
 import "intrinsic/motion_planning/proto/v1/motion_planning_limits.proto";
 import "intrinsic/motion_planning/proto/v1/motion_specification.proto";
+import "intrinsic/world/proto/object_world_refs.proto";
 
 message GraspExecutionPlannerParams {
   // The robot to execute a grasp.
@@ -41,9 +42,15 @@ message GraspExecutionPlannerParams {
   optional intrinsic_proto.motion_planning.v1.DynamicCartesianLimits
       postgrasp_motion_dynamic_cartesian_limits = 9;
 
+  // DEPRECATED: Use `collision_excluded_eoat_parts` instead.
   // If specified, ignore collisions between the given EOAT (end-of-arm tool)
   // and the target object at grasp pose. This isn't part of the
   // path constraints because the target object is often unknown
   // at construction time.
-  optional string collision_excluded_eoat = 10;
+  optional string collision_excluded_eoat = 10 [deprecated = true];
+  // If specified, ignore collisions between the given EOAT (end-of-arm tool)
+  // parts and the target object at grasp pose. This isn't part of the
+  // path constraints because the target object is often unknown
+  // at construction time.
+  repeated world.ObjectReference collision_excluded_eoat_parts = 11;
 }

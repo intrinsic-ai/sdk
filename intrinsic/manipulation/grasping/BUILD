@@ -59,6 +59,7 @@ proto_library(
     deps = [
         "//intrinsic/motion_planning/proto/v1:motion_planning_limits_proto",
         "//intrinsic/motion_planning/proto/v1:motion_specification_proto",
+        "//intrinsic/world/proto:object_world_refs_proto",
     ],
 )
 
@@ -106,6 +107,7 @@ proto_library(
     deps = [
         "//intrinsic/icon/proto:cart_space_proto",
         "//intrinsic/kinematics/types:joint_limits_proto",
+        "//intrinsic/world/proto:object_world_refs_proto",
     ],
 )
 

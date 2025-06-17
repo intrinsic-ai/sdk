@@ -6,6 +6,7 @@ package intrinsic_proto.grasping;
 
 import "intrinsic/icon/proto/cart_space.proto";
 import "intrinsic/kinematics/types/joint_limits.proto";
+import "intrinsic/world/proto/object_world_refs.proto";
 
 message GraspRankersParams {
   reserved 1;
@@ -59,9 +60,14 @@ message DiversityRankerParams {
 }
 
 message IkCollisionCheckerParams {
+  // DEPRECATED: Use collision_excluded_eoat_parts instead.
   // Name of the EOAT (end-of-arm tool) to allow collision with the target
   // object at grasp pose. If None, no effect.
-  optional string collision_excluded_eoat = 7;
+  optional string collision_excluded_eoat = 7 [deprecated = true];
+
+  // Reference(s) to EOAT (end-of-arm tool) parts to allow collision with the
+  // target object at grasp pose. Has no effect if unspecified.
+  repeated world.ObjectReference collision_excluded_eoat_parts = 8;
 
   // Name of the ranker. Default to ik_collision_checker.
   optional string name = 6;
@@ -70,8 +76,8 @@ message IkCollisionCheckerParams {
   optional intrinsic_proto.JointLimitsUpdate joint_limits = 1;
 
   // Whether to check collisions at grasp pose. On top of this, if
-  // `collision_excluded_eoat` is specified, then collisions are
-  // ignored between the eoat and the target object at grasp pose.
+  // `collision_excluded_eoat_parts` is specified, then collisions are
+  // ignored between the eoat parts and the target object at grasp pose.
   optional bool check_collision_at_grasp_pose = 2;
 
   // Whether to require grasp pose to have same kinematic branch as starting
