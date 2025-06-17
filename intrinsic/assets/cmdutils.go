@@ -238,12 +238,22 @@ func (cf *CmdFlags) GetFlagsAddressClusterSolution() (string, string, string, er
 	cluster := cf.GetString(KeyCluster)
 	solution := cf.GetString(KeySolution)
 
-	var err error
 	if address == "" && cluster == "" && solution == "" {
-		err = fmt.Errorf("at least one of `--%s`, `--%s` or `--%s` must be set", KeyAddress, KeyCluster, KeySolution)
+		return "", "", "", fmt.Errorf("at least one of `--%s`, `--%s` or `--%s` must be set", KeyAddress, KeyCluster, KeySolution)
+	}
+	// This matches these flags being marked as mutually exclusive above.  That
+	// does not prevent two environment variables being provided or a
+	// combination of flags and variables.  This is a fairly strict check, as
+	// we probably want these flags to functionally behave as one where we
+	// autodetect the type.  Which could probably be done with a clear order of
+	// precedence (address before cluster before solution) without needing to
+	// autodetect the kind.  If this is too strict, then we can override the
+	// check in clientutils that triggers a lookup if solution is set.
+	if cluster != "" && solution != "" {
+		return "", "", "", fmt.Errorf("both `--%s=%q` and `--%s=%q` were provided by a flags and/or environment variables, which could be ambiguous", KeyCluster, cluster, KeySolution, solution)
 	}
 
-	return address, cluster, solution, err
+	return address, cluster, solution, nil
 }
 
 // AddFlagsManifest adds flags for specifying a manifest.
