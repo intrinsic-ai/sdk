@@ -40,7 +40,7 @@ absl::Status ActionSignatureBuilder::SetFixedParametersTypeImpl(
                      dest_signature.fixed_parameters_message_type(), "\""));
   }
   dest_signature.set_fixed_parameters_message_type(
-      std::string(fixed_parameters_message_type));
+      fixed_parameters_message_type);
   *dest_signature.mutable_fixed_parameters_descriptor_set() =
       fixed_parameters_descriptor_set;
   return absl::OkStatus();

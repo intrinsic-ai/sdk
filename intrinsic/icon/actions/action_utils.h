@@ -28,8 +28,8 @@ class ActionSignatureBuilder {
                          absl::string_view action_description)
 
   {
-    signature_.set_action_type_name(std::string(action_name));
-    signature_.set_text_description(std::string(action_description));
+    signature_.set_action_type_name(action_name);
+    signature_.set_text_description(action_description);
   }
   // ActionSignatureBuilder cannot be constructed without action_name and
   // action_description.
@@ -69,8 +69,8 @@ class ActionSignatureBuilder {
     }
     // Actually insert into proto.
     auto* info = signature_.mutable_streaming_input_infos()->Add();
-    info->set_parameter_name(std::string(input_name));
-    info->set_text_description(std::string(input_description));
+    info->set_parameter_name(input_name);
+    info->set_text_description(input_description);
     info->set_value_message_type(InputType::GetDescriptor()->full_name());
     *info->mutable_value_descriptor_set() = GenFileDescriptorSet<InputType>();
 
@@ -95,8 +95,8 @@ class ActionSignatureBuilder {
           signature_.streaming_output_info().value_message_type(), ")"));
     }
     auto* output_info = signature_.mutable_streaming_output_info();
-    output_info->set_parameter_name(std::string(output_name));
-    output_info->set_text_description(std::string(output_description));
+    output_info->set_parameter_name(output_name);
+    output_info->set_text_description(output_description);
     output_info->set_value_message_type(
         OutputType::GetDescriptor()->full_name());
     *output_info->mutable_value_descriptor_set() =
@@ -127,8 +127,8 @@ class ActionSignatureBuilder {
     }
     // Actually insert into proto.
     auto* info = signature_.add_state_variable_infos();
-    info->set_state_variable_name(std::string(state_variable_name));
-    info->set_text_description(std::string(state_variable_description));
+    info->set_state_variable_name(state_variable_name);
+    info->set_text_description(state_variable_description);
     info->set_type(StateVariableType);
 
     return absl::OkStatus();
