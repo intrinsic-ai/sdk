@@ -23,8 +23,8 @@ import (
 
 // GetCommand returns a command to delete a service instance from a solution.
 func GetCommand() *cobra.Command {
-	var flags = cmdutils.NewCmdFlags()
-	var cmd = &cobra.Command{
+	flags := cmdutils.NewCmdFlags()
+	cmd := &cobra.Command{
 		Use:   "delete name",
 		Short: "Delete a service instance from a solution",
 		Example: `

@@ -34,8 +34,8 @@ const (
 
 // GetCommand returns a command to add a service instance to a solution.
 func GetCommand() *cobra.Command {
-	var flags = cmdutils.NewCmdFlags()
-	var cmd = &cobra.Command{
+	flags := cmdutils.NewCmdFlags()
+	cmd := &cobra.Command{
 		Use:   "add id|id_version",
 		Short: "Add a service instance to a solution",
 		Example: `
