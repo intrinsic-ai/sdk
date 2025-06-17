@@ -222,3 +222,74 @@ func TestToMDString(t *testing.T) {
 		})
 	}
 }
+
+func TestMergeCookiesEmpty(t *testing.T) {
+	omd, _ := metadata.FromOutgoingContext(t.Context())
+	cs := omd.Get(CookieHeaderName)
+	res, err := mergeCookies(cs...)
+	if err != nil {
+		t.Errorf("mergeCookies() returned error %v, want nil", err)
+	}
+	if len(res) != 0 {
+		t.Errorf("mergeCookies() returned %v, want empty", res)
+	}
+}
+
+func TestAddToMD(t *testing.T) {
+	tests := []struct {
+		name string
+		md   metadata.MD
+		cs   []*http.Cookie
+		want []string
+	}{
+		{
+			name: "no-cookies",
+			md:   metadata.MD{},
+			cs:   []*http.Cookie{},
+			want: []string{},
+		},
+		{
+			name: "no metadata",
+			md:   nil,
+			cs:   []*http.Cookie{&http.Cookie{Name: "a", Value: "1"}},
+			want: []string{"a=1"},
+		},
+		{
+			name: "happy case",
+			md: metadata.MD{
+				"cookie": []string{"a=5; c=3"},
+				"other":  []string{"a=1; b=2"},
+			},
+			cs: []*http.Cookie{
+				&http.Cookie{Name: "b", Value: "2"},
+				&http.Cookie{Name: "a", Value: "1"},
+			},
+			want: []string{"a=1; b=2; c=3"},
+		},
+		{
+			name: "multiple cookie header values are merged",
+			md: metadata.MD{
+				"cookie": []string{"a=5; c=3", "b=5; d=4"},
+			},
+			cs: []*http.Cookie{
+				&http.Cookie{Name: "b", Value: "2"},
+				&http.Cookie{Name: "a", Value: "1"},
+				&http.Cookie{Name: "e", Value: "5"},
+			},
+			want: []string{"a=1; b=2; c=3; d=4; e=5"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			res, err := addToMD(tc.md, tc.cs...)
+			if err != nil {
+				t.Errorf("addToMD() returned error %v, want nil", err)
+			}
+			got := res.Get(CookieHeaderName)
+			if diff := cmp.Diff(tc.want, got, cmpopts.EquateEmpty()); diff != "" {
+				t.Errorf("addToMD() returned diff (-want +got):\n%s", diff)
+			}
+		})
+	}
+}

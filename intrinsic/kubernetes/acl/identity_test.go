@@ -117,17 +117,36 @@ func TestUserFromMetadata(t *testing.T) {
 func TestUserToContext(t *testing.T) {
 	ctx := t.Context()
 	u := &User{jwt: token}
-	ctx = UserToContext(ctx, u)
+	ctx, err := UserToContext(ctx, u)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []string{authProxyCookieName + "=" + token}
 	md, _ := metadata.FromOutgoingContext(ctx)
-	if md.Get(cookies.CookieHeaderName)[0] != authProxyCookieName+"="+token {
-		t.Errorf("UserToContext(..) did not add the user's identity to the context")
+	if diff := cmp.Diff(want, md.Get(cookies.CookieHeaderName)); diff != "" {
+		t.Errorf("UserToContext(..) did not add the user's identity to the context (-want +got):\n%s", diff)
+	}
+
+	// Overwrite existing cookie.
+	u.jwt = token2
+	ctx, err = UserToContext(ctx, u)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want = []string{authProxyCookieName + "=" + token2}
+	md, _ = metadata.FromOutgoingContext(ctx)
+	if diff := cmp.Diff(want, md.Get(cookies.CookieHeaderName)); diff != "" {
+		t.Errorf("UserToContext(..) did not add the user's identity to the context (-want +got):\n%s", diff)
 	}
 }
 
 func TestUserToIncomingContext(t *testing.T) {
 	ctx := t.Context()
 	u := &User{jwt: token}
-	ctx = UserToIncomingContext(ctx, u)
+	ctx, err := UserToIncomingContext(ctx, u)
+	if err != nil {
+		t.Fatal(err)
+	}
 	md, _ := metadata.FromIncomingContext(ctx)
 	if md.Get(cookies.CookieHeaderName)[0] != authProxyCookieName+"="+token {
 		t.Errorf("UserToIncomingContext(..) did not add the user's identity to the context")
@@ -858,7 +877,10 @@ func TestOrgToRequest(t *testing.T) {
 
 func TestOrgToContext(t *testing.T) {
 	ctx := t.Context()
-	ctx = OrgToContext(ctx, "testorg")
+	ctx, err := OrgToContext(ctx, "testorg")
+	if err != nil {
+		t.Fatalf("OrgToContext(..) = _, %v, want no error", err)
+	}
 	md, _ := metadata.FromOutgoingContext(ctx)
 	if md.Get(cookies.CookieHeaderName)[0] != org.OrgIDCookie+"=testorg" {
 		t.Errorf("UserToContext(..) did not add the user's identity to the context")
@@ -867,7 +889,10 @@ func TestOrgToContext(t *testing.T) {
 
 func TestOrgToIncomingContext(t *testing.T) {
 	ctx := t.Context()
-	ctx = OrgToIncomingContext(ctx, "testorg")
+	ctx, err := OrgToIncomingContext(ctx, "testorg")
+	if err != nil {
+		t.Fatalf("OrgToIncomingContext(..) = _, %v, want no error", err)
+	}
 	md, _ := metadata.FromIncomingContext(ctx)
 	if md.Get(cookies.CookieHeaderName)[0] != org.OrgIDCookie+"=testorg" {
 		t.Errorf("UserToIncomingContext(..) did not add the user's identity to the context")
@@ -1127,7 +1152,10 @@ func TestUserOrgRetrieval(t *testing.T) {
 }
 
 func runUserOrgRetrievalContext(t *testing.T, tc *UserOrgRetrievalTest) {
-	ctx := ToIncomingContext(t.Context(), tc.user, tc.org)
+	ctx, err := ToIncomingContext(t.Context(), tc.user, tc.org)
+	if err != nil {
+		t.Fatal(err)
+	}
 	uo, err := UserOrgFromContext(ctx)
 	if tc.wantErr {
 		if err == nil {

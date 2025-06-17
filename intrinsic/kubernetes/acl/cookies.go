@@ -6,7 +6,9 @@ package cookies
 import (
 	"context"
 	"fmt"
+	"maps"
 	"net/http"
+	"slices"
 	"strings"
 
 	log "github.com/golang/glog"
@@ -42,6 +44,61 @@ func FromRequestNamed(r *http.Request, names []string) []*http.Cookie {
 		}
 	}
 	return cs
+}
+
+// AddToContext adds cookies to the outgoing context and respects already existing cookie key value pairs.
+// Cookies will overwrite existing cookies inside the outgoing context if they have the same name.
+func AddToContext(ctx context.Context, newCs ...*http.Cookie) (context.Context, error) {
+	md, _ := metadata.FromOutgoingContext(ctx)
+	md, err := addToMD(md, newCs...)
+	if err != nil {
+		return nil, err
+	}
+	return metadata.NewOutgoingContext(ctx, md), nil
+}
+
+// AddToIncomingContext adds cookies to the incoming context and respects already existing cookie key value pairs.
+// Cookies will overwrite existing cookies inside the incoming context if they have the same name.
+// This is useful for testing and some special cases.
+func AddToIncomingContext(ctx context.Context, newCs ...*http.Cookie) (context.Context, error) {
+	md, _ := metadata.FromIncomingContext(ctx)
+	md, err := addToMD(md, newCs...)
+	if err != nil {
+		return nil, err
+	}
+	return metadata.NewIncomingContext(ctx, md), nil
+}
+
+func addToMD(md metadata.MD, newCs ...*http.Cookie) (metadata.MD, error) {
+	cs, err := mergeCookies(md.Get(CookieHeaderName)...)
+	if err != nil {
+		return nil, err
+	}
+	r, err := http.NewRequest("GET", "", nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create http request: %v", err)
+	}
+	cookieMap := make(map[string]string)
+	for _, c := range cs {
+		cookieMap[c.Name] = c.Value
+	}
+	for _, nc := range newCs {
+		cookieMap[nc.Name] = nc.Value
+	}
+	// add cookies in a deterministic order
+	for _, k := range slices.Sorted(maps.Keys(cookieMap)) {
+		r.AddCookie(&http.Cookie{Name: k, Value: cookieMap[k]})
+	}
+	cs = r.Cookies()
+	if len(cs) == 0 {
+		return md, nil
+	}
+	res := ToMDString(cs...)
+	if md == nil {
+		md = metadata.MD{}
+	}
+	md.Set(res[0], res[1])
+	return md, nil
 }
 
 // ToMDString converts a list of http.Cookie objects to a string that can be used as a metadata

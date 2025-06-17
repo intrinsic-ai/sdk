@@ -233,7 +233,10 @@ func getDialContextOptions(ctx context.Context, opts getDialContextOptionsOption
 		if credProject == "" {
 			credProject = info.Project
 		}
-		ctx = identity.OrgToContext(ctx, info.Organization)
+		ctx, err = identity.OrgToContext(ctx, info.Organization)
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 
 	dialOpts := baseclientutils.BaseDialOptions()

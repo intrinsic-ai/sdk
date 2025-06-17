@@ -83,7 +83,10 @@ func leaseVM(ctx context.Context, project string, orgID string, duration time.Du
 }
 
 var visualizeCreateE = func(cmd *cobra.Command, _ []string) error {
-	cmdCtx := identity.OrgToContext(cmd.Context(), flagOrgID)
+	cmdCtx, err := identity.OrgToContext(cmd.Context(), flagOrgID)
+	if err != nil {
+		return fmt.Errorf("failed to add org info to context: %v", err)
+	}
 	duration, err := time.ParseDuration(flagDuration)
 	if err != nil {
 		return fmt.Errorf("Duration '%v' entered is not valid, use something like '30m' or '1h': %v", flagDuration, err)

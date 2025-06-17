@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	log "github.com/golang/glog"
-	"google.golang.org/grpc/metadata"
 	"intrinsic/kubernetes/acl/cookies"
 	"intrinsic/kubernetes/acl/jwt"
 	"intrinsic/kubernetes/acl/org"
@@ -116,9 +115,8 @@ func (i *User) EmailCanonicalized() string {
 }
 
 // UserToContext adds the user's identity to a gRPC context.
-func UserToContext(ctx context.Context, u *User) context.Context {
-	md := cookies.ToMDString(&http.Cookie{Name: authProxyCookieName, Value: u.jwt})
-	return metadata.AppendToOutgoingContext(ctx, md...)
+func UserToContext(ctx context.Context, u *User) (context.Context, error) {
+	return cookies.AddToContext(ctx, &http.Cookie{Name: authProxyCookieName, Value: u.jwt})
 }
 
 var (
@@ -168,12 +166,12 @@ func OrgToRequest(r *http.Request, orgID string) {
 }
 
 // OrgToContext returns a new context that has the org-id stored in its metadata.
-func OrgToContext(ctx context.Context, orgID string) context.Context {
+func OrgToContext(ctx context.Context, orgID string) (context.Context, error) {
 	if orgID == "" {
-		log.WarningContextf(ctx, "orgID is emptry, returning unchanged context")
-		return ctx
+		log.WarningContextf(ctx, "OrgToContext: orgID is empty, returning unchanged context")
+		return ctx, nil
 	}
-	return metadata.AppendToOutgoingContext(ctx, cookies.ToMDString(org.IDCookie(orgID))...)
+	return cookies.AddToContext(ctx, org.IDCookie(orgID))
 }
 
 // ToRequest adds the user and org metadata to the HTTP request.
@@ -183,8 +181,11 @@ func ToRequest(r *http.Request, u *User, orgID string) {
 }
 
 // ToContext adds the user and org metadata to the context.
-func ToContext(ctx context.Context, u *User, orgID string) context.Context {
-	ctx = UserToContext(ctx, u)
+func ToContext(ctx context.Context, u *User, orgID string) (context.Context, error) {
+	ctx, err := UserToContext(ctx, u)
+	if err != nil {
+		return ctx, err
+	}
 	return OrgToContext(ctx, orgID)
 }
 
