@@ -92,6 +92,16 @@ absl::StatusOr<KeyValueStore> CreateReplicationKVStore(PubSub* self) {
 absl::StatusOr<KVQuery> GetAll(KeyValueStore* self, const std::string& key,
                                KeyValueCallback callback,
                                OnDoneCallback on_done) {
+  callback = [py_callback = std::move(callback)](
+                 absl::string_view key,
+                 std::unique_ptr<google::protobuf::Any> value) {
+    pybind11::gil_scoped_acquire gil;
+    py_callback(key, std::move(value));
+  };
+  on_done = [py_on_done = std::move(on_done)](absl::string_view key_expr) {
+    pybind11::gil_scoped_acquire gil;
+    py_on_done(key_expr);
+  };
   return self->GetAll(key, callback, on_done);
 }
 
