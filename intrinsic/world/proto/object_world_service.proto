@@ -12,7 +12,6 @@ import "intrinsic/icon/proto/cart_space.proto";
 import "intrinsic/kinematics/types/joint_limits.proto";
 import "intrinsic/math/proto/pose.proto";
 import "intrinsic/skills/proto/footprint.proto";
-import "intrinsic/world/proto/collision_action.proto";
 import "intrinsic/world/proto/collision_settings.proto";
 import "intrinsic/world/proto/geometry_component.proto";
 import "intrinsic/world/proto/gripper_component.proto";
@@ -495,16 +494,6 @@ message Entity {
   // Pose of this entity in the space of the parent entity. Unset for the root
   // entity.
   intrinsic_proto.Pose parent_t_this = 5;
-
-  // The collision action to use between this entity and all others. This is the
-  // default action that will be taken when collision checking against other
-  // entities. If this entity has an action of 2cm margin, while another entity
-  // has an action of 5cm margin we will use the 5cm margin as that respects
-  // both entity requirements.
-  //
-  // This value can be overridden by CollisionSettings specified by some skills.
-  // DEPRECATED. Use 'collision_settings' in the world directly.
-  CollisionAction collision_action = 10 [deprecated = true];
 
   // Visual and collision geometry of this entity. Unset if this entity has no
   // associated geometry.

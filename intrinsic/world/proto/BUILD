@@ -152,7 +152,6 @@ proto_library(
     srcs = ["object_world_service.proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
-        ":collision_action_proto",
         ":collision_settings_proto",
         ":geometry_component_proto",
         ":gripper_component_proto",
