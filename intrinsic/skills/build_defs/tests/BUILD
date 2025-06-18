@@ -21,10 +21,7 @@ cc_skill(
     name = "no_op_skill_cc",
     manifest = ":no_op_skill_cc_manifest",
     # Allow use of this image in tests of asset and skill tooling.
-    visibility = [
-        "//intrinsic/assets:__subpackages__",
-        "//intrinsic/skills:__subpackages__",
-    ],
+    visibility = ["//intrinsic/skills:__subpackages__"],
     deps = [
         "//intrinsic/skills/testing:no_op_skill_cc",
         "//intrinsic/skills/testing:no_op_skill_cc_proto",
