@@ -116,7 +116,7 @@ absl::StatusOr<intrinsic_proto::skills::Skill>
 SkillRegistryClient::GetSkillById(absl::string_view skill_id) const {
   ::grpc::ClientContext context;
   intrinsic_proto::skills::GetSkillRequest req;
-  req.set_id(std::string(skill_id));
+  req.set_id(skill_id);
   intrinsic_proto::skills::GetSkillResponse resp;
   INTR_RETURN_IF_ERROR(ToAbslStatus(stub_->GetSkill(&context, req, &resp)));
   return resp.skill();
@@ -128,9 +128,9 @@ intrinsic_proto::skills::GetInstanceRequest CreateGetInstanceRequest(
     absl::string_view id, std::optional<absl::string_view> instance_id,
     const EquipmentPack& equipment) {
   ::intrinsic_proto::skills::GetInstanceRequest request;
-  request.set_id(std::string(id));
+  request.set_id(id);
   if (instance_id.has_value()) {
-    request.set_instance_id(std::string(*instance_id));
+    request.set_instance_id(*instance_id);
   }
   request.mutable_handles()->insert(equipment.begin(), equipment.end());
   return request;
@@ -202,7 +202,7 @@ SkillRegistryClient::GetBehaviorTree(absl::string_view skill_id,
   context.set_deadline(absl::ToChronoTime(absl::Now() + timeout));
 
   intrinsic_proto::skills::GetBehaviorTreeRequest req;
-  req.set_id(std::string(skill_id));
+  req.set_id(skill_id);
   intrinsic_proto::skills::GetBehaviorTreeResponse resp;
   ::grpc::Status status =
       bt_stub_internal_->GetBehaviorTree(&context, req, &resp);
