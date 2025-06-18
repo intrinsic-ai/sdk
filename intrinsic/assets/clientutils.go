@@ -54,7 +54,10 @@ func DialClusterFromInctl(ctx context.Context, flags *cmdutils.CmdFlags) (contex
 		return ctx, nil, "", err
 	}
 
-	if solution != "" {
+	// Only lookup cluster using the solution if cluster is not set.  We
+	// probably shouldn't be in this scenario right now, but this isn't the
+	// spot to enforce that.
+	if solution != "" && cluster == "" {
 		ctx, conn, _, err := dialConnectionCtx(ctx, dialInfoParams{
 			Address: address,
 			CredOrg: org,
