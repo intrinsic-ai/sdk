@@ -13,6 +13,7 @@ go_library(
     srcs = ["cookies.go"],
     deps = [
         "@com_github_golang_glog//:go_default_library",
+        "@io_opencensus_go//trace:go_default_library",
         "@org_golang_google_grpc//metadata:go_default_library",
     ],
 )
@@ -37,6 +38,7 @@ go_library(
         ":jwt",
         ":org",
         "@com_github_golang_glog//:go_default_library",
+        "@io_opencensus_go//trace:go_default_library",
         "@org_golang_google_grpc//codes:go_default_library",
         "@org_golang_google_grpc//metadata:go_default_library",
         "@org_golang_google_grpc//status:go_default_library",

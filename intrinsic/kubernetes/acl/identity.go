@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	log "github.com/golang/glog"
+	"go.opencensus.io/trace"
 	"intrinsic/kubernetes/acl/cookies"
 	"intrinsic/kubernetes/acl/jwt"
 	"intrinsic/kubernetes/acl/org"
@@ -116,6 +117,8 @@ func (i *User) EmailCanonicalized() string {
 
 // UserToContext adds the user's identity to a gRPC context.
 func UserToContext(ctx context.Context, u *User) (context.Context, error) {
+	ctx, span := trace.StartSpan(ctx, "identity.UserToContext")
+	defer span.End()
 	return cookies.AddToContext(ctx, &http.Cookie{Name: authProxyCookieName, Value: u.jwt})
 }
 
@@ -167,6 +170,9 @@ func OrgToRequest(r *http.Request, orgID string) {
 
 // OrgToContext returns a new context that has the org-id stored in its metadata.
 func OrgToContext(ctx context.Context, orgID string) (context.Context, error) {
+	ctx, span := trace.StartSpan(ctx, "identity.OrgToContext")
+	defer span.End()
+
 	if orgID == "" {
 		log.WarningContextf(ctx, "OrgToContext: orgID is empty, returning unchanged context")
 		return ctx, nil
