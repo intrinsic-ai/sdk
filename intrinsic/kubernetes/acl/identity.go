@@ -88,7 +88,7 @@ var (
 
 // UserToRequest adds the user's identity to an HTTP request.
 func UserToRequest(r *http.Request, u *User) {
-	r.AddCookie(&http.Cookie{Name: authProxyCookieName, Value: u.jwt})
+	cookies.AddToRequest(r, &http.Cookie{Name: authProxyCookieName, Value: u.jwt})
 }
 
 // Email retrieves the canonalized user or service email of an identity.
@@ -162,7 +162,7 @@ func CanonicalizeEmail(email string) (string, error) {
 
 // OrgToRequest adds the organization identifier to the HTTP request.
 func OrgToRequest(r *http.Request, orgID string) {
-	r.AddCookie(org.IDCookie(orgID))
+	cookies.AddToRequest(r, org.IDCookie(orgID))
 }
 
 // OrgToContext returns a new context that has the org-id stored in its metadata.

@@ -95,9 +95,13 @@ func TestUserFromRequest(t *testing.T) {
 func TestUserToRequest(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
 	u := &User{jwt: token}
+	UserToRequest(r, &User{jwt: "overwrite me please"})
 	UserToRequest(r, u)
 	if cookies.FromRequestNamed(r, []string{authProxyCookieName})[0].Value != token {
 		t.Errorf("UserToRequest(..) did not add the user's identity to the request")
+	}
+	if len(r.Cookies()) != 1 {
+		t.Errorf("UserToRequest(..) did not add exactly one cookie to the request")
 	}
 }
 
@@ -823,6 +827,11 @@ func TestContextToRequest(t *testing.T) {
 			meta:   metadata.New(map[string]string{cookies.CookieHeaderName: authProxyCookieName + "=" + token + "; " + org.OrgIDCookie + "=" + "testorg"}),
 		},
 		{
+			name:   "with-duplicated-auth-coookie",
+			noAuth: false,
+			meta:   metadata.New(map[string]string{cookies.CookieHeaderName: authProxyCookieName + "=" + token2 + "; " + authProxyCookieName + "=" + token + "; " + org.OrgIDCookie + "=" + "wrongorg" + "; " + org.OrgIDCookie + "=" + "testorg"}),
+		},
+		{
 			name:   "with-apikey-meta",
 			noAuth: false,
 			meta: metadata.New(map[string]string{
@@ -857,12 +866,17 @@ func TestContextToRequest(t *testing.T) {
 			if uo.Org.GetID() != "testorg" {
 				t.Errorf("identity.OrgFromRequest(..) = %q, want %q", uo.Org, "testorg")
 			}
+
+			if len(req.Cookies()) > 2 {
+				t.Errorf("ContextToRequest(..) = %q, want max 2 cookies", req.Cookies())
+			}
 		})
 	}
 }
 
 func TestOrgToRequest(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
+	OrgToRequest(r, "wrongorg") // cookie set here should get overwritten
 	OrgToRequest(r, "testorg")
 	if len(r.Cookies()) != 1 {
 		t.Errorf("OrgToRequest(..) = %q, want 1 cookie", r.Cookies())

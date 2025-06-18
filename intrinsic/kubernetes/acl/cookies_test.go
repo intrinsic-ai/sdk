@@ -293,3 +293,81 @@ func TestAddToMD(t *testing.T) {
 		})
 	}
 }
+
+func TestAddToRequest(t *testing.T) {
+	tests := []struct {
+		name string
+		req  *http.Request
+		cs   []*http.Cookie
+		want []*http.Cookie
+	}{
+		{
+			name: "handle empty request",
+			req:  &http.Request{},
+			cs:   []*http.Cookie{},
+			want: []*http.Cookie{},
+		},
+		{
+			name: "handle nil cookies",
+			req:  &http.Request{},
+			cs:   nil,
+			want: []*http.Cookie{},
+		},
+		{
+			name: "add to empty request",
+			req:  &http.Request{},
+			cs:   []*http.Cookie{&http.Cookie{Name: "a", Value: "1"}},
+			want: []*http.Cookie{&http.Cookie{Name: "a", Value: "1"}},
+		},
+		{
+			name: "cookie duplication prevented",
+			req:  makeRequest(t, &http.Cookie{Name: "a", Value: "1"}),
+			cs:   []*http.Cookie{&http.Cookie{Name: "a", Value: "1"}},
+			want: []*http.Cookie{&http.Cookie{Name: "a", Value: "1"}},
+		},
+		{
+			name: "happy case",
+			req: makeRequest(t,
+				&http.Cookie{Name: "a", Value: "5"},
+				&http.Cookie{Name: "c", Value: "3"},
+			),
+			cs: []*http.Cookie{
+				&http.Cookie{Name: "b", Value: "2"},
+				&http.Cookie{Name: "a", Value: "1"},
+			},
+			want: []*http.Cookie{
+				&http.Cookie{Name: "a", Value: "1"},
+				&http.Cookie{Name: "b", Value: "2"},
+				&http.Cookie{Name: "c", Value: "3"},
+			},
+		},
+		{
+			name: "multiple cookie header values are merged",
+			req: makeRequest(t,
+				&http.Cookie{Name: "a", Value: "5"},
+				&http.Cookie{Name: "c", Value: "3"},
+			),
+			cs: []*http.Cookie{
+				&http.Cookie{Name: "b", Value: "2"},
+				&http.Cookie{Name: "a", Value: "1"},
+				&http.Cookie{Name: "e", Value: "5"},
+			},
+			want: []*http.Cookie{
+				&http.Cookie{Name: "a", Value: "1"},
+				&http.Cookie{Name: "b", Value: "2"},
+				&http.Cookie{Name: "c", Value: "3"},
+				&http.Cookie{Name: "e", Value: "5"},
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			AddToRequest(tc.req, tc.cs...)
+			got := tc.req.Cookies()
+			if diff := cmp.Diff(tc.want, got, cmpopts.SortSlices(func(a, b *http.Cookie) bool { return a.Name < b.Name })); diff != "" {
+				t.Errorf("AddToRequest() returned diff (-want +got):\n%s", diff)
+			}
+		})
+	}
+}

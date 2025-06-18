@@ -46,6 +46,29 @@ func FromRequestNamed(r *http.Request, names []string) []*http.Cookie {
 	return cs
 }
 
+// AddToRequest adds cookies to the request and deduplicates already existing cookie key value pairs.
+// It will overwrite existing cookies inside the request if they have the same name.
+func AddToRequest(r *http.Request, newCs ...*http.Cookie) {
+	if r == nil {
+		return
+	}
+	cookieMap := make(map[string]string)
+	for _, c := range r.Cookies() {
+		cookieMap[c.Name] = c.Value
+	}
+	for _, c := range newCs {
+		cookieMap[c.Name] = c.Value
+	}
+	if r.Header == nil {
+		r.Header = make(http.Header)
+	}
+	r.Header.Del(CookieHeaderName)
+	// add cookies in a deterministic order
+	for _, k := range slices.Sorted(maps.Keys(cookieMap)) {
+		r.AddCookie(&http.Cookie{Name: k, Value: cookieMap[k]})
+	}
+}
+
 // AddToContext adds cookies to the outgoing context and respects already existing cookie key value pairs.
 // Cookies will overwrite existing cookies inside the outgoing context if they have the same name.
 func AddToContext(ctx context.Context, newCs ...*http.Cookie) (context.Context, error) {
