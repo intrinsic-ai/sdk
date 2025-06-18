@@ -18,7 +18,7 @@ void SaveStatusToProto(const absl::Status& status,
   if (status.raw_code() == 0) {
     return;
   }
-  out->set_message(std::string(status.message()));
+  out->set_message(status.message());
   auto* payloads = out->mutable_payloads();
   status.ForEachPayload(
       [payloads](absl::string_view type_key, const absl::Cord& payload) {
