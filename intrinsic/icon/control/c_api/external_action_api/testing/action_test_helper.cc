@@ -18,7 +18,7 @@ ActionTestHelper::ActionTestHelper(
     absl::string_view server_name)
     : streaming_io_registry_(signature), signal_access_and_map_(signature) {
   server_config_.set_frequency_hz(control_frequency_hz);
-  server_config_.set_name(std::string(server_name));
+  server_config_.set_name(server_name);
 }
 
 RealtimeStatus ActionTestHelper::EnterAction(IconActionInterface& action) {

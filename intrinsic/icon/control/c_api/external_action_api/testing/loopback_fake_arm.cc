@@ -36,7 +36,7 @@ LoopbackFakeArm::GetPartConfig(absl::string_view name,
                                std::optional<JointLimits> application_limits,
                                std::optional<JointLimits> system_limits) {
   ::intrinsic_proto::icon::v1::PartConfig config;
-  config.set_name(std::string(name));
+  config.set_name(name);
   config.set_part_type_name("loopback_fake_arm");
   ::intrinsic_proto::icon::GenericPartConfig* generic_config =
       config.mutable_generic_config();
