@@ -373,6 +373,7 @@ proto_library(
     srcs = ["logger_service.proto"],
     deps = [
         ":bag_metadata_proto",
+        ":downsampler_proto",
         ":log_item_proto",
         "@com_google_protobuf//:empty_proto",
         "@com_google_protobuf//:timestamp_proto",
@@ -395,6 +396,7 @@ go_proto_library(
     name = "logger_service_go_proto",
     go_deps = [
         ":bag_metadata_go_proto",
+        ":downsampler_go_proto",
         ":log_item_go_proto",
     ],
     deps = [":logger_service"],
@@ -405,6 +407,7 @@ go_grpc_library(
     srcs = [":logger_service"],
     deps = [
         ":bag_metadata_go_proto",
+        ":downsampler_go_proto",
         ":log_item_go_proto",
         ":logger_service_go_proto",
     ],

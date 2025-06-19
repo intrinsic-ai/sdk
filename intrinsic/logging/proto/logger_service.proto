@@ -7,6 +7,7 @@ package intrinsic_proto.data_logger;
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "intrinsic/logging/proto/bag_metadata.proto";
+import "intrinsic/logging/proto/downsampler.proto";
 import "intrinsic/logging/proto/log_item.proto";
 
 message LogRequest {
@@ -91,51 +92,62 @@ message ListLogSourcesResponse {
 }
 
 message GetLogItemsRequest {
-  // If unspecified, defaults to `start_time` = 5 minutes before call time.
+  message Query {
+    string event_source = 1;                            // Exact match only.
+    optional google.protobuf.Timestamp start_time = 2;  // if unset: now - 5min
+    optional google.protobuf.Timestamp end_time = 3;    // if unset: now
+
+    // If set, will downsample the LogItems.
+    optional intrinsic_proto.data_logger.DownsamplerOptions
+        downsampler_options = 4;
+  }
+
   oneof start_condition {
     // Return LogItems whose acquisition time is greater than or equal to
     // this. Uses the index to find a reasonable starting position for reading
     // the log files.
-    google.protobuf.Timestamp start_time = 1;
+    google.protobuf.Timestamp start_time = 1 [deprecated = true];
 
     // Returned in GetLogItemsResponse to continue where the previous call left
-    // off. Opaque to the client. If the data being requested has already
-    // been garbage collected (happens to data older than --file_ttl), returns
-    // items starting at the beginning of the available data.
+    // off. Opaque to the client.
+    //
+    // Best effort. If the data being requested has already been garbage
+    // collected, returns items starting at the beginning of the available data.
     bytes cursor = 2;
+
+    Query get_query = 9;
   }
+
+  // Maximum number of items to return.
+  // If unset, defaults to 10000.
+  optional int32 max_num_items = 7;
+
+  reserved 5, 6;
 
   // Return log items until encountering one with an acquisition time greater
   // than this.
-  google.protobuf.Timestamp end_time = 3;
+  //
+  // If unspecified, defaults to the current time.
+  optional google.protobuf.Timestamp end_time = 3 [deprecated = true];
 
   // Only LogItems whose `event_source` matches one of these will be returned.
   //
   // NOTE: Specifying multiple event_sources in a single request is deprecated.
   // http://cs/symbol:intrinsic_proto.data_logger.LogItem.metadata.event_source.
-  repeated string event_sources = 4;
-
-  reserved 5, 6;
-
-  // Maximum number of items to return.
-  // If unspecified, defaults to 10000.
-  int32 max_num_items = 7;
+  repeated string event_sources = 4 [deprecated = true];
 
   // The duration in milliseconds between subsequent LogItems to return.
   // If unspecified, defaults to 0.
-  int32 sampling_period_ms = 8;
+  optional int32 sampling_period_ms = 8 [deprecated = true];
 }
 
 message GetLogItemsResponse {
   // The LogItems that matched the criteria.
   repeated intrinsic_proto.data_logger.LogItem log_items = 1;
 
-  // Can be passed to `GetLogItems` to continue reading, starting at the LogItem
-  // that would have come after the last element of `log_items` in the response.
-  // This can be used, for example, when polling for recent data to avoid
-  // overlaps or gaps in the windows of data that are returned. Opaque to the
-  // client.
-  bytes cursor = 2;
+  // Opaque cursor to the next page of results.
+  // If empty, no next page exists.
+  optional bytes cursor = 2;
 
   // If true, indicates that the response doesn't contain all available data in
   // the requested time window. In that case only data up until that point is
@@ -143,10 +155,9 @@ message GetLogItemsResponse {
   // another call.
   bool truncated = 3;
 
-  // A descriptor of what caused the truncation. Typically when the response
-  // grew too large, exceeding the maximum number of items, or the response
-  // threshold in bytes.
-  string truncation_cause = 4;
+  // If set, the response was truncated. There usually will be a next page
+  // cursor to continue reading.
+  optional string truncation_cause = 4;
 }
 
 message GetMostRecentItemRequest {
