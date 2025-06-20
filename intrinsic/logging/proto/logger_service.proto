@@ -100,6 +100,13 @@ message GetLogItemsRequest {
     // If set, will downsample the LogItems.
     optional intrinsic_proto.data_logger.DownsamplerOptions
         downsampler_options = 4;
+
+    // Additional key-value metadata labels to filter the returned LogItems by.
+    //
+    // If empty, all LogItems in the query are returned.
+    // If populated, only LogItems with exact matches on all specified labels
+    // are returned.
+    map<string, string> filter_labels = 5;
   }
 
   oneof query {
