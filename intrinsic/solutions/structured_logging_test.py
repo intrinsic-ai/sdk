@@ -213,7 +213,8 @@ payload <
     stub.GetLogItems.assert_called_once()
     get_request = stub.GetLogItems.call_args.args[0]
     get_request_delta = (
-        get_request.end_time.ToDatetime() - get_request.start_time.ToDatetime()
+        get_request.get_query.end_time.ToDatetime()
+        - get_request.get_query.start_time.ToDatetime()
     )
     self.assertEqual(
         get_request_delta, datetime.timedelta(seconds=seconds_to_read)
@@ -249,8 +250,8 @@ payload <
     stub.GetLogItems.assert_called_once()
     get_request = stub.GetLogItems.call_args.args[0]
     self.assertIsInstance(get_request, logger_service_pb2.GetLogItemsRequest)
-    self.assertEqual(get_request.event_sources, ['query_event_source'])
-    call_start = get_request.start_time.ToDatetime()
+    self.assertEqual(get_request.get_query.event_source, 'query_event_source')
+    call_start = get_request.get_query.start_time.ToDatetime()
     self.assertEqual(call_start - req_start, datetime.timedelta(seconds=0))
 
     self.assertLen(items, 1)
@@ -275,7 +276,6 @@ payload <
     stub = mock.MagicMock()
     response = logger_service_pb2.GetLogItemsResponse()
     response.log_items.append(pb1)
-    response.truncated = True
     response.truncation_cause = 'mock cause'
     stub.GetLogItems.return_value = response
     logs = structured_logging.StructuredLogs(stub)
@@ -378,6 +378,15 @@ blob_payload <
     )
 
     self.assertEqual(items.num_events, 2)
+    get_request = stub.GetLogItems.call_args.args[0]
+    self.assertEqual(
+        get_request.get_query.downsampler_options.sampling_interval_time.ToMicroseconds(),
+        100 * 1000,
+    )
+    self.assertEqual(
+        get_request.get_query.downsampler_options.sampling_interval_time.ToMilliseconds(),
+        100,
+    )
 
   def test_read_base_t_tip_sensed(self):
     data = [

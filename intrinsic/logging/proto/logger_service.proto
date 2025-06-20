@@ -102,7 +102,7 @@ message GetLogItemsRequest {
         downsampler_options = 4;
   }
 
-  oneof start_condition {
+  oneof query {
     // Return LogItems whose acquisition time is greater than or equal to
     // this. Uses the index to find a reasonable starting position for reading
     // the log files.
@@ -147,17 +147,13 @@ message GetLogItemsResponse {
 
   // Opaque cursor to the next page of results.
   // If empty, no next page exists.
-  optional bytes cursor = 2;
-
-  // If true, indicates that the response doesn't contain all available data in
-  // the requested time window. In that case only data up until that point is
-  // returned, and the client can continue reading by passing the `cursor` to
-  // another call.
-  bool truncated = 3;
+  optional bytes next_page_cursor = 2;
 
   // If set, the response was truncated. There usually will be a next page
   // cursor to continue reading.
   optional string truncation_cause = 4;
+
+  reserved 3;
 }
 
 message GetMostRecentItemRequest {

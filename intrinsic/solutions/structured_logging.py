@@ -572,16 +572,19 @@ class EventSourceReader:
       tz_aware_window.end_time = _interpret_as_utc(tz_aware_window.end_time)
 
     get_request = logger_service_pb2.GetLogItemsRequest()
-    # Only request items that we don't already have.
-    if self._cursor:
-      get_request.cursor = self._cursor
-    else:
-      get_request.start_time.FromDatetime(tz_aware_window.start_time)
-
-    get_request.end_time.FromDatetime(tz_aware_window.end_time)
-    get_request.sampling_period_ms = sampling_period_ms
-    get_request.event_sources.append(self._event_source)
     get_request.max_num_items = max_num_items
+
+    if self._cursor:  # This is the cursor from the previous response
+      get_request.cursor = self._cursor
+    else:  # New query
+      query_proto = get_request.get_query
+      query_proto.event_source = self._event_source
+      query_proto.start_time.FromDatetime(tz_aware_window.start_time)
+      query_proto.end_time.FromDatetime(tz_aware_window.end_time)
+      if sampling_period_ms > 0:
+        query_proto.downsampler_options.sampling_interval_time.FromMilliseconds(
+            sampling_period_ms
+        )
 
     response = self._stub.GetLogItems(get_request)
     for item in response.log_items:
@@ -592,7 +595,7 @@ class EventSourceReader:
           'max_num_items exceedeed. Use a bigger value to get all logs.'
       )
 
-    self._cursor = response.cursor
+    self._cursor = response.next_page_cursor
 
     # Delete old items that have fallen out of the current window.
     first_item_index = 0
@@ -918,12 +921,12 @@ class StructuredLogs:
     now = datetime.datetime.now(datetime.timezone.utc)
     window_start = now - datetime.timedelta(seconds=seconds_to_read)
     get_request = logger_service_pb2.GetLogItemsRequest()
-    get_request.start_time.FromDatetime(window_start)
-    get_request.end_time.FromDatetime(now)
-    get_request.event_sources.append(event_source)
     get_request.max_num_items = max_num_items
+    get_request.get_query.event_source = event_source
+    get_request.get_query.start_time.FromDatetime(window_start)
+    get_request.get_query.end_time.FromDatetime(now)
     get_response = self._stub.GetLogItems(get_request)
-    if get_response.truncated:
+    if get_response.HasField('truncation_cause'):
       logging.warning(get_response.truncation_cause)
     return get_response.log_items
 
@@ -948,12 +951,12 @@ class StructuredLogs:
       Log items from the given event source within the specified time range.
     """
     get_request = logger_service_pb2.GetLogItemsRequest()
-    get_request.start_time.FromDatetime(start_time)
-    get_request.end_time.FromDatetime(end_time)
-    get_request.event_sources.append(event_source)
     get_request.max_num_items = max_num_items
+    get_request.get_query.event_source = event_source
+    get_request.get_query.start_time.FromDatetime(start_time)
+    get_request.get_query.end_time.FromDatetime(end_time)
     get_response = self._stub.GetLogItems(get_request)
-    if get_response.truncated:
+    if get_response.HasField('truncation_cause'):
       logging.warning(get_response.truncation_cause)
     return get_response.log_items
 
