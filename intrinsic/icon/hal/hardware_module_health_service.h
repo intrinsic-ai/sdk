@@ -38,7 +38,7 @@ class HardwareModuleHealthService :
   ::grpc::Status GetState(
       grpc::ServerContext* context,
       const intrinsic_proto::services::v1::GetStateRequest* request,
-      intrinsic_proto::services::v1::State* response) override;
+      intrinsic_proto::services::v1::SelfState* response) override;
 
   ::grpc::Status Enable(
       grpc::ServerContext* context,

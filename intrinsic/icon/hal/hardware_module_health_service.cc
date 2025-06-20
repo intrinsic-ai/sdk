@@ -17,10 +17,10 @@
 namespace intrinsic::icon {
 namespace {
 
-intrinsic_proto::services::v1::State::StateCode GetServiceStateCode(
+intrinsic_proto::services::v1::SelfState::StateCode GetServiceStateCode(
     const intrinsic_fbs::HardwareModuleState& fb_state) {
-  ::intrinsic_proto::services::v1::State::StateCode state =
-      intrinsic_proto::services::v1::State::STATE_CODE_UNSPECIFIED;
+  ::intrinsic_proto::services::v1::SelfState::StateCode state =
+      intrinsic_proto::services::v1::SelfState::STATE_CODE_UNSPECIFIED;
   switch (fb_state.code()) {
     case intrinsic_fbs::StateCode::kDeactivated:
     case intrinsic_fbs::StateCode::kDeactivating:
@@ -28,19 +28,19 @@ intrinsic_proto::services::v1::State::StateCode GetServiceStateCode(
     case intrinsic_fbs::StateCode::kActivating:
     case intrinsic_fbs::StateCode::kMotionDisabling:
     case intrinsic_fbs::StateCode::kMotionEnabling:
-      state = intrinsic_proto::services::v1::State::STATE_CODE_DISABLED;
+      state = intrinsic_proto::services::v1::SelfState::STATE_CODE_DISABLED;
       break;
     case intrinsic_fbs::StateCode::kMotionEnabled:
-      state = intrinsic_proto::services::v1::State::STATE_CODE_ENABLED;
+      state = intrinsic_proto::services::v1::SelfState::STATE_CODE_ENABLED;
       break;
     case intrinsic_fbs::StateCode::kFaulted:
     case intrinsic_fbs::StateCode::kClearingFaults:
     case intrinsic_fbs::StateCode::kInitFailed:
     case intrinsic_fbs::StateCode::kFatallyFaulted:
-      state = intrinsic_proto::services::v1::State::STATE_CODE_ERROR;
+      state = intrinsic_proto::services::v1::SelfState::STATE_CODE_ERROR;
       break;
     default:
-      state = intrinsic_proto::services::v1::State::STATE_CODE_UNSPECIFIED;
+      state = intrinsic_proto::services::v1::SelfState::STATE_CODE_UNSPECIFIED;
       break;
   }
   return state;
@@ -70,12 +70,12 @@ void HardwareModuleHealthService::NotifyWithExitCode(
 ::grpc::Status HardwareModuleHealthService::GetState(
     grpc::ServerContext* context,
     const intrinsic_proto::services::v1::GetStateRequest* request,
-    intrinsic_proto::services::v1::State* response) {
+    intrinsic_proto::services::v1::SelfState* response) {
   absl::MutexLock lock(&mutex_);
 
   if (!latched_init_fault_.ok()) {
     response->set_state_code(
-        intrinsic_proto::services::v1::State::STATE_CODE_ERROR);
+        intrinsic_proto::services::v1::SelfState::STATE_CODE_ERROR);
     response->mutable_extended_status()->set_title(
         "Hardware module is in init failure.");
     response->mutable_extended_status()->mutable_user_report()->set_message(
@@ -83,7 +83,7 @@ void HardwareModuleHealthService::NotifyWithExitCode(
 
   } else if (hardware_module_runtime_ == nullptr) {
     response->set_state_code(
-        intrinsic_proto::services::v1::State::STATE_CODE_ERROR);
+        intrinsic_proto::services::v1::SelfState::STATE_CODE_ERROR);
     response->mutable_extended_status()->set_title(
         "Creation of hardware module failed.");
     response->mutable_extended_status()->mutable_user_report()->set_message(
@@ -92,7 +92,7 @@ void HardwareModuleHealthService::NotifyWithExitCode(
   } else {
     INTR_ASSIGN_OR_RETURN_GRPC(
         auto fb_state, hardware_module_runtime_->GetHardwareModuleState());
-    intrinsic_proto::services::v1::State::StateCode state_code =
+    intrinsic_proto::services::v1::SelfState::StateCode state_code =
         GetServiceStateCode(fb_state);
     response->set_state_code(state_code);
     absl::string_view message = GetMessage(&fb_state);

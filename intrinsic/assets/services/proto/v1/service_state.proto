@@ -9,7 +9,7 @@ import "intrinsic/util/status/extended_status.proto";
 // Supports querying and modifying the state of a Service instance.
 service ServiceState {
   // Returns the current state of the Service instance.
-  rpc GetState(GetStateRequest) returns (State) {}
+  rpc GetState(GetStateRequest) returns (SelfState) {}
 
   // Enables the running Service instance. If the state was previously in
   // STATE_CODE_ERROR, it is expected for the Enable routine to perform the
@@ -24,7 +24,7 @@ service ServiceState {
 }
 
 // Contains details about the state of a Service.
-message State {
+message SelfState {
   enum StateCode {
     // Indicates the Service instance is in an unspecified state.
     STATE_CODE_UNSPECIFIED = 0;
