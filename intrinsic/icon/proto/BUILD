@@ -96,6 +96,11 @@ cc_proto_library(
     deps = [":streaming_output_proto"],
 )
 
+go_proto_library(
+    name = "streaming_output_go_proto",
+    deps = [":streaming_output_proto"],
+)
+
 py_proto_library(
     name = "streaming_output_py_pb2",
     deps = [":streaming_output_proto"],
