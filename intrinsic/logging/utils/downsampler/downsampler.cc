@@ -10,6 +10,8 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "absl/time/time.h"
+#include "intrinsic/logging/proto/downsampler.pb.h"
+#include "intrinsic/logging/proto/log_item.pb.h"
 #include "intrinsic/util/proto_time.h"
 #include "intrinsic/util/status/status_macros.h"
 
