@@ -29,31 +29,12 @@ message GeometryComponent {
     // Runtime options for this geometry.
     GeometryOptions options = 7;
 
-    reserved 1;
-    reserved "geometry_id";
   }
 
   // Used for the value type in proto map below.
   message GeometrySet {
     repeated Geometry geometries = 1;
   }
-
-  message Model {
-    // This model explicitly specifies the transform between the entity and the
-    // geometry shapes themselves. The geometry id represents a Geometry
-    // instance containing a LazyExactGeometry and an optional Renderable.
-    message GeometryModel {
-      // The collision and visual geometries associated with this entity.
-      repeated Geometry collision_geometries = 1;
-      repeated Geometry visual_geometries = 2;
-    }
-
-    oneof type_oneof {
-      // Model representing the Geometry as defined by the Geometry API.
-      GeometryModel geometry_model = 2;
-    }
-  }
-  Model model = 1 [deprecated = true];
 
   // Stores named geometry for this entity. Names starting with "Intrinsic_" may
   // have special semantics. For example, geometries named "Intrinsic_Collision"
@@ -66,4 +47,7 @@ message GeometryComponent {
   // aforementioned names. User-defined names may further repeat or distinguish
   // geometries in user-defined ways.
   map<string, GeometrySet> named_geometries = 2;
+
+  reserved 1;
+  reserved "model";
 }

@@ -32,6 +32,7 @@ message PhysicsComponent {
 
   // Dynamically "damping"-equivalent coefficient for contact joints.
   double contact_kd = 8;
+
 }
 
 // Friction parameters.
@@ -50,6 +51,7 @@ message Friction {
   // Unit vector specifying first friction pyramid direction in collision-fixed
   // reference frame.
   intrinsic_proto.Point fdir1 = 6;
+
 }
 
 // Torsional friction parameters.
