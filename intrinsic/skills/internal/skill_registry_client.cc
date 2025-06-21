@@ -270,7 +270,7 @@ absl::Status SkillRegistryClient::UnregisterBehaviorTree(
   context.set_deadline(absl::ToChronoTime(absl::Now() + timeout));
 
   intrinsic_proto::skills::UnregisterBehaviorTreeRequest request;
-  *request.mutable_id() = skill_id;
+  request.set_id(skill_id);
 
   google::protobuf::Empty response;
   return ToAbslStatus(
