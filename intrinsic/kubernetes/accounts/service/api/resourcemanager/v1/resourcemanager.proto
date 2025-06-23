@@ -74,6 +74,12 @@ message PaymentPlan {
   string name = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
+message DeleteOrganizationRequest {
+  // The resource name of the organization to delete.
+  // Format: /organizations/{organization}
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
 message CreateOrganizationPaymentPlanOperationMetadata {}
 
 // ResourceManagerService manages the user-facing accounts resources like
@@ -126,6 +132,21 @@ service ResourceManagerService {
     option (google.longrunning.operation_info) = {
       response_type: "PaymentPlan"
       metadata_type: "CreateOrganizationPaymentPlanOperationMetadata"
+    };
+  }
+
+  // Deletes an organization.
+  rpc DeleteOrganization(DeleteOrganizationRequest)
+      returns (google.longrunning.Operation) {
+    option (google.api.http) = {
+      delete: "/resourcemanager/v1/{name=organizations/*}"
+    };
+    option (google.longrunning.operation_info) = {
+      response_type: "google.protobuf.Empty"
+      metadata_type: "DeleteOrganizationOperationMetadata"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "DeleteOrganization"
     };
   }
 
