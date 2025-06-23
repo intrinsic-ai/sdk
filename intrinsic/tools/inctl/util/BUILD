@@ -21,6 +21,7 @@ go_library(
     srcs = ["grpc.go"],
     deps = [
         "//intrinsic/assets:baseclientutils",
+        "//intrinsic/kubernetes/acl:identity",
         "//intrinsic/tools/inctl/auth",
         "@org_golang_google_grpc//:go_default_library",
         "@org_golang_google_grpc//metadata:go_default_library",

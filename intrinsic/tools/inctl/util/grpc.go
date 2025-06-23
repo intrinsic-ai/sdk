@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"intrinsic/assets/baseclientutils"
+	"intrinsic/kubernetes/acl/identity"
 	"intrinsic/tools/inctl/auth/auth"
 )
 
@@ -36,7 +37,10 @@ func NewIPCGRPCClient(ctx context.Context, projectName, orgName, clusterName str
 	if err != nil {
 		return ctx, nil, fmt.Errorf("dialing context: %w", err)
 	}
-	ctx = auth.OrgToContext(ctx, orgName)
+	ctx, err = identity.OrgToContext(ctx, orgName)
+	if err != nil {
+		return ctx, nil, fmt.Errorf("unable to setup the context: %w", err)
+	}
 	ctx = metadata.AppendToOutgoingContext(ctx, "x-server-name", clusterName)
 	return ctx, conn, nil
 }

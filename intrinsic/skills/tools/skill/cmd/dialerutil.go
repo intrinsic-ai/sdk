@@ -19,6 +19,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 	"intrinsic/assets/baseclientutils"
+	"intrinsic/kubernetes/acl/identity"
 	"intrinsic/tools/inctl/auth/auth"
 )
 
@@ -122,7 +123,10 @@ func dialInfoCtx(ctx context.Context, params DialInfoParams) (context.Context, *
 	params.Address = address
 
 	if params.CredOrg != "" {
-		ctx = auth.OrgToContext(ctx, strings.Split(params.CredOrg, "@")[0])
+		ctx, err = identity.OrgToContext(ctx, strings.Split(params.CredOrg, "@")[0])
+		if err != nil {
+			return ctx, nil, "", err
+		}
 	}
 
 	if UseInsecureCredentials(params.Address) {
