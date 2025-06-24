@@ -35,6 +35,7 @@ def python_layers(name, binary, **kwargs):
     mtree_spec(
         name = name + "_tar_manifest_raw",
         srcs = [binary],
+        include_runfiles = True,
     )
 
     # ADDITION: Handle local_repository sub repos by removing '../' and ' external/' from paths.
