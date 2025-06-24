@@ -448,13 +448,14 @@ def _data_source_factory(data: list[log_item_pb2.LogItem]) -> DataSource:
 
 
 def format_event_source(event_source: str) -> str:
+  if not event_source:
+    return ''
   # Replace characters which are not valid in Python names
   # This is to enable structured_logs.event_source for any event_source
   # since event sources can be arbitrary strings.
   formatted = re.sub(_REGEX_INVALID_PYTHON_VAR_CHARS, '_', event_source)
   # Avoid starting with an underscore.
-  if formatted[0] == '_':
-    return formatted[1:]
+  formatted = formatted.lstrip('_')
   return formatted
 
 
