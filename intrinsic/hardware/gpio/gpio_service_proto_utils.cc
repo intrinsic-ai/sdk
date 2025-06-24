@@ -133,8 +133,6 @@ bool SignalValuesAreApproxEqual(const SignalValue& a, const SignalValue& b) {
 }
 
 intrinsic_proto::gpio::v1::SignalValue SignalFalseValue() {
-  // It is not possible to const initialize a protobuf:
-  // https://yaqs.corp.google.com/eng/q/6640598195503104#a6204739679813632
   intrinsic_proto::gpio::v1::SignalValue value;
   value.set_bool_value(false);
   return value;
