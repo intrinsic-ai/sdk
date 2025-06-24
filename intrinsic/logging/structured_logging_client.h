@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-#include "absl/base/attributes.h"
+#include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
@@ -106,16 +106,22 @@ class StructuredLoggingClient {
   // Returns a list of log items for the specified event source. If no data is
   // available, an empty vector is returned and the function does not generate
   // an error.
+  //
+  // If start_time and end_time are not specified, the default is to read all
+  // data from the start of time until now.
+  //
   // The function supports pagination. On each request 'page_size' items are
   // returned if that many are available. In addition a 'page_token' is returned
   // which can be used on the next request to request the next batch of items.
+  //
   // Filtering is supported in the same way as documented on the logging
   // service.
   absl::StatusOr<GetResult> GetLogItems(
       absl::string_view event_source, int page_size,
       absl::string_view page_token = "",
       absl::Time start_time = absl::UniversalEpoch(),
-      absl::Time end_time = absl::Now()) const;
+      absl::Time end_time = absl::Now(),
+      absl::flat_hash_map<std::string, std::string> filter_labels = {}) const;
 
   // Returns the most recent LogItem that has been logged for the given event
   // source. If no LogItem with a matching event_source has been logged since

@@ -496,6 +496,7 @@ class EventSourceReader:
       time_window: Optional[EventSourceWindow] = None,
       sampling_period_ms: int = 0,
       max_num_items: int = 10000,
+      filter_labels: Optional[dict[str, str]] = None,
   ) -> DataSource:
     """Read the last `seconds_to_read` of onprem logs for this event source.
 
@@ -511,6 +512,7 @@ class EventSourceReader:
       sampling_period_ms: An optional downsampling parameter representing the
         minimum time in milliseconds between successive samples.
       max_num_items: The maximum number of returned items.
+      filter_labels: Dictionary of label to value to filter the query.
 
     When specifying time_window, the user should typically make sure to use
     "aware" datetime objects to avoid ambiguity. This can be done by simply
@@ -544,6 +546,7 @@ class EventSourceReader:
         window=used_time_window,
         sampling_period_ms=sampling_period_ms,
         max_num_items=max_num_items,
+        filter_labels=filter_labels,
     )
 
   def _read_time_window(
@@ -552,6 +555,7 @@ class EventSourceReader:
       window: EventSourceWindow,
       sampling_period_ms: int = 0,
       max_num_items: int = 10000,
+      filter_labels: Optional[dict[str, str]] = None,
   ):
     """Read the onprem logs for a given time window for this event source.
 
@@ -560,6 +564,7 @@ class EventSourceReader:
       sampling_period_ms: An optional downsampling parameter representing the
         minimum time in milliseconds between successive samples.
       max_num_items: The maximum number of returned items.
+      filter_labels: Dictionary of label to value to filter the query.
 
     Returns:
       The DataSource for the read items.
@@ -586,6 +591,8 @@ class EventSourceReader:
         query_proto.downsampler_options.sampling_interval_time.FromMilliseconds(
             sampling_period_ms
         )
+      if filter_labels is not None:
+        query_proto.filter_labels.update(filter_labels)
 
     response = self._stub.GetLogItems(get_request)
     for item in response.log_items:

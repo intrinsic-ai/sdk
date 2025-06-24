@@ -388,6 +388,49 @@ blob_payload <
         100,
     )
 
+  def test_read_filter_labels(self):
+    # This test is quite weak because the label filtering is done on the
+    # server which is mocked out here. This only tests the interface itself.
+    data = [
+        text_format.Parse(
+            """
+metadata <
+  event_source: "ev1"
+>
+blob_payload <
+  blob_id: "/tmp/a.png"
+>""",
+            log_item_pb2.LogItem(),
+        ),
+        text_format.Parse(
+            """
+metadata <
+  event_source: "ev1"
+>
+blob_payload <
+  blob_id: "/tmp/b.png"
+>""",
+            log_item_pb2.LogItem(),
+        ),
+    ]
+    stub = self._create_mock_stub('ev1', data)
+    logs = structured_logging.StructuredLogs(stub)
+
+    items = logs.ev1.read(
+        time_window=structured_logging.EventSourceWindow(
+            start_time=datetime.datetime(2023, 1, 1, 1, 1, 1),
+            end_time=datetime.datetime(2023, 1, 1, 1, 2, 1),
+        ),
+        filter_labels={'label1': 'value1', 'label2': 'value2'},
+    )
+
+    self.assertEqual(items.num_events, 2)
+    get_request = stub.GetLogItems.call_args.args[0]
+    self.assertEqual(
+        get_request.get_query.filter_labels,
+        {'label1': 'value1', 'label2': 'value2'},
+    )
+
   def test_read_base_t_tip_sensed(self):
     data = [
         text_format.Parse(

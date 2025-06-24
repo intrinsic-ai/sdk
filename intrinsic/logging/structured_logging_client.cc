@@ -12,6 +12,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"
 #include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
@@ -164,11 +165,10 @@ StructuredLoggingClient::GetLogItems(absl::string_view event_source,
 }
 
 absl::StatusOr<StructuredLoggingClient::GetResult>
-StructuredLoggingClient::GetLogItems(absl::string_view event_source,
-                                     int page_size,
-                                     absl::string_view page_token,
-                                     absl::Time start_time,
-                                     absl::Time end_time) const {
+StructuredLoggingClient::GetLogItems(
+    absl::string_view event_source, int page_size, absl::string_view page_token,
+    absl::Time start_time, absl::Time end_time,
+    absl::flat_hash_map<std::string, std::string> filter_labels) const {
   intrinsic_proto::data_logger::GetLogItemsRequest request;
   request.set_max_num_items(page_size);
 
@@ -180,6 +180,10 @@ StructuredLoggingClient::GetLogItems(absl::string_view event_source,
                           FromAbslTime(start_time));
     INTR_ASSIGN_OR_RETURN(*request.mutable_get_query()->mutable_end_time(),
                           FromAbslTime(end_time));
+    if (!filter_labels.empty()) {
+      request.mutable_get_query()->mutable_filter_labels()->insert(
+          filter_labels.begin(), filter_labels.end());
+    }
   }
 
   grpc::ClientContext context;
