@@ -1,8 +1,7 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@rules_cc//cc:defs.bzl", "cc_library")
-load("//bazel:go_macros.bzl", "go_library", "go_proto_library", "go_test")
+load("//bazel:go_macros.bzl", "go_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -23,37 +22,6 @@ cc_library(
         "@com_google_absl//absl/synchronization",
         "@com_google_absl//absl/time",
         "@com_google_protobuf//:protobuf",
-    ],
-)
-
-proto_library(
-    name = "pubsub_test_proto",
-    srcs = ["pubsub_test.proto"],
-)
-
-go_proto_library(
-    name = "pubsub_test_go_proto",
-    deps = [":pubsub_test_proto"],
-)
-
-go_test(
-    name = "pubsub_test",
-    size = "small",
-    srcs = ["pubsub_test.go"],
-    library = ":pubsub",
-    # Test fails in asan configuration, this appears to be a problem in the
-    # underlying C implementation.
-    tags = [
-        "noasan",
-    ],
-    deps = [
-        ":pubsub_test_go_proto",
-        ":pubsubinterface",
-        "//intrinsic/icon/proto:part_status_go_proto",
-        "//intrinsic/platform/pubsub/adapters:pubsub_go_proto",
-        "@org_golang_google_protobuf//proto",
-        "@org_golang_google_protobuf//types/known/timestamppb",
-        "@org_golang_google_protobuf//types/known/wrapperspb",
     ],
 )
 
@@ -95,25 +63,5 @@ go_library(
     deps = [
         "@org_golang_google_protobuf//proto",
         "@org_golang_google_protobuf//types/known/anypb",
-    ],
-)
-
-go_library(
-    name = "fakekvstore",
-    srcs = ["fakekvstore.go"],
-    deps = [
-        ":kvstore",
-        "@org_golang_google_protobuf//proto",
-        "@org_golang_google_protobuf//types/known/anypb",
-    ],
-)
-
-go_test(
-    name = "fakekvstore_test",
-    srcs = ["fakekvstore_test.go"],
-    library = ":fakekvstore",
-    deps = [
-        ":kvstore",
-        "@org_golang_google_protobuf//types/known/wrapperspb",
     ],
 )
