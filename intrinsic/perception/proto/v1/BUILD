@@ -7,7 +7,6 @@ load("@com_github_grpc_grpc//bazel:cc_grpc_library.bzl", "cc_grpc_library")
 load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library", "py_proto_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
-load("@rules_cc//cc:defs.bzl", "cc_library")
 load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
 load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "proto_source_code_info_transitive_descriptor_set")
 
@@ -216,50 +215,6 @@ go_grpc_library(
         "//intrinsic/math/proto:pose_go_proto",
         "//intrinsic/platform/pubsub:storage_location_go_proto",
     ],
-)
-
-genrule(
-    name = "camera_server_pb_h",
-    srcs = [],
-    outs = ["camera_server.pb.h"],
-    cmd = """cat > $@ <<EOF
-#ifndef INTRINSIC_PERCEPTION_PUBLIC_PROTO_V1_CAMERA_SERVER_PB_H_
-#define INTRINSIC_PERCEPTION_PUBLIC_PROTO_V1_CAMERA_SERVER_PB_H_
-
-#include "intrinsic/perception/proto/v1/camera_service.pb.h"
-
-#endif  // INTRINSIC_PERCEPTION_PUBLIC_PROTO_V1_CAMERA_SERVER_PB_H_
-EOF
-        """,
-)
-
-genrule(
-    name = "camera_server_grpc_pb_h",
-    srcs = [],
-    outs = ["camera_server.grpc.pb.h"],
-    cmd = """cat > $@ <<EOF
-#ifndef INTRINSIC_PERCEPTION_PUBLIC_PROTO_V1_CAMERA_SERVER_GRPC_PB_H_
-#define INTRINSIC_PERCEPTION_PUBLIC_PROTO_V1_CAMERA_SERVER_GRPC_PB_H_
-
-#include "intrinsic/perception/proto/v1/camera_service.grpc.pb.h"
-
-#endif  // INTRINSIC_PERCEPTION_PUBLIC_PROTO_V1_CAMERA_SERVER_GRPC_PB_H_
-EOF
-        """,
-)
-
-cc_library(
-    name = "camera_server_cc_proto",
-    hdrs = ["camera_server.pb.h"],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":camera_service_cc_proto"],
-)
-
-cc_library(
-    name = "camera_server_cc_grpc",
-    hdrs = ["camera_server.grpc.pb.h"],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":camera_service_cc_grpc"],
 )
 
 proto_library(

@@ -27,7 +27,7 @@ class CameraClient:
   """
 
   camera_identifier: camera_identifier_pb2.CameraIdentifier
-  _camera_stub: camera_service_pb2_grpc.CameraServerStub
+  _camera_stub: camera_service_pb2_grpc.CameraServiceStub
 
   def __init__(
       self,
@@ -43,7 +43,7 @@ class CameraClient:
         camera_channel,
         interceptor.HeaderAdderInterceptor(connection_params.headers),
     )
-    self._camera_stub = camera_service_pb2_grpc.CameraServerStub(
+    self._camera_stub = camera_service_pb2_grpc.CameraServiceStub(
         intercepted_camera_channel
     )
 
