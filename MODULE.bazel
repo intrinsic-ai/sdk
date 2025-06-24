@@ -103,7 +103,6 @@ pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
             "blender-headless": "https://us-central1-python.pkg.dev/intrinsic-mirror/intrinsic-public-python/simple",
             "cadexchanger": "https://download.cadexchanger.com/python",
             "proto-breaking-change-detector": "https://github.com/googleapis",
-            "tf-models-official-intrinsic": "https://us-central1-python.pkg.dev/intrinsic-mirror/intrinsic-public-python/simple",
         },
         hub_name = "ai_intrinsic_sdks_pip_deps",
         python_version = python_version,
