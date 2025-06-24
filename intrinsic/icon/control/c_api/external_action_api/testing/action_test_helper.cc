@@ -2,8 +2,6 @@
 
 #include "intrinsic/icon/control/c_api/external_action_api/testing/action_test_helper.h"
 
-#include <string>
-
 #include "absl/strings/string_view.h"
 #include "intrinsic/icon/control/c_api/external_action_api/icon_action_interface.h"
 #include "intrinsic/icon/control/c_api/external_action_api/testing/icon_streaming_io_registry_fake.h"
