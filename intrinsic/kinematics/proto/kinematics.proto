@@ -59,8 +59,29 @@ message Joint {
     double default_configuration = 6;
   }
 
+  // Defines a joint dependency, which is used to compute a joint's 'derived'
+  // value from a weighted (linear) combination of 'input' joint values.
+  // Dependencies are defined as general form q_derived[i] =
+  // alpha_self*q_input[i] + alpha[i-1]*q_input[i-1]+...+
+  // alpha[i-k]*q_input[i-k]. By definition 'q_derived' is a minimal joint
+  // coordinate (e.g. DH parameterization) usable in standard rigid body
+  // kinematics algorithms. `alpha_self` is the scaling factor for the input
+  // value of the joint's own DoF. Preceding joints, that the given joint
+  // depends on, are termed 'leading' joints. Non-zero scaling factors for
+  // leading joints, `alpha[i-k], are defined in the map `alpha_leading`, where
+  // leading joints are keyed by their Element Ids.
+  // Only fully actuated leading joints are supported, i.e. they must not be
+  // dependent joints themselves.
+  message LinearDependency {
+    // Scaling factor for the actuation of the joint's own DoF.
+    double alpha_self = 1;
+    // Map from element id to scaling factor alpha for leading joints.
+    map<uint32, double> alpha_leading = 2;
+  }
+
   Element element = 1;
   Parameters parameters = 2;
+  optional LinearDependency linear_dependency = 5;
 
   reserved 3, 4;
   reserved "value_function", "value_function_to_joint";
