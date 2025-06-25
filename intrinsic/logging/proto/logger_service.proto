@@ -150,10 +150,20 @@ message GetLogItemsRequest {
 
 message GetLogItemsResponse {
   // The LogItems that matched the criteria.
+  // This can sometimes be empty.
   repeated intrinsic_proto.data_logger.LogItem log_items = 1;
 
   // Opaque cursor to the next page of results.
-  // If empty, no next page exists.
+  // If empty, no next page exists at time of query.
+  //
+  // This could be because, at time of query, either:
+  //   - The next log item that could have been returned had a timestamp that
+  //     was past the requested end time.
+  //   - No log items were found.
+  //
+  // After receiving a response with no next page cursor, if the client wants to
+  // continue reading (e.g., to fetch LogItems that were logged after the
+  // response was received), they must start a new GetLogItemsRequest.
   optional bytes next_page_cursor = 2;
 
   // If set, the response was truncated. There usually will be a next page
