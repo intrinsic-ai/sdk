@@ -395,10 +395,13 @@ func (kv *kvStoreHandle) Set(key string, value proto.Message, highConsistency bo
 				return fmt.Errorf("timeout waiting for high consistency: %w", kvstore.ErrDeadlineExceeded)
 			default:
 				timeout := highConsistencyGetTimeout
-				_, err := kv.Get(key, &timeout)
+				value, err := kv.Get(key, &timeout)
 				if err != nil {
 					// Small wait before retrying.
 					time.Sleep(100 * time.Millisecond)
+					continue
+				}
+				if string(value.GetValue()) != string(valueAny.GetValue()) {
 					continue
 				}
 				break loopUntilWritten
