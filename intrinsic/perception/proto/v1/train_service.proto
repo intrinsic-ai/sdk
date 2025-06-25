@@ -10,7 +10,6 @@ import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "intrinsic/assets/proto/id.proto";
 import "intrinsic/perception/proto/v1/pose_estimation_config.proto";
-import "intrinsic/scene/proto/v1/scene_object.proto";
 import "intrinsic/util/status/extended_status.proto";
 
 // Trains pose estimation models.
@@ -76,10 +75,6 @@ message CreateTrainingJobRequest {
   // to the pose estimator type.
   PoseEstimatorType pose_estimator_type = 8;
 
-  // Contains a list of scene objects which the model is trained on. The map key
-  // matches the target paths in the config above.
-  map<string, intrinsic_proto.scene_object.v1.SceneObject> scene_objects = 2;
-
   // A generic proto with user-specific custom data attached to the training
   // job. The proto will be returned to the caller in the TrainingJobStatus
   // message.
@@ -93,8 +88,8 @@ message CreateTrainingJobRequest {
   // estimators creation.
   intrinsic_proto.assets.Id one_shot_asset_id = 7;
 
-  reserved 4, 5;
-  reserved "maximum_job_duration", "parent_name";
+  reserved 2, 4, 5;
+  reserved "maximum_job_duration", "parent_name", "scene_objects";
 }
 
 message AssetMetadata {

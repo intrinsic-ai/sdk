@@ -735,7 +735,7 @@ proto_library(
         ":pose_range_proto",
         ":symmetry_proto",
         "//intrinsic/math/proto:affine_proto",
-        "//intrinsic/math/proto:vector3_proto",
+        "//intrinsic/scene/proto/v1:scene_object_proto",
     ],
 )
 
@@ -758,7 +758,7 @@ go_proto_library(
         ":pose_range_go_proto",
         ":symmetry_go_proto",
         "//intrinsic/math/proto:affine_go_proto",
-        "//intrinsic/math/proto:vector3_go_proto",
+        "//intrinsic/scene/proto/v1:scene_object_go_proto",
     ],
     visibility = ["//intrinsic:public_api_users"],
     deps = [":target_proto"],
@@ -771,7 +771,6 @@ proto_library(
     deps = [
         ":pose_estimation_config",
         "//intrinsic/assets/proto:id_proto",
-        "//intrinsic/scene/proto/v1:scene_object_proto",
         "//intrinsic/util/status:extended_status_proto",
         "@com_google_googleapis//google/longrunning:operations_proto",
         "@com_google_protobuf//:any_proto",
@@ -806,7 +805,6 @@ go_proto_library(
         ":pose_estimation_config_go_proto",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
         "//intrinsic/assets/proto:id_go_proto",
-        "//intrinsic/scene/proto/v1:scene_object_go_proto",
         "//intrinsic/util/status:extended_status_go_proto",
     ],
     visibility = ["//intrinsic:public_api_users"],

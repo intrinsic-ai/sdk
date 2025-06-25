@@ -7,6 +7,7 @@ import "intrinsic/math/proto/affine.proto";
 import "intrinsic/perception/proto/v1/charuco_pattern.proto";
 import "intrinsic/perception/proto/v1/pose_range.proto";
 import "intrinsic/perception/proto/v1/symmetry.proto";
+import "intrinsic/scene/proto/v1/scene_object.proto";
 
 message MeshObject {
   // Path to a mesh. Preferrably a glb file.
@@ -42,6 +43,7 @@ message Target {
   oneof Type {
     MeshObject mesh = 2;
     MarkerObject marker = 3;
+    intrinsic_proto.scene_object.v1.SceneObject scene_object = 6;
   }
 
   // Restricts the pose range (orientation and position) of the object.
