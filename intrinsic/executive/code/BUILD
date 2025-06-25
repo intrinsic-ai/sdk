@@ -4,8 +4,6 @@ load("@ai_intrinsic_sdks_pip_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
 load("@rules_python//python:packaging.bzl", "py_package", "py_wheel")
 
-# This package contains the code execution service.
-
 py_library(
     name = "code_execution",
     srcs = ["code_execution.py"],
