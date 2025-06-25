@@ -16,9 +16,9 @@ absl::StatusOr<intrinsic_proto::skills::Skill> BuildTestSkillProto(
     const google::protobuf::FileDescriptorSet& param_type_file_descriptor_set,
     const google::protobuf::FileDescriptorSet&
         return_type_file_descriptor_set) {
-  return skills::BuildSkillProto(manifest, param_type_file_descriptor_set,
-                                 return_type_file_descriptor_set,
-                                 kTestVersion);
+  return skills::BuildSkillProto(
+      manifest, param_type_file_descriptor_set, return_type_file_descriptor_set,
+      kTestVersion);
 }
 
 }  // namespace intrinsic::skills

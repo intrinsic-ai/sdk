@@ -30,11 +30,11 @@ absl::StatusOr<std::unique_ptr<::google::protobuf::Message>> PreviewViaExecute(
 
   INTR_ASSIGN_OR_RETURN(ExecuteRequest execute_request,
                         PreviewToExecuteRequest(request));
-  INTR_ASSIGN_OR_RETURN(
-      ExecuteContextView execute_context,
-      PreviewToExecuteContext(context,
-                              equipment
-                              ));
+  INTR_ASSIGN_OR_RETURN(ExecuteContextView execute_context,
+                        PreviewToExecuteContext(
+                            context,
+                            equipment
+                            ));
 
   return skill.Execute(execute_request, execute_context);
 }

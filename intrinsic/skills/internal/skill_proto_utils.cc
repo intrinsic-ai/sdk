@@ -155,8 +155,9 @@ absl::StatusOr<intrinsic_proto::skills::Skill> BuildSkillProto(
     const intrinsic_proto::skills::SkillManifest& manifest,
     const google::protobuf::FileDescriptorSet& file_descriptor_set,
     std::optional<absl::string_view> semver_version) {
-  return BuildSkillProto(manifest, file_descriptor_set, file_descriptor_set,
-                         semver_version);
+  return BuildSkillProto(
+      manifest, file_descriptor_set, file_descriptor_set,
+      semver_version);
 }
 
 }  // namespace skills

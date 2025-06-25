@@ -133,11 +133,11 @@ class StatusSpecs {
 class SkillRuntimeData {
  public:
   SkillRuntimeData() = default;
-  SkillRuntimeData(
-      const ParameterData& parameter_data,
-      const ExecutionOptions& execution_options,
-      const ResourceData& resource_data, const StatusSpecs& status_specs,
-      absl::string_view id);
+  SkillRuntimeData(const ParameterData& parameter_data,
+                   const ExecutionOptions& execution_options,
+                   const ResourceData& resource_data,
+                   const StatusSpecs& status_specs,
+                   absl::string_view id);
 
   SkillRuntimeData(const SkillRuntimeData& other) = default;
   SkillRuntimeData& operator=(const SkillRuntimeData& other) = default;
