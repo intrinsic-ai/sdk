@@ -3,10 +3,11 @@
 #include "intrinsic/logging/utils/downsampler/downsampler.h"
 
 #include <optional>
-#include <utility>
+#include <string>
 
+#include "absl/container/flat_hash_map.h"
+#include "absl/time/time.h"
 #include "intrinsic/logging/proto/downsampler.pb.h"
-#include "intrinsic/logging/proto/log_item.pb.h"
 #include "intrinsic/logging/proto/logger_service.pb.h"
 #include "intrinsic/logging/utils/downsampler/proto_conversion.h"
 #include "pybind11/operators.h"
