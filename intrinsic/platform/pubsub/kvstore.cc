@@ -10,12 +10,14 @@
 #include <utility>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"
 #include "absl/flags/flag.h"
 #include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
+#include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
@@ -231,7 +233,6 @@ absl::Status KeyValueStore::AdminCloudCopy(absl::string_view source_key,
   INTR_RETURN_IF_ERROR(intrinsic::ValidZenohKey(target_key));
   INTR_ASSIGN_OR_RETURN(absl::StatusOr<std::string> source_prefixed_name,
                         ZenohHandle::add_key_prefix(source_key, key_prefix_));
-  ;
 
   INTR_ASSIGN_OR_RETURN(google::protobuf::Any value,
                         GetAny(source_key, timeout));
@@ -266,6 +267,37 @@ absl::Status KeyValueStore::AdminCloudCopy(absl::string_view source_key,
   }
 
   return absl::OkStatus();
+}
+
+absl::StatusOr<absl::flat_hash_map<std::string, google::protobuf::Any>>
+KeyValueStore::GetAllSynchronous(absl::string_view keyexpr,
+                                 absl::Duration timeout) {
+  INTR_RETURN_IF_ERROR(intrinsic::ValidZenohKey(keyexpr));
+
+  absl::flat_hash_map<std::string, google::protobuf::Any> results;
+  absl::Notification done;
+  absl::Mutex mutex;
+
+  auto callback = [&results, &mutex](
+                      absl::string_view key,
+                      std::unique_ptr<google::protobuf::Any> value) {
+    absl::MutexLock lock(&mutex);
+    if (value != nullptr) {
+      results[key] = std::move(*value);
+    }
+  };
+
+  auto on_done = [&done](absl::string_view key) { done.Notify(); };
+
+  INTR_ASSIGN_OR_RETURN(
+      KVQuery query, GetAll(keyexpr, std::move(callback), std::move(on_done)));
+
+  if (!done.WaitForNotificationWithTimeout(timeout)) {
+    return absl::DeadlineExceededError(
+        absl::StrFormat("Timeout waiting for GetAll on keyexpr: %s", keyexpr));
+  }
+
+  return results;
 }
 
 }  // namespace intrinsic

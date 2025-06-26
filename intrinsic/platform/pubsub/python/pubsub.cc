@@ -14,6 +14,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
@@ -112,6 +113,12 @@ absl::Status AdminCloudCopy(KeyValueStore* self, const std::string& source_key,
                               absl::Seconds(timeout));
 }
 
+absl::StatusOr<absl::flat_hash_map<std::string, google::protobuf::Any>>
+GetAllSynchronous(KeyValueStore* self, const std::string& keyexpr,
+                  int timeout) {
+  return self->GetAllSynchronous(keyexpr, absl::Seconds(timeout));
+}
+
 struct PySubscriptionDeleter {
   void operator()(Subscription* s) {
     // To avoid deadlock, the call to Zenoh.imw_destroy_subscription() needs to
@@ -186,6 +193,8 @@ PYBIND11_MODULE(pubsub, m) {
            pybind11::arg("high_consistency") = false)
       .def("Get", &Get, pybind11::arg("key"), pybind11::arg("timeout") = 10)
       .def("GetAll", &GetAll)
+      .def("GetAllSynchronous", &GetAllSynchronous, pybind11::arg("keyexpr"),
+           pybind11::arg("timeout") = 10)
       .def("List", &ListAllKeys, pybind11::arg("timeout") = 10)
       .def("Delete", &KeyValueStore::Delete, pybind11::arg("key"))
       .def("AdminCloudCopy", &AdminCloudCopy, pybind11::arg("source_key"),

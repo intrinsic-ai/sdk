@@ -92,6 +92,7 @@ cc_library(
         "//intrinsic/platform/pubsub/zenoh_util:zenoh_helpers",
         "//intrinsic/util/status:status_macros",
         "@com_github_grpc_grpc//:grpc++",
+        "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/status",

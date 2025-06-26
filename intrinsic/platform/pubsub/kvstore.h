@@ -11,6 +11,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"
 #include "absl/flags/declare.h"
 #include "absl/log/log.h"
 #include "absl/status/status.h"
@@ -126,6 +127,10 @@ class KeyValueStore {
                               absl::string_view target_key,
                               absl::string_view endpoint,
                               absl::Duration timeout = kDefaultGetTimeout);
+
+  // Same as GetAll, but does not need a callback. The tradeoff is less control.
+  absl::StatusOr<absl::flat_hash_map<std::string, google::protobuf::Any>>
+  GetAllSynchronous(absl::string_view keyexpr, absl::Duration timeout);
 
  private:
   explicit KeyValueStore(std::optional<std::string> prefix_override);

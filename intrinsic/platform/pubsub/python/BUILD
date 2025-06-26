@@ -15,6 +15,7 @@ pybind_extension(
         "//intrinsic/platform/pubsub:kvstore",
         "//intrinsic/platform/pubsub:publisher",
         "//intrinsic/platform/pubsub:subscription",
+        "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
