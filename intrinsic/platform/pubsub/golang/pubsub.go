@@ -114,6 +114,8 @@ type Handle struct {
 	zenohHandle zenohHandle
 }
 
+var _ pubsubinterface.PubSub = new(Handle)
+
 const zenohConfigPath = "intrinsic/platform/pubsub/zenoh_util/peer_config.json"
 
 func isRunningUnderTest() bool {

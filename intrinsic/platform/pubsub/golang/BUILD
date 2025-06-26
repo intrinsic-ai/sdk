@@ -53,7 +53,6 @@ go_library(
     deps = [
         "//intrinsic/platform/pubsub/adapters:pubsub_go_proto",
         "@org_golang_google_protobuf//proto",
-        "@org_golang_google_protobuf//types/known/anypb",
     ],
 )
 
