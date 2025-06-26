@@ -14,6 +14,7 @@ import (
 	log "github.com/golang/glog"
 	"go.opencensus.io/trace"
 	"google.golang.org/grpc/metadata"
+	"intrinsic/stats/go/telemetry"
 )
 
 const (
@@ -38,6 +39,9 @@ func parseCookies(cookies string) ([]*http.Cookie, error) {
 // FromRequestNamed returns the named cookies from a request.
 // Returns only one cookie per name, ignores names that are not found.
 func FromRequestNamed(r *http.Request, names []string) []*http.Cookie {
+	_, span := trace.StartSpan(r.Context(), "cookies.FromRequestNamed")
+	defer span.End()
+
 	var cs []*http.Cookie
 	for _, name := range names {
 		if cookie, err := r.Cookie(name); err == nil {
@@ -50,6 +54,9 @@ func FromRequestNamed(r *http.Request, names []string) []*http.Cookie {
 // AddToRequest adds cookies to the request and deduplicates already existing cookie key value pairs.
 // It will overwrite existing cookies inside the request if they have the same name.
 func AddToRequest(r *http.Request, newCs ...*http.Cookie) {
+	_, span := trace.StartSpan(r.Context(), "cookies.AddToRequest")
+	defer span.End()
+
 	if r == nil {
 		return
 	}
@@ -79,7 +86,7 @@ func AddToContext(ctx context.Context, newCs ...*http.Cookie) (context.Context, 
 	md, _ := metadata.FromOutgoingContext(ctx)
 	md, err := addToMD(md, newCs...)
 	if err != nil {
-		span.SetStatus(trace.Status{Code: trace.StatusCodeInvalidArgument, Message: fmt.Sprintf("Failed to add cookies to outgoing context: %v", err)})
+		telemetry.SetError(span, trace.StatusCodeInvalidArgument, "AddToContext: Failed to add cookies to outgoing context", err)
 		return ctx, err
 	}
 	return metadata.NewOutgoingContext(ctx, md), nil
@@ -95,7 +102,7 @@ func AddToIncomingContext(ctx context.Context, newCs ...*http.Cookie) (context.C
 	md, _ := metadata.FromIncomingContext(ctx)
 	md, err := addToMD(md, newCs...)
 	if err != nil {
-		span.SetStatus(trace.Status{Code: trace.StatusCodeInvalidArgument, Message: fmt.Sprintf("Failed to add cookies to incoming context: %v", err)})
+		telemetry.SetError(span, trace.StatusCodeInvalidArgument, "AddToIncomingContext: Failed to add cookies to incoming context", err)
 		return ctx, err
 	}
 	return metadata.NewIncomingContext(ctx, md), nil
@@ -147,6 +154,9 @@ func ToMDString(cs ...*http.Cookie) []string {
 // Cookie here refers to a mapped metadata that mirrors http cookies and is used to unify handling
 // of http and GRPC based metadata in our stack.
 func FromContext(ctx context.Context) ([]*http.Cookie, error) {
+	ctx, span := trace.StartSpan(ctx, "cookies.FromContext")
+	defer span.End()
+
 	md, ok := metadata.FromIncomingContext(ctx)
 	// If there's no context, we have an empty list.
 	if !ok {
@@ -162,10 +172,20 @@ func FromContext(ctx context.Context) ([]*http.Cookie, error) {
 	// If there's more than one cookie header, we attempt to merge them.
 	if len(cookies) > 1 {
 		log.WarningContextf(ctx, "Multiple cookie headers found, attempting to merge them...")
-		return mergeCookies(cookies...)
+		cs, err := mergeCookies(cookies...)
+		if err != nil {
+			telemetry.SetError(span, trace.StatusCodeInvalidArgument, "FromContext: Failed to merge cookies", err)
+			return nil, fmt.Errorf("failed to merge cookies: %v", err)
+		}
+		return cs, nil
 	}
 
-	return parseCookies(cookies[0])
+	p, err := parseCookies(cookies[0])
+	if err != nil {
+		telemetry.SetError(span, trace.StatusCodeInvalidArgument, "FromContext: Failed to parse cookies", err)
+		return nil, fmt.Errorf("failed to parse cookies: %v", err)
+	}
+	return p, nil
 }
 
 func mergeCookies(cs ...string) ([]*http.Cookie, error) {

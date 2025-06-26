@@ -12,6 +12,7 @@ go_library(
     name = "cookies",
     srcs = ["cookies.go"],
     deps = [
+        "//intrinsic/stats/go:telemetry",
         "@com_github_golang_glog//:go_default_library",
         "@io_opencensus_go//trace:go_default_library",
         "@org_golang_google_grpc//metadata:go_default_library",
