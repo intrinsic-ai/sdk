@@ -53,19 +53,16 @@ func TestCookiesFromContext(t *testing.T) {
 		md := metadata.New(map[string]string{CookieHeaderName: "org-id=exampleorg; user-id=doe@example.com"})
 		md.Append(CookieHeaderName, "org-id=exampleorg")
 		ctx := metadata.NewIncomingContext(t.Context(), md)
-
+		want := []*http.Cookie{
+			&http.Cookie{Name: "org-id", Value: "exampleorg"},
+			&http.Cookie{Name: "user-id", Value: "doe@example.com"},
+		}
 		result, err := FromContext(ctx)
 		if err != nil {
 			t.Errorf("Error in TestCookiesFromContext() = %v, want no error", err)
 		}
-		if len(result) != 2 {
-			t.Errorf("TestCookiesFromContext() = %v, want merged cookie", result)
-		}
-		if result[0].Name != "org-id" || result[0].Value != "exampleorg" {
-			t.Errorf("TestCookiesFromContext() = %v, want merged cookie", result)
-		}
-		if result[1].Name != "user-id" || result[1].Value != "doe@example.com" {
-			t.Errorf("TestCookiesFromContext() = %v, want merged cookie", result)
+		if diff := cmp.Diff(want, result, cmpopts.SortSlices(func(a, b *http.Cookie) bool { return a.Name < b.Name })); diff != "" {
+			t.Errorf("TestCookiesFromContext() returned diff (-want +got):\n%s", diff)
 		}
 	})
 
