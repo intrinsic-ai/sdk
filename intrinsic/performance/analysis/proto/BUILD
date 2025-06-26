@@ -20,12 +20,12 @@ proto_library(
 
 py_proto_library(
     name = "event_py_pb2",
-    deps = [":event_proto"],
+    deps = ["//intrinsic/performance/analysis/proto:event_proto"],
 )
 
 cc_proto_library(
     name = "event_cc_proto",
-    deps = [":event_proto"],
+    deps = ["//intrinsic/performance/analysis/proto:event_proto"],
 )
 
 proto_library(
@@ -42,10 +42,10 @@ py_proto_library(
 cc_proto_library(
     name = "performance_metrics_cc_proto",
     visibility = ["//intrinsic:__subpackages__"],
-    deps = [":performance_metrics_proto"],
+    deps = ["//intrinsic/performance/analysis/proto:performance_metrics_proto"],
 )
 
 go_proto_library(
     name = "performance_metrics_go_proto",
-    deps = [":performance_metrics_proto"],
+    deps = ["//intrinsic/performance/analysis/proto:performance_metrics_proto"],
 )
