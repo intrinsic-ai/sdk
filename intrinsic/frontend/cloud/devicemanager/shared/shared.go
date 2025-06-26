@@ -121,6 +121,7 @@ type StatusInterface struct {
 	HasCarrier      bool     `json:"carrier"`
 	HasDefaultRoute bool     `json:"has_default_route"`
 	DisplayName     string   `json:"display_name"`
+	DefaultGateway  string   `json:"default_gateway"`
 }
 
 // PingCommand allows to trigger an ICMP ping from the device.
