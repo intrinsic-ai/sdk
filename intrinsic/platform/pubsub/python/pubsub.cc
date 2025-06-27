@@ -25,6 +25,7 @@
 #include "intrinsic/platform/pubsub/publisher.h"
 #include "intrinsic/platform/pubsub/subscription.h"
 #include "pybind11/cast.h"
+#include "pybind11_abseil/absl_casters.h"
 #include "pybind11_abseil/no_throw_status.h"
 #include "pybind11_abseil/status_casters.h"
 #include "pybind11_protobuf/native_proto_caster.h"
