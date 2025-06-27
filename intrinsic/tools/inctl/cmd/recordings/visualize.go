@@ -111,12 +111,17 @@ var visualizeCreateE = func(cmd *cobra.Command, _ []string) error {
 
 	resp, err := replayClient.VisualizeRecording(ctx, req)
 	if err != nil {
+		if status.Code(err) == codes.AlreadyExists {
+			return fmt.Errorf("%w", err)
+		}
 		return fmt.Errorf("failed to visualize recording, did you generate it first with `inctl recordings generate`? Error: %w", err)
 	}
 
 	fmt.Println("")
 	fmt.Println(fmt.Sprintf("Visualization created successfully for recording %s", flagRecordingID))
 	fmt.Printf("- Visualization valid for %s, expires at %s\n", time.Until(lease.GetExpires().AsTime()), lease.GetExpires().AsTime().Format(time.RFC3339))
+	fmt.Println("")
+	fmt.Println("Data will load into the visualization over the next few minutes. You will know it is done when data stops appearing in the timeline.")
 	color.C.BlueBackground().White().Printf("\nLink to visualization: %s", resp.GetUrl())
 	fmt.Println("")
 
