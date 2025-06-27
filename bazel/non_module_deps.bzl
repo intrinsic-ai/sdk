@@ -57,20 +57,18 @@ cc_library(
         urls = ["https://www.antlr.org/download/antlr-4.13.1-complete.jar"],
         sha256 = "bc13a9c57a8dd7d5196888211e5ede657cb64a3ce968608697e4f668251a8487",
     )
-
-    # Issue for being available as a module: https://github.com/google/cel-cpp/issues/953.
     http_archive(
         name = "com_google_cel_cpp",
-        url = "https://github.com/google/cel-cpp/archive/aff86967fc811ed4605f099ee2f502d331d5bbe7.tar.gz",  # 2024-10-25
-        strip_prefix = "cel-cpp-aff86967fc811ed4605f099ee2f502d331d5bbe7",
-        sha256 = "b8ddaa7de1b12a5e02d643b8040156f12981980f490a3bfe6aa9e089c7483163",
+        url = "https://github.com/google/cel-cpp/archive/c4415027b89c0f4bce9db3f6d96e33bba52de87c.tar.gz",  # 2024-12-20
+        strip_prefix = "cel-cpp-c4415027b89c0f4bce9db3f6d96e33bba52de87c",
+        sha256 = "040ce76b4e0e7aef1c897c3dd3f85998d22407574df70697c60ed7845eea4e42",
     )
 
-    OR_TOOLS_COMMIT = "ed94162b910fa58896db99191378d3b71a5313af"  # v9.11
+    OR_TOOLS_COMMIT = "b8e881fbde473a9e33e0dac475e498559eb0459d"  # v9.12
     http_archive(
         name = "or_tools",
         strip_prefix = "or-tools-%s" % OR_TOOLS_COMMIT,
-        sha256 = "6210f90131ae7256feab097835e3d411316c19d7e9756399079b8595088a7aa5",
+        sha256 = "37bdd955b5224cc55cf37dea0fe4895204f21284247972f77dc47cbb504a76be",
         urls = ["https://github.com/google/or-tools/archive/%s.tar.gz" % OR_TOOLS_COMMIT],
     )
 
