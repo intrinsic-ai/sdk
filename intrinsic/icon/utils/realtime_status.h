@@ -47,7 +47,7 @@ class ABSL_MUST_USE_RESULT RealtimeStatus final {
   operator absl::Status() const;  // NOLINT: implicit conversion ok
 
   // Creates an ok status with no message or payload.
-  RealtimeStatus() INTRINSIC_CHECK_REALTIME_SAFE;
+  constexpr RealtimeStatus() INTRINSIC_CHECK_REALTIME_SAFE = default;
   // Creates a RealtimeStatus with the specified code and error message.
   // If code == RealtimeStatusCode::kOk, message is ignored and an object
   // identical to an OK status is constructed. If message.length() is >
@@ -59,21 +59,23 @@ class ABSL_MUST_USE_RESULT RealtimeStatus final {
   ~RealtimeStatus() = default;
 
   // Returns true if the Status is OK.
-  ABSL_MUST_USE_RESULT bool ok() const INTRINSIC_CHECK_REALTIME_SAFE {
+  ABSL_MUST_USE_RESULT constexpr bool ok() const INTRINSIC_CHECK_REALTIME_SAFE {
     return code_ == absl::StatusCode::kOk;
   }
   // Returns the (canonical) error code.
-  absl::StatusCode code() const INTRINSIC_CHECK_REALTIME_SAFE { return code_; }
+  constexpr absl::StatusCode code() const INTRINSIC_CHECK_REALTIME_SAFE {
+    return code_;
+  }
 
   // Returns the error message.
   // This message rarely describes the error code.  It is not unusual for the
   // error message to be the empty string.
-  absl::string_view message() const ABSL_ATTRIBUTE_LIFETIME_BOUND
+  constexpr absl::string_view message() const ABSL_ATTRIBUTE_LIFETIME_BOUND
       INTRINSIC_CHECK_REALTIME_SAFE {
     return message_;
   }
 
-  absl::string_view ToString() const ABSL_ATTRIBUTE_LIFETIME_BOUND
+  constexpr absl::string_view ToString() const ABSL_ATTRIBUTE_LIFETIME_BOUND
       INTRINSIC_CHECK_REALTIME_SAFE {
     return message_;
   }
@@ -129,7 +131,9 @@ RealtimeStatus UnknownError(absl::string_view message)
 // RealtimeStatusCode::kOk, along with an empty message. Messages are ignored
 // for Ok statuses. This method is functionally equivalent to the empty
 // constructor, but is likely more readable in certain cases.
-RealtimeStatus OkStatus() INTRINSIC_CHECK_REALTIME_SAFE;
+constexpr RealtimeStatus OkStatus() INTRINSIC_CHECK_REALTIME_SAFE {
+  return RealtimeStatus();
+}
 
 // Each of the functions below returns true if the given status matches the
 // error code implied by the function's name.

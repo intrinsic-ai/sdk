@@ -82,8 +82,6 @@ absl::string_view RealtimeStatusCodeToCharArray(absl::StatusCode code) {
   }
 }
 
-RealtimeStatus::RealtimeStatus() : code_(absl::StatusCode::kOk) {}
-
 RealtimeStatus::RealtimeStatus(absl::StatusCode code, absl::string_view message)
     : code_(code), message_(message) {}
 
@@ -150,8 +148,6 @@ RealtimeStatus UnimplementedError(absl::string_view message) {
 RealtimeStatus UnknownError(absl::string_view message) {
   return {absl::StatusCode::kUnknown, message};
 }
-
-RealtimeStatus OkStatus() { return {}; }
 
 bool IsAborted(const RealtimeStatus& status) {
   return status.code() == absl::StatusCode::kAborted;
