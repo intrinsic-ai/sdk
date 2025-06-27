@@ -3,6 +3,7 @@
 #include "intrinsic/util/proto/parsed_type_url.h"
 
 #include <ostream>
+#include <string>
 #include <string_view>
 
 #include "absl/base/attributes.h"
@@ -21,13 +22,14 @@ absl::StatusOr<ParsedUrl> ParseTypeUrl(
   ParsedUrl parsed_url = {.type_url = type_url};
 
   if (!type_url.starts_with(kIntrinsicTypeUrlPrefix)) {
-    return StatusBuilder(absl::StatusCode::kInvalidArgument)
+    std::string message =
+        absl::StrFormat("Type URL '%s' does not start with '%s'", type_url,
+                        kIntrinsicTypeUrlPrefix);
+    return (StatusBuilder(absl::StatusCode::kInvalidArgument) << message)
         .AttachExtendedStatus(
             util::proto::kExtendedStatusComponent, util::proto::kInvalidUrlCode,
             {.title = util::proto::kInvalidUrlTitle,
-             .user_message =
-                 absl::StrFormat("Type URL '%s' does not start with '%s'",
-                                 type_url, kIntrinsicTypeUrlPrefix),
+             .user_message = message,
              .user_instructions = util::proto::kInvalidUrlInstructions});
   }
 
@@ -36,12 +38,13 @@ absl::StatusOr<ParsedUrl> ParseTypeUrl(
   std::string_view::size_type second_slash_pos =
       type_url.find(kTypeUrlSeparator, kIntrinsicTypeUrlPrefix.length());
   if (second_slash_pos == std::string_view::npos) {
-    return StatusBuilder(absl::StatusCode::kInvalidArgument)
+    std::string message = absl::StrFormat(
+        "Type URL '%s' is missing separator after prefix", type_url);
+    return (StatusBuilder(absl::StatusCode::kInvalidArgument) << message)
         .AttachExtendedStatus(
             util::proto::kExtendedStatusComponent, util::proto::kInvalidUrlCode,
             {.title = util::proto::kInvalidUrlTitle,
-             .user_message = absl::StrFormat(
-                 "Type URL '%s' is missing separator after prefix", type_url),
+             .user_message = message,
              .user_instructions = util::proto::kInvalidUrlInstructions});
   }
 
@@ -52,12 +55,13 @@ absl::StatusOr<ParsedUrl> ParseTypeUrl(
   std::string_view::size_type last_slash_pos =
       type_url.find_last_of(kTypeUrlSeparator);
   if (last_slash_pos <= second_slash_pos) {
-    return StatusBuilder(absl::StatusCode::kInvalidArgument)
+    std::string message = absl::StrFormat(
+        "Type URL '%s' is missing are or message type", type_url);
+    return (StatusBuilder(absl::StatusCode::kInvalidArgument) << message)
         .AttachExtendedStatus(
             util::proto::kExtendedStatusComponent, util::proto::kInvalidUrlCode,
             {.title = util::proto::kInvalidUrlTitle,
-             .user_message = absl::StrFormat(
-                 "Type URL '%s' is missing are or message type", type_url),
+             .user_message = message,
              .user_instructions = util::proto::kInvalidUrlInstructions});
   }
 
