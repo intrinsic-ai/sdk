@@ -234,6 +234,7 @@ def _cc_flatbuffers_aspect_impl(target, ctx):
     args.add("--cpp-std", "C++17")
     args.add("--no-union-value-namespacing")
     args.add("--keep-prefix")
+    args.add("--cpp-static-reflection")
 
     if ctx.attr._generate_object_api:
         args.add("--gen-object-api")
@@ -274,9 +275,14 @@ def _cc_flatbuffers_aspect_impl(target, ctx):
         public_hdrs = hdrs,
     )
 
-    return [CcInfo(
-        compilation_context = compilation_context,
-    )]
+    return [
+        CcInfo(
+            compilation_context = compilation_context,
+        ),
+        DefaultInfo(
+            files = depset(hdrs),
+        ),
+    ]
 
 def _make_cc_flatbuffers_aspect(*, suffix = "", generate_object_api, generate_compare, generate_mutable, generate_reflection):
     """Create a new cc_flatbuffers_aspect.
@@ -346,9 +352,23 @@ _cc_lite_flatbuffers_aspect = _make_cc_flatbuffers_aspect(
 )
 
 def _cc_flatbuffers_library_impl(ctx):
-    return [cc_common.merge_cc_infos(
-        direct_cc_infos = [dep[CcInfo] for dep in ctx.attr.deps],
-    )]
+    # Collect CcInfo for compilation from all dependencies
+    direct_cc_infos = [dep[CcInfo] for dep in ctx.attr.deps]
+
+    # Collect the generated headers from the new DefaultInfo provider
+    all_files = []
+    for dep in ctx.attr.deps:
+        if DefaultInfo in dep:
+            all_files.append(dep[DefaultInfo].files)
+
+    return [
+        # Return the merged CcInfo for downstream compilation
+        cc_common.merge_cc_infos(
+            direct_cc_infos = direct_cc_infos,
+        ),
+        # Return a merged DefaultInfo to make headers available as outputs
+        DefaultInfo(files = depset(transitive = all_files)),
+    ]
 
 def _make_cc_flatbuffers_library(*, doc, aspect):
     return rule(

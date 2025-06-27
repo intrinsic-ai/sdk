@@ -19,3 +19,8 @@ bzl_library(
     name = "fbs_library_bzl",
     srcs = ["fbs_library.bzl"],
 )
+
+bzl_library(
+    name = "flatbuffers_bzl",
+    srcs = ["flatbuffers.bzl"],
+)
