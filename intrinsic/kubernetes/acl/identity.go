@@ -89,6 +89,9 @@ var (
 
 // UserToRequest adds the user's identity to an HTTP request.
 func UserToRequest(r *http.Request, u *User) {
+	_, span := trace.StartSpan(r.Context(), "identity.UserToRequest")
+	defer span.End()
+
 	cookies.AddToRequest(r, &http.Cookie{Name: authProxyCookieName, Value: u.jwt})
 }
 
@@ -165,6 +168,8 @@ func CanonicalizeEmail(email string) (string, error) {
 
 // OrgToRequest adds the organization identifier to the HTTP request.
 func OrgToRequest(r *http.Request, orgID string) {
+	_, span := trace.StartSpan(r.Context(), "identity.OrgToRequest")
+	defer span.End()
 	cookies.AddToRequest(r, org.IDCookie(orgID))
 }
 
@@ -182,12 +187,18 @@ func OrgToContext(ctx context.Context, orgID string) (context.Context, error) {
 
 // ToRequest adds the user and org metadata to the HTTP request.
 func ToRequest(r *http.Request, u *User, orgID string) {
+	_, span := trace.StartSpan(r.Context(), "identity.ToRequest")
+	defer span.End()
+
 	UserToRequest(r, u)
 	OrgToRequest(r, orgID)
 }
 
 // ToContext adds the user and org metadata to the context.
 func ToContext(ctx context.Context, u *User, orgID string) (context.Context, error) {
+	ctx, span := trace.StartSpan(ctx, "identity.ToContext")
+	defer span.End()
+
 	ctx, err := UserToContext(ctx, u)
 	if err != nil {
 		return ctx, err

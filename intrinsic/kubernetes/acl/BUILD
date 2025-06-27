@@ -38,6 +38,7 @@ go_library(
         ":cookies",
         ":jwt",
         ":org",
+        "//intrinsic/stats/go:telemetry",
         "@com_github_golang_glog//:go_default_library",
         "@io_opencensus_go//trace:go_default_library",
         "@org_golang_google_grpc//codes:go_default_library",
