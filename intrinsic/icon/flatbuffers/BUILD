@@ -112,3 +112,16 @@ cc_test(
         "@com_google_absl//absl/status",
     ],
 )
+
+cc_library(
+    name = "fixed_string",
+    hdrs = ["fixed_string.h"],
+    deps = [
+        "//intrinsic/icon/utils:fixed_string",
+        "//intrinsic/icon/utils:realtime_status",
+        "//intrinsic/icon/utils:realtime_status_or",
+        "@com_github_google_flatbuffers//:runtime_cc",
+        "@com_google_absl//absl/strings:str_format",
+        "@com_google_absl//absl/strings:string_view",
+    ],
+)
