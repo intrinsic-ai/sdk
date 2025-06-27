@@ -180,9 +180,8 @@ message SensorComponent {
 
     // Direction of the wrench measured by the sensor.
     MeasureDirection measure_direction = 2;
-
-    // If present, the ForceTorqueDevicePlugin is enabled.
-    ForceTorqueDevicePluginSpec force_torque_device_plugin = 3;
+    ForceTorqueDevicePluginSpec force_torque_device_plugin = 3
+        [deprecated = true];
 
     Noise3D force_noise = 4;
     Noise3D torque_noise = 5;
