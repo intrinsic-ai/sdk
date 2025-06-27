@@ -87,8 +87,6 @@ message Cluster {
   // preferred display name
   string display_name = 2;
   string region = 3;
-  string frontend_url = 4;
-  string jupyter_url = 5;
   string k8s_context = 6;
   string project = 7;
   string location = 14;  // used for ui only
@@ -106,8 +104,8 @@ message Cluster {
   google.protobuf.Timestamp last_seen = 24;
   UpdateProgress update_progress = 25 [(google.api.field_behavior) = OPTIONAL];
   // removed fields:
-  reserved 10, 11, 12;
-  reserved "is_public", "is_mine", "is_shared";
+  reserved 4, 5, 10, 11, 12;
+  reserved "frontend_url", "jupyter_url", "is_public", "is_mine", "is_shared";
 }
 
 message IPCNode {
