@@ -63,6 +63,16 @@ cc_library(
     ],
 )
 
+cc_test(
+    name = "rt_queue_buffer_test",
+    size = "small",
+    srcs = ["rt_queue_buffer_test.cc"],
+    deps = [
+        ":rt_queue_buffer",
+        "//intrinsic/util/testing:gtest_wrapper_main",
+    ],
+)
+
 cc_library(
     name = "rt_queue_multi_writer",
     hdrs = ["rt_queue_multi_writer.h"],
