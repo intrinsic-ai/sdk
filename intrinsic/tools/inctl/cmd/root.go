@@ -32,6 +32,13 @@ const (
 	// DataCmdName is the name of the `inctl data` command.
 	DataCmdName = "data"
 
+
+
+	// DoctorCmdName is the name of the `inctl doctor` command.
+	DoctorCmdName = "doctor"
+
+
+
 	// HardwareDeviceCmdName is the name of the `inctl hardware_device` command.
 	HardwareDeviceCmdName = "hardware_device"
 	// ProcessCmdName is the name of the `inctl process` command.

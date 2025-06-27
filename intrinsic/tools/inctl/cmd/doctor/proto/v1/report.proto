@@ -1,0 +1,35 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+edition = "2023";
+
+package intrinsic_proto.inctl.doctor.v1;
+
+enum DiagnosticCheckResult {
+  DIAGNOSTIC_CHECK_RESULT_UNSPECIFIED = 0;
+  DIAGNOSTIC_CHECK_RESULT_OK = 1;
+  DIAGNOSTIC_CHECK_RESULT_WARNING = 2;
+  DIAGNOSTIC_CHECK_RESULT_FAILED = 3;
+  DIAGNOSTIC_CHECK_RESULT_SKIPPED = 4;
+}
+
+message DiagnosticCheckDetail {
+  string name = 1;
+  string value = 2;
+}
+
+message DiagnosticCheck {
+  string name = 1;
+  string output = 2;
+  DiagnosticCheckResult result = 3;
+  repeated DiagnosticCheckDetail details = 4;
+}
+
+message DiagnosticInformationEntry {
+  string name = 1;
+  string value = 2;
+}
+
+message Report {
+  repeated DiagnosticInformationEntry entries = 1;
+  repeated DiagnosticCheck checks = 2;
+}

@@ -10,6 +10,7 @@ import (
 	_ "intrinsic/tools/inctl/cmd/cluster/cluster"
 	_ "intrinsic/tools/inctl/cmd/customer/customer"
 	_ "intrinsic/tools/inctl/cmd/device/device"
+	_ "intrinsic/tools/inctl/cmd/doctor/doctor" 
 	_ "intrinsic/tools/inctl/cmd/logs/logs"
 	_ "intrinsic/tools/inctl/cmd/markdown"
 	_ "intrinsic/tools/inctl/cmd/notebook/notebook"
