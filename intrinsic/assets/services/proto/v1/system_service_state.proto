@@ -19,6 +19,7 @@ import "intrinsic/util/status/extended_status.proto";
 // - Upper case "Service" is used to refer to an asset of type Service.
 // - Lower case "service" is used to refer to an API service.
 service SystemServiceState {
+
   // Returns the current state of the requested Service instance.
   rpc GetInstanceState(GetInstanceStateRequest) returns (InstanceState) {}
 

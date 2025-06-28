@@ -109,23 +109,17 @@ py_grpc_library(
 proto_library(
     name = "system_service_state_proto",
     srcs = ["system_service_state.proto"],
-    deps = [
-        "//intrinsic/util/status:extended_status_proto",
-    ],
+    deps = ["//intrinsic/util/status:extended_status_proto"],
 )
 
 go_proto_library(
     name = "system_service_state_go_proto",
-    go_deps = [
-        "//intrinsic/util/status:extended_status_go_proto",
-    ],
+    go_deps = ["//intrinsic/util/status:extended_status_go_proto"],
     deps = [":system_service_state_proto"],
 )
 
 go_grpc_library(
     name = "system_service_state_go_grpc_proto",
     srcs = [":system_service_state_proto"],
-    deps = [
-        "//intrinsic/util/status:extended_status_go_proto",
-    ],
+    deps = ["//intrinsic/util/status:extended_status_go_proto"],
 )
