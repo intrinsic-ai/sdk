@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.data_logger;
 
+import "google/protobuf/timestamp.proto";
+
 // CriticalEventLog is a log message that describes a text event message that is
 // being sent via the structured logging system. This allows us to upload event
 // logs to the cloud when fluent-bit is not able to upload them in operational
@@ -39,4 +41,7 @@ message CriticalEventLog {
   // The line number that the log message was logged from. This helps identify
   // the source of the log message.
   optional uint32 line = 6;
+
+  // The timestamp of the log message.
+  google.protobuf.Timestamp timestamp = 7;
 }

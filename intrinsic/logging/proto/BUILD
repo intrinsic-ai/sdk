@@ -127,6 +127,7 @@ py_proto_library(
 proto_library(
     name = "critical_event_log",
     srcs = ["critical_event_log.proto"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
 )
 
 cc_proto_library(
