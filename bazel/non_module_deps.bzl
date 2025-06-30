@@ -24,46 +24,6 @@ def _non_module_deps_impl(ctx):  # @unused
         ],
     )
 
-    # Antlr as required by com_google_cel_cpp below. This is available as a module
-    # (https://registry.bazel.build/modules/antlr4-cpp-runtime) but with a different repo name and
-    # BUILD file, so not compatible with CEL unless we were to patch the refs to antlr in CEL.
-    # Can be removed once CEL is available as a module
-    # (see https://github.com/google/cel-cpp/issues/953).
-    http_archive(
-        name = "antlr4_runtimes",
-        build_file_content = """
-package(default_visibility = ["//visibility:public"])
-cc_library(
-    name = "cpp",
-    srcs = glob(["runtime/Cpp/runtime/src/**/*.cpp"]),
-    hdrs = glob(["runtime/Cpp/runtime/src/**/*.h"]),
-    defines = ["ANTLR4CPP_USING_ABSEIL"],
-    includes = ["runtime/Cpp/runtime/src"],
-    deps = [
-        "@com_google_absl//absl/base",
-        "@com_google_absl//absl/base:core_headers",
-        "@com_google_absl//absl/container:flat_hash_map",
-        "@com_google_absl//absl/container:flat_hash_set",
-        "@com_google_absl//absl/synchronization",
-    ],
-)
-  """,
-        sha256 = "365ff6aec0b1612fb964a763ca73748d80e0b3379cbdd9f82d86333eb8ae4638",
-        strip_prefix = "antlr4-4.13.1",
-        urls = ["https://github.com/antlr/antlr4/archive/refs/tags/4.13.1.zip"],
-    )
-    http_jar(
-        name = "antlr4_jar",
-        urls = ["https://www.antlr.org/download/antlr-4.13.1-complete.jar"],
-        sha256 = "bc13a9c57a8dd7d5196888211e5ede657cb64a3ce968608697e4f668251a8487",
-    )
-    http_archive(
-        name = "com_google_cel_cpp",
-        url = "https://github.com/google/cel-cpp/archive/c4415027b89c0f4bce9db3f6d96e33bba52de87c.tar.gz",  # 2024-12-20
-        strip_prefix = "cel-cpp-c4415027b89c0f4bce9db3f6d96e33bba52de87c",
-        sha256 = "040ce76b4e0e7aef1c897c3dd3f85998d22407574df70697c60ed7845eea4e42",
-    )
-
     OR_TOOLS_COMMIT = "b8e881fbde473a9e33e0dac475e498559eb0459d"  # v9.12
     http_archive(
         name = "or_tools",
