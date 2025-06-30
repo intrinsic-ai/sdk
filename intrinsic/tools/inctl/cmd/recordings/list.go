@@ -3,8 +3,8 @@
 package recordings
 
 import (
+	"context"
 	"fmt"
-	"sort"
 	"strings"
 	"time"
 
@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	bmpb "intrinsic/logging/proto/bag_metadata_go_proto"
+	grpcpb "intrinsic/logging/proto/bag_packager_service_go_grpc_proto"
 	pb "intrinsic/logging/proto/bag_packager_service_go_grpc_proto"
 	"intrinsic/tools/inctl/util/orgutil"
 )
@@ -19,6 +20,7 @@ import (
 var (
 	flagStartTimestamp string
 	flagEndTimestamp   string
+	flagMaxNumResults  uint32
 	flagWorkcellName   string
 )
 
@@ -34,6 +36,50 @@ var (
 		bmpb.BagStatus_FAILED:                  "7: Failed",
 	}
 )
+
+// executeAndPrintListBagsResponse executes the ListBags RPC and prints the response.
+func executeAndPrintListBagsResponse(ctx context.Context, client grpcpb.BagPackagerClient, req *pb.ListBagsRequest) (numLines uint32, nextPageCursor []byte, err error) {
+	// Execute.
+	resp, err := client.ListBags(ctx, req)
+	if err != nil {
+		return 0, []byte{}, err
+	}
+	if len(resp.GetBags()) == 0 {
+		fmt.Println("No recordings found")
+		return 0, []byte{}, nil
+	}
+
+	// Print.
+	const formatString = "%-22s %-22s %-40s %-55s %-40s"
+	lines := []string{
+		fmt.Sprintf(formatString, "Start Time", "End Time", "ID", "Status", "Description"),
+	}
+	numLines = uint32(0)
+	for _, bag := range resp.GetBags() {
+		description := bag.GetBagMetadata().GetDescription()
+		if description == "" {
+			description = "<NO-DESCRIPTION>"
+		}
+		status := bag.GetBagMetadata().GetStatus().GetStatus()
+		statusString, ok := bagStatusToString[status]
+		if !ok {
+			statusString = status.String()
+		}
+		lines = append(lines,
+			fmt.Sprintf(formatString,
+				bag.GetBagMetadata().GetStartTime().AsTime().Format(time.RFC3339),
+				bag.GetBagMetadata().GetEndTime().AsTime().Format(time.RFC3339),
+				bag.GetBagMetadata().GetBagId(),
+				statusString,
+				description,
+			))
+		numLines++
+	}
+
+	fmt.Println()
+	fmt.Println(strings.Join(lines, "\n"))
+	return numLines, resp.GetNextPageCursor(), nil
+}
 
 var listRecordingsE = func(cmd *cobra.Command, _ []string) error {
 	client, err := newBagPackagerClient(cmd.Context())
@@ -57,47 +103,72 @@ var listRecordingsE = func(cmd *cobra.Command, _ []string) error {
 	} else {
 		endTime = time.Now()
 	}
+
 	req := &pb.ListBagsRequest{
 		OrganizationId: cmdFlags.GetString(orgutil.KeyOrganization),
-		WorkcellName:   flagWorkcellName,
-		StartTime:      timestamppb.New(startTime),
-		EndTime:        timestamppb.New(endTime),
+		MaxNumResults:  &flagMaxNumResults,
+		Query: &pb.ListBagsRequest_ListQuery{
+			ListQuery: &pb.ListBagsRequest_Query{
+				WorkcellName: flagWorkcellName,
+				StartTime:    timestamppb.New(startTime),
+				EndTime:      timestamppb.New(endTime),
+			},
+		},
 	}
-	resp, err := client.ListBags(cmd.Context(), req)
+	numLines, nextPageCursor, err := executeAndPrintListBagsResponse(cmd.Context(), client, req)
 	if err != nil {
 		return err
 	}
-	if len(resp.GetBags()) == 0 {
+	if numLines == 0 {
 		return nil
 	}
-	const formatString = "%-40s %-55s %-45s %-45s %-45s"
-	lines := []string{
-		fmt.Sprintf(formatString, "Description", "Status", "ID", "Start Time", "End Time"),
+
+	// Handle pagination.
+	page := 0
+	seenRecordings := uint32(0)
+	if len(nextPageCursor) == 0 {
+		seenRecordings += numLines
+		fmt.Println()
+		fmt.Println(fmt.Sprintf("Num recordings: %d", seenRecordings))
+		return nil
 	}
 
-	// Sort the response by start time.
-	sort.Slice(resp.GetBags(), func(i, j int) bool {
-		return resp.GetBags()[i].GetBagMetadata().GetStartTime().AsTime().Before(resp.GetBags()[j].GetBagMetadata().GetStartTime().AsTime())
-	})
-	for _, bag := range resp.GetBags() {
-		description := bag.GetBagMetadata().GetDescription()
-		if description == "" {
-			description = "<NO-DESCRIPTION>"
+	for len(nextPageCursor) > 0 {
+		page++
+		seenRecordings += numLines
+
+		fmt.Println()
+		fmt.Println(fmt.Sprintf("Seen pages: %d | Seen recordings: %d", page, seenRecordings))
+		fmt.Println()
+		fmt.Printf("More results further into the past are available, continue? [Y/n] ")
+
+		// Prompt user if they want to continue.
+		var input string
+		fmt.Scanln(&input)
+		input = strings.ToLower(input)
+		if input != "y" && input != "n" && input != "" {
+			fmt.Printf("More results further into the past are available, continue? [Y/n] ")
+			continue // Invalid input, prompt again.
 		}
-		status := bag.GetBagMetadata().GetStatus().GetStatus()
-		statusString, ok := bagStatusToString[status]
-		if !ok {
-			statusString = status.String()
+		if input == "n" {
+			return nil
 		}
-		lines = append(lines,
-			fmt.Sprintf(formatString,
-				description,
-				statusString,
-				bag.GetBagMetadata().GetBagId(),
-				bag.GetBagMetadata().GetStartTime().AsTime(),
-				bag.GetBagMetadata().GetEndTime().AsTime()))
+
+		req := &pb.ListBagsRequest{
+			OrganizationId: cmdFlags.GetString(orgutil.KeyOrganization),
+			MaxNumResults:  &flagMaxNumResults,
+			Query: &pb.ListBagsRequest_Cursor{
+				Cursor: nextPageCursor,
+			},
+		}
+		numLines, nextPageCursor, err = executeAndPrintListBagsResponse(cmd.Context(), client, req)
+		if err != nil {
+			return err
+		}
+		if numLines == 0 {
+			return nil
+		}
 	}
-	fmt.Println(strings.Join(lines, "\n"))
 
 	return nil
 }
@@ -118,5 +189,6 @@ func init() {
 	flags.StringVar(&flagWorkcellName, "workcell", "", "The Kubernetes cluster to use.")
 	flags.StringVar(&flagStartTimestamp, "start_timestamp", "", "Start timestamp in RFC3339 format for fetching recordings. eg. 2024-08-20T12:00:00Z")
 	flags.StringVar(&flagEndTimestamp, "end_timestamp", "", "End timestamp in RFC3339 format for fetching recordings. eg. 2024-08-20T12:00:00Z")
+	flags.Uint32Var(&flagMaxNumResults, "max_num_results", 10, "The maximum number of recordings to list per page.")
 	listCmd.MarkFlagRequired("workcell")
 }
