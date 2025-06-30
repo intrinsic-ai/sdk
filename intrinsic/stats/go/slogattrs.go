@@ -1,14 +1,18 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
 // Package slogattrs provides a slog.Handler to populate log attributes from the context.
-// See ContextHandler for a usage example.
+// See NewHandler for a usage example.
 package slogattrs
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
+	"os"
 	"path/filepath"
 	"strings"
+
+	"go.opencensus.io/trace"
 )
 
 type slogAttrsCtxKey string
@@ -28,14 +32,52 @@ const (
 //		// in your application code:
 //	  ctx = slogattrs.Append(ctx, slog.String("trace_id", traceID))
 //	  slog.InfoContext(ctx, "Hello World!")
+//
+// Note: use NewHandler instead of this.
 type ContextHandler struct {
 	slog.Handler
+	ProjectName string
+}
+
+// NewHandler wraps a slog.Handler to populate log attributes from the context and
+// to attach OT trace/span information if present and span is recording events.
+// No need to add trace information to context, it will be added automatically
+// if present.
+//
+// Usage:
+//
+//	h := slogattrs.NewHandler("my_gcp_project", slog.NewTextHandler(os.Stdout, nil))
+//	logger := slog.New(h)
+//	slog.SetDefault(logger)
+func NewHandler(projectName string, handler slog.Handler) slog.Handler {
+	return &ContextHandler{
+		Handler:     handler,
+		ProjectName: projectName,
+	}
+}
+
+// SetDefaultLogger reconfigures slog default logger to use ContextHandler
+func SetDefaultLogger(projectName string, options *slog.HandlerOptions) {
+	handler := NewHandler(projectName, slog.NewTextHandler(os.Stdout, options))
+	logger := slog.New(handler)
+	slog.SetDefault(logger)
 }
 
 // Handle populates log attributes from the context.
-func (h ContextHandler) Handle(ctx context.Context, r slog.Record) error {
+func (h *ContextHandler) Handle(ctx context.Context, r slog.Record) error {
 	if attrs, ok := ctx.Value(slogFields).([]slog.Attr); ok {
 		r.AddAttrs(attrs...)
+	}
+	span := trace.FromContext(ctx)
+	if span != nil && span.IsRecordingEvents() {
+		// We are going to attach trace information IFF span is recording events.
+		spanContext := span.SpanContext()
+		r.Add(
+			// See: https://cloud.google.com/logging/docs/structured-logging#special-payload-fields
+			slog.String("logging.googleapis.com/trace", fmt.Sprintf("projects/%s/traces/%s", h.ProjectName, spanContext.TraceID)),
+			slog.String("logging.googleapis.com/spanId", spanContext.SpanID.String()),
+			slog.Bool("logging.googleapis.com/traceSampled", span.IsRecordingEvents()), // always true in this context
+		)
 	}
 	return h.Handler.Handle(ctx, r)
 }
@@ -51,7 +93,7 @@ func Append(ctx context.Context, attrs ...slog.Attr) context.Context {
 
 // Err adds an error as slog attribute.
 func Err(e error) slog.Attr {
-	return slog.String("Error", e.Error())
+	return slog.String("error", e.Error())
 }
 
 // ReplaceAttr replaces the key of a slog.Attr with the corresponding key for log explorer.

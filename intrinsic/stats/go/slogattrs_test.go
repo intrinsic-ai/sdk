@@ -15,7 +15,7 @@ type FakeHandler struct {
 	slog.Handler
 }
 
-func (h FakeHandler) Handle(ctx context.Context, r slog.Record) error {
+func (h *FakeHandler) Handle(ctx context.Context, r slog.Record) error {
 	attrs := []slog.Attr{}
 	r.Attrs(func(a slog.Attr) bool {
 		attrs = append(attrs, a)
@@ -31,7 +31,7 @@ func (h FakeHandler) Handle(ctx context.Context, r slog.Record) error {
 func TestSlogAttrs(t *testing.T) {
 	ctx := context.Background()
 	ctx = Append(ctx, slog.String("testkey", "testvalue"))
-	h := ContextHandler{FakeHandler{}}
+	h := ContextHandler{Handler: &FakeHandler{}}
 	r := slog.Record{}
 	err := h.Handle(ctx, r)
 	if err != nil {

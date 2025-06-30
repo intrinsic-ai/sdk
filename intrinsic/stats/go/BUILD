@@ -35,7 +35,11 @@ go_test(
 
 go_library(
     name = "slogattrs",
-    srcs = ["slogattrs.go"],
+    srcs = [
+        "metadata.go",
+        "slogattrs.go",
+    ],
+    deps = ["@io_opencensus_go//trace:go_default_library"],
 )
 
 go_test(
