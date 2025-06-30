@@ -31,6 +31,30 @@ message NodeConfig {
   string variable_name = 1;
 }
 
+message SimConditionCase {
+  // Waits for the position of the given joint reported by a JointStatePublisher
+  // to be within 1e6 of wait_pos.
+  message WaitForJointPosition {
+    string joint_name = 1;
+    int32 joint_index = 2;
+    double wait_pos = 3;
+  }
+  oneof condition {
+    WaitForJointPosition wait_for_joint_position = 1;
+  }
+}
+
+message SimCondition {
+  message SimConditionCases {
+    repeated SimConditionCase cases = 1;
+  }
+
+  oneof condition {
+    SimConditionCases all_of = 1;
+    SimConditionCases any_of = 2;
+  }
+}
+
 message OpcuaEquipmentConfig {
   // Describes the mapping from human readable signal names to input & output
   // node variables for the opcua server that are relevant for this equipment.
@@ -55,6 +79,21 @@ message OpcuaEquipmentConfig {
     // only set the duration and not the values, which has the effect of adding
     // a wait duration without any write.
     optional google.protobuf.Duration min_wait_duration = 2;
+
+    // Action to take in simulation.
+    message SimAction {
+      // Commands a JointPositionController to move to cmd_pos.
+      message SetJointPositionTarget {
+        string joint_name = 1;
+        int32 joint_index = 2;
+        double cmd_pos = 3;
+      }
+
+      oneof action {
+        SetJointPositionTarget set_joint_position_target = 1;
+      }
+    }
+    repeated SimAction sim_action = 3;
   }
 
   // Describes a command that writes values to signal names and allows waiting
@@ -81,6 +120,9 @@ message OpcuaEquipmentConfig {
     // with the values read from the opcua server.
     optional intrinsic_proto.gpio.v1.WaitForValueRequest wait_for_condition = 3;
 
+    // Optional condition to check if the control command was successful in sim.
+    optional SimCondition sim_wait_for_condition = 8;
+
     // Optional command to execute if `wait_for_condition` is met.
     // This is not executed if `wait_for_condition` is not specified.
     map<string, intrinsic_proto.gpio.v1.SignalValue> on_success = 4;
@@ -104,6 +146,9 @@ message OpcuaEquipmentConfig {
     // considered to be met when the values read from the opcua server match the
     // values specified based on the matching criteria like any_of or all_of.
     intrinsic_proto.gpio.v1.WaitForValueRequest condition = 2;
+
+    // Describes the matching condition for the command in sim.
+    optional SimCondition sim_condition = 3;
   }
 
   // Describes a command to read signal names from the opcua server.
