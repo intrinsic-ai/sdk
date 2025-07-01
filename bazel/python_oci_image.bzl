@@ -54,8 +54,6 @@ def python_layers(name, binary, **kwargs):
         # BUG: https://github.com/bazel-contrib/bazel-lib/issues/946
         # strip_prefix = kwargs.pop("data_path", None),
         package_dir = kwargs.pop("directory", None),
-        # BUG: https://github.com/bazel-contrib/bazel-lib/pull/948
-        awk_script = Label("@aspect_bazel_lib//lib/private:modify_mtree.awk"),
     )
 
     # Workaround unsupported "strip_prefix"
