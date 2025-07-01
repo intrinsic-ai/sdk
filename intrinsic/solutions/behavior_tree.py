@@ -1138,8 +1138,10 @@ class Blackboard(Condition):
 
   _cel_expression: str
 
+  # pylint: disable=line-too-long
   def __init__(self, cel_expression: Union[str, cel.CelExpression]):
     self._cel_expression: str = str(cel_expression)
+  # pylint: enable=line-too-long
 
   # Returns the expression that sets the value of the blackboard key.
   #
@@ -1192,7 +1194,9 @@ class Blackboard(Condition):
   @property
   def proto(self) -> behavior_tree_pb2.BehaviorTree.Condition:
     proto_object = behavior_tree_pb2.BehaviorTree.Condition()
+    # pylint: disable=line-too-long
     proto_object.blackboard.cel_expression = self._cel_expression
+    # pylint: enable=line-too-long
     return proto_object
 
   @property
@@ -1207,6 +1211,7 @@ class Blackboard(Condition):
     if proto_object.HasField('cel_expression'):
       return cls(proto_object.cel_expression)
     else:
+      # pylint: disable=line-too-long
       if proto_object.ByteSize() != 0:
         print(
             'Warning: Possible data loss when creating a blackboard/cel'
@@ -1214,17 +1219,19 @@ class Blackboard(Condition):
             ' frontend, conditions are currently not loadable from the proto.'
         )
         ipython.display_html_or_print_msg(
-            (
-                '<span style="{_CSS_INTERRUPTED_STYLE}">Warning: Possible data'
-                ' loss when creating a blackboard/cel condition from proto. If'
-                ' the BehaviorTree was created by the frontend, conditions are'
-                ' currently not loadable from the proto.</span>'
-            ),
+          (
+            '<span style="{_CSS_INTERRUPTED_STYLE}">'
             'Warning: Possible data loss when creating a blackboard/cel'
             ' condition from proto. If the BehaviorTree was created by the'
-            ' frontend, conditions are currently not loadable from the proto.',
+            ' frontend, conditions are currently not loadable from the proto.'
+            '</span>'
+          ),
+          'Warning: Possible data loss when creating a blackboard/cel'
+          ' condition from proto. If the BehaviorTree was created by the'
+          ' frontend, conditions are currently not loadable from the proto.',
         )
       return cls('')
+      # pylint: enable=line-too-long
 
 
 class CompoundCondition(Condition):
