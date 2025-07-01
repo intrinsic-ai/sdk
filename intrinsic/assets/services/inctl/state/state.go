@@ -6,8 +6,11 @@ package state
 
 import (
 	"github.com/spf13/cobra"
+	"intrinsic/assets/services/inctl/state/disable"
+	"intrinsic/assets/services/inctl/state/enable"
 	"intrinsic/assets/services/inctl/state/get"
 	"intrinsic/assets/services/inctl/state/list"
+	"intrinsic/assets/services/inctl/state/restart"
 )
 
 // ServiceStateCmd is the super-command for commands to introspect and modify the state of a
@@ -21,4 +24,7 @@ var ServiceStateCmd = &cobra.Command{
 func init() {
 	ServiceStateCmd.AddCommand(get.Command())
 	ServiceStateCmd.AddCommand(list.Command())
+	ServiceStateCmd.AddCommand(disable.Command())
+	ServiceStateCmd.AddCommand(enable.Command())
+	ServiceStateCmd.AddCommand(restart.Command())
 }
