@@ -320,13 +320,12 @@ func (cf *CmdFlags) GetFlagOrganization() string {
 }
 
 // AddFlagsProjectOrg adds both the project and org flag, including the necessary handling.
-func (cf *CmdFlags) AddFlagsProjectOrg() {
+func (cf *CmdFlags) AddFlagsProjectOrg(opts ...orgutil.WrapCmdOption) {
 	// While WrapCmd returns the pointer to make it inline, it's modifying, so we can use it here.
-	orgutil.WrapCmd(cf.cmd, cf.viperLocal)
+	orgutil.WrapCmd(cf.cmd, cf.viperLocal, opts...)
 }
 
 // AddFlagsProjectOrgOptional adds both the project and org flag as optional, including the necessary handling.
-// If enableOrgExistsCheck is true, it will also check if the org exists in the project.
 func (cf *CmdFlags) AddFlagsProjectOrgOptional(opts ...orgutil.WrapCmdOption) {
 	// While WrapCmd returns the pointer to make it inline, it's modifying, so we can use it here.
 	orgutil.WrapCmdOptional(cf.cmd, cf.viperLocal, opts...)
