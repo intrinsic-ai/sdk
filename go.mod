@@ -7,6 +7,7 @@ go 1.24.0
 toolchain go1.24.2
 
 require (
+	cel.dev/expr v0.23.0
 	cloud.google.com/go/bigquery v1.66.2
 	cloud.google.com/go/compute/metadata v0.6.0
 	cloud.google.com/go/firestore v1.18.0
@@ -101,7 +102,6 @@ require (
 require (
 	buf.build/gen/go/gogo/protobuf/protocolbuffers/go v1.36.6-20240617172848-e1dbca2775a7.1 // indirect
 	buf.build/gen/go/prometheus/prometheus/protocolbuffers/go v1.36.6-20250320161912-af2aab87b1b3.1 // indirect
-	cel.dev/expr v0.19.2 // indirect
 	cloud.google.com/go v0.120.0 // indirect
 	cloud.google.com/go/auth v0.15.0 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.7 // indirect
