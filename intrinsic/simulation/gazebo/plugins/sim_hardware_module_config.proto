@@ -354,4 +354,15 @@ message SimHardwareModuleConfig {
   // If not present, try to look up control frequency in the Gazebo entity
   // data for the HWM itself, or for `geometry_asset_name` if that is set.
   optional string control_frequency_asset_name = 5;
+
+  // This id is used to identify groups of hardware modules that will be
+  // controlled by a single icon instance. This information is important because
+  // the groups must synchronize their Update/PreUpdate work to avoid flaky
+  // deadlocks.
+  //
+  // Simulated hardware modules can deduce this from robot control service
+  // configuration.
+  //
+  // Do not set this unless you need to for a unit test or integration test.
+  optional string icon_resource_id = 6;
 }
