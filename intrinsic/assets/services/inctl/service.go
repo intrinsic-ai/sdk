@@ -13,6 +13,7 @@ import (
 	"intrinsic/assets/services/inctl/listreleased"
 	"intrinsic/assets/services/inctl/listreleasedversions"
 	"intrinsic/assets/services/inctl/release"
+	servicestate "intrinsic/assets/services/inctl/state/state"
 	"intrinsic/tools/inctl/cmd/root"
 )
 
@@ -32,6 +33,8 @@ func init() {
 	serviceCmd.AddCommand(listreleasedversions.GetCommand())
 	serviceCmd.AddCommand(release.GetCommand())
 	serviceCmd.AddCommand(uninstall.GetCommand())
+
+	serviceCmd.AddCommand(servicestate.ServiceStateCmd)
 
 	root.RootCmd.AddCommand(serviceCmd)
 }

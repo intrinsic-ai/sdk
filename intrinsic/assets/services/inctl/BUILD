@@ -16,6 +16,7 @@ go_library(
         ":release",
         "//intrinsic/assets/inctl:list",
         "//intrinsic/assets/inctl:uninstall",
+        "//intrinsic/assets/services/inctl/state",
         "//intrinsic/tools/inctl/cmd:root",
         "@com_github_spf13_cobra//:go_default_library",
     ],
