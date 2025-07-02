@@ -80,7 +80,7 @@ class StatusPayloadProtoMatcher {
     payload = status.GetPayload(AddTypeUrlPrefix<google::rpc::Status>());
     if (payload.has_value()) {
       google::rpc::Status rpc_status;
-      if (!rpc_status.ParseFromCord(*payload)) {
+      if (!rpc_status.ParseFromString(*payload)) {
         if (os) {
           *os << "which has payload '"
               << AddTypeUrlPrefix<google::rpc::Status>()
