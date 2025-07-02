@@ -64,24 +64,24 @@ service SystemServiceState {
   //    be servicing requests. It is left to the Service author to implement.
   rpc DisableService(DisableServiceRequest) returns (DisableServiceResponse) {}
 
-  // Restarts the running service instance.
+  // Restarts the running Service instance.
   //
   // A restart request can be received by a Service instance regardless of
   // its state. A restart request received during an ongoing restart will
   // trigger a new operation immediately.
   //
-  // Note: This will stop all ongoing processes in the service.
+  // Note: This will stop all ongoing processes in the Service.
   rpc RestartService(RestartServiceRequest) returns (RestartServiceResponse) {}
 
-  // Returns the states for all service instances in the solution.
+  // Returns the states for all Service instances in the solution.
   rpc ListInstanceStates(ListInstanceStatesRequest)
       returns (ListInstanceStatesResponse) {}
 }
 
 message InstanceState {
-  // The name of the service instance.
+  // The name of the Service instance.
   string name = 1;
-  // The current state of the service instance.
+  // The current state of the Service instance.
   State state = 2;
 }
 
@@ -97,53 +97,53 @@ message InstanceState {
 // report its state, the state will be set to STATE_CODE_ENABLED by default.
 message State {
   enum StateCode {
-    // Indicates the service instance is in an unspecified state.
+    // Indicates the Service instance is in an unspecified state.
     STATE_CODE_UNSPECIFIED = 0;
-    // Indicates the service instance is in an error state.
+    // Indicates the Service instance is in an error state.
     STATE_CODE_ERROR = 1;
-    // When a service is disabled, it must not allow interaction with the
+    // When a Service is disabled, it must not allow interaction with the
     // services that it provides.
     STATE_CODE_DISABLED = 2;
-    // When a service is enabled, it allows interactions with the services that
+    // When a Service is enabled, it allows interactions with the services that
     // it provides.
     STATE_CODE_ENABLED = 3;
-    // Indicates that the service instance is in a stopped state. This is
-    // different from STATE_CODE_DISABLED in that the service instance is
+    // Indicates that the Service instance is in a stopped state. This is
+    // different from STATE_CODE_DISABLED in that the Service instance is
     // not capable of accepting API requests.
     STATE_CODE_STOPPED = 4;
   }
 
-  // Current state code of the running service instance.
+  // Current state code of the running Service instance.
   StateCode state_code = 1;
 
-  // Optional explanation for the current service's state, unless the service
+  // Optional explanation for the current Service's state, unless the Service
   // is in STATE_CODE_ERROR. When in STATE_CODE_ERROR, this field includes
-  // information on what and/or why the service failed and how to resolve the
+  // information on what and/or why the Service failed and how to resolve the
   // failure state.
   optional intrinsic_proto.status.ExtendedStatus extended_status = 2;
 }
 
 message GetInstanceStateRequest {
-  // The name of the service instance.
+  // The name of the Service instance.
   string name = 1;
 }
 
 message DisableServiceRequest {
-  // The name of the service instance.
+  // The name of the Service instance.
   string name = 1;
 }
 
 message DisableServiceResponse {}
 
 message EnableServiceRequest {
-  // The name of the service instance.
+  // The name of the Service instance.
   string name = 1;
 }
 
 message EnableServiceResponse {}
 
 message RestartServiceRequest {
-  // The name of the service instance.
+  // The name of the Service instance.
   string name = 1;
 }
 
@@ -152,7 +152,7 @@ message RestartServiceResponse {}
 message ListInstanceStatesRequest {}
 
 message ListInstanceStatesResponse {
-  // The states of all service instances in the solution.
+  // The states of all Service instances in the solution.
   //
   // The order of the returned states is not guaranteed to be consistent.
   repeated InstanceState states = 1;
