@@ -199,7 +199,6 @@ cc_library(
         ":realtime_log_sink",
         "//intrinsic/icon/release:source_location",
         "@com_google_absl//absl/base:log_severity",
-        "@com_google_absl//absl/log",
     ],
 )
 
@@ -248,7 +247,6 @@ cc_library(
         "@com_google_absl//absl/base:core_headers",
         "@com_google_absl//absl/base:log_severity",
         "@com_google_absl//absl/debugging:stacktrace",
-        "@com_google_absl//absl/log",
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",

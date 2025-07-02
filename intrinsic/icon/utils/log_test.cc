@@ -179,5 +179,32 @@ TEST(IconUtilsLogTest, LogFirstNDoesNotAllocate) {
   }
 }
 
+TEST(IconUtilsLogTest, LogIfWorksWhenTrue) {
+  auto unique_logger = std::make_unique<FakeLogger>();
+  auto* logger = unique_logger.get();
+  GlobalLogContext::SetThreadLocalLogSink(std::move(unique_logger));
+  EXPECT_THAT(logger->messages_, IsEmpty());
+  double d = 0.5;
+  INTRINSIC_RT_LOG_IF(INFO, true) << "dof:" << 3 << " d:" << d;
+  auto location = INTRINSIC_LOC;
+  std::string expected_line_number = absl::StrCat(":", location.line() - 1);
+  EXPECT_THAT(logger->messages_, ElementsAre(StrEq("dof:3 d:0.5")));
+  EXPECT_THAT(
+      logger->text_,
+      ElementsAre(AllOf(StartsWith("I"), HasSubstr(expected_line_number),
+                        HasSubstr("log_test.cc"), HasSubstr("dof:3 d:0.5"))));
+}
+
+TEST(IconUtilsLogTest, LogIfDoesNotLogWhenFalse) {
+  auto unique_logger = std::make_unique<FakeLogger>();
+  auto* logger = unique_logger.get();
+  GlobalLogContext::SetThreadLocalLogSink(std::move(unique_logger));
+  EXPECT_THAT(logger->messages_, IsEmpty());
+  double d = 0.5;
+  INTRINSIC_RT_LOG_IF(INFO, false) << "dof:" << 3 << " d:" << d;
+  EXPECT_THAT(logger->messages_, IsEmpty());
+  EXPECT_THAT(logger->text_, IsEmpty());
+}
+
 }  // namespace
 }  // namespace intrinsic::icon

@@ -3,8 +3,7 @@
 #ifndef INTRINSIC_ICON_UTILS_LOG_H_
 #define INTRINSIC_ICON_UTILS_LOG_H_
 
-#include "absl/base/log_severity.h"  // IWYU pragma: export
-#include "absl/log/log.h"
+#include "absl/base/log_severity.h"                  // IWYU pragma: export
 #include "intrinsic/icon/release/source_location.h"  // IWYU pragma: export
 #include "intrinsic/icon/utils/log_internal.h"       // IWYU pragma: export
 #include "intrinsic/icon/utils/log_sink.h"           // IWYU pragma: export
@@ -82,6 +81,10 @@ void RtLogInitForThisThread();
 
 // Logs the first time it is called.
 #define INTRINSIC_RT_LOG_FIRST(SEVERITY) INTRINSIC_RT_LOG_FIRST_N(SEVERITY, 1)
+
+// Logs if the condition is met.
+#define INTRINSIC_RT_LOG_IF(SEVERITY, CONDITION) \
+  if (CONDITION) INTRINSIC_RT_LOG(SEVERITY)
 
 // Documentation for developers of logging:
 // Filtering is implemented similar to absl/log/internal/conditions.h
