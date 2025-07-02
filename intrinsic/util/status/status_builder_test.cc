@@ -809,7 +809,7 @@ TEST(StatusBuilderTest, EmitStackTraceToExtendedStatusDebugReport) {
       intrinsic_proto::status::ExtendedStatus::descriptor()->full_name()));
   ASSERT_TRUE(result_payload.has_value());
   intrinsic_proto::status::ExtendedStatus result_proto;
-  ASSERT_TRUE(result_proto.ParseFromCord(*result_payload));
+  ASSERT_TRUE(result_proto.ParseFromString(*result_payload));
   EXPECT_THAT(result_proto.debug_report().stack_trace(),
               HasSubstr("EmitStackTraceToExtendedStatusDebugReport"));
 }
@@ -858,7 +858,7 @@ TEST(StatusBuilderTest, SetExtendedStatusLogContext) {
       intrinsic_proto::status::ExtendedStatus::descriptor()->full_name()));
   ASSERT_TRUE(result_payload.has_value());
   intrinsic_proto::status::ExtendedStatus result_proto;
-  ASSERT_TRUE(result_proto.ParseFromCord(*result_payload));
+  ASSERT_TRUE(result_proto.ParseFromString(*result_payload));
   EXPECT_EQ(result_proto.related_to().log_context().executive_plan_id(), 3354);
 }
 

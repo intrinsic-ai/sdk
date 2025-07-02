@@ -48,7 +48,7 @@ TEST(AnnotateError, CopiesPayload) {
       google::protobuf::Int64Value::descriptor()->full_name());
   ASSERT_TRUE(result_payload.has_value());
   google::protobuf::Int64Value result_value;
-  result_value.ParseFromCord(*result_payload);
+  result_value.ParseFromString(*result_payload);
   EXPECT_EQ(result_value.value(), 123);
 }
 

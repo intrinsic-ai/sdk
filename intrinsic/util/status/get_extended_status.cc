@@ -27,7 +27,7 @@ std::optional<intrinsic_proto::status::ExtendedStatus> GetExtendedStatus(
   if (!extended_status_payload.has_value()) return std::nullopt;
 
   intrinsic_proto::status::ExtendedStatus es;
-  if (!es.ParseFromCord(*extended_status_payload)) {
+  if (!es.ParseFromString(*extended_status_payload)) {
     LOG(WARNING) << "Failed to parse ExtendedStatus payload from status: "
                  << status;
     return std::nullopt;

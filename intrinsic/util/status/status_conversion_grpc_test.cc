@@ -36,7 +36,7 @@ TEST(StatusConversionGrpcTest, AbslStatusToGrpcStatusRoundTrip) {
   std::optional<absl::Cord> read_payload = returned_status.GetPayload(
       AddTypeUrlPrefix(value.GetDescriptor()->full_name()));
   ASSERT_TRUE(read_payload.has_value());
-  ASSERT_TRUE(read_value.ParseFromCord(*read_payload));
+  ASSERT_TRUE(read_value.ParseFromString(*read_payload));
   EXPECT_THAT(read_value.value(), ::testing::Eq(value.value()));
 }
 
