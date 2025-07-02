@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"os"
 
+	"github.com/protocolbuffers/txtpbfmt/config"
 	"github.com/protocolbuffers/txtpbfmt/parser"
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/proto"
@@ -150,7 +151,7 @@ func WriteStableTextProto(path string, p proto.Message, opts ...TextWriteOption)
 	if err != nil {
 		return fmt.Errorf("failed to serialize: %v", err)
 	}
-	b, err = parser.FormatWithConfig(b, parser.Config{
+	b, err = parser.FormatWithConfig(b, config.Config{
 		ExpandAllChildren: true,
 		SkipAllColons:     true,
 	})

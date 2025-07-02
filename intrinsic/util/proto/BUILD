@@ -95,6 +95,7 @@ go_library(
     name = "protoio",
     srcs = ["protoio.go"],
     deps = [
+        "@com_github_protocolbuffers_txtpbfmt//config:go_default_library",
         "@com_github_protocolbuffers_txtpbfmt//parser:go_default_library",
         "@org_golang_google_protobuf//encoding/prototext:go_default_library",
         "@org_golang_google_protobuf//proto",
