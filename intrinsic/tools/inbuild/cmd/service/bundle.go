@@ -60,8 +60,8 @@ func run(cmd *cobra.Command, args []string) error {
 	if flagDefaultConfig != "" && len(flagFileDescriptorSets) == 0 {
 		return fmt.Errorf("at least one --file_descriptor_set is required when --default_config is used")
 	}
-	if len(flagOciImages) == 0 || len(flagOciImages) > 2 {
-		return fmt.Errorf("at least one --oci_image is required, and no more than two are allowed")
+	if len(flagOciImages) == 0 {
+		return fmt.Errorf("at least one --oci_image is required")
 	}
 	if flagOutput == "" {
 		return fmt.Errorf("--output must be a valid writable path")

@@ -119,7 +119,8 @@ func TestValidateServiceManifest(t *testing.T) {
 					},
 				},
 				Assets: &smpb.ServiceAssets{
-					ImageFilenames: []string{"image1", "image2"},
+					ImageFilenames: []string{"image1", "image2",
+					},
 				},
 			},
 		},

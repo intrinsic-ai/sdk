@@ -71,6 +71,7 @@ message ServicePodSpec {
   ServicePodSettings settings = 2;
   // Additional images to be used in the pod.
   repeated ServiceImage extra_images = 3;
+
 }
 
 message ServicePodSettings {
