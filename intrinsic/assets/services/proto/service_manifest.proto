@@ -10,6 +10,7 @@ import "intrinsic/assets/proto/asset_tag.proto";
 import "intrinsic/assets/proto/documentation.proto";
 import "intrinsic/assets/proto/id.proto";
 import "intrinsic/assets/proto/vendor.proto";
+import "intrinsic/assets/services/proto/env_var.proto";
 import "intrinsic/assets/services/proto/service_http_config.proto";
 import "intrinsic/assets/services/proto/service_permissions.proto";
 import "intrinsic/assets/services/proto/service_volume.proto";
@@ -68,6 +69,8 @@ message ServicePodSpec {
   ServiceImage image = 1;
   // The settings for this pod.
   ServicePodSettings settings = 2;
+  // Additional images to be used in the pod.
+  repeated ServiceImage extra_images = 3;
 }
 
 message ServicePodSettings {
@@ -95,6 +98,12 @@ message ServiceImageSettings {
   ResourceRequirements resource_requirements = 3;
   // If true, this image must be scheduled on a real-time node.
   bool requires_rtpc_node = 4;
+
+  // The environment variables to set in the container.
+  repeated EnvVar env_vars = 5;
+
+  // The arguments to pass to the container.
+  repeated string args = 6;
 }
 
 message ServiceAssets {

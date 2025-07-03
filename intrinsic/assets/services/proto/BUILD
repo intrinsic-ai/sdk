@@ -12,6 +12,7 @@ proto_library(
     name = "service_manifest_proto",
     srcs = ["service_manifest.proto"],
     deps = [
+        ":env_var_proto",
         ":service_http_config_proto",
         ":service_permissions_proto",
         ":service_volume_proto",
@@ -28,6 +29,7 @@ proto_library(
 go_proto_library(
     name = "service_manifest_go_proto",
     go_deps = [
+        ":env_var_go_proto",
         ":service_http_config_go_proto",
         ":service_permissions_go_proto",
         ":service_volume_go_proto",
@@ -43,6 +45,21 @@ go_proto_library(
 py_proto_library(
     name = "service_manifest_py_pb2",
     deps = [":service_manifest_proto"],
+)
+
+proto_library(
+    name = "env_var_proto",
+    srcs = ["env_var.proto"],
+)
+
+go_proto_library(
+    name = "env_var_go_proto",
+    deps = [":env_var_proto"],
+)
+
+py_proto_library(
+    name = "env_var_py_pb2",
+    deps = [":env_var_proto"],
 )
 
 proto_library(

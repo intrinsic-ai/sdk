@@ -94,6 +94,64 @@ func TestValidateServiceManifest(t *testing.T) {
 			given: mNoService,
 		},
 		{
+			desc: "valid service manifest",
+			given: &smpb.ServiceManifest{
+				Metadata: &smpb.ServiceMetadata{
+					Id: &idpb.Id{
+						Name:    "test",
+						Package: "package.some",
+					},
+					DisplayName: "Test Service",
+					Vendor: &vpb.Vendor{
+						DisplayName: "vendor",
+					},
+				},
+				ServiceDef: &smpb.ServiceDef{
+					SimSpec: &smpb.ServicePodSpec{
+						Image: &smpb.ServiceImage{
+							ArchiveFilename: "image1",
+						},
+						ExtraImages: []*smpb.ServiceImage{
+							&smpb.ServiceImage{
+								ArchiveFilename: "image2",
+							},
+						},
+					},
+				},
+				Assets: &smpb.ServiceAssets{
+					ImageFilenames: []string{"image1", "image2"},
+				},
+			},
+		},
+		{
+			desc: "missing image filenames",
+			given: &smpb.ServiceManifest{
+				Metadata: &smpb.ServiceMetadata{
+					Id: &idpb.Id{
+						Name:    "test",
+						Package: "package.some",
+					},
+					DisplayName: "Test Service",
+					Vendor: &vpb.Vendor{
+						DisplayName: "vendor",
+					},
+				},
+				ServiceDef: &smpb.ServiceDef{
+					SimSpec: &smpb.ServicePodSpec{
+						Image: &smpb.ServiceImage{
+							ArchiveFilename: "image1",
+						},
+						ExtraImages: []*smpb.ServiceImage{
+							&smpb.ServiceImage{
+								ArchiveFilename: "image2",
+							},
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
 			desc:    "empty service manifest",
 			given:   &smpb.ServiceManifest{},
 			wantErr: true,

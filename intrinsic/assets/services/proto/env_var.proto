@@ -1,0 +1,12 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.services;
+
+message EnvVar {
+  // The name of the environment variable.
+  string name = 1;
+  // The value of the environment variable.
+  string value = 2;
+}

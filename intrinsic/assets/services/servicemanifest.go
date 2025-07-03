@@ -81,7 +81,11 @@ func ValidateServiceManifest(m *smpb.ServiceManifest, options ...ValidateService
 		if name := spec.GetImage().GetArchiveFilename(); name != "" {
 			expectedImagePaths[name] = struct{}{}
 		}
+		for _, container := range spec.GetExtraImages() {
+			expectedImagePaths[container.GetArchiveFilename()] = struct{}{}
+		}
 	}
+
 	for p := range expectedImagePaths {
 		if !slices.Contains(m.GetAssets().GetImageFilenames(), p) {
 			return fmt.Errorf("image %q in the manifest for Service %q is not listed in the service assets", p, id)
