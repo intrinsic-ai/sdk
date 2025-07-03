@@ -8,7 +8,6 @@
 #include <string>
 #include <vector>
 
-#include "absl/base/attributes.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
@@ -142,18 +141,17 @@ class Client {
 
   // Enables all parts on the server, which performs all steps necessary to get
   // the parts ready to receive commands.
+  // Since the server auto-enables at startup, this is only needed after a
+  // call to Disable().
   //
   // NOTE: Enabling a server is something the user does directly. DO NOT call
   // this from library code automatically to make things more convenient. Human
   // users must be able to rely on the robot to stay still unless they enable
   // it.
   //
-  //  If the operational state of the server
-  // is already kEnabled, then this does nothing and returns absl::OkStatus().
-  // Returns an error if the server is faulted.
-  ABSL_DEPRECATED(
-      "Has no effect, ICON auto-enables now. Will be removed after all "
-      "call-sites are gone.")
+  // If the operational state of the server is already kEnabled, then this does
+  // nothing and returns absl::OkStatus(). Returns an error if the server is
+  // faulted.
   absl::Status Enable() const;
 
   // Disables all parts on the server. Ends all currently-active sessions.
@@ -166,9 +164,6 @@ class Client {
   // If the operational state of the server is already kDisabled, then this does
   // nothing and returns absl::OkStatus(). Returns an error if the server is
   // faulted.
-  ABSL_DEPRECATED(
-      "Has no effect, ICON auto-enables now. Will be removed after all "
-      "call-sites are gone.")
   absl::Status Disable() const;
 
   // Clears all faults and returns the server to an enabled state. Returns OK if
@@ -185,6 +180,8 @@ class Client {
   // Some classes of faults (internal server errors, or issues that have a
   // physical root cause) may require additional server- or hardware-specific
   // mitigation before ClearFaults() can successfully clear the fault.
+  // If a server restart is needed, returns `ResourceExhausted`; in this case,
+  // the client should retry until receiving `OkStatus`.
   absl::Status ClearFaults() const;
 
   // Returns the operational state of the server.

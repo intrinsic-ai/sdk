@@ -590,27 +590,17 @@ service IconApi {
 
   // Enables all parts on the server, which performs all steps
   // necessary to get the parts ready to receive commands.
-  //
-  // Deprecated. There is no need to call this – ICON automatically enables when
-  // appropriate. While ICON is not enabled, callers cannot start sessions, and
-  // the server terminates any sessions that were started when it was still
-  // enabled.
-  rpc Enable(EnableRequest) returns (EnableResponse) {
-    option deprecated = true;
-  }
+  // Since the server auto-enables at startup, this is only needed after a
+  // call to Disable().
+  rpc Enable(EnableRequest) returns (EnableResponse);
 
   // Disables all parts on the server. Ends all currently-active sessions.
-  //
-  // Deprecated. Please file a bug if you encounter a situation where you must
-  // forcibly end sessions that you do not own yourself.
-  rpc Disable(DisableRequest) returns (DisableResponse) {
-    option deprecated = true;
-  }
+  rpc Disable(DisableRequest) returns (DisableResponse);
 
   // Clears all faults. If successful, ICON automatically enables all parts
   // after this finishes.
-  // Returns `OkStatus` if faults were successfully cleared.
-  // Returns `ResourceExhausted` when a fatal fault is being cleared,
+  // Returns `OkStatus` if faults were successfully cleared and the server is
+  // enabled. Returns `ResourceExhausted` when a fatal fault is being cleared,
   // which is not completed yet and involves a process restart. In this case,
   // the client should retry until receiving `OkStatus`.
   rpc ClearFaults(ClearFaultsRequest) returns (ClearFaultsResponse);

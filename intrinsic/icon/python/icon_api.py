@@ -11,7 +11,6 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping
 import enum
 from typing import Optional, Union
-import warnings
 
 import grpc
 from intrinsic.icon.proto import logging_mode_pb2
@@ -357,6 +356,8 @@ class Client:
     """Enables all parts on the server.
 
     Performs all steps necessary to get the parts ready to receive commands.
+    Since the server auto-enables at startup, this is only needed after a
+    call to disable().
 
     NOTE: Enabling a server is something the user does directly. DO NOT call
     this from library code automatically to make things more convenient. Human
@@ -366,11 +367,6 @@ class Client:
     Raises:
       grpc.RpcError: An error occurred while enabling.
     """
-    warnings.warn(
-        "enable() is deprecated. ICON automatically enables whenever possible,"
-        " and this function will be removed once all call sites are gone.",
-        DeprecationWarning,
-    )
     self._stub.Enable(
         service_pb2.EnableRequest(), timeout=self._rpc_timeout_seconds
     )
@@ -389,17 +385,12 @@ class Client:
     Raises:
       grpc.RpcError: An error occurred while disabling.
     """
-    warnings.warn(
-        "enable() is deprecated. ICON automatically enables whenever possible,"
-        " and this function will be removed once all call sites are gone.",
-        DeprecationWarning,
-    )
     self._stub.Disable(
         service_pb2.DisableRequest(), timeout=self._rpc_timeout_seconds
     )
 
   def clear_faults(self) -> None:
-    """Clears all faults and returns the server to a disabled state.
+    """Clears all faults and returns the server to an enabled state.
 
     NOTE: Clearing faults is something the user does directly. DO NOT call this
     from library code automatically to make things more convenient, ESPECIALLY
@@ -410,6 +401,9 @@ class Client:
     Some classes of faults (internal server errors or issues that have a
     physical root cause) may require additional server- or hardware-specific
     mitigation before clear_faults can successfully clear the fault.
+    Returns RESOURCE_EXHAUSTED when a fatal fault is being cleared,
+    which is not completed yet and involves a process restart. In this case,
+    the client should retry until receiving OK.
 
     Raises:
       grpc.RpcError: An error occurred while clearing faults.
