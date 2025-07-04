@@ -28,6 +28,7 @@ go_deps.from_file(go_mod = "//:go.mod")
 use_repo(
     go_deps,
     # go/keep-sorted start
+    "com_github_andydunstall_piko",
     "com_github_authzed_authzed_go",
     "com_github_bazelbuild_buildtools",
     "com_github_bazelbuild_remote_apis_sdks",

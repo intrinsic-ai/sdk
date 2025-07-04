@@ -22,6 +22,7 @@ require (
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.14
 	dario.cat/mergo v1.0.0
 	firebase.google.com/go v3.13.0+incompatible
+	github.com/andydunstall/piko v0.7.0
 	github.com/authzed/authzed-go v1.3.1-0.20250320210445-0cde0d8c71e2
 	github.com/authzed/zed v0.30.2
 	github.com/bazelbuild/buildtools v0.0.0-20240918101019-be1c24cc9a44
@@ -97,6 +98,11 @@ require (
 	k8s.io/kubelet v0.30.3
 	k8s.io/metrics v0.33.1
 	sigs.k8s.io/yaml v1.4.0
+)
+
+require (
+	github.com/andydunstall/yamux v0.1.5 // indirect
+	go.uber.org/zap v1.27.0 // indirect
 )
 
 require (
@@ -224,7 +230,7 @@ require (
 	github.com/jzelinskie/cobrautil/v2 v2.0.0-20240819150235-f7fe73942d0f // indirect
 	github.com/jzelinskie/stringz v0.0.3 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
-	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
+	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/lithammer/fuzzysearch v1.1.8 // indirect
