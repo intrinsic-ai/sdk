@@ -77,9 +77,6 @@ message UpdateProgress {
   int32 total_update_progress = 3 [(google.api.field_behavior) = OPTIONAL];
 }
 
-// This is the publicly accessible subset of the intrinsic_proto.config.Cluster
-// object.
-//
 // next number is 26
 message Cluster {
   // name shown to admins - globally unique
