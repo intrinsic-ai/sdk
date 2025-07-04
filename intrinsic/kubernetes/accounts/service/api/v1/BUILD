@@ -18,9 +18,7 @@ proto_library(
 
 go_proto_library(
     name = "discoveryapi_go_proto",
-    go_deps = [
-        "@org_golang_google_genproto_googleapis_api//annotations",
-    ],
+    go_deps = ["@org_golang_google_genproto_googleapis_api//annotations"],
     deps = [
         ":discoveryapi_proto",
     ],
