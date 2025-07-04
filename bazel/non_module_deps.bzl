@@ -24,14 +24,6 @@ def _non_module_deps_impl(ctx):  # @unused
         ],
     )
 
-    OR_TOOLS_COMMIT = "b8e881fbde473a9e33e0dac475e498559eb0459d"  # v9.12
-    http_archive(
-        name = "or_tools",
-        strip_prefix = "or-tools-%s" % OR_TOOLS_COMMIT,
-        sha256 = "37bdd955b5224cc55cf37dea0fe4895204f21284247972f77dc47cbb504a76be",
-        urls = ["https://github.com/google/or-tools/archive/%s.tar.gz" % OR_TOOLS_COMMIT],
-    )
-
     http_archive(
         name = "xxd",
         build_file = Label("//intrinsic/production/external:xxd.BUILD.bazel"),
