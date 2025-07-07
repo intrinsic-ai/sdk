@@ -130,6 +130,8 @@ type StatusInterface struct {
 	HasDefaultRoute bool     `json:"has_default_route"`
 	DisplayName     string   `json:"display_name"`
 	DefaultGateway  string   `json:"default_gateway"`
+	// If empty / not present, this is an older OS that doesn't report compatibility.
+	SupportedEtherType []int64 `json:"supported_ether_types"`
 }
 
 // PingCommand allows to trigger an ICMP ping from the device.
