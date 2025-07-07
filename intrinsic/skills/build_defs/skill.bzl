@@ -109,9 +109,9 @@ def _cc_skill_service(name, deps, manifest, **kwargs):
             Label("//intrinsic/icon/release/portable:init_xfa_absl"),
             Label("//intrinsic/util/grpc"),
             Label("//intrinsic/util/status:status_specs"),
-            Label("@com_google_absl//absl/flags:flag"),
-            Label("@com_google_absl//absl/log:check"),
-            Label("@com_google_absl//absl/time"),
+            Label("@abseil-cpp//absl/flags:flag"),
+            Label("@abseil-cpp//absl/log:check"),
+            Label("@abseil-cpp//absl/time"),
             # This is needed when using grpc_cli.
             Label("@com_github_grpc_grpc//:grpc++_reflection"),
         ],

@@ -108,8 +108,8 @@ cc_test(
         ":transform_types_fbs_cc",
         "//intrinsic/icon/interprocess/shared_memory_manager:segment_info_fbs_cc",
         "//intrinsic/util/testing:gtest_wrapper_main",
+        "@abseil-cpp//absl/status",
         "@com_github_google_flatbuffers//:runtime_cc",
-        "@com_google_absl//absl/status",
     ],
 )
 
@@ -120,8 +120,8 @@ cc_library(
         "//intrinsic/icon/utils:fixed_string",
         "//intrinsic/icon/utils:realtime_status",
         "//intrinsic/icon/utils:realtime_status_or",
+        "@abseil-cpp//absl/strings:str_format",
+        "@abseil-cpp//absl/strings:string_view",
         "@com_github_google_flatbuffers//:runtime_cc",
-        "@com_google_absl//absl/strings:str_format",
-        "@com_google_absl//absl/strings:string_view",
     ],
 )

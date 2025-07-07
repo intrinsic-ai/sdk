@@ -18,9 +18,9 @@ cc_library(
         "//intrinsic/math:pose3",
         "//intrinsic/math:twist",
         "//intrinsic/util:fixed_vector",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/types:optional",
-        "@com_google_absl//absl/types:span",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/types:optional",
+        "@abseil-cpp//absl/types:span",
     ],
 )
 

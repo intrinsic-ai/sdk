@@ -14,12 +14,12 @@ cc_library(
         "//intrinsic/logging/proto:log_item_cc_proto",
         "//intrinsic/util:proto_time",
         "//intrinsic/util/status:status_macros",
-        "@com_google_absl//absl/container:flat_hash_map",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/strings:string_view",
-        "@com_google_absl//absl/time",
+        "@abseil-cpp//absl/container:flat_hash_map",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/strings:string_view",
+        "@abseil-cpp//absl/time",
     ],
 )
 
@@ -33,9 +33,9 @@ cc_test(
         "//intrinsic/logging/proto:logger_service_cc_proto",
         "//intrinsic/util:proto_time",
         "//intrinsic/util/testing:gtest_wrapper_main",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/strings:string_view",
-        "@com_google_absl//absl/time",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/strings:string_view",
+        "@abseil-cpp//absl/time",
     ],
 )
 
@@ -48,8 +48,8 @@ cc_library(
         "//intrinsic/logging/proto:downsampler_cc_proto",
         "//intrinsic/util:proto_time",
         "//intrinsic/util/status:status_macros",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/time",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/time",
         "@com_google_protobuf//:protobuf",
     ],
 )
@@ -62,7 +62,7 @@ cc_test(
         ":proto_conversion",
         "//intrinsic/logging/proto:downsampler_cc_proto",
         "//intrinsic/util/testing:gtest_wrapper_main",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/time",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/time",
     ],
 )

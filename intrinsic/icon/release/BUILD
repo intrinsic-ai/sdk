@@ -8,16 +8,16 @@ package(default_visibility = ["//visibility:public"])
 cc_library(
     name = "source_location",
     hdrs = ["source_location.h"],
-    deps = ["@com_google_absl//absl/base:core_headers"],
+    deps = ["@abseil-cpp//absl/base:core_headers"],
 )
 
 cc_library(
     name = "file_helpers",
     hdrs = ["file_helpers.h"],
     deps = [
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
         "@com_google_protobuf//src/google/protobuf/io",
     ],
 )
@@ -40,12 +40,12 @@ cc_binary(
         "//intrinsic/util/grpc",
         "//intrinsic/util/status:status_conversion_grpc",
         "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/flags:flag",
+        "@abseil-cpp//absl/log:check",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/time",
         "@com_github_grpc_grpc//:grpc++",
-        "@com_google_absl//absl/flags:flag",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/time",
         "@com_google_protobuf//:protobuf",
     ],
 )
@@ -55,9 +55,9 @@ cc_library(
     srcs = ["grpc_time_support.cc"],
     hdrs = ["grpc_time_support.h"],
     deps = [
+        "@abseil-cpp//absl/log:check",
+        "@abseil-cpp//absl/time",
         "@com_github_grpc_grpc//:gpr",
         "@com_github_grpc_grpc//:grpc++",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/time",
     ],
 )

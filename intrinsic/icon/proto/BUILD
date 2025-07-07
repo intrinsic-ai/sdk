@@ -115,9 +115,9 @@ cc_library(
         ":joint_space_cc_proto",
         ":matrix_cc_proto",
         "//intrinsic/eigenmath",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
         "@com_google_protobuf//:protobuf",
     ],
 )
@@ -130,7 +130,7 @@ cc_test(
         ":matrix_cc_proto",
         "//intrinsic/eigenmath",
         "//intrinsic/util/testing:gtest_wrapper_main",
-        "@com_google_absl//absl/status",
+        "@abseil-cpp//absl/status",
         "@com_google_protobuf//:protobuf_lite",
     ],
 )
@@ -188,10 +188,10 @@ cc_library(
         "//intrinsic/math:twist",
         "//intrinsic/util/status:status_builder",
         "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
         "@com_gitlab_libeigen_eigen//:eigen",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings",
     ],
 )
 
@@ -201,9 +201,9 @@ cc_library(
     hdrs = ["concatenate_trajectory_protos.h"],
     deps = [
         ":joint_space_cc_proto",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
         "@com_google_protobuf//:protobuf",
     ],
 )

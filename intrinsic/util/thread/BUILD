@@ -8,7 +8,7 @@ cc_library(
     name = "thread_options",
     srcs = ["thread_options.cc"],
     hdrs = ["thread_options.h"],
-    deps = ["@com_google_absl//absl/strings"],
+    deps = ["@abseil-cpp//absl/strings"],
 )
 
 cc_library(
@@ -31,12 +31,12 @@ cc_library(
         "//intrinsic/icon/utils:realtime_guard",
         "//intrinsic/icon/utils:realtime_stack_trace",
         "//intrinsic/util/status:status_macros",
-        "@com_google_absl//absl/base:core_headers",
-        "@com_google_absl//absl/functional:any_invocable",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/synchronization",
+        "@abseil-cpp//absl/base:core_headers",
+        "@abseil-cpp//absl/functional:any_invocable",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/synchronization",
     ],
 )
 
@@ -49,8 +49,8 @@ cc_test(
         ":thread_options",
         ":thread_utils",
         "//intrinsic/util/testing:gtest_wrapper_main",
-        "@com_google_absl//absl/synchronization",
-        "@com_google_absl//absl/time",
+        "@abseil-cpp//absl/synchronization",
+        "@abseil-cpp//absl/time",
     ],
 )
 
@@ -70,7 +70,7 @@ cc_library(
 cc_library(
     name = "stop_token",
     hdrs = ["stop_token.h"],
-    deps = ["@com_google_absl//absl/base:core_headers"],
+    deps = ["@abseil-cpp//absl/base:core_headers"],
 )
 
 cc_test(
@@ -87,7 +87,7 @@ cc_library(
     srcs = ["sysinfo.cc"],
     hdrs = ["sysinfo.h"],
     deps = [
-        "@com_google_absl//absl/time",
+        "@abseil-cpp//absl/time",
     ],
 )
 
@@ -97,15 +97,15 @@ cc_library(
     hdrs = ["util.h"],
     deps = [
         "//intrinsic/util/status:status_macros",
-        "@com_google_absl//absl/base:core_headers",
-        "@com_google_absl//absl/container:flat_hash_set",
-        "@com_google_absl//absl/functional:any_invocable",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/synchronization",
-        "@com_google_absl//absl/time",
+        "@abseil-cpp//absl/base:core_headers",
+        "@abseil-cpp//absl/container:flat_hash_set",
+        "@abseil-cpp//absl/functional:any_invocable",
+        "@abseil-cpp//absl/log",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/synchronization",
+        "@abseil-cpp//absl/time",
         "@com_googlesource_code_re2//:re2",
     ],
 )
@@ -117,11 +117,11 @@ cc_test(
         ":thread",
         ":util",
         "//intrinsic/util/testing:gtest_wrapper_main",
-        "@com_google_absl//absl/container:flat_hash_set",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/synchronization",
-        "@com_google_absl//absl/time",
+        "@abseil-cpp//absl/container:flat_hash_set",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/synchronization",
+        "@abseil-cpp//absl/time",
         "@or_tools//ortools/base:file",
         "@or_tools//ortools/base:path",
     ],
@@ -136,7 +136,7 @@ cc_library(
         "//intrinsic/icon/utils:log",
         "//intrinsic/icon/utils:realtime_status",
         "//intrinsic/icon/utils:realtime_status_macro",
-        "@com_google_absl//absl/time",
+        "@abseil-cpp//absl/time",
     ],
 )
 
@@ -149,9 +149,9 @@ cc_test(
         "//intrinsic/icon/utils:realtime_status",
         "//intrinsic/icon/utils:realtime_status_matchers",
         "//intrinsic/util/testing:gtest_wrapper_main",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/synchronization",
-        "@com_google_absl//absl/time",
+        "@abseil-cpp//absl/log:check",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/synchronization",
+        "@abseil-cpp//absl/time",
     ],
 )

@@ -20,8 +20,8 @@ cc_library(
         "//intrinsic/math:proto_conversion",
         "//intrinsic/util/status:status_macros",
         "//intrinsic/world/proto:robot_payload_cc_proto",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
     ],
 )
 

@@ -27,10 +27,10 @@ cc_library(
     ],
     deps = [
         ":zenoh_helpers",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings",
+        "@abseil-cpp//absl/log",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
     ],
 )
 
@@ -52,9 +52,9 @@ cc_library(
         "//intrinsic/platform/pubsub:__subpackages__",
     ],
     deps = [
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/strings:string_view",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/strings:string_view",
         "@or_tools//ortools/base:path",
         "@rules_cc//cc/runfiles",
     ],
@@ -73,8 +73,8 @@ cc_library(
     ],
     deps = [
         ":zenoh_helpers",
-        "@com_google_absl//absl/flags:flag",
-        "@com_google_absl//absl/log",
+        "@abseil-cpp//absl/flags:flag",
+        "@abseil-cpp//absl/log",
     ],
 )
 
@@ -85,6 +85,6 @@ cc_test(
     deps = [
         ":zenoh_config",
         "//intrinsic/util/testing:gtest_wrapper_main",
-        "@com_google_absl//absl/flags:flag",
+        "@abseil-cpp//absl/flags:flag",
     ],
 )

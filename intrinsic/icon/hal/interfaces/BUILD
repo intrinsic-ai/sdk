@@ -165,11 +165,11 @@ cc_library(
         "//intrinsic/kinematics/types:joint_limits",
         "//intrinsic/kinematics/types:joint_limits_cc_proto",
         "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/strings:str_format",
+        "@abseil-cpp//absl/types:span",
         "@com_github_google_flatbuffers//:flatbuffers",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/strings:str_format",
-        "@com_google_absl//absl/types:span",
     ],
 )
 

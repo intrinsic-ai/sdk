@@ -18,8 +18,8 @@ cc_library(
         "//intrinsic/icon/interprocess/shared_memory_manager:memory_segment",
         "//intrinsic/util/status:status_macros",
         "//intrinsic/util/thread:lockstep",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings",
+        "@abseil-cpp//absl/log:check",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
     ],
 )

@@ -34,8 +34,8 @@ cc_library(
     hdrs = ["resource_registry_client_interface.h"],
     deps = [
         "//intrinsic/resources/proto:resource_registry_cc_proto",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings:string_view",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings:string_view",
     ],
 )
 
@@ -50,9 +50,9 @@ cc_library(
         "//intrinsic/util/grpc",
         "//intrinsic/util/status:status_conversion_grpc",
         "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings:string_view",
+        "@abseil-cpp//absl/time",
         "@com_github_grpc_grpc//:grpc++",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings:string_view",
-        "@com_google_absl//absl/time",
     ],
 )

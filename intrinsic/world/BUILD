@@ -24,7 +24,7 @@ cc_test(
         "//intrinsic/util:aggregate_type",
         "//intrinsic/util/testing:gtest_wrapper_main",
         "//intrinsic/world/hashing",
-        "@com_google_absl//absl/hash:hash_testing",
+        "@abseil-cpp//absl/hash:hash_testing",
     ],
 )
 
@@ -33,6 +33,6 @@ cc_library(
     hdrs = ["labels.h"],
     deps = [
         "//intrinsic/util:string_type",
-        "@com_google_absl//absl/strings",
+        "@abseil-cpp//absl/strings",
     ],
 )

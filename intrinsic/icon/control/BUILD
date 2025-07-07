@@ -25,7 +25,7 @@ cc_library(
     hdrs = ["streaming_io_types.h"],
     deps = [
         "//intrinsic/production/external/intops:strong_int",
-        "@com_google_absl//absl/status:statusor",
+        "@abseil-cpp//absl/status:statusor",
         "@com_google_protobuf//:protobuf",
     ],
 )
@@ -47,7 +47,7 @@ cc_library(
     deps = [
         "//intrinsic/icon/utils:core_time",
         "//intrinsic/icon/utils:realtime_status",
-        "@com_google_absl//absl/time",
+        "@abseil-cpp//absl/time",
     ],
 )
 

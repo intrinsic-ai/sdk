@@ -23,9 +23,9 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":status_payload_matchers",
-        "@com_github_google_benchmark//:benchmark",
+        "@abseil-cpp//absl/status:status_matchers",
         "@com_github_inazarenko_protobuf_matchers//protobuf-matchers",
-        "@com_google_absl//absl/status:status_matchers",
+        "@com_google_benchmark//:benchmark",
         "@com_google_cel_cpp//internal:testing",
         "@com_google_googletest//:gtest",
     ],
@@ -38,7 +38,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":gtest_wrapper",
-        "@com_google_absl//absl/flags:parse",
+        "@abseil-cpp//absl/flags:parse",
     ],
 )
 
@@ -49,9 +49,9 @@ cc_library(
     visibility = ["//intrinsic:__subpackages__"],
     deps = [
         "//intrinsic/util/proto:type_url",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings:cord",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings:cord",
         "@com_google_googleapis//google/rpc:status_cc_proto",
         "@com_google_googletest//:gtest",
         "@com_google_protobuf//:protobuf",
@@ -65,9 +65,9 @@ cc_test(
         ":status_payload_matchers",
         "//intrinsic/util/proto:type_url",
         "//intrinsic/util/testing:gtest_wrapper_main",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings:cord",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings:cord",
         "@com_google_protobuf//:protobuf",
     ],
 )

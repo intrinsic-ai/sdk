@@ -15,7 +15,7 @@ cc_library(
     deps = [
         "//intrinsic/icon/testing:realtime_annotations",
         "//intrinsic/icon/utils:realtime_status",
-        "@com_google_absl//absl/time",
+        "@abseil-cpp//absl/time",
     ],
 )
 
@@ -28,10 +28,10 @@ cc_library(
         ":binary_futex",
         "//intrinsic/icon/testing:realtime_annotations",
         "//intrinsic/icon/utils:realtime_status",
-        "@com_google_absl//absl/base:core_headers",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/time",
+        "@abseil-cpp//absl/base:core_headers",
+        "@abseil-cpp//absl/log:check",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/time",
     ],
 )
 
@@ -47,10 +47,10 @@ cc_library(
         "//intrinsic/icon/testing:realtime_annotations",
         "//intrinsic/icon/utils:realtime_status",
         "//intrinsic/icon/utils:realtime_status_macro",
-        "@com_google_absl//absl/base:core_headers",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/synchronization",
-        "@com_google_absl//absl/time",
+        "@abseil-cpp//absl/base:core_headers",
+        "@abseil-cpp//absl/log:check",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/synchronization",
+        "@abseil-cpp//absl/time",
     ],
 )

@@ -41,8 +41,8 @@ cc_library(
     deps = [
         ":safety_messages_fbs_cc",
         "//intrinsic/icon/control/safety/extern:safety_status_fbs_cc",
+        "@abseil-cpp//absl/strings",
         "@com_github_google_flatbuffers//:runtime_cc",
-        "@com_google_absl//absl/strings",
     ],
 )
 

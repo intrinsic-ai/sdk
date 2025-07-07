@@ -53,8 +53,8 @@ cc_library(
         ":calc_server_cc_grpc_proto",
         ":calc_server_cc_proto",
         "//intrinsic/resources/proto:runtime_context_cc_proto",
+        "@abseil-cpp//absl/log",
         "@com_github_grpc_grpc//:grpc++",
-        "@com_google_absl//absl/log",
     ],
 )
 
@@ -69,13 +69,13 @@ cc_binary(
         "//intrinsic/resources/proto:runtime_context_cc_proto",
         "//intrinsic/util/proto:any",
         "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/log",
+        "@abseil-cpp//absl/log:check",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/strings:string_view",
         "@com_github_grpc_grpc//:grpc++",
         "@com_github_grpc_grpc//:grpc_security_base",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/strings:string_view",
     ],
 )
 

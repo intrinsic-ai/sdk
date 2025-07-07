@@ -25,8 +25,8 @@ cc_library(
     hdrs = ["slot_part_map.h"],
     deps = [
         "//intrinsic/icon/proto/v1:types_cc_proto",
-        "@com_google_absl//absl/container:btree",
-        "@com_google_absl//absl/container:flat_hash_map",
+        "@abseil-cpp//absl/container:btree",
+        "@abseil-cpp//absl/container:flat_hash_map",
     ],
 )
 
@@ -37,11 +37,11 @@ cc_library(
     deps = [
         "//intrinsic/icon/proto/v1:service_cc_proto",
         "//intrinsic/production/external/intops:strong_int",
-        "@com_google_absl//absl/container:flat_hash_map",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/time",
+        "@abseil-cpp//absl/container:flat_hash_map",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/time",
     ],
 )
 
@@ -62,8 +62,8 @@ cc_library(
     ],
     deps = [
         ":state_variable_path_constants",
-        "@com_google_absl//absl/algorithm:container",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/types:span",
+        "@abseil-cpp//absl/algorithm:container",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/types:span",
     ],
 )

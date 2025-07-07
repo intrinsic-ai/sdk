@@ -12,8 +12,8 @@ cc_library(
     deps = [
         "//intrinsic/eigenmath",
         "//intrinsic/eigenmath:so3",
+        "@abseil-cpp//absl/base:core_headers",
         "@com_gitlab_libeigen_eigen//:eigen",
-        "@com_google_absl//absl/base:core_headers",
     ],
 )
 
@@ -35,9 +35,9 @@ cc_library(
         "//intrinsic/math/proto:pose_cc_proto",
         "//intrinsic/math/proto:quaternion_cc_proto",
         "//intrinsic/util/status:status_macros",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
     ],
 )
 
@@ -47,8 +47,8 @@ cc_library(
     hdrs = ["gaussian_noise.h"],
     deps = [
         "//intrinsic/eigenmath",
-        "@com_google_absl//absl/random:bit_gen_ref",
-        "@com_google_absl//absl/random:distributions",
+        "@abseil-cpp//absl/random:bit_gen_ref",
+        "@abseil-cpp//absl/random:distributions",
     ],
 )
 
@@ -81,7 +81,7 @@ cc_library(
         "//intrinsic/icon/utils:realtime_status_or",
         "//intrinsic/kinematics/types:to_fixed_string",
         "//intrinsic/world/proto:robot_payload_cc_proto",
+        "@abseil-cpp//absl/strings:string_view",
         "@com_gitlab_libeigen_eigen//:eigen",
-        "@com_google_absl//absl/strings:string_view",
     ],
 )

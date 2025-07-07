@@ -112,8 +112,8 @@ cc_library(
         "//intrinsic/skills/proto:equipment_cc_proto",
         "//intrinsic/skills/proto:skill_service_cc_proto",
         "//intrinsic/util/status:status_macros",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/status:statusor",
+        "@abseil-cpp//absl/log",
+        "@abseil-cpp//absl/status:statusor",
         "@com_google_protobuf//:protobuf",
     ],
 )
@@ -142,9 +142,9 @@ cc_binary(
         "//intrinsic/skills/internal:skill_service_config_utils",
         "//intrinsic/util/grpc",
         "//intrinsic/util/status:status_specs",
-        "@com_google_absl//absl/flags:flag",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/time",
+        "@abseil-cpp//absl/flags:flag",
+        "@abseil-cpp//absl/log:check",
+        "@abseil-cpp//absl/time",
     ],
 )
 
@@ -226,11 +226,11 @@ cc_binary(
         "//intrinsic/resources/proto:runtime_context_cc_proto",
         "//intrinsic/util/proto:any",
         "//intrinsic/util/status:status_macros",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/strings:string_view",
-        "@com_google_absl//absl/time",
+        "@abseil-cpp//absl/log",
+        "@abseil-cpp//absl/log:check",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/strings:string_view",
+        "@abseil-cpp//absl/time",
     ],
 )
 

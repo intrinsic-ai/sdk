@@ -17,8 +17,8 @@ cc_library(
         "//intrinsic/eigenmath",
         "//intrinsic/icon/utils:realtime_status",
         "//intrinsic/util:aggregate_type",
+        "@abseil-cpp//absl/log:check",
         "@com_gitlab_libeigen_eigen//:eigen",
-        "@com_google_absl//absl/log:check",
     ],
 )
 
@@ -40,7 +40,7 @@ cc_library(
         "//intrinsic/icon/utils:fixed_str_cat",
         "//intrinsic/icon/utils:fixed_string",
         "//intrinsic/math:pose3",
-        "@com_google_absl//absl/strings",
+        "@abseil-cpp//absl/strings",
     ],
 )
 
@@ -115,10 +115,10 @@ cc_library(
         "//intrinsic/icon/utils:realtime_status_macro",
         "//intrinsic/icon/utils:realtime_status_or",
         "//intrinsic/util/status:status_macros",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings",
+        "@abseil-cpp//absl/log:check",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
     ],
 )
 
@@ -132,9 +132,9 @@ cc_library(
         "//intrinsic/eigenmath",
         "//intrinsic/icon/proto:eigen_conversion",
         "//intrinsic/icon/testing:realtime_annotations",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
     ],
 )
 
@@ -144,8 +144,8 @@ cc_library(
     hdrs = ["dynamic_limits_check_mode.h"],
     deps = [
         ":dynamic_limits_check_mode_cc_proto",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
     ],
 )
 

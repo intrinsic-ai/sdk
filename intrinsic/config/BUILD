@@ -17,9 +17,9 @@ cc_library(
         "//visibility:public",
     ],
     deps = [
-        "@com_google_absl//absl/base:no_destructor",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
+        "@abseil-cpp//absl/base:no_destructor",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
     ],
 )
 
@@ -29,8 +29,8 @@ cc_test(
     deps = [
         ":environments_cc",
         "//intrinsic/util/testing:gtest_wrapper_main",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
     ],
 )
 

@@ -17,8 +17,8 @@ cc_library(
     hdrs = ["rotation_utils.h"],
     deps = [
         ":eigenmath",
+        "@abseil-cpp//absl/log:check",
         "@com_gitlab_libeigen_eigen//:eigen",
-        "@com_google_absl//absl/log:check",
     ],
 )
 
@@ -32,8 +32,8 @@ cc_library(
         "//intrinsic/icon/utils:realtime_status",
         "//intrinsic/icon/utils:realtime_status_or",
         "//intrinsic/util/status:status_builder",
+        "@abseil-cpp//absl/log:check",
+        "@abseil-cpp//absl/status",
         "@com_gitlab_libeigen_eigen//:eigen",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/status",
     ],
 )

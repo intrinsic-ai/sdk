@@ -17,7 +17,7 @@ cc_library(
     hdrs = ["string_wrapper.h"],
     deps = [
         "//intrinsic/icon/control/c_api:icon_c_api",
-        "@com_google_absl//absl/strings",
+        "@abseil-cpp//absl/strings",
     ],
 )
 
@@ -30,9 +30,9 @@ cc_library(
         "//intrinsic/icon/control/c_api:icon_c_api",
         "//intrinsic/icon/utils:realtime_status",
         "//intrinsic/icon/utils:realtime_status_or",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
         "@com_google_protobuf//:protobuf",
     ],
 )

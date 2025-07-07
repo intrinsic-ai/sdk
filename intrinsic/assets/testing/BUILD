@@ -13,5 +13,5 @@ cc_library(
     name = "id_test_utils",
     srcs = ["id_test_utils.cc"],
     hdrs = ["id_test_utils.h"],
-    deps = ["@com_google_absl//absl/strings"],
+    deps = ["@abseil-cpp//absl/strings"],
 )

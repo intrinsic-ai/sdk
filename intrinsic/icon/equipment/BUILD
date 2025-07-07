@@ -18,8 +18,8 @@ cc_library(
         "//intrinsic/util/grpc:channel",
         "//intrinsic/util/grpc:channel_interface",
         "//intrinsic/util/grpc:connection_params",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/time",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/time",
     ],
 )
 
@@ -36,11 +36,11 @@ cc_library(
         "//intrinsic/util/grpc",
         "//intrinsic/util/grpc:channel_interface",
         "//intrinsic/util/status:status_macros",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/time",
-        "@com_google_absl//absl/types:optional",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/time",
+        "@abseil-cpp//absl/types:optional",
     ],
 )
 

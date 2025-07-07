@@ -30,10 +30,10 @@ cc_library(
         ":connection_params",
         ":grpc",
         "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/time",
         "@com_github_grpc_grpc//:grpc++",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/time",
     ],
 )
 
@@ -42,7 +42,7 @@ cc_library(
     srcs = ["connection_params.cc"],
     hdrs = ["connection_params.h"],
     deps = [
-        "@com_google_absl//absl/strings:str_format",
+        "@abseil-cpp//absl/strings:str_format",
     ],
 )
 
@@ -53,10 +53,10 @@ cc_library(
         ":channel",
         ":connection_params",
         "//intrinsic/util/status:status_macros",
-        "@com_google_absl//absl/base:core_headers",
-        "@com_google_absl//absl/container:flat_hash_map",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/synchronization",
+        "@abseil-cpp//absl/base:core_headers",
+        "@abseil-cpp//absl/container:flat_hash_map",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/synchronization",
     ],
 )
 
@@ -77,17 +77,17 @@ cc_library(
         "//intrinsic/icon/release:grpc_time_support",
         "//intrinsic/util/status:status_conversion_grpc",
         "//intrinsic/util/thread",
+        "@abseil-cpp//absl/log",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/strings:str_format",
+        "@abseil-cpp//absl/synchronization",
+        "@abseil-cpp//absl/time",
         "@com_github_grpc_grpc//:grpc++",
         "@com_github_grpc_grpc//:grpc_security_base",
         "@com_github_grpc_grpc//src/proto/grpc/health/v1:health_cc_grpc",
         "@com_github_grpc_grpc//src/proto/grpc/health/v1:health_cc_proto",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/strings:str_format",
-        "@com_google_absl//absl/synchronization",
-        "@com_google_absl//absl/time",
     ],
 )
 

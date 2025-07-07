@@ -29,9 +29,9 @@ cc_library(
         "//intrinsic/world/objects:transform_node",
         "//intrinsic/world/proto:collision_settings_cc_proto",
         "//intrinsic/world/proto:object_world_refs_cc_proto",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings:string_view",
         "@com_github_grpc_grpc//:grpc++",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings:string_view",
         "@com_google_protobuf//:protobuf",
     ],
 )

@@ -28,8 +28,8 @@ cc_library(
     deps = [
         ":icon_c_api",
         "//intrinsic/icon/utils:realtime_status",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/strings",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/strings",
     ],
 )
 
@@ -46,8 +46,8 @@ cc_library(
         "//intrinsic/kinematics/types:joint_state",
         "//intrinsic/math:pose3",
         "//intrinsic/math:twist",
+        "@abseil-cpp//absl/log:check",
+        "@abseil-cpp//absl/types:optional",
         "@com_gitlab_libeigen_eigen//:eigen",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/types:optional",
     ],
 )

@@ -19,8 +19,8 @@ cc_library(
     name = "fixed_string",
     hdrs = ["fixed_string.h"],
     deps = [
-        "@com_google_absl//absl/base:core_headers",
-        "@com_google_absl//absl/strings",
+        "@abseil-cpp//absl/base:core_headers",
+        "@abseil-cpp//absl/strings",
     ],
 )
 
@@ -29,8 +29,8 @@ cc_library(
     hdrs = ["fixed_str_cat.h"],
     deps = [
         ":fixed_string",
-        "@com_google_absl//absl/base:core_headers",
-        "@com_google_absl//absl/strings",
+        "@abseil-cpp//absl/base:core_headers",
+        "@abseil-cpp//absl/strings",
     ],
 )
 
@@ -43,9 +43,9 @@ cc_library(
         ":fixed_string",
         ":realtime_guard",
         "//intrinsic/icon/testing:realtime_annotations",
-        "@com_google_absl//absl/base:core_headers",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/strings",
+        "@abseil-cpp//absl/base:core_headers",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/strings",
     ],
 )
 
@@ -55,9 +55,9 @@ cc_library(
     deps = [
         ":realtime_status",
         "//intrinsic/icon/testing:realtime_annotations",
-        "@com_google_absl//absl/base:core_headers",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/status",
+        "@abseil-cpp//absl/base:core_headers",
+        "@abseil-cpp//absl/log:check",
+        "@abseil-cpp//absl/status",
     ],
 )
 
@@ -70,7 +70,7 @@ cc_library(
         ":realtime_status_macro",
         ":realtime_status_or",
         "//intrinsic/util/testing:gtest_wrapper",
-        "@com_google_absl//absl/status",
+        "@abseil-cpp//absl/status",
     ],
 )
 
@@ -81,7 +81,7 @@ cc_library(
         ":fixed_str_cat",
         ":realtime_status",
         "//intrinsic/util/status:status_macros",
-        "@com_google_absl//absl/base:core_headers",
+        "@abseil-cpp//absl/base:core_headers",
     ],
 )
 
@@ -117,7 +117,7 @@ cc_library(
         ":log_internal",
         ":time",
         "//intrinsic/icon/testing:realtime_annotations",
-        "@com_google_absl//absl/log:check",
+        "@abseil-cpp//absl/log:check",
     ],
 )
 
@@ -131,7 +131,7 @@ cc_library(
         "duration.h",
     ],
     deps = [
-        "@com_google_absl//absl/base:core_headers",
+        "@abseil-cpp//absl/base:core_headers",
     ],
 )
 
@@ -150,8 +150,8 @@ cc_library(
         "//intrinsic/util/thread",
         "//intrinsic/util/thread:thread_options",
         "//intrinsic/util/thread:thread_utils",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/status",
+        "@abseil-cpp//absl/log",
+        "@abseil-cpp//absl/status",
         "@com_google_protobuf//:protobuf",
     ],
 )
@@ -165,11 +165,11 @@ cc_library(
         ":realtime_guard",
         "//intrinsic/icon/interprocess:binary_futex",
         "//intrinsic/platform/common/buffers:realtime_write_queue",
-        "@com_google_absl//absl/base:core_headers",
-        "@com_google_absl//absl/container:flat_hash_map",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/synchronization",
-        "@com_google_absl//absl/time",
+        "@abseil-cpp//absl/base:core_headers",
+        "@abseil-cpp//absl/container:flat_hash_map",
+        "@abseil-cpp//absl/log",
+        "@abseil-cpp//absl/synchronization",
+        "@abseil-cpp//absl/time",
     ],
 )
 
@@ -183,9 +183,9 @@ cc_library(
         ":log_sink",
         "//intrinsic/icon/release:source_location",
         "//intrinsic/icon/testing:realtime_annotations",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/time",
+        "@abseil-cpp//absl/log",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/time",
     ],
 )
 
@@ -198,7 +198,7 @@ cc_library(
         ":log_sink",
         ":realtime_log_sink",
         "//intrinsic/icon/release:source_location",
-        "@com_google_absl//absl/base:log_severity",
+        "@abseil-cpp//absl/base:log_severity",
     ],
 )
 
@@ -210,7 +210,7 @@ cc_test_and_malloc_test(
         ":log_internal",
         "//intrinsic/icon/release:source_location",
         "//intrinsic/util/thread",
-        "@com_google_absl//absl/strings",
+        "@abseil-cpp//absl/strings",
     ],
 )
 
@@ -219,9 +219,9 @@ cc_library(
     srcs = ["log_sink.cc"],
     hdrs = ["log_sink.h"],
     deps = [
-        "@com_google_absl//absl/base:log_severity",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/time",
+        "@abseil-cpp//absl/base:log_severity",
+        "@abseil-cpp//absl/log:check",
+        "@abseil-cpp//absl/time",
     ],
 )
 
@@ -244,13 +244,13 @@ cc_library(
         ":log_sink",
         "//intrinsic/icon/release:source_location",
         "//intrinsic/icon/testing:realtime_annotations",
-        "@com_google_absl//absl/base:core_headers",
-        "@com_google_absl//absl/base:log_severity",
-        "@com_google_absl//absl/debugging:stacktrace",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/synchronization",
-        "@com_google_absl//absl/types:span",
+        "@abseil-cpp//absl/base:core_headers",
+        "@abseil-cpp//absl/base:log_severity",
+        "@abseil-cpp//absl/debugging:stacktrace",
+        "@abseil-cpp//absl/log:check",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/synchronization",
+        "@abseil-cpp//absl/types:span",
     ],
 )
 
@@ -271,10 +271,10 @@ cc_library(
         ":log_sink",
         ":realtime_stack_trace",
         "//intrinsic/icon/release:source_location",
-        "@com_google_absl//absl/base:log_severity",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/strings",
+        "@abseil-cpp//absl/base:log_severity",
+        "@abseil-cpp//absl/log",
+        "@abseil-cpp//absl/log:check",
+        "@abseil-cpp//absl/strings",
     ],
 )
 
@@ -292,7 +292,7 @@ cc_library(
     srcs = ["shutdown_signals.cc"],
     hdrs = ["shutdown_signals.h"],
     deps = [
-        "@com_google_absl//absl/strings:string_view",
+        "@abseil-cpp//absl/strings:string_view",
     ],
 )
 
@@ -304,7 +304,7 @@ cc_library(
 cc_library(
     name = "async_buffer",
     hdrs = ["async_buffer.h"],
-    deps = ["@com_google_absl//absl/log:check"],
+    deps = ["@abseil-cpp//absl/log:check"],
 )
 
 cc_test(
@@ -315,7 +315,7 @@ cc_test(
         "//intrinsic/icon/release:source_location",
         "//intrinsic/util/testing:gtest_wrapper_main",
         "//intrinsic/util/thread",
-        "@com_google_absl//absl/strings",
+        "@abseil-cpp//absl/strings",
     ],
 )
 
@@ -325,9 +325,9 @@ cc_library(
     deps = [
         ":async_buffer",
         "//intrinsic/icon/testing:realtime_annotations",
-        "@com_google_absl//absl/base:core_headers",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/synchronization",
+        "@abseil-cpp//absl/base:core_headers",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/synchronization",
     ],
 )
 
@@ -338,7 +338,7 @@ cc_test(
         ":multiple_producer_single_consumer_async_buffer",
         "//intrinsic/util/testing:gtest_wrapper_main",
         "//intrinsic/util/thread",
-        "@com_google_absl//absl/synchronization",
+        "@abseil-cpp//absl/synchronization",
     ],
 )
 
@@ -363,11 +363,11 @@ cc_library(
         "//intrinsic/icon/testing:realtime_annotations",
         "//intrinsic/performance/analysis/proto:performance_metrics_cc_proto",
         "//intrinsic/util/status:status_macros",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/strings:str_format",
-        "@com_google_absl//absl/time",
-        "@com_google_absl//absl/types:span",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/strings:str_format",
+        "@abseil-cpp//absl/time",
+        "@abseil-cpp//absl/types:span",
         "@com_google_googletest//:gtest_prod",
         "@com_google_protobuf//:protobuf",
     ],

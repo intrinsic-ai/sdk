@@ -33,8 +33,8 @@ cc_library(
     name = "fixed_vector",
     hdrs = ["fixed_vector.h"],
     deps = [
-        "@com_google_absl//absl/container:inlined_vector",
-        "@com_google_absl//absl/log",
+        "@abseil-cpp//absl/container:inlined_vector",
+        "@abseil-cpp//absl/log",
     ],
 )
 
@@ -62,9 +62,9 @@ cc_library(
         "//intrinsic/eigenmath:rotation_utils",
         "//intrinsic/math:pose3",
         "//intrinsic/util/status:status_macros",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/strings:str_format",
+        "@abseil-cpp//absl/log",
+        "@abseil-cpp//absl/log:check",
+        "@abseil-cpp//absl/strings:str_format",
     ],
 )
 
@@ -85,7 +85,7 @@ cc_library(
     name = "memory_lock",
     hdrs = ["memory_lock.h"],
     deps = [
-        "@com_google_absl//absl/status",
+        "@abseil-cpp//absl/status",
     ],
 )
 
@@ -93,11 +93,11 @@ cc_library(
     name = "string_type",
     hdrs = ["string_type.h"],
     deps = [
-        "@com_google_absl//absl/flags:marshalling",
-        "@com_google_absl//absl/hash",
-        "@com_google_absl//absl/meta:type_traits",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/strings:cord",
+        "@abseil-cpp//absl/flags:marshalling",
+        "@abseil-cpp//absl/hash",
+        "@abseil-cpp//absl/meta:type_traits",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/strings:cord",
     ],
 )
 
@@ -107,11 +107,11 @@ cc_library(
     hdrs = ["proto_time.h"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:time_cc_proto",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/time",
+        "@abseil-cpp//absl/log",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/time",
         "@com_google_protobuf//:protobuf",
     ],
 )
@@ -121,9 +121,9 @@ cc_library(
     srcs = ["log_lines.cc"],
     hdrs = ["log_lines.h"],
     deps = [
-        "@com_google_absl//absl/base:log_severity",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/strings",
+        "@abseil-cpp//absl/base:log_severity",
+        "@abseil-cpp//absl/log",
+        "@abseil-cpp//absl/strings",
     ],
 )
 

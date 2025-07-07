@@ -14,7 +14,7 @@ cc_library(
     deps = [
         "//intrinsic/hardware/gpio/v1:gpio_service_cc_proto",
         "//intrinsic/hardware/gpio/v1:signal_cc_proto",
-        "@com_google_absl//absl/container:flat_hash_map",
+        "@abseil-cpp//absl/container:flat_hash_map",
     ],
 )
 
@@ -35,13 +35,13 @@ cc_library(
         "//intrinsic/util/status:status_conversion_grpc",
         "//intrinsic/util/status:status_conversion_rpc",
         "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/container:flat_hash_set",
+        "@abseil-cpp//absl/log",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/synchronization",
+        "@abseil-cpp//absl/time",
         "@com_github_grpc_grpc//:grpc++",
-        "@com_google_absl//absl/container:flat_hash_set",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/synchronization",
-        "@com_google_absl//absl/time",
     ],
 )

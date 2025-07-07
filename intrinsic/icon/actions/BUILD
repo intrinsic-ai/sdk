@@ -17,9 +17,9 @@ cc_library(
         "//intrinsic/icon/proto/v1:types_cc_proto",
         "//intrinsic/icon/release:source_location",
         "//intrinsic/util/proto:descriptors",
-        "@com_google_absl//absl/container:flat_hash_set",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/strings",
+        "@abseil-cpp//absl/container:flat_hash_set",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/strings",
         "@com_google_protobuf//:protobuf",
     ],
 )
@@ -51,8 +51,8 @@ cc_library(
         ":point_to_point_move_cc_proto",
         "//intrinsic/icon/proto:joint_space_cc_proto",
         "//intrinsic/kinematics/types:joint_limits",
-        "@com_google_absl//absl/types:optional",
-        "@com_google_absl//absl/types:span",
+        "@abseil-cpp//absl/types:optional",
+        "@abseil-cpp//absl/types:span",
     ],
 )
 

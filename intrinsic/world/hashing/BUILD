@@ -12,8 +12,8 @@ cc_library(
     deps = [
         "//intrinsic/util:string_type",
         "//intrinsic/world:entity_id",
-        "@com_google_absl//absl/container:flat_hash_map",
-        "@com_google_absl//absl/container:flat_hash_set",
+        "@abseil-cpp//absl/container:flat_hash_map",
+        "@abseil-cpp//absl/container:flat_hash_set",
     ],
 )
 

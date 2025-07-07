@@ -12,13 +12,13 @@ cc_library(
     hdrs = ["init_xfa.h"],
     deps = [
         "//intrinsic/icon/utils:log",
-        "@com_google_absl//absl/flags:flag",
-        "@com_google_absl//absl/flags:parse",
-        "@com_google_absl//absl/flags:usage",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/log:globals",
-        "@com_google_absl//absl/log:initialize",
-        "@com_google_absl//absl/time",
+        "@abseil-cpp//absl/flags:flag",
+        "@abseil-cpp//absl/flags:parse",
+        "@abseil-cpp//absl/flags:usage",
+        "@abseil-cpp//absl/log",
+        "@abseil-cpp//absl/log:globals",
+        "@abseil-cpp//absl/log:initialize",
+        "@abseil-cpp//absl/time",
     ],
 )
 
@@ -27,9 +27,9 @@ cc_test(
     srcs = ["init_xfa_test.cc"],
     deps = [
         ":init_xfa_absl",
-        "@com_google_absl//absl/base:log_severity",
-        "@com_google_absl//absl/flags:flag",
-        "@com_google_absl//absl/log:globals",
-        "@com_google_absl//absl/strings",
+        "@abseil-cpp//absl/base:log_severity",
+        "@abseil-cpp//absl/flags:flag",
+        "@abseil-cpp//absl/log:globals",
+        "@abseil-cpp//absl/strings",
     ],
 )
