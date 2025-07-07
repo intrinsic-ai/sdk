@@ -116,7 +116,7 @@ message Options {
 }
 
 message Dependencies {
-  // Required interfaces that resources must satisfy for the skill.
+  // Required interfaces that Services must satisfy for the Skill.
   map<string, ResourceSelector> required_equipment = 1;
 }
 

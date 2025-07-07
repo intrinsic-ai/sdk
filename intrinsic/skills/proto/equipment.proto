@@ -7,13 +7,15 @@ package intrinsic_proto.skills;
 import "intrinsic/skills/proto/footprint.proto";
 
 message ResourceSelector {
-  // The selector only matches resources that have all the capabilities
+  // The selector only matches Services that provide all of the gRPC services
   // specified here.
+  //
+  // Each capability name must be the fully qualified name of a gRPC service.
   repeated string capability_names = 1;
 
-  // Specifies how the resource will be used.
+  // Specifies how the Service will be used.
   //
-  // NOTE that the sharing type is not enforced. It only specifies the skill's
+  // NOTE that the sharing type is not enforced. It only specifies the Skill's
   // intent.
   intrinsic_proto.skills.ResourceReservation.SharingType sharing_type = 2;
 }
