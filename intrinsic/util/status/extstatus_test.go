@@ -83,6 +83,12 @@ func TestExtendedStatus(t *testing.T) {
 				StatusCode: &estpb.StatusCode{
 					Component: "ai.intrinsic.test", Code: 2342},
 				DebugReport: &estpb.ExtendedStatus_DebugReport{Message: "msg bar"}}},
+		{"SetSeverity",
+			New("ai.intrinsic.test", 2342, WithSeverity(estpb.ExtendedStatus_FATAL)),
+			&estpb.ExtendedStatus{
+				StatusCode: &estpb.StatusCode{
+					Component: "ai.intrinsic.test", Code: 2342},
+				Severity: estpb.ExtendedStatus_FATAL}},
 		{"AddContext",
 			New("ai.intrinsic.test", 2342, WithContextProto(&estpb.ExtendedStatus{
 				StatusCode: &estpb.StatusCode{

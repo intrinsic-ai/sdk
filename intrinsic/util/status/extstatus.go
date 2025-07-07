@@ -49,6 +49,7 @@ type newOptions struct {
 	debugMessage     string
 	userMessage      string
 	userInstructions string
+	severity         *espb.ExtendedStatus_Severity
 	context          []*espb.ExtendedStatus
 	logContext       *contextpb.Context
 	grpcCode         codes.Code
@@ -89,6 +90,15 @@ func WithUserMessage(message string) NewOption {
 func WithUserInstructions(instructions string) NewOption {
 	return func(o *newOptions) {
 		o.userInstructions = instructions
+	}
+}
+
+// WithSeverity returns an option function to set the severity of the created extended status.
+// Severity values are the same as the ones for absl::LogSeverity.
+// If not set explicitly, severity defaults to INFO.
+func WithSeverity(severity espb.ExtendedStatus_Severity) NewOption {
+	return func(o *newOptions) {
+		o.severity = &severity
 	}
 }
 
@@ -201,6 +211,10 @@ func New(component string, code uint32, options ...NewOption) *ExtendedStatus {
 	}
 	if opts.logContext != nil {
 		p.RelatedTo = &espb.ExtendedStatus_Relations{LogContext: opts.logContext}
+	}
+
+	if opts.severity != nil {
+		p.Severity = *opts.severity
 	}
 	return &ExtendedStatus{s: p, grpcCode: opts.grpcCode}
 }
