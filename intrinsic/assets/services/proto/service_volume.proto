@@ -4,9 +4,14 @@ syntax = "proto3";
 
 package intrinsic_proto.services;
 
-// VolumeMount specifies how a Volume is mounted in the service.
+// VolumeMount specifies how a Volume is mounted in the Service.
 // Its name must match a specified volume.
 // See: https://kubernetes.io/docs/concepts/storage/volumes/
+//
+// Available mount paths and whether those paths are writeable depend on the
+// Service's container image. For instance, for Services that use
+// `@distroless_base` as a base image, likely only mount paths under `/tmp` will
+// be writeable.
 message VolumeMount {
   string name = 1;
   string mount_path = 2;
@@ -14,7 +19,7 @@ message VolumeMount {
 }
 
 // Volume represents a named volume in the pod that may be accessed by the
-// service through a VolumeMount.
+// Service through a VolumeMount.
 // See: https://kubernetes.io/docs/concepts/storage/volumes/
 message Volume {
   string name = 1;
@@ -25,7 +30,7 @@ message Volume {
 }
 
 // HostPathVolumeSource describes a path on the host machine that should be made
-// accessible to the resource.
+// accessible to the Service.
 // See: https://kubernetes.io/docs/concepts/storage/volumes/#hostpath
 message HostPathVolumeSource {
   // The path on the host to make available.
@@ -40,7 +45,7 @@ enum EmptyDirMedium {
   EMPTY_DIR_MEDIUM_MEMORY = 1;
 }
 
-// EmptyDirVolumeSource describes a volume created for use by the service.
+// EmptyDirVolumeSource describes a volume created for use by the Service.
 // See: https://kubernetes.io/docs/concepts/storage/volumes/#emptydir
 message EmptyDirVolumeSource {
   // The medium used to store the volume. If unspecified, the host system's
