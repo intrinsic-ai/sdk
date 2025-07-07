@@ -172,7 +172,7 @@ func translateToNetworkConfig(n map[string]shared.Interface) *clustermanagerpb.I
 		switch inf.EtherType {
 		default:
 			conf.EtherType = clustermanagerpb.IntOSInterfaceConfig_ETHER_TYPE_UNSPECIFIED
-		case 1:
+		case shared.EtherTypeEtherCAT:
 			conf.EtherType = clustermanagerpb.IntOSInterfaceConfig_ETHER_TYPE_ETHERCAT
 		}
 		c.Interfaces[name] = conf

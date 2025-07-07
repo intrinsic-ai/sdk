@@ -50,6 +50,14 @@ type Nameservers struct {
 	Addresses []string `json:"addresses" jsonschema:"format=ipv4"`
 }
 
+// These constants must match the enum in clustermanager_api.proto.
+const (
+	// EtherTypeIP is the IP protocol (realtime or nonrealtime).
+	EtherTypeIP = 0
+	// EtherTypeEtherCAT is the EtherCAT protocol.
+	EtherTypeEtherCAT = 1
+)
+
 // Interface represents a network interface configuration.
 type Interface struct {
 	// DHCP4 enables or disables DHCP on the interface.

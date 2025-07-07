@@ -256,7 +256,9 @@ message NameserverConfig {
 // interface.
 message IntOSInterfaceConfig {
   enum EtherType {
+    // UNSPECIFIED is used for IP interfaces (realtime and non-realtime).
     ETHER_TYPE_UNSPECIFIED = 0;
+    // ETHERCAT is used for EtherCAT interfaces.
     ETHER_TYPE_ETHERCAT = 1;
   }
   // Enable automatic configuration via DHCP for IPv4
