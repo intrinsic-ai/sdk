@@ -25,9 +25,7 @@ go_grpc_library(
     name = "workcellmode_service_go_grpc_proto",
     srcs = [":workcellmode_service_proto"],
     visibility = ["//intrinsic:__subpackages__"],
-    deps = [
-        ":workcellmode_service_go_proto",
-    ],
+    deps = [":workcellmode_service_go_proto"],
 )
 
 py_proto_library(

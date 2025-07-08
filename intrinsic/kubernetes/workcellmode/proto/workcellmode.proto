@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.workcellmode.v1;
 
+
 enum MODE {
   MODE_UNSPECIFIED = 0;
   // Throttles the total data upload rate to the cloud.
@@ -32,6 +33,7 @@ message GetWorkcellModeResponse {
 }
 
 service WorkcellMode {
+
   // Sets the workcell mode. Use to switch between develop and operate mode.
   rpc SetWorkcellMode(SetWorkcellModeRequest)
       returns (SetWorkcellModeResponse) {}
