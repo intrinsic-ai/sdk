@@ -56,18 +56,3 @@ filegroup(
     ),
     visibility = ["//visibility:public"],
 )
-
-# using cc_library with `linkopts = ["-lX11"]` while including in all_files did not work. Therefore
-# we explicitly create a filegroup of X11 libs and dependencies for usage in BUILD.nvidia_driver.
-filegroup(
-    name = "sysroot_x_runtime_libs_files",
-    srcs = [
-        "usr/lib/x86_64-linux-gnu/libX11.so.6",
-        "usr/lib/x86_64-linux-gnu/libxcb.so.1",
-        "usr/lib/x86_64-linux-gnu/libXau.so.6",
-        "usr/lib/x86_64-linux-gnu/libXdmcp.so.6",
-        "usr/lib/x86_64-linux-gnu/libXext.so.6",
-        "usr/lib/x86_64-linux-gnu/libbsd.so.0",
-    ],
-    visibility = ["//visibility:public"],
-)
