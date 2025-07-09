@@ -351,8 +351,6 @@ class FuturePromiseContext {
   // True if the promise has cancelled the contract to provide a value.
   std::atomic<bool> is_cancelled_{false};
 
-  // NOLINTBEGIN(google3-custom-lockable-without-annotations)
-  //
   // The futexes below are used to protect against race conditions between
   // this class's methods and the Reset() method. The goal is that the Reset()
   // method (being the non-realtime method) is the only one requiring all the
@@ -365,8 +363,6 @@ class FuturePromiseContext {
   icon::LockableBinaryFutex cancel_futex_;
   icon::LockableBinaryFutex get_future_futex_;
   icon::LockableBinaryFutex get_promise_futex_;
-  // NOLINTEND(google3-custom-lockable-without-annotations)
-
   // Futex to signal when a value has been set or an operation cancelled.
   icon::BinaryFutex has_value_;
   // Futex to signal when the future has been detached.
