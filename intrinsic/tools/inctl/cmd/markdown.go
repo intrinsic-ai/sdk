@@ -11,11 +11,10 @@ import (
 	"strings"
 
 	"archive/tar"
-	"intrinsic/tools/inctl/cmd/root"
-	"intrinsic/util/archive/tartooling"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
+	"intrinsic/tools/inctl/cmd/root"
+	"intrinsic/util/archive/tartooling"
 )
 
 // Create tar file from a giving directory

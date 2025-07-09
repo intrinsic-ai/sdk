@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"golang.org/x/exp/slices"
+
 	idpb "intrinsic/assets/proto/id_go_proto"
 )
 

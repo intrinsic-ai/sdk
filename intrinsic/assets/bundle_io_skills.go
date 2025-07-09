@@ -9,13 +9,14 @@ import (
 	"path/filepath"
 
 	"archive/tar"
-	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"google.golang.org/protobuf/proto"
 	"intrinsic/skills/internal/skillmanifest"
-	psmpb "intrinsic/skills/proto/processed_skill_manifest_go_proto"
-	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 	"intrinsic/util/archive/tartooling"
 	"intrinsic/util/proto/registryutil"
+
+	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	psmpb "intrinsic/skills/proto/processed_skill_manifest_go_proto"
+	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 )
 
 const (

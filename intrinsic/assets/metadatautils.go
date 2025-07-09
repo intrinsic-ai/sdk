@@ -9,9 +9,10 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
+	"intrinsic/assets/idutils"
+
 	datamanifestpb "intrinsic/assets/data/proto/v1/data_manifest_go_proto"
 	hdmpb "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest_go_proto"
-	"intrinsic/assets/idutils"
 	atypepb "intrinsic/assets/proto/asset_type_go_proto"
 	documentationpb "intrinsic/assets/proto/documentation_go_proto"
 	idpb "intrinsic/assets/proto/id_go_proto"

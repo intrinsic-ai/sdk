@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"google.golang.org/grpc"
+
 	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
 	viewpb "intrinsic/assets/proto/view_go_proto"
 )

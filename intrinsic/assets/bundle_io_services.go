@@ -10,14 +10,15 @@ import (
 	"strings"
 
 	"archive/tar"
-	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoregistry"
+	"intrinsic/assets/services/servicemanifest"
+	"intrinsic/util/archive/tartooling"
+
+	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	anypb "google.golang.org/protobuf/types/known/anypb"
 	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
-	"intrinsic/assets/services/servicemanifest"
 	ipb "intrinsic/kubernetes/workcell_spec/proto/image_go_proto"
-	"intrinsic/util/archive/tartooling"
 )
 
 const (
