@@ -7,14 +7,15 @@ import (
 	"fmt"
 	"strings"
 
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"google.golang.org/protobuf/reflect/protoreflect"
-	anypb "google.golang.org/protobuf/types/known/anypb"
 	"intrinsic/assets/bundleio"
-	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
 	"intrinsic/util/proto/protoio"
 	"intrinsic/util/proto/registryutil"
 	"intrinsic/util/proto/sourcecodeinfoview"
+
+	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	anypb "google.golang.org/protobuf/types/known/anypb"
+	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
 )
 
 // ServiceData holds the data needed to create a service bundle.

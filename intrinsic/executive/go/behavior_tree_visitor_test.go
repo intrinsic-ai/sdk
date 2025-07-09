@@ -8,6 +8,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/protobuf/proto"
 	"intrinsic/executive/go/behaviortree"
+
 	btpb "intrinsic/executive/proto/behavior_tree_go_proto"
 )
 

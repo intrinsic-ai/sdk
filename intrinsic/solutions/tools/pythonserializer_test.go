@@ -5,10 +5,11 @@ package pythonserializer
 import (
 	"testing"
 
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/reflect/protodesc"
+
+	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	btpb "intrinsic/executive/proto/behavior_tree_go_proto"
 	skillspb "intrinsic/skills/proto/skills_go_proto"
 	mypb "intrinsic/solutions/tools/proto/my_msg_go_proto"

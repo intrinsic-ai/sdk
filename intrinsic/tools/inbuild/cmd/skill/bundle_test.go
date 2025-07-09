@@ -7,8 +7,9 @@ import (
 	"testing"
 
 	"intrinsic/assets/bundleio"
-	_ "intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_go_proto" // Needed to resolve the proto message
 	"intrinsic/util/testing/testio"
+
+	_ "intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_go_proto" // Needed to resolve the proto message
 )
 
 const (

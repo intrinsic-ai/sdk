@@ -10,6 +10,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"intrinsic/tools/inctl/cmd/doctor/api/api"
+
 	rpb "intrinsic/tools/inctl/cmd/doctor/proto/v1/report_go_proto"
 )
 

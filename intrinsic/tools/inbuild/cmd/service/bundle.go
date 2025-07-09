@@ -9,8 +9,9 @@ import (
 
 	"github.com/spf13/cobra"
 	"intrinsic/assets/services/build_defs/servicegen"
-	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
 	"intrinsic/util/proto/protoio"
+
+	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
 )
 
 var (

@@ -14,10 +14,11 @@ import (
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
+	"intrinsic/util/proto/registryutil"
+
 	bcpb "intrinsic/executive/proto/behavior_call_go_proto"
 	btpb "intrinsic/executive/proto/behavior_tree_go_proto"
 	skillspb "intrinsic/skills/proto/skills_go_proto"
-	"intrinsic/util/proto/registryutil"
 )
 
 // PythonSerializer is a single-use serializer of BTs to Python code.

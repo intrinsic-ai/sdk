@@ -4,6 +4,7 @@ package api
 
 import (
 	"github.com/spf13/cobra"
+
 	reportpb "intrinsic/tools/inctl/cmd/doctor/proto/v1/report_go_proto"
 )
 

@@ -6,12 +6,12 @@ package skillmanifest
 import (
 	"fmt"
 
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
-
 	"intrinsic/skills/internal/skillmanifest"
-	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 	"intrinsic/util/proto/protoio"
 	"intrinsic/util/proto/registryutil"
+
+	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 )
 
 // LoadManifestAndFileDescriptorSets loads a skill manifest and consolidates multiple file descriptor sets into one.

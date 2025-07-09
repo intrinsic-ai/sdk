@@ -12,6 +12,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/testing/protocmp"
+
 	dpb "intrinsic/util/proto/testing/diamond_a_go_proto"
 )
 

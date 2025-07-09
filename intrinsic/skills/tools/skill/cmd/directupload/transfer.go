@@ -15,6 +15,7 @@ import (
 	"go.uber.org/atomic"
 	"intrinsic/assets/imagetransfer"
 	"intrinsic/storage/artifacts/client/client"
+
 	artifactgrpcpb "intrinsic/storage/artifacts/proto/v1/artifact_go_grpc_proto"
 )
 

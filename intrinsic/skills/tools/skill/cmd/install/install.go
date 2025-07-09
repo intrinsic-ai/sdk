@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"log"
 
-	lrogrpcpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
-	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc/status"
 	"intrinsic/assets/bundleio"
@@ -16,12 +14,15 @@ import (
 	"intrinsic/assets/cmdutils"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/imagetransfer"
-	iagrpcpb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
-	iapb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
 	"intrinsic/skills/tools/resource/cmd/bundleimages"
 	"intrinsic/skills/tools/skill/cmd/cmd"
 	"intrinsic/skills/tools/skill/cmd/directupload/directupload"
 	"intrinsic/skills/tools/skill/cmd/waitforskill"
+
+	lrogrpcpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
+	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
+	iagrpcpb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
+	iapb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
 )
 
 func getCommand() *cobra.Command {

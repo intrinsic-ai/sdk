@@ -9,7 +9,6 @@ import (
 	"flag"
 	"github.com/spf13/cobra"
 	intrinsic "intrinsic/production/intrinsic"
-
 	"intrinsic/tools/inbuild/cmd/service/service"
 	"intrinsic/tools/inbuild/cmd/skill/skill"
 )

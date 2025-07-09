@@ -4,14 +4,15 @@
 package inctldetails
 
 import (
-	"github.com/spf13/cobra"
-	"intrinsic/tools/inctl/cmd/doctor/api/api"
-	rpb "intrinsic/tools/inctl/cmd/doctor/proto/v1/report_go_proto"
-	"intrinsic/tools/inctl/cmd/doctor/reporters/env_vars/envvars"
-
 	"fmt"
 	"os"
 	"os/exec"
+
+	"github.com/spf13/cobra"
+	"intrinsic/tools/inctl/cmd/doctor/api/api"
+	"intrinsic/tools/inctl/cmd/doctor/reporters/env_vars/envvars"
+
+	rpb "intrinsic/tools/inctl/cmd/doctor/proto/v1/report_go_proto"
 )
 
 var (

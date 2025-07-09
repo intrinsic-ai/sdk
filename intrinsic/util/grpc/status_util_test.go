@@ -14,8 +14,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/local"
 	"google.golang.org/grpc/status"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	"intrinsic/testing/grpctest"
+
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	pgrpcpb "intrinsic/util/grpc/testing/ping_go_grpc_proto"
 )
 

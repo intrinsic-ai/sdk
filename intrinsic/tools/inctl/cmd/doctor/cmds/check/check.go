@@ -11,9 +11,10 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"intrinsic/tools/inctl/cmd/doctor/api/api"
 	"intrinsic/tools/inctl/cmd/doctor/checks/checks"
-	reportpb "intrinsic/tools/inctl/cmd/doctor/proto/v1/report_go_proto"
 	"intrinsic/tools/inctl/cmd/doctor/reporters/reporters"
 	"intrinsic/tools/inctl/util/printer"
+
+	reportpb "intrinsic/tools/inctl/cmd/doctor/proto/v1/report_go_proto"
 )
 
 // CheckCmd is the entry point for the inctl doctor check command.

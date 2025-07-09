@@ -6,7 +6,6 @@ package main
 
 import (
 	"bytes"
-	_ "embed"
 	"fmt"
 	"maps"
 	"os"
@@ -17,9 +16,12 @@ import (
 	"flag"
 	log "github.com/golang/glog"
 	"google.golang.org/protobuf/encoding/prototext"
-	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
 	intrinsic "intrinsic/production/intrinsic"
 	intrinsicflag "intrinsic/util/flag"
+
+	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
+
+	_ "embed"
 )
 const intrinsicIconPath = "/tmp/intrinsic_icon"
 

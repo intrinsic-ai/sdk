@@ -9,8 +9,9 @@ import (
 
 	"github.com/spf13/cobra"
 	"intrinsic/skills/generator/gen"
-	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 	"intrinsic/util/proto/protoio"
+
+	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 )
 
 func supportedLanguages() []string {

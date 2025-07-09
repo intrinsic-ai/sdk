@@ -18,12 +18,13 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/proto"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	"intrinsic/assets/cmdutils"
+	"intrinsic/tools/inctl/auth/auth"
+
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	bpb "intrinsic/logging/proto/blob_go_proto"
 	dgrpcpb "intrinsic/logging/proto/log_dispatcher_service_go_grpc_proto"
 	dpb "intrinsic/logging/proto/log_dispatcher_service_go_grpc_proto"
-	"intrinsic/tools/inctl/auth/auth"
 )
 
 const (

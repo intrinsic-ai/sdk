@@ -11,10 +11,12 @@ import (
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/testing/protocmp"
-	apb "google.golang.org/protobuf/types/known/anypb"
 	"intrinsic/assets/bundleio"
-	_ "intrinsic/tools/inbuild/cmd/service/test_data/example_service_go_proto" // Needed to resolve the proto message
 	"intrinsic/util/path_resolver/pathresolver"
+
+	apb "google.golang.org/protobuf/types/known/anypb"
+
+	_ "intrinsic/tools/inbuild/cmd/service/test_data/example_service_go_proto" // Needed to resolve the proto message
 )
 
 const (
