@@ -20,7 +20,8 @@ namespace intrinsic::icon {
 //
 // Example:
 //
-// NonRealtimeFuture<bool> rt_job_result;
+// constexpr absl::Duration kWaitTimeout = absl::Milliseconds(100);
+// RealtimeFutureWithData<bool> rt_job_result;
 // ASSIGN_OR_RETURN(auto promise, rt_job_result.GetPromise());
 // AsyncRequest<int, bool> request(request_value, std::move(promise));
 
@@ -34,8 +35,7 @@ namespace intrinsic::icon {
 //   // ...
 //   request.SetResponse(true);
 // });
-// INTR_RETURN_IF_ERROR(bool job_result, rt_job_result.Get());
-// rt_thread.join();
+// INTR_RETURN_IF_ERROR(bool job_result, rt_job_result.WaitFor(kWaitTimeout));
 template <typename RequestDataType, typename ResponseDataType>
 class AsyncRequest {
  public:
@@ -92,7 +92,7 @@ class AsyncRequest {
       // No need to set anything if we don't have a promise.
       return OkStatus();
     }
-    return promise_->SetValue(reply);
+    return promise_->Set(reply);
   }
 
   // Cancels the promise and informs the corresponding future.

@@ -469,7 +469,9 @@ class HardwareModuleRuntime::CallbackHandler final {
       // the timing is very unlucky.
       absl::MutexLock lock(&non_rt_buffer_lock_);
       for (auto it = future_hospice_.begin(); it != future_hospice_.end();) {
-        if ((**it).CanBeDestroyed()) {
+        // Using `IsWaitFreeDestructible` is safe here, since we never get
+        // promises from futures in the hospice.
+        if ((**it).IsWaitFreeDestructible()) {
           it = future_hospice_.erase(it);
         } else {
           it++;
@@ -485,8 +487,8 @@ class HardwareModuleRuntime::CallbackHandler final {
     }
 
     auto state_change_status = [&]() -> absl::Status {
-      auto future = std::make_unique<
-          intrinsic::NonRealtimeFuture<icon::RealtimeStatus>>();
+      auto future =
+          std::make_unique<intrinsic::RealtimeFuture<icon::RealtimeStatus>>();
       INTR_ASSIGN_OR_RETURN(auto promise, future->GetPromise());
       {
         absl::MutexLock lock(&non_rt_buffer_lock_);
@@ -504,13 +506,16 @@ class HardwareModuleRuntime::CallbackHandler final {
       // and never be reached.
       constexpr absl::Duration kStatechangeRequestTimeout = absl::Seconds(10);
       absl::StatusOr<RealtimeStatus> status =
-          future->GetWithTimeout(kStatechangeRequestTimeout);
+          future->WaitForAndGet(kStatechangeRequestTimeout);
 
       // If we get a timeout, it is likely that the future can also not be
       // destroyed. This can happen, when Deactivate() is
       // called while another action is active and the timing is very unlucky.
       // To not block until shutdown, we move the future away.
-      if (!future->CanBeDestroyed()) {
+      // Using `IsWaitFreeDestructible` is safe here, since this function is the
+      // sole owner of the future, the future will be destroyed just after
+      // the function returns and no new promise will be attached until then.
+      if (!future->IsWaitFreeDestructible()) {
         absl::MutexLock lock(&non_rt_buffer_lock_);
         future_hospice_.push_back(std::move(future));
       }
@@ -652,7 +657,7 @@ class HardwareModuleRuntime::CallbackHandler final {
   // request ended.
   // `SetStateAndWait()` and the destructor will clean up this container if the
   // futures are ready to be destroyed.
-  std::list<std::unique_ptr<intrinsic::NonRealtimeFuture<icon::RealtimeStatus>>>
+  std::list<std::unique_ptr<intrinsic::RealtimeFuture<icon::RealtimeStatus>>>
       future_hospice_ ABSL_GUARDED_BY(non_rt_buffer_lock_);
 
   intrinsic::icon::MetricsLogger* metrics_logger_ = nullptr;
