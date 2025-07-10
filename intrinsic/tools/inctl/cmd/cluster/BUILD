@@ -10,6 +10,7 @@ go_library(
         "cluster.go",
         "cluster_delete.go",
         "cluster_list.go",
+        "cluster_mode.go",
         "cluster_upgrade.go",
     ],
     visibility = [
@@ -20,6 +21,7 @@ go_library(
         "//intrinsic/frontend/cloud/api/v1:clustermanager_api_go_grpc_proto",
         "//intrinsic/frontend/cloud/devicemanager:version",
         "//intrinsic/kubernetes/inversion/v1:inversion_go_grpc_proto",
+        "//intrinsic/kubernetes/workcellmode/proto:workcellmode_service_go_grpc_proto",
         "//intrinsic/skills/tools/skill/cmd:dialerutil",
         "//intrinsic/tools/inctl/auth",
         "//intrinsic/tools/inctl/cmd:root",
