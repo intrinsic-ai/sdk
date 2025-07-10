@@ -136,6 +136,11 @@ message ExtendedDocumentation {
   // to the documentation that shows a practical demonstration of how the
   // skill can be applied in a real-world scenario.
   string usage_example = 2;
+
+  // This field describes the error handling strategy for the skill.
+  // It can include information about how to handle specific errors,
+  // such as retry strategies or recovery procedures.
+  string error_handling = 3;
 }
 
 message SkillAssets {
