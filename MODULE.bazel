@@ -245,3 +245,7 @@ use_repo(
     "xxd",
     # go/keep-sorted end
 )
+
+bazel_lib_toolchains = use_extension("@aspect_bazel_lib//lib:extensions.bzl", "toolchains")
+bazel_lib_toolchains.jq()
+use_repo(bazel_lib_toolchains, "jq")
