@@ -60,6 +60,7 @@ var (
 		atypepb.AssetType_ASSET_TYPE_SKILL:           45,
 		atypepb.AssetType_ASSET_TYPE_HARDWARE_DEVICE: 80,
 		atypepb.AssetType_ASSET_TYPE_DATA:            80,
+		atypepb.AssetType_ASSET_TYPE_PROCESS:         80,
 	}
 )
 
