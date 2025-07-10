@@ -35,7 +35,12 @@ cc_library(
     name = "segment_info_utils",
     srcs = ["segment_info_utils.cc"],
     hdrs = ["segment_info_utils.h"],
-    deps = [":segment_info_fbs_cc"],
+    deps = [
+        ":segment_info_fbs_cc",
+        "//intrinsic/icon/flatbuffers:fixed_string",
+        "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/status:statusor",
+    ],
 )
 
 cc_library(
@@ -92,6 +97,7 @@ cc_library(
         ":domain_socket_utils",
         ":segment_info_fbs_cc",
         ":shared_memory_manager",
+        "//intrinsic/icon/flatbuffers:fixed_string",
         "//intrinsic/icon/hal:hardware_interface_registry",
         "//intrinsic/util/status:status_macros",
         "//intrinsic/util/thread",

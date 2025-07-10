@@ -218,8 +218,9 @@ absl::StatusOr<domain_socket_internal::ShmDescriptors> GetSingleMessage(
   }
 
   const int kNumNames = descriptors.transfer_data.file_descriptor_names.size();
-  const auto segment_names = GetNamesFromFileDescriptorNames(
-      descriptors.transfer_data.file_descriptor_names);
+  INTR_ASSIGN_OR_RETURN(const auto segment_names,
+                        GetNamesFromFileDescriptorNames(
+                            descriptors.transfer_data.file_descriptor_names));
 
   // Parses fd data.
   struct cmsghdr* cmsg = CMSG_FIRSTHDR(&first_msghdr);
@@ -345,8 +346,9 @@ GetSegmentNameToFileDescriptorMap(absl::string_view socket_directory,
     remaining_messages = expected_num_messages - expected_message_index;
     expected_message_index++;
 
-    std::vector<std::string> names = GetNamesFromFileDescriptorNames(
-        message.transfer_data.file_descriptor_names);
+    INTR_ASSIGN_OR_RETURN(std::vector<std::string> names,
+                          GetNamesFromFileDescriptorNames(
+                              message.transfer_data.file_descriptor_names));
 
     if (names.size() != message.file_descriptors_in_order.size()) {
       return absl::FailedPreconditionError(

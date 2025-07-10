@@ -228,7 +228,7 @@ GetHardwareModuleInfo(
 }
 
 // Extracts the names of the shared memory segments.
-inline std::vector<std::string> GetInterfacesFromModuleInfo(
+inline absl::StatusOr<std::vector<std::string>> GetInterfacesFromModuleInfo(
     const intrinsic_fbs::SegmentInfo& segment_info) {
   return GetNamesFromSegmentInfo(segment_info);
 }
@@ -236,7 +236,8 @@ inline std::vector<std::string> GetInterfacesFromModuleInfo(
 // Extracts the names of the shared memory segments that are marked as required.
 //
 // Subset of GetInterfacesFromModuleInfo.
-inline std::vector<std::string> GetRequiredInterfacesFromModuleInfo(
+inline absl::StatusOr<std::vector<std::string>>
+GetRequiredInterfacesFromModuleInfo(
     const intrinsic_fbs::SegmentInfo& segment_info) {
   return GetRequiredInterfaceNamesFromSegmentInfo(segment_info);
 }

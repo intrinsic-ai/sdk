@@ -26,6 +26,7 @@
 #include "absl/synchronization/notification.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
+#include "intrinsic/icon/flatbuffers/fixed_string.h"
 #include "intrinsic/icon/hal/get_hardware_interface.h"
 #include "intrinsic/icon/interprocess/shared_memory_manager/domain_socket_utils.h"
 #include "intrinsic/icon/interprocess/shared_memory_manager/segment_info.fbs.h"
@@ -255,47 +256,9 @@ DomainSocketServer::PrepareMessages(
          (map_it != segment_name_to_file_descriptor_map.end());
          ++map_it, fd_names.mutate_size(fd_names.size() + 1)) {
       intrinsic_fbs::SegmentName segment_name;
-      const int kMaxSegmentStringSize = segment_name.value()->size();
-      const auto& name = map_it->first;
-      // fbs doesn't have char as datatype, only int8_t which is byte
-      // compatible.
-      auto* data =
-          reinterpret_cast<char*>(segment_name.mutable_value()->Data());
-      std::memset(data, '\0', kMaxSegmentStringSize);
-      // bytes is the number of bytes that would have been written if the
-      // string was not truncated, not counting the terminal null character.
-      if (const int bytes =
-              absl::SNPrintF(data, kMaxSegmentStringSize, "%s", name);
-          bytes != name.size()) {
-        // errno is only set when the return value is negative.
-        if (bytes < 0) {
-          return absl::InternalError(
-              absl::StrCat("Failed to copy segment name '", name,
-                           "'  to buffer with Error: ", strerror(errno)));
-        }
+      INTR_RETURN_IF_ERROR(intrinsic_fbs::StringCopy(
+          segment_name.mutable_value(), map_it->first));
 
-        if (bytes < name.size()) {
-          return absl::InternalError(
-              absl::StrCat("Wrote fewer bytes (", bytes, ") than expected (",
-                           name.size(), ") for segment name '", name,
-                           "'. Segment name may contain a stray null byte."));
-        }
-        // SNPrintF automatically truncates the string to fit into the buffer.
-        // bytes doesn't count the terminating zero, but we need
-        // room in our buffer for it.
-        if (bytes > (kMaxSegmentStringSize - 1)) {
-          return absl::InternalError(
-              absl::StrCat("Segment name '", name,
-                           "' is longer than maximum allowed length (",
-                           kMaxSegmentStringSize - 1, ")"));
-        }
-
-        // E.g. null byte in the string.
-        return absl::InternalError(absl::StrCat(
-            "Failed to copy segment name '", name,
-            "'  to buffer. SNPrintF returned ", bytes,
-            " bytes, but the segment name has ", name.size(), " bytes)"));
-      }
       descriptors.transfer_data.file_descriptor_names.mutable_names()->Mutate(
           fd_names.size(), segment_name);
 
