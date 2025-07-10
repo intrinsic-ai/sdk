@@ -23,6 +23,7 @@ import (
 	"go.opencensus.io/plugin/ocgrpc"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/trace"
+	"google.golang.org/grpc/status"
 )
 
 // tracingConfig contains the configuration parameters for tracing.
@@ -510,4 +511,17 @@ func SetErrorf(span *trace.Span, statusCode int, format string, a ...any) {
 		return
 	}
 	span.SetStatus(trace.Status{Code: int32(statusCode), Message: fmt.Sprintf(format, a...)})
+}
+
+// StatusWithError takes span and error and treats error as grpc status
+// to set status on the span. Returns error for easy daisy-chaining.
+func StatusWithError(span *trace.Span, err error) error {
+	if err != nil {
+		errStat, _ := status.FromError(err)
+		span.SetStatus(trace.Status{
+			Code:    int32(errStat.Code()),
+			Message: errStat.Message(),
+		})
+	}
+	return err
 }

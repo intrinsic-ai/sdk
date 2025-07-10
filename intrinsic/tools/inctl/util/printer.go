@@ -6,6 +6,7 @@ package printer
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -467,6 +468,20 @@ func WithTableFromValue(tc TableConfig, value any, order ColumnOrdering) Option 
 	}
 }
 
+// WithPrettyJSON is printer option which prints JSON with indentations.
+func WithPrettyJSON() Option {
+	return func(ot OutputType, printer any) error {
+		if ot == OutputTypeJSON {
+			jsonP, ok := printer.(*jsonPrinter)
+			if !ok {
+				return errors.New("JSON format indicated but printer not *jsonPrinter")
+			}
+			jsonP.enc.SetIndent("", "\t")
+		}
+		return nil
+	}
+}
+
 func tableColumnsFromValue(tag string, value any) ([]string, error) {
 	reflctr, err := newReflectorFromTags(value, tag)
 	if err != nil {
@@ -749,4 +764,29 @@ func Capitalize(name string) string {
 	}
 
 	return string(unicode.ToUpper(rune(name[0]))) + name[1:]
+}
+
+// PrettyHeaderColumn translates JSON snake cases into spaces.
+func PrettyHeaderColumn(name string) string {
+	if name == "" {
+		return ""
+	}
+	name = strings.ReplaceAll(name, "_", " ")
+	name = strings.ReplaceAll(name, "-", " ")
+	return Capitalize(name)
+}
+
+// Ellipses shorten text and adds ellipses into the end if needed.
+func Ellipses(s string, max int) string {
+	if max < 0 {
+		return s
+	}
+	sl := len(s)
+	if max < 4 && sl > 3 {
+		return "..."
+	}
+	if sl <= max {
+		return s
+	}
+	return s[:(max-3)] + "..."
 }

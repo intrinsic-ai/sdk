@@ -16,6 +16,7 @@ go_library(
         "@io_opencensus_go_contrib_exporter_ocagent//:go_default_library",
         "@io_opencensus_go_contrib_exporter_prometheus//:go_default_library",
         "@io_opencensus_go_contrib_exporter_stackdriver//:go_default_library",
+        "@org_golang_google_grpc//status:go_default_library",
     ],
 )
 
