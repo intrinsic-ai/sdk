@@ -252,6 +252,15 @@ message NameserverConfig {
   repeated string addresses = 2;
 }
 
+// EtherType lists IP or non-IP protocols that are or can be used on Ethernet
+// interfaces.
+enum EtherType {
+  // UNSPECIFIED is used for IP interfaces (realtime and non-realtime).
+  ETHER_TYPE_UNSPECIFIED = 0;
+  // ETHERCAT is used for EtherCAT interfaces.
+  ETHER_TYPE_ETHERCAT = 1;
+}
+
 // IntOSInterfaceConfig represents the configuration of a single on-prem
 // interface.
 message IntOSInterfaceConfig {
@@ -351,6 +360,12 @@ message IntOSInterfaceStatus {
   bool has_default_route = 8 [(google.api.field_behavior) = OPTIONAL];
   // The display name of the interface.
   string display_name = 9 [(google.api.field_behavior) = OPTIONAL];
+
+  // Indicates whether this interface supports EtherCAT or other specialized
+  // protocols. If empty / not present, this is an older OS that doesn't report
+  // compatibility.
+  repeated EtherType supported_ether_types = 10
+      [(google.api.field_behavior) = OPTIONAL];
 }
 
 // The image type specifies which features (like SSH server) are compiled into
