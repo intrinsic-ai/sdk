@@ -8,6 +8,27 @@ import "intrinsic/icon/proto/logging_mode.proto";
 import "intrinsic/icon/server/config/realtime_control_config.proto";
 import "intrinsic/icon/server/config/services_config.proto";
 
+message HardwareConfig {
+  message OperationalHardware {}
+  message CellControlHardware {}
+
+  // A hardware module can be an operational hardware module (which is the
+  // default) or a cell control hardware module.
+  // Depending on which value in `group` is set, the real-time control service
+  // treats the corresponding hardware module differently. It handles all
+  // operational hardware modules (the default if group is unset) as a single
+  // group. If any hardware module (operational or cell control) faults, the
+  // service disables all operational hardware modules.
+  // If there are cell control hardware modules, the real-time control service
+  // treats them a another group, and does not disable cell control hardware
+  // modules if an operational hardware module faults. There is also an option
+  // for the DisableMotion operation to skip cell control hardware modules.
+  oneof group {
+    OperationalHardware operational_hardware = 1;  // Default.
+    CellControlHardware cell_control_hardware = 2;
+  }
+}
+
 message DeactivatedHardwareConfiguration {
   // Hardware module names that will not be connected to on startup.
   repeated string hardware_module_names = 1;
@@ -32,6 +53,10 @@ message IconMainConfig {
   // What is the name of the hardware module that runs the clock. If empty then
   // main loop internally runs the clock.
   string hardware_module_that_drives_clock = 7;
+  // Hardware module specific config like keeping hardware enabled when other
+  // hardware faults.
+  // The key must match an entry in `hardware_module_names`.
+  map<string, HardwareConfig> hardware_config = 16;
   // Read and Write operations to the hardware modules will error if they take
   // longer than this value.
   double hardware_module_read_write_timeout_seconds = 8;
