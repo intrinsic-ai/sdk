@@ -261,6 +261,24 @@ class SkillsTest(parameterized.TestCase):
     with self.assertRaises(AttributeError):
       _ = skills.foo.skill5
 
+  def test_skills_with_same_name_but_different_packages(self):
+    skill_infos = [
+        self._utils.create_parameterless_skill_info('ai.intr.my_skill'),
+        self._utils.create_parameterless_skill_info('com.foo.my_skill'),
+    ]
+
+    skills = skill_providing.Skills(
+        self._utils.create_skill_registry_for_skill_infos(skill_infos),
+        self._utils.create_empty_resource_registry(),
+    )
+
+    self.assertIsInstance(
+        skills.ai.intr.my_skill(), skill_generation.GeneratedSkill
+    )
+    self.assertIsInstance(
+        skills.com.foo.my_skill(), skill_generation.GeneratedSkill
+    )
+
   def test_skills_dict_access(self):
     """Tests id-string-based access via __getitem__ (skills['<skill_id>'])."""
     skill_infos = [

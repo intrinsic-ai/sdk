@@ -183,7 +183,7 @@ class Skills(providers.SkillProvider):
     # Get handles for all selectors that we need in the loop below in a single
     # batch request for performance reasons.
     capability_names_batch = []
-    for skill_info in self._skills_by_name.values():
+    for skill_info in skill_infos:
       for slot_selector in skill_info.skill_proto.resource_selectors.values():
         capability_names_batch.append(slot_selector.capability_names)
 
@@ -193,22 +193,28 @@ class Skills(providers.SkillProvider):
 
     # Update compatible resources for skills
     selector_index = 0
-    for skill_name, skill_info in self._skills_by_name.items():
-      self._compatible_resources_by_name[skill_name] = {}
+    for skill_info in skill_infos:
+      skill_name = skill_info.skill_name
+      is_represented_by_name = (
+          self._skills_by_name[skill_name].id == skill_info.id
+      )
+
+      if is_represented_by_name:
+        self._compatible_resources_by_name[skill_name] = {}
       self._compatible_resources_by_id[skill_info.id] = {}
-      for slot in skill_info.skill_proto.resource_selectors:
+      for resource_slot in skill_info.skill_proto.resource_selectors:
         handles = handles_by_selector[selector_index]
-        resource_slot = slot
-        if resource_slot in skill_info.field_names:
-          resource_slot = slot + skill_utils.RESOURCE_SLOT_DECONFLICT_SUFFIX
-        self._compatible_resources_by_name[skill_name][resource_slot] = (
-            resources.ResourceListImpl(
-                [provided.ResourceHandle(h) for h in handles]
-            )
+        slot = resource_slot
+        if slot in skill_info.field_names:
+          slot = slot + skill_utils.RESOURCE_SLOT_DECONFLICT_SUFFIX
+        resource_list = resources.ResourceListImpl(
+            [provided.ResourceHandle(h) for h in handles]
         )
-        self._compatible_resources_by_id[skill_info.id][resource_slot] = (
-            self._compatible_resources_by_name[skill_name][resource_slot]
-        )
+
+        if is_represented_by_name:
+          self._compatible_resources_by_name[skill_name][slot] = resource_list
+        self._compatible_resources_by_id[skill_info.id][slot] = resource_list
+
         selector_index += 1
 
     package_names = {
