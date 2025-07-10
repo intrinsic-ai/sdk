@@ -196,7 +196,7 @@ PYBIND11_MODULE(pubsub, m) {
       .def("GetAll", &GetAll)
       .def("GetAllSynchronous", &GetAllSynchronous, pybind11::arg("keyexpr"),
            pybind11::arg("timeout") = 10)
-      .def("List", &ListAllKeys, pybind11::arg("timeout") = 10)
+      .def("ListAllKeys", &ListAllKeys, pybind11::arg("timeout") = 10)
       .def("Delete", &KeyValueStore::Delete, pybind11::arg("key"))
       .def("AdminCloudCopy", &AdminCloudCopy, pybind11::arg("source_key"),
            pybind11::arg("target_key"), pybind11::arg("endpoint"),
