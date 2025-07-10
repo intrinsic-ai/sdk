@@ -88,41 +88,6 @@ message DeviceConfig {
 }
 
 message SimBusModuleConfig {
-  optional string world_id = 1;
-  // Resource IDs to take sim devices from. The sim_bus HWM will automatically
-  // create hardware interfaces based on the corresponding World entities.
-  // If not present, defaults to the resource ID of the hardware module itself
-  // (if that is available).
-  repeated string resource_ids_for_devices = 2;
-  // Optional resource ID to extract a simulation service port from.
-  //
-  // ONLY USE THIS IF YOUR RESOURCE FAILS TO START WITH JUST
-  // `resource_ids_for_devices`
-  //
-  // The HWM tries to be smart about finding a sim port, as explained below.
-  //
-  // The HWM will check a number of resources *and their parents* for a
-  // simulation port. The HWM checks these resources (in order!):
-  //
-  // 1. `resource_id_for_timeslicer_port` – If this is given, and neither it nor
-  //    its parents have a timeslicer port, the HWM reports an error, since the
-  //    user explicitly expected there to be a sim port there.
-  // 2. The resources named in `resource_ids_for_devices`
-  // 3. The hardware module's resource ID
-  //
-  // Use this to connect multiple hardware modules to the same simulation
-  // service, even if their models are not attached to one another. If the
-  // models *are* attached, things should just work. Not all models open up a
-  // separate simulation port, but sometimes we want to break things up into
-  // multiple hardware modules.
-  //
-  // As an example, a robot with a force/torque sensor might use different
-  // hardware modules for the two, but its simulation might only open a single
-  // port.
-  //
-  // In this case, we want to have two simulated hardware modules to mirror the
-  // real ones, and both need to connect to the same simulation port.
-  optional string resource_id_for_timeslicer_port = 3;
   // Map from device names to sim device configs. Use this in situations
   // where there is no resource instance associated with a simulated device's
   // plugin tag. Otherwise, prefer using `resource_ids_for_devices`.
@@ -146,10 +111,6 @@ message SimBusModuleConfig {
   // you're writing a SimBusModuleConfig proto, you probably know how to deal
   // with this.
   optional intrinsic_proto.icon.DigitalIOs dio_config = 5;
-  // Overrides sim server address (in hostname:port format). Only use this for
-  // testing! If omitted, the HWM retrieves the hostname from the ModuleConfig,
-  // and the port from the World entity.
-  optional string sim_server_address_testonly = 7;
   // Overrides world server address (in hostname:port format). Only use this for
   // testing!
   optional string world_server_address_testonly = 8;
@@ -164,6 +125,8 @@ message SimBusModuleConfig {
   // sensors are made available, and so on.
   optional intrinsic_proto.sim.SimHardwareModuleConfig new_sim_api_config = 9;
 
-  reserved 6;
-  reserved "cycle_duration";
+  reserved 1, 2, 3, 6, 7;
+  reserved "world_id", "resource_ids_for_devices",
+      "resource_id_for_timeslicer_port", "cycle_duration",
+      "sim_server_address_testonly";
 }
