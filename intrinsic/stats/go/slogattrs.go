@@ -58,7 +58,7 @@ func NewHandler(projectName string, handler slog.Handler) slog.Handler {
 
 // SetDefaultLogger reconfigures slog default logger to use ContextHandler
 func SetDefaultLogger(projectName string, options *slog.HandlerOptions) {
-	handler := NewHandler(projectName, slog.NewTextHandler(os.Stdout, options))
+	handler := NewHandler(projectName, slog.NewJSONHandler(os.Stdout, options))
 	logger := slog.New(handler)
 	slog.SetDefault(logger)
 }
