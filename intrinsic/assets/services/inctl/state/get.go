@@ -13,9 +13,10 @@ import (
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/assets/services/inctl/state/stateutils"
+	"intrinsic/tools/inctl/util/printer"
+
 	systemservicestategrpcpb "intrinsic/assets/services/proto/v1/system_service_state_go_grpc_proto"
 	systemservicestatepb "intrinsic/assets/services/proto/v1/system_service_state_go_grpc_proto"
-	"intrinsic/tools/inctl/util/printer"
 )
 
 // Command returns a command to get the state of a running service asset in a solution.

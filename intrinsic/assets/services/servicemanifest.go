@@ -10,13 +10,14 @@ import (
 
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
-	anypb "google.golang.org/protobuf/types/known/anypb"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/metadatautils"
-	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
-	svpb "intrinsic/assets/services/proto/service_volume_go_proto"
 	"intrinsic/util/go/validate"
 	"intrinsic/util/proto/names"
+
+	anypb "google.golang.org/protobuf/types/known/anypb"
+	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
+	svpb "intrinsic/assets/services/proto/service_volume_go_proto"
 )
 
 var (

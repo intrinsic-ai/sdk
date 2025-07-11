@@ -13,16 +13,17 @@ import (
 
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
-	fmpb "google.golang.org/protobuf/types/known/fieldmaskpb"
-	clustermanagergrpcpb "intrinsic/frontend/cloud/api/v1/clustermanager_api_go_grpc_proto"
-	clustermanagerpb "intrinsic/frontend/cloud/api/v1/clustermanager_api_go_grpc_proto"
 	"intrinsic/frontend/cloud/devicemanager/version"
-	inversiongrpcpb "intrinsic/kubernetes/inversion/v1/inversion_go_grpc_proto"
-	inversionpb "intrinsic/kubernetes/inversion/v1/inversion_go_grpc_proto"
 	"intrinsic/skills/tools/skill/cmd/dialerutil"
 	"intrinsic/tools/inctl/auth/auth"
 	utilgrpc "intrinsic/tools/inctl/util/grpc"
 	"intrinsic/tools/inctl/util/orgutil"
+
+	fmpb "google.golang.org/protobuf/types/known/fieldmaskpb"
+	clustermanagergrpcpb "intrinsic/frontend/cloud/api/v1/clustermanager_api_go_grpc_proto"
+	clustermanagerpb "intrinsic/frontend/cloud/api/v1/clustermanager_api_go_grpc_proto"
+	inversiongrpcpb "intrinsic/kubernetes/inversion/v1/inversion_go_grpc_proto"
+	inversionpb "intrinsic/kubernetes/inversion/v1/inversion_go_grpc_proto"
 )
 
 var (

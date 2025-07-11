@@ -8,12 +8,13 @@ import (
 
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
-	workcellmodeservicegrpcpb "intrinsic/kubernetes/workcellmode/proto/workcellmode_service_go_grpc_proto"
-	workcellmodeservicepb "intrinsic/kubernetes/workcellmode/proto/workcellmode_service_go_grpc_proto"
 	"intrinsic/tools/inctl/cmd/root"
 	utilgrpc "intrinsic/tools/inctl/util/grpc"
 	"intrinsic/tools/inctl/util/orgutil"
 	"intrinsic/tools/inctl/util/printer"
+
+	workcellmodeservicegrpcpb "intrinsic/kubernetes/workcellmode/proto/workcellmode_service_go_grpc_proto"
+	workcellmodeservicepb "intrinsic/kubernetes/workcellmode/proto/workcellmode_service_go_grpc_proto"
 )
 
 var (

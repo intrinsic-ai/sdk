@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"google.golang.org/protobuf/proto"
+
 	anypb "google.golang.org/protobuf/types/known/anypb"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	diamondapb "intrinsic/util/proto/testing/diamond_a_go_proto"

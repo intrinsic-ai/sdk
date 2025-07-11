@@ -8,14 +8,15 @@ import (
 	"github.com/spf13/cobra"
 	"google.golang.org/protobuf/proto"
 	"intrinsic/assets/catalog/assetdescriptions"
-	acgrpcpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
-	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/assets/listutils"
-	viewpb "intrinsic/assets/proto/view_go_proto"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/printer"
+
+	acgrpcpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
+	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
+	viewpb "intrinsic/assets/proto/view_go_proto"
 )
 
 const pageSize int64 = 50

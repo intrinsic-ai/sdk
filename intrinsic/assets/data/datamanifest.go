@@ -7,9 +7,10 @@ import (
 	"fmt"
 
 	"google.golang.org/protobuf/reflect/protoregistry"
-	dmpb "intrinsic/assets/data/proto/v1/data_manifest_go_proto"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/metadatautils"
+
+	dmpb "intrinsic/assets/data/proto/v1/data_manifest_go_proto"
 )
 
 // ValidateDataManifestOptions contains options for validating a DataManifest.

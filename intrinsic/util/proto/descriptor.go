@@ -6,10 +6,11 @@ package descriptor
 import (
 	"fmt"
 
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
+
+	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
 
 // mergeFileDescriptorSetsOptions contains options for MergeFileDescriptorSets.

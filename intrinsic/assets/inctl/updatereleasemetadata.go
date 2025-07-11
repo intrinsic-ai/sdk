@@ -11,15 +11,16 @@ import (
 	"unicode"
 
 	"github.com/spf13/cobra"
-	fmpb "google.golang.org/protobuf/types/known/fieldmaskpb"
-	acgrpcpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
-	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
-	rmpb "intrinsic/assets/catalog/proto/v1/release_metadata_go_proto"
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/assets/idutils"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/printer"
+
+	fmpb "google.golang.org/protobuf/types/known/fieldmaskpb"
+	acgrpcpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
+	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
+	rmpb "intrinsic/assets/catalog/proto/v1/release_metadata_go_proto"
 )
 
 // GetCommand returns the command to get asset deployment data.

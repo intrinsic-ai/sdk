@@ -9,6 +9,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/testing/protocmp"
+
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	apb "intrinsic/util/proto/testing/diamond_a_go_proto"
 	bpb "intrinsic/util/proto/testing/diamond_b_go_proto"

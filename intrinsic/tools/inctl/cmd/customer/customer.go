@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -19,6 +18,8 @@ import (
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/cobrautil"
 	"intrinsic/tools/inctl/util/orgutil"
+
+	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 )
 
 var vipr = viper.New()

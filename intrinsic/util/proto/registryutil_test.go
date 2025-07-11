@@ -5,13 +5,14 @@ package registryutil
 import (
 	"testing"
 
-	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/testing/protocmp"
+
+	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	anypb "google.golang.org/protobuf/types/known/anypb"
 	apb "intrinsic/util/proto/testing/diamond_a_go_proto"
 	bpb "intrinsic/util/proto/testing/diamond_b_go_proto"

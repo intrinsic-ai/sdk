@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"intrinsic/assets/metadatautils"
+
 	sompb "intrinsic/assets/scene_objects/proto/scene_object_manifest_go_proto"
 )
 

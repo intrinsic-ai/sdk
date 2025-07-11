@@ -8,9 +8,10 @@ import (
 	"fmt"
 	"sync"
 
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"intrinsic/util/proto/registryutil"
+
+	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
 
 // Resolver fulfills prototext's Resolver interface to Marshal and Unmarshal

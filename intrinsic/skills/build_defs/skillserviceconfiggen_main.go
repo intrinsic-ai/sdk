@@ -8,11 +8,12 @@ import (
 
 	"flag"
 	log "github.com/golang/glog"
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	intrinsic "intrinsic/production/intrinsic"
 	sscg "intrinsic/skills/build_defs/skillserviceconfiggen"
-	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 	"intrinsic/util/proto/protoio"
+
+	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 )
 
 var (

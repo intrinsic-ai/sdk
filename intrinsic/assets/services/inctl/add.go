@@ -12,19 +12,20 @@ import (
 	"os/signal"
 	"time"
 
-	lrogrpcpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
-	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	"github.com/spf13/cobra"
 	"google.golang.org/protobuf/proto"
-	anypb "google.golang.org/protobuf/types/known/anypb"
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/assets/idutils"
+	"intrinsic/assets/version"
+
+	lrogrpcpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
+	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
+	anypb "google.golang.org/protobuf/types/known/anypb"
 	adgrpcpb "intrinsic/assets/proto/asset_deployment_go_grpc_proto"
 	adpb "intrinsic/assets/proto/asset_deployment_go_grpc_proto"
 	atpb "intrinsic/assets/proto/asset_type_go_proto"
 	iagrpcpb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
-	"intrinsic/assets/version"
 )
 
 const (

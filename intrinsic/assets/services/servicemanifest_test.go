@@ -5,10 +5,11 @@ package servicemanifest
 import (
 	"testing"
 
-	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoregistry"
+
+	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	idpb "intrinsic/assets/proto/id_go_proto"
 	vpb "intrinsic/assets/proto/vendor_go_proto"
 	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"

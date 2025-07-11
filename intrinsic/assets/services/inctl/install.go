@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"log"
 
-	lrogrpcpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
-	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc/status"
@@ -17,10 +15,13 @@ import (
 	"intrinsic/assets/cmdutils"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/imagetransfer"
-	iagrpcpb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
-	iapb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
 	"intrinsic/skills/tools/resource/cmd/bundleimages"
 	"intrinsic/skills/tools/skill/cmd/directupload/directupload"
+
+	lrogrpcpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
+	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
+	iagrpcpb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
+	iapb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
 )
 
 // GetCommand returns a command to install a Service.

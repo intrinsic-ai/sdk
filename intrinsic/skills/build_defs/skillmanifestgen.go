@@ -11,9 +11,10 @@ import (
 	log "github.com/golang/glog"
 	intrinsic "intrinsic/production/intrinsic"
 	"intrinsic/skills/internal/skillmanifest"
-	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 	"intrinsic/util/proto/protoio"
 	"intrinsic/util/proto/registryutil"
+
+	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 )
 
 var (

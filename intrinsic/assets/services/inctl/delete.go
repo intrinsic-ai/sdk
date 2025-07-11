@@ -12,11 +12,12 @@ import (
 	"os/signal"
 	"time"
 
-	lrogrpcpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
-	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	"github.com/spf13/cobra"
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
+
+	lrogrpcpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
+	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	adgrpcpb "intrinsic/assets/proto/asset_deployment_go_grpc_proto"
 	adpb "intrinsic/assets/proto/asset_deployment_go_grpc_proto"
 )

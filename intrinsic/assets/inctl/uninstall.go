@@ -7,13 +7,14 @@ import (
 	"fmt"
 	"log"
 
-	lrogrpcpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
-	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc/status"
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/assets/idutils"
+
+	lrogrpcpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
+	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	iagrpcpb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
 	iapb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
 )

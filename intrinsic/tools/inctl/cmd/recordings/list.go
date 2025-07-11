@@ -10,11 +10,12 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"intrinsic/tools/inctl/util/orgutil"
+
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	bmpb "intrinsic/logging/proto/bag_metadata_go_proto"
 	grpcpb "intrinsic/logging/proto/bag_packager_service_go_grpc_proto"
 	pb "intrinsic/logging/proto/bag_packager_service_go_grpc_proto"
-	"intrinsic/tools/inctl/util/orgutil"
 )
 
 var (

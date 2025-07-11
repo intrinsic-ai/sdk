@@ -6,11 +6,12 @@ package main
 import (
 	"flag"
 	log "github.com/golang/glog"
-	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"intrinsic/assets/bundleio"
 	intrinsic "intrinsic/production/intrinsic"
-	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 	"intrinsic/util/proto/protoio"
+
+	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 )
 
 var (

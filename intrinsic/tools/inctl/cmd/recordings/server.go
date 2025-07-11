@@ -11,8 +11,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"intrinsic/assets/cmdutils"
-	grpcpb "intrinsic/logging/proto/bag_packager_service_go_grpc_proto"
 	"intrinsic/tools/inctl/auth/auth"
+
+	grpcpb "intrinsic/logging/proto/bag_packager_service_go_grpc_proto"
 )
 
 func newConn(ctx context.Context) (*grpc.ClientConn, error) {

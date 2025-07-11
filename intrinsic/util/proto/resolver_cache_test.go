@@ -7,7 +7,6 @@ import (
 	"errors"
 	"testing"
 
-	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"golang.org/x/sync/errgroup"
@@ -15,10 +14,12 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/testing/protocmp"
+	"intrinsic/util/proto/testing/prototestutil"
+
+	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	anypb "google.golang.org/protobuf/types/known/anypb"
 	apb "intrinsic/util/proto/testing/diamond_a_go_proto"
 	bpb "intrinsic/util/proto/testing/diamond_b_go_proto"
-	"intrinsic/util/proto/testing/prototestutil"
 )
 
 var (

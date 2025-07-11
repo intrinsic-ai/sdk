@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"google.golang.org/protobuf/proto"
+
 	idpb "intrinsic/assets/proto/id_go_proto"
 	vendorpb "intrinsic/assets/proto/vendor_go_proto"
 	sompb "intrinsic/assets/scene_objects/proto/scene_object_manifest_go_proto"

@@ -15,10 +15,11 @@ import (
 	"github.com/pkg/errors"
 	"intrinsic/assets/bundleio"
 	"intrinsic/assets/idutils"
-	idpb "intrinsic/assets/proto/id_go_proto"
 	"intrinsic/kubernetes/workcell_spec/imagetags"
-	ipb "intrinsic/kubernetes/workcell_spec/proto/image_go_proto"
 	"intrinsic/skills/tools/resource/cmd/readeropener"
+
+	idpb "intrinsic/assets/proto/id_go_proto"
+	ipb "intrinsic/kubernetes/workcell_spec/proto/image_go_proto"
 )
 
 const (

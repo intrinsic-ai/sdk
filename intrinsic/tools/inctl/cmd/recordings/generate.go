@@ -9,8 +9,9 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	pb "intrinsic/logging/proto/bag_packager_service_go_grpc_proto"
 	"intrinsic/tools/inctl/util/orgutil"
+
+	pb "intrinsic/logging/proto/bag_packager_service_go_grpc_proto"
 )
 
 // Number of times to status-check the recording generation after encountering a 504 timeout error

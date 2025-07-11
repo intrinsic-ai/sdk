@@ -6,8 +6,9 @@ package config
 import (
 	"fmt"
 
-	rcpb "intrinsic/resources/proto/runtime_context_go_proto"
 	"intrinsic/util/proto/protoio"
+
+	rcpb "intrinsic/resources/proto/runtime_context_go_proto"
 )
 
 var (

@@ -8,8 +8,9 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/protobuf/testing/protocmp"
-	rcpb "intrinsic/resources/proto/runtime_context_go_proto"
 	"intrinsic/util/proto/protoio"
+
+	rcpb "intrinsic/resources/proto/runtime_context_go_proto"
 )
 
 func TestLoadRuntimeContext(t *testing.T) {

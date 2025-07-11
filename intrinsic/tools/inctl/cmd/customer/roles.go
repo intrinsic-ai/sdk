@@ -6,9 +6,9 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"intrinsic/tools/inctl/util/cobrautil"
 
 	accaccesscontrolv1pb "intrinsic/kubernetes/accounts/service/api/accesscontrol/v1/accesscontrol_go_grpc_proto"
-	"intrinsic/tools/inctl/util/cobrautil"
 )
 
 var rolesCmd = cobrautil.ParentOfNestedSubcommands("roles", "List available roles.")

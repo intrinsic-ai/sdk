@@ -4,13 +4,14 @@
 package skillserviceconfiggen
 
 import (
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"google.golang.org/protobuf/proto"
 	"intrinsic/assets/idutils"
+	sciv "intrinsic/util/proto/sourcecodeinfoview"
+
+	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 	sscpb "intrinsic/skills/proto/skill_service_config_go_proto"
 	spb "intrinsic/skills/proto/skills_go_proto"
-	sciv "intrinsic/util/proto/sourcecodeinfoview"
 )
 
 func stripSourceCodeInfo(fds *dpb.FileDescriptorSet) {
