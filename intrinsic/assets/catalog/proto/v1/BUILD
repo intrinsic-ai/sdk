@@ -18,6 +18,7 @@ proto_library(
     deps = [
         ":release_metadata_proto",
         "//intrinsic/assets/data/proto/v1:data_asset_proto",
+        "//intrinsic/assets/data/proto/v1:referenced_data_proto",
         "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_proto",
         "//intrinsic/assets/proto:asset_tag_proto",
         "//intrinsic/assets/proto:asset_type_proto",
@@ -54,6 +55,7 @@ go_proto_library(
         ":release_metadata_go_proto",
         "@org_golang_google_genproto_googleapis_api//annotations",
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
+        "//intrinsic/assets/data/proto/v1:referenced_data_go_proto",
         "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",
         "//intrinsic/assets/proto:asset_tag_go_proto",
         "//intrinsic/assets/proto:asset_type_go_proto",
@@ -74,6 +76,7 @@ go_grpc_library(
     deps = [
         ":release_metadata_go_proto",
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
+        "//intrinsic/assets/data/proto/v1:referenced_data_go_proto",
         "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",
         "//intrinsic/assets/proto:asset_tag_go_proto",
         "//intrinsic/assets/proto:asset_type_go_proto",

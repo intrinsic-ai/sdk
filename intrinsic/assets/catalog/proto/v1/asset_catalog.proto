@@ -9,6 +9,7 @@ import "google/protobuf/descriptor.proto";
 import "google/protobuf/field_mask.proto";
 import "intrinsic/assets/catalog/proto/v1/release_metadata.proto";
 import "intrinsic/assets/data/proto/v1/data_asset.proto";
+import "intrinsic/assets/data/proto/v1/referenced_data.proto";
 import "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest.proto";
 import "intrinsic/assets/proto/asset_tag.proto";
 import "intrinsic/assets/proto/asset_type.proto";
@@ -42,6 +43,20 @@ service AssetCatalog {
   // flag CANNOT be re-added later.
   rpc UpdateReleaseMetadata(UpdateReleaseMetadataRequest)
       returns (ReleaseMetadata);
+
+  // Prepares a ReferencedData so that it can be included in an asset that will
+  // be released to the catalog.
+  //
+  // The prepared form of the data to include in the asset is returned.
+  //
+  // This RPC is streaming in order to enable referenced files to be uploaded in
+  // chunks while preparing the data. The client should begin by opening a
+  // stream and sending the ReferencedData in an initial request. If the
+  // ReferencedData references a file, then the client should then send chunks
+  // of the file data until the entire file has been sent. Finally, the client
+  // should close the stream.
+  rpc PrepareReferencedData(stream PrepareReferencedDataRequest)
+      returns (PrepareReferencedDataResponse);
 }
 
 // A specific version of an asset in the catalog.
@@ -215,4 +230,19 @@ message UpdateReleaseMetadataRequest {
 
   // The list of fields to update.
   google.protobuf.FieldMask update_mask = 3;
+}
+
+message PrepareReferencedDataRequest {
+  oneof data {
+    // The ReferencedData to prepare.
+    intrinsic_proto.data.v1.ReferencedData referenced_data = 1;
+
+    // A chunk of the data to prepare.
+    bytes data_chunk = 2;
+  }
+}
+
+message PrepareReferencedDataResponse {
+  // The prepared ReferencedData.
+  intrinsic_proto.data.v1.ReferencedData referenced_data = 1;
 }
