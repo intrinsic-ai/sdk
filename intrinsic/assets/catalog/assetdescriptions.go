@@ -9,8 +9,9 @@ import (
 	"sort"
 	"strings"
 
-	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
 	"intrinsic/assets/idutils"
+
+	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
 )
 
 // Description has custom proto->json conversion to handle fields like the update timestamp.

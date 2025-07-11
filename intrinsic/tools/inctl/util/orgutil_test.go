@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/viper"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/auth/authtest"
+
 )
 
 func TestWrapCmd(t *testing.T) {

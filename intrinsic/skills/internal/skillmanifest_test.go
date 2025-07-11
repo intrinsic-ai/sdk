@@ -7,10 +7,11 @@ import (
 	"testing"
 
 	"google.golang.org/protobuf/proto"
-	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 	"intrinsic/util/proto/protoio"
 	"intrinsic/util/proto/registryutil"
 	"intrinsic/util/testing/testio"
+
+	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 )
 
 const (

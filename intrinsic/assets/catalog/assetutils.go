@@ -5,6 +5,7 @@ package assetutils
 
 import (
 	log "github.com/golang/glog"
+
 	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
 	hdmpb "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest_go_proto"
 	servicempb "intrinsic/assets/services/proto/service_manifest_go_proto"

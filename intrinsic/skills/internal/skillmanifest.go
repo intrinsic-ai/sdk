@@ -6,12 +6,13 @@ package skillmanifest
 import (
 	"fmt"
 
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/metadatautils"
-	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 	"intrinsic/util/proto/sourcecodeinfoview"
+
+	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 )
 
 // ValidateSkillManifestOptions contains options for validating a SkillManifest.
