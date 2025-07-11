@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/spf13/cobra"
-
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/orgutil"
 )

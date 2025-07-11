@@ -8,11 +8,12 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/protobuf/testing/protocmp"
+	"intrinsic/util/status/extstatus"
+
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	specpb "intrinsic/assets/proto/status_spec_go_proto"
 	ctxpb "intrinsic/logging/proto/context_go_proto"
 	espb "intrinsic/util/status/extended_status_go_proto"
-	"intrinsic/util/status/extstatus"
 )
 
 func TestInitFromList(t *testing.T) {

@@ -36,12 +36,13 @@ import (
 	"flag"
 	log "github.com/golang/glog"
 	"google.golang.org/protobuf/proto"
-	anypb "google.golang.org/protobuf/types/known/anypb"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
-	pubsubpb "intrinsic/platform/pubsub/adapters/pubsub_go_proto"
 	"intrinsic/platform/pubsub/golang/kvstore"
 	"intrinsic/platform/pubsub/golang/pubsubinterface"
 	"intrinsic/util/path_resolver/pathresolver"
+
+	anypb "google.golang.org/protobuf/types/known/anypb"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
+	pubsubpb "intrinsic/platform/pubsub/adapters/pubsub_go_proto"
 )
 
 /*

@@ -9,15 +9,16 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	epb "google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/local"
 	grpcstatus "google.golang.org/grpc/status"
 	"google.golang.org/protobuf/testing/protocmp"
+	"intrinsic/testing/grpctest"
+
+	epb "google.golang.org/genproto/googleapis/rpc/errdetails"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	ctxpb "intrinsic/logging/proto/context_go_proto"
-	"intrinsic/testing/grpctest"
 	estpb "intrinsic/util/status/extended_status_go_proto"
 	testsvcgrpcpb "intrinsic/util/status/test_service_go_grpc_proto"
 )

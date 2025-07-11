@@ -8,21 +8,22 @@ import (
 	"fmt"
 	"os"
 
-	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
-	"intrinsic/tools/inctl/cmd/root"
-	"intrinsic/tools/inctl/util/orgutil"
-
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-
-	lrpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
-	"github.com/pkg/errors"
-	fbpb "google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
+	"intrinsic/skills/tools/skill/cmd/dialerutil"
+	"intrinsic/skills/tools/skill/cmd/solutionutil"
+	"intrinsic/tools/inctl/cmd/root"
+	"intrinsic/tools/inctl/util/orgutil"
+
+	lrpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
+	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	fbpb "google.golang.org/genproto/googleapis/api/annotations"
 	btpb "intrinsic/executive/proto/behavior_tree_go_proto"
 	execgrpcpb "intrinsic/executive/proto/executive_service_go_grpc_proto"
 	exsvcpb "intrinsic/executive/proto/executive_service_go_grpc_proto"
@@ -30,8 +31,6 @@ import (
 	skillregistrygrpcpb "intrinsic/skills/proto/skill_registry_go_grpc_proto"
 	srpb "intrinsic/skills/proto/skill_registry_go_grpc_proto"
 	skillspb "intrinsic/skills/proto/skills_go_proto"
-	"intrinsic/skills/tools/skill/cmd/dialerutil"
-	"intrinsic/skills/tools/skill/cmd/solutionutil"
 )
 
 const (

@@ -13,10 +13,11 @@ import (
 	log "github.com/golang/glog"
 	"google.golang.org/grpc"
 	"intrinsic/assets/services/config"
-	vmgrpcpb "intrinsic/assets/services/examples/volume_mount/proto/v1/volume_mount_go_grpc_proto"
-	vmpb "intrinsic/assets/services/examples/volume_mount/proto/v1/volume_mount_go_grpc_proto"
 	"intrinsic/assets/services/examples/volume_mount/volumemount"
 	intrinsic "intrinsic/production/intrinsic"
+
+	vmgrpcpb "intrinsic/assets/services/examples/volume_mount/proto/v1/volume_mount_go_grpc_proto"
+	vmpb "intrinsic/assets/services/examples/volume_mount/proto/v1/volume_mount_go_grpc_proto"
 )
 
 func main() {

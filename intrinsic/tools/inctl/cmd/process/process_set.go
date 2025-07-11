@@ -14,15 +14,16 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	"intrinsic/executive/go/behaviortree"
+	"intrinsic/tools/inctl/util/orgutil"
+	"intrinsic/util/proto/registryutil"
+
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	btpb "intrinsic/executive/proto/behavior_tree_go_proto"
 	execgrpcpb "intrinsic/executive/proto/executive_service_go_grpc_proto"
 	sgrpcpb "intrinsic/frontend/solution_service/proto/solution_service_go_grpc_proto"
 	spb "intrinsic/frontend/solution_service/proto/solution_service_go_grpc_proto"
 	skillregistrygrpcpb "intrinsic/skills/proto/skill_registry_go_grpc_proto"
-	"intrinsic/tools/inctl/util/orgutil"
-	"intrinsic/util/proto/registryutil"
 )
 
 var allowedSetFormats = []string{TextProtoFormat, BinaryProtoFormat}

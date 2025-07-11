@@ -3,6 +3,8 @@
 package main
 
 import (
+	"intrinsic/tools/inctl/cmd/root"
+
 	_ "intrinsic/assets/inctl/assetcmd"
 	_ "intrinsic/assets/services/inctl/service"
 	_ "intrinsic/tools/inctl/cmd/auth/auth"
@@ -16,7 +18,6 @@ import (
 	_ "intrinsic/tools/inctl/cmd/notebook/notebook"
 	_ "intrinsic/tools/inctl/cmd/process/process"
 	_ "intrinsic/tools/inctl/cmd/recordings/recordings"
-	"intrinsic/tools/inctl/cmd/root"
 	_ "intrinsic/tools/inctl/cmd/skill"
 	_ "intrinsic/tools/inctl/cmd/solution/solution"
 	_ "intrinsic/tools/inctl/cmd/version/version"
