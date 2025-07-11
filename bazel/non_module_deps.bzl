@@ -23,6 +23,13 @@ def _non_module_deps_impl(ctx):  # @unused
             "https://storage.googleapis.com/chrome-linux-sysroot/toolchain/4f611ec025be98214164d4bf9fbe8843f58533f7/debian_bullseye_amd64_sysroot.tar.xz",
         ],
     )
+    http_archive(
+        name = "qt5",
+        build_file = Label("//intrinsic/production/external:qt5/BUILD.bazel"),
+        sha256 = "5df5be9357b425cdd70d92d4697d07e7d55d7a923f037c22dc80a78e85842d2c",
+        urls = ["https://storage.googleapis.com/chrome-linux-sysroot/toolchain/4f611ec025be98214164d4bf9fbe8843f58533f7/debian_bullseye_amd64_sysroot.tar.xz"],
+        patches = [Label("//intrinsic/production/external/patches:qt5.patch")],
+    )
 
     http_archive(
         name = "xxd",
