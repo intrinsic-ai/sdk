@@ -8,6 +8,20 @@ load("//intrinsic/icon/testing:cc_test_and_malloc_test.bzl", "cc_test_and_malloc
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
+    name = "bitset",
+    hdrs = ["bitset.h"],
+)
+
+cc_test(
+    name = "bitset_test",
+    srcs = ["bitset_test.cc"],
+    deps = [
+        ":bitset",
+        "//intrinsic/util/testing:gtest_wrapper_main",
+    ],
+)
+
+cc_library(
     name = "constants",
     hdrs = ["constants.h"],
     deps = [
