@@ -23,6 +23,7 @@ import (
 var (
 	missingServiceAllowlist = []string{
 	}
+
 )
 
 // ValidateServiceManifestOptions contains options for validating a ServiceManifest.
