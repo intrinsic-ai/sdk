@@ -1,0 +1,24 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.perception.v1;
+
+import "intrinsic/perception/proto/v1/charuco_pattern.proto";
+
+message PatternDetectionConfig {
+  // REQUIRED. Class id (e.g., "pattern-1234").
+  string name = 1;
+
+  // REQUIRED. Sets the pattern detector implementation and all pattern
+  // detector-specific configs.
+  oneof Type {
+    CharucoPatternDetectionConfig charuco_pattern_detection_config = 2;
+  }
+}
+
+// Config for Charuco pattern detector.
+message CharucoPatternDetectionConfig {
+  // Defines the ChArUco pattern outlay.
+  CharucoPattern charuco_pattern = 1;
+}
