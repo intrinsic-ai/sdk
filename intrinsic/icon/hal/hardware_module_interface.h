@@ -261,13 +261,15 @@ class HardwareModuleInterface {
   //
   // Returns kAborted to indicate a fatal fault, which requires a restart of the
   // process. The Hardware Module runtime will perform the process restart on
-  // the next clear faults call via the ResourceHealth interface.
+  // the next clear faults call via the ResourceHealth interface or the next
+  // `ClearFaults()` call via the realtime control service.
   virtual RealtimeStatus ReadStatus() = 0;
 
   // Applies newly set commands of the hardware interfaces.
   // Returns kAborted to indicate a fatal fault, which requires a restart of the
   // process. The Hardware Module runtime will perform the process restart on
-  // the next clear faults call via the ResourceHealth interface.
+  // the next clear faults call via the ResourceHealth interface or the next
+  // `ClearFaults()` call via the realtime control service.
   virtual RealtimeStatus ApplyCommand() = 0;
 };
 
