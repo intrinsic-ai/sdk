@@ -5,6 +5,8 @@
 package imagetransfer
 
 import (
+	"strings"
+
 	backoff "github.com/cenkalti/backoff/v4"
 	"github.com/google/go-containerregistry/pkg/name"
 	containerregistry "github.com/google/go-containerregistry/pkg/v1"
@@ -35,6 +37,9 @@ func (r remoteImage) Write(ref name.Reference, img containerregistry.Image) erro
 			return err
 		}
 		if err != nil {
+			if strings.Contains(err.Error(), "server sent GOAWAY and closed the connection") {
+				return err
+			}
 			return backoff.Permanent(err)
 		}
 		return nil
