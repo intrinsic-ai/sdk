@@ -126,11 +126,6 @@ func processAsset(target string, transferer imagetransfer.Transferer, flags *cmd
 			Default:    flags.GetFlagDefault(),
 			OrgPrivate: flags.GetFlagOrgPrivate(),
 		},
-		AssetSpecificMetadata: &acpb.Asset_ServiceSpecificMetadata{
-			ServiceSpecificMetadata: &acpb.Asset_ServiceMetadata{
-				ServiceProtoPrefixes: psm.GetServiceDef().GetServiceProtoPrefixes(),
-			},
-		},
 		DeploymentData: &acpb.Asset_AssetDeploymentData{
 			AssetSpecificDeploymentData: &acpb.Asset_AssetDeploymentData_ServiceSpecificDeploymentData{
 				ServiceSpecificDeploymentData: &acpb.Asset_ServiceDeploymentData{
