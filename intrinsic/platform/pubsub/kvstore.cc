@@ -177,12 +177,67 @@ absl::StatusOr<KVQuery> KeyValueStore::GetAll(absl::string_view keyexpr,
 
 absl::StatusOr<std::vector<std::string>> KeyValueStore::ListAllKeys(
     absl::Duration timeout) {
+  if (key_prefix_ == kReplicationPrefix) {
+    return absl::UnimplementedError(
+        "ListAllKeys is not supported for replicated KV store; use "
+        "ListAllOnpremKeys or ListAllGlobalKeys instead.");
+  }
   std::vector<std::string> keys;
   absl::string_view query_keyexpr = "**";
   INTR_RETURN_IF_ERROR(intrinsic::ValidZenohKey(query_keyexpr));
   INTR_ASSIGN_OR_RETURN(
       absl::StatusOr<std::string> prefixed_name,
       ZenohHandle::add_key_prefix(query_keyexpr, key_prefix_));
+  return ExecuteList(prefixed_name.value(), timeout);
+}
+
+absl::StatusOr<std::vector<std::string>> KeyValueStore::ListAllGlobalKeys(
+    absl::Duration timeout) {
+  if (key_prefix_ == kDefaultKeyPrefix) {
+    return absl::UnimplementedError(
+        "ListAllGlobalKeys is only supported for replicated KV store; use "
+        "ListAllKeys instead.");
+  }
+  std::vector<std::string> keys;
+  absl::string_view query_keyexpr = "global/**";
+  INTR_RETURN_IF_ERROR(intrinsic::ValidZenohKey(query_keyexpr));
+  INTR_ASSIGN_OR_RETURN(
+      absl::StatusOr<std::string> prefixed_name,
+      ZenohHandle::add_key_prefix(query_keyexpr, key_prefix_));
+  return ExecuteList(prefixed_name.value(), timeout);
+}
+
+absl::StatusOr<std::vector<std::string>> KeyValueStore::ListAllOnpremKeys(
+    absl::string_view workcell_name, absl::Duration timeout) {
+  if (key_prefix_ == kDefaultKeyPrefix) {
+    return absl::UnimplementedError(
+        "ListAllOnpremKeys is only supported for replicated KV store; use "
+        "ListAllKeys instead.");
+  }
+  std::vector<std::string> keys;
+  std::string query_keyexpr = absl::StrFormat("%s/**", workcell_name);
+  INTR_RETURN_IF_ERROR(intrinsic::ValidZenohKey(query_keyexpr));
+  INTR_ASSIGN_OR_RETURN(
+      absl::StatusOr<std::string> prefixed_name,
+      ZenohHandle::add_key_prefix(query_keyexpr, key_prefix_));
+  return ExecuteList(prefixed_name.value(), timeout);
+}
+
+absl::Status KeyValueStore::Delete(absl::string_view key) {
+  INTR_RETURN_IF_ERROR(intrinsic::ValidZenohKey(key));
+  INTR_ASSIGN_OR_RETURN(absl::StatusOr<std::string> prefixed_name,
+                        ZenohHandle::add_key_prefix(key, key_prefix_));
+  imw_ret_t ret = Zenoh().imw_delete_keyexpr(prefixed_name->c_str());
+  if (ret != IMW_OK) {
+    return absl::InternalError(
+        absl::StrFormat("Error deleting a key, return code: %d", ret));
+  }
+  return absl::OkStatus();
+}
+
+absl::StatusOr<std::vector<std::string>> KeyValueStore::ExecuteList(
+    absl::string_view keyexpr, absl::Duration timeout) {
+  std::vector<std::string> keys;
   absl::Notification notif;
   auto callback = std::make_unique<imw_callback_functor_t>(
       [&keys, &notif](const char* keyexpr, const void* unused_response_bytes,
@@ -197,28 +252,15 @@ absl::StatusOr<std::vector<std::string>> KeyValueStore::ListAllKeys(
   KVQuery query(std::move(callback), std::move(on_done_functor));
   imw_query_options_t query_options{
       .timeout_ms = static_cast<uint64_t>(timeout / absl::Milliseconds(1))};
-  imw_ret ret =
-      Zenoh().imw_query(prefixed_name->c_str(), zenoh_query_static_callback,
-                        zenoh_query_static_on_done, nullptr, 0,
-                        query.GetContext(), &query_options);
+  imw_ret ret = Zenoh().imw_query(keyexpr.data(), zenoh_query_static_callback,
+                                  zenoh_query_static_on_done, nullptr, 0,
+                                  query.GetContext(), &query_options);
   if (ret != IMW_OK) {
     return absl::InternalError(
         absl::StrFormat("Error getting a key, return code: %d", ret));
   }
   notif.WaitForNotificationWithTimeout(timeout);
   return std::move(keys);
-}
-
-absl::Status KeyValueStore::Delete(absl::string_view key) {
-  INTR_RETURN_IF_ERROR(intrinsic::ValidZenohKey(key));
-  INTR_ASSIGN_OR_RETURN(absl::StatusOr<std::string> prefixed_name,
-                        ZenohHandle::add_key_prefix(key, key_prefix_));
-  imw_ret_t ret = Zenoh().imw_delete_keyexpr(prefixed_name->c_str());
-  if (ret != IMW_OK) {
-    return absl::InternalError(
-        absl::StrFormat("Error deleting a key, return code: %d", ret));
-  }
-  return absl::OkStatus();
 }
 
 // We need to make a grpc call to the admin set service to copy the key value

@@ -112,8 +112,20 @@ class KeyValueStore {
   // Deletes the key from the KVStore.
   absl::Status Delete(absl::string_view key);
 
-  // Lists all keys in the KVStore.
+  // Lists all keys in the non replicated KVStore. Returns an error if called on
+  // replicated KVStore. Essentially lists keys in kv_store/**
   absl::StatusOr<std::vector<std::string>> ListAllKeys(
+      absl::Duration timeout = kDefaultGetTimeout);
+
+  // Lists all keys in the global cloud KVStore key space.
+  // Essentially lists keys in kv_store_repl/global/**
+  absl::StatusOr<std::vector<std::string>> ListAllGlobalKeys(
+      absl::Duration timeout = kDefaultGetTimeout);
+
+  // Lists all keys in the onprem replicated KVStore. Essentially lists keys in
+  // kv_store_repl/<workcell_name>/**
+  absl::StatusOr<std::vector<std::string>> ListAllOnpremKeys(
+      absl::string_view workcell_name,
       absl::Duration timeout = kDefaultGetTimeout);
 
   // Use this method to copy local key-value pairs to the cloud key value
@@ -134,6 +146,9 @@ class KeyValueStore {
 
  private:
   explicit KeyValueStore(std::optional<std::string> prefix_override);
+
+  absl::StatusOr<std::vector<std::string>> ExecuteList(
+      absl::string_view keyexpr, absl::Duration timeout);
 
   absl::StatusOr<google::protobuf::Any> GetAny(absl::string_view key,
                                                absl::Duration timeout);

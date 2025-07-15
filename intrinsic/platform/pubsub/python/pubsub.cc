@@ -107,6 +107,16 @@ absl::StatusOr<std::vector<std::string>> ListAllKeys(KeyValueStore* self,
   return self->ListAllKeys(absl::Seconds(timeout));
 }
 
+absl::StatusOr<std::vector<std::string>> ListAllGlobalKeys(KeyValueStore* self,
+                                                           int timeout) {
+  return self->ListAllGlobalKeys(absl::Seconds(timeout));
+}
+
+absl::StatusOr<std::vector<std::string>> ListAllOnpremKeys(
+    KeyValueStore* self, const std::string& workcell_name, int timeout) {
+  return self->ListAllOnpremKeys(workcell_name, absl::Seconds(timeout));
+}
+
 absl::Status AdminCloudCopy(KeyValueStore* self, const std::string& source_key,
                             const std::string& target_key,
                             const std::string& endpoint, int timeout) {
@@ -122,8 +132,8 @@ GetAllSynchronous(KeyValueStore* self, const std::string& keyexpr,
 
 struct PySubscriptionDeleter {
   void operator()(Subscription* s) {
-    // To avoid deadlock, the call to Zenoh.imw_destroy_subscription() needs to
-    // happen with the GIL released. Otherwise, the GIL and the internal
+    // To avoid deadlock, the call to Zenoh.imw_destroy_subscription() needs
+    // to happen with the GIL released. Otherwise, the GIL and the internal
     // callback mutex are potentially locked in opposite order by this thread
     // and the Zenoh callback thread pool, which can deadlock, especially on
     // high-frequency topics.
@@ -197,6 +207,10 @@ PYBIND11_MODULE(pubsub, m) {
       .def("GetAllSynchronous", &GetAllSynchronous, pybind11::arg("keyexpr"),
            pybind11::arg("timeout") = 10)
       .def("ListAllKeys", &ListAllKeys, pybind11::arg("timeout") = 10)
+      .def("ListAllGlobalKeys", &ListAllGlobalKeys,
+           pybind11::arg("timeout") = 10)
+      .def("ListAllOnpremKeys", &ListAllOnpremKeys,
+           pybind11::arg("workcell_name"), pybind11::arg("timeout") = 10)
       .def("Delete", &KeyValueStore::Delete, pybind11::arg("key"))
       .def("AdminCloudCopy", &AdminCloudCopy, pybind11::arg("source_key"),
            pybind11::arg("target_key"), pybind11::arg("endpoint"),
