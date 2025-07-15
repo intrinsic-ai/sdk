@@ -377,6 +377,7 @@ proto_library(
         ":bag_metadata_proto",
         ":downsampler_proto",
         ":log_item_proto",
+        "@com_google_protobuf//:duration_proto",
         "@com_google_protobuf//:empty_proto",
         "@com_google_protobuf//:timestamp_proto",
     ],

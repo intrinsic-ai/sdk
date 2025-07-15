@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.data_logger;
 
+import "google/protobuf/duration.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "intrinsic/logging/proto/bag_metadata.proto";
@@ -75,6 +76,14 @@ message LogOptions {
 
   // If set to `true`, logs are retained on disk via timescaledb.
   optional bool retain_on_disk = 6;
+
+  // The retention time for logs retained on disk.
+  // Only used up to second precision, ignores nanoseconds.
+  //
+  // This is only used if `retain_on_disk` is set to `true`.
+  // If this is not set, will apply the server's default retention time the
+  // first time the server encounters a matching event source.
+  optional google.protobuf.Duration retain_on_disk_retention_duration = 9;
 
   // If set to `true`, the mem buffer is written to and restored from disk.
   //
