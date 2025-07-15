@@ -1,6 +1,8 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
+load("@ai_intrinsic_sdks_pip_deps//:requirements.bzl", "requirement")
 load("@com_github_grpc_grpc//bazel:cc_grpc_library.bzl", "cc_grpc_library")
+load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
@@ -75,4 +77,11 @@ go_grpc_library(
         "//intrinsic/hardware/gpio/v1:signal_go_proto",
         "@org_golang_google_genproto_googleapis_rpc//status",
     ],
+)
+
+py_grpc_library(
+    name = "gpio_service_py_pb2_grpc",
+    srcs = [":gpio_service_proto"],
+    grpc_library = requirement("grpcio"),
+    deps = [":gpio_service_py_pb2"],
 )
