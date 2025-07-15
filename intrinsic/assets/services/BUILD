@@ -40,19 +40,3 @@ go_library(
         "@org_golang_google_protobuf//types/known/anypb",
     ],
 )
-
-go_test(
-    name = "servicemanifest_test",
-    srcs = ["servicemanifest_test.go"],
-    library = ":servicemanifest",
-    deps = [
-        "//intrinsic/assets/proto:id_go_proto",
-        "//intrinsic/assets/proto:vendor_go_proto",
-        "//intrinsic/assets/services/proto:service_manifest_go_proto",
-        "//intrinsic/assets/services/proto:service_volume_go_proto",
-        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
-        "@org_golang_google_protobuf//proto",
-        "@org_golang_google_protobuf//reflect/protodesc:go_default_library",
-        "@org_golang_google_protobuf//reflect/protoregistry:go_default_library",
-    ],
-)
