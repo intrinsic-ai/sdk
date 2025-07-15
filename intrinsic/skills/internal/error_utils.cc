@@ -83,7 +83,7 @@ absl::Status UpdateExtendedStatusOnError(
     // This should not happen, but since we cannot control the data a skill
     // developer could put anything. Hence, if we fail to interpret the data
     // just return as-is.
-    if (!es.ParseFromCord(*extended_status_payload)) {
+    if (!es.ParseFromString(*extended_status_payload)) {
       LOG(WARNING) << "Skill " << skill_id
                    << " issued an invalid extended status payload";
       return status;

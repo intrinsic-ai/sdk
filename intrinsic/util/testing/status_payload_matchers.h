@@ -55,7 +55,7 @@ class StatusPayloadProtoMatcher {
         status.GetPayload(AddTypeUrlPrefix<M>());
     if (payload.has_value()) {
       M message;
-      if (!message.ParseFromCord(*payload)) {
+      if (!message.ParseFromString(*payload)) {
         if (os) {
           *os << "which has payload '" << AddTypeUrlPrefix<M>()
               << "' but which cannot be parsed as proto '"
@@ -93,7 +93,7 @@ class StatusPayloadProtoMatcher {
       for (const google::protobuf::Any& detail : rpc_status.details()) {
         if (detail.type_url() == AddTypeUrlPrefix<M>()) {
           M message;
-          if (!message.ParseFromCord(*payload)) {
+          if (!message.ParseFromString(*payload)) {
             if (os) {
               *os << "which has payload '" << AddTypeUrlPrefix<M>()
                   << "' inside a '" << AddTypeUrlPrefix<google::rpc::Status>()

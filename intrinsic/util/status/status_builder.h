@@ -917,7 +917,7 @@ inline StatusBuilder& StatusBuilder::WrapExtendedStatusImpl(
     std::optional<absl::Cord> extended_status_payload = status_.GetPayload(
         AddTypeUrlPrefix<intrinsic_proto::status::ExtendedStatus>());
     if (extended_status_payload.has_value() &&
-        context_es.ParseFromCord(*extended_status_payload)) {
+        context_es.ParseFromString(*extended_status_payload)) {
       *extended_status.add_context() = std::move(context_es);
     } else if (wrap_mode.has_value()) {
       // No ES already present or as payload on the status_. Wrap the present
