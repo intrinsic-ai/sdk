@@ -39,6 +39,11 @@ constexpr absl::Duration kClientDefaultTimeout = absl::Seconds(20);
 // This object is moveable but not copyable.
 class Client {
  public:
+  enum HardwareGroup {
+    kAllHardware,
+    kOperationalHardwareOnly,
+  };
+
   // Constructs a Client that uses the provided `icon_channel`.
   //
   // The factory returned by `icon_channel.GetClientContextFactory()` is invoked
@@ -161,10 +166,20 @@ class Client {
   // users must be able to rely on the robot to stay enabled unless they
   // explicitly disable it (or the robot encounters a fault).
   //
-  // If the operational state of the server is already kDisabled, then this does
-  // nothing and returns absl::OkStatus(). Returns an error if the server is
-  // faulted.
-  absl::Status Disable() const;
+  // With `kOperationalHardwareOnly`, parts that only use hardware
+  // modules that are configured with
+  // `IconMainConfig.hardware_config.cell_control_hardware` will be skipped,
+  // keeping them enabled if they are enabled.
+  // One use case is to integrate cell-level control where
+  // operational robot hardware can be paused such that automatic
+  // mode is not needed, while still reading/writing input/output on a fieldbus
+  // hardware module for cell-level control.
+  // By default, the `Disable` request disables all hardware.
+  //
+  // If no state changes are needed (because the selected group of hardware is
+  // already disabled), then this does nothing and returns absl::OkStatus().
+  // Returns an error if the server is faulted.
+  absl::Status Disable(HardwareGroup group = kAllHardware) const;
 
   // Clears all faults and returns the server to an enabled state. Returns OK if
   // faults were successfully cleared.
@@ -184,8 +199,18 @@ class Client {
   // the client should retry until receiving `OkStatus`.
   absl::Status ClearFaults() const;
 
-  // Returns the operational state of the server.
+  // Returns the summarized state of the server.
+  // This is the status of all hardware and the server.
+  // It can differ from `GetCellControlHardwareStatus`, which is the state of
+  // a subset of hardware.
   absl::StatusOr<OperationalStatus> GetOperationalStatus() const;
+
+  // Returns the status of cell control hardware, which is marked with
+  // `IconMainConfig.hardware_config.cell_control_hardware`.
+  // Cell control hardware is a group of hardware modules that does not inherit
+  // faults from operational hardware, and only gets disabled when a
+  // any cell control hardware module faults (or when `Disable` is called).
+  absl::StatusOr<OperationalStatus> GetCellControlHardwareStatus() const;
 
   absl::Status SetSpeedOverride(double new_speed_override);
   absl::StatusOr<double> GetSpeedOverride() const;

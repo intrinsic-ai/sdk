@@ -338,7 +338,23 @@ message OpenWriteStreamResponse {
 message EnableRequest {}
 message EnableResponse {}
 
-message DisableRequest {}
+message DisableRequest {
+  enum HardwareGroup {
+    HARDWARE_GROUP_UNSPECIFIED = 0;
+    ALL_HARDWARE = 1;
+    OPERATIONAL_HARDWARE_ONLY = 2;
+  }
+  // With `OPERATIONAL_HARDWARE_ONLY`, parts that only use hardware modules that
+  // are configured with `IconMainConfig.hardware_config.cell_control_hardware`
+  // will be skipped, keeping them enabled if they are enabled. This is useful
+  // to disable only operational hardware, while keeping cell control hardware
+  // running. One use case is to integrate cell-level control where operational
+  // robot hardware can be paused such that automatic mode is not needed, while
+  // still reading/writing input/output on a fieldbus hardware module for
+  // cell-level control. By default, the `Disable` request disables all
+  // hardware.
+  HardwareGroup group = 1;
+}
 message DisableResponse {}
 
 message ClearFaultsRequest {}
@@ -346,7 +362,17 @@ message ClearFaultsResponse {}
 
 message GetOperationalStatusRequest {}
 message GetOperationalStatusResponse {
+  // Returns the summarized state of the server.
+  // This is the status of all hardware and the server.
   OperationalStatus operational_status = 1;
+  // The status of cell control hardware, which is marked with
+  // `IconMainConfig.hardware_config.cell_control_hardware`.
+  // Cell control hardware is a group of hardware modules that does not inherit
+  // faults from operational hardware, so it is generally kept enabled (unless
+  // any cell control hardware module faults).
+  // If no cell control hardware is configured, this is the same as
+  // `operational_status`.
+  OperationalStatus cell_control_hardware_status = 2;
 }
 
 message GetLatestStreamingOutputRequest {
@@ -588,14 +614,20 @@ service IconApi {
   rpc WatchReactions(WatchReactionsRequest)
       returns (stream WatchReactionsResponse);
 
-  // Enables all parts on the server, which performs all steps
-  // necessary to get the parts ready to receive commands.
-  // Since the server auto-enables at startup, this is only needed after a
-  // call to Disable().
-  rpc Enable(EnableRequest) returns (EnableResponse);
+  // Enables all disabled parts on the server.
+  // It is not necessary to call this on startup, because the server
+  // automatically enables.
+  // Typical use case is to re-enable after a manual call the Disable().
+  rpc Enable(EnableRequest) returns (EnableResponse) {}
 
-  // Disables all parts on the server. Ends all currently-active sessions.
-  rpc Disable(DisableRequest) returns (DisableResponse);
+  // By default, disables all parts on the server and cancels all sessions
+  // except read-only sessions. If `OPERATIONAL_HARDWARE_ONLY` is set, parts
+  // that only use cell control hardware modules will keep their status
+  // (typically staying enabled).
+  //
+  // Remember to set up adequate safety systems and conduct all risk assessments
+  // before deploying to real hardware.
+  rpc Disable(DisableRequest) returns (DisableResponse) {}
 
   // Clears all faults. If successful, ICON automatically enables all parts
   // after this finishes.
@@ -605,11 +637,20 @@ service IconApi {
   // the client should retry until receiving `OkStatus`.
   rpc ClearFaults(ClearFaultsRequest) returns (ClearFaultsResponse);
 
-  // Returns the operational status of the server.
+  // Returns the summarized status of the server.
+  // It contains the `operational_status` of the all hardware
+  // and the `cell_control_hardware_status` of cell control hardware.
+  // Cell control hardware is marked with
+  // `IconMainConfig.hardware_config.cell_control_hardware`. It is a group of
+  // hardware modules that does not inherit faults from operational hardware, so
+  // it is generally kept enabled (unless any cell control hardware module
+  // faults).
   rpc GetOperationalStatus(GetOperationalStatusRequest)
       returns (GetOperationalStatusResponse);
 
   // Requests restarting the entire server.
+  // Clears faults and enables as a side effect.
+  // This should not be needed, use ClearFaults() instead.
   rpc RestartServer(google.protobuf.Empty) returns (google.protobuf.Empty);
 
   // Updates the speed override value. The speed override factor must be between

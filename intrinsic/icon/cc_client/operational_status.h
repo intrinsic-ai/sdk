@@ -14,18 +14,25 @@
 
 namespace intrinsic::icon {
 
-// Types representing the operational status of the server.
+// Types representing the status of the server or a group of hardware.
 //
 // Use `Client::Enable()`, `Client::Disable()`,
 // `Client::ClearFaults()` and `Client::GetOperationalStatus()` to get
 // and set the operational state. See client.h for details.
 
-// Enum of possible operational states of the server.
+// The summarized state of a group of hardware (operational hardware modules or
+// cell control hardware modules) or the real-time control service.
 enum class OperationalState {
-  // Indicates that server is not ready for sessions to start, expect for
-  // read-only sessions which are possible.
+  // Indicates that this group of hardware (or the server) is not ready for
+  // active control and that no sessions can be started that need to control
+  // these parts.
+  // This is possible when:
+  // - The skill "disable_motion" or `Client::Disable()` were called.
+  // - The server or hardware is starting up.
+  // - Faults are being cleared.
+  // Read-only sessions are possible for all parts.
   // Part status is being published.
-  // `icon_client.Enable()` should be called first.
+  // `icon_client.Enable()` can be called to enable full control for all parts.
   kDisabled,
 
   // Indicates that at least one part, possibly the entire real-time control
@@ -49,8 +56,9 @@ enum class OperationalState {
   kEnabled
 };
 
-// Describes the operational status of the server, which includes the
-// operational state along with additional details when the server is kFaulted.
+// The summarized state of a group of hardware (operational hardware modules or
+// cell control hardware modules) or the real-time control service, along with a
+// fault reason when the state is `kFaulted`.
 class OperationalStatus final {
  public:
   // Constructs an OperationalStatus with state set to `kDisabled`

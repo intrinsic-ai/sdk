@@ -194,10 +194,16 @@ absl::Status Client::Enable() const {
   return ToAbslStatus(stub_->Enable(context.get(), req, &resp));
 }
 
-absl::Status Client::Disable() const {
+absl::Status Client::Disable(HardwareGroup group) const {
   std::unique_ptr<::grpc::ClientContext> context = client_context_factory_();
   context->set_deadline(::grpc::DeadlineFromDuration(timeout_));
   intrinsic_proto::icon::v1::DisableRequest req;
+  if (group == kOperationalHardwareOnly) {
+    req.set_group(
+        intrinsic_proto::icon::v1::DisableRequest::OPERATIONAL_HARDWARE_ONLY);
+  } else {
+    req.set_group(intrinsic_proto::icon::v1::DisableRequest::ALL_HARDWARE);
+  }
   intrinsic_proto::icon::v1::DisableResponse resp;
   return ToAbslStatus(stub_->Disable(context.get(), req, &resp));
 }
@@ -218,6 +224,16 @@ absl::StatusOr<OperationalStatus> Client::GetOperationalStatus() const {
   INTR_RETURN_IF_ERROR(
       ToAbslStatus(stub_->GetOperationalStatus(context.get(), req, &resp)));
   return FromProto(resp.operational_status());
+}
+
+absl::StatusOr<OperationalStatus> Client::GetCellControlHardwareStatus() const {
+  std::unique_ptr<::grpc::ClientContext> context = client_context_factory_();
+  context->set_deadline(::grpc::DeadlineFromDuration(timeout_));
+  intrinsic_proto::icon::v1::GetOperationalStatusRequest req;
+  intrinsic_proto::icon::v1::GetOperationalStatusResponse resp;
+  INTR_RETURN_IF_ERROR(
+      ToAbslStatus(stub_->GetOperationalStatus(context.get(), req, &resp)));
+  return FromProto(resp.cell_control_hardware_status());
 }
 
 absl::Status Client::SetSpeedOverride(double new_speed_override) {

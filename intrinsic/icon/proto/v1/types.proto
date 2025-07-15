@@ -380,13 +380,38 @@ message ReactionEvent {
   int64 reaction_id = 3;
 }
 
+// The summarized state of all or a group of hardware (such as cell control
+// hardware modules) or the real-time control service.
 enum OperationalState {
   UNKNOWN = 0;
-  // Indicates that parts are not ready for sessions to start.
+  // Indicates that this group of hardware (or the server) is not ready for
+  // active control and that no sessions can be started that need to control
+  // these parts.
+  // This is possible when:
+  // - The skill "disable_motion" or `Client::Disable()` were called.
+  // - The server or hardware is starting up.
+  // - Faults are being cleared.
+  // Read-only sessions are possible for all parts.
+  // Part status is being published.
+  // `icon_client.Enable()` can be called to enable full control for all parts.
   DISABLED = 1;
-  // Indicates that parts (or the server as a whole) is in an erroneous state.
+  // Indicates that at least one part, possibly the entire real-time control
+  // service, is faulted. `icon_client.ClearFaults()` is needed to re-enable
+  // control.
+  // Depending on the fault, real-time control may or may not be running the
+  // safety actions.
+  // An example for a single part fault is a robot hardware module reporting
+  // an emergency stop but still being connected.
+  // An example for a global fault that cannot be cleared is a mistake in the
+  // hardware module names in the config.
+  // An example for a global fault that can be cleared is a timeout in a
+  // simulation reset.
+  // If a part is not faulted, read-only sessions reading from them can
+  // continue, and part status may still be published.
   FAULTED = 2;
-  // Indicates that parts are ready for a session to begin.
+  // Indicates that the server is ready for a session to begin and all parts are
+  // enabled.
+  // Part status is being published.
   ENABLED = 3;
 }
 
