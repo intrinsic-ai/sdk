@@ -165,6 +165,11 @@ class FuturePromiseContext {
     return std::move(RealtimePromise<T>(this, is_reusable));
   }
 
+  // Returns true if a promise is attached to this context.
+  bool IsPromiseAttached() const INTRINSIC_CHECK_REALTIME_SAFE {
+    return promise_attached_.load(std::memory_order_acquire);
+  }
+
   // Returns a RealtimeFuture associated with this context.
   // Fails if a future is already attached or if a reset is in progress.
   // If `is_reusable` is true, the future can be reused after getting a value.
@@ -185,6 +190,11 @@ class FuturePromiseContext {
     }
     INTRINSIC_RT_RETURN_IF_ERROR(get_future_futex_.Unlock());
     return std::move(RealtimeFuture<T>(this, is_reusable));
+  }
+
+  // Returns true if a future is attached to this context.
+  bool IsFutureAttached() const INTRINSIC_CHECK_REALTIME_SAFE {
+    return future_attached_.load(std::memory_order_acquire);
   }
 
   // Resets the state of the FuturePromiseContext, allowing it to be reused.
