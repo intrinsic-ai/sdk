@@ -9,9 +9,17 @@ package intrinsic_proto.services;
 // See:
 // https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#requests-and-limits
 message ResourceRequirements {
-  // The maximimum of specific resources that a container can use.  Is also used
+  // The maximum of specific resources that a container can use. Is also used
   // as the requested amount of resources by default.
   map<string, string> limits = 1;
+  // The minimum of specific resources that a container can use. If both limits
+  // and requests are specified for `cpu` and `memory`, the requests must be
+  // less than or equal to the limits. For extended resources, both must be
+  // equal, unless the extended resource is a GPU, where a zero request is
+  // allowed. A zero request in this case means that the resource is not
+  // required and if no GPU is available in the cluster it will not be
+  // requested.
+  map<string, string> requests = 2;
 }
 
 // SecurityContext defines security related permissions the service will be
