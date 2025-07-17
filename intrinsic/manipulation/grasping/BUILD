@@ -21,6 +21,8 @@ proto_library(
     srcs = ["grasp.proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
+        "//intrinsic/assets/proto:field_metadata_proto",
+        "//intrinsic/assets/proto:id_proto",
         "//intrinsic/hardware/gripper:gripper_proto",
         "//intrinsic/hardware/gripper/eoat:eoat_service_proto",
         "//intrinsic/icon/proto:joint_space_proto",
