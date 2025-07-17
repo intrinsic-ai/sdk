@@ -82,6 +82,16 @@ message ListInstalledAssetsRequest {
 
     // Filter assets by type (OR).
     repeated AssetType asset_types = 2;
+
+    // Filter by assets that provide all of the specified interfaces (exact
+    // match).
+    //
+    // The nature of the interface depends on the asset type, but is always
+    // represented as a string. For example, a Data asset provides a proto of
+    // a specific type, and its "interface" is the fully qualified name of that
+    // proto. A Service can provide a gRPC service, and its "interface" is the
+    // fully qualified proto prefix of that gRPC service.
+    repeated string provides = 3;
   }
 
   int64 page_size = 1;
