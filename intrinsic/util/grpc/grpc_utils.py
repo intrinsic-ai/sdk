@@ -10,6 +10,12 @@ from intrinsic.kubernetes.acl.ipcidentity import ipcidentity
 from intrinsic.kubernetes.acl.ipcidentity.internal import metadata
 from intrinsic.util.grpc import interceptor
 
+# Create a module-level instance of IpcIdentity. This ensures that the same
+# instance is used throughout the application, which avoids the overhead of
+# creating new instances and ensures that the same token is used for all
+# requests.
+_shared_ipc_identity = ipcidentity.IpcIdentity()
+
 
 def _get_compute_project() -> str:
   """Gets the compute project from the metadata server.
@@ -39,15 +45,23 @@ def _get_environment() -> str:
   return environments.from_compute_project(compute_project)
 
 
+def _create_auth_interceptor(
+    ipc_identity: ipcidentity.IpcIdentity,
+) -> interceptor.ClientCallDetailsInterceptor:
+  """Creates an interceptor that adds an auth header to the gRPC channel."""
+  auth_header = lambda: [("cookie", "auth-proxy=" + ipc_identity.token())]
+  return interceptor.HeaderAdderInterceptor(auth_header)
+
+
 def _add_auth_header(
     channel: grpc.Channel,
     ipc_identity: Optional[ipcidentity.IpcIdentity],
 ) -> grpc.Channel:
   """Adds an auth header to the gRPC channel."""
   if ipc_identity:
-    auth_header = lambda: [("cookie", "auth-proxy=" + ipc_identity.token())]
-    auth_interceptor = interceptor.HeaderAdderInterceptor(auth_header)
-    return grpc.intercept_channel(channel, auth_interceptor)
+    return grpc.intercept_channel(
+        channel, _create_auth_interceptor(ipc_identity)
+    )
   return channel
 
 
@@ -60,16 +74,8 @@ def _create_channel(address: str) -> grpc.Channel:
   )
 
 
-def create_assets_channel(
-    ipc_identity: Optional[ipcidentity.IpcIdentity] = None,
-) -> grpc.Channel:
-  """Creates a gRPC channel for the assets service.
-
-  If an IPC identity is provided, it is used to add an auth header to the
-  channel. This can be used to authenticate requests to the assets service.
-
-  Args:
-    ipc_identity: The IPC identity to use for authentication.
+def create_assets_channel() -> grpc.Channel:
+  """Creates a gRPC channel for the assets service with an IPC ID auth header.
 
   Returns:
     The gRPC channel for the assets service.
@@ -77,19 +83,11 @@ def create_assets_channel(
   env = _get_environment()
   assets_domain = environments.assets_domain(env)
   assets_channel = _create_channel(f"{assets_domain}:443")
-  return _add_auth_header(assets_channel, ipc_identity)
+  return _add_auth_header(assets_channel, _shared_ipc_identity)
 
 
-def create_cloud_channel(
-    ipc_identity: Optional[ipcidentity.IpcIdentity] = None,
-) -> grpc.Channel:
-  """Creates a gRPC channel for the cloud service.
-
-  If an IPC identity is provided, it is used to add an auth header to the
-  channel. This can be used to authenticate requests to the assets service.
-
-  Args:
-    ipc_identity: The IPC identity to use for authentication.
+def create_cloud_channel() -> grpc.Channel:
+  """Creates a gRPC channel for the cloud service with an IPC ID auth header.
 
   Returns:
     The gRPC channel for the cloud service.
@@ -98,4 +96,4 @@ def create_cloud_channel(
   cloud_channel = _create_channel(
       f"www.endpoints.{compute_project}.cloud.goog:443"
   )
-  return _add_auth_header(cloud_channel, ipc_identity)
+  return _add_auth_header(cloud_channel, _shared_ipc_identity)

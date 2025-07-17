@@ -42,6 +42,8 @@ class IpcIdentity:
     if self._tokens_stub and self._grpc_channel:
       return
 
+    logging.info("gRPC channel and stub not initialized, setting up.")
+
     compute_project = self._metadata_client.compute_project()
     env = environments.from_compute_project(compute_project)
     accounts_service_domain = environments.accounts_domain(env)

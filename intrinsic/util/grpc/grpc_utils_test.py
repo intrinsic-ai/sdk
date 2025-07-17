@@ -15,33 +15,8 @@ class GrpcUtilsTest(absltest.TestCase):
   @mock.patch.object(grpc_utils, '_get_environment', autospec=True)
   @mock.patch.object(grpc_utils, '_create_channel', autospec=True)
   @mock.patch.object(grpc_utils, '_add_auth_header', autospec=True)
-  def test_create_assets_channel_no_ipc_identity(
+  def test_create_assets_channel(
       self,
-      mock_add_auth_header,
-      mock_create_channel,
-      mock_get_environment,
-  ):
-    """Tests that create_assets_channel creates a channel without an IPC identity."""
-    mock_get_environment.return_value = 'prod'
-    mock_create_channel.return_value = mock.MagicMock()
-    mock_add_auth_header.return_value = mock.MagicMock()
-
-    channel = grpc_utils.create_assets_channel()
-
-    mock_get_environment.assert_called_once()
-    mock_create_channel.assert_called_once_with('assets.intrinsic.ai:443')
-    mock_add_auth_header.assert_called_once_with(
-        mock_create_channel.return_value, None
-    )
-    self.assertEqual(channel, mock_add_auth_header.return_value)
-
-  @mock.patch.object(grpc_utils, '_get_environment', autospec=True)
-  @mock.patch.object(grpc_utils, '_create_channel', autospec=True)
-  @mock.patch.object(grpc_utils, '_add_auth_header', autospec=True)
-  @mock.patch.object(ipcidentity, 'IpcIdentity', autospec=True)
-  def test_create_assets_channel_with_ipc_identity(
-      self,
-      mock_ipc_identity,
       mock_add_auth_header,
       mock_create_channel,
       mock_get_environment,
@@ -51,25 +26,25 @@ class GrpcUtilsTest(absltest.TestCase):
     mock_create_channel.return_value = mock.MagicMock()
     mock_add_auth_header.return_value = mock.MagicMock()
 
-    channel = grpc_utils.create_assets_channel(mock_ipc_identity)
+    channel = grpc_utils.create_assets_channel()
 
     mock_get_environment.assert_called_once()
     mock_create_channel.assert_called_once_with('assets.intrinsic.ai:443')
     mock_add_auth_header.assert_called_once_with(
-        mock_create_channel.return_value, mock_ipc_identity
+        mock_create_channel.return_value, mock.ANY
     )
     self.assertEqual(channel, mock_add_auth_header.return_value)
 
   @mock.patch.object(grpc_utils, '_get_compute_project', autospec=True)
   @mock.patch.object(grpc_utils, '_create_channel', autospec=True)
   @mock.patch.object(grpc_utils, '_add_auth_header', autospec=True)
-  def test_create_cloud_channel_no_ipc_identity(
+  def test_create_cloud_channel(
       self,
       mock_add_auth_header,
       mock_create_channel,
       mock_get_compute_project,
   ):
-    """Tests that create_cloud_channel creates a channel without an IPC identity."""
+    """Tests that create_cloud_channel creates a channel with an IPC identity."""
     mock_get_compute_project.return_value = 'test-project'
     mock_create_channel.return_value = mock.MagicMock()
     mock_add_auth_header.return_value = mock.MagicMock()
@@ -81,34 +56,7 @@ class GrpcUtilsTest(absltest.TestCase):
         'www.endpoints.test-project.cloud.goog:443'
     )
     mock_add_auth_header.assert_called_once_with(
-        mock_create_channel.return_value, None
-    )
-    self.assertEqual(channel, mock_add_auth_header.return_value)
-
-  @mock.patch.object(grpc_utils, '_get_compute_project', autospec=True)
-  @mock.patch.object(grpc_utils, '_create_channel', autospec=True)
-  @mock.patch.object(grpc_utils, '_add_auth_header', autospec=True)
-  @mock.patch.object(ipcidentity, 'IpcIdentity', autospec=True)
-  def test_create_cloud_channel_with_ipc_identity(
-      self,
-      mock_ipc_identity,
-      mock_add_auth_header,
-      mock_create_channel,
-      mock_get_compute_project,
-  ):
-    """Tests that create_cloud_channel creates a channel with an IPC identity."""
-    mock_get_compute_project.return_value = 'test-project'
-    mock_create_channel.return_value = mock.MagicMock()
-    mock_add_auth_header.return_value = mock.MagicMock()
-
-    channel = grpc_utils.create_cloud_channel(mock_ipc_identity)
-
-    mock_get_compute_project.assert_called_once()
-    mock_create_channel.assert_called_once_with(
-        'www.endpoints.test-project.cloud.goog:443'
-    )
-    mock_add_auth_header.assert_called_once_with(
-        mock_create_channel.return_value, mock_ipc_identity
+        mock_create_channel.return_value, mock.ANY
     )
     self.assertEqual(channel, mock_add_auth_header.return_value)
 
@@ -173,12 +121,12 @@ class GrpcUtilsTest(absltest.TestCase):
       self, mock_ipc_identity, mock_channel, mock_intercept_channel
   ):
     """Tests that _add_auth_header adds the auth header to the channel."""
-    mock_ipc_identity.return_value.token.return_value = 'test_token'
+    mock_ipc_identity.token.return_value = 'test_token'
     mock_intercept_channel.return_value = mock_channel.return_value
 
     # Call _add_auth_header
     intercepted_channel = grpc_utils._add_auth_header(
-        mock_channel.return_value, mock_ipc_identity.return_value
+        mock_channel.return_value, mock_ipc_identity
     )
 
     # Assert that the channel was intercepted

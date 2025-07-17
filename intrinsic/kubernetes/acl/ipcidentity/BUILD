@@ -6,8 +6,7 @@ load("@rules_python//python:defs.bzl", "py_library", "py_test")
 py_library(
     name = "ipcidentity_py",
     srcs = ["ipcidentity.py"],
-    # This is intended as a utility library for all solution builders.
-    visibility = ["//intrinsic:public_api_users"],
+    visibility = ["//intrinsic/util/grpc:__pkg__"],
     deps = [
         "//intrinsic/config:environments_py",
         "//intrinsic/kubernetes/accounts/service/api/tokens/v2:tokens_py_pb2",
