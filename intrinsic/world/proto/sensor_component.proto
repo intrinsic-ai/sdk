@@ -219,8 +219,8 @@ message SensorComponent {
     Scan vertical = 2;
     Range range = 3;
     Noise noise = 4;
-
-    RangeFinderDevicePluginSpec range_finder_device_plugin = 5;
+    RangeFinderDevicePluginSpec range_finder_device_plugin = 5
+        [deprecated = true];
   }
 
   oneof type_oneof {
