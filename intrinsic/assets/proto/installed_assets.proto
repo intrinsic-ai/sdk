@@ -7,6 +7,7 @@ package intrinsic_proto.assets.v1;
 import "google/longrunning/operations.proto";
 import "intrinsic/assets/data/proto/v1/data_asset.proto";
 import "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest.proto";
+import "intrinsic/assets/proto/asset_tag.proto";
 import "intrinsic/assets/proto/asset_type.proto";
 import "intrinsic/assets/proto/id.proto";
 import "intrinsic/assets/proto/metadata.proto";
@@ -92,6 +93,9 @@ message ListInstalledAssetsRequest {
     // proto. A Service can provide a gRPC service, and its "interface" is the
     // fully qualified proto prefix of that gRPC service.
     repeated string provides = 3;
+
+    // Filter assets by asset tag.
+    optional intrinsic_proto.assets.AssetTag asset_tag = 4;
   }
 
   int64 page_size = 1;
