@@ -109,6 +109,7 @@ pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
             "cadexchanger": "https://download.cadexchanger.com/python",
             "proto-breaking-change-detector": "https://github.com/googleapis",
             "tensorflow": "https://us-central1-python.pkg.dev/intrinsic-mirror/intrinsic-public-python/simple",
+            "collision-avoidance-metric": "https://github.com/intrinsic-ai",
         },
         hub_name = "ai_intrinsic_sdks_pip_deps",
         python_version = python_version,
