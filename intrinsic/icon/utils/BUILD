@@ -1,6 +1,7 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("@rules_pkg//:pkg.bzl", "pkg_tar")
 load("//bazel:go_macros.bzl", "go_binary")
 load("//intrinsic/icon/testing:cc_test_and_malloc_test.bzl", "cc_test_and_malloc_test")

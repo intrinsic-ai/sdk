@@ -1,6 +1,7 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
 
 # Logging utilities.
 package(default_visibility = ["//visibility:public"])

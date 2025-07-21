@@ -3,7 +3,7 @@
 # This package holds wrappers that make ICON classes available to users of the RTCL C API
 # (see parent directory).
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
 package(
     default_visibility = [

@@ -2,7 +2,7 @@
 
 # Client libraries for the ObjectWorldService.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
 cc_library(
     name = "frame",
