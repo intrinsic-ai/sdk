@@ -156,7 +156,7 @@ cc_library(
     name = "object_world_client_utils",
     srcs = ["object_world_client_utils.cc"],
     hdrs = ["object_world_client_utils.h"],
-    visibility = ["//intrinsic:public_api_users"],
+    visibility = ["//visibility:private"],
     deps = [
         ":frame",
         ":object_world_client",
