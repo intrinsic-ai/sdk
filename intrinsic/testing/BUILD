@@ -8,7 +8,7 @@ go_library(
     name = "grpctest",
     srcs = ["grpctest.go"],
     visibility = [
-        "//intrinsic:__subpackages__",
+        "//intrinsic:public_api_users",
     ],
     deps = [
         "@com_github_bazelbuild_remote_apis_sdks//go/pkg/portpicker",
