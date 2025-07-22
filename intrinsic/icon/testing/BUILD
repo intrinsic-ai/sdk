@@ -15,5 +15,6 @@ bzl_library(
     srcs = ["cc_test_and_malloc_test.bzl"],
     deps = [
         "@bazel_skylib//lib:new_sets",
+        "@rules_cc//cc:core_rules",
     ],
 )

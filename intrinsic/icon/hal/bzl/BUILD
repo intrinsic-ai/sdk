@@ -10,6 +10,7 @@ package(
 bzl_library(
     name = "hardware_module_binary_bzl",
     srcs = ["hardware_module_binary.bzl"],
+    deps = ["@rules_cc//cc:core_rules"],
 )
 
 bzl_library(

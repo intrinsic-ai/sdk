@@ -8,6 +8,8 @@ to guarantee a guided execution of the plugin. This further lets a plugin develo
 the essential implementation of the interface rather than duplicating boilerplate code.
 """
 
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+
 def hardware_module_binary(
         name,
         hardware_module_lib,
@@ -22,7 +24,7 @@ def hardware_module_binary(
           generate an image for.
       **kwargs: Additional arguments to pass to cc_binary.
     """
-    native.cc_binary(
+    cc_binary(
         name = name,
         srcs = [Label("//intrinsic/icon/hal:hardware_module_main")],
         deps = [hardware_module_lib] + [

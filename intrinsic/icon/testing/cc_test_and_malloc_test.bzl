@@ -3,9 +3,10 @@
 """Malloc test is not implemented externally, only invoke regular cc_test."""
 
 load("@bazel_skylib//lib:new_sets.bzl", "sets")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
 
 def cc_test_and_malloc_test(name, deps = [], local_defines = [], tags = [], **kwargs):
-    native.cc_test(
+    cc_test(
         name = name,
         local_defines = local_defines,
         tags = tags,
