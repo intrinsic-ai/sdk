@@ -56,16 +56,28 @@ func UnmarshalUnsafe(jwtk string) (*Data, error) {
 // Unsafe because the content can not be trusted if you do not also verify
 // the signature of the JWT.
 func PayloadUnsafe(jwtk string) (map[string]any, error) {
+	dat := map[string]any{}
+
+	if err := PayloadClaimsUnsafe(jwtk, &dat); err != nil {
+		return nil, fmt.Errorf("cannot decode payload: %w", err)
+	}
+
+	return dat, nil
+}
+
+// PayloadClaimsUnsafe parses claims of provided JWT based on claims input.
+// It's unsafe as it does not validate JWT signature. Use only when you know
+// what are you doing.
+func PayloadClaimsUnsafe(jwtk string, claims any) error {
 	bs, err := decodePayload(jwtk)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decode JWT payload section: %w", err)
+		return fmt.Errorf("failed to decode JWT payload section: %w", err)
 	}
-	dat := map[string]any{}
-	err = json.Unmarshal(bs, &dat)
+	err = json.Unmarshal(bs, claims)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal JWT payload section: %w", err)
+		return fmt.Errorf("failed to unmarshal JWT payload section: %w", err)
 	}
-	return dat, nil
+	return nil
 }
 
 // IsVerifiedAndAuthorizedUnsafe checks if the given JWT is verified and authorized.
