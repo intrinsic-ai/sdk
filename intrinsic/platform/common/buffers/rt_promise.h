@@ -112,9 +112,9 @@ class FuturePromiseContext {
         cancel_futex_(/*private_futex=*/true),
         get_future_futex_(/*private_futex=*/true),
         get_promise_futex_(/*private_futex=*/true),
-        has_value_(false),
-        future_detached_(false, true),
-        promise_detached_(false, true),
+        has_value_(/*posted=*/false, /*private_futex=*/true),
+        future_detached_(/*posted=*/false, /*private_futex=*/true),
+        promise_detached_(/*posted=*/false, /*private_futex=*/true),
         detach_timeout_(detach_timeout) {};
 
   // Destructor waits until detach_timeout_ for attached promise and future
@@ -400,8 +400,7 @@ class RealtimePromise {
   // Note that the destructor will wait for any attached future to be
   // detached before destroying the promise. This is to prevent dangling
   // references to the context by a still attached future.
-  explicit RealtimePromise(bool is_reusable = false) INTRINSIC_NON_REALTIME_ONLY
-      : is_reusable_(is_reusable) {
+  RealtimePromise() INTRINSIC_NON_REALTIME_ONLY : is_reusable_(true) {
     internal_context_ = std::make_unique<Context>();
     context_ = internal_context_.get();
     context_->promise_attached_.store(true, std::memory_order_release);
@@ -492,8 +491,8 @@ class RealtimePromise {
     *element = std::move(value);
     writer->FinishInsert();
     // Signal that a value has been set. This will unblock a waiting future.
-    INTRINSIC_RT_RETURN_IF_ERROR(context_->WriteUnlock());
     auto status = context_->has_value_.Post();
+    INTRINSIC_RT_RETURN_IF_ERROR(context_->WriteUnlock());
     if (!is_reusable_) {
       status = icon::OverwriteIfNotInError(status, Detach());
     }
@@ -618,8 +617,7 @@ class RealtimeFuture {
   // Note that the destructor will wait for any attached promise to be
   // detached before destroying the future. This is to prevent dangling
   // references to the context by a still attached promise.
-  explicit RealtimeFuture(bool is_reusable = false) INTRINSIC_NON_REALTIME_ONLY
-      : is_reusable_(is_reusable) {
+  RealtimeFuture() INTRINSIC_NON_REALTIME_ONLY : is_reusable_(true) {
     internal_context_ = std::make_unique<Context>();
     context_ = internal_context_.get();
     context_->future_attached_.store(true, std::memory_order_release);
@@ -778,23 +776,26 @@ class RealtimeFuture {
     if (!context_) {
       return icon::FailedPreconditionError("Future is not attached.");
     }
-    // Check for cancellation before waiting for the value.
+
+    // `HasValue()` will check for cancellation and returns true if a value is
+    // available in the buffer.
+    // We're not using `has_value_.WaitUntil()` here, since has_value_ might
+    // have been consumed already by a previous Wait...AndPeek call.
+    INTR_ASSIGN_OR_RETURN(bool has_value, context_->HasValue());
+    if (has_value) {
+      return absl::OkStatus();
+    }
+
+    // It's safe to use `WaitUntil` here, since both `Cancel()` and `Set()`
+    // will post to `has_value_`.
+    INTR_RETURN_IF_ERROR(context_->has_value_.WaitUntil(deadline))
+        << "New value is not available yet.";
+
+    // If the buffer is empty after the wait, it must have been a cancellation.
     if (context_->IsCancelled()) {
       return icon::CancelledError("Future was cancelled.");
     }
 
-    if (context_->buffer_.Empty()) {
-      // It's safe to use `WaitUntil` here, since both `Cancel()` and `Set()`
-      // will post to `has_value_`.
-      INTR_RETURN_IF_ERROR(context_->has_value_.WaitUntil(deadline))
-          << "New value is not available yet.";
-
-      // The `WaitUntil` above might have returned due to cancellation, so we
-      // check again.
-      if (context_->IsCancelled()) {
-        return icon::CancelledError("Future was cancelled.");
-      }
-    }
     return absl::OkStatus();
   }
 
