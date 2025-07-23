@@ -96,6 +96,10 @@ class Client:
     ActionType: Dynamically generated enum of all available action type names.
   """
 
+  class HardwareGroup(enum.Enum):
+    ALL_HARDWARE = 1
+    OPERATIONAL_HARDWARE_ONLY = 2
+
   # Explicitly avoid errors around dynamically-populated action enums.
   _HAS_DYNAMIC_ATTRIBUTES = True
   _rpc_timeout_seconds: Optional[int] = None
@@ -371,7 +375,7 @@ class Client:
         service_pb2.EnableRequest(), timeout=self._rpc_timeout_seconds
     )
 
-  def disable(self) -> None:
+  def disable(self, group: HardwareGroup = HardwareGroup.ALL_HARDWARE) -> None:
     """Disables all parts on the server.
 
     NOTE: Disabling a server is something the user does directly. DO NOT call
@@ -379,15 +383,30 @@ class Client:
     users must be able to rely on the robot to stay enabled unless they
     explicitly disable it (or the robot encounters a fault).
 
-
     Ends all currently-active sessions.
+
+    Args:
+      group: The group of hardware to disable. `ALL_HARDWARE`: All hardware
+        modules and parts will be disabled. This is the default.
+        `OPERATIONAL_HARDWARE_ONLY`: Only operational hardware modules and parts
+        that use them will be disabled. So, hardware modules that are configured
+        with `IconMainConfig.hardware_config.cell_control_hardware` will be kept
+        enabled (if they are enabled). One use case is to integrate cell-level
+        control where operational robot hardware can be paused such that
+        automatic mode is not needed, while still reading/writing input/output
+        on a fieldbus hardware module for cell-level control.
 
     Raises:
       grpc.RpcError: An error occurred while disabling.
     """
-    self._stub.Disable(
-        service_pb2.DisableRequest(), timeout=self._rpc_timeout_seconds
-    )
+    request = service_pb2.DisableRequest()
+    if group == self.HardwareGroup.OPERATIONAL_HARDWARE_ONLY:
+      request.group = (
+          service_pb2.DisableRequest.HardwareGroup.OPERATIONAL_HARDWARE_ONLY
+      )
+    else:
+      request.group = service_pb2.DisableRequest.HardwareGroup.ALL_HARDWARE
+    self._stub.Disable(request, timeout=self._rpc_timeout_seconds)
 
   def clear_faults(self) -> None:
     """Clears all faults and returns the server to an enabled state.
@@ -413,7 +432,11 @@ class Client:
     )
 
   def get_operational_status(self) -> types_pb2.OperationalStatus:
-    """Returns the operational status of the server.
+    """Returns the summarized status of the server.
+
+    This is the status of all hardware and the server.
+    It can differ from `get_cell_control_hardware_status`, which is the state of
+    a subset of hardware.
 
     This status may indicate that the server is ENABLED, DISABLED, or FAULTED.
     If FAULTED, OperationalStatus also includes a string explaining why the
@@ -430,6 +453,31 @@ class Client:
         timeout=self._rpc_timeout_seconds,
     )
     return resp.operational_status
+
+  def get_cell_control_hardware_status(self) -> types_pb2.OperationalStatus:
+    """Returns the status of the cell control hardware.
+
+    Returns the status of cell control hardware, which is marked with
+    `IconMainConfig.hardware_config.cell_control_hardware`.
+    Cell control hardware is a group of hardware modules that does not inherit
+    faults from operational hardware, and only gets disabled when any cell
+    control hardware module faults (or when `disable` is called).
+
+    This status may indicate that the server is ENABLED, DISABLED, or FAULTED.
+    If FAULTED, OperationalStatus also includes a string explaining why the
+    robot faulted.
+
+    Returns:
+      The status of the cell control hardware.
+
+    Raises:
+      grpc.RpcError: An error occurred while getting the state.
+    """
+    resp = self._stub.GetOperationalStatus(
+        service_pb2.GetOperationalStatusRequest(),
+        timeout=self._rpc_timeout_seconds,
+    )
+    return resp.cell_control_hardware_status
 
   def get_speed_override(self) -> float:
     """Returns the current speed override value.

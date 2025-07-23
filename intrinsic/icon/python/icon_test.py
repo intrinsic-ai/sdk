@@ -349,7 +349,26 @@ class IconTest(absltest.TestCase):
     icon_client = icon_api.Client(stub)
     icon_client.disable()
     stub.Disable.assert_called_once_with(
-        service_pb2.DisableRequest(), timeout=None
+        service_pb2.DisableRequest(
+            group=service_pb2.DisableRequest.HardwareGroup.ALL_HARDWARE
+        ),
+        timeout=None,
+    )
+
+  def test_disable_operational_hardware_only(self):
+    stub = mock.MagicMock()
+    response = service_pb2.DisableResponse()
+    stub.Disable.return_value = response
+
+    icon_client = icon_api.Client(stub)
+    icon_client.disable(
+        group=icon_api.Client.HardwareGroup.OPERATIONAL_HARDWARE_ONLY
+    )
+    stub.Disable.assert_called_once_with(
+        service_pb2.DisableRequest(
+            group=service_pb2.DisableRequest.HardwareGroup.OPERATIONAL_HARDWARE_ONLY
+        ),
+        timeout=None,
     )
 
   def test_clear_faults(self):
@@ -378,6 +397,29 @@ class IconTest(absltest.TestCase):
     self.assertEqual(result_status.state, response.operational_status.state)
     self.assertEqual(
         result_status.fault_reason, response.operational_status.fault_reason
+    )
+    stub.GetOperationalStatus.assert_called_once_with(
+        service_pb2.GetOperationalStatusRequest(), timeout=None
+    )
+
+  def test_get_cell_control_hardware_status(self):
+    stub = mock.MagicMock()
+    response = service_pb2.GetOperationalStatusResponse(
+        cell_control_hardware_status=types_pb2.OperationalStatus(
+            state=types_pb2.OperationalState.FAULTED,
+            fault_reason='Reason #2',
+        )
+    )
+    stub.GetOperationalStatus.return_value = response
+
+    icon_client = icon_api.Client(stub)
+    result_status = icon_client.get_cell_control_hardware_status()
+    self.assertEqual(
+        result_status.state, response.cell_control_hardware_status.state
+    )
+    self.assertEqual(
+        result_status.fault_reason,
+        response.cell_control_hardware_status.fault_reason,
     )
     stub.GetOperationalStatus.assert_called_once_with(
         service_pb2.GetOperationalStatusRequest(), timeout=None
