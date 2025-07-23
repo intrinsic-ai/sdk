@@ -1,0 +1,19 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.ipc.v1;
+
+import "intrinsic/kubernetes/intrinsic_os/protos/v1/cluster.proto";
+import "intrinsic/kubernetes/intrinsic_os/protos/v1/shutdown.proto";
+
+service ClusterService {
+  // GetCluster returns the cluster information.
+  rpc GetCluster(GetClusterRequest) returns (Cluster) {}
+  // Shutdown shuts down the cluster.
+  rpc Shutdown(ShutdownRequest) returns (ShutdownResponse) {}
+  // Reboot reboots the cluster.
+  rpc Reboot(RebootRequest) returns (RebootResponse) {}
+  // GetUptime returns the uptime of the cluster.
+  rpc GetUptime(GetUptimeRequest) returns (Uptime) {}
+}

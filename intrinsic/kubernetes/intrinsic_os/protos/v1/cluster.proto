@@ -1,0 +1,16 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.ipc.v1;
+
+import "intrinsic/util/status/extended_status.proto";
+
+message Cluster {
+  string cluster_name = 1;
+  string display_name = 2;
+
+  repeated intrinsic_proto.status.ExtendedStatus extended_statuses = 23;
+}
+
+message GetClusterRequest {}

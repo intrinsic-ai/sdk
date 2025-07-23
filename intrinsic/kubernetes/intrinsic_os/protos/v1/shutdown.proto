@@ -1,0 +1,21 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.ipc.v1;
+
+import "google/protobuf/duration.proto";
+
+message ShutdownRequest {}
+
+message ShutdownResponse {}
+
+message RebootRequest {}
+
+message RebootResponse {}
+
+message GetUptimeRequest {}
+
+message Uptime {
+  google.protobuf.Duration duration = 1;
+}
