@@ -232,7 +232,7 @@ bazel_dep(name = "grpc_ecosystem_grpc_gateway", version = "2.26.3", repo_name = 
 bazel_dep(name = "jsonnet", version = "0.20.0.bcr.1")
 bazel_dep(name = "opencensus-cpp", version = "0.0.0-20230502-50eb5de", repo_name = "io_opencensus_cpp")
 bazel_dep(name = "or-tools", version = "9.12", repo_name = "or_tools")
-bazel_dep(name = "protobuf", version = "30.1", repo_name = "com_google_protobuf")
+bazel_dep(name = "protobuf", version = "31.1", repo_name = "com_google_protobuf")
 bazel_dep(name = "protobuf-matchers", version = "0.1.1", repo_name = "com_github_inazarenko_protobuf_matchers")
 bazel_dep(name = "protoc-gen-validate", version = "1.2.1.bcr.1")
 bazel_dep(name = "re2", version = "2024-07-02", repo_name = "com_googlesource_code_re2")
