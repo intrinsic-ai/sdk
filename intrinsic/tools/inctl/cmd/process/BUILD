@@ -21,7 +21,6 @@ go_library(
         "//intrinsic/skills/proto:skills_go_proto",
         "//intrinsic/skills/tools/skill/cmd:dialerutil",
         "//intrinsic/skills/tools/skill/cmd:solutionutil",
-        "//intrinsic/solutions/tools:pythonserializer",
         "//intrinsic/tools/inctl/cmd:root",
         "//intrinsic/tools/inctl/util:orgutil",
         "//intrinsic/util/proto:registryutil",

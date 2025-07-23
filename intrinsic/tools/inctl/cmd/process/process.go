@@ -42,13 +42,6 @@ const (
 	TextProtoFormat = "textproto"
 	// BinaryProtoFormat is the binary proto output format.
 	BinaryProtoFormat = "binaryproto"
-	// PythonScriptFormat means to generate a self-contained Python script (export only).
-	PythonScriptFormat = "python"
-	// PythonMinimalFormat means to just generate the Python code to build the BT, but without
-	// imports or executive.run().
-	PythonMinimalFormat = "python-minimal"
-	// PythonNotebookFormat means to generate a Python notebook (export only).
-	PythonNotebookFormat = "notebook"
 )
 
 var (

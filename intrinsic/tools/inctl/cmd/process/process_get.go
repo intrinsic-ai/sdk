@@ -14,7 +14,6 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"intrinsic/executive/go/behaviortree"
-	"intrinsic/solutions/tools/pythonserializer"
 	"intrinsic/tools/inctl/util/orgutil"
 	"intrinsic/util/proto/registryutil"
 
@@ -25,84 +24,7 @@ import (
 	skillregistrygrpcpb "intrinsic/skills/proto/skill_registry_go_grpc_proto"
 )
 
-var allowedGetFormats = []string{TextProtoFormat, BinaryProtoFormat, PythonScriptFormat, PythonMinimalFormat, PythonNotebookFormat}
-
-const (
-	pythonScriptTemplate = `from intrinsic.solutions import deployments
-from intrinsic.solutions import behavior_tree as bt
-from intrinsic.math.python import data_types
-
-solution = deployments.connect_to_selected_solution()
-
-executive = solution.executive
-resources = solution.resources
-skills = solution.skills
-world = solution.world
-
-%s
-executive.run(tree)
-`
-	pythonNotebookTemplate = `{
-"cells": [
-	{
-	"cell_type": "code",
-	"execution_count": null,
-	"metadata": {},
-	"outputs": [],
-	"source": [
-		"from intrinsic.solutions import behavior_tree as bt\n",
-		"from intrinsic.solutions import deployments\n",
-		"\n",
-		"solution = deployments.connect_to_selected_solution()\n",
-		"\n",
-		"executive = solution.executive\n",
-		"resources = solution.resources\n",
-		"skills = solution.skills\n",
-		"world = solution.world\n"
-	]
-	},
-	{
-	"cell_type": "code",
-	"execution_count": null,
-	"metadata": {},
-	"outputs": [],
-	"source": [
-		%s
-	]
-	},
-	{
-		"cell_type": "code",
-		"execution_count": null,
-		"metadata": {},
-		"outputs": [],
-		"source": [
-			"executive.run(tree)\n"
-		]
-	}
-],
-"metadata": {
-	"kernelspec": {
-	"display_name": "Python 3",
-	"language": "python",
-	"name": "python3"
-	},
-	"language_info": {
-	"codemirror_mode": {
-		"name": "ipython",
-		"version": 3
-	},
-	"file_extension": ".py",
-	"mimetype": "text/x-python",
-	"name": "python",
-	"nbconvert_exporter": "python",
-	"pygments_lexer": "ipython3",
-	"version": "3.10.13"
-	}
-},
-"nbformat": 4,
-"nbformat_minor": 2
-}`
-)
+var allowedGetFormats = []string{TextProtoFormat, BinaryProtoFormat}
 
 type serializer interface {
 	Serialize(*btpb.BehaviorTree) ([]byte, error)
@@ -183,16 +105,6 @@ func serializeBT(ctx context.Context, srC skillregistrygrpcpb.SkillRegistryClien
 		}
 	case BinaryProtoFormat:
 		s = newBinarySerializer()
-	case PythonScriptFormat, PythonMinimalFormat, PythonNotebookFormat:
-		sk, err := getSkills(ctx, srC)
-		if err != nil {
-			return nil, errors.Wrapf(err, "could not list skills")
-		}
-
-		s, err = pythonserializer.NewPythonSerializer(sk)
-		if err != nil {
-			return nil, errors.Wrapf(err, "could not create python serializer")
-		}
 	default:
 		return nil, fmt.Errorf("unknown format %s", format)
 	}
@@ -200,19 +112,6 @@ func serializeBT(ctx context.Context, srC skillregistrygrpcpb.SkillRegistryClien
 	data, err := s.Serialize(bt)
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not serialize BT")
-	}
-
-	if format == PythonScriptFormat {
-		data = []byte(fmt.Sprintf(pythonScriptTemplate, string(data)))
-	}
-	if format == PythonNotebookFormat {
-		lines := strings.SplitN(string(data), "\n", -1)
-		for i, line := range lines {
-			line = strings.Replace(line, "\"", "\\\"", -1)
-			lines[i] = fmt.Sprintf("\t\t\"%s\"", line)
-		}
-		quotedLines := strings.Join(lines, ",\n")
-		data = []byte(fmt.Sprintf(pythonNotebookTemplate, quotedLines))
 	}
 
 	return data, nil
