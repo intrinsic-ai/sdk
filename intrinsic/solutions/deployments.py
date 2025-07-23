@@ -20,8 +20,7 @@ import enum
 import inspect
 import os
 import sys
-from typing import Optional, Union
-import warnings
+from typing import Optional
 
 import grpc
 from intrinsic.assets.proto import installed_assets_pb2_grpc
@@ -337,7 +336,6 @@ class Solution:
 
 
 def connect(
-    grpc_channel_or_hostport: Optional[Union[grpc.Channel, str]] = None,
     *,
     grpc_channel: Optional[grpc.Channel] = None,
     address: Optional[str] = None,
@@ -349,7 +347,6 @@ def connect(
   """Connects to a deployed solution.
 
   Args:
-    grpc_channel_or_hostport: gRPC channel or address. Deprecated: Use explicit `address` or `grpc_channel`
     grpc_channel: gRPC channel to use for connection.
     address: Connect directly to an address (e.g. localhost). Only one of [project, solution] and address is allowed.
     org: Organization of the solution to connect to.
@@ -364,7 +361,6 @@ def connect(
   """
   if (
       sum([
-          bool(grpc_channel_or_hostport),
           bool(grpc_channel),
           bool(
               org
@@ -379,15 +375,13 @@ def connect(
     solution_params.append("cluster")
     solution_params = ", ".join(solution_params)
     raise ValueError(
-        f"Only one of grpc_channel_or_host_port, [{solution_params}],"
-        " grpc_channel or address is allowed!"
+        f"Only one of [{solution_params}], grpc_channel or address is allowed!"
     )
 
   if grpc_channel:
     channel = grpc_channel
   else:
     channel = create_grpc_channel(
-        grpc_channel_or_hostport,
         address=address,
         org=org,
         solution=solution,
@@ -449,7 +443,6 @@ def connect_to_selected_solution() -> "Solution":
 
 
 def create_grpc_channel(
-    grpc_channel_or_hostport: Optional[Union[grpc.Channel, str]] = None,
     *,
     address: Optional[str] = None,
     org: Optional[str] = None,
@@ -460,9 +453,6 @@ def create_grpc_channel(
   """Creates a gRPC channel to a deployed solution.
 
   Args:
-    grpc_channel_or_hostport: gRPC channel to the intrinsic box or a string of
-      the form "host:port" to connect to (creates a channel with default
-      parameters).
     address: Connect directly to an address (e.g. localhost). Only one of
       [project, solution] and address is allowed.
     org: Organization of the solution to connect to.
@@ -476,7 +466,6 @@ def create_grpc_channel(
 
   params: dialerutil.CreateChannelParams = None
   if not any([
-      grpc_channel_or_hostport,
       address,
       org,
       solution,
@@ -487,22 +476,6 @@ def create_grpc_channel(
         _CLUSTER_ADDRESS_ENVIRONMENT_VAR, _DEFAULT_HOSTPORT
     )
     params = dialerutil.CreateChannelParams(address=default_address)
-  elif grpc_channel_or_hostport:
-    warnings.warn(
-        "grpc_channel_or_host_port is deprecated. Use `address` or"
-        " `grpc_channel` instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    if isinstance(grpc_channel_or_hostport, str):
-      params = dialerutil.CreateChannelParams(address=grpc_channel_or_hostport)
-    elif isinstance(grpc_channel_or_hostport, grpc.Channel):
-      return grpc_channel_or_hostport
-    else:
-      raise ValueError(
-          "Unsupported grpc_channel_or_host_port type"
-          f" ({type(grpc_channel_or_hostport)})!"
-      )
   elif address is not None:
     params = dialerutil.CreateChannelParams(address=address)
   elif (

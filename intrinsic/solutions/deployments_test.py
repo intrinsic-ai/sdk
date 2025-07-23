@@ -29,7 +29,6 @@ class DeploymentsTest(absltest.TestCase):
   ):
     with self.assertRaisesRegex(ValueError, "Only one .*"):
       deployments.connect(
-          grpc_channel_or_hostport="localhost:1234",
           address="localhost:1234",
           org="test-org",
           solution="test-solution",
@@ -50,38 +49,6 @@ class DeploymentsTest(absltest.TestCase):
         grpc_options=deployments._GRPC_OPTIONS,
     )
     self.assertTrue(mock_for_channel.called)
-
-  @mock.patch.object(deployments.Solution, "for_channel")
-  @mock.patch.object(dialerutil, "create_channel")
-  def test_connect_grpc_channel_or_hostport_with_hostport(
-      self,
-      mock_create_channel: mock.MagicMock,
-      mock_for_channel: mock.MagicMock,
-  ):
-    mock_create_channel.return_value = None
-    mock_for_channel.return_value = None
-    deployments.connect(grpc_channel_or_hostport="localhost:1234")
-    mock_create_channel.assert_called_with(
-        dialerutil.CreateChannelParams(address="localhost:1234"),
-        grpc_options=deployments._GRPC_OPTIONS,
-    )
-    self.assertTrue(mock_for_channel.called)
-
-  @mock.patch.object(deployments.Solution, "for_channel")
-  @mock.patch.object(dialerutil, "create_channel")
-  def test_connect_grpc_channel_or_hostport_with_channel(
-      self,
-      mock_create_channel: mock.MagicMock,
-      mock_for_channel: mock.MagicMock,
-  ):
-    mock_create_channel.return_value = None
-    mock_for_channel.return_value = None
-    channel = grpc.insecure_channel("localhost:1234")
-    deployments.connect(
-        grpc_channel_or_hostport=channel,
-    )
-    mock_create_channel.assert_not_called()
-    mock_for_channel.assert_called_with(channel)
 
   @mock.patch.object(deployments.Solution, "for_channel")
   @mock.patch.object(dialerutil, "create_channel")
