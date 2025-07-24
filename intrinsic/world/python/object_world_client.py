@@ -788,28 +788,47 @@ class ObjectWorldClient:
   def _call_reparent_object(
       self,
       child_object: object_world_resources.WorldObject,
-      new_parent: object_world_resources.WorldObject,
+      new_parent: (
+          object_world_resources.WorldObject | object_world_resources.Frame
+      ),
       entity_filter: object_world_refs_pb2.ObjectEntityFilter,
   ) -> None:
-    self._stub.ReparentObject(
-        object_world_updates_pb2.ReparentObjectRequest(
-            world_id=self._world_id,
-            object=object_world_refs_pb2.ObjectReference(id=child_object.id),
-            new_parent=object_world_refs_pb2.ObjectReferenceWithEntityFilter(
-                reference=object_world_refs_pb2.ObjectReference(
-                    id=new_parent.id
-                ),
-                entity_filter=entity_filter,
-            ),
-        )
+    """Reparents an object to a new parent object or frame.
+
+    Args:
+      child_object: The object that should be reparented.
+      new_parent: The new parent object or frame.
+      entity_filter: The object entity filter.
+    """
+    request = object_world_updates_pb2.ReparentObjectRequest(
+        world_id=self._world_id,
+        object=object_world_refs_pb2.ObjectReference(id=child_object.id),
     )
+
+    if isinstance(new_parent, object_world_resources.WorldObject):
+      request.parent_object.CopyFrom(
+          object_world_refs_pb2.ObjectReferenceWithEntityFilter(
+              reference=object_world_refs_pb2.ObjectReference(id=new_parent.id),
+              entity_filter=entity_filter,
+          )
+      )
+    elif isinstance(new_parent, object_world_resources.Frame):
+      request.parent_frame.CopyFrom(
+          object_world_refs_pb2.FrameReference(id=new_parent.id)
+      )
+    else:
+      raise ValueError(f'Unsupported new parent type: {type(new_parent)}')
+
+    self._stub.ReparentObject(request)
 
   def reparent_object(
       self,
       child_object: object_world_resources.WorldObject,
-      new_parent: object_world_resources.WorldObject,
+      new_parent: (
+          object_world_resources.WorldObject | object_world_resources.Frame
+      ),
   ) -> None:
-    """Reparents an object to a new parent object.
+    """Reparents an object to a new parent object or frame.
 
     Leaves the global pose of the reparented object unaffected (i.e.,
     "parent_t_object" might change but "root_t_object" will not change).
