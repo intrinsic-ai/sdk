@@ -5,6 +5,7 @@
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -28,4 +29,28 @@ py_proto_library(
     name = "test_py_pb2",
     visibility = ["//intrinsic/platform:__subpackages__"],
     deps = [":test_proto"],
+)
+
+proto_library(
+    name = "workcell_info_proto",
+    srcs = ["workcell_info.proto"],
+    visibility = ["//intrinsic:__subpackages__"],
+)
+
+cc_proto_library(
+    name = "workcell_info_cc_proto",
+    visibility = ["//intrinsic:__subpackages__"],
+    deps = [":workcell_info_proto"],
+)
+
+py_proto_library(
+    name = "workcell_info_py_pb2",
+    visibility = ["//intrinsic:__subpackages__"],
+    deps = [":workcell_info_proto"],
+)
+
+go_proto_library(
+    name = "workcell_info_go_proto",
+    visibility = ["//intrinsic:__subpackages__"],
+    deps = [":workcell_info_proto"],
 )

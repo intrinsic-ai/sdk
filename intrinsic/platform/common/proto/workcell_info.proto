@@ -1,0 +1,14 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic.platform.proto;
+
+// WorkcellInfo contains information about the workcell that asset developers
+// can use. This is a temporary solution until we have a better way to pass
+// information to asset developers potentially through environment variables.
+message WorkcellInfo {
+  string workcell_name = 1;
+  string cloud_endpoint = 2;
+  string project = 3;
+}
