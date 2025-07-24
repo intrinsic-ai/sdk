@@ -296,6 +296,26 @@ proto_library(
     ],
 )
 
+py_proto_library(
+    name = "asset_deployment_py_pb2",
+    visibility = [
+        "//intrinsic:__subpackages__",
+        "//intrinsic:public_api_users",
+    ],
+    deps = [":asset_deployment_proto"],
+)
+
+py_grpc_library(
+    name = "asset_deployment_pb2_grpc",
+    srcs = [":asset_deployment_proto"],
+    grpc_library = requirement("grpcio"),
+    visibility = [
+        "//intrinsic:__subpackages__",
+        "//intrinsic:public_api_users",
+    ],
+    deps = [":asset_deployment_py_pb2"],
+)
+
 go_proto_library(
     name = "asset_deployment_go_proto",
     go_deps = [
