@@ -131,55 +131,32 @@ class DeploymentsTest(absltest.TestCase):
       self,
       mock_userconfig_read: mock.MagicMock,
   ):
-    mock_userconfig_read.return_value = {}
-    with self.assertRaisesRegex(
-        solutions_errors.NotFoundError, "solution selection"
-    ):
-      deployments.connect_to_selected_solution()
-
     mock_userconfig_read.return_value = {
-        userconfig.SELECTED_SOLUTION_TYPE: (
-            userconfig.SELECTED_SOLUTION_TYPE_REMOTE
-        )
-    }
-    with self.assertRaisesRegex(
-        solutions_errors.NotFoundError, "solution selection.*No organization"
-    ):
-      deployments.connect_to_selected_solution()
-
-    mock_userconfig_read.return_value = {
-        userconfig.SELECTED_SOLUTION_TYPE: (
-            userconfig.SELECTED_SOLUTION_TYPE_REMOTE
-        ),
         userconfig.SELECTED_ORGANIZATION: "test-org",
     }
     with self.assertRaisesRegex(
-        solutions_errors.NotFoundError, "solution selection.*No solution"
+        solutions_errors.NotFoundError,
+        deployments._INVALID_SOLUTION_SELECTION_ERROR,
     ):
       deployments.connect_to_selected_solution()
 
-  @mock.patch.object(userconfig, "read")
-  @mock.patch.object(dialerutil, "create_channel")
-  @mock.patch.object(deployments.Solution, "for_channel")
-  def test_deployments_connect_to_selected_solution_local_case(
-      self,
-      mock_for_channel: mock.MagicMock,
-      mock_create_channel: mock.MagicMock,
-      mock_userconfig_read: mock.MagicMock,
-  ):
     mock_userconfig_read.return_value = {
-        userconfig.SELECTED_SOLUTION_TYPE: (
-            userconfig.SELECTED_SOLUTION_TYPE_LOCAL
-        )
+        userconfig.SELECTED_CLUSTER: "test-cluster",
     }
-    mock_for_channel.return_value = None
+    with self.assertRaisesRegex(
+        solutions_errors.NotFoundError,
+        deployments._INVALID_SOLUTION_SELECTION_ERROR,
+    ):
+      deployments.connect_to_selected_solution()
 
-    deployments.connect_to_selected_solution()
-
-    mock_create_channel.assert_called_with(
-        dialerutil.CreateChannelParams(address=deployments._DEFAULT_HOSTPORT),
-        grpc_options=deployments._GRPC_OPTIONS,
-    )
+    mock_userconfig_read.return_value = {
+        userconfig.SELECTED_SOLUTION: "test-solution",
+    }
+    with self.assertRaisesRegex(
+        solutions_errors.NotFoundError,
+        deployments._INVALID_SOLUTION_SELECTION_ERROR,
+    ):
+      deployments.connect_to_selected_solution()
 
   @mock.patch.object(userconfig, "read")
   @mock.patch.object(auth, "read_org_info")

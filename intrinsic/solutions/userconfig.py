@@ -10,13 +10,10 @@ from typing import Dict
 _CONFIG_FOLDER = "intrinsic"
 _CONFIG_FILE = "user.config"
 
-SELECTED_SOLUTION_TYPE = "selectedSolutionType"
 SELECTED_ORGANIZATION = "selectedOrganization"
 SELECTED_SOLUTION = "selectedSolution"
-
-# Allowed values for SELECTED_SOLUTION_TYPE
-SELECTED_SOLUTION_TYPE_LOCAL = "local"
-SELECTED_SOLUTION_TYPE_REMOTE = "remote"
+SELECTED_CLUSTER = "selectedCluster"
+SELECTED_ADDRESS = "selectedAddress"
 
 
 class NotFoundError(Exception):

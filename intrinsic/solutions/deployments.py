@@ -396,18 +396,22 @@ _NO_SOLUTION_SELECTED_ERROR = (
     " Code you can use the Intrinsic extension to select a deployed solution."
 )
 
+_INVALID_SOLUTION_SELECTION_ERROR = (
+    "The solution selection found in the current environment is invalid. To"
+    " correctly select a solution you can use, e.g., the Intrinsic extension in"
+    " VS Code."
+)
+
 
 def connect_to_selected_solution() -> "Solution":
-  """Connects to the deployed solution that is currently selected.
+  """Connects to the solution specified in the user config.
 
   Connects to the deployed solution that is selected in the current environment.
   E.g., in VS Code you can use the Intrinsic extension to select a deployed
   solution from a list of available solutions and then use this method to
   connect to this solution.
-
   Raises:
-    NotFoundError: If no solution selection can be found in the current
-    environment.
+    NotFoundError: If no valid solution is specified in the user config.
 
   Returns:
     A fully initialized Solution object that represents the deployed solution.
@@ -417,29 +421,22 @@ def connect_to_selected_solution() -> "Solution":
   except userconfig.NotFoundError as e:
     raise solution_errors.NotFoundError(_NO_SOLUTION_SELECTED_ERROR) from e
 
-  if (
-      config.get(userconfig.SELECTED_SOLUTION_TYPE, None)
-      == userconfig.SELECTED_SOLUTION_TYPE_LOCAL
-  ):
-    return connect()
-
-  # If we reach this point, config.get(userconfig.SELECTED_SOLUTION_TYPE) is
-  # either None or userconfig.SELECTED_SOLUTION_TYPE_REMOTE. For backward
-  # compatibility we treat both cases equally.
-
   selected_org = config.get(userconfig.SELECTED_ORGANIZATION, None)
-  if selected_org is None:
-    raise solution_errors.NotFoundError(
-        _NO_SOLUTION_SELECTED_ERROR + " No organization selected."
-    )
-
   selected_solution = config.get(userconfig.SELECTED_SOLUTION, None)
-  if selected_solution is None:
-    raise solution_errors.NotFoundError(
-        _NO_SOLUTION_SELECTED_ERROR + " No solution selected."
-    )
+  selected_cluster = config.get(userconfig.SELECTED_CLUSTER, None)
+  selected_address = config.get(userconfig.SELECTED_ADDRESS, None)
 
-  return connect(org=selected_org, solution=selected_solution)
+  try:
+    return connect(
+        address=selected_address,
+        org=selected_org,
+        solution=selected_solution,
+        cluster=selected_cluster,
+    )
+  except ValueError as e:
+    raise solution_errors.NotFoundError(
+        _INVALID_SOLUTION_SELECTION_ERROR
+    ) from e
 
 
 def create_grpc_channel(
