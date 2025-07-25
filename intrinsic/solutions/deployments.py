@@ -343,12 +343,12 @@ def connect(
     solution: Optional[str] = None,
     cluster: Optional[str] = None,
 ) -> "Solution":
-  # pyformat: disable
   """Connects to a deployed solution.
 
   Args:
     grpc_channel: gRPC channel to use for connection.
-    address: Connect directly to an address (e.g. localhost). Only one of [project, solution] and address is allowed.
+    address: Connect directly to an address (e.g. localhost). Only one of
+      solution and address is allowed.
     org: Organization of the solution to connect to.
     solution: Id (not display name!) of the solution to connect to.
     cluster: Name of cluster to connect to (instead of specifying 'solution').
@@ -362,11 +362,7 @@ def connect(
   if (
       sum([
           bool(grpc_channel),
-          bool(
-              org
-              or solution
-              or cluster
-          ),
+          bool(org or solution or cluster),
           bool(address),
       ])
       > 1
@@ -446,12 +442,11 @@ def create_grpc_channel(
     solution: Optional[str] = None,
     cluster: Optional[str] = None,
 ) -> grpc.Channel:
-  # pyformat: disable
   """Creates a gRPC channel to a deployed solution.
 
   Args:
     address: Connect directly to an address (e.g. localhost). Only one of
-      [project, solution] and address is allowed.
+      solution and address is allowed.
     org: Organization of the solution to connect to.
     solution: Id (not display name!) of the solution to connect to.
     cluster: Name of cluster to connect to (instead of specifying 'solution').
@@ -459,7 +454,6 @@ def create_grpc_channel(
   Returns:
     A gRPC channel
   """
-  # pyformat: enable
 
   params: dialerutil.CreateChannelParams = None
   if not any([
@@ -475,38 +469,25 @@ def create_grpc_channel(
     params = dialerutil.CreateChannelParams(address=default_address)
   elif address is not None:
     params = dialerutil.CreateChannelParams(address=address)
-  elif (
-      (org is not None)
-      or (solution is not None)
-      or (cluster is not None)
-  ):
-    # pyformat: disable
+  elif (org is not None) or (solution is not None) or (cluster is not None):
     if not (
-        (
-            (org is not None)
-        )
-        and
-        (
-            (solution is not None)
-            or (cluster is not None)
-        )
+        (org is not None) and ((solution is not None) or (cluster is not None))
     ):
-      # pylint: disable-next=unused-variable
-      msg = f"'org' ({org}) and one of 'solution' ({solution}) or 'cluster' ({cluster}) are required together!"
+      msg = (
+          f"'org' ({org}) and one of 'solution' ({solution}) or 'cluster'"
+          f" ({cluster}) are required together!"
+      )
       raise ValueError(msg)
-    # pyformat: enable
 
-    resolved_project = None
-    if org is not None:
-      try:
-        resolved_project = auth.read_org_info(org).project
-      except auth.OrgNotFoundError as error:
-        raise solution_errors.NotFoundError(
-            f"Credentials for organization '{error.organization}' not found."
-            f" Run 'inctl auth login --org {error.organization}' on a terminal"
-            " to login with this organization, or run 'inctl auth list' to see"
-            " the organizations you are currently logged in with."
-        ) from error
+    try:
+      resolved_project = auth.read_org_info(org).project
+    except auth.OrgNotFoundError as error:
+      raise solution_errors.NotFoundError(
+          f"Credentials for organization '{error.organization}' not found."
+          f" Run 'inctl auth login --org {error.organization}' on a terminal"
+          " to login with this organization, or run 'inctl auth list' to see"
+          " the organizations you are currently logged in with."
+      ) from error
 
     resolved_cluster = None
     if cluster is not None:
