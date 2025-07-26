@@ -211,7 +211,7 @@ use_repo(
 ##########
 
 # go/keep-sorted start
-bazel_dep(name = "abseil-cpp", version = "20250127.1")
+bazel_dep(name = "abseil-cpp", version = "20250512.1")
 bazel_dep(name = "abseil-py", version = "2.1.0", repo_name = "com_google_absl_py")
 bazel_dep(name = "boringssl", version = "0.20241024.0")
 bazel_dep(name = "cel-cpp", version = "0.11.0", repo_name = "com_google_cel_cpp")
@@ -227,10 +227,10 @@ bazel_dep(name = "googleapis-grpc-java", version = "1.0.0")
 bazel_dep(name = "googleapis-java", version = "1.0.0")
 bazel_dep(name = "googleapis-python", version = "1.0.0")
 bazel_dep(name = "googletest", version = "1.15.2", repo_name = "com_google_googletest")
-bazel_dep(name = "grpc", version = "1.73.1", repo_name = "com_github_grpc_grpc")
+bazel_dep(name = "grpc", version = "1.74.0", repo_name = "com_github_grpc_grpc")
 bazel_dep(name = "grpc_ecosystem_grpc_gateway", version = "2.26.3", repo_name = "com_github_grpc_ecosystem_grpc_gateway_v2")
 bazel_dep(name = "jsonnet", version = "0.20.0.bcr.1")
-bazel_dep(name = "opencensus-cpp", version = "0.0.0-20230502-50eb5de", repo_name = "io_opencensus_cpp")
+bazel_dep(name = "opencensus-cpp", version = "0.0.0-20230502-50eb5de.bcr.2", repo_name = "io_opencensus_cpp")
 bazel_dep(name = "or-tools", version = "9.12", repo_name = "or_tools")
 bazel_dep(name = "protobuf", version = "31.1", repo_name = "com_google_protobuf")
 bazel_dep(name = "protobuf-matchers", version = "0.1.1", repo_name = "com_github_inazarenko_protobuf_matchers")
