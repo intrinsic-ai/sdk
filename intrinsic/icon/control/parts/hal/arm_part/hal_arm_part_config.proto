@@ -12,7 +12,7 @@ import "intrinsic/icon/proto/linear_joint_acceleration_filter_config.proto";
 // Config specialization for a HAL arm part.
 // The config is assigning a hardware interface for each required feature
 // interface.
-// Next ID: 26
+// Next ID: 27
 message HalArmPartConfig {
   optional intrinsic_proto.icon.v1.HardwareInterface joint_position_command = 1;
   optional intrinsic_proto.icon.v1.HardwareInterface joint_commanded_position =
@@ -36,6 +36,14 @@ message HalArmPartConfig {
   optional intrinsic_proto.icon.v1.HardwareInterface payload_state = 22;
   // The system limits are written to this hardware interface.
   optional intrinsic_proto.icon.v1.HardwareInterface joint_system_limits = 23;
+
+  message HomingInterfaces {
+    intrinsic_proto.icon.v1.HardwareInterface command = 1;
+    intrinsic_proto.icon.v1.HardwareInterface state = 2;
+  }
+
+  // Map from drive name to homing command and status interfaces.
+  map<string, HomingInterfaces> homing = 26;
 
   // If present, the kinematics model name needs to correspond to one of the
   // kinematics models available via KinematicsService. Which models are

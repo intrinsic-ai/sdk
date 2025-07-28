@@ -121,6 +121,9 @@ message GenericLinearGripperConfig {
 message GenericHandGuidingConfig {
   // Empty for now.
 }
+message GenericHomingConfig {
+  // Empty for now.
+}
 message GenericControlModeExporterConfig {
   // Empty, as there is no configuration to be done.
 }
@@ -177,4 +180,5 @@ message GenericPartConfig {
   optional GenericPayloadStateConfig payload_state_config = 25;
   optional GenericCartesianPositionStateConfig cartesian_position_state_config =
       26;
+  optional GenericHomingConfig homing_config = 27;
 }
