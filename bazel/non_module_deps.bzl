@@ -7,13 +7,18 @@ Module extension for non-module dependencies
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file", "http_jar")
 
 def _non_module_deps_impl(ctx):  # @unused
-    # Sysroot and libc
-    # How to upgrade:
-    # - Find image in https://storage.googleapis.com/chrome-linux-sysroot/ for amd64 for
-    #   a stable Linux (here: Debian bullseye), of this pick a current build.
-    # - Verify the image contains expected /lib/x86_64-linux-gnu/libc* and defines correct
-    #   __GLIBC_MINOR__ in /usr/include/features.h
-    # - If system files are not found, add them in ../sysroot.BUILD.bazel
+    # To update this, see https://github.com/intrinsic-ai/insrc/blob/main/bazel/sysroot/README.md.
+    http_archive(
+        name = "intrinsic_llvm_sysroot",
+        sha256 = "24d7e61ceb0a26a2002bd0a3e87dfbc8e12ec95456bd1cced7fc5ccd79c47ed8",
+        build_file_content = """
+filegroup(
+    name = "all_files",
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public"]
+)""",
+        urls = ["https://storage.googleapis.com/intrinsic-mirror/bazel/sysroot-2025-07-22-845e86b8.tar.zst"],
+    )
     http_archive(
         name = "com_googleapis_storage_chrome_linux_amd64_sysroot",
         build_file = Label("//intrinsic/production/external:sysroot.BUILD.bazel"),
