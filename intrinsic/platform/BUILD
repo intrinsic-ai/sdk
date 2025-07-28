@@ -12,6 +12,7 @@ bzl_library(
     deps = [
         ":fbs_library_bzl",
         "@bazel_skylib//lib:paths",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -23,4 +24,5 @@ bzl_library(
 bzl_library(
     name = "flatbuffers_bzl",
     srcs = ["flatbuffers.bzl"],
+    deps = ["@rules_cc//cc/common"],
 )

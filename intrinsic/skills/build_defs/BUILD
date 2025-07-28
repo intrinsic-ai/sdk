@@ -23,6 +23,7 @@ bzl_library(
         "//bazel:python_oci_image_bzl",
         "@bazel_skylib//lib:paths",
         "@rules_cc//cc:core_rules",
+        "@rules_cc//cc/common",
     ],
 )
 

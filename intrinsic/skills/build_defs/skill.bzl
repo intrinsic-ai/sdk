@@ -4,6 +4,7 @@
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load("@rules_python//python:defs.bzl", "py_binary")
 load("//bazel:cc_oci_image.bzl", "cc_oci_image")
 load("//bazel:container.bzl", "container_image")
