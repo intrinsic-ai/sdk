@@ -160,30 +160,26 @@ absl::StatusOr<StructuredLoggingClient::GetResult>
 StructuredLoggingClient::GetLogItems(absl::string_view event_source,
                                      absl::Time start_time,
                                      absl::Time end_time) const {
-  return GetLogItems(event_source, std::numeric_limits<int>::max(), "",
-                     start_time, end_time);
+  return GetLogItems(event_source, std::numeric_limits<int>::max(), start_time,
+                     end_time);
 }
 
 absl::StatusOr<StructuredLoggingClient::GetResult>
 StructuredLoggingClient::GetLogItems(
-    absl::string_view event_source, int page_size, absl::string_view page_token,
-    absl::Time start_time, absl::Time end_time,
+    absl::string_view event_source, int page_size, absl::Time start_time,
+    absl::Time end_time,
     absl::flat_hash_map<std::string, std::string> filter_labels) const {
   intrinsic_proto::data_logger::GetLogItemsRequest request;
   request.set_max_num_items(page_size);
 
-  if (!page_token.empty()) {
-    request.set_cursor(std::string{page_token});
-  } else {
-    request.mutable_get_query()->set_event_source(event_source);
-    INTR_ASSIGN_OR_RETURN(*request.mutable_get_query()->mutable_start_time(),
-                          FromAbslTime(start_time));
-    INTR_ASSIGN_OR_RETURN(*request.mutable_get_query()->mutable_end_time(),
-                          FromAbslTime(end_time));
-    if (!filter_labels.empty()) {
-      request.mutable_get_query()->mutable_filter_labels()->insert(
-          filter_labels.begin(), filter_labels.end());
-    }
+  request.mutable_get_query()->set_event_source(event_source);
+  INTR_ASSIGN_OR_RETURN(*request.mutable_get_query()->mutable_start_time(),
+                        FromAbslTime(start_time));
+  INTR_ASSIGN_OR_RETURN(*request.mutable_get_query()->mutable_end_time(),
+                        FromAbslTime(end_time));
+  if (!filter_labels.empty()) {
+    request.mutable_get_query()->mutable_filter_labels()->insert(
+        filter_labels.begin(), filter_labels.end());
   }
 
   grpc::ClientContext context;
@@ -193,15 +189,44 @@ StructuredLoggingClient::GetLogItems(
   std::vector<intrinsic_proto::data_logger::LogItem> log_items(
       std::make_move_iterator(response.log_items().begin()),
       std::make_move_iterator(response.log_items().end()));
-  return GetResult{.log_items = std::move(log_items),
-                   .next_page_token = std::move(response.next_page_cursor())};
+  return GetResult{
+      .log_items = std::move(log_items),
+      .next_page_token =
+          response.has_next_page_cursor()
+              ? std::make_optional(std::move(response.next_page_cursor()))
+              : std::nullopt};
+}
+
+absl::StatusOr<StructuredLoggingClient::GetResult>
+StructuredLoggingClient::GetLogItems(int page_size,
+                                     absl::string_view page_token) const {
+  if (page_token.empty()) {
+    return absl::InvalidArgumentError("page_token must not be empty");
+  }
+  intrinsic_proto::data_logger::GetLogItemsRequest request;
+  request.set_max_num_items(page_size);
+  request.set_cursor(page_token);
+
+  grpc::ClientContext context;
+  intrinsic_proto::data_logger::GetLogItemsResponse response;
+  INTR_RETURN_IF_ERROR(
+      ToAbslStatus(impl_->stub->GetLogItems(&context, request, &response)));
+  std::vector<intrinsic_proto::data_logger::LogItem> log_items(
+      std::make_move_iterator(response.log_items().begin()),
+      std::make_move_iterator(response.log_items().end()));
+  return GetResult{
+      .log_items = std::move(log_items),
+      .next_page_token =
+          response.has_next_page_cursor()
+              ? std::make_optional(std::move(response.next_page_cursor()))
+              : std::nullopt};
 }
 
 absl::StatusOr<intrinsic_proto::data_logger::LogItem>
 StructuredLoggingClient::GetMostRecentItem(
     absl::string_view event_source) const {
   intrinsic_proto::data_logger::GetMostRecentItemRequest request;
-  request.set_event_source(std::string{event_source});
+  request.set_event_source(event_source);
 
   grpc::ClientContext context;
   intrinsic_proto::data_logger::GetMostRecentItemResponse response;

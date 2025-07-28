@@ -35,7 +35,7 @@ class StructuredLoggingClient {
 
   struct ListResult {
     std::vector<LogItem> log_items;
-    std::string next_page_token;
+    std::optional<std::string> next_page_token;
   };
 
   using GetResult = ListResult;
@@ -118,10 +118,13 @@ class StructuredLoggingClient {
   // service.
   absl::StatusOr<GetResult> GetLogItems(
       absl::string_view event_source, int page_size,
-      absl::string_view page_token = "",
       absl::Time start_time = absl::UniversalEpoch(),
       absl::Time end_time = absl::Now(),
       absl::flat_hash_map<std::string, std::string> filter_labels = {}) const;
+
+  // Returns a list of log items for the specified page token.
+  absl::StatusOr<GetResult> GetLogItems(int page_size,
+                                        absl::string_view page_token) const;
 
   // Returns the most recent LogItem that has been logged for the given event
   // source. If no LogItem with a matching event_source has been logged since
