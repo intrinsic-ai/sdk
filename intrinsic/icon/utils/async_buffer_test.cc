@@ -165,7 +165,11 @@ TEST(AsyncBufferSimpleTest, ThreadSafe) {
   };
   AsyncBuffer<TestStruct> buffer;
   Thread write_thread([&]() {
-    for (int i = 0; i < 1000; ++i) {
+    // Start writing at 1, rather than 0.
+    // TestStruct starts at 0, so the initial write would not change the value,
+    // but the expectation below assumes that each write increments the value of
+    // `i`!
+    for (int i = 1; i < 1000; ++i) {
       TestStruct* b = buffer.GetFreeBuffer();
       b->i = i;
       buffer.CommitFreeBuffer();
