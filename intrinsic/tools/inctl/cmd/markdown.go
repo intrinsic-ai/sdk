@@ -65,6 +65,7 @@ var generateMarkdownCmd = &cobra.Command{
 
 	Additionally, the generated markdown files are prepended with a template to customize the docusaurus sidebar layout.
 	`,
+	Hidden: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		fmt.Println("Generating markdown files in ", outputPath)
 		const tmpMarkdownDirName = "tmp_dir_markdown_files"
@@ -75,6 +76,7 @@ var generateMarkdownCmd = &cobra.Command{
 		}
 		defer os.RemoveAll(dirPath)
 
+		root.RootCmd.DisableAutoGenTag = true
 		if err := doc.GenMarkdownTreeCustom(root.RootCmd, dirPath, filePrepender, linkPrepender); err != nil {
 			fmt.Println("error generating markdown")
 			return err
