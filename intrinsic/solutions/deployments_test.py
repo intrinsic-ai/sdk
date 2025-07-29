@@ -82,10 +82,7 @@ class DeploymentsTest(absltest.TestCase):
     self.assertTrue(mock_for_channel.called)
 
   def test_connect_raises_on_invalid_params(self):
-    with self.assertRaisesRegex(ValueError, "org.*solution.*required together"):
-      deployments.connect(org="test-org")
-
-    with self.assertRaisesRegex(ValueError, "org.*solution.*required together"):
+    with self.assertRaisesRegex(ValueError, "org.*is required.*solution"):
       deployments.connect(solution="test-solution")
 
   @mock.patch.object(deployments.Solution, "for_channel")
@@ -120,15 +117,6 @@ class DeploymentsTest(absltest.TestCase):
       self,
       mock_userconfig_read: mock.MagicMock,
   ):
-    mock_userconfig_read.return_value = {
-        userconfig.SELECTED_ORGANIZATION: "test-org",
-    }
-    with self.assertRaisesRegex(
-        solutions_errors.NotFoundError,
-        deployments._INVALID_SOLUTION_SELECTION_ERROR,
-    ):
-      deployments.connect_to_selected_solution()
-
     mock_userconfig_read.return_value = {
         userconfig.SELECTED_CLUSTER: "test-cluster",
     }

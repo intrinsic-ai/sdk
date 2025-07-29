@@ -359,17 +359,22 @@ def connect(
   """
   if (
       sum([
-          bool(grpc_channel),
-          bool(org or solution or cluster),
-          bool(address),
+          (grpc_channel is not None),
+          (solution is not None),
+          (cluster is not None),
+          (address is not None),
       ])
       > 1
   ):
-    solution_params = ["org", "solution"]
-    solution_params.append("cluster")
-    solution_params = ", ".join(solution_params)
     raise ValueError(
-        f"Only one of [{solution_params}], grpc_channel or address is allowed!"
+        "Only one of grpc_channel, solution, cluster or address is allowed!"
+    )
+
+  if (org is not None) and (
+      (grpc_channel is not None) or (address is not None)
+  ):
+    raise ValueError(
+        "Org is not supported when connecting via grpc_channel or address."
     )
 
   if grpc_channel is None:
@@ -452,31 +457,8 @@ def _create_grpc_channel(
   Returns:
     gRPC channel to the deployed solution.
   """
-  if not any([
-      address,
-      org,
-      solution,
-      cluster,
-  ]):
-    # Legacy behavior: Use default hostport if called without params.
-    address = os.environ.get(
-        _CLUSTER_ADDRESS_ENVIRONMENT_VAR, _DEFAULT_HOSTPORT
-    )
-
-  if address is not None:
-    return dialerutil.create_channel_from_address(
-        address, grpc_options=_GRPC_OPTIONS
-    )
-  else:
-    if not (
-        (org is not None) and ((solution is not None) or (cluster is not None))
-    ):
-      msg = (
-          f"'org' ({org}) and one of 'solution' ({solution}) or 'cluster'"
-          f" ({cluster}) are required together!"
-      )
-      raise ValueError(msg)
-
+  org_info = None
+  if org is not None:
     try:
       org_info = auth.read_org_info(org)
     except auth.OrgNotFoundError as error:
@@ -487,14 +469,34 @@ def _create_grpc_channel(
           " the organizations you are currently logged in with."
       ) from error
 
-    if solution is not None:
-      return dialerutil.create_channel_from_solution(
-          org_info, solution, grpc_options=_GRPC_OPTIONS
+  if not any([
+      address,
+      solution,
+      cluster,
+  ]):
+    # Legacy behavior: Use default hostport if called without params.
+    address = os.environ.get(
+        _CLUSTER_ADDRESS_ENVIRONMENT_VAR, _DEFAULT_HOSTPORT
+    )
+
+  if solution is not None:
+    if org_info is None:
+      raise ValueError(
+          f"'org' is required when 'solution' ({solution}) is set!"
       )
-    elif cluster is not None:
-      return dialerutil.create_channel_from_cluster(
-          org_info, cluster, grpc_options=_GRPC_OPTIONS
-      )
+    return dialerutil.create_channel_from_solution(
+        org_info, solution, grpc_options=_GRPC_OPTIONS
+    )
+  elif cluster is not None:
+    if org_info is None:
+      raise ValueError(f"'org' is required when 'cluster' ({cluster}) is set!")
+    return dialerutil.create_channel_from_cluster(
+        org_info, cluster, grpc_options=_GRPC_OPTIONS
+    )
+  else:  # address
+    return dialerutil.create_channel_from_address(
+        address, grpc_options=_GRPC_OPTIONS
+    )
 
 
 # pytype: enable=bad-return-type
