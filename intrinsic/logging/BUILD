@@ -40,6 +40,7 @@ cc_library(
     srcs = ["structured_logging_client.cc"],
     hdrs = ["structured_logging_client.h"],
     deps = [
+        "//intrinsic/logging/proto:downsampler_cc_proto",
         "//intrinsic/logging/proto:log_item_cc_proto",
         "//intrinsic/logging/proto:logger_service_cc_grpc",
         "//intrinsic/logging/proto:logger_service_cc_proto",

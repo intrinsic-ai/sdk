@@ -168,7 +168,8 @@ absl::StatusOr<StructuredLoggingClient::GetResult>
 StructuredLoggingClient::GetLogItems(
     absl::string_view event_source, int page_size, absl::Time start_time,
     absl::Time end_time,
-    absl::flat_hash_map<std::string, std::string> filter_labels) const {
+    absl::flat_hash_map<std::string, std::string> filter_labels,
+    std::optional<DownsamplerOptions> downsampler_options) const {
   intrinsic_proto::data_logger::GetLogItemsRequest request;
   request.set_max_num_items(page_size);
 
@@ -180,6 +181,10 @@ StructuredLoggingClient::GetLogItems(
   if (!filter_labels.empty()) {
     request.mutable_get_query()->mutable_filter_labels()->insert(
         filter_labels.begin(), filter_labels.end());
+  }
+  if (downsampler_options.has_value()) {
+    *request.mutable_get_query()->mutable_downsampler_options() =
+        *std::move(downsampler_options);
   }
 
   grpc::ClientContext context;

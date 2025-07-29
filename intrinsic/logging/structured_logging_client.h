@@ -18,6 +18,7 @@
 #include "absl/time/time.h"
 #include "absl/types/span.h"
 #include "grpcpp/channel.h"
+#include "intrinsic/logging/proto/downsampler.pb.h"
 #include "intrinsic/logging/proto/log_item.pb.h"
 #include "intrinsic/logging/proto/logger_service.grpc.pb.h"
 #include "intrinsic/logging/proto/logger_service.pb.h"
@@ -32,6 +33,7 @@ class StructuredLoggingClient {
   using LogItem = ::intrinsic_proto::data_logger::LogItem;
   using LogOptions = ::intrinsic_proto::data_logger::LogOptions;
   using LoggerStub = ::intrinsic_proto::data_logger::DataLogger::StubInterface;
+  using DownsamplerOptions = ::intrinsic_proto::data_logger::DownsamplerOptions;
 
   struct ListResult {
     std::vector<LogItem> log_items;
@@ -120,7 +122,9 @@ class StructuredLoggingClient {
       absl::string_view event_source, int page_size,
       absl::Time start_time = absl::UniversalEpoch(),
       absl::Time end_time = absl::Now(),
-      absl::flat_hash_map<std::string, std::string> filter_labels = {}) const;
+      absl::flat_hash_map<std::string, std::string> filter_labels = {},
+      std::optional<DownsamplerOptions> downsampler_options =
+          std::nullopt) const;
 
   // Returns a list of log items for the specified page token.
   absl::StatusOr<GetResult> GetLogItems(int page_size,
