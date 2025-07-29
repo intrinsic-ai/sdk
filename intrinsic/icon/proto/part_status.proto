@@ -50,6 +50,9 @@ message PartStatus {
   // obtained.
   int64 timestamp_ns = 2;
 
+  // The operational status of the part.
+  intrinsic_proto.icon.v1.OperationalStatus operational_status = 17;
+
   // Each part can have any number of the following features present.
 
   // The state of joints associated with this part. Each JointState of a part is
