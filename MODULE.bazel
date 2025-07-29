@@ -214,7 +214,7 @@ use_repo(
 bazel_dep(name = "abseil-cpp", version = "20250512.1")
 bazel_dep(name = "abseil-py", version = "2.1.0", repo_name = "com_google_absl_py")
 bazel_dep(name = "boringssl", version = "0.20241024.0")
-bazel_dep(name = "cel-cpp", version = "0.12.0", repo_name = "com_google_cel_cpp")
+bazel_dep(name = "cel-cpp", version = "0.11.0", repo_name = "com_google_cel_cpp")
 bazel_dep(name = "eigen", version = "4.0.0-20241125", repo_name = "com_gitlab_libeigen_eigen")
 bazel_dep(name = "flatbuffers", version = "25.2.10", repo_name = "com_github_google_flatbuffers")
 bazel_dep(name = "fuzztest", version = "20241028.0", repo_name = "com_google_fuzztest")
