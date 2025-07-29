@@ -240,6 +240,10 @@ message SyncResponse {
   repeated string throttled_event_sources = 2;
 }
 
+message RecordingsSupportedResponse {
+  bool recordings_supported = 1;
+}
+
 message CreateLocalRecordingRequest {
   // A time range used to select from the LogItems available in the TimescaleDB
   // rolling buffer.
@@ -338,6 +342,10 @@ service DataLogger {
   // `Log` call. Each event source will have a global throttle on user-requested
   // flushes.
   rpc SyncAndRotateLogs(SyncRequest) returns (SyncResponse) {}
+
+  // Returns true if recordings are supported by the logger.
+  rpc RecordingsSupported(google.protobuf.Empty)
+      returns (RecordingsSupportedResponse) {}
 
   // Creates a local recording from structured logging data.
   //
