@@ -187,7 +187,9 @@ func loginCmdE(cmd *cobra.Command, _ []string) (err error) {
 			Name:   projectName,
 			Tokens: map[string]*auth.ProjectToken{alias: &auth.ProjectToken{APIKey: apiKey}},
 		})
-		return err
+		if err != nil {
+			return err
+		}
 	}
 
 	if apiKey == "" {
