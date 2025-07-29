@@ -300,16 +300,39 @@ var modeCmd = &cobra.Command{
 }
 
 const runCmdDesc = `
-Run an upgrade of the specified cluster, if new software is available.
+Run an upgrade on the specified cluster. With no arguments it will upgrade to
+the latest stable release if available. Arguments can specify the OS or
+runtime versions to use an older or newer build.
 
-This command will execute right away. Please make sure the cluster is safe
-and ready to upgrade. It might reboot in the process.
+Warning: Depending on the mode of the cluster (inctl cluster upgrade mode),
+the update will:
+
+-   mode=automatic: be ignored, as the cluster will automatically return to the
+    latest available version.
+-   mode=on: execute right away. Make sure the cluster is safe and ready to
+    upgrade. It might reboot in the process.
+-   mode=on+accept: not execute until approved by the operator or with
+    "inctl cluster upgrade accept".
+-   mode=off: be rejected and the command will fail.
+
+Examples:
+
+# Upgrade to latest stable OS and runtime releases:
+inctl cluster upgrade run --org my_org@my-project --cluster node-fc66c2ab-5770-43b8-aefe-a36a2f356fb1
+
+# Upgrade to specific OS and runtime releases:
+inctl cluster upgrade run --os 20250428.RC00 --base 20250721.RC05 \
+  --org my_org@my-project --cluster node-fc66c2ab-5770-43b8-aefe-a36a2f356fb1
+
+# Undo the last automatic upgrade:
+inctl cluster upgrade run --rollback \
+  --org my_org@my-project --cluster node-fc66c2ab-5770-43b8-aefe-a36a2f356fb1
 `
 
-// runCmd is the command to execute an update if available
+// runCmd is the command to trigger or execute an update
 var runCmd = &cobra.Command{
 	Use:   "run",
-	Short: "Run an upgrade if available.",
+	Short: "Assign or start an upgrade to the latest or a specified release.",
 	Long:  runCmdDesc,
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
