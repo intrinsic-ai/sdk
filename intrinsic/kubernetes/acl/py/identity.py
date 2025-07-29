@@ -145,6 +145,21 @@ def OrgIDToGRPCMetadata(org_id: str) -> List[tuple[str, str]]:
   )
 
 
+class _OrgName(grpc.AuthMetadataPlugin):
+  """gRPC Metadata Plugin that adds the org name to the header."""
+
+  def __init__(self, org: str):
+    self._organization_name = org.split('@')[0]
+
+  def __call__(self, context, callback):
+    callback(OrgIDToGRPCMetadata(self._organization_name), None)
+
+
+def OrgNameCallCredentials(org: str) -> grpc.CallCredentials:
+  """Returns call credentials for the org name."""
+  return grpc.metadata_call_credentials(_OrgName(org), name='OrgName')
+
+
 def CanonicalizeEmail(email: str) -> str:
   """Ensures that different valid forms of emails map to the same user account.
 

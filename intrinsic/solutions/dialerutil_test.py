@@ -9,33 +9,31 @@ from intrinsic.solutions import dialerutil
 
 class DialerutilTest(absltest.TestCase):
 
-  def test_create_channel_params_has_local_address(self):
-    params = dialerutil.CreateChannelParams(
-        address="http://istio-ingressgateway.app-ingress.svc.cluster.local:80"
-    )
-    self.assertTrue(params.has_local_address())
-
-    params = dialerutil.CreateChannelParams(address="127.0.0.1:17080")
-    self.assertTrue(params.has_local_address())
-
-  def test_load_credentials_should_raise_if_non_local_and_cred_missing(self):
-    params = dialerutil.CreateChannelParams()
-    with self.assertRaises(ValueError):
-      dialerutil._load_credentials(params)
-
-  @mock.patch.object(auth, "get_configuration", autospec=True)
-  def test_load_credentials_should_return_valid_token(
-      self, mock_get_configuration
+  @mock.patch.object(dialerutil, "_create_channel")
+  @mock.patch.object(dialerutil, "_get_cluster_from_solution")
+  def test_create_channel_from_org_and_solution(
+      self,
+      mock_get_cluster_from_solution: mock.MagicMock,
+      mock_create_channel: mock.MagicMock,
   ):
-    mock_get_configuration.return_value = auth.ProjectConfiguration(
-        name="test-project",
-        tokens={"default": auth.ProjectToken("test-token", None)},
+    mock_get_cluster_from_solution.return_value = "test-cluster"
+    mock_create_channel.return_value = grpc.insecure_channel("localhost:1234")
+
+    dialerutil.create_channel_from_solution(
+        org_info=auth.OrgInfo(organization="test-org", project="test-project"),
+        solution="test-solution",
     )
 
-    params = dialerutil.CreateChannelParams(project_name="test")
-    result = dialerutil._load_credentials(params)
-    self.assertIsNotNone(result)
-    self.assertEqual(result.api_key, "test-token")
+    mock_get_cluster_from_solution.assert_called_with(
+        auth.OrgInfo(organization="test-org", project="test-project"),
+        "test-solution",
+        None,
+    )
+    mock_create_channel.assert_called_with(
+        org_info=auth.OrgInfo(organization="test-org", project="test-project"),
+        cluster="test-cluster",
+        grpc_options=None,
+    )
 
   @mock.patch.object(auth, "get_configuration", autospec=True)
   def test_dial_channel_opens_grpc_connection(self, mock_get_configuration):
@@ -43,10 +41,9 @@ class DialerutilTest(absltest.TestCase):
         name="test-project",
         tokens={"default": auth.ProjectToken("test-token", None)},
     )
-    channel = dialerutil.create_channel(
-        params=dialerutil.CreateChannelParams(
-            project_name="test", cluster="test-cluster"
-        )
+    channel = dialerutil._create_channel(
+        org_info=auth.OrgInfo(organization="test-org", project="test-project"),
+        cluster="test-cluster",
     )
     self.assertIsInstance(channel, grpc.Channel)
 

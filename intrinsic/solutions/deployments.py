@@ -24,8 +24,6 @@ from typing import Optional
 
 import grpc
 from intrinsic.assets.proto import installed_assets_pb2_grpc
-from intrinsic.frontend.cloud.api.v1 import solutiondiscovery_api_pb2
-from intrinsic.frontend.cloud.api.v1 import solutiondiscovery_api_pb2_grpc
 from intrinsic.frontend.solution_service.proto import solution_service_pb2
 from intrinsic.frontend.solution_service.proto import solution_service_pb2_grpc
 from intrinsic.frontend.solution_service.proto import status_pb2 as solution_status_pb2
@@ -374,17 +372,15 @@ def connect(
         f"Only one of [{solution_params}], grpc_channel or address is allowed!"
     )
 
-  if grpc_channel:
-    channel = grpc_channel
-  else:
-    channel = create_grpc_channel(
+  if grpc_channel is None:
+    grpc_channel = _create_grpc_channel(
         address=address,
         org=org,
         solution=solution,
         cluster=cluster,
     )
 
-  return Solution.for_channel(channel)
+  return Solution.for_channel(grpc_channel)
 
 
 _NO_SOLUTION_SELECTED_ERROR = (
@@ -435,7 +431,9 @@ def connect_to_selected_solution() -> "Solution":
     ) from e
 
 
-def create_grpc_channel(
+# Disable pytype error since the raise is incorrectly detected as returning None
+# pytype: disable=bad-return-type
+def _create_grpc_channel(
     *,
     address: Optional[str] = None,
     org: Optional[str] = None,
@@ -452,10 +450,8 @@ def create_grpc_channel(
     cluster: Name of cluster to connect to (instead of specifying 'solution').
 
   Returns:
-    A gRPC channel
+    gRPC channel to the deployed solution.
   """
-
-  params: dialerutil.CreateChannelParams = None
   if not any([
       address,
       org,
@@ -463,13 +459,15 @@ def create_grpc_channel(
       cluster,
   ]):
     # Legacy behavior: Use default hostport if called without params.
-    default_address = os.environ.get(
+    address = os.environ.get(
         _CLUSTER_ADDRESS_ENVIRONMENT_VAR, _DEFAULT_HOSTPORT
     )
-    params = dialerutil.CreateChannelParams(address=default_address)
-  elif address is not None:
-    params = dialerutil.CreateChannelParams(address=address)
-  elif (org is not None) or (solution is not None) or (cluster is not None):
+
+  if address is not None:
+    return dialerutil.create_channel_from_address(
+        address, grpc_options=_GRPC_OPTIONS
+    )
+  else:
     if not (
         (org is not None) and ((solution is not None) or (cluster is not None))
     ):
@@ -480,7 +478,7 @@ def create_grpc_channel(
       raise ValueError(msg)
 
     try:
-      resolved_project = auth.read_org_info(org).project
+      org_info = auth.read_org_info(org)
     except auth.OrgNotFoundError as error:
       raise solution_errors.NotFoundError(
           f"Credentials for organization '{error.organization}' not found."
@@ -489,40 +487,17 @@ def create_grpc_channel(
           " the organizations you are currently logged in with."
       ) from error
 
-    resolved_cluster = None
-    if cluster is not None:
-      resolved_cluster = cluster
     if solution is not None:
-      resolved_cluster = _get_cluster_from_solution(
-          solution, resolved_project, org
+      return dialerutil.create_channel_from_solution(
+          org_info, solution, grpc_options=_GRPC_OPTIONS
+      )
+    elif cluster is not None:
+      return dialerutil.create_channel_from_cluster(
+          org_info, cluster, grpc_options=_GRPC_OPTIONS
       )
 
-    params = dialerutil.CreateChannelParams(
-        organization_name=org,
-        project_name=resolved_project,
-        cluster=resolved_cluster,
-    )
 
-  return dialerutil.create_channel(params, grpc_options=_GRPC_OPTIONS)
-
-
-def _get_cluster_from_solution(
-    solution_id: str, project: str, org: str | None
-) -> str:
-  """Returns the name of the cluster in which the given solution is running."""
-  # Open a temporary gRPC channel to the cloud cluster to resolve the cluster
-  # on which the solution is running.
-  params = dialerutil.CreateChannelParams(
-      project_name=project, organization_name=org
-  )
-  channel = dialerutil.create_channel(params)
-  stub = solutiondiscovery_api_pb2_grpc.SolutionDiscoveryServiceStub(channel)
-  response = stub.GetSolutionDescription(
-      solutiondiscovery_api_pb2.GetSolutionDescriptionRequest(name=solution_id)
-  )
-  channel.close()
-
-  return response.solution.cluster_name
+# pytype: enable=bad-return-type
 
 
 @solution_errors.retry_on_pending_backend

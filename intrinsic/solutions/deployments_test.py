@@ -35,52 +35,48 @@ class DeploymentsTest(absltest.TestCase):
       )
 
   @mock.patch.object(deployments.Solution, "for_channel")
-  @mock.patch.object(dialerutil, "create_channel")
+  @mock.patch.object(dialerutil, "create_channel_from_address")
   def test_connect_defaults_to_localhost(
       self,
-      mock_create_channel: mock.MagicMock,
+      mock_create_channel_from_address: mock.MagicMock,
       mock_for_channel: mock.MagicMock,
   ):
-    mock_create_channel.return_value = None
+    mock_create_channel_from_address.return_value = None
     mock_for_channel.return_value = None
     deployments.connect()
-    mock_create_channel.assert_called_with(
-        dialerutil.CreateChannelParams(address=deployments._DEFAULT_HOSTPORT),
+    mock_create_channel_from_address.assert_called_with(
+        deployments._DEFAULT_HOSTPORT,
         grpc_options=deployments._GRPC_OPTIONS,
     )
     self.assertTrue(mock_for_channel.called)
 
   @mock.patch.object(deployments.Solution, "for_channel")
-  @mock.patch.object(dialerutil, "create_channel")
   def test_connect_grpc_channel(
       self,
-      mock_create_channel: mock.MagicMock,
       mock_for_channel: mock.MagicMock,
   ):
-    mock_create_channel.return_value = None
     mock_for_channel.return_value = None
 
     channel = grpc.insecure_channel("localhost:1234")
     deployments.connect(
         grpc_channel=channel,
     )
-    mock_create_channel.assert_not_called()
     mock_for_channel.assert_called_with(channel)
 
   @mock.patch.object(deployments.Solution, "for_channel")
-  @mock.patch.object(dialerutil, "create_channel")
+  @mock.patch.object(dialerutil, "create_channel_from_address")
   def test_connect_address(
       self,
-      mock_create_channel: mock.MagicMock,
+      mock_create_channel_from_address: mock.MagicMock,
       mock_for_channel: mock.MagicMock,
   ):
-    mock_create_channel.return_value = None
+    mock_create_channel_from_address.return_value = None
     mock_for_channel.return_value = None
     deployments.connect(
         address="localhost:1234",
     )
-    mock_create_channel.assert_called_with(
-        dialerutil.CreateChannelParams(address="localhost:1234"),
+    mock_create_channel_from_address.assert_called_with(
+        "localhost:1234",
         grpc_options=deployments._GRPC_OPTIONS,
     )
     self.assertTrue(mock_for_channel.called)
@@ -93,35 +89,28 @@ class DeploymentsTest(absltest.TestCase):
       deployments.connect(solution="test-solution")
 
   @mock.patch.object(deployments.Solution, "for_channel")
-  @mock.patch.object(dialerutil, "create_channel")
-  @mock.patch.object(deployments, "_get_cluster_from_solution")
+  @mock.patch.object(dialerutil, "create_channel_from_solution")
   @mock.patch.object(auth, "read_org_info")
   def test_connect_org_and_solution(
       self,
       mock_read_org_info: mock.MagicMock,
-      mock_get_cluster_from_solution: mock.MagicMock,
-      mock_create_channel: mock.MagicMock,
+      mock_create_channel_from_solution: mock.MagicMock,
       mock_for_channel: mock.MagicMock,
   ):
     mock_read_org_info.return_value = auth.OrgInfo(
         organization="test-org", project="test-project"
     )
-    mock_get_cluster_from_solution.return_value = "test-cluster"
-    mock_create_channel.return_value = grpc.insecure_channel("localhost:1234")
+    mock_create_channel_from_solution.return_value = grpc.insecure_channel(
+        "localhost:1234"
+    )
     mock_for_channel.return_value = None
 
     deployments.connect(org="test-org", solution="test-solution")
 
     mock_read_org_info.assert_called_with("test-org")
-    mock_get_cluster_from_solution.assert_called_with(
-        "test-solution", "test-project", "test-org"
-    )
-    mock_create_channel.assert_called_with(
-        dialerutil.CreateChannelParams(
-            organization_name="test-org",
-            project_name="test-project",
-            cluster="test-cluster",
-        ),
+    mock_create_channel_from_solution.assert_called_with(
+        auth.OrgInfo(organization="test-org", project="test-project"),
+        "test-solution",
         grpc_options=deployments._GRPC_OPTIONS,
     )
     self.assertTrue(mock_for_channel.called)
@@ -160,14 +149,12 @@ class DeploymentsTest(absltest.TestCase):
 
   @mock.patch.object(userconfig, "read")
   @mock.patch.object(auth, "read_org_info")
-  @mock.patch.object(deployments, "_get_cluster_from_solution")
-  @mock.patch.object(dialerutil, "create_channel")
+  @mock.patch.object(dialerutil, "create_channel_from_solution")
   @mock.patch.object(deployments.Solution, "for_channel")
   def test_deployments_connect_to_selected_solution_remote_case(
       self,
       mock_for_channel: mock.MagicMock,
-      mock_create_channel: mock.MagicMock,
-      mock_get_cluster_from_solution: mock.MagicMock,
+      mock_create_channel_from_solution: mock.MagicMock,
       mock_read_org_info: mock.MagicMock,
       mock_userconfig_read: mock.MagicMock,
   ):
@@ -178,22 +165,17 @@ class DeploymentsTest(absltest.TestCase):
     mock_read_org_info.return_value = auth.OrgInfo(
         organization="test-org", project="test-project"
     )
-    mock_get_cluster_from_solution.return_value = "test-cluster"
-    mock_create_channel.return_value = grpc.insecure_channel("localhost:1234")
+    mock_create_channel_from_solution.return_value = grpc.insecure_channel(
+        "localhost:1234"
+    )
     mock_for_channel.return_value = None
 
     deployments.connect_to_selected_solution()
 
     mock_read_org_info.assert_called_with("test-org")
-    mock_get_cluster_from_solution.assert_called_with(
-        "test-solution", "test-project", "test-org"
-    )
-    mock_create_channel.assert_called_with(
-        dialerutil.CreateChannelParams(
-            project_name="test-project",
-            cluster="test-cluster",
-            organization_name="test-org",
-        ),
+    mock_create_channel_from_solution.assert_called_with(
+        auth.OrgInfo(organization="test-org", project="test-project"),
+        "test-solution",
         grpc_options=deployments._GRPC_OPTIONS,
     )
     self.assertTrue(mock_for_channel.called)

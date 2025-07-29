@@ -85,6 +85,16 @@ class OrgTest(absltest.TestCase):
     organization = identity.OrgFromContext(ctx)
     self.assertEqual(organization.org_id, organization_name)
 
+  def test_org_name_call_credentials(self):
+    self.assertEqual(
+        identity._OrgName('my-organization')._organization_name,
+        'my-organization',
+    )
+    self.assertEqual(
+        identity._OrgName('my-organization@my-project')._organization_name,
+        'my-organization',
+    )
+
 
 class CanonicalizationTest(parameterized.TestCase):
 

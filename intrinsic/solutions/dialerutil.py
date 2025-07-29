@@ -6,30 +6,12 @@ This file implements a subset of the
 `//intrinsic/skills/tools/skill/cmd/dialerutil.go` library.
 """
 
-import dataclasses
 from typing import Any, List, Optional, Tuple
 import grpc
+from intrinsic.frontend.cloud.api.v1 import solutiondiscovery_api_pb2
+from intrinsic.frontend.cloud.api.v1 import solutiondiscovery_api_pb2_grpc
 from intrinsic.kubernetes.acl.py import identity
 from intrinsic.solutions import auth
-
-
-@dataclasses.dataclass()
-class CreateChannelParams:
-  """Contains information to create a gRPC connection."""
-
-  address: Optional[str] = None
-  cluster: Optional[str] = None
-  project_name: Optional[str] = None
-  organization_name: Optional[str] = None
-  cred_alias: Optional[str] = None
-
-  def has_local_address(self) -> bool:
-    if self.address is None:
-      return False
-
-    return any(
-        local in self.address for local in ["127.0.0.1", "local", "xfa.lan"]
-    )
 
 
 class _TokenAuth(grpc.AuthMetadataPlugin):
@@ -52,74 +34,86 @@ class _ServerName(grpc.AuthMetadataPlugin):
     callback((("x-server-name", self._server_name),), None)
 
 
-class _OrgName(grpc.AuthMetadataPlugin):
-  """gRPC Metadata Plugin that adds the org name to the header."""
-
-  def __init__(self, organization_name: str):
-    self._organization_name = organization_name.split("@")[0]
-
-  def __call__(self, context, callback):
-    callback(identity.OrgIDToGRPCMetadata(self._organization_name), None)
-
-
-class CredentialsRequiredError(ValueError):
-  """Thrown in case the credential name is missing for a non-local gRPC call."""
-
-
-def _load_credentials(
-    params: CreateChannelParams,
-) -> auth.ProjectToken:
-  """Reads and creates a ProjectToken from local API keys."""
-  if params.project_name is not None:
-    configuration = auth.get_configuration(params.project_name)
-
-    if params.cred_alias is None:
-      return configuration.get_default_credentials()
-
-    return configuration.get_credentials(params.cred_alias)
-
-  raise CredentialsRequiredError()
-
-
-def create_channel(
-    params: CreateChannelParams,
+def create_channel_from_address(
+    address: str,
     grpc_options: Optional[List[Tuple[str, Any]]] = None,
 ) -> grpc.Channel:
-  """Creates a gRPC channel with the provided connection information."""
+  """Creates a gRPC channel based on the provided address."""
+  return grpc.insecure_channel(address, options=grpc_options)
 
-  if params.has_local_address():
-    return grpc.insecure_channel(params.address, options=grpc_options)
 
-  if params.project_name is None:
-    raise ValueError(
-        f"Non-local connection '{params.address}' without a project name is not"
-        " supported!"
-    )
+def create_channel_from_cluster(
+    org_info: auth.OrgInfo,
+    cluster: str,
+    grpc_options: Optional[List[Tuple[str, Any]]] = None,
+) -> grpc.Channel:
+  """Creates a gRPC channel based on the provided cluster."""
+  return _create_channel(
+      org_info=org_info,
+      cluster=cluster,
+      grpc_options=grpc_options,
+  )
 
+
+def _get_cluster_from_solution(
+    org_info: auth.OrgInfo,
+    solution: str,
+    grpc_options: Optional[List[Tuple[str, Any]]] = None,
+) -> str:
+  """Returns the name of the cluster in which the given solution is running."""
+  # Open a temporary gRPC channel to the cloud cluster to resolve the cluster
+  # on which the solution is running.
+  channel = _create_channel(
+      org_info=org_info,
+      grpc_options=grpc_options,
+  )
+  stub = solutiondiscovery_api_pb2_grpc.SolutionDiscoveryServiceStub(channel)
+  response = stub.GetSolutionDescription(
+      solutiondiscovery_api_pb2.GetSolutionDescriptionRequest(name=solution)
+  )
+  channel.close()
+
+  return response.solution.cluster_name
+
+
+def create_channel_from_solution(
+    org_info: auth.OrgInfo,
+    solution: str,
+    grpc_options: Optional[List[Tuple[str, Any]]] = None,
+) -> grpc.Channel:
+  """Creates a gRPC channel based on the provided solution."""
+  return _create_channel(
+      org_info=org_info,
+      cluster=_get_cluster_from_solution(org_info, solution, grpc_options),
+      grpc_options=grpc_options,
+  )
+
+
+def _create_channel(
+    org_info: auth.OrgInfo,
+    cluster: Optional[str] = None,
+    grpc_options: Optional[List[Tuple[str, Any]]] = None,
+) -> grpc.Channel:
+  """Creates a gRPC channel based on the provided connection parameters."""
   channel_credentials = grpc.ssl_channel_credentials()
   call_credentials = []
 
-  token = _load_credentials(params)
+  token = auth.get_configuration(org_info.project).get_default_credentials()
   call_credentials.append(
       grpc.metadata_call_credentials(_TokenAuth(token), name="TokenAuth")
   )
 
-  if params.cluster is not None:
-    call_credentials.append(
-        grpc.metadata_call_credentials(
-            _ServerName(params.cluster), name="ServerName"
-        )
-    )
+  call_credentials.append(
+      identity.OrgNameCallCredentials(org_info.organization)
+  )
 
-  if params.organization_name is not None:
+  if cluster is not None:
     call_credentials.append(
-        grpc.metadata_call_credentials(
-            _OrgName(params.organization_name), name="OrgName"
-        )
+        grpc.metadata_call_credentials(_ServerName(cluster), name="ServerName")
     )
 
   return grpc.secure_channel(
-      f"dns:///www.endpoints.{params.project_name}.cloud.goog:443",
+      f"dns:///www.endpoints.{org_info.project}.cloud.goog:443",
       grpc.composite_channel_credentials(
           channel_credentials, *call_credentials
       ),

@@ -102,8 +102,6 @@ py_library(
         ":userconfig",
         ":worlds",
         "//intrinsic/assets/proto:installed_assets_pb2_grpc",
-        "//intrinsic/frontend/cloud/api/v1:solutiondiscovery_api_py_pb2",
-        "//intrinsic/frontend/cloud/api/v1:solutiondiscovery_api_py_pb2_grpc",
         "//intrinsic/frontend/solution_service/proto:solution_service_py_pb2",
         "//intrinsic/frontend/solution_service/proto:solution_service_py_pb2_grpc",
         "//intrinsic/frontend/solution_service/proto:status_py_pb2",
@@ -460,6 +458,8 @@ py_library(
     srcs = ["dialerutil.py"],
     deps = [
         ":auth",
+        "//intrinsic/frontend/cloud/api/v1:solutiondiscovery_api_py_pb2",
+        "//intrinsic/frontend/cloud/api/v1:solutiondiscovery_api_py_pb2_grpc",
         "//intrinsic/kubernetes/acl/py:identity",
         requirement("grpcio"),
     ],
