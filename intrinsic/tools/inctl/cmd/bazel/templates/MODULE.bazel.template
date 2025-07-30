@@ -47,10 +47,10 @@ llvm.toolchain(
 )
 
 non_module_deps = use_extension("@ai_intrinsic_sdks//bazel:non_module_deps.bzl", "non_module_deps_ext")
-use_repo(non_module_deps, "com_googleapis_storage_chrome_linux_amd64_sysroot")
+use_repo(non_module_deps, "intrinsic_llvm_sysroot")
 
 llvm.sysroot(
-    label = "@com_googleapis_storage_chrome_linux_amd64_sysroot//:all_files",
+    label = "@intrinsic_llvm_sysroot//:all_files",
     targets = ["linux-x86_64"],
 )
 use_repo(llvm, "llvm_toolchain")

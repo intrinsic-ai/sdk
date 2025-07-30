@@ -20,15 +20,6 @@ filegroup(
         urls = ["https://storage.googleapis.com/intrinsic-mirror/bazel/sysroot-2025-07-22-845e86b8.tar.zst"],
     )
     http_archive(
-        name = "com_googleapis_storage_chrome_linux_amd64_sysroot",
-        build_file = Label("//intrinsic/production/external:sysroot.BUILD.bazel"),
-        sha256 = "5df5be9357b425cdd70d92d4697d07e7d55d7a923f037c22dc80a78e85842d2c",
-        urls = [
-            # features.h defines GLIBC 2.31.
-            "https://storage.googleapis.com/chrome-linux-sysroot/toolchain/4f611ec025be98214164d4bf9fbe8843f58533f7/debian_bullseye_amd64_sysroot.tar.xz",
-        ],
-    )
-    http_archive(
         name = "qt5",
         build_file = Label("//intrinsic/production/external:qt5/BUILD.bazel"),
         sha256 = "5df5be9357b425cdd70d92d4697d07e7d55d7a923f037c22dc80a78e85842d2c",
