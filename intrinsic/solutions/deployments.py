@@ -18,7 +18,6 @@ executive.run(throw_ball)
 
 import enum
 import inspect
-import os
 import sys
 from typing import Optional
 
@@ -50,8 +49,6 @@ from intrinsic.solutions.internal import resources as resources_mod
 from intrinsic.solutions.internal import skill_providing
 from intrinsic.solutions.internal import stubs
 
-
-_CLUSTER_ADDRESS_ENVIRONMENT_VAR = "CLUSTER_ADDR"
 _GRPC_OPTIONS = [
     # Remove limit on message size for e.g. images.
     ("grpc.max_receive_message_length", -1),
@@ -342,6 +339,9 @@ def connect(
 ) -> "Solution":
   """Connects to a deployed solution.
 
+  If arguments are not provided, connect to the solution specified in the user
+  config.
+
   Args:
     grpc_channel: gRPC channel to use for connection.
     address: Connect directly to an address (e.g. localhost). Only one of
@@ -375,6 +375,14 @@ def connect(
     raise ValueError(
         "Org is not supported when connecting via grpc_channel or address."
     )
+
+  if not any([
+      grpc_channel,
+      solution,
+      cluster,
+      address,
+  ]):
+    return connect_to_selected_solution()
 
   if grpc_channel is None:
     grpc_channel = _create_grpc_channel(
@@ -423,7 +431,7 @@ def connect_to_selected_solution() -> "Solution":
   selected_address = config.get(userconfig.SELECTED_ADDRESS, None)
 
   try:
-    return connect(
+    grpc_channel = _create_grpc_channel(
         address=selected_address,
         org=selected_org,
         solution=selected_solution,
@@ -433,6 +441,8 @@ def connect_to_selected_solution() -> "Solution":
     raise solution_errors.NotFoundError(
         _INVALID_SOLUTION_SELECTION_ERROR
     ) from e
+
+  return Solution.for_channel(grpc_channel)
 
 
 # Disable pytype error since the raise is incorrectly detected as returning None
