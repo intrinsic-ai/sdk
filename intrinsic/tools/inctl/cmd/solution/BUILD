@@ -18,6 +18,7 @@ go_library(
     deps = [
         "//intrinsic/frontend/cloud/api/v1:clusterdiscovery_api_go_grpc_proto",
         "//intrinsic/frontend/cloud/api/v1:solutiondiscovery_api_go_grpc_proto",
+        "//intrinsic/kubernetes/acl:identity",
         "//intrinsic/skills/tools/skill/cmd:dialerutil",
         "//intrinsic/tools/inctl/cmd:root",
         "//intrinsic/tools/inctl/util:orgutil",

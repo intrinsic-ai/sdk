@@ -10,6 +10,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
+	"intrinsic/kubernetes/acl/identity"
 	"intrinsic/skills/tools/skill/cmd/dialerutil"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/orgutil"
@@ -151,6 +152,11 @@ var solutionListCmd = &cobra.Command{
 			return fmt.Errorf("failed to create client connection: %w", err)
 		}
 		defer conn.Close()
+
+		ctx, err = identity.OrgToContext(ctx, orgName)
+		if err != nil {
+			return fmt.Errorf("failed to add org information to context: %w", err)
+		}
 
 		err = listSolutions(ctx, conn, &listSolutionsParams{
 			filter:  flagFilter,
