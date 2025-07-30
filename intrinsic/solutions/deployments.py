@@ -51,7 +51,6 @@ from intrinsic.solutions.internal import skill_providing
 from intrinsic.solutions.internal import stubs
 
 
-_DEFAULT_HOSTPORT = "localhost:17080"
 _CLUSTER_ADDRESS_ENVIRONMENT_VAR = "CLUSTER_ADDR"
 _GRPC_OPTIONS = [
     # Remove limit on message size for e.g. images.
@@ -469,16 +468,6 @@ def _create_grpc_channel(
           " the organizations you are currently logged in with."
       ) from error
 
-  if not any([
-      address,
-      solution,
-      cluster,
-  ]):
-    # Legacy behavior: Use default hostport if called without params.
-    address = os.environ.get(
-        _CLUSTER_ADDRESS_ENVIRONMENT_VAR, _DEFAULT_HOSTPORT
-    )
-
   if solution is not None:
     if org_info is None:
       raise ValueError(
@@ -493,10 +482,12 @@ def _create_grpc_channel(
     return dialerutil.create_channel_from_cluster(
         org_info, cluster, grpc_options=_GRPC_OPTIONS
     )
-  else:  # address
+  elif address is not None:
     return dialerutil.create_channel_from_address(
         address, grpc_options=_GRPC_OPTIONS
     )
+  else:
+    raise ValueError("No connection parameters specified!")
 
 
 # pytype: enable=bad-return-type

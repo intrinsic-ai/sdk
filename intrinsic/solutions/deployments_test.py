@@ -35,22 +35,6 @@ class DeploymentsTest(absltest.TestCase):
       )
 
   @mock.patch.object(deployments.Solution, "for_channel")
-  @mock.patch.object(dialerutil, "create_channel_from_address")
-  def test_connect_defaults_to_localhost(
-      self,
-      mock_create_channel_from_address: mock.MagicMock,
-      mock_for_channel: mock.MagicMock,
-  ):
-    mock_create_channel_from_address.return_value = None
-    mock_for_channel.return_value = None
-    deployments.connect()
-    mock_create_channel_from_address.assert_called_with(
-        deployments._DEFAULT_HOSTPORT,
-        grpc_options=deployments._GRPC_OPTIONS,
-    )
-    self.assertTrue(mock_for_channel.called)
-
-  @mock.patch.object(deployments.Solution, "for_channel")
   def test_connect_grpc_channel(
       self,
       mock_for_channel: mock.MagicMock,
