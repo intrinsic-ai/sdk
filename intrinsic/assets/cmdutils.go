@@ -175,7 +175,9 @@ func (cf *CmdFlags) GetFlagsCredentials() (useBorgCredentials bool, apiKey strin
 
 // AddFlagDefault adds a flag for marking a released asset as default.
 func (cf *CmdFlags) AddFlagDefault(assetType string) {
-	cf.OptionalBool(KeyDefault, false, fmt.Sprintf("Whether this %s version should be tagged as the default.", assetType))
+	cf.OptionalBool(KeyDefault, false, fmt.Sprintf(`Whether this %s version should be tagged as the default.
+	Setting a version as default will unset the default status from any other version of this %s.
+	An asset must have a default version for it to be appear when browsing the catalog.`, assetType, assetType))
 }
 
 // GetFlagDefault gets the value of the default flag added by AddFlagDefault.
@@ -278,7 +280,9 @@ func (cf *CmdFlags) GetFlagsManifest() (string, string, error) {
 
 // AddFlagOrgPrivate adds a flag for marking a released asset as private to the organization.
 func (cf *CmdFlags) AddFlagOrgPrivate() {
-	cf.OptionalBool(KeyOrgPrivate, false, "Whether this asset should be private to the organization that owns it.")
+	cf.OptionalBool(KeyOrgPrivate, false, `Whether this asset version should be private to the organization that owns it.
+	Setting this to true will override all other permissions and will make this version of the asset
+	visible to only the members of the organization that owns the asset`)
 }
 
 // GetFlagOrgPrivate gets the value of the org_private flag added by AddFlagOrgPrivate.
