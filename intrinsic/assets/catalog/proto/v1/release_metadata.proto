@@ -4,11 +4,15 @@ syntax = "proto3";
 
 package intrinsic_proto.catalog.v1;
 
-// Specifies release metadata about an asset version in the AssetCatalog.
+// Release metadata about an asset version in the AssetCatalog.
 message ReleaseMetadata {
-  // True if the released asset is the default version.
+  // True if this version becomes the default version. Assets must have a
+  // default version to be browsable in the catalog. Setting a new default
+  // version unsets the previous one.
   bool default = 1;
-  // True if the released asset is hidden from users who aren't a member of the
-  // organization that owns the asset.
+  // True if the released asset's visibility is restricted to members of the
+  // owning organization, overriding other permissions. Ideal for
+  // work-in-progress versions or internal test versions that are not ready for
+  // use outside of your organization.
   bool org_private = 2;
 }
