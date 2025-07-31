@@ -503,7 +503,10 @@ def validate_version(version: str) -> None:
     IdValidationError: If the specified version is not valid.
   """
   if not is_version(version):
-    raise IdValidationError(f"{version!r} is not a valid version.")
+    raise IdValidationError(
+        f"{version!r} is not a valid version, it must conform to SemVer 2"
+        " (https://semver.org)."
+    )
 
 
 def parent_package_from(package: str) -> str:

@@ -511,7 +511,7 @@ func ValidatePackage(pkg string) error {
 // Returns an error if `version` is not valid.
 func ValidateVersion(version string) error {
 	if !IsVersion(version) {
-		return fmt.Errorf("%q is not a valid version", version)
+		return fmt.Errorf("%q is not a valid version, it must conform to SemVer 2 (https://semver.org)", version)
 	}
 	return nil
 }
