@@ -1,0 +1,43 @@
+# Copyright 2023 Intrinsic Innovation LLC
+
+# proto-file: intrinsic/assets/proto/asset_tag.proto
+# proto-message: AssetTagMetadataSet
+
+tags [
+  {
+    asset_tag: ASSET_TAG_UNSPECIFIED
+    display_name: "Unspecified"
+    applicable_asset_types: [
+      ASSET_TYPE_DATA,
+      ASSET_TYPE_HARDWARE_DEVICE,
+      ASSET_TYPE_SCENE_OBJECT,
+      ASSET_TYPE_SERVICE,
+      ASSET_TYPE_SKILL,
+      ASSET_TYPE_PROCESS,
+      ASSET_TYPE_UNSPECIFIED
+    ]
+  },
+  {
+    asset_tag: ASSET_TAG_CAMERA
+    display_name: "Camera"
+    applicable_asset_types: [
+      ASSET_TYPE_HARDWARE_DEVICE,
+      ASSET_TYPE_SCENE_OBJECT,
+      ASSET_TYPE_SERVICE
+    ]
+  },
+  {
+    asset_tag: ASSET_TAG_GRIPPER
+    display_name: "Gripper"
+    applicable_asset_types: [
+      ASSET_TYPE_HARDWARE_DEVICE,
+      ASSET_TYPE_SCENE_OBJECT,
+      ASSET_TYPE_SERVICE
+    ]
+  },
+  {
+    asset_tag: ASSET_TAG_SUBPROCESS
+    display_name: "Subprocess"
+    applicable_asset_types: [ASSET_TYPE_PROCESS]
+  }
+]
