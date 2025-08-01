@@ -436,33 +436,6 @@ go_proto_library(
 )
 
 proto_library(
-    name = "pattern_detection_config_proto",
-    srcs = ["pattern_detection_config.proto"],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":charuco_pattern_proto"],
-)
-
-cc_proto_library(
-    name = "pattern_detection_config_cc_proto",
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":pattern_detection_config_proto"],
-)
-
-go_proto_library(
-    name = "pattern_detection_config_go_proto",
-    go_deps = [
-        ":charuco_pattern_go_proto",
-    ],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":pattern_detection_config_proto"],
-)
-
-py_proto_library(
-    name = "pattern_detection_config_py_pb2",
-    deps = [":pattern_detection_config_proto"],
-)
-
-proto_library(
     name = "perception_model_proto",
     srcs = ["perception_model.proto"],
     visibility = ["//intrinsic:public_api_users"],
