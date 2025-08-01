@@ -118,7 +118,7 @@ Example:
 var deleteCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "Delete an organization.",
-	Long:  createCmdHelp,
+	Long:  deleteCmdHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := withOrgID(cmd.Context())
 		cl, err := newresourcemanagerClient(ctx)
