@@ -135,7 +135,7 @@ llvm = use_extension(
     dev_dependency = True,
 )
 llvm.toolchain(
-    llvm_version = "19.1.0",
+    llvm_version = "20.1.2",
 )
 llvm.sysroot(
     label = "@intrinsic_llvm_sysroot//:all_files",
