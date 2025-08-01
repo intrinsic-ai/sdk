@@ -127,6 +127,31 @@ go_library(
 )
 
 go_library(
+    name = "tagutils",
+    srcs = ["tagutils.go"],
+    embedsrcs = [
+        "//intrinsic/assets/proto:asset_tags",  # keep
+    ],
+    visibility = ["//intrinsic:internal_api_users"],
+    deps = [
+        "//intrinsic/assets/proto:asset_tag_go_proto",
+        "//intrinsic/assets/proto:asset_type_go_proto",
+        "@org_golang_google_protobuf//encoding/prototext:go_default_library",
+    ],
+)
+
+go_test(
+    name = "tagutils_test",
+    srcs = ["tagutils_test.go"],
+    library = ":tagutils",
+    deps = [
+        "//intrinsic/assets/proto:asset_tag_go_proto",
+        "//intrinsic/assets/proto:asset_type_go_proto",
+        "@com_github_google_go_cmp//cmp:go_default_library",
+    ],
+)
+
+go_library(
     name = "typeutils",
     srcs = ["typeutils.go"],
     visibility = ["//intrinsic:internal_api_users"],
@@ -212,8 +237,11 @@ go_library(
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         ":idutils",
+        ":tagutils",
         "//intrinsic/assets/data/proto/v1:data_manifest_go_proto",
         "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",
+        "//intrinsic/assets/processes/proto:process_manifest_go_proto",
+        "//intrinsic/assets/proto:asset_tag_go_proto",
         "//intrinsic/assets/proto:asset_type_go_proto",
         "//intrinsic/assets/proto:documentation_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
@@ -235,6 +263,8 @@ go_test(
     deps = [
         "//intrinsic/assets/data/proto/v1:data_manifest_go_proto",
         "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",
+        "//intrinsic/assets/processes/proto:process_manifest_go_proto",
+        "//intrinsic/assets/proto:asset_tag_go_proto",
         "//intrinsic/assets/proto:asset_type_go_proto",
         "//intrinsic/assets/proto:documentation_go_proto",
         "//intrinsic/assets/proto:id_go_proto",

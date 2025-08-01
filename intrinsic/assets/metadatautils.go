@@ -5,14 +5,18 @@ package metadatautils
 
 import (
 	"fmt"
+	"slices"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	"intrinsic/assets/idutils"
+	"intrinsic/assets/tagutils"
 
 	datamanifestpb "intrinsic/assets/data/proto/v1/data_manifest_go_proto"
 	hdmpb "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest_go_proto"
+	pmpb "intrinsic/assets/processes/proto/process_manifest_go_proto"
+	atagpb "intrinsic/assets/proto/asset_tag_go_proto"
 	atypepb "intrinsic/assets/proto/asset_type_go_proto"
 	documentationpb "intrinsic/assets/proto/documentation_go_proto"
 	idpb "intrinsic/assets/proto/id_go_proto"
@@ -131,6 +135,24 @@ func ValidateMetadata(m *metadatapb.Metadata, options ...ValidateMetadataOption)
 	if m.GetAssetType() == atypepb.AssetType_ASSET_TYPE_UNSPECIFIED {
 		return status.Errorf(codes.InvalidArgument, "no asset type specified for %q", id)
 	}
+	if m.GetAssetTag() != atagpb.AssetTag_ASSET_TAG_UNSPECIFIED {
+		applicableTags, err := tagutils.AssetTagsForType(m.GetAssetType())
+		if err != nil {
+			return status.Errorf(
+				codes.Internal,
+				"cannot get asset tags for asset type %q: %v",
+				atypepb.AssetType_name[int32(m.GetAssetType())],
+				err)
+		}
+		if !slices.Contains(applicableTags, m.GetAssetTag()) {
+			return status.Errorf(
+				codes.InvalidArgument,
+				"asset tag %q is not applicable to %q asset %q",
+				atagpb.AssetTag_name[int32(m.GetAssetTag())],
+				atypepb.AssetType_name[int32(m.GetAssetType())],
+				id)
+		}
+	}
 
 	// Validate metadata size limits.
 	if err := ValidateNameLength(m.GetIdVersion().GetId().GetName(), m.GetAssetType()); err != nil {
@@ -169,8 +191,17 @@ func ValidateManifestMetadata(m ManifestMetadata) error {
 		at = atypepb.AssetType_ASSET_TYPE_DATA
 	case *hdmpb.HardwareDeviceMetadata:
 		at = atypepb.AssetType_ASSET_TYPE_HARDWARE_DEVICE
+	case *pmpb.ProcessMetadata:
+		at = atypepb.AssetType_ASSET_TYPE_PROCESS
 	default:
 		return fmt.Errorf("unsupported manifest type: %T", m)
+	}
+
+	// Some metadata protos have an asset tag field, some don't.
+	type metadataWithTag interface{ GetAssetTag() atagpb.AssetTag }
+	tag := atagpb.AssetTag_ASSET_TAG_UNSPECIFIED
+	if mWithTag, ok := m.(metadataWithTag); ok {
+		tag = mWithTag.GetAssetTag()
 	}
 
 	return ValidateMetadata(&metadatapb.Metadata{
@@ -180,7 +211,8 @@ func ValidateManifestMetadata(m ManifestMetadata) error {
 		IdVersion: &idpb.IdVersion{
 			Id: m.GetId(), // ID only, since manifests do not specify versions.
 		},
-		Vendor: m.GetVendor(),
+		Vendor:   m.GetVendor(),
+		AssetTag: tag,
 	})
 }
 

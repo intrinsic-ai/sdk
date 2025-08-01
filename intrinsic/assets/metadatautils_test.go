@@ -14,6 +14,8 @@ import (
 	tpb "google.golang.org/protobuf/types/known/timestamppb"
 	datamanifestpb "intrinsic/assets/data/proto/v1/data_manifest_go_proto"
 	hardwaremanifestpb "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest_go_proto"
+	processmanifestpb "intrinsic/assets/processes/proto/process_manifest_go_proto"
+	atagpb "intrinsic/assets/proto/asset_tag_go_proto"
 	atypepb "intrinsic/assets/proto/asset_type_go_proto"
 	documentationpb "intrinsic/assets/proto/documentation_go_proto"
 	idpb "intrinsic/assets/proto/id_go_proto"
@@ -63,6 +65,8 @@ func TestValidateMetadata(t *testing.T) {
 	mNoUpdateTime.UpdateTime = nil
 	mNoAssetType := proto.Clone(m).(*metadatapb.Metadata)
 	mNoAssetType.AssetType = atypepb.AssetType_ASSET_TYPE_UNSPECIFIED
+	mInvalidAssetTag := proto.Clone(m).(*metadatapb.Metadata)
+	mInvalidAssetTag.AssetTag = atagpb.AssetTag_ASSET_TAG_GRIPPER
 	mNameTooLong := proto.Clone(m).(*metadatapb.Metadata)
 	mNameTooLong.IdVersion.Id.Name = strings.Repeat("a", NameCharLength[atypepb.AssetType_ASSET_TYPE_SKILL]+1)
 	mDisplayNameTooLong := proto.Clone(m).(*metadatapb.Metadata)
@@ -146,6 +150,11 @@ func TestValidateMetadata(t *testing.T) {
 		{
 			name:          "no asset type",
 			m:             mNoAssetType,
+			wantErrorCode: codes.InvalidArgument,
+		},
+		{
+			name:          "invalid asset tag",
+			m:             mInvalidAssetTag,
 			wantErrorCode: codes.InvalidArgument,
 		},
 		{
@@ -233,6 +242,8 @@ func TestValidateManifestMetadata(t *testing.T) {
 			Description: "Test Service Description",
 		},
 	}
+	mInvalidAssetTag := proto.Clone(mService).(*servicemanifestpb.ServiceMetadata)
+	mInvalidAssetTag.AssetTag = atagpb.AssetTag_ASSET_TAG_SUBPROCESS
 	mData := &datamanifestpb.DataManifest_Metadata{
 		Id: &idpb.Id{
 			Package: "ai.intrinsic",
@@ -272,6 +283,19 @@ func TestValidateManifestMetadata(t *testing.T) {
 			Description: "Test Hardware Device Description",
 		},
 	}
+	mProcess := &processmanifestpb.ProcessMetadata{
+		Id: &idpb.Id{
+			Package: "ai.intrinsic",
+			Name:    "test_process",
+		},
+		Vendor: &vendorpb.Vendor{
+			DisplayName: "Intrinsic",
+		},
+		DisplayName: "Test Process",
+		Documentation: &documentationpb.Documentation{
+			Description: "Test Process Description",
+		},
+	}
 
 	tests := []struct {
 		name          string
@@ -303,6 +327,11 @@ func TestValidateManifestMetadata(t *testing.T) {
 			wantErrorCode: codes.InvalidArgument,
 		},
 		{
+			name:          "invalid asset tag",
+			m:             mInvalidAssetTag,
+			wantErrorCode: codes.InvalidArgument,
+		},
+		{
 			name:          "name too long",
 			m:             mNameTooLong,
 			wantErrorCode: codes.ResourceExhausted,
@@ -328,6 +357,10 @@ func TestValidateManifestMetadata(t *testing.T) {
 			name: "valid hardware device",
 			m:    mHardwareDevice,
 		},
+		{
+			name: "valid process",
+			m:    mProcess,
+		},
 	}
 
 	for _, tc := range tests {
@@ -342,7 +375,7 @@ func TestValidateManifestMetadata(t *testing.T) {
 					t.Errorf("ValidateManifestMetadata(%v) returned %v, want %v", tc.m, s.Code(), tc.wantErrorCode)
 				}
 			} else if err != nil {
-				t.Errorf("ValidateManifestMetadata(%v) = %v, want error", tc.m, err)
+				t.Errorf("ValidateManifestMetadata(%v) = %v, want no error", tc.m, err)
 			}
 		})
 	}

@@ -1,0 +1,47 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.processes;
+
+import "intrinsic/assets/proto/asset_tag.proto";
+import "intrinsic/assets/proto/documentation.proto";
+import "intrinsic/assets/proto/id.proto";
+import "intrinsic/assets/proto/vendor.proto";
+import "intrinsic/executive/proto/behavior_tree.proto";
+
+message ProcessMetadata {
+  // The Process asset's id.
+  intrinsic_proto.assets.Id id = 1;
+
+  // The display name of this asset to be shown in UIs.
+  string display_name = 2;
+
+  // Documentation about the asset which will be shown to users.
+  intrinsic_proto.assets.Documentation documentation = 3;
+
+  // The asset's vendor.
+  intrinsic_proto.assets.Vendor vendor = 4;
+
+  // A tag to help users search for the assets by keyword.
+  intrinsic_proto.assets.AssetTag asset_tag = 5;
+}
+
+// Specifies a Process asset
+message ProcessManifest {
+  // Metadata about the Process asset.
+  ProcessMetadata metadata = 1;
+
+  // The behavior tree representing the process.
+  //
+  // If the process is a reusable subprocesses (=parameterizable behavior tree),
+  // the Skill proto in [BehaviorTree.description] is set. It describes the
+  // interface of the subprocess (parameters, return value, etc.) and contains a
+  // copy of the asset's 'metadata' such as [Metadata.id_version],
+  // [Metadata.display_name] etc. in "skill format". In a ProcessManifest, the
+  // metadata fields in the Skill proto ([Skill.skill_name, .package_name, .id,
+  // .id_version, .description]) are expected to be empty. They will be
+  // automatically populated from their counterparts in 'metadata' upon asset
+  // creation.
+  intrinsic_proto.executive.BehaviorTree behavior_tree = 2;
+}

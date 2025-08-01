@@ -1,0 +1,23 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.processes;
+
+import "intrinsic/assets/proto/metadata.proto";
+import "intrinsic/executive/proto/behavior_tree.proto";
+
+// A processed, portable representation of a Process asset.
+message ProcessAsset {
+  // Metadata about the asset, such as package, ID, release notes, etc.
+  intrinsic_proto.assets.Metadata metadata = 1;
+
+  // The behavior tree representing the process.
+  //
+  // If the process is a reusable subprocesses (=parameterizable behavior tree),
+  // the Skill proto in [BehaviorTree.description] is set. It describes the
+  // interface of the subprocess (parameters, return value, etc.) and contains a
+  // copy of the asset's 'metadata' such as [Metadata.id_version],
+  // [Metadata.display_name] etc. in "skill format".
+  intrinsic_proto.executive.BehaviorTree behavior_tree = 2;
+}

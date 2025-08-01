@@ -59,6 +59,16 @@ go_proto_library(
     deps = [":asset_tag_proto"],
 )
 
+filegroup(
+    name = "asset_tags",
+    srcs = [
+        "asset_tags.textproto",
+    ],
+    visibility = [
+        "//intrinsic/assets:__subpackages__",
+    ],
+)
+
 proto_library(
     name = "asset_type_proto",
     srcs = ["asset_type.proto"],
