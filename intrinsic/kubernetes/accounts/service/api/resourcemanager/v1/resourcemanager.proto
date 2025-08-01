@@ -35,7 +35,8 @@ message CreateOrganizationOperationMetadata {}
 // Request for creating a new organization.
 message CreateOrganizationRequest {
   // The identifier of the organization to create.
-  string organization_id = 1 [(google.api.field_behavior) = REQUIRED];
+  // If empty, a random globally unique identifier will be generated.
+  string organization_id = 1;
 
   // The organization to create.
   Organization organization = 2 [(google.api.field_behavior) = REQUIRED];

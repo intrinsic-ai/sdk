@@ -20,3 +20,14 @@ func TestIDCookie(t *testing.T) {
 		}
 	})
 }
+
+func TestID(t *testing.T) {
+	id1 := ID()
+	id2 := ID()
+	if id1 == id2 {
+		t.Errorf("ID() returned the same ID: %v", id1)
+	}
+	if len(id1) > 63 {
+		t.Errorf("ID() returns an id that is too long: %v, %d", id1, len(id1))
+	}
+}

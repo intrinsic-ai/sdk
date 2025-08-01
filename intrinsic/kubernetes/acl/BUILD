@@ -28,7 +28,10 @@ go_library(
 go_library(
     name = "org",
     srcs = ["org.go"],
-    deps = ["@com_github_golang_glog//:go_default_library"],
+    deps = [
+        "@com_github_golang_glog//:go_default_library",
+        "@com_github_rs_xid//:go_default_library",
+    ],
 )
 
 go_library(

@@ -6,6 +6,7 @@ package org
 import (
 	"net/http"
 
+	"github.com/rs/xid"
 )
 
 // OrgIDCookie is the cookie key for the organization identifier.
@@ -24,6 +25,11 @@ func IDCookie(orgID string) *http.Cookie {
 // GetID returns the identifier of the organization.
 func (o *Organization) GetID() string {
 	return o.ID
+}
+
+// ID returns a random organization ID.
+func ID() string {
+	return xid.New().String()
 }
 
 //
