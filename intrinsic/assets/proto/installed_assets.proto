@@ -16,6 +16,7 @@ import "intrinsic/assets/proto/v1/search.proto";
 import "intrinsic/assets/proto/view.proto";
 import "intrinsic/assets/scene_objects/proto/scene_object_manifest.proto";
 import "intrinsic/assets/services/proto/service_manifest.proto";
+import "intrinsic/executive/proto/behavior_tree.proto";
 import "intrinsic/skills/proto/processed_skill_manifest.proto";
 
 // Service to manage the installation of assets.
@@ -123,6 +124,9 @@ message InstalledAsset {
   message SceneObjectDeploymentData {
     intrinsic_proto.scene_objects.ProcessedSceneObjectManifest manifest = 1;
   }
+  message ProcessDeploymentData {
+    intrinsic_proto.executive.BehaviorTree behavior_tree = 1;
+  }
   message ServiceMetadata {
     // The list of gRPC services that the Service exposes.
     repeated string service_proto_prefixes = 1;
@@ -131,6 +135,7 @@ message InstalledAsset {
     oneof variant {
       DataDeploymentData data = 1;
       SceneObjectDeploymentData scene_object = 2;
+      ProcessDeploymentData process = 3;
     }
   }
 
