@@ -209,9 +209,20 @@ class Client:
     )
 
   @classmethod
-  def for_solution(cls, solution: deployments.Solution) -> Client:
+  def for_solution(
+      cls,
+      solution: deployments.Solution,
+      instance_name: Optional[str] = None,
+      header: str = "x-resource-instance-name",
+  ) -> Client:
     """Connects to the ICON gRPC service for a given solution."""
-    return cls(service_pb2_grpc.IconApiStub(solution.grpc_channel))
+    channel = solution.grpc_channel
+    if instance_name:
+      channel = grpc.intercept_channel(
+          channel,
+          interceptor.HeaderAdderInterceptor(lambda: [(header, instance_name)]),
+      )
+    return cls(service_pb2_grpc.IconApiStub(channel))
 
   def get_action_signature_by_name(
       self, action_type_name: str
