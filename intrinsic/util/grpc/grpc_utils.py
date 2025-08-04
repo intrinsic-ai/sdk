@@ -97,3 +97,16 @@ def create_cloud_channel() -> grpc.Channel:
       f"www.endpoints.{compute_project}.cloud.goog:443"
   )
   return _add_auth_header(cloud_channel, _shared_ipc_identity)
+
+
+def create_ingress_channel() -> grpc.Channel:
+  """Creates a gRPC channel for in-cluster calls with an IPC ID auth header.
+
+  Returns:
+    The gRPC channel for in-cluster calls.
+  """
+  ingress_channel = grpc.insecure_channel(
+      "istio-ingressgateway.app-ingress.svc.cluster.local:80",
+      options=[("grpc.max_receive_message_length", -1)],
+  )
+  return _add_auth_header(ingress_channel, _shared_ipc_identity)
