@@ -144,3 +144,24 @@ cc_grpc_library(
     grpc_only = True,
     deps = [":jogging_service_cc_proto"],
 )
+
+go_proto_library(
+    name = "jogging_service_go_proto",
+    go_deps = [
+        "//intrinsic/icon/proto:cart_space_go_proto",
+        "//intrinsic/kinematics/types:joint_limits_go_proto",
+        "//intrinsic/world/proto:object_world_refs_go_proto",
+    ],
+    deps = [":jogging_service_proto"],
+)
+
+go_grpc_library(
+    name = "jogging_service_go_grpc_proto",
+    srcs = [":jogging_service_proto"],
+    deps = [
+        "//intrinsic/icon/proto:cart_space_go_proto",
+        "//intrinsic/kinematics/types:joint_limits_go_proto",
+        "//intrinsic/world/proto:object_world_refs_go_proto",
+        "@org_golang_google_protobuf//types/known/durationpb",
+    ],
+)
