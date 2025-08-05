@@ -28,6 +28,17 @@ service CameraService {
   rpc Capture(CaptureRequest) returns (CaptureResponse) {
   }
 
+  // Begin streaming camera images over pubsub for the duration of the input
+  // stream. Once the connection is closed, the stream will end. It is malformed
+  // to send another request to the server after the initial message.
+  //
+  // Multiple calls to this RPC are allowed with the same set of inputs to allow
+  // for multiple consumers of the stream to keep alive the publishing
+  // independently of each other.
+  rpc CaptureStream(CaptureStreamRequest)
+      returns (stream CaptureStreamResponse) {
+  }
+
   // Reads and returns the access mode of a specific setting from a camera.
   // The function returns an error if the camera is unknown.
   rpc ReadCameraSettingAccess(ReadCameraSettingAccessRequest)
@@ -137,6 +148,20 @@ message CaptureResponse {
     CaptureResult capture_result = 1;
     kvstore.StorageLocation capture_result_location = 2;
   }
+}
+
+message CaptureStreamRequest {
+  // The configuration of the camera from which images are to be captured.
+  CameraConfig camera_config = 1;
+
+  // Optional. Request data only for the following sensor ids (i.e. transmit
+  // mask). Empty returns all sensor images.
+  repeated int64 sensor_ids = 2;
+}
+
+message CaptureStreamResponse {
+  // Topic used for streaming the camera images.
+  string topic_name = 1;
 }
 
 message ReadCameraSettingAccessRequest {
