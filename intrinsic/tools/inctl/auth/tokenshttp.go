@@ -4,7 +4,6 @@ package auth
 
 // This module provides a minimal HTTP-based client for the accounts tokens service.
 // It is used by inctl to exchange API keys for ID tokens.
-
 import (
 	"bytes"
 	"context"
