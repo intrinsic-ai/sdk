@@ -690,6 +690,7 @@ class Executive:
         embed_skill_traces=embed_skill_traces,
     )
 
+  # pylint doesn't understand the copybara transforms for the params
   def run(
       self,
       plan_or_action: Optional[BehaviorTreeOrActionType],
@@ -806,7 +807,10 @@ class Executive:
     # this is the case under the assumption that any subsequent runs by this
     # file or the frontend will always leave an operation behind and only
     # deleted it before loading a new one.
-    if self._simulation is not None:
+
+    # pylint: disable-next=unused-variable
+    try_sim_reset = True
+    if try_sim_reset and self._simulation is not None:
       try:
         self.operation
       except OperationNotFoundError:
@@ -841,7 +845,10 @@ class Executive:
         start_node=start_node,
         simulation_mode=simulation_mode,
         embed_skill_traces=embed_skill_traces,
+        silence_outputs=silence_outputs,
     )
+
+  # pylint: enable=g-doc-args
 
   def load(
       self, behavior_tree_or_action: Optional[BehaviorTreeOrActionType]
