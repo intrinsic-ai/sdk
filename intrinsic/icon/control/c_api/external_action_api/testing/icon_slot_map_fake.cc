@@ -21,7 +21,7 @@
 
 namespace intrinsic::icon {
 
-IconSlotMapFake::IconSlotMapFake() {}
+IconSlotMapFake::IconSlotMapFake() = default;
 
 absl::StatusOr<LoopbackFakeArm*> IconSlotMapFake::AddLoopbackFakeArmSlot(
     absl::string_view slot_name, std::optional<JointLimits> application_limits,
