@@ -111,7 +111,10 @@ def OrgFromContext(context: grpc.ServicerContext) -> Organization:
       if cookie.key == ORG_ID_COOKIE:
         return Organization(cookie.value)
   if ORG_ID_COOKIE in metadata:
-    return Organization(org_id=metadata[ORG_ID_COOKIE])
+    logging.error("""Found org-id in metadata directly instead of a cookie.
+                  Update your code to use cookies instead.""")
+    raise KeyError("""Tried using org from context metadata instead of a
+                    cookie. Update your code to use cookies instead.""")
 
   logging.error('No organization information in context.')
   raise KeyError('no org-id found')

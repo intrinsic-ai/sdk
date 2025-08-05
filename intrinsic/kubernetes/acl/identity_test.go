@@ -966,9 +966,9 @@ func TestOrgFromContext(t *testing.T) {
 			want: "testorg",
 		},
 		{
-			name: "without cookie (legacy)",
-			md:   metadata.Pairs(org.OrgIDCookie, "testorg"),
-			want: "testorg",
+			name:    "with metadata",
+			md:      metadata.Pairs(org.OrgIDCookie, "wrongorg"),
+			wantErr: true,
 		},
 		{
 			name:    "empty metadata",

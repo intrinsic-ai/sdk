@@ -52,6 +52,8 @@ var (
 	errOrgIDEmpty = errors.New("org-id cookie is empty")
 	// errMetadataKeyConflict indicates that multiple possible values were found in context metadata for a single key.
 	errMetadataKeyConflict = errors.New("multiple possible values found in context metadata for a single key")
+	// errOrgInMetadata indicates that the org-id was found as metadata key, it should be a cookie instead.
+	errOrgInMetadata = errors.New("org-id found in metadata keys, use org-id cookie instead")
 
 	emailRegex     = regexp.MustCompile(`(^(?P<prefix>[^@]+)@(?P<domain>.+)$)`)
 	obfuscateRegex = regexp.MustCompile(`(^(.).*(.)$)`)

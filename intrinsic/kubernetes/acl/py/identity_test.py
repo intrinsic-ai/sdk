@@ -71,12 +71,6 @@ class IdentityTest(parameterized.TestCase):
 
 
 class OrgTest(absltest.TestCase):
-  @unittest.mock.patch.multiple(TestContext, __abstractmethods__=set())
-  def test_from_context(self):
-    organization_name = 'my-organization'
-    ctx = TestContext(((identity.ORG_ID_COOKIE, organization_name),))
-    organization = identity.OrgFromContext(ctx)
-    self.assertEqual(organization.org_id, organization_name)
 
   @unittest.mock.patch.multiple(TestContext, __abstractmethods__=set())
   def test_from_context_cookie_field(self):
