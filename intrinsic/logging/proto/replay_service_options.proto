@@ -86,7 +86,7 @@ message LayoutGenerationOptions {
   // heuristic visualization layout.
   //
   // This value must be in the range [0, 1].
-  // Defaults to 0.3, which causes the layout to be generated after 30% of the
+  // Defaults to 0.6, which causes the layout to be generated after 60% of the
   // recording time has been parsed.
   //
   // If this threshold is too low, then the visualizers might not have
@@ -107,6 +107,16 @@ message RawMessageVisualizerOptions {
 
   // Maximum number of bytes to display in bytes fields.
   optional uint32 bytes_max_display_length = 3;
+}
+
+// Options for the TextLogs visualizer, which visualizes:
+//   - Text logs
+message TextLogsVisualizerOptions {
+  // If true, enables the visualizer.
+  bool enabled = 1;
+
+  // Options for filtering out recorded logs going into the visualizer.
+  optional FilterOptions filters = 2;
 }
 
 // Options for the Scene visualizer, which visualizes:
@@ -154,11 +164,14 @@ message VisualizationOptions {
     // Options for the RawMessage visualizer.
     optional RawMessageVisualizerOptions raw_message = 1;
 
+    // Options for the TextLogs visualizer.
+    optional TextLogsVisualizerOptions text_logs = 2;
+
     // Options for the Scene visualizer.
-    optional SceneVisualizerOptions scene = 3;
+    optional SceneVisualizerOptions scene = 4;
 
     // Options for the Perception visualizer.
-    optional PerceptionVisualizerOptions perception = 4;
+    optional PerceptionVisualizerOptions perception = 5;
   }
 
   // An optional name for the visualization.
