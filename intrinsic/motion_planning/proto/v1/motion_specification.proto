@@ -29,7 +29,6 @@ message PathConstraint {
   reserved "joint_position_limits";
   reserved 2, 3, 4;
 }
-
 message MotionSegment {
   enum MotionType {
     ANY = 0;
