@@ -14,12 +14,29 @@ message PingResponse {}
 
 // An organization is the top-level container for all resources.
 message Organization {
+  enum State {
+    // Unspecified state indicates system is not aware of current state
+    STATE_UNSPECIFIED = 0;
+    // Creating indicates that organization is being created or updated and is
+    // not ready to be used.
+    CREATING = 1;
+    // Active state indicates that organization is fully materialized and all
+    // conditions are satisfied.
+    ACTIVE = 2;
+    // Deleted indicates that organization is deleted and should not be used
+    // any more.
+    DELETED = 3;
+  }
+
   // The resource name of the organization.
   // Format: /organizations/{organization}
   string name = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // The display name of the organization.
   string display_name = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // The state of the organization.
+  State state = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
 // Request for retrieving an organization.
