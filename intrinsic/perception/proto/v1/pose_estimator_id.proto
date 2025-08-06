@@ -8,5 +8,8 @@ package intrinsic_proto.perception.v1;
 // This message type allows the UI to interpret the field as a pose estimator
 // and automatically hook it up to the available pose estimators.
 message PoseEstimatorId {
+  // The name of the pose estimator. This needs to correspond to the asset id.
   string id = 1;
+  // The asset package of the pose estimator.
+  string package = 2;
 }

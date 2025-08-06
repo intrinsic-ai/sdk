@@ -11,4 +11,5 @@ option deprecated = true;
 // and automatically hook it up to the available pose estimators.
 message PoseEstimatorId {
   string id = 1;
+  string package = 2;
 }
