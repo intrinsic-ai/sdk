@@ -130,7 +130,7 @@ class ClockBase {
   }
 
  protected:
-  ClockBase() {}
+  ClockBase() = default;
 };
 
 // Metafunction returns type=Clock given Timepoint=Clock::time_point.
