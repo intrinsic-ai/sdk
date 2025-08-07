@@ -50,6 +50,7 @@ use_repo(
     "com_github_spf13_viper",
     "com_github_stoewer_go_strcase",
     "com_google_cloud_go_longrunning",
+    "in_gopkg_xmlpath_v2",
     "in_gopkg_yaml_v3",
     "io_opencensus_go",
     "io_opencensus_go_contrib_exporter_ocagent",
