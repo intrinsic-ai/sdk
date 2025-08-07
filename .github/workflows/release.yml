@@ -20,53 +20,44 @@ jobs:
     outputs:
       checkout_ref: ${{ steps.checkout_ref.outputs.ref }}
       prerelease: ${{ steps.checkout_ref.outputs.prerelease }}
-      is_tag: ${{ steps.checkout_ref.outputs.is_tag}}
+      is_tag: ${{ steps.checkout_ref.outputs.is_tag }}
+      should_run: ${{ steps.checkout_ref.outputs.should_run }}
     steps:
       - name: Determine Checkout Ref
         id: checkout_ref
+        env:
+          # If the trigger was 'workflow_dispatch', use the input tag. Otherwise, use the ref_name from the push.
+          REF: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.ref_name }}
+          # A manual dispatch is always for a tag. For pushes, we check the ref_type.
+          IS_TAG: ${{ github.event_name == 'workflow_dispatch' || github.ref_type == 'tag' }}
+          REPO_NAME: ${{ github.repository }}
         run: |
-          IS_TAG="false"
           PRERELEASE="false"
-          REF=""
-
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            if [[ -n "${{ github.event.inputs.tag }}" ]]; then
-              REF="${{ github.event.inputs.tag }}"
-              IS_TAG="true"
-              echo "Checking out specified tag: $REF"
-            else
-              echo "No tag specified for manual dispatch. This workflow requires a tag for manual dispatch."
-              exit 1
-            fi
-          elif [[ "${{ github.event_name }}" == "push" ]]; then
-            if [[ "${{ github.ref_type }}" == "tag" ]]; then
-              REF="${{ github.ref_name }}"
-              IS_TAG="true"
-              echo "Event: push. Checking out pushed tag: $REF"
-            else
-              REF="${{ github.ref_name }}"
-              IS_TAG="false"
-              echo "Event: push. Ref is a branch, not a tag: $REF"
-            fi
-          else
-              echo "Error: This job is only configured to run on 'workflow_dispatch' or 'push' events."
-              exit 1
-          fi
-
-          if [[ "$IS_TAG" == "true" && "$REF" == *candidate* ]]; then
+          if [[ "${IS_TAG}" == "true" && "${REF}" == *candidate* ]]; then
             PRERELEASE="true"
-            echo "Tag contains 'candidate', marking as a prerelease."
           fi
 
-          echo "ref=$REF" >> $GITHUB_OUTPUT 
-          echo "prerelease=$PRERELEASE" >> $GITHUB_OUTPUT 
-          echo "is_tag=$IS_TAG" >> $GITHUB_OUTPUT 
+          SHOULD_RUN="${IS_TAG}"
+          # Explicitly disable pre-releases in SDK repository.
+          if [[ "${REPO_NAME}" == "intrinsic-ai/sdk" && "${PRERELEASE}" == "true" ]]; then
+            SHOULD_RUN="false"
+          fi
+
+          echo "Ref to checkout: \"${REF}\""
+          echo "Is a tag: \"${IS_TAG}\""
+          echo "Is a prerelease: \"${PRERELEASE}\""
+
+          echo "ref=${REF}" >> $GITHUB_OUTPUT 
+          echo "prerelease=${PRERELEASE}" >> $GITHUB_OUTPUT 
+          echo "is_tag=${IS_TAG}" >> $GITHUB_OUTPUT 
+          echo "should_run=${SHOULD_RUN}" >> $GITHUB_OUTPUT
 
   package-sdk:
     runs-on: ubuntu-22.04
     permissions:
       contents: read
     needs: determine-checkout-ref
+    if: needs.determine-checkout-ref.outputs.should_run == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
@@ -91,6 +82,7 @@ jobs:
     permissions:
       contents: read
     needs: determine-checkout-ref
+    if: needs.determine-checkout-ref.outputs.should_run == 'true'
     steps:
       - name: Checkout CI artifacts
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
@@ -200,6 +192,7 @@ jobs:
     needs:
       - package-sdk
       - determine-checkout-ref
+    if: needs.determine-checkout-ref.outputs.should_run == 'true'
     steps:
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be  # v1.3.1
@@ -273,6 +266,7 @@ jobs:
       - build-sdk-artifacts
       - intrinsic-os-sbom
       - create-release-notes
+    if: needs.determine-checkout-ref.outputs.should_run == 'true'
     steps:
       - name: Download sources
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0
