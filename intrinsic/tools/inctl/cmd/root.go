@@ -51,6 +51,8 @@ const (
 	SolutionCmdName = "solution"
 	// SolutionsCmdName is the alias for the `inctl solution` command.
 	SolutionsCmdName = "solutions"
+	// SolutionVersionCmdName is the name of the `inctl solution_version` command.
+	SolutionVersionCmdName = "solution_version"
 	// SkillCmdName is the name of the `inctl skill` command.
 	SkillCmdName = "skill"
 )
