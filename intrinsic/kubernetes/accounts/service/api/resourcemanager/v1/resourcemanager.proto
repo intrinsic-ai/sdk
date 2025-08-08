@@ -8,6 +8,7 @@ import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
 import "google/longrunning/operations.proto";
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
 message PingResponse {}
@@ -37,6 +38,16 @@ message Organization {
 
   // The state of the organization.
   State state = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The time at which the organization was created.
+  google.protobuf.Timestamp create_time = 1000
+      [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // reserved 1001 for future update_time (if needed and has defined semantics)
+
+  // The time at which the organization was soft-deleted.
+  google.protobuf.Timestamp delete_time = 1002
+      [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
 // Request for retrieving an organization.
@@ -66,6 +77,9 @@ message ListOrganizationsRequest {
   // The page token, received from a previous `ListOrganizations` call.
   // Provide this to retrieve the subsequent page.
   string page_token = 2;
+
+  // If true, also return deleted organizations.
+  bool show_deleted = 3;
 }
 
 message ListOrganizationsResponse {
