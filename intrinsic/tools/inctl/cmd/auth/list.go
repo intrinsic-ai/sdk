@@ -29,6 +29,9 @@ var listCmd = &cobra.Command{
 	Long: `
 	Lists available credentials present for current user
 
+	Note that the command only shows the locally stored credentials
+	and that the output may contain invalidated credentials.
+
 	Example:
 	  inctl auth list
 	  inctl auth list --prefix <prefix_to_search>
