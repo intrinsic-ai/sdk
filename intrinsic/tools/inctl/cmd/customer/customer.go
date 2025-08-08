@@ -28,8 +28,14 @@ var vipr = viper.New()
 var customerCmd = cobrautil.ParentOfNestedSubcommands("customer", "Manage your Flowstate customers.")
 
 var (
-	flagEnvironment   string
-	flagDebugRequests bool
+	flagCustomer        string
+	flagDebugRequests   bool
+	flagName            string
+	flagEmail           string
+	flagEnvironment     string
+	flagInvitationToken string
+	flagRoleCSV         string
+	flagRole            string
 )
 
 func init() {

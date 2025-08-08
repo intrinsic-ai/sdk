@@ -24,22 +24,15 @@ func init() {
 	rolebindingsInit(rolebindingsCmd)
 }
 
-var (
-	flagResource string
-	flagRole     string
-	flagSubject  string
-	flagName     string
-)
-
 func rolebindingsInit(root *cobra.Command) {
-	listRoleBindingsCmd.Flags().StringVar(&flagResource, "resource", "", "The resource to list role-bindings for.")
-	listRoleBindingsCmd.MarkFlagRequired("resource")
+	listRoleBindingsCmd.Flags().StringVar(&flagCustomer, "customer", "", "The customer organization to list role-bindings for.")
+	listRoleBindingsCmd.MarkFlagRequired("customer")
 	root.AddCommand(listRoleBindingsCmd)
-	grantRoleBindingCmd.Flags().StringVar(&flagResource, "resource", "", "The resource to attach the role-binding to.")
-	grantRoleBindingCmd.Flags().StringVar(&flagSubject, "subject", "", "The subject grant the role.")
+	grantRoleBindingCmd.Flags().StringVar(&flagCustomer, "customer", "", "The customer organization to attach the role-binding to.")
+	grantRoleBindingCmd.Flags().StringVar(&flagEmail, "email", "", "The email address of the user to grant the role to.")
 	grantRoleBindingCmd.Flags().StringVar(&flagRole, "role", "", "The role to grant.")
-	grantRoleBindingCmd.MarkFlagRequired("resource")
-	grantRoleBindingCmd.MarkFlagRequired("subject")
+	grantRoleBindingCmd.MarkFlagRequired("customer")
+	grantRoleBindingCmd.MarkFlagRequired("email")
 	grantRoleBindingCmd.MarkFlagRequired("role")
 	root.AddCommand(grantRoleBindingCmd)
 	revokeRoleBindingCmd.Flags().StringVar(&flagName, "name", "", "The name of the role-binding to revoke taken from the output of the list command.")
@@ -50,7 +43,7 @@ func rolebindingsInit(root *cobra.Command) {
 var grantRoleBindingCmdHelp = `
 Grant a user a role on a given resource and all its descendants.
 
-		inctl customer role-bindings grant --resource=organizations/exampleorg --subject=users/user@example.com --role=owner
+		inctl customer role-bindings grant --customer=exampleorg --email=user@example.com --role=owner
 `
 
 var grantRoleBindingCmd = &cobra.Command{
@@ -65,9 +58,9 @@ var grantRoleBindingCmd = &cobra.Command{
 		}
 		req := &pb.CreateRoleBindingRequest{
 			RoleBinding: &pb.RoleBinding{
-				Resource: flagResource,
+				Resource: addPrefix(flagCustomer, "organizations/"),
 				Role:     addPrefix(flagRole, "roles/"),
-				Subject:  flagSubject,
+				Subject:  addPrefix(flagEmail, "users/"),
 			},
 		}
 		if flagDebugRequests {
@@ -148,7 +141,7 @@ func (r printableRoleBindings) String() string {
 var listRoleBindingsCmdHelp = `
 List the role bindings on a given resource.
 
-		inctl customer role-bindings list --resource=organizations/exampleorg
+		inctl customer role-bindings list --customer=exampleorg
 `
 
 var listRoleBindingsCmd = &cobra.Command{
@@ -157,15 +150,13 @@ var listRoleBindingsCmd = &cobra.Command{
 	Long:  listRoleBindingsCmdHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		if !strings.HasPrefix(flagResource, "organizations/") {
-			return fmt.Errorf("only organizations are supported at the moment")
-		}
+		cOrg := addPrefix(flagCustomer, "organizations/")
 		cl, err := newAccessControlV1Client(ctx)
 		if err != nil {
 			return err
 		}
 		req := &pb.ListOrganizationRoleBindingsRequest{
-			Parent: flagResource,
+			Parent: cOrg,
 		}
 		if flagDebugRequests {
 			protoPrint(req)

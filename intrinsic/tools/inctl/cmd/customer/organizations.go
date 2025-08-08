@@ -16,18 +16,20 @@ func init() {
 }
 
 var (
-	flagOrgIdentifier   string
 	flagOrgDisplayName  string
 	flagSkipPaymentPlan bool
 )
 
 func organizationsInit(root *cobra.Command) {
-	createCmd.Flags().StringVar(&flagOrgIdentifier, "identifier", "", "The human-friendly identifier of the organization to create.")
+	createCmd.Flags().StringVar(&flagCustomer, "customer", "", "The human-friendly identifier of the organization to create.")
 	createCmd.Flags().StringVar(&flagOrgDisplayName, "display-name", "", "The display name of the organization to create.")
 	createCmd.Flags().BoolVar(&flagSkipPaymentPlan, "skip-payment-plan", false, "Skip creating a payment plan for the organization.")
 	createCmd.MarkFlagRequired("name")
 	createCmd.MarkFlagRequired("display-name")
+	createCmd.MarkFlagRequired("customer")
 	root.AddCommand(createCmd)
+	deleteCmd.Flags().StringVar(&flagCustomer, "customer", "", "The human-friendly identifier of the organization to delete.")
+	deleteCmd.MarkFlagRequired("customer")
 	root.AddCommand(deleteCmd)
 }
 
@@ -38,7 +40,7 @@ You must have permissions to create new organization on your current organizatio
 
 Example:
 
-		inctl customer create --identifier=exampleorg --display-name="My Organization"
+		inctl customer create --customer=exampleorg --display-name="My Organization"
 `
 
 var createCmd = &cobra.Command{
@@ -52,7 +54,7 @@ var createCmd = &cobra.Command{
 			return err
 		}
 		req := accresourcemanager1pb.CreateOrganizationRequest{
-			OrganizationId: flagOrgIdentifier,
+			OrganizationId: flagCustomer,
 			Organization: &accresourcemanager1pb.Organization{
 				DisplayName: flagOrgDisplayName,
 			},
@@ -60,7 +62,7 @@ var createCmd = &cobra.Command{
 		if flagDebugRequests {
 			protoPrint(&req)
 		}
-		fmt.Printf("Creating organization %q.\n", flagOrgIdentifier)
+		fmt.Printf("Creating organization %q.\n", flagCustomer)
 		op, err := cl.CreateOrganization(ctx, &req)
 		if err != nil {
 			return fmt.Errorf("failed to create organization: %w", err)
@@ -80,7 +82,7 @@ var createCmd = &cobra.Command{
 			return nil
 		}
 		preq := &accresourcemanager1pb.CreateOrganizationPaymentPlanRequest{
-			Parent: "organizations/" + flagOrgIdentifier,
+			Parent: addPrefix(flagCustomer, "organizations/"),
 		}
 		if flagDebugRequests {
 			protoPrint(preq)
@@ -107,12 +109,12 @@ var createCmd = &cobra.Command{
 var deleteCmdHelp = `
 Delete an organization.
 
-You must have permissions to delete existing organizations on your current organization and your
-organization must have owner role for the organization you are trying to delete.
+The delete command marks the organization as soft-deleted. A soft-deleted organization can be
+recovered for at least 30 days by contacting support.
 
 Example:
 
-		inctl customer delete --identifier=exampleorg --org=myorg
+		inctl customer delete --customer=exampleorg --org=myorg
 `
 
 var deleteCmd = &cobra.Command{
@@ -126,15 +128,15 @@ var deleteCmd = &cobra.Command{
 			return err
 		}
 		req := accresourcemanager1pb.DeleteOrganizationRequest{
-			Name: "organizations/" + flagOrgIdentifier,
+			Name: addPrefix(flagCustomer, "organizations/"),
 		}
 		if flagDebugRequests {
 			protoPrint(&req)
 		}
-		fmt.Printf("Deleting organization %q.\n", flagOrgIdentifier)
+		fmt.Printf("Deleting organization %q.\n", flagCustomer)
 		op, err := cl.DeleteOrganization(ctx, &req)
 		if err != nil {
-			return fmt.Errorf("failed to create organization: %w", err)
+			return fmt.Errorf("failed to delete organization: %w", err)
 		}
 		if flagDebugRequests {
 			protoPrint(op)

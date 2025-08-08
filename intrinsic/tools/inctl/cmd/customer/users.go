@@ -22,13 +22,6 @@ func init() {
 	addUserInit(customerCmd)
 }
 
-var (
-	flagEmail           string
-	flagOrganization    string
-	flagInvitationToken string
-	flagRoleCSV         string
-)
-
 func parseCSV(s string) []string {
 	parts := strings.Split(s, ",")
 	for idx := range parts {
@@ -39,25 +32,25 @@ func parseCSV(s string) []string {
 
 func addUserInit(root *cobra.Command) {
 	addUser.Flags().StringVar(&flagEmail, "email", "", "The email address of the user to invite.")
-	addUser.Flags().StringVar(&flagOrganization, "organization", "", "The organization to invite the user to.")
+	addUser.Flags().StringVar(&flagCustomer, "customer", "", "The customer organization to invite the user to.")
 	addUser.Flags().StringVar(&flagRoleCSV, "roles", "", "Optional comma-separated list of roles to assign to the user when they accept the invitation.")
 	addUser.MarkFlagRequired("email")
 	addUser.MarkFlagRequired("organization")
 	root.AddCommand(addUser)
-	listUsers.Flags().StringVar(&flagOrganization, "organization", "", "The organization to list memberships for.")
+	listUsers.Flags().StringVar(&flagCustomer, "customer", "", "The customer organization to list memberships for.")
 	listUsers.MarkFlagRequired("organization")
 	root.AddCommand(listUsers)
 	removeUser.Flags().StringVar(&flagEmail, "email", "", "The email address of the user to remove.")
-	removeUser.Flags().StringVar(&flagOrganization, "organization", "", "The organization to remove the user from.")
+	removeUser.Flags().StringVar(&flagCustomer, "customer", "", "The customer organization to remove the user from.")
 	removeUser.MarkFlagRequired("email")
 	removeUser.MarkFlagRequired("organization")
 	root.AddCommand(removeUser)
-	withdrawInvitation.Flags().StringVar(&flagOrganization, "organization", "", "The organization where the user was invited to.")
+	withdrawInvitation.Flags().StringVar(&flagCustomer, "customer", "", "The customer organization where the user was invited to.")
 	withdrawInvitation.Flags().StringVar(&flagInvitationToken, "token", "", "The token of the invitation to withdraw.")
 	withdrawInvitation.MarkFlagRequired("organization")
 	withdrawInvitation.MarkFlagRequired("token")
 	root.AddCommand(withdrawInvitation)
-	resendInvitation.Flags().StringVar(&flagOrganization, "organization", "", "The organization where the user was invited to.")
+	resendInvitation.Flags().StringVar(&flagCustomer, "customer", "", "The customer organization where the user was invited to.")
 	resendInvitation.Flags().StringVar(&flagInvitationToken, "token", "", "The token of the invitation to resend.")
 	resendInvitation.MarkFlagRequired("organization")
 	resendInvitation.MarkFlagRequired("token")
@@ -71,7 +64,7 @@ Use the --roles flag (comma-separated list) to assign roles to the user after th
 
 Example:
 
-		inctl customer add-user --email=user@example.com --organization=exampleorg --roles=owner
+		inctl customer add-user --email=user@example.com --customer=exampleorg --roles=owner
 `
 
 var addUser = &cobra.Command{
@@ -85,9 +78,9 @@ var addUser = &cobra.Command{
 			return err
 		}
 		req := pb.CreateOrganizationInvitationRequest{
-			Parent: addPrefix(flagOrganization, "organizations/"),
+			Parent: addPrefix(flagCustomer, "organizations/"),
 			Invitation: &pb.OrganizationInvitation{
-				Organization: flagOrganization,
+				Organization: flagCustomer,
 				Email:        flagEmail,
 				Roles:        addPrefixes(parseCSV(flagRoleCSV), "roles/"),
 			},
@@ -111,7 +104,7 @@ Remove a user from an organization by email address.
 
 Example:
 
-		inctl customer remove-user --email=user@example.com --organization=exampleorg
+		inctl customer remove-user --email=user@example.com --customer=exampleorg
 `
 
 var removeUser = &cobra.Command{
@@ -125,7 +118,7 @@ var removeUser = &cobra.Command{
 			return err
 		}
 		req := pb.DeleteOrganizationMembershipByEmailRequest{
-			Parent: addPrefix(flagOrganization, "organizations/"),
+			Parent: addPrefix(flagCustomer, "organizations/"),
 			Email:  flagEmail,
 		}
 		if flagDebugRequests {
@@ -205,7 +198,7 @@ List all memberships and invitations of an organization.
 
 Example:
 
-		inctl customer list-users --organization=exampleorg
+		inctl customer list-users --customer=exampleorg
 `
 
 var listUsers = &cobra.Command{
@@ -242,7 +235,7 @@ var listUsers = &cobra.Command{
 
 func listRolesBindings(ctx context.Context, cl accessControlV1Client) ([]*pb.RoleBinding, error) {
 	req := pb.ListOrganizationRoleBindingsRequest{
-		Parent: addPrefix(flagOrganization, "organizations/"),
+		Parent: addPrefix(flagCustomer, "organizations/"),
 	}
 	if flagDebugRequests {
 		protoPrint(&req)
@@ -259,7 +252,7 @@ func listRolesBindings(ctx context.Context, cl accessControlV1Client) ([]*pb.Rol
 
 func listMemberships(ctx context.Context, cl accessControlV1Client) ([]*pb.OrganizationMembership, error) {
 	req := pb.ListOrganizationMembershipsRequest{
-		Parent: addPrefix(flagOrganization, "organizations/"),
+		Parent: addPrefix(flagCustomer, "organizations/"),
 	}
 	if flagDebugRequests {
 		protoPrint(&req)
@@ -276,7 +269,7 @@ func listMemberships(ctx context.Context, cl accessControlV1Client) ([]*pb.Organ
 
 func listInvitations(ctx context.Context, cl accessControlV1Client) ([]*pb.OrganizationInvitation, error) {
 	req := pb.ListOrganizationInvitationsRequest{
-		Parent: addPrefix(flagOrganization, "organizations/"),
+		Parent: addPrefix(flagCustomer, "organizations/"),
 	}
 	if flagDebugRequests {
 		protoPrint(&req)
@@ -297,7 +290,7 @@ making it no longer available to the user.
 
 Example:
 
-		inctl customer withdraw-invitation --organization=exampleorg --token=24d7ab1f-8c55-4903-9352-4ce421bef264
+		inctl customer withdraw-invitation --customer=exampleorg --token=24d7ab1f-8c55-4903-9352-4ce421bef264
 `
 
 var withdrawInvitation = &cobra.Command{
@@ -310,7 +303,7 @@ var withdrawInvitation = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		name := addPrefix(flagOrganization, "organizations/") + "/" + addPrefix(flagInvitationToken, "invitations/")
+		name := addPrefix(flagCustomer, "organizations/") + "/" + addPrefix(flagInvitationToken, "invitations/")
 		req := pb.CancelOrganizationInvitationRequest{
 			Name: name,
 		}
@@ -335,7 +328,7 @@ Resend an existing invitation to an email address.
 
 Example:
 
-		inctl customer resend-invitation --organization=exampleorg --token=24d7ab1f-8c55-4903-9352-4ce421bef264
+		inctl customer resend-invitation --customer=exampleorg --token=24d7ab1f-8c55-4903-9352-4ce421bef264
 `
 
 var resendInvitation = &cobra.Command{
@@ -348,7 +341,7 @@ var resendInvitation = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		name := addPrefix(flagOrganization, "organizations/") + "/" + addPrefix(flagInvitationToken, "invitations/")
+		name := addPrefix(flagCustomer, "organizations/") + "/" + addPrefix(flagInvitationToken, "invitations/")
 		req := pb.ResendOrganizationInvitationRequest{
 			Name: name,
 		}
