@@ -39,6 +39,9 @@ message Organization {
   // The state of the organization.
   State state = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
 
+  // The projects associated with the organization.
+  repeated string projects = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+
   // The time at which the organization was created.
   google.protobuf.Timestamp create_time = 1000
       [(google.api.field_behavior) = OUTPUT_ONLY];
