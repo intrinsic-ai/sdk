@@ -73,6 +73,8 @@ message CreateOrganizationRequest {
   Organization organization = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
+// Request for listing organizations the user has access to.
+// page_size and page_token are not supported yet.
 message ListOrganizationsRequest {
   // The maximum number of organizations to return.
   int32 page_size = 1;
