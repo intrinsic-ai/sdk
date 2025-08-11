@@ -914,6 +914,7 @@ class StructuredLogs:
       event_source: str,
       seconds_to_read: int = 1200,
       max_num_items: int = 10000,
+      filter_labels: dict[str, str] | None = None,
   ) -> list[log_item_pb2.LogItem]:
     """Queries the data logs.
 
@@ -922,6 +923,8 @@ class StructuredLogs:
       seconds_to_read: Only considers recent logs within this timeframe
       max_num_items: Return at most this many items from the start of the time
         range.
+      filter_labels: Optional dictionary of labels to filter the logs by. Only
+        logs that match all of the provided labels will be returned.
 
     Returns:
       Log items from the given event source
@@ -933,6 +936,8 @@ class StructuredLogs:
     get_request.get_query.event_source = event_source
     get_request.get_query.start_time.FromDatetime(window_start)
     get_request.get_query.end_time.FromDatetime(now)
+    if filter_labels is not None:
+      get_request.get_query.filter_labels.update(filter_labels)
     get_response = self._stub.GetLogItems(get_request)
     if get_response.HasField('truncation_cause'):
       logging.warning(get_response.truncation_cause)

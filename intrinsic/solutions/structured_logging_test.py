@@ -220,6 +220,47 @@ payload <
         get_request_delta, datetime.timedelta(seconds=seconds_to_read)
     )
 
+  def test_query_with_label(self):
+    pb1 = text_format.Parse(
+        """
+metadata <
+  event_source: "event_source"
+>
+payload <
+  skills_execution_summary <
+    error_code: 1
+  >
+>
+""",
+        log_item_pb2.LogItem(),
+    )
+    stub = mock.MagicMock()
+    response = logger_service_pb2.GetLogItemsResponse()
+    response.log_items.append(pb1)
+    stub.GetLogItems.return_value = response
+    logs = structured_logging.StructuredLogs(stub)
+
+    seconds_to_read = 1234
+    logs.query(
+        'event_source',
+        seconds_to_read=seconds_to_read,
+        filter_labels={'my_label': '123456'},
+    )
+
+    stub.GetLogItems.assert_called_once()
+    get_request = stub.GetLogItems.call_args.args[0]
+    get_request_delta = (
+        get_request.get_query.end_time.ToDatetime()
+        - get_request.get_query.start_time.ToDatetime()
+    )
+    self.assertEqual(
+        get_request_delta, datetime.timedelta(seconds=seconds_to_read)
+    )
+    self.assertEqual(
+        get_request.get_query.filter_labels,
+        {'my_label': '123456'},
+    )
+
   def test_query_for_time_range(self):
     """Tests that a simple query requests to the logger works."""
     pb1 = text_format.Parse(
