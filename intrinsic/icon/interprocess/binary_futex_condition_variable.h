@@ -58,8 +58,8 @@ class BinaryFutexConditionVariable {
   // shared memory segment, set `private_futex` to false.
   explicit BinaryFutexConditionVariable(bool private_futex = false)
       : futex_(/*posted = */ false, private_futex) {}
-  BinaryFutexConditionVariable(const BinaryFutexConditionVariable &) = delete;
-  BinaryFutexConditionVariable(BinaryFutexConditionVariable &&) = default;
+  BinaryFutexConditionVariable(const BinaryFutexConditionVariable&) = delete;
+  BinaryFutexConditionVariable(BinaryFutexConditionVariable&&) = default;
   ~BinaryFutexConditionVariable() = default;
 
   // Notifies one thread currently waiting in `Await()`. It is not specified
@@ -94,12 +94,12 @@ class BinaryFutexConditionVariable {
   // If this class returns other errors than DeadlineExceeded, it is likely
   // that this instance is in an unusable state.
   //
-  RealtimeStatus Await(LockableBinaryFutex *mutex, absl::Condition condition,
+  RealtimeStatus Await(LockableBinaryFutex* mutex, absl::Condition condition,
                        absl::Time deadline)
       ABSL_EXCLUSIVE_LOCKS_REQUIRED(mutex);
 
   // Same as other version, but with a timeout.
-  RealtimeStatus Await(LockableBinaryFutex *mutex, absl::Condition condition,
+  RealtimeStatus Await(LockableBinaryFutex* mutex, absl::Condition condition,
                        absl::Duration timeout = absl::InfiniteDuration())
       ABSL_EXCLUSIVE_LOCKS_REQUIRED(mutex) {
     return Await(mutex, condition, absl::Now() + timeout);
@@ -114,7 +114,7 @@ class BinaryFutexConditionVariable {
 template <typename StateType>
 struct ConditionVariableData {
   ConditionVariableData() = default;
-  explicit ConditionVariableData(const StateType &&initial_state,
+  explicit ConditionVariableData(const StateType&& initial_state,
                                  bool private_futex = false)
       : mutex(private_futex),
         condition_variable(private_futex),

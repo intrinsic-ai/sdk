@@ -38,7 +38,7 @@ static LazyRE2 kIdVersionExpr = {
 static LazyRE2 kLabelExpr = {R"(^[a-z]([a-z0-9-]*[a-z0-9])*$)"};
 
 // Verifies that the specified string matches the specified regex pattern.
-absl::Status ValidateMatch(absl::string_view str, const RE2 *re) {
+absl::Status ValidateMatch(absl::string_view str, const RE2* re) {
   if (!RE2::FullMatch(str, *re)) {
     return absl::InvalidArgumentError(absl::StrFormat(
         "'%s' is not a valid %s.", str, re->CapturingGroupNames().at(1)));
@@ -47,7 +47,7 @@ absl::Status ValidateMatch(absl::string_view str, const RE2 *re) {
 }
 
 // Matches a string to a regex pattern and returns the specified named group.
-absl::StatusOr<std::string> GetNamedMatch(absl::string_view str, const RE2 *re,
+absl::StatusOr<std::string> GetNamedMatch(absl::string_view str, const RE2* re,
                                           absl::string_view group) {
   int num_groups = re->NumberOfCapturingGroups() + 1;
   std::vector<re2::StringPiece> matches(num_groups);
@@ -67,8 +67,8 @@ absl::StatusOr<std::string> GetNamedMatch(absl::string_view str, const RE2 *re,
 
 }  // namespace
 
-IdVersionParts::IdVersionParts(const std::vector<re2::StringPiece> *matches) {
-  const std::map<std::string, int> &groups =
+IdVersionParts::IdVersionParts(const std::vector<re2::StringPiece>* matches) {
+  const std::map<std::string, int>& groups =
       kIdVersionExpr->NamedCapturingGroups();
 
   id_ = std::string(matches->at(groups.at("id")));
@@ -257,7 +257,7 @@ std::string ParentFromPackage(absl::string_view package) {
 }
 
 absl::StatusOr<std::string> ToLabel(absl::string_view s) {
-  for (auto &offender : std::vector<absl::string_view>{"-", "_.", "._", "__"}) {
+  for (auto& offender : std::vector<absl::string_view>{"-", "_.", "._", "__"}) {
     if (absl::StrContains(s, offender)) {
       return absl::InvalidArgumentError(absl::StrFormat(
           "Cannot convert '%s' into a label (contains '%s')", s, offender));

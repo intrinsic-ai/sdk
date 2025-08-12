@@ -12,13 +12,13 @@ namespace intrinsic_fbs {
 
 // Copies the raw data memory from Pose3d to memory in
 // Transform.
-void CopyTo(Transform *transform, const intrinsic::Pose3d &pose) {
+void CopyTo(Transform* transform, const intrinsic::Pose3d& pose) {
   transform->mutable_position() = *ViewAs<Point>(pose.translation());
   transform->mutable_rotation() = *ViewAs<Rotation>(pose.quaternion());
 }
 
 // Copies the raw data memory from Transform to memory in Pose3d.
-void CopyTo(intrinsic::Pose3d *pose, const Transform &transform) {
+void CopyTo(intrinsic::Pose3d* pose, const Transform& transform) {
   pose->translation() = ViewAs<Eigen::Vector3d>(transform.position());
   pose->so3().quaternion() = ViewAs<Eigen::Quaterniond>(transform.rotation());
 }

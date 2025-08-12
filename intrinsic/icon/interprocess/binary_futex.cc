@@ -21,10 +21,10 @@
 namespace intrinsic::icon {
 namespace {
 
-inline int64_t futex(std::atomic<uint32_t> *uaddr, int futex_op, uint32_t val,
+inline int64_t futex(std::atomic<uint32_t>* uaddr, int futex_op, uint32_t val,
                      bool private_futex,
-                     const struct timespec *timeout = nullptr,
-                     uint32_t *uaddr2 = nullptr,
+                     const struct timespec* timeout = nullptr,
+                     uint32_t* uaddr2 = nullptr,
                      uint32_t val3 = 0) INTRINSIC_SUPPRESS_REALTIME_CHECK {
   // For the static analysis, we allow futex operations even though they can
   // be blocking, because the blocking behavior is usually intended.
@@ -44,7 +44,7 @@ inline int64_t futex(std::atomic<uint32_t> *uaddr, int futex_op, uint32_t val,
 // Atomically reads from `val` and sets `val` to kReady *if* it was kPosted.
 //
 // Returns the value of `val` before the reset.
-uint32_t TryWait(std::atomic<uint32_t> &val) {
+uint32_t TryWait(std::atomic<uint32_t>& val) {
   uint32_t expected = BinaryFutex::kPosted;
   // If `val != expected`, then this writes the _actual_ value of `val` into
   // `expected`.
@@ -52,7 +52,7 @@ uint32_t TryWait(std::atomic<uint32_t> &val) {
   return expected;
 }
 
-RealtimeStatus Wait(std::atomic<uint32_t> &val, const timespec *ts,
+RealtimeStatus Wait(std::atomic<uint32_t>& val, const timespec* ts,
                     bool private_futex) {
   const absl::Time start_time = absl::Now();
   while (true) {
@@ -98,8 +98,8 @@ RealtimeStatus Wait(std::atomic<uint32_t> &val, const timespec *ts,
 BinaryFutex::BinaryFutex(bool posted, bool private_futex)
     : val_(posted == true ? BinaryFutex::kPosted : BinaryFutex::kReady),
       private_futex_(private_futex) {}
-BinaryFutex::BinaryFutex(BinaryFutex &&other) : val_(other.val_.load()) {}
-BinaryFutex &BinaryFutex::operator=(BinaryFutex &&other) {
+BinaryFutex::BinaryFutex(BinaryFutex&& other) : val_(other.val_.load()) {}
+BinaryFutex& BinaryFutex::operator=(BinaryFutex&& other) {
   if (this != &other) {
     val_.store(other.val_.load());
   }
@@ -117,7 +117,7 @@ RealtimeStatus BinaryFutex::Post() {
   const bool private_futex = private_futex_;
   // Take the address before, since the class instance could be destroyed before
   // `futex()` is called.
-  std::atomic<uint32_t> *val_addr = &val_;
+  std::atomic<uint32_t>* val_addr = &val_;
   if (val_.compare_exchange_strong(expected, BinaryFutex::kPosted)) {
     // `futex` could fail with EFAULT, if `val_addr` is not a valid
     // user-space address anymore. This can happen if another thread destroyed
@@ -173,7 +173,7 @@ void BinaryFutex::Close() {
   const bool private_futex = private_futex_;
   // Take the address before, since the class instance could be destroyed before
   // `futex()` is called.
-  std::atomic<uint32_t> *val_addr = &val_;
+  std::atomic<uint32_t>* val_addr = &val_;
   // Only signal waiters if the value changed (i.e. if it *wasn't already*
   // BinaryFutex::kClosed).
   if (val_.exchange(BinaryFutex::kClosed) != BinaryFutex::kClosed) {

@@ -52,10 +52,10 @@ class Lockstep {
   static constexpr absl::Duration kResetTimeout = absl::Seconds(1);
 
   Lockstep() = default;
-  Lockstep(Lockstep &other) = delete;
-  Lockstep &operator=(const Lockstep &other) = delete;
-  Lockstep(Lockstep &&other) = delete;
-  Lockstep &operator=(Lockstep &&other);
+  Lockstep(Lockstep& other) = delete;
+  Lockstep& operator=(const Lockstep& other) = delete;
+  Lockstep(Lockstep&& other) = delete;
+  Lockstep& operator=(Lockstep&& other);
 
   // Blocks the current thread until Operation A is ready to begin or timeout
   // has expired. Similar to StartOperationAWithDeadline except that this uses a

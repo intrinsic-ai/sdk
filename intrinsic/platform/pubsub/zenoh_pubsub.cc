@@ -35,7 +35,7 @@ namespace intrinsic {
 
 constexpr char kIntrospectionTopicPrefix[] = "in/_introspection/";
 
-std::string PubSubQoSToZenohQos(const TopicConfig::TopicQoS &qos) {
+std::string PubSubQoSToZenohQos(const TopicConfig::TopicQoS& qos) {
   return qos == TopicConfig::TopicQoS::Sensor ? "Sensor" : "HighReliability";
 }
 
@@ -50,7 +50,7 @@ PubSub::PubSub(absl::string_view participant_name, absl::string_view config)
 PubSub::~PubSub() = default;
 
 absl::StatusOr<Publisher> PubSub::CreatePublisher(
-    absl::string_view topic_name, const TopicConfig &config) const {
+    absl::string_view topic_name, const TopicConfig& config) const {
   auto prefixed_name = ZenohHandle::add_topic_prefix(topic_name);
   if (!prefixed_name.ok()) {
     return prefixed_name.status();
@@ -69,7 +69,7 @@ absl::StatusOr<Publisher> PubSub::CreatePublisher(
 }
 
 absl::StatusOr<Subscription> PubSub::CreateSubscription(
-    absl::string_view topic_name, const TopicConfig &config,
+    absl::string_view topic_name, const TopicConfig& config,
     SubscriptionOkCallback<intrinsic_proto::pubsub::PubSubPacket> msg_callback)
     const {
   auto prefixed_name = ZenohHandle::add_topic_prefix(topic_name);
@@ -80,7 +80,7 @@ absl::StatusOr<Subscription> PubSub::CreateSubscription(
   auto subscription_data = std::make_unique<SubscriptionData>();
   subscription_data->prefixed_name = *prefixed_name;
   auto callback = std::make_unique<imw_callback_functor_t>(
-      [msg_callback](const char *keyexpr, const void *blob,
+      [msg_callback](const char* keyexpr, const void* blob,
                      const size_t blob_len) {
         // Don't attempt to deserialize the introspection data
         // since it's JSON and doesn't need to be logged anyway;
@@ -109,7 +109,7 @@ absl::StatusOr<Subscription> PubSub::CreateSubscription(
   return Subscription(topic_name, std::move(subscription_data));
 }
 absl::StatusOr<Subscription> PubSub::CreateSubscription(
-    absl::string_view topic_name, const TopicConfig &config,
+    absl::string_view topic_name, const TopicConfig& config,
     SubscriptionOkExpandedCallback<intrinsic_proto::pubsub::PubSubPacket>
         msg_callback) const {
   auto prefixed_name = ZenohHandle::add_topic_prefix(topic_name);
@@ -120,7 +120,7 @@ absl::StatusOr<Subscription> PubSub::CreateSubscription(
   auto subscription_data = std::make_unique<SubscriptionData>();
   subscription_data->prefixed_name = *prefixed_name;
   auto callback = std::make_unique<imw_callback_functor_t>(
-      [msg_callback](const char *keyexpr, const void *blob,
+      [msg_callback](const char* keyexpr, const void* blob,
                      const size_t blob_len) {
         absl::string_view topic_str(keyexpr);
         if (absl::StartsWith(topic_str, kIntrospectionTopicPrefix)) return;
@@ -210,15 +210,15 @@ struct GetData {
       ABSL_GUARDED_BY(responses_mutex) = std::vector<Response>{};
 };
 
-void GetCallbackFn(const char *key, const void *response_bytes,
-                   const size_t response_bytes_len, void *user_context) {
-  GetData *query_data = static_cast<GetData *>(user_context);
+void GetCallbackFn(const char* key, const void* response_bytes,
+                   const size_t response_bytes_len, void* user_context) {
+  GetData* query_data = static_cast<GetData*>(user_context);
   absl::MutexLock lock(&query_data->responses_mutex);
   if (!query_data->responses.ok()) {
     // There was already an error, return immediately
     return;
   }
-  std::string_view response_str(static_cast<const char *>(response_bytes),
+  std::string_view response_str(static_cast<const char*>(response_bytes),
                                 response_bytes_len);
   intrinsic_proto::pubsub::PubSubQueryResponse response_packet;
   if (!response_packet.ParseFromString(response_str)) {
@@ -229,8 +229,8 @@ void GetCallbackFn(const char *key, const void *response_bytes,
       {.key = key, .proto = std::move(response_packet)});
 }
 
-void GetOnDoneCallbackFn(const char *key, void *user_context) {
-  GetData *query_data = static_cast<GetData *>(user_context);
+void GetOnDoneCallbackFn(const char* key, void* user_context) {
+  GetData* query_data = static_cast<GetData*>(user_context);
   query_data->notification.Notify();
 }
 
@@ -245,8 +245,8 @@ absl::StatusOr<Queryable> PubSub::CreateQueryableImpl(
 
 absl::StatusOr<intrinsic_proto::pubsub::PubSubQueryResponse> PubSub::GetOneImpl(
     absl::string_view key,
-    const intrinsic_proto::pubsub::PubSubQueryRequest &request,
-    const QueryOptions &options) {
+    const intrinsic_proto::pubsub::PubSubQueryRequest& request,
+    const QueryOptions& options) {
   std::string serialized_request = request.SerializeAsString();
   GetData query_data;
   imw_query_options_t query_options;
@@ -288,8 +288,8 @@ absl::StatusOr<intrinsic_proto::pubsub::PubSubQueryResponse> PubSub::GetOneImpl(
 
 absl::StatusOr<std::vector<intrinsic_proto::pubsub::PubSubQueryResponse>>
 PubSub::GetImpl(absl::string_view key,
-                const intrinsic_proto::pubsub::PubSubQueryRequest &request,
-                const QueryOptions &options) {
+                const intrinsic_proto::pubsub::PubSubQueryRequest& request,
+                const QueryOptions& options) {
   std::string serialized_request = request.SerializeAsString();
   GetData query_data;
   imw_query_options_t query_options;

@@ -13,7 +13,7 @@
 
 namespace intrinsic::icon {
 
-RealtimeStatus BinaryFutexConditionVariable::Await(LockableBinaryFutex *mutex,
+RealtimeStatus BinaryFutexConditionVariable::Await(LockableBinaryFutex* mutex,
                                                    absl::Condition condition,
                                                    absl::Time deadline)
     ABSL_EXCLUSIVE_LOCKS_REQUIRED(mutex) {

@@ -34,8 +34,8 @@ CreateResourceRegistryClient(absl::string_view grpc_address,
 
 absl::StatusOr<std::vector<intrinsic_proto::resources::ResourceInstance>>
 ResourceRegistryClient::ListResources(
-    const intrinsic_proto::resources::ListResourceInstanceRequest::StrictFilter
-        &filter) const {
+    const intrinsic_proto::resources::ListResourceInstanceRequest::StrictFilter&
+        filter) const {
   std::vector<intrinsic_proto::resources::ResourceInstance> resource_instances;
   std::string page_token;
   auto deadline = absl::ToChronoTime(absl::Now() + timeout_);

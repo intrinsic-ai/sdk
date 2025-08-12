@@ -59,7 +59,7 @@ class IdVersionParts {
   absl::string_view VersionPreRelease() const { return version_pre_release_; }
 
  private:
-  explicit IdVersionParts(const std::vector<re2::StringPiece> *matches);
+  explicit IdVersionParts(const std::vector<re2::StringPiece>* matches);
 
   std::string id_;
   std::string id_version_;

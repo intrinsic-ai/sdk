@@ -41,7 +41,7 @@ class ResourceRegistryClient : public ResourceRegistryClientInterface {
 
   absl::StatusOr<std::vector<intrinsic_proto::resources::ResourceInstance>>
   ListResources(const intrinsic_proto::resources::ListResourceInstanceRequest::
-                    StrictFilter &filter) const override;
+                    StrictFilter& filter) const override;
 
   absl::StatusOr<intrinsic_proto::resources::ResourceInstance> GetResource(
       absl::string_view name) const override;

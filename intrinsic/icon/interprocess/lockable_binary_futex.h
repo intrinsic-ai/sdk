@@ -32,8 +32,8 @@ class ABSL_LOCKABLE LockableBinaryFutex {
       : futex_(/*posted = */ true,  // Set `posted` so that the user can and
                                     // must call `Lock()` before `Unlock()`.
                private_futex) {}
-  LockableBinaryFutex(const LockableBinaryFutex &) = delete;
-  LockableBinaryFutex(LockableBinaryFutex &&) = default;
+  LockableBinaryFutex(const LockableBinaryFutex&) = delete;
+  LockableBinaryFutex(LockableBinaryFutex&&) = default;
   ~LockableBinaryFutex() {
     // Check that the futex was unlocked.
     CHECK_EQ(futex_.Value(), 1) << "Futex was not unlocked before destruction";
@@ -89,24 +89,24 @@ class ABSL_SCOPED_LOCKABLE BinaryFutexLock {
   // no order who will get the next lock in case multiple parties wait for the
   // lock. `mutex` must be non-null. Will fail fatally, if the futex syscall
   // fails.
-  explicit BinaryFutexLock(LockableBinaryFutex *mutex)
+  explicit BinaryFutexLock(LockableBinaryFutex* mutex)
       ABSL_EXCLUSIVE_LOCK_FUNCTION(mutex)
       : mutex_(mutex) {
     CHECK(mutex_ != nullptr);
     QCHECK_OK(mutex_->Lock());
   }
-  BinaryFutexLock(const BinaryFutexLock &) = delete;
-  BinaryFutexLock(BinaryFutexLock &&) = delete;
-  void operator=(const BinaryFutexLock &) = delete;
-  void operator=(BinaryFutexLock &&) = delete;
+  BinaryFutexLock(const BinaryFutexLock&) = delete;
+  BinaryFutexLock(BinaryFutexLock&&) = delete;
+  void operator=(const BinaryFutexLock&) = delete;
+  void operator=(BinaryFutexLock&&) = delete;
   ~BinaryFutexLock() ABSL_UNLOCK_FUNCTION() { CHECK_OK(mutex_->Unlock()); }
   // This class should *not* live on the heap. It should only live in the
   // current scope.
-  void *operator new(std::size_t) = delete;
-  void operator delete(void *) = delete;
+  void* operator new(std::size_t) = delete;
+  void operator delete(void*) = delete;
 
  private:
-  LockableBinaryFutex *mutex_;
+  LockableBinaryFutex* mutex_;
 };
 
 }  // namespace intrinsic::icon

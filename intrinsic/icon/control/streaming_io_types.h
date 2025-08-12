@@ -24,10 +24,10 @@ DEFINE_STRONG_INT_TYPE(StreamingInputId, int64_t);
 // use wrappers that automatically convert from concrete proto message types to
 // google::protobuf::Any and from realtime types to absl::any (and vice versa).
 using GenericStreamingInputParser = std::function<absl::StatusOr<std::any>(
-    const google::protobuf::Any &streaming_input)>;
+    const google::protobuf::Any& streaming_input)>;
 using GenericStreamingOutputConverter =
     std::function<absl::StatusOr<google::protobuf::Any>(
-        const std::any &streaming_output_any)>;
+        const std::any& streaming_output_any)>;
 
 }  // namespace intrinsic::icon
 

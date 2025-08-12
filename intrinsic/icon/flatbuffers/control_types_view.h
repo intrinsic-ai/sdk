@@ -11,8 +11,8 @@ namespace intrinsic_fbs {
 
 // Utility helper function that allows to interpret intrinsic_fbs::Wrench as
 // Wrench type.
-const ::intrinsic::Wrench *FromSchema(const ::intrinsic_fbs::Wrench &wrench);
-::intrinsic::Wrench *FromSchema(::intrinsic_fbs::Wrench *wrench);
+const ::intrinsic::Wrench* FromSchema(const ::intrinsic_fbs::Wrench& wrench);
+::intrinsic::Wrench* FromSchema(::intrinsic_fbs::Wrench* wrench);
 
 }  // namespace intrinsic_fbs
 

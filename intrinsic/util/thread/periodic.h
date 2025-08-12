@@ -27,12 +27,12 @@ class PeriodicOperation {
 
   // Returns a new PeriodicOperation that executes with the given period on a
   // thread with the provided thread options..
-  PeriodicOperation(const ThreadOptions &options, absl::AnyInvocable<void()> f,
+  PeriodicOperation(const ThreadOptions& options, absl::AnyInvocable<void()> f,
                     absl::Duration period);
 
   // Disallow copying
-  PeriodicOperation(const PeriodicOperation &) = delete;
-  PeriodicOperation &operator=(const PeriodicOperation &) = delete;
+  PeriodicOperation(const PeriodicOperation&) = delete;
+  PeriodicOperation& operator=(const PeriodicOperation&) = delete;
 
   // Starts the periodic execution of the operation passed to the constructor.
   // If this is the first time `Start()` is being called, then it is guaranteed

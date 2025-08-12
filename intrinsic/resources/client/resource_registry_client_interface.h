@@ -20,7 +20,7 @@ class ResourceRegistryClientInterface {
   virtual absl::StatusOr<
       std::vector<intrinsic_proto::resources::ResourceInstance>>
   ListResources(const intrinsic_proto::resources::ListResourceInstanceRequest::
-                    StrictFilter &filter) const = 0;
+                    StrictFilter& filter) const = 0;
 
   virtual absl::StatusOr<intrinsic_proto::resources::ResourceInstance>
   GetResource(absl::string_view id) const = 0;

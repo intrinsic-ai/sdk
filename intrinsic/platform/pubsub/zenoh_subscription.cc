@@ -18,9 +18,9 @@ Subscription::Subscription(absl::string_view topic_name,
     : topic_name_(topic_name),
       subscription_data_(std::move(subscription_data)) {}
 
-Subscription::Subscription(Subscription &&) = default;
+Subscription::Subscription(Subscription&&) = default;
 
-Subscription &Subscription::operator=(Subscription &&other) {
+Subscription& Subscription::operator=(Subscription&& other) {
   if (!topic_name_.empty()) {
     Zenoh().imw_destroy_subscription(
         subscription_data_->prefixed_name.c_str(), zenoh_static_callback,

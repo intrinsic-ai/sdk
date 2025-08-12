@@ -12,7 +12,7 @@
 #include "intrinsic/icon/utils/realtime_status_macro.h"
 
 namespace intrinsic {
-Lockstep &Lockstep::operator=(Lockstep &&other) {
+Lockstep& Lockstep::operator=(Lockstep&& other) {
   if (this != &other) {
     a_finished_ = std::exchange(other.a_finished_, icon::BinaryFutex(false));
     b_finished_ =

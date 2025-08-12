@@ -58,7 +58,7 @@ void StartsAndStops(int num_starts, int num_stops) {
 
   std::shuffle(starts_and_stops.begin(), starts_and_stops.end(),
                std::mt19937());
-  for (auto &&f : starts_and_stops) {
+  for (auto&& f : starts_and_stops) {
     EXPECT_OK(f());
   }
 
@@ -155,7 +155,7 @@ void HandlesManyDemands(int num_blocking, int num_nonblocking) {
   std::shuffle(run_demands.begin(), run_demands.end(), std::mt19937());
 
   ASSERT_OK(op.Start());
-  for (auto &&f : run_demands) {
+  for (auto&& f : run_demands) {
     f();
   }
   ASSERT_OK(op.Stop());
@@ -183,7 +183,7 @@ TEST(PeriodicOperationTest, DoesntStarveOpOnDemand) {
   ASSERT_OK(op.Start());
   op.RunNowNonBlocking();
 
-  absl::Condition saw_count(+[](int *c) { return *c >= 2; }, &count);
+  absl::Condition saw_count(+[](int* c) { return *c >= 2; }, &count);
   {
     absl::MutexLock l(&count_mutex);
     count_mutex.Await(saw_count);

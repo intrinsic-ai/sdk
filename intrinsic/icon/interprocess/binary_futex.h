@@ -89,10 +89,10 @@ class BinaryFutex {
   // it does not live in a shared memory segment. This can give some performance
   // benefits.
   explicit BinaryFutex(bool posted = false, bool private_futex = false);
-  BinaryFutex(BinaryFutex &other) = delete;
-  BinaryFutex &operator=(const BinaryFutex &other) = delete;
-  BinaryFutex(BinaryFutex &&other);
-  BinaryFutex &operator=(BinaryFutex &&other);
+  BinaryFutex(BinaryFutex& other) = delete;
+  BinaryFutex& operator=(const BinaryFutex& other) = delete;
+  BinaryFutex(BinaryFutex&& other);
+  BinaryFutex& operator=(BinaryFutex&& other);
   ~BinaryFutex();
 
   // Posts on the futex and increases its value to one.

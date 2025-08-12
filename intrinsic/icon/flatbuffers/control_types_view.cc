@@ -9,14 +9,14 @@
 
 namespace intrinsic_fbs {
 
-const ::intrinsic::Wrench *FromSchema(const intrinsic_fbs::Wrench &wrench) {
+const ::intrinsic::Wrench* FromSchema(const intrinsic_fbs::Wrench& wrench) {
   static_assert(FLATBUFFERS_LITTLEENDIAN, "Unsupported architecture.");
-  return reinterpret_cast<const ::intrinsic::Wrench *>(&wrench);
+  return reinterpret_cast<const ::intrinsic::Wrench*>(&wrench);
 }
 
-::intrinsic::Wrench *FromSchema(intrinsic_fbs::Wrench *wrench) {
+::intrinsic::Wrench* FromSchema(intrinsic_fbs::Wrench* wrench) {
   static_assert(FLATBUFFERS_LITTLEENDIAN, "Unsupported architecture.");
-  return reinterpret_cast<::intrinsic::Wrench *>(wrench);
+  return reinterpret_cast<::intrinsic::Wrench*>(wrench);
 }
 
 }  // namespace intrinsic_fbs

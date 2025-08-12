@@ -27,8 +27,8 @@ namespace intrinsic::icon {
 class Cycle final {
  public:
   Cycle() = delete;
-  Cycle(Cycle &other) = delete;
-  void operator=(const Cycle &) = delete;
+  Cycle(Cycle& other) = delete;
+  void operator=(const Cycle&) = delete;
 
   // Thread safe. Returns the current cycle.
   static uint64_t GetCurrentCycle() noexcept { return current_cycle_; }
