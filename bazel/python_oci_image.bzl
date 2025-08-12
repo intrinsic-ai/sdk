@@ -170,13 +170,6 @@ def python_oci_image(
             binary_path + ".runfiles": binary_runfiles_path,
         }
 
-        # Create "_main" folder in runfiles since the Python bootstrap script runs `assert os.path.exists(".../binary.runfiles/_main/../ai_intrinsic_sdks+")` which fails when "_main" doesn't exist
-        container_layer(
-            name = name + "_dummy_layer",
-            empty_dirs = [binary_runfiles_path + "/_main"],
-        )
-        layers.append(":" + name + "_dummy_layer")
-
     if extra_tars:
         layers.extend(extra_tars)
 

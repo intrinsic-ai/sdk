@@ -73,7 +73,7 @@ use_repo(
 # Python
 ##########
 
-bazel_dep(name = "rules_python", version = "1.3.0")
+bazel_dep(name = "rules_python", version = "1.5.3")
 
 # The root module defines the default toolchain version.
 # If it doesn't find dependencies which that version it errors out.
@@ -108,13 +108,15 @@ pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
         experimental_index_url_overrides = {
             "blender-headless": "https://us-central1-python.pkg.dev/intrinsic-mirror/intrinsic-public-python/simple",
             "cadexchanger": "https://download.cadexchanger.com/python",
-            "proto-breaking-change-detector": "https://github.com/googleapis",
             "tensorflow": "https://us-central1-python.pkg.dev/intrinsic-mirror/intrinsic-public-python/simple",
-            "collision-avoidance-metric": "https://github.com/intrinsic-ai",
         },
         hub_name = "ai_intrinsic_sdks_pip_deps",
         python_version = python_version,
         requirements_lock = "//:requirements.txt",
+        simpleapi_skip = [
+            "collision-avoidance-metric",
+            "proto-breaking-change-detector",
+        ],
     )
     for python_version in PYTHON_VERSIONS
 ]
