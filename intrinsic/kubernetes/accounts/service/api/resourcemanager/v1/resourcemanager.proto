@@ -90,6 +90,12 @@ message ListOrganizationsRequest {
 
   // If true, also return deleted organizations.
   bool show_deleted = 3;
+
+  // If set, only return organizations matching the filter.
+  // Follows https://cel.dev/.
+  // At the moment only filtering by membership is supported.
+  // Format: is_member()
+  string filter = 4;
 }
 
 message ListOrganizationsResponse {
