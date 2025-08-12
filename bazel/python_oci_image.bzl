@@ -36,6 +36,8 @@ def python_layers(name, binary, **kwargs):
         name = name + "_tar_manifest_raw",
         srcs = [binary],
         include_runfiles = True,
+        compatible_with = kwargs.get("compatible_with"),
+        testonly = kwargs.get("testonly"),
     )
 
     # ADDITION: Handle local_repository sub repos by removing '../' and ' external/' from paths.
@@ -45,6 +47,8 @@ def python_layers(name, binary, **kwargs):
         srcs = [":" + name + "_tar_manifest_raw"],
         outs = [name + "_tar_manifest_filtered.spec"],
         cmd = "sed -e 's/^\\.\\.\\///' $< | sed -e 's/ external\\///g' >$@",
+        compatible_with = kwargs.get("compatible_with"),
+        testonly = kwargs.get("testonly"),
     )
 
     # Apply mutations for path prefixes
@@ -54,6 +58,8 @@ def python_layers(name, binary, **kwargs):
         # BUG: https://github.com/bazel-contrib/bazel-lib/issues/946
         # strip_prefix = kwargs.pop("data_path", None),
         package_dir = kwargs.pop("directory", None),
+        compatible_with = kwargs.get("compatible_with"),
+        testonly = kwargs.get("testonly"),
     )
 
     # Workaround unsupported "strip_prefix"
@@ -62,6 +68,8 @@ def python_layers(name, binary, **kwargs):
         srcs = [":" + name + "_tar_manifest_prefix"],
         outs = [name + "_tar_manifest.spec"],
         cmd = "sed -e 's,^/,,' $< >$@",
+        compatible_with = kwargs.get("compatible_with"),
+        testonly = kwargs.get("testonly"),
     )
 
     # One layer with only the python interpreter.
@@ -74,6 +82,8 @@ def python_layers(name, binary, **kwargs):
         srcs = [":" + name + "_tar_manifest"],
         outs = [name + "_interpreter_tar_manifest.spec"],
         cmd = "grep '{}' $< >$@".format(PY_INTERPRETER_REGEX),
+        compatible_with = kwargs.get("compatible_with"),
+        testonly = kwargs.get("testonly"),
     )
 
     tar(
@@ -81,6 +91,8 @@ def python_layers(name, binary, **kwargs):
         srcs = [binary],
         mtree = ":" + name + "_interpreter_tar_manifest",
         compress = "gzip",
+        compatible_with = kwargs.get("compatible_with"),
+        testonly = kwargs.get("testonly"),
     )
     layers.append(":" + name + "_interpreter_layer")
 
@@ -95,6 +107,8 @@ def python_layers(name, binary, **kwargs):
         srcs = [":" + name + "_tar_manifest"],
         outs = [name + "_packages_tar_manifest.spec"],
         cmd = "if ! grep -v '{}' $< | grep '{}' >$@; then touch $@; fi".format(PY_INTERPRETER_REGEX, PACKAGES_REGEX),
+        compatible_with = kwargs.get("compatible_with"),
+        testonly = kwargs.get("testonly"),
     )
 
     tar(
@@ -102,6 +116,8 @@ def python_layers(name, binary, **kwargs):
         srcs = [binary],
         mtree = ":" + name + "_packages_tar_manifest",
         compress = "gzip",
+        compatible_with = kwargs.get("compatible_with"),
+        testonly = kwargs.get("testonly"),
     )
     layers.append(":" + name + "_packages_layer")
 
@@ -111,6 +127,8 @@ def python_layers(name, binary, **kwargs):
         srcs = [":" + name + "_tar_manifest"],
         outs = [name + "_app_tar_manifest.spec"],
         cmd = "grep -v '{}' $< | grep -v '{}' >$@".format(PACKAGES_REGEX, PY_INTERPRETER_REGEX),
+        compatible_with = kwargs.get("compatible_with"),
+        testonly = kwargs.get("testonly"),
     )
 
     # ... go into the third layer which is the application. We assume it changes the most frequently.
@@ -119,6 +137,8 @@ def python_layers(name, binary, **kwargs):
         srcs = [binary],
         mtree = ":" + name + "_app_tar_manifest",
         compress = "gzip",
+        compatible_with = kwargs.get("compatible_with"),
+        testonly = kwargs.get("testonly"),
     )
     layers.append(":" + name + "_app_layer")
 
