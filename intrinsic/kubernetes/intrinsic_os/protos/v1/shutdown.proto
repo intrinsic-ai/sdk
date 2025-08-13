@@ -2,7 +2,7 @@
 
 syntax = "proto3";
 
-package intrinsic_proto.ipc.v1;
+package intrinsic_proto.cluster.v1;
 
 import "google/protobuf/duration.proto";
 
