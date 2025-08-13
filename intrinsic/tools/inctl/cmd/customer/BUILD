@@ -25,5 +25,6 @@ go_library(
         "@com_github_spf13_viper//:go_default_library",
         "@org_golang_google_protobuf//encoding/protojson:go_default_library",
         "@org_golang_google_protobuf//proto",
+        "@org_golang_x_sync//errgroup:go_default_library",
     ],
 )
