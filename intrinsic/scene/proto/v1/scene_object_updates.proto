@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.scene_object.v1;
 
+import "google/protobuf/any.proto";
 import "intrinsic/kinematics/types/joint_limits.proto";
 import "intrinsic/math/proto/pose.proto";
 import "intrinsic/scene/proto/v1/collision_rules.proto";
@@ -169,4 +170,32 @@ message UpdateCollisionRules {
     CollisionMarginRule margin_rule = 3;
     CollisionExclusionRule exclusion_rule = 4;
   }
+}
+
+message UpdateUserData {
+  enum UpdateUserDataPolicy {
+    // Same as POLICY_INSERT.
+    POLICY_UNSPECIFIED = 0;
+    // Insert key/value pair(s) into the user data if none of the provided keys
+    // already exist.
+    // Return an error if any of the provided key exists. SceneObject is not
+    // modified in this case.
+    POLICY_INSERT = 1;
+    // Similar to POLICY_INSERT but if a key already exists, its value will be
+    // updated instead of returning an error.
+    POLICY_INSERT_OR_UPDATE = 2;
+    // Remove key/value pair(s) for matching keys. Values provided in the
+    // user_data field are ignored.
+    // If no key matches, SceneObject is not modified.
+    POLICY_REMOVE = 3;
+    // Clear all existing user data and replace it with the new key/value user
+    // data. Can be called even if no existing user data is present.
+    POLICY_CLEAR_AND_REPLACE = 4;
+    // Clear all existing user data.
+    // Can be called even if no existing user data is present.
+    POLICY_CLEAR_ALL = 5;
+  }
+
+  map<string, google.protobuf.Any> user_data = 1;
+  UpdateUserDataPolicy policy = 2;
 }

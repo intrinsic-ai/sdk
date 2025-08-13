@@ -200,6 +200,7 @@ proto_library(
         ":object_properties_proto",
         "//intrinsic/kinematics/types:joint_limits_proto",
         "//intrinsic/math/proto:pose_proto",
+        "@com_google_protobuf//:any_proto",
     ],
 )
 
