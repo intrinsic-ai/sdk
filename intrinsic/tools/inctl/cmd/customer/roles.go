@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"intrinsic/tools/inctl/util/accounts/accounts"
 	"intrinsic/tools/inctl/util/cobrautil"
 
 	accaccesscontrolv1pb "intrinsic/kubernetes/accounts/service/api/accesscontrol/v1/accesscontrol_go_grpc_proto"
@@ -35,7 +36,7 @@ var listRolesCmd = &cobra.Command{
 	Long:  listRolesCmdHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		cl, err := newAccessControlV1Client(ctx)
+		cl, err := accounts.NewAccessControlV1Client(ctx, vipr)
 		if err != nil {
 			return err
 		}

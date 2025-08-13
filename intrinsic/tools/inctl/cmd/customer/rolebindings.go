@@ -11,6 +11,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"intrinsic/tools/inctl/cmd/root"
+	"intrinsic/tools/inctl/util/accounts/accounts"
 	"intrinsic/tools/inctl/util/cobrautil"
 	"intrinsic/tools/inctl/util/printer"
 
@@ -52,7 +53,7 @@ var grantRoleBindingCmd = &cobra.Command{
 	Long:  grantRoleBindingCmdHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		cl, err := newAccessControlV1Client(ctx)
+		cl, err := accounts.NewAccessControlV1Client(ctx, vipr)
 		if err != nil {
 			return err
 		}
@@ -73,7 +74,7 @@ var grantRoleBindingCmd = &cobra.Command{
 		if flagDebugRequests {
 			protoPrint(lrop)
 		}
-		lrop, err = waitForOperation(ctx, cl.GetOperation, lrop, 10*time.Minute)
+		lrop, err = accounts.WaitForOperation(ctx, cl.GetOperation, lrop, 10*time.Minute)
 		if err != nil {
 			return fmt.Errorf("failed to wait for operation: %w", err)
 		}
@@ -96,7 +97,7 @@ var revokeRoleBindingCmd = &cobra.Command{
 	Long:  revokeRoleBindingCmdHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		cl, err := newAccessControlV1Client(ctx)
+		cl, err := accounts.NewAccessControlV1Client(ctx, vipr)
 		if err != nil {
 			return err
 		}
@@ -113,7 +114,7 @@ var revokeRoleBindingCmd = &cobra.Command{
 		if flagDebugRequests {
 			protoPrint(lrop)
 		}
-		lrop, err = waitForOperation(ctx, cl.GetOperation, lrop, 10*time.Minute)
+		lrop, err = accounts.WaitForOperation(ctx, cl.GetOperation, lrop, 10*time.Minute)
 		if err != nil {
 			return fmt.Errorf("failed to wait for operation: %w", err)
 		}
@@ -151,7 +152,7 @@ var listRoleBindingsCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
 		cOrg := addPrefix(flagCustomer, "organizations/")
-		cl, err := newAccessControlV1Client(ctx)
+		cl, err := accounts.NewAccessControlV1Client(ctx, vipr)
 		if err != nil {
 			return err
 		}

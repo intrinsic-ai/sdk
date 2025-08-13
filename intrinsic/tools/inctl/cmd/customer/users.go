@@ -13,6 +13,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"intrinsic/tools/inctl/cmd/root"
+	"intrinsic/tools/inctl/util/accounts/accounts"
 	"intrinsic/tools/inctl/util/printer"
 
 	pb "intrinsic/kubernetes/accounts/service/api/accesscontrol/v1/accesscontrol_go_grpc_proto"
@@ -72,8 +73,8 @@ var addUser = &cobra.Command{
 	Short: "Invite a user to an organization by email address.",
 	Long:  addUserHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := withOrgID(cmd.Context())
-		cl, err := newAccessControlV1Client(ctx)
+		ctx := accounts.WithOrgID(cmd.Context(), vipr)
+		cl, err := accounts.NewAccessControlV1Client(ctx, vipr)
 		if err != nil {
 			return err
 		}
@@ -112,8 +113,8 @@ var removeUser = &cobra.Command{
 	Short: "Remove a user from an organization by email address.",
 	Long:  removeUserHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := withOrgID(cmd.Context())
-		cl, err := newAccessControlV1Client(ctx)
+		ctx := accounts.WithOrgID(cmd.Context(), vipr)
+		cl, err := accounts.NewAccessControlV1Client(ctx, vipr)
 		if err != nil {
 			return err
 		}
@@ -131,7 +132,7 @@ var removeUser = &cobra.Command{
 		if flagDebugRequests {
 			protoPrint(op)
 		}
-		if op, err := waitForOperation(ctx, cl.GetOperation, op, 30*time.Second); err != nil {
+		if op, err := accounts.WaitForOperation(ctx, cl.GetOperation, op, 30*time.Second); err != nil {
 			return fmt.Errorf("failed to remove member (long operation): %w", err)
 		} else {
 			protoPrint(op)
@@ -206,8 +207,8 @@ var listUsers = &cobra.Command{
 	Short: "List all memberships of an organization.",
 	Long:  listUsersHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := withOrgID(cmd.Context())
-		cl, err := newAccessControlV1Client(ctx)
+		ctx := accounts.WithOrgID(cmd.Context(), vipr)
+		cl, err := accounts.NewAccessControlV1Client(ctx, vipr)
 		if err != nil {
 			return err
 		}
@@ -233,7 +234,7 @@ var listUsers = &cobra.Command{
 	},
 }
 
-func listRolesBindings(ctx context.Context, cl accessControlV1Client) ([]*pb.RoleBinding, error) {
+func listRolesBindings(ctx context.Context, cl accounts.AccessControlV1Client) ([]*pb.RoleBinding, error) {
 	req := pb.ListOrganizationRoleBindingsRequest{
 		Parent: addPrefix(flagCustomer, "organizations/"),
 	}
@@ -250,7 +251,7 @@ func listRolesBindings(ctx context.Context, cl accessControlV1Client) ([]*pb.Rol
 	return op.GetRoleBindings(), nil
 }
 
-func listMemberships(ctx context.Context, cl accessControlV1Client) ([]*pb.OrganizationMembership, error) {
+func listMemberships(ctx context.Context, cl accounts.AccessControlV1Client) ([]*pb.OrganizationMembership, error) {
 	req := pb.ListOrganizationMembershipsRequest{
 		Parent: addPrefix(flagCustomer, "organizations/"),
 	}
@@ -267,7 +268,7 @@ func listMemberships(ctx context.Context, cl accessControlV1Client) ([]*pb.Organ
 	return op.GetMemberships(), nil
 }
 
-func listInvitations(ctx context.Context, cl accessControlV1Client) ([]*pb.OrganizationInvitation, error) {
+func listInvitations(ctx context.Context, cl accounts.AccessControlV1Client) ([]*pb.OrganizationInvitation, error) {
 	req := pb.ListOrganizationInvitationsRequest{
 		Parent: addPrefix(flagCustomer, "organizations/"),
 	}
@@ -298,8 +299,8 @@ var withdrawInvitation = &cobra.Command{
 	Short: "Withdraw an invitation",
 	Long:  withdrawInvitationHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := withOrgID(cmd.Context())
-		cl, err := newAccessControlV1Client(ctx)
+		ctx := accounts.WithOrgID(cmd.Context(), vipr)
+		cl, err := accounts.NewAccessControlV1Client(ctx, vipr)
 		if err != nil {
 			return err
 		}
@@ -336,8 +337,8 @@ var resendInvitation = &cobra.Command{
 	Short: "Resend an invitation",
 	Long:  resendInvitationHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := withOrgID(cmd.Context())
-		cl, err := newAccessControlV1Client(ctx)
+		ctx := accounts.WithOrgID(cmd.Context(), vipr)
+		cl, err := accounts.NewAccessControlV1Client(ctx, vipr)
 		if err != nil {
 			return err
 		}

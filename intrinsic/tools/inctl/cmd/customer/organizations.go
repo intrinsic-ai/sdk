@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"intrinsic/tools/inctl/util/accounts/accounts"
 
 	accresourcemanager1pb "intrinsic/kubernetes/accounts/service/api/resourcemanager/v1/resourcemanager_go_grpc_proto"
 )
@@ -48,8 +49,8 @@ var createCmd = &cobra.Command{
 	Short: "Create a new organization.",
 	Long:  createCmdHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := withOrgID(cmd.Context())
-		cl, err := newresourcemanagerClient(ctx)
+		ctx := accounts.WithOrgID(cmd.Context(), vipr)
+		cl, err := accounts.NewResourceManagerV1Client(ctx, vipr)
 		if err != nil {
 			return err
 		}
@@ -70,7 +71,7 @@ var createCmd = &cobra.Command{
 		if flagDebugRequests {
 			protoPrint(op)
 		}
-		op, err = waitForOperation(ctx, cl.GetOperation, op, 10*time.Minute)
+		op, err = accounts.WaitForOperation(ctx, cl.GetOperation, op, 10*time.Minute)
 		if err != nil {
 			return fmt.Errorf("failed to wait for operation: %w", err)
 		}
@@ -95,7 +96,7 @@ var createCmd = &cobra.Command{
 		if flagDebugRequests {
 			protoPrint(op)
 		}
-		op, err = waitForOperation(ctx, cl.GetOperation, op, 10*time.Minute)
+		op, err = accounts.WaitForOperation(ctx, cl.GetOperation, op, 10*time.Minute)
 		if err != nil {
 			return fmt.Errorf("failed to wait for operation: %w", err)
 		}
@@ -122,8 +123,8 @@ var deleteCmd = &cobra.Command{
 	Short: "Delete an organization.",
 	Long:  deleteCmdHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := withOrgID(cmd.Context())
-		cl, err := newresourcemanagerClient(ctx)
+		ctx := accounts.WithOrgID(cmd.Context(), vipr)
+		cl, err := accounts.NewResourceManagerV1Client(ctx, vipr)
 		if err != nil {
 			return err
 		}
@@ -141,7 +142,7 @@ var deleteCmd = &cobra.Command{
 		if flagDebugRequests {
 			protoPrint(op)
 		}
-		op, err = waitForOperation(ctx, cl.GetOperation, op, 10*time.Minute)
+		op, err = accounts.WaitForOperation(ctx, cl.GetOperation, op, 10*time.Minute)
 		if err != nil {
 			return fmt.Errorf("failed to wait for operation: %w", err)
 		}
