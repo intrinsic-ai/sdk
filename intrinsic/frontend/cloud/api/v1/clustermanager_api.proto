@@ -48,6 +48,7 @@ enum UpdateState {
   UPDATE_STATE_PENDING = 2;
   UPDATE_STATE_FAULT = 3;
   UPDATE_STATE_DEPLOYED = 4;
+  UPDATE_STATE_PENDING_APPROVAL = 5;
 }
 
 enum UpdateProgressStep {

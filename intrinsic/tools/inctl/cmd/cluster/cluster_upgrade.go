@@ -145,6 +145,8 @@ func decodeUpdateState(state clustermanagerpb.UpdateState) string {
 		// While we handle this UpdateState it is not actually returned by the backend.
 		// It gets translated to UPDATE_STATE_DEPLOYED.
 		return "Pending"
+	case clustermanagerpb.UpdateState_UPDATE_STATE_PENDING_APPROVAL:
+		return "PendingApproval"
 	case clustermanagerpb.UpdateState_UPDATE_STATE_FAULT:
 		return "Fault"
 	case clustermanagerpb.UpdateState_UPDATE_STATE_DEPLOYED:
