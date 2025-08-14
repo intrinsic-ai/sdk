@@ -10,6 +10,7 @@ go_library(
     name = "version",
     srcs = ["version.go"],
     visibility = [
+        "//intrinsic/kubernetes/vmpool/service/internal/clients:__subpackages__",
         "//intrinsic/tools/inctl/cmd/cluster:__subpackages__",
         "//visibility:public",
     ],
