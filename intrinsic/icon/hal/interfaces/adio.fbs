@@ -1,0 +1,73 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+namespace intrinsic_fbs;
+
+// Reflects the state of a digital input.
+table DigitalInputStatus {
+  name:string;
+  value:bool = false;
+  bit_number:uint32 = 0;
+}
+
+// Digital output interface
+table DigitalOutputCommand {
+  name:string;
+  value:bool = false;
+  bit_number:uint32 = 0;
+}
+
+
+// Possible Analog Input unit types
+enum AnalogInputUnit : uint16 {
+  kUnknown,
+
+  // http://physics.nist.gov/cuu/Units/units.html
+  // Base units:
+  kMeter,
+  kKilogram,
+  kSecond,
+  kAmpere,
+  // kKelvin, - we can't support both kKelvin and kCelsius...
+  kMole,
+  kCandela,
+
+  // Derived units:
+  kRadian,
+  kSteradian,
+  kHertz,
+  kNewton,
+  kPascal,
+  kJoule,
+  kWatt,
+  kCoulomb,
+  kVolt,
+  kFarad,
+  kOhm,
+  kSiemens,
+  kWeber,
+  kTesla,
+  kHenry,
+  kCelsius,
+  kLumen,
+  kLux,
+  kBecquerel,
+  kGray,
+  kSievert,
+  kKatal,
+}
+
+// Analog input interface
+table AnalogInputStatus {
+  name:string;
+  unit:AnalogInputUnit = kUnknown;
+  value:double = 0.0;
+  is_enabled:bool = false;
+}
+
+// Analog output interface
+table AnalogOutputCommand {
+  name:string;
+  unit:AnalogInputUnit = kUnknown;
+  value:double = 0.0;
+  is_enabled:bool = false;
+}

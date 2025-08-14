@@ -6,6 +6,28 @@ load("//intrinsic/platform:flatbuffers.bzl", "cc_flatbuffers_library", "flatbuff
 package(default_visibility = ["//visibility:public"])
 
 flatbuffers_library(
+    name = "adio_fbs",
+    srcs = ["adio.fbs"],
+)
+
+cc_flatbuffers_library(
+    name = "adio_fbs_cc",
+    deps = [":adio_fbs"],
+)
+
+cc_library(
+    name = "adio_fbs_utils",
+    srcs = ["adio_utils.cc"],
+    hdrs = [
+        "adio_utils.h",
+    ],
+    deps = [
+        ":adio_fbs_cc",
+        "@com_github_google_flatbuffers//:flatbuffers",
+    ],
+)
+
+flatbuffers_library(
     name = "control_mode_fbs",
     srcs = [
         "control_mode.fbs",
