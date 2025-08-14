@@ -25,18 +25,18 @@ func init() {
 var (
 	flagOrgDisplayName  string
 	flagSkipPaymentPlan bool
+	flagYes             bool
 )
 
 func organizationsInit(root *cobra.Command) {
-	createCmd.Flags().StringVar(&flagCustomer, "customer", "", "The human-friendly identifier of the organization to create.")
+	createCmd.Flags().StringVar(&flagCustomer, "customer", "", "The human-friendly identifier of the organization to create (format: ^[a-z][a-z0-9_-]{0,63}$). Keep empty to auto-generate a random identifier.")
 	createCmd.Flags().StringVar(&flagOrgDisplayName, "display-name", "", "The display name of the organization to create.")
 	createCmd.Flags().BoolVar(&flagSkipPaymentPlan, "skip-payment-plan", false, "Skip creating a payment plan for the organization.")
-	createCmd.MarkFlagRequired("name")
 	createCmd.MarkFlagRequired("display-name")
-	createCmd.MarkFlagRequired("customer")
 	root.AddCommand(createCmd)
 	deleteCmd.Flags().StringVar(&flagCustomer, "customer", "", "The human-friendly identifier of the organization to delete.")
 	deleteCmd.MarkFlagRequired("customer")
+	deleteCmd.Flags().BoolVar(&flagYes, "yes", false, "Skip the confirmation prompt and directly delete the organization.")
 	root.AddCommand(deleteCmd)
 	root.AddCommand(listCmd)
 }
@@ -70,7 +70,12 @@ var createCmd = &cobra.Command{
 		if flagDebugRequests {
 			protoPrint(&req)
 		}
-		fmt.Printf("Creating organization %q.\n", flagCustomer)
+		if flagCustomer == "" {
+			fmt.Printf("Creating organization with random identifier (display name: %q).\n", flagOrgDisplayName)
+		} else {
+			fmt.Printf("Creating organization %q (%q).\n", flagCustomer, flagOrgDisplayName)
+		}
+
 		op, err := cl.CreateOrganization(ctx, &req)
 		if err != nil {
 			return fmt.Errorf("failed to create organization: %w", err)
@@ -130,18 +135,26 @@ var deleteCmd = &cobra.Command{
 	Short: "Delete an organization.",
 	Long:  deleteCmdHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := accounts.WithOrgID(cmd.Context(), vipr)
+		ctx := cmd.Context()
 		cl, err := accounts.NewResourceManagerV1Client(ctx, vipr)
 		if err != nil {
 			return err
 		}
+		// if the user did not specify --yes, ask for confirmation
+		// also skips client-side input validations (like org state)
+		if !flagYes {
+			if err := confirmDelete(ctx, cl); err != nil {
+				return err
+			}
+		}
+		ctx = accounts.WithOrgID(cmd.Context(), vipr)
 		req := accresourcemanager1pb.DeleteOrganizationRequest{
 			Name: addPrefix(flagCustomer, "organizations/"),
 		}
 		if flagDebugRequests {
 			protoPrint(&req)
 		}
-		fmt.Printf("Deleting organization %q.\n", flagCustomer)
+		fmt.Printf("Deleting organization %q ...\n", flagCustomer)
 		op, err := cl.DeleteOrganization(ctx, &req)
 		if err != nil {
 			return fmt.Errorf("failed to delete organization: %w", err)
@@ -158,6 +171,31 @@ var deleteCmd = &cobra.Command{
 		}
 		return nil
 	},
+}
+
+// confirmDelete first fetches the organization to check if it exists and to display its display name to the user.
+// Also performs some client-side input validations (like org state).
+func confirmDelete(ctx context.Context, cl accounts.ResourceManagerV1Client) error {
+	o, err := cl.GetOrganization(ctx, &accresourcemanager1pb.GetOrganizationRequest{Name: addPrefix(flagCustomer, "organizations/")})
+	if err != nil {
+		return fmt.Errorf("failed to find organization %q: %w", flagCustomer, err)
+	}
+	if o.GetState() == accresourcemanager1pb.Organization_DELETED {
+		return fmt.Errorf("organization %q is already deleted", flagCustomer)
+	}
+	// if the user did not specify --yes, ask for confirmation
+	if !flagYes {
+		fmt.Printf("You are about to delete organization %q (%q). Please type the organization identifier to confirm: ",
+			flagCustomer, o.DisplayName)
+		var input string
+		if _, err := fmt.Scanln(&input); err != nil {
+			return fmt.Errorf("failed to read input: %w", err)
+		}
+		if input != flagCustomer {
+			return fmt.Errorf("input does not match organization identifier %q", flagCustomer)
+		}
+	}
+	return nil
 }
 
 var listCmdHelp = `
