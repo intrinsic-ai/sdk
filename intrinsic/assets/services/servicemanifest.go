@@ -144,7 +144,6 @@ func ValidateServiceManifest(m *smpb.ServiceManifest, options ...ValidateService
 			return fmt.Errorf("checking against the file descriptor set failed unexpectedly: %w", err)
 		}
 	}
-
 	return nil
 }
 

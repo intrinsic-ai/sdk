@@ -131,6 +131,10 @@ message InstalledAsset {
     // The list of gRPC services that the Service exposes.
     repeated string service_proto_prefixes = 1;
   }
+  message HardwareDeviceMetadata {
+    // The list of gRPC services that the HardwareDevice exposes.
+    repeated string service_proto_prefixes = 1;
+  }
   message DeploymentData {
     oneof variant {
       DataDeploymentData data = 1;
@@ -144,6 +148,7 @@ message InstalledAsset {
   oneof asset_specific_metadata {
     DataMetadata data_specific_metadata = 4;
     ServiceMetadata service_specific_metadata = 3;
+    HardwareDeviceMetadata hardware_device_specific_metadata = 5;
   }
 
   DeploymentData deployment_data = 2;
