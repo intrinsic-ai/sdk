@@ -27,7 +27,7 @@ enum class OperationalState {
   // active control and that no sessions can be started that need to control
   // these parts.
   // This is possible when:
-  // - The skill "disable_motion" or `Client::Disable()` were called.
+  // - The skill "disable_realtime_control" or `Client::Disable()` were called.
   // - The server or hardware is starting up.
   // - Faults are being cleared.
   // Read-only sessions are possible for all parts.
