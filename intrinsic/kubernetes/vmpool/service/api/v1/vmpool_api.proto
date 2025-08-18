@@ -1,0 +1,181 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.vmpoolapi.v1;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+// HardwareTemplate is a predefined hardware configuration of a VM.
+message HardwareTemplate {
+  string name = 1;
+  string description = 2;
+  bool has_gpu = 3;
+}
+
+message ListHardwareTemplatesRequest {}
+
+message ListHardwareTemplatesResponse {
+  repeated HardwareTemplate hw_templates = 1;
+}
+
+// Tier defines a pool configuration with e.g. a certain number of standby VMs.
+message Tier {
+  string name = 1;
+  string description = 2;
+}
+
+message ListTiersRequest {}
+
+message ListTiersResponse {
+  repeated Tier tiers = 1;
+}
+
+// Spec consists of a set of parameters that define a specific Pool
+// configuration.
+message Spec {
+  // Pin the intrinsic platform runtime version for the VMs in the pool.
+  // If empty, the pool will be set to the current runtime.
+  // The runtime version should be in the form of
+  // 'intrinsic.platform.YYYYMMDD.RCXX'.
+  string runtime = 1;
+
+  // The IntrinsicOS version to be used for the VMs.
+  // If empty, the pool will be set to the current IntrinsicOS version.
+  // The intrinsic_os version should be in the form of
+  // 'YYYYMMDD.RCXX'.
+  string intrinsic_os = 2;
+
+  // The name of the hardware template to use for the VMs.
+  // This should correspond to a `HardwareTemplate.name`.
+  string hardware_template = 3;
+
+  // The name of the tier to apply to the pool.
+  // This should correspond to a `Tier.name`.
+  string pool_tier = 4;
+}
+
+// Pool represents a pool of VM instances.
+message Pool {
+  // The name of the Pool you will call lease on.
+  // Format: organizations/{organization}/pools/{pool}
+  string name = 1;
+
+  // The current operational status of this pool.
+  // This is a read-only field reflecting the system's state.
+  // Possible values: "INITIALIZING", "RUNNING", "PAUSING", "PAUSED",
+  // "STOPPING", "STOPPED", "DELETING", "DELETED"
+  string current_status = 3;
+
+  // The desired operational status of this pool, as set by user
+  // actions (e.g., via StopPool, ResumePool, PausePool).
+  // Possible values: "RUNNING", "PAUSED", "STOPPED", "DELETED"
+  string desired_status = 4;
+
+  // The specification that defines this pool.
+  Spec spec = 6;
+}
+
+// Lease represents a VM instance leased from a pool.
+message Lease {
+  string name = 1;
+  string pool_name = 2;
+  google.protobuf.Timestamp expiration_time = 3;
+}
+
+message CreatePoolRequest {
+  string name = 1;
+
+  Spec spec = 2;
+}
+
+message ListPoolsRequest {}
+
+message ListPoolsResponse {
+  repeated Pool pools = 1;
+}
+
+// Request to update an existing pool by providing a new specification.
+message UpdatePoolRequest {
+  string name = 1;
+
+  Spec spec = 2;
+}
+
+// Request to delete a pool.
+message DeletePoolRequest {
+  string name = 1;
+}
+
+message StopPoolRequest {
+  string name = 1;
+}
+
+message ResumePoolRequest {
+  string name = 1;
+}
+
+message PausePoolRequest {
+  string name = 1;
+}
+
+message ListLeasesRequest {
+  string pool_name = 1;
+}
+
+message ListLeasesResponse {
+  repeated Lease leases = 1;
+}
+
+// Force stop a lease.
+message StopLeaseRequest {
+  string lease_name = 1;
+}
+
+// VMPoolService manages pools of virtual machines.
+service VMPoolService {
+  // Creates a new Pool with the provided name and specification.
+  rpc CreatePool(CreatePoolRequest) returns (Pool);
+
+  // Lists all current Pools.
+  rpc ListPools(ListPoolsRequest) returns (ListPoolsResponse);
+
+  // Updates an existing Pool by providing a new specification.
+  rpc UpdatePool(UpdatePoolRequest) returns (Pool);
+
+  // --- Configuration Information ---
+
+  // Lists available hardware templates for VM configurations.
+  rpc ListHardwareTemplates(ListHardwareTemplatesRequest)
+      returns (ListHardwareTemplatesResponse);
+
+  // Lists available pool configuration tiers.
+  rpc ListTiers(ListTiersRequest) returns (ListTiersResponse);
+
+  // --- Pool State Control ---
+
+  // Deletes a Pool. The Pool will converge to being deleted.
+  rpc DeletePool(DeletePoolRequest) returns (google.protobuf.Empty);
+
+  // Stops a Pool. The Pool will converge to having no ready and no leased
+  // Instances. Existing leases are not terminated. Leasing is not
+  // possible in this state.
+  rpc StopPool(StopPoolRequest) returns (google.protobuf.Empty);
+
+  // Resumes a Pool. The Pool will converge to provisioning ready Instances and
+  // allow new Leases to be acquired.
+  rpc ResumePool(ResumePoolRequest) returns (google.protobuf.Empty);
+
+  // Pauses a Pool. The Pool will converge to having no ready Instances.
+  // New leases are not possible in this state.
+  rpc PausePool(PausePoolRequest) returns (google.protobuf.Empty);
+
+  // --- Lease Management ---
+
+  // Lists active leases for a given pool.
+  rpc ListLeases(ListLeasesRequest) returns (ListLeasesResponse);
+
+  // Stops (terminates) an active lease, releasing the VM instance.
+  rpc StopLease(StopLeaseRequest) returns (google.protobuf.Empty);
+}
