@@ -45,7 +45,7 @@ message Organization {
   // The parent organization of the organization.
   // If empty, the organization is a top-level organization.
   // Format: /organizations/{organization}
-  string parent_organization = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+  string parent_organization = 5 [(google.api.field_behavior) = IMMUTABLE];
 
   // The time at which the organization was created.
   google.protobuf.Timestamp create_time = 1000
