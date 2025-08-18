@@ -203,8 +203,8 @@ RunRuntimeWithGrpcServerAndWaitForShutdown(
     const absl::StatusOr<HardwareModuleMainConfig>& main_config,
     const std::shared_ptr<SharedPromiseWrapper<HardwareModuleExitCode>>&
         exit_code_promise,
-    absl::StatusOr</*absl_nonnull*/
-                   std::unique_ptr<intrinsic::icon::HardwareModuleRuntime>>&
+    absl::StatusOr<
+        absl_nonnull std::unique_ptr<intrinsic::icon::HardwareModuleRuntime>>&
         runtime,
     std::optional<int> cli_grpc_server_port,
     const std::vector<int>& cpu_affinity) {

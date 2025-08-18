@@ -665,7 +665,7 @@ class HardwareModuleRuntime::CallbackHandler final {
   absl::Time next_metrics_export_ = absl::InfinitePast();
 };
 
-absl::StatusOr</*absl_nonnull*/ std::unique_ptr<HardwareModuleRuntime>>
+absl::StatusOr<absl_nonnull std::unique_ptr<HardwareModuleRuntime>>
 HardwareModuleRuntime::Create(
     std::unique_ptr<SharedMemoryManager> shared_memory_manager,
     HardwareModule hardware_module,

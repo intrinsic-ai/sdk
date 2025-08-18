@@ -89,7 +89,7 @@ absl::StatusOr<HardwareModuleExitCode> ModuleMain(int argc, char** argv) {
                  absl::GetFlag(FLAGS_realtime));
 
   absl::StatusOr<
-      /*absl_nonnull*/ std::unique_ptr<intrinsic::icon::HardwareModuleRuntime>>
+      absl_nonnull std::unique_ptr<intrinsic::icon::HardwareModuleRuntime>>
       runtime = absl::FailedPreconditionError("Config not OK");
 
   std::vector<int> cpu_affinity;

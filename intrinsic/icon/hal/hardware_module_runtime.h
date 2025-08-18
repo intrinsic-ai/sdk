@@ -77,7 +77,7 @@ class HardwareModuleRuntime final {
   // receives a restart request. Note that other components also have access to
   // `exit_code_promise` and may signal it for other reasons. This class should
   // handle this case gracefully.
-  static absl::StatusOr</*absl_nonnull*/ std::unique_ptr<HardwareModuleRuntime>>
+  static absl::StatusOr<absl_nonnull std::unique_ptr<HardwareModuleRuntime>>
   Create(std::unique_ptr<SharedMemoryManager> shared_memory_manager,
          HardwareModule hardware_module,
          std::weak_ptr<SharedPromiseWrapper<HardwareModuleExitCode>>
