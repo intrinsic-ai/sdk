@@ -106,20 +106,34 @@ func ValidateServiceManifest(m *smpb.ServiceManifest, options ...ValidateService
 		}
 	}
 
-	// Verify that the Service's config message is in the file descriptor set.
-	if m.GetServiceDef().GetConfigMessageFullName() != "" {
-		if opts.files == nil {
-			return fmt.Errorf("config message %q specified, but no descriptors provided", m.GetServiceDef().GetConfigMessageFullName())
-		}
-		if _, err := opts.files.FindDescriptorByName(protoreflect.FullName(m.GetServiceDef().GetConfigMessageFullName())); err != nil {
-			return fmt.Errorf("could not find config message %q in provided descriptors for Service %q: %w", m.GetServiceDef().GetConfigMessageFullName(), id, err)
-		}
-
-		// If a default config is specified, verify that it is of the specified config message type.
-		if opts.defaultConfig != nil {
-			if string(opts.defaultConfig.MessageName()) != m.GetServiceDef().GetConfigMessageFullName() {
-				return fmt.Errorf("default config for Service %q is of type %q, but manifest specifies config type %q", id, opts.defaultConfig.MessageName(), m.GetServiceDef().GetConfigMessageFullName())
+	// Verify that the Service config message and default fields are consistent.
+	configMessageFullName := m.GetServiceDef().GetConfigMessageFullName()
+	defaultConfigSpecified := m.GetAssets().GetDefaultConfigurationFilename() != ""
+	defaultConfigProvided := opts.defaultConfig != nil
+	if defaultConfigSpecified && !defaultConfigProvided {
+		return fmt.Errorf("default config file specified (%q), but no default config provided", m.GetAssets().GetDefaultConfigurationFilename())
+	}
+	if !defaultConfigSpecified && defaultConfigProvided {
+		return fmt.Errorf("no default config file specified, but default config provided")
+	}
+	if configMessageFullName != "" {
+		if defaultConfigSpecified {
+			// Verify that the default config is of the specified config message type.
+			if string(opts.defaultConfig.MessageName()) != configMessageFullName {
+				return fmt.Errorf("default config for Service %q is of type %q, but manifest specifies config type %q", id, opts.defaultConfig.MessageName(), configMessageFullName)
 			}
+		}
+	} else if defaultConfigSpecified {
+		configMessageFullName = string(opts.defaultConfig.MessageName())
+	}
+
+	// Verify that the Service's config message, if any, is in the file descriptor set.
+	if configMessageFullName != "" {
+		if opts.files == nil {
+			return fmt.Errorf("config message specified (%q), but no descriptors provided", configMessageFullName)
+		}
+		if _, err := opts.files.FindDescriptorByName(protoreflect.FullName(configMessageFullName)); err != nil {
+			return fmt.Errorf("could not find config message %q in provided descriptors for Service %q: %w", configMessageFullName, id, err)
 		}
 	}
 

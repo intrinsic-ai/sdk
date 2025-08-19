@@ -11,9 +11,11 @@ import (
 
 	"archive/tar"
 	"google.golang.org/protobuf/reflect/protodesc"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"intrinsic/assets/services/servicemanifest"
 	"intrinsic/util/archive/tartooling"
+	"intrinsic/util/proto/registryutil"
 
 	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	anypb "google.golang.org/protobuf/types/known/anypb"
@@ -152,11 +154,35 @@ func ProcessService(path string, opts ProcessServiceOpts) (*smpb.ProcessedServic
 		return nil, fmt.Errorf("error in tar file %q: %v", path, err)
 	}
 
-	return &smpb.ProcessedServiceManifest{
+	m := &smpb.ProcessedServiceManifest{
 		Metadata:   manifest.GetMetadata(),
 		ServiceDef: manifest.GetServiceDef(),
 		Assets:     processedAssets,
-	}, nil
+	}
+
+	if m.GetServiceDef().GetConfigMessageFullName() != "" {
+		// Generate an empty default config if none was provided.
+		if m.GetAssets().GetDefaultConfiguration() == nil {
+			types, err := registryutil.NewTypesFromFileDescriptorSet(m.GetAssets().GetFileDescriptorSet())
+			if err != nil {
+				return nil, fmt.Errorf("failed to populate the registry: %v", err)
+			}
+			msgType, err := types.FindMessageByName(protoreflect.FullName(m.GetServiceDef().GetConfigMessageFullName()))
+			if err != nil {
+				return nil, fmt.Errorf("failed to find config message %q: %v", m.GetServiceDef().GetConfigMessageFullName(), err)
+			}
+			defaultConfig, err := anypb.New(msgType.New().Interface())
+			if err != nil {
+				return nil, fmt.Errorf("failed to create default config: %v", err)
+			}
+			m.GetAssets().DefaultConfiguration = defaultConfig
+		}
+	} else if m.GetAssets().GetDefaultConfiguration() != nil {
+		// Derive config message name from the default config, if specified.
+		m.GetServiceDef().ConfigMessageFullName = string(m.GetAssets().GetDefaultConfiguration().MessageName())
+	}
+
+	return m, nil
 }
 
 // ValidateService checks that the assets of a service bundle are all
@@ -203,10 +229,10 @@ func ValidateService(manifest *smpb.ServiceManifest, inlinedFiles map[string][]b
 
 // WriteServiceOpts provides the details to construct a service bundle.
 type WriteServiceOpts struct {
-	Manifest    *smpb.ServiceManifest
-	Descriptors *descriptorpb.FileDescriptorSet
-	Config      *anypb.Any
-	ImageTars   []string
+	Manifest      *smpb.ServiceManifest
+	Descriptors   *descriptorpb.FileDescriptorSet
+	DefaultConfig *anypb.Any
+	ImageTars     []string
 }
 
 // WriteService creates a tar archive at the specified path with the details
@@ -231,10 +257,10 @@ func WriteService(path string, opts WriteServiceOpts) error {
 			return fmt.Errorf("unable to write FileDescriptorSet to bundle: %v", err)
 		}
 	}
-	if opts.Config != nil {
+	if opts.DefaultConfig != nil {
 		configName := "default_config.binarypb"
 		opts.Manifest.Assets.DefaultConfigurationFilename = &configName
-		if err := tartooling.AddBinaryProto(opts.Config, tw, configName); err != nil {
+		if err := tartooling.AddBinaryProto(opts.DefaultConfig, tw, configName); err != nil {
 			return fmt.Errorf("unable to write default config to bundle: %v", err)
 		}
 	}
@@ -255,7 +281,7 @@ func WriteService(path string, opts WriteServiceOpts) error {
 	}
 	if err := servicemanifest.ValidateServiceManifest(opts.Manifest,
 		servicemanifest.WithFiles(files),
-		servicemanifest.WithDefaultConfig(opts.Config),
+		servicemanifest.WithDefaultConfig(opts.DefaultConfig),
 	); err != nil {
 		return fmt.Errorf("invalid manifest: %v", err)
 	}

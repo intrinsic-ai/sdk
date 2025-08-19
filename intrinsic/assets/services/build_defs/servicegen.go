@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"strings"
 
-	"google.golang.org/protobuf/reflect/protoreflect"
 	"intrinsic/assets/bundleio"
 	"intrinsic/util/proto/protoio"
 	"intrinsic/util/proto/registryutil"
@@ -70,26 +69,16 @@ func CreateService(d *ServiceData) error {
 		if err := protoio.ReadTextProto(d.DefaultConfig, defaultConfig, protoio.WithResolver(types)); err != nil {
 			return fmt.Errorf("failed to read default config proto: %v", err)
 		}
-		if d.Manifest.GetServiceDef().GetConfigMessageFullName() == "" {
-			d.Manifest.GetServiceDef().ConfigMessageFullName = string(defaultConfig.MessageName())
+		if err := pruneSourceCodeInfo(defaultConfig, set); err != nil {
+			return fmt.Errorf("unable to process source code info: %v", err)
 		}
-	} else if d.Manifest.GetServiceDef().GetConfigMessageFullName() != "" {
-		// Use an empty message as the default config.
-		if msgType, err := types.FindMessageByName(protoreflect.FullName(d.Manifest.GetServiceDef().GetConfigMessageFullName())); err != nil {
-			return fmt.Errorf("cannot find config message %q in provided descriptors: %w", d.Manifest.GetServiceDef().GetConfigMessageFullName(), err)
-		} else if defaultConfig, err = anypb.New(msgType.New().Interface()); err != nil {
-			return fmt.Errorf("failed to create default config: %w", err)
-		}
-	}
-	if err := pruneSourceCodeInfo(defaultConfig, set); err != nil {
-		return fmt.Errorf("unable to process source code info: %v", err)
 	}
 
 	if err := bundleio.WriteService(d.OutputBundle, bundleio.WriteServiceOpts{
-		Manifest:    d.Manifest,
-		Descriptors: set,
-		Config:      defaultConfig,
-		ImageTars:   d.ImageTars,
+		Manifest:      d.Manifest,
+		Descriptors:   set,
+		DefaultConfig: defaultConfig,
+		ImageTars:     d.ImageTars,
 	}); err != nil {
 		return fmt.Errorf("unable to write service bundle: %v", err)
 	}
