@@ -258,7 +258,7 @@ absl::Status StructuredLoggingClient::SetLogOptions(
 absl::StatusOr<LogOptions> StructuredLoggingClient::GetLogOptions(
     absl::string_view event_source) const {
   intrinsic_proto::data_logger::GetLogOptionsRequest request;
-  request.set_event_source(std::string{event_source});
+  request.set_event_source(event_source);
 
   grpc::ClientContext context;
   intrinsic_proto::data_logger::GetLogOptionsResponse response;
