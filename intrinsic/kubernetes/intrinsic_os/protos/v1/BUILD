@@ -6,15 +6,33 @@ load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "proto_source_code_
 package(default_visibility = ["//visibility:public"])
 
 proto_library(
-    name = "cluster_service_proto",
+    name = "cluster_proto",
     srcs = [
         "cluster.proto",
-        "cluster_service.proto",
-        "shutdown.proto",
     ],
     deps = [
         "//intrinsic/util/status:extended_status_proto",
+    ],
+)
+
+proto_library(
+    name = "shutdown_proto",
+    srcs = [
+        "shutdown.proto",
+    ],
+    deps = [
         "@com_google_protobuf//:duration_proto",
+    ],
+)
+
+proto_library(
+    name = "cluster_service_proto",
+    srcs = [
+        "cluster_service.proto",
+    ],
+    deps = [
+        ":cluster_proto",
+        ":shutdown_proto",
     ],
 )
 
