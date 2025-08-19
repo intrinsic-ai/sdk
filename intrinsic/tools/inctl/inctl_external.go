@@ -21,6 +21,7 @@ import (
 	_ "intrinsic/tools/inctl/cmd/skill"
 	_ "intrinsic/tools/inctl/cmd/solution/solution"
 	_ "intrinsic/tools/inctl/cmd/version/version"
+	_ "intrinsic/tools/inctl/cmd/vm/vm"
 )
 
 func main() {
