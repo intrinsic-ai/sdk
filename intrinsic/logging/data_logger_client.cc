@@ -68,6 +68,7 @@ class LoggingData {
                 std::function<void(absl::Status)> callback) {
     if (!logging_client_.has_value()) {
       LOG_FIRST_N(WARNING, 1) << kLoggerNotInitialized << " Doing nothing.";
+      callback(absl::OkStatus());
       return;
     }
     return logging_client_->LogAsync(item, std::move(callback));
@@ -85,6 +86,7 @@ class LoggingData {
                 std::function<void(absl::Status)> callback) {
     if (!logging_client_.has_value()) {
       LOG_FIRST_N(WARNING, 1) << kLoggerNotInitialized << " Doing nothing.";
+      callback(absl::OkStatus());
       return;
     }
     return logging_client_->LogAsync(std::move(item), std::move(callback));
