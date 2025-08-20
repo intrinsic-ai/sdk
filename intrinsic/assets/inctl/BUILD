@@ -43,6 +43,7 @@ go_library(
         "//intrinsic/assets/proto:installed_assets_go_grpc_proto",
         "//intrinsic/assets/proto/v1:search_go_proto",
         "@com_github_spf13_cobra//:go_default_library",
+        "@org_golang_google_protobuf//proto",
     ],
 )
 

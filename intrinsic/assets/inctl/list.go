@@ -4,9 +4,11 @@
 package list
 
 import (
+	"encoding/base64"
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"google.golang.org/protobuf/proto"
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/assets/idutils"
@@ -21,11 +23,20 @@ type outputType string
 const (
 	keyOutputType = "output_type"
 
-	outputTypeID        = outputType("id")
-	outputTypeIDVersion = outputType("id_version")
+	outputTypeID                   = outputType("id")
+	outputTypeIDVersion            = outputType("id_version")
+	outputTypeIDVersionProtoBase64 = outputType("id_version_proto_base64")
 )
 
-var allOutputTypes = []outputType{outputTypeID, outputTypeIDVersion}
+func toBase64(asset *iapb.InstalledAsset) (string, error) {
+	data, err := proto.Marshal(asset.GetMetadata().GetIdVersion())
+	if err != nil {
+		return "", fmt.Errorf("could not marshal asset proto: %w", err)
+	}
+	return base64.StdEncoding.EncodeToString(data), nil
+}
+
+var allOutputTypes = []outputType{outputTypeID, outputTypeIDVersion, outputTypeIDVersionProtoBase64}
 
 // GetCommand returns the command to list installed assets in a cluster.
 func GetCommand(defaultTypes string) *cobra.Command {
@@ -59,16 +70,18 @@ func GetCommand(defaultTypes string) *cobra.Command {
 				}
 			}
 
-			var outputFrom func(*iapb.InstalledAsset) string
+			var outputFrom func(*iapb.InstalledAsset) (string, error)
 			switch outputType := outputType(flags.GetString(keyOutputType)); outputType {
 			case outputTypeID:
-				outputFrom = func(asset *iapb.InstalledAsset) string {
-					return idutils.IDFromProtoUnchecked(asset.GetMetadata().GetIdVersion().GetId())
+				outputFrom = func(asset *iapb.InstalledAsset) (string, error) {
+					return idutils.IDFromProtoUnchecked(asset.GetMetadata().GetIdVersion().GetId()), nil
 				}
 			case outputTypeIDVersion:
-				outputFrom = func(asset *iapb.InstalledAsset) string {
-					return idutils.IDVersionFromProtoUnchecked(asset.GetMetadata().GetIdVersion())
+				outputFrom = func(asset *iapb.InstalledAsset) (string, error) {
+					return idutils.IDVersionFromProtoUnchecked(asset.GetMetadata().GetIdVersion()), nil
 				}
+			case outputTypeIDVersionProtoBase64:
+				outputFrom = toBase64
 			default:
 				return fmt.Errorf("invalid output type: %q. must be one of: %v", outputType, allOutputTypes)
 			}
@@ -91,7 +104,11 @@ func GetCommand(defaultTypes string) *cobra.Command {
 					return fmt.Errorf("could not list assets: %v", err)
 				}
 				for _, asset := range resp.GetInstalledAssets() {
-					fmt.Println(outputFrom(asset))
+					s, err := outputFrom(asset)
+					if err != nil {
+						return fmt.Errorf("could not output asset: %w", err)
+					}
+					fmt.Println(s)
 				}
 				pageToken = resp.GetNextPageToken()
 				if pageToken == "" {
