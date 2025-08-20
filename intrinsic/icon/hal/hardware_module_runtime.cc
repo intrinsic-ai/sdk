@@ -55,8 +55,10 @@
 #include "intrinsic/platform/common/buffers/rt_queue_multi_writer.h"
 #include "intrinsic/util/status/status_macros.h"
 #include "intrinsic/util/thread/rt_thread.h"
+#include "intrinsic/util/thread/stop_token.h"
 #include "intrinsic/util/thread/thread.h"
 #include "intrinsic/util/thread/thread_options.h"
+#include "intrinsic/util/thread/thread_utils.h"
 
 namespace intrinsic::icon {
 
@@ -965,7 +967,6 @@ absl::Status HardwareModuleRuntime::Run(grpc::ServerBuilder& server_builder,
       }
     }
   }
-
   intrinsic::ThreadOptions state_change_thread_options;
   state_change_thread_options.SetName("StateChange");
 
@@ -1025,11 +1026,11 @@ absl::Status HardwareModuleRuntime::Run(grpc::ServerBuilder& server_builder,
       read_status_server_->StartAsync(read_status_thread_options)));
   INTR_RETURN_IF_ERROR(set_init_failed_on_error(
       apply_command_server_->StartAsync(apply_command_thread_options)));
-
   return absl::OkStatus();
 }
 
 absl::Status HardwareModuleRuntime::Stop() {
+  LOG(INFO) << "Stopping hardware module runtime.";
   callback_handler_->Shutdown();
   apply_command_server_->RequestStop();
   read_status_server_->RequestStop();
@@ -1043,9 +1044,8 @@ absl::Status HardwareModuleRuntime::Stop() {
   auto status = hardware_module_.instance->Shutdown();
   apply_command_server_->JoinAsyncThread();
   read_status_server_->JoinAsyncThread();
-  if (state_change_thread_.joinable()) {
-    state_change_thread_.join();
-  }
+  // Stops and joins the thread.
+  state_change_thread_ = {};
   return status;
 }
 

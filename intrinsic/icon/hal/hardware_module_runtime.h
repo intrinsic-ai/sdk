@@ -12,6 +12,7 @@
 #include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/time/time.h"
 #include "grpcpp/server_builder.h"
 #include "intrinsic/icon/hal/hardware_interface_handle.h"
 #include "intrinsic/icon/hal/hardware_interface_registry.h"
@@ -131,6 +132,7 @@ class HardwareModuleRuntime final {
   absl::Status Connect(
       std::weak_ptr<SharedPromiseWrapper<HardwareModuleExitCode>>
           exit_code_promise);
+
   HardwareInterfaceRegistry interface_registry_;
   // Closes the shared memory file descriptors that it owns on destruction, so
   // it must go before hardware_module_ and domain_socket_server_:

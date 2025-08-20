@@ -4,6 +4,11 @@
 {{- .PartialManifest -}}
 service_def {
   supports_service_state: true
+  {{- if .ProvidesServiceInspection }}
+  service_inspection_config {
+    data_proto_message_full_name: "intrinsic_proto.icon.v1.HardwareModuleInspectionData"
+  }
+  {{- end }}
   {{- range .ServiceProtoPrefixes }}
   service_proto_prefixes: "{{ . }}"
   {{- end }}

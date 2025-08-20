@@ -9,6 +9,7 @@
 #include "intrinsic/icon/control/realtime_clock_interface.h"
 #include "intrinsic/icon/hal/hardware_module_init_context.h"
 #include "intrinsic/icon/hal/module_config.h"
+#include "intrinsic/icon/hal/proto/hardware_module_inspection.pb.h"
 #include "intrinsic/icon/utils/realtime_status.h"
 
 namespace intrinsic::icon {
@@ -271,6 +272,31 @@ class HardwareModuleInterface {
   // the next clear faults call via the ResourceHealth interface or the next
   // `ClearFaults()` call via the realtime control service.
   virtual RealtimeStatus ApplyCommand() = 0;
+
+  // Gives the hardware module the opportunity to provide inspection data about
+  // the hardware to the hardware module runtime. The implementation of this
+  // function shall modify the `data` proto and provide as many fields as
+  // possible expect for meta data field, but all fields are optional. Custom
+  // hardware module data can be provided via the Any field of the
+  // `HardwareModuleInspectionData` proto named `hardware_specific_data`.
+  // This function is called periodically by the hardware module runtime. The
+  // hardware module runtime publishes `data` to the hardware module instance
+  // inspection topic (see InspectionPublisher class for the topic name). The
+  // hardware module can configure the interval between calls to this function
+  // via `HardwareModuleInitContext::SetInspectionDataPublishInterval()`.
+  // `HardwareModuleInitContext` is provided to `Init()`.
+  // All data provided by this function is considered to be valid. `data` will
+  // also be published if an error is returned since `data` is already prefilled
+  // with metadata from the hardware module runtime. Therefore, do not assign a
+  // new instance to the given instance of `data`. The returned error is only
+  // used for logging. Custom hardware module data can be provided via the Any
+  // field of the `HardwareModuleInspectionData` proto named
+  // `hardware_specific_data`.
+  virtual absl::Status ProvideInspectionData(
+      intrinsic_proto::icon::v1::HardwareModuleInspectionData& data) {
+    return absl::UnimplementedError(
+        "ProvideInspectionData() is not implemented.");
+  }
 };
 
 struct HardwareModule {

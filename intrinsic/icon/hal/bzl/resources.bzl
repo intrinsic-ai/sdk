@@ -12,6 +12,9 @@ def _hal_manifest_impl(ctx):
         ctx.attr.manifest_type,
         format = "--manifest_type=%s",
     ).add(
+        ctx.attr.provides_service_inspection,
+        format = "--provides_service_inspection=%s",
+    ).add(
         ctx.attr.requires_rtpc_node,
         format = "--requires_rtpc_node=%s",
     ).add(
@@ -80,6 +83,10 @@ hardware_module_manifest = rule(
             doc = """The image archive to be included in the bundle for
             simulation.  This can be the same as image if it supports both sim
             and real""",
+        ),
+        "provides_service_inspection": attr.bool(
+            default = False,
+            doc = "Flag to indicate that the module provides service inspection",
         ),
         "requires_rtpc_node": attr.bool(
             default = True,

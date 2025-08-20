@@ -26,15 +26,16 @@ import (
 const intrinsicIconPath = "/tmp/intrinsic_icon"
 
 var (
-	image                = flag.String("image", "", "The image archive file to be included")
-	imageSim             = flag.String("image_sim", "", "The image archive file to be included for sim, if applicable")
-	manifest             = flag.String("manifest", "", "A textproto file containing the manifest for the HAL asset")
-	manifestType         = flag.String("manifest_type", "", "The input manifest type")
-	output               = flag.String("output", "-", "Output file name")
-	serviceProtoPrefixes = intrinsicflag.MultiString("service_proto_prefix", nil, "Output file name")
-	requiresRTPCNode     = flag.Bool("requires_rtpc_node", false, "Whether or not the hardware module requires an RTPC Node")
-	requiresAtemsys      = flag.Bool("requires_atemsys", false, "Whether or not the hardware module requires an Atemsys Ethercat device")
-	runningEthercatOss   = flag.Bool("running_ethercat_oss", false, "Whether or not the hardware module is running ethercat oss")
+	image                     = flag.String("image", "", "The image archive file to be included")
+	imageSim                  = flag.String("image_sim", "", "The image archive file to be included for sim, if applicable")
+	manifest                  = flag.String("manifest", "", "A textproto file containing the manifest for the HAL asset")
+	manifestType              = flag.String("manifest_type", "", "The input manifest type")
+	output                    = flag.String("output", "-", "Output file name")
+	providesServiceInspection = flag.Bool("provides_service_inspection", false, "Whether or not the hardware module provides service inspection")
+	serviceProtoPrefixes      = intrinsicflag.MultiString("service_proto_prefix", nil, "Output file name")
+	requiresRTPCNode          = flag.Bool("requires_rtpc_node", false, "Whether or not the hardware module requires an RTPC Node")
+	requiresAtemsys           = flag.Bool("requires_atemsys", false, "Whether or not the hardware module requires an Atemsys Ethercat device")
+	runningEthercatOss        = flag.Bool("running_ethercat_oss", false, "Whether or not the hardware module is running ethercat oss")
 
 	//go:embed hal_service_manifest.textproto.tmpl
 	serviceManifestTemplateText string
@@ -144,25 +145,27 @@ func halManifest() error {
 	defer outFile.Close()
 
 	data := struct {
-		PartialManifest      string
-		Image                string
-		ImageSim             string
-		RequiresRTPC         bool
-		RequiresAtemsys      bool
-		RunningEthercatOss   bool
-		ServiceProtoPrefixes []string
-		IntrinsicIconPath    string
+		PartialManifest           string
+		Image                     string
+		ImageSim                  string
+		ProvidesServiceInspection bool
+		RequiresRTPC              bool
+		RequiresAtemsys           bool
+		RunningEthercatOss        bool
+		ServiceProtoPrefixes      []string
+		IntrinsicIconPath         string
 	}{
 		// The bundle rule always puts the files into the root of the archive,
 		// so just take the base image the filename here.
-		Image:                fileBaseLeaveEmpty(*image),
-		ImageSim:             fileBaseLeaveEmpty(*imageSim),
-		PartialManifest:      string(partialManifest),
-		RequiresRTPC:         *requiresRTPCNode,
-		RequiresAtemsys:      *requiresAtemsys,
-		RunningEthercatOss:   *runningEthercatOss,
-		ServiceProtoPrefixes: *serviceProtoPrefixes,
-		IntrinsicIconPath:    intrinsicIconPath,
+		Image:                     fileBaseLeaveEmpty(*image),
+		ImageSim:                  fileBaseLeaveEmpty(*imageSim),
+		PartialManifest:           string(partialManifest),
+		ProvidesServiceInspection: *providesServiceInspection,
+		RequiresRTPC:              *requiresRTPCNode,
+		RequiresAtemsys:           *requiresAtemsys,
+		RunningEthercatOss:        *runningEthercatOss,
+		ServiceProtoPrefixes:      *serviceProtoPrefixes,
+		IntrinsicIconPath:         intrinsicIconPath,
 	}
 
 	var b bytes.Buffer

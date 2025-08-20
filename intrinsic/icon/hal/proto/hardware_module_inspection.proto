@@ -1,0 +1,40 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.icon.v1;
+
+import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
+import "intrinsic/icon/proto/safety_status.proto";
+
+message Event {
+  enum Severity {
+    UNKNOWN = 0;
+    INFO = 1;
+    WARNING = 2;
+    ERROR = 3;
+  }
+  // The timestamp when the event occurred.
+  optional google.protobuf.Timestamp timestamp = 1;
+  // The severity of the event.
+  optional Severity severity = 2;
+  // The message associated with the event.
+  string message = 3;
+}
+
+message EventList {
+  repeated Event events = 1;
+}
+
+message HardwareModuleInspectionData {
+  // A list of alarms that are currently reported by the hardware module.
+  optional EventList active_alarms = 1;
+  // The safety status of the hardware module.
+  optional SafetyStatus safety_status = 2;
+  // A list of events that have occurred. This includes recent hardware alarms,
+  // but also events and information from the hardware module itself.
+  optional EventList event_history = 4;
+  // Hardware specific data.
+  google.protobuf.Any hardware_specific_data = 5;
+}

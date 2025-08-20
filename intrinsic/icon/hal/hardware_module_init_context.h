@@ -3,7 +3,11 @@
 #ifndef INTRINSIC_ICON_HAL_HARDWARE_MODULE_INIT_CONTEXT_H_
 #define INTRINSIC_ICON_HAL_HARDWARE_MODULE_INIT_CONTEXT_H_
 
+#include <string>
+
 #include "absl/base/attributes.h"
+#include "absl/status/status.h"
+#include "absl/strings/str_cat.h"
 #include "absl/time/time.h"
 #include "grpcpp/server_builder.h"
 #include "intrinsic/icon/hal/hardware_interface_registry.h"
@@ -11,8 +15,14 @@
 
 namespace intrinsic::icon {
 
-// Provides configuration and functions needed during initialization of a
-// Hardware Module such as
+// Maximum frequency of inspection data publishing is 5 Hz.
+const absl::Duration kMinInspectionDataPublishPeriod = absl::Seconds(1.0 / 5.0);
+const absl::Duration kMaxInspectionDataPublishPeriod = absl::Seconds(3);
+
+// Provides configuration and allows the hardware module to set some
+// configuration on the hardware module runtime or register services. This class
+// is passed during initialization of a Hardware Module to the hardware module
+// Init() function and provides functionality such as
 // - access to the module configuration
 // - access to the interface registry
 // - the ability to register a gRPC service
@@ -78,15 +88,45 @@ class HardwareModuleInitContext {
     return cycle_duration_for_cycle_time_metrics_;
   }
 
+  // Returns the asset instance name/service instance name. If it is not set
+  // (as it is the case for unit tests), it returns the module name, which can
+  // be configured in the hardware module config.
+  std::string GetAssetInstanceName() const {
+    return !module_config_.GetContextName().empty()
+               ? module_config_.GetContextName()
+               : module_config_.GetName();
+  }
+
+  // Sets the interval at which inspection data is published.
+  // The interval must be within the range [kMinInspectionDataPublishPeriod,
+  // kMaxInspectionDataPublishPeriod].
+  absl::Status SetInspectionDataPublishInterval(absl::Duration interval) {
+    if (interval < kMinInspectionDataPublishPeriod) {
+      return absl::InvalidArgumentError(
+          absl::StrCat("Inspection data publish interval must be at least ",
+                       absl::FormatDuration(kMinInspectionDataPublishPeriod)));
+    }
+    if (interval > kMaxInspectionDataPublishPeriod) {
+      return absl::InvalidArgumentError(
+          absl::StrCat("Inspection data publish interval must be at most ",
+                       absl::FormatDuration(kMaxInspectionDataPublishPeriod)));
+    }
+    inspection_data_publishing_period_ = interval;
+    return absl::OkStatus();
+  }
+  absl::Duration GetInspectionDataPublishPeriod() const {
+    return inspection_data_publishing_period_;
+  }
+
  private:
   HardwareInterfaceRegistry& interface_registry_;
   grpc::ServerBuilder& server_builder_;
   const ModuleConfig module_config_;
-  // This is the first instance of using the context to communicate data back to
-  // the runtime. If this becomes a more broadly required use case, we might
-  // consider finding a more obvious way to do it.
   absl::Duration cycle_duration_for_cycle_time_metrics_ = absl::ZeroDuration();
   bool log_cycle_time_warnings_ = false;
+  // HardwareModuleInterface::ProvideInspectionData() is called and at which the
+  // inspection data is published.
+  absl::Duration inspection_data_publishing_period_ = absl::Seconds(1.0 / 3.0);
 };
 
 }  // namespace intrinsic::icon

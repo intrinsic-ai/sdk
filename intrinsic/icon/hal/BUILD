@@ -32,6 +32,29 @@ go_proto_library(
     deps = [":hardware_module_config_proto"],
 )
 
+proto_library(
+    name = "hardware_module_inspection_proto",
+    srcs = ["proto/hardware_module_inspection.proto"],
+    deps = [
+        "//intrinsic/icon/proto:safety_status_proto",
+        "@com_google_protobuf//:any_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "hardware_module_inspection_cc_proto",
+    deps = [":hardware_module_inspection_proto"],
+)
+
+go_proto_library(
+    name = "hardware_module_inspection_go_proto",
+    go_deps = [
+        "//intrinsic/icon/proto:safety_status_go_proto",
+    ],
+    deps = [":hardware_module_inspection_proto"],
+)
+
 cc_library(
     name = "hardware_interface_traits",
     hdrs = ["hardware_interface_traits.h"],
@@ -93,6 +116,8 @@ cc_library(
         ":hardware_interface_registry",
         ":module_config",
         "@abseil-cpp//absl/base:core_headers",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/strings",
         "@abseil-cpp//absl/time",
         "@com_github_grpc_grpc//:grpc++",
     ],
@@ -105,6 +130,7 @@ cc_library(
     ],
     deps = [
         ":hardware_module_init_context",
+        ":hardware_module_inspection_cc_proto",
         ":module_config",
         "//intrinsic/icon/control:realtime_clock_interface",
         "//intrinsic/icon/utils:realtime_status",
@@ -176,6 +202,7 @@ cc_library(
         ":hardware_interface_registry",
         ":hardware_interface_traits",
         ":hardware_module_init_context",
+        ":hardware_module_inspection_cc_proto",
         ":hardware_module_interface",
         ":hardware_module_registry",
         ":hardware_module_util",
@@ -202,6 +229,7 @@ cc_library(
         "//intrinsic/platform/common/buffers:rt_queue_multi_writer",
         "//intrinsic/util/status:status_macros",
         "//intrinsic/util/thread",
+        "//intrinsic/util/thread:stop_token",
         "//intrinsic/util/thread:thread_options",
         "//intrinsic/util/thread:thread_utils",
         "@abseil-cpp//absl/base:core_headers",
