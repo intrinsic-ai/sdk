@@ -74,7 +74,7 @@ class HardwareModuleRuntime::CallbackHandler final {
   struct AsyncRequestData {
     intrinsic_fbs::StateCode from;
     intrinsic_fbs::StateCode to;
-    icon::FixedString<256> message;
+    icon::FixedString<intrinsic_fbs::kMaxFaultReasonLength> message;
     Clock::time_point timestamp;
   };
   using AsyncRequest =

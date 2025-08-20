@@ -3,6 +3,7 @@
 #ifndef INTRINSIC_ICON_HAL_HARDWARE_MODULE_UTIL_H_
 #define INTRINSIC_ICON_HAL_HARDWARE_MODULE_UTIL_H_
 
+#include <cstddef>
 #include <future>  // NOLINT(build/c++11)
 #include <optional>
 #include <string>
@@ -14,6 +15,9 @@
 #include "intrinsic/icon/hal/interfaces/hardware_module_state.fbs.h"
 
 namespace intrinsic_fbs {
+// The maximum length of a fault reason string. To be the same length as defined
+// in the flatbuffer.
+constexpr size_t kMaxFaultReasonLength = 256;
 
 template <typename Sink>
 void AbslStringify(Sink& sink, StateCode e) {
