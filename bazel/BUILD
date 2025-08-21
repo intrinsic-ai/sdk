@@ -52,14 +52,6 @@ bzl_library(
     ],
 )
 
-bzl_library(
-    name = "sh_macros",
-    srcs = ["sh_macros.bzl"],
-    deps = [
-        "@rules_shell//shell:rules_bzl",
-    ],
-)
-
 platform(
     name = "linux_x86_64",
     constraint_values = [
