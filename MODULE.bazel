@@ -240,6 +240,7 @@ bazel_dep(name = "protobuf-matchers", version = "0.1.1", repo_name = "com_github
 bazel_dep(name = "protoc-gen-validate", version = "1.2.1.bcr.1")
 bazel_dep(name = "re2", version = "2024-07-02", repo_name = "com_googlesource_code_re2")
 bazel_dep(name = "rules_license", version = "1.0.0")
+bazel_dep(name = "rules_shell", version = "0.3.0")
 # go/keep-sorted end
 
 use_repo(
