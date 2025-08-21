@@ -133,7 +133,10 @@ func DialCatalog(ctx context.Context, opts DialCatalogOptions) (context.Context,
 		// but not the org, and the user can authenticate in the catalog project.)
 		if errors.Is(err, errNoInfoToAuthenticate) {
 			optsOpts.CredProject = catalogProject
-			dialCtx, dialOpts, err = getDialContextOptions(ctx, optsOpts)
+			var catalogProjectErr error
+			if dialCtx, dialOpts, catalogProjectErr = getDialContextOptions(ctx, optsOpts); catalogProjectErr == nil {
+				err = nil
+			}
 		}
 		if err != nil {
 			return nil, nil, fmt.Errorf("cannot get dial context options for catalog: %w", err)
