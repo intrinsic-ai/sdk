@@ -61,4 +61,7 @@ message Context {
   // If you want to filter on other Context fields, remember to also add them to
   // this map.
   map<string, string> labels = 12;
+
+  reserved "ids";
+  reserved 1;
 }
