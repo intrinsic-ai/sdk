@@ -19,7 +19,6 @@ go_library(
         "//intrinsic/assets/proto:asset_type_go_proto",
         "//intrinsic/assets/proto:metadata_go_proto",
         "//intrinsic/assets/proto:release_tag_go_proto",
-        "//intrinsic/skills/proto:processed_skill_manifest_go_proto",
         "//intrinsic/skills/tools/resource/cmd:bundleimages",
         "//intrinsic/skills/tools/skill/cmd",
         "//intrinsic/skills/tools/skill/cmd/directupload",
@@ -31,6 +30,5 @@ go_library(
         "@org_golang_google_grpc//:go_default_library",
         "@org_golang_google_grpc//codes:go_default_library",
         "@org_golang_google_grpc//status:go_default_library",
-        "@org_golang_google_protobuf//proto",
     ],
 )

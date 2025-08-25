@@ -217,8 +217,8 @@ message CreateAssetRequest {
   // The asset to create.
   Asset asset = 1;
 
-  // Use asset.release_metadata.org_private instead.
-  optional bool org_private = 2 [deprecated = true];
+  reserved 2;
+  reserved "org_private";
 }
 
 message UpdateReleaseMetadataRequest {

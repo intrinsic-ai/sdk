@@ -14,7 +14,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/proto"
 	"intrinsic/assets/bundleio"
 	acgrpcpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
 	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
@@ -188,7 +187,6 @@ func GetCommand() *cobra.Command {
 			client := acgrpcpb.NewAssetCatalogClient(conn)
 			req := &acpb.CreateAssetRequest{
 				Asset: asset,
-				OrgPrivate: proto.Bool(flags.GetFlagOrgPrivate()),
 			}
 			return release(ctx, client, req, flags.GetFlagIgnoreExisting(), printer)
 		},

@@ -14,7 +14,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/proto"
 	"intrinsic/assets/bundleio"
 	acgrpcpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
 	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
@@ -27,7 +26,6 @@ import (
 	atpb "intrinsic/assets/proto/asset_type_go_proto"
 	mpb "intrinsic/assets/proto/metadata_go_proto"
 	releasetagpb "intrinsic/assets/proto/release_tag_go_proto"
-	psmpb "intrinsic/skills/proto/processed_skill_manifest_go_proto"
 	"intrinsic/skills/tools/resource/cmd/bundleimages"
 	skillCmd "intrinsic/skills/tools/skill/cmd/cmd"
 	"intrinsic/skills/tools/skill/cmd/directupload/directupload"
@@ -126,40 +124,6 @@ func processAsset(target string, transferer imagetransfer.Transferer, flags *cmd
 	}, nil
 }
 
-func buildCreateAssetRequest(psm *psmpb.ProcessedSkillManifest, flags *cmdutils.CmdFlags) (*acpb.CreateAssetRequest, error) {
-	version := flags.GetFlagVersion()
-	metadata := psm.GetMetadata()
-	idVersion, err := idutils.IDVersionProtoFrom(metadata.GetId().GetPackage(), metadata.GetId().GetName(), version)
-	if err != nil {
-		return nil, err
-	}
-	releaseTag := releasetagpb.ReleaseTag_RELEASE_TAG_UNSPECIFIED
-	if flags.GetFlagDefault() {
-		releaseTag = releasetagpb.ReleaseTag_RELEASE_TAG_DEFAULT
-	}
-	return &acpb.CreateAssetRequest{
-		Asset: &acpb.Asset{
-			Metadata: &mpb.Metadata{
-				IdVersion:     idVersion,
-				AssetType:     atpb.AssetType_ASSET_TYPE_SKILL,
-				DisplayName:   metadata.GetDisplayName(),
-				Documentation: metadata.GetDocumentation(),
-				Vendor:        metadata.GetVendor(),
-				ReleaseNotes:  flags.GetFlagReleaseNotes(),
-				ReleaseTag:    releaseTag,
-			},
-			DeploymentData: &acpb.Asset_AssetDeploymentData{
-				AssetSpecificDeploymentData: &acpb.Asset_AssetDeploymentData_SkillSpecificDeploymentData{
-					SkillSpecificDeploymentData: &acpb.Asset_SkillDeploymentData{
-						Manifest: psm,
-					},
-				},
-			},
-		},
-		OrgPrivate: proto.Bool(flags.GetFlagOrgPrivate()),
-	}, nil
-}
-
 type imageTransfererOpts struct {
 	cmd             *cobra.Command
 	conn            *grpc.ClientConn
@@ -235,7 +199,6 @@ var releaseCmd = &cobra.Command{
 		client := acgrpcpb.NewAssetCatalogClient(conn)
 		req := &acpb.CreateAssetRequest{
 			Asset: asset,
-			OrgPrivate: proto.Bool(cmdFlags.GetFlagOrgPrivate()),
 		}
 		return release(ctx, client, req, cmdFlags.GetFlagIgnoreExisting(), printer)
 	},
