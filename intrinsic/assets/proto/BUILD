@@ -194,7 +194,10 @@ proto_library(
 
 cc_proto_library(
     name = "metadata_cc_proto",
-    visibility = ["//visibility:private"],
+    visibility = [
+        "//intrinsic/assets/data:__subpackages__",
+        "//visibility:private",
+    ],
     deps = [":metadata_proto"],
 )
 
