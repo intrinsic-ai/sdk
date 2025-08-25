@@ -271,6 +271,7 @@ message StartOperationRequest {
   // its current state.
   optional string scene_id = 9;
 
+
 }
 
 message SuspendOperationRequest {
