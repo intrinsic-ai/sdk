@@ -187,3 +187,30 @@ func AssetsProject(env string) string {
 		return ""
 	}
 }
+
+// Domain returns the domain name for a project. This covered both central projects as well as
+// compute projects where it maps to the www.endpoints.* domain.
+func Domain(project string) string {
+	switch project {
+	case PortalProjectProd:
+		return PortalDomainProd
+	case PortalProjectStaging:
+		return PortalDomainStaging
+	case PortalProjectDev:
+		return PortalDomainDev
+	case AccountsProjectProd:
+		return AccountsDomainProd
+	case AccountsProjectStaging:
+		return AccountsDomainStaging
+	case AccountsProjectDev:
+		return AccountsDomainDev
+	case AssetsProjectDev:
+		return AssetsDomainDev
+	case AssetsProjectStaging:
+		return AssetsDomainStaging
+	case AssetsProjectProd:
+		return AssetsDomainProd
+	default:
+		return fmt.Sprintf("www.endpoints.%s.cloud.goog", project)
+	}
+}
