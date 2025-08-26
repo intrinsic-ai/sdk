@@ -328,7 +328,6 @@ py_library(
         "//intrinsic/assets/proto:installed_assets_py_pb2",
         "//intrinsic/assets/proto:view_py_pb2",
         "//intrinsic/perception/proto/v1:perception_model_py_pb2",
-        "//intrinsic/resources/client:resource_registry_client",
         "//intrinsic/util/grpc:error_handling",
         requirement("grpcio"),
     ],
@@ -345,7 +344,6 @@ py_test(
         "//intrinsic/assets/proto:installed_assets_py_pb2",
         "//intrinsic/assets/proto:metadata_py_pb2",
         "//intrinsic/perception/proto/v1:perception_model_py_pb2",
-        "//intrinsic/resources/proto:resource_registry_py_pb2",
         "@com_google_absl_py//absl/testing:absltest",
     ],
 )

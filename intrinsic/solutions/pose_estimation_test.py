@@ -9,7 +9,6 @@ from intrinsic.assets.proto import id_pb2
 from intrinsic.assets.proto import installed_assets_pb2
 from intrinsic.assets.proto import metadata_pb2
 from intrinsic.perception.proto.v1 import perception_model_pb2
-from intrinsic.resources.proto import resource_registry_pb2
 from intrinsic.solutions import pose_estimation
 
 
@@ -17,11 +16,6 @@ class PoseEstimatorsTest(absltest.TestCase):
 
   def test_lists_pose_estimators(self):
     installed_assets_stub = mock.MagicMock()
-    resource_registry_client = mock.MagicMock()
-    resource_registry_client.list_all_resource_instances.return_value = [
-        resource_registry_pb2.ResourceInstance(name="pose_estimator_1"),
-        resource_registry_pb2.ResourceInstance(name="pose_estimator_2"),
-    ]
     data_asset = data_asset_pb2.DataAsset()
     data_asset.data.Pack(perception_model_pb2.PerceptionModel())
     installed_assets_stub.ListInstalledAssets.return_value = installed_assets_pb2.ListInstalledAssetsResponse(
@@ -50,22 +44,16 @@ class PoseEstimatorsTest(absltest.TestCase):
         ]
     )
     pose_estimators = pose_estimation.PoseEstimators(
-        resource_registry_client,
         installed_assets_stub,
     )
-    self.assertLen(pose_estimators, 3)
+    self.assertLen(pose_estimators, 1)
     self.assertEqual(
         dir(pose_estimators),
-        ["pose_estimator_1", "pose_estimator_2", "pose_estimator_data_asset"],
+        ["pose_estimator_data_asset"],
     )
-    self.assertEqual(pose_estimators.pose_estimator_1.id, "pose_estimator_1")
-    self.assertEqual(pose_estimators.pose_estimator_2.id, "pose_estimator_2")
     self.assertEqual(
         pose_estimators.pose_estimator_data_asset.id,
         "pose_estimator_data_asset",
-    )
-    resource_registry_client.list_all_resource_instances.assert_called_with(
-        resource_family_id=pose_estimation._POSE_ESTIMATOR_RESOURCE_FAMILY_ID
     )
 
 

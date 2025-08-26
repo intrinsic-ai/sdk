@@ -209,7 +209,6 @@ class Solution:
         grpc_channel
     )
     pose_estimators = pose_estimation.PoseEstimators(
-        resource_registry,
         installed_assets_stub,
     )
 
