@@ -17,5 +17,6 @@ message RebootResponse {}
 message GetUptimeRequest {}
 
 message Uptime {
+  // The uptime of the IPC since its last boot or restart.
   google.protobuf.Duration duration = 1;
 }
