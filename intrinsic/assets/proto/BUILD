@@ -196,6 +196,7 @@ cc_proto_library(
     name = "metadata_cc_proto",
     visibility = [
         "//intrinsic/assets/data:__subpackages__",
+        "//intrinsic/perception/testing:__subpackages__",
         "//visibility:private",
     ],
     deps = [":metadata_proto"],
