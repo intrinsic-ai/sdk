@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -37,6 +38,7 @@ type APIKeyTokenSource struct {
 	apiKey           string
 	allowInsecure    bool
 	minTokenLifetime time.Duration
+	orgID            string
 
 	mu sync.Mutex
 	c  *tokenCache
@@ -65,6 +67,13 @@ func WithMinTokenLifetime(d time.Duration) APIKeyTokenSourceOption {
 	}
 }
 
+// WithOrgIDMetadata specifies the organization ID to be used in the request metadata.
+func WithOrgIDMetadata(orgID string) APIKeyTokenSourceOption {
+	return func(s *APIKeyTokenSource) {
+		s.orgID = orgID
+	}
+}
+
 // NewAPIKeyTokenSource creates and configures an [APIKeyTokenSource].
 func NewAPIKeyTokenSource(apiKey string, tp APIKeyTokenProvider, opts ...APIKeyTokenSourceOption) *APIKeyTokenSource {
 	s := &APIKeyTokenSource{
@@ -81,12 +90,16 @@ func NewAPIKeyTokenSource(apiKey string, tp APIKeyTokenProvider, opts ...APIKeyT
 // GetRequestMetadata returns request metadata that authenticates the request
 // using a JWT retrieved using the API key.
 func (s *APIKeyTokenSource) GetRequestMetadata(ctx context.Context, _ ...string) (map[string]string, error) {
-	t, err := s.token(ctx)
+	t, err := s.Token(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("could not get account token: %v", err)
 	}
-	authCookie := &http.Cookie{Name: "auth-proxy", Value: t}
-	return map[string]string{"cookie": authCookie.String()}, nil
+	var cookies []string
+	cookies = append(cookies, (&http.Cookie{Name: "auth-proxy", Value: t}).String())
+	if s.orgID != "" {
+		cookies = append(cookies, (&http.Cookie{Name: "org-id", Value: s.orgID}).String())
+	}
+	return map[string]string{"cookie": strings.Join(cookies, "; ")}, nil
 }
 
 // RequireTransportSecurity returns the configured level of transport security.
@@ -96,7 +109,8 @@ func (s *APIKeyTokenSource) RequireTransportSecurity() bool {
 	return !s.allowInsecure
 }
 
-func (s *APIKeyTokenSource) token(ctx context.Context) (string, error) {
+// Token returns a JWT token retrieved using the API key.
+func (s *APIKeyTokenSource) Token(ctx context.Context) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.c == nil || s.c.expiry.Add(-s.minTokenLifetime).Before(timeNow()) {

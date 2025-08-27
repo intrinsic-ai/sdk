@@ -8,12 +8,17 @@ go_library(
     name = "auth",
     srcs = [
         "auth.go",
+        "cloud.go",
         "token_source.go",
         "tokenshttp.go",
     ],
     deps = [
+        "//intrinsic/config:environments",
         "//intrinsic/kubernetes/acl:jwt",
         "@com_github_golang_glog//:go_default_library",
+        "@com_github_spf13_viper//:go_default_library",
+        "@io_opencensus_go//plugin/ocgrpc:go_default_library",
+        "@org_golang_google_grpc//:go_default_library",
         "@org_golang_google_grpc//credentials:go_default_library",
         "@org_golang_google_grpc//metadata:go_default_library",
     ],

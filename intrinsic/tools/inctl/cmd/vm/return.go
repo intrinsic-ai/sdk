@@ -6,10 +6,8 @@ import (
 	"context"
 	"fmt"
 
-	log "github.com/golang/glog"
 	"github.com/spf13/cobra"
 	"go.opencensus.io/trace"
-	"intrinsic/kubernetes/acl/identity"
 
 	leaseapigrpcpb "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_grpc_proto"
 	leasepb "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_grpc_proto"
@@ -35,14 +33,9 @@ var vmReturnCmd = &cobra.Command{
 		span.AddAttributes(trace.StringAttribute("vm", args[0]))
 		span.AddAttributes(trace.StringAttribute("org", orgID))
 		defer span.End()
-		ctx, err := identity.OrgToContext(ctx, orgID)
-		if err != nil {
-			return fmt.Errorf("failed to add org info to context: %v", err)
-		}
-
 		cl, err := newLeaseClient(ctx)
 		if err != nil {
-			log.ExitContextf(ctx, "could not create lease client: %v", err)
+			return err
 		}
 
 		return Return(ctx, cl, args[0], flagProject)

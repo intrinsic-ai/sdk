@@ -15,16 +15,15 @@ import (
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/viperutil"
 )
-
 const (
 	// KeyProject is used as central flag name for passing a project name to inctl.
-	KeyProject = "project"
+	KeyProject = auth.KeyProject
 	// KeyOrganization is used as central flag name for passing an organization name to inctl.
-	KeyOrganization = "org"
+	KeyOrganization = auth.KeyOrganization
 	// KeyEnvironment is used as central flag name for passing an environment name to inctl.
 	//
 	// The environment can be one of prod, staging or dev.
-	KeyEnvironment = "env"
+	KeyEnvironment = auth.KeyEnvironment
 )
 
 var (

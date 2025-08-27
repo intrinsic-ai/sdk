@@ -5,18 +5,14 @@ package vm
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"go.opencensus.io/plugin/ocgrpc"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 	"intrinsic/config/environments"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/cmd/root"
@@ -91,28 +87,7 @@ func newConn(ctx context.Context) (*grpc.ClientConn, error) {
 			fmt.Fprintf(os.Stderr, "Warning: Project %q has most probably no VM pool. You probably meant to target a compute/backend project like intrinsic-prod-us instead.", flagProject)
 		}
 	}
-
-	addr := "www.endpoints." + flagProject + ".cloud.goog:443"
-
-	cfg, err := auth.NewStore().GetConfiguration(flagProject)
-	if err != nil {
-		return nil, err
-	}
-	creds, err := cfg.GetDefaultCredentials()
-	if err != nil {
-		return nil, err
-	}
-
-	grpcOpts := []grpc.DialOption{
-		grpc.WithPerRPCCredentials(creds),
-		grpc.WithStatsHandler(new(ocgrpc.ClientHandler)),
-		grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{})),
-	}
-	conn, err := grpc.NewClient(addr, grpcOpts...)
-	if err != nil {
-		return nil, errors.Wrapf(err, "grpc.NewClient(%q)", addr)
-	}
-	return conn, nil
+	return auth.NewCloudConnection(ctx, auth.WithFlagValues(viperLocal))
 }
 
 func newVmpoolsClient(ctx context.Context) (vmpoolsgrpcpb.VMPoolServiceClient, error) {
@@ -126,7 +101,7 @@ func newVmpoolsClient(ctx context.Context) (vmpoolsgrpcpb.VMPoolServiceClient, e
 func newLeaseClient(ctx context.Context) (leaseapigrpcpb.VMPoolLeaseServiceClient, error) {
 	conn, err := newConn(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not create VM lease client: %v", err)
 	}
 	return leaseapigrpcpb.NewVMPoolLeaseServiceClient(conn), nil
 }

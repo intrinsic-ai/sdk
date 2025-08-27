@@ -19,7 +19,6 @@ import (
 	"go.opencensus.io/trace"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"intrinsic/kubernetes/acl/identity"
 	"intrinsic/kubernetes/vmpool/service/pkg/defaults/defaults"
 	"intrinsic/tools/inctl/util/color"
 	"intrinsic/tools/inctl/util/orgutil"
@@ -64,17 +63,13 @@ var vmLeaseCmd = &cobra.Command{
 		span.AddAttributes(trace.StringAttribute("pool", flagPool))
 		span.AddAttributes(trace.StringAttribute("org", orgID))
 		defer span.End()
-		ctx, err := identity.OrgToContext(ctx, orgID)
-		if err != nil {
-			return fmt.Errorf("failed to add org info to context: %v", err)
-		}
 		cl, err := newLeaseClient(ctx)
 		if err != nil {
-			return fmt.Errorf("could not create lease client: %v", err)
+			return err
 		}
 		pc, err := newVmpoolsClient(ctx)
 		if err != nil {
-			return fmt.Errorf("could not create vmpools client: %v", err)
+			return err
 		}
 		return Lease(ctx, cl, &pc, &LeaseOptions{
 			AbortAfter:    flagAbortAfter,

@@ -15,8 +15,8 @@ import (
 	"time"
 
 	log "github.com/golang/glog"
-	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
+	"intrinsic/config/environments"
 )
 
 const (
@@ -38,6 +38,17 @@ const (
 
 	// NoLoginHint is the hint shown when the user does not have an API key configured.
 	NoLoginHint = "\n\tIt seems like you don't have an API key configured. Did you run 'inctl auth login --org <org>@%s'?\n\n"
+)
+
+const (
+	// KeyProject is used as central flag name for passing a project name to inctl.
+	KeyProject = "project"
+	// KeyOrganization is used as central flag name for passing an organization name to inctl.
+	KeyOrganization = "org"
+	// KeyEnvironment is used as central flag name for passing an environment name to inctl.
+	//
+	// The environment can be one of prod, staging or dev.
+	KeyEnvironment = "env"
 )
 
 // RFC3339Time is type alias to correct (un)marshaling time.Time in RFC3339 format
@@ -111,16 +122,62 @@ func (p *ProjectToken) HTTPAuthorization(req *http.Request) (*http.Request, erro
 	return req, p.Validate()
 }
 
+// IDTokenOptsFunc is a function that can be used to configure [AsIDTokenCredentials].
+type IDTokenOptsFunc func(o *IDTokenOpts) error
+
+// IDTokenOpts contains the options for converting an API Key to a Firebase ID Token.
+type IDTokenOpts struct {
+	fs    string // flowstate domain
+	orgID string
+}
+
+// WithEnvironment sets the environment to use for the ID Token exchange.
+// The environment must be one of "dev", "staging" or "prod".
+func WithEnvironment(env string) func(o *IDTokenOpts) error {
+	return func(o *IDTokenOpts) error {
+		fs := environments.PortalDomain(env)
+		if fs == "" {
+			return fmt.Errorf("invalid environment: %q (expected %v)", env, environments.All)
+		}
+		o.fs = fs
+		return nil
+	}
+}
+
+// WithOrgMetadata sets the organization ID to be used in the request metadata.
+func WithOrgMetadata(orgID string) func(o *IDTokenOpts) error {
+	return func(o *IDTokenOpts) error {
+		o.orgID = orgID
+		return nil
+	}
+}
+
+func withDefaults(opts ...IDTokenOptsFunc) (*IDTokenOpts, error) {
+	o := &IDTokenOpts{
+		fs: tokenExchangeServer,
+	}
+	for _, f := range opts {
+		if err := f(o); err != nil {
+			return nil, err
+		}
+	}
+	return o, nil
+}
+
 // AsIDTokenCredentials allows converting Intrinsic API Tokens to Google ID Tokens
 // on the fly as [credentials.PerRPCCredentials] implementation.
 // This is useful for contacting services which don't accept Intrinsic API Tokens,
 // but we want to use this infrastructure to authorize users to them.
-func (p *ProjectToken) AsIDTokenCredentials() (credentials.PerRPCCredentials, error) {
-	tsc, err := NewTokensServiceClient(http.DefaultClient, tokenExchangeServer)
+func (p *ProjectToken) AsIDTokenCredentials(opts ...IDTokenOptsFunc) (*APIKeyTokenSource, error) {
+	o, err := withDefaults(opts...)
+	if err != nil {
+		return nil, err
+	}
+	tsc, err := NewTokensServiceClient(http.DefaultClient, o.fs)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create token exchange: %w", err)
 	}
-	return NewAPIKeyTokenSource(p.APIKey, tsc), nil
+	return NewAPIKeyTokenSource(p.APIKey, tsc, WithOrgIDMetadata(o.orgID)), nil
 }
 
 // ProjectConfiguration contains list of API tokens related to given project
