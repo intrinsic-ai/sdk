@@ -17,7 +17,6 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/exp/maps"
 	env "intrinsic/config/environments"
-	"intrinsic/skills/tools/skill/cmd/dialerutil"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/orgutil"
 	"intrinsic/tools/inctl/util/viperutil"
@@ -128,17 +127,10 @@ func queryProjectsForAPIKey(ctx context.Context, apiKey string, optionalOrg stri
 	if e == "" {
 		e = env.Prod
 	}
-	portal := env.PortalDomain(e)
-	if portal == "" {
-		return nil, fmt.Errorf("unknown environment %q", e)
-	}
-	address := fmt.Sprintf("dns:///%s:443", env.AccountsDomain(e))
-	ctx, conn, err := dialerutil.DialConnectionCtx(ctx, dialerutil.DialInfoParams{
-		Address:   address,
-		CredToken: apiKey,
-	})
+	accProject := env.AccountsProjectFromEnv(e)
+	conn, err := auth.NewCloudConnection(ctx, auth.WithProject(accProject), auth.WithAPIKey(apiKey))
 	if err != nil {
-		return nil, fmt.Errorf("failed to dial: %w", err)
+		return nil, err
 	}
 	defer conn.Close()
 

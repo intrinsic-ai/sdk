@@ -7,6 +7,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/spf13/viper"
 	"go.opencensus.io/plugin/ocgrpc"
@@ -20,6 +21,7 @@ type ConnectionOpts struct {
 	project string
 	org     string
 	opts    []grpc.DialOption
+	apiKey  string
 }
 
 // WithProject sets the cloud-project to use for the connection.
@@ -57,6 +59,14 @@ func WithFlagValues(v *viper.Viper) ConnectionOptsFunc {
 	return func(c *ConnectionOpts) {
 		c.project = v.GetString(KeyProject)
 		c.org = v.GetString(KeyOrganization)
+	}
+}
+
+// WithAPIKey sets the API key to use for the connection.
+// Skips loading the API key from the configuration store.
+func WithAPIKey(k string) ConnectionOptsFunc {
+	return func(c *ConnectionOpts) {
+		c.apiKey = k
 	}
 }
 
@@ -111,6 +121,62 @@ func NewCloudConnection(ctx context.Context, optsFuncs ...ConnectionOptsFunc) (*
 		return nil, fmt.Errorf("either project or org must be set")
 	}
 
+	errDetails := &ErrorDetails{
+		Project: opts.project,
+		Org:     opts.org,
+	}
+
+	ak, err := loadAPIKey(&opts)
+	if err != nil {
+		return nil, err
+	}
+
+	// Determine the environment from the project.
+	// The environment is important because the ID tokens issues by the
+	// accounts service are tied to a specific environment.
+	env, err := environments.FromProject(opts.project)
+	if err != nil {
+		env = environments.FromComputeProject(opts.project)
+		// default to prod if we cannot determine the environment
+	}
+	errDetails.Env = env
+
+	md := &AddMetadata{
+		cookies: map[string]string{
+			"org-id": opts.org, // if empty it is not added
+		},
+	}
+
+	tkSource, err := newAPIKeyTokenSource(http.DefaultClient, ak, env, md)
+	if err != nil {
+		errDetails.Message = "unable to create API key token source"
+		return nil, errors.Join(err, errDetails)
+	}
+
+	if _, err := tkSource.Token(ctx); err != nil {
+		errDetails.Message = "unable to retrieve token"
+		errDetails.Help = "This often indicates that your API key is expired or got invalidated. Please run `inctl auth login` and follow the instructions."
+		return nil, errors.Join(err, errDetails)
+	}
+
+	grpcOpts := []grpc.DialOption{
+		grpc.WithPerRPCCredentials(tkSource),
+		grpc.WithStatsHandler(new(ocgrpc.ClientHandler)),
+		grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{})),
+	}
+
+	addr := fmt.Sprintf("dns:///%s:443", environments.Domain(opts.project))
+
+	return grpc.NewClient(addr, grpcOpts...)
+}
+
+// loadAPIKey loads the API key to use for the connection.
+// If WithAPIKey was set, it will be used. Otherwise, the API key will be loaded from the
+// configuration store for the given project or organization.
+func loadAPIKey(opts *ConnectionOpts) (string, error) {
+	if opts.apiKey != "" {
+		return opts.apiKey, nil
+	}
 	if opts.org != "" {
 		orgInfo, err := NewStore().ReadOrgInfo(opts.org)
 		if err == nil { // if no error
@@ -120,53 +186,28 @@ func NewCloudConnection(ctx context.Context, optsFuncs ...ConnectionOptsFunc) (*
 			}
 		}
 	}
-
 	cfg, err := NewStore().GetConfiguration(opts.project)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	creds, err := cfg.GetDefaultCredentials()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	// Determine the environment from the project.
-	// The environment is important because the ID tokens issues by the
-	// accounts service are tied to a specific environment.
-	env, err := environments.FromProject(opts.project)
+	return creds.APIKey, nil
+}
+
+// newAPIKeyTokenSource creates a new API key token source for the given API key and environment.
+// The token source will add the given metadata to the request.
+func newAPIKeyTokenSource(c *http.Client, key, env string, md *AddMetadata) (*APIKeyTokenSource, error) {
+	// This is portal and not accounts because we are using the grpc-http gateway for token requests.
+	fsAddr := environments.PortalDomain(env)
+	if fsAddr == "" { // default to prod if we cannot determine the environment
+		fsAddr = environments.PortalDomain(environments.Prod)
+	}
+	tsc, err := NewTokensServiceClient(c, fsAddr)
 	if err != nil {
-		env = environments.FromComputeProject(opts.project)
+		return nil, fmt.Errorf("cannot create token exchange: %w", err)
 	}
-	if env == "" { // default to prod if we cannot determine the environment
-		env = environments.Prod
-	}
-
-	errDetails := &ErrorDetails{
-		Project: opts.project,
-		Org:     opts.org,
-		Env:     env,
-	}
-
-	idCreds, err := creds.AsIDTokenCredentials(
-		WithOrgMetadata(opts.org),
-		WithEnvironment(env))
-	if err != nil {
-		errDetails.Message = "unable to create ID token token source"
-		return nil, errors.Join(err, errDetails)
-	}
-
-	if _, err := idCreds.Token(ctx); err != nil {
-		errDetails.Message = "unable to retrieve token"
-		errDetails.Help = "This often indicates that your API key is expired or got invalidated. Please run `inctl auth login` and follow the instructions."
-		return nil, errors.Join(err, errDetails)
-	}
-
-	grpcOpts := []grpc.DialOption{
-		grpc.WithPerRPCCredentials(idCreds),
-		grpc.WithStatsHandler(new(ocgrpc.ClientHandler)),
-		grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{})),
-	}
-
-	addr := fmt.Sprintf("dns:///%s:443", environments.Domain(opts.project))
-
-	return grpc.NewClient(addr, grpcOpts...)
+	return NewAPIKeyTokenSource(key, tsc, WithAdditionalMetadata(md)), nil
 }

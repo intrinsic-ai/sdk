@@ -14,6 +14,7 @@ go_library(
     ],
     deps = [
         "//intrinsic/config:environments",
+        "//intrinsic/kubernetes/acl:cookies",
         "//intrinsic/kubernetes/acl:jwt",
         "@com_github_golang_glog//:go_default_library",
         "@com_github_spf13_viper//:go_default_library",

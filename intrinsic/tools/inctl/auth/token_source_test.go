@@ -45,7 +45,7 @@ func TestGetRequestMetadata(t *testing.T) {
 	}
 
 	want := map[string]string{
-		"cookie": fmt.Sprintf("auth-proxy=%s", token),
+		"Cookie": fmt.Sprintf("auth-proxy=%s", token),
 	}
 	if diff := cmp.Diff(want, got); diff != "" {
 		t.Errorf("GetRequestMetadata(ctx) returned an unexpected diff (-want +got): %v", diff)

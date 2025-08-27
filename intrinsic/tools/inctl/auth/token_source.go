@@ -6,11 +6,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strings"
 	"sync"
 	"time"
 
 	"google.golang.org/grpc/credentials"
+	"intrinsic/kubernetes/acl/cookies"
 	"intrinsic/kubernetes/acl/jwt"
 )
 
@@ -38,7 +38,8 @@ type APIKeyTokenSource struct {
 	apiKey           string
 	allowInsecure    bool
 	minTokenLifetime time.Duration
-	orgID            string
+
+	md *AddMetadata
 
 	mu sync.Mutex
 	c  *tokenCache
@@ -67,10 +68,23 @@ func WithMinTokenLifetime(d time.Duration) APIKeyTokenSourceOption {
 	}
 }
 
-// WithOrgIDMetadata specifies the organization ID to be used in the request metadata.
-func WithOrgIDMetadata(orgID string) APIKeyTokenSourceOption {
+// AddMetadata contains additional metadata to be added to the request.
+// Example:
+//
+//	md := &AddMetadata{
+//	  metadata: map[string]string{"custom-header": "something"},
+//	  cookies:  map[string]string{"org-id": "intrinsic-dev"},
+//	}
+//	NewAPIKeyTokenSource("api-key", tp, WithAdditionalMetadata(md))
+type AddMetadata struct {
+	metadata map[string]string
+	cookies  map[string]string
+}
+
+// WithAdditionalMetadata adds additional metadata to the request.
+func WithAdditionalMetadata(md *AddMetadata) APIKeyTokenSourceOption {
 	return func(s *APIKeyTokenSource) {
-		s.orgID = orgID
+		s.md = md
 	}
 }
 
@@ -84,6 +98,9 @@ func NewAPIKeyTokenSource(apiKey string, tp APIKeyTokenProvider, opts ...APIKeyT
 	for _, opt := range opts {
 		opt(s)
 	}
+	if s.md == nil {
+		s.md = &AddMetadata{}
+	}
 	return s
 }
 
@@ -94,12 +111,26 @@ func (s *APIKeyTokenSource) GetRequestMetadata(ctx context.Context, _ ...string)
 	if err != nil {
 		return nil, fmt.Errorf("could not get account token: %v", err)
 	}
-	var cookies []string
-	cookies = append(cookies, (&http.Cookie{Name: "auth-proxy", Value: t}).String())
-	if s.orgID != "" {
-		cookies = append(cookies, (&http.Cookie{Name: "org-id", Value: s.orgID}).String())
+	cks := []*http.Cookie{
+		&http.Cookie{Name: "auth-proxy", Value: t},
 	}
-	return map[string]string{"cookie": strings.Join(cookies, "; ")}, nil
+	// add additional cookies if provided
+	for k, v := range s.md.cookies {
+		if k == "" || v == "" {
+			continue
+		}
+		cks = append(cks, &http.Cookie{Name: k, Value: v})
+	}
+	mdkv := cookies.ToMDString(cks...)
+	metadata := map[string]string{mdkv[0]: mdkv[1]}
+	// add additional metadata if provided
+	for k, v := range s.md.metadata {
+		if k == "" || v == "" {
+			continue
+		}
+		metadata[k] = v
+	}
+	return metadata, nil
 }
 
 // RequireTransportSecurity returns the configured level of transport security.
