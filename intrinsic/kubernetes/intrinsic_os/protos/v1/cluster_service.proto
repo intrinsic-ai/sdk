@@ -7,6 +7,14 @@ package intrinsic_proto.cluster.v1;
 import "intrinsic/kubernetes/intrinsic_os/protos/v1/cluster.proto";
 import "intrinsic/kubernetes/intrinsic_os/protos/v1/shutdown.proto";
 
+// ClusterService runs on IPCs and provides administrative functionality.
+//
+// It is accessible via the cluster ingress at
+// ```
+// istio-ingressgateway.app-ingress.svc.cluster.local:80
+// ```
+// or directly at the IP address of the IPC at port 2464.
+// It is available on IPCs running IntrinsicOS 20250814.RC01 or later.
 service ClusterService {
   // GetCluster returns the cluster information.
   rpc GetCluster(GetClusterRequest) returns (Cluster) {}
