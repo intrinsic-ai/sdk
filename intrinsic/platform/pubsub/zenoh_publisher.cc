@@ -17,6 +17,7 @@
 #include "intrinsic/platform/pubsub/zenoh_publisher_data.h"
 #include "intrinsic/platform/pubsub/zenoh_util/zenoh_handle.h"
 #include "intrinsic/util/proto_time.h"
+#include "intrinsic/util/status/ret_check.h"
 #include "intrinsic/util/status/status_macros.h"
 #include "opencensus/stats/stats.h"
 
@@ -57,13 +58,13 @@ Publisher::~Publisher() {
 absl::Status Publisher::Publish(const google::protobuf::Message& message,
                                 absl::Time event_time) const {
   google::protobuf::Any message_packed;
-  message_packed.PackFrom(message);
+  INTR_RET_CHECK(message_packed.PackFrom(message));
   return Publish(std::move(message_packed), event_time);
 }
 
 absl::Status Publisher::Publish(google::protobuf::Any message,
                                 absl::Time event_time) const {
-  intrinsic_proto::pubsub::PubSubPacket wrapper;
+  thread_local intrinsic_proto::pubsub::PubSubPacket wrapper;
   *wrapper.mutable_payload() = std::move(message);
   // When the pubsub message was sent out.
   absl::Time publish_time = absl::Now();

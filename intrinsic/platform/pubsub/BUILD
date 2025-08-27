@@ -151,6 +151,7 @@ cc_library(
         "//intrinsic/platform/pubsub/adapters:pubsub_cc_proto",
         "//intrinsic/platform/pubsub/zenoh_util:zenoh_handle",
         "//intrinsic/util:proto_time",
+        "//intrinsic/util/status:ret_check",
         "//intrinsic/util/status:status_macros",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
