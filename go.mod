@@ -8,6 +8,7 @@ toolchain go1.24.2
 
 require (
 	cel.dev/expr v0.23.0
+	cloud.google.com/go/asset v1.20.4
 	cloud.google.com/go/bigquery v1.66.2
 	cloud.google.com/go/compute/metadata v0.6.0
 	cloud.google.com/go/firestore v1.18.0
@@ -35,6 +36,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/fsouza/fake-gcs-server v1.47.4
+	github.com/gdamore/tcell/v2 v2.8.1
 	github.com/gobwas/glob v0.2.3
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/golang/glog v1.2.4
@@ -65,11 +67,10 @@ require (
 	github.com/pion/webrtc/v4 v4.1.1
 	github.com/pkg/errors v0.9.1
 	github.com/protocolbuffers/txtpbfmt v0.0.0-20250627152318-f293424e46b5
+	github.com/rivo/tview v0.0.0-20250625164341-a4a78f1e05cb
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/cors v1.11.1
 	github.com/rs/xid v1.6.0
-	github.com/gdamore/tcell/v2 v2.8.1
-	github.com/rivo/tview v0.0.0-20250625164341-a4a78f1e05cb
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/pflag v1.0.6
@@ -109,9 +110,12 @@ require (
 	buf.build/gen/go/gogo/protobuf/protocolbuffers/go v1.36.6-20240617172848-e1dbca2775a7.1 // indirect
 	buf.build/gen/go/prometheus/prometheus/protocolbuffers/go v1.36.6-20250320161912-af2aab87b1b3.1 // indirect
 	cloud.google.com/go v0.120.0 // indirect
+	cloud.google.com/go/accesscontextmanager v1.9.3 // indirect
 	cloud.google.com/go/auth v0.15.0 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.7 // indirect
 	cloud.google.com/go/iam v1.4.2 // indirect
+	cloud.google.com/go/orgpolicy v1.14.2 // indirect
+	cloud.google.com/go/osconfig v1.14.3 // indirect
 	cloud.google.com/go/pubsub v1.47.0
 	cloud.google.com/go/trace v1.11.3 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
@@ -202,9 +206,9 @@ require (
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
+	github.com/gdamore/encoding v1.0.1 // indirect
 	github.com/go-errors/errors v1.5.1 // indirect
 	github.com/go-gorp/gorp/v3 v3.1.0 // indirect
-	github.com/gdamore/encoding v1.0.1 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
@@ -362,7 +366,7 @@ require (
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20250303144028-a0af3efb3deb // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250313205543-e70fdf4c4cb4
-	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.5.0
+	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.5.1
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
