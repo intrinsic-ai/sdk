@@ -14,10 +14,16 @@ message ProcessAsset {
 
   // The behavior tree representing the process.
   //
-  // If the process is a reusable subprocesses (=parameterizable behavior tree),
-  // the Skill proto in [BehaviorTree.description] is set. It describes the
-  // interface of the subprocess (parameters, return value, etc.) and contains a
-  // copy of the asset's 'metadata' such as [Metadata.id_version],
-  // [Metadata.display_name] etc. in "skill format".
+  // [BehaviorTree.name] is equal to [Metadata.display_name].
+  //
+  // The Skill proto in [BehaviorTree.description] stores additional metadata
+  // about the process. For subprocesses (parameterizable behavior trees) it
+  // describes the interface of the subprocess (parameters, return value, etc.)
+  // and contains redundant metadata such as id, version etc. in "skill format".
+  //
+  // Upon asset creation, the metadata fields in the Skill proto
+  // ([Skill.skill_name, .package_name, .id, .id_version, .description]) may be
+  // empty. They will then be automatically populated from their counterparts in
+  // 'metadata'.
   intrinsic_proto.executive.BehaviorTree behavior_tree = 2;
 }

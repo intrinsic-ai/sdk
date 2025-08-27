@@ -78,24 +78,57 @@ type ManifestMetadata interface {
 
 // ValidateMetadataOptions contains options for ValidateMetadata.
 type ValidateMetadataOptions struct {
-	requireUpdateTime bool
-	requireVersion    bool
+	requireUpdateTime          bool
+	requireVersion             bool
+	requireNoVersion           bool
+	requiredAssetType          atypepb.AssetType
+	requireNoFileDescriptorSet bool
 }
 
 // ValidateMetadataOption is a functional option for ValidateMetadata.
 type ValidateMetadataOption func(*ValidateMetadataOptions)
 
-// WithRequireUpdateTime requires that the metadata has an update time.
+// WithRequireUpdateTime requires that the metadata has an update time if set to
+// true.
 func WithRequireUpdateTime(requireUpdateTime bool) ValidateMetadataOption {
 	return func(opts *ValidateMetadataOptions) {
 		opts.requireUpdateTime = requireUpdateTime
 	}
 }
 
-// WithRequireVersion requires that the metadata has a version.
+// WithRequireVersion requires that the metadata has a version if set to true.
+// Cannot be combined with WithRequireNoVersion(true). By default, if neither
+// WithRequireVersion(true) nor WithRequireNoVersion(true) are requested, the
+// version will be validated only if present.
 func WithRequireVersion(requireVersion bool) ValidateMetadataOption {
 	return func(opts *ValidateMetadataOptions) {
 		opts.requireVersion = requireVersion
+	}
+}
+
+// WithRequireNoVersion requires that the metadata has no version if set to
+// true. Cannot be combined with WithRequireVersion(true). By default, if
+// neither WithRequireVersion(true) nor WithRequireNoVersion(true) are
+// requested, the version will be validated only if present.
+func WithRequireNoVersion(requireNoVersion bool) ValidateMetadataOption {
+	return func(opts *ValidateMetadataOptions) {
+		opts.requireNoVersion = requireNoVersion
+	}
+}
+
+// WithRequiredAssetType requires that the metadata has the given asset
+// type.
+func WithRequiredAssetType(requiredAssetType atypepb.AssetType) ValidateMetadataOption {
+	return func(opts *ValidateMetadataOptions) {
+		opts.requiredAssetType = requiredAssetType
+	}
+}
+
+// WithRequireNoFileDescriptorSet requires that the metadata has no file
+// descriptor set if set to true.
+func WithRequireNoFileDescriptorSet(requireNoFileDescriptorSet bool) ValidateMetadataOption {
+	return func(opts *ValidateMetadataOptions) {
+		opts.requireNoFileDescriptorSet = requireNoFileDescriptorSet
 	}
 }
 
@@ -113,7 +146,15 @@ func ValidateMetadata(m *metadatapb.Metadata, options ...ValidateMetadataOption)
 	for _, opt := range options {
 		opt(opts)
 	}
+	if opts.requireNoVersion && opts.requireVersion {
+		// This function was called incorrectly. From the perspective of the gRPC
+		// client this is an internal error (not an invalid argument error).
+		return status.Errorf(codes.Internal, "only one of requireNoVersion and requireVersion can be specified")
+	}
 
+	if opts.requireNoVersion && m.GetIdVersion().GetVersion() != "" {
+		return status.Errorf(codes.InvalidArgument, "version must not be specified")
+	}
 	if opts.requireVersion || m.GetIdVersion().GetVersion() != "" {
 		if err := idutils.ValidateIDVersionProto(m.GetIdVersion()); err != nil {
 			return status.Errorf(codes.InvalidArgument, "invalid id version: %v", err)
@@ -135,6 +176,12 @@ func ValidateMetadata(m *metadatapb.Metadata, options ...ValidateMetadataOption)
 	if m.GetAssetType() == atypepb.AssetType_ASSET_TYPE_UNSPECIFIED {
 		return status.Errorf(codes.InvalidArgument, "no asset type specified for %q", id)
 	}
+	if opts.requiredAssetType != atypepb.AssetType_ASSET_TYPE_UNSPECIFIED && m.GetAssetType() != opts.requiredAssetType {
+		return status.Errorf(
+			codes.InvalidArgument, "asset type %v required for %q but got %v",
+			atypepb.AssetType_name[int32(opts.requiredAssetType)], id,
+			atypepb.AssetType_name[int32(m.GetAssetType())])
+	}
 	if m.GetAssetTag() != atagpb.AssetTag_ASSET_TAG_UNSPECIFIED {
 		applicableTags, err := tagutils.AssetTagsForType(m.GetAssetType())
 		if err != nil {
@@ -152,6 +199,9 @@ func ValidateMetadata(m *metadatapb.Metadata, options ...ValidateMetadataOption)
 				atypepb.AssetType_name[int32(m.GetAssetType())],
 				id)
 		}
+	}
+	if opts.requireNoFileDescriptorSet && m.GetFileDescriptorSet() != nil {
+		return status.Errorf(codes.InvalidArgument, "file descriptor set must not be specified")
 	}
 
 	// Validate metadata size limits.

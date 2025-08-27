@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 
+	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	tpb "google.golang.org/protobuf/types/known/timestamppb"
 	datamanifestpb "intrinsic/assets/data/proto/v1/data_manifest_go_proto"
 	hardwaremanifestpb "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest_go_proto"
@@ -65,6 +66,8 @@ func TestValidateMetadata(t *testing.T) {
 	mNoUpdateTime.UpdateTime = nil
 	mNoAssetType := proto.Clone(m).(*metadatapb.Metadata)
 	mNoAssetType.AssetType = atypepb.AssetType_ASSET_TYPE_UNSPECIFIED
+	mSkillAssetType := proto.Clone(m).(*metadatapb.Metadata)
+	mSkillAssetType.AssetType = atypepb.AssetType_ASSET_TYPE_SKILL
 	mInvalidAssetTag := proto.Clone(m).(*metadatapb.Metadata)
 	mInvalidAssetTag.AssetTag = atagpb.AssetTag_ASSET_TAG_GRIPPER
 	mNameTooLong := proto.Clone(m).(*metadatapb.Metadata)
@@ -77,6 +80,8 @@ func TestValidateMetadata(t *testing.T) {
 	mDescriptionTooLong.Documentation.Description = strings.Repeat("a", DescriptionCharLength+1)
 	mReleaseNotesTooLong := proto.Clone(m).(*metadatapb.Metadata)
 	mReleaseNotesTooLong.ReleaseNotes = strings.Repeat("a", RelNotesCharLength+1)
+	mWithFileDescriptorSet := proto.Clone(m).(*metadatapb.Metadata)
+	mWithFileDescriptorSet.FileDescriptorSet = &dpb.FileDescriptorSet{}
 
 	tests := []struct {
 		name          string
@@ -89,20 +94,81 @@ func TestValidateMetadata(t *testing.T) {
 			m:    m,
 		},
 		{
+			name:          "invalid version",
+			m:             mInvalidVersion,
+			wantErrorCode: codes.InvalidArgument,
+		},
+		{
 			name: "valid with version required",
 			m:    m,
 			opts: []ValidateMetadataOption{WithRequireVersion(true)},
 		},
 		{
-			name: "valid with version not required",
+			name:          "invalid version with version required",
+			m:             mInvalidVersion,
+			opts:          []ValidateMetadataOption{WithRequireVersion(true)},
+			wantErrorCode: codes.InvalidArgument,
+		},
+		{
+			name:          "missing version with version required",
+			m:             mMissingVersion,
+			opts:          []ValidateMetadataOption{WithRequireVersion(true)},
+			wantErrorCode: codes.InvalidArgument,
+		},
+		{
+			name: "valid with version required (false)",
+			m:    m,
+			opts: []ValidateMetadataOption{WithRequireVersion(false)},
+		},
+		{
+			name:          "invalid version with version required (false)",
+			m:             mInvalidVersion,
+			opts:          []ValidateMetadataOption{WithRequireVersion(false)},
+			wantErrorCode: codes.InvalidArgument,
+		},
+		{
+			name: "missing version with version required (false)",
 			m:    mMissingVersion,
 			opts: []ValidateMetadataOption{WithRequireVersion(false)},
 		},
 		{
-			name:          "missing version",
-			m:             mMissingVersion,
-			opts:          []ValidateMetadataOption{WithRequireVersion(true)},
+			name:          "valid with no version required",
+			m:             m,
+			opts:          []ValidateMetadataOption{WithRequireNoVersion(true)},
 			wantErrorCode: codes.InvalidArgument,
+		},
+		{
+			name:          "invalid version with no version required",
+			m:             mInvalidVersion,
+			opts:          []ValidateMetadataOption{WithRequireNoVersion(true)},
+			wantErrorCode: codes.InvalidArgument,
+		},
+		{
+			name: "missing version with no version required",
+			m:    mMissingVersion,
+			opts: []ValidateMetadataOption{WithRequireNoVersion(true)},
+		},
+		{
+			name: "valid with no version required (false)",
+			m:    m,
+			opts: []ValidateMetadataOption{WithRequireNoVersion(false)},
+		},
+		{
+			name:          "invalid version with no version required (false)",
+			m:             mInvalidVersion,
+			opts:          []ValidateMetadataOption{WithRequireNoVersion(false)},
+			wantErrorCode: codes.InvalidArgument,
+		},
+		{
+			name: "missing version with no version required (false)",
+			m:    mMissingVersion,
+			opts: []ValidateMetadataOption{WithRequireNoVersion(false)},
+		},
+		{
+			name:          "require version and require no version",
+			m:             m,
+			opts:          []ValidateMetadataOption{WithRequireVersion(true), WithRequireNoVersion(true)},
+			wantErrorCode: codes.Internal,
 		},
 		{
 			name:          "missing version for catalog",
@@ -118,11 +184,6 @@ func TestValidateMetadata(t *testing.T) {
 		{
 			name:          "invalid package",
 			m:             mInvalidPackage,
-			wantErrorCode: codes.InvalidArgument,
-		},
-		{
-			name:          "invalid version",
-			m:             mInvalidVersion,
 			wantErrorCode: codes.InvalidArgument,
 		},
 		{
@@ -142,6 +203,11 @@ func TestValidateMetadata(t *testing.T) {
 			wantErrorCode: codes.InvalidArgument,
 		},
 		{
+			name: "no update time (false)",
+			m:    mNoUpdateTime,
+			opts: []ValidateMetadataOption{WithRequireUpdateTime(false)},
+		},
+		{
 			name:          "no update time for catalog",
 			m:             mNoUpdateTime,
 			opts:          WithCatalogOptions(),
@@ -153,9 +219,26 @@ func TestValidateMetadata(t *testing.T) {
 			wantErrorCode: codes.InvalidArgument,
 		},
 		{
+			name:          "wrong asset type",
+			m:             mSkillAssetType,
+			opts:          []ValidateMetadataOption{WithRequiredAssetType(atypepb.AssetType_ASSET_TYPE_PROCESS)},
+			wantErrorCode: codes.InvalidArgument,
+		},
+		{
 			name:          "invalid asset tag",
 			m:             mInvalidAssetTag,
 			wantErrorCode: codes.InvalidArgument,
+		},
+		{
+			name:          "no file descriptor set required",
+			m:             mWithFileDescriptorSet,
+			opts:          []ValidateMetadataOption{WithRequireNoFileDescriptorSet(true)},
+			wantErrorCode: codes.InvalidArgument,
+		},
+		{
+			name: "no file descriptor set required (false)",
+			m:    mWithFileDescriptorSet,
+			opts: []ValidateMetadataOption{WithRequireNoFileDescriptorSet(false)},
 		},
 		{
 			name:          "name too long",
@@ -193,10 +276,10 @@ func TestValidateMetadata(t *testing.T) {
 				} else if s, ok := status.FromError(err); !ok {
 					t.Errorf("Could not get status from ValidateMetadata()")
 				} else if s.Code() != tc.wantErrorCode {
-					t.Errorf("ValidateMetadata(%v) returned %v, want %v", tc.m, s.Code(), tc.wantErrorCode)
+					t.Errorf("ValidateMetadata(%v) returned %q, want %v", tc.m, err, tc.wantErrorCode)
 				}
 			} else if err != nil {
-				t.Errorf("ValidateMetadata(%v) = %v, want error", tc.m, err)
+				t.Errorf("ValidateMetadata(%v) = %v, want no error", tc.m, err)
 			}
 		})
 	}
