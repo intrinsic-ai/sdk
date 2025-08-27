@@ -39,7 +39,7 @@ var vmExpireInCmd = &cobra.Command{
 		defer span.End()
 		cl, err := newLeaseClient(ctx)
 		if err != nil {
-			log.ExitContextf(ctx, "could not create lease client: %v", err)
+			return err
 		}
 		return ExpireIn(ctx, cl, args[0], args[1], flagProject, flagExtendOnly)
 	},
