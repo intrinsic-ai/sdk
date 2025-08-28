@@ -27,22 +27,6 @@ filegroup(
         patches = [Label("//intrinsic/production/external/patches:qt5.patch")],
     )
 
-    http_archive(
-        name = "xxd",
-        build_file = Label("//intrinsic/production/external:xxd.BUILD.bazel"),
-        sha256 = "a5cdcfcfeb13dc4deddcba461d40234dbf47e61941cb7170c9ebe147357bb62d",
-        strip_prefix = "vim-9.1.0917/src/xxd",
-        urls = ["https://github.com/vim/vim/archive/refs/tags/v9.1.0917.tar.gz"],
-    )
-
-    http_archive(
-        name = "dumb-init",
-        build_file = Label("//intrinsic/production/external:dumb_init.BUILD.bazel"),
-        sha256 = "3eda470d8a4a89123f4516d26877a727c0945006c8830b7e3bad717a5f6efc4e",
-        strip_prefix = "dumb-init-1.2.5",
-        urls = ["https://github.com/Yelp/dumb-init/archive/refs/tags/v1.2.5.tar.gz"],
-    )
-
     ################################
     # Google OSS replacement files #
     #      go/insrc-g3-to-oss      #
