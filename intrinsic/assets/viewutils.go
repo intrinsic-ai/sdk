@@ -152,7 +152,6 @@ func AssetToView[T Asset](asset T, view viewpb.AssetViewType, options ...AssetTo
 		assetView.GetMetadata().AssetType = opts.Metadata.GetAssetType()
 		assetView.GetMetadata().IdVersion = opts.Metadata.GetIdVersion()
 		assetView.GetMetadata().ReleaseNotes = opts.Metadata.GetReleaseNotes()
-		assetView.GetMetadata().ReleaseTag = opts.Metadata.GetReleaseTag()
 		assetView.GetMetadata().UpdateTime = opts.Metadata.GetUpdateTime()
 		assetView.GetMetadata().Vendor = opts.Metadata.GetVendor()
 	case viewpb.AssetViewType_ASSET_VIEW_TYPE_ALL_METADATA:

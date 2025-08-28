@@ -183,7 +183,6 @@ proto_library(
         ":asset_type_proto",
         ":documentation_proto",
         ":id_proto",
-        ":release_tag_proto",
         ":vendor_proto",
         "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_googleapis//google/api:field_behavior_proto",

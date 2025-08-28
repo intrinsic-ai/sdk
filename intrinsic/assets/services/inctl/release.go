@@ -25,7 +25,6 @@ import (
 	"intrinsic/assets/imageutils"
 	atpb "intrinsic/assets/proto/asset_type_go_proto"
 	mpb "intrinsic/assets/proto/metadata_go_proto"
-	releasetagpb "intrinsic/assets/proto/release_tag_go_proto"
 	"intrinsic/skills/tools/resource/cmd/bundleimages"
 	"intrinsic/skills/tools/skill/cmd/directupload/directupload"
 	"intrinsic/tools/inctl/cmd/root"
@@ -67,11 +66,6 @@ func release(ctx context.Context, client acgrpcpb.AssetCatalogClient, req *acpb.
 }
 
 func processAsset(target string, transferer imagetransfer.Transferer, flags *cmdutils.CmdFlags) (*acpb.Asset, error) {
-	releaseTag := releasetagpb.ReleaseTag_RELEASE_TAG_UNSPECIFIED
-	if flags.GetFlagDefault() {
-		releaseTag = releasetagpb.ReleaseTag_RELEASE_TAG_DEFAULT
-	}
-
 	if flags.GetFlagDryRun() {
 		manifest, err := bundleio.ReadServiceManifest(target)
 		if err != nil {
@@ -119,7 +113,6 @@ func processAsset(target string, transferer imagetransfer.Transferer, flags *cmd
 			Documentation: metadata.GetDocumentation(),
 			Vendor:        metadata.GetVendor(),
 			ReleaseNotes:  flags.GetFlagReleaseNotes(),
-			ReleaseTag: releaseTag,
 		},
 		ReleaseMetadata: &rmpb.ReleaseMetadata{
 			Default:    flags.GetFlagDefault(),
