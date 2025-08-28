@@ -148,6 +148,19 @@ py_grpc_library(
     deps = [":executive_service_py_pb2"],
 )
 
+cc_grpc_library(
+    name = "executive_service_cc_grpc_proto",
+    srcs = [":executive_service_proto"],
+    generate_mocks = True,
+    grpc_only = True,
+    deps = [":executive_service_cc_proto"],
+)
+
+cc_proto_library(
+    name = "executive_service_cc_proto",
+    deps = [":executive_service_proto"],
+)
+
 go_proto_library(
     name = "executive_service_go_proto",
     go_deps = [
