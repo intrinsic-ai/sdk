@@ -31,6 +31,15 @@ message Volume {
 
 // HostPathVolumeSource describes a path on the host machine that should be made
 // accessible to the Service.
+//
+// Recommended host paths to use are:
+// - /tmp/service_volumes/<vendor> (for ephemeral data)
+// - /var/lib/file-storage/service_volumes/<vendor> (for long-term persistence)
+//
+// NOTE that data written to a host path volume can be read and modified by any
+// other Service that requests the same host path. These paths should therefore
+// not be used for sensitive data.
+//
 // See: https://kubernetes.io/docs/concepts/storage/volumes/#hostpath
 message HostPathVolumeSource {
   // The path on the host to make available.
