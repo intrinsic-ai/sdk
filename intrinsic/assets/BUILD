@@ -192,7 +192,6 @@ go_library(
         "//intrinsic/assets/services:servicemanifest",
         "//intrinsic/assets/services/proto:service_manifest_go_proto",
         "//intrinsic/kubernetes/workcell_spec/proto:image_go_proto",
-        "//intrinsic/scene/proto/v1:scene_object_config_go_proto",
         "//intrinsic/skills/internal:skillmanifest",
         "//intrinsic/skills/proto:processed_skill_manifest_go_proto",
         "//intrinsic/skills/proto:skill_manifest_go_proto",
