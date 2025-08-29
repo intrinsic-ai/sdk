@@ -10,10 +10,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
-	"intrinsic/kubernetes/acl/identity"
-	"intrinsic/skills/tools/skill/cmd/dialerutil"
 	"intrinsic/tools/inctl/cmd/root"
-	"intrinsic/tools/inctl/util/orgutil"
 	"intrinsic/tools/inctl/util/printer"
 
 	clusterdiscoverypb "intrinsic/frontend/cloud/api/v1/clusterdiscovery_api_go_grpc_proto"
@@ -134,22 +131,12 @@ var solutionListCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-
-		projectName := viperLocal.GetString(orgutil.KeyProject)
-		orgName := viperLocal.GetString(orgutil.KeyOrganization)
-		ctx, conn, err := dialerutil.DialConnectionCtx(cmd.Context(), dialerutil.DialInfoParams{
-			CredName: projectName,
-			CredOrg:  orgName,
-		})
+		ctx := cmd.Context()
+		conn, err := newCloudConn(ctx)
 		if err != nil {
-			return fmt.Errorf("failed to create client connection: %w", err)
+			return err
 		}
 		defer conn.Close()
-
-		ctx, err = identity.OrgToContext(ctx, orgName)
-		if err != nil {
-			return fmt.Errorf("failed to add org information to context: %w", err)
-		}
 
 		err = listSolutions(ctx, conn, &listSolutionsParams{
 			filter:  flagFilter,

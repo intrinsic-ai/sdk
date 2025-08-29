@@ -4,8 +4,12 @@
 package solution
 
 import (
+	"context"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"google.golang.org/grpc"
+	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/orgutil"
 )
@@ -28,4 +32,8 @@ var SolutionCmd = orgutil.WrapCmd(&cobra.Command{
 
 func init() {
 	root.RootCmd.AddCommand(SolutionCmd)
+}
+
+func newCloudConn(ctx context.Context) (*grpc.ClientConn, error) {
+	return auth.NewCloudConnection(ctx, auth.WithFlagValues(viperLocal))
 }
