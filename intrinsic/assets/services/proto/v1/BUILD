@@ -60,7 +60,6 @@ proto_library(
     name = "service_state_proto",
     srcs = ["service_state.proto"],
     deps = [
-        "//intrinsic/assets/proto:metadata_proto",
         "//intrinsic/util/status:extended_status_proto",
     ],
 )
@@ -80,7 +79,6 @@ cc_grpc_library(
 go_proto_library(
     name = "service_state_go_proto",
     go_deps = [
-        "//intrinsic/assets/proto:metadata_go_proto",
         "//intrinsic/util/status:extended_status_go_proto",
     ],
     deps = [":service_state_proto"],
@@ -90,7 +88,6 @@ go_grpc_library(
     name = "service_state_go_grpc_proto",
     srcs = [":service_state_proto"],
     deps = [
-        "//intrinsic/assets/proto:metadata_go_proto",
         "//intrinsic/util/status:extended_status_go_proto",
     ],
 )
