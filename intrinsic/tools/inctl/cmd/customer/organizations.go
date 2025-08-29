@@ -23,15 +23,13 @@ func init() {
 }
 
 var (
-	flagOrgDisplayName  string
-	flagSkipPaymentPlan bool
-	flagYes             bool
+	flagOrgDisplayName string
+	flagYes            bool
 )
 
 func organizationsInit(root *cobra.Command) {
 	createCmd.Flags().StringVar(&flagCustomer, "customer", "", "The human-friendly identifier of the organization to create (format: ^[a-z][a-z0-9_-]{0,63}$). Keep empty to auto-generate a random identifier.")
 	createCmd.Flags().StringVar(&flagOrgDisplayName, "display-name", "", "The display name of the organization to create.")
-	createCmd.Flags().BoolVar(&flagSkipPaymentPlan, "skip-payment-plan", false, "Skip creating a payment plan for the organization.")
 	createCmd.MarkFlagRequired("display-name")
 	root.AddCommand(createCmd)
 	deleteCmd.Flags().StringVar(&flagCustomer, "customer", "", "The human-friendly identifier of the organization to delete.")
@@ -79,31 +77,6 @@ var createCmd = &cobra.Command{
 		op, err := cl.CreateOrganization(ctx, &req)
 		if err != nil {
 			return fmt.Errorf("failed to create organization: %w", err)
-		}
-		if flagDebugRequests {
-			protoPrint(op)
-		}
-		op, err = accounts.WaitForOperation(ctx, cl.GetOperation, op, 10*time.Minute)
-		if err != nil {
-			return fmt.Errorf("failed to wait for operation: %w", err)
-		}
-		if flagDebugRequests {
-			protoPrint(op)
-		}
-		if flagSkipPaymentPlan {
-			fmt.Println("Warning: skipping payment plan creation. The organization will have no quota assigned.")
-			return nil
-		}
-		preq := &accresourcemanager1pb.CreateOrganizationPaymentPlanRequest{
-			Parent: addPrefix(flagCustomer, "organizations/"),
-		}
-		if flagDebugRequests {
-			protoPrint(preq)
-		}
-		fmt.Println("Creating a payment plan for the organization.")
-		op, err = cl.CreateOrganizationPaymentPlan(ctx, preq)
-		if err != nil {
-			return fmt.Errorf("failed to create organization payment plan: %w", err)
 		}
 		if flagDebugRequests {
 			protoPrint(op)
