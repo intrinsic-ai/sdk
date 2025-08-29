@@ -14,7 +14,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"intrinsic/skills/tools/skill/cmd/dialerutil"
+	"intrinsic/config/environments"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/orgutil"
 
@@ -82,7 +82,7 @@ func debugAuthStore(ctx context.Context, org string) {
 	}
 	fmt.Println("OK")
 	fmt.Printf("API Key Length: %d\n", len(cred.APIKey))
-	debugAccountsDiscovery(ctx, cred.APIKey, "accounts.intrinsic.ai")
+	debugAccountsDiscovery(ctx, cred.APIKey, "intrinsic-accounts-prod")
 	debugUserRecord(ctx, "flowstate.intrinsic.ai", cred.APIKey)
 }
 
@@ -176,14 +176,10 @@ func decodePayload(jwtk string) ([]byte, error) {
 	return d, nil
 }
 
-func debugAccountsDiscovery(ctx context.Context, apiKey, domain string) {
-	addr := fmt.Sprintf("dns:///%s:443", domain)
-	fmt.Printf("Organizations Discovery (%q):\n", addr)
+func debugAccountsDiscovery(ctx context.Context, apiKey, accProject string) {
+	fmt.Printf("Organizations Discovery (%q):\n", environments.Domain(accProject))
 	fmt.Printf(" Connection: ")
-	ctx, conn, err := dialerutil.DialConnectionCtx(ctx, dialerutil.DialInfoParams{
-		Address:   addr,
-		CredToken: apiKey,
-	})
+	conn, err := auth.NewCloudConnection(ctx, auth.WithProject(accProject), auth.WithAPIKey(apiKey))
 	if err != nil {
 		fmt.Printf("ERROR (%v)\n", err)
 		return
