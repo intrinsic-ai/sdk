@@ -45,8 +45,8 @@ func WithOrg(o string) ConnectionOptsFunc {
 // ConnectionOptsFunc is a function that can be used to configure the connection.
 type ConnectionOptsFunc func(*ConnectionOpts)
 
-// WithDailOptions sets the dial options to use for the connection.
-func WithDailOptions(opts ...grpc.DialOption) ConnectionOptsFunc {
+// WithDialOptions sets the dial options to use for the connection.
+func WithDialOptions(opts ...grpc.DialOption) ConnectionOptsFunc {
 	return func(c *ConnectionOpts) {
 		c.opts = append(c.opts, opts...)
 	}
