@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"archive/tar"
+	"github.com/google/safearchive/tar"
 	"google.golang.org/protobuf/proto"
 	"intrinsic/skills/internal/skillmanifest"
 	"intrinsic/util/archive/tartooling"

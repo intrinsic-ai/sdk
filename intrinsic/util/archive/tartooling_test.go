@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"archive/tar"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/safearchive/tar"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/testing/protocmp"
 

@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"archive/tar"
+	"github.com/google/safearchive/tar"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
 	"intrinsic/tools/inctl/cmd/root"

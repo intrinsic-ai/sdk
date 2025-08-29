@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"archive/tar"
+	"github.com/google/safearchive/tar"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"

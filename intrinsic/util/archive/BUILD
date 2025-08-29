@@ -11,6 +11,7 @@ go_library(
     srcs = ["tartooling.go"],
     visibility = ["//intrinsic:__subpackages__"],
     deps = [
+        "@com_github_google_safearchive//tar",
         "@com_github_pkg_errors//:go_default_library",
         "@org_golang_google_protobuf//proto",
     ],
@@ -23,6 +24,7 @@ go_test(
     deps = [
         "//intrinsic/util/proto/testing:diamond_a_go_proto",
         "@com_github_google_go_cmp//cmp:go_default_library",
+        "@com_github_google_safearchive//tar",
         "@org_golang_google_protobuf//proto",
         "@org_golang_google_protobuf//testing/protocmp:go_default_library",
     ],
@@ -32,4 +34,5 @@ go_library(
     name = "untar",
     srcs = ["untar.go"],
     visibility = ["//intrinsic:__subpackages__"],
+    deps = ["@com_github_google_safearchive//tar"],
 )

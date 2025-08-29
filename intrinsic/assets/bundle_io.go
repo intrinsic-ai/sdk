@@ -9,7 +9,7 @@ import (
 	"io"
 	"os"
 
-	"archive/tar"
+	"github.com/google/safearchive/tar"
 	"google.golang.org/protobuf/proto"
 
 	idpb "intrinsic/assets/proto/id_go_proto"

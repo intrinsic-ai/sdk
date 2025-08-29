@@ -44,6 +44,7 @@ require (
 	github.com/google/brotli/go/cbrotli v1.1.0
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-containerregistry v0.20.3
+	github.com/google/safearchive v0.0.0-20241025131057-f7ce9d7b6f9c
 	github.com/google/safehtml v0.1.0
 	github.com/google/safetext v0.0.0-20221026122733-23539d61753f
 	github.com/google/subcommands v1.2.0

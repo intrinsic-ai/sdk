@@ -199,6 +199,7 @@ go_library(
         "//intrinsic/util/go:pointer",
         "//intrinsic/util/proto:registryutil",
         "@com_github_golang_glog//:go_default_library",
+        "@com_github_google_safearchive//tar",
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
         "@org_golang_google_protobuf//proto",
         "@org_golang_google_protobuf//reflect/protodesc:go_default_library",

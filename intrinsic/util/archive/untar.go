@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"archive/tar"
+	"github.com/google/safearchive/tar"
 )
 
 // isPathUnderDir checks if p is under directory dir. Both p and dir are clean

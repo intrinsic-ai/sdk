@@ -9,7 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"archive/tar"
+	"github.com/google/safearchive/tar"
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/proto"
 )

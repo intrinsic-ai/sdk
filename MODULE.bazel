@@ -38,6 +38,7 @@ use_repo(
     "com_github_golang_jwt_jwt_v4",
     "com_github_google_go_cmp",
     "com_github_google_go_containerregistry",
+    "com_github_google_safearchive",
     "com_github_google_subcommands",
     "com_github_gorilla_websocket",
     "com_github_pborman_uuid",

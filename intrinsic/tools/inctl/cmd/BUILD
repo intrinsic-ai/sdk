@@ -45,6 +45,7 @@ go_library(
     deps = [
         ":root",
         "//intrinsic/util/archive:tartooling",
+        "@com_github_google_safearchive//tar",
         "@com_github_spf13_cobra//:go_default_library",
         "@com_github_spf13_cobra//doc:go_default_library",
     ],
