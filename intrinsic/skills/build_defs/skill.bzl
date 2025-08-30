@@ -9,6 +9,7 @@ load("@rules_python//python:defs.bzl", "py_binary")
 load("//bazel:cc_oci_image.bzl", "cc_oci_image")
 load("//bazel:container.bzl", "container_image")
 load("//bazel:python_oci_image.bzl", "python_oci_image")
+load("//intrinsic/assets/build_defs:asset.bzl", "AssetInfo", "AssetLocalInfo")
 load(
     "//intrinsic/skills/build_defs:manifest.bzl",
     "SkillManifestInfo",
@@ -284,6 +285,37 @@ def _intrinsic_skill_rule_impl(ctx):
         progress_message = "Skill bundle %s" % bundle_output.short_path,
     )
 
+    asset_info_output = ctx.actions.declare_file(ctx.label.name + ".asset_info.binpb")
+    asset_local_info_output = ctx.actions.declare_file(ctx.label.name + ".asset_local_info.binpb")
+    local_info_args = ctx.actions.args().add(
+        "--manifest",
+        manifest,
+    ).add(
+        "--asset_type",
+        "ASSET_TYPE_SKILL",
+    ).add(
+        "--bundle_path",
+        bundle_output,
+    ).add(
+        "--bundle_short_path",
+        bundle_output.short_path,
+    ).add(
+        "--file_descriptor_set",
+        fds,
+    ).add(
+        "--output_asset_info",
+        asset_info_output,
+    ).add(
+        "--output_asset_local_info",
+        asset_local_info_output,
+    )
+    ctx.actions.run(
+        inputs = depset([manifest, fds]),
+        outputs = [asset_info_output, asset_local_info_output],
+        executable = ctx.executable._assetlocalinfogen,
+        arguments = [local_info_args],
+    )
+
     return [
         DefaultInfo(
             executable = bundle_output,
@@ -293,6 +325,13 @@ def _intrinsic_skill_rule_impl(ctx):
         ),
         SkillInfo(
             bundle_tar = bundle_output,
+        ),
+        AssetInfo(
+            asset_info = asset_info_output,
+        ),
+        AssetLocalInfo(
+            bundle_path = bundle_output,
+            local_info = asset_local_info_output,
         ),
     ]
 
@@ -313,10 +352,16 @@ _intrinsic_skill_rule = rule(
             cfg = "exec",
             executable = True,
         ),
+        "_assetlocalinfogen": attr.label(
+            default = Label("//intrinsic/assets/build_defs:assetlocalinfogen"),
+            cfg = "exec",
+            executable = True,
+        ),
     },
     outputs = {
         "bundle_out": "%{name}.bundle.tar",
     },
+    provides = [SkillInfo, AssetInfo, AssetLocalInfo],
 )
 
 def _intrinsic_skill(name, image, manifest, **kwargs):

@@ -4,6 +4,7 @@
 Bazel rules for service types.
 """
 
+load("//intrinsic/assets/build_defs:asset.bzl", "AssetInfo", "AssetLocalInfo")
 load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "ProtoSourceCodeInfo", "gen_source_code_info_descriptor_set")
 
 ServiceTypeInfo = provider(
@@ -59,12 +60,51 @@ def _intrinsic_service_impl(ctx):
         progress_message = "Creating service bundle %{output} for %{label}",
     )
 
+    asset_info_output = ctx.actions.declare_file(ctx.label.name + ".asset_info.binpb")
+    asset_local_info_output = ctx.actions.declare_file(ctx.label.name + ".asset_local_info.binpb")
+    local_info_args = ctx.actions.args().add(
+        "--manifest",
+        ctx.file.manifest,
+    ).add(
+        "--asset_type",
+        "ASSET_TYPE_SERVICE",
+    ).add(
+        "--bundle_path",
+        bundle_output,
+    ).add(
+        "--bundle_short_path",
+        bundle_output.short_path,
+    ).add_all(
+        transitive_descriptor_sets,
+        before_each = "--file_descriptor_set",
+    ).add(
+        "--output_asset_info",
+        asset_info_output,
+    ).add(
+        "--output_asset_local_info",
+        asset_local_info_output,
+    )
+    ctx.actions.run(
+        inputs = depset([ctx.file.manifest], transitive = transitive_inputs),
+        outputs = [asset_info_output, asset_local_info_output],
+        executable = ctx.executable._assetlocalinfogen,
+        arguments = [local_info_args],
+    )
+
     return [
         DefaultInfo(
             executable = bundle_output,
         ),
         ServiceTypeInfo(
             bundle_tar = bundle_output,
+        ),
+        AssetInfo(
+            asset_info = asset_info_output,
+            transitive_descriptor_sets = transitive_descriptor_sets,
+        ),
+        AssetLocalInfo(
+            bundle_path = bundle_output,
+            local_info = asset_local_info_output,
         ),
     ]
 
@@ -98,8 +138,14 @@ intrinsic_service = rule(
             cfg = "exec",
             executable = True,
         ),
+        "_assetlocalinfogen": attr.label(
+            default = Label("//intrinsic/assets/build_defs:assetlocalinfogen"),
+            cfg = "exec",
+            executable = True,
+        ),
     },
     outputs = {
         "bundle_out": "%{name}.bundle.tar",
     },
+    provides = [ServiceTypeInfo, AssetInfo, AssetLocalInfo],
 )

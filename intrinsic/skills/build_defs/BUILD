@@ -21,6 +21,7 @@ bzl_library(
         "//bazel:cc_oci_image_bzl",
         "//bazel:container_bzl",
         "//bazel:python_oci_image_bzl",
+        "//intrinsic/assets/build_defs:asset_bzl",
         "@bazel_skylib//lib:paths",
         "@rules_cc//cc:core_rules",
         "@rules_cc//cc/common",

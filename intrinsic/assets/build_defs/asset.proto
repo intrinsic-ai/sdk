@@ -1,0 +1,63 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.assets.build_defs;
+
+import "google/protobuf/any.proto";
+import "google/protobuf/descriptor.proto";
+import "intrinsic/assets/proto/asset_type.proto";
+import "intrinsic/assets/proto/id.proto";
+
+message AssetInfo {
+  // The asset's type.
+  intrinsic_proto.assets.AssetType asset_type = 1;
+  // The asset ID.
+  intrinsic_proto.assets.Id id = 2;
+  // A file descriptor set containing definitions for protos used by the asset.
+  optional google.protobuf.FileDescriptorSet file_descriptor_set = 3;
+
+}
+
+message AssetLocalInfo {
+  // The asset's type.
+  intrinsic_proto.assets.AssetType asset_type = 1;
+  // The asset ID.
+  intrinsic_proto.assets.Id id = 2;
+  // The short path to the bundle file relative to a root directory. This path
+  // can be used to detect differences between two local assets that share the
+  // same ID.
+  string bundle_short_path = 3;
+  // The full path to the bundle file.
+  string bundle_path = 4;
+
+}
+
+message AssetCatalogRefInfo {
+  // The asset's type.
+  intrinsic_proto.assets.AssetType asset_type = 1;
+  // The asset ID and version.
+  intrinsic_proto.assets.IdVersion id_version = 2;
+
+}
+
+message AssetInstanceInfo {
+  // The asset ID.
+  intrinsic_proto.assets.Id id = 1;
+  // The name of this assent instance.
+  string instance_name = 2;
+  // The name of the node in which the service asset must run on. This option is
+  // only valid for service assets.
+  optional string required_node_hostname = 4;
+  // The asset instance's config will be a text proto until we can parse it with
+  // the asset's file descriptor set. The default config will be assigned if no
+  // config was given.
+  oneof config {
+    // The config as a text proto.
+    string text_proto = 5;
+    // The parsed config as an any proto.
+    google.protobuf.Any parsed = 6;
+  }
+
+  reserved 3;
+}
