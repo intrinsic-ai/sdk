@@ -145,6 +145,7 @@ func AssetToView[T Asset](asset T, view viewpb.AssetViewType, options ...AssetTo
 		assetView.GetMetadata().Documentation = opts.Metadata.GetDocumentation()
 		assetView.GetMetadata().IdVersion = opts.Metadata.GetIdVersion()
 		assetView.GetMetadata().Vendor = opts.Metadata.GetVendor()
+		assetView.GetMetadata().Provides = opts.Metadata.GetProvides()
 		if err := copyOneOfFieldValue(asset, assetView, assetSpecificMetadataOneOfName); err != nil {
 			return assetView, err
 		}

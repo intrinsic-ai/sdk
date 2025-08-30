@@ -24,6 +24,7 @@ enum AssetViewType {
   // * display_name
   // * documentation
   // * id_version
+  // * provides
   // * vendor
   //
   // Also includes any asset-specific metadata.

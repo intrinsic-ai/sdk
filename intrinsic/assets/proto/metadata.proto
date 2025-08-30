@@ -13,6 +13,15 @@ import "intrinsic/assets/proto/documentation.proto";
 import "intrinsic/assets/proto/id.proto";
 import "intrinsic/assets/proto/vendor.proto";
 
+message Interface {
+  // URI (protocol + fully qualified name) of an interface provided by the
+  // asset. For example, "grpc://package.name.Service" indicates that the asset
+  // provides a service with the fully qualifed name "package.name.Service".
+  // Another example is "data://package.name.Message" which indicates a proto
+  // message provided by the asset.
+  string uri = 1;
+}
+
 // General metadata for a specific version of an asset.
 message Metadata {
   // The asset's id and version.
@@ -45,6 +54,9 @@ message Metadata {
   // A descriptor set for the asset's protos.
   google.protobuf.FileDescriptorSet file_descriptor_set = 10
       [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Interfaces provided by the asset.
+  repeated Interface provides = 11 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   reserved 6;
   reserved "release_tag";
