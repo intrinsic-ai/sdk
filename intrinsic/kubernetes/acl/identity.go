@@ -213,3 +213,12 @@ func ToContext(ctx context.Context, u *User, orgID string) (context.Context, err
 func IPCEmail(name string) string {
 	return name + IntrinsicIPCEmailSuffix
 }
+
+// UserFromJWT retrieves an Identity from a given JWT.
+func UserFromJWT(t string) (*User, error) {
+	_, err := jwt.Email(t)
+	if err != nil {
+		return nil, fmt.Errorf("%w: failed to get email from JWT: %v", ErrUnauthenticated, err)
+	}
+	return &User{jwt: t}, nil
+}

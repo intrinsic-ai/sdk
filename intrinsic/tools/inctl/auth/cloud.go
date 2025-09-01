@@ -14,14 +14,16 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"intrinsic/config/environments"
+	"intrinsic/kubernetes/acl/identity"
 )
 
 // ConnectionOpts contains the options for creating a new gRPC connection to a cloud service.
 type ConnectionOpts struct {
-	project string
-	org     string
-	opts    []grpc.DialOption
-	apiKey  string
+	project    string
+	org        string
+	opts       []grpc.DialOption
+	apiKey     string
+	onIdentity func(u *identity.User)
 }
 
 // WithProject sets the cloud-project to use for the connection.
@@ -67,6 +69,14 @@ func WithFlagValues(v *viper.Viper) ConnectionOptsFunc {
 func WithAPIKey(k string) ConnectionOptsFunc {
 	return func(c *ConnectionOpts) {
 		c.apiKey = k
+	}
+}
+
+// WithOnIdentityCallback sets a callback to be called with the identity of the authenticated user.
+// Guaranteed to be called exactly once before the connection is returned.
+func WithOnIdentityCallback(f func(u *identity.User)) ConnectionOptsFunc {
+	return func(c *ConnectionOpts) {
+		c.onIdentity = f
 	}
 }
 
@@ -153,10 +163,19 @@ func NewCloudConnection(ctx context.Context, optsFuncs ...ConnectionOptsFunc) (*
 		return nil, errors.Join(err, errDetails)
 	}
 
-	if _, err := tkSource.Token(ctx); err != nil {
+	tk, err := tkSource.Token(ctx)
+	if err != nil {
 		errDetails.Message = "unable to retrieve token"
 		errDetails.Help = "This often indicates that your API key is expired or got invalidated. Please run `inctl auth login` and follow the instructions."
 		return nil, errors.Join(err, errDetails)
+	}
+	// if requested, return the identity of the authenticated user
+	if opts.onIdentity != nil {
+		u, err := identity.UserFromJWT(tk)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get identity from context: %w", err)
+		}
+		opts.onIdentity(u)
 	}
 
 	grpcOpts := []grpc.DialOption{
