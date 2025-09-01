@@ -98,8 +98,10 @@ message SetNamedConfigurationsUpdate {
 message UpdateJointsRequest {
   // If non-empty, new joint positions in degrees (for revolute joints) or
   // meters (for prismatic joints) that should be applied.  At least one
-  // of 'joint_positions', 'joint_application_limits', 'joint_system_limits'
-  // must be set.
+  // of 'joint_positions', 'joint_application_limits', 'joint_system_limits',
+  // 'parent_t_inboard' must be set. If 'parent_t_inboard' and `joint_positions`
+  // are set, the `joint_positions` will be applied with the new
+  // `parent_t_inboard` poses.
   map<string, double> joint_positions = 1;
 
   // If non-empty, new joint application limits that should be applied. At least
@@ -111,6 +113,11 @@ message UpdateJointsRequest {
   // of 'joint_positions', 'joint_application_limits', 'joint_system_limits'
   // must be set.
   map<string, intrinsic_proto.JointLimitUpdate> joint_system_limits = 3;
+
+  // If non-empty, new parent_t_inbord poses that should be applied. At least
+  // one of 'joint_positions', 'joint_application_limits',
+  // 'joint_system_limits', 'parent_t_inboard' must be set.
+  map<string, intrinsic_proto.Pose> parent_t_inboard = 4;
 }
 
 // Cartesian limits to use as overrides.
