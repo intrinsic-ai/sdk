@@ -8,8 +8,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
-	"intrinsic/skills/tools/skill/cmd/dialerutil"
-	"intrinsic/tools/inctl/util/orgutil"
 
 	clustermanagergrpcpb "intrinsic/frontend/cloud/api/v1/clustermanager_api_go_grpc_proto"
 	clustermanagerpb "intrinsic/frontend/cloud/api/v1/clustermanager_api_go_grpc_proto"
@@ -30,16 +28,12 @@ var clusterDeleteCmd = &cobra.Command{
 	Short: "Delete a cluster in a project",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, argv []string) error {
-		projectName := ClusterCmdViper.GetString(orgutil.KeyProject)
-		orgName := ClusterCmdViper.GetString(orgutil.KeyOrganization)
-
-		ctx, conn, err := dialerutil.DialConnectionCtx(cmd.Context(), dialerutil.DialInfoParams{
-			CredName: projectName,
-			CredOrg:  orgName,
-		})
+		ctx := cmd.Context()
+		conn, err := newCloudConn(ctx)
 		if err != nil {
-			return fmt.Errorf("could not create connection for the cluster deletion service: %w", err)
+			return err
 		}
+		defer conn.Close()
 
 		return deleteCluster(ctx, conn, argv[0])
 	},
