@@ -59,6 +59,15 @@ message DiversityRankerParams {
   optional string name = 4;
 }
 
+message PinchGripperParams {
+  // Reference to the pinch gripper object.
+  world.ObjectReference eoat_reference = 1;
+  // Joint positions for fully opening the gripper fingers.
+  repeated double open_position = 2;
+  // Joint positions for fully closing the gripper fingers.
+  repeated double close_position = 3;
+}
+
 message IkCollisionCheckerParams {
   // DEPRECATED: Use collision_excluded_eoat_parts instead.
   // Name of the EOAT (end-of-arm tool) to allow collision with the target
@@ -87,6 +96,11 @@ message IkCollisionCheckerParams {
   // Passed to `MotionPlannerClient.compute_ik`.
   // This has to be 1 if `require_same_branch_ik` is set to True.
   optional int32 max_num_solutions = 4;
+
+  // Parameters for pinch gripper used for collision checks. If specified, pinch
+  // gripper collisions will be checked at grasp pose.
+  // Do not set this field if the gripper is not a pinch gripper type.
+  optional PinchGripperParams pinch_gripper_params = 9;
 
   reserved 5;
   reserved "eoat_name";
