@@ -11,10 +11,9 @@ import (
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"intrinsic/kubernetes/acl/identity"
+	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/cobrautil"
 	"intrinsic/tools/inctl/util/color"
-	utilgrpc "intrinsic/tools/inctl/util/grpc"
 	"intrinsic/tools/inctl/util/orgutil"
 
 	tpb "google.golang.org/protobuf/types/known/timestamppb"
@@ -48,14 +47,14 @@ func checkParams(_ *cobra.Command, _ []string) error {
 }
 
 func newLeaseClient(ctx context.Context) (leaseapigrpcpb.VMPoolLeaseServiceClient, error) {
-	conn, err := newConn(ctx)
+	conn, err := auth.NewCloudConnection(ctx, auth.WithFlagValues(localViper))
 	if err != nil {
 		return nil, err
 	}
 	return leaseapigrpcpb.NewVMPoolLeaseServiceClient(conn), nil
 }
 
-func leaseVM(ctx context.Context, project string, orgID string, duration time.Duration) (*leasepb.Lease, error) {
+func leaseVM(ctx context.Context, duration time.Duration) (*leasepb.Lease, error) {
 	leaseClient, err := newLeaseClient(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("could not create visualization host client: %v", err)
@@ -84,24 +83,21 @@ func leaseVM(ctx context.Context, project string, orgID string, duration time.Du
 }
 
 var visualizeCreateE = func(cmd *cobra.Command, _ []string) error {
-	cmdCtx, err := identity.OrgToContext(cmd.Context(), flagOrgID)
-	if err != nil {
-		return fmt.Errorf("failed to add org info to context: %v", err)
-	}
+	ctx := cmd.Context()
 	duration, err := time.ParseDuration(flagDuration)
 	if err != nil {
 		return fmt.Errorf("Duration '%v' entered is not valid, use something like '30m' or '1h': %v", flagDuration, err)
 	}
 
-	lease, err := leaseVM(cmdCtx, flagProject, flagOrgID, duration)
+	lease, err := leaseVM(ctx, duration)
 	if err != nil {
 		return fmt.Errorf("visualization host creation failed: %v", err)
 	}
 	clusterName := lease.GetInstance()
 
-	ctx, conn, err := utilgrpc.NewIPCGRPCClient(cmdCtx, flagProject, flagOrgID, clusterName)
+	conn, err := auth.NewCloudConnection(ctx, auth.WithFlagValues(localViper), auth.WithCluster(clusterName))
 	if err != nil {
-		return fmt.Errorf("failed to get client for visualization host:\n%w", err)
+		return err
 	}
 	defer conn.Close()
 
