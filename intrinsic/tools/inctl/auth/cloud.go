@@ -24,6 +24,7 @@ type ConnectionOpts struct {
 	opts       []grpc.DialOption
 	apiKey     string
 	onIdentity func(u *identity.User)
+	cluster    string
 }
 
 // WithProject sets the cloud-project to use for the connection.
@@ -77,6 +78,13 @@ func WithAPIKey(k string) ConnectionOptsFunc {
 func WithOnIdentityCallback(f func(u *identity.User)) ConnectionOptsFunc {
 	return func(c *ConnectionOpts) {
 		c.onIdentity = f
+	}
+}
+
+// WithCluster sets the target cluster to connect to via the cloud relay.
+func WithCluster(cluster string) ConnectionOptsFunc {
+	return func(c *ConnectionOpts) {
+		c.cluster = cluster
 	}
 }
 
@@ -152,9 +160,14 @@ func NewCloudConnection(ctx context.Context, optsFuncs ...ConnectionOptsFunc) (*
 	errDetails.Env = env
 
 	md := &AddMetadata{
-		cookies: map[string]string{
-			"org-id": opts.org, // if empty it is not added
-		},
+		cookies:  map[string]string{},
+		metadata: map[string]string{},
+	}
+	if opts.org != "" {
+		md.cookies["org-id"] = opts.org
+	}
+	if opts.cluster != "" {
+		md.metadata["x-server-name"] = opts.cluster
 	}
 
 	tkSource, err := newAPIKeyTokenSource(http.DefaultClient, ak, env, md)
