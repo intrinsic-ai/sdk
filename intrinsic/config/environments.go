@@ -89,6 +89,8 @@ func FromProject(project string) (string, error) {
 // FromComputeProject returns the environment for the given compute project.
 func FromComputeProject(project string) string {
 	switch project {
+	case "intrinsic-staging":
+		return Staging
 	default:
 		return Prod
 	}
