@@ -7,7 +7,6 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"net/http"
 
 	"github.com/spf13/viper"
 	"go.opencensus.io/plugin/ocgrpc"
@@ -170,7 +169,7 @@ func NewCloudConnection(ctx context.Context, optsFuncs ...ConnectionOptsFunc) (*
 		md.metadata["x-server-name"] = opts.cluster
 	}
 
-	tkSource, err := newAPIKeyTokenSource(http.DefaultClient, ak, env, md)
+	tkSource, err := newTokenSource(env, ak)
 	if err != nil {
 		errDetails.Message = "unable to create API key token source"
 		return nil, errors.Join(err, errDetails)
@@ -229,17 +228,18 @@ func loadAPIKey(opts *ConnectionOpts) (string, error) {
 	return creds.APIKey, nil
 }
 
-// newAPIKeyTokenSource creates a new API key token source for the given API key and environment.
+// newTokenSource creates a new API key token source for the given API key and environment.
 // The token source will add the given metadata to the request.
-func newAPIKeyTokenSource(c *http.Client, key, env string, md *AddMetadata) (*APIKeyTokenSource, error) {
+func newTokenSource(env, key string) (*cachedTokenSource, error) {
 	// This is portal and not accounts because we are using the grpc-http gateway for token requests.
 	fsAddr := environments.PortalDomain(env)
 	if fsAddr == "" { // default to prod if we cannot determine the environment
 		fsAddr = environments.PortalDomain(environments.Prod)
 	}
-	tsc, err := NewTokensServiceClient(c, fsAddr)
+	factory := getSharedTokenSourceFactory()
+	tsc, err := factory.LoadOrNew(fsAddr, key)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create token exchange: %w", err)
 	}
-	return NewAPIKeyTokenSource(key, tsc, WithAdditionalMetadata(md)), nil
+	return tsc, nil
 }

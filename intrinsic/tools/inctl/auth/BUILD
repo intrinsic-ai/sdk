@@ -10,6 +10,7 @@ go_library(
         "auth.go",
         "cloud.go",
         "perrpccreds.go",
+        "shared.go",
         "token_source.go",
         "tokenshttp.go",
     ],
