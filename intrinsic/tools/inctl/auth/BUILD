@@ -9,6 +9,7 @@ go_library(
     srcs = [
         "auth.go",
         "cloud.go",
+        "perrpccreds.go",
         "token_source.go",
         "tokenshttp.go",
     ],

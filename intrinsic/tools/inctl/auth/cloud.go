@@ -192,7 +192,7 @@ func NewCloudConnection(ctx context.Context, optsFuncs ...ConnectionOptsFunc) (*
 	}
 
 	grpcOpts := []grpc.DialOption{
-		grpc.WithPerRPCCredentials(tkSource),
+		grpc.WithPerRPCCredentials(&perRPCCreds{ts: tkSource, md: md}),
 		grpc.WithStatsHandler(new(ocgrpc.ClientHandler)),
 		grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{})),
 	}
