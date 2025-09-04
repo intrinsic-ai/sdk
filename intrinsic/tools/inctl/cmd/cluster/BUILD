@@ -26,7 +26,6 @@ go_library(
         "//intrinsic/tools/inctl/auth",
         "//intrinsic/tools/inctl/cmd:root",
         "//intrinsic/tools/inctl/util:cobrautil",
-        "//intrinsic/tools/inctl/util:grpc",
         "//intrinsic/tools/inctl/util:orgutil",
         "//intrinsic/tools/inctl/util:printer",
         "@com_github_spf13_cobra//:go_default_library",

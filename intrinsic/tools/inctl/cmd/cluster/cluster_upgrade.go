@@ -16,7 +16,6 @@ import (
 	"intrinsic/frontend/cloud/devicemanager/version"
 	"intrinsic/skills/tools/skill/cmd/dialerutil"
 	"intrinsic/tools/inctl/auth/auth"
-	utilgrpc "intrinsic/tools/inctl/util/grpc"
 	"intrinsic/tools/inctl/util/orgutil"
 
 	fmpb "google.golang.org/protobuf/types/known/fieldmaskpb"
@@ -400,12 +399,9 @@ var acceptCmd = &cobra.Command{
 			bufio.NewReader(cmd.InOrStdin()),
 			bufio.NewWriter(cmd.OutOrStdout()))
 
-		projectName := ClusterCmdViper.GetString(orgutil.KeyProject)
-		orgName := ClusterCmdViper.GetString(orgutil.KeyOrganization)
-
-		ctx, conn, err := utilgrpc.NewIPCGRPCClient(ctx, projectName, orgName, clusterName)
+		conn, err := auth.NewCloudConnection(ctx, auth.WithFlagValues(ClusterCmdViper), auth.WithCluster(clusterName))
 		if err != nil {
-			return fmt.Errorf("cluster upgrade client:\n%w", err)
+			return err
 		}
 		defer conn.Close()
 
@@ -453,12 +449,9 @@ var reportCmd = &cobra.Command{
 
 		consoleIO := bufio.NewWriter(cmd.OutOrStdout())
 
-		projectName := ClusterCmdViper.GetString(orgutil.KeyProject)
-		orgName := ClusterCmdViper.GetString(orgutil.KeyOrganization)
-
-		ctx, conn, err := utilgrpc.NewIPCGRPCClient(ctx, projectName, orgName, clusterName)
+		conn, err := auth.NewCloudConnection(ctx, auth.WithFlagValues(ClusterCmdViper), auth.WithCluster(clusterName))
 		if err != nil {
-			return fmt.Errorf("cluster upgrade client:\n%w", err)
+			return err
 		}
 		defer conn.Close()
 
