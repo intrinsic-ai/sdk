@@ -23,7 +23,6 @@ exports_files(
         "calc_server.proto",
     ],
     visibility = [
-        "//intrinsic/resources/examples:__subpackages__",
         "//visibility:public",
     ],
 )
