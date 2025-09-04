@@ -8,9 +8,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
+	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/cmd/root"
-	utilgrpc "intrinsic/tools/inctl/util/grpc"
-	"intrinsic/tools/inctl/util/orgutil"
 	"intrinsic/tools/inctl/util/printer"
 
 	workcellmodeservicegrpcpb "intrinsic/kubernetes/workcellmode/proto/workcellmode_service_go_grpc_proto"
@@ -34,14 +33,12 @@ var clusterModeCmd = &cobra.Command{
 	},
 }
 
-func getIPCGRPCClient(ctx context.Context) (context.Context, *grpc.ClientConn, error) {
-	projectName := ClusterCmdViper.GetString(orgutil.KeyProject)
-	orgID := ClusterCmdViper.GetString(orgutil.KeyOrganization)
-	ctx, conn, err := utilgrpc.NewIPCGRPCClient(ctx, projectName, orgID, clusterName)
+func getIPCGRPCClient(ctx context.Context) (*grpc.ClientConn, error) {
+	conn, err := auth.NewCloudConnection(ctx, auth.WithFlagValues(ClusterCmdViper), auth.WithCluster(clusterName))
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get client for host:\n%w", err)
+		return nil, err
 	}
-	return ctx, conn, nil
+	return conn, nil
 }
 
 var modeSetCmd = &cobra.Command{
@@ -49,13 +46,13 @@ var modeSetCmd = &cobra.Command{
 	Short: "Set mode for a cluster",
 	Long:  "Set mode for the cluster; choose between develop and operate",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cmdCtx := cmd.Context()
+		ctx := cmd.Context()
 		prtr, err := printer.NewPrinter(root.FlagOutput)
 		if err != nil {
 			return fmt.Errorf("Internal error: %v", err)
 		}
 
-		ctx, conn, err := getIPCGRPCClient(cmdCtx)
+		conn, err := getIPCGRPCClient(ctx)
 		if err != nil {
 			return err
 		}
@@ -86,13 +83,13 @@ var modeGetCmd = &cobra.Command{
 	Short: "Get mode for a cluster",
 	Long:  "Get mode for the cluster; returns develop or operate",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cmdCtx := cmd.Context()
+		ctx := cmd.Context()
 		prtr, err := printer.NewPrinter(root.FlagOutput)
 		if err != nil {
 			return fmt.Errorf("Internal error: %v", err)
 		}
 
-		ctx, conn, err := getIPCGRPCClient(cmdCtx)
+		conn, err := getIPCGRPCClient(ctx)
 		if err != nil {
 			return err
 		}
