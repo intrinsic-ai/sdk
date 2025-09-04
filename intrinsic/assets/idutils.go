@@ -1,7 +1,6 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package idutils contains utilities for interacting with id strings for assets (e.g., skills,
-// resources).
+// Package idutils contains utilities for interacting with id strings for Assets.
 //
 // For example, it contains utilities to extract sub-components of the id strings, and check
 // whether id strings, and their subcomponents (such as the version), are valid.
@@ -362,7 +361,7 @@ func RemoveVersionFrom(id string) (string, error) {
 	return id, nil
 }
 
-// IsID Tests whether a string is a valid asset id.
+// IsID Tests whether a string is a valid Asset id.
 //
 // A valid id is formatted as "<package>.<name>", where `package` and `name` are formatted as
 // described in IsPackage and IsName, respectively.
@@ -370,7 +369,7 @@ func IsID(id string) bool {
 	return idRegex.MatchString(id)
 }
 
-// IsIDVersion tests whether a string is a valid asset id_version.
+// IsIDVersion tests whether a string is a valid Asset id_version.
 //
 // A valid id_version is formatted as "<package>.<name>.<version>", where `package`, `name`, and
 // `version` are formatted as described in IsPackage, IsName, and IsVersion, respectively.
@@ -378,7 +377,7 @@ func IsIDVersion(idVersion string) bool {
 	return idVersionRegex.MatchString(idVersion)
 }
 
-// IsName tests whether a string is a valid asset name.
+// IsName tests whether a string is a valid Asset name.
 //
 // A valid name:
 //   - consists only of lower case alphanumeric characters and underscores;
@@ -387,13 +386,13 @@ func IsIDVersion(idVersion string) bool {
 //   - does not contain multiple underscores in a row.
 //
 // NOTE: Disallowing multiple underscores in a row enables underscores to be replaced with a hyphen
-// (-) and periods to be replaced with two hyphens (--) in order to convert asset ids to kubernetes
+// (-) and periods to be replaced with two hyphens (--) in order to convert Asset ids to kubernetes
 // labels without possibility of collisions.
 func IsName(name string) bool {
 	return nameRegex.MatchString(name)
 }
 
-// IsPackage tests whether a string is a valid asset package.
+// IsPackage tests whether a string is a valid Asset package.
 //
 // A valid package:
 //   - consists only of alphanumeric characters, underscores, and periods;
@@ -405,25 +404,25 @@ func IsName(name string) bool {
 //   - does not contain multiple underscores in a row.
 //
 // NOTE: Disallowing multiple underscores in a row enables underscores to be replaced with a hyphen
-// (-) and periods to be replaced with two hyphens (--) in order to convert asset ids to kubernetes
+// (-) and periods to be replaced with two hyphens (--) in order to convert Asset ids to kubernetes
 // labels without possibility of collisions.
 func IsPackage(pkg string) bool {
 	return packageRegex.MatchString(pkg)
 }
 
-// IsVersion tests whether a string is a valid asset version.
+// IsVersion tests whether a string is a valid Asset version.
 //
 // A valid version is formatted as described by semver.org.
 func IsVersion(version string) bool {
 	return versionRegex.MatchString(version)
 }
 
-// IsUnreleasedVersion tests whether a string is a valid and unreleased asset version.
+// IsUnreleasedVersion tests whether a string is a valid and unreleased Asset version.
 //
 // A valid unreleased version is formatted as described by semver.org with build metadata matching
-// the reserved prefix for unreleased assets.
+// the reserved prefix for unreleased Assets.
 //
-// Deprecated: New assets are not marked as unreleased on their version and this will return false
+// Deprecated: New Assets are not marked as unreleased on their version and this will return false
 // even if they are unreleased.
 func IsUnreleasedVersion(version string) bool {
 	return IsVersion(version) && nonReleasedVersionRegex.MatchString(version)

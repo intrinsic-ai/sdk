@@ -4,13 +4,13 @@ syntax = "proto3";
 
 package intrinsic_proto.assets;
 
-// Id uniquely identifies an asset (e.g., skill, resource) in its respective
-// catalog. If you change an Id's package or name field, the catalog will treat
-// any new releases as a completely different asset.
+// Id uniquely identifies an Asset in the AssetCatalog. If you change an ID's
+// package or name field, the catalog will treat any new releases as a
+// completely different Asset.
 //
 // An ID string is formatted as: "<package>.<name>".
 message Id {
-  // A dot-separated string describing the name of the asset's parent package.
+  // A dot-separated string describing the name of the Asset's parent package.
   // We recommend that companies use their reverse Internet domain name to start
   // the package name.
   //
@@ -30,7 +30,7 @@ message Id {
   // collisions.
   string package = 1;
 
-  // The name of the asset within the package.
+  // The name of the Asset within the package.
   //
   // A valid name:
   //   - consists only of lower case alphanumeric characters and underscores;
@@ -45,15 +45,14 @@ message Id {
   string name = 2;
 }
 
-// IdVersion uniquely identifies a particular version of an asset in its
-// respective catalog. Each release of an asset to a catalog must have a new
-// version.
+// IdVersion uniquely identifies a particular version of an Asset in the
+// AssetCatalog. Each release of an Asset to a catalog must have a new version.
 //
 // An IDVersion string is formatted as: "<package>.<name>.<version>".
 message IdVersion {
-  // The asset's ID.
+  // The Asset's ID.
   Id id = 1;
 
-  // The asset's version, formatted as described by semver.org.
+  // The Asset's version, formatted as described by semver.org.
   string version = 2;
 }

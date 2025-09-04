@@ -1,7 +1,6 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package version provides utilities for working with and looking up versions
-// of assets.
+// Package version provides utilities for working with and looking up versions of Assets.
 package version
 
 import (
@@ -19,7 +18,7 @@ import (
 )
 
 var (
-	errIDNotFound = errors.New("there is no currently installed resource with ID")
+	errIDNotFound = errors.New("there is no currently installed Asset with ID")
 	errAmbiguous  = errors.New("could not disambiguate ID")
 )
 
@@ -47,7 +46,7 @@ func Autofill(ctx context.Context, client iagrpcpb.InstalledAssetsClient, idOrID
 	return nil
 }
 
-// List returns all installed versions of a particular asset id.
+// List returns all installed versions of a particular Asset ID.
 func List(ctx context.Context, client iagrpcpb.InstalledAssetsClient, id *idpb.Id) ([]string, error) {
 	var versions []string
 	nextPageToken := ""
@@ -56,7 +55,7 @@ func List(ctx context.Context, client iagrpcpb.InstalledAssetsClient, id *idpb.I
 			PageToken: nextPageToken,
 		})
 		if err != nil {
-			return nil, fmt.Errorf("could not retrieve currently installed resources: %w", err)
+			return nil, fmt.Errorf("could not retrieve currently installed Assets: %w", err)
 		}
 		for _, r := range resp.GetInstalledAssets() {
 			if proto.Equal(id, r.GetMetadata().GetIdVersion().GetId()) {
