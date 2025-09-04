@@ -44,6 +44,10 @@ message RuntimeContext {
   // The configuration of this resource instance.
   google.protobuf.Any config = 6;
 
+  // The topic on which the Service should publish its ServiceInspectionData
+  // message, if a Service inspection config is defined.
+  optional string service_inspection_topic = 11;
+
   reserved 4;
   reserved "instance";
 }
