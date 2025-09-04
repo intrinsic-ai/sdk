@@ -80,6 +80,7 @@ func processAsset(target string, transferer imagetransfer.Transferer, flags *cmd
 			Metadata: &mpb.Metadata{
 				IdVersion:     idVersion,
 				AssetType:     atpb.AssetType_ASSET_TYPE_SERVICE,
+				AssetTag:      manifest.GetMetadata().GetAssetTag(),
 				DisplayName:   manifest.GetMetadata().GetDisplayName(),
 				Documentation: manifest.GetMetadata().GetDocumentation(),
 				Vendor:        manifest.GetMetadata().GetVendor(),
