@@ -18,9 +18,11 @@ cc_library(
         "//visibility:public",
     ],
     deps = [
-        "@abseil-cpp//absl/base:no_destructor",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/strings:string_view",
+        "@abseil-cpp//absl/types:span",
     ],
 )
 

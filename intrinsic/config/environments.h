@@ -2,63 +2,74 @@
 
 #ifndef INTRINSIC_CONFIG_ENVIRONMENTS_H_
 #define INTRINSIC_CONFIG_ENVIRONMENTS_H_
+#include <array>
 #include <string>
-#include <vector>
 
-#include "absl/base/no_destructor.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/string_view.h"
+#include "absl/types/span.h"
 
 namespace environments {
 
 // Environment constants
-constexpr char Prod[] = "prod";
-constexpr char Staging[] = "staging";
-constexpr char Dev[] = "dev";
+inline constexpr char kProd[] = "prod";
+inline constexpr char kStaging[] = "staging";
+inline constexpr char kDev[] = "dev";
 
 // Accounts project constants
-constexpr char AccountsProjectDev[] = "intrinsic-accounts-dev";
-constexpr char AccountsProjectStaging[] = "intrinsic-accounts-staging";
-constexpr char AccountsProjectProd[] = "intrinsic-accounts-prod";
+inline constexpr char kAccountsProjectDev[] = "intrinsic-accounts-dev";
+inline constexpr char kAccountsProjectStaging[] = "intrinsic-accounts-staging";
+inline constexpr char kAccountsProjectProd[] = "intrinsic-accounts-prod";
 
 // Accounts domain constants
-constexpr char AccountsDomainDev[] = "accounts-dev.intrinsic.ai";
-constexpr char AccountsDomainStaging[] = "accounts-qa.intrinsic.ai";
-constexpr char AccountsDomainProd[] = "accounts.intrinsic.ai";
+inline constexpr char kAccountsDomainDev[] = "accounts-dev.intrinsic.ai";
+inline constexpr char kAccountsDomainStaging[] = "accounts-qa.intrinsic.ai";
+inline constexpr char kAccountsDomainProd[] = "accounts.intrinsic.ai";
 
 // Portal project constants
-constexpr char PortalProjectDev[] = "intrinsic-portal-dev";
-constexpr char PortalProjectStaging[] = "intrinsic-portal-staging";
-constexpr char PortalProjectProd[] = "intrinsic-portal-prod";
+inline constexpr char kPortalProjectDev[] = "intrinsic-portal-dev";
+inline constexpr char kPortalProjectStaging[] = "intrinsic-portal-staging";
+inline constexpr char kPortalProjectProd[] = "intrinsic-portal-prod";
 
 // Portal domain constants
-constexpr char PortalDomainDev[] = "flowstate-dev.intrinsic.ai";
-constexpr char PortalDomainStaging[] = "flowstate-qa.intrinsic.ai";
-constexpr char PortalDomainProd[] = "flowstate.intrinsic.ai";
+inline constexpr char kPortalDomainDev[] = "flowstate-dev.intrinsic.ai";
+inline constexpr char kPortalDomainStaging[] = "flowstate-qa.intrinsic.ai";
+inline constexpr char kPortalDomainProd[] = "flowstate.intrinsic.ai";
 
 // Assets project constants
-constexpr char AssetsProjectDev[] = "intrinsic-assets-dev";
-constexpr char AssetsProjectStaging[] = "intrinsic-assets-staging";
-constexpr char AssetsProjectProd[] = "intrinsic-assets-prod";
+inline constexpr char kAssetsProjectDev[] = "intrinsic-assets-dev";
+inline constexpr char kAssetsProjectStaging[] = "intrinsic-assets-staging";
+inline constexpr char kAssetsProjectProd[] = "intrinsic-assets-prod";
 
 // Assets domain constants
-constexpr char AssetsDomainDev[] = "assets-dev.intrinsic.ai";
-constexpr char AssetsDomainStaging[] = "assets-qa.intrinsic.ai";
-constexpr char AssetsDomainProd[] = "assets.intrinsic.ai";
+inline constexpr char kAssetsDomainDev[] = "assets-dev.intrinsic.ai";
+inline constexpr char kAssetsDomainStaging[] = "assets-qa.intrinsic.ai";
+inline constexpr char kAssetsDomainProd[] = "assets.intrinsic.ai";
 
-// All environments
-extern const absl::NoDestructor<std::vector<std::string>> All;
+namespace internal {
+// absl::Span, does not own data, so we need to declare a global constexpr array
+// for the span to point to. Make it internal to avoid accidental hard-coded
+// deps on the literal size of the array, which we may not want as part of our
+// API contract; absl::Span forces users to call absl::Span::size() to get the
+// size, which allows us to change the size without breaking existing uses.
+inline constexpr std::array<absl::string_view, 3> kAll = {kProd, kStaging,
+                                                          kDev};
+}  // namespace internal
 
-absl::StatusOr<std::string> FromDomain(const std::string& domain);
-absl::StatusOr<std::string> FromProject(const std::string& project);
-std::string FromComputeProject(const std::string& project);
+inline constexpr absl::Span<const absl::string_view> kAll =
+    absl::MakeConstSpan(internal::kAll);
 
-std::string PortalDomain(const std::string& env);
-std::string PortalProject(const std::string& env);
-std::string AccountsDomain(const std::string& env);
-std::string AccountsProjectFromEnv(const std::string& env);
-std::string AccountsProjectFromProject(const std::string& project);
-std::string AssetsDomain(const std::string& env);
-std::string AssetsProject(const std::string& env);
+absl::StatusOr<std::string> FromDomain(absl::string_view domain);
+absl::StatusOr<std::string> FromProject(absl::string_view project);
+std::string FromComputeProject(absl::string_view project);
+
+std::string PortalDomain(absl::string_view env);
+std::string PortalProject(absl::string_view env);
+std::string AccountsDomain(absl::string_view env);
+std::string AccountsProjectFromEnv(absl::string_view env);
+std::string AccountsProjectFromProject(absl::string_view project);
+std::string AssetsDomain(absl::string_view env);
+std::string AssetsProject(absl::string_view env);
 
 }  // namespace environments
 
