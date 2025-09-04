@@ -83,7 +83,8 @@ var configGetCmd = &cobra.Command{
 			// clusters.
 			clusterName = deviceID
 		}
-		ctx, client, err := newClient(cmd.Context(), projectName, orgName, clusterName)
+		ctx := cmd.Context()
+		client, err := newClient(ctx, projectName, orgName, clusterName)
 		if err != nil {
 			return fmt.Errorf("get project client: %w", err)
 		}
@@ -136,7 +137,8 @@ var configSetCmd = &cobra.Command{
 			// clusters.
 			clusterName = deviceID
 		}
-		ctx, client, err := newClient(cmd.Context(), projectName, orgName, clusterName)
+		ctx := cmd.Context()
+		client, err := newClient(ctx, projectName, orgName, clusterName)
 		if err != nil {
 			return fmt.Errorf("get project client: %w", err)
 		}

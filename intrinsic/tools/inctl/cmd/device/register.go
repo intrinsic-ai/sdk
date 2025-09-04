@@ -176,7 +176,8 @@ var registerCmd = &cobra.Command{
 			return fmt.Errorf(makeNameError(hostname, offender))
 		}
 
-		ctx, client, err := newClient(cmd.Context(), projectName, orgName, clusterName)
+		ctx := cmd.Context()
+		client, err := newClient(ctx, projectName, orgName, clusterName)
 		if err != nil {
 			return fmt.Errorf("get client for project: %w", err)
 		}

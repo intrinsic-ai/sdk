@@ -5,17 +5,14 @@ package device
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"path/filepath"
 
 	"google.golang.org/grpc"
 	"intrinsic/frontend/cloud/devicemanager/shared/shared"
-	"intrinsic/skills/tools/skill/cmd/dialerutil"
 	"intrinsic/tools/inctl/auth/auth"
 
 	clustermanagergrpcpb "intrinsic/frontend/cloud/api/v1/clustermanager_api_go_grpc_proto"
@@ -34,63 +31,35 @@ var (
 type authedClient struct {
 	client       *http.Client
 	baseURL      url.URL
-	tokenSource  *auth.ProjectToken
 	projectName  string
 	organization string
 	grpcConn     *grpc.ClientConn
 	grpcClient   clustermanagergrpcpb.ClustersServiceClient
 }
 
-// do is the primary function of the http client interface.
-func (c *authedClient) do(req *http.Request) (*http.Response, error) {
-	req, err := c.tokenSource.HTTPAuthorization(req)
-	if c.organization != "" {
-		req.AddCookie(&http.Cookie{Name: "org-id", Value: c.organization})
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	return c.client.Do(req)
-}
-
 // newClient returns a http.Client compatible that injects auth for the project into every request.
-func newClient(ctx context.Context, projectName string, orgName string, clusterName string) (context.Context, authedClient, error) {
-	configuration, err := auth.NewStore().GetConfiguration(projectName)
+func newClient(ctx context.Context, projectName string, orgName string, clusterName string) (authedClient, error) {
+	// create a cloud connection to the cluster via the relay with a callback to get the token source
+	opts := []auth.ConnectionOptsFunc{
+		auth.WithProject(projectName), auth.WithOrg(orgName), auth.WithCluster(clusterName),
+	}
+	conn, err := auth.NewCloudConnection(ctx, opts...)
 	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return nil, authedClient{}, &dialerutil.ErrCredentialsNotFound{
-				CredentialName: projectName,
-				Err:            err,
-			}
-		}
-		return nil, authedClient{}, fmt.Errorf("get configuration: %w", err)
+		return authedClient{}, err
+	}
+	// create a http client from the cloud connection
+	cl, err := auth.NewCloudClient(ctx, opts...)
+	if err != nil {
+		return authedClient{}, err
 	}
 
-	token, err := configuration.GetDefaultCredentials()
-	if err != nil {
-		return nil, authedClient{}, fmt.Errorf("get default credential: %w", err)
-	}
-
-	params := dialerutil.DialInfoParams{
-		Cluster:  clusterName,
-		CredName: projectName,
-		CredOrg:  orgName,
-	}
-	ctx, conn, err := dialerutil.DialConnectionCtx(ctx, params)
-	if err != nil {
-		return nil, authedClient{}, fmt.Errorf("create grpc client: %w", err)
-	}
-
-	return ctx, authedClient{
-		client: http.DefaultClient,
+	return authedClient{
+		client: cl,
 		baseURL: url.URL{
 			Scheme: "https",
 			Host:   fmt.Sprintf("www.endpoints.%s.cloud.goog", projectName),
 			Path:   "/api/devices/",
 		},
-		tokenSource:  token,
 		projectName:  projectName,
 		organization: orgName,
 		grpcConn:     conn,
@@ -207,7 +176,7 @@ func (c *authedClient) postDevice(ctx context.Context, cluster, deviceID, subPat
 		return nil, err
 	}
 
-	return c.do(req)
+	return c.client.Do(req)
 }
 
 // getDevice acts similar to [http.Get] but takes a context and injects base path of the device manager for the project.
@@ -222,7 +191,7 @@ func (c *authedClient) getDevice(ctx context.Context, cluster, deviceID, subPath
 		return nil, err
 	}
 
-	return c.do(req)
+	return c.client.Do(req)
 }
 
 // getJSON acts similar to [GetDevice] but also does [json.Decode] and enforces [http.StatusOK].
