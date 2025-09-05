@@ -78,6 +78,5 @@ func main() {
 	if err != nil {
 		log.Exitf("invalid asset idversion: %v", err)
 	}
-
 	writeAsset(idVersion, fds)
 }

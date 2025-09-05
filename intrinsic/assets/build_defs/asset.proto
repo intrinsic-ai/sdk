@@ -17,6 +17,7 @@ message AssetInfo {
   // A file descriptor set containing definitions for protos used by the asset.
   optional google.protobuf.FileDescriptorSet file_descriptor_set = 3;
 
+  reserved 199;
 }
 
 message AssetLocalInfo {
@@ -31,6 +32,7 @@ message AssetLocalInfo {
   // The full path to the bundle file.
   string bundle_path = 4;
 
+  reserved 199;
 }
 
 message AssetCatalogRefInfo {
@@ -39,6 +41,7 @@ message AssetCatalogRefInfo {
   // The asset ID and version.
   intrinsic_proto.assets.IdVersion id_version = 2;
 
+  reserved 199;
 }
 
 message AssetInstanceInfo {
