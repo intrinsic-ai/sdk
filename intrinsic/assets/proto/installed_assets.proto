@@ -192,6 +192,8 @@ message CreateInstalledAssetRequest {
           hardware_device = 6;
       intrinsic_proto.processes.ProcessAsset process = 7;
     }
+
+    reserved 199;
   }
 
   Asset asset = 1;
