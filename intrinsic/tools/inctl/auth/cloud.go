@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/spf13/viper"
 	"go.opencensus.io/plugin/ocgrpc"
@@ -19,11 +20,12 @@ import (
 
 // ConnectionOpts contains the options for creating a new gRPC connection to a cloud service.
 type ConnectionOpts struct {
-	project string
-	org     string
-	opts    []grpc.DialOption
-	apiKey  string
-	cluster string
+	project       string
+	targetProject string
+	org           string
+	opts          []grpc.DialOption
+	apiKey        string
+	cluster       string
 
 	// callbacks
 	onIdentity func(u *identity.User)
@@ -37,6 +39,17 @@ type ConnectionOpts struct {
 func WithProject(p string) ConnectionOptsFunc {
 	return func(c *ConnectionOpts) {
 		c.project = p
+	}
+}
+
+// WithTargetProject sets the cloud-project to use for the connection.
+// If set together with WithOrg / WithProject, the org and/or project's API key will be used but the
+// address will be resolved using the project provided. You can use this if you want to target a
+// different project than the one associated with the API key. This can be necessary for global
+// services (e.g. accounts, assets, portal).
+func WithTargetProject(p string) ConnectionOptsFunc {
+	return func(c *ConnectionOpts) {
+		c.targetProject = p
 	}
 }
 
@@ -93,15 +106,26 @@ func WithCluster(cluster string) ConnectionOptsFunc {
 // ErrorDetails contains the error details for a failed connection.
 // This is used to provide more details about the error to the user in PrintErrorDetails.
 type ErrorDetails struct {
-	Project string
-	Org     string
+	Opts    *ConnectionOpts
 	Env     string
 	Message string
 	Help    string
 }
 
 func (e *ErrorDetails) Error() string {
-	msg := fmt.Sprintf("%s (project: %q, org: %q, env: %q)", e.Message, e.Project, e.Org, e.Env)
+	var values []string
+	for _, kv := range [][]string{
+		{"project", e.Opts.project},
+		{"targetProject", e.Opts.targetProject},
+		{"org", e.Opts.org},
+		{"env", e.Env},
+		{"cluster", e.Opts.cluster},
+	} {
+		if kv[1] != "" {
+			values = append(values, fmt.Sprintf("%s: %q", kv[0], kv[1]))
+		}
+	}
+	msg := fmt.Sprintf("%s (%s)", e.Message, strings.Join(values, ", "))
 	if e.Help != "" {
 		msg = fmt.Sprintf("%s\n%s", msg, e.Help)
 	}
@@ -200,8 +224,7 @@ func newOrLoadTokenSource(ctx context.Context, optsFuncs ...ConnectionOptsFunc) 
 	}
 
 	errDetails := &ErrorDetails{
-		Project: opts.project,
-		Org:     opts.org,
+		Opts: &opts,
 	}
 
 	ak, err := loadAPIKey(&opts)
@@ -259,7 +282,11 @@ func newConnection(ctx context.Context, opts *ConnectionOpts, tkSource *cachedTo
 		grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{})),
 	}
 
-	addr := fmt.Sprintf("dns:///%s:443", environments.Domain(opts.project))
+	project := opts.project
+	if opts.targetProject != "" {
+		project = opts.targetProject
+	}
+	addr := fmt.Sprintf("dns:///%s:443", environments.Domain(project))
 
 	return grpc.NewClient(addr, grpcOpts...)
 }
