@@ -56,22 +56,6 @@ cc_binary(
 )
 
 cc_binary(
-    name = "list_parts",
-    srcs = ["list_parts.cc"],
-    deps = [
-        "//intrinsic/icon/cc_client:client",
-        "//intrinsic/icon/release/portable:init_xfa_absl",
-        "//intrinsic/util/grpc:channel",
-        "//intrinsic/util/grpc:connection_params",
-        "//intrinsic/util/status:status_macros",
-        "@abseil-cpp//absl/flags:flag",
-        "@abseil-cpp//absl/log:check",
-        "@abseil-cpp//absl/status",
-        "@abseil-cpp//absl/strings",
-    ],
-)
-
-cc_binary(
     name = "restart_server",
     srcs = ["restart_server.cc"],
     deps = [
