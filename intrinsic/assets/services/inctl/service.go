@@ -5,13 +5,9 @@ package service
 
 import (
 	"github.com/spf13/cobra"
-	"intrinsic/assets/inctl/list"
-	"intrinsic/assets/inctl/uninstall"
 	"intrinsic/assets/services/inctl/add"
 	deletecmd "intrinsic/assets/services/inctl/delete"
 	"intrinsic/assets/services/inctl/install"
-	"intrinsic/assets/services/inctl/listreleased"
-	"intrinsic/assets/services/inctl/listreleasedversions"
 	"intrinsic/assets/services/inctl/release"
 	servicestate "intrinsic/assets/services/inctl/state/state"
 	"intrinsic/tools/inctl/cmd/root"
@@ -28,12 +24,7 @@ func init() {
 	serviceCmd.AddCommand(add.GetCommand())
 	serviceCmd.AddCommand(deletecmd.GetCommand())
 	serviceCmd.AddCommand(install.GetCommand())
-	serviceCmd.AddCommand(list.GetCommand("service"))
-	serviceCmd.AddCommand(listreleased.GetCommand())
-	serviceCmd.AddCommand(listreleasedversions.GetCommand())
 	serviceCmd.AddCommand(release.GetCommand())
-	serviceCmd.AddCommand(uninstall.GetCommand())
-
 	serviceCmd.AddCommand(servicestate.ServiceStateCmd)
 
 	root.RootCmd.AddCommand(serviceCmd)
