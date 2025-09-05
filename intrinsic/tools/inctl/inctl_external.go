@@ -5,6 +5,7 @@ package main
 import (
 	"intrinsic/tools/inctl/cmd/root"
 
+	_ "intrinsic/assets/hardware_devices/inctl/hardwaredevice"
 	_ "intrinsic/assets/inctl/assetcmd"
 	_ "intrinsic/assets/services/inctl/service"
 	_ "intrinsic/tools/inctl/cmd/auth/auth"

@@ -180,12 +180,15 @@ go_library(
     name = "bundleio",
     srcs = [
         "bundle_io.go",
+        "bundle_io_hardware_devices.go",
         "bundle_io_services.go",
         "bundle_io_skills.go",
     ],
     visibility = ["//intrinsic:internal_api_users"],
     deps = [
         ":idutils",
+        "//intrinsic/assets/hardware_devices:hardwaredevicemanifest",
+        "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",
         "//intrinsic/assets/proto:asset_type_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
         "//intrinsic/assets/scene_objects:sceneobjectmanifest",
