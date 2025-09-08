@@ -54,7 +54,7 @@ var createCmd = &cobra.Command{
 	Short: "Create a new organization.",
 	Long:  createCmdHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := accounts.WithOrgID(cmd.Context(), vipr)
+		ctx := cmd.Context()
 		cl, err := accounts.NewResourceManagerV1Client(ctx, vipr)
 		if err != nil {
 			return err
@@ -120,7 +120,6 @@ var deleteCmd = &cobra.Command{
 				return err
 			}
 		}
-		ctx = accounts.WithOrgID(cmd.Context(), vipr)
 		req := accresourcemanager1pb.DeleteOrganizationRequest{
 			Name: addPrefix(flagCustomer, "organizations/"),
 		}
@@ -188,7 +187,7 @@ var listCmd = &cobra.Command{
 	Short: "List customer organizations.",
 	Long:  listCmdHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := accounts.WithOrgID(cmd.Context(), vipr)
+		ctx := cmd.Context()
 		cl, err := accounts.NewResourceManagerV1Client(ctx, vipr)
 		if err != nil {
 			return err

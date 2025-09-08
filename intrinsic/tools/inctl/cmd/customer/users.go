@@ -73,7 +73,7 @@ var addUser = &cobra.Command{
 	Short: "Invite a user to an organization by email address.",
 	Long:  addUserHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := accounts.WithOrgID(cmd.Context(), vipr)
+		ctx := cmd.Context()
 		cl, err := accounts.NewAccessControlV1Client(ctx, vipr)
 		if err != nil {
 			return err
@@ -113,7 +113,7 @@ var removeUser = &cobra.Command{
 	Short: "Remove a user from an organization by email address.",
 	Long:  removeUserHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := accounts.WithOrgID(cmd.Context(), vipr)
+		ctx := cmd.Context()
 		cl, err := accounts.NewAccessControlV1Client(ctx, vipr)
 		if err != nil {
 			return err
@@ -207,7 +207,7 @@ var listUsers = &cobra.Command{
 	Short: "List all memberships of an organization.",
 	Long:  listUsersHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := accounts.WithOrgID(cmd.Context(), vipr)
+		ctx := cmd.Context()
 		cl, err := accounts.NewAccessControlV1Client(ctx, vipr)
 		if err != nil {
 			return err
@@ -299,7 +299,7 @@ var withdrawInvitation = &cobra.Command{
 	Short: "Withdraw an invitation",
 	Long:  withdrawInvitationHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := accounts.WithOrgID(cmd.Context(), vipr)
+		ctx := cmd.Context()
 		cl, err := accounts.NewAccessControlV1Client(ctx, vipr)
 		if err != nil {
 			return err
@@ -337,7 +337,7 @@ var resendInvitation = &cobra.Command{
 	Short: "Resend an invitation",
 	Long:  resendInvitationHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := accounts.WithOrgID(cmd.Context(), vipr)
+		ctx := cmd.Context()
 		cl, err := accounts.NewAccessControlV1Client(ctx, vipr)
 		if err != nil {
 			return err
