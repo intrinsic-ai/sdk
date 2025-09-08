@@ -10,7 +10,7 @@ import grpc
 from intrinsic.kubernetes.acl.py import identity
 
 # JWT with {"email": "doe@example.com"}
-TOKEN = b'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiZW1haWwiOiJkb2VAZXhhbXBsZS5jb20iLCJpYXQiOjE1MTYyMzkwMjJ9.qRdA3amFU5P4jl4LvErW8876QAfRXryMfI9LSiLVlS8'
+TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiZW1haWwiOiJkb2VAZXhhbXBsZS5jb20iLCJpYXQiOjE1MTYyMzkwMjJ9.qRdA3amFU5P4jl4LvErW8876QAfRXryMfI9LSiLVlS8'
 
 
 _Metadatum = collections.namedtuple(
@@ -53,7 +53,7 @@ class IdentityTest(parameterized.TestCase):
   )
   @unittest.mock.patch.multiple(TestContext, __abstractmethods__=set())
   def test_from_context(self, ckey, cvalue):
-    ctx = TestContext(((ckey, cvalue),))
+    ctx = TestContext([(ckey, cvalue)])
     u = identity.UserFromContext(ctx)
     self.assertIsNotNone(u)
 
@@ -68,6 +68,34 @@ class IdentityTest(parameterized.TestCase):
     )
     u = identity.UserFromContext(ctx)
     self.assertIsNotNone(u)
+
+  def test_user_to_grpc_metadata(self):
+    user = identity.User(j=TOKEN)
+    metadata = identity.UserToGRPCMetadata(user)
+    self.assertLen(metadata, 1)
+    self.assertEqual(metadata[0][0], identity.COOKIE_KEY)
+    self.assertIn(f'{identity.AUTH_PROXY_COOKIE_NAME}={TOKEN}', metadata[0][1])
+
+  @unittest.mock.patch.multiple(TestContext, __abstractmethods__=set())
+  def test_to_grpc_metadata_from_incoming(self):
+    ctx = TestContext([
+        (identity.COOKIE_KEY, f'{identity.AUTH_PROXY_COOKIE_NAME}={TOKEN};'),
+        (identity.APIKEY_TOKEN_HEADER_NAME, 'apikey'),
+        (identity.AUTH_HEADER_NAME, 'auth'),
+        ('other', 'stuff'),
+    ])
+    metadata = identity.ToGRPCMetadataFromIncoming(ctx)
+    self.assertCountEqual(
+        metadata,
+        [
+            (
+                identity.COOKIE_KEY,
+                f'{identity.AUTH_PROXY_COOKIE_NAME}={TOKEN};',
+            ),
+            (identity.APIKEY_TOKEN_HEADER_NAME, 'apikey'),
+            (identity.AUTH_HEADER_NAME, 'auth'),
+        ],
+    )
 
 
 class OrgTest(absltest.TestCase):

@@ -15,6 +15,7 @@ AUTH_PROXY_COOKIE_NAME = 'auth-proxy'
 PORTAL_TOKEN_COOKIE_NAME = 'portal-token'
 ONPREM_TOKEN_COOKIE_NAME = 'onprem-token'
 APIKEY_TOKEN_HEADER_NAME = 'apikey-token'
+AUTH_HEADER_NAME = 'authorization'
 ORG_ID_COOKIE = 'org-id'
 
 
@@ -118,6 +119,38 @@ def OrgFromContext(context: grpc.ServicerContext) -> Organization:
 
   logging.error('No organization information in context.')
   raise KeyError('no org-id found')
+
+
+def UserToGRPCMetadata(user: User) -> List[tuple[str, str]]:
+  """Converts a user's identity to a gRPC metadata list.
+
+  Args:
+    user: The user to add to the metadata.
+
+  Returns:
+    A list of (key, value) pairs containing the user's identity as a cookie.
+  """
+  return CookiesToGRPCMetadata(
+      http.cookies.SimpleCookie({AUTH_PROXY_COOKIE_NAME: user.jwt})
+  )
+
+
+def ToGRPCMetadataFromIncoming(
+    context: grpc.ServicerContext,
+) -> List[tuple[str, str]]:
+  """Copies auth-related incoming GRPC metadata to a metadata list.
+
+  Args:
+    context: The grpc context.
+
+  Returns:
+    A list of (key, value) pairs containing auth-related metadata.
+  """
+  outgoing_metadata: List[tuple[str, str]] = []
+  for key, value in context.invocation_metadata():
+    if key in [COOKIE_KEY, APIKEY_TOKEN_HEADER_NAME, AUTH_HEADER_NAME]:
+      outgoing_metadata.append((key, value))
+  return outgoing_metadata
 
 
 def CookiesToGRPCMetadata(
