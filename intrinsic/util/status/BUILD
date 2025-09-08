@@ -89,7 +89,6 @@ cc_library(
     hdrs = ["status_conversion_grpc.h"],
     deps = [
         ":status_conversion_rpc",
-        "@abseil-cpp//absl/base:core_headers",
         "@abseil-cpp//absl/log",
         "@abseil-cpp//absl/status",
         "@com_github_grpc_grpc//:grpc++",
@@ -108,6 +107,7 @@ cc_test(
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/strings:cord",
         "@com_github_grpc_grpc//:grpc++",
+        "@com_google_googleapis//google/rpc:code_cc_proto",
         "@com_google_protobuf//:protobuf",
     ],
 )

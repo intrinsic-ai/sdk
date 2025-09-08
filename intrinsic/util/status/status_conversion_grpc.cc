@@ -50,9 +50,11 @@ static grpc::StatusCode FromAbslStatusCode(const absl::StatusCode& absl_code) {
     case absl::StatusCode::kDataLoss:
       return grpc::StatusCode::DATA_LOSS;
     case absl::StatusCode::kUnauthenticated:
-      return grpc::StatusCode::INTERNAL;
+      return grpc::StatusCode::UNAUTHENTICATED;
     default:
-      return grpc::StatusCode::INTERNAL;
+      LOG(ERROR) << "Unknown absl::StatusCode: " << absl_code
+                 << ". Falling back to UNKNOWN.";
+      return grpc::StatusCode::UNKNOWN;
   }
 }
 
@@ -90,8 +92,12 @@ static absl::StatusCode ToAbslStatusCode(const grpc::StatusCode& code) {
       return absl::StatusCode::kUnavailable;
     case grpc::StatusCode::DATA_LOSS:
       return absl::StatusCode::kDataLoss;
+    case grpc::StatusCode::UNAUTHENTICATED:
+      return absl::StatusCode::kUnauthenticated;
     default:
-      return absl::StatusCode::kInternal;
+      LOG(ERROR) << "Unknown grpc::StatusCode: " << code
+                 << ". Falling back to kUnknown.";
+      return absl::StatusCode::kUnknown;
   }
 }
 
@@ -129,8 +135,12 @@ static grpc::StatusCode FromRpcCode(int32_t code) {
       return grpc::StatusCode::UNAVAILABLE;
     case google::rpc::Code::DATA_LOSS:
       return grpc::StatusCode::DATA_LOSS;
+    case google::rpc::Code::UNAUTHENTICATED:
+      return grpc::StatusCode::UNAUTHENTICATED;
     default:
-      return grpc::StatusCode::INTERNAL;
+      LOG(ERROR) << "Unknown google::rpc::Code: " << code
+                 << ". Falling back to UNKNOWN.";
+      return grpc::StatusCode::UNKNOWN;
   }
 }
 }  // end namespace
