@@ -93,10 +93,12 @@ TEST(FlatbufferUtilsTest, CopiesFlatbufferPointVector) {
   flatbuffers::Vector<intrinsic_fbs::Point>* vector2 =
       create_vector(builder2, zeros);
   for (int i = 0; i < kNDof; ++i) {
+
     EXPECT_EQ(zero, vector2->Get(i));
   }
   EXPECT_OK(CopyFbsVector(*vector, *vector2));
   for (int i = 0; i < kNDof; ++i) {
+
     EXPECT_EQ(one, vector2->Get(i));
   }
 }
