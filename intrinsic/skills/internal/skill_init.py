@@ -37,7 +37,11 @@ def _create_motion_planner_service_stub(
 def _create_geometry_service_stub(
     address: str, connection_timeout: int
 ) -> geometry_service_pb2_grpc.GeometryServiceStub:
-  channel = grpc.insecure_channel(address)
+  options = [
+      ("grpc.max_receive_message_length", -1),
+      ("grpc.max_send_message_length", -1),
+  ]
+  channel = grpc.insecure_channel(address, options=options)
   # Blocks for the duration of the timeout until the channel is ready.
   grpc.channel_ready_future(channel).result(timeout=connection_timeout)
   return geometry_service_pb2_grpc.GeometryServiceStub(channel)
