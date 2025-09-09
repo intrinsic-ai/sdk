@@ -297,7 +297,6 @@ proto_library(
         "//intrinsic/world/service:__subpackages__",
     ],
     deps = [
-        ":asset_type_proto",
         ":id_proto",
         "//intrinsic/math/proto:pose_proto",
         "//intrinsic/scene/proto/v1:scene_object_config_proto",
@@ -330,7 +329,6 @@ py_grpc_library(
 go_proto_library(
     name = "asset_deployment_go_proto",
     go_deps = [
-        ":asset_type_go_proto",
         ":id_go_proto",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
         "//intrinsic/math/proto:pose_go_proto",
@@ -346,7 +344,6 @@ go_grpc_library(
     srcs = [":asset_deployment_proto"],
     visibility = ["//intrinsic:__subpackages__"],
     deps = [
-        ":asset_type_go_proto",
         ":id_go_proto",
         "//intrinsic/math/proto:pose_go_proto",
         "//intrinsic/scene/proto/v1:scene_object_config_go_proto",

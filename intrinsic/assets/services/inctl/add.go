@@ -24,7 +24,6 @@ import (
 	anypb "google.golang.org/protobuf/types/known/anypb"
 	adgrpcpb "intrinsic/assets/proto/asset_deployment_go_grpc_proto"
 	adpb "intrinsic/assets/proto/asset_deployment_go_grpc_proto"
-	atpb "intrinsic/assets/proto/asset_type_go_proto"
 	iagrpcpb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
 )
 
@@ -99,7 +98,6 @@ $ inctl service add ai.intrinsic.basler_camera \
 					Name:          name,
 					Configuration: cfg,
 				},
-				AssetType: atpb.AssetType_ASSET_TYPE_SERVICE,
 			})
 			if err != nil {
 				return fmt.Errorf("could not create service %q of id version %q: %v", name, idVersion, err)
