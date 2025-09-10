@@ -23,9 +23,23 @@ go_library(
     ],
 )
 
+# NOTE: Do not use this library in new code. Use auth.NewCloudConnection instead.
 go_library(
     name = "dialerutil",
     srcs = ["dialerutil.go"],
+    visibility = [
+        "//intrinsic/skills/tools/resource/cmd:__pkg__",
+        "//intrinsic/skills/tools/skill/cmd:__pkg__",
+        "//intrinsic/skills/tools/skill/cmd/logs:__pkg__",
+        "//intrinsic/storage/artifacts/client:__pkg__",
+        "//intrinsic/tools/inctl/cmd:__pkg__",
+        "//intrinsic/tools/inctl/cmd/cluster:__pkg__",
+        "//intrinsic/tools/inctl/cmd/device:__pkg__",
+        "//intrinsic/tools/inctl/cmd/logs:__pkg__",
+        "//intrinsic/tools/inctl/cmd/modified_solution:__pkg__",
+        "//intrinsic/tools/inctl/cmd/process:__pkg__",
+        "//intrinsic/tools/inctl/cmd/solution:__pkg__",
+    ],
     deps = [
         "//intrinsic/assets:baseclientutils",
         "//intrinsic/kubernetes/acl:identity",
