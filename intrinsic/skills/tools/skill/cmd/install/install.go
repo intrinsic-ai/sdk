@@ -15,7 +15,6 @@ import (
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/imagetransfer"
 	"intrinsic/skills/tools/resource/cmd/bundleimages"
-	"intrinsic/skills/tools/skill/cmd/cmd"
 	"intrinsic/skills/tools/skill/cmd/directupload/directupload"
 	"intrinsic/skills/tools/skill/cmd/waitforskill"
 
@@ -25,10 +24,11 @@ import (
 	iapb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
 )
 
-func getCommand() *cobra.Command {
+// Command returns the command for installing a skill.
+func Command() *cobra.Command {
 	flags := cmdutils.NewCmdFlags()
 	cmd := &cobra.Command{
-		Use:   "install TARGET",
+		Use:   "install <bundle>",
 		Short: "Install a skill",
 		Example: `Upload skill image to a container registry, and install the skill
 $ inctl skill install abc/skill.bundle.tar --registry=gcr.io/my-registry --cluster=my_cluster
@@ -165,8 +165,4 @@ $ inctl skill install abc/skill.bundle.tar --solution=my-solution
 	flags.AddFlagSkipDirectUpload("skill")
 
 	return cmd
-}
-
-func init() {
-	cmd.SkillCmd.AddCommand(getCommand())
 }

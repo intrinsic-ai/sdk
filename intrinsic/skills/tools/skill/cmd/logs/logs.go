@@ -17,7 +17,6 @@ import (
 	"github.com/spf13/cobra"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/assets/imageutils"
-	"intrinsic/skills/tools/skill/cmd/cmd"
 	"intrinsic/skills/tools/skill/cmd/dialerutil"
 	"intrinsic/skills/tools/skill/cmd/skillio"
 	"intrinsic/skills/tools/skill/cmd/solutionutil"
@@ -49,8 +48,6 @@ var (
 	verboseOut   io.Writer = os.Stderr
 )
 
-var cmdFlags = cmdutils.NewCmdFlags()
-
 type bodyReader = func(context.Context, io.Reader) (string, error)
 
 func createFrontendURL(projectName string, clusterName string) *url.URL {
@@ -75,6 +72,7 @@ type cmdParams struct {
 	timestamps  bool
 	tailLines   int
 	projectName string
+	sinceSec    string
 }
 
 func runLogsCmd(ctx context.Context, params *cmdParams, w io.Writer) error {
@@ -125,7 +123,7 @@ func runLogsCmd(ctx context.Context, params *cmdParams, w io.Writer) error {
 	}
 	consoleLogsQuery.Set(paramTimestamps, fmt.Sprintf("%t", params.timestamps))
 
-	if d, ok, err := parseSinceSeconds(cmdFlags.GetString(keySinceSec)); ok && err == nil {
+	if d, ok, err := parseSinceSeconds(params.sinceSec); ok && err == nil {
 		// nit: our now is different from server now (at the time of processing),
 		// so we can get drift of a second give or take
 		// this is not generally problematic for this kind of logs.
@@ -149,6 +147,91 @@ func runLogsCmd(ctx context.Context, params *cmdParams, w io.Writer) error {
 		})
 
 	return err
+}
+
+// Command returns the command for fetching skill logs.
+func Command() *cobra.Command {
+	cmdFlags := cmdutils.NewCmdFlags()
+	logsCmd := &cobra.Command{
+		Use:   "logs --type=TYPE TARGET",
+		Short: "Print skill logs",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			target := args[0]
+
+			targetType := imageutils.TargetType(cmdFlags.GetString(cmdutils.KeyType))
+			if targetType != imageutils.Build && targetType != imageutils.ID {
+				return fmt.Errorf("type must be one of (%s, %s)", imageutils.Build, imageutils.ID)
+			}
+
+			// we do not care about value, but about presence
+			_, verboseDebug = os.LookupEnv(verboseDebugEnvName)
+			verboseOut = cmd.OutOrStderr()
+
+			context := cmdFlags.GetString(cmdutils.KeyContext)
+			project := cmdFlags.GetFlagProject()
+			org := cmdFlags.GetFlagOrganization()
+			var serverAddr string
+			if context == "minikube" {
+				serverAddr = localhostURL
+				project = ""
+			} else {
+				serverAddr = fmt.Sprintf("dns:///www.endpoints.%s.cloud.goog:443", project)
+			}
+			solution := cmdFlags.GetString(cmdutils.KeySolution)
+
+			ctx, conn, err := dialerutil.DialConnectionCtx(cmd.Context(), dialerutil.DialInfoParams{
+				Address:  serverAddr,
+				CredName: project,
+				CredOrg:  org,
+			})
+			if err != nil {
+				return fmt.Errorf("could not create connection: %v", err)
+			}
+			defer conn.Close()
+
+			cluster, err := solutionutil.GetClusterNameFromSolutionOrDefault(
+				ctx,
+				conn,
+				solution,
+				context,
+			)
+			if err != nil {
+				return fmt.Errorf("could not resolve solution to cluster: %s", err)
+			}
+
+			return runLogsCmd(ctx, &cmdParams{
+				targetType:  targetType,
+				target:      target,
+				frontendURL: createFrontendURL(project, cluster),
+				follow:      cmdFlags.GetBool(keyFollow),
+				timestamps:  cmdFlags.GetBool(keyTimestamps),
+				tailLines:   cmdFlags.GetInt(keyTailLines),
+				projectName: project,
+				sinceSec:    cmdFlags.GetString(keySinceSec),
+			}, cmd.OutOrStdout())
+		},
+	}
+	cmdFlags.SetCommand(logsCmd)
+
+	cmdFlags.AddFlagsProjectOrg()
+	cmdFlags.OptionalEnvString(cmdutils.KeyContext, "", "The Kubernetes cluster to use.")
+	cmdFlags.OptionalEnvString(cmdutils.KeySolution, "", "The solution to use.")
+
+	cmdFlags.OptionalString(cmdutils.KeyType, string(imageutils.ID), fmt.Sprintf(
+		`The target's type:
+%-10s build target that creates a skill bundle file
+%-10s skill id`,
+		imageutils.Build,
+		imageutils.ID,
+	))
+	cmdFlags.OptionalBool(keyFollow, false, "Whether to follow the skill logs.")
+	cmdFlags.OptionalBool(keyTimestamps, false, "Whether to include timestamps on each log line.")
+	cmdFlags.OptionalInt(keyTailLines, 10, "The number of recent log lines to display. An input number less than 0 shows all log lines.")
+	cmdFlags.OptionalString(keySinceSec, "", "Show logs starting since value. Value is either relative (e.g 10m) or \ndate time in RFC3339 format (e.g: 2006-01-02T15:04:05Z07:00)")
+
+	logsCmd.MarkFlagsMutuallyExclusive(cmdutils.KeyContext, cmdutils.KeySolution)
+	return logsCmd
 }
 
 // callEndpoint calls given endpoint URL and handles all edge cases. If response is 200 OK
@@ -250,89 +333,6 @@ func parseSinceSeconds(since string) (time.Duration, bool, error) {
 		return 0, true, fmt.Errorf("time %s is in future, cannot proceed", keySinceSec)
 	}
 	return time.Now().Sub(t), true, nil
-}
-
-var logsCmd = &cobra.Command{
-	Use:   "logs --type=TYPE TARGET",
-	Short: "Print skill logs",
-	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		target := args[0]
-
-		targetType := imageutils.TargetType(cmdFlags.GetString(cmdutils.KeyType))
-		if targetType != imageutils.Build && targetType != imageutils.ID {
-			return fmt.Errorf("type must be one of (%s, %s)", imageutils.Build, imageutils.ID)
-		}
-
-		// we do not care about value, but about presence
-		_, verboseDebug = os.LookupEnv(verboseDebugEnvName)
-		verboseOut = cmd.OutOrStderr()
-
-		context := cmdFlags.GetString(cmdutils.KeyContext)
-		project := cmdFlags.GetFlagProject()
-		org := cmdFlags.GetFlagOrganization()
-		var serverAddr string
-		if context == "minikube" {
-			serverAddr = localhostURL
-			project = ""
-		} else {
-			serverAddr = fmt.Sprintf("dns:///www.endpoints.%s.cloud.goog:443", project)
-		}
-		solution := cmdFlags.GetString(cmdutils.KeySolution)
-
-		ctx, conn, err := dialerutil.DialConnectionCtx(cmd.Context(), dialerutil.DialInfoParams{
-			Address:  serverAddr,
-			CredName: project,
-			CredOrg:  org,
-		})
-		if err != nil {
-			return fmt.Errorf("could not create connection: %v", err)
-		}
-		defer conn.Close()
-
-		cluster, err := solutionutil.GetClusterNameFromSolutionOrDefault(
-			ctx,
-			conn,
-			solution,
-			context,
-		)
-		if err != nil {
-			return fmt.Errorf("could not resolve solution to cluster: %s", err)
-		}
-
-		return runLogsCmd(ctx, &cmdParams{
-			targetType:  targetType,
-			target:      target,
-			frontendURL: createFrontendURL(project, cluster),
-			follow:      cmdFlags.GetBool(keyFollow),
-			timestamps:  cmdFlags.GetBool(keyTimestamps),
-			tailLines:   cmdFlags.GetInt(keyTailLines),
-			projectName: project,
-		}, cmd.OutOrStdout())
-	},
-}
-
-func init() {
-	cmd.SkillCmd.AddCommand(logsCmd)
-	cmdFlags.SetCommand(logsCmd)
-
-	cmdFlags.AddFlagsProjectOrg()
-	cmdFlags.OptionalEnvString(cmdutils.KeyContext, "", "The Kubernetes cluster to use.")
-	cmdFlags.OptionalEnvString(cmdutils.KeySolution, "", "The solution to use.")
-
-	cmdFlags.OptionalString(cmdutils.KeyType, string(imageutils.ID), fmt.Sprintf(
-		`The target's type:
-%-10s build target that creates a skill bundle file
-%-10s skill id`,
-		imageutils.Build,
-		imageutils.ID,
-	))
-	cmdFlags.OptionalBool(keyFollow, false, "Whether to follow the skill logs.")
-	cmdFlags.OptionalBool(keyTimestamps, false, "Whether to include timestamps on each log line.")
-	cmdFlags.OptionalInt(keyTailLines, 10, "The number of recent log lines to display. An input number less than 0 shows all log lines.")
-	cmdFlags.OptionalString(keySinceSec, "", "Show logs starting since value. Value is either relative (e.g 10m) or \ndate time in RFC3339 format (e.g: 2006-01-02T15:04:05Z07:00)")
-
-	logsCmd.MarkFlagsMutuallyExclusive(cmdutils.KeyContext, cmdutils.KeySolution)
 }
 
 func getAuthToken(project string) (*auth.ProjectToken, error) {

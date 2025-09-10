@@ -12,7 +12,6 @@ import (
 	"github.com/spf13/cobra"
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
-	skillCmd "intrinsic/skills/tools/skill/cmd/cmd"
 	"intrinsic/skills/tools/skill/cmd/listutil"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/printer"
@@ -30,8 +29,6 @@ const (
 )
 
 var (
-	cmdFlags = cmdutils.NewCmdFlags()
-
 	filterOptions = []string{sideloadedFilter, releasedFilter}
 )
 
@@ -74,10 +71,13 @@ func listSkills(ctx context.Context, client skillregistrygrpcpb.SkillRegistryCli
 	return nil
 }
 
-var listCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List skills that are loaded into a solution.",
-	Example: `List skills of a running solution (solution id, not display name)
+// Command returns the command for listing skills.
+func Command() *cobra.Command {
+	cmdFlags := cmdutils.NewCmdFlags()
+	listCmd := &cobra.Command{
+		Use:   "list",
+		Short: "List skills that are loaded into a solution.",
+		Example: `List skills of a running solution (solution id, not display name)
 $ inctl skill list --project my-project --solution my-solution-id
 
 	To find a running solution's id, run:
@@ -86,40 +86,40 @@ $ inctl skill list --project my-project --solution my-solution-id
 Set the cluster on which the solution is running
 $ inctl skill list --project my-project --cluster my-cluster
 `,
-	Args: cobra.NoArgs,
-	RunE: func(cmd *cobra.Command, _ []string) error {
-		ctx := cmd.Context()
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			ctx := cmd.Context()
 
-		ctx, conn, _, err := clientutils.DialClusterFromInctl(ctx, cmdFlags)
-		if err != nil {
-			return err
-		}
-		defer conn.Close()
+			ctx, conn, _, err := clientutils.DialClusterFromInctl(ctx, cmdFlags)
+			if err != nil {
+				return err
+			}
+			defer conn.Close()
 
-		prtr, err := printer.NewPrinter(root.FlagOutput)
-		if err != nil {
-			return err
-		}
+			prtr, err := printer.NewPrinter(root.FlagOutput)
+			if err != nil {
+				return err
+			}
 
-		client := skillregistrygrpcpb.NewSkillRegistryClient(conn)
-		err = listSkills(ctx, client, &listSkillsParams{
-			filter:  cmdFlags.GetString(keyFilter),
-			printer: prtr,
-		})
-		if err != nil {
-			return err
-		}
+			client := skillregistrygrpcpb.NewSkillRegistryClient(conn)
+			err = listSkills(ctx, client, &listSkillsParams{
+				filter:  cmdFlags.GetString(keyFilter),
+				printer: prtr,
+			})
+			if err != nil {
+				return err
+			}
 
-		return nil
-	},
-}
+			return nil
+		},
+	}
 
-func init() {
-	skillCmd.SkillCmd.AddCommand(listCmd)
 	cmdFlags.SetCommand(listCmd)
 
 	cmdFlags.AddFlagsAddressClusterSolution()
 	cmdFlags.AddFlagsProjectOrg()
 
 	cmdFlags.OptionalString(keyFilter, "", fmt.Sprintf("Filter skills by the way they where loaded into the solution. One of: %s.", strings.Join(filterOptions, ", ")))
+
+	return listCmd
 }

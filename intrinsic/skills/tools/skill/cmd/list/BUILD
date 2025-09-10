@@ -12,7 +12,6 @@ go_library(
         "//intrinsic/assets:cmdutils",
         "//intrinsic/skills/proto:skill_registry_go_grpc_proto",
         "//intrinsic/skills/proto:skills_go_proto",
-        "//intrinsic/skills/tools/skill/cmd",
         "//intrinsic/skills/tools/skill/cmd:listutil",
         "//intrinsic/tools/inctl/cmd:root",
         "//intrinsic/tools/inctl/util:printer",

@@ -5,20 +5,6 @@ load("//bazel:go_macros.bzl", "go_library")
 package(default_visibility = ["//visibility:public"])
 
 go_library(
-    name = "skill",
-    srcs = ["skill.go"],
-    deps = [
-        ":root",
-        "//intrinsic/skills/tools/skill/cmd",
-        "//intrinsic/skills/tools/skill/cmd/create",
-        "//intrinsic/skills/tools/skill/cmd/install",
-        "//intrinsic/skills/tools/skill/cmd/list",
-        "//intrinsic/skills/tools/skill/cmd/logs",
-        "//intrinsic/skills/tools/skill/cmd/release",
-    ],
-)
-
-go_library(
     name = "root",
     srcs = ["root.go"],
     deps = [

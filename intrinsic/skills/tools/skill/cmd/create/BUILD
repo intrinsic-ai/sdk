@@ -22,7 +22,6 @@ go_library(
     ],
     deps = [
         "//intrinsic/assets:idutils",
-        "//intrinsic/skills/tools/skill/cmd",
         "//intrinsic/tools/inctl/cmd:root",
         "//intrinsic/tools/inctl/cmd/bazel",
         "//intrinsic/tools/inctl/cmd/version",

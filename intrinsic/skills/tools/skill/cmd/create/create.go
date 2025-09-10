@@ -20,7 +20,6 @@ import (
 	"github.com/spf13/cobra"
 	strcase "github.com/stoewer/go-strcase"
 	"intrinsic/assets/idutils"
-	skillCmd "intrinsic/skills/tools/skill/cmd/cmd"
 	"intrinsic/tools/inctl/cmd/bazel/bazel"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/cmd/version/version"
@@ -516,8 +515,8 @@ func runCreateCmd(params *cmdParams, stdout io.Writer) error {
 	return nil
 }
 
-// NewCreateCmd creates a new create command.
-func NewCreateCmd() *cobra.Command {
+// Command creates a new create command.
+func Command() *cobra.Command {
 	createCmd := &cobra.Command{
 		Use:   "create skill_id",
 		Short: "Create a new skill.",
@@ -574,8 +573,4 @@ $ inctl skill create com.my_org.my_move --proto_package com.my_org`,
 		"created or modified.")
 
 	return createCmd
-}
-
-func init() {
-	skillCmd.SkillCmd.AddCommand(NewCreateCmd())
 }

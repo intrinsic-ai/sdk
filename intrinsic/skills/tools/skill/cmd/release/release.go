@@ -26,7 +26,6 @@ import (
 	atpb "intrinsic/assets/proto/asset_type_go_proto"
 	mpb "intrinsic/assets/proto/metadata_go_proto"
 	"intrinsic/skills/tools/resource/cmd/bundleimages"
-	skillCmd "intrinsic/skills/tools/skill/cmd/cmd"
 	"intrinsic/skills/tools/skill/cmd/directupload/directupload"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/printer"
@@ -35,8 +34,6 @@ import (
 const (
 	keyDescription = "description"
 )
-
-var cmdFlags = cmdutils.NewCmdFlags()
 
 var (
 	buildCommand    = "bazel"
@@ -47,7 +44,7 @@ var (
 
 func release(ctx context.Context, client acgrpcpb.AssetCatalogClient, req *acpb.CreateAssetRequest, ignoreExisting bool, printer printer.Printer) error {
 	if _, err := client.CreateAsset(ctx, req); err != nil {
-		if s, ok := status.FromError(err); ok && cmdFlags.GetFlagIgnoreExisting() && s.Code() == codes.AlreadyExists {
+		if s, ok := status.FromError(err); ok && ignoreExisting && s.Code() == codes.AlreadyExists {
 			printer.PrintS("Skipping release: skill already exists in the catalog")
 			return nil
 		}
@@ -147,58 +144,59 @@ var releaseExamples = strings.Join(
 	"\n\n",
 )
 
-var releaseCmd = &cobra.Command{
-	Use:     "release target",
-	Short:   "Release a skill to the catalog",
-	Example: releaseExamples,
-	Args:    cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		target := args[0]
-		dryRun := cmdFlags.GetFlagDryRun()
+// Command returns the command for releasing a skill.
+func Command() *cobra.Command {
+	cmdFlags := cmdutils.NewCmdFlags()
+	releaseCmd := &cobra.Command{
+		Use:     "release target",
+		Short:   "Release a skill to the catalog",
+		Example: releaseExamples,
+		Args:    cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			target := args[0]
+			dryRun := cmdFlags.GetFlagDryRun()
 
-		useDirectUpload := true
+			useDirectUpload := true
 
-		var conn *grpc.ClientConn
-		var transferer imagetransfer.Transferer
-		ctx := cmd.Context()
-		if !dryRun {
-			var err error
-			ctx, conn, err = clientutils.DialCatalogFromInctl(cmd, cmdFlags)
-			if err != nil {
-				return fmt.Errorf("failed to create client connection: %v", err)
+			var conn *grpc.ClientConn
+			var transferer imagetransfer.Transferer
+			ctx := cmd.Context()
+			if !dryRun {
+				var err error
+				ctx, conn, err = clientutils.DialCatalogFromInctl(cmd, cmdFlags)
+				if err != nil {
+					return fmt.Errorf("failed to create client connection: %v", err)
+				}
+				defer conn.Close()
+				transferer = imageTransferer(imageTransfererOpts{
+					cmd:             cmd,
+					conn:            conn,
+					useDirectUpload: useDirectUpload,
+				})
 			}
-			defer conn.Close()
-			transferer = imageTransferer(imageTransfererOpts{
-				cmd:             cmd,
-				conn:            conn,
-				useDirectUpload: useDirectUpload,
-			})
-		}
 
-		asset, err := processAsset(target, transferer, cmdFlags)
-		if err != nil {
-			return err
-		}
-		printer, err := printer.NewPrinter(root.FlagOutput)
-		if err != nil {
-			return err
-		}
-		idVersion := idutils.IDVersionFromProtoUnchecked(asset.GetMetadata().GetIdVersion())
-		printer.PrintSf("Releasing skill %q to the asset catalog", idVersion)
-		if dryRun {
-			printer.PrintS("Skipping call to asset catalog (dry-run)")
-			return nil
-		}
-		client := acgrpcpb.NewAssetCatalogClient(conn)
-		req := &acpb.CreateAssetRequest{
-			Asset: asset,
-		}
-		return release(ctx, client, req, cmdFlags.GetFlagIgnoreExisting(), printer)
-	},
-}
+			asset, err := processAsset(target, transferer, cmdFlags)
+			if err != nil {
+				return err
+			}
+			printer, err := printer.NewPrinter(root.FlagOutput)
+			if err != nil {
+				return err
+			}
+			idVersion := idutils.IDVersionFromProtoUnchecked(asset.GetMetadata().GetIdVersion())
+			printer.PrintSf("Releasing skill %q to the asset catalog", idVersion)
+			if dryRun {
+				printer.PrintS("Skipping call to asset catalog (dry-run)")
+				return nil
+			}
+			client := acgrpcpb.NewAssetCatalogClient(conn)
+			req := &acpb.CreateAssetRequest{
+				Asset: asset,
+			}
+			return release(ctx, client, req, cmdFlags.GetFlagIgnoreExisting(), printer)
+		},
+	}
 
-func init() {
-	skillCmd.SkillCmd.AddCommand(releaseCmd)
 	cmdFlags.SetCommand(releaseCmd)
 
 	cmdFlags.AddFlagDefault("skill")
@@ -209,4 +207,5 @@ func init() {
 	cmdFlags.AddFlagReleaseNotes("skill")
 	cmdFlags.AddFlagVersion("skill")
 
+	return releaseCmd
 }

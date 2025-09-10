@@ -8,6 +8,11 @@ go_library(
     name = "cmd",
     srcs = ["root.go"],
     deps = [
+        "//intrinsic/skills/tools/skill/cmd/create",
+        "//intrinsic/skills/tools/skill/cmd/install",
+        "//intrinsic/skills/tools/skill/cmd/list",
+        "//intrinsic/skills/tools/skill/cmd/logs",
+        "//intrinsic/skills/tools/skill/cmd/release",
         "//intrinsic/tools/inctl/cmd:root",
         "@com_github_spf13_cobra//:go_default_library",
     ],

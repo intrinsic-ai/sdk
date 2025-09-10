@@ -10,7 +10,6 @@ go_library(
     deps = [
         "//intrinsic/assets:cmdutils",
         "//intrinsic/assets:imageutils",
-        "//intrinsic/skills/tools/skill/cmd",
         "//intrinsic/skills/tools/skill/cmd:dialerutil",
         "//intrinsic/skills/tools/skill/cmd:skillio",
         "//intrinsic/skills/tools/skill/cmd:solutionutil",
