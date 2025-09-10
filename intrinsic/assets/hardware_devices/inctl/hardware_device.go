@@ -4,21 +4,15 @@
 package hardwaredevice
 
 import (
-	"github.com/spf13/cobra"
 	"intrinsic/assets/hardware_devices/inctl/install"
 	"intrinsic/assets/hardware_devices/inctl/release"
 	"intrinsic/tools/inctl/cmd/root"
+	"intrinsic/tools/inctl/util/cobrautil"
 )
 
-// hardwareDeviceCmd is the super-command for everything to manage HardwareDevices.
-var hardwareDeviceCmd = &cobra.Command{
-	Use:   root.HardwareDeviceCmdName,
-	Short: "Manages HardwareDevices.",
-	Long:  "Manages HardwareDevices.",
-}
-
 func init() {
-	hardwareDeviceCmd.AddCommand(install.GetCommand())
-	hardwareDeviceCmd.AddCommand(release.GetCommand())
-	root.RootCmd.AddCommand(hardwareDeviceCmd)
+	cmd := cobrautil.ParentOfNestedSubcommands(root.HardwareDeviceCmdName, "Manage HardwareDevices.")
+	cmd.AddCommand(install.GetCommand())
+	cmd.AddCommand(release.GetCommand())
+	root.RootCmd.AddCommand(cmd)
 }

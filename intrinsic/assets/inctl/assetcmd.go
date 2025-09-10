@@ -4,7 +4,6 @@
 package assetcmd
 
 import (
-	"github.com/spf13/cobra"
 	"intrinsic/assets/inctl/getreleased"
 	"intrinsic/assets/inctl/list"
 	"intrinsic/assets/inctl/listreleased"
@@ -12,21 +11,16 @@ import (
 	"intrinsic/assets/inctl/uninstall"
 	"intrinsic/assets/inctl/updatereleasemetadata"
 	"intrinsic/tools/inctl/cmd/root"
+	"intrinsic/tools/inctl/util/cobrautil"
 )
 
-var assetCmd = &cobra.Command{
-	Use:   root.AssetCmdName,
-	Short: "Manages assets",
-	Long:  "Manages assets",
-}
-
 func init() {
-	assetCmd.AddCommand(getreleased.GetCommand())
-	assetCmd.AddCommand(list.GetCommand(""))
-	assetCmd.AddCommand(listreleased.GetCommand())
-	assetCmd.AddCommand(listreleasedversions.GetCommand())
-	assetCmd.AddCommand(uninstall.GetCommand())
-	assetCmd.AddCommand(updatereleasemetadata.GetCommand())
-
-	root.RootCmd.AddCommand(assetCmd)
+	cmd := cobrautil.ParentOfNestedSubcommands(root.AssetCmdName, "Manage assets.")
+	cmd.AddCommand(getreleased.GetCommand())
+	cmd.AddCommand(list.GetCommand(""))
+	cmd.AddCommand(listreleased.GetCommand())
+	cmd.AddCommand(listreleasedversions.GetCommand())
+	cmd.AddCommand(uninstall.GetCommand())
+	cmd.AddCommand(updatereleasemetadata.GetCommand())
+	root.RootCmd.AddCommand(cmd)
 }

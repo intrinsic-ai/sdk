@@ -14,7 +14,7 @@ go_library(
         ":release",
         "//intrinsic/assets/services/inctl/state",
         "//intrinsic/tools/inctl/cmd:root",
-        "@com_github_spf13_cobra//:go_default_library",
+        "//intrinsic/tools/inctl/util:cobrautil",
     ],
 )
 
