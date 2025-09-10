@@ -135,6 +135,7 @@ func makeCreateAssetRequest(ctx context.Context, opts makeCreateAssetRequestOpti
 			Transferer: transferer,
 			URI:        imageutils.GetRegistry(clientutils.ResolveCatalogProjectFromInctl(opts.flags)),
 		}),
+		ProcessReferencedData:   bundleio.ToCatalogReferencedData(ctx, bundleio.WithACClient(opts.acClient)),
 	})
 
 	localAssetsDir, err := os.MkdirTemp("", "local-assets")

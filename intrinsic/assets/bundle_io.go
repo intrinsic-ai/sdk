@@ -127,6 +127,7 @@ type BundleType int
 const (
 	BundleTypeSkill BundleType = iota
 	BundleTypeService
+	BundleTypeData
 	BundleTypeHardwareDevice
 )
 
@@ -148,6 +149,7 @@ func DetectBundleType(path string) (BundleType, error) {
 	lookup := map[string]BundleType{
 		serviceManifestPathInTar:       BundleTypeService,
 		skillManifestPathInTar:         BundleTypeSkill,
+		dataAssetFileName:              BundleTypeData,
 		hardwareDeviceManifestFileName: BundleTypeHardwareDevice,
 	}
 

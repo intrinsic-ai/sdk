@@ -82,6 +82,7 @@ func GetCommand() *cobra.Command {
 					Transferer: transferer,
 					URI:        imageutils.GetRegistry(clientutils.ResolveCatalogProjectFromInctl(flags)),
 				}),
+				ProcessReferencedData:   bundleio.ToPortableReferencedData,
 			})
 
 			localAssetsDir, err := os.MkdirTemp("", "local-assets")
