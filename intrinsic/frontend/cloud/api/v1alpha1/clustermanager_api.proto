@@ -1,0 +1,118 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.frontend.v1alpha1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "google/longrunning/operations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+// LogReceiver defines a networked syslog server that will receive system
+// logs. This can be used to send security-relevant logs to a SIEM.
+message LogReceiver {
+  // The host to connect to. Disables log receiver if empty.
+  string host = 1;
+  // Default to 514.
+  int32 port = 2;
+  enum Transport {
+    // Default to TCP.
+    TRANSPORT_DEFAULT = 0;
+    TRANSPORT_TCP = 1;
+    TRANSPORT_UDP = 2;
+  }
+  Transport transport = 3;
+  enum Format {
+    // Default to RFC5424.
+    FORMAT_DEFAULT = 0;
+    FORMAT_RFC5424 = 1;
+    FORMAT_RFC3164 = 2;
+  }
+  Format format = 4;
+}
+
+// UPS configuration allows a user to monitor an uninterruptible power supply
+// and shut the IPC down when running from battery.
+//
+// Currently, only single-node clusters fully support UPSes: additional worker
+// IPCs such as RTPCs will not be cleanly shut down when running on battery.
+message UPS {
+  // The driver is the plugin that talks to the UPS, eg "usbhid-ups" or
+  // "snmp-ups". If empty, the IPC will not communicate with a UPS. You can
+  // still plug it into a UPS, but it won't shut down when running from battery.
+  //
+  // See https://networkupstools.org/stable-hcl.html.
+  string driver = 1;
+  // The port is a driver-dependent identifier for the UPS, eg "auto" for USB or
+  // "192.168.1.123:161" for SNMP.
+  string port = 2;
+}
+
+// Config defines cluster-level configuration. It excludes network configuration
+// which must be handled with Get/UpdateNetworkConfig methods or via the local
+// UI to avoid leaving the device with no internet connection.
+message Config {
+  LogReceiver log_receiver = 1 [(google.api.field_behavior) = OPTIONAL];
+
+  UPS ups = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message GetConfigRequest {
+  string project = 1 [(google.api.field_behavior) = REQUIRED];
+  string org = 2 [(google.api.field_behavior) = REQUIRED];
+  string cluster_id = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+message UpdateConfigRequest {
+  string project = 1 [(google.api.field_behavior) = REQUIRED];
+  string org = 2 [(google.api.field_behavior) = REQUIRED];
+  string cluster_id = 3 [(google.api.field_behavior) = REQUIRED];
+  Config config = 4 [(google.api.field_behavior) = REQUIRED];
+}
+
+message UpdateConfigMetadata {}
+
+// ClustersService holds a set of methods to interact with clusters.
+//
+// This v1alpha1 package contains experimental additions to the API that are not
+// yet subject to compatibility guarantees. If you want to use these, please
+// file a feature request for stabilization of the relevant APIs. If you build
+// clients for experimental APIs, clearly advertise the experimental nature to
+// your users, for example by requiring a `--experimental` flag or showing a
+// warning.
+service ClustersService {
+
+  // GetConfig retrieves the configuration of a cluster. This includes
+  // SIEM and UPS configuration and may be extended in future.
+  rpc GetConfig(GetConfigRequest) returns (Config) {
+    option (google.api.http) = {
+      get: "/v1/project/{project}/org/{org}/clusters/{cluster}/config"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "GetConfig"
+    };
+  }
+
+  // UpdateConfig sends new configuration to a cluster.
+  //
+  // Only the included submessages of the Config message will be updated. To
+  // clear an existing config, send an empty submessage, for example:
+  //
+  //   config { ups {} }
+  //
+  // The update will be applied the next time the cluster is reachable.
+  rpc UpdateConfig(UpdateConfigRequest) returns (google.longrunning.Operation) {
+    option (google.longrunning.operation_info) = {
+      response_type: "Config"
+      metadata_type: "UpdateConfigMetadata"
+    };
+    option (google.api.http) = {
+      patch: "/v1/project/{project}/org/{org}/clusters/{cluster}/config"
+      body: "config"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "UpdateConfig"
+    };
+  }
+}
