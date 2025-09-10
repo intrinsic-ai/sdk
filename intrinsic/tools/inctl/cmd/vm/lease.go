@@ -110,14 +110,14 @@ func Lease(ctx context.Context, leaseClient leaseapigrpcpb.VMPoolLeaseServiceCli
 	span := trace.FromContext(ctx)
 	ctx, cancel := context.WithTimeout(ctx, opts.AbortAfter)
 	defer cancel()
-	expires := time.Time{}
 	now := time.Now()
+	var duration time.Duration
 	if opts.Duration != "" {
-		byDur, err := time.ParseDuration(opts.Duration)
+		var err error
+		duration, err = time.ParseDuration(opts.Duration)
 		if err != nil {
 			return fmt.Errorf("%v is not valid for time.ParseDuration: %v", opts.Duration, err)
 		}
-		expires = time.Now().Add(byDur)
 	}
 	if opts.ReservationID != "" {
 		span.AddAttributes(trace.StringAttribute("reservation_id", opts.ReservationID))
@@ -138,9 +138,9 @@ func Lease(ctx context.Context, leaseClient leaseapigrpcpb.VMPoolLeaseServiceCli
 	var lr *leaseResult
 	var err error
 	if isLeaseTypeAdhoc {
-		lr, err = requestAdhocLease(ctx, expires, leaseClient, poolClient, opts)
+		lr, err = requestAdhocLease(ctx, duration, leaseClient, poolClient, opts)
 	} else {
-		lr, err = requestLease(ctx, expires, leaseClient, opts)
+		lr, err = requestLease(ctx, duration, leaseClient, opts)
 	}
 	if err != nil {
 		return fmt.Errorf("failed lease: %w", err)
@@ -189,11 +189,19 @@ func getContext(ctx context.Context, opts *LeaseOptions, l *leasepb.Lease) (stri
 	return retContext, nil
 }
 
+func optionalExpiresIn(optDuration time.Duration) *tpb.Timestamp {
+	var t time.Time
+	if optDuration != 0 {
+		t = time.Now().Add(optDuration)
+	}
+	return tpb.New(t)
+}
+
 // requestLease a VM from a pool.
-func requestLease(ctx context.Context, expires time.Time, leaseClient leaseapigrpcpb.VMPoolLeaseServiceClient, opts *LeaseOptions) (*leaseResult, error) {
+func requestLease(ctx context.Context, duration time.Duration, leaseClient leaseapigrpcpb.VMPoolLeaseServiceClient, opts *LeaseOptions) (*leaseResult, error) {
 	var l *leasepb.Lease
 	for l == nil { // retry until lease successful or retry not set
-		req := &leasepb.LeaseRequest{Pool: opts.Pool, Expires: tpb.New(expires), ServiceTag: serviceTag, ReservationId: &opts.ReservationID}
+		req := &leasepb.LeaseRequest{Pool: opts.Pool, Expires: optionalExpiresIn(duration), ServiceTag: serviceTag, ReservationId: &opts.ReservationID}
 		lResp, err := leaseClient.Lease(ctx, req)
 		if err != nil {
 			if status.Code(err) == codes.PermissionDenied {
@@ -287,7 +295,7 @@ func createPoolIfNeeded(ctx context.Context, poolClient *vmpoolapigrpcpb.VMPoolS
 	return true, nil
 }
 
-func requestAdhocLease(ctx context.Context, expires time.Time, leaseClient leaseapigrpcpb.VMPoolLeaseServiceClient, poolClient *vmpoolapigrpcpb.VMPoolServiceClient, opts *LeaseOptions) (*leaseResult, error) {
+func requestAdhocLease(ctx context.Context, duration time.Duration, leaseClient leaseapigrpcpb.VMPoolLeaseServiceClient, poolClient *vmpoolapigrpcpb.VMPoolServiceClient, opts *LeaseOptions) (*leaseResult, error) {
 	reservationUUID := strings.TrimSpace(opts.ReservationID)
 	if reservationUUID == "" {
 		reservationUUID = uuid.New()
@@ -302,7 +310,7 @@ func requestAdhocLease(ctx context.Context, expires time.Time, leaseClient lease
 
 	var l *leasepb.Lease
 	for l == nil { // retry until lease successful or retry not set
-		req := &leasepb.LeaseRequest{Pool: opts.Pool, Expires: tpb.New(expires), ServiceTag: serviceTag}
+		req := &leasepb.LeaseRequest{Pool: opts.Pool, Expires: optionalExpiresIn(duration), ServiceTag: serviceTag}
 		if reservationUUID != "" {
 			req.ReservationId = &reservationUUID
 		}
