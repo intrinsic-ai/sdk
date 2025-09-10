@@ -29,7 +29,7 @@ message SelfState {
     // Indicates the Service instance is in an unspecified state.
     STATE_CODE_UNSPECIFIED = 0;
     // Indicates the Service instance is in an error state.
-    // When a state is in STATE_CODE_ERROR, the Service must now allow
+    // When a state is in STATE_CODE_ERROR, the Service must not allow
     // interaction with the services that it provides.
     STATE_CODE_ERROR = 1;
     // When a Service is disabled, it must not allow interaction with the
