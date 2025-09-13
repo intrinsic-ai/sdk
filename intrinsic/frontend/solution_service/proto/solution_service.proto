@@ -18,6 +18,10 @@ service SolutionService {
   rpc GetBehaviorTree(GetBehaviorTreeRequest)
       returns (intrinsic_proto.executive.BehaviorTree);
 
+  // Gets multiple behavior trees from the running solution.
+  rpc BatchGetBehaviorTrees(BatchGetBehaviorTreesRequest)
+      returns (BatchGetBehaviorTreesResponse);
+
   // Lists behavior trees from the running solution.
   rpc ListBehaviorTrees(ListBehaviorTreesRequest)
       returns (ListBehaviorTreesResponse);
@@ -30,9 +34,26 @@ service SolutionService {
   rpc UpdateBehaviorTree(UpdateBehaviorTreeRequest)
       returns (intrinsic_proto.executive.BehaviorTree);
 
+  // Updates multiple behavior trees in the running solution.
+  rpc BatchUpdateBehaviorTrees(BatchUpdateBehaviorTreesRequest)
+      returns (BatchUpdateBehaviorTreesResponse);
+
   // Deletes a behavior tree in the running solution.
   rpc DeleteBehaviorTree(DeleteBehaviorTreeRequest)
       returns (google.protobuf.Empty);
+}
+
+enum BehaviorTreeView {
+  // The default/unset value. The default depends on the RPC and is documented
+  // individually where relevant.
+  BEHAVIOR_TREE_VIEW_UNSPECIFIED = 0;
+
+  // Include basic metadata about the behavior tree (`name` and `tree_id`). This
+  // is the default view for `ListBehaviorTrees` and `BatchGetBehaviorTrees`.
+  BEHAVIOR_TREE_VIEW_BASIC = 1;
+
+  // Include the full contents of the behavior tree.
+  BEHAVIOR_TREE_VIEW_FULL = 2;
 }
 
 message GetStatusRequest {
@@ -45,6 +66,21 @@ message GetBehaviorTreeRequest {
 
   // The view of the behavior tree to return. Defaults to the FULL view.
   BehaviorTreeView view = 2;
+}
+
+message BatchGetBehaviorTreesRequest {
+  // The names of the behavior trees to retrieve. A maximum of 50 behavior trees
+  // can be retrieved in a batch.
+  repeated string names = 1;
+
+  // The view of the behavior tree to return. Defaults to the BASIC view.
+  BehaviorTreeView view = 2;
+}
+
+message BatchGetBehaviorTreesResponse {
+  // The behavior trees from the running solution. Uses the same order as the
+  // names specified in the request.
+  repeated intrinsic_proto.executive.BehaviorTree behavior_trees = 1;
 }
 
 message ListBehaviorTreesRequest {
@@ -71,19 +107,6 @@ message ListBehaviorTreesResponse {
   string next_page_token = 2;
 }
 
-enum BehaviorTreeView {
-  // The default/unset value. The default depends on the RPC and is documented
-  // individually where relevant.
-  BEHAVIOR_TREE_VIEW_UNSPECIFIED = 0;
-
-  // Include basic metadata about the behavior tree (`name` and `tree_id`). This
-  // is the default view for `ListBehaviorTrees`.
-  BEHAVIOR_TREE_VIEW_BASIC = 1;
-
-  // Include the full contents of the behavior tree.
-  BEHAVIOR_TREE_VIEW_FULL = 2;
-}
-
 message CreateBehaviorTreeRequest {
   // The ID (`name`) to use for the behavior tree. Must always be specified.
   // This is also sometimes called the "process name". The name must be unique
@@ -101,6 +124,17 @@ message UpdateBehaviorTreeRequest {
 
   // If set to `true`, a new behavior tree will be created if it does not exist.
   bool allow_missing = 2;
+}
+
+message BatchUpdateBehaviorTreesRequest {
+  // The request message specifying the behavior trees to update. A maximum of
+  // 50 behavior trees can be updated in a batch.
+  repeated UpdateBehaviorTreeRequest requests = 1;
+}
+
+message BatchUpdateBehaviorTreesResponse {
+  // The updated behavior trees.
+  repeated intrinsic_proto.executive.BehaviorTree behavior_trees = 1;
 }
 
 message DeleteBehaviorTreeRequest {
