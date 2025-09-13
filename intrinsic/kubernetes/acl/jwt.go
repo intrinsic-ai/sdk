@@ -28,6 +28,7 @@ type Data struct {
 
 // Claim keys and values found in the JWT.
 const (
+	ClaimAudience      = "aud"
 	ClaimEmailVerified = "email_verified"
 	ClaimAuthorized    = "authorized"
 	ClaimProjects      = "ps"
