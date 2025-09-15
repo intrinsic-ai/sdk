@@ -1,0 +1,81 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.grasping;
+
+import "intrinsic/math/proto/point.proto";
+import "intrinsic/world/proto/object_world_refs.proto";
+
+// The placement constraint of the exact placement pose to be satisfied during
+// grasp planning.
+message PlacementPoseConstraint {
+  // Moving frame that will be aligned with the target frame at placement.
+  // This typically is a tool or tip frame.
+  intrinsic_proto.world.TransformNodeReference moving_frame = 1;
+
+  // Target frame to align the moving frame with at placement.
+  // This should be the target frame before any force skills (if any) at
+  // placement, i.e. the beginning frame of any force skills at the end of
+  // placement.
+  intrinsic_proto.world.TransformNodeReference target_frame = 2;
+
+  // The margins allowed in the [x, y, z] directions around the target frame.
+  // Must be non-negative. Set it to 0 for directions where no margin is needed.
+  // Only specify this when specifying just the exact target frame does not
+  // fulfill the purpose, as it increases planning time.
+  optional intrinsic_proto.Point target_frame_margins = 3;
+
+  // Optional waypoints to go through to reach the target frame. If specified,
+  // only trajectories going through these waypoints in order will be checked.
+  repeated intrinsic_proto.world.TransformNodeReference waypoint_frames = 4;
+}
+
+// The force-based placement constraint to be satisfied at grasp planning.
+message ForceBasedConstraint {
+  // Moving frame that will be aligned with the target frame(s) at placement.
+  // This typically is a tool or tip frame.
+  intrinsic_proto.world.TransformNodeReference moving_frame = 1;
+
+  // The frames to check for reachability on the path of the force skill(s).
+  // This checks reachability for the robot without collision checking.
+  // For move_to_contact, use the start and end frames or just the end frame if
+  // the start frame has been validated.
+  // For pattern search insertion kind of force skills, include representative
+  // boundary points of the pattern and optionally the start point, e.g. the -X,
+  // X, -Y, Y, O points as illustrated below on the boundary of the following
+  // pattern bounding box.
+  //           Y
+  //    ****************
+  //    *      ^       *
+  //    *      |       *
+  // -X *     O|------>* X
+  //    *              *
+  //    *              *
+  //    ****************
+  //           -Y
+  // Optionally specify other representative points within the motion range, but
+  // keep in mind that any new point will consume additional planning time.
+  repeated intrinsic_proto.world.TransformNodeReference target_frames = 2;
+}
+
+// Placement constraints to consider during grasp planning.
+// Any specified constraints will be satisfied.
+message PlacementConstraints {
+  // The placement pose constraint to be satisfied during grasp planning.
+  optional PlacementPoseConstraint placement_pose_constraint = 1;
+
+  // The force-based constraint to be satisfied during grasp planning, if the
+  // placement ends with one or more force skills.
+  optional ForceBasedConstraint force_based_constraint = 2;
+
+  // Whether to enable visualization of the grasp points. Not implemented yet.
+  // Defaults to false.
+  // Only takes effect if any of the constraints is specified.
+  optional bool enable_visualization = 3;
+
+  // Whether to enable grasp point selection to select desired grasps from the
+  // frontend. Not implemented yet. Defaults to false.
+  // Only takes effect if any of the constraints is specified.
+  optional bool enable_grasp_point_selection = 4;
+}

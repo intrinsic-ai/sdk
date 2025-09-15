@@ -103,6 +103,28 @@ cc_proto_library(
 )
 
 proto_library(
+    name = "grasp_placement_constraint_proto",
+    srcs = ["grasp_placement_constraint.proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        "//intrinsic/math/proto:point_proto",
+        "//intrinsic/world/proto:object_world_refs_proto",
+    ],
+)
+
+py_proto_library(
+    name = "grasp_placement_constraint_py_pb2",
+    visibility = ["//intrinsic:internal_api_users"],
+    deps = [":grasp_placement_constraint_proto"],
+)
+
+cc_proto_library(
+    name = "grasp_placement_constraint_cc_proto",
+    visibility = ["//visibility:private"],
+    deps = [":grasp_placement_constraint_proto"],
+)
+
+proto_library(
     name = "grasp_ranker_params_proto",
     srcs = ["grasp_ranker_params.proto"],
     visibility = ["//intrinsic:public_api_users"],
