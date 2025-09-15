@@ -24,12 +24,9 @@ absl::StatusOr<intrinsic::ConnectionParams> GetConnectionParamsFromHandle(
         handle.name()));
   }
   return intrinsic::ConnectionParams{
-      .address = google::protobuf::StringCopy(
-          handle.connection_info().grpc().address()),
-      .instance_name = google::protobuf::StringCopy(
-          handle.connection_info().grpc().server_instance()),
-      .header = google::protobuf::StringCopy(
-          handle.connection_info().grpc().header()),
+      .address = handle.connection_info().grpc().address(),
+      .instance_name = handle.connection_info().grpc().server_instance(),
+      .header = handle.connection_info().grpc().header(),
   };
 }
 
