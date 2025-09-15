@@ -2,7 +2,7 @@
 
 syntax = "proto3";
 
-package intrinsic_proto.grasping.service;
+package intrinsic_proto.grasping.service.grasp_annotator_service.v1;
 
 import "intrinsic/manipulation/grasping/grasp_annotations.proto";
 import "intrinsic/manipulation/grasping/grasp_annotator.proto";

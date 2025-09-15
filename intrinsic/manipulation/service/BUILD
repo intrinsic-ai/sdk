@@ -15,27 +15,6 @@ package(
 )
 
 proto_library(
-    name = "grasp_annotator_service_proto",
-    srcs = ["grasp_annotator_service.proto"],
-    deps = [
-        "//intrinsic/manipulation/grasping:grasp_annotations_proto",
-        "//intrinsic/manipulation/grasping:grasp_annotator_proto",
-    ],
-)
-
-py_proto_library(
-    name = "grasp_annotator_service_py_pb2",
-    deps = [":grasp_annotator_service_proto"],
-)
-
-py_grpc_library(
-    name = "grasp_annotator_service_py_pb2_grpc",
-    srcs = [":grasp_annotator_service_proto"],
-    grpc_library = requirement("grpcio"),
-    deps = [":grasp_annotator_service_py_pb2"],
-)
-
-proto_library(
     name = "multi_axis_auto_annotator_service_proto",
     srcs = ["multi_axis_auto_annotator_service.proto"],
     deps = [

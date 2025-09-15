@@ -5,8 +5,8 @@
 from absl import logging
 import grpc
 from intrinsic.manipulation.grasping import grasp_annotations_pb2
-from intrinsic.manipulation.service import grasp_annotator_service_pb2
-from intrinsic.manipulation.service import grasp_annotator_service_pb2_grpc
+from intrinsic.manipulation.service.grasp_annotator_service.v1 import grasp_annotator_service_pb2
+from intrinsic.manipulation.service.grasp_annotator_service.v1 import grasp_annotator_service_pb2_grpc
 
 DEFAULT_GRASP_ANNOTATOR_SERVICE_ADDRESS = (
     "istio-ingressgateway.app-ingress.svc.cluster.local:80"
