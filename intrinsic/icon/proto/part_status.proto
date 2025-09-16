@@ -20,6 +20,7 @@ message PartJointState {
   optional double position_commanded_last_cycle = 5;
   optional double velocity_commanded_last_cycle = 6;
   optional double acceleration_commanded_last_cycle = 7;
+  optional double torque_commanded_last_cycle = 8;
 }
 
 message GripperState {

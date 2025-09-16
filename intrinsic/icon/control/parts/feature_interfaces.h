@@ -172,6 +172,12 @@ class JointTorque {
   // Returns an error if the part is currently not in torque mode.
   virtual RealtimeStatus SetTorqueSetpoints(
       const eigenmath::VectorNd& setpoints) = 0;
+
+  // Returns the torque setpoints that were last commanded regardless of what
+  // control mode the part is in. If no torque setpoints have been commanded
+  // yet, it returns the initial values on the torque command hardware
+  // interface.
+  virtual eigenmath::VectorNd PreviousTorqueSetpoints() const = 0;
 };
 
 class JointTorqueSensor {
