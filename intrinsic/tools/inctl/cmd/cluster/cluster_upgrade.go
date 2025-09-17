@@ -21,6 +21,7 @@ import (
 	fmpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	clustermanagergrpcpb "intrinsic/frontend/cloud/api/v1/clustermanager_api_go_grpc_proto"
 	clustermanagerpb "intrinsic/frontend/cloud/api/v1/clustermanager_api_go_grpc_proto"
+	clustermanageralphagrpcpb "intrinsic/frontend/cloud/api/v1alpha1/clustermanager_api_go_grpc_proto"
 	inversiongrpcpb "intrinsic/kubernetes/inversion/v1/inversion_go_grpc_proto"
 	inversionpb "intrinsic/kubernetes/inversion/v1/inversion_go_grpc_proto"
 )
@@ -41,6 +42,7 @@ type client struct {
 	org         string
 	grpcConn    *grpc.ClientConn
 	grpcClient  clustermanagergrpcpb.ClustersServiceClient
+	alphaClient clustermanageralphagrpcpb.ClustersServiceClient
 }
 
 type clusterInfo struct {
@@ -249,6 +251,7 @@ func newClient(ctx context.Context, org, project, cluster string) (context.Conte
 		org:         org,
 		grpcConn:    conn,
 		grpcClient:  clustermanagergrpcpb.NewClustersServiceClient(conn),
+		alphaClient: clustermanageralphagrpcpb.NewClustersServiceClient(conn),
 	}, nil
 }
 

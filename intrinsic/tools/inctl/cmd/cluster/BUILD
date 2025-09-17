@@ -12,6 +12,7 @@ go_library(
         "cluster_list.go",
         "cluster_mode.go",
         "cluster_upgrade.go",
+        "cluster_ups.go",
     ],
     visibility = [
         "//intrinsic/tools/inctl:__subpackages__",
@@ -19,6 +20,7 @@ go_library(
     deps = [
         "//intrinsic/frontend/cloud/api/v1:clusterdiscovery_api_go_grpc_proto",
         "//intrinsic/frontend/cloud/api/v1:clustermanager_api_go_grpc_proto",
+        "//intrinsic/frontend/cloud/api/v1alpha1:clustermanager_api_go_grpc_proto",
         "//intrinsic/frontend/cloud/devicemanager:version",
         "//intrinsic/kubernetes/inversion/v1:inversion_go_grpc_proto",
         "//intrinsic/kubernetes/workcellmode/proto:workcellmode_service_go_grpc_proto",
