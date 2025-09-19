@@ -215,6 +215,8 @@ message CreateInstalledAssetsRequest {
           hardware_device = 6;
       intrinsic_proto.processes.ProcessAsset process = 7;
     }
+
+    reserved 199;
   }
 
   repeated Asset assets = 1;
