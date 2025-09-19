@@ -3,6 +3,7 @@
 #include "intrinsic/skills/cc/skill_utils.h"
 
 #include <memory>
+#include <string>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
@@ -24,9 +25,12 @@ absl::StatusOr<intrinsic::ConnectionParams> GetConnectionParamsFromHandle(
         handle.name()));
   }
   return intrinsic::ConnectionParams{
-      .address = handle.connection_info().grpc().address(),
-      .instance_name = handle.connection_info().grpc().server_instance(),
-      .header = handle.connection_info().grpc().header(),
+      .address =
+          std::string(handle.connection_info().grpc().address()),  // NOLINT
+      .instance_name = std::string(                                // NOLINT
+          handle.connection_info().grpc().server_instance()),      // NOLINT
+      .header =
+          std::string(handle.connection_info().grpc().header()),  // NOLINT
   };
 }
 
