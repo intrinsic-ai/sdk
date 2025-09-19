@@ -6,8 +6,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/printer"
@@ -17,11 +19,8 @@ import (
 )
 
 var (
-	mode string
-)
-
-const (
-	ingressPort = 17080
+	address string
+	mode    string
 )
 
 var clusterModeCmd = &cobra.Command{
@@ -34,6 +33,17 @@ var clusterModeCmd = &cobra.Command{
 }
 
 func getIPCGRPCClient(ctx context.Context) (*grpc.ClientConn, error) {
+	if address != "" {
+		opts := []grpc.DialOption{
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+		}
+		conn, err := grpc.NewClient(address, opts...)
+		if err != nil {
+			return nil, errors.Wrapf(err, "grpc.NewClient(%q) failed", address)
+		}
+		return conn, nil
+	}
+
 	conn, err := auth.NewCloudConnection(ctx, auth.WithFlagValues(ClusterCmdViper), auth.WithCluster(clusterName))
 	if err != nil {
 		return nil, err
@@ -110,10 +120,12 @@ var modeGetCmd = &cobra.Command{
 
 func init() {
 	ClusterCmd.AddCommand(clusterModeCmd)
+	clusterModeCmd.PersistentFlags().StringVar(&clusterName, "cluster", "", "Name of the cluster to use")
+	clusterModeCmd.PersistentFlags().StringVar(&address, "address", "", "Internal flag to directly set the API server address")
+	clusterModeCmd.PersistentFlags().MarkHidden("address")
+
 	clusterModeCmd.AddCommand(modeSetCmd)
-	modeSetCmd.PersistentFlags().StringVar(&clusterName, "cluster", "", "Name of the cluster to use")
 	modeSetCmd.Flags().StringVar(&mode, "target", "", "Mode to set")
 
 	clusterModeCmd.AddCommand(modeGetCmd)
-	modeGetCmd.PersistentFlags().StringVar(&clusterName, "cluster", "", "Name of the cluster to use")
 }
