@@ -2,8 +2,6 @@
 
 load("//bazel:go_macros.bzl", "go_library")
 
-package(default_visibility = ["//intrinsic/tools/inctl:__subpackages__"])
-
 go_library(
     name = "solution",
     srcs = [
