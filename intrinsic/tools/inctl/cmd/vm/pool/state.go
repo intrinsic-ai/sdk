@@ -19,7 +19,7 @@ New leases will be rejected. The existing leases will be allowed to finish until
 Use 'inctl vm pool leases stop' if you want to stop the leases faster. When no VMs exist anymore, the pool will be deleted.
 
 Example:
-	inctl vm pool delete workcells --pool vmpool-my-pool --org <my-org>
+	inctl vm pool delete --pool vmpool-my-pool --org <my-org>
 `
 
 var resumeDesc = `
