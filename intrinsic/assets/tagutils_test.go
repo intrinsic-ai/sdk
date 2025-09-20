@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
+	"intrinsic/assets/typeutils"
 
 	atagpb "intrinsic/assets/proto/asset_tag_go_proto"
 	atypepb "intrinsic/assets/proto/asset_type_go_proto"
@@ -39,6 +41,57 @@ func TestAssetTagFromName(t *testing.T) {
 				t.Errorf("AssetTagFromName(%v) failed: %v", tc.name, err)
 			} else if gotTag != tc.wantTag {
 				t.Errorf("AssetTagFromName(%v) = %v, want %v", tc.name, gotTag, tc.wantTag)
+			}
+		})
+	}
+}
+
+func TestAssetTagsForTypesReturnsCorrectTags(t *testing.T) {
+	allAssetTagMetadata, err := AllAssetTagMetadata()
+	if err != nil {
+		t.Fatalf("AllAssetTagMetadata() failed: %v", err)
+	}
+	var allAssetTags []atagpb.AssetTag
+	for _, metadata := range allAssetTagMetadata {
+		allAssetTags = append(allAssetTags, metadata.GetAssetTag())
+	}
+
+	tests := []struct {
+		name       string
+		assetTypes []atypepb.AssetType
+		wantTags   []atagpb.AssetTag
+	}{
+		{
+			name:       "scene object",
+			assetTypes: []atypepb.AssetType{atypepb.AssetType_ASSET_TYPE_SCENE_OBJECT},
+			wantTags:   []atagpb.AssetTag{atagpb.AssetTag_ASSET_TAG_UNSPECIFIED, atagpb.AssetTag_ASSET_TAG_CAMERA, atagpb.AssetTag_ASSET_TAG_GRIPPER},
+		},
+		{
+			name:       "service and scene object",
+			assetTypes: []atypepb.AssetType{atypepb.AssetType_ASSET_TYPE_SERVICE, atypepb.AssetType_ASSET_TYPE_SCENE_OBJECT},
+			wantTags:   []atagpb.AssetTag{atagpb.AssetTag_ASSET_TAG_UNSPECIFIED, atagpb.AssetTag_ASSET_TAG_CAMERA, atagpb.AssetTag_ASSET_TAG_GRIPPER},
+		},
+		{
+			name:       "skill",
+			assetTypes: []atypepb.AssetType{atypepb.AssetType_ASSET_TYPE_SKILL},
+			wantTags:   []atagpb.AssetTag{atagpb.AssetTag_ASSET_TAG_UNSPECIFIED},
+		},
+		{
+			name:       "all asset types",
+			assetTypes: typeutils.AllAssetTypes(),
+			wantTags:   allAssetTags,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			gotTags, err := AssetTagsForTypes(tc.assetTypes)
+			if err != nil {
+				t.Fatalf("AssetTagsForTypes(%v) failed: %v", tc.assetTypes, err)
+			}
+
+			if diff := cmp.Diff(tc.wantTags, gotTags, cmpopts.SortSlices(func(a, b atagpb.AssetTag) bool { return a < b })); diff != "" {
+				t.Errorf("AssetTagsForTypes(%v) returned diff (-want +got):\n%s", tc.assetTypes, diff)
 			}
 		})
 	}

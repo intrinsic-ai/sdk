@@ -5,6 +5,7 @@ package tagutils
 
 import (
 	"fmt"
+	"maps"
 	"slices"
 
 	"google.golang.org/protobuf/encoding/prototext"
@@ -32,6 +33,24 @@ func AssetTagFromName(name string) (atagpb.AssetTag, error) {
 	}
 
 	return atagpb.AssetTag(value), nil
+}
+
+// AssetTagsForTypes returns a list of asset tags that apply to any of the specified asset types.
+func AssetTagsForTypes(assetTypes []atypepb.AssetType) ([]atagpb.AssetTag, error) {
+	tagsMap := make(map[atagpb.AssetTag]struct{})
+	for _, assetType := range assetTypes {
+		tagsForType, err := AssetTagsForType(assetType)
+		if err != nil {
+			return nil, err
+		}
+		for _, tag := range tagsForType {
+			tagsMap[tag] = struct{}{}
+		}
+	}
+
+	tags := slices.Collect(maps.Keys(tagsMap))
+	slices.Sort(tags)
+	return tags, nil
 }
 
 // AssetTagsForType returns a list of asset tags that apply to the specified asset type.

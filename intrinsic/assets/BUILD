@@ -145,9 +145,11 @@ go_test(
     srcs = ["tagutils_test.go"],
     library = ":tagutils",
     deps = [
+        ":typeutils",
         "//intrinsic/assets/proto:asset_tag_go_proto",
         "//intrinsic/assets/proto:asset_type_go_proto",
         "@com_github_google_go_cmp//cmp:go_default_library",
+        "@com_github_google_go_cmp//cmp/cmpopts:go_default_library",
     ],
 )
 
