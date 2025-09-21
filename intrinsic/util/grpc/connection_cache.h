@@ -29,7 +29,7 @@ class ConnectionCache {
   absl::StatusOr<std::shared_ptr<Connection>> Get(
       const ConnectionParams& connection_params) {
     {
-      absl::MutexLock lock(&mutex_);
+      absl::MutexLock lock(mutex_);
       if (const auto it = connection_by_params_.find(connection_params);
           it != connection_by_params_.end()) {
         return it->second;
@@ -45,7 +45,7 @@ class ConnectionCache {
              << "Cannot connect to service: " << connection_params;
     }
 
-    absl::MutexLock lock(&mutex_);
+    absl::MutexLock lock(mutex_);
     return connection_by_params_
         .emplace(connection_params, std::make_shared<Connection>(
                                         std::move(channel), std::move(stub)))
