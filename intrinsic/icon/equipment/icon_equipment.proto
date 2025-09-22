@@ -37,6 +37,8 @@ message Icon2AdioPart {
   }
   repeated string icon_parts = 6;
 
+  reserved 4;
+  reserved "ads_target";
 }
 
 message Icon2ForceTorqueSensorPart {

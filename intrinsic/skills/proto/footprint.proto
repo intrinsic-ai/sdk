@@ -81,6 +81,8 @@ message VolumeReservation {
     intrinsic_proto.geometry.TransformedGeometryStorageRefs shape = 4;
   }
 
+  reserved 2, 5;
+  reserved "universe", "shape_data";
 }
 
 message ResourceReservation {

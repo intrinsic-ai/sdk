@@ -99,6 +99,10 @@ message ExecuteRequest {
   // Logging context of the operation (e.g. IDs of related plan instance,
   // deployment configs etc.).
   intrinsic_proto.data_logger.Context context = 6;
+
+  reserved "fields", "initial_world_state", "skill_metadata",
+      "simulation_level";
+  reserved 1, 4, 9, 11, 10;
 }
 
 message ExecuteResult {

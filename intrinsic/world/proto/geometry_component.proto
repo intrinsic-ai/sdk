@@ -29,6 +29,8 @@ message GeometryComponent {
     // Runtime options for this geometry.
     GeometryOptions options = 7;
 
+    reserved 1, 2, 3;
+    reserved "geometry_id", "ref_t_shape", "applied_scale";
   }
 
   // Used for the value type in proto map below.

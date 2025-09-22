@@ -39,6 +39,11 @@ message ObjectWorldUpdate {
     ReparentObjectRequest reparent_object = 5;
     ToggleCollisionsRequest toggle_collisions = 6;
   }
+
+  reserved 9;
+  reserved "update_named_joint_configurations";
+  reserved 16;
+  reserved "create_objects";
 }
 
 // A sequence of ObjectWorldUpdate's that can, e.g., be included in a
@@ -123,6 +128,8 @@ message ObjectSpecForSingleEntityObject {
   // The geometry component associated with the object's entity.
   intrinsic_proto.world.GeometryComponent geometry_component = 3;
 
+  reserved 1, 2;
+  reserved "collision_geometries", "visual_geometries";
 }
 
 // Specifies to create an object by instantiating a SceneObject.

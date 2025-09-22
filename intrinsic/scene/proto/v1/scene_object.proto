@@ -43,4 +43,6 @@ message SceneObject {
   // Additional user-data associated with this scene object.
   map<string, google.protobuf.Any> user_data = 7;
 
+  reserved 1;
+  reserved "model";
 }

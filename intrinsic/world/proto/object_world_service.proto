@@ -300,6 +300,8 @@ message ObjectComponent {
   //    one.
   map<string, google.protobuf.Any> user_data = 9;
 
+  reserved 4, 6, 8;
+  reserved "equipment_name", "spawner_component", "outfeed_component";
 }
 
 // A reference to a world resource that includes both its resource id as well as

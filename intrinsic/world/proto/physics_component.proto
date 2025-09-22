@@ -33,6 +33,8 @@ message PhysicsComponent {
   // Dynamically "damping"-equivalent coefficient for contact joints.
   double contact_kd = 8;
 
+  reserved 2, 3, 4;
+  reserved "this_t_center_of_mass_old", "inertia_old", "is_static";
 }
 
 // Friction parameters.
@@ -52,6 +54,8 @@ message Friction {
   // reference frame.
   intrinsic_proto.Point fdir1 = 6;
 
+  reserved 5;
+  reserved "fdir1_old";
 }
 
 // Torsional friction parameters.

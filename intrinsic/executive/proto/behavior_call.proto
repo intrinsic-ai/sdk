@@ -81,6 +81,9 @@ message BehaviorCall {
     // calling skill.execute() (report failure if execute does not finish within
     // this time bound).
     google.protobuf.Duration execute_timeout = 2;
+
+    reserved "skill_metadata";
+    reserved 3;
   }
   optional SkillExecutionOptions skill_execution_options = 7;
 

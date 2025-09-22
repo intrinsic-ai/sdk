@@ -18,6 +18,8 @@ message Kinematics {
   // For example, "home" or "maintenance".
   repeated NamedConfiguration named_configurations = 3;
 
+  reserved 999;
+  reserved "control_frequency_hz";
 }
 
 // Cartesian limits.

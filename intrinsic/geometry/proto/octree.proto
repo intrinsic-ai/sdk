@@ -13,4 +13,7 @@ message Octree {
   repeated uint64 morton_list = 4;
   AxisAlignedBoundingBox3 workspace_bounding_box = 6;
   uint32 max_depth = 7;
+
+  reserved 8;
+  reserved "is_filled";
 }
