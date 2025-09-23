@@ -82,6 +82,8 @@ func TestValidateMetadata(t *testing.T) {
 	mReleaseNotesTooLong.ReleaseNotes = strings.Repeat("a", RelNotesCharLength+1)
 	mWithFileDescriptorSet := proto.Clone(m).(*metadatapb.Metadata)
 	mWithFileDescriptorSet.FileDescriptorSet = &dpb.FileDescriptorSet{}
+	mWithProvides := proto.Clone(m).(*metadatapb.Metadata)
+	mWithProvides.Provides = []*metadatapb.Interface{&metadatapb.Interface{Uri: "grpc://test.MyService"}}
 
 	tests := []struct {
 		name          string
@@ -173,7 +175,7 @@ func TestValidateMetadata(t *testing.T) {
 		{
 			name:          "missing version for catalog",
 			m:             mMissingVersion,
-			opts:          WithCatalogOptions(),
+			opts:          []ValidateMetadataOption{WithCatalogOptions()},
 			wantErrorCode: codes.InvalidArgument,
 		},
 		{
@@ -210,7 +212,7 @@ func TestValidateMetadata(t *testing.T) {
 		{
 			name:          "no update time for catalog",
 			m:             mNoUpdateTime,
-			opts:          WithCatalogOptions(),
+			opts:          []ValidateMetadataOption{WithCatalogOptions()},
 			wantErrorCode: codes.InvalidArgument,
 		},
 		{
@@ -230,7 +232,12 @@ func TestValidateMetadata(t *testing.T) {
 			wantErrorCode: codes.InvalidArgument,
 		},
 		{
-			name:          "no file descriptor set required",
+			name: "no file descriptor set required (true) and absent",
+			m:    m,
+			opts: []ValidateMetadataOption{WithRequireNoFileDescriptorSet(true)},
+		},
+		{
+			name:          "no file descriptor set required (true) and present",
 			m:             mWithFileDescriptorSet,
 			opts:          []ValidateMetadataOption{WithRequireNoFileDescriptorSet(true)},
 			wantErrorCode: codes.InvalidArgument,
@@ -239,6 +246,39 @@ func TestValidateMetadata(t *testing.T) {
 			name: "no file descriptor set required (false)",
 			m:    mWithFileDescriptorSet,
 			opts: []ValidateMetadataOption{WithRequireNoFileDescriptorSet(false)},
+		},
+		{
+			name: "no provides required (true) and absent",
+			m:    m,
+			opts: []ValidateMetadataOption{WithRequireNoProvides(true)},
+		},
+		{
+			name:          "no provides required (true) and present",
+			m:             mWithProvides,
+			opts:          []ValidateMetadataOption{WithRequireNoProvides(true)},
+			wantErrorCode: codes.InvalidArgument,
+		},
+		{
+			name: "no provides required (false)",
+			m:    mWithProvides,
+			opts: []ValidateMetadataOption{WithRequireNoProvides(false)},
+		},
+		{
+			name: "no output-only fields required and absent",
+			m:    m,
+			opts: []ValidateMetadataOption{WithRequireNoOutputOnlyFields()},
+		},
+		{
+			name:          "no output-only fields required and file descriptor set present",
+			m:             mWithFileDescriptorSet,
+			opts:          []ValidateMetadataOption{WithRequireNoOutputOnlyFields()},
+			wantErrorCode: codes.InvalidArgument,
+		},
+		{
+			name:          "no output-only fields required and provides present",
+			m:             mWithProvides,
+			opts:          []ValidateMetadataOption{WithRequireNoOutputOnlyFields()},
+			wantErrorCode: codes.InvalidArgument,
 		},
 		{
 			name:          "name too long",

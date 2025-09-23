@@ -83,6 +83,7 @@ type ValidateMetadataOptions struct {
 	requireNoVersion           bool
 	requiredAssetType          atypepb.AssetType
 	requireNoFileDescriptorSet bool
+	requireNoProvides          bool
 }
 
 // ValidateMetadataOption is a functional option for ValidateMetadata.
@@ -132,11 +133,28 @@ func WithRequireNoFileDescriptorSet(requireNoFileDescriptorSet bool) ValidateMet
 	}
 }
 
+// WithRequireNoProvides requires that the metadata has no provides
+// if set to true.
+func WithRequireNoProvides(requireNoProvides bool) ValidateMetadataOption {
+	return func(opts *ValidateMetadataOptions) {
+		opts.requireNoProvides = requireNoProvides
+	}
+}
+
+// WithRequireNoOutputOnlyFields requires that the metadata has no output-only
+// fields.
+func WithRequireNoOutputOnlyFields() ValidateMetadataOption {
+	return func(opts *ValidateMetadataOptions) {
+		WithRequireNoFileDescriptorSet(true)(opts)
+		WithRequireNoProvides(true)(opts)
+	}
+}
+
 // WithCatalogOptions adds options for validating metadata for use in the catalog.
-func WithCatalogOptions() []ValidateMetadataOption {
-	return []ValidateMetadataOption{
-		WithRequireUpdateTime(true),
-		WithRequireVersion(true),
+func WithCatalogOptions() ValidateMetadataOption {
+	return func(opts *ValidateMetadataOptions) {
+		WithRequireUpdateTime(true)(opts)
+		WithRequireVersion(true)(opts)
 	}
 }
 
@@ -152,15 +170,24 @@ func ValidateMetadata(m *metadatapb.Metadata, options ...ValidateMetadataOption)
 		return status.Errorf(codes.Internal, "only one of requireNoVersion and requireVersion can be specified")
 	}
 
-	if opts.requireNoVersion && m.GetIdVersion().GetVersion() != "" {
-		return status.Errorf(codes.InvalidArgument, "version must not be specified")
-	}
-	if opts.requireVersion || m.GetIdVersion().GetVersion() != "" {
+	if m.GetIdVersion().GetVersion() == "" {
+		if opts.requireVersion {
+			return status.Errorf(codes.InvalidArgument, "version must be specified")
+		}
+		if err := idutils.ValidateIDProto(m.GetIdVersion().GetId()); err != nil {
+			return status.Errorf(codes.InvalidArgument, "invalid id: %v", err)
+		}
+	} else {
+		if opts.requireNoVersion {
+			return status.Errorf(
+				codes.InvalidArgument,
+				"version must not be specified (got %q)",
+				m.GetIdVersion().GetVersion(),
+			)
+		}
 		if err := idutils.ValidateIDVersionProto(m.GetIdVersion()); err != nil {
 			return status.Errorf(codes.InvalidArgument, "invalid id version: %v", err)
 		}
-	} else if err := idutils.ValidateIDProto(m.GetIdVersion().GetId()); err != nil {
-		return status.Errorf(codes.InvalidArgument, "invalid id: %v", err)
 	}
 	id := idutils.IDFromProtoUnchecked(m.GetIdVersion().GetId())
 
@@ -201,7 +228,10 @@ func ValidateMetadata(m *metadatapb.Metadata, options ...ValidateMetadataOption)
 		}
 	}
 	if opts.requireNoFileDescriptorSet && m.GetFileDescriptorSet() != nil {
-		return status.Errorf(codes.InvalidArgument, "file descriptor set must not be specified")
+		return status.Errorf(codes.InvalidArgument, "file descriptor set (output-only) must not be specified")
+	}
+	if opts.requireNoProvides && len(m.GetProvides()) > 0 {
+		return status.Errorf(codes.InvalidArgument, "provides (output-only) must not be specified")
 	}
 
 	// Validate metadata size limits.
