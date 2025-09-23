@@ -10,8 +10,7 @@ load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 
 package(
     default_visibility = [
-        "//intrinsic/logging:__subpackages__",
-        "//intrinsic/manipulation:__subpackages__",
+        "//visibility:public",
     ],
 )
 
