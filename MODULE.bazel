@@ -22,7 +22,7 @@ go_deps = use_extension("@bazel_gazelle//:extensions.bzl", "go_deps")
 go_deps.from_file(go_mod = "//:go.mod")
 use_repo(
     go_deps,
-    # go/keep-sorted start
+    # keep-sorted start
     "com_github_andydunstall_piko",
     "com_github_authzed_authzed_go",
     "com_github_bazelbuild_buildtools",
@@ -62,7 +62,7 @@ use_repo(
     "org_golang_x_sync",
     "org_golang_x_text",
     "org_uber_go_atomic",
-    # go/keep-sorted end
+    # keep-sorted end
 )
 
 ##########
@@ -200,16 +200,16 @@ use_repo(
 
 use_repo(
     non_module_deps,
-    # go/keep-sorted start
+    # keep-sorted start
     "com_google_xls_strong_int_h",
-    # go/keep-sorted end
+    # keep-sorted end
 )
 
 #########
 # Other #
 #########
 
-# go/keep-sorted start
+# keep-sorted start
 bazel_dep(name = "abseil-cpp", version = "20250512.1")
 bazel_dep(name = "abseil-py", version = "2.1.0", repo_name = "com_google_absl_py")
 bazel_dep(name = "aspect_bazel_lib", version = "2.16.0")
@@ -242,12 +242,12 @@ bazel_dep(name = "protoc-gen-validate", version = "1.2.1.bcr.1")
 bazel_dep(name = "re2", version = "2024-07-02", repo_name = "com_googlesource_code_re2")
 bazel_dep(name = "rules_license", version = "1.0.0")
 bazel_dep(name = "rules_pkg", version = "1.1.0")
-# go/keep-sorted end
+# keep-sorted end
 
 use_repo(
     non_module_deps,
-    # go/keep-sorted start
-    # go/keep-sorted end
+    # keep-sorted start
+    # keep-sorted end
 )
 
 bazel_lib_toolchains = use_extension("@aspect_bazel_lib//lib:extensions.bzl", "toolchains")
