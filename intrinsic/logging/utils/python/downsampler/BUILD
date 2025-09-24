@@ -10,7 +10,6 @@ pybind_extension(
     ],
     deps = [
         "//intrinsic/logging/proto:downsampler_cc_proto",
-        "//intrinsic/logging/proto:log_item_cc_proto",
         "//intrinsic/logging/proto:logger_service_cc_proto",
         "//intrinsic/logging/utils/downsampler",
         "//intrinsic/logging/utils/downsampler:proto_conversion",
