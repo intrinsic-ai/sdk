@@ -461,6 +461,7 @@ message GetPayloadResponse {
 }
 
 service IconApi {
+
   // Gets details of an action type by name. The response's `action_signature`
   // field is unset if the requested action type is not found.
   rpc GetActionSignatureByName(GetActionSignatureByNameRequest)
