@@ -31,6 +31,7 @@ go_library(
         "//intrinsic/tools/inctl/util:color",
         "//intrinsic/tools/inctl/util:orgutil",
         "//intrinsic/tools/inctl/util:printer",
+        "//intrinsic/tools/inctl/util:vmalias",
         "@com_github_golang_glog//:go_default_library",
         "@com_github_pborman_uuid//:go_default_library",
         "@com_github_rs_xid//:go_default_library",

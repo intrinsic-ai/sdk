@@ -10,6 +10,7 @@ import (
 	log "github.com/golang/glog"
 	"github.com/spf13/cobra"
 	"go.opencensus.io/trace"
+	"intrinsic/tools/inctl/util/vmalias"
 
 	tpb "google.golang.org/protobuf/types/known/timestamppb"
 	leaseapigrpcpb "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_grpc_proto"
@@ -48,7 +49,7 @@ var vmExpireInCmd = &cobra.Command{
 
 // ExpireIn extends the expiration time of a lease by a duration relative to now.
 func ExpireIn(ctx context.Context, cl leaseapigrpcpb.VMPoolLeaseServiceClient, vmArg, byStr, project string, extendOnly bool) error {
-	vm := resolveVM(vmArg, project)
+	vm := vmalias.ResolvePrint(vmArg, project)
 	byDur, err := time.ParseDuration(byStr)
 	if err != nil {
 		log.ExitContextf(ctx, "%v is not valid for time.ParseDuration: %v", byStr, err)

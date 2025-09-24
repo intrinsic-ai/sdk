@@ -8,6 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"go.opencensus.io/trace"
+	"intrinsic/tools/inctl/util/vmalias"
 
 	leaseapigrpcpb "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_grpc_proto"
 	leasepb "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_grpc_proto"
@@ -45,7 +46,7 @@ var vmReturnCmd = &cobra.Command{
 
 // Return returns a leased VM back to the pool.
 func Return(ctx context.Context, cl leaseapigrpcpb.VMPoolLeaseServiceClient, vmArg, project string) error {
-	vmID := resolveVM(vmArg, project)
+	vmID := vmalias.ResolvePrint(vmArg, project)
 	if _, err := cl.Return(ctx, &leasepb.ReturnRequest{Instance: vmID, ServiceTag: serviceTag}); err != nil {
 		return fmt.Errorf("return failed with: %v", err)
 	}

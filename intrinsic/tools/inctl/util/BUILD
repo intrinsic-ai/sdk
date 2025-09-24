@@ -17,6 +17,11 @@ go_library(
 )
 
 go_library(
+    name = "vmalias",
+    srcs = ["vmalias.go"],
+)
+
+go_library(
     name = "templateutil",
     srcs = ["templateutil.go"],
 )
