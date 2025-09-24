@@ -30,9 +30,7 @@ bzl_library(
 go_binary(
     name = "hal_manifest",
     srcs = ["hal_manifest.go"],
-    embedsrcs = [
-        "hal_service_manifest.textproto.tmpl",
-    ],
+    embedsrcs = ["hal_service_manifest.textproto.tmpl"],
     visibility = ["//intrinsic:__subpackages__"],
     deps = [
         "//intrinsic/assets/services/proto:service_manifest_go_proto",

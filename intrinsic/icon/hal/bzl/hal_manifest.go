@@ -7,10 +7,8 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"maps"
 	"os"
 	"path/filepath"
-	"slices"
 	"text/template"
 
 	"flag"
@@ -29,7 +27,6 @@ var (
 	image                     = flag.String("image", "", "The image archive file to be included")
 	imageSim                  = flag.String("image_sim", "", "The image archive file to be included for sim, if applicable")
 	manifest                  = flag.String("manifest", "", "A textproto file containing the manifest for the HAL asset")
-	manifestType              = flag.String("manifest_type", "", "The input manifest type")
 	output                    = flag.String("output", "-", "Output file name")
 	providesServiceInspection = flag.Bool("provides_service_inspection", false, "Whether or not the hardware module provides service inspection")
 	serviceProtoPrefixes      = intrinsicflag.MultiString("service_proto_prefix", nil, "Output file name")
@@ -45,32 +42,13 @@ var (
 		"hardware_module",
 		"hardware_module_without_geometry",
 	}
-	generators = map[string]generator{
-		"service":  &serviceGen{},
-	}
 )
 
-type generator interface {
-	// template provides a Template used to generate a full manifest using
-	// partial manifest data.
-	template() *template.Template
-	// validatePartial does validation on the partial manifest provided by the
-	// user.  This can ensure that user provided parts won't be unexpectedly
-	// overwritten or duplicated or that some fields match expectations for the
-	// manifest type.
-	validatePartial([]byte) error
-	// validateFull does validation on the full manifest after it is created
-	// using the template.
-	validateFull([]byte) error
-}
-
-type serviceGen struct{}
-
-func (*serviceGen) template() *template.Template {
-	return serviceManifestTemplate
-}
-
-func (*serviceGen) validatePartial(partial []byte) error {
+// validatePartial does validation on the partial manifest provided by the
+// user.  This can ensure that user provided parts won't be unexpectedly
+// overwritten or duplicated or that some fields match expectations for the
+// manifest type.
+func validatePartial(partial []byte) error {
 	sm := &smpb.ServiceManifest{}
 	if err := prototext.Unmarshal(partial, sm); err != nil {
 		return fmt.Errorf("unable to parse manifest: %v", err)
@@ -87,7 +65,9 @@ func (*serviceGen) validatePartial(partial []byte) error {
 	return nil
 }
 
-func (*serviceGen) validateFull(full []byte) error {
+// validateFull does validation on the full manifest after it is created
+// using the template.
+func validateFull(full []byte) error {
 	// Parse the completed template to ensure we're always generating a valid
 	// manifest.
 	sm := &smpb.ServiceManifest{}
@@ -123,13 +103,7 @@ func halManifest() error {
 		return fmt.Errorf("unable to load metadata: %v", err)
 	}
 
-	var gen generator
-	if g, ok := generators[*manifestType]; !ok {
-		return fmt.Errorf("unrecognized --manifest_type=%q, allowed values are: %q", *manifestType, slices.Collect(maps.Keys(generators)))
-	} else {
-		gen = g
-	}
-	if err := gen.validatePartial(partialManifest); err != nil {
+	if err := validatePartial(partialManifest); err != nil {
 		return fmt.Errorf("manifest was invalid: %v\n%v", err, string(partialManifest))
 	}
 
@@ -169,11 +143,11 @@ func halManifest() error {
 	}
 
 	var b bytes.Buffer
-	if err = gen.template().Execute(&b, &data); err != nil {
+	if err = serviceManifestTemplate.Execute(&b, &data); err != nil {
 		return fmt.Errorf("unable to format template: %v", err)
 	}
 
-	if err := gen.validateFull(b.Bytes()); err != nil {
+	if err := validateFull(b.Bytes()); err != nil {
 		return fmt.Errorf("invalid full manifest, file a bug with assets: %v\n%v", err, b.String())
 	}
 

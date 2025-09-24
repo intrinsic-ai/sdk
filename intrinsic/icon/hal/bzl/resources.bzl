@@ -9,9 +9,6 @@ def _hal_manifest_impl(ctx):
         ctx.file.manifest,
         format = "--manifest=%s",
     ).add(
-        ctx.attr.manifest_type,
-        format = "--manifest_type=%s",
-    ).add(
         ctx.attr.provides_service_inspection,
         format = "--provides_service_inspection=%s",
     ).add(
@@ -67,11 +64,6 @@ hardware_module_manifest = rule(
             allow_single_file = [".textproto"],
             doc = "The partially complete manifest containing metadata",
             mandatory = True,
-        ),
-        "manifest_type": attr.string(
-            default = "service",
-            doc = """The type of manifest that is being provided.  Allowed
-            values are: service.""",
         ),
         "image": attr.label(
             allow_single_file = [".tar"],

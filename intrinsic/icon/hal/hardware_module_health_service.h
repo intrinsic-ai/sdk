@@ -24,8 +24,8 @@ namespace intrinsic::icon {
 // hardware module. Calls to ClearFaults() while in fatal and init failures
 // trigger a signal to restart the process. Other actions such as `Enable()` are
 // prohibited.
-class HardwareModuleHealthService :
-    public intrinsic_proto::services::v1::ServiceState::Service {
+class HardwareModuleHealthService
+    : public intrinsic_proto::services::v1::ServiceState::Service {
  public:
   explicit HardwareModuleHealthService(
       std::weak_ptr<SharedPromiseWrapper<HardwareModuleExitCode>>

@@ -275,9 +275,7 @@ RunRuntimeWithGrpcServerAndWaitForShutdown(
         ::grpc::InsecureServerCredentials()  // NOLINT (insecure)
     );
 
-    server_builder.RegisterService(
-        static_cast<intrinsic_proto::services::v1::ServiceState::Service*>(
-            &health_service));
+    server_builder.RegisterService(&health_service);
 
     grpc_server = server_builder.BuildAndStart();
     LOG(INFO) << "gRPC server started on port " << *grpc_server_port;
