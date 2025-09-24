@@ -162,6 +162,16 @@ func AccountsProjectFromProject(project string) string {
 	return AccountsProjectFromEnv(environment)
 }
 
+// AccountsDomainFromProject returns the accounts domain for the given project.
+// Accepts both portal and compute projects.
+func AccountsDomainFromProject(project string) string {
+	environment, err := FromProject(project)
+	if err != nil {
+		environment = FromComputeProject(project)
+	}
+	return AccountsDomain(environment)
+}
+
 // AssetsDomain returns the assets domain for the given environment.
 func AssetsDomain(env string) string {
 	switch env {
