@@ -22,6 +22,16 @@ exports_files(
 )
 
 proto_library(
+    name = "test_message_proto",
+    srcs = ["test_message.proto"],
+)
+
+go_proto_library(
+    name = "test_message_go_proto",
+    deps = [":test_message_proto"],
+)
+
+proto_library(
     name = "descriptors_test_proto",
     srcs = ["descriptors_test.proto"],
     deps = [

@@ -1,0 +1,24 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.util.proto.testing;
+
+message NestedMessage {
+  string value = 1;
+}
+
+message TestMessage {
+  string name = 1;
+
+  NestedMessage nested = 2;
+
+  repeated NestedMessage repeated_nested = 3;
+
+  map<string, NestedMessage> map_nested = 4;
+
+  oneof oneof_field {
+    string oneof_string = 5;
+    NestedMessage oneof_nested = 6;
+  }
+}
