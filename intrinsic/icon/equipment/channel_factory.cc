@@ -22,7 +22,7 @@ absl::StatusOr<std::shared_ptr<ChannelInterface>> ChannelFactory::MakeChannel(
 absl::StatusOr<std::shared_ptr<ChannelInterface>>
 DefaultChannelFactory::MakeChannel(const ConnectionParams& params,
                                    absl::Duration timeout) const {
-  return Channel::Make(params, timeout);
+  return Channel::MakeFromAddress(params, timeout);
 }
 
 }  // namespace icon

@@ -43,7 +43,8 @@ absl::Status Main(const ConnectionParams& connection_params,
     return absl::FailedPreconditionError("`--part` must not be empty.");
   }
 
-  INTR_ASSIGN_OR_RETURN(auto icon_channel, Channel::Make(connection_params));
+  INTR_ASSIGN_OR_RETURN(auto icon_channel,
+                        Channel::MakeFromAddress(connection_params));
   INTR_ASSIGN_OR_RETURN(std::unique_ptr<Session> session,
                         Session::Start(icon_channel, {std::string(part_name)}));
   LOG(INFO) << "Created session";

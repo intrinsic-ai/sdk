@@ -39,7 +39,7 @@ absl::StatusOr<std::shared_ptr<intrinsic::Channel>> CreateChannelFromHandle(
   INTR_ASSIGN_OR_RETURN(const intrinsic::ConnectionParams connection_params,
                         GetConnectionParamsFromHandle(handle));
 
-  return intrinsic::Channel::Make(connection_params);
+  return intrinsic::Channel::MakeFromAddress(connection_params);
 }
 
 }  // namespace intrinsic::skills

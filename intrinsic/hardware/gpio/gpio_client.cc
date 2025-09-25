@@ -96,11 +96,11 @@ absl::Status GPIOClient::CreateClientChannel() {
 
   LOG(INFO) << "Create client channel on: " << connection_params_.address;
 
-  INTR_ASSIGN_OR_RETURN(
-      const auto channel,
-      intrinsic::Channel::Make(connection_params_, kGpioInitialTimeout),
-      _ << "Failed to create grpc client channel to: "
-        << connection_params_.address);
+  INTR_ASSIGN_OR_RETURN(const auto channel,
+                        intrinsic::Channel::MakeFromAddress(
+                            connection_params_, kGpioInitialTimeout),
+                        _ << "Failed to create grpc client channel to: "
+                          << connection_params_.address);
   client_context_factory_ = channel->GetClientContextFactory();
   this->stub_ =
       intrinsic_proto::gpio::v1::GPIOService::NewStub(channel->GetChannel());

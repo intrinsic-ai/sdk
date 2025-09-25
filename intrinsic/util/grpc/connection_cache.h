@@ -37,7 +37,7 @@ class ConnectionCache {
     }
 
     INTR_ASSIGN_OR_RETURN(std::shared_ptr<Channel> channel,
-                          Channel::Make(connection_params));
+                          Channel::MakeFromAddress(connection_params));
     std::unique_ptr<typename ServiceType::Stub> stub =
         ServiceType::NewStub(channel->GetChannel());
     if (stub == nullptr) {

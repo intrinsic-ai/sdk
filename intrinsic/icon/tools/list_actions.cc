@@ -93,7 +93,8 @@ namespace {
 absl::StatusOr<std::string> Run(
     const intrinsic::ConnectionParams& connection_params, bool show_details) {
   // Fetch action signatures.
-  INTR_ASSIGN_OR_RETURN(auto icon_channel, Channel::Make(connection_params));
+  INTR_ASSIGN_OR_RETURN(auto icon_channel,
+                        Channel::MakeFromAddress(connection_params));
   Client icon_client(icon_channel);
   INTR_ASSIGN_OR_RETURN(
       std::vector<intrinsic_proto::icon::v1::ActionSignature> signatures,

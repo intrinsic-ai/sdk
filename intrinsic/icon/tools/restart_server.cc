@@ -39,7 +39,7 @@ namespace {
 
 absl::Status Run(const intrinsic::ConnectionParams& connection_params) {
   INTR_ASSIGN_OR_RETURN(auto icon_channel,
-                        intrinsic::Channel::Make(connection_params));
+                        intrinsic::Channel::MakeFromAddress(connection_params));
   return intrinsic::icon::Client(icon_channel).RestartServer();
 }
 

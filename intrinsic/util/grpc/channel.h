@@ -5,6 +5,7 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
@@ -22,13 +23,14 @@ class Channel : public ChannelInterface {
   // Creates a channel to an Intrinsic gRPC service based on the provided
   // connection parameters.  `timeout` specifies the maximum amount of time to
   // wait for a response from the server before giving up on creating a channel.
-  static absl::StatusOr<std::shared_ptr<Channel>> Make(
+  static absl::StatusOr<std::shared_ptr<Channel>> MakeFromAddress(
       const ConnectionParams& params,
       absl::Duration timeout = kGrpcClientConnectDefaultTimeout);
 
   // Constructs a Channel with given connection parameters.
-  Channel(std::shared_ptr<grpc::Channel> channel,
-          const ConnectionParams& params);
+  explicit Channel(std::shared_ptr<grpc::Channel> channel,
+                   std::string_view instance_name = "",
+                   std::string_view header = "x-resource-instance-name");
 
   std::shared_ptr<grpc::Channel> GetChannel() const override;
 
@@ -37,8 +39,13 @@ class Channel : public ChannelInterface {
  private:
   std::shared_ptr<grpc::Channel> channel_;
 
-  // Parameters specifying how to connect to an Intrinsic gRPC service.
-  ConnectionParams params_;
+  // The ingress instance name.  This determines which VirtualService in
+  // kubernetes is targeted.  If empty, the header information is not added to
+  // the gRPC connection.
+  const std::string instance_name_;
+  // The header to be used when establishing a gRPC connection to the ingress.
+  // The header's value will be instance_name.
+  const std::string header_;
 };
 
 }  // namespace intrinsic

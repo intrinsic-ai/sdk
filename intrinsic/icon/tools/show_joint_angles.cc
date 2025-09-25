@@ -79,7 +79,8 @@ absl::Status StrAppendJointAngles(std::string* out, const Client& client,
 
 absl::Status Run(const intrinsic::ConnectionParams& connection_params,
                  absl::string_view part, double refresh) {
-  INTR_ASSIGN_OR_RETURN(auto icon_channel, Channel::Make(connection_params));
+  INTR_ASSIGN_OR_RETURN(auto icon_channel,
+                        Channel::MakeFromAddress(connection_params));
   Client client(icon_channel);
   if (refresh == 0) {
     // --refresh=0; run once and quit.
