@@ -72,8 +72,6 @@ ABSL_ATTRIBUTE_UNUSED int ZenohHandleImwCreateSubscription(
   intrinsic::ZenohHandle* zenoh_handle =
       static_cast<intrinsic::ZenohHandle*>(handle);
 
-  printf("calling %s with h %p k %s cb %p qc %p\n", __PRETTY_FUNCTION__, handle,
-         keyexpr, callback, user_context);
   // type punning on callback?
   return zenoh_handle->imw_create_subscription(keyexpr, callback, qos,
                                                user_context);
@@ -86,8 +84,6 @@ ABSL_ATTRIBUTE_UNUSED int ZenohHandleImwDestroySubscription(
       static_cast<intrinsic::ZenohHandle*>(handle);
 
   // type punning on callback?
-  printf("calling %s with h %p k %s cb %p qc %p\n", __PRETTY_FUNCTION__, handle,
-         keyexpr, callback, user_context);
   return zenoh_handle->imw_destroy_subscription(keyexpr, callback,
                                                 user_context);
 }
