@@ -1,0 +1,119 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.assets.v1;
+
+import "google/api/field_behavior.proto";
+import "intrinsic/assets/proto/id.proto";
+
+// `ResolvedDependency` models a dependency from one Asset to interfaces
+// provided by another, or to an Asset that has an object in the world, or to
+// some combination of both.
+//
+// An Asset declares its dependencies by defining a field of this type in its
+// configuration and annotating the field with the `dependency` field option
+// (see example below).
+//
+// For Assets depending on interfaces provided by other Assets, only gRPC and
+// data interfaces are supported currently. These can be specified in the
+// field annotation in a URI format (see linked example below).
+//
+// A user fulfills a dependency by setting the `name` field as either the Asset
+// ID for Assets that do not support instances, or as the instance name of the
+// Asset that provides the required interfaces/object.
+//
+// Based on the `name`, the platform populates the `interfaces` map and the
+// `object` field with the necessary information to enable the dependent Asset
+// to communicate with the provider.
+//
+// Usage information:
+//
+// Assets specifying dependencies in their configuration should use the
+// `ResolvedDependency` message to specify the dependency, and annotate the
+// field with the `dependency` field option.
+//
+// An example would be:
+//
+// ```
+// message ExampleConfigOrParams {
+//   // Presumed to be required.
+//   intrinsic_proto.assets.v1.ResolvedDependency motion_planner = 1
+//       [(intrinsic_proto.assets.field_metadata).dependency = {
+//         requires:
+//         "grpc://intrinsic_proto.motion_planning.MotionPlannerService",
+//       }];
+//
+//   // Presumed to be optional.
+//   optional intrinsic_proto.assets.v1.ResolvedDependency camera_with_io = 2
+//       [(intrinsic_proto.assets.field_metadata).dependency = {
+//         requires: "grpc://intrinsic_proto.perception.v1.CameraService",
+//         requires: "grpc://intrinsic_proto.gpio.v1.GPIOService",
+//         requires_object: {},
+//       }];
+//
+//   // Presumed to allow zero to many.
+//   repeated intrinsic_proto.assets.v1.ResolvedDependency estimators = 3
+//       [(intrinsic_proto.assets.field_metadata).dependency = {
+//         requires:
+//         "data://intrinsic_proto.perception.v1.PoseEstimationConfig",
+//       }];
+// }
+// ```
+message ResolvedDependency {
+  // An identifier for the Asset that fulfills this dependency.
+  //
+  // For Assets that support the creation of instances, this will be the
+  // instance name of that Asset. For Data Assets, this will be the ID of the
+  // Data Asset.
+  //
+  // This field may be empty to some consumers of the asset if the dependency
+  // is resolved. In this case, the `interfaces` and/or `objects` fields will
+  // be populated instead.
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  message Interface {
+    message GrpcConnection {
+      string address = 1;
+
+      message Metadata {
+        string key = 1;
+        string value = 2;
+      }
+      // Metadata to be included in the header of each gRPC request.
+      repeated Metadata metadata = 2;
+    }
+
+    message Data {
+      // The ID of the Data Asset that fulfills this dependency.
+      //
+      // This can be used to retrieve the Data Asset from the `DataAssets`
+      // service.
+      intrinsic_proto.assets.Id id = 1;
+    }
+
+    oneof protocol {
+      GrpcConnection grpc_connection = 1;
+      Data data = 2;
+    }
+  }
+
+  // Information about the interfaces required by this dependency. The key
+  // is the URI of the interface, and the value is the associated information
+  // required to use the interface.
+  map<string, Interface> interfaces = 2
+      [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  message Object {
+    // Identifier for an object from the world.
+    //
+    // The name can be used to retrieve the world object, for example, from the
+    // `ObjectWorldClient`, using the `GetObject` (in C++) or `get_object` (in
+    // Python) method.
+    string name = 1;
+  }
+
+  // Object from the world that is used to resolve this dependency.
+  // This will be empty if the dependency does not depend on an object.
+  optional Object object = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+}

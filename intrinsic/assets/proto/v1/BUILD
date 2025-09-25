@@ -115,3 +115,64 @@ cc_proto_library(
     visibility = ["//intrinsic:public_api_users"],
     deps = [":search_proto"],
 )
+
+# intrinsic:assets_dependencies:strip_begin
+
+proto_library(
+    name = "resolved_dependency_proto",
+    srcs = ["resolved_dependency.proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        "//intrinsic/assets/proto:id_proto",
+        "@com_google_googleapis//google/api:annotations_proto",
+        "@com_google_googleapis//google/api:field_behavior_proto",
+    ],
+)
+
+go_proto_library(
+    name = "resolved_dependency_go_proto",
+    go_deps = [
+        "//intrinsic/assets/proto:id_go_proto",
+        "@org_golang_google_genproto_googleapis_api//annotations",
+    ],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":resolved_dependency_proto"],
+)
+
+cc_proto_library(
+    name = "resolved_dependency_cc_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":resolved_dependency_proto"],
+)
+
+py_proto_library(
+    name = "resolved_dependency_py_pb2",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":resolved_dependency_proto"],
+)
+
+proto_library(
+    name = "dependency_proto",
+    srcs = ["dependency.proto"],
+    visibility = ["//intrinsic:public_api_users"],
+)
+
+go_proto_library(
+    name = "dependency_go_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":dependency_proto"],
+)
+
+cc_proto_library(
+    name = "dependency_cc_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":dependency_proto"],
+)
+
+py_proto_library(
+    name = "dependency_py_pb2",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":dependency_proto"],
+)
+
+# intrinsic:assets_dependencies:strip_end

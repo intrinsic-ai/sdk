@@ -1,0 +1,23 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.assets.v1;
+
+message Dependency {
+  // The interface URIs (protocol + fully qualified name) this instance or Asset
+  // must provide.
+  //
+  // Example of a gRPC interface URI:
+  //   - grpc://intrinsic_proto.motion_planning.MotionPlannerService
+  //
+  // Example of a data interface URI:
+  //   - data://intrinsic_proto.perception.v1.PoseEstimationConfig
+  repeated string requires = 1;
+
+  message ObjectConstraint {}
+  // Constraint on an object from the world that the dependency must provide.
+  // Omitting this implies that an object is not required to satisfy this
+  // dependency.
+  optional ObjectConstraint requires_object = 2;
+}
