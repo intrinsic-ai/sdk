@@ -1,19 +1,23 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Execution mode enum (normal or draft mode)
+// Simulation and execution mode enum (choose preview mode or step-wise
+// execution)
 
 syntax = "proto3";
 
 package intrinsic_proto.executive;
 
 enum SimulationMode {
+  option allow_alias = true;
+
   SIMULATION_MODE_UNSPECIFIED = 0;
 
   // Executes in real or with simulator as close to reality as possible.
   SIMULATION_MODE_REALITY = 1;
 
   // Executes skills by using preview and visualizing updates.
-  SIMULATION_MODE_DRAFT = 2;
+  SIMULATION_MODE_PREVIEW = 2;
+  SIMULATION_MODE_DRAFT = 2 [deprecated = true];
 
   // Executes skills by using preview without visualization.
   SIMULATION_MODE_FAST_PREVIEW = 3;

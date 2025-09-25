@@ -1218,8 +1218,11 @@ class Executive:
     )
     if simulation_mode is not None:
       request.simulation_mode = simulation_mode.value
-      if simulation_mode == Executive.SimulationMode.DRAFT:
-        print("Starting in draft mode.")
+      if (
+          simulation_mode == Executive.SimulationMode.PREVIEW
+          or simulation_mode == Executive.SimulationMode.DRAFT
+      ):
+        print("Starting in preview mode.")
     if step_wise:
       request.execution_mode = (
           executive_execution_mode_pb2.EXECUTION_MODE_STEP_WISE

@@ -665,6 +665,11 @@ class ExecutiveTest(parameterized.TestCase):
           simulation_proto_mode=executive_execution_mode_pb2.SimulationMode.SIMULATION_MODE_REALITY,
       ),
       dict(
+          testcase_name='PREVIEW',
+          simulation_mode=execution.Executive.SimulationMode.PREVIEW,
+          simulation_proto_mode=executive_execution_mode_pb2.SimulationMode.SIMULATION_MODE_PREVIEW,
+      ),
+      dict(
           testcase_name='DRAFT',
           simulation_mode=execution.Executive.SimulationMode.DRAFT,
           simulation_proto_mode=executive_execution_mode_pb2.SimulationMode.SIMULATION_MODE_DRAFT,
@@ -728,6 +733,11 @@ class ExecutiveTest(parameterized.TestCase):
           testcase_name='REALITY',
           proto_enum=executive_execution_mode_pb2.SimulationMode.SIMULATION_MODE_REALITY,
           expected_simulation_mode=execution.Executive.SimulationMode.REALITY,
+      ),
+      dict(
+          testcase_name='PREVIEW',
+          proto_enum=executive_execution_mode_pb2.SimulationMode.SIMULATION_MODE_PREVIEW,
+          expected_simulation_mode=execution.Executive.SimulationMode.PREVIEW,
       ),
       dict(
           testcase_name='DRAFT',
@@ -1717,6 +1727,11 @@ class SimulationModeTest(absltest.TestCase):
         reality_value,
         execution.Executive.SimulationMode.REALITY,
     )
+
+    preview_value = execution.Executive.SimulationMode.from_proto(
+        executive_execution_mode_pb2.SimulationMode.SIMULATION_MODE_PREVIEW
+    )
+    self.assertEqual(preview_value, execution.Executive.SimulationMode.PREVIEW)
 
     draft_value = execution.Executive.SimulationMode.from_proto(
         executive_execution_mode_pb2.SimulationMode.SIMULATION_MODE_DRAFT

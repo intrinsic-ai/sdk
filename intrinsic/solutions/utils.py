@@ -174,6 +174,10 @@ def protoenum(
     )
     custom_enum.from_proto = from_proto
 
+    allow_alias = proto_enum_type.DESCRIPTOR.GetOptions().allow_alias
+    if allow_alias:
+      return custom_enum
+    # Verify that values are unique
     return enum.unique(custom_enum)
 
   return protoenum_decorator

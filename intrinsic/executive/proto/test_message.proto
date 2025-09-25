@@ -1,5 +1,7 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
+// LINT: LEGACY_NAMES
+
 syntax = "proto3";
 
 package intrinsic_proto.executive;
@@ -12,6 +14,15 @@ enum TestEnum {
   TEST_ENUM_1 = 10;
   TEST_ENUM_2 = 20;
   TEST_ENUM_3 = 30;
+}
+
+enum TestAliasedEnum {
+  option allow_alias = true;
+
+  TEST_ALIASED_ENUM_UNSPECIFIED = 0;
+  TEST_ALIASED_ENUM_1A = 1;
+  TEST_ALIASED_ENUM_1B = 1;
+  TEST_ALIASED_ENUM_2 = 2;
 }
 
 // Message to test evaluation
@@ -33,8 +44,9 @@ message TestMessage {
     TEST_ENUM_1 = 1;
     TEST_ENUM_2 = 2;
   }
-
   TestEnum enum_value = 11;
+  TestAliasedEnum aliased_enum_value = 19;
+
   TestMessage message_value = 12;
 
   oneof foo_or_bar {

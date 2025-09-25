@@ -141,6 +141,49 @@ class ProtoEnumTest(absltest.TestCase):
         TestEnum.TEST_ENUM_3,
     )
 
+  def test_from_proto_with_alias(self):
+    """Tests from_proto method of wrapped enum with aliases."""
+
+    @utils.protoenum(
+        proto_enum_type=test_message_pb2.TestAliasedEnum,
+        unspecified_proto_enum_map_to_none=test_message_pb2.TestAliasedEnum.TEST_ALIASED_ENUM_UNSPECIFIED,
+    )
+    class TestAliasedEnum(enum.Enum):
+      pass
+
+    self.assertIsNone(TestAliasedEnum.from_proto(None))
+
+    self.assertIsNone(
+        TestAliasedEnum.from_proto(
+            test_message_pb2.TestAliasedEnum.TEST_ALIASED_ENUM_UNSPECIFIED
+        )
+    )
+
+    self.assertEqual(
+        TestAliasedEnum.from_proto(
+            test_message_pb2.TestAliasedEnum.TEST_ALIASED_ENUM_1A
+        ),
+        TestAliasedEnum.TEST_ALIASED_ENUM_1A,
+    )
+    self.assertEqual(
+        TestAliasedEnum.from_proto(
+            test_message_pb2.TestAliasedEnum.TEST_ALIASED_ENUM_1B
+        ),
+        TestAliasedEnum.TEST_ALIASED_ENUM_1A,
+    )
+    self.assertEqual(
+        TestAliasedEnum.from_proto(
+            test_message_pb2.TestAliasedEnum.TEST_ALIASED_ENUM_1B
+        ),
+        TestAliasedEnum.TEST_ALIASED_ENUM_1B,
+    )
+    self.assertEqual(
+        TestAliasedEnum.from_proto(
+            test_message_pb2.TestAliasedEnum.TEST_ALIASED_ENUM_2
+        ),
+        TestAliasedEnum.TEST_ALIASED_ENUM_2,
+    )
+
 
 if __name__ == '__main__':
   absltest.main()
