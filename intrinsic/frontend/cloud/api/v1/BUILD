@@ -1,7 +1,9 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
 load("@ai_intrinsic_sdks_pip_deps//:requirements.bzl", "requirement")
+load("@com_github_grpc_grpc//bazel:cc_grpc_library.bzl", "cc_grpc_library")
 load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
+load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
@@ -66,6 +68,18 @@ proto_library(
     name = "solutiondiscovery_api_proto",
     srcs = ["solutiondiscovery_api.proto"],
     deps = [":clusterdiscovery_api_proto"],
+)
+
+cc_proto_library(
+    name = "solutiondiscovery_api_cc_proto",
+    deps = [":solutiondiscovery_api_proto"],
+)
+
+cc_grpc_library(
+    name = "solutiondiscovery_api_cc_grpc_proto",
+    srcs = [":solutiondiscovery_api_proto"],
+    grpc_only = True,
+    deps = [":solutiondiscovery_api_cc_proto"],
 )
 
 py_proto_library(

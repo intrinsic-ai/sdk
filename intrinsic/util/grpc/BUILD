@@ -22,14 +22,32 @@ cc_library(
 )
 
 cc_library(
+    name = "auth",
+    srcs = ["auth.cc"],
+    hdrs = ["auth.h"],
+    deps = [
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+        "@com_github_nlohmann_json//:json",
+    ],
+)
+
+cc_library(
     name = "channel",
     srcs = ["channel.cc"],
     hdrs = ["channel.h"],
     deps = [
+        ":auth",
         ":channel_interface",
         ":connection_params",
         ":grpc",
+        "//intrinsic/frontend/cloud/api/v1:solutiondiscovery_api_cc_grpc_proto",
+        "//intrinsic/frontend/cloud/api/v1:solutiondiscovery_api_cc_proto",
+        "//intrinsic/kubernetes/acl/cc:cookie_names",
+        "//intrinsic/util/status:status_conversion_grpc",
         "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
         "@abseil-cpp//absl/strings",
         "@abseil-cpp//absl/time",

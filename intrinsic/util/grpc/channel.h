@@ -8,7 +8,6 @@
 #include <string_view>
 
 #include "absl/status/statusor.h"
-#include "absl/strings/string_view.h"
 #include "absl/time/time.h"
 #include "grpcpp/channel.h"
 #include "intrinsic/util/grpc/channel_interface.h"
@@ -20,11 +19,39 @@ namespace intrinsic {
 // A channel to an Intrinsic gRPC service at the specified address.
 class Channel : public ChannelInterface {
  public:
+  struct OrgInfo {
+    std::string org;
+    std::string project;
+
+    // Creates an OrgInfo from a string with the format "ORG@PROJECT".
+    // Returns an error if the format is not as expected.
+    static absl::StatusOr<OrgInfo> FromString(std::string_view org_project_str);
+  };
+
   // Creates a channel to an Intrinsic gRPC service based on the provided
   // connection parameters.  `timeout` specifies the maximum amount of time to
   // wait for a response from the server before giving up on creating a channel.
   static absl::StatusOr<std::shared_ptr<Channel>> MakeFromAddress(
       const ConnectionParams& params,
+      absl::Duration timeout = kGrpcClientConnectDefaultTimeout);
+
+  // Creates a channel to an Intrinsic gRPC service based on org info and
+  // cluster. If cluster is empty, no server name will be added to metadata,
+  // which is useful for services that are not cluster-specific like solution
+  // discovery.
+  static absl::StatusOr<std::shared_ptr<Channel>> MakeFromCluster(
+      const OrgInfo& org_info, std::string_view cluster,
+      std::string_view instance_name = "",
+      std::string_view header = "x-resource-instance-name",
+      absl::Duration timeout = kGrpcClientConnectDefaultTimeout);
+
+  // Creates a channel to an Intrinsic gRPC service based on org info and
+  // solution name. This involves a call to solution discovery service to
+  // resolve solution name to cluster name.
+  static absl::StatusOr<std::shared_ptr<Channel>> MakeFromSolution(
+      const OrgInfo& org_info, std::string_view solution_name,
+      std::string_view instance_name = "",
+      std::string_view header = "x-resource-instance-name",
       absl::Duration timeout = kGrpcClientConnectDefaultTimeout);
 
   // Constructs a Channel with given connection parameters.
