@@ -19,6 +19,7 @@ go_library(
         "//intrinsic/kubernetes/acl:cookies",
         "//intrinsic/kubernetes/acl:identity",
         "//intrinsic/kubernetes/acl:jwt",
+        "//intrinsic/tools/inctl/util:vmalias",
         "@com_github_golang_glog//:go_default_library",
         "@com_github_spf13_viper//:go_default_library",
         "@io_opencensus_go//plugin/ocgrpc:go_default_library",

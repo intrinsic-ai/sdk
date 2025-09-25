@@ -16,6 +16,7 @@ import (
 	"google.golang.org/grpc/credentials"
 	"intrinsic/config/environments"
 	"intrinsic/kubernetes/acl/identity"
+	"intrinsic/tools/inctl/util/vmalias"
 )
 
 // ConnectionOpts contains the options for creating a new gRPC connection to a cloud service.
@@ -70,13 +71,19 @@ func WithDialOptions(opts ...grpc.DialOption) ConnectionOptsFunc {
 	}
 }
 
-// WithFlagValues sets the project and organization to use for the connection from the current inctl
-// CLI flags such as --project and --org.
-// Must not be used together with WithProject or WithOrg.
+// WithFlagValues sets the project, organization and cluster to use for the connection from the current inctl
+// CLI flags such as --project, --org and --cluster.
 func WithFlagValues(v *viper.Viper) ConnectionOptsFunc {
-	return func(c *ConnectionOpts) {
-		c.project = v.GetString(KeyProject)
-		c.org = v.GetString(KeyOrganization)
+	return func(opts *ConnectionOpts) {
+		if p := v.GetString(KeyProject); p != "" {
+			opts.project = p
+		}
+		if o := v.GetString(KeyOrganization); o != "" {
+			opts.org = o
+		}
+		if c := v.GetString(KeyCluster); c != "" {
+			opts.cluster = c
+		}
 	}
 }
 
@@ -221,6 +228,9 @@ func newOrLoadTokenSource(ctx context.Context, optsFuncs ...ConnectionOptsFunc) 
 	}
 	if opts.project == "" && opts.org == "" {
 		return nil, nil, nil, fmt.Errorf("either project or org must be set")
+	}
+	if opts.cluster != "" {
+		opts.cluster = vmalias.ResolvePrint(opts.cluster, "")
 	}
 
 	errDetails := &ErrorDetails{

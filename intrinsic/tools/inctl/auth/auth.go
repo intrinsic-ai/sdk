@@ -44,6 +44,8 @@ const (
 	KeyProject = "project"
 	// KeyOrganization is used as central flag name for passing an organization name to inctl.
 	KeyOrganization = "org"
+	// KeyCluster is used as central flag name for passing a cluster name to inctl.
+	KeyCluster = "cluster"
 	// KeyEnvironment is used as central flag name for passing an environment name to inctl.
 	//
 	// The environment can be one of prod, staging or dev.
