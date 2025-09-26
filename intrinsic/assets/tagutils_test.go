@@ -14,39 +14,160 @@ import (
 	atypepb "intrinsic/assets/proto/asset_type_go_proto"
 )
 
+func TestAssetTagDisplayName(t *testing.T) {
+	tests := []struct {
+		name            string
+		tag             atagpb.AssetTag
+		wantDisplayName string
+	}{
+		{
+			name:            "camera",
+			tag:             atagpb.AssetTag_ASSET_TAG_CAMERA,
+			wantDisplayName: "Camera",
+		},
+		{
+			name:            "gripper",
+			tag:             atagpb.AssetTag_ASSET_TAG_GRIPPER,
+			wantDisplayName: "Gripper",
+		},
+		{
+			name:            "subprocess",
+			tag:             atagpb.AssetTag_ASSET_TAG_SUBPROCESS,
+			wantDisplayName: "Subprocess",
+		},
+		{
+			name:            "unspecified",
+			tag:             atagpb.AssetTag_ASSET_TAG_UNSPECIFIED,
+			wantDisplayName: "Unspecified",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			gotDisplayName := AssetTagDisplayName(tc.tag)
+			if gotDisplayName != tc.wantDisplayName {
+				t.Errorf("AssetTagDisplayName(%v) = %v, want %v", tc.tag, gotDisplayName, tc.wantDisplayName)
+			}
+		})
+	}
+}
+
+func TestAssetTagFromDisplayName(t *testing.T) {
+	tests := []struct {
+		name        string
+		displayName string
+		wantTag     atagpb.AssetTag
+	}{
+		{
+			name:        "camera",
+			displayName: "Camera",
+			wantTag:     atagpb.AssetTag_ASSET_TAG_CAMERA,
+		},
+		{
+			name:        "lower case camera",
+			displayName: "camera",
+			wantTag:     atagpb.AssetTag_ASSET_TAG_CAMERA,
+		},
+		{
+			name:        "gripper",
+			displayName: "Gripper",
+			wantTag:     atagpb.AssetTag_ASSET_TAG_GRIPPER,
+		},
+		{
+			name:        "subprocess",
+			displayName: "Subprocess",
+			wantTag:     atagpb.AssetTag_ASSET_TAG_SUBPROCESS,
+		},
+		{
+			name:        "unspecified",
+			displayName: "Unspecified",
+			wantTag:     atagpb.AssetTag_ASSET_TAG_UNSPECIFIED,
+		},
+		{
+			name:        "paperclip",
+			displayName: "Paperclip",
+			wantTag:     atagpb.AssetTag_ASSET_TAG_UNSPECIFIED,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			gotTag := AssetTagFromDisplayName(tc.displayName)
+			if gotTag != tc.wantTag {
+				t.Errorf("AssetTagFromDisplayName(%v) = %v, want %v", tc.displayName, gotTag, tc.wantTag)
+			}
+		})
+	}
+}
+
+func TestAssetTagName(t *testing.T) {
+	tests := []struct {
+		name string
+		tag  atagpb.AssetTag
+		want string
+	}{
+		{
+			name: "camera",
+			tag:  atagpb.AssetTag_ASSET_TAG_CAMERA,
+			want: "ASSET_TAG_CAMERA",
+		},
+		{
+			name: "gripper",
+			tag:  atagpb.AssetTag_ASSET_TAG_GRIPPER,
+			want: "ASSET_TAG_GRIPPER",
+		},
+		{
+			name: "subprocess",
+			tag:  atagpb.AssetTag_ASSET_TAG_SUBPROCESS,
+			want: "ASSET_TAG_SUBPROCESS",
+		},
+		{
+			name: "unspecified",
+			tag:  atagpb.AssetTag_ASSET_TAG_UNSPECIFIED,
+			want: "ASSET_TAG_UNSPECIFIED",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := AssetTagName(tc.tag)
+			if got != tc.want {
+				t.Errorf("AssetTagName(%v) = %v, want %v", tc.tag, got, tc.want)
+			}
+		})
+	}
+}
+
 func TestAssetTagFromName(t *testing.T) {
 	tests := []struct {
 		name    string
 		wantTag atagpb.AssetTag
-		wantErr bool
 	}{
 		{
 			name:    "ASSET_TAG_CAMERA",
 			wantTag: atagpb.AssetTag_ASSET_TAG_CAMERA,
 		},
 		{
+			name:    "ASSET_TAG_UNSPECIFIED",
+			wantTag: atagpb.AssetTag_ASSET_TAG_UNSPECIFIED,
+		},
+		{
 			name:    "ASSET_TAG_PAPERCLIP",
-			wantErr: true,
+			wantTag: atagpb.AssetTag_ASSET_TAG_UNSPECIFIED,
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			gotTag, err := AssetTagFromName(tc.name)
-			if tc.wantErr {
-				if err == nil {
-					t.Errorf("AssetTagFromName(%v) = %v, want error", tc.name, gotTag)
-				}
-			} else if err != nil {
-				t.Errorf("AssetTagFromName(%v) failed: %v", tc.name, err)
-			} else if gotTag != tc.wantTag {
+			gotTag := AssetTagFromName(tc.name)
+			if gotTag != tc.wantTag {
 				t.Errorf("AssetTagFromName(%v) = %v, want %v", tc.name, gotTag, tc.wantTag)
 			}
 		})
 	}
 }
 
-func TestAssetTagsForTypesReturnsCorrectTags(t *testing.T) {
+func TestAssetTagsForTypes(t *testing.T) {
 	allAssetTagMetadata, err := AllAssetTagMetadata()
 	if err != nil {
 		t.Fatalf("AllAssetTagMetadata() failed: %v", err)
@@ -97,7 +218,7 @@ func TestAssetTagsForTypesReturnsCorrectTags(t *testing.T) {
 	}
 }
 
-func TestAssetTagsForTypeReturnsCorrectTags(t *testing.T) {
+func TestAssetTagsForType(t *testing.T) {
 	allMetadata, err := AllAssetTagMetadata()
 	if err != nil {
 		t.Fatalf("AllAssetTagMetadata() failed: %v", err)
@@ -134,7 +255,22 @@ func TestAssetTagsForTypeReturnsCorrectTags(t *testing.T) {
 	}
 }
 
-func TestAssetTagMetadataForTypeReturnsCorrectTags(t *testing.T) {
+func TestAssetTagMetadataForTag(t *testing.T) {
+	for tagName, tagValue := range atagpb.AssetTag_value {
+		t.Run(tagName, func(t *testing.T) {
+			tag := atagpb.AssetTag(tagValue)
+			metadata, err := AssetTagMetadataForTag(tag)
+			if err != nil {
+				t.Fatalf("AssetTagMetadataForTag(%v) failed: %v", tag, err)
+			}
+			if metadata.GetAssetTag() != tag {
+				t.Errorf("AssetTagMetadataForTag(%v) = %v, want %v", tag, metadata.GetAssetTag(), tag)
+			}
+		})
+	}
+}
+
+func TestAssetTagMetadataForType(t *testing.T) {
 	allMetadata, err := AllAssetTagMetadata()
 	if err != nil {
 		t.Fatalf("AllAssetTagMetadata() failed: %v", err)
@@ -171,7 +307,7 @@ func TestAssetTagMetadataForTypeReturnsCorrectTags(t *testing.T) {
 	}
 }
 
-func TestAllAssetTagMetadataReturnsCorrectTags(t *testing.T) {
+func TestAllAssetTagMetadata(t *testing.T) {
 	metadata, err := AllAssetTagMetadata()
 	if err != nil {
 		t.Fatalf("AllAssetTagMetadata() failed: %v", err)

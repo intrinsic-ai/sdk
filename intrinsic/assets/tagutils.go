@@ -1,12 +1,13 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package tagutils provides utilities for asset tags.
+// Package tagutils provides utilities for AssetTags.
 package tagutils
 
 import (
 	"fmt"
 	"maps"
 	"slices"
+	"strings"
 
 	"google.golang.org/protobuf/encoding/prototext"
 
@@ -25,17 +26,49 @@ var allAssetTagMetadata []*atagpb.AssetTagMetadata
 // allAssetTagMetadataComputed indicates whether allAssetTagMetadata has been computed.
 var allAssetTagMetadataComputed bool
 
-// AssetTagFromName returns an AssetTag, given its name.
-func AssetTagFromName(name string) (atagpb.AssetTag, error) {
-	value, ok := atagpb.AssetTag_value[name]
-	if !ok {
-		return atagpb.AssetTag_ASSET_TAG_UNSPECIFIED, fmt.Errorf("unknown asset tag: %q", name)
+// AssetTagDisplayName returns the display name of the given AssetTag, or "Unknown" if the tag is
+// not known.
+func AssetTagDisplayName(tag atagpb.AssetTag) string {
+	metadata, err := AssetTagMetadataForTag(tag)
+	if err != nil {
+		return "Unknown"
 	}
-
-	return atagpb.AssetTag(value), nil
+	return metadata.GetDisplayName()
 }
 
-// AssetTagsForTypes returns a list of asset tags that apply to any of the specified asset types.
+// AssetTagFromDisplayName returns the AssetTag for the given display name, or
+// ASSET_TAG_UNSPECIFIED if the display name is not known.
+func AssetTagFromDisplayName(name string) atagpb.AssetTag {
+	lcName := strings.ReplaceAll(strings.ToLower(name), " ", "_")
+	allMetadata, err := AllAssetTagMetadata()
+	if err != nil {
+		return atagpb.AssetTag_ASSET_TAG_UNSPECIFIED
+	}
+	for _, tagMetadata := range allMetadata {
+		if strings.ReplaceAll(strings.ToLower(tagMetadata.GetDisplayName()), " ", "_") == lcName {
+			return tagMetadata.GetAssetTag()
+		}
+	}
+	return atagpb.AssetTag_ASSET_TAG_UNSPECIFIED
+}
+
+// AssetTagName returns the name of the given AssetTag.
+func AssetTagName(tag atagpb.AssetTag) string {
+	return tag.String()
+}
+
+// AssetTagFromName returns an AssetTag, given its name, or ASSET_TAG_UNSPECIFIED if the name is not
+// known.
+func AssetTagFromName(name string) atagpb.AssetTag {
+	value, ok := atagpb.AssetTag_value[name]
+	if !ok {
+		return atagpb.AssetTag_ASSET_TAG_UNSPECIFIED
+	}
+
+	return atagpb.AssetTag(value)
+}
+
+// AssetTagsForTypes returns a list of AssetTags that apply to any of the specified AssetTypes.
 func AssetTagsForTypes(assetTypes []atypepb.AssetType) ([]atagpb.AssetTag, error) {
 	tagsMap := make(map[atagpb.AssetTag]struct{})
 	for _, assetType := range assetTypes {
@@ -53,7 +86,7 @@ func AssetTagsForTypes(assetTypes []atypepb.AssetType) ([]atagpb.AssetTag, error
 	return tags, nil
 }
 
-// AssetTagsForType returns a list of asset tags that apply to the specified asset type.
+// AssetTagsForType returns a list of AssetTags that apply to the specified AssetType.
 func AssetTagsForType(assetType atypepb.AssetType) ([]atagpb.AssetTag, error) {
 	metadata, err := AssetTagMetadataForType(assetType)
 	if err != nil {
@@ -68,24 +101,7 @@ func AssetTagsForType(assetType atypepb.AssetType) ([]atagpb.AssetTag, error) {
 	return tags, nil
 }
 
-// AssetTagMetadataForType returns a list of asset tag metadata for the specified asset type.
-func AssetTagMetadataForType(assetType atypepb.AssetType) ([]*atagpb.AssetTagMetadata, error) {
-	allMetadata, err := AllAssetTagMetadata()
-	if err != nil {
-		return nil, err
-	}
-
-	metadata := make([]*atagpb.AssetTagMetadata, 0, len(allMetadata))
-	for _, tagMetadata := range allMetadata {
-		if slices.Contains(tagMetadata.GetApplicableAssetTypes(), assetType) {
-			metadata = append(metadata, tagMetadata)
-		}
-	}
-
-	return metadata, nil
-}
-
-// AllAssetTagMetadata returns a list of all asset tag metadata.
+// AllAssetTagMetadata returns a list of all AssetTagMetadata.
 func AllAssetTagMetadata() ([]*atagpb.AssetTagMetadata, error) {
 	// Return cached value if it has been computed.
 	if allAssetTagMetadataComputed {
@@ -101,4 +117,35 @@ func AllAssetTagMetadata() ([]*atagpb.AssetTagMetadata, error) {
 	allAssetTagMetadataComputed = true
 
 	return allAssetTagMetadata, nil
+}
+
+// AssetTagMetadataForTag returns the AssetTagMetadata for the specified AssetTag.
+func AssetTagMetadataForTag(tag atagpb.AssetTag) (*atagpb.AssetTagMetadata, error) {
+	allMetadata, err := AllAssetTagMetadata()
+	if err != nil {
+		return nil, err
+	}
+	for _, tagMetadata := range allMetadata {
+		if tagMetadata.GetAssetTag() == tag {
+			return tagMetadata, nil
+		}
+	}
+	return nil, fmt.Errorf("no metadata found for tag %v", tag)
+}
+
+// AssetTagMetadataForType returns a list of AssetTagMetadata for the specified AssetType.
+func AssetTagMetadataForType(assetType atypepb.AssetType) ([]*atagpb.AssetTagMetadata, error) {
+	allMetadata, err := AllAssetTagMetadata()
+	if err != nil {
+		return nil, err
+	}
+
+	metadata := make([]*atagpb.AssetTagMetadata, 0, len(allMetadata))
+	for _, tagMetadata := range allMetadata {
+		if slices.Contains(tagMetadata.GetApplicableAssetTypes(), assetType) {
+			metadata = append(metadata, tagMetadata)
+		}
+	}
+
+	return metadata, nil
 }
