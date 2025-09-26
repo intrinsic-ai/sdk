@@ -44,6 +44,9 @@ message ParameterizedSuctionGripperSpecs {
   // The radius of the suction cup in meters.
   float radius_in_meters = 1;
   // The surface roughness threshold of the suction cup in meters.
+  // This is a measure of the "flatness" of the contact surface. Defaults to
+  // a lower bounded value of 0.003 meters, enter a larger value for more
+  // aggressive filtering.
   optional float surface_roughness_threshold_in_meters = 2;
   // The 2D coordinates of the suction cup locations in meters in the x-y plane
   // of the tool frame where z = 0.
