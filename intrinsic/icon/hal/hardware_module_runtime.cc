@@ -888,9 +888,10 @@ absl::Status HardwareModuleRuntime::Connect(
   return absl::OkStatus();
 }
 
-absl::Status HardwareModuleRuntime::Run(grpc::ServerBuilder& server_builder,
-                                        bool is_realtime,
-                                        const std::vector<int>& cpu_affinity) {
+absl::Status HardwareModuleRuntime::Run(
+    grpc::ServerBuilder& server_builder, bool is_realtime,
+    const std::vector<int>& cpu_affinity,
+    absl::string_view service_inspection_topic) {
   if (activate_server_ == nullptr) {
     return absl::InternalError(
         "PUBLIC: Hardware module does not seem to be connected. Did you call "

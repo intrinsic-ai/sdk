@@ -12,7 +12,7 @@
 #include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "absl/time/time.h"
+#include "absl/strings/string_view.h"
 #include "grpcpp/server_builder.h"
 #include "intrinsic/icon/hal/hardware_interface_handle.h"
 #include "intrinsic/icon/hal/hardware_interface_registry.h"
@@ -89,9 +89,12 @@ class HardwareModuleRuntime final {
   // can be parametrized by `is_realtime` and `cpu_affinity`.
   // `server_builder` gives the hardware module the possibility to register gRPC
   // services.
+  // `service_inspection_topic` is the topic name to which the inspection data
+  // is published. If empty, no inspection data is published.
   absl::Status Run(grpc::ServerBuilder& server_builder,
                    bool is_realtime = false,
-                   const std::vector<int>& cpu_affinity = {});
+                   const std::vector<int>& cpu_affinity = {},
+                   absl::string_view service_inspection_topic = "");
 
   // Stops the execution of the module.
   // A call to `Stop()` stops the services and the module functions are no

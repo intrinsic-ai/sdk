@@ -222,8 +222,15 @@ RunRuntimeWithGrpcServerAndWaitForShutdown(
         << main_config.status();
     LOG(INFO) << "PUBLIC: Starting hardware module "
               << main_config->module_config.name();
-    auto status = runtime.value()->Run(
-        server_builder, main_config->use_realtime_scheduling, cpu_affinity);
+    std::string service_inspection_topic = "";
+    if (main_config->runtime_context.has_value() &&
+        main_config->runtime_context->has_service_inspection_topic()) {
+      service_inspection_topic =
+          main_config->runtime_context->service_inspection_topic();
+    }
+    auto status = runtime.value()->Run(server_builder,
+                                       main_config->use_realtime_scheduling,
+                                       cpu_affinity, service_inspection_topic);
     if (!status.ok()) {
       LOG(ERROR) << "PUBLIC: Error running hardware module: "
                  << status.message();
