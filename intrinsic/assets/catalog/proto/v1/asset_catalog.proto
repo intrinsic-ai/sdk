@@ -11,6 +11,7 @@ import "intrinsic/assets/catalog/proto/v1/release_metadata.proto";
 import "intrinsic/assets/data/proto/v1/data_asset.proto";
 import "intrinsic/assets/data/proto/v1/referenced_data.proto";
 import "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest.proto";
+import "intrinsic/assets/processes/proto/process_asset.proto";
 import "intrinsic/assets/proto/asset_tag.proto";
 import "intrinsic/assets/proto/asset_type.proto";
 import "intrinsic/assets/proto/id.proto";
@@ -97,6 +98,9 @@ message Asset {
     // The skill manifest
     intrinsic_proto.skills.ProcessedSkillManifest manifest = 1;
   }
+  message ProcessDeploymentData {
+    intrinsic_proto.processes.ProcessAsset process = 1;
+  }
   message AssetDeploymentData {
     oneof asset_specific_deployment_data {
       DataDeploymentData data_specific_deployment_data = 3;
@@ -104,6 +108,7 @@ message Asset {
       HardwareDeviceDeploymentData hardware_device_specific_deployment_data = 5;
       ServiceDeploymentData service_specific_deployment_data = 1;
       SkillDeploymentData skill_specific_deployment_data = 2;
+      ProcessDeploymentData process_specific_deployment_data = 6;
     }
   }
 

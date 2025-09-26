@@ -39,6 +39,7 @@ func CollectImages(asset *acpb.Asset) []*ipb.Image {
 		}
 	case *acpb.Asset_AssetDeploymentData_DataSpecificDeploymentData:
 	case *acpb.Asset_AssetDeploymentData_SceneObjectSpecificDeploymentData:
+	case *acpb.Asset_AssetDeploymentData_ProcessSpecificDeploymentData:
 	default:
 		log.Fatalf("unknown asset type: %v", asset.GetMetadata().GetAssetType())
 	}

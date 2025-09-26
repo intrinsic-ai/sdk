@@ -190,6 +190,13 @@ message CreateInstalledAssetRequest {
       intrinsic_proto.data.v1.DataAsset data = 5;
       intrinsic_proto.hardware_devices.v1.ProcessedHardwareDeviceManifest
           hardware_device = 6;
+
+      // In addition to some fields in the asset metadata, the following derived
+      // fields will get updated automatically during the create request:
+      // - [ProcessAsset.behavior_tree.description.id_version]
+      // - [ProcessAsset.behavior_tree.description.sideloaded]
+      // This only applies to Process assets created via this variant and not
+      // when using, e.g., 'variant.catalog'.
       intrinsic_proto.processes.ProcessAsset process = 7;
     }
 
@@ -213,6 +220,13 @@ message CreateInstalledAssetsRequest {
       intrinsic_proto.data.v1.DataAsset data = 5;
       intrinsic_proto.hardware_devices.v1.ProcessedHardwareDeviceManifest
           hardware_device = 6;
+
+      // In addition to some fields in the asset metadata, the following derived
+      // fields will get updated automatically during the create request:
+      // - [ProcessAsset.behavior_tree.description.id_version]
+      // - [ProcessAsset.behavior_tree.description.sideloaded]
+      // This only applies to Process assets created via this variant and not
+      // when using, e.g., 'variant.catalog'.
       intrinsic_proto.processes.ProcessAsset process = 7;
     }
 

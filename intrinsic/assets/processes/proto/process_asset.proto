@@ -14,16 +14,17 @@ message ProcessAsset {
 
   // The behavior tree representing the process.
   //
-  // [BehaviorTree.name] is equal to [Metadata.display_name].
+  // [BehaviorTree.name] has to be equal to [Metadata.display_name].
   //
   // The Skill proto in [BehaviorTree.description] stores additional metadata
-  // about the process. For subprocesses (parameterizable behavior trees) it
-  // describes the interface of the subprocess (parameters, return value, etc.)
-  // and contains redundant metadata such as id, version etc. in "skill format".
-  //
-  // Upon asset creation, the metadata fields in the Skill proto
-  // ([Skill.skill_name, .package_name, .id, .id_version, .description]) may be
-  // empty. They will then be automatically populated from their counterparts in
-  // 'metadata'.
+  // about the process. If present, it describes the interface of the process
+  // (parameters, return value, etc.) and contains redundant metadata in "skill
+  // format" which always has to be consistent with the asset's metadata:
+  // - [Skill.skill_name, .package_name, .id] have to match
+  //   [Metadata.id_version.id].
+  // - [Skill.description] has to be equal to
+  //   [Metadata.documentation.description].
+  // - [Skill.id_version] has to match [Metadata.id_version]. It has to be empty
+  //   if [Metadata.id_version.version] is empty.
   intrinsic_proto.executive.BehaviorTree behavior_tree = 2;
 }
