@@ -11,7 +11,8 @@ import "intrinsic/world/proto/object_world_refs.proto";
 // grasp planning.
 message PlacementPoseConstraint {
   // Moving frame that will be aligned with the target frame at placement.
-  // This typically is a tool or tip frame.
+  // This typically is the object reference frame, but can also be a tool or tip
+  // frame.
   intrinsic_proto.world.TransformNodeReference moving_frame = 1;
 
   // Target frame to align the moving frame with at placement.
@@ -24,11 +25,12 @@ message PlacementPoseConstraint {
   // Must be non-negative. Set it to 0 for directions where no margin is needed.
   // Only specify this when specifying just the exact target frame does not
   // fulfill the purpose, as it increases planning time.
+  // Not implemented yet.
   optional intrinsic_proto.Point target_frame_margins = 3;
 
-  // Optional waypoints to go through to reach the target frame. If specified,
-  // only trajectories going through these waypoints in order will be checked.
-  repeated intrinsic_proto.world.TransformNodeReference waypoint_frames = 4;
+  // Whether to require the IK of placement pose to have the same kinematic
+  // branch.
+  optional bool require_same_branch_ik = 4;
 }
 
 // The force-based placement constraint to be satisfied at grasp planning.

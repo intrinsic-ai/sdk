@@ -6,6 +6,7 @@ package intrinsic_proto.grasping;
 
 import "intrinsic/icon/proto/cart_space.proto";
 import "intrinsic/kinematics/types/joint_limits.proto";
+import "intrinsic/manipulation/grasping/grasp_placement_constraint.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 
 message GraspRankersParams {
@@ -28,6 +29,10 @@ message GraspRankersParams {
 
   // Parameters for diversity grasp ranker.
   optional DiversityRankerParams diversity_ranker_params = 8;
+
+  // Parameters for placement constraint checker.
+  optional PlacementConstraintCheckerParams
+      placement_constraint_checker_params = 9;
 
   // Weights for the rankers. Weight values have to be non-negative.
   // If the map is empty and a visibility ranker is used, then the visibility
@@ -150,5 +155,13 @@ message TopDownGraspRankerParams {
   float top_down_score_threshold = 1;
 
   // Name of the ranker. Default to top_down_grasp_ranker.
+  optional string name = 2;
+}
+
+message PlacementConstraintCheckerParams {
+  // Placement constraints to consider during grasp planning.
+  intrinsic_proto.grasping.PlacementConstraints placement_constraints = 1;
+
+  // Name of the ranker. Default to placement_constraint_checker.
   optional string name = 2;
 }
