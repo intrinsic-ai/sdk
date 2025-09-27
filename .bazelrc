@@ -86,4 +86,3 @@ build:docker --host_platform=//bazel:linux_x86_64
 build --define absl=1
 
 build:intrinsic -c opt
-
