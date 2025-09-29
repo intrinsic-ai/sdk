@@ -25,7 +25,7 @@ std::unique_ptr<::grpc::ClientContext> DefaultClientContextFactory();
 // to an in-process fake server.
 class ChannelInterface {
  public:
-  virtual ~ChannelInterface() {}
+  virtual ~ChannelInterface() = default;
 
   // Returns a grpc::Channel to the server.
   virtual std::shared_ptr<grpc::Channel> GetChannel() const = 0;
