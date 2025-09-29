@@ -23,8 +23,19 @@ var (
 
 var upsCmd = &cobra.Command{
 	Use:   "ups",
+	Short: "[EXPERIMENTAL] Configure a UPS.",
+	Long: `[EXPERIMENTAL] Configure a UPS (uninterruptible power supply) attached to the cluster.
+
+Use the subcommands to show, enable or disable UPS monitoring, for example:
+
+  inctl cluster ups show --enable-experimental --org <org>[@<project>] --cluster <cluster>
+  inctl cluster ups enable --enable-experimental --org <org>[@<project>] --cluster <cluster> --driver <driver> [--port <port>]`,
+}
+
+var upsShowCmd = &cobra.Command{
+	Use:   "show",
 	Short: "[EXPERIMENTAL] Show the current UPS configuration.",
-	Long:  "[EXPERIMENTAL] Show the current UPS configuration of the cluster.",
+	Long:  `[EXPERIMENTAL] Show the current UPS configuration of the cluster.`,
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, _ []string) error {
 		ctx := cmd.Context()
@@ -64,7 +75,7 @@ var upsCmd = &cobra.Command{
 }
 
 var upsEnableCmd = &cobra.Command{
-	Use:   "enable",
+	Use:   "enable --enable-experimental --org <org>[@<project>] --cluster <cluster> --driver <driver> [--port <port>]",
 	Short: "[EXPERIMENTAL] Enable a UPS.",
 	Long: `[EXPERIMENTAL] Configure a UPS (uninterruptible power supply) attached to the cluster.
 
@@ -98,7 +109,7 @@ driver-specific documentation.`,
 	},
 }
 var upsDisableCmd = &cobra.Command{
-	Use:   "disable",
+	Use:   "disable --enable-experimental --org <org>[@<project>] --cluster <cluster>",
 	Short: "[EXPERIMENTAL] Disable a UPS.",
 	Long: `[EXPERIMENTAL] Configure the cluster to not connect to a UPS (uninterruptible power supply).
 
@@ -133,6 +144,7 @@ func init() {
 	upsCmd.MarkPersistentFlagRequired("cluster")
 	upsCmd.PersistentFlags().BoolVar(&experimentalFlag, "enable-experimental", false, "Enable experimental features.")
 	upsCmd.MarkPersistentFlagRequired("enable-experimental")
+	upsCmd.AddCommand(upsShowCmd)
 	upsCmd.AddCommand(upsDisableCmd)
 	upsCmd.AddCommand(upsEnableCmd)
 	upsEnableCmd.Flags().StringVar(&upsFlags.driver, "driver", "", "Driver to use for the UPS, eg \"usbhid-ups\" or \"snmp-ups\".")
