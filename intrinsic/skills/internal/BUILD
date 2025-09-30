@@ -459,7 +459,6 @@ cc_library(
         "//intrinsic/icon/release:file_helpers",
         "//intrinsic/skills/proto:skill_manifest_cc_proto",
         "//intrinsic/skills/proto:skill_service_config_cc_proto",
-        "//intrinsic/util:log_lines",
         "//intrinsic/util/status:status_macros",
         "@abseil-cpp//absl/log",
         "@abseil-cpp//absl/status:statusor",

@@ -53,6 +53,7 @@ namespace {
 
 using ::intrinsic::InitExtendedStatusSpecs;
 using ::intrinsic::skills::GetSkillServiceConfig;
+using ::intrinsic::skills::LogLimitedSkillServiceConfig;
 using ::intrinsic::skills::SkillInit;
 using ::intrinsic::skills::internal::GetRuntimeDataFrom;
 using ::intrinsic::skills::internal::SingleSkillFactory;
@@ -69,6 +70,7 @@ int main(int argc, char** argv) {
   QCHECK_OK(service_config.status())
       << "Failed to read skill service config at: "
       << absl::GetFlag(FLAGS_skill_service_config_filename);
+  LogLimitedSkillServiceConfig(*service_config);
 
   QCHECK_OK(InitExtendedStatusSpecs(service_config->skill_description().id(),
                                     service_config->status_info()))

@@ -13,6 +13,14 @@
 
 namespace intrinsic::skills {
 
+// Logs a limited subset of the SkillServiceConfig.
+//
+// In practice, the proto file descriptors can be very large and this makes it
+// hard to scroll through the logs. This function removes the descriptors and
+// logs the remainder of the proto.
+void LogLimitedSkillServiceConfig(
+    const intrinsic_proto::skills::SkillServiceConfig& config);
+
 // Returns the SkillServiceConfig at `skill_service_config_filename`.
 //
 // Reads the proto binary file at `skill_service_config_filename` and returns
