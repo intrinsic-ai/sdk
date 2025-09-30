@@ -5,6 +5,7 @@ syntax = "proto3";
 package intrinsic_proto.perception;
 
 import "google/protobuf/duration.proto";
+import "intrinsic/logging/proto/context.proto";
 import "intrinsic/math/proto/pose.proto";
 import "intrinsic/perception/proto/camera_config.proto";
 import "intrinsic/perception/proto/camera_identifier.proto";
@@ -138,6 +139,10 @@ message CaptureRequest {
   // If set the capture result will be stored in the specified key value store
   // location, which will also be returned instead of the capture result itself.
   optional kvstore.StorageLocation capture_result_location = 7;
+
+  // If set, images will be logged using the passed context. It contains e.g.
+  // the IDs of skills and plans.
+  optional intrinsic_proto.data_logger.Context context = 9;
 }
 
 message CaptureResponse {

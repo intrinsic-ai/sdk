@@ -16,6 +16,7 @@ proto_library(
     name = "camera_server_proto",
     srcs = ["camera_server.proto"],
     deps = [
+        "//intrinsic/logging/proto:context_proto",
         "//intrinsic/math/proto:pose_proto",
         "//intrinsic/perception/proto:camera_config",
         "//intrinsic/perception/proto:camera_identifier_proto",
