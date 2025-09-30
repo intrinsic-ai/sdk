@@ -21,7 +21,6 @@ import (
 	"google.golang.org/grpc/status"
 	"intrinsic/kubernetes/vmpool/service/pkg/defaults/defaults"
 	"intrinsic/tools/inctl/util/color"
-	"intrinsic/tools/inctl/util/orgutil"
 
 	tpb "google.golang.org/protobuf/types/known/timestamppb"
 	leaseapigrpcpb "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_grpc_proto"
@@ -158,18 +157,6 @@ func Lease(ctx context.Context, leaseClient leaseapigrpcpb.VMPoolLeaseServiceCli
 	fmt.Println("")
 	gotExpires := l.GetExpires().AsTime()
 	fmt.Printf("- Lease expires: %s (in %s)\n", gotExpires.Format(time.RFC3339), time.Until(gotExpires).Round(time.Second))
-	// $20 estimate based on hourly costs in us-central1 of $0.38 for n1-standard-8 an $0.35 for
-	// nvidia-tesla-t4.
-	// https://cloud.google.com/compute/vm-instance-pricing
-	// https://cloud.google.com/compute/gpus-pricing
-	fmt.Println("\nVMs cost around $20 for 24h, please return it when you don't need it anymore:")
-	fmt.Printf("	inctl vm return %s --org %s\n", l.GetInstance(), orgutil.QualifiedOrg(opts.Project, orgID))
-	fmt.Println("\nExtend the lease for the VM if you need it longer:")
-	fmt.Printf("	inctl vm expire-in %s 1h --org %s\n", l.GetInstance(), orgutil.QualifiedOrg(opts.Project, orgID))
-	fmt.Printf("\nConnect via k9s:\n")
-	fmt.Printf("	k9s --context %s\n", lr.context)
-	fmt.Println("\nConnect via SSH:")
-	fmt.Printf("	inctl ssh --context %s --no-tofu\n", lr.context)
 	return nil
 }
 
