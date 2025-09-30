@@ -23,14 +23,14 @@ message PlacementPoseConstraint {
 
   // The margins allowed in the [x, y, z] directions around the target frame.
   // Must be non-negative. Set it to 0 for directions where no margin is needed.
+  // Currently only support margin in one of the [X, Y, Z] directions.
   // Only specify this when specifying just the exact target frame does not
   // fulfill the purpose, as it increases planning time.
-  // Not implemented yet.
   optional intrinsic_proto.Point target_frame_margins = 3;
 
   // Whether to require the IK of placement pose to have the same kinematic
-  // branch.
-  optional bool require_same_branch_ik = 4;
+  // branch. Default to false.
+  optional bool disable_requiring_same_branch_ik = 4;
 }
 
 // The force-based placement constraint to be satisfied at grasp planning.
