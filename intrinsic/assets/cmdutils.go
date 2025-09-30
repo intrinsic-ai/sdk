@@ -134,7 +134,7 @@ func (cf *CmdFlags) AddFlagAssetTypes(defaultTypes string) {
 	types := typeutils.AllAssetTypes()
 	names := make([]string, len(types))
 	for i, t := range types {
-		names[i] = typeutils.NameFromAssetType(t)
+		names[i] = typeutils.AssetTypeCodeName(t)
 	}
 
 	cf.OptionalString(KeyAssetTypes, defaultTypes, fmt.Sprintf("A comma-separated list of asset types (choose from: %v).", strings.Join(names, ", ")))
@@ -149,11 +149,11 @@ func (cf *CmdFlags) GetFlagAssetTypes() ([]atypepb.AssetType, error) {
 	assetTypeNames := strings.Split(assetTypesValue, ",")
 	assetTypes := make([]atypepb.AssetType, len(assetTypeNames))
 	for i, name := range assetTypeNames {
-		var err error
-		assetTypes[i], err = typeutils.AssetTypeFromName(name)
-		if err != nil {
-			return nil, err
+		assetType := typeutils.AssetTypeFromCodeName(name)
+		if assetType == atypepb.AssetType_ASSET_TYPE_UNSPECIFIED {
+			return nil, fmt.Errorf("invalid asset type: %q", name)
 		}
+		assetTypes[i] = assetType
 	}
 
 	return assetTypes, nil

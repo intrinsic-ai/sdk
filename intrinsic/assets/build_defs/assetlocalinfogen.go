@@ -36,9 +36,9 @@ var (
 
 func writeAsset(fds *dpb.FileDescriptorSet) {
 	var id *idpb.Id
-	atype, err := typeutils.EnumFromString(*assetType)
-	if err != nil {
-		log.Exitf("invalid asset type %q", *assetType)
+	atype := typeutils.AssetTypeFromName(*assetType)
+	if atype == atypepb.AssetType_ASSET_TYPE_UNSPECIFIED {
+		log.Exitf("unknown asset type %q", *assetType)
 	}
 
 	if *bundlePath == "" {

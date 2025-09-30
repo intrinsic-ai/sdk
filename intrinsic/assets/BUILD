@@ -157,10 +157,7 @@ go_library(
     name = "typeutils",
     srcs = ["typeutils.go"],
     visibility = ["//intrinsic:internal_api_users"],
-    deps = [
-        "//intrinsic/assets/proto:asset_type_go_proto",
-        "@org_golang_x_exp//slices",
-    ],
+    deps = ["//intrinsic/assets/proto:asset_type_go_proto"],
 )
 
 go_library(

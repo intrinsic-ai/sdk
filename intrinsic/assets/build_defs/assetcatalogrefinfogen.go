@@ -29,9 +29,9 @@ var (
 )
 
 func writeAsset(idVersion *idpb.IdVersion, fds *dpb.FileDescriptorSet) {
-	atype, err := typeutils.AssetTypeFromName(*assetType)
-	if err != nil {
-		log.Exitf("invalid asset type %q", *assetType)
+	atype := typeutils.AssetTypeFromCodeName(*assetType)
+	if atype == atypepb.AssetType_ASSET_TYPE_UNSPECIFIED {
+		log.Exitf("unknown asset type %q", *assetType)
 	}
 
 	switch atype {
