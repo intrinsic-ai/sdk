@@ -6,10 +6,10 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoregistry"
@@ -24,7 +24,7 @@ import (
 	skillregistrygrpcpb "intrinsic/skills/proto/skill_registry_go_grpc_proto"
 )
 
-var allowedGetFormats = []string{TextProtoFormat, BinaryProtoFormat}
+var viperProcessGet = viper.New()
 
 type serializer interface {
 	Serialize(*btpb.BehaviorTree) ([]byte, error)
@@ -150,10 +150,11 @@ func getProcess(ctx context.Context, params *getProcessParams) ([]byte, error) {
 	return serializeBT(ctx, params.srC, bt, params.format)
 }
 
-var processGetCmd = &cobra.Command{
-	Use:   "get",
-	Short: "Get process (behavior tree) of a solution. ",
-	Long: `Get the process (behavior tree) of a currently deployed solution.
+var processGetCmd = orgutil.WrapCmd(
+	&cobra.Command{
+		Use:   "get",
+		Short: "Get process (behavior tree) of a solution. ",
+		Long: `Get the process (behavior tree) of a currently deployed solution.
 
 There are two main operation modes. The first one is to get the "active" process
 in the executive. This is the default behavior if no name is provided as the
@@ -168,54 +169,51 @@ do this if you specify the name of the process as the first argument. The
 process must already exist in the solution.
 
 inctl process get my_process --solution my-solution-id --cluster my-cluster [--output_file /tmp/process.textproto] [--process_format textproto|binaryproto]`,
-	Args: cobra.RangeArgs(0, 1),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		name := ""
-		if len(args) == 1 {
-			name = args[0]
-		}
-		projectName := viperLocal.GetString(orgutil.KeyProject)
-		orgName := viperLocal.GetString(orgutil.KeyOrganization)
-		ctx, conn, err := connectToCluster(cmd.Context(), projectName,
-			orgName, flagServerAddress,
-			flagSolutionName, flagClusterName)
-		if err != nil {
-			return errors.Wrapf(err, "could not dial connection")
-		}
-		defer conn.Close()
-
-		content, err := getProcess(ctx, &getProcessParams{
-			exC:          execgrpcpb.NewExecutiveServiceClient(conn),
-			soC:          sgrpcpb.NewSolutionServiceClient(conn),
-			srC:          skillregistrygrpcpb.NewSkillRegistryClient(conn),
-			name:         name,
-			format:       flagProcessFormat,
-			clearTreeID:  flagClearTreeID,
-			clearNodeIDs: flagClearNodeIDs,
-		})
-		if err != nil {
-			return errors.Wrapf(err, "could not get BT")
-		}
-
-		if flagOutputFile != "" {
-			if err := os.WriteFile(flagOutputFile, content, 0644); err != nil {
-				return errors.Wrapf(err, "could not write to file %s", flagOutputFile)
+		Args: cobra.RangeArgs(0, 1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			name := ""
+			if len(args) == 1 {
+				name = args[0]
 			}
+			projectName := viperProcessGet.GetString(orgutil.KeyProject)
+			orgName := viperProcessGet.GetString(orgutil.KeyOrganization)
+			ctx, conn, err := connectToCluster(cmd.Context(), projectName,
+				orgName, flagServerAddress,
+				flagSolutionName, flagClusterName)
+			if err != nil {
+				return errors.Wrapf(err, "could not dial connection")
+			}
+			defer conn.Close()
+
+			content, err := getProcess(ctx, &getProcessParams{
+				exC:          execgrpcpb.NewExecutiveServiceClient(conn),
+				soC:          sgrpcpb.NewSolutionServiceClient(conn),
+				srC:          skillregistrygrpcpb.NewSkillRegistryClient(conn),
+				name:         name,
+				format:       flagProcessFormat,
+				clearTreeID:  flagClearTreeID,
+				clearNodeIDs: flagClearNodeIDs,
+			})
+			if err != nil {
+				return errors.Wrapf(err, "could not get BT")
+			}
+
+			if flagOutputFile != "" {
+				if err := os.WriteFile(flagOutputFile, content, 0644); err != nil {
+					return errors.Wrapf(err, "could not write to file %s", flagOutputFile)
+				}
+				return nil
+			}
+
+			fmt.Println(string(content))
+
 			return nil
-		}
-
-		fmt.Println(string(content))
-
-		return nil
+		},
 	},
-}
+	viperProcessGet,
+)
 
 func init() {
-	processGetCmd.Flags().StringVar(
-		&flagProcessFormat, "process_format", TextProtoFormat,
-		fmt.Sprintf("(optional) output format. One of: (%s)", strings.Join(allowedGetFormats, ", ")))
-	processGetCmd.Flags().StringVar(&flagSolutionName, "solution", "", "Solution to get the process from. For example, use `inctl solutions list --org orgname@projectname --output json [--filter running_in_sim]` to see the list of solutions.")
-	processGetCmd.Flags().StringVar(&flagClusterName, "cluster", "", "Cluster to get the process from.")
+	addCommonGetSetFlags(processGetCmd)
 	processGetCmd.Flags().StringVar(&flagOutputFile, "output_file", "", "If set, writes the process to the given file instead of stdout.")
-	processCmd.AddCommand(processGetCmd)
 }

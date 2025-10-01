@@ -22,6 +22,7 @@ go_library(
         "//intrinsic/skills/tools/skill/cmd:dialerutil",
         "//intrinsic/skills/tools/skill/cmd:solutionutil",
         "//intrinsic/tools/inctl/cmd:root",
+        "//intrinsic/tools/inctl/util:cobrautil",
         "//intrinsic/tools/inctl/util:orgutil",
         "//intrinsic/util/proto:registryutil",
         "@com_github_pkg_errors//:go_default_library",

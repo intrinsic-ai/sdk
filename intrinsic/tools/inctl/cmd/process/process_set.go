@@ -6,10 +6,10 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -26,7 +26,7 @@ import (
 	skillregistrygrpcpb "intrinsic/skills/proto/skill_registry_go_grpc_proto"
 )
 
-var allowedSetFormats = []string{TextProtoFormat, BinaryProtoFormat}
+var viperProcessSet = viper.New()
 
 // resolverToEmpty is a dummy implementation of prototext.UnmarshalOptions.Resolver that always
 // returns the Empty message type for any type name or type URL.
@@ -198,10 +198,11 @@ func setProcess(ctx context.Context, params *setProcessParams) error {
 	return nil
 }
 
-var processSetCmd = &cobra.Command{
-	Use:   "set",
-	Short: "Set process (behavior tree) of a solution. ",
-	Long: `Set the process (behavior tree) of a currently deployed solution.
+var processSetCmd = orgutil.WrapCmd(
+	&cobra.Command{
+		Use:   "set",
+		Short: "Set process (behavior tree) of a solution. ",
+		Long: `Set the process (behavior tree) of a currently deployed solution.
 
 There are two main operation modes. The first one is to set the "active" process
 in the executive. This prepares the process for execution. This is the default
@@ -222,61 +223,57 @@ process regardless of the value that may or may not already be present. If there
 is already a process with the same name this will fail.
 
 inctl process set name_to_store_with --solution my-solution --cluster my-cluster --input_file /tmp/my-process.textproto [--process_format textproto|binaryproto]`,
-	Args: cobra.RangeArgs(0, 1),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if flagInputFile == "" {
-			return fmt.Errorf("--input_file must be specified")
-		}
+		Args: cobra.RangeArgs(0, 1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if flagInputFile == "" {
+				return fmt.Errorf("--input_file must be specified")
+			}
 
-		name := ""
-		if len(args) == 1 {
-			name = args[0]
-		}
-		projectName := viperLocal.GetString(orgutil.KeyProject)
-		orgName := viperLocal.GetString(orgutil.KeyOrganization)
-		ctx, conn, err := connectToCluster(cmd.Context(), projectName,
-			orgName, flagServerAddress,
-			flagSolutionName, flagClusterName)
-		if err != nil {
-			return errors.Wrapf(err, "could not dial connection")
-		}
-		defer conn.Close()
+			name := ""
+			if len(args) == 1 {
+				name = args[0]
+			}
+			projectName := viperProcessSet.GetString(orgutil.KeyProject)
+			orgName := viperProcessSet.GetString(orgutil.KeyOrganization)
+			ctx, conn, err := connectToCluster(cmd.Context(), projectName,
+				orgName, flagServerAddress,
+				flagSolutionName, flagClusterName)
+			if err != nil {
+				return errors.Wrapf(err, "could not dial connection")
+			}
+			defer conn.Close()
 
-		content, err := ioutil.ReadFile(flagInputFile)
-		if err != nil {
-			return errors.Wrapf(err, "could not read input file")
-		}
+			content, err := ioutil.ReadFile(flagInputFile)
+			if err != nil {
+				return errors.Wrapf(err, "could not read input file")
+			}
 
-		if err = setProcess(ctx, &setProcessParams{
-			exC:          execgrpcpb.NewExecutiveServiceClient(conn),
-			srC:          skillregistrygrpcpb.NewSkillRegistryClient(conn),
-			soC:          sgrpcpb.NewSolutionServiceClient(conn),
-			content:      content,
-			name:         name,
-			format:       flagProcessFormat,
-			clearTreeID:  flagClearTreeID,
-			clearNodeIDs: flagClearNodeIDs,
-		}); err != nil {
-			return errors.Wrapf(err, "could not set BT")
-		}
+			if err = setProcess(ctx, &setProcessParams{
+				exC:          execgrpcpb.NewExecutiveServiceClient(conn),
+				srC:          skillregistrygrpcpb.NewSkillRegistryClient(conn),
+				soC:          sgrpcpb.NewSolutionServiceClient(conn),
+				content:      content,
+				name:         name,
+				format:       flagProcessFormat,
+				clearTreeID:  flagClearTreeID,
+				clearNodeIDs: flagClearNodeIDs,
+			}); err != nil {
+				return errors.Wrapf(err, "could not set BT")
+			}
 
-		if name == "" {
-			fmt.Println("BT loaded successfully to the executive. To edit behavior tree in the frontend: Process -> Load -> From executive")
-		} else {
-			fmt.Println("BT added to the solution. To edit and execute the process in the frontend: Process -> Load -> <process name>")
-		}
+			if name == "" {
+				fmt.Println("BT loaded successfully to the executive. To edit behavior tree in the frontend: Process -> Load -> From executive")
+			} else {
+				fmt.Println("BT added to the solution. To edit and execute the process in the frontend: Process -> Load -> <process name>")
+			}
 
-		return nil
+			return nil
+		},
 	},
-}
+	viperProcessSet,
+)
 
 func init() {
-	processSetCmd.Flags().StringVar(
-		&flagProcessFormat, "process_format", TextProtoFormat,
-		fmt.Sprintf("(optional) input format. One of: (%s)", strings.Join(allowedSetFormats, ", ")))
-	processSetCmd.Flags().StringVar(&flagSolutionName, "solution", "", "Solution to set the process on. For example, use `inctl solutions list --org orgname@projectname --output json [--filter running_in_sim]` to see the list of solutions.")
-	processSetCmd.Flags().StringVar(&flagClusterName, "cluster", "", "Cluster to set the process on.")
+	addCommonGetSetFlags(processSetCmd)
 	processSetCmd.Flags().StringVar(&flagInputFile, "input_file", "", "File from which to read the process.")
-	processCmd.AddCommand(processSetCmd)
-
 }

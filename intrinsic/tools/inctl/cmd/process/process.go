@@ -7,10 +7,10 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
@@ -19,7 +19,7 @@ import (
 	"intrinsic/skills/tools/skill/cmd/dialerutil"
 	"intrinsic/skills/tools/skill/cmd/solutionutil"
 	"intrinsic/tools/inctl/cmd/root"
-	"intrinsic/tools/inctl/util/orgutil"
+	"intrinsic/tools/inctl/util/cobrautil"
 
 	lrpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
@@ -53,10 +53,6 @@ var (
 	flagClearTreeID   bool
 	flagClearNodeIDs  bool
 	flagProcessFormat string
-)
-
-var (
-	viperLocal = viper.New()
 )
 
 var (
@@ -263,27 +259,25 @@ func addFileDescriptorSetToFiles(fileDescriptorSet *descriptorpb.FileDescriptorS
 	return nil
 }
 
-var processCmd = orgutil.WrapCmd(&cobra.Command{
-	Use:     root.ProcessCmdName,
-	Aliases: []string{root.ProcessCmdName},
-	Short:   "Interacts with processes (behavior trees)",
-	Long: `Interacts with processes (behavior trees)
+func addCommonGetSetFlags(cmd *cobra.Command) {
+	allowedFormats := []string{TextProtoFormat, BinaryProtoFormat}
+	cmd.Flags().StringVar(
+		&flagProcessFormat, "process_format", TextProtoFormat,
+		fmt.Sprintf("(optional) input/output format. One of: (%s)", strings.Join(allowedFormats, ", ")))
+	cmd.Flags().StringVar(&flagSolutionName, "solution", "", "Id of the solution to interact with. For example, use `inctl solutions list --org orgname@projectname --output json [--filter running_in_sim]` to see the list of solutions.")
+	cmd.Flags().StringVar(&flagClusterName, "cluster", "", "Name of the cluster to interact with.")
+	cmd.Flags().StringVar(&flagServerAddress, "server", "", "Server address of the cluster. Format is {ADDRESS}:{PORT}, for example 'localhost:17080'")
+	cmd.Flags().BoolVar(&flagClearTreeID, "clear_tree_id", true, "Clear the tree_id field from the BT proto.")
+	cmd.Flags().BoolVar(&flagClearNodeIDs, "clear_node_ids", true, "Clear the nodes' id fields from the BT proto.")
+}
 
-	Examples:
-
-	To download the current BT from the executive to a file:
-	inctl process get --solution my-solution-id --cluster my-cluster --output_file /tmp/process.textproto
-
-	To upload a BT from file to the executive:
-	inctl process set --solution my-solution --cluster my-cluster --input_file /tmp/my-process.textproto
-
-`,
-	DisableFlagParsing: true,
-}, viperLocal)
+var processCmd = cobrautil.ParentOfNestedSubcommands(
+	root.ProcessCmdName,
+	"Interacts with processes (behavior trees)",
+)
 
 func init() {
-	processCmd.PersistentFlags().BoolVar(&flagClearTreeID, "clear_tree_id", true, "Clear the tree_id field from the BT proto.")
-	processCmd.PersistentFlags().BoolVar(&flagClearNodeIDs, "clear_node_ids", true, "Clear the nodes' id fields from the BT proto.")
-	processCmd.PersistentFlags().StringVar(&flagServerAddress, "server", "", "Server address of the cluster. Format is {ADDRESS}:{PORT}, for example 'localhost:17080'")
+	processCmd.AddCommand(processGetCmd)
+	processCmd.AddCommand(processSetCmd)
 	root.RootCmd.AddCommand(processCmd)
 }
