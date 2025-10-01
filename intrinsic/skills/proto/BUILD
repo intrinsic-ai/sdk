@@ -265,7 +265,6 @@ proto_library(
     deps = [
         ":skills_proto",
         "//intrinsic/executive/proto:behavior_tree_proto",
-        "@com_google_protobuf//:any_proto",
     ],
 )
 

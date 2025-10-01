@@ -4,7 +4,6 @@ syntax = "proto3";
 
 package intrinsic_proto.skills;
 
-import "google/protobuf/any.proto";
 import "intrinsic/executive/proto/behavior_tree.proto";
 import "intrinsic/skills/proto/skills.proto";
 
@@ -24,15 +23,4 @@ message BehaviorTreeRegistration {
 message SkillRegistryConfig {
   repeated SkillRegistration skills = 2;
   repeated BehaviorTreeRegistration behavior_trees = 3;
-}
-
-message SkillRegistrationOverride {
-  google.protobuf.Any default_parameters = 2;
-  reserved "default_values";
-  reserved 1;
-}
-
-message SkillRegistryConfigOverride {
-  // Mapping from skill name to registration overrides.
-  map<string, SkillRegistrationOverride> overrides = 1;
 }
