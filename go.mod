@@ -25,6 +25,7 @@ require (
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/andydunstall/piko v0.7.0
 	github.com/authzed/authzed-go v1.3.1-0.20250320210445-0cde0d8c71e2
+	github.com/authzed/cel-go v0.20.2
 	github.com/authzed/zed v0.30.2
 	github.com/bazelbuild/buildtools v0.0.0-20240918101019-be1c24cc9a44
 	github.com/bazelbuild/remote-apis-sdks v0.0.0-20230919142202-aa1c266ae342
@@ -142,7 +143,6 @@ require (
 	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect
 	github.com/apache/arrow/go/v15 v15.0.2 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
-	github.com/authzed/cel-go v0.20.2 // indirect
 	github.com/authzed/grpcutil v0.0.0-20240123194739-2ea1e3d2d98b // indirect
 	github.com/authzed/spicedb v1.42.2-0.20250418013333-54921333ba95 // indirect
 	github.com/aws/aws-sdk-go v1.55.6 // indirect
