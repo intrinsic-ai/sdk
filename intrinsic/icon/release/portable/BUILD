@@ -8,12 +8,9 @@ package(default_visibility = [
 ])
 
 cc_library(
-    name = "init_xfa_absl",
-    srcs = ["init_xfa_absl.cc"],
-    hdrs = [
-        "init_intrinsic.h",
-        "init_xfa.h",
-    ],
+    name = "init_intrinsic",
+    srcs = ["init_intrinsic.cc"],
+    hdrs = ["init_intrinsic.h"],
     deps = [
         "//intrinsic/icon/utils:log",
         "@abseil-cpp//absl/flags:flag",
@@ -26,24 +23,11 @@ cc_library(
     ],
 )
 
-# Migration aliases for insrc SoT files.
-genrule(
-    name = "init_intrinsic_h",
-    srcs = [":init_xfa.h"],
-    outs = ["init_intrinsic.h"],
-    cmd = "cp $< $@",
-)
-
-alias(
-    name = "init_intrinsic",
-    actual = ":init_xfa_absl",
-)
-
 cc_test(
-    name = "init_xfa_absl_test",
-    srcs = ["init_xfa_test.cc"],
+    name = "init_intrinsic_test",
+    srcs = ["init_intrinsic_test.cc"],
     deps = [
-        ":init_xfa_absl",
+        ":init_intrinsic",
         "@abseil-cpp//absl/base:log_severity",
         "@abseil-cpp//absl/flags:flag",
         "@abseil-cpp//absl/log:globals",

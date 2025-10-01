@@ -217,7 +217,7 @@ cc_binary(
         "//intrinsic/icon/cc_client:condition",
         "//intrinsic/icon/cc_client:session",
         "//intrinsic/icon/common:id_types",
-        "//intrinsic/icon/release/portable:init_xfa_absl",
+        "//intrinsic/icon/release/portable:init_intrinsic",
         "//intrinsic/util/grpc:channel",
         "//intrinsic/util/grpc:connection_params",
         "//intrinsic/util/status:status_macros",

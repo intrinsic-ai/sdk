@@ -11,7 +11,7 @@
 #include "absl/time/time.h"
 #include "intrinsic/icon/examples/joint_move_loop_lib.h"
 #include "intrinsic/icon/examples/joint_move_positions.pb.h"
-#include "intrinsic/icon/release/portable/init_xfa.h"
+#include "intrinsic/icon/release/portable/init_intrinsic.h"
 #include "intrinsic/util/grpc/channel.h"
 #include "intrinsic/util/grpc/connection_params.h"
 #include "intrinsic/util/proto/get_text_proto.h"

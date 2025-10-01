@@ -108,7 +108,7 @@ def _cc_skill_service(name, deps, manifest, **kwargs):
             Label("//intrinsic/skills/internal:single_skill_factory"),
             Label("//intrinsic/skills/internal:skill_init"),
             Label("//intrinsic/skills/internal:skill_service_config_utils"),
-            Label("//intrinsic/icon/release/portable:init_xfa_absl"),
+            Label("//intrinsic/icon/release/portable:init_intrinsic"),
             Label("//intrinsic/util/grpc"),
             Label("//intrinsic/util/status:status_specs"),
             Label("@abseil-cpp//absl/flags:flag"),

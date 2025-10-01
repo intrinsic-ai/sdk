@@ -13,7 +13,7 @@
 #include "intrinsic/icon/common/id_types.h"
 #include "intrinsic/icon/control/c_api/external_action_api/sine_wave_action.pb.h"
 #include "intrinsic/icon/control/c_api/external_action_api/sine_wave_plugin_action.h"
-#include "intrinsic/icon/release/portable/init_xfa.h"
+#include "intrinsic/icon/release/portable/init_intrinsic.h"
 #include "intrinsic/util/grpc/channel.h"
 #include "intrinsic/util/grpc/connection_params.h"
 #include "intrinsic/util/status/status_macros.h"

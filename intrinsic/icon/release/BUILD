@@ -35,7 +35,7 @@ cc_binary(
     name = "reset_simulation",
     srcs = ["reset_simulation.cc"],
     deps = [
-        "//intrinsic/icon/release/portable:init_xfa_absl",
+        "//intrinsic/icon/release/portable:init_intrinsic",
         "//intrinsic/simulation/service/proto/v1:simulation_service_cc_grpc_proto",
         "//intrinsic/simulation/service/proto/v1:simulation_service_cc_proto",
         "//intrinsic/util/grpc",

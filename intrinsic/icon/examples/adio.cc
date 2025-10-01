@@ -7,7 +7,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/string_view.h"
 #include "intrinsic/icon/examples/adio_lib.h"
-#include "intrinsic/icon/release/portable/init_xfa.h"
+#include "intrinsic/icon/release/portable/init_intrinsic.h"
 #include "intrinsic/util/grpc/channel.h"
 #include "intrinsic/util/grpc/connection_params.h"
 #include "intrinsic/util/status/status_macros.h"

@@ -13,7 +13,7 @@
 #include "google/protobuf/empty.pb.h"
 #include "grpcpp/channel.h"
 #include "grpcpp/client_context.h"
-#include "intrinsic/icon/release/portable/init_xfa.h"
+#include "intrinsic/icon/release/portable/init_intrinsic.h"
 #include "intrinsic/simulation/service/proto/v1/simulation_service.grpc.pb.h"
 #include "intrinsic/simulation/service/proto/v1/simulation_service.pb.h"
 #include "intrinsic/util/grpc/grpc.h"

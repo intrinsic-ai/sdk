@@ -65,7 +65,7 @@ cc_binary(
         ":calc_server",
         ":calc_server_cc_proto",
         "//intrinsic/icon/release:file_helpers",
-        "//intrinsic/icon/release/portable:init_xfa_absl",
+        "//intrinsic/icon/release/portable:init_intrinsic",
         "//intrinsic/resources/proto:runtime_context_cc_proto",
         "//intrinsic/util/proto:any",
         "//intrinsic/util/status:status_macros",

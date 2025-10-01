@@ -20,7 +20,7 @@
 #include "intrinsic/icon/proto/part_status.pb.h"
 #include "intrinsic/icon/proto/v1/service.pb.h"
 #include "intrinsic/icon/proto/v1/types.pb.h"
-#include "intrinsic/icon/release/portable/init_xfa.h"
+#include "intrinsic/icon/release/portable/init_intrinsic.h"
 #include "intrinsic/util/grpc/channel.h"
 #include "intrinsic/util/grpc/connection_params.h"
 #include "intrinsic/util/status/status_macros.h"

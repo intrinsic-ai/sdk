@@ -8,7 +8,7 @@
 #include "absl/flags/flag.h"
 #include "absl/log/check.h"
 #include "absl/time/time.h"
-#include "intrinsic/icon/release/portable/init_xfa.h"
+#include "intrinsic/icon/release/portable/init_intrinsic.h"
 #include "intrinsic/skills/internal/runtime_data.h"
 #include "intrinsic/skills/internal/single_skill_factory.h"
 #include "intrinsic/skills/internal/skill_init.h"

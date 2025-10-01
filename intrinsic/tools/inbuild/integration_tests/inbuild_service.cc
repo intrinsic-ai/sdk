@@ -9,7 +9,7 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "intrinsic/icon/release/file_helpers.h"
-#include "intrinsic/icon/release/portable/init_xfa.h"
+#include "intrinsic/icon/release/portable/init_intrinsic.h"
 #include "intrinsic/resources/proto/runtime_context.pb.h"
 #include "intrinsic/tools/inbuild/integration_tests/inbuild_service.pb.h"
 #include "intrinsic/util/proto/any.h"

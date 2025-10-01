@@ -15,7 +15,7 @@
 #include "intrinsic/assets/services/examples/calcserver/calc_server.h"
 #include "intrinsic/assets/services/examples/calcserver/calc_server.pb.h"
 #include "intrinsic/icon/release/file_helpers.h"
-#include "intrinsic/icon/release/portable/init_xfa.h"
+#include "intrinsic/icon/release/portable/init_intrinsic.h"
 #include "intrinsic/resources/proto/runtime_context.pb.h"
 #include "intrinsic/util/proto/any.h"
 #include "intrinsic/util/status/status_macros.h"

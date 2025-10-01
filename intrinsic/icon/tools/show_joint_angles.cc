@@ -18,7 +18,7 @@
 #include "intrinsic/icon/cc_client/client.h"
 #include "intrinsic/icon/cc_client/operational_status.h"
 #include "intrinsic/icon/proto/part_status.pb.h"
-#include "intrinsic/icon/release/portable/init_xfa.h"
+#include "intrinsic/icon/release/portable/init_intrinsic.h"
 #include "intrinsic/util/grpc/channel.h"
 #include "intrinsic/util/grpc/connection_params.h"
 #include "intrinsic/util/status/status_macros.h"

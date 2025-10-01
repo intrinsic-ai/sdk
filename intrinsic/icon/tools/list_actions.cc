@@ -14,7 +14,7 @@
 #include "absl/strings/string_view.h"
 #include "intrinsic/icon/cc_client/client.h"
 #include "intrinsic/icon/proto/v1/types.pb.h"
-#include "intrinsic/icon/release/portable/init_xfa.h"
+#include "intrinsic/icon/release/portable/init_intrinsic.h"
 #include "intrinsic/icon/tools/generate_documentation.h"
 #include "intrinsic/util/grpc/channel.h"
 #include "intrinsic/util/grpc/connection_params.h"

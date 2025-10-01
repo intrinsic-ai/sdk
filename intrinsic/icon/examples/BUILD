@@ -37,7 +37,7 @@ cc_binary(
     srcs = ["adio.cc"],
     deps = [
         ":adio_lib",
-        "//intrinsic/icon/release/portable:init_xfa_absl",
+        "//intrinsic/icon/release/portable:init_intrinsic",
         "//intrinsic/util/grpc:channel",
         "//intrinsic/util/grpc:connection_params",
         "//intrinsic/util/status:status_macros",
@@ -86,7 +86,7 @@ cc_binary(
     srcs = ["joint_move.cc"],
     deps = [
         ":joint_move_lib",
-        "//intrinsic/icon/release/portable:init_xfa_absl",
+        "//intrinsic/icon/release/portable:init_intrinsic",
         "//intrinsic/util/grpc:channel",
         "//intrinsic/util/grpc:connection_params",
         "//intrinsic/util/status:status_macros",
@@ -130,7 +130,7 @@ cc_binary(
     srcs = ["joint_then_cart_move.cc"],
     deps = [
         ":joint_then_cart_move_lib",
-        "//intrinsic/icon/release/portable:init_xfa_absl",
+        "//intrinsic/icon/release/portable:init_intrinsic",
         "//intrinsic/util/grpc:channel",
         "//intrinsic/util/grpc:connection_params",
         "//intrinsic/util/status:status_macros",
@@ -151,7 +151,7 @@ cc_binary(
         "//intrinsic/icon/proto:part_status_cc_proto",
         "//intrinsic/icon/proto/v1:service_cc_proto",
         "//intrinsic/icon/proto/v1:types_cc_proto",
-        "//intrinsic/icon/release/portable:init_xfa_absl",
+        "//intrinsic/icon/release/portable:init_intrinsic",
         "//intrinsic/util/grpc:channel",
         "//intrinsic/util/grpc:connection_params",
         "//intrinsic/util/status:status_macros",
@@ -195,7 +195,7 @@ cc_binary(
     deps = [
         ":joint_move_loop_lib",
         ":joint_move_positions_cc_proto",
-        "//intrinsic/icon/release/portable:init_xfa_absl",
+        "//intrinsic/icon/release/portable:init_intrinsic",
         "//intrinsic/util/grpc:channel",
         "//intrinsic/util/grpc:connection_params",
         "//intrinsic/util/proto:get_text_proto",
@@ -235,7 +235,7 @@ cc_binary(
     srcs = ["simple_gripper.cc"],
     deps = [
         ":simple_gripper_lib",
-        "//intrinsic/icon/release/portable:init_xfa_absl",
+        "//intrinsic/icon/release/portable:init_intrinsic",
         "//intrinsic/util/grpc:channel",
         "//intrinsic/util/grpc:connection_params",
         "//intrinsic/util/status:status_macros",

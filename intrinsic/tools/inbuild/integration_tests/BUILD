@@ -136,7 +136,7 @@ cc_binary(
     srcs = [":skill_service_cc"],
     deps = [
         ":inbuild_skill_cc_lib",
-        "//intrinsic/icon/release/portable:init_xfa_absl",
+        "//intrinsic/icon/release/portable:init_intrinsic",
         "//intrinsic/skills/internal:runtime_data",
         "//intrinsic/skills/internal:single_skill_factory",
         "//intrinsic/skills/internal:skill_init",
@@ -223,7 +223,7 @@ cc_binary(
     deps = [
         ":inbuild_service_cc_proto",
         "//intrinsic/icon/release:file_helpers",
-        "//intrinsic/icon/release/portable:init_xfa_absl",
+        "//intrinsic/icon/release/portable:init_intrinsic",
         "//intrinsic/resources/proto:runtime_context_cc_proto",
         "//intrinsic/util/proto:any",
         "//intrinsic/util/status:status_macros",

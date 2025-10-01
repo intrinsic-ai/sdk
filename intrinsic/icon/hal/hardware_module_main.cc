@@ -31,7 +31,7 @@
 #include "intrinsic/icon/hal/module_config.h"
 #include "intrinsic/icon/hal/proto/hardware_module_config.pb.h"
 #include "intrinsic/icon/interprocess/shared_memory_manager/shared_memory_manager.h"
-#include "intrinsic/icon/release/portable/init_xfa.h"
+#include "intrinsic/icon/release/portable/init_intrinsic.h"
 #include "intrinsic/icon/utils/shutdown_signals.h"
 #include "intrinsic/logging/data_logger_client.h"
 #include "intrinsic/util/memory_lock.h"
