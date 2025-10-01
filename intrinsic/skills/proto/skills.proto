@@ -138,13 +138,6 @@ message SkillInstance {
   // resource_selectors map.
   map<string, intrinsic_proto.resources.ResourceHandle> resource_handles = 6;
 
-  // DEPRECATED: Please retrieve default parameters via the ParameterDescription
-  // returned by SkillRegistry::GetSkills, and not through a SkillInstance.
-  // `params` and `default_parameters` are passed here to maintain our current
-  // default override handling. Please do not add additional dependencies on
-  // theses fields.
-  google.protobuf.Any default_parameters = 9;
-
-  reserved 2, 3, 7, 8;
-  reserved "params", "skill", "skill_name";
+  reserved 2, 3, 7, 8, 9;
+  reserved "default_parameters", "params", "skill", "skill_name";
 }

@@ -24,21 +24,6 @@ py_library(
     ],
 )
 
-cc_library(
-    name = "default_parameters",
-    srcs = ["default_parameters.cc"],
-    hdrs = ["default_parameters.h"],
-    deps = [
-        "//intrinsic/skills/proto:skills_cc_proto",
-        "//intrinsic/util/proto:merge",
-        "//intrinsic/util/status:status_macros",
-        "@abseil-cpp//absl/status",
-        "@abseil-cpp//absl/status:statusor",
-        "@abseil-cpp//absl/strings",
-        "@com_google_protobuf//:protobuf",
-    ],
-)
-
 py_library(
     name = "default_parameters_py",
     srcs = ["default_parameters.py"],
