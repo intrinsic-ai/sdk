@@ -29,7 +29,7 @@ ABSL_FLAG(bool, print_fault_reason, false,
 
 const char* UsageString() {
   return R"(
-Usage: clear_faults [--server=<addr>] [--instance=<name>] [--header=<name>]
+Usage: clear_faults [--server=<addr>] [--instance=<name>]
 
 Connects to an ICON Server and clears any faults.
 After this, ICON should automatically enable, and allow users to create
@@ -37,7 +37,7 @@ Sessions.
 
 Example:
 
-    clear_faults --instance=ur3e --header=x-resource-instance-name
+    clear_faults --instance=ur3e
 
 If the ICON Server is not currently FAULTED, this is a no-op.
 

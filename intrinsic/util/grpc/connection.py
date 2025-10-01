@@ -17,7 +17,7 @@ class ConnectionParams:
 
   address: str
   instance_name: Optional[str]
-  header: Optional[str]
+  header: Optional[str] = "x-resource-instance-name"
 
   @classmethod
   def no_ingress(cls, address: str) -> ConnectionParams:
@@ -29,7 +29,7 @@ class ConnectionParams:
     Returns:
       A ConnectionParams that can be used with Client.connect_with_params
     """
-    return cls(address, None, None)
+    return cls(address=address, instance_name=None, header=None)
 
   @classmethod
   def local_port(cls, port: int) -> ConnectionParams:
@@ -44,7 +44,7 @@ class ConnectionParams:
     Returns:
       A ConnectionParams that can be used with Client.connect_with_params
     """
-    return cls(f"localhost:{port}", None, None)
+    return cls(address=f"localhost:{port}", instance_name=None, header=None)
 
   def headers(self) -> Optional[list[tuple[str, str]]]:
     """Generates the http headers needed to route to the appropriate ingress."""

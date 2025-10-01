@@ -16,9 +16,6 @@ ABSL_FLAG(std::string, server, "xfa.lan:17080",
           "Address of the ICON Application Layer Server");
 ABSL_FLAG(std::string, instance, "robot_controller",
           "Name of the ICON service/resource instance.");
-ABSL_FLAG(std::string, header, "x-resource-instance-name",
-          "Optional header name to be used to select a specific ICON instance. "
-          " Has no effect if --instance is not set");
 ABSL_FLAG(std::string, part, "arm", "Part to control.");
 
 const char kUsage[] =
@@ -46,12 +43,8 @@ absl::Status Run(const intrinsic::ConnectionParams& connection_params,
 
 int main(int argc, char** argv) {
   InitXfa(kUsage, argc, argv);
-  QCHECK_OK(Run(
-      intrinsic::ConnectionParams{
-          .address = absl::GetFlag(FLAGS_server),
-          .instance_name = absl::GetFlag(FLAGS_instance),
-          .header = absl::GetFlag(FLAGS_header),
-      },
-      absl::GetFlag(FLAGS_part)));
+  QCHECK_OK(Run(intrinsic::ConnectionParams::ResourceInstance(
+                    absl::GetFlag(FLAGS_instance), absl::GetFlag(FLAGS_server)),
+                absl::GetFlag(FLAGS_part)));
   return 0;
 }
