@@ -12,10 +12,10 @@ import "intrinsic/geometry/proto/renderable.proto";
 // Response message for getting geometry from the geometry service.
 message GeometryWithMetadata {
   // The references to the stored geometry artifacts.
-  GeometryStorageRefs geometry_storage_refs = 3;
+  GeometryStorageRefs geometry_storage_refs_v0 = 3;
 
   // The geometry data for the requested geometry object.
-  Geometry geometry = 2;
+  Geometry geometry_v0 = 2;
 
   reserved 1;
   reserved "geometry_id";
@@ -24,7 +24,7 @@ message GeometryWithMetadata {
 // Response message for getting renderable data from the geometry service.
 message RenderableWithMetadata {
   // The references to the stored geometry artifacts.
-  GeometryStorageRefs geometry_storage_refs = 4;
+  GeometryStorageRefs geometry_storage_refs_v0 = 4;
 
   // The LOD level used when fetching the renderable data. 0 means the original
   // quality and any number above that will simplify the geometry. The higher
@@ -32,7 +32,7 @@ message RenderableWithMetadata {
   uint32 lod_level = 2;
 
   // The renderable data itself.
-  Renderable renderable = 3;
+  Renderable renderable_v0 = 3;
 
   reserved 1;
   reserved "geometry_id";
@@ -41,9 +41,9 @@ message RenderableWithMetadata {
 message GeometryData {
   oneof data {
     // The full geometry object
-    Geometry geometry = 1;
+    Geometry geometry_v0 = 1;
     // Supported primitives shapes like box and sphere
-    PrimitiveShapeSet primitive_set = 4;
+    PrimitiveShapeSet primitive_set_v0 = 4;
     // Obj file format, in string format
     bytes obj_data = 2;
     // Gltf compressed data in binary format.

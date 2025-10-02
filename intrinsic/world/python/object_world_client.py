@@ -1429,7 +1429,7 @@ class ObjectWorldClient:
 
     return self._geometry_service_stub.CreateGeometry(
         geometry
-    ).geometry_storage_refs
+    ).geometry_storage_refs_v0
 
   def create_geometry_object(
       self,
