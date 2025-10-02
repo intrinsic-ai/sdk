@@ -98,6 +98,7 @@ proto_library(
     deps = [
         ":geometry_service_types_proto",
         ":geometry_storage_refs_proto",
+        "//intrinsic/geometry/proto/v1:geometry_storage_refs_proto",
     ],
 )
 
@@ -123,6 +124,7 @@ go_proto_library(
     go_deps = [
         ":geometry_service_types_go_proto",
         ":geometry_storage_refs_go_proto",
+        "//intrinsic/geometry/proto/v1:geometry_storage_refs_go_proto",
     ],
     deps = [":geometry_service_proto"],
 )
@@ -141,6 +143,7 @@ go_grpc_library(
     deps = [
         ":geometry_service_types_go_proto",
         ":geometry_storage_refs_go_proto",
+        "//intrinsic/geometry/proto/v1:geometry_storage_refs_go_proto",
     ],
 )
 
@@ -152,6 +155,10 @@ proto_library(
         ":geometry_storage_refs_proto",
         ":lazy_exact_geometry_proto",
         ":renderable_proto",
+        "//intrinsic/geometry/proto/v1:geometry_storage_refs_proto",
+        "//intrinsic/geometry/proto/v1:inline_geometry_proto",
+        "//intrinsic/geometry/proto/v1:renderable_proto",
+        "//intrinsic/geometry/proto/v1:transformed_primitive_shape_set_proto",
     ],
 )
 
@@ -172,7 +179,10 @@ go_proto_library(
         ":geometry_storage_refs_go_proto",
         ":lazy_exact_geometry_go_proto",
         ":renderable_go_proto",
-        "//intrinsic/math/proto:matrix_go_proto",
+        "//intrinsic/geometry/proto/v1:geometry_storage_refs_go_proto",
+        "//intrinsic/geometry/proto/v1:inline_geometry_go_proto",
+        "//intrinsic/geometry/proto/v1:renderable_go_proto",
+        "//intrinsic/geometry/proto/v1:transformed_primitive_shape_set_go_proto",
     ],
     deps = [":geometry_service_types_proto"],
 )

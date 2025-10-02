@@ -6,6 +6,7 @@ package intrinsic_proto.geometry;
 
 import "intrinsic/geometry/proto/geometry_service_types.proto";
 import "intrinsic/geometry/proto/geometry_storage_refs.proto";
+import "intrinsic/geometry/proto/v1/geometry_storage_refs.proto";
 
 // Geometry service is a mechanism for storing and retrieving geometry like
 // meshes or primitives used within a world instance.
@@ -27,7 +28,11 @@ service GeometryService {
 // Request message for getting geometry from the geometry service.
 message GetGeometryRequest {
   // The references to the stored geometry being requested.
-  GeometryStorageRefs geometry_storage_refs_v0 = 2;
+  // Deprecated, will be removed soon. Use geometry_storage_refs instead.
+  GeometryStorageRefs geometry_storage_refs_v0 = 2 [deprecated = true];
+
+  // The references to the stored geometry being requested.
+  intrinsic_proto.geometry.v1.GeometryStorageRefs geometry_storage_refs = 3;
 
   reserved 1;
   reserved "geometry_id";
@@ -36,7 +41,11 @@ message GetGeometryRequest {
 // Request message for getting renderable data from the geometry service.
 message GetRenderableRequest {
   // The references to the stored geometry being requested.
-  GeometryStorageRefs geometry_storage_refs_v0 = 3;
+  // Deprecated, will be removed soon. Use geometry_storage_refs instead.
+  GeometryStorageRefs geometry_storage_refs_v0 = 3 [deprecated = true];
+
+  // The references to the stored geometry being requested.
+  intrinsic_proto.geometry.v1.GeometryStorageRefs geometry_storage_refs = 4;
 
   // The LOD to use when fetching the renderable data. 0 means the original
   // quality and any number above that will simplify the geometry. The higher

@@ -8,14 +8,25 @@ import "intrinsic/geometry/proto/geometry.proto";
 import "intrinsic/geometry/proto/geometry_storage_refs.proto";
 import "intrinsic/geometry/proto/lazy_exact_geometry.proto";
 import "intrinsic/geometry/proto/renderable.proto";
+import "intrinsic/geometry/proto/v1/geometry_storage_refs.proto";
+import "intrinsic/geometry/proto/v1/inline_geometry.proto";
+import "intrinsic/geometry/proto/v1/renderable.proto";
+import "intrinsic/geometry/proto/v1/transformed_primitive_shape_set.proto";
 
 // Response message for getting geometry from the geometry service.
 message GeometryWithMetadata {
+  // Deprecated, will be removed soon. Use geometry_storage_refs instead.
+  GeometryStorageRefs geometry_storage_refs_v0 = 3 [deprecated = true];
+
   // The references to the stored geometry artifacts.
-  GeometryStorageRefs geometry_storage_refs_v0 = 3;
+  intrinsic_proto.geometry.v1.GeometryStorageRefs geometry_storage_refs = 4;
 
   // The geometry data for the requested geometry object.
-  Geometry geometry_v0 = 2;
+  // Deprecated, will be removed soon. Use inline_geometry instead.
+  Geometry geometry_v0 = 2 [deprecated = true];
+
+  // The geometry data for the requested geometry object.
+  intrinsic_proto.geometry.v1.InlineGeometry inline_geometry = 5;
 
   reserved 1;
   reserved "geometry_id";
@@ -24,7 +35,11 @@ message GeometryWithMetadata {
 // Response message for getting renderable data from the geometry service.
 message RenderableWithMetadata {
   // The references to the stored geometry artifacts.
-  GeometryStorageRefs geometry_storage_refs_v0 = 4;
+  // Deprecated, will be removed soon. Use geometry_storage_refs instead.
+  GeometryStorageRefs geometry_storage_refs_v0 = 4 [deprecated = true];
+
+  // The references to the stored geometry artifacts.
+  intrinsic_proto.geometry.v1.GeometryStorageRefs geometry_storage_refs = 5;
 
   // The LOD level used when fetching the renderable data. 0 means the original
   // quality and any number above that will simplify the geometry. The higher
@@ -32,7 +47,11 @@ message RenderableWithMetadata {
   uint32 lod_level = 2;
 
   // The renderable data itself.
-  Renderable renderable_v0 = 3;
+  // Deprecated, will be removed soon. Use renderable instead.
+  Renderable renderable_v0 = 3 [deprecated = true];
+
+  // The renderable data itself.
+  intrinsic_proto.geometry.v1.Renderable renderable = 6;
 
   reserved 1;
   reserved "geometry_id";
@@ -41,9 +60,15 @@ message RenderableWithMetadata {
 message GeometryData {
   oneof data {
     // The full geometry object
-    Geometry geometry_v0 = 1;
+    // Deprecated, will be removed soon. Use inline_geometry instead.
+    Geometry geometry_v0 = 1 [deprecated = true];
+    // The full geometry object, supports primitives as well.
+    intrinsic_proto.geometry.v1.InlineGeometry inline_geometry = 9;
     // Supported primitives shapes like box and sphere
-    PrimitiveShapeSet primitive_set_v0 = 4;
+    // Deprecated, will be removed soon. Use primitive_set instead.
+    PrimitiveShapeSet primitive_set_v0 = 4 [deprecated = true];
+    // Supported primitives shapes like box and sphere
+    intrinsic_proto.geometry.v1.TransformedPrimitiveShapeSet primitive_set = 8;
     // Obj file format, in string format
     bytes obj_data = 2;
     // Gltf compressed data in binary format.
