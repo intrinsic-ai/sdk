@@ -563,7 +563,7 @@ func (cf *CmdFlags) String(name string, value string, usage string) {
 // RequiredString adds a new required string flag.
 func (cf *CmdFlags) RequiredString(name string, usage string) {
 	cf.String(name, "", fmt.Sprintf("(required) %s", usage))
-	cf.cmd.MarkFlagRequired(name)
+	cf.cmd.MarkPersistentFlagRequired(name)
 }
 
 // OptionalString adds a new optional string flag.
@@ -603,7 +603,7 @@ func (cf *CmdFlags) Bool(name string, value bool, usage string) {
 // RequiredBool adds a new required bool flag.
 func (cf *CmdFlags) RequiredBool(name string, usage string) {
 	cf.Bool(name, false, fmt.Sprintf("(required) %s", usage))
-	cf.cmd.MarkFlagRequired(name)
+	cf.cmd.MarkPersistentFlagRequired(name)
 }
 
 // OptionalBool adds a new optional bool flag.
@@ -625,7 +625,7 @@ func (cf *CmdFlags) Int(name string, value int, usage string) {
 // RequiredInt adds a new required int flag.
 func (cf *CmdFlags) RequiredInt(name string, usage string) {
 	cf.Int(name, 0, fmt.Sprintf("(required) %s", usage))
-	cf.cmd.MarkFlagRequired(name)
+	cf.cmd.MarkPersistentFlagRequired(name)
 }
 
 // OptionalInt adds a new optional int flag.
