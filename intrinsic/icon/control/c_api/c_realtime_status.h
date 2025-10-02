@@ -9,11 +9,11 @@
 extern "C" {
 #endif
 
-const size_t kXfaIconRealtimeStatusMaxMessageLength = 100;
-struct XfaIconRealtimeStatus {
+const size_t kIntrinsicIconRealtimeStatusMaxMessageLength = 100;
+struct IntrinsicIconRealtimeStatus {
   int status_code;
   // Message string. Not necessarily null-terminated, see `size`
-  char message[kXfaIconRealtimeStatusMaxMessageLength];
+  char message[kIntrinsicIconRealtimeStatusMaxMessageLength];
   size_t size;
 };
 

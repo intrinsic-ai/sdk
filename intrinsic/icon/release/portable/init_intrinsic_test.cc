@@ -12,12 +12,13 @@
 
 ABSL_FLAG(int64_t, int_flag, 0, "integer value for testing");
 
-// Note: We can't use gtest as it's incompatible with the log init in InitXfa().
+// Note: We can't use gtest as it's incompatible with the log init in
+// InitIntrinsic().
 int main() {
   // Check the command line flags are parsed properly.
   int argc = 2;
   const char* argv[] = {"init_xfa_test", "--int_flag=10"};
-  InitXfa(nullptr, argc, const_cast<char**>(argv));
+  InitIntrinsic(nullptr, argc, const_cast<char**>(argv));
   if (absl::GetFlag(FLAGS_int_flag) != 10) {
     return EXIT_FAILURE;
   }

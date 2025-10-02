@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-constexpr size_t kXfaIconMaxNumberOfJoints = 25;
+constexpr size_t kIntrinsicIconMaxNumberOfJoints = 25;
 
 // C API type to convey joint position commands with optional feedforwards.
 // The arrays are fixed-size so they can live on the stack, but only the given
@@ -17,17 +17,17 @@ constexpr size_t kXfaIconMaxNumberOfJoints = 25;
 //
 // It is the responsibility of the creator to ensure that the arrays (if
 // present) all have `size` *valid* elements.
-struct XfaIconJointPositionCommand {
+struct IntrinsicIconJointPositionCommand {
   size_t size;
   // Array of position setpoints.
-  double position_setpoints[kXfaIconMaxNumberOfJoints];
+  double position_setpoints[kIntrinsicIconMaxNumberOfJoints];
   // Array of velocity feedforwards. Set velocity_feedforwards_size to zero if
   // there are no velocity feedforwards.
-  double velocity_feedforwards[kXfaIconMaxNumberOfJoints];
+  double velocity_feedforwards[kIntrinsicIconMaxNumberOfJoints];
   bool has_velocity_feedforwards;
   // Array of acceleration feedforwards. Set acceleration_feedforwards_size to
   // zero if there are no acceleration feedforwards.
-  double acceleration_feedforwards[kXfaIconMaxNumberOfJoints];
+  double acceleration_feedforwards[kIntrinsicIconMaxNumberOfJoints];
   bool has_acceleration_feedforwards;
 };
 
@@ -37,59 +37,59 @@ struct XfaIconJointPositionCommand {
 //
 // It is the responsibility of the creator to ensure that the arrays (if
 // present) all have `size` *valid* elements.
-struct XfaIconJointLimits {
+struct IntrinsicIconJointLimits {
   size_t size;
   // Array of minimum position values.
-  double min_position[kXfaIconMaxNumberOfJoints];
+  double min_position[kIntrinsicIconMaxNumberOfJoints];
   // Array of maximum position values.
-  double max_position[kXfaIconMaxNumberOfJoints];
+  double max_position[kIntrinsicIconMaxNumberOfJoints];
   // Array of maximum velocity values.
-  double max_velocity[kXfaIconMaxNumberOfJoints];
+  double max_velocity[kIntrinsicIconMaxNumberOfJoints];
   // Array of maximum acceleration values.
-  double max_acceleration[kXfaIconMaxNumberOfJoints];
+  double max_acceleration[kIntrinsicIconMaxNumberOfJoints];
   // Array of maximum jerk values.
-  double max_jerk[kXfaIconMaxNumberOfJoints];
+  double max_jerk[kIntrinsicIconMaxNumberOfJoints];
   // Array of maximum torque values.
-  double max_torque[kXfaIconMaxNumberOfJoints];
+  double max_torque[kIntrinsicIconMaxNumberOfJoints];
 };
 
 // C API type to convey positional joint state.
-struct XfaIconJointStateP {
+struct IntrinsicIconJointStateP {
   size_t size;
-  double positions[kXfaIconMaxNumberOfJoints];
+  double positions[kIntrinsicIconMaxNumberOfJoints];
 };
 
 // C API type to convey velocity joint state.
-struct XfaIconJointStateV {
+struct IntrinsicIconJointStateV {
   size_t size;
-  double velocities[kXfaIconMaxNumberOfJoints];
+  double velocities[kIntrinsicIconMaxNumberOfJoints];
 };
 
 // C API type to convey acceleration joint state.
-struct XfaIconJointStateA {
+struct IntrinsicIconJointStateA {
   size_t size;
-  double accelerations[kXfaIconMaxNumberOfJoints];
+  double accelerations[kIntrinsicIconMaxNumberOfJoints];
 };
 
-struct XfaIconQuaternion {
+struct IntrinsicIconQuaternion {
   double w;
   double x;
   double y;
   double z;
 };
 
-struct XfaIconPoint {
+struct IntrinsicIconPoint {
   double x;
   double y;
   double z;
 };
 
-struct XfaIconPose3d {
-  XfaIconQuaternion rotation;
-  XfaIconPoint translation;
+struct IntrinsicIconPose3d {
+  IntrinsicIconQuaternion rotation;
+  IntrinsicIconPoint translation;
 };
 
-struct XfaIconWrench {
+struct IntrinsicIconWrench {
   double x;
   double y;
   double z;
@@ -100,33 +100,33 @@ struct XfaIconWrench {
 
 // Note that this is *not* zero-terminated, so dereferencing `data + size` is an
 // error.
-struct XfaIconString {
+struct IntrinsicIconString {
   char* data;
   size_t size;
 };
 
-typedef void (*XfaIconStringDestroy)(XfaIconString* str);
+typedef void (*IntrinsicIconStringDestroy)(IntrinsicIconString* str);
 
 // Same as above, not zero-terminated. In addition, this is a pure view whose
 // storage is not valid outside of its original scope (i.e. functions that take
-// XfaIconStringView must not hold references after they finish).
-struct XfaIconStringView {
+// IntrinsicIconStringView must not hold references after they finish).
+struct IntrinsicIconStringView {
   const char* data;
   const size_t size;
 };
 
 // C API type for 6 x N matrices of double values,
-// with N <= kXfaIconMaxNumberOfJoints.
-struct XfaIconMatrix6Nd {
+// with N <= kIntrinsicIconMaxNumberOfJoints.
+struct IntrinsicIconMatrix6Nd {
   // The number of columns in the matrix. Must not be greater than
-  // kXfaIconMaxNumberOfJoints.
+  // kIntrinsicIconMaxNumberOfJoints.
   size_t num_cols;
   // Matrix values, in column-major order (to match Eigen's default order).
   // Indices >= 6 * num_cols are invalid and contain unspecified data!
-  double data[6 * kXfaIconMaxNumberOfJoints];
+  double data[6 * kIntrinsicIconMaxNumberOfJoints];
 };
 
-struct XfaIconSignalValue {
+struct IntrinsicIconSignalValue {
   bool current_value;
   bool previous_value;
 };

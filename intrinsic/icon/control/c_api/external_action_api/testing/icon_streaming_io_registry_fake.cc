@@ -25,12 +25,13 @@
 namespace intrinsic::icon {
 
 // static
-XfaIconStreamingIoRealtimeAccessVtable
+IntrinsicIconStreamingIoRealtimeAccessVtable
 IconStreamingIoRegistryFake::GetCApiVtable() {
   return {
-      .poll_input = [](XfaIconStreamingIoRealtimeAccess* self,
-                       uint64_t input_id, XfaIconRealtimeStatus* status_out)
-          -> const XfaIconStreamingInputType* {
+      .poll_input = [](IntrinsicIconStreamingIoRealtimeAccess* self,
+                       uint64_t input_id,
+                       IntrinsicIconRealtimeStatus* status_out)
+          -> const IntrinsicIconStreamingInputType* {
         auto* registry = reinterpret_cast<IconStreamingIoRegistryFake*>(self);
         StreamingInputId id(input_id);
         if (!registry->HasStreamingInput(id)) {
@@ -41,9 +42,9 @@ IconStreamingIoRegistryFake::GetCApiVtable() {
         *status_out = FromAbslStatus(absl::OkStatus());
         return registry->streaming_input_parser_map_.at(id).GetLatestInput();
       },
-      .write_output = [](XfaIconStreamingIoRealtimeAccess* self,
-                         const XfaIconStreamingOutputType* output,
-                         size_t size) -> XfaIconRealtimeStatus {
+      .write_output = [](IntrinsicIconStreamingIoRealtimeAccess* self,
+                         const IntrinsicIconStreamingOutputType* output,
+                         size_t size) -> IntrinsicIconRealtimeStatus {
         auto* registry = reinterpret_cast<IconStreamingIoRegistryFake*>(self);
         // This is actually a bit different from a "live" system. In the actual
         // realtime system, the conversion function is decoupled from the
@@ -57,14 +58,14 @@ IconStreamingIoRegistryFake::GetCApiVtable() {
 
 IconStreamingIoAccess IconStreamingIoRegistryFake::MakeIconStreamingIoAccess() {
   return IconStreamingIoAccess(
-      reinterpret_cast<XfaIconStreamingIoRealtimeAccess*>(this),
+      reinterpret_cast<IntrinsicIconStreamingIoRealtimeAccess*>(this),
       GetCApiVtable());
 }
 
 absl::StatusOr<StreamingInputId> IconStreamingIoRegistryFake::AddInputParser(
     absl::string_view input_name,
     absl::string_view input_proto_message_type_name,
-    XfaIconStreamingInputParserFnInstance raw_parser) {
+    IntrinsicIconStreamingInputParserFnInstance raw_parser) {
   // Take ownership of raw_parser regardless of outcome (i.e. properly clean it
   // up if this returns an error).
   InputParser parser(raw_parser);
@@ -97,7 +98,7 @@ absl::StatusOr<StreamingInputId> IconStreamingIoRegistryFake::AddInputParser(
 
 absl::Status IconStreamingIoRegistryFake::AddOutputConverter(
     absl::string_view output_proto_message_type_name,
-    XfaIconStreamingOutputConverterFnInstance raw_converter) {
+    IntrinsicIconStreamingOutputConverterFnInstance raw_converter) {
   // Take ownership of raw_converter regardless of outcome (i.e. properly clean
   // it up if this returns an error).
   OutputConverter converter(raw_converter);
@@ -163,15 +164,17 @@ bool IconStreamingIoRegistryFake::OutputConverter::has_value() const {
   return converter_.has_value();
 }
 
-XfaIconRealtimeStatus IconStreamingIoRegistryFake::OutputConverter::Invoke(
-    const XfaIconStreamingOutputType* output, size_t size) {
+IntrinsicIconRealtimeStatus
+IconStreamingIoRegistryFake::OutputConverter::Invoke(
+    const IntrinsicIconStreamingOutputType* output, size_t size) {
   if (!converter_.has_value()) {
     return FromAbslStatus(absl::FailedPreconditionError("No output converter"));
   }
-  XfaIconRealtimeStatus status;
-  std::unique_ptr<XfaIconString, void (*)(XfaIconString*)> converter_result(
-      converter_->invoke(converter_->self, output, size, &status),
-      converter_->destroy_string);
+  IntrinsicIconRealtimeStatus status;
+  std::unique_ptr<IntrinsicIconString, void (*)(IntrinsicIconString*)>
+      converter_result(
+          converter_->invoke(converter_->self, output, size, &status),
+          converter_->destroy_string);
 
   if (!ToAbslStatus(status).ok()) {
     return status;

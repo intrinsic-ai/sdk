@@ -16,9 +16,10 @@ namespace intrinsic::icon {
 
 class IconRealtimeSlotMap {
  public:
-  IconRealtimeSlotMap(XfaIconRealtimeSlotMap* realtime_slot_map,
-                      XfaIconRealtimeSlotMapVtable realtime_slot_map_vtable,
-                      XfaIconFeatureInterfaceVtable feature_interfaces_vtable)
+  IconRealtimeSlotMap(
+      IntrinsicIconRealtimeSlotMap* realtime_slot_map,
+      IntrinsicIconRealtimeSlotMapVtable realtime_slot_map_vtable,
+      IntrinsicIconFeatureInterfaceVtable feature_interfaces_vtable)
       : realtime_slot_map_(realtime_slot_map),
         realtime_slot_map_vtable_(std::move(realtime_slot_map_vtable)),
         feature_interfaces_vtable_(std::move(feature_interfaces_vtable)) {}
@@ -37,17 +38,17 @@ class IconRealtimeSlotMap {
   IconFeatureInterfaces MutableFeatureInterfacesForSlot(RealtimeSlotId slot_id);
 
  private:
-  XfaIconRealtimeSlotMap* realtime_slot_map_ = nullptr;
-  XfaIconRealtimeSlotMapVtable realtime_slot_map_vtable_;
-  XfaIconFeatureInterfaceVtable feature_interfaces_vtable_;
+  IntrinsicIconRealtimeSlotMap* realtime_slot_map_ = nullptr;
+  IntrinsicIconRealtimeSlotMapVtable realtime_slot_map_vtable_;
+  IntrinsicIconFeatureInterfaceVtable feature_interfaces_vtable_;
 };
 
 class IconConstRealtimeSlotMap {
  public:
   IconConstRealtimeSlotMap(
-      const XfaIconRealtimeSlotMap* realtime_slot_map,
-      const XfaIconRealtimeSlotMapVtable realtime_slot_map_vtable,
-      const XfaIconFeatureInterfaceVtable feature_interfaces_vtable)
+      const IntrinsicIconRealtimeSlotMap* realtime_slot_map,
+      const IntrinsicIconRealtimeSlotMapVtable realtime_slot_map_vtable,
+      const IntrinsicIconFeatureInterfaceVtable feature_interfaces_vtable)
       : realtime_slot_map_(realtime_slot_map),
         realtime_slot_map_vtable_(std::move(realtime_slot_map_vtable)),
         feature_interfaces_vtable_(std::move(feature_interfaces_vtable)) {}
@@ -60,9 +61,9 @@ class IconConstRealtimeSlotMap {
       RealtimeSlotId slot_id) const;
 
  private:
-  const XfaIconRealtimeSlotMap* realtime_slot_map_ = nullptr;
-  const XfaIconRealtimeSlotMapVtable realtime_slot_map_vtable_;
-  const XfaIconFeatureInterfaceVtable feature_interfaces_vtable_;
+  const IntrinsicIconRealtimeSlotMap* realtime_slot_map_ = nullptr;
+  const IntrinsicIconRealtimeSlotMapVtable realtime_slot_map_vtable_;
+  const IntrinsicIconFeatureInterfaceVtable feature_interfaces_vtable_;
 };
 
 }  // namespace intrinsic::icon

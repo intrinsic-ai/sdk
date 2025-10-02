@@ -15,8 +15,8 @@ namespace intrinsic::icon {
 
 RealtimeStatusOr<SignalValue> IconRealtimeSignalAccess::ReadSignal(
     RealtimeSignalId id) {
-  XfaIconSignalValue signal_value;
-  XfaIconRealtimeStatus read_signal_status =
+  IntrinsicIconSignalValue signal_value;
+  IntrinsicIconRealtimeStatus read_signal_status =
       realtime_signal_access_vtable_.read_signal(realtime_signal_access_,
                                                  id.value(), &signal_value);
   INTRINSIC_RT_RETURN_IF_ERROR(ToRealtimeStatus(read_signal_status));

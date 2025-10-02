@@ -63,7 +63,7 @@ using ::intrinsic_proto::skills::SkillServiceConfig;
 }  // namespace
 
 int main(int argc, char** argv) {
-  InitXfa(argv[0], argc, argv);
+  InitIntrinsic(argv[0], argc, argv);
 
   absl::StatusOr<SkillServiceConfig> service_config =
       GetSkillServiceConfig(absl::GetFlag(FLAGS_skill_service_config_filename));

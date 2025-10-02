@@ -35,7 +35,7 @@ class IconRealtimeSignalAccessAndMapFake {
   IconRealtimeSignalAccess MakeIconRealtimeSignalAccess();
 
  private:
-  static XfaIconRealtimeSignalAccessVtable GetCApiVtable();
+  static IntrinsicIconRealtimeSignalAccessVtable GetCApiVtable();
 
   const ::intrinsic_proto::icon::v1::ActionSignature signature_;
   std::unique_ptr<absl::FixedArray<SignalValue>> signal_ids_;

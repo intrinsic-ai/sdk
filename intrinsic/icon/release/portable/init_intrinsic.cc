@@ -16,7 +16,7 @@ ABSL_FLAG(bool, sleep, false,
           "(optional) Do nothing and sleep indefinitely. This is used to "
           "download the image and avoid crash looping.");
 
-void InitXfa(const char* usage, int argc, char* argv[]) {
+void InitIntrinsic(const char* usage, int argc, char* argv[]) {
   if (usage != nullptr && strlen(usage) > 0) {
     absl::SetProgramUsageMessage(usage);
   }
@@ -32,6 +32,3 @@ void InitXfa(const char* usage, int argc, char* argv[]) {
 
   LOG(INFO) << "********* Process Begin *********";
 }
-
-// Function alias to migrate consumers insrc SoT
-auto& InitIntrinsic = InitXfa;

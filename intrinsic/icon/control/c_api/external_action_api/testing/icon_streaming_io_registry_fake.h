@@ -59,7 +59,7 @@ class IconStreamingIoRegistryFake {
   absl::StatusOr<StreamingInputId> AddInputParser(
       absl::string_view input_name,
       absl::string_view input_proto_message_type_name,
-      XfaIconStreamingInputParserFnInstance raw_parser);
+      IntrinsicIconStreamingInputParserFnInstance raw_parser);
 
   // Adds a C API streaming output converter to the registry. Takes ownership of
   // the pointer contained within.
@@ -73,7 +73,7 @@ class IconStreamingIoRegistryFake {
   // `output_proto_message_type_name`.
   absl::Status AddOutputConverter(
       absl::string_view output_proto_message_type_name,
-      XfaIconStreamingOutputConverterFnInstance raw_converter);
+      IntrinsicIconStreamingOutputConverterFnInstance raw_converter);
 
   // Returns true if there is a streaming output parser for this registry.
   bool HasStreamingOutput() const;
@@ -151,13 +151,13 @@ class IconStreamingIoRegistryFake {
   absl::StatusOr<std::optional<google::protobuf::Any>> GetLatestOutput() const;
 
  private:
-  // Holds on to an XfaIconStreamingInputParserFnInstance and manages its
+  // Holds on to an IntrinsicIconStreamingInputParserFnInstance and manages its
   // lifetime. This means it calls the held instance's destroy() method in the
   // destructor, and also destroys any concrete input values that it is holding.
   class InputParser {
    public:
     InputParser() = default;
-    explicit InputParser(XfaIconStreamingInputParserFnInstance parser)
+    explicit InputParser(IntrinsicIconStreamingInputParserFnInstance parser)
         : parser_(parser), latest_input_(nullptr, parser_->destroy_input) {}
 
     // Move-only
@@ -189,7 +189,7 @@ class IconStreamingIoRegistryFake {
     // returned pointer remains valid until the next call to GetLatestInput().
     //
     // Returns nullptr if nothing has been written to this streaming input yet.
-    XfaIconStreamingInputType* GetLatestInput() const {
+    IntrinsicIconStreamingInputType* GetLatestInput() const {
       absl::MutexLock lock(&input_mutex_);
       latest_input_ = std::move(latest_input_mailbox_);
       return latest_input_.get();
@@ -233,7 +233,7 @@ class IconStreamingIoRegistryFake {
       google::protobuf::Any input_any;
       input_any.PackFrom(input_proto);
 
-      XfaIconRealtimeStatus status;
+      IntrinsicIconRealtimeStatus status;
       absl::MutexLock lock(&input_mutex_);
       latest_input_mailbox_ = {
           parser_->invoke(parser_->self,
@@ -252,10 +252,11 @@ class IconStreamingIoRegistryFake {
 
    private:
     using StreamingInputPtr =
-        std::unique_ptr<XfaIconStreamingInputType,
-                        void (*)(XfaIconStreamingInputType*)>;
+        std::unique_ptr<IntrinsicIconStreamingInputType,
+                        void (*)(IntrinsicIconStreamingInputType*)>;
 
-    std::optional<XfaIconStreamingInputParserFnInstance> parser_ = std::nullopt;
+    std::optional<IntrinsicIconStreamingInputParserFnInstance> parser_ =
+        std::nullopt;
 
     // Using two mutable StreamingInputPtr objects to implement the API contract
     // of GetLatestInput:
@@ -269,14 +270,14 @@ class IconStreamingIoRegistryFake {
         nullptr, nullptr};
   };
 
-  // Holds on to an XfaIconStreamingOutputConverterFnInstance and manages its
-  // lifetime. This means it calls the held instance's destroy() method in the
-  // destructor.
+  // Holds on to an IntrinsicIconStreamingOutputConverterFnInstance and manages
+  // its lifetime. This means it calls the held instance's destroy() method in
+  // the destructor.
   class OutputConverter {
    public:
     OutputConverter() = default;
     explicit OutputConverter(
-        XfaIconStreamingOutputConverterFnInstance converter)
+        IntrinsicIconStreamingOutputConverterFnInstance converter)
         : converter_(converter) {}
 
     // Move-only
@@ -298,16 +299,17 @@ class IconStreamingIoRegistryFake {
     // Invokes the held output converter (if any) with `output` and `size`.
     // Returns FailedPrecondition if not holding an output converter.
     // Forwards any errors from the converter.
-    XfaIconRealtimeStatus Invoke(const XfaIconStreamingOutputType* output,
-                                 size_t size);
+    IntrinsicIconRealtimeStatus Invoke(
+        const IntrinsicIconStreamingOutputType* output, size_t size);
 
     // Invokes the held output converter (if any) with `output`. This is a
     // convenience wrapper around the overload above, for use in unit tests.
     template <typename OutputT>
     absl::StatusOr<google::protobuf::Any> Invoke(const OutputT& output) {
-      if (absl::Status invoke_result = ToAbslStatus(Invoke(
-              reinterpret_cast<const XfaIconStreamingOutputType*>(&output),
-              sizeof(output)));
+      if (absl::Status invoke_result = ToAbslStatus(
+              Invoke(reinterpret_cast<const IntrinsicIconStreamingOutputType*>(
+                         &output),
+                     sizeof(output)));
           !invoke_result.ok()) {
         return invoke_result;
       }
@@ -326,7 +328,7 @@ class IconStreamingIoRegistryFake {
     std::optional<google::protobuf::Any> GetLatestOutput() const;
 
    private:
-    std::optional<XfaIconStreamingOutputConverterFnInstance> converter_ =
+    std::optional<IntrinsicIconStreamingOutputConverterFnInstance> converter_ =
         std::nullopt;
     std::optional<google::protobuf::Any> latest_output_;
   };
@@ -334,7 +336,7 @@ class IconStreamingIoRegistryFake {
   // Returns a C API vtable struct for use with IconStreamingIoAccess – this is
   // a class member rather than a free function so that it can access private
   // member variables.
-  static XfaIconStreamingIoRealtimeAccessVtable GetCApiVtable();
+  static IntrinsicIconStreamingIoRealtimeAccessVtable GetCApiVtable();
 
   const ::intrinsic_proto::icon::v1::ActionSignature signature_;
   absl::flat_hash_map<StreamingInputId, InputParser>

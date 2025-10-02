@@ -43,7 +43,7 @@ class IconActionFactoryContextFake {
   IconActionFactoryContext MakeIconActionFactoryContext();
 
  private:
-  static XfaIconActionFactoryContextVtable GetCApiVtable();
+  static IntrinsicIconActionFactoryContextVtable GetCApiVtable();
 
   const intrinsic_proto::icon::v1::ServerConfig server_config_;
 

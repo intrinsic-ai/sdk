@@ -12,14 +12,15 @@
 
 namespace intrinsic::icon {
 namespace {
-static_assert(kXfaIconRealtimeStatusMaxMessageLength ==
-                  RealtimeStatus::kMaxMessageLength,
-              "C++ RealtimeStatus and C XfaIconRealtimeStatus have different "
-              "maximum message lengths. This breaks the ICON C API!");
+static_assert(
+    kIntrinsicIconRealtimeStatusMaxMessageLength ==
+        RealtimeStatus::kMaxMessageLength,
+    "C++ RealtimeStatus and C IntrinsicIconRealtimeStatus have different "
+    "maximum message lengths. This breaks the ICON C API!");
 }
 
-XfaIconRealtimeStatus FromAbslStatus(const absl::Status& status) {
-  XfaIconRealtimeStatus status_out;
+IntrinsicIconRealtimeStatus FromAbslStatus(const absl::Status& status) {
+  IntrinsicIconRealtimeStatus status_out;
   status_out.status_code = static_cast<int>(status.code());
   if (!status.ok()) {
     // Since `status.message()` is a string_view, it may not be null-terminated,
@@ -37,7 +38,7 @@ XfaIconRealtimeStatus FromAbslStatus(const absl::Status& status) {
   return status_out;
 }
 
-absl::Status ToAbslStatus(const XfaIconRealtimeStatus& status) {
+absl::Status ToAbslStatus(const IntrinsicIconRealtimeStatus& status) {
   absl::StatusCode code = static_cast<absl::StatusCode>(status.status_code);
   if (code == absl::StatusCode::kOk) {
     return absl::OkStatus();
@@ -51,8 +52,8 @@ absl::Status ToAbslStatus(const XfaIconRealtimeStatus& status) {
   }
 }
 
-XfaIconRealtimeStatus FromRealtimeStatus(const RealtimeStatus& status) {
-  XfaIconRealtimeStatus status_out{
+IntrinsicIconRealtimeStatus FromRealtimeStatus(const RealtimeStatus& status) {
+  IntrinsicIconRealtimeStatus status_out{
       .status_code = static_cast<int>(status.code()),
       .message = "",
   };
@@ -72,7 +73,7 @@ XfaIconRealtimeStatus FromRealtimeStatus(const RealtimeStatus& status) {
   return status_out;
 }
 
-RealtimeStatus ToRealtimeStatus(const XfaIconRealtimeStatus& status) {
+RealtimeStatus ToRealtimeStatus(const IntrinsicIconRealtimeStatus& status) {
   absl::StatusCode code = static_cast<absl::StatusCode>(status.status_code);
   if (code == absl::StatusCode::kOk) {
     return icon::OkStatus();

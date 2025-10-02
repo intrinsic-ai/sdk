@@ -10,9 +10,9 @@
 extern "C" {
 #endif
 
-struct XfaIconStreamingIoRealtimeAccess;
+struct IntrinsicIconStreamingIoRealtimeAccess;
 
-struct XfaIconStreamingIoRealtimeAccessVtable {
+struct IntrinsicIconStreamingIoRealtimeAccessVtable {
   // Polls a streaming input and writes a status into `status_out`.
   //
   // Returns nullptr if nothing has been written to the streaming input for `id`
@@ -22,9 +22,9 @@ struct XfaIconStreamingIoRealtimeAccessVtable {
   // Returns a pointer to the current streaming input value and sets
   // `status_out` to Ok on success. The returned pointer remains valid until the
   // next call to this function.
-  const XfaIconStreamingInputType* (*poll_input)(
-      XfaIconStreamingIoRealtimeAccess* self, uint64_t input_id,
-      XfaIconRealtimeStatus* status_out);
+  const IntrinsicIconStreamingInputType* (*poll_input)(
+      IntrinsicIconStreamingIoRealtimeAccess* self, uint64_t input_id,
+      IntrinsicIconRealtimeStatus* status_out);
 
   // Copies `size` bytes, starting at `output`, into a buffer that is then made
   // available to the non-realtime thread. NOTE: Because this copies data, using
@@ -34,9 +34,9 @@ struct XfaIconStreamingIoRealtimeAccessVtable {
   // RealtimeStreamingIoStorage.
   // Returns an error if `size` exceeds the maximum size for streaming
   // outputs supported by the ICON server.
-  XfaIconRealtimeStatus (*write_output)(
-      XfaIconStreamingIoRealtimeAccess* self,
-      const XfaIconStreamingOutputType* output, size_t size);
+  IntrinsicIconRealtimeStatus (*write_output)(
+      IntrinsicIconStreamingIoRealtimeAccess* self,
+      const IntrinsicIconStreamingOutputType* output, size_t size);
 };
 
 #ifdef __cplusplus

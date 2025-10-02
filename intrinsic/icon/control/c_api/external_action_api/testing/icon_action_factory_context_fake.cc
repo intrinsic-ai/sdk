@@ -21,23 +21,25 @@ namespace intrinsic::icon {
 IconActionFactoryContext
 IconActionFactoryContextFake::MakeIconActionFactoryContext() {
   return IconActionFactoryContext(
-      reinterpret_cast<XfaIconActionFactoryContext*>(this), GetCApiVtable());
+      reinterpret_cast<IntrinsicIconActionFactoryContext*>(this),
+      GetCApiVtable());
 }
 
-XfaIconActionFactoryContextVtable
+IntrinsicIconActionFactoryContextVtable
 IconActionFactoryContextFake::GetCApiVtable() {
   // The lambdas defined in this method are implicitly friends of
   // IconActionFactoryContextFake, so they can access its private members.
   return {
       .destroy_string = &DestroyString,
-      .server_config =
-          [](const XfaIconActionFactoryContext* self) -> XfaIconString* {
+      .server_config = [](const IntrinsicIconActionFactoryContext* self)
+          -> IntrinsicIconString* {
         return Wrap(reinterpret_cast<const IconActionFactoryContextFake*>(self)
                         ->server_config_.SerializeAsString());
       },
-      .get_slot_info =
-          [](XfaIconActionFactoryContext* self, XfaIconStringView slot_name,
-             XfaIconSlotInfo* slot_info_out) -> XfaIconRealtimeStatus {
+      .get_slot_info = [](IntrinsicIconActionFactoryContext* self,
+                          IntrinsicIconStringView slot_name,
+                          IntrinsicIconSlotInfo* slot_info_out)
+          -> IntrinsicIconRealtimeStatus {
         absl::string_view slot_name_view(slot_name.data, slot_name.size);
         auto* fake = reinterpret_cast<IconActionFactoryContextFake*>(self);
         auto slot_info = fake->slot_map_.GetSlotInfoForSlot(slot_name_view);
@@ -50,8 +52,9 @@ IconActionFactoryContextFake::GetCApiVtable() {
         return FromAbslStatus(absl::OkStatus());
       },
       .get_realtime_signal_id =
-          [](XfaIconActionFactoryContext* self, XfaIconStringView signal_name,
-             uint64_t* signal_id_out) -> XfaIconRealtimeStatus {
+          [](IntrinsicIconActionFactoryContext* self,
+             IntrinsicIconStringView signal_name,
+             uint64_t* signal_id_out) -> IntrinsicIconRealtimeStatus {
         auto* fake = reinterpret_cast<IconActionFactoryContextFake*>(self);
         absl::string_view signal_name_view(signal_name.data, signal_name.size);
         auto id = fake->realtime_signal_access_and_map_.GetRealtimeSignalId(
@@ -63,10 +66,11 @@ IconActionFactoryContextFake::GetCApiVtable() {
         return FromAbslStatus(absl::OkStatus());
       },
       .add_streaming_input_parser =
-          [](XfaIconActionFactoryContext* self, XfaIconStringView input_name,
-             XfaIconStringView input_proto_message_type_name,
-             XfaIconStreamingInputParserFnInstance parser,
-             uint64_t* streaming_input_id_out) -> XfaIconRealtimeStatus {
+          [](IntrinsicIconActionFactoryContext* self,
+             IntrinsicIconStringView input_name,
+             IntrinsicIconStringView input_proto_message_type_name,
+             IntrinsicIconStreamingInputParserFnInstance parser,
+             uint64_t* streaming_input_id_out) -> IntrinsicIconRealtimeStatus {
         auto* fake = reinterpret_cast<IconActionFactoryContextFake*>(self);
         absl::string_view input_name_view(input_name.data, input_name.size);
         absl::string_view input_proto_message_type_name_view(
@@ -82,11 +86,11 @@ IconActionFactoryContextFake::GetCApiVtable() {
         return FromAbslStatus(absl::OkStatus());
       },
       .add_streaming_output_converter =
-          [](XfaIconActionFactoryContext* self,
-             XfaIconStringView output_proto_message_type_name,
+          [](IntrinsicIconActionFactoryContext* self,
+             IntrinsicIconStringView output_proto_message_type_name,
              size_t realtime_type_size,
-             XfaIconStreamingOutputConverterFnInstance converter)
-          -> XfaIconRealtimeStatus {
+             IntrinsicIconStreamingOutputConverterFnInstance converter)
+          -> IntrinsicIconRealtimeStatus {
         auto fake = reinterpret_cast<IconActionFactoryContextFake*>(self);
         return FromAbslStatus(fake->streaming_io_registry_.AddOutputConverter(
             absl::string_view(output_proto_message_type_name.data,

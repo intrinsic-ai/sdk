@@ -161,7 +161,7 @@ absl::StatusOr<HardwareModuleExitCode> ModuleMain(int argc, char** argv) {
 }  // namespace intrinsic::icon
 
 int main(int argc, char** argv) {
-  InitXfa(intrinsic::icon::kUsageString, argc, argv);
+  InitIntrinsic(intrinsic::icon::kUsageString, argc, argv);
   LOG(INFO) << "PUBLIC: Starting hardware module main";
   constexpr int prefault_memory = 256 * 1024;
   QCHECK_OK((intrinsic::LockMemory<prefault_memory, prefault_memory>()));

@@ -19,14 +19,14 @@
 namespace intrinsic::icon {
 namespace {
 struct DestroyIconString {
-  void operator()(XfaIconString* ptr) { destroy(ptr); }
-  XfaIconStringDestroy destroy;
+  void operator()(IntrinsicIconString* ptr) { destroy(ptr); }
+  IntrinsicIconStringDestroy destroy;
 };
 }  // namespace
 
 intrinsic_proto::icon::v1::ServerConfig IconActionFactoryContext::ServerConfig()
     const {
-  std::unique_ptr<XfaIconString, DestroyIconString> server_config_string(
+  std::unique_ptr<IntrinsicIconString, DestroyIconString> server_config_string(
       icon_action_factory_context_vtable_.server_config(
           icon_action_factory_context_),
       DestroyIconString{icon_action_factory_context_vtable_.destroy_string});
@@ -38,11 +38,11 @@ intrinsic_proto::icon::v1::ServerConfig IconActionFactoryContext::ServerConfig()
 
 absl::StatusOr<intrinsic::icon::SlotInfo> IconActionFactoryContext::GetSlotInfo(
     absl::string_view slot_name) const {
-  XfaIconSlotInfo slot_info_c;
+  IntrinsicIconSlotInfo slot_info_c;
   INTR_RETURN_IF_ERROR(
       ToAbslStatus(icon_action_factory_context_vtable_.get_slot_info(
           icon_action_factory_context_, WrapView(slot_name), &slot_info_c)));
-  std::unique_ptr<XfaIconString, DestroyIconString> part_config_string(
+  std::unique_ptr<IntrinsicIconString, DestroyIconString> part_config_string(
       slot_info_c.part_config_buffer,
       DestroyIconString{icon_action_factory_context_vtable_.destroy_string});
   intrinsic::icon::SlotInfo slot_info;

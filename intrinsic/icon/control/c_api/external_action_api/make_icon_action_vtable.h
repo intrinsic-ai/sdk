@@ -35,25 +35,25 @@ namespace intrinsic::icon {
 // ICON C API.
 struct ActionAndServerVtable {
   std::unique_ptr<IconActionInterface> action;
-  XfaIconServerFunctions server_functions;
+  IntrinsicIconServerFunctions server_functions;
 };
 
 // Visitor to write a variant<bool, double, int64> into an
-// XfaIconStateVariableValue C struct.
+// IntrinsicIconStateVariableValue C struct.
 struct StateVariableVisitor {
   void operator()(bool value) {
-    state_variable_out->type = XfaIconStateVariableValue::kBool;
+    state_variable_out->type = IntrinsicIconStateVariableValue::kBool;
     state_variable_out->value.bool_value = value;
   }
   void operator()(double value) {
-    state_variable_out->type = XfaIconStateVariableValue::kDouble;
+    state_variable_out->type = IntrinsicIconStateVariableValue::kDouble;
     state_variable_out->value.double_value = value;
   }
   void operator()(int64_t value) {
-    state_variable_out->type = XfaIconStateVariableValue::kInt64;
+    state_variable_out->type = IntrinsicIconStateVariableValue::kInt64;
     state_variable_out->value.int64_value = value;
   }
-  XfaIconStateVariableValue* state_variable_out;
+  IntrinsicIconStateVariableValue* state_variable_out;
 };
 
 // Builds a Vtable for `ActionT` that ICON's plugin API can use to build,
@@ -63,13 +63,13 @@ template <typename ActionT,
               std::enable_if_t<std::is_base_of_v<IconActionInterface, ActionT>>,
           typename = std::enable_if_t<std::is_base_of_v<
               google::protobuf::Message, typename ActionT::ParameterProto>>>
-XfaIconRtclActionVtable MakeIconActionVtable() {
+IntrinsicIconRtclActionVtable MakeIconActionVtable() {
   return {
-      .create =
-          [](XfaIconServerFunctions server_functions,
-             XfaIconStringView params_any_proto,
-             XfaIconActionFactoryContext* action_factory_context,
-             XfaIconRtclAction** action_ptr_out) -> XfaIconRealtimeStatus {
+      .create = [](IntrinsicIconServerFunctions server_functions,
+                   IntrinsicIconStringView params_any_proto,
+                   IntrinsicIconActionFactoryContext* action_factory_context,
+                   IntrinsicIconRtclAction** action_ptr_out)
+          -> IntrinsicIconRealtimeStatus {
         google::protobuf::Any params_any;
         if (!params_any.ParseFromArray(params_any_proto.data,
                                        params_any_proto.size)) {
@@ -96,21 +96,21 @@ XfaIconRtclActionVtable MakeIconActionVtable() {
         absl::StatusOr<std::unique_ptr<ActionT>> action =
             ActionT::Create(params, context);
         if (!action.ok()) return FromAbslStatus(action.status());
-        *action_ptr_out = reinterpret_cast<XfaIconRtclAction*>(
+        *action_ptr_out = reinterpret_cast<IntrinsicIconRtclAction*>(
             new ActionAndServerVtable{.action = std::move(action.value()),
                                       .server_functions = server_functions});
         return FromAbslStatus(OkStatus());
       },
       .destroy =
-          [](XfaIconRtclAction* action) {
+          [](IntrinsicIconRtclAction* action) {
             // This calls the destructor for the unique_ptr in
             // ActionAndServerVtable and correctly cleans up the Action
             // instance.
             delete reinterpret_cast<ActionAndServerVtable*>(action);
           },
-      .on_enter =
-          [](XfaIconRtclAction* action,
-             const XfaIconRealtimeSlotMap* slot_map) -> XfaIconRealtimeStatus {
+      .on_enter = [](IntrinsicIconRtclAction* action,
+                     const IntrinsicIconRealtimeSlotMap* slot_map)
+          -> IntrinsicIconRealtimeStatus {
         auto* action_and_server_vtable =
             reinterpret_cast<ActionAndServerVtable*>(action);
         return FromRealtimeStatus(
@@ -120,11 +120,11 @@ XfaIconRtclActionVtable MakeIconActionVtable() {
                 action_and_server_vtable->server_functions
                     .feature_interfaces)));
       },
-      .sense = [](XfaIconRtclAction* self,
-                  const XfaIconRealtimeSlotMap* slot_map,
-                  XfaIconStreamingIoRealtimeAccess* streaming_io_access,
-                  XfaIconRealtimeSignalAccess* signal_access)
-          -> XfaIconRealtimeStatus {
+      .sense = [](IntrinsicIconRtclAction* self,
+                  const IntrinsicIconRealtimeSlotMap* slot_map,
+                  IntrinsicIconStreamingIoRealtimeAccess* streaming_io_access,
+                  IntrinsicIconRealtimeSignalAccess* signal_access)
+          -> IntrinsicIconRealtimeStatus {
         auto* action_and_server_vtable =
             reinterpret_cast<ActionAndServerVtable*>(self);
         IconStreamingIoAccess streaming_io_access_wrapped(
@@ -140,8 +140,9 @@ XfaIconRtclActionVtable MakeIconActionVtable() {
                 action_and_server_vtable->server_functions.feature_interfaces),
             streaming_io_access_wrapped, signal_access_wrapped));
       },
-      .control = [](XfaIconRtclAction* self,
-                    XfaIconRealtimeSlotMap* slot_map) -> XfaIconRealtimeStatus {
+      .control = [](IntrinsicIconRtclAction* self,
+                    IntrinsicIconRealtimeSlotMap* slot_map)
+          -> IntrinsicIconRealtimeStatus {
         auto* action_and_server_vtable =
             reinterpret_cast<ActionAndServerVtable*>(self);
         IconRealtimeSlotMap realtime_slot_map(
@@ -151,10 +152,11 @@ XfaIconRtclActionVtable MakeIconActionVtable() {
         return FromRealtimeStatus(
             action_and_server_vtable->action->Control(realtime_slot_map));
       },
-      .get_state_variable = [](const XfaIconRtclAction* self, const char* name,
-                               size_t name_size,
-                               XfaIconStateVariableValue* state_variable_out)
-          -> XfaIconRealtimeStatus {
+      .get_state_variable =
+          [](const IntrinsicIconRtclAction* self, const char* name,
+             size_t name_size,
+             IntrinsicIconStateVariableValue* state_variable_out)
+          -> IntrinsicIconRealtimeStatus {
         const auto* action_and_server_vtable =
             reinterpret_cast<const ActionAndServerVtable*>(self);
 
@@ -184,8 +186,8 @@ XfaIconRtclActionVtable MakeIconActionVtable() {
 template <typename ActionT,
           typename =
               std::enable_if_t<std::is_base_of_v<IconActionInterface, ActionT>>>
-XfaIconRealtimeStatus RegisterIconAction(
-    XfaIconRegisterActionType register_action_type_fn) {
+IntrinsicIconRealtimeStatus RegisterIconAction(
+    IntrinsicIconRegisterActionType register_action_type_fn) {
   intrinsic_proto::icon::v1::ActionSignature signature =
       ActionT::GetSignature();
   const std::string signature_string = signature.SerializeAsString();

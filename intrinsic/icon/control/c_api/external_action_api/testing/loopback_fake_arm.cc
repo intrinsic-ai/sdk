@@ -75,20 +75,22 @@ LoopbackFakeArm::GetPartConfig(absl::string_view name,
 }
 
 // static
-XfaIconFeatureInterfaceVtable LoopbackFakeArm::GetFeatureInterfaceVtable() {
+IntrinsicIconFeatureInterfaceVtable
+LoopbackFakeArm::GetFeatureInterfaceVtable() {
   return {
       .joint_position = {
           .set_position_setpoints =
-              [](XfaIconFeatureInterfaceJointPositionCommandInterface* self,
-                 const XfaIconJointPositionCommand* const setpoints)
-              -> XfaIconRealtimeStatus {
+              [](IntrinsicIconFeatureInterfaceJointPositionCommandInterface*
+                     self,
+                 const IntrinsicIconJointPositionCommand* const setpoints)
+              -> IntrinsicIconRealtimeStatus {
             auto arm = reinterpret_cast<LoopbackFakeArm*>(self);
             return FromRealtimeStatus(
                 arm->SetPositionSetpoints(Convert(*setpoints)));
           },
           .previous_position_setpoints =
-              [](const XfaIconFeatureInterfaceJointPositionCommandInterface*
-                     self) -> XfaIconJointPositionCommand {
+              [](const IntrinsicIconFeatureInterfaceJointPositionCommandInterface*
+                     self) -> IntrinsicIconJointPositionCommand {
             auto arm = reinterpret_cast<const LoopbackFakeArm*>(self);
             return Convert(arm->PreviousPositionSetpoints());
           },
@@ -96,8 +98,8 @@ XfaIconFeatureInterfaceVtable LoopbackFakeArm::GetFeatureInterfaceVtable() {
       .joint_position_sensor =
           {
               .get_sensed_position =
-                  [](const XfaIconFeatureInterfaceJointPositionSensor* self)
-                  -> XfaIconJointStateP {
+                  [](const IntrinsicIconFeatureInterfaceJointPositionSensor*
+                         self) -> IntrinsicIconJointStateP {
                 auto arm = reinterpret_cast<const LoopbackFakeArm*>(self);
                 return Convert(arm->GetSensedPosition());
               },
@@ -105,31 +107,32 @@ XfaIconFeatureInterfaceVtable LoopbackFakeArm::GetFeatureInterfaceVtable() {
       .joint_velocity_estimator =
           {
               .get_velocity_estimate =
-                  [](const XfaIconFeatureInterfaceJointVelocityEstimator* self)
-                  -> XfaIconJointStateV {
+                  [](const IntrinsicIconFeatureInterfaceJointVelocityEstimator*
+                         self) -> IntrinsicIconJointStateV {
                 auto arm = reinterpret_cast<const LoopbackFakeArm*>(self);
                 return Convert(arm->GetVelocityEstimate());
               },
           },
       .joint_limits = {
           .get_application_limits =
-              [](const XfaIconFeatureInterfaceJointLimits* self)
-              -> XfaIconJointLimits {
+              [](const IntrinsicIconFeatureInterfaceJointLimits* self)
+              -> IntrinsicIconJointLimits {
             auto arm = reinterpret_cast<const LoopbackFakeArm*>(self);
             return Convert(arm->GetApplicationLimits());
           },
           .get_system_limits =
-              [](const XfaIconFeatureInterfaceJointLimits* self)
-              -> XfaIconJointLimits {
+              [](const IntrinsicIconFeatureInterfaceJointLimits* self)
+              -> IntrinsicIconJointLimits {
             auto arm = reinterpret_cast<const LoopbackFakeArm*>(self);
             return Convert(arm->GetSystemLimits());
           },
       },
       .manipulator_kinematics = {
           .compute_chain_jacobian =
-              [](const XfaIconFeatureInterfaceManipulatorKinematics* self,
-                 const XfaIconJointStateP* dof_positions,
-                 XfaIconMatrix6Nd* jacobian_out) -> XfaIconRealtimeStatus {
+              [](const IntrinsicIconFeatureInterfaceManipulatorKinematics* self,
+                 const IntrinsicIconJointStateP* dof_positions,
+                 IntrinsicIconMatrix6Nd* jacobian_out)
+              -> IntrinsicIconRealtimeStatus {
             auto arm = reinterpret_cast<const LoopbackFakeArm*>(self);
             RealtimeStatusOr<eigenmath::Matrix6Nd> jacobian =
                 arm->ComputeChainJacobian(Convert(*dof_positions));
@@ -140,9 +143,9 @@ XfaIconFeatureInterfaceVtable LoopbackFakeArm::GetFeatureInterfaceVtable() {
             return FromRealtimeStatus(OkStatus());
           },
           .compute_chain_fk =
-              [](const XfaIconFeatureInterfaceManipulatorKinematics* self,
-                 const XfaIconJointStateP* dof_positions,
-                 XfaIconPose3d* pose_out) -> XfaIconRealtimeStatus {
+              [](const IntrinsicIconFeatureInterfaceManipulatorKinematics* self,
+                 const IntrinsicIconJointStateP* dof_positions,
+                 IntrinsicIconPose3d* pose_out) -> IntrinsicIconRealtimeStatus {
             auto arm = reinterpret_cast<const LoopbackFakeArm*>(self);
             RealtimeStatusOr<Pose3d> pose =
                 arm->ComputeChainFK(Convert(*dof_positions));
@@ -155,13 +158,13 @@ XfaIconFeatureInterfaceVtable LoopbackFakeArm::GetFeatureInterfaceVtable() {
       },
       .force_torque_sensor = {
           .wrench_at_tip =
-              [](const XfaIconFeatureInterfaceForceTorqueSensor* self)
-              -> XfaIconWrench {
+              [](const IntrinsicIconFeatureInterfaceForceTorqueSensor* self)
+              -> IntrinsicIconWrench {
             auto arm = reinterpret_cast<const LoopbackFakeArm*>(self);
             return Convert(arm->WrenchAtTip());
           },
-          .tare = [](XfaIconFeatureInterfaceForceTorqueSensor* self)
-              -> XfaIconRealtimeStatus {
+          .tare = [](IntrinsicIconFeatureInterfaceForceTorqueSensor* self)
+              -> IntrinsicIconRealtimeStatus {
             auto arm = reinterpret_cast<LoopbackFakeArm*>(self);
             return FromRealtimeStatus(arm->Tare());
           },
@@ -170,44 +173,47 @@ XfaIconFeatureInterfaceVtable LoopbackFakeArm::GetFeatureInterfaceVtable() {
 }
 
 // static
-XfaIconFeatureInterfacesForSlot
-LoopbackFakeArm::MakeXfaIconFeatureInterfacesForSlot(LoopbackFakeArm* arm) {
+IntrinsicIconFeatureInterfacesForSlot
+LoopbackFakeArm::MakeIntrinsicIconFeatureInterfacesForSlot(
+    LoopbackFakeArm* arm) {
   return {
       .joint_position = reinterpret_cast<
-          XfaIconFeatureInterfaceJointPositionCommandInterface*>(arm),
+          IntrinsicIconFeatureInterfaceJointPositionCommandInterface*>(arm),
       .joint_position_sensor =
-          reinterpret_cast<XfaIconFeatureInterfaceJointPositionSensor*>(arm),
-      .joint_velocity_estimator =
-          reinterpret_cast<XfaIconFeatureInterfaceJointVelocityEstimator*>(arm),
+          reinterpret_cast<IntrinsicIconFeatureInterfaceJointPositionSensor*>(
+              arm),
+      .joint_velocity_estimator = reinterpret_cast<
+          IntrinsicIconFeatureInterfaceJointVelocityEstimator*>(arm),
       .joint_limits =
-          reinterpret_cast<XfaIconFeatureInterfaceJointLimits*>(arm),
+          reinterpret_cast<IntrinsicIconFeatureInterfaceJointLimits*>(arm),
       .manipulator_kinematics =
-          reinterpret_cast<XfaIconFeatureInterfaceManipulatorKinematics*>(arm),
+          reinterpret_cast<IntrinsicIconFeatureInterfaceManipulatorKinematics*>(
+              arm),
       .force_torque_sensor =
-          reinterpret_cast<XfaIconFeatureInterfaceForceTorqueSensor*>(arm),
+          reinterpret_cast<IntrinsicIconFeatureInterfaceForceTorqueSensor*>(
+              arm),
   };
 }
 
 // static
-XfaIconConstFeatureInterfacesForSlot
-LoopbackFakeArm::MakeXfaIconConstFeatureInterfacesForSlot(
+IntrinsicIconConstFeatureInterfacesForSlot
+LoopbackFakeArm::MakeIntrinsicIconConstFeatureInterfacesForSlot(
     const LoopbackFakeArm* arm) {
   return {
       .joint_position = reinterpret_cast<
-          const XfaIconFeatureInterfaceJointPositionCommandInterface*>(arm),
-      .joint_position_sensor =
-          reinterpret_cast<const XfaIconFeatureInterfaceJointPositionSensor*>(
-              arm),
+          const IntrinsicIconFeatureInterfaceJointPositionCommandInterface*>(
+          arm),
+      .joint_position_sensor = reinterpret_cast<
+          const IntrinsicIconFeatureInterfaceJointPositionSensor*>(arm),
       .joint_velocity_estimator = reinterpret_cast<
-          const XfaIconFeatureInterfaceJointVelocityEstimator*>(arm),
+          const IntrinsicIconFeatureInterfaceJointVelocityEstimator*>(arm),
       .joint_limits =
-          reinterpret_cast<const XfaIconFeatureInterfaceJointLimits*>(arm),
-      .manipulator_kinematics =
-          reinterpret_cast<const XfaIconFeatureInterfaceManipulatorKinematics*>(
+          reinterpret_cast<const IntrinsicIconFeatureInterfaceJointLimits*>(
               arm),
-      .force_torque_sensor =
-          reinterpret_cast<const XfaIconFeatureInterfaceForceTorqueSensor*>(
-              arm),
+      .manipulator_kinematics = reinterpret_cast<
+          const IntrinsicIconFeatureInterfaceManipulatorKinematics*>(arm),
+      .force_torque_sensor = reinterpret_cast<
+          const IntrinsicIconFeatureInterfaceForceTorqueSensor*>(arm),
   };
 }
 

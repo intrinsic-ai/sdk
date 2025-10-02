@@ -130,7 +130,7 @@ absl::StatusOr<std::string> Run(
 }  // namespace intrinsic
 
 int main(int argc, char** argv) {
-  InitXfa(UsageString(), argc, argv);
+  InitIntrinsic(UsageString(), argc, argv);
 
   absl::StatusOr<std::string> result = intrinsic::icon::Run(
       intrinsic::ConnectionParams::ResourceInstance(

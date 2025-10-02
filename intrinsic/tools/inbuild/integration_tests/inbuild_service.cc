@@ -38,7 +38,7 @@ absl::Status MainImpl() {
 }
 
 int main(int argc, char** argv) {
-  InitXfa(argv[0], argc, argv);
+  InitIntrinsic(argv[0], argc, argv);
 
   QCHECK_OK(MainImpl());
   return 0;

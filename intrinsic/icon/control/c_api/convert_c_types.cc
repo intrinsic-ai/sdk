@@ -19,15 +19,15 @@
 namespace intrinsic::icon {
 namespace {
 static_assert(
-    kXfaIconMaxNumberOfJoints == eigenmath::MAX_EIGEN_VECTOR_SIZE,
+    kIntrinsicIconMaxNumberOfJoints == eigenmath::MAX_EIGEN_VECTOR_SIZE,
     "Mismatch between maximum size of C++ (intrinsic::eigenmath) and C "
     "vectors. This breaks the ICON C API!");
 }
 
-JointPositionCommand Convert(const XfaIconJointPositionCommand& in) {
-  CHECK(in.size < kXfaIconMaxNumberOfJoints)
-      << "XfaIconJointPositionCommand has more than the maximum of "
-      << kXfaIconMaxNumberOfJoints << " joints.";
+JointPositionCommand Convert(const IntrinsicIconJointPositionCommand& in) {
+  CHECK(in.size < kIntrinsicIconMaxNumberOfJoints)
+      << "IntrinsicIconJointPositionCommand has more than the maximum of "
+      << kIntrinsicIconMaxNumberOfJoints << " joints.";
   eigenmath::VectorNd position_setpoints(
       Eigen::Map<const eigenmath::VectorNd>(in.position_setpoints, in.size));
   // Return .value() without checking because we guarantee that position,
@@ -48,11 +48,11 @@ JointPositionCommand Convert(const XfaIconJointPositionCommand& in) {
       .value();
 }
 
-XfaIconJointPositionCommand Convert(const JointPositionCommand& in) {
-  CHECK(in.Size() < kXfaIconMaxNumberOfJoints)
+IntrinsicIconJointPositionCommand Convert(const JointPositionCommand& in) {
+  CHECK(in.Size() < kIntrinsicIconMaxNumberOfJoints)
       << "JointPositionCommand has more than the maximum of "
-      << kXfaIconMaxNumberOfJoints << " joints.";
-  XfaIconJointPositionCommand out{.size = in.Size()};
+      << kIntrinsicIconMaxNumberOfJoints << " joints.";
+  IntrinsicIconJointPositionCommand out{.size = in.Size()};
   for (size_t i = 0; i < out.size; ++i) {
     out.position_setpoints[i] = in.position()(i);
     if (in.velocity_feedforward().has_value()) {
@@ -68,10 +68,10 @@ XfaIconJointPositionCommand Convert(const JointPositionCommand& in) {
   return out;
 }
 
-JointLimits Convert(const XfaIconJointLimits& in) {
-  CHECK(in.size < kXfaIconMaxNumberOfJoints)
-      << "XfaIconJointLimits has more than the maximum of "
-      << kXfaIconMaxNumberOfJoints << " joints.";
+JointLimits Convert(const IntrinsicIconJointLimits& in) {
+  CHECK(in.size < kIntrinsicIconMaxNumberOfJoints)
+      << "IntrinsicIconJointLimits has more than the maximum of "
+      << kIntrinsicIconMaxNumberOfJoints << " joints.";
   return {
       .min_position =
           Eigen::Map<const eigenmath::VectorNd>(in.min_position, in.size),
@@ -87,11 +87,11 @@ JointLimits Convert(const XfaIconJointLimits& in) {
   };
 }
 
-XfaIconJointLimits Convert(const JointLimits& in) {
-  CHECK(in.size() < kXfaIconMaxNumberOfJoints)
+IntrinsicIconJointLimits Convert(const JointLimits& in) {
+  CHECK(in.size() < kIntrinsicIconMaxNumberOfJoints)
       << "JointLimits have more than the maximum of "
-      << kXfaIconMaxNumberOfJoints << " joints.";
-  XfaIconJointLimits out{.size = static_cast<size_t>(in.size())};
+      << kIntrinsicIconMaxNumberOfJoints << " joints.";
+  IntrinsicIconJointLimits out{.size = static_cast<size_t>(in.size())};
   for (size_t i = 0; i < out.size; ++i) {
     out.min_position[i] = in.min_position(i);
     out.max_position[i] = in.max_position(i);
@@ -103,57 +103,57 @@ XfaIconJointLimits Convert(const JointLimits& in) {
   return out;
 }
 
-JointStateP Convert(const XfaIconJointStateP& in) {
-  CHECK(in.size < kXfaIconMaxNumberOfJoints)
-      << "XfaIconJointStateP has more than the maximum of "
-      << kXfaIconMaxNumberOfJoints << " joints.";
+JointStateP Convert(const IntrinsicIconJointStateP& in) {
+  CHECK(in.size < kIntrinsicIconMaxNumberOfJoints)
+      << "IntrinsicIconJointStateP has more than the maximum of "
+      << kIntrinsicIconMaxNumberOfJoints << " joints.";
   return JointStateP(
       Eigen::Map<const eigenmath::VectorNd>(in.positions, in.size));
 }
 
-XfaIconJointStateP Convert(const JointStateP& in) {
-  CHECK(in.size() < kXfaIconMaxNumberOfJoints)
+IntrinsicIconJointStateP Convert(const JointStateP& in) {
+  CHECK(in.size() < kIntrinsicIconMaxNumberOfJoints)
       << "JointStateP has more than the maximum of "
-      << kXfaIconMaxNumberOfJoints << " joints.";
-  XfaIconJointStateP out{.size = static_cast<size_t>(in.size())};
+      << kIntrinsicIconMaxNumberOfJoints << " joints.";
+  IntrinsicIconJointStateP out{.size = static_cast<size_t>(in.size())};
   for (size_t i = 0; i < out.size; ++i) {
     out.positions[i] = in.position(i);
   }
   return out;
 }
 
-JointStateV Convert(const XfaIconJointStateV& in) {
-  CHECK(in.size < kXfaIconMaxNumberOfJoints)
-      << "XfaIconJointStateV has more than the maximum of "
-      << kXfaIconMaxNumberOfJoints << " joints.";
+JointStateV Convert(const IntrinsicIconJointStateV& in) {
+  CHECK(in.size < kIntrinsicIconMaxNumberOfJoints)
+      << "IntrinsicIconJointStateV has more than the maximum of "
+      << kIntrinsicIconMaxNumberOfJoints << " joints.";
   return JointStateV(
       Eigen::Map<const eigenmath::VectorNd>(in.velocities, in.size));
 }
 
-XfaIconJointStateV Convert(const JointStateV& in) {
-  CHECK(in.size() < kXfaIconMaxNumberOfJoints)
+IntrinsicIconJointStateV Convert(const JointStateV& in) {
+  CHECK(in.size() < kIntrinsicIconMaxNumberOfJoints)
       << "JointStateV has more than the maximum of "
-      << kXfaIconMaxNumberOfJoints << " joints.";
-  XfaIconJointStateV out{.size = static_cast<size_t>(in.size())};
+      << kIntrinsicIconMaxNumberOfJoints << " joints.";
+  IntrinsicIconJointStateV out{.size = static_cast<size_t>(in.size())};
   for (size_t i = 0; i < out.size; ++i) {
     out.velocities[i] = in.velocity(i);
   }
   return out;
 }
 
-JointStateA Convert(const XfaIconJointStateA& in) {
-  CHECK(in.size < kXfaIconMaxNumberOfJoints)
-      << "XfaIconJointStateA has more than the maximum of "
-      << kXfaIconMaxNumberOfJoints << " joints.";
+JointStateA Convert(const IntrinsicIconJointStateA& in) {
+  CHECK(in.size < kIntrinsicIconMaxNumberOfJoints)
+      << "IntrinsicIconJointStateA has more than the maximum of "
+      << kIntrinsicIconMaxNumberOfJoints << " joints.";
   return JointStateA(
       Eigen::Map<const eigenmath::VectorNd>(in.accelerations, in.size));
 }
 
-XfaIconJointStateA Convert(const JointStateA& in) {
-  CHECK(in.size() < kXfaIconMaxNumberOfJoints)
+IntrinsicIconJointStateA Convert(const JointStateA& in) {
+  CHECK(in.size() < kIntrinsicIconMaxNumberOfJoints)
       << "JointStateA has more than the maximum of "
-      << kXfaIconMaxNumberOfJoints << " joints.";
-  XfaIconJointStateA out{.size = static_cast<size_t>(in.size())};
+      << kIntrinsicIconMaxNumberOfJoints << " joints.";
+  IntrinsicIconJointStateA out{.size = static_cast<size_t>(in.size())};
   for (size_t i = 0; i < out.size; ++i) {
     out.accelerations[i] = in.acceleration(i);
   }
@@ -161,40 +161,40 @@ XfaIconJointStateA Convert(const JointStateA& in) {
   return out;
 }
 
-eigenmath::Quaterniond Convert(const XfaIconQuaternion& in) {
+eigenmath::Quaterniond Convert(const IntrinsicIconQuaternion& in) {
   return eigenmath::Quaterniond(/*w=*/in.w, /*x=*/in.x,
                                 /*y=*/in.y, /*z=*/in.z);
 }
 
-XfaIconQuaternion Convert(const eigenmath::Quaterniond& in) {
+IntrinsicIconQuaternion Convert(const eigenmath::Quaterniond& in) {
   return {.w = in.w(), .x = in.x(), .y = in.y(), .z = in.z()};
 }
 
-eigenmath::Vector3d Convert(const XfaIconPoint& in) {
+eigenmath::Vector3d Convert(const IntrinsicIconPoint& in) {
   return eigenmath::Vector3d(/*x=*/in.x, /*y=*/in.y, /*z=*/in.z);
 }
 
-XfaIconPoint Convert(const eigenmath::Vector3d& in) {
+IntrinsicIconPoint Convert(const eigenmath::Vector3d& in) {
   return {.x = in.x(), .y = in.y(), .z = in.z()};
 }
 
-Pose3d Convert(const XfaIconPose3d& in) {
+Pose3d Convert(const IntrinsicIconPose3d& in) {
   return Pose3d(/*rotation=*/Convert(in.rotation),
                 /*translation=*/Convert(in.translation));
 }
 
-XfaIconPose3d Convert(const Pose3d& in) {
+IntrinsicIconPose3d Convert(const Pose3d& in) {
   return {.rotation = Convert(in.quaternion()),
           .translation = Convert(in.translation())};
 }
 
-Wrench Convert(const XfaIconWrench& in) {
+Wrench Convert(const IntrinsicIconWrench& in) {
   return {
       in.x, in.y, in.z, in.rx, in.ry, in.rz,
   };
 }
 
-XfaIconWrench Convert(const Wrench& in) {
+IntrinsicIconWrench Convert(const Wrench& in) {
   return {
       .x = in.x(),
       .y = in.y(),
@@ -205,26 +205,26 @@ XfaIconWrench Convert(const Wrench& in) {
   };
 }
 
-eigenmath::Matrix6Nd Convert(const XfaIconMatrix6Nd& in) {
+eigenmath::Matrix6Nd Convert(const IntrinsicIconMatrix6Nd& in) {
   return Eigen::Map<const eigenmath::Matrix6Nd>(in.data, 6, in.num_cols);
 }
 
-XfaIconMatrix6Nd Convert(const eigenmath::Matrix6Nd& in) {
-  XfaIconMatrix6Nd out;
+IntrinsicIconMatrix6Nd Convert(const eigenmath::Matrix6Nd& in) {
+  IntrinsicIconMatrix6Nd out;
   out.num_cols = in.cols();
   std::memcpy(out.data, in.data(), in.size() * sizeof(double));
   return out;
 }
 
-SignalValue Convert(const XfaIconSignalValue& in) {
+SignalValue Convert(const IntrinsicIconSignalValue& in) {
   SignalValue out;
   out.current_value = in.current_value;
   out.previous_value = in.previous_value;
   return out;
 }
 
-XfaIconSignalValue Convert(const SignalValue& in) {
-  XfaIconSignalValue out;
+IntrinsicIconSignalValue Convert(const SignalValue& in) {
+  IntrinsicIconSignalValue out;
   out.current_value = in.current_value;
   out.previous_value = in.previous_value;
   return out;

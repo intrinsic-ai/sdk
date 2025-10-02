@@ -24,29 +24,29 @@ extern "C" {
 // already an Action Type of that name).
 // Returns InvalidArgument if `icon_api_version` does not match the server's API
 // version.
-typedef XfaIconRealtimeStatus (*XfaIconRegisterActionType)(
-    int64_t icon_api_version, XfaIconStringView action_type_name,
-    XfaIconStringView action_signature_proto,
-    XfaIconRtclActionVtable action_vtable);
+typedef IntrinsicIconRealtimeStatus (*IntrinsicIconRegisterActionType)(
+    int64_t icon_api_version, IntrinsicIconStringView action_type_name,
+    IntrinsicIconStringView action_signature_proto,
+    IntrinsicIconRtclActionVtable action_vtable);
 
 // Entrypoint into Action plugins. The host process calls this upon loading the
 // plugin.
 // Returns OkStatus on success.
-typedef XfaIconRealtimeStatus (*XfaIconRegisterActionTypes)(
-    XfaIconRegisterActionType register_action_type_fn);
+typedef IntrinsicIconRealtimeStatus (*IntrinsicIconRegisterActionTypes)(
+    IntrinsicIconRegisterActionType register_action_type_fn);
 
-// This is the canonical name for the entry point into an XfaIcon custom Action
-// Plugin. A Plugin must have a function with this name and the signature
-// defined above (XfaIconRegisterActionTypes).
+// This is the canonical name for the entry point into an IntrinsicIcon custom
+// Action Plugin. A Plugin must have a function with this name and the signature
+// defined above (IntrinsicIconRegisterActionTypes).
 //
 // That is, plugins should declare the entrypoint like this:
 //
-// XfaIconRealtimeStatus INTRINSIC_ICON_PLUGIN_ENTRY_POINT(
-//     XfaIconRegisterActionType register_action_type_fn) {
+// IntrinsicIconRealtimeStatus INTRINSIC_ICON_PLUGIN_ENTRY_POINT(
+//     IntrinsicIconRegisterActionType register_action_type_fn) {
 //   ...
 // }
 #define INTRINSIC_ICON_ACTION_PLUGIN_ENTRY_POINT \
-  XfaIconRegisterActionTypesForPlugin
+  IntrinsicIconRegisterActionTypesForPlugin
 
 #ifdef __cplusplus
 }

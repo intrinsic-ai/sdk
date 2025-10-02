@@ -46,7 +46,7 @@ absl::Status Run(const intrinsic::ConnectionParams& connection_params,
 }  // namespace
 
 int main(int argc, char** argv) {
-  InitXfa(kUsage, argc, argv);
+  InitIntrinsic(kUsage, argc, argv);
   QCHECK_OK(Run(intrinsic::ConnectionParams::ResourceInstance(
                     absl::GetFlag(FLAGS_instance), absl::GetFlag(FLAGS_server)),
                 absl::GetFlag(FLAGS_part), absl::GetFlag(FLAGS_output_block)));

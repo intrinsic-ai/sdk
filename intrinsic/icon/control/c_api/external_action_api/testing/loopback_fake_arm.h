@@ -49,23 +49,24 @@ class LoopbackFakeArm final {
 
   // Returns the vtable struct for the feature interface implementations in this
   // fake part.
-  static XfaIconFeatureInterfaceVtable GetFeatureInterfaceVtable();
+  static IntrinsicIconFeatureInterfaceVtable GetFeatureInterfaceVtable();
 
-  // Returns an XfaIconFeatureInterfacesForSlot struct populated with the
+  // Returns an IntrinsicIconFeatureInterfacesForSlot struct populated with the
   // feature interface pointers for `arm`. Pass these pointers to the functions
   // in the vtable you get from `GetFeatureInterfaceVtable()` above to use them.
   //
   // That said, don't do that directly, Use ActionTestHelper instead, which.
-  static XfaIconFeatureInterfacesForSlot MakeXfaIconFeatureInterfacesForSlot(
-      LoopbackFakeArm* arm);
+  static IntrinsicIconFeatureInterfacesForSlot
+  MakeIntrinsicIconFeatureInterfacesForSlot(LoopbackFakeArm* arm);
 
-  // Returns an XfaIconConstFeatureInterfacesForSlot struct populated with the
-  // feature interface pointers for `arm`. Pass these pointers to the functions
-  // in the vtable you get from `GetFeatureInterfaceVtable()` above to use them.
+  // Returns an IntrinsicIconConstFeatureInterfacesForSlot struct populated with
+  // the feature interface pointers for `arm`. Pass these pointers to the
+  // functions in the vtable you get from `GetFeatureInterfaceVtable()` above to
+  // use them.
   //
   // That said, don't do that directly, use ActionTestHelper instead.
-  static XfaIconConstFeatureInterfacesForSlot
-  MakeXfaIconConstFeatureInterfacesForSlot(const LoopbackFakeArm* arm);
+  static IntrinsicIconConstFeatureInterfacesForSlot
+  MakeIntrinsicIconConstFeatureInterfacesForSlot(const LoopbackFakeArm* arm);
 
   // Creates a new LoopbackFakeArm with unlimited application and system joint
   // limits.

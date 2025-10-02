@@ -23,8 +23,8 @@ namespace intrinsic::icon {
 class IconStreamingIoAccess {
  public:
   IconStreamingIoAccess(
-      XfaIconStreamingIoRealtimeAccess* realtime_access,
-      XfaIconStreamingIoRealtimeAccessVtable realtime_access_vtable)
+      IntrinsicIconStreamingIoRealtimeAccess* realtime_access,
+      IntrinsicIconStreamingIoRealtimeAccessVtable realtime_access_vtable)
       : realtime_access_(realtime_access),
         realtime_access_vtable_(std::move(realtime_access_vtable)) {}
 
@@ -50,15 +50,15 @@ class IconStreamingIoAccess {
   RealtimeStatus WriteOutput(const RealtimeT& output);
 
  private:
-  XfaIconStreamingIoRealtimeAccess* realtime_access_ = nullptr;
-  XfaIconStreamingIoRealtimeAccessVtable realtime_access_vtable_;
+  IntrinsicIconStreamingIoRealtimeAccess* realtime_access_ = nullptr;
+  IntrinsicIconStreamingIoRealtimeAccessVtable realtime_access_vtable_;
 };
 
 template <typename RealtimeT>
 RealtimeStatusOr<const RealtimeT*> IconStreamingIoAccess::PollInput(
     StreamingInputId id) {
-  XfaIconRealtimeStatus status;
-  const XfaIconStreamingInputType* streaming_input =
+  IntrinsicIconRealtimeStatus status;
+  const IntrinsicIconStreamingInputType* streaming_input =
       realtime_access_vtable_.poll_input(realtime_access_, id.value(), &status);
   INTRINSIC_RT_RETURN_IF_ERROR(ToRealtimeStatus(status));
   return UnwrapStreamingInput<RealtimeT>(streaming_input);
@@ -68,7 +68,7 @@ template <typename RealtimeT, typename>
 RealtimeStatus IconStreamingIoAccess::WriteOutput(const RealtimeT& output) {
   return ToRealtimeStatus(realtime_access_vtable_.write_output(
       realtime_access_,
-      reinterpret_cast<const XfaIconStreamingOutputType*>(&output),
+      reinterpret_cast<const IntrinsicIconStreamingOutputType*>(&output),
       sizeof(output)));
 }
 

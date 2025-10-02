@@ -11,13 +11,14 @@
 extern "C" {
 #endif
 
-struct XfaIconRealtimeSlotMap;
+struct IntrinsicIconRealtimeSlotMap;
 
-struct XfaIconRealtimeSlotMapVtable {
-  XfaIconFeatureInterfacesForSlot (*get_mutable_feature_interfaces_for_slot)(
-      XfaIconRealtimeSlotMap* self, uint64_t slot_id);
-  XfaIconConstFeatureInterfacesForSlot (*get_feature_interfaces_for_slot)(
-      const XfaIconRealtimeSlotMap* self, uint64_t slot_id);
+struct IntrinsicIconRealtimeSlotMapVtable {
+  IntrinsicIconFeatureInterfacesForSlot (
+      *get_mutable_feature_interfaces_for_slot)(
+      IntrinsicIconRealtimeSlotMap* self, uint64_t slot_id);
+  IntrinsicIconConstFeatureInterfacesForSlot (*get_feature_interfaces_for_slot)(
+      const IntrinsicIconRealtimeSlotMap* self, uint64_t slot_id);
 };
 
 #ifdef __cplusplus

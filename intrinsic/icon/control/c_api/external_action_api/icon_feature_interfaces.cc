@@ -25,7 +25,7 @@ IconConstJointPositionCommandInterface::PreviousPositionSetpoints() const {
 
 RealtimeStatus IconJointPositionCommandInterface::SetPositionSetpoints(
     const JointPositionCommand& setpoints) {
-  XfaIconJointPositionCommand cmd = Convert(setpoints);
+  IntrinsicIconJointPositionCommand cmd = Convert(setpoints);
   return ToRealtimeStatus(
       joint_position_vtable_.set_position_setpoints(joint_position_c_, &cmd));
 }
@@ -71,8 +71,8 @@ RealtimeStatus IconForceTorqueSensor::Tare() {
 
 RealtimeStatusOr<Pose3d> IconManipulatorKinematics::ComputeChainFK(
     const JointStateP dof_positions) const {
-  XfaIconPose3d out;
-  XfaIconJointStateP state_c = Convert(dof_positions);
+  IntrinsicIconPose3d out;
+  IntrinsicIconJointStateP state_c = Convert(dof_positions);
   RealtimeStatus status =
       ToRealtimeStatus(manipulator_kinematics_vtable_.compute_chain_fk(
           manipulator_kinematics_c_, &state_c, &out));
@@ -85,8 +85,8 @@ RealtimeStatusOr<Pose3d> IconManipulatorKinematics::ComputeChainFK(
 RealtimeStatusOr<eigenmath::Matrix6Nd>
 IconManipulatorKinematics::ComputeChainJacobian(
     const JointStateP dof_positions) const {
-  XfaIconMatrix6Nd out;
-  XfaIconJointStateP state_c = Convert(dof_positions);
+  IntrinsicIconMatrix6Nd out;
+  IntrinsicIconJointStateP state_c = Convert(dof_positions);
   RealtimeStatus status =
       ToRealtimeStatus(manipulator_kinematics_vtable_.compute_chain_jacobian(
           manipulator_kinematics_c_, &state_c, &out));
@@ -97,8 +97,8 @@ IconManipulatorKinematics::ComputeChainJacobian(
 }
 
 IconConstFeatureInterfaces FromCApiFeatureInterfaces(
-    XfaIconConstFeatureInterfacesForSlot const_feature_interfaces,
-    const XfaIconFeatureInterfaceVtable feature_interface_vtable) {
+    IntrinsicIconConstFeatureInterfacesForSlot const_feature_interfaces,
+    const IntrinsicIconFeatureInterfaceVtable feature_interface_vtable) {
   IconConstFeatureInterfaces out;
   if (const_feature_interfaces.joint_limits != nullptr) {
     out.joint_limits = IconJointLimits(const_feature_interfaces.joint_limits,
@@ -133,8 +133,8 @@ IconConstFeatureInterfaces FromCApiFeatureInterfaces(
 }
 
 IconFeatureInterfaces FromCApiFeatureInterfaces(
-    XfaIconFeatureInterfacesForSlot feature_interfaces,
-    XfaIconFeatureInterfaceVtable feature_interface_vtable) {
+    IntrinsicIconFeatureInterfacesForSlot feature_interfaces,
+    IntrinsicIconFeatureInterfaceVtable feature_interface_vtable) {
   IconFeatureInterfaces out;
   if (feature_interfaces.joint_limits != nullptr) {
     out.joint_limits = IconJointLimits(feature_interfaces.joint_limits,

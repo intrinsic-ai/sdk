@@ -73,16 +73,17 @@ IconRealtimeSignalAccessAndMapFake::GetRealtimeSignalId(
 IconRealtimeSignalAccess
 IconRealtimeSignalAccessAndMapFake::MakeIconRealtimeSignalAccess() {
   return IconRealtimeSignalAccess(
-      reinterpret_cast<XfaIconRealtimeSignalAccess*>(this), GetCApiVtable());
+      reinterpret_cast<IntrinsicIconRealtimeSignalAccess*>(this),
+      GetCApiVtable());
 }
 
 // static
-XfaIconRealtimeSignalAccessVtable
+IntrinsicIconRealtimeSignalAccessVtable
 IconRealtimeSignalAccessAndMapFake::GetCApiVtable() {
   return {
-      .read_signal =
-          [](XfaIconRealtimeSignalAccess* self, uint64_t id,
-             XfaIconSignalValue* signal_value) -> XfaIconRealtimeStatus {
+      .read_signal = [](IntrinsicIconRealtimeSignalAccess* self, uint64_t id,
+                        IntrinsicIconSignalValue* signal_value)
+          -> IntrinsicIconRealtimeStatus {
         auto signal_access =
             reinterpret_cast<IconRealtimeSignalAccessAndMapFake*>(self);
         auto signal = signal_access->ReadSignal(RealtimeSignalId(id));

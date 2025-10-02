@@ -14,8 +14,8 @@ namespace intrinsic::icon {
 class IconRealtimeSignalAccess {
  public:
   IconRealtimeSignalAccess(
-      XfaIconRealtimeSignalAccess* realtime_signal_access,
-      XfaIconRealtimeSignalAccessVtable realtime_signal_access_vtable)
+      IntrinsicIconRealtimeSignalAccess* realtime_signal_access,
+      IntrinsicIconRealtimeSignalAccessVtable realtime_signal_access_vtable)
       : realtime_signal_access_(realtime_signal_access),
         realtime_signal_access_vtable_(
             std::move(realtime_signal_access_vtable)) {}
@@ -23,8 +23,8 @@ class IconRealtimeSignalAccess {
   RealtimeStatusOr<SignalValue> ReadSignal(RealtimeSignalId id);
 
  private:
-  XfaIconRealtimeSignalAccess* realtime_signal_access_ = nullptr;
-  XfaIconRealtimeSignalAccessVtable realtime_signal_access_vtable_;
+  IntrinsicIconRealtimeSignalAccess* realtime_signal_access_ = nullptr;
+  IntrinsicIconRealtimeSignalAccessVtable realtime_signal_access_vtable_;
 };
 
 }  // namespace intrinsic::icon

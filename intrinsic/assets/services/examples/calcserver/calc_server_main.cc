@@ -67,7 +67,7 @@ absl::Status MainImpl() {
 }  // namespace intrinsic::services
 
 int main(int argc, char** argv) {
-  InitXfa(argv[0], argc, argv);
+  InitIntrinsic(argv[0], argc, argv);
   QCHECK_OK(intrinsic::services::MainImpl());
   return 0;
 }

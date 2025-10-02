@@ -101,23 +101,23 @@ absl::StatusOr<RealtimeSlotId> IconSlotMapFake::GetIdForSlot(
 }
 
 IconRealtimeSlotMap IconSlotMapFake::MakeIconRealtimeSlotMap() {
-  return IconRealtimeSlotMap(reinterpret_cast<XfaIconRealtimeSlotMap*>(this),
-                             GetCApiVtable(),
-                             LoopbackFakeArm::GetFeatureInterfaceVtable());
+  return IconRealtimeSlotMap(
+      reinterpret_cast<IntrinsicIconRealtimeSlotMap*>(this), GetCApiVtable(),
+      LoopbackFakeArm::GetFeatureInterfaceVtable());
 }
 
 IconConstRealtimeSlotMap IconSlotMapFake::MakeIconConstRealtimeSlotMap() const {
   return IconConstRealtimeSlotMap(
-      reinterpret_cast<const XfaIconRealtimeSlotMap*>(this), GetCApiVtable(),
-      LoopbackFakeArm::GetFeatureInterfaceVtable());
+      reinterpret_cast<const IntrinsicIconRealtimeSlotMap*>(this),
+      GetCApiVtable(), LoopbackFakeArm::GetFeatureInterfaceVtable());
 }
 
 // static
-XfaIconRealtimeSlotMapVtable IconSlotMapFake::GetCApiVtable() {
+IntrinsicIconRealtimeSlotMapVtable IconSlotMapFake::GetCApiVtable() {
   return {
       .get_mutable_feature_interfaces_for_slot =
-          [](XfaIconRealtimeSlotMap* self,
-             uint64_t slot_id) -> XfaIconFeatureInterfacesForSlot {
+          [](IntrinsicIconRealtimeSlotMap* self,
+             uint64_t slot_id) -> IntrinsicIconFeatureInterfacesForSlot {
         LoopbackFakeArm* arm_ptr = nullptr;
         auto slot_map = reinterpret_cast<IconSlotMapFake*>(self);
         auto slot_name =
@@ -127,14 +127,15 @@ XfaIconRealtimeSlotMapVtable IconSlotMapFake::GetCApiVtable() {
         }
         // Simply use the LoopbackFakeArm pointer for all feature
         // interfaces, since we know it supports them all. We need to
-        // make sure to use an XfaIconFeatureInterfaceVtable struct whose
+        // make sure to use an IntrinsicIconFeatureInterfaceVtable struct whose
         // functions correctly cast this back to LoopbackFakeArm (see
         // MakeIconRealtimeSlotMap above)!
-        return LoopbackFakeArm::MakeXfaIconFeatureInterfacesForSlot(arm_ptr);
+        return LoopbackFakeArm::MakeIntrinsicIconFeatureInterfacesForSlot(
+            arm_ptr);
       },
       .get_feature_interfaces_for_slot =
-          [](const XfaIconRealtimeSlotMap* self,
-             uint64_t slot_id) -> XfaIconConstFeatureInterfacesForSlot {
+          [](const IntrinsicIconRealtimeSlotMap* self,
+             uint64_t slot_id) -> IntrinsicIconConstFeatureInterfacesForSlot {
         const LoopbackFakeArm* arm_ptr = nullptr;
         auto slot_map = reinterpret_cast<const IconSlotMapFake*>(self);
         auto slot_name =
@@ -144,10 +145,10 @@ XfaIconRealtimeSlotMapVtable IconSlotMapFake::GetCApiVtable() {
         }
         // Simply use the LoopbackFakeArm pointer for all feature
         // interfaces, since we know it supports them all. We need to
-        // make sure to use an XfaIconFeatureInterfaceVtable struct whose
+        // make sure to use an IntrinsicIconFeatureInterfaceVtable struct whose
         // functions correctly cast this back to LoopbackFakeArm (see
         // MakeIconConstRealtimeSlotMap above)!!
-        return LoopbackFakeArm::MakeXfaIconConstFeatureInterfacesForSlot(
+        return LoopbackFakeArm::MakeIntrinsicIconConstFeatureInterfacesForSlot(
             arm_ptr);
       },
   };

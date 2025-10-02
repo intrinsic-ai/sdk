@@ -10,18 +10,18 @@
 
 namespace intrinsic::icon {
 
-// Destroys `str`, freeing both the memory for the XfaIconString struct itself
-// *and* the memory for its character buffer.
-void DestroyString(XfaIconString* str);
+// Destroys `str`, freeing both the memory for the IntrinsicIconString struct
+// itself *and* the memory for its character buffer.
+void DestroyString(IntrinsicIconString* str);
 
-// Creates a new XfaIconString on the heap, including a buffer to move the
+// Creates a new IntrinsicIconString on the heap, including a buffer to move the
 // contents of `str` into. The result can be passed to API functions for them to
 // keep (and eventually destroy using DestroyString() above).
-XfaIconString* Wrap(absl::string_view str);
+IntrinsicIconString* Wrap(absl::string_view str);
 
-// Wraps a string_view into an XfaIconString that can be passed to API functions
-// as an immutable, non-owned parameter.
-XfaIconStringView WrapView(absl::string_view str);
+// Wraps a string_view into an IntrinsicIconString that can be passed to API
+// functions as an immutable, non-owned parameter.
+IntrinsicIconStringView WrapView(absl::string_view str);
 
 }  // namespace intrinsic::icon
 

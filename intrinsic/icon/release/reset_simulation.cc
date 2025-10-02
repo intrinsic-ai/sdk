@@ -68,7 +68,7 @@ absl::Status ResetSimulation(absl::string_view address) {
 }  // namespace
 
 int main(int argc, char** argv) {
-  InitXfa(UsageString(), argc, argv);
+  InitIntrinsic(UsageString(), argc, argv);
   QCHECK_OK(ResetSimulation(absl::GetFlag(FLAGS_address)));
   return 0;
 }

@@ -24,9 +24,9 @@ namespace intrinsic::icon {
 class IconConstJointPositionCommandInterface {
  public:
   IconConstJointPositionCommandInterface(
-      const XfaIconFeatureInterfaceJointPositionCommandInterface*
+      const IntrinsicIconFeatureInterfaceJointPositionCommandInterface*
           joint_position_c,
-      XfaIconFeatureInterfaceJointPositionCommandInterfaceVtable
+      IntrinsicIconFeatureInterfaceJointPositionCommandInterfaceVtable
           joint_position_vtable)
       : joint_position_c_(joint_position_c),
         joint_position_vtable_(std::move(joint_position_vtable)) {}
@@ -36,16 +36,18 @@ class IconConstJointPositionCommandInterface {
   JointPositionCommand PreviousPositionSetpoints() const;
 
  private:
-  const XfaIconFeatureInterfaceJointPositionCommandInterface* joint_position_c_;
-  XfaIconFeatureInterfaceJointPositionCommandInterfaceVtable
+  const IntrinsicIconFeatureInterfaceJointPositionCommandInterface*
+      joint_position_c_;
+  IntrinsicIconFeatureInterfaceJointPositionCommandInterfaceVtable
       joint_position_vtable_;
 };
 
 class IconJointPositionCommandInterface {
  public:
   IconJointPositionCommandInterface(
-      XfaIconFeatureInterfaceJointPositionCommandInterface* joint_position_c,
-      XfaIconFeatureInterfaceJointPositionCommandInterfaceVtable
+      IntrinsicIconFeatureInterfaceJointPositionCommandInterface*
+          joint_position_c,
+      IntrinsicIconFeatureInterfaceJointPositionCommandInterfaceVtable
           joint_position_vtable)
       : joint_position_c_(joint_position_c),
         joint_position_vtable_(std::move(joint_position_vtable)) {}
@@ -62,16 +64,17 @@ class IconJointPositionCommandInterface {
   JointPositionCommand PreviousPositionSetpoints() const;
 
  private:
-  XfaIconFeatureInterfaceJointPositionCommandInterface* joint_position_c_;
-  XfaIconFeatureInterfaceJointPositionCommandInterfaceVtable
+  IntrinsicIconFeatureInterfaceJointPositionCommandInterface* joint_position_c_;
+  IntrinsicIconFeatureInterfaceJointPositionCommandInterfaceVtable
       joint_position_vtable_;
 };
 
 class IconJointPositionSensor {
  public:
   IconJointPositionSensor(
-      const XfaIconFeatureInterfaceJointPositionSensor* joint_position_sensor_c,
-      XfaIconFeatureInterfaceJointPositionSensorVtable
+      const IntrinsicIconFeatureInterfaceJointPositionSensor*
+          joint_position_sensor_c,
+      IntrinsicIconFeatureInterfaceJointPositionSensorVtable
           joint_position_sensor_vtable)
       : joint_position_sensor_c_(joint_position_sensor_c),
         joint_position_sensor_vtable_(std::move(joint_position_sensor_vtable)) {
@@ -81,18 +84,18 @@ class IconJointPositionSensor {
   JointStateP GetSensedPosition() const;
 
  private:
-  const XfaIconFeatureInterfaceJointPositionSensor* joint_position_sensor_c_ =
-      nullptr;
-  XfaIconFeatureInterfaceJointPositionSensorVtable
+  const IntrinsicIconFeatureInterfaceJointPositionSensor*
+      joint_position_sensor_c_ = nullptr;
+  IntrinsicIconFeatureInterfaceJointPositionSensorVtable
       joint_position_sensor_vtable_;
 };
 
 class IconJointVelocityEstimator {
  public:
   IconJointVelocityEstimator(
-      const XfaIconFeatureInterfaceJointVelocityEstimator*
+      const IntrinsicIconFeatureInterfaceJointVelocityEstimator*
           joint_velocity_estimator_c,
-      XfaIconFeatureInterfaceJointVelocityEstimatorVtable
+      IntrinsicIconFeatureInterfaceJointVelocityEstimatorVtable
           joint_velocity_estimator_vtable)
       : joint_velocity_estimator_c_(joint_velocity_estimator_c),
         joint_velocity_estimator_vtable_(
@@ -102,16 +105,17 @@ class IconJointVelocityEstimator {
   JointStateV GetVelocityEstimate() const;
 
  private:
-  const XfaIconFeatureInterfaceJointVelocityEstimator*
+  const IntrinsicIconFeatureInterfaceJointVelocityEstimator*
       joint_velocity_estimator_c_ = nullptr;
-  XfaIconFeatureInterfaceJointVelocityEstimatorVtable
+  IntrinsicIconFeatureInterfaceJointVelocityEstimatorVtable
       joint_velocity_estimator_vtable_;
 };
 
 class IconJointLimits {
  public:
-  IconJointLimits(const XfaIconFeatureInterfaceJointLimits* joint_limits_c,
-                  XfaIconFeatureInterfaceJointLimitsVtable joint_limits_vtable)
+  IconJointLimits(
+      const IntrinsicIconFeatureInterfaceJointLimits* joint_limits_c,
+      IntrinsicIconFeatureInterfaceJointLimitsVtable joint_limits_vtable)
       : joint_limits_c_(joint_limits_c),
         joint_limits_vtable_(std::move(joint_limits_vtable)) {}
 
@@ -137,15 +141,17 @@ class IconJointLimits {
   JointLimits GetSystemLimits() const;
 
  private:
-  const XfaIconFeatureInterfaceJointLimits* joint_limits_c_ = nullptr;
-  XfaIconFeatureInterfaceJointLimitsVtable joint_limits_vtable_;
+  const IntrinsicIconFeatureInterfaceJointLimits* joint_limits_c_ = nullptr;
+  IntrinsicIconFeatureInterfaceJointLimitsVtable joint_limits_vtable_;
 };
 
 class IconConstForceTorqueSensor {
  public:
   IconConstForceTorqueSensor(
-      const XfaIconFeatureInterfaceForceTorqueSensor* force_torque_sensor_c,
-      XfaIconFeatureInterfaceForceTorqueSensorVtable force_torque_sensor_vtable)
+      const IntrinsicIconFeatureInterfaceForceTorqueSensor*
+          force_torque_sensor_c,
+      IntrinsicIconFeatureInterfaceForceTorqueSensorVtable
+          force_torque_sensor_vtable)
       : force_torque_sensor_c_(force_torque_sensor_c),
         force_torque_sensor_vtable_(std::move(force_torque_sensor_vtable)) {}
 
@@ -156,16 +162,18 @@ class IconConstForceTorqueSensor {
   Wrench WrenchAtTip() const;
 
  private:
-  const XfaIconFeatureInterfaceForceTorqueSensor* force_torque_sensor_c_ =
+  const IntrinsicIconFeatureInterfaceForceTorqueSensor* force_torque_sensor_c_ =
       nullptr;
-  XfaIconFeatureInterfaceForceTorqueSensorVtable force_torque_sensor_vtable_;
+  IntrinsicIconFeatureInterfaceForceTorqueSensorVtable
+      force_torque_sensor_vtable_;
 };
 
 class IconForceTorqueSensor {
  public:
   IconForceTorqueSensor(
-      XfaIconFeatureInterfaceForceTorqueSensor* force_torque_sensor_c,
-      XfaIconFeatureInterfaceForceTorqueSensorVtable force_torque_sensor_vtable)
+      IntrinsicIconFeatureInterfaceForceTorqueSensor* force_torque_sensor_c,
+      IntrinsicIconFeatureInterfaceForceTorqueSensorVtable
+          force_torque_sensor_vtable)
       : force_torque_sensor_c_(force_torque_sensor_c),
         force_torque_sensor_vtable_(std::move(force_torque_sensor_vtable)) {}
 
@@ -179,16 +187,19 @@ class IconForceTorqueSensor {
   RealtimeStatus Tare();
 
  private:
-  XfaIconFeatureInterfaceForceTorqueSensor* force_torque_sensor_c_ = nullptr;
-  XfaIconFeatureInterfaceForceTorqueSensorVtable force_torque_sensor_vtable_;
+  IntrinsicIconFeatureInterfaceForceTorqueSensor* force_torque_sensor_c_ =
+      nullptr;
+  IntrinsicIconFeatureInterfaceForceTorqueSensorVtable
+      force_torque_sensor_vtable_;
 };
 
 class IconManipulatorKinematics {
  public:
-  IconManipulatorKinematics(const XfaIconFeatureInterfaceManipulatorKinematics*
-                                manipulator_kinematics_c,
-                            XfaIconFeatureInterfaceManipulatorKinematicsVtable
-                                manipulator_kinematics_vtable)
+  IconManipulatorKinematics(
+      const IntrinsicIconFeatureInterfaceManipulatorKinematics*
+          manipulator_kinematics_c,
+      IntrinsicIconFeatureInterfaceManipulatorKinematicsVtable
+          manipulator_kinematics_vtable)
       : manipulator_kinematics_c_(manipulator_kinematics_c),
         manipulator_kinematics_vtable_(
             std::move(manipulator_kinematics_vtable)) {}
@@ -202,9 +213,9 @@ class IconManipulatorKinematics {
       JointStateP dof_positions) const;
 
  private:
-  const XfaIconFeatureInterfaceManipulatorKinematics*
+  const IntrinsicIconFeatureInterfaceManipulatorKinematics*
       manipulator_kinematics_c_ = nullptr;
-  XfaIconFeatureInterfaceManipulatorKinematicsVtable
+  IntrinsicIconFeatureInterfaceManipulatorKinematicsVtable
       manipulator_kinematics_vtable_;
 };
 
@@ -232,8 +243,8 @@ struct IconConstFeatureInterfaces {
 //
 // Sets the entries for interfaces whose pointers are nullptr to std::nullopt.
 IconConstFeatureInterfaces FromCApiFeatureInterfaces(
-    XfaIconConstFeatureInterfacesForSlot const_feature_interfaces,
-    XfaIconFeatureInterfaceVtable feature_interface_vtable);
+    IntrinsicIconConstFeatureInterfacesForSlot const_feature_interfaces,
+    IntrinsicIconFeatureInterfaceVtable feature_interface_vtable);
 
 // Creates instances of the C++ class (see above) for any non-null pointers in
 // `feature_interfaces`, using the function pointers from
@@ -241,8 +252,8 @@ IconConstFeatureInterfaces FromCApiFeatureInterfaces(
 //
 // Sets the entries for interfaces whose pointers are nullptr to std::nullopt.
 IconFeatureInterfaces FromCApiFeatureInterfaces(
-    XfaIconFeatureInterfacesForSlot feature_interfaces,
-    XfaIconFeatureInterfaceVtable feature_interface_vtable);
+    IntrinsicIconFeatureInterfacesForSlot feature_interfaces,
+    IntrinsicIconFeatureInterfaceVtable feature_interface_vtable);
 
 }  // namespace intrinsic::icon
 

@@ -9,7 +9,7 @@
 
 namespace intrinsic::icon {
 
-void DestroyString(XfaIconString* str) {
+void DestroyString(IntrinsicIconString* str) {
   if (str == nullptr) {
     return;
   }
@@ -17,13 +17,13 @@ void DestroyString(XfaIconString* str) {
   delete str;
 }
 
-XfaIconString* Wrap(absl::string_view str) {
+IntrinsicIconString* Wrap(absl::string_view str) {
   char* data = new char[str.size()];
   std::memcpy(data, str.data(), str.size());
-  return new XfaIconString({.data = data, .size = str.size()});
+  return new IntrinsicIconString({.data = data, .size = str.size()});
 }
 
-XfaIconStringView WrapView(absl::string_view str) {
+IntrinsicIconStringView WrapView(absl::string_view str) {
   return {.data = str.data(), .size = str.size()};
 }
 

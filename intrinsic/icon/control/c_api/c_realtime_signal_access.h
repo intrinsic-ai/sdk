@@ -12,12 +12,12 @@
 extern "C" {
 #endif
 
-struct XfaIconRealtimeSignalAccess;
+struct IntrinsicIconRealtimeSignalAccess;
 
-struct XfaIconRealtimeSignalAccessVtable {
-  XfaIconRealtimeStatus (*read_signal)(XfaIconRealtimeSignalAccess* self,
-                                       uint64_t id,
-                                       XfaIconSignalValue* signal_value);
+struct IntrinsicIconRealtimeSignalAccessVtable {
+  IntrinsicIconRealtimeStatus (*read_signal)(
+      IntrinsicIconRealtimeSignalAccess* self, uint64_t id,
+      IntrinsicIconSignalValue* signal_value);
 };
 
 #ifdef __cplusplus

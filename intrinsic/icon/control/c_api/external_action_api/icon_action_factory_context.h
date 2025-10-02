@@ -22,16 +22,17 @@
 
 namespace intrinsic::icon {
 
-// This class makes the methods of an XfaActionFactoryContext pointer available
-// via nicer C++ APIs.
+// This class makes the methods of an IntrinsicActionFactoryContext pointer
+// available via nicer C++ APIs.
 //
 // Actions receive a reference to an IconActionFactoryContext in their Create()
 // function, which runs in a non-realtime environment.
 class IconActionFactoryContext {
  public:
   IconActionFactoryContext(
-      XfaIconActionFactoryContext* icon_action_factory_context,
-      XfaIconActionFactoryContextVtable icon_action_factory_context_vtable)
+      IntrinsicIconActionFactoryContext* icon_action_factory_context,
+      IntrinsicIconActionFactoryContextVtable
+          icon_action_factory_context_vtable)
       : icon_action_factory_context_(icon_action_factory_context),
         icon_action_factory_context_vtable_(
             std::move(icon_action_factory_context_vtable)) {}
@@ -98,8 +99,8 @@ class IconActionFactoryContext {
           converter);
 
  private:
-  XfaIconActionFactoryContext* icon_action_factory_context_ = nullptr;
-  XfaIconActionFactoryContextVtable icon_action_factory_context_vtable_;
+  IntrinsicIconActionFactoryContext* icon_action_factory_context_ = nullptr;
+  IntrinsicIconActionFactoryContextVtable icon_action_factory_context_vtable_;
 };
 
 template <typename ProtoT, typename RealtimeT, typename>
@@ -108,7 +109,7 @@ IconActionFactoryContext::AddStreamingInputParser(
     absl::string_view input_name,
     std::function<absl::StatusOr<RealtimeT>(const ProtoT& streaming_input)>
         parser) {
-  XfaIconStreamingInputParserFnInstance parser_wrapped =
+  IntrinsicIconStreamingInputParserFnInstance parser_wrapped =
       WrapStreamingInputParser(std::move(parser));
   uint64_t streaming_input_id;
   INTR_RETURN_IF_ERROR(ToAbslStatus(
@@ -123,7 +124,7 @@ template <typename RealtimeT, typename ProtoT, typename>
 absl::Status IconActionFactoryContext::AddStreamingOutputConverter(
     std::function<absl::StatusOr<ProtoT>(const RealtimeT& streaming_output)>
         converter) {
-  XfaIconStreamingOutputConverterFnInstance converter_wrapped =
+  IntrinsicIconStreamingOutputConverterFnInstance converter_wrapped =
       WrapStreamingOutputConverter(std::move(converter));
   INTR_RETURN_IF_ERROR(ToAbslStatus(
       icon_action_factory_context_vtable_.add_streaming_output_converter(

@@ -88,7 +88,7 @@ class IconSlotMapFake {
     LoopbackFakeArm fake_arm;
   };
 
-  static XfaIconRealtimeSlotMapVtable GetCApiVtable();
+  static IntrinsicIconRealtimeSlotMapVtable GetCApiVtable();
 
   size_t next_slot_index_ = 0;
   absl::flat_hash_map<RealtimeSlotId, std::string> slot_id_to_slot_name_;

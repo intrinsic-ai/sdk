@@ -27,14 +27,14 @@
 // Before you do, make sure your Action not only implements the virtual
 // functions from IconActionInterface, but also meets the additional
 // requirements listed in icon_action_interface.h.
-#define INTRINSIC_ICON_REGISTER_ICON_ACTION_PLUGIN(ActionClassName) \
-  extern "C" {                                                      \
-  __attribute__((__visibility__("default"))) XfaIconRealtimeStatus  \
-  INTRINSIC_ICON_ACTION_PLUGIN_ENTRY_POINT(                         \
-      XfaIconRegisterActionType register_action_type_fn) {          \
-    return intrinsic::icon::RegisterIconAction<ActionClassName>(    \
-        register_action_type_fn);                                   \
-  }                                                                 \
+#define INTRINSIC_ICON_REGISTER_ICON_ACTION_PLUGIN(ActionClassName)      \
+  extern "C" {                                                           \
+  __attribute__((__visibility__("default"))) IntrinsicIconRealtimeStatus \
+  INTRINSIC_ICON_ACTION_PLUGIN_ENTRY_POINT(                              \
+      IntrinsicIconRegisterActionType register_action_type_fn) {         \
+    return intrinsic::icon::RegisterIconAction<ActionClassName>(         \
+        register_action_type_fn);                                        \
+  }                                                                      \
   }
 
 #endif  // INTRINSIC_ICON_CONTROL_C_API_EXTERNAL_ACTION_API_ICON_PLUGIN_REGISTER_MACRO_H_

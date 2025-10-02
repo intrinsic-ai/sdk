@@ -16,14 +16,14 @@ namespace intrinsic::icon {
 // messages in both C and C++ RealtimeStatus is the same.
 
 // Truncates the message in `status` to at most
-// kXfaIconRealtimeStatusMaxMessageLength characters.
-XfaIconRealtimeStatus FromAbslStatus(const absl::Status& status);
+// kIntrinsicIconRealtimeStatusMaxMessageLength characters.
+IntrinsicIconRealtimeStatus FromAbslStatus(const absl::Status& status);
 
-absl::Status ToAbslStatus(const XfaIconRealtimeStatus& status);
+absl::Status ToAbslStatus(const IntrinsicIconRealtimeStatus& status);
 
-XfaIconRealtimeStatus FromRealtimeStatus(const RealtimeStatus& status);
+IntrinsicIconRealtimeStatus FromRealtimeStatus(const RealtimeStatus& status);
 
-RealtimeStatus ToRealtimeStatus(const XfaIconRealtimeStatus& status);
+RealtimeStatus ToRealtimeStatus(const IntrinsicIconRealtimeStatus& status);
 
 }  // namespace intrinsic::icon
 

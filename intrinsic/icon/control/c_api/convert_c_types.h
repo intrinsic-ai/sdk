@@ -26,38 +26,38 @@ namespace intrinsic::icon {
 // If a user puts an invalid value into the `size` member of one of the C data
 // structs, that's on them.
 
-JointPositionCommand Convert(const XfaIconJointPositionCommand& in);
-XfaIconJointPositionCommand Convert(const JointPositionCommand& in);
+JointPositionCommand Convert(const IntrinsicIconJointPositionCommand& in);
+IntrinsicIconJointPositionCommand Convert(const JointPositionCommand& in);
 
-JointLimits Convert(const XfaIconJointLimits& in);
-XfaIconJointLimits Convert(const JointLimits& in);
+JointLimits Convert(const IntrinsicIconJointLimits& in);
+IntrinsicIconJointLimits Convert(const JointLimits& in);
 
-JointStateP Convert(const XfaIconJointStateP& in);
-XfaIconJointStateP Convert(const JointStateP& in);
+JointStateP Convert(const IntrinsicIconJointStateP& in);
+IntrinsicIconJointStateP Convert(const JointStateP& in);
 
-JointStateV Convert(const XfaIconJointStateV& in);
-XfaIconJointStateV Convert(const JointStateV& in);
+JointStateV Convert(const IntrinsicIconJointStateV& in);
+IntrinsicIconJointStateV Convert(const JointStateV& in);
 
-JointStateA Convert(const XfaIconJointStateA& in);
-XfaIconJointStateA Convert(const JointStateA& in);
+JointStateA Convert(const IntrinsicIconJointStateA& in);
+IntrinsicIconJointStateA Convert(const JointStateA& in);
 
-eigenmath::Quaterniond Convert(const XfaIconQuaternion& in);
-XfaIconQuaternion Convert(const eigenmath::Quaterniond& in);
+eigenmath::Quaterniond Convert(const IntrinsicIconQuaternion& in);
+IntrinsicIconQuaternion Convert(const eigenmath::Quaterniond& in);
 
-eigenmath::Vector3d Convert(const XfaIconPoint& in);
-XfaIconPoint Convert(const eigenmath::Vector3d& in);
+eigenmath::Vector3d Convert(const IntrinsicIconPoint& in);
+IntrinsicIconPoint Convert(const eigenmath::Vector3d& in);
 
-Pose3d Convert(const XfaIconPose3d& in);
-XfaIconPose3d Convert(const Pose3d& in);
+Pose3d Convert(const IntrinsicIconPose3d& in);
+IntrinsicIconPose3d Convert(const Pose3d& in);
 
-Wrench Convert(const XfaIconWrench& in);
-XfaIconWrench Convert(const Wrench& in);
+Wrench Convert(const IntrinsicIconWrench& in);
+IntrinsicIconWrench Convert(const Wrench& in);
 
-eigenmath::Matrix6Nd Convert(const XfaIconMatrix6Nd& in);
-XfaIconMatrix6Nd Convert(const eigenmath::Matrix6Nd& in);
+eigenmath::Matrix6Nd Convert(const IntrinsicIconMatrix6Nd& in);
+IntrinsicIconMatrix6Nd Convert(const eigenmath::Matrix6Nd& in);
 
-SignalValue Convert(const XfaIconSignalValue& in);
-XfaIconSignalValue Convert(const SignalValue& in);
+SignalValue Convert(const IntrinsicIconSignalValue& in);
+IntrinsicIconSignalValue Convert(const SignalValue& in);
 
 }  // namespace intrinsic::icon
 
