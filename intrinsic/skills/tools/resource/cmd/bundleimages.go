@@ -56,7 +56,7 @@ func CreateImageProcessor(reg RegistryOptions) bundleio.ImageProcessor {
 		if err != nil {
 			return nil, fmt.Errorf("could not create tarball image: %v", err)
 		}
-		return PushImage(img, name, reg)
+		return pushImage(img, name, reg)
 	}
 }
 
@@ -85,9 +85,9 @@ type RegistryOptions struct {
 	BasicAuth
 }
 
-// PushImage takes an image and pushes it to the specified registry with the
+// pushImage takes an image and pushes it to the specified registry with the
 // given options.
-func PushImage(img containerregistry.Image, name string, reg RegistryOptions) (*ipb.Image, error) {
+func pushImage(img containerregistry.Image, name string, reg RegistryOptions) (*ipb.Image, error) {
 	registry := strings.TrimSuffix(reg.URI, "/")
 	if len(registry) == 0 {
 		return nil, fmt.Errorf("registry is empty")
