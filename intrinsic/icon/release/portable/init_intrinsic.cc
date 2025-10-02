@@ -32,3 +32,6 @@ void InitXfa(const char* usage, int argc, char* argv[]) {
 
   LOG(INFO) << "********* Process Begin *********";
 }
+
+// Function alias to migrate consumers insrc SoT
+auto& InitIntrinsic = InitXfa;
