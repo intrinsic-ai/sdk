@@ -7,9 +7,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"google.golang.org/protobuf/proto"
-	"intrinsic/assets/catalog/assetdescriptions"
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
+	"intrinsic/assets/inctl/assetdescriptions"
 	"intrinsic/assets/listutils"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/printer"
@@ -56,7 +56,7 @@ func GetCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			prtr.Print(assetdescriptions.IDVersionsStringView{Descriptions: ad})
+			prtr.Print(ad)
 
 			return nil
 		},
