@@ -6,7 +6,7 @@
 tags [
   {
     asset_tag: ASSET_TAG_UNSPECIFIED
-    display_name: "Unspecified"
+    display_name: ""
     applicable_asset_types: [
       ASSET_TYPE_DATA,
       ASSET_TYPE_HARDWARE_DEVICE,

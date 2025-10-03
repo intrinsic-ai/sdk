@@ -14,6 +14,18 @@ import (
 	atypepb "intrinsic/assets/proto/asset_type_go_proto"
 )
 
+func TestAllAssetTags(t *testing.T) {
+	allTags := AllAssetTags()
+	if len(allTags) != len(atagpb.AssetTag_value)-1 {
+		t.Errorf("AllAssetTags() returned %d items, want %d", len(allTags), len(atagpb.AssetTag_value)-1)
+	}
+	for _, tag := range allTags {
+		if tag == atagpb.AssetTag_ASSET_TAG_UNSPECIFIED {
+			t.Errorf("AllAssetTags() returned ASSET_TAG_UNSPECIFIED")
+		}
+	}
+}
+
 func TestAssetTagDisplayName(t *testing.T) {
 	tests := []struct {
 		name            string
@@ -38,7 +50,7 @@ func TestAssetTagDisplayName(t *testing.T) {
 		{
 			name:            "unspecified",
 			tag:             atagpb.AssetTag_ASSET_TAG_UNSPECIFIED,
-			wantDisplayName: "Unspecified",
+			wantDisplayName: "",
 		},
 	}
 
@@ -327,7 +339,7 @@ func TestAllAssetTagMetadata(t *testing.T) {
 				t.Errorf("Tag at AllAssetTagMetadata()[%d] == %v, want %v", idx, tagMetadata.GetAssetTag(), wantTag)
 			}
 
-			if tagMetadata.GetDisplayName() == "" {
+			if tagMetadata.GetAssetTag() != atagpb.AssetTag_ASSET_TAG_UNSPECIFIED && tagMetadata.GetDisplayName() == "" {
 				t.Errorf("Tag at AllAssetTagMetadata()[%d] has empty display name", idx)
 			}
 

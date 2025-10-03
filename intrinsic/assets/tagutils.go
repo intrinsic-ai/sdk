@@ -26,6 +26,17 @@ var allAssetTagMetadata []*atagpb.AssetTagMetadata
 // allAssetTagMetadataComputed indicates whether allAssetTagMetadata has been computed.
 var allAssetTagMetadataComputed bool
 
+// AllAssetTags returns all AssetTags except ASSET_TAG_UNSPECIFIED.
+func AllAssetTags() []atagpb.AssetTag {
+	allTags := make([]atagpb.AssetTag, 0, len(atagpb.AssetTag_name)-1)
+	for tag := range atagpb.AssetTag_name {
+		if tag != int32(atagpb.AssetTag_ASSET_TAG_UNSPECIFIED) {
+			allTags = append(allTags, atagpb.AssetTag(tag))
+		}
+	}
+	return allTags
+}
+
 // AssetTagDisplayName returns the display name of the given AssetTag, or "Unknown" if the tag is
 // not known.
 func AssetTagDisplayName(tag atagpb.AssetTag) string {
