@@ -22,9 +22,9 @@ import (
 	atypepb "intrinsic/assets/proto/asset_type_go_proto"
 	iapb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
 	viewpb "intrinsic/assets/proto/view_go_proto"
+	"intrinsic/assets/services/bundleimages"
 	"intrinsic/assets/typeutils"
 	"intrinsic/assets/viewutils"
-	"intrinsic/skills/tools/resource/cmd/bundleimages"
 	"intrinsic/tools/inctl/util/orgutil"
 )
 

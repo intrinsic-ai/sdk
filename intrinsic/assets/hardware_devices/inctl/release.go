@@ -28,7 +28,7 @@ import (
 	atpb "intrinsic/assets/proto/asset_type_go_proto"
 	idpb "intrinsic/assets/proto/id_go_proto"
 	mpb "intrinsic/assets/proto/metadata_go_proto"
-	"intrinsic/skills/tools/resource/cmd/bundleimages"
+	"intrinsic/assets/services/bundleimages"
 	"intrinsic/skills/tools/skill/cmd/directupload/directupload"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/printer"

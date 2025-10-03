@@ -3,6 +3,24 @@
 load("//bazel:go_macros.bzl", "go_library", "go_test")
 
 go_library(
+    name = "bundleimages",
+    srcs = ["bundleimages.go"],
+    visibility = ["//intrinsic:__subpackages__"],
+    deps = [
+        ":readeropener",
+        "//intrinsic/assets:bundleio",
+        "//intrinsic/assets:idutils",
+        "//intrinsic/assets/proto:id_go_proto",
+        "//intrinsic/kubernetes/workcell_spec:imagetags",
+        "//intrinsic/kubernetes/workcell_spec/proto:image_go_proto",
+        "@com_github_google_go_containerregistry//pkg/name:go_default_library",
+        "@com_github_google_go_containerregistry//pkg/v1:go_default_library",
+        "@com_github_google_go_containerregistry//pkg/v1/tarball:go_default_library",
+        "@com_github_pkg_errors//:go_default_library",
+    ],
+)
+
+go_library(
     name = "config",
     srcs = ["config.go"],
     visibility = ["//intrinsic:public_api_users"],
@@ -22,6 +40,11 @@ go_test(
         "@com_github_google_go_cmp//cmp:go_default_library",
         "@org_golang_google_protobuf//testing/protocmp:go_default_library",
     ],
+)
+
+go_library(
+    name = "readeropener",
+    srcs = ["readeropener.go"],
 )
 
 go_library(

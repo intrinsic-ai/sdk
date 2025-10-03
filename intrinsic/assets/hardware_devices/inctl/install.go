@@ -18,7 +18,7 @@ import (
 	"intrinsic/assets/imageutils"
 	iagrpcpb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
 	iapb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
-	"intrinsic/skills/tools/resource/cmd/bundleimages"
+	"intrinsic/assets/services/bundleimages"
 	"intrinsic/skills/tools/skill/cmd/directupload/directupload"
 
 	"github.com/google/go-containerregistry/pkg/v1/google"

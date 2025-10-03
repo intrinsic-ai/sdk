@@ -55,7 +55,7 @@ go_library(
         "//intrinsic/assets/proto:asset_type_go_proto",
         "//intrinsic/assets/proto:installed_assets_go_grpc_proto",
         "//intrinsic/assets/proto:view_go_proto",
-        "//intrinsic/skills/tools/resource/cmd:bundleimages",
+        "//intrinsic/assets/services:bundleimages",
         "//intrinsic/tools/inctl/util:orgutil",
         "@com_github_google_go_containerregistry//pkg/authn:go_default_library",
         "@com_github_google_go_containerregistry//pkg/v1/google:go_default_library",

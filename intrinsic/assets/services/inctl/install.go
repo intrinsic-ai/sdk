@@ -15,7 +15,7 @@ import (
 	"intrinsic/assets/cmdutils"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/imagetransfer"
-	"intrinsic/skills/tools/resource/cmd/bundleimages"
+	"intrinsic/assets/services/bundleimages"
 	"intrinsic/skills/tools/skill/cmd/directupload/directupload"
 
 	lrogrpcpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
