@@ -87,6 +87,17 @@ class AuthTest(absltest.TestCase):
         token.get_request_metadata(), (("authorization", "Bearer ink_00000"),)
     )
 
+  def test_parse_info_from_string(self):
+    org_info = auth.parse_info_from_string("test-org@test-project")
+    self.assertEqual(
+        org_info,
+        auth.OrgInfo(organization="test-org", project="test-project"),
+    )
+
+  def test_parse_info_from_string_raises_on_invalid_input(self):
+    with self.assertRaisesRegex(ValueError, "Invalid org or project .*"):
+      auth.parse_info_from_string("test-org")
+
   @mock.patch.object(userconfig, "get_user_config_dir", autospec=True)
   def test_read_org_info_raises_if_file_not_found(self, mock_user_config_dir):
     testdir = self.create_tempdir()

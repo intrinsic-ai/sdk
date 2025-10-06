@@ -47,6 +47,36 @@ class DialerutilTest(absltest.TestCase):
     )
     self.assertIsInstance(channel, grpc.Channel)
 
+  @mock.patch.object(grpc, "secure_channel", autospec=True)
+  @mock.patch.object(grpc, "metadata_call_credentials", autospec=True)
+  @mock.patch.object(auth, "parse_info_from_string", autospec=True)
+  def test_create_channel_from_token(
+      self,
+      mock_parse_info_from_string: mock.MagicMock,
+      mock_metadata_call_credentials: mock.MagicMock,
+      mock_secure_channel: mock.MagicMock,
+  ):
+    mock_parse_info_from_string.return_value = auth.OrgInfo(
+        organization="test-org", project="test-project"
+    )
+    mock_metadata_call_credentials.return_value = mock.MagicMock()
+
+    dialerutil.create_channel_from_token(
+        auth_token="test-auth-token",
+        org="test-org",
+        cluster="test-cluster",
+    )
+
+    mock_parse_info_from_string.assert_called_with("test-org")
+    self.assertTrue(
+        any(
+            isinstance(c.args[0], dialerutil._AuthProxy)
+            for c in mock_metadata_call_credentials.call_args_list
+        ),
+        "grpc.metadata_call_credentials was not called with _AuthProxy",
+    )
+    self.assertTrue(mock_secure_channel.called)
+
 
 if __name__ == "__main__":
   absltest.main()

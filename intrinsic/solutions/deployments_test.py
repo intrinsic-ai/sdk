@@ -152,6 +152,39 @@ class DeploymentsTest(absltest.TestCase):
     )
     self.assertTrue(mock_for_channel.called)
 
+  @mock.patch.object(deployments.Solution, "for_channel")
+  @mock.patch.object(dialerutil, "create_channel_from_token")
+  def test_connect_with_auth_token(
+      self,
+      mock_create_channel_from_token: mock.MagicMock,
+      mock_for_channel: mock.MagicMock,
+  ):
+    mock_for_channel.return_value = None
+    mock_create_channel_from_token.return_value = grpc.insecure_channel(
+        "localhost:1234"
+    )
+
+    deployments.connect(
+        org="test-org",
+        cluster="test-cluster",
+        auth_token="test-auth-token",
+    )
+
+    mock_create_channel_from_token.assert_called_with(
+        auth_token="test-auth-token",
+        org="test-org",
+        cluster="test-cluster",
+        grpc_options=deployments._GRPC_OPTIONS,
+    )
+    self.assertTrue(mock_for_channel.called)
+
+  def test_connect_with_auth_token_raises_on_invalid_params(self):
+    with self.assertRaisesRegex(ValueError, "Org and cluster .*"):
+      deployments.connect(
+          cluster="test-cluster",
+          auth_token="test-auth-token",
+      )
+
   def test_get_solution_status_with_retry_raises(self):
     class FakeGrpcError(grpc.RpcError):
       """Simple sub-class to create RpcError with specific error code."""

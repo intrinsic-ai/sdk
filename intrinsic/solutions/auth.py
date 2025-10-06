@@ -136,6 +136,27 @@ class OrgNotFoundError(ValueError):
     )
 
 
+def parse_info_from_string(info_string: str) -> OrgInfo:
+  """Parses the org and project information from a string.
+
+  Args:
+    info_string: String in the format of <org>@<project>
+
+  Raises:
+    ValueError: if either org or project can not be extracted from the input.
+
+  Returns:
+    The information for the organization.
+  """
+  org_and_project = info_string.split("@")
+  if len(org_and_project) != 2:
+    raise ValueError(f"Invalid org or project information: {info_string}")
+  org, project = org_and_project
+  if not org or not project:
+    raise ValueError(f"Invalid org or project information: {info_string}")
+  return OrgInfo(organization=org, project=project)
+
+
 def read_org_info(organization: str) -> OrgInfo:
   """Reads the local org information for the provided organization name.
 

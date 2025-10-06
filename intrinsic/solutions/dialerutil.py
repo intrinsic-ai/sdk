@@ -24,6 +24,16 @@ class _TokenAuth(grpc.AuthMetadataPlugin):
     callback(self._token.get_request_metadata(), None)
 
 
+class _AuthProxy(grpc.AuthMetadataPlugin):
+  """gRPC Metadata Plugin that adds an auth-proxy cookie."""
+
+  def __init__(self, token: str):
+    self._token = token
+
+  def __call__(self, context, callback):
+    callback((("cookie", f"auth-proxy={self._token}"),), None)
+
+
 class _ServerName(grpc.AuthMetadataPlugin):
   """gRPC Metadata Plugin that adds the cluster name to the header."""
 
@@ -89,19 +99,40 @@ def create_channel_from_solution(
   )
 
 
+def create_channel_from_token(
+    auth_token: str,
+    org: str,
+    cluster: str,
+    grpc_options: Optional[List[Tuple[str, Any]]] = None,
+) -> grpc.Channel:
+  """Creates a gRPC channel based on the provided token."""
+  return _create_channel(
+      org_info=auth.parse_info_from_string(org),
+      cluster=cluster,
+      grpc_options=grpc_options,
+      auth_token=auth_token,
+  )
+
+
 def _create_channel(
     org_info: auth.OrgInfo,
     cluster: Optional[str] = None,
     grpc_options: Optional[List[Tuple[str, Any]]] = None,
+    auth_token: Optional[str] = None,
 ) -> grpc.Channel:
   """Creates a gRPC channel based on the provided connection parameters."""
   channel_credentials = grpc.ssl_channel_credentials()
   call_credentials = []
 
-  token = auth.get_configuration(org_info.project).get_default_credentials()
-  call_credentials.append(
-      grpc.metadata_call_credentials(_TokenAuth(token), name="TokenAuth")
-  )
+  if auth_token is None:
+    token = auth.get_configuration(org_info.project).get_default_credentials()
+    call_credentials.append(
+        grpc.metadata_call_credentials(_TokenAuth(token), name="TokenAuth")
+    )
+  else:
+    call_credentials.append(
+        grpc.metadata_call_credentials(_AuthProxy(auth_token), name="AuthProxy")
+    )
 
   call_credentials.append(
       identity.OrgNameCallCredentials(org_info.organization)

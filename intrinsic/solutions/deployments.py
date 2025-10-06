@@ -335,6 +335,7 @@ def connect(
     org: Optional[str] = None,
     solution: Optional[str] = None,
     cluster: Optional[str] = None,
+    auth_token: Optional[str] = None,
 ) -> "Solution":
   """Connects to a deployed solution.
 
@@ -348,6 +349,7 @@ def connect(
     org: Organization of the solution to connect to.
     solution: Id (not display name!) of the solution to connect to.
     cluster: Name of cluster to connect to (instead of specifying 'solution').
+    auth_token: Token of the authenticated user. Requires cluster and org.
 
   Raises:
     ValueError: if parameter combination is incorrect.
@@ -389,6 +391,7 @@ def connect(
         org=org,
         solution=solution,
         cluster=cluster,
+        auth_token=auth_token,
     )
 
   return Solution.for_channel(grpc_channel)
@@ -452,6 +455,7 @@ def _create_grpc_channel(
     org: Optional[str] = None,
     solution: Optional[str] = None,
     cluster: Optional[str] = None,
+    auth_token: Optional[str] = None,
 ) -> grpc.Channel:
   """Creates a gRPC channel to a deployed solution.
 
@@ -461,10 +465,23 @@ def _create_grpc_channel(
     org: Organization of the solution to connect to.
     solution: Id (not display name!) of the solution to connect to.
     cluster: Name of cluster to connect to (instead of specifying 'solution').
+    auth_token: Token of the authenticated user. Requires cluster and org.
 
   Returns:
     gRPC channel to the deployed solution.
   """
+  if auth_token is not None:
+    if org is None or cluster is None:
+      raise ValueError(
+          "Org and cluster are required when providing an auth token."
+      )
+    return dialerutil.create_channel_from_token(
+        auth_token=auth_token,
+        org=org,
+        cluster=cluster,
+        grpc_options=_GRPC_OPTIONS,
+    )
+
   org_info = None
   if org is not None:
     try:
