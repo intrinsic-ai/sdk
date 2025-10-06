@@ -203,7 +203,7 @@ var registerCmd = &cobra.Command{
 		if deviceRole == "control-plane" {
 			config["gpuConfig"] = map[string]any{
 				"enabled":  true,
-				"replicas": 8,
+				"replicas": 48,
 			}
 		}
 		marshalled, err := json.Marshal(config)
