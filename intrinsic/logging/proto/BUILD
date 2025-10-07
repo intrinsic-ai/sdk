@@ -267,6 +267,7 @@ proto_library(
         "//intrinsic/perception/proto:pose_estimation_result",
         "//intrinsic/skills/proto:skill_service_proto",
         "//intrinsic/util/status:extended_status_proto",
+        "//third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg:marker_array_proto",
         "@com_google_protobuf//:any_proto",
         "@com_google_protobuf//:timestamp_proto",
     ],
@@ -361,6 +362,7 @@ go_proto_library(
         "//intrinsic/skills/proto:equipment_go_proto",
         "//intrinsic/skills/proto:skills_go_proto",
         "//intrinsic/skills/proto:skill_service_go_grpc_proto",
+        "//third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg:marker_array_go_proto",
     ],
     deps = [":log_item_proto"],
 )
