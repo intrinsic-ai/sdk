@@ -7,6 +7,7 @@ package intrinsic_proto.proto_registry;
 import "google/protobuf/descriptor.proto";
 
 service ProtoRegistry {
+
   // Get a specific named file descriptor set.
   rpc GetNamedFileDescriptorSet(GetNamedFileDescriptorSetRequest)
       returns (NamedFileDescriptorSet) {}

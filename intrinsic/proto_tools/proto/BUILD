@@ -17,9 +17,7 @@ package(default_visibility = [
 proto_library(
     name = "proto_registry_proto",
     srcs = ["proto_registry.proto"],
-    deps = [
-        "@com_google_protobuf//:descriptor_proto",
-    ],
+    deps = ["@com_google_protobuf//:descriptor_proto"],
 )
 
 cc_proto_library(
@@ -55,7 +53,5 @@ go_proto_library(
 go_grpc_library(
     name = "proto_registry_go_grpc_proto",
     srcs = [":proto_registry_proto"],
-    deps = [
-        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
-    ],
+    deps = ["@io_bazel_rules_go//proto/wkt:descriptor_go_proto"],
 )
