@@ -968,6 +968,7 @@ absl::Status HardwareModuleRuntime::Run(
       }
     }
   }
+
   intrinsic::ThreadOptions state_change_thread_options;
   state_change_thread_options.SetName("StateChange");
 

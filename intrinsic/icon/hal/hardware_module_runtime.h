@@ -16,6 +16,7 @@
 #include "grpcpp/server_builder.h"
 #include "intrinsic/icon/hal/hardware_interface_handle.h"
 #include "intrinsic/icon/hal/hardware_interface_registry.h"
+#include "intrinsic/icon/hal/hardware_module_init_context.h"
 #include "intrinsic/icon/hal/hardware_module_interface.h"
 #include "intrinsic/icon/hal/hardware_module_util.h"
 #include "intrinsic/icon/hal/interfaces/hardware_module_state.fbs.h"
