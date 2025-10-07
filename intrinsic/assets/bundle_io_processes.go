@@ -8,35 +8,27 @@ import (
 	"os"
 
 	"github.com/google/safearchive/tar"
-	"intrinsic/assets/metadatautils"
 	"intrinsic/assets/processes/processutil"
 	"intrinsic/util/archive/tartooling"
 
-	processassetpb "intrinsic/assets/processes/proto/process_asset_go_proto"
+	processmanifestpb "intrinsic/assets/processes/proto/process_manifest_go_proto"
 )
 
 const (
-	// ProcessAssetFileName is the name of the file in a Process asset .tar bundle
-	// that contains the ProcessAsset binary proto.
-	ProcessAssetFileName = "process_asset.binpb"
+	// ProcessManifestFileName is the name of the file in a Process asset .tar bundle
+	// that contains the ProcessManifest binary proto.
+	ProcessManifestFileName = "process_manifest.binpb"
 )
 
-func bundleMetadataOptions() []metadatautils.ValidateMetadataOption {
-	return []metadatautils.ValidateMetadataOption{
-		metadatautils.WithRequireNoVersion(true),
-		metadatautils.WithRequireNoOutputOnlyFields(),
-	}
-}
-
-// WriteProcessAsset writes a Process asset .tar bundle file to the given path.
-func WriteProcessAsset(asset *processassetpb.ProcessAsset, path string) error {
-	if asset == nil {
-		return fmt.Errorf("Process asset must not be nil")
+// WriteProcessManifest writes a Process asset .tar bundle file to the given path.
+func WriteProcessManifest(manifest *processmanifestpb.ProcessManifest, path string) error {
+	if manifest == nil {
+		return fmt.Errorf("Process manifest must not be nil")
 	}
 
-	err := processutil.ValidateProcessAsset(asset, bundleMetadataOptions()...)
+	err := processutil.ValidateProcessManifest(manifest)
 	if err != nil {
-		return fmt.Errorf("invalid Process asset: %w", err)
+		return fmt.Errorf("invalid Process manifest: %w", err)
 	}
 
 	out, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
@@ -46,8 +38,8 @@ func WriteProcessAsset(asset *processassetpb.ProcessAsset, path string) error {
 	defer out.Close()
 	tarWriter := tar.NewWriter(out)
 
-	if err := tartooling.AddBinaryProto(asset, tarWriter, ProcessAssetFileName); err != nil {
-		return fmt.Errorf("cannot write Process asset to bundle: %w", err)
+	if err := tartooling.AddBinaryProto(manifest, tarWriter, ProcessManifestFileName); err != nil {
+		return fmt.Errorf("cannot write Process manifest to bundle: %w", err)
 	}
 
 	if err := tarWriter.Close(); err != nil {
@@ -57,8 +49,8 @@ func WriteProcessAsset(asset *processassetpb.ProcessAsset, path string) error {
 	return nil
 }
 
-// ReadProcessAsset reads a ProcessAsset from a bundle (see WriteProcessAsset).
-func ReadProcessAsset(path string) (*processassetpb.ProcessAsset, error) {
+// ReadProcessManifest reads a ProcessManifest from a bundle (see WriteProcessManifest).
+func ReadProcessManifest(path string) (*processmanifestpb.ProcessManifest, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("could not open %q: %w", path, err)
@@ -74,16 +66,16 @@ func ReadProcessAsset(path string) (*processassetpb.ProcessAsset, error) {
 	if header.Typeflag != tar.TypeReg {
 		return nil, fmt.Errorf("unexpected entry type in Process asset bundle: %v", header.Typeflag)
 	}
-	if header.Name != ProcessAssetFileName {
+	if header.Name != ProcessManifestFileName {
 		return nil, fmt.Errorf("unexpected file in Process asset bundle: %v", header.Name)
 	}
 
-	asset := &processassetpb.ProcessAsset{}
-	if err = readBinaryProto(tarReader, asset); err != nil {
-		return nil, fmt.Errorf("error reading Process asset proto in bundle: %w", err)
+	manifest := &processmanifestpb.ProcessManifest{}
+	if err = readBinaryProto(tarReader, manifest); err != nil {
+		return nil, fmt.Errorf("error reading ProcessManifest proto in bundle: %w", err)
 	}
 
-	if err := processutil.ValidateProcessAsset(asset, bundleMetadataOptions()...); err != nil {
+	if err := processutil.ValidateProcessManifest(manifest); err != nil {
 		return nil, fmt.Errorf("invalid Process asset: %w", err)
 	}
 
@@ -96,5 +88,5 @@ func ReadProcessAsset(path string) (*processassetpb.ProcessAsset, error) {
 		return nil, fmt.Errorf("unexpected second entry in Process asset bundle: %v", header.Name)
 	}
 
-	return asset, nil
+	return manifest, nil
 }

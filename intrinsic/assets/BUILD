@@ -188,7 +188,6 @@ go_library(
     visibility = ["//intrinsic:internal_api_users"],
     deps = [
         ":idutils",
-        ":metadatautils",
         "//intrinsic/assets/catalog/proto/v1:asset_catalog_go_grpc_proto",
         "//intrinsic/assets/data:utils",
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
@@ -196,7 +195,7 @@ go_library(
         "//intrinsic/assets/hardware_devices:hardwaredevicemanifest",
         "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",
         "//intrinsic/assets/processes:processutil",
-        "//intrinsic/assets/processes/proto:process_asset_go_proto",
+        "//intrinsic/assets/processes/proto:process_manifest_go_proto",
         "//intrinsic/assets/proto:asset_type_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
         "//intrinsic/assets/scene_objects:sceneobjectmanifest",
