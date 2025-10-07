@@ -22,7 +22,6 @@ import (
 )
 
 const (
-	keyHostname = "hostname"
 	// https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#dns-label-names
 	hostnameRegexString = `^[a-z0-9]([a-z0-9-]{0,40}[a-z0-9])?`
 	replaceKey          = "replace"
@@ -35,6 +34,7 @@ var (
 	replaceDevice = false
 	noWait        = false
 	noUpdate      = false
+	hostname      = ""
 )
 
 func validHostname(hostname string) (int, bool) {
@@ -162,7 +162,6 @@ var registerCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		projectName := viperLocal.GetString(orgutil.KeyProject)
 		orgName := viperLocal.GetString(orgutil.KeyOrganization)
-		hostname := viperLocal.GetString(keyHostname)
 		if hostname == "" {
 			hostname = deviceID
 		}
@@ -173,7 +172,7 @@ var registerCmd = &cobra.Command{
 
 		if offender, ok := validHostname(hostname); !ok {
 			fmt.Printf("%q is not a valid as hostname. Provide a valid hostname.\nSee https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#dns-label-names for more information.\n", hostname)
-			return fmt.Errorf(makeNameError(hostname, offender))
+			return fmt.Errorf("%s", makeNameError(hostname, offender))
 		}
 
 		ctx := cmd.Context()
@@ -271,7 +270,7 @@ func init() {
 	registerCmd.Flags().BoolVarP(&replaceDevice, replaceKey, "", false, "If set to 'true', an existing cluster with the same name will be replaced.\nThis is equivalent to calling 'inctl cluster delete' first")
 	registerCmd.Flags().BoolVarP(&noWait, "no-wait", "", false, "Set to true to avoid waiting for the cluster initialization.")
 	registerCmd.Flags().BoolVarP(&noUpdate, "no-update", "", false, "Do not enroll the cluster into automatic updates.")
-	registerCmd.Flags().StringP(keyHostname, "", "",
+	registerCmd.Flags().StringVarP(&hostname, "hostname", "", "",
 		`The hostname for the device. If it's a control plane this will be the cluster name.`)
 
 }
