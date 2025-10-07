@@ -122,6 +122,9 @@ message BagMetadata {
 
   // The total number of uploaded bytes from all event sources.
   uint64 total_uploaded_bytes = 14;
+
+  // Time when this bag was created.
+  google.protobuf.Timestamp create_time = 15;
 }
 
 // Reference to a bag file stored on the cloud.
