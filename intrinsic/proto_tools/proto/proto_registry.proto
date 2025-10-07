@@ -1,0 +1,41 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.proto_registry;
+
+import "google/protobuf/descriptor.proto";
+
+service ProtoRegistry {
+  // Get a specific named file descriptor set.
+  rpc GetNamedFileDescriptorSet(GetNamedFileDescriptorSetRequest)
+      returns (NamedFileDescriptorSet) {}
+
+}
+
+message NamedFileDescriptorSet {
+  // Unique name for the specific file descriptor set. The name is arbitrary and
+  // may change in the future, do not make assumptions about its content or
+  // structure. You may pass it to compatibility check or migration requests.
+  string name = 1;
+
+  // A transitively closed file descriptor set.
+  google.protobuf.FileDescriptorSet file_descriptor_set = 2;
+}
+
+message GetNamedFileDescriptorSetRequest {
+  oneof identifier_type {
+    // Intrinsic-style type URL of a message in the requested file descriptor
+    // set (the message name at the end of the URL will be ignored). E.g.
+    // "type.intrinsic.ai/assets/com.example.my_asset/1.0.0/my_package.MyMessage".
+    string type_url = 1;
+
+    // Name of the requested file descriptor set in the proto registry, see
+    // [NamedFileDescriptorSet.name].
+    string name = 2;
+
+    // Asset ID for which to get the file descriptor set of the currently
+    // installed version.
+    string asset_id = 3;
+  }
+}
