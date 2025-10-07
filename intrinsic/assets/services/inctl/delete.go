@@ -48,8 +48,7 @@ $ inctl service delete --project=my_project --cluster=some_cluster my_instance
 			log.Printf("Requesting deletion of %q", name)
 			client := adgrpcpb.NewAssetDeploymentServiceClient(conn)
 			op, err := client.DeleteResource(ctx, &adpb.DeleteResourceRequest{
-				Name:             name,
-				DeletionStrategy: adpb.DeleteResourceRequest_DELETE_INSTANCE_ONLY,
+				Name: name,
 			})
 			if err != nil {
 				return fmt.Errorf("could not delete service %q: %v", name, err)

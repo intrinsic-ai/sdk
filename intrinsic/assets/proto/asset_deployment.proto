@@ -119,26 +119,15 @@ message CreateResourceFromCatalogResponse {
 }
 
 message DeleteResourceRequest {
-  enum DeletionStrategy {
-    // Unknown strategy. This is considered an error and the resource instance
-    // would not be deleted.
-    UNKNOWN = 0;
-    // Only delete the resource instance specified in the request.
-    DELETE_INSTANCE_ONLY = 1;
-    // Delete the resource instance specified in the request and recursively
-    // delete all the sub-children in the kinematics chain.
-    RECURSIVE_DELETE = 2;
-  }
-
   // Name of the resource instance to delete.
   string name = 1;
-
-  // Deletion strategy to use.
-  DeletionStrategy deletion_strategy = 2;
 
   // World ID from where we will delete this asset. If left unset, no world
   // operations will be performed.
   string world_id = 3;
+
+  reserved 2;
+  reserved "deletion_strategy";
 }
 
 message UpdateResourceRequest {
