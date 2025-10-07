@@ -76,7 +76,7 @@ func (h *ContextHandler) Handle(ctx context.Context, r slog.Record) error {
 			// See: https://cloud.google.com/logging/docs/structured-logging#special-payload-fields
 			slog.String("logging.googleapis.com/trace", fmt.Sprintf("projects/%s/traces/%s", h.ProjectName, spanContext.TraceID)),
 			slog.String("logging.googleapis.com/spanId", spanContext.SpanID.String()),
-			slog.Bool("logging.googleapis.com/traceSampled", span.IsRecordingEvents()), // always true in this context
+			slog.Bool("logging.googleapis.com/trace_sampled", span.IsRecordingEvents()), // always true in this context
 		)
 	}
 	return h.Handler.Handle(ctx, r)
