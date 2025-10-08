@@ -20,6 +20,17 @@ func ResolveRunfilesFsRoot() (fs.FS, error) {
 	return runfiles.New()
 }
 
+// Env returns additional environmental variables to pass to subprocesses.
+// Each element is of the form “key=value”. Pass these variables to
+// Bazel-built binaries so they can find their runfiles as well.
+func Env() ([]string, error) {
+	r, err := runfiles.New()
+	if err != nil {
+		return nil, err
+	}
+	return r.Env(), nil
+}
+
 // ResolveRunfilesFs gets an fs.FS for runfiles relative to the repo root.
 func ResolveRunfilesFs() (fs.FS, error) {
 	root, err := ResolveRunfilesFsRoot()
