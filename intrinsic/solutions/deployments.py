@@ -26,7 +26,6 @@ from intrinsic.assets.proto import installed_assets_pb2_grpc
 from intrinsic.frontend.solution_service.proto import solution_service_pb2
 from intrinsic.frontend.solution_service.proto import solution_service_pb2_grpc
 from intrinsic.frontend.solution_service.proto import status_pb2 as solution_status_pb2
-from intrinsic.kubernetes.workcell_spec.proto import installer_pb2_grpc
 from intrinsic.resources.client import resource_registry_client
 from intrinsic.scene.product.client import product_client as product_client_mod
 from intrinsic.skills.client import skill_registry_client
@@ -108,7 +107,6 @@ class Solution:
   _solution_service: solution_service_pb2_grpc.SolutionServiceStub
   _skill_registry: skill_registry_client.SkillRegistryClient
   _resource_registry: resource_registry_client.ResourceRegistryClient
-  _installer_service_stub: installer_pb2_grpc.InstallerServiceStub
   pbt_registry: Optional[pbt_registration.BehaviorTreeRegistry]
   proto_builder: Optional[proto_building.ProtoBuilder]
 

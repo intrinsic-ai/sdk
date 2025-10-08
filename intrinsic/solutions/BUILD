@@ -105,7 +105,6 @@ py_library(
         "//intrinsic/frontend/solution_service/proto:solution_service_py_pb2",
         "//intrinsic/frontend/solution_service/proto:solution_service_py_pb2_grpc",
         "//intrinsic/frontend/solution_service/proto:status_py_pb2",
-        "//intrinsic/kubernetes/workcell_spec/proto:installer_py_pb2_grpc",
         "//intrinsic/resources/client:resource_registry_client",
         "//intrinsic/scene/product/client:product_client",
         "//intrinsic/skills/client:skill_registry_client",
