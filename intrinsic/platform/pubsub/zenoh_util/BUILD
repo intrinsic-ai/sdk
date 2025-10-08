@@ -22,10 +22,7 @@ cc_library(
         "//intrinsic/insrc/middleware:libimw_zenoh.so.1",
     ],
     linkopts = ["-ldl"],  # for dlfcn.h, dlsym in zenoh_handle.cc
-    visibility = [
-        "//intrinsic/platform/pubsub:__subpackages__",
-        "//intrinsic/platform/ros:__subpackages__",
-    ],
+    visibility = ["//intrinsic/platform/pubsub:__subpackages__"],
     deps = [
         ":zenoh_helpers",
         "@abseil-cpp//absl/log",
@@ -68,10 +65,7 @@ cc_library(
     data = [
         ":peer_config.json",
     ],
-    visibility = [
-        "//intrinsic/platform/pubsub:__subpackages__",
-        "//intrinsic/platform/ros:__subpackages__",
-    ],
+    visibility = ["//intrinsic/platform/pubsub:__subpackages__"],
     deps = [
         ":zenoh_helpers",
         "@abseil-cpp//absl/flags:flag",
