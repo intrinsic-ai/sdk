@@ -17,6 +17,7 @@ import (
 	assetpb "intrinsic/assets/build_defs/asset_go_proto"
 	dmpb "intrinsic/assets/data/proto/v1/data_manifest_go_proto"
 	hdmpb "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest_go_proto"
+	pmpb "intrinsic/assets/processes/proto/process_manifest_go_proto"
 	atypepb "intrinsic/assets/proto/asset_type_go_proto"
 	idpb "intrinsic/assets/proto/id_go_proto"
 	sompb "intrinsic/assets/scene_objects/proto/scene_object_manifest_go_proto"
@@ -29,7 +30,7 @@ var (
 	bundlePath           = flag.String("bundle_path", "", "Path to the generated bundle file.")
 	bundleShortPath      = flag.String("bundle_short_path", "", "Bazel short path of the generated bundle file.")
 	manifest             = flag.String("manifest", "", "The asset's manifest.")
-	fileDescriptorSets   = intrinsicflag.MultiString("file_descriptor_set", nil, "Path to a binary file descriptor set proto to be used to resolve the data payload. Can be repeated.")
+	fileDescriptorSets   = intrinsicflag.MultiString("file_descriptor_set", nil, "Path to a binary file descriptor set proto to be used to resolve the data payload. Can be repeated. Passing only empty files has the same effect as passing no files at all.")
 	outputAssetInfo      = flag.String("output_asset_info", "", "Output AssetInfo proto path.")
 	outputAssetLocalInfo = flag.String("output_asset_local_info", "", "Output AssetLocalInfo proto path.")
 )
@@ -83,6 +84,12 @@ func writeAsset(fds *dpb.FileDescriptorSet) {
 			log.Exitf("failed to read skill manifest: %v", err)
 		}
 		id = m.GetId()
+	case atypepb.AssetType_ASSET_TYPE_PROCESS:
+		m := new(pmpb.ProcessManifest)
+		if err := protoio.ReadBinaryProto(*manifest, m); err != nil {
+			log.Exitf("failed to read process manifest: %v", err)
+		}
+		id = m.GetMetadata().GetId()
 	default:
 		log.Exitf("unsupported asset type %q", *assetType)
 	}
@@ -109,6 +116,12 @@ func main() {
 	fds, err := registryutil.LoadFileDescriptorSets(*fileDescriptorSets)
 	if err != nil {
 		log.Exitf("cannot build file descriptor set for asset: %v", err)
+	}
+	// Passing only empty files has the same effect as passing no files at all.
+	// This behavior makes it easier to handle assets for which the file
+	// descriptor set is optional (e.g., Process assets).
+	if len(fds.GetFile()) == 0 {
+		fds = nil
 	}
 
 	writeAsset(fds)

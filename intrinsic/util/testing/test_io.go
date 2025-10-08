@@ -11,6 +11,7 @@ import (
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/proto"
 	"intrinsic/util/path_resolver/pathresolver"
+	"intrinsic/util/proto/protoio"
 )
 
 // MustCreateParentDirectory creates the full file path to a specified file
@@ -53,6 +54,14 @@ func MustCreateTextProto(t *testing.T, p proto.Message, path string) {
 		t.Fatalf("Failed to marshal proto: %v", err)
 	}
 	MustCreateFile(t, b, path)
+}
+
+// MustReadTextProto reads a textproto file into the given proto message.
+func MustReadTextProto(t *testing.T, path string, p proto.Message, opts ...protoio.TextReadOption) {
+	t.Helper()
+	if err := protoio.ReadTextProto(path, p, opts...); err != nil {
+		t.Fatalf("Failed to read text proto: %v", err)
+	}
 }
 
 // MustCreateRunfilePath returns an expected path within the expected runfiles

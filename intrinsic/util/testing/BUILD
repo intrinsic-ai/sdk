@@ -12,6 +12,7 @@ go_library(
     visibility = ["//intrinsic:__subpackages__"],
     deps = [
         "//intrinsic/util/path_resolver:pathresolver",
+        "//intrinsic/util/proto:protoio",
         "@org_golang_google_protobuf//encoding/prototext:go_default_library",
         "@org_golang_google_protobuf//proto",
     ],
