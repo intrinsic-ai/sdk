@@ -48,6 +48,28 @@ message VisualizationGeometry {
   }
 }
 
+// A visualizable renderable in the world at time of requesting the recording.
+// A renderable, with a reference to identify it.
+message VisualizationRenderable {
+  // The reference of the renderable to uniquely identify it.
+  //
+  // Use this to join with the geometry components in the
+  // VisualizationFrameResources, which contain references to visualizable
+  // renderables via their references, alongside further affine transformations
+  // to be applied.
+  string renderable_ref = 1;
+
+  // Either:
+  //   - The data itself or;
+  //   - A reference to the data, serialized as a blob.
+  oneof data {
+    // We place the Renderable message in here so the descriptor data is
+    // included in the Intrinsic recording for visualization.
+    intrinsic_proto.geometry.Renderable renderable = 2;
+    BlobReference blob_reference = 3;
+  }
+}
+
 // The resources associated with a single ROS TF frame ID.
 message VisualizationFrameResources {
   string fully_qualified_tf_frame = 1;
@@ -111,7 +133,11 @@ message VisualizationContext {
   // These differ from the geometries in VisualizationFrameResources in that
   // the frame resource geometries contain transforms and references to these
   // visualization context geometries.
-  map<string, VisualizationGeometry> geometries = 2;
+  map<string, VisualizationGeometry> geometries = 2 [deprecated = true];
+
+  // Mappings of renderable references to their corresponding visualization
+  // renderables.
+  map<string, VisualizationRenderable> renderables = 4;
 
   // Mappings of ROS-style TF frames IDs to frame-related data.
   //
