@@ -20,3 +20,19 @@ message Uptime {
   // The uptime of the IPC since its last boot or restart.
   google.protobuf.Duration duration = 1;
 }
+
+message ResetRequest {
+  // The reset type to perform.
+  enum ResetType {
+    // Default to solution reset.
+    RESET_TYPE_DEFAULT = 0;
+    // Factory reset the IPC.
+    RESET_TYPE_FACTORY = 1;
+    // Reset the solution on the IPC but keep the IPC identity and
+    // configuration.
+    RESET_TYPE_SOLUTION = 2;
+  }
+  ResetType reset_type = 1;
+}
+
+message ResetResponse {}
