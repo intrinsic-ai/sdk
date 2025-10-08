@@ -279,7 +279,9 @@ proto_library(
 
 cc_proto_library(
     name = "view_cc_proto",
-    visibility = ["//intrinsic:__subpackages__"],
+    visibility = [
+        "//intrinsic:__subpackages__",
+    ],
     deps = [":view_proto"],
 )
 
