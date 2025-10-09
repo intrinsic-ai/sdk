@@ -199,7 +199,8 @@ func loginCmdE(cmd *cobra.Command, _ []string) (err error) {
 			return fmt.Errorf("query project: %w", err)
 		}
 		if len(projects) == 0 {
-			return fmt.Errorf("no project found for API key")
+			return fmt.Errorf("no project found for API key. Please double check the value of the -org flag for typos" +
+				".")
 		}
 		if len(projects) > 1 {
 			slices.Sort(projects)
