@@ -13,10 +13,7 @@ exports_files(
         "logging_disk.yaml",
         "timescaledb.yaml",
     ],
-    visibility = [
-        "//intrinsic:__subpackages__",
-        "//intrinsic:insrc_sot_users",
-    ],
+    visibility = ["//intrinsic:__subpackages__"],
 )
 
 cc_library(
