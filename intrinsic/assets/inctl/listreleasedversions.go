@@ -9,7 +9,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
-	"intrinsic/assets/inctl/assetdescriptions"
+	"intrinsic/assets/inctl/assetviews"
 	"intrinsic/assets/listutils"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/printer"
@@ -33,6 +33,7 @@ func GetCommand() *cobra.Command {
 				return errors.Wrap(err, "failed to create client connection")
 			}
 			defer conn.Close()
+
 			client := acgrpcpb.NewAssetCatalogClient(conn)
 			prtr, err := printer.NewPrinter(root.FlagOutput)
 			if err != nil {
@@ -52,11 +53,9 @@ func GetCommand() *cobra.Command {
 			if err != nil {
 				return errors.Wrap(err, "could not list asset versions")
 			}
-			ad, err := assetdescriptions.FromCatalogAssets(assets)
-			if err != nil {
-				return err
+			for _, asset := range assets {
+				prtr.Print(assetviews.FromAsset(asset))
 			}
-			prtr.Print(ad)
 
 			return nil
 		},

@@ -4,39 +4,23 @@
 package list
 
 import (
-	"encoding/base64"
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"google.golang.org/protobuf/proto"
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
-	"intrinsic/assets/idutils"
+	"intrinsic/assets/inctl/assetviews"
+	"intrinsic/tools/inctl/cmd/root"
+	"intrinsic/tools/inctl/util/printer"
 
 	iagrpcpb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
 	iapb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
 	spb "intrinsic/assets/proto/v1/search_go_proto"
 )
 
-type outputType string
-
 const (
 	keyOutputType = "output_type"
-
-	outputTypeID                   = outputType("id")
-	outputTypeIDVersion            = outputType("id_version")
-	outputTypeIDVersionProtoBase64 = outputType("id_version_proto_base64")
 )
-
-func toBase64(asset *iapb.InstalledAsset) (string, error) {
-	data, err := proto.Marshal(asset.GetMetadata().GetIdVersion())
-	if err != nil {
-		return "", fmt.Errorf("could not marshal asset proto: %w", err)
-	}
-	return base64.StdEncoding.EncodeToString(data), nil
-}
-
-var allOutputTypes = []outputType{outputTypeID, outputTypeIDVersion, outputTypeIDVersionProtoBase64}
 
 // GetCommand returns the command to list installed assets in a cluster.
 func GetCommand(defaultTypes string) *cobra.Command {
@@ -61,6 +45,11 @@ func GetCommand(defaultTypes string) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
+			vt, err := assetviews.AssetTextViewTypeFromString(flags.GetString(keyOutputType))
+			if err != nil {
+				return err
+			}
+
 			var filter *iapb.ListInstalledAssetsRequest_Filter
 			if assetTypes, err := flags.GetFlagAssetTypes(); err != nil {
 				return err
@@ -70,22 +59,6 @@ func GetCommand(defaultTypes string) *cobra.Command {
 				}
 			}
 
-			var outputFrom func(*iapb.InstalledAsset) (string, error)
-			switch outputType := outputType(flags.GetString(keyOutputType)); outputType {
-			case outputTypeID:
-				outputFrom = func(asset *iapb.InstalledAsset) (string, error) {
-					return idutils.IDFromProtoUnchecked(asset.GetMetadata().GetIdVersion().GetId()), nil
-				}
-			case outputTypeIDVersion:
-				outputFrom = func(asset *iapb.InstalledAsset) (string, error) {
-					return idutils.IDVersionFromProtoUnchecked(asset.GetMetadata().GetIdVersion()), nil
-				}
-			case outputTypeIDVersionProtoBase64:
-				outputFrom = toBase64
-			default:
-				return fmt.Errorf("invalid output type: %q. must be one of: %v", outputType, allOutputTypes)
-			}
-
 			ctx, conn, _, err := clientutils.DialClusterFromInctl(ctx, flags)
 			if err != nil {
 				return err
@@ -93,6 +66,11 @@ func GetCommand(defaultTypes string) *cobra.Command {
 			defer conn.Close()
 
 			client := iagrpcpb.NewInstalledAssetsClient(conn)
+			prtr, err := printer.NewPrinter(root.FlagOutput)
+			if err != nil {
+				return err
+			}
+
 			var pageToken string
 			for {
 				resp, err := client.ListInstalledAssets(ctx, &iapb.ListInstalledAssetsRequest{
@@ -104,11 +82,7 @@ func GetCommand(defaultTypes string) *cobra.Command {
 					return fmt.Errorf("could not list assets: %v", err)
 				}
 				for _, asset := range resp.GetInstalledAssets() {
-					s, err := outputFrom(asset)
-					if err != nil {
-						return fmt.Errorf("could not output asset: %w", err)
-					}
-					fmt.Println(s)
+					prtr.Print(assetviews.FromAsset(asset, assetviews.WithTextViewType(vt)))
 				}
 				pageToken = resp.GetNextPageToken()
 				if pageToken == "" {
@@ -124,7 +98,7 @@ func GetCommand(defaultTypes string) *cobra.Command {
 	flags.AddFlagAssetTypes(defaultTypes)
 	flags.AddFlagsAddressClusterSolution()
 	flags.AddFlagsProjectOrg()
-	flags.OptionalString(keyOutputType, "id", fmt.Sprintf("The output type of the list command. One of: %v.", allOutputTypes))
+	flags.OptionalString(keyOutputType, string(assetviews.AssetTextViewTypeID), fmt.Sprintf("The output type of the list command. One of: %v.", assetviews.AllAssetTextViewTypes))
 
 	return cmd
 }
