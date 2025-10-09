@@ -31,6 +31,11 @@ go_proto_library(
     deps = [":test_message_proto"],
 )
 
+cc_proto_library(
+    name = "test_message_cc_proto",
+    deps = [":test_message_proto"],
+)
+
 proto_library(
     name = "descriptors_test_proto",
     srcs = ["descriptors_test.proto"],

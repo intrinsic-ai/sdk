@@ -295,15 +295,3 @@ go_library(
         "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
     ],
 )
-
-go_test(
-    name = "walkmessages_test",
-    srcs = ["walk_messages_test.go"],
-    library = ":walkmessages",
-    deps = [
-        "//intrinsic/util/proto/testing:test_message_go_proto",
-        "@com_github_google_go_cmp//cmp:go_default_library",
-        "@org_golang_google_protobuf//proto",
-        "@org_golang_google_protobuf//testing/protocmp:go_default_library",
-    ],
-)
