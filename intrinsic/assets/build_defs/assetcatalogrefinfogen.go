@@ -36,6 +36,7 @@ func writeAsset(idVersion *idpb.IdVersion, fds *dpb.FileDescriptorSet) {
 
 	switch atype {
 	case atypepb.AssetType_ASSET_TYPE_DATA:
+	case atypepb.AssetType_ASSET_TYPE_PROCESS:
 	case atypepb.AssetType_ASSET_TYPE_SCENE_OBJECT:
 	case atypepb.AssetType_ASSET_TYPE_SERVICE:
 	case atypepb.AssetType_ASSET_TYPE_SKILL:
