@@ -130,7 +130,6 @@ proto_library(
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         ":grasp_placement_constraint_proto",
-        "//intrinsic/icon/proto:cart_space_proto",
         "//intrinsic/kinematics/types:joint_limits_proto",
         "//intrinsic/world/proto:object_world_refs_proto",
     ],

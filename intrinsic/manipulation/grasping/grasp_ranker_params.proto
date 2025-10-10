@@ -4,7 +4,6 @@ syntax = "proto3";
 
 package intrinsic_proto.grasping;
 
-import "intrinsic/icon/proto/cart_space.proto";
 import "intrinsic/kinematics/types/joint_limits.proto";
 import "intrinsic/manipulation/grasping/grasp_placement_constraint.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
@@ -15,7 +14,8 @@ message GraspRankersParams {
   // Parameters for height based ranker.
   optional HeightRankerParams height_ranker_params = 2;
 
-  // Parameters for IK-collision checker.
+  // Parameters for IK-collision checker. IK and collision parameters specified
+  // here are also used for the StraightLineChecker if the latter is enabled.
   optional IkCollisionCheckerParams ik_collision_checker_params = 3;
 
   // Parameters for visibility based ranker.
@@ -24,7 +24,11 @@ message GraspRankersParams {
   // Parameters for TopDownGraspRanker.
   optional TopDownGraspRankerParams top_down_grasp_ranker_params = 5;
 
-  // Parameters for StraightLineChecker.
+  // Parameters for StraightLineChecker. This uses the same IK and
+  // collision settings specified in `ik_collision_checker_params`;
+  // if the latter is unspecified, then the default settings are used (checks
+  // collisions at pregrasp pose, allows collisions at grasp pose, and requires
+  // same branch IK).
   optional StraightLineCheckerParams straight_line_checker_params = 6;
 
   // Parameters for diversity grasp ranker.
@@ -112,14 +116,19 @@ message IkCollisionCheckerParams {
 }
 
 message StraightLineCheckerParams {
-  // Cartesian limits used in checking trajectory between pregrasp and grasp.
-  optional intrinsic_proto.icon.CartesianLimits cartesian_limits = 1;
-
   // Name of the ranker. Default to straight_line_checker.
   optional string name = 3;
 
   // Time limit to compute trajectory. Default to 10 seconds.
   optional int32 traj_planning_timeout_sec = 4;
+
+  // If true, check the full trajectory from the robot's current joint position
+  // to pregrasp pose and then to grasp pose. Otherwise, only check the
+  // straightline segment from pregrasp pose to grasp pose.
+  optional bool check_full_trajectory = 5;
+
+  reserved 1;
+  reserved "cartesian_limits";
 }
 
 message HeightRankerParams {

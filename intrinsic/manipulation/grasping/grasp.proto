@@ -24,6 +24,14 @@ message GraspCommand {
 message HeuristicResult {
   double score = 1;  // Score range between 0.0 and 1.0.
   optional string description = 2;
+  // An IK solution for the pregrasp pose. Only populated if straightline
+  // checker is enabled and if an IK solution is available. Unspecified
+  // otherwise.
+  optional intrinsic_proto.icon.JointVec pregrasp_ik_solution = 3;
+  // An IK solution for the grasp pose. Only populated if straightline
+  // checker is enabled and if an IK solution is available. Unspecified
+  // otherwise.
+  optional intrinsic_proto.icon.JointVec grasp_ik_solution = 4;
 }
 
 message ObjectPose {
@@ -52,6 +60,11 @@ message Grasp {
   optional string object_name = 10;
   // Confidence of detection, in range [0, 1].
   optional float visibility = 11;
+
+  // An IK solution for the pregrasp pose.
+  intrinsic_proto.icon.JointVec pregrasp_ik_solution = 12;
+  // An IK solution for the grasp pose.
+  intrinsic_proto.icon.JointVec grasp_ik_solution = 13;
 }
 
 message RepeatedGrasps {
@@ -131,6 +144,12 @@ message PoseBasedGrasp {
   // Object reference frame
   // Will remove after b/296861796 is fixed.
   intrinsic_proto.world.TransformNodeReference object_frame = 5;
+  // An IK solution for the pregrasp pose. Only populated if straightline
+  // checker is enabled.
+  intrinsic_proto.icon.JointVec pregrasp_ik_solution = 6;
+  // An IK solution for the grasp pose. Only populated if straightline
+  // checker is enabled.
+  intrinsic_proto.icon.JointVec grasp_ik_solution = 7;
 }
 
 message RepeatedPoseBasedGrasps {
