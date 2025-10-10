@@ -60,7 +60,7 @@ func init() {
 	vmLeaseCmd.MarkFlagsMutuallyExclusive("pool", "intrinsic-os")
 	vmLeaseCmd.PersistentFlags().BoolVarP(&flagSilent, "silent", "s", false, "Suppress output and only print the vm identifier for leases.")
 	vmLeaseCmd.PersistentFlags().BoolVarP(&flagRetry, "retry", "r", true, "Retry a lease request until it succeeds.")
-	vmLeaseCmd.PersistentFlags().DurationVarP(&flagAbortAfter, "timeout", "t", time.Minute*30, "Abort the lease operation (most useful when combined with --retry) after the given duration.")
+	vmLeaseCmd.PersistentFlags().DurationVarP(&flagAbortAfter, "timeout", "t", time.Minute*20, "Abort the lease operation (most useful when combined with --retry) after the given duration.")
 	vmLeaseCmd.PersistentFlags().StringVar(&flagReservationID, "reservation-id", "", "A UUID to check/create a reservation on lease failure. If empty, a new UUID will be generated if there are no ready VMs.")
 	vmCmd.AddCommand(vmLeaseCmd)
 
