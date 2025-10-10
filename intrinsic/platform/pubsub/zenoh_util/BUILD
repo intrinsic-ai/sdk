@@ -8,6 +8,7 @@ load("@rules_cc//cc:cc_test.bzl", "cc_test")
 exports_files(
     [
         "peer_config.json",
+        "zenoh_handle.h",
     ],
     visibility = [
         "//intrinsic:__subpackages__",
@@ -66,7 +67,9 @@ cc_library(
     data = [
         ":peer_config.json",
     ],
-    visibility = ["//intrinsic/platform/pubsub:__subpackages__"],
+    visibility = [
+        "//intrinsic/platform/pubsub:__subpackages__",
+    ],
     deps = [
         ":zenoh_helpers",
         "@abseil-cpp//absl/flags:flag",
