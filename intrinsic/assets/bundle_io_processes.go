@@ -11,7 +11,11 @@ import (
 	"intrinsic/assets/processes/processutil"
 	"intrinsic/util/archive/tartooling"
 
+	processassetpb "intrinsic/assets/processes/proto/process_asset_go_proto"
 	processmanifestpb "intrinsic/assets/processes/proto/process_manifest_go_proto"
+	assettypepb "intrinsic/assets/proto/asset_type_go_proto"
+	idpb "intrinsic/assets/proto/id_go_proto"
+	metadatapb "intrinsic/assets/proto/metadata_go_proto"
 )
 
 const (
@@ -89,4 +93,36 @@ func ReadProcessManifest(path string) (*processmanifestpb.ProcessManifest, error
 	}
 
 	return manifest, nil
+}
+
+// ProcessProcessAsset creates a processed ProcessAsset from a Process asset
+// bundle on disk (see WriteProcessManifest).
+func ProcessProcessAsset(path string) (*processassetpb.ProcessAsset, error) {
+	manifest, err := ReadProcessManifest(path)
+	if err != nil {
+		return nil, fmt.Errorf("could not read Process asset bundle: %w", err)
+	}
+
+	asset := &processassetpb.ProcessAsset{
+		Metadata: &metadatapb.Metadata{
+			IdVersion: &idpb.IdVersion{
+				Id: manifest.GetMetadata().GetId(),
+			},
+			DisplayName:   manifest.GetMetadata().GetDisplayName(),
+			Documentation: manifest.GetMetadata().GetDocumentation(),
+			Vendor:        manifest.GetMetadata().GetVendor(),
+			AssetType:     assettypepb.AssetType_ASSET_TYPE_PROCESS,
+			AssetTag:      manifest.GetMetadata().GetAssetTag(),
+		},
+		BehaviorTree: manifest.GetBehaviorTree(),
+	}
+
+	// Update the Skill metadata in the BehaviorTree to match the Process asset's
+	// metadata. In the manifest the affected fields in the Skill metadata are
+	// allowed to be empty but need to be filled in the processed asset.
+	processutil.FillInSkillMetadataFromAssetMetadata(
+		asset.GetBehaviorTree().GetDescription(), asset.GetMetadata(),
+	)
+
+	return asset, nil
 }
