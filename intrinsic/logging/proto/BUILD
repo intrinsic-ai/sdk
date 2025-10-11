@@ -353,9 +353,6 @@ go_proto_library(
         "//intrinsic/skills/proto:error_go_proto",
         "//intrinsic/scene/proto/v1:scene_object_go_proto",
         "//intrinsic/skills/proto:footprint_go_proto",
-        "//intrinsic/geometry/proto:renderable_go_proto",
-        "//intrinsic/geometry/proto:geometry_go_proto",
-        "//intrinsic/geometry/proto:geometry_service_types_go_proto",
         "//intrinsic/world/proto:object_world_updates_go_proto",
         "//intrinsic/skills/proto:prediction_go_proto",
         "//intrinsic/resources/proto:resource_handle_go_proto",
@@ -535,6 +532,7 @@ proto_library(
     deps = [
         ":blob_proto",
         "//intrinsic/geometry/proto:renderable_proto",
+        "//intrinsic/geometry/proto/v1:renderable_proto",
         "//intrinsic/world/proto:geometry_component_proto",
     ],
 )
@@ -549,6 +547,7 @@ go_proto_library(
     go_deps = [
         ":blob_go_proto",
         "//intrinsic/geometry/proto:renderable_go_proto",
+        "//intrinsic/geometry/proto/v1:renderable_go_proto",
         "//intrinsic/world/proto:geometry_component_go_proto",
     ],
     deps = [":visualization_context_proto"],

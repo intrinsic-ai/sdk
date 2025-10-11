@@ -13,6 +13,7 @@ syntax = "proto3";
 package intrinsic_proto.data_logger;
 
 import "intrinsic/geometry/proto/renderable.proto";
+import "intrinsic/geometry/proto/v1/renderable.proto";
 import "intrinsic/logging/proto/blob.proto";
 import "intrinsic/world/proto/geometry_component.proto";
 
@@ -65,7 +66,7 @@ message VisualizationRenderable {
   oneof data {
     // We place the Renderable message in here so the descriptor data is
     // included in the Intrinsic recording for visualization.
-    intrinsic_proto.geometry.Renderable renderable = 2;
+    intrinsic_proto.geometry.v1.Renderable renderable = 2;
     BlobReference blob_reference = 3;
   }
 }
