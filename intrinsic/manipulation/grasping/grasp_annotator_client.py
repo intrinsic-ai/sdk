@@ -2,7 +2,10 @@
 
 """Defines the GraspAnnotatorClient class."""
 
+import threading
+
 from absl import logging
+from google.rpc import code_pb2
 import grpc
 from intrinsic.manipulation.grasping import grasp_annotations_pb2
 from intrinsic.manipulation.service.grasp_annotator_service.v1 import grasp_annotator_service_pb2
@@ -72,8 +75,80 @@ class GraspAnnotatorClient:
     Returns:
       The annotated grasps.
     """
-    annotations = self._stub.Annotate(
-        grasp_annotator_request,
-        **self._connection_params,
+    response: grasp_annotator_service_pb2.GraspAnnotatorResponse = (
+        self._stub.Annotate(
+            grasp_annotator_request,
+            **self._connection_params,
+        )
     )
-    return annotations
+    return response.annotations
+
+  def visualize_grasps_async(
+      self,
+      grasp_annotator_visualize_request: grasp_annotator_service_pb2.GraspAnnotatorVisualizeRequest,
+  ) -> None:
+    """Starts visualizing grasp annotations in a background thread.
+
+    This is a fire-and-forget call.
+
+    Args:
+      grasp_annotator_visualize_request: The annotations to visualize.
+    """
+    logging.info("Starting async visualization request...")
+
+    def _consume_stream_in_background():
+      """Consumes the stream to completion, logging any errors."""
+      try:
+        for response in self._stub.Visualize(
+            grasp_annotator_visualize_request,
+            **self._connection_params,
+        ):
+          if response.status.code != code_pb2.OK:
+            logging.error(
+                "Async visualization failed: %s", response.status.message
+            )
+            break
+      except grpc.RpcError as e:
+        logging.exception("gRPC error during async visualization: %s", e)
+
+    thread = threading.Thread(
+        target=_consume_stream_in_background,
+        daemon=True,
+    )
+    thread.start()
+    logging.info("Async visualization task started.")
+
+  def visualize_grasps_blocking(
+      self,
+      grasp_annotator_visualize_request: grasp_annotator_service_pb2.GraspAnnotatorVisualizeRequest,
+  ) -> None:
+    """Visualizes grasp annotations and waits for completion.
+
+    Args:
+      grasp_annotator_visualize_request: The annotations to visualize.
+
+    Raises:
+      RuntimeError: If visualization fails or there is a gRPC communication
+        error.
+    """
+    logging.info("Sending blocking visualization request...")
+    try:
+      final_status = None
+      for response in self._stub.Visualize(
+          grasp_annotator_visualize_request,
+          **self._connection_params,
+      ):
+        final_status = response.status
+        if final_status.code != code_pb2.OK:
+          break
+
+      logging.info("Visualization stream finished.")
+
+      if not final_status:
+        raise RuntimeError("No response received from visualization stream.")
+
+      if final_status.code != code_pb2.OK:
+        raise RuntimeError(f"Visualization failed: {final_status.message}")
+
+    except grpc.RpcError as e:
+      raise RuntimeError(f"gRPC error during visualization: {e}") from e

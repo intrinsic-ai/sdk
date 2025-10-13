@@ -25,6 +25,7 @@ proto_library(
     deps = [
         "//intrinsic/manipulation/grasping:grasp_annotations_proto",
         "//intrinsic/manipulation/grasping:grasp_annotator_proto",
+        "@com_google_googleapis//google/rpc:status_proto",
     ],
 )
 

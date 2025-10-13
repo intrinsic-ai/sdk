@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.grasping.service.grasp_annotator_service.v1;
 
+import "google/rpc/status.proto";
 import "intrinsic/manipulation/grasping/grasp_annotations.proto";
 import "intrinsic/manipulation/grasping/grasp_annotator.proto";
 
@@ -30,12 +31,38 @@ message GraspAnnotatorRequest {
   optional intrinsic_proto.grasping.GraspAnnotationConstraint constraint = 6;
 }
 
+message VisualizationOptions {
+  // The lifetime of the visualization in seconds. Default is 300 seconds.
+  optional int32 lifetime_sec = 1;
+}
+
 message GraspAnnotatorResponse {
   // Annotated grasps.
   GraspAnnotations annotations = 1;
 }
 
+message GraspAnnotatorVisualizeRequest {
+  // Annotated grasps.
+  GraspAnnotations annotations = 1;
+  // The object instance to associate the visualization with.
+  string object_instance_name = 2;
+  // Constraints to filter grasp poses. If set, the constraints will be
+  // visualized as well.
+  optional GraspAnnotationConstraint constraint = 3;
+  // Visualization options.
+  optional VisualizationOptions visualization_options = 4;
+}
+
+message GraspAnnotatorVisualizeResponse {
+  // Contains status of the visualization, and an error if the visualization
+  // failed.
+  google.rpc.Status status = 1;
+}
+
 service GraspAnnotator {
   // Annotate grasps.
   rpc Annotate(GraspAnnotatorRequest) returns (GraspAnnotatorResponse) {}
+  // Visualize grasp annotations.
+  rpc Visualize(GraspAnnotatorVisualizeRequest)
+      returns (stream GraspAnnotatorVisualizeResponse) {}
 }

@@ -218,6 +218,7 @@ py_library(
         "//intrinsic/manipulation/service/grasp_annotator_service/v1:grasp_annotator_service_py_pb2_grpc",
         requirement("grpcio"),
         "@com_google_absl_py//absl/logging",
+        "@com_google_googleapis//google/rpc:code_py_proto",
     ],
 )
 
