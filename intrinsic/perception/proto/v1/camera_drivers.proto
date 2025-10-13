@@ -14,4 +14,13 @@ message CameraDrivers {
     string device_id = 1;
   }
 
+  // The default driver which is used when communicating with ROS cameras.
+  message Ros {
+    // The device_id becomes the ROS namespace of this camera.
+    string device_id = 1;
+
+    // The driver type, used to determine the ROS service prefix.
+    optional string driver_type = 2;
+  }
+
 }

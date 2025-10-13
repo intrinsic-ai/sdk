@@ -16,6 +16,7 @@ message CameraIdentifier {
 
   oneof drivers {
     CameraDrivers.GenICam genicam = 2;
+    CameraDrivers.Ros ros = 11;
     CameraDrivers.Photoneo photoneo = 5 [deprecated = true];
   }
 }

@@ -14,6 +14,14 @@ message CameraDrivers {
     string device_id = 1;
   }
 
+  // The default driver which is used when communicating with ROS cameras.
+  message Ros {
+    // The device_id becomes the ROS namespace of this camera.
+    string device_id = 1;
+    // The driver type, used to determine the ROS service prefix.
+    string driver_type = 2;
+  }
+
   // The driver which is used to communicate with the Photoneo.
   message Photoneo {
     option deprecated = true;
