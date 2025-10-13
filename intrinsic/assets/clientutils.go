@@ -92,7 +92,7 @@ func DialCatalogFromInctl(cmd *cobra.Command, flags *cmdutils.CmdFlags) (context
 
 	return DialCatalog(
 		cmd.Context(), DialCatalogOptions{
-			Address:      "",
+			Address: "",
 			APIKey: "",
 			Org:          flags.GetFlagOrganization(),
 			Project:      flags.GetFlagProject(),
