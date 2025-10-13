@@ -6,7 +6,7 @@ This file implements a subset of the
 `//intrinsic/skills/tools/skill/cmd/dialerutil.go` library.
 """
 
-from typing import Any, List, Optional, Tuple
+from typing import Any
 import grpc
 from intrinsic.frontend.cloud.api.v1 import solutiondiscovery_api_pb2
 from intrinsic.frontend.cloud.api.v1 import solutiondiscovery_api_pb2_grpc
@@ -16,6 +16,8 @@ from intrinsic.solutions import auth
 
 class _TokenAuth(grpc.AuthMetadataPlugin):
   """gRPC Metadata Plugin that adds an API key to the header."""
+
+  _token: auth.ProjectToken
 
   def __init__(self, token: auth.ProjectToken):
     self._token = token
@@ -27,6 +29,8 @@ class _TokenAuth(grpc.AuthMetadataPlugin):
 class _AuthProxy(grpc.AuthMetadataPlugin):
   """gRPC Metadata Plugin that adds an auth-proxy cookie."""
 
+  _token: str
+
   def __init__(self, token: str):
     self._token = token
 
@@ -37,6 +41,8 @@ class _AuthProxy(grpc.AuthMetadataPlugin):
 class _ServerName(grpc.AuthMetadataPlugin):
   """gRPC Metadata Plugin that adds the cluster name to the header."""
 
+  _server_name: str
+
   def __init__(self, server_name: str):
     self._server_name = server_name
 
@@ -46,18 +52,35 @@ class _ServerName(grpc.AuthMetadataPlugin):
 
 def create_channel_from_address(
     address: str,
-    grpc_options: Optional[List[Tuple[str, Any]]] = None,
+    grpc_options: list[tuple[str, Any]] | None = None,
 ) -> grpc.Channel:
-  """Creates a gRPC channel based on the provided address."""
+  """Creates a gRPC channel based on the provided address.
+
+  Args:
+    address: The address of the server to connect to.
+    grpc_options: List of gRPC channel options.
+
+  Returns:
+    A gRPC channel to the provided address.
+  """
   return grpc.insecure_channel(address, options=grpc_options)
 
 
 def create_channel_from_cluster(
     org_info: auth.OrgInfo,
     cluster: str,
-    grpc_options: Optional[List[Tuple[str, Any]]] = None,
+    grpc_options: list[tuple[str, Any]] | None = None,
 ) -> grpc.Channel:
-  """Creates a gRPC channel based on the provided cluster."""
+  """Creates a gRPC channel based on the provided cluster.
+
+  Args:
+    org_info: The organization and project information.
+    cluster: The name of the cluster.
+    grpc_options: List of gRPC channel options.
+
+  Returns:
+    A gRPC channel to the cluster.
+  """
   return _create_channel(
       org_info=org_info,
       cluster=cluster,
@@ -68,9 +91,18 @@ def create_channel_from_cluster(
 def _get_cluster_from_solution(
     org_info: auth.OrgInfo,
     solution: str,
-    grpc_options: Optional[List[Tuple[str, Any]]] = None,
+    grpc_options: list[tuple[str, Any]] | None = None,
 ) -> str:
-  """Returns the name of the cluster in which the given solution is running."""
+  """Returns the name of the cluster in which the given solution is running.
+
+  Args:
+    org_info: The organization and project information.
+    solution: The name of the solution.
+    grpc_options: List of gRPC channel options.
+
+  Returns:
+    The name of the cluster in which the given solution is running.
+  """
   # Open a temporary gRPC channel to the cloud cluster to resolve the cluster
   # on which the solution is running.
   channel = _create_channel(
@@ -89,9 +121,18 @@ def _get_cluster_from_solution(
 def create_channel_from_solution(
     org_info: auth.OrgInfo,
     solution: str,
-    grpc_options: Optional[List[Tuple[str, Any]]] = None,
+    grpc_options: list[tuple[str, Any]] | None = None,
 ) -> grpc.Channel:
-  """Creates a gRPC channel based on the provided solution."""
+  """Creates a gRPC channel based on the provided solution.
+
+  Args:
+    org_info: The organization and project information.
+    solution: The name of the solution.
+    grpc_options: List of gRPC channel options.
+
+  Returns:
+    A gRPC channel to the cluster running the solution.
+  """
   return _create_channel(
       org_info=org_info,
       cluster=_get_cluster_from_solution(org_info, solution, grpc_options),
@@ -103,9 +144,19 @@ def create_channel_from_token(
     auth_token: str,
     org: str,
     cluster: str,
-    grpc_options: Optional[List[Tuple[str, Any]]] = None,
+    grpc_options: list[tuple[str, Any]] | None = None,
 ) -> grpc.Channel:
-  """Creates a gRPC channel based on the provided token."""
+  """Creates a gRPC channel based on the provided token.
+
+  Args:
+    auth_token: The auth-proxy token to use for authentication.
+    org: The organization and project in the format <org>@<project>.
+    cluster: The name of the cluster.
+    grpc_options: List of gRPC channel options.
+
+  Returns:
+    A gRPC channel to the cluster.
+  """
   return _create_channel(
       org_info=auth.parse_info_from_string(org),
       cluster=cluster,
@@ -116,11 +167,21 @@ def create_channel_from_token(
 
 def _create_channel(
     org_info: auth.OrgInfo,
-    cluster: Optional[str] = None,
-    grpc_options: Optional[List[Tuple[str, Any]]] = None,
-    auth_token: Optional[str] = None,
+    cluster: str | None = None,
+    grpc_options: list[tuple[str, Any]] | None = None,
+    auth_token: str | None = None,
 ) -> grpc.Channel:
-  """Creates a gRPC channel based on the provided connection parameters."""
+  """Creates a gRPC channel based on the provided connection parameters.
+
+  Args:
+    org_info: The organization and project information.
+    cluster: The name of the cluster.
+    grpc_options: List of gRPC channel options.
+    auth_token: The auth-proxy token to use for authentication.
+
+  Returns:
+    A gRPC channel to the cluster.
+  """
   channel_credentials = grpc.ssl_channel_credentials()
   call_credentials = []
 

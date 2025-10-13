@@ -19,7 +19,6 @@ executive.run(throw_ball)
 import enum
 import inspect
 import sys
-from typing import Optional
 
 import grpc
 from intrinsic.assets.proto import installed_assets_pb2_grpc
@@ -99,16 +98,16 @@ class Solution:
   resources: providers.ResourceProvider
   products: providers.ProductProvider
   world: worlds.ObjectWorld
-  simulator: Optional[simulation.Simulation]
+  simulator: simulation.Simulation | None
   behavior_trees: providers.BehaviorTreeProvider
   skills: providers.SkillProvider
   errors: error_processing.ErrorsLoader
-  pose_estimators: Optional[pose_estimation.PoseEstimators]
+  pose_estimators: pose_estimation.PoseEstimators | None
   _solution_service: solution_service_pb2_grpc.SolutionServiceStub
   _skill_registry: skill_registry_client.SkillRegistryClient
   _resource_registry: resource_registry_client.ResourceRegistryClient
-  pbt_registry: Optional[pbt_registration.BehaviorTreeRegistry]
-  proto_builder: Optional[proto_building.ProtoBuilder]
+  pbt_registry: pbt_registration.BehaviorTreeRegistry | None
+  proto_builder: proto_building.ProtoBuilder | None
 
   def __init__(
       self,
@@ -120,11 +119,11 @@ class Solution:
       resource_registry: resource_registry_client.ResourceRegistryClient,
       product_client: product_client_mod.ProductClient,
       object_world: worlds.ObjectWorld,
-      simulator: Optional[simulation.Simulation],
+      simulator: simulation.Simulation | None,
       errors: error_processing.ErrorsLoader,
-      pose_estimators: Optional[pose_estimation.PoseEstimators],
-      pbt_registry: Optional[pbt_registration.BehaviorTreeRegistry] = None,
-      proto_builder: Optional[proto_building.ProtoBuilder] = None,
+      pose_estimators: pose_estimation.PoseEstimators | None,
+      pbt_registry: pbt_registration.BehaviorTreeRegistry | None = None,
+      proto_builder: proto_building.ProtoBuilder | None = None,
   ):
     self.grpc_channel: grpc.Channel = grpc_channel
     self.is_simulated: bool = is_simulated
@@ -138,7 +137,7 @@ class Solution:
     self.products = products_mod.Products(self._product_client)
 
     self.world: worlds.ObjectWorld = object_world
-    self.simulator: Optional[simulation.Simulation] = simulator
+    self.simulator: simulation.Simulation | None = simulator
 
     self.behavior_trees = behavior_tree_providing.BehaviorTrees(
         self._solution_service
@@ -328,12 +327,12 @@ class Solution:
 
 def connect(
     *,
-    grpc_channel: Optional[grpc.Channel] = None,
-    address: Optional[str] = None,
-    org: Optional[str] = None,
-    solution: Optional[str] = None,
-    cluster: Optional[str] = None,
-    auth_token: Optional[str] = None,
+    grpc_channel: grpc.Channel | None = None,
+    address: str | None = None,
+    org: str | None = None,
+    solution: str | None = None,
+    cluster: str | None = None,
+    auth_token: str | None = None,
 ) -> "Solution":
   """Connects to a deployed solution.
 
@@ -449,11 +448,11 @@ def connect_to_selected_solution() -> "Solution":
 # pytype: disable=bad-return-type
 def _create_grpc_channel(
     *,
-    address: Optional[str] = None,
-    org: Optional[str] = None,
-    solution: Optional[str] = None,
-    cluster: Optional[str] = None,
-    auth_token: Optional[str] = None,
+    address: str | None = None,
+    org: str | None = None,
+    solution: str | None = None,
+    cluster: str | None = None,
+    auth_token: str | None = None,
 ) -> grpc.Channel:
   """Creates a gRPC channel to a deployed solution.
 
