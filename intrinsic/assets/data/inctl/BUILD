@@ -7,26 +7,10 @@ go_library(
     srcs = ["data.go"],
     visibility = ["//intrinsic/tools/inctl:__pkg__"],
     deps = [
-        ":install",
         ":release",
+        "//intrinsic/assets/inctl:install",
         "//intrinsic/tools/inctl/cmd:root",
         "//intrinsic/tools/inctl/util:cobrautil",
-    ],
-)
-
-go_library(
-    name = "install",
-    srcs = ["install.go"],
-    deps = [
-        "//intrinsic/assets:bundleio",
-        "//intrinsic/assets:clientutils",
-        "//intrinsic/assets:cmdutils",
-        "//intrinsic/assets:idutils",
-        "//intrinsic/assets/proto:installed_assets_go_grpc_proto",
-        "@com_github_pkg_errors//:go_default_library",
-        "@com_github_spf13_cobra//:go_default_library",
-        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
-        "@org_golang_google_grpc//status:go_default_library",
     ],
 )
 

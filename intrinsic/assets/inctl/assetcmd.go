@@ -5,6 +5,7 @@ package assetcmd
 
 import (
 	"intrinsic/assets/inctl/getreleased"
+	"intrinsic/assets/inctl/install"
 	"intrinsic/assets/inctl/list"
 	"intrinsic/assets/inctl/listreleased"
 	"intrinsic/assets/inctl/listreleasedversions"
@@ -17,6 +18,7 @@ import (
 func init() {
 	cmd := cobrautil.ParentOfNestedSubcommands(root.AssetCmdName, "Manage assets.")
 	cmd.AddCommand(getreleased.GetCommand())
+	cmd.AddCommand(install.GetCommand())
 	cmd.AddCommand(list.GetCommand(""))
 	cmd.AddCommand(listreleased.GetCommand())
 	cmd.AddCommand(listreleasedversions.GetCommand())

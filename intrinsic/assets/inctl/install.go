@@ -1,11 +1,12 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package install defines the command to install a Service.
+// Package install defines the command to install an asset.
 package install
 
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/google/go-containerregistry/pkg/v1/remote"
 	"github.com/spf13/cobra"
@@ -15,7 +16,9 @@ import (
 	"intrinsic/assets/cmdutils"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/imagetransfer"
+	"intrinsic/assets/imageutils"
 	"intrinsic/assets/services/bundleimages"
+	"intrinsic/kubernetes/acl/identity"
 	"intrinsic/skills/tools/skill/cmd/directupload/directupload"
 
 	lrogrpcpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
@@ -24,23 +27,36 @@ import (
 	iapb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
 )
 
-// GetCommand returns a command to install a Service.
+const (
+)
+
+// GetCommand returns a command to install an asset.
 func GetCommand() *cobra.Command {
 	flags := cmdutils.NewCmdFlags()
 	cmd := &cobra.Command{
-		Use:   "install <bundle>",
-		Short: "Install a Service",
+		Use:   "install <asset_id_version>",
+		Short: "Install an asset",
 		Example: `
-	Install a Service to the specified solution:
-	$ inctl service install abc/service_bundle.tar \
+	Install a specific asset ID version from a catalog to the specified solution:
+	$ inctl asset install ai.intrinsic.calculator_service.0.20250320.0-RC01+insrc \
+			--org my_org \
+			--solution my_solution_id
+
+	Install a local bundle to the specified solution:
+	$ inctl asset install abc/bundle.tar \
 			--org my_org \
 			--solution my_solution_id
 
 	To find a running solution's id, run:
-	$ inctl solution list --project my-project --filter "running_on_hw,running_in_sim" --output json
+	$ inctl solution list --org my_org --filter "running_on_hw,running_in_sim" --output json
 
-	The Service can also be installed by specifying the cluster on which the solution is running:
-	$ inctl service install abc/service_bundle.tar \
+	The asset can also be installed by specifying the cluster on which the solution is running:
+	$ inctl asset install ai.intrinsic.calculator_service.0.20250320.0-RC01+insrc \
+			--org my_org \
+			--cluster my_cluster
+
+	Install a local bundle to into a solution running on the specified cluster:
+	$ inctl asset install abc/bundle.tar \
 			--org my_org \
 			--cluster my_cluster
 	`,
@@ -54,6 +70,10 @@ func GetCommand() *cobra.Command {
 				return err
 			}
 
+			ctx, err = identity.OrgToContext(ctx, flags.GetFlagOrganization())
+			if err != nil {
+				return fmt.Errorf("failed to add org information to context: %w", err)
+			}
 			ctx, conn, address, err := clientutils.DialClusterFromInctl(ctx, flags)
 			if err != nil {
 				return err
@@ -82,34 +102,48 @@ func GetCommand() *cobra.Command {
 				}
 				transfer = directupload.NewTransferer(ctx, opts...)
 			}
-
-			manifest, err := bundleio.ProcessService(target, bundleio.ProcessServiceOpts{
-				ImageProcessor: bundleimages.CreateImageProcessor(flags.CreateRegistryOptsWithTransferer(ctx, transfer, registry)),
-			})
-			if err != nil {
-				return fmt.Errorf("could not read bundle file %q: %v", target, err)
-			}
-
-			id, err := idutils.IDFromProto(manifest.GetMetadata().GetId())
-			if err != nil {
-				return fmt.Errorf("invalid id: %v", err)
-			}
-			log.Printf("Installing Service %q", id)
-
 			client := iagrpcpb.NewInstalledAssetsClient(conn)
 			authCtx := clientutils.AuthInsecureConn(ctx, address, flags.GetFlagProject())
 
-			// This needs an authorized context to pull from the catalog if not available.
+			processor := bundleio.BundleProcessor{
+				ImageProcessor: bundleimages.CreateImageProcessor(bundleimages.RegistryOptions{
+					Transferer: transfer,
+					URI:        imageutils.GetRegistry(clientutils.ResolveCatalogProjectFromInctl(flags)),
+				}),
+				ProcessReferencedData:   bundleio.ToPortableReferencedData,
+			}
+
+			var fileExists bool
+			if _, err := os.Stat(target); err == nil {
+				fileExists = true
+			}
+			var asset *iapb.CreateInstalledAssetRequest_Asset
+			if idvParts, err := idutils.NewIDVersionParts(target); err != nil {
+				if !fileExists {
+					return fmt.Errorf("failed to parse id_version: %v", err)
+				}
+				processedBundle, err := processor.Process(target)
+				if err != nil {
+					return fmt.Errorf("unable to process: %w", err)
+				}
+				asset = processedBundle.Install()
+			} else {
+				if fileExists {
+					return fmt.Errorf("input is ambiguous %q is both a file and a id version", target)
+				}
+				asset = &iapb.CreateInstalledAssetRequest_Asset{
+					Variant: &iapb.CreateInstalledAssetRequest_Asset_Catalog{
+						Catalog: idvParts.IDVersionProto(),
+					},
+				}
+			}
+
 			op, err := client.CreateInstalledAsset(authCtx, &iapb.CreateInstalledAssetRequest{
 				Policy: policy,
-				Asset: &iapb.CreateInstalledAssetRequest_Asset{
-					Variant: &iapb.CreateInstalledAssetRequest_Asset_Service{
-						Service: manifest,
-					},
-				},
+				Asset:  asset,
 			})
 			if err != nil {
-				return fmt.Errorf("could not install the Service: %v", err)
+				return fmt.Errorf("could not install the asset: %v", err)
 			}
 
 			log.Printf("Awaiting completion of the installation")
@@ -126,20 +160,22 @@ func GetCommand() *cobra.Command {
 			if err := status.ErrorProto(op.GetError()); err != nil {
 				return fmt.Errorf("installation failed: %w", err)
 			}
-
-			log.Printf("Finished installing %q", id)
-
+			installed := &iapb.InstalledAsset{}
+			if err := op.GetResponse().UnmarshalTo(installed); err != nil {
+				return fmt.Errorf("unable to parse result from successful installation: %w", err)
+			}
+			log.Printf("Finished installing %q", idutils.IDVersionFromProtoUnchecked(installed.GetMetadata().GetIdVersion()))
 			return nil
 		},
 	}
 
 	flags.SetCommand(cmd)
 	flags.AddFlagsAddressClusterSolution()
-	flags.AddFlagPolicy("service")
+	flags.AddFlagPolicy("asset")
 	flags.AddFlagsProjectOrg()
 	flags.AddFlagRegistry()
 	flags.AddFlagsRegistryAuthUserPassword()
-	flags.AddFlagSkipDirectUpload("service")
+	flags.AddFlagSkipDirectUpload("asset")
 
 	return cmd
 }

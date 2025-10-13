@@ -199,6 +199,7 @@ go_library(
         "//intrinsic/assets/processes/proto:process_manifest_go_proto",
         "//intrinsic/assets/proto:asset_type_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
+        "//intrinsic/assets/proto:installed_assets_go_grpc_proto",
         "//intrinsic/assets/proto:metadata_go_proto",
         "//intrinsic/assets/scene_objects:sceneobjectmanifest",
         "//intrinsic/assets/services:servicemanifest",

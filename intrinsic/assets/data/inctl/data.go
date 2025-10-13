@@ -4,8 +4,8 @@
 package data
 
 import (
-	"intrinsic/assets/data/inctl/install"
 	"intrinsic/assets/data/inctl/release"
+	"intrinsic/assets/inctl/install"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/cobrautil"
 )

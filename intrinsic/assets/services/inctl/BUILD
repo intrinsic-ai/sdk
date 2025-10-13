@@ -10,8 +10,8 @@ go_library(
     deps = [
         ":add",
         ":delete",
-        ":install",
         ":release",
+        "//intrinsic/assets/inctl:install",
         "//intrinsic/assets/services/inctl/state",
         "//intrinsic/tools/inctl/cmd:root",
         "//intrinsic/tools/inctl/util:cobrautil",
@@ -44,25 +44,6 @@ go_library(
         "//intrinsic/assets/proto:asset_deployment_go_grpc_proto",
         "@com_github_spf13_cobra//:go_default_library",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
-    ],
-)
-
-go_library(
-    name = "install",
-    srcs = ["install.go"],
-    deps = [
-        "//intrinsic/assets:bundleio",
-        "//intrinsic/assets:clientutils",
-        "//intrinsic/assets:cmdutils",
-        "//intrinsic/assets:idutils",
-        "//intrinsic/assets:imagetransfer",
-        "//intrinsic/assets/proto:installed_assets_go_grpc_proto",
-        "//intrinsic/assets/services:bundleimages",
-        "//intrinsic/skills/tools/skill/cmd/directupload",
-        "@com_github_google_go_containerregistry//pkg/v1/remote:go_default_library",
-        "@com_github_spf13_cobra//:go_default_library",
-        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
-        "@org_golang_google_grpc//status:go_default_library",
     ],
 )
 
