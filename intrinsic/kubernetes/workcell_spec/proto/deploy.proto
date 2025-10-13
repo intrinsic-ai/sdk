@@ -1,0 +1,30 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.workcell_spec.v1;
+
+import "intrinsic/config/proto/operation_mode.proto";
+
+service DeployService {
+
+  // Start a given solution on a given cluster.
+  rpc StartSolution(StartSolutionRequest) returns (StartSolutionResponse) {}
+
+  // Stop the running solution on the given cluster.
+  rpc StopSolution(StopSolutionRequest) returns (StopSolutionResponse) {}
+}
+
+message StartSolutionRequest {
+  // The solution which should be started.
+  string solution_id = 1;
+
+  // Operation mode to start the solution in.
+  intrinsic_proto.config.OperationMode operation_mode = 2;
+}
+
+message StartSolutionResponse {}
+
+message StopSolutionRequest {}
+
+message StopSolutionResponse {}

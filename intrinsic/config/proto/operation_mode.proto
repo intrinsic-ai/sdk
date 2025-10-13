@@ -1,0 +1,21 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.config;
+
+// Runtime switch indicating in which mode the app will be started (e.g.,
+// in simulation or on real hardware).
+enum OperationMode {
+  OPERATION_MODE_UNSPECIFIED = 0;
+
+  // Cluster will start apps in sim. A cluster can start an application in sim
+  // only if it is powerful enough to run simulation, i.e., can_do_sim is
+  // True. Otherwise, the start request will fail.
+  SIMULATION = 1;
+
+  // Cluster starts apps on physical hardware. A cluster can start an
+  // application on a cluster only if the cluster is referenced from
+  // application.workcell.hw_clusters. Otherwise, the start request will fail.
+  REAL_HARDWARE = 2;
+}

@@ -31,6 +31,9 @@ var SolutionCmd = orgutil.WrapCmd(&cobra.Command{
 }, viperLocal)
 
 func init() {
+	SolutionCmd.AddCommand(StartCmd())
+	SolutionCmd.AddCommand(StopCmd())
+
 	root.RootCmd.AddCommand(SolutionCmd)
 }
 

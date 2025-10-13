@@ -68,3 +68,16 @@ go_test(
     srcs = ["environments_test.go"],
     library = ":environments",
 )
+
+go_library(
+    name = "operationmode",
+    srcs = ["operation_mode.go"],
+    deps = ["//intrinsic/config/proto:operation_mode_go_proto"],
+)
+
+go_test(
+    name = "operationmode_test",
+    srcs = ["operation_mode_test.go"],
+    library = ":operationmode",
+    deps = ["//intrinsic/config/proto:operation_mode_go_proto"],
+)
