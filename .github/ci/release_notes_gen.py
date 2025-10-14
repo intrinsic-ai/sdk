@@ -75,7 +75,7 @@ def generate_changelog(repo: git.Repo, last_release_tag: git.TagReference) -> st
     return release_notes
 
 
-def find_most_recent_release(repo: git.Repo) -> Optional[git.TagReference]:
+def find_most_recent_release(repo: git.Repo, current_version: str) -> Optional[git.TagReference]:
     """
     Iterate through history to find the most recent release tag
     """
@@ -95,8 +95,11 @@ def find_most_recent_release(repo: git.Repo) -> Optional[git.TagReference]:
         if commit in commit_to_tags:
             for tag in commit_to_tags[commit]:
                 if tag_pattern.match(tag.name):
+                    # Exclude the current version from consideration
+                    # Otherwise we won't have a span of commits
+                    if tag.name == current_version:
+                        continue
                     return tag
-
     return None
 
 
@@ -144,7 +147,7 @@ if __name__ == "__main__":
             print(f"Error: Could not find '{args.last_release_tag}' in '{args.repo_path}'")
             sys.exit(-1)
     else:
-        last_release = find_most_recent_release(repo)
+        last_release = find_most_recent_release(repo, args.version)
 
     print(f"Generating changelog from last release: {last_release}")
 
