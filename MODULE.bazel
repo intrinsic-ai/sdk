@@ -159,7 +159,7 @@ nvidia_libs_ext = use_extension(
     "nvidia_libs_ext",
 )
 nvidia_libs_ext.cuda_libs(
-    name = "cuda_redist_for_tf_g3",
+    name = "cuda_redist_for_tf",
     components = [
         "cuda_cudart",
         "cuda_nvcc",
@@ -173,23 +173,23 @@ nvidia_libs_ext.cuda_libs(
     manifest_sha256 = "7ab9c76014ae4907fa1b51738af599607a5fd8ca3a5c4bb4c3b31338cc642a93",
 )
 nvidia_libs_ext.cudnn_libs(
-    name = "cudnn_redist_for_tf_g3",
+    name = "cudnn_redist_for_tf",
     components = ["cudnn"],
     cudnn_cuda_version = "12",
     cudnn_version = "9.3.0",
     manifest_sha256 = "d17d9a7878365736758550294f03e633a0b023bec879bf173349bfb34781972e",
 )
 nvidia_libs_ext.nccl_libs(
-    name = "nccl_redist_for_tf_g3",
+    name = "nccl_redist_for_tf",
     cuda_version = "12.4",
     nccl_version = "2.27.7",
     sha256 = "944e1ba3a5ca9bbd449bbaed9796626122670e58dea3031837a3910a90ffd5ee",
 )
 use_repo(
     nvidia_libs_ext,
-    "cuda_redist_for_tf_g3",
-    "cudnn_redist_for_tf_g3",
-    "nccl_redist_for_tf_g3",
+    "cuda_redist_for_tf",
+    "cudnn_redist_for_tf",
+    "nccl_redist_for_tf",
 )
 
 ########
