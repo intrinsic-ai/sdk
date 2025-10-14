@@ -89,6 +89,23 @@ func ReadTextProto(path string, p proto.Message, opts ...TextReadOption) error {
 	return nil
 }
 
+// ReadTextProtoFS reads a proto message encoded as pbtxt from a file in a fs.FS.
+func ReadTextProtoFS(fsys fs.FS, path string, p proto.Message, opts ...TextReadOption) error {
+	b, err := fs.ReadFile(fsys, path)
+	if err != nil {
+		return fmt.Errorf("reading %q failed: %w", path, err)
+	}
+
+	options := new(prototext.UnmarshalOptions)
+	for _, opt := range opts {
+		opt(options)
+	}
+	if err := options.Unmarshal(b, p); err != nil {
+		return fmt.Errorf("parsing proto file %q failed failed: %w", path, err)
+	}
+	return nil
+}
+
 // ReadBinaryProto reads a binary encoded proto message from a file.
 func ReadBinaryProto(path string, p proto.Message, opts ...BinaryReadOption) error {
 	b, err := os.ReadFile(path)
