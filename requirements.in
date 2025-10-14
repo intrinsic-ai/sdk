@@ -14,7 +14,6 @@
 #   ],
 # )
 
-ai-edge-model-explorer==0.1.26
 black==25.1.0
 graphviz==0.21
 google-re2==1.1.20240702
