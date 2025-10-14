@@ -65,6 +65,16 @@ message Grasp {
   intrinsic_proto.icon.JointVec pregrasp_ik_solution = 12;
   // An IK solution for the grasp pose.
   intrinsic_proto.icon.JointVec grasp_ik_solution = 13;
+  // A possible placement pose only if
+  // PlacementConstraints.placement_pose_constraint is specified and the
+  // constraint is feasible.
+  // This provides a feasible placement pose for the grasp for the user when
+  // `PlacementPoseConstraint.target_frame_margins` is specified, when the user
+  // is expecting the placement to take place within the margins but not sure
+  // where exactly would guarantee the placement success.
+  // Its IK is guaranteed to be feasible, while trajectories towards it are not.
+  optional intrinsic_proto.motion_planning.v1.PoseEquality
+      possible_placement_pose = 14;
 }
 
 message RepeatedGrasps {
@@ -150,6 +160,17 @@ message PoseBasedGrasp {
   // An IK solution for the grasp pose. Only populated if straightline
   // checker is enabled.
   intrinsic_proto.icon.JointVec grasp_ik_solution = 7;
+  // The placement pose only if PlacementPoseConstraint is specified and met.
+  // The `moving_frame` and `target_frame` here are set to the same values as
+  // set in PlacementPoseConstraint.
+  // This provides a feasible placement pose for the grasp for the user when
+  // `PlacementPoseConstraint.target_frame_margins` is specified, when the user
+  // is expecting the placement to take place within the margins but not sure
+  // where exactly would guarantee the placement success.
+  // Populated the same as `PlacementPoseConstraint.target_frame` when no
+  // `PlacementPoseConstraint.target_frame_margins` is specified.
+  // This only guarantees its IK but not the trajectories towards it.
+  intrinsic_proto.motion_planning.v1.PoseEquality possible_placement_pose = 8;
 }
 
 message RepeatedPoseBasedGrasps {
