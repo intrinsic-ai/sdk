@@ -14,6 +14,7 @@ import "intrinsic/util/status/extended_status.proto";
 // in the workcell. It also monitors the state of the running kubernetes
 // container of the Service, and is capable of surfacing errors, if any.
 //
+//
 // A note on terminology:
 //
 // - Upper case "Service" is used to refer to an asset of type Service.
@@ -22,6 +23,10 @@ service SystemServiceState {
 
   // Returns the current state of the requested Service instance.
   rpc GetInstanceState(GetInstanceStateRequest) returns (InstanceState) {}
+
+  // Returns the states for all Service instances in the solution.
+  rpc ListInstanceStates(ListInstanceStatesRequest)
+      returns (ListInstanceStatesResponse) {}
 
   // Enables the requested running Service instance if supported.
   //
@@ -72,10 +77,6 @@ service SystemServiceState {
   //
   // Note: This will stop all ongoing processes in the Service.
   rpc RestartService(RestartServiceRequest) returns (RestartServiceResponse) {}
-
-  // Returns the states for all Service instances in the solution.
-  rpc ListInstanceStates(ListInstanceStatesRequest)
-      returns (ListInstanceStatesResponse) {}
 }
 
 message InstanceState {
