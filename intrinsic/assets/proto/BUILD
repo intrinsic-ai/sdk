@@ -304,6 +304,7 @@ proto_library(
     name = "asset_deployment_proto",
     srcs = ["asset_deployment.proto"],
     visibility = [
+        "//intrinsic:public_api_users",
         "//intrinsic/kubernetes/api_relay:__subpackages__",
         "//intrinsic/scene:__subpackages__",
         "//intrinsic/world/service:__subpackages__",
@@ -369,6 +370,7 @@ proto_library(
     name = "installed_assets_proto",
     srcs = ["installed_assets.proto"],
     visibility = [
+        "//intrinsic:public_api_users",
         "//intrinsic/kubernetes/api_relay:__subpackages__",
         "//intrinsic/world/service:__subpackages__",
     ],
