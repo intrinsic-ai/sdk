@@ -6,10 +6,20 @@ package intrinsic_proto.assets;
 
 import "intrinsic/assets/proto/asset_type.proto";
 
-/* A tag to help users search for assets by keyword.
-
-Not all tags are applicable to every asset type (see AssetTagMetadata).
-*/
+// A tag to help find Assets.
+//
+// Tags are used *only* as an aid for finding Assets. For example, tags could be
+// used to filter search results from the AssetCatalog, or by an AI agent to
+// determine the object to which a user is referring when they say, "Close the
+// gripper."
+//
+// Tags *do not* imply any kind of functionality or contract. For example, the
+// fact that an Asset is tagged with ASSET_TAG_CAMERA implies absolutely nothing
+// about the interfaces or capabilities it provides. Therefore, tags *must not*
+// be used to programmatically identify Assets for interaction via specific
+// interfaces.
+//
+// Not all tags are applicable to every Asset type (see AssetTagMetadata).
 enum AssetTag {
   ASSET_TAG_UNSPECIFIED = 0;
   ASSET_TAG_CAMERA = 1;
@@ -17,28 +27,28 @@ enum AssetTag {
   ASSET_TAG_SUBPROCESS = 3;
 }
 
-/* Metadata about a particular asset tag value. */
+// Metadata about a particular Asset tag value.
 message AssetTagMetadata {
-  /* The asset tag to which these metadata apply. */
+  // The Asset tag to which these metadata apply.
   AssetTag asset_tag = 1;
 
-  /* The display name of the asset tag. */
+  // The display name of the Asset tag.
   string display_name = 2;
 
-  /* The asset types to which the asset tag applies.
-
-  An asset tag may only be associated with an asset if the asset is of a type
-  listed here. */
+  // The Asset types to which the tag applies.
+  //
+  // An Asset tag may only be associated with an Asset if the Asset is of a type
+  // listed here.
   repeated AssetType applicable_asset_types = 3;
 }
 
-/* Describes the metadata of a set of asset tags.
-
-  Each AssetTag value must have a corresponding entry in `tags`, ordered by enum
-  value.
-
-  A value of this proto is defined in asset_tags.textproto; it describes the
-  canonical set of built-in tags that can be associated with assets. */
+// Describes the metadata for a set of Asset tags.
+//
+// Each AssetTag value must have a corresponding entry in `tags`, ordered by
+// enum value.
+//
+// A value of this proto is defined in asset_tags.textproto. It describes the
+// canonical set of built-in tags that can be associated with Assets.
 message AssetTagMetadataSet {
   repeated AssetTagMetadata tags = 1;
 }
