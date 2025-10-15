@@ -39,5 +39,14 @@ tags [
     asset_tag: ASSET_TAG_SUBPROCESS
     display_name: "Subprocess"
     applicable_asset_types: [ASSET_TYPE_PROCESS]
+  },
+  {
+    asset_tag: ASSET_TAG_ARM
+    display_name: "Arm"
+    applicable_asset_types: [
+      ASSET_TYPE_HARDWARE_DEVICE,
+      ASSET_TYPE_SCENE_OBJECT,
+      ASSET_TYPE_SERVICE
+    ]
   }
 ]

@@ -25,6 +25,7 @@ enum AssetTag {
   ASSET_TAG_CAMERA = 1;
   ASSET_TAG_GRIPPER = 2;
   ASSET_TAG_SUBPROCESS = 3;
+  ASSET_TAG_ARM = 4;
 }
 
 // Metadata about a particular Asset tag value.

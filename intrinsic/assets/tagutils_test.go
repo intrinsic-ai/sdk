@@ -57,6 +57,11 @@ func TestAssetTagDisplayName(t *testing.T) {
 			wantDisplayName: "Subprocess",
 		},
 		{
+			name:            "arm",
+			tag:             atagpb.AssetTag_ASSET_TAG_ARM,
+			wantDisplayName: "Arm",
+		},
+		{
 			name:            "unspecified",
 			tag:             atagpb.AssetTag_ASSET_TAG_UNSPECIFIED,
 			wantDisplayName: "",
@@ -100,6 +105,11 @@ func TestAssetTagFromDisplayName(t *testing.T) {
 			wantTag:     atagpb.AssetTag_ASSET_TAG_SUBPROCESS,
 		},
 		{
+			name:        "arm",
+			displayName: "Arm",
+			wantTag:     atagpb.AssetTag_ASSET_TAG_ARM,
+		},
+		{
 			name:        "unspecified",
 			displayName: "Unspecified",
 			wantTag:     atagpb.AssetTag_ASSET_TAG_UNSPECIFIED,
@@ -141,6 +151,11 @@ func TestAssetTagName(t *testing.T) {
 			name: "subprocess",
 			tag:  atagpb.AssetTag_ASSET_TAG_SUBPROCESS,
 			want: "ASSET_TAG_SUBPROCESS",
+		},
+		{
+			name: "arm",
+			tag:  atagpb.AssetTag_ASSET_TAG_ARM,
+			want: "ASSET_TAG_ARM",
 		},
 		{
 			name: "unspecified",
@@ -206,12 +221,22 @@ func TestAssetTagsForTypes(t *testing.T) {
 		{
 			name:       "scene object",
 			assetTypes: []atypepb.AssetType{atypepb.AssetType_ASSET_TYPE_SCENE_OBJECT},
-			wantTags:   []atagpb.AssetTag{atagpb.AssetTag_ASSET_TAG_UNSPECIFIED, atagpb.AssetTag_ASSET_TAG_CAMERA, atagpb.AssetTag_ASSET_TAG_GRIPPER},
+			wantTags: []atagpb.AssetTag{
+				atagpb.AssetTag_ASSET_TAG_UNSPECIFIED,
+				atagpb.AssetTag_ASSET_TAG_CAMERA,
+				atagpb.AssetTag_ASSET_TAG_GRIPPER,
+				atagpb.AssetTag_ASSET_TAG_ARM,
+			},
 		},
 		{
 			name:       "service and scene object",
 			assetTypes: []atypepb.AssetType{atypepb.AssetType_ASSET_TYPE_SERVICE, atypepb.AssetType_ASSET_TYPE_SCENE_OBJECT},
-			wantTags:   []atagpb.AssetTag{atagpb.AssetTag_ASSET_TAG_UNSPECIFIED, atagpb.AssetTag_ASSET_TAG_CAMERA, atagpb.AssetTag_ASSET_TAG_GRIPPER},
+			wantTags: []atagpb.AssetTag{
+				atagpb.AssetTag_ASSET_TAG_UNSPECIFIED,
+				atagpb.AssetTag_ASSET_TAG_CAMERA,
+				atagpb.AssetTag_ASSET_TAG_GRIPPER,
+				atagpb.AssetTag_ASSET_TAG_ARM,
+			},
 		},
 		{
 			name:       "skill",
