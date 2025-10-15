@@ -17,7 +17,7 @@
     "multicast": { "enabled": false },
     "gossip": {
       "enabled": true,
-      "multihop": true,
+      "multihop": false,
       "autoconnect": { "peer": ["peer", "router"] }
     }
   },
