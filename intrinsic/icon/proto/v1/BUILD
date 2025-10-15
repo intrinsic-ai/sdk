@@ -99,6 +99,7 @@ proto_library(
     name = "types_proto",
     srcs = ["types.proto"],
     deps = [
+        ":condition_types_proto",
         "//intrinsic/icon/proto:generic_part_config_proto",
         "@com_google_protobuf//:any_proto",
         "@com_google_protobuf//:descriptor_proto",
@@ -112,13 +113,36 @@ cc_proto_library(
 
 go_proto_library(
     name = "types_go_proto",
-    go_deps = ["//intrinsic/icon/proto:generic_part_config_go_proto"],
+    go_deps = [
+        ":condition_types_go_proto",
+        "//intrinsic/icon/proto:generic_part_config_go_proto",
+    ],
     deps = [":types_proto"],
 )
 
 py_proto_library(
     name = "types_py_pb2",
     deps = [":types_proto"],
+)
+
+proto_library(
+    name = "condition_types_proto",
+    srcs = ["condition_types.proto"],
+)
+
+cc_proto_library(
+    name = "condition_types_cc_proto",
+    deps = [":condition_types_proto"],
+)
+
+go_proto_library(
+    name = "condition_types_go_proto",
+    deps = [":condition_types_proto"],
+)
+
+py_proto_library(
+    name = "condition_types_py_pb2",
+    deps = [":condition_types_proto"],
 )
 
 proto_library(

@@ -12,6 +12,7 @@ import dataclasses
 import datetime
 import threading
 from typing import Optional, Union
+from intrinsic.icon.proto.v1 import condition_types_pb2
 from intrinsic.icon.proto.v1 import types_pb2
 from intrinsic.icon.python import errors
 ReactionCallback = Callable[
@@ -29,7 +30,7 @@ and `current_action_id` is the id of the action transitioned to (if any).
 class Condition:
   """Describes a real-time condition.
 
-  This class thinly wraps types_pb2.Condition. Use `.proto` to
+  This class thinly wraps condition_types_pb2.Condition. Use `.proto` to
   access the proto representation.
 
   A real-time condition is part of a Reaction. It describes the circumstances
@@ -59,15 +60,16 @@ class Condition:
   ```
 
   Attributes:
-    proto: The types_pb2.Condition proto representation of this condition.
+    proto: The condition_types_pb2.Condition proto representation of this
+      condition.
   """
 
   def __init__(
       self,
       condition: Union[
-          types_pb2.Comparison,
-          types_pb2.ConjunctionCondition,
-          types_pb2.NegatedCondition,
+          condition_types_pb2.Comparison,
+          condition_types_pb2.ConjunctionCondition,
+          condition_types_pb2.NegatedCondition,
       ],
   ):
     """Creates a Condition from either a comparison, conjunction or negated condition proto.
@@ -83,12 +85,14 @@ class Condition:
       errors.Client.InvalidArgumentError: Unexpected condition type.
     """
 
-    if isinstance(condition, types_pb2.Comparison):
-      self.proto = types_pb2.Condition(comparison=condition)
-    elif isinstance(condition, types_pb2.ConjunctionCondition):
-      self.proto = types_pb2.Condition(conjunction_condition=condition)
-    elif isinstance(condition, types_pb2.NegatedCondition):
-      self.proto = types_pb2.Condition(negated_condition=condition)
+    if isinstance(condition, condition_types_pb2.Comparison):
+      self.proto = condition_types_pb2.Condition(comparison=condition)
+    elif isinstance(condition, condition_types_pb2.ConjunctionCondition):
+      self.proto = condition_types_pb2.Condition(
+          conjunction_condition=condition
+      )
+    elif isinstance(condition, condition_types_pb2.NegatedCondition):
+      self.proto = condition_types_pb2.Condition(negated_condition=condition)
     else:
       raise errors.Client.InvalidArgumentError(
           'Encountered unexpected condition type: ', type(condition)
@@ -120,9 +124,9 @@ class Condition:
       A Condition object.
     """
     return Condition(
-        condition=types_pb2.Comparison(
+        condition=condition_types_pb2.Comparison(
             state_variable_name=state_variable_name,
-            operation=types_pb2.Comparison.OpEnum.EQUAL,
+            operation=condition_types_pb2.Comparison.OpEnum.EQUAL,
             bool_value=True,
         )
     )
@@ -140,9 +144,9 @@ class Condition:
       A Condition object.
     """
     return Condition(
-        condition=types_pb2.Comparison(
+        condition=condition_types_pb2.Comparison(
             state_variable_name=state_variable_name,
-            operation=types_pb2.Comparison.OpEnum.EQUAL,
+            operation=condition_types_pb2.Comparison.OpEnum.EQUAL,
             bool_value=False,
         )
     )
@@ -168,25 +172,25 @@ class Condition:
     """
     if isinstance(value, bool):
       return Condition(
-          condition=types_pb2.Comparison(
+          condition=condition_types_pb2.Comparison(
               state_variable_name=state_variable_name,
-              operation=types_pb2.Comparison.OpEnum.EQUAL,
+              operation=condition_types_pb2.Comparison.OpEnum.EQUAL,
               bool_value=value,
           )
       )
     elif isinstance(value, int):
       return Condition(
-          condition=types_pb2.Comparison(
+          condition=condition_types_pb2.Comparison(
               state_variable_name=state_variable_name,
-              operation=types_pb2.Comparison.OpEnum.EQUAL,
+              operation=condition_types_pb2.Comparison.OpEnum.EQUAL,
               int64_value=value,
           )
       )
     else:
       return Condition(
-          condition=types_pb2.Comparison(
+          condition=condition_types_pb2.Comparison(
               state_variable_name=state_variable_name,
-              operation=types_pb2.Comparison.OpEnum.EQUAL,
+              operation=condition_types_pb2.Comparison.OpEnum.EQUAL,
               double_value=value,
           )
       )
@@ -212,25 +216,25 @@ class Condition:
     """
     if isinstance(value, bool):
       return Condition(
-          condition=types_pb2.Comparison(
+          condition=condition_types_pb2.Comparison(
               state_variable_name=state_variable_name,
-              operation=types_pb2.Comparison.OpEnum.NOT_EQUAL,
+              operation=condition_types_pb2.Comparison.OpEnum.NOT_EQUAL,
               bool_value=value,
           )
       )
     elif isinstance(value, int):
       return Condition(
-          condition=types_pb2.Comparison(
+          condition=condition_types_pb2.Comparison(
               state_variable_name=state_variable_name,
-              operation=types_pb2.Comparison.OpEnum.NOT_EQUAL,
+              operation=condition_types_pb2.Comparison.OpEnum.NOT_EQUAL,
               int64_value=value,
           )
       )
     else:
       return Condition(
-          condition=types_pb2.Comparison(
+          condition=condition_types_pb2.Comparison(
               state_variable_name=state_variable_name,
-              operation=types_pb2.Comparison.OpEnum.NOT_EQUAL,
+              operation=condition_types_pb2.Comparison.OpEnum.NOT_EQUAL,
               double_value=value,
           )
       )
@@ -253,9 +257,9 @@ class Condition:
       A Condition object.
     """
     return Condition(
-        condition=types_pb2.Comparison(
+        condition=condition_types_pb2.Comparison(
             state_variable_name=state_variable_name,
-            operation=types_pb2.Comparison.OpEnum.APPROX_EQUAL,
+            operation=condition_types_pb2.Comparison.OpEnum.APPROX_EQUAL,
             double_value=value,
             max_abs_error=max_abs_error,
         )
@@ -279,9 +283,9 @@ class Condition:
       A Condition object.
     """
     return Condition(
-        condition=types_pb2.Comparison(
+        condition=condition_types_pb2.Comparison(
             state_variable_name=state_variable_name,
-            operation=types_pb2.Comparison.OpEnum.APPROX_NOT_EQUAL,
+            operation=condition_types_pb2.Comparison.OpEnum.APPROX_NOT_EQUAL,
             double_value=value,
             max_abs_error=max_abs_error,
         )
@@ -305,17 +309,17 @@ class Condition:
     """
     if isinstance(value, int):
       return Condition(
-          condition=types_pb2.Comparison(
+          condition=condition_types_pb2.Comparison(
               state_variable_name=state_variable_name,
-              operation=types_pb2.Comparison.OpEnum.GREATER_THAN,
+              operation=condition_types_pb2.Comparison.OpEnum.GREATER_THAN,
               int64_value=value,
           )
       )
     else:
       return Condition(
-          condition=types_pb2.Comparison(
+          condition=condition_types_pb2.Comparison(
               state_variable_name=state_variable_name,
-              operation=types_pb2.Comparison.OpEnum.GREATER_THAN,
+              operation=condition_types_pb2.Comparison.OpEnum.GREATER_THAN,
               double_value=value,
           )
       )
@@ -338,17 +342,17 @@ class Condition:
     """
     if isinstance(value, int):
       return Condition(
-          condition=types_pb2.Comparison(
+          condition=condition_types_pb2.Comparison(
               state_variable_name=state_variable_name,
-              operation=types_pb2.Comparison.OpEnum.GREATER_THAN_OR_EQUAL,
+              operation=condition_types_pb2.Comparison.OpEnum.GREATER_THAN_OR_EQUAL,
               int64_value=value,
           )
       )
     else:
       return Condition(
-          condition=types_pb2.Comparison(
+          condition=condition_types_pb2.Comparison(
               state_variable_name=state_variable_name,
-              operation=types_pb2.Comparison.OpEnum.GREATER_THAN_OR_EQUAL,
+              operation=condition_types_pb2.Comparison.OpEnum.GREATER_THAN_OR_EQUAL,
               double_value=value,
           )
       )
@@ -371,17 +375,17 @@ class Condition:
     """
     if isinstance(value, int):
       return Condition(
-          condition=types_pb2.Comparison(
+          condition=condition_types_pb2.Comparison(
               state_variable_name=state_variable_name,
-              operation=types_pb2.Comparison.OpEnum.LESS_THAN,
+              operation=condition_types_pb2.Comparison.OpEnum.LESS_THAN,
               int64_value=value,
           )
       )
     else:
       return Condition(
-          condition=types_pb2.Comparison(
+          condition=condition_types_pb2.Comparison(
               state_variable_name=state_variable_name,
-              operation=types_pb2.Comparison.OpEnum.LESS_THAN,
+              operation=condition_types_pb2.Comparison.OpEnum.LESS_THAN,
               double_value=value,
           )
       )
@@ -404,17 +408,17 @@ class Condition:
     """
     if isinstance(value, int):
       return Condition(
-          condition=types_pb2.Comparison(
+          condition=condition_types_pb2.Comparison(
               state_variable_name=state_variable_name,
-              operation=types_pb2.Comparison.OpEnum.LESS_THAN_OR_EQUAL,
+              operation=condition_types_pb2.Comparison.OpEnum.LESS_THAN_OR_EQUAL,
               int64_value=value,
           )
       )
     else:
       return Condition(
-          condition=types_pb2.Comparison(
+          condition=condition_types_pb2.Comparison(
               state_variable_name=state_variable_name,
-              operation=types_pb2.Comparison.OpEnum.LESS_THAN_OR_EQUAL,
+              operation=condition_types_pb2.Comparison.OpEnum.LESS_THAN_OR_EQUAL,
               double_value=value,
           )
       )
@@ -432,7 +436,7 @@ class Condition:
       A Condition object.
     """
     return Condition(
-        condition=types_pb2.NegatedCondition(
+        condition=condition_types_pb2.NegatedCondition(
             condition=condition.proto,
         )
     )
@@ -451,8 +455,8 @@ class Condition:
       A Condition object.
     """
     return Condition(
-        condition=types_pb2.ConjunctionCondition(
-            operation=types_pb2.ConjunctionCondition.ANY_OF,
+        condition=condition_types_pb2.ConjunctionCondition(
+            operation=condition_types_pb2.ConjunctionCondition.ANY_OF,
             conditions=[condition.proto for condition in conditions],
         )
     )
@@ -471,8 +475,8 @@ class Condition:
       A Condition object.
     """
     return Condition(
-        condition=types_pb2.ConjunctionCondition(
-            operation=types_pb2.ConjunctionCondition.ALL_OF,
+        condition=condition_types_pb2.ConjunctionCondition(
+            operation=condition_types_pb2.ConjunctionCondition.ALL_OF,
             conditions=[condition.proto for condition in conditions],
         )
     )

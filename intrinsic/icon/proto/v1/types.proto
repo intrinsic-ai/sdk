@@ -9,6 +9,7 @@ package intrinsic_proto.icon.v1;
 import "google/protobuf/any.proto";
 import "google/protobuf/descriptor.proto";
 import "intrinsic/icon/proto/generic_part_config.proto";
+import "intrinsic/icon/proto/v1/condition_types.proto";
 
 // Describes a state machine consisting of a list of `action_instances` acting
 // as nodes and a list of `reactions` describing the edges.
@@ -147,72 +148,6 @@ message ActionSignature {
   repeated RealtimeSignalInfo realtime_signal_infos = 10;
 
   reserved 6;
-}
-
-// Comparison describes a real-time condition statement based on the
-// value of a state variable.
-message Comparison {
-  // OpEnum describes available operations.
-  enum OpEnum {
-    UNKNOWN = 0;
-    EQUAL = 1;
-    NOT_EQUAL = 2;
-    APPROX_EQUAL = 3;
-    APPROX_NOT_EQUAL = 4;
-    LESS_THAN_OR_EQUAL = 5;
-    LESS_THAN = 6;
-    GREATER_THAN_OR_EQUAL = 7;
-    GREATER_THAN = 8;
-  }
-  // Name of the action-specific real-time state variable to test against.
-  string state_variable_name = 1;
-
-  // Comparison operation to perform between the state variable and value.
-  OpEnum operation = 2;
-
-  // Value to test against. Must match the action's StateVariableInfo::Type for
-  // the state variable.
-  oneof value {
-    // Test against this double value.
-    double double_value = 3;
-    // Test against this boolean value. OpEnum must be EQUAL or NOT_EQUAL.
-    bool bool_value = 4;
-    // Test against this integer value.
-    int64 int64_value = 6;
-  }
-
-  // Max absolute value of error (aka "epsilon") for float-point comparisons
-  // APPROX_EQUAL and APPROX_NOT_EQUAL. Ignored for other operation types.
-  double max_abs_error = 5;
-}
-
-// ConjunctionCondition describes a real-time condition statement based on
-// multiple other (contained) conditions.
-message ConjunctionCondition {
-  // OpEnum describes available operations.
-  enum OpEnum {
-    UNKNOWN = 0;
-    ALL_OF = 1;
-    ANY_OF = 2;
-  }
-
-  // The operation to use.
-  OpEnum operation = 1;
-
-  // The conditions to evaluate to form this condition.
-  repeated Condition conditions = 2;
-}
-
-message NegatedCondition {
-  Condition condition = 1;
-}
-
-message Condition {
-  oneof condition {
-    Comparison comparison = 1;
-    ConjunctionCondition conjunction_condition = 3;
-    NegatedCondition negated_condition = 4;
-  }
 }
 
 // Server-wide configuration values.

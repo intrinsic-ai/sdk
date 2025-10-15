@@ -11,6 +11,7 @@ from google.protobuf import empty_pb2
 from google.protobuf import timestamp_pb2
 import grpc
 from intrinsic.icon.proto import streaming_output_pb2
+from intrinsic.icon.proto.v1 import condition_types_pb2
 from intrinsic.icon.proto.v1 import service_pb2
 from intrinsic.icon.proto.v1 import types_pb2
 from intrinsic.icon.python import _session
@@ -201,10 +202,10 @@ class SessionTest(absltest.TestCase):
                 action_association=types_pb2.Reaction.ActionAssociation(
                     action_instance_id=10, stop_associated_action=True
                 ),
-                condition=types_pb2.Condition(
-                    comparison=types_pb2.Comparison(
+                condition=condition_types_pb2.Condition(
+                    comparison=condition_types_pb2.Comparison(
                         state_variable_name='some_condition_var',
-                        operation=types_pb2.Comparison.OpEnum.EQUAL,
+                        operation=condition_types_pb2.Comparison.OpEnum.EQUAL,
                         bool_value=True,
                     )
                 ),
@@ -215,10 +216,10 @@ class SessionTest(absltest.TestCase):
                 action_association=types_pb2.Reaction.ActionAssociation(
                     action_instance_id=10, stop_associated_action=True
                 ),
-                condition=types_pb2.Condition(
-                    comparison=types_pb2.Comparison(
+                condition=condition_types_pb2.Condition(
+                    comparison=condition_types_pb2.Comparison(
                         state_variable_name='another_condition_var',
-                        operation=types_pb2.Comparison.OpEnum.GREATER_THAN,
+                        operation=condition_types_pb2.Comparison.OpEnum.GREATER_THAN,
                         double_value=2.0,
                     )
                 ),
@@ -229,10 +230,10 @@ class SessionTest(absltest.TestCase):
                 action_association=types_pb2.Reaction.ActionAssociation(
                     action_instance_id=10, stop_associated_action=False
                 ),
-                condition=types_pb2.Condition(
-                    comparison=types_pb2.Comparison(
+                condition=condition_types_pb2.Condition(
+                    comparison=condition_types_pb2.Comparison(
                         state_variable_name='yet_another_condition_var',
-                        operation=types_pb2.Comparison.OpEnum.GREATER_THAN,
+                        operation=condition_types_pb2.Comparison.OpEnum.GREATER_THAN,
                         double_value=2.0,
                     )
                 ),
@@ -271,10 +272,10 @@ class SessionTest(absltest.TestCase):
                 action_association=types_pb2.Reaction.ActionAssociation(
                     action_instance_id=0, stop_associated_action=True
                 ),
-                condition=types_pb2.Condition(
-                    comparison=types_pb2.Comparison(
+                condition=condition_types_pb2.Condition(
+                    comparison=condition_types_pb2.Comparison(
                         state_variable_name='foo_var',
-                        operation=types_pb2.Comparison.OpEnum.LESS_THAN,
+                        operation=condition_types_pb2.Comparison.OpEnum.LESS_THAN,
                         double_value=1.0,
                     )
                 ),
@@ -287,10 +288,10 @@ class SessionTest(absltest.TestCase):
                     stop_associated_action=False,
                     triggered_signal_name='foo_signal',
                 ),
-                condition=types_pb2.Condition(
-                    comparison=types_pb2.Comparison(
+                condition=condition_types_pb2.Condition(
+                    comparison=condition_types_pb2.Comparison(
                         state_variable_name='foo_var',
-                        operation=types_pb2.Comparison.OpEnum.LESS_THAN,
+                        operation=condition_types_pb2.Comparison.OpEnum.LESS_THAN,
                         double_value=1.0,
                     )
                 ),
@@ -300,10 +301,10 @@ class SessionTest(absltest.TestCase):
                 action_association=types_pb2.Reaction.ActionAssociation(
                     action_instance_id=00, stop_associated_action=False
                 ),
-                condition=types_pb2.Condition(
-                    comparison=types_pb2.Comparison(
+                condition=condition_types_pb2.Condition(
+                    comparison=condition_types_pb2.Comparison(
                         state_variable_name='foo_var',
-                        operation=types_pb2.Comparison.OpEnum.LESS_THAN,
+                        operation=condition_types_pb2.Comparison.OpEnum.LESS_THAN,
                         double_value=1.0,
                     )
                 ),
@@ -314,10 +315,10 @@ class SessionTest(absltest.TestCase):
                 action_association=types_pb2.Reaction.ActionAssociation(
                     action_instance_id=10, stop_associated_action=True
                 ),
-                condition=types_pb2.Condition(
-                    comparison=types_pb2.Comparison(
+                condition=condition_types_pb2.Condition(
+                    comparison=condition_types_pb2.Comparison(
                         state_variable_name='foo_var',
-                        operation=types_pb2.Comparison.OpEnum.LESS_THAN,
+                        operation=condition_types_pb2.Comparison.OpEnum.LESS_THAN,
                         double_value=1.0,
                     )
                 ),
@@ -330,10 +331,10 @@ class SessionTest(absltest.TestCase):
                     stop_associated_action=False,
                     triggered_signal_name='foo_signal',
                 ),
-                condition=types_pb2.Condition(
-                    comparison=types_pb2.Comparison(
+                condition=condition_types_pb2.Condition(
+                    comparison=condition_types_pb2.Comparison(
                         state_variable_name='foo_var',
-                        operation=types_pb2.Comparison.OpEnum.LESS_THAN,
+                        operation=condition_types_pb2.Comparison.OpEnum.LESS_THAN,
                         double_value=1.0,
                     )
                 ),
@@ -343,10 +344,10 @@ class SessionTest(absltest.TestCase):
                 action_association=types_pb2.Reaction.ActionAssociation(
                     action_instance_id=10, stop_associated_action=False
                 ),
-                condition=types_pb2.Condition(
-                    comparison=types_pb2.Comparison(
+                condition=condition_types_pb2.Condition(
+                    comparison=condition_types_pb2.Comparison(
                         state_variable_name='foo_var',
-                        operation=types_pb2.Comparison.OpEnum.LESS_THAN,
+                        operation=condition_types_pb2.Comparison.OpEnum.LESS_THAN,
                         double_value=1.0,
                     )
                 ),
@@ -378,10 +379,10 @@ class SessionTest(absltest.TestCase):
                 action_association=types_pb2.Reaction.ActionAssociation(
                     action_instance_id=10,
                 ),
-                condition=types_pb2.Condition(
-                    comparison=types_pb2.Comparison(
+                condition=condition_types_pb2.Condition(
+                    comparison=condition_types_pb2.Comparison(
                         state_variable_name='some_condition_var',
-                        operation=types_pb2.Comparison.OpEnum.EQUAL,
+                        operation=condition_types_pb2.Comparison.OpEnum.EQUAL,
                         bool_value=True,
                     )
                 ),
@@ -427,10 +428,10 @@ class SessionTest(absltest.TestCase):
                   reactions=[
                       types_pb2.Reaction(
                           reaction_instance_id=1,
-                          condition=types_pb2.Condition(
-                              comparison=types_pb2.Comparison(
+                          condition=condition_types_pb2.Condition(
+                              comparison=condition_types_pb2.Comparison(
                                   state_variable_name='some_condition_var',
-                                  operation=types_pb2.Comparison.OpEnum.EQUAL,
+                                  operation=condition_types_pb2.Comparison.OpEnum.EQUAL,
                                   bool_value=True,
                               )
                           ),
@@ -440,10 +441,10 @@ class SessionTest(absltest.TestCase):
                       ),
                       types_pb2.Reaction(
                           reaction_instance_id=2,
-                          condition=types_pb2.Condition(
-                              comparison=types_pb2.Comparison(
+                          condition=condition_types_pb2.Condition(
+                              comparison=condition_types_pb2.Comparison(
                                   state_variable_name='another_condition_var',
-                                  operation=types_pb2.Comparison.OpEnum.GREATER_THAN,
+                                  operation=condition_types_pb2.Comparison.OpEnum.GREATER_THAN,
                                   double_value=2.0,
                               )
                           ),
@@ -482,10 +483,10 @@ class SessionTest(absltest.TestCase):
                   reactions=[
                       types_pb2.Reaction(
                           reaction_instance_id=1,
-                          condition=types_pb2.Condition(
-                              comparison=types_pb2.Comparison(
+                          condition=condition_types_pb2.Condition(
+                              comparison=condition_types_pb2.Comparison(
                                   state_variable_name='some_condition_var',
-                                  operation=types_pb2.Comparison.OpEnum.EQUAL,
+                                  operation=condition_types_pb2.Comparison.OpEnum.EQUAL,
                                   bool_value=True,
                               )
                           ),
@@ -521,10 +522,10 @@ class SessionTest(absltest.TestCase):
                   reactions=[
                       types_pb2.Reaction(
                           reaction_instance_id=1,
-                          condition=types_pb2.Condition(
-                              comparison=types_pb2.Comparison(
+                          condition=condition_types_pb2.Condition(
+                              comparison=condition_types_pb2.Comparison(
                                   state_variable_name='custom_variable',
-                                  operation=types_pb2.Comparison.OpEnum.EQUAL,
+                                  operation=condition_types_pb2.Comparison.OpEnum.EQUAL,
                                   bool_value=True,
                               )
                           ),
@@ -703,10 +704,10 @@ class SessionTest(absltest.TestCase):
                   reactions=[
                       types_pb2.Reaction(
                           reaction_instance_id=1,
-                          condition=types_pb2.Condition(
-                              comparison=types_pb2.Comparison(
+                          condition=condition_types_pb2.Condition(
+                              comparison=condition_types_pb2.Comparison(
                                   state_variable_name='intrinsic.is_done',
-                                  operation=types_pb2.Comparison.EQUAL,
+                                  operation=condition_types_pb2.Comparison.EQUAL,
                                   bool_value=True,
                               ),
                           ),
@@ -719,10 +720,10 @@ class SessionTest(absltest.TestCase):
                       ),
                       types_pb2.Reaction(
                           reaction_instance_id=2,
-                          condition=types_pb2.Condition(
-                              comparison=types_pb2.Comparison(
+                          condition=condition_types_pb2.Condition(
+                              comparison=condition_types_pb2.Comparison(
                                   state_variable_name='intrinsic.is_done',
-                                  operation=types_pb2.Comparison.EQUAL,
+                                  operation=condition_types_pb2.Comparison.EQUAL,
                                   bool_value=True,
                               ),
                           ),
@@ -735,10 +736,10 @@ class SessionTest(absltest.TestCase):
                       ),
                       types_pb2.Reaction(
                           reaction_instance_id=3,
-                          condition=types_pb2.Condition(
-                              comparison=types_pb2.Comparison(
+                          condition=condition_types_pb2.Condition(
+                              comparison=condition_types_pb2.Comparison(
                                   state_variable_name='intrinsic.is_done',
-                                  operation=types_pb2.Comparison.EQUAL,
+                                  operation=condition_types_pb2.Comparison.EQUAL,
                                   bool_value=True,
                               ),
                           ),
@@ -798,10 +799,10 @@ class SessionTest(absltest.TestCase):
                   reactions=[
                       types_pb2.Reaction(
                           reaction_instance_id=1,
-                          condition=types_pb2.Condition(
-                              comparison=types_pb2.Comparison(
+                          condition=condition_types_pb2.Condition(
+                              comparison=condition_types_pb2.Comparison(
                                   state_variable_name='intrinsic.is_done',
-                                  operation=types_pb2.Comparison.EQUAL,
+                                  operation=condition_types_pb2.Comparison.EQUAL,
                                   bool_value=True,
                               ),
                           ),
@@ -814,10 +815,10 @@ class SessionTest(absltest.TestCase):
                       ),
                       types_pb2.Reaction(
                           reaction_instance_id=2,
-                          condition=types_pb2.Condition(
-                              comparison=types_pb2.Comparison(
+                          condition=condition_types_pb2.Condition(
+                              comparison=condition_types_pb2.Comparison(
                                   state_variable_name='my_variable',
-                                  operation=types_pb2.Comparison.GREATER_THAN,
+                                  operation=condition_types_pb2.Comparison.GREATER_THAN,
                                   double_value=15.3,
                               ),
                           ),
@@ -830,10 +831,10 @@ class SessionTest(absltest.TestCase):
                       ),
                       types_pb2.Reaction(
                           reaction_instance_id=3,
-                          condition=types_pb2.Condition(
-                              comparison=types_pb2.Comparison(
+                          condition=condition_types_pb2.Condition(
+                              comparison=condition_types_pb2.Comparison(
                                   state_variable_name='intrinsic.is_settled',
-                                  operation=types_pb2.Comparison.EQUAL,
+                                  operation=condition_types_pb2.Comparison.EQUAL,
                                   bool_value=True,
                               ),
                           ),
@@ -940,10 +941,10 @@ class SessionTest(absltest.TestCase):
               reactions=[
                   types_pb2.Reaction(
                       reaction_instance_id=1,
-                      condition=types_pb2.Condition(
-                          comparison=types_pb2.Comparison(
+                      condition=condition_types_pb2.Condition(
+                          comparison=condition_types_pb2.Comparison(
                               state_variable_name='intrinsic.is_done',
-                              operation=types_pb2.Comparison.OpEnum.EQUAL,
+                              operation=condition_types_pb2.Comparison.OpEnum.EQUAL,
                               bool_value=True,
                           )
                       ),

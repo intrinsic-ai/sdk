@@ -41,13 +41,12 @@ cc_library(
     srcs = ["condition.cc"],
     hdrs = ["condition.h"],
     deps = [
-        "//intrinsic/icon/proto/v1:types_cc_proto",
+        "//intrinsic/icon/proto/v1:condition_types_cc_proto",
         "//intrinsic/util/status:status_macros",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
         "@abseil-cpp//absl/strings",
         "@abseil-cpp//absl/types:span",
-        "@abseil-cpp//absl/types:variant",
         "@com_google_protobuf//:protobuf",
     ],
 )

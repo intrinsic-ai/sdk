@@ -16,7 +16,7 @@
 #include "absl/strings/string_view.h"
 #include "absl/types/span.h"
 #include "google/protobuf/text_format.h"
-#include "intrinsic/icon/proto/v1/types.pb.h"
+#include "intrinsic/icon/proto/v1/condition_types.pb.h"
 #include "intrinsic/util/status/status_macros.h"
 
 namespace intrinsic {

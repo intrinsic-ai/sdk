@@ -31,6 +31,7 @@ py_library(
         "//intrinsic/icon/proto:logging_mode_py_pb2",
         "//intrinsic/icon/proto:matrix_conversions",  # buildcleaner: keep to allow import
         "//intrinsic/icon/proto:streaming_output_py_pb2",
+        "//intrinsic/icon/proto/v1:condition_types_py_pb2",
         "//intrinsic/icon/proto/v1:service_py_pb2",
         "//intrinsic/icon/proto/v1:service_py_pb2_grpc",
         "//intrinsic/icon/proto/v1:types_py_pb2",
@@ -154,6 +155,7 @@ py_test(
     deps = [
         ":icon",
         "//intrinsic/icon/proto:streaming_output_py_pb2",
+        "//intrinsic/icon/proto/v1:condition_types_py_pb2",
         "//intrinsic/icon/proto/v1:service_py_pb2",
         "//intrinsic/icon/proto/v1:types_py_pb2",
         requirement("grpcio"),
@@ -177,7 +179,7 @@ py_test(
     srcs = ["reactions_test.py"],
     deps = [
         ":icon",
-        "//intrinsic/icon/proto/v1:types_py_pb2",
+        "//intrinsic/icon/proto/v1:condition_types_py_pb2",
         "@com_google_absl_py//absl/testing:absltest",
     ],
 )

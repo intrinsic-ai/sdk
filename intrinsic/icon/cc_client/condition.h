@@ -13,8 +13,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
 #include "absl/types/span.h"
-#include "absl/types/variant.h"
-#include "intrinsic/icon/proto/v1/types.pb.h"
+#include "intrinsic/icon/proto/v1/condition_types.pb.h"
 
 namespace intrinsic {
 namespace icon {
@@ -49,7 +48,7 @@ class Comparison {
     kEqual = 1,
     kNotEqual = 2,
     // Skips index 3 and 4 to stay compatible with
-    // intrinsic/icon/proto/v1/types.proto.
+    // intrinsic/icon/proto/v1/condition_types.proto.
     kLessThanOrEqual = 5,
     kLessThan = 6,
     kGreaterThanOrEqual = 7,
@@ -59,7 +58,7 @@ class Comparison {
   // The set of comparison operations available for floating point conditions.
   enum class FloatOperator {
     // Skips index 1 and 2 to stay compatible with
-    // intrinsic/icon/proto/v1/types.proto.
+    // intrinsic/icon/proto/v1/condition_types.proto.
     kApproxEqual = 3,
     kApproxNotEqual = 4,
     kLessThanOrEqual = 5,
