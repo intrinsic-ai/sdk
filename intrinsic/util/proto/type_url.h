@@ -8,6 +8,7 @@
 #include <type_traits>
 
 #include "absl/base/attributes.h"
+#include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "google/protobuf/message.h"
 
@@ -26,11 +27,16 @@ std::string PrefixWithSeparator(T&& p) {
 }
 }  // namespace internal
 
-inline std::string AddTypeUrlPrefix(std::string_view proto_type) {
-  if (proto_type.find(kTypeUrlPrefix) == 0) {
+inline std::string AddTypeUrlPrefix(
+    std::string_view proto_type,
+    std::string_view type_url_prefix = kTypeUrlPrefix) {
+  if (absl::StartsWith(proto_type, type_url_prefix)) {
     return std::string(proto_type);
   }
-  return absl::StrCat(kTypeUrlPrefix, proto_type);
+  if (absl::EndsWith(type_url_prefix, kTypeUrlSeparator)) {
+    return absl::StrCat(type_url_prefix, proto_type);
+  }
+  return absl::StrCat(type_url_prefix, kTypeUrlSeparator, proto_type);
 }
 
 // Generate an Intrinsic-style type URL for protos.
@@ -77,16 +83,21 @@ inline std::string_view StripTypeUrlPrefix(
 
 template <typename M, typename = std::enable_if_t<
                           std::is_base_of_v<google::protobuf::Message, M>>>
-inline std::string AddTypeUrlPrefix() {
-  return AddTypeUrlPrefix(M::descriptor()->full_name());
+inline std::string AddTypeUrlPrefix(
+    std::string_view type_url_prefix = kTypeUrlPrefix) {
+  return AddTypeUrlPrefix(M::descriptor()->full_name(), type_url_prefix);
 }
 
-inline std::string AddTypeUrlPrefix(const google::protobuf::Message& m) {
-  return AddTypeUrlPrefix(m.GetDescriptor()->full_name());
+inline std::string AddTypeUrlPrefix(
+    const google::protobuf::Message& m,
+    std::string_view type_url_prefix = kTypeUrlPrefix) {
+  return AddTypeUrlPrefix(m.GetDescriptor()->full_name(), type_url_prefix);
 }
 
-inline std::string AddTypeUrlPrefix(const google::protobuf::Message* m) {
-  return AddTypeUrlPrefix(m->GetDescriptor()->full_name());
+inline std::string AddTypeUrlPrefix(
+    const google::protobuf::Message* m,
+    std::string_view type_url_prefix = kTypeUrlPrefix) {
+  return AddTypeUrlPrefix(m->GetDescriptor()->full_name(), type_url_prefix);
 }
 
 }  // namespace intrinsic

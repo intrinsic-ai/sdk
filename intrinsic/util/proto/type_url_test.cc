@@ -14,10 +14,20 @@ namespace intrinsic {
 namespace {
 
 TEST(TypeUrl, AddPrefix) {
-  absl::string_view proto_type =
-      google::protobuf::Int64Value::descriptor()->full_name();
-  EXPECT_EQ(AddTypeUrlPrefix(proto_type),
+  EXPECT_EQ(AddTypeUrlPrefix("google.protobuf.Int64Value"),
             "type.googleapis.com/google.protobuf.Int64Value");
+}
+
+TEST(TypeUrl, AddPrefixCustomWithSlash) {
+  EXPECT_EQ(
+      AddTypeUrlPrefix("google.protobuf.Int64Value", "type.intrinsic.ai/test/"),
+      "type.intrinsic.ai/test/google.protobuf.Int64Value");
+}
+
+TEST(TypeUrl, AddPrefixCustomWithoutSlash) {
+  EXPECT_EQ(
+      AddTypeUrlPrefix("google.protobuf.Int64Value", "type.intrinsic.ai/test"),
+      "type.intrinsic.ai/test/google.protobuf.Int64Value");
 }
 
 TEST(TypeUrl, AddPrefixIdempotent) {
@@ -40,6 +50,42 @@ TEST(TypeUrl, AddPrefixMessagePointer) {
   google::protobuf::Int64Value m;
   EXPECT_EQ(AddTypeUrlPrefix(&m),
             "type.googleapis.com/google.protobuf.Int64Value");
+}
+
+TEST(TypeUrl, AddPrefixTypeCustomWithSlash) {
+  EXPECT_EQ(
+      AddTypeUrlPrefix<google::protobuf::Int64Value>("type.intrinsic.ai/test/"),
+      "type.intrinsic.ai/test/google.protobuf.Int64Value");
+}
+
+TEST(TypeUrl, AddPrefixTypeCustomWithoutSlash) {
+  EXPECT_EQ(
+      AddTypeUrlPrefix<google::protobuf::Int64Value>("type.intrinsic.ai/test"),
+      "type.intrinsic.ai/test/google.protobuf.Int64Value");
+}
+
+TEST(TypeUrl, AddPrefixMessageReferenceCustomWithSlash) {
+  google::protobuf::Int64Value m;
+  EXPECT_EQ(AddTypeUrlPrefix(m, "type.intrinsic.ai/test/"),
+            "type.intrinsic.ai/test/google.protobuf.Int64Value");
+}
+
+TEST(TypeUrl, AddPrefixMessageReferenceCustomWithoutSlash) {
+  google::protobuf::Int64Value m;
+  EXPECT_EQ(AddTypeUrlPrefix(m, "type.intrinsic.ai/test"),
+            "type.intrinsic.ai/test/google.protobuf.Int64Value");
+}
+
+TEST(TypeUrl, AddPrefixMessagePointerCustomWithSlash) {
+  google::protobuf::Int64Value m;
+  EXPECT_EQ(AddTypeUrlPrefix(&m, "type.intrinsic.ai/test/"),
+            "type.intrinsic.ai/test/google.protobuf.Int64Value");
+}
+
+TEST(TypeUrl, AddPrefixMessagePointerCustomWithoutSlash) {
+  google::protobuf::Int64Value m;
+  EXPECT_EQ(AddTypeUrlPrefix(&m, "type.intrinsic.ai/test"),
+            "type.intrinsic.ai/test/google.protobuf.Int64Value");
 }
 
 TEST(TypeUrl, StripPrefix) {
