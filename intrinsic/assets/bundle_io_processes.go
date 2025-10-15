@@ -5,7 +5,6 @@ package bundleio
 import (
 	"fmt"
 	"io"
-	"os"
 
 	"github.com/google/safearchive/tar"
 	"intrinsic/assets/processes/processutil"
@@ -19,13 +18,14 @@ import (
 )
 
 const (
-	// ProcessManifestFileName is the name of the file in a Process asset .tar bundle
-	// that contains the ProcessManifest binary proto.
+	// ProcessManifestFileName is the name of the file in a Process asset .tar
+	// bundle that contains the ProcessManifest binary proto.
 	ProcessManifestFileName = "process_manifest.binpb"
 )
 
-// WriteProcessManifest writes a Process asset .tar bundle file to the given path.
-func WriteProcessManifest(manifest *processmanifestpb.ProcessManifest, path string) error {
+// WriteProcessManifest writes a Process asset .tar bundle file to the given
+// writer.
+func WriteProcessManifest(manifest *processmanifestpb.ProcessManifest, out io.Writer) error {
 	if manifest == nil {
 		return fmt.Errorf("Process manifest must not be nil")
 	}
@@ -35,11 +35,6 @@ func WriteProcessManifest(manifest *processmanifestpb.ProcessManifest, path stri
 		return fmt.Errorf("invalid Process manifest: %w", err)
 	}
 
-	out, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
-	if err != nil {
-		return fmt.Errorf("failed to open %q for writing: %w", path, err)
-	}
-	defer out.Close()
 	tarWriter := tar.NewWriter(out)
 
 	if err := tartooling.AddBinaryProto(manifest, tarWriter, ProcessManifestFileName); err != nil {
@@ -53,16 +48,11 @@ func WriteProcessManifest(manifest *processmanifestpb.ProcessManifest, path stri
 	return nil
 }
 
-// ReadProcessManifest reads a ProcessManifest from a bundle (see WriteProcessManifest).
-func ReadProcessManifest(path string) (*processmanifestpb.ProcessManifest, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, fmt.Errorf("could not open %q: %w", path, err)
-	}
-	defer file.Close()
-
+// ReadProcessManifest reads a ProcessManifest from a .tar bundle (see
+// [WriteProcessManifest]).
+func ReadProcessManifest(src io.Reader) (*processmanifestpb.ProcessManifest, error) {
 	// Read single file from the bundle.
-	tarReader := tar.NewReader(file)
+	tarReader := tar.NewReader(src)
 	header, err := tarReader.Next()
 	if err != nil {
 		return nil, fmt.Errorf("could not read first entry of Process asset bundle: %w", err)
@@ -96,9 +86,9 @@ func ReadProcessManifest(path string) (*processmanifestpb.ProcessManifest, error
 }
 
 // ProcessProcessAsset creates a processed ProcessAsset from a Process asset
-// bundle on disk (see WriteProcessManifest).
-func ProcessProcessAsset(path string) (*processassetpb.ProcessAsset, error) {
-	manifest, err := ReadProcessManifest(path)
+// bundle (see [WriteProcessManifest]).
+func ProcessProcessAsset(src io.Reader) (*processassetpb.ProcessAsset, error) {
+	manifest, err := ReadProcessManifest(src)
 	if err != nil {
 		return nil, fmt.Errorf("could not read Process asset bundle: %w", err)
 	}

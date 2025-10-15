@@ -298,7 +298,12 @@ func (p *BundleProcessor) Process(path string) (ProcessedBundle, error) {
 		}
 		return &hardwareDeviceBundle{hardwareDevice}, nil
 	case bundleTypeProcess:
-		process, err := ProcessProcessAsset(path)
+		f, err := os.Open(path)
+		if err != nil {
+			return nil, fmt.Errorf("could not open Process asset target %q: %w", path, err)
+		}
+		defer f.Close()
+		process, err := ProcessProcessAsset(f)
 		if err != nil {
 			return nil, fmt.Errorf("unable to process skill bundle: %w", err)
 		}
