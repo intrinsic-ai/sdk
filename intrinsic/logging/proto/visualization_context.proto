@@ -22,8 +22,8 @@ message VisualizationWorld {
   // Either:
   //   - The data itself or;
   //   - A reference to the data, serialized as a blob.
-  oneof data {
-    BlobReference blob_reference = 2;
+  oneof world_data {
+    BlobReference world_blob_ref = 2;
   }
 }
 
@@ -41,11 +41,11 @@ message VisualizationGeometry {
   // Either:
   //   - The data itself or;
   //   - A reference to the data, serialized as a blob.
-  oneof data {
+  oneof renderable_data {
     // We place the Renderable message in here so the descriptor data is
     // included in the Intrinsic recording for visualization.
     intrinsic_proto.geometry.Renderable renderable = 2;
-    BlobReference blob_reference = 3;
+    BlobReference renderable_blob_ref = 3;
   }
 }
 
@@ -63,11 +63,11 @@ message VisualizationRenderable {
   // Either:
   //   - The data itself or;
   //   - A reference to the data, serialized as a blob.
-  oneof data {
+  oneof renderable_data {
     // We place the Renderable message in here so the descriptor data is
     // included in the Intrinsic recording for visualization.
     intrinsic_proto.geometry.v1.Renderable renderable = 2;
-    BlobReference blob_reference = 3;
+    BlobReference renderable_blob_ref = 3;
   }
 }
 
@@ -83,11 +83,11 @@ message VisualizationFrameResources {
   // Either:
   //   - The data itself or;
   //   - A reference to the data, serialized as a blob.
-  oneof data {
+  oneof geometry_data {
     // We place the GeometryComponent message in here so the descriptor data is
     // included in the Intrinsic recording for visualization.
     intrinsic_proto.world.GeometryComponent geometry = 2;
-    BlobReference blob_reference = 3;
+    BlobReference geometry_blob_ref = 3;
   }
 }
 
