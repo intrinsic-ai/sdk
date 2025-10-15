@@ -27,6 +27,10 @@ import "intrinsic/assets/proto/id.proto";
 // `object` field with the necessary information to enable the dependent Asset
 // to communicate with the provider.
 //
+// Any error encountered during dependency resolution, for example, an invalid
+// Asset ID for the data asset provided through the `name` field, would not
+// add an interface to the `interfaces` map for that dependency.
+//
 // Usage information:
 //
 // Assets specifying dependencies in their configuration should use the
