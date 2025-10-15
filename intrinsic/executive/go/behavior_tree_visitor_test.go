@@ -131,6 +131,25 @@ func TestNodes(t *testing.T) {
 								},
 							},
 						},
+						{
+							Name: proto.String("Q"),
+							NodeType: &btpb.BehaviorTree_Node_Retry{
+								Retry: &btpb.BehaviorTree_RetryNode{
+									MaxTries: *proto.Uint32(3),
+									Child:    &btpb.BehaviorTree_Node{Name: proto.String("R")},
+								},
+							},
+						},
+						{
+							Name: proto.String("S"),
+							NodeType: &btpb.BehaviorTree_Node_SubTree{
+								SubTree: &btpb.BehaviorTree_SubtreeNode{
+									Tree: &btpb.BehaviorTree{
+										Root: &btpb.BehaviorTree_Node{Name: proto.String("T")},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -138,7 +157,7 @@ func TestNodes(t *testing.T) {
 	}
 
 	visitor := &nodeNameCollector{}
-	want := []string{"A", "B", "C", "D", "E", "F", "G", "H", "F2", "M2", "N2", "O2", "P2", "I", "J", "K", "L", "M", "N", "O", "P"}
+	want := []string{"A", "B", "C", "D", "E", "F", "G", "H", "F2", "M2", "N2", "O2", "P2", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T"}
 	err := behaviortree.Walk(tree, visitor)
 	if err != nil {
 		t.Errorf("Tree walker failed on \n%v\ngot %v", tree, err)
