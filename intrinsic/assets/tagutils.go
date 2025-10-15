@@ -5,7 +5,6 @@ package tagutils
 
 import (
 	"fmt"
-	"maps"
 	"slices"
 	"strings"
 
@@ -27,6 +26,8 @@ var allAssetTagMetadata []*atagpb.AssetTagMetadata
 var allAssetTagMetadataComputed bool
 
 // AllAssetTags returns all AssetTags except ASSET_TAG_UNSPECIFIED.
+//
+// Tags are returned in enum order.
 func AllAssetTags() []atagpb.AssetTag {
 	allTags := make([]atagpb.AssetTag, 0, len(atagpb.AssetTag_name)-1)
 	for tag := range atagpb.AssetTag_name {
@@ -81,35 +82,51 @@ func AssetTagFromName(name string) atagpb.AssetTag {
 
 // AssetTagsForTypes returns a list of AssetTags that apply to any of the specified AssetTypes.
 func AssetTagsForTypes(assetTypes []atypepb.AssetType) ([]atagpb.AssetTag, error) {
-	tagsMap := make(map[atagpb.AssetTag]struct{})
+	tags := make(map[atagpb.AssetTag]struct{})
 	for _, assetType := range assetTypes {
-		tagsForType, err := AssetTagsForType(assetType)
+		assetTagMetadata, err := AssetTagMetadataForType(assetType)
 		if err != nil {
 			return nil, err
 		}
-		for _, tag := range tagsForType {
-			tagsMap[tag] = struct{}{}
+		for _, tagMetadata := range assetTagMetadata {
+			tags[tagMetadata.GetAssetTag()] = struct{}{}
 		}
 	}
 
-	tags := slices.Collect(maps.Keys(tagsMap))
-	slices.Sort(tags)
-	return tags, nil
+	// Construct the tags in enum order.
+	tagsForTypes := make([]atagpb.AssetTag, 0, len(tags))
+	for tag := range atagpb.AssetTag_name {
+		if _, ok := tags[atagpb.AssetTag(tag)]; ok {
+			tagsForTypes = append(tagsForTypes, atagpb.AssetTag(tag))
+		}
+	}
+
+	return tagsForTypes, nil
 }
 
 // AssetTagsForType returns a list of AssetTags that apply to the specified AssetType.
+//
+// Tags are returned in enum order.
 func AssetTagsForType(assetType atypepb.AssetType) ([]atagpb.AssetTag, error) {
 	metadata, err := AssetTagMetadataForType(assetType)
 	if err != nil {
 		return nil, err
 	}
 
-	tags := make([]atagpb.AssetTag, len(metadata))
-	for idx, tagMetadata := range metadata {
-		tags[idx] = tagMetadata.GetAssetTag()
+	tags := map[atagpb.AssetTag]struct{}{}
+	for _, tagMetadata := range metadata {
+		tags[tagMetadata.GetAssetTag()] = struct{}{}
 	}
 
-	return tags, nil
+	// Construct the tags in enum order.
+	tagsForType := make([]atagpb.AssetTag, 0, len(tags))
+	for tag := range atagpb.AssetTag_name {
+		if _, ok := tags[atagpb.AssetTag(tag)]; ok {
+			tagsForType = append(tagsForType, atagpb.AssetTag(tag))
+		}
+	}
+
+	return tagsForType, nil
 }
 
 // AllAssetTagMetadata returns a list of all AssetTagMetadata.

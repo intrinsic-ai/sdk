@@ -26,6 +26,15 @@ func TestAllAssetTags(t *testing.T) {
 	}
 }
 
+func TestAllAssetTagsReturnsTagsInEnumOrder(t *testing.T) {
+	allTags := AllAssetTags()
+	for i, tag := range allTags {
+		if tag != atagpb.AssetTag(i+1) {
+			t.Errorf("AllAssetTags()[%d] == %v, want %v", i, tag, atagpb.AssetTag(i+1))
+		}
+	}
+}
+
 func TestAssetTagDisplayName(t *testing.T) {
 	tests := []struct {
 		name            string
