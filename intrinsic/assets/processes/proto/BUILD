@@ -1,6 +1,7 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
+load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = ["//intrinsic:public_api_users"])
@@ -12,6 +13,11 @@ proto_library(
         "//intrinsic/assets/proto:metadata_proto",
         "//intrinsic/executive/proto:behavior_tree_proto",
     ],
+)
+
+py_proto_library(
+    name = "process_asset_py_pb2",
+    deps = [":process_asset_proto"],
 )
 
 go_proto_library(
@@ -33,6 +39,11 @@ proto_library(
         "//intrinsic/assets/proto:vendor_proto",
         "//intrinsic/executive/proto:behavior_tree_proto",
     ],
+)
+
+py_proto_library(
+    name = "process_manifest_py_pb2",
+    deps = [":process_manifest_proto"],
 )
 
 go_proto_library(
