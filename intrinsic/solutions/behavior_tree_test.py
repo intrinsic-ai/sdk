@@ -1230,7 +1230,7 @@ class BehaviorTreeVisitorTest(absltest.TestCase):
             ),
             bt.Fallback(
                 name='fallback',
-                children=[
+                tries=[
                     bt.Fail(name='fallback_child0'),
                     bt.Fail(name='fallback_child1'),
                 ],
@@ -1649,7 +1649,7 @@ class BehaviorTreeNodeOnFailureTest(absltest.TestCase):
             behavior_call.Action(skill_id='ai.intrinsic.do_it')
         ).on_failure.emit_extended_status_to('task_error'),
         recovery=bt.Fallback(
-            children=[
+            tries=[
                 bt.Sequence(name='recovery1').set_decorators(
                     bt.Decorators(
                         condition=bt.ExtendedStatusMatch(
@@ -1697,39 +1697,45 @@ class BehaviorTreeNodeOnFailureTest(absltest.TestCase):
           retry_counter_blackboard_key: "retry_counter"
           recovery {
             fallback {
-              children {
-                name: "recovery1"
-                decorators {
-                  condition {
-                    status_match {
-                      blackboard_key: "task_error"
-                      status_code {
-                        component: "ai.intrinsic.do_it"
-                        code: 2101
+              tries {
+                node {
+                  name: "recovery1"
+                  decorators {
+                    condition {
+                      status_match {
+                        blackboard_key: "task_error"
+                        status_code {
+                          component: "ai.intrinsic.do_it"
+                          code: 2101
+                        }
                       }
                     }
                   }
+                  sequence {}
                 }
-                sequence {}
               }
-              children {
-                name: "recovery2"
-                decorators {
-                  condition {
-                    status_match {
-                      blackboard_key: "task_error"
-                      status_code {
-                        component: "ai.intrinsic.do_it"
-                        code: 2202
+              tries {
+                node {
+                  name: "recovery2"
+                  decorators {
+                    condition {
+                      status_match {
+                        blackboard_key: "task_error"
+                        status_code {
+                          component: "ai.intrinsic.do_it"
+                          code: 2202
+                        }
                       }
                     }
                   }
+                  parallel {}
                 }
-                parallel {}
               }
-              children {
-                name: "fallback_recovery"
-                sequence {}
+              tries {
+                node {
+                  name: "fallback_recovery"
+                  sequence {}
+                }
               }
             }
           }
@@ -3314,19 +3320,52 @@ class BehaviorTreeRetryTest(absltest.TestCase):
 class BehaviorTreeFallbackTest(absltest.TestCase):
   """Tests the method functions of BehaviorTree.Fallback."""
 
-  def test_init(self):
+  def test_init_with_tries(self):
     """Tests if BehaviorTree.Fallback is correctly constructed."""
-    node = bt.Fallback(name='foo')
-    node.set_children(
-        bt.Task(behavior_call.Action(skill_id='skill_0')),
-        bt.Task(behavior_call.Action(skill_id='skill_1')),
+    node = bt.Fallback(
+        name='foo',
+        tries=[
+            bt.Task(behavior_call.Action(skill_id='skill_0')),
+            bt.Task(behavior_call.Action(skill_id='skill_1')),
+        ],
     )
 
     node_proto = behavior_tree_pb2.BehaviorTree.Node(name='foo')
     node_proto.fallback.CopyFrom(behavior_tree_pb2.BehaviorTree.FallbackNode())
-    node_proto.fallback.children.add().task.call_behavior.skill_id = 'skill_0'
-    node_proto.fallback.children.add().task.call_behavior.skill_id = 'skill_1'
+    node_proto.fallback.tries.add().node.task.call_behavior.skill_id = 'skill_0'
+    node_proto.fallback.tries.add().node.task.call_behavior.skill_id = 'skill_1'
     compare.assertProto2Equal(self, node.proto, node_proto)
+
+  def test_init_with_children(self):
+    """Tests if BehaviorTree.Fallback is correctly constructed."""
+    node = bt.Fallback(
+        name='foo',
+        children=[
+            bt.Task(behavior_call.Action(skill_id='skill_0')),
+            bt.Task(behavior_call.Action(skill_id='skill_1')),
+        ],
+    )
+
+    node_proto = behavior_tree_pb2.BehaviorTree.Node(name='foo')
+    node_proto.fallback.CopyFrom(behavior_tree_pb2.BehaviorTree.FallbackNode())
+    node_proto.fallback.tries.add().node.task.call_behavior.skill_id = 'skill_0'
+    node_proto.fallback.tries.add().node.task.call_behavior.skill_id = 'skill_1'
+    compare.assertProto2Equal(self, node.proto, node_proto)
+
+  def test_init_with_children_and_tries_fails(self):
+    """Tests if BehaviorTree.Fallback is correctly constructed."""
+    with self.assertRaises(ValueError):
+      _ = bt.Fallback(
+          name='foo',
+          children=[
+              bt.Task(behavior_call.Action(skill_id='skill_0')),
+              bt.Task(behavior_call.Action(skill_id='skill_1')),
+          ],
+          tries=[
+              bt.Task(behavior_call.Action(skill_id='skill_0')),
+              bt.Task(behavior_call.Action(skill_id='skill_1')),
+          ],
+      )
 
   def test_node_type(self):
     self.assertEqual(bt.Fallback.node_type, 'fallback')
@@ -3339,7 +3378,7 @@ class BehaviorTreeFallbackTest(absltest.TestCase):
 
     node_proto = behavior_tree_pb2.BehaviorTree.Node()
     node_proto.fallback.CopyFrom(behavior_tree_pb2.BehaviorTree.FallbackNode())
-    node_proto.fallback.children.add().task.call_behavior.skill_id = 'skill_0'
+    node_proto.fallback.tries.add().node.task.call_behavior.skill_id = 'skill_0'
 
     compare.assertProto2Equal(self, node.proto, node_proto)
 
@@ -3348,23 +3387,25 @@ class BehaviorTreeFallbackTest(absltest.TestCase):
         behavior_call.Action(skill_id='skill_2'),
     )
     node_proto.fallback.CopyFrom(behavior_tree_pb2.BehaviorTree.FallbackNode())
-    node_proto.fallback.children.add().task.call_behavior.skill_id = 'skill_1'
-    node_proto.fallback.children.add().task.call_behavior.skill_id = 'skill_2'
+    node_proto.fallback.tries.add().node.task.call_behavior.skill_id = 'skill_1'
+    node_proto.fallback.tries.add().node.task.call_behavior.skill_id = 'skill_2'
 
     compare.assertProto2Equal(self, node.proto, node_proto)
 
   def test_str_conversion(self):
     """Tests if conversion to string works."""
     node = bt.Fallback()
-    self.assertEqual(str(node), 'Fallback(children=[])')
+    self.assertEqual(str(node), 'Fallback(tries=[])')
     node.set_children(
         bt.Task(behavior_call.Action(skill_id='skill_0')),
         bt.Task(behavior_call.Action(skill_id='skill_1')),
     )
     self.assertEqual(
         str(node),
-        'Fallback(children=[Task(action=behavior_call.Action(skill_id="skill_0")),'
-        ' Task(action=behavior_call.Action(skill_id="skill_1"))])',
+        'Fallback(tries=[Fallback.Try(condition=None,'
+        ' node=Task(action=behavior_call.Action(skill_id="skill_0"))),'
+        ' Fallback.Try(condition=None,'
+        ' node=Task(action=behavior_call.Action(skill_id="skill_1")))])',
     )
 
   def test_to_proto_empty_node(self):
@@ -3383,8 +3424,8 @@ class BehaviorTreeFallbackTest(absltest.TestCase):
     )
 
     node_proto = behavior_tree_pb2.BehaviorTree.Node(name='foo')
-    node_proto.fallback.children.add().task.call_behavior.skill_id = 'skill_0'
-    node_proto.fallback.children.add().task.call_behavior.skill_id = 'skill_1'
+    node_proto.fallback.tries.add().node.task.call_behavior.skill_id = 'skill_0'
+    node_proto.fallback.tries.add().node.task.call_behavior.skill_id = 'skill_1'
 
     compare.assertProto2Equal(self, node.proto, node_proto)
     compare.assertProto2Equal(
@@ -3451,13 +3492,30 @@ class BehaviorTreeFallbackTest(absltest.TestCase):
     my_node.node_id = 42
 
     my_proto = behavior_tree_pb2.BehaviorTree.Node(name='foo', id=42)
-    my_proto.fallback.children.add().task.call_behavior.skill_id = 'skill_0'
-    my_proto.fallback.children.add().task.call_behavior.skill_id = 'skill_1'
+    my_proto.fallback.tries.add().node.task.call_behavior.skill_id = 'skill_0'
+    my_proto.fallback.tries.add().node.task.call_behavior.skill_id = 'skill_1'
 
     compare.assertProto2Equal(self, my_node.proto, my_proto)
     compare.assertProto2Equal(
         self, bt.Node.create_from_proto(my_proto).proto, my_proto
     )
+
+  def test_from_proto_and_to_proto_converts_children_to_tries(self):
+    node_proto = behavior_tree_pb2.BehaviorTree.Node(name='foo')
+    node_proto.fallback.children.add().task.call_behavior.skill_id = 'skill_0'
+    node_proto.fallback.children.add().task.call_behavior.skill_id = 'skill_1'
+
+    fallback_node = bt.Node.create_from_proto(node_proto)
+
+    expected_proto = behavior_tree_pb2.BehaviorTree.Node(name='foo')
+    expected_proto.fallback.tries.add().node.task.call_behavior.skill_id = (
+        'skill_0'
+    )
+    expected_proto.fallback.tries.add().node.task.call_behavior.skill_id = (
+        'skill_1'
+    )
+
+    compare.assertProto2Equal(self, fallback_node.proto, expected_proto)
 
   def test_dot_graph_empty_node(self):
     """Tests if empty node conversion to a dot representation works."""
@@ -3477,10 +3535,11 @@ class BehaviorTreeFallbackTest(absltest.TestCase):
 
   def test_dot_graph(self):
     """Tests if node conversion to a dot representation works."""
-    node = bt.Fallback()
-    node.set_children(
-        bt.Task(behavior_call.Action(skill_id='skill_0')),
-        bt.Task(behavior_call.Action(skill_id='skill_1')),
+    node = bt.Fallback(
+        tries=[
+            bt.Task(behavior_call.Action(skill_id='skill_0')),
+            bt.Task(behavior_call.Action(skill_id='skill_1')),
+        ]
     )
 
     dot_string = """digraphcluster_ {

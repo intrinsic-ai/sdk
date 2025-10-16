@@ -808,7 +808,6 @@ class Node(abc.ABC):
       A tuple of the generated graphviz dot graph and
       the name of the graph's root node.
     """
-
     dot_graph = graphviz.Digraph()
     node_name = self.node_type.lower() + node_id_suffix
     dot_graph.node(
@@ -2930,18 +2929,49 @@ class Retry(Node):
       self.recovery.visit(containing_tree, callback)
 
 
-class Fallback(NodeWithChildren):
+class Fallback(Node):
   """BT node of type Fallback for behavior_tree_pb2.BehaviorTree.FallbackNode.
 
   A fallback node will try a number of actions until one succeeds, or all
   fail. It can be used to implement trees that try a number of options.
 
   Attributes:
-    children: The list of child nodes of the given node, inherited from the
-      parent class.
+    tries: The list of tries (child nodes with optional condition) of the
+      fallback node.
     proto: The proto representation of the node.
     node_type: A string label of the node type.
   """
+
+  @dataclasses.dataclass
+  class Try:
+    """Represents a FallbackNode.Try."""
+
+    condition: Condition | None
+    node: Node
+
+    @property
+    def proto(
+        self,
+    ) -> behavior_tree_pb2.BehaviorTree.FallbackNode.Try:
+      return behavior_tree_pb2.BehaviorTree.FallbackNode.Try(
+          condition=self.condition.proto
+          if self.condition is not None
+          else None,
+          node=self.node.proto,
+      )
+
+    @classmethod
+    def _create_from_proto(
+        cls,
+        proto_object: behavior_tree_pb2.BehaviorTree.FallbackNode.Try,
+    ) -> Fallback.Try:
+      node = cls(
+          condition=Condition.create_from_proto(proto_object.condition)
+          if proto_object.HasField('condition')
+          else None,
+          node=Node.create_from_proto(proto_object.node),
+      )
+      return node
 
   _decorators: Optional[Decorators]
   _name: Optional[str]
@@ -2949,30 +2979,62 @@ class Fallback(NodeWithChildren):
   _state: Optional[NodeState]
   _user_data_protos: dict[str, any_pb2.Any]
 
+  # Note that the FallbackNode does NOT have a children member. Even when
+  # children are passed to the constructor or set via set_children() they are
+  # automatically converted to tries.
+  _tries: list[Fallback.Try]
+
   def __init__(
       self,
-      children: Optional[SequenceType[Union[Node, actions.ActionBase]]] = None,
-      name: Optional[str] = None,
+      children: list[Node | actions.ActionBase] | None = None,
+      name: str | None = None,
       *,
+      tries: list[Node | actions.ActionBase | Fallback.Try] | None = None,
       node_id: int | None = None,
   ):
-    super().__init__(children=children)
+    self._tries = []
+    if children is not None and tries is not None:
+      raise ValueError(
+          'The fallback cannot be initialized with both, children and tries, at'
+          ' the same time.'
+      )
+    if tries is not None:
+      for try_node in tries:
+        if isinstance(try_node, Fallback.Try):
+          self._tries.append(try_node)
+        else:
+          self._tries.append(
+              Fallback.Try(condition=None, node=_transform_to_node(try_node))
+          )
+
+    if children is not None:
+      for child in children:
+        self._tries.append(
+            Fallback.Try(condition=None, node=_transform_to_node(child))
+        )
+
+    super().__init__()
     self._decorators = None
     self._name = name
     self._node_id = node_id
     self._state = None
     self._user_data_protos = {}
 
+  def __repr__(self) -> str:
+    """Returns a compact, human-readable string representation."""
+    representation = f'{type(self).__name__}({self._name_repr()}tries=['
+    representation += ', '.join(map(str, self.tries))
+    representation += '])'
+    return representation
+
   @property
   def proto(self) -> behavior_tree_pb2.BehaviorTree.Node:
     proto_object = super().proto
-    if self.children:
-      for child in self.children:
-        proto_object.fallback.children.append(child.proto)
-    else:
-      proto_object.fallback.CopyFrom(
-          behavior_tree_pb2.BehaviorTree.FallbackNode()
-      )
+    proto_object.fallback.CopyFrom(
+        behavior_tree_pb2.BehaviorTree.FallbackNode()
+    )
+    for try_node in self._tries:
+      proto_object.fallback.tries.append(try_node.proto)
     return proto_object
 
   @utils.classproperty
@@ -3029,10 +3091,105 @@ class Fallback(NodeWithChildren):
   def _create_from_proto(
       cls, proto_object: behavior_tree_pb2.BehaviorTree.FallbackNode
   ) -> Fallback:
+    """Instantiates class from a given FallbackNode proto.
+
+    Args:
+      proto_object: Proto of type FallbackNode to parse.
+
+    Returns:
+      Fallback class instance.
+
+    Raises:
+      ValueError: On invalid proto, in particular one that has children and
+        tries set.
+    """
     node = cls()
+    if proto_object.children and proto_object.tries:
+      raise ValueError(
+          'The fallback proto contains children and tries. Only one is'
+          f' valid: {proto_object}'
+      )
     for child_node_proto in proto_object.children:
-      node.children.append(Node.create_from_proto(child_node_proto))
+      node._tries.append(
+          Fallback.Try(
+              condition=None, node=Node.create_from_proto(child_node_proto)
+          )
+      )
+    for try_node_proto in proto_object.tries:
+      node._tries.append(  # pylint:disable=protected-access
+          Fallback.Try._create_from_proto(try_node_proto)  # pylint:disable=protected-access
+      )
     return node
+
+  def set_children(self, *children: Node) -> Node:
+    """Sets tries from regular nodes.
+
+    This enables some compatibility with NodeWithChildren so that children can
+    be set as nodes. They will be converted into tries without condition.
+
+    Args:
+      *children: Children to add/convert, either a list or variadic elements.
+
+    Returns:
+      self
+    """
+    if not children:
+      return self
+
+    if isinstance(children[0], list):
+      self._tries = [
+          Fallback.Try(condition=None, node=_transform_to_node(x))
+          for x in children[0]
+      ]
+    else:
+      self._tries = [
+          Fallback.Try(condition=None, node=_transform_to_node(x))
+          for x in children
+      ]
+
+    return self
+
+  def has_child(self, node_id: int) -> bool:
+    return any(child.node.node_id == node_id for child in self.tries)
+
+  def remove_child(self, node_id: int) -> None:
+    for i, child in enumerate(self._tries):
+      if child.node.node_id == node_id:
+        del self._tries[i]
+        break
+
+  @property
+  def tries(self) -> list[Fallback.Try]:
+    return self._tries
+
+  def dot_graph(  # pytype: disable=signature-mismatch  # overriding-parameter-count-checks
+      self, node_id_suffix: str = ''
+  ) -> Tuple[graphviz.Digraph, str]:
+    dot_graph, node_name = Node.dot_graph(
+        self, node_id_suffix=node_id_suffix, name=self.name
+    )
+    if self.tries:
+      try_nodes = [b.node for b in self.tries]
+      _dot_append_children(dot_graph, node_name, try_nodes, node_id_suffix, 0)
+    box_dot_graph = _dot_wrap_in_box(
+        child_graph=dot_graph,
+        name=(self.name or '') + node_id_suffix,
+        label=self.name or '',
+    )
+    return box_dot_graph, node_name
+
+  def visit(
+      self,
+      containing_tree: BehaviorTree,
+      callback: Callable[
+          [BehaviorTree, Union[BehaviorTree, Node, Condition]], None
+      ],
+  ) -> None:
+    Node.visit(self, containing_tree, callback)
+    for try_node in self.tries:
+      if try_node.condition:
+        try_node.condition.visit(containing_tree, callback)
+      try_node.node.visit(containing_tree, callback)
 
 
 class Loop(Node):
