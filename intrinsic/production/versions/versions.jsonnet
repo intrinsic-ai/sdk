@@ -6,5 +6,5 @@
 {
   previous: '20250814.RC01',
   stable: '20250912.RC01', # Version that is currently running with the intrinsic stack
-  canary: '20251009.RC02'
+  canary: '20251016.RC01'
 }
