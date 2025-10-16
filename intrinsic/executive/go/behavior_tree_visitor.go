@@ -7,6 +7,8 @@
 package behaviortree
 
 import (
+	"context"
+
 	btpb "intrinsic/executive/proto/behavior_tree_go_proto"
 )
 
@@ -14,29 +16,32 @@ import (
 // BehaviorTree proto walker.
 type Visitor interface {
 	// Visit a specific condition in the tree.
-	VisitCondition(cond *btpb.BehaviorTree_Condition) error
+	VisitCondition(ctx context.Context, cond *btpb.BehaviorTree_Condition) error
 	// Visit a specific node in the tree.
-	VisitNode(node *btpb.BehaviorTree_Node) error
+	VisitNode(ctx context.Context, node *btpb.BehaviorTree_Node) error
 }
 
-func walkCondition(cond *btpb.BehaviorTree_Condition, visitor Visitor) error {
+func walkCondition(ctx context.Context, cond *btpb.BehaviorTree_Condition, visitor Visitor) error {
 	if cond == nil {
 		return nil
 	}
-	err := visitor.VisitCondition(cond)
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	err := visitor.VisitCondition(ctx, cond)
 	if err != nil {
 		return err
 	}
 	switch cond.ConditionType.(type) {
 	case *btpb.BehaviorTree_Condition_BehaviorTree:
-		err := Walk(cond.GetBehaviorTree(), visitor)
+		err := Walk(ctx, cond.GetBehaviorTree(), visitor)
 		if err != nil {
 			return err
 		}
 
 	case *btpb.BehaviorTree_Condition_AllOf:
 		for _, c := range cond.GetAllOf().GetConditions() {
-			err := walkCondition(c, visitor)
+			err := walkCondition(ctx, c, visitor)
 			if err != nil {
 				return err
 			}
@@ -44,14 +49,14 @@ func walkCondition(cond *btpb.BehaviorTree_Condition, visitor Visitor) error {
 
 	case *btpb.BehaviorTree_Condition_AnyOf:
 		for _, c := range cond.GetAnyOf().GetConditions() {
-			err := walkCondition(c, visitor)
+			err := walkCondition(ctx, c, visitor)
 			if err != nil {
 				return err
 			}
 		}
 
 	case *btpb.BehaviorTree_Condition_Not:
-		err = walkCondition(cond.GetNot(), visitor)
+		err = walkCondition(ctx, cond.GetNot(), visitor)
 		if err != nil {
 			return err
 		}
@@ -60,18 +65,21 @@ func walkCondition(cond *btpb.BehaviorTree_Condition, visitor Visitor) error {
 	return nil
 }
 
-func walkNode(node *btpb.BehaviorTree_Node, visitor Visitor) error {
+func walkNode(ctx context.Context, node *btpb.BehaviorTree_Node, visitor Visitor) error {
 	if node == nil {
 		return nil
 	}
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 
-	err := visitor.VisitNode(node)
+	err := visitor.VisitNode(ctx, node)
 	if err != nil {
 		return err
 	}
 
 	if node.GetDecorators().GetCondition() != nil {
-		err := walkCondition(node.GetDecorators().GetCondition(), visitor)
+		err := walkCondition(ctx, node.GetDecorators().GetCondition(), visitor)
 		if err != nil {
 			return err
 		}
@@ -80,7 +88,7 @@ func walkNode(node *btpb.BehaviorTree_Node, visitor Visitor) error {
 	switch node.NodeType.(type) {
 	case *btpb.BehaviorTree_Node_Sequence:
 		for _, c := range node.GetSequence().GetChildren() {
-			err := walkNode(c, visitor)
+			err := walkNode(ctx, c, visitor)
 			if err != nil {
 				return err
 			}
@@ -88,7 +96,7 @@ func walkNode(node *btpb.BehaviorTree_Node, visitor Visitor) error {
 
 	case *btpb.BehaviorTree_Node_Parallel:
 		for _, c := range node.GetParallel().GetChildren() {
-			err := walkNode(c, visitor)
+			err := walkNode(ctx, c, visitor)
 			if err != nil {
 				return err
 			}
@@ -96,17 +104,17 @@ func walkNode(node *btpb.BehaviorTree_Node, visitor Visitor) error {
 
 	case *btpb.BehaviorTree_Node_Selector:
 		for _, c := range node.GetSelector().GetChildren() {
-			err := walkNode(c, visitor)
+			err := walkNode(ctx, c, visitor)
 			if err != nil {
 				return err
 			}
 		}
 		for _, c := range node.GetSelector().GetBranches() {
-			err := walkCondition(c.GetCondition(), visitor)
+			err := walkCondition(ctx, c.GetCondition(), visitor)
 			if err != nil {
 				return err
 			}
-			err = walkNode(c.GetNode(), visitor)
+			err = walkNode(ctx, c.GetNode(), visitor)
 			if err != nil {
 				return err
 			}
@@ -114,54 +122,54 @@ func walkNode(node *btpb.BehaviorTree_Node, visitor Visitor) error {
 
 	case *btpb.BehaviorTree_Node_Fallback:
 		for _, c := range node.GetFallback().GetChildren() {
-			err := walkNode(c, visitor)
+			err := walkNode(ctx, c, visitor)
 			if err != nil {
 				return err
 			}
 		}
 		for _, c := range node.GetFallback().GetTries() {
-			err := walkCondition(c.GetCondition(), visitor)
+			err := walkCondition(ctx, c.GetCondition(), visitor)
 			if err != nil {
 				return err
 			}
-			err = walkNode(c.GetNode(), visitor)
+			err = walkNode(ctx, c.GetNode(), visitor)
 			if err != nil {
 				return err
 			}
 		}
 
 	case *btpb.BehaviorTree_Node_Branch:
-		err := walkCondition(node.GetBranch().GetIf(), visitor)
+		err := walkCondition(ctx, node.GetBranch().GetIf(), visitor)
 		if err != nil {
 			return err
 		}
-		err = walkNode(node.GetBranch().GetThen(), visitor)
+		err = walkNode(ctx, node.GetBranch().GetThen(), visitor)
 		if err != nil {
 			return err
 		}
-		err = walkNode(node.GetBranch().GetElse(), visitor)
+		err = walkNode(ctx, node.GetBranch().GetElse(), visitor)
 		if err != nil {
 			return err
 		}
 
 	case *btpb.BehaviorTree_Node_Loop:
-		err := walkCondition(node.GetLoop().GetWhile(), visitor)
+		err := walkCondition(ctx, node.GetLoop().GetWhile(), visitor)
 		if err != nil {
 			return err
 		}
-		err = walkNode(node.GetLoop().GetDo(), visitor)
+		err = walkNode(ctx, node.GetLoop().GetDo(), visitor)
 		if err != nil {
 			return err
 		}
 
 	case *btpb.BehaviorTree_Node_Retry:
-		err := walkNode(node.GetRetry().GetChild(), visitor)
+		err := walkNode(ctx, node.GetRetry().GetChild(), visitor)
 		if err != nil {
 			return err
 		}
 
 	case *btpb.BehaviorTree_Node_SubTree:
-		err := Walk(node.GetSubTree().GetTree(), visitor)
+		err := Walk(ctx, node.GetSubTree().GetTree(), visitor)
 		if err != nil {
 			return err
 		}
@@ -172,6 +180,6 @@ func walkNode(node *btpb.BehaviorTree_Node, visitor Visitor) error {
 
 // Walk walks the given Behavior Tree and invokes the given visitor for nodes
 // and conditions of the tree.
-func Walk(tree *btpb.BehaviorTree, visitor Visitor) error {
-	return walkNode(tree.Root, visitor)
+func Walk(ctx context.Context, tree *btpb.BehaviorTree, visitor Visitor) error {
+	return walkNode(ctx, tree.Root, visitor)
 }

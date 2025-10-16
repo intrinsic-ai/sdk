@@ -3,6 +3,7 @@
 package behaviortree_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -16,11 +17,11 @@ type nodeNameCollector struct {
 	Names []string
 }
 
-func (c *nodeNameCollector) VisitNode(node *btpb.BehaviorTree_Node) error {
+func (c *nodeNameCollector) VisitNode(ctx context.Context, node *btpb.BehaviorTree_Node) error {
 	c.Names = append(c.Names, node.GetName())
 	return nil
 }
-func (c *nodeNameCollector) VisitCondition(cond *btpb.BehaviorTree_Condition) error {
+func (c *nodeNameCollector) VisitCondition(ctx context.Context, cond *btpb.BehaviorTree_Condition) error {
 	return nil
 }
 
@@ -158,7 +159,7 @@ func TestNodes(t *testing.T) {
 
 	visitor := &nodeNameCollector{}
 	want := []string{"A", "B", "C", "D", "E", "F", "G", "H", "F2", "M2", "N2", "O2", "P2", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T"}
-	err := behaviortree.Walk(tree, visitor)
+	err := behaviortree.Walk(context.Background(), tree, visitor)
 	if err != nil {
 		t.Errorf("Tree walker failed on \n%v\ngot %v", tree, err)
 	}
@@ -314,11 +315,34 @@ func TestConditions(t *testing.T) {
 
 	visitor := &nodeNameCollector{}
 	want := []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"}
-	err := behaviortree.Walk(tree, visitor)
+	err := behaviortree.Walk(context.Background(), tree, visitor)
 	if err != nil {
 		t.Errorf("Tree walker failed on \n%v\ngot %v", tree, err)
 	}
 	if !cmp.Equal(visitor.Names, want) {
 		t.Errorf("Failed on \n%v\ngot %v, want %v", tree, visitor.Names, want)
+	}
+}
+
+func TestContextCancellation(t *testing.T) {
+	tree := &btpb.BehaviorTree{
+		Root: &btpb.BehaviorTree_Node{
+			Name: proto.String("A"),
+			NodeType: &btpb.BehaviorTree_Node_Sequence{
+				Sequence: &btpb.BehaviorTree_SequenceNode{
+					Children: []*btpb.BehaviorTree_Node{
+						{Name: proto.String("B")},
+					},
+				},
+			},
+		},
+	}
+
+	visitor := &nodeNameCollector{}
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	err := behaviortree.Walk(ctx, tree, visitor)
+	if err != context.Canceled {
+		t.Errorf("behaviortree.Walk() got error %v, want %v", err, context.Canceled)
 	}
 }

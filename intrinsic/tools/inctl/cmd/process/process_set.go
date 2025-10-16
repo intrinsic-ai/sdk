@@ -97,7 +97,7 @@ func (t *textDeserializer) deserialize(ctx context.Context, content []byte) (*bt
 
 	// Collect all file descriptor sets from the behavior tree.
 	collector := fileDescriptorSetCollector{}
-	behaviortree.Walk(btWithEmptyAnys, &collector)
+	behaviortree.Walk(ctx, btWithEmptyAnys, &collector)
 
 	for _, fileDescriptorSet := range collector.fileDescriptorSets {
 		if err := addFileDescriptorSetToFiles(fileDescriptorSet, files); err != nil {

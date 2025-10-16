@@ -27,7 +27,7 @@ import (
 var viperProcessGet = viper.New()
 
 type serializer interface {
-	Serialize(*btpb.BehaviorTree) ([]byte, error)
+	Serialize(context.Context, *btpb.BehaviorTree) ([]byte, error)
 }
 
 type textSerializer struct {
@@ -35,11 +35,13 @@ type textSerializer struct {
 }
 
 // Serialize serializes the given behavior tree to textproto.
-func (t *textSerializer) Serialize(bt *btpb.BehaviorTree) ([]byte, error) {
+func (t *textSerializer) Serialize(ctx context.Context, bt *btpb.BehaviorTree) ([]byte, error) {
 	files := *t.commonFiles
 
 	collector := fileDescriptorSetCollector{}
-	behaviortree.Walk(bt, &collector)
+	if err := behaviortree.Walk(ctx, bt, &collector); err != nil {
+		return nil, errors.Wrap(err, "failed walking behavior tree")
+	}
 
 	for _, fileDescriptorSet := range collector.fileDescriptorSets {
 		if err := addFileDescriptorSetToFiles(fileDescriptorSet, &files); err != nil {
@@ -81,7 +83,7 @@ type binarySerializer struct {
 }
 
 // Serialize serializes the given behavior tree to binary proto.
-func (b *binarySerializer) Serialize(bt *btpb.BehaviorTree) ([]byte, error) {
+func (b *binarySerializer) Serialize(ctx context.Context, bt *btpb.BehaviorTree) ([]byte, error) {
 	marshaller := proto.MarshalOptions{}
 	content, err := marshaller.Marshal(bt)
 	if err != nil {
@@ -109,7 +111,7 @@ func serializeBT(ctx context.Context, srC skillregistrygrpcpb.SkillRegistryClien
 		return nil, fmt.Errorf("unknown format %s", format)
 	}
 
-	data, err := s.Serialize(bt)
+	data, err := s.Serialize(ctx, bt)
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not serialize BT")
 	}

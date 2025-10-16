@@ -221,11 +221,11 @@ type fileDescriptorSetCollector struct {
 	fileDescriptorSets []*descriptorpb.FileDescriptorSet
 }
 
-func (c *fileDescriptorSetCollector) VisitCondition(cond *btpb.BehaviorTree_Condition) error {
+func (c *fileDescriptorSetCollector) VisitCondition(ctx context.Context, cond *btpb.BehaviorTree_Condition) error {
 	return nil
 }
 
-func (c *fileDescriptorSetCollector) VisitNode(node *btpb.BehaviorTree_Node) error {
+func (c *fileDescriptorSetCollector) VisitNode(ctx context.Context, node *btpb.BehaviorTree_Node) error {
 	fileDescriptorSet := node.GetTask().GetExecuteCode().GetFileDescriptorSet()
 	if fileDescriptorSet != nil {
 		c.fileDescriptorSets = append(c.fileDescriptorSets, fileDescriptorSet)
