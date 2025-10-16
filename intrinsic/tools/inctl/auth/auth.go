@@ -127,12 +127,12 @@ func (p *ProjectToken) HTTPAuthorization(req *http.Request) (*http.Request, erro
 // on the fly as [credentials.PerRPCCredentials] implementation.
 // This is useful for contacting services which don't accept Intrinsic API Tokens,
 // but we want to use this infrastructure to authorize users to them.
-func (p *ProjectToken) AsIDTokenCredentials() (*APIKeyTokenSource, error) {
+func (p *ProjectToken) AsIDTokenCredentials(opts ...APIKeyTokenSourceOption) (*APIKeyTokenSource, error) {
 	tsc, err := NewTokensServiceClient(http.DefaultClient, tokenExchangeServer)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create token exchange: %w", err)
 	}
-	return NewAPIKeyTokenSource(p.APIKey, tsc), nil
+	return NewAPIKeyTokenSource(p.APIKey, tsc, opts...), nil
 }
 
 // ProjectConfiguration contains list of API tokens related to given project
