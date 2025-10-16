@@ -28,6 +28,10 @@ service InstalledAssets {
   // Gets a specific installed asset.
   rpc GetInstalledAsset(GetInstalledAssetRequest) returns (InstalledAsset);
 
+  // Gets a batch of installed assets.
+  rpc BatchGetInstalledAssets(BatchGetInstalledAssetsRequest)
+      returns (BatchGetInstalledAssetsResponse);
+
   // Installs the specified asset into the solution.
   rpc CreateInstalledAsset(CreateInstalledAssetRequest)
       returns (google.longrunning.Operation) {
@@ -75,6 +79,10 @@ service InstalledAssetsReader {
 
   // Gets a specific installed asset.
   rpc GetInstalledAsset(GetInstalledAssetRequest) returns (InstalledAsset);
+
+  // Gets a batch of installed assets.
+  rpc BatchGetInstalledAssets(BatchGetInstalledAssetsRequest)
+      returns (BatchGetInstalledAssetsResponse);
 }
 
 message ListInstalledAssetsRequest {
@@ -163,6 +171,15 @@ message ListInstalledAssetsResponse {
 message GetInstalledAssetRequest {
   Id id = 1;
   intrinsic_proto.catalog.AssetViewType view = 2;
+}
+
+message BatchGetInstalledAssetsRequest {
+  repeated Id ids = 1;
+  intrinsic_proto.catalog.AssetViewType view = 2;
+}
+
+message BatchGetInstalledAssetsResponse {
+  repeated InstalledAsset installed_assets = 1;
 }
 
 enum UpdatePolicy {
