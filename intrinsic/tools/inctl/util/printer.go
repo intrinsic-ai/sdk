@@ -24,6 +24,8 @@ const (
 	KeyOutput = "output"
 	// JSONOutputFormat is a string indicating JSON output format.
 	JSONOutputFormat = "json"
+	// NDJSONOutputFormat is a string indicating NDJSON output format.
+	NDJSONOutputFormat = "ndjson"
 	// TextOutputFormat is a string indicating human-readable text output format.
 	TextOutputFormat = ""
 	// TabOutputFormat is a string indicating text output in tabulated format.
@@ -31,7 +33,7 @@ const (
 )
 
 // AllowedFormats is a list of possible output formats.
-var AllowedFormats = []string{JSONOutputFormat}
+var AllowedFormats = []string{JSONOutputFormat, NDJSONOutputFormat}
 
 type any = interface{}
 
@@ -187,6 +189,8 @@ const (
 	OutputTypeText OutputType = iota
 	// OutputTypeJSON indicates command output should be in form where each line is valid JSON
 	OutputTypeJSON
+	// OutputTypeNDJSON indicates command output should be in form where each line is valid JSON
+	OutputTypeNDJSON
 	// OutputTypeTAB indicates command output should be tabulated
 	OutputTypeTAB
 )
@@ -514,6 +518,8 @@ func GetFlagOutputType(cmd *cobra.Command) OutputType {
 	switch flag.Value.String() {
 	case JSONOutputFormat:
 		return OutputTypeJSON
+	case NDJSONOutputFormat:
+		return OutputTypeNDJSON
 	case TabOutputFormat:
 		return OutputTypeTAB
 	default:
@@ -547,7 +553,7 @@ func newPrinterFromType(ot OutputType, outW, errW io.Writer, opts ...Option) (cp
 			outW: tabwriter.NewWriter(outW, DefaultTableConfig.MinWidth, DefaultTableConfig.TabWidth,
 				DefaultTableConfig.Padding, DefaultTableConfig.PadChar, DefaultTableConfig.Flags),
 		}
-	case OutputTypeJSON:
+	case OutputTypeJSON, OutputTypeNDJSON:
 		cp = &jsonPrinter{
 			errOutPrinter: errOutPrinter{
 				errW: errW,

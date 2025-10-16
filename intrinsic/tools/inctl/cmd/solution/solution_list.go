@@ -10,7 +10,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
-	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/printer"
 
 	clusterdiscoverypb "intrinsic/frontend/cloud/api/v1/clusterdiscovery_api_go_grpc_proto"
@@ -22,12 +21,6 @@ var (
 	flagFilter     []string
 	allowedFilters = []string{"not_running", "running_in_sim", "running_on_hw"}
 )
-
-type listSolutionsParams struct {
-	filter                    []string
-	printer                   printer.Printer
-	solutionVersioningEnabled bool
-}
 
 // ListSolutionDescriptionsResponse embeds solutiondiscoverypb.ListSolutionDescriptionsResponse.
 type ListSolutionDescriptionsResponse struct {
@@ -57,28 +50,59 @@ func (res *ListSolutionDescriptionsResponse) MarshalJSON() ([]byte, error) {
 	}{Solutions: solutions})
 }
 
-// String converts a ListSolutionDescriptionsResponse to a string
-func (res *ListSolutionDescriptionsResponse) String() string {
-	const formatString = "%-50s %-15s %-50s"
-	lines := []string{
-		fmt.Sprintf(formatString, "Name", "State", "ID"),
-	}
-	for _, c := range res.m.GetSolutions() {
-		name := c.GetDisplayName()
-		if name == "" {
-			name = c.GetName()
-		}
+type listSolutionsParams struct {
+	filter     []string
+	printer    printer.CommandPrinter
+	outputType printer.OutputType
+}
 
-		statusStr := strings.TrimPrefix(c.GetState().String(), "SOLUTION_STATE_")
-		if c.GetClusterName() != "" {
-			statusStr = fmt.Sprintf("%s on %s", statusStr, c.GetClusterName())
-		}
+type solutionRow struct {
+	Name        string `json:"name,omitempty"`
+	State       string `json:"state,omitempty"`
+	DisplayName string `json:"displayName,omitempty"`
+	ClusterName string `json:"clusterName,omitempty"`
+}
 
-		lines = append(
-			lines,
-			fmt.Sprintf(formatString, name, statusStr, c.GetName()))
+func asSolutionRow(p *solutiondiscoverypb.SolutionDescription) *solutionRow {
+	return &solutionRow{
+		Name:        p.GetName(),
+		State:       p.GetState().String(),
+		DisplayName: p.GetDisplayName(),
+		ClusterName: p.GetClusterName(),
 	}
-	return strings.Join(lines, "\n")
+}
+
+func getSolutionRowCommandPrinter(cmd *cobra.Command) printer.CommandPrinter {
+	ot := printer.GetFlagOutputType(cmd)
+	if ot == printer.OutputTypeText {
+		ot = printer.OutputTypeTAB
+	}
+	cp, err := printer.NewPrinterOfType(
+		ot,
+		cmd,
+		printer.WithDefaultsFromValue(&solutionRow{}, func(columns []string) []string {
+			return []string{"name", "state", "displayName"}
+		}),
+	)
+	if err != nil {
+		cmd.PrintErrf("Error setting up output: %v\n", err)
+		cp = printer.GetDefaultPrinter(cmd)
+	}
+	return cp
+}
+
+func (s *solutionRow) Tabulated(columns []string) []string {
+	name := s.DisplayName
+	if name == "" {
+		name = s.Name
+	}
+
+	statusStr := strings.TrimPrefix(s.State, "SOLUTION_STATE_")
+	if s.ClusterName != "" {
+		statusStr = fmt.Sprintf("%s on %s", statusStr, s.ClusterName)
+	}
+
+	return []string{name, statusStr, s.Name}
 }
 
 func validateAndGetFilters(filterNames []string) ([]clusterdiscoverypb.SolutionState, error) {
@@ -102,6 +126,9 @@ func validateAndGetFilters(filterNames []string) ([]clusterdiscoverypb.SolutionS
 
 }
 
+// listSolutions lists solutions matching the given filters. If the output type is JSON, the
+// solutions are printed in a custom JSON format. Otherwise, the default solutionRow printer is
+// used.
 func listSolutions(ctx context.Context, conn *grpc.ClientConn, params *listSolutionsParams) error {
 	filters, err := validateAndGetFilters(params.filter)
 	if err != nil {
@@ -117,8 +144,17 @@ func listSolutions(ctx context.Context, conn *grpc.ClientConn, params *listSolut
 		return fmt.Errorf("request to list solutions failed: %w", err)
 	}
 
-	params.printer.Print(&ListSolutionDescriptionsResponse{m: resp})
-	return nil
+	// Keep the JSON output format as is, in case there are consumers relying on it.
+	if params.outputType == printer.OutputTypeJSON {
+		params.printer.Print(&ListSolutionDescriptionsResponse{m: resp})
+	} else {
+		var view printer.View = nil // this is to reuse reflectors in default views
+		for _, p := range resp.GetSolutions() {
+			view = printer.NextView(asSolutionRow(p), view)
+			params.printer.Println(view)
+		}
+	}
+	return printer.Flush(params.printer)
 }
 
 var solutionListCmd = &cobra.Command{
@@ -127,10 +163,8 @@ var solutionListCmd = &cobra.Command{
 	Long:  "List solutions on the given project.",
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, _ []string) error {
-		prtr, err := printer.NewPrinter(root.FlagOutput)
-		if err != nil {
-			return err
-		}
+		prtr := getSolutionRowCommandPrinter(cmd)
+
 		ctx := cmd.Context()
 		conn, err := newCloudConn(ctx)
 		if err != nil {
@@ -139,8 +173,9 @@ var solutionListCmd = &cobra.Command{
 		defer conn.Close()
 
 		err = listSolutions(ctx, conn, &listSolutionsParams{
-			filter:  flagFilter,
-			printer: prtr,
+			filter:     flagFilter,
+			printer:    prtr,
+			outputType: printer.GetFlagOutputType(cmd),
 		})
 		if err != nil {
 			return err
