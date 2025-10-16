@@ -98,6 +98,7 @@ proto_library(
     deps = [
         ":geometry_service_types_proto",
         ":geometry_storage_refs_proto",
+        "//intrinsic/geometry/proto/v1:geometry_proto",
         "//intrinsic/geometry/proto/v1:geometry_storage_refs_proto",
     ],
 )
@@ -124,6 +125,7 @@ go_proto_library(
     go_deps = [
         ":geometry_service_types_go_proto",
         ":geometry_storage_refs_go_proto",
+        "//intrinsic/geometry/proto/v1:geometry_go_proto",
         "//intrinsic/geometry/proto/v1:geometry_storage_refs_go_proto",
     ],
     deps = [":geometry_service_proto"],
@@ -143,6 +145,7 @@ go_grpc_library(
     deps = [
         ":geometry_service_types_go_proto",
         ":geometry_storage_refs_go_proto",
+        "//intrinsic/geometry/proto/v1:geometry_go_proto",
         "//intrinsic/geometry/proto/v1:geometry_storage_refs_go_proto",
     ],
 )

@@ -6,6 +6,7 @@ package intrinsic_proto.geometry;
 
 import "intrinsic/geometry/proto/geometry_service_types.proto";
 import "intrinsic/geometry/proto/geometry_storage_refs.proto";
+import "intrinsic/geometry/proto/v1/geometry.proto";
 import "intrinsic/geometry/proto/v1/geometry_storage_refs.proto";
 
 // Geometry service is a mechanism for storing and retrieving geometry like
