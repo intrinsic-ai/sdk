@@ -14,8 +14,8 @@ from intrinsic.solutions import providers
 _DEFAULT_PAGE_SIZE = 50
 
 
-class BehaviorTrees(providers.BehaviorTreeProvider):
-  """Provides behavior trees from a solution."""
+class Processes(providers.ProcessProvider):
+  """Provides the processes (= behavior trees) from a solution."""
 
   _solution: solution_service_pb2_grpc.SolutionServiceStub
 
@@ -41,33 +41,24 @@ class BehaviorTrees(providers.BehaviorTreeProvider):
     return bts
 
   def keys(self) -> list[str]:
-    """Returns the names of available behavior trees."""
     return [bt.name for bt in self._list_all_behavior_trees()]
 
   def __iter__(self) -> Iterator[str]:
-    """Returns an iterator over the names of available behavior trees."""
     for bt in self._list_all_behavior_trees():
       yield bt.name
 
   def items(self) -> Iterator[tuple[str, behavior_tree.BehaviorTree]]:
-    """Returns an iterator over the names and behavior trees."""
     for bt in self._list_all_behavior_trees():
       yield bt.name, behavior_tree.BehaviorTree(bt=bt)
 
   def values(self) -> Iterator[behavior_tree.BehaviorTree]:
-    """Returns an iterator over the names and behavior trees."""
     for bt in self._list_all_behavior_trees():
       yield behavior_tree.BehaviorTree(bt=bt)
 
-  def __contains__(self, name: str) -> bool:
-    """Returns whether the behavior tree with the given name is available.
-
-    Args:
-      name: The name of the behavior tree.
-    """
+  def __contains__(self, identifier: str) -> bool:
     try:
       self._solution.GetBehaviorTree(
-          solution_service_pb2.GetBehaviorTreeRequest(name=name)
+          solution_service_pb2.GetBehaviorTreeRequest(name=identifier)
       )
       return True
     except grpc.RpcError as e:
@@ -75,29 +66,18 @@ class BehaviorTrees(providers.BehaviorTreeProvider):
         return False
       raise e
 
-  def __getitem__(self, name: str) -> behavior_tree.BehaviorTree:
-    """Returns the behavior tree with the given behavior tree id.
-
-    Args:
-      name: The name of the behavior tree.
-    """
+  def __getitem__(self, identifier: str) -> behavior_tree.BehaviorTree:
     try:
       return behavior_tree.BehaviorTree(
           bt=self._solution.GetBehaviorTree(
-              solution_service_pb2.GetBehaviorTreeRequest(name=name)
+              solution_service_pb2.GetBehaviorTreeRequest(name=identifier)
           )
       )
     except Exception as e:
-      raise KeyError(f'Behavior tree "{name}" not available') from e
+      raise KeyError(f'Process "{identifier}" not available') from e
 
-  def __setitem__(self, name: str, value: behavior_tree.BehaviorTree):
-    """Updates the behavior tree with the given name in the solution.
-
-    Args:
-      name: The name to assign the behavior tree.
-      value: The behavior tree to set.
-    """
-    value.name = name
+  def __setitem__(self, identifier: str, value: behavior_tree.BehaviorTree):
+    value.name = identifier
     self._solution.UpdateBehaviorTree(
         solution_service_pb2.UpdateBehaviorTreeRequest(
             behavior_tree=value.proto,
@@ -106,7 +86,6 @@ class BehaviorTrees(providers.BehaviorTreeProvider):
     )
 
   def __delitem__(self, name: str):
-    """Deletes the behavior tree with the given name from the solution."""
     try:
       self._solution.DeleteBehaviorTree(
           solution_service_pb2.DeleteBehaviorTreeRequest(name=name)

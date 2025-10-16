@@ -279,6 +279,8 @@ class SolutionTest(absltest.TestCase):
     self.assertIsNotNone(solution.simulator)
     self.assertIsInstance(solution.world, worlds.ObjectWorld)
     self.assertIsNotNone(solution.pose_estimators)
+    self.assertIsNotNone(solution.processes)
+    self.assertIsNotNone(solution.behavior_trees)
 
     self.assertIsNotNone(solution.skills.ai.intrinsic.my_skill)
     self._skill_registry_stub.GetSkills.assert_called_once_with(

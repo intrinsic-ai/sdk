@@ -3,7 +3,7 @@
 """Abstract base classes for skill and resource providers."""
 
 import abc
-from typing import Any, Iterable, Type, Union
+from typing import Any, Iterable, Iterator, Type, Union
 
 from intrinsic.resources.proto import resource_handle_pb2
 from intrinsic.solutions import behavior_tree
@@ -90,37 +90,68 @@ class ProductProvider(abc.ABC):
     ...
 
 
-class BehaviorTreeProvider(abc.ABC):
-  """A container that provides access to the behavior trees of a solution."""
+class ProcessProvider(abc.ABC):
+  """A container that provides access to the processes of a solution."""
 
   @abc.abstractmethod
   def keys(self) -> list[str]:
-    """Returns the names of available behavior trees."""
+    """Returns the identifiers of available processes."""
     ...
 
   @abc.abstractmethod
-  def __getitem__(self, name: str) -> behavior_tree.BehaviorTree:
-    """Returns the behavior tree with the given behavior tree id.
+  def __iter__(self) -> Iterator[str]:
+    """Returns an iterator over all available process identifiers."""
+    ...
+
+  @abc.abstractmethod
+  def items(self) -> Iterator[tuple[str, behavior_tree.BehaviorTree]]:
+    """Returns an iterator over the process identifiers and behavior trees."""
+
+  @abc.abstractmethod
+  def values(self) -> Iterator[behavior_tree.BehaviorTree]:
+    """Returns an iterator over the behavior trees of all processes."""
+
+  @abc.abstractmethod
+  def __contains__(self, identifier: str) -> bool:
+    """Returns whether the process with the given identifier is available.
 
     Args:
-      name: The name of the behavior tree.
+      identifier: The identifier of the process.
+    """
+
+  @abc.abstractmethod
+  def __getitem__(self, identifier: str) -> behavior_tree.BehaviorTree:
+    """Returns the behavior tree of the process with the given identifier.
+
+    Args:
+      identifier: The process identifier.
     """
     ...
 
   @abc.abstractmethod
-  def __setitem__(self, name: str, value: behavior_tree.BehaviorTree) -> None:
-    """Updates the behavior tree with the given name in the solution.
+  def __setitem__(
+      self, identifier: str, value: behavior_tree.BehaviorTree
+  ) -> None:
+    """Updates the process with the given identifier in the solution.
 
     Args:
-      name: The name to assign the behavior tree.
-      value: The behavior tree to set.  If None, it is deleted.
+      identifier: The process identifier.
+      value: The behavior tree to set. If None, it is deleted.
     """
     ...
 
   @abc.abstractmethod
-  def __delitem__(self, name: str):
-    """Deletes the behavior tree with the given name from the solution."""
+  def __delitem__(self, identifier: str):
+    """Deletes the process with the given identifier from the solution.
+
+    Args:
+      identifier: The process identifier.
+    """
     ...
+
+
+# Deprecated. Use the new name ProcessProvider instead.
+BehaviorTreeProvider = ProcessProvider
 
 
 class SkillProvider(abc.ABC):

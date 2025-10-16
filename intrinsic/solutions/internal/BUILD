@@ -16,8 +16,8 @@ package(default_visibility = [
 ])
 
 py_library(
-    name = "behavior_tree_providing",
-    srcs = ["behavior_tree_providing.py"],
+    name = "process_providing",
+    srcs = ["process_providing.py"],
     deps = [
         "//intrinsic/executive/proto:behavior_tree_py_pb2",
         "//intrinsic/frontend/solution_service/proto:solution_service_py_pb2",
@@ -29,10 +29,10 @@ py_library(
 )
 
 py_test(
-    name = "behavior_tree_providing_test",
-    srcs = ["behavior_tree_providing_test.py"],
+    name = "process_providing_test",
+    srcs = ["process_providing_test.py"],
     deps = [
-        ":behavior_tree_providing",
+        ":process_providing",
         "//intrinsic/executive/proto:behavior_tree_py_pb2",
         "//intrinsic/frontend/solution_service/proto:solution_service_py_pb2",
         "//intrinsic/solutions:behavior_tree",

@@ -108,7 +108,7 @@ py_library(
         "//intrinsic/resources/client:resource_registry_client",
         "//intrinsic/scene/product/client:product_client",
         "//intrinsic/skills/client:skill_registry_client",
-        "//intrinsic/solutions/internal:behavior_tree_providing",
+        "//intrinsic/solutions/internal:process_providing",
         "//intrinsic/solutions/internal:products",
         "//intrinsic/solutions/internal:resources",
         "//intrinsic/solutions/internal:skill_providing",

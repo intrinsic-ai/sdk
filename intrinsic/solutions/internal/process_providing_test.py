@@ -1,6 +1,6 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-"""Tests of behavior_tree_providing.py."""
+"""Tests of process_providing.py."""
 
 from unittest import mock
 
@@ -9,7 +9,7 @@ import grpc
 from intrinsic.executive.proto import behavior_tree_pb2
 from intrinsic.frontend.solution_service.proto import solution_service_pb2
 from intrinsic.solutions import behavior_tree
-from intrinsic.solutions.internal import behavior_tree_providing
+from intrinsic.solutions.internal import process_providing
 
 
 def _behavior_tree_with_name(name: str):
@@ -22,14 +22,12 @@ def _behavior_tree_with_name(name: str):
   return bt
 
 
-class BehaviorTreeProvidingTest(absltest.TestCase):
+class ProcessProvidingTest(absltest.TestCase):
 
   def setUp(self):
     super().setUp()
     self._solution_service = mock.MagicMock()
-    self._behavior_trees = behavior_tree_providing.BehaviorTrees(
-        self._solution_service
-    )
+    self._processes = process_providing.Processes(self._solution_service)
 
   def test_keys_empty(self):
     self._solution_service.ListBehaviorTrees.return_value = (
@@ -39,7 +37,7 @@ class BehaviorTreeProvidingTest(absltest.TestCase):
         )
     )
 
-    self.assertEqual(self._behavior_trees.keys(), [])
+    self.assertEqual(self._processes.keys(), [])
 
   def test_keys_single_page(self):
     self._solution_service.ListBehaviorTrees.return_value = (
@@ -52,7 +50,7 @@ class BehaviorTreeProvidingTest(absltest.TestCase):
         )
     )
 
-    self.assertEqual(self._behavior_trees.keys(), ["tree1", "tree2"])
+    self.assertEqual(self._processes.keys(), ["tree1", "tree2"])
 
   def test_keys_multiple_pages(self):
     self._solution_service.ListBehaviorTrees.side_effect = (
@@ -71,18 +69,18 @@ class BehaviorTreeProvidingTest(absltest.TestCase):
         ),
     )
 
-    self.assertEqual(self._behavior_trees.keys(), ["tree1", "tree2", "tree3"])
+    self.assertEqual(self._processes.keys(), ["tree1", "tree2", "tree3"])
     self.assertSequenceEqual(
         self._solution_service.ListBehaviorTrees.mock_calls,
         (
             mock.call(
                 solution_service_pb2.ListBehaviorTreesRequest(
-                    page_size=behavior_tree_providing._DEFAULT_PAGE_SIZE,
+                    page_size=process_providing._DEFAULT_PAGE_SIZE,
                 )
             ),
             mock.call(
                 solution_service_pb2.ListBehaviorTreesRequest(
-                    page_size=behavior_tree_providing._DEFAULT_PAGE_SIZE,
+                    page_size=process_providing._DEFAULT_PAGE_SIZE,
                     page_token="some_token",
                 )
             ),
@@ -100,7 +98,7 @@ class BehaviorTreeProvidingTest(absltest.TestCase):
         )
     )
 
-    self.assertEqual(list(self._behavior_trees), ["tree1", "tree2"])
+    self.assertEqual(list(self._processes), ["tree1", "tree2"])
 
   def test_items(self):
     proto1 = _behavior_tree_with_name("tree1")
@@ -113,7 +111,7 @@ class BehaviorTreeProvidingTest(absltest.TestCase):
     )
 
     self.assertEqual(
-        [(name, bt.proto) for name, bt in self._behavior_trees.items()],
+        [(name, bt.proto) for name, bt in self._processes.items()],
         [("tree1", proto1), ("tree2", proto2)],
     )
 
@@ -128,7 +126,7 @@ class BehaviorTreeProvidingTest(absltest.TestCase):
     )
 
     self.assertEqual(
-        [bt.proto for bt in self._behavior_trees.values()],
+        [bt.proto for bt in self._processes.values()],
         [proto1, proto2],
     )
 
@@ -145,8 +143,8 @@ class BehaviorTreeProvidingTest(absltest.TestCase):
 
     self._solution_service.GetBehaviorTree.side_effect = mock_get_behavior_tree
 
-    self.assertIn("tree1", self._behavior_trees)
-    self.assertNotIn("non_existent_tree", self._behavior_trees)
+    self.assertIn("tree1", self._processes)
+    self.assertNotIn("non_existent_tree", self._processes)
 
   def test_getitem(self):
     def mock_get_behavior_tree(
@@ -161,14 +159,14 @@ class BehaviorTreeProvidingTest(absltest.TestCase):
 
     self._solution_service.GetBehaviorTree.side_effect = mock_get_behavior_tree
 
-    self.assertEqual(self._behavior_trees["tree1"].name, "tree1")
+    self.assertEqual(self._processes["tree1"].name, "tree1")
     with self.assertRaises(KeyError):
-      self._behavior_trees["non_existent_tree"]  # pylint: disable=pointless-statement
+      self._processes["non_existent_tree"]  # pylint: disable=pointless-statement
 
   def test_setitem(self):
     bt = behavior_tree.BehaviorTree("tree1", root=behavior_tree.Fail("Failure"))
 
-    self._behavior_trees["tree1"] = bt
+    self._processes["tree1"] = bt
 
     self._solution_service.UpdateBehaviorTree.assert_called_once_with(
         solution_service_pb2.UpdateBehaviorTreeRequest(
@@ -178,7 +176,7 @@ class BehaviorTreeProvidingTest(absltest.TestCase):
     )
 
   def test_delitem(self):
-    del self._behavior_trees["tree1"]
+    del self._processes["tree1"]
 
     self._solution_service.DeleteBehaviorTree.assert_called_once_with(
         solution_service_pb2.DeleteBehaviorTreeRequest(name="tree1")

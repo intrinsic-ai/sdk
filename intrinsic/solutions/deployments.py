@@ -19,6 +19,7 @@ executive.run(throw_ball)
 import enum
 import inspect
 import sys
+import warnings
 
 import grpc
 from intrinsic.assets.proto import installed_assets_pb2_grpc
@@ -41,7 +42,7 @@ from intrinsic.solutions import providers
 from intrinsic.solutions import simulation
 from intrinsic.solutions import userconfig
 from intrinsic.solutions import worlds
-from intrinsic.solutions.internal import behavior_tree_providing
+from intrinsic.solutions.internal import process_providing
 from intrinsic.solutions.internal import products as products_mod
 from intrinsic.solutions.internal import resources as resources_mod
 from intrinsic.solutions.internal import skill_providing
@@ -69,7 +70,7 @@ class Solution:
     is_simulated: Whether the solution is deployed on a simulated workcell
       rather than on a physical workcell.
     executive: Executive instance to communicate with executive.
-    behavior_trees: Behavior trees stored on the solution.
+    processes: Processes (=behavior trees) stored on the solution.
     skills: Wrapper to easily access skills.
     resources: Provides access to resources.
     products: Provides access to products.
@@ -99,7 +100,7 @@ class Solution:
   products: providers.ProductProvider
   world: worlds.ObjectWorld
   simulator: simulation.Simulation | None
-  behavior_trees: providers.BehaviorTreeProvider
+  processes: providers.ProcessProvider
   skills: providers.SkillProvider
   errors: error_processing.ErrorsLoader
   pose_estimators: pose_estimation.PoseEstimators | None
@@ -139,9 +140,8 @@ class Solution:
     self.world: worlds.ObjectWorld = object_world
     self.simulator: simulation.Simulation | None = simulator
 
-    self.behavior_trees = behavior_tree_providing.BehaviorTrees(
-        self._solution_service
-    )
+    self.processes = process_providing.Processes(self._solution_service)
+
     self.skills = skill_providing.Skills(
         self._skill_registry,
         self._resource_registry,
@@ -232,6 +232,17 @@ class Solution:
         pbt_registry,
         proto_builder,
     )
+
+  @property
+  def behavior_trees(self) -> providers.ProcessProvider:
+    """Returns the processes (=behavior trees) stored on the solution."""
+    warnings.warn(
+        "solution.behavior_trees is deprecated. Please use the new name"
+        " solution.processes instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return self.processes
 
   def get_health_status(self) -> "HealthStatus":
     """Returns the health status of the solution backend.
