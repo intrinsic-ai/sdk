@@ -116,3 +116,36 @@ func ProcessProcessAsset(src io.Reader) (*processassetpb.ProcessAsset, error) {
 
 	return asset, nil
 }
+
+// WriteProcessManifestForAsset writes a Process asset .tar bundle file to the
+// given writer. Creates a ProcessManifest from the given ProcessAsset and then
+// calls [WriteProcessManifest].
+func WriteProcessManifestForAsset(asset *processassetpb.ProcessAsset, out io.Writer) error {
+	if asset == nil {
+		return fmt.Errorf("Process asset must not be nil")
+	}
+
+	manifest := &processmanifestpb.ProcessManifest{
+		Metadata: &processmanifestpb.ProcessMetadata{
+			Id:            asset.GetMetadata().GetIdVersion().GetId(),
+			DisplayName:   asset.GetMetadata().GetDisplayName(),
+			Documentation: asset.GetMetadata().GetDocumentation(),
+			Vendor:        asset.GetMetadata().GetVendor(),
+			AssetTag:      asset.GetMetadata().GetAssetTag(),
+		},
+		BehaviorTree: asset.GetBehaviorTree(),
+	}
+
+	// Clear the ID version from the Skill metadata in the BehaviorTree. The
+	// manifest does not contain a version and the behavior tree on it should not
+	// be referencing one either for consistency. This can be seen as the
+	// counterpart of [processutil.FillInSkillMetadataFromAssetMetadata] in
+	// [ProcessProcessAsset]. The remaining fields of the skill metadata are
+	// assumed to be valid/consistent.
+	skill := manifest.GetBehaviorTree().GetDescription()
+	if skill != nil {
+		skill.IdVersion = ""
+	}
+
+	return WriteProcessManifest(manifest, out)
+}
