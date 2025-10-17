@@ -23,7 +23,7 @@ go_library(
     srcs = ["solutionutil.go"],
     deps = [
         "//intrinsic/frontend/cloud/api/v1:clusterdiscovery_api_go_grpc_proto",
-        "//intrinsic/tools/inctl/cmd/solution",
+        "//intrinsic/tools/inctl/cmd/solution/get",
         "@org_golang_google_grpc//:go_default_library",
     ],
 )
@@ -44,6 +44,9 @@ go_library(
         "//intrinsic/tools/inctl/cmd/modified_solution:__pkg__",
         "//intrinsic/tools/inctl/cmd/process:__pkg__",
         "//intrinsic/tools/inctl/cmd/solution:__pkg__",
+        "//intrinsic/tools/inctl/cmd/solution/get:__pkg__",
+        "//intrinsic/tools/inctl/cmd/solution/start:__pkg__",
+        "//intrinsic/tools/inctl/cmd/solution/stop:__pkg__",
     ],
     deps = [
         "//intrinsic/assets:baseclientutils",

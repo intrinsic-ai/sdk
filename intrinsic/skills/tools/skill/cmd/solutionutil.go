@@ -9,14 +9,14 @@ import (
 	"fmt"
 
 	"google.golang.org/grpc"
-	"intrinsic/tools/inctl/cmd/solution/solution"
+	"intrinsic/tools/inctl/cmd/solution/get/get"
 
 	clusterdiscoverypb "intrinsic/frontend/cloud/api/v1/clusterdiscovery_api_go_grpc_proto"
 )
 
 // GetClusterNameFromSolution returns the cluster in which a solution currently runs.
 func GetClusterNameFromSolution(ctx context.Context, conn *grpc.ClientConn, solutionName string) (string, error) {
-	solution, err := solution.GetSolution(ctx, conn, solutionName)
+	solution, err := get.GetSolution(ctx, conn, solutionName)
 	if err != nil {
 		return "", fmt.Errorf("failed to get solution: %w", err)
 	}
