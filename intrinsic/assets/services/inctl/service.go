@@ -5,9 +5,9 @@ package service
 
 import (
 	"intrinsic/assets/inctl/install"
+	"intrinsic/assets/inctl/release"
 	"intrinsic/assets/services/inctl/add"
 	deletecmd "intrinsic/assets/services/inctl/delete"
-	"intrinsic/assets/services/inctl/release"
 	servicestate "intrinsic/assets/services/inctl/state/state"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/cobrautil"

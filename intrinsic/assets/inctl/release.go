@@ -1,52 +1,46 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package release defines the command that releases a HardwareDevice to the catalog.
+// Package release defines the command that releases an asset to the catalog.
 package release
 
 import (
 	"context"
 	"fmt"
 	"io"
-	"os"
 
-	"github.com/google/go-containerregistry/pkg/v1/google"
-	"github.com/google/go-containerregistry/pkg/v1/remote"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"intrinsic/assets/bundleio"
-	acgrpcpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
-	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
-	rmpb "intrinsic/assets/catalog/proto/v1/release_metadata_go_proto"
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/imagetransfer"
 	"intrinsic/assets/imageutils"
-	atagpb "intrinsic/assets/proto/asset_tag_go_proto"
-	atpb "intrinsic/assets/proto/asset_type_go_proto"
-	idpb "intrinsic/assets/proto/id_go_proto"
-	mpb "intrinsic/assets/proto/metadata_go_proto"
 	"intrinsic/assets/services/bundleimages"
 	"intrinsic/skills/tools/skill/cmd/directupload/directupload"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/printer"
+
+	acgrpcpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
+	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
+	rmpb "intrinsic/assets/catalog/proto/v1/release_metadata_go_proto"
 )
 
 const (
 )
 
-// GetCommand returns command to release HardwareDevices.
+// GetCommand returns command to release an asset.
 func GetCommand() *cobra.Command {
 	flags := cmdutils.NewCmdFlags()
 
 	cmd := &cobra.Command{
 		Use:   "release bundle.tar",
-		Short: "Release a HardwareDevice to the catalog.",
+		Short: "Release an Asset to the catalog.",
 		Example: `
-	Release a HardwareDevice to the catalog
-	$ hardware_device release abc/bundle.tar --version=0.0.1
+	Release an Asset to the catalog
+	$ inctl asset release abc/bundle.tar --version=0.0.1
 	`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -78,7 +72,7 @@ func GetCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			printer.PrintSf("Releasing HardwareDevice %q to the asset catalog", idVersion)
+			printer.PrintSf("Releasing %q to the asset catalog", idVersion)
 
 			if flags.GetFlagDryRun() {
 				printer.PrintS("Skipping release: dry-run")
@@ -89,13 +83,13 @@ func GetCommand() *cobra.Command {
 		},
 	}
 	flags.SetCommand(cmd)
-	flags.AddFlagDefault("hardware device")
+	flags.AddFlagDefault("asset")
 	flags.AddFlagDryRun()
-	flags.AddFlagIgnoreExisting("hardware device")
+	flags.AddFlagIgnoreExisting("asset")
 	flags.AddFlagOrganizationOptional()
 	flags.AddFlagOrgPrivate()
-	flags.AddFlagReleaseNotes("hardware device")
-	flags.AddFlagVersion("hardware device")
+	flags.AddFlagReleaseNotes("asset")
+	flags.AddFlagVersion("asset")
 
 	return cmd
 }
@@ -121,77 +115,44 @@ type makeCreateAssetRequestOptions struct {
 }
 
 func makeCreateAssetRequest(ctx context.Context, opts makeCreateAssetRequestOptions) (*acpb.CreateAssetRequest, error) {
-	useDirectUpload := true
 	var transferer imagetransfer.Transferer
-	if useDirectUpload {
-		dopts := []directupload.Option{
+	if true {
+		transferer = directupload.NewTransferer(ctx,
 			directupload.WithDiscovery(directupload.NewCatalogTarget(opts.conn)),
 			directupload.WithOutput(opts.progressWriter),
-		}
-		transferer = directupload.NewTransferer(ctx, dopts...)
+			directupload.WithFailOver(transferer),
+		)
 	}
-	assetInliner := bundleio.NewLocalAssetInliner(bundleio.LocalAssetInlinerOptions{
+	processor := bundleio.BundleProcessor{
 		ImageProcessor: bundleimages.CreateImageProcessor(bundleimages.RegistryOptions{
 			Transferer: transferer,
 			URI:        imageutils.GetRegistry(clientutils.ResolveCatalogProjectFromInctl(opts.flags)),
 		}),
 		ProcessReferencedData:   bundleio.ToCatalogReferencedData(ctx, bundleio.WithACClient(opts.acClient)),
+	}
+
+	processedBundle, err := processor.Process(opts.target)
+	if err != nil {
+		return nil, fmt.Errorf("unable to process: %w", err)
+	}
+
+	asset := processedBundle.Release(bundleio.VersionDetails{
+		Version:      opts.flags.GetFlagVersion(),
+		ReleaseNotes: opts.flags.GetFlagReleaseNotes(),
+		ReleaseMetadata: &rmpb.ReleaseMetadata{
+			Default:    opts.flags.GetFlagDefault(),
+			OrgPrivate: opts.flags.GetFlagOrgPrivate(),
+		},
 	})
 
-	localAssetsDir, err := os.MkdirTemp("", "local-assets")
-	if err != nil {
-		return nil, fmt.Errorf("could not create temporary directory for local assets: %w", err)
-	}
-	defer os.RemoveAll(localAssetsDir)
-
-	hwd, err := bundleio.ProcessHardwareDevice(opts.target,
-		bundleio.WithProcessAsset(assetInliner.Process),
-		bundleio.WithReadOptions(
-			bundleio.WithExtractLocalAssetsDir(localAssetsDir),
-		),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("could not process HardwareDevice bundle: %w", err)
-	}
-	var tag atagpb.AssetTag
-	if len(hwd.GetMetadata().GetAssetTags()) > 1 {
-		return nil, fmt.Errorf("HardwareDevice %q specifies more than one asset tag, but at most one is allowed", idutils.IDFromProtoUnchecked(hwd.GetMetadata().GetId()))
-	}
-	if len(hwd.GetMetadata().GetAssetTags()) == 1 {
-		tag = hwd.GetMetadata().GetAssetTags()[0]
-	}
-
-	m := &mpb.Metadata{
-		IdVersion: &idpb.IdVersion{
-			Id:      hwd.GetMetadata().GetId(),
-			Version: opts.flags.GetFlagVersion(),
-		},
-		AssetType:     atpb.AssetType_ASSET_TYPE_HARDWARE_DEVICE,
-		AssetTag:      tag,
-		DisplayName:   hwd.GetMetadata().GetDisplayName(),
-		Documentation: hwd.GetMetadata().GetDocumentation(),
-		Vendor:        hwd.GetMetadata().GetVendor(),
-		ReleaseNotes:  opts.flags.GetFlagReleaseNotes(),
+	// This is a very asset-specific piece of validation, but it didn't seem to
+	// make sense to bury it in Release, and force every other implementation
+	// to add an error case.
+	if len(asset.GetDeploymentData().GetHardwareDeviceSpecificDeploymentData().GetManifest().GetMetadata().GetAssetTags()) > 1 {
+		return nil, fmt.Errorf("HardwareDevice %q specifies more than one asset tag, but at most one is allowed", idutils.IDFromProtoUnchecked(asset.GetMetadata().GetIdVersion().GetId()))
 	}
 
 	return &acpb.CreateAssetRequest{
-		Asset: &acpb.Asset{
-			Metadata: m,
-			DeploymentData: &acpb.Asset_AssetDeploymentData{
-				AssetSpecificDeploymentData: &acpb.Asset_AssetDeploymentData_HardwareDeviceSpecificDeploymentData{
-					HardwareDeviceSpecificDeploymentData: &acpb.Asset_HardwareDeviceDeploymentData{
-						Manifest: hwd,
-					},
-				},
-			},
-			ReleaseMetadata: &rmpb.ReleaseMetadata{
-				Default:    opts.flags.GetFlagDefault(),
-				OrgPrivate: opts.flags.GetFlagOrgPrivate(),
-			},
-		},
+		Asset: asset,
 	}, nil
-}
-
-func remoteOpt() remote.Option {
-	return remote.WithAuthFromKeychain(google.Keychain)
 }
