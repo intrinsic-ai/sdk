@@ -6,21 +6,22 @@
 #include <cstdint>
 #include <memory>
 #include <optional>
-#include <string>
 #include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
 #include "absl/synchronization/notification.h"
-#include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "grpcpp/grpcpp.h"
+#include "intrinsic/connect/cc/grpc/channel.h"  // IWYU pragma: export
 
 namespace intrinsic {
-
-// Default timeout for the initial GRPC connection made by client libraries.
-constexpr absl::Duration kGrpcClientConnectDefaultTimeout = absl::Seconds(5);
+using ::intrinsic::connect::CreateClientChannel;
+using ::intrinsic::connect::DefaultGrpcChannelArgs;
+using ::intrinsic::connect::kGrpcClientConnectDefaultTimeout;
+using ::intrinsic::connect::UnlimitedMessageSizeGrpcChannelArgs;
+using ::intrinsic::connect::WaitForChannelConnected;
 
 // Default client-side timeout for invoking services (when configuring the
 // client context with ConfigureClientContext().
@@ -60,30 +61,6 @@ absl::StatusOr<std::unique_ptr<::grpc::Server>> CreateServer(
  *   set to absl::InfiniteFuture().
  */
 void ConfigureClientContext(::grpc::ClientContext* client_context);
-
-/**
- * Wait for a newly created channel to be connected
- */
-absl::Status WaitForChannelConnected(absl::string_view address,
-                                     std::shared_ptr<::grpc::Channel> channel,
-                                     absl::Time deadline = absl::Now());
-
-// Get recommended default gRPC channel arguments.
-::grpc::ChannelArguments DefaultGrpcChannelArgs();
-
-// Get gRPC channel arguments with unlimited send/receive message size.
-// This also includes all settings from DefaultGrpcChannelArgs(). This can be
-// used for services that send large messages, e.g., the geometry service.
-::grpc::ChannelArguments UnlimitedMessageSizeGrpcChannelArgs();
-
-/**
- * Apply default configuration of our project and create a new channel
- */
-absl::StatusOr<std::shared_ptr<::grpc::Channel>> CreateClientChannel(
-    absl::string_view address, absl::Time deadline,
-    const ::grpc::ChannelArguments& channel_args = DefaultGrpcChannelArgs(),
-    bool use_default_application_credentials = false,
-    std::optional<std::string> server_instance_name = std::nullopt);
 
 // Parameters to configure the shutdown behavior of a gRPC server.
 struct ShutdownParams {

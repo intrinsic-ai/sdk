@@ -92,8 +92,8 @@ cc_library(
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         ":limits",
+        "//intrinsic/connect/cc/grpc:channel",
         "//intrinsic/icon/release:grpc_time_support",
-        "//intrinsic/util/status:status_conversion_grpc",
         "//intrinsic/util/thread",
         "@abseil-cpp//absl/log",
         "@abseil-cpp//absl/status",
@@ -104,7 +104,6 @@ cc_library(
         "@abseil-cpp//absl/time",
         "@com_github_grpc_grpc//:grpc++",
         "@com_github_grpc_grpc//:grpc_security_base",
-        "@com_github_grpc_grpc//src/proto/grpc/health/v1:health_cc_grpc",
         "@com_github_grpc_grpc//src/proto/grpc/health/v1:health_cc_proto",
     ],
 )
