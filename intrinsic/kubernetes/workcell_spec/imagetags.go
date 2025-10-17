@@ -22,8 +22,17 @@ const (
 	termProgramEnvValue      = "vscode"
 )
 
+// ReleaseCandidateTag returns an image tag derived from the proper candidate env variable.
+func ReleaseCandidateTag() (string, bool) {
+	tag := os.Getenv("RELEASE_CANDIDATE_NAME")
+	return tag, tag != ""
+}
+
 // DefaultTag generates a tag for container images.
 func DefaultTag() (string, error) {
+	if tag, ok := ReleaseCandidateTag(); ok {
+		return tag, nil
+	}
 	user, err := user.Current()
 	if err != nil {
 		return "", errors.Wrapf(err, "getting current user")

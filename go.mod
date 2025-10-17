@@ -23,6 +23,7 @@ require (
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.14
 	dario.cat/mergo v1.0.1
 	firebase.google.com/go v3.13.0+incompatible
+	github.com/Masterminds/semver v1.5.0
 	github.com/andydunstall/piko v0.7.0
 	github.com/authzed/authzed-go v1.3.1-0.20250320210445-0cde0d8c71e2
 	github.com/authzed/cel-go v0.20.2
