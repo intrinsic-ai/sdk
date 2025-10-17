@@ -64,7 +64,8 @@ service AssetCatalog {
 message Asset {
   message DataMetadata {
     // The fully qualified proto name of the data payload.
-    string proto_name = 1;
+    // Deprecated: Please use the provides field in the metadata.
+    string proto_name = 1 [deprecated = true];
   }
   message DataDeploymentData {
     intrinsic_proto.data.v1.DataAsset data = 1;
@@ -75,7 +76,8 @@ message Asset {
   }
   message HardwareDeviceMetadata {
     // The list of gRPC service names that the hardware device exposes.
-    repeated string service_proto_prefixes = 1;
+    // Deprecated: Please use the provides field in the metadata.
+    repeated string service_proto_prefixes = 1 [deprecated = true];
   }
   message HardwareDeviceDeploymentData {
     // The hardware device manifest.
@@ -88,7 +90,8 @@ message Asset {
   }
   message ServiceMetadata {
     // The list of gRPC service names that the service exposes.
-    repeated string service_proto_prefixes = 1;
+    // Deprecated: Please use the provides field in the metadata.
+    repeated string service_proto_prefixes = 1 [deprecated = true];
   }
   message ServiceDeploymentData {
     // The service manifest.
