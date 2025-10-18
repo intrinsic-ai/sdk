@@ -638,6 +638,29 @@ func (cf *CmdFlags) GetInt(name string) int {
 	return cf.viperLocal.GetInt(name)
 }
 
+// StringSlice adds a new string slice flag.
+func (cf *CmdFlags) StringSlice(name string, value []string, usage string) {
+	cf.cmd.PersistentFlags().StringSlice(name, value, usage)
+	cf.viperLocal.BindPFlag(name, cf.cmd.PersistentFlags().Lookup(name))
+}
+
+// OptionalStringSlice adds a new optional string slice flag.
+func (cf *CmdFlags) OptionalStringSlice(name string, value []string, usage string) {
+	cf.StringSlice(name, value, fmt.Sprintf("(optional) %s", usage))
+}
+
+// GetStringSlice gets the value of a string slice flag, splitting elements by spaces.
+func (cf *CmdFlags) GetStringSlice(name string) []string {
+	raw := cf.viperLocal.GetStringSlice(name)
+	var result []string
+	for _, item := range raw {
+		// strings.Fields splits the string around one or more white space characters.
+		spaceSeparated := strings.Fields(item)
+		result = append(result, spaceSeparated...)
+	}
+	return result
+}
+
 // IsSet checks if value of given flag was set on command line.
 // Allows to check if value is coming from user, or is default value.
 func (cf *CmdFlags) IsSet(name string) bool {

@@ -3,6 +3,7 @@
 package logs
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
@@ -15,6 +16,8 @@ import (
 	"path"
 	"reflect"
 	"strconv"
+	"strings"
+	"sync"
 	"time"
 
 	backoff "github.com/cenkalti/backoff/v4"
@@ -45,6 +48,7 @@ var (
 		Timeout:   15 * time.Second,
 		Transport: http.DefaultTransport,
 	}
+	stdoutMutex = &sync.Mutex{}
 )
 
 type endpoint struct {
@@ -173,6 +177,30 @@ type cmdParams struct {
 	context       string
 	solution      string
 	org           string
+	prefixID      bool
+	prefixType    bool
+}
+
+func buildPrefix(params *cmdParams) string {
+	if !params.prefixType && !params.prefixID {
+		return ""
+	}
+	var parts []string
+	if params.prefixType {
+		switch params.resourceType {
+		case rtSkill:
+			parts = append(parts, "Skill")
+		case rtService:
+			parts = append(parts, "Service")
+		case rtResource:
+			parts = append(parts, "Resource")
+		}
+	}
+	if params.prefixID {
+		parts = append(parts, params.resourceID)
+	}
+
+	return fmt.Sprintf("[%s] ", strings.Join(parts, ": "))
 }
 
 func readLogsFromSolution(ctx context.Context, params *cmdParams, w io.Writer) error {
@@ -233,8 +261,15 @@ func readLogsFromSolution(ctx context.Context, params *cmdParams, w io.Writer) e
 
 		_, err = callEndpoint(ctx, http.MethodGet, consoleLogsURL, endpoint.authToken, xsrfHeader, nil,
 			func(_ context.Context, body io.Reader) (string, error) {
-				if _, copyErr := io.Copy(w, body); copyErr != nil {
-					return "", copyErr
+				prefix := buildPrefix(params)
+				scanner := bufio.NewScanner(body)
+				for scanner.Scan() {
+					stdoutMutex.Lock()
+					fmt.Fprintf(w, "%s%s\n", prefix, scanner.Text())
+					stdoutMutex.Unlock()
+				}
+				if err := scanner.Err(); err != nil {
+					return "", err
 				}
 				return "", nil
 			})
@@ -244,7 +279,7 @@ func readLogsFromSolution(ctx context.Context, params *cmdParams, w io.Writer) e
 		}
 
 		if shouldTerminate(err) {
-			return fmt.Errorf("terminal error: %w", err)
+			return fmt.Errorf("terminal error for target '%s': %w", params.resourceID, err)
 		}
 
 		// adding arbitrary wait of up to a second to ensure we don't stomp the server
@@ -282,6 +317,17 @@ func shouldTerminate(err error) bool {
 		if verboseDebug {
 			fmt.Fprintf(verboseOut, "Type: %v; err: %s\n", reflect.TypeOf(err), err)
 		}
+
+		// Check if the error is a "resource not found" error.
+		if strings.Contains(err.Error(), "resource not found") {
+			return true
+		}
+
+		// Explicitly check for context deadline exceeded.
+		if errors.Is(err, context.DeadlineExceeded) {
+			return true
+		}
+
 		// Check if we have some sort of net/url error.
 		if tErr, ok := err.(timeout); ok {
 			return !tErr.Timeout()
@@ -338,6 +384,9 @@ func callEndpoint(ctx context.Context, method string, endpoint *url.URL, authTok
 		content, _ := io.ReadAll(response.Body)
 		if response.StatusCode == http.StatusTooManyRequests {
 			return "", retryAfter(response, string(content))
+		}
+		if response.StatusCode == http.StatusNotFound {
+			return "", fmt.Errorf("resource not found: %s. Check if the target exists in your solution", endpoint.String())
 		}
 		return "", &statusErr{httpCode: response.StatusCode, extra: string(content)}
 	}
