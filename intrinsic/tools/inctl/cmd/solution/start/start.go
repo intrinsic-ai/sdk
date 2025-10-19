@@ -46,10 +46,18 @@ func NewCommand() *cobra.Command {
 	flags := cmdutils.NewCmdFlagsWithViper(viperLocal)
 
 	solutionStartCmd := &cobra.Command{
-		Use:   "start",
+		Use:   "start <solution_id>",
 		Short: "Start a solution",
-		Long:  "Start a solution by name on a given cluster",
-		Args:  cobra.ExactArgs(1),
+		Long: `Start a solution by id on a given cluster.
+
+The solution id is a unique identifier of the solution to be started.
+Solution names can be found by running 'inctl solution list' or on the "Solutions" page in the Portal (select "copy solution ID" in the Solution's context menu).
+
+The cluster name can be found by running 'inctl cluster list' or through the Portal Solutions page.
+
+For example:
+  inctl solution start --org my-org --cluster vmp-1234567890 9999ffff-9999-ffff-9999-ffff9999ffff_BRANCH`,
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			solutionName := args[0]
 			printer, err := printer.NewPrinter(cmd.Flags().Lookup("output").Value.String())
