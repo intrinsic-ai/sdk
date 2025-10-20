@@ -7,7 +7,7 @@ import (
 	"flag"
 	log "github.com/golang/glog"
 	"intrinsic/assets/bundleio"
-	intrinsic "intrinsic/production/intrinsic"
+	"intrinsic/production/intrinsic"
 	"intrinsic/util/proto/protoio"
 
 	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"

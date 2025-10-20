@@ -12,7 +12,7 @@ import (
 	"flag"
 	log "github.com/golang/glog"
 	"google.golang.org/protobuf/proto"
-	intrinsic "intrinsic/production/intrinsic"
+	"intrinsic/production/intrinsic"
 	gen "intrinsic/skills/generator/gen"
 
 	manifestpb "intrinsic/skills/proto/skill_manifest_go_proto"

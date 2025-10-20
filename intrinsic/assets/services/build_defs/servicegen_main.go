@@ -9,7 +9,7 @@ import (
 	"flag"
 	log "github.com/golang/glog"
 	"intrinsic/assets/services/build_defs/servicegen"
-	intrinsic "intrinsic/production/intrinsic"
+	"intrinsic/production/intrinsic"
 	"intrinsic/util/proto/protoio"
 
 	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"

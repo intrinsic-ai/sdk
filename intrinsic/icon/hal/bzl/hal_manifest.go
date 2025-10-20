@@ -14,7 +14,7 @@ import (
 	"flag"
 	log "github.com/golang/glog"
 	"google.golang.org/protobuf/encoding/prototext"
-	intrinsic "intrinsic/production/intrinsic"
+	"intrinsic/production/intrinsic"
 	intrinsicflag "intrinsic/util/flag"
 
 	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"

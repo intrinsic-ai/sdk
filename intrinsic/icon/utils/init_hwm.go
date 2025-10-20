@@ -11,7 +11,7 @@ import (
 
 	"flag"
 	log "github.com/golang/glog"
-	intrinsic "intrinsic/production/intrinsic"
+	"intrinsic/production/intrinsic"
 )
 
 const (
@@ -30,7 +30,6 @@ var (
 )
 
 func main() {
-	flag.Set("alsologtostderr", "true")
 	intrinsic.Init()
 	sigs := make(chan os.Signal, 1)
 	defer close(sigs)

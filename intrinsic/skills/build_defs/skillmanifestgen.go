@@ -9,7 +9,7 @@ import (
 
 	"flag"
 	log "github.com/golang/glog"
-	intrinsic "intrinsic/production/intrinsic"
+	"intrinsic/production/intrinsic"
 	"intrinsic/skills/internal/skillmanifest"
 	"intrinsic/util/proto/protoio"
 	"intrinsic/util/proto/registryutil"
