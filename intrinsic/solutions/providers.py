@@ -94,22 +94,22 @@ class ProcessProvider(abc.ABC):
   """A container that provides access to the processes of a solution."""
 
   @abc.abstractmethod
-  def keys(self) -> list[str]:
+  def keys(self) -> Iterable[str]:
     """Returns the identifiers of available processes."""
     ...
+
+  @abc.abstractmethod
+  def items(self) -> Iterable[tuple[str, behavior_tree.BehaviorTree]]:
+    """Returns an iterator over the process identifiers and behavior trees."""
+
+  @abc.abstractmethod
+  def values(self) -> Iterable[behavior_tree.BehaviorTree]:
+    """Returns an iterator over the behavior trees of all processes."""
 
   @abc.abstractmethod
   def __iter__(self) -> Iterator[str]:
     """Returns an iterator over all available process identifiers."""
     ...
-
-  @abc.abstractmethod
-  def items(self) -> Iterator[tuple[str, behavior_tree.BehaviorTree]]:
-    """Returns an iterator over the process identifiers and behavior trees."""
-
-  @abc.abstractmethod
-  def values(self) -> Iterator[behavior_tree.BehaviorTree]:
-    """Returns an iterator over the behavior trees of all processes."""
 
   @abc.abstractmethod
   def __contains__(self, identifier: str) -> bool:

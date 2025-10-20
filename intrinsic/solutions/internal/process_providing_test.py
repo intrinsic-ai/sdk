@@ -6,6 +6,12 @@ from unittest import mock
 
 from absl.testing import absltest
 import grpc
+from intrinsic.assets.processes.proto import process_asset_pb2
+from intrinsic.assets.proto import asset_type_pb2
+from intrinsic.assets.proto import id_pb2
+from intrinsic.assets.proto import installed_assets_pb2
+from intrinsic.assets.proto import metadata_pb2
+from intrinsic.assets.proto import view_pb2
 from intrinsic.executive.proto import behavior_tree_pb2
 from intrinsic.frontend.solution_service.proto import solution_service_pb2
 from intrinsic.solutions import behavior_tree
@@ -22,144 +28,331 @@ def _behavior_tree_with_name(name: str):
   return bt
 
 
+def _process_asset_with_id(
+    identifier: str,
+) -> installed_assets_pb2.InstalledAsset:
+  id_parts = identifier.rpartition(".")
+  return installed_assets_pb2.InstalledAsset(
+      metadata=metadata_pb2.Metadata(
+          id_version=id_pb2.IdVersion(
+              id=id_pb2.Id(package=id_parts[0], name=id_parts[2])
+          )
+      ),
+      deployment_data=installed_assets_pb2.InstalledAsset.DeploymentData(
+          process=installed_assets_pb2.InstalledAsset.ProcessDeploymentData(
+              process=process_asset_pb2.ProcessAsset(
+                  behavior_tree=_behavior_tree_with_name(
+                      identifier + " display name"
+                  )
+              )
+          )
+      ),
+  )
+
+
 class ProcessProvidingTest(absltest.TestCase):
 
   def setUp(self):
     super().setUp()
     self._solution_service = mock.MagicMock()
-    self._processes = process_providing.Processes(self._solution_service)
+    self._installed_assets = mock.MagicMock()
+    self._processes = process_providing.Processes(
+        self._solution_service, self._installed_assets
+    )
 
-  def test_keys_empty(self):
+    # Default behavior for the mocks
     self._solution_service.ListBehaviorTrees.return_value = (
         solution_service_pb2.ListBehaviorTreesResponse(
             behavior_trees=None,
             next_page_token=None,
         )
     )
-
-    self.assertEqual(self._processes.keys(), [])
-
-  def test_keys_single_page(self):
-    self._solution_service.ListBehaviorTrees.return_value = (
-        solution_service_pb2.ListBehaviorTreesResponse(
-            behavior_trees=[
-                _behavior_tree_with_name("tree1"),
-                _behavior_tree_with_name("tree2"),
-            ],
+    self._installed_assets.ListInstalledAssets.return_value = (
+        installed_assets_pb2.ListInstalledAssetsResponse(
+            installed_assets=None,
             next_page_token=None,
         )
     )
 
-    self.assertEqual(self._processes.keys(), ["tree1", "tree2"])
+  # Tests keys(), items(), values(), __iter__() at the same time.
+  def test_iterables_empty(self):
+    self.assertEqual(list(self._processes.keys()), [])
+    self.assertEqual(list(self._processes.items()), [])
+    self.assertEqual(list(self._processes.values()), [])
+    self.assertEqual(list(self._processes), [])
 
-  def test_keys_multiple_pages(self):
-    self._solution_service.ListBehaviorTrees.side_effect = (
+  # Tests keys(), items(), values(), __iter__() at the same time.
+  def test_iterables_multiple_pages_legacy_processes(self):
+    proto1 = _behavior_tree_with_name("tree1")
+    proto2 = _behavior_tree_with_name("tree2")
+    proto3 = _behavior_tree_with_name("tree3")
+    # Two responses for each call to keys(), items(), values(), __iter__()
+    self._solution_service.ListBehaviorTrees.side_effect = 4 * (
         solution_service_pb2.ListBehaviorTreesResponse(
-            behavior_trees=[
-                _behavior_tree_with_name("tree1"),
-                _behavior_tree_with_name("tree2"),
-            ],
-            next_page_token="some_token",
+            behavior_trees=[proto1, proto2], next_page_token="some_token"
         ),
         solution_service_pb2.ListBehaviorTreesResponse(
-            behavior_trees=[
-                _behavior_tree_with_name("tree3"),
-            ],
-            next_page_token=None,
+            behavior_trees=[proto3], next_page_token=None
         ),
     )
 
-    self.assertEqual(self._processes.keys(), ["tree1", "tree2", "tree3"])
+    self.assertEqual(list(self._processes.keys()), ["tree1", "tree2", "tree3"])
+    self.assertEqual(
+        [(name, bt.proto) for name, bt in self._processes.items()],
+        [("tree1", proto1), ("tree2", proto2), ("tree3", proto3)],
+    )
+    self.assertEqual(
+        [bt.proto for bt in self._processes.values()], [proto1, proto2, proto3]
+    )
+    self.assertEqual(list(self._processes), ["tree1", "tree2", "tree3"])
+
+    def expected_call(*, page_token: str, full_view: bool):
+      return mock.call(
+          solution_service_pb2.ListBehaviorTreesRequest(
+              page_size=process_providing._SOLUTION_SERVICE_MAX_PAGE_SIZE,
+              view=(
+                  solution_service_pb2.BehaviorTreeView.BEHAVIOR_TREE_VIEW_FULL
+                  if full_view
+                  else solution_service_pb2.BehaviorTreeView.BEHAVIOR_TREE_VIEW_BASIC
+              ),
+              page_token=page_token,
+          )
+      )
+
     self.assertSequenceEqual(
         self._solution_service.ListBehaviorTrees.mock_calls,
         (
-            mock.call(
-                solution_service_pb2.ListBehaviorTreesRequest(
-                    page_size=process_providing._DEFAULT_PAGE_SIZE,
-                )
-            ),
-            mock.call(
-                solution_service_pb2.ListBehaviorTreesRequest(
-                    page_size=process_providing._DEFAULT_PAGE_SIZE,
-                    page_token="some_token",
-                )
-            ),
+            # Calls for keys()
+            expected_call(page_token=None, full_view=False),
+            expected_call(page_token="some_token", full_view=False),
+            # Calls for items()
+            expected_call(page_token=None, full_view=True),
+            expected_call(page_token="some_token", full_view=True),
+            # Calls for values()
+            expected_call(page_token=None, full_view=True),
+            expected_call(page_token="some_token", full_view=True),
+            # Calls for __iter__()
+            expected_call(page_token=None, full_view=False),
+            expected_call(page_token="some_token", full_view=False),
         ),
     )
 
-  def test_iter(self):
-    self._solution_service.ListBehaviorTrees.return_value = (
-        solution_service_pb2.ListBehaviorTreesResponse(
-            behavior_trees=[
-                _behavior_tree_with_name("tree1"),
-                _behavior_tree_with_name("tree2"),
-            ],
-            next_page_token=None,
-        )
-    )
-
-    self.assertEqual(list(self._processes), ["tree1", "tree2"])
-
-  def test_items(self):
-    proto1 = _behavior_tree_with_name("tree1")
-    proto2 = _behavior_tree_with_name("tree2")
-    self._solution_service.ListBehaviorTrees.return_value = (
-        solution_service_pb2.ListBehaviorTreesResponse(
-            behavior_trees=[proto1, proto2],
-            next_page_token=None,
-        )
+  # Tests keys(), items(), values(), __iter__() at the same time.
+  def test_iterables_multiple_pages_process_assets(self):
+    proto1 = _process_asset_with_id("ai.intrinsic.process1")
+    proto2 = _process_asset_with_id("ai.intrinsic.process2")
+    proto3 = _process_asset_with_id("ai.intrinsic.process3")
+    # Two responses for each call to keys(), items(), values(), __iter__()
+    self._installed_assets.ListInstalledAssets.side_effect = 4 * (
+        installed_assets_pb2.ListInstalledAssetsResponse(
+            installed_assets=[proto1, proto2], next_page_token="some_token"
+        ),
+        installed_assets_pb2.ListInstalledAssetsResponse(
+            installed_assets=[proto3], next_page_token=None
+        ),
     )
 
     self.assertEqual(
-        [(name, bt.proto) for name, bt in self._processes.items()],
-        [("tree1", proto1), ("tree2", proto2)],
+        list(self._processes.keys()),
+        [
+            "ai.intrinsic.process1",
+            "ai.intrinsic.process2",
+            "ai.intrinsic.process3",
+        ],
     )
-
-  def test_values(self):
-    proto1 = _behavior_tree_with_name("tree1")
-    proto2 = _behavior_tree_with_name("tree2")
-    self._solution_service.ListBehaviorTrees.return_value = (
-        solution_service_pb2.ListBehaviorTreesResponse(
-            behavior_trees=[proto1, proto2],
-            next_page_token=None,
-        )
+    self.assertEqual(
+        [(identifier, bt.proto) for identifier, bt in self._processes.items()],
+        [
+            (
+                "ai.intrinsic.process1",
+                proto1.deployment_data.process.process.behavior_tree,
+            ),
+            (
+                "ai.intrinsic.process2",
+                proto2.deployment_data.process.process.behavior_tree,
+            ),
+            (
+                "ai.intrinsic.process3",
+                proto3.deployment_data.process.process.behavior_tree,
+            ),
+        ],
     )
-
     self.assertEqual(
         [bt.proto for bt in self._processes.values()],
-        [proto1, proto2],
+        [
+            proto1.deployment_data.process.process.behavior_tree,
+            proto2.deployment_data.process.process.behavior_tree,
+            proto3.deployment_data.process.process.behavior_tree,
+        ],
+    )
+    self.assertEqual(
+        list(self._processes),
+        [
+            "ai.intrinsic.process1",
+            "ai.intrinsic.process2",
+            "ai.intrinsic.process3",
+        ],
+    )
+
+    def expected_call(*, page_token: str, full_view: bool):
+      return mock.call(
+          installed_assets_pb2.ListInstalledAssetsRequest(
+              strict_filter=installed_assets_pb2.ListInstalledAssetsRequest.Filter(
+                  asset_types=[asset_type_pb2.AssetType.ASSET_TYPE_PROCESS]
+              ),
+              page_size=process_providing._INSTALLED_ASSETS_MAX_PAGE_SIZE,
+              view=(
+                  view_pb2.AssetViewType.ASSET_VIEW_TYPE_FULL
+                  if full_view
+                  else view_pb2.AssetViewType.ASSET_VIEW_TYPE_BASIC
+              ),
+              page_token=page_token,
+          )
+      )
+
+    self.assertSequenceEqual(
+        self._installed_assets.ListInstalledAssets.mock_calls,
+        (
+            # Calls for keys()
+            expected_call(page_token=None, full_view=False),
+            expected_call(page_token="some_token", full_view=False),
+            # Calls for items()
+            expected_call(page_token=None, full_view=True),
+            expected_call(page_token="some_token", full_view=True),
+            # Calls for values()
+            expected_call(page_token=None, full_view=True),
+            expected_call(page_token="some_token", full_view=True),
+            # Calls for __iter__()
+            expected_call(page_token=None, full_view=False),
+            expected_call(page_token="some_token", full_view=False),
+        ),
+    )
+
+  # Tests keys(), items(), values(), __iter__() at the same time.
+  def test_iterables_legacy_processes_and_process_assets(self):
+    asset_proto1 = _process_asset_with_id("ai.intrinsic.process")
+    asset_proto2 = _process_asset_with_id("main.bt.pb")
+    # Shadowed by the process asset with id "main.bt.pb".
+    bt_proto3 = _behavior_tree_with_name("main.bt.pb")
+    bt_proto4 = _behavior_tree_with_name("My tree")
+    self._installed_assets.ListInstalledAssets.return_value = (
+        installed_assets_pb2.ListInstalledAssetsResponse(
+            installed_assets=[asset_proto1, asset_proto2],
+            next_page_token=None,
+        )
+    )
+    self._solution_service.ListBehaviorTrees.return_value = (
+        solution_service_pb2.ListBehaviorTreesResponse(
+            behavior_trees=[bt_proto3, bt_proto4],
+            next_page_token=None,
+        )
+    )
+
+    self.assertEqual(
+        list(self._processes.keys()),
+        ["ai.intrinsic.process", "main.bt.pb", "My tree"],
+    )
+    self.assertEqual(
+        [(identifier, bt.proto) for identifier, bt in self._processes.items()],
+        [
+            (
+                "ai.intrinsic.process",
+                asset_proto1.deployment_data.process.process.behavior_tree,
+            ),
+            (
+                "main.bt.pb",
+                asset_proto2.deployment_data.process.process.behavior_tree,
+            ),
+            ("My tree", bt_proto4),
+        ],
+    )
+    self.assertEqual(
+        [bt.proto for bt in self._processes.values()],
+        [
+            asset_proto1.deployment_data.process.process.behavior_tree,
+            asset_proto2.deployment_data.process.process.behavior_tree,
+            bt_proto4,
+        ],
+    )
+    self.assertEqual(
+        list(self._processes),
+        ["ai.intrinsic.process", "main.bt.pb", "My tree"],
     )
 
   def test_contains(self):
+
+    def mock_get_installed_asset(
+        request: installed_assets_pb2.GetInstalledAssetRequest,
+    ):
+      if request.id == id_pb2.Id(package="ai.intrinsic", name="process"):
+        return _process_asset_with_id("ai.intrinsic.process")
+      else:
+        error = grpc.RpcError(str(request.id) + " not found")
+        error.code = lambda: grpc.StatusCode.NOT_FOUND
+        raise error
+
     def mock_get_behavior_tree(
         request: solution_service_pb2.GetBehaviorTreeRequest,
     ):
-      if request.name == "tree1":
-        return _behavior_tree_with_name("tree1")
+      if request.name == "My tree":
+        return _behavior_tree_with_name("My tree")
+      # A tree with a name that conforms to the asset id format.
+      elif request.name == "main.bt.pb":
+        return _behavior_tree_with_name("main.bt.pb")
       else:
         error = grpc.RpcError(request.name + " not found")
         error.code = lambda: grpc.StatusCode.NOT_FOUND
         raise error
 
     self._solution_service.GetBehaviorTree.side_effect = mock_get_behavior_tree
+    self._installed_assets.GetInstalledAsset.side_effect = (
+        mock_get_installed_asset
+    )
 
-    self.assertIn("tree1", self._processes)
+    self.assertIn("ai.intrinsic.process", self._processes)
+    self.assertIn("main.bt.pb", self._processes)
+    self.assertIn("My tree", self._processes)
     self.assertNotIn("non_existent_tree", self._processes)
 
   def test_getitem(self):
+    asset_proto = _process_asset_with_id("ai.intrinsic.process")
+    bt_proto1 = _behavior_tree_with_name("My tree")
+    # A tree with a name that conforms to the asset id format.
+    bt_proto2 = _behavior_tree_with_name("main.bt.pb")
+
+    def mock_get_installed_asset(
+        request: installed_assets_pb2.GetInstalledAssetRequest,
+    ):
+      if request.id == id_pb2.Id(package="ai.intrinsic", name="process"):
+        return asset_proto
+      else:
+        error = grpc.RpcError(str(request.id) + " not found")
+        error.code = lambda: grpc.StatusCode.NOT_FOUND
+        raise error
+
     def mock_get_behavior_tree(
         request: solution_service_pb2.GetBehaviorTreeRequest,
     ):
-      if request.name == "tree1":
-        return _behavior_tree_with_name("tree1")
+      if request.name == bt_proto1.name:
+        return bt_proto1
+      elif request.name == bt_proto2.name:
+        return bt_proto2
       else:
         error = grpc.RpcError(request.name + " not found")
         error.code = lambda: grpc.StatusCode.NOT_FOUND
         raise error
 
     self._solution_service.GetBehaviorTree.side_effect = mock_get_behavior_tree
+    self._installed_assets.GetInstalledAsset.side_effect = (
+        mock_get_installed_asset
+    )
 
-    self.assertEqual(self._processes["tree1"].name, "tree1")
+    self.assertEqual(
+        self._processes["ai.intrinsic.process"].proto,
+        asset_proto.deployment_data.process.process.behavior_tree,
+    )
+    self.assertEqual(self._processes["My tree"].proto, bt_proto1)
+    self.assertEqual(self._processes["main.bt.pb"].proto, bt_proto2)
     with self.assertRaises(KeyError):
       self._processes["non_existent_tree"]  # pylint: disable=pointless-statement
 

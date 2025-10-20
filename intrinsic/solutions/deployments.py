@@ -116,6 +116,7 @@ class Solution:
       is_simulated: bool,
       executive: execution.Executive,
       solution_service: solution_service_pb2_grpc.SolutionServiceStub,
+      installed_assets: installed_assets_pb2_grpc.InstalledAssetsStub,
       skill_registry: skill_registry_client.SkillRegistryClient,
       resource_registry: resource_registry_client.ResourceRegistryClient,
       product_client: product_client_mod.ProductClient,
@@ -140,7 +141,9 @@ class Solution:
     self.world: worlds.ObjectWorld = object_world
     self.simulator: simulation.Simulation | None = simulator
 
-    self.processes = process_providing.Processes(self._solution_service)
+    self.processes = process_providing.Processes(
+        self._solution_service, installed_assets
+    )
 
     self.skills = skill_providing.Skills(
         self._skill_registry,
@@ -222,6 +225,7 @@ class Solution:
         solution_status.simulated,
         executive,
         solution_service,
+        installed_assets_stub,
         skill_registry,
         resource_registry,
         product_client,
