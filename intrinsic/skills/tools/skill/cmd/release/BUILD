@@ -2,17 +2,7 @@
 
 load("//bazel:go_macros.bzl", "go_library")
 
-go_library(
-    name = "hardwaredevice",
-    srcs = ["hardware_device.go"],
-    visibility = ["//intrinsic/tools/inctl:__pkg__"],
-    deps = [
-        ":release",
-        "//intrinsic/assets/inctl:install",
-        "//intrinsic/tools/inctl/cmd:root",
-        "//intrinsic/tools/inctl/util:cobrautil",
-    ],
-)
+package(default_visibility = ["//visibility:public"])
 
 go_library(
     name = "release",
@@ -26,9 +16,7 @@ go_library(
         "//intrinsic/assets:imageutils",
         "//intrinsic/assets/catalog/proto/v1:asset_catalog_go_grpc_proto",
         "//intrinsic/assets/catalog/proto/v1:release_metadata_go_proto",
-        "//intrinsic/assets/proto:asset_tag_go_proto",
         "//intrinsic/assets/proto:asset_type_go_proto",
-        "//intrinsic/assets/proto:id_go_proto",
         "//intrinsic/assets/proto:metadata_go_proto",
         "//intrinsic/assets/services:bundleimages",
         "//intrinsic/skills/tools/skill/cmd/directupload",

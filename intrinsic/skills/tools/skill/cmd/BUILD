@@ -8,11 +8,11 @@ go_library(
     name = "cmd",
     srcs = ["root.go"],
     deps = [
-        "//intrinsic/assets/inctl:release",
         "//intrinsic/skills/tools/skill/cmd/create",
         "//intrinsic/skills/tools/skill/cmd/install",
         "//intrinsic/skills/tools/skill/cmd/list",
         "//intrinsic/skills/tools/skill/cmd/logs",
+        "//intrinsic/skills/tools/skill/cmd/release",
         "//intrinsic/tools/inctl/cmd:root",
         "//intrinsic/tools/inctl/util:cobrautil",
     ],

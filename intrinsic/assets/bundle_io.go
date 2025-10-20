@@ -11,18 +11,12 @@ import (
 
 	"github.com/google/safearchive/tar"
 	"google.golang.org/protobuf/proto"
-	"intrinsic/assets/processes/processutil"
 
-	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
-	rmpb "intrinsic/assets/catalog/proto/v1/release_metadata_go_proto"
 	dapb "intrinsic/assets/data/proto/v1/data_asset_go_proto"
 	hdmpb "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest_go_proto"
 	processassetpb "intrinsic/assets/processes/proto/process_asset_go_proto"
-	assettagpb "intrinsic/assets/proto/asset_tag_go_proto"
-	assettypepb "intrinsic/assets/proto/asset_type_go_proto"
 	idpb "intrinsic/assets/proto/id_go_proto"
 	iapb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
-	metadatapb "intrinsic/assets/proto/metadata_go_proto"
 	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
 	ipb "intrinsic/kubernetes/workcell_spec/proto/image_go_proto"
 	psmpb "intrinsic/skills/proto/processed_skill_manifest_go_proto"
@@ -203,19 +197,10 @@ type BundleProcessor struct {
 	ProcessReferencedData ReferencedDataProcessor
 }
 
-// VersionDetails provides the specific details about a version when it is
-// released to the catalog.
-type VersionDetails struct {
-	Version         string
-	ReleaseNotes    string
-	ReleaseMetadata *rmpb.ReleaseMetadata
-}
-
 // ProcessedBundle is a bundle that has been processed and can be viewed as a
 // message for use in different outbound requests.
 type ProcessedBundle interface {
 	Install() *iapb.CreateInstalledAssetRequest_Asset
-	Release(VersionDetails) *acpb.Asset
 }
 
 type dataBundle struct {
@@ -226,23 +211,6 @@ func (b dataBundle) Install() *iapb.CreateInstalledAssetRequest_Asset {
 	return &iapb.CreateInstalledAssetRequest_Asset{
 		Variant: &iapb.CreateInstalledAssetRequest_Asset_Data{
 			Data: cloneOf(b.manifest),
-		},
-	}
-}
-
-func (b dataBundle) Release(details VersionDetails) *acpb.Asset {
-	data := cloneOf(b.manifest)
-	data.Metadata.IdVersion.Version = details.Version
-	data.Metadata.ReleaseNotes = details.ReleaseNotes
-	return &acpb.Asset{
-		Metadata:        data.GetMetadata(),
-		ReleaseMetadata: details.ReleaseMetadata,
-		DeploymentData: &acpb.Asset_AssetDeploymentData{
-			AssetSpecificDeploymentData: &acpb.Asset_AssetDeploymentData_DataSpecificDeploymentData{
-				DataSpecificDeploymentData: &acpb.Asset_DataDeploymentData{
-					Data: data,
-				},
-			},
 		},
 	}
 }
@@ -259,39 +227,6 @@ func (b hardwareDeviceBundle) Install() *iapb.CreateInstalledAssetRequest_Asset 
 	}
 }
 
-func (b hardwareDeviceBundle) Release(details VersionDetails) *acpb.Asset {
-	manifest := cloneOf(b.manifest)
-
-	// Take the first tag, if one exists.  Validation can be done later on the
-	// deployment data.
-	var tag assettagpb.AssetTag
-	if len(manifest.GetMetadata().GetAssetTags()) > 1 {
-		tag = manifest.GetMetadata().GetAssetTags()[0]
-	}
-	return &acpb.Asset{
-		Metadata: &metadatapb.Metadata{
-			IdVersion: &idpb.IdVersion{
-				Id:      manifest.GetMetadata().GetId(),
-				Version: details.Version,
-			},
-			AssetType:     assettypepb.AssetType_ASSET_TYPE_HARDWARE_DEVICE,
-			AssetTag:      tag,
-			DisplayName:   manifest.GetMetadata().GetDisplayName(),
-			Documentation: manifest.GetMetadata().GetDocumentation(),
-			Vendor:        manifest.GetMetadata().GetVendor(),
-			ReleaseNotes:  details.ReleaseNotes,
-		},
-		ReleaseMetadata: details.ReleaseMetadata,
-		DeploymentData: &acpb.Asset_AssetDeploymentData{
-			AssetSpecificDeploymentData: &acpb.Asset_AssetDeploymentData_HardwareDeviceSpecificDeploymentData{
-				HardwareDeviceSpecificDeploymentData: &acpb.Asset_HardwareDeviceDeploymentData{
-					Manifest: manifest,
-				},
-			},
-		},
-	}
-}
-
 type processBundle struct {
 	manifest *processassetpb.ProcessAsset
 }
@@ -300,27 +235,6 @@ func (b processBundle) Install() *iapb.CreateInstalledAssetRequest_Asset {
 	return &iapb.CreateInstalledAssetRequest_Asset{
 		Variant: &iapb.CreateInstalledAssetRequest_Asset_Process{
 			Process: cloneOf(b.manifest),
-		},
-	}
-}
-
-func (b processBundle) Release(details VersionDetails) *acpb.Asset {
-	manifest := cloneOf(b.manifest)
-	manifest.Metadata.IdVersion.Version = details.Version
-	manifest.Metadata.ReleaseNotes = details.ReleaseNotes
-
-	// We have just updated the version in the metadata, sync the version-related
-	// fields in Skill metadata in the BehaviorTree.
-	processutil.FillInSkillIDVersionFromAssetMetadata(manifest.GetBehaviorTree().GetDescription(), manifest.GetMetadata())
-	return &acpb.Asset{
-		Metadata:        manifest.GetMetadata(),
-		ReleaseMetadata: details.ReleaseMetadata,
-		DeploymentData: &acpb.Asset_AssetDeploymentData{
-			AssetSpecificDeploymentData: &acpb.Asset_AssetDeploymentData_ProcessSpecificDeploymentData{
-				ProcessSpecificDeploymentData: &acpb.Asset_ProcessDeploymentData{
-					Process: manifest,
-				},
-			},
 		},
 	}
 }
@@ -337,32 +251,6 @@ func (b serviceBundle) Install() *iapb.CreateInstalledAssetRequest_Asset {
 	}
 }
 
-func (b serviceBundle) Release(details VersionDetails) *acpb.Asset {
-	manifest := cloneOf(b.manifest)
-	return &acpb.Asset{
-		Metadata: &metadatapb.Metadata{
-			IdVersion: &idpb.IdVersion{
-				Id:      manifest.GetMetadata().GetId(),
-				Version: details.Version,
-			},
-			AssetType:     assettypepb.AssetType_ASSET_TYPE_SERVICE,
-			DisplayName:   manifest.GetMetadata().GetDisplayName(),
-			Documentation: manifest.GetMetadata().GetDocumentation(),
-			Vendor:        manifest.GetMetadata().GetVendor(),
-			AssetTag:      manifest.GetMetadata().GetAssetTag(),
-			ReleaseNotes:  details.ReleaseNotes,
-		},
-		ReleaseMetadata: details.ReleaseMetadata,
-		DeploymentData: &acpb.Asset_AssetDeploymentData{
-			AssetSpecificDeploymentData: &acpb.Asset_AssetDeploymentData_ServiceSpecificDeploymentData{
-				ServiceSpecificDeploymentData: &acpb.Asset_ServiceDeploymentData{
-					Manifest: manifest,
-				},
-			},
-		},
-	}
-}
-
 type skillBundle struct {
 	manifest *psmpb.ProcessedSkillManifest
 }
@@ -371,31 +259,6 @@ func (b skillBundle) Install() *iapb.CreateInstalledAssetRequest_Asset {
 	return &iapb.CreateInstalledAssetRequest_Asset{
 		Variant: &iapb.CreateInstalledAssetRequest_Asset_Skill{
 			Skill: cloneOf(b.manifest),
-		},
-	}
-}
-
-func (b skillBundle) Release(details VersionDetails) *acpb.Asset {
-	manifest := cloneOf(b.manifest)
-	return &acpb.Asset{
-		Metadata: &metadatapb.Metadata{
-			IdVersion: &idpb.IdVersion{
-				Id:      manifest.GetMetadata().GetId(),
-				Version: details.Version,
-			},
-			AssetType:     assettypepb.AssetType_ASSET_TYPE_SKILL,
-			DisplayName:   manifest.GetMetadata().GetDisplayName(),
-			Documentation: manifest.GetMetadata().GetDocumentation(),
-			Vendor:        manifest.GetMetadata().GetVendor(),
-			ReleaseNotes:  details.ReleaseNotes,
-		},
-		ReleaseMetadata: details.ReleaseMetadata,
-		DeploymentData: &acpb.Asset_AssetDeploymentData{
-			AssetSpecificDeploymentData: &acpb.Asset_AssetDeploymentData_SkillSpecificDeploymentData{
-				SkillSpecificDeploymentData: &acpb.Asset_SkillDeploymentData{
-					Manifest: manifest,
-				},
-			},
 		},
 	}
 }
