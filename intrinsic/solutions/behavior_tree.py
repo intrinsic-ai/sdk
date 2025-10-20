@@ -4505,10 +4505,6 @@ class BehaviorTree:
     name: Name of this behavior tree.
     tree_id: A unique ID for this behavior tree.
     root: The root node of the tree of type Node.
-    proto: The proto representation of the BehaviorTree.
-    dot_graph: The graphviz dot representation of the BehaviorTree.
-    params: BlackboardValue referencing the parameters key if this tree is a
-      parameterizable behavior tree.
 
   Example usage:
     bt = behavior_tree.BehaviorTree('my_behavior_tree_name')
@@ -4521,6 +4517,7 @@ class BehaviorTree:
   """
   # pyformat: enable
 
+  name: str
   tree_id: str | None
   root: Node | None
   _description: skills_pb2.Skill | None
@@ -4549,7 +4546,6 @@ class BehaviorTree:
     root = _transform_to_optional_node(root)
     self.tree_id = tree_id
     if bt is not None:
-      bt_copy = None
       if isinstance(bt, BehaviorTree):
         bt_copy = self.create_from_proto(bt.proto)
       elif isinstance(bt, behavior_tree_pb2.BehaviorTree):
@@ -4593,7 +4589,7 @@ class BehaviorTree:
 
   @property
   def proto(self) -> behavior_tree_pb2.BehaviorTree:
-    """Converts the given instance into the corresponding proto object."""
+    """Returns the proto representation of the BehaviorTree."""
     if self.root is None:
       raise ValueError(
           'A behavior tree has to have a root node but currently '
@@ -4963,7 +4959,6 @@ class BehaviorTree:
       param_descriptor_set = proto_builder.compile(
           pseudo_file + '_params.proto', parameter_proto_schema
       )
-      param_full_name = ''
       if parameter_message_full_name:
         param_full_name = parameter_message_full_name
       else:
@@ -4984,7 +4979,6 @@ class BehaviorTree:
       return_descriptor_set = proto_builder.compile(
           pseudo_file + '_return.proto', return_value_proto_schema
       )
-      return_full_name = ''
       if return_value_message_full_name:
         return_full_name = return_value_message_full_name
       else:
@@ -5045,6 +5039,11 @@ class BehaviorTree:
 
   @property
   def params(self) -> blackboard_value.BlackboardValue:
+    """Returns the blackboard value for the parameters of this behavior tree.
+
+    Returns a BlackboardValue referencing the parameters key if this tree is a
+    parameterizable behavior tree.
+    """
     if self._description is None:
       raise solutions_errors.InvalidArgumentError(
           'description is not set. This is not a Parameterizable Behavior Tree.'
