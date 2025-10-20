@@ -7,12 +7,12 @@ import (
 	"flag"
 )
 
-// Init is the entry point for Golang binaries. It parses command line flags and performs
+// Init is the entry point for our Golang binaries. It parses command line flags and performs
 // other common initialization.
 func Init() {
-	// Makes LOG(INFO) visible in container logs and disables writing them to a file.
+	// When manually running a binary, we want to see the logs on stderr.
+	// When running in k8s, we want to see them in container logs and disable writing them to a file.
 	flag.Set("logtostderr", "true")
 
 	flag.Parse()
-	// Other calls can be added here.
 }

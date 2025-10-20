@@ -5,5 +5,5 @@ load("//bazel:go_macros.bzl", "go_library")
 go_library(
     name = "intrinsic",
     srcs = ["init.go"],
-    visibility = ["//intrinsic:public_api_users"],
+    visibility = ["//intrinsic:__subpackages__"],
 )
