@@ -153,9 +153,10 @@ func runLogsCmd(ctx context.Context, params *cmdParams, w io.Writer) error {
 func Command() *cobra.Command {
 	cmdFlags := cmdutils.NewCmdFlags()
 	logsCmd := &cobra.Command{
-		Use:   "logs --type=TYPE TARGET",
-		Short: "Print skill logs",
-		Args:  cobra.ExactArgs(1),
+		Use:        "logs --type=TYPE TARGET",
+		Short:      "Print skill logs",
+		Deprecated: "use 'inctl logs --skill TARGET' instead.",
+		Args:       cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			target := args[0]
 
