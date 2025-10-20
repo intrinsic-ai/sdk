@@ -36,6 +36,7 @@ message GeometryComponent {
   // Used for the value type in proto map below.
   message GeometrySet {
     repeated Geometry geometries = 1;
+
   }
 
   // Stores named geometry for this entity. Names starting with "Intrinsic_" may
