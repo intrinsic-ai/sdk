@@ -56,7 +56,7 @@ cc_proto_library(
 
 py_proto_library(
     name = "asset_tag_py_pb2",
-    visibility = ["//visibility:private"],
+    visibility = ["//intrinsic:__subpackages__"],
     deps = [":asset_tag_proto"],
 )
 
@@ -213,10 +213,7 @@ cc_proto_library(
 
 py_proto_library(
     name = "metadata_py_pb2",
-    visibility = [
-        "//intrinsic/solutions:__pkg__",
-        "//visibility:private",
-    ],
+    visibility = ["//intrinsic:__subpackages__"],
     deps = [":metadata_proto"],
 )
 
