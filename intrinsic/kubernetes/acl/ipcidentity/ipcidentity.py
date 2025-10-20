@@ -15,6 +15,7 @@ from intrinsic.kubernetes.acl.py import jwt
 
 TOKEN_EXPIRY_MARGIN = datetime.timedelta(seconds=30)
 GRPC_TIMEOUT_SECONDS = 10
+GRPC_USER_AGENT = "ipcidentity/1.0 (py, grpc)"
 
 
 class IpcIdentity:
@@ -58,7 +59,10 @@ class IpcIdentity:
     logging.info("Connecting to AccountsTokensService at: %s", target_address)
 
     self._grpc_channel = grpc.secure_channel(
-        target_address, grpc.ssl_channel_credentials()
+        target_address,
+        grpc.ssl_channel_credentials(),
+        # https://github.com/grpc/grpc/issues/23644#issuecomment-669344588
+        options=[("grpc.primary_user_agent", GRPC_USER_AGENT)],
     )
     self._tokens_stub = tokens_pb2_grpc.AccountsTokensServiceStub(
         self._grpc_channel
