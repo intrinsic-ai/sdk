@@ -22,6 +22,13 @@ message DescriptorSource {
 
     // File descriptor set to use for resolving types.
     google.protobuf.FileDescriptorSet file_descriptor_set = 2;
+
+    // Type URL used to look up the file descriptor set in the proto registry.
+    // This is passed separately from the encoded any to avoid manually parsing
+    // the proto string to get this data.
+    // When encoding, if this value is set, it is enforced to be equal to the
+    // type URL of the Any.
+    string type_url = 3;
   }
 }
 
