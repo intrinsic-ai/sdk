@@ -17,6 +17,8 @@ flatbuffers_library(
 
 cc_flatbuffers_library(
     name = "safety_status_fbs_cc",
-    visibility = ["//visibility:public"],
+    visibility = [
+        "//intrinsic:public_api_users",
+    ],
     deps = [":safety_status_fbs"],
 )

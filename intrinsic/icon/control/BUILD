@@ -43,7 +43,9 @@ cc_library(
     name = "realtime_clock_interface",
     srcs = ["realtime_clock_interface.cc"],
     hdrs = ["realtime_clock_interface.h"],
-    visibility = ["//visibility:public"],
+    visibility = [
+        "//intrinsic:public_api_users",
+    ],
     deps = [
         "//intrinsic/icon/utils:core_time",
         "//intrinsic/icon/utils:realtime_status",

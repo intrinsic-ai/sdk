@@ -202,7 +202,7 @@ py_library(
 py_library(
     name = "skill_providing",
     srcs = ["skill_providing.py"],
-    visibility = ["//visibility:public"],
+    visibility = ["//intrinsic/solutions:__subpackages__"],
     deps = [
         ":resources",
         ":skill_generation",

@@ -12,7 +12,6 @@ go_library(
     visibility = [
         "//intrinsic/kubernetes/vmpool/service/internal/clients:__subpackages__",
         "//intrinsic/tools/inctl/cmd/cluster:__subpackages__",
-        "//visibility:public",
     ],
 )
 

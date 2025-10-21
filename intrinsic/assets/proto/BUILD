@@ -171,10 +171,7 @@ py_proto_library(
 
 cc_proto_library(
     name = "id_cc_proto",
-    visibility = [
-        "//intrinsic:__subpackages__",
-        "//visibility:public",
-    ],
+    visibility = ["//intrinsic:__subpackages__"],
     deps = [":id_proto"],
 )
 
