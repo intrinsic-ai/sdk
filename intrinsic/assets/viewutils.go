@@ -274,27 +274,6 @@ func setFieldValue(m proto.Message, name string, value proto.Message) error {
 	return nil
 }
 
-func copyFieldValue[T proto.Message](src T, dst T, name string) error {
-	srcR := src.ProtoReflect()
-	dstR := dst.ProtoReflect()
-
-	fd := srcR.Descriptor().Fields().ByName(protoreflect.Name(name))
-	if fd == nil {
-		return fmt.Errorf("field %q not found in message %v", name, srcR.Descriptor().FullName())
-	}
-
-	if !srcR.Has(fd) {
-		if dstR.Has(fd) {
-			dstR.Clear(fd)
-		}
-		return nil
-	}
-
-	dstR.Set(fd, srcR.Get(fd))
-
-	return nil
-}
-
 func copyOneOfFieldValue[T proto.Message](src T, dst T, name string) error {
 	srcR := src.ProtoReflect()
 	dstR := dst.ProtoReflect()

@@ -221,13 +221,3 @@ func validateServicePodSpecVolumes(spec *smpb.ServicePodSpec) error {
 
 	return nil
 }
-
-func setDifference(slice1, slice2 []string) []string {
-	var difference []string
-	for _, val := range slice1 {
-		if !slices.Contains(slice2, val) {
-			difference = append(difference, val)
-		}
-	}
-	return difference
-}
