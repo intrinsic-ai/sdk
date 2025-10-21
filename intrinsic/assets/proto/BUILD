@@ -12,10 +12,8 @@ proto_library(
     srcs = ["field_metadata.proto"],
     visibility = ["//intrinsic:__subpackages__"],
     deps = [
-        "@com_google_protobuf//:descriptor_proto",
-        # intrinsic:assets_dependencies:strip_begin
         "//intrinsic/assets/proto/v1:dependency_proto",
-        # intrinsic:assets_dependencies:strip_end
+        "@com_google_protobuf//:descriptor_proto",
     ],
 )
 
@@ -27,13 +25,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "field_metadata_go_proto",
-    # intrinsic:assets_dependencies:strip_begin
     go_deps = [
         "//intrinsic/assets/proto/v1:dependency_go_proto",
     ],
     visibility = ["//intrinsic:__subpackages__"],
     deps = [":field_metadata_proto"],
-    # intrinsic:assets_dependencies:strip_end
 )
 
 py_proto_library(

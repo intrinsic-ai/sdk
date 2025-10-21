@@ -116,8 +116,6 @@ cc_proto_library(
     deps = [":search_proto"],
 )
 
-# intrinsic:assets_dependencies:strip_begin
-
 proto_library(
     name = "resolved_dependency_proto",
     srcs = ["resolved_dependency.proto"],
@@ -174,5 +172,3 @@ py_proto_library(
     visibility = ["//intrinsic:public_api_users"],
     deps = [":dependency_proto"],
 )
-
-# intrinsic:assets_dependencies:strip_end

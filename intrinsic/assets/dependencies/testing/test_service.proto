@@ -1,0 +1,20 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.assets.dependencies.testing;
+
+service TestService {
+  // Test method.
+  rpc Test(TestRequest) returns (TestResponse) {}
+}
+
+message TestRequest {}
+
+message TestResponse {
+  message MetadataValues {
+    repeated string values = 1;
+  }
+
+  map<string, MetadataValues> context_metadata = 1;
+}

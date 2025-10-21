@@ -5,11 +5,7 @@ syntax = "proto3";
 package intrinsic_proto.assets;
 
 import "google/protobuf/descriptor.proto";
-
-// intrinsic:assets_dependencies:strip_begin
 import "intrinsic/assets/proto/v1/dependency.proto";
-
-// intrinsic:assets_dependencies:strip_end
 
 // Metadata that further describes a field in a proto. This
 // metadata can be added using a proto option. Field metadata is optional
@@ -45,7 +41,6 @@ message FieldMetadata {
   // in the UI that should be used to select a scene object asset.
   bool is_installed_scene_object_asset = 3;
 
-  // intrinsic:assets_dependencies:strip_begin
   // Mark the field as representing a dependency.
   //
   // This may only be specified if the field is a `ResolvedDependency` message.
@@ -53,7 +48,6 @@ message FieldMetadata {
   // The name of the `ResolvedDependency` is the identifier for the instance(s)
   // or asset(s) providing the interface.
   optional intrinsic_proto.assets.v1.Dependency dependency = 4;
-  // intrinsic:assets_dependencies:strip_end
 }
 
 extend google.protobuf.FieldOptions {
