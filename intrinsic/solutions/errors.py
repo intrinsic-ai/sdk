@@ -53,7 +53,7 @@ def _is_backend_pending_error(e: Exception) -> bool:
 # Decorator that retries if a backend's health is expected to recover.
 retry_on_pending_backend = retrying.retry(
     retry_on_exception=_is_backend_pending_error,
-    stop_max_attempt_number=5,
+    stop_max_attempt_number=10,
     wait_exponential_multiplier=2,
     wait_exponential_max=4000,  # in milliseconds
     wait_incrementing_start=250,  # in milliseconds
