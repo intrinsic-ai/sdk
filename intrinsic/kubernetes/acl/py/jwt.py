@@ -3,11 +3,12 @@
 """Helper for extracting claims from jwts."""
 
 import base64
+import datetime
 import json
 
 
 def PayloadUnsafe(j: str) -> dict[str, str]:
-  """Decode the jwt payload into a dict.
+  """Decodes the jwt payload into a dict.
 
   Does not validate the signature.
 
@@ -31,7 +32,7 @@ def PayloadUnsafe(j: str) -> dict[str, str]:
 
 
 def Email(j: str) -> str:
-  """Return the email claim from a jwt payload.
+  """Returns the email claim from a jwt payload.
 
   Args:
     j (str): A json web token.
@@ -48,3 +49,27 @@ def Email(j: str) -> str:
     if k in p:
       return p[k]
   raise KeyError('failed to extract email from JWT')
+
+
+def ExpiresAt(j: str) -> datetime.datetime:
+  """Returns the expiry claim from a jwt payload.
+
+  Args:
+    j (str): A json web token.
+
+  Returns:
+    datetime.datetime: The expiry time.
+
+  Raises:
+    KeyError: If the expiry value is missing.
+    ValueError: If the jwt cannot be parsed.
+  """
+  p = PayloadUnsafe(j)
+  if 'exp' not in p:
+    raise KeyError('failed to extract expiry from JWT')
+  try:
+    return datetime.datetime.fromtimestamp(
+        int(p['exp']), tz=datetime.timezone.utc
+    )
+  except (ValueError, TypeError) as e:
+    raise ValueError('Error parsing expiry') from e
