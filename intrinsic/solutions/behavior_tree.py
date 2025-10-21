@@ -30,6 +30,8 @@ from google.protobuf import descriptor
 from google.protobuf import descriptor_pb2
 from google.protobuf import message as protobuf_message
 import graphviz
+from intrinsic.assets.processes.proto import process_asset_pb2
+from intrinsic.assets.proto import metadata_pb2
 from intrinsic.executive.proto import any_list_pb2
 from intrinsic.executive.proto import any_with_assignments_pb2
 from intrinsic.executive.proto import behavior_call_pb2
@@ -4498,11 +4500,9 @@ class IdRecorder:
 
 
 class BehaviorTree:
-  # pyformat: disable
   """Python wrapper around behavior_tree_pb2.BehaviorTree proto.
 
   Attributes:
-    name: Name of this behavior tree.
     tree_id: A unique ID for this behavior tree.
     root: The root node of the tree of type Node.
 
@@ -4515,13 +4515,13 @@ class BehaviorTree:
     print(bt)         # prints a readable pseudo-code version of the instance
     bt.show()         # calling this in Jupyter would visualize the tree
   """
-  # pyformat: enable
 
-  name: str
   tree_id: str | None
   root: Node | None
+  _name: str
   _description: skills_pb2.Skill | None
   _return_value_expression: str | None
+  _metadata: metadata_pb2.Metadata | None
 
   def __init__(
       self,
@@ -4531,35 +4531,47 @@ class BehaviorTree:
       *,
       tree_id: str | None = None,
   ):
-    """Creates an empty object or an object from another object / a plan proto.
-
-    In all cases, __init__ creates a copy (not a reference) of the given BT.
+    """Initializes a behavior tree from individual arguments or as copy.
 
     Args:
-      name: the name of the behavior tree, which defaults to 'behavior_tree',
+      name: the name of the behavior tree, which defaults to '',
       root: a node of type Node to be set as the root of this tree,
-      bt: BehaviorTree instance or BehaviorTree proto. The value of the `name`
-        argument overwrites the value from the `bt` proto argument, if set.
+      bt: BehaviorTree instance or BehaviorTree proto to copy from. The value of
+        the `name` argument overwrites the value from the `bt` proto argument,
+        if set.
       tree_id: Pre-determined tree ID, the format match the regex
         `[a-zA-Z0-9][a-zA-Z0-9_-]*` (for details see BehaviorTree proto docs).
     """
     root = _transform_to_optional_node(root)
-    self.tree_id = tree_id
+
     if bt is not None:
       if isinstance(bt, BehaviorTree):
-        bt_copy = self.create_from_proto(bt.proto)
+        if bt.metadata_proto is None:
+          bt_copy = self.create_from_proto(bt.proto)
+        else:
+          bt_copy = self.create_from_proto(
+              process_asset_pb2.ProcessAsset(
+                  behavior_tree=bt.proto, metadata=bt.metadata_proto
+              )
+          )
       elif isinstance(bt, behavior_tree_pb2.BehaviorTree):
         bt_copy = self.create_from_proto(bt)
       else:
         raise TypeError
-      name = name or bt_copy.name
-      root = root or bt_copy.root
+      self.root = root or bt_copy.root
       self.tree_id = bt_copy.tree_id
+      self._name = name or bt_copy.name
+      self._description = bt_copy._description
+      self._return_value_expression = bt_copy._return_value_expression
+      self._metadata = bt_copy._metadata
+      return
 
-    self.name: str = name or ''
     self.root = root
+    self.tree_id = tree_id
+    self._name: str = name or ''
     self._description = None
     self._return_value_expression = None
+    self._metadata = None
 
   def __repr__(self) -> str:
     """Converts a BT into a compact, human-readable string representation.
@@ -4588,6 +4600,34 @@ class BehaviorTree:
     return self.root
 
   @property
+  def name(self) -> str:
+    """The display name of this behavior tree.
+
+    For legacy processes, this is also the unique identifier of the process.
+    """
+    return self._name
+
+  @name.setter
+  def name(self, value: str):
+    self._name = value
+    if self._metadata is not None:
+      self._metadata.display_name = value
+    if self._description is not None:
+      self._description.display_name = value
+
+  @property
+  def metadata_proto(self) -> metadata_pb2.Metadata | None:
+    """Returns the asset Metadata proto of the BehaviorTree.
+
+    If not None, the behavior tree represents a Process asset and can be saved
+    as such. Otherwise, it is a local, "anonymous" behavior tree or it
+    represents a legacy process.
+
+    You can use set_metadata() to initialize or update the asset Metadata proto.
+    """
+    return self._metadata
+
+  @property
   def proto(self) -> behavior_tree_pb2.BehaviorTree:
     """Returns the proto representation of the BehaviorTree."""
     if self.root is None:
@@ -4608,23 +4648,50 @@ class BehaviorTree:
 
   @classmethod
   def create_from_proto(
-      cls, proto_object: behavior_tree_pb2.BehaviorTree
+      cls,
+      proto_object: (
+          behavior_tree_pb2.BehaviorTree | process_asset_pb2.ProcessAsset
+      ),
   ) -> BehaviorTree:
-    """Instantiates a behavior tree from a proto."""
+    """Instantiates a behavior tree from a corresponding proto.
+
+    """
     if cls != BehaviorTree:
       raise TypeError(
           'create_from_proto can only be called on the BehaviorTree class'
       )
+
+    if isinstance(proto_object, process_asset_pb2.ProcessAsset):
+      if not proto_object.HasField('behavior_tree'):
+        raise ValueError(
+            'ProcessAsset proto must have a behavior_tree field but it is not'
+            ' set.'
+        )
+      if not proto_object.HasField('metadata'):
+        raise ValueError(
+            'ProcessAsset proto must have a metadata field but it is not set.'
+        )
+      bt_proto = proto_object.behavior_tree
+      metadata_proto = proto_object.metadata
+    elif isinstance(proto_object, behavior_tree_pb2.BehaviorTree):
+      bt_proto = proto_object
+      metadata_proto = None
+    else:
+      raise TypeError(
+          'proto_object must be a BehaviorTree proto or a ProcessAsset proto'
+      )
+
     bt = cls()
-    bt.name = proto_object.name
-    if proto_object.HasField('tree_id'):
-      bt.tree_id = proto_object.tree_id
-    bt.root = Node.create_from_proto(proto_object.root)
-    if proto_object.HasField('description'):
+    if bt_proto.HasField('tree_id'):
+      bt.tree_id = bt_proto.tree_id
+    bt.root = Node.create_from_proto(bt_proto.root)
+    bt._name = bt_proto.name
+    if bt_proto.HasField('description'):
       bt._description = skills_pb2.Skill()
-      bt._description.CopyFrom(proto_object.description)
-    if proto_object.return_value_expression:
-      bt._return_value_expression = proto_object.return_value_expression
+      bt._description.CopyFrom(bt_proto.description)
+    if bt_proto.return_value_expression:
+      bt._return_value_expression = bt_proto.return_value_expression
+    bt._metadata = metadata_proto
 
     return bt
 

@@ -2,6 +2,7 @@
 
 """Provides behavior trees from a solution."""
 
+import dataclasses
 from typing import Iterable, Iterator
 import grpc
 from intrinsic.assets import id_utils
@@ -10,6 +11,7 @@ from intrinsic.assets.proto import asset_type_pb2
 from intrinsic.assets.proto import id_pb2
 from intrinsic.assets.proto import installed_assets_pb2
 from intrinsic.assets.proto import installed_assets_pb2_grpc
+from intrinsic.assets.proto import metadata_pb2
 from intrinsic.assets.proto import view_pb2
 from intrinsic.executive.proto import behavior_tree_pb2
 from intrinsic.frontend.solution_service.proto import solution_service_pb2
@@ -20,6 +22,25 @@ from intrinsic.solutions import providers
 
 _INSTALLED_ASSETS_MAX_PAGE_SIZE = 200
 _SOLUTION_SERVICE_MAX_PAGE_SIZE = 50
+
+
+@dataclasses.dataclass
+class _Process:
+  metadata_proto: metadata_pb2.Metadata | None
+  behavior_tree_proto: behavior_tree_pb2.BehaviorTree
+
+  def create_behavior_tree(self) -> behavior_tree.BehaviorTree:
+    if self.metadata_proto is None:
+      return behavior_tree.BehaviorTree.create_from_proto(
+          self.behavior_tree_proto
+      )
+    else:
+      return behavior_tree.BehaviorTree.create_from_proto(
+          process_asset_pb2.ProcessAsset(
+              metadata=self.metadata_proto,
+              behavior_tree=self.behavior_tree_proto,
+          )
+      )
 
 
 class Processes(providers.ProcessProvider):
@@ -40,14 +61,14 @@ class Processes(providers.ProcessProvider):
     return self._list_all_processes(keys_only=True).keys()
 
   def items(self) -> Iterable[tuple[str, behavior_tree.BehaviorTree]]:
-    for k, v in self._list_all_processes(keys_only=False).items():
-      if v is not None:
-        yield k, behavior_tree.BehaviorTree(bt=v.behavior_tree)
+    for id, process in self._list_all_processes(keys_only=False).items():  # pylint: disable=redefined-builtin
+      if process is not None:
+        yield id, process.create_behavior_tree()
 
   def values(self) -> Iterable[behavior_tree.BehaviorTree]:
-    for v in self._list_all_processes(keys_only=False).values():
-      if v is not None:
-        yield behavior_tree.BehaviorTree(bt=v.behavior_tree)
+    for process in self._list_all_processes(keys_only=False).values():
+      if process is not None:
+        yield process.create_behavior_tree()
 
   def __iter__(self) -> Iterator[str]:
     return self._list_all_processes(keys_only=True).keys().__iter__()
@@ -59,7 +80,7 @@ class Processes(providers.ProcessProvider):
     process = self._get_process(identifier)
     if process is None:
       raise KeyError(f'Process "{identifier}" not found')
-    return behavior_tree.BehaviorTree(bt=process.behavior_tree)
+    return process.create_behavior_tree()
 
   def __setitem__(self, identifier: str, value: behavior_tree.BehaviorTree):
     value.name = identifier
@@ -78,23 +99,16 @@ class Processes(providers.ProcessProvider):
     except Exception as e:
       raise KeyError(f"Failed to delete behavior tree '{identifier}'") from e
 
-  def _get_process(
-      self, identifier: str
-  ) -> process_asset_pb2.ProcessAsset | None:
+  def _get_process(self, identifier: str) -> _Process | None:
     if id_utils.is_id(identifier):
       process_asset = self._get_process_asset(identifier)
       if process_asset is not None:
         return process_asset
     # Fallback: Always try the legacy lookup. Even if it looks like an asset id
     # it can be a behavior tree name like "my_tree.bt.pb".
-    tree = self._get_legacy_process(identifier)
-    if tree is not None:
-      return process_asset_pb2.ProcessAsset(behavior_tree=tree)
-    return None
+    return self._get_legacy_process(identifier)
 
-  def _get_process_asset(
-      self, identifier: str
-  ) -> process_asset_pb2.ProcessAsset:
+  def _get_process_asset(self, identifier: str) -> _Process | None:
     try:
       response = self._installed_assets.GetInstalledAsset(
           installed_assets_pb2.GetInstalledAssetRequest(
@@ -105,19 +119,23 @@ class Processes(providers.ProcessProvider):
               view=view_pb2.AssetViewType.ASSET_VIEW_TYPE_FULL,
           )
       )
-      return response.deployment_data.process.process
+      return _Process(
+          metadata_proto=response.deployment_data.process.process.metadata,
+          behavior_tree_proto=(
+              response.deployment_data.process.process.behavior_tree
+          ),
+      )
     except grpc.RpcError as e:
       if hasattr(e, 'code') and e.code() == grpc.StatusCode.NOT_FOUND:
         return None
       raise e
 
-  def _get_legacy_process(
-      self, identifier: str
-  ) -> behavior_tree_pb2.BehaviorTree | None:
+  def _get_legacy_process(self, identifier: str) -> _Process | None:
     try:
-      return self._solution.GetBehaviorTree(
+      bt_proto = self._solution.GetBehaviorTree(
           solution_service_pb2.GetBehaviorTreeRequest(name=identifier)
       )
+      return _Process(metadata_proto=None, behavior_tree_proto=bt_proto)
     except grpc.RpcError as e:
       if hasattr(e, 'code') and e.code() == grpc.StatusCode.NOT_FOUND:
         return None
@@ -129,7 +147,7 @@ class Processes(providers.ProcessProvider):
       self,
       *,
       keys_only: bool,
-  ) -> dict[str, process_asset_pb2.ProcessAsset | None]:
+  ) -> dict[str, _Process | None]:
     process_assets = self._list_all_process_assets(keys_only=keys_only)
     legacy_processes = self._list_all_legacy_processes(keys_only=keys_only)
 
@@ -148,7 +166,7 @@ class Processes(providers.ProcessProvider):
       self,
       *,
       keys_only: bool,
-  ) -> dict[str, process_asset_pb2.ProcessAsset | None]:
+  ) -> dict[str, _Process | None]:
     view = (
         view_pb2.AssetViewType.ASSET_VIEW_TYPE_BASIC
         if keys_only
@@ -156,7 +174,7 @@ class Processes(providers.ProcessProvider):
     )
     next_page_token = None
 
-    result: dict[str, process_asset_pb2.ProcessAsset | None] = {}
+    result: dict[str, _Process | None] = {}
     while True:
       response = self._installed_assets.ListInstalledAssets(
           installed_assets_pb2.ListInstalledAssetsRequest(
@@ -170,11 +188,17 @@ class Processes(providers.ProcessProvider):
       )
       for installed_asset in response.installed_assets:
         id_str = id_utils.id_from_proto(installed_asset.metadata.id_version.id)
-        result[id_str] = (
-            None
-            if keys_only
-            else installed_asset.deployment_data.process.process
-        )
+        if keys_only:
+          result[id_str] = None
+        else:
+          result[id_str] = _Process(
+              metadata_proto=(
+                  installed_asset.deployment_data.process.process.metadata
+              ),
+              behavior_tree_proto=(
+                  installed_asset.deployment_data.process.process.behavior_tree
+              ),
+          )
       if not response.next_page_token:
         break
       next_page_token = response.next_page_token
@@ -185,7 +209,7 @@ class Processes(providers.ProcessProvider):
       self,
       *,
       keys_only: bool,
-  ) -> dict[str, process_asset_pb2.ProcessAsset | None]:
+  ) -> dict[str, _Process | None]:
     view = (
         solution_service_pb2.BehaviorTreeView.BEHAVIOR_TREE_VIEW_BASIC
         if keys_only
@@ -193,7 +217,7 @@ class Processes(providers.ProcessProvider):
     )
     next_page_token = None
 
-    result: dict[str, process_asset_pb2.ProcessAsset | None] = {}
+    result: dict[str, _Process | None] = {}
     while True:
       response = self._solution.ListBehaviorTrees(
           solution_service_pb2.ListBehaviorTreesRequest(
@@ -206,7 +230,7 @@ class Processes(providers.ProcessProvider):
         result[bt.name] = (
             None
             if keys_only
-            else process_asset_pb2.ProcessAsset(behavior_tree=bt)
+            else _Process(metadata_proto=None, behavior_tree_proto=bt)
         )
       if not response.next_page_token:
         break

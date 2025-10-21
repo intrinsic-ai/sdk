@@ -32,18 +32,20 @@ def _process_asset_with_id(
     identifier: str,
 ) -> installed_assets_pb2.InstalledAsset:
   id_parts = identifier.rpartition(".")
+  metadata = metadata_pb2.Metadata(
+      id_version=id_pb2.IdVersion(
+          id=id_pb2.Id(package=id_parts[0], name=id_parts[2])
+      )
+  )
   return installed_assets_pb2.InstalledAsset(
-      metadata=metadata_pb2.Metadata(
-          id_version=id_pb2.IdVersion(
-              id=id_pb2.Id(package=id_parts[0], name=id_parts[2])
-          )
-      ),
+      metadata=metadata,
       deployment_data=installed_assets_pb2.InstalledAsset.DeploymentData(
           process=installed_assets_pb2.InstalledAsset.ProcessDeploymentData(
               process=process_asset_pb2.ProcessAsset(
+                  metadata=metadata,
                   behavior_tree=_behavior_tree_with_name(
                       identifier + " display name"
-                  )
+                  ),
               )
           )
       ),
@@ -98,11 +100,19 @@ class ProcessProvidingTest(absltest.TestCase):
 
     self.assertEqual(list(self._processes.keys()), ["tree1", "tree2", "tree3"])
     self.assertEqual(
-        [(name, bt.proto) for name, bt in self._processes.items()],
-        [("tree1", proto1), ("tree2", proto2), ("tree3", proto3)],
+        [
+            (name, bt.proto, bt.metadata_proto)
+            for name, bt in self._processes.items()
+        ],
+        [
+            ("tree1", proto1, None),
+            ("tree2", proto2, None),
+            ("tree3", proto3, None),
+        ],
     )
     self.assertEqual(
-        [bt.proto for bt in self._processes.values()], [proto1, proto2, proto3]
+        [(bt.proto, bt.metadata_proto) for bt in self._processes.values()],
+        [(proto1, None), (proto2, None), (proto3, None)],
     )
     self.assertEqual(list(self._processes), ["tree1", "tree2", "tree3"])
 
@@ -161,28 +171,43 @@ class ProcessProvidingTest(absltest.TestCase):
         ],
     )
     self.assertEqual(
-        [(identifier, bt.proto) for identifier, bt in self._processes.items()],
+        [
+            (identifier, bt.proto, bt.metadata_proto)
+            for identifier, bt in self._processes.items()
+        ],
         [
             (
                 "ai.intrinsic.process1",
                 proto1.deployment_data.process.process.behavior_tree,
+                proto1.deployment_data.process.process.metadata,
             ),
             (
                 "ai.intrinsic.process2",
                 proto2.deployment_data.process.process.behavior_tree,
+                proto2.deployment_data.process.process.metadata,
             ),
             (
                 "ai.intrinsic.process3",
                 proto3.deployment_data.process.process.behavior_tree,
+                proto3.deployment_data.process.process.metadata,
             ),
         ],
     )
     self.assertEqual(
-        [bt.proto for bt in self._processes.values()],
+        [(bt.proto, bt.metadata_proto) for bt in self._processes.values()],
         [
-            proto1.deployment_data.process.process.behavior_tree,
-            proto2.deployment_data.process.process.behavior_tree,
-            proto3.deployment_data.process.process.behavior_tree,
+            (
+                proto1.deployment_data.process.process.behavior_tree,
+                proto1.deployment_data.process.process.metadata,
+            ),
+            (
+                proto2.deployment_data.process.process.behavior_tree,
+                proto2.deployment_data.process.process.metadata,
+            ),
+            (
+                proto3.deployment_data.process.process.behavior_tree,
+                proto3.deployment_data.process.process.metadata,
+            ),
         ],
     )
     self.assertEqual(
@@ -253,25 +278,36 @@ class ProcessProvidingTest(absltest.TestCase):
         ["ai.intrinsic.process", "main.bt.pb", "My tree"],
     )
     self.assertEqual(
-        [(identifier, bt.proto) for identifier, bt in self._processes.items()],
+        [
+            (identifier, bt.proto, bt.metadata_proto)
+            for identifier, bt in self._processes.items()
+        ],
         [
             (
                 "ai.intrinsic.process",
                 asset_proto1.deployment_data.process.process.behavior_tree,
+                asset_proto1.deployment_data.process.process.metadata,
             ),
             (
                 "main.bt.pb",
                 asset_proto2.deployment_data.process.process.behavior_tree,
+                asset_proto2.deployment_data.process.process.metadata,
             ),
-            ("My tree", bt_proto4),
+            ("My tree", bt_proto4, None),
         ],
     )
     self.assertEqual(
-        [bt.proto for bt in self._processes.values()],
+        [(bt.proto, bt.metadata_proto) for bt in self._processes.values()],
         [
-            asset_proto1.deployment_data.process.process.behavior_tree,
-            asset_proto2.deployment_data.process.process.behavior_tree,
-            bt_proto4,
+            (
+                asset_proto1.deployment_data.process.process.behavior_tree,
+                asset_proto1.deployment_data.process.process.metadata,
+            ),
+            (
+                asset_proto2.deployment_data.process.process.behavior_tree,
+                asset_proto2.deployment_data.process.process.metadata,
+            ),
+            (bt_proto4, None),
         ],
     )
     self.assertEqual(
@@ -351,8 +387,14 @@ class ProcessProvidingTest(absltest.TestCase):
         self._processes["ai.intrinsic.process"].proto,
         asset_proto.deployment_data.process.process.behavior_tree,
     )
+    self.assertEqual(
+        self._processes["ai.intrinsic.process"].metadata_proto,
+        asset_proto.deployment_data.process.process.metadata,
+    )
     self.assertEqual(self._processes["My tree"].proto, bt_proto1)
+    self.assertIsNone(self._processes["My tree"].metadata_proto)
     self.assertEqual(self._processes["main.bt.pb"].proto, bt_proto2)
+    self.assertIsNone(self._processes["main.bt.pb"].metadata_proto)
     with self.assertRaises(KeyError):
       self._processes["non_existent_tree"]  # pylint: disable=pointless-statement
 

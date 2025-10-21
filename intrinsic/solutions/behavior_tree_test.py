@@ -10,11 +10,15 @@ from absl.testing import parameterized
 from google.protobuf import any_pb2
 from google.protobuf import descriptor_pb2
 from google.protobuf import text_format
+from intrinsic.assets.processes.proto import process_asset_pb2
+from intrinsic.assets.proto import id_pb2
+from intrinsic.assets.proto import metadata_pb2
 from intrinsic.executive.proto import any_with_assignments_pb2
 from intrinsic.executive.proto import behavior_tree_pb2
 from intrinsic.executive.proto import proto_builder_pb2
 from intrinsic.executive.proto import test_message_pb2
 from intrinsic.executive.proto import world_query_pb2
+from intrinsic.skills.proto import skills_pb2
 from intrinsic.solutions import behavior_tree as bt
 from intrinsic.solutions import blackboard_value
 from intrinsic.solutions import cel
@@ -36,6 +40,10 @@ def _create_test_decorator(
     cel_expression: str = 'foo',
 ) -> bt.Decorators:
   return bt.Decorators(condition=bt.Blackboard(cel_expression=cel_expression))
+
+
+def _default_task() -> bt.Task:
+  return bt.Task(behavior_call.Action(skill_id='ai.intrinsic.skill-0'))
 
 
 class BehaviorTreeBreakpointTypeTest(absltest.TestCase):
@@ -363,6 +371,34 @@ class BehaviorTreeTest(parameterized.TestCase):
         self, bt_instance.proto, bt_proto, ignored_fields=['tree_id']
     )
 
+  def test_name_property(self):
+    my_bt = bt.BehaviorTree('My tree', root=_default_task())
+    self.assertEqual(my_bt.name, 'My tree')
+
+  def test_name_property_setter(self):
+    proto = process_asset_pb2.ProcessAsset(
+        metadata=metadata_pb2.Metadata(
+            id_version=id_pb2.IdVersion(
+                id=id_pb2.Id(package='ai.intrinsic', name='my_process'),
+            ),
+            display_name='My tree',
+        ),
+        behavior_tree=behavior_tree_pb2.BehaviorTree(
+            name='My tree', description=skills_pb2.Skill(display_name='My tree')
+        ),
+    )
+    proto.behavior_tree.root.sequence.children.add().task.call_behavior.skill_id = (
+        'ai.intrinsic.skill-0'
+    )
+    my_bt = bt.BehaviorTree.create_from_proto(proto)
+
+    my_bt.name = 'My new tree'
+
+    self.assertEqual(my_bt.name, 'My new tree')
+    self.assertEqual(my_bt.proto.name, 'My new tree')
+    self.assertEqual(my_bt.proto.description.display_name, 'My new tree')
+    self.assertEqual(my_bt.metadata_proto.display_name, 'My new tree')
+
   def test_str_conversion(self):
     """Tests if behavior tree conversion to a string works."""
     my_bt = bt.BehaviorTree('my_bt')
@@ -471,17 +507,12 @@ user_data {
         'ai.intrinsic.skill-0'
     )
 
+    compare.assertProto2Equal(self, my_bt.proto, my_proto)
     compare.assertProto2Equal(
-        self,
-        my_bt.proto,
-        my_proto,
-        ignored_fields=['tree_id', 'root.id', 'root.sequence.children.id'],
+        self, bt.BehaviorTree.create_from_proto(my_proto).proto, my_proto
     )
-    compare.assertProto2Equal(
-        self,
-        bt.BehaviorTree.create_from_proto(my_proto).proto,
-        my_proto,
-        ignored_fields=['tree_id', 'root.id', 'root.sequence.children.id'],
+    self.assertIsNone(
+        bt.BehaviorTree.create_from_proto(my_proto).metadata_proto
     )
 
   def test_to_proto_and_from_proto_retains_ids(self):
@@ -510,6 +541,40 @@ user_data {
     compare.assertProto2Equal(
         self, bt.BehaviorTree.create_from_proto(my_proto).proto, my_proto
     )
+
+  def test_create_from_proto_with_process_asset(self):
+    my_proto = text_format.Parse(
+        """
+        metadata {
+          id_version {
+            id {
+              package: "ai.intrinsic"
+              name: "my_bt"
+            }
+          }
+        }
+        behavior_tree {
+          name: "My tree"
+          root {
+            sequence {
+              children {
+                task {
+                  call_behavior {
+                    skill_id: "ai.intrinsic.skill-0"
+                  }
+                }
+              }
+            }
+          }
+        }
+        """,
+        process_asset_pb2.ProcessAsset(),
+    )
+
+    my_bt = bt.BehaviorTree.create_from_proto(my_proto)
+
+    compare.assertProto2Equal(self, my_bt.metadata_proto, my_proto.metadata)
+    compare.assertProto2Equal(self, my_bt.proto, my_proto.behavior_tree)
 
   def test_validate_accepts_nested_same_node_ids_across_subtrees(self):
     my_bt = bt.BehaviorTree('my_bt', tree_id='tree_id')
