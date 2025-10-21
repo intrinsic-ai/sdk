@@ -26,6 +26,7 @@ go_library(
     deps = [
         ":baseclientutils",
         ":cmdutils",
+        "//intrinsic/config:environments",
         "//intrinsic/frontend/cloud/api/v1:clusterdiscovery_api_go_grpc_proto",
         "//intrinsic/frontend/cloud/api/v1:solutiondiscovery_api_go_grpc_proto",
         "//intrinsic/kubernetes/acl:identity",

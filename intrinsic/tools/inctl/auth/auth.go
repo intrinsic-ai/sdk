@@ -123,16 +123,45 @@ func (p *ProjectToken) HTTPAuthorization(req *http.Request) (*http.Request, erro
 	return req, p.Validate()
 }
 
+type asIDTokenCredentialsOptions struct {
+	apiKeyTokenSourceOptions    []APIKeyTokenSourceOption
+	tokenExchangeServiceAddress string
+}
+
+// AsIDTokenCredentialsOption is a functional option for [ProjectToken.AsIDTokenCredentials].
+type AsIDTokenCredentialsOption = func(o *asIDTokenCredentialsOptions)
+
+// WithAPIKeyTokenSourceOptions adds options for creating an [APIKeyTokenSource].
+func WithAPIKeyTokenSourceOptions(options ...APIKeyTokenSourceOption) AsIDTokenCredentialsOption {
+	return func(opts *asIDTokenCredentialsOptions) {
+		opts.apiKeyTokenSourceOptions = append(opts.apiKeyTokenSourceOptions, options...)
+	}
+}
+
+// WithTokenExchangeServiceAddress sets the address of the token exchange service.
+func WithTokenExchangeServiceAddress(address string) AsIDTokenCredentialsOption {
+	return func(opts *asIDTokenCredentialsOptions) {
+		opts.tokenExchangeServiceAddress = address
+	}
+}
+
 // AsIDTokenCredentials allows converting Intrinsic API Tokens to Google ID Tokens
 // on the fly as [credentials.PerRPCCredentials] implementation.
 // This is useful for contacting services which don't accept Intrinsic API Tokens,
 // but we want to use this infrastructure to authorize users to them.
-func (p *ProjectToken) AsIDTokenCredentials(opts ...APIKeyTokenSourceOption) (*APIKeyTokenSource, error) {
-	tsc, err := NewTokensServiceClient(http.DefaultClient, tokenExchangeServer)
+func (p *ProjectToken) AsIDTokenCredentials(options ...AsIDTokenCredentialsOption) (*APIKeyTokenSource, error) {
+	opts := &asIDTokenCredentialsOptions{
+		tokenExchangeServiceAddress: tokenExchangeServer,
+	}
+	for _, opt := range options {
+		opt(opts)
+	}
+
+	tsc, err := NewTokensServiceClient(http.DefaultClient, opts.tokenExchangeServiceAddress)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create token exchange: %w", err)
 	}
-	return NewAPIKeyTokenSource(p.APIKey, tsc, opts...), nil
+	return NewAPIKeyTokenSource(p.APIKey, tsc, opts.apiKeyTokenSourceOptions...), nil
 }
 
 // ProjectConfiguration contains list of API tokens related to given project
