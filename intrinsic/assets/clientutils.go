@@ -124,7 +124,7 @@ func DialCatalog(ctx context.Context, opts DialCatalogOptions) (context.Context,
 		Address:                     address,
 		APIKey:                      opts.APIKey,
 		CredOrg:                     opts.Org,
-		SkipCredsForInsecureAddress: false,
+		SkipCredsForInsecureAddress: true,
 	}
 	dialCtx, dialOpts, err := getDialContextOptions(ctx, optsOpts)
 	if err != nil {
@@ -261,7 +261,7 @@ func getDialContextOptions(ctx context.Context, opts getDialContextOptionsOption
 	}
 
 	var tcOption grpc.DialOption
-	if baseclientutils.UseInsecureCredentials(opts.Address) {
+	if creds == nil && baseclientutils.UseInsecureCredentials(opts.Address) {
 		tcOption = grpc.WithTransportCredentials(insecure.NewCredentials())
 	} else {
 		var err error
@@ -322,19 +322,7 @@ func getPerRPCCredentials(opts getPerRPCCredentialsOptions) (credentials.PerRPCC
 			return nil, err
 		}
 
-		projectToken, err := configuration.GetDefaultCredentials()
-		if err != nil {
-			return nil, err
-		}
-
-		// Convert the API token to a Google ID token. With this conversion, the JWT is included in the
-		// credentials provided by the client (rather than requiring the auth-proxy to do it on
-		// ingress.)
-		var opts []auth.APIKeyTokenSourceOption
-		if addressIsInsecure {
-			opts = append(opts, auth.WithAllowInsecure())
-		}
-		return projectToken.AsIDTokenCredentials(opts...)
+		return configuration.GetDefaultCredentials()
 	}
 
 	if addressIsInsecure {
