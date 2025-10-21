@@ -35,13 +35,6 @@ const (
 	keyDescription = "description"
 )
 
-var (
-	buildCommand    = "bazel"
-	buildConfigArgs = []string{
-		"--config", "intrinsic",
-	}
-)
-
 func release(ctx context.Context, client acgrpcpb.AssetCatalogClient, req *acpb.CreateAssetRequest, ignoreExisting bool, printer printer.Printer) error {
 	if _, err := client.CreateAsset(ctx, req); err != nil {
 		if s, ok := status.FromError(err); ok && ignoreExisting && s.Code() == codes.AlreadyExists {
