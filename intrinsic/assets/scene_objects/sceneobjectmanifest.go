@@ -11,16 +11,14 @@ import (
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/metadatautils"
 
-	anypb "google.golang.org/protobuf/types/known/anypb"
 	sompb "intrinsic/assets/scene_objects/proto/scene_object_manifest_go_proto"
 	sopb "intrinsic/scene/proto/v1/scene_object_go_proto"
 )
 
 // ValidateSceneObjectManifestOptions contains options for validating a SceneObjectManifest.
 type ValidateSceneObjectManifestOptions struct {
-	files           *protoregistry.Files
-	defaultUserData *anypb.Any
-	gzfPaths        map[string]string
+	files    *protoregistry.Files
+	gzfPaths map[string]string
 }
 
 // ValidateSceneObjectManifestOption is an option for validating a SceneObjectManifest.
@@ -30,15 +28,6 @@ type ValidateSceneObjectManifestOption func(*ValidateSceneObjectManifestOptions)
 func WithFiles(files *protoregistry.Files) ValidateSceneObjectManifestOption {
 	return func(opts *ValidateSceneObjectManifestOptions) {
 		opts.files = files
-	}
-}
-
-// WithDefaultUserData adds the SceneObject's default user data to the validation options.
-//
-// Must be specified if the manifest specifies a default user data file.
-func WithDefaultUserData(defaultUserData *anypb.Any) ValidateSceneObjectManifestOption {
-	return func(opts *ValidateSceneObjectManifestOptions) {
-		opts.defaultUserData = defaultUserData
 	}
 }
 
@@ -71,19 +60,6 @@ func ValidateSceneObjectManifest(m *sompb.SceneObjectManifest, options ...Valida
 	}
 	if len(m.GetAssets().GetGzfGeometryFilenames()) > 1 && len(m.GetAssets().GetRootSceneObjectName()) == 0 {
 		return fmt.Errorf("root_scene_object_name must be specified for multiple gzf files")
-	}
-
-	// Verify that the default user data proto message is in the FileDescriptorSet.
-	if m.GetAssets().GetDefaultUserDataFilename() != "" {
-		if opts.defaultUserData == nil {
-			return fmt.Errorf("default user data file specified (%q), but no default user data provided", m.GetAssets().GetDefaultUserDataFilename())
-		}
-		if opts.files == nil {
-			return fmt.Errorf("default user data proto message specified, but no descriptors provided")
-		}
-		if _, err := opts.files.FindDescriptorByName(protoreflect.FullName(opts.defaultUserData.MessageName())); err != nil {
-			return fmt.Errorf("could not find default user data message %q in provided descriptors for SceneObject %q: %w", opts.defaultUserData.MessageName(), id, err)
-		}
 	}
 
 	// Verify that any user data in the associated SceneObjects is in the FileDescriptorSet.

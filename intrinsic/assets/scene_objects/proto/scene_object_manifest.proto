@@ -35,7 +35,7 @@ message SceneObjectAssets {
 
   // The binary proto file containing the default user_data for the scene
   // object's SceneObjectConfig.
-  optional string default_user_data_filename = 3;
+  optional string default_user_data_filename = 3 [deprecated = true];
 
   // The binary proto file containing the file descriptor set for the
   // SceneObject (including, e.g., the descriptors for the SceneObjectConfig's
