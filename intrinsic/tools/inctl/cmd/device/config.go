@@ -29,10 +29,6 @@ const (
 	unauthorizedError = "Request authorization failed. This happens when you generated a new API-Key on a different machine or the API-Key expired.\n"
 )
 
-var (
-	errConfigGone = fmt.Errorf("config was rejected")
-)
-
 func prettyPrintStatusInterfaces(interfaces map[string]shared.StatusInterface) string {
 	ret := ""
 	names := make([]string, len(interfaces))
