@@ -12,7 +12,6 @@ import (
 )
 
 var (
-	flagDefaultConfig      string
 	flagFileDescriptorSets []string
 	flagOciImage           string
 	flagPBT                string
