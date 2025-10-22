@@ -146,13 +146,13 @@ service ResourceManagerService {
   // Creates a new organization.
   rpc CreateOrganization(CreateOrganizationRequest)
       returns (google.longrunning.Operation) {
-    option (google.api.http) = {
-      post: "/resourcemanager/v1/organizations"
-      body: "organization"
-    };
     option (google.longrunning.operation_info) = {
       response_type: "Organization"
       metadata_type: "CreateOrganizationOperationMetadata"
+    };
+    option (google.api.http) = {
+      post: "/resourcemanager/v1/organizations"
+      body: "organization"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "CreateOrganization"
