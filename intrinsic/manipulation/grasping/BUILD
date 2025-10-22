@@ -108,6 +108,7 @@ proto_library(
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/math/proto:point_proto",
+        "//intrinsic/world/proto:collision_settings_proto",
         "//intrinsic/world/proto:object_world_refs_proto",
     ],
 )

@@ -5,6 +5,7 @@ syntax = "proto3";
 package intrinsic_proto.grasping;
 
 import "intrinsic/math/proto/point.proto";
+import "intrinsic/world/proto/collision_settings.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 
 // The placement constraint of the exact placement pose to be satisfied during
@@ -59,6 +60,11 @@ message ForceBasedConstraint {
   // Optionally specify other representative points within the motion range, but
   // keep in mind that any new point will consume additional planning time.
   repeated intrinsic_proto.world.TransformNodeReference target_frames = 2;
+
+  // Local collision settings when checking force constraints. If not defined,
+  // it will use the global collision settings if defined or the default
+  // collision settings with zero margin if none are set.
+  optional intrinsic_proto.world.CollisionSettings collision_settings = 3;
 }
 
 // Placement constraints to consider during grasp planning.
