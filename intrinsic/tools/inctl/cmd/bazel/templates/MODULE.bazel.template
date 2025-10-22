@@ -2,7 +2,7 @@
 Copyright 2023 Intrinsic Innovation LLC
 */ -}}
 
-module(name="{{.WorkspaceName}}")
+module(name = "{{.WorkspaceName}}")
 
 bazel_dep(name = "ai_intrinsic_sdks")
 {{ if .SDKRepository -}}

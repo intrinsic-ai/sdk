@@ -190,7 +190,7 @@ func RunInitCmd(params *InitCmdParams) (InitSuccessMessage, error) {
 		}
 	}
 
-	affectedFiles := []string{}
+	var affectedFiles []string
 	for _, file := range createdFiles {
 		path, err := filepath.Rel(workspaceRoot, file)
 		if err != nil {
