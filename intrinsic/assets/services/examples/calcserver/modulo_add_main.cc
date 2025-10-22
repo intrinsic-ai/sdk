@@ -12,8 +12,9 @@
 #include "grpcpp/security/server_credentials.h"
 #include "grpcpp/server.h"
 #include "grpcpp/server_builder.h"
-#include "intrinsic/assets/services/examples/calcserver/calc_server.h"
 #include "intrinsic/assets/services/examples/calcserver/calc_server.pb.h"
+#include "intrinsic/assets/services/examples/calcserver/modulo_add.h"
+#include "intrinsic/assets/services/examples/calcserver/modulo_add.pb.h"
 #include "intrinsic/icon/release/file_helpers.h"
 #include "intrinsic/icon/release/portable/init_intrinsic.h"
 #include "intrinsic/resources/proto/runtime_context.pb.h"
@@ -30,10 +31,11 @@ absl::Status MainImpl() {
       GetBinaryProto<intrinsic_proto::config::RuntimeContext>(kContextFilePath),
       _ << "Reading runtime context");
 
-  auto config = std::make_unique<intrinsic_proto::services::CalculatorConfig>();
+  auto config =
+      std::make_unique<intrinsic_proto::services::ModuloAddServiceConfig>();
   INTR_RETURN_IF_ERROR(UnpackAny(context.config(), *config));
 
-  CalculatorServiceImpl calculator_service(*config);
+  ModuloAddServiceImpl modulo_add_service(*config);
 
   // Use the port passed in the runtime context, and use a localhost address.
   std::string server_address = absl::StrCat("0.0.0.0:", context.port());
@@ -48,15 +50,15 @@ absl::Status MainImpl() {
   grpc::ServerBuilder builder;
   builder.AddListeningPort(server_address, creds);
   builder.AddChannelArgument(GRPC_ARG_ALLOW_REUSEPORT, 0);
-  builder.RegisterService(&calculator_service);
+  builder.RegisterService(&modulo_add_service);
 
   // Start the gRPC server.
   std::unique_ptr<::grpc::Server> server(builder.BuildAndStart());
   if (server == nullptr) {
-    LOG(FATAL) << "Cannot create Calculator Service " << server_address;
+    LOG(FATAL) << "Cannot create Modulo Add Service " << server_address;
   }
   LOG(INFO) << "--------------------------------";
-  LOG(INFO) << "-- Calculator Service listening on " << server_address;
+  LOG(INFO) << "-- Modulo Add Service listening on " << server_address;
   LOG(INFO) << "--------------------------------";
 
   // Block gRPC server until it shuts down.

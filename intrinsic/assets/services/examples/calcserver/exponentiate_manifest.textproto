@@ -6,27 +6,26 @@
 metadata {
   id {
     package: "ai.intrinsic"
-    name: "calculator_service"
+    name: "exponentiate_service"
   }
   vendor {
     display_name: "Intrinsic"
   }
   documentation {
-    description: "A simple example calculator Service."
+    description: "A custom calculate Service that exponentiates the inputs."
   }
-  display_name: "Calculator"
+  display_name: "Exponentiate"
 }
 service_def {
-  service_proto_prefixes: "/intrinsic_proto.services.Calculator/"
-  config_message_full_name: "intrinsic_proto.services.CalculatorConfig"
+  service_proto_prefixes: "/intrinsic_proto.services.CustomCalculation/"
   real_spec {
     image {
-      archive_filename: "calculator-image.tar"
+      archive_filename: "exponentiate-image.tar"
     }
   }
   sim_spec {
     image {
-      archive_filename: "calculator-image.tar"
+      archive_filename: "exponentiate-image.tar"
     }
   }
 }

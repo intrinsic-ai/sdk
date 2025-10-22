@@ -50,8 +50,8 @@ class CalculatorServiceServicer(calc_server_pb2_grpc.CalculatorServicer):
       logging.info('%d / %d = %d', a, b, result)
     else:
       context.abort(
-          grpc.StatusCode.INVALID_ARGUMENT,
-          f'Invalid operation: {request.operation}',
+          grpc.StatusCode.UNIMPLEMENTED,
+          f'Unsupported operation: {request.operation}',
       )
 
     return calc_server_pb2.CalculatorResponse(result=result)

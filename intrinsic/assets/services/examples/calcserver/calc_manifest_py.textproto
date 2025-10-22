@@ -12,7 +12,7 @@ metadata {
     display_name: "Intrinsic"
   }
   documentation {
-    description: "A simple 4-function calculator written in python."
+    description: "A simple example calculator Service written in Python."
   }
   display_name: "Calculator"
 }

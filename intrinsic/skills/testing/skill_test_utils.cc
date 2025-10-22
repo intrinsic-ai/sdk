@@ -8,6 +8,7 @@
 #include "absl/log/check.h"
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/string_view.h"
 #include "absl/time/time.h"
 #include "google/protobuf/message.h"
 #include "grpc/grpc.h"
@@ -15,6 +16,7 @@
 #include "grpcpp/security/server_credentials.h"
 #include "grpcpp/server.h"
 #include "grpcpp/server_builder.h"
+#include "intrinsic/assets/proto/v1/resolved_dependency.pb.h"
 #include "intrinsic/motion_planning/motion_planner_client.h"
 #include "intrinsic/motion_planning/proto/v1/motion_planner_service.grpc.pb.h"
 #include "intrinsic/motion_planning/proto/v1/motion_planner_service_mock.grpc.pb.h"
@@ -193,6 +195,35 @@ intrinsic_proto::resources::ResourceHandle SkillTestFactory::RunService(
   handle.mutable_connection_info()->mutable_grpc()->set_address(
       absl::StrCat("localhost:", port));
   return handle;
+}
+
+intrinsic_proto::assets::v1::ResolvedDependency::Interface
+SkillTestFactory::RunService(grpc::Service* service,
+                             absl::string_view instance_name) {
+  return RunService(service, instance_name, 0);
+}
+
+intrinsic_proto::assets::v1::ResolvedDependency::Interface
+SkillTestFactory::RunService(grpc::Service* service,
+                             absl::string_view instance_name, int port) {
+  grpc::ServerBuilder builder;
+  std::shared_ptr<grpc::ServerCredentials> creds =
+      grpc::InsecureServerCredentials();  // NOLINT (insecure)
+  builder.AddListeningPort("localhost:0", creds, &port);
+  builder.AddChannelArgument(GRPC_ARG_ALLOW_REUSEPORT, 0);
+  builder.RegisterService(service);
+  // Keep the server running until the factory is destroyed.
+  std::unique_ptr<::grpc::Server> server = builder.BuildAndStart();
+  CHECK_NE(server, nullptr);
+  servers_.push_back(std::move(server));
+
+  intrinsic_proto::assets::v1::ResolvedDependency::Interface interface;
+  interface.mutable_grpc_connection()->set_address(
+      absl::StrCat("localhost:", port));
+  auto metadata = interface.mutable_grpc_connection()->add_metadata();
+  metadata->set_key("x-resource-instance-name");
+  metadata->set_value(instance_name);
+  return interface;
 }
 
 }  // namespace skills

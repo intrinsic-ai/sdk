@@ -10,9 +10,11 @@
 
 #include "absl/log/check.h"
 #include "absl/status/status.h"
+#include "absl/strings/string_view.h"
 #include "google/protobuf/message.h"
 #include "grpcpp/impl/service_type.h"
 #include "grpcpp/server.h"
+#include "intrinsic/assets/proto/v1/resolved_dependency.pb.h"
 #include "intrinsic/motion_planning/proto/v1/motion_planner_service.grpc.pb.h"
 #include "intrinsic/skills/cc/equipment_pack.h"
 #include "intrinsic/skills/cc/skill_canceller.h"
@@ -182,6 +184,17 @@ class SkillTestFactory final {
   // keep ownership of a gRPC server. The gRPC server is destroyed when the
   // SkillTestFactory is destroyed.
   intrinsic_proto::resources::ResourceHandle RunService(grpc::Service* service);
+
+  // Runs a service that allows connections from localhost and returns a
+  // ResolvedDependency::Interface that can be used to connect to the service.
+  // This call does not take ownership of the service, but it does create and
+  // keep ownership of a gRPC server. The gRPC server is destroyed when the
+  // SkillTestFactory is destroyed.
+  intrinsic_proto::assets::v1::ResolvedDependency::Interface RunService(
+      grpc::Service* service, absl::string_view instance_name);
+
+  intrinsic_proto::assets::v1::ResolvedDependency::Interface RunService(
+      grpc::Service* service, absl::string_view instance_name, int port);
 
   // Creates an `ExecuteRequest` for testing a skill's Execute() method.
   //

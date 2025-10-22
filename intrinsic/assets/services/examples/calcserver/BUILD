@@ -30,6 +30,10 @@ exports_files(
 proto_library(
     name = "calc_server_proto",
     srcs = ["calc_server.proto"],
+    deps = [
+        "//intrinsic/assets/proto:field_metadata_proto",
+        "//intrinsic/assets/proto/v1:resolved_dependency_proto",
+    ],
 )
 
 cc_proto_library(
@@ -52,7 +56,10 @@ cc_library(
     deps = [
         ":calc_server_cc_grpc_proto",
         ":calc_server_cc_proto",
+        "//intrinsic/assets/dependencies:utils_cc",
+        "//intrinsic/assets/proto/v1:resolved_dependency_cc_proto",
         "//intrinsic/resources/proto:runtime_context_cc_proto",
+        "//intrinsic/util/status:status_macros_grpc",
         "@abseil-cpp//absl/log",
         "@com_github_grpc_grpc//:grpc++",
     ],
@@ -96,6 +103,123 @@ intrinsic_service(
     manifest = ":calc_manifest.textproto",
     deps = [
         ":calc_server_proto",
+    ],
+)
+
+cc_library(
+    name = "exponentiate",
+    srcs = ["exponentiate.cc"],
+    hdrs = ["exponentiate.h"],
+    deps = [
+        ":calc_server_cc_grpc_proto",
+        ":calc_server_cc_proto",
+        "//intrinsic/resources/proto:runtime_context_cc_proto",
+        "@com_github_grpc_grpc//:grpc++",
+    ],
+)
+
+cc_binary(
+    name = "exponentiate_main",
+    srcs = ["exponentiate_main.cc"],
+    deps = [
+        ":calc_server_cc_proto",
+        ":exponentiate",
+        "//intrinsic/icon/release:file_helpers",
+        "//intrinsic/icon/release/portable:init_intrinsic",
+        "//intrinsic/resources/proto:runtime_context_cc_proto",
+        "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/log",
+        "@abseil-cpp//absl/log:check",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/strings:string_view",
+        "@com_github_grpc_grpc//:grpc++",
+        "@com_github_grpc_grpc//:grpc_security_base",
+    ],
+)
+
+container_image(
+    name = "exponentiate-image",
+    base = "@distroless_base",
+    cmd = ["intrinsic/assets/services/examples/calcserver/exponentiate_main"],
+    data_path = "/",
+    files = [":exponentiate_main"],
+)
+
+intrinsic_service(
+    name = "exponentiate_service",
+    images = [
+        "//intrinsic/assets/services/examples/calcserver:exponentiate-image.tar",
+    ],
+    manifest = ":exponentiate_manifest.textproto",
+    deps = [
+        ":calc_server_proto",
+    ],
+)
+
+proto_library(
+    name = "modulo_add_proto",
+    srcs = ["modulo_add.proto"],
+)
+
+cc_proto_library(
+    name = "modulo_add_cc_proto",
+    deps = [":modulo_add_proto"],
+)
+
+cc_library(
+    name = "modulo_add",
+    srcs = ["modulo_add.cc"],
+    hdrs = ["modulo_add.h"],
+    deps = [
+        ":calc_server_cc_grpc_proto",
+        ":calc_server_cc_proto",
+        ":modulo_add_cc_proto",
+        "//intrinsic/resources/proto:runtime_context_cc_proto",
+        "@com_github_grpc_grpc//:grpc++",
+    ],
+)
+
+cc_binary(
+    name = "modulo_add_main",
+    srcs = ["modulo_add_main.cc"],
+    deps = [
+        ":calc_server_cc_proto",
+        ":modulo_add",
+        ":modulo_add_cc_proto",
+        "//intrinsic/icon/release:file_helpers",
+        "//intrinsic/icon/release/portable:init_intrinsic",
+        "//intrinsic/resources/proto:runtime_context_cc_proto",
+        "//intrinsic/util/proto:any",
+        "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/log",
+        "@abseil-cpp//absl/log:check",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/strings:string_view",
+        "@com_github_grpc_grpc//:grpc++",
+        "@com_github_grpc_grpc//:grpc_security_base",
+    ],
+)
+
+container_image(
+    name = "modulo-add-image",
+    base = "@distroless_base",
+    cmd = ["intrinsic/assets/services/examples/calcserver/modulo_add_main"],
+    data_path = "/",
+    files = [":modulo_add_main"],
+)
+
+intrinsic_service(
+    name = "modulo_add_service",
+    default_config = ":modulo_add_default_config.textproto",
+    images = [
+        "//intrinsic/assets/services/examples/calcserver:modulo-add-image.tar",
+    ],
+    manifest = ":modulo_add_manifest.textproto",
+    deps = [
+        ":calc_server_proto",
+        ":modulo_add_proto",
     ],
 )
 

@@ -1,0 +1,32 @@
+# Copyright 2023 Intrinsic Innovation LLC
+
+# proto-file: intrinsic/assets/services/proto/service_manifest.proto
+# proto-message: intrinsic_proto.services.ServiceManifest
+
+metadata {
+  id {
+    package: "ai.intrinsic"
+    name: "modulo_add_service"
+  }
+  vendor {
+    display_name: "Intrinsic"
+  }
+  documentation {
+    description: "A custom calculate Service that adds two numbers modulo a third number."
+  }
+  display_name: "Modulo Add"
+}
+service_def {
+  service_proto_prefixes: "/intrinsic_proto.services.CustomCalculation/"
+  config_message_full_name: "intrinsic_proto.services.ModuloAddServiceConfig"
+  real_spec {
+    image {
+      archive_filename: "modulo-add-image.tar"
+    }
+  }
+  sim_spec {
+    image {
+      archive_filename: "modulo-add-image.tar"
+    }
+  }
+}
