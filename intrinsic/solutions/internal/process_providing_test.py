@@ -101,7 +101,7 @@ class ProcessProvidingTest(absltest.TestCase):
     self.assertEqual(list(self._processes.keys()), ["tree1", "tree2", "tree3"])
     self.assertEqual(
         [
-            (name, bt.proto, bt.metadata_proto)
+            (name, bt.proto, bt.asset_metadata_proto)
             for name, bt in self._processes.items()
         ],
         [
@@ -111,7 +111,10 @@ class ProcessProvidingTest(absltest.TestCase):
         ],
     )
     self.assertEqual(
-        [(bt.proto, bt.metadata_proto) for bt in self._processes.values()],
+        [
+            (bt.proto, bt.asset_metadata_proto)
+            for bt in self._processes.values()
+        ],
         [(proto1, None), (proto2, None), (proto3, None)],
     )
     self.assertEqual(list(self._processes), ["tree1", "tree2", "tree3"])
@@ -172,7 +175,7 @@ class ProcessProvidingTest(absltest.TestCase):
     )
     self.assertEqual(
         [
-            (identifier, bt.proto, bt.metadata_proto)
+            (identifier, bt.proto, bt.asset_metadata_proto)
             for identifier, bt in self._processes.items()
         ],
         [
@@ -194,7 +197,10 @@ class ProcessProvidingTest(absltest.TestCase):
         ],
     )
     self.assertEqual(
-        [(bt.proto, bt.metadata_proto) for bt in self._processes.values()],
+        [
+            (bt.proto, bt.asset_metadata_proto)
+            for bt in self._processes.values()
+        ],
         [
             (
                 proto1.deployment_data.process.process.behavior_tree,
@@ -279,7 +285,7 @@ class ProcessProvidingTest(absltest.TestCase):
     )
     self.assertEqual(
         [
-            (identifier, bt.proto, bt.metadata_proto)
+            (identifier, bt.proto, bt.asset_metadata_proto)
             for identifier, bt in self._processes.items()
         ],
         [
@@ -297,7 +303,10 @@ class ProcessProvidingTest(absltest.TestCase):
         ],
     )
     self.assertEqual(
-        [(bt.proto, bt.metadata_proto) for bt in self._processes.values()],
+        [
+            (bt.proto, bt.asset_metadata_proto)
+            for bt in self._processes.values()
+        ],
         [
             (
                 asset_proto1.deployment_data.process.process.behavior_tree,
@@ -388,13 +397,13 @@ class ProcessProvidingTest(absltest.TestCase):
         asset_proto.deployment_data.process.process.behavior_tree,
     )
     self.assertEqual(
-        self._processes["ai.intrinsic.process"].metadata_proto,
+        self._processes["ai.intrinsic.process"].asset_metadata_proto,
         asset_proto.deployment_data.process.process.metadata,
     )
     self.assertEqual(self._processes["My tree"].proto, bt_proto1)
-    self.assertIsNone(self._processes["My tree"].metadata_proto)
+    self.assertIsNone(self._processes["My tree"].asset_metadata_proto)
     self.assertEqual(self._processes["main.bt.pb"].proto, bt_proto2)
-    self.assertIsNone(self._processes["main.bt.pb"].metadata_proto)
+    self.assertIsNone(self._processes["main.bt.pb"].asset_metadata_proto)
     with self.assertRaises(KeyError):
       self._processes["non_existent_tree"]  # pylint: disable=pointless-statement
 

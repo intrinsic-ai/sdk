@@ -11,8 +11,12 @@ from google.protobuf import any_pb2
 from google.protobuf import descriptor_pb2
 from google.protobuf import text_format
 from intrinsic.assets.processes.proto import process_asset_pb2
+from intrinsic.assets.proto import asset_tag_pb2
+from intrinsic.assets.proto import asset_type_pb2
+from intrinsic.assets.proto import documentation_pb2
 from intrinsic.assets.proto import id_pb2
 from intrinsic.assets.proto import metadata_pb2
+from intrinsic.assets.proto import vendor_pb2
 from intrinsic.executive.proto import any_with_assignments_pb2
 from intrinsic.executive.proto import behavior_tree_pb2
 from intrinsic.executive.proto import proto_builder_pb2
@@ -397,7 +401,7 @@ class BehaviorTreeTest(parameterized.TestCase):
     self.assertEqual(my_bt.name, 'My new tree')
     self.assertEqual(my_bt.proto.name, 'My new tree')
     self.assertEqual(my_bt.proto.description.display_name, 'My new tree')
-    self.assertEqual(my_bt.metadata_proto.display_name, 'My new tree')
+    self.assertEqual(my_bt.asset_metadata_proto.display_name, 'My new tree')
 
   def test_str_conversion(self):
     """Tests if behavior tree conversion to a string works."""
@@ -512,7 +516,7 @@ user_data {
         self, bt.BehaviorTree.create_from_proto(my_proto).proto, my_proto
     )
     self.assertIsNone(
-        bt.BehaviorTree.create_from_proto(my_proto).metadata_proto
+        bt.BehaviorTree.create_from_proto(my_proto).asset_metadata_proto
     )
 
   def test_to_proto_and_from_proto_retains_ids(self):
@@ -573,7 +577,9 @@ user_data {
 
     my_bt = bt.BehaviorTree.create_from_proto(my_proto)
 
-    compare.assertProto2Equal(self, my_bt.metadata_proto, my_proto.metadata)
+    compare.assertProto2Equal(
+        self, my_bt.asset_metadata_proto, my_proto.metadata
+    )
     compare.assertProto2Equal(self, my_bt.proto, my_proto.behavior_tree)
 
   def test_validate_accepts_nested_same_node_ids_across_subtrees(self):

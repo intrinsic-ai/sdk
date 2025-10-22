@@ -30,8 +30,14 @@ from google.protobuf import descriptor
 from google.protobuf import descriptor_pb2
 from google.protobuf import message as protobuf_message
 import graphviz
+from intrinsic.assets import id_utils
 from intrinsic.assets.processes.proto import process_asset_pb2
+from intrinsic.assets.proto import asset_tag_pb2
+from intrinsic.assets.proto import asset_type_pb2
+from intrinsic.assets.proto import documentation_pb2
+from intrinsic.assets.proto import id_pb2
 from intrinsic.assets.proto import metadata_pb2
+from intrinsic.assets.proto import vendor_pb2
 from intrinsic.executive.proto import any_list_pb2
 from intrinsic.executive.proto import any_with_assignments_pb2
 from intrinsic.executive.proto import behavior_call_pb2
@@ -4546,12 +4552,12 @@ class BehaviorTree:
 
     if bt is not None:
       if isinstance(bt, BehaviorTree):
-        if bt.metadata_proto is None:
+        if bt.asset_metadata_proto is None:
           bt_copy = self.create_from_proto(bt.proto)
         else:
           bt_copy = self.create_from_proto(
               process_asset_pb2.ProcessAsset(
-                  behavior_tree=bt.proto, metadata=bt.metadata_proto
+                  behavior_tree=bt.proto, metadata=bt.asset_metadata_proto
               )
           )
       elif isinstance(bt, behavior_tree_pb2.BehaviorTree):
@@ -4616,14 +4622,14 @@ class BehaviorTree:
       self._description.display_name = value
 
   @property
-  def metadata_proto(self) -> metadata_pb2.Metadata | None:
+  def asset_metadata_proto(self) -> metadata_pb2.Metadata | None:
     """Returns the asset Metadata proto of the BehaviorTree.
 
     If not None, the behavior tree represents a Process asset and can be saved
     as such. Otherwise, it is a local, "anonymous" behavior tree or it
     represents a legacy process.
 
-    You can use set_metadata() to initialize or update the asset Metadata proto.
+    You can use set_asset_metadata() to initialize or update the asset Metadata.
     """
     return self._metadata
 
