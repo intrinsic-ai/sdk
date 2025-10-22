@@ -23,6 +23,7 @@ go_library(
         "//intrinsic/tools/inctl/util/accounts",
         "@com_github_spf13_cobra//:go_default_library",
         "@com_github_spf13_viper//:go_default_library",
+        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
         "@org_golang_google_protobuf//encoding/protojson:go_default_library",
         "@org_golang_google_protobuf//proto",
         "@org_golang_x_sync//errgroup:go_default_library",

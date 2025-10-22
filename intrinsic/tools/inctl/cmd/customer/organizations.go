@@ -15,6 +15,7 @@ import (
 	"intrinsic/tools/inctl/util/orgutil"
 	"intrinsic/tools/inctl/util/printer"
 
+	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	accresourcemanager1pb "intrinsic/kubernetes/accounts/service/api/resourcemanager/v1/resourcemanager_go_grpc_proto"
 )
 
@@ -87,6 +88,18 @@ var createCmd = &cobra.Command{
 		}
 		if flagDebugRequests {
 			protoPrint(op)
+		}
+		operr := op.GetError()
+		if operr != nil {
+			return fmt.Errorf("failed to create organization: %v", operr)
+		}
+		if flagCustomer == "" && op.GetResult() != nil {
+			res := op.GetResult().(*lropb.Operation_Response).Response
+			org := &accresourcemanager1pb.Organization{}
+			if err := res.UnmarshalTo(org); err != nil {
+				return fmt.Errorf("failed to unmarshal organization: %w", err)
+			}
+			fmt.Printf("Created organization with identifier %q.\n", org.GetName())
 		}
 		return nil
 	},
