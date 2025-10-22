@@ -56,6 +56,24 @@ type ReferencedDataProcessor interface {
 	Process(*ReferencedDataReader) error
 }
 
+type noOpReferencedData struct{}
+
+// NeedsReaderFor returns false for all reference types.
+func (p *noOpReferencedData) NeedsReaderFor(rt utils.ReferenceType) bool {
+	return false
+}
+
+// Process does not modify the given reference data.
+func (p *noOpReferencedData) Process(rdr *ReferencedDataReader) error {
+	return nil
+}
+
+// NoOpReferencedData does nothing to the data asset being processed.  This is
+// only valid for dry runs, but it ensures that referenced data is available.
+func NoOpReferencedData() ReferencedDataProcessor {
+	return &noOpReferencedData{}
+}
+
 type inlineReferencedData struct{}
 
 // NeedsReaderFor returns true for all reference types.

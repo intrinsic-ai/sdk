@@ -96,12 +96,11 @@ func release(ctx context.Context, client acgrpcpb.AssetCatalogClient, req *acpb.
 }
 
 func makeCreateAssetRequest(ctx context.Context, target string, client acgrpcpb.AssetCatalogClient, flags *cmdutils.CmdFlags) (*acpb.CreateAssetRequest, error) {
-	da, err := bundleio.ReadDataAsset(
-		target,
-		bundleio.WithProcessReferencedData(
-			bundleio.ToCatalogReferencedData(ctx, bundleio.WithACClient(client)),
-		),
-	)
+	referencedDataProcessor := bundleio.NoOpReferencedData()
+	if !flags.GetFlagDryRun() {
+		referencedDataProcessor = bundleio.ToCatalogReferencedData(ctx, bundleio.WithACClient(client))
+	}
+	da, err := bundleio.ReadDataAsset(target, bundleio.WithProcessReferencedData(referencedDataProcessor))
 	if err != nil {
 		return nil, fmt.Errorf("could not read Data asset: %w", err)
 	}
