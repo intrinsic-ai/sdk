@@ -34,8 +34,6 @@ var (
 )
 
 func init() {
-	customerCmd.Hidden = true
-
 	customerCmd.PersistentFlags().StringVar(&flagEnvironment, orgutil.KeyEnvironment, environments.Prod, "The environment to use for the command.")
 	customerCmd.PersistentFlags().BoolVar(&flagDebugRequests, "debug-requests", false, "If true, print the full request and response for each API call.")
 	customerCmd = orgutil.WrapCmd(customerCmd, vipr)
