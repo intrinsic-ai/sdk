@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"go.opencensus.io/stats"
+	"go.opencensus.io/tag"
 	"go.opencensus.io/trace"
 )
 
@@ -36,7 +38,20 @@ const (
 // Note: use NewHandler instead of this.
 type ContextHandler struct {
 	slog.Handler
-	ProjectName string
+	ProjectName     string
+	LogLevelTracing bool
+}
+
+// ContextHandlerOption is a way to configure options for the ContextHandler.
+type ContextHandlerOption func(*ContextHandler)
+
+// WithLogLevelTracing enables recording of log levels on this handler.
+//
+// The required views are part of slogattrs.Views, make sure to register them.
+func WithLogLevelTracing() ContextHandlerOption {
+	return func(h *ContextHandler) {
+		h.LogLevelTracing = true
+	}
 }
 
 // NewHandler wraps a slog.Handler to populate log attributes from the context and
@@ -49,11 +64,15 @@ type ContextHandler struct {
 //	h := slogattrs.NewHandler("my_gcp_project", slog.NewTextHandler(os.Stdout, nil))
 //	logger := slog.New(h)
 //	slog.SetDefault(logger)
-func NewHandler(projectName string, handler slog.Handler) slog.Handler {
-	return &ContextHandler{
+func NewHandler(projectName string, handler slog.Handler, options ...ContextHandlerOption) slog.Handler {
+	h := &ContextHandler{
 		Handler:     handler,
 		ProjectName: projectName,
 	}
+	for _, opt := range options {
+		opt(h)
+	}
+	return h
 }
 
 // SetDefaultLogger reconfigures slog default logger to use ContextHandler
@@ -78,6 +97,9 @@ func (h *ContextHandler) Handle(ctx context.Context, r slog.Record) error {
 			slog.String("logging.googleapis.com/spanId", spanContext.SpanID.String()),
 			slog.Bool("logging.googleapis.com/trace_sampled", span.IsRecordingEvents()), // always true in this context
 		)
+	}
+	if h.LogLevelTracing {
+		stats.RecordWithTags(ctx, []tag.Mutator{tag.Insert(TagLogLevel, r.Level.String())}, MLogCount.M(1))
 	}
 	return h.Handler.Handle(ctx, r)
 }

@@ -39,8 +39,14 @@ go_library(
     srcs = [
         "metadata.go",
         "slogattrs.go",
+        "slogattrs_metrics.go",
     ],
-    deps = ["@io_opencensus_go//trace:go_default_library"],
+    deps = [
+        "@io_opencensus_go//stats:go_default_library",
+        "@io_opencensus_go//stats/view:go_default_library",
+        "@io_opencensus_go//tag:go_default_library",
+        "@io_opencensus_go//trace:go_default_library",
+    ],
 )
 
 go_test(
