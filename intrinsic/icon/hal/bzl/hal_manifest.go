@@ -37,11 +37,6 @@ var (
 	//go:embed hal_service_manifest.textproto.tmpl
 	serviceManifestTemplateText string
 	serviceManifestTemplate     = template.Must(template.New("manifest").Parse(serviceManifestTemplateText))
-
-	validFamilyIDs = []string{
-		"hardware_module",
-		"hardware_module_without_geometry",
-	}
 )
 
 // validatePartial does validation on the partial manifest provided by the
