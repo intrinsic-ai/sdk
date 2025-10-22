@@ -39,7 +39,9 @@ namespace intrinsic {
 
 namespace {
 constexpr static absl::Duration kHighConsistencyTimeout = absl::Seconds(30);
-}
+constexpr static absl::string_view kAdminSetProxyEndpoint =
+    "zenoh-router.app-intrinsic-base.svc.cluster.local:8081";
+}  // namespace
 
 KeyValueStore::KeyValueStore(std::optional<std::string> prefix_override)
     : key_prefix_(prefix_override.has_value() ? prefix_override.value()
@@ -264,12 +266,9 @@ absl::StatusOr<std::vector<std::string>> KeyValueStore::ExecuteList(
 }
 
 // We need to make a grpc call to the admin set service to copy the key value
-// from the source key to the target key. We can't implement the logic of the
-// admin set service here because we can't easily extract the ADC credentials
-// from the C++ code.
+// from the source key to the target key.
 absl::Status KeyValueStore::AdminCloudCopy(absl::string_view source_key,
                                            absl::string_view target_key,
-                                           absl::string_view endpoint,
                                            absl::Duration timeout) {
   INTR_RETURN_IF_ERROR(intrinsic::ValidZenohKey(source_key));
   INTR_RETURN_IF_ERROR(intrinsic::ValidZenohKey(target_key));
@@ -279,9 +278,10 @@ absl::Status KeyValueStore::AdminCloudCopy(absl::string_view source_key,
   INTR_ASSIGN_OR_RETURN(google::protobuf::Any value,
                         GetAny(source_key, timeout));
 
-  // Create a gRPC stub.
   std::shared_ptr<::grpc::Channel> channel = ::grpc::CreateCustomChannel(
-      std::string(endpoint), grpc::GoogleDefaultCredentials(),
+      std::string(kAdminSetProxyEndpoint),
+      ::grpc::                       // NOLINTNEXTLINE
+      InsecureChannelCredentials(),  // NO_LINT(grpc_insecure_credential_linter)
       ::grpc::ChannelArguments());
   if (channel == nullptr) {
     return absl::InternalError("Failed to create channel");

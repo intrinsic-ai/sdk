@@ -1,0 +1,48 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.pubsub.cloud_router_provisioner.v1;
+
+import "intrinsic/platform/pubsub/admin_set_grpc/v1/admin_set.proto";
+
+// RouterProvisionRequest is the request for Provision.
+message RouterProvisionRequest {
+  string organization_id = 1;
+}
+
+// RouterProvisionResponse is the response for ProvisionRequest.
+message RouterProvisionResponse {
+  bool provisioned = 1;
+}
+
+// IsRouterProvisionedRequest is the request for IsProvisioned.
+message IsRouterProvisionedRequest {
+  string organization_id = 1;
+}
+
+// IsRouterProvisionedResponse is the response for IsProvisionedRequest.
+message IsRouterProvisionedResponse {
+  bool provisioned = 1;
+}
+
+// RouterProvisionerService is used to provision cloud router per organization.
+service RouterProvisionerService {
+  // IsRouterProvisioned returns true if the cloud router is already
+  // provisioned for the organization.
+  rpc IsRouterProvisioned(IsRouterProvisionedRequest)
+      returns (IsRouterProvisionedResponse) {}
+
+  // ProvisionRouter provisions the cloud router for the organization. It is a
+  // blocking call that waits for the cloud router to be provisioned. If already
+  // provisioned, it returns success immediately.
+  rpc ProvisionRouter(RouterProvisionRequest)
+      returns (RouterProvisionResponse) {}
+
+  // This is a proxy method to call the AdminSetService.AdminCopy method served
+  // by the cloud routers. Since there are multiple cloud routers and Ngnix
+  // ingress does not support routing based on headers, we need to implement the
+  // reverse proxy ourselves here.
+  rpc AdminCopy(intrinsic_proto.pubsub.admin_set_grpc.v1.AdminSetRequest)
+      returns (intrinsic_proto.pubsub.admin_set_grpc.v1.AdminSetResponse) {}
+}

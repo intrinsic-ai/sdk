@@ -118,10 +118,8 @@ absl::StatusOr<std::vector<std::string>> ListAllOnpremKeys(
 }
 
 absl::Status AdminCloudCopy(KeyValueStore* self, const std::string& source_key,
-                            const std::string& target_key,
-                            const std::string& endpoint, int timeout) {
-  return self->AdminCloudCopy(source_key, target_key, endpoint,
-                              absl::Seconds(timeout));
+                            const std::string& target_key, int timeout) {
+  return self->AdminCloudCopy(source_key, target_key, absl::Seconds(timeout));
 }
 
 absl::StatusOr<absl::flat_hash_map<std::string, google::protobuf::Any>>
@@ -213,8 +211,7 @@ PYBIND11_MODULE(pubsub, m) {
            pybind11::arg("workcell_name"), pybind11::arg("timeout") = 10)
       .def("Delete", &KeyValueStore::Delete, pybind11::arg("key"))
       .def("AdminCloudCopy", &AdminCloudCopy, pybind11::arg("source_key"),
-           pybind11::arg("target_key"), pybind11::arg("endpoint"),
-           pybind11::arg("timeout") = 10);
+           pybind11::arg("target_key"), pybind11::arg("timeout") = 10);
 
   // The python GIL does not need to be locked during the entire destructor
   // of this class. Instead, the custom deleter provided during its

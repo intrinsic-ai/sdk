@@ -133,12 +133,10 @@ class KeyValueStore {
   // to kv_store_repl/<destination_ipc>/key. To use this method, the you must be
   // running on a cluster with credentials that allow cloud ingress access. The
   // timeout is not enforced for the entire duration of the copy, but rather for
-  // the call to the cloud server. endpoint is the address of the cloud
-  // server. You can get this by reading {{ .Values.domain }}
+  // the call to the cloud server.
   absl::Status AdminCloudCopy(absl::string_view source_key,
                               absl::string_view target_key,
-                              absl::string_view endpoint,
-                              absl::Duration timeout = kDefaultGetTimeout);
+                              absl::Duration timeout);
 
   // Same as GetAll, but does not need a callback. The tradeoff is less control.
   absl::StatusOr<absl::flat_hash_map<std::string, google::protobuf::Any>>

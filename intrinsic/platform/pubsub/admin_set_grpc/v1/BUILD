@@ -1,6 +1,6 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-# GRPC service definition for the quota management service
+# GRPC service definition for the copying keys across namespaces.
 
 load("@ai_intrinsic_sdks_pip_deps//:requirements.bzl", "requirement")
 load("@com_github_grpc_grpc//bazel:cc_grpc_library.bzl", "cc_grpc_library")
