@@ -7,7 +7,7 @@ import (
 	"flag"
 	log "github.com/golang/glog"
 	"intrinsic/assets/data/build_defs/datagen"
-	intrinsic "intrinsic/production/intrinsic"
+	"intrinsic/production/intrinsic"
 	intrinsicflag "intrinsic/util/flag"
 )
 

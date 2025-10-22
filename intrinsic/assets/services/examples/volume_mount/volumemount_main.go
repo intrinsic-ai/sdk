@@ -9,19 +9,17 @@ import (
 	"net"
 	"strings"
 
-	"flag"
 	log "github.com/golang/glog"
 	"google.golang.org/grpc"
 	"intrinsic/assets/services/config"
 	"intrinsic/assets/services/examples/volume_mount/volumemount"
-	intrinsic "intrinsic/production/intrinsic"
+	"intrinsic/production/intrinsic"
 
 	vmgrpcpb "intrinsic/assets/services/examples/volume_mount/proto/v1/volume_mount_go_grpc_proto"
 	vmpb "intrinsic/assets/services/examples/volume_mount/proto/v1/volume_mount_go_grpc_proto"
 )
 
 func main() {
-	flag.Set("logtostderr", "true")
 	intrinsic.Init()
 
 	rc, err := config.LoadRuntimeContext()

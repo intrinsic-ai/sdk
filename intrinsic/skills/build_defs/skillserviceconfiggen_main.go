@@ -8,7 +8,7 @@ import (
 
 	"flag"
 	log "github.com/golang/glog"
-	intrinsic "intrinsic/production/intrinsic"
+	"intrinsic/production/intrinsic"
 	sscg "intrinsic/skills/build_defs/skillserviceconfiggen"
 	"intrinsic/util/proto/protoio"
 

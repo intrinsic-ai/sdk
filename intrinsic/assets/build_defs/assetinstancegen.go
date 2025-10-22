@@ -11,7 +11,7 @@ import (
 	"flag"
 	log "github.com/golang/glog"
 	"intrinsic/assets/idutils"
-	intrinsic "intrinsic/production/intrinsic"
+	"intrinsic/production/intrinsic"
 	"intrinsic/util/proto/protoio"
 
 	assetpb "intrinsic/assets/build_defs/asset_go_proto"

@@ -8,7 +8,7 @@ import (
 	log "github.com/golang/glog"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/typeutils"
-	intrinsic "intrinsic/production/intrinsic"
+	"intrinsic/production/intrinsic"
 	intrinsicflag "intrinsic/util/flag"
 	"intrinsic/util/proto/protoio"
 	"intrinsic/util/proto/registryutil"
