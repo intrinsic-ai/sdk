@@ -115,14 +115,3 @@ func getPortalURL(project, cluster string) string {
 func isPoolVM(name string) bool {
 	return strings.HasPrefix(name, "vmp-")
 }
-
-// resolveVM resolves the given VM name or alias to a VM name. This enables
-// commands to support both raw VM names and context aliases very easy.
-func resolveVM(vmOrAlias, project string) string {
-	// If the name looks like a pool VM return it directly.
-	if isPoolVM(vmOrAlias) {
-		return vmOrAlias
-	}
-	// Always fall back to the given name if we don't know better.
-	return vmOrAlias
-}
