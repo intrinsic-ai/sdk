@@ -33,9 +33,7 @@ var (
 	errEmailInvalid = errors.New("email address is invalid")
 	// errJWTNotVerified indicates that the JWT verification failed.
 	errJWTNotVerified = errors.New("the jwt was not able to be verified")
-	// errNoAuthenticationMetadata is a sentinel error that indicates that the request or context had
-	// no authentication metadata, e.g. JWT.
-	errNoAuthenticationMetadata = errors.New("no authentication metadata found")
+
 	// errNoJWT indicates that there was no JWT found.
 	errNoJWT = errors.New("no jwt found")
 	// errJWTUnmarshal indicates that the JWT could not be unmarshalled.
