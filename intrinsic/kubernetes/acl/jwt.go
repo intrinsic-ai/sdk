@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"net/mail"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -122,13 +123,25 @@ func Email(t string) (string, error) {
 	// We check "email" in firebase id-tokens and "uid" in custom token we create
 	// from api-key usage. So far we have not found a way to align the fields.
 	// "user_id" is populated by ID tokens generated from the API key auth path.
-	for _, k := range []string{"email", "uid", "user_id"} {
+	// `sub` is used by userless access as standard registered JWT Claim.
+	const jwtSubject = "sub"
+	for _, k := range []string{"email", "uid", "user_id", jwtSubject} {
 		m, ok := pl[k].(string)
 		if ok && m != "" {
+			// limiting this to subject claim only as identity tests indicate there is
+			// expectation that some of those values are NOT valid emails.
+			if k == jwtSubject && !isEmailAddress(m) {
+				continue
+			}
 			return m, nil
 		}
 	}
 	return "", fmt.Errorf("failed to extract email from JWT")
+}
+
+func isEmailAddress(value string) bool {
+	_, err := mail.ParseAddress(value)
+	return err == nil
 }
 
 // Aud extracts the audience from the given JWT.
