@@ -123,6 +123,10 @@ message SensorComponent {
   message CameraPluginSpec {
     string camera_identifier_proto = 2;
 
+    // Inlined plugin xml spec, excluding fields which are commonly edited in
+    // the world.
+    string inlined_plugin_xml = 3;
+
     reserved 1;
     reserved "camera_identifier";
   }
