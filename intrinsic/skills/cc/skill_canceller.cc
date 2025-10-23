@@ -25,18 +25,20 @@ absl::Status SkillCancellationManager::Cancel() {
 
   // Calling the user callback with the lock held would lead to a deadlock if
   // the callback never returns, so we only keep the lock for the notification.
+  std::unique_ptr<absl::AnyInvocable<absl::Status() const>> callback;
   {
-    absl::MutexLock lock(&cancel_mu_);
-    if (cancelled_.HasBeenNotified()) {
+    absl::MutexLock lock(&mutex_);
+    if (cancelled_) {
       return absl::FailedPreconditionError(
           absl::Substitute("$0 was already cancelled.", operation_name_));
     }
-
-    cancelled_.Notify();
+    cancelled_ = true;
+    callback = std::move(callback_);
+    callback_ = nullptr;
   }
 
-  if (callback_ != nullptr) {
-    INTR_RETURN_IF_ERROR((*callback_)());
+  if (callback != nullptr) {
+    INTR_RETURN_IF_ERROR((*callback)());
   }
 
   return absl::OkStatus();
@@ -44,7 +46,7 @@ absl::Status SkillCancellationManager::Cancel() {
 
 absl::Status SkillCancellationManager::RegisterCallback(
     absl::AnyInvocable<absl::Status() const> callback) {
-  absl::MutexLock lock(&cancel_mu_);
+  absl::MutexLock lock(&mutex_);
   if (ready_.HasBeenNotified()) {
     return absl::FailedPreconditionError(
         absl::Substitute("A callback cannot be registered after"
@@ -60,13 +62,20 @@ absl::Status SkillCancellationManager::RegisterCallback(
   return absl::OkStatus();
 }
 
+bool SkillCancellationManager::Wait(absl::Duration timeout) {
+  absl::MutexLock lock(&mutex_);
+  mutex_.AwaitWithTimeout(
+      absl::Condition(this, &SkillCancellationManager::CancelledOrStopWait),
+      timeout);
+  return cancelled_;
+}
+
 absl::Status SkillCancellationManager::WaitForReady() {
   if (!ready_.WaitForNotificationWithTimeout(ready_timeout_)) {
     return absl::DeadlineExceededError(absl::Substitute(
         "Timed out waiting for $0 to be ready for cancellation.",
         operation_name_));
   }
-
   return absl::OkStatus();
 }
 

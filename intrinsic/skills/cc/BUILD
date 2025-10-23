@@ -182,6 +182,7 @@ cc_library(
     hdrs = ["skill_canceller.h"],
     deps = [
         "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/base:core_headers",
         "@abseil-cpp//absl/functional:any_invocable",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/strings",

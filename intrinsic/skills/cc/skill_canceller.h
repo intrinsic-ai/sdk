@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 
+#include "absl/base/thread_annotations.h"
 #include "absl/functional/any_invocable.h"
 #include "absl/status/status.h"
 #include "absl/strings/string_view.h"
@@ -25,10 +26,31 @@ namespace skills {
 //
 // The skill must call Ready() once it is ready to be cancelled.
 //
-// A skill can implement cancellation in one of two ways:
+// A skill can implement cancellation in one of three ways:
 // 1) Poll cancelled(), and safely cancel if and when it becomes true.
-// 2) Register a callback via RegisterCallback(). This callback will be invoked
-//    when the skill receives a cancellation request.
+// 2) Call Wait() and interrupt the skill if it returns true.
+//    Of course, Wait() is blocking, so the typical pattern is to call it from
+//    an extra thread. If no cancellation happens and the skill finishes, a
+//    cleanup function should unblock the extra thread with StopWait().
+//    Here is an example:
+//    {
+//      intrinsic::Thread thread([&context] {
+//        if (!context.canceller().Wait(absl::InfiniteDuration())) {
+//          // StopWait() was called (or timeout happened).
+//          return;
+//        }
+//        // Cancel long-running work (for example, TryCancel() gRPC context).
+//      });
+//      absl::Cleanup stop_wait = [&context] {
+//        context.canceller().StopWait();
+//      };
+//      // Do long-running work (for example, call gRPC server).
+//    }
+// 3) Register a callback via RegisterCallback(). This callback will be invoked
+//    when the skill receives a cancellation request. Important: Any references
+//    captured by the callback must outlive the SkillCanceller (longer
+//    than the skill function). In practice, this means that only
+//    std::shared_ptr can be captured.
 class SkillCanceller {
  public:
   virtual ~SkillCanceller() = default;
@@ -43,6 +65,9 @@ class SkillCanceller {
   //
   // Only one callback may be registered, and the callback will be called at
   // most once. It must be registered before calling Ready().
+  // Important: Any references captured by the callback must outlive
+  // SkillCanceller (longer than the skill). If this is not guaranteed, use one
+  // of the other two methods Wait() or cancelled() instead.
   //
   // After a successful invocation, the callback should return absl::OkStatus().
   // Not returning absl::OkStatus() will indicate that the skill could not
@@ -55,7 +80,11 @@ class SkillCanceller {
   // Waits for the skill to be cancelled.
   //
   // Returns true if the skill was cancelled.
+  // Returns false if the timeout expired or StopWait() was called.
   virtual bool Wait(absl::Duration timeout) = 0;
+
+  // Unblocks Wait() if it is waiting.
+  virtual void StopWait() = 0;
 };
 
 // A SkillCanceller used by the skill service to cancel skills.
@@ -65,31 +94,42 @@ class SkillCancellationManager : public SkillCanceller {
       absl::Duration ready_timeout,
       absl::string_view operation_name = "operation");
 
-  bool cancelled() const override { return cancelled_.HasBeenNotified(); };
+  bool cancelled() const override {
+    absl::MutexLock lock(&mutex_);
+    return cancelled_;
+  };
 
-  // Sets the cancelled flag and calls the callback (if set).
-  absl::Status Cancel();
+  // Sets the cancelled flag, notifies all waiters, and calls the callback if
+  // set.
+  absl::Status Cancel() ABSL_LOCKS_EXCLUDED(mutex_);
 
   void Ready() override { ready_.Notify(); };
 
   absl::Status RegisterCallback(
       absl::AnyInvocable<absl::Status() const> callback) override;
 
-  bool Wait(absl::Duration timeout) override {
-    return cancelled_.WaitForNotificationWithTimeout(timeout);
+  bool Wait(absl::Duration timeout) override;
+
+  void StopWait() override {
+    absl::MutexLock lock(&mutex_);
+    stop_wait_ = true;
   };
 
   // Waits for the skill to be ready for cancellation.
-  absl::Status WaitForReady();
+  absl::Status WaitForReady() ABSL_LOCKS_EXCLUDED(mutex_);
 
  private:
-  absl::Mutex cancel_mu_;
+  bool CancelledOrStopWait() const ABSL_EXCLUSIVE_LOCKS_REQUIRED(mutex_) {
+    return cancelled_ || stop_wait_;
+  };
+  const absl::Duration ready_timeout_;
+  const std::string operation_name_;
   absl::Notification ready_;
-  absl::Duration ready_timeout_;
-  absl::Notification cancelled_;
-  std::unique_ptr<absl::AnyInvocable<absl::Status() const>> callback_;
-
-  std::string operation_name_;
+  mutable absl::Mutex mutex_;
+  bool cancelled_ ABSL_GUARDED_BY(mutex_) = false;
+  bool stop_wait_ ABSL_GUARDED_BY(mutex_) = false;
+  std::unique_ptr<absl::AnyInvocable<absl::Status() const>> callback_
+      ABSL_GUARDED_BY(mutex_);
 };
 
 }  // namespace skills
