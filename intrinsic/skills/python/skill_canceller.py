@@ -5,6 +5,9 @@
 import abc
 from collections.abc import Callable
 import threading
+import time
+
+_inner_wait_timeout_seconds = 0.001
 
 
 class CallbackAlreadyRegisteredError(RuntimeError):
@@ -29,9 +32,29 @@ class SkillCanceller(abc.ABC):
 
   The skill must call `ready` once it is ready to be cancelled.
 
-  A skill can implement cancellation in one of two ways:
+  A skill can implement cancellation in one of three ways:
   1) Poll `cancelled`, and safely cancel if and when it becomes true.
-  2) Register a callback via `register_callback`. This callback will be invoked
+  2) Call `wait` and interrupt the skill if it returns true. `wait` is blocking,
+     so the typical pattern is to call it from a thread. If the skill finishes
+     without cancellation, the wait should be interrupted using `stop_wait`. For
+     example:
+     ```
+     canceller = execute_context.canceller
+     canceller.ready()
+
+     def cancel_thread():
+       if canceller.wait(timeout=float('inf')):
+         cancel_work()  # Do work to safely cancel the skill.
+     cancel_thread = threading.Thread(target=cancel_thread, daemon=True)
+     cancel_thread.start()
+
+     try:
+       do_work()  # Do work that may be interrupted by cancellation.
+     finally:
+       canceller.stop_wait()
+       cancel_thread.join()
+     ```
+  3) Register a callback via `register_callback`. This callback will be invoked
      when the skill receives a cancellation request.
 
   Attributes:
@@ -81,6 +104,10 @@ class SkillCanceller(abc.ABC):
       cancelled: True if the skill was cancelled.
     """
 
+  @abc.abstractmethod
+  def stop_wait(self) -> None:
+    """Unblocks `wait` if it is waiting."""
+
 
 class SkillCancellationManager(SkillCanceller):
   """A SkillCanceller used by the skill service to cancel skills.
@@ -105,6 +132,7 @@ class SkillCancellationManager(SkillCanceller):
     self._lock = threading.Lock()
     self._ready = threading.Event()
     self._cancelled = threading.Event()
+    self._stop_wait = False
     self._callback = None
 
   def cancel(self) -> None:
@@ -170,7 +198,16 @@ class SkillCancellationManager(SkillCanceller):
     Returns:
       cancelled: True if the skill was cancelled.
     """
-    return self._cancelled.wait(timeout)
+    timeout_time = time.perf_counter() + timeout
+    while time.perf_counter() < timeout_time and not self._stop_wait:
+      if self._cancelled.wait(_inner_wait_timeout_seconds):
+        break
+
+    return self._cancelled.is_set()
+
+  def stop_wait(self) -> None:
+    """Unblocks `wait` if it is waiting."""
+    self._stop_wait = True
 
   def wait_for_ready(self) -> None:
     """Waits for the skill to be ready for cancellation.
