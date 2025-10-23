@@ -26,3 +26,44 @@ cc_proto_library(
     name = "workspace_cc_proto",
     deps = [":workspace_proto"],
 )
+
+proto_library(
+    name = "gripper_assembly_metadata_proto",
+    srcs = ["gripper_assembly_metadata.proto"],
+    visibility = ["//intrinsic:internal_api_users"],
+    deps = [
+        "//intrinsic/math/proto:pose_proto",
+        "//intrinsic/math/proto:vector3_proto",
+        "//intrinsic/scene/proto/v1:scene_object_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "gripper_assembly_metadata_cc_proto",
+    deps = [":gripper_assembly_metadata_proto"],
+)
+
+py_proto_library(
+    name = "gripper_assembly_metadata_py_pb2",
+    visibility = ["//intrinsic:internal_api_users"],
+    deps = [":gripper_assembly_metadata_proto"],
+)
+
+proto_library(
+    name = "gripper_exchange_proto",
+    srcs = ["gripper_exchange.proto"],
+    deps = [
+        ":gripper_assembly_metadata_proto",
+        "//intrinsic/world/proto:object_world_refs_proto",
+    ],
+)
+
+py_proto_library(
+    name = "gripper_exchange_py_pb2",
+    deps = [":gripper_exchange_proto"],
+)
+
+cc_proto_library(
+    name = "gripper_exchange_cc_proto",
+    deps = [":gripper_exchange_proto"],
+)

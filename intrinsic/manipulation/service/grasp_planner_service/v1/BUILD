@@ -29,6 +29,7 @@ proto_library(
         "//intrinsic/manipulation/grasping:grasp_planner_params_proto",
         "//intrinsic/manipulation/grasping:grasp_proto",
         "//intrinsic/manipulation/grasping:grasp_ranker_params_proto",
+        "//intrinsic/manipulation/proto:gripper_exchange_proto",
         "//intrinsic/world/proto:object_world_refs_proto",
         "@com_google_protobuf//:empty_proto",
     ],

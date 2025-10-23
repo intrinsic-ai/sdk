@@ -1,0 +1,137 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.manipulation;
+
+import "intrinsic/math/proto/pose.proto";
+import "intrinsic/math/proto/vector3.proto";
+import "intrinsic/scene/proto/v1/scene_object.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "GripperAssemblyMetadataProtos";
+
+message GripperAssemblyMetadata {
+  enum GripperType {
+    UNSPECIFIED = 0;
+    PARALLEL_PINCH = 1;
+    SUCTION = 2;
+  }
+  GripperType gripper_type = 1;
+
+  // The main body of the gripper where actuation takes place.
+  GripperBase gripper_base = 2;
+  // The gripper peripherals that will be attached to the gripper base.
+  repeated GripperPeripheral gripper_peripheral = 3;
+  // The pose of the tool frame in relative to the origin of the gripper base.
+  // This is the static pose that will be used to attach an object to the
+  // gripper.
+  intrinsic_proto.Pose base_t_tool_frame_pose = 4;
+
+  // Additional specs for the gripper assembly.
+  oneof additional_assembly_specs {
+    ParallelPinchAssemblySpecs parallel_pinch_assembly_specs = 5;
+    SuctionAssemblySpecs suction_assembly_specs = 6;
+  }
+}
+
+message GripperBase {
+  // Identifier for the gripper base.
+  string gripper_base_id = 1;
+
+  oneof gripper_base {
+    // Scene object associated with the gripper base.
+    intrinsic_proto.scene_object.v1.SceneObject gripper_base_scene_object = 2;
+  }
+
+  oneof exerted_effort {
+    // The maximum force exerted on the gripper base in Newtons.
+    float max_force_in_newtons = 3;
+    // The maximum pressure exerted on the gripper base in Pascal.
+    float max_pressure_in_pascal = 4;
+  }
+}
+
+message GripperPeripheral {
+  // Identifier for the gripper peripheral.
+  string gripper_peripheral_id = 1;
+
+  enum PeripheralType {
+    UNSPECIFIED = 0;
+    PARALLEL_FINGER = 1;
+    SUCTION_CUP = 2;
+    SPACER = 3;
+  }
+  PeripheralType type = 2;
+
+  oneof gripper_peripheral {
+    // Scene object associated with the gripper peripheral.
+    intrinsic_proto.scene_object.v1.SceneObject
+        gripper_peripheral_scene_object = 3;
+  }
+
+  // The pose where the gripper peripheral attaches to the gripper base.
+  intrinsic_proto.Pose gripper_base_t_gripper_peripheral_pose = 4;
+
+  oneof gripper_peripheral_spec {
+    ParallelFingerSpecs parallel_finger_specs = 5;
+    SuctionCupSpecs suction_cup_specs = 6;
+    SpacerSpecs spacer_specs = 7;
+  }
+}
+
+message ParallelPinchAssemblySpecs {
+  // The opening distance of the gripper in meters. Should be a non-negative
+  // value.
+  float opening_distance_in_meters = 1;
+  // The minimum closing distance of the gripper in meters. Should be a
+  // non-negative value less than the opening distance. By default, the value is
+  // assumed to be 0.0, i.e., the gripper closes completely.
+  optional float closing_distance_in_meters = 2;
+  // The preshape distance of the gripper at grasp pose, in meters.
+  // Should be a non-negative value between the opening and closing distances.
+  // If unset, the value is assumed to be the same as the opening distance.
+  optional float preshape_distance_in_meters = 3;
+  // Joint positions for fully opening the gripper fingers. Expected units are
+  // in radians (for revolute joints) or meters (for prismatic joints).
+  repeated double open_position = 4;
+  // Joint positions for fully closing the gripper fingers. Expected units are
+  // in radians (for revolute joints) or meters (for prismatic joints).
+  repeated double close_position = 5;
+  // Alternative geometry to use for collision checking against the pinch
+  // gripper peripheral.
+  optional intrinsic_proto.scene_object.v1.SceneObject collision_geometry = 6;
+}
+
+message ParallelFingerSpecs {
+  // The length of the finger in meters.
+  float finger_length_in_meters = 1;
+  // The width of the finger in meters.
+  float finger_width_in_meters = 2;
+  // The thickness of the finger in meters. If unset, the value is assumed to be
+  // same as width.
+  optional float finger_thickness_in_meters = 3;
+}
+
+message SuctionAssemblySpecs {
+  // The minimum number of active cups in the suction gripper to form a seal.
+  // Should be a non-negative value, if unset, the value is assumed to be the
+  // same as the number of cups defined in the peripheral.
+  optional int32 min_active_cups = 1;
+}
+
+message SuctionCupSpecs {
+  // The radius of the suction cup in meters.
+  float radius_in_meters = 1;
+  // Length of the suction cup when uncompressed (fully extended), in meters.
+  float length_in_meters = 2;
+  // Length of the suction cup when fully compressed, in meters.
+  optional float compressed_length_in_meters = 3;
+  // Description to physically identify the suction cup, e.g., make, color, etc.
+  optional string description = 4;
+}
+
+message SpacerSpecs {
+  // Dimensions of the spacer in meters.
+  intrinsic_proto.Vector3 dimensions_in_meters = 1;
+}
