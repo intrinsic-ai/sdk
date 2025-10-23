@@ -24,7 +24,6 @@ class GraspTarget:
 
   object_category_or_reference: An object category or reference to be grasped.
         If a reference is given, it needs to exist in the object world.
-        `object_category` maps to `product_part_name` in `SpawnProductParams`.
   grasp_constraint: The constraint for grasping the target. It is either a
         list of allowed object-inhand poses in the object frame, or a geometric
         constraint related to the grasp pose. We allow the constraint to be a

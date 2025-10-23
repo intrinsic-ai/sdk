@@ -37,12 +37,6 @@ message BaseGraspPlannerParams {
   // The distance between grasp and pregrasp frames.
   optional float retract_dist_m = 4;
 
-  // This is the product name defined in the product document (also see
-  // `product_utils.create_object_from_product`.)
-  // It is used as the `object_category` to be grasped, and for obtaining
-  // object specific parameters in `plan_grasp_constants`.
-  string product_part_name = 5;
-
   // The tool frame to use for the grasp.
   intrinsic_proto.world.TransformNodeReference tool_frame = 6;
 
@@ -63,6 +57,15 @@ message BaseGraspPlannerParams {
   // The maximum number of recently executed grasps to consider in planning.
   optional int32 max_num_recent_grasps = 12;
 
-  reserved 9;
+  // The object category used by `PoseBasedGraspProposer`. Used as a key to map
+  // object categories to grasps.
+  //
+  // The value of this field must match the category of the grasp target in use.
+  // For example, if `pose_estimates` is provided, then
+  // `pose_estimates.object_category.name` must be used, similarly, for
+  // `grasp_zone` use `grasp_zone.object_category.name`.
+  string category = 13;
+
+  reserved 5, 9;
   reserved "eoat_name";
 }

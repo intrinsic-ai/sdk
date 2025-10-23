@@ -78,11 +78,6 @@ message PinchGripperParams {
 }
 
 message IkCollisionCheckerParams {
-  // DEPRECATED: Use collision_excluded_eoat_parts instead.
-  // Name of the EOAT (end-of-arm tool) to allow collision with the target
-  // object at grasp pose. If None, no effect.
-  optional string collision_excluded_eoat = 7 [deprecated = true];
-
   // Reference(s) to EOAT (end-of-arm tool) parts to allow collision with the
   // target object at grasp pose. Has no effect if unspecified.
   repeated world.ObjectReference collision_excluded_eoat_parts = 8;
@@ -111,7 +106,7 @@ message IkCollisionCheckerParams {
   // Do not set this field if the gripper is not a pinch gripper type.
   optional PinchGripperParams pinch_gripper_params = 9;
 
-  reserved 5;
+  reserved 5, 7;
   reserved "eoat_name";
 }
 

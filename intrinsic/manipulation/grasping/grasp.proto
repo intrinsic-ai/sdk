@@ -228,14 +228,11 @@ message AttemptedGrasp {
 message PoseEstimatesTarget {
   // Pose estimates for objects in the scene.
   repeated perception.v1.PoseEstimateInRoot estimates = 1;
-  // DEPRECATED: Use object_category instead.
-  // The object category of the estimates. This is used to spawn objects
-  // in the scene corresponding to the estimates.
-  string category = 2 [deprecated = true];
   // The id of the Scene Object asset for which the pose estimates belong to.
   // The asset must be installed in the solution.
   intrinsic_proto.assets.Id object_category = 3
       [(intrinsic_proto.assets.field_metadata) = {
         is_installed_scene_object_asset: true
       }];
+  reserved 2;
 }
