@@ -6,7 +6,7 @@ load("@rules_python//python:defs.bzl", "py_library")
 py_library(
     name = "_camera_utils",
     srcs = ["_camera_utils.py"],
-    visibility = ["//intrinsic:public_api_users"],
+    visibility = ["//visibility:private"],
     deps = [
         "//intrinsic/perception/client/v1/python/camera:_camera_utils",
         "//intrinsic/perception/proto:camera_config_py_pb2",
