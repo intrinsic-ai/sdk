@@ -21,4 +21,6 @@ message TestMessage {
     string oneof_string = 5;
     NestedMessage oneof_nested = 6;
   }
+
+  map<int32, float> map_to_non_message = 7;
 }

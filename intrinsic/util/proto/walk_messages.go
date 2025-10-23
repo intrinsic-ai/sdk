@@ -43,7 +43,7 @@ func Recursively(msg proto.Message, f fProcessMessage) (proto.Message, error) {
 		}
 
 		// Skip non-message/group types.
-		if field.Kind() != protoreflect.MessageKind && field.Kind() != protoreflect.GroupKind {
+		if !isMessageOrGroup(field) {
 			continue
 		}
 
@@ -58,6 +58,9 @@ func Recursively(msg proto.Message, f fProcessMessage) (proto.Message, error) {
 				}
 			}
 		} else if field.IsMap() { // Walk through maps.
+			if !isMessageOrGroup(field.MapValue()) {
+				continue
+			}
 			var err error
 			valueR.Map().Range(func(key protoreflect.MapKey, value protoreflect.Value) bool {
 				msgItem := value.Message().Interface()
@@ -80,4 +83,8 @@ func Recursively(msg proto.Message, f fProcessMessage) (proto.Message, error) {
 	}
 
 	return msgOut, nil
+}
+
+func isMessageOrGroup(field protoreflect.FieldDescriptor) bool {
+	return field.Kind() == protoreflect.MessageKind || field.Kind() == protoreflect.GroupKind
 }
