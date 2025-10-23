@@ -4,8 +4,8 @@
 package hardwaredevice
 
 import (
-	"intrinsic/assets/hardware_devices/inctl/release"
 	"intrinsic/assets/inctl/install"
+	"intrinsic/assets/inctl/release"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/cobrautil"
 )
