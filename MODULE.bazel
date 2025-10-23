@@ -104,6 +104,7 @@ pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
         experimental_index_url_overrides = {
             "blender-headless": "https://us-central1-python.pkg.dev/intrinsic-mirror/intrinsic-public-python/simple",
             "cadexchanger": "https://download.cadexchanger.com/python",
+            "pytorch3d": "https://us-central1-python.pkg.dev/intrinsic-mirror/intrinsic-public-python/simple",
             "tensorflow": "https://us-central1-python.pkg.dev/intrinsic-mirror/intrinsic-public-python/simple",
         },
         hub_name = "ai_intrinsic_sdks_pip_deps",
