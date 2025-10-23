@@ -45,13 +45,6 @@ var authCmd = orgutil.WrapCmd(&cobra.Command{
 	DisableFlagParsing: true,
 }, viperLocal)
 
-var (
-	userYesNoPositiveDefOpt = []string{"Y", "n"}
-	userYesNoPositiveDefIdx = 0
-	userYesNoNegativeDefOpt = []string{"y", "N"}
-	userYesNoNegativeDefIdx = 1
-)
-
 func userPrompt(rw *bufio.ReadWriter, prompt string, defaultOption int, options ...string) (string, error) {
 	if len(options) > 0 {
 		prompt += " [" + strings.Join(options, "/") + "]"
