@@ -125,10 +125,9 @@ func DialCatalog(ctx context.Context, opts DialCatalogOptions) (context.Context,
 		Address:                     address,
 		APIKey:                      opts.APIKey,
 		ClusterProject:              catalogProject,
-		CredOrg:                     opts.Org,
 		SkipCredsForInsecureAddress: true,
 	}
-	dialCtx, dialOpts, err := getDialContextOptions(ctx, optsOpts)
+	dialOpts, err := getDialContextOptions(ctx, optsOpts)
 	if err != nil {
 		// If we don't have enough info to authenticate, try one more time using the catalog project
 		// as the credential project. (This supports mainly legacy usage where the project is specified
@@ -136,7 +135,7 @@ func DialCatalog(ctx context.Context, opts DialCatalogOptions) (context.Context,
 		if errors.Is(err, errNoInfoToAuthenticate) {
 			optsOpts.CredProject = catalogProject
 			var catalogProjectErr error
-			if dialCtx, dialOpts, catalogProjectErr = getDialContextOptions(ctx, optsOpts); catalogProjectErr == nil {
+			if dialOpts, catalogProjectErr = getDialContextOptions(ctx, optsOpts); catalogProjectErr == nil {
 				err = nil
 			}
 		}
@@ -145,11 +144,11 @@ func DialCatalog(ctx context.Context, opts DialCatalogOptions) (context.Context,
 		}
 	}
 
-	conn, err := grpc.DialContext(dialCtx, address, dialOpts...)
+	conn, err := grpc.DialContext(ctx, address, dialOpts...)
 	if err != nil {
 		return nil, nil, fmt.Errorf("cannot dial catalog: %w", err)
 	}
-	return dialCtx, conn, nil
+	return ctx, conn, nil
 }
 
 // ResolveCatalogProjectFromInctl returns the project to use for communicating with a catalog.
@@ -234,7 +233,6 @@ type getDialContextOptionsOptions struct {
 	// ClusterProject is the project in which the cluster being contacted is running. Used for
 	// resolving the address that the cluster will use to contact the token exchange service.
 	ClusterProject              string
-	CredOrg                     string
 	CredProject                 string
 	SkipCredsForInsecureAddress bool
 }
@@ -243,34 +241,18 @@ type getDialContextOptionsOptions struct {
 //
 // It uses the provided ctx to manage the lifecycle of connection created. ctx may be modified, so
 // the caller should use the returned context instead.
-func getDialContextOptions(ctx context.Context, opts getDialContextOptionsOptions) (context.Context, []grpc.DialOption, error) {
-	credProject := opts.CredProject
-	if opts.CredOrg != "" {
-		info, err := getOrgInfo(opts.CredOrg)
-		if err != nil {
-			return nil, nil, err
-		}
-		// If the credential project has not been specified, use the project from the org.
-		if credProject == "" {
-			credProject = info.Project
-		}
-		ctx, err = identity.OrgToContext(ctx, info.Organization)
-		if err != nil {
-			return nil, nil, err
-		}
-	}
-
+func getDialContextOptions(ctx context.Context, opts getDialContextOptionsOptions) ([]grpc.DialOption, error) {
 	dialOpts := baseclientutils.BaseDialOptions()
 
 	creds, err := getPerRPCCredentials(ctx, getPerRPCCredentialsOptions{
 		Address:                     opts.Address,
 		APIKey:                      opts.APIKey,
 		ClusterProject:              opts.ClusterProject,
-		CredProject:                 credProject,
+		CredProject:                 opts.CredProject,
 		SkipCredsForInsecureAddress: opts.SkipCredsForInsecureAddress,
 	})
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	if creds != nil {
 		dialOpts = append(dialOpts, grpc.WithPerRPCCredentials(creds))
@@ -283,12 +265,12 @@ func getDialContextOptions(ctx context.Context, opts getDialContextOptionsOption
 		var err error
 		tcOption, err = baseclientutils.GetTransportCredentialsDialOption()
 		if err != nil {
-			return nil, nil, fmt.Errorf("cannot get transport credentials: %w", err)
+			return nil, fmt.Errorf("cannot get transport credentials: %w", err)
 		}
 	}
 	dialOpts = append(dialOpts, tcOption)
 
-	return ctx, dialOpts, nil
+	return dialOpts, nil
 }
 
 func getOrgInfo(org string) (auth.OrgInfo, error) {
@@ -360,17 +342,32 @@ type dialInfoParams struct {
 }
 
 func dialConnectionCtx(ctx context.Context, params dialInfoParams) (context.Context, *grpc.ClientConn, string, error) {
+	lctx := ctx
+
+	if params.CredOrg != "" {
+		info, err := getOrgInfo(params.CredOrg)
+		if err != nil {
+			return ctx, nil, "", err
+		}
+		// If the credential project has not been specified, use the project from the org.
+		if params.Project == "" {
+			params.Project = info.Project
+		}
+		ctx, err = identity.OrgToContext(ctx, info.Organization)
+		if err != nil {
+			return ctx, nil, "", err
+		}
+	}
 
 	address, err := resolveClusterAddress(params.Address, params.Project)
 	if err != nil {
 		return ctx, nil, "", err
 	}
 
-	ctx, dialOpts, err := getDialContextOptions(ctx, getDialContextOptionsOptions{
+	dialOpts, err := getDialContextOptions(lctx, getDialContextOptionsOptions{
 		Address:                     address,
 		APIKey:                      params.CredToken,
 		ClusterProject:              params.Project,
-		CredOrg:                     params.CredOrg,
 		CredProject:                 params.Project,
 		SkipCredsForInsecureAddress: true,
 	})
@@ -382,7 +379,7 @@ func dialConnectionCtx(ctx context.Context, params dialInfoParams) (context.Cont
 		ctx = metadata.AppendToOutgoingContext(ctx, "x-server-name", params.Cluster)
 	}
 
-	conn, err := grpc.DialContext(ctx, address, dialOpts...)
+	conn, err := grpc.DialContext(lctx, address, dialOpts...)
 	if err != nil {
 		return ctx, nil, "", fmt.Errorf("could not dial context: %w", err)
 	}
