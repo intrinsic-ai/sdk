@@ -154,9 +154,7 @@ func ToMDString(cs ...*http.Cookie) []string {
 // Cookie here refers to a mapped metadata that mirrors http cookies and is used to unify handling
 // of http and GRPC based metadata in our stack.
 func FromContext(ctx context.Context) ([]*http.Cookie, error) {
-	ctx, span := trace.StartSpan(ctx, "cookies.FromContext")
-	defer span.End()
-
+	// no tracing span here to reduce trace bloat (called in many request chains)
 	md, ok := metadata.FromIncomingContext(ctx)
 	// If there's no context, we have an empty list.
 	if !ok {
@@ -174,7 +172,6 @@ func FromContext(ctx context.Context) ([]*http.Cookie, error) {
 		log.WarningContextf(ctx, "Multiple cookie headers found, attempting to merge them...")
 		cs, err := mergeCookies(cookies...)
 		if err != nil {
-			telemetry.SetError(span, trace.StatusCodeInvalidArgument, "FromContext: Failed to merge cookies", err)
 			return nil, fmt.Errorf("failed to merge cookies: %v", err)
 		}
 		return cs, nil
@@ -182,7 +179,6 @@ func FromContext(ctx context.Context) ([]*http.Cookie, error) {
 
 	p, err := parseCookies(cookies[0])
 	if err != nil {
-		telemetry.SetError(span, trace.StatusCodeInvalidArgument, "FromContext: Failed to parse cookies", err)
 		return nil, fmt.Errorf("failed to parse cookies: %v", err)
 	}
 	return p, nil
