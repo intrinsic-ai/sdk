@@ -116,7 +116,11 @@ class ProcessProvider(abc.ABC):
     """Returns whether the process with the given identifier is available.
 
     Args:
-      identifier: The identifier of the process.
+      identifier: The process identifier. For Process assets, this is the string
+        representation of the asset id
+        (BehaviorTree.asset_metadata_proto.id_version.id), e.g.,
+        "ai.intrinsic.my_process". For legacy processes, this is the same as
+        BehaviorTree.name.
     """
 
   @abc.abstractmethod
@@ -124,7 +128,11 @@ class ProcessProvider(abc.ABC):
     """Returns the behavior tree of the process with the given identifier.
 
     Args:
-      identifier: The process identifier.
+      identifier: The process identifier. For Process assets, this is the string
+        representation of the asset id
+        (BehaviorTree.asset_metadata_proto.id_version.id), e.g.,
+        "ai.intrinsic.my_process". For legacy processes, this is the same as
+        BehaviorTree.name.
     """
     ...
 
@@ -137,8 +145,9 @@ class ProcessProvider(abc.ABC):
     Deprecated: Use save() instead.
 
     Args:
-      identifier: The process identifier.
-      value: The behavior tree to set. If None, it is deleted.
+      identifier: The process identifier of the legacy process which corresponds
+        to BehaviorTree.name.
+      value: The behavior tree to set.
     """
     ...
 
@@ -171,7 +180,11 @@ class ProcessProvider(abc.ABC):
     """Deletes the process with the given identifier from the solution.
 
     Args:
-      identifier: The process identifier.
+      identifier: The process identifier. For Process assets, this is the string
+        representation of the asset id
+        (BehaviorTree.asset_metadata_proto.id_version.id), e.g.,
+        "ai.intrinsic.my_process". For legacy processes, this is the same as
+        BehaviorTree.name.
     """
     ...
 

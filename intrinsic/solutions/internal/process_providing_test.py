@@ -580,12 +580,96 @@ class ProcessProvidingTest(absltest.TestCase):
     with self.assertRaisesRegex(RuntimeError, "INVALID_ARGUMENT.*some error"):
       self._processes.save(bt)
 
-  def test_delitem(self):
-    del self._processes["tree1"]
+  def test_delitem_legacy_process(self):
+    del self._processes["My tree"]
 
+    self._installed_assets.DeleteInstalledAsset.assert_not_called()
     self._solution_service.DeleteBehaviorTree.assert_called_once_with(
-        solution_service_pb2.DeleteBehaviorTreeRequest(name="tree1")
+        solution_service_pb2.DeleteBehaviorTreeRequest(name="My tree")
     )
+
+  def test_delitem_legacy_process_with_asset_id_like_name(self):
+    self._installed_assets.DeleteInstalledAsset.return_value = (
+        operations_pb2.Operation(name="the_operation", done=False)
+    )
+    self._operations.WaitOperation.side_effect = [
+        operations_pb2.Operation(name="the_operation", done=False),
+        operations_pb2.Operation(name="the_operation", done=False),
+        operations_pb2.Operation(
+            name="the_operation",
+            done=True,
+            error=status_pb2.Status(code=code_pb2.NOT_FOUND),
+        ),
+    ]
+
+    del self._processes["main.bt.pb"]
+
+    # Expect that first the Process asset "main.bt.pb" is tried to be deleted,
+    # but it does not exist.
+    self._installed_assets.DeleteInstalledAsset.assert_called_once_with(
+        installed_assets_pb2.DeleteInstalledAssetRequest(
+            asset=id_pb2.Id(package="main.bt", name="pb")
+        )
+    )
+    self._operations.WaitOperation.assert_called_with(
+        operations_pb2.WaitOperationRequest(
+            name="the_operation",
+            timeout=process_providing._WAIT_OPERATION_TIMEOUT,
+        )
+    )
+    # Then a legacy deletion of the tree with name "main.bt.pb" should be
+    # attempted.
+    self._solution_service.DeleteBehaviorTree.assert_called_once_with(
+        solution_service_pb2.DeleteBehaviorTreeRequest(name="main.bt.pb")
+    )
+
+  def test_delitem_process_asset(self):
+    self._installed_assets.DeleteInstalledAsset.return_value = (
+        operations_pb2.Operation(name="the_operation", done=False)
+    )
+    self._operations.WaitOperation.side_effect = [
+        operations_pb2.Operation(name="the_operation", done=False),
+        operations_pb2.Operation(name="the_operation", done=False),
+        operations_pb2.Operation(name="the_operation", done=True),
+    ]
+
+    del self._processes["ai.intrinsic.process"]
+
+    self._installed_assets.DeleteInstalledAsset.assert_called_once_with(
+        installed_assets_pb2.DeleteInstalledAssetRequest(
+            asset=id_pb2.Id(package="ai.intrinsic", name="process")
+        )
+    )
+    self._operations.WaitOperation.assert_called_with(
+        operations_pb2.WaitOperationRequest(
+            name="the_operation",
+            timeout=process_providing._WAIT_OPERATION_TIMEOUT,
+        )
+    )
+    self._solution_service.DeleteBehaviorTree.assert_not_called()
+
+  def test_delitem_legacy_process_raises_operation_error(self):
+    self._installed_assets.DeleteInstalledAsset.return_value = (
+        operations_pb2.Operation(name="the_operation", done=False)
+    )
+    self._operations.WaitOperation.side_effect = [
+        operations_pb2.Operation(name="the_operation", done=False),
+        operations_pb2.Operation(name="the_operation", done=False),
+        operations_pb2.Operation(
+            name="the_operation",
+            done=True,
+            error=status_pb2.Status(
+                code=code_pb2.INVALID_ARGUMENT, message="some error"
+            ),
+        ),
+    ]
+
+    with self.assertRaises(KeyError) as e:
+      del self._processes["ai.intrinsic.process"]
+
+    cause = e.exception.__cause__
+    self.assertIsInstance(cause, RuntimeError)
+    self.assertRegex(str(cause), "INVALID_ARGUMENT.*some error")
 
 
 if __name__ == "__main__":
