@@ -298,6 +298,8 @@ func newConnection(ctx context.Context, opts *ConnectionOpts, tkSource *cachedTo
 	}
 	addr := fmt.Sprintf("dns:///%s:443", environments.Domain(project))
 
+	grpcOpts = append(grpcOpts, opts.opts...)
+
 	return grpc.NewClient(addr, grpcOpts...)
 }
 
