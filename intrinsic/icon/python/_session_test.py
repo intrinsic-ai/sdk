@@ -49,18 +49,17 @@ class SessionTest(absltest.TestCase):
     self._stub.WatchReactions.return_value = self._watcher_response_stream
 
   def _prepare_initial_response(self, response_code=grpc.StatusCode.OK):
-    response = mock.create_autospec(service_pb2.OpenSessionResponse)
+    response = service_pb2.OpenSessionResponse()
     response.status.code = response_code.value[0]
     response.initial_session_data.session_id = 1
     self._response_stream.__next__.return_value = response
-    watcher_response = mock.create_autospec(service_pb2.WatchReactionsResponse)
-    watcher_response.HasField.return_value = False
+    watcher_response = service_pb2.WatchReactionsResponse()
     self._watcher_response_stream.__next__.return_value = watcher_response
 
   def _prepare_session_with_response(self, response_code):
     self._prepare_initial_response()
     session = _session.Session(self._stub, ['foo'])
-    response = mock.create_autospec(service_pb2.OpenSessionResponse)
+    response = service_pb2.OpenSessionResponse()
     response.status.code = response_code.value[0]
     self._response_stream.__next__.return_value = response
     return session
@@ -98,7 +97,7 @@ class SessionTest(absltest.TestCase):
 
   def test_start_session_watcher_response_error(self):
     self._prepare_initial_response()
-    watcher_response = mock.create_autospec(service_pb2.WatchReactionsResponse)
+    watcher_response = service_pb2.WatchReactionsResponse()
     watcher_response.reaction_event.reaction_id = 2
     self._watcher_response_stream.__next__.return_value = watcher_response
 
@@ -1168,7 +1167,7 @@ class StreamTest(absltest.TestCase):
     self._stub.OpenWriteStream.return_value = self._response_stream
 
   def _prepare_initial_response(self, response_code=grpc.StatusCode.OK):
-    response = mock.create_autospec(service_pb2.OpenWriteStreamResponse)
+    response = service_pb2.OpenWriteStreamResponse()
     response.add_stream_response.status.code = response_code.value[0]
     self._response_stream.__next__.return_value = response
 
@@ -1198,7 +1197,7 @@ class StreamTest(absltest.TestCase):
   def test_write(self):
     self._prepare_initial_response()
     stream = _session.Stream(self._stub, 2, 0, 'baz')
-    response = mock.create_autospec(service_pb2.OpenWriteStreamResponse)
+    response = service_pb2.OpenWriteStreamResponse()
     response.write_value_response.code = grpc.StatusCode.OK.value[0]
     self._response_stream.__next__.return_value = response
 
@@ -1207,7 +1206,7 @@ class StreamTest(absltest.TestCase):
   def test_write_error(self):
     self._prepare_initial_response()
     stream = _session.Stream(self._stub, 2, 0, 'baz')
-    response = mock.create_autospec(service_pb2.OpenWriteStreamResponse)
+    response = service_pb2.OpenWriteStreamResponse()
     response.write_value_response.code = grpc.StatusCode.UNAVAILABLE.value[0]
     self._response_stream.__next__.return_value = response
 
