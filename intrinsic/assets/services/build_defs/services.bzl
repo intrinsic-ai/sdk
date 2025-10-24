@@ -45,6 +45,7 @@ def _intrinsic_service_impl(ctx):
     ).add_joined(
         "--file_descriptor_sets",
         transitive_descriptor_sets,
+        uniquify = True,
         join_with = ",",
     )
     if ctx.file.default_config:
@@ -77,6 +78,7 @@ def _intrinsic_service_impl(ctx):
     ).add_all(
         transitive_descriptor_sets,
         before_each = "--file_descriptor_set",
+        uniquify = True,
     ).add(
         "--output_asset_info",
         asset_info_output,

@@ -32,6 +32,7 @@ def _intrinsic_data_impl(ctx):
     ).add_all(
         transitive_descriptor_sets,
         before_each = "--file_descriptor_set",
+        uniquify = True,
     ).add_all(
         ctx.files.data,
         before_each = "--expected_referenced_file",
@@ -63,6 +64,7 @@ def _intrinsic_data_impl(ctx):
     ).add_all(
         transitive_descriptor_sets,
         before_each = "--file_descriptor_set",
+        uniquify = True,
     ).add(
         "--output_asset_info",
         asset_info_output,

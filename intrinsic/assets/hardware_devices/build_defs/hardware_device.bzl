@@ -72,8 +72,6 @@ def _intrinsic_hardware_device_impl(ctx):
     ).add_all(
         transitive_descriptor_sets,
         before_each = "--file_descriptor_set",
-        # Since we're aggregating multiple different assets here, we may see the
-        # same file more than once.  Assume these are consistent.
         uniquify = True,
     ).add(
         "--output_asset_info",
