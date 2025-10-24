@@ -5,6 +5,11 @@
 from unittest import mock
 
 from absl.testing import absltest
+from google.longrunning import operations_pb2
+from google.protobuf import any_pb2
+from google.protobuf import descriptor_pb2
+from google.rpc import code_pb2
+from google.rpc import status_pb2
 import grpc
 from intrinsic.assets.processes.proto import process_asset_pb2
 from intrinsic.assets.proto import asset_type_pb2
@@ -14,7 +19,9 @@ from intrinsic.assets.proto import metadata_pb2
 from intrinsic.assets.proto import view_pb2
 from intrinsic.executive.proto import behavior_tree_pb2
 from intrinsic.frontend.solution_service.proto import solution_service_pb2
+from intrinsic.skills.proto import skills_pb2
 from intrinsic.solutions import behavior_tree
+from intrinsic.solutions.internal import behavior_call
 from intrinsic.solutions.internal import process_providing
 
 
@@ -32,23 +39,33 @@ def _process_asset_with_id(
     identifier: str,
 ) -> installed_assets_pb2.InstalledAsset:
   id_parts = identifier.rpartition(".")
-  metadata = metadata_pb2.Metadata(
-      id_version=id_pb2.IdVersion(
-          id=id_pb2.Id(package=id_parts[0], name=id_parts[2])
-      )
-  )
-  return installed_assets_pb2.InstalledAsset(
-      metadata=metadata,
-      deployment_data=installed_assets_pb2.InstalledAsset.DeploymentData(
-          process=installed_assets_pb2.InstalledAsset.ProcessDeploymentData(
-              process=process_asset_pb2.ProcessAsset(
-                  metadata=metadata,
-                  behavior_tree=_behavior_tree_with_name(
-                      identifier + " display name"
-                  ),
-              )
+  return process_asset_pb2.ProcessAsset(
+      metadata=metadata_pb2.Metadata(
+          id_version=id_pb2.IdVersion(
+              id=id_pb2.Id(package=id_parts[0], name=id_parts[2])
           )
       ),
+      behavior_tree=_behavior_tree_with_name(identifier + " display name"),
+  )
+
+
+def _installed_asset_with_id(
+    identifier: str,
+) -> installed_assets_pb2.InstalledAsset:
+  asset = _process_asset_with_id(identifier)
+  return installed_assets_pb2.InstalledAsset(
+      metadata=asset.metadata,
+      deployment_data=installed_assets_pb2.InstalledAsset.DeploymentData(
+          process=installed_assets_pb2.InstalledAsset.ProcessDeploymentData(
+              process=asset
+          )
+      ),
+  )
+
+
+def _default_task() -> behavior_tree.Task:
+  return behavior_tree.Task(
+      behavior_call.Action(skill_id="ai.intrinsic.skill-0")
   )
 
 
@@ -58,8 +75,9 @@ class ProcessProvidingTest(absltest.TestCase):
     super().setUp()
     self._solution_service = mock.MagicMock()
     self._installed_assets = mock.MagicMock()
+    self._operations = mock.MagicMock()
     self._processes = process_providing.Processes(
-        self._solution_service, self._installed_assets
+        self._solution_service, self._installed_assets, self._operations
     )
 
     # Default behavior for the mocks
@@ -152,9 +170,9 @@ class ProcessProvidingTest(absltest.TestCase):
 
   # Tests keys(), items(), values(), __iter__() at the same time.
   def test_iterables_multiple_pages_process_assets(self):
-    proto1 = _process_asset_with_id("ai.intrinsic.process1")
-    proto2 = _process_asset_with_id("ai.intrinsic.process2")
-    proto3 = _process_asset_with_id("ai.intrinsic.process3")
+    proto1 = _installed_asset_with_id("ai.intrinsic.process1")
+    proto2 = _installed_asset_with_id("ai.intrinsic.process2")
+    proto3 = _installed_asset_with_id("ai.intrinsic.process3")
     # Two responses for each call to keys(), items(), values(), __iter__()
     self._installed_assets.ListInstalledAssets.side_effect = 4 * (
         installed_assets_pb2.ListInstalledAssetsResponse(
@@ -261,8 +279,8 @@ class ProcessProvidingTest(absltest.TestCase):
 
   # Tests keys(), items(), values(), __iter__() at the same time.
   def test_iterables_legacy_processes_and_process_assets(self):
-    asset_proto1 = _process_asset_with_id("ai.intrinsic.process")
-    asset_proto2 = _process_asset_with_id("main.bt.pb")
+    asset_proto1 = _installed_asset_with_id("ai.intrinsic.process")
+    asset_proto2 = _installed_asset_with_id("main.bt.pb")
     # Shadowed by the process asset with id "main.bt.pb".
     bt_proto3 = _behavior_tree_with_name("main.bt.pb")
     bt_proto4 = _behavior_tree_with_name("My tree")
@@ -330,7 +348,7 @@ class ProcessProvidingTest(absltest.TestCase):
         request: installed_assets_pb2.GetInstalledAssetRequest,
     ):
       if request.id == id_pb2.Id(package="ai.intrinsic", name="process"):
-        return _process_asset_with_id("ai.intrinsic.process")
+        return _installed_asset_with_id("ai.intrinsic.process")
       else:
         error = grpc.RpcError(str(request.id) + " not found")
         error.code = lambda: grpc.StatusCode.NOT_FOUND
@@ -360,7 +378,7 @@ class ProcessProvidingTest(absltest.TestCase):
     self.assertNotIn("non_existent_tree", self._processes)
 
   def test_getitem(self):
-    asset_proto = _process_asset_with_id("ai.intrinsic.process")
+    asset_proto = _installed_asset_with_id("ai.intrinsic.process")
     bt_proto1 = _behavior_tree_with_name("My tree")
     # A tree with a name that conforms to the asset id format.
     bt_proto2 = _behavior_tree_with_name("main.bt.pb")
@@ -408,7 +426,7 @@ class ProcessProvidingTest(absltest.TestCase):
       self._processes["non_existent_tree"]  # pylint: disable=pointless-statement
 
   def test_setitem(self):
-    bt = behavior_tree.BehaviorTree("tree1", root=behavior_tree.Fail("Failure"))
+    bt = behavior_tree.BehaviorTree("tree1", root=_default_task())
 
     self._processes["tree1"] = bt
 
@@ -418,6 +436,149 @@ class ProcessProvidingTest(absltest.TestCase):
             allow_missing=True,
         )
     )
+
+  def test_save_legacy_process(self):
+    bt = behavior_tree.BehaviorTree("tree1", root=_default_task())
+
+    self._processes.save(bt)
+
+    self._solution_service.UpdateBehaviorTree.assert_called_once_with(
+        solution_service_pb2.UpdateBehaviorTreeRequest(
+            behavior_tree=bt.proto,
+            allow_missing=True,
+        )
+    )
+
+  def test_save_process_asset(self):
+    # The behavior tree to be saved.
+    bt_proto = behavior_tree_pb2.BehaviorTree(
+        name="My tree",
+        description=skills_pb2.Skill(
+            id="ai.intrinsic.my_process",
+            id_version="ai.intrinsic.my_process.0.0.1+old",
+            skill_name="ai.intrinsic.my_process",
+            package_name="ai.intrinsic",
+            display_name="My tree",
+        ),
+        root=behavior_tree_pb2.BehaviorTree.Node(
+            fail=behavior_tree_pb2.BehaviorTree.FailNode()
+        ),
+    )
+    # The behavior tree as expected by the installed assets service when saving.
+    bt_proto_saved = behavior_tree_pb2.BehaviorTree()
+    bt_proto_saved.CopyFrom(bt_proto)
+    bt_proto_saved.description.ClearField("id_version")
+
+    # The metadata to be saved.
+    metadata_proto = metadata_pb2.Metadata(
+        id_version=id_pb2.IdVersion(
+            id=id_pb2.Id(package="ai.intrinsic", name="my_process"),
+            version="0.0.1+old",
+        ),
+        display_name="My tree",
+        file_descriptor_set=descriptor_pb2.FileDescriptorSet(
+            file=[descriptor_pb2.FileDescriptorProto(name="foo.proto")],
+        ),
+    )
+    # The metadata as expected by the installed assets service when saving.
+    metadata_proto_saved = metadata_pb2.Metadata()
+    metadata_proto_saved.CopyFrom(metadata_proto)
+    metadata_proto_saved.id_version.ClearField("version")
+    metadata_proto_saved.ClearField("file_descriptor_set")
+    # The metadata returned by the installed assets service after saving.
+    metadata_proto_new = metadata_pb2.Metadata()
+    metadata_proto_new.CopyFrom(metadata_proto)
+    metadata_proto_new.id_version.version = "0.0.1+new"
+
+    # The installed asset returned by the installed assets service in the
+    # operation result after saving. This includes only the metadata, not the
+    # behavior tree.
+    installed_asset_any = any_pb2.Any()
+    installed_asset_any.Pack(
+        installed_assets_pb2.InstalledAsset(metadata=metadata_proto_new)
+    )
+
+    bt = behavior_tree.BehaviorTree.create_from_proto(
+        process_asset_pb2.ProcessAsset(
+            metadata=metadata_proto,
+            behavior_tree=bt_proto,
+        )
+    )
+    self._installed_assets.CreateInstalledAsset.return_value = (
+        operations_pb2.Operation(name="the_operation", done=False)
+    )
+    self._operations.WaitOperation.side_effect = [
+        operations_pb2.Operation(name="the_operation", done=False),
+        operations_pb2.Operation(
+            name="the_operation", done=True, response=installed_asset_any
+        ),
+    ]
+
+    self._processes.save(bt)
+
+    # Expect BehaviorTree to have been updated with the new version generated
+    # by the installed assets service.
+    self.assertEqual(bt.asset_metadata_proto.id_version.version, "0.0.1+new")
+    self.assertEqual(
+        bt.proto.description.id_version,
+        "ai.intrinsic.my_process.0.0.1+new",
+    )
+    self._installed_assets.CreateInstalledAsset.assert_called_once_with(
+        installed_assets_pb2.CreateInstalledAssetRequest(
+            asset=installed_assets_pb2.CreateInstalledAssetRequest.Asset(
+                process=process_asset_pb2.ProcessAsset(
+                    metadata=metadata_proto_saved,
+                    behavior_tree=bt_proto_saved,
+                ),
+            ),
+        ),
+    )
+    self._operations.WaitOperation.assert_called_with(
+        operations_pb2.WaitOperationRequest(
+            name="the_operation",
+            timeout=process_providing._WAIT_OPERATION_TIMEOUT,
+        )
+    )
+
+  def test_save_process_asset_succeeds_on_already_exists(self):
+    bt = behavior_tree.BehaviorTree.create_from_proto(
+        _process_asset_with_id("ai.intrinsic.process")
+    )
+    self._installed_assets.CreateInstalledAsset.return_value = (
+        operations_pb2.Operation(name="the_operation", done=False)
+    )
+    self._operations.WaitOperation.side_effect = [
+        operations_pb2.Operation(
+            name="the_operation",
+            done=True,
+            error=status_pb2.Status(
+                code=code_pb2.ALREADY_EXISTS, message="process already exists"
+            ),
+        ),
+    ]
+
+    # Expect no exception.
+    self._processes.save(bt)
+
+  def test_save_process_asset_returns_operation_error(self):
+    bt = behavior_tree.BehaviorTree.create_from_proto(
+        _process_asset_with_id("ai.intrinsic.process")
+    )
+    self._installed_assets.CreateInstalledAsset.return_value = (
+        operations_pb2.Operation(name="the_operation", done=False)
+    )
+    self._operations.WaitOperation.side_effect = [
+        operations_pb2.Operation(
+            name="the_operation",
+            done=True,
+            error=status_pb2.Status(
+                code=code_pb2.INVALID_ARGUMENT, message="some error"
+            ),
+        ),
+    ]
+
+    with self.assertRaisesRegex(RuntimeError, "INVALID_ARGUMENT.*some error"):
+      self._processes.save(bt)
 
   def test_delitem(self):
     del self._processes["tree1"]

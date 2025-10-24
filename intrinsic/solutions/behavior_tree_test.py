@@ -403,6 +403,69 @@ class BehaviorTreeTest(parameterized.TestCase):
     self.assertEqual(my_bt.proto.description.display_name, 'My new tree')
     self.assertEqual(my_bt.asset_metadata_proto.display_name, 'My new tree')
 
+  def test_metadata_proto_setter(self):
+    my_proto = text_format.Parse(
+        """
+        metadata {
+          id_version {
+            id {
+              package: "ai.intrinsic"
+              name: "my_tree"
+            }
+            version: "0.0.1"
+          }
+          display_name: "My tree"
+          vendor { display_name: "intrinsic" }
+          documentation { description: "The doc!" }
+        }
+        behavior_tree {
+          name: "My tree"
+          root {
+            task { call_behavior { skill_id: "ai.intrinsic.skill-0" } }
+          }
+        }
+        """,
+        process_asset_pb2.ProcessAsset(),
+    )
+    my_tree = bt.BehaviorTree.create_from_proto(my_proto)
+    other_metadata = text_format.Parse(
+        """
+        id_version {
+          id {
+            package: "other.package"
+            name: "my_other_tree"
+          }
+          version: "0.0.2"
+        }
+        display_name: "My other tree"
+        vendor { display_name: "other_vendor" }
+        documentation { description: "The other doc!" }
+        """,
+        metadata_pb2.Metadata(),
+    )
+
+    my_tree.asset_metadata_proto = other_metadata
+
+    compare.assertProto2Equal(
+        self, my_tree.asset_metadata_proto, other_metadata
+    )
+    self.assertEqual(my_tree.name, 'My other tree')
+    compare.assertProto2Equal(
+        self,
+        my_tree.proto.description,
+        text_format.Parse(
+            """
+            id: "other.package.my_other_tree"
+            skill_name: "my_other_tree"
+            package_name: "other.package"
+            id_version: "other.package.my_other_tree.0.0.2"
+            display_name: "My other tree"
+            description: "The other doc!"
+            """,
+            skills_pb2.Skill(),
+        ),
+    )
+
   def test_str_conversion(self):
     """Tests if behavior tree conversion to a string works."""
     my_bt = bt.BehaviorTree('my_bt')

@@ -32,7 +32,12 @@ py_library(
         "//intrinsic/frontend/solution_service/proto:solution_service_py_pb2_grpc",
         "//intrinsic/solutions:behavior_tree",
         "//intrinsic/solutions:providers",
+        "//intrinsic/util/grpc:error_handling",
+        "@ai_intrinsic_sdks_pip_deps//googleapis_common_protos",
         requirement("grpcio"),
+        "@com_google_googleapis//google/longrunning:operations_py_proto",
+        "@com_google_googleapis//google/rpc:code_py_proto",
+        "@com_google_protobuf//:protobuf_python",
     ],
 )
 
@@ -40,6 +45,7 @@ py_test(
     name = "process_providing_test",
     srcs = ["process_providing_test.py"],
     deps = [
+        ":behavior_call",
         ":process_providing",
         "//intrinsic/assets/processes/proto:process_asset_py_pb2",
         "//intrinsic/assets/proto:asset_type_py_pb2",
@@ -49,9 +55,14 @@ py_test(
         "//intrinsic/assets/proto:view_py_pb2",
         "//intrinsic/executive/proto:behavior_tree_py_pb2",
         "//intrinsic/frontend/solution_service/proto:solution_service_py_pb2",
+        "//intrinsic/skills/proto:skills_py_pb2",
         "//intrinsic/solutions:behavior_tree",
         requirement("grpcio"),
         "@com_google_absl_py//absl/testing:absltest",
+        "@com_google_googleapis//google/longrunning:operations_py_proto",
+        "@com_google_googleapis//google/rpc:code_py_proto",
+        "@com_google_googleapis//google/rpc:status_py_proto",
+        "@com_google_protobuf//:protobuf_python",
     ],
 )
 

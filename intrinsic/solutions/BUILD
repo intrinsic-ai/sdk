@@ -129,6 +129,7 @@ py_library(
         "//intrinsic/solutions/internal:resources",
         "//intrinsic/solutions/internal:skill_providing",
         "//intrinsic/solutions/internal:stubs",
+        "@ai_intrinsic_sdks_pip_deps//googleapis_common_protos",
         requirement("grpcio"),
     ],
 )

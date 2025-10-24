@@ -81,6 +81,14 @@ class BehaviorTreeRegistry:
       grpc.RpcError: When gRPC call fails.
     """
     if isinstance(tree, behavior_tree.BehaviorTree):
+      if tree.asset_metadata_proto is not None:
+        raise ValueError(
+            'BehaviorTree represents a Process asset and does not have to be'
+            ' sideloaded. Simply save the tree using Solution.processes.save()'
+            ' and, if the tree should be listed as a runnable "Skill" in the'
+            ' Process Explorer in the Frontend, set the SUBPROCESS tag (see'
+            ' BehaviorTree.set_metadata()).'
+        )
       tree_proto = tree.proto
     else:
       tree_proto = tree

@@ -4631,7 +4631,26 @@ class BehaviorTree:
 
     You can use set_asset_metadata() to initialize or update the asset Metadata.
     """
-    return self._metadata
+    if self._metadata is None:
+      return None
+    result = metadata_pb2.Metadata()
+    result.CopyFrom(self._metadata)
+    return result
+
+  @asset_metadata_proto.setter
+  def asset_metadata_proto(self, metadata: metadata_pb2.Metadata):
+    """Sets the asset Metadata proto of the BehaviorTree.
+
+    For advanced use cases only. Automatically syncs redundant properties such
+    as the name of the BehaviorTree to the provided metadata. Prefer
+    set_metadata() to initialize or update the asset Metadata proto.
+
+    Args:
+      metadata: The new asset Metadata proto for the BehaviorTree.
+    """
+    self._metadata.CopyFrom(metadata)
+    self._name = metadata.display_name
+    self._sync_skill_proto_from_metadata()
 
   @property
   def proto(self) -> behavior_tree_pb2.BehaviorTree:
@@ -5149,6 +5168,30 @@ class BehaviorTree:
 
   def show(self) -> None:
     return ipython.display_if_ipython(self.dot_graph())
+
+  def _sync_skill_proto_from_metadata(self):
+    """Syncs the Skill proto from the Metadata proto."""
+
+    # We only update parts of the Skill proto, thus we reuse the existing Skill
+    # proto if it exists.
+    if self._description is None:
+      self._description = skills_pb2.Skill()
+
+    self._description.id = id_utils.id_from_proto(self._metadata.id_version.id)
+    if self._metadata.id_version.version:
+      self._description.id_version = id_utils.id_version_from_proto(
+          self._metadata.id_version
+      )
+    else:
+      self._description.ClearField('id_version')
+    self._description.package_name = self._metadata.id_version.id.package
+    self._description.skill_name = self._metadata.id_version.id.name
+    self._description.display_name = self.name
+    self._description.description = (
+        self._metadata.documentation.description
+        if self._metadata.HasField('documentation')
+        else ''
+    )
 
 
 def _add_to_transitive_file_descriptor_set(

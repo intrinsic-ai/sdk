@@ -21,6 +21,7 @@ import inspect
 import sys
 import warnings
 
+from google.longrunning import operations_pb2_grpc
 import grpc
 from intrinsic.assets.proto import installed_assets_pb2_grpc
 from intrinsic.frontend.solution_service.proto import solution_service_pb2
@@ -117,6 +118,7 @@ class Solution:
       executive: execution.Executive,
       solution_service: solution_service_pb2_grpc.SolutionServiceStub,
       installed_assets: installed_assets_pb2_grpc.InstalledAssetsStub,
+      operations: operations_pb2_grpc.OperationsStub,
       skill_registry: skill_registry_client.SkillRegistryClient,
       resource_registry: resource_registry_client.ResourceRegistryClient,
       product_client: product_client_mod.ProductClient,
@@ -142,7 +144,7 @@ class Solution:
     self.simulator: simulation.Simulation | None = simulator
 
     self.processes = process_providing.Processes(
-        self._solution_service, installed_assets
+        self._solution_service, installed_assets, operations
     )
 
     self.skills = skill_providing.Skills(
@@ -208,6 +210,7 @@ class Solution:
     installed_assets_stub = installed_assets_pb2_grpc.InstalledAssetsStub(
         grpc_channel
     )
+    operations_stub = operations_pb2_grpc.OperationsStub(grpc_channel)
     pose_estimators = pose_estimation.PoseEstimators(
         installed_assets_stub,
     )
@@ -226,6 +229,7 @@ class Solution:
         executive,
         solution_service,
         installed_assets_stub,
+        operations_stub,
         skill_registry,
         resource_registry,
         product_client,
