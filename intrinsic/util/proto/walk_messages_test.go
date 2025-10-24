@@ -178,6 +178,19 @@ func TestRecursively(t *testing.T) {
 			},
 			numCalls: 1,
 		},
+		{
+			name: "repeated_with_non_message_value",
+			inMsg: &pb.TestMessage{
+				RepeatedNonMessage: []float32{1.0, 2.0},
+			},
+			processFunc: func(m proto.Message) (proto.Message, bool, error) {
+				return nil, true, nil
+			},
+			wantMsg: &pb.TestMessage{
+				RepeatedNonMessage: []float32{1.0, 2.0},
+			},
+			numCalls: 1,
+		},
 	}
 
 	for _, tc := range testCases {

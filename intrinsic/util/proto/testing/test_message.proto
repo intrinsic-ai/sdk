@@ -23,4 +23,6 @@ message TestMessage {
   }
 
   map<int32, float> map_to_non_message = 7;
+
+  repeated float repeated_non_message = 8;
 }
