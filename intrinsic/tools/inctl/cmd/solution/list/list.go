@@ -28,6 +28,7 @@ const (
 var (
 	flagFilter     []string
 	allowedFilters = []string{"not_running", "running_in_sim", "running_on_hw"}
+	pageSize       = 200
 )
 
 // ListSolutionDescriptionsResponse embeds solutiondiscoverypb.ListSolutionDescriptionsResponse.
@@ -142,24 +143,35 @@ func listSolutions(ctx context.Context, conn *grpc.ClientConn, params *listSolut
 	if err != nil {
 		return err
 	}
-
-	listSolutionsRequest := &solutiondiscoverypb.ListSolutionDescriptionsRequest{Filters: filters}
 	client := solutiondiscoverygrpcpb.NewSolutionDiscoveryServiceClient(conn)
-	resp, err := client.ListSolutionDescriptions(
-		ctx, listSolutionsRequest)
-
-	if err != nil {
-		return fmt.Errorf("request to list solutions failed: %w", err)
-	}
-
-	// Keep the JSON output format as is, in case there are consumers relying on it.
-	if params.outputType == printer.OutputTypeJSON {
-		params.printer.Print(&ListSolutionDescriptionsResponse{m: resp})
-	} else {
-		var view printer.View = nil // this is to reuse reflectors in default views
-		for _, p := range resp.GetSolutions() {
-			view = printer.NextView(asSolutionRow(p), view)
-			params.printer.Println(view)
+	var jsonResponse *solutiondiscoverypb.ListSolutionDescriptionsResponse
+	nextPageToken := ""
+	for {
+		listSolutionsRequest := &solutiondiscoverypb.ListSolutionDescriptionsRequest{Filters: filters, PageSize: int64(pageSize), NextPageToken: nextPageToken}
+		resp, err := client.ListSolutionDescriptions(
+			ctx, listSolutionsRequest)
+		if err != nil {
+			return fmt.Errorf("request to list solutions failed: %w", err)
+		}
+		// Keep the JSON output format as is, in case there are consumers relying on it.
+		if params.outputType == printer.OutputTypeJSON {
+			jsonResponse = &solutiondiscoverypb.ListSolutionDescriptionsResponse{
+				Solutions:     append(jsonResponse.GetSolutions(), resp.GetSolutions()...),
+				NextPageToken: resp.GetNextPageToken(),
+			}
+			if resp.GetNextPageToken() == "" {
+				params.printer.Print(&ListSolutionDescriptionsResponse{m: resp})
+				break
+			}
+		} else {
+			var view printer.View = nil // this is to reuse reflectors in default views
+			for _, p := range resp.GetSolutions() {
+				view = printer.NextView(asSolutionRow(p), view)
+				params.printer.Println(view)
+			}
+			if nextPageToken = resp.GetNextPageToken(); nextPageToken == "" {
+				break
+			}
 		}
 	}
 	return printer.Flush(params.printer)

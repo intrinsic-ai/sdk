@@ -27,12 +27,26 @@ message ListSolutionDescriptionsRequest {
   // Only return solutions which have any of the given states. If empty, return
   // all solutions.
   repeated SolutionState filters = 1;
+
+  // The maximum number of versioned solutions to return. The service may return
+  // fewer than this value. If unspecified, at most 20 versioned solutions will
+  // be returned. The maximum value is 200; values above 200 will be coerced to
+  // 200.
+  int64 page_size = 2;
+
+  // A page token, received from a previous `ListSolutionDescriptions` call.
+  // Provide this to retrieve the subsequent page.
+  string next_page_token = 3;
 }
 
 message ListSolutionDescriptionsResponse {
   // Details about the solutions matching the filter criteria of the request,
-  // sorted lexicographically by 'name'.
+  // sorted by 'update_time' in descending order.
   repeated SolutionDescription solutions = 1;
+
+  // A token, which can be sent as `next_page_token` to retrieve the next page.
+  // If this field is omitted, there are no subsequent pages.
+  string next_page_token = 2;
 }
 
 message GetSolutionDescriptionRequest {
