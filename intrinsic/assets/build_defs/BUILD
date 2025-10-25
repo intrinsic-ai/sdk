@@ -55,6 +55,7 @@ go_binary(
         "//intrinsic/production:intrinsic",
         "//intrinsic/skills/proto:skill_manifest_go_proto",
         "//intrinsic/util:flag",
+        "//intrinsic/util/proto:descriptor",
         "//intrinsic/util/proto:protoio",
         "//intrinsic/util/proto:registryutil",
         "@com_github_golang_glog//:go_default_library",

@@ -74,6 +74,11 @@ def _intrinsic_hardware_device_impl(ctx):
         before_each = "--file_descriptor_set",
         uniquify = True,
     ).add(
+        # This enables the same logic installed assets and the catalog do when
+        # processing the file descriptor sets of hardware devices to construct a
+        # single unified file descriptor set.
+        "--merge_fds",
+    ).add(
         "--output_asset_info",
         asset_info_output,
     ).add(

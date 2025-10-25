@@ -10,6 +10,7 @@ import (
 	"intrinsic/assets/typeutils"
 	"intrinsic/production/intrinsic"
 	intrinsicflag "intrinsic/util/flag"
+	"intrinsic/util/proto/descriptor"
 	"intrinsic/util/proto/protoio"
 	"intrinsic/util/proto/registryutil"
 
@@ -31,6 +32,7 @@ var (
 	bundleShortPath      = flag.String("bundle_short_path", "", "Bazel short path of the generated bundle file.")
 	manifest             = flag.String("manifest", "", "The asset's manifest.")
 	fileDescriptorSets   = intrinsicflag.MultiString("file_descriptor_set", nil, "Path to a binary file descriptor set proto to be used to resolve the data payload. Can be repeated. Passing only empty files has the same effect as passing no files at all.")
+	mergeFDS             = flag.Bool("merge_fds", false, "Merge files within the asset's file descriptor set.  This should only enabled for HardwareDevices as other assets are expected to provide a single, self-consistent set of proto dependencies.")
 	outputAssetInfo      = flag.String("output_asset_info", "", "Output AssetInfo proto path.")
 	outputAssetLocalInfo = flag.String("output_asset_local_info", "", "Output AssetLocalInfo proto path.")
 )
@@ -116,6 +118,12 @@ func main() {
 	fds, err := registryutil.LoadFileDescriptorSets(*fileDescriptorSets)
 	if err != nil {
 		log.Exitf("cannot build file descriptor set for asset: %v", err)
+	}
+	if *mergeFDS {
+		fds, err = descriptor.MergeFileDescriptorSets([]*dpb.FileDescriptorSet{fds})
+		if err != nil {
+			log.Exitf("cannot merge file descriptor set for asset: %v", err)
+		}
 	}
 	// Passing only empty files has the same effect as passing no files at all.
 	// This behavior makes it easier to handle assets for which the file
