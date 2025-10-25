@@ -91,6 +91,8 @@ def _intrinsic_service_impl(ctx):
         outputs = [asset_info_output, asset_local_info_output],
         executable = ctx.executable._assetlocalinfogen,
         arguments = [local_info_args],
+        mnemonic = "AssetLocalInfo",
+        progress_message = "Writing asset local info %{output} for %{label}",
     )
 
     return [

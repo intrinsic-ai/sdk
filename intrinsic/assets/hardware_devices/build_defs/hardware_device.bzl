@@ -84,8 +84,9 @@ def _intrinsic_hardware_device_impl(ctx):
         inputs = depset([ctx.file.manifest], transitive = transitive_inputs),
         outputs = [asset_info_output, asset_local_info_output],
         executable = ctx.executable._assetlocalinfogen,
-        mnemonic = "Assetlocalinfo",
         arguments = [local_info_args],
+        mnemonic = "AssetLocalInfo",
+        progress_message = "Writing asset local info %{output} for %{label}",
     )
 
     return [
