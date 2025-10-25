@@ -9,6 +9,7 @@ bzl_library(
     visibility = ["//visibility:private"],
     deps = [
         "//intrinsic/assets/build_defs:asset_bzl",
+        "//intrinsic/util/proto/build_defs:descriptor_set",
         "@bazel_skylib//rules:common_settings",
     ],
 )

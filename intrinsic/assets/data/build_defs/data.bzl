@@ -4,6 +4,7 @@
 
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("//intrinsic/assets/build_defs:asset.bzl", "AssetInfo", "AssetLocalInfo")
+load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "ProtoSourceCodeInfo", "gen_source_code_info_descriptor_set")
 
 DataAssetInfo = provider(
     "Provided by intrinsic_data() rule.",
@@ -18,7 +19,7 @@ def _intrinsic_data_impl(ctx):
     inputs.extend(ctx.files.data)
 
     transitive_descriptor_sets = depset(transitive = [
-        f[ProtoInfo].transitive_descriptor_sets
+        f[ProtoSourceCodeInfo].transitive_descriptor_sets
         for f in ctx.attr.deps
     ])
     transitive_inputs.append(transitive_descriptor_sets)
@@ -116,6 +117,7 @@ intrinsic_data = rule(
             mandatory = True,
             providers = [ProtoInfo],
             doc = "Proto dependencies needed to construct the data payload's FileDescriptorSet.",
+            aspects = [gen_source_code_info_descriptor_set],
         ),
         "_datagen": attr.label(
             default = Label("//intrinsic/assets/data/build_defs:datagen_main"),
