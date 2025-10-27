@@ -66,9 +66,12 @@ class _SkillPackageImpl(provided.SkillPackage):
 
   # Full package name (e.g. 'ai.intrinsic').
   _package_name: str
+
+  # All skills in the package by name, not including skills from child packages
   _skills_by_name: dict[str, provided.SkillInfo]
   _compatible_resources_by_name: dict[str, dict[str, provided.ResourceList]]
   _skill_type_classes_by_name: dict[str, Type[provided.SkillBase]]
+
   _child_packages_by_prefix: dict[str, _SkillPackageImpl]
 
   def __init__(
@@ -144,12 +147,19 @@ class Skills(providers.SkillProvider):
 
   _skill_registry: skill_registry_client.SkillRegistryClient
   _resource_registry: resource_registry_client.ResourceRegistryClient
-  _skills_by_name: dict[str, provided.SkillInfo]
+
+  # All skills in the solution by id
   _skills_by_id: dict[str, provided.SkillInfo]
-  _skill_type_classes_by_name: dict[str, Type[provided.SkillBase]]
   _skill_type_classes_by_id: dict[str, Type[provided.SkillBase]]
-  _compatible_resources_by_name: dict[str, dict[str, provided.ResourceList]]
   _compatible_resources_by_id: dict[str, dict[str, provided.ResourceList]]
+
+  # Only "global" skills with an empty package name
+  _global_skills_by_name: dict[str, provided.SkillInfo]
+  _global_skill_type_classes_by_name: dict[str, Type[provided.SkillBase]]
+  _global_compatible_resources_by_name: dict[
+      str, dict[str, provided.ResourceList]
+  ]
+
   _skill_packages: dict[str, _SkillPackageImpl]
 
   def __init__(
@@ -159,12 +169,15 @@ class Skills(providers.SkillProvider):
   ):
     self._skill_registry = skill_registry
     self._resource_registry = resource_registry
-    self._skills_by_name = {}
+
     self._skills_by_id = {}
-    self._skill_type_classes_by_name = {}
     self._skill_type_classes_by_id = {}
-    self._compatible_resources_by_name = {}
     self._compatible_resources_by_id = {}
+
+    self._global_skills_by_name = {}
+    self._global_skill_type_classes_by_name = {}
+    self._global_compatible_resources_by_name = {}
+
     self._skill_packages = {}
     self.update()
 
@@ -173,11 +186,14 @@ class Skills(providers.SkillProvider):
     skills = self._skill_registry.get_skills()
     skill_infos = [skill_generation.SkillInfoImpl(info) for info in skills]
 
-    self._skills_by_name = {info.skill_name: info for info in skill_infos}
+    self._global_skills_by_name = {
+        info.skill_name: info for info in skill_infos if not info.package_name
+    }
+    self._global_skill_type_classes_by_name = {}
+    self._global_compatible_resources_by_name = {}
+
     self._skills_by_id = {info.id: info for info in skill_infos}
-    self._skill_type_classes_by_name = {}
     self._skill_type_classes_by_id = {}
-    self._compatible_resources_by_name = {}
     self._compatible_resources_by_id = {}
 
     # Get handles for all selectors that we need in the loop below in a single
@@ -195,12 +211,10 @@ class Skills(providers.SkillProvider):
     selector_index = 0
     for skill_info in skill_infos:
       skill_name = skill_info.skill_name
-      is_represented_by_name = (
-          self._skills_by_name[skill_name].id == skill_info.id
-      )
+      is_global = not skill_info.package_name
 
-      if is_represented_by_name:
-        self._compatible_resources_by_name[skill_name] = {}
+      if is_global:
+        self._global_compatible_resources_by_name[skill_name] = {}
       self._compatible_resources_by_id[skill_info.id] = {}
       for resource_slot in skill_info.skill_proto.resource_selectors:
         handles = handles_by_selector[selector_index]
@@ -211,8 +225,10 @@ class Skills(providers.SkillProvider):
             [provided.ResourceHandle(h) for h in handles]
         )
 
-        if is_represented_by_name:
-          self._compatible_resources_by_name[skill_name][slot] = resource_list
+        if is_global:
+          self._global_compatible_resources_by_name[skill_name][
+              slot
+          ] = resource_list
         self._compatible_resources_by_id[skill_info.id][slot] = resource_list
 
         selector_index += 1
@@ -229,39 +245,31 @@ class Skills(providers.SkillProvider):
   def __getattr__(self, name: str) -> Union[Type[Any], provided.SkillPackage]:
     if name in self._skill_packages:
       return self._skill_packages[name]
-    elif name not in self._skills_by_name:
+    elif name not in self._global_skills_by_name:
       raise AttributeError(
           f"Could not resolve the attribute '{name}'. '{name}' is not an"
-          " available skill name, skill id or skill package. Use update() or"
-          " reconnect to the deployed solution to update the available skills."
+          " available skill id, skill package or name of a package-less skill."
+          " Use update() or reconnect to the deployed solution to update the"
+          " available skills."
       )
     # Provide global skills with an empty package name (e.g.
     # `skills.global_skill`).
-    if name not in self._skill_type_classes_by_name:
-      self._skill_type_classes_by_name[name] = skill_generation.gen_skill_class(
-          self._skills_by_name[name],
-          self._compatible_resources_by_name[name],
+    if name not in self._global_skill_type_classes_by_name:
+      self._global_skill_type_classes_by_name[name] = (
+          skill_generation.gen_skill_class(
+              self._global_skills_by_name[name],
+              self._global_compatible_resources_by_name[name],
+          )
       )
-    skill_class = self._skill_type_classes_by_name[name]
-    if skill_class.skill_info.package_name:
-      raise AttributeError(
-          f'The shortcut notation "skills.{skill_class.skill_info.skill_name}"'
-          " has been removed. Please use the full skill id instead, e.g., by"
-          f' using a custom shortcut "{skill_class.skill_info.skill_name} ='
-          f' skills.{skill_class.skill_info.id}".'
-      )
-    return skill_class
+    return self._global_skill_type_classes_by_name[name]
 
   def __len__(self) -> int:
     return len(self._skills_by_id)
 
   def __dir__(self) -> list[str]:
-    global_skill_names = {
-        name
-        for name in self._skills_by_name.keys()
-        if not self._skills_by_name[name].package_name
-    }
-    return sorted(self._skill_packages.keys() | global_skill_names)
+    return sorted(
+        self._skill_packages.keys() | self._global_skills_by_name.keys()
+    )
 
   def __getitem__(self, skill_id: str) -> Type[Any]:
     if skill_id in self._skills_by_id:
