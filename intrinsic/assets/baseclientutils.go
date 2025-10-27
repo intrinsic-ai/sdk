@@ -119,6 +119,25 @@ func UseInsecureCredentials(address string) bool {
 // propagated from another client, service, or frontend.
 func NewCatalogClient(addr string) (*grpc.ClientConn, error) {
 	opts := []grpc.DialOption{
+		grpc.WithDefaultServiceConfig(`{
+			"methodConfig": [{
+				"name": [{}],
+				"retryPolicy": {
+						"MaxAttempts": 4,
+						"InitialBackoff": ".5s",
+						"MaxBackoff": ".5s",
+						"BackoffMultiplier": 1.5,
+						"RetryableStatusCodes": ["UNAVAILABLE", "RESOURCE_EXHAUSTED"]
+				}
+			}]
+}`),
+		grpc.WithDefaultCallOptions(
+			// Remove the recv limit as we trust that our catalogs will send a
+			// reasonable amount of information for a given request.
+			grpc.MaxCallRecvMsgSize(maxMsgSize),
+			// We don't typically need to send large amounts of data to the
+			// catalogs from on-prem, so leave that limit at its default.
+		),
 		grpc.WithStatsHandler(new(ocgrpc.ClientHandler)),
 	}
 	if IsLocalAddress(addr) {
