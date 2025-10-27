@@ -2,14 +2,15 @@
 
 #include "intrinsic/connect/cc/grpc/channel.h"
 
+#include <climits>
 #include <memory>
 #include <optional>
 #include <string>
 
+#include "absl/log/die_if_null.h"
 #include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
-#include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
@@ -24,6 +25,8 @@
 #include "intrinsic/icon/release/grpc_time_support.h"
 #include "intrinsic/util/grpc/limits.h"
 #include "intrinsic/util/status/status_conversion_grpc.h"
+#include "intrinsic/util/status/status_macros.h"
+#include "intrinsic/util/time/clock.h"
 #include "src/proto/grpc/health/v1/health.grpc.pb.h"
 #include "src/proto/grpc/health/v1/health.pb.h"
 
@@ -38,7 +41,7 @@ using ::grpc::health::v1::HealthCheckResponse;
 // channel can be used for other RPCs.
 absl::Status CheckChannelHealth(
     std::shared_ptr<::grpc::Channel> channel, absl::Duration timeout,
-    std::optional<std::string> server_instance_name) {
+    std::optional<absl::string_view> server_instance_name) {
   // Try an arbitrary RPC (we use the Health service but could use anything that
   // responds quickly without side-effects). Use the async client because the
   // sync client doesn't seem to respect the deadline for certain channels.
@@ -49,7 +52,8 @@ absl::Status CheckChannelHealth(
   grpc::ClientContext ctx;
   ctx.set_deadline(deadline);
   if (server_instance_name.has_value()) {
-    ctx.AddMetadata("x-resource-instance-name", *server_instance_name);
+    ctx.AddMetadata("x-resource-instance-name",
+                    std::string(*server_instance_name));
   }
   HealthCheckResponse resp;
   grpc::Status status;
@@ -150,52 +154,116 @@ absl::StatusOr<std::shared_ptr<::grpc::Channel>> CreateClientChannel(
     const ::grpc::ChannelArguments& channel_args,
     bool use_default_application_credentials,
     std::optional<std::string> server_instance_name) {
-  LOG(INFO) << "Connecting to " << address
-            << " (timeout: " << (deadline - absl::Now())
-            << (server_instance_name.has_value()
-                    ? absl::StrCat(", instance: ", *server_instance_name)
+  if (use_default_application_credentials) {
+    return GrpcChannel(address)
+        .WithDeadline(deadline)
+        .WithCustomChannelArgs(channel_args)
+        .Connect();
+  }
+
+  return GrpcChannel(address)
+      .WithDeadline(deadline)
+      .WithCustomChannelArgs(channel_args)
+      .WithChannelCredentials(grpc::InsecureChannelCredentials())  // NOLINT
+      .WithCheckChannelHealth(server_instance_name)
+      .Connect();
+}
+
+GrpcChannel::GrpcChannel(absl::string_view address) : address_(address) {}
+
+GrpcChannel::GrpcChannel(absl::string_view address, ClockInterface* clock)
+    : address_(address), clock_(ABSL_DIE_IF_NULL(clock)) {}
+
+GrpcChannel& GrpcChannel::WithTimeout(absl::Duration timeout) {
+  deadline_ = clock_->Now() + timeout;
+  return *this;
+}
+
+GrpcChannel& GrpcChannel::WithDeadline(absl::Time deadline) {
+  deadline_ = deadline;
+  return *this;
+}
+
+GrpcChannel& GrpcChannel::WithChannelCredentials(
+    std::shared_ptr<grpc::ChannelCredentials> credentials) {
+  credentials_ = credentials;
+  return *this;
+}
+
+GrpcChannel& GrpcChannel::WithCheckChannelHealth(
+    std::optional<absl::string_view> server_instance_name) {
+  check_channel_health_ = CheckChannelHealthOptions{
+      .server_instance_name = server_instance_name,
+  };
+  return *this;
+}
+
+GrpcChannel& GrpcChannel::WithUnlimitedMessageSizeChannelArgs() {
+  channel_args_ = UnlimitedMessageSizeGrpcChannelArgs();
+  return *this;
+}
+
+GrpcChannel& GrpcChannel::WithCustomChannelArgs(
+    const grpc::ChannelArguments& channel_args) {
+  channel_args_ = channel_args;
+  return *this;
+}
+
+absl::StatusOr<std::shared_ptr<grpc::Channel>> GrpcChannel::Connect() {
+  if (consumed_) {
+    return absl::FailedPreconditionError(
+        "GrpcChannel::Connect() can only be called once.");
+  }
+  consumed_ = true;
+
+  LOG(INFO) << "Connecting to " << address_
+            << " (timeout: " << deadline_ - clock_->Now()
+            << (check_channel_health_.has_value() &&
+                        check_channel_health_->server_instance_name.has_value()
+                    ? absl::StrCat(", instance: ",
+                                   *check_channel_health_->server_instance_name)
                     : "")
             << ")";
-  absl::Status status = absl::DeadlineExceededError(absl::StrFormat(
-      "Deadline in past in CreateClientChannel while connecting to %s",
-      address));
-  while (absl::Now() < deadline) {
-    std::shared_ptr<::grpc::Channel> channel;
-    if (use_default_application_credentials) {
-      channel = ::grpc::CreateCustomChannel(
-          std::string(address), grpc::GoogleDefaultCredentials(), channel_args);
-    } else {
-      channel = ::grpc::CreateCustomChannel(
-          std::string(address),
-          ::grpc::                       // NOLINTNEXTLINE
-          InsecureChannelCredentials(),  // NO_LINT(grpc_insecure_credential_linter)
-          channel_args);
+
+  absl::Status status;
+  while (clock_->Now() < deadline_) {
+    std::shared_ptr<::grpc::Channel> channel = ::grpc::CreateCustomChannel(
+        address_,
+        credentials_ == nullptr ? grpc::GoogleDefaultCredentials()
+                                : credentials_,
+        channel_args_);
+
+    status = WaitForChannelConnected(address_, channel, deadline_);
+    if (!status.ok()) {
+      LOG(WARNING) << "Channel not ready: " << status;
+      continue;
     }
 
-    status = WaitForChannelConnected(address, channel, deadline);
-    if (!status.ok()) continue;
-
-    // CheckChannelHealth does not work when using application default
-    // credentials. It returns "UNKNOWN: Received http2 header with status:
-    // 302".
-    if (!use_default_application_credentials) {
-      // For some reason, WaitForChannelConnected can return "ok" even when the
-      // server is not yet running. When checking for this case,
-      // use a short timeout to allow time to retry after.
-      status = CheckChannelHealth(channel, /*timeout=*/absl::Seconds(1),
-                                  server_instance_name);
-      if (!status.ok()) {
-        LOG(ERROR) << "Unhealthy channel for " << address << ": " << status;
-        continue;
-      }
+    if (!check_channel_health_.has_value()) {
+      LOG(INFO) << "Skipping channel health check for " << address_;
+      LOG(INFO) << "Successfully connected to " << address_;
+      return channel;
     }
 
-    LOG(INFO) << "Successfully connected to " << address;
+    // For some reason, WaitForChannelConnected can return "ok" even when the
+    // server is not yet running. When checking for this case, use a short
+    // timeout to allow time to retry after.
+    status = CheckChannelHealth(channel, /*timeout=*/absl::Seconds(1),
+                                check_channel_health_->server_instance_name);
+    if (!status.ok()) {
+      LOG(ERROR) << "Unhealthy channel for " << address_ << ": " << status;
+      continue;
+    }
+
+    LOG(INFO) << "Successfully connected to " << address_;
     return channel;
   }
 
-  LOG(ERROR) << "Failed to connect to " << address << ": " << status;
-  return status;
+  INTR_RETURN_IF_ERROR(status) << "failed to connect to channel by specified "
+                                  "deadline; returning last channel status";
+
+  return absl::DeadlineExceededError(
+      "deadline exceeded when connecting to channel");
 }
 
 }  // namespace intrinsic::connect
