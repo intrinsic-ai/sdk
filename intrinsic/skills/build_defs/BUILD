@@ -25,6 +25,7 @@ bzl_library(
         "@bazel_skylib//lib:paths",
         "@rules_cc//cc:core_rules",
         "@rules_cc//cc/common",
+        "@rules_python//python:defs_bzl",
     ],
 )
 

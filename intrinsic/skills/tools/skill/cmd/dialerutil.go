@@ -89,7 +89,6 @@ func (e *ErrCredentialsNotFound) Unwrap() error { return e.Err }
 // The CredName is filled from the organization information. It's equal to the project's name.
 // The ServerAddr is defaulted to the endpoints url for compute projects.
 func DialConnectionCtx(ctx context.Context, params DialInfoParams) (context.Context, *grpc.ClientConn, error) {
-
 	ctx, dialerOpts, addr, err := dialInfoCtx(ctx, params)
 	if err != nil {
 		return nil, nil, fmt.Errorf("dial info: %w", err)

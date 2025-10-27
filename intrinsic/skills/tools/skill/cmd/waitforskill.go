@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
 	srgrpcpb "intrinsic/skills/proto/skill_registry_go_grpc_proto"
 	srpb "intrinsic/skills/proto/skill_registry_go_grpc_proto"
 )
@@ -50,7 +51,6 @@ func (e *TimeoutError) Error() string {
 
 // WaitForSkill polls the skill registry until matching skill is found.
 func WaitForSkill(ctx context.Context, params *Params) error {
-
 	var client srgrpcpb.SkillRegistryClient
 	if params.Client != nil {
 		client = params.Client

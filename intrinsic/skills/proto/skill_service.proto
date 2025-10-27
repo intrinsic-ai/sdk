@@ -110,6 +110,7 @@ message ExecuteResult {
   // this field, there will also be descriptor information for the type of data
   // in the Skill information retrieved from the registry.
   google.protobuf.Any result = 4;
+
 }
 
 message PreviewRequest {
@@ -208,6 +209,8 @@ service Executor {
 // Contains the skill information provided by a single skill service.
 message SkillInformationResult {
   Skill skill = 2;
+
+  reserved 1;
 }
 
 service SkillInformation {
@@ -318,6 +321,7 @@ message ProjectRequest {
   // intended to be used if the skill was previously planned and needs
   // replanning.
   bytes internal_data = 7;
+
 }
 
 message ProjectResult {
@@ -329,6 +333,7 @@ message ProjectResult {
   // execute a skill without passing this data may result in behavior that does
   // not match this ProjectResult.
   bytes internal_data = 5;
+
 }
 
 // Logged by the skills client library after a skill projection.

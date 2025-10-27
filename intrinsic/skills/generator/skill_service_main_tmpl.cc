@@ -46,8 +46,10 @@ ABSL_FLAG(int32_t, grpc_connect_timeout_secs,
           "Time to wait for other grpc services to become available.");
 
 ABSL_FLAG(bool, logtostderr, true, "Dummy flag, do not use");
-ABSL_FLAG(int32_t, opencensus_metrics_port, 9999, "Dummy flag, do not use");
-ABSL_FLAG(bool, opencensus_tracing, true, "Dummy flag, do not use");
+ABSL_FLAG(int32_t, opencensus_metrics_port, 9999,
+          "Dummy flag, do not use");
+ABSL_FLAG(bool, opencensus_tracing, true,
+          "Dummy flag, do not use");
 
 namespace {
 
