@@ -5007,65 +5007,86 @@ class BehaviorTree:
       ) + '\n'.join(violations)
       raise solutions_errors.InvalidArgumentError(violation_msg)
 
+  def _initialize_skill_proto_for_pbt(self, skill_id: str, display_name: str):
+    """Initializes the Skill proto for the initialize_pbt* methods below."""
+
+    if self._metadata is None:
+      # This BehaviorTree represents a legacy process.
+      if not skill_id:
+        raise solutions_errors.InvalidArgumentError(
+            'skill_id must be given for a BehaviorTree that does not have asset'
+            ' metadata.'
+        )
+      self._description = skills_pb2.Skill(
+          id=skill_id, display_name=display_name
+      )
+    else:
+      # This BehaviorTree represents a Process asset. The Skill proto already
+      # exists and has an id and display name.
+      assert self._description is not None
+      if skill_id:
+        raise solutions_errors.InvalidArgumentError(
+            'skill_id must not be given for a BehaviorTree that already has'
+            ' asset metadata.'
+        )
+      if display_name:
+        raise solutions_errors.InvalidArgumentError(
+            'display_name must not be given for a BehaviorTree that already has'
+            ' asset metadata.'
+        )
+
   def initialize_pbt(
       self,
       *,
-      skill_id: str,
       parameter_proto_schema: str,
       return_value_proto_schema: str,
       proto_builder: proto_building.ProtoBuilder,
       parameter_message_full_name: str = '',
       return_value_message_full_name: str = '',
+      skill_id: str = '',
       display_name: str = '',
   ):
     """Initializes a behavior tree to be a parameterizable behavior tree.
 
     For this a behavior tree must have a parameter and return value description.
     To specify this parameters or return values are given as a proto schema.
-    If that proto schema contains has only a single message, the full message
-    name is extracted from the schema. Otherwise the full name must be given
+    If that proto schema contains only a single message, the full message name
+    is extracted from the schema. Otherwise the full name must be given
     explicitly.
 
     Args:
-      skill_id: The skill id that this PBT registers under.
       parameter_proto_schema: A full proto schema for the PBT parameters.
       return_value_proto_schema: A full proto schema for the return value.
       proto_builder: An instance of the proto builder service.
       parameter_message_full_name: The full name of the parameter message.
       return_value_message_full_name: The full name of the return value proto.
-      display_name: The name to display the PBT with.
+      skill_id: The skill id that this PBT registers under. If the BehaviorTree
+        already has asset metadata, this must not be given.
+      display_name: The name to display the PBT with. If the BehaviorTree
+        already has asset metadata, this must not be given.
     """
+    self._initialize_skill_proto_for_pbt(skill_id, display_name)
 
-    def get_name_from_set(desc_set: descriptor_pb2.FileDescriptorSet, filename):
-      for file in desc_set.file:
-        if file.name == filename:
-          assert len(file.message_type) == 1
-          return file.package + '.' + file.message_type[0].name
-      return None
+    pseudo_file = self._description.id.replace('.', '_')
 
-    self._description = skills_pb2.Skill(id=skill_id)
-    self._description.display_name = display_name
-
-    pseudo_file = skill_id.replace('.', '_')
-    if parameter_proto_schema:
-      param_descriptor_set = proto_builder.compile(
-          pseudo_file + '_params.proto', parameter_proto_schema
-      )
-      if parameter_message_full_name:
-        param_full_name = parameter_message_full_name
-      else:
-        param_full_name = get_name_from_set(
-            param_descriptor_set, pseudo_file + '_params.proto'
-        )
-      pd = skills_pb2.ParameterDescription(
-          parameter_message_full_name=param_full_name
-      )
-      pd.parameter_descriptor_fileset.CopyFrom(param_descriptor_set)
-      self._description.parameter_description.CopyFrom(pd)
-    else:
+    if not parameter_proto_schema:
       raise solutions_errors.InvalidArgumentError(
           'initialize_pbt requires parameter_proto_schema to be given.'
       )
+    param_descriptor_set = proto_builder.compile(
+        pseudo_file + '_params.proto', parameter_proto_schema
+    )
+    if parameter_message_full_name:
+      param_full_name = parameter_message_full_name
+    else:
+      param_full_name = _get_single_message_name_from_file(
+          param_descriptor_set, pseudo_file + '_params.proto'
+      )
+    pd = skills_pb2.ParameterDescription(
+        parameter_message_full_name=param_full_name
+    )
+    pd.parameter_descriptor_fileset.CopyFrom(param_descriptor_set)
+    self._description.parameter_description.CopyFrom(pd)
 
     if return_value_proto_schema:
       return_descriptor_set = proto_builder.compile(
@@ -5074,7 +5095,7 @@ class BehaviorTree:
       if return_value_message_full_name:
         return_full_name = return_value_message_full_name
       else:
-        return_full_name = get_name_from_set(
+        return_full_name = _get_single_message_name_from_file(
             return_descriptor_set, pseudo_file + '_return.proto'
         )
       rd = skills_pb2.ReturnValueDescription(
@@ -5086,10 +5107,10 @@ class BehaviorTree:
   def initialize_pbt_with_protos(
       self,
       *,
-      skill_id: str,
-      display_name: str,
       parameter_proto: Optional[type[AnyType]] = None,
       return_value_proto: Optional[type[AnyType]] = None,
+      skill_id: str = '',
+      display_name: str = '',
   ):
     """Initializes a behavior tree to be a parameterizable behavior tree.
 
@@ -5100,15 +5121,15 @@ class BehaviorTree:
     property.
 
     Args:
-      skill_id: The skill id that this PBT registers under.
-      display_name: The name to display the PBT with.
       parameter_proto: The compiled proto message type for the parameters. (For
         example, `my_pbt_pb2.InputMessage`)
       return_value_proto: The compile proto message type for the return value.
+      skill_id: The skill id that this PBT registers under. If the BehaviorTree
+        already has asset metadata, this must not be given.
+      display_name: The name to display the PBT with. If the BehaviorTree
+        already has asset metadata, this must not be given.
     """
-
-    self._description = skills_pb2.Skill(id=skill_id)
-    self._description.display_name = display_name
+    self._initialize_skill_proto_for_pbt(skill_id, display_name)
 
     if parameter_proto:
       parameter_message_name, parameter_file_descriptor_set = (
@@ -5254,3 +5275,23 @@ def _build_file_descriptor_set(
   _add_to_transitive_file_descriptor_set(msg.DESCRIPTOR.file, fds, added_files)
 
   return msg.DESCRIPTOR.full_name, fds
+
+
+def _get_single_message_name_from_file(
+    desc_set: descriptor_pb2.FileDescriptorSet, filename
+) -> str | None:
+  """Returns the single message name defined in a FileDescriptorSet file.
+
+  Returns the full name of the message type which is defined in the given file
+  of the given FileDescriptorSet. Returns None if the file is not found. Raises
+  an assertion error if the file does not define exactly one message type.
+
+  Args:
+    desc_set: The FileDescriptorSet in which to search.
+    filename: The name of the file in which to search for the message type.
+  """
+  for file in desc_set.file:
+    if file.name == filename:
+      assert len(file.message_type) == 1
+      return file.package + '.' + file.message_type[0].name
+  return None

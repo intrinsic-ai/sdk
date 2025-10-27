@@ -74,12 +74,13 @@ class BehaviorTreeBreakpointTypeTest(absltest.TestCase):
     self.assertEqual(after, bt.BreakpointType.AFTER)
 
 
-class BehaviorTreeMadeParametrizableTest(absltest.TestCase):
+class BehaviorTreeMadeParametrizableTest(parameterized.TestCase):
   """Test functions of BehaviorTrees initialized as PBTs."""
 
-  def test_initialize_pbt_from_schema(self):
-    bt1 = bt.BehaviorTree('test')
-
+  @parameterized.named_parameters(
+      ('legacy_process', False),
+  )
+  def test_initialize_pbt_from_schema(self, make_process_asset):
     proto_builder_stub: proto_builder_pb2.ProtoBuilderStub = mock.MagicMock()
     proto_builder = proto_building.ProtoBuilder(proto_builder_stub)
 
@@ -117,76 +118,93 @@ class BehaviorTreeMadeParametrizableTest(absltest.TestCase):
           }
         """
 
-    bt1.initialize_pbt(
-        skill_id='alpha',
-        display_name='Alpha',
-        parameter_proto_schema=parameter_proto_schema,
-        return_value_proto_schema=return_value_proto_schema,
-        proto_builder=proto_builder,
-        parameter_message_full_name='Parameters',
-        return_value_message_full_name='my_skill.ReturnValue',
-    )
+    if make_process_asset:
+      pass
+    else:
+      # Make a legacy process.
+      bt1 = bt.BehaviorTree('My Tree', root=bt.Sequence())
+      bt1.initialize_pbt(
+          skill_id='ai.intrinsic.alpha',
+          display_name='Alpha',
+          parameter_proto_schema=parameter_proto_schema,
+          return_value_proto_schema=return_value_proto_schema,
+          proto_builder=proto_builder,
+          parameter_message_full_name='Parameters',
+          return_value_message_full_name='my_skill.ReturnValue',
+      )
 
     self.assertEqual(
         proto_builder_stub.Compile.call_args_list,
         [
             mock.call(
                 proto_builder_pb2.ProtoCompileRequest(
-                    proto_filename='alpha_params.proto',
+                    proto_filename='ai_intrinsic_alpha_params.proto',
                     proto_schema=parameter_proto_schema,
                 )
             ),
             mock.call(
                 proto_builder_pb2.ProtoCompileRequest(
-                    proto_filename='alpha_return.proto',
+                    proto_filename='ai_intrinsic_alpha_return.proto',
                     proto_schema=return_value_proto_schema,
                 )
             ),
         ],
     )
 
-    bt1.set_root(bt.Sequence())  # Empty root.
-    bt1_proto = bt1.proto
-
-    self.assertEqual(bt1_proto.description.display_name, 'Alpha')
-    parameter_description = bt1_proto.description.parameter_description
-    self.assertEqual(
-        parameter_description.parameter_message_full_name,
-        'Parameters',
-    )
-    self.assertEqual(
-        parameter_description.parameter_descriptor_fileset, param_desc_set
-    )
-    return_value_description = bt1_proto.description.return_value_description
-    self.assertEqual(
-        return_value_description.return_value_message_full_name,
-        'my_skill.ReturnValue',
-    )
-    self.assertEqual(
-        return_value_description.descriptor_fileset,
-        return_value_desc_set,
+    compare.assertProto2Equal(
+        self,
+        bt1.proto.description,
+        skills_pb2.Skill(
+            id='ai.intrinsic.alpha',
+            display_name='Alpha',
+            parameter_description=skills_pb2.ParameterDescription(
+                parameter_message_full_name='Parameters',
+                parameter_descriptor_fileset=param_desc_set,
+            ),
+            return_value_description=skills_pb2.ReturnValueDescription(
+                return_value_message_full_name='my_skill.ReturnValue',
+                descriptor_fileset=return_value_desc_set,
+            ),
+        ),
+        ignored_fields=['skill_name', 'package_name'],
     )
 
-  def test_initialize_pbt_with_known_types(self):
-    bt1 = bt.BehaviorTree('test')
-
-    bt1.initialize_pbt_with_protos(
-        skill_id='alpha',
-        display_name='Alpha',
-        parameter_proto=test_message_pb2.TestMessage,
-    )
-    bt1.set_root(bt.Sequence())  # Empty root.
-    bt1_proto = bt1.proto
+  @parameterized.named_parameters(
+      ('legacy_process', False),
+  )
+  def test_initialize_pbt_with_known_types(self, make_process_asset):
+    if make_process_asset:
+      pass
+    else:
+      # Make a legacy process.
+      bt1 = bt.BehaviorTree('test', root=bt.Sequence())
+      bt1.initialize_pbt_with_protos(
+          skill_id='ai.intrinsic.alpha',
+          display_name='Alpha',
+          parameter_proto=test_message_pb2.TestMessage,
+      )
 
     # Spot check a few attributes of the generated proto.
-    self.assertEqual(bt1_proto.description.display_name, 'Alpha')
-    parameter_description = bt1_proto.description.parameter_description
-    self.assertEqual(
-        parameter_description.parameter_message_full_name,
-        'intrinsic_proto.executive.TestMessage',
+    compare.assertProto2Equal(
+        self,
+        bt1.proto.description,
+        skills_pb2.Skill(
+            id='ai.intrinsic.alpha',
+            display_name='Alpha',
+            parameter_description=skills_pb2.ParameterDescription(
+                parameter_message_full_name=(
+                    'intrinsic_proto.executive.TestMessage'
+                ),
+            ),
+        ),
+        ignored_fields=[
+            'skill_name',
+            'package_name',
+            'parameter_description.parameter_descriptor_fileset',
+        ],
     )
     self.assertLen(
-        parameter_description.parameter_descriptor_fileset.file,
+        bt1.proto.description.parameter_description.parameter_descriptor_fileset.file,
         3,
     )
 
