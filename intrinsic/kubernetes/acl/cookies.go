@@ -14,7 +14,6 @@ import (
 	log "github.com/golang/glog"
 	"go.opencensus.io/trace"
 	"google.golang.org/grpc/metadata"
-	"intrinsic/stats/go/telemetry"
 )
 
 const (
@@ -80,13 +79,9 @@ func AddToRequest(r *http.Request, newCs ...*http.Cookie) {
 // AddToContext adds cookies to the outgoing context and respects already existing cookie key value pairs.
 // Cookies will overwrite existing cookies inside the outgoing context if they have the same name.
 func AddToContext(ctx context.Context, newCs ...*http.Cookie) (context.Context, error) {
-	ctx, span := trace.StartSpan(ctx, "cookies.AddToContext")
-	defer span.End()
-
 	md, _ := metadata.FromOutgoingContext(ctx)
 	md, err := addToMD(md, newCs...)
 	if err != nil {
-		telemetry.SetError(span, trace.StatusCodeInvalidArgument, "AddToContext: Failed to add cookies to outgoing context", err)
 		return ctx, err
 	}
 	return metadata.NewOutgoingContext(ctx, md), nil
@@ -96,13 +91,9 @@ func AddToContext(ctx context.Context, newCs ...*http.Cookie) (context.Context, 
 // Cookies will overwrite existing cookies inside the incoming context if they have the same name.
 // This is useful for testing and some special cases.
 func AddToIncomingContext(ctx context.Context, newCs ...*http.Cookie) (context.Context, error) {
-	ctx, span := trace.StartSpan(ctx, "cookies.AddToIncomingContext")
-	defer span.End()
-
 	md, _ := metadata.FromIncomingContext(ctx)
 	md, err := addToMD(md, newCs...)
 	if err != nil {
-		telemetry.SetError(span, trace.StatusCodeInvalidArgument, "AddToIncomingContext: Failed to add cookies to incoming context", err)
 		return ctx, err
 	}
 	return metadata.NewIncomingContext(ctx, md), nil

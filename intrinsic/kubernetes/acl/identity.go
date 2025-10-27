@@ -120,8 +120,6 @@ func (i *User) EmailCanonicalized() string {
 
 // UserToContext adds the user's identity to a gRPC context.
 func UserToContext(ctx context.Context, u *User) (context.Context, error) {
-	ctx, span := trace.StartSpan(ctx, "identity.UserToContext")
-	defer span.End()
 	return cookies.AddToContext(ctx, &http.Cookie{Name: authProxyCookieName, Value: u.jwt})
 }
 
@@ -175,9 +173,6 @@ func OrgToRequest(r *http.Request, orgID string) {
 
 // OrgToContext returns a new context that has the org-id stored in its metadata.
 func OrgToContext(ctx context.Context, orgID string) (context.Context, error) {
-	ctx, span := trace.StartSpan(ctx, "identity.OrgToContext")
-	defer span.End()
-
 	if orgID == "" {
 		log.WarningContextf(ctx, "OrgToContext: orgID is empty, returning unchanged context")
 		return ctx, nil
@@ -196,7 +191,7 @@ func ToRequest(r *http.Request, u *User, orgID string) {
 
 // ToContext adds the user and org metadata to the context.
 func ToContext(ctx context.Context, u *User, orgID string) (context.Context, error) {
-	ctx, span := trace.StartSpan(ctx, "identity.ToContext")
+	_, span := trace.StartSpan(ctx, "identity.ToContext")
 	defer span.End()
 
 	ctx, err := UserToContext(ctx, u)
