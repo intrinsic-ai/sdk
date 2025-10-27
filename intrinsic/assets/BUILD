@@ -297,3 +297,9 @@ go_test(
         "@org_golang_google_protobuf//types/known/timestamppb",
     ],
 )
+
+py_library(
+    name = "interface_utils_py",
+    srcs = ["interface_utils.py"],
+    visibility = ["//intrinsic:public_api_users"],
+)

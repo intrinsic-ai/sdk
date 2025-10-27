@@ -6,6 +6,7 @@ import dataclasses
 import datetime
 from typing import Dict, Iterator, List, Optional
 
+from intrinsic.assets import interface_utils
 from intrinsic.assets.proto import asset_type_pb2
 from intrinsic.assets.proto import installed_assets_pb2
 from intrinsic.assets.proto import installed_assets_pb2_grpc
@@ -43,12 +44,15 @@ def _list_pose_estimators(
   )
   list_response = stub.ListInstalledAssets(list_installed_assets_request)
   pose_estimators: List[installed_assets_pb2.InstalledAsset] = []
+  perception_model_provides = (
+      interface_utils.DATA_URI_PREFIX
+      + perception_model_pb2.PerceptionModel.DESCRIPTOR.full_name
+  )
   for installed_asset in list_response.installed_assets:
-    if (
-        installed_asset.data_specific_metadata.proto_name
-        == perception_model_pb2.PerceptionModel.DESCRIPTOR.full_name
-    ):
-      pose_estimators.append(installed_asset)
+    for provides in installed_asset.metadata.provides:
+      if provides.uri == perception_model_provides:
+        pose_estimators.append(installed_asset)
+        break  # break out of the for loop over provides
   return pose_estimators
 
 

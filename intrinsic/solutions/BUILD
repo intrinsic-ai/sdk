@@ -339,6 +339,7 @@ py_library(
     srcs = ["pose_estimation.py"],
     deps = [
         ":ipython",
+        "//intrinsic/assets:interface_utils_py",
         "//intrinsic/assets/proto:asset_type_py_pb2",
         "//intrinsic/assets/proto:installed_assets_pb2_grpc",
         "//intrinsic/assets/proto:installed_assets_py_pb2",

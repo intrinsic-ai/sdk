@@ -31,14 +31,18 @@ class PoseEstimatorsTest(absltest.TestCase):
                     ),
                     display_name="Pose estimator data asset",
                     asset_type=asset_type_pb2.AssetType.ASSET_TYPE_DATA,
+                    provides=[
+                        metadata_pb2.Interface(
+                            uri=(
+                                "data://intrinsic_proto.perception.v1.PerceptionModel"
+                            ),
+                        ),
+                    ],
                 ),
                 deployment_data=installed_assets_pb2.InstalledAsset.DeploymentData(
                     data=installed_assets_pb2.InstalledAsset.DataDeploymentData(
                         data=data_asset,
                     )
-                ),
-                data_specific_metadata=installed_assets_pb2.InstalledAsset.DataMetadata(
-                    proto_name=perception_model_pb2.PerceptionModel.DESCRIPTOR.full_name,
                 ),
             )
         ]
