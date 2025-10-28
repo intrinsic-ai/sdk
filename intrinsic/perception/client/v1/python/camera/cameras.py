@@ -321,8 +321,8 @@ class Camera:
       sensor_name: The desired sensor name.
 
     Returns:
-      The distortion params (k1, k2, p1, p2, [k3, [k4, k5, k6]]) or None if it
-        couldn't be found.
+      The distortion params (k1, k2, p1, p2, [k3, [k4, k5, k6, [s1, s2, s3, s4,
+        [tx, ty]]]]) or None if it couldn't be found.
     """
     sensor_info = self.factory_sensor_info.get(sensor_name)
     if sensor_info is None:

@@ -419,8 +419,8 @@ class Camera:
         (deprecated).
 
     Returns:
-      The distortion params (k1, k2, p1, p2, [k3, [k4, k5, k6]]) or None if it
-        couldn't be found.
+      The distortion params (k1, k2, p1, p2, [k3, [k4, k5, k6, [s1, s2, s3, s4,
+        [tx, ty]]]]) or None if it couldn't be found.
     """
     if sensor_name is None:
       sensor_name = next(iter(self.sensor_names)) if self.sensor_names else None

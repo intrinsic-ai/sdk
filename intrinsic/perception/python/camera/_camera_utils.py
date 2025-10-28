@@ -71,7 +71,13 @@ def extract_distortion_params(
 ) -> np.ndarray:
   """Extract distortion parameters from distortion params as a numpy array."""
   params = [dp.k1, dp.k2, dp.p1, dp.p2]
-  if dp.HasField("k6") or dp.HasField("k5") or dp.HasField("k4"):
+  if any(dp.HasField(f) for f in ["tx", "ty"]):
+    params.extend(
+        [dp.k3, dp.k4, dp.k5, dp.k6, dp.s4, dp.s3, dp.s2, dp.s1, dp.tx, dp.ty]
+    )
+  elif any(dp.HasField(f) for f in ["s4", "s3", "s2", "s1"]):
+    params.extend([dp.k3, dp.k4, dp.k5, dp.k6, dp.s4, dp.s3, dp.s2, dp.s1])
+  elif any(dp.HasField(f) for f in ["k6", "k5", "k4"]):
     params.extend([dp.k3, dp.k4, dp.k5, dp.k6])
   elif dp.HasField("k3"):
     params.append(dp.k3)

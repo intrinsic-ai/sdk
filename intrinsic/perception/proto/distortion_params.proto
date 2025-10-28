@@ -3,6 +3,8 @@
 syntax = "proto3";
 
 package intrinsic_proto.perception;
+
+// Distortion model and parameters.
 message DistortionParams {
   // First radial distortion coefficient.
   double k1 = 1;
@@ -27,4 +29,22 @@ message DistortionParams {
 
   // Sixth radial distortion coefficient.
   optional double k6 = 8;
+
+  // First thin prism distortion coefficient.
+  optional double s1 = 9;
+
+  // Second thin prism distortion coefficient.
+  optional double s2 = 10;
+
+  // Third thin prism distortion coefficient.
+  optional double s3 = 11;
+
+  // Fourth thin prism distortion coefficient.
+  optional double s4 = 12;
+
+  // First tilt distortion coefficient.
+  optional double tx = 13;
+
+  // Second tilt distortion coefficient.
+  optional double ty = 14;
 }

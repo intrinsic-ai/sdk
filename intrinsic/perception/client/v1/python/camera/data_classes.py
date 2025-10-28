@@ -51,7 +51,7 @@ class CameraParams:
 
   @property
   def distortion_params(self) -> Optional[np.ndarray]:
-    """Camera distortion params; (k1, k2, p1, p2, [k3, [k4, k5, k6]]) or None."""
+    """Camera distortion params; (k1, k2, p1, p2, [k3, [k4, k5, k6, [s1, s2, s3, s4, [tx, ty]]]]) or None."""
     dp = self._proto.distortion_params
     if dp is None:
       return None
@@ -100,7 +100,7 @@ class SensorInformation:
 
   @property
   def factory_distortion_params(self) -> Optional[np.ndarray]:
-    """Sensor factory distortion params; (k1, k2, p1, p2, [k3, [k4, k5, k6]]) or None."""
+    """Sensor factory distortion params; (k1, k2, p1, p2, [k3, [k4, k5, k6, [s1, s2, s3, s4, [tx, ty]]]]) or None."""
     if self.factory_camera_params is None:
       return None
     return self.factory_camera_params.distortion_params
@@ -172,7 +172,7 @@ class SensorConfig:
 
   @property
   def distortion_params(self) -> Optional[np.ndarray]:
-    """Sensor distortion params; (k1, k2, p1, p2, [k3, [k4, k5, k6]]) or None."""
+    """Sensor distortion params; (k1, k2, p1, p2, [k3, [k4, k5, k6, [s1, s2, s3, s4, [tx, ty]]]]) or None."""
     camera_params = self.camera_params
     if camera_params is None:
       return None
@@ -288,7 +288,7 @@ class SensorImage:
 
   @property
   def distortion_params(self) -> Optional[np.ndarray]:
-    """Sensor distortion params; (k1, k2, p1, p2, [k3, [k4, k5, k6]]) or None."""
+    """Sensor distortion params; (k1, k2, p1, p2, [k3, [k4, k5, k6, [s1, s2, s3, s4, [tx, ty]]]]) or None."""
     return self.config.distortion_params
 
   @property

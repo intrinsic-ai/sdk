@@ -73,7 +73,13 @@ def extract_distortion_params(
 ) -> np.ndarray:
   """Extract distortion parameters from distortion params as a numpy array."""
   params = [dp.k1, dp.k2, dp.p1, dp.p2]
-  if dp.HasField("k6") or dp.HasField("k5") or dp.HasField("k4"):
+  if any(dp.HasField(f) for f in ["tx", "ty"]):
+    params.extend(
+        [dp.k3, dp.k4, dp.k5, dp.k6, dp.s4, dp.s3, dp.s2, dp.s1, dp.tx, dp.ty]
+    )
+  elif any(dp.HasField(f) for f in ["s4", "s3", "s2", "s1"]):
+    params.extend([dp.k3, dp.k4, dp.k5, dp.k6, dp.s4, dp.s3, dp.s2, dp.s1])
+  elif any(dp.HasField(f) for f in ["k6", "k5", "k4"]):
     params.extend([dp.k3, dp.k4, dp.k5, dp.k6])
   elif dp.HasField("k3"):
     params.append(dp.k3)
@@ -296,6 +302,18 @@ def from_v1_distortion_params(
     distortion_params_v0.k5 = distortion_params.k5
   if distortion_params.HasField("k6"):
     distortion_params_v0.k6 = distortion_params.k6
+  if distortion_params.HasField("s1"):
+    distortion_params_v0.s1 = distortion_params.s1
+  if distortion_params.HasField("s2"):
+    distortion_params_v0.s2 = distortion_params.s2
+  if distortion_params.HasField("s3"):
+    distortion_params_v0.s3 = distortion_params.s3
+  if distortion_params.HasField("s4"):
+    distortion_params_v0.s4 = distortion_params.s4
+  if distortion_params.HasField("tx"):
+    distortion_params_v0.tx = distortion_params.tx
+  if distortion_params.HasField("ty"):
+    distortion_params_v0.ty = distortion_params.ty
   return distortion_params_v0
 
 
@@ -317,6 +335,18 @@ def to_v1_distortion_params(
     distortion_params_v1.k5 = distortion_params.k5
   if distortion_params.HasField("k6"):
     distortion_params_v1.k6 = distortion_params.k6
+  if distortion_params.HasField("s1"):
+    distortion_params_v1.s1 = distortion_params.s1
+  if distortion_params.HasField("s2"):
+    distortion_params_v1.s2 = distortion_params.s2
+  if distortion_params.HasField("s3"):
+    distortion_params_v1.s3 = distortion_params.s3
+  if distortion_params.HasField("s4"):
+    distortion_params_v1.s4 = distortion_params.s4
+  if distortion_params.HasField("tx"):
+    distortion_params_v1.tx = distortion_params.tx
+  if distortion_params.HasField("ty"):
+    distortion_params_v1.ty = distortion_params.ty
   return distortion_params_v1
 
 
