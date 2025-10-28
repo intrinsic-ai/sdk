@@ -72,10 +72,12 @@ def extract_distortion_params(
     dp: distortion_params_pb2.DistortionParams,
 ) -> np.ndarray:
   """Extract distortion parameters from distortion params as a numpy array."""
-  if dp.k4 or dp.k5 or dp.k6:
-    return np.array([dp.k1, dp.k2, dp.p1, dp.p2, dp.k3, dp.k4, dp.k5, dp.k6])
-  else:
-    return np.array([dp.k1, dp.k2, dp.p1, dp.p2, dp.k3])
+  params = [dp.k1, dp.k2, dp.p1, dp.p2]
+  if dp.HasField("k6") or dp.HasField("k5") or dp.HasField("k4"):
+    params.extend([dp.k3, dp.k4, dp.k5, dp.k6])
+  elif dp.HasField("k3"):
+    params.append(dp.k3)
+  return np.array(params)
 
 
 def unpack_camera_config(
@@ -283,10 +285,11 @@ def from_v1_distortion_params(
   distortion_params_v0 = distortion_params_v0_pb2.DistortionParams(
       k1=distortion_params.k1,
       k2=distortion_params.k2,
-      k3=distortion_params.k3,
       p1=distortion_params.p1,
       p2=distortion_params.p2,
   )
+  if distortion_params.HasField("k3"):
+    distortion_params_v0.k3 = distortion_params.k3
   if distortion_params.HasField("k4"):
     distortion_params_v0.k4 = distortion_params.k4
   if distortion_params.HasField("k5"):
@@ -303,10 +306,11 @@ def to_v1_distortion_params(
   distortion_params_v1 = distortion_params_pb2.DistortionParams(
       k1=distortion_params.k1,
       k2=distortion_params.k2,
-      k3=distortion_params.k3,
       p1=distortion_params.p1,
       p2=distortion_params.p2,
   )
+  if distortion_params.HasField("k3"):
+    distortion_params_v1.k3 = distortion_params.k3
   if distortion_params.HasField("k4"):
     distortion_params_v1.k4 = distortion_params.k4
   if distortion_params.HasField("k5"):
