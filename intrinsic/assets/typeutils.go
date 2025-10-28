@@ -86,6 +86,14 @@ func AssetTypesWithInstances() []atypepb.AssetType {
 	return assetTypes
 }
 
+// AssetTypesWithObjects returns the AssetTypes that entail objects.
+func AssetTypesWithObjects() []atypepb.AssetType {
+	return []atypepb.AssetType{
+		atypepb.AssetType_ASSET_TYPE_SCENE_OBJECT,
+		atypepb.AssetType_ASSET_TYPE_HARDWARE_DEVICE,
+	}
+}
+
 // AssetTypeCodeName returns the code name of an AssetType.
 func AssetTypeCodeName(a atypepb.AssetType) string {
 	if info, ok := allAssetTypeInfo[a]; ok {
