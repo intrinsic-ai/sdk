@@ -379,7 +379,6 @@ type dialInfoParams struct {
 }
 
 func dialConnectionCtx(ctx context.Context, params dialInfoParams) (context.Context, *grpc.ClientConn, string, error) {
-
 	address, err := resolveClusterAddress(params.Address, params.Project)
 	if err != nil {
 		return ctx, nil, "", err
