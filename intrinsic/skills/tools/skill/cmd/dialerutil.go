@@ -94,7 +94,7 @@ func DialConnectionCtx(ctx context.Context, params DialInfoParams) (context.Cont
 		return nil, nil, fmt.Errorf("dial info: %w", err)
 	}
 
-	conn, err := grpc.DialContext(ctx, addr, *dialerOpts...)
+	conn, err := grpc.NewClient(addr, *dialerOpts...)
 	if err != nil {
 		return nil, nil, fmt.Errorf("dialing context: %w", err)
 	}
