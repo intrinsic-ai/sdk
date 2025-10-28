@@ -145,7 +145,7 @@ func DialCatalog(ctx context.Context, opts DialCatalogOptions) (context.Context,
 		}
 	}
 
-	conn, err := grpc.DialContext(dialCtx, address, dialOpts...)
+	conn, err := grpc.NewClient(address, dialOpts...)
 	if err != nil {
 		return nil, nil, fmt.Errorf("cannot dial catalog: %w", err)
 	}
@@ -400,7 +400,7 @@ func dialConnectionCtx(ctx context.Context, params dialInfoParams) (context.Cont
 		ctx = metadata.AppendToOutgoingContext(ctx, "x-server-name", params.Cluster)
 	}
 
-	conn, err := grpc.DialContext(ctx, address, dialOpts...)
+	conn, err := grpc.NewClient(address, dialOpts...)
 	if err != nil {
 		return ctx, nil, "", fmt.Errorf("could not dial context: %w", err)
 	}
