@@ -73,9 +73,9 @@ absl::StatusOr<std::unique_ptr<SkillRegistryClient>> CreateSkillRegistryClient(
   channel_args.SetMaxReceiveMessageSize(10000000);  // 10 MB
   channel_args.SetMaxSendMessageSize(10000000);     // 10 MB
 
-  INTR_ASSIGN_OR_RETURN(
-      std::shared_ptr<grpc::Channel> channel,
-      CreateClientChannel(grpc_address, absl::Now() + timeout, channel_args));
+  INTR_ASSIGN_OR_RETURN(std::shared_ptr<grpc::Channel> channel,
+                        connect::CreateClientChannel(
+                            grpc_address, absl::Now() + timeout, channel_args));
 
   return std::make_unique<SkillRegistryClient>(
       intrinsic_proto::skills::SkillRegistryInternal::NewStub(channel),

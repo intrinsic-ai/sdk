@@ -108,8 +108,8 @@ absl::StatusOr<std::shared_ptr<Channel>> Channel::MakeFromAddress(
   // b/275280379).
   INTR_ASSIGN_OR_RETURN(
       std::shared_ptr<grpc::Channel> channel,
-      CreateClientChannel(params.address, absl::Now() + timeout,
-                          UnlimitedMessageSizeGrpcChannelArgs()));
+      connect::CreateClientChannel(params.address, absl::Now() + timeout,
+                                   UnlimitedMessageSizeGrpcChannelArgs()));
   return std::shared_ptr<Channel>(
       new Channel(channel, params.instance_name, params.header));
 }

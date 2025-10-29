@@ -44,9 +44,10 @@ absl::StatusOr<std::shared_ptr<
     intrinsic_proto::motion_planning::v1::MotionPlannerService::Stub>>
 CreateMotionPlannerServiceStub(absl::string_view motion_planner_service_address,
                                absl::Duration connection_timeout) {
-  INTR_ASSIGN_OR_RETURN(const std::shared_ptr<grpc::Channel> channel,
-                        CreateClientChannel(motion_planner_service_address,
-                                            absl::Now() + connection_timeout));
+  INTR_ASSIGN_OR_RETURN(
+      const std::shared_ptr<grpc::Channel> channel,
+      connect::CreateClientChannel(motion_planner_service_address,
+                                   absl::Now() + connection_timeout));
   return intrinsic_proto::motion_planning::v1::MotionPlannerService::NewStub(
       channel);
 }
@@ -75,8 +76,8 @@ absl::Status SkillInit(
   // Set up world service.
   INTR_ASSIGN_OR_RETURN(
       const std::shared_ptr<grpc::Channel> world_service_channel,
-      CreateClientChannel(world_service_address,
-                          absl::Now() + connection_timeout));
+      connect::CreateClientChannel(world_service_address,
+                                   absl::Now() + connection_timeout));
 
   std::shared_ptr<ObjectWorldService::StubInterface> object_world_service =
       ObjectWorldService::NewStub(world_service_channel);

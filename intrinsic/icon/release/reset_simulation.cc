@@ -45,7 +45,7 @@ absl::Status ResetSimulation(absl::string_view address) {
 
   INTR_ASSIGN_OR_RETURN(
       std::shared_ptr<grpc::Channel> channel,
-      intrinsic::CreateClientChannel(
+      intrinsic::connect::CreateClientChannel(
           address, absl::Now() + intrinsic::kGrpcClientConnectDefaultTimeout));
   std::unique_ptr<intrinsic_proto::simulation::v1::SimulationService::Stub>
       stub(

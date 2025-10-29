@@ -52,8 +52,8 @@ absl::StatusOr<StructuredLoggingClient> StructuredLoggingClient::Create(
     absl::string_view address, absl::Time deadline) {
   INTR_ASSIGN_OR_RETURN(
       std::shared_ptr<grpc::Channel> channel,
-      CreateClientChannel(address, deadline,
-                          UnlimitedMessageSizeGrpcChannelArgs()));
+      connect::CreateClientChannel(address, deadline,
+                                   UnlimitedMessageSizeGrpcChannelArgs()));
   return StructuredLoggingClient(channel);
 }
 

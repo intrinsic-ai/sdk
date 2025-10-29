@@ -133,8 +133,8 @@ absl::Status StartUpIntrinsicLoggerViaGrpc(absl::string_view target_address,
                                            absl::Duration timeout) {
   INTR_ASSIGN_OR_RETURN(
       std::shared_ptr<grpc::Channel> channel,
-      CreateClientChannel(target_address, absl::Now() + timeout,
-                          UnlimitedMessageSizeGrpcChannelArgs()));
+      connect::CreateClientChannel(target_address, absl::Now() + timeout,
+                                   UnlimitedMessageSizeGrpcChannelArgs()));
   return StartUpIntrinsicLoggerViaStub(
       intrinsic_proto::data_logger::DataLogger::NewStub(channel));
 }

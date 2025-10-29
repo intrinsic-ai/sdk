@@ -25,9 +25,9 @@ absl::StatusOr<std::unique_ptr<ResourceRegistryClient>>
 CreateResourceRegistryClient(absl::string_view grpc_address,
                              absl::Duration timeout,
                              absl::Duration connection_timeout) {
-  INTR_ASSIGN_OR_RETURN(
-      std::shared_ptr<grpc::Channel> channel,
-      CreateClientChannel(grpc_address, absl::Now() + connection_timeout));
+  INTR_ASSIGN_OR_RETURN(std::shared_ptr<grpc::Channel> channel,
+                        connect::CreateClientChannel(
+                            grpc_address, absl::Now() + connection_timeout));
   return std::make_unique<ResourceRegistryClient>(
       intrinsic_proto::resources::ResourceRegistry::NewStub(channel), timeout);
 }
