@@ -72,22 +72,6 @@ func makeSkillAssetHandlers(manifest *smpb.SkillManifest, opts ProcessSkillOpts)
 			}
 			return nil
 		}
-	case *smpb.SkillAssets_BehaviorTreeFilename:
-		p := manifest.GetAssets().GetBehaviorTreeFilename()
-		if opts.BehaviorTreeProcessor == nil {
-			handlers[p] = ignoreHandler
-		} else {
-			handlers[p] = func(r io.Reader) error {
-				cas, err := opts.BehaviorTreeProcessor(r)
-				if err != nil {
-					return fmt.Errorf("error processing behavior tree: %v", err)
-				}
-				processedAssets.DeploymentType = &psmpb.ProcessedSkillAssets_BehaviorTreeCasUri{
-					BehaviorTreeCasUri: cas,
-				}
-				return nil
-			}
-		}
 	}
 	return processedAssets, handlers
 }
@@ -125,15 +109,10 @@ func ReadSkillManifest(path string) (*smpb.SkillManifest, error) {
 	return m, nil
 }
 
-// BehaviorTreeProcessor is a closure that pushes a serialized behavior tree
-// to CAS and returns a reference to the stored object.
-type BehaviorTreeProcessor func(r io.Reader) (string, error)
-
 // ProcessSkillOpts contains the necessary handlers to generate a processed
 // skill manifest.
 type ProcessSkillOpts struct {
 	ImageProcessor
-	BehaviorTreeProcessor
 }
 
 // ProcessSkill creates a processed manifest from a bundle on disk using the
@@ -199,7 +178,6 @@ type WriteSkillOpts struct {
 	Manifest    *smpb.SkillManifest
 	Descriptors *descriptorpb.FileDescriptorSet
 	ImageTar    string
-	PBT         string
 }
 
 // WriteSkill creates a tar archive at the specified path with the details
@@ -208,9 +186,6 @@ type WriteSkillOpts struct {
 func WriteSkill(path string, opts WriteSkillOpts) error {
 	if opts.Manifest == nil {
 		return fmt.Errorf("opts.Manifest must not be nil")
-	}
-	if opts.ImageTar != "" && opts.PBT != "" {
-		return fmt.Errorf("opts.ImageTar and opts.PBT cannot both be set")
 	}
 
 	out, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
@@ -234,15 +209,6 @@ func WriteSkill(path string, opts WriteSkillOpts) error {
 			ImageFilename: base,
 		}
 		if err := tartooling.AddFile(opts.ImageTar, tw, base); err != nil {
-			return fmt.Errorf("unable to write %q to bundle: %v", path, err)
-		}
-	}
-	if opts.PBT != "" {
-		base := filepath.Base(opts.PBT)
-		opts.Manifest.Assets.DeploymentType = &smpb.SkillAssets_BehaviorTreeFilename{
-			BehaviorTreeFilename: base,
-		}
-		if err := tartooling.AddFile(opts.PBT, tw, base); err != nil {
 			return fmt.Errorf("unable to write %q to bundle: %v", path, err)
 		}
 	}

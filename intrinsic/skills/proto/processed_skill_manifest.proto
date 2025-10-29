@@ -46,13 +46,13 @@ message ProcessedSkillAssets {
   oneof deployment_type {
     // A container image for the skill with its service.
     workcell_spec.v1.Image image = 1;
-
-    // A parameterizable behavior tree.
-    string behavior_tree_cas_uri = 2;
   }
   // A complete descriptor set for the skill's parameter and execute_result
   // proto messages.
   google.protobuf.FileDescriptorSet file_descriptor_set = 3;
+
+  reserved 2;
+  reserved "behavior_tree_cas_uri";
 }
 
 message ProcessedSkillManifest {

@@ -147,12 +147,13 @@ message SkillAssets {
   oneof deployment_type {
     // The filename of the skill image.
     string image_filename = 1;
-    // A binary proto file that contains the parameterizable behavior tree.
-    string behavior_tree_filename = 2;
   }
   // A complete descriptor set for the skill's parameter and execute_result
   // proto messages.
   optional string file_descriptor_set_filename = 3;
+
+  reserved 2;
+  reserved "behavior_tree_filename";
 }
 
 message SkillManifest {

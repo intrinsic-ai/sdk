@@ -14,7 +14,6 @@ import (
 var (
 	flagFileDescriptorSets []string
 	flagOciImage           string
-	flagPBT                string
 	flagManifest           string
 	flagOutput             string
 )
@@ -33,7 +32,6 @@ func resetBundleCommand() {
 
 	BundleCmd.Flags().StringArrayVar(&flagFileDescriptorSets, "file_descriptor_set", nil, "Path to binary file descriptor set protos to be used to resolve messages referenced by the skill manifest")
 	BundleCmd.Flags().StringVar(&flagOciImage, "oci_image", "", "Path to tar archive of an OCI image")
-	BundleCmd.Flags().StringVar(&flagPBT, "parameterized_behavior_tree", "", "Path to a parameterized behavior tree")
 	BundleCmd.Flags().StringVar(&flagManifest, "manifest", "", "Path to a SkillManifest textproto file")
 	BundleCmd.Flags().StringVar(&flagOutput, "output", "skill.bundle.tar", "Path to write skill bundle to")
 }
@@ -64,7 +62,6 @@ func run(cmd *cobra.Command, args []string) error {
 		Manifest:    m,
 		Descriptors: fds,
 		ImageTar:    flagOciImage,
-		PBT:         flagPBT,
 	})
 }
 

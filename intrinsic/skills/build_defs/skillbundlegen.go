@@ -17,7 +17,6 @@ import (
 var (
 	flagFileDescriptorSet = flag.String("file_descriptor_set", "", "File descriptor set.")
 	flagImageTar          = flag.String("image_tar", "", "Skill image file.")
-	flagPBT               = flag.String("pbt", "", "Parameterized behavior tree file.")
 	flagManifest          = flag.String("manifest", "", "Skill manifest.")
 
 	flagOutputBundle = flag.String("output_bundle", "", "Output path.")
@@ -40,7 +39,6 @@ func main() {
 		Manifest:    m,
 		Descriptors: fds,
 		ImageTar:    *flagImageTar,
-		PBT:         *flagPBT,
 	}); err != nil {
 		log.Exitf("unable to write skill bundle: %v", err)
 	}
