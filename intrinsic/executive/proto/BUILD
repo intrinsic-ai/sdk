@@ -254,6 +254,7 @@ proto_library(
     deps = [
         "@com_google_protobuf//:any_proto",
         "@com_google_protobuf//:empty_proto",
+        "@com_google_protobuf//:timestamp_proto",
     ],
 )
 
@@ -301,6 +302,7 @@ go_grpc_library(
         "@org_golang_google_genproto_googleapis_api//annotations",
         "@org_golang_google_protobuf//types/known/anypb",
         "@org_golang_google_protobuf//types/known/emptypb",
+        "@org_golang_google_protobuf//types/known/timestamppb",
     ],
 )
 
