@@ -93,6 +93,9 @@ type Interface struct {
 
 	// DisplayName is a pretty name set by the user.
 	DisplayName string `json:"display_name"`
+
+	// PTP specifies whether this interface provides a PTP clock to the network.
+	PTP bool `json:"ptp,omitempty"`
 }
 
 // String implements fmt.Stringer for logging purposes.
