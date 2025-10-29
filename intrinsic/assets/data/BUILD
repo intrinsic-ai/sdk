@@ -1,8 +1,65 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
+load("@ai_intrinsic_sdks_pip_deps//:requirements.bzl", "requirement")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_python//python:defs.bzl", "py_library")
 load("//bazel:go_macros.bzl", "go_library", "go_test")
 
-# Code for working with Data Assets.
+go_library(
+    name = "fakedataassets",
+    testonly = True,
+    srcs = ["fake_data_assets.go"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        "//intrinsic/assets:idutils",
+        "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
+        "//intrinsic/assets/data/proto/v1:data_assets_go_grpc_proto",
+        "//intrinsic/assets/proto:metadata_go_proto",
+        "//intrinsic/testing:grpctest",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//codes:go_default_library",
+        "@org_golang_google_grpc//credentials/local:go_default_library",
+        "@org_golang_google_grpc//status:go_default_library",
+    ],
+)
+
+cc_library(
+    name = "fake_data_assets_cc",
+    testonly = True,
+    srcs = ["fake_data_assets.cc"],
+    hdrs = ["fake_data_assets.h"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        "//intrinsic/assets:id_utils",
+        "//intrinsic/assets/data/proto/v1:data_assets_cc_grpc_proto",
+        "//intrinsic/assets/data/proto/v1:data_assets_cc_proto",
+        "//intrinsic/util/status:ret_check",
+        "//intrinsic/util/status:status_macros",
+        "//intrinsic/util/status:status_macros_grpc",
+        "@abseil-cpp//absl/container:flat_hash_map",
+        "@abseil-cpp//absl/log",
+        "@abseil-cpp//absl/memory",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/types:span",
+        "@com_github_grpc_grpc//:grpc++",
+    ],
+)
+
+py_library(
+    name = "fake_data_assets_py",
+    testonly = True,
+    srcs = ["fake_data_assets.py"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        "//intrinsic/assets:id_utils_py",
+        "//intrinsic/assets/data/proto/v1:data_asset_py_pb2",
+        "//intrinsic/assets/data/proto/v1:data_assets_py_pb2",
+        "//intrinsic/assets/data/proto/v1:data_assets_py_pb2_grpc",
+        requirement("grpcio"),
+    ],
+)
 
 go_library(
     name = "utils",
