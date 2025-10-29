@@ -140,6 +140,9 @@ message InstalledAsset {
     // Deprecated: Please use the provides field in the metadata.
     repeated string service_proto_prefixes = 1 [deprecated = true];
   }
+  message SkillMetadata {
+    intrinsic_proto.skills.SkillDetails details = 1;
+  }
   message HardwareDeviceMetadata {
     // The list of gRPC services that the HardwareDevice exposes.
     // Deprecated: Please use the provides field in the metadata.
@@ -158,6 +161,7 @@ message InstalledAsset {
   oneof asset_specific_metadata {
     DataMetadata data_specific_metadata = 4;
     ServiceMetadata service_specific_metadata = 3;
+    SkillMetadata skill_specific_metadata = 6;
     HardwareDeviceMetadata hardware_device_specific_metadata = 5;
   }
 
