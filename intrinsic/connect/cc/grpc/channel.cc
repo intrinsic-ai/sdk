@@ -226,13 +226,11 @@ absl::StatusOr<std::shared_ptr<grpc::Channel>> GrpcChannel::Connect() {
             << ")";
 
   absl::Status status;
+  std::shared_ptr<::grpc::Channel> channel = ::grpc::CreateCustomChannel(
+      address_,
+      credentials_ == nullptr ? grpc::GoogleDefaultCredentials() : credentials_,
+      channel_args_);
   while (clock_->Now() < deadline_) {
-    std::shared_ptr<::grpc::Channel> channel = ::grpc::CreateCustomChannel(
-        address_,
-        credentials_ == nullptr ? grpc::GoogleDefaultCredentials()
-                                : credentials_,
-        channel_args_);
-
     status = WaitForChannelConnected(address_, channel, deadline_);
     if (!status.ok()) {
       LOG(WARNING) << "Channel not ready: " << status;
