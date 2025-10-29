@@ -24,6 +24,7 @@ from intrinsic.motion_planning.proto.v1 import geometric_constraints_pb2
 from intrinsic.motion_planning.proto.v1 import motion_planner_config_pb2
 from intrinsic.motion_planning.proto.v1 import motion_planner_service_pb2
 from intrinsic.motion_planning.proto.v1 import motion_planner_service_pb2_grpc
+from intrinsic.motion_planning.proto.v1 import motion_planning_pb2
 from intrinsic.motion_planning.proto.v1 import motion_specification_pb2
 from intrinsic.motion_planning.proto.v1 import robot_specification_pb2
 from intrinsic.world.proto import collision_settings_pb2
@@ -161,6 +162,49 @@ class MotionPlannerClient(MotionPlannerClientBase):
       )
     response = self._stub.PlanTrajectory(request)
     return response.discretized
+
+  def plan_path(
+      self,
+      robot_specification: robot_specification_pb2.RobotSpecification,
+      motion_specification: motion_specification_pb2.MotionSpecification,
+      options: MotionPlanningOptions = MotionPlanningOptions(),
+      caller_id: str = "Anonymous",
+  ) -> motion_planning_pb2.Path:
+    """Plan path for a given motion planning problem and robot.
+
+    This method calls the Plan Path rpc.
+
+    Args:
+      robot_specification: Robot specification
+      motion_specification: Motion specification, see MotionSpecification proto.
+      options: Motion planning options that allows the path planning timeout to
+        be set.
+      caller_id: The id used for logging the request in the motion planner
+        service.
+
+    Returns:
+      Planned path consisting of waypoints.
+    """
+    request = motion_planner_service_pb2.MotionPlanningRequest(
+        world_id=self._world_id,
+        robot_specification=robot_specification,
+        motion_specification=motion_specification,
+        caller_id=caller_id,
+    )
+    request.motion_planner_config.timeout_sec.seconds = (
+        options.path_planning_time_out
+    )
+
+    if options.path_planning_step_size is not None:
+      request.motion_planner_config.path_planning_step_size = (
+          options.path_planning_step_size
+      )
+    if options.lock_motion_configuration:
+      request.motion_planner_config.lock_motion_configuration.CopyFrom(
+          options.lock_motion_configuration
+      )
+    response = self._stub.PlanPath(request)
+    return response.path
 
   def compute_ik(
       self,

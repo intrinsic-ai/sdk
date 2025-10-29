@@ -49,6 +49,7 @@ py_library(
         "//intrinsic/motion_planning/proto/v1:motion_planner_config_py_pb2",
         "//intrinsic/motion_planning/proto/v1:motion_planner_service_py_pb2",
         "//intrinsic/motion_planning/proto/v1:motion_planner_service_py_pb2_grpc",
+        "//intrinsic/motion_planning/proto/v1:motion_planning_py_pb2",
         "//intrinsic/motion_planning/proto/v1:motion_specification_py_pb2",
         "//intrinsic/motion_planning/proto/v1:robot_specification_py_pb2",
         "//intrinsic/world/proto:collision_settings_py_pb2",

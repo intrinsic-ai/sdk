@@ -75,10 +75,35 @@ class MotionPlannerClient {
     std::string logging_id;
   };
 
+  struct PlanPathResult {
+    // The planned path. Contains at least two waypoints if planning was
+    // successful. Otherwise, it is empty.
+    intrinsic_proto::motion_planning::v1::Path path;
+    // The swept volume of the path. Only populated if compute_swept_volume is
+    // true in the MotionPlanningOptions.
+    std::vector<intrinsic_proto::geometry::TransformedGeometryStorageRefs>
+        swept_volume;
+    // Logging id generated for this request. Used for introspection.
+    std::string logging_id;
+  };
+
   // Plans a trajectory for a given motion planning problem and robot.
   // caller_id: The id used for logging the request in the motion planner
   // service.
   absl::StatusOr<PlanTrajectoryResult> PlanTrajectory(
+      const intrinsic_proto::motion_planning::v1::RobotSpecification&
+          robot_specification,
+      const intrinsic_proto::motion_planning::v1::MotionSpecification&
+          motion_specification,
+      const MotionPlanningOptions& options = MotionPlanningOptions::Defaults(),
+      const std::string& caller_id = "Anonymous",
+      const intrinsic_proto::data_logger::Context& context =
+          intrinsic_proto::data_logger::Context());
+
+  // Plans a path for a given motion planning problem and robot.
+  // caller_id: The id used for logging the request in the motion planner
+  // service.
+  absl::StatusOr<PlanPathResult> PlanPath(
       const intrinsic_proto::motion_planning::v1::RobotSpecification&
           robot_specification,
       const intrinsic_proto::motion_planning::v1::MotionSpecification&

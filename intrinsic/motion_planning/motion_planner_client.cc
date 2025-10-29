@@ -33,6 +33,44 @@
 
 namespace intrinsic {
 namespace motion_planning {
+namespace {
+
+intrinsic_proto::motion_planning::v1::MotionPlanningRequest
+CreateMotionPlanningRequest(
+    const intrinsic_proto::motion_planning::v1::RobotSpecification&
+        robot_specification,
+    const intrinsic_proto::motion_planning::v1::MotionSpecification&
+        motion_specification,
+    const MotionPlannerClient::MotionPlanningOptions& options,
+    const std::string& caller_id,
+    const intrinsic_proto::data_logger::Context& context,
+    absl::string_view world_id) {
+  intrinsic_proto::motion_planning::v1::MotionPlanningRequest request;
+  *request.mutable_robot_specification() = robot_specification;
+  *request.mutable_motion_specification() = motion_specification;
+  request.set_world_id(world_id);
+  request.set_compute_swept_volume(options.compute_swept_volume);
+  request.mutable_motion_planner_config()->mutable_timeout_sec()->set_seconds(
+      options.path_planning_time_out);
+  const int64_t s = request.motion_planner_config().timeout_sec().seconds();
+  request.mutable_motion_planner_config()->mutable_timeout_sec()->set_nanos(
+      (options.path_planning_time_out - s) * 1e9);
+  if (options.path_planning_step_size.has_value()) {
+    request.mutable_motion_planner_config()->set_path_planning_step_size(
+        *options.path_planning_step_size);
+  }
+  if (options.lock_motion_configuration.has_value()) {
+    *request.mutable_motion_planner_config()
+         ->mutable_lock_motion_configuration() =
+        options.lock_motion_configuration.value();
+  }
+  request.set_caller_id(caller_id);
+  *request.mutable_context() = context;
+
+  return request;
+}
+
+}  // namespace
 
 const MotionPlannerClient::MotionPlanningOptions&
 MotionPlannerClient::MotionPlanningOptions::Defaults() {
@@ -63,27 +101,9 @@ MotionPlannerClient::PlanTrajectory(
         motion_specification,
     const MotionPlanningOptions& options, const std::string& caller_id,
     const intrinsic_proto::data_logger::Context& context) {
-  intrinsic_proto::motion_planning::v1::MotionPlanningRequest request;
-  *request.mutable_robot_specification() = robot_specification;
-  *request.mutable_motion_specification() = motion_specification;
-  request.set_world_id(world_id_);
-  request.set_compute_swept_volume(options.compute_swept_volume);
-  request.mutable_motion_planner_config()->mutable_timeout_sec()->set_seconds(
-      options.path_planning_time_out);
-  const int64_t s = request.motion_planner_config().timeout_sec().seconds();
-  request.mutable_motion_planner_config()->mutable_timeout_sec()->set_nanos(
-      (options.path_planning_time_out - s) * 1e9);
-  if (options.path_planning_step_size.has_value()) {
-    request.mutable_motion_planner_config()->set_path_planning_step_size(
-        *options.path_planning_step_size);
-  }
-  if (options.lock_motion_configuration.has_value()) {
-    *request.mutable_motion_planner_config()
-         ->mutable_lock_motion_configuration() =
-        options.lock_motion_configuration.value();
-  }
-  request.set_caller_id(caller_id);
-  *request.mutable_context() = context;
+  intrinsic_proto::motion_planning::v1::MotionPlanningRequest request =
+      CreateMotionPlanningRequest(robot_specification, motion_specification,
+                                  options, caller_id, context, world_id_);
 
   intrinsic_proto::motion_planning::v1::TrajectoryPlanningResponse response;
   grpc::ClientContext ctx;
@@ -99,6 +119,33 @@ MotionPlannerClient::PlanTrajectory(
                               ? std::optional(response.lock_motion_id())
                               : std::nullopt;
   result.logging_id = response.logging_id();
+  return result;
+}
+
+absl::StatusOr<MotionPlannerClient::PlanPathResult>
+MotionPlannerClient::PlanPath(
+    const intrinsic_proto::motion_planning::v1::RobotSpecification&
+        robot_specification,
+    const intrinsic_proto::motion_planning::v1::MotionSpecification&
+        motion_specification,
+    const MotionPlanningOptions& options, const std::string& caller_id,
+    const intrinsic_proto::data_logger::Context& context) {
+  intrinsic_proto::motion_planning::v1::MotionPlanningRequest request =
+      CreateMotionPlanningRequest(robot_specification, motion_specification,
+                                  options, caller_id, context, world_id_);
+
+  intrinsic_proto::motion_planning::v1::PathPlanningResponse response;
+  grpc::ClientContext ctx;
+  INTR_RETURN_IF_ERROR(ToAbslStatus(
+      motion_planner_service_->PlanPath(&ctx, request, &response)));
+
+  MotionPlannerClient::PlanPathResult result;
+  result.path = response.path();
+  result.swept_volume.insert(result.swept_volume.begin(),
+                             response.swept_volume().begin(),
+                             response.swept_volume().end());
+  result.logging_id = response.logging_id();
+
   return result;
 }
 
