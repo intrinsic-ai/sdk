@@ -1,0 +1,14 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.motion_planning.v1;
+
+import "intrinsic/icon/proto/joint_space.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "MotionPlanningProtos";
+
+message Path {
+  repeated intrinsic_proto.icon.JointVec waypoints = 1;
+}

@@ -17,6 +17,7 @@ proto_library(
         ":compute_ik_proto",
         ":geometric_constraints_proto",
         ":motion_planner_config_proto",
+        ":motion_planning_proto",
         ":motion_specification_proto",
         ":robot_specification_proto",
         "//intrinsic/geometry/proto:transformed_geometry_storage_refs_proto",
@@ -80,6 +81,22 @@ cc_proto_library(
 py_proto_library(
     name = "motion_planning_limits_py_pb2",
     deps = [":motion_planning_limits_proto"],
+)
+
+proto_library(
+    name = "motion_planning_proto",
+    srcs = ["motion_planning.proto"],
+    deps = ["//intrinsic/icon/proto:joint_space_proto"],
+)
+
+py_proto_library(
+    name = "motion_planning_py_pb2",
+    deps = [":motion_planning_proto"],
+)
+
+cc_proto_library(
+    name = "motion_planning_cc_proto",
+    deps = [":motion_planning_proto"],
 )
 
 py_proto_library(
