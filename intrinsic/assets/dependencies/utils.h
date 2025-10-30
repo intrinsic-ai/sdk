@@ -7,8 +7,9 @@
 
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
+#include "google/protobuf/any.pb.h"
 #include "grpcpp/client_context.h"
-#include "grpcpp/grpcpp.h"
+#include "intrinsic/assets/data/proto/v1/data_assets.grpc.pb.h"
 #include "intrinsic/assets/proto/v1/resolved_dependency.pb.h"
 
 namespace intrinsic::assets::dependencies {
@@ -22,6 +23,13 @@ absl::StatusOr<std::shared_ptr<grpc::Channel>> Connect(
     grpc::ClientContext& context,
     const intrinsic_proto::assets::v1::ResolvedDependency& dep,
     absl::string_view iface);
+
+// Retrieves the payload for the specified data interface.
+absl::StatusOr<google::protobuf::Any> GetDataPayload(
+    const intrinsic_proto::assets::v1::ResolvedDependency& dep,
+    absl::string_view iface,
+    intrinsic_proto::data::v1::DataAssets::StubInterface* data_assets_client =
+        nullptr);
 
 }  // namespace intrinsic::assets::dependencies
 
