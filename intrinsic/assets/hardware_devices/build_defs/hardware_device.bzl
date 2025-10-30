@@ -111,7 +111,7 @@ def _intrinsic_hardware_device_impl(ctx):
         ),
     ]
 
-intrinsic_hardware_device = rule(
+_intrinsic_hardware_device = rule(
     implementation = _intrinsic_hardware_device_impl,
     attrs = {
         "manifest": attr.label(
@@ -144,3 +144,13 @@ intrinsic_hardware_device = rule(
     provides = [HardwareDeviceAssetInfo, AssetInfo, AssetLocalInfo],
     doc = "Bundles a HardwareDevice asset into a tar file.",
 )
+
+# buildifier: disable=function-docstring
+def intrinsic_hardware_device(name, **kwargs):
+    visibility = kwargs.pop("visibility", None)
+
+    _intrinsic_hardware_device(
+        name = name,
+        visibility = visibility,
+        **kwargs
+    )

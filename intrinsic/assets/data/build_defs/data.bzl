@@ -99,7 +99,7 @@ def _intrinsic_data_impl(ctx):
         ),
     ]
 
-intrinsic_data = rule(
+_intrinsic_data = rule(
     implementation = _intrinsic_data_impl,
     attrs = {
         "manifest": attr.label(
@@ -136,3 +136,13 @@ intrinsic_data = rule(
     provides = [DataAssetInfo, AssetInfo, AssetLocalInfo],
     doc = "Bundles a Data asset into a tar file.",
 )
+
+# buildifier: disable=function-docstring
+def intrinsic_data(name, **kwargs):
+    visibility = kwargs.pop("visibility", None)
+
+    _intrinsic_data(
+        name = name,
+        visibility = visibility,
+        **kwargs
+    )

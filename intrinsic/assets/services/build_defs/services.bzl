@@ -112,7 +112,7 @@ def _intrinsic_service_impl(ctx):
         ),
     ]
 
-intrinsic_service = rule(
+_intrinsic_service = rule(
     implementation = _intrinsic_service_impl,
     attrs = {
         "default_config": attr.label(
@@ -153,3 +153,13 @@ intrinsic_service = rule(
     },
     provides = [ServiceTypeInfo, AssetInfo, AssetLocalInfo],
 )
+
+# buildifier: disable=function-docstring
+def intrinsic_service(name, **kwargs):
+    visibility = kwargs.pop("visibility", None)
+
+    _intrinsic_service(
+        name = name,
+        visibility = visibility,
+        **kwargs
+    )
