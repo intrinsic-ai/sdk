@@ -59,10 +59,70 @@ message GraspAnnotatorVisualizeResponse {
   google.rpc.Status status = 1;
 }
 
+message SaveAnnotationsRequest {
+  // Annotations to save
+  GraspAnnotations annotations = 1;
+
+  // Edits on top of the annotations
+  GraspAnnotationsEdits edits = 2;
+
+  // Asset id of object for which to store these annotations.
+  string scene_object_id = 3;
+
+  // User-specified ID for this annotation set
+  // Will overwrite any existing annotations for this ID
+  string annotations_id = 4;
+}
+
+message SaveAnnotationsResponse {}
+
+message FetchAnnotationsRequest {
+  // Unique id of object whose annotations to fetch
+  string scene_object_id = 1;
+
+  // ID for annotation set
+  string annotations_id = 2;
+}
+
+message FetchAnnotationsResponse {
+  // Annotations for the given object
+  GraspAnnotations annotations = 1;
+
+  // Edits on top of the annotations
+  GraspAnnotationsEdits edits = 2;
+}
+
+message CopyAnnotationsRequest {
+  // Object whose annotations to copy
+  string scene_scene_object_id = 1;
+
+  // ID of annotation set to copy
+  string annotations_id = 2;
+
+  // Name of cluster whose KV store to copy to.  Empty string to copy
+  // to the global KV store.
+  optional string destination = 3;
+}
+
+message CopyAnnotationsResponse {}
+
 service GraspAnnotator {
   // Annotate grasps.
   rpc Annotate(GraspAnnotatorRequest) returns (GraspAnnotatorResponse) {}
+
   // Visualize grasp annotations.
   rpc Visualize(GraspAnnotatorVisualizeRequest)
       returns (stream GraspAnnotatorVisualizeResponse) {}
+
+  // Save annotations to KV store.
+  rpc SaveAnnotations(SaveAnnotationsRequest)
+      returns (SaveAnnotationsResponse) {}
+
+  // Fetch saved annotations from KV store
+  rpc FetchAnnotations(FetchAnnotationsRequest)
+      returns (FetchAnnotationsResponse) {}
+
+  // Copy annotations to another KV store
+  rpc CopyAnnotations(CopyAnnotationsRequest)
+      returns (CopyAnnotationsResponse) {}
 }

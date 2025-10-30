@@ -12,6 +12,12 @@ message GraspAnnotations {
     BoxShapedGraspAnnotationParams box_shaped_grasp_annotations = 1;
     ManualGraspAnnotations manual_grasp_annotations = 2;
     string manual_grasp_annotations_json = 3;
+
+    // If this field is provided, it must be of form ASSET_ID/ANNOTATIONS_ID,
+    // and it is then interpreted to refer to annotations locally stored in this
+    // cluster's key value store under
+    // intrinsic/grasping/annotations/ASSET_ID/ANNOTATIONS_ID
+    string stored_annotations_key = 4;
   }
 }
 
@@ -68,4 +74,18 @@ message BoxShapedGraspAnnotationParams {
   // axis; `2` for y-axis positive axis; `3` for y-axis negative axis, `4` for
   // z-axis positive, `5` for z-axis negative.
   repeated int32 surfaces = 4;
+}
+
+message GraspAnnotationsEdits {
+  repeated GraspAnnotationsEdit edits = 1;
+}
+
+message DisableAnnotation {
+  int32 annotation_idx = 1;
+}
+
+message GraspAnnotationsEdit {
+  oneof edit {
+    DisableAnnotation disable_annotation = 1;
+  }
 }
