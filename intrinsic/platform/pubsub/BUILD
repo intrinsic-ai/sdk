@@ -19,6 +19,7 @@ exports_files(
     ],
     visibility = [
         "//intrinsic/kubernetes:__subpackages__",
+        "//intrinsic/manipulation:__subpackages__",
         "//intrinsic/perception:__subpackages__",
         "//intrinsic/platform/pubsub:__subpackages__",
     ],
