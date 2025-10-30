@@ -15,7 +15,7 @@ import (
 	"github.com/spf13/cobra"
 	"go.opencensus.io/trace"
 	"golang.org/x/exp/slices"
-	"intrinsic/production/intrinsic"
+	intrinsic "intrinsic/production/intrinsic"
 	"intrinsic/skills/tools/skill/cmd/dialerutil"
 	"intrinsic/tools/inctl/util/orgutil"
 	"intrinsic/tools/inctl/util/printer"
