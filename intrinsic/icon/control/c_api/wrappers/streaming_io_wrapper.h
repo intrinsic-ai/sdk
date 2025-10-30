@@ -62,8 +62,8 @@ IntrinsicIconStreamingInputType* InvokeParser(
     IntrinsicIconStringView proto_input_string,
     IntrinsicIconRealtimeStatus* status_out) {
   google::protobuf::Any any_input;
-  if (!any_input.ParseFromArray(proto_input_string.data,
-                                proto_input_string.size)) {
+  if (!any_input.ParseFromString(absl::string_view(proto_input_string.data,
+                                                   proto_input_string.size))) {
     *status_out = FromRealtimeStatus(
         icon::InternalError("Failed to parse streaming input proto."));
     return nullptr;
