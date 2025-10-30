@@ -41,7 +41,7 @@ namespace skills {
 
 absl::StatusOr<std::unique_ptr<SkillRegistryClient>> CreateSkillRegistryClient(
     absl::string_view grpc_address, absl::Duration timeout) {
-  grpc::ChannelArguments channel_args = DefaultGrpcChannelArgs();
+  grpc::ChannelArguments channel_args = connect::DefaultGrpcChannelArgs();
 
   // The skill registry may need to call out to one or more skill information
   // services. Those services might not be ready at startup. We configure a
