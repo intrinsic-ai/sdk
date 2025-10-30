@@ -120,7 +120,7 @@ func GetCommand() *cobra.Command {
 			var asset *iapb.CreateInstalledAssetRequest_Asset
 			if idvParts, err := idutils.NewIDVersionParts(target); err != nil {
 				if !fileExists {
-					return fmt.Errorf("failed to parse id_version: %v", err)
+					return fmt.Errorf("%q is neither a file nor a valid id_version (package.name.version); if it's intended to be a file, check that the path is correct, otherwise check it exactly matches the id_version in the catalog", target)
 				}
 				processedBundle, err := processor.Process(target)
 				if err != nil {
