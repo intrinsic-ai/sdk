@@ -11,55 +11,71 @@ import (
 )
 
 type assetTypeInfo struct {
-	CodeName          string
-	DisplayName       string
-	DisplayNamePlural string
-	HasInstances      bool
+	CodeName                  string
+	DisplayName               string
+	DisplayNamePlural         string
+	HasFullViewDeploymentData bool
+	HasInstances              bool
+	HasObjects                bool
 }
 
 var (
 	allAssetTypeInfo = map[atypepb.AssetType]assetTypeInfo{
 		atypepb.AssetType_ASSET_TYPE_UNSPECIFIED: assetTypeInfo{
-			CodeName:          "unspecified",
-			DisplayName:       "Asset",
-			DisplayNamePlural: "Assets",
-			HasInstances:      false,
+			CodeName:                  "unspecified",
+			DisplayName:               "Asset",
+			DisplayNamePlural:         "Assets",
+			HasFullViewDeploymentData: false,
+			HasInstances:              false,
+			HasObjects:                false,
 		},
 		atypepb.AssetType_ASSET_TYPE_SCENE_OBJECT: assetTypeInfo{
-			CodeName:          "scene_object",
-			DisplayName:       "SceneObject",
-			DisplayNamePlural: "SceneObjects",
-			HasInstances:      true,
+			CodeName:                  "scene_object",
+			DisplayName:               "SceneObject",
+			DisplayNamePlural:         "SceneObjects",
+			HasFullViewDeploymentData: true,
+			HasInstances:              true,
+			HasObjects:                true,
 		},
 		atypepb.AssetType_ASSET_TYPE_SERVICE: assetTypeInfo{
-			CodeName:          "service",
-			DisplayName:       "Service",
-			DisplayNamePlural: "Services",
-			HasInstances:      true,
+			CodeName:                  "service",
+			DisplayName:               "Service",
+			DisplayNamePlural:         "Services",
+			HasFullViewDeploymentData: false,
+			HasInstances:              true,
+			HasObjects:                false,
 		},
 		atypepb.AssetType_ASSET_TYPE_SKILL: assetTypeInfo{
-			CodeName:          "skill",
-			DisplayName:       "Skill",
-			DisplayNamePlural: "Skills",
-			HasInstances:      false,
+			CodeName:                  "skill",
+			DisplayName:               "Skill",
+			DisplayNamePlural:         "Skills",
+			HasFullViewDeploymentData: false,
+			HasInstances:              false,
+			HasObjects:                false,
 		},
 		atypepb.AssetType_ASSET_TYPE_HARDWARE_DEVICE: assetTypeInfo{
-			CodeName:          "hardware_device",
-			DisplayName:       "HardwareDevice",
-			DisplayNamePlural: "HardwareDevices",
-			HasInstances:      true,
+			CodeName:                  "hardware_device",
+			DisplayName:               "HardwareDevice",
+			DisplayNamePlural:         "HardwareDevices",
+			HasFullViewDeploymentData: false,
+			HasInstances:              true,
+			HasObjects:                true,
 		},
 		atypepb.AssetType_ASSET_TYPE_DATA: assetTypeInfo{
-			CodeName:          "data",
-			DisplayName:       "Data",
-			DisplayNamePlural: "Data",
-			HasInstances:      false,
+			CodeName:                  "data",
+			DisplayName:               "Data",
+			DisplayNamePlural:         "Data",
+			HasFullViewDeploymentData: true,
+			HasInstances:              false,
+			HasObjects:                false,
 		},
 		atypepb.AssetType_ASSET_TYPE_PROCESS: assetTypeInfo{
-			CodeName:          "process",
-			DisplayName:       "Process",
-			DisplayNamePlural: "Processes",
-			HasInstances:      false,
+			CodeName:                  "process",
+			DisplayName:               "Process",
+			DisplayNamePlural:         "Processes",
+			HasFullViewDeploymentData: true,
+			HasInstances:              false,
+			HasObjects:                false,
 		},
 	}
 )
@@ -69,6 +85,18 @@ func AllAssetTypes() []atypepb.AssetType {
 	var assetTypes []atypepb.AssetType
 	for assetType := range allAssetTypeInfo {
 		if assetType != atypepb.AssetType_ASSET_TYPE_UNSPECIFIED {
+			assetTypes = append(assetTypes, assetType)
+		}
+	}
+	return assetTypes
+}
+
+// AssetTypesWithFullViewDeploymentData returns the AssetTypes that provide deployment data in
+// ASSET_VIEW_TYPE_FULL views.
+func AssetTypesWithFullViewDeploymentData() []atypepb.AssetType {
+	var assetTypes []atypepb.AssetType
+	for assetType := range allAssetTypeInfo {
+		if allAssetTypeInfo[assetType].HasFullViewDeploymentData {
 			assetTypes = append(assetTypes, assetType)
 		}
 	}
@@ -88,10 +116,13 @@ func AssetTypesWithInstances() []atypepb.AssetType {
 
 // AssetTypesWithObjects returns the AssetTypes that entail objects.
 func AssetTypesWithObjects() []atypepb.AssetType {
-	return []atypepb.AssetType{
-		atypepb.AssetType_ASSET_TYPE_SCENE_OBJECT,
-		atypepb.AssetType_ASSET_TYPE_HARDWARE_DEVICE,
+	var assetTypes []atypepb.AssetType
+	for assetType := range allAssetTypeInfo {
+		if allAssetTypeInfo[assetType].HasObjects {
+			assetTypes = append(assetTypes, assetType)
+		}
 	}
+	return assetTypes
 }
 
 // AssetTypeCodeName returns the code name of an AssetType.
