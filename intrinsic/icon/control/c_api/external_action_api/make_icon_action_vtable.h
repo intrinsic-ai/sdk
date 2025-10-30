@@ -71,8 +71,8 @@ IntrinsicIconRtclActionVtable MakeIconActionVtable() {
                    IntrinsicIconRtclAction** action_ptr_out)
           -> IntrinsicIconRealtimeStatus {
         google::protobuf::Any params_any;
-        if (!params_any.ParseFromArray(params_any_proto.data,
-                                       params_any_proto.size)) {
+        if (!params_any.ParseFromString(absl::string_view(
+                params_any_proto.data, params_any_proto.size))) {
           return FromAbslStatus(absl::InvalidArgumentError(
               "Failed to parse parameter Any proto from string."));
         }

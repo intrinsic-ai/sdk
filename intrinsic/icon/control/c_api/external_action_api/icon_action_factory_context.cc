@@ -31,8 +31,8 @@ intrinsic_proto::icon::v1::ServerConfig IconActionFactoryContext::ServerConfig()
           icon_action_factory_context_),
       DestroyIconString{icon_action_factory_context_vtable_.destroy_string});
   intrinsic_proto::icon::v1::ServerConfig config_proto;
-  config_proto.ParseFromArray(server_config_string->data,
-                              server_config_string->size);
+  config_proto.ParseFromString(absl::string_view(server_config_string->data,
+                                                 server_config_string->size));
   return config_proto;
 }
 
@@ -47,8 +47,8 @@ absl::StatusOr<intrinsic::icon::SlotInfo> IconActionFactoryContext::GetSlotInfo(
       DestroyIconString{icon_action_factory_context_vtable_.destroy_string});
   intrinsic::icon::SlotInfo slot_info;
   slot_info.slot_id = RealtimeSlotId(slot_info_c.realtime_slot_id);
-  slot_info.config.ParseFromArray(part_config_string->data,
-                                  part_config_string->size);
+  slot_info.config.ParseFromString(
+      absl::string_view(part_config_string->data, part_config_string->size));
   return slot_info;
 }
 
