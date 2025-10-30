@@ -3,19 +3,14 @@
 """Provides behavior trees from a solution."""
 
 import dataclasses
-from typing import Iterable, Iterator
+from typing import Iterable, Iterator, cast
 import warnings
-from google.longrunning import operations_pb2
-from google.longrunning import operations_pb2_grpc
 from google.protobuf import duration_pb2
-from google.rpc import code_pb2
 import grpc
 from intrinsic.assets import id_utils
 from intrinsic.assets.processes.proto import process_asset_pb2
 from intrinsic.assets.proto import asset_type_pb2
-from intrinsic.assets.proto import id_pb2
 from intrinsic.assets.proto import installed_assets_pb2
-from intrinsic.assets.proto import installed_assets_pb2_grpc
 from intrinsic.assets.proto import metadata_pb2
 from intrinsic.assets.proto import view_pb2
 from intrinsic.executive.proto import behavior_tree_pb2
@@ -23,6 +18,7 @@ from intrinsic.frontend.solution_service.proto import solution_service_pb2
 from intrinsic.frontend.solution_service.proto import solution_service_pb2_grpc
 from intrinsic.solutions import behavior_tree
 from intrinsic.solutions import providers
+from intrinsic.solutions.internal import installed_assets_client
 from intrinsic.util.grpc import error_handling
 
 
@@ -54,18 +50,15 @@ class Processes(providers.ProcessProvider):
   """Provides the processes (= behavior trees) from a solution."""
 
   _solution: solution_service_pb2_grpc.SolutionServiceStub
-  _installed_assets: installed_assets_pb2_grpc.InstalledAssetsStub
-  _operations: operations_pb2_grpc.OperationsStub
+  _installed_assets: installed_assets_client.InstalledAssetsClient
 
   def __init__(
       self,
       solution: solution_service_pb2_grpc.SolutionServiceStub,
-      installed_assets: installed_assets_pb2_grpc.InstalledAssetsStub,
-      operations: operations_pb2_grpc.OperationsStub,
+      installed_assets: installed_assets_client.InstalledAssetsClient,
   ):
     self._solution = solution
     self._installed_assets = installed_assets
-    self._operations = operations
 
   def keys(self) -> Iterable[str]:
     return self._list_all_processes(keys_only=True).keys()
@@ -132,22 +125,13 @@ class Processes(providers.ProcessProvider):
     # it can be a behavior tree name like "my_tree.bt.pb".
     return self._get_legacy_process(identifier)
 
-  @error_handling.retry_on_grpc_unavailable
   def _get_process_asset(self, identifier: str) -> _Process | None:
     try:
-      response = self._installed_assets.GetInstalledAsset(
-          installed_assets_pb2.GetInstalledAssetRequest(
-              id=id_pb2.Id(
-                  package=id_utils.package_from(identifier),
-                  name=id_utils.name_from(identifier),
-              ),
-              view=view_pb2.AssetViewType.ASSET_VIEW_TYPE_FULL,
-          )
-      )
+      asset = self._installed_assets.get_installed_asset(identifier)
       return _Process(
-          metadata_proto=response.deployment_data.process.process.metadata,
+          metadata_proto=asset.deployment_data.process.process.metadata,
           behavior_tree_proto=(
-              response.deployment_data.process.process.behavior_tree
+              asset.deployment_data.process.process.behavior_tree
           ),
       )
     except grpc.RpcError as e:
@@ -163,7 +147,7 @@ class Processes(providers.ProcessProvider):
       )
       return _Process(metadata_proto=None, behavior_tree_proto=bt_proto)
     except grpc.RpcError as e:
-      if hasattr(e, 'code') and e.code() == grpc.StatusCode.NOT_FOUND:
+      if cast(grpc.Call, e).code() == grpc.StatusCode.NOT_FOUND:
         return None
       raise e
 
@@ -188,7 +172,6 @@ class Processes(providers.ProcessProvider):
         combined[k] = v
     return combined
 
-  @error_handling.retry_on_grpc_unavailable
   def _list_all_process_assets(
       self,
       *,
@@ -199,36 +182,24 @@ class Processes(providers.ProcessProvider):
         if keys_only
         else view_pb2.AssetViewType.ASSET_VIEW_TYPE_FULL
     )
-    next_page_token = None
 
     result: dict[str, _Process | None] = {}
-    while True:
-      response = self._installed_assets.ListInstalledAssets(
-          installed_assets_pb2.ListInstalledAssetsRequest(
-              strict_filter=installed_assets_pb2.ListInstalledAssetsRequest.Filter(
-                  asset_types=[asset_type_pb2.AssetType.ASSET_TYPE_PROCESS]
-              ),
-              page_size=_INSTALLED_ASSETS_MAX_PAGE_SIZE,
-              page_token=next_page_token,
-              view=view,
-          )
-      )
-      for installed_asset in response.installed_assets:
-        id_str = id_utils.id_from_proto(installed_asset.metadata.id_version.id)
-        if keys_only:
-          result[id_str] = None
-        else:
-          result[id_str] = _Process(
-              metadata_proto=(
-                  installed_asset.deployment_data.process.process.metadata
-              ),
-              behavior_tree_proto=(
-                  installed_asset.deployment_data.process.process.behavior_tree
-              ),
-          )
-      if not response.next_page_token:
-        break
-      next_page_token = response.next_page_token
+    for installed_asset in self._installed_assets.list_all_installed_assets(
+        asset_types=[asset_type_pb2.AssetType.ASSET_TYPE_PROCESS],
+        view=view,
+    ):
+      id_str = id_utils.id_from_proto(installed_asset.metadata.id_version.id)
+      if keys_only:
+        result[id_str] = None
+      else:
+        result[id_str] = _Process(
+            metadata_proto=(
+                installed_asset.deployment_data.process.process.metadata
+            ),
+            behavior_tree_proto=(
+                installed_asset.deployment_data.process.process.behavior_tree
+            ),
+        )
 
     return result
 
@@ -275,7 +246,6 @@ class Processes(providers.ProcessProvider):
         )
     )
 
-  @error_handling.retry_on_grpc_unavailable
   def _save_process_asset(self, bt: behavior_tree.BehaviorTree):
     # The installed assets service requires the version and output-only fields
     # to be unset in an installation request.
@@ -288,42 +258,19 @@ class Processes(providers.ProcessProvider):
     bt_for_saving = bt.proto
     bt_for_saving.description.ClearField('id_version')
 
-    operation = self._installed_assets.CreateInstalledAsset(
-        installed_assets_pb2.CreateInstalledAssetRequest(
-            asset=installed_assets_pb2.CreateInstalledAssetRequest.Asset(
-                process=process_asset_pb2.ProcessAsset(
-                    metadata=metadata_for_saving,
-                    behavior_tree=bt_for_saving,
-                ),
-            ),
-        ),
-    )
-
-    while not operation.done:
-      operation = self._operations.WaitOperation(
-          operations_pb2.WaitOperationRequest(
-              name=operation.name, timeout=_WAIT_OPERATION_TIMEOUT
-          )
+    try:
+      saved_asset = self._installed_assets.create_installed_asset(
+          asset=installed_assets_pb2.CreateInstalledAssetRequest.Asset(
+              process=process_asset_pb2.ProcessAsset(
+                  metadata=metadata_for_saving,
+                  behavior_tree=bt_for_saving,
+              ),
+          ),
       )
-      if not operation.done:
-        print('Waiting for save operation to finish...')
-
-    if operation.HasField('error'):
-      # The installed assets service returns ALREADY_EXISTS if a Process asset
-      # with exactly the same content already exists. In this case we consider
-      # the save a success.
-      if operation.error.code == code_pb2.ALREADY_EXISTS:
+    except installed_assets_client.OperationError as e:
+      if e.code() == grpc.StatusCode.ALREADY_EXISTS:
         return
-      raise RuntimeError(
-          'Operation to save Process asset failed with'
-          f' {code_pb2.Code.Name(operation.error.code)}:'
-          f' {operation.error.message}'
-      )
-
-    # Note that the installed asset in the operation response only contains the
-    # metadata, not the behavior tree.
-    saved_asset = installed_assets_pb2.InstalledAsset()
-    operation.response.Unpack(saved_asset)
+      raise e
 
     # Update the BehaviorTree metadata. Effectively, this only changes the asset
     # version which gets generated by the installed assets service upon
@@ -333,13 +280,15 @@ class Processes(providers.ProcessProvider):
   def _delete_process(self, identifier: str):
     if id_utils.is_id(identifier):
       try:
-        self._delete_process_asset(identifier)
+        # Try to delete a Process asset with the given identifier.
+        self._installed_assets.delete_installed_asset(identifier)
         return
-      except KeyError:
-        # Process asset not found -> try the legacy deletion below. Even if it
-        # looks like an asset id the identifier can be a behavior tree name like
-        # "my_tree.bt.pb".
-        pass
+      except installed_assets_client.OperationError as e:
+        # If the Process asset is not found, try the legacy deletion below.
+        # Even if it looks like an asset id the identifier can be a behavior
+        # tree name like "my_tree.bt.pb".
+        if e.code() != grpc.StatusCode.NOT_FOUND:
+          raise e
 
     self._delete_legacy_process(identifier)
 
@@ -348,45 +297,3 @@ class Processes(providers.ProcessProvider):
     self._solution.DeleteBehaviorTree(
         solution_service_pb2.DeleteBehaviorTreeRequest(name=identifier)
     )
-
-  def _delete_process_asset(self, identifier: str):
-    @error_handling.retry_on_grpc_unavailable
-    def delete_installed_asset_with_retry() -> operations_pb2.Operation:
-      return self._installed_assets.DeleteInstalledAsset(
-          installed_assets_pb2.DeleteInstalledAssetRequest(
-              asset=id_utils.id_proto_from(
-                  package=id_utils.package_from(identifier),
-                  name=id_utils.name_from(identifier),
-              )
-          )
-      )
-
-    @error_handling.retry_on_grpc_unavailable
-    def wait_operation_with_retry(
-        operation_name: str,
-    ) -> operations_pb2.Operation:
-      return self._operations.WaitOperation(
-          operations_pb2.WaitOperationRequest(
-              name=operation_name, timeout=_WAIT_OPERATION_TIMEOUT
-          )
-      )
-
-    # Separately retry the create and wait calls for the operation. We don't
-    # want to create a second delete operation if an RPC to wait for the first
-    # delete operation fails.
-    operation = delete_installed_asset_with_retry()
-    while not operation.done:
-      operation = wait_operation_with_retry(operation.name)
-      if not operation.done:
-        print('Waiting for delete operation to finish...')
-
-    if operation.HasField('error'):
-      # Convert NOT_FOUND to a KeyError so that callers can distinguish between
-      # a not found process asset and a failed deletion.
-      if operation.error.code == code_pb2.NOT_FOUND:
-        raise KeyError('Process asset not found: {identifier}')
-      raise RuntimeError(
-          'Operation to delete Process asset failed with'
-          f' {code_pb2.Code.Name(operation.error.code)}:'
-          f' {operation.error.message}'
-      )

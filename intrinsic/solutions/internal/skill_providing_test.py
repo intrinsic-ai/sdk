@@ -448,7 +448,7 @@ class SkillsTest(parameterized.TestCase):
         'my_repeated_doubles=[2.1, 3.1], '
         'repeated_submessages=[name: "foo"\n, name: "bar"\n], '
         'my_oneof_double=2.0, '
-        'pose=position {\n}\norientation {\n  w: 1.0\n}\n, '
+        'pose=position {\n}\norientation {\n  w: 1\n}\n, '
         'a={handle: "some-name"})'
     )
     self.assertEqual(str(skill), skill_str)
@@ -2121,7 +2121,7 @@ Returns:
         file_descriptor
     )
 
-    with self.assertRaises(KeyError):
+    with self.assertRaises(TypeError):
       skill_generation.SkillInfoImpl(skill)
 
   def test_result_access(self):

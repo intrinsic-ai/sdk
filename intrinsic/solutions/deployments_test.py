@@ -229,7 +229,6 @@ class SolutionTest(absltest.TestCase):
 
     self._solution_service = mock.MagicMock()
     self._installed_assets = mock.MagicMock()
-    self._operations = mock.MagicMock()
     self._skill_registry_stub = mock.MagicMock()
     skill_registry_response = skill_registry_pb2.GetSkillsResponse()
     skill_registry_response.skills.add().id = "ai.intrinsic.my_skill"
@@ -262,7 +261,6 @@ class SolutionTest(absltest.TestCase):
         self._executive,
         self._solution_service,
         self._installed_assets,
-        self._operations,
         self._skill_registry,
         self._resource_registry,
         self._product_client,

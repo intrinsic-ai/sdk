@@ -5,8 +5,6 @@
 from unittest import mock
 
 from absl.testing import absltest
-from google.longrunning import operations_pb2
-from google.protobuf import any_pb2
 from google.protobuf import descriptor_pb2
 from google.rpc import code_pb2
 from google.rpc import status_pb2
@@ -22,6 +20,7 @@ from intrinsic.frontend.solution_service.proto import solution_service_pb2
 from intrinsic.skills.proto import skills_pb2
 from intrinsic.solutions import behavior_tree
 from intrinsic.solutions.internal import behavior_call
+from intrinsic.solutions.internal import installed_assets_client
 from intrinsic.solutions.internal import process_providing
 
 
@@ -75,9 +74,8 @@ class ProcessProvidingTest(absltest.TestCase):
     super().setUp()
     self._solution_service = mock.MagicMock()
     self._installed_assets = mock.MagicMock()
-    self._operations = mock.MagicMock()
     self._processes = process_providing.Processes(
-        self._solution_service, self._installed_assets, self._operations
+        self._solution_service, self._installed_assets
     )
 
     # Default behavior for the mocks
@@ -169,26 +167,19 @@ class ProcessProvidingTest(absltest.TestCase):
     )
 
   # Tests keys(), items(), values(), __iter__() at the same time.
-  def test_iterables_multiple_pages_process_assets(self):
+  def test_iterables_process_assets(self):
     proto1 = _installed_asset_with_id("ai.intrinsic.process1")
     proto2 = _installed_asset_with_id("ai.intrinsic.process2")
-    proto3 = _installed_asset_with_id("ai.intrinsic.process3")
-    # Two responses for each call to keys(), items(), values(), __iter__()
-    self._installed_assets.ListInstalledAssets.side_effect = 4 * (
-        installed_assets_pb2.ListInstalledAssetsResponse(
-            installed_assets=[proto1, proto2], next_page_token="some_token"
-        ),
-        installed_assets_pb2.ListInstalledAssetsResponse(
-            installed_assets=[proto3], next_page_token=None
-        ),
-    )
+    self._installed_assets.list_all_installed_assets.return_value = [
+        proto1,
+        proto2,
+    ]
 
     self.assertEqual(
         list(self._processes.keys()),
         [
             "ai.intrinsic.process1",
             "ai.intrinsic.process2",
-            "ai.intrinsic.process3",
         ],
     )
     self.assertEqual(
@@ -207,11 +198,6 @@ class ProcessProvidingTest(absltest.TestCase):
                 proto2.deployment_data.process.process.behavior_tree,
                 proto2.deployment_data.process.process.metadata,
             ),
-            (
-                "ai.intrinsic.process3",
-                proto3.deployment_data.process.process.behavior_tree,
-                proto3.deployment_data.process.process.metadata,
-            ),
         ],
     )
     self.assertEqual(
@@ -228,10 +214,6 @@ class ProcessProvidingTest(absltest.TestCase):
                 proto2.deployment_data.process.process.behavior_tree,
                 proto2.deployment_data.process.process.metadata,
             ),
-            (
-                proto3.deployment_data.process.process.behavior_tree,
-                proto3.deployment_data.process.process.metadata,
-            ),
         ],
     )
     self.assertEqual(
@@ -239,41 +221,31 @@ class ProcessProvidingTest(absltest.TestCase):
         [
             "ai.intrinsic.process1",
             "ai.intrinsic.process2",
-            "ai.intrinsic.process3",
         ],
     )
-
-    def expected_call(*, page_token: str, full_view: bool):
-      return mock.call(
-          installed_assets_pb2.ListInstalledAssetsRequest(
-              strict_filter=installed_assets_pb2.ListInstalledAssetsRequest.Filter(
-                  asset_types=[asset_type_pb2.AssetType.ASSET_TYPE_PROCESS]
-              ),
-              page_size=process_providing._INSTALLED_ASSETS_MAX_PAGE_SIZE,
-              view=(
-                  view_pb2.AssetViewType.ASSET_VIEW_TYPE_FULL
-                  if full_view
-                  else view_pb2.AssetViewType.ASSET_VIEW_TYPE_BASIC
-              ),
-              page_token=page_token,
-          )
-      )
-
     self.assertSequenceEqual(
-        self._installed_assets.ListInstalledAssets.mock_calls,
+        self._installed_assets.list_all_installed_assets.mock_calls,
         (
-            # Calls for keys()
-            expected_call(page_token=None, full_view=False),
-            expected_call(page_token="some_token", full_view=False),
-            # Calls for items()
-            expected_call(page_token=None, full_view=True),
-            expected_call(page_token="some_token", full_view=True),
-            # Calls for values()
-            expected_call(page_token=None, full_view=True),
-            expected_call(page_token="some_token", full_view=True),
-            # Calls for __iter__()
-            expected_call(page_token=None, full_view=False),
-            expected_call(page_token="some_token", full_view=False),
+            # Call for keys()
+            mock.call(
+                asset_types=[asset_type_pb2.AssetType.ASSET_TYPE_PROCESS],
+                view=view_pb2.AssetViewType.ASSET_VIEW_TYPE_BASIC,
+            ),
+            # Call for items()
+            mock.call(
+                asset_types=[asset_type_pb2.AssetType.ASSET_TYPE_PROCESS],
+                view=view_pb2.AssetViewType.ASSET_VIEW_TYPE_FULL,
+            ),
+            # Call for values()
+            mock.call(
+                asset_types=[asset_type_pb2.AssetType.ASSET_TYPE_PROCESS],
+                view=view_pb2.AssetViewType.ASSET_VIEW_TYPE_FULL,
+            ),
+            # Call for __iter__()
+            mock.call(
+                asset_types=[asset_type_pb2.AssetType.ASSET_TYPE_PROCESS],
+                view=view_pb2.AssetViewType.ASSET_VIEW_TYPE_BASIC,
+            ),
         ),
     )
 
@@ -284,12 +256,10 @@ class ProcessProvidingTest(absltest.TestCase):
     # Shadowed by the process asset with id "main.bt.pb".
     bt_proto3 = _behavior_tree_with_name("main.bt.pb")
     bt_proto4 = _behavior_tree_with_name("My tree")
-    self._installed_assets.ListInstalledAssets.return_value = (
-        installed_assets_pb2.ListInstalledAssetsResponse(
-            installed_assets=[asset_proto1, asset_proto2],
-            next_page_token=None,
-        )
-    )
+    self._installed_assets.list_all_installed_assets.return_value = [
+        asset_proto1,
+        asset_proto2,
+    ]
     self._solution_service.ListBehaviorTrees.return_value = (
         solution_service_pb2.ListBehaviorTreesResponse(
             behavior_trees=[bt_proto3, bt_proto4],
@@ -345,12 +315,12 @@ class ProcessProvidingTest(absltest.TestCase):
   def test_contains(self):
 
     def mock_get_installed_asset(
-        request: installed_assets_pb2.GetInstalledAssetRequest,
+        id: str,  # pylint: disable=redefined-builtin
     ):
-      if request.id == id_pb2.Id(package="ai.intrinsic", name="process"):
+      if id == "ai.intrinsic.process":
         return _installed_asset_with_id("ai.intrinsic.process")
       else:
-        error = grpc.RpcError(str(request.id) + " not found")
+        error = grpc.RpcError(f"{id} not found")
         error.code = lambda: grpc.StatusCode.NOT_FOUND
         raise error
 
@@ -368,7 +338,7 @@ class ProcessProvidingTest(absltest.TestCase):
         raise error
 
     self._solution_service.GetBehaviorTree.side_effect = mock_get_behavior_tree
-    self._installed_assets.GetInstalledAsset.side_effect = (
+    self._installed_assets.get_installed_asset.side_effect = (
         mock_get_installed_asset
     )
 
@@ -384,12 +354,12 @@ class ProcessProvidingTest(absltest.TestCase):
     bt_proto2 = _behavior_tree_with_name("main.bt.pb")
 
     def mock_get_installed_asset(
-        request: installed_assets_pb2.GetInstalledAssetRequest,
+        id: str,  # pylint: disable=redefined-builtin
     ):
-      if request.id == id_pb2.Id(package="ai.intrinsic", name="process"):
+      if id == "ai.intrinsic.process":
         return asset_proto
       else:
-        error = grpc.RpcError(str(request.id) + " not found")
+        error = grpc.RpcError(f"{id} not found")
         error.code = lambda: grpc.StatusCode.NOT_FOUND
         raise error
 
@@ -406,7 +376,7 @@ class ProcessProvidingTest(absltest.TestCase):
         raise error
 
     self._solution_service.GetBehaviorTree.side_effect = mock_get_behavior_tree
-    self._installed_assets.GetInstalledAsset.side_effect = (
+    self._installed_assets.get_installed_asset.side_effect = (
         mock_get_installed_asset
     )
 
@@ -493,9 +463,8 @@ class ProcessProvidingTest(absltest.TestCase):
     # The installed asset returned by the installed assets service in the
     # operation result after saving. This includes only the metadata, not the
     # behavior tree.
-    installed_asset_any = any_pb2.Any()
-    installed_asset_any.Pack(
-        installed_assets_pb2.InstalledAsset(metadata=metadata_proto_new)
+    installed_asset = installed_assets_pb2.InstalledAsset(
+        metadata=metadata_proto_new
     )
 
     bt = behavior_tree.BehaviorTree.create_from_proto(
@@ -504,15 +473,7 @@ class ProcessProvidingTest(absltest.TestCase):
             behavior_tree=bt_proto,
         )
     )
-    self._installed_assets.CreateInstalledAsset.return_value = (
-        operations_pb2.Operation(name="the_operation", done=False)
-    )
-    self._operations.WaitOperation.side_effect = [
-        operations_pb2.Operation(name="the_operation", done=False),
-        operations_pb2.Operation(
-            name="the_operation", done=True, response=installed_asset_any
-        ),
-    ]
+    self._installed_assets.create_installed_asset.return_value = installed_asset
 
     self._processes.save(bt)
 
@@ -523,62 +484,46 @@ class ProcessProvidingTest(absltest.TestCase):
         bt.proto.description.id_version,
         "ai.intrinsic.my_process.0.0.1+new",
     )
-    self._installed_assets.CreateInstalledAsset.assert_called_once_with(
-        installed_assets_pb2.CreateInstalledAssetRequest(
-            asset=installed_assets_pb2.CreateInstalledAssetRequest.Asset(
-                process=process_asset_pb2.ProcessAsset(
-                    metadata=metadata_proto_saved,
-                    behavior_tree=bt_proto_saved,
-                ),
+    self._installed_assets.create_installed_asset.assert_called_once_with(
+        asset=installed_assets_pb2.CreateInstalledAssetRequest.Asset(
+            process=process_asset_pb2.ProcessAsset(
+                metadata=metadata_proto_saved,
+                behavior_tree=bt_proto_saved,
             ),
         ),
-    )
-    self._operations.WaitOperation.assert_called_with(
-        operations_pb2.WaitOperationRequest(
-            name="the_operation",
-            timeout=process_providing._WAIT_OPERATION_TIMEOUT,
-        )
     )
 
   def test_save_process_asset_succeeds_on_already_exists(self):
     bt = behavior_tree.BehaviorTree.create_from_proto(
         _process_asset_with_id("ai.intrinsic.process")
     )
-    self._installed_assets.CreateInstalledAsset.return_value = (
-        operations_pb2.Operation(name="the_operation", done=False)
-    )
-    self._operations.WaitOperation.side_effect = [
-        operations_pb2.Operation(
-            name="the_operation",
-            done=True,
-            error=status_pb2.Status(
+    self._installed_assets.create_installed_asset.side_effect = (
+        installed_assets_client.OperationError(
+            status_pb2.Status(
                 code=code_pb2.ALREADY_EXISTS, message="process already exists"
-            ),
-        ),
-    ]
+            )
+        )
+    )
 
     # Expect no exception.
     self._processes.save(bt)
 
-  def test_save_process_asset_returns_operation_error(self):
+  def test_save_process_asset_returns_non_already_exists_error(self):
     bt = behavior_tree.BehaviorTree.create_from_proto(
         _process_asset_with_id("ai.intrinsic.process")
     )
-    self._installed_assets.CreateInstalledAsset.return_value = (
-        operations_pb2.Operation(name="the_operation", done=False)
+    self._installed_assets.create_installed_asset.side_effect = (
+        installed_assets_client.OperationError(
+            status_pb2.Status(
+                code=code_pb2.PERMISSION_DENIED,
+                message="not an already exists error",
+            )
+        )
     )
-    self._operations.WaitOperation.side_effect = [
-        operations_pb2.Operation(
-            name="the_operation",
-            done=True,
-            error=status_pb2.Status(
-                code=code_pb2.INVALID_ARGUMENT, message="some error"
-            ),
-        ),
-    ]
 
-    with self.assertRaisesRegex(RuntimeError, "INVALID_ARGUMENT.*some error"):
+    with self.assertRaises(installed_assets_client.OperationError) as e:
       self._processes.save(bt)
+    self.assertEqual(e.exception.code(), grpc.StatusCode.PERMISSION_DENIED)
 
   def test_delitem_legacy_process(self):
     del self._processes["My tree"]
@@ -589,33 +534,20 @@ class ProcessProvidingTest(absltest.TestCase):
     )
 
   def test_delitem_legacy_process_with_asset_id_like_name(self):
-    self._installed_assets.DeleteInstalledAsset.return_value = (
-        operations_pb2.Operation(name="the_operation", done=False)
+    self._installed_assets.delete_installed_asset.side_effect = (
+        installed_assets_client.OperationError(
+            status_pb2.Status(
+                code=code_pb2.NOT_FOUND, message="process not found"
+            )
+        )
     )
-    self._operations.WaitOperation.side_effect = [
-        operations_pb2.Operation(name="the_operation", done=False),
-        operations_pb2.Operation(name="the_operation", done=False),
-        operations_pb2.Operation(
-            name="the_operation",
-            done=True,
-            error=status_pb2.Status(code=code_pb2.NOT_FOUND),
-        ),
-    ]
 
     del self._processes["main.bt.pb"]
 
     # Expect that first the Process asset "main.bt.pb" is tried to be deleted,
     # but it does not exist.
-    self._installed_assets.DeleteInstalledAsset.assert_called_once_with(
-        installed_assets_pb2.DeleteInstalledAssetRequest(
-            asset=id_pb2.Id(package="main.bt", name="pb")
-        )
-    )
-    self._operations.WaitOperation.assert_called_with(
-        operations_pb2.WaitOperationRequest(
-            name="the_operation",
-            timeout=process_providing._WAIT_OPERATION_TIMEOUT,
-        )
+    self._installed_assets.delete_installed_asset.assert_called_once_with(
+        "main.bt.pb"
     )
     # Then a legacy deletion of the tree with name "main.bt.pb" should be
     # attempted.
@@ -624,52 +556,24 @@ class ProcessProvidingTest(absltest.TestCase):
     )
 
   def test_delitem_process_asset(self):
-    self._installed_assets.DeleteInstalledAsset.return_value = (
-        operations_pb2.Operation(name="the_operation", done=False)
-    )
-    self._operations.WaitOperation.side_effect = [
-        operations_pb2.Operation(name="the_operation", done=False),
-        operations_pb2.Operation(name="the_operation", done=False),
-        operations_pb2.Operation(name="the_operation", done=True),
-    ]
-
     del self._processes["ai.intrinsic.process"]
 
-    self._installed_assets.DeleteInstalledAsset.assert_called_once_with(
-        installed_assets_pb2.DeleteInstalledAssetRequest(
-            asset=id_pb2.Id(package="ai.intrinsic", name="process")
-        )
-    )
-    self._operations.WaitOperation.assert_called_with(
-        operations_pb2.WaitOperationRequest(
-            name="the_operation",
-            timeout=process_providing._WAIT_OPERATION_TIMEOUT,
-        )
+    self._installed_assets.delete_installed_asset.assert_called_once_with(
+        "ai.intrinsic.process"
     )
     self._solution_service.DeleteBehaviorTree.assert_not_called()
 
-  def test_delitem_legacy_process_raises_operation_error(self):
-    self._installed_assets.DeleteInstalledAsset.return_value = (
-        operations_pb2.Operation(name="the_operation", done=False)
+  def test_delitem_legacy_process_raises_key_error(self):
+    self._installed_assets.delete_installed_asset.side_effect = RuntimeError(
+        "some error"
     )
-    self._operations.WaitOperation.side_effect = [
-        operations_pb2.Operation(name="the_operation", done=False),
-        operations_pb2.Operation(name="the_operation", done=False),
-        operations_pb2.Operation(
-            name="the_operation",
-            done=True,
-            error=status_pb2.Status(
-                code=code_pb2.INVALID_ARGUMENT, message="some error"
-            ),
-        ),
-    ]
 
     with self.assertRaises(KeyError) as e:
       del self._processes["ai.intrinsic.process"]
 
     cause = e.exception.__cause__
     self.assertIsInstance(cause, RuntimeError)
-    self.assertRegex(str(cause), "INVALID_ARGUMENT.*some error")
+    self.assertIn("some error", str(cause))
 
 
 if __name__ == "__main__":

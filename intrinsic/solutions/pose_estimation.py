@@ -9,10 +9,10 @@ from typing import Dict, Iterator, List, Optional
 from intrinsic.assets import interface_utils
 from intrinsic.assets.proto import asset_type_pb2
 from intrinsic.assets.proto import installed_assets_pb2
-from intrinsic.assets.proto import installed_assets_pb2_grpc
 from intrinsic.assets.proto import view_pb2
 from intrinsic.perception.proto.v1 import perception_model_pb2
 from intrinsic.solutions import ipython
+from intrinsic.solutions.internal import installed_assets_client
 from intrinsic.util.grpc import error_handling
 
 
@@ -21,34 +21,25 @@ _CSS_FAILURE_STYLE = (
     'padding-left: var(--jp-code-padding);'
 )
 _LAST_RESULT_TIMEOUT_SECONDS = 5
-_POSE_ESTIMATOR_RESOURCE_FAMILY_ID = 'perception_model'
-_DEFAULT_PACKAGE_NAME_RESOURCE = 'ai.intrinsic'
-_DEFAULT_PAGE_SIZE = 200
 
 
-@error_handling.retry_on_grpc_unavailable
 def _list_pose_estimators(
-    stub: installed_assets_pb2_grpc.InstalledAssetsStub,
+    client: installed_assets_client.InstalledAssetsClient,
 ) -> List[installed_assets_pb2.InstalledAsset]:
   """Lists installed data assets."""
-  list_installed_assets_request = (
-      installed_assets_pb2.ListInstalledAssetsRequest(
-          strict_filter=installed_assets_pb2.ListInstalledAssetsRequest.Filter(
-              asset_types=[
-                  asset_type_pb2.AssetType.ASSET_TYPE_DATA,
-              ]
-          ),
-          view=view_pb2.AssetViewType.ASSET_VIEW_TYPE_DETAIL,
-          page_size=_DEFAULT_PAGE_SIZE,
-      )
+  installed_assets = client.list_all_installed_assets(
+      asset_types=[
+          asset_type_pb2.AssetType.ASSET_TYPE_DATA,
+      ],
+      view=view_pb2.AssetViewType.ASSET_VIEW_TYPE_DETAIL,
   )
-  list_response = stub.ListInstalledAssets(list_installed_assets_request)
+
   pose_estimators: List[installed_assets_pb2.InstalledAsset] = []
   perception_model_provides = (
       interface_utils.DATA_URI_PREFIX
       + perception_model_pb2.PerceptionModel.DESCRIPTOR.full_name
   )
-  for installed_asset in list_response.installed_assets:
+  for installed_asset in installed_assets:
     for provides in installed_asset.metadata.provides:
       if provides.uri == perception_model_provides:
         pose_estimators.append(installed_asset)
@@ -72,20 +63,20 @@ class PoseEstimatorId:
 class PoseEstimators:
   """Convenience wrapper for pose estimator access."""
 
-  _installed_assets_stub: installed_assets_pb2_grpc.InstalledAssetsStub
+  _installed_assets: installed_assets_client.InstalledAssetsClient
 
   def __init__(
       self,
-      installed_assets_stub: installed_assets_pb2_grpc.InstalledAssetsStub,
+      installed_assets: installed_assets_client.InstalledAssetsClient,
   ):
     # pyformat: disable
     """Initializes all available pose estimator configs.
 
     Args:
-      installed_assets_stub: Stub for the installed assets service.
+      installed_assets: Client for the installed assets service.
     """
     # pyformat: enable
-    self._installed_assets_stub = installed_assets_stub
+    self._installed_assets = installed_assets
 
   @error_handling.retry_on_grpc_unavailable
   def _get_pose_estimators(self) -> Dict[str, PoseEstimatorId]:
@@ -97,7 +88,7 @@ class PoseEstimators:
     Raises:
       status.StatusNotOk: If the grpc request failed (propagates grpc error).
     """
-    installed_data_assets = _list_pose_estimators(self._installed_assets_stub)
+    installed_data_assets = _list_pose_estimators(self._installed_assets)
     pose_estimators: Dict[str, PoseEstimatorId] = {
         installed_data_asset.metadata.id_version.id.name: PoseEstimatorId(
             id=installed_data_asset.metadata.id_version.id.name,

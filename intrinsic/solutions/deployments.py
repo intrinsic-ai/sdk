@@ -21,9 +21,7 @@ import inspect
 import sys
 import warnings
 
-from google.longrunning import operations_pb2_grpc
 import grpc
-from intrinsic.assets.proto import installed_assets_pb2_grpc
 from intrinsic.frontend.solution_service.proto import solution_service_pb2
 from intrinsic.frontend.solution_service.proto import solution_service_pb2_grpc
 from intrinsic.frontend.solution_service.proto import status_pb2 as solution_status_pb2
@@ -43,6 +41,7 @@ from intrinsic.solutions import providers
 from intrinsic.solutions import simulation
 from intrinsic.solutions import userconfig
 from intrinsic.solutions import worlds
+from intrinsic.solutions.internal import installed_assets_client
 from intrinsic.solutions.internal import process_providing
 from intrinsic.solutions.internal import products as products_mod
 from intrinsic.solutions.internal import resources as resources_mod
@@ -117,8 +116,7 @@ class Solution:
       is_simulated: bool,
       executive: execution.Executive,
       solution_service: solution_service_pb2_grpc.SolutionServiceStub,
-      installed_assets: installed_assets_pb2_grpc.InstalledAssetsStub,
-      operations: operations_pb2_grpc.OperationsStub,
+      installed_assets: installed_assets_client.InstalledAssetsClient,
       skill_registry: skill_registry_client.SkillRegistryClient,
       resource_registry: resource_registry_client.ResourceRegistryClient,
       product_client: product_client_mod.ProductClient,
@@ -144,7 +142,7 @@ class Solution:
     self.simulator: simulation.Simulation | None = simulator
 
     self.processes = process_providing.Processes(
-        self._solution_service, installed_assets, operations
+        self._solution_service, installed_assets
     )
 
     self.skills = skill_providing.Skills(
@@ -207,12 +205,12 @@ class Solution:
     product_client = product_client_mod.ProductClient.connect(grpc_channel)
 
     object_world = worlds.ObjectWorld.connect(_WORLD_ID, grpc_channel)
-    installed_assets_stub = installed_assets_pb2_grpc.InstalledAssetsStub(
-        grpc_channel
+    installed_assets = (
+        installed_assets_client.InstalledAssetsClient.from_channel(grpc_channel)
     )
-    operations_stub = operations_pb2_grpc.OperationsStub(grpc_channel)
+
     pose_estimators = pose_estimation.PoseEstimators(
-        installed_assets_stub,
+        installed_assets,
     )
 
     pbt_registry = pbt_registration.BehaviorTreeRegistry.connect(grpc_channel)
@@ -228,8 +226,7 @@ class Solution:
         solution_status.simulated,
         executive,
         solution_service,
-        installed_assets_stub,
-        operations_stub,
+        installed_assets,
         skill_registry,
         resource_registry,
         product_client,

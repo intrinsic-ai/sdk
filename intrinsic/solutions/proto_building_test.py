@@ -402,6 +402,12 @@ class ProtoBuildingTest(absltest.TestCase):
     # expected_input_descriptor
     msg_full_name, fds = behavior_tree._build_file_descriptor_set(msg)
     self.assertEqual(msg_full_name, 'test_pkg.sub_pkg.TestMessage')
+
+    # The type_names generated from proto tooling are absolute package names
+    # (leading '.').
+    for field in expected_input_descriptor.field:
+      field.type_name = '.' + field.type_name
+
     compare.assertProto2Equal(
         self,
         expected_input_descriptor,
