@@ -180,8 +180,8 @@ IconStreamingIoRegistryFake::OutputConverter::Invoke(
     return status;
   }
   google::protobuf::Any result_any;
-  if (!result_any.ParseFromArray(converter_result->data,
-                                 converter_result->size)) {
+  if (!result_any.ParseFromString(
+          absl::string_view(converter_result->data, converter_result->size))) {
     return FromAbslStatus(absl::InternalError(
         "Failed to parse Any proto from output converter's output."));
   }
