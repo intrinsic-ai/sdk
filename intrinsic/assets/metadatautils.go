@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	"intrinsic/assets/idutils"
+	"intrinsic/assets/interfaceutils"
 	"intrinsic/assets/tagutils"
 
 	datamanifestpb "intrinsic/assets/data/proto/v1/data_manifest_go_proto"
@@ -232,6 +233,13 @@ func ValidateMetadata(m *metadatapb.Metadata, options ...ValidateMetadataOption)
 	}
 	if opts.requireNoProvides && len(m.GetProvides()) > 0 {
 		return status.Errorf(codes.InvalidArgument, "provides (output-only) must not be specified")
+	}
+
+	// Validate provides interfaces.
+	for _, pi := range m.GetProvides() {
+		if err := interfaceutils.ValidateInterfaceName(pi.GetUri()); err != nil {
+			return status.Errorf(codes.InvalidArgument, "invalid provides interface %q: %v", pi.GetUri(), err)
+		}
 	}
 
 	// Validate metadata size limits.

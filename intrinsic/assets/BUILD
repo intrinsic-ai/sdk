@@ -254,6 +254,7 @@ go_library(
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         ":idutils",
+        ":interfaceutils",
         ":tagutils",
         "//intrinsic/assets/data/proto/v1:data_manifest_go_proto",
         "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",
@@ -295,6 +296,26 @@ go_test(
         "@org_golang_google_grpc//status:go_default_library",
         "@org_golang_google_protobuf//proto",
         "@org_golang_google_protobuf//types/known/timestamppb",
+    ],
+)
+
+go_library(
+    name = "interfaceutils",
+    srcs = ["interfaceutils.go"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = ["@com_github_pkg_errors//:go_default_library"],
+)
+
+cc_library(
+    name = "interface_utils",
+    srcs = ["interface_utils.cc"],
+    hdrs = ["interface_utils.h"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/strings:string_view",
+        "@com_googlesource_code_re2//:re2",
     ],
 )
 

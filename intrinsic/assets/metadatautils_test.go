@@ -29,25 +29,30 @@ import (
 
 func TestValidateMetadata(t *testing.T) {
 	m := &metadatapb.Metadata{
-		DisplayName: "Test Skill",
+		DisplayName: "Test Service",
 		Documentation: &documentationpb.Documentation{
-			Description: "Test Skill Description",
+			Description: "Test Service Description",
 		},
 		IdVersion: &idpb.IdVersion{
 			Id: &idpb.Id{
 				Package: "ai.intrinsic",
-				Name:    "test_skill",
+				Name:    "test_service",
 			},
 			Version: "1.2.3",
 		},
-		ReleaseNotes: "Test Skill Release Notes",
+		ReleaseNotes: "Test Service Release Notes",
 		Vendor: &vendorpb.Vendor{
 			DisplayName: "Intrinsic",
 		},
-		AssetType: atypepb.AssetType_ASSET_TYPE_SKILL,
+		AssetType: atypepb.AssetType_ASSET_TYPE_SERVICE,
 		UpdateTime: &tpb.Timestamp{
 			Seconds: 1711177200,
 			Nanos:   0,
+		},
+		Provides: []*metadatapb.Interface{
+			&metadatapb.Interface{
+				Uri: "grpc://intrinsic_proto.test.MyService",
+			},
 		},
 	}
 	mInvalidName := proto.Clone(m).(*metadatapb.Metadata)
@@ -66,12 +71,14 @@ func TestValidateMetadata(t *testing.T) {
 	mNoUpdateTime.UpdateTime = nil
 	mNoAssetType := proto.Clone(m).(*metadatapb.Metadata)
 	mNoAssetType.AssetType = atypepb.AssetType_ASSET_TYPE_UNSPECIFIED
-	mSkillAssetType := proto.Clone(m).(*metadatapb.Metadata)
-	mSkillAssetType.AssetType = atypepb.AssetType_ASSET_TYPE_SKILL
+	mServiceAssetType := proto.Clone(m).(*metadatapb.Metadata)
+	mServiceAssetType.AssetType = atypepb.AssetType_ASSET_TYPE_SERVICE
 	mInvalidAssetTag := proto.Clone(m).(*metadatapb.Metadata)
-	mInvalidAssetTag.AssetTag = atagpb.AssetTag_ASSET_TAG_GRIPPER
+	mInvalidAssetTag.AssetTag = atagpb.AssetTag_ASSET_TAG_SUBPROCESS
+	mInvalidProvidesInterface := proto.Clone(m).(*metadatapb.Metadata)
+	mInvalidProvidesInterface.Provides = []*metadatapb.Interface{&metadatapb.Interface{Uri: "invalid"}}
 	mNameTooLong := proto.Clone(m).(*metadatapb.Metadata)
-	mNameTooLong.IdVersion.Id.Name = strings.Repeat("a", NameCharLength[atypepb.AssetType_ASSET_TYPE_SKILL]+1)
+	mNameTooLong.IdVersion.Id.Name = strings.Repeat("a", NameCharLength[atypepb.AssetType_ASSET_TYPE_SERVICE]+1)
 	mDisplayNameTooLong := proto.Clone(m).(*metadatapb.Metadata)
 	mDisplayNameTooLong.DisplayName = strings.Repeat("a", DisplayNameCharLength+1)
 	mVersionTooLong := proto.Clone(m).(*metadatapb.Metadata)
@@ -82,8 +89,8 @@ func TestValidateMetadata(t *testing.T) {
 	mReleaseNotesTooLong.ReleaseNotes = strings.Repeat("a", RelNotesCharLength+1)
 	mWithFileDescriptorSet := proto.Clone(m).(*metadatapb.Metadata)
 	mWithFileDescriptorSet.FileDescriptorSet = &dpb.FileDescriptorSet{}
-	mWithProvides := proto.Clone(m).(*metadatapb.Metadata)
-	mWithProvides.Provides = []*metadatapb.Interface{&metadatapb.Interface{Uri: "grpc://test.MyService"}}
+	mWithoutProvides := proto.Clone(m).(*metadatapb.Metadata)
+	mWithoutProvides.Provides = nil
 
 	tests := []struct {
 		name          string
@@ -222,13 +229,18 @@ func TestValidateMetadata(t *testing.T) {
 		},
 		{
 			name:          "wrong asset type",
-			m:             mSkillAssetType,
+			m:             mServiceAssetType,
 			opts:          []ValidateMetadataOption{WithRequiredAssetType(atypepb.AssetType_ASSET_TYPE_PROCESS)},
 			wantErrorCode: codes.InvalidArgument,
 		},
 		{
 			name:          "invalid asset tag",
 			m:             mInvalidAssetTag,
+			wantErrorCode: codes.InvalidArgument,
+		},
+		{
+			name:          "invalid provides interface",
+			m:             mInvalidProvidesInterface,
 			wantErrorCode: codes.InvalidArgument,
 		},
 		{
@@ -249,23 +261,23 @@ func TestValidateMetadata(t *testing.T) {
 		},
 		{
 			name: "no provides required (true) and absent",
-			m:    m,
+			m:    mWithoutProvides,
 			opts: []ValidateMetadataOption{WithRequireNoProvides(true)},
 		},
 		{
 			name:          "no provides required (true) and present",
-			m:             mWithProvides,
+			m:             m,
 			opts:          []ValidateMetadataOption{WithRequireNoProvides(true)},
 			wantErrorCode: codes.InvalidArgument,
 		},
 		{
 			name: "no provides required (false)",
-			m:    mWithProvides,
+			m:    m,
 			opts: []ValidateMetadataOption{WithRequireNoProvides(false)},
 		},
 		{
 			name: "no output-only fields required and absent",
-			m:    m,
+			m:    mWithoutProvides,
 			opts: []ValidateMetadataOption{WithRequireNoOutputOnlyFields()},
 		},
 		{
@@ -276,7 +288,7 @@ func TestValidateMetadata(t *testing.T) {
 		},
 		{
 			name:          "no output-only fields required and provides present",
-			m:             mWithProvides,
+			m:             m,
 			opts:          []ValidateMetadataOption{WithRequireNoOutputOnlyFields()},
 			wantErrorCode: codes.InvalidArgument,
 		},
