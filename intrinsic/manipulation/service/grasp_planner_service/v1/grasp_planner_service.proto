@@ -10,7 +10,6 @@ import "intrinsic/manipulation/grasping/grasp.proto";
 import "intrinsic/manipulation/grasping/grasp_execution_planner_params.proto";
 import "intrinsic/manipulation/grasping/grasp_planner_params.proto";
 import "intrinsic/manipulation/grasping/grasp_ranker_params.proto";
-import "intrinsic/manipulation/proto/gripper_exchange.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 
 // Parameters to plan grasps by the GraspPlannerService
@@ -142,13 +141,4 @@ service GraspPlannerService {
   // Plan grasp execution
   rpc PlanGraspExecution(PlanGraspExecutionRequest)
       returns (intrinsic_proto.grasping.GraspExecutionPlanningResult) {}
-
-  // Exchange gripper in the object world. The old gripper parts will be docked
-  // to corresponding dock frames if specified, otherwise they are deleted from
-  // the world. The new gripper base (if exchanged) will be attached to the
-  // `new_gripper_base_attach_frame`.
-  rpc ExchangeGripperInObjectWorld(
-      intrinsic_proto.manipulation.ExchangeGripperInObjectWorldRequest)
-      returns (
-          intrinsic_proto.manipulation.ExchangeGripperInObjectWorldResponse) {}
 }
