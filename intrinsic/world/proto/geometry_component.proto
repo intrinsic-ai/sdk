@@ -5,6 +5,7 @@ syntax = "proto3";
 package intrinsic_proto.world;
 
 import "intrinsic/geometry/proto/geometry_storage_refs.proto";
+import "intrinsic/geometry/proto/v1/transformed_geometry.proto";
 import "intrinsic/math/proto/matrix.proto";
 
 // Runtime options for a Geometry.
@@ -35,8 +36,19 @@ message GeometryComponent {
 
   // Used for the value type in proto map below.
   message GeometrySet {
-    repeated Geometry geometries = 1;
+    // Deprecated. We are in the process of migrating from this field to the
+    // named_geometries field below. On deserialization, if both geometries and
+    // named_geometries are populated, the named_geometries field will be used.
+    // On serialization, both fields will be populated such that readers of this
+    // field can still access the geometric data.
+    // Note: Do not modify this field from a GeometryComponent received from the
+    // ObjectWorldService and reuse it in another request. If you need to modify
+    // in place, consider modifying named_geometries instead.
+    repeated Geometry geometries = 1 [deprecated = true];
 
+    // Map of human readable names to geometries.
+    map<string, intrinsic_proto.geometry.v1.TransformedGeometry>
+        named_geometries = 2;
   }
 
   // Stores named geometry for this entity. Names starting with "Intrinsic_" may

@@ -72,6 +72,7 @@ proto_library(
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/geometry/proto:geometry_storage_refs_proto",
+        "//intrinsic/geometry/proto/v1:transformed_geometry_proto",
         "//intrinsic/math/proto:matrix_proto",
     ],
 )
@@ -92,6 +93,7 @@ go_proto_library(
     name = "geometry_component_go_proto",
     go_deps = [
         "//intrinsic/math/proto:matrix_go_proto",
+        "//intrinsic/geometry/proto/v1:transformed_geometry_go_proto",
         "//intrinsic/geometry/proto:geometry_storage_refs_go_proto",
     ],
     visibility = ["//intrinsic:public_api_users"],
