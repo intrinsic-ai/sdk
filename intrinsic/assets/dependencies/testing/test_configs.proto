@@ -1,0 +1,158 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.assets.dependencies.testing;
+
+import "google/protobuf/any.proto";
+import "intrinsic/assets/proto/field_metadata.proto";
+import "intrinsic/assets/proto/v1/resolved_dependency.proto";
+
+message SimpleGrpcDependencyConfig {
+  intrinsic_proto.assets.v1.ResolvedDependency single_dependency = 1
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "grpc://intrinsic_proto.motion_planning.MotionPlannerService",
+      }];
+}
+
+message SimpleDataDependencyConfig {
+  intrinsic_proto.assets.v1.ResolvedDependency single_dependency = 1
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "data://intrinsic_proto.foo.v1.Data",
+      }];
+}
+
+message SimpleObjectDependencyConfig {
+  intrinsic_proto.assets.v1.ResolvedDependency object_dependency = 1
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires_object: {},
+      }];
+}
+
+message WithMultipleDependencies {
+  intrinsic_proto.assets.v1.ResolvedDependency first_dependency = 1
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "grpc://intrinsic_proto.motion_planning.MotionPlannerService",
+      }];
+
+  intrinsic_proto.assets.v1.ResolvedDependency second_dependency = 2
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "data://intrinsic_proto.foo.v1.Data",
+      }];
+
+  string unaffected_field = 3;
+}
+
+message WithEmptyAnnotation {
+  intrinsic_proto.assets.v1.ResolvedDependency dependency = 1
+      [(intrinsic_proto.assets.field_metadata).dependency = {}];
+}
+
+message WithUnannotatedDependency {
+  intrinsic_proto.assets.v1.ResolvedDependency dependency = 1;
+}
+
+message WithIncorrectMessageType {
+  string dependency = 1 [(intrinsic_proto.assets.field_metadata).dependency = {
+    requires: "grpc://intrinsic_proto.motion_planning.MotionPlannerService",
+  }];
+}
+
+message WithMultipleInterfaces {
+  intrinsic_proto.assets.v1.ResolvedDependency with_multiple_interfaces = 1 [
+    (intrinsic_proto.assets.field_metadata).dependency = {
+      requires: "grpc://intrinsic_proto.motion_planning.MotionPlannerService",
+      requires: "grpc://intrinsic_proto.motion_planning.MotionPlannerService2",
+      requires_object: {},
+    }
+  ];
+
+  string unaffected_field = 2;
+}
+
+message WithRepeatedDependency {
+  repeated intrinsic_proto.assets.v1.ResolvedDependency dependencies = 1
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "grpc://intrinsic_proto.motion_planning.MotionPlannerService",
+      }];
+
+  string unaffected_field = 2;
+}
+
+message WithMapDependency {
+  map<string, intrinsic_proto.assets.v1.ResolvedDependency> dependencies = 1
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "grpc://intrinsic_proto.motion_planning.MotionPlannerService",
+      }];
+}
+
+message WithNestedFields {
+  message Nested {
+    intrinsic_proto.assets.v1.ResolvedDependency simple_dependency = 1 [
+      (intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "grpc://intrinsic_proto.motion_planning.MotionPlannerService",
+      }
+    ];
+  }
+  Nested nested = 1;
+
+  message NestedWithoutDependencyAnnotation {
+    intrinsic_proto.assets.v1.ResolvedDependency simple_dependency = 1;
+    string some_string = 2;
+  }
+  NestedWithoutDependencyAnnotation nested_without_dependency_annotation = 2;
+
+  message MultiLevelNested {
+    Nested nested = 1 [(intrinsic_proto.assets.field_metadata).dependency = {
+      requires: "grpc://intrinsic_proto.motion_planning.MotionPlannerService",
+    }];
+  }
+  MultiLevelNested multi_level_nested = 3;
+
+  string unaffected_field = 4;
+}
+
+message WithOptionalDependency {
+  optional intrinsic_proto.assets.v1.ResolvedDependency optional_dependency = 1
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "grpc://intrinsic_proto.motion_planning.MotionPlannerService",
+      }];
+}
+
+message WithRequiredDependency {
+  intrinsic_proto.assets.v1.ResolvedDependency required_dependency = 1
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "grpc://intrinsic_proto.motion_planning.MotionPlannerService",
+      }];
+}
+
+message WithAnyProto {
+  google.protobuf.Any any_proto = 1;
+}
+
+message WithInvalidInterfaceRequirement {
+  intrinsic_proto.assets.v1.ResolvedDependency
+      with_invalid_interface_requirement = 1
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "grpc://intrinsic_proto.motion_planning.MotionPlannerService",
+        requires: "invalid_interface_requirement",
+      }];
+}
+
+message WithInvalidInterfaceRequirementList {
+  repeated intrinsic_proto.assets.v1.ResolvedDependency
+      with_invalid_interface_requirement_list = 1
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "grpc://intrinsic_proto.motion_planning.MotionPlannerService",
+        requires: "invalid_interface_requirement",
+      }];
+}
+
+message WithInvalidInterfaceRequirementMap {
+  map<string, intrinsic_proto.assets.v1.ResolvedDependency>
+      with_invalid_interface_requirement_map = 1
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "grpc://intrinsic_proto.motion_planning.MotionPlannerService",
+        requires: "invalid_interface_requirement",
+      }];
+}
