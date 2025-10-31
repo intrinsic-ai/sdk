@@ -20,7 +20,8 @@ namespace intrinsic::data_logger {
 // program startup.
 absl::Status StartUpIntrinsicLoggerViaGrpc(
     absl::string_view target_address,
-    absl::Duration timeout = intrinsic::kGrpcClientConnectDefaultTimeout);
+    absl::Duration timeout =
+        intrinsic::connect::kGrpcClientConnectDefaultTimeout);
 
 // Initializes the DataLogger client from a stub. Call once during program
 // startup. Intended for testing.

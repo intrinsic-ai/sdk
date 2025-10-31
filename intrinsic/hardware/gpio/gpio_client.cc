@@ -33,7 +33,7 @@ using ::intrinsic_proto::gpio::v1::SignalValueSet;
 namespace {
 constexpr const absl::Duration kGpioClientTimeout = absl::Seconds(5);
 constexpr const absl::Duration kGpioInitialTimeout =
-    intrinsic::kGrpcClientConnectDefaultTimeout;
+    intrinsic::connect::kGrpcClientConnectDefaultTimeout;
 };  // namespace
 
 GPIOClient::GPIOClient(

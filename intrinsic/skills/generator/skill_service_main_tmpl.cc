@@ -21,6 +21,10 @@
 {{- end }}
 // clang-format on
 
+namespace {
+using ::intrinsic::connect::kGrpcClientConnectDefaultTimeout;
+}  // namespace
+
 ABSL_FLAG(int32_t, port, 8001, "Port to serve gRPC on.");
 ABSL_FLAG(std::string, skill_service_config_filename, "",
           "Filename for the SkillServiceConfig binary proto. When present, an "
@@ -42,7 +46,7 @@ ABSL_FLAG(std::string, skill_registry_service_address,
           "skill-registry.app-intrinsic-app-chart.svc.cluster.local:8080",
           "gRpc target for the skill registry service");
 ABSL_FLAG(int32_t, grpc_connect_timeout_secs,
-          absl::ToInt64Seconds(intrinsic::kGrpcClientConnectDefaultTimeout),
+          absl::ToInt64Seconds(kGrpcClientConnectDefaultTimeout),
           "Time to wait for other grpc services to become available.");
 
 ABSL_FLAG(bool, logtostderr, true, "Dummy flag, do not use");

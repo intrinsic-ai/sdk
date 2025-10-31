@@ -38,7 +38,8 @@ class SkillRegistryClient;
 // `grpc_address`.
 absl::StatusOr<std::unique_ptr<SkillRegistryClient>> CreateSkillRegistryClient(
     absl::string_view grpc_address,
-    absl::Duration timeout = intrinsic::kGrpcClientConnectDefaultTimeout);
+    absl::Duration timeout =
+        intrinsic::connect::kGrpcClientConnectDefaultTimeout);
 
 // A client for the Skill Registry service.
 //

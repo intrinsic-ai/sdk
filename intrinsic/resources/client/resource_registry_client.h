@@ -24,10 +24,10 @@ class ResourceRegistryClient;
 // Parameter connection_timeout is used when establishing the initial connection
 // to the service. Parameter timeout is the timeout used for every request.
 absl::StatusOr<std::unique_ptr<ResourceRegistryClient>>
-CreateResourceRegistryClient(absl::string_view grpc_address,
-                             absl::Duration timeout = absl::Seconds(60),
-                             absl::Duration connection_timeout =
-                                 intrinsic::kGrpcClientConnectDefaultTimeout);
+CreateResourceRegistryClient(
+    absl::string_view grpc_address, absl::Duration timeout = absl::Seconds(60),
+    absl::Duration connection_timeout =
+        intrinsic::connect::kGrpcClientConnectDefaultTimeout);
 
 // A client for the public resource registry service.
 class ResourceRegistryClient : public ResourceRegistryClientInterface {

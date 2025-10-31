@@ -16,7 +16,7 @@ namespace icon {
 
 absl::StatusOr<std::shared_ptr<ChannelInterface>> ChannelFactory::MakeChannel(
     const ConnectionParams& params) const {
-  return MakeChannel(params, kGrpcClientConnectDefaultTimeout);
+  return MakeChannel(params, connect::kGrpcClientConnectDefaultTimeout);
 }
 
 absl::StatusOr<std::shared_ptr<ChannelInterface>>

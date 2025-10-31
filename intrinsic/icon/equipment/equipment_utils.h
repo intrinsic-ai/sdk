@@ -52,7 +52,7 @@ struct IconEquipment {
 absl::StatusOr<IconEquipment> ConnectToIconEquipment(
     const skills::EquipmentPack& equipment_pack,
     absl::string_view equipment_slot, const ChannelFactory& channel_factory,
-    absl::Duration timeout = kGrpcClientConnectDefaultTimeout);
+    absl::Duration timeout = connect::kGrpcClientConnectDefaultTimeout);
 
 class Icon2ResourceSelectorBuilder {
  public:

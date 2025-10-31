@@ -33,7 +33,7 @@ class Channel : public ChannelInterface {
   // wait for a response from the server before giving up on creating a channel.
   static absl::StatusOr<std::shared_ptr<Channel>> MakeFromAddress(
       const ConnectionParams& params,
-      absl::Duration timeout = kGrpcClientConnectDefaultTimeout);
+      absl::Duration timeout = connect::kGrpcClientConnectDefaultTimeout);
 
   // Creates a channel to an Intrinsic gRPC service based on org info and
   // cluster. If cluster is empty, no server name will be added to metadata,
@@ -43,7 +43,7 @@ class Channel : public ChannelInterface {
       const OrgInfo& org_info, std::string_view cluster,
       std::string_view instance_name = "",
       std::string_view header = "x-resource-instance-name",
-      absl::Duration timeout = kGrpcClientConnectDefaultTimeout);
+      absl::Duration timeout = connect::kGrpcClientConnectDefaultTimeout);
 
   // Creates a channel to an Intrinsic gRPC service based on org info and
   // solution name. This involves a call to solution discovery service to
@@ -52,7 +52,7 @@ class Channel : public ChannelInterface {
       const OrgInfo& org_info, std::string_view solution_name,
       std::string_view instance_name = "",
       std::string_view header = "x-resource-instance-name",
-      absl::Duration timeout = kGrpcClientConnectDefaultTimeout);
+      absl::Duration timeout = connect::kGrpcClientConnectDefaultTimeout);
 
   // Constructs a Channel with given connection parameters.
   explicit Channel(std::shared_ptr<grpc::Channel> channel,
