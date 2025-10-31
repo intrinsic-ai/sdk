@@ -124,7 +124,11 @@ func ValidateServiceManifest(m *smpb.ServiceManifest, options ...ValidateService
 			}
 		}
 	} else if defaultConfigSpecified {
-		configMessageFullName = string(opts.defaultConfig.MessageName())
+		defaultConfigMessageName := string(opts.defaultConfig.MessageName())
+		if defaultConfigMessageName == "" {
+			return fmt.Errorf("default config cannot be an empty Any message; omit it instead")
+		}
+		configMessageFullName = defaultConfigMessageName
 	}
 
 	// Verify that the Service's config message, if any, is in the file descriptor set.
