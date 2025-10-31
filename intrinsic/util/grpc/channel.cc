@@ -106,10 +106,10 @@ absl::StatusOr<std::shared_ptr<Channel>> Channel::MakeFromAddress(
   // Set the max message size to unlimited to allow longer trajectories.
   // Please check with the motion team before changing the value (see
   // b/275280379).
-  INTR_ASSIGN_OR_RETURN(
-      std::shared_ptr<grpc::Channel> channel,
-      connect::CreateClientChannel(params.address, absl::Now() + timeout,
-                                   UnlimitedMessageSizeGrpcChannelArgs()));
+  INTR_ASSIGN_OR_RETURN(std::shared_ptr<grpc::Channel> channel,
+                        connect::CreateClientChannel(
+                            params.address, absl::Now() + timeout,
+                            connect::UnlimitedMessageSizeGrpcChannelArgs()));
   return std::shared_ptr<Channel>(
       new Channel(channel, params.instance_name, params.header));
 }
@@ -141,8 +141,9 @@ absl::StatusOr<std::shared_ptr<Channel>> Channel::MakeFromCluster(
 
   std::string address = absl::StrCat("dns:///www.endpoints.", org_info.project,
                                      ".cloud.goog:443");
-  auto channel = grpc::CreateCustomChannel(
-      address, composite_channel_creds, UnlimitedMessageSizeGrpcChannelArgs());
+  auto channel =
+      grpc::CreateCustomChannel(address, composite_channel_creds,
+                                connect::UnlimitedMessageSizeGrpcChannelArgs());
   if (!channel->WaitForConnected(absl::ToChronoTime(absl::Now() + timeout))) {
     return absl::UnavailableError(
         absl::StrCat("Could not connect to gRPC server at ", address,
