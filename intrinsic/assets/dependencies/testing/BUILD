@@ -9,6 +9,36 @@ load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
 
 proto_library(
+    name = "test_configs_proto",
+    srcs = ["test_configs.proto"],
+    visibility = ["//intrinsic/assets/dependencies:__pkg__"],
+    deps = [
+        "//intrinsic/assets/proto:field_metadata_proto",
+        "//intrinsic/assets/proto/v1:resolved_dependency_proto",
+        "@com_google_protobuf//:any_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "test_configs_cc_proto",
+    visibility = ["//intrinsic/assets/dependencies:__pkg__"],
+    deps = [":test_configs_proto"],
+)
+
+go_proto_library(
+    name = "test_configs_go_proto",
+    go_deps = [
+        "//intrinsic/assets/proto:field_metadata_go_proto",
+        "//intrinsic/assets/proto/v1:resolved_dependency_go_proto",
+    ],
+    visibility = [
+        "//intrinsic/assets/dependencies:__pkg__",
+        "//intrinsic/kubernetes/workcell_spec:__pkg__",
+    ],
+    deps = [":test_configs_proto"],
+)
+
+proto_library(
     name = "test_service_proto",
     srcs = ["test_service.proto"],
     visibility = ["//intrinsic/assets/dependencies:__pkg__"],

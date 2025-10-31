@@ -592,6 +592,7 @@ go_library(
     deps = [
         "//intrinsic/assets:idutils",
         "//intrinsic/assets:metadatautils",
+        "//intrinsic/assets/dependencies:utils",
         "//intrinsic/skills/proto:skill_manifest_go_proto",
         "//intrinsic/util/proto:sourcecodeinfoview",
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
@@ -608,10 +609,13 @@ go_test(
     ],
     library = ":skillmanifest",
     deps = [
+        "//intrinsic/skills/proto:equipment_go_proto",
         "//intrinsic/skills/proto:skill_manifest_go_proto",
         "//intrinsic/util/proto:protoio",
         "//intrinsic/util/proto:registryutil",
         "//intrinsic/util/testing:testio",
+        "@com_github_google_go_cmp//cmp:go_default_library",
+        "@com_github_google_go_cmp//cmp/cmpopts:go_default_library",
         "@org_golang_google_protobuf//proto",
     ],
 )

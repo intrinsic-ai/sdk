@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/proto"
 	"intrinsic/util/proto/protoio"
 	"intrinsic/util/proto/registryutil"
@@ -15,8 +17,8 @@ import (
 )
 
 const (
-	manifestFilename   = "intrinsic/skills/build_defs/tests/no_op_skill_cc_manifest.pbbin"
-	descriptorFilename = "intrinsic/skills/build_defs/tests/no_op_skill_cc_manifest_filedescriptor.pbbin"
+	noOpManifestFilename        = "intrinsic/skills/build_defs/tests/no_op_skill_cc_manifest.pbbin"
+	noOpDescriptorFilename      = "intrinsic/skills/build_defs/tests/no_op_skill_cc_manifest_filedescriptor.pbbin"
 )
 
 func mustLoadManifest(t *testing.T, path string) *smpb.SkillManifest {
@@ -31,7 +33,7 @@ func mustLoadManifest(t *testing.T, path string) *smpb.SkillManifest {
 
 func TestValidateManifest(t *testing.T) {
 	set, err := registryutil.LoadFileDescriptorSets([]string{
-		testio.MustCreateRunfilePath(t, descriptorFilename),
+		testio.MustCreateRunfilePath(t, noOpDescriptorFilename),
 	})
 	if err != nil {
 		t.Fatalf("unable to build FileDescriptorSet: %v", err)
@@ -45,96 +47,94 @@ func TestValidateManifest(t *testing.T) {
 		name      string
 		manifest  *smpb.SkillManifest
 		opts      []ValidateSkillManifestOption
-		wantError bool
+		wantError error
 	}{
 		{
-			name:      "C++ no op",
-			manifest:  mustLoadManifest(t, manifestFilename),
-			wantError: false,
+			name:     "C++ no op",
+			manifest: mustLoadManifest(t, noOpManifestFilename),
 		},
 		{
 			name: "C++ no op with types",
 			manifest: func() *smpb.SkillManifest {
-				m := proto.Clone(mustLoadManifest(t, manifestFilename)).(*smpb.SkillManifest)
+				m := proto.Clone(mustLoadManifest(t, noOpManifestFilename)).(*smpb.SkillManifest)
 				m.Parameter.MessageFullName = "intrinsic_proto.skills.NoOpSkillParams"
 				return m
 			}(),
-			opts:      []ValidateSkillManifestOption{WithTypes(types)},
-			wantError: false,
+			opts: []ValidateSkillManifestOption{WithTypes(types)},
 		},
 		{
 			name: "C++ no op invalid name",
 			manifest: func() *smpb.SkillManifest {
-				m := proto.Clone(mustLoadManifest(t, manifestFilename)).(*smpb.SkillManifest)
+				m := proto.Clone(mustLoadManifest(t, noOpManifestFilename)).(*smpb.SkillManifest)
 				m.Id.Name = ""
 				return m
 			}(),
-			wantError: true,
+			wantError: cmpopts.AnyError,
 		},
 		{
 			name: "C++ no op name too long",
 			manifest: func() *smpb.SkillManifest {
-				m := proto.Clone(mustLoadManifest(t, manifestFilename)).(*smpb.SkillManifest)
+				m := proto.Clone(mustLoadManifest(t, noOpManifestFilename)).(*smpb.SkillManifest)
 				m.Id.Name = strings.Repeat("a", 1024)
 				return m
 			}(),
-			wantError: true,
+			wantError: cmpopts.AnyError,
 		},
 		{
 			name: "C++ no op invalid display name",
 			manifest: func() *smpb.SkillManifest {
-				m := proto.Clone(mustLoadManifest(t, manifestFilename)).(*smpb.SkillManifest)
+				m := proto.Clone(mustLoadManifest(t, noOpManifestFilename)).(*smpb.SkillManifest)
 				m.DisplayName = ""
 				return m
 			}(),
-			wantError: true,
+			wantError: cmpopts.AnyError,
 		},
 		{
 			name: "C++ no op display name too long",
 			manifest: func() *smpb.SkillManifest {
-				m := proto.Clone(mustLoadManifest(t, manifestFilename)).(*smpb.SkillManifest)
+				m := proto.Clone(mustLoadManifest(t, noOpManifestFilename)).(*smpb.SkillManifest)
 				m.DisplayName = strings.Repeat("a", 1024)
 				return m
 			}(),
-			wantError: true,
+			wantError: cmpopts.AnyError,
 		},
 		{
 			name: "C++ no op description too long",
 			manifest: func() *smpb.SkillManifest {
-				m := proto.Clone(mustLoadManifest(t, manifestFilename)).(*smpb.SkillManifest)
+				m := proto.Clone(mustLoadManifest(t, noOpManifestFilename)).(*smpb.SkillManifest)
 				m.Documentation.Description = strings.Repeat("a", 4096)
 				return m
 			}(),
-			wantError: true,
+			wantError: cmpopts.AnyError,
 		},
 		{
 			name: "C++ no op invalid parameter type",
 			manifest: func() *smpb.SkillManifest {
-				m := proto.Clone(mustLoadManifest(t, manifestFilename)).(*smpb.SkillManifest)
+				m := proto.Clone(mustLoadManifest(t, noOpManifestFilename)).(*smpb.SkillManifest)
 				m.Parameter.MessageFullName = "invalid.type"
 				return m
 			}(),
 			opts:      []ValidateSkillManifestOption{WithTypes(types)},
-			wantError: true,
+			wantError: cmpopts.AnyError,
 		},
 	}
 
 	for _, tc := range tests {
 		err := ValidateSkillManifest(tc.manifest, tc.opts...)
-		if gotError := (err != nil); tc.wantError != gotError {
-			t.Fatalf("wantErr: %v gotError: %v err: %v", tc.wantError, gotError, err)
+		if diff := cmp.Diff(tc.wantError, err, cmpopts.EquateErrors()); diff != "" {
+			t.Errorf("ValidateSkillManifest(%v) returned unexpected error (-want +got):\n%s", tc.manifest, diff)
 		}
 	}
 }
 
 func TestPruneSourceCodeInfo(t *testing.T) {
 	fds, err := registryutil.LoadFileDescriptorSets([]string{
-		testio.MustCreateRunfilePath(t, descriptorFilename),
+		testio.MustCreateRunfilePath(t, noOpDescriptorFilename),
 	})
 	if err != nil {
 		t.Fatalf("unable to build FileDescriptorSet: %v", err)
 	}
-	m := mustLoadManifest(t, manifestFilename)
+	m := mustLoadManifest(t, noOpManifestFilename)
 
 	PruneSourceCodeInfo(m, fds)
 	for _, file := range fds.GetFile() {

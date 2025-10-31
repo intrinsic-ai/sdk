@@ -14,6 +14,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/reflect/protoreflect"
 
 	anypb "google.golang.org/protobuf/types/known/anypb"
 	dasgrpcpb "intrinsic/assets/data/proto/v1/data_assets_go_grpc_proto"
@@ -131,4 +132,52 @@ func makeDefaultDataAssetsClient() (dasgrpcpb.DataAssetsClient, *grpc.ClientConn
 		return nil, nil, fmt.Errorf("failed to create gRPC client for DataAssets service: %w", err)
 	}
 	return dasgrpcpb.NewDataAssetsClient(conn), conn, nil
+}
+
+// HasDependencies returns true if the given proto descriptor has any ResolvedDependency fields.
+func HasDependencies(descriptor protoreflect.MessageDescriptor) (bool, error) {
+	var hasDependencies bool
+	visited := make(map[protoreflect.MessageDescriptor]struct{})
+
+	resolvedDependencyFullName := (&rdpb.ResolvedDependency{}).ProtoReflect().Descriptor().FullName()
+
+	walkProtoMessageDescriptors(descriptor, func(md protoreflect.MessageDescriptor) {
+		if md.FullName() == resolvedDependencyFullName {
+			hasDependencies = true
+		}
+	}, visited)
+	return hasDependencies, nil
+}
+
+// walkProtoMessageDescriptors walks through a proto message descriptor, executing a function for
+// each message descriptor it finds.
+func walkProtoMessageDescriptors(md protoreflect.MessageDescriptor, f func(protoreflect.MessageDescriptor), visited map[protoreflect.MessageDescriptor]struct{}) {
+	visited[md] = struct{}{}
+	f(md)
+
+	for i := 0; i < md.Fields().Len(); i++ {
+		field := md.Fields().Get(i)
+
+		// Skip non-message/group types.
+		if field.Kind() != protoreflect.MessageKind && field.Kind() != protoreflect.GroupKind {
+			continue
+		}
+		// Skip already visited messages.
+		if _, ok := visited[field.Message()]; ok {
+			continue
+		}
+
+		if field.IsMap() { // Walk through value descriptors.
+			md := field.MapValue().Message()
+			if md == nil {
+				continue
+			}
+			if _, ok := visited[md]; ok {
+				continue
+			}
+			walkProtoMessageDescriptors(md, f, visited)
+		} else {
+			walkProtoMessageDescriptors(field.Message(), f, visited)
+		}
+	}
 }

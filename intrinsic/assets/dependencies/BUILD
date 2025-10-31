@@ -16,6 +16,7 @@ go_library(
         "@org_golang_google_grpc//:go_default_library",
         "@org_golang_google_grpc//credentials/insecure:go_default_library",
         "@org_golang_google_grpc//metadata:go_default_library",
+        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
         "@org_golang_google_protobuf//types/known/anypb",
     ],
 )
@@ -27,6 +28,7 @@ go_test(
     deps = [
         "//intrinsic/assets/data:fakedataassets",
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
+        "//intrinsic/assets/dependencies/testing:test_configs_go_proto",
         "//intrinsic/assets/dependencies/testing:test_service_go_grpc_proto",
         "//intrinsic/assets/proto:asset_type_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
@@ -38,6 +40,7 @@ go_test(
         "@com_github_google_go_cmp//cmp:go_default_library",
         "@org_golang_google_grpc//:go_default_library",
         "@org_golang_google_grpc//metadata:go_default_library",
+        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
         "@org_golang_google_protobuf//testing/protocmp:go_default_library",
         "@org_golang_google_protobuf//types/known/anypb",
         "@org_golang_google_protobuf//types/known/emptypb",

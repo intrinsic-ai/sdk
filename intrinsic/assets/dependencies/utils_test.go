@@ -12,6 +12,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/testing/protocmp"
 	"intrinsic/assets/data/fakedataassets"
 	"intrinsic/testing/grpctest"
@@ -21,6 +22,7 @@ import (
 	anypb "google.golang.org/protobuf/types/known/anypb"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	dapb "intrinsic/assets/data/proto/v1/data_asset_go_proto"
+	tcpb "intrinsic/assets/dependencies/testing/test_configs_go_proto"
 	tsgrpcpb "intrinsic/assets/dependencies/testing/test_service_go_grpc_proto"
 	tspb "intrinsic/assets/dependencies/testing/test_service_go_grpc_proto"
 	atpb "intrinsic/assets/proto/asset_type_go_proto"
@@ -276,6 +278,91 @@ func TestGetDataPayload(t *testing.T) {
 				t.Errorf("GetDataPayload() returned an unexpected error: %v", err)
 			} else if diff := cmp.Diff(tc.wantPayload, gotPayload, protocmp.Transform()); diff != "" {
 				t.Errorf("GetDataPayload() returned an unexpected diff (-want +got): %v", diff)
+			}
+		})
+	}
+}
+
+func TestHasDependencies(t *testing.T) {
+	tests := []struct {
+		desc       string
+		descriptor protoreflect.MessageDescriptor
+		want       bool
+	}{
+		{
+			desc:       "simple_grpc_dependency_config",
+			descriptor: (&tcpb.SimpleGrpcDependencyConfig{}).ProtoReflect().Descriptor(),
+			want:       true,
+		},
+		{
+			desc:       "simple_data_dependency_config",
+			descriptor: (&tcpb.SimpleDataDependencyConfig{}).ProtoReflect().Descriptor(),
+			want:       true,
+		},
+		{
+			desc:       "simple_object_dependency_config",
+			descriptor: (&tcpb.SimpleObjectDependencyConfig{}).ProtoReflect().Descriptor(),
+			want:       true,
+		},
+		{
+			desc:       "config_with_repeated_dependency",
+			descriptor: (&tcpb.WithRepeatedDependency{}).ProtoReflect().Descriptor(),
+			want:       true,
+		},
+		{
+			desc:       "config_with_nested_fields",
+			descriptor: (&tcpb.WithNestedFields{}).ProtoReflect().Descriptor(),
+			want:       true,
+		},
+		{
+			desc:       "config_with_multiple_dependencies",
+			descriptor: (&tcpb.WithMultipleDependencies{}).ProtoReflect().Descriptor(),
+			want:       true,
+		},
+		{
+			desc:       "config_with_unannotated_dependency",
+			descriptor: (&tcpb.WithUnannotatedDependency{}).ProtoReflect().Descriptor(),
+			want:       true,
+		},
+		{
+			desc:       "config_with_incorrect_dependency_type",
+			descriptor: (&tcpb.WithIncorrectMessageType{}).ProtoReflect().Descriptor(),
+			want:       false,
+		},
+		{
+			desc:       "config_with_multiple_interfaces",
+			descriptor: (&tcpb.WithMultipleInterfaces{}).ProtoReflect().Descriptor(),
+			want:       true,
+		},
+		{
+			desc:       "config_with_map_dependency",
+			descriptor: (&tcpb.WithMapDependency{}).ProtoReflect().Descriptor(),
+			want:       true,
+		},
+		{
+			desc:       "config_with_optional_dependency",
+			descriptor: (&tcpb.WithOptionalDependency{}).ProtoReflect().Descriptor(),
+			want:       true,
+		},
+		{
+			desc:       "config_with_required_dependency",
+			descriptor: (&tcpb.WithRequiredDependency{}).ProtoReflect().Descriptor(),
+			want:       true,
+		},
+		{
+			desc:       "config_with_any_proto",
+			descriptor: (&tcpb.WithAnyProto{}).ProtoReflect().Descriptor(),
+			want:       false,
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.desc, func(t *testing.T) {
+			got, err := HasDependencies(tc.descriptor)
+			if err != nil {
+				t.Fatalf("HasDependencies(%v) returned an unexpected error: %v", tc.descriptor, err)
+			}
+			if got != tc.want {
+				t.Errorf("HasDependencies(%v) = %v, want: %v", tc.descriptor, got, tc.want)
 			}
 		})
 	}

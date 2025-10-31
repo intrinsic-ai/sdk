@@ -7,12 +7,17 @@ import (
 	"fmt"
 
 	"google.golang.org/protobuf/reflect/protoregistry"
+	"intrinsic/assets/dependencies/utils"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/metadatautils"
 	"intrinsic/util/proto/sourcecodeinfoview"
 
 	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
+)
+
+var (
+	errMixOfDependencyModels = fmt.Errorf("cannot declare dependencies in both the manifest's dependencies field (required equipment) and in the skill's parameter proto (annotation-based dependencies)")
 )
 
 // ValidateSkillManifestOptions contains options for validating a SkillManifest.
@@ -44,8 +49,16 @@ func ValidateSkillManifest(m *smpb.SkillManifest, options ...ValidateSkillManife
 
 	if opts.types != nil {
 		if name := m.GetParameter().GetMessageFullName(); name != "" {
-			if _, err := opts.types.FindMessageByURL(name); err != nil {
+			mt, err := opts.types.FindMessageByURL(name)
+			if err != nil {
 				return fmt.Errorf("cannot find parameter message %q for Skill %q: %w", name, id, err)
+			}
+			parameterHasResolvedDependencies, err := utils.HasDependencies(mt.Descriptor())
+			if err != nil {
+				return fmt.Errorf("cannot determine if skill's parameter includes ResolvedDependency protos: %w", err)
+			}
+			if parameterHasResolvedDependencies && len(m.GetDependencies().GetRequiredEquipment()) != 0 {
+				return errMixOfDependencyModels
 			}
 		}
 		if name := m.GetReturnType().GetMessageFullName(); name != "" {
