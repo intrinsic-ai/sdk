@@ -296,6 +296,8 @@ message IntOSInterfaceConfig {
   EtherType ether_type = 9 [(google.api.field_behavior) = OPTIONAL];
   // The display name of the interface.
   string display_name = 10 [(google.api.field_behavior) = OPTIONAL];
+  // Configure the interface as a PTP clock.
+  bool ptp = 11 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // IntOSNetworkConfig represents the full network configuration for a device
