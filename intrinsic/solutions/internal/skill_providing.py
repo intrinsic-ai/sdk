@@ -152,7 +152,7 @@ class Skills(providers.SkillProvider):
 
   _skill_registry: skill_registry_client.SkillRegistryClient
   _resource_registry: resource_registry_client.ResourceRegistryClient
-  _installed_assets: installed_assets_client.InstalledAssetsClient | None
+  _installed_assets: installed_assets_client.InstalledAssetsClient
 
   # All skills in the solution by id
   _skills_by_id: dict[str, provided.SkillInfo]
@@ -172,9 +172,7 @@ class Skills(providers.SkillProvider):
       self,
       skill_registry: skill_registry_client.SkillRegistryClient,
       resource_registry: resource_registry_client.ResourceRegistryClient,
-      installed_assets: (
-          installed_assets_client.InstalledAssetsClient | None
-      ) = None,
+      installed_assets: installed_assets_client.InstalledAssetsClient,
   ):
     self._skill_registry = skill_registry
     self._resource_registry = resource_registry
@@ -332,16 +330,15 @@ class Skills(providers.SkillProvider):
     # Get all Process assets with the SUBPROCESS tag, i.e., the Process assets
     # that are marked to be listed alongside regular "skills" in UIs.
     process_asset_skills: list[skills_pb2.Skill] = []
-    if self._installed_assets is not None:
-      for asset in self._installed_assets.list_all_installed_assets(
-          asset_types=[asset_type_pb2.AssetType.ASSET_TYPE_PROCESS],
-          asset_tag=asset_tag_pb2.AssetTag.ASSET_TAG_SUBPROCESS,
-          view=view_pb2.AssetViewType.ASSET_VIEW_TYPE_FULL,
-      ):
-        bt = asset.deployment_data.process.process.behavior_tree
-        # Skip behavior trees without a Skill proto (this is unexpected)
-        if bt.HasField("description"):
-          process_asset_skills.append(bt.description)
+    for asset in self._installed_assets.list_all_installed_assets(
+        asset_types=[asset_type_pb2.AssetType.ASSET_TYPE_PROCESS],
+        asset_tag=asset_tag_pb2.AssetTag.ASSET_TAG_SUBPROCESS,
+        view=view_pb2.AssetViewType.ASSET_VIEW_TYPE_FULL,
+    ):
+      bt = asset.deployment_data.process.process.behavior_tree
+      # Skip behavior trees without a Skill proto (this is unexpected)
+      if bt.HasField("description"):
+        process_asset_skills.append(bt.description)
 
     # Merge skill protos from process assets with skill protos from the skill
     # registry (legacy processes and regular skills), assets taking precedence.

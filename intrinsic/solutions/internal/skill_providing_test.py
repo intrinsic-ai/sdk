@@ -2927,6 +2927,7 @@ Fields:
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_infos(skill_infos),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
 
     iterated_skills = []
