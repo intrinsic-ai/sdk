@@ -51,6 +51,7 @@ class StubsTest(absltest.TestCase):
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_infos(skill_infos),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
     tmp_dir = self.create_tempdir()
 
@@ -116,6 +117,7 @@ class StubsTest(absltest.TestCase):
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_infos([]),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
     tmp_dir = self.create_tempdir()
 
@@ -136,6 +138,7 @@ class StubsTest(absltest.TestCase):
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_infos(skill_infos),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
     tmp_dir = self.create_tempdir()
 
@@ -160,6 +163,7 @@ class StubsTest(absltest.TestCase):
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_infos(skill_infos),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
     tmp_dir = self.create_tempdir()
 
@@ -201,6 +205,7 @@ class skill_two\(skill_generation.GeneratedSkill\):
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
     tmp_dir = self.create_tempdir()
 
@@ -268,6 +273,7 @@ class skill_two\(skill_generation.GeneratedSkill\):
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
     tmp_dir = self.create_tempdir()
 
@@ -323,6 +329,7 @@ class skill_two\(skill_generation.GeneratedSkill\):
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
     tmp_dir = self.create_tempdir()
 
@@ -382,6 +389,7 @@ class my_skill\(skill_generation.GeneratedSkill\):.*
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
     tmp_dir = self.create_tempdir()
 
@@ -438,6 +446,7 @@ class my_skill\(skill_generation.GeneratedSkill\):.*
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
     tmp_dir = self.create_tempdir()
 
@@ -508,6 +517,7 @@ class my_skill\(skill_generation.GeneratedSkill\):.*
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
     tmp_dir = self.create_tempdir()
 
@@ -541,6 +551,7 @@ class my_skill\(skill_generation.GeneratedSkill\):.*
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
     other_skill_info = self._utils.create_test_skill_info(
         "ai.intr.my_skill",
@@ -549,6 +560,7 @@ class my_skill\(skill_generation.GeneratedSkill\):.*
     other_skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(other_skill_info),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
     tmp_dir = self.create_tempdir()
 

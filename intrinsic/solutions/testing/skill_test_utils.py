@@ -10,12 +10,21 @@ from google.protobuf import descriptor
 from google.protobuf import descriptor_pb2
 from google.protobuf import message
 from google.protobuf import text_format
+from intrinsic.assets import id_utils
+from intrinsic.assets.processes.proto import process_asset_pb2
+from intrinsic.assets.proto import asset_tag_pb2
+from intrinsic.assets.proto import asset_type_pb2
+from intrinsic.assets.proto import id_pb2
+from intrinsic.assets.proto import installed_assets_pb2
+from intrinsic.assets.proto import metadata_pb2
+from intrinsic.executive.proto import behavior_tree_pb2
 from intrinsic.resources.client import resource_registry_client
 from intrinsic.resources.proto import resource_handle_pb2
 from intrinsic.resources.proto import resource_registry_pb2
 from intrinsic.skills.client import skill_registry_client
 from intrinsic.skills.proto import skill_registry_pb2
 from intrinsic.skills.proto import skills_pb2
+from intrinsic.solutions.internal import installed_assets_client
 from intrinsic.solutions.testing import test_skill_params_pb2
 
 
@@ -278,6 +287,64 @@ class SkillTestUtils:
       The mock skill registry client.
     """
     return self.create_skill_registry_for_skill_infos([skill_info])
+
+  def create_installed_asset_for_skill_info(
+      self,
+      skill_info: skills_pb2.Skill,
+  ) -> installed_assets_pb2.InstalledAsset:
+    """Creates an installed Process asset for the given Skill proto."""
+    metadata = metadata_pb2.Metadata(
+        id_version=id_pb2.IdVersion(
+            id=id_pb2.Id(
+                package=id_utils.package_from(skill_info.id),
+                name=id_utils.name_from(skill_info.id),
+            ),
+        ),
+        display_name=skill_info.skill_name,
+        asset_type=asset_type_pb2.AssetType.ASSET_TYPE_PROCESS,
+        asset_tag=asset_tag_pb2.AssetTag.ASSET_TAG_SUBPROCESS,
+    )
+    return installed_assets_pb2.InstalledAsset(
+        metadata=metadata,
+        deployment_data=installed_assets_pb2.InstalledAsset.DeploymentData(
+            process=installed_assets_pb2.InstalledAsset.ProcessDeploymentData(
+                process=process_asset_pb2.ProcessAsset(
+                    metadata=metadata,
+                    behavior_tree=behavior_tree_pb2.BehaviorTree(
+                        name=skill_info.skill_name,
+                        description=skill_info,
+                    ),
+                )
+            )
+        ),
+    )
+
+  def create_installed_assets_for_skill_infos(
+      self,
+      skill_infos: list[skills_pb2.Skill],
+  ) -> installed_assets_client.InstalledAssetsClient:
+    """Creates a mock client for the installed assets service.
+
+    Args:
+      skill_infos: The skills to add to the installed assets service.
+
+    Returns:
+      The mock installed assets client.
+    """
+    client = mock.MagicMock()
+    client.list_all_installed_assets.return_value = [
+        self.create_installed_asset_for_skill_info(skill_info)
+        for skill_info in skill_infos
+    ]
+    return client
+
+  def create_empty_installed_assets(
+      self,
+  ) -> installed_assets_client.InstalledAssetsClient:
+    """Creates a mock client for the installed assets service with no assets."""
+    client = mock.MagicMock()
+    client.list_all_installed_assets.return_value = []
+    return client
 
   def create_resource_registry_with_handles(
       self, handles: list[resource_handle_pb2.ResourceHandle]

@@ -6,10 +6,15 @@ from __future__ import annotations
 
 from typing import Any, Iterable, Type, Union
 
+from intrinsic.assets.proto import asset_tag_pb2
+from intrinsic.assets.proto import asset_type_pb2
+from intrinsic.assets.proto import view_pb2
 from intrinsic.resources.client import resource_registry_client
 from intrinsic.skills.client import skill_registry_client
+from intrinsic.skills.proto import skills_pb2
 from intrinsic.solutions import provided
 from intrinsic.solutions import providers
+from intrinsic.solutions.internal import installed_assets_client
 from intrinsic.solutions.internal import resources
 from intrinsic.solutions.internal import skill_generation
 from intrinsic.solutions.internal import skill_utils
@@ -147,6 +152,7 @@ class Skills(providers.SkillProvider):
 
   _skill_registry: skill_registry_client.SkillRegistryClient
   _resource_registry: resource_registry_client.ResourceRegistryClient
+  _installed_assets: installed_assets_client.InstalledAssetsClient | None
 
   # All skills in the solution by id
   _skills_by_id: dict[str, provided.SkillInfo]
@@ -166,9 +172,13 @@ class Skills(providers.SkillProvider):
       self,
       skill_registry: skill_registry_client.SkillRegistryClient,
       resource_registry: resource_registry_client.ResourceRegistryClient,
+      installed_assets: (
+          installed_assets_client.InstalledAssetsClient | None
+      ) = None,
   ):
     self._skill_registry = skill_registry
     self._resource_registry = resource_registry
+    self._installed_assets = installed_assets
 
     self._skills_by_id = {}
     self._skill_type_classes_by_id = {}
@@ -183,8 +193,10 @@ class Skills(providers.SkillProvider):
 
   def update(self) -> None:
     """Retrieve most recent list of available skills."""
-    skills = self._skill_registry.get_skills()
-    skill_infos = [skill_generation.SkillInfoImpl(info) for info in skills]
+    skill_infos = [
+        skill_generation.SkillInfoImpl(skill_proto)
+        for skill_proto in self._get_skill_protos()
+    ]
 
     self._global_skills_by_name = {
         info.skill_name: info for info in skill_infos if not info.package_name
@@ -315,3 +327,30 @@ class Skills(providers.SkillProvider):
                 self._compatible_resources_by_id[skill_id],
             )
         )
+
+  def _get_skill_protos(self) -> list[skills_pb2.Skill]:
+    # Get all Process assets with the SUBPROCESS tag, i.e., the Process assets
+    # that are marked to be listed alongside regular "skills" in UIs.
+    process_asset_skills: list[skills_pb2.Skill] = []
+    if self._installed_assets is not None:
+      for asset in self._installed_assets.list_all_installed_assets(
+          asset_types=[asset_type_pb2.AssetType.ASSET_TYPE_PROCESS],
+          asset_tag=asset_tag_pb2.AssetTag.ASSET_TAG_SUBPROCESS,
+          view=view_pb2.AssetViewType.ASSET_VIEW_TYPE_FULL,
+      ):
+        bt = asset.deployment_data.process.process.behavior_tree
+        # Skip behavior trees without a Skill proto (this is unexpected)
+        if bt.HasField("description"):
+          process_asset_skills.append(bt.description)
+
+    # Merge skill protos from process assets with skill protos from the skill
+    # registry (legacy processes and regular skills), assets taking precedence.
+    result: list[skills_pb2.Skill] = process_asset_skills
+    collected_ids = set(skill.id for skill in process_asset_skills)
+    for skill in self._skill_registry.get_skills():
+      if skill.id not in collected_ids:
+        result.append(skill)
+        collected_ids.add(skill.id)
+
+    result.sort(key=lambda skill: skill.id)
+    return result

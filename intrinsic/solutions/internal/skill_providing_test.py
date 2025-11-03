@@ -11,6 +11,9 @@ from absl.testing import parameterized
 from google.protobuf import descriptor_pb2
 from google.protobuf import empty_pb2
 from google.protobuf import text_format
+from intrinsic.assets.proto import asset_tag_pb2
+from intrinsic.assets.proto import asset_type_pb2
+from intrinsic.assets.proto import view_pb2
 from intrinsic.executive.proto import behavior_call_pb2
 from intrinsic.executive.proto import test_message_pb2
 from intrinsic.math.proto import point_pb2
@@ -177,16 +180,36 @@ class SkillsTest(parameterized.TestCase):
     )
 
     skills = skill_providing.Skills(
-        skill_registry, self._utils.create_empty_resource_registry()
+        skill_registry,
+        self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
 
     with self.assertRaises(TypeError):
       skills.my_skill(**parameter)
 
+  def test_calls_installed_assets_service_correctly(self):
+    skill_registry = mock.MagicMock()
+    installed_assets = mock.MagicMock()
+    installed_assets.list_all_installed_assets.return_value = [
+        self._utils.create_installed_asset_for_skill_info(
+            self._utils.create_parameterless_skill_info('ai.intr.intr_b_pbt')
+        ),
+    ]
+    resource_registry = mock.MagicMock()
+
+    skill_providing.Skills(skill_registry, resource_registry, installed_assets)
+
+    installed_assets.list_all_installed_assets.assert_called_once_with(
+        asset_types=[asset_type_pb2.AssetType.ASSET_TYPE_PROCESS],
+        asset_tag=asset_tag_pb2.AssetTag.ASSET_TAG_SUBPROCESS,
+        view=view_pb2.AssetViewType.ASSET_VIEW_TYPE_FULL,
+    )
+
   def test_list_skills(self):
-    skill_infos = [
-        self._utils.create_parameterless_skill_info('ai.intr.intr_skill_one'),
-        self._utils.create_parameterless_skill_info('ai.intr.intr_skill_two'),
+    registry_skills = [
+        self._utils.create_parameterless_skill_info('ai.intr.intr_a_skill'),
+        self._utils.create_parameterless_skill_info('ai.intr.intr_c_skill'),
         self._utils.create_parameterless_skill_info('ai.ai_skill'),
         self._utils.create_parameterless_skill_info('foo.foo_skill'),
         self._utils.create_parameterless_skill_info('foo.foo'),
@@ -194,9 +217,14 @@ class SkillsTest(parameterized.TestCase):
         self._utils.create_parameterless_skill_info('foo.bar.bar'),
         self._utils.create_parameterless_skill_info('global_skill'),
     ]
+    asset_skills = [
+        self._utils.create_parameterless_skill_info('ai.intr.intr_b_pbt'),
+        self._utils.create_parameterless_skill_info('foo.bar.bar_pbt'),
+    ]
     skills = skill_providing.Skills(
-        self._utils.create_skill_registry_for_skill_infos(skill_infos),
+        self._utils.create_skill_registry_for_skill_infos(registry_skills),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_installed_assets_for_skill_infos(asset_skills),
     )
 
     self.assertEqual(
@@ -208,8 +236,11 @@ class SkillsTest(parameterized.TestCase):
         ],
     )
     self.assertEqual(dir(skills.ai), ['ai_skill', 'intr'])
+    self.assertEqual(
+        dir(skills.ai.intr), ['intr_a_skill', 'intr_b_pbt', 'intr_c_skill']
+    )
     self.assertEqual(dir(skills.foo), ['bar', 'foo', 'foo_skill'])
-    self.assertEqual(dir(skills.foo.bar), ['bar', 'bar_skill'])
+    self.assertEqual(dir(skills.foo.bar), ['bar', 'bar_pbt', 'bar_skill'])
 
   def test_skills_attribute_access(self):
     """Tests attribute-based access (skills.<skill_id>)."""
@@ -219,7 +250,7 @@ class SkillsTest(parameterized.TestCase):
     # Some skill protos may have a display name in the 'skill_name' field which
     # is different from the last part of the 'id' field.
     ai_intr_intr_skill_two.skill_name = 'display name to be ignored'
-    skill_infos = [
+    registry_skills = [
         self._utils.create_parameterless_skill_info('ai.intr.intr_skill_one'),
         ai_intr_intr_skill_two,
         self._utils.create_parameterless_skill_info('ai.ai_skill'),
@@ -227,9 +258,13 @@ class SkillsTest(parameterized.TestCase):
         self._utils.create_parameterless_skill_info('foo.bar.bar_skill'),
         self._utils.create_parameterless_skill_info('global_skill'),
     ]
+    asset_skills = [
+        self._utils.create_parameterless_skill_info('ai.intr.intr_pbt'),
+    ]
     skills = skill_providing.Skills(
-        self._utils.create_skill_registry_for_skill_infos(skill_infos),
+        self._utils.create_skill_registry_for_skill_infos(registry_skills),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_installed_assets_for_skill_infos(asset_skills),
     )
 
     # Id notation: skills.<skill_id>
@@ -243,6 +278,9 @@ class SkillsTest(parameterized.TestCase):
     )
     self.assertIsInstance(
         skills.ai.intr.intr_skill_two(), skill_generation.GeneratedSkill
+    )
+    self.assertIsInstance(
+        skills.ai.intr.intr_pbt(), skill_generation.GeneratedSkill
     )
     self.assertIsInstance(skills.ai.ai_skill(), skill_generation.GeneratedSkill)
     self.assertIsInstance(
@@ -270,6 +308,7 @@ class SkillsTest(parameterized.TestCase):
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_infos(skill_infos),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
 
     self.assertIsInstance(
@@ -279,16 +318,38 @@ class SkillsTest(parameterized.TestCase):
         skills.com.foo.my_skill(), skill_generation.GeneratedSkill
     )
 
+  def test_asset_skill_takes_precedence_over_registry_skill(self):
+    registry_skill = self._utils.create_parameterless_skill_info(
+        'ai.intr.same_name'
+    )
+    registry_skill.skill_name = 'registry skill'
+    asset_skill = self._utils.create_parameterless_skill_info(
+        'ai.intr.same_name'
+    )
+    asset_skill.skill_name = 'asset skill'
+
+    skills = skill_providing.Skills(
+        self._utils.create_skill_registry_for_skill_infos([registry_skill]),
+        self._utils.create_empty_resource_registry(),
+        self._utils.create_installed_assets_for_skill_infos([asset_skill]),
+    )
+
+    self.assertEqual(skills.ai.intr.same_name.info.skill_name, 'asset skill')
+
   def test_skills_dict_access(self):
     """Tests id-string-based access via __getitem__ (skills['<skill_id>'])."""
-    skill_infos = [
+    registry_skills = [
         self._utils.create_parameterless_skill_info('ai.intr.skill_one'),
         self._utils.create_parameterless_skill_info('ai.intr.skill_two'),
         self._utils.create_parameterless_skill_info('global_skill'),
     ]
+    asset_skills = [
+        self._utils.create_parameterless_skill_info('ai.intr.pbt_one'),
+    ]
     skills = skill_providing.Skills(
-        self._utils.create_skill_registry_for_skill_infos(skill_infos),
+        self._utils.create_skill_registry_for_skill_infos(registry_skills),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_installed_assets_for_skill_infos(asset_skills),
     )
 
     self.assertIsInstance(
@@ -298,6 +359,9 @@ class SkillsTest(parameterized.TestCase):
         skills['ai.intr.skill_two'](), skill_generation.GeneratedSkill
     )
     self.assertIsInstance(
+        skills['ai.intr.pbt_one'](), skill_generation.GeneratedSkill
+    )
+    self.assertIsInstance(
         skills['global_skill'](), skill_generation.GeneratedSkill
     )
 
@@ -305,56 +369,78 @@ class SkillsTest(parameterized.TestCase):
       _ = skills['skill5']
 
   def test_skills_get_skill_ids(self):
-    skill_infos = [
+    registry_skills = [
         self._utils.create_parameterless_skill_info('ai.intr.skill_one'),
         self._utils.create_parameterless_skill_info('ai.intr.skill_two'),
         self._utils.create_parameterless_skill_info('global_skill'),
     ]
+    asset_skills = [
+        self._utils.create_parameterless_skill_info('ai.intr.pbt_one'),
+    ]
     skills = skill_providing.Skills(
-        self._utils.create_skill_registry_for_skill_infos(skill_infos),
+        self._utils.create_skill_registry_for_skill_infos(registry_skills),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_installed_assets_for_skill_infos(asset_skills),
     )
 
     skill_ids = skills.get_skill_ids()
 
     self.assertCountEqual(
         list(skill_ids),
-        ['ai.intr.skill_one', 'ai.intr.skill_two', 'global_skill'],
+        [
+            'ai.intr.skill_one',
+            'ai.intr.skill_two',
+            'ai.intr.pbt_one',
+            'global_skill',
+        ],
     )
 
   def test_skills_get_skill_classes(self):
-    skill_infos = [
+    registry_skills = [
         self._utils.create_parameterless_skill_info('ai.intr.skill_one'),
         self._utils.create_parameterless_skill_info('ai.intr.skill_two'),
         self._utils.create_parameterless_skill_info('global_skill'),
     ]
+    asset_skills = [
+        self._utils.create_parameterless_skill_info('ai.intr.pbt_one'),
+    ]
     skills = skill_providing.Skills(
-        self._utils.create_skill_registry_for_skill_infos(skill_infos),
+        self._utils.create_skill_registry_for_skill_infos(registry_skills),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_installed_assets_for_skill_infos(asset_skills),
     )
 
     skill_classes = skills.get_skill_classes()
 
-    self.assertLen(skill_classes, 3)
+    self.assertLen(skill_classes, 4)
     for skill_class in skill_classes:
       self.assertIsInstance(skill_class(), skill_generation.GeneratedSkill)
 
   def test_skills_get_skill_ids_and_classes(self):
-    skill_infos = [
+    registry_skills = [
         self._utils.create_parameterless_skill_info('ai.intr.skill_one'),
         self._utils.create_parameterless_skill_info('ai.intr.skill_two'),
         self._utils.create_parameterless_skill_info('global_skill'),
     ]
+    asset_skills = [
+        self._utils.create_parameterless_skill_info('ai.intr.pbt_one'),
+    ]
     skills = skill_providing.Skills(
-        self._utils.create_skill_registry_for_skill_infos(skill_infos),
+        self._utils.create_skill_registry_for_skill_infos(registry_skills),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_installed_assets_for_skill_infos(asset_skills),
     )
 
     ids_and_classes = skills.get_skill_ids_and_classes()
 
     self.assertCountEqual(
         [skill_id for skill_id, _ in ids_and_classes],
-        ['ai.intr.skill_one', 'ai.intr.skill_two', 'global_skill'],
+        [
+            'ai.intr.skill_one',
+            'ai.intr.skill_two',
+            'ai.intr.pbt_one',
+            'global_skill',
+        ],
     )
     for _, skill_class in ids_and_classes:
       self.assertIsInstance(skill_class(), skill_generation.GeneratedSkill)
@@ -384,7 +470,11 @@ class SkillsTest(parameterized.TestCase):
         )
     )
 
-    skills = skill_providing.Skills(skill_registry, resource_registry)
+    skills = skill_providing.Skills(
+        skill_registry,
+        resource_registry,
+        self._utils.create_empty_installed_assets(),
+    )
 
     expected_repeated_doubles = [2.1, 3.1]
     expected_repeated_submessages = [
@@ -477,7 +567,11 @@ class SkillsTest(parameterized.TestCase):
         )
     )
 
-    skills = skill_providing.Skills(skill_registry, resource_registry)
+    skills = skill_providing.Skills(
+        skill_registry,
+        resource_registry,
+        self._utils.create_empty_installed_assets(),
+    )
 
     skill = skills.ai.intrinsic.my_skill(
         a=provided.ResourceHandle.create(resource_name, [resource_capability])
@@ -546,7 +640,11 @@ class SkillsTest(parameterized.TestCase):
         )
     )
 
-    skills = skill_providing.Skills(skill_registry, resource_registry)
+    skills = skill_providing.Skills(
+        skill_registry,
+        resource_registry,
+        self._utils.create_empty_installed_assets(),
+    )
 
     parameters = test_skill_params_pb2.TestMessage(
         executive_test_message=test_message_pb2.TestMessage(
@@ -606,7 +704,11 @@ class SkillsTest(parameterized.TestCase):
         )
     )
 
-    skills = skill_providing.Skills(skill_registry, resource_registry)
+    skills = skill_providing.Skills(
+        skill_registry,
+        resource_registry,
+        self._utils.create_empty_installed_assets(),
+    )
 
     skill = skills.ai.intrinsic.my_skill(
         my_oneof_double=value_specification,
@@ -657,7 +759,11 @@ class SkillsTest(parameterized.TestCase):
         )
     )
 
-    skills = skill_providing.Skills(skill_registry, resource_registry)
+    skills = skill_providing.Skills(
+        skill_registry,
+        resource_registry,
+        self._utils.create_empty_installed_assets(),
+    )
 
     my_skill = skills.ai.intrinsic.my_skill
 
@@ -823,7 +929,11 @@ class SkillsTest(parameterized.TestCase):
         )
     )
 
-    skills = skill_providing.Skills(skill_registry, resource_registry)
+    skills = skill_providing.Skills(
+        skill_registry,
+        resource_registry,
+        self._utils.create_empty_installed_assets(),
+    )
 
     my_skill = skills.ai.intrinsic.my_skill
 
@@ -868,7 +978,11 @@ class SkillsTest(parameterized.TestCase):
         )
     )
 
-    skills = skill_providing.Skills(skill_registry, resource_registry)
+    skills = skill_providing.Skills(
+        skill_registry,
+        resource_registry,
+        self._utils.create_empty_installed_assets(),
+    )
 
     expected_parameters = test_skill_params_pb2.TestMessage(
         string_int32_map={'foo': 1}
@@ -902,7 +1016,11 @@ class SkillsTest(parameterized.TestCase):
         )
     )
 
-    skills = skill_providing.Skills(skill_registry, resource_registry)
+    skills = skill_providing.Skills(
+        skill_registry,
+        resource_registry,
+        self._utils.create_empty_installed_assets(),
+    )
 
     expected_parameters = test_skill_params_pb2.TestMessage(
         string_message_map={
@@ -950,7 +1068,11 @@ class SkillsTest(parameterized.TestCase):
         )
     )
 
-    skills = skill_providing.Skills(skill_registry, resource_registry)
+    skills = skill_providing.Skills(
+        skill_registry,
+        resource_registry,
+        self._utils.create_empty_installed_assets(),
+    )
 
     expected_parameters = test_skill_params_pb2.TestMessage(
         string_message_map={
@@ -982,6 +1104,7 @@ class SkillsTest(parameterized.TestCase):
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
     my_skill = skills.ai.intrinsic.my_skill
 
@@ -1014,7 +1137,11 @@ class SkillsTest(parameterized.TestCase):
         )
     )
 
-    skills = skill_providing.Skills(skill_registry, resource_registry)
+    skills = skill_providing.Skills(
+        skill_registry,
+        resource_registry,
+        self._utils.create_empty_installed_assets(),
+    )
 
     with self.assertRaisesRegex(TypeError, 'Got set where expected dict'):
       # In the following, the map parameter should be initialized as {'foo': 1},
@@ -1042,7 +1169,11 @@ class SkillsTest(parameterized.TestCase):
         )
     )
 
-    skills = skill_providing.Skills(skill_registry, resource_registry)
+    skills = skill_providing.Skills(
+        skill_registry,
+        resource_registry,
+        self._utils.create_empty_installed_assets(),
+    )
 
     with self.assertRaisesRegex(
         TypeError, 'Cannot set field .* from blackboard'
@@ -1074,7 +1205,11 @@ class SkillsTest(parameterized.TestCase):
         )
     )
 
-    skills = skill_providing.Skills(skill_registry, resource_registry)
+    skills = skill_providing.Skills(
+        skill_registry,
+        resource_registry,
+        self._utils.create_empty_installed_assets(),
+    )
 
     # Normal assignment to known field should work
     m = skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.SubMessage(
@@ -1164,7 +1299,11 @@ class SkillsTest(parameterized.TestCase):
         ),
     ])
 
-    skills = skill_providing.Skills(skill_registry, resource_registry)
+    skills = skill_providing.Skills(
+        skill_registry,
+        resource_registry,
+        self._utils.create_empty_installed_assets(),
+    )
 
     self.assertCountEqual(
         dir(skills.ai.intrinsic.skill_one.compatible_resources['slot_one']),
@@ -1202,6 +1341,7 @@ class SkillsTest(parameterized.TestCase):
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
 
     resource_a = provided.ResourceHandle.create('resource_a', ['some-type'])
@@ -1217,6 +1357,7 @@ class SkillsTest(parameterized.TestCase):
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_infos(skill_infos),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
 
     self.assertEqual(skills.ai.intrinsic.my_skill.__name__, 'my_skill')
@@ -1345,6 +1486,7 @@ class SkillsTest(parameterized.TestCase):
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
 
     my_skill = skills.ai.intrinsic.my_skill(**parameters)
@@ -1481,6 +1623,7 @@ class SkillsTest(parameterized.TestCase):
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
 
     my_skill = skills.ai.intrinsic.my_skill
@@ -1497,6 +1640,7 @@ class SkillsTest(parameterized.TestCase):
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
 
     my_skill = skills.ai.intrinsic.my_skill()
@@ -1620,6 +1764,7 @@ This is an awesome skill."""
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
 
     self.assertEqual(skills.ai.intrinsic.my_skill.__doc__, docstring)
@@ -1791,6 +1936,7 @@ Returns:
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
 
     self.assertEqual(skills.ai.intrinsic.my_skill.__init__.__doc__, docstring)
@@ -1838,6 +1984,7 @@ Returns:
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
 
     resource_a = provided.ResourceHandle.create('resource_a', ['some-type-a'])
@@ -1875,6 +2022,7 @@ Returns:
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         resource_registry,
+        self._utils.create_empty_installed_assets(),
     )
 
     self.assertEqual(
@@ -1924,6 +2072,7 @@ Returns:
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         resource_registry,
+        self._utils.create_empty_installed_assets(),
     )
 
     self.assertEqual(
@@ -1965,6 +2114,7 @@ Returns:
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         resource_registry,
+        self._utils.create_empty_installed_assets(),
     )
 
     class BogusObject:
@@ -1982,6 +2132,7 @@ Returns:
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
 
     skill = skills.ai.intrinsic.my_skill()
@@ -2012,6 +2163,7 @@ Returns:
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
 
     sub_message = (
@@ -2039,6 +2191,7 @@ Returns:
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
 
     sub_message = (
@@ -2134,6 +2287,7 @@ Returns:
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
 
     parameters = {'my_float': 1.0, 'my_bool': True}
@@ -2169,7 +2323,11 @@ Returns:
         )
     )
 
-    skills = skill_providing.Skills(skill_registry, resource_registry)
+    skills = skill_providing.Skills(
+        skill_registry,
+        resource_registry,
+        self._utils.create_empty_installed_assets(),
+    )
 
     parameters = test_skill_params_pb2.SubMessage(name='bar')
 
@@ -2190,6 +2348,7 @@ Returns:
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
 
     my_skill = skills.ai.intrinsic.my_skill
@@ -2241,6 +2400,7 @@ Returns:
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
 
     my_skill = skills.ai.intrinsic.my_skill
@@ -2292,6 +2452,7 @@ Returns:
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
 
     self.assertEqual(
@@ -2376,6 +2537,7 @@ Fields:
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
     my_skill = skills.ai.intrinsic.my_skill
 
@@ -2493,6 +2655,7 @@ Fields:
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
 
     my_skill = skills.ai.intrinsic.my_skill
@@ -2509,6 +2672,7 @@ Fields:
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
 
     expected_test_message = test_skill_params_pb2.TestMessage(
@@ -2570,6 +2734,7 @@ Fields:
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
 
     expected_test_message = test_skill_params_pb2.TestMessage(
@@ -2607,6 +2772,7 @@ Fields:
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
 
     my_skill = skills.ai.intrinsic.my_skill
@@ -2643,6 +2809,7 @@ Fields:
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
 
     my_skill = skills.ai.intrinsic.my_skill
@@ -2728,6 +2895,7 @@ Fields:
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_infos(skill_infos),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
 
     self.assertLen(skills, 3)
@@ -2741,6 +2909,7 @@ Fields:
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_infos(skill_infos),
         self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
     )
 
     self.assertIn('ai.intr.intr_skill_one', skills)
@@ -2767,9 +2936,9 @@ Fields:
     self.assertEqual(
         iterated_skills,
         [
+            skills['ai.ai_skill'],
             skills['ai.intr.intr_skill_one'],
             skills['ai.intr.intr_skill_two'],
-            skills['ai.ai_skill'],
         ],
     )
 

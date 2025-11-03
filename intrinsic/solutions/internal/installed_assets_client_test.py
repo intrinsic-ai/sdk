@@ -12,6 +12,7 @@ from google.rpc import code_pb2
 from google.rpc import status_pb2
 import grpc
 from intrinsic.assets.processes.proto import process_asset_pb2
+from intrinsic.assets.proto import asset_tag_pb2
 from intrinsic.assets.proto import asset_type_pb2
 from intrinsic.assets.proto import id_pb2
 from intrinsic.assets.proto import installed_assets_pb2
@@ -197,6 +198,30 @@ class InstalledAssetsClientTest(parameterized.TestCase):
         )
     )
 
+  def test_list_installed_assets_supports_asset_tag_filter(self):
+    proto = _installed_asset_with_id("ai.intrinsic.process")
+    self._installed_assets.ListInstalledAssets.return_value = (
+        installed_assets_pb2.ListInstalledAssetsResponse(
+            installed_assets=[proto],
+            next_page_token=None,
+        )
+    )
+
+    self._client.list_all_installed_assets(
+        asset_tag=asset_tag_pb2.AssetTag.ASSET_TAG_SUBPROCESS
+    )
+
+    self._installed_assets.ListInstalledAssets.assert_called_once_with(
+        installed_assets_pb2.ListInstalledAssetsRequest(
+            strict_filter=installed_assets_pb2.ListInstalledAssetsRequest.Filter(
+                asset_tag=asset_tag_pb2.AssetTag.ASSET_TAG_SUBPROCESS
+            ),
+            page_size=installed_assets_client._MAX_PAGE_SIZE,
+            page_token=None,
+            view=view_pb2.AssetViewType.ASSET_VIEW_TYPE_BASIC,
+        )
+    )
+
   def test_list_installed_assets_supports_view(self):
     proto = _installed_asset_with_id("ai.intrinsic.process")
     self._installed_assets.ListInstalledAssets.return_value = (
@@ -219,7 +244,7 @@ class InstalledAssetsClientTest(parameterized.TestCase):
         )
     )
 
-  def test_list_installed_assets_supports_returns_error(self):
+  def test_list_installed_assets_returns_error(self):
     self._installed_assets.ListInstalledAssets.side_effect = _MockGrpcError(
         code=grpc.StatusCode.PERMISSION_DENIED
     )

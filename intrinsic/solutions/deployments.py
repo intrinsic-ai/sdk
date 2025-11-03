@@ -146,8 +146,7 @@ class Solution:
     )
 
     self.skills = skill_providing.Skills(
-        self._skill_registry,
-        self._resource_registry,
+        self._skill_registry, self._resource_registry, installed_assets
     )
 
     self.pose_estimators = pose_estimators

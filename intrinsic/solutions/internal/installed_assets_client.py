@@ -14,6 +14,7 @@ from google.rpc import status_pb2
 import grpc
 from grpc_status import rpc_status
 from intrinsic.assets import id_utils
+from intrinsic.assets.proto import asset_tag_pb2
 from intrinsic.assets.proto import asset_type_pb2
 from intrinsic.assets.proto import id_pb2
 from intrinsic.assets.proto import installed_assets_pb2
@@ -113,6 +114,7 @@ class InstalledAssetsClient:
   def list_all_installed_assets(
       self,
       asset_types: list[asset_type_pb2.AssetType] | None = None,
+      asset_tag: asset_tag_pb2.AssetTag | None = None,
       view: view_pb2.AssetViewType = view_pb2.AssetViewType.ASSET_VIEW_TYPE_BASIC,
   ) -> list[installed_assets_pb2.InstalledAsset]:
     """Calls the ListInstalledAssets method of the InstalledAssets service.
@@ -122,6 +124,7 @@ class InstalledAssetsClient:
 
     Args:
       asset_types: The asset types to filter by.
+      asset_tag: The asset tag to filter by.
       view: The view of the assets to return.
 
     Returns:
@@ -135,7 +138,8 @@ class InstalledAssetsClient:
       response = self._list_installed_assets_with_retry(
           installed_assets_pb2.ListInstalledAssetsRequest(
               strict_filter=installed_assets_pb2.ListInstalledAssetsRequest.Filter(
-                  asset_types=asset_types
+                  asset_types=asset_types,
+                  asset_tag=asset_tag,
               ),
               page_size=_MAX_PAGE_SIZE,
               page_token=next_page_token,
