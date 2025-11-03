@@ -1,0 +1,21 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.services;
+
+import "intrinsic/assets/proto/field_metadata.proto";
+import "intrinsic/assets/proto/v1/resolved_dependency.proto";
+
+// Configuration for the "approximate function" CustomCalculation Service.
+message ApproximateFunctionConfig {
+  intrinsic_proto.assets.v1.ResolvedDependency data = 2
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "data://intrinsic_proto.services.TwoDimensionalFunctionData",
+      }];
+
+  // The degree of the polynomial with which to approximate the function.
+  //
+  // If not specified, a default value of 2 will be used.
+  optional int64 degree = 3;
+}

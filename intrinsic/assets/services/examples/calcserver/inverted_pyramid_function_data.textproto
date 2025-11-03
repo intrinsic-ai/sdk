@@ -1,0 +1,22 @@
+# Copyright 2023 Intrinsic Innovation LLC
+
+# proto-file: intrinsic/assets/data/proto/v1/data_manifest.proto
+# proto-message: DataManifest
+
+metadata {
+  id {
+    package: "ai.intrinsic"
+    name: "inverted_pyramid_function_data"
+  }
+  display_name: "Two Dimensional Inverted Pyramid Function Data"
+  vendor {
+    display_name: "Intrinsic"
+  }
+}
+data {
+  [type.googleapis.com/intrinsic_proto.services.TwoDimensionalFunctionData] {
+    x: [-10, -10, -10, -10, -10, -5, -5, -5, -5, -5, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 5, 5, 5, 5, 5, 10, 10, 10, 10, 10]
+    y: [-10, -5, 0, 5, 10, -10, -5, 0, 5, 10, -1, 0, 1, -10, -5, -1, 0, 1, 5, 10, -1, 0, 1, -10, -5, 0, 5, 10, -10, -5, 0, 5, 10]
+    f: [10, 10, 10, 10, 10, 10, 5, 5, 5, 10, 1, 1, 1, 10, 5, 1, 0, 1, 5, 10, 1, 1, 1, 10, 5, 5, 5, 10, 10, 10, 10, 10, 10]
+  }
+}

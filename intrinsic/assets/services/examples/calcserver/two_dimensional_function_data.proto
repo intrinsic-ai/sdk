@@ -1,0 +1,18 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.services;
+
+// A dataset that can be used to approximate a 2D function.
+//
+// Corresponding elements in the x, y, and f fields below represent a single
+// set of input/output values for a function f(x, y).
+message TwoDimensionalFunctionData {
+  // The x-values of the function to approximate.
+  repeated int64 x = 1;
+  // The y-values of the function to approximate.
+  repeated int64 y = 2;
+  // f(x, y) for each x, y.
+  repeated int64 f = 3;
+}

@@ -1,0 +1,32 @@
+# Copyright 2023 Intrinsic Innovation LLC
+
+# proto-file: intrinsic/assets/services/proto/service_manifest.proto
+# proto-message: intrinsic_proto.services.ServiceManifest
+
+metadata {
+  id {
+    package: "ai.intrinsic"
+    name: "approximate_function_service"
+  }
+  vendor {
+    display_name: "Intrinsic"
+  }
+  documentation {
+    description: "A custom calculate Service that approximates a function."
+  }
+  display_name: "Approximate Function"
+}
+service_def {
+  service_proto_prefixes: "/intrinsic_proto.services.CustomCalculation/"
+  config_message_full_name: "intrinsic_proto.services.ApproximateFunctionConfig"
+  real_spec {
+    image {
+      archive_filename: "approximate-function-image.tar"
+    }
+  }
+  sim_spec {
+    image {
+      archive_filename: "approximate-function-image.tar"
+    }
+  }
+}

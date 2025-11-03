@@ -8,9 +8,10 @@ load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
-load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load("//bazel:container.bzl", "container_image")
 load("//bazel:python_oci_image.bzl", "python_oci_image")
+load("//intrinsic/assets/data/build_defs:data.bzl", "intrinsic_data")
 load("//intrinsic/assets/services/build_defs:services.bzl", "intrinsic_service")
 
 package(default_visibility = [
@@ -47,6 +48,18 @@ cc_grpc_library(
     generate_mocks = True,
     grpc_only = True,
     deps = [":calc_server_cc_proto"],
+)
+
+py_proto_library(
+    name = "calc_server_py_pb2",
+    deps = [":calc_server_proto"],
+)
+
+py_grpc_library(
+    name = "calc_server_py_pb2_grpc",
+    srcs = [":calc_server_proto"],
+    grpc_library = requirement("grpcio"),
+    deps = [":calc_server_py_pb2"],
 )
 
 cc_library(
@@ -104,6 +117,107 @@ intrinsic_service(
     deps = [
         ":calc_server_proto",
     ],
+)
+
+proto_library(
+    name = "approximate_function_proto",
+    srcs = ["approximate_function.proto"],
+    deps = [
+        "//intrinsic/assets/proto:field_metadata_proto",
+        "//intrinsic/assets/proto/v1:resolved_dependency_proto",
+    ],
+)
+
+py_proto_library(
+    name = "approximate_function_py_pb2",
+    deps = [":approximate_function_proto"],
+)
+
+proto_library(
+    name = "two_dimensional_function_data_proto",
+    srcs = ["two_dimensional_function_data.proto"],
+)
+
+py_proto_library(
+    name = "two_dimensional_function_data_py_pb2",
+    deps = [":two_dimensional_function_data_proto"],
+)
+
+py_library(
+    name = "approximate_function",
+    srcs = ["approximate_function.py"],
+    deps = [
+        ":calc_server_py_pb2",
+        ":calc_server_py_pb2_grpc",
+        ":two_dimensional_function_data_py_pb2",
+        "@ai_intrinsic_sdks_pip_deps//numpy",
+        requirement("grpcio"),
+        "@com_google_absl_py//absl/logging",
+    ],
+)
+
+py_test(
+    name = "approximate_function_test",
+    srcs = ["approximate_function_test.py"],
+    data = [":inverted_pyramid_function_data.textproto"],
+    deps = [
+        ":approximate_function",
+        ":calc_server_py_pb2",
+        ":calc_server_py_pb2_grpc",
+        ":two_dimensional_function_data_py_pb2",
+        "//intrinsic/assets/data/proto/v1:data_manifest_py_pb2",
+        "//intrinsic/util/path_resolver:path_resolver_py",
+        "@ai_intrinsic_sdks_pip_deps//numpy",
+        requirement("grpcio"),
+        "@com_google_absl_py//absl/testing:absltest",
+        "@com_google_absl_py//absl/testing:parameterized",
+        "@com_google_protobuf//:protobuf_python",
+    ],
+)
+
+py_binary(
+    name = "approximate_function_main",
+    srcs = ["approximate_function_main.py"],
+    main = "approximate_function_main.py",
+    deps = [
+        ":approximate_function",
+        ":approximate_function_py_pb2",
+        ":calc_server_py_pb2_grpc",
+        ":two_dimensional_function_data_py_pb2",
+        "//intrinsic/assets/dependencies:utils_py",
+        "//intrinsic/resources/proto:runtime_context_py_pb2",
+        requirement("grpcio"),
+        "@com_google_absl_py//absl:app",
+        "@com_google_absl_py//absl/logging",
+    ],
+)
+
+python_oci_image(
+    name = "approximate-function-image",
+    binary = ":approximate_function_main",
+    cmd = [
+        "intrinsic/assets/services/examples/calcserver/approximate_function_main",
+        "--logtostderr",
+    ],
+    data_path = "/",
+)
+
+intrinsic_service(
+    name = "approximate_function_service",
+    images = [
+        "//intrinsic/assets/services/examples/calcserver:approximate-function-image.tar",
+    ],
+    manifest = ":approximate_function_manifest.textproto",
+    deps = [
+        ":approximate_function_proto",
+        ":calc_server_proto",
+    ],
+)
+
+intrinsic_data(
+    name = "inverted_pyramid_function_data",
+    manifest = "inverted_pyramid_function_data.textproto",
+    deps = [":two_dimensional_function_data_proto"],
 )
 
 cc_library(
@@ -221,18 +335,6 @@ intrinsic_service(
         ":calc_server_proto",
         ":modulo_add_proto",
     ],
-)
-
-py_proto_library(
-    name = "calc_server_py_pb2",
-    deps = [":calc_server_proto"],
-)
-
-py_grpc_library(
-    name = "calc_server_py_pb2_grpc",
-    srcs = [":calc_server_proto"],
-    grpc_library = requirement("grpcio"),
-    deps = [":calc_server_py_pb2"],
 )
 
 py_library(
