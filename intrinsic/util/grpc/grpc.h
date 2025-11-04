@@ -17,7 +17,6 @@
 #include "intrinsic/connect/cc/grpc/channel.h"  // IWYU pragma: export
 
 namespace intrinsic {
-using ::intrinsic::connect::kGrpcClientConnectDefaultTimeout;
 using ::intrinsic::connect::UnlimitedMessageSizeGrpcChannelArgs;
 using ::intrinsic::connect::WaitForChannelConnected;
 
