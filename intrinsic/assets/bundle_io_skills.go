@@ -3,6 +3,7 @@
 package bundleio
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -62,7 +63,7 @@ func makeSkillAssetHandlers(manifest *smpb.SkillManifest, opts ProcessSkillOpts)
 	switch manifest.GetAssets().GetDeploymentType().(type) {
 	case *smpb.SkillAssets_ImageFilename:
 		p := manifest.GetAssets().GetImageFilename()
-		handlers[p] = func(r io.Reader) error {
+		handlers[p] = func(ctx context.Context, r io.Reader) error {
 			img, err := opts.ImageProcessor(manifest.GetId(), p, r)
 			if err != nil {
 				return fmt.Errorf("error processing image: %v", err)
@@ -78,7 +79,7 @@ func makeSkillAssetHandlers(manifest *smpb.SkillManifest, opts ProcessSkillOpts)
 
 // ReadSkill reads the skill bundle archive from path. It returns the
 // skill manifest and a mapping between bundle filenames and their contents.
-func ReadSkill(path string) (*smpb.SkillManifest, map[string][]byte, error) {
+func ReadSkill(ctx context.Context, path string) (*smpb.SkillManifest, map[string][]byte, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not open %q: %v", path, err)
@@ -87,7 +88,7 @@ func ReadSkill(path string) (*smpb.SkillManifest, map[string][]byte, error) {
 
 	m, handlers := makeOnlySkillManifestHandlers()
 	inlined, fallback := makeCollectInlinedFallbackHandler()
-	if err := walkTarFile(tar.NewReader(f), handlers, fallback); err != nil {
+	if err := walkTarFile(ctx, tar.NewReader(f), handlers, fallback); err != nil {
 		return nil, nil, fmt.Errorf("error in tar file %q: %v", path, err)
 	}
 	return m, inlined, nil
@@ -95,7 +96,7 @@ func ReadSkill(path string) (*smpb.SkillManifest, map[string][]byte, error) {
 
 // ReadSkillManifest reads the bundle archive from path. It returns only
 // skill manifest.
-func ReadSkillManifest(path string) (*smpb.SkillManifest, error) {
+func ReadSkillManifest(ctx context.Context, path string) (*smpb.SkillManifest, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("could not open %q: %v", path, err)
@@ -103,7 +104,7 @@ func ReadSkillManifest(path string) (*smpb.SkillManifest, error) {
 	defer f.Close()
 
 	m, handlers := makeOnlySkillManifestHandlers()
-	if err := walkTarFile(tar.NewReader(f), handlers, nil); err != nil {
+	if err := walkTarFile(ctx, tar.NewReader(f), handlers, nil); err != nil {
 		return nil, fmt.Errorf("error in tar file %q: %v", path, err)
 	}
 	return m, nil
@@ -119,7 +120,7 @@ type ProcessSkillOpts struct {
 // provided processing functions. It avoids doing any validation except for
 // that required to transform the specified files in the bundle into their
 // processed variants.
-func ProcessSkill(path string, opts ProcessSkillOpts) (*psmpb.ProcessedSkillManifest, error) {
+func ProcessSkill(ctx context.Context, path string, opts ProcessSkillOpts) (*psmpb.ProcessedSkillManifest, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("could not open %q: %v", path, err)
@@ -129,7 +130,7 @@ func ProcessSkill(path string, opts ProcessSkillOpts) (*psmpb.ProcessedSkillMani
 	// Read the manifest and then reset the file once we have the information
 	// about the bundle we're going to process.
 	manifest, handlers := makeOnlySkillManifestHandlers()
-	if err := walkTarFile(tar.NewReader(f), handlers, nil); err != nil {
+	if err := walkTarFile(ctx, tar.NewReader(f), handlers, nil); err != nil {
 		return nil, fmt.Errorf("error in tar file %q: %v", path, err)
 	}
 	if _, err := f.Seek(0, io.SeekStart); err != nil {
@@ -139,10 +140,10 @@ func ProcessSkill(path string, opts ProcessSkillOpts) (*psmpb.ProcessedSkillMani
 	// Initialize handlers for when we walk through the file again now that we
 	// know what we're looking for, but error on unexpected files this time.
 	processedAssets, handlers := makeSkillAssetHandlers(manifest, opts)
-	fallback := func(n string, r io.Reader) error {
+	fallback := func(ctx context.Context, n string, r io.Reader) error {
 		return fmt.Errorf("unexpected file %q", n)
 	}
-	if err := walkTarFile(tar.NewReader(f), handlers, fallback); err != nil {
+	if err := walkTarFile(ctx, tar.NewReader(f), handlers, fallback); err != nil {
 		return nil, fmt.Errorf("error in tar file %q: %v", path, err)
 	}
 

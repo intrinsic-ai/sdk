@@ -3,6 +3,7 @@
 package bundleio
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -71,7 +72,7 @@ func makeServiceAssetHandlers(manifest *smpb.ServiceManifest, opts ProcessServic
 		if opts.ImageProcessor == nil {
 			handlers[p] = ignoreHandler
 		} else {
-			handlers[p] = func(r io.Reader) error {
+			handlers[p] = func(ctx context.Context, r io.Reader) error {
 				img, err := opts.ImageProcessor(manifest.GetMetadata().GetId(), p, r)
 				if err != nil {
 					return fmt.Errorf("error processing image: %v", err)
@@ -89,7 +90,7 @@ func makeServiceAssetHandlers(manifest *smpb.ServiceManifest, opts ProcessServic
 
 // ReadService reads the service bundle archive from path. It returns the
 // service manifest and a mapping between bundle filenames and their contents.
-func ReadService(path string) (*smpb.ServiceManifest, map[string][]byte, error) {
+func ReadService(ctx context.Context, path string) (*smpb.ServiceManifest, map[string][]byte, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not open %q: %v", path, err)
@@ -98,7 +99,7 @@ func ReadService(path string) (*smpb.ServiceManifest, map[string][]byte, error) 
 
 	m, handlers := makeOnlyServiceManifestHandlers()
 	inlined, fallback := makeCollectInlinedFallbackHandler()
-	if err := walkTarFile(tar.NewReader(f), handlers, fallback); err != nil {
+	if err := walkTarFile(ctx, tar.NewReader(f), handlers, fallback); err != nil {
 		return nil, nil, fmt.Errorf("error in tar file %q: %v", path, err)
 	}
 	return m, inlined, nil
@@ -106,7 +107,7 @@ func ReadService(path string) (*smpb.ServiceManifest, map[string][]byte, error) 
 
 // ReadServiceManifest reads the bundle archive from path. It returns only
 // service manifest.
-func ReadServiceManifest(path string) (*smpb.ServiceManifest, error) {
+func ReadServiceManifest(ctx context.Context, path string) (*smpb.ServiceManifest, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("could not open %q: %v", path, err)
@@ -114,7 +115,7 @@ func ReadServiceManifest(path string) (*smpb.ServiceManifest, error) {
 	defer f.Close()
 
 	m, handlers := makeOnlyServiceManifestHandlers()
-	if err := walkTarFile(tar.NewReader(f), handlers, nil); err != nil {
+	if err := walkTarFile(ctx, tar.NewReader(f), handlers, nil); err != nil {
 		return nil, fmt.Errorf("error in tar file %q: %v", path, err)
 	}
 	return m, nil
@@ -130,7 +131,7 @@ type ProcessServiceOpts struct {
 // provided processing functions.  It avoids doing any validation except for
 // that required to transform the specified files in the bundle into their
 // processed variants.
-func ProcessService(path string, opts ProcessServiceOpts) (*smpb.ProcessedServiceManifest, error) {
+func ProcessService(ctx context.Context, path string, opts ProcessServiceOpts) (*smpb.ProcessedServiceManifest, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("could not open %q: %v", path, err)
@@ -140,7 +141,7 @@ func ProcessService(path string, opts ProcessServiceOpts) (*smpb.ProcessedServic
 	// Read the manifest and then reset the file once we have the information
 	// about the bundle we're going to process.
 	manifest, handlers := makeOnlyServiceManifestHandlers()
-	if err := walkTarFile(tar.NewReader(f), handlers, nil); err != nil {
+	if err := walkTarFile(ctx, tar.NewReader(f), handlers, nil); err != nil {
 		return nil, fmt.Errorf("error in tar file %q: %v", path, err)
 	}
 	if _, err := f.Seek(0, io.SeekStart); err != nil {
@@ -150,7 +151,7 @@ func ProcessService(path string, opts ProcessServiceOpts) (*smpb.ProcessedServic
 	// Initialize handlers for when we walk through the file again now that we
 	// know what we're looking for, but error on unexpected files this time.
 	processedAssets, handlers := makeServiceAssetHandlers(manifest, opts)
-	if err := walkTarFile(tar.NewReader(f), handlers, alwaysErrorAsUnexpected); err != nil {
+	if err := walkTarFile(ctx, tar.NewReader(f), handlers, alwaysErrorAsUnexpected); err != nil {
 		return nil, fmt.Errorf("error in tar file %q: %v", path, err)
 	}
 

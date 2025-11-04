@@ -31,7 +31,7 @@ type bundleCheck func(t *testing.T)
 func checkManifestHasID(t *testing.T, bundlePath string, wantPackage string, wantName string) bundleCheck {
 	return func(t *testing.T) {
 		t.Helper()
-		manifest, err := bundleio.ReadServiceManifest(bundlePath)
+		manifest, err := bundleio.ReadServiceManifest(t.Context(), bundlePath)
 		if err != nil {
 			t.Fatalf("bundleio.ReadServiceManifest(%q) failed: %v", bundlePath, err)
 		}
@@ -55,7 +55,7 @@ func checkBundleHasDefaultConfig(t *testing.T, bundlePath string, wantConfigPath
 		if err := prototext.Unmarshal(wantConfigBytes, wantConfig); err != nil {
 			t.Fatalf("pprototextroto.Unmarshal(%q) failed: %v", wantConfigPath, err)
 		}
-		_, gotContents, err := bundleio.ReadService(bundlePath)
+		_, gotContents, err := bundleio.ReadService(t.Context(), bundlePath)
 		if err != nil {
 			t.Fatalf("bundleio.ReadService(%q) failed: %v", bundlePath, err)
 		}

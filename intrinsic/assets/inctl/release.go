@@ -135,7 +135,7 @@ func makeCreateAssetRequest(ctx context.Context, opts makeCreateAssetRequestOpti
 		ProcessReferencedData:   referencedDataProcessor,
 	}
 
-	processedBundle, err := processor.Process(opts.target)
+	processedBundle, err := processor.Process(ctx, opts.target)
 	if err != nil {
 		return nil, fmt.Errorf("unable to process: %w", err)
 	}

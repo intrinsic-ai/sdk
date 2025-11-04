@@ -23,7 +23,7 @@ type bundleCheck func(t *testing.T)
 func checkManifestHasID(t *testing.T, bundlePath string, wantPackage string, wantName string) bundleCheck {
 	return func(t *testing.T) {
 		t.Helper()
-		manifest, err := bundleio.ReadSkillManifest(bundlePath)
+		manifest, err := bundleio.ReadSkillManifest(t.Context(), bundlePath)
 		if err != nil {
 			t.Fatalf("bundleio.ReadSkillManifest(%q) failed: %v", bundlePath, err)
 		}
@@ -39,7 +39,7 @@ func checkManifestHasID(t *testing.T, bundlePath string, wantPackage string, wan
 func checkHasFile(t *testing.T, bundlePath string, wantFile string) bundleCheck {
 	return func(t *testing.T) {
 		t.Helper()
-		_, gotContents, err := bundleio.ReadSkill(bundlePath)
+		_, gotContents, err := bundleio.ReadSkill(t.Context(), bundlePath)
 		if err != nil {
 			t.Fatalf("bundleio.ReadSkill(%q) failed: %v", bundlePath, err)
 		}

@@ -4,6 +4,7 @@
 package bundleio
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -33,8 +34,8 @@ func cloneOf[M proto.Message](m M) M {
 	return proto.Clone(m).(M)
 }
 
-type handler func(io.Reader) error
-type fallbackHandler func(string, io.Reader) error
+type handler func(ctx context.Context, r io.Reader) error
+type fallbackHandler func(context.Context, string, io.Reader) error
 
 // ImageProcessor is a closure that pushes an image and returns the resulting
 // pointer to the container registry.  It is provided the id of the bundle being
@@ -47,7 +48,7 @@ type ImageProcessor func(idProto *idpb.Id, filename string, r io.Reader) (*ipb.I
 // walkTarFile walks through a tar file and invokes handlers on specific
 // filenames.  fallback can be nil.  Returns an error if all handlers in
 // handlers are not invoked.  It ignores all non-regular files.
-func walkTarFile(t *tar.Reader, handlers map[string]handler, fallback fallbackHandler) error {
+func walkTarFile(ctx context.Context, t *tar.Reader, handlers map[string]handler, fallback fallbackHandler) error {
 	for len(handlers) > 0 || fallback != nil {
 		hdr, err := t.Next()
 		if err == io.EOF {
@@ -63,11 +64,11 @@ func walkTarFile(t *tar.Reader, handlers map[string]handler, fallback fallbackHa
 		n := hdr.Name
 		if h, ok := handlers[n]; ok {
 			delete(handlers, n)
-			if err := h(t); err != nil {
+			if err := h(ctx, t); err != nil {
 				return fmt.Errorf("error processing file %q: %v", n, err)
 			}
 		} else if fallback != nil {
-			if err := fallback(n, t); err != nil {
+			if err := fallback(ctx, n, t); err != nil {
 				return fmt.Errorf("error processing file %q: %v", n, err)
 			}
 		}
@@ -84,21 +85,21 @@ func walkTarFile(t *tar.Reader, handlers map[string]handler, fallback fallbackHa
 
 // ignoreHandler is a function that can be used as a handler to ignore specific
 // files.
-func ignoreHandler(r io.Reader) error {
+func ignoreHandler(ctx context.Context, r io.Reader) error {
 	return nil
 }
 
 // alwaysErrorAsUnexpected can be used as a fallback handler that will always
 // trigger an unexpected file error.  This forces all files to be handled
 // explicitly.
-func alwaysErrorAsUnexpected(n string, r io.Reader) error {
+func alwaysErrorAsUnexpected(ctx context.Context, n string, r io.Reader) error {
 	return fmt.Errorf("unexpected file %q", n)
 }
 
 // makeBinaryProtoHandler creates a handler that reads a binary proto file and
 // unmarshals it into a file.  The proto must not be nil.
 func makeBinaryProtoHandler(p proto.Message) handler {
-	return func(r io.Reader) error {
+	return func(ctx context.Context, r io.Reader) error {
 		b, err := io.ReadAll(r)
 		if err != nil {
 			return fmt.Errorf("error reading: %v", err)
@@ -115,7 +116,7 @@ func makeBinaryProtoHandler(p proto.Message) handler {
 // map is the filename, and the value is the file contents.
 func makeCollectInlinedFallbackHandler() (map[string][]byte, fallbackHandler) {
 	inlined := map[string][]byte{}
-	fallback := func(n string, r io.Reader) error {
+	fallback := func(ctx context.Context, n string, r io.Reader) error {
 		b, err := io.ReadAll(r)
 		if err != nil {
 			return fmt.Errorf("error reading: %v", err)
@@ -157,7 +158,7 @@ var (
 // detectBundleType will return the type of bundle a file represents.  It does
 // not do any validation of the particular file, just provides an indication
 // what sort of processing should be done on the file.
-func detectBundleType(path string) (bundleType, error) {
+func detectBundleType(ctx context.Context, path string) (bundleType, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return 0, fmt.Errorf("could not open %q: %v", path, err)
@@ -174,7 +175,7 @@ func detectBundleType(path string) (bundleType, error) {
 
 	var bt bundleType
 	var found int
-	if err := walkTarFile(tar.NewReader(f), map[string]handler{}, func(path string, _ io.Reader) error {
+	if err := walkTarFile(ctx, tar.NewReader(f), map[string]handler{}, func(_ context.Context, path string, _ io.Reader) error {
 		if val, ok := lookup[path]; ok {
 			found++
 			bt = val
@@ -402,14 +403,14 @@ func (b skillBundle) Release(details VersionDetails) *acpb.Asset {
 
 // Process auto-detects a bundle type and processes it to be sent to an
 // appropriate target.
-func (p *BundleProcessor) Process(path string) (ProcessedBundle, error) {
-	bundleType, err := detectBundleType(path)
+func (p *BundleProcessor) Process(ctx context.Context, path string) (ProcessedBundle, error) {
+	bundleType, err := detectBundleType(ctx, path)
 	if err != nil {
 		return nil, fmt.Errorf("unable to detect bundle type: %w", err)
 	}
 	switch bundleType {
 	case bundleTypeData:
-		data, err := ReadDataAsset(path, WithProcessReferencedData(p.ProcessReferencedData))
+		data, err := ReadDataAsset(ctx, path, WithProcessReferencedData(p.ProcessReferencedData))
 		if err != nil {
 			return nil, fmt.Errorf("unable to read data asset bundle: %w", err)
 		}
@@ -426,7 +427,7 @@ func (p *BundleProcessor) Process(path string) (ProcessedBundle, error) {
 		}
 		defer os.RemoveAll(localAssetsDir)
 
-		hardwareDevice, err := ProcessHardwareDevice(path,
+		hardwareDevice, err := ProcessHardwareDevice(ctx, path,
 			WithProcessAsset(assetInliner.Process),
 			WithReadOptions(WithExtractLocalAssetsDir(localAssetsDir)),
 		)
@@ -442,19 +443,19 @@ func (p *BundleProcessor) Process(path string) (ProcessedBundle, error) {
 		defer f.Close()
 		process, err := ProcessProcessAsset(f)
 		if err != nil {
-			return nil, fmt.Errorf("unable to process skill bundle: %w", err)
+			return nil, fmt.Errorf("unable to process process bundle: %w", err)
 		}
 		return processBundle{process}, nil
 	case bundleTypeService:
-		service, err := ProcessService(path, ProcessServiceOpts{
+		service, err := ProcessService(ctx, path, ProcessServiceOpts{
 			ImageProcessor: p.ImageProcessor,
 		})
 		if err != nil {
-			return nil, fmt.Errorf("unable to process skill bundle: %w", err)
+			return nil, fmt.Errorf("unable to process service bundle: %w", err)
 		}
 		return serviceBundle{service}, nil
 	case bundleTypeSkill:
-		skill, err := ProcessSkill(path, ProcessSkillOpts{
+		skill, err := ProcessSkill(ctx, path, ProcessSkillOpts{
 			ImageProcessor: p.ImageProcessor,
 		})
 		if err != nil {

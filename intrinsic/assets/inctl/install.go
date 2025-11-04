@@ -122,7 +122,7 @@ func GetCommand() *cobra.Command {
 				if !fileExists {
 					return fmt.Errorf("%q is neither a file nor a valid id_version (package.name.version); if it's intended to be a file, check that the path is correct, otherwise check it exactly matches the id_version in the catalog", target)
 				}
-				processedBundle, err := processor.Process(target)
+				processedBundle, err := processor.Process(ctx, target)
 				if err != nil {
 					return fmt.Errorf("unable to process: %w", err)
 				}

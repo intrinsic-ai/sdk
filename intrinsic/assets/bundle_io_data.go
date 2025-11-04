@@ -424,7 +424,7 @@ func WithProcessReferencedData(f ReferencedDataProcessor) ReadDataAssetOption {
 // ReadDataAsset reads a DataAsset from a bundle (see WriteDataAsset).
 //
 // Relative file references in the Data asset must be relative to the bundle's directory.
-func ReadDataAsset(path string, options ...ReadDataAssetOption) (*dapb.DataAsset, error) {
+func ReadDataAsset(ctx context.Context, path string, options ...ReadDataAssetOption) (*dapb.DataAsset, error) {
 	opts := &ReadDataAssetOptions{}
 	for _, opt := range options {
 		opt(opts)

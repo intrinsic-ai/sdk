@@ -3,6 +3,7 @@
 package bundleio
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -102,7 +103,7 @@ func WithExtractLocalAssetsDir(dir string) ReadHardwareDeviceOption {
 }
 
 // ReadHardwareDevice reads a HardwareDevice asset from a .tar bundle (see WriteHardwareDevice).
-func ReadHardwareDevice(p string, options ...ReadHardwareDeviceOption) (*hdmpb.HardwareDeviceManifest, error) {
+func ReadHardwareDevice(ctx context.Context, p string, options ...ReadHardwareDeviceOption) (*hdmpb.HardwareDeviceManifest, error) {
 	opts := &readHardwareDeviceOptions{}
 	for _, opt := range options {
 		opt(opts)
@@ -118,14 +119,14 @@ func ReadHardwareDevice(p string, options ...ReadHardwareDeviceOption) (*hdmpb.H
 	// Process the .tar bundle.
 	var hdm *hdmpb.HardwareDeviceManifest
 	extractedBundlePaths := map[string]string{}
-	manifestHandler := func(r io.Reader) error {
+	manifestHandler := func(ctx context.Context, r io.Reader) error {
 		hdm = &hdmpb.HardwareDeviceManifest{}
 		if err := readBinaryProto(r, hdm); err != nil {
 			return fmt.Errorf("error reading HardwareDeviceManifest: %w", err)
 		}
 		return nil
 	}
-	fallbackHandler := func(n string, r io.Reader) error {
+	fallbackHandler := func(ctx context.Context, n string, r io.Reader) error {
 		if key, ok := tryExtractAssetKey(n); ok {
 			// Ignore local asset bundles if no extraction directory was provided.
 			if opts.extractLocalAssetsDir == "" {
@@ -143,6 +144,7 @@ func ReadHardwareDevice(p string, options ...ReadHardwareDeviceOption) (*hdmpb.H
 		return fmt.Errorf("unexpected file %q", n)
 	}
 	if err := walkTarFile(
+		ctx,
 		tar.NewReader(f),
 		map[string]handler{
 			hardwareDeviceManifestFileName: manifestHandler,
@@ -170,10 +172,10 @@ func ReadHardwareDevice(p string, options ...ReadHardwareDeviceOption) (*hdmpb.H
 }
 
 // AssetProcessor is a function that processes a single asset.
-type AssetProcessor func(*hdmpb.HardwareDeviceManifest_Asset) (*hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset, error)
+type AssetProcessor func(ctx context.Context, a *hdmpb.HardwareDeviceManifest_Asset) (*hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset, error)
 
 // PassThrough is an AssetProcessor that passes asset catalog references through unchanged.
-func PassThrough(a *hdmpb.HardwareDeviceManifest_Asset) (*hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset, error) {
+func PassThrough(ctx context.Context, a *hdmpb.HardwareDeviceManifest_Asset) (*hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset, error) {
 	switch a.GetVariant().(type) {
 	case *hdmpb.HardwareDeviceManifest_Asset_Catalog:
 		return &hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset{
@@ -202,12 +204,12 @@ type LocalAssetInliner struct {
 }
 
 // Process is an AssetProcessor that processes a local asset bundle.
-func (p *LocalAssetInliner) Process(a *hdmpb.HardwareDeviceManifest_Asset) (*hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset, error) {
+func (p *LocalAssetInliner) Process(ctx context.Context, a *hdmpb.HardwareDeviceManifest_Asset) (*hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset, error) {
 	switch a.GetVariant().(type) {
 	case *hdmpb.HardwareDeviceManifest_Asset_Local:
 		switch at := a.GetLocal().GetAssetType(); at {
 		case atpb.AssetType_ASSET_TYPE_SERVICE:
-			psm, err := ProcessService(a.GetLocal().GetBundlePath(), ProcessServiceOpts{
+			psm, err := ProcessService(ctx, a.GetLocal().GetBundlePath(), ProcessServiceOpts{
 				ImageProcessor: p.opts.ImageProcessor,
 			})
 			if err != nil {
@@ -223,7 +225,7 @@ func (p *LocalAssetInliner) Process(a *hdmpb.HardwareDeviceManifest_Asset) (*hdm
 			if p.opts.ProcessReferencedData != nil {
 				opts = append(opts, WithProcessReferencedData(p.opts.ProcessReferencedData))
 			}
-			da, err := ReadDataAsset(a.GetLocal().GetBundlePath(), opts...)
+			da, err := ReadDataAsset(ctx, a.GetLocal().GetBundlePath(), opts...)
 			if err != nil {
 				return nil, fmt.Errorf("error processing Data %s: %w", idutils.IDFromProtoUnchecked(a.GetLocal().GetId()), err)
 			}
@@ -236,7 +238,7 @@ func (p *LocalAssetInliner) Process(a *hdmpb.HardwareDeviceManifest_Asset) (*hdm
 			return nil, fmt.Errorf("unsupported local asset type: %s", at)
 		}
 	default:
-		return PassThrough(a)
+		return PassThrough(ctx, a)
 	}
 }
 
@@ -275,7 +277,7 @@ func WithReadOptions(options ...ReadHardwareDeviceOption) ProcessHardwareDeviceO
 // ProcessHardwareDevice creates a processed manifest from a bundle on disk.
 //
 // It assumes that the bundle has already been validated.
-func ProcessHardwareDevice(path string, options ...ProcessHardwareDeviceOption) (*hdmpb.ProcessedHardwareDeviceManifest, error) {
+func ProcessHardwareDevice(ctx context.Context, path string, options ...ProcessHardwareDeviceOption) (*hdmpb.ProcessedHardwareDeviceManifest, error) {
 	opts := &processHardwareDeviceOptions{
 		processAsset: PassThrough,
 	}
@@ -283,7 +285,7 @@ func ProcessHardwareDevice(path string, options ...ProcessHardwareDeviceOption) 
 		opt(opts)
 	}
 
-	hdm, err := ReadHardwareDevice(path, opts.readOptions...)
+	hdm, err := ReadHardwareDevice(ctx, path, opts.readOptions...)
 	if err != nil {
 		return nil, fmt.Errorf("error reading HardwareDeviceManifest: %w", err)
 	}
@@ -291,7 +293,7 @@ func ProcessHardwareDevice(path string, options ...ProcessHardwareDeviceOption) 
 	// Process each asset.
 	processedAssets := make(map[string]*hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset, len(hdm.GetAssets()))
 	for key, asset := range hdm.GetAssets() {
-		processedAsset, err := opts.processAsset(asset)
+		processedAsset, err := opts.processAsset(ctx, asset)
 		if err != nil {
 			return nil, err
 		}
