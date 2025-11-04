@@ -5,6 +5,7 @@
 package imagetransfer
 
 import (
+	"context"
 	"strings"
 
 	backoff "github.com/cenkalti/backoff/v4"
@@ -20,7 +21,7 @@ const remoteWriteTries = 5
 
 // Transferer provides methods to read and write images to a container registry.
 type Transferer interface {
-	Write(ref name.Reference, img containerregistry.Image) error
+	Write(ctx context.Context, ref name.Reference, img containerregistry.Image) error
 }
 
 type remoteImage struct {
@@ -28,10 +29,11 @@ type remoteImage struct {
 }
 
 // Write pushes an image to a container registry.
-func (r remoteImage) Write(ref name.Reference, img containerregistry.Image) error {
+func (r remoteImage) Write(ctx context.Context, ref name.Reference, img containerregistry.Image) error {
+	opts := append(r.Opts, remote.WithContext(ctx))
 	b := backoff.WithMaxRetries(backoff.NewExponentialBackOff(), remoteWriteTries)
 	if err := backoff.Retry(func() error {
-		err := remote.Write(ref, img, r.Opts...)
+		err := remote.Write(ref, img, opts...)
 		if err, ok := err.(*transport.Error); ok && err.StatusCode >= 500 {
 			// Retry server errors like 504 Gateway Timeout.
 			return err
@@ -59,6 +61,6 @@ func RemoteTransferer(opts ...remote.Option) Transferer {
 // NoOpTransferer does nothing and returns a success when called.
 type NoOpTransferer struct{}
 
-func (NoOpTransferer) Write(ref name.Reference, img containerregistry.Image) error {
+func (NoOpTransferer) Write(ctx context.Context, ref name.Reference, img containerregistry.Image) error {
 	return nil
 }

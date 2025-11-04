@@ -117,7 +117,7 @@ type makeCreateAssetRequestOptions struct {
 func makeCreateAssetRequest(ctx context.Context, opts makeCreateAssetRequestOptions) (*acpb.CreateAssetRequest, error) {
 	var transferer imagetransfer.Transferer
 	if true {
-		transferer = directupload.NewTransferer(ctx,
+		transferer = directupload.NewTransferer(
 			directupload.WithDiscovery(directupload.NewCatalogTarget(opts.conn)),
 			directupload.WithOutput(opts.progressWriter),
 			directupload.WithFailOver(transferer),

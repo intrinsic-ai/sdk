@@ -8,7 +8,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/google/go-containerregistry/pkg/v1/remote"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc/status"
 	"intrinsic/assets/bundleio"
@@ -86,7 +85,7 @@ func GetCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			transfer := imagetransfer.RemoteTransferer(remote.WithContext(ctx), remoteOpt)
+			transfer := imagetransfer.RemoteTransferer(remoteOpt)
 			if !flags.GetFlagSkipDirectUpload() {
 				opts := []directupload.Option{
 					directupload.WithDiscovery(directupload.NewFromConnection(conn)),
@@ -100,7 +99,7 @@ func GetCommand() *cobra.Command {
 					// uploaded image.
 					registry = "direct.upload.local"
 				}
-				transfer = directupload.NewTransferer(ctx, opts...)
+				transfer = directupload.NewTransferer(opts...)
 			}
 			client := iagrpcpb.NewInstalledAssetsClient(conn)
 			authCtx := clientutils.AuthInsecureConn(ctx, address, flags.GetFlagProject())

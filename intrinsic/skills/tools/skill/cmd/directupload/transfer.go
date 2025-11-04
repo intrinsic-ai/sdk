@@ -41,7 +41,7 @@ func WithClient(client artifactgrpcpb.ArtifactServiceApiClient) Option {
 // WithOutput allows adding simple progress monitor with w as its output.
 func WithOutput(w io.Writer) Option {
 	return func(transfer *directTransfer) {
-		transfer.ctx = client.SetProgressMonitor(transfer.ctx, newMonitor(w))
+		transfer.writer = w
 	}
 }
 
@@ -64,10 +64,9 @@ func WithFailOver(failOver imagetransfer.Transferer) Option {
 
 // NewTransferer create a new instance of direct upload Transferer implementation
 // and applies options if specified.
-func NewTransferer(ctx context.Context, opts ...Option) imagetransfer.Transferer {
+func NewTransferer(opts ...Option) imagetransfer.Transferer {
 	transfer := &directTransfer{
 		maxRetries: 5,
-		ctx:        ctx,
 	}
 
 	for _, opt := range opts {
@@ -89,14 +88,16 @@ type directTransfer struct {
 	failOver   imagetransfer.Transferer
 	uploader   client.Uploader
 	client     artifactgrpcpb.ArtifactServiceApiClient
-	ctx        context.Context
 	discovery  TargetDiscovery
+	writer     io.Writer
 }
 
-func (dt *directTransfer) Write(ref name.Reference, img crv1.Image) error {
-
+func (dt *directTransfer) Write(ctx context.Context, ref name.Reference, img crv1.Image) error {
+	if dt.writer != nil {
+		ctx = client.SetProgressMonitor(ctx, newMonitor(dt.writer))
+	}
 	if dt.uploader == nil {
-		apiClient, err := dt.getClient()
+		apiClient, err := dt.getClient(ctx)
 		if err != nil {
 			return fmt.Errorf("cannot connect: %w", err)
 		}
@@ -114,11 +115,11 @@ func (dt *directTransfer) Write(ref name.Reference, img crv1.Image) error {
 	// The initial attempt is not counted as a retry.
 	maxAttempts := 1 + dt.maxRetries
 	err := backoff.Retry(func() error {
-		if dt.ctx.Err() != nil {
-			return backoff.Permanent(dt.ctx.Err())
+		if ctx.Err() != nil {
+			return backoff.Permanent(ctx.Err())
 		}
 		attempt := numAttempts.Inc()
-		err := dt.uploader.UploadImage(dt.ctx, ref.String(), img)
+		err := dt.uploader.UploadImage(ctx, ref.String(), img)
 		if err != nil {
 			log.Errorf("attempt %d/%d: failed to upload image (%s): %s", attempt, maxAttempts, ref, err)
 			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
@@ -130,7 +131,7 @@ func (dt *directTransfer) Write(ref name.Reference, img crv1.Image) error {
 	}, backoff.WithMaxRetries(backoff.NewExponentialBackOff(), uint64(dt.maxRetries)))
 	if err != nil {
 		if dt.failOver != nil {
-			if foErr := dt.failOver.Write(ref, img); foErr != nil {
+			if foErr := dt.failOver.Write(ctx, ref, img); foErr != nil {
 				return fmt.Errorf("image write failed (direct: %s): %w", err, foErr)
 			}
 			log.Warningf("fail over succeeded with prior direct upload failure: %s", err)
@@ -141,12 +142,12 @@ func (dt *directTransfer) Write(ref name.Reference, img crv1.Image) error {
 	return nil
 }
 
-func (dt *directTransfer) getClient() (artifactgrpcpb.ArtifactServiceApiClient, error) {
+func (dt *directTransfer) getClient(ctx context.Context) (artifactgrpcpb.ArtifactServiceApiClient, error) {
 	if dt.client != nil {
 		return dt.client, nil
 	}
 
-	apiClient, err := dt.discovery.GetClient(dt.ctx)
+	apiClient, err := dt.discovery.GetClient(ctx)
 	if err != nil {
 		return nil, err
 	}

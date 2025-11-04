@@ -4,6 +4,7 @@
 package bundleimages
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"path/filepath"
@@ -32,7 +33,7 @@ const (
 // pushes images to the registry using a default tag.  The image is named with
 // the id of the resource with the basename image filename appended.
 func CreateImageProcessor(reg RegistryOptions) bundleio.ImageProcessor {
-	return func(idProto *idpb.Id, filename string, r io.Reader) (*ipb.Image, error) {
+	return func(ctx context.Context, idProto *idpb.Id, filename string, r io.Reader) (*ipb.Image, error) {
 		id, err := idutils.IDFromProto(idProto)
 		if err != nil {
 			return nil, fmt.Errorf("unable to get tag for image: %v", err)
@@ -56,13 +57,13 @@ func CreateImageProcessor(reg RegistryOptions) bundleio.ImageProcessor {
 		if err != nil {
 			return nil, fmt.Errorf("could not create tarball image: %v", err)
 		}
-		return pushImage(img, name, reg)
+		return pushImage(ctx, img, name, reg)
 	}
 }
 
 // writer is the interface required to push an Image to a particular reference.
 type writer interface {
-	Write(crname.Reference, containerregistry.Image) error
+	Write(context.Context, crname.Reference, containerregistry.Image) error
 }
 
 // BasicAuth provides the necessary fields to perform basic authentication with
@@ -87,7 +88,7 @@ type RegistryOptions struct {
 
 // pushImage takes an image and pushes it to the specified registry with the
 // given options.
-func pushImage(img containerregistry.Image, name string, reg RegistryOptions) (*ipb.Image, error) {
+func pushImage(ctx context.Context, img containerregistry.Image, name string, reg RegistryOptions) (*ipb.Image, error) {
 	registry := strings.TrimSuffix(reg.URI, "/")
 	if len(registry) == 0 {
 		return nil, fmt.Errorf("registry is empty")
@@ -113,7 +114,7 @@ func pushImage(img containerregistry.Image, name string, reg RegistryOptions) (*
 		return nil, fmt.Errorf("could not get the sha256 of the image: %v", err)
 	}
 
-	if err := reg.Transferer.Write(ref, img); err != nil {
+	if err := reg.Transferer.Write(ctx, ref, img); err != nil {
 		return nil, fmt.Errorf("could not write image %q: %v", dst, err)
 	}
 

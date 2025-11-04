@@ -74,7 +74,6 @@ go_library(
         "//intrinsic/assets/services:bundleimages",
         "//intrinsic/kubernetes/acl:identity",
         "//intrinsic/skills/tools/skill/cmd/directupload",
-        "@com_github_google_go_containerregistry//pkg/v1/remote:go_default_library",
         "@com_github_spf13_cobra//:go_default_library",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
         "@org_golang_google_grpc//status:go_default_library",

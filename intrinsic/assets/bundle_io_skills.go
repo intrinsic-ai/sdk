@@ -64,7 +64,7 @@ func makeSkillAssetHandlers(manifest *smpb.SkillManifest, opts ProcessSkillOpts)
 	case *smpb.SkillAssets_ImageFilename:
 		p := manifest.GetAssets().GetImageFilename()
 		handlers[p] = func(ctx context.Context, r io.Reader) error {
-			img, err := opts.ImageProcessor(manifest.GetId(), p, r)
+			img, err := opts.ImageProcessor(ctx, manifest.GetId(), p, r)
 			if err != nil {
 				return fmt.Errorf("error processing image: %v", err)
 			}

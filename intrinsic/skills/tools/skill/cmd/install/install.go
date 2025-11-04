@@ -83,7 +83,7 @@ $ inctl skill install abc/skill.bundle.tar --solution=my-solution
 					// image.
 					registry = "direct.upload.local"
 				}
-				transfer = directupload.NewTransferer(ctx, opts...)
+				transfer = directupload.NewTransferer(opts...)
 			}
 			manifest, err := bundleio.ProcessSkill(ctx, target, bundleio.ProcessSkillOpts{
 				ImageProcessor: bundleimages.CreateImageProcessor(flags.CreateRegistryOptsWithTransferer(ctx, transfer, registry)),

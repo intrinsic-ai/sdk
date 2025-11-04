@@ -43,7 +43,7 @@ type fallbackHandler func(context.Context, string, io.Reader) error
 // upload the image and produce a usable image spec.  The reader points to an
 // image archive.  This may be invoked multiple times.  Images are ignored if it
 // is not specified.
-type ImageProcessor func(idProto *idpb.Id, filename string, r io.Reader) (*ipb.Image, error)
+type ImageProcessor func(ctx context.Context, idProto *idpb.Id, filename string, r io.Reader) (*ipb.Image, error)
 
 // walkTarFile walks through a tar file and invokes handlers on specific
 // filenames.  fallback can be nil.  Returns an error if all handlers in
