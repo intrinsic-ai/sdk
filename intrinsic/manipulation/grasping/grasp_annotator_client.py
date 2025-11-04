@@ -83,6 +83,36 @@ class GraspAnnotatorClient:
     )
     return response.annotations
 
+  def generate_grasps(
+      self,
+      generate_request: grasp_annotator_service_pb2.GraspAnnotatorGenerateRequest,
+  ) -> grasp_annotations_pb2.GraspAnnotations:
+    """Generates raw grasp annotations."""
+    response: grasp_annotator_service_pb2.GraspAnnotatorGenerateResponse = (
+        self._stub.Generate(generate_request, **self._connection_params)
+    )
+    return response.unprocessed_annotations
+
+  def filter_grasps(
+      self,
+      filter_request: grasp_annotator_service_pb2.GraspAnnotatorFilterRequest,
+  ) -> grasp_annotations_pb2.GraspAnnotations:
+    """Filters grasp annotations."""
+    response: grasp_annotator_service_pb2.GraspAnnotatorFilterResponse = (
+        self._stub.Filter(filter_request, **self._connection_params)
+    )
+    return response.filtered_annotations
+
+  def score_grasps(
+      self,
+      score_request: grasp_annotator_service_pb2.GraspAnnotatorScoreRequest,
+  ) -> grasp_annotations_pb2.GraspAnnotations:
+    """Scores and sorts grasp annotations."""
+    response: grasp_annotator_service_pb2.GraspAnnotatorScoreResponse = (
+        self._stub.Score(score_request, **self._connection_params)
+    )
+    return response.scored_annotations
+
   def visualize_grasps_async(
       self,
       grasp_annotator_visualize_request: grasp_annotator_service_pb2.GraspAnnotatorVisualizeRequest,

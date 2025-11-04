@@ -28,7 +28,7 @@ message GraspAnnotatorRequest {
   // If not set, all feasible annotations will be returned.
   optional int32 max_num_annotations = 5;
   // Constraints to filter grasp poses.
-  optional intrinsic_proto.grasping.GraspAnnotationConstraint constraint = 6;
+  optional GraspAnnotationConstraint constraint = 6;
 }
 
 message VisualizationOptions {
@@ -106,9 +106,73 @@ message CopyAnnotationsRequest {
 
 message CopyAnnotationsResponse {}
 
+message GraspAnnotatorGenerateRequest {
+  // The mesh data as a path, bytes, or triangle mesh.
+  MeshData mesh_data = 1;
+  // The specifications for a parameterized gripper to use.
+  ParameterizedGripperSpecs gripper_specs = 2;
+  // The number of samples to query on the mesh.
+  int64 num_samples = 3;
+}
+
+message GraspAnnotatorGenerateResponse {
+  // Generated unprocessed grasp annotations.
+  // These annotations are not filtered, scored or sorted.
+  GraspAnnotations unprocessed_annotations = 1;
+}
+
+message GraspAnnotatorFilterRequest {
+  // The mesh data as a path, bytes, or triangle mesh.
+  MeshData mesh_data = 1;
+  // The specifications for a parameterized gripper to use.
+  ParameterizedGripperSpecs gripper_specs = 2;
+  // Grasp annotations to be filtered.
+  GraspAnnotations unfiltered_annotations = 3;
+  // Constraints to filter grasp poses.
+  optional GraspAnnotationConstraint constraint = 4;
+}
+
+message GraspAnnotatorFilterResponse {
+  // Filtered grasp annotations.
+  GraspAnnotations filtered_annotations = 1;
+}
+
+message GraspAnnotatorScoreRequest {
+  // The mesh data as a path, bytes, or triangle mesh.
+  MeshData mesh_data = 1;
+  // The specifications for a parameterized gripper to use.
+  ParameterizedGripperSpecs gripper_specs = 2;
+  // Grasp annotations to be scored.
+  GraspAnnotations unscored_annotations = 3;
+  // The metrics weights to score annotation with. If not provided, the
+  // annotation are not scored and the default score will be set to 1.0.
+  optional MetricWeights annotation_metrics_weights = 4;
+  // Truncate the number of annotations to return to this number.
+  // If `annotation_metrics_weights` is set, the top N annotations sorted by
+  // score will be returned in descending order (unordered in the absence of
+  // metrics). If not set, all feasible annotations will be returned.
+  optional int32 max_num_annotations = 5;
+}
+
+message GraspAnnotatorScoreResponse {
+  // Scored grasp annotations.
+  GraspAnnotations scored_annotations = 1;
+}
+
 service GraspAnnotator {
   // Annotate grasps.
   rpc Annotate(GraspAnnotatorRequest) returns (GraspAnnotatorResponse) {}
+
+  // Generate list of unprocessed grasp annotation poses.
+  rpc Generate(GraspAnnotatorGenerateRequest)
+      returns (GraspAnnotatorGenerateResponse) {}
+
+  // Score grasp annotations.
+  rpc Score(GraspAnnotatorScoreRequest) returns (GraspAnnotatorScoreResponse) {}
+
+  // Filter grasp annotations by constraints.
+  rpc Filter(GraspAnnotatorFilterRequest)
+      returns (GraspAnnotatorFilterResponse) {}
 
   // Visualize grasp annotations.
   rpc Visualize(GraspAnnotatorVisualizeRequest)
