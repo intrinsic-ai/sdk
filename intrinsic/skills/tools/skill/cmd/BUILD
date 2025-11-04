@@ -12,7 +12,6 @@ go_library(
         "//intrinsic/skills/tools/skill/cmd/create",
         "//intrinsic/skills/tools/skill/cmd/install",
         "//intrinsic/skills/tools/skill/cmd/list",
-        "//intrinsic/skills/tools/skill/cmd/logs",
         "//intrinsic/tools/inctl/cmd:root",
         "//intrinsic/tools/inctl/util:cobrautil",
     ],
@@ -56,15 +55,6 @@ go_library(
         "@org_golang_google_grpc//credentials:go_default_library",
         "@org_golang_google_grpc//credentials/insecure:go_default_library",
         "@org_golang_google_grpc//metadata:go_default_library",
-    ],
-)
-
-go_library(
-    name = "skillio",
-    srcs = ["skillio.go"],
-    deps = [
-        "//intrinsic/assets:bundleio",
-        "//intrinsic/assets:idutils",
     ],
 )
 
