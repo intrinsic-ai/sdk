@@ -5018,7 +5018,9 @@ class BehaviorTree:
             ' metadata.'
         )
       self._description = skills_pb2.Skill(
-          id=skill_id, display_name=display_name
+          id=skill_id,
+          display_name=display_name,
+          behavior_tree_description=skills_pb2.BehaviorTreeDescription(),
       )
     else:
       # This BehaviorTree represents a Process asset. The Skill proto already
@@ -5197,6 +5199,8 @@ class BehaviorTree:
     # proto if it exists.
     if self._description is None:
       self._description = skills_pb2.Skill()
+
+    self._description.behavior_tree_description.SetInParent()
 
     self._description.id = id_utils.id_from_proto(self._metadata.id_version.id)
     if self._metadata.id_version.version:

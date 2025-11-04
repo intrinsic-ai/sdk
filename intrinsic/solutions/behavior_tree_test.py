@@ -157,6 +157,7 @@ class BehaviorTreeMadeParametrizableTest(parameterized.TestCase):
         skills_pb2.Skill(
             id='ai.intrinsic.alpha',
             display_name='Alpha',
+            behavior_tree_description=skills_pb2.BehaviorTreeDescription(),
             parameter_description=skills_pb2.ParameterDescription(
                 parameter_message_full_name='Parameters',
                 parameter_descriptor_fileset=param_desc_set,
@@ -191,6 +192,7 @@ class BehaviorTreeMadeParametrizableTest(parameterized.TestCase):
         skills_pb2.Skill(
             id='ai.intrinsic.alpha',
             display_name='Alpha',
+            behavior_tree_description=skills_pb2.BehaviorTreeDescription(),
             parameter_description=skills_pb2.ParameterDescription(
                 parameter_message_full_name=(
                     'intrinsic_proto.executive.TestMessage'
@@ -288,6 +290,7 @@ class BehaviorTreeMadeParametrizableTest(parameterized.TestCase):
     )
     my_proto.description.id = 'alpha'
     my_proto.description.display_name = 'Alpha'
+    my_proto.description.behavior_tree_description.SetInParent()
     my_proto.return_value_expression = '42'
 
     compare.assertProto2Equal(
@@ -479,6 +482,7 @@ class BehaviorTreeTest(parameterized.TestCase):
             id_version: "other.package.my_other_tree.0.0.2"
             display_name: "My other tree"
             description: "The other doc!"
+            behavior_tree_description {}
             """,
             skills_pb2.Skill(),
         ),
