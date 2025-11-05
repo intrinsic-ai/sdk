@@ -30,6 +30,30 @@ go_proto_library(
 )
 
 proto_library(
+    name = "grpc_connection_proto",
+    srcs = ["grpc_connection.proto"],
+    visibility = ["//intrinsic:public_api_users"],
+)
+
+go_proto_library(
+    name = "grpc_connection_go_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":grpc_connection_proto"],
+)
+
+cc_proto_library(
+    name = "grpc_connection_cc_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":grpc_connection_proto"],
+)
+
+py_proto_library(
+    name = "grpc_connection_py_pb2",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":grpc_connection_proto"],
+)
+
+proto_library(
     name = "instance_proto",
     srcs = ["instance.proto"],
     visibility = ["//intrinsic:public_api_users"],
