@@ -156,3 +156,11 @@ message WithInvalidInterfaceRequirementMap {
         requires: "invalid_interface_requirement",
       }];
 }
+
+message WithAlwaysProvideConnectionInfo {
+  intrinsic_proto.assets.v1.ResolvedDependency dependency = 1
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "grpc://intrinsic_proto.motion_planning.MotionPlannerService",
+        skill_annotations: { always_provide_connection_info: true }
+      }];
+}

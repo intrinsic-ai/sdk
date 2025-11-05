@@ -27,12 +27,14 @@ cc_proto_library(
 
 go_proto_library(
     name = "test_configs_go_proto",
+    testonly = True,
     go_deps = [
         "//intrinsic/assets/proto:field_metadata_go_proto",
         "//intrinsic/assets/proto/v1:resolved_dependency_go_proto",
     ],
     visibility = [
         "//intrinsic/assets/dependencies:__pkg__",
+        "//intrinsic/assets/services:__pkg__",
         "//intrinsic/kubernetes/workcell_spec:__pkg__",
     ],
     deps = [":test_configs_proto"],

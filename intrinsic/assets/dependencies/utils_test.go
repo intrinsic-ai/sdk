@@ -287,12 +287,31 @@ func TestHasDependencies(t *testing.T) {
 	tests := []struct {
 		desc       string
 		descriptor protoreflect.MessageDescriptor
+		options    []ResolvedDepsIntrospectionOption
 		want       bool
 	}{
 		{
 			desc:       "simple_grpc_dependency_config",
 			descriptor: (&tcpb.SimpleGrpcDependencyConfig{}).ProtoReflect().Descriptor(),
 			want:       true,
+		},
+		{
+			desc:       "simple_grpc_dependency_config_with_dependency_annotation_check",
+			descriptor: (&tcpb.SimpleGrpcDependencyConfig{}).ProtoReflect().Descriptor(),
+			options:    []ResolvedDepsIntrospectionOption{WithDependencyAnnotation()},
+			want:       true,
+		},
+		{
+			desc:       "simple_grpc_dependency_config_with_dependency_annotation_and_skill_annotations_check",
+			descriptor: (&tcpb.SimpleGrpcDependencyConfig{}).ProtoReflect().Descriptor(),
+			options:    []ResolvedDepsIntrospectionOption{WithDependencyAnnotation(), WithSkillAnnotations()},
+			want:       false,
+		},
+		{
+			desc:       "simple_grpc_dependency_config_with_skill_annotations_check",
+			descriptor: (&tcpb.SimpleGrpcDependencyConfig{}).ProtoReflect().Descriptor(),
+			options:    []ResolvedDepsIntrospectionOption{WithSkillAnnotations()},
+			want:       false,
 		},
 		{
 			desc:       "simple_data_dependency_config",
@@ -354,15 +373,32 @@ func TestHasDependencies(t *testing.T) {
 			descriptor: (&tcpb.WithAnyProto{}).ProtoReflect().Descriptor(),
 			want:       false,
 		},
+		{
+			desc:       "skill_with_annotations_dependency_check",
+			descriptor: (&tcpb.WithAlwaysProvideConnectionInfo{}).ProtoReflect().Descriptor(),
+			want:       true,
+		},
+		{
+			desc:       "skill_with_annotations_only_dependency_annotation_check",
+			descriptor: (&tcpb.WithAlwaysProvideConnectionInfo{}).ProtoReflect().Descriptor(),
+			options:    []ResolvedDepsIntrospectionOption{WithDependencyAnnotation()},
+			want:       true,
+		},
+		{
+			desc:       "skill_with_annotations_skill_annotation_check",
+			descriptor: (&tcpb.WithAlwaysProvideConnectionInfo{}).ProtoReflect().Descriptor(),
+			options:    []ResolvedDepsIntrospectionOption{WithDependencyAnnotation(), WithSkillAnnotations()},
+			want:       true,
+		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.desc, func(t *testing.T) {
-			got, err := HasDependencies(tc.descriptor)
+			got, err := HasResolvedDependency(tc.descriptor, (tc.options)...)
 			if err != nil {
-				t.Fatalf("HasDependencies(%v) returned an unexpected error: %v", tc.descriptor, err)
+				t.Fatalf("HasResolvedDependency(%v) returned an unexpected error: %v", tc.descriptor, err)
 			}
 			if got != tc.want {
-				t.Errorf("HasDependencies(%v) = %v, want: %v", tc.descriptor, got, tc.want)
+				t.Errorf("HasResolvedDependency(%v) = %v, want: %v", tc.descriptor, got, tc.want)
 			}
 		})
 	}

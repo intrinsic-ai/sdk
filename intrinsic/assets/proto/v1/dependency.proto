@@ -20,4 +20,28 @@ message Dependency {
   // Omitting this implies that an object is not required to satisfy this
   // dependency.
   optional ObjectConstraint requires_object = 2;
+
+  message SkillAnnotations {
+    // Skills depending on gRPC interfaces can set this to true to indicate that
+    // connection information should be provided to all Skill contexts, such as
+    // during preview and get_footprint.
+    //
+    // Having this value unset or false would imply that connection information
+    // to gRPC services will only be provided in the ExecuteContext of the
+    // Skill.
+    //
+    // WARNING: Setting this value to true can enable the Skill to communicate
+    // with Services that interact with the real world (e.g., manipulate
+    // hardware) during preview or get_footprint modes.
+    //
+    // **ONLY** set this flag to true if you are sure that the Skill will never
+    // interact with the real world during preview. When in doubt, leave it
+    // false.
+    bool always_provide_connection_info = 1;
+  }
+
+  // Annotations that can only be used when annotated on a specific Asset type.
+  oneof asset_specific_annotations {
+    SkillAnnotations skill_annotations = 3;
+  }
 }

@@ -4,12 +4,14 @@
 package servicemanifest
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
 
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
+	deputils "intrinsic/assets/dependencies/utils"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/metadatautils"
 	"intrinsic/util/go/validate"
@@ -24,6 +26,7 @@ var (
 	missingServiceAllowlist = []string{
 	}
 
+	errContainsSkillAnnotations = errors.New("config message for the Service must not contain Skill specific dependency annotations")
 )
 
 // ValidateServiceManifestOptions contains options for validating a ServiceManifest.
@@ -136,8 +139,20 @@ func ValidateServiceManifest(m *smpb.ServiceManifest, options ...ValidateService
 		if opts.files == nil {
 			return fmt.Errorf("config message specified (%q), but no descriptors provided", configMessageFullName)
 		}
-		if _, err := opts.files.FindDescriptorByName(protoreflect.FullName(configMessageFullName)); err != nil {
+		desc, err := opts.files.FindDescriptorByName(protoreflect.FullName(configMessageFullName))
+		if err != nil {
 			return fmt.Errorf("could not find config message %q in provided descriptors for Service %q: %w", configMessageFullName, id, err)
+		}
+		msgDesc, ok := desc.(protoreflect.MessageDescriptor)
+		if !ok {
+			return fmt.Errorf("config message %q is not a message type", configMessageFullName)
+		}
+		hasSkillAnnotations, err := deputils.HasResolvedDependency(msgDesc, deputils.WithSkillAnnotations())
+		if err != nil {
+			return fmt.Errorf("checking for proto annotations for dependencies failed unexpectedly: %w", err)
+		}
+		if hasSkillAnnotations {
+			return errContainsSkillAnnotations
 		}
 	}
 

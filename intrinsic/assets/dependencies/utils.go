@@ -14,11 +14,14 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
+	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	anypb "google.golang.org/protobuf/types/known/anypb"
 	dasgrpcpb "intrinsic/assets/data/proto/v1/data_assets_go_grpc_proto"
 	daspb "intrinsic/assets/data/proto/v1/data_assets_go_grpc_proto"
+	fieldmetadatapb "intrinsic/assets/proto/field_metadata_go_proto"
 	rdpb "intrinsic/assets/proto/v1/resolved_dependency_go_proto"
 )
 
@@ -134,26 +137,119 @@ func makeDefaultDataAssetsClient() (dasgrpcpb.DataAssetsClient, *grpc.ClientConn
 	return dasgrpcpb.NewDataAssetsClient(conn), conn, nil
 }
 
-// HasDependencies returns true if the given proto descriptor has any ResolvedDependency fields.
-func HasDependencies(descriptor protoreflect.MessageDescriptor) (bool, error) {
+// resolvedDepsIntrospectionOptions configures the ResolvedDependency introspection.
+type resolvedDepsIntrospectionOptions struct {
+	checkDependencyAnnotation bool
+	checkSkillAnnotations     bool
+}
+
+// ResolvedDepsIntrospectionOption is an option for configuring [HasResolvedDependency].
+type ResolvedDepsIntrospectionOption func(*resolvedDepsIntrospectionOptions)
+
+// WithDependencyAnnotation returns an option that checks for the dependency field annotation.
+//
+// If this option is not provided, the [HasResolvedDependency] function will return true if any
+// ResolvedDependency message is found, regardless of whether it has a dependency field annotation.
+func WithDependencyAnnotation() ResolvedDepsIntrospectionOption {
+	return func(opts *resolvedDepsIntrospectionOptions) {
+		opts.checkDependencyAnnotation = true
+	}
+}
+
+// WithSkillAnnotations returns an option that checks for Skill specific annotations within
+// dependency field annotations.
+//
+// Use this option to check if the dependency has Skill specific annotations. With this option
+// provided, the [HasResolvedDependency] function will return true only if the dependency has Skill
+// specific annotations.
+func WithSkillAnnotations() ResolvedDepsIntrospectionOption {
+	return func(opts *resolvedDepsIntrospectionOptions) {
+		opts.checkSkillAnnotations = true
+	}
+}
+
+func (r *resolvedDepsIntrospectionOptions) requiresDependencyAnnotationCheck() bool {
+	// Skill annotation check can only be performed after the dependency annotation check.
+	return r.checkDependencyAnnotation || r.checkSkillAnnotations
+}
+
+func isDependencyWithConditionsFound(md protoreflect.MessageDescriptor, r *resolvedDepsIntrospectionOptions) bool {
+	resolvedDependencyDescriptor := (&rdpb.ResolvedDependency{}).ProtoReflect().Descriptor()
+
+	if md.FullName() == resolvedDependencyDescriptor.FullName() && !r.requiresDependencyAnnotationCheck() {
+		return true
+	}
+
+	if r.requiresDependencyAnnotationCheck() {
+		for i := 0; i < md.Fields().Len(); i++ {
+			field := md.Fields().Get(i)
+			if field.Kind() != protoreflect.MessageKind {
+				continue
+			}
+			// Get the message descriptor of the field. If the field is a map, get the message
+			// descriptor of the map value.
+			var fieldMd protoreflect.MessageDescriptor
+			if field.IsMap() {
+				if field.MapValue().Kind() != protoreflect.MessageKind {
+					continue
+				}
+				fieldMd = field.MapValue().Message()
+			} else {
+				fieldMd = field.Message()
+			}
+
+			if fieldMd.FullName() != resolvedDependencyDescriptor.FullName() {
+				continue
+			}
+			options := field.Options().(*descriptorpb.FieldOptions)
+			fieldMetadata := proto.GetExtension(options, fieldmetadatapb.E_FieldMetadata).(*fieldmetadatapb.FieldMetadata)
+			if fieldMetadata.GetDependency() == nil {
+				continue
+			}
+			// At this point, the dependency annotation check is complete. If the Skill annotations check
+			// is not required, we can return true.
+			if !r.checkSkillAnnotations {
+				return true
+			}
+			return fieldMetadata.GetDependency().GetSkillAnnotations() != nil
+		}
+	}
+	return false
+}
+
+// HasResolvedDependency checks if the given proto descriptor has any ResolvedDependency fields.
+//
+// If additional introspection options are provided, the method returns true only if all of the
+// options are satisfied.
+func HasResolvedDependency(descriptor protoreflect.MessageDescriptor, options ...ResolvedDepsIntrospectionOption) (bool, error) {
+	r := &resolvedDepsIntrospectionOptions{}
+	for _, opt := range options {
+		opt(r)
+	}
 	var hasDependencies bool
 	visited := make(map[protoreflect.MessageDescriptor]struct{})
 
-	resolvedDependencyFullName := (&rdpb.ResolvedDependency{}).ProtoReflect().Descriptor().FullName()
-
-	walkProtoMessageDescriptors(descriptor, func(md protoreflect.MessageDescriptor) {
-		if md.FullName() == resolvedDependencyFullName {
+	walkProtoMessageDescriptors(descriptor, func(md protoreflect.MessageDescriptor) bool {
+		if isDependencyWithConditionsFound(md, r) {
 			hasDependencies = true
+			// Stop the recursion if we already found a dependency.
+			return false
 		}
+		return true
 	}, visited)
 	return hasDependencies, nil
 }
 
 // walkProtoMessageDescriptors walks through a proto message descriptor, executing a function for
 // each message descriptor it finds.
-func walkProtoMessageDescriptors(md protoreflect.MessageDescriptor, f func(protoreflect.MessageDescriptor), visited map[protoreflect.MessageDescriptor]struct{}) {
+//
+// The function returns whether to enter into the message descriptor recursively.
+func walkProtoMessageDescriptors(md protoreflect.MessageDescriptor, f func(protoreflect.MessageDescriptor) bool, visited map[protoreflect.MessageDescriptor]struct{}) {
 	visited[md] = struct{}{}
-	f(md)
+	shouldEnter := f(md)
+	if !shouldEnter {
+		return
+	}
 
 	for i := 0; i < md.Fields().Len(); i++ {
 		field := md.Fields().Get(i)
