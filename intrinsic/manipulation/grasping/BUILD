@@ -215,8 +215,11 @@ py_library(
     srcs = ["grasp_annotator_client.py"],
     deps = [
         ":grasp_annotations_py_pb2",
+        ":grasp_annotator_py_pb2",
+        "//intrinsic/geometry/proto:triangle_mesh_py_pb2",
         "//intrinsic/manipulation/service/grasp_annotator_service/v1:grasp_annotator_service_py_pb2",
         "//intrinsic/manipulation/service/grasp_annotator_service/v1:grasp_annotator_service_py_pb2_grpc",
+        "//intrinsic/world/python:object_world_resources",
         requirement("grpcio"),
         "@com_google_absl_py//absl/logging",
         "@com_google_googleapis//google/rpc:code_py_proto",
