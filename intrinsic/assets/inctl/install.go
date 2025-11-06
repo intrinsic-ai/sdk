@@ -15,7 +15,6 @@ import (
 	"intrinsic/assets/cmdutils"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/imagetransfer"
-	"intrinsic/assets/imageutils"
 	"intrinsic/assets/services/bundleimages"
 	"intrinsic/kubernetes/acl/identity"
 	"intrinsic/skills/tools/skill/cmd/directupload/directupload"
@@ -105,10 +104,7 @@ func GetCommand() *cobra.Command {
 			authCtx := clientutils.AuthInsecureConn(ctx, address, flags.GetFlagProject())
 
 			processor := bundleio.BundleProcessor{
-				ImageProcessor: bundleimages.CreateImageProcessor(bundleimages.RegistryOptions{
-					Transferer: transfer,
-					URI:        imageutils.GetRegistry(clientutils.ResolveCatalogProjectFromInctl(flags)),
-				}),
+				ImageProcessor:          bundleimages.CreateImageProcessor(flags.CreateRegistryOptsWithTransferer(ctx, transfer, registry)),
 				ProcessReferencedData:   bundleio.ToPortableReferencedData,
 			}
 

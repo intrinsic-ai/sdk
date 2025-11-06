@@ -69,7 +69,6 @@ go_library(
         "//intrinsic/assets:cmdutils",
         "//intrinsic/assets:idutils",
         "//intrinsic/assets:imagetransfer",
-        "//intrinsic/assets:imageutils",
         "//intrinsic/assets/proto:installed_assets_go_grpc_proto",
         "//intrinsic/assets/services:bundleimages",
         "//intrinsic/kubernetes/acl:identity",
