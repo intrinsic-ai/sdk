@@ -4,8 +4,6 @@ package pool
 
 import (
 	"context"
-	"fmt"
-	"strings"
 
 	"github.com/spf13/cobra"
 	"go.opencensus.io/trace"
@@ -93,21 +91,6 @@ func listVMPoolsUserfacing(ctx context.Context, cmd *cobra.Command) error {
 		prtr.Println(view)
 	}
 	return printer.Flush(prtr)
-}
-
-type printablePool struct {
-	Name   string            `json:"name"`
-	Labels map[string]string `json:"labels,omitempty"`
-	State  string            `json:"state,omitempty"`
-}
-
-func (p *printablePool) String() string {
-	sb := &strings.Builder{}
-	fmt.Fprintf(sb, "Pool %q [%q]\n", p.Name, p.State)
-	for k, v := range p.Labels {
-		fmt.Fprintf(sb, "\t%s=%s\n", k, v)
-	}
-	return sb.String()
 }
 
 var listTiersDesc = `
