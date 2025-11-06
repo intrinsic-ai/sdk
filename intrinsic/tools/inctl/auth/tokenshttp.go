@@ -10,6 +10,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
+	"time"
+
+	backoff "github.com/cenkalti/backoff/v4"
 )
 
 // TokensServiceClient is a HTTP-based client for the accounts tokens service.
@@ -47,7 +51,30 @@ func (t *TokensServiceClient) Token(ctx context.Context, apiKey string) (string,
 }
 
 // GetIDToken exchanges an API key for an ID token using the accounts tokens service via HTTP.
+// The request is retried on errors up to 3 times.
 func GetIDToken(ctx context.Context, cl *http.Client, addr string, req *GetIDTokenRequest) (*GetIDTokenResponse, error) {
+	var resp *GetIDTokenResponse
+	getOnce := func() error {
+		var err error
+		resp, err = getIDTokenImpl(ctx, cl, addr, req)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Retrying GetIDToken due to error: %v\n", err)
+			return err
+		}
+		return nil
+	}
+	// Retry on errors up to 3 times.
+	// We can not distinguish between retryable and non-retryable errors in the current implementation.
+	bo := backoff.NewExponentialBackOff()
+	bo.InitialInterval = 1 * time.Second
+	if err := backoff.Retry(getOnce, backoff.WithMaxRetries(bo, 3)); err != nil {
+		return nil, fmt.Errorf("failed to get ID token: %v", err)
+	}
+	return resp, nil
+}
+
+// getIDToken exchanges an API key for an ID token using the accounts tokens service via HTTP.
+func getIDTokenImpl(ctx context.Context, cl *http.Client, addr string, req *GetIDTokenRequest) (*GetIDTokenResponse, error) {
 	url := fmt.Sprintf("https://%s/api/v1/accountstokens:idtoken", addr)
 	bd, err := json.Marshal(req)
 	if err != nil {
