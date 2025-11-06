@@ -12,15 +12,15 @@ message GrpcConnection {
     // The key for the metadata.
     string key = 1;
 
-    // The values to be associated with that key.  The HTTP spec allows for this
-    // to be repeated.
-    repeated string values = 2;
+    // The value to be associated with that key.
+    string value = 2;
   }
 
   // Address of the gRPC service (e.g. localhost:8080).
   string address = 1;
 
   // Metadata to be included in the gRPC requests.  This is required by some
-  // infrastructure to correctly route to the expected server.
+  // infrastructure to correctly route to the expected server.  HTTP allows for
+  // keys to be repeated.
   repeated Metadata metadata = 2;
 }
