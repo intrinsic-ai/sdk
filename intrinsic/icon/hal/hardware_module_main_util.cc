@@ -30,7 +30,6 @@
 #include "grpcpp/security/server_credentials.h"
 #include "grpcpp/server.h"
 #include "grpcpp/server_builder.h"
-#include "intrinsic/assets/services/proto/v1/service_state.grpc.pb.h"
 #include "intrinsic/icon/hal/hardware_module_health_service.h"
 #include "intrinsic/icon/hal/hardware_module_runtime.h"
 #include "intrinsic/icon/hal/hardware_module_util.h"
