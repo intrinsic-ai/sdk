@@ -115,7 +115,7 @@ func GetCommand() *cobra.Command {
 			var asset *iapb.CreateInstalledAssetRequest_Asset
 			if idvParts, err := idutils.NewIDVersionParts(target); err != nil {
 				if !fileExists {
-					return fmt.Errorf("%q is neither a file nor a valid id_version (package.name.version); if it's intended to be a file, check that the path is correct, otherwise check it exactly matches the id_version in the catalog", target)
+					return fmt.Errorf("%q is neither a file nor a valid id_version (package.name.version); check that either the file path is correct or that the id_version is formatted correctly", target)
 				}
 				processedBundle, err := processor.Process(ctx, target)
 				if err != nil {
@@ -124,7 +124,7 @@ func GetCommand() *cobra.Command {
 				asset = processedBundle.Install()
 			} else {
 				if fileExists {
-					return fmt.Errorf("input is ambiguous %q is both a file and a id version", target)
+					return fmt.Errorf("input is ambiguous; %q is both a file and an id_version", target)
 				}
 				asset = &iapb.CreateInstalledAssetRequest_Asset{
 					Variant: &iapb.CreateInstalledAssetRequest_Asset_Catalog{
