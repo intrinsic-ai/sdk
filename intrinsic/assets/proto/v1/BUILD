@@ -54,8 +54,8 @@ py_proto_library(
 )
 
 proto_library(
-    name = "instance_proto",
-    srcs = ["instance.proto"],
+    name = "instance_config_proto",
+    srcs = ["instance_config.proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/scene/proto/v1:scene_object_config_proto",
@@ -64,24 +64,24 @@ proto_library(
 )
 
 cc_proto_library(
-    name = "instance_cc_proto",
+    name = "instance_config_cc_proto",
     visibility = ["//intrinsic:public_api_users"],
-    deps = [":instance_proto"],
+    deps = [":instance_config_proto"],
 )
 
 go_proto_library(
-    name = "instance_go_proto",
+    name = "instance_config_go_proto",
     go_deps = [
         "//intrinsic/scene/proto/v1:scene_object_config_go_proto",
     ],
     visibility = ["//intrinsic:public_api_users"],
-    deps = [":instance_proto"],
+    deps = [":instance_config_proto"],
 )
 
 py_proto_library(
-    name = "instance_py_pb2",
+    name = "instance_config_py_pb2",
     visibility = ["//intrinsic:public_api_users"],
-    deps = [":instance_proto"],
+    deps = [":instance_config_proto"],
 )
 
 proto_library(
