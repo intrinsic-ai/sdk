@@ -251,6 +251,7 @@ cc_library(
         "//intrinsic:public_api_users",
     ],
     deps = [
+        "//intrinsic/assets/proto/v1:grpc_connection_cc_proto",
         "//intrinsic/assets/proto/v1:resolved_dependency_cc_proto",
         "//intrinsic/motion_planning:motion_planner_client",
         "//intrinsic/motion_planning/proto/v1:motion_planner_service_cc_grpc_proto",

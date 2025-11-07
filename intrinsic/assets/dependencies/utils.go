@@ -42,7 +42,7 @@ func Connect(ctx context.Context, dep *rdpb.ResolvedDependency, iface string) (*
 	if err != nil {
 		return nil, nil, err
 	}
-	connection := ifaceProto.GetGrpcConnection()
+	connection := ifaceProto.GetGrpc().GetConnection()
 	if connection == nil {
 		return nil, nil, fmt.Errorf("%w: %q", errNotGRPC, iface)
 	}

@@ -16,6 +16,7 @@
 #include "grpcpp/security/server_credentials.h"
 #include "grpcpp/server.h"
 #include "grpcpp/server_builder.h"
+#include "intrinsic/assets/proto/v1/grpc_connection.pb.h"
 #include "intrinsic/assets/proto/v1/resolved_dependency.pb.h"
 #include "intrinsic/motion_planning/motion_planner_client.h"
 #include "intrinsic/motion_planning/proto/v1/motion_planner_service.grpc.pb.h"
@@ -218,9 +219,10 @@ SkillTestFactory::RunService(grpc::Service* service,
   servers_.push_back(std::move(server));
 
   intrinsic_proto::assets::v1::ResolvedDependency::Interface interface;
-  interface.mutable_grpc_connection()->set_address(
+  interface.mutable_grpc()->mutable_connection()->set_address(
       absl::StrCat("localhost:", port));
-  auto metadata = interface.mutable_grpc_connection()->add_metadata();
+  auto metadata =
+      interface.mutable_grpc()->mutable_connection()->add_metadata();
   metadata->set_key("x-resource-instance-name");
   metadata->set_value(instance_name);
   return interface;

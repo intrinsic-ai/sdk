@@ -20,6 +20,7 @@ from intrinsic.assets.dependencies.testing import test_service_pb2_grpc
 from intrinsic.assets.proto import asset_type_pb2
 from intrinsic.assets.proto import id_pb2
 from intrinsic.assets.proto import metadata_pb2
+from intrinsic.assets.proto.v1 import grpc_connection_pb2
 from intrinsic.assets.proto.v1 import resolved_dependency_pb2
 
 
@@ -69,19 +70,21 @@ _CONNECT_TEST_CASES = [
         dep=resolved_dependency_pb2.ResolvedDependency(
             interfaces={
                 "grpc://intrinsic_proto.assets.dependencies.testing.TestService": resolved_dependency_pb2.ResolvedDependency.Interface(
-                    grpc_connection=resolved_dependency_pb2.ResolvedDependency.Interface.GrpcConnection(
-                        address="localhost:12345",
-                        metadata=[
-                            resolved_dependency_pb2.ResolvedDependency.Interface.GrpcConnection.Metadata(
-                                key="test_key",
-                                value="test_value1",
-                            ),
-                            resolved_dependency_pb2.ResolvedDependency.Interface.GrpcConnection.Metadata(
-                                key="test_key",
-                                value="test_value2",
-                            ),
-                        ],
-                    ),
+                    grpc=resolved_dependency_pb2.ResolvedDependency.Interface.Grpc(
+                        connection=grpc_connection_pb2.GrpcConnection(
+                            address="localhost:12345",
+                            metadata=[
+                                grpc_connection_pb2.GrpcConnection.Metadata(
+                                    key="test_key",
+                                    value="test_value1",
+                                ),
+                                grpc_connection_pb2.GrpcConnection.Metadata(
+                                    key="test_key",
+                                    value="test_value2",
+                                ),
+                            ],
+                        )
+                    )
                 ),
             },
         ),
@@ -154,9 +157,11 @@ _GET_DATA_PAYLOAD_TEST_CASES = [
         dep=resolved_dependency_pb2.ResolvedDependency(
             interfaces={
                 "grpc://intrinsic_proto.assets.dependencies.testing.TestService": resolved_dependency_pb2.ResolvedDependency.Interface(
-                    grpc_connection=resolved_dependency_pb2.ResolvedDependency.Interface.GrpcConnection(
-                        address="localhost:12345",
-                    ),
+                    grpc=resolved_dependency_pb2.ResolvedDependency.Interface.Grpc(
+                        connection=grpc_connection_pb2.GrpcConnection(
+                            address="localhost:12345",
+                        )
+                    )
                 ),
             },
         ),
@@ -172,9 +177,11 @@ _GET_DATA_PAYLOAD_TEST_CASES = [
         dep=resolved_dependency_pb2.ResolvedDependency(
             interfaces={
                 "grpc://intrinsic_proto.assets.dependencies.testing.TestService": resolved_dependency_pb2.ResolvedDependency.Interface(
-                    grpc_connection=resolved_dependency_pb2.ResolvedDependency.Interface.GrpcConnection(
-                        address="localhost:12345",
-                    ),
+                    grpc=resolved_dependency_pb2.ResolvedDependency.Interface.Grpc(
+                        connection=grpc_connection_pb2.GrpcConnection(
+                            address="localhost:12345",
+                        )
+                    )
                 ),
             },
         ),
@@ -215,7 +222,7 @@ class UtilsTest(parameterized.TestCase):
           TestService(), server
       )
       server.add_insecure_port(
-          tc.dep.interfaces[tc.iface].grpc_connection.address
+          tc.dep.interfaces[tc.iface].grpc.connection.address
       )
       server.start()
 

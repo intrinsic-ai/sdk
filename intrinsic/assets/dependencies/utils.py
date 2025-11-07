@@ -48,15 +48,17 @@ def connect(
     NotGRPCError: If the specified interface is not gRPC.
   """
   iface_proto = _find_interface(dep, iface)
-  if not iface_proto.HasField("grpc_connection"):
+  if not iface_proto.HasField("grpc") or not iface_proto.grpc.HasField(
+      "connection"
+  ):
     raise NotGRPCError(
         "Interface is not gRPC or no connection information is available:"
         f" {iface}"
     )
 
-  metadata = iface_proto.grpc_connection.metadata
+  metadata = iface_proto.grpc.connection.metadata
   channel = grpc.intercept_channel(
-      grpc.insecure_channel(iface_proto.grpc_connection.address),
+      grpc.insecure_channel(iface_proto.grpc.connection.address),
       interceptor.HeaderAdderInterceptor(
           lambda: [(m.key, m.value) for m in metadata]
       ),

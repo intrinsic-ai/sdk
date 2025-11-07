@@ -64,19 +64,19 @@ absl::StatusOr<std::shared_ptr<grpc::Channel>> Connect(
     grpc::ClientContext& context, const ResolvedDependency& dep,
     absl::string_view iface) {
   INTR_ASSIGN_OR_RETURN(const auto* iface_proto, FindInterface(dep, iface));
-  if (!iface_proto->has_grpc_connection()) {
+  if (!iface_proto->has_grpc() || !iface_proto->grpc().has_connection()) {
     return absl::InvalidArgumentError(absl::StrCat(
         "Interface is not gRPC or no connection information is available: ",
         iface));
   }
 
   // Add any needed metadata to the context.
-  for (const auto& metadata : iface_proto->grpc_connection().metadata()) {
+  for (const auto& metadata : iface_proto->grpc().connection().metadata()) {
     context.AddMetadata(metadata.key(), metadata.value());
   }
 
   return ::grpc::CreateChannel(
-      iface_proto->grpc_connection().address(),
+      iface_proto->grpc().connection().address(),
       grpc::InsecureChannelCredentials());  // NOLINT(insecure)
 }
 

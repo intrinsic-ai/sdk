@@ -146,6 +146,7 @@ proto_library(
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/assets/proto:id_proto",
+        "//intrinsic/assets/proto/v1:grpc_connection_proto",
         "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_googleapis//google/api:field_behavior_proto",
     ],
@@ -154,8 +155,9 @@ proto_library(
 go_proto_library(
     name = "resolved_dependency_go_proto",
     go_deps = [
-        "//intrinsic/assets/proto:id_go_proto",
         "@org_golang_google_genproto_googleapis_api//annotations",
+        "//intrinsic/assets/proto:id_go_proto",
+        "//intrinsic/assets/proto/v1:grpc_connection_go_proto",
     ],
     visibility = ["//intrinsic:public_api_users"],
     deps = [":resolved_dependency_proto"],

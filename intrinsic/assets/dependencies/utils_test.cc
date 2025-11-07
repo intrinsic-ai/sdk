@@ -148,10 +148,12 @@ INSTANTIATE_TEST_SUITE_P(
             R"pb(interfaces: {
                    key: "grpc://intrinsic_proto.assets.dependencies.testing.TestService"
                    value: {
-                     grpc_connection: {
-                       address: "%s"
-                       metadata: { key: "test_key", value: "test_value1" }
-                       metadata: { key: "test_key", value: "test_value2" }
+                     grpc: {
+                       connection: {
+                         address: "%s"
+                         metadata: { key: "test_key", value: "test_value1" }
+                         metadata: { key: "test_key", value: "test_value2" }
+                       }
                      }
                    }
                  })pb",
@@ -246,7 +248,9 @@ INSTANTIATE_TEST_SUITE_P(
             "WrongInterfaceType",
             R"pb(interfaces: {
                    key: "grpc://intrinsic_proto.assets.dependencies.testing.TestService"
-                   value: { grpc_connection: { address: "localhost:12345" } }
+                   value: {
+                     grpc: { connection: { address: "localhost:12345" } }
+                   }
                  })pb",
             "data://google.protobuf.Empty",
             {},
@@ -257,7 +261,9 @@ INSTANTIATE_TEST_SUITE_P(
             "NotData",
             R"pb(interfaces: {
                    key: "grpc://intrinsic_proto.assets.dependencies.testing.TestService"
-                   value: { grpc_connection: { address: "localhost:12345" } }
+                   value: {
+                     grpc: { connection: { address: "localhost:12345" } }
+                   }
                  })pb",
             "grpc://intrinsic_proto.assets.dependencies.testing.TestService",
             {},

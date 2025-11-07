@@ -6,6 +6,7 @@ package intrinsic_proto.assets.v1;
 
 import "google/api/field_behavior.proto";
 import "intrinsic/assets/proto/id.proto";
+import "intrinsic/assets/proto/v1/grpc_connection.proto";
 
 // `ResolvedDependency` models a dependency from one Asset to interfaces
 // provided by another, or to an Asset that has an object in the world, or to
@@ -77,15 +78,10 @@ message ResolvedDependency {
   string name = 1 [(google.api.field_behavior) = IDENTIFIER];
 
   message Interface {
-    message GrpcConnection {
-      string address = 1;
-
-      message Metadata {
-        string key = 1;
-        string value = 2;
-      }
-      // Metadata to be included in the header of each gRPC request.
-      repeated Metadata metadata = 2;
+    message Grpc {
+      // The information required to connect to a gRPC service within the
+      // cluster.
+      GrpcConnection connection = 1;
     }
 
     message Data {
@@ -97,7 +93,7 @@ message ResolvedDependency {
     }
 
     oneof protocol {
-      GrpcConnection grpc_connection = 1;
+      Grpc grpc = 1;
       Data data = 2;
     }
   }

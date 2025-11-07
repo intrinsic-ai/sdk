@@ -28,6 +28,7 @@ import (
 	atpb "intrinsic/assets/proto/asset_type_go_proto"
 	idpb "intrinsic/assets/proto/id_go_proto"
 	mpb "intrinsic/assets/proto/metadata_go_proto"
+	gcpb "intrinsic/assets/proto/v1/grpc_connection_go_proto"
 	rdpb "intrinsic/assets/proto/v1/resolved_dependency_go_proto"
 )
 
@@ -77,17 +78,19 @@ func TestConnect(t *testing.T) {
 			dep: &rdpb.ResolvedDependency{
 				Interfaces: map[string]*rdpb.ResolvedDependency_Interface{
 					"grpc://intrinsic_proto.assets.dependencies.testing.TestService": &rdpb.ResolvedDependency_Interface{
-						Protocol: &rdpb.ResolvedDependency_Interface_GrpcConnection_{
-							GrpcConnection: &rdpb.ResolvedDependency_Interface_GrpcConnection{
-								Address: serverAddr,
-								Metadata: []*rdpb.ResolvedDependency_Interface_GrpcConnection_Metadata{
-									&rdpb.ResolvedDependency_Interface_GrpcConnection_Metadata{
-										Key:   "test_key",
-										Value: "test_value1",
-									},
-									&rdpb.ResolvedDependency_Interface_GrpcConnection_Metadata{
-										Key:   "test_key",
-										Value: "test_value2",
+						Protocol: &rdpb.ResolvedDependency_Interface_Grpc_{
+							Grpc: &rdpb.ResolvedDependency_Interface_Grpc{
+								Connection: &gcpb.GrpcConnection{
+									Address: serverAddr,
+									Metadata: []*gcpb.GrpcConnection_Metadata{
+										&gcpb.GrpcConnection_Metadata{
+											Key:   "test_key",
+											Value: "test_value1",
+										},
+										&gcpb.GrpcConnection_Metadata{
+											Key:   "test_key",
+											Value: "test_value2",
+										},
 									},
 								},
 							},
@@ -229,9 +232,11 @@ func TestGetDataPayload(t *testing.T) {
 			dep: &rdpb.ResolvedDependency{
 				Interfaces: map[string]*rdpb.ResolvedDependency_Interface{
 					"grpc://intrinsic_proto.assets.dependencies.testing.TestService": &rdpb.ResolvedDependency_Interface{
-						Protocol: &rdpb.ResolvedDependency_Interface_GrpcConnection_{
-							GrpcConnection: &rdpb.ResolvedDependency_Interface_GrpcConnection{
-								Address: "localhost:12345",
+						Protocol: &rdpb.ResolvedDependency_Interface_Grpc_{
+							Grpc: &rdpb.ResolvedDependency_Interface_Grpc{
+								Connection: &gcpb.GrpcConnection{
+									Address: "localhost:12345",
+								},
 							},
 						},
 					},
@@ -246,9 +251,11 @@ func TestGetDataPayload(t *testing.T) {
 			dep: &rdpb.ResolvedDependency{
 				Interfaces: map[string]*rdpb.ResolvedDependency_Interface{
 					"grpc://intrinsic_proto.assets.dependencies.testing.TestService": &rdpb.ResolvedDependency_Interface{
-						Protocol: &rdpb.ResolvedDependency_Interface_GrpcConnection_{
-							GrpcConnection: &rdpb.ResolvedDependency_Interface_GrpcConnection{
-								Address: "localhost:12345",
+						Protocol: &rdpb.ResolvedDependency_Interface_Grpc_{
+							Grpc: &rdpb.ResolvedDependency_Interface_Grpc{
+								Connection: &gcpb.GrpcConnection{
+									Address: "localhost:12345",
+								},
 							},
 						},
 					},
