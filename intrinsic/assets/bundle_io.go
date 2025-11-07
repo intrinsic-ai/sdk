@@ -151,8 +151,8 @@ const (
 )
 
 var (
-	errNoValidTypeDetected       = errors.New("no recognized manifest detected")
-	errMultipleTypesDetected     = errors.New("invalid bundle")
+	errNoValidTypeDetected   = errors.New("no recognized manifest detected")
+	errMultipleTypesDetected = errors.New("invalid bundle")
 )
 
 // detectBundleType will return the type of bundle a file represents.  It does
