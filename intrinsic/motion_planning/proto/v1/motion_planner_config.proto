@@ -20,6 +20,11 @@ message MotionPlannerConfiguration {
   // If true, the cache will not check for fuzzy matches. Default to false.
   optional bool skip_fuzzy_cache_check = 5;
 
+  // If true, joint_shortcutter will remove all config nodes from input path
+  // that are collinear. This speeds up shortcutting time but can result in
+  // longer paths.
+  optional bool shortcutting_combine_collinear_segments = 6;
+
   reserved 2;
   reserved "use_projection_onto_constraint_manifold";
 }

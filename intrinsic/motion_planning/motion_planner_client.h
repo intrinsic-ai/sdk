@@ -55,6 +55,11 @@ class MotionPlannerClient {
     // If true, the cache will not check for fuzzy matches. Default to false.
     bool skip_fuzzy_cache_check = false;
 
+    // If true, the joint_shortcutter will combine multiple collinear segments
+    // into a single segment. This speeds up planning time, but can result in
+    // longer paths and trajectories.
+    bool shortcutting_combine_collinear_segments = false;
+
     // Returns the default set of options to use with the plan path requests.
     static const MotionPlanningOptions& Defaults();
   };

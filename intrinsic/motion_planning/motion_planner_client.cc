@@ -64,6 +64,9 @@ CreateMotionPlanningRequest(
          ->mutable_lock_motion_configuration() =
         options.lock_motion_configuration.value();
   }
+  request.mutable_motion_planner_config()
+      ->set_shortcutting_combine_collinear_segments(
+          options.shortcutting_combine_collinear_segments);
   request.set_caller_id(caller_id);
   *request.mutable_context() = context;
 
@@ -74,13 +77,14 @@ CreateMotionPlanningRequest(
 
 const MotionPlannerClient::MotionPlanningOptions&
 MotionPlannerClient::MotionPlanningOptions::Defaults() {
-  static const auto* defaults = new MotionPlannerClient::MotionPlanningOptions({
+  static const auto* defaults = new MotionPlannerClient::MotionPlanningOptions{
       .path_planning_time_out = 30,
       .path_planning_step_size = std::nullopt,
       .compute_swept_volume = false,
       .lock_motion_configuration = std::nullopt,
       .skip_fuzzy_cache_check = false,
-  });
+      .shortcutting_combine_collinear_segments = false,
+  };
 
   return *defaults;
 }
