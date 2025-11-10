@@ -111,7 +111,7 @@ func ProcessProcessAsset(src io.Reader) (*processassetpb.ProcessAsset, error) {
 	// metadata. In the manifest the affected fields in the Skill metadata are
 	// allowed to be empty but need to be filled in the processed asset.
 	processutil.FillInSkillMetadataFromAssetMetadata(
-		asset.GetBehaviorTree().GetDescription(), asset.GetMetadata(),
+		asset.GetBehaviorTree(), asset.GetMetadata(),
 	)
 
 	return asset, nil

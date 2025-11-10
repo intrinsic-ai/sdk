@@ -24,70 +24,83 @@ var (
 	// tree.
 	ErrMissingBehaviorTree = status.Errorf(codes.InvalidArgument, "'behavior_tree' must be specified")
 
-	// ErrBehaviorTreeNameInconsistent is returned when a process asset has an
+	// ErrBehaviorTreeNameInconsistent is returned when a Process asset has an
 	// inconsistent behavior tree name.
 	ErrBehaviorTreeNameInconsistent = status.Errorf(
 		codes.InvalidArgument,
 		"'behavior_tree.name' must match 'metadata.display_name'")
 
-	// ErrSkillNameMissing is returned when the behavior tree of a process asset
+	// ErrSkillProtoMissing is returned when the behavior tree of a Process asset
+	// does not have a Skill proto.
+	ErrSkillProtoMissing = status.Errorf(
+		codes.InvalidArgument,
+		"'behavior_tree.description' must be set")
+
+	// ErrBehaviorTreeDescriptionMissing is returned when the behavior tree of a
+	// Process asset has a Skill proto but the behavior tree description is
+	// missing.
+	ErrBehaviorTreeDescriptionMissing = status.Errorf(
+		codes.InvalidArgument,
+		"'behavior_tree.description.behavior_tree_description' must be set")
+
+	// ErrSkillNameMissing is returned when the behavior tree of a Process asset
 	// has a Skill proto but the skill name is missing.
 	ErrSkillNameMissing = status.Errorf(
 		codes.InvalidArgument,
 		"'behavior_tree.description.skill_name' is missing but must be equal to 'metadata.id_version.id.name'")
 
-	// ErrSkillNameInconsistent is returned when the behavior tree of a process
+	// ErrSkillNameInconsistent is returned when the behavior tree of a Process
 	// asset has a Skill proto but the skill name does not match the asset name.
 	ErrSkillNameInconsistent = status.Errorf(
 		codes.InvalidArgument,
 		"'behavior_tree.description.skill_name' must be equal to 'metadata.id_version.id.name'")
 
-	// ErrSkillPackageNameMissing is returned when the behavior tree of a process
+	// ErrSkillPackageNameMissing is returned when the behavior tree of a Process
 	// asset has a Skill proto but the skill package name is missing.
 	ErrSkillPackageNameMissing = status.Errorf(
 		codes.InvalidArgument,
 		"'behavior_tree.description.package_name' is missing but must be equal to 'metadata.id_version.id.package'")
 
 	// ErrSkillPackageNameInconsistent is returned when the behavior tree of a
-	// process asset has a Skill proto but the skill package name does not match
+	// Process asset has a Skill proto but the skill package name does not match
 	// the asset package name.
 	ErrSkillPackageNameInconsistent = status.Errorf(
 		codes.InvalidArgument,
 		"'behavior_tree.description.package_name' must be equal to 'metadata.id_version.id.package'")
 
-	// ErrSkillIDMissing is returned when the behavior tree of a process asset has
+	// ErrSkillIDMissing is returned when the behavior tree of a Process asset has
 	// a Skill proto but the skill ID is missing.
 	ErrSkillIDMissing = status.Errorf(
 		codes.InvalidArgument,
 		"'behavior_tree.description.id' is missing but must be equal to 'metadata.id_version.id'")
 
-	// ErrSkillIDInconsistent is returned when the behavior tree of a process
+	// ErrSkillIDInconsistent is returned when the behavior tree of a Process
 	// asset has a Skill proto but the skill ID does not match the asset ID.
 	ErrSkillIDInconsistent = status.Errorf(
 		codes.InvalidArgument,
 		"'behavior_tree.description.id' must be equal to 'metadata.id_version.id'")
 
-	// ErrSkillIDVersionMissing is returned when the behavior tree of a process
+	// ErrSkillIDVersionMissing is returned when the behavior tree of a Process
 	// asset has a Skill proto but the skill ID version is missing.
 	ErrSkillIDVersionMissing = status.Errorf(
 		codes.InvalidArgument,
 		"'behavior_tree.description.id_version' is missing but must be equal to 'metadata.id_version'")
 
 	// ErrSkillIDVersionInconsistent is returned when the behavior tree of a
-	// process asset has a Skill proto but the skill ID version does not match
+	// Process asset has a Skill proto but the skill ID version does not match
 	// the asset ID version.
 	ErrSkillIDVersionInconsistent = status.Errorf(
 		codes.InvalidArgument,
 		"'behavior_tree.description.id_version' must be equal to 'metadata.id_version'")
 
 	// ErrSkillDescriptionMissing is returned when the behavior tree of a
-	// process asset has a Skill proto but the skill description is missing.
+	// Process asset has a Skill proto but the skill description is missing.
 	ErrSkillDescriptionMissing = status.Errorf(
 		codes.InvalidArgument,
 		"'behavior_tree.description.description' is missing but must be equal to 'metadata.documentation.description'")
 
 	// ErrSkillDescriptionInconsistent is returned when the behavior tree of a
-	// process asset has a Skill proto but the skill description does not match
+	// Process asset has a Skill proto but the skill description does not match
 	// the asset documentation.
 	ErrSkillDescriptionInconsistent = status.Errorf(
 		codes.InvalidArgument,
@@ -113,11 +126,17 @@ func validateBehaviorTree(bt *btpb.BehaviorTree, options validateBehaviorTreeOpt
 		return ErrBehaviorTreeNameInconsistent
 	}
 
-	// Some behavior trees have Skill protos to store metadata. Parameterizable
-	// behavior trees (PBTs) always have this. Validate it if present.
 	skill := bt.GetDescription()
+
 	if skill == nil {
+		if options.requireFilledSkillMetadata {
+			return ErrSkillProtoMissing
+		}
 		return nil
+	}
+
+	if options.requireFilledSkillMetadata && skill.BehaviorTreeDescription == nil {
+		return ErrBehaviorTreeDescriptionMissing
 	}
 
 	// These metadata fields are redundant with the asset's metadata. They should
@@ -180,8 +199,11 @@ func ValidateProcessManifest(manifest *pmpb.ProcessManifest) error {
 			Id: metadata.GetId(),
 			// Version is not specified in manifest
 		},
-		assetDisplayName:           metadata.GetDisplayName(),
-		assetDocumentation:         metadata.GetDocumentation(),
+		assetDisplayName:   metadata.GetDisplayName(),
+		assetDocumentation: metadata.GetDocumentation(),
+		// In the manifest the Skill proto in the BehaviorTree is allowed to be
+		// missing or can be filled partially. However, metadata fields which are
+		// filled in the Skill proto must be consistent with the asset metadata.
 		requireFilledSkillMetadata: false,
 	})
 }
@@ -204,9 +226,11 @@ func ValidateProcessAsset(processAsset *papb.ProcessAsset, metadataOpts ...metad
 	}
 
 	return validateBehaviorTree(processAsset.GetBehaviorTree(), validateBehaviorTreeOptions{
-		assetIDVersion:             metadata.GetIdVersion(),
-		assetDisplayName:           metadata.GetDisplayName(),
-		assetDocumentation:         metadata.GetDocumentation(),
+		assetIDVersion:     metadata.GetIdVersion(),
+		assetDisplayName:   metadata.GetDisplayName(),
+		assetDocumentation: metadata.GetDocumentation(),
+		// In the processed asset the Skill proto in the BehaviorTree must be set
+		// and must be filled consistently with the asset metadata.
 		requireFilledSkillMetadata: true,
 	})
 }
@@ -229,23 +253,27 @@ func FillInSkillIDVersionFromAssetMetadata(skill *skpb.Skill, metadata *mpb.Meta
 	}
 }
 
-// FillInSkillMetadataFromAssetMetadata overwrites in the given Skill proto
-// the asset related metadata such as 'id_version' and 'description' with the
-// values from the given asset metadata. The skill's "interface description"
-// (including 'parameter_description', 'return_value_description' and
-// 'resource_selectors') remains unchanged.
+// FillInSkillMetadataFromAssetMetadata overwrites in the Skill proto of the
+// given BehaviorTree the asset related metadata such as 'id_version' and
+// 'description' with the values from the given asset metadata. The Skill's
+// "interface description" (including 'parameter_description',
+// 'return_value_description' and 'resource_selectors') remains unchanged.
+// The Skill proto is created if it is currently missing.
 //
 // Use this method to make the top-level Skill description in a BehaviorTree
 // proto consistent with the asset metadata.
-func FillInSkillMetadataFromAssetMetadata(skill *skpb.Skill, metadata *mpb.Metadata) {
-	if skill == nil {
-		return
+func FillInSkillMetadataFromAssetMetadata(behaviorTree *btpb.BehaviorTree, metadata *mpb.Metadata) {
+	if behaviorTree.Description == nil {
+		behaviorTree.Description = &skpb.Skill{}
 	}
+
+	skill := behaviorTree.Description
 
 	skill.SkillName = metadata.GetIdVersion().GetId().GetName()
 	skill.PackageName = metadata.GetIdVersion().GetId().GetPackage()
 	skill.Id = idutils.IDFromProtoUnchecked(metadata.GetIdVersion().GetId())
 	skill.Description = metadata.GetDocumentation().GetDescription()
+	skill.BehaviorTreeDescription = &skpb.BehaviorTreeDescription{}
 
 	FillInSkillIDVersionFromAssetMetadata(skill, metadata)
 }
