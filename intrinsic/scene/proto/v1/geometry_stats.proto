@@ -29,9 +29,9 @@ message GeometryStats {
   // The number of vertices in the geometry.
   int32 num_vertices = 6;
   // Whether the mesh is closed.
-  bool is_closed = 7;
+  bool closed = 7;
   // Whether the geometry has primitives.
-  bool has_primitives = 8;
+  bool contains_primitives = 8;
   // The volume of the geometry.
   // Requires the mesh to be closed otherwise defaults to 0. If the stats are
   // aggregated over multiple meshes, this field is the sum of the volumes of

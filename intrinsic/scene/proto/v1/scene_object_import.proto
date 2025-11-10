@@ -8,6 +8,7 @@ import "google/longrunning/operations.proto";
 import "google/protobuf/any.proto";
 import "intrinsic/geometry/proto/v1/material.proto";
 import "intrinsic/math/proto/quaternion.proto";
+import "intrinsic/scene/proto/v1/geometry_stats.proto";
 import "intrinsic/scene/proto/v1/scene_object.proto";
 
 // SceneObjectImport provides APIs to import external scene
@@ -44,6 +45,17 @@ message ImportSceneObjectMetadata {
 message ImportSceneObjectResponse {
   // The imported scene object.
   SceneObject scene_object = 1;
+
+  // Statistics for the object's visual geometry.
+  // If the object has multiple links (and therefore multiple
+  // visual geometries) or multiple visual meshes for a single link, these
+  // statistics are aggregated across all of them.
+  GeometryStats visual_stats = 2;
+  // Statistics for the object's collision geometry.
+  // If the object has multiple links (and therefore multiple
+  // collision geometries) or multiple collision meshes for a single link, these
+  // statistics are aggregated across all of them.
+  GeometryStats collision_stats = 3;
 }
 
 // The contents of a scene file.

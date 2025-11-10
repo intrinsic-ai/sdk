@@ -98,6 +98,34 @@ py_proto_library(
 )
 
 proto_library(
+    name = "geometry_stats_proto",
+    srcs = ["geometry_stats.proto"],
+    deps = [
+        "//intrinsic/math/proto:point_proto",
+        "//intrinsic/math/proto:vector3_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "geometry_stats_cc_proto",
+    deps = [":geometry_stats_proto"],
+)
+
+py_proto_library(
+    name = "geometry_stats_py_pb2",
+    deps = [":geometry_stats_proto"],
+)
+
+go_proto_library(
+    name = "geometry_stats_go_proto",
+    go_deps = [
+        "//intrinsic/math/proto:point_go_proto",
+        "//intrinsic/math/proto:vector3_go_proto",
+    ],
+    deps = [":geometry_stats_proto"],
+)
+
+proto_library(
     name = "scene_object_proto",
     srcs = ["scene_object.proto"],
     deps = [
@@ -117,6 +145,7 @@ cc_proto_library(
 go_proto_library(
     name = "scene_object_go_proto",
     go_deps = [
+        ":geometry_stats_go_proto",
         ":collision_rules_go_proto",
         ":entity_go_proto",
         ":object_properties_go_proto",
@@ -137,6 +166,7 @@ proto_library(
     name = "scene_object_import_proto",
     srcs = ["scene_object_import.proto"],
     deps = [
+        ":geometry_stats_proto",
         ":scene_object_proto",
         "//intrinsic/geometry/proto/v1:material_proto",
         "//intrinsic/math/proto:quaternion_proto",
@@ -153,6 +183,7 @@ cc_proto_library(
 go_proto_library(
     name = "scene_object_import_go_proto",
     go_deps = [
+        ":geometry_stats_go_proto",
         ":scene_object_go_proto",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
         "//intrinsic/geometry/proto/v1:material_go_proto",
@@ -178,10 +209,12 @@ go_grpc_library(
     name = "scene_object_import_go_grpc_proto",
     srcs = [":scene_object_import_proto"],
     deps = [
+        ":geometry_stats_go_proto",
         ":scene_object_go_proto",
         "//intrinsic/geometry/proto/v1:material_go_proto",
         "//intrinsic/math/proto:quaternion_go_proto",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
+        "@org_golang_google_protobuf//types/known/anypb",
     ],
 )
 
