@@ -1,0 +1,40 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.scene_object.v1;
+
+import "intrinsic/math/proto/point.proto";
+import "intrinsic/math/proto/vector3.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "GeometryStatsOuterClass";
+
+// Contains statistics about a geometry, such as properties that can be
+// directly computed from its mesh (e.g. triangle count, vertex count,
+// volume).
+message GeometryStats {
+  // The center of the geometry's axis aligned bounding box.
+  Point aabb_center = 1;
+  // The extent of the geometry's axis aligned bounding box relative to the
+  // aabb_center.
+  Vector3 aabb_extent = 2;
+  // The centroid of the geometry computed using the vertices of the mesh.
+  Point vertex_centroid = 3;
+  // The centroid of the geometry computed using the volume of the mesh.
+  // Requires the mesh to be closed otherwise defaults to 0,0,0.
+  Point volumetric_centroid = 4;
+  // The number of triangles in the geometry.
+  int32 num_triangles = 5;
+  // The number of vertices in the geometry.
+  int32 num_vertices = 6;
+  // Whether the mesh is closed.
+  bool is_closed = 7;
+  // Whether the geometry has primitives.
+  bool has_primitives = 8;
+  // The volume of the geometry.
+  // Requires the mesh to be closed otherwise defaults to 0. If the stats are
+  // aggregated over multiple meshes, this field is the sum of the volumes of
+  // the constituent meshes if they are all closed and otherwise is zero.
+  double volume = 9;
+}
