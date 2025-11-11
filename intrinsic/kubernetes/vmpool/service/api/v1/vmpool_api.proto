@@ -5,6 +5,7 @@ syntax = "proto3";
 package intrinsic_proto.vmpoolapi.v1;
 
 import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
 
 // HardwareTemplate is a predefined hardware configuration of a VM.
@@ -101,6 +102,12 @@ message UpdatePoolRequest {
   string name = 1;
 
   Spec spec = 2;
+
+  // The list of fields to update.
+  // Fields are relative to the Spec message.
+  // If empty or not set, all fields are updated (default's apply on empty
+  // fields).
+  google.protobuf.FieldMask update_mask = 3;
 }
 
 // Request to delete a pool.

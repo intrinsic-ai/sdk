@@ -13,6 +13,7 @@ proto_library(
     srcs = ["vmpool_api.proto"],
     deps = [
         "@com_google_protobuf//:empty_proto",
+        "@com_google_protobuf//:field_mask_proto",
         "@com_google_protobuf//:timestamp_proto",
     ],
 )
