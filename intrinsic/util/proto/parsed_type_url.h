@@ -11,11 +11,14 @@
 
 namespace intrinsic {
 
-// Structure of separate parsed elements of a Type URL.
-// Intrinsic Type URLs have the form:
+// A type URL of an Any proto consists of a type URL prefix followed by a '/'
+// and the full message type. Intrinsic Type URLs have a specific format for the
+// type URL prefix.
+// The structure of separate parsed elements of a Type URL of
+// Intrinsic Type URLs has the form:
 // type.intrinsic.ai/<area>/<path>
 // The elements are:
-// prefix: always type.intrinsic.ai
+// custom prefix: always type.intrinsic.ai
 // area: the designated resolver responsible, e.g., skill
 // path: the resolver/area-specific path, e.g., <id>/<version> for a skill.
 // message type: a specific full name of a proto
@@ -26,7 +29,8 @@ namespace intrinsic {
 //
 // Example:
 // type.intrinsic.ai/skills/my_skill/1.0.0/com.example.MyParameterProto
-// |---- prefix ----|-area-|-----path-----|----- message type --------|
+// |---------- type URL prefix -----------|----- message type --------|
+// |- custom prefix-|-area-|-----path-----|----- message type --------|
 //
 struct ParsedUrl {
   std::string_view type_url;
@@ -38,8 +42,15 @@ struct ParsedUrl {
 
 std::ostream& operator<<(std::ostream& os, const ParsedUrl& parsed_url);
 
+// Parses a complete type URL into its parts.
 absl::StatusOr<ParsedUrl> ParseTypeUrl(
     std::string_view type_url ABSL_ATTRIBUTE_LIFETIME_BOUND);
+
+// Parses a type URL prefix, i.e., a type URL without the message type.
+// This can end in a '/' or not.
+// The message_type field in the returned ParsedUrl will be empty.
+absl::StatusOr<ParsedUrl> ParseTypeUrlPrefix(
+    std::string_view type_url_prefix ABSL_ATTRIBUTE_LIFETIME_BOUND);
 
 }  // namespace intrinsic
 

@@ -5,19 +5,27 @@
 #include <ostream>
 #include <string>
 #include <string_view>
+#include <utility>
 
 #include "absl/base/attributes.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/str_split.h"
 #include "absl/strings/string_view.h"
 #include "intrinsic/util/proto/status_specs.h"
 #include "intrinsic/util/proto/type_url.h"
 #include "intrinsic/util/status/status_builder.h"
+#include "intrinsic/util/status/status_macros.h"
 
 namespace intrinsic {
 
-absl::StatusOr<ParsedUrl> ParseTypeUrl(
+namespace {
+
+// Parses a type_url or type_url_prefix up until and including the area part.
+// On success returns the partially filled ParsedUrl and the remainder of the
+// type_url starting after the '/' from the 'area' part.
+absl::StatusOr<std::pair<ParsedUrl, std::string_view>> ParseTypeUrlToArea(
     std::string_view type_url ABSL_ATTRIBUTE_LIFETIME_BOUND) {
   ParsedUrl parsed_url = {.type_url = type_url};
 
@@ -34,12 +42,18 @@ absl::StatusOr<ParsedUrl> ParseTypeUrl(
   }
 
   parsed_url.prefix = type_url.substr(0, kIntrinsicTypeUrlPrefix.length());
+  std::string_view type_url_parsed = type_url;
+  type_url_parsed.remove_prefix(kIntrinsicTypeUrlPrefix.length());
 
-  std::string_view::size_type second_slash_pos =
-      type_url.find(kTypeUrlSeparator, kIntrinsicTypeUrlPrefix.length());
-  if (second_slash_pos == std::string_view::npos) {
+  std::pair<std::string_view, std::string_view> area_and_remainder =
+      absl::StrSplit(type_url_parsed, absl::MaxSplits(kTypeUrlSeparator, 1));
+
+  // If no split has happened, the entire input ends up in the
+  // first element of the pair, and the second is empty.
+  if (area_and_remainder.first.length() == type_url_parsed.length() ||
+      area_and_remainder.first.empty()) {
     std::string message = absl::StrFormat(
-        "Type URL '%s' is missing separator after prefix", type_url);
+        "Type URL '%s' is missing area after Intrinsic prefix", type_url);
     return (StatusBuilder(absl::StatusCode::kInvalidArgument) << message)
         .AttachExtendedStatus(
             util::proto::kExtendedStatusComponent, util::proto::kInvalidUrlCode,
@@ -48,15 +62,25 @@ absl::StatusOr<ParsedUrl> ParseTypeUrl(
              .user_instructions = util::proto::kInvalidUrlInstructions});
   }
 
-  parsed_url.area =
-      type_url.substr(kIntrinsicTypeUrlPrefix.length(),
-                      second_slash_pos - kIntrinsicTypeUrlPrefix.length());
+  parsed_url.area = area_and_remainder.first;
+
+  return std::make_pair(parsed_url, area_and_remainder.second);
+}
+
+}  // namespace
+
+absl::StatusOr<ParsedUrl> ParseTypeUrl(
+    std::string_view type_url ABSL_ATTRIBUTE_LIFETIME_BOUND) {
+  INTR_ASSIGN_OR_RETURN(auto parsed_url_and_remainder,
+                        ParseTypeUrlToArea(type_url));
+  ParsedUrl& parsed_url = parsed_url_and_remainder.first;
+  std::string_view remainder_after_area = parsed_url_and_remainder.second;
 
   std::string_view::size_type last_slash_pos =
-      type_url.find_last_of(kTypeUrlSeparator);
-  if (last_slash_pos <= second_slash_pos) {
+      remainder_after_area.rfind(kTypeUrlSeparator);
+  if (last_slash_pos == std::string_view::npos) {
     std::string message = absl::StrFormat(
-        "Type URL '%s' is missing are or message type", type_url);
+        "Type URL '%s' is missing separator after area", type_url);
     return (StatusBuilder(absl::StatusCode::kInvalidArgument) << message)
         .AttachExtendedStatus(
             util::proto::kExtendedStatusComponent, util::proto::kInvalidUrlCode,
@@ -65,9 +89,39 @@ absl::StatusOr<ParsedUrl> ParseTypeUrl(
              .user_instructions = util::proto::kInvalidUrlInstructions});
   }
 
-  parsed_url.path = type_url.substr(second_slash_pos + 1,
-                                    last_slash_pos - second_slash_pos - 1);
-  parsed_url.message_type = type_url.substr(last_slash_pos + 1);
+  parsed_url.path = remainder_after_area.substr(0, last_slash_pos);
+  parsed_url.message_type = remainder_after_area.substr(last_slash_pos + 1);
+
+  if (parsed_url.path.empty() || parsed_url.message_type.empty()) {
+    std::string message = absl::StrFormat(
+        "Type URL '%s' is missing path or message type", type_url);
+    return (StatusBuilder(absl::StatusCode::kInvalidArgument) << message)
+        .AttachExtendedStatus(
+            util::proto::kExtendedStatusComponent, util::proto::kInvalidUrlCode,
+            {.title = util::proto::kInvalidUrlTitle,
+             .user_message = message,
+             .user_instructions = util::proto::kInvalidUrlInstructions});
+  }
+
+  return parsed_url;
+}
+
+absl::StatusOr<ParsedUrl> ParseTypeUrlPrefix(
+    std::string_view type_url_prefix ABSL_ATTRIBUTE_LIFETIME_BOUND) {
+  INTR_ASSIGN_OR_RETURN(auto parsed_url_and_remainder,
+                        ParseTypeUrlToArea(type_url_prefix));
+  ParsedUrl& parsed_url = parsed_url_and_remainder.first;
+  std::string_view remainder_after_area = parsed_url_and_remainder.second;
+
+  if (remainder_after_area.ends_with(kTypeUrlSeparator)) {
+    remainder_after_area.remove_suffix(kTypeUrlSeparator.length());
+  }
+  if (remainder_after_area.empty()) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Type URL prefix '%s' is missing path", type_url_prefix));
+  }
+
+  parsed_url.path = remainder_after_area;
 
   return parsed_url;
 }
