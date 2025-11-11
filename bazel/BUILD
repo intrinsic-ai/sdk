@@ -3,6 +3,7 @@
 # Shared Bazel macros for use in external workspaces and general Bazel helpers.
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("//bazel:go_macros.bzl", "go_binary")
 load(":exec_properties.bzl", "DEFAULT")
 
 package(default_visibility = ["//visibility:public"])
@@ -61,4 +62,11 @@ platform(
     ],
     exec_properties = DEFAULT,
     parents = ["@local_config_platform//:host"],
+)
+
+go_binary(
+    name = "checkimportpathmatchesgopackage",
+    testonly = True,
+    srcs = ["checkimportpathmatchesgopackage.go"],
+    visibility = ["//intrinsic:internal_api_users"],
 )
