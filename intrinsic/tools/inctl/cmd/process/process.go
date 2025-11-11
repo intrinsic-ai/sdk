@@ -279,6 +279,5 @@ var processCmd = cobrautil.ParentOfNestedSubcommands(
 func init() {
 	processCmd.AddCommand(processGetCmd)
 	processCmd.AddCommand(processSetCmd)
-
 	root.RootCmd.AddCommand(processCmd)
 }
