@@ -79,6 +79,7 @@ class BehaviorTreeMadeParametrizableTest(parameterized.TestCase):
 
   @parameterized.named_parameters(
       ('legacy_process', False),
+      ('process_asset', True),
   )
   def test_initialize_pbt_from_schema(self, make_process_asset):
     proto_builder_stub: proto_builder_pb2.ProtoBuilderStub = mock.MagicMock()
@@ -119,7 +120,15 @@ class BehaviorTreeMadeParametrizableTest(parameterized.TestCase):
         """
 
     if make_process_asset:
-      pass
+      bt1 = bt.BehaviorTree('Alpha', root=bt.Sequence())
+      bt1.set_asset_metadata(id='ai.intrinsic.alpha', vendor='intrinsic')
+      bt1.initialize_pbt(
+          parameter_proto_schema=parameter_proto_schema,
+          return_value_proto_schema=return_value_proto_schema,
+          proto_builder=proto_builder,
+          parameter_message_full_name='Parameters',
+          return_value_message_full_name='my_skill.ReturnValue',
+      )
     else:
       # Make a legacy process.
       bt1 = bt.BehaviorTree('My Tree', root=bt.Sequence())
@@ -172,10 +181,15 @@ class BehaviorTreeMadeParametrizableTest(parameterized.TestCase):
 
   @parameterized.named_parameters(
       ('legacy_process', False),
+      ('process_asset', True),
   )
   def test_initialize_pbt_with_known_types(self, make_process_asset):
     if make_process_asset:
-      pass
+      bt1 = bt.BehaviorTree('Alpha', root=bt.Sequence())
+      bt1.set_asset_metadata(id='ai.intrinsic.alpha', vendor='intrinsic')
+      bt1.initialize_pbt_with_protos(
+          parameter_proto=test_message_pb2.TestMessage,
+      )
     else:
       # Make a legacy process.
       bt1 = bt.BehaviorTree('test', root=bt.Sequence())
@@ -394,6 +408,184 @@ class BehaviorTreeTest(parameterized.TestCase):
     bt_proto.root.task.call_behavior.skill_id = 'ai.intrinsic.skill-0'
     compare.assertProto2Equal(
         self, bt_instance.proto, bt_proto, ignored_fields=['tree_id']
+    )
+
+  def test_set_asset_metadata_fails_if_tree_has_no_name(self):
+    my_bt = bt.BehaviorTree(name=None, root=_default_task())
+    with self.assertRaises(ValueError):
+      my_bt.set_asset_metadata(id='ai.intrinsic.my_process', vendor='intrinsic')
+
+  def test_set_asset_metadata_with_id_from_string(self):
+    my_bt = bt.BehaviorTree('My tree', root=_default_task())
+    my_bt.set_asset_metadata(id='ai.intrinsic.my_process', vendor='irrelevant')
+
+    compare.assertProto2Equal(
+        self,
+        my_bt.asset_metadata_proto.id_version,
+        id_pb2.IdVersion(
+            id=id_pb2.Id(package='ai.intrinsic', name='my_process')
+        ),
+    )
+    self.assertEqual(my_bt.proto.description.id, 'ai.intrinsic.my_process')
+    self.assertEqual(my_bt.proto.description.package_name, 'ai.intrinsic')
+    self.assertEqual(my_bt.proto.description.skill_name, 'my_process')
+
+  def test_set_asset_metadata_with_id_from_proto(self):
+    my_bt = bt.BehaviorTree('My tree', root=_default_task())
+    my_bt.set_asset_metadata(
+        id=id_pb2.Id(package='ai.intrinsic', name='my_process'),
+        vendor='irrelevant',
+    )
+
+    compare.assertProto2Equal(
+        self,
+        my_bt.asset_metadata_proto.id_version,
+        id_pb2.IdVersion(
+            id=id_pb2.Id(package='ai.intrinsic', name='my_process')
+        ),
+    )
+    self.assertEqual(my_bt.proto.description.id, 'ai.intrinsic.my_process')
+    self.assertEqual(my_bt.proto.description.package_name, 'ai.intrinsic')
+    self.assertEqual(my_bt.proto.description.skill_name, 'my_process')
+
+  def test_set_asset_metadata_with_invalid_id(self):
+    my_bt = bt.BehaviorTree('My tree', root=_default_task())
+    with self.assertRaises(TypeError):
+      my_bt.set_asset_metadata(id=42, vendor='intrinsic')
+
+    with self.assertRaises(ValueError):
+      my_bt.set_asset_metadata(id='', vendor='intrinsic')
+
+    with self.assertRaises(ValueError):
+      my_bt.set_asset_metadata(id=id_pb2.Id(), vendor='intrinsic')
+
+  def test_set_asset_metadata_with_vendor_from_string(self):
+    my_bt = bt.BehaviorTree('My tree', root=_default_task())
+    my_bt.set_asset_metadata(id='ai.intrinsic.irrelevant', vendor='intrinsic')
+
+    self.assertEqual(
+        my_bt.asset_metadata_proto.vendor.display_name, 'intrinsic'
+    )
+
+  def test_set_asset_metadata_clears_skill_id_version(self):
+    proto = process_asset_pb2.ProcessAsset(
+        metadata=metadata_pb2.Metadata(
+            id_version=id_pb2.IdVersion(
+                id=id_pb2.Id(package='ai.intrinsic', name='my_process'),
+            ),
+            display_name='My tree',
+        ),
+        behavior_tree=behavior_tree_pb2.BehaviorTree(
+            name='My tree',
+            description=skills_pb2.Skill(
+                id='some.old.name',
+                id_version='some.old.name.0.0.1',
+                display_name='My tree',
+            ),
+        ),
+    )
+    proto.behavior_tree.root.sequence.children.add().task.call_behavior.skill_id = (
+        'ai.intrinsic.skill-0'
+    )
+    my_bt = bt.BehaviorTree.create_from_proto(proto)
+
+    my_bt.set_asset_metadata(
+        id=id_pb2.Id(package='ai.intrinsic', name='my_process'),
+        vendor='irrelevant',
+    )
+
+    self.assertEqual(my_bt.proto.description.id_version, '')
+
+  def test_set_asset_metadata_with_vendor_from_proto(self):
+    my_bt = bt.BehaviorTree('My tree', root=_default_task())
+    my_bt.set_asset_metadata(
+        id='ai.intrinsic.irrelevant',
+        vendor=vendor_pb2.Vendor(display_name='intrinsic'),
+    )
+
+    self.assertEqual(
+        my_bt.asset_metadata_proto.vendor.display_name, 'intrinsic'
+    )
+
+  def test_set_asset_metadata_with_invalid_vendor(self):
+    my_bt = bt.BehaviorTree('My tree', root=_default_task())
+    with self.assertRaises(TypeError):
+      my_bt.set_asset_metadata(id='ai.intrinsic.irrelevant', vendor=42)
+
+    with self.assertRaises(ValueError):
+      my_bt.set_asset_metadata(id='ai.intrinsic.irrelevant', vendor='')
+
+  def test_set_asset_metadata_with_documentation_from_string(self):
+    my_bt = bt.BehaviorTree('My tree', root=_default_task())
+    my_bt.set_asset_metadata(
+        id='ai.intrinsic.irrelevant', vendor='irrelevant', doc='The doc!'
+    )
+
+    self.assertEqual(
+        my_bt.asset_metadata_proto.documentation.description, 'The doc!'
+    )
+    self.assertEqual(my_bt.proto.description.description, 'The doc!')
+
+  def test_set_asset_metadata_with_documentation_from_proto(self):
+    my_bt = bt.BehaviorTree('My tree', root=_default_task())
+    my_bt.set_asset_metadata(
+        id='ai.intrinsic.irrelevant',
+        vendor='irrelevant',
+        doc=documentation_pb2.Documentation(description='The doc!'),
+    )
+
+    self.assertEqual(
+        my_bt.asset_metadata_proto.documentation.description, 'The doc!'
+    )
+    self.assertEqual(my_bt.proto.description.description, 'The doc!')
+
+  def test_set_asset_metadata_with_none_documentation(self):
+    my_bt = bt.BehaviorTree('My tree', root=_default_task())
+    my_bt.set_asset_metadata(
+        id='ai.intrinsic.irrelevant',
+        vendor='irrelevant',
+        doc=None,
+    )
+
+    self.assertFalse(my_bt.asset_metadata_proto.HasField('documentation'))
+    self.assertEqual(my_bt.proto.description.description, '')
+
+  def test_set_asset_metadata_with_invalid_documentation(self):
+    my_bt = bt.BehaviorTree('My tree', root=_default_task())
+    with self.assertRaises(TypeError):
+      my_bt.set_asset_metadata(
+          id='ai.intrinsic.irrelevant', vendor='irrelevant', doc=42
+      )
+
+  def test_set_asset_metadata_sets_asset_type(self):
+    my_bt = bt.BehaviorTree('My tree', root=_default_task())
+    my_bt.set_asset_metadata(id='ai.intrinsic.irrelevant', vendor='irrelevant')
+
+    self.assertEqual(
+        my_bt.asset_metadata_proto.asset_type,
+        asset_type_pb2.AssetType.ASSET_TYPE_PROCESS,
+    )
+
+  def test_set_asset_metadata_with_no_subprocess_tag(self):
+    my_bt = bt.BehaviorTree('My tree', root=_default_task())
+    my_bt.set_asset_metadata(
+        id='ai.intrinsic.irrelevant', vendor='irrelevant', subprocess=False
+    )
+
+    self.assertEqual(
+        my_bt.asset_metadata_proto.asset_tag,
+        asset_tag_pb2.AssetTag.ASSET_TAG_UNSPECIFIED,
+    )
+
+  def test_set_asset_metadata_with_subprocess_tag(self):
+    my_bt = bt.BehaviorTree('My tree', root=_default_task())
+    my_bt.set_asset_metadata(
+        id='ai.intrinsic.irrelevant', vendor='irrelevant', subprocess=True
+    )
+
+    self.assertEqual(
+        my_bt.asset_metadata_proto.asset_tag,
+        asset_tag_pb2.AssetTag.ASSET_TAG_SUBPROCESS,
     )
 
   def test_name_property(self):

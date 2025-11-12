@@ -4605,6 +4605,89 @@ class BehaviorTree:
     self.root = _transform_to_node(root)
     return self.root
 
+  def set_asset_metadata(
+      self,
+      *,
+      id: str | id_pb2.Id,  # pylint: disable=redefined-builtin
+      vendor: str | vendor_pb2.Vendor,
+      doc: str | documentation_pb2.Documentation | None = None,
+      subprocess: bool = False,
+  ):
+    """Sets the asset metadata for this behavior tree.
+
+    After calling this method, the behavior tree can be saved as a Process
+    asset if it did not previously have any asset metadata.
+
+    Note that you cannot set a display name via this method. This is taken equal
+    to the behavior tree's name which you can set in the constructor or via the
+    `name` property.
+
+    Args:
+      id: The id of the Process asset (required). Either as a string (e.g.
+        'ai.intrinsic.my_process') or as an Id proto.
+      vendor: The vendor of the Process asset (required). Either as a string or
+        as a Vendor proto.
+      doc: Optional documentation of the process. Either as a string or as a
+        Documentation proto.
+      subprocess: Whether to tag the process as a subprocess. This is, e.g.,
+        required to list the process as a runnable "Skill" in the Process
+        Explorer in the Frontend.
+
+    Raises:
+      TypeError: If any of the arguments are of an unsupported type.
+      ValueError: If any of the arguments have an invalid value.
+    """
+    if not self.name:
+      raise ValueError('Behavior tree must have a name.')
+
+    if isinstance(id, str):
+      # Will fail if id is empty
+      id_proto = id_pb2.Id(
+          package=id_utils.package_from(id), name=id_utils.name_from(id)
+      )
+    elif isinstance(id, id_pb2.Id):
+      # Will fail below if id is invalid
+      id_proto = id
+    else:
+      raise TypeError(f'Unsupported type for id: {type(id)}')
+
+    if isinstance(vendor, str):
+      vendor_proto = vendor_pb2.Vendor(display_name=vendor)
+    elif isinstance(vendor, vendor_pb2.Vendor):
+      vendor_proto = vendor
+    else:
+      raise TypeError(f'Unsupported type for vendor: {type(vendor)}')
+
+    if not vendor_proto.display_name:
+      raise ValueError('Vendor name cannot be empty.')
+
+    if isinstance(doc, str):
+      documentation_proto = documentation_pb2.Documentation(description=doc)
+    elif isinstance(doc, documentation_pb2.Documentation):
+      documentation_proto = doc
+    elif doc is None:
+      documentation_proto = None
+    else:
+      raise TypeError(f'Unsupported type for documentation: {type(doc)}')
+
+    # We set all metadata fields, thus we can simply always create a new
+    # Metadata proto.
+    self._metadata = metadata_pb2.Metadata(
+        id_version=id_pb2.IdVersion(id=id_proto),
+        display_name=self.name,
+        vendor=vendor_proto,
+        documentation=documentation_proto,
+        asset_type=asset_type_pb2.AssetType.ASSET_TYPE_PROCESS,
+        asset_tag=(
+            asset_tag_pb2.AssetTag.ASSET_TAG_SUBPROCESS
+            if subprocess
+            else asset_tag_pb2.AssetTag.ASSET_TAG_UNSPECIFIED
+        ),
+    )
+    # This will clear the 'id_version' in the Skill proto because the new
+    # metadata has no version set.
+    self._sync_skill_proto_from_metadata()
+
   @property
   def name(self) -> str:
     """The display name of this behavior tree.
@@ -4680,6 +4763,11 @@ class BehaviorTree:
   ) -> BehaviorTree:
     """Instantiates a behavior tree from a corresponding proto.
 
+    Args:
+      proto_object: A BehaviorTree proto or a full ProcessAsset proto. If only a
+        BehaviorTree proto is passed, the result will be be an "anonymous" tree
+        which can be initialized as a Process asset by later calling
+        set_metadata() on it.
     """
     if cls != BehaviorTree:
       raise TypeError(
@@ -5056,6 +5144,9 @@ class BehaviorTree:
     is extracted from the schema. Otherwise the full name must be given
     explicitly.
 
+    To create the PBT as a Process asset, call set_asset_metadata() before
+    calling this method and do not pass skill_id or display_name.
+
     Args:
       parameter_proto_schema: A full proto schema for the PBT parameters.
       return_value_proto_schema: A full proto schema for the return value.
@@ -5121,6 +5212,9 @@ class BehaviorTree:
 
     The passed in protos must be compiled python protos that have a DESCRIPTOR
     property.
+
+    To create the PBT as a Process asset, call set_asset_metadata() before
+    calling this method and do not pass skill_id or display_name.
 
     Args:
       parameter_proto: The compiled proto message type for the parameters. (For
