@@ -8,8 +8,16 @@ import "google/rpc/status.proto";
 import "intrinsic/manipulation/grasping/grasp_annotations.proto";
 import "intrinsic/manipulation/grasping/grasp_annotator.proto";
 
+enum StorageType {
+  STORAGE_TYPE_DICT = 0;
+  STORAGE_TYPE_KVSTORE = 1;
+}
+
 message GraspAnnotatorConfig {
   string ingress_address = 1;
+
+  // Where to store annotations.  Defaults to local dict.
+  StorageType storage_type = 2;
 }
 
 message GraspAnnotatorRequest {
@@ -96,7 +104,7 @@ message FetchAnnotationsResponse {
 
 message CopyAnnotationsRequest {
   // Object whose annotations to copy
-  string scene_scene_object_id = 1;
+  string scene_object_id = 1;
 
   // ID of annotation set to copy
   string annotations_id = 2;
@@ -161,6 +169,10 @@ message GraspAnnotatorScoreResponse {
   GraspAnnotations scored_annotations = 1;
 }
 
+message ResetAnnotationsRequest {}
+
+message ResetAnnotationsResponse {}
+
 service GraspAnnotator {
   // Annotate grasps.
   rpc Annotate(GraspAnnotatorRequest) returns (GraspAnnotatorResponse) {}
@@ -191,4 +203,8 @@ service GraspAnnotator {
   // Copy annotations to another KV store
   rpc CopyAnnotations(CopyAnnotationsRequest)
       returns (CopyAnnotationsResponse) {}
+
+  // Reset annotations.
+  rpc ResetAnnotations(ResetAnnotationsRequest)
+      returns (ResetAnnotationsResponse) {}
 }
