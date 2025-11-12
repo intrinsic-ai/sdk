@@ -7,6 +7,8 @@ package intrinsic_proto.world;
 import "intrinsic/math/proto/matrix.proto";
 import "intrinsic/math/proto/pose.proto";
 
+option go_package = "intrinsic/world/proto/robot_payload_go_proto";
+
 // Payload of a robot.
 message RobotPayload {
   // Mass of the robot payload. Unit is kg.

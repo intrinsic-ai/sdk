@@ -7,6 +7,8 @@ package intrinsic_proto.world;
 import "intrinsic/math/proto/pose.proto";
 import "intrinsic/math/proto/vector3.proto";
 
+option go_package = "intrinsic/world/proto/kinematics_component_go_proto";
+
 // Component indicating the owning Entity represents a DoF.
 message KinematicsComponent {
   // Pose of the inboard coordinate frame in the parent object's space.

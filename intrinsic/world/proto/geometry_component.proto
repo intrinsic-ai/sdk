@@ -8,6 +8,8 @@ import "intrinsic/geometry/proto/geometry_storage_refs.proto";
 import "intrinsic/geometry/proto/v1/transformed_geometry.proto";
 import "intrinsic/math/proto/matrix.proto";
 
+option go_package = "intrinsic/world/proto/geometry_component_go_proto";
+
 // Runtime options for a Geometry.
 message GeometryOptions {
   // If set, the octree will be filled on the inside when constructing the

@@ -5,5 +5,7 @@ syntax = "proto3";
 package intrinsic_proto.world;
 
 
+option go_package = "intrinsic/world/proto/gripper_component_go_proto";
+
 message GripperComponent {
 }

@@ -8,6 +8,8 @@ import "intrinsic/math/proto/matrix.proto";
 import "intrinsic/math/proto/point.proto";
 import "intrinsic/math/proto/pose.proto";
 
+option go_package = "intrinsic/world/proto/physics_component_go_proto";
+
 // Component indicating the owning Entity has physics properties releveant to
 // our modeling.
 // Next tag: 11

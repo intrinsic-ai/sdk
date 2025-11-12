@@ -23,6 +23,8 @@ import "intrinsic/world/proto/robot_payload.proto";
 import "intrinsic/world/proto/sensor_component.proto";
 import "intrinsic/world/proto/simulation_component.proto";
 
+option go_package = "intrinsic/world/proto/object_world_service_go_proto";
+
 // Provides access to a managed set of world models.
 //
 // Each world model is represented by a collection of objects. Each object, in

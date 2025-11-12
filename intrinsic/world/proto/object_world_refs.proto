@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.world;
 
+option go_package = "intrinsic/world/proto/object_world_refs_go_proto";
+
 // Identifies an object within a world by means of its unique name.
 message ObjectReferenceByName {
   // Unique name of the object. Can be "root".

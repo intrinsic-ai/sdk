@@ -8,6 +8,8 @@ import "intrinsic/skills/proto/skill_parameter_metadata.proto";
 import "intrinsic/world/proto/collision_action.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 
+option go_package = "intrinsic/world/proto/collision_settings_go_proto";
+
 // Wrapper around using an Object or an Entity reference with the Collision rule
 // below.
 message ObjectOrEntityReference {

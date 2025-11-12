@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.world;
 
+option go_package = "intrinsic/world/proto/sensor_component_go_proto";
+
 // Component indicating the owning Entity is a sensor (e.g. camera).
 //
 // Next tag: 11

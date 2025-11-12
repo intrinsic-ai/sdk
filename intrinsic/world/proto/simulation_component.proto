@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.world;
 
+option go_package = "intrinsic/world/proto/simulation_component_go_proto";
+
 // Component indicating how the owning Entity (or the object/collection
 // represented by the owning entity) should be treated in simulation.
 message SimulationComponent {
