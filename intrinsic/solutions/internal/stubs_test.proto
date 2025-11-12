@@ -8,6 +8,8 @@ import "google/protobuf/duration.proto";
 import "intrinsic/math/proto/pose.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 
+option go_package = "intrinsic/solutions/internal/stubs_test_go_proto";
+
 message EmptyMessage {}
 
 message BasicParams {

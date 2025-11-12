@@ -6,6 +6,8 @@ package intrinsic_proto.test;
 
 import "google/protobuf/empty.proto";
 
+option go_package = "intrinsic/util/grpc/testing/ping_go_proto";
+
 service PingService {
   // Returns an empty message (or the standard out-of-bounds error).  Useful for
   // testing gRPC related utilties where the data sent does not matter, such as

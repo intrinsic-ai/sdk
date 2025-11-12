@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.solutions.tools;
 
+option go_package = "intrinsic/solutions/tools/proto/my_msg_go_proto";
+
 message MyMsg {
   bool bool_value = 2;
   int32 int32_value = 3;

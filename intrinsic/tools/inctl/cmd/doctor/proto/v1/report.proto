@@ -4,6 +4,8 @@ edition = "2023";
 
 package intrinsic_proto.inctl.doctor.v1;
 
+option go_package = "intrinsic/tools/inctl/cmd/doctor/proto/v1/report_go_proto";
+
 enum DiagnosticCheckResult {
   DIAGNOSTIC_CHECK_RESULT_UNSPECIFIED = 0;
   DIAGNOSTIC_CHECK_RESULT_OK = 1;

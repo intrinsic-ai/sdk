@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.skills;
 
+option go_package = "intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_go_proto";
+
 message ExampleSkillParams {
   string foo = 1;
 }

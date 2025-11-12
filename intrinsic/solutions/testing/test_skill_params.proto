@@ -15,6 +15,8 @@ import "intrinsic/world/proto/object_world_refs.proto";
 import "intrinsic/world/proto/robot_payload.proto";
 import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/pose.proto";
 
+option go_package = "intrinsic/solutions/testing/test_skill_params_go_proto";
+
 enum GlobalEnum {
   GLOBAL_ENUM_UNSPECIFIED = 0;
   GLOBAL_ENUM_ONE = 1;

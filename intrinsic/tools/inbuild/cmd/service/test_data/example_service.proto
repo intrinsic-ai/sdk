@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.services;
 
+option go_package = "intrinsic/tools/inbuild/cmd/service/test_data/example_service_go_proto";
+
 message ExampleConfig {
   string hello_world = 1;
 }
