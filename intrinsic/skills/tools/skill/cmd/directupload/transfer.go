@@ -134,7 +134,7 @@ func (dt *directTransfer) Write(ctx context.Context, ref name.Reference, img crv
 			if foErr := dt.failOver.Write(ctx, ref, img); foErr != nil {
 				return fmt.Errorf("image write failed (direct: %s): %w", err, foErr)
 			}
-			log.Warningf("fail over succeeded with prior direct upload failure: %s", err)
+			log.WarningContextf(ctx, "fail over succeeded with prior direct upload failure: %s", err)
 			return nil
 		}
 		return fmt.Errorf("image write failed: %w", err)
