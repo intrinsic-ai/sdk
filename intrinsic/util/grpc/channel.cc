@@ -80,7 +80,8 @@ class OrgNamePlugin : public grpc::MetadataCredentialsPlugin {
       grpc::string_ref service_url, grpc::string_ref method_name,
       const grpc::AuthContext& channel_auth_context,
       std::multimap<grpc::string, std::string>* metadata) override {
-    metadata->insert({acl::kOrgIDCookieName, org_id_});
+    metadata->insert(
+        {"cookie", absl::StrCat(acl::kOrgIDCookieName, "=", org_id_)});
     return grpc::Status::OK;
   }
 
