@@ -12,6 +12,8 @@ import "intrinsic/manipulation/grasping/grasp_planner_params.proto";
 import "intrinsic/manipulation/grasping/grasp_ranker_params.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 
+option go_package = "intrinsic/manipulation/service/grasp_planner_service/v1/grasp_planner_service_go_proto";
+
 // Parameters to plan grasps by the GraspPlannerService
 message GPSPlanGraspsParams {
   // The world used to plan grasps.

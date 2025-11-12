@@ -7,6 +7,8 @@ package intrinsic_proto.error;
 import "google/protobuf/any.proto";
 import "google/rpc/status.proto";
 
+option go_package = "intrinsic/logging/errors/proto/error_report_go_proto";
+
 // Structured data about an error that occurred within the stack, which has
 // the purpose to be used for error resolution. This data is typically logged to
 // the DataLogger as a payload of a LogItem, and collected by the ErrorService

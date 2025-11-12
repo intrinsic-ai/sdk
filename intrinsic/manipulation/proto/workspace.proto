@@ -7,6 +7,8 @@ package intrinsic_proto.manipulation;
 import "intrinsic/geometry/proto/oriented_bounding_box.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 
+option go_package = "intrinsic/manipulation/proto/workspace_go_proto";
+
 // An oriented 3-D bounding box in a specific frame.
 message OrientedBoundingBoxWorkspace {
   geometry.OrientedBoundingBox3 bounding_box = 1;

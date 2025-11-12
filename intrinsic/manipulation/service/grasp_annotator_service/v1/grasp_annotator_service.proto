@@ -8,6 +8,8 @@ import "google/rpc/status.proto";
 import "intrinsic/manipulation/grasping/grasp_annotations.proto";
 import "intrinsic/manipulation/grasping/grasp_annotator.proto";
 
+option go_package = "intrinsic/manipulation/service/grasp_annotator_service/v1/grasp_annotator_service_go_proto";
+
 enum StorageType {
   STORAGE_TYPE_DICT = 0;
   STORAGE_TYPE_KVSTORE = 1;

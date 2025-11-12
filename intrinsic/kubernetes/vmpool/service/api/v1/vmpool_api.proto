@@ -8,6 +8,8 @@ import "google/protobuf/empty.proto";
 import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
 
+option go_package = "intrinsic/kubernetes/vmpool/service/api/v1/vmpool_api_go_proto";
+
 // HardwareTemplate is a predefined hardware configuration of a VM.
 message HardwareTemplate {
   string name = 1;

@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.inversion.v1;
 
+option go_package = "intrinsic/kubernetes/inversion/v1/inversion_go_proto";
+
 // The IpcUpdater service manages updates of a single IPC. It is intended for
 // use by an HMI or similar so that updates will not be applied until they are
 // approved by an operator.

@@ -8,6 +8,8 @@ import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
+option go_package = "intrinsic/kubernetes/accounts/service/api/tokens/v2/tokens_go_proto";
+
 message GetIPCTokenRequest {
   IPCCredential credential = 1;
 }

@@ -5,6 +5,8 @@ syntax = "proto3";
 package intrinsic_proto.workcellmode.v1;
 
 
+option go_package = "intrinsic/kubernetes/workcellmode/proto/workcellmode_service_go_proto";
+
 enum MODE {
   MODE_UNSPECIFIED = 0;
   // Throttles the total data upload rate to the cloud.
