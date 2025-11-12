@@ -17,6 +17,8 @@ import "intrinsic/perception/proto/image_buffer.proto";
 import "intrinsic/perception/proto/post_processing.proto";
 import "intrinsic/platform/pubsub/storage_location.proto";
 
+option go_package = "intrinsic/perception/service/proto/camera_server_go_proto";
+
 service CameraServer {
   // Returns all available cameras connected on the server side.
   // Note: Today, the camera does not return active instances to cameras. If
