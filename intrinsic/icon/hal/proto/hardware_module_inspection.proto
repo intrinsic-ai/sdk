@@ -8,6 +8,8 @@ import "google/protobuf/any.proto";
 import "google/protobuf/timestamp.proto";
 import "intrinsic/icon/proto/safety_status.proto";
 
+option go_package = "intrinsic/icon/hal/hardware_module_inspection_go_proto";
+
 message Event {
   enum Severity {
     UNKNOWN = 0;

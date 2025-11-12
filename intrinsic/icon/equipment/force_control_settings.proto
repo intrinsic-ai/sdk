@@ -6,6 +6,8 @@ package intrinsic_proto.icon;
 
 import "intrinsic/icon/proto/cart_space.proto";
 
+option go_package = "intrinsic/icon/equipment/force_control_settings_go_proto";
+
 message ForceControlSettings {
   // Maximum value of the euclidean norm of the measured force (measured at a
   // tool frame) at which point a stop action should be triggered. Defined in

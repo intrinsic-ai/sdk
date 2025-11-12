@@ -7,6 +7,8 @@ package intrinsic_proto;
 import "intrinsic/kinematics/proto/kinematics.proto";
 import "intrinsic/math/proto/pose.proto";
 
+option go_package = "intrinsic/kinematics/proto/skeleton_go_proto";
+
 // A reflexion of intrinsic::kinematics::Skeleton
 message Skeleton {
   string name = 1;

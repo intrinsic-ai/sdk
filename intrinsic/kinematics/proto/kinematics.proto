@@ -8,6 +8,8 @@ import "intrinsic/math/proto/matrix.proto";
 import "intrinsic/math/proto/point.proto";
 import "intrinsic/math/proto/pose.proto";
 
+option go_package = "intrinsic/kinematics/proto/kinematics_go_proto";
+
 // A reflexion of intrinsic::kinematics::Element
 message Element {
   // The id local to a kinematic skeleton

@@ -7,6 +7,8 @@ package intrinsic_proto.icon;
 import "google/protobuf/any.proto";
 import "intrinsic/icon/hardware_modules/sim_bus/sim_bus_hardware_module.proto";
 
+option go_package = "intrinsic/icon/hal/hardware_module_config_go_proto";
+
 // Next ID: 11
 message HardwareModuleConfig {
   // The name will be automatically deduced from the resource context and set to

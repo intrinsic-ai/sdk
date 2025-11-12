@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.icon.v1;
 
+option go_package = "intrinsic/icon/control/parts/proto/v1/mode_of_safe_operation_limits_config_go_proto";
+
 // This contains the individual configurations for limits under each necessary
 // ModeOfSafeOperation ( as defined in
 // intrinsic/icon/proto/safety_status.proto ). All configurations are

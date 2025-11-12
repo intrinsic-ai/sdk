@@ -5,6 +5,8 @@ syntax = "proto3";
 package intrinsic_proto.gripper;
 
 
+option go_package = "intrinsic/hardware/gripper/gripper_go_proto";
+
 message PinchGripperCommand {
   // Command id to disambiguate status messages.
   // If not set, the command may return earlier before the gripper has reached
