@@ -15,7 +15,8 @@ from google.protobuf import struct_pb2
 import grpc
 from intrinsic.geometry.proto import geometry_service_pb2
 from intrinsic.geometry.proto import geometry_service_pb2_grpc
-from intrinsic.geometry.proto import geometry_storage_refs_pb2
+from intrinsic.geometry.proto import geometry_storage_refs_pb2 as geometry_storage_refs_pb2_v0
+from intrinsic.geometry.proto.v1 import geometry_storage_refs_pb2 as geometry_storage_refs_pb2_v1
 from intrinsic.icon.equipment import icon_equipment_pb2
 from intrinsic.icon.proto import cart_space_pb2
 from intrinsic.kinematics.types import joint_limits_pb2
@@ -1408,7 +1409,7 @@ class ObjectWorldClient:
       self,
       *,
       geometry: geometry_service_pb2.CreateGeometryRequest,
-  ) -> geometry_storage_refs_pb2.GeometryStorageRefs:
+  ) -> geometry_storage_refs_pb2_v0.GeometryStorageRefs:
     """Registers geometry so that it can be referenced to create an object.
 
     Arguments:
@@ -1430,6 +1431,33 @@ class ObjectWorldClient:
     return self._geometry_service_stub.CreateGeometry(
         geometry
     ).geometry_storage_refs_v0
+
+  def register_geometry_v1(
+      self,
+      *,
+      geometry: geometry_service_pb2.CreateGeometryRequest,
+  ) -> geometry_storage_refs_pb2_v1.GeometryStorageRefs:
+    """Registers geometry so that it can be referenced to create an object.
+
+    Arguments:
+      geometry: Geometry data to be registered.
+
+    Raises:
+      RuntimeError: if ObjectWorldClient was not configured with the geometry
+      service client.
+
+    Returns:
+      Opaque references corresponding to the registered geometry.
+    """
+
+    if self._geometry_service_stub is None:
+      raise RuntimeError(
+          'ObjectWorldClient has not been configured to register geometry data.'
+      )
+
+    return self._geometry_service_stub.CreateGeometry(
+        geometry
+    ).geometry_storage_refs
 
   def create_geometry_object(
       self,
