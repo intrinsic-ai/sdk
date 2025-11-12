@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.world;
 
+option go_package = "intrinsic/world/proto/entity_search_go_proto";
+
 // Search criteria for finding relevant entities to apply an update to.
 message EntitySearchCriteria {
   // Search for an entity using its entity id.
