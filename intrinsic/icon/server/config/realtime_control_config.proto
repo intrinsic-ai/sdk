@@ -7,6 +7,8 @@ package intrinsic_proto.icon;
 import "intrinsic/icon/control/parts/hal/v1/hal_part_config.proto";
 import "intrinsic/icon/control/parts/proto/v1/realtime_part_config.proto";
 
+option go_package = "intrinsic/icon/server/config/realtime_control_config_go_proto";
+
 message RealtimeControlConfig {
   // List of parts supported by this RealtimeControlManager, keyed by part name.
   map<string, intrinsic_proto.v1.RealtimePartConfig> parts_by_name = 1;

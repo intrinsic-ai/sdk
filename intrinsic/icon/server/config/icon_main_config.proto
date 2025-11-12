@@ -8,6 +8,8 @@ import "intrinsic/icon/proto/logging_mode.proto";
 import "intrinsic/icon/server/config/realtime_control_config.proto";
 import "intrinsic/icon/server/config/services_config.proto";
 
+option go_package = "intrinsic/icon/server/config/icon_main_config_go_proto";
+
 message HardwareConfig {
   message OperationalHardware {}
   message CellControlHardware {}

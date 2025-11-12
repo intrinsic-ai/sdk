@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.icon;
 
+option go_package = "intrinsic/icon/server/config/services_config_go_proto";
+
 message DynamicsServiceConfig {
   // Optional – if missing, we will try to use the resource ID instead.
   optional string part_name = 1;
