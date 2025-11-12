@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.config;
 
+option go_package = "intrinsic/config/proto/operation_mode_go_proto";
+
 // Runtime switch indicating in which mode the app will be started (e.g.,
 // in simulation or on real hardware).
 enum OperationMode {
