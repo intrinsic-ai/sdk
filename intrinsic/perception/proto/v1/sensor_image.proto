@@ -8,6 +8,8 @@ import "google/protobuf/timestamp.proto";
 import "intrinsic/perception/proto/v1/image_buffer.proto";
 import "intrinsic/perception/proto/v1/sensor_config.proto";
 
+option go_package = "intrinsic/perception/proto/v1/sensor_image_go_proto";
+
 // Contains an image from a single sensor on a multiframe camera.
 message SensorImage {
   // Configuration (calibration) for the sensor

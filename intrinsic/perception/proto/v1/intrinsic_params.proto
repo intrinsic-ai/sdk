@@ -6,6 +6,8 @@ package intrinsic_proto.perception.v1;
 
 import "intrinsic/perception/proto/v1/dimensions.proto";
 
+option go_package = "intrinsic/perception/proto/v1/intrinsic_params_go_proto";
+
 // Internal camera parameters such as focal length and principal point.
 message IntrinsicParams {
   // Focal length in horizontal direction. Required.

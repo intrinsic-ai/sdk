@@ -12,6 +12,8 @@ import "intrinsic/assets/proto/id.proto";
 import "intrinsic/perception/proto/v1/pose_estimation_config.proto";
 import "intrinsic/util/status/extended_status.proto";
 
+option go_package = "intrinsic/perception/proto/v1/train_service_go_proto";
+
 // Trains pose estimation models.
 service TrainService {
 

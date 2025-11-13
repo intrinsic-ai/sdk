@@ -7,6 +7,8 @@ package intrinsic_proto.perception.v1;
 import "intrinsic/math/proto/pose.proto";
 import "intrinsic/platform/pubsub/storage_location.proto";
 
+option go_package = "intrinsic/perception/proto/v1/capture_data_go_proto";
+
 // A container for the data returned by the CaptureImages skill.
 message CaptureData {
   kvstore.StorageLocation capture_result_location = 1;

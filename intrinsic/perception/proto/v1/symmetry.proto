@@ -3,6 +3,8 @@
 syntax = "proto3";
 
 package intrinsic_proto.perception.v1;
+
+option go_package = "intrinsic/perception/proto/v1/symmetry_go_proto";
 import "intrinsic/math/proto/vector3.proto";
 
 message AxisAngle {

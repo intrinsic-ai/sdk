@@ -8,6 +8,8 @@ import "google/protobuf/any.proto";
 import "intrinsic/perception/proto/v1/intrinsic_params.proto";
 import "intrinsic/perception/proto/v1/target.proto";
 
+option go_package = "intrinsic/perception/proto/v1/pose_estimation_config_go_proto";
+
 message PoseEstimationConfig {
   // A list of targets that the pose estimator should detect.
   repeated Target targets = 1;

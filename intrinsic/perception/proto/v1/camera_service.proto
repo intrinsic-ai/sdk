@@ -17,6 +17,8 @@ import "intrinsic/perception/proto/v1/image_buffer.proto";
 import "intrinsic/perception/proto/v1/post_processing.proto";
 import "intrinsic/platform/pubsub/storage_location.proto";
 
+option go_package = "intrinsic/perception/proto/v1/camera_service_go_proto";
+
 service CameraService {
   // Returns all available cameras connected on the server side.
   rpc ListAvailableCameras(ListAvailableCamerasRequest)

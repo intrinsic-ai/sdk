@@ -8,6 +8,8 @@ import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "intrinsic/perception/proto/v1/sensor_image.proto";
 
+option go_package = "intrinsic/perception/proto/v1/capture_result_go_proto";
+
 // This message represents a perception CaptureResult.
 // A container for sensor images and any associated capture metadata.
 message CaptureResult {

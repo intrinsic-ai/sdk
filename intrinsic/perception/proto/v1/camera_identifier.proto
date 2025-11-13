@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.perception.v1;
 
+option go_package = "intrinsic/perception/proto/v1/camera_identifier_go_proto";
+
 import "intrinsic/perception/proto/v1/camera_drivers.proto";
 
 // A unique identifier for a specific, physical camera.

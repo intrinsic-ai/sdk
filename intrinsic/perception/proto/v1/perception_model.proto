@@ -7,6 +7,8 @@ package intrinsic_proto.perception.v1;
 import "intrinsic/assets/data/proto/v1/referenced_data.proto";
 import "intrinsic/perception/proto/v1/pose_estimation_config.proto";
 
+option go_package = "intrinsic/perception/proto/v1/perception_model_go_proto";
+
 // PerceptionModel describes the configuration of a perception model abstracting
 // over different kind of model configurations.
 message PerceptionModel {

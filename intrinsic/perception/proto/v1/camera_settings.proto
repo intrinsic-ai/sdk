@@ -7,6 +7,8 @@ package intrinsic_proto.perception.v1;
 import "google/protobuf/empty.proto";
 import "intrinsic/perception/proto/v1/settings.proto";
 
+option go_package = "intrinsic/perception/proto/v1/camera_settings_go_proto";
+
 // This message encapsulates camera settings conforming with the GenICam
 // Standard Features Naming Convention (SFNC).
 message CameraSetting {

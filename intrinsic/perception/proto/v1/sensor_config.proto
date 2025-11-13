@@ -7,6 +7,8 @@ package intrinsic_proto.perception.v1;
 import "intrinsic/math/proto/pose.proto";
 import "intrinsic/perception/proto/v1/camera_params.proto";
 
+option go_package = "intrinsic/perception/proto/v1/sensor_config_go_proto";
+
 // Specification of a single sensor within a camera. This includes intrinsic
 // calibration (including distortion params) and sensor pose relative to the
 // device coordinate system. Minimal specification includes sensor ID only.

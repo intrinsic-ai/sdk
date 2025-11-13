@@ -6,6 +6,8 @@ package intrinsic_proto.perception.v1;
 
 import "intrinsic/perception/proto/v1/dimensions.proto";
 
+option go_package = "intrinsic/perception/proto/v1/image_buffer_go_proto";
+
 // How the image is encoded / compressed.
 // An unspecified encoding corresponds to uncompressed image data.
 enum Encoding {

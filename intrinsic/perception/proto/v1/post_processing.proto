@@ -7,6 +7,8 @@ package intrinsic_proto.perception.v1;
 import "intrinsic/perception/proto/v1/dimensions.proto";
 import "intrinsic/perception/proto/v1/image_buffer.proto";
 
+option go_package = "intrinsic/perception/proto/v1/post_processing_go_proto";
+
 // Post processing options for requested sensor images.
 //
 // Order of operations:

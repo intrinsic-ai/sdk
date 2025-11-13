@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.perception.v1;
 
+option go_package = "intrinsic/perception/proto/v1/pose_estimator_id_go_proto";
+
 // Encapsulates pose estimator id.
 // This message type allows the UI to interpret the field as a pose estimator
 // and automatically hook it up to the available pose estimators.
