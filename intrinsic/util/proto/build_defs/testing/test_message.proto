@@ -7,6 +7,8 @@ package intrinsic.build_def.testing;
 import "google/protobuf/duration.proto";
 import "intrinsic/util/proto/build_defs/testing/test_message_dep.proto";
 
+option go_package = "intrinsic/util/proto/build_defs/testing/test_message_go_proto";
+
 // A test message.
 message TestMessage {
   // A submessage.

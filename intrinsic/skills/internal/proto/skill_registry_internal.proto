@@ -9,6 +9,8 @@ import "intrinsic/resources/proto/resource_handle.proto";
 import "intrinsic/skills/proto/skill_registry_config.proto";
 import "intrinsic/skills/proto/skills.proto";
 
+option go_package = "intrinsic/skills/internal/proto/skill_registry_internal_go_proto";
+
 message GetInstanceRequest {
   // The skill's id. This can be either the id or the id_version.
   string id = 4;

@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.sim;
 
+option go_package = "intrinsic/simulation/gazebo/plugins/sim_hardware_module_config_go_proto";
+
 message ObjectNameAndJointName {
   string world_object_name = 1;
   string joint_name = 2;

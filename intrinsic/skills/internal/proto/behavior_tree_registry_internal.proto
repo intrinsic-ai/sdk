@@ -6,6 +6,8 @@ package intrinsic_proto.skills;
 
 import "intrinsic/executive/proto/behavior_tree.proto";
 
+option go_package = "intrinsic/skills/internal/proto/behavior_tree_registry_internal_go_proto";
+
 message GetBehaviorTreeRequest {
   // The identifier for the skill as in intrinsic_proto.skills.Skill.id.
   // This must refer to a parameterizable behavior tree registered via

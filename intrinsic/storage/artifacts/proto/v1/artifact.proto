@@ -6,6 +6,8 @@ package intrinsic_proto.storage.artifacts.v1;
 
 import "google/protobuf/timestamp.proto";
 
+option go_package = "intrinsic/storage/artifacts/proto/v1/artifact_go_proto";
+
 service ArtifactServiceApi {
 
   // CheckImage validates Image manifest against remote image storage and

@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic.build_def.testing;
 
+option go_package = "intrinsic/util/proto/build_defs/testing/test_message_dep_go_proto";
+
 message SubMessage {
   // Your favorite double of all time.
   optional double my_double = 1;
