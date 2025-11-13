@@ -8,12 +8,12 @@
 #include "absl/flags/flag.h"
 #include "absl/log/check.h"
 #include "absl/time/time.h"
+#include "intrinsic/connect/cc/grpc/channel.h"
 #include "intrinsic/icon/release/portable/init_intrinsic.h"
 #include "intrinsic/skills/internal/runtime_data.h"
 #include "intrinsic/skills/internal/single_skill_factory.h"
 #include "intrinsic/skills/internal/skill_init.h"
 #include "intrinsic/skills/internal/skill_service_config_utils.h"
-#include "intrinsic/util/grpc/grpc.h"
 #include "intrinsic/util/status/status_specs.h"
 // clang-format off
 {{- range .CCHeaderPaths }}

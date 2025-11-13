@@ -136,12 +136,12 @@ cc_binary(
     srcs = [":skill_service_cc"],
     deps = [
         ":inbuild_skill_cc_lib",
+        "//intrinsic/connect/cc/grpc:channel",
         "//intrinsic/icon/release/portable:init_intrinsic",
         "//intrinsic/skills/internal:runtime_data",
         "//intrinsic/skills/internal:single_skill_factory",
         "//intrinsic/skills/internal:skill_init",
         "//intrinsic/skills/internal:skill_service_config_utils",
-        "//intrinsic/util/grpc",
         "//intrinsic/util/status:status_specs",
         "@abseil-cpp//absl/flags:flag",
         "@abseil-cpp//absl/log:check",

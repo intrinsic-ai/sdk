@@ -8,13 +8,12 @@
 #include <utility>
 #include <vector>
 
-#include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
 #include "absl/time/time.h"
-#include "grpcpp/grpcpp.h"
 #include "grpcpp/impl/channel_interface.h"
+#include "intrinsic/connect/cc/grpc/channel.h"
 #include "intrinsic/skills/cc/equipment_pack.h"
 #include "intrinsic/skills/internal/proto/behavior_tree_registry_internal.grpc.pb.h"
 #include "intrinsic/skills/internal/proto/skill_registry_internal.grpc.pb.h"
@@ -24,7 +23,6 @@
 #include "intrinsic/skills/proto/skill_registry.grpc.pb.h"
 #include "intrinsic/skills/proto/skill_registry_config.pb.h"
 #include "intrinsic/skills/proto/skills.pb.h"
-#include "intrinsic/util/grpc/grpc.h"
 
 namespace intrinsic {
 namespace skills {

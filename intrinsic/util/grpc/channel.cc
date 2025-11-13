@@ -23,6 +23,7 @@
 #include "grpcpp/security/credentials.h"
 #include "grpcpp/support/config.h"
 #include "grpcpp/support/string_ref.h"
+#include "intrinsic/connect/cc/grpc/channel.h"
 #include "intrinsic/frontend/cloud/api/v1/solutiondiscovery_api.grpc.pb.h"
 #include "intrinsic/frontend/cloud/api/v1/solutiondiscovery_api.pb.h"
 #include "intrinsic/kubernetes/acl/cc/cookie_names.h"

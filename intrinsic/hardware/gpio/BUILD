@@ -25,6 +25,7 @@ cc_library(
     visibility = ["//intrinsic:__subpackages__"],
     deps = [
         ":gpio_service_proto_utils",
+        "//intrinsic/connect/cc/grpc:channel",
         "//intrinsic/hardware/gpio/v1:gpio_service_cc_grpc_proto",
         "//intrinsic/hardware/gpio/v1:gpio_service_cc_proto",
         "//intrinsic/icon/release:grpc_time_support",

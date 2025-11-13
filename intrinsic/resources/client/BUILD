@@ -45,6 +45,7 @@ cc_library(
     hdrs = ["resource_registry_client.h"],
     deps = [
         ":resource_registry_client_interface",
+        "//intrinsic/connect/cc/grpc:channel",
         "//intrinsic/resources/proto:resource_registry_cc_grpc",
         "//intrinsic/resources/proto:resource_registry_cc_proto",
         "//intrinsic/util/grpc",

@@ -14,7 +14,6 @@
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
 #include "grpcpp/grpcpp.h"
-#include "intrinsic/connect/cc/grpc/channel.h"  // IWYU pragma: export
 
 namespace intrinsic {
 

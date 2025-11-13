@@ -10,10 +10,10 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
 #include "absl/time/time.h"
+#include "intrinsic/connect/cc/grpc/channel.h"
 #include "intrinsic/resources/client/resource_registry_client_interface.h"
 #include "intrinsic/resources/proto/resource_registry.grpc.pb.h"
 #include "intrinsic/resources/proto/resource_registry.pb.h"
-#include "intrinsic/util/grpc/grpc.h"
 
 namespace intrinsic {
 namespace resources {

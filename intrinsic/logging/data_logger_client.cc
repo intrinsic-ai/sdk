@@ -17,11 +17,11 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "grpcpp/channel.h"
+#include "intrinsic/connect/cc/grpc/channel.h"
 #include "intrinsic/logging/proto/log_item.pb.h"
 #include "intrinsic/logging/proto/logger_service.grpc.pb.h"
 #include "intrinsic/logging/proto/logger_service.pb.h"
 #include "intrinsic/logging/structured_logging_client.h"
-#include "intrinsic/util/grpc/grpc.h"
 #include "intrinsic/util/status/status_macros.h"
 
 namespace intrinsic::data_logger {

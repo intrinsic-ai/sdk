@@ -10,9 +10,9 @@
 #include "absl/status/status.h"
 #include "absl/strings/string_view.h"
 #include "absl/time/time.h"
+#include "intrinsic/connect/cc/grpc/channel.h"
 #include "intrinsic/logging/proto/log_item.pb.h"
 #include "intrinsic/logging/proto/logger_service.grpc.pb.h"
-#include "intrinsic/util/grpc/grpc.h"
 
 namespace intrinsic::data_logger {
 

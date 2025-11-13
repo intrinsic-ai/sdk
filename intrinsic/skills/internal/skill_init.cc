@@ -22,6 +22,7 @@
 #include "grpcpp/security/server_credentials.h"
 #include "grpcpp/server.h"
 #include "grpcpp/server_builder.h"
+#include "intrinsic/connect/cc/grpc/channel.h"
 #include "intrinsic/logging/data_logger_client.h"
 #include "intrinsic/motion_planning/proto/v1/motion_planner_service.grpc.pb.h"
 #include "intrinsic/skills/internal/skill_registry_client.h"
@@ -29,7 +30,6 @@
 #include "intrinsic/skills/internal/skill_service_impl.h"
 #include "intrinsic/skills/proto/skill_service_config.pb.h"
 #include "intrinsic/skills/proto/skills.pb.h"
-#include "intrinsic/util/grpc/grpc.h"
 #include "intrinsic/util/status/status_macros.h"
 #include "intrinsic/world/proto/object_world_service.grpc.pb.h"
 

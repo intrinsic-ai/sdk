@@ -35,10 +35,10 @@ cc_binary(
     name = "reset_simulation",
     srcs = ["reset_simulation.cc"],
     deps = [
+        "//intrinsic/connect/cc/grpc:channel",
         "//intrinsic/icon/release/portable:init_intrinsic",
         "//intrinsic/simulation/service/proto/v1:simulation_service_cc_grpc_proto",
         "//intrinsic/simulation/service/proto/v1:simulation_service_cc_proto",
-        "//intrinsic/util/grpc",
         "//intrinsic/util/status:status_conversion_grpc",
         "//intrinsic/util/status:status_macros",
         "@abseil-cpp//absl/flags:flag",

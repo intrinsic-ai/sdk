@@ -10,12 +10,11 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
 #include "absl/time/time.h"
-#include "absl/types/optional.h"
+#include "intrinsic/connect/cc/grpc/channel.h"
 #include "intrinsic/icon/equipment/channel_factory.h"
 #include "intrinsic/skills/cc/equipment_pack.h"
 #include "intrinsic/skills/proto/equipment.pb.h"
 #include "intrinsic/util/grpc/channel_interface.h"
-#include "intrinsic/util/grpc/grpc.h"
 
 namespace intrinsic {
 namespace icon {

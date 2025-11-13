@@ -14,7 +14,7 @@ cc_library(
     srcs = ["channel_factory.cc"],
     hdrs = ["channel_factory.h"],
     deps = [
-        "//intrinsic/util/grpc",
+        "//intrinsic/connect/cc/grpc:channel",
         "//intrinsic/util/grpc:channel",
         "//intrinsic/util/grpc:channel_interface",
         "//intrinsic/util/grpc:connection_params",
@@ -30,17 +30,16 @@ cc_library(
     deps = [
         ":channel_factory",
         ":icon_equipment_cc_proto",
+        "//intrinsic/connect/cc/grpc:channel",
         "//intrinsic/skills/cc:equipment_pack",
         "//intrinsic/skills/cc:skill_utils",
         "//intrinsic/skills/proto:equipment_cc_proto",
-        "//intrinsic/util/grpc",
         "//intrinsic/util/grpc:channel_interface",
         "//intrinsic/util/status:status_macros",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
         "@abseil-cpp//absl/strings",
         "@abseil-cpp//absl/time",
-        "@abseil-cpp//absl/types:optional",
     ],
 )
 

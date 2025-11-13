@@ -104,12 +104,12 @@ def _cc_skill_service(name, deps, manifest, **kwargs):
         name = name,
         srcs = [gen_main_name],
         deps = deps + [
+            Label("//intrinsic/connect/cc/grpc:channel"),
             Label("//intrinsic/skills/internal:runtime_data"),
             Label("//intrinsic/skills/internal:single_skill_factory"),
             Label("//intrinsic/skills/internal:skill_init"),
             Label("//intrinsic/skills/internal:skill_service_config_utils"),
             Label("//intrinsic/icon/release/portable:init_intrinsic"),
-            Label("//intrinsic/util/grpc"),
             Label("//intrinsic/util/status:status_specs"),
             Label("@abseil-cpp//absl/flags:flag"),
             Label("@abseil-cpp//absl/log:check"),

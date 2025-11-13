@@ -6,13 +6,16 @@
 #include <string>
 #include <utility>
 
+#include "absl/container/flat_hash_set.h"
 #include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/string_view.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "grpcpp/client_context.h"
+#include "intrinsic/connect/cc/grpc/channel.h"
 #include "intrinsic/hardware/gpio/gpio_service_proto_utils.h"
 #include "intrinsic/hardware/gpio/v1/gpio_service.grpc.pb.h"
 #include "intrinsic/hardware/gpio/v1/gpio_service.pb.h"

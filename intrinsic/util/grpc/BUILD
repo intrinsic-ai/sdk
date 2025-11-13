@@ -42,6 +42,7 @@ cc_library(
         ":channel_interface",
         ":connection_params",
         ":grpc",
+        "//intrinsic/connect/cc/grpc:channel",
         "//intrinsic/frontend/cloud/api/v1:solutiondiscovery_api_cc_grpc_proto",
         "//intrinsic/frontend/cloud/api/v1:solutiondiscovery_api_cc_proto",
         "//intrinsic/kubernetes/acl/cc:cookie_names",
@@ -92,7 +93,6 @@ cc_library(
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         ":limits",
-        "//intrinsic/connect/cc/grpc:channel",
         "//intrinsic/icon/release:grpc_time_support",
         "//intrinsic/util/thread",
         "@abseil-cpp//absl/log",
