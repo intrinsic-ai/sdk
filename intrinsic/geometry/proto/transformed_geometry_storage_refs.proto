@@ -7,6 +7,8 @@ package intrinsic_proto.geometry;
 import "intrinsic/geometry/proto/geometry_storage_refs.proto";
 import "intrinsic/math/proto/matrix.proto";
 
+option go_package = "intrinsic/geometry/proto/transformed_geometry_storage_refs_go_proto";
+
 // A proto holding the Geometry refs and a transform similar to the
 // TransformedGeometry object.
 message TransformedGeometryStorageRefs {

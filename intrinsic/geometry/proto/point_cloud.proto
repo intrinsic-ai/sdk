@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.geometry;
 
+option go_package = "intrinsic/geometry/proto/point_cloud_go_proto";
+
 // A point cloud representing points in 3d space.
 message PointCloud {
   // The points in the cloud.

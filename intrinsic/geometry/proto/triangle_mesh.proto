@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.geometry;
 
+option go_package = "intrinsic/geometry/proto/triangle_mesh_go_proto";
+
 // Represents a triangle mesh with faces and vertices specified within. The
 // expectation is three dimensional vertices and triangles for the faces.
 // Specified in row major order.

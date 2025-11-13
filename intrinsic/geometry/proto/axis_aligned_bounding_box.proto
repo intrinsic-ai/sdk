@@ -7,6 +7,8 @@ package intrinsic_proto.geometry;
 import "intrinsic/math/proto/vector2.proto";
 import "intrinsic/math/proto/vector3.proto";
 
+option go_package = "intrinsic/geometry/proto/axis_aligned_bounding_box_go_proto";
+
 // Generic bounding box for the n-dimensional case.
 // For 2D and 3D, use specialized types (see below).
 // Note that the number of dimensions is only implicitly encoded in the length

@@ -9,6 +9,8 @@ import "intrinsic/geometry/proto/geometry_storage_refs.proto";
 import "intrinsic/geometry/proto/v1/geometry.proto";
 import "intrinsic/geometry/proto/v1/geometry_storage_refs.proto";
 
+option go_package = "intrinsic/geometry/proto/geometry_service_go_proto";
+
 // Geometry service is a mechanism for storing and retrieving geometry like
 // meshes or primitives used within a world instance.
 service GeometryService {

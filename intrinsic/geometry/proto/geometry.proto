@@ -7,6 +7,8 @@ package intrinsic_proto.geometry;
 import "intrinsic/geometry/proto/lazy_exact_geometry.proto";
 import "intrinsic/geometry/proto/renderable.proto";
 
+option go_package = "intrinsic/geometry/proto/geometry_go_proto";
+
 // Shared Geometry representation. Contains both the computational geometry data
 // as well as an optional renderable data available for the shape.
 message Geometry {

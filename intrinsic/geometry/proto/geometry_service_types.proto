@@ -13,6 +13,8 @@ import "intrinsic/geometry/proto/v1/inline_geometry.proto";
 import "intrinsic/geometry/proto/v1/renderable.proto";
 import "intrinsic/geometry/proto/v1/transformed_primitive_shape_set.proto";
 
+option go_package = "intrinsic/geometry/proto/geometry_service_types_go_proto";
+
 // Response message for getting geometry from the geometry service.
 message GeometryWithMetadata {
   // Deprecated, will be removed soon. Use geometry_storage_refs instead.

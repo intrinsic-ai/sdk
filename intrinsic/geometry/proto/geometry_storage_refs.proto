@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.geometry;
 
+option go_package = "intrinsic/geometry/proto/geometry_storage_refs_go_proto";
+
 // GeometryStorageRefs is intended to be an (mostly) opaque container of
 // references to storage objects e.g. CAS URIs. The constituent fields provide
 // no guarantees of uniqueness.

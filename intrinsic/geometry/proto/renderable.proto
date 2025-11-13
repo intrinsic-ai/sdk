@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.geometry;
 
+option go_package = "intrinsic/geometry/proto/renderable_go_proto";
+
 // Renderable representation of Geometry.
 message Renderable {
   // GLTF representation of a geometric shape. May have gone through a lossy

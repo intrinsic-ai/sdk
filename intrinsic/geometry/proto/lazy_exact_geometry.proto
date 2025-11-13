@@ -8,6 +8,8 @@ import "intrinsic/geometry/proto/mesh_octree_wrapping.proto";
 import "intrinsic/geometry/proto/primitives.proto";
 import "intrinsic/geometry/proto/triangle_mesh.proto";
 
+option go_package = "intrinsic/geometry/proto/lazy_exact_geometry_go_proto";
+
 // Computational geometry representation of Geometry.
 message LazyExactGeometry {
   // The mesh representation of this Geometry.
