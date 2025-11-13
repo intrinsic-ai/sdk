@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.workcell_spec.v1;
 
+option go_package = "intrinsic/kubernetes/workcell_spec/proto/image_go_proto";
+
 message Image {
   // fully qualified url to container registry, e.g. 'gcr.io/<project-id>'
   string registry = 1;

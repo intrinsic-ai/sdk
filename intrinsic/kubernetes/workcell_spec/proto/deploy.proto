@@ -6,6 +6,8 @@ package intrinsic_proto.workcell_spec.v1;
 
 import "intrinsic/config/proto/operation_mode.proto";
 
+option go_package = "intrinsic/kubernetes/workcell_spec/proto/deploy_go_proto";
+
 service DeployService {
 
   // Start a given solution on a given cluster.
