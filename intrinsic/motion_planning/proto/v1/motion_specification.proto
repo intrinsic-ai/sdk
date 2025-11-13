@@ -9,6 +9,8 @@ import "intrinsic/motion_planning/proto/v1/motion_blending_parameter.proto";
 import "intrinsic/motion_planning/proto/v1/motion_planning_limits.proto";
 import "intrinsic/world/proto/collision_settings.proto";
 
+option go_package = "intrinsic/motion_planning/proto/v1/motion_specification_go_proto";
+
 message PathConstraint {
   // Allows setting the motion type. ANY is the default motion
   // type that enables arbitrary collision free paths in configuration space.

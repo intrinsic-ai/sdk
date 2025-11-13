@@ -7,6 +7,8 @@ package intrinsic_proto.motion_planning.v1;
 import "intrinsic/icon/proto/joint_space.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 
+option go_package = "intrinsic/motion_planning/proto/v1/robot_specification_go_proto";
+
 message RobotReference {
   oneof robot_reference {
     // Must have ObjectType==ROBOT_PART.

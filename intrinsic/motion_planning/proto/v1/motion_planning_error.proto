@@ -10,6 +10,8 @@ import "intrinsic/math/proto/pose.proto";
 import "intrinsic/motion_planning/proto/v1/geometric_constraints.proto";
 import "intrinsic/world/proto/collision_settings.proto";
 
+option go_package = "intrinsic/motion_planning/proto/v1/motion_planning_error_go_proto";
+
 // Defines the context in which error occurred.
 // We use this field to create the frontend error messages.
 // So removing an error context type can impact or alter the generated error

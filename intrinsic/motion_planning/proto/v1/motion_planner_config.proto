@@ -6,6 +6,8 @@ package intrinsic_proto.motion_planning.v1;
 
 import "google/protobuf/duration.proto";
 
+option go_package = "intrinsic/motion_planning/proto/v1/motion_planner_config_go_proto";
+
 // Contains motion planning specific configurations.
 message MotionPlannerConfiguration {
   // Maximum time in seconds available for motion planning. Default is 180

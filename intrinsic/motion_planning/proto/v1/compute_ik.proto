@@ -7,6 +7,8 @@ package intrinsic_proto.motion_planning.v1;
 import "intrinsic/icon/proto/joint_space.proto";
 import "intrinsic/world/proto/collision_settings.proto";
 
+option go_package = "intrinsic/motion_planning/proto/v1/compute_ik_go_proto";
+
 // Encapsulates all validation results that can be used to validate a joint
 // configuration.
 message JointConfigurationValidationResult {

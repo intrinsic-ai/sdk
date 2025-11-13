@@ -18,6 +18,8 @@ import "intrinsic/motion_planning/proto/v1/robot_specification.proto";
 import "intrinsic/world/proto/collision_settings.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 
+option go_package = "intrinsic/motion_planning/proto/v1/motion_planner_service_go_proto";
+
 message MotionPlanningRequest {
   // The id of the world to be used for motion planning.
   string world_id = 1;

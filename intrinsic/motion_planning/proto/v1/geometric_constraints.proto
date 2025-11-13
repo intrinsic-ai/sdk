@@ -12,6 +12,8 @@ import "intrinsic/math/proto/vector3.proto";
 import "intrinsic/skills/proto/skill_parameter_metadata.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 
+option go_package = "intrinsic/motion_planning/proto/v1/geometric_constraints_go_proto";
+
 message JointIds {
   repeated uint32 joint_ids = 1;
 }

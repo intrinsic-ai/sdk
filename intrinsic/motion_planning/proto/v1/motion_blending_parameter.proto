@@ -6,6 +6,8 @@ package intrinsic_proto.motion_planning.v1;
 
 import "intrinsic/skills/proto/skill_parameter_metadata.proto";
 
+option go_package = "intrinsic/motion_planning/proto/v1/motion_blending_parameter_go_proto";
+
 // Blending parameters for Cartesian linear trajectory generation.
 message CartesianBlendingParameters {
   // Cartesian radius of the circular blend around a Cartesian waypoint corner.
