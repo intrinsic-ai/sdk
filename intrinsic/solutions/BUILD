@@ -371,7 +371,6 @@ py_library(
         ":errors",
         "//intrinsic/executive/proto:proto_builder_py_pb2",
         "//intrinsic/executive/proto:proto_builder_py_pb2_grpc",
-        "//intrinsic/solutions/internal:skill_utils",
         "//intrinsic/util/grpc:error_handling",
         "//intrinsic/util/proto:descriptors",
         "//intrinsic/util/proto:descriptors_py",

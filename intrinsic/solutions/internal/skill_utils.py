@@ -696,16 +696,6 @@ def set_fields_in_msg(
   return params_set
 
 
-def _get_message_classes_for_files(
-    files: List[str], desc_pool: descriptor_pool.DescriptorPool
-) -> Dict[str, Type[message.Message]]:
-  return message_factory.GetMessageClassesForFiles(files, desc_pool)
-
-
-def get_message_class(msg: descriptor.Descriptor) -> Type[message.Message]:
-  return message_factory.GetMessageClass(msg)
-
-
 def determine_failed_generate_proto_infra_from_filedescriptorset(
     filedescriptor_set: descriptor_pb2.FileDescriptorSet,
 ) -> str:
@@ -730,7 +720,7 @@ def determine_failed_generate_proto_infra_from_filedescriptorset(
   try:
     for file_proto in filedescriptor_set.file:
       last_tried = file_proto.name
-      _get_message_classes_for_files([file_proto.name], desc_pool)
+      message_factory.GetMessageClassesForFiles([file_proto.name], desc_pool)
   except NotImplementedError:
     return last_tried
   return ""
@@ -762,7 +752,7 @@ def generate_proto_infra_from_filedescriptorset(
     pool) to message classes.
   """
   desc_pool = descriptors.create_descriptor_pool(filedescriptor_set)
-  message_classes = _get_message_classes_for_files(
+  message_classes = message_factory.GetMessageClassesForFiles(
       [file_proto.name for file_proto in filedescriptor_set.file], desc_pool
   )
   additional_msg_classes = {}
@@ -770,7 +760,7 @@ def generate_proto_infra_from_filedescriptorset(
     _get_nested_classes(msg.DESCRIPTOR, name, additional_msg_classes)
 
   for key, msg in additional_msg_classes.items():
-    message_classes[key] = get_message_class(msg)
+    message_classes[key] = message_factory.GetMessageClass(msg)
   return desc_pool, message_classes
 
 

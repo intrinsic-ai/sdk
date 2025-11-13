@@ -6,11 +6,11 @@ from __future__ import annotations
 
 from google.protobuf import descriptor_pb2
 from google.protobuf import message as protobuf_message
+from google.protobuf import message_factory
 import grpc
 from intrinsic.executive.proto import proto_builder_pb2
 from intrinsic.executive.proto import proto_builder_pb2_grpc
 from intrinsic.solutions import errors as solutions_errors
-from intrinsic.solutions.internal import skill_utils
 from intrinsic.util.grpc import error_handling
 from intrinsic.util.proto import descriptors
 
@@ -208,4 +208,4 @@ class ProtoBuilder:
     message_type = desc_pool.FindMessageTypeByName(package + "." + name)
     assert message_type is not None
 
-    return skill_utils.get_message_class(message_type)()
+    return message_factory.GetMessageClass(message_type)()
