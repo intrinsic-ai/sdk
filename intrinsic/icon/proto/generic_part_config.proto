@@ -9,6 +9,8 @@ import "intrinsic/kinematics/proto/skeleton.proto";
 import "intrinsic/kinematics/types/joint_limits.proto";
 import "intrinsic/math/proto/pose.proto";
 
+option go_package = "intrinsic/icon/proto/generic_part_config_go_proto";
+
 // Config values that are relevant for each feature interface.
 message GenericJointPositionConfig {
   int64 num_joints = 1;

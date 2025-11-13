@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.icon;
 
+option go_package = "intrinsic/icon/proto/safety_status_go_proto";
+
 enum ModeOfSafeOperation {
   MODE_OF_SAFE_OPERATION_UNKNOWN = 0;
   MODE_OF_SAFE_OPERATION_AUTOMATIC = 1;

@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.icon;
 
+option go_package = "intrinsic/icon/proto/ik_options_go_proto";
+
 // Inverse Kinematics options.
 // For parts with redundant kinematics, this is used in redundancy resolution.
 // The cost is the squared Euclidean distance to a preferred joint vector

@@ -6,6 +6,8 @@ package intrinsic_proto.icon;
 
 import "google/protobuf/any.proto";
 
+option go_package = "intrinsic/icon/proto/streaming_output_go_proto";
+
 // This message omits information on the Action that the output belongs to, to
 // reduce the bandwidth required to stream outputs to a client. This information
 // is implicit in the parameters of the corresponding gRPC request.

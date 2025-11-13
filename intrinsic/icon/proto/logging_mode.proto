@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.icon;
 
+option go_package = "intrinsic/icon/proto/logging_mode_go_proto";
+
 enum LoggingMode {
   LOGGING_MODE_UNSPECIFIED = 0;
 

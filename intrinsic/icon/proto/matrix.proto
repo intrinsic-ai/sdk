@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.icon;
 
+option go_package = "intrinsic/icon/proto/matrix_go_proto";
+
 // A 6x6 matrix.
 message Matrix6d {
   repeated double data = 1 [packed = true];

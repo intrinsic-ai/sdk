@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.icon;
 
+option go_package = "intrinsic/icon/proto/cart_space_go_proto";
+
 // Cartesian state.
 // Unused fields are empty.
 message CartState {

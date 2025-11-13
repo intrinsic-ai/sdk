@@ -12,6 +12,8 @@ import "intrinsic/math/proto/pose.proto";
 import "intrinsic/math/proto/quaternion.proto";
 import "intrinsic/math/proto/vector3.proto";
 
+option go_package = "intrinsic/icon/proto/part_status_go_proto";
+
 message PartJointState {
   optional double position_sensed = 1;
   optional double velocity_sensed = 2;

@@ -8,6 +8,8 @@ import "google/protobuf/duration.proto";
 import "intrinsic/kinematics/types/dynamic_limits_check_mode.proto";
 import "intrinsic/skills/proto/skill_parameter_metadata.proto";
 
+option go_package = "intrinsic/icon/proto/joint_space_go_proto";
+
 // Joint state.
 // Unused fields are empty.
 message JointState {

@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.icon;
 
+option go_package = "intrinsic/icon/proto/io_block_go_proto";
+
 message AnalogSignal {
   string unit = 1;
   double value = 2;

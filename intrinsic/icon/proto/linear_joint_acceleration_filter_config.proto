@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.icon;
 
+option go_package = "intrinsic/icon/proto/linear_joint_acceleration_filter_config_go_proto";
+
 message LinearJointAccelerationFilterConfig {
   // Filter process noise covariances for position and time derivatives
   // (velocity, acceleration, jerk). These represent the uncertainty in
