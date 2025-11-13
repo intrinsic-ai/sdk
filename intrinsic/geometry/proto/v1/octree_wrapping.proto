@@ -6,6 +6,8 @@ package intrinsic_proto.geometry.v1;
 
 import "intrinsic/geometry/proto/v1/octree.proto";
 
+option go_package = "intrinsic/geometry/proto/v1/octree_wrapping_go_proto";
+
 // Wrapping context for describing how a octree wraps a mesh. This data
 // structure contains both the octree and the associations between octree voxels
 // and the primitives contained in the corresponding mesh.

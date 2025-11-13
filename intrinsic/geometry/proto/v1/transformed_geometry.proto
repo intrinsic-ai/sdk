@@ -7,6 +7,8 @@ package intrinsic_proto.geometry.v1;
 import "intrinsic/geometry/proto/v1/geometric_transform.proto";
 import "intrinsic/geometry/proto/v1/geometry.proto";
 
+option go_package = "intrinsic/geometry/proto/v1/transformed_geometry_go_proto";
+
 message TransformedGeometry {
   // The geometric data for the shape.
   Geometry geometry = 1;

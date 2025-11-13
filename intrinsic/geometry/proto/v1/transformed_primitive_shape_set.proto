@@ -6,6 +6,8 @@ package intrinsic_proto.geometry.v1;
 
 import "intrinsic/geometry/proto/v1/transformed_primitive_shape.proto";
 
+option go_package = "intrinsic/geometry/proto/v1/transformed_primitive_shape_set_go_proto";
+
 // A set of transformed primitive shapes, which are used to represent a
 // geometry.
 message TransformedPrimitiveShapeSet {

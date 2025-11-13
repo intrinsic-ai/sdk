@@ -6,6 +6,8 @@ package intrinsic_proto.geometry.v1;
 
 import "intrinsic/geometry/proto/v1/axis_aligned_bounding_box.proto";
 
+option go_package = "intrinsic/geometry/proto/v1/octree_go_proto";
+
 // Octree representation.
 message Octree {
   bytes is_child_k_leaf = 2;

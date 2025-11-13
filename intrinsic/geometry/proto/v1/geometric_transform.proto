@@ -6,6 +6,8 @@ package intrinsic_proto.geometry.v1;
 
 import "intrinsic/math/proto/matrix.proto";
 
+option go_package = "intrinsic/geometry/proto/v1/geometric_transform_go_proto";
+
 // A proto representation of a geometric transform. It allows for both an
 // affine matrix representation and a Translation/Rotation/Scale representation.
 message GeometricTransform {

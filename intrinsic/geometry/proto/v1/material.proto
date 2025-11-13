@@ -6,6 +6,8 @@ package intrinsic_proto.geometry.v1;
 
 import "google/type/color.proto";
 
+option go_package = "intrinsic/geometry/proto/v1/material_go_proto";
+
 // Material properties that can be applied to a geometry.
 message MaterialProperties {
   // Base Color controls non-reflective surface detail for non-metallic

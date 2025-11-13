@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.geometry.v1;
 
+option go_package = "intrinsic/geometry/proto/v1/geometry_options_go_proto";
+
 // Runtime options for a Geometry.
 message GeometryOptions {
   // If set, the octree will be filled on the inside when constructing the

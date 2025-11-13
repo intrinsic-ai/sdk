@@ -9,6 +9,8 @@ import "intrinsic/geometry/proto/v1/octree_wrapping.proto";
 import "intrinsic/geometry/proto/v1/transformed_primitive_shape_set.proto";
 import "intrinsic/geometry/proto/v1/triangle_mesh.proto";
 
+option go_package = "intrinsic/geometry/proto/v1/exact_geometry_go_proto";
+
 // Computational geometry representation of Geometry.
 message ExactGeometry {
   // The data representation of this Geometry.

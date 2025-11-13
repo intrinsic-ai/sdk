@@ -7,6 +7,8 @@ package intrinsic_proto.geometry.v1;
 import "intrinsic/geometry/proto/v1/exact_geometry.proto";
 import "intrinsic/geometry/proto/v1/renderable.proto";
 
+option go_package = "intrinsic/geometry/proto/v1/inline_geometry_go_proto";
+
 message InlineGeometry {
   // The computational geometry representation.
   ExactGeometry exact_geometry = 1;

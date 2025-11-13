@@ -6,6 +6,8 @@ package intrinsic_proto.geometry.v1;
 
 import "intrinsic/math/proto/vector3.proto";
 
+option go_package = "intrinsic/geometry/proto/v1/primitives_go_proto";
+
 message Box {
   intrinsic_proto.Vector3 size = 1;
 }

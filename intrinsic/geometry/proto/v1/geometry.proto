@@ -8,6 +8,8 @@ import "intrinsic/geometry/proto/v1/geometry_storage_refs.proto";
 import "intrinsic/geometry/proto/v1/inline_geometry.proto";
 import "intrinsic/geometry/proto/v1/material.proto";
 
+option go_package = "intrinsic/geometry/proto/v1/geometry_go_proto";
+
 // Information about a previous version of a geometry. Importantly this does not
 // include the ref_t_shape from a transformed geometry in the history.
 message GeometryProvenance {
