@@ -11,6 +11,8 @@ import "intrinsic/math/proto/quaternion.proto";
 import "intrinsic/scene/proto/v1/geometry_stats.proto";
 import "intrinsic/scene/proto/v1/scene_object.proto";
 
+option go_package = "intrinsic/scene/proto/v1/scene_object_import_go_proto";
+
 // SceneObjectImport provides APIs to import external scene
 // representations like CAD files, SDF files and other formats into an Intrinsic
 // SceneObject proto representation for use in a solution.

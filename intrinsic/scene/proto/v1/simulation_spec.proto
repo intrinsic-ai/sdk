@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.scene_object.v1;
 
+option go_package = "intrinsic/scene/proto/v1/simulation_spec_go_proto";
+
 message SimulationSpec {
   oneof object_spec {
     RobotSimPluginSpec robot = 1;

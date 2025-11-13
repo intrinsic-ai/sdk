@@ -4,6 +4,8 @@ edition = "2023";
 
 package intrinsic_proto.scene_object.v1;
 
+option go_package = "intrinsic/scene/proto/v1/collision_rules_go_proto";
+
 // Rule defining a pair of entities to use with the margin and exclusion rules.
 message CollisionEntityPair {
   message Entity {

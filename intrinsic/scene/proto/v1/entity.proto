@@ -10,6 +10,8 @@ import "intrinsic/world/proto/kinematics_component.proto";
 import "intrinsic/world/proto/physics_component.proto";
 import "intrinsic/world/proto/sensor_component.proto";
 
+option go_package = "intrinsic/scene/proto/v1/entity_go_proto";
+
 // Frame represents a reference frame local to the model (e.g., a grasp or
 // drop-off position, a tool frame, etc.). A frame must parent to a `Link` or a
 // `Frame`.

@@ -10,6 +10,8 @@ import "intrinsic/math/proto/pose.proto";
 import "intrinsic/scene/proto/v1/collision_rules.proto";
 import "intrinsic/scene/proto/v1/object_properties.proto";
 
+option go_package = "intrinsic/scene/proto/v1/scene_object_updates_go_proto";
+
 // Similar to SceneObjectUpdate but restricted in the types of updates that can
 // be performed.
 message SceneObjectInstanceUpdate {

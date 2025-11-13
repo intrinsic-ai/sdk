@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.scene_object.v1;
 
+option go_package = "intrinsic/scene/proto/v1/object_properties_go_proto";
+
 // These are properties that are associated with a particular scene object.
 message ObjectProperties {
   Kinematics kinematics = 1;
