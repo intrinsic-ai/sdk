@@ -7,6 +7,7 @@ package intrinsic_proto.perception;
 import "intrinsic/math/proto/pose.proto";
 import "intrinsic/platform/pubsub/storage_location.proto";
 
+option go_package = "intrinsic/perception/proto/capture_data_go_proto";
 option deprecated = true;
 
 // A container for the data returned by the CaptureImages skill.

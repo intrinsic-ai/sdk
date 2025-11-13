@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.perception;
 
+option go_package = "intrinsic/perception/proto/dimensions_go_proto";
+
 message Dimensions {
   // Image resolution along x axis, in pixels.
   int32 cols = 1;

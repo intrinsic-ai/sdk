@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.perception;
 
+option go_package = "intrinsic/perception/proto/image_processing_go_proto";
+
 // Parameters for modification of image intensity I according to the function
 // f(I) = a*I + b. Applied to each channel separately.
 message AffineCorrection {

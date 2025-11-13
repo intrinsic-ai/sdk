@@ -6,6 +6,7 @@ package intrinsic_proto.perception;
 
 import "intrinsic/math/proto/pose.proto";
 
+option go_package = "intrinsic/perception/proto/pose_estimate_in_root_go_proto";
 option deprecated = true;
 
 // A pose estimate in the root frame for skill APIs.

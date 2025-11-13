@@ -6,6 +6,8 @@ package intrinsic_proto.perception;
 
 import "intrinsic/perception/proto/charuco_pattern.proto";
 
+option go_package = "intrinsic/perception/proto/pattern_detection_config_go_proto";
+
 message PatternDetectionConfig {
   // REQUIRED. Class id (e.g., "pattern-1234").
   string name = 1;

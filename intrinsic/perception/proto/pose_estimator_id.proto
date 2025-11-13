@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.perception;
 
+option go_package = "intrinsic/perception/proto/pose_estimator_id_go_proto";
 option deprecated = true;
 
 // Encapsulates pose estimator id.

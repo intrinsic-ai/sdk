@@ -7,6 +7,8 @@ package intrinsic_proto.perception;
 import "intrinsic/perception/proto/distortion_params.proto";
 import "intrinsic/perception/proto/intrinsic_params.proto";
 
+option go_package = "intrinsic/perception/proto/camera_params_go_proto";
+
 // This proto contains information about the image size and all internal camera
 // parameters (intrinsic and distortion parameters).
 message CameraParams {

@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.perception;
 
+option go_package = "intrinsic/perception/proto/charuco_pattern_go_proto";
+
 // Descriptor of a ChArUco pattern.
 message CharucoPattern {
   // Number of squares of the ChArUco board in x direction.

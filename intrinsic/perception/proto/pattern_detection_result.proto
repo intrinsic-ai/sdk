@@ -6,6 +6,8 @@ package intrinsic_proto.perception;
 
 import "intrinsic/perception/proto/vector.proto";
 
+option go_package = "intrinsic/perception/proto/pattern_detection_result_go_proto";
+
 // Contains the results of a pattern detection.
 message PatternDetection {
   // The detected 2D image points.

@@ -8,6 +8,8 @@ import "intrinsic/perception/proto/camera_params.proto";
 import "intrinsic/perception/proto/dimensions.proto";
 import "intrinsic/perception/proto/pattern_detection_result.proto";
 
+option go_package = "intrinsic/perception/proto/intrinsic_calibration_go_proto";
+
 message IntrinsicCalibrationRequest {
   // Detections of the calibration plate.
   repeated PatternDetection pattern_detections = 1;

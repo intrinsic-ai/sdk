@@ -7,6 +7,8 @@ package intrinsic_proto.perception;
 import "intrinsic/math/proto/pose.proto";
 import "intrinsic/perception/proto/image_buffer.proto";
 
+option go_package = "intrinsic/perception/proto/pose_estimation_result_go_proto";
+
 message PoseEstimate {
   // Class id (e.g., "marker-1234").
   string id = 1;

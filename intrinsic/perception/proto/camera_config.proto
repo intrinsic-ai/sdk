@@ -10,6 +10,8 @@ import "intrinsic/perception/proto/distortion_params.proto";
 import "intrinsic/perception/proto/intrinsic_params.proto";
 import "intrinsic/perception/proto/sensor_config.proto";
 
+option go_package = "intrinsic/perception/proto/camera_config_go_proto";
+
 // Specification of a single camera.
 // The specification includes the driver to be used, connection parameters,
 // but also intrinsic calibration info and optional per-sensor configuration.

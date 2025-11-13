@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.perception;
 
+option go_package = "intrinsic/perception/proto/distortion_params_go_proto";
+
 // Distortion model and parameters.
 message DistortionParams {
   // First radial distortion coefficient.

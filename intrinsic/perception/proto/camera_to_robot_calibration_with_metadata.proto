@@ -6,6 +6,8 @@ package intrinsic_proto.perception;
 
 import "intrinsic/perception/proto/hand_eye_calibration.proto";
 
+option go_package = "intrinsic/perception/proto/camera_to_robot_calibration_with_metadata_go_proto";
+
 message CameraToRobotCalibrationResultWithMetadata {
   // The hand eye calibration result.
   HandEyeCalibrationResult hand_eye_calibration_result = 1;

@@ -8,6 +8,8 @@ import "intrinsic/math/proto/pose.proto";
 import "intrinsic/perception/proto/intrinsic_calibration.proto";
 import "intrinsic/perception/proto/pattern_detection_result.proto";
 
+option go_package = "intrinsic/perception/proto/hand_eye_calibration_go_proto";
+
 // Specifies a hand-eye-calibration setup to be solved for the missing, unknown
 // poses.
 //
