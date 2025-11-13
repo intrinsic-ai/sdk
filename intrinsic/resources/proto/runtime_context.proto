@@ -6,6 +6,8 @@ package intrinsic_proto.config;
 
 import "google/protobuf/any.proto";
 
+option go_package = "intrinsic/resources/proto/runtime_context_go_proto";
+
 message RuntimeContext {
   enum Level {
     UNSPECIFIED = 0;

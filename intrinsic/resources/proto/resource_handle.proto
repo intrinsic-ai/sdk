@@ -6,6 +6,8 @@ package intrinsic_proto.resources;
 
 import "google/protobuf/any.proto";
 
+option go_package = "intrinsic/resources/proto/resource_handle_go_proto";
+
 message ResourceHandle {
   message ResourceData {
     // Data that can be used to access or interact with the resource instance
