@@ -11,14 +11,15 @@ import "intrinsic/manipulation/grasping/grasp_annotator.proto";
 option go_package = "intrinsic/manipulation/service/grasp_annotator_service/v1/grasp_annotator_service_go_proto";
 
 enum StorageType {
-  STORAGE_TYPE_DICT = 0;
+  STORAGE_TYPE_UNSPECIFIED = 0;
   STORAGE_TYPE_KVSTORE = 1;
+  STORAGE_TYPE_DICT = 2;
 }
 
 message GraspAnnotatorConfig {
   string ingress_address = 1;
 
-  // Where to store annotations.  Defaults to local dict.
+  // Where to store annotations.  Defaults to kv store.
   StorageType storage_type = 2;
 }
 
