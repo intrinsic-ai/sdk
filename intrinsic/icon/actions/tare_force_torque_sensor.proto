@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.icon.actions.proto;
 
+option go_package = "intrinsic/icon/actions/tare_force_torque_sensor_go_proto";
+
 message TareForceTorqueSensorParams {
   // The number of real-time control cycles over which the force torque sensor
   // offset is averaged. Defaults to 1.

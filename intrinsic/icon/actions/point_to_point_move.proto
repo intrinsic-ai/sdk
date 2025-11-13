@@ -7,6 +7,8 @@ package intrinsic_proto.icon.actions.proto;
 import "intrinsic/icon/proto/joint_space.proto";
 import "intrinsic/kinematics/types/joint_limits.proto";
 
+option go_package = "intrinsic/icon/actions/point_to_point_move_go_proto";
+
 // Fixed parameters for a point to point move action. These are provided once by
 // the user when the action is created, and remain the same for the lifetime of
 // the action.

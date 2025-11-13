@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.icon.actions.proto;
 
+option go_package = "intrinsic/icon/actions/adio_go_proto";
+
 // A Comparison is used to evaluate an Analog Input value with the
 // `expected_value` using `operation`.
 // The evaluation returns true if `analog_value` `operation` `expected_value`.

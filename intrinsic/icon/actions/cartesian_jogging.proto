@@ -9,6 +9,8 @@ import "intrinsic/kinematics/types/joint_limits.proto";
 import "intrinsic/math/proto/pose.proto";
 import "intrinsic/math/proto/quaternion.proto";
 
+option go_package = "intrinsic/icon/actions/cartesian_jogging_go_proto";
+
 // Parameters to specify how twist commands for Cartesian jogging should be
 // applied to the robot.
 // Jogging Reference Frame refers to a frame fixed with respect to the base of

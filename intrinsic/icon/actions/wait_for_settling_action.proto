@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.icon.actions.proto;
 
+option go_package = "intrinsic/icon/actions/wait_for_settling_action_go_proto";
+
 message WaitForSettlingActionFixedParams {
   // The uncertainty value below which the `WaitForSettlingAction` is considered
   // settled and done. Must be in range [0.01, 0.5]. Default is 0.2.

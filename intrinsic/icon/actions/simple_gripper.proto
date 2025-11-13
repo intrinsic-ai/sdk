@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.icon.actions.proto;
 
+option go_package = "intrinsic/icon/actions/simple_gripper_go_proto";
+
 // Fixed parameters for a SimpleGripper action. These are provided once by the
 // user when the action is created, and remain the same for the lifetime of the
 // action.

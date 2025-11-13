@@ -6,6 +6,8 @@ package intrinsic_proto.icon.actions;
 
 import "intrinsic/icon/proto/joint_space.proto";
 
+option go_package = "intrinsic/icon/actions/trajectory_tracking_action_go_proto";
+
 message TrajectoryTrackingActionFixedParams {
   // The joint position-velocity-acceleration trajectory to be played back on
   // the robot. Time stamps must start at zero. Time stamps are not required to
