@@ -8,6 +8,8 @@ package intrinsic_proto.grasping.service;
 import "intrinsic/geometry/proto/triangle_mesh.proto";
 import "intrinsic/manipulation/grasping/schmalz_multi_axis_grasp.proto";
 
+option go_package = "intrinsic/manipulation/service/multi_axis_auto_annotator_service_go_proto";
+
 message GetAnnotationsRequest {
   // The triangle mesh with of the part with both faces and vertices specified
   // within. The expectation is three dimensional vertices and triangles for the

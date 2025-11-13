@@ -8,6 +8,8 @@ import "intrinsic/icon/proto/joint_space.proto";
 import "intrinsic/math/proto/pose.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 
+option go_package = "intrinsic/motion_planning/proto/motion_target_go_proto";
+
 // Defines a cartesian target for a motion.
 message CartesianMotionTarget {
   // The tool which you want to move.
