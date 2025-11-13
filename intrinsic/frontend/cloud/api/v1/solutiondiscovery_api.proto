@@ -6,6 +6,8 @@ package intrinsic_proto.frontend.v1;
 
 import "intrinsic/frontend/cloud/api/v1/clusterdiscovery_api.proto";
 
+option go_package = "intrinsic/frontend/cloud/api/v1/solutiondiscovery_api_go_proto";
+
 // Details about a solution.
 message SolutionDescription {
   // The unique name/ID of the solution. For a human readable name, see

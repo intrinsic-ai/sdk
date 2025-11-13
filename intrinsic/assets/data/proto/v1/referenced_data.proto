@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.data.v1;
 
+option go_package = "intrinsic/assets/data/proto/v1/referenced_data_go_proto";
+
 // Data that may be stored either inline or elsewhere and only referenced here.
 message ReferencedData {
   oneof data {

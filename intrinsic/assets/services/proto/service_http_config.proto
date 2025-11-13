@@ -4,4 +4,6 @@ syntax = "proto3";
 
 package intrinsic_proto.services;
 
+option go_package = "intrinsic/assets/services/proto/service_http_config_go_proto";
+
 message ServiceHttpConfig {}

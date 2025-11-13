@@ -9,6 +9,8 @@ import "intrinsic/assets/proto/documentation.proto";
 import "intrinsic/assets/proto/id.proto";
 import "intrinsic/assets/proto/vendor.proto";
 
+option go_package = "intrinsic/assets/data/proto/v1/data_manifest_go_proto";
+
 // Specifies a Data asset
 message DataManifest {
   message Metadata {

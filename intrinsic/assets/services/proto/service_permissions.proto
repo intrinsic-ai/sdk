@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.services;
 
+option go_package = "intrinsic/assets/services/proto/service_permissions_go_proto";
+
 // ResourceRequirements describes the compute resource requirements for the
 // container running the service.
 // See:

@@ -6,6 +6,8 @@ package intrinsic_proto.services.v1;
 
 import "intrinsic/util/status/extended_status.proto";
 
+option go_package = "intrinsic/assets/services/proto/v1/service_state_go_proto";
+
 // Supports querying and modifying the state of a Service instance.
 service ServiceState {
   // Returns the current state of the Service instance.

@@ -16,6 +16,8 @@ import "intrinsic/assets/services/proto/service_permissions.proto";
 import "intrinsic/assets/services/proto/service_volume.proto";
 import "intrinsic/kubernetes/workcell_spec/proto/image.proto";
 
+option go_package = "intrinsic/assets/services/proto/service_manifest_go_proto";
+
 message ServiceMetadata {
   // The service's id.
   intrinsic_proto.assets.Id id = 1;

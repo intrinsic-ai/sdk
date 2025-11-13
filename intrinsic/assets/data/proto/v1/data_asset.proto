@@ -8,6 +8,8 @@ import "google/protobuf/any.proto";
 import "google/protobuf/descriptor.proto";
 import "intrinsic/assets/proto/metadata.proto";
 
+option go_package = "intrinsic/assets/data/proto/v1/data_asset_go_proto";
+
 // A processed, portable representation of a Data asset.
 message DataAsset {
   // Metadata about the asset, such as package, ID, release notes, etc.

@@ -6,6 +6,8 @@ package intrinsic_proto.services.v1;
 
 import "google/protobuf/any.proto";
 
+option go_package = "intrinsic/assets/services/proto/v1/dynamic_reconfiguration_go_proto";
+
 // Supports modifying the configuration of a Service without restarting it.
 service DynamicReconfiguration {
   // Applies a new Service configuration.

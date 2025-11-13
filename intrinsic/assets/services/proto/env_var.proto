@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.services;
 
+option go_package = "intrinsic/assets/services/proto/env_var_go_proto";
+
 message EnvVar {
   // The name of the environment variable.
   string name = 1;

@@ -9,6 +9,8 @@ import "intrinsic/assets/data/proto/v1/referenced_data.proto";
 import "intrinsic/assets/proto/id.proto";
 import "intrinsic/assets/proto/metadata.proto";
 
+option go_package = "intrinsic/assets/data/proto/v1/data_assets_go_proto";
+
 // Provides read-only access to Data assets within a solution.
 //
 // Data assets can be installed and updated via InstalledAssets.

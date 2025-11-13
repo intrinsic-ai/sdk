@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.services;
 
+option go_package = "intrinsic/assets/services/proto/service_volume_go_proto";
+
 // VolumeMount specifies how a Volume is mounted in the Service.
 // Its name must match a specified volume.
 // See: https://kubernetes.io/docs/concepts/storage/volumes/

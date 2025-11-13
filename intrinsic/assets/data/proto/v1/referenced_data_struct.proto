@@ -6,6 +6,8 @@ package intrinsic_proto.data.v1;
 
 import "intrinsic/assets/data/proto/v1/referenced_data.proto";
 
+option go_package = "intrinsic/assets/data/proto/v1/referenced_data_struct_go_proto";
+
 // A Struct variant that can represent ReferencedData.
 //
 // See google.protobuf.Struct for more info.
