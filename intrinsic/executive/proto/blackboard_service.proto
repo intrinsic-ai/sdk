@@ -31,6 +31,7 @@ service ExecutiveBlackboard {
   // Delete a specific value on the blackboard.
   rpc DeleteBlackboardValue(DeleteBlackboardValueRequest)
       returns (google.protobuf.Empty) {}
+
 }
 
 message GetBlackboardValueRequest {

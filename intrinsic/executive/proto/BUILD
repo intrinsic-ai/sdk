@@ -252,6 +252,7 @@ proto_library(
     name = "blackboard_service_proto",
     srcs = ["blackboard_service.proto"],
     deps = [
+        "//intrinsic/util/status:extended_status_proto",
         "@com_google_protobuf//:any_proto",
         "@com_google_protobuf//:empty_proto",
         "@com_google_protobuf//:timestamp_proto",
@@ -290,7 +291,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "blackboard_service_go_proto",
-    go_deps = ["@org_golang_google_genproto_googleapis_api//annotations"],
+    go_deps = [
+        "@org_golang_google_genproto_googleapis_api//annotations",
+        "//intrinsic/util/status:extended_status_go_proto",
+    ],
     deps = [":blackboard_service_proto"],
 )
 
@@ -299,6 +303,7 @@ go_grpc_library(
     srcs = [":blackboard_service_proto"],
     deps = [
         ":blackboard_service_go_proto",
+        "//intrinsic/util/status:extended_status_go_proto",
         "@org_golang_google_genproto_googleapis_api//annotations",
         "@org_golang_google_protobuf//types/known/anypb",
         "@org_golang_google_protobuf//types/known/emptypb",
