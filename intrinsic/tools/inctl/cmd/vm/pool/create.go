@@ -27,7 +27,7 @@ func textForUpsert(command string) string {
 	 --tier=%s \
 	 --hwtemplate=%s \
 	 --runtime=intrinsic.platform.20241108.RC00 \
-	 --int-os=20241108.RC00 \
+	 --intrinsic-os=20241108.RC00 \
 	 --org=<my-org>
 
  Example pool using default values (current runtime & os + default tier & hwtemplate):
