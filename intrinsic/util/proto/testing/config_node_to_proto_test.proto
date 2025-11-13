@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto;
 
+option go_package = "intrinsic/util/proto/testing/config_node_to_proto_test_go_proto";
+
 message RepeatedDouble {
   repeated double values = 1;
 }

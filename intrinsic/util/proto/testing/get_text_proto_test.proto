@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto;
 
+option go_package = "intrinsic/util/proto/testing/get_text_proto_test_go_proto";
+
 message TestMessage {
   string string_value = 1;
 }

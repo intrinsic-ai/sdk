@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.util.proto.testing;
 
+option go_package = "intrinsic/util/proto/testing/test_message_go_proto";
+
 message NestedMessage {
   string value = 1;
 }

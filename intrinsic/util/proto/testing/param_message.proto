@@ -6,6 +6,8 @@ package intrinsic_proto.test;
 
 import "google/protobuf/any.proto";
 
+option go_package = "intrinsic/util/proto/testing/param_message_go_proto";
+
 message ParamMessageParameters {
   int64 number = 1;
 }

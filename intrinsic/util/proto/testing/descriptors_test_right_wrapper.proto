@@ -6,6 +6,8 @@ package intrinsic.testing.proto;
 
 import "google/protobuf/wrappers.proto";
 
+option go_package = "intrinsic/util/proto/testing/descriptors_test_right_wrapper_go_proto";
+
 // Test message that wraps FloatValue.
 message RightWrapper {
   google.protobuf.FloatValue float_wrapper = 1;

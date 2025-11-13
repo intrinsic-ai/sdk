@@ -7,6 +7,8 @@ package intrinsic.testing.proto;
 import "intrinsic/util/proto/testing/descriptors_test_left_wrapper.proto";
 import "intrinsic/util/proto/testing/descriptors_test_right_wrapper.proto";
 
+option go_package = "intrinsic/util/proto/testing/descriptors_test_go_proto";
+
 // Test message with diamond-shaped dependency graph. Both left_wrapper and
 // right_wrapper depend on //google/protobuf/wrappers.proto.
 message DiamondTest {

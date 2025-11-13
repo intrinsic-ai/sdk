@@ -7,6 +7,8 @@ package intrinsic_proto.test;
 import "intrinsic/util/proto/testing/diamond_b.proto";
 import "intrinsic/util/proto/testing/diamond_c.proto";
 
+option go_package = "intrinsic/util/proto/testing/diamond_d_go_proto";
+
 message D {
   B b = 1;
   C c = 2;

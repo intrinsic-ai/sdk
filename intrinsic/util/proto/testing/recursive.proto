@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.test;
 
+option go_package = "intrinsic/util/proto/testing/recursive_go_proto";
+
 message Recursive {
   string value = 1;
   Recursive recurse = 2;
