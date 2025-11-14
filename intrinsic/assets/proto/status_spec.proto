@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.assets;
 
+option go_package = "intrinsic/assets/proto/status_spec_go_proto";
+
 // Message to describe expected status codes of assets. Assets define a
 // namespace through their ID, e.g., skill ID. Within this codes above 10000 are
 // up to be defined by the author of the respective components. Other components

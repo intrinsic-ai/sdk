@@ -13,6 +13,8 @@ import "intrinsic/assets/proto/documentation.proto";
 import "intrinsic/assets/proto/id.proto";
 import "intrinsic/assets/proto/vendor.proto";
 
+option go_package = "intrinsic/assets/proto/metadata_go_proto";
+
 message Interface {
   // URI (protocol + fully qualified name) of an interface provided by the
   // asset. For example, "grpc://package.name.Service" indicates that the asset

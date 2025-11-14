@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.assets;
 
+option go_package = "intrinsic/assets/proto/asset_type_go_proto";
+
 // Identifies the type of an asset.
 enum AssetType {
   ASSET_TYPE_UNSPECIFIED = 0;

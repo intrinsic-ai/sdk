@@ -18,6 +18,8 @@ import "intrinsic/assets/scene_objects/proto/scene_object_manifest.proto";
 import "intrinsic/assets/services/proto/service_manifest.proto";
 import "intrinsic/skills/proto/processed_skill_manifest.proto";
 
+option go_package = "intrinsic/assets/proto/installed_assets_go_proto";
+
 // Service to manage the installation of assets.
 service InstalledAssets {
 

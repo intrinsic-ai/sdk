@@ -6,6 +6,8 @@ package intrinsic_proto.assets;
 
 import "intrinsic/assets/proto/asset_type.proto";
 
+option go_package = "intrinsic/assets/proto/asset_tag_go_proto";
+
 // A tag to help find Assets.
 //
 // Tags are used *only* as an aid for finding Assets. For example, tags could be

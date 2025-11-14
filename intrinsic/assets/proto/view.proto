@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.catalog;
 
+option go_package = "intrinsic/assets/proto/view_go_proto";
+
 // Specifies a view of asset information with a particular level of detail.
 enum AssetViewType {
   // The default/unset value (depends on the RPC being called).

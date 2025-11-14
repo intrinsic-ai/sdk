@@ -7,6 +7,8 @@ package intrinsic_proto.assets;
 import "google/protobuf/descriptor.proto";
 import "intrinsic/assets/proto/v1/dependency.proto";
 
+option go_package = "intrinsic/assets/proto/field_metadata_go_proto";
+
 // Metadata that further describes a field in a proto. This
 // metadata can be added using a proto option. Field metadata is optional
 // and may be omitted in parts or entirely.

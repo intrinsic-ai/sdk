@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.assets;
 
+option go_package = "intrinsic/assets/proto/vendor_go_proto";
+
 message Vendor {
   // The name of the vendor that is to be displayed in the UI.
   string display_name = 1;

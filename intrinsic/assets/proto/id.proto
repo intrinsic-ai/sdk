@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.assets;
 
+option go_package = "intrinsic/assets/proto/id_go_proto";
+
 // Id uniquely identifies an Asset in the AssetCatalog. If you change an ID's
 // package or name field, the catalog will treat any new releases as a
 // completely different Asset.

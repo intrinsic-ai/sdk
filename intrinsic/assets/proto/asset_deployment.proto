@@ -11,6 +11,8 @@ import "intrinsic/math/proto/pose.proto";
 import "intrinsic/scene/proto/v1/scene_object_config.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 
+option go_package = "intrinsic/assets/proto/asset_deployment_go_proto";
+
 // Service to manage the deployment of assets, specifically, resource instances
 // and skills.
 service AssetDeploymentService {

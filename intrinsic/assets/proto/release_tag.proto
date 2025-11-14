@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.assets;
 
+option go_package = "intrinsic/assets/proto/release_tag_go_proto";
+
 // Use Asset.release_metadata.default instead.
 enum ReleaseTag {
   option deprecated = true;

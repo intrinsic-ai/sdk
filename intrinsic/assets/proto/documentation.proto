@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.assets;
 
+option go_package = "intrinsic/assets/proto/documentation_go_proto";
+
 message Documentation {
   string description = 1;
 }
