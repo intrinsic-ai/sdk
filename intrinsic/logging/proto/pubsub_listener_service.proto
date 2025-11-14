@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.data_logger;
 
+option go_package = "intrinsic/logging/proto/pubsub_listener_service_go_proto";
+
 // Describes and configures a topic subscription
 message Subscription {
   // The topic name/zenoh key expression

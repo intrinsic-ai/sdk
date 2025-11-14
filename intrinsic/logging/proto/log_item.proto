@@ -13,6 +13,8 @@ import "intrinsic/icon/proto/part_status.proto";
 import "intrinsic/util/status/extended_status.proto";
 import "third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg/marker_array.proto";
 
+option go_package = "intrinsic/logging/proto/log_item_go_proto";
+
 import "intrinsic/logging/errors/proto/error_report.proto";
 import "intrinsic/logging/proto/blob.proto";
 import "intrinsic/logging/proto/context.proto";

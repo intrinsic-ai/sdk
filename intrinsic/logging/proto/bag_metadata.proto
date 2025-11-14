@@ -6,6 +6,8 @@ package intrinsic_proto.data_logger;
 
 import "google/protobuf/timestamp.proto";
 
+option go_package = "intrinsic/logging/proto/bag_metadata_go_proto";
+
 message EventSourceWithTypeHints {
   string event_source = 1;  // Sanitized.
 

@@ -10,6 +10,8 @@ import "intrinsic/logging/proto/blob.proto";
 import "intrinsic/logging/proto/downsampler.proto";
 import "intrinsic/logging/proto/log_item.proto";
 
+option go_package = "intrinsic/logging/proto/log_dispatcher_service_go_proto";
+
 /// PutLogItems.
 
 // A batch of LogItems to be sent to the LogDispatcher, to be PUT into storage

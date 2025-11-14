@@ -7,6 +7,8 @@ package intrinsic_proto.data_logger;
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 
+option go_package = "intrinsic/logging/proto/downsampler_go_proto";
+
 // Downsampler options.
 //
 // If multiple sampling intervals are set, the candidate will only be sampled

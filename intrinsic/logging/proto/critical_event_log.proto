@@ -6,6 +6,8 @@ package intrinsic_proto.data_logger;
 
 import "google/protobuf/timestamp.proto";
 
+option go_package = "intrinsic/logging/proto/critical_event_log_go_proto";
+
 // CriticalEventLog is a log message that describes a text event message that is
 // being sent via the structured logging system. This allows us to upload event
 // logs to the cloud when fluent-bit is not able to upload them in operational

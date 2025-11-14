@@ -6,6 +6,8 @@ package intrinsic_proto.replay;
 
 import "intrinsic/logging/proto/replay_service_options.proto";
 
+option go_package = "intrinsic/logging/proto/replay_service_go_proto";
+
 message VisualizeRecordingRequest {
   // The recording to visualize.
   string recording_id = 1;

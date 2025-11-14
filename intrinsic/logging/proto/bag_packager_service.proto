@@ -8,6 +8,8 @@ import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "intrinsic/logging/proto/bag_metadata.proto";
 
+option go_package = "intrinsic/logging/proto/bag_packager_service_go_proto";
+
 // Full record for a single bag stored on the cloud.
 message BagRecord {
   google.protobuf.Timestamp initialization_time = 1;

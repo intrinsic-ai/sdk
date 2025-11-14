@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.data_logger;
 
+option go_package = "intrinsic/logging/proto/blob_go_proto";
+
 // Data that would be better represented by a file than in structured storage
 // (eg. BigQuery).
 // As a rule of thumb, if you need to use a ‘bytes’ field to represent your

@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.flowstate_event;
 
+option go_package = "intrinsic/logging/proto/flowstate_event_go_proto";
+
 // FlowstateEvent are representation of events to be recorded by flowstate
 // workcell applications. These events are piped into a BigQuery table which
 // acts as the base of dashboards and other analysis.

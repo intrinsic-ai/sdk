@@ -7,6 +7,8 @@ package intrinsic_proto.replay;
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 
+option go_package = "intrinsic/logging/proto/replay_service_options_go_proto";
+
 // Shared options components.
 
 // Options to filter recorded logs.

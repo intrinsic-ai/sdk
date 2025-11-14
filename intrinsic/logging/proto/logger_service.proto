@@ -11,6 +11,8 @@ import "intrinsic/logging/proto/bag_metadata.proto";
 import "intrinsic/logging/proto/downsampler.proto";
 import "intrinsic/logging/proto/log_item.proto";
 
+option go_package = "intrinsic/logging/proto/logger_service_go_proto";
+
 message LogRequest {
   intrinsic_proto.data_logger.LogItem item = 1;
 }

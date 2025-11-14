@@ -17,6 +17,8 @@ import "intrinsic/geometry/proto/v1/renderable.proto";
 import "intrinsic/logging/proto/blob.proto";
 import "intrinsic/world/proto/geometry_component.proto";
 
+option go_package = "intrinsic/logging/proto/visualization_context_go_proto";
+
 // The world at time of requesting the recording.
 message VisualizationWorld {
   // Either:

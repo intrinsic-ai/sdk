@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.data_logger;
 
+option go_package = "intrinsic/logging/proto/context_go_proto";
+
 // Context identifies the execution stack that the event represented by a
 // LogItem is generated in. Each layer consists of a globally unique ID for
 // readers to group LogItems by. For example, by fetching all of the LogItems
