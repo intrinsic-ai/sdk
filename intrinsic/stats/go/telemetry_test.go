@@ -23,6 +23,14 @@ type ValidSessionIdentifierTest struct {
 	want  bool
 }
 
+type testExporter struct {
+	spans []*trace.SpanData
+}
+
+func (e *testExporter) ExportSpan(s *trace.SpanData) {
+	e.spans = append(e.spans, s)
+}
+
 func TestValidSessionIdentifier(t *testing.T) {
 	tests := []ValidSessionIdentifierTest{
 		ValidSessionIdentifierTest{
@@ -470,6 +478,35 @@ func TestEnableMetrics(t *testing.T) {
 	}
 	if got, want := got.MetricsCfg.MetricsPort, port; got != want {
 		t.Errorf("got config %+v, want %+v", got, want)
+	}
+}
+
+func TestContextSpanAddAttributes(t *testing.T) {
+	te := &testExporter{}
+	trace.RegisterExporter(te)
+	defer trace.UnregisterExporter(te)
+
+	ctx, span := trace.StartSpanWithRemoteParent(context.Background(), "test-span", trace.SpanContext{TraceOptions: 1})
+	ContextSpanAddAttributes(ctx, trace.StringAttribute("key1", "value1"), trace.BoolAttribute("key2", true))
+	span.End()
+
+	if got, want := len(te.spans), 1; got != want {
+		t.Fatalf("ContextSpanAddAttributes() exported %d spans, want %d", got, want)
+	}
+	gotAttributes := te.spans[0].Attributes
+	wantAttributes := map[string]any{
+		"key1": "value1",
+		"key2": true,
+	}
+	for k, v := range wantAttributes {
+		got, ok := gotAttributes[k]
+		if !ok {
+			t.Errorf("Attribute %q not found in span attributes", k)
+			continue
+		}
+		if got != v {
+			t.Errorf("Attribute %q=%v, want %v", k, got, v)
+		}
 	}
 }
 

@@ -525,3 +525,13 @@ func StatusWithError(span *trace.Span, err error) error {
 	}
 	return err
 }
+
+// ContextSpanAddAttributes adds attributes to the current span in the context.
+// If there is no current span, this is a no-op.
+func ContextSpanAddAttributes(ctx context.Context, attributes ...trace.Attribute) {
+	span := trace.FromContext(ctx)
+	if span == nil {
+		return
+	}
+	span.AddAttributes(attributes...)
+}
