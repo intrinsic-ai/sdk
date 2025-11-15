@@ -134,6 +134,11 @@ proto_library(
     ],
 )
 
+py_proto_library(
+    name = "motion_planning_error_py_pb2",
+    deps = [":motion_planning_error_proto"],
+)
+
 cc_proto_library(
     name = "motion_planning_error_cc_proto",
     deps = [":motion_planning_error_proto"],
