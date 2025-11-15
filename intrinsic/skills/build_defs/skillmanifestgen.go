@@ -18,10 +18,11 @@ import (
 )
 
 var (
-	flagManifest             = flag.String("manifest", "", "Path to a SkillManifest pbtxt file.")
-	flagOutput               = flag.String("output", "", "Output path.")
-	flagFileDescriptorSetOut = flag.String("file_descriptor_set_out", "", "Output path for the file descriptor set.")
-	flagFileDescriptorSets   = flag.String("file_descriptor_sets", "", "Comma separated paths to binary file descriptor set protos.")
+	flagManifest                                 = flag.String("manifest", "", "Path to a SkillManifest pbtxt file.")
+	flagOutput                                   = flag.String("output", "", "Output path.")
+	flagFileDescriptorSetOut                     = flag.String("file_descriptor_set_out", "", "Output path for the file descriptor set.")
+	flagFileDescriptorSets                       = flag.String("file_descriptor_sets", "", "Comma separated paths to binary file descriptor set protos.")
+	flagIncompatibleDisallowManifestDependencies = flag.Bool("incompatible_disallow_manifest_dependencies", false, "Whether to prevent the skill from declaring dependencies in the manifest.")
 )
 
 func createSkillManifest() error {
@@ -45,6 +46,7 @@ func createSkillManifest() error {
 	}
 	if err := skillmanifest.ValidateSkillManifest(m,
 		skillmanifest.WithTypes(types),
+		skillmanifest.WithIncompatibleDisallowManifestDependencies(*flagIncompatibleDisallowManifestDependencies),
 	); err != nil {
 		return err
 	}

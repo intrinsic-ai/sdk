@@ -120,10 +120,12 @@ func TestValidateManifest(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		err := ValidateSkillManifest(tc.manifest, tc.opts...)
-		if diff := cmp.Diff(tc.wantError, err, cmpopts.EquateErrors()); diff != "" {
-			t.Errorf("ValidateSkillManifest(%v) returned unexpected error (-want +got):\n%s", tc.manifest, diff)
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			err := ValidateSkillManifest(tc.manifest, tc.opts...)
+			if diff := cmp.Diff(tc.wantError, err, cmpopts.EquateErrors()); diff != "" {
+				t.Errorf("ValidateSkillManifest(%v) returned unexpected error (-want +got):\n%s", tc.manifest, diff)
+			}
+		})
 	}
 }
 

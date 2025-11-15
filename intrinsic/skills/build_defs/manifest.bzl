@@ -37,6 +37,9 @@ def _skill_manifest_impl(ctx):
         "--file_descriptor_sets",
         transitive_descriptor_sets,
         join_with = ",",
+    ).add(
+        ctx.attr.incompatible_disallow_manifest_dependencies,
+        format = "--incompatible_disallow_manifest_dependencies=%s",
     )
 
     outputs = [outputfile, file_descriptor_set_out]
@@ -62,7 +65,7 @@ def _skill_manifest_impl(ctx):
 skill_manifest = rule(
     doc = """Compiles a binary proto message for the given intrinsic_proto.skills.SkillManifest textproto
            and writes it to file.
-           
+
            Example:
             skill_manifest(
               name = "foo_manifest",
@@ -71,7 +74,7 @@ skill_manifest = rule(
             )
 
             creates the file foo_manifest.pbbin.
-            
+
            Provides SkillManifestInfo.
            """,
     implementation = _skill_manifest_impl,
@@ -86,6 +89,11 @@ skill_manifest = rule(
                   "type messages.",
             providers = [ProtoInfo],
             aspects = [gen_source_code_info_descriptor_set],
+        ),
+        "incompatible_disallow_manifest_dependencies": attr.bool(
+            doc = "whether this manifest is prevented from using the old dependency model. " +
+                  "This is a temporary attribute to allow a safe migration to the new model.",
+            default = False,
         ),
         "_skillmanifestgen": attr.label(
             default = Label("//intrinsic/skills/build_defs:skillmanifestgen"),

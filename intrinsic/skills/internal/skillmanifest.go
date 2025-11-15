@@ -22,7 +22,8 @@ var (
 
 // ValidateSkillManifestOptions contains options for validating a SkillManifest.
 type ValidateSkillManifestOptions struct {
-	types *protoregistry.Types
+	types                                    *protoregistry.Types
+	incompatibleDisallowManifestDependencies bool
 }
 
 // ValidateSkillManifestOption is an option for validating a SkillManifest.
@@ -32,6 +33,14 @@ type ValidateSkillManifestOption func(*ValidateSkillManifestOptions)
 func WithTypes(types *protoregistry.Types) ValidateSkillManifestOption {
 	return func(opts *ValidateSkillManifestOptions) {
 		opts.types = types
+	}
+}
+
+// WithIncompatibleDisallowManifestDependencies adds the option to prevent the skill manifest from
+// declaring dependencies in the manifest.
+func WithIncompatibleDisallowManifestDependencies(incompatible bool) ValidateSkillManifestOption {
+	return func(opts *ValidateSkillManifestOptions) {
+		opts.incompatibleDisallowManifestDependencies = incompatible
 	}
 }
 
@@ -46,6 +55,10 @@ func ValidateSkillManifest(m *smpb.SkillManifest, options ...ValidateSkillManife
 		return fmt.Errorf("invalid manifest: %w", err)
 	}
 	id := idutils.IDFromProtoUnchecked(m.GetId())
+
+	if opts.incompatibleDisallowManifestDependencies && len(m.GetDependencies().GetRequiredEquipment()) > 0 {
+		return fmt.Errorf("skill %q declares dependencies in the manifest's dependencies field but --incompatible_disallow_manifest_dependencies is true", id)
+	}
 
 	if opts.types != nil {
 		if name := m.GetParameter().GetMessageFullName(); name != "" {

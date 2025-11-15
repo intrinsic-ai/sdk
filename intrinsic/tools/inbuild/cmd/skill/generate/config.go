@@ -13,9 +13,10 @@ import (
 )
 
 var (
-	flagFileDescriptorSets []string
-	flagManifest           string
-	flagOutput             string
+	flagFileDescriptorSets                       []string
+	flagManifest                                 string
+	flagIncompatibleDisallowManifestDependencies bool
+	flagOutput                                   string
 )
 
 // ConfigCmd creates skill bundles
@@ -32,6 +33,7 @@ func resetConfigCommand() {
 
 	ConfigCmd.Flags().StringArrayVar(&flagFileDescriptorSets, "file_descriptor_set", nil, "Path to binary file descriptor set protos to be used to resolve messages referenced by the skill manifest")
 	ConfigCmd.Flags().StringVar(&flagManifest, "manifest", "", "Path to a SkillManifest textproto file")
+	ConfigCmd.Flags().BoolVar(&flagIncompatibleDisallowManifestDependencies, "incompatible_disallow_manifest_dependencies", false, "Whether to prevent this manifest from declaring dependencies")
 	ConfigCmd.Flags().StringVar(&flagOutput, "output", "config.pbbin", "Path to write skill service")
 }
 
@@ -48,7 +50,7 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 
 	// Prep the manifest and file descriptor set
-	m, fds, err := skillmanifest.LoadManifestAndFileDescriptorSets(flagManifest, flagFileDescriptorSets)
+	m, fds, err := skillmanifest.LoadManifestAndFileDescriptorSets(flagManifest, flagFileDescriptorSets, flagIncompatibleDisallowManifestDependencies)
 	if err != nil {
 		return fmt.Errorf("unable to load manifest and file descriptor sets: %v", err)
 	}

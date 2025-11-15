@@ -17,7 +17,7 @@ import (
 // LoadManifestAndFileDescriptorSets loads a skill manifest and consolidates multiple file descriptor sets into one.
 // If the file descriptor sets have source code info, then it is stripped for all types not used by
 // the skill manifest.
-func LoadManifestAndFileDescriptorSets(manifestPath string, fdsPaths []string) (*smpb.SkillManifest, *dpb.FileDescriptorSet, error) {
+func LoadManifestAndFileDescriptorSets(manifestPath string, fdsPaths []string, incompatibleDisallowManifestDependencies bool) (*smpb.SkillManifest, *dpb.FileDescriptorSet, error) {
 	fds, err := registryutil.LoadFileDescriptorSets(fdsPaths)
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to build FileDescriptorSet: %v", err)
@@ -32,6 +32,7 @@ func LoadManifestAndFileDescriptorSets(manifestPath string, fdsPaths []string) (
 	}
 	if err := skillmanifest.ValidateSkillManifest(m,
 		skillmanifest.WithTypes(types),
+		skillmanifest.WithIncompatibleDisallowManifestDependencies(incompatibleDisallowManifestDependencies),
 	); err != nil {
 		return nil, nil, fmt.Errorf("failed to validate manifest: %v", err)
 	}

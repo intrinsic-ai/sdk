@@ -12,10 +12,11 @@ import (
 )
 
 var (
-	flagFileDescriptorSets []string
-	flagOciImage           string
-	flagManifest           string
-	flagOutput             string
+	flagFileDescriptorSets                       []string
+	flagOciImage                                 string
+	flagManifest                                 string
+	flagIncompatibleDisallowManifestDependencies bool
+	flagOutput                                   string
 )
 
 // BundleCmd creates skill bundles
@@ -33,6 +34,7 @@ func resetBundleCommand() {
 	BundleCmd.Flags().StringArrayVar(&flagFileDescriptorSets, "file_descriptor_set", nil, "Path to binary file descriptor set protos to be used to resolve messages referenced by the skill manifest")
 	BundleCmd.Flags().StringVar(&flagOciImage, "oci_image", "", "Path to tar archive of an OCI image")
 	BundleCmd.Flags().StringVar(&flagManifest, "manifest", "", "Path to a SkillManifest textproto file")
+	BundleCmd.Flags().BoolVar(&flagIncompatibleDisallowManifestDependencies, "incompatible_disallow_manifest_dependencies", false, "Whether to prevent this manifest from declaring dependencies")
 	BundleCmd.Flags().StringVar(&flagOutput, "output", "skill.bundle.tar", "Path to write skill bundle to")
 }
 
@@ -52,7 +54,7 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 
 	// Prep the manifest and file descriptor set
-	m, fds, err := skillmanifest.LoadManifestAndFileDescriptorSets(flagManifest, flagFileDescriptorSets)
+	m, fds, err := skillmanifest.LoadManifestAndFileDescriptorSets(flagManifest, flagFileDescriptorSets, flagIncompatibleDisallowManifestDependencies)
 	if err != nil {
 		return fmt.Errorf("unable to load manifest and file descriptor sets: %v", err)
 	}

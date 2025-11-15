@@ -220,6 +220,7 @@ func WriteSkill(path string, opts WriteSkillOpts) error {
 	}
 	if err := skillmanifest.ValidateSkillManifest(opts.Manifest,
 		skillmanifest.WithTypes(types),
+		skillmanifest.WithIncompatibleDisallowManifestDependencies(false),
 	); err != nil {
 		return fmt.Errorf("failed to validate manifest: %v", err)
 	}
