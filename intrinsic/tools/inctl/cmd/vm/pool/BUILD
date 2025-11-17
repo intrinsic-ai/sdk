@@ -2,10 +2,7 @@
 
 load("//bazel:go_macros.bzl", "go_library")
 
-package(default_visibility = [
-    "//intrinsic/kubernetes/vmpool/service/internal/clients:__subpackages__",
-    "//intrinsic/tools/inctl/cmd/vm:__subpackages__",
-])
+package(default_visibility = ["//intrinsic/tools/inctl/cmd/vm:__subpackages__"])
 
 go_library(
     name = "pool",
