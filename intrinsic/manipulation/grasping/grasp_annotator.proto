@@ -6,6 +6,7 @@ package intrinsic_proto.grasping;
 
 import "intrinsic/geometry/proto/oriented_bounding_box.proto";
 import "intrinsic/geometry/proto/triangle_mesh.proto";
+import "intrinsic/geometry/proto/v1/triangle_mesh.proto";
 import "intrinsic/math/proto/pose.proto";
 import "intrinsic/math/proto/vector2.proto";
 import "intrinsic/math/proto/vector3.proto";
@@ -21,7 +22,11 @@ message MeshData {
     // The triangle mesh with of the part with both faces and vertices specified
     // within. The expectation is three dimensional vertices and triangles for
     // the faces. Specified in row major order.
-    intrinsic_proto.geometry.TriangleMesh triangle_mesh = 1;
+    intrinsic_proto.geometry.TriangleMesh triangle_mesh = 1 [deprecated = true];
+    // The triangle mesh with of the part with both faces and vertices specified
+    // within. The expectation is three dimensional vertices and triangles for
+    // the faces. Specified in row major order.
+    intrinsic_proto.geometry.v1.TriangleMesh triangle_mesh_v1 = 4;
     // The path to a mesh.
     string mesh_path = 2;
     // The mesh bytes with the file type.

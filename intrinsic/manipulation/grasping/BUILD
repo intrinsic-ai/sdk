@@ -192,6 +192,7 @@ proto_library(
     deps = [
         "//intrinsic/geometry/proto:oriented_bounding_box_proto",
         "//intrinsic/geometry/proto:triangle_mesh_proto",
+        "//intrinsic/geometry/proto/v1:triangle_mesh_proto",
         "//intrinsic/math/proto:pose_proto",
         "//intrinsic/math/proto:vector2_proto",
         "//intrinsic/math/proto:vector3_proto",
