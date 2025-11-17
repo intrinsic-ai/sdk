@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.skills;
 
+option go_package = "intrinsic/skills/testing/no_op_skill_go_proto";
+
 message NoOpSkillParams {
   string foo = 1;
 }

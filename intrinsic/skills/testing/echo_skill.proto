@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.skills;
 
+option go_package = "intrinsic/skills/testing/echo_skill_go_proto";
+
 // The parameter for the echo skill
 message EchoSkillParams {
   // The string to echo
