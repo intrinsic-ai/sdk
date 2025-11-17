@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.icon;
 
+option go_package = "intrinsic/icon/hardware_modules/loopback/loopback_config_go_proto";
+
 message LoopbackConfig {
   // Number of degrees of freedom. Defaults to 6 if not specified.
   optional int32 num_dof = 1;
