@@ -6,6 +6,8 @@ package intrinsic_proto.product;
 
 import "google/protobuf/struct.proto";
 
+option go_package = "intrinsic/scene/product/proto/product_world_object_data_go_proto";
+
 // ProductWorldObjectData contains necessary data for a WorldObject to be
 // considered a product. Intended to be stored in the user_data of a
 // WorldObject.

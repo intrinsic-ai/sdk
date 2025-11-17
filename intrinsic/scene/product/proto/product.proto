@@ -6,6 +6,8 @@ package intrinsic_proto.product;
 
 import "google/protobuf/struct.proto";
 
+option go_package = "intrinsic/scene/product/proto/product_go_proto";
+
 // A Product is a template instantiable in a Flowstate Solution. A product is
 // composed from a geometry respresentation(SceneObject) and product
 // configurations.
