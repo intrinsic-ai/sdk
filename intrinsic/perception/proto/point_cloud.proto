@@ -72,6 +72,6 @@ message MultiViewCREStereoConfig {
     // Scale of the images at which the model is run.
     float image_scale = 6;
   }
-
-  MVCREStereoInferenceConfig inference_config = 2;
+  MVCREStereoInferenceConfig inference_config = 2 [deprecated = true];
+  repeated MVCREStereoInferenceConfig inference_configs = 3;
 }
