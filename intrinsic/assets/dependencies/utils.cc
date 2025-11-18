@@ -16,6 +16,7 @@
 #include "grpcpp/create_channel.h"
 #include "grpcpp/security/credentials.h"
 #include "intrinsic/assets/data/proto/v1/data_assets.grpc.pb.h"
+#include "intrinsic/assets/proto/v1/grpc_connection.pb.h"
 #include "intrinsic/assets/proto/v1/resolved_dependency.pb.h"
 #include "intrinsic/util/status/status_conversion_grpc.h"
 #include "intrinsic/util/status/status_macros.h"

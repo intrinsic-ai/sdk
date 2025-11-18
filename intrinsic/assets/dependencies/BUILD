@@ -58,6 +58,7 @@ cc_library(
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/assets/data/proto/v1:data_assets_cc_grpc_proto",
+        "//intrinsic/assets/proto/v1:grpc_connection_cc_proto",
         "//intrinsic/assets/proto/v1:resolved_dependency_cc_proto",
         "//intrinsic/util/status:status_conversion_grpc",
         "//intrinsic/util/status:status_macros",
