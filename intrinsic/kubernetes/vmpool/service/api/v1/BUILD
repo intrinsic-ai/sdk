@@ -12,6 +12,8 @@ proto_library(
     name = "vmpool_api_proto",
     srcs = ["vmpool_api.proto"],
     deps = [
+        "@com_google_googleapis//google/api:annotations_proto",
+        "@com_google_googleapis//google/api:field_behavior_proto",
         "@com_google_protobuf//:empty_proto",
         "@com_google_protobuf//:field_mask_proto",
         "@com_google_protobuf//:timestamp_proto",
@@ -20,6 +22,7 @@ proto_library(
 
 go_proto_library(
     name = "vmpool_api_go_proto",
+    go_deps = ["@org_golang_google_genproto_googleapis_api//annotations"],
     deps = [":vmpool_api_proto"],
 )
 
@@ -28,6 +31,7 @@ go_grpc_library(
     srcs = [":vmpool_api_proto"],
     deps = [
         ":vmpool_api_go_proto",
+        "@org_golang_google_genproto_googleapis_api//annotations",
         "@org_golang_google_protobuf//types/known/emptypb",
         "@org_golang_google_protobuf//types/known/timestamppb",
     ],

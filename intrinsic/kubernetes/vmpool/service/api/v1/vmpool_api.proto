@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.vmpoolapi.v1;
 
+import "google/api/field_behavior.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
@@ -78,6 +79,13 @@ message Pool {
 
   // The specification that defines this pool.
   Spec spec = 6;
+
+  // Output only. True means that the system is still working on changing this
+  // pool to match the represented values in the response.
+  // For example, this field is true when the Pool response contains a new
+  // runtime version after calling UpdatePool but the update is still
+  // processing.
+  bool reconciling = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
 // Lease represents a VM instance leased from a pool.
