@@ -7,7 +7,7 @@ import threading
 from absl import logging
 from google.rpc import code_pb2
 import grpc
-from intrinsic.geometry.proto import triangle_mesh_pb2
+from intrinsic.geometry.proto.v1 import triangle_mesh_pb2
 from intrinsic.manipulation.grasping import grasp_annotations_pb2
 from intrinsic.manipulation.grasping import grasp_annotator_pb2
 from intrinsic.manipulation.service.grasp_annotator_service.v1 import grasp_annotator_service_pb2
@@ -94,7 +94,7 @@ class GraspAnnotatorClient:
       The annotated grasps as a `GraspAnnotations` proto.
     """
     request = grasp_annotator_service_pb2.GraspAnnotatorRequest(
-        mesh_data=grasp_annotator_pb2.MeshData(triangle_mesh=triangle_mesh),
+        mesh_data=grasp_annotator_pb2.MeshData(triangle_mesh_v1=triangle_mesh),
         gripper_specs=gripper_specs,
         num_samples=num_samples,
     )
@@ -129,7 +129,7 @@ class GraspAnnotatorClient:
       The unprocessed grasp annotations as a `GraspAnnotations` proto.
     """
     request = grasp_annotator_service_pb2.GraspAnnotatorGenerateRequest(
-        mesh_data=grasp_annotator_pb2.MeshData(triangle_mesh=triangle_mesh),
+        mesh_data=grasp_annotator_pb2.MeshData(triangle_mesh_v1=triangle_mesh),
         gripper_specs=gripper_specs,
         num_samples=num_samples,
     )
@@ -160,7 +160,7 @@ class GraspAnnotatorClient:
       The filtered grasp annotations as a `GraspAnnotations` proto.
     """
     request = grasp_annotator_service_pb2.GraspAnnotatorFilterRequest(
-        mesh_data=grasp_annotator_pb2.MeshData(triangle_mesh=triangle_mesh),
+        mesh_data=grasp_annotator_pb2.MeshData(triangle_mesh_v1=triangle_mesh),
         gripper_specs=gripper_specs,
         unfiltered_annotations=unfiltered_annotations,
     )
@@ -197,7 +197,7 @@ class GraspAnnotatorClient:
       The scored and sorted grasp annotations as a `GraspAnnotations` proto.
     """
     request = grasp_annotator_service_pb2.GraspAnnotatorScoreRequest(
-        mesh_data=grasp_annotator_pb2.MeshData(triangle_mesh=triangle_mesh),
+        mesh_data=grasp_annotator_pb2.MeshData(triangle_mesh_v1=triangle_mesh),
         gripper_specs=gripper_specs,
         unscored_annotations=unscored_annotations,
     )
