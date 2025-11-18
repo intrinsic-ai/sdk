@@ -174,6 +174,38 @@ func (c *client) getMode(ctx context.Context) (string, error) {
 	return decodeUpdateMode(mode), nil
 }
 
+// getDisplayName runs a request to read the display name
+func (c *client) getDisplayName(ctx context.Context) (string, error) {
+	req := clustermanagerpb.GetClusterRequest{
+		Project:   c.project,
+		Org:       c.org,
+		ClusterId: c.cluster,
+	}
+	cluster, err := c.grpcClient.GetCluster(ctx, &req)
+	if err != nil {
+		return "", fmt.Errorf("cluster status: %w", err)
+	}
+	return cluster.DisplayName, nil
+}
+
+// setDisplayName runs a request to set the display name
+func (c *client) setDisplayName(ctx context.Context, name string) error {
+	req := clustermanagerpb.UpdateClusterRequest{
+		Project: c.project,
+		Org:     c.org,
+		Cluster: &clustermanagerpb.Cluster{
+			ClusterName: c.cluster,
+			DisplayName: name,
+		},
+		UpdateMask: &fmpb.FieldMask{Paths: []string{"display_name"}},
+	}
+	_, err := c.grpcClient.UpdateCluster(ctx, &req)
+	if err != nil {
+		return fmt.Errorf("update cluster: %w", err)
+	}
+	return nil
+}
+
 // run runs an update if one is pending
 func (c *client) run(ctx context.Context) error {
 	req := clustermanagerpb.SchedulePlatformUpdateRequest{
@@ -441,6 +473,44 @@ var acceptCmd = &cobra.Command{
 	},
 }
 
+const displayNameCmdDesc = `
+Read/Write the display name of the cluster.
+`
+
+var displayNameCmd = &cobra.Command{
+	Use:   "displayname",
+	Short: "Read/Write the display name",
+	Long:  displayNameCmdDesc,
+	// at most one arg, the mode
+	Args: cobra.MaximumNArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		ctx := cmd.Context()
+		projectName := ClusterCmdViper.GetString(orgutil.KeyProject)
+		orgName := ClusterCmdViper.GetString(orgutil.KeyOrganization)
+		ctx, c, err := newClient(ctx, orgName, projectName, clusterName)
+		if err != nil {
+			return fmt.Errorf("cluster upgrade client: %w", err)
+		}
+		defer c.close()
+		switch len(args) {
+		case 0:
+			displayName, err := c.getDisplayName(ctx)
+			if err != nil {
+				return fmt.Errorf("get cluster displayname:\n%w", err)
+			}
+			fmt.Printf("display name: %q\n", displayName)
+			return nil
+		case 1:
+			if err := c.setDisplayName(ctx, args[0]); err != nil {
+				return fmt.Errorf("set cluster displayname:\n%w", err)
+			}
+			return nil
+		default:
+			return fmt.Errorf("invalid number of arguments. At most 1: %d", len(args))
+		}
+	},
+}
+
 // reportCmd is the command to report information about an upgrade.
 var reportCmd = &cobra.Command{
 	Use:   "report",
@@ -483,6 +553,9 @@ var reportCmd = &cobra.Command{
 }
 
 func init() {
+	ClusterCmd.AddCommand(displayNameCmd)
+	displayNameCmd.PersistentFlags().StringVar(&clusterName, "cluster", "", "Name of cluster to upgrade.")
+	displayNameCmd.MarkPersistentFlagRequired("cluster")
 	ClusterCmd.AddCommand(clusterUpgradeCmd)
 	clusterUpgradeCmd.PersistentFlags().StringVar(&clusterName, "cluster", "", "Name of cluster to upgrade.")
 	clusterUpgradeCmd.MarkPersistentFlagRequired("cluster")
