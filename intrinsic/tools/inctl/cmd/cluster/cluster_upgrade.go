@@ -13,12 +13,18 @@ import (
 
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	grpcstatus "google.golang.org/grpc/status"
+	"intrinsic/assets/clientutils"
 	"intrinsic/frontend/cloud/devicemanager/version"
 	"intrinsic/skills/tools/skill/cmd/dialerutil"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/orgutil"
 
 	fmpb "google.golang.org/protobuf/types/known/fieldmaskpb"
+	assetCataloggrpcpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
+	assetCatalogpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
+	assetIDpb "intrinsic/assets/proto/id_go_proto"
 	clustermanagergrpcpb "intrinsic/frontend/cloud/api/v1/clustermanager_api_go_grpc_proto"
 	clustermanagerpb "intrinsic/frontend/cloud/api/v1/clustermanager_api_go_grpc_proto"
 	clustermanageralphagrpcpb "intrinsic/frontend/cloud/api/v1alpha1/clustermanager_api_go_grpc_proto"
@@ -29,7 +35,7 @@ import (
 var (
 	clusterName  string
 	rollbackFlag bool
-	baseFlag     string
+	runtimeFlag  string
 	osFlag       string
 	userDataFlag string
 )
@@ -216,13 +222,57 @@ func (c *client) run(ctx context.Context) error {
 	}
 	if rollbackFlag {
 		req.UpdateType = clustermanagerpb.SchedulePlatformUpdateRequest_UPDATE_TYPE_ROLLBACK
-	} else if osFlag != "" || baseFlag != "" {
+	} else if osFlag != "" || runtimeFlag != "" {
+		_, conn, err := clientutils.DialCatalog(ctx, clientutils.DialCatalogOptions{
+			Org: c.org,
+		})
+		if err != nil {
+			return fmt.Errorf("dial catalog: %w", err)
+		}
+		defer conn.Close()
+		assetCatalogClient := assetCataloggrpcpb.NewAssetCatalogClient(conn)
 		req.Versions = &clustermanagerpb.UpdateVersions{}
-		if baseFlag != "" {
-			req.Versions.BaseVersion = version.TranslateBaseUIToAPI(baseFlag)
+		if runtimeFlag != "" {
+			runtimeVersion := version.TranslateBaseUIToAPI(runtimeFlag)
+			assetRequest := &assetCatalogpb.GetAssetRequest{}
+			assetRequest.AssetId = &assetCatalogpb.GetAssetRequest_IdVersion{
+				IdVersion: &assetIDpb.IdVersion{
+					Id: &assetIDpb.Id{
+						Package: "ai.intrinsic",
+						Name:    "runtime",
+					},
+					Version: runtimeVersion,
+				},
+			}
+			_, err := assetCatalogClient.GetAsset(ctx, assetRequest)
+			if err != nil {
+				if grpcstatus.Code(err) == codes.NotFound {
+					return fmt.Errorf("runtime version %q not found", runtimeFlag)
+				}
+				return fmt.Errorf("get asset: %w", err)
+			}
+			req.Versions.BaseVersion = runtimeVersion
 		}
 		if osFlag != "" {
-			req.Versions.OsVersion = version.TranslateOSUIToAPI(osFlag)
+			osVersion := version.TranslateOSUIToAPI(osFlag)
+			assetRequest := &assetCatalogpb.GetAssetRequest{}
+			assetRequest.AssetId = &assetCatalogpb.GetAssetRequest_IdVersion{
+				IdVersion: &assetIDpb.IdVersion{
+					Id: &assetIDpb.Id{
+						Package: "ai.intrinsic",
+						Name:    "os",
+					},
+					Version: osVersion,
+				},
+			}
+			_, err := assetCatalogClient.GetAsset(ctx, assetRequest)
+			if err != nil {
+				if grpcstatus.Code(err) == codes.NotFound {
+					return fmt.Errorf("OS version %q not found", osFlag)
+				}
+				return fmt.Errorf("get asset: %w", err)
+			}
+			req.Versions.OsVersion = osVersion
 		}
 		if userDataFlag != "" {
 			req.Versions.UserData = userDataFlag
@@ -562,7 +612,9 @@ func init() {
 	clusterUpgradeCmd.AddCommand(runCmd)
 	runCmd.PersistentFlags().BoolVar(&rollbackFlag, "rollback", false, "Whether to trigger a rollback update instead.")
 	runCmd.PersistentFlags().StringVar(&osFlag, "os", "", "The os version to upgrade to.")
-	runCmd.PersistentFlags().StringVar(&baseFlag, "base", "", "The base version to upgrade to.")
+	runCmd.PersistentFlags().StringVar(&runtimeFlag, "base", "", "Deprecated. Use --runtime instead.")
+	runCmd.PersistentFlags().MarkDeprecated("base", "Use --runtime instead.")
+	runCmd.PersistentFlags().StringVar(&runtimeFlag, "runtime", "", "The runtime version to upgrade to.")
 	runCmd.PersistentFlags().StringVar(&userDataFlag, "user-data", "", "Optional data describing the update.")
 	clusterUpgradeCmd.AddCommand(modeCmd)
 	clusterUpgradeCmd.AddCommand(acceptCmd)
