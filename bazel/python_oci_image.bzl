@@ -38,6 +38,7 @@ def python_layers(name, binary, **kwargs):
         include_runfiles = True,
         compatible_with = kwargs.get("compatible_with"),
         testonly = kwargs.get("testonly"),
+        tags = kwargs.get("tags"),
     )
 
     # ADDITION: Handle local_repository sub repos by removing '../' and ' external/' from paths.
@@ -49,6 +50,7 @@ def python_layers(name, binary, **kwargs):
         cmd = "sed -e 's/^\\.\\.\\///' $< | sed -e 's/ external\\///g' >$@",
         compatible_with = kwargs.get("compatible_with"),
         testonly = kwargs.get("testonly"),
+        tags = kwargs.get("tags"),
     )
 
     # Apply mutations for path prefixes
@@ -60,6 +62,7 @@ def python_layers(name, binary, **kwargs):
         package_dir = kwargs.pop("directory", None),
         compatible_with = kwargs.get("compatible_with"),
         testonly = kwargs.get("testonly"),
+        tags = kwargs.get("tags"),
     )
 
     # Workaround unsupported "strip_prefix"
@@ -70,6 +73,7 @@ def python_layers(name, binary, **kwargs):
         cmd = "sed -e 's,^/,,' $< >$@",
         compatible_with = kwargs.get("compatible_with"),
         testonly = kwargs.get("testonly"),
+        tags = kwargs.get("tags"),
     )
 
     # One layer with only the python interpreter.
@@ -84,6 +88,7 @@ def python_layers(name, binary, **kwargs):
         cmd = "grep '{}' $< >$@".format(PY_INTERPRETER_REGEX),
         compatible_with = kwargs.get("compatible_with"),
         testonly = kwargs.get("testonly"),
+        tags = kwargs.get("tags"),
     )
 
     tar(
@@ -93,6 +98,7 @@ def python_layers(name, binary, **kwargs):
         compress = "gzip",
         compatible_with = kwargs.get("compatible_with"),
         testonly = kwargs.get("testonly"),
+        tags = kwargs.get("tags"),
     )
     layers.append(":" + name + "_interpreter_layer")
 
@@ -109,6 +115,7 @@ def python_layers(name, binary, **kwargs):
         cmd = "if ! grep -v '{}' $< | grep '{}' >$@; then touch $@; fi".format(PY_INTERPRETER_REGEX, PACKAGES_REGEX),
         compatible_with = kwargs.get("compatible_with"),
         testonly = kwargs.get("testonly"),
+        tags = kwargs.get("tags"),
     )
 
     tar(
@@ -118,6 +125,7 @@ def python_layers(name, binary, **kwargs):
         compress = "gzip",
         compatible_with = kwargs.get("compatible_with"),
         testonly = kwargs.get("testonly"),
+        tags = kwargs.get("tags"),
     )
     layers.append(":" + name + "_packages_layer")
 
@@ -129,6 +137,7 @@ def python_layers(name, binary, **kwargs):
         cmd = "grep -v '{}' $< | grep -v '{}' >$@".format(PACKAGES_REGEX, PY_INTERPRETER_REGEX),
         compatible_with = kwargs.get("compatible_with"),
         testonly = kwargs.get("testonly"),
+        tags = kwargs.get("tags"),
     )
 
     # ... go into the third layer which is the application. We assume it changes the most frequently.
@@ -139,6 +148,7 @@ def python_layers(name, binary, **kwargs):
         compress = "gzip",
         compatible_with = kwargs.get("compatible_with"),
         testonly = kwargs.get("testonly"),
+        tags = kwargs.get("tags"),
     )
     layers.append(":" + name + "_app_layer")
 
@@ -169,7 +179,7 @@ def python_oci_image(
     if base == None:
         base = Label("@distroless_python3")
 
-    layer_kwargs = {key: value for key, value in kwargs.items() if key in ["compatible_with", "data_path", "directory", "testonly"]}
+    layer_kwargs = {key: value for key, value in kwargs.items() if key in ["compatible_with", "data_path", "directory", "tags", "testonly"]}
     layers = python_layers(
         name = name,
         binary = binary,

@@ -70,6 +70,7 @@ def _container_tarball(name, image, **kwargs):
         output = "%s.tar" % image,
         compatible_with = kwargs.get("compatible_with"),
         visibility = kwargs.get("visibility"),
+        tags = kwargs.get("tags"),
         testonly = kwargs.get("testonly"),
     )
 
@@ -120,6 +121,7 @@ def container_image(
             directory = directory,
             compatible_with = kwargs.get("compatible_with"),
             visibility = kwargs.get("visibility"),
+            tags = kwargs.get("tags"),
             testonly = kwargs.get("testonly"),
         )
         layers.append(name + "_tar_layer")
@@ -132,6 +134,7 @@ def container_image(
             directory = directory,
             compatible_with = kwargs.get("compatible_with"),
             visibility = kwargs.get("visibility"),
+            tags = kwargs.get("tags"),
             testonly = kwargs.get("testonly"),
         )
         layers.append(name + "_files_layer")
@@ -143,6 +146,7 @@ def container_image(
             data_path = "/",
             compatible_with = kwargs.get("compatible_with"),
             visibility = kwargs.get("visibility"),
+            tags = kwargs.get("tags"),
             testonly = kwargs.get("testonly"),
         )
         layers.append(name + "_symlink_layer")
@@ -169,6 +173,7 @@ def container_image(
         compatible_with = kwargs.get("compatible_with"),
         repo_tags = [tag],
         visibility = kwargs.get("visibility"),
+        tags = kwargs.get("tags"),
         testonly = kwargs.get("testonly"),
     )
 
@@ -200,4 +205,5 @@ fileExistenceTests:
             configs = [test_config_name],
             driver = "tar",
             image = "%s.tar" % name,
+            tags = kwargs.get("tags"),
         )
