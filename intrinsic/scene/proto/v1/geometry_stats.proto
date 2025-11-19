@@ -37,11 +37,4 @@ message GeometryStats {
   // aggregated over multiple meshes, this field is the sum of the volumes of
   // the constituent meshes if they are all closed and otherwise is zero.
   double volume = 9;
-  // intrinsic:*strip_begin
-  // The minimum circumradius over all faces of the geometry.
-  // The circumradius is the radius of a sphere/circle that intersects all
-  // vertices of a face of the mesh.
-  // If the mesh is empty, the value is 0.
-  double min_circumradius = 10;
-  // intrinsic:*strip_end
 }
