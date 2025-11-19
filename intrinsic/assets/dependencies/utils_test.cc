@@ -16,6 +16,7 @@
 #include "absl/strings/str_replace.h"
 #include "absl/strings/string_view.h"
 #include "google/protobuf/any.pb.h"
+#include "google/protobuf/descriptor.h"
 #include "google/protobuf/empty.pb.h"
 #include "grpc/grpc_security_constants.h"
 #include "grpcpp/channel.h"
@@ -25,6 +26,7 @@
 #include "grpcpp/server_context.h"
 #include "intrinsic/assets/data/fake_data_assets.h"
 #include "intrinsic/assets/data/proto/v1/data_asset.pb.h"
+#include "intrinsic/assets/dependencies/testing/test_configs.pb.h"
 #include "intrinsic/assets/dependencies/testing/test_service.grpc.pb.h"
 #include "intrinsic/assets/proto/v1/resolved_dependency.pb.h"
 #include "intrinsic/util/proto/parse_text_proto.h"
@@ -270,6 +272,250 @@ INSTANTIATE_TEST_SUITE_P(
             absl::StatusCode::kInvalidArgument,
             "is not data"}),
     [](const ::testing::TestParamInfo<GetDataPayloadTestParam>& info) {
+      return info.param.test_name;
+    });
+
+struct HasDependenciesTestParam {
+  std::string test_name;
+  const google::protobuf::Descriptor* descriptor;
+  ResolvedDepsIntrospectionOptions options;
+  bool expected;
+};
+
+class ParameterizedHasDependenciesTest
+    : public UtilsTest,
+      public ::testing::WithParamInterface<HasDependenciesTestParam> {};
+
+TEST_P(ParameterizedHasDependenciesTest, HasDependencies) {
+  const HasDependenciesTestParam& param = GetParam();
+  EXPECT_EQ(HasResolvedDependency(*param.descriptor, param.options),
+            param.expected);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    HasDependenciesTests, ParameterizedHasDependenciesTest,
+    ::testing::Values(
+        HasDependenciesTestParam{
+            "SimpleGrpcDependencyConfig",
+            ::intrinsic_proto::assets::dependencies::testing::
+                SimpleGrpcDependencyConfig::descriptor(),
+            ResolvedDepsIntrospectionOptions{
+                .check_dependency_annotation = false,
+                .check_skill_annotations = false,
+            },
+            true,
+        },
+        HasDependenciesTestParam{
+            "SimpleGrpcDependencyConfigWithDependencyAnnotationCheck",
+            ::intrinsic_proto::assets::dependencies::testing::
+                SimpleGrpcDependencyConfig::descriptor(),
+            ResolvedDepsIntrospectionOptions{
+                .check_dependency_annotation = true,
+                .check_skill_annotations = false,
+            },
+            true,
+        },
+        HasDependenciesTestParam{
+            "SimpleGrpcDependencyConfigWithBothChecks",
+            ::intrinsic_proto::assets::dependencies::testing::
+                SimpleGrpcDependencyConfig::descriptor(),
+            ResolvedDepsIntrospectionOptions{
+                .check_dependency_annotation = true,
+                .check_skill_annotations = true,
+            },
+            false,
+        },
+        HasDependenciesTestParam{
+            "SimpleGrpcDependencyConfigWithSkillAnnotationsCheck",
+            ::intrinsic_proto::assets::dependencies::testing::
+                SimpleGrpcDependencyConfig::descriptor(),
+            ResolvedDepsIntrospectionOptions{
+                .check_dependency_annotation = false,
+                .check_skill_annotations = true,
+            },
+            false,
+        },
+        HasDependenciesTestParam{
+            "SimpleDataDependencyConfig",
+            ::intrinsic_proto::assets::dependencies::testing::
+                SimpleDataDependencyConfig::descriptor(),
+            ResolvedDepsIntrospectionOptions{
+                .check_dependency_annotation = false,
+                .check_skill_annotations = false,
+            },
+            true,
+        },
+        HasDependenciesTestParam{
+            "SimpleObjectDependencyConfig",
+            ::intrinsic_proto::assets::dependencies::testing::
+                SimpleObjectDependencyConfig::descriptor(),
+            ResolvedDepsIntrospectionOptions{
+                .check_dependency_annotation = false,
+                .check_skill_annotations = false,
+            },
+            true,
+        },
+        HasDependenciesTestParam{
+            "ConfigWithRepeatedDependency",
+            ::intrinsic_proto::assets::dependencies::testing::
+                WithRepeatedDependency::descriptor(),
+            ResolvedDepsIntrospectionOptions{
+                .check_dependency_annotation = false,
+                .check_skill_annotations = false,
+            },
+            true,
+        },
+        HasDependenciesTestParam{
+            "ConfigWithNestedFields",
+            ::intrinsic_proto::assets::dependencies::testing::WithNestedFields::
+                descriptor(),
+            ResolvedDepsIntrospectionOptions{
+                .check_dependency_annotation = false,
+                .check_skill_annotations = false,
+            },
+            true,
+        },
+        HasDependenciesTestParam{
+            "ConfigWithMultipleDependencies",
+            ::intrinsic_proto::assets::dependencies::testing::
+                WithMultipleDependencies::descriptor(),
+            ResolvedDepsIntrospectionOptions{
+                .check_dependency_annotation = false,
+                .check_skill_annotations = false,
+            },
+            true,
+        },
+        HasDependenciesTestParam{
+            "ConfigWithUnannotatedDependency",
+            ::intrinsic_proto::assets::dependencies::testing::
+                WithUnannotatedDependency::descriptor(),
+            ResolvedDepsIntrospectionOptions{
+                .check_dependency_annotation = false,
+                .check_skill_annotations = false,
+            },
+            true,
+        },
+        HasDependenciesTestParam{
+            "ConfigWithIncorrectDependencyType",
+            ::intrinsic_proto::assets::dependencies::testing::
+                WithIncorrectMessageType::descriptor(),
+            ResolvedDepsIntrospectionOptions{
+                .check_dependency_annotation = false,
+                .check_skill_annotations = false,
+            },
+            false,
+        },
+        HasDependenciesTestParam{
+            "ConfigWithMultipleInterfaces",
+            ::intrinsic_proto::assets::dependencies::testing::
+                WithMultipleInterfaces::descriptor(),
+            ResolvedDepsIntrospectionOptions{
+                .check_dependency_annotation = false,
+                .check_skill_annotations = false,
+            },
+            true,
+        },
+        HasDependenciesTestParam{
+            "ConfigWithMapDependency",
+            ::intrinsic_proto::assets::dependencies::testing::
+                WithMapDependency::descriptor(),
+            ResolvedDepsIntrospectionOptions{
+                .check_dependency_annotation = false,
+                .check_skill_annotations = false,
+            },
+            true,
+        },
+        HasDependenciesTestParam{
+            "ConfigWithMapDependencyWithDependencyAnnotationCheck",
+            ::intrinsic_proto::assets::dependencies::testing::
+                WithMapDependency::descriptor(),
+            ResolvedDepsIntrospectionOptions{
+                .check_dependency_annotation = true,
+                .check_skill_annotations = false,
+            },
+            true,
+        },
+        HasDependenciesTestParam{
+            "ConfigWithMapDependencyWithBothChecks",
+            ::intrinsic_proto::assets::dependencies::testing::
+                WithMapDependency::descriptor(),
+            ResolvedDepsIntrospectionOptions{
+                .check_dependency_annotation = true,
+                .check_skill_annotations = true,
+            },
+            false,
+        },
+        HasDependenciesTestParam{
+            "ConfigWithMapDependencyWithSkillAnnotationsCheck",
+            ::intrinsic_proto::assets::dependencies::testing::
+                WithMapDependency::descriptor(),
+            ResolvedDepsIntrospectionOptions{
+                .check_dependency_annotation = false,
+                .check_skill_annotations = true,
+            },
+            false,
+        },
+        HasDependenciesTestParam{
+            "ConfigWithOptionalDependency",
+            ::intrinsic_proto::assets::dependencies::testing::
+                WithOptionalDependency::descriptor(),
+            ResolvedDepsIntrospectionOptions{
+                .check_dependency_annotation = false,
+                .check_skill_annotations = false,
+            },
+            true,
+        },
+        HasDependenciesTestParam{
+            "ConfigWithRequiredDependency",
+            ::intrinsic_proto::assets::dependencies::testing::
+                WithRequiredDependency::descriptor(),
+            ResolvedDepsIntrospectionOptions{
+                .check_dependency_annotation = false,
+                .check_skill_annotations = false,
+            },
+            true,
+        },
+        HasDependenciesTestParam{
+            "ConfigWithAnyProto",
+            ::intrinsic_proto::assets::dependencies::testing::WithAnyProto::
+                descriptor(),
+            ResolvedDepsIntrospectionOptions{
+                .check_dependency_annotation = false,
+                .check_skill_annotations = false,
+            },
+            false,
+        },
+        HasDependenciesTestParam{
+            "SkillWithAnnotationsDependencyCheck",
+            ::intrinsic_proto::assets::dependencies::testing::
+                WithAlwaysProvideConnectionInfo::descriptor(),
+            ResolvedDepsIntrospectionOptions{
+                .check_dependency_annotation = false,
+                .check_skill_annotations = false,
+            },
+            true,
+        },
+        HasDependenciesTestParam{
+            "SkillWithAnnotationsOnlyDependencyAnnotationCheck",
+            ::intrinsic_proto::assets::dependencies::testing::
+                WithAlwaysProvideConnectionInfo::descriptor(),
+            ResolvedDepsIntrospectionOptions{
+                .check_dependency_annotation = true,
+                .check_skill_annotations = false,
+            },
+            true,
+        },
+        HasDependenciesTestParam{
+            "SkillWithAnnotationsSkillAnnotationCheck",
+            ::intrinsic_proto::assets::dependencies::testing::
+                WithAlwaysProvideConnectionInfo::descriptor(),
+            ResolvedDepsIntrospectionOptions{
+                .check_dependency_annotation = true,
+                .check_skill_annotations = true,
+            },
+            true,
+        }),
+    [](const ::testing::TestParamInfo<HasDependenciesTestParam>& info) {
       return info.param.test_name;
     });
 

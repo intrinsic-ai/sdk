@@ -221,7 +221,7 @@ func isDependencyWithConditionsFound(md protoreflect.MessageDescriptor, r *resol
 //
 // If additional introspection options are provided, the method returns true only if all of the
 // options are satisfied.
-func HasResolvedDependency(descriptor protoreflect.MessageDescriptor, options ...ResolvedDepsIntrospectionOption) (bool, error) {
+func HasResolvedDependency(descriptor protoreflect.MessageDescriptor, options ...ResolvedDepsIntrospectionOption) bool {
 	r := &resolvedDepsIntrospectionOptions{}
 	for _, opt := range options {
 		opt(r)
@@ -237,7 +237,7 @@ func HasResolvedDependency(descriptor protoreflect.MessageDescriptor, options ..
 		}
 		return true
 	}, visited)
-	return hasDependencies, nil
+	return hasDependencies
 }
 
 // walkProtoMessageDescriptors walks through a proto message descriptor, executing a function for

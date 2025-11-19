@@ -400,10 +400,7 @@ func TestHasDependencies(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.desc, func(t *testing.T) {
-			got, err := HasResolvedDependency(tc.descriptor, (tc.options)...)
-			if err != nil {
-				t.Fatalf("HasResolvedDependency(%v) returned an unexpected error: %v", tc.descriptor, err)
-			}
+			got := HasResolvedDependency(tc.descriptor, (tc.options)...)
 			if got != tc.want {
 				t.Errorf("HasResolvedDependency(%v) = %v, want: %v", tc.descriptor, got, tc.want)
 			}

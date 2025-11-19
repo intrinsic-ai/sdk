@@ -147,11 +147,7 @@ func ValidateServiceManifest(m *smpb.ServiceManifest, options ...ValidateService
 		if !ok {
 			return fmt.Errorf("config message %q is not a message type", configMessageFullName)
 		}
-		hasSkillAnnotations, err := deputils.HasResolvedDependency(msgDesc, deputils.WithSkillAnnotations())
-		if err != nil {
-			return fmt.Errorf("checking for proto annotations for dependencies failed unexpectedly: %w", err)
-		}
-		if hasSkillAnnotations {
+		if hasSkillAnnotations := deputils.HasResolvedDependency(msgDesc, deputils.WithSkillAnnotations()); hasSkillAnnotations {
 			return errContainsSkillAnnotations
 		}
 	}

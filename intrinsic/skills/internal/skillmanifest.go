@@ -66,10 +66,7 @@ func ValidateSkillManifest(m *smpb.SkillManifest, options ...ValidateSkillManife
 			if err != nil {
 				return fmt.Errorf("cannot find parameter message %q for Skill %q: %w", name, id, err)
 			}
-			parameterHasResolvedDependencies, err := utils.HasResolvedDependency(mt.Descriptor())
-			if err != nil {
-				return fmt.Errorf("cannot determine if skill's parameter includes ResolvedDependency protos: %w", err)
-			}
+			parameterHasResolvedDependencies := utils.HasResolvedDependency(mt.Descriptor())
 			if parameterHasResolvedDependencies && len(m.GetDependencies().GetRequiredEquipment()) != 0 {
 				return errMixOfDependencyModels
 			}

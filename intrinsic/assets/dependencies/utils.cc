@@ -2,20 +2,25 @@
 
 #include "intrinsic/assets/dependencies/utils.h"
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
 
+#include "absl/container/flat_hash_set.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/string_view.h"
+#include "google/protobuf/descriptor.h"
 #include "grpcpp/channel.h"
 #include "grpcpp/client_context.h"
 #include "grpcpp/create_channel.h"
 #include "grpcpp/security/credentials.h"
 #include "intrinsic/assets/data/proto/v1/data_assets.grpc.pb.h"
+#include "intrinsic/assets/proto/field_metadata.pb.h"
+#include "intrinsic/assets/proto/v1/dependency.pb.h"
 #include "intrinsic/assets/proto/v1/grpc_connection.pb.h"
 #include "intrinsic/assets/proto/v1/resolved_dependency.pb.h"
 #include "intrinsic/util/status/status_conversion_grpc.h"
@@ -108,6 +113,116 @@ absl::StatusOr<google::protobuf::Any> GetDataPayload(
       ToAbslStatus(data_assets_client->GetDataAsset(&context, request, &da)));
 
   return da.data();
+}
+
+bool RequiresDependencyAnnotationCheck(
+    const ResolvedDepsIntrospectionOptions& options) {
+  return options.check_dependency_annotation || options.check_skill_annotations;
+}
+
+bool IsDependencyWithConditionsFound(
+    const google::protobuf::Descriptor& descriptor,
+    const ResolvedDepsIntrospectionOptions& options) {
+  if (descriptor.full_name() == ResolvedDependency::descriptor()->full_name() &&
+      !RequiresDependencyAnnotationCheck(options)) {
+    return true;
+  }
+  if (RequiresDependencyAnnotationCheck(options)) {
+    for (int i = 0; i < descriptor.field_count(); ++i) {
+      const google::protobuf::FieldDescriptor* field = descriptor.field(i);
+      if (field->type() != google::protobuf::FieldDescriptor::TYPE_MESSAGE) {
+        continue;
+      }
+      const google::protobuf::FieldDescriptor* field_message_descriptor;
+      if (field->is_map()) {
+        if (field->message_type()->map_value() == nullptr ||
+            field->message_type()->map_value()->cpp_type() !=
+                google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE) {
+          continue;
+        }
+        field_message_descriptor = field->message_type()->map_value();
+      } else {
+        field_message_descriptor = field;
+      }
+
+      if (field_message_descriptor->message_type()->full_name() !=
+          ResolvedDependency::descriptor()->full_name()) {
+        continue;
+      }
+      if (!field->options().HasExtension(
+              intrinsic_proto::assets::field_metadata)) {
+        continue;
+      }
+      const intrinsic_proto::assets::FieldMetadata& field_metadata =
+          field->options().GetExtension(
+              intrinsic_proto::assets::field_metadata);
+      // At this point, the dependency annotation check is complete. If the
+      // Skill annotations check is not required, we can return true.
+      if (!options.check_skill_annotations) {
+        return true;
+      }
+      return field_metadata.dependency().has_skill_annotations();
+    }
+  }
+  return false;
+}
+
+void WalkProtoMessageDescriptors(
+    const google::protobuf::Descriptor& descriptor,
+    std::function<bool(const google::protobuf::Descriptor&)> function,
+    absl::flat_hash_set<const google::protobuf::Descriptor*>& visited) {
+  visited.insert(&descriptor);
+  bool should_enter = function(descriptor);
+  if (!should_enter) {
+    return;
+  }
+
+  for (int i = 0; i < descriptor.field_count(); ++i) {
+    const google::protobuf::FieldDescriptor* field = descriptor.field(i);
+    // Skip if not a message type.
+    if (field->type() != google::protobuf::FieldDescriptor::TYPE_MESSAGE) {
+      continue;
+    }
+    // Skip already visited messages.
+    if (visited.contains(field->message_type())) {
+      continue;
+    }
+
+    if (field->is_map()) {
+      const google::protobuf::FieldDescriptor* value_field =
+          field->message_type()->map_value();
+      if (value_field == nullptr ||
+          value_field->cpp_type() !=
+              google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE) {
+        continue;
+      }
+      if (visited.contains(value_field->message_type())) {
+        continue;
+      }
+      WalkProtoMessageDescriptors(*value_field->message_type(), function,
+                                  visited);
+    } else {
+      WalkProtoMessageDescriptors(*field->message_type(), function, visited);
+    }
+  }
+}
+
+bool HasResolvedDependency(const google::protobuf::Descriptor& descriptor,
+                           const ResolvedDepsIntrospectionOptions& options) {
+  bool has_resolved_dependency = false;
+  absl::flat_hash_set<const google::protobuf::Descriptor*> visited;
+  WalkProtoMessageDescriptors(
+      descriptor,
+      [&](const google::protobuf::Descriptor& descriptor) -> bool {
+        if (IsDependencyWithConditionsFound(descriptor, options)) {
+          // Stop the recursion if we already found a dependency.
+          has_resolved_dependency = true;
+          return false;
+        }
+        return true;
+      },
+      visited);
+  return has_resolved_dependency;
 }
 
 }  // namespace intrinsic::assets::dependencies

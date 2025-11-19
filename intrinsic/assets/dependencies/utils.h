@@ -8,6 +8,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
 #include "google/protobuf/any.pb.h"
+#include "google/protobuf/descriptor.h"
 #include "grpcpp/client_context.h"
 #include "intrinsic/assets/data/proto/v1/data_assets.grpc.pb.h"
 #include "intrinsic/assets/proto/v1/resolved_dependency.pb.h"
@@ -30,6 +31,19 @@ absl::StatusOr<google::protobuf::Any> GetDataPayload(
     absl::string_view iface,
     intrinsic_proto::data::v1::DataAssets::StubInterface* data_assets_client =
         nullptr);
+
+// Options for HasResolvedDependency.
+struct ResolvedDepsIntrospectionOptions {
+  bool check_dependency_annotation;
+  bool check_skill_annotations;
+};
+
+// Checks if the given proto has any ResolvedDependency fields.
+//
+// If additional introspection options are provided, the method returns true
+// only if all of the options are satisfied.
+bool HasResolvedDependency(const google::protobuf::Descriptor& descriptor,
+                           const ResolvedDepsIntrospectionOptions& options);
 
 }  // namespace intrinsic::assets::dependencies
 
