@@ -121,3 +121,8 @@ go_grpc_library(
     srcs = [":system_service_state_proto"],
     deps = ["//intrinsic/util/status:extended_status_go_proto"],
 )
+
+py_proto_library(
+    name = "system_service_state_py_proto",
+    deps = [":system_service_state_proto"],
+)
