@@ -82,6 +82,33 @@ absl::StatusOr<Subscription> CreateSubscription(
                                       std::move(err_callback));
 }
 
+absl::StatusOr<Subscription> CreateRawSubscription(
+    PubSub* self, absl::string_view topic, const TopicConfig& config,
+    pybind11::object msg_callback) {
+  // The callback passed to the adapter must be able to be copied in a
+  // separate thread without copying the msg_callback.
+  // This allows the message callback to capture variables which
+  // are not possible (or safe) to copy in a separate thread. This is the
+  // case when the callback captures a python function, since those cannot
+  // be copied without holding the GIL, and the adapter thread executing the
+  // callback does not know to acquire the GIL. Using a shared pointer to
+  // own the adapter callback satisfies these requirements.
+
+  SubscriptionOkCallback<intrinsic_proto::pubsub::PubSubPacket>
+      message_callback = {};
+
+  if (msg_callback && !msg_callback.is_none()) {
+    message_callback = [py_msg_cb = std::move(msg_callback)](
+                           const intrinsic_proto::pubsub::PubSubPacket& msg) {
+      pybind11::gil_scoped_acquire gil;
+      // This will create a copy in the py proto caster
+      py_msg_cb(msg.payload());
+    };
+  }
+
+  return self->CreateSubscription(topic, config, std::move(message_callback));
+}
+
 absl::StatusOr<KeyValueStore> CreateKeyValueStore(
     PubSub* self, std::optional<std::string> prefix_override) {
   return self->KeyValueStore(prefix_override);
@@ -175,6 +202,8 @@ PYBIND11_MODULE(pubsub, m) {
       // https://pybind11.readthedocs.io/en/stable/classes.html#overloaded-methods
       .def("CreatePublisher", &PubSub::CreatePublisher, pybind11::arg("topic"),
            pybind11::arg("config") = TopicConfig{})
+      .def("CreateSubscription", &CreateRawSubscription, pybind11::arg("topic"),
+           pybind11::arg("config"), pybind11::arg("msg_callback") = nullptr)
       .def("CreateSubscription", &CreateSubscriptionWithConfig,
            pybind11::arg("topic"), pybind11::arg("config"),
            pybind11::arg("exemplar"), pybind11::arg("msg_callback") = nullptr,

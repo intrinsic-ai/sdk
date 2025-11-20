@@ -4,6 +4,7 @@ import threading
 
 from absl.testing import absltest
 from absl.testing import parameterized
+from google.protobuf import any_pb2
 from intrinsic.platform.common.proto import test_pb2
 from intrinsic.platform.pubsub.python import pubsub
 from intrinsic.solutions.testing import compare
@@ -21,6 +22,7 @@ class SubCallbackChecker:
     self.pubsub_impl = pubsub_impl
     self.call_type = CallbackType.NONE
     self.condition = threading.Condition()
+    self.sub = None
 
   def notify(self, callback_type):
     with self.condition:
@@ -28,7 +30,7 @@ class SubCallbackChecker:
       self.condition.notify()
 
   def subscribe(
-      self, topic, config, exemplar, msg_callback=None, error_callback=None
+      self, topic, config, exemplar=None, msg_callback=None, error_callback=None
   ):
     def msg_callback_wrapper(message):
       if msg_callback:
@@ -40,9 +42,14 @@ class SubCallbackChecker:
         error_callback(packet, error)
       self.notify(CallbackType.OK)
 
-    self.sub = self.pubsub_impl.CreateSubscription(
-        topic, config, exemplar, msg_callback_wrapper, error_callback_wrapper
-    )
+    if exemplar is None:
+      self.sub = self.pubsub_impl.CreateSubscription(
+          topic, config, msg_callback_wrapper
+      )
+    else:
+      self.sub = self.pubsub_impl.CreateSubscription(
+          topic, config, exemplar, msg_callback_wrapper, error_callback_wrapper
+      )
 
   def get_call_type(self):
     with self.condition:
@@ -68,6 +75,10 @@ class PubsubTest(parameterized.TestCase):
     self.pub = self.pubsub.CreatePublisher('news', config)
     self.callback_checker = SubCallbackChecker(self.pubsub)
 
+  def tearDown(self):
+    super().tearDown()
+    del self.callback_checker.sub
+
   @parameterized.named_parameters(('proto', make_test_proto()))
   def test_pubsub(self, value):
     def msg_callback(message):
@@ -78,6 +89,23 @@ class PubsubTest(parameterized.TestCase):
         topic='news',
         config=config,
         exemplar=test_pb2.TestMessageString(),
+        msg_callback=msg_callback,
+    )
+    self.pub.Publish(value)
+    self.assertEqual(self.callback_checker.wait_for_call(), CallbackType.OK)
+
+  def test_raw_pubsub(self):
+    value = make_test_proto()
+    any_message = any_pb2.Any()
+    any_message.Pack(value)
+
+    def msg_callback(message):
+      compare.assertProto2Equal(self, message, any_message)
+
+    config = pubsub.TopicConfig()
+    self.callback_checker.subscribe(
+        topic='news',
+        config=config,
         msg_callback=msg_callback,
     )
     self.pub.Publish(value)

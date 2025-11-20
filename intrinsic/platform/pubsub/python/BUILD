@@ -36,11 +36,12 @@ py_test(
         "nomsan",
     ],
     deps = [
+        ":pubsub",
         "//intrinsic/platform/common/proto:test_cc_proto",
         "//intrinsic/platform/common/proto:test_py_pb2",
-        "//intrinsic/platform/pubsub/python:pubsub",
         "//intrinsic/solutions/testing:compare",
         "@com_google_absl_py//absl/testing:absltest",
         "@com_google_absl_py//absl/testing:parameterized",
+        "@com_google_protobuf//:protobuf_python",
     ],
 )
