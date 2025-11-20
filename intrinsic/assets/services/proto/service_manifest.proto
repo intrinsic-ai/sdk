@@ -14,6 +14,7 @@ import "intrinsic/assets/services/proto/env_var.proto";
 import "intrinsic/assets/services/proto/service_http_config.proto";
 import "intrinsic/assets/services/proto/service_permissions.proto";
 import "intrinsic/assets/services/proto/service_volume.proto";
+import "intrinsic/assets/services/proto/v1/service_inspection.proto"; 
 import "intrinsic/kubernetes/workcell_spec/proto/image.proto";
 
 option go_package = "intrinsic/assets/services/proto/service_manifest_go_proto";
@@ -64,6 +65,13 @@ message ServiceDef {
   // True if the Service supports service state interaction by serving the
   // ServiceState service on its configured gRPC port.
   bool supports_service_state = 6;
+
+  // The inspection config for the service. Optional since not all services
+  // support inspection. If this is defined, the service is expected to publish
+  // its inspection data on the topic provided in the `service_inspection_topic`
+  // field of the `RuntimeContext` (`/etc/intrinsic/runtime_config.pb`).
+  optional v1.ServiceInspectionConfig service_inspection_config = 8;
+
 }
 
 message ServicePodSpec {

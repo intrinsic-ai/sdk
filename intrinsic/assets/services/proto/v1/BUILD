@@ -105,6 +105,25 @@ py_grpc_library(
 )
 
 proto_library(
+    name = "service_inspection_proto",
+    srcs = ["service_inspection.proto"],
+    deps = [
+        "@com_google_protobuf//:any_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "service_inspection_cc_proto",
+    deps = [":service_inspection_proto"],
+)
+
+go_proto_library(
+    name = "service_inspection_go_proto",
+    deps = [":service_inspection_proto"],
+)
+
+proto_library(
     name = "system_service_state_proto",
     srcs = ["system_service_state.proto"],
     deps = ["//intrinsic/util/status:extended_status_proto"],

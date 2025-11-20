@@ -173,6 +173,21 @@ func ValidateServiceManifest(m *smpb.ServiceManifest, options ...ValidateService
 			return fmt.Errorf("checking against the file descriptor set failed unexpectedly: %w", err)
 		}
 	}
+
+	if m.GetServiceDef().GetServiceInspectionConfig() != nil {
+		config := m.GetServiceDef().GetServiceInspectionConfig()
+		if config.GetDataProtoMessageFullName() == "" {
+			return fmt.Errorf("inspection config is present but data_proto_message_full_name is empty for Service %q", id)
+		}
+		// Validate the inspection proto message to be in the FileDescriptorSet.
+		if opts.files == nil {
+			return fmt.Errorf("inspection data proto message %q specified, but no descriptors provided", config.GetDataProtoMessageFullName())
+		}
+		if _, err := opts.files.FindDescriptorByName(protoreflect.FullName(config.GetDataProtoMessageFullName())); err != nil {
+			return fmt.Errorf("could not find inspection data proto message %q in provided descriptors for Service %q: %w", config.GetDataProtoMessageFullName(), id, err)
+		}
+	}
+
 	return nil
 }
 

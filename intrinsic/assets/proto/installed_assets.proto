@@ -16,6 +16,7 @@ import "intrinsic/assets/proto/v1/search.proto";
 import "intrinsic/assets/proto/view.proto";
 import "intrinsic/assets/scene_objects/proto/scene_object_manifest.proto";
 import "intrinsic/assets/services/proto/service_manifest.proto";
+import "intrinsic/assets/services/proto/v1/service_inspection.proto"; 
 import "intrinsic/skills/proto/processed_skill_manifest.proto";
 
 option go_package = "intrinsic/assets/proto/installed_assets_go_proto";
@@ -141,6 +142,11 @@ message InstalledAsset {
     // The list of gRPC services that the Service exposes.
     // Deprecated: Please use the provides field in the metadata.
     repeated string service_proto_prefixes = 1 [deprecated = true];
+
+    // The inspection config for the service. Optional since not all services
+    // support inspection.
+    optional services.v1.ServiceInspectionConfig service_inspection_config = 2;
+
   }
   message SkillMetadata {
     intrinsic_proto.skills.SkillDetails details = 1;
@@ -149,6 +155,11 @@ message InstalledAsset {
     // The list of gRPC services that the HardwareDevice exposes.
     // Deprecated: Please use the provides field in the metadata.
     repeated string service_proto_prefixes = 1 [deprecated = true];
+
+    // The inspection config for the HardwareDevice. Optional since not all
+    // HardwareDevice support inspection.
+    optional services.v1.ServiceInspectionConfig service_inspection_config = 2;
+
   }
   message DeploymentData {
     oneof variant {

@@ -36,6 +36,7 @@
 #include "intrinsic/icon/hal/interfaces/hardware_module_state.fbs.h"
 #include "intrinsic/icon/hal/interfaces/hardware_module_state_utils.h"
 #include "intrinsic/icon/hal/interfaces/icon_state.fbs.h"
+#include "intrinsic/icon/hal/proto/hardware_module_inspection.pb.h"  
 #include "intrinsic/icon/interprocess/remote_trigger/remote_trigger_server.h"
 #include "intrinsic/icon/interprocess/shared_memory_manager/domain_socket_server.h"
 #include "intrinsic/icon/interprocess/shared_memory_manager/domain_socket_utils.h"
@@ -45,6 +46,7 @@
 #include "intrinsic/icon/utils/async_request.h"
 #include "intrinsic/icon/utils/clock.h"
 #include "intrinsic/icon/utils/fixed_string.h"
+#include "intrinsic/icon/utils/inspection_publisher.h"  
 #include "intrinsic/icon/utils/log.h"
 #include "intrinsic/icon/utils/metrics_logger.h"
 #include "intrinsic/icon/utils/realtime_metrics.h"
@@ -932,6 +934,14 @@ absl::Status HardwareModuleRuntime::Run(
   // Ensures that no methods on the uninitialized module can be called.
   INTR_RETURN_IF_ERROR(init_status);
 
+
+  if (const auto status =
+          StartInspectionThread(init_context, service_inspection_topic);
+      !status.ok()) {
+    LOG(ERROR) << "Failed to start inspection thread: " << status;
+  }
+
+
   if (const absl::Duration cycle_duration =
           init_context.GetCycleDurationForCycleTimeMetrics();
       cycle_duration != absl::ZeroDuration()) {
@@ -1033,6 +1043,10 @@ absl::Status HardwareModuleRuntime::Run(
 
 absl::Status HardwareModuleRuntime::Stop() {
   LOG(INFO) << "Stopping hardware module runtime.";
+
+  // Stops and joins the thread.
+  inspection_thread_ = {};
+
   callback_handler_->Shutdown();
   apply_command_server_->RequestStop();
   read_status_server_->RequestStop();
@@ -1077,5 +1091,64 @@ void HardwareModuleRuntime::SetStateTestOnly(intrinsic_fbs::StateCode state,
                                              std::string_view fault_reason) {
   callback_handler_->SetStateDirectly(state, fault_reason, /*force=*/true);
 }
+
+
+absl::Status HardwareModuleRuntime::StartInspectionThread(
+    const HardwareModuleInitContext& init_context,
+    absl::string_view service_inspection_topic) {
+  if (service_inspection_topic.empty()) {
+    LOG(INFO)
+        << "Service inspection topic name is empty. This likely means that "
+           "the hardware module does not support service inspection. Not "
+           "starting inspection thread. This it not an error.";
+    return absl::OkStatus();
+  }
+  // We need to get the publisher before the grpc server is started. Therefore,
+  // we do it here and not in the thread. Otherwise, there is some weird
+  // interaction between pubsub and grpc if the grpc server and zenoh are
+  // created at the same time. That causes flakiness on *insrc* since the grpc
+  // server and zenoh both do to freeze sometimes.
+  auto publisher = InspectionPublisher::Create(
+      init_context.GetAssetInstanceName(), service_inspection_topic);
+  if (!publisher.ok()) {
+    return absl::InternalError(absl::StrCat(
+        "Failed to create inspection publisher: ", publisher.status()));
+  } else {
+    INTR_ASSIGN_OR_RETURN(
+        inspection_thread_,
+        intrinsic::CreateThread(
+            intrinsic::ThreadOptions().SetName("inspection"),
+            [this, publisher = std::move(*publisher),
+             interval = init_context.GetInspectionDataPublishPeriod()](
+                intrinsic::StopToken stop_token) {
+              LOG(INFO) << "Starting inspection thread. Publishing to '"
+                        << publisher.GetTopicName() << "' every " << interval;
+              while (!stop_token.stop_requested()) {
+                auto start_time = absl::Now();
+                if (auto status = PublishInspectionData(publisher);
+                    !status.ok()) {
+                  LOG_EVERY_N_SEC(ERROR, 10)
+                      << "Failed to publish inspection data: " << status;
+                }
+                absl::SleepFor(start_time + interval - absl::Now());
+              }
+              LOG(INFO) << "Stopping inspection thread.";
+            }));
+  }
+  return absl::OkStatus();
+}
+
+absl::Status HardwareModuleRuntime::PublishInspectionData(
+    const InspectionPublisher& publisher) {
+  intrinsic_proto::icon::v1::HardwareModuleInspectionData data;
+  auto status = hardware_module_.instance->ProvideInspectionData(data);
+  if (!status.ok() && !absl::IsUnimplemented(status)) {
+    LOG_EVERY_N_SEC(ERROR, 10)
+        << "Failed to provide hardware module specific inspection data: "
+        << status;
+  }
+  return publisher.Publish(data);
+}
+
 
 }  // namespace intrinsic::icon

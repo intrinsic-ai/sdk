@@ -387,3 +387,37 @@ cc_library(
         "@com_google_protobuf//:protobuf",
     ],
 )
+
+cc_library(
+    name = "inspection_publisher",
+    hdrs = ["inspection_publisher.h"],
+    deps = [
+        "//intrinsic/assets/services/proto/v1:service_inspection_cc_proto",
+        "//intrinsic/icon/hal:module_config",
+        "//intrinsic/platform/pubsub",
+        "//intrinsic/platform/pubsub:publisher",
+        "//intrinsic/util:proto_time",
+        "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings:string_view",
+        "@abseil-cpp//absl/time",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_test(
+    name = "inspection_publisher_test",
+    srcs = ["inspection_publisher_test.cc"],
+    deps = [
+        ":inspection_publisher",
+        "//intrinsic/assets/services/proto/v1:service_inspection_cc_proto",
+        "//intrinsic/icon/hal:hardware_module_inspection_cc_proto",
+        "//intrinsic/platform/pubsub",
+        "//intrinsic/util/testing:gtest_wrapper_main",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/synchronization",
+        "@abseil-cpp//absl/time",
+    ],
+)
