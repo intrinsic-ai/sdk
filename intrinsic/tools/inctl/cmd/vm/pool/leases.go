@@ -80,7 +80,6 @@ var vmpoolsLeasesListCmd = &cobra.Command{
 		printer.Flush(prtr)
 		return nil
 	},
-	PreRunE: checkParams,
 }
 
 var leasesStopDesc = `
@@ -113,5 +112,4 @@ var vmpoolsLeasesStopCmd = &cobra.Command{
 		prtr.Printf("VM lease %s will stop.\n", flagLease)
 		return nil
 	},
-	PreRunE: checkParams,
 }

@@ -72,7 +72,6 @@ var vmpoolsListCmd = &cobra.Command{
 		defer span.End()
 		return listVMPoolsUserfacing(ctx, cmd)
 	},
-	PreRunE: checkParams,
 }
 
 func listVMPoolsUserfacing(ctx context.Context, cmd *cobra.Command) error {
@@ -136,7 +135,6 @@ var vmpoolsListTiersCmd = &cobra.Command{
 		printer.Flush(prtr)
 		return nil
 	},
-	PreRunE: checkParams,
 }
 
 var listHardwareTemplatesDesc = `
@@ -182,5 +180,4 @@ var vmpoolsListHardwareTemplatesCmd = &cobra.Command{
 		printer.Flush(prtr)
 		return nil
 	},
-	PreRunE: checkParams,
 }

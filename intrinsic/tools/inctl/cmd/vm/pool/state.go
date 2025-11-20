@@ -72,7 +72,6 @@ var vmpoolsDeleteCmd = &cobra.Command{
 		prtr.Println("VM pool will converge to deletion.")
 		return nil
 	},
-	PreRunE: checkParams,
 }
 
 var vmpoolsResumeCmd = &cobra.Command{
@@ -95,7 +94,6 @@ var vmpoolsResumeCmd = &cobra.Command{
 		prtr.Println("VM pool resumed.")
 		return nil
 	},
-	PreRunE: checkParams,
 }
 
 var vmpoolsStopCmd = &cobra.Command{
@@ -118,7 +116,6 @@ var vmpoolsStopCmd = &cobra.Command{
 		prtr.Println("VM pool will stop.")
 		return nil
 	},
-	PreRunE: checkParams,
 }
 
 var vmpoolsPauseCmd = &cobra.Command{
@@ -141,5 +138,4 @@ var vmpoolsPauseCmd = &cobra.Command{
 		prtr.Println("VM pool will pause.")
 		return nil
 	},
-	PreRunE: checkParams,
 }

@@ -21,6 +21,7 @@ import (
 	"google.golang.org/grpc/status"
 	"intrinsic/kubernetes/vmpool/service/pkg/defaults/defaults"
 	"intrinsic/tools/inctl/util/color"
+	"intrinsic/tools/inctl/util/orgutil"
 
 	tpb "google.golang.org/protobuf/types/known/timestamppb"
 	leaseapigrpcpb "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_grpc_proto"
@@ -60,7 +61,7 @@ var vmLeaseCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx, span := trace.StartSpan(cmd.Context(), "inctl.vm.lease", trace.WithSampler(trace.AlwaysSample()))
 		span.AddAttributes(trace.StringAttribute("pool", flagPool))
-		span.AddAttributes(trace.StringAttribute("org", orgID))
+		span.AddAttributes(trace.StringAttribute("org", vmCmdFlags.GetFlagOrganization()))
 		defer span.End()
 		cl, err := newLeaseClient(ctx)
 		if err != nil {
@@ -76,7 +77,7 @@ var vmLeaseCmd = &cobra.Command{
 			ReservationID: flagReservationID,
 			Retry:         flagRetry,
 			Pool:          flagPool,
-			Project:       flagProject,
+			Project:       vmCmdFlags.GetFlagProject(),
 			SetContext:    flagSetContext,
 			ContextAlias:  flagContextAlias,
 			Runtime:       flagRuntime,
@@ -85,7 +86,6 @@ var vmLeaseCmd = &cobra.Command{
 			Stderr:        os.Stderr,
 		})
 	},
-	PreRunE: checkParams,
 }
 
 // LeaseOptions contains the options for leasing a VM.
@@ -276,7 +276,7 @@ func createPoolIfNeeded(ctx context.Context, poolClient *vmpoolapigrpcpb.VMPoolS
 	fmt.Printf("Created pool with runtime %s and IntrinsicOS %s to satisfy the request.\n", resp.GetSpec().GetRuntime(), resp.GetSpec().GetIntrinsicOs())
 	fmt.Println("Leasing from this pool, once lease succeeds, this pool will be deleted.")
 	fmt.Println("\nIf you abort this command from now on before the pool is deleted, you need to delete it manually:")
-	fmt.Printf("\tinctl vm pool delete --pool %s --org %s@%s\n\n", resp.GetName(), orgID, flagProject)
+	fmt.Printf("\tinctl vm pool delete --pool %s --org %s\n\n", resp.GetName(), orgutil.QualifiedOrg(vmCmdFlags.GetFlagProject(), vmCmdFlags.GetFlagOrganization()))
 	fmt.Println("This can take a few minutes, please be patient or grab a coffee c|_|")
 	opts.Pool = resp.GetName()
 	return true, nil
@@ -329,7 +329,7 @@ func requestAdhocLease(ctx context.Context, duration time.Duration, leaseClient 
 
 	if isAdhocPoolPath {
 		if _, err := (*poolClient).DeletePool(ctx, &vmpoolpb.DeletePoolRequest{Name: opts.Pool}); err != nil {
-			fmt.Printf("Failed to delete pool %s: %v\n This is not critical, please delete it manually with: \n\t`inctl vm pool delete --pool %s --org %s@%s`\n\n", opts.Pool, err, opts.Pool, orgID, flagProject)
+			fmt.Printf("Failed to delete pool %s: %v\n This is not critical, please delete it manually with: \n\t`inctl vm pool delete --pool %s --org %s`\n\n", opts.Pool, err, opts.Pool, orgutil.QualifiedOrg(vmCmdFlags.GetFlagProject(), vmCmdFlags.GetFlagOrganization()))
 		}
 		fmt.Printf("\nCleaned up temporary pool %s\n\n", opts.Pool)
 	}

@@ -32,16 +32,15 @@ var vmReturnCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx, span := trace.StartSpan(cmd.Context(), "inctl.vm.return", trace.WithSampler(trace.AlwaysSample()))
 		span.AddAttributes(trace.StringAttribute("vm", args[0]))
-		span.AddAttributes(trace.StringAttribute("org", orgID))
+		span.AddAttributes(trace.StringAttribute("org", vmCmdFlags.GetFlagOrganization()))
 		defer span.End()
 		cl, err := newLeaseClient(ctx)
 		if err != nil {
 			return err
 		}
 
-		return Return(ctx, cl, args[0], flagProject)
+		return Return(ctx, cl, args[0], vmCmdFlags.GetFlagProject())
 	},
-	PreRunE: checkParams,
 }
 
 // Return returns a leased VM back to the pool.

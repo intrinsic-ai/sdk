@@ -72,7 +72,7 @@ var vmpoolsCreateCmd = &cobra.Command{
 	Short: "Create a new VM pool.",
 	Long:  createDesc,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx, err := identity.OrgToContext(cmd.Context(), orgID)
+		ctx, err := identity.OrgToContext(cmd.Context(), poolCmdFlags.GetFlagOrganization())
 		if err != nil {
 			return err
 		}
@@ -94,7 +94,6 @@ var vmpoolsCreateCmd = &cobra.Command{
 		prtr.Println(resp)
 		return nil
 	},
-	PreRunE: checkParams,
 }
 
 func getUpdatePoolRequest() *vmpoolspb.UpdatePoolRequest {
@@ -145,5 +144,4 @@ var vmpoolsUpdateCmd = &cobra.Command{
 		prtr.Println(resp)
 		return nil
 	},
-	PreRunE: checkParams,
 }

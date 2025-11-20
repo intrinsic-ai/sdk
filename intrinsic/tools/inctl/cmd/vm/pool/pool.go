@@ -9,22 +9,23 @@ import (
 	"os"
 	"strings"
 
-	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
+	"intrinsic/assets/cmdutils"
 	"intrinsic/kubernetes/vmpool/service/pkg/defaults/defaults"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/cobrautil"
-	"intrinsic/tools/inctl/util/orgutil"
 
 	leaseapigrpcpb "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_grpc_proto"
 	vmpoolsgrpcpb "intrinsic/kubernetes/vmpool/service/api/v1/vmpool_api_go_grpc_proto"
 )
 
-var viperLocal = viper.New()
-
-// PoolCmd is the parent command for all VM pool commands.
-var PoolCmd = orgutil.WrapCmd(cobrautil.ParentOfNestedSubcommands("pool", "Create and manage pools of virtual machines"), viperLocal)
+var (
+	viperLocal   = viper.New()
+	poolCmdFlags = cmdutils.NewCmdFlagsWithViper(viperLocal)
+	// PoolCmd is the parent command for all VM pool commands.
+	PoolCmd = cobrautil.ParentOfNestedSubcommands("pool", "Create and manage pools of virtual machines")
+)
 
 const (
 	poolFlagDesc             = "The name of the VM pool."
@@ -41,13 +42,14 @@ var (
 	flagTier             string
 	flagHardwareTemplate string
 	flagLease            string
-	flagProject          string
-	orgID                string
 	flagVerbose          bool
 	flagCount            int
 )
 
 func init() {
+	poolCmdFlags.SetCommand(PoolCmd)
+	poolCmdFlags.AddFlagsProjectOrg()
+
 	vmpoolsCreateCmd.Flags().StringVar(&flagPool, "pool", "", poolFlagDesc)
 	vmpoolsCreateCmd.MarkFlagRequired("pool")
 	vmpoolsCreateCmd.Flags().StringVar(&flagRuntime, "runtime", "", runtimeFlagDesc)
@@ -87,21 +89,12 @@ func init() {
 	PoolCmd.AddCommand(vmpoolsLeasesCmd)
 }
 
-func checkParams(_ *cobra.Command, _ []string) error {
-	flagProject = viperLocal.GetString(orgutil.KeyProject)
-	orgID = viperLocal.GetString(orgutil.KeyOrganization)
-	if orgID == "" {
-		return fmt.Errorf("--org is required")
-	}
-	return nil
-}
-
 func newConn(ctx context.Context) (*grpc.ClientConn, error) {
 	// warn that those projects most probably have no VM pool
 	noPools := []string{"intrinsic-portal", "intrinsic-assets", "intrinsic-accounts"}
 	for _, p := range noPools {
-		if strings.HasPrefix(flagProject, p) {
-			fmt.Fprintf(os.Stderr, "Warning: Project %q has most probably no VM pool. You probably meant to target a compute/backend project like intrinsic-prod-us instead.", flagProject)
+		if strings.HasPrefix(poolCmdFlags.GetFlagProject(), p) {
+			fmt.Fprintf(os.Stderr, "Warning: Project %q has most probably no VM pool. You probably meant to target a compute/backend project like intrinsic-prod-us instead.", poolCmdFlags.GetFlagProject())
 		}
 	}
 	return auth.NewCloudConnection(ctx, auth.WithFlagValues(viperLocal))

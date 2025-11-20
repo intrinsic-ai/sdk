@@ -10,30 +10,29 @@ import (
 	"strings"
 	"time"
 
-	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
+	"intrinsic/assets/cmdutils"
 	"intrinsic/config/environments"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/cmd/vm/pool/pool"
 	"intrinsic/tools/inctl/util/cobrautil"
-	"intrinsic/tools/inctl/util/orgutil"
 
 	leaseapigrpcpb "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_grpc_proto"
 	vmpoolsgrpcpb "intrinsic/kubernetes/vmpool/service/api/v1/vmpool_api_go_grpc_proto"
 )
 
-var viperLocal = viper.New()
-
-var vmCmd = orgutil.WrapCmd(cobrautil.ParentOfNestedSubcommands("vm", "Administer and work with virtual machines"), viperLocal)
+var (
+	viperLocal = viper.New()
+	vmCmdFlags = cmdutils.NewCmdFlagsWithViper(viperLocal)
+	vmCmd      = cobrautil.ParentOfNestedSubcommands("vm", "Administer and work with virtual machines")
+)
 
 const serviceTag string = "inctl"
 
 var (
-	flagProject       string
 	flagUserEmail     string
-	orgID             string
 	flagContextAlias  string
 	flagAbortAfter    time.Duration
 	flagReservationID string
@@ -49,6 +48,8 @@ var (
 
 func init() {
 	root.RootCmd.AddCommand(vmCmd)
+	vmCmdFlags.SetCommand(vmCmd)
+	vmCmdFlags.AddFlagsProjectOrg()
 
 	vmCmd.AddCommand(pool.PoolCmd)
 
@@ -70,21 +71,12 @@ func init() {
 	vmCmd.AddCommand(vmExpireInCmd)
 }
 
-func checkParams(_ *cobra.Command, _ []string) error {
-	flagProject = viperLocal.GetString(orgutil.KeyProject)
-	orgID = viperLocal.GetString(orgutil.KeyOrganization)
-	if orgID == "" {
-		return fmt.Errorf("--org is required")
-	}
-	return nil
-}
-
 func newConn(ctx context.Context) (*grpc.ClientConn, error) {
 	// warn that those projects most probably have no VM pool
 	noPools := []string{"intrinsic-portal", "intrinsic-assets", "intrinsic-accounts"}
 	for _, p := range noPools {
-		if strings.HasPrefix(flagProject, p) {
-			fmt.Fprintf(os.Stderr, "Warning: Project %q has most probably no VM pool. You probably meant to target a compute/backend project like intrinsic-prod-us instead.", flagProject)
+		if strings.HasPrefix(vmCmdFlags.GetFlagProject(), p) {
+			fmt.Fprintf(os.Stderr, "Warning: Project %q has most probably no VM pool. You probably meant to target a compute/backend project like intrinsic-prod-us instead.", vmCmdFlags.GetFlagProject())
 		}
 	}
 	return auth.NewCloudConnection(ctx, auth.WithFlagValues(viperLocal))

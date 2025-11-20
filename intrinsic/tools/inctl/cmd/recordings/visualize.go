@@ -11,10 +11,10 @@ import (
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"intrinsic/assets/cmdutils"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/cobrautil"
 	"intrinsic/tools/inctl/util/color"
-	"intrinsic/tools/inctl/util/orgutil"
 
 	tpb "google.golang.org/protobuf/types/known/timestamppb"
 	leaseapigrpcpb "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_grpc_proto"
@@ -23,28 +23,18 @@ import (
 	replaypb "intrinsic/logging/proto/replay_service_go_grpc_proto"
 )
 
-var visualizeCmd = cobrautil.ParentOfNestedSubcommands("visualize", "Visualize Intrinsic recordings")
+var (
+	visualizeCmdFlags = cmdutils.NewCmdFlags()
+	visualizeCmd      = cobrautil.ParentOfNestedSubcommands("visualize", "Visualize Intrinsic recordings")
+)
 
 const serviceTag string = "inctl"
 const leaseRetryInterval = 10 * time.Second
 
 var (
-	flagProject string
-	flagOrgID   string
-
 	flagRecordingID string
 	flagDuration    string
 )
-
-// Checks and populates the project and org flags.
-func checkParams(_ *cobra.Command, _ []string) error {
-	flagProject = localViper.GetString(orgutil.KeyProject)
-	flagOrgID = localViper.GetString(orgutil.KeyOrganization)
-	if flagOrgID == "" {
-		return fmt.Errorf("--org is required")
-	}
-	return nil
-}
 
 func newLeaseClient(ctx context.Context) (leaseapigrpcpb.VMPoolLeaseServiceClient, error) {
 	conn, err := auth.NewCloudConnection(ctx, auth.WithFlagValues(localViper))
@@ -126,16 +116,17 @@ var visualizeCreateE = func(cmd *cobra.Command, _ []string) error {
 }
 
 var visualizeCreateCmd = &cobra.Command{
-	Use:     "create",
-	Short:   "Creates a visualization of a recording in a hosted version of Rerun.io",
-	Long:    "Creates a visualization of a recording in a hosted version of Rerun.io",
-	Args:    cobra.NoArgs,
-	RunE:    visualizeCreateE,
-	PreRunE: checkParams,
+	Use:   "create",
+	Short: "Creates a visualization of a recording in a hosted version of Rerun.io",
+	Long:  "Creates a visualization of a recording in a hosted version of Rerun.io",
+	Args:  cobra.NoArgs,
+	RunE:  visualizeCreateE,
 }
 
 func init() {
 	recordingsCmd.AddCommand(visualizeCmd)
+	visualizeCmdFlags.SetCommand(visualizeCmd)
+	visualizeCmdFlags.AddFlagsProjectOrg()
 
 	visualizeCmd.AddCommand(visualizeCreateCmd)
 	visualizeCreateCmd.Flags().StringVar(&flagRecordingID, "recording_id", "", "The recording id to visualize.")

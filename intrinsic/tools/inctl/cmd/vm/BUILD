@@ -20,6 +20,7 @@ go_library(
         "//visibility:public",
     ],
     deps = [
+        "//intrinsic/assets:cmdutils",
         "//intrinsic/config:environments",
         "//intrinsic/kubernetes/vmpool/manager/api/v1:lease_api_go_grpc_proto",
         "//intrinsic/kubernetes/vmpool/service/api/v1:vmpool_api_go_grpc_proto",

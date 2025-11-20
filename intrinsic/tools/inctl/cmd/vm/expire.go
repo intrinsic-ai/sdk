@@ -36,15 +36,14 @@ var vmExpireInCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx, span := trace.StartSpan(cmd.Context(), "inctl.vm.expire-in", trace.WithSampler(trace.AlwaysSample()))
 		span.AddAttributes(trace.StringAttribute("vm", args[0]))
-		span.AddAttributes(trace.StringAttribute("org", orgID))
+		span.AddAttributes(trace.StringAttribute("org", vmCmdFlags.GetFlagOrganization()))
 		defer span.End()
 		cl, err := newLeaseClient(ctx)
 		if err != nil {
 			return err
 		}
-		return ExpireIn(ctx, cl, args[0], args[1], flagProject, flagExtendOnly)
+		return ExpireIn(ctx, cl, args[0], args[1], vmCmdFlags.GetFlagProject(), flagExtendOnly)
 	},
-	PreRunE: checkParams,
 }
 
 // ExpireIn extends the expiration time of a lease by a duration relative to now.
