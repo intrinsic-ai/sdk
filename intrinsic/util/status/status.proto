@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto;
 
+option go_package = "intrinsic/util/status/status_go_proto";
+
 message StatusProto {
   reserved 2, 4, 5;  // For compatibility with the original StatusProto
   int32 code = 1;

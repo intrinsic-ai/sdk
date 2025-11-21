@@ -6,6 +6,8 @@ package intrinsic_proto.performance.analysis.proto;
 
 import "google/protobuf/struct.proto";
 
+option go_package = "intrinsic/performance/analysis/proto/performance_metrics_go_proto";
+
 message PerformanceMetrics {
   string cycle_number = 1;
   Metrics metrics = 2;

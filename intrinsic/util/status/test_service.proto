@@ -6,6 +6,8 @@ package intrinsic_proto.status.test;
 
 import "google/protobuf/empty.proto";
 
+option go_package = "intrinsic/util/status/test_service_go_proto";
+
 service StatusTestService {
   // Method that always returns a failure
   rpc FailingMethod(google.protobuf.Empty) returns (google.protobuf.Empty) {}

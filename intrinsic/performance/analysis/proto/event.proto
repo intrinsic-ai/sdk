@@ -7,6 +7,8 @@ package intrinsic_proto.performance.skills;
 import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
 
+option go_package = "intrinsic/performance/analysis/proto/event_go_proto";
+
 message Event {
   string name = 1;
   google.protobuf.Timestamp timestamp = 4;

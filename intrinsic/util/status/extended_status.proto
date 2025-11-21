@@ -7,6 +7,8 @@ package intrinsic_proto.status;
 import "google/protobuf/timestamp.proto";
 import "intrinsic/logging/proto/context.proto";
 
+option go_package = "intrinsic/util/status/extended_status_go_proto";
+
 // A code that identifies a particular error of the given component.
 message StatusCode {
   // A string identifier of the component. This must consist of a package name
