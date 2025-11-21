@@ -22,6 +22,8 @@ import "intrinsic/assets/scene_objects/proto/scene_object_manifest.proto";
 import "intrinsic/assets/services/proto/service_manifest.proto";
 import "intrinsic/skills/proto/processed_skill_manifest.proto";
 
+option go_package = "intrinsic/assets/catalog/proto/v1/asset_catalog_go_proto";
+
 // Provides access to assets in the asset catalog.
 service AssetCatalog {
   // Gets (a view of) the specified asset.

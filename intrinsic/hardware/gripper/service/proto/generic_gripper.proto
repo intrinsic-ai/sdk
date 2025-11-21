@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.gripper;
 
+option go_package = "intrinsic/hardware/gripper/service/proto/generic_gripper_go_proto";
+
 message GraspRequest {}
 message GraspResponse {}
 

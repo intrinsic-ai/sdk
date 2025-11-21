@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.catalog.v1;
 
+option go_package = "intrinsic/assets/catalog/proto/v1/release_metadata_go_proto";
+
 // Release metadata about an asset version in the AssetCatalog.
 message ReleaseMetadata {
   // True if this version becomes the default version. Assets must have a
