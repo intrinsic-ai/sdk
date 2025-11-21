@@ -7,6 +7,8 @@ package intrinsic_proto.assets.v1;
 import "intrinsic/assets/proto/asset_type.proto";
 import "intrinsic/assets/proto/id.proto";
 
+option go_package = "intrinsic/assets/proto/v1/reference_go_proto";
+
 message CatalogAsset {
   intrinsic_proto.assets.AssetType asset_type = 1;
   intrinsic_proto.assets.IdVersion id_version = 2;

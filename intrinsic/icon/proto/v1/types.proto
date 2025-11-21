@@ -11,6 +11,8 @@ import "google/protobuf/descriptor.proto";
 import "intrinsic/icon/proto/generic_part_config.proto";
 import "intrinsic/icon/proto/v1/condition_types.proto";
 
+option go_package = "intrinsic/icon/proto/v1/types_go_proto";
+
 // Describes a state machine consisting of a list of `action_instances` acting
 // as nodes and a list of `reactions` describing the edges.
 message ActionsAndReactions {

@@ -7,6 +7,8 @@ package intrinsic_proto.assets.v1;
 import "google/protobuf/any.proto";
 import "intrinsic/scene/proto/v1/scene_object_config.proto";
 
+option go_package = "intrinsic/assets/proto/v1/instance_config_go_proto";
+
 // Configuration of an asset instance.
 message InstanceConfig {
   // Configuration of a SceneObject asset instance.

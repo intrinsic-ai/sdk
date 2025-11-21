@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.icon.v1;
 
+option go_package = "intrinsic/icon/proto/v1/condition_types_go_proto";
+
 // Comparison describes a real-time condition statement based on the
 // value of a state variable.
 message Comparison {

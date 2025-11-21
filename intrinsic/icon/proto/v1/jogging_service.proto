@@ -9,6 +9,8 @@ import "intrinsic/icon/proto/cart_space.proto";
 import "intrinsic/kinematics/types/joint_limits.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 
+option go_package = "intrinsic/icon/proto/v1/jogging_service_go_proto";
+
 // ----------------------------  InitialJoggingData ----------------------------
 
 message JogInStaticFrame {

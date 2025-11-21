@@ -27,6 +27,8 @@ import "intrinsic/icon/proto/v1/types.proto";
 import "intrinsic/logging/proto/context.proto";
 import "intrinsic/world/proto/robot_payload.proto";
 
+option go_package = "intrinsic/icon/proto/v1/service_go_proto";
+
 // GetActionSignatureByName() request.
 message GetActionSignatureByNameRequest {
   // Action type name, e.g. "xfa.joint_move".

@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.assets.v1;
 
+option go_package = "intrinsic/assets/proto/v1/asset_graph_go_proto";
+
 // A directed acyclic graph of assets.
 message AssetGraph {
   // A map from node names to asset nodes.

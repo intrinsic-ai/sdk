@@ -8,6 +8,8 @@ import "google/api/field_behavior.proto";
 import "intrinsic/assets/proto/id.proto";
 import "intrinsic/assets/proto/v1/grpc_connection.proto";
 
+option go_package = "intrinsic/assets/proto/v1/resolved_dependency_go_proto";
+
 // `ResolvedDependency` models a dependency from one Asset to interfaces
 // provided by another, or to an Asset that has an object in the world, or to
 // some combination of both.
