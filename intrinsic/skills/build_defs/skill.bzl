@@ -367,7 +367,7 @@ _intrinsic_skill_rule = rule(
 )
 
 def _intrinsic_skill(name, image, manifest, **kwargs):
-    """Creates cpp skill targets.
+    """Creates a skill bundle.
 
     Generates the following targets:
     * a skill container image target named 'name'.
