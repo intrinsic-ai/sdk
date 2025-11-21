@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto;
 
+option go_package = "intrinsic/kinematics/types/dynamic_limits_check_mode_go_proto";
+
 // This enum class indicates the limits a joint position command is guaranteeing
 // to abide by. For instance,
 // `DYNAMIC_LIMITS_CHECK_MODE_CHECK_JOINT_ACCELERATION` denotes it should

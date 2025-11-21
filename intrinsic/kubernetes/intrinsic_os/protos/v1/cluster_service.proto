@@ -7,6 +7,8 @@ package intrinsic_proto.cluster.v1;
 import "intrinsic/kubernetes/intrinsic_os/protos/v1/cluster.proto";
 import "intrinsic/kubernetes/intrinsic_os/protos/v1/shutdown.proto";
 
+option go_package = "intrinsic/kubernetes/intrinsic_os/protos/v1/cluster_service_go_proto";
+
 // ClusterService runs on IPCs and provides administrative functionality.
 //
 // It is accessible via the cluster ingress at

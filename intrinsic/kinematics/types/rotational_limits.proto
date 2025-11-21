@@ -7,6 +7,8 @@ package intrinsic_proto;
 import "intrinsic/math/proto/quaternion.proto";
 import "intrinsic/math/proto/vector3.proto";
 
+option go_package = "intrinsic/kinematics/types/rotational_limits_go_proto";
+
 // The min/max values cannot exceed -pi/+pi, and the reference quaternion should
 // be chosen from the relevant endeffector pose, which is rarely the identity
 // quaternion.

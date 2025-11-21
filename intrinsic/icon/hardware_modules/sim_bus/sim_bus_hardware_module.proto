@@ -7,6 +7,8 @@ package intrinsic_proto.icon;
 import "intrinsic/icon/server/config/dio_config.proto";
 import "intrinsic/simulation/gazebo/plugins/sim_hardware_module_config.proto";
 
+option go_package = "intrinsic/icon/hardware_modules/sim_bus/sim_bus_hardware_module_go_proto";
+
 message SimDioConfig {
   string type_name = 1;
 }

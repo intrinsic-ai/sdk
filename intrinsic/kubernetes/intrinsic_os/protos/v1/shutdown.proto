@@ -6,6 +6,8 @@ package intrinsic_proto.cluster.v1;
 
 import "google/protobuf/duration.proto";
 
+option go_package = "intrinsic/kubernetes/xfaos/protos/v1/shutdown_go_proto";
+
 message ShutdownRequest {}
 
 message ShutdownResponse {}

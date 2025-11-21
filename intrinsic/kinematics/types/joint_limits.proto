@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto;
 
+option go_package = "intrinsic/kinematics/types/joint_limits_go_proto";
+
 // We wrap the repeated double into its own message so we can have optional and
 // repeated
 message RepeatedDouble {
