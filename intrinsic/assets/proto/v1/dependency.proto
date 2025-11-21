@@ -40,6 +40,7 @@ message Dependency {
     // interact with the real world during preview. When in doubt, leave it
     // false.
     bool always_provide_connection_info = 1;
+
   }
 
   // Annotations that can only be used when annotated on a specific Asset type.
