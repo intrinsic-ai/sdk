@@ -6,6 +6,8 @@ package intrinsic_proto.executive;
 
 import "intrinsic/world/proto/object_world_refs.proto";
 
+option go_package = "intrinsic/executive/proto/world_query_go_proto";
+
 // Specification to retrieve data from the world.
 // Used in BehaviorTree.DataNode.
 message WorldQuery {

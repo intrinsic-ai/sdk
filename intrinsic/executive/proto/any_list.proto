@@ -6,6 +6,8 @@ package intrinsic_proto.executive;
 
 import "google/protobuf/any.proto";
 
+option go_package = "intrinsic/executive/proto/any_list_go_proto";
+
 message AnyList {
   repeated google.protobuf.Any items = 1;
 }

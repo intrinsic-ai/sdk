@@ -7,6 +7,8 @@ package intrinsic_proto.executive;
 import "google/protobuf/descriptor.proto";
 import "intrinsic/executive/proto/any_with_assignments.proto";
 
+option go_package = "intrinsic/executive/proto/code_execution_go_proto";
+
 // Python code to be executed. Not a self-contained Python script - must fit
 // into the Python template provided by the code execution service.
 // The function body follows this signature:

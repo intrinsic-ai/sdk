@@ -6,6 +6,8 @@ package intrinsic_proto.executive;
 
 import "google/protobuf/any.proto";
 
+option go_package = "intrinsic/executive/proto/run_response_go_proto";
+
 message RunResponse {
   // Contains a result of type specified in the return_value_description if the
   // operation returned a result.

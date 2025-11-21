@@ -13,6 +13,8 @@ import "intrinsic/executive/proto/code_execution.proto";
 import "intrinsic/skills/proto/skills.proto";
 import "intrinsic/util/status/extended_status.proto";
 
+option go_package = "intrinsic/executive/proto/behavior_tree_go_proto";
+
 // Message to encode an entire Behavior Tree.
 // Example: says "Good morning" in the morning, "Good day" otherwise
 // name: "bt1"

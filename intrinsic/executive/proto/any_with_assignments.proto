@@ -6,6 +6,8 @@ package intrinsic_proto.executive;
 
 import "google/protobuf/any.proto";
 
+option go_package = "intrinsic/executive/proto/any_with_assignments_go_proto";
+
 // Define a proto were arbitrary fields can be overridden from CEL expressions.
 message AnyWithAssignments {
   message Assignment {

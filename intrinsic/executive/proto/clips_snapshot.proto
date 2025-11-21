@@ -3,6 +3,8 @@
 syntax = "proto3";
 
 package intrinsic_proto.executive;
+
+option go_package = "intrinsic/executive/proto/clips_snapshot_go_proto";
 message ClipsTrace {
   message RuleFireEntry {
     int64 sequence_number = 1;

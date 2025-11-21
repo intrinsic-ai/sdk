@@ -7,6 +7,8 @@ syntax = "proto3";
 
 package intrinsic_proto.executive;
 
+option go_package = "intrinsic/executive/proto/executive_execution_mode_go_proto";
+
 enum SimulationMode {
   option allow_alias = true;
 

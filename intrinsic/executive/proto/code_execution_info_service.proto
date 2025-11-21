@@ -6,6 +6,8 @@ package intrinsic_proto.executive;
 
 import "google/protobuf/descriptor.proto";
 
+option go_package = "intrinsic/executive/proto/code_execution_info_service_go_proto";
+
 // Provides information on how code in task nodes gets executed.
 service CodeExecutionInfoService {
   // Returns a Python template which is equivalent to the code being executed

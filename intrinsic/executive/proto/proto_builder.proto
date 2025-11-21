@@ -6,6 +6,8 @@ package intrinsic_proto.executive;
 
 import "google/protobuf/descriptor.proto";
 
+option go_package = "intrinsic/executive/proto/proto_builder_go_proto";
+
 service ProtoBuilder {
 
   // Compiles a proto schema into a file descriptor set, e.g., to
