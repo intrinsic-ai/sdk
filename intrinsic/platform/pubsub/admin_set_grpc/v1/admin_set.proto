@@ -6,6 +6,8 @@ package intrinsic_proto.pubsub.admin_set_grpc.v1;
 
 import "google/protobuf/any.proto";
 
+option go_package = "intrinsic/platform/pubsub/admin_set_grpc/v1/admin_set_go_proto";
+
 message AdminSetRequest {
   string key = 1;
   google.protobuf.Any value = 2;

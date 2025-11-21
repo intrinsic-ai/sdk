@@ -8,6 +8,8 @@ import "google/protobuf/any.proto";
 import "google/protobuf/timestamp.proto";
 import "google/rpc/status.proto";
 
+option go_package = "intrinsic/platform/pubsub/adapters/pubsub_go_proto";
+
 message NewPublisher {
   string topic = 1;
   string type_name = 2;

@@ -7,6 +7,8 @@ package intrinsic_proto.simulation.v1;
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
 
+option go_package = "intrinsic/simulation/service/proto/v1/simulation_service_go_proto";
+
 // Provides methods to control the simulation.
 service SimulationService {
   // Returns a human readable string to identify the simulator being used.

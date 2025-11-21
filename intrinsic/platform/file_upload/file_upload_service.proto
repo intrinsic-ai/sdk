@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.icon;
 
+option go_package = "intrinsic/platform/file_upload/file_upload_service_go_proto";
+
 message FileInfo {
   // Basename of the file .so file. For example, "my_custom_actions.so"
   string filename = 1;

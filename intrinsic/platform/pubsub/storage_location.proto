@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.kvstore;
 
+option go_package = "intrinsic/platform/pubsub/storage_location_go_proto";
+
 // Represents a reference to an entry in a key-value store, which can be passed
 // around e.g. between skills and services.
 message StorageLocation {

@@ -6,6 +6,8 @@ package intrinsic_proto.kvstore;
 
 import "google/protobuf/any.proto";
 
+option go_package = "intrinsic/platform/pubsub/kvstore_grpc/kvstore_go_proto";
+
 message GetRequest {
   string key = 1;
 }
