@@ -36,9 +36,14 @@ proto_library(
     name = "hardware_module_inspection_proto",
     srcs = ["proto/hardware_module_inspection.proto"],
     deps = [
-        "//intrinsic/icon/proto:safety_status_proto",
         "@com_google_protobuf//:any_proto",
         "@com_google_protobuf//:timestamp_proto",
+        # This dep is not directly needed by this proto, but is needed for 3p users (e.g. an HMI)
+        # to be able to parse the service inspection proto.
+        # Therefore, we add the dependency here so that hardware module authors do not need
+        # to be aware of this.
+        "//intrinsic/assets/services/proto/v1:service_inspection_proto",  # buildcleaner: keep
+        "//intrinsic/icon/proto:safety_status_proto",
     ],
 )
 
