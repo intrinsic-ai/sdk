@@ -1,6 +1,6 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package getreleased defines the command to get information about a released asset.
+// Package getreleased defines the command to get information about released Assets.
 package getreleased
 
 import (
@@ -18,14 +18,14 @@ import (
 	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
 )
 
-// GetCommand returns the command to get asset deployment data.
+// GetCommand returns the command to get information about a released Asset.
 func GetCommand() *cobra.Command {
 	flags := cmdutils.NewCmdFlags()
 
 	cmd := &cobra.Command{
 		Use: "get_released id_version",
 		Short: strings.Join([]string{
-			"Get information about the specified asset id_version.",
+			"Get information about the specified Asset version from the AssetCatalog.",
 		}, "\n"),
 		Example: strings.Join([]string{
 			"$ inctl asset get_released some.package.my_skill.0.0.1",
@@ -56,7 +56,7 @@ func GetCommand() *cobra.Command {
 				View: view,
 			})
 			if err != nil {
-				return fmt.Errorf("failed to get asset: %v", err)
+				return fmt.Errorf("failed to get Asset: %v", err)
 			}
 
 			prtr, err := printer.NewPrinter(root.FlagOutput)
