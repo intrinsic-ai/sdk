@@ -11,6 +11,10 @@ import "intrinsic/world/proto/object_world_refs.proto";
 option java_multiple_files = true;
 option java_outer_classname = "GripperExchangeProtos";
 
+message GripperExchangeConfig {
+  string ingress_address = 1;
+}
+
 message TwoFingerPinchGripperAssemblyObjects {
   // The gripper base object reference. Can be left unspecified only if the
   // gripper base can be uniquely identified based on its scene object type
