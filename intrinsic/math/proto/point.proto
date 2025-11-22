@@ -5,6 +5,8 @@ syntax = "proto3";
 
 package intrinsic_proto;
 
+option go_package = "intrinsic/math/proto/point_go_proto";
+
 message Point {
   double x = 1;
   double y = 2;

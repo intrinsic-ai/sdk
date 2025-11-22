@@ -9,6 +9,8 @@ package intrinsic_proto;
 
 import "intrinsic/math/proto/vector3.proto";
 
+option go_package = "intrinsic/math/proto/twist_go_proto";
+
 message Twist {
   Vector3 linear = 1;
   Vector3 angular = 2;

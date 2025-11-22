@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto;
 
+option go_package = "intrinsic/math/proto/array_go_proto";
+
 /*
   Efficiently represents a multi-dimensional array.
 */

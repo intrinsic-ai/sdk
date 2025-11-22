@@ -7,6 +7,8 @@ package intrinsic_proto;
 import "intrinsic/math/proto/matrix.proto";
 import "intrinsic/math/proto/point.proto";
 
+option go_package = "intrinsic/math/proto/affine_go_proto";
+
 // Represents an affine 3D transformation composed of a linear part (containing
 // rotation and scaling) and a position. Usually it is composed from position *
 // rotation * scaling.

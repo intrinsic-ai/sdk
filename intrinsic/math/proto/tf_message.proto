@@ -7,6 +7,8 @@ package intrinsic_proto;
 
 import "intrinsic/math/proto/transform_stamped.proto";
 
+option go_package = "intrinsic/math/proto/tf_message_go_proto";
+
 message TFMessage {
   repeated TransformStamped transforms = 1;
 }

@@ -8,6 +8,8 @@ package intrinsic_proto;
 import "intrinsic/math/proto/quaternion.proto";
 import "intrinsic/math/proto/vector3.proto";
 
+option go_package = "intrinsic/math/proto/transform_go_proto";
+
 message Transform {
   Vector3 translation = 1;
   intrinsic_proto.Quaternion rotation = 2;

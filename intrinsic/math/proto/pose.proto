@@ -8,6 +8,8 @@ package intrinsic_proto;
 import "intrinsic/math/proto/point.proto";
 import "intrinsic/math/proto/quaternion.proto";
 
+option go_package = "intrinsic/math/proto/pose_go_proto";
+
 message Pose {
   Point position = 1;
   Quaternion orientation = 2;

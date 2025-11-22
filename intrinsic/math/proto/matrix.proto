@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto;
 
+option go_package = "intrinsic/math/proto/matrix_go_proto";
+
 message Matrixd {
   int32 rows = 1;
   int32 cols = 2;

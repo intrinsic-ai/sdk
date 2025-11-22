@@ -9,6 +9,8 @@ package intrinsic_proto;
 
 import "intrinsic/math/proto/vector3.proto";
 
+option go_package = "intrinsic/math/proto/accel_go_proto";
+
 message Accel {
   Vector3 linear = 1;
   Vector3 angular = 2;
