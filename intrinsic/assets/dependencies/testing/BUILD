@@ -33,9 +33,7 @@ go_proto_library(
         "//intrinsic/assets/proto/v1:resolved_dependency_go_proto",
     ],
     visibility = [
-        "//intrinsic/assets/dependencies:__pkg__",
-        "//intrinsic/assets/services:__pkg__",
-        "//intrinsic/kubernetes/workcell_spec:__pkg__",
+        "//intrinsic/assets:__subpackages__",
     ],
     deps = [":test_configs_proto"],
 )
