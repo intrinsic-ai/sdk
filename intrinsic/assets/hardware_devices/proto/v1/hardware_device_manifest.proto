@@ -14,6 +14,8 @@ import "intrinsic/assets/proto/vendor.proto";
 import "intrinsic/assets/scene_objects/proto/scene_object_manifest.proto";
 import "intrinsic/assets/services/proto/service_manifest.proto";
 
+option go_package = "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest_go_proto";
+
 message HardwareDeviceManifest {
   message Asset {
     oneof variant {

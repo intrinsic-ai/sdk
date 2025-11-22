@@ -9,6 +9,8 @@ import "google/protobuf/descriptor.proto";
 import "intrinsic/assets/proto/asset_type.proto";
 import "intrinsic/assets/proto/id.proto";
 
+option go_package = "intrinsic/assets/build_defs/asset_go_proto";
+
 message AssetInfo {
   // The asset's type.
   intrinsic_proto.assets.AssetType asset_type = 1;

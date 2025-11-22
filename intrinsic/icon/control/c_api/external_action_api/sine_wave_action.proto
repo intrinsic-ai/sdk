@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.icon.external_actions;
 
+option go_package = "intrinsic/icon/control/c_api/external_action_api/sine_wave_action_go_proto";
+
 // Fixed parameters for SineWaveAction.
 // This action calculates the value of a sine wave with the given parameters
 // each cycle, and adds the result to the starting position for each joint.

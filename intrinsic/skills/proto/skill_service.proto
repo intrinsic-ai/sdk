@@ -15,6 +15,8 @@ import "intrinsic/skills/proto/prediction.proto";
 import "intrinsic/skills/proto/skills.proto";
 import "intrinsic/util/status/extended_status.proto";
 
+option go_package = "intrinsic/skills/proto/skill_service_go_proto";
+
 message PredictRequest {
   google.protobuf.Any parameters = 2;
 

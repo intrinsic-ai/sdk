@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.icon;
 
+option go_package = "intrinsic/icon/examples/joint_move_positions_go_proto";
+
 message JointMovePositions {
   repeated double joint_positions_1 = 1;
   repeated double joint_positions_2 = 2;

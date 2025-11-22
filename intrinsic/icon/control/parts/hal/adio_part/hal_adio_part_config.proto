@@ -6,6 +6,8 @@ package intrinsic_proto.icon;
 
 import "intrinsic/icon/control/parts/hal/v1/hal_part_config.proto";
 
+option go_package = "intrinsic/icon/control/parts/hal/adio_part/hal_adio_part_config_go_proto";
+
 // Config used to create an `ADIOPart` providing access to the configured inputs
 // and outputs.
 // It is possible to define multiple parts interacting with hardware modules.

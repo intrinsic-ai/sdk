@@ -6,6 +6,8 @@ package intrinsic_proto.icon;
 
 import "intrinsic/icon/control/parts/hal/v1/hal_part_config.proto";
 
+option go_package = "intrinsic/icon/control/parts/hal/linear_gripper_part/hal_linear_gripper_part_config_go_proto";
+
 message HalLinearGripperPartConfig {
   // Interfaces for linear gripper.
   intrinsic_proto.icon.v1.HardwareInterface status_interface = 1;

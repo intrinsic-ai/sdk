@@ -12,6 +12,8 @@ import "intrinsic/assets/proto/status_spec.proto";
 import "intrinsic/assets/proto/vendor.proto";
 import "intrinsic/skills/proto/equipment.proto";
 
+option go_package = "intrinsic/skills/proto/skill_manifest_go_proto";
+
 message PythonServiceConfig {
   // The module where the skill's create function is declared.
   string skill_module = 1;

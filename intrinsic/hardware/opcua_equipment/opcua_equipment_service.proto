@@ -11,6 +11,8 @@ import "intrinsic/hardware/gpio/v1/signal.proto";
 import "intrinsic/resources/proto/resource_handle.proto";
 import "intrinsic/world/proto/object_world_updates.proto";
 
+option go_package = "intrinsic/hardware/opcua_equipment/opcua_equipment_service_go_proto";
+
 message GpioServiceConfig {
   // Using `oneof` to keep the possibility of connecting to an existing GPIO
   // service instead of starting one.

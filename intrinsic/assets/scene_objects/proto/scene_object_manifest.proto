@@ -12,6 +12,8 @@ import "intrinsic/assets/proto/vendor.proto";
 import "intrinsic/scene/proto/v1/scene_object.proto";
 import "intrinsic/scene/proto/v1/scene_object_config.proto";
 
+option go_package = "intrinsic/assets/scene_objects/proto/scene_object_manifest_go_proto";
+
 message SceneObjectMetadata {
   // The scene object's id.
   intrinsic_proto.assets.Id id = 1;

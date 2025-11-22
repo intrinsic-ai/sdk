@@ -9,6 +9,8 @@ import "google/protobuf/descriptor.proto";
 import "intrinsic/resources/proto/resource_handle.proto";
 import "intrinsic/skills/proto/equipment.proto";
 
+option go_package = "intrinsic/skills/proto/skills_go_proto";
+
 message StringVector {
   repeated string values = 1;
 }

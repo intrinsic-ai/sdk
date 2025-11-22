@@ -8,6 +8,8 @@ import "google/protobuf/duration.proto";
 import "intrinsic/assets/proto/status_spec.proto";
 import "intrinsic/skills/proto/skills.proto";
 
+option go_package = "intrinsic/skills/proto/skill_service_config_go_proto";
+
 message PythonSkillServiceConfig {
   // The list of module names that need to be imported to run this skill
   // service.

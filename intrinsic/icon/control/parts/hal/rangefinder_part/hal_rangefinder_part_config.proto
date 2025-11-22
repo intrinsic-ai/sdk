@@ -7,6 +7,8 @@ package intrinsic_proto.icon;
 import "intrinsic/icon/control/parts/hal/v1/hal_part_config.proto";
 import "intrinsic/math/proto/pose.proto";
 
+option go_package = "intrinsic/icon/control/parts/hal/rangefinder_part/hal_rangefinder_part_config_go_proto";
+
 message HalRangefinderPartConfig {
   // Interface to the hardware module.
   intrinsic_proto.icon.v1.HardwareInterface interface = 1;

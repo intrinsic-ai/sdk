@@ -6,6 +6,8 @@ package intrinsic_proto.skills;
 
 import "intrinsic/skills/proto/footprint.proto";
 
+option go_package = "intrinsic/skills/proto/equipment_go_proto";
+
 message ResourceSelector {
   // The selector only matches Services that provide all of the gRPC services
   // specified here.

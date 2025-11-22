@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.skills;
 
+option go_package = "intrinsic/skills/proto/error_go_proto";
+
 // This message describes more detailed information about an error during
 // interacting with a skill. It is returned as a payload in the status of
 // Project and Execute.

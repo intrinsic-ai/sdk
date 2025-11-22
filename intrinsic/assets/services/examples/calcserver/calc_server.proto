@@ -7,6 +7,8 @@ package intrinsic_proto.services;
 import "intrinsic/assets/proto/field_metadata.proto";
 import "intrinsic/assets/proto/v1/resolved_dependency.proto";
 
+option go_package = "intrinsic/assets/services/examples/calcserver/calc_server_go_proto";
+
 enum CalculatorOperation {
   CALCULATOR_OPERATION_UNSPECIFIED = 0;
   CALCULATOR_OPERATION_ADD = 1;

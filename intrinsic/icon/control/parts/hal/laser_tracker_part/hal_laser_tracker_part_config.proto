@@ -6,6 +6,8 @@ package intrinsic_proto.icon;
 
 import "intrinsic/icon/control/parts/hal/v1/hal_part_config.proto";
 
+option go_package = "intrinsic/icon/control/parts/hal/laser_tracker_part/hal_laser_tracker_part_config_go_proto";
+
 message HalLaserTrackerPartConfig {
   // The laser_tracker_state hardware interface.
   intrinsic_proto.icon.v1.HardwareInterface laser_tracker_state = 1;

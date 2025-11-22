@@ -7,6 +7,8 @@ package intrinsic_proto.skills;
 import "google/protobuf/empty.proto";
 import "intrinsic/skills/proto/skills.proto";
 
+option go_package = "intrinsic/skills/proto/skill_registry_go_proto";
+
 message GetSkillsResponse {
   // The returned skills. The contents of this field will only be valid when
   // `status` is OK.

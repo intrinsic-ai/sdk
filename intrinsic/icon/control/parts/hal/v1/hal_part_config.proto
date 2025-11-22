@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.icon.v1;
 
+option go_package = "intrinsic/icon/control/parts/hal/v1/hal_part_config_go_proto";
+
 // Tuple of module and interface name to uniquely address a hardware interface.
 message HardwareInterface {
   // Name of the module.

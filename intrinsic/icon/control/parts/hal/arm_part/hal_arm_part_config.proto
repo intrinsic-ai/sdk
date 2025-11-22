@@ -9,6 +9,8 @@ import "intrinsic/icon/control/parts/proto/v1/mode_of_safe_operation_limits_conf
 import "intrinsic/icon/proto/joint_position_pid_torque_controller_config.proto";
 import "intrinsic/icon/proto/linear_joint_acceleration_filter_config.proto";
 
+option go_package = "intrinsic/icon/control/parts/hal/arm_part/hal_arm_part_config_go_proto";
+
 // Config specialization for a HAL arm part.
 // The config is assigning a hardware interface for each required feature
 // interface.

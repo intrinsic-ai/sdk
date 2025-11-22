@@ -8,6 +8,8 @@ import "intrinsic/icon/control/parts/hal/v1/hal_part_config.proto";
 import "intrinsic/icon/equipment/force_control_settings.proto";
 import "intrinsic/icon/proto/linear_joint_acceleration_filter_config.proto";
 
+option go_package = "intrinsic/icon/control/parts/hal/force_torque_sensor_part/hal_force_torque_sensor_part_config_go_proto";
+
 message HalForceTorqueSensorPartConfig {
   // Interfaces for FT sensor.
   oneof input_provider {

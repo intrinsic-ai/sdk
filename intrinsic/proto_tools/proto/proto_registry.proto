@@ -6,6 +6,8 @@ package intrinsic_proto.proto_registry;
 
 import "google/protobuf/descriptor.proto";
 
+option go_package = "intrinsic/proto_tools/proto/proto_registry_go_proto";
+
 service ProtoRegistry {
 
   // Get a specific named file descriptor set.

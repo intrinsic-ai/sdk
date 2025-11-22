@@ -7,6 +7,8 @@ package intrinsic_proto.skills;
 import "intrinsic/executive/proto/behavior_tree.proto";
 import "intrinsic/skills/proto/skills.proto";
 
+option go_package = "intrinsic/skills/proto/skill_registry_config_go_proto";
+
 message SkillRegistration {
   intrinsic_proto.skills.SkillHandle validate_handle = 1;
   intrinsic_proto.skills.SkillHandle project_handle = 2;

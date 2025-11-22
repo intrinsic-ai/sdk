@@ -7,6 +7,8 @@ package intrinsic_proto.any_conversion_service.v1;
 import "google/protobuf/any.proto";
 import "google/protobuf/descriptor.proto";
 
+option go_package = "intrinsic/frontend/any_conversion_service/v1/any_conversion_service_go_proto";
+
 service AnyConversionService {
   // Encodes an Any proto to the specified encoding.
   rpc Encode(EncodeRequest) returns (EncodeResponse) {}

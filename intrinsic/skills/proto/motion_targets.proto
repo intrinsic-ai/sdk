@@ -7,6 +7,8 @@ package intrinsic_proto.skills;
 import "intrinsic/math/proto/pose.proto";
 import "intrinsic/world/proto/entity_search.proto";
 
+option go_package = "intrinsic/skills/proto/motion_targets_go_proto";
+
 message CartesianMotionTarget {
   // The frame on the tool that you want to move to align with frame and offset.
   intrinsic_proto.world.EntitySearchCriteria tool = 1;

@@ -9,6 +9,8 @@ import "google/api/field_behavior.proto";
 import "google/longrunning/operations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
+option go_package = "intrinsic/frontend/cloud/api/v1alpha1/clustermanager_api_go_proto";
+
 // LogReceiver defines a networked syslog server that will receive system
 // logs. This can be used to send security-relevant logs to a SIEM.
 message LogReceiver {

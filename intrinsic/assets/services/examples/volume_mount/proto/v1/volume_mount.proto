@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.services.v1;
 
+option go_package = "intrinsic/assets/services/examples/volume_mount/proto/v1/volume_mount_go_proto";
+
 // VolumeMountConfig configures a volume mount service.
 message VolumeMountConfig {
   // A map of files to be added to the mounted volumes on startup.
