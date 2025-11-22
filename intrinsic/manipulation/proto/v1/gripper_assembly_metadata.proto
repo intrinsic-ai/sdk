@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.manipulation.v1;
 
+import "intrinsic/assets/proto/id.proto";
 import "intrinsic/math/proto/pose.proto";
 import "intrinsic/math/proto/vector3.proto";
 import "intrinsic/scene/proto/v1/scene_object.proto";
@@ -40,8 +41,8 @@ message GripperBase {
   string gripper_base_id = 1;
 
   oneof gripper_base {
-    // Scene object associated with the gripper base.
-    intrinsic_proto.scene_object.v1.SceneObject gripper_base_scene_object = 2;
+    // Scene object asset identifier for the gripper base.
+    intrinsic_proto.assets.Id gripper_base_asset_id = 5;
   }
 
   oneof exerted_effort {
@@ -50,6 +51,9 @@ message GripperBase {
     // The maximum pressure exerted on the gripper base in Pascal.
     float max_pressure_in_pascal = 4;
   }
+
+  reserved 2;
+  reserved "gripper_base_scene_object";
 }
 
 message GripperPeripheral {
@@ -65,9 +69,8 @@ message GripperPeripheral {
   PeripheralType type = 2;
 
   oneof gripper_peripheral {
-    // Scene object associated with the gripper peripheral.
-    intrinsic_proto.scene_object.v1.SceneObject
-        gripper_peripheral_scene_object = 3;
+    // Scene object asset identifier for the gripper peripheral.
+    intrinsic_proto.assets.Id gripper_peripheral_asset_id = 8;
   }
 
   // The pose where the gripper peripheral attaches to the gripper base.
@@ -78,6 +81,9 @@ message GripperPeripheral {
     SuctionCupSpecs suction_cup_specs = 6;
     SpacerSpecs spacer_specs = 7;
   }
+
+  reserved 3;
+  reserved "gripper_peripheral_scene_object";
 }
 
 message ParallelPinchAssemblySpecs {

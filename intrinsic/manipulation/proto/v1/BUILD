@@ -15,6 +15,7 @@ proto_library(
     srcs = ["gripper_assembly_metadata.proto"],
     visibility = ["//intrinsic:internal_api_users"],
     deps = [
+        "//intrinsic/assets/proto:id_proto",
         "//intrinsic/math/proto:pose_proto",
         "//intrinsic/math/proto:vector3_proto",
         "//intrinsic/scene/proto/v1:scene_object_proto",
