@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.grasping;
 
+option go_package = "intrinsic/manipulation/grasping/grasp_adapter_params_go_proto";
+
 message GraspAdaptersParams {
   // Parameters for top-down adapter.
   optional TopDownAdapterParams top_down_adapter_params = 1;

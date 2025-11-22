@@ -8,6 +8,8 @@ import "intrinsic/math/proto/point.proto";
 import "intrinsic/world/proto/collision_settings.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 
+option go_package = "intrinsic/manipulation/grasping/grasp_placement_constraint_go_proto";
+
 // The placement constraint of the exact placement pose to be satisfied during
 // grasp planning.
 message PlacementPoseConstraint {

@@ -14,6 +14,8 @@ import "intrinsic/motion_planning/proto/v1/geometric_constraints.proto";
 import "intrinsic/perception/proto/v1/pose_estimate_in_root.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 
+option go_package = "intrinsic/manipulation/grasping/grasp_go_proto";
+
 message GraspCommand {
   oneof grasp_command {
     intrinsic_proto.eoat.GraspRequest grasp_request = 1;

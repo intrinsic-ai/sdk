@@ -8,6 +8,8 @@ import "intrinsic/motion_planning/proto/v1/motion_planning_limits.proto";
 import "intrinsic/motion_planning/proto/v1/motion_specification.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 
+option go_package = "intrinsic/manipulation/grasping/grasp_execution_planner_params_go_proto";
+
 message GraspExecutionPlannerParams {
   // The robot to execute a grasp.
   string robot_name = 1;

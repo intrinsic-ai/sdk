@@ -10,6 +10,8 @@ import "intrinsic/manipulation/grasping/grasp_ranker_params.proto";
 import "intrinsic/manipulation/proto/workspace.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 
+option go_package = "intrinsic/manipulation/grasping/grasp_planner_params_go_proto";
+
 message GraspPlannerParams {
   oneof params {
     BaseGraspPlannerParams base_grasp_planner_params = 1;

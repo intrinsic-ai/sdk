@@ -6,6 +6,8 @@ package intrinsic_proto.grasping;
 
 import "intrinsic/math/proto/pose.proto";
 
+option go_package = "intrinsic/manipulation/grasping/schmalz_multi_axis_grasp_go_proto";
+
 // Catesian-pose based grasp annotation for Schmalz multi-axis grippers
 // that specifies the plate poses and suction cups to activate.
 // This gripper has 6 linear axis motors driving 4 plates, where each plate

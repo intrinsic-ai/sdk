@@ -8,6 +8,8 @@ import "intrinsic/kinematics/types/joint_limits.proto";
 import "intrinsic/manipulation/grasping/grasp_placement_constraint.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 
+option go_package = "intrinsic/manipulation/grasping/grasp_ranker_params_go_proto";
+
 message GraspRankersParams {
   reserved 1;
 

@@ -7,6 +7,8 @@ package intrinsic_proto.grasping;
 import "intrinsic/math/proto/pose.proto";
 import "intrinsic/math/proto/vector3.proto";
 
+option go_package = "intrinsic/manipulation/grasping/grasp_annotations_go_proto";
+
 message GraspAnnotations {
   oneof grasp_annotations {
     BoxShapedGraspAnnotationParams box_shaped_grasp_annotations = 1;

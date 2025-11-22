@@ -11,6 +11,8 @@ import "intrinsic/math/proto/pose.proto";
 import "intrinsic/math/proto/vector2.proto";
 import "intrinsic/math/proto/vector3.proto";
 
+option go_package = "intrinsic/manipulation/grasping/grasp_annotator_go_proto";
+
 message MeshData {
   message MeshBytesData {
     // The mesh data as bytes.
