@@ -8,6 +8,8 @@ import "google/protobuf/empty.proto";
 import "intrinsic/executive/proto/behavior_tree.proto";
 import "intrinsic/frontend/solution_service/proto/status.proto";
 
+option go_package = "intrinsic/frontend/solution_service/proto/solution_service_go_proto";
+
 // Manages the running solution.
 service SolutionService {
 

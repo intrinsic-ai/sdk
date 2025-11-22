@@ -7,6 +7,8 @@ package intrinsic_proto.processes;
 import "intrinsic/assets/proto/metadata.proto";
 import "intrinsic/executive/proto/behavior_tree.proto";
 
+option go_package = "intrinsic/assets/processes/proto/process_asset_go_proto";
+
 // A processed, portable representation of a Process asset.
 message ProcessAsset {
   // Metadata about the asset, such as package, ID, release notes, etc.

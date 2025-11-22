@@ -8,6 +8,8 @@ import "google/protobuf/timestamp.proto";
 import "google/rpc/status.proto";
 import "intrinsic/hardware/gpio/v1/signal.proto";
 
+option go_package = "intrinsic/hardware/gpio/v1/gpio_service_go_proto";
+
 message GetSignalDescriptionsRequest {}
 
 message GetSignalDescriptionsResponse {

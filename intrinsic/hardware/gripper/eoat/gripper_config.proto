@@ -6,6 +6,8 @@ package intrinsic_proto.eoat;
 
 import "intrinsic/hardware/gpio/v1/signal.proto";
 
+option go_package = "intrinsic/hardware/gripper/eoat/gripper_config_go_proto";
+
 message SignalConfig {
   // `oneof` is used to allow for future handling of more types
   oneof type {

@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.solution.v1;
 
+option go_package = "intrinsic/frontend/solution_service/proto/status_go_proto";
+
 message Status {
   enum State {
     // The state of the solution is not specified. The solution should not be

@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.gpio.v1;
 
+option go_package = "intrinsic/hardware/gpio/v1/signal_go_proto";
+
 // 8-bit signed type.
 message Int8 {
   // Valid values are in the range [-128, 127].

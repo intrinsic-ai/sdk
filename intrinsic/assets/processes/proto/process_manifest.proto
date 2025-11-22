@@ -10,6 +10,8 @@ import "intrinsic/assets/proto/id.proto";
 import "intrinsic/assets/proto/vendor.proto";
 import "intrinsic/executive/proto/behavior_tree.proto";
 
+option go_package = "intrinsic/assets/processes/proto/process_manifest_go_proto";
+
 message ProcessMetadata {
   // The Process asset's id.
   intrinsic_proto.assets.Id id = 1;
