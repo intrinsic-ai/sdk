@@ -10,6 +10,7 @@ from intrinsic.math.proto import matrix_pb2
 from intrinsic.math.proto import point_pb2
 from intrinsic.math.proto import pose_pb2
 from intrinsic.math.proto import quaternion_pb2
+from intrinsic.math.proto import twist_pb2
 from intrinsic.math.proto import vector3_pb2
 from intrinsic.math.python import data_types
 import numpy as np
@@ -217,6 +218,30 @@ def pose_to_proto(pose: data_types.Pose3) -> pose_pb2.Pose:
     quat = quat.normalize()
   msg.orientation.CopyFrom(quaternion_to_proto(quat))
   return msg
+
+
+def twist_from_proto(twist_proto: twist_pb2.Twist) -> data_types.Twist:
+  """Convert a twist proto to a data_types.Twist object."""
+  return data_types.Twist(
+      linear=[twist_proto.linear.x, twist_proto.linear.y, twist_proto.linear.z],
+      angular=[
+          twist_proto.angular.x,
+          twist_proto.angular.y,
+          twist_proto.angular.z,
+      ],
+  )
+
+
+def twist_to_proto(twist: data_types.Twist) -> twist_pb2.Twist:
+  """Convert a data_types.Twist object to a twist proto."""
+  return twist_pb2.Twist(
+      linear=vector3_pb2.Vector3(
+          x=twist.linear[0], y=twist.linear[1], z=twist.linear[2]
+      ),
+      angular=vector3_pb2.Vector3(
+          x=twist.angular[0], y=twist.angular[1], z=twist.angular[2]
+      ),
+  )
 
 
 def wrench_from_proto(wrench: cart_space_pb2.Wrench) -> data_types.Wrench:

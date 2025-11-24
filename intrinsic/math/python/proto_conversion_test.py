@@ -12,6 +12,7 @@ from intrinsic.math.proto import matrix_pb2
 from intrinsic.math.proto import point_pb2
 from intrinsic.math.proto import pose_pb2
 from intrinsic.math.proto import quaternion_pb2
+from intrinsic.math.proto import twist_pb2
 from intrinsic.math.proto import vector3_pb2
 from intrinsic.math.python import data_types
 from intrinsic.math.python import proto_conversion
@@ -236,6 +237,25 @@ class ProtoConversionTest(parameterized.TestCase):
     )
     # We expect bit-wise equality
     self.assertEqual(result_proto, pose_proto)
+
+  def test_twist_from_proto(self):
+    twist_expected = data_types.Twist(linear=[1, 2, 3], angular=[0.1, 0.2, 0.3])
+    twist_proto = twist_pb2.Twist(
+        linear=vector3_pb2.Vector3(x=1, y=2, z=3),
+        angular=vector3_pb2.Vector3(x=0.1, y=0.2, z=0.3),
+    )
+    twist = proto_conversion.twist_from_proto(twist_proto)
+    self.assertTrue(np.array_equal(twist.linear, twist_expected.linear))
+    self.assertTrue(np.array_equal(twist.angular, twist_expected.angular))
+
+  def test_twist_to_proto(self):
+    twist_proto_expected = twist_pb2.Twist(
+        linear=vector3_pb2.Vector3(x=1, y=2, z=3),
+        angular=vector3_pb2.Vector3(x=0.1, y=0.2, z=0.3),
+    )
+    twist = data_types.Twist(linear=[1, 2, 3], angular=[0.1, 0.2, 0.3])
+    twist_proto = proto_conversion.twist_to_proto(twist)
+    self.assertEqual(twist_proto, twist_proto_expected)
 
   def test_wrench_from_proto(self):
     wrench_proto = cart_space_pb2.Wrench(x=1, y=2, z=3, rx=4, ry=5, rz=6)

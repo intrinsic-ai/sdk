@@ -17,6 +17,7 @@ py_library(
         "//intrinsic/math/proto:point_py_pb2",
         "//intrinsic/math/proto:pose_py_pb2",
         "//intrinsic/math/proto:quaternion_py_pb2",
+        "//intrinsic/math/proto:twist_py_pb2",
         "//intrinsic/math/proto:vector3_py_pb2",
         "@ai_intrinsic_sdks_pip_deps//numpy",
     ],
