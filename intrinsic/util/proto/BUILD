@@ -211,7 +211,6 @@ cc_library(
         ":type_url",
         "//intrinsic/util/status:status_builder",
         "//intrinsic/util/status:status_macros",
-        "@abseil-cpp//absl/base:core_headers",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
         "@abseil-cpp//absl/strings",

@@ -4,9 +4,9 @@
 #define INTRINSIC_UTIL_PROTO_PARSED_TYPE_URL_H_
 
 #include <ostream>
+#include <string>
 #include <string_view>
 
-#include "absl/base/attributes.h"
 #include "absl/status/statusor.h"
 
 namespace intrinsic {
@@ -33,24 +33,22 @@ namespace intrinsic {
 // |- custom prefix-|-area-|-----path-----|----- message type --------|
 //
 struct ParsedUrl {
-  std::string_view type_url;
-  std::string_view prefix;
-  std::string_view area;
-  std::string_view path;
-  std::string_view message_type;
+  std::string type_url;
+  std::string prefix;
+  std::string area;
+  std::string path;
+  std::string message_type;
 };
 
 std::ostream& operator<<(std::ostream& os, const ParsedUrl& parsed_url);
 
 // Parses a complete type URL into its parts.
-absl::StatusOr<ParsedUrl> ParseTypeUrl(
-    std::string_view type_url ABSL_ATTRIBUTE_LIFETIME_BOUND);
+absl::StatusOr<ParsedUrl> ParseTypeUrl(std::string_view type_url);
 
 // Parses a type URL prefix, i.e., a type URL without the message type.
 // This can end in a '/' or not.
 // The message_type field in the returned ParsedUrl will be empty.
-absl::StatusOr<ParsedUrl> ParseTypeUrlPrefix(
-    std::string_view type_url_prefix ABSL_ATTRIBUTE_LIFETIME_BOUND);
+absl::StatusOr<ParsedUrl> ParseTypeUrlPrefix(std::string_view type_url_prefix);
 
 }  // namespace intrinsic
 

@@ -7,7 +7,6 @@
 #include <string_view>
 #include <utility>
 
-#include "absl/base/attributes.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
@@ -26,8 +25,8 @@ namespace {
 // On success returns the partially filled ParsedUrl and the remainder of the
 // type_url starting after the '/' from the 'area' part.
 absl::StatusOr<std::pair<ParsedUrl, std::string_view>> ParseTypeUrlToArea(
-    std::string_view type_url ABSL_ATTRIBUTE_LIFETIME_BOUND) {
-  ParsedUrl parsed_url = {.type_url = type_url};
+    std::string_view type_url) {
+  ParsedUrl parsed_url = {.type_url = std::string(type_url)};
 
   if (!type_url.starts_with(kIntrinsicTypeUrlPrefix)) {
     std::string message =
@@ -64,16 +63,15 @@ absl::StatusOr<std::pair<ParsedUrl, std::string_view>> ParseTypeUrlToArea(
 
   parsed_url.area = area_and_remainder.first;
 
-  return std::make_pair(parsed_url, area_and_remainder.second);
+  return std::make_pair(std::move(parsed_url), area_and_remainder.second);
 }
 
 }  // namespace
 
-absl::StatusOr<ParsedUrl> ParseTypeUrl(
-    std::string_view type_url ABSL_ATTRIBUTE_LIFETIME_BOUND) {
+absl::StatusOr<ParsedUrl> ParseTypeUrl(std::string_view type_url) {
   INTR_ASSIGN_OR_RETURN(auto parsed_url_and_remainder,
                         ParseTypeUrlToArea(type_url));
-  ParsedUrl& parsed_url = parsed_url_and_remainder.first;
+  ParsedUrl parsed_url = std::move(parsed_url_and_remainder.first);
   std::string_view remainder_after_area = parsed_url_and_remainder.second;
 
   std::string_view::size_type last_slash_pos =
@@ -106,11 +104,10 @@ absl::StatusOr<ParsedUrl> ParseTypeUrl(
   return parsed_url;
 }
 
-absl::StatusOr<ParsedUrl> ParseTypeUrlPrefix(
-    std::string_view type_url_prefix ABSL_ATTRIBUTE_LIFETIME_BOUND) {
+absl::StatusOr<ParsedUrl> ParseTypeUrlPrefix(std::string_view type_url_prefix) {
   INTR_ASSIGN_OR_RETURN(auto parsed_url_and_remainder,
                         ParseTypeUrlToArea(type_url_prefix));
-  ParsedUrl& parsed_url = parsed_url_and_remainder.first;
+  ParsedUrl parsed_url = std::move(parsed_url_and_remainder.first);
   std::string_view remainder_after_area = parsed_url_and_remainder.second;
 
   if (remainder_after_area.ends_with(kTypeUrlSeparator)) {
