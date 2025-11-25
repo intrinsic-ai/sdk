@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.executive;
 
+import "google/api/field_behavior.proto";
 import "google/protobuf/descriptor.proto";
 import "intrinsic/executive/proto/any_with_assignments.proto";
 
@@ -48,4 +49,8 @@ message CodeExecution {
   // be defined in the same proto file, else the code execution will fail. The
   // file descriptor set can be created with the proto builder service.
   google.protobuf.FileDescriptorSet file_descriptor_set = 6;
+
+  // Messages emitted to stdout during execution. This would include things like
+  // the output of print() statements.
+  repeated string stdout = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
 }

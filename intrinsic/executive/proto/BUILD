@@ -49,6 +49,7 @@ proto_library(
     srcs = ["code_execution.proto"],
     deps = [
         ":any_with_assignments_proto",
+        "@com_google_googleapis//google/api:field_behavior_proto",
         "@com_google_protobuf//:descriptor_proto",
     ],
 )
@@ -65,7 +66,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "code_execution_go_proto",
-    go_deps = [":any_with_assignments_go_proto"],
+    go_deps = [
+        ":any_with_assignments_go_proto",
+        "@org_golang_google_genproto_googleapis_api//annotations",
+    ],
     deps = [":code_execution_proto"],
 )
 
