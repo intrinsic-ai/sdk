@@ -13,6 +13,7 @@ go_library(
     ],
     deps = [
         "//intrinsic/tools/inctl/cmd:root",
+        "//intrinsic/tools/inctl/cmd/solution/delete",
         "//intrinsic/tools/inctl/cmd/solution/get",
         "//intrinsic/tools/inctl/cmd/solution/list",
         "//intrinsic/tools/inctl/cmd/solution/start",

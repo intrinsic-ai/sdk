@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"intrinsic/tools/inctl/cmd/root"
+	"intrinsic/tools/inctl/cmd/solution/delete/delete"
 	"intrinsic/tools/inctl/cmd/solution/get/get"
 	"intrinsic/tools/inctl/cmd/solution/list/list"
 	"intrinsic/tools/inctl/cmd/solution/start/start"
@@ -28,6 +29,7 @@ func init() {
 	SolutionCmd.AddCommand(list.NewCommand())
 	SolutionCmd.AddCommand(start.NewCommand())
 	SolutionCmd.AddCommand(stop.NewCommand())
+	SolutionCmd.AddCommand(delete.NewCommand())
 
 	root.RootCmd.AddCommand(SolutionCmd)
 }
