@@ -162,7 +162,7 @@ const (
 
 	rtService resourceType = iota
 	rtSkill
-	rtResource
+	rtAsset
 )
 
 type cmdParams struct {
@@ -192,8 +192,8 @@ func buildPrefix(params *cmdParams) string {
 			parts = append(parts, "Skill")
 		case rtService:
 			parts = append(parts, "Service")
-		case rtResource:
-			parts = append(parts, "Resource")
+		case rtAsset:
+			parts = append(parts, "Asset")
 		}
 	}
 	if params.prefixID {
@@ -342,9 +342,9 @@ func setResourceID(resType resourceType, id string) url.Values {
 	switch resType {
 	case rtSkill:
 		result.Add(paramSkillID, id)
-	case rtResource:
 	case rtService:
 		result.Add(paramResourceID, id)
+	case rtAsset:
 	default:
 	}
 	return result

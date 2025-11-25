@@ -31,7 +31,7 @@ const (
 	keyTimestamps    = "timestamps"
 	keyTypeService   = "service"
 	keyTypeSkill     = "skill"
-	keyTypeResource  = "resource"
+	keyTypeAsset     = "asset"
 	keyHiddenDebug   = "debug"
 	keyOnpremAddress = "onprem_address"
 )
@@ -60,7 +60,7 @@ var (
 		Explicitly specify org and solution:
 		inctl logs --org <organization@project-id> --solution <solution-id> --(target) <target-name-1> ... `,
 		Short: "Prints logs from skills or services in a given solution",
-		Long:  "Prints resource logs (skill or service) from the instance running in a given solution.",
+		Long:  "Prints target logs (skill or service) from the instance running in a given solution.",
 		Args:  cobra.NoArgs,
 		RunE:  runLogsCmd,
 	}
@@ -80,8 +80,8 @@ func runLogsCmd(cmd *cobra.Command, args []string) error {
 
 	skillIDs := cmdFlags.GetStringSlice(keyTypeSkill)
 	serviceNames := cmdFlags.GetStringSlice(keyTypeService)
-	var resourceNames []string
-	if len(skillIDs) == 0 && len(serviceNames) == 0 && len(resourceNames) == 0 {
+	var assetNames []string
+	if len(skillIDs) == 0 && len(serviceNames) == 0 && len(assetNames) == 0 {
 		cmd.PrintErrln("Error: at least one target must be specified.")
 		return cmd.Help()
 	}
@@ -211,5 +211,5 @@ func init() {
 	// For using the onprem address to fetch logs
 	cmdFlags.OptionalString(keyOnpremAddress, "", "The onprem address (host:port) of the workcell. Used to circumvent the need of routing through the cloud, if the workcell is running in the same network as the inctl")
 
-	cmdFlags.MarkHidden(cmdutils.KeyContext, cmdutils.KeyProject, keyTypeResource)
+	cmdFlags.MarkHidden(cmdutils.KeyContext, cmdutils.KeyProject, keyTypeAsset)
 }
