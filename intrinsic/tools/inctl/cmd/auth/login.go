@@ -170,21 +170,15 @@ func loginCmdE(cmd *cobra.Command, _ []string) (err error) {
 		return err
 	}
 
-	if apiKey != "" && isBatch {
-		_, err = authStore.WriteConfiguration(&auth.ProjectConfiguration{
-			Name:   projectName,
-			Tokens: map[string]*auth.ProjectToken{alias: &auth.ProjectToken{APIKey: apiKey}},
-		})
+	if apiKey == "" && !isBatch {
+		apiKey, err = queryForAPIKey(cmd.Context(), writer, in, orgName, projectName)
 		if err != nil {
 			return err
 		}
 	}
 
 	if apiKey == "" {
-		apiKey, err = queryForAPIKey(cmd.Context(), writer, in, org, projectName)
-		if err != nil {
-			return err
-		}
+		return fmt.Errorf("API key is empty. Please provide an API key")
 	}
 
 	// If we are passed a pure org, we don't know the project yet
