@@ -8,6 +8,7 @@ import "intrinsic/icon/proto/joint_space.proto";
 
 option java_multiple_files = true;
 option java_outer_classname = "MotionPlanningProtos";
+option go_package = "intrinsic/motion_planning/proto/v1/motion_planning_go_proto";
 
 message Path {
   repeated intrinsic_proto.icon.JointVec waypoints = 1;

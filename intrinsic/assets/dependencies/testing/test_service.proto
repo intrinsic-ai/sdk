@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.assets.dependencies.testing;
 
+option go_package = "intrinsic/assets/dependencies/testing/test_service_go_proto";
+
 service TestService {
   // Test method.
   rpc Test(TestRequest) returns (TestResponse) {}

@@ -10,6 +10,7 @@ import "intrinsic/world/proto/object_world_refs.proto";
 
 option java_multiple_files = true;
 option java_outer_classname = "GripperExchangeProtos";
+option go_package = "intrinsic/manipulation/proto/v1/gripper_exchange_service_go_proto";
 
 message GripperExchangeConfig {
   string ingress_address = 1;

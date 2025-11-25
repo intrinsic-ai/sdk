@@ -56,6 +56,6 @@ func main() {
 		os.Exit(2)
 	}
 	fmt.Printf("Warning: option go_package not found in %s\n", protoFilePath)
-	// fmt.Fprintf(os.Stderr, "ERROR: Could not find 'option go_package' in %s\n", protoFilePath)
+	// fmt.Fprintf(os.Stderr, "ERROR: Could not find 'option go_package' in %s\nPlease add the following to the proto file\noption go_package = \"%s\";", protoFilePath, expectedImportPath)
 	// os.Exit(1)
 }

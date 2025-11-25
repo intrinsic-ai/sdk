@@ -4,6 +4,8 @@ syntax = "proto3";
 
 package intrinsic_proto.assets.v1;
 
+option go_package = "intrinsic/assets/proto/v1/grpc_connection_go_proto";
+
 // GrpcConnection defines the requirements to be able to establish a gRPC
 // connection to a service.  This is typically done within some context, such as
 // within the cluster, that should be documented where this is used.

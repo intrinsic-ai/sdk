@@ -6,6 +6,8 @@ package intrinsic_proto.pubsub.cloud_router_provisioner.v1;
 
 import "intrinsic/platform/pubsub/admin_set_grpc/v1/admin_set.proto";
 
+option go_package = "intrinsic/platform/pubsub/cloud_router_provisioner/v1/provisioner_go_proto";
+
 // RouterProvisionRequest is the request for Provision.
 message RouterProvisionRequest {
   string organization_id = 1;
