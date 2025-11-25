@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"intrinsic/config/environments"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/orgutil"
@@ -22,9 +23,7 @@ import (
 	accdiscoverv1grpcpb "intrinsic/kubernetes/accounts/service/api/v1/discoveryapi_go_grpc_proto"
 )
 
-var (
-	flagOrg string
-)
+var printDebugInfoParams = viper.New()
 
 func init() {
 	authCmd.AddCommand(printDebugInfoCmd)
@@ -41,13 +40,13 @@ var printDebugInfoCmdHelp = `
 Prints debug information to diagnose issues with authentication.
 `
 
-var printDebugInfoCmd = &cobra.Command{
+var printDebugInfoCmd = orgutil.WrapCmd(&cobra.Command{
 	Use:   "debuginfo",
 	Short: "Prints debug information to diagnose issues with authentication.",
 	Long:  printDebugInfoCmdHelp,
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		flagOrg := viperLocal.GetString(orgutil.KeyOrganization)
+		flagOrg := printDebugInfoParams.GetString(orgutil.KeyOrganization)
 		ctx := cmd.Context()
 		for _, domain := range domains {
 			debugDomain(ctx, domain)
@@ -55,7 +54,7 @@ var printDebugInfoCmd = &cobra.Command{
 		debugAuthStore(ctx, flagOrg)
 		return nil
 	},
-}
+}, printDebugInfoParams, orgutil.WithOrgExistsCheck(func() bool { return checkOrgExists }))
 
 func debugAuthStore(ctx context.Context, org string) {
 	fmt.Printf("Configuration for org %s: ", org)

@@ -15,7 +15,7 @@ const (
 )
 
 var (
-	revokeCmdFlags = cmdutils.NewCmdFlagsWithViper(viperLocal)
+	revokeCmdFlags = cmdutils.NewCmdFlags()
 )
 
 var revokeCmd = &cobra.Command{
@@ -79,6 +79,8 @@ func init() {
 	authCmd.AddCommand(revokeCmd)
 
 	revokeCmdFlags.SetCommand(revokeCmd)
+	revokeCmdFlags.AddFlagsProjectOrgOptional()
+	revokeCmdFlags.MarkHidden(orgutil.KeyProject)
 	revokeCmdFlags.OptionalBool(keyRevokeAll, false, fmt.Sprintf("Revokes all existing credentials. If --%s is omitted, removes all known credentials", orgutil.KeyOrganization))
 	revokeCmdFlags.OptionalBool(keyBatch, false, "Suppresses command prompts and assume Yes or default as an answer. Use with shell scripts.")
 }

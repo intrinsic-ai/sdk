@@ -42,26 +42,28 @@ var (
 	queryProjects = queryProjectsForAPIKey
 )
 
-var loginParams *viper.Viper
+var loginParams = viper.New()
+var loginCmd = orgutil.WrapCmd(
+	&cobra.Command{
+		Use:   "login",
+		Short: "Logs in user into Flowstate",
+		Long:  "Logs in user into Flowstate to allow interactions with solutions.",
+		Args:  cobra.NoArgs,
+		RunE:  loginCmdE,
+		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
+			if err := orgutil.ValidateEnvironment(loginParams); err != nil {
+				return err
+			}
 
-var loginCmd = &cobra.Command{
-	Use:   "login",
-	Short: "Logs in user into Flowstate",
-	Long:  "Logs in user into Flowstate to allow interactions with solutions.",
-	Args:  cobra.NoArgs,
-	RunE:  loginCmdE,
-
-	PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
-		if loginParams.GetString(orgutil.KeyProject) == "" && loginParams.GetString(orgutil.KeyOrganization) == "" {
-			return fmt.Errorf("at least one of --project or --org needs to be set")
-		}
-		if err := orgutil.ValidateEnvironment(loginParams); err != nil {
-			return err
-		}
-
-		return nil
+			return nil
+		},
 	},
-}
+	loginParams,
+	orgutil.WithOrgExistsCheck(func() bool {
+		// The login command only creates the org, so we must disable the flag check which happens before.
+		return false
+	}),
+)
 
 func readAPIKeyFromPipe(reader *bufio.Reader) (string, error) {
 	fi, _ := os.Stdin.Stat()
@@ -157,6 +159,7 @@ func loginCmdE(cmd *cobra.Command, _ []string) (err error) {
 	writer := cmd.OutOrStdout()
 	projectName := loginParams.GetString(orgutil.KeyProject)
 	orgName := loginParams.GetString(orgutil.KeyOrganization)
+	org := orgutil.QualifiedOrg(projectName, orgName)
 	in := bufio.NewReader(cmd.InOrStdin())
 	// In the future multiple aliases should be supported for one project.
 	alias := auth.AliasDefaultToken
@@ -165,13 +168,6 @@ func loginCmdE(cmd *cobra.Command, _ []string) (err error) {
 	apiKey, err := readAPIKeyFromPipe(in)
 	if err != nil {
 		return err
-	}
-
-	if projectName == "" {
-		parts := strings.Split(orgName, "@")
-		if len(parts) == 2 {
-			projectName = parts[1]
-		}
 	}
 
 	if apiKey != "" && isBatch {
@@ -185,15 +181,14 @@ func loginCmdE(cmd *cobra.Command, _ []string) (err error) {
 	}
 
 	if apiKey == "" {
-		apiKey, err = queryForAPIKey(cmd.Context(), writer, in, orgName, projectName)
+		apiKey, err = queryForAPIKey(cmd.Context(), writer, in, org, projectName)
 		if err != nil {
 			return err
 		}
 	}
 
-	// If we are passed an org, we don't know the project yet
+	// If we are passed a pure org, we don't know the project yet
 	if projectName == "" {
-		// orgName is always pure here (without @) because projectName is set above if org includes "@".
 		projects, err := queryProjects(cmd.Context(), apiKey, orgName)
 		if err != nil {
 			return fmt.Errorf("query project: %w", err)
@@ -204,13 +199,13 @@ func loginCmdE(cmd *cobra.Command, _ []string) (err error) {
 		}
 		if len(projects) > 1 {
 			slices.Sort(projects)
-			return fmt.Errorf("multiple projects found for API key (and org %q): %+v", orgName, projects)
+			return fmt.Errorf("multiple projects found for API key (and org %q): %+v", org, projects)
 		}
 		// exactly one found
 		projectName = projects[0]
 	}
-	if orgName != "" {
-		if err := authStore.WriteOrgInfo(&auth.OrgInfo{Organization: orgName, Project: projectName}); err != nil {
+	if org != "" {
+		if err := authStore.WriteOrgInfo(&auth.OrgInfo{Organization: org, Project: projectName}); err != nil {
 			return fmt.Errorf("store org info: %w", err)
 		}
 	}
@@ -239,13 +234,11 @@ func init() {
 
 	flags := loginCmd.Flags()
 	// we will use viper to fetch data, we do not need local variables
-	flags.StringP(orgutil.KeyProject, keyProjectShort, "", "Name of the Google cloud project to authorize for")
-	flags.StringP(orgutil.KeyOrganization, "", "", "Name of the Intrinsic organization to authorize for")
 	flags.Bool(keyNoBrowser, false, "Disables attempt to open login URL in browser automatically")
 	flags.Bool(keyBatch, false, "Suppresses command prompts and assume Yes or default as an answer. Use with shell scripts.")
 	flags.String(orgutil.KeyEnvironment, "", fmt.Sprintf("Auth environment to use. This should be one of %v. %q is used by default. See http://go/intrinsic-users#environments for the compatible environment corresponding to a cloud project.", strings.Join(env.All, ", "), env.Prod))
 	flags.MarkHidden(orgutil.KeyEnvironment)
 	flags.MarkHidden(orgutil.KeyProject)
 
-	loginParams = viperutil.BindToViper(flags, viperutil.BindToListEnv(orgutil.KeyProject, orgutil.KeyOrganization, orgutil.KeyEnvironment))
+	viperutil.BindFlags(loginParams, flags, viperutil.BindToListEnv(orgutil.KeyEnvironment))
 }

@@ -6,16 +6,15 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/spf13/cobra"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/cmd/root"
-	// "intrinsic/tools/inctl/util/orgutil"
-	"github.com/spf13/cobra"
 	"intrinsic/tools/inctl/util/printer"
 )
 
 var (
-	listCmdFlags = cmdutils.NewCmdFlagsWithViper(viperLocal)
+	listCmdFlags = cmdutils.NewCmdFlags()
 )
 
 const (

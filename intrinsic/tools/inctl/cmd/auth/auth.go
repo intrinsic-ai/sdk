@@ -8,10 +8,8 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/cmd/root"
-	"intrinsic/tools/inctl/util/orgutil"
 	"intrinsic/tools/inctl/util/printer"
 )
 
@@ -21,8 +19,11 @@ const (
 	keyBatch        = "batch"
 )
 
-// Can be overwridden/injected in tests.
-var authStore = auth.NewStore()
+// Exposed for testing
+var (
+	authStore      = auth.NewStore()
+	checkOrgExists = true
+)
 
 func setPrinterFromOutputFlag(command *cobra.Command, args []string) (err error) {
 	if out, err := printer.NewPrinter(root.FlagOutput); err == nil {
@@ -31,19 +32,14 @@ func setPrinterFromOutputFlag(command *cobra.Command, args []string) (err error)
 	return
 }
 
-var (
-	viperLocal = viper.New()
-)
-
-var authCmd = orgutil.WrapCmd(&cobra.Command{
+var authCmd = &cobra.Command{
 	Use:   "auth",
 	Short: "Manages user authorization",
 	Long:  "Manages user authorization for accessing solutions in the project.",
 	// Catching common typos and potential alternatives
-	SuggestFor:         []string{"ath", "uath", "auht", "user", "credentials"},
-	PersistentPreRunE:  setPrinterFromOutputFlag,
-	DisableFlagParsing: true,
-}, viperLocal)
+	SuggestFor:        []string{"ath", "uath", "auht", "user", "credentials"},
+	PersistentPreRunE: setPrinterFromOutputFlag,
+}
 
 func userPrompt(rw *bufio.ReadWriter, prompt string, defaultOption int, options ...string) (string, error) {
 	if len(options) > 0 {
@@ -76,5 +72,4 @@ func newReadWriterForCmd(cmd *cobra.Command) *bufio.ReadWriter {
 
 func init() {
 	root.RootCmd.AddCommand(authCmd)
-	authCmd.Flags().MarkHidden(orgutil.KeyProject)
 }
