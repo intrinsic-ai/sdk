@@ -24,7 +24,7 @@ import (
 )
 
 var (
-	visualizeCmdFlags = cmdutils.NewCmdFlags()
+	visualizeCmdFlags = cmdutils.NewCmdFlagsWithViper(localViper)
 	visualizeCmd      = cobrautil.ParentOfNestedSubcommands("visualize", "Visualize Intrinsic recordings")
 )
 
