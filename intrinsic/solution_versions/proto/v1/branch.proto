@@ -1,0 +1,76 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.solution_versions.v1;
+
+import "google/protobuf/timestamp.proto";
+import "intrinsic/config/proto/operation_mode.proto";
+
+option go_package = "intrinsic/solution_versions/proto/v1/branch_go_proto";
+
+message ExecutionStatus {
+  // The workcell ID may be ACL protected. Users may be able to see that a
+  // solution is running, but may not have access to see the workcell the
+  // solution is running on.
+  //
+  // If the branch is not running, the execution status is empty.
+  // If this field is populated, it contains the cluster ID of the cluster the
+  // branch is running on.
+  //
+  // To determine if the branch is actually running, check the operation mode.
+  string workcell = 1;
+
+  config.OperationMode operation_mode = 2;
+  google.protobuf.Timestamp last_updated = 3;
+}
+
+message Branch {
+  // Unique ID of the branch.
+  //
+  // This is auto-generated (UUID).
+  string id = 1;
+
+  // The ID of the tip snapshot of the branch.
+  //
+  // This is a mutable field, and would get updated when new snapshots
+  // are added to the branch.
+  string tip_snapshot_id = 2;
+
+  // The display name of the branch.
+  string display_name = 3;
+
+  // The ID of the upstream branch that this branch tracks.
+  //
+  // For a non-main branch, this would be populated with the ID of the main
+  // branch of the tree. For a main branch, this would either be empty or track
+  // the main branch of another tree.
+  string upstream_branch_id = 4;
+
+  // Auto-populated timestamp when the branch was last updated.
+  google.protobuf.Timestamp update_time = 5;
+
+  // The type of the branch.
+  //
+  // This is used to determine whether the branch is the main branch of the
+  // tree.
+  enum BranchType {
+    BRANCH_TYPE_UNSPECIFIED = 0;
+    BRANCH_TYPE_MAIN = 1;
+    BRANCH_TYPE_VERSION = 2;
+    BRANCH_TYPE_DEPLOYMENT = 3;
+  }
+  BranchType branch_type = 6;
+
+  // The execution status of the branch.
+  //
+  // This is used to determine whether the branch is running.
+  ExecutionStatus exec_status = 7;
+
+  // The ID of the tree that this branch belongs to.
+  //
+  // It is the ID of the branch that is the root of the tree.
+  // A tree is a collection of branches, that are connected by the
+  // upstream_branch_id.
+  string tree_id = 8;
+}

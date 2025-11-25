@@ -1,0 +1,45 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.solution_versions.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "intrinsic/solution_versions/proto/v1/snapshot_go_proto";
+
+message Snapshot {
+  // Unique id of the snapshot that is auto-generated (UUID).
+  string id = 1;
+
+  // The IDs of the parent snapshots.
+  //
+  // A snapshot could have 0-2 parents:
+  // -- 0 if it is the root snapshot,
+  // -- 2 if it is a merge commit,
+  // -- 1 otherwise.
+  //
+  // In case of multiple parents, the first parent is considered to be
+  // in the same branch as this snapshot.
+  repeated string parents = 2;
+
+  // Identifier of the user who created the snapshot.
+  //
+  // This could be the email address of the user.
+  string author = 4;
+
+  // Auto-populated timestamp when the snapshot was created.
+  google.protobuf.Timestamp create_time = 5;
+
+  // Optional commit message that can be provided during the creation of the
+  // snapshot.
+  CommitMessage commit_message = 6;
+}
+
+message CommitMessage {
+  // The title of the commit. This title does not need to be unique, i.e., it is
+  // possible to have multiple commits with the same title.
+  string title = 1;
+  // An extended description of the commit.
+  string description = 2;
+}

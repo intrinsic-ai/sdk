@@ -1,0 +1,293 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.solution_versions.v1;
+
+import "google/protobuf/field_mask.proto";
+
+import "intrinsic/solution_versions/proto/v1/branch.proto";
+import "intrinsic/solution_versions/proto/v1/snapshot.proto";
+
+option go_package = "intrinsic/solution_versions/proto/v1/solution_version_service_go_proto";
+
+service SolutionVersionService {
+  // Create a new tree from a deployment data or a snapshot.
+  //
+  // The new tree will have a single main branch that will be populated with
+  // either a snapshot from the deployment data or an existing snapshot in a
+  // different tree.
+  rpc CreateTree(CreateTreeRequest) returns (Tree) {}
+
+  // Create a branch.
+  //
+  // Either creates a version branch or a deployment branch.
+  //
+  // A version branch needs to be created before creating a
+  // deployment branch.
+  //
+  // When creating a deployment branch, a version branch ID needs to be
+  // specified as upstreamBranchID.
+  //
+  // A version branch creation will not implicitly create a deployment branch.
+  rpc CreateBranch(CreateBranchRequest) returns (Branch) {}
+
+  // Get a specific branch.
+  rpc GetBranch(GetBranchRequest) returns (Branch) {}
+
+  // Delete a specific branch. Deleting a non-main branch will also
+  // delete its main branch. Deleting a main branch will only delete itself.
+  rpc DeleteBranch(DeleteBranchRequest) returns (DeleteBranchResponse) {}
+
+  // Updates the tip of a branch to a specific snapshot.
+  //
+  // The snapshot must be part of the history of the given branch (temporarily
+  // must be part of the history of the main branch of the given branch).
+  rpc UpdateBranchTip(UpdateBranchTipRequest)
+      returns (UpdateBranchTipResponse) {}
+
+  // Updates a branch.
+  //
+  // Fields that can be updated:
+  // - display_name (only for version branches)
+  // - upstream_branch_id (only for version branches)
+  // - tip_snapshot_id (only for deployment branches)
+  rpc UpdateBranch(UpdateBranchRequest) returns (Branch) {}
+
+  // Renames a branch.
+  rpc RenameBranch(RenameBranchRequest) returns (RenameBranchResponse) {}
+
+  // Lists all trees that the user has access to.
+  //
+  // The trees are sorted by default in descending order of `update_time` field
+  // of the main branch.
+  //
+  // Each tree is populated with up to `branch_limit` non-main branches per main
+  // branch.
+  rpc ListTrees(ListTreesRequest) returns (ListTreesResponse) {}
+
+  // Returns the ancestor snapshots of a given branch tip.
+  //
+  // The list is chronologically ordered, and the ordering can be used to infer
+  // the parenting relationship between the snapshots.
+  // For example, a list of snapshots [snapshot_1, snapshot_2, snapshot_3] would
+  // mean that snapshot_1 is the parent of snapshot_2, and snapshot_2 is the
+  // parent of snapshot_3. Since snapshot_1 does not have any parents, it can
+  // be assumed to be the root snapshot.
+  rpc ListBranchAncestors(ListBranchAncestorsRequest)
+      returns (ListBranchAncestorsResponse) {}
+
+  // Get a specific snapshot in a given branch.
+  rpc GetSnapshot(GetSnapshotRequest) returns (Snapshot) {}
+
+  // Returns the base snapshot on the main branch of a given branch.
+  //
+  // The base snapshot is the latest snapshot in the history of the given branch
+  // that is part of the history of the upstream main branch. If the given
+  // branch does not have an upstream branch, the snapshot at the tip of the
+  // branch is returned. If there is no snapshot in the history of the given
+  // branch that is part of the history of the upstream branch, a "not found"
+  // error is returned.
+  rpc GetBaseSnapshot(GetBaseSnapshotRequest) returns (Snapshot) {}
+
+}
+
+// A tree is a collection of branches of a solution.
+message Tree {
+  // The main branch of the tree.
+  Branch main = 1;
+
+  // The non-main branches of the tree.
+  repeated Branch branches = 2;
+}
+
+message CreateBranchRequest {
+  // The branch to create.
+  //
+  // The branch ID and timestamps are auto-generated and will be overwritten if
+  // provided.
+  //
+  // Creating a deployment branch requires the ID of a version branch to be
+  // provided in the upstream_branch_id field.
+  Branch branch = 1;
+
+  message SnapshotSource {
+    // The ID of the snapshot to create the tree from.
+    string snapshot_id = 1;
+    // The branch ID that contains the snapshot in its history.
+    string branch_id = 2;
+  }
+
+  // The source to create the tree from.
+  //
+  // This can be unset if the branch specifies an upstream branch ID.
+  oneof from {
+    // The snapshot to create the tree from.
+    SnapshotSource snapshot_source = 3;
+  }
+
+  // Optional commit message that can be provided during the creation of the
+  // branch.
+  CommitMessage commit_message = 4;
+}
+
+message CreateTreeRequest {
+  // The required tree to create.
+  //
+  // A valid request must contain a main branch and optionally non-main
+  // branches.
+  //
+  // Non-main branches, if provided, will point to the same tip snapshot as the
+  // main branch. The main branch will be set as the upstream branch of the
+  // non-main branches.
+  //
+  // All branch IDs and timestamps are auto-generated and will be overwritten if
+  // provided.
+  //
+  // An example request:
+  //
+  // tree {
+  //   main {
+  //     display_name: "main"
+  //   }
+  //   branches: [
+  //     {
+  //       display_name: "branch-1"
+  //     }
+  //   ]
+  // }
+  Tree tree = 1;
+
+  message SnapshotSource {
+    // The ID of the snapshot to create the tree from.
+    string snapshot_id = 1;
+    // The branch ID that contains the snapshot in its history.
+    string branch_id = 2;
+  }
+
+  // The source to create the tree from.
+  oneof from {
+    // The snapshot to create the tree from.
+    SnapshotSource snapshot_source = 3;
+  }
+
+  // Optional commit message that can be provided during the creation of the
+  // tree.
+  CommitMessage commit_message = 4;
+}
+
+message GetBranchRequest {
+  // The ID of the branch to get.
+  string branch_id = 1;
+}
+
+message DeleteBranchRequest {
+  // The ID of the branch to delete.
+  string branch_id = 1;
+}
+
+message DeleteBranchResponse {}
+
+message UpdateBranchRequest {
+  // The branch update.
+  //
+  // Needs to have an ID.
+  Branch branch = 1;
+
+  // The list of fields to update.
+  //
+  // If empty, all allowed fields are updated.
+  google.protobuf.FieldMask update_mask = 2;
+}
+
+message UpdateBranchTipRequest {
+  // The ID of the branch to update.
+  string branch_id = 1;
+  // The ID of the snapshot to set as the tip of the branch.
+  string snapshot_id = 2;
+}
+
+message UpdateBranchTipResponse {
+  // The branch after the update.
+  Branch branch = 1;
+}
+
+message RenameBranchRequest {
+  // The ID of the branch to rename.
+  string branch_id = 1;
+
+  // The new display name of the branch.
+  string display_name = 2;
+}
+
+message RenameBranchResponse {
+  // The branch after the rename operation.
+  Branch branch = 1;
+}
+
+message ListTreesRequest {
+  // The maximum number of trees to return.
+  int64 page_size = 1;
+  // The page token to fetch the next page of trees.
+  //
+  // If the page token is empty, up to `page_size` first elements of the
+  // will be returned. On subsequent requests, set the `next_page_token`
+  // obtained from the previous call to retrieve the next page.
+  string page_token = 2;
+
+  // The maximum number of non-main branches to return per tree.
+  int64 branches_limit = 3;
+}
+
+message ListTreesResponse {
+  repeated Tree trees = 1;
+
+  // The page token to fetch the next page of trees.
+  //
+  // Pass this token to the subsequent list requests in to obtain the next page.
+  string next_page_token = 2;
+}
+
+message ListBranchAncestorsRequest {
+  // The ID of the branch to get the ancestor snapshots of.
+  string branch_id = 1;
+
+  // The maximum number of snapshots to get in one batch.
+  //
+  // If `page_size` is not provided, a default page size of 20 will be used.
+  // If `page_size` is provided, it must be a positive integer less than or
+  // equal to 200. If `page_size` < 0, an INVALID_ARGUMENT error will be
+  // returned. If `page_size` > 200, the page size will be reduced to 200.
+  int64 page_size = 2;
+
+  // The page token to fetch the next page of snapshots.
+  //
+  // If the page token is empty, up to `page_size` first elements of the
+  // will be returned. On subsequent requests, set the `next_page_token`
+  // obtained from the previous call to retrieve the next page.
+  string page_token = 3;
+}
+
+message ListBranchAncestorsResponse {
+  // A minimal view of the ancestor snapshots.
+  repeated Snapshot snapshots = 1;
+
+  // The page token to fetch the next page of snapshots.
+  //
+  // Pass this token to the subsequent list requests in to obtain the next page.
+  string next_page_token = 2;
+}
+
+message GetSnapshotRequest {
+  // The ID of the branch containing the snapshot.
+  string branch_id = 1;
+
+  // Optional ID of the snapshot to retrieve. If not provided, the snapshot at
+  // the tip of the branch is returned.
+  string snapshot_id = 2;
+}
+
+message GetBaseSnapshotRequest {
+  // The ID of the branch to get the base snapshot of.
+  string branch_id = 1;
+}
