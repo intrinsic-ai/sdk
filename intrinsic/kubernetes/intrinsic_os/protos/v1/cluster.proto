@@ -6,7 +6,7 @@ package intrinsic_proto.cluster.v1;
 
 import "intrinsic/util/status/extended_status.proto";
 
-option go_package = "intrinsic/kubernetes/xfaos/protos/v1/cluster_go_proto";
+option go_package = "intrinsic/kubernetes/intrinsic_os/protos/v1/cluster_go_proto";
 
 message Cluster {
   // The unique identifier of the cluster.
