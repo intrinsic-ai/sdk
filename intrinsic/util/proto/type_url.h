@@ -81,6 +81,16 @@ inline std::string_view StripTypeUrlPrefix(
   return type_url.substr(pos + 1);
 }
 
+// Returns the type URL prefix (without trailing slash) of the given type URL.
+// If the given string does not have a slash, returns the empty string.
+inline std::string_view ExtractTypeUrlPrefix(std::string_view type_url) {
+  std::string_view::size_type pos = type_url.find_last_of(kTypeUrlSeparator);
+  if (pos == std::string_view::npos) {
+    return "";
+  }
+  return type_url.substr(0, pos);
+}
+
 template <typename M, typename = std::enable_if_t<
                           std::is_base_of_v<google::protobuf::Message, M>>>
 inline std::string AddTypeUrlPrefix(

@@ -88,15 +88,31 @@ TEST(TypeUrl, AddPrefixMessagePointerCustomWithoutSlash) {
             "type.intrinsic.ai/test/google.protobuf.Int64Value");
 }
 
-TEST(TypeUrl, StripPrefix) {
+TEST(TypeUrl, StripTypeUrlPrefix) {
   EXPECT_EQ(
       StripTypeUrlPrefix("type.googleapis.com/google.protobuf.Int64Value"),
       "google.protobuf.Int64Value");
 }
 
-TEST(TypeUrl, StripPrefixIdempotent) {
+TEST(TypeUrl, StripTypeUrlPrefixIdempotent) {
   std::string proto_type = "google.protobuf.Int64Value";
   EXPECT_EQ(StripTypeUrlPrefix(proto_type), proto_type);
+}
+
+TEST(TypeUrl, ExtractTypeUrlPrefix) {
+  EXPECT_EQ(
+      ExtractTypeUrlPrefix("type.intrinsic.ai/google.protobuf.Int64Value"),
+      "type.intrinsic.ai");
+}
+
+TEST(TypeUrl, ExtractTypeUrlPrefixMultipleSlashes) {
+  EXPECT_EQ(ExtractTypeUrlPrefix(
+                "type.intrinsic.ai/foo/bar/google.protobuf.Int64Value"),
+            "type.intrinsic.ai/foo/bar");
+}
+
+TEST(TypeUrl, ExtractTypeUrlPrefixNoTypeUrl) {
+  EXPECT_EQ(ExtractTypeUrlPrefix("google.protobuf.Int64Value"), "");
 }
 
 TEST(TypeUrl, GenerateIntrinsicTypeUrl) {
