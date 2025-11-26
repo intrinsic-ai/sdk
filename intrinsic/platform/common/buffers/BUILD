@@ -72,6 +72,8 @@ cc_test(
     deps = [
         ":rt_queue_buffer",
         "//intrinsic/util/testing:gtest_wrapper_main",
+        "//intrinsic/util/thread",
+        "@abseil-cpp//absl/time",
     ],
 )
 

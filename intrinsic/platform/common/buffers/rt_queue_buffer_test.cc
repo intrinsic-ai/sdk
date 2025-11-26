@@ -6,6 +6,10 @@
 
 #include <cstddef>
 
+#include "absl/time/clock.h"
+#include "absl/time/time.h"
+#include "intrinsic/util/thread/thread.h"
+
 namespace intrinsic {
 namespace internal {
 namespace {
@@ -118,6 +122,28 @@ TEST(RtQueueBufferTest, ConstructWithInitInitializesPreparedElements) {
     int* item = queue.PrepareInsert();
     EXPECT_EQ(*item, count);
     queue.FinishInsert();
+  }
+}
+
+TEST(RtQueueBufferTest, ThreadSafe) {
+  RtQueueBuffer<int> queue(10);
+  Thread insert_thread([&]() {
+    for (int i = 0; i < 10; ++i) {
+      // Cover Size() in thread-safety analysis.
+      (void)queue.Size();
+      int* item = queue.PrepareInsert();
+      *item = i;
+      absl::SleepFor(absl::Milliseconds(10));
+      queue.FinishInsert();
+    }
+  });
+  for (int i = 0; i < 10; ++i) {
+    (void)queue.Size();
+    int* front;
+    while ((front = queue.Front()) == nullptr) {
+    }
+    queue.DropFront();
+    EXPECT_EQ(*front, i);
   }
 }
 
