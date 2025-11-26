@@ -26,6 +26,7 @@ go_binary(
         "//intrinsic/tools/inctl/cmd/process",
         "//intrinsic/tools/inctl/cmd/recordings",
         "//intrinsic/tools/inctl/cmd/solution",
+        "//intrinsic/tools/inctl/cmd/solution_version:solutionversion",
         "//intrinsic/tools/inctl/cmd/version",
         "//intrinsic/tools/inctl/cmd/vm",
     ],

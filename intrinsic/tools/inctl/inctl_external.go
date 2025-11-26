@@ -22,6 +22,7 @@ import (
 	_ "intrinsic/tools/inctl/cmd/process/process"
 	_ "intrinsic/tools/inctl/cmd/recordings/recordings"
 	_ "intrinsic/tools/inctl/cmd/solution/solution"
+	_ "intrinsic/tools/inctl/cmd/solution_version/solutionversion"
 	_ "intrinsic/tools/inctl/cmd/version/version"
 	_ "intrinsic/tools/inctl/cmd/vm/vm"
 )
