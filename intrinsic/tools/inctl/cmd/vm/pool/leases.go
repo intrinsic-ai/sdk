@@ -3,10 +3,11 @@
 package pool
 
 import (
-	"github.com/spf13/cobra"
-	"go.opencensus.io/trace"
 	"intrinsic/tools/inctl/util/cobrautil"
 	"intrinsic/tools/inctl/util/printer"
+
+	"github.com/spf13/cobra"
+	"go.opencensus.io/trace"
 
 	vmpoolspb "intrinsic/kubernetes/vmpool/service/api/v1/vmpool_api_go_grpc_proto"
 )

@@ -8,8 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/spf13/cobra"
 	"intrinsic/tools/inctl/util/orgutil"
+
+	"github.com/spf13/cobra"
 
 	pb "intrinsic/logging/proto/bag_packager_service_go_grpc_proto"
 )
@@ -21,11 +22,15 @@ import (
 // https://grpc.io/docs/guides/deadlines/#deadlines-on-the-client
 //
 // This is needed because the GenerateBag call can take a long time to complete.
-const maxPostTimeoutRetries = 10
-const postTimeoutRetryDelay = 30 * time.Second
+const (
+	maxPostTimeoutRetries = 10
+	postTimeoutRetryDelay = 30 * time.Second
+)
 
-const numBytesInMB = 1024 * 1024
-const largeRecordingByteSize = 50 * numBytesInMB
+const (
+	numBytesInMB           = 1024 * 1024
+	largeRecordingByteSize = 50 * numBytesInMB
+)
 
 var generateRecordingE = func(cmd *cobra.Command, _ []string) error {
 	client, err := newBagPackagerClient(cmd.Context())
@@ -39,7 +44,6 @@ var generateRecordingE = func(cmd *cobra.Command, _ []string) error {
 		WithUrl: false,
 	}
 	getResp, err := client.GetBag(cmd.Context(), getReq)
-
 	if err != nil {
 		if strings.Contains(err.Error(), "does not exist") {
 			return fmt.Errorf("recording with id \"%s\" does not exist", flagBagID)

@@ -8,9 +8,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-var (
-	viperEnvPrefix = "intrinsic"
-)
+var viperEnvPrefix = "intrinsic"
 
 var nothingToBindToEnv = func(name string) bool { return false }
 

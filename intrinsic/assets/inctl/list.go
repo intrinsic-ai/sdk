@@ -6,12 +6,13 @@ package list
 import (
 	"fmt"
 
-	"github.com/spf13/cobra"
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/assets/inctl/assetviews"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/printer"
+
+	"github.com/spf13/cobra"
 
 	iagrpcpb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
 	iapb "intrinsic/assets/proto/installed_assets_go_grpc_proto"

@@ -7,6 +7,10 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"intrinsic/executive/go/behaviortree"
+	"intrinsic/tools/inctl/util/orgutil"
+	"intrinsic/util/proto/registryutil"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -14,16 +18,14 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
-	"intrinsic/executive/go/behaviortree"
-	"intrinsic/tools/inctl/util/orgutil"
-	"intrinsic/util/proto/registryutil"
 
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	btpb "intrinsic/executive/proto/behavior_tree_go_proto"
 	execgrpcpb "intrinsic/executive/proto/executive_service_go_grpc_proto"
 	sgrpcpb "intrinsic/frontend/solution_service/proto/solution_service_go_grpc_proto"
 	spb "intrinsic/frontend/solution_service/proto/solution_service_go_grpc_proto"
 	skillregistrygrpcpb "intrinsic/skills/proto/skill_registry_go_grpc_proto"
+
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 var viperProcessSet = viper.New()
@@ -130,8 +132,7 @@ func newTextDeserializer(srC skillregistrygrpcpb.SkillRegistryClient) *textDeser
 	return &textDeserializer{srC: srC}
 }
 
-type binaryDeserializer struct {
-}
+type binaryDeserializer struct{}
 
 func (b *binarySerializer) deserialize(ctx context.Context, content []byte) (*btpb.BehaviorTree, error) {
 	bt := &btpb.BehaviorTree{}

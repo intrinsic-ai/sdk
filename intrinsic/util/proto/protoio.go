@@ -151,7 +151,7 @@ func WriteBinaryProto(path string, p proto.Message, opts ...BinaryWriteOption) e
 		return fmt.Errorf("failed to serialize %q: %w", path, err)
 	}
 
-	if err := os.WriteFile(path, b, 0644); err != nil {
+	if err := os.WriteFile(path, b, 0o644); err != nil {
 		return fmt.Errorf("failed to write %q: %w", path, err)
 	}
 	return nil
@@ -176,7 +176,7 @@ func WriteStableTextProto(path string, p proto.Message, opts ...TextWriteOption)
 		return fmt.Errorf("failed to format: %v", err)
 	}
 
-	if err := os.WriteFile(path, b, 0644); err != nil {
+	if err := os.WriteFile(path, b, 0o644); err != nil {
 		return fmt.Errorf("failed to write file: %v", err)
 	}
 	return nil

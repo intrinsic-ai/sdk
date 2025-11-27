@@ -10,10 +10,11 @@ import (
 	"path"
 	"regexp"
 
-	"github.com/google/safearchive/tar"
 	"intrinsic/assets/hardware_devices/hardwaredevicemanifest"
 	"intrinsic/assets/idutils"
 	"intrinsic/util/archive/tartooling"
+
+	"github.com/google/safearchive/tar"
 
 	hdmpb "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest_go_proto"
 	atpb "intrinsic/assets/proto/asset_type_go_proto"
@@ -23,13 +24,10 @@ const (
 	hardwareDeviceManifestFileName = "hardware_device_manifest.binpb"
 )
 
-var (
-	tarBundlePathRegex = regexp.MustCompile(`^assets/(?P<key>[^/]+)\.bundle\.tar$`)
-)
+var tarBundlePathRegex = regexp.MustCompile(`^assets/(?P<key>[^/]+)\.bundle\.tar$`)
 
 // writeHardwareDeviceOptions contains options for a call to WriteHardwareDevice.
-type writeHardwareDeviceOptions struct {
-}
+type writeHardwareDeviceOptions struct{}
 
 // WriteHardwareDeviceOption is a functional option for WriteHardwareDevice.
 type WriteHardwareDeviceOption func(*writeHardwareDeviceOptions)
@@ -53,7 +51,7 @@ func WriteHardwareDevice(hdm *hdmpb.HardwareDeviceManifest, path string, options
 		return fmt.Errorf("invalid HardwareDeviceManifest: %w", err)
 	}
 
-	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
 	if err != nil {
 		return fmt.Errorf("failed to open %q for writing: %w", path, err)
 	}
@@ -333,7 +331,7 @@ func tryExtractAssetKey(path string) (string, bool) {
 
 // writeToFile reads a file from r and writes it to the specified path.
 func writeToFile(r io.Reader, path string) error {
-	w, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	w, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
 	if err != nil {
 		return fmt.Errorf("failed to open %q for writing: %w", path, err)
 	}

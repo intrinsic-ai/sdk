@@ -8,13 +8,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/skills/tools/skill/cmd/listutil"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/printer"
+
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 
 	skillregistrygrpcpb "intrinsic/skills/proto/skill_registry_go_grpc_proto"
 	skillregistrypb "intrinsic/skills/proto/skill_registry_go_grpc_proto"
@@ -28,9 +29,7 @@ const (
 	releasedFilter   = "released"
 )
 
-var (
-	filterOptions = []string{sideloadedFilter, releasedFilter}
-)
+var filterOptions = []string{sideloadedFilter, releasedFilter}
 
 type listSkillsParams struct {
 	filter   string

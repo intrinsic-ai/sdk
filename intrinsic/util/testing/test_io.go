@@ -8,10 +8,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"google.golang.org/protobuf/encoding/prototext"
-	"google.golang.org/protobuf/proto"
 	"intrinsic/util/path_resolver/pathresolver"
 	"intrinsic/util/proto/protoio"
+
+	"google.golang.org/protobuf/encoding/prototext"
+	"google.golang.org/protobuf/proto"
 )
 
 // MustCreateParentDirectory creates the full file path to a specified file
@@ -19,7 +20,7 @@ import (
 func MustCreateParentDirectory(t *testing.T, path string) {
 	t.Helper()
 	dir := filepath.Dir(path)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
 		t.Fatalf("Unable to create %q: %v", dir, err)
 	}
 }
@@ -27,7 +28,7 @@ func MustCreateParentDirectory(t *testing.T, path string) {
 // MustCreateFile creates a file at the given path with the specified content.
 func MustCreateFile(t *testing.T, content []byte, path string) {
 	t.Helper()
-	if err := os.WriteFile(path, content, 0644); err != nil {
+	if err := os.WriteFile(path, content, 0o644); err != nil {
 		t.Fatalf("Write %q failed: %v", path, err)
 	}
 }

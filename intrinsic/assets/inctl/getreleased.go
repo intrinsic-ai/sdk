@@ -7,12 +7,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/spf13/cobra"
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/assets/idutils"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/printer"
+
+	"github.com/spf13/cobra"
 
 	acgrpcpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
 	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"

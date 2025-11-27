@@ -10,9 +10,10 @@ import (
 	"io"
 	"os"
 
+	"intrinsic/assets/processes/processutil"
+
 	"github.com/google/safearchive/tar"
 	"google.golang.org/protobuf/proto"
-	"intrinsic/assets/processes/processutil"
 
 	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
 	rmpb "intrinsic/assets/catalog/proto/v1/release_metadata_go_proto"
@@ -34,8 +35,10 @@ func cloneOf[M proto.Message](m M) M {
 	return proto.Clone(m).(M)
 }
 
-type handler func(ctx context.Context, r io.Reader) error
-type fallbackHandler func(context.Context, string, io.Reader) error
+type (
+	handler         func(ctx context.Context, r io.Reader) error
+	fallbackHandler func(context.Context, string, io.Reader) error
+)
 
 // ImageProcessor is a closure that pushes an image and returns the resulting
 // pointer to the container registry.  It is provided the id of the bundle being

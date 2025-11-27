@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	defaultMode = 0644
+	defaultMode = 0o644
 )
 
 // AddDir adds a directory dir recursively to the writer w.

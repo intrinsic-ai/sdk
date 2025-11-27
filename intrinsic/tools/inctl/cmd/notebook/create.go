@@ -10,10 +10,11 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/spf13/cobra"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/printer"
 	"intrinsic/tools/inctl/util/templateutil"
+
+	"github.com/spf13/cobra"
 )
 
 var (

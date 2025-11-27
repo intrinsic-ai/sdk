@@ -10,13 +10,14 @@ import (
 	"os/signal"
 	"strings"
 
+	"intrinsic/assets/cmdutils"
+	"intrinsic/assets/idutils"
+	"intrinsic/tools/inctl/cmd/root"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/encoding/prototext"
-	"intrinsic/assets/cmdutils"
-	"intrinsic/assets/idutils"
-	"intrinsic/tools/inctl/cmd/root"
 
 	srvpb "intrinsic/assets/services/proto/service_manifest_go_proto"
 	sklpb "intrinsic/skills/proto/skill_manifest_go_proto"

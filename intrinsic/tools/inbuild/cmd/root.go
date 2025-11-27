@@ -4,13 +4,14 @@
 package root
 
 import (
+	"flag"
 	"os"
 
-	"flag"
-	"github.com/spf13/cobra"
 	"intrinsic/production/intrinsic"
 	"intrinsic/tools/inbuild/cmd/service/service"
 	"intrinsic/tools/inbuild/cmd/skill/skill"
+
+	"github.com/spf13/cobra"
 )
 
 // RootCmd is the top level command of inbuild.

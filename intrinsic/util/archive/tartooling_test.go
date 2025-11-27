@@ -35,7 +35,7 @@ func mustPrepareTest(t *testing.T, test *AddFileTest) string {
 	}
 	for i, fn := range test.Filenames {
 		fp := filepath.Join(tmpDir, fn)
-		if err := os.WriteFile(fp, test.Content[i], 0644); err != nil {
+		if err := os.WriteFile(fp, test.Content[i], 0o644); err != nil {
 			t.Fatal(err)
 		}
 		test.Files = append(test.Files, fp)

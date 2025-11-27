@@ -10,9 +10,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/spf13/cobra"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/printer"
+
+	"github.com/spf13/cobra"
 )
 
 const (

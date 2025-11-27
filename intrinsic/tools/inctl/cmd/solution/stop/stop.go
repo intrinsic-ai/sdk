@@ -7,12 +7,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	"google.golang.org/grpc"
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/tools/inctl/util/printer"
+
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"google.golang.org/grpc"
 
 	deploygrpcpb "intrinsic/kubernetes/workcell_spec/proto/deploy_go_grpc_proto"
 	deploypb "intrinsic/kubernetes/workcell_spec/proto/deploy_go_grpc_proto"

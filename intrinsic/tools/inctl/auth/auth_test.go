@@ -69,14 +69,14 @@ func TestStore_HasConfiguration(t *testing.T) {
 		skipCreate bool
 		wants      bool
 	}{
-		{project: "hello-dolly-1", setMode: 0124, wants: false},
+		{project: "hello-dolly-1", setMode: 0o124, wants: false},
 		{project: "hello-dolly-2", setMode: fileMode, wants: true},
 		{project: "hello-dolly-3", setMode: directoryMode, wants: true},
-		{project: "hello-dolly-4", setMode: 0200, wants: false},
-		{project: "hello-dolly-5", setMode: 0277, wants: false},
-		{project: "hello-dolly-6", setMode: 0777, wants: true},
-		{project: "hello-dolly-7", setMode: 0100, wants: false},
-		{project: "hello-dolly-8", setMode: 0400, wants: false},
+		{project: "hello-dolly-4", setMode: 0o200, wants: false},
+		{project: "hello-dolly-5", setMode: 0o277, wants: false},
+		{project: "hello-dolly-6", setMode: 0o777, wants: true},
+		{project: "hello-dolly-7", setMode: 0o100, wants: false},
+		{project: "hello-dolly-8", setMode: 0o400, wants: false},
 		{project: "this-file-does-not-exists", skipCreate: true, wants: false},
 	}
 
@@ -363,10 +363,11 @@ func TestStore_RemoveOrganization(t *testing.T) {
 		},
 		{
 			name: "shared-project-not-removed",
-			fields: fields{orgs: []OrgInfo{
-				{Organization: "first-org", Project: "first-project"},
-				{Organization: "second-org", Project: "first-project"},
-			}, projects: []ProjectConfiguration{{Name: "first-project"}},
+			fields: fields{
+				orgs: []OrgInfo{
+					{Organization: "first-org", Project: "first-project"},
+					{Organization: "second-org", Project: "first-project"},
+				}, projects: []ProjectConfiguration{{Name: "first-project"}},
 			},
 			args: args{name: "first-org"},
 			wants: wants{

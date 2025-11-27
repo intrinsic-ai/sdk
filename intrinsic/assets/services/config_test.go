@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"testing"
 
+	"intrinsic/util/proto/protoio"
+
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/protobuf/testing/protocmp"
-	"intrinsic/util/proto/protoio"
 
 	rcpb "intrinsic/resources/proto/runtime_context_go_proto"
 )

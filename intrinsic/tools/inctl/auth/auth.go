@@ -27,8 +27,8 @@ const (
 	orgStoreDirectory   = "intrinsic/organizations"
 	authConfigExtension = ".user-token"
 
-	directoryMode  os.FileMode = 0700
-	fileMode       os.FileMode = 0600
+	directoryMode  os.FileMode = 0o700
+	fileMode       os.FileMode = 0o600
 	writeFileFlags             = os.O_WRONLY | os.O_CREATE | os.O_TRUNC
 
 	// tokenExchangeServer is the address of the token exchange server.

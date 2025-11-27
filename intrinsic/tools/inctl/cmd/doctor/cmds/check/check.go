@@ -7,12 +7,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/spf13/cobra"
-	"google.golang.org/protobuf/encoding/protojson"
 	"intrinsic/tools/inctl/cmd/doctor/api/api"
 	"intrinsic/tools/inctl/cmd/doctor/checks/checks"
 	"intrinsic/tools/inctl/cmd/doctor/reporters/reporters"
 	"intrinsic/tools/inctl/util/printer"
+
+	"github.com/spf13/cobra"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	reportpb "intrinsic/tools/inctl/cmd/doctor/proto/v1/report_go_proto"
 )

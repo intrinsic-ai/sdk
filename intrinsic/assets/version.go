@@ -9,8 +9,9 @@ import (
 	"fmt"
 	"strings"
 
-	"google.golang.org/protobuf/proto"
 	"intrinsic/assets/idutils"
+
+	"google.golang.org/protobuf/proto"
 
 	idpb "intrinsic/assets/proto/id_go_proto"
 	iagrpcpb "intrinsic/assets/proto/installed_assets_go_grpc_proto"

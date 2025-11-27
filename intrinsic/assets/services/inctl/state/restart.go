@@ -10,17 +10,16 @@ import (
 	"os/signal"
 	"strings"
 
-	"github.com/spf13/cobra"
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
+
+	"github.com/spf13/cobra"
 
 	systemservicestategrpcpb "intrinsic/assets/services/proto/v1/system_service_state_go_grpc_proto"
 	systemservicestatepb "intrinsic/assets/services/proto/v1/system_service_state_go_grpc_proto"
 )
 
-var (
-	skipConfirmation = false
-)
+var skipConfirmation = false
 
 // Command returns a command to restart a running service asset in a solution.
 func Command() *cobra.Command {

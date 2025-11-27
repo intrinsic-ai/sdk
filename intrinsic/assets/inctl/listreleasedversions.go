@@ -4,15 +4,16 @@
 package listreleasedversions
 
 import (
-	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
-	"google.golang.org/protobuf/proto"
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/assets/inctl/assetviews"
 	"intrinsic/assets/listutils"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/printer"
+
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
+	"google.golang.org/protobuf/proto"
 
 	acgrpcpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
 	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
@@ -24,7 +25,8 @@ const pageSize int64 = 50
 // GetCommand returns a command to list versions of a released asset in the catalog.
 func GetCommand() *cobra.Command {
 	flags := cmdutils.NewCmdFlags()
-	cmd := &cobra.Command{Use: "list_released_versions id",
+	cmd := &cobra.Command{
+		Use:   "list_released_versions id",
 		Short: "List versions of a released asset in the catalog",
 		Args:  cobra.ExactArgs(1), // id
 		RunE: func(cmd *cobra.Command, args []string) error {

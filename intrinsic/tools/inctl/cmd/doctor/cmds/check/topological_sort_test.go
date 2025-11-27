@@ -37,9 +37,9 @@ func TestTopologicalSort(t *testing.T) {
 		{
 			name: "no dependencies",
 			entities: newMapFromEntities(&[]TestEntity{
-				TestEntity{Name: "a"},
-				TestEntity{Name: "b"},
-				TestEntity{Name: "c"},
+				{Name: "a"},
+				{Name: "b"},
+				{Name: "c"},
 			}),
 			// The iteration order of the keys of an ordered map is not guaranteed, but we know that the
 			// keys are sorted alphabetically by the topological sort function.
@@ -49,9 +49,9 @@ func TestTopologicalSort(t *testing.T) {
 		{
 			name: "dependencies",
 			entities: newMapFromEntities(&[]TestEntity{
-				TestEntity{Name: "a", Deps: []string{"b"}},
-				TestEntity{Name: "b", Deps: []string{"c"}},
-				TestEntity{Name: "c"},
+				{Name: "a", Deps: []string{"b"}},
+				{Name: "b", Deps: []string{"c"}},
+				{Name: "c"},
 			}),
 			want:      []string{"c", "b", "a"},
 			wantError: nil,
@@ -82,9 +82,9 @@ func TestTopologicalSort_Cycle(t *testing.T) {
 		{
 			name: "cycle",
 			entities: newMapFromEntities(&[]TestEntity{
-				TestEntity{Name: "a", Deps: []string{"b"}},
-				TestEntity{Name: "b", Deps: []string{"c"}},
-				TestEntity{Name: "c", Deps: []string{"a"}},
+				{Name: "a", Deps: []string{"b"}},
+				{Name: "b", Deps: []string{"c"}},
+				{Name: "c", Deps: []string{"a"}},
 			}),
 		},
 	}
@@ -106,7 +106,7 @@ func TestTopologicalSort_MissingDependency(t *testing.T) {
 		{
 			name: "missing dependency",
 			entities: newMapFromEntities(&[]TestEntity{
-				TestEntity{Name: "a", Deps: []string{"b"}},
+				{Name: "a", Deps: []string{"b"}},
 			}),
 		},
 	}

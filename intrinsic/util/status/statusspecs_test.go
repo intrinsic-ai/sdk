@@ -6,24 +6,26 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/go-cmp/cmp"
-	"google.golang.org/protobuf/testing/protocmp"
 	"intrinsic/util/status/extstatus"
 
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
+	"github.com/google/go-cmp/cmp"
+	"google.golang.org/protobuf/testing/protocmp"
+
 	specpb "intrinsic/assets/proto/status_spec_go_proto"
 	ctxpb "intrinsic/logging/proto/context_go_proto"
 	espb "intrinsic/util/status/extended_status_go_proto"
+
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func TestInitFromList(t *testing.T) {
 	err := InitFromList("ai.intrinsic.test", []*specpb.StatusSpec{
-		&specpb.StatusSpec{
+		{
 			Code:                 10001,
 			Title:                "Error 1",
 			RecoveryInstructions: "Test instructions 1",
 		},
-		&specpb.StatusSpec{
+		{
 			Code:                 10002,
 			Title:                "Error 2",
 			RecoveryInstructions: "Test instructions 2",
@@ -40,7 +42,8 @@ func TestInitFromList(t *testing.T) {
 		got  *extstatus.ExtendedStatus
 		want *espb.ExtendedStatus
 	}{
-		{"Create10001",
+		{
+			"Create10001",
 			Create(10001, "User 1", WithTimestamp(timestamp)),
 			&espb.ExtendedStatus{
 				StatusCode: &espb.StatusCode{
@@ -54,7 +57,8 @@ func TestInitFromList(t *testing.T) {
 				},
 			},
 		},
-		{"Create10002",
+		{
+			"Create10002",
 			Create(10002, "User 2", WithTimestamp(timestamp)),
 			&espb.ExtendedStatus{
 				StatusCode: &espb.StatusCode{
@@ -68,7 +72,8 @@ func TestInitFromList(t *testing.T) {
 				},
 			},
 		},
-		{"Create20001NotDeclared",
+		{
+			"Create20001NotDeclared",
 			Create(20001, "User 2", WithTimestamp(timestamp)),
 			&espb.ExtendedStatus{
 				StatusCode: &espb.StatusCode{
@@ -107,7 +112,7 @@ func TestInitFromList(t *testing.T) {
 
 func TestCreateOptions(t *testing.T) {
 	err := InitFromList("ai.intrinsic.test", []*specpb.StatusSpec{
-		&specpb.StatusSpec{
+		{
 			Code:                 10001,
 			Title:                "Error 1",
 			RecoveryInstructions: "Test instructions 1",

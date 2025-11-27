@@ -6,9 +6,10 @@ package org
 import (
 	"strings"
 
-	"github.com/spf13/cobra"
 	"intrinsic/tools/inctl/cmd/doctor/api/api"
 	"intrinsic/tools/inctl/util/orgutil"
+
+	"github.com/spf13/cobra"
 
 	rpb "intrinsic/tools/inctl/cmd/doctor/proto/v1/report_go_proto"
 )
@@ -20,15 +21,13 @@ const (
 	ReportPrefix string = "org_"
 )
 
-var (
-	// Reporter is the DiagnosticInformationReporter that reports the organization details.
-	Reporter = api.DiagnosticInformationReporter{
-		Name:                               ReporterName,
-		Description:                        "Reports the organization details.",
-		GenerateInformation:                generateInformation,
-		InformationReporterDependencyNames: []string{},
-	}
-)
+// Reporter is the DiagnosticInformationReporter that reports the organization details.
+var Reporter = api.DiagnosticInformationReporter{
+	Name:                               ReporterName,
+	Description:                        "Reports the organization details.",
+	GenerateInformation:                generateInformation,
+	InformationReporterDependencyNames: []string{},
+}
 
 func generateInformation(cmd *cobra.Command, args []string, report *rpb.Report) (*[]*rpb.DiagnosticInformationEntry, error) {
 	var entries []*rpb.DiagnosticInformationEntry

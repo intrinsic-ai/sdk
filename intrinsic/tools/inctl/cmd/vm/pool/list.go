@@ -5,9 +5,10 @@ package pool
 import (
 	"context"
 
+	"intrinsic/tools/inctl/util/printer"
+
 	"github.com/spf13/cobra"
 	"go.opencensus.io/trace"
-	"intrinsic/tools/inctl/util/printer"
 
 	vmpoolspb "intrinsic/kubernetes/vmpool/service/api/v1/vmpool_api_go_grpc_proto"
 )

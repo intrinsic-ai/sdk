@@ -8,9 +8,10 @@ import (
 	"testing"
 	"time"
 
+	"intrinsic/kubernetes/acl/testing/jwttesting"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/pborman/uuid"
-	"intrinsic/kubernetes/acl/testing/jwttesting"
 )
 
 type TestAPIKeyTokenProvider struct {

@@ -11,17 +11,19 @@ import (
 	"path/filepath"
 	"strings"
 
-	log "github.com/golang/glog"
-	"github.com/google/safearchive/tar"
 	"intrinsic/assets/data/utils"
 	"intrinsic/util/archive/tartooling"
 
-	anypb "google.golang.org/protobuf/types/known/anypb"
+	log "github.com/golang/glog"
+	"github.com/google/safearchive/tar"
+
 	acgrpcpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
 	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
 	dapb "intrinsic/assets/data/proto/v1/data_asset_go_proto"
 	rdpb "intrinsic/assets/data/proto/v1/referenced_data_go_proto"
 	atpb "intrinsic/assets/proto/asset_type_go_proto"
+
+	anypb "google.golang.org/protobuf/types/known/anypb"
 )
 
 const (
@@ -300,7 +302,7 @@ func WriteDataAsset(da *dapb.DataAsset, path string, options ...WriteDataAssetOp
 
 	baseDir := filepath.Dir(path)
 
-	out, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	out, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
 	if err != nil {
 		return fmt.Errorf("failed to open %q for writing: %w", path, err)
 	}

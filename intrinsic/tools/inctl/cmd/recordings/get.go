@@ -12,9 +12,7 @@ import (
 	pb "intrinsic/logging/proto/bag_packager_service_go_grpc_proto"
 )
 
-var (
-	flagURL bool
-)
+var flagURL bool
 
 var getRecordingE = func(cmd *cobra.Command, _ []string) error {
 	client, err := newBagPackagerClient(cmd.Context())

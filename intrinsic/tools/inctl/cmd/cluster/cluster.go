@@ -6,12 +6,13 @@ package cluster
 import (
 	"context"
 
-	"github.com/spf13/viper"
-	"google.golang.org/grpc"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/cobrautil"
 	"intrinsic/tools/inctl/util/orgutil"
+
+	"github.com/spf13/viper"
+	"google.golang.org/grpc"
 )
 
 const (

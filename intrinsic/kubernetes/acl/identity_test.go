@@ -9,15 +9,16 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"intrinsic/kubernetes/acl/cookies"
+	"intrinsic/kubernetes/acl/org"
+	"intrinsic/kubernetes/acl/testing/jwttesting"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-	"intrinsic/kubernetes/acl/cookies"
-	"intrinsic/kubernetes/acl/org"
-	"intrinsic/kubernetes/acl/testing/jwttesting"
 )
 
 const (
@@ -166,7 +167,7 @@ type RequestToContextTest struct {
 
 func TestRequestToContext(t *testing.T) {
 	tests := []RequestToContextTest{
-		RequestToContextTest{
+		{
 			desc: "just auth-proxy cookie",
 			cookies: map[string]string{
 				"auth-proxy": token,
@@ -176,7 +177,7 @@ func TestRequestToContext(t *testing.T) {
 				"cookie":                   "auth-proxy=" + token,
 			},
 		},
-		RequestToContextTest{
+		{
 			desc: "just portal-token cookie",
 			cookies: map[string]string{
 				"portal-token": token,
@@ -186,7 +187,7 @@ func TestRequestToContext(t *testing.T) {
 				"cookie":                   "auth-proxy=" + token,
 			},
 		},
-		RequestToContextTest{
+		{
 			desc: "just auth-proxy cookie, custom org-id",
 			cookies: map[string]string{
 				"auth-proxy": token,
@@ -197,7 +198,7 @@ func TestRequestToContext(t *testing.T) {
 				"cookie":                   "auth-proxy=" + token + "; org-id=customorg",
 			},
 		},
-		RequestToContextTest{
+		{
 			desc: "auth-proxy cookie + extra cookie",
 			cookies: map[string]string{
 				"auth-proxy":   token,
@@ -208,7 +209,7 @@ func TestRequestToContext(t *testing.T) {
 				"cookie":                   "auth-proxy=" + token,
 			},
 		},
-		RequestToContextTest{
+		{
 			desc: "backfill org-id cookie from header",
 			cookies: map[string]string{
 				"auth-proxy": token,
@@ -1032,7 +1033,6 @@ func TestLoggableID(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.desc, func(t *testing.T) {
-
 			u, err := UserFromJWT(jwttesting.MustMintToken(jwttesting.WithEmail(tc.email)))
 			if err != nil {
 				t.Fatalf("FromJWT(%q) failed: %v", token, err)
@@ -1090,7 +1090,7 @@ func TestClearRequestUser(t *testing.T) {
 func TestClearContextUser(t *testing.T) {
 	// setup context with all user cookies and headers
 	testCookies := []*http.Cookie{
-		&http.Cookie{Name: "othercookie", Value: "othervalue"},
+		{Name: "othercookie", Value: "othervalue"},
 	}
 	for _, name := range cookieHeaders {
 		testCookies = append(testCookies, &http.Cookie{Name: name, Value: "testvalue"})

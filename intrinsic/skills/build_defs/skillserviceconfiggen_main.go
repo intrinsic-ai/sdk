@@ -4,16 +4,18 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 
-	"flag"
-	log "github.com/golang/glog"
 	"intrinsic/production/intrinsic"
 	sscg "intrinsic/skills/build_defs/skillserviceconfiggen"
 	"intrinsic/util/proto/protoio"
 
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	log "github.com/golang/glog"
+
 	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
+
+	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
 
 var (

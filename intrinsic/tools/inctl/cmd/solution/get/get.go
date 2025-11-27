@@ -8,13 +8,14 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	"google.golang.org/grpc"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/orgutil"
 	"intrinsic/tools/inctl/util/printer"
+
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"google.golang.org/grpc"
 
 	clusterdiscoverypb "intrinsic/frontend/cloud/api/v1/clusterdiscovery_api_go_grpc_proto"
 	solutiondiscoverygrpcpb "intrinsic/frontend/cloud/api/v1/solutiondiscovery_api_go_grpc_proto"

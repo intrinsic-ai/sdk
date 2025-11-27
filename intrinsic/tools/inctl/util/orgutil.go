@@ -8,12 +8,13 @@ import (
 	"os"
 	"strings"
 
-	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	env "intrinsic/config/environments"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/viperutil"
+
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 const (
 	// KeyProject is used as central flag name for passing a project name to inctl.

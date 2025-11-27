@@ -11,20 +11,20 @@ import (
 	"path/filepath"
 	"strings"
 
-	"google.golang.org/protobuf/proto"
 	"intrinsic/assets/idutils"
 	"intrinsic/util/proto/registryutil"
 	"intrinsic/util/proto/walkmessages"
 
-	anypb "google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/proto"
+
 	dapb "intrinsic/assets/data/proto/v1/data_asset_go_proto"
 	rdpb "intrinsic/assets/data/proto/v1/referenced_data_go_proto"
 	atpb "intrinsic/assets/proto/asset_type_go_proto"
+
+	anypb "google.golang.org/protobuf/types/known/anypb"
 )
 
-var (
-	highwayHashKey = bytes.Repeat([]byte{0}, 32)
-)
+var highwayHashKey = bytes.Repeat([]byte{0}, 32)
 
 // ReferenceType is an enum for the type of reference in a ReferencedData.
 type ReferenceType int

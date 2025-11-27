@@ -4,12 +4,12 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 
-	"flag"
 	log "github.com/golang/glog"
 	"github.com/google/subcommands"
 	"google.golang.org/grpc"
@@ -33,7 +33,6 @@ func connect(addr string) (*fileServiceClient, error) {
 		conn:   conn,
 		client: fileuploadgrpcpb.NewFileUploadServiceClient(conn),
 	}, nil
-
 }
 
 func (c *fileServiceClient) close() error {

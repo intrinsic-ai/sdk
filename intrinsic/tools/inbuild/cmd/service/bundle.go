@@ -7,9 +7,10 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/spf13/cobra"
 	"intrinsic/assets/services/build_defs/servicegen"
 	"intrinsic/util/proto/protoio"
+
+	"github.com/spf13/cobra"
 
 	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
 )

@@ -7,9 +7,10 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/spf13/cobra"
 	"intrinsic/tools/inctl/cmd/doctor/checks/checks"
 	"intrinsic/tools/inctl/util/printer"
+
+	"github.com/spf13/cobra"
 )
 
 // ListChecksCmd is the entry point for the inctl doctor list_checks command.

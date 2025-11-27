@@ -69,7 +69,6 @@ func TestOS(t *testing.T) {
 	if got, want := osI2A(inversionOS), apiOS; got != want {
 		t.Errorf("TranslateOSInversionToAPI(%q)=%q, want %q", inversionOS, got, want)
 	}
-
 }
 
 func TestBase(t *testing.T) {

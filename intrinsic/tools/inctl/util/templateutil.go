@@ -47,10 +47,10 @@ func CreateNewFileFromTemplate(path string, templateName string, data any, templ
 		return fmt.Errorf("file %s cannot be created since it already exists: %w", path, os.ErrExist)
 	}
 
-	if err := os.MkdirAll(filepath.Dir(path), 0770 /*rwxrwx---*/); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0o770 /*rwxrwx---*/); err != nil {
 		return fmt.Errorf("creating directory %s: %w", filepath.Dir(path), err)
 	}
-	file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0660 /*rw-rw----*/)
+	file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o660 /*rw-rw----*/)
 	if err != nil {
 		return fmt.Errorf("creating file %s: %w", path, err)
 	}
@@ -72,7 +72,7 @@ func AppendToExistingFileFromTemplate(path string, templateName string, data any
 		return fmt.Errorf("appending to non-existing file %s: %w", path, err)
 	}
 
-	file, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0644)
+	file, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0o644)
 	if err != nil {
 		return fmt.Errorf("opening existing file %s for writing: %w", path, err)
 	}

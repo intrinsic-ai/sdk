@@ -16,15 +16,16 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/bazelbuild/buildtools/edit"
-	"github.com/spf13/cobra"
-	strcase "github.com/stoewer/go-strcase"
 	"intrinsic/assets/idutils"
 	"intrinsic/tools/inctl/cmd/bazel/bazel"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/cmd/version/version"
 	"intrinsic/tools/inctl/util/printer"
 	"intrinsic/tools/inctl/util/templateutil"
+
+	"github.com/bazelbuild/buildtools/edit"
+	"github.com/spf13/cobra"
+	strcase "github.com/stoewer/go-strcase"
 )
 
 type projectFolder struct {
@@ -40,7 +41,7 @@ type projectFile struct {
 
 // Map of project folder layouts, by language key.
 var projectLayouts = map[string]projectFolder{
-	"python": projectFolder{
+	"python": {
 		buildTemplateFilename: "BUILD_py_fragment.template",
 		buildozerCommands: []string{
 			"new_load @rules_python//python:defs.bzl py_binary py_test py_library",
@@ -52,29 +53,29 @@ var projectLayouts = map[string]projectFolder{
 			"fix unusedLoads",
 		},
 		files: []projectFile{
-			projectFile{
+			{
 				extension:        ".py",
 				templateFilename: "skill_py.template",
 			},
-			projectFile{
+			{
 				extension:        "_test.py",
 				templateFilename: "skill_py_test.template",
 			},
-			projectFile{
+			{
 				extension:        "_integration_test.py",
 				templateFilename: "skill_integration_test.template",
 			},
-			projectFile{
+			{
 				extension:        ".proto",
 				templateFilename: "skill_params_proto.template",
 			},
-			projectFile{
+			{
 				extension:        ".manifest.textproto",
 				templateFilename: "skill_py_manifest.template",
 			},
 		},
 	},
-	"cpp": projectFolder{
+	"cpp": {
 		buildTemplateFilename: "BUILD_cc_fragment.template",
 		buildozerCommands: []string{
 			"new_load @com_google_protobuf//bazel:proto_library.bzl proto_library",
@@ -85,27 +86,27 @@ var projectLayouts = map[string]projectFolder{
 			"fix unusedLoads",
 		},
 		files: []projectFile{
-			projectFile{
+			{
 				extension:        ".h",
 				templateFilename: "skill_h.template",
 			},
-			projectFile{
+			{
 				extension:        ".cc",
 				templateFilename: "skill_cc.template",
 			},
-			projectFile{
+			{
 				extension:        "_test.cc",
 				templateFilename: "skill_cc_test.template",
 			},
-			projectFile{
+			{
 				extension:        "_integration_test.py",
 				templateFilename: "skill_integration_test.template",
 			},
-			projectFile{
+			{
 				extension:        ".proto",
 				templateFilename: "skill_params_proto.template",
 			},
-			projectFile{
+			{
 				extension:        ".manifest.textproto",
 				templateFilename: "skill_cc_manifest.template",
 			},
@@ -118,7 +119,7 @@ const defaultLanguage = "python"
 
 // Get the languages for which a project can be generated.
 func supportedLanguages() []string {
-	var supportedLanguages = make([]string, 0, len(projectLayouts))
+	supportedLanguages := make([]string, 0, len(projectLayouts))
 	for languageKey := range projectLayouts {
 		supportedLanguages = append(supportedLanguages, languageKey)
 	}
@@ -187,7 +188,6 @@ type templateParams struct {
 // exactly what is wrong about the given value (e.g. which character is not
 // allowed).
 func parseSkillID(skillID string) (string, string, error) {
-
 	if idutils.IsID(skillID) {
 		// we validated this is actual valid ID according to runtime definition
 		// following methods use the same validation so they will never return error
@@ -310,7 +310,7 @@ func createOrUpdateBuildFile(bazelWorkspaceDir string, bazelPackage []string, bu
 	path := filepath.Join(bazelWorkspaceDir, strings.Join(bazelPackage, "/"), "BUILD")
 
 	// Create the file if it does not exist.
-	file, err := os.OpenFile(path, os.O_RDONLY|os.O_CREATE, 0660 /*rw-rw----*/)
+	file, err := os.OpenFile(path, os.O_RDONLY|os.O_CREATE, 0o660 /*rw-rw----*/)
 	if err != nil {
 		return fmt.Errorf("creating file %s: %w", path, err)
 	}
@@ -454,11 +454,11 @@ func runCreateCmd(params *cmdParams, stdout io.Writer) error {
 		// that from checks above we already know that we are in a Bazel workspace
 		// with a WORKSPACE file, so this call is limited to creating folders inside
 		// of this Bazel workspace.
-		if err = os.MkdirAll(fullDirectoryPath, 0750 /*rwxr-x---*/); err != nil {
+		if err = os.MkdirAll(fullDirectoryPath, 0o750 /*rwxr-x---*/); err != nil {
 			return fmt.Errorf("creating directory %s: %w", fullDirectoryPath, err)
 		}
 
-		var projectLayout = projectLayouts[params.flagLanguage]
+		projectLayout := projectLayouts[params.flagLanguage]
 		err = createOrUpdateBuildFile(workspaceRoot,
 			bazelPackage, projectLayout.buildozerCommands, &templParams,
 			projectLayout.buildTemplateFilename, templateSet)

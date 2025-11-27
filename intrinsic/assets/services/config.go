@@ -11,10 +11,8 @@ import (
 	rcpb "intrinsic/resources/proto/runtime_context_go_proto"
 )
 
-var (
-	// runtimeContextPath is a var so we can override it in tests.
-	runtimeContextPath = "/etc/intrinsic/runtime_config.pb"
-)
+// runtimeContextPath is a var so we can override it in tests.
+var runtimeContextPath = "/etc/intrinsic/runtime_config.pb"
 
 // LoadRuntimeContext loads the Service's runtime context.
 func LoadRuntimeContext() (*rcpb.RuntimeContext, error) {

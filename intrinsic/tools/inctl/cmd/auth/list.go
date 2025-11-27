@@ -6,16 +6,15 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/spf13/cobra"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/printer"
+
+	"github.com/spf13/cobra"
 )
 
-var (
-	listCmdFlags = cmdutils.NewCmdFlags()
-)
+var listCmdFlags = cmdutils.NewCmdFlags()
 
 const (
 	keyPrefixSearch = "prefix"

@@ -5,20 +5,22 @@ package root
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"os"
 	"strings"
 
-	"flag"
+
+	intrinsic "intrinsic/production/intrinsic"
+	"intrinsic/skills/tools/skill/cmd/dialerutil"
+	"intrinsic/tools/inctl/util/orgutil"
+	"intrinsic/tools/inctl/util/printer"
+
 	log "github.com/golang/glog"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"go.opencensus.io/trace"
 	"golang.org/x/exp/slices"
-	intrinsic "intrinsic/production/intrinsic"
-	"intrinsic/skills/tools/skill/cmd/dialerutil"
-	"intrinsic/tools/inctl/util/orgutil"
-	"intrinsic/tools/inctl/util/printer"
 
 	grpccodes "google.golang.org/grpc/codes"
 	grpcstatus "google.golang.org/grpc/status"
@@ -74,8 +76,7 @@ var RootCmd = &cobra.Command{
 	SilenceErrors: true,
 }
 
-type executionContext struct {
-}
+type executionContext struct{}
 
 // RewriteError looks at the root cause of an error and tries to add an
 // actionable suggestion for how to resolve it.
@@ -99,7 +100,8 @@ func (e *executionContext) RewriteError(err error, cmdNames []string) string {
 		// (see b/292218614).
 		if grpcStatus.Code() == grpccodes.Unavailable && len(cmdNames) > 0 &&
 			slices.Contains([]string{
-				ClusterCmdName, ProcessCmdName, SolutionCmdName, SolutionsCmdName, SkillCmdName}, cmdNames[0]) {
+				ClusterCmdName, ProcessCmdName, SolutionCmdName, SolutionsCmdName, SkillCmdName,
+			}, cmdNames[0]) {
 
 			return fmt.Sprintf("%v\nThe GCP project given by --project is not reachable at the "+
 				"moment or is not valid.", err)

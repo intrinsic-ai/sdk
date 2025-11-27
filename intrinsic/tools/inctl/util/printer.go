@@ -398,14 +398,12 @@ type ColumnNameReplacer func(column string) string
 // Implementation may manipulate input array directly
 type ColumnOrdering func(columns []string) []string
 
-var (
-	// SortByName is ColumnOrdering which sorts columns by their name.
-	// Use carefully as your output may be weird.
-	SortByName ColumnOrdering = func(columns []string) []string {
-		slices.SortFunc(columns, strings.Compare)
-		return columns
-	}
-)
+// SortByName is ColumnOrdering which sorts columns by their name.
+// Use carefully as your output may be weird.
+var SortByName ColumnOrdering = func(columns []string) []string {
+	slices.SortFunc(columns, strings.Compare)
+	return columns
+}
 
 // WithDefaultsFromValue configures TAB printer with well-meaning defaults which
 // should satisfy most common needs for the tabular output of this value.

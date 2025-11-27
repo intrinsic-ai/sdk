@@ -4,11 +4,12 @@
 package recordings
 
 import (
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/printer"
+
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // Shared flags across subcommands.

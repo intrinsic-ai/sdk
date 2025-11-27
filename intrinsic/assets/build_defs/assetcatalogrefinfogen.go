@@ -5,7 +5,7 @@ package main
 
 import (
 	"flag"
-	log "github.com/golang/glog"
+
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/typeutils"
 	"intrinsic/production/intrinsic"
@@ -13,10 +13,13 @@ import (
 	"intrinsic/util/proto/protoio"
 	"intrinsic/util/proto/registryutil"
 
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	log "github.com/golang/glog"
+
 	assetpb "intrinsic/assets/build_defs/asset_go_proto"
 	atypepb "intrinsic/assets/proto/asset_type_go_proto"
 	idpb "intrinsic/assets/proto/id_go_proto"
+
+	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
 
 var (

@@ -13,12 +13,13 @@ import (
 	"intrinsic/util/proto/protoio"
 	"intrinsic/util/proto/registryutil"
 
-	anypb "google.golang.org/protobuf/types/known/anypb"
 	dapb "intrinsic/assets/data/proto/v1/data_asset_go_proto"
 	dmpb "intrinsic/assets/data/proto/v1/data_manifest_go_proto"
 	atypepb "intrinsic/assets/proto/asset_type_go_proto"
 	idpb "intrinsic/assets/proto/id_go_proto"
 	mpb "intrinsic/assets/proto/metadata_go_proto"
+
+	anypb "google.golang.org/protobuf/types/known/anypb"
 )
 
 // CreateDataAssetBundleOptions contains the data needed to create a Data asset bundle.

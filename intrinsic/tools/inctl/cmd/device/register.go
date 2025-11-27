@@ -15,10 +15,11 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/golang/glog"
-	"github.com/spf13/cobra"
 	"intrinsic/frontend/cloud/devicemanager/shared/shared"
 	"intrinsic/tools/inctl/util/orgutil"
+
+	log "github.com/golang/glog"
+	"github.com/spf13/cobra"
 )
 
 const (
@@ -259,7 +260,8 @@ var registerCmd = &cobra.Command{
 		}
 
 		return nil
-	}}
+	},
+}
 
 func init() {
 	deviceCmd.AddCommand(registerCmd)
@@ -272,5 +274,4 @@ func init() {
 	registerCmd.Flags().BoolVarP(&noUpdate, "no-update", "", false, "Do not enroll the cluster into automatic updates.")
 	registerCmd.Flags().StringVarP(&hostname, "hostname", "", "",
 		`The hostname for the device. If it's a control plane this will be the cluster name.`)
-
 }

@@ -6,12 +6,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
-	"google.golang.org/protobuf/proto"
 	"intrinsic/util/proto/protoio"
 	"intrinsic/util/proto/registryutil"
 	"intrinsic/util/testing/testio"
+
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
+	"google.golang.org/protobuf/proto"
 
 	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 )

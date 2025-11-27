@@ -4,8 +4,6 @@
 package solution
 
 import (
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/cmd/solution/delete/delete"
 	"intrinsic/tools/inctl/cmd/solution/get/get"
@@ -13,6 +11,9 @@ import (
 	"intrinsic/tools/inctl/cmd/solution/start/start"
 	"intrinsic/tools/inctl/cmd/solution/stop/stop"
 	"intrinsic/tools/inctl/util/orgutil"
+
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func init() {

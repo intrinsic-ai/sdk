@@ -4,15 +4,16 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"regexp"
 
-	"flag"
-	log "github.com/golang/glog"
 	"intrinsic/assets/idutils"
 	"intrinsic/production/intrinsic"
 	"intrinsic/util/proto/protoio"
+
+	log "github.com/golang/glog"
 
 	assetpb "intrinsic/assets/build_defs/asset_go_proto"
 )

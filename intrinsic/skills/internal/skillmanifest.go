@@ -6,19 +6,19 @@ package skillmanifest
 import (
 	"fmt"
 
-	"google.golang.org/protobuf/reflect/protoregistry"
 	"intrinsic/assets/dependencies/utils"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/metadatautils"
 	"intrinsic/util/proto/sourcecodeinfoview"
 
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"google.golang.org/protobuf/reflect/protoregistry"
+
 	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
+
+	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
 
-var (
-	errMixOfDependencyModels = fmt.Errorf("cannot declare dependencies in both the manifest's dependencies field (required equipment) and in the skill's parameter proto (annotation-based dependencies)")
-)
+var errMixOfDependencyModels = fmt.Errorf("cannot declare dependencies in both the manifest's dependencies field (required equipment) and in the skill's parameter proto (annotation-based dependencies)")
 
 // ValidateSkillManifestOptions contains options for validating a SkillManifest.
 type ValidateSkillManifestOptions struct {

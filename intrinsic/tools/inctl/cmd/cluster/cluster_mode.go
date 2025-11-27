@@ -6,13 +6,14 @@ import (
 	"context"
 	"fmt"
 
+	"intrinsic/tools/inctl/auth/auth"
+	"intrinsic/tools/inctl/cmd/root"
+	"intrinsic/tools/inctl/util/printer"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"intrinsic/tools/inctl/auth/auth"
-	"intrinsic/tools/inctl/cmd/root"
-	"intrinsic/tools/inctl/util/printer"
 
 	workcellmodeservicegrpcpb "intrinsic/kubernetes/workcellmode/proto/workcellmode_service_go_grpc_proto"
 	workcellmodeservicepb "intrinsic/kubernetes/workcellmode/proto/workcellmode_service_go_grpc_proto"

@@ -9,12 +9,13 @@ import (
 	"strings"
 	"testing"
 
+	"intrinsic/assets/idutils"
+	"intrinsic/testing/grpctest"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/local"
 	"google.golang.org/grpc/status"
-	"intrinsic/assets/idutils"
-	"intrinsic/testing/grpctest"
 
 	dapb "intrinsic/assets/data/proto/v1/data_asset_go_proto"
 	dasgrpcpb "intrinsic/assets/data/proto/v1/data_assets_go_grpc_proto"

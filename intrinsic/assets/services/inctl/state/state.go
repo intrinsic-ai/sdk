@@ -5,12 +5,13 @@
 package state
 
 import (
-	"github.com/spf13/cobra"
 	"intrinsic/assets/services/inctl/state/disable"
 	"intrinsic/assets/services/inctl/state/enable"
 	"intrinsic/assets/services/inctl/state/get"
 	"intrinsic/assets/services/inctl/state/list"
 	"intrinsic/assets/services/inctl/state/restart"
+
+	"github.com/spf13/cobra"
 )
 
 // ServiceStateCmd is the super-command for commands to introspect and modify the state of a

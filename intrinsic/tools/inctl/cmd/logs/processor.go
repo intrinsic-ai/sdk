@@ -20,10 +20,11 @@ import (
 	"sync"
 	"time"
 
-	backoff "github.com/cenkalti/backoff/v4"
 	"intrinsic/skills/tools/skill/cmd/dialerutil"
 	"intrinsic/skills/tools/skill/cmd/solutionutil"
 	"intrinsic/tools/inctl/auth/auth"
+
+	backoff "github.com/cenkalti/backoff/v4"
 )
 
 const (

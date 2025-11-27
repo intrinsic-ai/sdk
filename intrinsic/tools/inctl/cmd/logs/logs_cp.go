@@ -11,6 +11,9 @@ import (
 	"strings"
 	"time"
 
+	"intrinsic/assets/cmdutils"
+	"intrinsic/tools/inctl/auth/auth"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"go.opencensus.io/plugin/ocgrpc"
@@ -18,13 +21,12 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/proto"
-	"intrinsic/assets/cmdutils"
-	"intrinsic/tools/inctl/auth/auth"
 
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	bpb "intrinsic/logging/proto/blob_go_proto"
 	dgrpcpb "intrinsic/logging/proto/log_dispatcher_service_go_grpc_proto"
 	dpb "intrinsic/logging/proto/log_dispatcher_service_go_grpc_proto"
+
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const (
@@ -79,7 +81,7 @@ func writeBlob(blob *bpb.Blob, localDir string) error {
 		return errors.Wrapf(err, "os.MkdirAll %s", dir)
 	}
 	p := path.Join(localDir, blob.BlobId)
-	if err := os.WriteFile(p, blob.GetData(), 0644); err != nil {
+	if err := os.WriteFile(p, blob.GetData(), 0o644); err != nil {
 		return errors.Wrapf(err, "os.WriteFile of blob to %s", p)
 	}
 	// Clear the blob data so we can write the rest of the response as a textproto.
@@ -173,7 +175,7 @@ func getLogsFromCloud(ctx context.Context, eventSource string, dir string) error
 		}
 		responseFilename := fmt.Sprintf("response_%d.pbtxt", time.Now().UnixNano())
 		p := path.Join(dir, responseFilename)
-		if err = os.WriteFile(p, []byte(prototext.Format(getResp)), 0644); err != nil {
+		if err = os.WriteFile(p, []byte(prototext.Format(getResp)), 0o644); err != nil {
 			return errors.Wrapf(err, "os.WriteFile of response to %s", p)
 		}
 		if len(getResp.GetNextPageCursor()) == 0 {
@@ -211,7 +213,8 @@ var logsCpCmd = &cobra.Command{
 			return getLogsFromCloud(ctx, args[0], args[1])
 		}
 		return getLogsOnprem(ctx, args[0], args[1])
-	}}
+	},
+}
 
 func init() {
 	showLogs.AddCommand(logsCpCmd)

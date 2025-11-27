@@ -7,8 +7,9 @@ import (
 	"os"
 	"text/tabwriter"
 
-	"github.com/spf13/cobra"
 	"intrinsic/tools/inctl/util/orgutil"
+
+	"github.com/spf13/cobra"
 
 	clustermanageralphapb "intrinsic/frontend/cloud/api/v1alpha1/clustermanager_api_go_grpc_proto"
 )
@@ -108,6 +109,7 @@ driver-specific documentation.`,
 		return err
 	},
 }
+
 var upsDisableCmd = &cobra.Command{
 	Use:   "disable --enable-experimental --org <org>[@<project>] --cluster <cluster>",
 	Short: "[EXPERIMENTAL] Disable a UPS.",

@@ -5,22 +5,24 @@ package datamanifest
 import (
 	"testing"
 
-	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protoregistry"
 	"intrinsic/util/proto/descriptor"
 	"intrinsic/util/proto/registryutil"
 
-	anypb "google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoregistry"
+
 	dmpb "intrinsic/assets/data/proto/v1/data_manifest_go_proto"
 	rdspb "intrinsic/assets/data/proto/v1/referenced_data_struct_go_proto"
 	idpb "intrinsic/assets/proto/id_go_proto"
 	vpb "intrinsic/assets/proto/vendor_go_proto"
+
+	anypb "google.golang.org/protobuf/types/known/anypb"
 )
 
 func TestValidateDataManifest(t *testing.T) {
 	msg := &rdspb.ReferencedDataStruct{
 		Fields: map[string]*rdspb.Value{
-			"foo": &rdspb.Value{
+			"foo": {
 				Kind: &rdspb.Value_StringValue{
 					StringValue: "bar",
 				},

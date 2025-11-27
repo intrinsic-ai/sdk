@@ -14,13 +14,14 @@ import (
 	"strconv"
 	"strings"
 
+	"intrinsic/assets/baseclientutils"
+	"intrinsic/kubernetes/acl/identity"
+	"intrinsic/tools/inctl/auth/auth"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
-	"intrinsic/assets/baseclientutils"
-	"intrinsic/kubernetes/acl/identity"
-	"intrinsic/tools/inctl/auth/auth"
 )
 
 // schemePattern matches a URL scheme according to https://github.com/grpc/grpc/blob/master/doc/naming.md.

@@ -8,8 +8,9 @@ import (
 	"fmt"
 	"sync"
 
-	"google.golang.org/protobuf/reflect/protoregistry"
 	"intrinsic/util/proto/registryutil"
+
+	"google.golang.org/protobuf/reflect/protoregistry"
 
 	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 )

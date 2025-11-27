@@ -12,14 +12,15 @@ import (
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/testing/protocmp"
 
-	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
-	anypb "google.golang.org/protobuf/types/known/anypb"
 	apb "intrinsic/util/proto/testing/diamond_a_go_proto"
 	bpb "intrinsic/util/proto/testing/diamond_b_go_proto"
 	cpb "intrinsic/util/proto/testing/diamond_c_go_proto"
 	dpb "intrinsic/util/proto/testing/diamond_d_go_proto"
 	epb "intrinsic/util/proto/testing/embedded_go_proto"
 	rpb "intrinsic/util/proto/testing/recursive_go_proto"
+
+	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	anypb "google.golang.org/protobuf/types/known/anypb"
 )
 
 var (
@@ -103,7 +104,6 @@ func TestPopulateTypesFromFiles(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestNewTypesFromFileDescriptorSet(t *testing.T) {
@@ -162,7 +162,6 @@ func TestNewTypesFromFileDescriptorSet(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestReadTextAnyProtoWithResolver(t *testing.T) {

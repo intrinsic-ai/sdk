@@ -33,15 +33,15 @@ func (e *testExporter) ExportSpan(s *trace.SpanData) {
 
 func TestValidSessionIdentifier(t *testing.T) {
 	tests := []ValidSessionIdentifierTest{
-		ValidSessionIdentifierTest{
+		{
 			value: "",
 			want:  false,
 		},
-		ValidSessionIdentifierTest{
+		{
 			value: "\\.12323",
 			want:  false,
 		},
-		ValidSessionIdentifierTest{
+		{
 			value: "test",
 			want:  true,
 		},
@@ -64,22 +64,22 @@ type TraceOnCookieTest struct {
 
 func TestTraceOnCookie(t *testing.T) {
 	tests := []TraceOnCookieTest{
-		TraceOnCookieTest{
+		{
 			desc:        "empty request",
 			cookie:      nil,
 			wantSampler: false,
 		},
-		TraceOnCookieTest{
+		{
 			desc:        "with cookie",
 			cookie:      &http.Cookie{Name: "trsid", Value: "asd"},
 			wantSampler: true,
 		},
-		TraceOnCookieTest{
+		{
 			desc:        "with empty cookie",
 			cookie:      &http.Cookie{Name: "trsid", Value: ""},
 			wantSampler: false,
 		},
-		TraceOnCookieTest{
+		{
 			desc:        "with invalid cookie",
 			cookie:      &http.Cookie{Name: "trsid", Value: "asd//asd"},
 			wantSampler: false,
@@ -146,12 +146,12 @@ func mustCreateNewRequestWithSpan(ctx context.Context, t *testing.T, method, url
 
 func TestTraceIDHandler(t *testing.T) {
 	tests := []*TraceIDHandlerTest{
-		&TraceIDHandlerTest{
+		{
 			desc:    "no header set",
 			r:       httptest.NewRequest(http.MethodGet, "/", nil),
 			wantSet: false,
 		},
-		&TraceIDHandlerTest{
+		{
 			desc:    "header set",
 			r:       mustCreateNewRequestWithSpan(context.Background(), t, "GET", "/", nil),
 			wantSet: true,
@@ -191,16 +191,16 @@ type AddSpanTRSIDHandlerTest struct {
 
 func TestAddSpanTRSIDHandler(t *testing.T) {
 	tests := []AddSpanTRSIDHandlerTest{
-		AddSpanTRSIDHandlerTest{
+		{
 			desc:   "with cookie",
 			cookie: &http.Cookie{Name: "X-Intrinsic-Tracing-Session", Value: "asd"},
 			trsid:  "asd",
 		},
-		AddSpanTRSIDHandlerTest{
+		{
 			desc:   "without cookie",
 			cookie: nil,
 		},
-		AddSpanTRSIDHandlerTest{
+		{
 			desc:   "wit invalid cookie",
 			cookie: &http.Cookie{Name: "X-Intrinsic-Tracing-Session", Value: "asdasd//asd"},
 		},
@@ -253,33 +253,33 @@ func TestTracingEndpoints(t *testing.T) {
 	uuidNew = func() string { return "test1234" }
 	t.Cleanup(func() { uuidNew = oldUUIDNew })
 	tests := []*TracingEndpointsTest{
-		&TracingEndpointsTest{
+		{
 			desc:     "noop",
 			r:        httptest.NewRequest(http.MethodGet, "/tracing", nil),
 			wantCode: http.StatusBadRequest,
 			wantBody: "invalid tracing operation\n",
 		},
-		&TracingEndpointsTest{
+		{
 			desc:     "trsid with no session",
 			r:        httptest.NewRequest(http.MethodGet, "/tracing/trsid", nil),
 			wantBody: "no tracing session cookie found",
 			wantCode: http.StatusNotFound,
 		},
-		&TracingEndpointsTest{
+		{
 			desc: "trsid with session",
 			r: mustRequestWithCookie(t, "GET", "/tracing/trsid", nil,
 				&http.Cookie{Name: "trsid", Value: "testtrsid"}),
 			wantCode: http.StatusOK,
 			wantBody: "testtrsid",
 		},
-		&TracingEndpointsTest{
+		{
 			desc:           "enable",
 			r:              httptest.NewRequest(http.MethodGet, "/tracing/enable", nil),
 			wantCode:       http.StatusOK,
 			wantSetCookies: 1,
 			wantBody:       "created tracing session test1234 for you",
 		},
-		&TracingEndpointsTest{
+		{
 			desc:           "disable",
 			r:              httptest.NewRequest(http.MethodGet, "/tracing/disable", nil),
 			wantCode:       http.StatusOK,
@@ -347,7 +347,8 @@ func TestWithCloudTracingEnabled(t *testing.T) {
 		TracingCfg: &tracingConfig{
 			Enabled:         true,
 			CloudDeployment: true,
-			Probability:     1},
+			Probability:     1,
+		},
 	}
 	if !cmp.Equal(got, want) {
 		t.Errorf("got config %+v, want %+v", got, want)
@@ -361,7 +362,8 @@ func TestWithCloudTracingDisabled(t *testing.T) {
 		TracingCfg: &tracingConfig{
 			Enabled:         false,
 			CloudDeployment: true,
-			Probability:     1},
+			Probability:     1,
+		},
 	}
 	if !cmp.Equal(got, want) {
 		t.Errorf("got config %+v, want %+v", got, want)
@@ -385,7 +387,8 @@ func TestWithTracingEnabled(t *testing.T) {
 		TracingCfg: &tracingConfig{
 			Enabled:         true,
 			CloudDeployment: false,
-			Probability:     1},
+			Probability:     1,
+		},
 	}
 	if !cmp.Equal(got, want) {
 		t.Errorf("got config %+v, want %+v", got, want)
@@ -399,7 +402,8 @@ func TestWithTracingDisabled(t *testing.T) {
 		TracingCfg: &tracingConfig{
 			Enabled:         false,
 			CloudDeployment: false,
-			Probability:     1},
+			Probability:     1,
+		},
 	}
 	if !cmp.Equal(got, want) {
 		t.Errorf("got config %+v, want %+v", got, want)

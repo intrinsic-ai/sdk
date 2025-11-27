@@ -8,12 +8,13 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
 	hdmpb "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest_go_proto"
 	atypepb "intrinsic/assets/proto/asset_type_go_proto"
 	servicempb "intrinsic/assets/services/proto/service_manifest_go_proto"
 	ipb "intrinsic/kubernetes/workcell_spec/proto/image_go_proto"
+
+	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
 
 // FileDescriptorSetFrom returns a file descriptor set for the given asset.

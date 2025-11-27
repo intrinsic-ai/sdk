@@ -8,10 +8,6 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/spf13/cobra"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"intrinsic/assets/bundleio"
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
@@ -22,6 +18,11 @@ import (
 	"intrinsic/skills/tools/skill/cmd/directupload/directupload"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/printer"
+
+	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	acgrpcpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
 	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"

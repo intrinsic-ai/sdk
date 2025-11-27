@@ -4,15 +4,16 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"strings"
 
-	"flag"
-	log "github.com/golang/glog"
 	"intrinsic/production/intrinsic"
 	"intrinsic/skills/internal/skillmanifest"
 	"intrinsic/util/proto/protoio"
 	"intrinsic/util/proto/registryutil"
+
+	log "github.com/golang/glog"
 
 	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 )

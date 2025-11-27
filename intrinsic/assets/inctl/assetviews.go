@@ -9,8 +9,9 @@ import (
 	"fmt"
 	"slices"
 
-	"google.golang.org/protobuf/proto"
 	"intrinsic/assets/idutils"
+
+	"google.golang.org/protobuf/proto"
 
 	metadatapb "intrinsic/assets/proto/metadata_go_proto"
 )

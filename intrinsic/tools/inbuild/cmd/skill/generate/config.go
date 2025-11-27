@@ -6,10 +6,11 @@ package config
 import (
 	"fmt"
 
-	"github.com/spf13/cobra"
 	"intrinsic/skills/build_defs/skillserviceconfiggen"
 	"intrinsic/tools/inbuild/util/skillmanifest"
 	"intrinsic/util/proto/protoio"
+
+	"github.com/spf13/cobra"
 )
 
 var (

@@ -11,10 +11,11 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/spf13/cobra"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/accounts/accounts"
 	"intrinsic/tools/inctl/util/printer"
+
+	"github.com/spf13/cobra"
 
 	pb "intrinsic/kubernetes/accounts/service/api/accesscontrol/v1/accesscontrol_go_grpc_proto"
 )
@@ -177,7 +178,7 @@ func (us *users) String() string {
 }
 
 func userRoles(rs []*pb.RoleBinding) map[string][]string {
-	var roles = make(map[string][]string)
+	roles := make(map[string][]string)
 	for _, r := range rs {
 		subject := strings.TrimPrefix(r.GetSubject(), "users/")
 		roles[subject] = append(roles[subject], r.GetRole())

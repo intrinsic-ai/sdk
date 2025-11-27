@@ -5,11 +5,12 @@ package accounts
 import (
 	"context"
 
-	"github.com/spf13/viper"
-	"google.golang.org/grpc"
 	"intrinsic/config/environments"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/orgutil"
+
+	"github.com/spf13/viper"
+	"google.golang.org/grpc"
 
 	accaccesscontrolgrpcpb "intrinsic/kubernetes/accounts/service/api/accesscontrol/v1/accesscontrol_go_grpc_proto"
 	accresourcemanagergrpcpb "intrinsic/kubernetes/accounts/service/api/resourcemanager/v1/resourcemanager_go_grpc_proto"

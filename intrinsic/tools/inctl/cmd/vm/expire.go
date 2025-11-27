@@ -7,14 +7,16 @@ import (
 	"fmt"
 	"time"
 
+	"intrinsic/tools/inctl/util/vmalias"
+
 	log "github.com/golang/glog"
 	"github.com/spf13/cobra"
 	"go.opencensus.io/trace"
-	"intrinsic/tools/inctl/util/vmalias"
 
-	tpb "google.golang.org/protobuf/types/known/timestamppb"
 	leaseapigrpcpb "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_grpc_proto"
 	leasepb "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_grpc_proto"
+
+	tpb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var extendDesc = `
@@ -56,7 +58,8 @@ func ExpireIn(ctx context.Context, cl leaseapigrpcpb.VMPoolLeaseServiceClient, v
 	to := time.Now().Add(byDur)
 
 	r, err := cl.ExtendTo(ctx, &leasepb.ExtendToRequest{
-		Instance: vm, To: tpb.New(to), ExtendOnly: extendOnly, ServiceTag: serviceTag})
+		Instance: vm, To: tpb.New(to), ExtendOnly: extendOnly, ServiceTag: serviceTag,
+	})
 	if err != nil {
 		return fmt.Errorf("extending lease failed with: %v", err)
 	}

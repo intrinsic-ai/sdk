@@ -8,13 +8,14 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/spf13/viper"
-	"google.golang.org/protobuf/encoding/protojson"
-	"google.golang.org/protobuf/proto"
 	"intrinsic/config/environments"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/cobrautil"
 	"intrinsic/tools/inctl/util/orgutil"
+
+	"github.com/spf13/viper"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
 
 var vipr = viper.New()

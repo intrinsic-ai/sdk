@@ -7,8 +7,9 @@ package directupload
 import (
 	"context"
 
-	"google.golang.org/grpc"
 	"intrinsic/storage/artifacts/client/client"
+
+	"google.golang.org/grpc"
 
 	articatgrpcpb "intrinsic/storage/artifacts/proto/v1/articat_go_grpc_proto"
 	artifactgrpcpb "intrinsic/storage/artifacts/proto/v1/artifact_go_grpc_proto"

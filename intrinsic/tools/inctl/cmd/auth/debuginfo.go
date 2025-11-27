@@ -13,14 +13,16 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"intrinsic/config/environments"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/orgutil"
 
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+
 	accdiscoverv1grpcpb "intrinsic/kubernetes/accounts/service/api/v1/discoveryapi_go_grpc_proto"
+
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 var printDebugInfoParams = viper.New()

@@ -8,8 +8,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/spf13/cobra"
-	"google.golang.org/grpc/status"
 	"intrinsic/assets/bundleio"
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
@@ -19,10 +17,14 @@ import (
 	"intrinsic/kubernetes/acl/identity"
 	"intrinsic/skills/tools/skill/cmd/directupload/directupload"
 
-	lrogrpcpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
-	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
+	"github.com/spf13/cobra"
+	"google.golang.org/grpc/status"
+
 	iagrpcpb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
 	iapb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
+
+	lrogrpcpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
+	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 )
 
 const (

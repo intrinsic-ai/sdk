@@ -6,15 +6,17 @@ import (
 	"os"
 	"testing"
 
+	"intrinsic/util/testing/testio"
+
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
-	"intrinsic/util/testing/testio"
 
-	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	idpb "intrinsic/assets/proto/id_go_proto"
 	vendorpb "intrinsic/assets/proto/vendor_go_proto"
 	sompb "intrinsic/assets/scene_objects/proto/scene_object_manifest_go_proto"
+
+	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
 
 const (
@@ -71,11 +73,11 @@ func TestValidateSceneObjectManifest(t *testing.T) {
 
 	userDataFDS := &descriptorpb.FileDescriptorSet{
 		File: []*descriptorpb.FileDescriptorProto{
-			&descriptorpb.FileDescriptorProto{
+			{
 				Name:    proto.String("google.protobuf.Empty"),
 				Package: proto.String("google.protobuf"),
 				MessageType: []*descriptorpb.DescriptorProto{
-					&descriptorpb.DescriptorProto{
+					{
 						Name: proto.String("Empty"),
 					},
 				},

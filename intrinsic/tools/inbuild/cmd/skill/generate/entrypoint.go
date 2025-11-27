@@ -7,9 +7,10 @@ import (
 	"fmt"
 	slice "slices"
 
-	"github.com/spf13/cobra"
 	"intrinsic/skills/generator/gen"
 	"intrinsic/util/proto/protoio"
+
+	"github.com/spf13/cobra"
 
 	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 )

@@ -11,6 +11,15 @@ import (
 	"strings"
 
 
+	"intrinsic/assets/baseclientutils"
+	"intrinsic/assets/cmdutils"
+	"intrinsic/config/environments"
+	clusterdiscoverypb "intrinsic/frontend/cloud/api/v1/clusterdiscovery_api_go_grpc_proto"
+	solutiondiscoverygrpcpb "intrinsic/frontend/cloud/api/v1/solutiondiscovery_api_go_grpc_proto"
+	solutiondiscoverypb "intrinsic/frontend/cloud/api/v1/solutiondiscovery_api_go_grpc_proto"
+	"intrinsic/kubernetes/acl/identity"
+	"intrinsic/tools/inctl/auth/auth"
+
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/v1/google"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
@@ -20,14 +29,6 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
-	"intrinsic/assets/baseclientutils"
-	"intrinsic/assets/cmdutils"
-	"intrinsic/config/environments"
-	clusterdiscoverypb "intrinsic/frontend/cloud/api/v1/clusterdiscovery_api_go_grpc_proto"
-	solutiondiscoverygrpcpb "intrinsic/frontend/cloud/api/v1/solutiondiscovery_api_go_grpc_proto"
-	solutiondiscoverypb "intrinsic/frontend/cloud/api/v1/solutiondiscovery_api_go_grpc_proto"
-	"intrinsic/kubernetes/acl/identity"
-	"intrinsic/tools/inctl/auth/auth"
 )
 
 const (
@@ -224,9 +225,7 @@ func defaultGetCatalogAddressForProject(ctx context.Context, opts resolveCatalog
 	return address, nil
 }
 
-var (
-	getCatalogAddressForProject = defaultGetCatalogAddressForProject
-)
+var getCatalogAddressForProject = defaultGetCatalogAddressForProject
 
 type getDialContextOptionsOptions struct {
 	Address string

@@ -10,14 +10,15 @@ import (
 	"path/filepath"
 	"strings"
 
-	crname "github.com/google/go-containerregistry/pkg/name"
-	containerregistry "github.com/google/go-containerregistry/pkg/v1"
-	"github.com/google/go-containerregistry/pkg/v1/tarball"
-	"github.com/pkg/errors"
 	"intrinsic/assets/bundleio"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/services/readeropener"
 	"intrinsic/kubernetes/workcell_spec/imagetags"
+
+	crname "github.com/google/go-containerregistry/pkg/name"
+	containerregistry "github.com/google/go-containerregistry/pkg/v1"
+	"github.com/google/go-containerregistry/pkg/v1/tarball"
+	"github.com/pkg/errors"
 
 	idpb "intrinsic/assets/proto/id_go_proto"
 	ipb "intrinsic/kubernetes/workcell_spec/proto/image_go_proto"

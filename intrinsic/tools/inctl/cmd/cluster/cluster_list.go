@@ -12,10 +12,11 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/spf13/cobra"
-	"google.golang.org/grpc"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/printer"
+
+	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
 
 	clusterdiscoverygrpcpb "intrinsic/frontend/cloud/api/v1/clusterdiscovery_api_go_grpc_proto"
 	clusterdiscoverypb "intrinsic/frontend/cloud/api/v1/clusterdiscovery_api_go_grpc_proto"

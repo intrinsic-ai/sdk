@@ -9,15 +9,17 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/google/safearchive/tar"
-	"google.golang.org/protobuf/proto"
 	"intrinsic/skills/internal/skillmanifest"
 	"intrinsic/util/archive/tartooling"
 	"intrinsic/util/proto/registryutil"
 
-	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/google/safearchive/tar"
+	"google.golang.org/protobuf/proto"
+
 	psmpb "intrinsic/skills/proto/processed_skill_manifest_go_proto"
 	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
+
+	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
 
 const (
@@ -189,7 +191,7 @@ func WriteSkill(path string, opts WriteSkillOpts) error {
 		return fmt.Errorf("opts.Manifest must not be nil")
 	}
 
-	out, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	out, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
 	if err != nil {
 		return fmt.Errorf("failed to open %q for writing: %w", path, err)
 	}

@@ -8,8 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"google.golang.org/grpc/credentials"
 	"intrinsic/kubernetes/acl/jwt"
+
+	"google.golang.org/grpc/credentials"
 )
 
 const defaultMinTokenLifetime = time.Minute

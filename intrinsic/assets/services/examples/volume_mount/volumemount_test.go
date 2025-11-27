@@ -33,7 +33,7 @@ func TestListDir(t *testing.T) {
 			path: "/",
 			want: &vmpb.ListDirResponse{
 				Entries: []*vmpb.ListDirResponse_Entry{
-					&vmpb.ListDirResponse_Entry{
+					{
 						Path:        "/hello.txt",
 						IsDirectory: false,
 					},
@@ -49,11 +49,11 @@ func TestListDir(t *testing.T) {
 			path: "/",
 			want: &vmpb.ListDirResponse{
 				Entries: []*vmpb.ListDirResponse_Entry{
-					&vmpb.ListDirResponse_Entry{
+					{
 						Path:        "/hello.txt",
 						IsDirectory: false,
 					},
-					&vmpb.ListDirResponse_Entry{
+					{
 						Path:        "/subdir",
 						IsDirectory: true,
 					},
@@ -70,15 +70,15 @@ func TestListDir(t *testing.T) {
 			recursive: true,
 			want: &vmpb.ListDirResponse{
 				Entries: []*vmpb.ListDirResponse_Entry{
-					&vmpb.ListDirResponse_Entry{
+					{
 						Path:        "/hello.txt",
 						IsDirectory: false,
 					},
-					&vmpb.ListDirResponse_Entry{
+					{
 						Path:        "/subdir",
 						IsDirectory: true,
 					},
-					&vmpb.ListDirResponse_Entry{
+					{
 						Path:        "/subdir/goodbye.txt",
 						IsDirectory: false,
 					},
@@ -95,7 +95,7 @@ func TestListDir(t *testing.T) {
 			recursive: false,
 			want: &vmpb.ListDirResponse{
 				Entries: []*vmpb.ListDirResponse_Entry{
-					&vmpb.ListDirResponse_Entry{
+					{
 						Path:        "/subdir/goodbye.txt",
 						IsDirectory: false,
 					},
@@ -112,7 +112,7 @@ func TestListDir(t *testing.T) {
 			recursive: true,
 			want: &vmpb.ListDirResponse{
 				Entries: []*vmpb.ListDirResponse_Entry{
-					&vmpb.ListDirResponse_Entry{
+					{
 						Path:        "/subdir/goodbye.txt",
 						IsDirectory: false,
 					},
@@ -128,7 +128,7 @@ func TestListDir(t *testing.T) {
 			recursive: false,
 			want: &vmpb.ListDirResponse{
 				Entries: []*vmpb.ListDirResponse_Entry{
-					&vmpb.ListDirResponse_Entry{
+					{
 						Path:        "/subdir/hello.txt",
 						IsDirectory: false,
 					},

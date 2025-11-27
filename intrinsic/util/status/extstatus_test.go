@@ -8,19 +8,21 @@ import (
 	"fmt"
 	"testing"
 
+	"intrinsic/testing/grpctest"
+
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/local"
 	grpcstatus "google.golang.org/grpc/status"
 	"google.golang.org/protobuf/testing/protocmp"
-	"intrinsic/testing/grpctest"
 
-	epb "google.golang.org/genproto/googleapis/rpc/errdetails"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	ctxpb "intrinsic/logging/proto/context_go_proto"
 	estpb "intrinsic/util/status/extended_status_go_proto"
 	testsvcgrpcpb "intrinsic/util/status/test_service_go_grpc_proto"
+
+	epb "google.golang.org/genproto/googleapis/rpc/errdetails"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 func TestExtendedStatus(t *testing.T) {
@@ -29,141 +31,229 @@ func TestExtendedStatus(t *testing.T) {
 		got  *ExtendedStatus
 		want *estpb.ExtendedStatus
 	}{
-		{"New",
+		{
+			"New",
 			New("ai.intrinsic.test", 2342),
 			&estpb.ExtendedStatus{StatusCode: &estpb.StatusCode{
-				Component: "ai.intrinsic.test", Code: 2342}}},
-		{"FromProto",
+				Component: "ai.intrinsic.test", Code: 2342,
+			}},
+		},
+		{
+			"FromProto",
 			FromProto(&estpb.ExtendedStatus{
 				StatusCode: &estpb.StatusCode{
-					Component: "ai.intrinsic.test", Code: 2342},
+					Component: "ai.intrinsic.test", Code: 2342,
+				},
 				Title: "title",
 				UserReport: &estpb.ExtendedStatus_UserReport{
 					Message: "Ext Msg",
-				}}),
+				},
+			}),
 			&estpb.ExtendedStatus{
 				StatusCode: &estpb.StatusCode{
-					Component: "ai.intrinsic.test", Code: 2342},
+					Component: "ai.intrinsic.test", Code: 2342,
+				},
 				Title: "title",
 				UserReport: &estpb.ExtendedStatus_UserReport{
 					Message: "Ext Msg",
-				}}},
-		{"SetTitle",
+				},
+			},
+		},
+		{
+			"SetTitle",
 			New("ai.intrinsic.test", 2342, WithTitle("title")),
 			&estpb.ExtendedStatus{
 				StatusCode: &estpb.StatusCode{
-					Component: "ai.intrinsic.test", Code: 2342},
-				Title: "title"}},
-		{"SetTitleFormat",
+					Component: "ai.intrinsic.test", Code: 2342,
+				},
+				Title: "title",
+			},
+		},
+		{
+			"SetTitleFormat",
 			New("ai.intrinsic.test", 2342, WithTitle(fmt.Sprintf("title %s", "foo"))),
 			&estpb.ExtendedStatus{
 				StatusCode: &estpb.StatusCode{
-					Component: "ai.intrinsic.test", Code: 2342},
-				Title: "title foo"}},
-		{"SetUserReportMessage",
+					Component: "ai.intrinsic.test", Code: 2342,
+				},
+				Title: "title foo",
+			},
+		},
+		{
+			"SetUserReportMessage",
 			New("ai.intrinsic.test", 2342, WithUserMessage("m1")),
 			&estpb.ExtendedStatus{
 				StatusCode: &estpb.StatusCode{
-					Component: "ai.intrinsic.test", Code: 2342},
-				UserReport: &estpb.ExtendedStatus_UserReport{Message: "m1"}}},
-		{"SetUserReportMessageFormat",
+					Component: "ai.intrinsic.test", Code: 2342,
+				},
+				UserReport: &estpb.ExtendedStatus_UserReport{Message: "m1"},
+			},
+		},
+		{
+			"SetUserReportMessageFormat",
 			New("ai.intrinsic.test", 2342, WithUserMessage(fmt.Sprintf("msg %s", "foo"))),
 			&estpb.ExtendedStatus{
 				StatusCode: &estpb.StatusCode{
-					Component: "ai.intrinsic.test", Code: 2342},
-				UserReport: &estpb.ExtendedStatus_UserReport{Message: "msg foo"}}},
-		{"SetDebugReportMessage",
+					Component: "ai.intrinsic.test", Code: 2342,
+				},
+				UserReport: &estpb.ExtendedStatus_UserReport{Message: "msg foo"},
+			},
+		},
+		{
+			"SetDebugReportMessage",
 			New("ai.intrinsic.test", 2342, WithDebugMessage("m2")),
 			&estpb.ExtendedStatus{
 				StatusCode: &estpb.StatusCode{
-					Component: "ai.intrinsic.test", Code: 2342},
-				DebugReport: &estpb.ExtendedStatus_DebugReport{Message: "m2"}}},
-		{"SetDebugReportMessageFormat",
+					Component: "ai.intrinsic.test", Code: 2342,
+				},
+				DebugReport: &estpb.ExtendedStatus_DebugReport{Message: "m2"},
+			},
+		},
+		{
+			"SetDebugReportMessageFormat",
 			New("ai.intrinsic.test", 2342, WithDebugMessage(fmt.Sprintf("msg %s", "bar"))),
 			&estpb.ExtendedStatus{
 				StatusCode: &estpb.StatusCode{
-					Component: "ai.intrinsic.test", Code: 2342},
-				DebugReport: &estpb.ExtendedStatus_DebugReport{Message: "msg bar"}}},
-		{"SetSeverity",
+					Component: "ai.intrinsic.test", Code: 2342,
+				},
+				DebugReport: &estpb.ExtendedStatus_DebugReport{Message: "msg bar"},
+			},
+		},
+		{
+			"SetSeverity",
 			New("ai.intrinsic.test", 2342, WithSeverity(estpb.ExtendedStatus_FATAL)),
 			&estpb.ExtendedStatus{
 				StatusCode: &estpb.StatusCode{
-					Component: "ai.intrinsic.test", Code: 2342},
-				Severity: estpb.ExtendedStatus_FATAL}},
-		{"AddContext",
+					Component: "ai.intrinsic.test", Code: 2342,
+				},
+				Severity: estpb.ExtendedStatus_FATAL,
+			},
+		},
+		{
+			"AddContext",
 			New("ai.intrinsic.test", 2342, WithContextProto(&estpb.ExtendedStatus{
 				StatusCode: &estpb.StatusCode{
-					Component: "ai.intrinsic.backend_service", Code: 4534},
-				UserReport: &estpb.ExtendedStatus_UserReport{Message: "backend unhappy"}})),
+					Component: "ai.intrinsic.backend_service", Code: 4534,
+				},
+				UserReport: &estpb.ExtendedStatus_UserReport{Message: "backend unhappy"},
+			})),
 			&estpb.ExtendedStatus{
 				StatusCode: &estpb.StatusCode{
-					Component: "ai.intrinsic.test", Code: 2342},
+					Component: "ai.intrinsic.test", Code: 2342,
+				},
 				Context: []*estpb.ExtendedStatus{
-					{StatusCode: &estpb.StatusCode{
-						Component: "ai.intrinsic.backend_service", Code: 4534},
-						UserReport: &estpb.ExtendedStatus_UserReport{Message: "backend unhappy"}},
-				}}},
-		{"AddMultipleContexts",
+					{
+						StatusCode: &estpb.StatusCode{
+							Component: "ai.intrinsic.backend_service", Code: 4534,
+						},
+						UserReport: &estpb.ExtendedStatus_UserReport{Message: "backend unhappy"},
+					},
+				},
+			},
+		},
+		{
+			"AddMultipleContexts",
 			New("ai.intrinsic.test", 2342, WithContextProtos([]*estpb.ExtendedStatus{
-				{StatusCode: &estpb.StatusCode{
-					Component: "ai.intrinsic.backend_service", Code: 4534},
-					UserReport: &estpb.ExtendedStatus_UserReport{Message: "backend unhappy"}},
-				{StatusCode: &estpb.StatusCode{
-					Component: "ai.intrinsic.backend_service_2", Code: 4444},
-					UserReport: &estpb.ExtendedStatus_UserReport{Message: "other backend unhappy"}}})),
+				{
+					StatusCode: &estpb.StatusCode{
+						Component: "ai.intrinsic.backend_service", Code: 4534,
+					},
+					UserReport: &estpb.ExtendedStatus_UserReport{Message: "backend unhappy"},
+				},
+				{
+					StatusCode: &estpb.StatusCode{
+						Component: "ai.intrinsic.backend_service_2", Code: 4444,
+					},
+					UserReport: &estpb.ExtendedStatus_UserReport{Message: "other backend unhappy"},
+				},
+			})),
 			&estpb.ExtendedStatus{
 				StatusCode: &estpb.StatusCode{
-					Component: "ai.intrinsic.test", Code: 2342},
+					Component: "ai.intrinsic.test", Code: 2342,
+				},
 				Context: []*estpb.ExtendedStatus{
-					{StatusCode: &estpb.StatusCode{
-						Component: "ai.intrinsic.backend_service", Code: 4534},
-						UserReport: &estpb.ExtendedStatus_UserReport{Message: "backend unhappy"}},
-					{StatusCode: &estpb.StatusCode{
-						Component: "ai.intrinsic.backend_service_2", Code: 4444},
-						UserReport: &estpb.ExtendedStatus_UserReport{Message: "other backend unhappy"}},
-				}}},
-		{"AddContextFromError",
+					{
+						StatusCode: &estpb.StatusCode{
+							Component: "ai.intrinsic.backend_service", Code: 4534,
+						},
+						UserReport: &estpb.ExtendedStatus_UserReport{Message: "backend unhappy"},
+					},
+					{
+						StatusCode: &estpb.StatusCode{
+							Component: "ai.intrinsic.backend_service_2", Code: 4444,
+						},
+						UserReport: &estpb.ExtendedStatus_UserReport{Message: "other backend unhappy"},
+					},
+				},
+			},
+		},
+		{
+			"AddContextFromError",
 			New("ai.intrinsic.test", 2342, WithContextFromError(
 				NewError("ai.intrinsic.backend_service", 4534,
 					WithUserMessage("backend unhappy")))),
 			&estpb.ExtendedStatus{
 				StatusCode: &estpb.StatusCode{
-					Component: "ai.intrinsic.test", Code: 2342},
+					Component: "ai.intrinsic.test", Code: 2342,
+				},
 				Context: []*estpb.ExtendedStatus{
-					{StatusCode: &estpb.StatusCode{
-						Component: "ai.intrinsic.backend_service", Code: 4534},
-						UserReport: &estpb.ExtendedStatus_UserReport{Message: "backend unhappy"}},
-				}}},
-		{"AddContextFromMultipleErrors",
+					{
+						StatusCode: &estpb.StatusCode{
+							Component: "ai.intrinsic.backend_service", Code: 4534,
+						},
+						UserReport: &estpb.ExtendedStatus_UserReport{Message: "backend unhappy"},
+					},
+				},
+			},
+		},
+		{
+			"AddContextFromMultipleErrors",
 			New("ai.intrinsic.test", 2342, WithContextFromErrors([]error{
 				NewError("ai.intrinsic.backend_service", 4534,
 					WithUserMessage("backend unhappy")),
 				NewError("ai.intrinsic.backend_service_2", 4444,
-					WithUserMessage("other backend unhappy"))})),
+					WithUserMessage("other backend unhappy")),
+			})),
 			&estpb.ExtendedStatus{
 				StatusCode: &estpb.StatusCode{
-					Component: "ai.intrinsic.test", Code: 2342},
+					Component: "ai.intrinsic.test", Code: 2342,
+				},
 				Context: []*estpb.ExtendedStatus{
-					{StatusCode: &estpb.StatusCode{
-						Component: "ai.intrinsic.backend_service", Code: 4534},
-						UserReport: &estpb.ExtendedStatus_UserReport{Message: "backend unhappy"}},
-					{StatusCode: &estpb.StatusCode{
-						Component: "ai.intrinsic.backend_service_2", Code: 4444},
-						UserReport: &estpb.ExtendedStatus_UserReport{Message: "other backend unhappy"}},
-				}}},
-		{"SetLogContext",
+					{
+						StatusCode: &estpb.StatusCode{
+							Component: "ai.intrinsic.backend_service", Code: 4534,
+						},
+						UserReport: &estpb.ExtendedStatus_UserReport{Message: "backend unhappy"},
+					},
+					{
+						StatusCode: &estpb.StatusCode{
+							Component: "ai.intrinsic.backend_service_2", Code: 4444,
+						},
+						UserReport: &estpb.ExtendedStatus_UserReport{Message: "other backend unhappy"},
+					},
+				},
+			},
+		},
+		{
+			"SetLogContext",
 			New("ai.intrinsic.test", 2342, WithLogContext(&ctxpb.Context{
 				ExecutiveSessionId:    1,
 				ExecutivePlanId:       2,
-				ExecutivePlanActionId: 3})),
+				ExecutivePlanActionId: 3,
+			})),
 			&estpb.ExtendedStatus{
 				StatusCode: &estpb.StatusCode{
-					Component: "ai.intrinsic.test", Code: 2342},
+					Component: "ai.intrinsic.test", Code: 2342,
+				},
 				RelatedTo: &estpb.ExtendedStatus_Relations{
 					LogContext: &ctxpb.Context{
 						ExecutiveSessionId:    1,
 						ExecutivePlanId:       2,
-						ExecutivePlanActionId: 3}}}},
+						ExecutivePlanActionId: 3,
+					},
+				},
+			},
+		},
 	}
 
 	for _, test := range tests {
@@ -177,7 +267,6 @@ func TestExtendedStatus(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestErrorInterface(t *testing.T) {
@@ -197,8 +286,10 @@ func TestNewError(t *testing.T) {
 	}
 	want := &estpb.ExtendedStatus{
 		StatusCode: &estpb.StatusCode{
-			Component: "ai.intrinsic.test", Code: 3465},
-		Title: "test error", DebugReport: &estpb.ExtendedStatus_DebugReport{Message: "Something went wrong"}}
+			Component: "ai.intrinsic.test", Code: 3465,
+		},
+		Title: "test error", DebugReport: &estpb.ExtendedStatus_DebugReport{Message: "Something went wrong"},
+	}
 
 	es, ok := FromError(err)
 	if !ok {
@@ -211,7 +302,6 @@ func TestNewError(t *testing.T) {
 	); diff != "" {
 		t.Errorf("NewError/FromError returned unexpected diff (-want +got):\n%s", diff)
 	}
-
 }
 
 func TestErrorGRPCStatus(t *testing.T) {
@@ -225,8 +315,10 @@ func TestErrorGRPCStatus(t *testing.T) {
 	got := gs.Details()[0].(*estpb.ExtendedStatus)
 	want := &estpb.ExtendedStatus{
 		StatusCode: &estpb.StatusCode{
-			Component: "ai.intrinsic.test", Code: 3465},
-		Title: "test error"}
+			Component: "ai.intrinsic.test", Code: 3465,
+		},
+		Title: "test error",
+	}
 
 	if diff := cmp.Diff(want, got,
 		protocmp.Transform(),
@@ -254,15 +346,19 @@ func TestErrorIs(t *testing.T) {
 	err := New("ai.intrinsic.test", 3465, WithTitle("test error")).Err()
 	err1 := &Error{es: &ExtendedStatus{s: &estpb.ExtendedStatus{
 		StatusCode: &estpb.StatusCode{
-			Component: "ai.intrinsic.test", Code: 3465},
-		Title: "test error"}}}
+			Component: "ai.intrinsic.test", Code: 3465,
+		},
+		Title: "test error",
+	}}}
 	if !errors.Is(err, err1) {
 		t.Errorf("Error did not recognize same error code")
 	}
 
 	err2 := &Error{es: &ExtendedStatus{s: &estpb.ExtendedStatus{
 		StatusCode: &estpb.StatusCode{
-			Component: "ai.intrinsic.test", Code: 2}}}}
+			Component: "ai.intrinsic.test", Code: 2,
+		},
+	}}}
 	if errors.Is(err, err2) {
 		t.Errorf("Error did recognize wrong error code")
 	}
@@ -276,7 +372,8 @@ func TestErrorIs(t *testing.T) {
 func TestFromGRPCFunctionsSkipUnrelatedDetails(t *testing.T) {
 	extStatusProto := &estpb.ExtendedStatus{
 		StatusCode: &estpb.StatusCode{
-			Component: "ai.intrinsic.test", Code: 2342},
+			Component: "ai.intrinsic.test", Code: 2342,
+		},
 		Title: "title",
 		UserReport: &estpb.ExtendedStatus_UserReport{
 			Message: "Ext Msg",
@@ -288,7 +385,8 @@ func TestFromGRPCFunctionsSkipUnrelatedDetails(t *testing.T) {
 				Violations: []*epb.QuotaFailure_Violation{{
 					Subject:     "Test subject",
 					Description: "Limit",
-				}}},
+				}},
+			},
 			extStatusProto)
 	if err != nil {
 		t.Fatalf("Failed to create GRPC status: %v", err)
@@ -362,8 +460,10 @@ func TestGrpcServiceCall(t *testing.T) {
 
 	want := &estpb.ExtendedStatus{
 		StatusCode: &estpb.StatusCode{
-			Component: "ai.intrinsic.test", Code: 9876},
-		Title: "Error Title"}
+			Component: "ai.intrinsic.test", Code: 9876,
+		},
+		Title: "Error Title",
+	}
 	if diff := cmp.Diff(want, extSt.Proto(),
 		protocmp.Transform(),
 		protocmp.IgnoreFields(&estpb.ExtendedStatus{}, "timestamp"),

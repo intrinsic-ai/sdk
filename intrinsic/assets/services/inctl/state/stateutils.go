@@ -8,10 +8,11 @@ import (
 	"fmt"
 	"strings"
 
+	"intrinsic/tools/inctl/util/printer"
+
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"google.golang.org/protobuf/encoding/protojson"
-	"intrinsic/tools/inctl/util/printer"
 
 	systemservicestatepb "intrinsic/assets/services/proto/v1/system_service_state_go_grpc_proto"
 )

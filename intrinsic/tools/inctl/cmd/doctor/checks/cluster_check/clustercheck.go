@@ -6,8 +6,9 @@ package clustercheck
 import (
 	"fmt"
 
-	"github.com/spf13/cobra"
 	"intrinsic/tools/inctl/cmd/doctor/api/api"
+
+	"github.com/spf13/cobra"
 
 	rpb "intrinsic/tools/inctl/cmd/doctor/proto/v1/report_go_proto"
 )

@@ -7,15 +7,16 @@ import (
 	"fmt"
 	"os"
 
+	"intrinsic/executive/go/behaviortree"
+	"intrinsic/tools/inctl/util/orgutil"
+	"intrinsic/util/proto/registryutil"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoregistry"
-	"intrinsic/executive/go/behaviortree"
-	"intrinsic/tools/inctl/util/orgutil"
-	"intrinsic/util/proto/registryutil"
 
 	btpb "intrinsic/executive/proto/behavior_tree_go_proto"
 	execgrpcpb "intrinsic/executive/proto/executive_service_go_grpc_proto"
@@ -79,8 +80,7 @@ func newTextSerializer(ctx context.Context, srC skillregistrygrpcpb.SkillRegistr
 	return &textSerializer{commonFiles: files}, nil
 }
 
-type binarySerializer struct {
-}
+type binarySerializer struct{}
 
 // Serialize serializes the given behavior tree to binary proto.
 func (b *binarySerializer) Serialize(ctx context.Context, bt *btpb.BehaviorTree) ([]byte, error) {
@@ -201,7 +201,7 @@ inctl process get my_process --solution my-solution-id --cluster my-cluster [--o
 			}
 
 			if flagOutputFile != "" {
-				if err := os.WriteFile(flagOutputFile, content, 0644); err != nil {
+				if err := os.WriteFile(flagOutputFile, content, 0o644); err != nil {
 					return errors.Wrapf(err, "could not write to file %s", flagOutputFile)
 				}
 				return nil

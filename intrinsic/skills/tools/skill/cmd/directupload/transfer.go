@@ -7,14 +7,15 @@ import (
 	"fmt"
 	"io"
 
+	"intrinsic/assets/imagetransfer"
+	"intrinsic/storage/artifacts/client/client"
+
 	backoff "github.com/cenkalti/backoff/v4"
 	log "github.com/golang/glog"
 	"github.com/google/go-containerregistry/pkg/name"
 	crv1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/pkg/errors"
 	"go.uber.org/atomic"
-	"intrinsic/assets/imagetransfer"
-	"intrinsic/storage/artifacts/client/client"
 
 	artifactgrpcpb "intrinsic/storage/artifacts/proto/v1/artifact_go_grpc_proto"
 )

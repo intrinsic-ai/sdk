@@ -6,10 +6,11 @@ package sceneobjectmanifest
 import (
 	"fmt"
 
-	"google.golang.org/protobuf/reflect/protoreflect"
-	"google.golang.org/protobuf/reflect/protoregistry"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/metadatautils"
+
+	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/reflect/protoregistry"
 
 	sompb "intrinsic/assets/scene_objects/proto/scene_object_manifest_go_proto"
 	sopb "intrinsic/scene/proto/v1/scene_object_go_proto"

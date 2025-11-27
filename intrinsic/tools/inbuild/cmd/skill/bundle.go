@@ -6,9 +6,10 @@ package bundle
 import (
 	"fmt"
 
-	"github.com/spf13/cobra"
 	"intrinsic/assets/bundleio"
 	"intrinsic/tools/inbuild/util/skillmanifest"
+
+	"github.com/spf13/cobra"
 )
 
 var (

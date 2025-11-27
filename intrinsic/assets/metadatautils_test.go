@@ -11,8 +11,6 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
-	tpb "google.golang.org/protobuf/types/known/timestamppb"
 	datamanifestpb "intrinsic/assets/data/proto/v1/data_manifest_go_proto"
 	hardwaremanifestpb "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest_go_proto"
 	processmanifestpb "intrinsic/assets/processes/proto/process_manifest_go_proto"
@@ -25,6 +23,9 @@ import (
 	sceneobjectmanifestpb "intrinsic/assets/scene_objects/proto/scene_object_manifest_go_proto"
 	servicemanifestpb "intrinsic/assets/services/proto/service_manifest_go_proto"
 	skillmanifestpb "intrinsic/skills/proto/skill_manifest_go_proto"
+
+	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	tpb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func TestValidateMetadata(t *testing.T) {
@@ -50,7 +51,7 @@ func TestValidateMetadata(t *testing.T) {
 			Nanos:   0,
 		},
 		Provides: []*metadatapb.Interface{
-			&metadatapb.Interface{
+			{
 				Uri: "grpc://intrinsic_proto.test.MyService",
 			},
 		},
@@ -76,7 +77,7 @@ func TestValidateMetadata(t *testing.T) {
 	mInvalidAssetTag := proto.Clone(m).(*metadatapb.Metadata)
 	mInvalidAssetTag.AssetTag = atagpb.AssetTag_ASSET_TAG_SUBPROCESS
 	mInvalidProvidesInterface := proto.Clone(m).(*metadatapb.Metadata)
-	mInvalidProvidesInterface.Provides = []*metadatapb.Interface{&metadatapb.Interface{Uri: "invalid"}}
+	mInvalidProvidesInterface.Provides = []*metadatapb.Interface{{Uri: "invalid"}}
 	mNameTooLong := proto.Clone(m).(*metadatapb.Metadata)
 	mNameTooLong.IdVersion.Id.Name = strings.Repeat("a", NameCharLength[atypepb.AssetType_ASSET_TYPE_SERVICE]+1)
 	mDisplayNameTooLong := proto.Clone(m).(*metadatapb.Metadata)

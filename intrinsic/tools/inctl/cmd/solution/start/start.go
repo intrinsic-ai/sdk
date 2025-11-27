@@ -8,15 +8,16 @@ import (
 	"fmt"
 	"strings"
 
+	"intrinsic/assets/clientutils"
+	"intrinsic/assets/cmdutils"
+	"intrinsic/config/operationmode"
+	"intrinsic/tools/inctl/util/printer"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"intrinsic/assets/clientutils"
-	"intrinsic/assets/cmdutils"
-	"intrinsic/config/operationmode"
-	"intrinsic/tools/inctl/util/printer"
 
 	opmodepb "intrinsic/config/proto/operation_mode_go_proto"
 	deploygrpcpb "intrinsic/kubernetes/workcell_spec/proto/deploy_go_grpc_proto"

@@ -9,16 +9,18 @@ import (
 	"fmt"
 	"time"
 
+	"intrinsic/util/grpc/grpclimits"
+
 	log "github.com/golang/glog"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
-	"intrinsic/util/grpc/grpclimits"
+
+	contextpb "intrinsic/logging/proto/context_go_proto"
+	espb "intrinsic/util/status/extended_status_go_proto"
 
 	statuspb "google.golang.org/genproto/googleapis/rpc/status"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
-	contextpb "intrinsic/logging/proto/context_go_proto"
-	espb "intrinsic/util/status/extended_status_go_proto"
 )
 
 // The ExtendedStatus wrapper implements a builder pattern to collect status information.
@@ -182,7 +184,8 @@ func WithGrpcCode(code codes.Code) NewOption {
 // New creates an ExtendedStatus with the given StatusCode (component + numeric code).
 func New(component string, code uint32, options ...NewOption) *ExtendedStatus {
 	p := &espb.ExtendedStatus{StatusCode: &espb.StatusCode{
-		Code: code, Component: component}}
+		Code: code, Component: component,
+	}}
 
 	opts := newOptions{grpcCode: codes.Internal}
 

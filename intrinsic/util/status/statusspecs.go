@@ -26,9 +26,10 @@ import (
 	"os"
 	"time"
 
+	"intrinsic/util/status/extstatus"
+
 	log "github.com/golang/glog"
 	"google.golang.org/protobuf/proto"
-	"intrinsic/util/status/extstatus"
 
 	specpb "intrinsic/assets/proto/status_spec_go_proto"
 	contextpb "intrinsic/logging/proto/context_go_proto"
@@ -40,9 +41,7 @@ type initData struct {
 	specs     map[uint32]*specpb.StatusSpec
 }
 
-var (
-	pkgData initData
-)
+var pkgData initData
 
 // InitFromFile initializes status specs from a file.
 func InitFromFile(component string, filename string) error {

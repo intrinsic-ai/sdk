@@ -8,16 +8,18 @@ import (
 	"fmt"
 	"os"
 
-	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protoregistry"
 	"intrinsic/assets/bundleio"
 	"intrinsic/assets/processes/processutil"
 	"intrinsic/util/proto/protoio"
 	"intrinsic/util/proto/registryutil"
 
-	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoregistry"
+
 	processmanifestpb "intrinsic/assets/processes/proto/process_manifest_go_proto"
 	behaviortreepb "intrinsic/executive/proto/behavior_tree_go_proto"
+
+	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
 
 func readTextProtoWithAnys(path string, message proto.Message, types *protoregistry.Types) error {
@@ -85,7 +87,7 @@ func CreateProcessAssetBundle(options CreateProcessAssetBundleOptions) error {
 
 	// Open the file at the output bundle path for writing. Creates the file if it
 	// does not already exist.
-	outputBundleFile, err := os.OpenFile(options.OutputBundlePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	outputBundleFile, err := os.OpenFile(options.OutputBundlePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
 	if err != nil {
 		return fmt.Errorf("failed to open %q for writing: %w", options.OutputBundlePath, err)
 	}

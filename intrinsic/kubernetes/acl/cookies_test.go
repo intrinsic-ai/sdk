@@ -54,8 +54,8 @@ func TestCookiesFromContext(t *testing.T) {
 		md.Append(CookieHeaderName, "org-id=exampleorg")
 		ctx := metadata.NewIncomingContext(t.Context(), md)
 		want := []*http.Cookie{
-			&http.Cookie{Name: "org-id", Value: "exampleorg"},
-			&http.Cookie{Name: "user-id", Value: "doe@example.com"},
+			{Name: "org-id", Value: "exampleorg"},
+			{Name: "user-id", Value: "doe@example.com"},
 		}
 		result, err := FromContext(ctx)
 		if err != nil {
@@ -84,8 +84,8 @@ func TestCookiesFromContext(t *testing.T) {
 
 	t.Run("too-many-cookie-headers", func(t *testing.T) {
 		expected := []*http.Cookie{
-			&http.Cookie{Name: "one", Value: "val1"},
-			&http.Cookie{Name: "two", Value: "val2"},
+			{Name: "one", Value: "val1"},
+			{Name: "two", Value: "val2"},
 		}
 		md := metadata.New(map[string]string{CookieHeaderName: "one=val1; two=val2"})
 		ctx := metadata.NewIncomingContext(t.Context(), md)
@@ -142,13 +142,13 @@ func TestFromRequestNamed(t *testing.T) {
 			name:  "cookie-name-match-request",
 			req:   makeRequest(t, &http.Cookie{Name: "one", Value: "val1"}),
 			names: []string{"one"},
-			want:  []*http.Cookie{&http.Cookie{Name: "one", Value: "val1"}},
+			want:  []*http.Cookie{{Name: "one", Value: "val1"}},
 		},
 		{
 			name:  "two-cookies-one-name",
 			req:   makeRequest(t, &http.Cookie{Name: "one", Value: "val1"}, &http.Cookie{Name: "two", Value: "val2"}),
 			names: []string{"one"},
-			want:  []*http.Cookie{&http.Cookie{Name: "one", Value: "val1"}},
+			want:  []*http.Cookie{{Name: "one", Value: "val1"}},
 		},
 		{
 			name:  "one-cookies-no-name",
@@ -160,7 +160,7 @@ func TestFromRequestNamed(t *testing.T) {
 			name:  "duplicate-cookies",
 			req:   makeRequest(t, &http.Cookie{Name: "one", Value: "val1"}, &http.Cookie{Name: "one", Value: "val2"}),
 			names: []string{"one"},
-			want:  []*http.Cookie{&http.Cookie{Name: "one", Value: "val1"}},
+			want:  []*http.Cookie{{Name: "one", Value: "val1"}},
 		},
 	}
 
@@ -188,23 +188,23 @@ func TestToMDString(t *testing.T) {
 		{
 			name: "one-cookie",
 			cookies: []*http.Cookie{
-				&http.Cookie{Name: "one", Value: "val1"},
+				{Name: "one", Value: "val1"},
 			},
 			want: []string{CookieHeaderName, "one=val1"},
 		},
 		{
 			name: "two-cookies",
 			cookies: []*http.Cookie{
-				&http.Cookie{Name: "one", Value: "val1"},
-				&http.Cookie{Name: "two", Value: "val2"},
+				{Name: "one", Value: "val1"},
+				{Name: "two", Value: "val2"},
 			},
 			want: []string{CookieHeaderName, "one=val1; two=val2"},
 		},
 		{
 			name: "duplicate-cookies",
 			cookies: []*http.Cookie{
-				&http.Cookie{Name: "one", Value: "val1"},
-				&http.Cookie{Name: "one", Value: "val1"},
+				{Name: "one", Value: "val1"},
+				{Name: "one", Value: "val1"},
 			},
 			want: []string{CookieHeaderName, "one=val1; one=val1"},
 		},
@@ -248,7 +248,7 @@ func TestAddToMD(t *testing.T) {
 		{
 			name: "no metadata",
 			md:   nil,
-			cs:   []*http.Cookie{&http.Cookie{Name: "a", Value: "1"}},
+			cs:   []*http.Cookie{{Name: "a", Value: "1"}},
 			want: []string{"a=1"},
 		},
 		{
@@ -258,8 +258,8 @@ func TestAddToMD(t *testing.T) {
 				"other":  []string{"a=1; b=2"},
 			},
 			cs: []*http.Cookie{
-				&http.Cookie{Name: "b", Value: "2"},
-				&http.Cookie{Name: "a", Value: "1"},
+				{Name: "b", Value: "2"},
+				{Name: "a", Value: "1"},
 			},
 			want: []string{"a=1; b=2; c=3"},
 		},
@@ -269,9 +269,9 @@ func TestAddToMD(t *testing.T) {
 				"cookie": []string{"a=5; c=3", "b=5; d=4"},
 			},
 			cs: []*http.Cookie{
-				&http.Cookie{Name: "b", Value: "2"},
-				&http.Cookie{Name: "a", Value: "1"},
-				&http.Cookie{Name: "e", Value: "5"},
+				{Name: "b", Value: "2"},
+				{Name: "a", Value: "1"},
+				{Name: "e", Value: "5"},
 			},
 			want: []string{"a=1; b=2; c=3; d=4; e=5"},
 		},
@@ -313,14 +313,14 @@ func TestAddToRequest(t *testing.T) {
 		{
 			name: "add to empty request",
 			req:  &http.Request{},
-			cs:   []*http.Cookie{&http.Cookie{Name: "a", Value: "1"}},
-			want: []*http.Cookie{&http.Cookie{Name: "a", Value: "1"}},
+			cs:   []*http.Cookie{{Name: "a", Value: "1"}},
+			want: []*http.Cookie{{Name: "a", Value: "1"}},
 		},
 		{
 			name: "cookie duplication prevented",
 			req:  makeRequest(t, &http.Cookie{Name: "a", Value: "1"}),
-			cs:   []*http.Cookie{&http.Cookie{Name: "a", Value: "1"}},
-			want: []*http.Cookie{&http.Cookie{Name: "a", Value: "1"}},
+			cs:   []*http.Cookie{{Name: "a", Value: "1"}},
+			want: []*http.Cookie{{Name: "a", Value: "1"}},
 		},
 		{
 			name: "happy case",
@@ -329,13 +329,13 @@ func TestAddToRequest(t *testing.T) {
 				&http.Cookie{Name: "c", Value: "3"},
 			),
 			cs: []*http.Cookie{
-				&http.Cookie{Name: "b", Value: "2"},
-				&http.Cookie{Name: "a", Value: "1"},
+				{Name: "b", Value: "2"},
+				{Name: "a", Value: "1"},
 			},
 			want: []*http.Cookie{
-				&http.Cookie{Name: "a", Value: "1"},
-				&http.Cookie{Name: "b", Value: "2"},
-				&http.Cookie{Name: "c", Value: "3"},
+				{Name: "a", Value: "1"},
+				{Name: "b", Value: "2"},
+				{Name: "c", Value: "3"},
 			},
 		},
 		{
@@ -345,15 +345,15 @@ func TestAddToRequest(t *testing.T) {
 				&http.Cookie{Name: "c", Value: "3"},
 			),
 			cs: []*http.Cookie{
-				&http.Cookie{Name: "b", Value: "2"},
-				&http.Cookie{Name: "a", Value: "1"},
-				&http.Cookie{Name: "e", Value: "5"},
+				{Name: "b", Value: "2"},
+				{Name: "a", Value: "1"},
+				{Name: "e", Value: "5"},
 			},
 			want: []*http.Cookie{
-				&http.Cookie{Name: "a", Value: "1"},
-				&http.Cookie{Name: "b", Value: "2"},
-				&http.Cookie{Name: "c", Value: "3"},
-				&http.Cookie{Name: "e", Value: "5"},
+				{Name: "a", Value: "1"},
+				{Name: "b", Value: "2"},
+				{Name: "c", Value: "3"},
+				{Name: "e", Value: "5"},
 			},
 		},
 	}

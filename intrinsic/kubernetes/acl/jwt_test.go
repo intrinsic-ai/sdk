@@ -6,9 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"intrinsic/kubernetes/acl/testing/jwttesting"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"intrinsic/kubernetes/acl/testing/jwttesting"
 )
 
 // Non-standard token with weird payload.

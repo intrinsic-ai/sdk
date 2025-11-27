@@ -6,9 +6,10 @@ package datamanifest
 import (
 	"fmt"
 
-	"google.golang.org/protobuf/reflect/protoregistry"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/metadatautils"
+
+	"google.golang.org/protobuf/reflect/protoregistry"
 
 	dmpb "intrinsic/assets/data/proto/v1/data_manifest_go_proto"
 )

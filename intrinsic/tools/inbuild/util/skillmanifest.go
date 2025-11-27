@@ -10,8 +10,9 @@ import (
 	"intrinsic/util/proto/protoio"
 	"intrinsic/util/proto/registryutil"
 
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
+
+	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
 
 // LoadManifestAndFileDescriptorSets loads a skill manifest and consolidates multiple file descriptor sets into one.

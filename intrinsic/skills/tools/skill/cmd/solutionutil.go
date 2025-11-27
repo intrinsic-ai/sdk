@@ -8,8 +8,9 @@ import (
 	"errors"
 	"fmt"
 
-	"google.golang.org/grpc"
 	"intrinsic/tools/inctl/cmd/solution/get/get"
+
+	"google.golang.org/grpc"
 
 	clusterdiscoverypb "intrinsic/frontend/cloud/api/v1/clusterdiscovery_api_go_grpc_proto"
 )

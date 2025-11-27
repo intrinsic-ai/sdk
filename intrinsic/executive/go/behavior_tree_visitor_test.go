@@ -6,9 +6,10 @@ import (
 	"context"
 	"testing"
 
+	"intrinsic/executive/go/behaviortree"
+
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/protobuf/proto"
-	"intrinsic/executive/go/behaviortree"
 
 	btpb "intrinsic/executive/proto/behavior_tree_go_proto"
 )
@@ -21,6 +22,7 @@ func (c *nodeNameCollector) VisitNode(ctx context.Context, node *btpb.BehaviorTr
 	c.Names = append(c.Names, node.GetName())
 	return nil
 }
+
 func (c *nodeNameCollector) VisitCondition(ctx context.Context, cond *btpb.BehaviorTree_Condition) error {
 	return nil
 }

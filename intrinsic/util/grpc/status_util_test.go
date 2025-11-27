@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"testing"
 
+	"intrinsic/testing/grpctest"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/pkg/errors"
@@ -14,15 +16,13 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/local"
 	"google.golang.org/grpc/status"
-	"intrinsic/testing/grpctest"
+
+	pgrpcpb "intrinsic/util/grpc/testing/ping_go_grpc_proto"
 
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
-	pgrpcpb "intrinsic/util/grpc/testing/ping_go_grpc_proto"
 )
 
-var (
-	deadlineExceeded = status.Errorf(codes.DeadlineExceeded, "test")
-)
+var deadlineExceeded = status.Errorf(codes.DeadlineExceeded, "test")
 
 func TestWrap(t *testing.T) {
 	tests := []struct {

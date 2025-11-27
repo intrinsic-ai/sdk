@@ -11,11 +11,12 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/spf13/cobra"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/cmd/version/version"
 	"intrinsic/tools/inctl/util/printer"
 	"intrinsic/tools/inctl/util/templateutil"
+
+	"github.com/spf13/cobra"
 )
 
 //go:embed templates/*
@@ -152,7 +153,7 @@ func RunInitCmd(params *InitCmdParams) (InitSuccessMessage, error) {
 
 	if !params.DryRun {
 		// Recursively create requested dir if it does not exist yet.
-		if err = os.MkdirAll(workspaceRoot, 0750 /*rwxr-x---*/); err != nil {
+		if err = os.MkdirAll(workspaceRoot, 0o750 /*rwxr-x---*/); err != nil {
 			return InitSuccessMessage{}, fmt.Errorf("creating directory %s: %w", workspaceRoot, err)
 		}
 
@@ -227,7 +228,6 @@ $ inctl bazel init --sdk_repository=<repo url> --bazelrc-only --override
 `,
 	Args: cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, _ []string) error {
-
 		params := &InitCmdParams{
 			WorkspaceRoot: flagWorkspaceRoot,
 			SdkRepository: flagSDKRepository,

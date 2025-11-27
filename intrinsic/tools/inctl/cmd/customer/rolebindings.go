@@ -9,11 +9,12 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/spf13/cobra"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/accounts/accounts"
 	"intrinsic/tools/inctl/util/cobrautil"
 	"intrinsic/tools/inctl/util/printer"
+
+	"github.com/spf13/cobra"
 
 	pb "intrinsic/kubernetes/accounts/service/api/accesscontrol/v1/accesscontrol_go_grpc_proto"
 )

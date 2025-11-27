@@ -43,7 +43,7 @@ func (s *perRPCCreds) GetRequestMetadata(ctx context.Context, _ ...string) (map[
 		return nil, fmt.Errorf("could not get account token: %v", err)
 	}
 	cks := []*http.Cookie{
-		&http.Cookie{Name: "auth-proxy", Value: t},
+		{Name: "auth-proxy", Value: t},
 	}
 	// add additional cookies if provided
 	for k, v := range s.md.cookies {

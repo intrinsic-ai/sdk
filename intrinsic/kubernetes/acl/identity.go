@@ -11,11 +11,12 @@ import (
 	"regexp"
 	"strings"
 
-	log "github.com/golang/glog"
-	"go.opencensus.io/trace"
 	"intrinsic/kubernetes/acl/cookies"
 	"intrinsic/kubernetes/acl/jwt"
 	"intrinsic/kubernetes/acl/org"
+
+	log "github.com/golang/glog"
+	"go.opencensus.io/trace"
 )
 
 var (
@@ -83,9 +84,7 @@ const (
 	IntrinsicIPCEmailSuffix = "@ipc.intrinsic.ai"
 )
 
-var (
-	cookieHeaders = []string{authProxyCookieName, onpremTokenCookieName, portalCookieName}
-)
+var cookieHeaders = []string{authProxyCookieName, onpremTokenCookieName, portalCookieName}
 
 // UserToRequest adds the user's identity to an HTTP request.
 func UserToRequest(r *http.Request, u *User) {

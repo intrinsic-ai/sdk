@@ -6,8 +6,9 @@ package envvars
 import (
 	"os"
 
-	"github.com/spf13/cobra"
 	"intrinsic/tools/inctl/cmd/doctor/api/api"
+
+	"github.com/spf13/cobra"
 
 	rpb "intrinsic/tools/inctl/cmd/doctor/proto/v1/report_go_proto"
 )
@@ -19,15 +20,13 @@ const (
 	ReportPrefix string = "env_"
 )
 
-var (
-	// Reporter is the DiagnosticInformationReporter that reports the environment variables.
-	Reporter = api.DiagnosticInformationReporter{
-		Name:                               ReporterName,
-		Description:                        "Reports the environment variables.",
-		GenerateInformation:                generateInformation,
-		InformationReporterDependencyNames: []string{},
-	}
-)
+// Reporter is the DiagnosticInformationReporter that reports the environment variables.
+var Reporter = api.DiagnosticInformationReporter{
+	Name:                               ReporterName,
+	Description:                        "Reports the environment variables.",
+	GenerateInformation:                generateInformation,
+	InformationReporterDependencyNames: []string{},
+}
 
 func generateInformation(cmd *cobra.Command, args []string, report *rpb.Report) (*[]*rpb.DiagnosticInformationEntry, error) {
 	var entries []*rpb.DiagnosticInformationEntry

@@ -4,15 +4,14 @@
 package solutionversion
 
 import (
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/orgutil"
+
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
-var (
-	viperLocal = viper.New()
-)
+var viperLocal = viper.New()
 
 // SolutionVersionCmd is the `inctl solution_version` command.
 var SolutionVersionCmd = orgutil.WrapCmd(&cobra.Command{

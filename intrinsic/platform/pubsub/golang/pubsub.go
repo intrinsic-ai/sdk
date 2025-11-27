@@ -23,6 +23,7 @@ package pubsub
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"io"
 	"os"
@@ -33,16 +34,17 @@ import (
 	"time"
 	"unsafe"
 
-	"flag"
-	log "github.com/golang/glog"
-	"google.golang.org/protobuf/proto"
 	"intrinsic/platform/pubsub/golang/kvstore"
 	"intrinsic/platform/pubsub/golang/pubsubinterface"
 	"intrinsic/util/path_resolver/pathresolver"
 
+	log "github.com/golang/glog"
+	"google.golang.org/protobuf/proto"
+
+	pubsubpb "intrinsic/platform/pubsub/adapters/pubsub_go_proto"
+
 	anypb "google.golang.org/protobuf/types/known/anypb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
-	pubsubpb "intrinsic/platform/pubsub/adapters/pubsub_go_proto"
 )
 
 /*
@@ -58,10 +60,12 @@ import "C"
 
 var zenohRouter = flag.String("zenoh_router", "", "Override the default Zenoh connection to PROTOCOL/HOSTNAME:PORT")
 
-const highConsistencyTimeout = 30 * time.Second
-const highConsistencyGetTimeout = 10 * time.Second
-const defaultKeyPrefix = "kv_store"
-const replicationKeyPrefix = "kv_store_repl"
+const (
+	highConsistencyTimeout    = 30 * time.Second
+	highConsistencyGetTimeout = 10 * time.Second
+	defaultKeyPrefix          = "kv_store"
+	replicationKeyPrefix      = "kv_store_repl"
+)
 
 // NewPubSub creates a new PubSub adapter if possible. Returns either a valid handle
 // or an error, but not both. The caller is responsible for freeing up resources
@@ -469,7 +473,6 @@ func intrinsic_ImwQueryDoneStaticCallback(keyexpr unsafe.Pointer, userContext un
 }
 
 func (kv *kvStoreHandle) Get(key string, timeout *time.Duration) (*anypb.Any, error) {
-
 	resultCh := make(chan *anypb.Any)
 
 	valueCallback := func(value *anypb.Any) {
@@ -511,6 +514,7 @@ func (kv *kvStoreHandle) Get(key string, timeout *time.Duration) (*anypb.Any, er
 		return nil, fmt.Errorf("timeout waiting for %q: %w", key, kvstore.ErrDeadlineExceeded)
 	}
 }
+
 func (kv *kvStoreHandle) Delete(key string) error {
 	prefixedKey := kv.addKeyPrefix(key)
 
@@ -542,9 +546,11 @@ type zenohHandleImpl struct {
 	ptr unsafe.Pointer
 }
 
-var globalZenohHandle *zenohHandleImpl
-var zenohHandleRefCount int64 = 0
-var zenohHandleMutex sync.Mutex
+var (
+	globalZenohHandle   *zenohHandleImpl
+	zenohHandleRefCount int64 = 0
+	zenohHandleMutex    sync.Mutex
+)
 
 func getZenohHandle() (zenohHandle, error) {
 	zenohHandleMutex.Lock()

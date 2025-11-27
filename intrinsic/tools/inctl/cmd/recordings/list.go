@@ -8,14 +8,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 	"intrinsic/tools/inctl/util/orgutil"
 
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
+
 	bmpb "intrinsic/logging/proto/bag_metadata_go_proto"
 	grpcpb "intrinsic/logging/proto/bag_packager_service_go_grpc_proto"
 	pb "intrinsic/logging/proto/bag_packager_service_go_grpc_proto"
+
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var (
@@ -25,18 +27,16 @@ var (
 	flagWorkcellName   string
 )
 
-var (
-	bagStatusToString = map[bmpb.BagStatus_BagStatusEnum]string{
-		bmpb.BagStatus_UNSET:                   "0: Status unset",
-		bmpb.BagStatus_UPLOAD_PENDING:          "1: Upload pending",
-		bmpb.BagStatus_UPLOADING:               "2: Uploading...",
-		bmpb.BagStatus_UPLOADED:                "3: Uploaded. Recording file generation pending",
-		bmpb.BagStatus_UNCOMPLETABLE:           "4: Uploaded. Recording file generation pending with dropped data",
-		bmpb.BagStatus_COMPLETED:               "5: Uploaded. Generated recording file",
-		bmpb.BagStatus_UNCOMPLETABLE_COMPLETED: "6: Uploaded. Generated recording file with dropped data",
-		bmpb.BagStatus_FAILED:                  "7: Failed",
-	}
-)
+var bagStatusToString = map[bmpb.BagStatus_BagStatusEnum]string{
+	bmpb.BagStatus_UNSET:                   "0: Status unset",
+	bmpb.BagStatus_UPLOAD_PENDING:          "1: Upload pending",
+	bmpb.BagStatus_UPLOADING:               "2: Uploading...",
+	bmpb.BagStatus_UPLOADED:                "3: Uploaded. Recording file generation pending",
+	bmpb.BagStatus_UNCOMPLETABLE:           "4: Uploaded. Recording file generation pending with dropped data",
+	bmpb.BagStatus_COMPLETED:               "5: Uploaded. Generated recording file",
+	bmpb.BagStatus_UNCOMPLETABLE_COMPLETED: "6: Uploaded. Generated recording file with dropped data",
+	bmpb.BagStatus_FAILED:                  "7: Failed",
+}
 
 // executeAndPrintListBagsResponse executes the ListBags RPC and prints the response.
 func executeAndPrintListBagsResponse(ctx context.Context, client grpcpb.BagPackagerClient, req *pb.ListBagsRequest) (numLines uint32, nextPageCursor []byte, err error) {

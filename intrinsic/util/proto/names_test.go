@@ -8,9 +8,10 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
+	diamondapb "intrinsic/util/proto/testing/diamond_a_go_proto"
+
 	anypb "google.golang.org/protobuf/types/known/anypb"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
-	diamondapb "intrinsic/util/proto/testing/diamond_a_go_proto"
 )
 
 func TestValidateProtoName(t *testing.T) {

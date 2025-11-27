@@ -4,9 +4,10 @@
 package generate
 
 import (
-	"github.com/spf13/cobra"
 	"intrinsic/tools/inbuild/cmd/skill/generate/config"
 	"intrinsic/tools/inbuild/cmd/skill/generate/entrypoint"
+
+	"github.com/spf13/cobra"
 )
 
 // GenerateCmd organizes commands for generating code for skills.

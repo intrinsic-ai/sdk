@@ -10,12 +10,10 @@ import (
 	"intrinsic/tools/inctl/cmd/doctor/checks/solution_check/solutioncheck"
 )
 
-var (
-	// Checks is a list of all the checks, but note that maps are not sorted by insert order, so
-	// the keys are manually sorted alphabetically wherever used.
-	Checks = map[string]*api.DiagnosticCheck{
-		inctlauthcheck.Check.Name: &inctlauthcheck.Check,
-		solutioncheck.Check.Name:  &solutioncheck.Check,
-		clustercheck.Check.Name:   &clustercheck.Check,
-	}
-)
+// Checks is a list of all the checks, but note that maps are not sorted by insert order, so
+// the keys are manually sorted alphabetically wherever used.
+var Checks = map[string]*api.DiagnosticCheck{
+	inctlauthcheck.Check.Name: &inctlauthcheck.Check,
+	solutioncheck.Check.Name:  &solutioncheck.Check,
+	clustercheck.Check.Name:   &clustercheck.Check,
+}

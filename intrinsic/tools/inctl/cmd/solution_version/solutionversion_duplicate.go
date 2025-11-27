@@ -5,9 +5,10 @@ package solutionversion
 import (
 	"fmt"
 
-	"github.com/spf13/cobra"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/color"
+
+	"github.com/spf13/cobra"
 
 	branchpb "intrinsic/solution_versions/proto/v1/branch_go_proto"
 	solutionversionservicegrpcpb "intrinsic/solution_versions/proto/v1/solution_version_service_go_grpc_proto"

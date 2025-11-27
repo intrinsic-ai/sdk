@@ -10,18 +10,20 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/google/safearchive/tar"
-	"google.golang.org/protobuf/reflect/protodesc"
-	"google.golang.org/protobuf/reflect/protoreflect"
-	"google.golang.org/protobuf/reflect/protoregistry"
 	"intrinsic/assets/services/servicemanifest"
 	"intrinsic/util/archive/tartooling"
 	"intrinsic/util/proto/registryutil"
 
-	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
-	anypb "google.golang.org/protobuf/types/known/anypb"
+	"github.com/google/safearchive/tar"
+	"google.golang.org/protobuf/reflect/protodesc"
+	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/reflect/protoregistry"
+
 	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
 	ipb "intrinsic/kubernetes/workcell_spec/proto/image_go_proto"
+
+	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	anypb "google.golang.org/protobuf/types/known/anypb"
 )
 
 const (
@@ -243,7 +245,7 @@ func WriteService(path string, opts WriteServiceOpts) error {
 	if opts.Manifest == nil {
 		return fmt.Errorf("opts.Manifest must not be nil")
 	}
-	out, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	out, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
 	if err != nil {
 		return fmt.Errorf("failed to open %q for writing: %w", path, err)
 	}

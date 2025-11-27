@@ -52,10 +52,8 @@ const (
 }`
 )
 
-var (
-	// schemePattern matches a URL scheme according to https://github.com/grpc/grpc/blob/master/doc/naming.md.
-	schemePattern = regexp.MustCompile("^(?:dns|unix|unix-abstract|vsock|ipv4|ipv6):")
-)
+// schemePattern matches a URL scheme according to https://github.com/grpc/grpc/blob/master/doc/naming.md.
+var schemePattern = regexp.MustCompile("^(?:dns|unix|unix-abstract|vsock|ipv4|ipv6):")
 
 // BaseDialOptions are the base dial options for catalog clients.
 func BaseDialOptions() []grpc.DialOption {

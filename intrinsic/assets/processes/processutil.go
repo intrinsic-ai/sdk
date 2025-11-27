@@ -4,10 +4,11 @@
 package processutil
 
 import (
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/metadatautils"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	papb "intrinsic/assets/processes/proto/process_asset_go_proto"
 	pmpb "intrinsic/assets/processes/proto/process_manifest_go_proto"

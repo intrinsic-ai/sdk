@@ -12,14 +12,12 @@ import (
 	"intrinsic/tools/inctl/cmd/doctor/reporters/solution/solution"
 )
 
-var (
-	// Reporters is a list of all the reporters, but note that maps are not sorted by insert order, so
-	// the keys are manually sorted alphabetically wherever used.
-	Reporters = map[string]*api.DiagnosticInformationReporter{
-		envvars.ReporterName:      &envvars.Reporter,
-		inctldetails.ReporterName: &inctldetails.Reporter,
-		org.ReporterName:          &org.Reporter,
-		cluster.ReporterName:      &cluster.Reporter,
-		solution.ReporterName:     &solution.Reporter,
-	}
-)
+// Reporters is a list of all the reporters, but note that maps are not sorted by insert order, so
+// the keys are manually sorted alphabetically wherever used.
+var Reporters = map[string]*api.DiagnosticInformationReporter{
+	envvars.ReporterName:      &envvars.Reporter,
+	inctldetails.ReporterName: &inctldetails.Reporter,
+	org.ReporterName:          &org.Reporter,
+	cluster.ReporterName:      &cluster.Reporter,
+	solution.ReporterName:     &solution.Reporter,
+}

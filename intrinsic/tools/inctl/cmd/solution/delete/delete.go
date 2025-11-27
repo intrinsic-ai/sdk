@@ -6,13 +6,14 @@ package delete
 import (
 	"fmt"
 
+	"intrinsic/tools/inctl/auth/auth"
+	"intrinsic/tools/inctl/util/color"
+	"intrinsic/tools/inctl/util/orgutil"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"intrinsic/tools/inctl/auth/auth"
-	"intrinsic/tools/inctl/util/color"
-	"intrinsic/tools/inctl/util/orgutil"
 
 	solutionversionservicegrpcpb "intrinsic/solution_versions/proto/v1/solution_version_service_go_grpc_proto"
 	solutionversionservicepb "intrinsic/solution_versions/proto/v1/solution_version_service_go_grpc_proto"

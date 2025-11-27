@@ -10,13 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/go-containerregistry/pkg/authn"
-	"github.com/google/go-containerregistry/pkg/v1/google"
-	"github.com/google/go-containerregistry/pkg/v1/remote"
-	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	"golang.org/x/exp/maps"
 	"intrinsic/assets/imagetransfer"
 	"intrinsic/assets/imageutils"
 	atypepb "intrinsic/assets/proto/asset_type_go_proto"
@@ -26,6 +19,14 @@ import (
 	"intrinsic/assets/typeutils"
 	"intrinsic/assets/viewutils"
 	"intrinsic/tools/inctl/util/orgutil"
+
+	"github.com/google/go-containerregistry/pkg/authn"
+	"github.com/google/go-containerregistry/pkg/v1/google"
+	"github.com/google/go-containerregistry/pkg/v1/remote"
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"golang.org/x/exp/maps"
 )
 
 const (
@@ -94,14 +95,12 @@ const (
 	envPrefix = "intrinsic"
 )
 
-var (
-	policyMap = map[string]iapb.UpdatePolicy{
-		"":                  iapb.UpdatePolicy_UPDATE_POLICY_UNSPECIFIED,
-		"add_new_only":      iapb.UpdatePolicy_UPDATE_POLICY_ADD_NEW_ONLY,
-		"update_unused":     iapb.UpdatePolicy_UPDATE_POLICY_UPDATE_UNUSED,
-		"update_compatible": iapb.UpdatePolicy_UPDATE_POLICY_UPDATE_COMPATIBLE,
-	}
-)
+var policyMap = map[string]iapb.UpdatePolicy{
+	"":                  iapb.UpdatePolicy_UPDATE_POLICY_UNSPECIFIED,
+	"add_new_only":      iapb.UpdatePolicy_UPDATE_POLICY_ADD_NEW_ONLY,
+	"update_unused":     iapb.UpdatePolicy_UPDATE_POLICY_UPDATE_UNUSED,
+	"update_compatible": iapb.UpdatePolicy_UPDATE_POLICY_UPDATE_COMPATIBLE,
+}
 
 // CmdFlags abstracts interaction with inctl command flags.
 type CmdFlags struct {

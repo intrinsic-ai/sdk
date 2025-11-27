@@ -84,10 +84,10 @@ func (s *Service) ReadFile(ctx context.Context, req *vmpb.ReadFileRequest) (*vmp
 func (s *Service) WriteFile(ctx context.Context, req *vmpb.WriteFileRequest) (*vmpb.WriteFileResponse, error) {
 	path := s.toAbsPath(req.GetPath())
 
-	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to create directory %q: %v", path, err)
 	}
-	if err := os.WriteFile(path, req.GetContents(), 0644); err != nil {
+	if err := os.WriteFile(path, req.GetContents(), 0o644); err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to write file %q: %v", path, err)
 	}
 	return &vmpb.WriteFileResponse{}, nil

@@ -4,13 +4,14 @@
 package main
 
 import (
+	"flag"
 	"strings"
 
-	"flag"
-	log "github.com/golang/glog"
 	"intrinsic/assets/services/build_defs/servicegen"
 	"intrinsic/production/intrinsic"
 	"intrinsic/util/proto/protoio"
+
+	log "github.com/golang/glog"
 
 	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
 )

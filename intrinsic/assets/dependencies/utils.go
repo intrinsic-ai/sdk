@@ -17,12 +17,13 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
-	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
-	anypb "google.golang.org/protobuf/types/known/anypb"
 	dasgrpcpb "intrinsic/assets/data/proto/v1/data_assets_go_grpc_proto"
 	daspb "intrinsic/assets/data/proto/v1/data_assets_go_grpc_proto"
 	fieldmetadatapb "intrinsic/assets/proto/field_metadata_go_proto"
 	rdpb "intrinsic/assets/proto/v1/resolved_dependency_go_proto"
+
+	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	anypb "google.golang.org/protobuf/types/known/anypb"
 )
 
 const ingressAddress = "istio-ingressgateway.app-ingress.svc.cluster.local:80"

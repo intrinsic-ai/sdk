@@ -4,14 +4,15 @@
 package main
 
 import (
+	"flag"
 	"os"
 	"os/exec"
 	"os/signal"
 	"syscall"
 
-	"flag"
-	log "github.com/golang/glog"
 	"intrinsic/production/intrinsic"
+
+	log "github.com/golang/glog"
 )
 
 const (
@@ -63,7 +64,6 @@ func main() {
 					// Negation is intentional: Send the signal to every process in the
 					// process group, see the manpage for kill(2).
 					err := syscall.Kill(-cmd.Process.Pid, sig.(syscall.Signal))
-
 					if err != nil {
 						log.Infof("Failed forwarding signal %q to pgid %d with error: %v", sig.String(), cmd.Process.Pid, err)
 					}

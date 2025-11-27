@@ -6,15 +6,14 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/orgutil"
+
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
-var (
-	flagFlowstateAddr string
-)
+var flagFlowstateAddr string
 
 func init() {
 	authCmd.AddCommand(printAPIKeyCmd)

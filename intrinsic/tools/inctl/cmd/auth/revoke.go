@@ -5,18 +5,17 @@ package auth
 import (
 	"fmt"
 
-	"github.com/spf13/cobra"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/tools/inctl/util/orgutil"
+
+	"github.com/spf13/cobra"
 )
 
 const (
 	keyRevokeAll = "all"
 )
 
-var (
-	revokeCmdFlags = cmdutils.NewCmdFlags()
-)
+var revokeCmdFlags = cmdutils.NewCmdFlags()
 
 var revokeCmd = &cobra.Command{
 	Use:     "revoke",

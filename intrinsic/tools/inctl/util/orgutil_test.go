@@ -5,11 +5,12 @@ package orgutil
 import (
 	"testing"
 
+	"intrinsic/tools/inctl/auth/auth"
+	"intrinsic/tools/inctl/auth/authtest"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"intrinsic/tools/inctl/auth/auth"
-	"intrinsic/tools/inctl/auth/authtest"
 
 )
 

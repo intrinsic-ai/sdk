@@ -8,8 +8,9 @@ import (
 	"fmt"
 	"os/exec"
 
-	"github.com/spf13/cobra"
 	"intrinsic/tools/inctl/cmd/doctor/api/api"
+
+	"github.com/spf13/cobra"
 
 	rpb "intrinsic/tools/inctl/cmd/doctor/proto/v1/report_go_proto"
 )
@@ -21,15 +22,13 @@ const (
 	ReportPrefix string = "cluster_"
 )
 
-var (
-	// Reporter is the DiagnosticInformationReporter that reports cluster details.
-	Reporter = api.DiagnosticInformationReporter{
-		Name:                               ReporterName,
-		Description:                        "Reports the cluster details if a cluster id is provided.",
-		GenerateInformation:                generateInformation,
-		InformationReporterDependencyNames: []string{"inctl_details", "org", "solution"},
-	}
-)
+// Reporter is the DiagnosticInformationReporter that reports cluster details.
+var Reporter = api.DiagnosticInformationReporter{
+	Name:                               ReporterName,
+	Description:                        "Reports the cluster details if a cluster id is provided.",
+	GenerateInformation:                generateInformation,
+	InformationReporterDependencyNames: []string{"inctl_details", "org", "solution"},
+}
 
 func generateInformation(cmd *cobra.Command, args []string, report *rpb.Report) (*[]*rpb.DiagnosticInformationEntry, error) {
 	var entries []*rpb.DiagnosticInformationEntry

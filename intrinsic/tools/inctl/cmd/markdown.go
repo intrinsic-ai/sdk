@@ -10,11 +10,12 @@ import (
 	"path/filepath"
 	"strings"
 
+	"intrinsic/tools/inctl/cmd/root"
+	"intrinsic/util/archive/tartooling"
+
 	"github.com/google/safearchive/tar"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
-	"intrinsic/tools/inctl/cmd/root"
-	"intrinsic/util/archive/tartooling"
 )
 
 // Create tar file from a giving directory
@@ -33,10 +34,8 @@ func createTarFileFromDir(destinationPath string, inputPath string) error {
 	return nil
 }
 
-var (
-	// outputPath is the path to store the generated markdown documentation.
-	outputPath string
-)
+// outputPath is the path to store the generated markdown documentation.
+var outputPath string
 
 // filePrepender is a function that prepends data to the top of each markdown file.
 // This is used to customize the docusaurus sidebar layout e.g. inctl_auth_login becomes Inctl Auth Login.

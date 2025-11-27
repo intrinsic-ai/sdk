@@ -9,18 +9,17 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
-	"google.golang.org/protobuf/reflect/protoreflect"
-	"google.golang.org/protobuf/testing/protocmp"
 	"intrinsic/assets/data/fakedataassets"
 	"intrinsic/testing/grpctest"
 	"intrinsic/util/proto/descriptor"
 	"intrinsic/util/proto/testing/prototestutil"
 
-	anypb "google.golang.org/protobuf/types/known/anypb"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
+	"github.com/google/go-cmp/cmp"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/testing/protocmp"
+
 	dapb "intrinsic/assets/data/proto/v1/data_asset_go_proto"
 	tcpb "intrinsic/assets/dependencies/testing/test_configs_go_proto"
 	tsgrpcpb "intrinsic/assets/dependencies/testing/test_service_go_grpc_proto"
@@ -30,6 +29,9 @@ import (
 	mpb "intrinsic/assets/proto/metadata_go_proto"
 	gcpb "intrinsic/assets/proto/v1/grpc_connection_go_proto"
 	rdpb "intrinsic/assets/proto/v1/resolved_dependency_go_proto"
+
+	anypb "google.golang.org/protobuf/types/known/anypb"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 type testService struct{}
@@ -77,17 +79,17 @@ func TestConnect(t *testing.T) {
 			desc: "success",
 			dep: &rdpb.ResolvedDependency{
 				Interfaces: map[string]*rdpb.ResolvedDependency_Interface{
-					"grpc://intrinsic_proto.assets.dependencies.testing.TestService": &rdpb.ResolvedDependency_Interface{
+					"grpc://intrinsic_proto.assets.dependencies.testing.TestService": {
 						Protocol: &rdpb.ResolvedDependency_Interface_Grpc_{
 							Grpc: &rdpb.ResolvedDependency_Interface_Grpc{
 								Connection: &gcpb.GrpcConnection{
 									Address: serverAddr,
 									Metadata: []*gcpb.GrpcConnection_Metadata{
-										&gcpb.GrpcConnection_Metadata{
+										{
 											Key:   "test_key",
 											Value: "test_value1",
 										},
-										&gcpb.GrpcConnection_Metadata{
+										{
 											Key:   "test_key",
 											Value: "test_value2",
 										},
@@ -100,7 +102,7 @@ func TestConnect(t *testing.T) {
 			},
 			iface: "grpc://intrinsic_proto.assets.dependencies.testing.TestService",
 			wantMetadata: map[string][]string{
-				"test_key": []string{"test_value1", "test_value2"},
+				"test_key": {"test_value1", "test_value2"},
 			},
 		},
 		{
@@ -114,7 +116,7 @@ func TestConnect(t *testing.T) {
 			desc: "wrong interface type",
 			dep: &rdpb.ResolvedDependency{
 				Interfaces: map[string]*rdpb.ResolvedDependency_Interface{
-					"data://google.protobuf.Empty": &rdpb.ResolvedDependency_Interface{
+					"data://google.protobuf.Empty": {
 						Protocol: &rdpb.ResolvedDependency_Interface_Data_{
 							Data: &rdpb.ResolvedDependency_Interface_Data{
 								Id: &idpb.Id{Package: "ai.intrinsic", Name: "data_asset"},
@@ -131,7 +133,7 @@ func TestConnect(t *testing.T) {
 			desc: "not a gRPC interface",
 			dep: &rdpb.ResolvedDependency{
 				Interfaces: map[string]*rdpb.ResolvedDependency_Interface{
-					"data://google.protobuf.Empty": &rdpb.ResolvedDependency_Interface{
+					"data://google.protobuf.Empty": {
 						Protocol: &rdpb.ResolvedDependency_Interface_Data_{
 							Data: &rdpb.ResolvedDependency_Interface_Data{
 								Id: &idpb.Id{Package: "ai.intrinsic", Name: "data_asset"},
@@ -208,7 +210,7 @@ func TestGetDataPayload(t *testing.T) {
 			desc: "success",
 			dep: &rdpb.ResolvedDependency{
 				Interfaces: map[string]*rdpb.ResolvedDependency_Interface{
-					"data://google.protobuf.Empty": &rdpb.ResolvedDependency_Interface{
+					"data://google.protobuf.Empty": {
 						Protocol: &rdpb.ResolvedDependency_Interface_Data_{
 							Data: &rdpb.ResolvedDependency_Interface_Data{
 								Id: &idpb.Id{Package: "ai.intrinsic", Name: "data_asset"},
@@ -231,7 +233,7 @@ func TestGetDataPayload(t *testing.T) {
 			desc: "wrong interface type",
 			dep: &rdpb.ResolvedDependency{
 				Interfaces: map[string]*rdpb.ResolvedDependency_Interface{
-					"grpc://intrinsic_proto.assets.dependencies.testing.TestService": &rdpb.ResolvedDependency_Interface{
+					"grpc://intrinsic_proto.assets.dependencies.testing.TestService": {
 						Protocol: &rdpb.ResolvedDependency_Interface_Grpc_{
 							Grpc: &rdpb.ResolvedDependency_Interface_Grpc{
 								Connection: &gcpb.GrpcConnection{
@@ -250,7 +252,7 @@ func TestGetDataPayload(t *testing.T) {
 			desc: "not a data interface",
 			dep: &rdpb.ResolvedDependency{
 				Interfaces: map[string]*rdpb.ResolvedDependency_Interface{
-					"grpc://intrinsic_proto.assets.dependencies.testing.TestService": &rdpb.ResolvedDependency_Interface{
+					"grpc://intrinsic_proto.assets.dependencies.testing.TestService": {
 						Protocol: &rdpb.ResolvedDependency_Interface_Grpc_{
 							Grpc: &rdpb.ResolvedDependency_Interface_Grpc{
 								Connection: &gcpb.GrpcConnection{

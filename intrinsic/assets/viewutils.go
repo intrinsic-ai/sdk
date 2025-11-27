@@ -14,9 +14,10 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	metadatapb "intrinsic/assets/proto/metadata_go_proto"
 	viewpb "intrinsic/assets/proto/view_go_proto"
+
+	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
 
 var (

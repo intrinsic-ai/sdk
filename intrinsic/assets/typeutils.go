@@ -18,67 +18,64 @@ type assetTypeInfo struct {
 	HasInstances              bool
 	HasObjects                bool
 }
-
-var (
-	allAssetTypeInfo = map[atypepb.AssetType]assetTypeInfo{
-		atypepb.AssetType_ASSET_TYPE_UNSPECIFIED: assetTypeInfo{
-			CodeName:                  "unspecified",
-			DisplayName:               "Asset",
-			DisplayNamePlural:         "Assets",
-			HasFullViewDeploymentData: false,
-			HasInstances:              false,
-			HasObjects:                false,
-		},
-		atypepb.AssetType_ASSET_TYPE_SCENE_OBJECT: assetTypeInfo{
-			CodeName:                  "scene_object",
-			DisplayName:               "SceneObject",
-			DisplayNamePlural:         "SceneObjects",
-			HasFullViewDeploymentData: true,
-			HasInstances:              true,
-			HasObjects:                true,
-		},
-		atypepb.AssetType_ASSET_TYPE_SERVICE: assetTypeInfo{
-			CodeName:                  "service",
-			DisplayName:               "Service",
-			DisplayNamePlural:         "Services",
-			HasFullViewDeploymentData: false,
-			HasInstances:              true,
-			HasObjects:                false,
-		},
-		atypepb.AssetType_ASSET_TYPE_SKILL: assetTypeInfo{
-			CodeName:                  "skill",
-			DisplayName:               "Skill",
-			DisplayNamePlural:         "Skills",
-			HasFullViewDeploymentData: false,
-			HasInstances:              false,
-			HasObjects:                false,
-		},
-		atypepb.AssetType_ASSET_TYPE_HARDWARE_DEVICE: assetTypeInfo{
-			CodeName:                  "hardware_device",
-			DisplayName:               "HardwareDevice",
-			DisplayNamePlural:         "HardwareDevices",
-			HasFullViewDeploymentData: false,
-			HasInstances:              true,
-			HasObjects:                true,
-		},
-		atypepb.AssetType_ASSET_TYPE_DATA: assetTypeInfo{
-			CodeName:                  "data",
-			DisplayName:               "Data",
-			DisplayNamePlural:         "Data",
-			HasFullViewDeploymentData: true,
-			HasInstances:              false,
-			HasObjects:                false,
-		},
-		atypepb.AssetType_ASSET_TYPE_PROCESS: assetTypeInfo{
-			CodeName:                  "process",
-			DisplayName:               "Process",
-			DisplayNamePlural:         "Processes",
-			HasFullViewDeploymentData: true,
-			HasInstances:              false,
-			HasObjects:                false,
-		},
-	}
-)
+var allAssetTypeInfo = map[atypepb.AssetType]assetTypeInfo{
+	atypepb.AssetType_ASSET_TYPE_UNSPECIFIED: {
+		CodeName:                  "unspecified",
+		DisplayName:               "Asset",
+		DisplayNamePlural:         "Assets",
+		HasFullViewDeploymentData: false,
+		HasInstances:              false,
+		HasObjects:                false,
+	},
+	atypepb.AssetType_ASSET_TYPE_SCENE_OBJECT: {
+		CodeName:                  "scene_object",
+		DisplayName:               "SceneObject",
+		DisplayNamePlural:         "SceneObjects",
+		HasFullViewDeploymentData: true,
+		HasInstances:              true,
+		HasObjects:                true,
+	},
+	atypepb.AssetType_ASSET_TYPE_SERVICE: {
+		CodeName:                  "service",
+		DisplayName:               "Service",
+		DisplayNamePlural:         "Services",
+		HasFullViewDeploymentData: false,
+		HasInstances:              true,
+		HasObjects:                false,
+	},
+	atypepb.AssetType_ASSET_TYPE_SKILL: {
+		CodeName:                  "skill",
+		DisplayName:               "Skill",
+		DisplayNamePlural:         "Skills",
+		HasFullViewDeploymentData: false,
+		HasInstances:              false,
+		HasObjects:                false,
+	},
+	atypepb.AssetType_ASSET_TYPE_HARDWARE_DEVICE: {
+		CodeName:                  "hardware_device",
+		DisplayName:               "HardwareDevice",
+		DisplayNamePlural:         "HardwareDevices",
+		HasFullViewDeploymentData: false,
+		HasInstances:              true,
+		HasObjects:                true,
+	},
+	atypepb.AssetType_ASSET_TYPE_DATA: {
+		CodeName:                  "data",
+		DisplayName:               "Data",
+		DisplayNamePlural:         "Data",
+		HasFullViewDeploymentData: true,
+		HasInstances:              false,
+		HasObjects:                false,
+	},
+	atypepb.AssetType_ASSET_TYPE_PROCESS: {
+		CodeName:                  "process",
+		DisplayName:               "Process",
+		DisplayNamePlural:         "Processes",
+		HasFullViewDeploymentData: true,
+		HasInstances:              false,
+		HasObjects:                false,
+	},
+}
 
 // AllAssetTypes returns all AssetTypes except ASSET_TYPE_UNSPECIFIED.
 func AllAssetTypes() []atypepb.AssetType {

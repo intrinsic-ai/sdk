@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/spf13/cobra"
-	"google.golang.org/grpc/status"
 	"intrinsic/assets/bundleio"
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
@@ -18,10 +16,14 @@ import (
 	"intrinsic/skills/tools/skill/cmd/directupload/directupload"
 	"intrinsic/skills/tools/skill/cmd/waitforskill"
 
-	lrogrpcpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
-	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
+	"github.com/spf13/cobra"
+	"google.golang.org/grpc/status"
+
 	iagrpcpb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
 	iapb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
+
+	lrogrpcpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
+	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 )
 
 // Command returns the command for installing a skill.

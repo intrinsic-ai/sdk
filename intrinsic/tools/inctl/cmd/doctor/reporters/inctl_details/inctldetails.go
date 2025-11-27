@@ -8,9 +8,10 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/spf13/cobra"
 	"intrinsic/tools/inctl/cmd/doctor/api/api"
 	"intrinsic/tools/inctl/cmd/doctor/reporters/env_vars/envvars"
+
+	"github.com/spf13/cobra"
 
 	rpb "intrinsic/tools/inctl/cmd/doctor/proto/v1/report_go_proto"
 )
@@ -22,15 +23,13 @@ var (
 	ReportPrefix string = "inctl_"
 )
 
-var (
-	// Reporter is the DiagnosticInformationReporter that reports the environment variables.
-	Reporter = api.DiagnosticInformationReporter{
-		Name:                               ReporterName,
-		Description:                        "Reports details about inctl.",
-		GenerateInformation:                generateInformation,
-		InformationReporterDependencyNames: []string{envvars.ReporterName},
-	}
-)
+// Reporter is the DiagnosticInformationReporter that reports the environment variables.
+var Reporter = api.DiagnosticInformationReporter{
+	Name:                               ReporterName,
+	Description:                        "Reports details about inctl.",
+	GenerateInformation:                generateInformation,
+	InformationReporterDependencyNames: []string{envvars.ReporterName},
+}
 
 func generateInformation(cmd *cobra.Command, args []string, report *rpb.Report) (*[]*rpb.DiagnosticInformationEntry, error) {
 	var entries []*rpb.DiagnosticInformationEntry

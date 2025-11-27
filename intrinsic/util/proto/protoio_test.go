@@ -10,12 +10,13 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/testing/protocmp"
 
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	apb "intrinsic/util/proto/testing/diamond_a_go_proto"
 	bpb "intrinsic/util/proto/testing/diamond_b_go_proto"
 	cpb "intrinsic/util/proto/testing/diamond_c_go_proto"
 	dpb "intrinsic/util/proto/testing/diamond_d_go_proto"
 	epb "intrinsic/util/proto/testing/embedded_go_proto"
+
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func TestReadTextProto(t *testing.T) {
@@ -105,7 +106,7 @@ func TestReadTextProto(t *testing.T) {
 			}
 			defer os.Remove(f.Name())
 
-			if err := os.WriteFile(f.Name(), []byte(tc.value), 0644); err != nil {
+			if err := os.WriteFile(f.Name(), []byte(tc.value), 0o644); err != nil {
 				t.Errorf("os.WriteFile(%v, %v 0644) = %v, want nil", f.Name(), []byte(tc.value), err)
 			}
 
@@ -137,7 +138,7 @@ func TestReadBinaryProto(t *testing.T) {
 		t.Errorf("proto.Marshal(%v) = %v, want nil", want, err)
 	}
 
-	if err := os.WriteFile(f.Name(), b, 0644); err != nil {
+	if err := os.WriteFile(f.Name(), b, 0o644); err != nil {
 		t.Errorf("os.WriteFile(%v, %v) = %v, want nil", f.Name(), b, err)
 	}
 
@@ -367,5 +368,4 @@ middle {
 			}
 		})
 	}
-
 }

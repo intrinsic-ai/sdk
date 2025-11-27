@@ -7,20 +7,22 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/pborman/uuid"
-	"github.com/spf13/cobra"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/cobrautil"
 	"intrinsic/tools/inctl/util/color"
 
-	tpb "google.golang.org/protobuf/types/known/timestamppb"
+	"github.com/pborman/uuid"
+	"github.com/spf13/cobra"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	leaseapigrpcpb "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_grpc_proto"
 	leasepb "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_grpc_proto"
 	replaygrpcpb "intrinsic/logging/proto/replay_service_go_grpc_proto"
 	replaypb "intrinsic/logging/proto/replay_service_go_grpc_proto"
+
+	tpb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var (
@@ -28,8 +30,10 @@ var (
 	visualizeCmd      = cobrautil.ParentOfNestedSubcommands("visualize", "Visualize Intrinsic recordings")
 )
 
-const serviceTag string = "inctl"
-const leaseRetryInterval = 10 * time.Second
+const (
+	serviceTag         string = "inctl"
+	leaseRetryInterval        = 10 * time.Second
+)
 
 var (
 	flagRecordingID string

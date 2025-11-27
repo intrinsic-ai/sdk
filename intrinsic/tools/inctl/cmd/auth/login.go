@@ -13,16 +13,18 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	"golang.org/x/exp/maps"
 	env "intrinsic/config/environments"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/orgutil"
 	"intrinsic/tools/inctl/util/viperutil"
 
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"golang.org/x/exp/maps"
+
 	accdiscoverv1grpcpb "intrinsic/kubernetes/accounts/service/api/v1/discoveryapi_go_grpc_proto"
+
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 const (
@@ -42,27 +44,29 @@ var (
 	queryProjects = queryProjectsForAPIKey
 )
 
-var loginParams = viper.New()
-var loginCmd = orgutil.WrapCmd(
-	&cobra.Command{
-		Use:   "login",
-		Short: "Logs in user into Flowstate",
-		Long:  "Logs in user into Flowstate to allow interactions with solutions.",
-		Args:  cobra.NoArgs,
-		RunE:  loginCmdE,
-		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
-			if err := orgutil.ValidateEnvironment(loginParams); err != nil {
-				return err
-			}
+var (
+	loginParams = viper.New()
+	loginCmd    = orgutil.WrapCmd(
+		&cobra.Command{
+			Use:   "login",
+			Short: "Logs in user into Flowstate",
+			Long:  "Logs in user into Flowstate to allow interactions with solutions.",
+			Args:  cobra.NoArgs,
+			RunE:  loginCmdE,
+			PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
+				if err := orgutil.ValidateEnvironment(loginParams); err != nil {
+					return err
+				}
 
-			return nil
+				return nil
+			},
 		},
-	},
-	loginParams,
-	orgutil.WithOrgExistsCheck(func() bool {
-		// The login command only creates the org, so we must disable the flag check which happens before.
-		return false
-	}),
+		loginParams,
+		orgutil.WithOrgExistsCheck(func() bool {
+			// The login command only creates the org, so we must disable the flag check which happens before.
+			return false
+		}),
+	)
 )
 
 func readAPIKeyFromPipe(reader *bufio.Reader) (string, error) {

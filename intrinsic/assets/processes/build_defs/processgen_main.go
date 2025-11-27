@@ -5,10 +5,12 @@ package main
 
 import (
 	"flag"
-	log "github.com/golang/glog"
+
 	"intrinsic/assets/processes/build_defs/processgen"
 	"intrinsic/production/intrinsic"
 	intrinsicflag "intrinsic/util/flag"
+
+	log "github.com/golang/glog"
 )
 
 var (

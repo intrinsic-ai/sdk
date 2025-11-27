@@ -281,7 +281,8 @@ func (t *Telemetry) enableTracing(c tracingConfig) {
 	t.exporter = &exp
 	trace.RegisterExporter(exp)
 	trace.ApplyConfig(trace.Config{
-		DefaultSampler: trace.ProbabilitySampler(c.Probability)})
+		DefaultSampler: trace.ProbabilitySampler(c.Probability),
+	})
 }
 
 // enableMetrics enables metrics for the current telemetry instance.

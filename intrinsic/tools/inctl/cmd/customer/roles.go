@@ -5,9 +5,10 @@ package customer
 import (
 	"fmt"
 
-	"github.com/spf13/cobra"
 	"intrinsic/tools/inctl/util/accounts/accounts"
 	"intrinsic/tools/inctl/util/cobrautil"
+
+	"github.com/spf13/cobra"
 
 	accaccesscontrolv1pb "intrinsic/kubernetes/accounts/service/api/accesscontrol/v1/accesscontrol_go_grpc_proto"
 )

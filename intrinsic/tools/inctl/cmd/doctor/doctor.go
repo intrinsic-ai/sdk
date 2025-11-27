@@ -4,12 +4,13 @@
 package doctor
 
 import (
-	"github.com/spf13/cobra"
 	"intrinsic/tools/inctl/cmd/doctor/api/api"
 	"intrinsic/tools/inctl/cmd/doctor/cmds/check/check"
 	"intrinsic/tools/inctl/cmd/doctor/cmds/list_checks/listchecks"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/printer"
+
+	"github.com/spf13/cobra"
 )
 
 func setPrinterFromOutputFlag(command *cobra.Command, args []string) (err error) {

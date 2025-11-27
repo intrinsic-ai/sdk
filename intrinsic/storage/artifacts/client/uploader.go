@@ -178,7 +178,7 @@ func (h *defaultHelper) uploadImageParts(ctx context.Context, image crv1.Image, 
 		return fmt.Errorf("system error: %w", err)
 	}
 
-	var fullUpload = false
+	fullUpload := false
 
 	responseDigest := valueOrDefault(response.Digest, "")
 	if responseDigest != imgDigest.String() {
@@ -300,7 +300,6 @@ func asRefMap(refs ...string) map[string]string {
 }
 
 func toImageManifest(image crv1.Image) (*artifactpb.ImageManifest, error) {
-
 	manifest, err := image.Manifest()
 	if err != nil {
 		return nil, err
@@ -340,5 +339,4 @@ func toImageManifest(image crv1.Image) (*artifactpb.ImageManifest, error) {
 	}
 
 	return ociDescriptor, nil
-
 }

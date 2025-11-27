@@ -7,11 +7,12 @@ package registryutil
 import (
 	"fmt"
 
+	"intrinsic/util/proto/protoio"
+
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 	dynamicpb "google.golang.org/protobuf/types/dynamicpb"
-	"intrinsic/util/proto/protoio"
 
 	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 )

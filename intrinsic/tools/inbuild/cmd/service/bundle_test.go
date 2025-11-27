@@ -7,12 +7,13 @@ import (
 	"strings"
 	"testing"
 
+	"intrinsic/assets/bundleio"
+	"intrinsic/util/path_resolver/pathresolver"
+
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/testing/protocmp"
-	"intrinsic/assets/bundleio"
-	"intrinsic/util/path_resolver/pathresolver"
 
 	apb "google.golang.org/protobuf/types/known/anypb"
 

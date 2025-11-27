@@ -4,11 +4,12 @@
 package device
 
 import (
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/orgutil"
 	"intrinsic/tools/inctl/util/viperutil"
+
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 const (

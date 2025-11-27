@@ -4,9 +4,10 @@
 package skill
 
 import (
-	"github.com/spf13/cobra"
 	"intrinsic/tools/inbuild/cmd/skill/bundle"
 	"intrinsic/tools/inbuild/cmd/skill/generate/generate"
+
+	"github.com/spf13/cobra"
 )
 
 // SkillCmd organizes commands for building skills.

@@ -4,8 +4,9 @@
 package service
 
 import (
-	"github.com/spf13/cobra"
 	"intrinsic/tools/inbuild/cmd/service/bundle"
+
+	"github.com/spf13/cobra"
 )
 
 // ServiceCmd organizes commands for building services.

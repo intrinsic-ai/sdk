@@ -10,13 +10,14 @@ import (
 	"net/http"
 	"strings"
 
+	"intrinsic/config/environments"
+	"intrinsic/kubernetes/acl/identity"
+	"intrinsic/tools/inctl/util/vmalias"
+
 	"github.com/spf13/viper"
 	"go.opencensus.io/plugin/ocgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"intrinsic/config/environments"
-	"intrinsic/kubernetes/acl/identity"
-	"intrinsic/tools/inctl/util/vmalias"
 )
 
 // ConnectionOpts contains the options for creating a new gRPC connection to a cloud service.
@@ -139,10 +140,8 @@ func (e *ErrorDetails) Error() string {
 	return msg
 }
 
-var (
-	// ErrUnableToRetrieveToken is returned if the token cannot be retrieved.
-	ErrUnableToRetrieveToken = errors.New("unable to retrieve token")
-)
+// ErrUnableToRetrieveToken is returned if the token cannot be retrieved.
+var ErrUnableToRetrieveToken = errors.New("unable to retrieve token")
 
 // NewCloudConnection creates a new gRPC connection to a cloud project.
 //

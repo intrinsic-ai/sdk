@@ -10,11 +10,12 @@ import (
 	"os/signal"
 	"sort"
 
-	"github.com/spf13/cobra"
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/assets/services/inctl/state/stateutils"
 	"intrinsic/tools/inctl/util/printer"
+
+	"github.com/spf13/cobra"
 
 	systemservicestategrpcpb "intrinsic/assets/services/proto/v1/system_service_state_go_grpc_proto"
 	systemservicestatepb "intrinsic/assets/services/proto/v1/system_service_state_go_grpc_proto"

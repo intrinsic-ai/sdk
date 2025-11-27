@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/google/safearchive/tar"
 	"intrinsic/assets/processes/processutil"
 	"intrinsic/util/archive/tartooling"
+
+	"github.com/google/safearchive/tar"
 
 	processassetpb "intrinsic/assets/processes/proto/process_asset_go_proto"
 	processmanifestpb "intrinsic/assets/processes/proto/process_manifest_go_proto"

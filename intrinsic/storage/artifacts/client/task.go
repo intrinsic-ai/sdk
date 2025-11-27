@@ -10,6 +10,8 @@ import (
 	"math/rand"
 	"strings"
 
+	"intrinsic/storage/artifacts/internal/utils"
+
 	log "github.com/golang/glog"
 	crv1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/partial"
@@ -18,7 +20,6 @@ import (
 	"go.uber.org/atomic"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"intrinsic/storage/artifacts/internal/utils"
 
 	artifactgrpcpb "intrinsic/storage/artifacts/proto/v1/artifact_go_grpc_proto"
 	artifactpb "intrinsic/storage/artifacts/proto/v1/artifact_go_grpc_proto"
@@ -29,12 +30,9 @@ const (
 	size4MB             int   = 4 * 1024 * 1024
 )
 
-type imageNameCtxType struct {
-}
+type imageNameCtxType struct{}
 
-var (
-	imageNameCtxValue = imageNameCtxType{}
-)
+var imageNameCtxValue = imageNameCtxType{}
 
 type uploadStrategy int
 
@@ -214,7 +212,6 @@ func (t *streamingTask) runWithCtx(ctx context.Context) error {
 	}
 
 	return ctxErr
-
 }
 
 func (t *streamingTask) checkForAlreadyExists(ctx context.Context, err error) error {
@@ -254,7 +251,6 @@ func abortRun(ref string, firstChunk bool, idTracker *atomic.Int64, delivery fun
 			log.Errorf("failed to send Abort to server: %s", errSend)
 		}
 	}
-
 }
 
 func asShortName(name string) string {
