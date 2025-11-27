@@ -107,7 +107,11 @@ def hardware_module_image(
         files = extra_files,
         layers = layers,
         symlinks = symlinks,
-        #   Using `entrypoint` instead of `cmd` so custom commands can be passed to the hwm binary using `args` in the yaml template intrinsic/icon/hal/templates/hardware-module-addon.yaml .
+        # Using `entrypoint` instead of `cmd` so custom commands can be passed
+        # to the hwm binary using `args`.  This was previously used by the addon
+        # chart, before they were used as assets, but still may be useful. This
+        # does require the container to handle signals as dumb_init is not being
+        # used.
         entrypoint = resource_cmd,
         labels = {
             "ai.intrinsic.hardware-module-image-name": name,

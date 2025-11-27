@@ -428,7 +428,8 @@ message IntOSStatus {
   // The image type of IntrinsicOS on this device, e.g. test or dev
   IntOSImageType image_type = 5 [(google.api.field_behavior) = REQUIRED];
 
-  // The board of the IntrinsicOS variant on this device. e.g. realtime or xfa.
+  // The board of the IntrinsicOS variant on this device. e.g. realtime or
+  // intrinsic.
   string board = 6 [(google.api.field_behavior) = REQUIRED];
 
   // A quick description of an encountered network issue on the device.

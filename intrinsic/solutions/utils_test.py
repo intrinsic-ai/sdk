@@ -40,10 +40,12 @@ class PrefixOptionsTest(absltest.TestCase):
 
   def test_init(self):
     options = utils.PrefixOptions(
-        xfa_prefix='my_xfa', world_prefix='my_world', skill_prefix='my_skills'
+        intrinsic_prefix='my_intrinsic',
+        world_prefix='my_world',
+        skill_prefix='my_skills',
     )
 
-    self.assertEqual(options.xfa_prefix, 'my_xfa')
+    self.assertEqual(options.intrinsic_prefix, 'my_intrinsic')
     self.assertEqual(options.world_prefix, 'my_world')
     self.assertEqual(options.skill_prefix, 'my_skills')
 

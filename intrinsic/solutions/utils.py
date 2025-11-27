@@ -72,13 +72,13 @@ class PrefixOptions:
   our modules/what kind of local variables have been bound.
 
   Attributes:
-    xfa_prefix: Prefix for how the xfa module has been imported.
+    intrinsic_prefix: Prefix for how the intrinsic module has been imported.
     world_prefix: Prefix for how the world can be accessed.
     skill_prefix: Prefix for how the skills can be accessed.
     resource_prefix: Prefix for how resources can be accessed.
   """
 
-  xfa_prefix: str = "xfa"
+  intrinsic_prefix: str = "intrinsic"
   world_prefix: str = "world"
   skill_prefix: str = "skills"
   resource_prefix: str = "solution.resources"

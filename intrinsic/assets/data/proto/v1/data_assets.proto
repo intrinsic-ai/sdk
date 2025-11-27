@@ -15,6 +15,7 @@ option go_package = "intrinsic/assets/data/proto/v1/data_assets_go_proto";
 //
 // Data assets can be installed and updated via InstalledAssets.
 service DataAssets {
+
   // Lists installed Data assets.
   rpc ListDataAssets(ListDataAssetsRequest) returns (ListDataAssetsResponse) {}
 

@@ -31,7 +31,7 @@ option go_package = "intrinsic/icon/proto/v1/service_go_proto";
 
 // GetActionSignatureByName() request.
 message GetActionSignatureByNameRequest {
-  // Action type name, e.g. "xfa.joint_move".
+  // Action type name, e.g. "intrinsic.joint_move".
   string name = 1;
 }
 // GetActionSignatureByName() response.
