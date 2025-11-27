@@ -175,7 +175,7 @@ func loginCmdE(cmd *cobra.Command, _ []string) (err error) {
 	}
 
 	if apiKey == "" && !isBatch {
-		apiKey, err = queryForAPIKey(cmd.Context(), writer, in, orgName, projectName)
+		apiKey, err = queryForAPIKey(cmd.Context(), writer, in, org, projectName)
 		if err != nil {
 			return err
 		}
