@@ -3,7 +3,8 @@
 """Provides access to resources."""
 
 import re
-from typing import Iterator, Union
+from typing import Iterator
+from typing import Union
 
 from intrinsic.resources.client import resource_registry_client
 from intrinsic.resources.proto import resource_handle_pb2

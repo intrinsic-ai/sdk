@@ -3,6 +3,7 @@
 """Defines the GraspPlannerClient class."""
 
 from collections.abc import Sequence
+
 from absl import logging
 from google.protobuf import empty_pb2
 import grpc

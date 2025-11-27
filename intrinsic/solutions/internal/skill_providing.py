@@ -4,7 +4,10 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterable, Type, Union
+from typing import Any
+from typing import Iterable
+from typing import Type
+from typing import Union
 
 from intrinsic.assets.proto import asset_tag_pb2
 from intrinsic.assets.proto import asset_type_pb2
@@ -18,7 +21,6 @@ from intrinsic.solutions.internal import installed_assets_client
 from intrinsic.solutions.internal import resources
 from intrinsic.solutions.internal import skill_generation
 from intrinsic.solutions.internal import skill_utils
-
 
 _SKILL_ID_SEP = "."
 

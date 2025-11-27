@@ -5,7 +5,16 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Dict, ItemsView, Iterator, KeysView, List, Set, Type, Union, ValuesView
+from typing import Any
+from typing import Dict
+from typing import ItemsView
+from typing import Iterator
+from typing import KeysView
+from typing import List
+from typing import Set
+from typing import Type
+from typing import Union
+from typing import ValuesView
 
 from google.protobuf import descriptor
 from google.protobuf import message

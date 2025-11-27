@@ -12,7 +12,6 @@ from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import pose_pb2
 from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import quaternion_pb2
 from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import vector3_pb2
 
-
 _rng = np.random.RandomState(seed=0)
 
 

@@ -27,7 +27,6 @@ from intrinsic.skills.proto import skills_pb2
 from intrinsic.solutions.internal import installed_assets_client
 from intrinsic.solutions.testing import test_skill_params_pb2
 
-
 FLAGS = flags.FLAGS
 
 

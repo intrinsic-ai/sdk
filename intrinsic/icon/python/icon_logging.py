@@ -8,7 +8,6 @@ from google.protobuf import message as proto_message
 from intrinsic.icon.proto import streaming_output_pb2
 from intrinsic.logging.proto import log_item_pb2
 
-
 TPayload = TypeVar("TPayload", bound=proto_message.Message)
 
 

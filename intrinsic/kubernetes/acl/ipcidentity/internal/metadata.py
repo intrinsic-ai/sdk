@@ -7,7 +7,6 @@ import http.client
 import io
 from typing import Optional
 
-
 METADATA_HOST = "169.254.169.254"
 METADATA_URL = f"http://{METADATA_HOST}/computeMetadata/v1/"
 IDENTITY_URL = METADATA_URL + "instance/service-accounts/default/identity"

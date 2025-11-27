@@ -8,7 +8,9 @@ A rotation is represented internally as a normalized quaternion.
 """
 
 import math
-from typing import Optional, Text, Tuple
+from typing import Optional
+from typing import Text
+from typing import Tuple
 
 from intrinsic.math.python import math_types
 from intrinsic.math.python import quaternion as quaternion_class

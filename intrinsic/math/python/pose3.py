@@ -23,7 +23,8 @@ The inverse of a pose is the reverse transformation:
   local_pose_world = world_pose_local.inverse()
 """
 
-from typing import Optional, Text
+from typing import Optional
+from typing import Text
 
 from intrinsic.math.python import math_types
 from intrinsic.math.python import quaternion as quaternion_class

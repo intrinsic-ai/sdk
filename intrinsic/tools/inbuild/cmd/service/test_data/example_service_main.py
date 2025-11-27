@@ -10,7 +10,6 @@ from absl import logging
 from intrinsic.resources.proto import runtime_context_pb2
 from intrinsic.tools.inbuild.cmd.service.test_data import example_service_pb2
 
-
 _RUNTIME_CONTEXT_FILE = flags.DEFINE_string(
     'runtime_context_file',
     '/etc/intrinsic/runtime_config.pb',

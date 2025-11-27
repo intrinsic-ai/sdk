@@ -3,6 +3,7 @@
 """The RobotPayload class represents the payload of a kinematic object."""
 
 import math
+
 from intrinsic.math.python import data_types
 from intrinsic.math.python import proto_conversion
 from intrinsic.world.proto import robot_payload_pb2

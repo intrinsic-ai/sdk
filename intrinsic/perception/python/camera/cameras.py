@@ -6,7 +6,9 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 import datetime
-from typing import Optional, Union, cast
+from typing import cast
+from typing import Optional
+from typing import Union
 import warnings
 
 from absl import logging

@@ -7,11 +7,15 @@ Layer, along with a Response describing what should happen when the Condition is
 satisfied.
 """
 
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import Callable
+from collections.abc import Iterable
+from collections.abc import Sequence
 import dataclasses
 import datetime
 import threading
-from typing import Optional, Union
+from typing import Optional
+from typing import Union
+
 from intrinsic.icon.proto.v1 import condition_types_pb2
 from intrinsic.icon.proto.v1 import types_pb2
 from intrinsic.icon.python import errors

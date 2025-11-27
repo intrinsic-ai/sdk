@@ -8,9 +8,11 @@ wish to interact with ICON-compatible robots.
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable
+from collections.abc import Mapping
 import enum
-from typing import Optional, Union
+from typing import Optional
+from typing import Union
 
 import grpc
 from intrinsic.icon.proto import logging_mode_pb2

@@ -9,7 +9,8 @@ import datetime
 import logging
 import textwrap
 import traceback
-from typing import Optional, Union
+from typing import Optional
+from typing import Union
 
 from google.protobuf import message as proto_message
 from google.rpc import code_pb2

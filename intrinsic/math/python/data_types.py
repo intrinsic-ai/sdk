@@ -2,7 +2,9 @@
 
 """A hidden layer to define all of the type definitions."""
 
-from typing import Any, Optional, Sequence
+from typing import Any
+from typing import Optional
+from typing import Sequence
 
 from intrinsic.icon.proto import cart_space_pb2
 from intrinsic.math.python import math_types

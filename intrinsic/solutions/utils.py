@@ -6,7 +6,11 @@ import dataclasses
 import enum
 import functools
 import time
-from typing import Any, Callable, Optional, Type, TypeVar
+from typing import Any
+from typing import Callable
+from typing import Optional
+from typing import Type
+from typing import TypeVar
 
 from intrinsic.solutions import errors
 

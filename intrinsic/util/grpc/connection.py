@@ -3,6 +3,7 @@
 """Provides utilities for creating gRPC connections."""
 
 from __future__ import annotations
+
 import dataclasses
 from typing import Optional
 

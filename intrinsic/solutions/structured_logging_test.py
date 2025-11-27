@@ -18,7 +18,6 @@ from intrinsic.math.proto import vector3_pb2
 from intrinsic.solutions import structured_logging
 import pandas as pd
 
-
 # Make sure all log items are considered.
 _TIMESTAMP = 2147483647
 

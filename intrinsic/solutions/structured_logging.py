@@ -29,7 +29,12 @@ import dataclasses
 import datetime
 import logging
 import re
-from typing import Any, Callable, Dict, Optional, Type, Union
+from typing import Any
+from typing import Callable
+from typing import Dict
+from typing import Optional
+from typing import Type
+from typing import Union
 
 from google.protobuf import empty_pb2
 from google.protobuf import json_format

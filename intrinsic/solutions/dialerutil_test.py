@@ -1,6 +1,7 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
 from unittest import mock
+
 from absl.testing import absltest
 import grpc
 from intrinsic.solutions import auth

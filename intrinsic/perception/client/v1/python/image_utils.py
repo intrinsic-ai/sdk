@@ -3,7 +3,8 @@
 """Miscellaneous image helper methods."""
 
 import io
-from typing import Optional, Union
+from typing import Optional
+from typing import Union
 
 from intrinsic.perception.proto.v1 import dimensions_pb2
 from intrinsic.perception.proto.v1 import image_buffer_pb2

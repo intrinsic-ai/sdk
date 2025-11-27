@@ -3,8 +3,10 @@
 """Compare protos under test."""
 
 import copy
-from typing import Optional, Union
+from typing import Optional
+from typing import Union
 import unittest
+
 from google.protobuf import descriptor
 from google.protobuf import message
 from google.protobuf import text_format

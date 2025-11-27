@@ -15,7 +15,10 @@ but it does not bring in all of the tensorflow dependencies.
 
 import operator
 import random
-from typing import List, Optional, Text, Tuple
+from typing import List
+from typing import Optional
+from typing import Text
+from typing import Tuple
 
 from absl import logging
 from absl.testing import absltest

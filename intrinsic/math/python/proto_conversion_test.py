@@ -18,7 +18,6 @@ from intrinsic.math.python import data_types
 from intrinsic.math.python import proto_conversion
 import numpy as np
 
-
 _rng = np.random.RandomState(seed=0)
 
 

@@ -9,7 +9,11 @@ import enum
 import inspect
 import re
 import textwrap
-from typing import Any, Callable, Optional, Set, Type
+from typing import Any
+from typing import Callable
+from typing import Optional
+from typing import Set
+from typing import Type
 import uuid
 
 from google.protobuf import descriptor

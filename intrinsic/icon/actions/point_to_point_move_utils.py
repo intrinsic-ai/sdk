@@ -4,6 +4,7 @@
 
 from collections.abc import Sequence
 from typing import Optional
+
 from intrinsic.icon.actions import point_to_point_move_pb2
 from intrinsic.icon.proto import joint_space_pb2
 from intrinsic.icon.python import actions

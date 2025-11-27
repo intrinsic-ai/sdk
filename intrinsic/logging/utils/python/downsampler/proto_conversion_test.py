@@ -11,7 +11,6 @@ from intrinsic.logging.utils.python.downsampler.downsampler import DownsamplerOp
 from intrinsic.logging.utils.python.downsampler.downsampler import DownsamplerState
 from pybind11_abseil import status
 
-
 DownsamplerStateProto = downsampler_pb2.DownsamplerState
 DownsamplerOptionsProto = downsampler_pb2.DownsamplerOptions
 

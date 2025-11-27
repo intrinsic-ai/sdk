@@ -3,8 +3,11 @@
 """Provides behavior trees from a solution."""
 
 import dataclasses
-from typing import Iterable, Iterator, cast
+from typing import cast
+from typing import Iterable
+from typing import Iterator
 import warnings
+
 from google.protobuf import duration_pb2
 import grpc
 from intrinsic.assets import id_utils
@@ -20,7 +23,6 @@ from intrinsic.solutions import behavior_tree
 from intrinsic.solutions import providers
 from intrinsic.solutions.internal import installed_assets_client
 from intrinsic.util.grpc import error_handling
-
 
 _INSTALLED_ASSETS_MAX_PAGE_SIZE = 200
 _SOLUTION_SERVICE_MAX_PAGE_SIZE = 50

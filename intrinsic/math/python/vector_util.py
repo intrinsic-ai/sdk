@@ -9,11 +9,13 @@ Utility functions:
   is_vector_normalized - Efficient check for magnitude 1.
 """
 
-from typing import Optional, Text, Type, Union
+from typing import Optional
+from typing import Text
+from typing import Type
+from typing import Union
 
 from intrinsic.math.python import math_types
 import numpy as np
-
 
 # ----------------------------------------------------------------------------
 # Error messages for exceptions.

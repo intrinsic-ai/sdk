@@ -2,7 +2,8 @@
 
 """Extends the general ObjectWorldClient with Workcell API specific features."""
 
-from typing import Optional, Union
+from typing import Optional
+from typing import Union
 
 import grpc
 from intrinsic.geometry.proto import geometry_service_pb2_grpc

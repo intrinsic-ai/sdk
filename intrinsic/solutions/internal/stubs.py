@@ -11,7 +11,11 @@ import inspect
 import os
 import types
 import typing
-from typing import Any, Optional, TextIO, Union, cast
+from typing import Any
+from typing import cast
+from typing import Optional
+from typing import TextIO
+from typing import Union
 
 import black
 from intrinsic.math.python import data_types

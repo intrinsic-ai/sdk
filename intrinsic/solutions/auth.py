@@ -12,7 +12,10 @@ import dataclasses
 import datetime
 import json
 import os.path
-from typing import Dict, Optional, Tuple
+from typing import Dict
+from typing import Optional
+from typing import Tuple
+
 from intrinsic.solutions import userconfig
 ALIAS_DEFAULT_TOKEN = "default"
 AUTH_CONFIG_EXTENSION = ".user-token"

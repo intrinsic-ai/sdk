@@ -3,6 +3,7 @@
 """Helper module to construct a Stop action."""
 
 import dataclasses
+
 from intrinsic.icon.python import actions
 
 ACTION_TYPE_NAME = "intrinsic.stop"

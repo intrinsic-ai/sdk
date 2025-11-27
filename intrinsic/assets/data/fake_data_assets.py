@@ -2,7 +2,9 @@
 
 """Fake implementation of the DataAssets service."""
 
-from typing import Callable, NoReturn, Sequence
+from typing import Callable
+from typing import NoReturn
+from typing import Sequence
 
 import grpc
 from grpc.framework.foundation import logging_pool

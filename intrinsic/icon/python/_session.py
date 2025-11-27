@@ -16,12 +16,14 @@ the ICON Client. For example:
 """
 
 import collections
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable
+from collections.abc import Sequence
 import datetime
 import itertools
 import queue
 import threading
-from typing import Optional, Union
+from typing import Optional
+from typing import Union
 
 from absl import logging
 from google.protobuf import message as _message

@@ -38,6 +38,7 @@ def _display_html(html: str, newline_after_html: bool = False) -> None:
     # pytype: disable=import-error
     # pylint: disable=g-import-not-at-top
     from IPython import display
+
     # pytype: enable=import-error
     # pylint: enable=g-import-not-at-top
     display.display(display.HTML(html))
@@ -163,6 +164,7 @@ def display_if_ipython(python_object: Any) -> None:
       # pytype: disable=import-error
       # pylint: disable=g-import-not-at-top
       from IPython import display
+
       # pytype: enable=import-error
       # pylint: enable=g-import-not-at-top
       display.display(python_object)
@@ -203,6 +205,7 @@ def display_image_if_ipython(data: bytes, width: int) -> None:
     # pytype: disable=import-error
     # pylint: disable=g-import-not-at-top
     from IPython import display
+
     # pytype: enable=import-error
     # pylint: enable=g-import-not-at-top
     display.display(display.Image(data=data, width=width))

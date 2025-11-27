@@ -11,7 +11,10 @@ Utility functions:
 """
 
 from collections import abc
-from typing import Iterable, Text, Tuple, Union
+from typing import Iterable
+from typing import Text
+from typing import Tuple
+from typing import Union
 
 import numpy as np
 
