@@ -30,6 +30,7 @@ from google.protobuf import message as _message
 from google.rpc import code_pb2
 from google.rpc import status_pb2
 import grpc
+
 from intrinsic.icon.proto import streaming_output_pb2
 from intrinsic.icon.proto.v1 import service_pb2
 from intrinsic.icon.proto.v1 import service_pb2_grpc

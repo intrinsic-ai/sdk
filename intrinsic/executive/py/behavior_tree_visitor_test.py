@@ -5,6 +5,7 @@
 from absl.testing import absltest
 from absl.testing import parameterized
 from google.protobuf import text_format
+
 from intrinsic.executive.proto import behavior_tree_pb2
 from intrinsic.executive.py import behavior_tree_visitor
 

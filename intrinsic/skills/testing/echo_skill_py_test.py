@@ -1,6 +1,7 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
 from absl.testing import absltest
+
 from intrinsic.skills.testing import echo_skill
 from intrinsic.skills.testing import echo_skill_pb2
 from intrinsic.skills.testing import skill_test_utils

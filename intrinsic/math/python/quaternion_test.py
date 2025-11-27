@@ -5,11 +5,12 @@ from collections import abc
 from absl import logging
 from absl.testing import absltest
 from absl.testing import parameterized
+import numpy as np
+
 from intrinsic.math.python import math_test
 from intrinsic.math.python import math_types
 from intrinsic.math.python import quaternion
 from intrinsic.math.python import vector_util
-import numpy as np
 
 # An error of this magnitude should not trigger failures on checks for
 # normalized quaternions.

@@ -5,9 +5,12 @@
 from __future__ import annotations
 
 import datetime
-from typing import Any, Optional, cast
+from typing import Any
+from typing import cast
+from typing import Optional
 
 import grpc
+
 from intrinsic.perception.proto.v1 import camera_config_pb2
 from intrinsic.perception.proto.v1 import camera_identifier_pb2
 from intrinsic.perception.proto.v1 import camera_service_pb2

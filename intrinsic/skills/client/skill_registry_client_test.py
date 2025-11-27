@@ -3,6 +3,7 @@
 from unittest import mock
 
 from absl.testing import absltest
+
 from intrinsic.skills.client import skill_registry_client
 from intrinsic.skills.proto import skill_registry_pb2
 from intrinsic.skills.proto import skills_pb2

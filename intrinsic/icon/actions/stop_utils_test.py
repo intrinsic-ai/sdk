@@ -2,6 +2,7 @@
 
 from absl.testing import absltest
 from google.protobuf import any_pb2
+
 from intrinsic.icon.actions import stop_utils
 
 

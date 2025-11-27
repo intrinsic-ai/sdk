@@ -10,6 +10,7 @@ import warnings
 
 from google.protobuf import duration_pb2
 import grpc
+
 from intrinsic.assets import id_utils
 from intrinsic.assets.processes.proto import process_asset_pb2
 from intrinsic.assets.proto import asset_type_pb2

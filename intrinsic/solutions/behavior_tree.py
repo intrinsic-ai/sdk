@@ -21,7 +21,16 @@ import collections
 import dataclasses
 import enum
 import textwrap
-from typing import Any as AnyType, Callable, Iterable, List, Mapping, Optional, Sequence as SequenceType, Tuple, Union, cast
+from typing import Any as AnyType
+from typing import Callable
+from typing import cast
+from typing import Iterable
+from typing import List
+from typing import Mapping
+from typing import Optional
+from typing import Sequence as SequenceType
+from typing import Tuple
+from typing import Union
 import uuid
 import warnings
 
@@ -30,6 +39,7 @@ from google.protobuf import descriptor
 from google.protobuf import descriptor_pb2
 from google.protobuf import message as protobuf_message
 import graphviz
+
 from intrinsic.assets import id_utils
 from intrinsic.assets.processes.proto import process_asset_pb2
 from intrinsic.assets.proto import asset_tag_pb2

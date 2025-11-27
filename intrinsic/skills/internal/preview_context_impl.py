@@ -6,6 +6,9 @@ import datetime
 
 from google.protobuf import duration_pb2
 from google.protobuf import timestamp_pb2
+
+# isort: off
+# isort: on
 from intrinsic.motion_planning import motion_planner_client
 from intrinsic.resources.proto import resource_handle_pb2
 from intrinsic.skills.proto import prediction_pb2

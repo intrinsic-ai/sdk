@@ -5,7 +5,13 @@
 from __future__ import annotations
 
 from intrinsic.resources.proto import resource_handle_pb2
+
+# isort: off
+# isort: on
 from intrinsic.skills.internal import execute_context_impl
+
+# isort: off
+# isort: on
 from intrinsic.skills.python import skill_interface
 
 

@@ -9,8 +9,10 @@ from google.protobuf import any_pb2
 from google.protobuf import descriptor
 from google.protobuf import message
 from google.protobuf import message_factory
+
 from intrinsic.skills.internal import error_bindings
-from pybind11_abseil import status
+
+from pybind11_abseil import status  # isort: skip
 
 
 def _one_ofs_set(

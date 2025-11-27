@@ -13,6 +13,7 @@ from google.protobuf import duration_pb2
 from google.rpc import status_pb2
 import grpc
 from grpc_status import rpc_status
+
 from intrinsic.assets import id_utils
 from intrinsic.assets.proto import asset_tag_pb2
 from intrinsic.assets.proto import asset_type_pb2

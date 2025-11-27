@@ -9,6 +9,7 @@ from google.protobuf import descriptor_pb2
 from google.rpc import code_pb2
 from google.rpc import status_pb2
 import grpc
+
 from intrinsic.assets.processes.proto import process_asset_pb2
 from intrinsic.assets.proto import asset_type_pb2
 from intrinsic.assets.proto import id_pb2

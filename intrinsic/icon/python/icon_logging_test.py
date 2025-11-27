@@ -2,6 +2,7 @@
 
 from absl.testing import absltest
 from google.protobuf import text_format
+
 from intrinsic.icon.proto import streaming_output_pb2
 from intrinsic.icon.python import icon_logging
 from intrinsic.logging.proto import log_item_pb2

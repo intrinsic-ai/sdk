@@ -8,6 +8,7 @@ from typing import Sequence
 
 import grpc
 from grpc.framework.foundation import logging_pool
+
 from intrinsic.assets import id_utils
 from intrinsic.assets.data.proto.v1 import data_asset_pb2
 from intrinsic.assets.data.proto.v1 import data_assets_pb2

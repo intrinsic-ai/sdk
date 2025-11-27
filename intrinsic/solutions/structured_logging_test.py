@@ -9,6 +9,8 @@ from absl.testing import parameterized
 from google.protobuf import empty_pb2
 from google.protobuf import message as proto_message
 from google.protobuf import text_format
+import pandas as pd
+
 from intrinsic.icon.proto import streaming_output_pb2
 from intrinsic.logging.proto import bag_metadata_pb2
 from intrinsic.logging.proto import log_item_pb2
@@ -16,7 +18,6 @@ from intrinsic.logging.proto import logger_service_pb2
 from intrinsic.math.proto import pose_pb2
 from intrinsic.math.proto import vector3_pb2
 from intrinsic.solutions import structured_logging
-import pandas as pd
 
 # Make sure all log items are considered.
 _TIMESTAMP = 2147483647

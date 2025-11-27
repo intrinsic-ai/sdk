@@ -11,11 +11,11 @@ This includes:
 import dataclasses
 from typing import Optional
 
+from google.protobuf import empty_pb2
 # This import is required to use the *_grpc imports.
 # pylint: disable=unused-import
 import grpc
 
-from google.protobuf import empty_pb2
 from intrinsic.icon.proto import joint_space_pb2
 from intrinsic.math.python import data_types
 from intrinsic.math.python import proto_conversion as math_proto_conversion

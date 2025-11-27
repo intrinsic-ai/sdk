@@ -1,8 +1,10 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
 from absl.testing import absltest
+
 from intrinsic.skills.internal import error_bindings
-from pybind11_abseil import status
+
+from pybind11_abseil import status  # isort: skip
 
 
 class ErrorBindingsPyTest(absltest.TestCase):

@@ -1,9 +1,10 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
 from absl.testing import absltest
+import numpy as np
+
 from intrinsic.icon.proto import matrix_conversions
 from intrinsic.icon.proto import matrix_pb2
-import numpy as np
 
 
 class MatrixConversionsTest(absltest.TestCase):

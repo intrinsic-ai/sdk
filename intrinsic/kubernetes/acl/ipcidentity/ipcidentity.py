@@ -7,6 +7,7 @@ import logging
 from typing import Optional
 
 import grpc  # For gRPC communication
+
 from intrinsic.config import environments  # For service discovery
 from intrinsic.kubernetes.accounts.service.api.tokens.v2 import tokens_pb2
 from intrinsic.kubernetes.accounts.service.api.tokens.v2 import tokens_pb2_grpc

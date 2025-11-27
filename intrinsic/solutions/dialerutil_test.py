@@ -4,6 +4,7 @@ from unittest import mock
 
 from absl.testing import absltest
 import grpc
+
 from intrinsic.solutions import auth
 from intrinsic.solutions import dialerutil
 

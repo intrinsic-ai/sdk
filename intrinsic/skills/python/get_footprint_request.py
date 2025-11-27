@@ -3,7 +3,8 @@
 """GetFootprintRequest type for calls to Skill.get_footprint."""
 
 import dataclasses
-from typing import Generic, TypeVar
+from typing import Generic
+from typing import TypeVar
 
 from google.protobuf import message
 

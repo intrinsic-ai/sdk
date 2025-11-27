@@ -4,6 +4,7 @@
 
 from absl import logging
 import grpc
+
 from intrinsic.assets.services.examples.calcserver import calc_server_pb2
 from intrinsic.assets.services.examples.calcserver import calc_server_pb2_grpc
 

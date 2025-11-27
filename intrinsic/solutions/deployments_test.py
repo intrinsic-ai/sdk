@@ -6,6 +6,7 @@ from unittest import mock
 from absl.testing import absltest
 from google.protobuf import empty_pb2
 import grpc
+
 from intrinsic.frontend.solution_service.proto import solution_service_pb2
 from intrinsic.frontend.solution_service.proto import status_pb2 as solution_status_pb2
 from intrinsic.skills.client import skill_registry_client

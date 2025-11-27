@@ -1,26 +1,26 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-from collections.abc import ItemsView, KeysView, ValuesView
+from collections.abc import ItemsView
+from collections.abc import KeysView
+from collections.abc import ValuesView
 from unittest import mock
 
-import grpc  # pylint: disable=unused-import
-import numpy as np
-from numpy import testing as np_testing
-
+from absl.testing import absltest
 from google.protobuf import any_pb2
 from google.protobuf import empty_pb2
+from google.protobuf import text_format
+import grpc  # pylint: disable=unused-import
+from numpy import testing as np_testing
+import numpy as np
+
 from intrinsic.icon.proto import cart_space_pb2
 from intrinsic.kinematics.types import joint_limits_pb2
 from intrinsic.math.python import data_types
-
 from intrinsic.solutions.testing import compare
 from intrinsic.world.proto import object_world_refs_pb2
 from intrinsic.world.proto import object_world_service_pb2
-
 from intrinsic.world.python import object_world_ids
 from intrinsic.world.python import object_world_resources
-from google.protobuf import text_format
-from absl.testing import absltest
 
 
 class ObjectWorldResourcesTest(absltest.TestCase):

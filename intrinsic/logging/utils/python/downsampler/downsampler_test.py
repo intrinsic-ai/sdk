@@ -5,9 +5,11 @@
 import datetime
 
 from absl.testing import absltest
+
 from intrinsic.logging.proto import log_item_pb2
 from intrinsic.logging.utils.python.downsampler import downsampler as downsampler_py
-from pybind11_abseil import status as absl_status
+
+from pybind11_abseil import status as absl_status  # isort: skip
 
 
 def create_log_item(

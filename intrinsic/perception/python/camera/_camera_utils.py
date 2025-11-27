@@ -9,6 +9,8 @@ from typing import Optional
 
 from absl import logging
 import grpc
+import numpy as np
+
 from intrinsic.perception.client.v1.python.camera import _camera_utils as _camera_utils_v1
 from intrinsic.perception.proto import camera_config_pb2
 from intrinsic.perception.proto import dimensions_pb2
@@ -17,7 +19,6 @@ from intrinsic.perception.proto import intrinsic_params_pb2
 from intrinsic.perception.proto.v1 import camera_config_pb2 as camera_config_v1_pb2
 from intrinsic.resources.proto import resource_handle_pb2
 from intrinsic.skills.python import proto_utils
-import numpy as np
 
 CAMERA_RESOURCE_CAPABILITY = "CameraConfig"
 

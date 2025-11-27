@@ -2,8 +2,9 @@
 
 """Conversions to/from numpy ndarray from/to matrix proto types."""
 
-from intrinsic.icon.proto import matrix_pb2
 import numpy as np
+
+from intrinsic.icon.proto import matrix_pb2
 
 
 def from_ndarray(matrix: np.ndarray) -> matrix_pb2.Matrix6d:

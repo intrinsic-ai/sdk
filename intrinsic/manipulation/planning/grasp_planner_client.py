@@ -7,6 +7,8 @@ from collections.abc import Sequence
 from absl import logging
 from google.protobuf import empty_pb2
 import grpc
+import numpy as np
+
 from intrinsic.manipulation.grasping import grasp_execution_planner_params_pb2
 from intrinsic.manipulation.grasping import grasp_pb2
 from intrinsic.manipulation.grasping import grasp_planner_params_pb2
@@ -15,7 +17,6 @@ from intrinsic.manipulation.grasping import grasp_ranker_params_pb2
 from intrinsic.manipulation.service.grasp_planner_service.v1 import grasp_planner_service_pb2
 from intrinsic.manipulation.service.grasp_planner_service.v1 import grasp_planner_service_pb2_grpc
 from intrinsic.world.proto import object_world_refs_pb2
-import numpy as np
 
 DEFAULT_GRASP_PLANNER_SERVICE_ADDRESS = (
     "istio-ingressgateway.app-ingress.svc.cluster.local:80"

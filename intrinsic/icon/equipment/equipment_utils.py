@@ -9,6 +9,7 @@ helper functions to avoid depending directly on the underlying proto messages.
 from typing import Optional
 
 from absl import logging
+
 from intrinsic.icon.equipment import icon_equipment_pb2
 from intrinsic.icon.python import icon_api
 from intrinsic.resources.proto import resource_handle_pb2

@@ -1,6 +1,7 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
 from absl.testing import absltest
+
 from intrinsic.icon.actions import tare_force_torque_sensor_pb2
 from intrinsic.icon.actions import tare_force_torque_sensor_utils
 

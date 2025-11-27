@@ -10,6 +10,7 @@ from typing import Sequence
 
 from google.longrunning import operations_pb2
 from google.rpc import code_pb2
+
 from intrinsic.logging.errors.proto import error_report_pb2
 from intrinsic.solutions import errors as solutions_errors
 from intrinsic.solutions import ipython

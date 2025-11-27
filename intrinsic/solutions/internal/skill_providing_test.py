@@ -11,6 +11,7 @@ from absl.testing import parameterized
 from google.protobuf import descriptor_pb2
 from google.protobuf import empty_pb2
 from google.protobuf import text_format
+
 from intrinsic.assets.proto import asset_tag_pb2
 from intrinsic.assets.proto import asset_type_pb2
 from intrinsic.assets.proto import view_pb2

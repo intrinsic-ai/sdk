@@ -10,6 +10,7 @@ from google.protobuf import descriptor
 from google.protobuf import descriptor_pb2
 from google.protobuf import message
 from google.protobuf import text_format
+
 from intrinsic.assets import id_utils
 from intrinsic.assets.processes.proto import process_asset_pb2
 from intrinsic.assets.proto import asset_tag_pb2

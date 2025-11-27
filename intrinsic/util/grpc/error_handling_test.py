@@ -6,6 +6,7 @@ from unittest import mock
 from absl.testing import absltest
 from google.rpc import status_pb2
 import grpc
+
 from intrinsic.skills.proto import error_pb2
 from intrinsic.util.grpc import error_handling
 from intrinsic.util.status import extended_status_pb2 as es_proto

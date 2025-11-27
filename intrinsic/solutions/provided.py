@@ -19,6 +19,7 @@ from typing import ValuesView
 from google.protobuf import descriptor
 from google.protobuf import message
 from google.protobuf import struct_pb2
+
 from intrinsic.resources.proto import resource_handle_pb2
 from intrinsic.scene.proto.v1 import scene_object_pb2
 from intrinsic.skills.proto import skills_pb2

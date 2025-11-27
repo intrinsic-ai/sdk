@@ -22,6 +22,7 @@ import sys
 import warnings
 
 import grpc
+
 from intrinsic.frontend.solution_service.proto import solution_service_pb2
 from intrinsic.frontend.solution_service.proto import solution_service_pb2_grpc
 from intrinsic.frontend.solution_service.proto import status_pb2 as solution_status_pb2

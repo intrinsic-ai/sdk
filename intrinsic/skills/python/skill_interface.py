@@ -3,15 +3,21 @@
 """Skill interface."""
 
 import abc
-from typing import Generic, TypeVar, Union
+from typing import Generic
+from typing import TypeVar
+from typing import Union
 
 from google.protobuf import message as proto_message
+
 from intrinsic.skills.proto import footprint_pb2
 from intrinsic.skills.proto import skill_service_pb2
 from intrinsic.skills.python import execute_context
 from intrinsic.skills.python import execute_request
 from intrinsic.skills.python import get_footprint_context
 from intrinsic.skills.python import get_footprint_request
+
+# isort: off
+# isort: on
 from intrinsic.skills.python import preview_context
 from intrinsic.skills.python import preview_request
 from intrinsic.util.status import status_exception

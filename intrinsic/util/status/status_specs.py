@@ -23,6 +23,7 @@ import datetime
 
 from google.protobuf import timestamp_pb2
 import grpc
+
 from intrinsic.assets.proto import status_spec_pb2
 from intrinsic.util.status import extended_status_pb2
 from intrinsic.util.status import status_exception

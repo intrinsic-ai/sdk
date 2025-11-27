@@ -12,10 +12,11 @@ from typing import Optional
 from typing import Text
 from typing import Tuple
 
+import numpy as np
+
 from intrinsic.math.python import math_types
 from intrinsic.math.python import quaternion as quaternion_class
 from intrinsic.math.python import vector_util
-import numpy as np
 
 # ----------------------------------------------------------------------------
 # Error messages for exceptions.

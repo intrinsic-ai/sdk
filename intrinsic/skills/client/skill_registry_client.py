@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from google.protobuf import empty_pb2
 import grpc
+
 from intrinsic.skills.proto import skill_registry_pb2
 from intrinsic.skills.proto import skill_registry_pb2_grpc
 from intrinsic.skills.proto import skills_pb2

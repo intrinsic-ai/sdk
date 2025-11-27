@@ -2,8 +2,9 @@
 
 """Converters from intrinsic math protos to commonly used in-memory representations."""
 
-from intrinsic.math.python import data_types
 import numpy as np
+
+from intrinsic.math.python import data_types
 from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import point_pb2
 from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import pose_pb2
 from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import quaternion_pb2

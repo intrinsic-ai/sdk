@@ -26,11 +26,12 @@ The inverse of a pose is the reverse transformation:
 from typing import Optional
 from typing import Text
 
+import numpy as np
+
 from intrinsic.math.python import math_types
 from intrinsic.math.python import quaternion as quaternion_class
 from intrinsic.math.python import rotation3
 from intrinsic.math.python import vector_util
-import numpy as np
 
 # ----------------------------------------------------------------------------
 # Pytype definitions.

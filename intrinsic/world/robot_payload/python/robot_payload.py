@@ -4,10 +4,11 @@
 
 import math
 
+import numpy as np
+
 from intrinsic.math.python import data_types
 from intrinsic.math.python import proto_conversion
 from intrinsic.world.proto import robot_payload_pb2
-import numpy as np
 
 _INERTA_SHAPE = (3, 3)
 

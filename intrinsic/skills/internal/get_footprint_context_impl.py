@@ -2,6 +2,8 @@
 
 """GetFootprintContext implementation provided by the skill service."""
 
+# isort: off
+# isort: on
 from intrinsic.motion_planning import motion_planner_client
 from intrinsic.resources.proto import resource_handle_pb2
 from intrinsic.skills.python import get_footprint_context

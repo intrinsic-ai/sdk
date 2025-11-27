@@ -6,6 +6,7 @@ from unittest import mock
 from absl.testing import absltest
 from google.longrunning import operations_pb2
 from google.protobuf import text_format
+
 from intrinsic.logging.errors.proto import error_report_pb2
 from intrinsic.solutions import error_processing
 from intrinsic.solutions.testing import compare

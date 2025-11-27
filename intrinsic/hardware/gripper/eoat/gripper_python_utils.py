@@ -11,12 +11,13 @@ from __future__ import annotations
 import abc
 import logging
 
+import numpy as np
+
 from intrinsic.hardware.gripper.eoat import gripper_client
 from intrinsic.hardware.gripper.service.proto import generic_gripper_pb2
 from intrinsic.resources.proto import resource_handle_pb2
 from intrinsic.world.python import object_world_client
 from intrinsic.world.python import object_world_resources
-import numpy as np
 
 
 class Gripper(metaclass=abc.ABCMeta):

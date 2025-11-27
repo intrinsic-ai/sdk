@@ -8,6 +8,7 @@ the available parts and action signatures.
 
 from absl import app
 from absl import flags
+
 from intrinsic.icon.python import icon_api
 from intrinsic.util.grpc import connection
 

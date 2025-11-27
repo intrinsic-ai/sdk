@@ -3,11 +3,18 @@
 """Abstract base classes for skill and resource providers."""
 
 import abc
-from typing import Any, Iterable, Iterator, Type, Union
+from typing import Any
+from typing import Iterable
+from typing import Iterator
+from typing import Type
+from typing import Union
 
 from intrinsic.resources.proto import resource_handle_pb2
 from intrinsic.solutions import behavior_tree
 from intrinsic.solutions import provided
+
+# isort: off
+# isort: on
 
 
 class ResourceProvider(abc.ABC):

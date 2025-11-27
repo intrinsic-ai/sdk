@@ -14,8 +14,9 @@ from typing import Text
 from typing import Type
 from typing import Union
 
-from intrinsic.math.python import math_types
 import numpy as np
+
+from intrinsic.math.python import math_types
 
 # ----------------------------------------------------------------------------
 # Error messages for exceptions.

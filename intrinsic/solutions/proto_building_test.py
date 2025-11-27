@@ -5,6 +5,7 @@ from unittest import mock
 from absl.testing import absltest
 from google.protobuf import descriptor_pb2
 from google.protobuf import text_format
+
 from intrinsic.executive.proto import proto_builder_pb2
 from intrinsic.solutions import behavior_tree
 from intrinsic.solutions import errors as solutions_errors

@@ -4,9 +4,10 @@
 
 from absl.testing import absltest
 from absl.testing import parameterized
+import numpy as np
+
 from intrinsic.math.python import math_test
 from intrinsic.math.python import math_types
-import numpy as np
 
 # Test error message for verification of err_msg parameter.
 _TEST_ERROR_MESSAGE = 'This is a test error message.'

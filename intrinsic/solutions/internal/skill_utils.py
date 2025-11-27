@@ -12,7 +12,18 @@ import inspect
 import textwrap
 import time
 import typing
-from typing import Any, Callable, Container, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple, Type, Union
+from typing import Any
+from typing import Callable
+from typing import Container
+from typing import Dict
+from typing import Iterable
+from typing import List
+from typing import Mapping
+from typing import Optional
+from typing import Sequence
+from typing import Tuple
+from typing import Type
+from typing import Union
 
 from google.protobuf import any_pb2
 from google.protobuf import descriptor
@@ -22,6 +33,7 @@ from google.protobuf import duration_pb2
 from google.protobuf import message
 from google.protobuf import message_factory
 import grpc
+
 from intrinsic.assets import id_utils
 from intrinsic.icon.proto import joint_space_pb2
 from intrinsic.math.proto import pose_pb2

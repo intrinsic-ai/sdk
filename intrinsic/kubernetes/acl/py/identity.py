@@ -8,6 +8,7 @@ from typing import List
 
 from absl import logging
 import grpc
+
 from intrinsic.kubernetes.acl.py import jwt
 
 COOKIE_KEY = 'cookie'

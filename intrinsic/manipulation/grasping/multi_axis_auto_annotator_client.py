@@ -4,6 +4,7 @@
 
 from absl import logging
 import grpc
+
 from intrinsic.manipulation.grasping import schmalz_multi_axis_grasp_pb2
 from intrinsic.manipulation.service import multi_axis_auto_annotator_service_pb2
 from intrinsic.manipulation.service import multi_axis_auto_annotator_service_pb2_grpc

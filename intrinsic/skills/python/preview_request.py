@@ -3,7 +3,8 @@
 """PreviewRequest type for calls to Skill.preview."""
 
 import dataclasses
-from typing import Generic, TypeVar
+from typing import Generic
+from typing import TypeVar
 
 from google.protobuf import message
 

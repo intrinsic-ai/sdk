@@ -9,9 +9,12 @@ See error_utils.h for more information.
 """
 
 import grpc
+
 from intrinsic.skills.proto import error_pb2
 from intrinsic.util.grpc import error_handling
-from pybind11_abseil import status
+
+from pybind11_abseil import status  # isort: skip
+
 
 # This key is taken from the grpc implementation and generates special behavior
 # when sending it as trailing metadata.

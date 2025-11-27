@@ -3,6 +3,7 @@
 """Utility functions for skills related proto conversions."""
 
 from google.protobuf import descriptor_pb2
+
 from intrinsic.assets import id_utils
 from intrinsic.skills.proto import skill_manifest_pb2
 from intrinsic.skills.proto import skills_pb2

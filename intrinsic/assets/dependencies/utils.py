@@ -6,6 +6,7 @@ import contextlib
 
 from google.protobuf import any_pb2
 import grpc
+
 from intrinsic.assets.data.proto.v1 import data_assets_pb2
 from intrinsic.assets.data.proto.v1 import data_assets_pb2_grpc
 from intrinsic.assets.proto.v1 import resolved_dependency_pb2

@@ -6,13 +6,17 @@ The ObjectWorldClient is used to access all elements in the object world in
 Python.
 """
 
-from collections.abc import Iterable, Mapping
-from typing import Optional, Union, cast
+from collections.abc import Iterable
+from collections.abc import Mapping
+from typing import cast
+from typing import Optional
+from typing import Union
 import warnings
 
 from google.protobuf import any_pb2
 from google.protobuf import struct_pb2
 import grpc
+
 from intrinsic.geometry.proto import geometry_service_pb2
 from intrinsic.geometry.proto import geometry_service_pb2_grpc
 from intrinsic.geometry.proto import geometry_storage_refs_pb2 as geometry_storage_refs_pb2_v0

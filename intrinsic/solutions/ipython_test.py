@@ -5,6 +5,7 @@ import sys
 from unittest import mock
 
 from absl.testing import absltest
+
 from intrinsic.solutions import ipython
 
 

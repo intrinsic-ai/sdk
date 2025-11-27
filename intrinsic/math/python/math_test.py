@@ -22,12 +22,13 @@ from typing import Tuple
 
 from absl import logging
 from absl.testing import absltest
+import numpy as np
+
 from intrinsic.math.python import math_types
 from intrinsic.math.python import pose3
 from intrinsic.math.python import quaternion
 from intrinsic.math.python import rotation3
 from intrinsic.math.python import vector_util
-import numpy as np
 
 # ---------------------------------------------------------------------------
 # PyType Definitions

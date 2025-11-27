@@ -7,6 +7,7 @@ from collections.abc import Sequence
 from absl import app
 from absl import flags
 from absl import logging
+
 from intrinsic.resources.proto import runtime_context_pb2
 from intrinsic.tools.inbuild.cmd.service.test_data import example_service_pb2
 

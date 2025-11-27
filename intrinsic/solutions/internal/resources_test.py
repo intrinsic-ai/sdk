@@ -3,6 +3,7 @@
 from unittest import mock
 
 from absl.testing import absltest
+
 from intrinsic.resources.proto import resource_handle_pb2
 from intrinsic.solutions import provided
 from intrinsic.solutions.internal import resources as resources_mod

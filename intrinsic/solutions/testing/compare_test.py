@@ -4,6 +4,7 @@ import copy
 
 from absl.testing import absltest
 from absl.testing import parameterized
+
 # pylint:disable-next=g-importing-member
 from intrinsic.executive.proto.test_message_pb2 import TestMessage
 from intrinsic.solutions.testing import compare

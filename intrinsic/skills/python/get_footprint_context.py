@@ -4,6 +4,8 @@
 
 import abc
 
+# isort: off
+# isort: on
 from intrinsic.motion_planning import motion_planner_client
 from intrinsic.world.python import object_world_client
 from intrinsic.world.python import object_world_ids

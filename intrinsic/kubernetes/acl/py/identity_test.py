@@ -7,6 +7,7 @@ import unittest.mock
 from absl.testing import absltest
 from absl.testing import parameterized
 import grpc
+
 from intrinsic.kubernetes.acl.py import identity
 
 # JWT with {"email": "doe@example.com"}

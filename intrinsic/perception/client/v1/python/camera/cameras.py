@@ -6,11 +6,14 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 import datetime
-from typing import Optional, Union
+from typing import Optional
+from typing import Union
 
 from absl import logging
 from google.protobuf import empty_pb2
 import grpc
+import numpy as np
+
 from intrinsic.math.python import pose3
 from intrinsic.perception.client.v1.python.camera import _camera_utils
 from intrinsic.perception.client.v1.python.camera import camera_client
@@ -23,7 +26,6 @@ from intrinsic.skills.python import skill_interface
 from intrinsic.util.grpc import connection
 from intrinsic.world.python import object_world_client
 from intrinsic.world.python import object_world_resources
-import numpy as np
 
 
 def make_camera_resource_selector() -> equipment_pb2.ResourceSelector:

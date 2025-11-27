@@ -5,6 +5,7 @@ import pathlib
 from unittest import mock
 
 from absl.testing import absltest
+
 from intrinsic.solutions import auth
 from intrinsic.solutions import userconfig
 

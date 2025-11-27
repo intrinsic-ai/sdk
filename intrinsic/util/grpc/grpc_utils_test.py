@@ -6,6 +6,7 @@ from unittest import mock
 
 from absl.testing import absltest
 import grpc
+
 from intrinsic.kubernetes.acl.ipcidentity import ipcidentity
 from intrinsic.util.grpc import grpc_utils
 

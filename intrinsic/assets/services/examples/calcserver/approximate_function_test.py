@@ -9,13 +9,14 @@ from absl.testing import parameterized
 from google.protobuf import text_format
 import grpc
 from grpc.framework.foundation import logging_pool
+import numpy as np
+
 from intrinsic.assets.data.proto.v1 import data_manifest_pb2
 from intrinsic.assets.services.examples.calcserver import approximate_function
 from intrinsic.assets.services.examples.calcserver import calc_server_pb2
 from intrinsic.assets.services.examples.calcserver import calc_server_pb2_grpc
 from intrinsic.assets.services.examples.calcserver import two_dimensional_function_data_pb2
 from intrinsic.util.path_resolver import path_resolver
-import numpy as np
 
 _INVERTED_PYRAMID_DATA_MANIFEST_PATH = "intrinsic/assets/services/examples/calcserver/inverted_pyramid_function_data.textproto"
 

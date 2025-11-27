@@ -7,6 +7,7 @@ from __future__ import annotations
 from typing import Optional
 
 import grpc
+
 from intrinsic.resources.proto import resource_handle_pb2
 from intrinsic.resources.proto import resource_registry_pb2
 from intrinsic.resources.proto import resource_registry_pb2_grpc

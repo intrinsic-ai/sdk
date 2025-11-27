@@ -4,13 +4,12 @@ import io
 import os
 
 from absl.testing import absltest
-from absl.testing import absltest
+
 from intrinsic.solutions.internal import skill_providing
 from intrinsic.solutions.internal import stubs
 from intrinsic.solutions.internal import stubs_test_pb2
 from intrinsic.solutions.testing import skill_test_utils
 from intrinsic.util.path_resolver import path_resolver
-
 
 _INTRINSIC_STUBS_SOLUTIONS_PATH = "intrinsic-stubs/solutions"
 _INTRINSIC_STUBS_PATH = "intrinsic-stubs"

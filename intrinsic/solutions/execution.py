@@ -21,13 +21,19 @@ my_executive.reset()
 import datetime
 import enum
 import time
-from typing import Any, List, Mapping, Optional, Union, cast
+from typing import Any
+from typing import cast
+from typing import List
+from typing import Mapping
+from typing import Optional
+from typing import Union
 
 from google.longrunning import operations_pb2
 from google.protobuf import any_pb2
 from google.protobuf import message as protobuf_message
 from google.protobuf import message_factory
 import grpc
+
 from intrinsic.executive.proto import behavior_tree_pb2
 from intrinsic.executive.proto import blackboard_service_pb2
 from intrinsic.executive.proto import blackboard_service_pb2_grpc

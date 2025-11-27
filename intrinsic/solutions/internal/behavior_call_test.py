@@ -4,6 +4,7 @@ import datetime
 
 from absl.testing import absltest
 from google.protobuf import text_format
+
 from intrinsic.executive.proto import behavior_call_pb2
 from intrinsic.solutions.internal import actions
 from intrinsic.solutions.internal import behavior_call

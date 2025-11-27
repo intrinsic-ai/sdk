@@ -5,10 +5,15 @@
 from __future__ import annotations
 
 import abc
-from collections.abc import ItemsView, Iterator, KeysView, ValuesView
-from typing import Optional, Protocol
+from collections.abc import ItemsView
+from collections.abc import Iterator
+from collections.abc import KeysView
+from collections.abc import ValuesView
+from typing import Optional
+from typing import Protocol
 
 from google.protobuf import any_pb2
+
 from intrinsic.icon.proto import cart_space_pb2
 from intrinsic.kinematics.types import joint_limits_pb2
 from intrinsic.math.python import data_types

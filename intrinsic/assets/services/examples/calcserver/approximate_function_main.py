@@ -8,6 +8,7 @@ from concurrent import futures
 from absl import app
 from absl import logging
 import grpc
+
 from intrinsic.assets.dependencies import utils
 from intrinsic.assets.services.examples.calcserver import approximate_function
 from intrinsic.assets.services.examples.calcserver import approximate_function_pb2

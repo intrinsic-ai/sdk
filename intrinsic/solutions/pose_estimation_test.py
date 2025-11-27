@@ -3,6 +3,7 @@
 from unittest import mock
 
 from absl.testing import absltest
+
 from intrinsic.assets.data.proto.v1 import data_asset_pb2
 from intrinsic.assets.proto import asset_type_pb2
 from intrinsic.assets.proto import id_pb2

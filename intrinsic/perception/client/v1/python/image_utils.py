@@ -6,10 +6,11 @@ import io
 from typing import Optional
 from typing import Union
 
-from intrinsic.perception.proto.v1 import dimensions_pb2
-from intrinsic.perception.proto.v1 import image_buffer_pb2
 import numpy as np
 from PIL import Image
+
+from intrinsic.perception.proto.v1 import dimensions_pb2
+from intrinsic.perception.proto.v1 import image_buffer_pb2
 
 
 def _image_buffer_data_type(

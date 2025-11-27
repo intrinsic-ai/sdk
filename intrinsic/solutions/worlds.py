@@ -6,6 +6,7 @@ from typing import Optional
 from typing import Union
 
 import grpc
+
 from intrinsic.geometry.proto import geometry_service_pb2_grpc
 from intrinsic.math.python import data_types
 from intrinsic.math.python import proto_conversion as math_proto_conversion

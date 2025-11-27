@@ -3,6 +3,7 @@
 """Tests extended status matcher."""
 
 from absl.testing import absltest
+
 from intrinsic.util.status import status_exception
 from intrinsic.util.status import status_matcher
 

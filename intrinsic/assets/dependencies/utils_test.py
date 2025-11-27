@@ -12,6 +12,7 @@ from google.protobuf import descriptor_pb2
 from google.protobuf import empty_pb2
 import grpc
 from grpc.framework.foundation import logging_pool
+
 from intrinsic.assets.data import fake_data_assets
 from intrinsic.assets.data.proto.v1 import data_asset_pb2
 from intrinsic.assets.dependencies import utils

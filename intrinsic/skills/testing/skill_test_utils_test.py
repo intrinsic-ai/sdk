@@ -3,11 +3,15 @@
 from absl.testing import absltest
 from absl.testing import parameterized
 import grpc
+
 from intrinsic.assets import id_utils
 from intrinsic.assets.services.examples.calcserver import calc_server
 from intrinsic.assets.services.examples.calcserver import calc_server_pb2
 from intrinsic.assets.services.examples.calcserver import calc_server_pb2_grpc
 from intrinsic.logging.proto import log_item_pb2
+
+# isort: off
+# isort: on
 from intrinsic.skills.proto import skill_manifest_pb2
 from intrinsic.skills.python import skill_logging_context
 from intrinsic.skills.testing import echo_skill_pb2

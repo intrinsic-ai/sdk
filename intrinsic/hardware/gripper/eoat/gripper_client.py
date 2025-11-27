@@ -13,6 +13,7 @@ import logging
 from typing import Optional
 
 import grpc
+
 from intrinsic.hardware.gripper.eoat import eoat_service_pb2
 from intrinsic.hardware.gripper.eoat import eoat_service_pb2_grpc
 from intrinsic.hardware.gripper.service.proto import generic_gripper_pb2

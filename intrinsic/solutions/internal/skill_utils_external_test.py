@@ -3,6 +3,7 @@
 from unittest import mock
 
 from absl.testing import absltest
+
 from intrinsic.icon.proto import joint_space_pb2
 from intrinsic.solutions import worlds
 from intrinsic.solutions.internal import skill_utils

@@ -40,6 +40,8 @@ from google.protobuf import empty_pb2
 from google.protobuf import json_format
 from google.protobuf import message as proto_message
 import grpc
+import pandas as pd
+
 from intrinsic.icon.proto import part_status_pb2
 from intrinsic.icon.proto import streaming_output_pb2
 from intrinsic.icon.python import icon_logging
@@ -48,7 +50,6 @@ from intrinsic.logging.proto import log_item_pb2
 from intrinsic.logging.proto import logger_service_pb2
 from intrinsic.logging.proto import logger_service_pb2_grpc
 from intrinsic.util.grpc import error_handling
-import pandas as pd
 
 # Used to transform arbitrary event source strings into valid Python names.
 _REGEX_INVALID_PYTHON_VAR_CHARS = r'\W|^(?=\d)'

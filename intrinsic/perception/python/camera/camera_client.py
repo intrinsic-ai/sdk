@@ -8,6 +8,7 @@ import datetime
 from typing import Optional
 
 import grpc
+
 from intrinsic.perception.proto import camera_config_pb2
 from intrinsic.perception.proto import camera_settings_pb2
 from intrinsic.perception.proto import capture_result_pb2

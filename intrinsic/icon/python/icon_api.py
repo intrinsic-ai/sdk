@@ -15,6 +15,7 @@ from typing import Optional
 from typing import Union
 
 import grpc
+
 from intrinsic.icon.proto import logging_mode_pb2
 from intrinsic.icon.proto.v1 import service_pb2
 from intrinsic.icon.proto.v1 import service_pb2_grpc

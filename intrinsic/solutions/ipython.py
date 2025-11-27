@@ -15,8 +15,9 @@ import builtins
 import textwrap
 from typing import Any
 
-from intrinsic.util.status import status_exception
 import ipywidgets as widgets
+
+from intrinsic.util.status import status_exception
 
 
 def running_in_ipython() -> bool:

@@ -20,6 +20,7 @@ from google.protobuf import descriptor
 from google.protobuf import descriptor_pb2
 from google.protobuf import descriptor_pool
 from google.protobuf import message
+
 from intrinsic.assets import id_utils
 from intrinsic.executive.proto import behavior_call_pb2
 from intrinsic.skills.proto import skills_pb2

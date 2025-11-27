@@ -4,6 +4,8 @@
 
 import abc
 
+# isort: off
+# isort: on
 from intrinsic.motion_planning import motion_planner_client
 from intrinsic.skills.python import skill_canceller
 from intrinsic.skills.python import skill_logging_context

@@ -7,6 +7,7 @@ import platform
 from unittest import mock
 
 from absl.testing import absltest
+
 from intrinsic.solutions import userconfig
 
 

@@ -4,6 +4,7 @@
 
 from absl import logging
 from google.protobuf import descriptor_pb2
+
 from intrinsic.skills.internal import proto_utils
 from intrinsic.skills.proto import skill_manifest_pb2
 from intrinsic.skills.proto import skill_service_config_pb2

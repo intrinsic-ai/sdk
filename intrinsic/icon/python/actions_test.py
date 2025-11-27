@@ -1,6 +1,7 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
 from absl.testing import absltest
+
 from intrinsic.icon.actions import point_to_point_move_pb2
 from intrinsic.icon.python import actions
 from intrinsic.icon.python import icon_api

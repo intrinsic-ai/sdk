@@ -5,6 +5,7 @@
 import os
 
 from absl.testing import absltest
+
 from intrinsic.util.path_resolver import path_resolver
 
 TEST_FILE = 'intrinsic/util/path_resolver/path_resolver_test.py'

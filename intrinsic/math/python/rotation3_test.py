@@ -6,12 +6,13 @@ import math
 from absl import logging
 from absl.testing import absltest
 from absl.testing import parameterized
+import numpy as np
+
 from intrinsic.math.python import math_test
 from intrinsic.math.python import math_types
 from intrinsic.math.python import quaternion
 from intrinsic.math.python import rotation3
 from intrinsic.math.python import vector_util
-import numpy as np
 
 _ARCTAN_HALF = 2 * math.degrees(math.atan(0.5))  # 26.5650512
 

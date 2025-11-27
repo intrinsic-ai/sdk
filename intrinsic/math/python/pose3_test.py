@@ -2,12 +2,13 @@
 
 from absl.testing import absltest
 from absl.testing import parameterized
+import numpy as np
+
 from intrinsic.math.python import math_test
 from intrinsic.math.python import pose3
 from intrinsic.math.python import quaternion
 from intrinsic.math.python import rotation3
 from intrinsic.math.python import vector_util
-import numpy as np
 
 _TEST_NAMED_QUATERNIONS = math_test.make_named_unit_quaternions()
 _TEST_NAMED_VECTORS = math_test.make_named_vectors()

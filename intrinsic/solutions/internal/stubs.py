@@ -18,12 +18,13 @@ from typing import TextIO
 from typing import Union
 
 import black
+from typing_extensions import override
+
 from intrinsic.math.python import data_types
 from intrinsic.solutions import provided
 from intrinsic.solutions import providers
 from intrinsic.solutions.internal import skill_generation
 from intrinsic.solutions.internal import skill_utils
-from typing_extensions import override
 
 _PYTHON_PATH_SEP = "."
 _PYTHON_DOT_OP = "."

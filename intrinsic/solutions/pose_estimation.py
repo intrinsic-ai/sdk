@@ -4,7 +4,10 @@
 
 import dataclasses
 import datetime
-from typing import Dict, Iterator, List, Optional
+from typing import Dict
+from typing import Iterator
+from typing import List
+from typing import Optional
 
 from intrinsic.assets import interface_utils
 from intrinsic.assets.proto import asset_type_pb2
@@ -14,7 +17,6 @@ from intrinsic.perception.proto.v1 import perception_model_pb2
 from intrinsic.solutions import ipython
 from intrinsic.solutions.internal import installed_assets_client
 from intrinsic.util.grpc import error_handling
-
 
 _CSS_FAILURE_STYLE = (
     'color: #ab0000; font-family: monospace; font-weight: bold; '

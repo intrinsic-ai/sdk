@@ -6,13 +6,14 @@ from typing import Any
 from typing import Optional
 from typing import Sequence
 
+import numpy as np
+
 from intrinsic.icon.proto import cart_space_pb2
 from intrinsic.math.python import math_types
 from intrinsic.math.python import pose3
 from intrinsic.math.python import quaternion
 from intrinsic.math.python import rotation3
 from intrinsic.math.python import vector_util
-import numpy as np
 
 VECTOR_TYPE = math_types.VectorType
 Rotation3 = rotation3.Rotation3

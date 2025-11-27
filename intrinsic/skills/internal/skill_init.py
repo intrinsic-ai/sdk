@@ -7,8 +7,12 @@ import time
 
 from absl import logging
 import grpc
+
 from intrinsic.geometry.proto import geometry_service_pb2_grpc
 from intrinsic.motion_planning.proto.v1 import motion_planner_service_pb2_grpc
+
+# isort: off
+# isort: on
 from intrinsic.skills.internal import skill_repository as skill_repo
 from intrinsic.skills.internal import skill_service_impl
 from intrinsic.skills.proto import skill_service_config_pb2

@@ -5,6 +5,7 @@
 from typing import Optional
 
 import grpc
+
 from intrinsic.config import environments  # For service discovery
 from intrinsic.kubernetes.acl.ipcidentity import ipcidentity
 from intrinsic.kubernetes.acl.ipcidentity.internal import metadata

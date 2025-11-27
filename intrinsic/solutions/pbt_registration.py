@@ -7,6 +7,7 @@ from __future__ import annotations
 import uuid
 
 import grpc
+
 from intrinsic.executive.proto import behavior_tree_pb2
 from intrinsic.skills.proto import behavior_tree_registry_pb2
 from intrinsic.skills.proto import behavior_tree_registry_pb2_grpc

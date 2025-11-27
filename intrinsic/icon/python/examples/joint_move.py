@@ -11,11 +11,12 @@ from collections.abc import Sequence
 from absl import app
 from absl import flags
 import grpc
+import numpy as np
+
 from intrinsic.icon.python import create_action_utils
 from intrinsic.icon.python import errors
 from intrinsic.icon.python import icon_api
 from intrinsic.util.grpc import connection
-import numpy as np
 
 _HOST = flags.DEFINE_string(
     'host', 'xfa.lan', 'ICON server gRPC connection host'

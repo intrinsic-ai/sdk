@@ -12,6 +12,7 @@ Typical usage example:
 """
 
 import grpc
+
 from intrinsic.math.python import proto_conversion
 from intrinsic.simulation.service.proto.v1 import simulation_service_pb2
 from intrinsic.simulation.service.proto.v1 import simulation_service_pb2_grpc
@@ -19,7 +20,6 @@ from intrinsic.solutions import errors
 from intrinsic.util.grpc import error_handling
 from intrinsic.world.proto import object_world_service_pb2
 from intrinsic.world.proto import object_world_service_pb2_grpc
-
 
 SimulationServiceStub = simulation_service_pb2_grpc.SimulationServiceStub
 ObjectWorldServiceStub = object_world_service_pb2_grpc.ObjectWorldServiceStub

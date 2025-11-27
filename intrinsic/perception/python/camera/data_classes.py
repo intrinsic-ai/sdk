@@ -9,6 +9,8 @@ import datetime
 from typing import Optional
 import warnings
 
+import numpy as np
+
 from intrinsic.math.python import pose3
 from intrinsic.math.python import proto_conversion as math_proto_conversion
 from intrinsic.perception.proto import camera_config_pb2
@@ -19,7 +21,6 @@ from intrinsic.perception.proto import sensor_image_pb2
 from intrinsic.perception.python import image_utils
 from intrinsic.perception.python.camera import _camera_utils
 from intrinsic.perception.service.proto import camera_server_pb2
-import numpy as np
 
 
 class CameraParams:

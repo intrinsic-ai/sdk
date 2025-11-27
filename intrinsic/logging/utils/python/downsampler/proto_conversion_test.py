@@ -5,11 +5,13 @@
 import datetime
 
 from absl.testing import absltest
+
 from intrinsic.logging.proto import downsampler_pb2
 from intrinsic.logging.utils.python.downsampler.downsampler import DownsamplerEventSourceState
 from intrinsic.logging.utils.python.downsampler.downsampler import DownsamplerOptions
 from intrinsic.logging.utils.python.downsampler.downsampler import DownsamplerState
-from pybind11_abseil import status
+
+from pybind11_abseil import status  # isort: skip
 
 DownsamplerStateProto = downsampler_pb2.DownsamplerState
 DownsamplerOptionsProto = downsampler_pb2.DownsamplerOptions

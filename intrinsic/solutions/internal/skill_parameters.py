@@ -7,6 +7,7 @@ from typing import Optional
 from google.protobuf import descriptor
 from google.protobuf import descriptor_pb2
 from google.protobuf import message
+
 from intrinsic.skills.proto import skills_pb2
 
 # This field can be used to determine if a field is a 'oneof'.

@@ -8,6 +8,7 @@ from google.protobuf import descriptor_pb2
 from google.protobuf import message as protobuf_message
 from google.protobuf import message_factory
 import grpc
+
 from intrinsic.executive.proto import proto_builder_pb2
 from intrinsic.executive.proto import proto_builder_pb2_grpc
 from intrinsic.solutions import errors as solutions_errors

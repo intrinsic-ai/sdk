@@ -1,9 +1,10 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
 from absl.testing import absltest
+import numpy as np
+
 from intrinsic.icon.proto import cart_space_pb2
 from intrinsic.math.python import data_types
-import numpy as np
 
 
 class TypesTest(absltest.TestCase):

@@ -4,6 +4,8 @@ from unittest import mock
 
 from absl.testing import absltest
 import grpc
+import numpy as np
+
 from intrinsic.icon.proto import logging_mode_pb2
 from intrinsic.icon.proto import safety_status_pb2
 from intrinsic.icon.proto.v1 import service_pb2
@@ -15,7 +17,6 @@ from intrinsic.logging.proto import context_pb2
 from intrinsic.math.python import data_types
 from intrinsic.util.grpc import connection
 from intrinsic.world.robot_payload.python import robot_payload
-import numpy as np
 
 
 class IconTest(absltest.TestCase):

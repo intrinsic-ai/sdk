@@ -3,6 +3,7 @@
 import enum
 
 from absl.testing import absltest
+
 from intrinsic.executive.proto import test_message_pb2
 from intrinsic.solutions import utils
 

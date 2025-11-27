@@ -3,6 +3,7 @@
 from unittest import mock
 
 from absl.testing import absltest
+
 from intrinsic.logging.proto import pubsub_listener_service_pb2
 from intrinsic.solutions import logging_pubsub_listener
 

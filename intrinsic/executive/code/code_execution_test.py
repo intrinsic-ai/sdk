@@ -9,6 +9,7 @@ from google.protobuf import any_pb2
 from google.protobuf import descriptor_pb2
 from google.protobuf import message_factory
 from google.protobuf import text_format
+
 from intrinsic.executive.code import code_execution
 from intrinsic.math.proto import point_pb2
 from intrinsic.skills.python import basic_compute_context

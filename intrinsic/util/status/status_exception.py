@@ -16,6 +16,7 @@ from google.protobuf import message as proto_message
 from google.rpc import code_pb2
 from google.rpc import status_pb2
 import grpc
+
 from intrinsic.logging.proto import context_pb2
 from intrinsic.util.grpc import limits as grpc_limits
 from intrinsic.util.status import extended_status_pb2

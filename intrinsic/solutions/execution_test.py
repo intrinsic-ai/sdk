@@ -10,6 +10,7 @@ from google.longrunning import operations_pb2
 from google.protobuf import any_pb2
 from google.protobuf import text_format
 import grpc
+
 from intrinsic.executive.proto import behavior_tree_pb2
 from intrinsic.executive.proto import blackboard_service_pb2
 from intrinsic.executive.proto import blackboard_service_pb2_grpc
@@ -30,7 +31,6 @@ from intrinsic.solutions import simulation as simulation_mod
 from intrinsic.solutions.internal import behavior_call
 from intrinsic.solutions.testing import compare
 from intrinsic.solutions.testing import test_skill_params_pb2
-
 
 # Make sure all log items are considered.
 _TIMESTAMP = 2147483647

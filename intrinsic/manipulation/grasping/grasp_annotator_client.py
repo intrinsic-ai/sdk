@@ -7,6 +7,7 @@ import threading
 from absl import logging
 from google.rpc import code_pb2
 import grpc
+
 from intrinsic.geometry.proto.v1 import triangle_mesh_pb2
 from intrinsic.manipulation.grasping import grasp_annotations_pb2
 from intrinsic.manipulation.grasping import grasp_annotator_pb2

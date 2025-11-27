@@ -14,6 +14,8 @@ import warnings
 from absl import logging
 from google.protobuf import empty_pb2
 import grpc
+import numpy as np
+
 from intrinsic.math.python import pose3
 from intrinsic.perception.proto.v1 import settings_pb2
 from intrinsic.perception.python.camera import _camera_utils
@@ -26,7 +28,6 @@ from intrinsic.skills.python import skill_interface
 from intrinsic.util.grpc import connection
 from intrinsic.world.python import object_world_client
 from intrinsic.world.python import object_world_resources
-import numpy as np
 
 
 def make_camera_resource_selector() -> equipment_pb2.ResourceSelector:

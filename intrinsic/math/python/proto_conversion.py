@@ -4,6 +4,8 @@
 
 import sys
 
+import numpy as np
+
 from intrinsic.icon.proto import cart_space_pb2
 from intrinsic.math.proto import array_pb2
 from intrinsic.math.proto import matrix_pb2
@@ -13,7 +15,6 @@ from intrinsic.math.proto import quaternion_pb2
 from intrinsic.math.proto import twist_pb2
 from intrinsic.math.proto import vector3_pb2
 from intrinsic.math.python import data_types
-import numpy as np
 
 _QUATERNION_UNITY_TOLERANCE = np.finfo(np.float64).eps * 32
 

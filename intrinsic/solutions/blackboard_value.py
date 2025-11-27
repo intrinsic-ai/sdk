@@ -2,7 +2,11 @@
 
 """A thin wrapper around the blackboard which can be accessed via the executive."""
 
-from typing import Any, Dict, Optional, Type, Union
+from typing import Any
+from typing import Dict
+from typing import Optional
+from typing import Type
+from typing import Union
 
 from google.protobuf import descriptor
 from google.protobuf import message

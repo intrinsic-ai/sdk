@@ -7,13 +7,18 @@ to provide our internal framework access to metadata about skills. Classes
 defined here should not be used in user-facing contexts.
 """
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping
+from collections.abc import Sequence
 import dataclasses
 import datetime
 
 from google.protobuf import any_pb2
 from google.protobuf import descriptor as proto_descriptor
+
 from intrinsic.assets.proto import status_spec_pb2
+
+# isort: off
+# isort: on
 from intrinsic.skills.proto import equipment_pb2
 from intrinsic.skills.proto import skill_service_config_pb2
 from intrinsic.skills.proto import skills_pb2

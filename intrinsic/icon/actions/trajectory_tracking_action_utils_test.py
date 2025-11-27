@@ -2,6 +2,7 @@
 
 from absl.testing import absltest
 from google.protobuf import duration_pb2
+
 from intrinsic.icon.actions import trajectory_tracking_action_pb2
 from intrinsic.icon.actions import trajectory_tracking_action_utils
 from intrinsic.icon.proto import joint_space_pb2

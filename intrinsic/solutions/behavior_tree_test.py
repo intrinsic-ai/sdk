@@ -2,7 +2,8 @@
 
 import copy
 import textwrap
-from typing import Union, cast
+from typing import cast
+from typing import Union
 from unittest import mock
 
 from absl.testing import absltest
@@ -10,6 +11,7 @@ from absl.testing import parameterized
 from google.protobuf import any_pb2
 from google.protobuf import descriptor_pb2
 from google.protobuf import text_format
+
 from intrinsic.assets.processes.proto import process_asset_pb2
 from intrinsic.assets.proto import asset_tag_pb2
 from intrinsic.assets.proto import asset_type_pb2

@@ -5,9 +5,12 @@
 import datetime
 import enum
 import math
-from typing import Optional, Tuple
+from typing import Optional
+from typing import Tuple
 
 import grpc
+import matplotlib.pyplot as plt
+
 from intrinsic.perception.client.v1.python.camera import _camera_utils
 from intrinsic.perception.client.v1.python.camera import camera_client
 from intrinsic.perception.client.v1.python.camera import data_classes
@@ -18,8 +21,6 @@ from intrinsic.solutions import deployments
 from intrinsic.solutions import execution
 from intrinsic.solutions import utils
 from intrinsic.util.grpc import connection
-import matplotlib.pyplot as plt
-
 
 # On the guitar cluster grabbing a frame can take more than 7s; if another
 # camera is rendering as well this time can go up 16s. To be on the safe side

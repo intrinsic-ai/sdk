@@ -5,6 +5,7 @@ import threading
 from absl.testing import absltest
 from absl.testing import parameterized
 from google.protobuf import any_pb2
+
 from intrinsic.platform.common.proto import test_pb2
 from intrinsic.platform.pubsub.python import pubsub
 from intrinsic.solutions.testing import compare

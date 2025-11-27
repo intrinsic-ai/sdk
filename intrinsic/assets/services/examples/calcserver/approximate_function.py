@@ -6,10 +6,11 @@ from typing import Callable
 
 from absl import logging
 import grpc
+import numpy as np
+
 from intrinsic.assets.services.examples.calcserver import calc_server_pb2
 from intrinsic.assets.services.examples.calcserver import calc_server_pb2_grpc
 from intrinsic.assets.services.examples.calcserver import two_dimensional_function_data_pb2
-import numpy as np
 
 
 class ApproximateFunction(calc_server_pb2_grpc.CustomCalculationServicer):

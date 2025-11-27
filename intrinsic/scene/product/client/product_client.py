@@ -7,6 +7,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 import grpc
+
 from intrinsic.scene.product.proto import product_pb2
 from intrinsic.scene.product.proto import product_service_pb2
 from intrinsic.scene.product.proto import product_service_pb2_grpc

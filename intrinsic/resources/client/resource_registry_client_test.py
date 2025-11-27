@@ -3,6 +3,7 @@
 from unittest import mock
 
 from absl.testing import absltest
+
 from intrinsic.resources.client import resource_registry_client
 from intrinsic.resources.proto import resource_handle_pb2
 from intrinsic.resources.proto import resource_registry_pb2
