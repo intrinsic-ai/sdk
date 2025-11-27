@@ -41,7 +41,7 @@ message ActionInstance {
     string part_name = 6;
   }
   // The type of action, corresponding to the type of an available
-  // ActionSignature (e.g. "intrinsic.joint_move").
+  // ActionSignature (e.g. "xfa.joint_move").
   string action_type_name = 2;
   // The client-assigned ID of this action instance. The ID of each
   // ActionInstance must be unique for duration of the session.
@@ -116,7 +116,7 @@ message ActionSignature {
     string text_description = 2;
   }
 
-  // Unique name of the action type, e.g. "intrinsic.joint_move".
+  // Unique name of the action type, e.g. "xfa.joint_move".
   string action_type_name = 1;
 
   // Text description of this action type, for human consumption.
