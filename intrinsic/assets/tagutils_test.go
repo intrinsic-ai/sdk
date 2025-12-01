@@ -6,9 +6,10 @@ import (
 	"slices"
 	"testing"
 
+	"intrinsic/assets/typeutils"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"intrinsic/assets/typeutils"
 
 	atagpb "intrinsic/assets/proto/asset_tag_go_proto"
 	atypepb "intrinsic/assets/proto/asset_type_go_proto"
