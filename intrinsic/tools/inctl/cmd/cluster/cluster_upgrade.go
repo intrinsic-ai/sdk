@@ -235,7 +235,11 @@ func (c *client) run(ctx context.Context) error {
 		assetCatalogClient := assetCataloggrpcpb.NewAssetCatalogClient(conn)
 		req.Versions = &clustermanagerpb.UpdateVersions{}
 		if runtimeFlag != "" {
-			runtimeVersion := version.TranslateBaseUIToAPI(runtimeFlag)
+			runtimeVersion := runtimeFlag
+			if strings.HasPrefix(runtimeVersion, "202") {
+				// runtimeVersion is old format and not semver
+				runtimeVersion = version.TranslateBaseUIToAPI(runtimeVersion)
+			}
 			assetRequest := &assetCatalogpb.GetAssetRequest{}
 			assetRequest.AssetId = &assetCatalogpb.GetAssetRequest_IdVersion{
 				IdVersion: &assetIDpb.IdVersion{
@@ -466,8 +470,14 @@ var clusterUpgradeCmd = &cobra.Command{
 			return fmt.Errorf("cluster status:\n%w", err)
 		}
 		w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
+		os := version.TranslateOSAPIToUI(ui.currentOS)
+		runtime := ui.currentBase
+		if strings.HasPrefix(runtime, "0.0.1") {
+			// assume this is old format and needs translation
+			runtime = version.TranslateBaseAPIToUI(runtime)
+		}
 		fmt.Fprintf(w, "project\tcluster\tmode\tstate\trollback available\tflowstate\tos\n")
-		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%v\t%s\t%s\n", projectName, clusterName, ui.mode, ui.state, ui.rollback, version.TranslateBaseAPIToUI(ui.currentBase), version.TranslateOSAPIToUI(ui.currentOS))
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%v\t%s\t%s\n", projectName, clusterName, ui.mode, ui.state, ui.rollback, runtime, os)
 		w.Flush()
 		return nil
 	},
