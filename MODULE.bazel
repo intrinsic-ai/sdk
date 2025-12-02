@@ -195,12 +195,6 @@ use_repo(
     "nccl_redist_for_tf",
 )
 
-########
-# Java #
-########
-
-bazel_dep(name = "rules_java", version = "9.1.0")
-
 ##############
 # Containers #
 ##############
