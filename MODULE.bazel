@@ -90,7 +90,7 @@ python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 ]
 use_repo(python, system_python = "python_3_11")
 
-bazel_dep(name = "pybind11_bazel", version = "2.13.6")
+bazel_dep(name = "pybind11_bazel", version = "3.0.0")
 bazel_dep(name = "pybind11_abseil", version = "202402.0")
 bazel_dep(name = "pybind11_protobuf", version = "0.0.0-20250210-f02a2b7")
 
