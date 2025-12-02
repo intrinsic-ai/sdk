@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package geometry_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/point_go_proto";
+
 // This contains the position of a point in free space
 message Point {
   double x = 1;

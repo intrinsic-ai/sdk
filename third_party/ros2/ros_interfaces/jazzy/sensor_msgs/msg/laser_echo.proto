@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package sensor_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/laser_echo_go_proto";
+
 // This message is a submessage of MultiEchoLaserScan and is not intended
 //  to be used separately.
 message LaserEcho {

@@ -9,6 +9,8 @@ package action_msgs.msg.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg/time.proto";
 import "third_party/ros2/ros_interfaces/jazzy/unique_identifier_msgs/msg/uuid.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/action_msgs/msg/goal_info_go_proto";
+
 // Goal ID
 message GoalInfo {
   unique_identifier_msgs.msg.pb.jazzy.UUID goal_id = 1;

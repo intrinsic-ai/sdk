@@ -11,6 +11,8 @@ import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 import "third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg/interactive_marker_control.proto";
 import "third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg/menu_entry.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg/interactive_marker_go_proto";
+
 // Time/frame info.
 //  If header.time is set to 0, the marker will be retransformed into
 //  its frame on each timestep. You will receive the pose feedback

@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package rcl_interfaces.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/floating_point_range_go_proto";
+
 // Represents bounds and a step value for a floating point typed parameter.
 message FloatingPointRange {
   // Start value for valid values, inclusive.

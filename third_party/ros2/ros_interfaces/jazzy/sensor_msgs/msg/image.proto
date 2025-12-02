@@ -8,6 +8,8 @@ package sensor_msgs.msg.pb.jazzy;
 
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/image_go_proto";
+
 // This message contains an uncompressed image
 //  (0, 0) is at top-left corner of image
 message Image {

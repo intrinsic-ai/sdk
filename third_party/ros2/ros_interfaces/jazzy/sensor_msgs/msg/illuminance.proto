@@ -8,6 +8,8 @@ package sensor_msgs.msg.pb.jazzy;
 
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/illuminance_go_proto";
+
 // Single photometric illuminance measurement.  Light should be assumed to be
 //  measured along the sensor's x-axis (the area of detection is the y-z plane).
 //  The illuminance should have a 0 or positive value and be received with

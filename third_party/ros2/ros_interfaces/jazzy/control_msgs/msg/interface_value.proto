@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package control_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/interface_value_go_proto";
+
 // List of resource interface names
 message InterfaceValue {
   repeated string interface_names = 1;

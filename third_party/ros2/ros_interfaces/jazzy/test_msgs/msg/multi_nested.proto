@@ -10,6 +10,8 @@ import "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/arrays.proto";
 import "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/bounded_sequences.proto";
 import "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/unbounded_sequences.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/multi_nested_go_proto";
+
 // Mulitple levels of nested messages
 message MultiNested {
   repeated test_msgs.msg.pb.jazzy.Arrays array_of_arrays = 1;

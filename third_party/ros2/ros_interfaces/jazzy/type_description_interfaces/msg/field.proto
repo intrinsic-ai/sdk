@@ -8,6 +8,8 @@ package type_description_interfaces.msg.pb.jazzy;
 
 import "third_party/ros2/ros_interfaces/jazzy/type_description_interfaces/msg/field_type.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/type_description_interfaces/msg/field_go_proto";
+
 // Represents a single field in a type.
 message Field {
   // Name of the field.

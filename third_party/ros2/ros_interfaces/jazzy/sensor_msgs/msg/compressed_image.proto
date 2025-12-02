@@ -8,6 +8,8 @@ package sensor_msgs.msg.pb.jazzy;
 
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/compressed_image_go_proto";
+
 // This message contains a compressed image.
 message CompressedImage {
   // Header timestamp should be acquisition time of image

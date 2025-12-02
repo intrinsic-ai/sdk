@@ -10,6 +10,8 @@ import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/quaternion.proto
 import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/vector3.proto";
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/imu_go_proto";
+
 // This is a message to hold data from an IMU (Inertial Measurement Unit)
 //
 //  Accelerations should be in m/s^2 (not in g's), and rotational velocity

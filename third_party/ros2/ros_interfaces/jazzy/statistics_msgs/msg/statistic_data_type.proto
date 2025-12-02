@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package statistics_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/statistics_msgs/msg/statistic_data_type_go_proto";
+
 // This file contains the commonly used constants for the statistics data type.
 //
 //  The value 0 is reserved for unitialized statistic message data type.

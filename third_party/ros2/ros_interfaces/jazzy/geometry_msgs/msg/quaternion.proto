@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package geometry_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/quaternion_go_proto";
+
 // This represents an orientation in free space in quaternion form.
 message Quaternion {
   double x = 1;

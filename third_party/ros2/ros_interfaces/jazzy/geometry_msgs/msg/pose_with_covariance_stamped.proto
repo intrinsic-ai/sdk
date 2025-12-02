@@ -9,6 +9,8 @@ package geometry_msgs.msg.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/pose_with_covariance.proto";
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/pose_with_covariance_stamped_go_proto";
+
 // This expresses an estimated pose with a reference coordinate frame and
 // timestamp
 message PoseWithCovarianceStamped {

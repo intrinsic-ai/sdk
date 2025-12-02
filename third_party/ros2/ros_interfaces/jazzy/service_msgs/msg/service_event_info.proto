@@ -8,6 +8,8 @@ package service_msgs.msg.pb.jazzy;
 
 import "third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg/time.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/service_msgs/msg/service_event_info_go_proto";
+
 message ServiceEventInfo {
   // The type of event this message represents
   uint32 event_type = 1;

@@ -9,6 +9,8 @@ package sensor_msgs.msg.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg/time.proto";
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/time_reference_go_proto";
+
 // Measurement from an external time source not actively synchronized with the
 // system clock.
 message TimeReference {

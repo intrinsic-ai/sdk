@@ -8,6 +8,8 @@ package sensor_msgs.msg.pb.jazzy;
 
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/laser_scan_go_proto";
+
 // Single scan from a planar laser range-finder
 //
 //  If you have another ranging device with different behavior (e.g. a sonar

@@ -9,6 +9,8 @@ package visualization_msgs.msg.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/quaternion.proto";
 import "third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg/marker.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg/interactive_marker_control_go_proto";
+
 // Represents a control that is to be displayed together with an interactive
 // marker
 message InteractiveMarkerControl {

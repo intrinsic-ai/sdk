@@ -9,6 +9,7 @@ package lifecycle_msgs.srv.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/lifecycle_msgs/msg/transition.proto";
 
 option cc_generic_services = true;
+option go_package = "third_party/ros2/ros_interfaces/jazzy/lifecycle_msgs/srv/change_state_go_proto";
 
 message ChangeState_Request {
   lifecycle_msgs.msg.pb.jazzy.Transition transition = 1;

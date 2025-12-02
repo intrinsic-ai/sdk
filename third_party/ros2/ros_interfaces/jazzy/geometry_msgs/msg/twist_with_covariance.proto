@@ -8,6 +8,8 @@ package geometry_msgs.msg.pb.jazzy;
 
 import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/twist.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/twist_with_covariance_go_proto";
+
 // This expresses velocity in free space with uncertainty.
 message TwistWithCovariance {
   geometry_msgs.msg.pb.jazzy.Twist twist = 1;

@@ -8,6 +8,8 @@ package tf2_msgs.msg.pb.jazzy;
 
 import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/transform_stamped.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/tf2_msgs/msg/tf_message_go_proto";
+
 message TFMessage {
   repeated geometry_msgs.msg.pb.jazzy.TransformStamped transforms = 1;
 }

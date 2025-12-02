@@ -8,6 +8,8 @@ package geometry_msgs.msg.pb.jazzy;
 
 import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/vector3.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/inertia_go_proto";
+
 // Mass
 message Inertia {
   double m = 1;

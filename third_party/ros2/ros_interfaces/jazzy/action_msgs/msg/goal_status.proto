@@ -8,6 +8,8 @@ package action_msgs.msg.pb.jazzy;
 
 import "third_party/ros2/ros_interfaces/jazzy/action_msgs/msg/goal_info.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/action_msgs/msg/goal_status_go_proto";
+
 // An action goal can be in one of these states after it is accepted by an
 // action
 //  server.

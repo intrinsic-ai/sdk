@@ -10,6 +10,7 @@ import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/pose_with_covari
 import "third_party/ros2/ros_interfaces/jazzy/nav_msgs/msg/occupancy_grid.proto";
 
 option cc_generic_services = true;
+option go_package = "third_party/ros2/ros_interfaces/jazzy/nav_msgs/srv/set_map_go_proto";
 
 message SetMap_Request {
   // Requested 2D map to be set.

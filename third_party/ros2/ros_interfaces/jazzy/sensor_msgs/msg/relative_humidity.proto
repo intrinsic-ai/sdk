@@ -8,6 +8,8 @@ package sensor_msgs.msg.pb.jazzy;
 
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/relative_humidity_go_proto";
+
 // Single reading from a relative humidity sensor.
 //  Defines the ratio of partial pressure of water vapor to the saturated vapor
 //  pressure at a temperature.

@@ -11,6 +11,8 @@ import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/point.proto";
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/color_rgba.proto";
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg/image_marker_go_proto";
+
 message ImageMarker {
   std_msgs.msg.pb.jazzy.Header header = 1;
 

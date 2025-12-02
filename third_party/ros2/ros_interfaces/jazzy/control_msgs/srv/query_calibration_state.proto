@@ -7,6 +7,7 @@ syntax = "proto3";
 package control_msgs.srv.pb.jazzy;
 
 option cc_generic_services = true;
+option go_package = "third_party/ros2/ros_interfaces/jazzy/control_msgs/srv/query_calibration_state_go_proto";
 
 message QueryCalibrationState_Request {
   uint32 structure_needs_at_least_one_member = 1;

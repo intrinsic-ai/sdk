@@ -8,6 +8,8 @@ package rcl_interfaces.msg.pb.jazzy;
 
 import "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/parameter_value.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/parameter_go_proto";
+
 // This is the message to communicate a parameter. It is an open struct with an
 // enum in
 //  the descriptor to select which value is active.

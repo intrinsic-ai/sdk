@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package test_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/strings_go_proto";
+
 message Strings {
   string string_value = 1;
   string string_value_default1 = 2;

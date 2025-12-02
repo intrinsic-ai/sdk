@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package rcl_interfaces.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/integer_range_go_proto";
+
 // Represents bounds and a step value for an integer typed parameter.
 message IntegerRange {
   // Start value for valid values, inclusive.

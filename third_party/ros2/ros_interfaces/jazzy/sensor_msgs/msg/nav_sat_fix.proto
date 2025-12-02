@@ -9,6 +9,8 @@ package sensor_msgs.msg.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/nav_sat_status.proto";
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/nav_sat_fix_go_proto";
+
 // Navigation Satellite fix for any Global Navigation Satellite System
 //
 //  Specified using the WGS 84 reference ellipsoid

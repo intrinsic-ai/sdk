@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package lifecycle_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/lifecycle_msgs/msg/transition_go_proto";
+
 // Default values for transitions as described in:
 //  http://design.ros2.org/articles/node_lifecycle.html
 message Transition {

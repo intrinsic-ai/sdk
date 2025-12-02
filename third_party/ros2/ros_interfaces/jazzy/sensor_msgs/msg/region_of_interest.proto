@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package sensor_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/region_of_interest_go_proto";
+
 // This message is used to specify a region of interest within an image.
 //
 //  When used to specify the ROI setting of the camera when the image was

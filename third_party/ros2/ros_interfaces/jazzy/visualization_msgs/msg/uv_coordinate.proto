@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package visualization_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg/uv_coordinate_go_proto";
+
 // Location of the pixel as a ratio of the width of a 2D texture.
 //  Values should be in range:.
 message UVCoordinate {

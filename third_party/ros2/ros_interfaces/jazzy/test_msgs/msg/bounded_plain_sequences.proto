@@ -10,6 +10,8 @@ import "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/basic_types.proto";
 import "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/constants.proto";
 import "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/defaults.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/bounded_plain_sequences_go_proto";
+
 // Bounded sequences of different POD types
 message BoundedPlainSequences {
   repeated bool bool_values = 1;

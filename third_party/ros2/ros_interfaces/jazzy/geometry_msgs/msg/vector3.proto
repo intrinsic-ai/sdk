@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package geometry_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/vector3_go_proto";
+
 // This represents a vector in free space.
 message Vector3 {
   // This is semantically different than a point.

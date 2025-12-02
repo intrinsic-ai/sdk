@@ -9,6 +9,8 @@ package actionlib_msgs.msg.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/actionlib_msgs/msg/goal_status.proto";
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/actionlib_msgs/msg/goal_status_array_go_proto";
+
 // Stores the statuses for goals that are currently being tracked
 //  by an action server
 message GoalStatusArray {

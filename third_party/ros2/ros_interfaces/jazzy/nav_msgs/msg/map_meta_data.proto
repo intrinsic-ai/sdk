@@ -9,6 +9,8 @@ package nav_msgs.msg.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg/time.proto";
 import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/pose.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/nav_msgs/msg/map_meta_data_go_proto";
+
 // This hold basic information about the characteristics of the OccupancyGrid
 message MapMetaData {
   // The time at which the map was loaded

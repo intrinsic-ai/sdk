@@ -8,6 +8,8 @@ package sensor_msgs.msg.pb.jazzy;
 
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/range_go_proto";
+
 // Single range reading from an active ranger that emits energy and reports
 //  one range reading that is valid along an arc at the distance measured.
 //  This message is  not appropriate for laser scanners. See the LaserScan

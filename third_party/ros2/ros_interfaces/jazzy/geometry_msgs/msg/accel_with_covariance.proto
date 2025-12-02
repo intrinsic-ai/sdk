@@ -8,6 +8,8 @@ package geometry_msgs.msg.pb.jazzy;
 
 import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/accel.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/accel_with_covariance_go_proto";
+
 // This expresses acceleration in free space with uncertainty.
 message AccelWithCovariance {
   geometry_msgs.msg.pb.jazzy.Accel accel = 1;

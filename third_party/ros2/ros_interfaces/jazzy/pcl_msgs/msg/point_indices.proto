@@ -8,6 +8,8 @@ package pcl_msgs.msg.pb.jazzy;
 
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/pcl_msgs/msg/point_indices_go_proto";
+
 message PointIndices {
   std_msgs.msg.pb.jazzy.Header header = 1;
   repeated sfixed32 indices = 2;

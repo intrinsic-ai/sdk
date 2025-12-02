@@ -10,6 +10,7 @@ import "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/logger_level.pr
 import "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/set_logger_levels_result.proto";
 
 option cc_generic_services = true;
+option go_package = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/srv/set_logger_levels_go_proto";
 
 message SetLoggerLevels_Request {
   repeated rcl_interfaces.msg.pb.jazzy.LoggerLevel levels = 1;

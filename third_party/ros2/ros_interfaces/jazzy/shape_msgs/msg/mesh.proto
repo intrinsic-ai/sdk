@@ -9,6 +9,8 @@ package shape_msgs.msg.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/point.proto";
 import "third_party/ros2/ros_interfaces/jazzy/shape_msgs/msg/mesh_triangle.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/shape_msgs/msg/mesh_go_proto";
+
 // Definition of a mesh.
 message Mesh {
   // List of triangles; the index values refer to positions in vertices[].

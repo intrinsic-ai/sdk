@@ -8,6 +8,8 @@ package std_msgs.msg.pb.jazzy;
 
 import "third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg/time.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header_go_proto";
+
 // Standard metadata for higher-level stamped data types.
 //  This is generally used to communicate timestamped data
 //  in a particular coordinate frame.

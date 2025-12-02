@@ -9,6 +9,7 @@ package sensor_msgs.srv.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/camera_info.proto";
 
 option cc_generic_services = true;
+option go_package = "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/srv/set_camera_info_go_proto";
 
 message SetCameraInfo_Request {
   // The camera_info to store

@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package control_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/joint_component_tolerance_go_proto";
+
 // Version of JointTolerance.msg with added component field for joints with
 // multiple degrees of freedom
 //  The difference between two MultiDOFJointTrajectoryPoint cannot be

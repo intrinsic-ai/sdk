@@ -9,6 +9,8 @@ package lifecycle_msgs.msg.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/lifecycle_msgs/msg/state.proto";
 import "third_party/ros2/ros_interfaces/jazzy/lifecycle_msgs/msg/transition.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/lifecycle_msgs/msg/transition_event_go_proto";
+
 // The time point at which this event occurred.
 message TransitionEvent {
   fixed64 timestamp = 1;

@@ -9,6 +9,8 @@ package nav_msgs.msg.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/pose_stamped.proto";
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/nav_msgs/msg/goals_go_proto";
+
 // An array of navigation goals
 message Goals {
   // This header will store the time at which the poses were computed (not to be

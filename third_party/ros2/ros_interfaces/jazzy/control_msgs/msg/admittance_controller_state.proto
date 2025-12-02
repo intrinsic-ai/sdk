@@ -15,6 +15,8 @@ import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/float64_multi_array.p
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/int8_multi_array.proto";
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/string.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/admittance_controller_state_go_proto";
+
 // Admittance parameters
 message AdmittanceControllerState {
   // 6-vector of mass terms used in the admittance calculation

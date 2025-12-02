@@ -8,6 +8,8 @@ package rcl_interfaces.msg.pb.jazzy;
 
 import "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/parameter_descriptor.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/parameter_event_descriptors_go_proto";
+
 // This message contains descriptors of a parameter event.
 //  It was an atomic update.
 //  A specific parameter name can only be in one of the three sets.

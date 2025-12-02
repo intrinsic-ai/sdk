@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package sensor_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/point_field_go_proto";
+
 // This message holds the description of one point entry in the
 //  PointCloud2 message format.
 message PointField {

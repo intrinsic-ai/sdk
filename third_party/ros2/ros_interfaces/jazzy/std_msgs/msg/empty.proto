@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package std_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/empty_go_proto";
+
 message Empty {
   uint32 structure_needs_at_least_one_member = 1;
 }

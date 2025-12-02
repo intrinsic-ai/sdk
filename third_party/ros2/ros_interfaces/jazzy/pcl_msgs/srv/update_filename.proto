@@ -7,6 +7,7 @@ syntax = "proto3";
 package pcl_msgs.srv.pb.jazzy;
 
 option cc_generic_services = true;
+option go_package = "third_party/ros2/ros_interfaces/jazzy/pcl_msgs/srv/update_filename_go_proto";
 
 message UpdateFilename_Request {
   string filename = 1;

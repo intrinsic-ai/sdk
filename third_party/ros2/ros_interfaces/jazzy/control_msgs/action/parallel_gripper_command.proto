@@ -11,6 +11,7 @@ import "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/joint_state.proto"
 import "third_party/ros2/ros_interfaces/jazzy/unique_identifier_msgs/msg/uuid.proto";
 
 option cc_generic_services = true;
+option go_package = "third_party/ros2/ros_interfaces/jazzy/control_msgs/action/parallel_gripper_command_go_proto";
 
 message ParallelGripperCommand_Goal {
   sensor_msgs.msg.pb.jazzy.JointState command = 1;

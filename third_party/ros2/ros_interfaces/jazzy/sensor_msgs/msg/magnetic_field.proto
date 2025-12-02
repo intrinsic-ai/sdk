@@ -9,6 +9,8 @@ package sensor_msgs.msg.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/vector3.proto";
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/magnetic_field_go_proto";
+
 // Measurement of the Magnetic Field vector at a specific location.
 //
 //  If the covariance of the measurement is known, it should be filled in.

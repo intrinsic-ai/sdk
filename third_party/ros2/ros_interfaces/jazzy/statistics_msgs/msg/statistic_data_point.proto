@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package statistics_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/statistics_msgs/msg/statistic_data_point_go_proto";
+
 // This holds the structure of a single data point of a StatisticDataType.
 //
 //  This message is used in MetricsStatisticsMessage, defined in

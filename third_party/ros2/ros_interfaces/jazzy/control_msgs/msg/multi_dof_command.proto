@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package control_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/multi_dof_command_go_proto";
+
 // The message defines command for multiple degrees of freedom (DoF) typically
 // used by many controllers.
 //  The message intentionally avoids 'joint' nomenclature because it can be

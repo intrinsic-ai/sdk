@@ -9,6 +9,7 @@ package rcl_interfaces.srv.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/parameter_value.proto";
 
 option cc_generic_services = true;
+option go_package = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/srv/get_parameters_go_proto";
 
 message GetParameters_Request {
   // A list of parameter names to get.

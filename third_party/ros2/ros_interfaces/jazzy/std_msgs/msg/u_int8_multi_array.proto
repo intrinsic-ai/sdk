@@ -8,6 +8,8 @@ package std_msgs.msg.pb.jazzy;
 
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/multi_array_layout.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/u_int8_multi_array_go_proto";
+
 // This was originally provided as an example message.
 //  It is deprecated as of Foxy
 //  It is recommended to create your own semantically meaningful message.

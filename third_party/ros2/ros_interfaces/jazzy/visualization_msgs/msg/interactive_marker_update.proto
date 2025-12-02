@@ -9,6 +9,8 @@ package visualization_msgs.msg.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg/interactive_marker.proto";
 import "third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg/interactive_marker_pose.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg/interactive_marker_update_go_proto";
+
 message InteractiveMarkerUpdate {
   // Identifying string. Must be unique in the topic namespace
   // that this server works on.

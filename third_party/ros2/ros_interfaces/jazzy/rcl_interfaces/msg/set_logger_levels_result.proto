@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package rcl_interfaces.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/set_logger_levels_result_go_proto";
+
 // True when succeed, false when failed.
 message SetLoggerLevelsResult {
   bool successful = 1;

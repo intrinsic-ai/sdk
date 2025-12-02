@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package tf2_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/tf2_msgs/msg/tf2_error_go_proto";
+
 message TF2Error {
   uint32 error = 1;
   string error_string = 2;

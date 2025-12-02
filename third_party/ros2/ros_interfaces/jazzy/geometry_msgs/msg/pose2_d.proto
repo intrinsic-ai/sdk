@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package geometry_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/pose2_d_go_proto";
+
 // Deprecated as of Foxy and will potentially be removed in any following
 // release.
 //  Please use the full 3D pose.

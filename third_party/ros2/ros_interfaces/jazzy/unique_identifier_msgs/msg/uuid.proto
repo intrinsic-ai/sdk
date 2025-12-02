@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package unique_identifier_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/unique_identifier_msgs/msg/uuid_go_proto";
+
 // A universally unique identifier (UUID).
 //
 //   http://en.wikipedia.org/wiki/Universally_unique_identifier

@@ -11,6 +11,7 @@ import "third_party/ros2/ros_interfaces/jazzy/type_description_interfaces/msg/ty
 import "third_party/ros2/ros_interfaces/jazzy/type_description_interfaces/msg/type_source.proto";
 
 option cc_generic_services = true;
+option go_package = "third_party/ros2/ros_interfaces/jazzy/type_description_interfaces/srv/get_type_description_go_proto";
 
 message GetTypeDescription_Request {
   string type_name = 1;

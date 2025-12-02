@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package control_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/single_dof_state_go_proto";
+
 // This message presents current controller state of one degree of freedom.
 message SingleDOFState {
   // DoF name, e.g., joint or Cartesian axis name

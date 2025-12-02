@@ -9,6 +9,7 @@ package visualization_msgs.srv.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg/interactive_marker.proto";
 
 option cc_generic_services = true;
+option go_package = "third_party/ros2/ros_interfaces/jazzy/visualization_msgs/srv/get_interactive_markers_go_proto";
 
 message GetInteractiveMarkers_Request {
   uint32 structure_needs_at_least_one_member = 1;

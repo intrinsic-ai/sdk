@@ -9,6 +9,8 @@ package rcl_interfaces.msg.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg/time.proto";
 import "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/parameter.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/parameter_event_go_proto";
+
 // This message contains a parameter event.
 //  Because the parameter event was an atomic update, a specific parameter name
 //  can only be in one of the three sets.

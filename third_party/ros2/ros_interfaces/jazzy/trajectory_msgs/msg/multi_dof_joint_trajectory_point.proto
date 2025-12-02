@@ -10,6 +10,8 @@ import "third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg/duration.pr
 import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/transform.proto";
 import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/twist.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/trajectory_msgs/msg/multi_dof_joint_trajectory_point_go_proto";
+
 // Each multi-dof joint can specify a transform (up to 6 DOF).
 message MultiDOFJointTrajectoryPoint {
   repeated geometry_msgs.msg.pb.jazzy.Transform transforms = 1;

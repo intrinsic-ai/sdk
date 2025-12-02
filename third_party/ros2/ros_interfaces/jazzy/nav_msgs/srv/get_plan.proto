@@ -10,6 +10,7 @@ import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/pose_stamped.pro
 import "third_party/ros2/ros_interfaces/jazzy/nav_msgs/msg/path.proto";
 
 option cc_generic_services = true;
+option go_package = "third_party/ros2/ros_interfaces/jazzy/nav_msgs/srv/get_plan_go_proto";
 
 message GetPlan_Request {
   // The start pose for the plan

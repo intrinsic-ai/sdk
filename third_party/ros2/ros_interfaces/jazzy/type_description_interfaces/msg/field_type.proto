@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package type_description_interfaces.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/type_description_interfaces/msg/field_type_go_proto";
+
 // Represents the type of a field and related meta-data.
 message FieldType {
   // Identifying number for the type of the field, using one of the above

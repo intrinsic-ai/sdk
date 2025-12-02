@@ -13,6 +13,7 @@ import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/vector3.proto";
 import "third_party/ros2/ros_interfaces/jazzy/unique_identifier_msgs/msg/uuid.proto";
 
 option cc_generic_services = true;
+option go_package = "third_party/ros2/ros_interfaces/jazzy/control_msgs/action/point_head_go_proto";
 
 message PointHead_Goal {
   geometry_msgs.msg.pb.jazzy.PointStamped target = 1;

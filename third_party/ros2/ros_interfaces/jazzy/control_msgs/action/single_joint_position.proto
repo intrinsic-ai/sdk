@@ -12,6 +12,7 @@ import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 import "third_party/ros2/ros_interfaces/jazzy/unique_identifier_msgs/msg/uuid.proto";
 
 option cc_generic_services = true;
+option go_package = "third_party/ros2/ros_interfaces/jazzy/control_msgs/action/single_joint_position_go_proto";
 
 message SingleJointPosition_Goal {
   double position = 1;

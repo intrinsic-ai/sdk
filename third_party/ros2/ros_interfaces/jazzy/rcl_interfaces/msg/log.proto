@@ -8,6 +8,8 @@ package rcl_interfaces.msg.pb.jazzy;
 
 import "third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg/time.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/log_go_proto";
+
 // Severity level constants
 //
 //  These logging levels follow the Python Standard

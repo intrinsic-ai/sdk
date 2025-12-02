@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package std_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/float32_go_proto";
+
 // This was originally provided as an example message.
 //  It is deprecated as of Foxy
 //  It is recommended to create your own semantically meaningful message.

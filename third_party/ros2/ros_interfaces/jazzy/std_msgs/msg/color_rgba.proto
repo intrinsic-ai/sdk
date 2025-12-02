@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package std_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/color_rgba_go_proto";
+
 message ColorRGBA {
   float r = 1;
   float g = 2;

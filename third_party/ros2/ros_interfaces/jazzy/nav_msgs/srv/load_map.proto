@@ -9,6 +9,7 @@ package nav_msgs.srv.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/nav_msgs/msg/occupancy_grid.proto";
 
 option cc_generic_services = true;
+option go_package = "third_party/ros2/ros_interfaces/jazzy/nav_msgs/srv/load_map_go_proto";
 
 message LoadMap_Request {
   string map_url = 1;

@@ -8,6 +8,8 @@ package geometry_msgs.msg.pb.jazzy;
 
 import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/vector3.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/wrench_go_proto";
+
 // This represents force in free space, separated into its linear and angular
 // parts.
 message Wrench {

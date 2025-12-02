@@ -9,6 +9,8 @@ package visualization_msgs.msg.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/pose.proto";
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg/interactive_marker_pose_go_proto";
+
 message InteractiveMarkerPose {
   // Time/frame info.
   std_msgs.msg.pb.jazzy.Header header = 1;

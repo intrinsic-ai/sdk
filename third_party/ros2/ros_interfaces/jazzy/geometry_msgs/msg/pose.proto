@@ -9,6 +9,8 @@ package geometry_msgs.msg.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/point.proto";
 import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/quaternion.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/pose_go_proto";
+
 // A representation of pose in free space, composed of position and orientation.
 message Pose {
   geometry_msgs.msg.pb.jazzy.Point position = 1;

@@ -11,6 +11,7 @@ import "third_party/ros2/ros_interfaces/jazzy/trajectory_msgs/msg/joint_trajecto
 import "third_party/ros2/ros_interfaces/jazzy/unique_identifier_msgs/msg/uuid.proto";
 
 option cc_generic_services = true;
+option go_package = "third_party/ros2/ros_interfaces/jazzy/control_msgs/action/joint_trajectory_go_proto";
 
 message JointTrajectory_Goal {
   trajectory_msgs.msg.pb.jazzy.JointTrajectory trajectory = 1;

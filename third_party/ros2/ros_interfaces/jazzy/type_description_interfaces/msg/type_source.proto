@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package type_description_interfaces.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/type_description_interfaces/msg/type_source_go_proto";
+
 // Represents the original source of a ROS 2 interface definition.
 message TypeSource {
   // ROS interface type name, in PACKAGE/NAMESPACE/TYPENAME format.

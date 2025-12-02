@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package shape_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/shape_msgs/msg/plane_go_proto";
+
 // Representation of a plane, using the plane equation ax + by + cz + d = 0.
 //
 //  a := coef[0]

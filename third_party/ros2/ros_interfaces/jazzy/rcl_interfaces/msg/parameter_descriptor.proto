@@ -9,6 +9,8 @@ package rcl_interfaces.msg.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/floating_point_range.proto";
 import "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/integer_range.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/parameter_descriptor_go_proto";
+
 // This is the message to communicate a parameter's descriptor.
 message ParameterDescriptor {
   // The name of the parameter.

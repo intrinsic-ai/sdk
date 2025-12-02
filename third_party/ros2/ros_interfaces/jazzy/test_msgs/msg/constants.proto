@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package test_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/constants_go_proto";
+
 message Constants {
   uint32 structure_needs_at_least_one_member = 1;
 }

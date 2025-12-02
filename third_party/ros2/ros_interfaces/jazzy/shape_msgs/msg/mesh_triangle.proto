@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package shape_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/shape_msgs/msg/mesh_triangle_go_proto";
+
 // Definition of a triangle's vertices.
 message MeshTriangle {
   repeated fixed32 vertex_indices = 1;

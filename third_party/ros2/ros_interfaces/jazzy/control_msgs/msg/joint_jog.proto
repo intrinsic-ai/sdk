@@ -8,6 +8,8 @@ package control_msgs.msg.pb.jazzy;
 
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/joint_jog_go_proto";
+
 // Used in time-stamping the message.
 message JointJog {
   std_msgs.msg.pb.jazzy.Header header = 1;

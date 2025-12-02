@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package type_description_interfaces.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/type_description_interfaces/msg/key_value_go_proto";
+
 // Represents an arbitrary key-value pair for application-specific information.
 message KeyValue {
   string key = 1;

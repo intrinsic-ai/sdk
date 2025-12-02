@@ -9,6 +9,7 @@ package rcl_interfaces.srv.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/list_parameters_result.proto";
 
 option cc_generic_services = true;
+option go_package = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/srv/list_parameters_go_proto";
 
 message ListParameters_Request {
   // The list of parameter prefixes to query.

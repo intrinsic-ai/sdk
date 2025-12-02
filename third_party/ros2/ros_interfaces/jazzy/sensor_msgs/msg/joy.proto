@@ -8,6 +8,8 @@ package sensor_msgs.msg.pb.jazzy;
 
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/joy_go_proto";
+
 // Reports the state of a joystick's axes and buttons.
 message Joy {
   // The timestamp is the time at which data is received from the joystick.

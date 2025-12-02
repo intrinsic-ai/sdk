@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package rcl_interfaces.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/logger_level_go_proto";
+
 // All available logger levels; these correspond to the enum in rcutils/logger.h
 message LoggerLevel {
   // The logger name.

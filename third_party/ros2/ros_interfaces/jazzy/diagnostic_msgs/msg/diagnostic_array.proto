@@ -9,6 +9,8 @@ package diagnostic_msgs.msg.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/diagnostic_msgs/msg/diagnostic_status.proto";
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/diagnostic_msgs/msg/diagnostic_array_go_proto";
+
 // This message is used to send diagnostic information about the state of the
 // robot.
 message DiagnosticArray {

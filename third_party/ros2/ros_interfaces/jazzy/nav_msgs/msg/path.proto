@@ -9,6 +9,8 @@ package nav_msgs.msg.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/pose_stamped.proto";
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/nav_msgs/msg/path_go_proto";
+
 // An array of poses that represents a Path for a robot to follow.
 message Path {
   // Indicates the frame_id of the path.

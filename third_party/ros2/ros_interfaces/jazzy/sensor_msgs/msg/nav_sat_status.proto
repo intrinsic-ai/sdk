@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package sensor_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/nav_sat_status_go_proto";
+
 // Navigation Satellite fix status for any Global Navigation Satellite System.
 //
 //  Whether to output an augmented fix is determined by both the fix

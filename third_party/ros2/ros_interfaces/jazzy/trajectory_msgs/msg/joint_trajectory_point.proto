@@ -8,6 +8,8 @@ package trajectory_msgs.msg.pb.jazzy;
 
 import "third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg/duration.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/trajectory_msgs/msg/joint_trajectory_point_go_proto";
+
 // Each trajectory point specifies either positions[, velocities[,
 // accelerations]]
 //  or positions[, effort] for the trajectory to be executed.

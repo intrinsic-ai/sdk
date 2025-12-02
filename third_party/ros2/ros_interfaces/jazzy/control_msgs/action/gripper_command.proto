@@ -11,6 +11,7 @@ import "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/gripper_command.p
 import "third_party/ros2/ros_interfaces/jazzy/unique_identifier_msgs/msg/uuid.proto";
 
 option cc_generic_services = true;
+option go_package = "third_party/ros2/ros_interfaces/jazzy/control_msgs/action/gripper_command_go_proto";
 
 message GripperCommand_Goal {
   control_msgs.msg.pb.jazzy.GripperCommand command = 1;

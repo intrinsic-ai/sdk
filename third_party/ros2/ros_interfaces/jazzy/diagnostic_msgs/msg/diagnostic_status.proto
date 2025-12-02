@@ -8,6 +8,8 @@ package diagnostic_msgs.msg.pb.jazzy;
 
 import "third_party/ros2/ros_interfaces/jazzy/diagnostic_msgs/msg/key_value.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/diagnostic_msgs/msg/diagnostic_status_go_proto";
+
 // This message holds the status of an individual component of the robot.
 message DiagnosticStatus {
   // Level of operation enumerated above.

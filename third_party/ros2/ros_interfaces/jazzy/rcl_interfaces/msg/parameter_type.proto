@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package rcl_interfaces.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/parameter_type_go_proto";
+
 // These types correspond to the value that is set in the ParameterValue
 // message.
 message ParameterType {

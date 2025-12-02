@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package visualization_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg/mesh_file_go_proto";
+
 // Used to send raw mesh files.
 message MeshFile {
   // The filename is used for both debug purposes and to provide a file

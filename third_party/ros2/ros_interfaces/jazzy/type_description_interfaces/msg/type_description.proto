@@ -8,6 +8,8 @@ package type_description_interfaces.msg.pb.jazzy;
 
 import "third_party/ros2/ros_interfaces/jazzy/type_description_interfaces/msg/individual_type_description.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/type_description_interfaces/msg/type_description_go_proto";
+
 // Represents a complete type description, including the type itself as well as
 // the types it references.
 message TypeDescription {

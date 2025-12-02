@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package control_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/joint_tolerance_go_proto";
+
 // The tolerances specify the amount the position, velocity, and
 //  accelerations can vary from the setpoints.  For example, in the case
 //  of trajectory control, when the actual position varies beyond

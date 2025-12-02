@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package lifecycle_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/lifecycle_msgs/msg/state_go_proto";
+
 // Primary state definitions as depicted in:
 //  http://design.ros2.org/articles/node_lifecycle.html
 message State {

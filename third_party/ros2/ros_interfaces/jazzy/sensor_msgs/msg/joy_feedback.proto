@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package sensor_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/joy_feedback_go_proto";
+
 // Declare of the type of feedback
 message JoyFeedback {
   uint32 type = 1;

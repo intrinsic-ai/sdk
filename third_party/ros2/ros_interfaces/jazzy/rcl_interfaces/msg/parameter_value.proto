@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package rcl_interfaces.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/parameter_value_go_proto";
+
 // Used to determine which of the next *_value fields are set.
 //  ParameterType.PARAMETER_NOT_SET indicates that the parameter was not set
 //  (if gotten) or is uninitialized.

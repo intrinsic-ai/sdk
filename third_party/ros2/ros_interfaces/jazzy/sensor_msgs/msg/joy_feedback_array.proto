@@ -8,6 +8,8 @@ package sensor_msgs.msg.pb.jazzy;
 
 import "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/joy_feedback.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/joy_feedback_array_go_proto";
+
 // This message publishes values for multiple feedback at once.
 message JoyFeedbackArray {
   repeated sensor_msgs.msg.pb.jazzy.JoyFeedback array = 1;

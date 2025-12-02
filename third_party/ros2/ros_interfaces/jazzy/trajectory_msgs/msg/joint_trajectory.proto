@@ -9,6 +9,8 @@ package trajectory_msgs.msg.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 import "third_party/ros2/ros_interfaces/jazzy/trajectory_msgs/msg/joint_trajectory_point.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/trajectory_msgs/msg/joint_trajectory_go_proto";
+
 // The header is used to specify the coordinate frame and the reference time for
 //  the trajectory durations
 message JointTrajectory {

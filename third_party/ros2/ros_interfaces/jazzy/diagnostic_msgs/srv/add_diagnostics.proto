@@ -7,6 +7,7 @@ syntax = "proto3";
 package diagnostic_msgs.srv.pb.jazzy;
 
 option cc_generic_services = true;
+option go_package = "third_party/ros2/ros_interfaces/jazzy/diagnostic_msgs/srv/add_diagnostics_go_proto";
 
 message AddDiagnostics_Request {
   // The load_namespace parameter defines the namespace where parameters for the

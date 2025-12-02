@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package rcl_interfaces.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/list_parameters_result_go_proto";
+
 // The resulting parameters under the given prefixes.
 message ListParametersResult {
   repeated string names = 1;

@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package pcl_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/pcl_msgs/msg/vertices_go_proto";
+
 // List of point indices
 message Vertices {
   repeated fixed32 vertices = 1;

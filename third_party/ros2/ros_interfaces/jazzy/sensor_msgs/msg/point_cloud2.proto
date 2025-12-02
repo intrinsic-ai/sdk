@@ -9,6 +9,8 @@ package sensor_msgs.msg.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/point_field.proto";
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/point_cloud2_go_proto";
+
 // This message holds a collection of N-dimensional points, which may
 //  contain additional information such as normals, intensity, etc. The
 //  point data is stored as a binary blob, its layout described by the

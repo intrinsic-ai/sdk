@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package visualization_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg/menu_entry_go_proto";
+
 // MenuEntry message.
 //
 //  Each InteractiveMarker message has an array of MenuEntry messages.

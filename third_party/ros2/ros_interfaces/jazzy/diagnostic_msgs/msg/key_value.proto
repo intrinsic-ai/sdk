@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package diagnostic_msgs.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/diagnostic_msgs/msg/key_value_go_proto";
+
 // What to label this value when viewing.
 message KeyValue {
   string key = 1;

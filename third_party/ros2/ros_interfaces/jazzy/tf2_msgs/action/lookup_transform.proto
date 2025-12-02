@@ -13,6 +13,7 @@ import "third_party/ros2/ros_interfaces/jazzy/tf2_msgs/msg/tf2_error.proto";
 import "third_party/ros2/ros_interfaces/jazzy/unique_identifier_msgs/msg/uuid.proto";
 
 option cc_generic_services = true;
+option go_package = "third_party/ros2/ros_interfaces/jazzy/tf2_msgs/action/lookup_transform_go_proto";
 
 message LookupTransform_Goal {
   string target_frame = 1;

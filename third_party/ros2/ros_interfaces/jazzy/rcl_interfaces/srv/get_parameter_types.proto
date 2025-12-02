@@ -7,6 +7,7 @@ syntax = "proto3";
 package rcl_interfaces.srv.pb.jazzy;
 
 option cc_generic_services = true;
+option go_package = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/srv/get_parameter_types_go_proto";
 
 message GetParameterTypes_Request {
   repeated string names = 1;

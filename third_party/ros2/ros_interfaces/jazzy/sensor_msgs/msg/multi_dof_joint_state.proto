@@ -11,6 +11,8 @@ import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/twist.proto";
 import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/wrench.proto";
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/multi_dof_joint_state_go_proto";
+
 // Representation of state for joints with multiple degrees of freedom,
 //  following the structure of JointState which can only represent a single
 //  degree of freedom.

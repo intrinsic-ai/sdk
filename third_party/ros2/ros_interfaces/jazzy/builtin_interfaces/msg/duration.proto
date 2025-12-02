@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package builtin_interfaces.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg/duration_go_proto";
+
 // Duration defines a period between two time points.
 //  Messages of this datatype are of ROS Time following this design:
 //  https://design.ros2.org/articles/clock_and_time.html

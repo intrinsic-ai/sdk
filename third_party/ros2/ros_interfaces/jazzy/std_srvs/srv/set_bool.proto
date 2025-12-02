@@ -7,6 +7,7 @@ syntax = "proto3";
 package std_srvs.srv.pb.jazzy;
 
 option cc_generic_services = true;
+option go_package = "third_party/ros2/ros_interfaces/jazzy/std_srvs/srv/set_bool_go_proto";
 
 message SetBool_Request {
   // e.g. for hardware enabling / disabling

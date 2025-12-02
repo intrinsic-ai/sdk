@@ -9,6 +9,8 @@ package geometry_msgs.msg.pb.jazzy;
 import "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/twist.proto";
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/velocity_stamped_go_proto";
+
 // This expresses the timestamped velocity vector of a frame 'body_frame_id' in
 // the reference frame 'reference_frame_id' expressed from arbitrary observation
 // frame 'header.frame_id'.

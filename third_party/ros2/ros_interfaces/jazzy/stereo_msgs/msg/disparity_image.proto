@@ -10,6 +10,8 @@ import "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/image.proto";
 import "third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg/region_of_interest.proto";
 import "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header.proto";
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/stereo_msgs/msg/disparity_image_go_proto";
+
 // Separate header for compatibility with current TimeSynchronizer.
 //  Likely to be removed in a later release, use image.header instead.
 message DisparityImage {

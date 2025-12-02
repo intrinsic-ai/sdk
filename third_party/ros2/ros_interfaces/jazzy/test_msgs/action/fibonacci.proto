@@ -10,6 +10,7 @@ import "third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg/time.proto"
 import "third_party/ros2/ros_interfaces/jazzy/unique_identifier_msgs/msg/uuid.proto";
 
 option cc_generic_services = true;
+option go_package = "third_party/ros2/ros_interfaces/jazzy/test_msgs/action/fibonacci_go_proto";
 
 message Fibonacci_Goal {
   sfixed32 order = 1;

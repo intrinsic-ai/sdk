@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package builtin_interfaces.msg.pb.jazzy;
 
+option go_package = "third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg/time_go_proto";
+
 // This message communicates ROS Time defined here:
 //  https://design.ros2.org/articles/clock_and_time.html
 message Time {
