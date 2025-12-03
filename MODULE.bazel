@@ -199,7 +199,7 @@ use_repo(
 # Containers #
 ##############
 
-bazel_dep(name = "rules_oci", version = "2.2.5")
+bazel_dep(name = "rules_oci", version = "2.2.7")
 bazel_dep(name = "container_structure_test", version = "1.21.1")
 
 oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
