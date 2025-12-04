@@ -17,7 +17,7 @@ proto_library(
 
 exports_files(
     ["kvservice.yaml"],
-    visibility = ["//intrinsic:__subpackages__"],
+    visibility = ["//intrinsic:intrinsic_internal"],
 )
 
 go_proto_library(

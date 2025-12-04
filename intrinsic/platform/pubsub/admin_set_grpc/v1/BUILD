@@ -20,14 +20,14 @@ proto_library(
 
 go_proto_library(
     name = "admin_set_go_proto",
-    visibility = ["//intrinsic:__subpackages__"],
+    visibility = ["//intrinsic:intrinsic_internal"],
     deps = [":admin_set_proto"],
 )
 
 go_grpc_library(
     name = "admin_set_go_grpc_proto",
     srcs = [":admin_set_proto"],
-    visibility = ["//intrinsic:__subpackages__"],
+    visibility = ["//intrinsic:intrinsic_internal"],
     deps = [
         ":admin_set_go_proto",
     ],

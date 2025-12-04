@@ -41,7 +41,7 @@ py_proto_library(
 
 cc_proto_library(
     name = "performance_metrics_cc_proto",
-    visibility = ["//intrinsic:__subpackages__"],
+    visibility = ["//intrinsic:intrinsic_internal"],
     deps = ["//intrinsic/performance/analysis/proto:performance_metrics_proto"],
 )
 

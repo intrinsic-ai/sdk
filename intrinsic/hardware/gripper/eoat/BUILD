@@ -14,7 +14,7 @@ package(default_visibility = ["//visibility:public"])
 proto_library(
     name = "eoat_service_proto",
     srcs = ["eoat_service.proto"],
-    visibility = ["//intrinsic:__subpackages__"],
+    visibility = ["//intrinsic:intrinsic_internal"],
     deps = [
         ":gripper_config_proto",
         "@com_google_protobuf//:any_proto",

@@ -11,7 +11,7 @@ exports_files(
         "zenoh_handle.h",
     ],
     visibility = [
-        "//intrinsic:__subpackages__",
+        "//intrinsic:intrinsic_internal",
     ],
 )
 

@@ -9,7 +9,7 @@ package(default_visibility = ["//visibility:private"])
 go_library(
     name = "tartooling",
     srcs = ["tartooling.go"],
-    visibility = ["//intrinsic:__subpackages__"],
+    visibility = ["//intrinsic:intrinsic_internal"],
     deps = [
         "@com_github_google_safearchive//tar",
         "@com_github_pkg_errors//:go_default_library",
@@ -33,6 +33,6 @@ go_test(
 go_library(
     name = "untar",
     srcs = ["untar.go"],
-    visibility = ["//intrinsic:__subpackages__"],
+    visibility = ["//intrinsic:intrinsic_internal"],
     deps = ["@com_github_google_safearchive//tar"],
 )

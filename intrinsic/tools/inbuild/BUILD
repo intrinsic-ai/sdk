@@ -5,6 +5,6 @@ load("//bazel:go_macros.bzl", "go_binary")
 go_binary(
     name = "inbuild",
     srcs = ["inbuild.go"],
-    visibility = ["//intrinsic:__subpackages__"],
+    visibility = ["//intrinsic:intrinsic_internal"],
     deps = ["//intrinsic/tools/inbuild/cmd:root"],
 )

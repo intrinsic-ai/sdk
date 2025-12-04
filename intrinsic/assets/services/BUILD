@@ -5,7 +5,7 @@ load("//bazel:go_macros.bzl", "go_library", "go_test")
 go_library(
     name = "bundleimages",
     srcs = ["bundleimages.go"],
-    visibility = ["//intrinsic:__subpackages__"],
+    visibility = ["//intrinsic:intrinsic_internal"],
     deps = [
         ":readeropener",
         "//intrinsic/assets:bundleio",

@@ -5,7 +5,7 @@ load("//bazel:go_macros.bzl", "go_library")
 go_library(
     name = "assetutils",
     srcs = ["assetutils.go"],
-    visibility = ["//intrinsic:__subpackages__"],
+    visibility = ["//intrinsic:intrinsic_internal"],
     deps = [
         "//intrinsic/assets/catalog/proto/v1:asset_catalog_go_grpc_proto",
         "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",

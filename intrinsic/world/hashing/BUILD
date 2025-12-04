@@ -7,7 +7,7 @@ cc_library(
     name = "hashing",
     hdrs = ["hashing.h"],
     visibility = [
-        "//intrinsic:__subpackages__",
+        "//intrinsic:intrinsic_internal",
         "//intrinsic/motion_planner/viewer:__pkg__",
     ],
     deps = [

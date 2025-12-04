@@ -42,7 +42,7 @@ go_proto_library(
 go_grpc_library(
     name = "ping_go_grpc_proto",
     srcs = [":ping_proto"],
-    visibility = ["//intrinsic:__subpackages__"],
+    visibility = ["//intrinsic:intrinsic_internal"],
     deps = [
         "@org_golang_google_protobuf//types/known/emptypb",
     ],
@@ -57,6 +57,6 @@ py_grpc_library(
     name = "ping_proto_py_pb2_grpc",
     srcs = [":ping_proto"],
     grpc_library = requirement("grpcio"),
-    visibility = ["//intrinsic:__subpackages__"],
+    visibility = ["//intrinsic:intrinsic_internal"],
     deps = [":ping_proto_py_pb2"],
 )

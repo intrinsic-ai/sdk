@@ -25,14 +25,14 @@ go_proto_library(
     go_deps = [
         "//intrinsic/platform/pubsub/admin_set_grpc/v1:admin_set_go_grpc_proto",
     ],
-    visibility = ["//intrinsic:__subpackages__"],
+    visibility = ["//intrinsic:intrinsic_internal"],
     deps = [":provisioner_proto"],
 )
 
 go_grpc_library(
     name = "provisioner_go_grpc_proto",
     srcs = [":provisioner_proto"],
-    visibility = ["//intrinsic:__subpackages__"],
+    visibility = ["//intrinsic:intrinsic_internal"],
     deps = [
         ":provisioner_go_proto",
         "//intrinsic/platform/pubsub/admin_set_grpc/v1:admin_set_go_grpc_proto",

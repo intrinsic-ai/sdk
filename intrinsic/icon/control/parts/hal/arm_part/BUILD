@@ -28,7 +28,7 @@ go_proto_library(
         "//intrinsic/icon/proto:linear_joint_acceleration_filter_config_go_proto",
     ],
     visibility = [
-        "//intrinsic:__subpackages__",
+        "//intrinsic:intrinsic_internal",
     ],
     deps = [":hal_arm_part_config_proto"],
 )

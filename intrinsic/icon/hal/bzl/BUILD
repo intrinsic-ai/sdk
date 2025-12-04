@@ -31,7 +31,7 @@ go_binary(
     name = "hal_manifest",
     srcs = ["hal_manifest.go"],
     embedsrcs = ["hal_service_manifest.textproto.tmpl"],
-    visibility = ["//intrinsic:__subpackages__"],
+    visibility = ["//intrinsic:intrinsic_internal"],
     deps = [
         "//intrinsic/assets/services/proto:service_manifest_go_proto",
         "//intrinsic/production:intrinsic",

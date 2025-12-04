@@ -9,6 +9,6 @@ exports_files(
         "libzplugin_storage_manager.so.1",
     ],
     visibility = [
-        "//intrinsic:__subpackages__",
+        "//intrinsic:intrinsic_internal",
     ],
 )

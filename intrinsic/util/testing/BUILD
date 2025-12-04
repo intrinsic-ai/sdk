@@ -9,7 +9,7 @@ load("//bazel:go_macros.bzl", "go_library")
 go_library(
     name = "testio",
     srcs = ["test_io.go"],
-    visibility = ["//intrinsic:__subpackages__"],
+    visibility = ["//intrinsic:intrinsic_internal"],
     deps = [
         "//intrinsic/util/path_resolver:pathresolver",
         "//intrinsic/util/proto:protoio",
@@ -48,7 +48,7 @@ cc_library(
     name = "status_payload_matchers",
     testonly = 1,
     hdrs = ["status_payload_matchers.h"],
-    visibility = ["//intrinsic:__subpackages__"],
+    visibility = ["//intrinsic:intrinsic_internal"],
     deps = [
         "//intrinsic/util/proto:type_url",
         "@abseil-cpp//absl/status",
