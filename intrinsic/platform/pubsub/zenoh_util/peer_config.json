@@ -1,9 +1,6 @@
 {
-  "mode": "peer",
   "connect": {
-    "endpoints": [
-      "tcp/zenoh-router.app-intrinsic-base.svc.cluster.local:7447"
-    ]
+    "endpoints": ["tcp/zenoh-router.app-intrinsic-base.svc.cluster.local:7447"]
   },
   "imw": {
     "introspection": {
@@ -11,8 +8,10 @@
     }
   },
   "listen": {
-    "endpoints": [ "tcp/0.0.0.0:0" ]
+    "endpoints": ["tcp/0.0.0.0:0"]
   },
+  "mode": "peer",
+  "plugins": {},
   "scouting": {
     "multicast": { "enabled": false },
     "gossip": {
@@ -20,8 +19,6 @@
       "multihop": false,
       "autoconnect": { "peer": ["peer", "router"] }
     }
-  },
-  "plugins": {
   },
   "transport": {
     "shared_memory": {
