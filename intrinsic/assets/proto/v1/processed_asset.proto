@@ -1,0 +1,26 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.assets.v1;
+
+import "intrinsic/assets/data/proto/v1/data_asset.proto";
+import "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest.proto";
+import "intrinsic/assets/processes/proto/process_asset.proto";
+import "intrinsic/assets/scene_objects/proto/scene_object_manifest.proto";
+import "intrinsic/assets/services/proto/service_manifest.proto";
+import "intrinsic/skills/proto/processed_skill_manifest.proto";
+
+option go_package = "intrinsic/assets/proto/v1/processed_asset_go_proto";
+
+message ProcessedAsset {
+  oneof variant {
+    intrinsic_proto.data.v1.DataAsset data = 1;
+    intrinsic_proto.hardware_devices.v1.ProcessedHardwareDeviceManifest
+        hardware_device = 2;
+    intrinsic_proto.processes.ProcessAsset process = 3;
+    intrinsic_proto.scene_objects.ProcessedSceneObjectManifest scene_object = 4;
+    intrinsic_proto.services.ProcessedServiceManifest service = 5;
+    intrinsic_proto.skills.ProcessedSkillManifest skill = 6;
+  }
+}

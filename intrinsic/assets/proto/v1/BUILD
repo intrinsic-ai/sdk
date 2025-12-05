@@ -85,6 +85,46 @@ py_proto_library(
 )
 
 proto_library(
+    name = "processed_asset_proto",
+    srcs = ["processed_asset.proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        "//intrinsic/assets/data/proto/v1:data_asset_proto",
+        "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_proto",
+        "//intrinsic/assets/processes/proto:process_asset_proto",
+        "//intrinsic/assets/scene_objects/proto:scene_object_manifest_proto",
+        "//intrinsic/assets/services/proto:service_manifest_proto",
+        "//intrinsic/skills/proto:processed_skill_manifest_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "processed_asset_cc_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":processed_asset_proto"],
+)
+
+py_proto_library(
+    name = "processed_asset_py_pb2",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":processed_asset_proto"],
+)
+
+go_proto_library(
+    name = "processed_asset_go_proto",
+    go_deps = [
+        "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
+        "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",
+        "//intrinsic/assets/processes/proto:process_asset_go_proto",
+        "//intrinsic/assets/scene_objects/proto:scene_object_manifest_go_proto",
+        "//intrinsic/assets/services/proto:service_manifest_go_proto",
+        "//intrinsic/skills/proto:processed_skill_manifest_go_proto",
+    ],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":processed_asset_proto"],
+)
+
+proto_library(
     name = "reference_proto",
     srcs = ["reference.proto"],
     visibility = ["//intrinsic:public_api_users"],
