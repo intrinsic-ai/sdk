@@ -6,6 +6,38 @@ load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 proto_library(
+    name = "asset_proto",
+    srcs = ["asset.proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        ":processed_asset_proto",
+        "//intrinsic/assets/proto:id_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "asset_cc_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":asset_proto"],
+)
+
+py_proto_library(
+    name = "asset_py_pb2",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":asset_proto"],
+)
+
+go_proto_library(
+    name = "asset_go_proto",
+    go_deps = [
+        ":processed_asset_go_proto",
+        "//intrinsic/assets/proto:id_go_proto",
+    ],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":asset_proto"],
+)
+
+proto_library(
     name = "asset_graph_proto",
     srcs = ["asset_graph.proto"],
     visibility = ["//intrinsic:public_api_users"],

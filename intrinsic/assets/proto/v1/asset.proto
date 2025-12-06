@@ -1,0 +1,19 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.assets.v1;
+
+import "intrinsic/assets/proto/id.proto";
+import "intrinsic/assets/proto/v1/processed_asset.proto";
+
+option go_package = "intrinsic/assets/proto/v1/asset_go_proto";
+
+// Asset defines a single asset that can be used within the context of a
+// solution.
+message Asset {
+  oneof source {
+    IdVersion catalog = 1;
+    ProcessedAsset local = 2;
+  }
+}
