@@ -39,13 +39,3 @@ py_grpc_library(
     grpc_library = requirement("grpcio"),
     deps = [":workcellmode_service_py_pb2"],
 )
-
-proto_library(
-    name = "operational_mode_proto",
-    srcs = ["operational_mode.proto"],
-)
-
-go_proto_library(
-    name = "operational_mode_go_proto",
-    deps = [":operational_mode_proto"],
-)
