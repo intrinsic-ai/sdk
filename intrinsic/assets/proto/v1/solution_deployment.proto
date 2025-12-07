@@ -1,0 +1,53 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.assets.v1;
+
+import "google/longrunning/operations.proto";
+import "intrinsic/config/proto/operation_mode.proto";
+
+option go_package = "intrinsic/assets/proto/v1/solution_deployment_go_proto";
+
+// The SolutionDeploymentService manages solution deployments on a cluster.
+// There is only ever a single active solution deployment at a time.  Each call
+// acts on that deployment.
+service SolutionDeploymentService {
+
+  // Creates a solution deployment on the cluster from the specified versioned
+  // solution in the Solution Version Service.
+  rpc CreateSolutionDeploymentFromVersionedSolution(
+      CreateSolutionDeploymentFromVersionedSolutionRequest)
+      returns (google.longrunning.Operation) {
+    option (google.longrunning.operation_info) = {
+      metadata_type: "CreateSolutionDeploymentFromVersionedSolutionMetadata"
+      response_type: "SolutionDeployment"
+    };
+  }
+
+  // Stops the current solution deployment, if running.  Will not return an
+  // error if there is no active solution deployment.
+  rpc DeleteSolutionDeployment(DeleteSolutionDeploymentRequest)
+      returns (google.longrunning.Operation) {
+    option (google.longrunning.operation_info) = {
+      metadata_type: "DeleteSolutionDeploymentMetadata"
+      response_type: "google.protobuf.Empty"
+    };
+  }
+}
+
+message SolutionDeployment {
+  string solution_id = 2;
+  intrinsic_proto.config.OperationMode operation_mode = 3;
+}
+
+message CreateSolutionDeploymentFromVersionedSolutionRequest {
+  string solution_id = 1;
+  intrinsic_proto.config.OperationMode operation_mode = 2;
+}
+
+message CreateSolutionDeploymentFromVersionedSolutionMetadata {}
+
+message DeleteSolutionDeploymentRequest {}
+
+message DeleteSolutionDeploymentMetadata {}

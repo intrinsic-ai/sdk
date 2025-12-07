@@ -3,7 +3,7 @@
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
-load("//bazel:go_macros.bzl", "go_proto_library")
+load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
 
 proto_library(
     name = "asset_proto",
@@ -245,6 +245,48 @@ py_proto_library(
     name = "resolved_dependency_py_pb2",
     visibility = ["//intrinsic:public_api_users"],
     deps = [":resolved_dependency_proto"],
+)
+
+proto_library(
+    name = "solution_deployment_proto",
+    srcs = ["solution_deployment.proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        "//intrinsic/config/proto:operation_mode_proto",
+        "@com_google_googleapis//google/longrunning:operations_proto",
+    ],
+)
+
+go_proto_library(
+    name = "solution_deployment_go_proto",
+    go_deps = [
+        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
+        "//intrinsic/config/proto:operation_mode_go_proto",
+    ],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":solution_deployment_proto"],
+)
+
+go_grpc_library(
+    name = "solution_deployment_go_grpc_proto",
+    srcs = [":solution_deployment_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        "//intrinsic/config/proto:operation_mode_go_proto",
+        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
+    ],
+)
+
+cc_proto_library(
+    name = "solution_deployment_cc_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":solution_deployment_proto"],
+)
+
+py_proto_library(
+    name = "solution_deployment_py_pb2",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":solution_deployment_proto"],
 )
 
 proto_library(
