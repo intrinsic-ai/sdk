@@ -13,6 +13,8 @@ import "intrinsic/skills/proto/processed_skill_manifest.proto";
 
 option go_package = "intrinsic/assets/proto/v1/processed_asset_go_proto";
 
+// ProcessedAsset defines a single, unversioned asset that can be used to
+// create a new released asset or be used within the context of a solution.
 message ProcessedAsset {
   oneof variant {
     intrinsic_proto.data.v1.DataAsset data = 1;
