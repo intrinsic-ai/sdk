@@ -1,0 +1,32 @@
+# Copyright 2023 Intrinsic Innovation LLC
+
+# proto-file: intrinsic/skills/proto/skill_manifest.proto
+# proto-message: intrinsic_proto.skills.SkillManifest
+
+id {
+  package: "ai.intrinsic"
+  name: "calculate"
+}
+display_name: "Calculate"
+vendor {
+  display_name: "Intrinsic"
+}
+documentation {
+  description: "Calculates a given operation with two numbers using a Calculator service."
+}
+options {
+  supports_cancellation: false
+  cc_config {
+    create_skill: "::intrinsic::skills::CalculateSkill::CreateSkill"
+  }
+}
+parameter {
+  message_full_name: "intrinsic_proto.skills.CalculateParams"
+  default_value {
+    [type.googleapis.com/intrinsic_proto.skills.CalculateParams] {
+    }
+  }
+}
+return_type {
+  message_full_name: "intrinsic_proto.skills.CalculateResult"
+}

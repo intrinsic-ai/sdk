@@ -1,0 +1,25 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.skills;
+
+import "intrinsic/assets/proto/field_metadata.proto";
+import "intrinsic/assets/proto/v1/resolved_dependency.proto";
+import "intrinsic/assets/services/examples/calcserver/calc_server.proto";
+
+message CalculateParams {
+  intrinsic_proto.assets.v1.ResolvedDependency calculator = 1
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "grpc://intrinsic_proto.services.Calculator",
+        skill_annotations: { always_provide_connection_info: true }
+      }];
+
+  intrinsic_proto.services.CalculatorOperation operation = 2;
+  int64 x = 3;
+  int64 y = 4;
+}
+
+message CalculateResult {
+  int64 result = 1;
+}
