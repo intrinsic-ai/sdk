@@ -69,7 +69,7 @@ use_repo(
 # Python #
 ##########
 
-bazel_dep(name = "rules_python", version = "1.5.3")
+bazel_dep(name = "rules_python", version = "1.6.3")
 
 # The root module defines the default toolchain version.
 # If it doesn't find dependencies which that version it errors out.
@@ -199,7 +199,7 @@ use_repo(
 # Containers #
 ##############
 
-bazel_dep(name = "rules_oci", version = "2.2.5")
+bazel_dep(name = "rules_oci", version = "2.2.6")
 bazel_dep(name = "container_structure_test", version = "1.21.1")
 
 oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
@@ -268,9 +268,9 @@ bazel_dep(name = "googleapis-grpc-cc", version = "1.0.0")
 bazel_dep(name = "googleapis-grpc-java", version = "1.0.0")
 bazel_dep(name = "googleapis-java", version = "1.0.0")
 bazel_dep(name = "googleapis-python", version = "1.0.0")
-bazel_dep(name = "googletest", version = "1.15.2", repo_name = "com_google_googletest")
+bazel_dep(name = "googletest", version = "1.17.0.bcr.1", repo_name = "com_google_googletest")
 bazel_dep(name = "grpc", version = "1.74.0", repo_name = "com_github_grpc_grpc")
-bazel_dep(name = "grpc_ecosystem_grpc_gateway", version = "2.26.3", repo_name = "com_github_grpc_ecosystem_grpc_gateway_v2")
+bazel_dep(name = "grpc_ecosystem_grpc_gateway", version = "2.27.3", repo_name = "com_github_grpc_ecosystem_grpc_gateway_v2")
 bazel_dep(name = "jsonnet", version = "0.21.0")
 bazel_dep(name = "nlohmann_json", version = "3.12.0.bcr.1", repo_name = "com_github_nlohmann_json")
 bazel_dep(name = "opencensus-cpp", version = "0.0.0-20230502-50eb5de.bcr.2", repo_name = "io_opencensus_cpp")
