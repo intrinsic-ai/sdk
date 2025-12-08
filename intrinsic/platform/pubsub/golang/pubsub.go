@@ -218,9 +218,10 @@ func (ps *Handle) NewSubscription(topic string, config pubsubinterface.TopicConf
 	}
 
 	subscription := &subscriptionHandle{
-		topicName:   topic,
-		zenohHandle: ps.zenohHandle,
-		exemplar:    exemplar,
+		topicName:     topic,
+		fullTopicName: addTopicPrefix(topic),
+		zenohHandle:   ps.zenohHandle,
+		exemplar:      exemplar,
 		callback: func(sub *subscriptionHandle, topic string, bytes []byte) {
 			packet := &pubsubpb.PubSubPacket{}
 			if err := proto.Unmarshal(bytes, packet); err != nil {
@@ -240,7 +241,7 @@ func (ps *Handle) NewSubscription(topic string, config pubsubinterface.TopicConf
 	subh := cgo.NewHandle(subscription)
 	subscription.subHandle = subh
 
-	if err := ps.zenohHandle.ImwCreateSubscription(addTopicPrefix(topic), subscription, topicQos); err != nil {
+	if err := ps.zenohHandle.ImwCreateSubscription(subscription.fullTopicName, subscription, topicQos); err != nil {
 		return nil, err
 	}
 
@@ -255,8 +256,9 @@ func (ps *Handle) NewRawSubscription(topic string, config pubsubinterface.TopicC
 	}
 
 	subscription := &subscriptionHandle{
-		topicName:   topic,
-		zenohHandle: ps.zenohHandle,
+		topicName:     topic,
+		fullTopicName: addTopicPrefix(topic),
+		zenohHandle:   ps.zenohHandle,
 		callback: func(sub *subscriptionHandle, topic string, bytes []byte) {
 			packet := &pubsubpb.PubSubPacket{}
 			if err := proto.Unmarshal(bytes, packet); err != nil {
@@ -270,7 +272,43 @@ func (ps *Handle) NewRawSubscription(topic string, config pubsubinterface.TopicC
 	subh := cgo.NewHandle(subscription)
 	subscription.subHandle = subh
 
-	if err := ps.zenohHandle.ImwCreateSubscription(addTopicPrefix(topic), subscription, topicQos); err != nil {
+	if err := ps.zenohHandle.ImwCreateSubscription(subscription.fullTopicName, subscription, topicQos); err != nil {
+		return nil, err
+	}
+
+	return subscription, nil
+}
+
+// NewKVStoreSubscription creates a subscription to the given key that is stored in the KV store.
+//
+// This function differs from other NewXXXXSubscription functions in the following ways:
+//  - It doesn't modify the key in any way, e.g. doesn't add the `in/` prefix we use for pub/sub.
+//  - When the value corresponding to the given key changes, this function expects to receive `anypb.Any`,
+//    not `pubsubpb.PubSubPacket`.
+func (ps *Handle) NewKVStoreSubscription(key string, config pubsubinterface.TopicConfig, callback func(*anypb.Any)) (pubsubinterface.Subscription, error) {
+	topicQos, err := topicConfigToZenohQos(config)
+	if err != nil {
+		return nil, err
+	}
+
+	subscription := &subscriptionHandle{
+		topicName:     key,
+		fullTopicName: key, // Not adding a prefix
+		zenohHandle:   ps.zenohHandle,
+		exemplar:      &anypb.Any{},
+		callback: func(sub *subscriptionHandle, key string, bytes []byte) {
+			any := &anypb.Any{} // It's Any, not a PubSubPacket.
+			if err := proto.Unmarshal(bytes, any); err != nil {
+				log.Errorf("Failed to unmarshal packet: %v", err)
+				return
+			}
+			callback(any)
+		},
+	}
+	subh := cgo.NewHandle(subscription)
+	subscription.subHandle = subh
+
+	if err := ps.zenohHandle.ImwCreateSubscription(key, subscription, topicQos); err != nil {
 		return nil, err
 	}
 
@@ -302,9 +340,10 @@ func (ps *Handle) Close() {
 }
 
 type subscriptionHandle struct {
-	topicName   string
-	zenohHandle zenohHandle
-	callback    func(sub *subscriptionHandle, topic string, bytes []byte)
+	topicName     string
+	fullTopicName string
+	zenohHandle   zenohHandle
+	callback      func(sub *subscriptionHandle, topic string, bytes []byte)
 
 	callbackPtr unsafe.Pointer
 	exemplar    proto.Message
@@ -315,10 +354,10 @@ type subscriptionHandle struct {
 func (s *subscriptionHandle) TopicName() string { return s.topicName }
 
 func (s *subscriptionHandle) Close() {
-	inKeyExprString := C.CString(addTopicPrefix(s.topicName))
+	inKeyExprString := C.CString(s.fullTopicName)
 	defer C.free(unsafe.Pointer(inKeyExprString))
 
-	if err := s.zenohHandle.ImwDestroySubscription(addTopicPrefix(s.topicName), s); err != nil {
+	if err := s.zenohHandle.ImwDestroySubscription(s.fullTopicName, s); err != nil {
 		panic(err)
 	}
 	s.subHandle.Delete()
