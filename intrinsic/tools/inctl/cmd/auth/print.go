@@ -24,7 +24,7 @@ func init() {
 	printAccessTokenCmd.Flags().MarkHidden(orgutil.KeyProject)
 }
 
-var printParams = viper.New()
+var printAPIKeyParams = viper.New()
 
 var printAPIKeyCmd = orgutil.WrapCmd(&cobra.Command{
 	Use:   "print-api-key",
@@ -32,7 +32,7 @@ var printAPIKeyCmd = orgutil.WrapCmd(&cobra.Command{
 	Long:  "Prints the API key for a project.",
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		project := printParams.GetString(orgutil.KeyProject)
+		project := printAPIKeyParams.GetString(orgutil.KeyProject)
 		store, err := authStore.GetConfiguration(project)
 		if err != nil {
 			return fmt.Errorf("failed to get configuration for project %q: %v", project, err)
@@ -44,7 +44,7 @@ var printAPIKeyCmd = orgutil.WrapCmd(&cobra.Command{
 		fmt.Print(key.APIKey)
 		return nil
 	},
-}, printParams, orgutil.WithOrgExistsCheck(func() bool { return checkOrgExists }))
+}, printAPIKeyParams, orgutil.WithOrgExistsCheck(func() bool { return checkOrgExists }))
 
 var makeHTTPClient = func() *http.Client { // for unit-tests
 	return &http.Client{}
@@ -64,13 +64,15 @@ Example (curl):
 		curl -s -X GET -H "Authorization: Bearer $(inctl auth print-access-token --org=myorganization)" https://flowstate.intrinsic.ai/api/v1/cloud-projects-orgs -H 'Content-Type: application/json'
 `
 
+var printAccessTokenParams = viper.New()
+
 var printAccessTokenCmd = orgutil.WrapCmd(&cobra.Command{
 	Use:   "print-access-token",
 	Short: "Print an access token.",
 	Long:  printAccessTokenHelp,
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		project := printParams.GetString(orgutil.KeyProject)
+		project := printAccessTokenParams.GetString(orgutil.KeyProject)
 		store, err := authStore.GetConfiguration(project)
 		if err != nil {
 			return fmt.Errorf("failed to get configuration for project %q: %v", project, err)
@@ -90,4 +92,4 @@ var printAccessTokenCmd = orgutil.WrapCmd(&cobra.Command{
 		cmd.Printf("%s", resp.IDToken)
 		return nil
 	},
-}, printParams, orgutil.WithOrgExistsCheck(func() bool { return checkOrgExists }))
+}, printAccessTokenParams, orgutil.WithOrgExistsCheck(func() bool { return checkOrgExists }))
