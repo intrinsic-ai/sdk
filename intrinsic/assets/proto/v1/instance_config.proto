@@ -24,9 +24,15 @@ message InstanceConfig {
     optional string scheduled_node_hostname = 2;
 
   }
+  // Configuration of a HardwareDevice asset instance.
+  message HardwareDeviceConfig {
+    SceneObjectInstanceConfig scene_object = 1;
+    ServiceInstanceConfig service = 2;
+  }
 
   oneof variant {
     SceneObjectInstanceConfig scene_object = 1;
     ServiceInstanceConfig service = 2;
+    HardwareDeviceConfig hardware_device = 3;
   }
 }
