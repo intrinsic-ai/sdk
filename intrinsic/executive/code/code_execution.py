@@ -176,18 +176,9 @@ def _create_compatible_file_descriptor_set(
   compatible_file_descriptor_set = descriptor_pb2.FileDescriptorSet()
   compatible_file_descriptor_set.CopyFrom(new_file_descriptor_set)
   for file in compatible_file_descriptor_set.file:
-    if file.name != path_to_default_path[file.name]:
-      print(
-          f"Adapted default file path for {file.name} to"
-          f" {path_to_default_path[file.name]}"
-      )
     file.name = path_to_default_path[file.name]
     for i, dep in enumerate(file.dependency):
       if dep != path_to_default_path[dep]:
-        print(
-            f"Adapted default dependency file path for {dep} to"
-            f" {path_to_default_path[dep]}"
-        )
         file.dependency[i] = path_to_default_path[dep]
 
   return compatible_file_descriptor_set
@@ -246,7 +237,6 @@ def import_from_file_descriptor_set(
   # will get a cache hit here.
   try:
     module = importlib.import_module(module_name)
-    print("Imported", module_name, "from file or cache")
     return module
   except ModuleNotFoundError:
     # Regular import failed, import from the file descriptor set.
