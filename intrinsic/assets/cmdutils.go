@@ -83,8 +83,6 @@ const (
 	KeyType = "type"
 	// KeyTimeout is the name of the timeout flag.
 	KeyTimeout = "timeout"
-	// KeyUseBorgCredentials is the name of the flag to use borg credentials.
-	KeyUseBorgCredentials = "use_borg_credentials"
 	// KeyVendor is the name of the vendor flag.
 	KeyVendor = "vendor"
 	// KeyVersion is the name of the version flag.
@@ -160,16 +158,14 @@ func (cf *CmdFlags) GetFlagAssetTypes() ([]atypepb.AssetType, error) {
 
 // AddFlagsCredentials adds args for specifying credentials.
 func (cf *CmdFlags) AddFlagsCredentials() {
-	cf.OptionalBool(KeyUseBorgCredentials, false, "Use credentials associated with the current borg user, rather than application-default credentials.")
 	cf.OptionalString(KeyAPIKey, "", "The API key to use for authentication.")
 }
 
 // GetFlagsCredentials gets the values of the credential args.
-func (cf *CmdFlags) GetFlagsCredentials() (useBorgCredentials bool, apiKey string) {
-	useBorgCredentials = cf.GetBool(KeyUseBorgCredentials)
+func (cf *CmdFlags) GetFlagsCredentials() (apiKey string) {
 	apiKey = cf.GetString(KeyAPIKey)
 
-	return useBorgCredentials, apiKey
+	return apiKey
 }
 
 // AddFlagDefault adds a flag for marking a released asset as default.
