@@ -25,7 +25,7 @@ message InstanceConfig {
 
   }
   // Configuration of a HardwareDevice asset instance.
-  message HardwareDeviceConfig {
+  message HardwareDeviceInstanceConfig {
     SceneObjectInstanceConfig scene_object = 1;
     ServiceInstanceConfig service = 2;
   }
@@ -33,6 +33,6 @@ message InstanceConfig {
   oneof variant {
     SceneObjectInstanceConfig scene_object = 1;
     ServiceInstanceConfig service = 2;
-    HardwareDeviceConfig hardware_device = 3;
+    HardwareDeviceInstanceConfig hardware_device = 3;
   }
 }
