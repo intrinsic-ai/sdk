@@ -86,37 +86,6 @@ py_proto_library(
 )
 
 proto_library(
-    name = "instance_config_proto",
-    srcs = ["instance_config.proto"],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [
-        "//intrinsic/scene/proto/v1:scene_object_config_proto",
-        "@com_google_protobuf//:any_proto",
-    ],
-)
-
-cc_proto_library(
-    name = "instance_config_cc_proto",
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":instance_config_proto"],
-)
-
-go_proto_library(
-    name = "instance_config_go_proto",
-    go_deps = [
-        "//intrinsic/scene/proto/v1:scene_object_config_go_proto",
-    ],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":instance_config_proto"],
-)
-
-py_proto_library(
-    name = "instance_config_py_pb2",
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":instance_config_proto"],
-)
-
-proto_library(
     name = "processed_asset_proto",
     srcs = ["processed_asset.proto"],
     visibility = ["//intrinsic:public_api_users"],
