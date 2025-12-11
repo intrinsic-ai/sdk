@@ -89,7 +89,7 @@ var printAccessTokenCmd = orgutil.WrapCmd(&cobra.Command{
 		if err != nil {
 			return fmt.Errorf("failed to get ID token : %v", err)
 		}
-		cmd.Printf("%s", resp.IDToken)
+		fmt.Fprintf(cmd.OutOrStdout(), "%s", resp.IDToken)
 		return nil
 	},
 }, printAccessTokenParams, orgutil.WithOrgExistsCheck(func() bool { return checkOrgExists }))

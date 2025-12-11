@@ -513,6 +513,9 @@ func GetFlagOutputType(cmd *cobra.Command) OutputType {
 		return OutputTypeText
 	}
 	flag := cmd.Flag(KeyOutput)
+	if flag == nil {
+		return OutputTypeText
+	}
 	switch flag.Value.String() {
 	case JSONOutputFormat:
 		return OutputTypeJSON
