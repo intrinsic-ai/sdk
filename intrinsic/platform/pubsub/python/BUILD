@@ -45,3 +45,15 @@ py_test(
         "@com_google_protobuf//:protobuf_python",
     ],
 )
+
+py_test(
+    name = "callback_exception_test",
+    srcs = ["callback_exception_test.py"],
+    deps = [
+        ":pubsub",
+        "//intrinsic/platform/common/proto:test_cc_proto",
+        "//intrinsic/platform/common/proto:test_py_pb2",
+        "@com_google_absl_py//absl/testing:absltest",
+        "@com_google_protobuf//:protobuf_python",
+    ],
+)

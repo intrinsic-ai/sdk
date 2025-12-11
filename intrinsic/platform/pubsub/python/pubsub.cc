@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
+#include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
@@ -55,8 +56,12 @@ absl::StatusOr<Subscription> CreateSubscriptionWithConfig(
     message_callback = [py_msg_cb = std::move(msg_callback)](
                            const google::protobuf::Message& msg) {
       pybind11::gil_scoped_acquire gil;
-      // This will create a copy in the py proto caster
-      py_msg_cb(msg);
+      try {
+        // This will create a copy in the py proto caster
+        py_msg_cb(msg);
+      } catch (const pybind11::error_already_set& e) {
+        LOG(INFO) << "Exception in message callback: " << e.what();
+      }
     };
   }
 
@@ -64,7 +69,11 @@ absl::StatusOr<Subscription> CreateSubscriptionWithConfig(
     error_callback = [py_err_cb = std::move(err_callback)](
                          absl::string_view packet, absl::Status error) {
       pybind11::gil_scoped_acquire gil;
-      py_err_cb(packet, pybind11::google::DoNotThrowStatus(error));
+      try {
+        py_err_cb(packet, pybind11::google::DoNotThrowStatus(error));
+      } catch (const pybind11::error_already_set& e) {
+        LOG(INFO) << "Exception in error callback: " << e.what();
+      }
     };
   }
 
@@ -101,8 +110,12 @@ absl::StatusOr<Subscription> CreateRawSubscription(
     message_callback = [py_msg_cb = std::move(msg_callback)](
                            const intrinsic_proto::pubsub::PubSubPacket& msg) {
       pybind11::gil_scoped_acquire gil;
-      // This will create a copy in the py proto caster
-      py_msg_cb(msg.payload());
+      try {
+        // This will create a copy in the py proto caster
+        py_msg_cb(msg.payload());
+      } catch (const pybind11::error_already_set& e) {
+        LOG(INFO) << "Exception in message callback: " << e.what();
+      }
     };
   }
 
