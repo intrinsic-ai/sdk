@@ -19,6 +19,9 @@ bool RunningInKubernetes();
 // If running under test, the path is resolved using Runfiles::CreateForTest. If
 // running in kubernetes, the path is returned using Runfiles::Create that
 // supports direct program invocation. Otherwise, returns the path as is.
+//
+// This function assumes the zenoh files are in the "ai_intrinsic_sdks" Bazel
+// module. This is applicable for when the code is built in the Intrinsic SDK.
 std::string GetZenohRunfilesPath(absl::string_view file_path);
 
 // Returns true if the given keyexpr is follows the zenoh keyexpr format
