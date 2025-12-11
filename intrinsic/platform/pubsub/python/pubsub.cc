@@ -60,7 +60,7 @@ absl::StatusOr<Subscription> CreateSubscriptionWithConfig(
         // This will create a copy in the py proto caster
         py_msg_cb(msg);
       } catch (const pybind11::error_already_set& e) {
-        LOG(INFO) << "Exception in message callback: " << e.what();
+        LOG(ERROR) << "Exception in message callback: " << e.what();
       }
     };
   }
@@ -72,7 +72,7 @@ absl::StatusOr<Subscription> CreateSubscriptionWithConfig(
       try {
         py_err_cb(packet, pybind11::google::DoNotThrowStatus(error));
       } catch (const pybind11::error_already_set& e) {
-        LOG(INFO) << "Exception in error callback: " << e.what();
+        LOG(ERROR) << "Exception in error callback: " << e.what();
       }
     };
   }
@@ -114,7 +114,7 @@ absl::StatusOr<Subscription> CreateRawSubscription(
         // This will create a copy in the py proto caster
         py_msg_cb(msg.payload());
       } catch (const pybind11::error_already_set& e) {
-        LOG(INFO) << "Exception in message callback: " << e.what();
+        LOG(ERROR) << "Exception in message callback: " << e.what();
       }
     };
   }
