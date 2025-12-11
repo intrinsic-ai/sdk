@@ -52,6 +52,20 @@ flatbuffers::DetachedBuffer BuildJointTorqueCommand(uint32_t num_dof) {
   return builder.Release();
 }
 
+flatbuffers::DetachedBuffer BuildJointAccelerationAndTorqueCommand(
+    uint32_t num_dof) {
+  flatbuffers::FlatBufferBuilder builder;
+  builder.ForceDefaults(true);
+
+  std::vector<double> zeros(num_dof, 0.0);
+  auto default_acceleration = builder.CreateVector(zeros);
+  auto default_torque = builder.CreateVector(zeros);
+  auto acceleration_command = CreateJointAccelerationAndTorqueCommand(
+      builder, default_acceleration, default_torque);
+  builder.Finish(acceleration_command);
+  return builder.Release();
+}
+
 flatbuffers::DetachedBuffer BuildHandGuidingCommand() {
   flatbuffers::FlatBufferBuilder builder;
   builder.ForceDefaults(true);

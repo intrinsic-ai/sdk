@@ -18,6 +18,15 @@ table JointTorqueCommand {
   torque:[double];
 }
 
+// This is intended for robot drivers that implement acceleration resolved
+// torque control. The joint acceleration would be used to solve the inverse
+// dynamics for torque in the hardware module and the torque represents
+// external forces applied to the end effector transformed into joint space.
+table JointAccelerationAndTorqueCommand {
+  acceleration:[double];
+  torque:[double];
+}
+
 struct HandGuidingCommand {
   // Flatbuffers don't support empty structs.
   unused:bool;

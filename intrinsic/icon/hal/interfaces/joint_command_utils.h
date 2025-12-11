@@ -17,6 +17,9 @@ flatbuffers::DetachedBuffer BuildJointVelocityCommand(uint32_t num_dof);
 
 flatbuffers::DetachedBuffer BuildJointTorqueCommand(uint32_t num_dof);
 
+flatbuffers::DetachedBuffer BuildJointAccelerationAndTorqueCommand(
+    uint32_t num_dof);
+
 flatbuffers::DetachedBuffer BuildHandGuidingCommand();
 
 intrinsic::icon::RealtimeStatus CopyTo(const JointPositionCommand& src,
