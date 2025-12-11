@@ -132,6 +132,14 @@ message WithAnyProto {
   google.protobuf.Any any_proto = 1;
 }
 
+message WithListOfAnyProto {
+  repeated google.protobuf.Any any_protos = 1;
+}
+
+message WithMapOfAnyProto {
+  map<string, google.protobuf.Any> any_protos = 1;
+}
+
 message WithInvalidInterfaceRequirement {
   intrinsic_proto.assets.v1.ResolvedDependency
       with_invalid_interface_requirement = 1
