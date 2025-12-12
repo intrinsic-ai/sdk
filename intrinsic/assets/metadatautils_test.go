@@ -22,11 +22,93 @@ import (
 	vendorpb "intrinsic/assets/proto/vendor_go_proto"
 	sceneobjectmanifestpb "intrinsic/assets/scene_objects/proto/scene_object_manifest_go_proto"
 	servicemanifestpb "intrinsic/assets/services/proto/service_manifest_go_proto"
+	"intrinsic/assets/typeutils"
 	skillmanifestpb "intrinsic/skills/proto/skill_manifest_go_proto"
 
 	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	tpb "google.golang.org/protobuf/types/known/timestamppb"
 )
+
+var manifestMetadata = map[atypepb.AssetType]ManifestMetadata{
+	atypepb.AssetType_ASSET_TYPE_DATA: &datamanifestpb.DataManifest_Metadata{
+		Id: &idpb.Id{
+			Package: "ai.intrinsic",
+			Name:    "test_data",
+		},
+		Vendor: &vendorpb.Vendor{
+			DisplayName: "Intrinsic",
+		},
+		DisplayName: "Test Data",
+		Documentation: &documentationpb.Documentation{
+			Description: "Test Data Description",
+		},
+	},
+	atypepb.AssetType_ASSET_TYPE_HARDWARE_DEVICE: &hardwaremanifestpb.HardwareDeviceMetadata{
+		Id: &idpb.Id{
+			Package: "ai.intrinsic",
+			Name:    "test_hardware_device",
+		},
+		Vendor: &vendorpb.Vendor{
+			DisplayName: "Intrinsic",
+		},
+		DisplayName: "Test Hardware Device",
+		Documentation: &documentationpb.Documentation{
+			Description: "Test Hardware Device Description",
+		},
+	},
+	atypepb.AssetType_ASSET_TYPE_PROCESS: &processmanifestpb.ProcessMetadata{
+		Id: &idpb.Id{
+			Package: "ai.intrinsic",
+			Name:    "test_process",
+		},
+		Vendor: &vendorpb.Vendor{
+			DisplayName: "Intrinsic",
+		},
+		DisplayName: "Test Process",
+		Documentation: &documentationpb.Documentation{
+			Description: "Test Process Description",
+		},
+	},
+	atypepb.AssetType_ASSET_TYPE_SCENE_OBJECT: &sceneobjectmanifestpb.SceneObjectMetadata{
+		Id: &idpb.Id{
+			Package: "ai.intrinsic",
+			Name:    "test_scene_object",
+		},
+		Vendor: &vendorpb.Vendor{
+			DisplayName: "Intrinsic",
+		},
+		DisplayName: "Test Scene Object",
+		Documentation: &documentationpb.Documentation{
+			Description: "Test Scene Object Description",
+		},
+	},
+	atypepb.AssetType_ASSET_TYPE_SERVICE: &servicemanifestpb.ServiceMetadata{
+		Id: &idpb.Id{
+			Package: "ai.intrinsic",
+			Name:    "test_service",
+		},
+		Vendor: &vendorpb.Vendor{
+			DisplayName: "Intrinsic",
+		},
+		DisplayName: "Test Service",
+		Documentation: &documentationpb.Documentation{
+			Description: "Test Service Description",
+		},
+	},
+	atypepb.AssetType_ASSET_TYPE_SKILL: &skillmanifestpb.SkillManifest{
+		Id: &idpb.Id{
+			Package: "ai.intrinsic",
+			Name:    "test_skill",
+		},
+		Vendor: &vendorpb.Vendor{
+			DisplayName: "Intrinsic",
+		},
+		DisplayName: "Test Skill",
+		Documentation: &documentationpb.Documentation{
+			Description: "Test Skill Description",
+		},
+	},
+}
 
 func TestValidateMetadata(t *testing.T) {
 	m := &metadatapb.Metadata{
@@ -109,80 +191,28 @@ func TestValidateMetadata(t *testing.T) {
 			wantErrorCode: codes.InvalidArgument,
 		},
 		{
-			name: "valid with version required",
-			m:    m,
-			opts: []ValidateMetadataOption{WithRequireVersion(true)},
-		},
-		{
-			name:          "invalid version with version required",
-			m:             mInvalidVersion,
-			opts:          []ValidateMetadataOption{WithRequireVersion(true)},
-			wantErrorCode: codes.InvalidArgument,
-		},
-		{
-			name:          "missing version with version required",
-			m:             mMissingVersion,
-			opts:          []ValidateMetadataOption{WithRequireVersion(true)},
-			wantErrorCode: codes.InvalidArgument,
-		},
-		{
-			name: "valid with version required (false)",
-			m:    m,
-			opts: []ValidateMetadataOption{WithRequireVersion(false)},
-		},
-		{
-			name:          "invalid version with version required (false)",
-			m:             mInvalidVersion,
-			opts:          []ValidateMetadataOption{WithRequireVersion(false)},
-			wantErrorCode: codes.InvalidArgument,
-		},
-		{
-			name: "missing version with version required (false)",
+			name: "missing version with no version required",
 			m:    mMissingVersion,
-			opts: []ValidateMetadataOption{WithRequireVersion(false)},
-		},
-		{
-			name:          "valid with no version required",
-			m:             m,
-			opts:          []ValidateMetadataOption{WithRequireNoVersion(true)},
-			wantErrorCode: codes.InvalidArgument,
 		},
 		{
 			name:          "invalid version with no version required",
 			m:             mInvalidVersion,
-			opts:          []ValidateMetadataOption{WithRequireNoVersion(true)},
 			wantErrorCode: codes.InvalidArgument,
 		},
 		{
-			name: "missing version with no version required",
-			m:    mMissingVersion,
-			opts: []ValidateMetadataOption{WithRequireNoVersion(true)},
-		},
-		{
-			name: "valid with no version required (false)",
+			name: "valid for catalog",
 			m:    m,
-			opts: []ValidateMetadataOption{WithRequireNoVersion(false)},
-		},
-		{
-			name:          "invalid version with no version required (false)",
-			m:             mInvalidVersion,
-			opts:          []ValidateMetadataOption{WithRequireNoVersion(false)},
-			wantErrorCode: codes.InvalidArgument,
-		},
-		{
-			name: "missing version with no version required (false)",
-			m:    mMissingVersion,
-			opts: []ValidateMetadataOption{WithRequireNoVersion(false)},
-		},
-		{
-			name:          "require version and require no version",
-			m:             m,
-			opts:          []ValidateMetadataOption{WithRequireVersion(true), WithRequireNoVersion(true)},
-			wantErrorCode: codes.Internal,
+			opts: []ValidateMetadataOption{WithCatalogOptions()},
 		},
 		{
 			name:          "missing version for catalog",
 			m:             mMissingVersion,
+			opts:          []ValidateMetadataOption{WithCatalogOptions()},
+			wantErrorCode: codes.InvalidArgument,
+		},
+		{
+			name:          "no update time for catalog",
+			m:             mNoUpdateTime,
 			opts:          []ValidateMetadataOption{WithCatalogOptions()},
 			wantErrorCode: codes.InvalidArgument,
 		},
@@ -207,23 +237,6 @@ func TestValidateMetadata(t *testing.T) {
 			wantErrorCode: codes.InvalidArgument,
 		},
 		{
-			name:          "no update time",
-			m:             mNoUpdateTime,
-			opts:          []ValidateMetadataOption{WithRequireUpdateTime(true)},
-			wantErrorCode: codes.InvalidArgument,
-		},
-		{
-			name: "no update time (false)",
-			m:    mNoUpdateTime,
-			opts: []ValidateMetadataOption{WithRequireUpdateTime(false)},
-		},
-		{
-			name:          "no update time for catalog",
-			m:             mNoUpdateTime,
-			opts:          []ValidateMetadataOption{WithCatalogOptions()},
-			wantErrorCode: codes.InvalidArgument,
-		},
-		{
 			name:          "no asset type",
 			m:             mNoAssetType,
 			wantErrorCode: codes.InvalidArgument,
@@ -243,38 +256,6 @@ func TestValidateMetadata(t *testing.T) {
 			name:          "invalid provides interface",
 			m:             mInvalidProvidesInterface,
 			wantErrorCode: codes.InvalidArgument,
-		},
-		{
-			name: "no file descriptor set required (true) and absent",
-			m:    m,
-			opts: []ValidateMetadataOption{WithRequireNoFileDescriptorSet(true)},
-		},
-		{
-			name:          "no file descriptor set required (true) and present",
-			m:             mWithFileDescriptorSet,
-			opts:          []ValidateMetadataOption{WithRequireNoFileDescriptorSet(true)},
-			wantErrorCode: codes.InvalidArgument,
-		},
-		{
-			name: "no file descriptor set required (false)",
-			m:    mWithFileDescriptorSet,
-			opts: []ValidateMetadataOption{WithRequireNoFileDescriptorSet(false)},
-		},
-		{
-			name: "no provides required (true) and absent",
-			m:    mWithoutProvides,
-			opts: []ValidateMetadataOption{WithRequireNoProvides(true)},
-		},
-		{
-			name:          "no provides required (true) and present",
-			m:             m,
-			opts:          []ValidateMetadataOption{WithRequireNoProvides(true)},
-			wantErrorCode: codes.InvalidArgument,
-		},
-		{
-			name: "no provides required (false)",
-			m:    m,
-			opts: []ValidateMetadataOption{WithRequireNoProvides(false)},
 		},
 		{
 			name: "no output-only fields required and absent",
@@ -339,99 +320,23 @@ func TestValidateMetadata(t *testing.T) {
 }
 
 func TestValidateManifestMetadata(t *testing.T) {
-	m := &skillmanifestpb.SkillManifest{
-		Id: &idpb.Id{
-			Package: "ai.intrinsic",
-			Name:    "test_skill",
-		},
-		Vendor: &vendorpb.Vendor{
-			DisplayName: "Intrinsic",
-		},
-		DisplayName: "Test Skill",
-		Documentation: &documentationpb.Documentation{
-			Description: "Test Skill Description",
-		},
-	}
-	mInvalidName := proto.Clone(m).(*skillmanifestpb.SkillManifest)
+	mSkill := manifestMetadata[atypepb.AssetType_ASSET_TYPE_SKILL]
+	mInvalidName := proto.Clone(mSkill).(*skillmanifestpb.SkillManifest)
 	mInvalidName.Id.Name = "_invalid_name"
-	mInvalidPackage := proto.Clone(m).(*skillmanifestpb.SkillManifest)
+	mInvalidPackage := proto.Clone(mSkill).(*skillmanifestpb.SkillManifest)
 	mInvalidPackage.Id.Package = "_invalid_package"
-	mNoDisplayName := proto.Clone(m).(*skillmanifestpb.SkillManifest)
+	mNoDisplayName := proto.Clone(mSkill).(*skillmanifestpb.SkillManifest)
 	mNoDisplayName.DisplayName = ""
-	mNoVendor := proto.Clone(m).(*skillmanifestpb.SkillManifest)
+	mNoVendor := proto.Clone(mSkill).(*skillmanifestpb.SkillManifest)
 	mNoVendor.Vendor.DisplayName = ""
-	mNameTooLong := proto.Clone(m).(*skillmanifestpb.SkillManifest)
+	mNameTooLong := proto.Clone(mSkill).(*skillmanifestpb.SkillManifest)
 	mNameTooLong.Id.Name = strings.Repeat("a", NameCharLength[atypepb.AssetType_ASSET_TYPE_SKILL]+1)
-	mDisplayNameTooLong := proto.Clone(m).(*skillmanifestpb.SkillManifest)
+	mDisplayNameTooLong := proto.Clone(mSkill).(*skillmanifestpb.SkillManifest)
 	mDisplayNameTooLong.DisplayName = strings.Repeat("a", DisplayNameCharLength+1)
 
-	mService := &servicemanifestpb.ServiceMetadata{
-		Id: &idpb.Id{
-			Package: "ai.intrinsic",
-			Name:    "test_service",
-		},
-		Vendor: &vendorpb.Vendor{
-			DisplayName: "Intrinsic",
-		},
-		DisplayName: "Test Service",
-		Documentation: &documentationpb.Documentation{
-			Description: "Test Service Description",
-		},
-	}
+	mService := manifestMetadata[atypepb.AssetType_ASSET_TYPE_SERVICE]
 	mInvalidAssetTag := proto.Clone(mService).(*servicemanifestpb.ServiceMetadata)
 	mInvalidAssetTag.AssetTag = atagpb.AssetTag_ASSET_TAG_SUBPROCESS
-	mData := &datamanifestpb.DataManifest_Metadata{
-		Id: &idpb.Id{
-			Package: "ai.intrinsic",
-			Name:    "test_data",
-		},
-		Vendor: &vendorpb.Vendor{
-			DisplayName: "Intrinsic",
-		},
-		DisplayName: "Test Data",
-		Documentation: &documentationpb.Documentation{
-			Description: "Test Data Description",
-		},
-	}
-	mSceneObject := &sceneobjectmanifestpb.SceneObjectMetadata{
-		Id: &idpb.Id{
-			Package: "ai.intrinsic",
-			Name:    "test_scene_object",
-		},
-		Vendor: &vendorpb.Vendor{
-			DisplayName: "Intrinsic",
-		},
-		DisplayName: "Test Scene Object",
-		Documentation: &documentationpb.Documentation{
-			Description: "Test Scene Object Description",
-		},
-	}
-	mHardwareDevice := &hardwaremanifestpb.HardwareDeviceMetadata{
-		Id: &idpb.Id{
-			Package: "ai.intrinsic",
-			Name:    "test_hardware_device",
-		},
-		Vendor: &vendorpb.Vendor{
-			DisplayName: "Intrinsic",
-		},
-		DisplayName: "Test Hardware Device",
-		Documentation: &documentationpb.Documentation{
-			Description: "Test Hardware Device Description",
-		},
-	}
-	mProcess := &processmanifestpb.ProcessMetadata{
-		Id: &idpb.Id{
-			Package: "ai.intrinsic",
-			Name:    "test_process",
-		},
-		Vendor: &vendorpb.Vendor{
-			DisplayName: "Intrinsic",
-		},
-		DisplayName: "Test Process",
-		Documentation: &documentationpb.Documentation{
-			Description: "Test Process Description",
-		},
-	}
 
 	tests := []struct {
 		name          string
@@ -439,8 +344,28 @@ func TestValidateManifestMetadata(t *testing.T) {
 		wantErrorCode codes.Code
 	}{
 		{
-			name: "valid",
-			m:    m,
+			name: "valid data",
+			m:    manifestMetadata[atypepb.AssetType_ASSET_TYPE_DATA],
+		},
+		{
+			name: "valid hardware device",
+			m:    manifestMetadata[atypepb.AssetType_ASSET_TYPE_HARDWARE_DEVICE],
+		},
+		{
+			name: "valid process",
+			m:    manifestMetadata[atypepb.AssetType_ASSET_TYPE_PROCESS],
+		},
+		{
+			name: "valid scene object",
+			m:    manifestMetadata[atypepb.AssetType_ASSET_TYPE_SCENE_OBJECT],
+		},
+		{
+			name: "valid service",
+			m:    manifestMetadata[atypepb.AssetType_ASSET_TYPE_SERVICE],
+		},
+		{
+			name: "valid skill",
+			m:    manifestMetadata[atypepb.AssetType_ASSET_TYPE_SKILL],
 		},
 		{
 			name:          "invalid name",
@@ -477,26 +402,6 @@ func TestValidateManifestMetadata(t *testing.T) {
 			m:             mDisplayNameTooLong,
 			wantErrorCode: codes.ResourceExhausted,
 		},
-		{
-			name: "valid service",
-			m:    mService,
-		},
-		{
-			name: "valid data",
-			m:    mData,
-		},
-		{
-			name: "valid scene object",
-			m:    mSceneObject,
-		},
-		{
-			name: "valid hardware device",
-			m:    mHardwareDevice,
-		},
-		{
-			name: "valid process",
-			m:    mProcess,
-		},
 	}
 
 	for _, tc := range tests {
@@ -512,6 +417,20 @@ func TestValidateManifestMetadata(t *testing.T) {
 				}
 			} else if err != nil {
 				t.Errorf("ValidateManifestMetadata(%v) = %v, want no error", tc.m, err)
+			}
+		})
+	}
+}
+
+func TestAllAssetTypesAreSupported(t *testing.T) {
+	for _, at := range typeutils.AllAssetTypes() {
+		t.Run(at.String(), func(t *testing.T) {
+			m, ok := manifestMetadata[at]
+			if !ok {
+				t.Errorf("No test manifest metadata for asset type %v", at)
+			}
+			if err := ValidateManifestMetadata(m); err != nil {
+				t.Errorf("ValidateManifestMetadata(%v) = %v, want no error", m, err)
 			}
 		})
 	}

@@ -4,7 +4,6 @@
 package metadatautils
 
 import (
-	"fmt"
 	"slices"
 
 	"intrinsic/assets/idutils"
@@ -70,104 +69,63 @@ var NameCharLength = map[atypepb.AssetType]int{
 
 // ManifestMetadata is an interface for an asset manifest proto used to specify metadata.
 type ManifestMetadata interface {
+	proto.Message
+
 	GetDisplayName() string
 	GetDocumentation() *documentationpb.Documentation
 	GetId() *idpb.Id
 	GetVendor() *vendorpb.Vendor
 }
 
-// ValidateMetadataOptions contains options for ValidateMetadata.
-type ValidateMetadataOptions struct {
+type metadataWithTag interface {
+	GetAssetTag() atagpb.AssetTag
+}
+
+type metadataWithTags interface {
+	GetAssetTags() []atagpb.AssetTag
+}
+
+type validateMetadataOptions struct {
 	requireUpdateTime          bool
 	requireVersion             bool
-	requireNoVersion           bool
 	requiredAssetType          atypepb.AssetType
 	requireNoFileDescriptorSet bool
 	requireNoProvides          bool
 }
 
 // ValidateMetadataOption is a functional option for ValidateMetadata.
-type ValidateMetadataOption func(*ValidateMetadataOptions)
-
-// WithRequireUpdateTime requires that the metadata has an update time if set to
-// true.
-func WithRequireUpdateTime(requireUpdateTime bool) ValidateMetadataOption {
-	return func(opts *ValidateMetadataOptions) {
-		opts.requireUpdateTime = requireUpdateTime
-	}
-}
-
-// WithRequireVersion requires that the metadata has a version if set to true.
-// Cannot be combined with WithRequireNoVersion(true). By default, if neither
-// WithRequireVersion(true) nor WithRequireNoVersion(true) are requested, the
-// version will be validated only if present.
-func WithRequireVersion(requireVersion bool) ValidateMetadataOption {
-	return func(opts *ValidateMetadataOptions) {
-		opts.requireVersion = requireVersion
-	}
-}
-
-// WithRequireNoVersion requires that the metadata has no version if set to
-// true. Cannot be combined with WithRequireVersion(true). By default, if
-// neither WithRequireVersion(true) nor WithRequireNoVersion(true) are
-// requested, the version will be validated only if present.
-func WithRequireNoVersion(requireNoVersion bool) ValidateMetadataOption {
-	return func(opts *ValidateMetadataOptions) {
-		opts.requireNoVersion = requireNoVersion
-	}
-}
+type ValidateMetadataOption func(*validateMetadataOptions)
 
 // WithRequiredAssetType requires that the metadata has the given asset
 // type.
 func WithRequiredAssetType(requiredAssetType atypepb.AssetType) ValidateMetadataOption {
-	return func(opts *ValidateMetadataOptions) {
+	return func(opts *validateMetadataOptions) {
 		opts.requiredAssetType = requiredAssetType
-	}
-}
-
-// WithRequireNoFileDescriptorSet requires that the metadata has no file
-// descriptor set if set to true.
-func WithRequireNoFileDescriptorSet(requireNoFileDescriptorSet bool) ValidateMetadataOption {
-	return func(opts *ValidateMetadataOptions) {
-		opts.requireNoFileDescriptorSet = requireNoFileDescriptorSet
-	}
-}
-
-// WithRequireNoProvides requires that the metadata has no provides
-// if set to true.
-func WithRequireNoProvides(requireNoProvides bool) ValidateMetadataOption {
-	return func(opts *ValidateMetadataOptions) {
-		opts.requireNoProvides = requireNoProvides
 	}
 }
 
 // WithRequireNoOutputOnlyFields requires that the metadata has no output-only
 // fields.
 func WithRequireNoOutputOnlyFields() ValidateMetadataOption {
-	return func(opts *ValidateMetadataOptions) {
-		WithRequireNoFileDescriptorSet(true)(opts)
-		WithRequireNoProvides(true)(opts)
+	return func(opts *validateMetadataOptions) {
+		opts.requireNoFileDescriptorSet = true
+		opts.requireNoProvides = true
 	}
 }
 
-// WithCatalogOptions adds options for validating metadata for use in the catalog.
+// WithCatalogOptions adds options for validating metadata for use in the AssetCatalog.
 func WithCatalogOptions() ValidateMetadataOption {
-	return func(opts *ValidateMetadataOptions) {
-		WithRequireUpdateTime(true)(opts)
-		WithRequireVersion(true)(opts)
+	return func(opts *validateMetadataOptions) {
+		opts.requireUpdateTime = true
+		opts.requireVersion = true
 	}
 }
 
 // ValidateMetadata validates asset metadata.
 func ValidateMetadata(m *metadatapb.Metadata, options ...ValidateMetadataOption) error {
-	opts := &ValidateMetadataOptions{}
+	opts := &validateMetadataOptions{}
 	for _, opt := range options {
 		opt(opts)
-	}
-	if opts.requireNoVersion && opts.requireVersion {
-		// This function was called incorrectly. From the perspective of the gRPC
-		// client this is an internal error (not an invalid argument error).
-		return status.Errorf(codes.Internal, "only one of requireNoVersion and requireVersion can be specified")
 	}
 
 	if m.GetIdVersion().GetVersion() == "" {
@@ -177,88 +135,55 @@ func ValidateMetadata(m *metadatapb.Metadata, options ...ValidateMetadataOption)
 		if err := idutils.ValidateIDProto(m.GetIdVersion().GetId()); err != nil {
 			return status.Errorf(codes.InvalidArgument, "invalid id: %v", err)
 		}
-	} else {
-		if opts.requireNoVersion {
-			return status.Errorf(
-				codes.InvalidArgument,
-				"version must not be specified (got %q)",
-				m.GetIdVersion().GetVersion(),
-			)
-		}
-		if err := idutils.ValidateIDVersionProto(m.GetIdVersion()); err != nil {
-			return status.Errorf(codes.InvalidArgument, "invalid id version: %v", err)
-		}
+	} else if err := idutils.ValidateIDVersionProto(m.GetIdVersion()); err != nil {
+		return status.Errorf(codes.InvalidArgument, "invalid id version: %v", err)
 	}
 	id := idutils.IDFromProtoUnchecked(m.GetIdVersion().GetId())
 
-	if m.GetDisplayName() == "" {
-		return status.Errorf(codes.InvalidArgument, "no display name specified for %q", id)
+	if err := validateAssetType(m.GetAssetType(), opts.requiredAssetType, id); err != nil {
+		return err
 	}
-	if m.GetVendor().GetDisplayName() == "" {
-		return status.Errorf(codes.InvalidArgument, "no vendor specified for %q", id)
+	if err := validateName(m.GetIdVersion().GetId().GetName(), m.GetAssetType(), id); err != nil {
+		return err
 	}
+	if err := validateDisplayName(m.GetDisplayName(), id); err != nil {
+		return err
+	}
+	if err := validateAssetTag(m.GetAssetTag(), m.GetAssetType(), id); err != nil {
+		return err
+	}
+	if err := validateVendor(m.GetVendor().GetDisplayName(), id); err != nil {
+		return err
+	}
+	if err := validateVersion(m.GetIdVersion().GetVersion(), id); err != nil {
+		return err
+	}
+	if err := validateDescription(m.GetDocumentation().GetDescription(), id); err != nil {
+		return err
+	}
+	if err := validateRelNotes(m.GetReleaseNotes(), id); err != nil {
+		return err
+	}
+
 	if opts.requireUpdateTime && m.GetUpdateTime() == nil {
 		return status.Errorf(codes.InvalidArgument, "no update time specified for %q", id)
 	}
-	if m.GetAssetType() == atypepb.AssetType_ASSET_TYPE_UNSPECIFIED {
-		return status.Errorf(codes.InvalidArgument, "no asset type specified for %q", id)
-	}
-	if opts.requiredAssetType != atypepb.AssetType_ASSET_TYPE_UNSPECIFIED && m.GetAssetType() != opts.requiredAssetType {
-		return status.Errorf(
-			codes.InvalidArgument, "asset type %v required for %q but got %v",
-			atypepb.AssetType_name[int32(opts.requiredAssetType)], id,
-			atypepb.AssetType_name[int32(m.GetAssetType())])
-	}
-	if m.GetAssetTag() != atagpb.AssetTag_ASSET_TAG_UNSPECIFIED {
-		applicableTags, err := tagutils.AssetTagsForType(m.GetAssetType())
-		if err != nil {
-			return status.Errorf(
-				codes.Internal,
-				"cannot get asset tags for asset type %q: %v",
-				atypepb.AssetType_name[int32(m.GetAssetType())],
-				err)
-		}
-		if !slices.Contains(applicableTags, m.GetAssetTag()) {
-			return status.Errorf(
-				codes.InvalidArgument,
-				"asset tag %q is not applicable to %q asset %q",
-				atagpb.AssetTag_name[int32(m.GetAssetTag())],
-				atypepb.AssetType_name[int32(m.GetAssetType())],
-				id)
-		}
-	}
 	if opts.requireNoFileDescriptorSet && m.GetFileDescriptorSet() != nil {
-		return status.Errorf(codes.InvalidArgument, "file descriptor set (output-only) must not be specified")
+		return status.Errorf(codes.InvalidArgument, "file descriptor set (output-only) must not be specified for %q", id)
 	}
 	if opts.requireNoProvides && len(m.GetProvides()) > 0 {
-		return status.Errorf(codes.InvalidArgument, "provides (output-only) must not be specified")
+		return status.Errorf(codes.InvalidArgument, "provides (output-only) must not be specified for %q", id)
+	}
+
+	if sz := proto.Size(m); sz > MaxMetadataSize {
+		return status.Errorf(codes.ResourceExhausted, "metadata size too large for %q: %d bytes > max %d bytes (Try reducing size of release notes and/or documentation.)", id, sz, MaxMetadataSize)
 	}
 
 	// Validate provides interfaces.
 	for _, pi := range m.GetProvides() {
 		if err := interfaceutils.ValidateInterfaceName(pi.GetUri()); err != nil {
-			return status.Errorf(codes.InvalidArgument, "invalid provides interface %q: %v", pi.GetUri(), err)
+			return status.Errorf(codes.InvalidArgument, "invalid provides interface %q for %q: %v", pi.GetUri(), id, err)
 		}
-	}
-
-	// Validate metadata size limits.
-	if err := ValidateNameLength(m.GetIdVersion().GetId().GetName(), m.GetAssetType()); err != nil {
-		return status.Errorf(codes.ResourceExhausted, "invalid name for %q: %v", id, err)
-	}
-	if err := ValidateDisplayNameLength(m.GetDisplayName()); err != nil {
-		return status.Errorf(codes.ResourceExhausted, "invalid display name for %q: %v", id, err)
-	}
-	if err := ValidateVersionLength(m.GetIdVersion().GetVersion()); err != nil {
-		return status.Errorf(codes.ResourceExhausted, "invalid version for %q: %v", id, err)
-	}
-	if err := ValidateDescriptionLength(m.GetDocumentation().GetDescription()); err != nil {
-		return status.Errorf(codes.ResourceExhausted, "invalid description for %q: %v", id, err)
-	}
-	if err := ValidateRelNotesLength(m.GetReleaseNotes()); err != nil {
-		return status.Errorf(codes.ResourceExhausted, "invalid release notes for %q: %v", id, err)
-	}
-	if sz := proto.Size(m); sz > MaxMetadataSize {
-		return status.Errorf(codes.ResourceExhausted, "metadata size of %q is too large: %d bytes > max %d bytes (Try reducing size of release notes and/or documentation.)", id, sz, MaxMetadataSize)
 	}
 
 	return nil
@@ -266,8 +191,97 @@ func ValidateMetadata(m *metadatapb.Metadata, options ...ValidateMetadataOption)
 
 // ValidateManifestMetadata validates asset manifest metadata.
 func ValidateManifestMetadata(m ManifestMetadata) error {
+	metadata, err := metadataFromManifestMetadata(m)
+	if err != nil {
+		return err
+	}
+
+	return ValidateMetadata(metadata)
+}
+
+func validateAssetType(at atypepb.AssetType, required atypepb.AssetType, id string) error {
+	if at == atypepb.AssetType_ASSET_TYPE_UNSPECIFIED {
+		return status.Errorf(codes.InvalidArgument, "no asset type specified for %q", id)
+	}
+	if required != atypepb.AssetType_ASSET_TYPE_UNSPECIFIED && at != required {
+		return status.Errorf(codes.InvalidArgument, "invalid asset type for %q: required %v but got %v", id, required.String(), at.String())
+	}
+
+	return nil
+}
+
+func validateName(name string, at atypepb.AssetType, id string) error {
+	maxLength, exists := NameCharLength[at]
+	if !exists {
+		return status.Errorf(codes.Internal, "unsupported asset type: %v", at)
+	}
+	if name == "" {
+		return status.Errorf(codes.InvalidArgument, "no name specified for %q", id)
+	}
+	if nameLen := len(name); nameLen > maxLength {
+		return status.Errorf(codes.ResourceExhausted, "name too long for %q: %q length %d > max %d", id, name, nameLen, maxLength)
+	}
+	return nil
+}
+
+func validateDisplayName(displayName string, id string) error {
+	if displayName == "" {
+		return status.Errorf(codes.InvalidArgument, "no display name specified for %q", id)
+	}
+	if nameLen := len(displayName); nameLen > DisplayNameCharLength {
+		return status.Errorf(codes.ResourceExhausted, "display name too long for %q: %q length %d > max %d", id, displayName, nameLen, DisplayNameCharLength)
+	}
+	return nil
+}
+
+func validateAssetTag(atag atagpb.AssetTag, at atypepb.AssetType, id string) error {
+	if atag == atagpb.AssetTag_ASSET_TAG_UNSPECIFIED {
+		return nil
+	}
+
+	applicableTags, err := tagutils.AssetTagsForType(at)
+	if err != nil {
+		return status.Errorf(codes.Internal, "cannot get asset tags for asset type %q: %v", at.String(), err)
+	}
+	if !slices.Contains(applicableTags, atag) {
+		return status.Errorf(codes.InvalidArgument, "invalid asset tag for %q: tag %q is not applicable to asset type %q", id, atag.String(), at.String())
+	}
+
+	return nil
+}
+
+func validateVendor(vendor string, id string) error {
+	if vendor == "" {
+		return status.Errorf(codes.InvalidArgument, "no vendor specified for %q", id)
+	}
+
+	return nil
+}
+
+func validateVersion(version string, id string) error {
+	if versionLen := len(version); versionLen > VersionCharLength {
+		return status.Errorf(codes.ResourceExhausted, "version too long for %q: %q length %d > max %d", id, version, versionLen, VersionCharLength)
+	}
+	return nil
+}
+
+func validateDescription(description string, id string) error {
+	if descriptionLen := len(description); descriptionLen > DescriptionCharLength {
+		return status.Errorf(codes.ResourceExhausted, "description too long for %q: %q length %d > max %d", id, description, descriptionLen, DescriptionCharLength)
+	}
+	return nil
+}
+
+func validateRelNotes(relnotes string, id string) error {
+	if relnotesLen := len(relnotes); relnotesLen > RelNotesCharLength {
+		return status.Errorf(codes.ResourceExhausted, "release notes too long for %q: %q length %d > max %d", id, relnotes, relnotesLen, RelNotesCharLength)
+	}
+	return nil
+}
+
+func metadataFromManifestMetadata(m ManifestMetadata) (*metadatapb.Metadata, error) {
 	var at atypepb.AssetType
-	switch m := m.(type) {
+	switch mt := m.(type) {
 	case *skillmanifestpb.SkillManifest:
 		at = atypepb.AssetType_ASSET_TYPE_SKILL
 	case *servicemanifestpb.ServiceMetadata:
@@ -281,68 +295,54 @@ func ValidateManifestMetadata(m ManifestMetadata) error {
 	case *pmpb.ProcessMetadata:
 		at = atypepb.AssetType_ASSET_TYPE_PROCESS
 	default:
-		return fmt.Errorf("unsupported manifest type: %T", m)
+		return nil, status.Errorf(codes.Internal, "unsupported manifest type: %T", mt)
 	}
 
-	// Some metadata protos have an asset tag field, some don't.
-	type metadataWithTag interface{ GetAssetTag() atagpb.AssetTag }
-	tag := atagpb.AssetTag_ASSET_TAG_UNSPECIFIED
-	if mWithTag, ok := m.(metadataWithTag); ok {
-		tag = mWithTag.GetAssetTag()
+	tag, err := tagFromManifestMetadata(m)
+	if err != nil {
+		return nil, err
 	}
 
-	return ValidateMetadata(&metadatapb.Metadata{
+	return &metadatapb.Metadata{
+		AssetTag:      tag,
 		AssetType:     at,
 		DisplayName:   m.GetDisplayName(),
 		Documentation: m.GetDocumentation(),
 		IdVersion: &idpb.IdVersion{
 			Id: m.GetId(), // ID only, since manifests do not specify versions.
 		},
-		Vendor:   m.GetVendor(),
-		AssetTag: tag,
-	})
+		Vendor: m.GetVendor(),
+	}, nil
 }
 
-// ValidateNameLength validates the length of asset names.
-func ValidateNameLength(name string, at atypepb.AssetType) error {
-	maxLength, exists := NameCharLength[at]
-	if !exists {
-		return fmt.Errorf("unsupported asset type: %v", at)
+func tagFromManifestMetadata(m any) (atagpb.AssetTag, error) {
+	// Some metadata has a `tag` field.
+	if mWithTag, ok := m.(metadataWithTag); ok {
+		return mWithTag.GetAssetTag(), nil
 	}
-	if nameLen := len(name); nameLen > maxLength {
-		return fmt.Errorf("name %q exceeds character limit: length %d > max %d", name, nameLen, maxLength)
+
+	// Some metadata has a `tags` field.
+	if mWithTags, ok := m.(metadataWithTags); ok {
+		if len(mWithTags.GetAssetTags()) > 0 {
+			return mWithTags.GetAssetTags()[0], nil
+		}
+
+		return atagpb.AssetTag_ASSET_TAG_UNSPECIFIED, nil
 	}
-	return nil
+
+	// Some metadata cannot represent tags.
+	if !metadataHasTag(m) {
+		return atagpb.AssetTag_ASSET_TAG_UNSPECIFIED, nil
+	}
+
+	return atagpb.AssetTag_ASSET_TAG_UNSPECIFIED, status.Errorf(codes.Internal, "cannot get tag from unsupported manifest type for %T", m)
 }
 
-// ValidateDisplayNameLength validates the length of asset display names.
-func ValidateDisplayNameLength(name string) error {
-	if nameLen := len(name); nameLen > DisplayNameCharLength {
-		return fmt.Errorf("display name %q exceeds character limit: length %d > max %d", name, nameLen, DisplayNameCharLength)
+func metadataHasTag(m any) bool {
+	switch m.(type) {
+	case *datamanifestpb.DataManifest_Metadata, *skillmanifestpb.SkillManifest:
+		return false
 	}
-	return nil
-}
 
-// ValidateVersionLength validates the length of asset versions.
-func ValidateVersionLength(version string) error {
-	if versionLen := len(version); versionLen > VersionCharLength {
-		return fmt.Errorf("version exceeds character limit: length %d > max %d", versionLen, VersionCharLength)
-	}
-	return nil
-}
-
-// ValidateDescriptionLength validates the length of asset names.
-func ValidateDescriptionLength(description string) error {
-	if descriptionLen := len(description); descriptionLen > DescriptionCharLength {
-		return fmt.Errorf("description exceeds character limit: length %d > max %d", descriptionLen, DescriptionCharLength)
-	}
-	return nil
-}
-
-// ValidateRelNotesLength validates the length of asset names.
-func ValidateRelNotesLength(relnotes string) error {
-	if relnotesLen := len(relnotes); relnotesLen > RelNotesCharLength {
-		return fmt.Errorf("release notes exceeds character limit: length %d > max %d", relnotesLen, RelNotesCharLength)
-	}
-	return nil
+	return true
 }
