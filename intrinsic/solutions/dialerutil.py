@@ -68,6 +68,25 @@ def create_channel_from_address(
   return grpc.insecure_channel(address, options=grpc_options)
 
 
+def create_channel_from_org(
+    org_info: auth.OrgInfo,
+    grpc_options: list[tuple[str, Any]] | None = None,
+) -> grpc.Channel:
+  """Creates a gRPC channel based on the provided organization.
+
+  Args:
+    org_info: The organization and project information.
+    grpc_options: List of gRPC channel options.
+
+  Returns:
+    A gRPC channel to the cloud cluster.
+  """
+  return _create_channel(
+      org_info=org_info,
+      grpc_options=grpc_options,
+  )
+
+
 def create_channel_from_cluster(
     org_info: auth.OrgInfo,
     cluster: str,

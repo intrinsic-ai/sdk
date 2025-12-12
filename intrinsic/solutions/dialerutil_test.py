@@ -12,6 +12,17 @@ from intrinsic.solutions import dialerutil
 class DialerutilTest(absltest.TestCase):
 
   @mock.patch.object(dialerutil, "_create_channel")
+  def test_create_channel_from_org(self, mock_create_channel: mock.MagicMock):
+    mock_create_channel.return_value = grpc.insecure_channel("localhost:1234")
+    org_info = auth.OrgInfo(organization="test-org", project="test-project")
+    channel = dialerutil.create_channel_from_org(org_info=org_info)
+    mock_create_channel.assert_called_with(
+        org_info=org_info,
+        grpc_options=None,
+    )
+    self.assertIsInstance(channel, grpc.Channel)
+
+  @mock.patch.object(dialerutil, "_create_channel")
   @mock.patch.object(dialerutil, "_get_cluster_from_solution")
   def test_create_channel_from_org_and_solution(
       self,
