@@ -6,16 +6,14 @@ package pool
 import (
 	"context"
 	"fmt"
-	"os"
-	"strings"
-
+	"github.com/spf13/viper"
+	"google.golang.org/grpc"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/kubernetes/vmpool/service/pkg/defaults/defaults"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/cobrautil"
-
-	"github.com/spf13/viper"
-	"google.golang.org/grpc"
+	"os"
+	"strings"
 
 	leaseapigrpcpb "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_grpc_proto"
 	vmpoolsgrpcpb "intrinsic/kubernetes/vmpool/service/api/v1/vmpool_api_go_grpc_proto"
@@ -65,9 +63,7 @@ func init() {
 	vmpoolsUpdateCmd.Flags().StringVar(&flagIntrinsicOS, "intrinsic-os", "", intOSFlagDesc)
 	vmpoolsUpdateCmd.Flags().StringVar(&flagTier, "tier", defaults.Tier, tierFlagDesc)
 	vmpoolsUpdateCmd.Flags().StringVar(&flagHardwareTemplate, "hwtemplate", defaults.HardwareTemplate, hardwareTemplateFlagDesc)
-	vmpoolsUpdateCmd.MarkFlagsRequiredTogether("runtime", "pool", "hwtemplate", "tier")
 	PoolCmd.AddCommand(vmpoolsUpdateCmd)
-
 	PoolCmd.AddCommand(vmpoolsListCmd)
 	PoolCmd.AddCommand(vmpoolsListTiersCmd)
 	PoolCmd.AddCommand(vmpoolsListHardwareTemplatesCmd)

@@ -4,13 +4,12 @@ package pool
 
 import (
 	"fmt"
-
+	"github.com/spf13/cobra"
+	"go.opencensus.io/trace"
+	fmpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	"intrinsic/kubernetes/acl/identity"
 	"intrinsic/kubernetes/vmpool/service/pkg/defaults/defaults"
 	"intrinsic/tools/inctl/util/printer"
-
-	"github.com/spf13/cobra"
-	"go.opencensus.io/trace"
 
 	vmpoolspb "intrinsic/kubernetes/vmpool/service/api/v1/vmpool_api_go_grpc_proto"
 )
@@ -97,7 +96,20 @@ var vmpoolsCreateCmd = &cobra.Command{
 	},
 }
 
-func getUpdatePoolRequest() *vmpoolspb.UpdatePoolRequest {
+func getUpdatePoolRequest(cmd *cobra.Command) *vmpoolspb.UpdatePoolRequest {
+	mask := &fmpb.FieldMask{}
+	if cmd.Flags().Changed("runtime") {
+		mask.Paths = append(mask.Paths, "spec.runtime")
+	}
+	if cmd.Flags().Changed("intrinsic-os") {
+		mask.Paths = append(mask.Paths, "spec.intrinsic_os")
+	}
+	if cmd.Flags().Changed("tier") {
+		mask.Paths = append(mask.Paths, "spec.pool_tier")
+	}
+	if cmd.Flags().Changed("hwtemplate") {
+		mask.Paths = append(mask.Paths, "spec.hardware_template")
+	}
 	return &vmpoolspb.UpdatePoolRequest{
 		Name: flagPool,
 		Spec: &vmpoolspb.Spec{
@@ -106,14 +118,18 @@ func getUpdatePoolRequest() *vmpoolspb.UpdatePoolRequest {
 			PoolTier:         flagTier,
 			HardwareTemplate: flagHardwareTemplate,
 		},
+		UpdateMask: mask,
 	}
 }
 
 var updateDesc = `Update an existing VM pool.
 
-Update will only result in a pool replacement if the new configuration is different from the old one.
+- If no flag is specified, no fields will be updated.
+- If a flag is specified, that field will be updated with the value of the flag.
+- If a flag is specified with an empty string as value, the endpoint will use the default value (e.g., latest runtime version or latest Intrinsic OS version).
 
-To prevent defaults from being applied by accident, all flags have to be specified.
+Example: Update a pool named 'usecase0' to the latest runtime and Intrinsic OS versions:
+	inctl vm pool update --pool usecase0 --runtime "" --intrinsic-os "" --org=<my-org>
 
 ` + textForUpsert("update")
 
@@ -133,7 +149,7 @@ var vmpoolsUpdateCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		resp, err := cl.UpdatePool(ctx, getUpdatePoolRequest())
+		resp, err := cl.UpdatePool(ctx, getUpdatePoolRequest(cmd))
 		if err != nil {
 			return err
 		}
