@@ -14,13 +14,15 @@ option go_package = "intrinsic/icon/control/parts/hal/arm_part/hal_arm_part_conf
 // Config specialization for a HAL arm part.
 // The config is assigning a hardware interface for each required feature
 // interface.
-// Next ID: 27
+// Next ID: 28
 message HalArmPartConfig {
   optional intrinsic_proto.icon.v1.HardwareInterface joint_position_command = 1;
   optional intrinsic_proto.icon.v1.HardwareInterface joint_commanded_position =
       25;
   optional intrinsic_proto.icon.v1.HardwareInterface joint_velocity_command = 2;
   optional intrinsic_proto.icon.v1.HardwareInterface joint_torque_command = 3;
+  optional intrinsic_proto.icon.v1.HardwareInterface
+      joint_acceleration_command = 27;
   optional intrinsic_proto.icon.v1.HardwareInterface joint_position_state = 4;
   optional intrinsic_proto.icon.v1.HardwareInterface joint_velocity_state = 5;
   optional intrinsic_proto.icon.v1.HardwareInterface joint_acceleration_state =
