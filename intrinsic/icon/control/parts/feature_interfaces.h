@@ -14,6 +14,7 @@
 #include "absl/types/optional.h"
 #include "absl/types/span.h"
 #include "intrinsic/eigenmath/types.h"
+#include "intrinsic/icon/control/joint_acceleration_command.h"
 #include "intrinsic/icon/control/joint_position_command.h"
 #include "intrinsic/icon/utils/realtime_status.h"
 #include "intrinsic/icon/utils/realtime_status_or.h"
@@ -54,6 +55,20 @@ class JointVelocity {
   // Returns an error if the part is currently not in velocity mode.
   virtual RealtimeStatus SetVelocitySetpoints(
       const eigenmath::VectorNd& setpoints) = 0;
+};
+
+class JointAcceleration {
+ public:
+  virtual ~JointAcceleration() = default;
+  // Sends the given acceleration command.
+  // Returns an error if the setpoints are invalid, i.e. they contain the wrong
+  // number of values.
+  // Returns an error if the part is currently not in acceleration mode.
+  virtual RealtimeStatus SetAccelerationSetpoints(
+      const JointAccelerationCommand& setpoints) = 0;
+
+  // Returns the setpoints from the previous tick.
+  virtual JointAccelerationCommand PreviousAccelerationSetpoints() const = 0;
 };
 
 class JointPositionSensor {

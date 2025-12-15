@@ -9,6 +9,7 @@ cc_library(
     hdrs = ["feature_interfaces.h"],
     deps = [
         "//intrinsic/eigenmath",
+        "//intrinsic/icon/control:joint_acceleration_command",
         "//intrinsic/icon/control:joint_position_command",
         "//intrinsic/icon/utils:realtime_status",
         "//intrinsic/icon/utils:realtime_status_or",

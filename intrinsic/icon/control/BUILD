@@ -21,6 +21,17 @@ cc_library(
 )
 
 cc_library(
+    name = "joint_acceleration_command",
+    srcs = ["joint_acceleration_command.cc"],
+    hdrs = ["joint_acceleration_command.h"],
+    deps = [
+        "//intrinsic/eigenmath",
+        "//intrinsic/icon/utils:realtime_status",
+        "//intrinsic/icon/utils:realtime_status_or",
+    ],
+)
+
+cc_library(
     name = "streaming_io_types",
     hdrs = ["streaming_io_types.h"],
     deps = [

@@ -18,6 +18,9 @@ message GenericJointPositionConfig {
 message GenericJointVelocityConfig {
   int64 num_joints = 1;
 }
+message GenericJointAccelerationConfig {
+  int64 num_joints = 1;
+}
 message GenericJointPositionSensorConfig {
   int64 num_joints = 1;
 }
@@ -149,6 +152,7 @@ message GenericCartesianPositionStateConfig {
 message GenericPartConfig {
   optional GenericJointPositionConfig joint_position_config = 1;
   optional GenericJointVelocityConfig joint_velocity_config = 2;
+  optional GenericJointAccelerationConfig joint_acceleration_config = 28;
   optional GenericJointPositionSensorConfig joint_position_sensor_config = 3;
   optional GenericJointVelocityEstimatorConfig joint_velocity_estimator_config =
       4;
