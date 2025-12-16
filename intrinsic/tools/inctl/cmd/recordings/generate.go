@@ -11,6 +11,7 @@ import (
 	"intrinsic/tools/inctl/util/orgutil"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	pb "intrinsic/logging/proto/bag_packager_service_go_grpc_proto"
 )
@@ -33,7 +34,7 @@ const (
 )
 
 var generateRecordingE = func(cmd *cobra.Command, _ []string) error {
-	client, err := newBagPackagerClient(cmd.Context())
+	client, err := newBagPackagerClient(cmd.Context(), generateParam)
 	if err != nil {
 		return err
 	}
@@ -70,7 +71,7 @@ var generateRecordingE = func(cmd *cobra.Command, _ []string) error {
 		Query: &pb.GenerateBagRequest_BagId{
 			BagId: flagBagID,
 		},
-		OrganizationId: cmdFlags.GetString(orgutil.KeyOrganization),
+		OrganizationId: generateParam.GetString(orgutil.KeyOrganization),
 	}
 	_, err = client.GenerateBag(cmd.Context(), generateReq)
 	if err != nil {
@@ -107,13 +108,16 @@ var generateRecordingE = func(cmd *cobra.Command, _ []string) error {
 	return nil
 }
 
-var generateCmd = &cobra.Command{
-	Use:   "generate",
-	Short: "Generates an Intrinsic recording file for a given recording id",
-	Long:  "Generates an Intrinsic recording file for a given recording id",
-	Args:  cobra.NoArgs,
-	RunE:  generateRecordingE,
-}
+var (
+	generateParam = viper.New()
+	generateCmd   = orgutil.WrapCmd(&cobra.Command{
+		Use:   "generate",
+		Short: "Generates an Intrinsic recording file for a given recording id",
+		Long:  "Generates an Intrinsic recording file for a given recording id",
+		Args:  cobra.NoArgs,
+		RunE:  generateRecordingE,
+	}, generateParam, orgutil.WithOrgExistsCheck(func() bool { return true }))
+)
 
 func init() {
 	recordingsCmd.AddCommand(generateCmd)

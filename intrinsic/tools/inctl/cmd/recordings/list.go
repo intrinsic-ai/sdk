@@ -12,6 +12,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	bmpb "intrinsic/logging/proto/bag_metadata_go_proto"
 	grpcpb "intrinsic/logging/proto/bag_packager_service_go_grpc_proto"
@@ -83,7 +84,7 @@ func executeAndPrintListBagsResponse(ctx context.Context, client grpcpb.BagPacka
 }
 
 var listRecordingsE = func(cmd *cobra.Command, _ []string) error {
-	client, err := newBagPackagerClient(cmd.Context())
+	client, err := newBagPackagerClient(cmd.Context(), listParams)
 	if err != nil {
 		return err
 	}
@@ -106,7 +107,7 @@ var listRecordingsE = func(cmd *cobra.Command, _ []string) error {
 	}
 
 	req := &pb.ListBagsRequest{
-		OrganizationId: cmdFlags.GetString(orgutil.KeyOrganization),
+		OrganizationId: listParams.GetString(orgutil.KeyOrganization),
 		MaxNumResults:  &flagMaxNumResults,
 		Query: &pb.ListBagsRequest_ListQuery{
 			ListQuery: &pb.ListBagsRequest_Query{
@@ -156,7 +157,7 @@ var listRecordingsE = func(cmd *cobra.Command, _ []string) error {
 		}
 
 		req := &pb.ListBagsRequest{
-			OrganizationId: cmdFlags.GetString(orgutil.KeyOrganization),
+			OrganizationId: listParams.GetString(orgutil.KeyOrganization),
 			MaxNumResults:  &flagMaxNumResults,
 			Query: &pb.ListBagsRequest_Cursor{
 				Cursor: nextPageCursor,
@@ -174,14 +175,17 @@ var listRecordingsE = func(cmd *cobra.Command, _ []string) error {
 	return nil
 }
 
-var listCmd = &cobra.Command{
-	Use:     "list",
-	Aliases: []string{"ls"},
-	Short:   "Lists available recordings for a given workcell",
-	Long:    "Lists available recordings for a given workcell",
-	Args:    cobra.NoArgs,
-	RunE:    listRecordingsE,
-}
+var (
+	listParams = viper.New()
+	listCmd    = orgutil.WrapCmd(&cobra.Command{
+		Use:     "list",
+		Aliases: []string{"ls"},
+		Short:   "Lists available recordings for a given workcell",
+		Long:    "Lists available recordings for a given workcell",
+		Args:    cobra.NoArgs,
+		RunE:    listRecordingsE,
+	}, listParams, orgutil.WithOrgExistsCheck(func() bool { return true }))
+)
 
 func init() {
 	recordingsCmd.AddCommand(listCmd)

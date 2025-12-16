@@ -6,7 +6,10 @@ import (
 	"fmt"
 	"strings"
 
+	"intrinsic/tools/inctl/util/orgutil"
+
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"google.golang.org/protobuf/encoding/prototext"
 
 	pb "intrinsic/logging/proto/bag_packager_service_go_grpc_proto"
@@ -15,7 +18,7 @@ import (
 var flagURL bool
 
 var getRecordingE = func(cmd *cobra.Command, _ []string) error {
-	client, err := newBagPackagerClient(cmd.Context())
+	client, err := newBagPackagerClient(cmd.Context(), getParams)
 	if err != nil {
 		return err
 	}
@@ -38,13 +41,16 @@ var getRecordingE = func(cmd *cobra.Command, _ []string) error {
 	return nil
 }
 
-var getCmd = &cobra.Command{
-	Use:   "get",
-	Short: "Gets a ROS bag for a given recording id",
-	Long:  "Gets a ROS bag for a given recording id",
-	Args:  cobra.NoArgs,
-	RunE:  getRecordingE,
-}
+var (
+	getParams = viper.New()
+	getCmd    = orgutil.WrapCmd(&cobra.Command{
+		Use:   "get",
+		Short: "Gets a ROS bag for a given recording id",
+		Long:  "Gets a ROS bag for a given recording id",
+		Args:  cobra.NoArgs,
+		RunE:  getRecordingE,
+	}, getParams, orgutil.WithOrgExistsCheck(func() bool { return true }))
+)
 
 func init() {
 	recordingsCmd.AddCommand(getCmd)

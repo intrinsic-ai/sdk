@@ -7,13 +7,14 @@ import (
 	"fmt"
 	"time"
 
-	"intrinsic/assets/cmdutils"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/cobrautil"
 	"intrinsic/tools/inctl/util/color"
+	"intrinsic/tools/inctl/util/orgutil"
 
 	"github.com/pborman/uuid"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -25,10 +26,7 @@ import (
 	tpb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
-var (
-	visualizeCmdFlags = cmdutils.NewCmdFlagsWithViper(localViper)
-	visualizeCmd      = cobrautil.ParentOfNestedSubcommands("visualize", "Visualize Intrinsic recordings")
-)
+var visualizeCmd = cobrautil.ParentOfNestedSubcommands("visualize", "Visualize Intrinsic recordings")
 
 const (
 	serviceTag         string = "inctl"
@@ -40,16 +38,16 @@ var (
 	flagDuration    string
 )
 
-func newLeaseClient(ctx context.Context) (leaseapigrpcpb.VMPoolLeaseServiceClient, error) {
-	conn, err := auth.NewCloudConnection(ctx, auth.WithFlagValues(localViper))
+func newLeaseClient(ctx context.Context, v *viper.Viper) (leaseapigrpcpb.VMPoolLeaseServiceClient, error) {
+	conn, err := auth.NewCloudConnection(ctx, auth.WithFlagValues(v))
 	if err != nil {
 		return nil, err
 	}
 	return leaseapigrpcpb.NewVMPoolLeaseServiceClient(conn), nil
 }
 
-func leaseVM(ctx context.Context, duration time.Duration) (*leasepb.Lease, error) {
-	leaseClient, err := newLeaseClient(ctx)
+func leaseVM(ctx context.Context, v *viper.Viper, duration time.Duration) (*leasepb.Lease, error) {
+	leaseClient, err := newLeaseClient(ctx, v)
 	if err != nil {
 		return nil, fmt.Errorf("could not create visualization host client: %v", err)
 	}
@@ -83,13 +81,13 @@ var visualizeCreateE = func(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("Duration '%v' entered is not valid, use something like '30m' or '1h': %v", flagDuration, err)
 	}
 
-	lease, err := leaseVM(ctx, duration)
+	lease, err := leaseVM(ctx, visualizeCreateParam, duration)
 	if err != nil {
 		return fmt.Errorf("visualization host creation failed: %v", err)
 	}
 	clusterName := lease.GetInstance()
 
-	conn, err := auth.NewCloudConnection(ctx, auth.WithFlagValues(localViper), auth.WithCluster(clusterName))
+	conn, err := auth.NewCloudConnection(ctx, auth.WithFlagValues(visualizeCreateParam), auth.WithCluster(clusterName))
 	if err != nil {
 		return err
 	}
@@ -119,18 +117,19 @@ var visualizeCreateE = func(cmd *cobra.Command, _ []string) error {
 	return nil
 }
 
-var visualizeCreateCmd = &cobra.Command{
-	Use:   "create",
-	Short: "Creates a visualization of a recording in a hosted version of Rerun.io",
-	Long:  "Creates a visualization of a recording in a hosted version of Rerun.io",
-	Args:  cobra.NoArgs,
-	RunE:  visualizeCreateE,
-}
+var (
+	visualizeCreateParam = viper.New()
+	visualizeCreateCmd   = orgutil.WrapCmd(&cobra.Command{
+		Use:   "create",
+		Short: "Creates a visualization of a recording in a hosted version of Rerun.io",
+		Long:  "Creates a visualization of a recording in a hosted version of Rerun.io",
+		Args:  cobra.NoArgs,
+		RunE:  visualizeCreateE,
+	}, visualizeCreateParam, orgutil.WithOrgExistsCheck(func() bool { return true }))
+)
 
 func init() {
 	recordingsCmd.AddCommand(visualizeCmd)
-	visualizeCmdFlags.SetCommand(visualizeCmd)
-	visualizeCmdFlags.AddFlagsProjectOrg()
 
 	visualizeCmd.AddCommand(visualizeCreateCmd)
 	visualizeCreateCmd.Flags().StringVar(&flagRecordingID, "recording_id", "", "The recording id to visualize.")
