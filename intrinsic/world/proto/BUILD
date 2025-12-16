@@ -217,6 +217,7 @@ proto_library(
         ":physics_component_proto",
         ":robot_payload_proto",
         ":simulation_component_proto",
+        ":user_data_proto",
         "//intrinsic/icon/proto:cart_space_proto",
         "//intrinsic/kinematics/types:joint_limits_proto",
         "//intrinsic/math/proto:pose_proto",
@@ -249,6 +250,7 @@ go_proto_library(
         ":physics_component_go_proto",
         ":simulation_component_go_proto",
         ":object_world_refs_go_proto",
+        ":user_data_go_proto",
         "//intrinsic/icon/proto:cart_space_go_proto",
         "//intrinsic/kinematics/types:joint_limits_go_proto",
         "//intrinsic/math/proto:pose_go_proto",
@@ -368,12 +370,6 @@ py_proto_library(
     deps = [":robot_payload_proto"],
 )
 
-py_proto_library(
-    name = "entity_search_py_pb2",
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":entity_search_proto"],
-)
-
 go_proto_library(
     name = "robot_payload_go_proto",
     go_deps = [
@@ -384,6 +380,43 @@ go_proto_library(
     deps = [":robot_payload_proto"],
 )
 
+cc_proto_library(
+    name = "robot_payload_cc_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":robot_payload_proto"],
+)
+
+proto_library(
+    name = "user_data_proto",
+    srcs = ["user_data.proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        "@com_google_protobuf//:any_proto",
+    ],
+)
+
+py_proto_library(
+    name = "user_data_py_pb2",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":user_data_proto"],
+)
+
+py_proto_library(
+    name = "entity_search_py_pb2",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":entity_search_proto"],
+)
+
+go_proto_library(
+    name = "user_data_go_proto",
+    go_deps = [
+        "//intrinsic/math/proto:matrix_go_proto",
+        "//intrinsic/math/proto:pose_go_proto",
+    ],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":user_data_proto"],
+)
+
 go_proto_library(
     name = "entity_search_go_proto",
     visibility = ["//intrinsic:public_api_users"],
@@ -391,9 +424,9 @@ go_proto_library(
 )
 
 cc_proto_library(
-    name = "robot_payload_cc_proto",
+    name = "user_data_cc_proto",
     visibility = ["//intrinsic:public_api_users"],
-    deps = [":robot_payload_proto"],
+    deps = [":user_data_proto"],
 )
 
 proto_library(
