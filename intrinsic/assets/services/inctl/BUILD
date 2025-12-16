@@ -10,8 +10,6 @@ go_library(
     deps = [
         ":add",
         ":delete",
-        "//intrinsic/assets/inctl:install",
-        "//intrinsic/assets/inctl:release",
         "//intrinsic/assets/services/inctl/state",
         "//intrinsic/tools/inctl/cmd:root",
         "//intrinsic/tools/inctl/util:cobrautil",

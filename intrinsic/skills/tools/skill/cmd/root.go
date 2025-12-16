@@ -4,7 +4,6 @@
 package cmd
 
 import (
-	"intrinsic/assets/inctl/release"
 	"intrinsic/skills/tools/skill/cmd/create/create"
 	"intrinsic/skills/tools/skill/cmd/install/install"
 	"intrinsic/skills/tools/skill/cmd/list/list"
@@ -17,6 +16,5 @@ func init() {
 	cmd.AddCommand(create.Command())
 	cmd.AddCommand(install.Command())
 	cmd.AddCommand(list.Command())
-	cmd.AddCommand(release.GetCommand())
 	root.RootCmd.AddCommand(cmd)
 }

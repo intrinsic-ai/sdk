@@ -4,8 +4,6 @@
 package service
 
 import (
-	"intrinsic/assets/inctl/install"
-	"intrinsic/assets/inctl/release"
 	"intrinsic/assets/services/inctl/add"
 	deletecmd "intrinsic/assets/services/inctl/delete"
 	servicestate "intrinsic/assets/services/inctl/state/state"
@@ -17,8 +15,6 @@ func init() {
 	cmd := cobrautil.ParentOfNestedSubcommands(root.ServiceCmdName, "Manage Service assets.")
 	cmd.AddCommand(add.GetCommand())
 	cmd.AddCommand(deletecmd.GetCommand())
-	cmd.AddCommand(install.GetCommand())
-	cmd.AddCommand(release.GetCommand())
 	cmd.AddCommand(servicestate.ServiceStateCmd)
 	root.RootCmd.AddCommand(cmd)
 }
