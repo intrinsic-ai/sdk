@@ -609,7 +609,7 @@ def _field_to_repr(field: descriptor.FieldDescriptor, field_value: Any) -> str:
   if field.message_type is None:
     return repr(field_value)
 
-  if field.label == descriptor.FieldDescriptor.LABEL_REPEATED:
+  if field.is_repeated:
     if (
         field.type == descriptor.FieldDescriptor.TYPE_MESSAGE
         and field.message_type.GetOptions().map_entry
@@ -765,12 +765,9 @@ class GeneratedSkill(provided.SkillBase):
             ):
               # Guard this check for list non-scalar list values to allow
               # assigning a VectorNd from a list[float].
-              if (
-                  self._param_message.DESCRIPTOR.fields_by_name[
-                      param_name
-                  ].label
-                  != descriptor.FieldDescriptor.LABEL_REPEATED
-              ):
+              if not self._param_message.DESCRIPTOR.fields_by_name[
+                  param_name
+              ].is_repeated:
                 raise TypeError(
                     f"Cannot set field {param_name} to list, not a repeated"
                     " field"
@@ -789,7 +786,7 @@ class GeneratedSkill(provided.SkillBase):
           if isinstance(value, dict):
             field = self._param_message.DESCRIPTOR.fields_by_name[param_name]
             if (
-                field.label != descriptor.FieldDescriptor.LABEL_REPEATED
+                not field.is_repeated
                 or field.type != descriptor.FieldDescriptor.TYPE_MESSAGE
                 or not field.message_type.GetOptions().map_entry
             ):

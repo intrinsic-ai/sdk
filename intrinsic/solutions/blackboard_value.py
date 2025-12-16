@@ -128,7 +128,7 @@ class BlackboardValue:
         name = "getSeconds()"
       elif name == "nanos":
         name = "getMilliseconds() * 1000000"
-    repeated = v.label == descriptor.FieldDescriptor.LABEL_REPEATED
+    repeated = v.is_repeated
     if v.type == descriptor.FieldDescriptor.TYPE_MESSAGE:
       return BlackboardValue(
           v.message_type.fields_by_name, name, None, self, repeated

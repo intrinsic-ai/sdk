@@ -40,7 +40,7 @@ def _set_fields(
     msg: A protobuf message to mutate
   """
   for field, value in fields.items():
-    if field.label == descriptor.FieldDescriptor.LABEL_REPEATED:
+    if field.is_repeated:
       repeated = getattr(msg, field.name)
       repeated.extend(value)
     elif field.message_type is not None:

@@ -33,7 +33,6 @@ from google.protobuf import duration_pb2
 from google.protobuf import message
 from google.protobuf import message_factory
 import grpc
-
 from intrinsic.assets import id_utils
 from intrinsic.icon.proto import joint_space_pb2
 from intrinsic.math.proto import pose_pb2
@@ -522,7 +521,7 @@ def pythonic_field_default_value(
     )
 
   if (
-      field_descriptor.label == descriptor.FieldDescriptor.LABEL_REPEATED
+      field_descriptor.is_repeated
       and field_descriptor.message_type.GetOptions().map_entry
   ):
     return {m["key"]: m["value"] for m in field_value}
@@ -603,10 +602,7 @@ def set_fields_in_msg(
     field_type = field_desc.type
     field_message_type = field_desc.message_type
     field_enum_type = field_desc.enum_type
-    if (
-        field_descriptor_map[field_name].label
-        == descriptor.FieldDescriptor.LABEL_REPEATED
-    ):
+    if field_descriptor_map[field_name].is_repeated:
       if (
           field_type == descriptor.FieldDescriptor.TYPE_MESSAGE
           and field_message_type.GetOptions().map_entry

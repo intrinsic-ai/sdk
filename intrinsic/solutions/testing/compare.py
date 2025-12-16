@@ -48,7 +48,7 @@ def _clear_field(proto: message.Message, field_path: str) -> None:
         f" a message field for message {proto.DESCRIPTOR.full_name}."
     )
 
-  if next_field.label == descriptor.FieldDescriptor.LABEL_REPEATED:
+  if next_field.is_repeated:
     sub_field_list = getattr(proto, next_field_name)
     for sub_message in sub_field_list:
       _clear_field(sub_message, path_suffix)
@@ -83,7 +83,7 @@ def _sort_repeated_fields(proto: message.Message, deduplicate: bool) -> None:
     # - a repeated field (list) of messages
     # - a map to a scalar value
     # - a map to message values
-    if field.label == descriptor.FieldDescriptor.LABEL_REPEATED:
+    if field.is_repeated:
       sub_field_list = getattr(proto, field.name)
 
       if (
@@ -116,7 +116,7 @@ def _sort_repeated_fields(proto: message.Message, deduplicate: bool) -> None:
   # now, sort each field, where sub-fields are already sorted (and thus
   # canonical)
   for field in proto.DESCRIPTOR.fields:
-    if field.label != descriptor.FieldDescriptor.LABEL_REPEATED:
+    if not field.is_repeated:
       continue
 
     if (
@@ -191,7 +191,7 @@ def _equalize_floats_in_tolerance(
         field.type == descriptor.FieldDescriptor.TYPE_FLOAT
         or field.type == descriptor.FieldDescriptor.TYPE_DOUBLE
     ):
-      if field.label != descriptor.FieldDescriptor.LABEL_REPEATED:
+      if not field.is_repeated:
         # field is just a float
         if _floats_in_tolerance(value_a, value_b, rtol):
           setattr(proto_a, field.name, value_b)
@@ -204,7 +204,7 @@ def _equalize_floats_in_tolerance(
     if field.type != descriptor.FieldDescriptor.TYPE_MESSAGE:
       continue
 
-    if field.label == descriptor.FieldDescriptor.LABEL_REPEATED:
+    if field.is_repeated:
       if (
           field.message_type.has_options
           and field.message_type.GetOptions().map_entry

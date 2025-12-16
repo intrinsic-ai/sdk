@@ -7,7 +7,6 @@ from typing import Optional
 from google.protobuf import descriptor
 from google.protobuf import descriptor_pb2
 from google.protobuf import message
-
 from intrinsic.skills.proto import skills_pb2
 
 # This field can be used to determine if a field is a 'oneof'.
@@ -97,7 +96,7 @@ def _is_repeated_or_map_field(
 ) -> bool:
   """Returns True if the given field is repeated or a map."""
   # Under the hood, maps are repeated fields.
-  return field_proto.label == descriptor.FieldDescriptor.LABEL_REPEATED
+  return field_proto.label == descriptor_pb2.FieldDescriptorProto.LABEL_REPEATED
 
 
 def _is_oneof_field(field_proto: descriptor_pb2.FieldDescriptorProto) -> bool:
@@ -212,7 +211,7 @@ class SkillParameters:
     """
     field = self._default_message.DESCRIPTOR.fields_by_name[field_name]
     return (
-        field.label == descriptor.FieldDescriptor.LABEL_REPEATED
+        field.is_repeated
         # Under the hood, a map is a repeated field with a special,
         # auto-generated message type. This type has the 'map_entry' flag set.
         and field.type == descriptor.FieldDescriptor.TYPE_MESSAGE
