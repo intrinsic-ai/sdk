@@ -8,7 +8,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"intrinsic/assets/services/servicemanifest"
 	"intrinsic/util/archive/tartooling"
@@ -186,48 +185,6 @@ func ProcessService(ctx context.Context, path string, opts ProcessServiceOpts) (
 	}
 
 	return m, nil
-}
-
-// ValidateService checks that the assets of a service bundle are all
-// contained within the inlined file map.
-func ValidateService(manifest *smpb.ServiceManifest, inlinedFiles map[string][]byte) error {
-	files := make([]string, 0, len(inlinedFiles))
-	usedFiles := make(map[string]bool)
-	for f := range inlinedFiles {
-		files = append(files, f)
-		usedFiles[f] = true
-	}
-	fileNames := strings.Join(files, ", ")
-	// Check that every defined asset is in the inlined filemap.
-	assets := map[string]string{
-		"default configuration file": manifest.GetAssets().GetDefaultConfigurationFilename(),
-		"parameter descriptor file":  manifest.GetAssets().GetParameterDescriptorFilename(),
-		"image tar":                  manifest.GetServiceDef().GetRealSpec().GetImage().GetArchiveFilename(),
-		"simulation image tar":       manifest.GetServiceDef().GetSimSpec().GetImage().GetArchiveFilename(),
-	}
-	for desc, path := range assets {
-		if path != "" {
-			if _, ok := inlinedFiles[path]; !ok {
-				return fmt.Errorf("the service manifest's %s %q is not in the bundle. files are %s", desc, path, fileNames)
-			}
-			delete(usedFiles, path)
-		}
-	}
-	for _, path := range manifest.GetAssets().GetImageFilenames() {
-		if _, ok := inlinedFiles[path]; !ok {
-			return fmt.Errorf("the service manifest's image file %q is not in the bundle. files are %s", path, fileNames)
-		}
-		delete(usedFiles, path)
-	}
-	if len(usedFiles) > 0 {
-		files := make([]string, 0, len(usedFiles))
-		for f := range usedFiles {
-			files = append(files, f)
-		}
-		fileNames := strings.Join(files, ", ")
-		return fmt.Errorf("found unexpected files in the archive: %s", fileNames)
-	}
-	return nil
 }
 
 // WriteServiceOpts provides the details to construct a service bundle.
