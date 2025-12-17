@@ -37,6 +37,7 @@ message ListResponse {
 
 // A GRPC wrapper around the zenohd key-value store.
 service KVStore {
+
   // Get a value from the store.
   rpc Get(GetRequest) returns (GetResponse) {}
   // Set a value in the store.
