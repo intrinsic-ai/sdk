@@ -1,6 +1,6 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package servicemanifest contains tools for working with ServiceManifest.
+// Package servicemanifest provides utils for working with Service manifests.
 package servicemanifest
 
 import (
@@ -31,18 +31,17 @@ var (
 	errContainsSkillAnnotations = errors.New("config message for the Service must not contain Skill specific dependency annotations")
 )
 
-// ValidateServiceManifestOptions contains options for validating a ServiceManifest.
-type ValidateServiceManifestOptions struct {
+type validateServiceManifestOptions struct {
 	files         *protoregistry.Files
 	defaultConfig *anypb.Any
 }
 
 // ValidateServiceManifestOption is an option for validating a ServiceManifest.
-type ValidateServiceManifestOption func(*ValidateServiceManifestOptions)
+type ValidateServiceManifestOption func(*validateServiceManifestOptions)
 
-// WithFiles adds the proto files to the validation options.
+// WithFiles adds a protoregistry.Files for validating proto messages.
 func WithFiles(files *protoregistry.Files) ValidateServiceManifestOption {
-	return func(opts *ValidateServiceManifestOptions) {
+	return func(opts *validateServiceManifestOptions) {
 		opts.files = files
 	}
 }
@@ -52,20 +51,24 @@ func WithFiles(files *protoregistry.Files) ValidateServiceManifestOption {
 // If specified, ValidateServiceManifest verifies that the default config is of the type specified
 // in the manifest.
 func WithDefaultConfig(defaultConfig *anypb.Any) ValidateServiceManifestOption {
-	return func(opts *ValidateServiceManifestOptions) {
+	return func(opts *validateServiceManifestOptions) {
 		opts.defaultConfig = defaultConfig
 	}
 }
 
-// ValidateServiceManifest verifies that a ServiceManifest is consistent and valid.
+// ValidateServiceManifest validates a ServiceManifest.
 func ValidateServiceManifest(m *smpb.ServiceManifest, options ...ValidateServiceManifestOption) error {
-	opts := &ValidateServiceManifestOptions{}
+	opts := &validateServiceManifestOptions{}
 	for _, opt := range options {
 		opt(opts)
 	}
 
+	if m == nil {
+		return fmt.Errorf("ServiceManifest must not be nil")
+	}
+
 	if err := metadatautils.ValidateManifestMetadata(m.GetMetadata()); err != nil {
-		return fmt.Errorf("invalid manifest: %w", err)
+		return fmt.Errorf("invalid ServiceManifest metadata: %w", err)
 	}
 	id := idutils.IDFromProtoUnchecked(m.GetMetadata().GetId())
 
@@ -95,12 +98,12 @@ func ValidateServiceManifest(m *smpb.ServiceManifest, options ...ValidateService
 
 	for p := range expectedImagePaths {
 		if !slices.Contains(m.GetAssets().GetImageFilenames(), p) {
-			return fmt.Errorf("image %q in the manifest for Service %q is not listed in the service assets", p, id)
+			return fmt.Errorf("image %q in the manifest for Service %q is not listed in its assets", p, id)
 		}
 	}
 	for _, p := range m.GetAssets().GetImageFilenames() {
 		if _, ok := expectedImagePaths[p]; !ok {
-			return fmt.Errorf("image %q in the service assets for Service %q is not used in the manifest", p, id)
+			return fmt.Errorf("image %q in the assets for Service %q is not used in the manifest", p, id)
 		}
 	}
 
@@ -193,7 +196,7 @@ func ValidateServiceManifest(m *smpb.ServiceManifest, options ...ValidateService
 	return nil
 }
 
-// ValidateVolume verifies that a Volume is valid.
+// ValidateVolume validates a Volume.
 func ValidateVolume(volume *svpb.Volume) error {
 	if err := validate.DNSLabel(volume.GetName()); err != nil {
 		return fmt.Errorf("invalid volume name %q: %w", volume.GetName(), err)
@@ -214,7 +217,7 @@ func ValidateVolume(volume *svpb.Volume) error {
 	return nil
 }
 
-// ValidateVolumeMount verifies that a VolumeMount is valid.
+// ValidateVolumeMount validates a VolumeMount.
 func ValidateVolumeMount(mount *svpb.VolumeMount) error {
 	if err := validate.DNSLabel(mount.GetName()); err != nil {
 		return fmt.Errorf("invalid volume name %q: %w", mount.GetName(), err)

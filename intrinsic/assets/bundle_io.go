@@ -10,7 +10,7 @@ import (
 	"io"
 	"os"
 
-	"intrinsic/assets/processes/processutil"
+	"intrinsic/assets/processes/processmanifest"
 
 	"github.com/google/safearchive/tar"
 	"google.golang.org/protobuf/proto"
@@ -315,7 +315,7 @@ func (b processBundle) Release(details VersionDetails) *acpb.Asset {
 
 	// We have just updated the version in the metadata, sync the version-related
 	// fields in Skill metadata in the BehaviorTree.
-	processutil.FillInSkillIDVersionFromAssetMetadata(manifest.GetBehaviorTree().GetDescription(), manifest.GetMetadata())
+	processmanifest.FillInSkillIDVersionFromAssetMetadata(manifest.GetBehaviorTree().GetDescription(), manifest.GetMetadata())
 	return &acpb.Asset{
 		Metadata:        manifest.GetMetadata(),
 		ReleaseMetadata: details.ReleaseMetadata,

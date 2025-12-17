@@ -19,7 +19,7 @@ go_library(
     srcs = ["processgen.go"],
     deps = [
         "//intrinsic/assets:bundleio",
-        "//intrinsic/assets/processes:processutil",
+        "//intrinsic/assets/processes:processmanifest",
         "//intrinsic/assets/processes/proto:process_manifest_go_proto",
         "//intrinsic/executive/proto:behavior_tree_go_proto",
         "//intrinsic/util/proto:protoio",

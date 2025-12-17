@@ -1,6 +1,6 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package sceneobjectmanifest contains tools for working with SceneObjectManifest.
+// Package sceneobjectmanifest provides utils for working with SceneObject manifests.
 package sceneobjectmanifest
 
 import (
@@ -16,18 +16,17 @@ import (
 	sopb "intrinsic/scene/proto/v1/scene_object_go_proto"
 )
 
-// ValidateSceneObjectManifestOptions contains options for validating a SceneObjectManifest.
-type ValidateSceneObjectManifestOptions struct {
+type validateSceneObjectManifestOptions struct {
 	files    *protoregistry.Files
 	gzfPaths map[string]string
 }
 
 // ValidateSceneObjectManifestOption is an option for validating a SceneObjectManifest.
-type ValidateSceneObjectManifestOption func(*ValidateSceneObjectManifestOptions)
+type ValidateSceneObjectManifestOption func(*validateSceneObjectManifestOptions)
 
-// WithFiles adds a protoregistry.Files to the validation options.
+// WithFiles adds a protoregistry.Files for validating proto messages.
 func WithFiles(files *protoregistry.Files) ValidateSceneObjectManifestOption {
-	return func(opts *ValidateSceneObjectManifestOptions) {
+	return func(opts *validateSceneObjectManifestOptions) {
 		opts.files = files
 	}
 }
@@ -36,30 +35,34 @@ func WithFiles(files *protoregistry.Files) ValidateSceneObjectManifestOption {
 //
 // Must be specified if the manifest specifies GZF files.
 func WithGZFPaths(gzfPaths map[string]string) ValidateSceneObjectManifestOption {
-	return func(opts *ValidateSceneObjectManifestOptions) {
+	return func(opts *validateSceneObjectManifestOptions) {
 		opts.gzfPaths = gzfPaths
 	}
 }
 
 // ValidateSceneObjectManifest validates a SceneObjectManifest.
 func ValidateSceneObjectManifest(m *sompb.SceneObjectManifest, options ...ValidateSceneObjectManifestOption) error {
-	opts := &ValidateSceneObjectManifestOptions{}
+	opts := &validateSceneObjectManifestOptions{}
 	for _, opt := range options {
 		opt(opts)
 	}
 
+	if m == nil {
+		return fmt.Errorf("SceneObjectManifest must not be nil")
+	}
+
 	if err := metadatautils.ValidateManifestMetadata(m.GetMetadata()); err != nil {
-		return fmt.Errorf("invalid manifest: %w", err)
+		return fmt.Errorf("invalid SceneObjectManifest metadata: %w", err)
 	}
 	id := idutils.IDFromProtoUnchecked(m.GetMetadata().GetId())
 
-	if len(m.GetAssets().GetGzfGeometryFilenames()) > 1 {
-		return fmt.Errorf("support for multiple gzf files within a SceneObject is not yet implemented")
+	if numGZF := len(m.GetAssets().GetGzfGeometryFilenames()); numGZF > 1 {
+		return fmt.Errorf("support for multiple gzf files within a SceneObject is not yet implemented (got %d files)", numGZF)
 	}
-	if len(m.GetAssets().GetRootSceneObjectName()) != 0 {
-		return fmt.Errorf("support for multiple gzf files within a scene_object is not yet implemented, as such do not specify a root_scene_object_name")
+	if name := m.GetAssets().GetRootSceneObjectName(); len(name) != 0 {
+		return fmt.Errorf("support for multiple gzf files within a scene_object is not yet implemented, so do not specify a root_scene_object_name (got: %q)", name)
 	}
-	if len(m.GetAssets().GetGzfGeometryFilenames()) > 1 && len(m.GetAssets().GetRootSceneObjectName()) == 0 {
+	if numGZF := len(m.GetAssets().GetGzfGeometryFilenames()); numGZF > 1 && len(m.GetAssets().GetRootSceneObjectName()) == 0 {
 		return fmt.Errorf("root_scene_object_name must be specified for multiple gzf files")
 	}
 

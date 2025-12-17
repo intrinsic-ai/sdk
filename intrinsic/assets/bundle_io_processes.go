@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"intrinsic/assets/processes/processutil"
+	"intrinsic/assets/processes/processmanifest"
 	"intrinsic/util/archive/tartooling"
 
 	"github.com/google/safearchive/tar"
@@ -31,7 +31,7 @@ func WriteProcessManifest(manifest *processmanifestpb.ProcessManifest, out io.Wr
 		return fmt.Errorf("Process manifest must not be nil")
 	}
 
-	err := processutil.ValidateProcessManifest(manifest)
+	err := processmanifest.ValidateProcessManifest(manifest)
 	if err != nil {
 		return fmt.Errorf("invalid Process manifest: %w", err)
 	}
@@ -70,7 +70,7 @@ func ReadProcessManifest(src io.Reader) (*processmanifestpb.ProcessManifest, err
 		return nil, fmt.Errorf("error reading ProcessManifest proto in bundle: %w", err)
 	}
 
-	if err := processutil.ValidateProcessManifest(manifest); err != nil {
+	if err := processmanifest.ValidateProcessManifest(manifest); err != nil {
 		return nil, fmt.Errorf("invalid Process asset: %w", err)
 	}
 
@@ -111,7 +111,7 @@ func ProcessProcessAsset(src io.Reader) (*processassetpb.ProcessAsset, error) {
 	// Update the Skill metadata in the BehaviorTree to match the Process asset's
 	// metadata. In the manifest the affected fields in the Skill metadata are
 	// allowed to be empty but need to be filled in the processed asset.
-	processutil.FillInSkillMetadataFromAssetMetadata(
+	processmanifest.FillInSkillMetadataFromAssetMetadata(
 		asset.GetBehaviorTree(), asset.GetMetadata(),
 	)
 
@@ -140,7 +140,7 @@ func WriteProcessManifestForAsset(asset *processassetpb.ProcessAsset, out io.Wri
 	// Clear the ID version from the Skill metadata in the BehaviorTree. The
 	// manifest does not contain a version and the behavior tree on it should not
 	// be referencing one either for consistency. This can be seen as the
-	// counterpart of [processutil.FillInSkillMetadataFromAssetMetadata] in
+	// counterpart of [processmanifest.FillInSkillMetadataFromAssetMetadata] in
 	// [ProcessProcessAsset]. The remaining fields of the skill metadata are
 	// assumed to be valid/consistent.
 	skill := manifest.GetBehaviorTree().GetDescription()

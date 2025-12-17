@@ -5,8 +5,8 @@ load("//bazel:go_macros.bzl", "go_library")
 package(default_visibility = ["//intrinsic:public_api_users"])
 
 go_library(
-    name = "processutil",
-    srcs = ["processutil.go"],
+    name = "processmanifest",
+    srcs = ["processmanifest.go"],
     deps = [
         "//intrinsic/assets:idutils",
         "//intrinsic/assets:metadatautils",

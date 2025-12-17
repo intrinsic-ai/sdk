@@ -9,7 +9,7 @@ import (
 	"os"
 
 	"intrinsic/assets/bundleio"
-	"intrinsic/assets/processes/processutil"
+	"intrinsic/assets/processes/processmanifest"
 	"intrinsic/util/proto/protoio"
 	"intrinsic/util/proto/registryutil"
 
@@ -81,7 +81,7 @@ func CreateProcessAssetBundle(options CreateProcessAssetBundleOptions) error {
 		}
 	}
 
-	if err := processutil.ValidateProcessManifest(manifest); err != nil {
+	if err := processmanifest.ValidateProcessManifest(manifest); err != nil {
 		return fmt.Errorf("invalid ProcessManifest: %w", err)
 	}
 

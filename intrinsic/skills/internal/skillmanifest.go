@@ -1,6 +1,6 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package skillmanifest contains tools for working with SkillManifest.
+// Package skillmanifest provides utils for working with Skill manifests.
 package skillmanifest
 
 import (
@@ -20,44 +20,47 @@ import (
 
 var errMixOfDependencyModels = fmt.Errorf("cannot declare dependencies in both the manifest's dependencies field (required equipment) and in the skill's parameter proto (annotation-based dependencies)")
 
-// ValidateSkillManifestOptions contains options for validating a SkillManifest.
-type ValidateSkillManifestOptions struct {
+type validateSkillManifestOptions struct {
 	types                                    *protoregistry.Types
 	incompatibleDisallowManifestDependencies bool
 }
 
 // ValidateSkillManifestOption is an option for validating a SkillManifest.
-type ValidateSkillManifestOption func(*ValidateSkillManifestOptions)
+type ValidateSkillManifestOption func(*validateSkillManifestOptions)
 
-// WithTypes adds the proto types to the validation options.
+// WithTypes provides a Types for validating proto messages.
 func WithTypes(types *protoregistry.Types) ValidateSkillManifestOption {
-	return func(opts *ValidateSkillManifestOptions) {
+	return func(opts *validateSkillManifestOptions) {
 		opts.types = types
 	}
 }
 
-// WithIncompatibleDisallowManifestDependencies adds the option to prevent the skill manifest from
+// WithIncompatibleDisallowManifestDependencies specifies whether to prevent the SkillManifest from
 // declaring dependencies in the manifest.
 func WithIncompatibleDisallowManifestDependencies(incompatible bool) ValidateSkillManifestOption {
-	return func(opts *ValidateSkillManifestOptions) {
+	return func(opts *validateSkillManifestOptions) {
 		opts.incompatibleDisallowManifestDependencies = incompatible
 	}
 }
 
-// ValidateSkillManifest checks that a SkillManifest is consistent and valid.
+// ValidateSkillManifest validates a SkillManifest.
 func ValidateSkillManifest(m *smpb.SkillManifest, options ...ValidateSkillManifestOption) error {
-	opts := &ValidateSkillManifestOptions{}
+	opts := &validateSkillManifestOptions{}
 	for _, opt := range options {
 		opt(opts)
 	}
 
+	if m == nil {
+		return fmt.Errorf("SkillManifest must not be nil")
+	}
+
 	if err := metadatautils.ValidateManifestMetadata(m); err != nil {
-		return fmt.Errorf("invalid manifest: %w", err)
+		return fmt.Errorf("invalid SkillManifest metadata: %w", err)
 	}
 	id := idutils.IDFromProtoUnchecked(m.GetId())
 
 	if opts.incompatibleDisallowManifestDependencies && len(m.GetDependencies().GetRequiredEquipment()) > 0 {
-		return fmt.Errorf("skill %q declares dependencies in the manifest's dependencies field but --incompatible_disallow_manifest_dependencies is true", id)
+		return fmt.Errorf("Skill %q declares dependencies in the manifest's dependencies field but --incompatible_disallow_manifest_dependencies is true", id)
 	}
 
 	if opts.types != nil {
