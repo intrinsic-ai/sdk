@@ -8,11 +8,8 @@ import (
 	"path/filepath"
 
 	"intrinsic/assets/services/build_defs/servicegen"
-	"intrinsic/util/proto/protoio"
 
 	"github.com/spf13/cobra"
-
-	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
 )
 
 var (
@@ -81,20 +78,13 @@ func run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// Parse the manifest as a textproto.
-	manifest := new(smpb.ServiceManifest)
-	if err := protoio.ReadTextProto(flagManifest, manifest); err != nil {
-		return fmt.Errorf("failed to read manifest: %v", err)
-	}
-
-	data := servicegen.ServiceData{
-		DefaultConfig:      flagDefaultConfig,
-		FileDescriptorSets: fileDescriptorSets,
-		ImageTars:          ociImages,
-		Manifest:           manifest,
-		OutputBundle:       flagOutput,
-	}
-	return servicegen.CreateService(&data)
+	return servicegen.CreateServiceBundle(&servicegen.CreateServiceBundleOptions{
+		DefaultConfigPath:      flagDefaultConfig,
+		FileDescriptorSetPaths: fileDescriptorSets,
+		ImageTarPaths:          ociImages,
+		ManifestPath:           flagManifest,
+		OutputBundlePath:       flagOutput,
+	})
 }
 
 // The init function establishes command line flags for `inbuild service bundle`

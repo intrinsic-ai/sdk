@@ -70,8 +70,8 @@ func (p *noOpReferencedData) Process(rdr *ReferencedDataReader) error {
 	return nil
 }
 
-// NoOpReferencedData does nothing to the data asset being processed.  This is
-// only valid for dry runs, but it ensures that referenced data is available.
+// NoOpReferencedData does nothing to the Data Asset being processed.  This is only valid for dry
+// runs, but it ensures that referenced data is available.
 func NoOpReferencedData() ReferencedDataProcessor {
 	return &noOpReferencedData{}
 }
@@ -199,7 +199,7 @@ func (p *ToCatalogReferencedDataProcessor) Process(rdr *ReferencedDataReader) er
 }
 
 // ToCatalogReferencedData returns a ReferencedDataProcessor that prepares the given ReferencedData
-// for inclusion in an asset that will be released to the AssetCatalog.
+// for inclusion in an Asset that will be released to the AssetCatalog.
 func ToCatalogReferencedData(ctx context.Context, options ...ToCatalogReferencedDataOption) *ToCatalogReferencedDataProcessor {
 	p := &ToCatalogReferencedDataProcessor{
 		ctx:       ctx,
@@ -247,57 +247,56 @@ func (p *toPortableReferencedData) Process(rdr *ReferencedDataReader) error {
 // File references below a size threshold are inlined. Otherwise, they are uploaded to CAS.
 var ToPortableReferencedData = &toPortableReferencedData{}
 
-// WriteDataAssetOptions contains options for a call to WriteDataAsset.
-type WriteDataAssetOptions struct {
+type writeDataBundleOptions struct {
 	// ExcludedReferencedFilePaths is a list of paths to files that should not be included in the tar
 	// bundle.
 	//
 	// Relative paths must be relative to the output bundle's directory.
 	//
-	// These files are left as is and referenced by the Data asset along with a digest to ensure the
+	// These files are left as is and referenced by the Data Asset along with a digest to ensure the
 	// data are not modified.
 	ExcludedReferencedFilePaths []string
 	// ExpectedReferencedFilePaths is a list of paths to files that are expected to be referenced in
-	// the Data asset.
+	// the Data Asset.
 	//
 	// Relative paths must be relative to the output bundle's directory.
 	ExpectedReferencedFilePaths []string
 }
 
-// WriteDataAssetOption is a functional option for WriteDataAsset.
-type WriteDataAssetOption func(*WriteDataAssetOptions)
+// WriteDataBundleOption is a functional option for WriteDataBundle.
+type WriteDataBundleOption func(*writeDataBundleOptions)
 
 // WithExcludedReferencedFilePaths sets the ExcludedReferencedFilePaths option.
-func WithExcludedReferencedFilePaths(paths []string) WriteDataAssetOption {
-	return func(opts *WriteDataAssetOptions) {
+func WithExcludedReferencedFilePaths(paths []string) WriteDataBundleOption {
+	return func(opts *writeDataBundleOptions) {
 		opts.ExcludedReferencedFilePaths = paths
 	}
 }
 
 // WithExpectedReferencedFilePaths sets the ExpectedReferencedFilePaths option.
-func WithExpectedReferencedFilePaths(paths []string) WriteDataAssetOption {
-	return func(opts *WriteDataAssetOptions) {
+func WithExpectedReferencedFilePaths(paths []string) WriteDataBundleOption {
+	return func(opts *writeDataBundleOptions) {
 		opts.ExpectedReferencedFilePaths = paths
 	}
 }
 
-// WriteDataAsset writes a Data asset .tar bundle file to the specified path.
+// WriteDataBundle writes a Data Asset .tar bundle file at the specified path.
 //
-// Relative path references in the Data asset must be relative to the output bundle's directory.
-func WriteDataAsset(da *dapb.DataAsset, path string, options ...WriteDataAssetOption) error {
-	opts := &WriteDataAssetOptions{}
+// Relative path references in the Data Asset must be relative to the output bundle's directory.
+func WriteDataBundle(da *dapb.DataAsset, path string, options ...WriteDataBundleOption) error {
+	opts := &writeDataBundleOptions{}
 	for _, opt := range options {
 		opt(opts)
 	}
 
 	if da == nil {
-		return fmt.Errorf("data asset must not be nil")
+		return fmt.Errorf("DataAsset must not be nil")
 	}
 	if da.GetMetadata().GetAssetType() == atpb.AssetType_ASSET_TYPE_UNSPECIFIED {
 		da.Metadata.AssetType = atpb.AssetType_ASSET_TYPE_DATA
 	}
 	if err := utils.ValidateDataAsset(da); err != nil {
-		return fmt.Errorf("invalid Data asset: %w", err)
+		return fmt.Errorf("invalid DataAsset: %w", err)
 	}
 
 	baseDir := filepath.Dir(path)
@@ -311,7 +310,7 @@ func WriteDataAsset(da *dapb.DataAsset, path string, options ...WriteDataAssetOp
 
 	payload, err := utils.ExtractPayload(da)
 	if err != nil {
-		return fmt.Errorf("cannot extract data payload: %w", err)
+		return fmt.Errorf("failed to extract data payload: %w", err)
 	}
 
 	excludedReferencedFilePaths := map[string]struct{}{}
@@ -347,13 +346,13 @@ func WriteDataAsset(da *dapb.DataAsset, path string, options ...WriteDataAssetOp
 			if _, ok := excludedReferencedFilePaths[ref.Reference()]; !ok { // Add to the tar bundle.
 				inBundlePath := toUniqueTarPath(ref.Reference(), dataFileBaseDir, tarPaths)
 				if err := tartooling.AddFile(refBase.Reference(), tw, inBundlePath); err != nil {
-					return fmt.Errorf("cannot add data file to bundle: %w", err)
+					return fmt.Errorf("failed to add data file to bundle: %w", err)
 				}
 				ref.SetReference(inBundlePath)
 			} else if ref.Digest() == "" { // Keep the file external; ensure its reference has a digest.
 				file, err := os.Open(refBase.Reference())
 				if err != nil {
-					return fmt.Errorf("cannot open referenced file %q: %w", refBase.Reference(), err)
+					return fmt.Errorf("failed to open referenced file %q: %w", refBase.Reference(), err)
 				}
 				defer file.Close()
 
@@ -363,7 +362,7 @@ func WriteDataAsset(da *dapb.DataAsset, path string, options ...WriteDataAssetOp
 		return nil
 	})
 	if err != nil {
-		return fmt.Errorf("cannot walk referenced data: %w", err)
+		return fmt.Errorf("failed to walk referenced data: %w", err)
 	}
 
 	// Verify that all excluded referenced file paths are actually referenced by the data payload.
@@ -382,21 +381,21 @@ func WriteDataAsset(da *dapb.DataAsset, path string, options ...WriteDataAssetOp
 
 	payloadOutAny, err := anypb.New(payloadOut)
 	if err != nil {
-		return fmt.Errorf("cannot create Any proto for data payload: %w", err)
+		return fmt.Errorf("failed to create Any proto for data payload: %w", err)
 	}
 
-	// Construct and add the bundle version of the Data asset.
+	// Construct and add the bundle version of the Data Asset.
 	daOut := &dapb.DataAsset{
 		Data:              payloadOutAny,
 		FileDescriptorSet: da.GetFileDescriptorSet(),
 		Metadata:          da.GetMetadata(),
 	}
 	if err := tartooling.AddBinaryProto(daOut, tw, dataAssetFileName); err != nil {
-		return fmt.Errorf("cannot write Data asset to bundle: %w", err)
+		return fmt.Errorf("failed to write DataAsset to bundle: %w", err)
 	}
 
 	if err := tw.Close(); err != nil {
-		return fmt.Errorf("cannot close tar writer: %w", err)
+		return fmt.Errorf("failed to close tar writer: %w", err)
 	}
 
 	return nil
@@ -405,11 +404,11 @@ func WriteDataAsset(da *dapb.DataAsset, path string, options ...WriteDataAssetOp
 // ReadDataAssetOptions contains options for a call to ReadDataAsset.
 type ReadDataAssetOptions struct {
 	// ProcessReferencedData is an optional function that will be called for each unique
-	// ReferencedData value in the Data asset as it is read. (Note that all inlined ReferencedData are
+	// ReferencedData value in the Data Asset as it is read. (Note that all inlined ReferencedData are
 	// considered unique.)
 	//
 	// If a non-nil ReferencedData is returned, the return value replaces all of the matching
-	// ReferencedData values in the Data asset.
+	// ReferencedData values in the Data Asset.
 	ProcessReferencedData ReferencedDataProcessor
 }
 
@@ -423,9 +422,9 @@ func WithProcessReferencedData(f ReferencedDataProcessor) ReadDataAssetOption {
 	}
 }
 
-// ReadDataAsset reads a DataAsset from a bundle (see WriteDataAsset).
+// ReadDataAsset reads a DataAsset from a bundle (see WriteDataBundle).
 //
-// Relative file references in the Data asset must be relative to the bundle's directory.
+// Relative file references in the Data Asset must be relative to the bundle's directory.
 func ReadDataAsset(ctx context.Context, path string, options ...ReadDataAssetOption) (*dapb.DataAsset, error) {
 	opts := &ReadDataAssetOptions{}
 	for _, opt := range options {
@@ -496,7 +495,7 @@ func ReadDataAsset(ctx context.Context, path string, options ...ReadDataAssetOpt
 		return nil, fmt.Errorf("unknown files in %q: %v", path, unknownFilePaths)
 	}
 	if da == nil {
-		return nil, fmt.Errorf("Data asset not found in %q", path)
+		return nil, fmt.Errorf("Data Asset not found in %q", path)
 	}
 
 	// Process the payload's ReferencedData values.

@@ -176,19 +176,16 @@ func ProcessSkill(ctx context.Context, path string, opts ProcessSkillOpts) (*psm
 	return psm, nil
 }
 
-// WriteSkillOpts provides the details to construct a skill bundle.
-type WriteSkillOpts struct {
-	Manifest    *smpb.SkillManifest
-	Descriptors *descriptorpb.FileDescriptorSet
-	ImageTar    string
+// WriteSkillBundleOptions provides options for writing a Skill Asset bundle.
+type WriteSkillBundleOptions struct {
+	Descriptors  *descriptorpb.FileDescriptorSet
+	ImageTarPath string
 }
 
-// WriteSkill creates a tar archive at the specified path with the details
-// given in opts. Only the manifest is required and its assets field will be
-// overwritten with what is placed in the archive based on ops.
-func WriteSkill(path string, opts WriteSkillOpts) error {
-	if opts.Manifest == nil {
-		return fmt.Errorf("opts.Manifest must not be nil")
+// WriteSkillBundle writes a Skill .tar bundle at the specified path.
+func WriteSkillBundle(m *smpb.SkillManifest, path string, opts *WriteSkillBundleOptions) error {
+	if m == nil {
+		return fmt.Errorf("SkillManifest must not be nil")
 	}
 
 	out, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
@@ -198,41 +195,43 @@ func WriteSkill(path string, opts WriteSkillOpts) error {
 	defer out.Close()
 	tw := tar.NewWriter(out)
 
-	opts.Manifest.Assets = new(smpb.SkillAssets)
+	m.Assets = &smpb.SkillAssets{}
 	if opts.Descriptors != nil {
 		descriptorName := "descriptors-transitive-descriptor-set.proto.bin"
-		opts.Manifest.Assets.FileDescriptorSetFilename = &descriptorName
+		m.Assets.FileDescriptorSetFilename = &descriptorName
 		if err := tartooling.AddBinaryProto(opts.Descriptors, tw, descriptorName); err != nil {
-			return fmt.Errorf("unable to write FileDescriptorSet to bundle: %v", err)
+			return fmt.Errorf("failed to write FileDescriptorSet to bundle: %w", err)
 		}
 	}
-	if opts.ImageTar != "" {
-		base := filepath.Base(opts.ImageTar)
-		opts.Manifest.Assets.DeploymentType = &smpb.SkillAssets_ImageFilename{
+	if opts.ImageTarPath != "" {
+		base := filepath.Base(opts.ImageTarPath)
+		m.Assets.DeploymentType = &smpb.SkillAssets_ImageFilename{
 			ImageFilename: base,
 		}
-		if err := tartooling.AddFile(opts.ImageTar, tw, base); err != nil {
-			return fmt.Errorf("unable to write %q to bundle: %v", path, err)
+		if err := tartooling.AddFile(opts.ImageTarPath, tw, base); err != nil {
+			return fmt.Errorf("unable to write %q to bundle: %w", path, err)
 		}
 	}
 
 	types, err := registryutil.NewTypesFromFileDescriptorSet(opts.Descriptors)
 	if err != nil {
-		return fmt.Errorf("failed to populate the registry: %v", err)
+		return fmt.Errorf("failed to populate the registry: %w", err)
 	}
-	if err := skillmanifest.ValidateSkillManifest(opts.Manifest,
+	if err := skillmanifest.ValidateSkillManifest(m,
 		skillmanifest.WithTypes(types),
 		skillmanifest.WithIncompatibleDisallowManifestDependencies(false),
 	); err != nil {
-		return fmt.Errorf("failed to validate manifest: %v", err)
+		return fmt.Errorf("invalid manifest: %w", err)
 	}
 
 	// Now we can write the manifest, since assets have been completed.
-	if err := tartooling.AddBinaryProto(opts.Manifest, tw, skillManifestPathInTar); err != nil {
-		return fmt.Errorf("unable to write skill manifest to bundle: %v", err)
+	if err := tartooling.AddBinaryProto(m, tw, skillManifestPathInTar); err != nil {
+		return fmt.Errorf("failed to write SkillManifest to bundle: %w", err)
 	}
+
 	if err := tw.Close(); err != nil {
 		return err
 	}
+
 	return nil
 }

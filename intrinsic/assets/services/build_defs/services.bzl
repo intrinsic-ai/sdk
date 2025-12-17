@@ -4,6 +4,7 @@
 Bazel rules for service types.
 """
 
+load("@com_google_protobuf//bazel/common:proto_info.bzl", "ProtoInfo")
 load("//intrinsic/assets/build_defs:asset.bzl", "AssetInfo", "AssetLocalInfo")
 load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "ProtoSourceCodeInfo", "gen_source_code_info_descriptor_set")
 
@@ -38,15 +39,14 @@ def _intrinsic_service_impl(ctx):
     ).add(
         "--output_bundle",
         bundle_output,
-    ).add_joined(
-        "--image_tars",
+    ).add_all(
         ctx.files.images,
-        join_with = ",",
-    ).add_joined(
-        "--file_descriptor_sets",
-        transitive_descriptor_sets,
+        before_each = "--image_tar",
         uniquify = True,
-        join_with = ",",
+    ).add_all(
+        transitive_descriptor_sets,
+        before_each = "--file_descriptor_set",
+        uniquify = True,
     )
     if ctx.file.default_config:
         inputs.append(ctx.file.default_config)

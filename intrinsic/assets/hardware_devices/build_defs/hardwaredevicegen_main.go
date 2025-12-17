@@ -1,6 +1,6 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package main is the entrypoint to HardwareDevice asset bundle creation.
+// Package main is the entrypoint for creating HardwareDevice Asset bundles.
 package main
 
 import (
@@ -14,21 +14,21 @@ import (
 )
 
 var (
-	manifest      = flag.String("manifest", "", "Path to the HardwareDeviceManifest .textproto file.")
-	localAssets   = intrinsicflag.MultiString("local_asset", nil, "Path to serialized AssetLocalInfo proto for an asset to add to the manifest. Can be repeated.")
-	catalogAssets = intrinsicflag.MultiString("catalog_asset", nil, "Path to serialized AssetCatalogRefInfo proto for an asset to add to the manifest. Can be repeated.")
-	outputBundle  = flag.String("output_bundle", "", "Path to the output .tar bundle file.")
+	manifestPath      = flag.String("manifest", "", "Path to the HardwareDeviceManifest textproto file.")
+	localAssetPaths   = intrinsicflag.MultiString("local_asset", nil, "Path to serialized AssetLocalInfo proto for an asset to add to the manifest. Can be repeated.")
+	catalogAssetPaths = intrinsicflag.MultiString("catalog_asset", nil, "Path to serialized AssetCatalogRefInfo proto for an asset to add to the manifest. Can be repeated.")
+	outputBundlePath  = flag.String("output_bundle", "", "Output path for the .tar bundle.")
 )
 
 func main() {
 	intrinsic.Init()
 
-	if err := hardwaredevicegen.CreateHardwareDeviceBundle(hardwaredevicegen.CreateHardwareDeviceBundleOptions{
-		AssetCatalogRefInfoPaths: *catalogAssets,
-		AssetLocalInfoPaths:      *localAssets,
-		ManifestPath:             *manifest,
-		OutputBundlePath:         *outputBundle,
+	if err := hardwaredevicegen.CreateHardwareDeviceBundle(&hardwaredevicegen.CreateHardwareDeviceBundleOptions{
+		ManifestPath:             *manifestPath,
+		AssetLocalInfoPaths:      *localAssetPaths,
+		AssetCatalogRefInfoPaths: *catalogAssetPaths,
+		OutputBundlePath:         *outputBundlePath,
 	}); err != nil {
-		log.Exitf("Could not create HardwareDevice asset bundle: %v", err)
+		log.Exitf("failed to create HardwareDevice Asset bundle: %v", err)
 	}
 }

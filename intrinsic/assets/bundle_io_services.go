@@ -187,20 +187,17 @@ func ProcessService(ctx context.Context, path string, opts ProcessServiceOpts) (
 	return m, nil
 }
 
-// WriteServiceOpts provides the details to construct a service bundle.
-type WriteServiceOpts struct {
-	Manifest      *smpb.ServiceManifest
-	Descriptors   *descriptorpb.FileDescriptorSet
+// WriteServiceBundleOptions provides options for writing a Service Asset bundle.
+type WriteServiceBundleOptions struct {
 	DefaultConfig *anypb.Any
-	ImageTars     []string
+	Descriptors   *descriptorpb.FileDescriptorSet
+	ImageTarPaths []string
 }
 
-// WriteService creates a tar archive at the specified path with the details
-// given in opts.  Only the manifest is required and its assets field will be
-// overwritten with what is placed in the archive based on ops.
-func WriteService(path string, opts WriteServiceOpts) error {
-	if opts.Manifest == nil {
-		return fmt.Errorf("opts.Manifest must not be nil")
+// WriteServiceBundle writes a Service .tar bundle file at the specified path.
+func WriteServiceBundle(m *smpb.ServiceManifest, path string, opts *WriteServiceBundleOptions) error {
+	if m == nil {
+		return fmt.Errorf("ServiceManifest must not be nil")
 	}
 	out, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
 	if err != nil {
@@ -209,26 +206,26 @@ func WriteService(path string, opts WriteServiceOpts) error {
 	defer out.Close()
 	tw := tar.NewWriter(out)
 
-	opts.Manifest.Assets = new(smpb.ServiceAssets)
+	m.Assets = new(smpb.ServiceAssets)
 	if opts.Descriptors != nil {
 		descriptorName := "descriptors-transitive-descriptor-set.proto.bin"
-		opts.Manifest.Assets.ParameterDescriptorFilename = &descriptorName
+		m.Assets.ParameterDescriptorFilename = &descriptorName
 		if err := tartooling.AddBinaryProto(opts.Descriptors, tw, descriptorName); err != nil {
-			return fmt.Errorf("unable to write FileDescriptorSet to bundle: %v", err)
+			return fmt.Errorf("failed to write FileDescriptorSet to bundle: %w", err)
 		}
 	}
 	if opts.DefaultConfig != nil {
 		configName := "default_config.binarypb"
-		opts.Manifest.Assets.DefaultConfigurationFilename = &configName
+		m.Assets.DefaultConfigurationFilename = &configName
 		if err := tartooling.AddBinaryProto(opts.DefaultConfig, tw, configName); err != nil {
-			return fmt.Errorf("unable to write default config to bundle: %v", err)
+			return fmt.Errorf("failed to write default config to bundle: %w", err)
 		}
 	}
-	for _, path := range opts.ImageTars {
+	for _, path := range opts.ImageTarPaths {
 		base := filepath.Base(path)
-		opts.Manifest.Assets.ImageFilenames = append(opts.Manifest.Assets.ImageFilenames, base)
+		m.Assets.ImageFilenames = append(m.Assets.ImageFilenames, base)
 		if err := tartooling.AddFile(path, tw, base); err != nil {
-			return fmt.Errorf("unable to write %q to bundle: %v", path, err)
+			return fmt.Errorf("failed to write %q to bundle: %w", path, err)
 		}
 	}
 
@@ -236,19 +233,19 @@ func WriteService(path string, opts WriteServiceOpts) error {
 	if opts.Descriptors != nil {
 		files, err = protodesc.NewFiles(opts.Descriptors)
 		if err != nil {
-			return fmt.Errorf("failed to create proto files: %v", err)
+			return fmt.Errorf("failed to create proto files: %w", err)
 		}
 	}
-	if err := servicemanifest.ValidateServiceManifest(opts.Manifest,
+	if err := servicemanifest.ValidateServiceManifest(m,
 		servicemanifest.WithFiles(files),
 		servicemanifest.WithDefaultConfig(opts.DefaultConfig),
 	); err != nil {
-		return fmt.Errorf("invalid manifest: %v", err)
+		return fmt.Errorf("invalid manifest: %w", err)
 	}
 
 	// Now we can write the manifest, since assets have been completed.
-	if err := tartooling.AddBinaryProto(opts.Manifest, tw, "service_manifest.binarypb"); err != nil {
-		return fmt.Errorf("unable to write FileDescriptorSet to bundle: %v", err)
+	if err := tartooling.AddBinaryProto(m, tw, "service_manifest.binarypb"); err != nil {
+		return fmt.Errorf("failed to write ServiceManifest to bundle: %w", err)
 	}
 
 	if err := tw.Close(); err != nil {

@@ -1,6 +1,6 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package processgen supports generating a Process asset bundle.
+// Package processgen implements creation of a Process Asset bundle.
 package processgen
 
 import (
@@ -9,7 +9,6 @@ import (
 	"os"
 
 	"intrinsic/assets/bundleio"
-	"intrinsic/assets/processes/processmanifest"
 	"intrinsic/util/proto/protoio"
 	"intrinsic/util/proto/registryutil"
 
@@ -29,7 +28,7 @@ func readTextProtoWithAnys(path string, message proto.Message, types *protoregis
 		// correctly and we can only check for the much broader proto.Error.
 		hint := ""
 		if errors.Is(err, proto.Error) {
-			hint = " (if a message type cannot be resolved make sure there are " +
+			hint = " (if a message type cannot be resolved, make sure there are " +
 				"no expanded Any protos in the text proto or provide the corresponding textproto_deps " +
 				"to the intrinsic_process rule)"
 		}
@@ -40,23 +39,21 @@ func readTextProtoWithAnys(path string, message proto.Message, types *protoregis
 	return nil
 }
 
-// CreateProcessAssetBundleOptions contains the options for
-// CreateProcessAssetBundle().
-type CreateProcessAssetBundleOptions struct {
-	ManifestPath                    string
+// CreateProcessBundleOptions provides the data needed to create a Process Asset bundle.
+type CreateProcessBundleOptions struct {
 	BehaviorTreePath                string
-	TextprotoFileDescriptorSetPaths []string
+	ManifestPath                    string
 	OutputBundlePath                string
 	OutputFileDescriptorSetPath     string
 	OutputManifestBinaryPath        string
+	TextprotoFileDescriptorSetPaths []string
 }
 
-// CreateProcessAssetBundle creates a ProcessAsset tar bundle from a
-// ProcessManifest on disk.
-func CreateProcessAssetBundle(options CreateProcessAssetBundleOptions) error {
+// CreateProcessBundle creates a Process Asset bundle on disk.
+func CreateProcessBundle(options *CreateProcessBundleOptions) error {
 	textprotoFileDescriptorSet, err := registryutil.LoadFileDescriptorSets(options.TextprotoFileDescriptorSetPaths)
 	if err != nil {
-		return fmt.Errorf("unable to loads FileDescriptorSets: %w", err)
+		return fmt.Errorf("failed to load FileDescriptorSets: %w", err)
 	}
 
 	types, err := registryutil.NewTypesFromFileDescriptorSet(textprotoFileDescriptorSet)
@@ -64,7 +61,6 @@ func CreateProcessAssetBundle(options CreateProcessAssetBundleOptions) error {
 		return fmt.Errorf("failed to build types: %w", err)
 	}
 
-	// Load ProcessManifest from textprotos.
 	manifest := &processmanifestpb.ProcessManifest{}
 	if err := readTextProtoWithAnys(options.ManifestPath, manifest, types); err != nil {
 		return err
@@ -81,10 +77,6 @@ func CreateProcessAssetBundle(options CreateProcessAssetBundleOptions) error {
 		}
 	}
 
-	if err := processmanifest.ValidateProcessManifest(manifest); err != nil {
-		return fmt.Errorf("invalid ProcessManifest: %w", err)
-	}
-
 	// Open the file at the output bundle path for writing. Creates the file if it
 	// does not already exist.
 	outputBundleFile, err := os.OpenFile(options.OutputBundlePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
@@ -94,8 +86,8 @@ func CreateProcessAssetBundle(options CreateProcessAssetBundleOptions) error {
 	defer outputBundleFile.Close()
 
 	// Write the ProcessManifest to the output file.
-	if err := bundleio.WriteProcessManifest(manifest, outputBundleFile); err != nil {
-		return fmt.Errorf("failed to write ProcessManifest: %w", err)
+	if err := bundleio.WriteProcessBundle(manifest, outputBundleFile); err != nil {
+		return fmt.Errorf("failed to write Process Asset bundle: %w", err)
 	}
 
 	// Write the FileDescriptorSet of the asset to the output file. Write an empty

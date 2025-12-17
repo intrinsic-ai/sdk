@@ -1,6 +1,6 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package servicegen implements creation of the service type bundle.
+// Package servicegen implements creation of a Service Asset bundle.
 package servicegen
 
 import (
@@ -18,18 +18,13 @@ import (
 	anypb "google.golang.org/protobuf/types/known/anypb"
 )
 
-// ServiceData holds the data needed to create a service bundle.
-type ServiceData struct {
-	// Optional path to default config proto.
-	DefaultConfig string
-	// Paths to binary file descriptor set protos associated with the manifest.
-	FileDescriptorSets []string
-	// Paths to tar archives for images.
-	ImageTars []string
-	// The deserialized ServiceManifest.
-	Manifest *smpb.ServiceManifest
-	// Bundle tar path.
-	OutputBundle string
+// CreateServiceBundleOptions provides the data needed to create a Service Asset bundle.
+type CreateServiceBundleOptions struct {
+	DefaultConfigPath      string
+	FileDescriptorSetPaths []string
+	ImageTarPaths          []string
+	ManifestPath           string
+	OutputBundlePath       string
 }
 
 func pruneSourceCodeInfo(defaultConfig *anypb.Any, fds *dpb.FileDescriptorSet) error {
@@ -41,7 +36,7 @@ func pruneSourceCodeInfo(defaultConfig *anypb.Any, fds *dpb.FileDescriptorSet) e
 	if defaultConfig != nil {
 		typeURLParts := strings.Split(defaultConfig.GetTypeUrl(), "/")
 		if len(typeURLParts) < 1 {
-			return fmt.Errorf("cannot extract default proto name from type URL: %v", defaultConfig.GetTypeUrl())
+			return fmt.Errorf("failed to extract default proto name from type URL: %v", defaultConfig.GetTypeUrl())
 		}
 		fullNames = append(fullNames, typeURLParts[len(typeURLParts)-1])
 	}
@@ -52,36 +47,40 @@ func pruneSourceCodeInfo(defaultConfig *anypb.Any, fds *dpb.FileDescriptorSet) e
 	return nil
 }
 
-// CreateService bundles the data needed for software services.
-func CreateService(d *ServiceData) error {
-	set, err := registryutil.LoadFileDescriptorSets(d.FileDescriptorSets)
-	if err != nil {
-		return fmt.Errorf("unable to build FileDescriptorSet: %v", err)
+// CreateServiceBundle creates a Service Asset bundle on disk.
+func CreateServiceBundle(opts *CreateServiceBundleOptions) error {
+	m := &smpb.ServiceManifest{}
+	if err := protoio.ReadTextProto(opts.ManifestPath, m); err != nil {
+		return fmt.Errorf("failed to read manifest: %w", err)
 	}
 
-	types, err := registryutil.NewTypesFromFileDescriptorSet(set)
+	fds, err := registryutil.LoadFileDescriptorSets(opts.FileDescriptorSetPaths)
 	if err != nil {
-		return fmt.Errorf("failed to populate the registry: %v", err)
+		return fmt.Errorf("unable to build FileDescriptorSet: %w", err)
+	}
+
+	types, err := registryutil.NewTypesFromFileDescriptorSet(fds)
+	if err != nil {
+		return fmt.Errorf("failed to populate the registry: %w", err)
 	}
 
 	var defaultConfig *anypb.Any
-	if d.DefaultConfig != "" {
+	if opts.DefaultConfigPath != "" {
 		defaultConfig = &anypb.Any{}
-		if err := protoio.ReadTextProto(d.DefaultConfig, defaultConfig, protoio.WithResolver(types)); err != nil {
-			return fmt.Errorf("failed to read default config proto: %v", err)
+		if err := protoio.ReadTextProto(opts.DefaultConfigPath, defaultConfig, protoio.WithResolver(types)); err != nil {
+			return fmt.Errorf("failed to read default config proto: %w", err)
 		}
-		if err := pruneSourceCodeInfo(defaultConfig, set); err != nil {
-			return fmt.Errorf("unable to process source code info: %v", err)
+		if err := pruneSourceCodeInfo(defaultConfig, fds); err != nil {
+			return fmt.Errorf("failed to prune source code info: %w", err)
 		}
 	}
 
-	if err := bundleio.WriteService(d.OutputBundle, bundleio.WriteServiceOpts{
-		Manifest:      d.Manifest,
-		Descriptors:   set,
+	if err := bundleio.WriteServiceBundle(m, opts.OutputBundlePath, &bundleio.WriteServiceBundleOptions{
+		Descriptors:   fds,
 		DefaultConfig: defaultConfig,
-		ImageTars:     d.ImageTars,
+		ImageTarPaths: opts.ImageTarPaths,
 	}); err != nil {
-		return fmt.Errorf("unable to write service bundle: %v", err)
+		return fmt.Errorf("failed to write Service Asset bundle: %w", err)
 	}
 
 	return nil

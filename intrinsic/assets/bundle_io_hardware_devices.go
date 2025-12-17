@@ -26,19 +26,18 @@ const (
 
 var tarBundlePathRegex = regexp.MustCompile(`^assets/(?P<key>[^/]+)\.bundle\.tar$`)
 
-// writeHardwareDeviceOptions contains options for a call to WriteHardwareDevice.
-type writeHardwareDeviceOptions struct{}
+type writeHardwareDeviceBundleOptions struct{}
 
-// WriteHardwareDeviceOption is a functional option for WriteHardwareDevice.
-type WriteHardwareDeviceOption func(*writeHardwareDeviceOptions)
+// WriteHardwareDeviceBundleOption is a functional option for WriteHardwareDeviceBundle.
+type WriteHardwareDeviceBundleOption func(*writeHardwareDeviceBundleOptions)
 
-// WriteHardwareDevice writes a HardwareDevice asset .tar bundle file to the specified path.
+// WriteHardwareDeviceBundle writes a HardwareDevice Asset .tar bundle file at the specified path.
 //
 // The bundles of local assets are included in the HardwareDevice .tar bundle.
 //
 // The input manifest may be mutated by this function.
-func WriteHardwareDevice(hdm *hdmpb.HardwareDeviceManifest, path string, options ...WriteHardwareDeviceOption) error {
-	opts := &writeHardwareDeviceOptions{}
+func WriteHardwareDeviceBundle(hdm *hdmpb.HardwareDeviceManifest, path string, options ...WriteHardwareDeviceBundleOption) error {
+	opts := &writeHardwareDeviceBundleOptions{}
 	for _, opt := range options {
 		opt(opts)
 	}
@@ -46,7 +45,6 @@ func WriteHardwareDevice(hdm *hdmpb.HardwareDeviceManifest, path string, options
 	if hdm == nil {
 		return fmt.Errorf("HardwareDeviceManifest must not be nil")
 	}
-
 	if err := hardwaredevicemanifest.ValidateHardwareDeviceManifest(hdm); err != nil {
 		return fmt.Errorf("invalid HardwareDeviceManifest: %w", err)
 	}
@@ -64,18 +62,18 @@ func WriteHardwareDevice(hdm *hdmpb.HardwareDeviceManifest, path string, options
 		case *hdmpb.HardwareDeviceManifest_Asset_Local:
 			tarPath := tarBundlePathFrom(key)
 			if err := tartooling.AddFile(asset.GetLocal().GetBundlePath(), tw, tarPath); err != nil {
-				return fmt.Errorf("cannot add local asset %s to bundle: %w", key, err)
+				return fmt.Errorf("failed to add local asset %s to bundle: %w", key, err)
 			}
 			asset.GetLocal().BundlePath = tarPath
 		}
 	}
 
 	if err := tartooling.AddBinaryProto(hdm, tw, hardwareDeviceManifestFileName); err != nil {
-		return fmt.Errorf("cannot write HardwareDeviceManifest to bundle: %w", err)
+		return fmt.Errorf("failed to write HardwareDeviceManifest to bundle: %w", err)
 	}
 
 	if err := tw.Close(); err != nil {
-		return fmt.Errorf("cannot close tar writer: %w", err)
+		return fmt.Errorf("failed to close tar writer: %w", err)
 	}
 
 	return nil
@@ -100,7 +98,7 @@ func WithExtractLocalAssetsDir(dir string) ReadHardwareDeviceOption {
 	}
 }
 
-// ReadHardwareDevice reads a HardwareDevice asset from a .tar bundle (see WriteHardwareDevice).
+// ReadHardwareDevice reads a HardwareDevice asset from a .tar bundle (see WriteHardwareDeviceBundle).
 func ReadHardwareDevice(ctx context.Context, p string, options ...ReadHardwareDeviceOption) (*hdmpb.HardwareDeviceManifest, error) {
 	opts := &readHardwareDeviceOptions{}
 	for _, opt := range options {

@@ -279,7 +279,7 @@ def _intrinsic_skill_rule_impl(ctx):
     ctx.actions.run(
         inputs = inputs,
         outputs = [bundle_output],
-        executable = ctx.executable._skillbundlegen,
+        executable = ctx.executable._skillgen,
         arguments = [args],
         mnemonic = "Skillbundle",
         progress_message = "Skill bundle %s" % bundle_output.short_path,
@@ -349,8 +349,8 @@ _intrinsic_skill_rule = rule(
             mandatory = True,
             providers = [SkillManifestInfo],
         ),
-        "_skillbundlegen": attr.label(
-            default = Label("//intrinsic/skills/build_defs:skillbundlegen"),
+        "_skillgen": attr.label(
+            default = Label("//intrinsic/skills/build_defs:skillgen_main"),
             cfg = "exec",
             executable = True,
         ),

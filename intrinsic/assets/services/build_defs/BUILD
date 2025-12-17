@@ -38,6 +38,7 @@ go_binary(
         ":servicegen",
         "//intrinsic/assets/services/proto:service_manifest_go_proto",
         "//intrinsic/production:intrinsic",
+        "//intrinsic/util:flag",
         "//intrinsic/util/proto:protoio",
         "@com_github_golang_glog//:go_default_library",
     ],

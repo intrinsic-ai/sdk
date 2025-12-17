@@ -1,55 +1,36 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// package main implements creation of the service type bundle.
+// package main is the entrypoint for creating Service Asset bundles.
 package main
 
 import (
 	"flag"
-	"strings"
 
 	"intrinsic/assets/services/build_defs/servicegen"
 	"intrinsic/production/intrinsic"
-	"intrinsic/util/proto/protoio"
+	intrinsicflag "intrinsic/util/flag"
 
 	log "github.com/golang/glog"
-
-	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
 )
 
 var (
-	flagDefaultConfig      = flag.String("default_config", "", "Optional path to default config proto.")
-	flagFileDescriptorSets = flag.String("file_descriptor_sets", "", "Comma separated paths to binary file descriptor set protos associated with the manifest.")
-	flagImageTars          = flag.String("image_tars", "", "Comma separated full paths to tar archives for images.")
-	flagManifest           = flag.String("manifest", "", "Path to a ServiceManifest pbtxt file.")
-	flagOutputBundle       = flag.String("output_bundle", "", "Bundle tar path.")
+	manifestPath           = flag.String("manifest", "", "Path to the ServiceManifest textproto file.")
+	defaultConfigPath      = flag.String("default_config", "", "Optional path to default config proto.")
+	fileDescriptorSetPaths = intrinsicflag.MultiString("file_descriptor_set", nil, "Path to binary file descriptor set proto associated with the manifest. Can be repeated.")
+	imageTarPaths          = intrinsicflag.MultiString("image_tar", nil, "Full path to .tar archive for an image. Can be repeated.")
+	outputBundlePath       = flag.String("output_bundle", "", "Output path for the .tar bundle.")
 )
 
 func main() {
 	intrinsic.Init()
 
-	var fds []string
-	if *flagFileDescriptorSets != "" {
-		fds = strings.Split(*flagFileDescriptorSets, ",")
-	}
-
-	var imageTarsList []string
-	if *flagImageTars != "" {
-		imageTarsList = strings.Split(*flagImageTars, ",")
-	}
-
-	m := new(smpb.ServiceManifest)
-	if err := protoio.ReadTextProto(*flagManifest, m); err != nil {
-		log.Exitf("Failed to read manifest: %v", err)
-	}
-
-	data := servicegen.ServiceData{
-		DefaultConfig:      *flagDefaultConfig,
-		FileDescriptorSets: fds,
-		ImageTars:          imageTarsList,
-		Manifest:           m,
-		OutputBundle:       *flagOutputBundle,
-	}
-	if err := servicegen.CreateService(&data); err != nil {
-		log.Exitf("Couldn't create service type: %v", err)
+	if err := servicegen.CreateServiceBundle(&servicegen.CreateServiceBundleOptions{
+		ManifestPath:           *manifestPath,
+		DefaultConfigPath:      *defaultConfigPath,
+		FileDescriptorSetPaths: *fileDescriptorSetPaths,
+		ImageTarPaths:          *imageTarPaths,
+		OutputBundlePath:       *outputBundlePath,
+	}); err != nil {
+		log.Exitf("failed to create Service Asset bundle: %v", err)
 	}
 }

@@ -1,6 +1,6 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package hardwaredevicegen implements creation of a HardwareDevice asset bundle.
+// Package hardwaredevicegen implements creation of a HardwareDevice Asset bundle.
 package hardwaredevicegen
 
 import (
@@ -16,7 +16,7 @@ import (
 	rpb "intrinsic/assets/proto/v1/reference_go_proto"
 )
 
-// CreateHardwareDeviceBundleOptions contains the data needed to create a HardwareDevice asset
+// CreateHardwareDeviceBundleOptions provides the data needed to create a HardwareDevice Asset
 // bundle.
 type CreateHardwareDeviceBundleOptions struct {
 	// AssetCatalogRefInfoPaths are the paths to serialized AssetCatalogRefInfo protos of assets to
@@ -31,8 +31,8 @@ type CreateHardwareDeviceBundleOptions struct {
 	OutputBundlePath string
 }
 
-// CreateHardwareDeviceBundle creates a HardwareDevice asset bundle on disk.
-func CreateHardwareDeviceBundle(opts CreateHardwareDeviceBundleOptions) error {
+// CreateHardwareDeviceBundle creates a HardwareDevice Asset bundle on disk.
+func CreateHardwareDeviceBundle(opts *CreateHardwareDeviceBundleOptions) error {
 	m := &hdmpb.HardwareDeviceManifest{}
 	if err := protoio.ReadTextProto(opts.ManifestPath, m); err != nil {
 		return fmt.Errorf("failed to read manifest: %w", err)
@@ -84,8 +84,8 @@ func CreateHardwareDeviceBundle(opts CreateHardwareDeviceBundleOptions) error {
 	}
 	m.Assets = assets
 
-	if err := bundleio.WriteHardwareDevice(m, opts.OutputBundlePath); err != nil {
-		return fmt.Errorf("cannot write HardwareDevice asset bundle: %w", err)
+	if err := bundleio.WriteHardwareDeviceBundle(m, opts.OutputBundlePath); err != nil {
+		return fmt.Errorf("failed to write HardwareDevice Asset bundle: %w", err)
 	}
 
 	return nil

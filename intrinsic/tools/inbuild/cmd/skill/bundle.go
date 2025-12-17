@@ -61,10 +61,9 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 
 	// Actually create the skill bundle
-	return bundleio.WriteSkill(flagOutput, bundleio.WriteSkillOpts{
-		Manifest:    m,
-		Descriptors: fds,
-		ImageTar:    flagOciImage,
+	return bundleio.WriteSkillBundle(m, flagOutput, &bundleio.WriteSkillBundleOptions{
+		Descriptors:  fds,
+		ImageTarPath: flagOciImage,
 	})
 }
 

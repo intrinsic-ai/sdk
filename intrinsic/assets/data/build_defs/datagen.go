@@ -1,6 +1,6 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package datagen implements creation of the Data asset bundle.
+// Package datagen implements creation of the Data Asset bundle.
 package datagen
 
 import (
@@ -22,14 +22,14 @@ import (
 	anypb "google.golang.org/protobuf/types/known/anypb"
 )
 
-// CreateDataAssetBundleOptions contains the data needed to create a Data asset bundle.
-type CreateDataAssetBundleOptions struct {
+// CreateDataBundleOptions provides the data needed to create a Data Asset bundle.
+type CreateDataBundleOptions struct {
 	// ExcludedReferencedFilePaths is a list of paths to files that should not be included in the tar
 	// bundle.
 	//
 	// Relative paths must be relative to the same base as the output bundle path.
 	//
-	// These files are left as is and referenced by the Data asset along with a digest to ensure the
+	// These files are left as is and referenced by the Data Asset along with a digest to ensure the
 	// data are not modified.
 	ExcludedReferencedFilePaths []string
 	// ExpectedReferencedFilePaths is a list of paths to files that are expected to be referenced in
@@ -46,16 +46,16 @@ type CreateDataAssetBundleOptions struct {
 	OutputBundlePath string
 }
 
-// CreateDataAssetBundle creates a Data asset bundle on disk.
-func CreateDataAssetBundle(opts CreateDataAssetBundleOptions) error {
+// CreateDataBundle creates a Data Asset bundle on disk.
+func CreateDataBundle(opts *CreateDataBundleOptions) error {
 	fds, err := registryutil.LoadFileDescriptorSets(opts.FileDescriptorSetPaths)
 	if err != nil {
-		return fmt.Errorf("cannot build FileDescriptorSet: %w", err)
+		return fmt.Errorf("failed to load FileDescriptorSets: %w", err)
 	}
 
 	types, err := registryutil.NewTypesFromFileDescriptorSet(fds)
 	if err != nil {
-		return fmt.Errorf("cannot populate registry types: %w", err)
+		return fmt.Errorf("failed to populate registry types: %w", err)
 	}
 
 	m := &dmpb.DataManifest{}
@@ -65,7 +65,7 @@ func CreateDataAssetBundle(opts CreateDataAssetBundleOptions) error {
 	if err := datamanifest.ValidateDataManifest(m,
 		datamanifest.WithTypes(types),
 	); err != nil {
-		return fmt.Errorf("invalid manifest: %w", err)
+		return fmt.Errorf("invalid input manifest: %w", err)
 	}
 
 	da := &dapb.DataAsset{
@@ -87,21 +87,21 @@ func CreateDataAssetBundle(opts CreateDataAssetBundleOptions) error {
 
 	// Change relative file path references to be based on the output bundle directory.
 	if payload, err := utils.ExtractPayload(da); err != nil {
-		return fmt.Errorf("cannot extract data payload: %w", err)
+		return fmt.Errorf("failed to extract data payload: %w", err)
 	} else if payloadOut, err := utils.WalkUniqueReferencedData(payload, func(ref *utils.ReferencedDataExt) error {
 		if ref.Type() == utils.FileReferenceType && !filepath.IsAbs(ref.Reference()) {
 			pathFromManifest := filepath.Join(manifestDir, ref.Reference())
 			pathFromOutputBundle, err := filepath.Rel(outputBundleDir, pathFromManifest)
 			if err != nil {
-				return fmt.Errorf("cannot get relative path: %w", err)
+				return fmt.Errorf("failed to get relative path: %w", err)
 			}
 			ref.SetReference(pathFromOutputBundle)
 		}
 		return nil
 	}); err != nil {
-		return fmt.Errorf("cannot walk data payload when creating Data asset bundle at %q: %w", opts.OutputBundlePath, err)
+		return fmt.Errorf("failed to walk data payload when creating Data Asset bundle at %q: %w", opts.OutputBundlePath, err)
 	} else if payloadOutAny, err := anypb.New(payloadOut); err != nil {
-		return fmt.Errorf("cannot create Any proto for data payload: %w", err)
+		return fmt.Errorf("failed to create Any proto for data payload: %w", err)
 	} else {
 		da.Data = payloadOutAny
 	}
@@ -111,7 +111,7 @@ func CreateDataAssetBundle(opts CreateDataAssetBundleOptions) error {
 	for i, path := range opts.ExcludedReferencedFilePaths {
 		if !filepath.IsAbs(path) {
 			if excludedReferencedFilePaths[i], err = filepath.Rel(outputBundleDir, path); err != nil {
-				return fmt.Errorf("cannot get relative path: %w", err)
+				return fmt.Errorf("failed to get relative path: %w", err)
 			}
 		}
 	}
@@ -119,18 +119,18 @@ func CreateDataAssetBundle(opts CreateDataAssetBundleOptions) error {
 	for i, path := range opts.ExpectedReferencedFilePaths {
 		if !filepath.IsAbs(path) {
 			if expectedReferencedFilePaths[i], err = filepath.Rel(outputBundleDir, path); err != nil {
-				return fmt.Errorf("cannot get relative path: %w", err)
+				return fmt.Errorf("failed to get relative path: %w", err)
 			}
 		}
 	}
 
-	if err := bundleio.WriteDataAsset(
+	if err := bundleio.WriteDataBundle(
 		da,
 		opts.OutputBundlePath,
 		bundleio.WithExcludedReferencedFilePaths(excludedReferencedFilePaths),
 		bundleio.WithExpectedReferencedFilePaths(expectedReferencedFilePaths),
 	); err != nil {
-		return fmt.Errorf("cannot write Data asset bundle: %w", err)
+		return fmt.Errorf("failed to write Data Asset bundle: %w", err)
 	}
 
 	return nil

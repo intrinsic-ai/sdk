@@ -24,33 +24,31 @@ const (
 	ProcessManifestFileName = "process_manifest.binpb"
 )
 
-// WriteProcessManifest writes a Process asset .tar bundle file to the given
-// writer.
-func WriteProcessManifest(manifest *processmanifestpb.ProcessManifest, out io.Writer) error {
+// WriteProcessBundle writes a Process Asset .tar bundle file to the specified writer.
+func WriteProcessBundle(manifest *processmanifestpb.ProcessManifest, out io.Writer) error {
 	if manifest == nil {
-		return fmt.Errorf("Process manifest must not be nil")
+		return fmt.Errorf("ProcessManifest must not be nil")
 	}
-
 	err := processmanifest.ValidateProcessManifest(manifest)
 	if err != nil {
-		return fmt.Errorf("invalid Process manifest: %w", err)
+		return fmt.Errorf("invalid ProcessManifest: %w", err)
 	}
 
 	tarWriter := tar.NewWriter(out)
 
 	if err := tartooling.AddBinaryProto(manifest, tarWriter, ProcessManifestFileName); err != nil {
-		return fmt.Errorf("cannot write Process manifest to bundle: %w", err)
+		return fmt.Errorf("failed write ProcessManifest to bundle: %w", err)
 	}
 
 	if err := tarWriter.Close(); err != nil {
-		return fmt.Errorf("cannot close tar writer: %w", err)
+		return fmt.Errorf("failed to close tar writer: %w", err)
 	}
 
 	return nil
 }
 
 // ReadProcessManifest reads a ProcessManifest from a .tar bundle (see
-// [WriteProcessManifest]).
+// [WriteProcessBundle]).
 func ReadProcessManifest(src io.Reader) (*processmanifestpb.ProcessManifest, error) {
 	// Read single file from the bundle.
 	tarReader := tar.NewReader(src)
@@ -87,7 +85,7 @@ func ReadProcessManifest(src io.Reader) (*processmanifestpb.ProcessManifest, err
 }
 
 // ProcessProcessAsset creates a processed ProcessAsset from a Process asset
-// bundle (see [WriteProcessManifest]).
+// bundle (see [WriteProcessBundle]).
 func ProcessProcessAsset(src io.Reader) (*processassetpb.ProcessAsset, error) {
 	manifest, err := ReadProcessManifest(src)
 	if err != nil {
@@ -118,10 +116,10 @@ func ProcessProcessAsset(src io.Reader) (*processassetpb.ProcessAsset, error) {
 	return asset, nil
 }
 
-// WriteProcessManifestForAsset writes a Process asset .tar bundle file to the
+// WriteProcessBundleForAsset writes a Process asset .tar bundle file to the
 // given writer. Creates a ProcessManifest from the given ProcessAsset and then
-// calls [WriteProcessManifest].
-func WriteProcessManifestForAsset(asset *processassetpb.ProcessAsset, out io.Writer) error {
+// calls [WriteProcessBundle].
+func WriteProcessBundleForAsset(asset *processassetpb.ProcessAsset, out io.Writer) error {
 	if asset == nil {
 		return fmt.Errorf("Process asset must not be nil")
 	}
@@ -148,5 +146,5 @@ func WriteProcessManifestForAsset(asset *processassetpb.ProcessAsset, out io.Wri
 		skill.IdVersion = ""
 	}
 
-	return WriteProcessManifest(manifest, out)
+	return WriteProcessBundle(manifest, out)
 }

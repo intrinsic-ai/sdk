@@ -43,11 +43,26 @@ go_binary(
     ],
 )
 
-go_binary(
-    name = "skillbundlegen",
-    srcs = ["skillbundlegen.go"],
+go_library(
+    name = "skillgen",
+    srcs = ["skillgen.go"],
     visibility = ["//visibility:public"],
     deps = [
+        "//intrinsic/assets:bundleio",
+        "//intrinsic/production:intrinsic",
+        "//intrinsic/skills/proto:skill_manifest_go_proto",
+        "//intrinsic/util/proto:protoio",
+        "@com_github_golang_glog//:go_default_library",
+        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
+    ],
+)
+
+go_binary(
+    name = "skillgen_main",
+    srcs = ["skillgen_main.go"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":skillgen",
         "//intrinsic/assets:bundleio",
         "//intrinsic/production:intrinsic",
         "//intrinsic/skills/proto:skill_manifest_go_proto",
