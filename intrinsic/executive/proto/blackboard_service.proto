@@ -27,6 +27,8 @@ service ExecutiveBlackboard {
       returns (ListBlackboardValuesResponse) {}
 
   // Update a specific value on the blackboard.
+  // Updating a blackboard value that is a loop or retry node counter will also
+  // change the node's internal counter.
   rpc UpdateBlackboardValue(UpdateBlackboardValueRequest)
       returns (BlackboardValue) {}
 
