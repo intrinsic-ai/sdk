@@ -27,7 +27,9 @@ message Value {
   }
 }
 
-enum NullValue { NULL_VALUE = 0; }
+enum NullValue {
+  NULL_VALUE = 0;
+}
 
 message ListValue {
   repeated Value values = 1;
