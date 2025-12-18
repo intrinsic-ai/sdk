@@ -144,7 +144,7 @@ func listSolutions(ctx context.Context, conn *grpc.ClientConn, params *listSolut
 		return err
 	}
 	client := solutiondiscoverygrpcpb.NewSolutionDiscoveryServiceClient(conn)
-	var jsonResponse *solutiondiscoverypb.ListSolutionDescriptionsResponse
+	jsonResponse := &solutiondiscoverypb.ListSolutionDescriptionsResponse{}
 	nextPageToken := ""
 	for {
 		listSolutionsRequest := &solutiondiscoverypb.ListSolutionDescriptionsRequest{Filters: filters, PageSize: int64(pageSize), NextPageToken: nextPageToken}
@@ -155,12 +155,9 @@ func listSolutions(ctx context.Context, conn *grpc.ClientConn, params *listSolut
 		}
 		// Keep the JSON output format as is, in case there are consumers relying on it.
 		if params.outputType == printer.OutputTypeJSON {
-			jsonResponse = &solutiondiscoverypb.ListSolutionDescriptionsResponse{
-				Solutions:     append(jsonResponse.GetSolutions(), resp.GetSolutions()...),
-				NextPageToken: resp.GetNextPageToken(),
-			}
-			if resp.GetNextPageToken() == "" {
-				params.printer.Print(&ListSolutionDescriptionsResponse{m: resp})
+			jsonResponse.Solutions = append(jsonResponse.GetSolutions(), resp.GetSolutions()...)
+			if nextPageToken = resp.GetNextPageToken(); nextPageToken == "" {
+				params.printer.Print(&ListSolutionDescriptionsResponse{m: jsonResponse})
 				break
 			}
 		} else {
