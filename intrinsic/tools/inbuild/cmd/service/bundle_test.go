@@ -32,14 +32,14 @@ type bundleCheck func(t *testing.T)
 func checkManifestHasID(t *testing.T, bundlePath string, wantPackage string, wantName string) bundleCheck {
 	return func(t *testing.T) {
 		t.Helper()
-		manifest, err := bundleio.ReadServiceManifest(t.Context(), bundlePath)
+		bundle, err := bundleio.ReadServiceBundle(t.Context(), bundlePath)
 		if err != nil {
-			t.Fatalf("bundleio.ReadServiceManifest(%q) failed: %v", bundlePath, err)
+			t.Fatalf("bundleio.ReadServiceBundle(%q) failed: %v", bundlePath, err)
 		}
-		if got := manifest.GetMetadata().GetId().GetPackage(); got != wantPackage {
+		if got := bundle.Manifest.GetMetadata().GetId().GetPackage(); got != wantPackage {
 			t.Errorf("manifest.GetMetadata().GetId().GetPackage() = %q, want %q", got, wantPackage)
 		}
-		if got := manifest.GetMetadata().GetId().GetName(); got != wantName {
+		if got := bundle.Manifest.GetMetadata().GetId().GetName(); got != wantName {
 			t.Errorf("manifest.GetMetadata().GetId().GetName() = %q, want %q", got, wantName)
 		}
 	}
@@ -56,12 +56,12 @@ func checkBundleHasDefaultConfig(t *testing.T, bundlePath string, wantConfigPath
 		if err := prototext.Unmarshal(wantConfigBytes, wantConfig); err != nil {
 			t.Fatalf("pprototextroto.Unmarshal(%q) failed: %v", wantConfigPath, err)
 		}
-		_, gotContents, err := bundleio.ReadService(t.Context(), bundlePath)
+		bundle, err := bundleio.ReadServiceBundle(t.Context(), bundlePath, bundleio.WithReadServiceFiles(true))
 		if err != nil {
-			t.Fatalf("bundleio.ReadService(%q) failed: %v", bundlePath, err)
+			t.Fatalf("bundleio.ReadServiceBundle(%q) failed: %v", bundlePath, err)
 		}
 		got := &apb.Any{}
-		if err := proto.Unmarshal(gotContents["default_config.binarypb"], got); err != nil {
+		if err := proto.Unmarshal(bundle.Files["default_config.binarypb"], got); err != nil {
 			t.Fatalf("proto.Unmarshal(gotContents[\"default_config.binarypb\"], got) failed: %v", err)
 		}
 

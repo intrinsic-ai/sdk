@@ -89,26 +89,33 @@ func makeServiceAssetHandlers(manifest *smpb.ServiceManifest, opts ProcessServic
 	return processedAssets, handlers
 }
 
-// ReadService reads the service bundle archive from path. It returns the
-// service manifest and a mapping between bundle filenames and their contents.
-func ReadService(ctx context.Context, path string) (*smpb.ServiceManifest, map[string][]byte, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, nil, fmt.Errorf("could not open %q: %v", path, err)
-	}
-	defer f.Close()
-
-	m, handlers := makeOnlyServiceManifestHandlers()
-	inlined, fallback := makeCollectInlinedFallbackHandler()
-	if err := walkTarFile(ctx, tar.NewReader(f), handlers, fallback); err != nil {
-		return nil, nil, fmt.Errorf("error in tar file %q: %v", path, err)
-	}
-	return m, inlined, nil
+// ServiceBundle represents a Service Asset bundle.
+type ServiceBundle struct {
+	Manifest *smpb.ServiceManifest
+	Files    map[string][]byte
 }
 
-// ReadServiceManifest reads the bundle archive from path. It returns only
-// service manifest.
-func ReadServiceManifest(ctx context.Context, path string) (*smpb.ServiceManifest, error) {
+type readServiceBundleOptions struct {
+	readFiles bool
+}
+
+// ReadServiceBundleOption is a function option for ReadServiceBundle.
+type ReadServiceBundleOption func(*readServiceBundleOptions)
+
+// WithReadServiceFiles specifies whether to read additional files when reading the bundle.
+func WithReadServiceFiles(b bool) ReadServiceBundleOption {
+	return func(opts *readServiceBundleOptions) {
+		opts.readFiles = b
+	}
+}
+
+// ReadServiceBundle reads a Service Asset bundle from disk (see WriteServiceBundle).
+func ReadServiceBundle(ctx context.Context, path string, options ...ReadServiceBundleOption) (*ServiceBundle, error) {
+	opts := &readServiceBundleOptions{}
+	for _, opt := range options {
+		opt(opts)
+	}
+
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("could not open %q: %v", path, err)
@@ -116,10 +123,21 @@ func ReadServiceManifest(ctx context.Context, path string) (*smpb.ServiceManifes
 	defer f.Close()
 
 	m, handlers := makeOnlyServiceManifestHandlers()
-	if err := walkTarFile(ctx, tar.NewReader(f), handlers, nil); err != nil {
+	var inlined map[string][]byte
+	var fallback fallbackHandler
+	if opts.readFiles {
+		inlined, fallback = makeCollectInlinedFallbackHandler()
+	}
+	if err := walkTarFile(ctx, tar.NewReader(f), handlers, fallback); err != nil {
 		return nil, fmt.Errorf("error in tar file %q: %v", path, err)
 	}
-	return m, nil
+
+	bundle := &ServiceBundle{
+		Manifest: m,
+		Files:    inlined,
+	}
+
+	return bundle, nil
 }
 
 // ProcessServiceOpts contains the necessary handlers to generate a processed

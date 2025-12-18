@@ -203,7 +203,7 @@ func detectBundleType(ctx context.Context, path string) (bundleType, error) {
 type BundleProcessor struct {
 	ImageProcessor
 	// ProcessReferencedData is the ReferencedDataProcessor to use for Data assets (see
-	// ReadDataAsset).
+	// ReadDataBundle).
 	ProcessReferencedData ReferencedDataProcessor
 }
 
@@ -222,11 +222,11 @@ type ProcessedBundle interface {
 	Release(VersionDetails) *acpb.Asset
 }
 
-type dataBundle struct {
+type processedDataBundle struct {
 	manifest *dapb.DataAsset
 }
 
-func (b dataBundle) Install() *iapb.CreateInstalledAssetRequest_Asset {
+func (b processedDataBundle) Install() *iapb.CreateInstalledAssetRequest_Asset {
 	return &iapb.CreateInstalledAssetRequest_Asset{
 		Variant: &iapb.CreateInstalledAssetRequest_Asset_Data{
 			Data: cloneOf(b.manifest),
@@ -234,7 +234,7 @@ func (b dataBundle) Install() *iapb.CreateInstalledAssetRequest_Asset {
 	}
 }
 
-func (b dataBundle) Release(details VersionDetails) *acpb.Asset {
+func (b processedDataBundle) Release(details VersionDetails) *acpb.Asset {
 	data := cloneOf(b.manifest)
 	data.Metadata.IdVersion.Version = details.Version
 	data.Metadata.ReleaseNotes = details.ReleaseNotes
@@ -251,11 +251,11 @@ func (b dataBundle) Release(details VersionDetails) *acpb.Asset {
 	}
 }
 
-type hardwareDeviceBundle struct {
+type processedHardwareDeviceBundle struct {
 	manifest *hdmpb.ProcessedHardwareDeviceManifest
 }
 
-func (b hardwareDeviceBundle) Install() *iapb.CreateInstalledAssetRequest_Asset {
+func (b processedHardwareDeviceBundle) Install() *iapb.CreateInstalledAssetRequest_Asset {
 	return &iapb.CreateInstalledAssetRequest_Asset{
 		Variant: &iapb.CreateInstalledAssetRequest_Asset_HardwareDevice{
 			HardwareDevice: cloneOf(b.manifest),
@@ -263,7 +263,7 @@ func (b hardwareDeviceBundle) Install() *iapb.CreateInstalledAssetRequest_Asset 
 	}
 }
 
-func (b hardwareDeviceBundle) Release(details VersionDetails) *acpb.Asset {
+func (b processedHardwareDeviceBundle) Release(details VersionDetails) *acpb.Asset {
 	manifest := cloneOf(b.manifest)
 
 	// Take the first tag, if one exists.  Validation can be done later on the
@@ -296,11 +296,11 @@ func (b hardwareDeviceBundle) Release(details VersionDetails) *acpb.Asset {
 	}
 }
 
-type processBundle struct {
+type processedProcessBundle struct {
 	manifest *processassetpb.ProcessAsset
 }
 
-func (b processBundle) Install() *iapb.CreateInstalledAssetRequest_Asset {
+func (b processedProcessBundle) Install() *iapb.CreateInstalledAssetRequest_Asset {
 	return &iapb.CreateInstalledAssetRequest_Asset{
 		Variant: &iapb.CreateInstalledAssetRequest_Asset_Process{
 			Process: cloneOf(b.manifest),
@@ -308,7 +308,7 @@ func (b processBundle) Install() *iapb.CreateInstalledAssetRequest_Asset {
 	}
 }
 
-func (b processBundle) Release(details VersionDetails) *acpb.Asset {
+func (b processedProcessBundle) Release(details VersionDetails) *acpb.Asset {
 	manifest := cloneOf(b.manifest)
 	manifest.Metadata.IdVersion.Version = details.Version
 	manifest.Metadata.ReleaseNotes = details.ReleaseNotes
@@ -329,11 +329,11 @@ func (b processBundle) Release(details VersionDetails) *acpb.Asset {
 	}
 }
 
-type serviceBundle struct {
+type processedServiceBundle struct {
 	manifest *smpb.ProcessedServiceManifest
 }
 
-func (b serviceBundle) Install() *iapb.CreateInstalledAssetRequest_Asset {
+func (b processedServiceBundle) Install() *iapb.CreateInstalledAssetRequest_Asset {
 	return &iapb.CreateInstalledAssetRequest_Asset{
 		Variant: &iapb.CreateInstalledAssetRequest_Asset_Service{
 			Service: cloneOf(b.manifest),
@@ -341,7 +341,7 @@ func (b serviceBundle) Install() *iapb.CreateInstalledAssetRequest_Asset {
 	}
 }
 
-func (b serviceBundle) Release(details VersionDetails) *acpb.Asset {
+func (b processedServiceBundle) Release(details VersionDetails) *acpb.Asset {
 	manifest := cloneOf(b.manifest)
 	return &acpb.Asset{
 		Metadata: &metadatapb.Metadata{
@@ -367,11 +367,11 @@ func (b serviceBundle) Release(details VersionDetails) *acpb.Asset {
 	}
 }
 
-type skillBundle struct {
+type processedSkillBundle struct {
 	manifest *psmpb.ProcessedSkillManifest
 }
 
-func (b skillBundle) Install() *iapb.CreateInstalledAssetRequest_Asset {
+func (b processedSkillBundle) Install() *iapb.CreateInstalledAssetRequest_Asset {
 	return &iapb.CreateInstalledAssetRequest_Asset{
 		Variant: &iapb.CreateInstalledAssetRequest_Asset_Skill{
 			Skill: cloneOf(b.manifest),
@@ -379,7 +379,7 @@ func (b skillBundle) Install() *iapb.CreateInstalledAssetRequest_Asset {
 	}
 }
 
-func (b skillBundle) Release(details VersionDetails) *acpb.Asset {
+func (b processedSkillBundle) Release(details VersionDetails) *acpb.Asset {
 	manifest := cloneOf(b.manifest)
 	return &acpb.Asset{
 		Metadata: &metadatapb.Metadata{
@@ -413,11 +413,11 @@ func (p *BundleProcessor) Process(ctx context.Context, path string) (ProcessedBu
 	}
 	switch bundleType {
 	case bundleTypeData:
-		data, err := ReadDataAsset(ctx, path, WithProcessReferencedData(p.ProcessReferencedData))
+		dataBundle, err := ReadDataBundle(ctx, path, WithProcessReferencedData(p.ProcessReferencedData))
 		if err != nil {
 			return nil, fmt.Errorf("unable to read data asset bundle: %w", err)
 		}
-		return dataBundle{data}, nil
+		return processedDataBundle{dataBundle.Data}, nil
 	case bundleTypeHardwareDevice:
 		assetInliner := NewLocalAssetInliner(LocalAssetInlinerOptions{
 			ImageProcessor:          p.ImageProcessor,
@@ -437,7 +437,7 @@ func (p *BundleProcessor) Process(ctx context.Context, path string) (ProcessedBu
 		if err != nil {
 			return nil, fmt.Errorf("could not process HardwareDevice bundle: %w", err)
 		}
-		return &hardwareDeviceBundle{hardwareDevice}, nil
+		return &processedHardwareDeviceBundle{hardwareDevice}, nil
 	case bundleTypeProcess:
 		f, err := os.Open(path)
 		if err != nil {
@@ -448,7 +448,7 @@ func (p *BundleProcessor) Process(ctx context.Context, path string) (ProcessedBu
 		if err != nil {
 			return nil, fmt.Errorf("unable to process process bundle: %w", err)
 		}
-		return processBundle{process}, nil
+		return processedProcessBundle{process}, nil
 	case bundleTypeService:
 		service, err := ProcessService(ctx, path, ProcessServiceOpts{
 			ImageProcessor: p.ImageProcessor,
@@ -456,7 +456,7 @@ func (p *BundleProcessor) Process(ctx context.Context, path string) (ProcessedBu
 		if err != nil {
 			return nil, fmt.Errorf("unable to process service bundle: %w", err)
 		}
-		return serviceBundle{service}, nil
+		return processedServiceBundle{service}, nil
 	case bundleTypeSkill:
 		skill, err := ProcessSkill(ctx, path, ProcessSkillOpts{
 			ImageProcessor: p.ImageProcessor,
@@ -464,7 +464,7 @@ func (p *BundleProcessor) Process(ctx context.Context, path string) (ProcessedBu
 		if err != nil {
 			return nil, fmt.Errorf("unable to process skill bundle: %w", err)
 		}
-		return skillBundle{skill}, nil
+		return processedSkillBundle{skill}, nil
 	default:
 		return nil, fmt.Errorf("unable to detect bundle type: %w", err)
 	}

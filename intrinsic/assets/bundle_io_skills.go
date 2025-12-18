@@ -79,26 +79,33 @@ func makeSkillAssetHandlers(manifest *smpb.SkillManifest, opts ProcessSkillOpts)
 	return processedAssets, handlers
 }
 
-// ReadSkill reads the skill bundle archive from path. It returns the
-// skill manifest and a mapping between bundle filenames and their contents.
-func ReadSkill(ctx context.Context, path string) (*smpb.SkillManifest, map[string][]byte, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, nil, fmt.Errorf("could not open %q: %v", path, err)
-	}
-	defer f.Close()
-
-	m, handlers := makeOnlySkillManifestHandlers()
-	inlined, fallback := makeCollectInlinedFallbackHandler()
-	if err := walkTarFile(ctx, tar.NewReader(f), handlers, fallback); err != nil {
-		return nil, nil, fmt.Errorf("error in tar file %q: %v", path, err)
-	}
-	return m, inlined, nil
+// SkillBundle represents a Skill Asset bundle.
+type SkillBundle struct {
+	Manifest *smpb.SkillManifest
+	Files    map[string][]byte
 }
 
-// ReadSkillManifest reads the bundle archive from path. It returns only
-// skill manifest.
-func ReadSkillManifest(ctx context.Context, path string) (*smpb.SkillManifest, error) {
+type readSkillBundleOptions struct {
+	readFiles bool
+}
+
+// ReadSkillBundleOption is a functional option for ReadSkillBundle
+type ReadSkillBundleOption func(*readSkillBundleOptions)
+
+// WithReadSkillFiles specifies whether to read additional files when reading the bundle.
+func WithReadSkillFiles(b bool) ReadSkillBundleOption {
+	return func(opts *readSkillBundleOptions) {
+		opts.readFiles = b
+	}
+}
+
+// ReadSkillBundle reads a Skill Asset bundle from disk (see WriteSkillBundle).
+func ReadSkillBundle(ctx context.Context, path string, options ...ReadSkillBundleOption) (*SkillBundle, error) {
+	opts := &readSkillBundleOptions{}
+	for _, opt := range options {
+		opt(opts)
+	}
+
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("could not open %q: %v", path, err)
@@ -106,10 +113,21 @@ func ReadSkillManifest(ctx context.Context, path string) (*smpb.SkillManifest, e
 	defer f.Close()
 
 	m, handlers := makeOnlySkillManifestHandlers()
-	if err := walkTarFile(ctx, tar.NewReader(f), handlers, nil); err != nil {
+	var inlined map[string][]byte
+	var fallback fallbackHandler
+	if opts.readFiles {
+		inlined, fallback = makeCollectInlinedFallbackHandler()
+	}
+	if err := walkTarFile(ctx, tar.NewReader(f), handlers, fallback); err != nil {
 		return nil, fmt.Errorf("error in tar file %q: %v", path, err)
 	}
-	return m, nil
+
+	bundle := &SkillBundle{
+		Manifest: m,
+		Files:    inlined,
+	}
+
+	return bundle, nil
 }
 
 // ProcessSkillOpts contains the necessary handlers to generate a processed

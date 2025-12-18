@@ -47,9 +47,13 @@ func WriteProcessBundle(manifest *processmanifestpb.ProcessManifest, out io.Writ
 	return nil
 }
 
-// ReadProcessManifest reads a ProcessManifest from a .tar bundle (see
-// [WriteProcessBundle]).
-func ReadProcessManifest(src io.Reader) (*processmanifestpb.ProcessManifest, error) {
+// ProcessBundle represents a Process Asset bundle.
+type ProcessBundle struct {
+	Manifest *processmanifestpb.ProcessManifest
+}
+
+// ReadProcessBundle reads a Process Asset bundle from disk (see WriteProcessBundle).
+func ReadProcessBundle(src io.Reader) (*ProcessBundle, error) {
 	// Read single file from the bundle.
 	tarReader := tar.NewReader(src)
 	header, err := tarReader.Next()
@@ -81,16 +85,21 @@ func ReadProcessManifest(src io.Reader) (*processmanifestpb.ProcessManifest, err
 		return nil, fmt.Errorf("unexpected second entry in Process asset bundle: %v", header.Name)
 	}
 
-	return manifest, nil
+	bundle := &ProcessBundle{
+		Manifest: manifest,
+	}
+
+	return bundle, nil
 }
 
 // ProcessProcessAsset creates a processed ProcessAsset from a Process asset
 // bundle (see [WriteProcessBundle]).
 func ProcessProcessAsset(src io.Reader) (*processassetpb.ProcessAsset, error) {
-	manifest, err := ReadProcessManifest(src)
+	bundle, err := ReadProcessBundle(src)
 	if err != nil {
 		return nil, fmt.Errorf("could not read Process asset bundle: %w", err)
 	}
+	manifest := bundle.Manifest
 
 	asset := &processassetpb.ProcessAsset{
 		Metadata: &metadatapb.Metadata{

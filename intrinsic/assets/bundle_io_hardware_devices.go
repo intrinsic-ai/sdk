@@ -79,28 +79,32 @@ func WriteHardwareDeviceBundle(hdm *hdmpb.HardwareDeviceManifest, path string, o
 	return nil
 }
 
-// readHardwareDeviceOptions contains options for a call to ReadHardwareDevice.
-type readHardwareDeviceOptions struct {
+// HardwareDeviceBundle represents a HardwareDevice Asset bundle.
+type HardwareDeviceBundle struct {
+	Manifest *hdmpb.HardwareDeviceManifest
+}
+
+type readHardwareDeviceBundleOptions struct {
 	// extractLocalAssetsDir is the directory to which to extract local asset bundles.
 	extractLocalAssetsDir string
 }
 
-// ReadHardwareDeviceOption is a functional option for ReadHardwareDevice.
-type ReadHardwareDeviceOption func(*readHardwareDeviceOptions)
+// ReadHardwareDeviceBundleOption is a functional option for ReadHardwareDeviceBundle.
+type ReadHardwareDeviceBundleOption func(*readHardwareDeviceBundleOptions)
 
 // WithExtractLocalAssetsDir provides a directory to which to extract local asset bundles.
 //
 // If specified, local asset bundles will be extracted to this directory, and bundle paths updated
 // in the returned manifest. The directory must already exist.
-func WithExtractLocalAssetsDir(dir string) ReadHardwareDeviceOption {
-	return func(opts *readHardwareDeviceOptions) {
+func WithExtractLocalAssetsDir(dir string) ReadHardwareDeviceBundleOption {
+	return func(opts *readHardwareDeviceBundleOptions) {
 		opts.extractLocalAssetsDir = dir
 	}
 }
 
-// ReadHardwareDevice reads a HardwareDevice asset from a .tar bundle (see WriteHardwareDeviceBundle).
-func ReadHardwareDevice(ctx context.Context, p string, options ...ReadHardwareDeviceOption) (*hdmpb.HardwareDeviceManifest, error) {
-	opts := &readHardwareDeviceOptions{}
+// ReadHardwareDeviceBundle reads a HardwareDevice Asset bundle from disk (see WriteHardwareDeviceBundle).
+func ReadHardwareDeviceBundle(ctx context.Context, p string, options ...ReadHardwareDeviceBundleOption) (*HardwareDeviceBundle, error) {
+	opts := &readHardwareDeviceBundleOptions{}
 	for _, opt := range options {
 		opt(opts)
 	}
@@ -164,7 +168,11 @@ func ReadHardwareDevice(ctx context.Context, p string, options ...ReadHardwareDe
 		}
 	}
 
-	return hdm, nil
+	bundle := &HardwareDeviceBundle{
+		Manifest: hdm,
+	}
+
+	return bundle, nil
 }
 
 // AssetProcessor is a function that processes a single asset.
@@ -188,7 +196,7 @@ func PassThrough(ctx context.Context, a *hdmpb.HardwareDeviceManifest_Asset) (*h
 type LocalAssetInlinerOptions struct {
 	ImageProcessor
 	// ProcessReferencedData is the ReferencedDataProcessor to use for Data assets (see
-	// ReadDataAsset).
+	// ReadDataBundle).
 	ProcessReferencedData ReferencedDataProcessor
 }
 
@@ -217,17 +225,17 @@ func (p *LocalAssetInliner) Process(ctx context.Context, a *hdmpb.HardwareDevice
 				},
 			}, nil
 		case atpb.AssetType_ASSET_TYPE_DATA:
-			var opts []ReadDataAssetOption
+			var opts []ReadDataBundleOption
 			if p.opts.ProcessReferencedData != nil {
 				opts = append(opts, WithProcessReferencedData(p.opts.ProcessReferencedData))
 			}
-			da, err := ReadDataAsset(ctx, a.GetLocal().GetBundlePath(), opts...)
+			dataBundle, err := ReadDataBundle(ctx, a.GetLocal().GetBundlePath(), opts...)
 			if err != nil {
 				return nil, fmt.Errorf("error processing Data %s: %w", idutils.IDFromProtoUnchecked(a.GetLocal().GetId()), err)
 			}
 			return &hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset{
 				Variant: &hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset_Data{
-					Data: da,
+					Data: dataBundle.Data,
 				},
 			}, nil
 		default:
@@ -247,8 +255,8 @@ func NewLocalAssetInliner(opts LocalAssetInlinerOptions) *LocalAssetInliner {
 type processHardwareDeviceOptions struct {
 	// processAsset is a function that processes a single asset.
 	processAsset AssetProcessor
-	// readOptions are options to pass to ReadHardwareDevice.
-	readOptions []ReadHardwareDeviceOption
+	// readOptions are options to pass to ReadHardwareDeviceBundle.
+	readOptions []ReadHardwareDeviceBundleOption
 }
 
 // ProcessHardwareDeviceOption is a functional option for ProcessHardwareDevice.
@@ -263,8 +271,8 @@ func WithProcessAsset(f AssetProcessor) ProcessHardwareDeviceOption {
 	}
 }
 
-// WithReadOptions provides options to pass to ReadHardwareDevice.
-func WithReadOptions(options ...ReadHardwareDeviceOption) ProcessHardwareDeviceOption {
+// WithReadOptions provides options to pass to ReadHardwareDeviceBundle.
+func WithReadOptions(options ...ReadHardwareDeviceBundleOption) ProcessHardwareDeviceOption {
 	return func(opts *processHardwareDeviceOptions) {
 		opts.readOptions = options
 	}
@@ -281,10 +289,11 @@ func ProcessHardwareDevice(ctx context.Context, path string, options ...ProcessH
 		opt(opts)
 	}
 
-	hdm, err := ReadHardwareDevice(ctx, path, opts.readOptions...)
+	bundle, err := ReadHardwareDeviceBundle(ctx, path, opts.readOptions...)
 	if err != nil {
-		return nil, fmt.Errorf("error reading HardwareDeviceManifest: %w", err)
+		return nil, fmt.Errorf("error reading HardwareDevice bundle: %w", err)
 	}
+	hdm := bundle.Manifest
 
 	// Process each asset.
 	processedAssets := make(map[string]*hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset, len(hdm.GetAssets()))

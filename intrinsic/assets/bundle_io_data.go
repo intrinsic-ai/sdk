@@ -401,32 +401,34 @@ func WriteDataBundle(da *dapb.DataAsset, path string, options ...WriteDataBundle
 	return nil
 }
 
-// ReadDataAssetOptions contains options for a call to ReadDataAsset.
-type ReadDataAssetOptions struct {
-	// ProcessReferencedData is an optional function that will be called for each unique
-	// ReferencedData value in the Data Asset as it is read. (Note that all inlined ReferencedData are
-	// considered unique.)
-	//
-	// If a non-nil ReferencedData is returned, the return value replaces all of the matching
-	// ReferencedData values in the Data Asset.
+// DataBundle represents a Data Asset bundle.
+type DataBundle struct {
+	Data *dapb.DataAsset
+}
+
+type readDataBundleOptions struct {
 	ProcessReferencedData ReferencedDataProcessor
 }
 
-// ReadDataAssetOption is a functional option for ReadDataAsset.
-type ReadDataAssetOption func(*ReadDataAssetOptions)
+// ReadDataBundleOption is a functional option for ReadDataBundle.
+type ReadDataBundleOption func(*readDataBundleOptions)
 
-// WithProcessReferencedData sets the ProcessReferencedData option.
-func WithProcessReferencedData(f ReferencedDataProcessor) ReadDataAssetOption {
-	return func(opts *ReadDataAssetOptions) {
+// WithProcessReferencedData specifies a function to call for each unique ReferencedData value in
+// the Data Asset as it is read. (Note that all inlined ReferencedData are considered unique.)
+//
+// If a non-nil ReferencedData is returned, the return value replaces all of the matching
+// ReferencedData values in the Data Asset.
+func WithProcessReferencedData(f ReferencedDataProcessor) ReadDataBundleOption {
+	return func(opts *readDataBundleOptions) {
 		opts.ProcessReferencedData = f
 	}
 }
 
-// ReadDataAsset reads a DataAsset from a bundle (see WriteDataBundle).
+// ReadDataBundle reads a Data Asset bundle from disk (see WriteDataBundle).
 //
 // Relative file references in the Data Asset must be relative to the bundle's directory.
-func ReadDataAsset(ctx context.Context, path string, options ...ReadDataAssetOption) (*dapb.DataAsset, error) {
-	opts := &ReadDataAssetOptions{}
+func ReadDataBundle(ctx context.Context, path string, options ...ReadDataBundleOption) (*DataBundle, error) {
+	opts := &readDataBundleOptions{}
 	for _, opt := range options {
 		opt(opts)
 	}
@@ -565,7 +567,11 @@ func ReadDataAsset(ctx context.Context, path string, options ...ReadDataAssetOpt
 		da.Data = payloadOutAny
 	}
 
-	return da, nil
+	bundle := &DataBundle{
+		Data: da,
+	}
+
+	return bundle, nil
 }
 
 // toUniqueTarPath generates a unique path in the tar bundle to which to save a data file.

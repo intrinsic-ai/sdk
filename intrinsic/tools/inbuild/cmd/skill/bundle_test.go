@@ -23,14 +23,14 @@ type bundleCheck func(t *testing.T)
 func checkManifestHasID(t *testing.T, bundlePath string, wantPackage string, wantName string) bundleCheck {
 	return func(t *testing.T) {
 		t.Helper()
-		manifest, err := bundleio.ReadSkillManifest(t.Context(), bundlePath)
+		bundle, err := bundleio.ReadSkillBundle(t.Context(), bundlePath)
 		if err != nil {
-			t.Fatalf("bundleio.ReadSkillManifest(%q) failed: %v", bundlePath, err)
+			t.Fatalf("bundleio.ReadSkillBundle(%q) failed: %v", bundlePath, err)
 		}
-		if got := manifest.GetId().GetPackage(); got != wantPackage {
+		if got := bundle.Manifest.GetId().GetPackage(); got != wantPackage {
 			t.Errorf("manifest.GetId().GetPackage() = %q, want %q", got, wantPackage)
 		}
-		if got := manifest.GetId().GetName(); got != wantName {
+		if got := bundle.Manifest.GetId().GetName(); got != wantName {
 			t.Errorf("manifest.GetId().GetName() = %q, want %q", got, wantName)
 		}
 	}
@@ -39,13 +39,13 @@ func checkManifestHasID(t *testing.T, bundlePath string, wantPackage string, wan
 func checkHasFile(t *testing.T, bundlePath string, wantFile string) bundleCheck {
 	return func(t *testing.T) {
 		t.Helper()
-		_, gotContents, err := bundleio.ReadSkill(t.Context(), bundlePath)
+		bundle, err := bundleio.ReadSkillBundle(t.Context(), bundlePath, bundleio.WithReadSkillFiles(true))
 		if err != nil {
-			t.Fatalf("bundleio.ReadSkill(%q) failed: %v", bundlePath, err)
+			t.Fatalf("bundleio.ReadSkillBundle(%q) failed: %v", bundlePath, err)
 		}
-		_, ok := gotContents[wantFile]
+		_, ok := bundle.Files[wantFile]
 		if !ok {
-			t.Errorf("gotContents[%q] = nil, want non-nil", wantFile)
+			t.Errorf("files[%q] = nil, want non-nil", wantFile)
 		}
 	}
 }
