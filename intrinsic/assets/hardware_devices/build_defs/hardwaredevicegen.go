@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"os"
 
-	"intrinsic/assets/bundleio"
+	"intrinsic/assets/hardware_devices/hardwaredevicebundle"
 	"intrinsic/assets/idutils"
 	"intrinsic/util/proto/protoio"
 
@@ -84,7 +84,7 @@ func CreateHardwareDeviceBundle(opts *CreateHardwareDeviceBundleOptions) error {
 	}
 	m.Assets = assets
 
-	if err := bundleio.WriteHardwareDeviceBundle(m, opts.OutputBundlePath); err != nil {
+	if err := hardwaredevicebundle.WriteHardwareDeviceBundle(m, opts.OutputBundlePath); err != nil {
 		return fmt.Errorf("failed to write HardwareDevice Asset bundle: %w", err)
 	}
 

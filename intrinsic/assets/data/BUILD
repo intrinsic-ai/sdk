@@ -78,6 +78,24 @@ go_library(
 )
 
 go_library(
+    name = "databundle",
+    srcs = ["databundle.go"],
+    visibility = ["//intrinsic:internal_api_users"],
+    deps = [
+        ":utils",
+        "//intrinsic/assets:ioutils",
+        "//intrinsic/assets/catalog/proto/v1:asset_catalog_go_grpc_proto",
+        "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
+        "//intrinsic/assets/data/proto/v1:referenced_data_go_proto",
+        "//intrinsic/assets/proto:asset_type_go_proto",
+        "//intrinsic/util/archive:tartooling",
+        "@com_github_golang_glog//:go_default_library",
+        "@com_github_google_safearchive//tar",
+        "@org_golang_google_protobuf//types/known/anypb",
+    ],
+)
+
+go_library(
     name = "datamanifest",
     srcs = ["datamanifest.go"],
     visibility = ["//intrinsic:public_api_users"],

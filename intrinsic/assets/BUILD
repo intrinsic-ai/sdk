@@ -125,6 +125,10 @@ go_library(
     name = "imageutils",
     srcs = ["imageutils.go"],
     visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        "//intrinsic/assets/proto:id_go_proto",
+        "//intrinsic/kubernetes/workcell_spec/proto:image_go_proto",
+    ],
 )
 
 go_library(
@@ -177,51 +181,32 @@ go_library(
 )
 
 go_library(
-    name = "bundleio",
-    srcs = [
-        "bundle_io.go",
-        "bundle_io_data.go",
-        "bundle_io_hardware_devices.go",
-        "bundle_io_processes.go",
-        "bundle_io_services.go",
-        "bundle_io_skills.go",
-    ],
+    name = "bundle",
+    srcs = ["bundle.go"],
     visibility = ["//intrinsic:internal_api_users"],
     deps = [
-        ":idutils",
+        ":imageutils",
+        ":ioutils",
         "//intrinsic/assets/catalog/proto/v1:asset_catalog_go_grpc_proto",
         "//intrinsic/assets/catalog/proto/v1:release_metadata_go_proto",
-        "//intrinsic/assets/data:utils",
+        "//intrinsic/assets/data:databundle",
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
-        "//intrinsic/assets/data/proto/v1:referenced_data_go_proto",
-        "//intrinsic/assets/hardware_devices:hardwaredevicemanifest",
+        "//intrinsic/assets/hardware_devices:hardwaredevicebundle",
         "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",
+        "//intrinsic/assets/processes:processbundle",
         "//intrinsic/assets/processes:processmanifest",
         "//intrinsic/assets/processes/proto:process_asset_go_proto",
-        "//intrinsic/assets/processes/proto:process_manifest_go_proto",
         "//intrinsic/assets/proto:asset_tag_go_proto",
         "//intrinsic/assets/proto:asset_type_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
         "//intrinsic/assets/proto:installed_assets_go_grpc_proto",
         "//intrinsic/assets/proto:metadata_go_proto",
-        "//intrinsic/assets/scene_objects:sceneobjectmanifest",
-        "//intrinsic/assets/services:servicemanifest",
+        "//intrinsic/assets/services:servicebundle",
         "//intrinsic/assets/services/proto:service_manifest_go_proto",
-        "//intrinsic/kubernetes/workcell_spec/proto:image_go_proto",
-        "//intrinsic/skills/internal:skillmanifest",
+        "//intrinsic/skills:skillbundle",
         "//intrinsic/skills/proto:processed_skill_manifest_go_proto",
-        "//intrinsic/skills/proto:skill_manifest_go_proto",
-        "//intrinsic/util/archive:tartooling",
-        "//intrinsic/util/go:pointer",
-        "//intrinsic/util/proto:registryutil",
-        "@com_github_golang_glog//:go_default_library",
         "@com_github_google_safearchive//tar",
-        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
         "@org_golang_google_protobuf//proto",
-        "@org_golang_google_protobuf//reflect/protodesc:go_default_library",
-        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
-        "@org_golang_google_protobuf//reflect/protoregistry:go_default_library",
-        "@org_golang_google_protobuf//types/known/anypb",
     ],
 )
 
@@ -233,6 +218,19 @@ go_library(
         ":idutils",
         "//intrinsic/assets/proto:id_go_proto",
         "//intrinsic/assets/proto:installed_assets_go_grpc_proto",
+        "@org_golang_google_protobuf//proto",
+    ],
+)
+
+go_library(
+    name = "ioutils",
+    srcs = ["ioutils.go"],
+    visibility = [
+        "//intrinsic/assets:__subpackages__",
+        "//intrinsic/skills:__subpackages__",
+    ],
+    deps = [
+        "@com_github_google_safearchive//tar",
         "@org_golang_google_protobuf//proto",
     ],
 )

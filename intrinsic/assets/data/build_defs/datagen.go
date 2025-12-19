@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"intrinsic/assets/bundleio"
+	"intrinsic/assets/data/databundle"
 	"intrinsic/assets/data/datamanifest"
 	"intrinsic/assets/data/utils"
 	"intrinsic/util/proto/protoio"
@@ -124,11 +124,11 @@ func CreateDataBundle(opts *CreateDataBundleOptions) error {
 		}
 	}
 
-	if err := bundleio.WriteDataBundle(
+	if err := databundle.WriteDataBundle(
 		da,
 		opts.OutputBundlePath,
-		bundleio.WithExcludedReferencedFilePaths(excludedReferencedFilePaths),
-		bundleio.WithExpectedReferencedFilePaths(expectedReferencedFilePaths),
+		databundle.WithExcludedReferencedFilePaths(excludedReferencedFilePaths),
+		databundle.WithExpectedReferencedFilePaths(expectedReferencedFilePaths),
 	); err != nil {
 		return fmt.Errorf("failed to write Data Asset bundle: %w", err)
 	}

@@ -7,12 +7,12 @@ import (
 	"fmt"
 	"log"
 
-	"intrinsic/assets/bundleio"
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/imagetransfer"
 	"intrinsic/assets/services/bundleimages"
+	"intrinsic/skills/skillbundle"
 	"intrinsic/skills/tools/skill/cmd/directupload/directupload"
 	"intrinsic/skills/tools/skill/cmd/waitforskill"
 
@@ -87,7 +87,7 @@ $ inctl skill install abc/skill.bundle.tar --solution=my-solution
 				}
 				transfer = directupload.NewTransferer(opts...)
 			}
-			manifest, err := bundleio.ProcessSkill(ctx, target, bundleio.ProcessSkillOpts{
+			manifest, err := skillbundle.ProcessSkill(ctx, target, skillbundle.ProcessSkillOpts{
 				ImageProcessor: bundleimages.CreateImageProcessor(flags.CreateRegistryOptsWithTransferer(ctx, transfer, registry)),
 			})
 			if err != nil {

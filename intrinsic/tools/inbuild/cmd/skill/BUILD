@@ -8,7 +8,7 @@ go_library(
     name = "bundle",
     srcs = ["bundle.go"],
     deps = [
-        "//intrinsic/assets:bundleio",
+        "//intrinsic/skills:skillbundle",
         "//intrinsic/tools/inbuild/util:skillmanifest",
         "@com_github_spf13_cobra//:go_default_library",
     ],
@@ -34,7 +34,7 @@ go_test(
     ],
     library = ":bundle",
     deps = [
-        "//intrinsic/assets:bundleio",
+        "//intrinsic/skills:skillbundle",
         "//intrinsic/tools/inbuild/cmd/skill/test_data:example_skill_go_proto",
         "//intrinsic/util/testing:testio",
     ],

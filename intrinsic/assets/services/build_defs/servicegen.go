@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	"intrinsic/assets/bundleio"
+	"intrinsic/assets/services/servicebundle"
 	"intrinsic/util/proto/protoio"
 	"intrinsic/util/proto/registryutil"
 	"intrinsic/util/proto/sourcecodeinfoview"
@@ -75,7 +75,7 @@ func CreateServiceBundle(opts *CreateServiceBundleOptions) error {
 		}
 	}
 
-	if err := bundleio.WriteServiceBundle(m, opts.OutputBundlePath, &bundleio.WriteServiceBundleOptions{
+	if err := servicebundle.WriteServiceBundle(m, opts.OutputBundlePath, &servicebundle.WriteServiceBundleOptions{
 		Descriptors:   fds,
 		DefaultConfig: defaultConfig,
 		ImageTarPaths: opts.ImageTarPaths,

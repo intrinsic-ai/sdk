@@ -19,7 +19,7 @@ go_library(
     srcs = ["datagen.go"],
     visibility = ["//visibility:private"],
     deps = [
-        "//intrinsic/assets:bundleio",
+        "//intrinsic/assets/data:databundle",
         "//intrinsic/assets/data:datamanifest",
         "//intrinsic/assets/data:utils",
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",

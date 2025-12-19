@@ -5,6 +5,23 @@ load("//bazel:go_macros.bzl", "go_library")
 package(default_visibility = ["//intrinsic:public_api_users"])
 
 go_library(
+    name = "processbundle",
+    srcs = ["processbundle.go"],
+    visibility = ["//intrinsic:internal_api_users"],
+    deps = [
+        "//intrinsic/assets:ioutils",
+        "//intrinsic/assets/processes:processmanifest",
+        "//intrinsic/assets/processes/proto:process_asset_go_proto",
+        "//intrinsic/assets/processes/proto:process_manifest_go_proto",
+        "//intrinsic/assets/proto:asset_type_go_proto",
+        "//intrinsic/assets/proto:id_go_proto",
+        "//intrinsic/assets/proto:metadata_go_proto",
+        "//intrinsic/util/archive:tartooling",
+        "@com_github_google_safearchive//tar",
+    ],
+)
+
+go_library(
     name = "processmanifest",
     srcs = ["processmanifest.go"],
     deps = [

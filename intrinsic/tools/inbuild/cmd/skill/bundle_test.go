@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"intrinsic/assets/bundleio"
+	"intrinsic/skills/skillbundle"
 	"intrinsic/util/testing/testio"
 
 	_ "intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_go_proto" // Needed to resolve the proto message
@@ -23,9 +23,9 @@ type bundleCheck func(t *testing.T)
 func checkManifestHasID(t *testing.T, bundlePath string, wantPackage string, wantName string) bundleCheck {
 	return func(t *testing.T) {
 		t.Helper()
-		bundle, err := bundleio.ReadSkillBundle(t.Context(), bundlePath)
+		bundle, err := skillbundle.ReadSkillBundle(t.Context(), bundlePath)
 		if err != nil {
-			t.Fatalf("bundleio.ReadSkillBundle(%q) failed: %v", bundlePath, err)
+			t.Fatalf("skillbundle.ReadSkillBundle(%q) failed: %v", bundlePath, err)
 		}
 		if got := bundle.Manifest.GetId().GetPackage(); got != wantPackage {
 			t.Errorf("manifest.GetId().GetPackage() = %q, want %q", got, wantPackage)
@@ -39,9 +39,9 @@ func checkManifestHasID(t *testing.T, bundlePath string, wantPackage string, wan
 func checkHasFile(t *testing.T, bundlePath string, wantFile string) bundleCheck {
 	return func(t *testing.T) {
 		t.Helper()
-		bundle, err := bundleio.ReadSkillBundle(t.Context(), bundlePath, bundleio.WithReadSkillFiles(true))
+		bundle, err := skillbundle.ReadSkillBundle(t.Context(), bundlePath, skillbundle.WithReadFiles(true))
 		if err != nil {
-			t.Fatalf("bundleio.ReadSkillBundle(%q) failed: %v", bundlePath, err)
+			t.Fatalf("skillbundle.ReadSkillBundle(%q) failed: %v", bundlePath, err)
 		}
 		_, ok := bundle.Files[wantFile]
 		if !ok {

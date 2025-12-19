@@ -21,7 +21,7 @@ go_library(
     name = "servicegen",
     srcs = ["servicegen.go"],
     deps = [
-        "//intrinsic/assets:bundleio",
+        "//intrinsic/assets/services:servicebundle",
         "//intrinsic/assets/services/proto:service_manifest_go_proto",
         "//intrinsic/util/proto:protoio",
         "//intrinsic/util/proto:registryutil",

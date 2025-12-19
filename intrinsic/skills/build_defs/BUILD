@@ -48,8 +48,8 @@ go_library(
     srcs = ["skillgen.go"],
     visibility = ["//visibility:public"],
     deps = [
-        "//intrinsic/assets:bundleio",
         "//intrinsic/production:intrinsic",
+        "//intrinsic/skills:skillbundle",
         "//intrinsic/skills/proto:skill_manifest_go_proto",
         "//intrinsic/util/proto:protoio",
         "@com_github_golang_glog//:go_default_library",
@@ -63,8 +63,8 @@ go_binary(
     visibility = ["//visibility:public"],
     deps = [
         ":skillgen",
-        "//intrinsic/assets:bundleio",
         "//intrinsic/production:intrinsic",
+        "//intrinsic/skills:skillbundle",
         "//intrinsic/skills/proto:skill_manifest_go_proto",
         "//intrinsic/util/proto:protoio",
         "@com_github_golang_glog//:go_default_library",

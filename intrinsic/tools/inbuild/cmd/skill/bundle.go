@@ -6,7 +6,7 @@ package bundle
 import (
 	"fmt"
 
-	"intrinsic/assets/bundleio"
+	"intrinsic/skills/skillbundle"
 	"intrinsic/tools/inbuild/util/skillmanifest"
 
 	"github.com/spf13/cobra"
@@ -61,7 +61,7 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 
 	// Actually create the skill bundle
-	return bundleio.WriteSkillBundle(m, flagOutput, &bundleio.WriteSkillBundleOptions{
+	return skillbundle.WriteSkillBundle(m, flagOutput, &skillbundle.WriteSkillBundleOptions{
 		Descriptors:  fds,
 		ImageTarPath: flagOciImage,
 	})

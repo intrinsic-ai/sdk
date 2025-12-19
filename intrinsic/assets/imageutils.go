@@ -4,10 +4,15 @@
 package imageutils
 
 import (
+	"context"
 	"fmt"
+	"io"
 	"log"
 	"os/exec"
 	"strings"
+
+	idpb "intrinsic/assets/proto/id_go_proto"
+	ipb "intrinsic/kubernetes/workcell_spec/proto/image_go_proto"
 )
 
 var (
@@ -41,6 +46,16 @@ const (
 	// ID mode assumes the target is the skill id (only used for stop)
 	ID TargetType = "id"
 )
+
+// ImageProcessor is a closure that pushes an image and returns the resulting pointer to the
+// container registry.
+//
+// It is provided the id of an Asset as well as the file name of the specific image.
+// It is expected to upload the image and produce a usable image spec.
+// The reader points to an image archive.
+// This may be invoked multiple times.
+// Images are ignored if it is not specified.
+type ImageProcessor func(ctx context.Context, idProto *idpb.Id, filename string, r io.Reader) (*ipb.Image, error)
 
 // buildExec runs the build command and captures its output.
 func buildExec(buildCommand string, buildArgs ...string) ([]byte, error) {

@@ -34,7 +34,7 @@ go_test(
     ],
     library = ":bundle",
     deps = [
-        "//intrinsic/assets:bundleio",
+        "//intrinsic/assets/services:servicebundle",
         "//intrinsic/tools/inbuild/cmd/service/test_data:example_service_go_proto",
         "//intrinsic/util/path_resolver:pathresolver",
         "@com_github_google_go_cmp//cmp:go_default_library",

@@ -8,8 +8,8 @@ go_library(
     visibility = ["//intrinsic:intrinsic_internal"],
     deps = [
         ":readeropener",
-        "//intrinsic/assets:bundleio",
         "//intrinsic/assets:idutils",
+        "//intrinsic/assets:imageutils",
         "//intrinsic/assets/proto:id_go_proto",
         "//intrinsic/kubernetes/workcell_spec:imagetags",
         "//intrinsic/kubernetes/workcell_spec/proto:image_go_proto",
@@ -45,6 +45,27 @@ go_test(
 go_library(
     name = "readeropener",
     srcs = ["readeropener.go"],
+)
+
+go_library(
+    name = "servicebundle",
+    srcs = ["servicebundle.go"],
+    visibility = ["//intrinsic:internal_api_users"],
+    deps = [
+        "//intrinsic/assets:imageutils",
+        "//intrinsic/assets:ioutils",
+        "//intrinsic/assets/services:servicemanifest",
+        "//intrinsic/assets/services/proto:service_manifest_go_proto",
+        "//intrinsic/kubernetes/workcell_spec/proto:image_go_proto",
+        "//intrinsic/util/archive:tartooling",
+        "//intrinsic/util/proto:registryutil",
+        "@com_github_google_safearchive//tar",
+        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
+        "@org_golang_google_protobuf//reflect/protodesc:go_default_library",
+        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
+        "@org_golang_google_protobuf//reflect/protoregistry:go_default_library",
+        "@org_golang_google_protobuf//types/known/anypb",
+    ],
 )
 
 go_library(

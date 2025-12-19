@@ -17,9 +17,9 @@ go_library(
     srcs = ["hardwaredevicegen.go"],
     visibility = ["//visibility:private"],
     deps = [
-        "//intrinsic/assets:bundleio",
         "//intrinsic/assets:idutils",
         "//intrinsic/assets/build_defs:asset_go_proto",
+        "//intrinsic/assets/hardware_devices:hardwaredevicebundle",
         "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",
         "//intrinsic/assets/proto/v1:reference_go_proto",
         "//intrinsic/util/proto:protoio",

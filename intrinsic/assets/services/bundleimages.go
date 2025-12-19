@@ -10,8 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"intrinsic/assets/bundleio"
 	"intrinsic/assets/idutils"
+	"intrinsic/assets/imageutils"
 	"intrinsic/assets/services/readeropener"
 	"intrinsic/kubernetes/workcell_spec/imagetags"
 
@@ -33,7 +33,7 @@ const (
 // CreateImageProcessor returns a closure to handle images within a bundle.  It
 // pushes images to the registry using a default tag.  The image is named with
 // the id of the resource with the basename image filename appended.
-func CreateImageProcessor(reg RegistryOptions) bundleio.ImageProcessor {
+func CreateImageProcessor(reg RegistryOptions) imageutils.ImageProcessor {
 	return func(ctx context.Context, idProto *idpb.Id, filename string, r io.Reader) (*ipb.Image, error) {
 		id, err := idutils.IDFromProto(idProto)
 		if err != nil {

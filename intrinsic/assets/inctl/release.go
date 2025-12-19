@@ -8,9 +8,10 @@ import (
 	"fmt"
 	"io"
 
-	"intrinsic/assets/bundleio"
+	"intrinsic/assets/bundle"
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
+	"intrinsic/assets/data/databundle"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/imagetransfer"
 	"intrinsic/assets/imageutils"
@@ -124,11 +125,11 @@ func makeCreateAssetRequest(ctx context.Context, opts makeCreateAssetRequestOpti
 			directupload.WithFailOver(transferer),
 		)
 	}
-	referencedDataProcessor := bundleio.NoOpReferencedData()
+	referencedDataProcessor := databundle.NoOpReferencedData()
 	if !opts.flags.GetFlagDryRun() {
-		referencedDataProcessor = bundleio.ToCatalogReferencedData(ctx, bundleio.WithACClient(opts.acClient))
+		referencedDataProcessor = databundle.ToCatalogReferencedData(ctx, databundle.WithACClient(opts.acClient))
 	}
-	processor := bundleio.BundleProcessor{
+	processor := bundle.Processor{
 		ImageProcessor: bundleimages.CreateImageProcessor(bundleimages.RegistryOptions{
 			Transferer: transferer,
 			URI:        imageutils.GetRegistry(clientutils.ResolveCatalogProjectFromInctl(opts.flags)),
@@ -141,7 +142,7 @@ func makeCreateAssetRequest(ctx context.Context, opts makeCreateAssetRequestOpti
 		return nil, fmt.Errorf("unable to process: %w", err)
 	}
 
-	asset := processedBundle.Release(bundleio.VersionDetails{
+	asset := processedBundle.Release(bundle.VersionDetails{
 		Version:      opts.flags.GetFlagVersion(),
 		ReleaseNotes: opts.flags.GetFlagReleaseNotes(),
 		ReleaseMetadata: &rmpb.ReleaseMetadata{

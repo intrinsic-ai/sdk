@@ -6,7 +6,7 @@ package skillgen
 import (
 	"fmt"
 
-	"intrinsic/assets/bundleio"
+	"intrinsic/skills/skillbundle"
 	"intrinsic/util/proto/protoio"
 
 	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
@@ -34,7 +34,7 @@ func CreateSkillBundle(opts *CreateSkillBundleOptions) error {
 		return fmt.Errorf("failed to read manifest: %w", err)
 	}
 
-	if err := bundleio.WriteSkillBundle(m, opts.OutputBundlePath, &bundleio.WriteSkillBundleOptions{
+	if err := skillbundle.WriteSkillBundle(m, opts.OutputBundlePath, &skillbundle.WriteSkillBundleOptions{
 		Descriptors:  fds,
 		ImageTarPath: opts.ImageTarPath,
 	}); err != nil {

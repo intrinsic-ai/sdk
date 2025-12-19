@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"os"
 
-	"intrinsic/assets/bundleio"
+	"intrinsic/assets/processes/processbundle"
 	"intrinsic/util/proto/protoio"
 	"intrinsic/util/proto/registryutil"
 
@@ -86,7 +86,7 @@ func CreateProcessBundle(options *CreateProcessBundleOptions) error {
 	defer outputBundleFile.Close()
 
 	// Write the ProcessManifest to the output file.
-	if err := bundleio.WriteProcessBundle(manifest, outputBundleFile); err != nil {
+	if err := processbundle.WriteProcessBundle(manifest, outputBundleFile); err != nil {
 		return fmt.Errorf("failed to write Process Asset bundle: %w", err)
 	}
 

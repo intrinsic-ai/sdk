@@ -8,9 +8,10 @@ import (
 	"log"
 	"os"
 
-	"intrinsic/assets/bundleio"
+	"intrinsic/assets/bundle"
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
+	"intrinsic/assets/data/databundle"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/imagetransfer"
 	"intrinsic/assets/services/bundleimages"
@@ -105,9 +106,9 @@ func GetCommand() *cobra.Command {
 			client := iagrpcpb.NewInstalledAssetsClient(conn)
 			authCtx := clientutils.AuthInsecureConn(ctx, address, flags.GetFlagProject())
 
-			processor := bundleio.BundleProcessor{
+			processor := bundle.Processor{
 				ImageProcessor:          bundleimages.CreateImageProcessor(flags.CreateRegistryOptsWithTransferer(ctx, transfer, registry)),
-				ProcessReferencedData:   bundleio.ToPortableReferencedData,
+				ProcessReferencedData:   databundle.ToPortableReferencedData,
 			}
 
 			var fileExists bool
