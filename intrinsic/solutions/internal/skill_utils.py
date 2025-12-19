@@ -33,6 +33,7 @@ from google.protobuf import duration_pb2
 from google.protobuf import message
 from google.protobuf import message_factory
 import grpc
+
 from intrinsic.assets import id_utils
 from intrinsic.icon.proto import joint_space_pb2
 from intrinsic.math.proto import pose_pb2

@@ -1,11 +1,12 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
 import threading
-from absl.testing import absltest
-from absl import logging
 
-from intrinsic.platform.pubsub.python import pubsub
+from absl import logging
+from absl.testing import absltest
+
 from intrinsic.platform.common.proto import test_pb2
+from intrinsic.platform.pubsub.python import pubsub
 
 
 class SegfaultReproductionTest(absltest.TestCase):
