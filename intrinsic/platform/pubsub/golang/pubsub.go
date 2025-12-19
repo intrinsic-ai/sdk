@@ -282,9 +282,9 @@ func (ps *Handle) NewRawSubscription(topic string, config pubsubinterface.TopicC
 // NewKVStoreSubscription creates a subscription to the given key that is stored in the KV store.
 //
 // This function differs from other NewXXXXSubscription functions in the following ways:
-//  - It doesn't modify the key in any way, e.g. doesn't add the `in/` prefix we use for pub/sub.
-//  - When the value corresponding to the given key changes, this function expects to receive `anypb.Any`,
-//    not `pubsubpb.PubSubPacket`.
+//   - It doesn't modify the key in any way, e.g. doesn't add the `in/` prefix we use for pub/sub.
+//   - When the value corresponding to the given key changes, this function expects to receive `anypb.Any`,
+//     not `pubsubpb.PubSubPacket`.
 func (ps *Handle) NewKVStoreSubscription(key string, config pubsubinterface.TopicConfig, callback func(*anypb.Any)) (pubsubinterface.Subscription, error) {
 	topicQos, err := topicConfigToZenohQos(config)
 	if err != nil {

@@ -96,18 +96,18 @@ func DialCatalogFromInctl(cmd *cobra.Command, flags *cmdutils.CmdFlags) (context
 		cmd.Context(), DialCatalogOptions{
 			Address: "",
 			APIKey: "",
-			Org:          flags.GetFlagOrganization(),
-			Project:      flags.GetFlagProject(),
+			Org:     flags.GetFlagOrganization(),
+			Project: flags.GetFlagProject(),
 		},
 	)
 }
 
 // DialCatalogOptions specifies the options for DialCatalog.
 type DialCatalogOptions struct {
-	Address      string
-	APIKey       string
-	Org          string
-	Project      string // Defaults to the global assets project.
+	Address string
+	APIKey  string
+	Org     string
+	Project string // Defaults to the global assets project.
 }
 
 // DialCatalog creates a connection to a asset catalog service.
@@ -115,8 +115,8 @@ func DialCatalog(ctx context.Context, opts DialCatalogOptions) (context.Context,
 	catalogProject := ResolveCatalogProject(opts.Project)
 	// Get the catalog address.
 	address, err := resolveCatalogAddress(ctx, resolveCatalogAddressOptions{
-		Address:      opts.Address,
-		Project:      catalogProject,
+		Address: opts.Address,
+		Project: catalogProject,
 	})
 	if err != nil {
 		return nil, nil, fmt.Errorf("cannot resolve catalog address: %w", err)
@@ -179,8 +179,8 @@ func RemoteOpt(flags *cmdutils.CmdFlags) (remote.Option, error) {
 }
 
 type resolveCatalogAddressOptions struct {
-	Address      string
-	Project      string
+	Address string
+	Project string
 }
 
 func resolveCatalogAddress(ctx context.Context, opts resolveCatalogAddressOptions) (string, error) {
