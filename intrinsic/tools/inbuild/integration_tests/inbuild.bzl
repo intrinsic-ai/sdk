@@ -2,6 +2,8 @@
 
 """inbuild.bzl contains rules that invoke inbuild to build assets for Flowstate."""
 
+load("@com_google_protobuf//bazel/common:proto_info.bzl", "ProtoInfo")
+
 def _inbuild_skill_bundle_impl(ctx):
     output_file = ctx.actions.declare_file(ctx.label.name + ".bundle.tar")
     args = ctx.actions.args()

@@ -62,7 +62,7 @@ platform(
         "@bazel_tools//tools/cpp:clang",
     ],
     exec_properties = DEFAULT,
-    parents = ["@local_config_platform//:host"],
+    parents = ["@platforms//host"],
 )
 
 go_proto_compiler(

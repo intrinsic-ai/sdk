@@ -2,6 +2,8 @@
 
 """Defines a build rule for generating descriptor sets used by Skills."""
 
+load("@com_google_protobuf//bazel/common:proto_info.bzl", "ProtoInfo")
+
 # N.B. We provide both the `direct_descriptor_set` file and the
 # `transitive_descriptor_sets` depset in the ProtoSourceCodeInfo to model this
 # similarly to the ProtoInfo provided by proto_library. This makes it feasible

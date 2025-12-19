@@ -2,6 +2,7 @@
 
 """Bazel rules for Process assets."""
 
+load("@com_google_protobuf//bazel/common:proto_info.bzl", "ProtoInfo")
 load("//intrinsic/assets/build_defs:asset.bzl", "AssetInfo", "AssetLocalInfo")
 load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "ProtoSourceCodeInfo", "gen_source_code_info_descriptor_set")
 

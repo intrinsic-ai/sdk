@@ -5,6 +5,8 @@ See https://bazel.build/extending/aspects and
 https://blog.bazel.build/2016/06/10/ide-support.html .
 """
 
+load("@rules_python//python:py_info.bzl", "PyInfo")
+
 def _python_paths_aspect_impl(target, ctx):
     """Aspect for collecting Python paths for import resolution in IDEs.
 
@@ -52,8 +54,8 @@ def _python_paths_aspect_impl(target, ctx):
         paths[importPath] = ""
 
     for sourcePath in py_info.transitive_sources.to_list():
-        if sourcePath.owner.workspace_name:
-            paths[sourcePath.owner.workspace_name] = ""
+        if sourcePath.owner.repo_name:
+            paths[sourcePath.owner.repo_name] = ""
 
     paths_struct = struct(python_paths = sorted(paths.keys()))
     paths_json = json.encode(paths_struct)

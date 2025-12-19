@@ -2,6 +2,7 @@
 
 """Build rule for creating a Skill Manifest."""
 
+load("@com_google_protobuf//bazel/common:proto_info.bzl", "ProtoInfo")
 load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "ProtoSourceCodeInfo", "gen_source_code_info_descriptor_set")
 
 SkillManifestInfo = provider(

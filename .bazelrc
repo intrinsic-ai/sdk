@@ -41,6 +41,21 @@ build --incompatible_strict_action_env
 # `bazel-out/k8-fastbuild/bin/external/com_github_grpc_grpc/external/com_github_grpc_grpc: warning: directory does not exist`
 build --incompatible_default_to_explicit_init_py
 
+# Incompatible flags which will be flipped in future Bazel versions
+# Taken from https://github.com/bazelbuild/bazel-central-registry/blob/main/incompatible_flags.yml
+# https://github.com/bazelbuild/bazel/issues/22080
+build --incompatible_disable_native_repo_rules
+# https://github.com/bazelbuild/bazel/issues/25755
+build --incompatible_disable_autoloads_in_main_repo
+# https://github.com/bazelbuild/bazel/issues/23043
+#build --incompatible_autoload_externally=
+# https://github.com/bazelbuild/bazel/issues/17032
+#build --incompatible_disable_starlark_host_transitions
+# https://github.com/bazelbuild/bazel/issues/12933
+#build --incompatible_config_setting_private_default_visibility
+# https://github.com/bazelbuild/bazel/issues/23144
+#build --noincompatible_enable_deprecated_label_apis
+
 # Avoid warnings from third-party deps that we don't control.
 build --output_filter='^//((?!(external):).)*$'
 

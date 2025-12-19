@@ -2,6 +2,7 @@
 
 """Bazel rules for Assets."""
 
+load("@com_google_protobuf//bazel/common:proto_info.bzl", "ProtoInfo")
 
 AssetInfo = provider(
     "Info about an asset.",
