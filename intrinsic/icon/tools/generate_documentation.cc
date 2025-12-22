@@ -172,8 +172,6 @@ std::string DisplayContentMarkdown(const Content& content, bool with_toc_header,
 
 The following actions are supported by this release's ICON Server:
 
-[TOC]
-
 )",
                                     markdown_content);
   }
