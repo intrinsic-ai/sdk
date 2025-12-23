@@ -72,6 +72,7 @@ message ServiceDef {
   // field of the `RuntimeContext` (`/etc/intrinsic/runtime_config.pb`).
   optional v1.ServiceInspectionConfig service_inspection_config = 8;
 
+
 }
 
 message ServicePodSpec {
