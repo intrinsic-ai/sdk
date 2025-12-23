@@ -28,7 +28,7 @@ class TestContext(grpc.ServicerContext):
 
   def __init__(self, md: list[tuple[str, str]]) -> None:
     super(grpc.ServicerContext, self).__init__()
-    self.md = (_Metadatum(key=k, value=v) for k, v in md)
+    self.md = [_Metadatum(key=k, value=v) for k, v in md]
 
   def invocation_metadata(self) -> list[_Metadatum]:
     return self.md
@@ -37,8 +37,8 @@ class TestContext(grpc.ServicerContext):
 class IdentityTest(parameterized.TestCase):
 
   @parameterized.parameters(
-      # Deprecated metadata["auth-proxy"] JWT.
-      (identity.AUTH_PROXY_COOKIE_NAME, TOKEN),
+      # Authorization header
+      (identity.AUTH_HEADER_NAME, 'Bearer ' + TOKEN),
       # metadata["apikey-token"] we still support as header for now
       (identity.APIKEY_TOKEN_HEADER_NAME, TOKEN),
       # JWT from metadata["cookie"]["auth-proxy"]
@@ -88,15 +88,108 @@ class IdentityTest(parameterized.TestCase):
     metadata = identity.ToGRPCMetadataFromIncoming(ctx)
     self.assertCountEqual(
         metadata,
-        [
-            (
-                identity.COOKIE_KEY,
-                f'{identity.AUTH_PROXY_COOKIE_NAME}={TOKEN};',
-            ),
-            (identity.APIKEY_TOKEN_HEADER_NAME, 'apikey'),
-            (identity.AUTH_HEADER_NAME, 'auth'),
-        ],
+        identity.CookiesToGRPCMetadata(
+            http.cookies.SimpleCookie({identity.AUTH_PROXY_COOKIE_NAME: TOKEN})
+        ),
     )
+
+  @unittest.mock.patch.multiple(TestContext, __abstractmethods__=set())
+  def test_to_grpc_metadata_from_incoming_selective_copy(self):
+    # Input:
+    #   cookie: "auth-proxy=<TOKEN>; org-id=cookie-org"
+    #   apikey-token: "apikey-val"
+    #   authorization: "Bearer auth-val"
+    #   other: "stuff"
+    # Output:
+    #   cookie: "auth-proxy=<TOKEN>; org-id=cookie-org"
+    ctx = TestContext([
+        (
+            identity.COOKIE_KEY,
+            (
+                f'{identity.AUTH_PROXY_COOKIE_NAME}={TOKEN};'
+                f' {identity.ORG_ID_COOKIE}=cookie-org'
+            ),
+        ),
+        (identity.APIKEY_TOKEN_HEADER_NAME, 'apikey-val'),
+        (identity.AUTH_HEADER_NAME, 'Bearer auth-val'),
+        ('other', 'stuff'),
+    ])
+
+    metadata = identity.ToGRPCMetadataFromIncoming(ctx)
+
+    expected_cookies = http.cookies.SimpleCookie()
+    expected_cookies[identity.AUTH_PROXY_COOKIE_NAME] = TOKEN
+    expected_cookies[identity.ORG_ID_COOKIE] = 'cookie-org'
+
+    self.assertCountEqual(
+        metadata,
+        identity.CookiesToGRPCMetadata(expected_cookies),
+    )
+
+  @unittest.mock.patch.multiple(TestContext, __abstractmethods__=set())
+  def test_to_grpc_metadata_from_incoming_backfill_org_header(self):
+    # Input:
+    #   apikey-token: "<TOKEN>"
+    #   org-id: "header-org"
+    # Output:
+    #   cookie: "auth-proxy=<TOKEN>; org-id=header-org"
+    ctx = TestContext([
+        (identity.APIKEY_TOKEN_HEADER_NAME, TOKEN),
+        (identity.ORG_ID_COOKIE, 'header-org'),
+    ])
+
+    metadata = identity.ToGRPCMetadataFromIncoming(ctx)
+
+    expected_cookies = http.cookies.SimpleCookie()
+    expected_cookies[identity.AUTH_PROXY_COOKIE_NAME] = TOKEN
+    expected_cookies[identity.ORG_ID_COOKIE] = 'header-org'
+
+    self.assertCountEqual(
+        metadata,
+        identity.CookiesToGRPCMetadata(expected_cookies),
+    )
+
+  @unittest.mock.patch.multiple(TestContext, __abstractmethods__=set())
+  def test_get_jwt_from_context_priority(self):
+    # 1. Cookie first.
+    ctx = TestContext([
+        (
+            identity.COOKIE_KEY,
+            f'{identity.AUTH_PROXY_COOKIE_NAME}=cookie_token;',
+        ),
+        (identity.APIKEY_TOKEN_HEADER_NAME, 'apikey_token'),
+        (identity.AUTH_HEADER_NAME, 'Bearer auth_token'),
+    ])
+    self.assertEqual(identity.GetJWTFromContext(ctx), 'cookie_token')
+
+    # 2: API Key second (no cookie)
+    ctx = TestContext([
+        (identity.APIKEY_TOKEN_HEADER_NAME, 'apikey_token'),
+        (identity.AUTH_HEADER_NAME, 'Bearer auth_token'),
+    ])
+    self.assertEqual(identity.GetJWTFromContext(ctx), 'apikey_token')
+
+    # 3: Authorization header third (no cookie, no apikey)
+    ctx = TestContext([
+        (identity.AUTH_HEADER_NAME, 'Bearer auth_token'),
+    ])
+    self.assertEqual(identity.GetJWTFromContext(ctx), 'auth_token')
+
+  def test_cookies_to_grpc_metadata_multiple_cookies(self):
+    cookies = http.cookies.SimpleCookie()
+    cookies['c1'] = 'v1'
+    cookies['c2'] = 'v2'
+    metadata = identity.CookiesToGRPCMetadata(cookies)
+    self.assertLen(metadata, 1)
+    key, value = metadata[0]
+    self.assertEqual(key, identity.COOKIE_KEY)
+    # Check that both cookies are present and separated by '; '
+    self.assertIn('c1=v1', value)
+    self.assertIn('c2=v2', value)
+    self.assertIn('; ', value)
+    # Verify exact format (order might vary, so checking parts)
+    parts = value.split('; ')
+    self.assertCountEqual(parts, ['c1=v1', 'c2=v2'])
 
 
 class OrgTest(absltest.TestCase):
