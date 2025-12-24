@@ -10,14 +10,32 @@ option go_package = "intrinsic/kubernetes/workcellmode/proto/workcellmode_servic
 enum MODE {
   MODE_UNSPECIFIED = 0;
   // Throttles the total data upload rate to the cloud.
-  MODE_OPERATE = 1;
+  //
+  // This mode is deprecated. Use MODE_PRODUCTION instead.
+  MODE_OPERATE = 1 [deprecated = true];
   // The default mode of development where lenient restrictions are applied to
   // the data upload rate.
-  MODE_DEVELOP = 2;
+  //
+  // This mode is deprecated. Use MODE_DEVELOPMENT instead.
+  MODE_DEVELOP = 2 [deprecated = true];
   // The mode depicting an ongoing transition to operate mode.
-  MODE_TRANSITION_TO_OPERATE = 3;
+  MODE_TRANSITION_TO_OPERATE = 3 [deprecated = true];
   // The mode depicting an ongoing transition to develop mode.
-  MODE_TRANSITION_TO_DEVELOP = 4;
+  MODE_TRANSITION_TO_DEVELOP = 4 [deprecated = true];
+  // The default mode of development where lenient restrictions are applied to
+  // the data upload rate.
+  MODE_DEVELOPMENT = 5;
+  // Applies lenient restrictions to the data upload rate, but the workcell is
+  // still considered to be running in production for billing purposes.
+  MODE_MAINTENANCE = 6;
+  // Throttles the total data upload rate to the cloud.
+  MODE_PRODUCTION = 7;
+  // The mode depicting an ongoing transition to development mode.
+  MODE_TRANSITION_TO_DEVELOPMENT = 8;
+  // The mode depicting an ongoing transition to  maintenance mode.
+  MODE_TRANSITION_TO_MAINTENANCE = 9;
+  // The mode depicting an ongoing transition to production mode.
+  MODE_TRANSITION_TO_PRODUCTION = 10;
 }
 
 message SetWorkcellModeRequest {
