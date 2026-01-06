@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"intrinsic/platform/pubsub/golang/pubsubinterface"
+
 	"google.golang.org/protobuf/proto"
 
 	anypb "google.golang.org/protobuf/types/known/anypb"
@@ -30,6 +32,41 @@ type KVStore interface {
 
 	// Delete removes a value from the store for the given key.
 	Delete(key string) error
+
+	// Subscribe creates a subscription to changes in the KV store.
+	//
+	// It assumes that all values whose keys match the given key expression have
+	// the same type.
+	//
+	// Parameters:
+	// - keyExpression - key expression to subscribe to.
+	// - config - subscription configuration.
+	// - exemplar - empty proto of the same type as values in the KV store.
+	// - msgCallback - callback that will be called when a value is added or updated.
+	// - deletionCallback - callback that will be called when a value is deleted.
+	// - errCallback - callback that will be called in case of type mismatch.
+	Subscribe(
+		keyExpression string, config pubsubinterface.TopicConfig,
+		exemplar proto.Message,
+		msgCallback func(string, proto.Message),
+		deletionCallback func(string),
+		errCallback func(string, *anypb.Any, error)) (pubsubinterface.Subscription, error)
+
+	// SubscribeToRawValues creates a subscription to changes in the KV store.
+	//
+	// It doesn't make any assumptions about types of values that match the given
+	// key expression. The calling code is responsible for extracting those values
+	// from `anypb.Any` protos and checking their type.
+	//
+	// Parameters:
+	// - keyExpression - key expression to subscribe to.
+	// - config - subscription configuration.
+	// - msgCallback - callback that will be called when a value is added or updated.
+	// - deletionCallback - callback that will be called when a value is deleted.
+	SubscribeToRawValues(
+		keyExpression string, config pubsubinterface.TopicConfig,
+		msgCallback func(string, *anypb.Any),
+		deletionCallback func(string)) (pubsubinterface.Subscription, error)
 }
 
 // KVQuery is a handle for a GetALl KVStore query. Keep the handle alive to

@@ -285,7 +285,7 @@ func (ps *Handle) NewRawSubscription(topic string, config pubsubinterface.TopicC
 //   - It doesn't modify the key in any way, e.g. doesn't add the `in/` prefix we use for pub/sub.
 //   - When the value corresponding to the given key changes, this function expects to receive `anypb.Any`,
 //     not `pubsubpb.PubSubPacket`.
-func (ps *Handle) NewKVStoreSubscription(key string, config pubsubinterface.TopicConfig, callback func(*anypb.Any)) (pubsubinterface.Subscription, error) {
+func (ps *Handle) NewKVStoreSubscription(key string, config pubsubinterface.TopicConfig, msgCallback func(string, *anypb.Any), deletionCallback func(string)) (pubsubinterface.Subscription, error) {
 	topicQos, err := topicConfigToZenohQos(config)
 	if err != nil {
 		return nil, err
@@ -297,12 +297,16 @@ func (ps *Handle) NewKVStoreSubscription(key string, config pubsubinterface.Topi
 		zenohHandle:   ps.zenohHandle,
 		exemplar:      &anypb.Any{},
 		callback: func(sub *subscriptionHandle, key string, bytes []byte) {
+			if len(bytes) == 0 {
+				deletionCallback(key)
+				return
+			}
 			any := &anypb.Any{} // It's Any, not a PubSubPacket.
 			if err := proto.Unmarshal(bytes, any); err != nil {
 				log.Errorf("Failed to unmarshal packet: %v", err)
 				return
 			}
-			callback(any)
+			msgCallback(key, any)
 		},
 	}
 	subh := cgo.NewHandle(subscription)
@@ -564,6 +568,42 @@ func (kv *kvStoreHandle) Delete(key string) error {
 		return errorFromImwRet(res)
 	}
 	return nil
+}
+
+func (kv *kvStoreHandle) Subscribe(
+	keyExpression string, config pubsubinterface.TopicConfig, exemplar proto.Message,
+	msgCallback func(string, proto.Message),
+	deletionCallback func(string),
+	errCallback func(string, *anypb.Any, error),
+) (pubsubinterface.Subscription, error) {
+	typeCheckingCallback := func(key string, any *anypb.Any) {
+		msg := exemplar.ProtoReflect().New().Interface()
+		if err := any.UnmarshalTo(msg); err != nil {
+			errCallback(key, any, err)
+			return
+		}
+		msgCallback(key, msg)
+	}
+
+	return kv.ps.NewKVStoreSubscription(
+		kv.addKeyPrefix(keyExpression),
+		config,
+		typeCheckingCallback,
+		deletionCallback,
+	)
+}
+
+func (kv *kvStoreHandle) SubscribeToRawValues(
+	keyExpression string, config pubsubinterface.TopicConfig,
+	msgCallback func(string, *anypb.Any),
+	deletionCallback func(string),
+) (pubsubinterface.Subscription, error) {
+	return kv.ps.NewKVStoreSubscription(
+		kv.addKeyPrefix(keyExpression),
+		config,
+		msgCallback,
+		deletionCallback,
+	)
 }
 
 type zenohHandle interface {

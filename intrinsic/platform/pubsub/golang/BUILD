@@ -60,6 +60,7 @@ go_library(
     name = "kvstore",
     srcs = ["kvstore.go"],
     deps = [
+        ":pubsubinterface",
         "@org_golang_google_protobuf//proto",
         "@org_golang_google_protobuf//types/known/anypb",
     ],
