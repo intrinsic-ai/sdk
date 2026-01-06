@@ -3,8 +3,8 @@
 load("//bazel:go_macros.bzl", "go_library")
 
 go_library(
-    name = "sceneobjectmanifest",
-    srcs = ["sceneobjectmanifest.go"],
+    name = "sceneobjectvalidate",
+    srcs = ["sceneobjectvalidate.go"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/assets:idutils",

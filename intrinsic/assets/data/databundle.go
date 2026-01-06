@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"intrinsic/assets/data/datavalidate"
 	"intrinsic/assets/data/utils"
 	"intrinsic/assets/ioutils"
 	"intrinsic/util/archive/tartooling"
@@ -305,7 +306,7 @@ func Write(da *dapb.DataAsset, path string, options ...WriteOption) error {
 	if da.GetMetadata().GetAssetType() == atpb.AssetType_ASSET_TYPE_UNSPECIFIED {
 		da.Metadata.AssetType = atpb.AssetType_ASSET_TYPE_DATA
 	}
-	if err := utils.ValidateDataAsset(da); err != nil {
+	if err := datavalidate.DataAsset(da); err != nil {
 		return fmt.Errorf("invalid DataAsset: %w", err)
 	}
 
@@ -352,7 +353,7 @@ func Write(da *dapb.DataAsset, path string, options ...WriteOption) error {
 	payloadOut, err := utils.WalkUniqueReferencedData(payload, func(ref *utils.ReferencedDataExt) error {
 		refBase := ref.Copy().SetBaseDir(baseDir)
 
-		if err := utils.ValidateReferencedData(refBase); err != nil {
+		if err := datavalidate.ReferencedData(refBase); err != nil {
 			return fmt.Errorf("invalid ReferencedData: %w", err)
 		}
 
@@ -550,7 +551,7 @@ func Read(ctx context.Context, path string, options ...ReadOption) (*DataBundle,
 		refBase := ref.Copy().SetBaseDir(baseDir)
 
 		// Validate the ReferencedData (e.g., verify its digest).
-		if err := utils.ValidateReferencedData(refBase); err != nil {
+		if err := datavalidate.ReferencedData(refBase); err != nil {
 			return fmt.Errorf("invalid ReferencedData: %w", err)
 		}
 

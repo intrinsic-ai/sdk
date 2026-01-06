@@ -1,7 +1,7 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package hardwaredevicemanifest provides utils for working with HardwareDevice manifests.
-package hardwaredevicemanifest
+// Package hardwaredevicevalidate provides utils for validating HardwareDevices.
+package hardwaredevicevalidate
 
 import (
 	"fmt"
@@ -33,42 +33,42 @@ type VerifyLocalAssetsExist func(assets []*rpb.LocalAsset) error
 func VerifyLocalAssetsExistOnDisk(assets []*rpb.LocalAsset) error {
 	for _, asset := range assets {
 		if _, err := os.Stat(asset.GetBundlePath()); err != nil {
-			return fmt.Errorf("asset %s has invalid bundle path %q: %w", idutils.IDFromProtoUnchecked(asset.GetId()), asset.GetBundlePath(), err)
+			return fmt.Errorf("Asset %s has invalid bundle path %q: %w", idutils.IDFromProtoUnchecked(asset.GetId()), asset.GetBundlePath(), err)
 		}
 	}
 	return nil
 }
 
-type validateHardwareDeviceManifestOptions struct {
+type hardwareDeviceOptions struct {
 	verifyCatalogAssetsExist VerifyCatalogAssetsExist
 	verifyLocalAssetsExist   VerifyLocalAssetsExist
 }
 
-// ValidateHardwareDeviceManifestOption is an option for validating a HardwareDeviceManifest.
-type ValidateHardwareDeviceManifestOption func(*validateHardwareDeviceManifestOptions)
+// HardwareDeviceOption is an option for validating a HardwareDevice.
+type HardwareDeviceOption func(*hardwareDeviceOptions)
 
 // WithVerifyCatalogAssetsExist provides a function that verifies that referenced catalog Assets
 // exist.
-func WithVerifyCatalogAssetsExist(f VerifyCatalogAssetsExist) ValidateHardwareDeviceManifestOption {
-	return func(opts *validateHardwareDeviceManifestOptions) {
+func WithVerifyCatalogAssetsExist(f VerifyCatalogAssetsExist) HardwareDeviceOption {
+	return func(opts *hardwareDeviceOptions) {
 		opts.verifyCatalogAssetsExist = f
 	}
 }
 
 // WithVerifyLocalAssetsExist provides a function that verifies that referenced local Assets exist.
-func WithVerifyLocalAssetsExist(f VerifyLocalAssetsExist) ValidateHardwareDeviceManifestOption {
-	return func(opts *validateHardwareDeviceManifestOptions) {
+func WithVerifyLocalAssetsExist(f VerifyLocalAssetsExist) HardwareDeviceOption {
+	return func(opts *hardwareDeviceOptions) {
 		opts.verifyLocalAssetsExist = f
 	}
 }
 
-// ValidateHardwareDeviceManifest validates a HardwareDeviceManifest.
+// HardwareDevice validates a HardwareDevice.
 //
 // The following validation cannot be done on reference nodes, since we don't read their metadata:
 // - Verify that the specified Asset type is actually what is stored in the catalog.
 // - Verify that configuration edges have matching source and target nodes.
-func ValidateHardwareDeviceManifest(hdm HardwareDeviceManifest, options ...ValidateHardwareDeviceManifestOption) error {
-	opts := &validateHardwareDeviceManifestOptions{
+func HardwareDevice(hdm HardwareDeviceManifest, options ...HardwareDeviceOption) error {
+	opts := &hardwareDeviceOptions{
 		verifyLocalAssetsExist: VerifyLocalAssetsExistOnDisk,
 	}
 	for _, opt := range options {
@@ -119,20 +119,20 @@ func ValidateHardwareDeviceManifest(hdm HardwareDeviceManifest, options ...Valid
 		case atpb.AssetType_ASSET_TYPE_DATA:
 			// OK.
 		default:
-			return fmt.Errorf("HardwareDevice node %q has unsupported Asset type %v", name, info.assetType)
+			return fmt.Errorf("node %q has unsupported Asset type %v", name, info.assetType)
 		}
 
 		node2AssetInfo[name] = info
 		referencedAssets[node.GetAsset()] = struct{}{}
 	}
 	if numSceneObjects != 1 {
-		return fmt.Errorf("HardwareDevice must contain exactly one SceneObject, found %d", numSceneObjects)
+		return fmt.Errorf("must contain exactly one SceneObject, found %d", numSceneObjects)
 	}
 	if numServices == 0 {
-		return fmt.Errorf("HardwareDevice must contain at least one Service")
+		return fmt.Errorf("must contain at least one Service")
 	}
 	if numServices > 1 {
-		return fmt.Errorf("HardwareDevice must contain at most one Service, found %d", numServices)
+		return fmt.Errorf("must contain at most one Service, found %d", numServices)
 	}
 
 	// Verify that all assets were referenced.
@@ -147,11 +147,11 @@ func ValidateHardwareDeviceManifest(hdm HardwareDeviceManifest, options ...Valid
 	for _, edge := range g.GetEdges() {
 		sourceNodeInfo, ok := node2AssetInfo[edge.GetSource()]
 		if !ok {
-			return fmt.Errorf("HardwareDevice edge %q -> %q has unknown source node %q", edge.GetSource(), edge.GetTarget(), edge.GetSource())
+			return fmt.Errorf("edge %q -> %q has unknown source node %q", edge.GetSource(), edge.GetTarget(), edge.GetSource())
 		}
 		targetNodeInfo, ok := node2AssetInfo[edge.GetTarget()]
 		if !ok {
-			return fmt.Errorf("HardwareDevice edge %q -> %q has unknown target node %q", edge.GetSource(), edge.GetTarget(), edge.GetTarget())
+			return fmt.Errorf("edge %q -> %q has unknown target node %q", edge.GetSource(), edge.GetTarget(), edge.GetTarget())
 		}
 
 		sourceNodeType := sourceNodeInfo.assetType
@@ -160,13 +160,13 @@ func ValidateHardwareDeviceManifest(hdm HardwareDeviceManifest, options ...Valid
 		switch edge.GetEdgeType().(type) {
 		case *agpb.AssetEdge_Configures:
 			if sourceNodeType != atpb.AssetType_ASSET_TYPE_DATA {
-				return fmt.Errorf("HardwareDevice edge %q -> %q cannot be configuration (source node must be Data, got %v)", edge.GetSource(), edge.GetTarget(), sourceNodeType)
+				return fmt.Errorf("edge %q -> %q cannot be configuration (source node must be Data, got %v)", edge.GetSource(), edge.GetTarget(), sourceNodeType)
 			}
 			if targetNodeType != atpb.AssetType_ASSET_TYPE_SERVICE {
-				return fmt.Errorf("HardwareDevice edge %q -> %q cannot be configuration (target node must be a Service, got %v)", edge.GetSource(), edge.GetTarget(), targetNodeType)
+				return fmt.Errorf("edge %q -> %q cannot be configuration (target node must be a Service, got %v)", edge.GetSource(), edge.GetTarget(), targetNodeType)
 			}
 		default:
-			return fmt.Errorf("HardwareDevice edge %q -> %q has unsupported edge type %v", edge.GetSource(), edge.GetTarget(), edge.GetEdgeType())
+			return fmt.Errorf("edge %q -> %q has unsupported edge type %v", edge.GetSource(), edge.GetTarget(), edge.GetEdgeType())
 		}
 
 		dataConfigNodes[edge.GetSource()] = struct{}{}
@@ -196,7 +196,7 @@ type assetInfo struct {
 	assetType atpb.AssetType
 }
 
-func validateAssets(assets map[string]*hdmpb.HardwareDeviceManifest_Asset, opts *validateHardwareDeviceManifestOptions) (map[string]*assetInfo, error) {
+func validateAssets(assets map[string]*hdmpb.HardwareDeviceManifest_Asset, opts *hardwareDeviceOptions) (map[string]*assetInfo, error) {
 	assetInfoMap := make(map[string]*assetInfo)
 	var catalogAssets []*rpb.CatalogAsset
 	var localAssets []*rpb.LocalAsset
@@ -251,7 +251,7 @@ func validateAssets(assets map[string]*hdmpb.HardwareDeviceManifest_Asset, opts 
 	return assetInfoMap, nil
 }
 
-func validateProcessedAssets(assets map[string]*hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset, opts *validateHardwareDeviceManifestOptions) (map[string]*assetInfo, error) {
+func validateProcessedAssets(assets map[string]*hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset, opts *hardwareDeviceOptions) (map[string]*assetInfo, error) {
 	assetInfoMap := make(map[string]*assetInfo)
 	var catalogAssets []*rpb.CatalogAsset
 	for key, asset := range assets {

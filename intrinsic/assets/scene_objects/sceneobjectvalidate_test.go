@@ -1,6 +1,6 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-package sceneobjectmanifest
+package sceneobjectvalidate
 
 import (
 	"os"
@@ -38,7 +38,7 @@ func mustReadSceneObjectManifestTextProto(t *testing.T, path string) *sompb.Scen
 	return m
 }
 
-func TestValidateSceneObjectManifest(t *testing.T) {
+func TestSceneObjectManifest(t *testing.T) {
 	m := &sompb.SceneObjectManifest{
 		Metadata: &sompb.SceneObjectMetadata{
 			Id: &idpb.Id{
@@ -113,7 +113,7 @@ func TestValidateSceneObjectManifest(t *testing.T) {
 	tests := []struct {
 		desc    string
 		m       *sompb.SceneObjectManifest
-		opts    []ValidateSceneObjectManifestOption
+		opts    []SceneObjectManifestOption
 		wantErr bool
 	}{
 		{
@@ -123,14 +123,14 @@ func TestValidateSceneObjectManifest(t *testing.T) {
 		{
 			desc: "valid with geometry",
 			m:    mWithGeometry,
-			opts: []ValidateSceneObjectManifestOption{
+			opts: []SceneObjectManifestOption{
 				WithGZFPaths(map[string]string{boxGZFPath: testio.MustCreateRunfilePath(t, boxGZFPath)}),
 			},
 		},
 		{
 			desc: "valid with scene object user data",
 			m:    mWithSceneObjectUserData,
-			opts: []ValidateSceneObjectManifestOption{
+			opts: []SceneObjectManifestOption{
 				WithGZFPaths(map[string]string{emptyObjectGZFPath: testio.MustCreateRunfilePath(t, emptyObjectGZFPath)}),
 				WithFiles(files),
 			},
@@ -138,7 +138,7 @@ func TestValidateSceneObjectManifest(t *testing.T) {
 		{
 			desc: "scene object user data, missing GZF files",
 			m:    mWithSceneObjectUserData,
-			opts: []ValidateSceneObjectManifestOption{
+			opts: []SceneObjectManifestOption{
 				WithFiles(files),
 			},
 			wantErr: true,
@@ -146,7 +146,7 @@ func TestValidateSceneObjectManifest(t *testing.T) {
 		{
 			desc: "scene object user data, missing file descriptors",
 			m:    mWithSceneObjectUserData,
-			opts: []ValidateSceneObjectManifestOption{
+			opts: []SceneObjectManifestOption{
 				WithGZFPaths(map[string]string{emptyObjectGZFPath: testio.MustCreateRunfilePath(t, emptyObjectGZFPath)}),
 			},
 			wantErr: true,
@@ -154,7 +154,7 @@ func TestValidateSceneObjectManifest(t *testing.T) {
 		{
 			desc: "scene object user data, invalid file descriptors",
 			m:    mWithSceneObjectUserData,
-			opts: []ValidateSceneObjectManifestOption{
+			opts: []SceneObjectManifestOption{
 				WithGZFPaths(map[string]string{emptyObjectGZFPath: testio.MustCreateRunfilePath(t, emptyObjectGZFPath)}),
 				WithFiles(badFiles),
 			},
@@ -194,11 +194,11 @@ func TestValidateSceneObjectManifest(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.desc, func(t *testing.T) {
-			err := ValidateSceneObjectManifest(tc.m, tc.opts...)
+			err := SceneObjectManifest(tc.m, tc.opts...)
 			if tc.wantErr && err == nil {
-				t.Error("ValidateSceneObjectManifest() succeeded, want error")
+				t.Error("SceneObjectManifest() succeeded, want error")
 			} else if !tc.wantErr && err != nil {
-				t.Errorf("ValidateSceneObjectManifest() failed: %v", err)
+				t.Errorf("SceneObjectManifest() failed: %v", err)
 			}
 		})
 	}

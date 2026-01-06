@@ -1,7 +1,7 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package sceneobjectmanifest provides utils for working with SceneObject manifests.
-package sceneobjectmanifest
+// Package sceneobjectvalidate provides utils for validating SceneObjects.
+package sceneobjectvalidate
 
 import (
 	"fmt"
@@ -16,17 +16,17 @@ import (
 	sopb "intrinsic/scene/proto/v1/scene_object_go_proto"
 )
 
-type validateSceneObjectManifestOptions struct {
+type sceneobjectManifestOptions struct {
 	files    *protoregistry.Files
 	gzfPaths map[string]string
 }
 
-// ValidateSceneObjectManifestOption is an option for validating a SceneObjectManifest.
-type ValidateSceneObjectManifestOption func(*validateSceneObjectManifestOptions)
+// SceneObjectManifestOption is an option for validating a SceneObjectManifest.
+type SceneObjectManifestOption func(*sceneobjectManifestOptions)
 
 // WithFiles adds a protoregistry.Files for validating proto messages.
-func WithFiles(files *protoregistry.Files) ValidateSceneObjectManifestOption {
-	return func(opts *validateSceneObjectManifestOptions) {
+func WithFiles(files *protoregistry.Files) SceneObjectManifestOption {
+	return func(opts *sceneobjectManifestOptions) {
 		opts.files = files
 	}
 }
@@ -34,15 +34,15 @@ func WithFiles(files *protoregistry.Files) ValidateSceneObjectManifestOption {
 // WithGZFPaths adds a map from GZF file paths as specified in the manifest to paths on disk.
 //
 // Must be specified if the manifest specifies GZF files.
-func WithGZFPaths(gzfPaths map[string]string) ValidateSceneObjectManifestOption {
-	return func(opts *validateSceneObjectManifestOptions) {
+func WithGZFPaths(gzfPaths map[string]string) SceneObjectManifestOption {
+	return func(opts *sceneobjectManifestOptions) {
 		opts.gzfPaths = gzfPaths
 	}
 }
 
-// ValidateSceneObjectManifest validates a SceneObjectManifest.
-func ValidateSceneObjectManifest(m *sompb.SceneObjectManifest, options ...ValidateSceneObjectManifestOption) error {
-	opts := &validateSceneObjectManifestOptions{}
+// SceneObjectManifest validates a SceneObjectManifest.
+func SceneObjectManifest(m *sompb.SceneObjectManifest, options ...SceneObjectManifestOption) error {
+	opts := &sceneobjectManifestOptions{}
 	for _, opt := range options {
 		opt(opts)
 	}

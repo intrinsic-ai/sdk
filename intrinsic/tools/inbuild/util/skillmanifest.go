@@ -6,7 +6,8 @@ package skillmanifest
 import (
 	"fmt"
 
-	"intrinsic/skills/internal/skillmanifest"
+	"intrinsic/skills/skillmanifest"
+	"intrinsic/skills/skillvalidate"
 	"intrinsic/util/proto/protoio"
 	"intrinsic/util/proto/registryutil"
 
@@ -31,9 +32,9 @@ func LoadManifestAndFileDescriptorSets(manifestPath string, fdsPaths []string, i
 	if err := protoio.ReadTextProto(manifestPath, m, protoio.WithResolver(types)); err != nil {
 		return nil, nil, fmt.Errorf("failed to read manifest: %v", err)
 	}
-	if err := skillmanifest.ValidateSkillManifest(m,
-		skillmanifest.WithTypes(types),
-		skillmanifest.WithIncompatibleDisallowManifestDependencies(incompatibleDisallowManifestDependencies),
+	if err := skillvalidate.SkillManifest(m,
+		skillvalidate.WithTypes(types),
+		skillvalidate.WithIncompatibleDisallowManifestDependencies(incompatibleDisallowManifestDependencies),
 	); err != nil {
 		return nil, nil, fmt.Errorf("failed to validate manifest: %v", err)
 	}

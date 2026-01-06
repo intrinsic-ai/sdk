@@ -12,7 +12,7 @@ import (
 
 	"intrinsic/assets/imageutils"
 	"intrinsic/assets/ioutils"
-	"intrinsic/assets/services/servicemanifest"
+	"intrinsic/assets/services/servicevalidate"
 	"intrinsic/util/archive/tartooling"
 	"intrinsic/util/proto/registryutil"
 
@@ -127,9 +127,9 @@ func Write(m *smpb.ServiceManifest, path string, options ...WriteOption) error {
 			return fmt.Errorf("failed to create proto files: %w", err)
 		}
 	}
-	if err := servicemanifest.ValidateServiceManifest(m,
-		servicemanifest.WithFiles(files),
-		servicemanifest.WithDefaultConfig(opts.defaultConfig),
+	if err := servicevalidate.ServiceManifest(m,
+		servicevalidate.WithFiles(files),
+		servicevalidate.WithDefaultConfig(opts.defaultConfig),
 	); err != nil {
 		return fmt.Errorf("invalid ServiceManifest: %w", err)
 	}

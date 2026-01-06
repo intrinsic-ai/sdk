@@ -52,9 +52,9 @@ go_library(
     srcs = ["servicebundle.go"],
     visibility = ["//intrinsic:internal_api_users"],
     deps = [
+        ":servicevalidate",
         "//intrinsic/assets:imageutils",
         "//intrinsic/assets:ioutils",
-        "//intrinsic/assets/services:servicemanifest",
         "//intrinsic/assets/services/proto:service_manifest_go_proto",
         "//intrinsic/kubernetes/workcell_spec/proto:image_go_proto",
         "//intrinsic/util/archive:tartooling",
@@ -69,8 +69,8 @@ go_library(
 )
 
 go_library(
-    name = "servicemanifest",
-    srcs = ["servicemanifest.go"],
+    name = "servicevalidate",
+    srcs = ["servicevalidate.go"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/assets:idutils",

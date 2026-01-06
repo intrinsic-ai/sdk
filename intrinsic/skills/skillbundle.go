@@ -12,7 +12,7 @@ import (
 
 	"intrinsic/assets/imageutils"
 	"intrinsic/assets/ioutils"
-	"intrinsic/skills/internal/skillmanifest"
+	"intrinsic/skills/skillvalidate"
 	"intrinsic/util/archive/tartooling"
 	"intrinsic/util/proto/registryutil"
 
@@ -107,9 +107,9 @@ func Write(m *smpb.SkillManifest, path string, options ...WriteOption) error {
 	if err != nil {
 		return fmt.Errorf("failed to populate the registry: %w", err)
 	}
-	if err := skillmanifest.ValidateSkillManifest(m,
-		skillmanifest.WithTypes(types),
-		skillmanifest.WithIncompatibleDisallowManifestDependencies(false),
+	if err := skillvalidate.SkillManifest(m,
+		skillvalidate.WithTypes(types),
+		skillvalidate.WithIncompatibleDisallowManifestDependencies(false),
 	); err != nil {
 		return fmt.Errorf("invalid SkillManifest: %w", err)
 	}

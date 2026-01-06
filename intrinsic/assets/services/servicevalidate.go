@@ -1,7 +1,7 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package servicemanifest provides utils for working with Service manifests.
-package servicemanifest
+// Package servicevalidate provides utils for validating Services.
+package servicevalidate
 
 import (
 	"errors"
@@ -28,37 +28,36 @@ var (
 	missingServiceAllowlist = []string{
 	}
 
-	errContainsSkillAnnotations = errors.New("config message for the Service must not contain Skill specific dependency annotations")
+	errContainsSkillAnnotations = errors.New("config message for the Service must not contain Skill-specific dependency annotations")
 )
 
-type validateServiceManifestOptions struct {
+type serviceManifestOptions struct {
 	files         *protoregistry.Files
 	defaultConfig *anypb.Any
 }
 
-// ValidateServiceManifestOption is an option for validating a ServiceManifest.
-type ValidateServiceManifestOption func(*validateServiceManifestOptions)
+// ServiceManifestOption is an option for validating a ServiceManifest.
+type ServiceManifestOption func(*serviceManifestOptions)
 
 // WithFiles adds a protoregistry.Files for validating proto messages.
-func WithFiles(files *protoregistry.Files) ValidateServiceManifestOption {
-	return func(opts *validateServiceManifestOptions) {
+func WithFiles(files *protoregistry.Files) ServiceManifestOption {
+	return func(opts *serviceManifestOptions) {
 		opts.files = files
 	}
 }
 
 // WithDefaultConfig adds the Service's default config to the validation options.
 //
-// If specified, ValidateServiceManifest verifies that the default config is of the type specified
-// in the manifest.
-func WithDefaultConfig(defaultConfig *anypb.Any) ValidateServiceManifestOption {
-	return func(opts *validateServiceManifestOptions) {
+// If specified, Validate verifies that the default config is of the type specified in the manifest.
+func WithDefaultConfig(defaultConfig *anypb.Any) ServiceManifestOption {
+	return func(opts *serviceManifestOptions) {
 		opts.defaultConfig = defaultConfig
 	}
 }
 
-// ValidateServiceManifest validates a ServiceManifest.
-func ValidateServiceManifest(m *smpb.ServiceManifest, options ...ValidateServiceManifestOption) error {
-	opts := &validateServiceManifestOptions{}
+// ServiceManifest validates a ServiceManifest.
+func ServiceManifest(m *smpb.ServiceManifest, options ...ServiceManifestOption) error {
+	opts := &serviceManifestOptions{}
 	for _, opt := range options {
 		opt(opts)
 	}
@@ -109,7 +108,7 @@ func ValidateServiceManifest(m *smpb.ServiceManifest, options ...ValidateService
 
 	// Validate the Service's volumes.
 	for podType, spec := range servicePodSpecs {
-		if err := validateServicePodSpecVolumes(spec); err != nil {
+		if err := servicePodSpecVolumes(spec); err != nil {
 			return fmt.Errorf("invalid volumes in the %s spec for Service %q: %w", podType, id, err)
 		}
 	}
@@ -196,8 +195,8 @@ func ValidateServiceManifest(m *smpb.ServiceManifest, options ...ValidateService
 	return nil
 }
 
-// ValidateVolume validates a Volume.
-func ValidateVolume(volume *svpb.Volume) error {
+// Volume validates a Volume.
+func Volume(volume *svpb.Volume) error {
 	if err := validate.DNSLabel(volume.GetName()); err != nil {
 		return fmt.Errorf("invalid volume name %q: %w", volume.GetName(), err)
 	}
@@ -217,8 +216,8 @@ func ValidateVolume(volume *svpb.Volume) error {
 	return nil
 }
 
-// ValidateVolumeMount validates a VolumeMount.
-func ValidateVolumeMount(mount *svpb.VolumeMount) error {
+// VolumeMount validates a VolumeMount.
+func VolumeMount(mount *svpb.VolumeMount) error {
 	if err := validate.DNSLabel(mount.GetName()); err != nil {
 		return fmt.Errorf("invalid volume name %q: %w", mount.GetName(), err)
 	}
@@ -228,11 +227,11 @@ func ValidateVolumeMount(mount *svpb.VolumeMount) error {
 	return nil
 }
 
-func validateServicePodSpecVolumes(spec *smpb.ServicePodSpec) error {
+func servicePodSpecVolumes(spec *smpb.ServicePodSpec) error {
 	// Validate the defined volumes.
 	volumeNames := map[string]struct{}{}
 	for _, volume := range spec.GetSettings().GetVolumes() {
-		if err := ValidateVolume(volume); err != nil {
+		if err := Volume(volume); err != nil {
 			return err
 		}
 
@@ -245,7 +244,7 @@ func validateServicePodSpecVolumes(spec *smpb.ServicePodSpec) error {
 
 	// Validate the volume mounts.
 	for _, mount := range spec.GetImage().GetSettings().GetVolumeMounts() {
-		if err := ValidateVolumeMount(mount); err != nil {
+		if err := VolumeMount(mount); err != nil {
 			return err
 		}
 

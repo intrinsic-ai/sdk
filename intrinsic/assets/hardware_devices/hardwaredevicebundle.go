@@ -12,7 +12,7 @@ import (
 	"regexp"
 
 	"intrinsic/assets/data/databundle"
-	"intrinsic/assets/hardware_devices/hardwaredevicemanifest"
+	"intrinsic/assets/hardware_devices/hardwaredevicevalidate"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/imageutils"
 	"intrinsic/assets/ioutils"
@@ -59,7 +59,7 @@ func Write(hdm *hdmpb.HardwareDeviceManifest, path string, options ...WriteOptio
 	if hdm == nil {
 		return fmt.Errorf("HardwareDeviceManifest must not be nil")
 	}
-	if err := hardwaredevicemanifest.ValidateHardwareDeviceManifest(hdm); err != nil {
+	if err := hardwaredevicevalidate.HardwareDevice(hdm); err != nil {
 		return fmt.Errorf("invalid HardwareDeviceManifest: %w", err)
 	}
 

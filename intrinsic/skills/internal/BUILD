@@ -7,7 +7,6 @@
 load("@ai_intrinsic_sdks_pip_deps//:requirements.bzl", "requirement")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
-load("//bazel:go_macros.bzl", "go_library", "go_test")
 
 package(default_visibility = ["//intrinsic/skills:__subpackages__"])
 
@@ -581,40 +580,5 @@ cc_library(
         "@abseil-cpp//absl/strings",
         "@com_google_protobuf//:protobuf",
         "@com_googlesource_code_re2//:re2",
-    ],
-)
-
-go_library(
-    name = "skillmanifest",
-    srcs = ["skillmanifest.go"],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [
-        "//intrinsic/assets:idutils",
-        "//intrinsic/assets:metadatautils",
-        "//intrinsic/assets/dependencies:utils",
-        "//intrinsic/skills/proto:skill_manifest_go_proto",
-        "//intrinsic/util/proto:sourcecodeinfoview",
-        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
-        "@org_golang_google_protobuf//reflect/protoregistry:go_default_library",
-    ],
-)
-
-go_test(
-    name = "skillmanifest_test",
-    srcs = ["skillmanifest_test.go"],
-    data = [
-        "//intrinsic/skills/build_defs/tests:no_op_skill_cc_manifest",
-        "//intrinsic/skills/build_defs/tests:no_op_skill_py_manifest",
-    ],
-    library = ":skillmanifest",
-    deps = [
-        "//intrinsic/skills/proto:equipment_go_proto",
-        "//intrinsic/skills/proto:skill_manifest_go_proto",
-        "//intrinsic/util/proto:protoio",
-        "//intrinsic/util/proto:registryutil",
-        "//intrinsic/util/testing:testio",
-        "@com_github_google_go_cmp//cmp:go_default_library",
-        "@com_github_google_go_cmp//cmp/cmpopts:go_default_library",
-        "@org_golang_google_protobuf//proto",
     ],
 )

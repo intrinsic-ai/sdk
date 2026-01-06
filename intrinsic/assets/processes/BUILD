@@ -9,8 +9,9 @@ go_library(
     srcs = ["processbundle.go"],
     visibility = ["//intrinsic:internal_api_users"],
     deps = [
+        ":processmanifest",
+        ":processvalidate",
         "//intrinsic/assets:ioutils",
-        "//intrinsic/assets/processes:processmanifest",
         "//intrinsic/assets/processes/proto:process_asset_go_proto",
         "//intrinsic/assets/processes/proto:process_manifest_go_proto",
         "//intrinsic/assets/proto:asset_type_go_proto",
@@ -24,6 +25,17 @@ go_library(
 go_library(
     name = "processmanifest",
     srcs = ["processmanifest.go"],
+    deps = [
+        "//intrinsic/assets:idutils",
+        "//intrinsic/assets/proto:metadata_go_proto",
+        "//intrinsic/executive/proto:behavior_tree_go_proto",
+        "//intrinsic/skills/proto:skills_go_proto",
+    ],
+)
+
+go_library(
+    name = "processvalidate",
+    srcs = ["processvalidate.go"],
     deps = [
         "//intrinsic/assets:idutils",
         "//intrinsic/assets:metadatautils",

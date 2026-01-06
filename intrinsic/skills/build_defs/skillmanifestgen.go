@@ -9,7 +9,8 @@ import (
 	"strings"
 
 	"intrinsic/production/intrinsic"
-	"intrinsic/skills/internal/skillmanifest"
+	"intrinsic/skills/skillmanifest"
+	"intrinsic/skills/skillvalidate"
 	"intrinsic/util/proto/protoio"
 	"intrinsic/util/proto/registryutil"
 
@@ -45,9 +46,9 @@ func createSkillManifest() error {
 	if err := protoio.ReadTextProto(*flagManifest, m, protoio.WithResolver(types)); err != nil {
 		return fmt.Errorf("failed to read manifest: %v", err)
 	}
-	if err := skillmanifest.ValidateSkillManifest(m,
-		skillmanifest.WithTypes(types),
-		skillmanifest.WithIncompatibleDisallowManifestDependencies(*flagIncompatibleDisallowManifestDependencies),
+	if err := skillvalidate.SkillManifest(m,
+		skillvalidate.WithTypes(types),
+		skillvalidate.WithIncompatibleDisallowManifestDependencies(*flagIncompatibleDisallowManifestDependencies),
 	); err != nil {
 		return err
 	}

@@ -8,7 +8,8 @@ go_library(
     name = "skillmanifest",
     srcs = ["skillmanifest.go"],
     deps = [
-        "//intrinsic/skills/internal:skillmanifest",
+        "//intrinsic/skills:skillmanifest",
+        "//intrinsic/skills:skillvalidate",
         "//intrinsic/skills/proto:skill_manifest_go_proto",
         "//intrinsic/util/proto:protoio",
         "//intrinsic/util/proto:registryutil",

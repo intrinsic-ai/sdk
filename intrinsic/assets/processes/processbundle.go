@@ -11,6 +11,7 @@ import (
 
 	"intrinsic/assets/ioutils"
 	"intrinsic/assets/processes/processmanifest"
+	"intrinsic/assets/processes/processvalidate"
 	"intrinsic/util/archive/tartooling"
 
 	"github.com/google/safearchive/tar"
@@ -50,7 +51,7 @@ func Write(manifest *processmanifestpb.ProcessManifest, path string, options ...
 	if manifest == nil {
 		return fmt.Errorf("ProcessManifest must not be nil")
 	}
-	err := processmanifest.ValidateProcessManifest(manifest)
+	err := processvalidate.ProcessManifest(manifest)
 	if err != nil {
 		return fmt.Errorf("invalid ProcessManifest: %w", err)
 	}

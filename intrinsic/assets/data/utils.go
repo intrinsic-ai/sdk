@@ -7,11 +7,9 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"os"
 	"path/filepath"
 	"strings"
 
-	"intrinsic/assets/idutils"
 	"intrinsic/util/proto/registryutil"
 	"intrinsic/util/proto/walkmessages"
 
@@ -19,7 +17,6 @@ import (
 
 	dapb "intrinsic/assets/data/proto/v1/data_asset_go_proto"
 	rdpb "intrinsic/assets/data/proto/v1/referenced_data_go_proto"
-	atpb "intrinsic/assets/proto/asset_type_go_proto"
 
 	anypb "google.golang.org/protobuf/types/known/anypb"
 )
@@ -196,115 +193,6 @@ func (ref *ReferencedDataExt) Replace(other *ReferencedDataExt) *ReferencedDataE
 // ToProto converts the ReferencedDataExt to a ReferencedData proto.
 func (ref *ReferencedDataExt) ToProto() *rdpb.ReferencedData {
 	return proto.Clone(ref.rd).(*rdpb.ReferencedData)
-}
-
-// ValidateDataAssetOptions contains options for a call to ValidateDataAsset.
-type ValidateDataAssetOptions struct {
-	// DisallowFileReferences indicates whether the Data asset must not contain ReferencedData with
-	// file references.
-	DisallowFileReferences bool
-	// RequiresVersion indicates whether the Data asset must specify a version.
-	RequiresVersion bool
-}
-
-// ValidateDataAssetOption is a functional option for ValidateDataAsset.
-type ValidateDataAssetOption func(*ValidateDataAssetOptions)
-
-// WithDisallowFileReferences sets the DisallowFileReferences option.
-func WithDisallowFileReferences(disallowFileReferences bool) ValidateDataAssetOption {
-	return func(opts *ValidateDataAssetOptions) {
-		opts.DisallowFileReferences = disallowFileReferences
-	}
-}
-
-// WithRequiresVersion sets the RequiresVersion option.
-func WithRequiresVersion(requiresVersion bool) ValidateDataAssetOption {
-	return func(opts *ValidateDataAssetOptions) {
-		opts.RequiresVersion = requiresVersion
-	}
-}
-
-// ValidateDataAsset validates a DataAsset.
-//
-// For required metadata, see
-// https://github.com/intrinsic-ai/sdk/blob/main/intrinsic/assets/proto/metadata.proto.
-func ValidateDataAsset(data *dapb.DataAsset, options ...ValidateDataAssetOption) error {
-	opts := &ValidateDataAssetOptions{}
-	for _, opt := range options {
-		opt(opts)
-	}
-
-	m := data.GetMetadata()
-
-	if opts.RequiresVersion {
-		if err := idutils.ValidateIDVersionProto(m.GetIdVersion()); err != nil {
-			return fmt.Errorf("invalid id_version: %w", err)
-		}
-	} else if err := idutils.ValidateIDProto(m.GetIdVersion().GetId()); err != nil {
-		return fmt.Errorf("invalid id: %w", err)
-	}
-	if m.GetAssetType() != atpb.AssetType_ASSET_TYPE_DATA {
-		return fmt.Errorf("asset_type must be ASSET_TYPE_DATA (got: %s)", m.GetAssetType())
-	}
-	if m.GetDisplayName() == "" {
-		return fmt.Errorf("display_name must be specified")
-	}
-	if m.GetVendor().GetDisplayName() == "" {
-		return fmt.Errorf("vendor.display_name must be specified")
-	}
-
-	if opts.DisallowFileReferences {
-		if payload, err := ExtractPayload(data); err != nil {
-			return err
-		} else if _, err := WalkUniqueReferencedData(payload, func(ref *ReferencedDataExt) error {
-			if ref.Type() == FileReferenceType {
-				return fmt.Errorf("file references are not allowed (got: %q)", ref.Reference())
-			}
-			return nil
-		}); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// ValidateReferencedData validates a ReferencedData.
-//
-// Validation includes:
-// - If specified, compare the digest against the referenced data.
-func ValidateReferencedData(ref *ReferencedDataExt) error {
-	// Validate the digest against the referenced data.
-	if ref.Digest() != "" {
-		// Get a reader for the data.
-		var reader io.Reader
-		switch ref.Type() {
-		case FileReferenceType:
-			file, err := os.Open(ref.Reference())
-			if err != nil {
-				return fmt.Errorf("cannot open referenced file %q: %w", ref.Reference(), err)
-			}
-			defer file.Close()
-			reader = file
-		case CASReferenceType:
-			return fmt.Errorf("cannot validate digest of CAS reference %q", ref.Reference())
-		case InlinedReferenceType:
-			reader = bytes.NewReader(ref.Inlined())
-		default:
-			return fmt.Errorf("unknown reference type: %d", ref.Type())
-		}
-
-		// Test the digest.
-		if parsed, err := ParseDigest(ref.Digest()); err != nil {
-			return fmt.Errorf("cannot parse digest %q: %w", ref.Digest(), err)
-		} else if gotDigest, err := Digest(reader, WithAlgorithm(parsed.Algorithm)); err != nil {
-			return fmt.Errorf("cannot compute digest: %w", err)
-		} else if gotDigest != parsed.Digest {
-			return fmt.Errorf("digest mismatch: got %q, want %q", gotDigest, parsed.Digest)
-		}
-	}
-
-	return nil
 }
 
 // ExtractPayload extracts a Data asset payload to a dynamicpb analog of the target payload type.

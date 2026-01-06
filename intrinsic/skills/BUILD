@@ -9,9 +9,10 @@ go_library(
     srcs = ["skillbundle.go"],
     visibility = ["//intrinsic:internal_api_users"],
     deps = [
+        ":skillmanifest",
+        ":skillvalidate",
         "//intrinsic/assets:imageutils",
         "//intrinsic/assets:ioutils",
-        "//intrinsic/skills/internal:skillmanifest",
         "//intrinsic/skills/proto:processed_skill_manifest_go_proto",
         "//intrinsic/skills/proto:skill_manifest_go_proto",
         "//intrinsic/util/archive:tartooling",
@@ -19,5 +20,29 @@ go_library(
         "@com_github_google_safearchive//tar",
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
         "@org_golang_google_protobuf//proto",
+    ],
+)
+
+go_library(
+    name = "skillmanifest",
+    srcs = ["skillmanifest.go"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        "//intrinsic/skills/proto:skill_manifest_go_proto",
+        "//intrinsic/util/proto:sourcecodeinfoview",
+        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
+    ],
+)
+
+go_library(
+    name = "skillvalidate",
+    srcs = ["skillvalidate.go"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        "//intrinsic/assets:idutils",
+        "//intrinsic/assets:metadatautils",
+        "//intrinsic/assets/dependencies:utils",
+        "//intrinsic/skills/proto:skill_manifest_go_proto",
+        "@org_golang_google_protobuf//reflect/protoregistry:go_default_library",
     ],
 )

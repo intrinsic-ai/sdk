@@ -1,7 +1,7 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package skillmanifest provides utils for working with Skill manifests.
-package skillmanifest
+// Package skillvalidate provides utils for validating Skills.
+package skillvalidate
 
 import (
 	"fmt"
@@ -9,43 +9,40 @@ import (
 	"intrinsic/assets/dependencies/utils"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/metadatautils"
-	"intrinsic/util/proto/sourcecodeinfoview"
 
 	"google.golang.org/protobuf/reflect/protoregistry"
 
 	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
-
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
 
 var errMixOfDependencyModels = fmt.Errorf("cannot declare dependencies in both the manifest's dependencies field (required equipment) and in the skill's parameter proto (annotation-based dependencies)")
 
-type validateSkillManifestOptions struct {
+type skillManifestOptions struct {
 	types                                    *protoregistry.Types
 	incompatibleDisallowManifestDependencies bool
 }
 
-// ValidateSkillManifestOption is an option for validating a SkillManifest.
-type ValidateSkillManifestOption func(*validateSkillManifestOptions)
+// SkillManifestOption is an option for validating a SkillManifest.
+type SkillManifestOption func(*skillManifestOptions)
 
 // WithTypes provides a Types for validating proto messages.
-func WithTypes(types *protoregistry.Types) ValidateSkillManifestOption {
-	return func(opts *validateSkillManifestOptions) {
+func WithTypes(types *protoregistry.Types) SkillManifestOption {
+	return func(opts *skillManifestOptions) {
 		opts.types = types
 	}
 }
 
 // WithIncompatibleDisallowManifestDependencies specifies whether to prevent the SkillManifest from
 // declaring dependencies in the manifest.
-func WithIncompatibleDisallowManifestDependencies(incompatible bool) ValidateSkillManifestOption {
-	return func(opts *validateSkillManifestOptions) {
+func WithIncompatibleDisallowManifestDependencies(incompatible bool) SkillManifestOption {
+	return func(opts *skillManifestOptions) {
 		opts.incompatibleDisallowManifestDependencies = incompatible
 	}
 }
 
-// ValidateSkillManifest validates a SkillManifest.
-func ValidateSkillManifest(m *smpb.SkillManifest, options ...ValidateSkillManifestOption) error {
-	opts := &validateSkillManifestOptions{}
+// SkillManifest validates a SkillManifest.
+func SkillManifest(m *smpb.SkillManifest, options ...SkillManifestOption) error {
+	opts := &skillManifestOptions{}
 	for _, opt := range options {
 		opt(opts)
 	}
@@ -82,17 +79,4 @@ func ValidateSkillManifest(m *smpb.SkillManifest, options ...ValidateSkillManife
 	}
 
 	return nil
-}
-
-// PruneSourceCodeInfo removes source code info from the FileDescriptorSet for all message types
-// except those that are referenced by the SkillManifest.
-func PruneSourceCodeInfo(m *smpb.SkillManifest, fds *dpb.FileDescriptorSet) {
-	var fullNames []string
-	if name := m.GetParameter().GetMessageFullName(); name != "" {
-		fullNames = append(fullNames, name)
-	}
-	if name := m.GetReturnType().GetMessageFullName(); name != "" {
-		fullNames = append(fullNames, name)
-	}
-	sourcecodeinfoview.PruneSourceCodeInfo(fullNames, fds)
 }

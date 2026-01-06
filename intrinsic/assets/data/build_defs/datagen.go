@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 
 	"intrinsic/assets/data/databundle"
-	"intrinsic/assets/data/datamanifest"
+	"intrinsic/assets/data/datavalidate"
 	"intrinsic/assets/data/utils"
 	"intrinsic/util/proto/protoio"
 	"intrinsic/util/proto/registryutil"
@@ -62,10 +62,10 @@ func CreateDataBundle(opts *CreateDataBundleOptions) error {
 	if err := protoio.ReadTextProto(opts.ManifestPath, m, protoio.WithResolver(types)); err != nil {
 		return fmt.Errorf("failed to read manifest: %w", err)
 	}
-	if err := datamanifest.ValidateDataManifest(m,
-		datamanifest.WithTypes(types),
+	if err := datavalidate.DataManifest(m,
+		datavalidate.WithTypes(types),
 	); err != nil {
-		return fmt.Errorf("invalid input manifest: %w", err)
+		return fmt.Errorf("invalid DataManifest: %w", err)
 	}
 
 	da := &dapb.DataAsset{
