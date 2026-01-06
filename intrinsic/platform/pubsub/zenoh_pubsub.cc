@@ -24,8 +24,10 @@
 #include "intrinsic/platform/pubsub/kvstore.h"
 #include "intrinsic/platform/pubsub/publisher.h"
 #include "intrinsic/platform/pubsub/pubsub.h"
+#include "intrinsic/platform/pubsub/pubsub_callbacks.h"
 #include "intrinsic/platform/pubsub/queryable.h"
 #include "intrinsic/platform/pubsub/subscription.h"
+#include "intrinsic/platform/pubsub/topic_config.h"
 #include "intrinsic/platform/pubsub/zenoh_publisher_data.h"
 #include "intrinsic/platform/pubsub/zenoh_pubsub_data.h"
 #include "intrinsic/platform/pubsub/zenoh_subscription_data.h"
@@ -34,10 +36,6 @@
 namespace intrinsic {
 
 constexpr char kIntrospectionTopicPrefix[] = "in/_introspection/";
-
-std::string PubSubQoSToZenohQos(const TopicConfig::TopicQoS& qos) {
-  return qos == TopicConfig::TopicQoS::Sensor ? "Sensor" : "HighReliability";
-}
 
 PubSub::PubSub() : data_(std::make_shared<PubSubData>()) {}
 

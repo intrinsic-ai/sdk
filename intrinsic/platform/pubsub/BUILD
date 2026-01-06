@@ -56,8 +56,10 @@ cc_library(
     deps = [
         ":kvstore",
         ":publisher",
+        ":pubsub_callbacks",
         ":queryable",
         ":subscription",
+        ":topic_config",
         ":zenoh_publisher_data",
         ":zenoh_pubsub_data",
         ":zenoh_subscription_data",
@@ -261,5 +263,20 @@ cc_library(
         "@abseil-cpp//absl/log",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/strings:str_format",
+    ],
+)
+
+cc_library(
+    name = "topic_config",
+    srcs = ["topic_config.cc"],
+    hdrs = ["topic_config.h"],
+)
+
+cc_library(
+    name = "pubsub_callbacks",
+    hdrs = ["pubsub_callbacks.h"],
+    deps = [
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/strings:string_view",
     ],
 )
