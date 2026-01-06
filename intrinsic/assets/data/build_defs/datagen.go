@@ -124,9 +124,7 @@ func CreateDataBundle(opts *CreateDataBundleOptions) error {
 		}
 	}
 
-	if err := databundle.WriteDataBundle(
-		da,
-		opts.OutputBundlePath,
+	if err := databundle.Write(da, opts.OutputBundlePath,
 		databundle.WithExcludedReferencedFilePaths(excludedReferencedFilePaths),
 		databundle.WithExpectedReferencedFilePaths(expectedReferencedFilePaths),
 	); err != nil {

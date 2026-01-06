@@ -87,9 +87,9 @@ $ inctl skill install abc/skill.bundle.tar --solution=my-solution
 				}
 				transfer = directupload.NewTransferer(opts...)
 			}
-			manifest, err := skillbundle.ProcessSkill(ctx, target, skillbundle.ProcessSkillOpts{
-				ImageProcessor: bundleimages.CreateImageProcessor(flags.CreateRegistryOptsWithTransferer(ctx, transfer, registry)),
-			})
+			manifest, err := skillbundle.Process(ctx, target,
+				skillbundle.WithImageProcessor(bundleimages.CreateImageProcessor(flags.CreateRegistryOptsWithTransferer(ctx, transfer, registry))),
+			)
 			if err != nil {
 				return fmt.Errorf("could not read bundle file %q: %v", target, err)
 			}

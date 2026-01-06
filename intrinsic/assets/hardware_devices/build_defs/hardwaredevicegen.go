@@ -84,7 +84,7 @@ func CreateHardwareDeviceBundle(opts *CreateHardwareDeviceBundleOptions) error {
 	}
 	m.Assets = assets
 
-	if err := hardwaredevicebundle.WriteHardwareDeviceBundle(m, opts.OutputBundlePath); err != nil {
+	if err := hardwaredevicebundle.Write(m, opts.OutputBundlePath); err != nil {
 		return fmt.Errorf("failed to write HardwareDevice Asset bundle: %w", err)
 	}
 

@@ -23,9 +23,9 @@ type bundleCheck func(t *testing.T)
 func checkManifestHasID(t *testing.T, bundlePath string, wantPackage string, wantName string) bundleCheck {
 	return func(t *testing.T) {
 		t.Helper()
-		bundle, err := skillbundle.ReadSkillBundle(t.Context(), bundlePath)
+		bundle, err := skillbundle.Read(t.Context(), bundlePath)
 		if err != nil {
-			t.Fatalf("skillbundle.ReadSkillBundle(%q) failed: %v", bundlePath, err)
+			t.Fatalf("skillbundle.Read(%q) failed: %v", bundlePath, err)
 		}
 		if got := bundle.Manifest.GetId().GetPackage(); got != wantPackage {
 			t.Errorf("manifest.GetId().GetPackage() = %q, want %q", got, wantPackage)
@@ -39,9 +39,11 @@ func checkManifestHasID(t *testing.T, bundlePath string, wantPackage string, wan
 func checkHasFile(t *testing.T, bundlePath string, wantFile string) bundleCheck {
 	return func(t *testing.T) {
 		t.Helper()
-		bundle, err := skillbundle.ReadSkillBundle(t.Context(), bundlePath, skillbundle.WithReadFiles(true))
+		bundle, err := skillbundle.Read(t.Context(), bundlePath,
+			skillbundle.WithReadFiles(true),
+		)
 		if err != nil {
-			t.Fatalf("skillbundle.ReadSkillBundle(%q) failed: %v", bundlePath, err)
+			t.Fatalf("skillbundle.Read(%q) failed: %v", bundlePath, err)
 		}
 		_, ok := bundle.Files[wantFile]
 		if !ok {

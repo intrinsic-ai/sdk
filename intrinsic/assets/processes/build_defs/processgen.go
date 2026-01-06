@@ -6,7 +6,6 @@ package processgen
 import (
 	"errors"
 	"fmt"
-	"os"
 
 	"intrinsic/assets/processes/processbundle"
 	"intrinsic/util/proto/protoio"
@@ -77,17 +76,9 @@ func CreateProcessBundle(options *CreateProcessBundleOptions) error {
 		}
 	}
 
-	// Open the file at the output bundle path for writing. Creates the file if it
-	// does not already exist.
-	outputBundleFile, err := os.OpenFile(options.OutputBundlePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
-	if err != nil {
-		return fmt.Errorf("failed to open %q for writing: %w", options.OutputBundlePath, err)
-	}
-	defer outputBundleFile.Close()
-
 	// Write the ProcessManifest to the output file.
-	if err := processbundle.WriteProcessBundle(manifest, outputBundleFile); err != nil {
-		return fmt.Errorf("failed to write Process Asset bundle: %w", err)
+	if err := processbundle.Write(manifest, options.OutputBundlePath); err != nil {
+		return fmt.Errorf("failed to write Process bundle: %w", err)
 	}
 
 	// Write the FileDescriptorSet of the asset to the output file. Write an empty

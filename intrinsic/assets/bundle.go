@@ -312,15 +312,17 @@ func (b processedSkillBundle) Release(details VersionDetails) *acpb.Asset {
 func (p *Processor) Process(ctx context.Context, path string) (ProcessedBundle, error) {
 	bundleType, err := detectBundleType(ctx, path)
 	if err != nil {
-		return nil, fmt.Errorf("unable to detect bundle type: %w", err)
+		return nil, fmt.Errorf("failed to detect bundle type: %w", err)
 	}
 	switch bundleType {
 	case bundleTypeData:
-		dataBundle, err := databundle.ReadDataBundle(ctx, path, databundle.WithProcessReferencedData(p.ProcessReferencedData))
+		da, err := databundle.Process(ctx, path,
+			databundle.WithReadOptions(databundle.WithProcessReferencedData(p.ProcessReferencedData)),
+		)
 		if err != nil {
-			return nil, fmt.Errorf("unable to read data asset bundle: %w", err)
+			return nil, fmt.Errorf("failed to process Data Asset bundle: %w", err)
 		}
-		return processedDataBundle{dataBundle.Data}, nil
+		return processedDataBundle{da}, nil
 	case bundleTypeHardwareDevice:
 		assetInliner := hardwaredevicebundle.NewLocalAssetInliner(hardwaredevicebundle.LocalAssetInlinerOptions{
 			ImageProcessor:          p.ImageProcessor,
@@ -329,47 +331,42 @@ func (p *Processor) Process(ctx context.Context, path string) (ProcessedBundle, 
 
 		localAssetsDir, err := os.MkdirTemp("", "local-assets")
 		if err != nil {
-			return nil, fmt.Errorf("could not create temporary directory for local assets: %w", err)
+			return nil, fmt.Errorf("failed create temporary directory for local Assets: %w", err)
 		}
 		defer os.RemoveAll(localAssetsDir)
 
-		hardwareDevice, err := hardwaredevicebundle.ProcessHardwareDevice(ctx, path,
+		hardwareDevice, err := hardwaredevicebundle.Process(ctx, path,
 			hardwaredevicebundle.WithProcessAsset(assetInliner.Process),
 			hardwaredevicebundle.WithReadOptions(hardwaredevicebundle.WithExtractLocalAssetsDir(localAssetsDir)),
 		)
 		if err != nil {
-			return nil, fmt.Errorf("could not process HardwareDevice bundle: %w", err)
+			return nil, fmt.Errorf("failed to process HardwareDevice bundle: %w", err)
 		}
 		return &processedHardwareDeviceBundle{hardwareDevice}, nil
 	case bundleTypeProcess:
-		f, err := os.Open(path)
+		process, err := processbundle.Process(ctx, path)
 		if err != nil {
-			return nil, fmt.Errorf("could not open Process asset target %q: %w", path, err)
-		}
-		defer f.Close()
-		process, err := processbundle.ProcessProcessAsset(f)
-		if err != nil {
-			return nil, fmt.Errorf("unable to process process bundle: %w", err)
+			return nil, fmt.Errorf("failed to process Process bundle: %w", err)
 		}
 		return processedProcessBundle{process}, nil
 	case bundleTypeService:
-		service, err := servicebundle.ProcessService(ctx, path, servicebundle.ProcessServiceOpts{
-			ImageProcessor: p.ImageProcessor,
-		})
+		service, err := servicebundle.Process(ctx, path,
+			servicebundle.WithImageProcessor(p.ImageProcessor),
+		)
 		if err != nil {
-			return nil, fmt.Errorf("unable to process service bundle: %w", err)
+			return nil, fmt.Errorf("failed to process Service bundle: %w", err)
 		}
 		return processedServiceBundle{service}, nil
 	case bundleTypeSkill:
-		skill, err := skillbundle.ProcessSkill(ctx, path, skillbundle.ProcessSkillOpts{
-			ImageProcessor: p.ImageProcessor,
-		})
+		skill, err := skillbundle.Process(ctx, path,
+			skillbundle.WithImageProcessor(p.ImageProcessor),
+		)
 		if err != nil {
-			return nil, fmt.Errorf("unable to process skill bundle: %w", err)
+			return nil, fmt.Errorf("failed to process Skill bundle: %w", err)
 		}
 		return processedSkillBundle{skill}, nil
 	default:
-		return nil, fmt.Errorf("unable to detect bundle type: %w", err)
+		return nil, fmt.Errorf("unknown bundle type: %v", bundleType)
 	}
 }
 

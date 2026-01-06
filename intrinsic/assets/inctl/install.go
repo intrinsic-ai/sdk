@@ -108,7 +108,7 @@ func GetCommand() *cobra.Command {
 
 			processor := bundle.Processor{
 				ImageProcessor:          bundleimages.CreateImageProcessor(flags.CreateRegistryOptsWithTransferer(ctx, transfer, registry)),
-				ProcessReferencedData:   databundle.ToPortableReferencedData,
+				ProcessReferencedData:   databundle.ToPortableReferencedData(),
 			}
 
 			var fileExists bool

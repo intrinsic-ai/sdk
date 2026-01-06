@@ -61,10 +61,10 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 
 	// Actually create the skill bundle
-	return skillbundle.WriteSkillBundle(m, flagOutput, &skillbundle.WriteSkillBundleOptions{
-		Descriptors:  fds,
-		ImageTarPath: flagOciImage,
-	})
+	return skillbundle.Write(m, flagOutput,
+		skillbundle.WithFileDescriptorSet(fds),
+		skillbundle.WithImageTarPath(flagOciImage),
+	)
 }
 
 // The init function establishes command line flags for `inbuild skill bundle`

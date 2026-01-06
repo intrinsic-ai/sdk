@@ -34,10 +34,10 @@ func CreateSkillBundle(opts *CreateSkillBundleOptions) error {
 		return fmt.Errorf("failed to read manifest: %w", err)
 	}
 
-	if err := skillbundle.WriteSkillBundle(m, opts.OutputBundlePath, &skillbundle.WriteSkillBundleOptions{
-		Descriptors:  fds,
-		ImageTarPath: opts.ImageTarPath,
-	}); err != nil {
+	if err := skillbundle.Write(m, opts.OutputBundlePath,
+		skillbundle.WithFileDescriptorSet(fds),
+		skillbundle.WithImageTarPath(opts.ImageTarPath),
+	); err != nil {
 		return fmt.Errorf("failed to write Skill Asset bundle: %w", err)
 	}
 

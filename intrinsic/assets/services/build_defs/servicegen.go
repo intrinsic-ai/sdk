@@ -75,11 +75,11 @@ func CreateServiceBundle(opts *CreateServiceBundleOptions) error {
 		}
 	}
 
-	if err := servicebundle.WriteServiceBundle(m, opts.OutputBundlePath, &servicebundle.WriteServiceBundleOptions{
-		Descriptors:   fds,
-		DefaultConfig: defaultConfig,
-		ImageTarPaths: opts.ImageTarPaths,
-	}); err != nil {
+	if err := servicebundle.Write(m, opts.OutputBundlePath,
+		servicebundle.WithFileDescriptorSet(fds),
+		servicebundle.WithDefaultConfig(defaultConfig),
+		servicebundle.WithImageTarPaths(opts.ImageTarPaths),
+	); err != nil {
 		return fmt.Errorf("failed to write Service Asset bundle: %w", err)
 	}
 
