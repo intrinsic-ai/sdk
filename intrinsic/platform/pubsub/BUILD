@@ -89,6 +89,10 @@ cc_library(
     srcs = ["kvstore.cc"],
     hdrs = ["kvstore.h"],
     deps = [
+        ":pubsub_callbacks",
+        ":subscription",
+        ":topic_config",
+        ":zenoh_subscription_data",
         "//intrinsic/platform/pubsub/admin_set_grpc/v1:admin_set_cc_grpc",
         "//intrinsic/platform/pubsub/admin_set_grpc/v1:admin_set_cc_proto",
         "//intrinsic/platform/pubsub/zenoh_util:zenoh_handle",

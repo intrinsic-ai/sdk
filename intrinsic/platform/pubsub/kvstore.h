@@ -21,6 +21,9 @@
 #include "absl/time/time.h"
 #include "google/protobuf/any.pb.h"
 #include "google/protobuf/message.h"
+#include "intrinsic/platform/pubsub/pubsub_callbacks.h"
+#include "intrinsic/platform/pubsub/subscription.h"
+#include "intrinsic/platform/pubsub/topic_config.h"
 #include "intrinsic/platform/pubsub/zenoh_util/zenoh_handle.h"
 #include "intrinsic/util/status/status_macros.h"
 
@@ -141,6 +144,83 @@ class KeyValueStore {
   // Same as GetAll, but does not need a callback. The tradeoff is less control.
   absl::StatusOr<absl::flat_hash_map<std::string, google::protobuf::Any>>
   GetAllSynchronous(absl::string_view keyexpr, absl::Duration timeout);
+
+  // Creates a subscription to changes in value of the specified key expression.
+  //
+  // Doesn't make any assumptions about the type of values stored in the KV
+  // store. The calling code is responsible for checking their type.
+  //
+  // Parameters:
+  // - kvstore - KV store to subscribe to.
+  // - key_expression - key expression to subscribe to. It must not include
+  //   the KV store's key prefix.
+  // - config - subscription configuration.
+  // - value_callback - callback that will be invoked when a key-value pair
+  //   matching `key_expression` is updated. The updated value is wrapped into
+  //   `google::protobuf::Any`. The callback code is responsible for extracting
+  //   that value and checking its type.
+  // - deletion_callback - callback that will be
+  //   invoked when a key matching `key_expression` is deleted.
+  absl::StatusOr<Subscription> CreateSubscription(
+      absl::string_view key_expression, const TopicConfig& config,
+      SubscriptionOkExpandedCallback<google::protobuf::Any> value_callback,
+      DeletionCallback deletion_callback) const;
+
+  // Creates a subscription to changes in value of the specified key expression.
+  //
+  // Assumes that all values matching the subscription's key expression have
+  // the same type.
+  //
+  // Parameters:
+  // - kvstore - KV store to subscribe to.
+  // - key_expression - key expression to subscribe to. It must not include
+  //   the KV store's key prefix.
+  // - config - subscription configuration.
+  // - exemplar - an empty proto of the same type as the values that match the
+  //   `key_expression`.
+  // - value_callback - callback that will be invoked when a key-value pair
+  //   matching `key_expression` is updated.
+  // - deletion_callback - callback that will be invoked when a key matching
+  //   `key_expression` is deleted.
+  // - error_callback - callback that will be invoked when type of the value
+  //   that matches `key_expression` doesn't match `examplar`'s type.
+  template <typename T>
+  absl::StatusOr<Subscription> CreateSubscription(
+      absl::string_view key_expression, const TopicConfig& config,
+      const T& exemplar, SubscriptionOkExpandedCallback<T> value_callback,
+      DeletionCallback deletion_callback,
+      SubscriptionErrorExpandedCallback error_callback = {}) const {
+    static_assert(std::is_base_of_v<google::protobuf::Message, T>,
+                  "Protocol buffers are the only supported serialization "
+                  "format for PubSub.");
+
+    // This payload is shared between callbacks and may be read from multiple
+    // threads. We need a shared_ptr here because a std::function must be
+    // copyable.
+    std::shared_ptr<T> shared_payload(exemplar.New());
+
+    // The message callback is never copied. It is merely moved to this helper
+    // lambda which is itself moved to the subscription class.
+    auto unwrap_payload = [callback = std::move(value_callback),
+                           error_callback = std::move(error_callback),
+                           shared_payload = std::move(shared_payload)](
+                              absl::string_view keyexpr,
+                              const google::protobuf::Any& wrapped_payload) {
+      // Create a local copy of the shared payload which we can safely
+      // modify in different threads.
+      std::unique_ptr<T> payload(shared_payload->New());
+      if (!wrapped_payload.UnpackTo(payload.get())) {
+        error_callback(keyexpr, absl::StrCat(wrapped_payload),
+                       absl::InvalidArgumentError(absl::StrCat(
+                           "Expected payload of type ", payload->GetTypeName(),
+                           ", but got ", wrapped_payload.type_url())));
+        return;
+      }
+      callback(keyexpr, *payload);
+    };
+    return CreateSubscription(key_expression, config, std::move(unwrap_payload),
+                              std::move(deletion_callback));
+  }
 
  private:
   explicit KeyValueStore(std::optional<std::string> prefix_override);

@@ -28,6 +28,8 @@
 #include "grpcpp/support/channel_arguments.h"
 #include "intrinsic/platform/pubsub/admin_set_grpc/v1/admin_set.grpc.pb.h"
 #include "intrinsic/platform/pubsub/admin_set_grpc/v1/admin_set.pb.h"
+#include "intrinsic/platform/pubsub/subscription.h"
+#include "intrinsic/platform/pubsub/zenoh_subscription_data.h"
 #include "intrinsic/platform/pubsub/zenoh_util/zenoh_handle.h"
 #include "intrinsic/platform/pubsub/zenoh_util/zenoh_helpers.h"
 #include "intrinsic/util/status/status_macros.h"
@@ -340,6 +342,43 @@ KeyValueStore::GetAllSynchronous(absl::string_view keyexpr,
   }
 
   return results;
+}
+
+absl::StatusOr<Subscription> KeyValueStore::CreateSubscription(
+    absl::string_view key_expression, const TopicConfig& config,
+    SubscriptionOkExpandedCallback<google::protobuf::Any> value_callback,
+    DeletionCallback deletion_callback) const {
+  INTR_ASSIGN_OR_RETURN(
+      std::string prefixed_key_expression,
+      ZenohHandle::add_key_prefix(key_expression, key_prefix_));
+  auto subscription_data = std::make_unique<SubscriptionData>();
+  subscription_data->prefixed_name = prefixed_key_expression;
+  auto callback = std::make_unique<imw_callback_functor_t>(
+      [value_callback, deletion_callback](const char* keyexpr, const void* blob,
+                                          const size_t blob_len) {
+        if (blob == nullptr || blob_len == 0) {
+          deletion_callback(keyexpr);
+          return;
+        }
+        google::protobuf::Any msg;
+        bool success = msg.ParseFromArray(blob, blob_len);
+        if (!success) {
+          LOG_EVERY_N(ERROR, 1)
+              << "Deserializing message failed. Key expression: " << keyexpr;
+          return;
+        }
+        value_callback(keyexpr, msg);
+      });
+  subscription_data->callback_functor = std::move(callback);
+
+  imw_ret_t ret = Zenoh().imw_create_subscription(
+      prefixed_key_expression.c_str(), zenoh_static_callback,
+      intrinsic::PubSubQoSToZenohQos(config.topic_qos).c_str(),
+      subscription_data->callback_functor.get());
+  if (ret != IMW_OK) {
+    return absl::InternalError("Error creating a subscription");
+  }
+  return Subscription(prefixed_key_expression, std::move(subscription_data));
 }
 
 }  // namespace intrinsic
