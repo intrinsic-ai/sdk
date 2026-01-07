@@ -36,20 +36,21 @@ message PlacementPoseConstraint {
   optional bool disable_requiring_same_branch_ik = 4;
 }
 
-// The force-based placement constraint to be satisfied at grasp planning.
-message ForceBasedConstraint {
+// The insertion constraint to be satisfied at grasp planning.
+message InsertionConstraint {
   // Moving frame that will be aligned with the target frame(s) at placement.
   // This typically is a tool or tip frame.
   intrinsic_proto.world.TransformNodeReference moving_frame = 1;
 
-  // The frames to check for reachability on the path of the force skill(s).
-  // This checks reachability for the robot without collision checking.
-  // For move_to_contact, use the start and end frames or just the end frame if
-  // the start frame has been validated.
-  // For pattern search insertion kind of force skills, include representative
-  // boundary points of the pattern and optionally the start point, e.g. the -X,
-  // X, -Y, Y, O points as illustrated below on the boundary of the following
-  // pattern bounding box.
+  // The representative frames during insertion to check for reachability.
+  // This can be a set of insertion waypoints that define the "boundary" of
+  // the insertion motion(s) that should be checked.
+  // If insertion is a linear motion, the start and end frames can be used.
+  // If insertion consists of one or more force skills: for moving to contact,
+  // use the start and end frames; for skills involving pattern search,
+  // include representative boundary points of the pattern and optionally the
+  // start point, e.g. the -X, X, -Y, Y, O points as illustrated below on the
+  // boundary of the following pattern bounding box.
   //           Y
   //    ****************
   //    *      ^       *
@@ -75,17 +76,10 @@ message PlacementConstraints {
   // The placement pose constraint to be satisfied during grasp planning.
   optional PlacementPoseConstraint placement_pose_constraint = 1;
 
-  // The force-based constraint to be satisfied during grasp planning, if the
-  // placement ends with one or more force skills.
-  optional ForceBasedConstraint force_based_constraint = 2;
-
-  // Whether to enable visualization of the grasp points. Not implemented yet.
-  // Defaults to false.
-  // Only takes effect if any of the constraints is specified.
-  optional bool enable_visualization = 3;
-
-  // Whether to enable grasp point selection to select desired grasps from the
-  // frontend. Not implemented yet. Defaults to false.
-  // Only takes effect if any of the constraints is specified.
-  optional bool enable_grasp_point_selection = 4;
+  // The insertion constraint to be satisfied during grasp planning.
+  // This checks the reachability of specified waypoints during insertion.
+  // For example, if the insertion is a linear motion, the two waypoints
+  // before and after the motion can be checked here; or if it's one or more
+  // force skills, some representative waypoints can be checked here.
+  optional InsertionConstraint insertion_constraint = 2;
 }
