@@ -65,6 +65,41 @@ SubscriptionOkCallback<T> WrapSubscriptionOkCallback(
   return message_callback;
 }
 
+template <typename T>
+SubscriptionOkExpandedCallback<T> WrapSubscriptionOkExpandedCallback(
+    pybind11::object msg_callback) {
+  SubscriptionOkExpandedCallback<T> message_callback = {};
+  if (msg_callback && !msg_callback.is_none()) {
+    message_callback = [py_msg_cb = std::move(msg_callback)](
+                           absl::string_view topic, const T& msg) {
+      pybind11::gil_scoped_acquire gil;
+      try {
+        // This will create a copy in the py proto caster
+        py_msg_cb(topic, msg);
+      } catch (const pybind11::error_already_set& e) {
+        LOG(ERROR) << "Exception in message callback: " << e.what();
+      }
+    };
+  }
+  return message_callback;
+}
+
+DeletionCallback WrapDeletionCallback(pybind11::object del_callback) {
+  DeletionCallback deletion_callback = {};
+  if (del_callback && !del_callback.is_none()) {
+    deletion_callback = [py_del_cb =
+                             std::move(del_callback)](absl::string_view topic) {
+      pybind11::gil_scoped_acquire gil;
+      try {
+        py_del_cb(topic);
+      } catch (const pybind11::error_already_set& e) {
+        LOG(ERROR) << "Exception in deletion callback: " << e.what();
+      }
+    };
+  }
+  return deletion_callback;
+}
+
 SubscriptionErrorCallback WrapErrorCallback(pybind11::object err_callback) {
   SubscriptionErrorCallback error_callback = {};
   if (err_callback && !err_callback.is_none()) {
@@ -73,6 +108,24 @@ SubscriptionErrorCallback WrapErrorCallback(pybind11::object err_callback) {
       pybind11::gil_scoped_acquire gil;
       try {
         py_err_cb(packet, pybind11::google::DoNotThrowStatus(error));
+      } catch (const pybind11::error_already_set& e) {
+        LOG(ERROR) << "Exception in error callback: " << e.what();
+      }
+    };
+  }
+  return error_callback;
+}
+
+SubscriptionErrorExpandedCallback WrapErrorExpandedCallback(
+    pybind11::object err_callback) {
+  SubscriptionErrorExpandedCallback error_callback = {};
+  if (err_callback && !err_callback.is_none()) {
+    error_callback = [py_err_cb = std::move(err_callback)](
+                         absl::string_view topic, absl::string_view packet,
+                         absl::Status error) {
+      pybind11::gil_scoped_acquire gil;
+      try {
+        py_err_cb(topic, packet, pybind11::google::DoNotThrowStatus(error));
       } catch (const pybind11::error_already_set& e) {
         LOG(ERROR) << "Exception in error callback: " << e.what();
       }
@@ -127,6 +180,29 @@ absl::StatusOr<Subscription> CreateRawSubscription(
   }
 
   return self->CreateSubscription(topic, config, std::move(message_callback));
+}
+
+absl::StatusOr<Subscription> CreateRawKVStoreSubscription(
+    KeyValueStore* self, absl::string_view key_expression,
+    const TopicConfig& config, pybind11::object value_callback,
+    pybind11::object del_callback) {
+  return self->CreateSubscription(
+      key_expression, config,
+      WrapSubscriptionOkExpandedCallback<google::protobuf::Any>(value_callback),
+      WrapDeletionCallback(del_callback));
+}
+
+absl::StatusOr<Subscription> CreateKVStoreSubscription(
+    KeyValueStore* self, absl::string_view key_expression,
+    const TopicConfig& config, const google::protobuf::Message& exemplar,
+    pybind11::object value_callback, pybind11::object del_callback,
+    pybind11::object err_callback) {
+  return self->CreateSubscription(
+      key_expression, config, exemplar,
+      WrapSubscriptionOkExpandedCallback<google::protobuf::Message>(
+          value_callback),
+      WrapDeletionCallback(del_callback),
+      WrapErrorExpandedCallback(err_callback));
 }
 
 absl::StatusOr<KeyValueStore> CreateKeyValueStore(
@@ -260,7 +336,16 @@ PYBIND11_MODULE(pubsub, m) {
            pybind11::arg("workcell_name"), pybind11::arg("timeout") = 10)
       .def("Delete", &KeyValueStore::Delete, pybind11::arg("key"))
       .def("AdminCloudCopy", &AdminCloudCopy, pybind11::arg("source_key"),
-           pybind11::arg("target_key"), pybind11::arg("timeout") = 10);
+           pybind11::arg("target_key"), pybind11::arg("timeout") = 10)
+      .def("CreateSubscription", &CreateRawKVStoreSubscription,
+           pybind11::arg("key_expression"), pybind11::arg("config"),
+           pybind11::arg("value_callback") = nullptr,
+           pybind11::arg("del_callback") = nullptr)
+      .def("CreateSubscription", &CreateKVStoreSubscription,
+           pybind11::arg("key_expression"), pybind11::arg("config"),
+           pybind11::arg("exemplar"), pybind11::arg("value_callback") = nullptr,
+           pybind11::arg("del_callback") = nullptr,
+           pybind11::arg("err_callback") = nullptr);
 
   // The python GIL does not need to be locked during the entire destructor
   // of this class. Instead, the custom deleter provided during its
@@ -269,7 +354,8 @@ PYBIND11_MODULE(pubsub, m) {
   pybind11::class_<Subscription,
                    std::unique_ptr<Subscription, PySubscriptionDeleter>>(
       m, "Subscription")
-      .def("TopicName", &Subscription::TopicName);
+      .def("TopicName", &Subscription::TopicName)
+      .def("Unsubscribe", &Subscription::Unsubscribe);
 }
 
 }  // namespace pubsub
