@@ -471,6 +471,11 @@ message DeleteClusterRequest {
   string cluster_name = 1;
   string project = 2 [(google.api.field_behavior) = REQUIRED];
   string org = 3 [(google.api.field_behavior) = REQUIRED];
+  // If this is set, the deletion will fail when the device is unreachable.
+  // I.e. setting this makes sure that once the deletion is done, the device
+  // is fully reset. We cannot do this on every deletion, because unreachable
+  // (broken/previously reset) devices will fail as well.
+  bool require_reachable = 4 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message DeleteOperationMetadata {}

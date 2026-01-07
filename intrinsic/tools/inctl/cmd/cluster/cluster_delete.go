@@ -13,7 +13,8 @@ import (
 	clustermanagerpb "intrinsic/frontend/cloud/api/v1/clustermanager_api_go_grpc_proto"
 )
 
-var deleteDesc = `
+var (
+	deleteDesc = `
 Delete an IPC.
 
 Example:
@@ -23,11 +24,13 @@ If the IPC is online, it will be reset back to the unregistered state. If it
 is offline, it will be removed from your organization, but will need to be
 reset or reinstalled before it is registered to another project.
 `
+	require_reachable = false
+)
 
 func deleteCluster(ctx context.Context, conn *grpc.ClientConn, cluster string) error {
 	client := clustermanagergrpcpb.NewClustersServiceClient(conn)
 	if _, err := client.DeleteCluster(
-		ctx, &clustermanagerpb.DeleteClusterRequest{ClusterName: cluster}); err != nil {
+		ctx, &clustermanagerpb.DeleteClusterRequest{ClusterName: cluster, RequireReachable: require_reachable}); err != nil {
 		return fmt.Errorf("request to delete cluster: %w", err)
 	}
 
@@ -53,4 +56,6 @@ var clusterDeleteCmd = &cobra.Command{
 
 func init() {
 	ClusterCmd.AddCommand(clusterDeleteCmd)
+
+	clusterDeleteCmd.Flags().BoolVar(&require_reachable, "require_reachable", false, "Fail the deletion command when the cluster was not reachable")
 }
