@@ -36,25 +36,23 @@ namespace pubsub {
 
 namespace {
 
-absl::StatusOr<Subscription> CreateSubscriptionWithConfig(
-    PubSub* self, absl::string_view topic, const TopicConfig& config,
-    const google::protobuf::Message& exemplar, pybind11::object msg_callback,
-    pybind11::object err_callback) {
-  // The callback passed to the adapter must be able to be copied in a
-  // separate thread without copying the msg_callback.
-  // This allows the message callback to capture variables which
-  // are not possible (or safe) to copy in a separate thread. This is the
-  // case when the callback captures a python function, since those cannot
-  // be copied without holding the GIL, and the adapter thread executing the
-  // callback does not know to acquire the GIL. Using a shared pointer to
-  // own the adapter callback satisfies these requirements.
-
-  SubscriptionOkCallback<google::protobuf::Message> message_callback = {};
-  SubscriptionErrorCallback error_callback = {};
-
+// WrapXXXXCallback functions wrap the given callback into the code that
+// acquires GIL.
+//
+// The callback passed to the adapter must be able to be copied in a
+// separate thread without copying the msg_callback.
+// This allows the message callback to capture variables which
+// are not possible (or safe) to copy in a separate thread. This is the
+// case when the callback captures a python function, since those cannot
+// be copied without holding the GIL, and the adapter thread executing the
+// callback does not know to acquire the GIL. Using a shared pointer to
+// own the adapter callback satisfies these requirements.
+template <typename T>
+SubscriptionOkCallback<T> WrapSubscriptionOkCallback(
+    pybind11::object msg_callback) {
+  SubscriptionOkCallback<T> message_callback = {};
   if (msg_callback && !msg_callback.is_none()) {
-    message_callback = [py_msg_cb = std::move(msg_callback)](
-                           const google::protobuf::Message& msg) {
+    message_callback = [py_msg_cb = std::move(msg_callback)](const T& msg) {
       pybind11::gil_scoped_acquire gil;
       try {
         // This will create a copy in the py proto caster
@@ -64,7 +62,11 @@ absl::StatusOr<Subscription> CreateSubscriptionWithConfig(
       }
     };
   }
+  return message_callback;
+}
 
+SubscriptionErrorCallback WrapErrorCallback(pybind11::object err_callback) {
+  SubscriptionErrorCallback error_callback = {};
   if (err_callback && !err_callback.is_none()) {
     error_callback = [py_err_cb = std::move(err_callback)](
                          absl::string_view packet, absl::Status error) {
@@ -76,10 +78,17 @@ absl::StatusOr<Subscription> CreateSubscriptionWithConfig(
       }
     };
   }
+  return error_callback;
+}
 
-  return self->CreateSubscription(topic, config, exemplar,
-                                  std::move(message_callback),
-                                  std::move(error_callback));
+absl::StatusOr<Subscription> CreateSubscriptionWithConfig(
+    PubSub* self, absl::string_view topic, const TopicConfig& config,
+    const google::protobuf::Message& exemplar, pybind11::object msg_callback,
+    pybind11::object err_callback) {
+  return self->CreateSubscription(
+      topic, config, exemplar,
+      WrapSubscriptionOkCallback<google::protobuf::Message>(msg_callback),
+      WrapErrorCallback(err_callback));
 }
 
 absl::StatusOr<Subscription> CreateSubscription(
@@ -110,12 +119,10 @@ absl::StatusOr<Subscription> CreateRawSubscription(
     message_callback = [py_msg_cb = std::move(msg_callback)](
                            const intrinsic_proto::pubsub::PubSubPacket& msg) {
       pybind11::gil_scoped_acquire gil;
-      try {
-        // This will create a copy in the py proto caster
-        py_msg_cb(msg.payload());
-      } catch (const pybind11::error_already_set& e) {
-        LOG(ERROR) << "Exception in message callback: " << e.what();
-      }
+      // This will create a copy in the py proto caster.
+      // Note that this callback receives a `PubSubPacket`, but passes the
+      // packet's payload to `msg_callback`.
+      py_msg_cb(msg.payload());
     };
   }
 
