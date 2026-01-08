@@ -9,6 +9,7 @@
 
 #include "absl/flags/parse.h"
 #include "benchmark/benchmark.h"
+#include "fuzztest/init_fuzztest.h"
 
 int main(int argc, char** argv) {
   printf("Running main() from %s\n", __FILE__);
@@ -20,6 +21,9 @@ int main(int argc, char** argv) {
     benchmark::Shutdown();
     return 0;
   }
+
+  // Before usage, the fuzzy tests need to be initialized.
+  fuzztest::InitFuzzTest(&argc, &argv);
 
   // Run unit tests if there are any. Since Google Mock depends on Google
   // Test, InitGoogleMock() is also responsible for initializing Google Test.

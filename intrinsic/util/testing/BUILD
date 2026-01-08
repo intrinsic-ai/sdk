@@ -41,6 +41,7 @@ cc_library(
     deps = [
         ":gtest_wrapper",
         "@abseil-cpp//absl/flags:parse",
+        "@com_google_fuzztest//fuzztest:init_fuzztest",
     ],
 )
 
