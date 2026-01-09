@@ -43,6 +43,7 @@ require (
 	github.com/golang/glog v1.2.5
 	github.com/golang/protobuf v1.5.4
 	github.com/google/brotli/go/cbrotli v1.1.0
+	github.com/google/gnostic v0.6.9
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-containerregistry v0.20.3
 	github.com/google/safearchive v0.0.0-20241025131057-f7ce9d7b6f9c
