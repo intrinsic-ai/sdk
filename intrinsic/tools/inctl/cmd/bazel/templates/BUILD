@@ -19,8 +19,8 @@ genrule(
     cmd = "cat $< " +
           # Remove copyright notice if present.
           r"| perl -0777pe 's/# Copyright(.*?)\n\n//s' " +
-          # Remove all lines starting with "build:" plus preceding comment and empty lines.
-          r"| perl -0777pe 's/(^\s*\n)*(^#.*\n)*(^build:.*\n)+//mg' " +
+          # Remove all lines starting with "common:" plus preceding comment and empty lines.
+          r"| perl -0777pe 's/(^\s*\n)*(^#.*\n)*(^common:.*\n)+//mg' " +
           "> $@",
 )
 

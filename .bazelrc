@@ -13,88 +13,88 @@ common               --downloader_config=bazel/content_mirror/permissive.cfg
 common:strict_mirror --downloader_config=bazel/content_mirror/strict.cfg
 
 # Static linking to workaround OpenCV symbol lookup errors: https://github.com/bazelbuild/rules_foreign_cc/issues/1164
-build --dynamic_mode=off
+common --dynamic_mode=off
 
 # Always use the pre-configured toolchain.
-build --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
-build --action_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
+common --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
+common --action_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
 
 # Use C++20.
-build --cxxopt='-std=c++20'
-build --host_cxxopt='-std=c++20'
+common --cxxopt='-std=c++20'
+common --host_cxxopt='-std=c++20'
 
 # Keep using the Python bootstrap implementation since we don't have a shell
 # available in the distroless base images.
-build --@rules_python//python/config_settings:bootstrap_impl=system_python
+common --@rules_python//python/config_settings:bootstrap_impl=system_python
 
 # Use a static value for `PATH` and does not inherit `LD_LIBRARY_PATH`. Doesn't let environment
 # variables like `PATH` sneak into the build, which can cause massive cache misses when they change.
 # Use `--action_env=ENV_VARIABLE` if you want to inherit specific environment variables from the
 # client, but note that doing so can prevent cross-user caching if a shared cache is used.
 # Docs: https://bazel.build/reference/command-line-reference#flag--incompatible_strict_action_env
-build --incompatible_strict_action_env
+common --incompatible_strict_action_env
 
 # Silences spurious warnings like:
 # `bazel-out/k8-fastbuild/bin/external/com_github_grpc_grpc/external/com_github_grpc_grpc: warning: directory does not exist`
-build --incompatible_default_to_explicit_init_py
+common --incompatible_default_to_explicit_init_py
 
 # Incompatible flags which will be flipped in future Bazel versions
 # Taken from https://github.com/bazelbuild/bazel-central-registry/blob/main/incompatible_flags.yml
 # https://github.com/bazelbuild/bazel/issues/22080
-build --incompatible_disable_native_repo_rules
+common --incompatible_disable_native_repo_rules
 # https://github.com/bazelbuild/bazel/issues/25755
-build --incompatible_disable_autoloads_in_main_repo
+common --incompatible_disable_autoloads_in_main_repo
 # https://github.com/bazelbuild/bazel/issues/23043
-#build --incompatible_autoload_externally=
+#common --incompatible_autoload_externally=
 # https://github.com/bazelbuild/bazel/issues/17032
-#build --incompatible_disable_starlark_host_transitions
+#common --incompatible_disable_starlark_host_transitions
 # https://github.com/bazelbuild/bazel/issues/12933
-#build --incompatible_config_setting_private_default_visibility
+#common --incompatible_config_setting_private_default_visibility
 # https://github.com/bazelbuild/bazel/issues/23144
-#build --noincompatible_enable_deprecated_label_apis
+#common --noincompatible_enable_deprecated_label_apis
 
 # Avoid warnings from third-party deps that we don't control.
-build --output_filter='^//((?!(external):).)*$'
+common --output_filter='^//((?!(external):).)*$'
 
 # Set a higher timeout value, just in case.
-build --remote_timeout=6h
+common --remote_timeout=6h
 
 # BUG: https://github.com/bazelbuild/bazel/issues/20886
 # Without this flag, our rules_foreign_cc/cmake builds fail with
 # "The associated file is either missing or is an invalid symlink."
 # on Bazel 7 or later as the default was flipped in Bazel 7.
-build --noincompatible_sandbox_hermetic_tmp
+common --noincompatible_sandbox_hermetic_tmp
 
 # Ensure that you don't accidentally make non-hermetic actions/tests
 # which depend on remote services.
-build --sandbox_default_allow_network=false
+common --sandbox_default_allow_network=false
 
-build:remote       --remote_executor=grpcs://remotebuildexecution.googleapis.com
-build:remote_cache --remote_cache=grpcs://remotebuildexecution.googleapis.com
+common:remote       --remote_executor=grpcs://remotebuildexecution.googleapis.com
+common:remote_cache --remote_cache=grpcs://remotebuildexecution.googleapis.com
 
 # Enable authentication. This will pick up application default credentials by
 # default. You can use --google_credentials=some_file.json to use a service
 # account credential instead.
-build:remote       --google_default_credentials=true
-build:remote_cache --google_default_credentials=true
+common:remote       --google_default_credentials=true
+common:remote_cache --google_default_credentials=true
 
 # The toolchain container used for execution. RBE builds only support linux_x86_64.
 # More about platforms: https://docs.bazel.build/versions/master/platforms.html
-build:remote       --host_platform=//bazel:linux_x86_64
-build:remote_cache --host_platform=//bazel:linux_x86_64
+common:remote       --host_platform=//bazel:linux_x86_64
+common:remote_cache --host_platform=//bazel:linux_x86_64
 
 # Docker Sandbox Mode
 # https://bazel.build/remote/sandbox
-build:docker --experimental_docker_image="docker://gcr.io/cloud-robotics-releases/bazel-rbe-executor@sha256:85a5dfb319ca87dc958746f4f5e5a7ec509354744d39d6260b3f3d7c5074c251"
-build:docker --spawn_strategy=docker --genrule_strategy=docker
-build:docker --experimental_docker_verbose
-build:docker --experimental_enable_docker_sandbox
-build:docker --host_platform=//bazel:linux_x86_64
+common:docker --experimental_docker_image="docker://gcr.io/cloud-robotics-releases/bazel-rbe-executor@sha256:85a5dfb319ca87dc958746f4f5e5a7ec509354744d39d6260b3f3d7c5074c251"
+common:docker --spawn_strategy=docker --genrule_strategy=docker
+common:docker --experimental_docker_verbose
+common:docker --experimental_enable_docker_sandbox
+common:docker --host_platform=//bazel:linux_x86_64
 
 # Enable absl support in googletest. If this define is set, googletest's default
 # main function initializes absl, including the command line flag subsystem.
 #
 # See https://github.com/google/googletest/issues/2883#issuecomment-647540343
-build --define absl=1
+common --define absl=1
 
-build:intrinsic -c opt
+common:intrinsic -c opt
