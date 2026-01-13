@@ -2,8 +2,6 @@
 
 package(default_visibility = ["//visibility:public"])
 
-# Do not use insrc_filegroup to avoid the dependency from various //third_party libs, see cl/756637985.
-
 ###############################################################################
 # Common package groups for visibility
 # public_api_users contains the set of packages allowed to depend on
