@@ -29,7 +29,8 @@ message KinematicsComponent {
   }
   MotionType motion_type = 1;
 
-  // Axis of this joint in its local space. If not set, +z is used by default.
+  // Axis of this joint in its local space (relative to its inboard coordinate
+  // frame). If not set, +z is used by default.
   intrinsic_proto.Vector3 axis = 11;
 
   // GetDof() and SetDof()-style functions operate on this value.
