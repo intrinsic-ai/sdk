@@ -47,9 +47,16 @@ class HardwareModuleInitContext {
 
   // Returns the interface registry for this Hardware Module to register
   // interfaces.
+  // The livetime of the returned reference MUST NOT exceed that of this
+  // HardwareModuleInitContext.
   HardwareInterfaceRegistry& GetInterfaceRegistry() const {
     return interface_registry_;
   }
+
+  // Returns the grpc builder for this hardware module.
+  // The livetime of the returned reference MUST NOT exceed that of this
+  // HardwareModuleInitContext.
+  grpc::ServerBuilder& GetGrpcBuilder() { return server_builder_; }
 
   // Returns the config for this Hardware Module.
   const ModuleConfig& GetModuleConfig() const { return module_config_; }
