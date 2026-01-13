@@ -10,7 +10,7 @@ cc_library(
     name = "gpio_service_proto_utils",
     srcs = ["gpio_service_proto_utils.cc"],
     hdrs = ["gpio_service_proto_utils.h"],
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/hardware/gpio/v1:gpio_service_cc_proto",
         "//intrinsic/hardware/gpio/v1:signal_cc_proto",
@@ -22,7 +22,7 @@ cc_library(
     name = "gpio_client",
     srcs = ["gpio_client.cc"],
     hdrs = ["gpio_client.h"],
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = ["//intrinsic:public_api_users"],
     deps = [
         ":gpio_service_proto_utils",
         "//intrinsic/connect/cc/grpc:channel",
