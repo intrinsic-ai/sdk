@@ -78,12 +78,6 @@ var (
 		codes.InvalidArgument,
 		"'behavior_tree.description.id' must be equal to 'metadata.id_version.id'")
 
-	// ErrSkillIDVersionMissing is returned when the behavior tree of a Process has a Skill proto but
-	// the Skill ID version is missing.
-	ErrSkillIDVersionMissing = status.Errorf(
-		codes.InvalidArgument,
-		"'behavior_tree.description.id_version' is missing but must be equal to 'metadata.id_version'")
-
 	// ErrSkillIDVersionInconsistent is returned when the behavior tree of a Process has a Skill proto
 	// but the skill ID version does not match the Asset ID version.
 	ErrSkillIDVersionInconsistent = status.Errorf(
@@ -115,10 +109,7 @@ func ProcessManifest(manifest *pmpb.ProcessManifest) error {
 	}
 
 	return validateBehaviorTree(manifest.GetBehaviorTree(), validateBehaviorTreeOptions{
-		assetIDVersion: &idpb.IdVersion{
-			Id: metadata.GetId(),
-			// Version is not specified in manifest.
-		},
+		assetID:            metadata.GetId(),
 		assetDisplayName:   metadata.GetDisplayName(),
 		assetDocumentation: metadata.GetDocumentation(),
 		// In the manifest the Skill proto in the BehaviorTree is allowed to be missing or can be filled
@@ -129,35 +120,27 @@ func ProcessManifest(manifest *pmpb.ProcessManifest) error {
 }
 
 // ProcessAsset validates a ProcessAsset.
-//
-// By default, the metadata of the given Process must specify the type ASSET_TYPE_PROCESS.
-// Additional metadata validation options can be passed via `metadataOpts`.
-func ProcessAsset(processAsset *papb.ProcessAsset, metadataOpts ...metadatautils.ValidateMetadataOption) error {
+func ProcessAsset(processAsset *papb.ProcessAsset) error {
 	metadata := processAsset.GetMetadata()
-
-	validateMetadataOpts := append(
-		[]metadatautils.ValidateMetadataOption{
-			metadatautils.WithRequiredAssetType(atypepb.AssetType_ASSET_TYPE_PROCESS),
-		},
-		metadataOpts...,
-	)
-	err := metadatautils.ValidateMetadata(metadata, validateMetadataOpts...)
-	if err != nil {
-		return err
+	if err := metadatautils.ValidateMetadata(metadata,
+		metadatautils.WithAssetType(atypepb.AssetType_ASSET_TYPE_PROCESS),
+		metadatautils.WithInAssetOptions(),
+	); err != nil {
+		return fmt.Errorf("invalid ProcessAsset metadata: %w", err)
 	}
 
 	return validateBehaviorTree(processAsset.GetBehaviorTree(), validateBehaviorTreeOptions{
-		assetIDVersion:     metadata.GetIdVersion(),
+		assetID:            metadata.GetIdVersion().GetId(),
 		assetDisplayName:   metadata.GetDisplayName(),
 		assetDocumentation: metadata.GetDocumentation(),
-		// In the processed asset the Skill proto in the BehaviorTree must be set and must be filled
+		// In the processed Asset the Skill proto in the BehaviorTree must be set and must be filled
 		// consistently with the asset metadata.
 		requireFilledSkillMetadata: true,
 	})
 }
 
 type validateBehaviorTreeOptions struct {
-	assetIDVersion             *idpb.IdVersion
+	assetID                    *idpb.Id
 	assetDisplayName           string
 	assetDocumentation         *docpb.Documentation
 	requireFilledSkillMetadata bool
@@ -192,7 +175,7 @@ func validateBehaviorTree(bt *btpb.BehaviorTree, options validateBehaviorTreeOpt
 	// These metadata fields are redundant with the Asset's metadata. They should match the Asset's
 	// metadata or can be empty (if `requireFilledSkillMetadata` is false).
 	if skill.SkillName != "" {
-		if skill.SkillName != options.assetIDVersion.GetId().GetName() {
+		if skill.SkillName != options.assetID.GetName() {
 			return ErrSkillNameInconsistent
 		}
 	} else if options.requireFilledSkillMetadata {
@@ -200,7 +183,7 @@ func validateBehaviorTree(bt *btpb.BehaviorTree, options validateBehaviorTreeOpt
 	}
 
 	if skill.PackageName != "" {
-		if skill.PackageName != options.assetIDVersion.GetId().GetPackage() {
+		if skill.PackageName != options.assetID.GetPackage() {
 			return ErrSkillPackageNameInconsistent
 		}
 	} else if options.requireFilledSkillMetadata {
@@ -208,7 +191,7 @@ func validateBehaviorTree(bt *btpb.BehaviorTree, options validateBehaviorTreeOpt
 	}
 
 	if skill.Id != "" {
-		if skill.Id != idutils.IDFromProtoUnchecked(options.assetIDVersion.GetId()) {
+		if skill.Id != idutils.IDFromProtoUnchecked(options.assetID) {
 			return ErrSkillIDInconsistent
 		}
 	} else if options.requireFilledSkillMetadata {
@@ -216,11 +199,13 @@ func validateBehaviorTree(bt *btpb.BehaviorTree, options validateBehaviorTreeOpt
 	}
 
 	if skill.IdVersion != "" {
-		if skill.IdVersion != idutils.IDVersionFromProtoUnchecked(options.assetIDVersion) {
+		ivp, err := idutils.NewIDVersionParts(skill.IdVersion)
+		if err != nil {
+			return err
+		}
+		if ivp.ID() != idutils.IDFromProtoUnchecked(options.assetID) {
 			return ErrSkillIDVersionInconsistent
 		}
-	} else if options.requireFilledSkillMetadata && options.assetIDVersion.GetVersion() != "" {
-		return ErrSkillIDVersionMissing
 	}
 
 	if skill.Description != "" {

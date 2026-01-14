@@ -193,7 +193,6 @@ func TestGetDataPayload(t *testing.T) {
 					Package: "ai.intrinsic",
 					Name:    "data_asset",
 				},
-				Version: "0.0.1",
 			},
 		},
 	}

@@ -67,7 +67,6 @@ func DataManifest(m *dmpb.DataManifest, options ...DataManifestOption) error {
 
 type dataAssetOptions struct {
 	disallowFileReferences bool
-	requiresVersion        bool
 }
 
 // DataAssetOption is an option for validating a DataAsset.
@@ -81,13 +80,6 @@ func WithDisallowFileReferences(disallowFileReferences bool) DataAssetOption {
 	}
 }
 
-// WithRequiresVersion specifies whether the Data Asset must specify a version.
-func WithRequiresVersion(requiresVersion bool) DataAssetOption {
-	return func(opts *dataAssetOptions) {
-		opts.requiresVersion = requiresVersion
-	}
-}
-
 // DataAsset validates a DataAsset.
 func DataAsset(data *dapb.DataAsset, options ...DataAssetOption) error {
 	opts := &dataAssetOptions{}
@@ -96,22 +88,11 @@ func DataAsset(data *dapb.DataAsset, options ...DataAssetOption) error {
 	}
 
 	m := data.GetMetadata()
-
-	if opts.requiresVersion {
-		if err := idutils.ValidateIDVersionProto(m.GetIdVersion()); err != nil {
-			return fmt.Errorf("invalid id_version: %w", err)
-		}
-	} else if err := idutils.ValidateIDProto(m.GetIdVersion().GetId()); err != nil {
-		return fmt.Errorf("invalid id: %w", err)
-	}
-	if m.GetAssetType() != atpb.AssetType_ASSET_TYPE_DATA {
-		return fmt.Errorf("asset_type must be ASSET_TYPE_DATA (got: %s)", m.GetAssetType())
-	}
-	if m.GetDisplayName() == "" {
-		return fmt.Errorf("display_name must be specified")
-	}
-	if m.GetVendor().GetDisplayName() == "" {
-		return fmt.Errorf("vendor.display_name must be specified")
+	if err := metadatautils.ValidateMetadata(m,
+		metadatautils.WithAssetType(atpb.AssetType_ASSET_TYPE_DATA),
+		metadatautils.WithInAssetOptions(),
+	); err != nil {
+		return fmt.Errorf("invalid DataAsset metadata: %w", err)
 	}
 
 	if opts.disallowFileReferences {

@@ -86,38 +86,48 @@ type metadataWithTags interface {
 }
 
 type validateMetadataOptions struct {
-	requireUpdateTime          bool
-	requireVersion             bool
+	specifiesFileDescriptorSet *bool
+	specifiesProvides          *bool
+	specifiesReleaseNotes      *bool
+	specifiesUpdateTime        *bool
+	specifiesVersion           *bool
 	requiredAssetType          atypepb.AssetType
-	requireNoFileDescriptorSet bool
-	requireNoProvides          bool
 }
 
 // ValidateMetadataOption is a functional option for ValidateMetadata.
 type ValidateMetadataOption func(*validateMetadataOptions)
 
-// WithRequiredAssetType requires that the metadata has the given asset
-// type.
-func WithRequiredAssetType(requiredAssetType atypepb.AssetType) ValidateMetadataOption {
+// WithAssetType requires that the metadata has the given Asset type.
+func WithAssetType(at atypepb.AssetType) ValidateMetadataOption {
 	return func(opts *validateMetadataOptions) {
-		opts.requiredAssetType = requiredAssetType
+		opts.requiredAssetType = at
 	}
 }
 
-// WithRequireNoOutputOnlyFields requires that the metadata has no output-only
-// fields.
-func WithRequireNoOutputOnlyFields() ValidateMetadataOption {
+// WithNoOutputOnlyFields requires that the metadata has no output-only fields.
+func WithNoOutputOnlyFields() ValidateMetadataOption {
 	return func(opts *validateMetadataOptions) {
-		opts.requireNoFileDescriptorSet = true
-		opts.requireNoProvides = true
+		opts.specifiesFileDescriptorSet = proto.Bool(false)
+		opts.specifiesProvides = proto.Bool(false)
+	}
+}
+
+// WithInAssetOptions adds options for validating metadata that are represented within an Asset
+// definition (e.g., see Data and Process Assets).
+func WithInAssetOptions() ValidateMetadataOption {
+	return func(opts *validateMetadataOptions) {
+		WithNoOutputOnlyFields()(opts)
+		opts.specifiesReleaseNotes = proto.Bool(false)
+		opts.specifiesUpdateTime = proto.Bool(false)
+		opts.specifiesVersion = proto.Bool(false)
 	}
 }
 
 // WithCatalogOptions adds options for validating metadata for use in the AssetCatalog.
 func WithCatalogOptions() ValidateMetadataOption {
 	return func(opts *validateMetadataOptions) {
-		opts.requireUpdateTime = true
-		opts.requireVersion = true
+		opts.specifiesUpdateTime = proto.Bool(true)
+		opts.specifiesVersion = proto.Bool(true)
 	}
 }
 
@@ -129,9 +139,6 @@ func ValidateMetadata(m *metadatapb.Metadata, options ...ValidateMetadataOption)
 	}
 
 	if m.GetIdVersion().GetVersion() == "" {
-		if opts.requireVersion {
-			return status.Errorf(codes.InvalidArgument, "version must be specified")
-		}
 		if err := idutils.ValidateIDProto(m.GetIdVersion().GetId()); err != nil {
 			return status.Errorf(codes.InvalidArgument, "invalid id: %v", err)
 		}
@@ -139,6 +146,22 @@ func ValidateMetadata(m *metadatapb.Metadata, options ...ValidateMetadataOption)
 		return status.Errorf(codes.InvalidArgument, "invalid id version: %v", err)
 	}
 	id := idutils.IDFromProtoUnchecked(m.GetIdVersion().GetId())
+
+	if err := validateFieldPresence(m.GetFileDescriptorSet(), opts.specifiesFileDescriptorSet, "file descriptor set", id); err != nil {
+		return err
+	}
+	if err := validateArrayPresence(m.GetProvides(), opts.specifiesProvides, "provides", id); err != nil {
+		return err
+	}
+	if err := validateFieldPresence(m.GetReleaseNotes(), opts.specifiesReleaseNotes, "release notes", id); err != nil {
+		return err
+	}
+	if err := validateFieldPresence(m.GetUpdateTime(), opts.specifiesUpdateTime, "update time", id); err != nil {
+		return err
+	}
+	if err := validateFieldPresence(m.GetIdVersion().GetVersion(), opts.specifiesVersion, "version", id); err != nil {
+		return err
+	}
 
 	if err := validateAssetType(m.GetAssetType(), opts.requiredAssetType, id); err != nil {
 		return err
@@ -165,16 +188,6 @@ func ValidateMetadata(m *metadatapb.Metadata, options ...ValidateMetadataOption)
 		return err
 	}
 
-	if opts.requireUpdateTime && m.GetUpdateTime() == nil {
-		return status.Errorf(codes.InvalidArgument, "no update time specified for %q", id)
-	}
-	if opts.requireNoFileDescriptorSet && m.GetFileDescriptorSet() != nil {
-		return status.Errorf(codes.InvalidArgument, "file descriptor set (output-only) must not be specified for %q", id)
-	}
-	if opts.requireNoProvides && len(m.GetProvides()) > 0 {
-		return status.Errorf(codes.InvalidArgument, "provides (output-only) must not be specified for %q", id)
-	}
-
 	if sz := proto.Size(m); sz > MaxMetadataSize {
 		return status.Errorf(codes.ResourceExhausted, "metadata size too large for %q: %d bytes > max %d bytes (Try reducing size of release notes and/or documentation.)", id, sz, MaxMetadataSize)
 	}
@@ -197,6 +210,49 @@ func ValidateManifestMetadata(m ManifestMetadata) error {
 	}
 
 	return ValidateMetadata(metadata)
+}
+
+// ToInputMetadata returns a clone of the input Metadata with output-only fields stripped.
+func ToInputMetadata(m *metadatapb.Metadata) *metadatapb.Metadata {
+	mOut := proto.Clone(m).(*metadatapb.Metadata)
+	mOut.FileDescriptorSet = nil
+	mOut.Provides = nil
+
+	return mOut
+}
+
+// ToInAssetMetadata returns a clone of the input Metadata that is suitable for representation
+// within an Asset definition (e.g., see Data and Process Assets).
+func ToInAssetMetadata(m *metadatapb.Metadata) *metadatapb.Metadata {
+	mOut := ToInputMetadata(m)
+	mOut.ReleaseNotes = ""
+	mOut.UpdateTime = nil
+	if mOut.GetIdVersion() != nil {
+		mOut.GetIdVersion().Version = ""
+	}
+
+	return mOut
+}
+
+func validateFieldPresence[T comparable](x T, specifies *bool, name string, id string) error {
+	var z T
+	if specifies != nil {
+		if *specifies {
+			if x == z {
+				return status.Errorf(codes.InvalidArgument, "required %s not specified for %q", name, id)
+			}
+		} else if x != z {
+			return status.Errorf(codes.InvalidArgument, "disallowed %s specified for %q", name, id)
+		}
+	}
+	return nil
+}
+
+func validateArrayPresence[T any](x []T, specifies *bool, name string, id string) error {
+	if specifies != nil && !*specifies && len(x) > 0 {
+		return status.Errorf(codes.InvalidArgument, "disallowed %s specified for %q", name, id)
+	}
+	return nil
 }
 
 func validateAssetType(at atypepb.AssetType, required atypepb.AssetType, id string) error {

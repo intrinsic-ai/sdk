@@ -15,7 +15,6 @@ import (
 	"intrinsic/assets/imageutils"
 	"intrinsic/assets/ioutils"
 	"intrinsic/assets/processes/processbundle"
-	"intrinsic/assets/processes/processmanifest"
 	"intrinsic/assets/services/servicebundle"
 	"intrinsic/skills/skillbundle"
 
@@ -126,28 +125,29 @@ type ProcessedBundle interface {
 }
 
 type processedDataBundle struct {
-	manifest *dapb.DataAsset
+	da *dapb.DataAsset
 }
 
 func (b processedDataBundle) Install() *iapb.CreateInstalledAssetRequest_Asset {
 	return &iapb.CreateInstalledAssetRequest_Asset{
 		Variant: &iapb.CreateInstalledAssetRequest_Asset_Data{
-			Data: cloneOf(b.manifest),
+			Data: cloneOf(b.da),
 		},
 	}
 }
 
 func (b processedDataBundle) Release(details VersionDetails) *acpb.Asset {
-	data := cloneOf(b.manifest)
-	data.Metadata.IdVersion.Version = details.Version
-	data.Metadata.ReleaseNotes = details.ReleaseNotes
+	da := cloneOf(b.da)
+	m := cloneOf(da.GetMetadata())
+	m.IdVersion.Version = details.Version
+	m.ReleaseNotes = details.ReleaseNotes
 	return &acpb.Asset{
-		Metadata:        data.GetMetadata(),
+		Metadata:        m,
 		ReleaseMetadata: details.ReleaseMetadata,
 		DeploymentData: &acpb.Asset_AssetDeploymentData{
 			AssetSpecificDeploymentData: &acpb.Asset_AssetDeploymentData_DataSpecificDeploymentData{
 				DataSpecificDeploymentData: &acpb.Asset_DataDeploymentData{
-					Data: data,
+					Data: da,
 				},
 			},
 		},
@@ -200,32 +200,30 @@ func (b processedHardwareDeviceBundle) Release(details VersionDetails) *acpb.Ass
 }
 
 type processedProcessBundle struct {
-	manifest *processassetpb.ProcessAsset
+	pa *processassetpb.ProcessAsset
 }
 
 func (b processedProcessBundle) Install() *iapb.CreateInstalledAssetRequest_Asset {
 	return &iapb.CreateInstalledAssetRequest_Asset{
 		Variant: &iapb.CreateInstalledAssetRequest_Asset_Process{
-			Process: cloneOf(b.manifest),
+			Process: cloneOf(b.pa),
 		},
 	}
 }
 
 func (b processedProcessBundle) Release(details VersionDetails) *acpb.Asset {
-	manifest := cloneOf(b.manifest)
-	manifest.Metadata.IdVersion.Version = details.Version
-	manifest.Metadata.ReleaseNotes = details.ReleaseNotes
+	pa := cloneOf(b.pa)
+	m := cloneOf(pa.GetMetadata())
+	m.IdVersion.Version = details.Version
+	m.ReleaseNotes = details.ReleaseNotes
 
-	// We have just updated the version in the metadata, sync the version-related
-	// fields in Skill metadata in the BehaviorTree.
-	processmanifest.FillInSkillIDVersionFromAssetMetadata(manifest.GetBehaviorTree().GetDescription(), manifest.GetMetadata())
 	return &acpb.Asset{
-		Metadata:        manifest.GetMetadata(),
+		Metadata:        m,
 		ReleaseMetadata: details.ReleaseMetadata,
 		DeploymentData: &acpb.Asset_AssetDeploymentData{
 			AssetSpecificDeploymentData: &acpb.Asset_AssetDeploymentData_ProcessSpecificDeploymentData{
 				ProcessSpecificDeploymentData: &acpb.Asset_ProcessDeploymentData{
-					Process: manifest,
+					Process: pa,
 				},
 			},
 		},
