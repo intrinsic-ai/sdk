@@ -652,6 +652,16 @@ cc_proto_library(
     deps = [":point_cloud_proto"],
 )
 
+go_proto_library(
+    name = "point_cloud_go_proto",
+    go_deps = [
+        "//intrinsic/math/proto:pose_go_proto",
+        "//intrinsic/perception/proto/v1:sensor_image_go_proto",
+    ],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":point_cloud_proto"],
+)
+
 cc_proto_library(
     name = "image_processing_cc_proto",
     visibility = ["//intrinsic:public_api_users"],
