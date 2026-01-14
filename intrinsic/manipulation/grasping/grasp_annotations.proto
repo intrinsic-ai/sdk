@@ -14,11 +14,7 @@ message GraspAnnotations {
     BoxShapedGraspAnnotationParams box_shaped_grasp_annotations = 1;
     ManualGraspAnnotations manual_grasp_annotations = 2;
 
-    // If this field is provided, it must be of form ASSET_ID/ANNOTATIONS_ID,
-    // and it is then interpreted to refer to annotations locally stored in this
-    // cluster's key value store under
-    // intrinsic/grasping/annotations/ASSET_ID/ANNOTATIONS_ID
-    string stored_annotations_key = 4;
+    StoredGraspAnnotations stored_annotations = 4;
   }
   reserved 3;
   reserved "manual_grasp_annotations_json";
@@ -49,6 +45,19 @@ message ManualGraspAnnotation {
   // pose near an edge, since center grasps are more stable.
   // Default value: 1.0.
   optional float score = 4;
+}
+
+message StoredGraspAnnotations {
+  // The asset id of the object to which these annotations apply.
+  // Can be left out in situations where the asset_id can be inferred.
+  // Specifically, if the plan_targets for PlanGrasp either use the pose
+  // estimates or the grasp zone, then the asset_id will be inferred from those.
+  // Once b/462510961 is fixed, this field will
+  // be deprecated.
+  optional string asset_id = 1;
+
+  // The annotations_id of the stored annotations.  Defaults to "default".
+  optional string annotations_id = 2;
 }
 
 message BoxShapedGraspAnnotationParams {
