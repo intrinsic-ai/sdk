@@ -158,7 +158,11 @@ var vmpoolsUpdateCmd = &cobra.Command{
 			prtr.Println("VM pool unchanged.")
 			return nil
 		}
-		prtr.Println("VM pool updated.")
+		if resp.GetReconciling() == true {
+			prtr.Println("VM Pool update in progress...")
+		} else {
+			prtr.Println("VM pool updated.")
+		}
 		prtr.Println(resp)
 		return nil
 	},
