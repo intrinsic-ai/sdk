@@ -587,8 +587,7 @@ absl::Status Session::ResetWatcherLoopState() {
     return absl::FailedPreconditionError(
         "Session::ResetWatcherLoopState() called while RunWatcherLoop(), "
         "QuitWatcherLoop() or WaitForWatcherLoopStart() is running. This is "
-        "not "
-        "allowed.");
+        "not allowed.");
   }
   // We need an explicit reset function since the situation what to wait for is
   // ambigous.

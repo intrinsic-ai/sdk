@@ -368,6 +368,9 @@ class Session {
   // Returns a deadline exceeded error if the deadline is reached before the
   // watcher loop has started.
   // Returns a failed precondition error if the watcher loop has already ended.
+  // Returns also OK if the loop ended while waiting for it to start, e.g. due
+  // to the session ending or if the loop finished quicker than this thread got
+  // scheduled.
   // Note: If you want to wait for a second run of the watcher loop, you need to
   // call `ResetWatcherLoopState()` in between while `RunWatcherLoop()`,
   // `QuitWatcherLoop()` or `WaitForWatcherLoopStart()` are NOT running.
