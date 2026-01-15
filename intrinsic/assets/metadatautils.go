@@ -215,23 +215,35 @@ func ValidateManifestMetadata(m ManifestMetadata) error {
 // ToInputMetadata returns a clone of the input Metadata with output-only fields stripped.
 func ToInputMetadata(m *metadatapb.Metadata) *metadatapb.Metadata {
 	mOut := proto.Clone(m).(*metadatapb.Metadata)
-	mOut.FileDescriptorSet = nil
-	mOut.Provides = nil
+	StripNonInputMetadata(mOut)
 
 	return mOut
+}
+
+// StripNonInputMetadata strips the output-only fields from the specified metadata.
+func StripNonInputMetadata(m *metadatapb.Metadata) {
+	m.FileDescriptorSet = nil
+	m.Provides = nil
 }
 
 // ToInAssetMetadata returns a clone of the input Metadata that is suitable for representation
 // within an Asset definition (e.g., see Data and Process Assets).
 func ToInAssetMetadata(m *metadatapb.Metadata) *metadatapb.Metadata {
-	mOut := ToInputMetadata(m)
-	mOut.ReleaseNotes = ""
-	mOut.UpdateTime = nil
-	if mOut.GetIdVersion() != nil {
-		mOut.GetIdVersion().Version = ""
-	}
+	mOut := proto.Clone(m).(*metadatapb.Metadata)
+	StripNonInAssetMetadata(mOut)
 
 	return mOut
+}
+
+// StripNonInAssetMetadata strips from the input Metadata fields that don't apply when represented
+// within an Asset definition.
+func StripNonInAssetMetadata(m *metadatapb.Metadata) {
+	StripNonInputMetadata(m)
+	m.ReleaseNotes = ""
+	m.UpdateTime = nil
+	if m.GetIdVersion() != nil {
+		m.GetIdVersion().Version = ""
+	}
 }
 
 func validateFieldPresence[T comparable](x T, specifies *bool, name string, id string) error {
