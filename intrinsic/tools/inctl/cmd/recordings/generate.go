@@ -33,8 +33,38 @@ const (
 	largeRecordingByteSize = 50 * numBytesInMB
 )
 
-var generateRecordingE = func(cmd *cobra.Command, _ []string) error {
-	client, err := newBagPackagerClient(cmd.Context(), generateParam)
+// GenerateCmdRunner manages dependencies for the generate command to allow for mocking in tests.
+type GenerateCmdRunner struct {
+	NewClient func(cmd *cobra.Command) (pb.BagPackagerClient, error)
+}
+
+// NewGenerateCmd creates a new cobra command for generating recordings.
+func NewGenerateCmd(runner *GenerateCmdRunner) *cobra.Command {
+	if runner == nil {
+		runner = &GenerateCmdRunner{
+			NewClient: func(cmd *cobra.Command) (pb.BagPackagerClient, error) {
+				return newBagPackagerClient(cmd.Context(), generateParam)
+			},
+		}
+	}
+
+	generateCmd := &cobra.Command{
+		Use:   "generate",
+		Short: "Generates an Intrinsic recording file for a given recording id",
+		Long:  "Generates an Intrinsic recording file for a given recording id",
+		Args:  cobra.NoArgs,
+		RunE:  runner.RunE,
+	}
+
+	flags := generateCmd.Flags()
+	flags.StringVar(&flagBagID, "recording_id", "", "The recording id to generate Intrinsic recording file for.")
+	generateCmd.MarkFlagRequired("recording_id")
+
+	return orgutil.WrapCmd(generateCmd, generateParam, orgutil.WithOrgExistsCheck(func() bool { return checkOrgExists }))
+}
+
+func (r *GenerateCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
+	client, err := r.NewClient(cmd)
 	if err != nil {
 		return err
 	}
@@ -58,14 +88,14 @@ var generateRecordingE = func(cmd *cobra.Command, _ []string) error {
 	// Generate.
 	recordingByteSize := getResp.GetBag().GetBagMetadata().GetTotalBytes()
 	if recordingByteSize > largeRecordingByteSize {
-		fmt.Println("")
-		fmt.Println("WARNING:")
-		fmt.Println(fmt.Sprintf("  Recording with id \"%s\" is large (%d MB) and might take several minutes (usually up to ~15 minutes) to generate...", flagBagID, recordingByteSize/numBytesInMB))
-		fmt.Println("  Please wait and do NOT close this terminal or attempt to generate the recording again, the server will continue processing the request.")
-		fmt.Println("")
+		fmt.Fprintln(cmd.OutOrStdout(), "")
+		fmt.Fprintln(cmd.OutOrStdout(), "WARNING:")
+		fmt.Fprintln(cmd.OutOrStdout(), fmt.Sprintf("  Recording with id \"%s\" is large (%d MB) and might take several minutes (usually up to ~15 minutes) to generate...", flagBagID, recordingByteSize/numBytesInMB))
+		fmt.Fprintln(cmd.OutOrStdout(), "  Please wait and do NOT close this terminal or attempt to generate the recording again, the server will continue processing the request.")
+		fmt.Fprintln(cmd.OutOrStdout(), "")
 	}
 
-	fmt.Println(fmt.Sprintf("Starting generation of recording with id \"%s\"...", flagBagID))
+	fmt.Fprintln(cmd.OutOrStdout(), fmt.Sprintf("Starting generation of recording with id \"%s\"...", flagBagID))
 
 	generateReq := &pb.GenerateBagRequest{
 		Query: &pb.GenerateBagRequest_BagId{
@@ -84,11 +114,11 @@ var generateRecordingE = func(cmd *cobra.Command, _ []string) error {
 		}
 
 		for i := 0; i < maxPostTimeoutRetries; i++ {
-			fmt.Println(fmt.Sprintf("Still generating%s", strings.Repeat(".", i)))
+			fmt.Fprintln(cmd.OutOrStdout(), fmt.Sprintf("Still generating%s", strings.Repeat(".", i)))
 
 			getResp, err := client.GetBag(cmd.Context(), getReq)
 			if err != nil {
-				fmt.Println(fmt.Sprintf("Failed to get recording with id \"%s\" to check generation status, server might still be processing: %v", flagBagID, err))
+				fmt.Fprintln(cmd.OutOrStdout(), fmt.Sprintf("Failed to get recording with id \"%s\" to check generation status, server might still be processing: %v", flagBagID, err))
 			}
 
 			if getResp.GetBag().GetBagFile() != nil {
@@ -102,26 +132,14 @@ var generateRecordingE = func(cmd *cobra.Command, _ []string) error {
 		}
 	}
 
-	fmt.Println("")
-	fmt.Println(fmt.Sprintf("Generated recording file for recording ID %s", flagBagID))
-	fmt.Println("")
+	fmt.Fprintln(cmd.OutOrStdout(), "")
+	fmt.Fprintln(cmd.OutOrStdout(), fmt.Sprintf("Generated recording file for recording ID %s", flagBagID))
+	fmt.Fprintln(cmd.OutOrStdout(), "")
 	return nil
 }
 
-var (
-	generateParam = viper.New()
-	generateCmd   = orgutil.WrapCmd(&cobra.Command{
-		Use:   "generate",
-		Short: "Generates an Intrinsic recording file for a given recording id",
-		Long:  "Generates an Intrinsic recording file for a given recording id",
-		Args:  cobra.NoArgs,
-		RunE:  generateRecordingE,
-	}, generateParam, orgutil.WithOrgExistsCheck(func() bool { return true }))
-)
+var generateParam = viper.New()
 
 func init() {
-	recordingsCmd.AddCommand(generateCmd)
-	flags := generateCmd.Flags()
-
-	flags.StringVar(&flagBagID, "recording_id", "", "The recording id to generate Intrinsic recording file for.")
+	RecordingsCmd.AddCommand(NewGenerateCmd(nil))
 }

@@ -46,6 +46,7 @@ use_repo(
     "com_github_spf13_pflag",
     "com_github_spf13_viper",
     "com_github_stoewer_go_strcase",
+    "com_github_stretchr_testify",
     "com_google_cloud_go_longrunning",
     "in_gopkg_xmlpath_v2",
     "in_gopkg_yaml_v3",

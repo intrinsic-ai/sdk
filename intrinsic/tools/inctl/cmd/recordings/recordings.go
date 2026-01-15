@@ -10,6 +10,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Exposed for testing
+var (
+	checkOrgExists = true
+)
+
 // Shared flags across subcommands.
 var (
 	flagBagID string
@@ -26,7 +31,7 @@ func setPrinterFromOutputFlag(command *cobra.Command, args []string) (err error)
 	return
 }
 
-var recordingsCmd = &cobra.Command{
+var RecordingsCmd = &cobra.Command{
 	Use:   "recordings",
 	Short: "Provides access to recordings for a given workcell.",
 	Long:  "Provides access to recordings for a given workcell.",
@@ -36,5 +41,5 @@ var recordingsCmd = &cobra.Command{
 }
 
 func init() {
-	root.RootCmd.AddCommand(recordingsCmd)
+	root.RootCmd.AddCommand(RecordingsCmd)
 }

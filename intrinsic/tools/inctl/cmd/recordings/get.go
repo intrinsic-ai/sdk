@@ -17,8 +17,14 @@ import (
 
 var flagURL bool
 
-var getRecordingE = func(cmd *cobra.Command, _ []string) error {
-	client, err := newBagPackagerClient(cmd.Context(), getParams)
+// GetCmdRunner is a struct that holds the dependencies for the get command.
+// This is used to inject a mock client for testing.
+type GetCmdRunner struct {
+	NewClient func(cmd *cobra.Command) (pb.BagPackagerClient, error)
+}
+
+func (r *GetCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
+	client, err := r.NewClient(cmd)
 	if err != nil {
 		return err
 	}
@@ -37,25 +43,37 @@ var getRecordingE = func(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	fmt.Print(prototext.Format(resp))
+	fmt.Fprint(cmd.OutOrStdout(), prototext.Format(resp))
 	return nil
 }
 
-var (
-	getParams = viper.New()
-	getCmd    = orgutil.WrapCmd(&cobra.Command{
+var getParams = viper.New()
+
+func NewGetCmd(runner *GetCmdRunner) *cobra.Command {
+	if runner == nil {
+		runner = &GetCmdRunner{
+			NewClient: func(cmd *cobra.Command) (pb.BagPackagerClient, error) {
+				return newBagPackagerClient(cmd.Context(), getParams)
+			},
+		}
+	}
+	cmd := &cobra.Command{
 		Use:   "get",
 		Short: "Gets a ROS bag for a given recording id",
 		Long:  "Gets a ROS bag for a given recording id",
 		Args:  cobra.NoArgs,
-		RunE:  getRecordingE,
-	}, getParams, orgutil.WithOrgExistsCheck(func() bool { return true }))
-)
-
-func init() {
-	recordingsCmd.AddCommand(getCmd)
-	flags := getCmd.Flags()
-
+		RunE:  runner.RunE,
+	}
+	flags := cmd.Flags()
 	flags.StringVar(&flagBagID, "recording_id", "", "The recording id to get ROS bag for.")
 	flags.BoolVar(&flagURL, "with_url", false, "If present, generates a signed url to download the bag with.")
+	cmd.MarkFlagRequired("recording_id")
+
+	return orgutil.WrapCmd(cmd, getParams, orgutil.WithOrgExistsCheck(func() bool { return checkOrgExists }))
+}
+
+var GetCmd = NewGetCmd(nil)
+
+func init() {
+	RecordingsCmd.AddCommand(GetCmd)
 }

@@ -81,6 +81,7 @@ require (
 	github.com/spf13/pflag v1.0.6
 	github.com/spf13/viper v1.18.2
 	github.com/stoewer/go-strcase v1.3.0
+	github.com/stretchr/testify v1.10.0
 	github.com/stripe/stripe-go/v79 v79.12.0
 	github.com/tdewolff/parse v2.3.4+incompatible
 	github.com/toqueteos/webbrowser v1.2.0
@@ -341,7 +342,7 @@ require (
 	github.com/spf13/afero v1.12.0 // indirect
 	github.com/spf13/cast v1.7.0 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.5.0 // indirect
-	github.com/stretchr/testify v1.10.0 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tdewolff/test v1.0.9 // indirect
 	github.com/tklauser/go-sysconf v0.3.14 // indirect

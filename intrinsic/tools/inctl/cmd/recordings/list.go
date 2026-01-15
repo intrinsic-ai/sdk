@@ -3,8 +3,9 @@
 package recordings
 
 import (
-	"context"
+	"bytes"
 	"fmt"
+	"io"
 	"strings"
 	"time"
 
@@ -13,12 +14,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	bmpb "intrinsic/logging/proto/bag_metadata_go_proto"
-	grpcpb "intrinsic/logging/proto/bag_packager_service_go_grpc_proto"
 	pb "intrinsic/logging/proto/bag_packager_service_go_grpc_proto"
-
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var (
@@ -39,74 +38,91 @@ var bagStatusToString = map[bmpb.BagStatus_BagStatusEnum]string{
 	bmpb.BagStatus_FAILED:                  "7: Failed",
 }
 
-// executeAndPrintListBagsResponse executes the ListBags RPC and prints the response.
-func executeAndPrintListBagsResponse(ctx context.Context, client grpcpb.BagPackagerClient, req *pb.ListBagsRequest) (numLines uint32, nextPageCursor []byte, err error) {
-	// Execute.
-	resp, err := client.ListBags(ctx, req)
-	if err != nil {
-		return 0, []byte{}, err
-	}
-	if len(resp.GetBags()) == 0 {
-		fmt.Println("No recordings found")
-		return 0, []byte{}, nil
-	}
-
-	// Print.
-	const formatString = "%-22s %-22s %-40s %-55s %-40s"
-	lines := []string{
-		fmt.Sprintf(formatString, "Start Time", "End Time", "ID", "Status", "Description"),
-	}
-	numLines = uint32(0)
-	for _, bag := range resp.GetBags() {
-		description := bag.GetBagMetadata().GetDescription()
-		if description == "" {
-			description = "<NO-DESCRIPTION>"
-		}
-		status := bag.GetBagMetadata().GetStatus().GetStatus()
-		statusString, ok := bagStatusToString[status]
-		if !ok {
-			statusString = status.String()
-		}
-		lines = append(lines,
-			fmt.Sprintf(formatString,
-				bag.GetBagMetadata().GetStartTime().AsTime().Format(time.RFC3339),
-				bag.GetBagMetadata().GetEndTime().AsTime().Format(time.RFC3339),
-				bag.GetBagMetadata().GetBagId(),
-				statusString,
-				description,
-			))
-		numLines++
-	}
-
-	fmt.Println()
-	fmt.Println(strings.Join(lines, "\n"))
-	return numLines, resp.GetNextPageCursor(), nil
+// ListCmdRunner manages dependencies for the list command to allow for mocking in tests.
+type ListCmdRunner struct {
+	NewClient      func(cmd *cobra.Command) (pb.BagPackagerClient, error)
+	PromptContinue func(cmd *cobra.Command) (bool, error)
 }
 
-var listRecordingsE = func(cmd *cobra.Command, _ []string) error {
-	client, err := newBagPackagerClient(cmd.Context(), listParams)
+// NewListCmd creates a new cobra command for listing recordings.
+func NewListCmd(runner *ListCmdRunner) *cobra.Command {
+	if runner == nil {
+		runner = &ListCmdRunner{
+			NewClient: func(cmd *cobra.Command) (pb.BagPackagerClient, error) {
+				return newBagPackagerClient(cmd.Context(), listParams)
+			},
+			PromptContinue: func(cmd *cobra.Command) (bool, error) {
+				var input string
+				if _, err := fmt.Fscanln(cmd.InOrStdin(), &input); err != nil && err != io.EOF {
+					return false, err
+				}
+				input = strings.ToLower(input)
+				return input == "y" || input == "", nil
+			},
+		}
+	}
+
+	listCmd := &cobra.Command{
+		Use:     "list",
+		Aliases: []string{"ls"},
+		Short:   "Lists available recordings for a given workcell",
+		Long:    "Lists available recordings for a given workcell",
+		Args:    cobra.NoArgs,
+		RunE:    runner.RunE,
+	}
+
+	flags := listCmd.Flags()
+	flags.StringVar(&flagWorkcellName, "workcell", "", "The Kubernetes cluster to use.")
+	flags.StringVar(&flagStartTimestamp, "start_timestamp", "", "Start timestamp in RFC3339 format for fetching recordings. eg. 2024-08-20T12:00:00Z")
+	flags.StringVar(&flagEndTimestamp, "end_timestamp", "", "End timestamp in RFC3339 format for fetching recordings. eg. 2024-08-20T12:00:00Z")
+	flags.Uint32Var(&flagMaxNumResults, "max_num_results", 10, "The maximum number of recordings to list per page.")
+	listCmd.MarkFlagRequired("workcell")
+
+	return orgutil.WrapCmd(listCmd, listParams, orgutil.WithOrgExistsCheck(func() bool { return checkOrgExists }))
+}
+
+func (r *ListCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
+	client, err := r.NewClient(cmd)
 	if err != nil {
 		return err
 	}
+
+	startTime, endTime, err := parseTimeFlags()
+	if err != nil {
+		return err
+	}
+
+	req := newListBagsRequest(startTime, endTime)
+	return r.executeAndPaginate(cmd, client, req)
+}
+
+func parseTimeFlags() (time.Time, time.Time, error) {
 	var startTime, endTime time.Time
+	var err error
+
 	if flagStartTimestamp != "" {
 		startTime, err = time.Parse(time.RFC3339, flagStartTimestamp)
 		if err != nil {
-			return errors.Wrapf(err, "invalid start timestamp: %s", flagEndTimestamp)
+			return time.Time{}, time.Time{}, errors.Wrapf(err, "invalid start timestamp: %s", flagStartTimestamp)
 		}
 	} else {
 		startTime = time.Now().Add(-1000000 * time.Hour)
 	}
+
 	if flagEndTimestamp != "" {
 		endTime, err = time.Parse(time.RFC3339, flagEndTimestamp)
 		if err != nil {
-			return errors.Wrapf(err, "invalid end timestamp: %s", flagEndTimestamp)
+			return time.Time{}, time.Time{}, errors.Wrapf(err, "invalid end timestamp: %s", flagEndTimestamp)
 		}
 	} else {
 		endTime = time.Now()
 	}
 
-	req := &pb.ListBagsRequest{
+	return startTime, endTime, nil
+}
+
+func newListBagsRequest(startTime, endTime time.Time) *pb.ListBagsRequest {
+	return &pb.ListBagsRequest{
 		OrganizationId: listParams.GetString(orgutil.KeyOrganization),
 		MaxNumResults:  &flagMaxNumResults,
 		Query: &pb.ListBagsRequest_ListQuery{
@@ -117,83 +133,89 @@ var listRecordingsE = func(cmd *cobra.Command, _ []string) error {
 			},
 		},
 	}
-	numLines, nextPageCursor, err := executeAndPrintListBagsResponse(cmd.Context(), client, req)
+}
+
+func (r *ListCmdRunner) executeAndPaginate(cmd *cobra.Command, client pb.BagPackagerClient, req *pb.ListBagsRequest) error {
+	var nextPageCursor []byte
+	var err error
+	var numLines uint32
+
+	numLines, nextPageCursor, err = r.executeAndPrintListBagsResponse(cmd, client, req)
 	if err != nil {
 		return err
 	}
-	if numLines == 0 {
-		return nil
-	}
 
-	// Handle pagination.
 	page := 0
-	seenRecordings := uint32(0)
-	if len(nextPageCursor) == 0 {
-		seenRecordings += numLines
-		fmt.Println()
-		fmt.Println(fmt.Sprintf("Num recordings: %d", seenRecordings))
-		return nil
-	}
-
+	seenRecordings := numLines
 	for len(nextPageCursor) > 0 {
 		page++
-		seenRecordings += numLines
+		fmt.Fprintf(cmd.OutOrStdout(), "\nSeen pages: %d | Seen recordings: %d\n", page, seenRecordings)
+		fmt.Fprint(cmd.OutOrStdout(), "\nMore results further into the past are available, continue? [Y/n] ")
 
-		fmt.Println()
-		fmt.Println(fmt.Sprintf("Seen pages: %d | Seen recordings: %d", page, seenRecordings))
-		fmt.Println()
-		fmt.Printf("More results further into the past are available, continue? [Y/n] ")
-
-		// Prompt user if they want to continue.
-		var input string
-		fmt.Scanln(&input)
-		input = strings.ToLower(input)
-		if input != "y" && input != "n" && input != "" {
-			fmt.Printf("More results further into the past are available, continue? [Y/n] ")
-			continue // Invalid input, prompt again.
-		}
-		if input == "n" {
-			return nil
-		}
-
-		req := &pb.ListBagsRequest{
-			OrganizationId: listParams.GetString(orgutil.KeyOrganization),
-			MaxNumResults:  &flagMaxNumResults,
-			Query: &pb.ListBagsRequest_Cursor{
-				Cursor: nextPageCursor,
-			},
-		}
-		numLines, nextPageCursor, err = executeAndPrintListBagsResponse(cmd.Context(), client, req)
+		cont, err := r.PromptContinue(cmd)
 		if err != nil {
 			return err
 		}
-		if numLines == 0 {
-			return nil
+		if !cont {
+			break
 		}
+
+		req.Query = &pb.ListBagsRequest_Cursor{Cursor: nextPageCursor}
+		numLines, nextPageCursor, err = r.executeAndPrintListBagsResponse(cmd, client, req)
+		if err != nil {
+			return err
+		}
+		seenRecordings += numLines
 	}
+
+	fmt.Fprintf(cmd.OutOrStdout(), "\nNum recordings: %d\n", seenRecordings)
 
 	return nil
 }
 
-var (
-	listParams = viper.New()
-	listCmd    = orgutil.WrapCmd(&cobra.Command{
-		Use:     "list",
-		Aliases: []string{"ls"},
-		Short:   "Lists available recordings for a given workcell",
-		Long:    "Lists available recordings for a given workcell",
-		Args:    cobra.NoArgs,
-		RunE:    listRecordingsE,
-	}, listParams, orgutil.WithOrgExistsCheck(func() bool { return true }))
-)
+func (r *ListCmdRunner) executeAndPrintListBagsResponse(cmd *cobra.Command, client pb.BagPackagerClient, req *pb.ListBagsRequest) (uint32, []byte, error) {
+	resp, err := client.ListBags(cmd.Context(), req)
+	if err != nil {
+		return 0, nil, err
+	}
+	if len(resp.GetBags()) == 0 {
+		fmt.Fprintln(cmd.OutOrStdout(), "No recordings found")
+		return 0, nil, nil
+	}
+
+	var out bytes.Buffer
+	const formatString = "%-22s %-22s %-40s %-55s %-40s"
+	fmt.Fprintln(&out, "")
+	fmt.Fprintf(&out, formatString, "Start Time", "End Time", "ID", "Status", "Description")
+	fmt.Fprintln(&out)
+
+	for _, bag := range resp.GetBags() {
+		description := bag.GetBagMetadata().GetDescription()
+		if description == "" {
+			description = "<NO-DESCRIPTION>"
+		}
+		status := bag.GetBagMetadata().GetStatus().GetStatus()
+		statusString, ok := bagStatusToString[status]
+		if !ok {
+			statusString = status.String()
+		}
+		fmt.Fprintf(&out, formatString,
+			bag.GetBagMetadata().GetStartTime().AsTime().Format(time.RFC3339),
+			bag.GetBagMetadata().GetEndTime().AsTime().Format(time.RFC3339),
+			bag.GetBagMetadata().GetBagId(),
+			statusString,
+			description,
+		)
+		fmt.Fprintln(&out)
+	}
+
+	fmt.Fprint(cmd.OutOrStdout(), out.String())
+	return uint32(len(resp.GetBags())), resp.GetNextPageCursor(), nil
+}
+
+var listParams = viper.New()
 
 func init() {
-	recordingsCmd.AddCommand(listCmd)
-	flags := listCmd.Flags()
-
-	flags.StringVar(&flagWorkcellName, "workcell", "", "The Kubernetes cluster to use.")
-	flags.StringVar(&flagStartTimestamp, "start_timestamp", "", "Start timestamp in RFC3339 format for fetching recordings. eg. 2024-08-20T12:00:00Z")
-	flags.StringVar(&flagEndTimestamp, "end_timestamp", "", "End timestamp in RFC3339 format for fetching recordings. eg. 2024-08-20T12:00:00Z")
-	flags.Uint32Var(&flagMaxNumResults, "max_num_results", 10, "The maximum number of recordings to list per page.")
-	listCmd.MarkFlagRequired("workcell")
+	listCmd := NewListCmd(nil)
+	RecordingsCmd.AddCommand(listCmd)
 }
