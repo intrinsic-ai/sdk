@@ -18,6 +18,10 @@ message PatternDetectionConfig {
     CharucoPatternDetectionConfig charuco_pattern_detection_config = 2;
   }
   reserved 3;
+
+  // If true, the annotated image is published to stream
+  // "/perception/annotated_frame".
+  bool publish_annotated_image = 4;
 }
 
 // Config for Charuco pattern detector.
