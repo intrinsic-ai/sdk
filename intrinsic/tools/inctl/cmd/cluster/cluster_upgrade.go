@@ -449,11 +449,21 @@ var runCmd = &cobra.Command{
 	},
 }
 
+const upgradeCmdDesc = `
+Shows the currently installed OS and base version, and provides subcommands to manage software upgrades.
+With no command it will show the current installed OS and base version.
+
+Example:
+
+inctl cluster upgrade --org my_org@my-project --cluster node-fc66c2ab-5770-43b8-aefe-a36a2f356fb1
+`
+
+
 // clusterUpgradeCmd is the base command to query the upgrade state
 var clusterUpgradeCmd = &cobra.Command{
 	Use:   "upgrade",
-	Short: "Upgrade Intrinsic software on target cluster",
-	Long:  "Upgrade Intrinsic software (OS and intrinsic-base) on target cluster.",
+	Short: "Show or upgrade Intrinsic software on a target cluster",
+	Long:  upgradeCmdDesc,
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, _ []string) error {
 		ctx := cmd.Context()
