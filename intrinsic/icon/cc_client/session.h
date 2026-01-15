@@ -336,13 +336,17 @@ class Session {
   // default action (usually a stop action).
   absl::Status StopAllActions();
 
-  // Runs watchers associated with this `Session` from added reactions.  Blocks
+  // Runs watchers associated with this `Session` from added reactions. Blocks
   // until QuitWatcherLoop() is called, the session ends, or the deadline is
   // reached.  All associated callbacks are invoked on the calling thread. If
   // the session dies due to an error during execution, returns an aborted
   // error. If deadline is reached, returns a kDeadlineExceeded error. If the
   // deadline is in the past, this processes queued events before returning
   // kDeadlineExceeded.
+  // Only one watcher loop can be running at a time.
+  // Note: If you want to start a second run of the watcher loop, you need to
+  // call `ResetWatcherLoopState()` in between while `RunWatcherLoop()`,
+  // `QuitWatcherLoop()` and `WaitForWatcherLoopStart()` are NOT running.
   absl::Status RunWatcherLoop(absl::Time deadline = absl::InfiniteFuture());
 
   // Runs watchers associated with this `Session` from added reactions.
@@ -352,13 +356,59 @@ class Session {
   // due to an error during execution, returns an aborted error. If the deadline
   // is in the past, this processes queued events before returning
   // kDeadlineExceeded.
+  // Only one watcher loop can be running at a time.
+  // Note: If you want to start a second run of the watcher loop, you need to
+  // call `ResetWatcherLoopState()` in between while `RunWatcherLoop()`,
+  // `QuitWatcherLoop()` and `WaitForWatcherLoopStart()` are NOT running.
   absl::Status RunWatcherLoopUntilReaction(
       ReactionHandle reaction_handle,
       absl::Time deadline = absl::InfiniteFuture());
 
-  // Stops running watchers after the current event is finished processing, if
-  // they are running. Watchers may be restarted again by calling RunWatchers().
+  // Blocks until the watcher loop has started.
+  // Returns a deadline exceeded error if the deadline is reached before the
+  // watcher loop has started.
+  // Returns a failed precondition error if the watcher loop has already ended.
+  // Note: If you want to wait for a second run of the watcher loop, you need to
+  // call `ResetWatcherLoopState()` in between while `RunWatcherLoop()`,
+  // `QuitWatcherLoop()` or `WaitForWatcherLoopStart()` are NOT running.
+  absl::Status WaitForWatcherLoopStart(absl::Time deadline)
+      ABSL_LOCKS_EXCLUDED(reactions_queue_mutex_);
+  absl::Status WaitForWatcherLoopStart(absl::Duration timeout) {
+    return WaitForWatcherLoopStart(absl::Now() + timeout);
+  }
+
+  // Resets the watcher loop states to their initial values.
+  // Returns FailedPreconditionError if called while `RunWatcherLoop()`,
+  // `QuitWatcherLoop()` or `WaitForWatcherLoopStart()` are running.
+  absl::Status ResetWatcherLoopState()
+      ABSL_LOCKS_EXCLUDED(reactions_queue_mutex_);
+
+  // Stops the running watcher loop after the current event is finished
+  // processing, if it is running. Watchers may be restarted again by calling
+  // RunWatcherLoop().
+  // Note: Use this function overload only from a reaction callback. Otherwise,
+  // the watcher loop might not stop properly if it has not started yet. In that
+  // case, prefer to use the `QuitWatcherLoop(watcher_loop_start_deadline)`
+  // overload.
   void QuitWatcherLoop() ABSL_LOCKS_EXCLUDED(reactions_queue_mutex_);
+
+  // Waits for the watcher loop to start before stopping it. This avoids race
+  // conditions where the watcher loop is stopped before it was started, which
+  // can lead to deadlocks when waiting for the watcher loop to end.
+  // Returns a deadline exceeded error if the deadline is reached before the
+  // watcher loop has started.
+  // Returns a failed precondition error if the watcher loop has already ended.
+  // Note: Use this function if the session needs to be cancelled based on an
+  // external event, e.g. a skill gets cancelled.
+  // Note: If you want to wait for
+  // a second run of the watcher loop, you need to call
+  // `ResetWatcherLoopState()` in between while `RunWatcherLoop()` is NOT
+  // running.
+  absl::Status QuitWatcherLoop(absl::Time watcher_loop_start_deadline)
+      ABSL_LOCKS_EXCLUDED(reactions_queue_mutex_);
+  absl::Status QuitWatcherLoop(absl::Duration watcher_loop_start_timeout) {
+    return QuitWatcherLoop(absl::Now() + watcher_loop_start_timeout);
+  }
 
   // Creates a StreamWriter for the given `input_name` of the given action.
   //
@@ -512,6 +562,23 @@ class Session {
   bool reactions_stream_closed_ ABSL_GUARDED_BY(reactions_queue_mutex_) = false;
   // Signals RunWatcherLoop* to quit after processing the reaction queue.
   bool quit_watcher_loop_ ABSL_GUARDED_BY(reactions_queue_mutex_) = false;
+  // Tristate of the watcher loop state. It has three states to distinguish
+  // between not started and already finished and to warn the user about wrong
+  // usage, e.g. calling `QuitWatcherLoop(timeout)` or when it's already in the
+  // `kFinished` state.
+  enum WatcherLoopState {
+    kNotStarted,
+    kRunning,
+    kFinished,
+  };
+  WatcherLoopState watcher_loop_state_ ABSL_GUARDED_BY(reactions_queue_mutex_) =
+      kNotStarted;
+  // Incremented whenever `RunWatcherLoop()`,
+  // `QuitWatcherLoop()` or `WaitForWatcherLoopStart()` is entered and
+  // decremented when the functions exit. Used to make sure that
+  // `ResetWatcherLoop()` is not called while any of the aforementioned
+  // functions are running.
+  std::atomic<int> current_watcher_loop_user_count_ = 0;
 
   // Used to read reaction events in the background. `watcher_stream_::Read()`
   // calls should only be made on this thread. It is ok for other

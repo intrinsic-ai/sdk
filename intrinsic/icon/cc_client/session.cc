@@ -13,6 +13,7 @@
 
 #include "absl/algorithm/container.h"
 #include "absl/base/thread_annotations.h"
+#include "absl/cleanup/cleanup.h"
 #include "absl/container/flat_hash_map.h"
 #include "absl/log/check.h"
 #include "absl/log/log.h"
@@ -516,10 +517,26 @@ absl::Status Session::StopAllActions() {
 }
 
 absl::Status Session::RunWatcherLoop(absl::Time deadline) {
+  current_watcher_loop_user_count_++;
+  auto cleanup =
+      absl::MakeCleanup([this]() { current_watcher_loop_user_count_--; });
   {
     absl::MutexLock l(&reactions_queue_mutex_);
+    if (watcher_loop_state_ == kRunning) {
+      return absl::FailedPreconditionError("Watcher loop is already running.");
+    }
+    if (watcher_loop_state_ == kFinished) {
+      return absl::FailedPreconditionError(
+          "Watcher loop is already finished. Please reset the session state "
+          "using ResetWatcherLoopState() to run the watcher loop again.");
+    }
     quit_watcher_loop_ = false;
+    watcher_loop_state_ = kRunning;
   }
+  auto cleanup2 = absl::MakeCleanup([this]() {
+    absl::MutexLock l(&reactions_queue_mutex_);
+    watcher_loop_state_ = kFinished;
+  });
   while (true) {
     std::optional<
         absl::StatusOr<intrinsic_proto::icon::v1::WatchReactionsResponse>>
@@ -565,7 +582,74 @@ absl::Status Session::RunWatcherLoop(absl::Time deadline) {
   }
 }
 
+absl::Status Session::ResetWatcherLoopState() {
+  if (current_watcher_loop_user_count_ > 0) {
+    return absl::FailedPreconditionError(
+        "Session::ResetWatcherLoopState() called while RunWatcherLoop(), "
+        "QuitWatcherLoop() or WaitForWatcherLoopStart() is running. This is "
+        "not "
+        "allowed.");
+  }
+  // We need an explicit reset function since the situation what to wait for is
+  // ambigous.
+  // Imagine the situation:
+  //   Thread 1 calls RunWatcherLoop().
+  //   Thread 2 calls QuitWatcherLoop().
+  //   T1 finishes loop.
+  //   Thread 1 calls RunWatcherLoop() again.
+  //   Thread 2 calls QuitWatcherLoop(timeout=10).
+  //   Depending on thread scheduling, QuitWatcherLoop() is called before or
+  //   after RunWatcherLoop().
+  //
+  //   Problem: Should T2 now wait for the previous loop
+  //   (i.e. be done immediately) or the next loop? Therefore, the user needs to
+  //   consciously reset the internal state.
+
+  // Without an explicit reset, we cannot distinguish between a loop that
+  // already finished and a loop that has not been started.
+  // This is crucial for `QuitWatcherLoop(timeout)` since it needs to know
+  // whether it can return immediately since the loop has already finished or
+  // needs to wait for the loop to start.
+  absl::MutexLock l(&reactions_queue_mutex_);
+  watcher_loop_state_ = kNotStarted;
+  quit_watcher_loop_ = false;
+  return absl::OkStatus();
+}
+
+absl::Status Session::WaitForWatcherLoopStart(absl::Time deadline) {
+  current_watcher_loop_user_count_++;
+  auto cleanup =
+      absl::MakeCleanup([this]() { current_watcher_loop_user_count_--; });
+  absl::MutexLock l(&reactions_queue_mutex_);
+  if (watcher_loop_state_ == kFinished) {
+    return absl::FailedPreconditionError(
+        "Watcher loop is already finished, please reset the session state "
+        "using ResetWatcherLoopState() to run the watcher loop again.");
+  }
+  auto cond = [this]() ABSL_EXCLUSIVE_LOCKS_REQUIRED(reactions_queue_mutex_) {
+    return watcher_loop_state_ == kRunning || watcher_loop_state_ == kFinished;
+  };
+  if (!reactions_queue_mutex_.AwaitWithDeadline(absl::Condition(&cond),
+                                                deadline)) {
+    return absl::DeadlineExceededError(
+        "Deadline exceeded while waiting for watcher loop to start.");
+  }
+  return absl::OkStatus();
+}
+
+absl::Status Session::QuitWatcherLoop(absl::Time watcher_loop_start_deadline) {
+  current_watcher_loop_user_count_++;
+  auto cleanup =
+      absl::MakeCleanup([this]() { current_watcher_loop_user_count_--; });
+  INTR_RETURN_IF_ERROR(WaitForWatcherLoopStart(watcher_loop_start_deadline));
+  QuitWatcherLoop();
+  return absl::OkStatus();
+}
+
 void Session::QuitWatcherLoop() {
+  current_watcher_loop_user_count_++;
+  auto cleanup =
+      absl::MakeCleanup([this]() { current_watcher_loop_user_count_--; });
   absl::MutexLock l(&reactions_queue_mutex_);
   quit_watcher_loop_ = true;
 }
@@ -651,7 +735,11 @@ absl::Status Session::End() {
   }
   session_ended_ = true;
   QuitWatcherLoop();  // stop triggering client callbacks.
-
+  {
+    absl::MutexLock l(&reactions_queue_mutex_);
+    watcher_loop_state_ =
+        kFinished;  // Cancel threads waiting in WaitForWatcherLoopStart()
+  }
   absl::MutexLock lock(&session_mutex_);
   // Close the action session call
   session_stream_->WritesDone();

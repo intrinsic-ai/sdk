@@ -313,6 +313,7 @@ absl::Status JointThenCartMove(
     INTR_RETURN_IF_ERROR(writer->Write(streaming_params));
     // Start real-time control.
     INTR_RETURN_IF_ERROR(session->StartActions({actions.front()}));
+    INTR_RETURN_IF_ERROR(session->ResetWatcherLoopState());
     // Wait for jogging to time out.
     INTR_RETURN_IF_ERROR(session->RunWatcherLoop());
   }
