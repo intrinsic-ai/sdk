@@ -123,6 +123,19 @@ func WithInAssetOptions() ValidateMetadataOption {
 	}
 }
 
+// WithInAssetOptionsIgnoreVersion adds options for validating metadata that are represented within
+// an Asset definition (e.g., see Data and Process Assets).
+//
+// It ignores the presence of a version, to support transition from metadata that previously
+// required a version.
+func WithInAssetOptionsIgnoreVersion() ValidateMetadataOption {
+	return func(opts *validateMetadataOptions) {
+		WithNoOutputOnlyFields()(opts)
+		opts.specifiesReleaseNotes = proto.Bool(false)
+		opts.specifiesUpdateTime = proto.Bool(false)
+	}
+}
+
 // WithCatalogOptions adds options for validating metadata for use in the AssetCatalog.
 func WithCatalogOptions() ValidateMetadataOption {
 	return func(opts *validateMetadataOptions) {

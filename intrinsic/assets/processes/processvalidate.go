@@ -119,12 +119,37 @@ func ProcessManifest(manifest *pmpb.ProcessManifest) error {
 	})
 }
 
+type processAssetOptions struct {
+	ignoreVersion bool
+}
+
+// ProcessAssetOption is an option for validating a ProcessAsset.
+type ProcessAssetOption func(*processAssetOptions)
+
+// WithIgnoreVersion specifies whether to ignore whether or not a version is specified in the
+// Process' metadata.
+func WithIgnoreVersion(ignore bool) ProcessAssetOption {
+	return func(opts *processAssetOptions) {
+		opts.ignoreVersion = ignore
+	}
+}
+
 // ProcessAsset validates a ProcessAsset.
-func ProcessAsset(processAsset *papb.ProcessAsset) error {
+func ProcessAsset(processAsset *papb.ProcessAsset, options ...ProcessAssetOption) error {
+	opts := &processAssetOptions{}
+	for _, opt := range options {
+		opt(opts)
+	}
+
+	inAssetOption := metadatautils.WithInAssetOptions()
+	if opts.ignoreVersion {
+		inAssetOption = metadatautils.WithInAssetOptionsIgnoreVersion()
+	}
+
 	metadata := processAsset.GetMetadata()
 	if err := metadatautils.ValidateMetadata(metadata,
 		metadatautils.WithAssetType(atypepb.AssetType_ASSET_TYPE_PROCESS),
-		metadatautils.WithInAssetOptions(),
+		inAssetOption,
 	); err != nil {
 		return fmt.Errorf("invalid ProcessAsset metadata: %w", err)
 	}
@@ -144,6 +169,16 @@ type validateBehaviorTreeOptions struct {
 	assetDisplayName           string
 	assetDocumentation         *docpb.Documentation
 	requireFilledSkillMetadata bool
+}
+
+// FillBackwardsCompatibleVersion ensures that a ProcessAsset represents the version info required
+// by older validation code.
+func FillBackwardsCompatibleVersion(pa *papb.ProcessAsset, version string) {
+	pa.GetMetadata().GetIdVersion().Version = version
+
+	if pa.GetBehaviorTree() != nil && pa.GetBehaviorTree().GetDescription() != nil {
+		pa.GetBehaviorTree().GetDescription().IdVersion = idutils.IDVersionFromProtoUnchecked(pa.GetMetadata().GetIdVersion())
+	}
 }
 
 // validateBehaviorTree validates the given behavior tree for a Process.
