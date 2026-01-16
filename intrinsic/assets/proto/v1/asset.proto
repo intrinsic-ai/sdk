@@ -9,8 +9,7 @@ import "intrinsic/assets/proto/v1/processed_asset.proto";
 
 option go_package = "intrinsic/assets/proto/v1/asset_go_proto";
 
-// Asset defines a single asset that can be used within the context of a
-// solution.
+// Asset defines a single Asset for use within the context of a Solution.
 message Asset {
   oneof source {
     IdVersion catalog = 1;
