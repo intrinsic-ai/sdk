@@ -90,6 +90,10 @@ service SolutionVersionService {
   // error is returned.
   rpc GetBaseSnapshot(GetBaseSnapshotRequest) returns (Snapshot) {}
 
+  // Returns the owner of the branch specified in the request.
+  //
+  // This RPC will gracefully handle all types of branches.
+  rpc GetBranchOwner(GetBranchOwnerRequest) returns (GetBranchOwnerResponse) {}
 }
 
 // A tree is a collection of branches of a solution.
@@ -290,4 +294,12 @@ message GetSnapshotRequest {
 message GetBaseSnapshotRequest {
   // The ID of the branch to get the base snapshot of.
   string branch_id = 1;
+}
+
+message GetBranchOwnerRequest {
+  string branch_id = 1;
+}
+
+message GetBranchOwnerResponse {
+  string owner = 1;
 }
