@@ -46,6 +46,9 @@ func SkillManifest(m *smpb.SkillManifest, options ...SkillManifestOption) error 
 	for _, opt := range options {
 		opt(opts)
 	}
+	if opts.types == nil {
+		return fmt.Errorf("types option must be specified")
+	}
 
 	if m == nil {
 		return fmt.Errorf("SkillManifest must not be nil")
@@ -60,23 +63,20 @@ func SkillManifest(m *smpb.SkillManifest, options ...SkillManifestOption) error 
 		return fmt.Errorf("Skill %q declares dependencies in the manifest's dependencies field but --incompatible_disallow_manifest_dependencies is true", id)
 	}
 
-	if opts.types != nil {
-		if name := m.GetParameter().GetMessageFullName(); name != "" {
-			mt, err := opts.types.FindMessageByURL(name)
-			if err != nil {
-				return fmt.Errorf("cannot find parameter message %q for Skill %q: %w", name, id, err)
-			}
-			parameterHasResolvedDependencies := utils.HasResolvedDependency(mt.Descriptor())
-			if parameterHasResolvedDependencies && len(m.GetDependencies().GetRequiredEquipment()) != 0 {
-				return errMixOfDependencyModels
-			}
+	if name := m.GetParameter().GetMessageFullName(); name != "" {
+		mt, err := opts.types.FindMessageByURL(name)
+		if err != nil {
+			return fmt.Errorf("cannot find parameter message %q for Skill %q: %w", name, id, err)
 		}
-		if name := m.GetReturnType().GetMessageFullName(); name != "" {
-			if _, err := opts.types.FindMessageByURL(name); err != nil {
-				return fmt.Errorf("cannot find return type message %q for Skill %q: %w", name, id, err)
-			}
+		parameterHasResolvedDependencies := utils.HasResolvedDependency(mt.Descriptor())
+		if parameterHasResolvedDependencies && len(m.GetDependencies().GetRequiredEquipment()) != 0 {
+			return errMixOfDependencyModels
 		}
 	}
-
+	if name := m.GetReturnType().GetMessageFullName(); name != "" {
+		if _, err := opts.types.FindMessageByURL(name); err != nil {
+			return fmt.Errorf("cannot find return type message %q for Skill %q: %w", name, id, err)
+		}
+	}
 	return nil
 }

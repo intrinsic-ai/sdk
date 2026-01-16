@@ -17,12 +17,6 @@ import (
 	rpb "intrinsic/assets/proto/v1/reference_go_proto"
 )
 
-// HardwareDeviceManifest abstracts HardwareDeviceManifest and ProcessedHardwareDeviceManifest.
-type HardwareDeviceManifest interface {
-	GetMetadata() *hdmpb.HardwareDeviceMetadata
-	GetGraph() *agpb.AssetGraph
-}
-
 // VerifyCatalogAssetsExist is a function that verifies that referenced catalog Assets exist.
 type VerifyCatalogAssetsExist func(assets []*rpb.CatalogAsset) error
 
@@ -39,74 +33,126 @@ func VerifyLocalAssetsExistOnDisk(assets []*rpb.LocalAsset) error {
 	return nil
 }
 
-type hardwareDeviceOptions struct {
+type hardwareDeviceManifestOptions struct {
 	verifyCatalogAssetsExist VerifyCatalogAssetsExist
 	verifyLocalAssetsExist   VerifyLocalAssetsExist
 }
 
-// HardwareDeviceOption is an option for validating a HardwareDevice.
-type HardwareDeviceOption func(*hardwareDeviceOptions)
+// HardwareDeviceManifestOption is an option for validating a HardwareDeviceManifest.
+type HardwareDeviceManifestOption func(*hardwareDeviceManifestOptions)
 
 // WithVerifyCatalogAssetsExist provides a function that verifies that referenced catalog Assets
 // exist.
-func WithVerifyCatalogAssetsExist(f VerifyCatalogAssetsExist) HardwareDeviceOption {
-	return func(opts *hardwareDeviceOptions) {
+func WithVerifyCatalogAssetsExist(f VerifyCatalogAssetsExist) HardwareDeviceManifestOption {
+	return func(opts *hardwareDeviceManifestOptions) {
 		opts.verifyCatalogAssetsExist = f
 	}
 }
 
 // WithVerifyLocalAssetsExist provides a function that verifies that referenced local Assets exist.
-func WithVerifyLocalAssetsExist(f VerifyLocalAssetsExist) HardwareDeviceOption {
-	return func(opts *hardwareDeviceOptions) {
+func WithVerifyLocalAssetsExist(f VerifyLocalAssetsExist) HardwareDeviceManifestOption {
+	return func(opts *hardwareDeviceManifestOptions) {
 		opts.verifyLocalAssetsExist = f
 	}
 }
 
-// HardwareDevice validates a HardwareDevice.
+// HardwareDeviceManifest validates a HardwareDeviceManifest.
 //
-// The following validation cannot be done on reference nodes, since we don't read their metadata:
+// The following validation cannot be done on catalog reference nodes, since we don't read their
+// metadata:
 // - Verify that the specified Asset type is actually what is stored in the catalog.
 // - Verify that configuration edges have matching source and target nodes.
-func HardwareDevice(hdm HardwareDeviceManifest, options ...HardwareDeviceOption) error {
-	opts := &hardwareDeviceOptions{
+func HardwareDeviceManifest(m *hdmpb.HardwareDeviceManifest, options ...HardwareDeviceManifestOption) error {
+	opts := &hardwareDeviceManifestOptions{
 		verifyLocalAssetsExist: VerifyLocalAssetsExistOnDisk,
 	}
 	for _, opt := range options {
 		opt(opts)
 	}
 
-	if hdm == nil {
+	if m == nil {
 		return fmt.Errorf("HardwareDeviceManifest must not be nil")
 	}
 
-	if err := metadatautils.ValidateManifestMetadata(hdm.GetMetadata()); err != nil {
+	if err := metadatautils.ValidateManifestMetadata(m.GetMetadata()); err != nil {
 		return fmt.Errorf("invalid HardwareDeviceManifest metadata: %w", err)
 	}
+	id := idutils.IDFromProtoUnchecked(m.GetMetadata().GetId())
 
 	// Validate individual Assets.
-	var assetInfoMap map[string]*assetInfo
-	var err error
-	switch hdm.(type) {
-	case *hdmpb.HardwareDeviceManifest:
-		assetInfoMap, err = validateAssets(hdm.(*hdmpb.HardwareDeviceManifest).GetAssets(), opts)
-	case *hdmpb.ProcessedHardwareDeviceManifest:
-		assetInfoMap, err = validateProcessedAssets(hdm.(*hdmpb.ProcessedHardwareDeviceManifest).GetAssets(), opts)
-	default:
-		return fmt.Errorf("HardwareDeviceManifest has unknown type %T", hdm)
-	}
+	assetInfoMap, err := validateAssets(m.GetAssets(), opts)
 	if err != nil {
-		return err
+		return fmt.Errorf("invalid Assets for %q: %w", id, err)
 	}
 
-	g := hdm.GetGraph()
+	if err := validateGraph(m.GetGraph(), assetInfoMap); err != nil {
+		return fmt.Errorf("invalid graph for %q: %w", id, err)
+	}
 
+	return nil
+}
+
+type processedHardwareDeviceManifestOptions struct {
+	verifyCatalogAssetsExist VerifyCatalogAssetsExist
+}
+
+// ProcessedHardwareDeviceManifestOption is an option for validating a ProcessedHardwareDeviceManifest.
+type ProcessedHardwareDeviceManifestOption func(*processedHardwareDeviceManifestOptions)
+
+// WithVerifyProcessedCatalogAssetsExist provides a function that verifies that referenced catalog
+// Assets exist.
+func WithVerifyProcessedCatalogAssetsExist(f VerifyCatalogAssetsExist) ProcessedHardwareDeviceManifestOption {
+	return func(opts *processedHardwareDeviceManifestOptions) {
+		opts.verifyCatalogAssetsExist = f
+	}
+}
+
+// ProcessedHardwareDeviceManifest validates a ProcessedHardwareDeviceManifest.
+//
+// The following validation cannot be done on catalog reference nodes, since we don't read their
+// metadata:
+// - Verify that the specified Asset type is actually what is stored in the catalog.
+// - Verify that configuration edges have matching source and target nodes.
+func ProcessedHardwareDeviceManifest(pm *hdmpb.ProcessedHardwareDeviceManifest, options ...ProcessedHardwareDeviceManifestOption) error {
+	opts := &processedHardwareDeviceManifestOptions{}
+	for _, opt := range options {
+		opt(opts)
+	}
+
+	if pm == nil {
+		return fmt.Errorf("ProcessedHardwareDeviceManifest must not be nil")
+	}
+
+	if err := metadatautils.ValidateManifestMetadata(pm.GetMetadata()); err != nil {
+		return fmt.Errorf("invalid ProcessedHardwareDeviceManifest metadata: %w", err)
+	}
+	id := idutils.IDFromProtoUnchecked(pm.GetMetadata().GetId())
+
+	// Validate individual Assets.
+	assetInfoMap, err := validateProcessedAssets(pm.GetAssets(), opts)
+	if err != nil {
+		return fmt.Errorf("invalid processed Assets for %q: %w", id, err)
+	}
+
+	if err := validateGraph(pm.GetGraph(), assetInfoMap); err != nil {
+		return fmt.Errorf("invalid processed graph for %q: %w", id, err)
+	}
+
+	return nil
+}
+
+type assetInfo struct {
+	assetType atpb.AssetType
+}
+
+func validateGraph(g *agpb.AssetGraph, ai map[string]*assetInfo) error {
 	// Verify that node constraints are satisfied.
 	numSceneObjects := 0
 	numServices := 0
 	node2AssetInfo := make(map[string]*assetInfo)
 	referencedAssets := make(map[string]struct{})
 	for name, node := range g.GetNodes() {
-		info, ok := assetInfoMap[node.GetAsset()]
+		info, ok := ai[node.GetAsset()]
 		if !ok {
 			return fmt.Errorf("node %q refers to %q, which is not a specified Asset", name, node.GetAsset())
 		}
@@ -135,8 +181,8 @@ func HardwareDevice(hdm HardwareDeviceManifest, options ...HardwareDeviceOption)
 		return fmt.Errorf("must contain at most one Service, found %d", numServices)
 	}
 
-	// Verify that all assets were referenced.
-	for key := range assetInfoMap {
+	// Verify that all Assets were referenced.
+	for key := range ai {
 		if _, ok := referencedAssets[key]; !ok {
 			return fmt.Errorf("Asset %q is not referenced in the graph", key)
 		}
@@ -178,7 +224,7 @@ func HardwareDevice(hdm HardwareDeviceManifest, options ...HardwareDeviceOption)
 	// ProcessedHardwareDeviceManifest will eventually need to be converted into a
 	// ProcessedResourceManifest, which cannot represent data.
 	for name, node := range g.GetNodes() {
-		info, ok := assetInfoMap[node.GetAsset()]
+		info, ok := ai[node.GetAsset()]
 		if !ok {
 			return fmt.Errorf("node %q refers to %s, which is not a specified Asset (while validating data nodes)", name, node.GetAsset())
 		}
@@ -192,12 +238,8 @@ func HardwareDevice(hdm HardwareDeviceManifest, options ...HardwareDeviceOption)
 	return nil
 }
 
-type assetInfo struct {
-	assetType atpb.AssetType
-}
-
-func validateAssets(assets map[string]*hdmpb.HardwareDeviceManifest_Asset, opts *hardwareDeviceOptions) (map[string]*assetInfo, error) {
-	assetInfoMap := make(map[string]*assetInfo)
+func validateAssets(assets map[string]*hdmpb.HardwareDeviceManifest_Asset, opts *hardwareDeviceManifestOptions) (map[string]*assetInfo, error) {
+	ai := make(map[string]*assetInfo)
 	var catalogAssets []*rpb.CatalogAsset
 	var localAssets []*rpb.LocalAsset
 	for key, asset := range assets {
@@ -230,7 +272,7 @@ func validateAssets(assets map[string]*hdmpb.HardwareDeviceManifest_Asset, opts 
 			return nil, fmt.Errorf("Asset ID %s does not match key %q", idString, key)
 		}
 
-		assetInfoMap[key] = &assetInfo{
+		ai[key] = &assetInfo{
 			assetType: assetType,
 		}
 	}
@@ -238,21 +280,21 @@ func validateAssets(assets map[string]*hdmpb.HardwareDeviceManifest_Asset, opts 
 	// Check for the existence of catalog assets.
 	if opts.verifyCatalogAssetsExist != nil {
 		if err := opts.verifyCatalogAssetsExist(catalogAssets); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to verify catalog Assets: %w", err)
 		}
 	}
 	// Check for the existence of local assets.
 	if opts.verifyLocalAssetsExist != nil {
 		if err := opts.verifyLocalAssetsExist(localAssets); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to verify local Assets: %w", err)
 		}
 	}
 
-	return assetInfoMap, nil
+	return ai, nil
 }
 
-func validateProcessedAssets(assets map[string]*hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset, opts *hardwareDeviceOptions) (map[string]*assetInfo, error) {
-	assetInfoMap := make(map[string]*assetInfo)
+func validateProcessedAssets(assets map[string]*hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset, opts *processedHardwareDeviceManifestOptions) (map[string]*assetInfo, error) {
+	ai := make(map[string]*assetInfo)
 	var catalogAssets []*rpb.CatalogAsset
 	for key, asset := range assets {
 		var assetType atpb.AssetType
@@ -285,7 +327,7 @@ func validateProcessedAssets(assets map[string]*hdmpb.ProcessedHardwareDeviceMan
 			return nil, fmt.Errorf("Asset ID %s does not match key %q", idString, key)
 		}
 
-		assetInfoMap[key] = &assetInfo{
+		ai[key] = &assetInfo{
 			assetType: assetType,
 		}
 	}
@@ -293,9 +335,9 @@ func validateProcessedAssets(assets map[string]*hdmpb.ProcessedHardwareDeviceMan
 	// Check for the existence of catalog Assets.
 	if opts.verifyCatalogAssetsExist != nil {
 		if err := opts.verifyCatalogAssetsExist(catalogAssets); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to verify catalog Assets: %w", err)
 		}
 	}
 
-	return assetInfoMap, nil
+	return ai, nil
 }

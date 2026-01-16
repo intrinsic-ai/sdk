@@ -40,6 +40,9 @@ func DataManifest(m *dmpb.DataManifest, options ...DataManifestOption) error {
 	for _, opt := range options {
 		opt(opts)
 	}
+	if opts.types == nil {
+		return fmt.Errorf("types option must be specified")
+	}
 
 	if m == nil {
 		return fmt.Errorf("DataManifest must not be nil")
@@ -53,12 +56,9 @@ func DataManifest(m *dmpb.DataManifest, options ...DataManifestOption) error {
 	if m.GetData() == nil {
 		return fmt.Errorf("data payload must be specified for %q", id)
 	}
-
-	if opts.types != nil {
-		if name := m.GetData().MessageName(); name != "" {
-			if _, err := opts.types.FindMessageByName(name); err != nil {
-				return fmt.Errorf("cannot find data message %q for %q: %w", name, id, err)
-			}
+	if name := m.GetData().MessageName(); name != "" {
+		if _, err := opts.types.FindMessageByName(name); err != nil {
+			return fmt.Errorf("cannot find data message %q for %q: %w", name, id, err)
 		}
 	}
 

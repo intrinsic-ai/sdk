@@ -59,7 +59,7 @@ func Write(hdm *hdmpb.HardwareDeviceManifest, path string, options ...WriteOptio
 	if hdm == nil {
 		return fmt.Errorf("HardwareDeviceManifest must not be nil")
 	}
-	if err := hardwaredevicevalidate.HardwareDevice(hdm); err != nil {
+	if err := hardwaredevicevalidate.HardwareDeviceManifest(hdm); err != nil {
 		return fmt.Errorf("invalid HardwareDeviceManifest: %w", err)
 	}
 

@@ -16,17 +16,17 @@ import (
 	sopb "intrinsic/scene/proto/v1/scene_object_go_proto"
 )
 
-type sceneobjectManifestOptions struct {
+type sceneObjectManifestOptions struct {
 	files    *protoregistry.Files
 	gzfPaths map[string]string
 }
 
 // SceneObjectManifestOption is an option for validating a SceneObjectManifest.
-type SceneObjectManifestOption func(*sceneobjectManifestOptions)
+type SceneObjectManifestOption func(*sceneObjectManifestOptions)
 
 // WithFiles adds a protoregistry.Files for validating proto messages.
 func WithFiles(files *protoregistry.Files) SceneObjectManifestOption {
-	return func(opts *sceneobjectManifestOptions) {
+	return func(opts *sceneObjectManifestOptions) {
 		opts.files = files
 	}
 }
@@ -35,14 +35,14 @@ func WithFiles(files *protoregistry.Files) SceneObjectManifestOption {
 //
 // Must be specified if the manifest specifies GZF files.
 func WithGZFPaths(gzfPaths map[string]string) SceneObjectManifestOption {
-	return func(opts *sceneobjectManifestOptions) {
+	return func(opts *sceneObjectManifestOptions) {
 		opts.gzfPaths = gzfPaths
 	}
 }
 
 // SceneObjectManifest validates a SceneObjectManifest.
 func SceneObjectManifest(m *sompb.SceneObjectManifest, options ...SceneObjectManifestOption) error {
-	opts := &sceneobjectManifestOptions{}
+	opts := &sceneObjectManifestOptions{}
 	for _, opt := range options {
 		opt(opts)
 	}

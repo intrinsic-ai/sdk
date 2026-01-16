@@ -98,17 +98,17 @@ var (
 )
 
 // ProcessManifest validates a ProcessManifest.
-func ProcessManifest(manifest *pmpb.ProcessManifest) error {
-	if manifest == nil {
+func ProcessManifest(m *pmpb.ProcessManifest) error {
+	if m == nil {
 		return fmt.Errorf("ProcessManifest must not be nil")
 	}
 
-	metadata := manifest.GetMetadata()
+	metadata := m.GetMetadata()
 	if err := metadatautils.ValidateManifestMetadata(metadata); err != nil {
 		return fmt.Errorf("invalid ProcessManifest metadata: %w", err)
 	}
 
-	return validateBehaviorTree(manifest.GetBehaviorTree(), validateBehaviorTreeOptions{
+	if err := validateBehaviorTree(m.GetBehaviorTree(), validateBehaviorTreeOptions{
 		assetID:            metadata.GetId(),
 		assetDisplayName:   metadata.GetDisplayName(),
 		assetDocumentation: metadata.GetDocumentation(),
@@ -116,7 +116,11 @@ func ProcessManifest(manifest *pmpb.ProcessManifest) error {
 		// partially. However, metadata fields which are filled in the Skill proto must be consistent
 		// with the Asset metadata.
 		requireFilledSkillMetadata: false,
-	})
+	}); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type processAssetOptions struct {
