@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.solution.v1;
 
+import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 import "intrinsic/executive/proto/behavior_tree.proto";
 import "intrinsic/frontend/solution_service/proto/status.proto";
@@ -14,11 +15,19 @@ option go_package = "intrinsic/frontend/solution_service/proto/solution_service_
 service SolutionService {
 
   // Gets the status of the running solution.
-  rpc GetStatus(GetStatusRequest) returns (Status);
+  rpc GetStatus(GetStatusRequest) returns (Status) {
+    option (google.api.http) = {
+      get: "/solution/v1/status"
+    };
+  }
 
   // Gets a single behavior tree from the running solution.
   rpc GetBehaviorTree(GetBehaviorTreeRequest)
-      returns (intrinsic_proto.executive.BehaviorTree);
+      returns (intrinsic_proto.executive.BehaviorTree) {
+    option (google.api.http) = {
+      get: "/solution/v1/behaviorTrees/{name}"
+    };
+  }
 
   // Gets multiple behavior trees from the running solution.
   rpc BatchGetBehaviorTrees(BatchGetBehaviorTreesRequest)
@@ -26,7 +35,11 @@ service SolutionService {
 
   // Lists behavior trees from the running solution.
   rpc ListBehaviorTrees(ListBehaviorTreesRequest)
-      returns (ListBehaviorTreesResponse);
+      returns (ListBehaviorTreesResponse) {
+    option (google.api.http) = {
+      get: "/solution/v1/behaviorTrees"
+    };
+  }
 
   // Creates a new behavior tree in the running solution.
   rpc CreateBehaviorTree(CreateBehaviorTreeRequest)

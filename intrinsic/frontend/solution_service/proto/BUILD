@@ -6,7 +6,8 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
-load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
+load("//bazel:go_macros.bzl", "go_proto_library")
+load("//intrinsic/httpjson:go_grpc_http_library.bzl", "go_grpc_http_library")
 load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "proto_source_code_info_transitive_descriptor_set")
 
 package(default_visibility = ["//intrinsic:public_api_users"])
@@ -17,6 +18,7 @@ proto_library(
     deps = [
         ":status_proto",
         "//intrinsic/executive/proto:behavior_tree_proto",
+        "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_protobuf//:empty_proto",
     ],
 )
@@ -56,16 +58,20 @@ go_proto_library(
     go_deps = [
         ":status_go_proto",
         "//intrinsic/executive/proto:behavior_tree_go_proto",
+        "@org_golang_google_genproto_googleapis_api//annotations",
     ],
     deps = [":solution_service_proto"],
 )
 
-go_grpc_library(
+go_grpc_http_library(
     name = "solution_service_go_grpc_proto",
-    srcs = [":solution_service_proto"],
+    protos = [
+        ":solution_service_proto",
+    ],
     deps = [
         ":status_go_proto",
         "//intrinsic/executive/proto:behavior_tree_go_proto",
+        "@org_golang_google_genproto_googleapis_api//annotations",
         "@org_golang_google_protobuf//types/known/emptypb",
     ],
 )
