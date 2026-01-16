@@ -58,7 +58,7 @@ func TestUserFromJWTRaw(t *testing.T) {
 func TestUserFromRequest(t *testing.T) {
 	t.Run("cookie", func(t *testing.T) {
 		r := httptest.NewRequest(http.MethodGet, "/", nil)
-		r.AddCookie(&http.Cookie{Name: authProxyCookieName, Value: token})
+		r.AddCookie(&http.Cookie{Name: AuthProxyCookieName, Value: token})
 		u, err := UserFromRequest(r)
 		if err != nil {
 			t.Fatal(err)
@@ -98,7 +98,7 @@ func TestUserToRequest(t *testing.T) {
 	u := &User{jwt: token}
 	UserToRequest(r, &User{jwt: "overwrite me please"})
 	UserToRequest(r, u)
-	if cookies.FromRequestNamed(r, []string{authProxyCookieName})[0].Value != token {
+	if cookies.FromRequestNamed(r, []string{AuthProxyCookieName})[0].Value != token {
 		t.Errorf("UserToRequest(..) did not add the user's identity to the request")
 	}
 	if len(r.Cookies()) != 1 {
@@ -108,7 +108,7 @@ func TestUserToRequest(t *testing.T) {
 
 func TestUserFromMetadata(t *testing.T) {
 	ctx := metadata.NewIncomingContext(t.Context(),
-		metadata.Pairs(cookies.CookieHeaderName, authProxyCookieName+"="+token))
+		metadata.Pairs(cookies.CookieHeaderName, AuthProxyCookieName+"="+token))
 
 	u, err := UserFromContext(ctx)
 	if err != nil {
@@ -126,7 +126,7 @@ func TestUserToContext(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := []string{authProxyCookieName + "=" + token}
+	want := []string{AuthProxyCookieName + "=" + token}
 	md, _ := metadata.FromOutgoingContext(ctx)
 	if diff := cmp.Diff(want, md.Get(cookies.CookieHeaderName)); diff != "" {
 		t.Errorf("UserToContext(..) did not add the user's identity to the context (-want +got):\n%s", diff)
@@ -138,7 +138,7 @@ func TestUserToContext(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want = []string{authProxyCookieName + "=" + token2}
+	want = []string{AuthProxyCookieName + "=" + token2}
 	md, _ = metadata.FromOutgoingContext(ctx)
 	if diff := cmp.Diff(want, md.Get(cookies.CookieHeaderName)); diff != "" {
 		t.Errorf("UserToContext(..) did not add the user's identity to the context (-want +got):\n%s", diff)
@@ -153,7 +153,7 @@ func TestUserToIncomingContext(t *testing.T) {
 		t.Fatal(err)
 	}
 	md, _ := metadata.FromIncomingContext(ctx)
-	if md.Get(cookies.CookieHeaderName)[0] != authProxyCookieName+"="+token {
+	if md.Get(cookies.CookieHeaderName)[0] != AuthProxyCookieName+"="+token {
 		t.Errorf("UserToIncomingContext(..) did not add the user's identity to the context")
 	}
 }
@@ -284,7 +284,7 @@ func metadataTest(t *testing.T, wantMd map[string]string, gotMd metadata.MD) {
 
 func TestEnsureAuthProxyCookie(t *testing.T) {
 	requestWithAuthProxy := httptest.NewRequest(http.MethodGet, "/", nil)
-	requestWithAuthProxy.AddCookie(&http.Cookie{Name: authProxyCookieName, Value: token})
+	requestWithAuthProxy.AddCookie(&http.Cookie{Name: AuthProxyCookieName, Value: token})
 
 	requestWithOnPrem := httptest.NewRequest(http.MethodGet, "/", nil)
 	requestWithOnPrem.AddCookie(&http.Cookie{Name: onpremTokenCookieName, Value: token2})
@@ -293,7 +293,7 @@ func TestEnsureAuthProxyCookie(t *testing.T) {
 	requestWithPortal.AddCookie(&http.Cookie{Name: portalCookieName, Value: token2})
 
 	requestWithBoth := httptest.NewRequest(http.MethodGet, "/", nil)
-	requestWithBoth.AddCookie(&http.Cookie{Name: authProxyCookieName, Value: token})
+	requestWithBoth.AddCookie(&http.Cookie{Name: AuthProxyCookieName, Value: token})
 	requestWithBoth.AddCookie(&http.Cookie{Name: onpremTokenCookieName, Value: token2})
 
 	tests := []struct {
@@ -340,7 +340,7 @@ func TestEnsureAuthProxyCookie(t *testing.T) {
 			}
 
 			if !tc.wantError {
-				cookie, err := tc.request.Cookie(authProxyCookieName)
+				cookie, err := tc.request.Cookie(AuthProxyCookieName)
 				if err != nil {
 					t.Errorf("EnsureAuthProxyCookie(%v) has no auth-proxy cookie", tc.request)
 				}
@@ -413,7 +413,7 @@ type UserFromRequestVerifiedTest struct {
 
 func TestUserFromRequestVerified(t *testing.T) {
 	withAuthCookie := httptest.NewRequest(http.MethodGet, "/", nil)
-	withAuthCookie.AddCookie(&http.Cookie{Name: authProxyCookieName, Value: token})
+	withAuthCookie.AddCookie(&http.Cookie{Name: AuthProxyCookieName, Value: token})
 	tests := []UserFromRequestVerifiedTest{
 		{
 			desc:    "no auth",
@@ -466,7 +466,7 @@ type UserFromContextVerifiedTest struct {
 
 func TestUserFromContextVerified(t *testing.T) {
 	withAuthCookie := metadata.NewIncomingContext(t.Context(),
-		metadata.Pairs(cookies.CookieHeaderName, authProxyCookieName+"="+token))
+		metadata.Pairs(cookies.CookieHeaderName, AuthProxyCookieName+"="+token))
 	tests := []UserFromContextVerifiedTest{
 		{
 			desc:    "no auth",
@@ -615,7 +615,7 @@ func TestToContextFromIncoming(t *testing.T) {
 			desc: "incoming auth-proxy and cookie with multiple values",
 			incoming: metadata.NewIncomingContext(t.Context(),
 				metadata.Pairs(
-					authProxyCookieName, "anything", // do not copy over deprecated auth-proxy
+					AuthProxyCookieName, "anything", // do not copy over deprecated auth-proxy
 					cookies.CookieHeaderName, "something",
 					cookies.CookieHeaderName, "something2",
 				),
@@ -825,12 +825,12 @@ func TestContextToRequest(t *testing.T) {
 		{
 			name:   "with-auth-coookie",
 			noAuth: false,
-			meta:   metadata.New(map[string]string{cookies.CookieHeaderName: authProxyCookieName + "=" + token + "; " + org.OrgIDCookie + "=" + "testorg"}),
+			meta:   metadata.New(map[string]string{cookies.CookieHeaderName: AuthProxyCookieName + "=" + token + "; " + org.OrgIDCookie + "=" + "testorg"}),
 		},
 		{
 			name:   "with-duplicated-auth-coookie",
 			noAuth: false,
-			meta:   metadata.New(map[string]string{cookies.CookieHeaderName: authProxyCookieName + "=" + token2 + "; " + authProxyCookieName + "=" + token + "; " + org.OrgIDCookie + "=" + "wrongorg" + "; " + org.OrgIDCookie + "=" + "testorg"}),
+			meta:   metadata.New(map[string]string{cookies.CookieHeaderName: AuthProxyCookieName + "=" + token2 + "; " + AuthProxyCookieName + "=" + token + "; " + org.OrgIDCookie + "=" + "wrongorg" + "; " + org.OrgIDCookie + "=" + "testorg"}),
 		},
 		{
 			name:   "with-apikey-meta",

@@ -72,7 +72,8 @@ type UserOrg struct {
 }
 
 const (
-	authProxyCookieName   = "auth-proxy"
+	// AuthProxyCookieName is the name of the cookie for storing the auth proxy token
+	AuthProxyCookieName   = "auth-proxy"
 	onpremTokenCookieName = "onprem-token"
 	portalCookieName      = "portal-token"
 	authHeaderName        = "authorization"
@@ -84,14 +85,14 @@ const (
 	IntrinsicIPCEmailSuffix = "@ipc.intrinsic.ai"
 )
 
-var cookieHeaders = []string{authProxyCookieName, onpremTokenCookieName, portalCookieName}
+var cookieHeaders = []string{AuthProxyCookieName, onpremTokenCookieName, portalCookieName}
 
 // UserToRequest adds the user's identity to an HTTP request.
 func UserToRequest(r *http.Request, u *User) {
 	_, span := trace.StartSpan(r.Context(), "identity.UserToRequest")
 	defer span.End()
 
-	cookies.AddToRequest(r, &http.Cookie{Name: authProxyCookieName, Value: u.jwt})
+	cookies.AddToRequest(r, &http.Cookie{Name: AuthProxyCookieName, Value: u.jwt})
 }
 
 // Email retrieves the canonalized user or service email of an identity.
@@ -119,7 +120,7 @@ func (i *User) EmailCanonicalized() string {
 
 // UserToContext adds the user's identity to a gRPC context.
 func UserToContext(ctx context.Context, u *User) (context.Context, error) {
-	return cookies.AddToContext(ctx, &http.Cookie{Name: authProxyCookieName, Value: u.jwt})
+	return cookies.AddToContext(ctx, &http.Cookie{Name: AuthProxyCookieName, Value: u.jwt})
 }
 
 var (

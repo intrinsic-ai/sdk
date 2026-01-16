@@ -152,6 +152,13 @@ func FromContext(ctx context.Context) ([]*http.Cookie, error) {
 		return nil, nil
 	}
 
+	return FromMD(md)
+}
+
+// FromMD extracts the "Cookies" from a GRPC metadata.MD.
+// Cookie here refers to a mapped metadata that mirrors http cookies and is used to unify handling
+// of http and GRPC based metadata in our stack.
+func FromMD(md metadata.MD) ([]*http.Cookie, error) {
 	cookies := md.Get(CookieHeaderName)
 	// If there's no cookies set, it's an empty list.
 	if len(cookies) == 0 {
@@ -160,7 +167,7 @@ func FromContext(ctx context.Context) ([]*http.Cookie, error) {
 
 	// If there's more than one cookie header, we attempt to merge them.
 	if len(cookies) > 1 {
-		log.WarningContextf(ctx, "Multiple cookie headers found, attempting to merge them...")
+		log.Warningf("Multiple cookie headers found, attempting to merge them...")
 		cs, err := mergeCookies(cookies...)
 		if err != nil {
 			return nil, fmt.Errorf("failed to merge cookies: %v", err)
