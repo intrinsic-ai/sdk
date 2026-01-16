@@ -78,6 +78,7 @@ var projectLayouts = map[string]projectFolder{
 	"cpp": {
 		buildTemplateFilename: "BUILD_cc_fragment.template",
 		buildozerCommands: []string{
+			"new_load @rules_python//python:defs.bzl py_binary",
 			"new_load @com_google_protobuf//bazel:proto_library.bzl proto_library",
 			"new_load @com_google_protobuf//bazel:cc_proto_library.bzl cc_proto_library",
 			"new_load @ai_intrinsic_sdks//bazel:skills.bzl cc_skill",
