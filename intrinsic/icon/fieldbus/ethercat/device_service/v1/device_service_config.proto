@@ -1,0 +1,33 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.fieldbus.ethercat.device_service.v1;
+
+import "intrinsic/assets/proto/field_metadata.proto";
+import "intrinsic/assets/proto/v1/resolved_dependency.proto";
+
+option go_package = "intrinsic/icon/fieldbus/ethercat/device_service/v1/device_service_config_go_proto";
+
+// An identifier for the type and version of an EtherCAT bus device.
+// A single ESI or device service can define multiple such products or
+// revisions, so we need to strictly define the exact type once. Service
+// implementations are expected to validate that the provided DeviceIdentifier
+// matches the type of the device.
+message DeviceIdentifier {
+  int32 vendor_id = 1;
+  int32 product_code = 2;
+  int32 revision = 3;
+}
+
+// The device-specific EtherCAT configuration message.
+// This mapping will eventually contain the mapping from bus variables to
+// hardware interfaces.
+message DeviceServiceConfig {
+  // Identifies the device at hand.
+  DeviceIdentifier device_identifier = 1;
+  intrinsic_proto.assets.v1.ResolvedDependency
+      esi_bundle = 2 [(intrinsic_proto.assets.field_metadata).dependency = {
+    requires: "data://intrinsic_proto.fieldbus.ethercat.device_service.v1.EsiBundle",
+  }];
+}

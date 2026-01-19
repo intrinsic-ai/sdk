@@ -1,0 +1,6 @@
+# Copyright 2023 Intrinsic Innovation LLC
+
+# proto-file: google/protobuf/any.proto
+# proto-message: Any
+[type.googleapis.com/intrinsic_proto.fieldbus.ethercat.device_service.v1.DeviceServiceConfig] {
+}

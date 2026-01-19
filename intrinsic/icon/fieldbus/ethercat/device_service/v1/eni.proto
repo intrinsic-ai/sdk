@@ -1,0 +1,15 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.fieldbus.ethercat.device_service.v1;
+
+option go_package = "intrinsic/icon/fieldbus/ethercat/device_service/v1/eni_go_proto";
+option java_multiple_files = true;  // See http://go/proto-best-practices-checkers#java_features
+option java_outer_classname = "EniOuterClass";
+
+// Represents the content of an EtherCAT Network Information (ENI) file.
+message Eni {
+  // The raw xml data of the ENI file.
+  string data = 1;
+}

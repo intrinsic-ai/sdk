@@ -1,0 +1,33 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.fieldbus.ethercat.device_service.v1;
+
+import "intrinsic/assets/proto/id.proto";
+import "intrinsic/icon/fieldbus/ethercat/device_service/v1/device_service_config.proto";
+import "intrinsic/icon/fieldbus/ethercat/device_service/v1/esi.proto";
+
+option go_package = "intrinsic/icon/fieldbus/ethercat/device_service/v1/device_service_go_proto";
+
+// Request to get the configuration of the EtherCAT bus device.
+message GetConfigurationRequest {}
+
+// Response to the GetConfiguration request.
+message GetConfigurationResponse {
+  // The configuration of the EtherCAT fieldbus device, which includes the
+  // mapping from bus variables to what will later become hardware interfaces.
+  DeviceServiceConfig device_service_config = 1;
+
+  // The ESI bundle Data Asset.
+  EsiBundle esi_bundle = 2;
+}
+
+// The DeviceService provides information and variable mapping information about
+// a single EtherCAT bus device.
+// It is used to configure the EtherCAT hardware module.
+service DeviceService {
+  // Returns the EtherCAT configuration for a particular device.
+  rpc GetConfiguration(GetConfigurationRequest)
+      returns (GetConfigurationResponse) {}
+}

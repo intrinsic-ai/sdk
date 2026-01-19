@@ -1,0 +1,27 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.fieldbus.ethercat.device_service.v1;
+
+option go_package = "intrinsic/icon/fieldbus/ethercat/device_service/v1/esi_go_proto";
+option java_multiple_files = true;  // See http://go/proto-best-practices-checkers#java_features
+option java_outer_classname = "EsiOuterClass";
+
+// Represents the content of an EtherCAT SubDevice Information (ESI) file.
+message Esi {
+  // The raw xml data of the ESI file.
+  string data = 1;
+}
+
+// Represents a bundle of ESI files.
+// The ESI schema allows for references between multiple ESI-related files.
+// These references can be realised through an `InfoReference` field for
+// EtherCATInfo files, a `DictionaryFile` field for EtherCATDict files, or a
+// `DiagInfo` field for EtherCATDiag files. These files are typically located in
+// the same folder, a parent or a subfolder of each other. This message is used
+// to bundle these files together and provide the file path to the each file.
+message EsiBundle {
+  // The ESI files, keyed by their relative path inside the bundle.
+  map<string, Esi> files = 1;
+}
