@@ -516,6 +516,12 @@ message CreateLogReceiverUpdateRequest {
 
 message LogReceiverUpdate {}
 
+message PoweroffClusterRequest {
+  string cluster_name = 1 [(google.api.field_behavior) = REQUIRED];
+}
+// This isn't empty because it might get an LRO identifier at some point.
+message PoweroffClusterResponse {};
+
 // ClustersService holds a set of methods to interact with clusters.
 service ClustersService {
 
@@ -670,6 +676,16 @@ service ClustersService {
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "DeleteCluster"
+    };
+  }
+
+  rpc PoweroffCluster(PoweroffClusterRequest)
+      returns (PoweroffClusterResponse) {
+    option (google.api.http) = {
+      post: "/v1/project/{project}/org/{org}/clusters/{cluster_name}:poweroff"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "PoweroffCluster"
     };
   }
 

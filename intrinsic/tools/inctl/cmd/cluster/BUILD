@@ -11,6 +11,7 @@ go_library(
         "cluster_delete.go",
         "cluster_list.go",
         "cluster_mode.go",
+        "cluster_poweroff.go",
         "cluster_upgrade.go",
         "cluster_ups.go",
     ],
