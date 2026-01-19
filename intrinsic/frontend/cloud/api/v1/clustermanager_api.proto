@@ -520,7 +520,13 @@ message PoweroffClusterRequest {
   string cluster_name = 1 [(google.api.field_behavior) = REQUIRED];
 }
 // This isn't empty because it might get an LRO identifier at some point.
-message PoweroffClusterResponse {};
+message PoweroffClusterResponse {}
+
+message RebootClusterRequest {
+  string cluster_name = 1 [(google.api.field_behavior) = REQUIRED];
+}
+// This isn't empty because it might get an LRO identifier at some point.
+message RebootClusterResponse {}
 
 // ClustersService holds a set of methods to interact with clusters.
 service ClustersService {
@@ -686,6 +692,15 @@ service ClustersService {
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "PoweroffCluster"
+    };
+  }
+
+  rpc RebootCluster(RebootClusterRequest) returns (RebootClusterResponse) {
+    option (google.api.http) = {
+      post: "/v1/project/{project}/org/{org}/clusters/{cluster_name}:reboot"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "RebootCluster"
     };
   }
 
