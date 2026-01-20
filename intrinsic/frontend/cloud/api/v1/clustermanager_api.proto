@@ -688,7 +688,7 @@ service ClustersService {
   rpc PoweroffCluster(PoweroffClusterRequest)
       returns (PoweroffClusterResponse) {
     option (google.api.http) = {
-      post: "/v1/project/{project}/org/{org}/clusters/{cluster_name}:poweroff"
+      post: "/v1/project/*/org/*/clusters/{cluster_name}:poweroff"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "PoweroffCluster"
@@ -697,7 +697,7 @@ service ClustersService {
 
   rpc RebootCluster(RebootClusterRequest) returns (RebootClusterResponse) {
     option (google.api.http) = {
-      post: "/v1/project/{project}/org/{org}/clusters/{cluster_name}:reboot"
+      post: "/v1/project/*/org/*/clusters/{cluster_name}:reboot"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "RebootCluster"
