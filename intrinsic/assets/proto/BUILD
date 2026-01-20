@@ -10,7 +10,7 @@ load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
 proto_library(
     name = "field_metadata_proto",
     srcs = ["field_metadata.proto"],
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/assets/proto/v1:dependency_proto",
         "@com_google_protobuf//:descriptor_proto",
@@ -19,7 +19,7 @@ proto_library(
 
 cc_proto_library(
     name = "field_metadata_cc_proto",
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = ["//intrinsic:public_api_users"],
     deps = [":field_metadata_proto"],
 )
 
@@ -28,12 +28,13 @@ go_proto_library(
     go_deps = [
         "//intrinsic/assets/proto/v1:dependency_go_proto",
     ],
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = ["//intrinsic:public_api_users"],
     deps = [":field_metadata_proto"],
 )
 
 py_proto_library(
     name = "field_metadata_py_pb2",
+    visibility = ["//intrinsic:public_api_users"],
     deps = [":field_metadata_proto"],
 )
 
