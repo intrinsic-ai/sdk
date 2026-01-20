@@ -295,6 +295,7 @@ py_library(
         ":errors",
         ":execution",
         ":installed_assets",
+        ":kvstore",
         ":motion_planning",
         ":perception",
         ":pose_estimation",
@@ -404,6 +405,32 @@ py_library(
         "//intrinsic/skills/proto:skill_registry_config_py_pb2",
         "//intrinsic/util/grpc:error_handling",
         requirement("grpcio"),
+    ],
+)
+
+py_library(
+    name = "kvstore",
+    srcs = ["kvstore.py"],
+    deps = [
+        ":deployments",
+        "//intrinsic/platform/pubsub/kvstore_grpc:kvstore_py_pb2",
+        "//intrinsic/platform/pubsub/kvstore_grpc:kvstore_py_pb2_grpc",
+        "//intrinsic/util/grpc:error_handling",
+        requirement("grpcio"),
+        "@com_google_protobuf//:protobuf_python",
+    ],
+)
+
+py_test(
+    name = "kvstore_test",
+    srcs = ["kvstore_test.py"],
+    deps = [
+        ":kvstore",
+        "//intrinsic/platform/pubsub/kvstore_grpc:kvstore_py_pb2",
+        "//intrinsic/platform/pubsub/kvstore_grpc:kvstore_py_pb2_grpc",
+        requirement("grpcio"),
+        "@com_google_absl_py//absl/testing:absltest",
+        "@com_google_protobuf//:protobuf_python",
     ],
 )
 
