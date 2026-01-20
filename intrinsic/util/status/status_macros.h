@@ -37,6 +37,11 @@ class Status;
 //     return absl::OkStatus();
 //   }
 //
+// The `StatusBuilder` can be used to directly log the error:
+// For example:
+//   INTR_RETURN_IF_ERROR(Function(args...)).LogError();
+// Check `StatusBuilder` for additional options.
+//
 // If using this macro inside a lambda, you need to annotate the return type
 // to avoid confusion between a `StatusBuilder` and an `absl::Status` type.
 // E.g.
