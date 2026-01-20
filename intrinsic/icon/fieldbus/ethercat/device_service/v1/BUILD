@@ -4,6 +4,7 @@ load("@com_github_grpc_grpc//bazel:cc_grpc_library.bzl", "cc_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
+load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "proto_source_code_info_transitive_descriptor_set")
 
 package(default_visibility = [
     "//visibility:public",
@@ -41,6 +42,11 @@ proto_library(
         ":esi_proto",
         "//intrinsic/assets/proto:id_proto",
     ],
+)
+
+proto_source_code_info_transitive_descriptor_set(
+    name = "device_service_proto_descriptor_set",
+    deps = [":device_service_proto"],
 )
 
 proto_library(
