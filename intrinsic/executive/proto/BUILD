@@ -7,6 +7,7 @@ load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
+load("//intrinsic/httpjson:go_grpc_http_library.bzl", "go_grpc_http_library")
 load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "proto_source_code_info_transitive_descriptor_set")
 
 package(default_visibility = ["//intrinsic:public_api_users"])
@@ -128,6 +129,7 @@ proto_library(
         ":behavior_tree_proto",
         ":executive_execution_mode_proto",
         ":run_metadata_proto",
+        "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_googleapis//google/longrunning:operations_proto",
         "@com_google_protobuf//:any_proto",
         "@com_google_protobuf//:empty_proto",
@@ -177,9 +179,9 @@ go_proto_library(
     deps = [":executive_service_proto"],
 )
 
-go_grpc_library(
+go_grpc_http_library(
     name = "executive_service_go_grpc_proto",
-    srcs = [":executive_service_proto"],
+    protos = [":executive_service_proto"],
     deps = [
         ":behavior_tree_go_proto",
         ":executive_execution_mode_go_proto",

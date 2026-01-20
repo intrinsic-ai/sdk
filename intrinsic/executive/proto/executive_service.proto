@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.executive;
 
+import "google/api/annotations.proto";
 import "google/longrunning/operations.proto";
 import "google/protobuf/any.proto";
 import "google/protobuf/empty.proto";
@@ -66,11 +67,19 @@ service ExecutiveService {
       response_type: "RunResponse"
       metadata_type: "RunMetadata"
     };
+    option (google.api.http) = {
+      post: "/executive/v0/operations"
+      body: "*"
+    };
   }
 
   // Lists all active operations.
   rpc ListOperations(google.longrunning.ListOperationsRequest)
-      returns (google.longrunning.ListOperationsResponse) {}
+      returns (google.longrunning.ListOperationsResponse) {
+    option (google.api.http) = {
+      get: "/executive/v0/operations"
+    };
+  }
 
   // Get a particular operation by name.
   // The returned operation can be used to:
@@ -78,7 +87,11 @@ service ExecutiveService {
   // - access the result when done (`error` or `response` field set)
   // - inspect the detailed state in the operation's metadata.
   rpc GetOperation(google.longrunning.GetOperationRequest)
-      returns (google.longrunning.Operation) {}
+      returns (google.longrunning.Operation) {
+    option (google.api.http) = {
+      get: "/executive/v0/operations/{name}"
+    };
+  }
 
   // Get a particular operation's metadata by operation name.
   rpc GetOperationMetadata(GetOperationMetadataRequest) returns (RunMetadata) {}
@@ -96,12 +109,21 @@ service ExecutiveService {
   // returns an error if the operation's behavior tree is not in a WAITING
   // state.
   rpc DeleteOperation(google.longrunning.DeleteOperationRequest)
-      returns (google.protobuf.Empty) {}
+      returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/executive/v0/operations/{name}"
+    };
+  }
 
   // Starts the operation and thus the execution of its behavior tree. Only
   // valid if the behavior tree is in the ACCEPTED state.
   rpc StartOperation(StartOperationRequest)
-      returns (google.longrunning.Operation) {}
+      returns (google.longrunning.Operation) {
+    option (google.api.http) = {
+      post: "/executive/v0/operations/{name}:start"
+      body: "*"
+    };
+  }
 
   // Starts asynchronous cancellation on a long-running operation. Clients can
   // use GetOperation to check whether the cancellation succeeded or whether the
@@ -112,7 +134,11 @@ service ExecutiveService {
   //
   // Returns an error if the behavior tree is not in a cancellable state.
   rpc CancelOperation(google.longrunning.CancelOperationRequest)
-      returns (google.protobuf.Empty) {}
+      returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/executive/v0/operations/{name}:cancel"
+    };
+  }
 
   // Waits until the specified operation is done (SUCCEEDED, FAILED, or
   // CANCELED) or reaches at most a specified timeout, returning the latest
@@ -132,14 +158,24 @@ service ExecutiveService {
   //
   // Returns an error if the behavior tree is not RUNNING.
   rpc SuspendOperation(SuspendOperationRequest)
-      returns (google.protobuf.Empty) {}
+      returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/executive/v0/operations/{name}:suspend"
+      body: "*"
+    };
+  }
 
   // Resumes an operation by resuming its behavior tree. Returns an error if
   // called when the behavior tree is not in the SUSPENDED state. This method
   // returns immediately and does not wait for the tree to be fully resumed
   // (use GetOperation to see the operation's behavior tree state).
   rpc ResumeOperation(ResumeOperationRequest)
-      returns (google.longrunning.Operation) {}
+      returns (google.longrunning.Operation) {
+    option (google.api.http) = {
+      post: "/executive/v0/operations/{name}:resume"
+      body: "*"
+    };
+  }
 
   // Resets an operation and its associated behavior tree. This resets the
   // operation into a state as if it had just been created. If the reset
@@ -150,7 +186,12 @@ service ExecutiveService {
   // StartOperation after a reset.
   //
   // Returns an error if the behavior tree is not in a WAITING state.
-  rpc ResetOperation(ResetOperationRequest) returns (google.protobuf.Empty) {}
+  rpc ResetOperation(ResetOperationRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/executive/v0/operations/{name}:reset"
+      body: "*"
+    };
+  }
 
   // ========= Methods for breakpoints (on a specific behavior tree) ===========
 
