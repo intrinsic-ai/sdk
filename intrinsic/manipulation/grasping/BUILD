@@ -214,6 +214,7 @@ cc_proto_library(
 py_library(
     name = "grasp_annotator_client",
     srcs = ["grasp_annotator_client.py"],
+    visibility = ["//intrinsic:public_api_users"],
     deps = [
         ":grasp_annotations_py_pb2",
         ":grasp_annotator_py_pb2",
