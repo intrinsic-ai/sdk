@@ -325,4 +325,40 @@ GPIOClient::GetSignalDescriptions() {
   return response;
 }
 
+absl::StatusOr<intrinsic::Subscription> GPIOClient::SubscribeToSignal(
+    const std::string& signal, SignalValueCallback value_callback) {
+  INTR_ASSIGN_OR_RETURN(const auto response, GetSignalDescriptions());
+  const intrinsic_proto::gpio::v1::SignalDescription* found_desc = nullptr;
+  for (const auto& desc : response.signal_descriptions()) {
+    if (desc.signal_name() == signal) {
+      found_desc = &desc;
+      break;
+    }
+    bool found_in_alt = false;
+    for (const auto& alt_name : desc.alternate_signal_names()) {
+      if (alt_name == signal) {
+        found_desc = &desc;
+        found_in_alt = true;
+        break;
+      }
+    }
+    if (found_in_alt) {
+      break;
+    }
+  }
+
+  if (found_desc == nullptr) {
+    return absl::NotFoundError(absl::StrCat("Signal not found: ", signal));
+  }
+
+  if (found_desc->pubsub_topic_name().empty()) {
+    return absl::NotFoundError(
+        absl::StrCat("Signal '", signal, "' does not have a pubsub topic"));
+  }
+
+  return pubsub_.CreateSubscription<intrinsic_proto::gpio::v1::SignalValue>(
+      found_desc->pubsub_topic_name(), TopicConfig(),
+      std::move(value_callback));
+}
+
 };  // namespace intrinsic::gpio

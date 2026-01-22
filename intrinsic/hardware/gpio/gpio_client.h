@@ -13,6 +13,8 @@
 #include "absl/synchronization/mutex.h"
 #include "intrinsic/hardware/gpio/v1/gpio_service.grpc.pb.h"
 #include "intrinsic/hardware/gpio/v1/gpio_service.pb.h"
+#include "intrinsic/platform/pubsub/pubsub.h"
+#include "intrinsic/platform/pubsub/subscription.h"
 #include "intrinsic/util/grpc/channel_interface.h"
 #include "intrinsic/util/grpc/connection_params.h"
 
@@ -91,6 +93,16 @@ class GPIOClient {
   absl::StatusOr<intrinsic_proto::gpio::v1::GetSignalDescriptionsResponse>
   GetSignalDescriptions();
 
+  using SignalValueCallback = std::function<void(
+      const intrinsic_proto::gpio::v1::SignalValue& signal_value)>;
+  // Subscribes to the specified signal. The `value_callback` is invoked
+  // whenever a new value is published for the signal on its PubSub topic.
+  // Returns a subscription object that controls the lifetime of the
+  // subscription. If the signal is not found, or if it does not have an
+  // associated PubSub topic, an error is returned.
+  absl::StatusOr<intrinsic::Subscription> SubscribeToSignal(
+      const std::string& signal, SignalValueCallback value_callback);
+
  private:
   // Creates grpc client channel to GPIO service. This method should be called
   // before initiating an rpc call. This method is thread-safe and can be called
@@ -139,6 +151,8 @@ class GPIOClient {
 
   // Mutex to guard client channel creation
   absl::Mutex create_channel_mutex_;
+
+  intrinsic::PubSub pubsub_;
 };
 
 };  // namespace intrinsic::gpio
