@@ -8,6 +8,7 @@ from absl.testing import absltest
 import grpc
 
 from intrinsic.kubernetes.acl.ipcidentity import ipcidentity
+from intrinsic.kubernetes.acl.py import identity
 from intrinsic.util.grpc import grpc_utils
 
 
@@ -59,6 +60,48 @@ class GrpcUtilsTest(absltest.TestCase):
     mock_add_auth_header.assert_called_once_with(
         mock_create_channel.return_value, mock.ANY
     )
+    self.assertEqual(channel, mock_add_auth_header.return_value)
+
+  @mock.patch.object(identity, 'OrgNameCallCredentials', autospec=True)
+  @mock.patch.object(grpc_utils, '_get_compute_project', autospec=True)
+  @mock.patch.object(grpc_utils, '_add_auth_header', autospec=True)
+  @mock.patch.object(grpc, 'composite_channel_credentials', autospec=True)
+  @mock.patch.object(grpc, 'secure_channel', autospec=True)
+  @mock.patch.object(grpc, 'ssl_channel_credentials', autospec=True)
+  def test_create_cloud_channel_with_org(
+      self,
+      mock_ssl_channel_credentials,
+      mock_secure_channel,
+      mock_composite_channel_credentials,
+      mock_add_auth_header,
+      mock_get_compute_project,
+      mock_org_name_call_credentials,
+  ):
+    mock_get_compute_project.return_value = 'test-project'
+    mock_add_auth_header.return_value = mock.MagicMock()
+
+    mock_secure_channel.return_value = mock.MagicMock()
+    mock_composite_channel_credentials.return_value = mock.MagicMock()
+    mock_ssl_channel_credentials.return_value = mock.MagicMock()
+    mock_org_name_call_credentials.return_value = mock.MagicMock()
+
+    channel = grpc_utils.create_cloud_channel('my_org')
+
+    mock_secure_channel.assert_called_once_with(
+        'www.endpoints.test-project.cloud.goog:443',
+        mock_composite_channel_credentials.return_value,
+        options=[('grpc.max_receive_message_length', -1)],
+    )
+
+    mock_composite_channel_credentials.assert_called_once_with(
+        mock_ssl_channel_credentials.return_value,
+        mock_org_name_call_credentials.return_value,
+    )
+
+    mock_org_name_call_credentials.assert_called_once_with('my_org')
+
+    mock_get_compute_project.assert_called_once()
+
     self.assertEqual(channel, mock_add_auth_header.return_value)
 
   @mock.patch.object(grpc, 'ssl_channel_credentials', autospec=True)

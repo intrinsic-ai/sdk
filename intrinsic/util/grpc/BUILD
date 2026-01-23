@@ -195,6 +195,7 @@ py_library(
         "//intrinsic/config:environments_py",
         "//intrinsic/kubernetes/acl/ipcidentity:ipcidentity_py",
         "//intrinsic/kubernetes/acl/ipcidentity/internal:metadata",
+        "//intrinsic/kubernetes/acl/py:identity",
         requirement("grpcio"),
     ],
 )
