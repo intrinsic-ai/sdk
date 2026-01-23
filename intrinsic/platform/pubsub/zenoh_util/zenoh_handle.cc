@@ -17,13 +17,13 @@
 
 namespace intrinsic {
 
-constexpr char libZenohPath[] = "intrinsic/insrc/middleware/libimw_zenoh.so.1";
+constexpr char libZenohPath[] = "intrinsic/middleware/libimw_zenoh.so.1";
 // NOLINTBEGIN(clang-diagnostic-unused-const-variable)
 constexpr char libTestMsanZenohPath[] =
-    "intrinsic/insrc/middleware/"
+    "intrinsic/middleware/"
     "libimw_intraprocess_only_msan.so.1";
 constexpr char libTestTsanZenohPath[] =
-    "intrinsic/insrc/middleware/"
+    "intrinsic/middleware/"
     "libimw_intraprocess_only_tsan.so.1";
 // NOLINTEND(clang-diagnostic-unused-const-variable)
 

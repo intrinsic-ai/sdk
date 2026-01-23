@@ -20,7 +20,7 @@ cc_library(
     srcs = ["zenoh_handle.cc"],
     hdrs = ["zenoh_handle.h"],
     data = [
-        "//intrinsic/insrc/middleware:libimw_zenoh.so.1",
+        "//intrinsic/middleware:libimw_zenoh.so.1",
     ],
     linkopts = ["-ldl"],  # for dlfcn.h, dlsym in zenoh_handle.cc
     visibility = ["//intrinsic/platform/pubsub:__subpackages__"],
