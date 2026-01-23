@@ -114,6 +114,18 @@ message WithNestedFields {
   string unaffected_field = 4;
 }
 
+message WithTwoSameNestedFields {
+  message Nested {
+    intrinsic_proto.assets.v1.ResolvedDependency simple_dependency = 1 [
+      (intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "grpc://intrinsic_proto.motion_planning.MotionPlannerService",
+      }
+    ];
+  }
+  Nested nested1 = 1;
+  Nested nested2 = 2;
+}
+
 message WithOptionalDependency {
   optional intrinsic_proto.assets.v1.ResolvedDependency optional_dependency = 1
       [(intrinsic_proto.assets.field_metadata).dependency = {
@@ -173,4 +185,24 @@ message WithAlwaysProvideConnectionInfo {
         requires: "grpc://intrinsic_proto.motion_planning.MotionPlannerService",
         skill_annotations: { always_provide_connection_info: true }
       }];
+}
+
+message RecursiveConfig {
+  intrinsic_proto.assets.v1.ResolvedDependency dependency = 1
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "grpc://intrinsic_proto.motion_planning.MotionPlannerService",
+      }];
+  RecursiveConfig recursive = 2;
+  map<string, RecursiveConfig> recursive_map = 3;
+}
+
+message WithOneofDependency {
+  oneof dependency_oneof {
+    intrinsic_proto.assets.v1.ResolvedDependency oneof_dependency = 1 [
+      (intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "grpc://intrinsic_proto.motion_planning.MotionPlannerService",
+      }
+    ];
+    string other_field = 2;
+  }
 }
