@@ -136,8 +136,6 @@ func getLogsFromCloud(ctx context.Context, eventSource string, dir string) error
 	}
 	fmt.Println("Finished creating cloud cache.")
 	fmt.Println("Getting logs from cloud cache and writing to disk...This may take a while.")
-	// Initial sleep to allow the logs to be loaded into the cloud cache.
-	time.Sleep(30 * time.Second)
 	getReq := &dpb.GetCloudLogItemsRequest{
 		Query: &dpb.GetCloudLogItemsRequest_GetQuery{
 			GetQuery: &dpb.GetCloudLogItemsRequest_Query{
@@ -154,11 +152,11 @@ func getLogsFromCloud(ctx context.Context, eventSource string, dir string) error
 		OrganizationId: orgID,
 	}
 	waitTimeForLogs := 5 * time.Second
-	waitAttemptsForLogs := 10
+	waitAttemptsForLogs := 20
 	for {
 		getResp, err := client.GetCloudLogItems(ctx, getReq, grpc.MaxCallRecvMsgSize(defaultReceiveSize))
 		if err != nil {
-			if waitAttemptsForLogs > 0 && strings.Contains(err.Error(), "No logs found") {
+			if waitAttemptsForLogs > 0 && strings.Contains(err.Error(), "NotFound") {
 				waitAttemptsForLogs--
 				fmt.Println("No logs found, waiting again for logs to be loaded...")
 				time.Sleep(waitTimeForLogs)
