@@ -41,6 +41,7 @@ go_binary(
         "//intrinsic/util/proto:protoio",
         "//intrinsic/util/proto:registryutil",
         "@com_github_golang_glog//:go_default_library",
+        "@org_golang_google_protobuf//reflect/protodesc:go_default_library",
     ],
 )
 

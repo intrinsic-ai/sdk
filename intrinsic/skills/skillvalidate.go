@@ -10,25 +10,28 @@ import (
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/metadatautils"
 
+	"google.golang.org/protobuf/reflect/protodesc"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 
+	psmpb "intrinsic/skills/proto/processed_skill_manifest_go_proto"
 	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 )
 
 var errMixOfDependencyModels = fmt.Errorf("cannot declare dependencies in both the manifest's dependencies field (required equipment) and in the skill's parameter proto (annotation-based dependencies)")
 
 type skillManifestOptions struct {
-	types                                    *protoregistry.Types
+	files                                    *protoregistry.Files
 	incompatibleDisallowManifestDependencies bool
 }
 
 // SkillManifestOption is an option for validating a SkillManifest.
 type SkillManifestOption func(*skillManifestOptions)
 
-// WithTypes provides a Types for validating proto messages.
-func WithTypes(types *protoregistry.Types) SkillManifestOption {
+// WithFiles provides a Files for validating proto messages.
+func WithFiles(files *protoregistry.Files) SkillManifestOption {
 	return func(opts *skillManifestOptions) {
-		opts.types = types
+		opts.files = files
 	}
 }
 
@@ -46,8 +49,8 @@ func SkillManifest(m *smpb.SkillManifest, options ...SkillManifestOption) error 
 	for _, opt := range options {
 		opt(opts)
 	}
-	if opts.types == nil {
-		return fmt.Errorf("types option must be specified")
+	if opts.files == nil {
+		return fmt.Errorf("files option must be specified")
 	}
 
 	if m == nil {
@@ -59,23 +62,73 @@ func SkillManifest(m *smpb.SkillManifest, options ...SkillManifestOption) error 
 	}
 	id := idutils.IDFromProtoUnchecked(m.GetId())
 
-	if opts.incompatibleDisallowManifestDependencies && len(m.GetDependencies().GetRequiredEquipment()) > 0 {
-		return fmt.Errorf("Skill %q declares dependencies in the manifest's dependencies field but --incompatible_disallow_manifest_dependencies is true", id)
+	sd := &psmpb.SkillDetails{
+		Dependencies:  m.GetDependencies(),
+		Parameter:     m.GetParameter(),
+		ExecuteResult: m.GetReturnType(),
+	}
+	if err := validateSkillDetails(sd, &validateSkillDetailsOptions{
+		files:                                    opts.files,
+		incompatibleDisallowManifestDependencies: opts.incompatibleDisallowManifestDependencies,
+	}); err != nil {
+		return fmt.Errorf("invalid Skill details for %q: %w", id, err)
 	}
 
-	if name := m.GetParameter().GetMessageFullName(); name != "" {
-		mt, err := opts.types.FindMessageByURL(name)
+	return nil
+}
+
+// ProcessedSkillManifest validates a ProcessedSkillManifest.
+func ProcessedSkillManifest(m *psmpb.ProcessedSkillManifest) error {
+	if m == nil {
+		return fmt.Errorf("ProcessedSkillManifest must not be nil")
+	}
+
+	if err := metadatautils.ValidateManifestMetadata(m.GetMetadata()); err != nil {
+		return fmt.Errorf("invalid ProcessedSkillManifest metadata: %w", err)
+	}
+	id := idutils.IDFromProtoUnchecked(m.GetMetadata().GetId())
+
+	if m.GetAssets() == nil || m.GetAssets().GetFileDescriptorSet() == nil {
+		return fmt.Errorf("ProcessedSkillManifest file descriptor set must not be nil")
+	}
+	files, err := protodesc.NewFiles(m.GetAssets().GetFileDescriptorSet())
+	if err != nil {
+		return fmt.Errorf("failed to populate the registry: %w", err)
+	}
+
+	if err := validateSkillDetails(m.GetDetails(), &validateSkillDetailsOptions{
+		files: files,
+	}); err != nil {
+		return fmt.Errorf("invalid Skill details for %q: %w", id, err)
+	}
+
+	return nil
+}
+
+type validateSkillDetailsOptions struct {
+	files                                    *protoregistry.Files
+	incompatibleDisallowManifestDependencies bool
+}
+
+func validateSkillDetails(sd *psmpb.SkillDetails, opts *validateSkillDetailsOptions) error {
+	if opts.incompatibleDisallowManifestDependencies && len(sd.GetDependencies().GetRequiredEquipment()) > 0 {
+		return fmt.Errorf("dependencies declared in the manifest's dependencies field but --incompatible_disallow_manifest_dependencies is true")
+	}
+
+	if name := sd.GetParameter().GetMessageFullName(); name != "" {
+		d, err := opts.files.FindDescriptorByName(protoreflect.FullName(name))
 		if err != nil {
-			return fmt.Errorf("cannot find parameter message %q for Skill %q: %w", name, id, err)
+			return fmt.Errorf("cannot find parameter message %q: %w", name, err)
 		}
-		parameterHasResolvedDependencies := utils.HasResolvedDependency(mt.Descriptor())
-		if parameterHasResolvedDependencies && len(m.GetDependencies().GetRequiredEquipment()) != 0 {
+		if md, ok := d.(protoreflect.MessageDescriptor); !ok {
+			return fmt.Errorf("message %q is not a message", name)
+		} else if parameterHasResolvedDependencies := utils.HasResolvedDependency(md); parameterHasResolvedDependencies && len(sd.GetDependencies().GetRequiredEquipment()) != 0 {
 			return errMixOfDependencyModels
 		}
 	}
-	if name := m.GetReturnType().GetMessageFullName(); name != "" {
-		if _, err := opts.types.FindMessageByURL(name); err != nil {
-			return fmt.Errorf("cannot find return type message %q for Skill %q: %w", name, id, err)
+	if name := sd.GetExecuteResult().GetMessageFullName(); name != "" {
+		if _, err := opts.files.FindDescriptorByName(protoreflect.FullName(name)); err != nil {
+			return fmt.Errorf("cannot find return type message %q: %w", name, err)
 		}
 	}
 	return nil

@@ -9,7 +9,7 @@ import (
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/metadatautils"
 
-	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoregistry"
 
 	sompb "intrinsic/assets/scene_objects/proto/scene_object_manifest_go_proto"
@@ -17,14 +17,14 @@ import (
 )
 
 type sceneObjectManifestOptions struct {
-	files    *protoregistry.Files
 	gzfPaths map[string]string
+	files    *protoregistry.Files
 }
 
 // SceneObjectManifestOption is an option for validating a SceneObjectManifest.
 type SceneObjectManifestOption func(*sceneObjectManifestOptions)
 
-// WithFiles adds a protoregistry.Files for validating proto messages.
+// WithFiles provides a Files for validating proto messages.
 func WithFiles(files *protoregistry.Files) SceneObjectManifestOption {
 	return func(opts *sceneObjectManifestOptions) {
 		opts.files = files
@@ -76,13 +76,45 @@ func SceneObjectManifest(m *sompb.SceneObjectManifest, options ...SceneObjectMan
 	}
 	for _, sceneObject := range sceneObjects {
 		for key, userData := range sceneObject.GetUserData() {
-			messageName := protoreflect.FullName(userData.MessageName())
-			if opts.files == nil {
-				return fmt.Errorf("SceneObject %q has user data (%q, of type %s), but no descriptors provided", id, key, messageName)
+			if name := userData.MessageName(); name == "" {
+				return fmt.Errorf("user data %q message must not be an empty Any for %q", key, id)
+			} else if opts.files == nil {
+				return fmt.Errorf("SceneObject %q has user data (%q, of type %s), but no descriptors provided", id, key, name)
+			} else if _, err := opts.files.FindDescriptorByName(name); err != nil {
+				return fmt.Errorf("cannot find user data message %q for %q: %w", name, id, err)
 			}
-			if _, err := opts.files.FindDescriptorByName(messageName); err != nil {
-				return fmt.Errorf("could not find user data message %q in provided descriptors for SceneObject %q: %w", messageName, id, err)
-			}
+		}
+	}
+
+	return nil
+}
+
+// ProcessedSceneObjectManifest validates a ProcessedSceneObjectManifest.
+func ProcessedSceneObjectManifest(m *sompb.ProcessedSceneObjectManifest) error {
+	if m == nil {
+		return fmt.Errorf("ProcessedSceneObjectManifest must not be nil")
+	}
+
+	if err := metadatautils.ValidateManifestMetadata(m.GetMetadata()); err != nil {
+		return fmt.Errorf("invalid ProcessedSceneObjectManifest metadata: %w", err)
+	}
+	id := idutils.IDFromProtoUnchecked(m.GetMetadata().GetId())
+
+	fds := m.GetAssets().GetFileDescriptorSet()
+	if fds == nil {
+		return fmt.Errorf("FileDescriptorSet must not be nil for %q", id)
+	}
+	files, err := protodesc.NewFiles(fds)
+	if err != nil {
+		return fmt.Errorf("failed to populate registry for %q: %v", id, err)
+	}
+
+	// Verify that any user data in the SceneObject is in the FileDescriptorSet.
+	for key, userData := range m.GetAssets().GetSceneObjectModel().GetUserData() {
+		if name := userData.MessageName(); name == "" {
+			return fmt.Errorf("user data %q message must not be an empty Any for %q", key, id)
+		} else if _, err := files.FindDescriptorByName(name); err != nil {
+			return fmt.Errorf("cannot find user data message %q for %q: %w", name, id, err)
 		}
 	}
 

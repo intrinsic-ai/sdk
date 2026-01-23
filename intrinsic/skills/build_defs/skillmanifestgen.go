@@ -15,6 +15,7 @@ import (
 	"intrinsic/util/proto/registryutil"
 
 	log "github.com/golang/glog"
+	"google.golang.org/protobuf/reflect/protodesc"
 
 	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 )
@@ -39,7 +40,11 @@ func createSkillManifest() error {
 
 	types, err := registryutil.NewTypesFromFileDescriptorSet(set)
 	if err != nil {
-		return fmt.Errorf("failed to populate the registry: %v", err)
+		return fmt.Errorf("failed to populate the types registry: %w", err)
+	}
+	files, err := protodesc.NewFiles(set)
+	if err != nil {
+		return fmt.Errorf("failed to populate the files registry: %w", err)
 	}
 
 	m := new(smpb.SkillManifest)
@@ -47,7 +52,7 @@ func createSkillManifest() error {
 		return fmt.Errorf("failed to read manifest: %v", err)
 	}
 	if err := skillvalidate.SkillManifest(m,
-		skillvalidate.WithTypes(types),
+		skillvalidate.WithFiles(files),
 		skillvalidate.WithIncompatibleDisallowManifestDependencies(*flagIncompatibleDisallowManifestDependencies),
 	); err != nil {
 		return err

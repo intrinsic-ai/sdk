@@ -6,17 +6,18 @@ import (
 	"os"
 	"testing"
 
+	sceneobjecttestutils "intrinsic/assets/scene_objects/testing/utils"
 	"intrinsic/util/testing/testio"
 
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 
-	idpb "intrinsic/assets/proto/id_go_proto"
-	vendorpb "intrinsic/assets/proto/vendor_go_proto"
 	sompb "intrinsic/assets/scene_objects/proto/scene_object_manifest_go_proto"
 
 	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	anypb "google.golang.org/protobuf/types/known/anypb"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 const (
@@ -38,39 +39,18 @@ func mustReadSceneObjectManifestTextProto(t *testing.T, path string) *sompb.Scen
 	return m
 }
 
-func TestSceneObjectManifest(t *testing.T) {
-	m := &sompb.SceneObjectManifest{
-		Metadata: &sompb.SceneObjectMetadata{
-			Id: &idpb.Id{
-				Name:    "test",
-				Package: "package.some",
-			},
-			DisplayName: "Some Scene Object",
-			Vendor: &vendorpb.Vendor{
-				DisplayName: "Intrinsic",
-			},
-		},
-	}
-	mWithGeometry := &sompb.SceneObjectManifest{
-		Metadata: &sompb.SceneObjectMetadata{
-			Id: &idpb.Id{
-				Name:    "test2",
-				Package: "package.some",
-			},
-			DisplayName: "Some Other Scene Object",
-			Vendor: &vendorpb.Vendor{
-				DisplayName: "Intrinsic",
-			},
-		},
-		Assets: &sompb.SceneObjectAssets{
-			GzfGeometryFilenames: []string{boxGZFPath},
-		},
-	}
-	mWithSceneObjectUserData := mustReadSceneObjectManifestTextProto(t, emptyObjectManifestPath)
-	mWithSceneObjectUserData.Assets = &sompb.SceneObjectAssets{
+func sceneObjectManifestWithUserData(t *testing.T) *sompb.SceneObjectManifest {
+	t.Helper()
+
+	m := mustReadSceneObjectManifestTextProto(t, emptyObjectManifestPath)
+	m.Assets = &sompb.SceneObjectAssets{
 		GzfGeometryFilenames: []string{emptyObjectGZFPath},
 	}
 
+	return m
+}
+
+func TestSceneObjectManifest(t *testing.T) {
 	userDataFDS := &descriptorpb.FileDescriptorSet{
 		File: []*descriptorpb.FileDescriptorProto{
 			{
@@ -86,28 +66,11 @@ func TestSceneObjectManifest(t *testing.T) {
 	}
 	files, err := protodesc.NewFiles(userDataFDS)
 	if err != nil {
-		t.Fatalf("Failed to create FileDescriptorSet: %v", err)
+		t.Fatalf("Failed to create files: %v", err)
 	}
 	badFiles, err := protodesc.NewFiles(&descriptorpb.FileDescriptorSet{})
 	if err != nil {
-		t.Fatalf("Failed to create FileDescriptorSet: %v", err)
-	}
-
-	mInvalidName := proto.Clone(m).(*sompb.SceneObjectManifest)
-	mInvalidName.GetMetadata().GetId().Name = "_invalid_name"
-	mInvalidPackage := proto.Clone(m).(*sompb.SceneObjectManifest)
-	mInvalidPackage.GetMetadata().GetId().Package = "_invalid_package"
-	mNoDisplayName := proto.Clone(m).(*sompb.SceneObjectManifest)
-	mNoDisplayName.GetMetadata().DisplayName = ""
-	mNoVendor := proto.Clone(m).(*sompb.SceneObjectManifest)
-	mNoVendor.GetMetadata().Vendor = nil
-	mWithMultipleGZFFiles := proto.Clone(m).(*sompb.SceneObjectManifest)
-	mWithMultipleGZFFiles.Assets = &sompb.SceneObjectAssets{
-		GzfGeometryFilenames: []string{"file1.gzf", "file2.gzf"},
-	}
-	mWithRoot := proto.Clone(m).(*sompb.SceneObjectManifest)
-	mWithRoot.Assets = &sompb.SceneObjectAssets{
-		RootSceneObjectName: "root",
+		t.Fatalf("Failed to create bad files: %v", err)
 	}
 
 	tests := []struct {
@@ -118,18 +81,18 @@ func TestSceneObjectManifest(t *testing.T) {
 	}{
 		{
 			desc: "valid",
-			m:    m,
+			m:    sceneobjecttestutils.MakeSceneObjectManifest(t),
 		},
 		{
 			desc: "valid with geometry",
-			m:    mWithGeometry,
+			m:    sceneobjecttestutils.MakeSceneObjectManifest(t, sceneobjecttestutils.WithGZFGeometryFilename(boxGZFPath)),
 			opts: []SceneObjectManifestOption{
 				WithGZFPaths(map[string]string{boxGZFPath: testio.MustCreateRunfilePath(t, boxGZFPath)}),
 			},
 		},
 		{
 			desc: "valid with scene object user data",
-			m:    mWithSceneObjectUserData,
+			m:    sceneObjectManifestWithUserData(t),
 			opts: []SceneObjectManifestOption{
 				WithGZFPaths(map[string]string{emptyObjectGZFPath: testio.MustCreateRunfilePath(t, emptyObjectGZFPath)}),
 				WithFiles(files),
@@ -137,7 +100,7 @@ func TestSceneObjectManifest(t *testing.T) {
 		},
 		{
 			desc: "scene object user data, missing GZF files",
-			m:    mWithSceneObjectUserData,
+			m:    sceneObjectManifestWithUserData(t),
 			opts: []SceneObjectManifestOption{
 				WithFiles(files),
 			},
@@ -145,7 +108,7 @@ func TestSceneObjectManifest(t *testing.T) {
 		},
 		{
 			desc: "scene object user data, missing file descriptors",
-			m:    mWithSceneObjectUserData,
+			m:    sceneObjectManifestWithUserData(t),
 			opts: []SceneObjectManifestOption{
 				WithGZFPaths(map[string]string{emptyObjectGZFPath: testio.MustCreateRunfilePath(t, emptyObjectGZFPath)}),
 			},
@@ -153,7 +116,7 @@ func TestSceneObjectManifest(t *testing.T) {
 		},
 		{
 			desc: "scene object user data, invalid file descriptors",
-			m:    mWithSceneObjectUserData,
+			m:    sceneObjectManifestWithUserData(t),
 			opts: []SceneObjectManifestOption{
 				WithGZFPaths(map[string]string{emptyObjectGZFPath: testio.MustCreateRunfilePath(t, emptyObjectGZFPath)}),
 				WithFiles(badFiles),
@@ -161,33 +124,66 @@ func TestSceneObjectManifest(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			desc:    "invalid name",
-			m:       mInvalidName,
+			desc:    "missing",
+			m:       nil,
 			wantErr: true,
 		},
 		{
-			desc:    "invalid package",
-			m:       mInvalidPackage,
+			desc: "invalid name",
+			m: func() *sompb.SceneObjectManifest {
+				m := sceneobjecttestutils.MakeSceneObjectManifest(t)
+				m.GetMetadata().GetId().Name = "_invalid_name"
+				return m
+			}(),
 			wantErr: true,
 		},
 		{
-			desc:    "no display name",
-			m:       mNoDisplayName,
+			desc: "invalid package",
+			m: func() *sompb.SceneObjectManifest {
+				m := sceneobjecttestutils.MakeSceneObjectManifest(t)
+				m.GetMetadata().GetId().Package = "_invalid_package"
+				return m
+			}(),
 			wantErr: true,
 		},
 		{
-			desc:    "no vendor",
-			m:       mNoVendor,
+			desc: "no display name",
+			m: func() *sompb.SceneObjectManifest {
+				m := sceneobjecttestutils.MakeSceneObjectManifest(t)
+				m.Metadata.DisplayName = ""
+				return m
+			}(),
 			wantErr: true,
 		},
 		{
-			desc:    "multiple gzf files",
-			m:       mWithMultipleGZFFiles,
+			desc: "no vendor",
+			m: func() *sompb.SceneObjectManifest {
+				m := sceneobjecttestutils.MakeSceneObjectManifest(t)
+				m.Metadata.Vendor = nil
+				return m
+			}(),
 			wantErr: true,
 		},
 		{
-			desc:    "root scene object name specified",
-			m:       mWithRoot,
+			desc: "multiple gzf files",
+			m: func() *sompb.SceneObjectManifest {
+				m := sceneobjecttestutils.MakeSceneObjectManifest(t)
+				m.Assets = &sompb.SceneObjectAssets{
+					GzfGeometryFilenames: []string{"file1.gzf", "file2.gzf"},
+				}
+				return m
+			}(),
+			wantErr: true,
+		},
+		{
+			desc: "root scene object name specified",
+			m: func() *sompb.SceneObjectManifest {
+				m := sceneobjecttestutils.MakeSceneObjectManifest(t)
+				m.Assets = &sompb.SceneObjectAssets{
+					RootSceneObjectName: "root",
+				}
+				return m
+			}(),
 			wantErr: true,
 		},
 	}
@@ -199,6 +195,110 @@ func TestSceneObjectManifest(t *testing.T) {
 				t.Error("SceneObjectManifest() succeeded, want error")
 			} else if !tc.wantErr && err != nil {
 				t.Errorf("SceneObjectManifest() failed: %v", err)
+			}
+		})
+	}
+}
+
+func TestProcessedSceneObjectManifest(t *testing.T) {
+	userData, err := anypb.New(&emptypb.Empty{})
+	if err != nil {
+		t.Fatalf("Failed to create user data: %v", err)
+	}
+	userDataFDS := &descriptorpb.FileDescriptorSet{
+		File: []*descriptorpb.FileDescriptorProto{
+			{
+				Name:    proto.String("google.protobuf.Empty"),
+				Package: proto.String("google.protobuf"),
+				MessageType: []*descriptorpb.DescriptorProto{
+					{
+						Name: proto.String("Empty"),
+					},
+				},
+			},
+		},
+	}
+
+	tests := []struct {
+		desc    string
+		m       *sompb.ProcessedSceneObjectManifest
+		wantErr bool
+	}{
+		{
+			desc: "valid",
+			m:    sceneobjecttestutils.MakeProcessedSceneObjectManifest(t),
+		},
+		{
+			desc: "valid with scene object user data",
+			m: sceneobjecttestutils.MakeProcessedSceneObjectManifest(t,
+				sceneobjecttestutils.WithProcessedUserDataAny("data", userData),
+				sceneobjecttestutils.WithProcessedFileDescriptorSet(userDataFDS),
+			),
+		},
+		{
+			desc:    "missing",
+			m:       nil,
+			wantErr: true,
+		},
+		{
+			desc: "fds is missing user data",
+			m: sceneobjecttestutils.MakeProcessedSceneObjectManifest(t,
+				sceneobjecttestutils.WithProcessedUserDataAny("data", userData),
+			),
+			wantErr: true,
+		},
+		{
+			desc: "no fds",
+			m: sceneobjecttestutils.MakeProcessedSceneObjectManifest(t,
+				sceneobjecttestutils.WithProcessedFileDescriptorSet(nil),
+			),
+			wantErr: true,
+		},
+		{
+			desc: "invalid name",
+			m: func() *sompb.ProcessedSceneObjectManifest {
+				m := sceneobjecttestutils.MakeProcessedSceneObjectManifest(t)
+				m.GetMetadata().GetId().Name = "_invalid_name"
+				return m
+			}(),
+			wantErr: true,
+		},
+		{
+			desc: "invalid package",
+			m: func() *sompb.ProcessedSceneObjectManifest {
+				m := sceneobjecttestutils.MakeProcessedSceneObjectManifest(t)
+				m.GetMetadata().GetId().Package = "_invalid_package"
+				return m
+			}(),
+			wantErr: true,
+		},
+		{
+			desc: "no display name",
+			m: func() *sompb.ProcessedSceneObjectManifest {
+				m := sceneobjecttestutils.MakeProcessedSceneObjectManifest(t)
+				m.Metadata.DisplayName = ""
+				return m
+			}(),
+			wantErr: true,
+		},
+		{
+			desc: "no vendor",
+			m: func() *sompb.ProcessedSceneObjectManifest {
+				m := sceneobjecttestutils.MakeProcessedSceneObjectManifest(t)
+				m.Metadata.Vendor = nil
+				return m
+			}(),
+			wantErr: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.desc, func(t *testing.T) {
+			err := ProcessedSceneObjectManifest(tc.m)
+			if tc.wantErr && err == nil {
+				t.Error("ProcessedSceneObjectManifest() succeeded, want error")
+			} else if !tc.wantErr && err != nil {
+				t.Errorf("ProcessedSceneObjectManifest() failed: %v", err)
 			}
 		})
 	}

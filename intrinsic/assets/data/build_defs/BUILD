@@ -29,6 +29,7 @@ go_library(
         "//intrinsic/assets/proto:metadata_go_proto",
         "//intrinsic/util/proto:protoio",
         "//intrinsic/util/proto:registryutil",
+        "@org_golang_google_protobuf//reflect/protodesc:go_default_library",
         "@org_golang_google_protobuf//types/known/anypb",
     ],
 )

@@ -9,7 +9,7 @@ load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
-load("//bazel:go_macros.bzl", "go_proto_library")
+load("//bazel:go_macros.bzl", "go_library", "go_proto_library")
 load("//intrinsic/skills/build_defs:skill.bzl", "py_skill", "skill_manifest")
 
 package(
@@ -303,5 +303,29 @@ cc_test(
         "@abseil-cpp//absl/status:statusor",
         "@abseil-cpp//absl/time",
         "@com_github_grpc_grpc//:grpc++",
+    ],
+)
+
+go_library(
+    name = "utils",
+    testonly = True,
+    srcs = ["utils.go"],
+    data = [
+        "//intrinsic/skills/build_defs/tests:no_op_skill_cc_manifest",
+    ],
+    visibility = ["//intrinsic:intrinsic_internal"],
+    deps = [
+        "//intrinsic/assets/proto:documentation_go_proto",
+        "//intrinsic/assets/proto:id_go_proto",
+        "//intrinsic/assets/proto:status_spec_go_proto",
+        "//intrinsic/assets/proto:vendor_go_proto",
+        "//intrinsic/kubernetes/workcell_spec/proto:image_go_proto",
+        "//intrinsic/skills/proto:processed_skill_manifest_go_proto",
+        "//intrinsic/skills/proto:skill_manifest_go_proto",
+        "//intrinsic/util/proto:protoio",
+        "//intrinsic/util/testing:testio",
+        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
+        "@org_golang_google_protobuf//proto",
+        "@org_golang_google_protobuf//types/known/anypb",
     ],
 )

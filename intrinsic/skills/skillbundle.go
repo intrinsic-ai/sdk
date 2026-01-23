@@ -14,10 +14,10 @@ import (
 	"intrinsic/assets/ioutils"
 	"intrinsic/skills/skillvalidate"
 	"intrinsic/util/archive/tartooling"
-	"intrinsic/util/proto/registryutil"
 
 	"github.com/google/safearchive/tar"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protodesc"
 
 	psmpb "intrinsic/skills/proto/processed_skill_manifest_go_proto"
 	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
@@ -86,12 +86,16 @@ func Write(m *smpb.SkillManifest, path string, options ...WriteOption) error {
 	tw := tar.NewWriter(writer)
 
 	m.Assets = &smpb.SkillAssets{}
+	var fds *descriptorpb.FileDescriptorSet
 	if opts.fileDescriptorSet != nil {
+		fds = opts.fileDescriptorSet
 		descriptorName := "descriptors-transitive-descriptor-set.proto.bin"
 		m.Assets.FileDescriptorSetFilename = &descriptorName
 		if err := tartooling.AddBinaryProto(opts.fileDescriptorSet, tw, descriptorName); err != nil {
 			return fmt.Errorf("failed to write FileDescriptorSet to bundle: %w", err)
 		}
+	} else {
+		fds = &descriptorpb.FileDescriptorSet{}
 	}
 	if opts.imageTarPath != "" {
 		base := filepath.Base(opts.imageTarPath)
@@ -103,12 +107,12 @@ func Write(m *smpb.SkillManifest, path string, options ...WriteOption) error {
 		}
 	}
 
-	types, err := registryutil.NewTypesFromFileDescriptorSet(opts.fileDescriptorSet)
+	files, err := protodesc.NewFiles(fds)
 	if err != nil {
 		return fmt.Errorf("failed to populate the registry: %w", err)
 	}
 	if err := skillvalidate.SkillManifest(m,
-		skillvalidate.WithTypes(types),
+		skillvalidate.WithFiles(files),
 		skillvalidate.WithIncompatibleDisallowManifestDependencies(false),
 	); err != nil {
 		return fmt.Errorf("invalid SkillManifest: %w", err)

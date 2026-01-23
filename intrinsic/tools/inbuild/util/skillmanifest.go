@@ -11,6 +11,8 @@ import (
 	"intrinsic/util/proto/protoio"
 	"intrinsic/util/proto/registryutil"
 
+	"google.golang.org/protobuf/reflect/protodesc"
+
 	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 
 	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
@@ -26,14 +28,18 @@ func LoadManifestAndFileDescriptorSets(manifestPath string, fdsPaths []string, i
 	}
 	types, err := registryutil.NewTypesFromFileDescriptorSet(fds)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to populate the registry: %v", err)
+		return nil, nil, fmt.Errorf("failed to populate the types registry: %v", err)
+	}
+	files, err := protodesc.NewFiles(fds)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to populate the files registry: %v", err)
 	}
 	m := new(smpb.SkillManifest)
 	if err := protoio.ReadTextProto(manifestPath, m, protoio.WithResolver(types)); err != nil {
 		return nil, nil, fmt.Errorf("failed to read manifest: %v", err)
 	}
 	if err := skillvalidate.SkillManifest(m,
-		skillvalidate.WithTypes(types),
+		skillvalidate.WithFiles(files),
 		skillvalidate.WithIncompatibleDisallowManifestDependencies(incompatibleDisallowManifestDependencies),
 	); err != nil {
 		return nil, nil, fmt.Errorf("failed to validate manifest: %v", err)

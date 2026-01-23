@@ -14,5 +14,6 @@ go_library(
         "//intrinsic/util/proto:protoio",
         "//intrinsic/util/proto:registryutil",
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
+        "@org_golang_google_protobuf//reflect/protodesc:go_default_library",
     ],
 )

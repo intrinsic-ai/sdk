@@ -19,6 +19,7 @@ import (
 	idpb "intrinsic/assets/proto/id_go_proto"
 	mpb "intrinsic/assets/proto/metadata_go_proto"
 
+	"google.golang.org/protobuf/reflect/protodesc"
 	anypb "google.golang.org/protobuf/types/known/anypb"
 )
 
@@ -53,6 +54,10 @@ func CreateDataBundle(opts *CreateDataBundleOptions) error {
 		return fmt.Errorf("failed to load FileDescriptorSets: %w", err)
 	}
 
+	files, err := protodesc.NewFiles(fds)
+	if err != nil {
+		return fmt.Errorf("failed to populate registry: %w", err)
+	}
 	types, err := registryutil.NewTypesFromFileDescriptorSet(fds)
 	if err != nil {
 		return fmt.Errorf("failed to populate registry types: %w", err)
@@ -63,7 +68,7 @@ func CreateDataBundle(opts *CreateDataBundleOptions) error {
 		return fmt.Errorf("failed to read manifest: %w", err)
 	}
 	if err := datavalidate.DataManifest(m,
-		datavalidate.WithTypes(types),
+		datavalidate.WithFiles(files),
 	); err != nil {
 		return fmt.Errorf("invalid DataManifest: %w", err)
 	}

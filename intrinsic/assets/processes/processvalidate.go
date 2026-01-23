@@ -139,10 +139,14 @@ func WithIgnoreVersion(ignore bool) ProcessAssetOption {
 }
 
 // ProcessAsset validates a ProcessAsset.
-func ProcessAsset(processAsset *papb.ProcessAsset, options ...ProcessAssetOption) error {
+func ProcessAsset(pa *papb.ProcessAsset, options ...ProcessAssetOption) error {
 	opts := &processAssetOptions{}
 	for _, opt := range options {
 		opt(opts)
+	}
+
+	if pa == nil {
+		return fmt.Errorf("ProcessAsset must not be nil")
 	}
 
 	inAssetOption := metadatautils.WithInAssetOptions()
@@ -150,7 +154,7 @@ func ProcessAsset(processAsset *papb.ProcessAsset, options ...ProcessAssetOption
 		inAssetOption = metadatautils.WithInAssetOptionsIgnoreVersion()
 	}
 
-	metadata := processAsset.GetMetadata()
+	metadata := pa.GetMetadata()
 	if err := metadatautils.ValidateMetadata(metadata,
 		metadatautils.WithAssetType(atypepb.AssetType_ASSET_TYPE_PROCESS),
 		inAssetOption,
@@ -158,14 +162,18 @@ func ProcessAsset(processAsset *papb.ProcessAsset, options ...ProcessAssetOption
 		return fmt.Errorf("invalid ProcessAsset metadata: %w", err)
 	}
 
-	return validateBehaviorTree(processAsset.GetBehaviorTree(), validateBehaviorTreeOptions{
+	if err := validateBehaviorTree(pa.GetBehaviorTree(), validateBehaviorTreeOptions{
 		assetID:            metadata.GetIdVersion().GetId(),
 		assetDisplayName:   metadata.GetDisplayName(),
 		assetDocumentation: metadata.GetDocumentation(),
 		// In the processed Asset the Skill proto in the BehaviorTree must be set and must be filled
 		// consistently with the asset metadata.
 		requireFilledSkillMetadata: true,
-	})
+	}); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type validateBehaviorTreeOptions struct {

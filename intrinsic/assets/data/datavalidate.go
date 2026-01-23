@@ -13,6 +13,7 @@ import (
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/metadatautils"
 
+	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoregistry"
 
 	dapb "intrinsic/assets/data/proto/v1/data_asset_go_proto"
@@ -21,16 +22,16 @@ import (
 )
 
 type dataManifestOptions struct {
-	types *protoregistry.Types
+	files *protoregistry.Files
 }
 
 // DataManifestOption is an option for validating a DataManifest.
 type DataManifestOption func(*dataManifestOptions)
 
-// WithTypes provides a Types for validating proto messages.
-func WithTypes(types *protoregistry.Types) DataManifestOption {
+// WithFiles provides a Files for validating proto messages.
+func WithFiles(files *protoregistry.Files) DataManifestOption {
 	return func(opts *dataManifestOptions) {
-		opts.types = types
+		opts.files = files
 	}
 }
 
@@ -40,8 +41,8 @@ func DataManifest(m *dmpb.DataManifest, options ...DataManifestOption) error {
 	for _, opt := range options {
 		opt(opts)
 	}
-	if opts.types == nil {
-		return fmt.Errorf("types option must be specified")
+	if opts.files == nil {
+		return fmt.Errorf("files option must be specified")
 	}
 
 	if m == nil {
@@ -56,10 +57,10 @@ func DataManifest(m *dmpb.DataManifest, options ...DataManifestOption) error {
 	if m.GetData() == nil {
 		return fmt.Errorf("data payload must be specified for %q", id)
 	}
-	if name := m.GetData().MessageName(); name != "" {
-		if _, err := opts.types.FindMessageByName(name); err != nil {
-			return fmt.Errorf("cannot find data message %q for %q: %w", name, id, err)
-		}
+	if name := m.GetData().MessageName(); name == "" {
+		return fmt.Errorf("data payload must not be an empty Any for %q", id)
+	} else if _, err := opts.files.FindDescriptorByName(name); err != nil {
+		return fmt.Errorf("cannot find data payload message %q for %q: %w", name, id, err)
 	}
 
 	return nil
@@ -81,26 +82,49 @@ func WithDisallowFileReferences(disallowFileReferences bool) DataAssetOption {
 }
 
 // DataAsset validates a DataAsset.
-func DataAsset(data *dapb.DataAsset, options ...DataAssetOption) error {
+func DataAsset(da *dapb.DataAsset, options ...DataAssetOption) error {
 	opts := &dataAssetOptions{}
 	for _, opt := range options {
 		opt(opts)
 	}
 
-	m := data.GetMetadata()
+	if da == nil {
+		return fmt.Errorf("DataAsset must not be nil")
+	}
+
+	m := da.GetMetadata()
 	if err := metadatautils.ValidateMetadata(m,
 		metadatautils.WithAssetType(atpb.AssetType_ASSET_TYPE_DATA),
 		metadatautils.WithInAssetOptions(),
 	); err != nil {
 		return fmt.Errorf("invalid DataAsset metadata: %w", err)
 	}
+	id := idutils.IDFromProtoUnchecked(da.GetMetadata().GetIdVersion().GetId())
+
+	if da.GetData() == nil {
+		return fmt.Errorf("data payload must be specified for %q", id)
+	}
+
+	fds := da.GetFileDescriptorSet()
+	if fds == nil {
+		return fmt.Errorf("FileDescriptorSet must not be nil for %q", id)
+	}
+	files, err := protodesc.NewFiles(fds)
+	if err != nil {
+		return fmt.Errorf("failed to populate registry for %q: %v", id, err)
+	}
+	if name := da.GetData().MessageName(); name == "" {
+		return fmt.Errorf("data payload must not be an empty Any for %q", id)
+	} else if _, err := files.FindDescriptorByName(name); err != nil {
+		return fmt.Errorf("cannot find data payload message %q for %q: %w", name, id, err)
+	}
 
 	if opts.disallowFileReferences {
-		if payload, err := utils.ExtractPayload(data); err != nil {
+		if payload, err := utils.ExtractPayload(da); err != nil {
 			return err
 		} else if _, err := utils.WalkUniqueReferencedData(payload, func(ref *utils.ReferencedDataExt) error {
 			if ref.Type() == utils.FileReferenceType {
-				return fmt.Errorf("file references are not allowed (got: %q)", ref.Reference())
+				return fmt.Errorf("file references are not allowed for %q, (got: %q)", id, ref.Reference())
 			}
 			return nil
 		}); err != nil {

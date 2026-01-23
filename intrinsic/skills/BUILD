@@ -16,10 +16,10 @@ go_library(
         "//intrinsic/skills/proto:processed_skill_manifest_go_proto",
         "//intrinsic/skills/proto:skill_manifest_go_proto",
         "//intrinsic/util/archive:tartooling",
-        "//intrinsic/util/proto:registryutil",
         "@com_github_google_safearchive//tar",
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
         "@org_golang_google_protobuf//proto",
+        "@org_golang_google_protobuf//reflect/protodesc:go_default_library",
     ],
 )
 
@@ -42,7 +42,10 @@ go_library(
         "//intrinsic/assets:idutils",
         "//intrinsic/assets:metadatautils",
         "//intrinsic/assets/dependencies:utils",
+        "//intrinsic/skills/proto:processed_skill_manifest_go_proto",
         "//intrinsic/skills/proto:skill_manifest_go_proto",
+        "@org_golang_google_protobuf//reflect/protodesc:go_default_library",
+        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
         "@org_golang_google_protobuf//reflect/protoregistry:go_default_library",
     ],
 )

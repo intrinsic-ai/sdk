@@ -25,6 +25,7 @@ import (
 	vendorpb "intrinsic/assets/proto/vendor_go_proto"
 	sceneobjectmanifestpb "intrinsic/assets/scene_objects/proto/scene_object_manifest_go_proto"
 	servicemanifestpb "intrinsic/assets/services/proto/service_manifest_go_proto"
+	psmpb "intrinsic/skills/proto/processed_skill_manifest_go_proto"
 	skillmanifestpb "intrinsic/skills/proto/skill_manifest_go_proto"
 )
 
@@ -363,7 +364,7 @@ func validateRelNotes(relnotes string, id string) error {
 func metadataFromManifestMetadata(m ManifestMetadata) (*metadatapb.Metadata, error) {
 	var at atypepb.AssetType
 	switch mt := m.(type) {
-	case *skillmanifestpb.SkillManifest:
+	case *skillmanifestpb.SkillManifest, *psmpb.SkillMetadata:
 		at = atypepb.AssetType_ASSET_TYPE_SKILL
 	case *servicemanifestpb.ServiceMetadata:
 		at = atypepb.AssetType_ASSET_TYPE_SERVICE
@@ -421,7 +422,7 @@ func tagFromManifestMetadata(m any) (atagpb.AssetTag, error) {
 
 func metadataHasTag(m any) bool {
 	switch m.(type) {
-	case *datamanifestpb.DataManifest_Metadata, *skillmanifestpb.SkillManifest:
+	case *datamanifestpb.DataManifest_Metadata, *skillmanifestpb.SkillManifest, *psmpb.SkillMetadata:
 		return false
 	}
 

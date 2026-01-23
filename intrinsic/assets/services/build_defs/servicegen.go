@@ -58,7 +58,6 @@ func CreateServiceBundle(opts *CreateServiceBundleOptions) error {
 	if err != nil {
 		return fmt.Errorf("unable to build FileDescriptorSet: %w", err)
 	}
-
 	types, err := registryutil.NewTypesFromFileDescriptorSet(fds)
 	if err != nil {
 		return fmt.Errorf("failed to populate the registry: %w", err)
