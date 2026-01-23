@@ -200,7 +200,7 @@ use_repo(
 # Java #
 ########
 
-bazel_dep(name = "rules_java", version = "9.1.0")
+bazel_dep(name = "rules_java", version = "9.3.0")
 
 ##############
 # Containers #
