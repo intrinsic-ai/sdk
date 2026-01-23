@@ -13,7 +13,7 @@ load(
 def python_layers(name, binary, **kwargs):
     """Create list of layers for a py_binary target.
 
-    In insrc, we use three layers for the interpreter, third-party dependencies, and application code.
+    We use three layers for the interpreter, third-party dependencies, and application code.
 
     The setup is adapted from https://github.com/aspect-build/bazel-examples/blob/main/oci_python_image/py_layer.bzl.
 

@@ -7,7 +7,6 @@ Module extension for non-module dependencies
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file", "http_jar")
 
 def _non_module_deps_impl(ctx):  # @unused
-    # To update this, see https://github.com/intrinsic-ai/insrc/blob/main/bazel/sysroot/README.md.
     http_archive(
         name = "intrinsic_llvm_sysroot",
         sha256 = "24d7e61ceb0a26a2002bd0a3e87dfbc8e12ec95456bd1cced7fc5ccd79c47ed8",

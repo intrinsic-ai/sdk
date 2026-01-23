@@ -1106,8 +1106,8 @@ absl::Status HardwareModuleRuntime::StartInspectionThread(
   // We need to get the publisher before the grpc server is started. Therefore,
   // we do it here and not in the thread. Otherwise, there is some weird
   // interaction between pubsub and grpc if the grpc server and zenoh are
-  // created at the same time. That causes flakiness on *insrc* since the grpc
-  // server and zenoh both do to freeze sometimes.
+  // created at the same time. That causes flakiness since the grpc server and
+  // zenoh both do to freeze sometimes.
   auto publisher = InspectionPublisher::Create(
       init_context.GetAssetInstanceName(), service_inspection_topic);
   if (!publisher.ok()) {
