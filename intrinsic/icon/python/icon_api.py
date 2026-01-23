@@ -117,17 +117,23 @@ class Client:
     # safe.
     self._rpc_timeout_seconds = rpc_timeout
     self._stub = stub
-    self._generate_action_types()
+    # Action types are generated on first access because
+    # `list_action_signatures` can fail when ICON encounters issues during
+    # initialization.
+    self._action_type: enum.Enum | None = None
 
   # Disable lint warnings since this is a class, not a standard attribute.
   # pylint: disable=invalid-name
   @property
   def ActionType(self) -> enum.Enum:
-    return self._ActionType
+    # Generate action types on first access.
+    if self._action_type is None:
+      self._generate_action_types()
+    return self._action_type
 
   @ActionType.setter
   def ActionType(self, value: enum.Enum):
-    self._ActionType = value
+    self._action_type = value
 
   # pylint: enable=invalid-name
 

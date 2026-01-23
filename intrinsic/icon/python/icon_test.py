@@ -183,6 +183,36 @@ class IconTest(absltest.TestCase):
     self.assertEqual(icon_client.ActionType.CAT.value, 'a.b.cat')
     self.assertEqual(icon_client.ActionType.BAZ.value, 'baz')
 
+  def test_generated_action_types_failing_does_not_block_other_calls(self):
+    """Tests that other client methods work if ActionType generation fails."""
+    stub = mock.MagicMock()
+    stub.ListActionSignatures.side_effect = grpc.RpcError(
+        'ICON faulted during initialization. ActionSignatures are not'
+        ' available.'
+    )
+
+    # This should not fail as ActionType is lazy loaded.
+    icon_client = icon_api.Client(stub)
+
+    # Other calls should still work.
+    response = service_pb2.ClearFaultsResponse()
+    stub.ClearFaults.return_value = response
+    icon_client.clear_faults()
+    stub.ClearFaults.assert_called_once_with(
+        service_pb2.ClearFaultsRequest(), timeout=None
+    )
+
+    response = service_pb2.GetStatusResponse()
+    stub.GetStatus.return_value = response
+    icon_client.get_status()
+    stub.GetStatus.assert_called_once_with(
+        service_pb2.GetStatusRequest(), timeout=None
+    )
+
+    # This should fail.
+    with self.assertRaises(grpc.RpcError):
+      _ = icon_client.ActionType
+
   def test_get_action_signature_by_name(self):
     stub = mock.MagicMock()
     action_signature = types_pb2.ActionSignature(
