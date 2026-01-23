@@ -10,6 +10,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"go.opencensus.io/trace"
+	"google.golang.org/protobuf/encoding/prototext"
 	fmpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 
 	vmpoolspb "intrinsic/kubernetes/vmpool/service/api/v1/vmpool_api_go_grpc_proto"
@@ -92,7 +93,7 @@ var vmpoolsCreateCmd = &cobra.Command{
 			return err
 		}
 		prtr.Println("VM pool created.")
-		prtr.Println(resp)
+		prtr.Println(prototext.MarshalOptions{Multiline: true}.Format(resp))
 		return nil
 	},
 }
@@ -163,7 +164,7 @@ var vmpoolsUpdateCmd = &cobra.Command{
 		} else {
 			prtr.Println("VM pool updated.")
 		}
-		prtr.Println(resp)
+		prtr.Println(prototext.MarshalOptions{Multiline: true}.Format(resp))
 		return nil
 	},
 }
