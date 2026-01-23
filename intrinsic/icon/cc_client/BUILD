@@ -69,7 +69,6 @@ cc_library(
         "//intrinsic/icon/release:grpc_time_support",
         "//intrinsic/icon/release:source_location",
         "//intrinsic/logging/proto:context_cc_proto",
-        "//intrinsic/production/external/intops:strong_int",
         "//intrinsic/util:atomic_sequence_num",
         "//intrinsic/util:proto_time",
         "//intrinsic/util/grpc:channel_interface",
@@ -92,6 +91,7 @@ cc_library(
         "@abseil-cpp//absl/types:span",
         "@com_github_grpc_grpc//:grpc++",
         "@com_google_googleapis//google/rpc:status_cc_proto",
+        "@or_tools//ortools/base:strong_int",
     ],
 )
 

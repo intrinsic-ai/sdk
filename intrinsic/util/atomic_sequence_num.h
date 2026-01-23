@@ -21,7 +21,7 @@
 #include <atomic>
 #include <type_traits>
 
-#include "intrinsic/production/external/intops/strong_int.h"
+#include "ortools/base/strong_int.h"
 
 namespace intrinsic {
 
@@ -30,7 +30,8 @@ class SequenceNumber;
 
 template <typename ValueT>
 class SequenceNumber<
-    ValueT, typename std::enable_if<!IsStrongInt<ValueT>::value>::type> {
+    ValueT,
+    typename std::enable_if<!util_intops::IsStrongInt<ValueT>::value>::type> {
  public:
   constexpr SequenceNumber() : word_(0) {}
 
@@ -62,7 +63,8 @@ class SequenceNumber<
 // Specialization for strong ints.
 template <typename ValueT>
 class SequenceNumber<
-    ValueT, typename std::enable_if<IsStrongInt<ValueT>::value>::type> {
+    ValueT,
+    typename std::enable_if<util_intops::IsStrongInt<ValueT>::value>::type> {
  public:
   constexpr SequenceNumber() : word_(0) {}
 

@@ -9,7 +9,7 @@
 
 #include "absl/status/statusor.h"
 #include "google/protobuf/any.pb.h"
-#include "intrinsic/production/external/intops/strong_int.h"
+#include "ortools/base/strong_int.h"
 
 namespace intrinsic::icon {
 

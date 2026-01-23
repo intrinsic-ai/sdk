@@ -20,17 +20,4 @@ filegroup(
         urls = ["https://storage.googleapis.com/intrinsic-mirror/bazel/sysroot-2025-07-22-845e86b8.tar.zst"],
     )
 
-    ################################
-    # Google OSS replacement files #
-    #      go/insrc-g3-to-oss      #
-    ################################
-
-    XLS_COMMIT = "2e60753b05cb653cb166f4e74ebf6692c5ae393d"  # 2025-04-20
-    http_file(
-        name = "com_google_xls_strong_int_h",
-        downloaded_file_path = "strong_int.h",
-        urls = ["https://raw.githubusercontent.com/google/xls/%s/xls/common/strong_int.h" % XLS_COMMIT],
-        sha256 = "8029a5dd05cb020997cfe80469abd3be0ec63044e8c1ae4da88982214186c608",
-    )
-
 non_module_deps_ext = module_extension(implementation = _non_module_deps_impl)

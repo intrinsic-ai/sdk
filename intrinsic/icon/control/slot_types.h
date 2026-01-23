@@ -6,7 +6,7 @@
 #include <cstdint>
 
 #include "intrinsic/icon/proto/v1/types.pb.h"
-#include "intrinsic/production/external/intops/strong_int.h"
+#include "ortools/base/strong_int.h"
 
 namespace intrinsic::icon {
 
