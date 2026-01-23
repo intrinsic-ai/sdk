@@ -39,7 +39,7 @@ func GetCommand() *cobra.Command {
 		Short: "Install an asset",
 		Example: `
 	Install a specific asset ID version from a catalog to the specified solution:
-	$ inctl asset install ai.intrinsic.calculator_service.0.20250320.0-RC01+insrc \
+	$ inctl asset install ai.intrinsic.calculator_service.0.20260126.0-RC00 \
 			--org my_org \
 			--solution my_solution_id
 
@@ -52,7 +52,7 @@ func GetCommand() *cobra.Command {
 	$ inctl solution list --org my_org --filter "running_on_hw,running_in_sim" --output json
 
 	The asset can also be installed by specifying the cluster on which the solution is running:
-	$ inctl asset install ai.intrinsic.calculator_service.0.20250320.0-RC01+insrc \
+	$ inctl asset install ai.intrinsic.calculator_service.0.20260126.0-RC00 \
 			--org my_org \
 			--cluster my_cluster
 
