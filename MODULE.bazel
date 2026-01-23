@@ -267,7 +267,7 @@ bazel_dep(name = "eigen", version = "5.0.1", repo_name = "com_gitlab_libeigen_ei
 bazel_dep(name = "etherlab-ethercat", version = "1.6.7")
 bazel_dep(name = "flatbuffers", version = "25.9.23", repo_name = "com_github_google_flatbuffers")
 bazel_dep(name = "fuzztest", version = "20250805.0", repo_name = "com_google_fuzztest")
-bazel_dep(name = "google_benchmark", version = "1.9.4", repo_name = "com_google_benchmark")
+bazel_dep(name = "google_benchmark", version = "1.9.5", repo_name = "com_google_benchmark")
 bazel_dep(name = "googleapis", version = "0.0.0-20251127-8cd3749f", repo_name = "com_google_googleapis")
 bazel_dep(name = "googleapis-cc", version = "1.0.0")
 bazel_dep(name = "googleapis-go", version = "1.0.0")
