@@ -150,6 +150,49 @@ class IdentityTest(parameterized.TestCase):
     )
 
   @unittest.mock.patch.multiple(TestContext, __abstractmethods__=set())
+  def test_to_grpc_metadata_from_incoming_org_header_propagation(self):
+    # Input:
+    #   x-intrinsic-org: "my-org"
+    # Output:
+    #   x-intrinsic-org: "my-org"
+    ctx = TestContext([
+        (identity.ORG_ID_HEADER, 'my-org'),
+    ])
+
+    metadata = identity.ToGRPCMetadataFromIncoming(ctx)
+
+    self.assertIn((identity.ORG_ID_HEADER, 'my-org'), metadata)
+
+  @unittest.mock.patch.multiple(TestContext, __abstractmethods__=set())
+  def test_to_grpc_metadata_from_incoming_org_header_bytes(self):
+    # Input:
+    #   x-intrinsic-org: b"my-org-bytes"
+    # Output:
+    #   x-intrinsic-org: "my-org-bytes"
+    ctx = TestContext([
+        (identity.ORG_ID_HEADER, b'my-org-bytes'),
+    ])
+
+    metadata = identity.ToGRPCMetadataFromIncoming(ctx)
+
+    self.assertIn((identity.ORG_ID_HEADER, 'my-org-bytes'), metadata)
+
+  @unittest.mock.patch.multiple(TestContext, __abstractmethods__=set())
+  def test_to_grpc_metadata_from_incoming_org_header_empty(self):
+    # Input:
+    #   x-intrinsic-org: ""
+    # Output:
+    #   (no x-intrinsic-org header)
+    ctx = TestContext([
+        (identity.ORG_ID_HEADER, ''),
+    ])
+
+    metadata = identity.ToGRPCMetadataFromIncoming(ctx)
+
+    keys = [k for k, v in metadata]
+    self.assertNotIn(identity.ORG_ID_HEADER, keys)
+
+  @unittest.mock.patch.multiple(TestContext, __abstractmethods__=set())
   def test_get_jwt_from_context_priority(self):
     # 1. Cookie first.
     ctx = TestContext([
@@ -200,6 +243,20 @@ class OrgTest(absltest.TestCase):
     ctx = TestContext(identity.OrgIDToGRPCMetadata(organization_name))
     organization = identity.OrgFromContext(ctx)
     self.assertEqual(organization.org_id, organization_name)
+
+  @unittest.mock.patch.multiple(TestContext, __abstractmethods__=set())
+  def test_from_context_precedence(self):
+    # Input:
+    #   x-intrinsic-org: "header-org"
+    #   cookie: "org-id=cookie-org"
+    # Output:
+    #   Organization("header-org")
+    ctx = TestContext([
+        (identity.ORG_ID_HEADER, 'header-org'),
+        (identity.COOKIE_KEY, f'{identity.ORG_ID_COOKIE}=cookie-org'),
+    ])
+    organization = identity.OrgFromContext(ctx)
+    self.assertEqual(organization.org_id, 'header-org')
 
   def test_org_name_call_credentials(self):
     self.assertEqual(

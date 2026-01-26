@@ -19,6 +19,7 @@ ONPREM_TOKEN_COOKIE_NAME = 'onprem-token'
 APIKEY_TOKEN_HEADER_NAME = 'apikey-token'
 AUTH_HEADER_NAME = 'authorization'
 ORG_ID_COOKIE = 'org-id'
+ORG_ID_HEADER = 'x-intrinsic-org'
 
 
 class Organization:
@@ -132,6 +133,9 @@ def OrgFromContext(context: grpc.ServicerContext) -> Organization:
     KeyError: If no org-id found.
   """
   metadata = dict(context.invocation_metadata())
+  if ORG_ID_HEADER in metadata:
+    return Organization(metadata[ORG_ID_HEADER])
+
   if COOKIE_KEY in metadata:
     cks = http.cookies.SimpleCookie()
     cks.load(str(metadata[COOKIE_KEY]))
@@ -183,10 +187,12 @@ def ToGRPCMetadataFromIncoming(
     Input context metadata:
       cookie: "org-id=my-org"
       apikey-token: "token-val"
+      x-intrinsic-org: "my-org"
 
     Output:
       [
         ('cookie', 'auth-proxy=token-val; org-id=my-org'),
+        ('x-intrinsic-org', 'my-org')
       ]
 
   Args:
@@ -222,6 +228,17 @@ def ToGRPCMetadataFromIncoming(
   if outgoing_cks:
     result.extend(CookiesToGRPCMetadata(outgoing_cks))
 
+  if ORG_ID_HEADER in metadata:
+    val = metadata[ORG_ID_HEADER]
+    if isinstance(val, (bytes, bytearray, memoryview)):
+      val = bytes(val).decode('utf-8')
+    val = str(val)
+
+    if val:
+      # Remove any existing ORG_ID_HEADER from result to replace it
+      result = [x for x in result if x[0] != ORG_ID_HEADER]
+      result.append((ORG_ID_HEADER, val))
+
   return result
 
 
@@ -250,17 +267,17 @@ def OrgIDToGRPCMetadata(org_id: str) -> List[tuple[str, str]]:
 
   Example:
     Input: 'my-org'
-    Output: [('cookie', 'org-id=my-org')]
+    Output: [('cookie', 'org-id=my-org'), ('x-intrinsic-org', 'my-org')]
 
   Args:
     org_id: The org-id to convert.
 
   Returns:
-    A tuple of (key, value) pairs containing the org-id as a cookie.
+    A tuple of (key, value) pairs containing the org-id as a cookie and header.
   """
   return CookiesToGRPCMetadata(
       http.cookies.SimpleCookie({ORG_ID_COOKIE: org_id})
-  )
+  ) + [(ORG_ID_HEADER, org_id)]
 
 
 class _OrgName(grpc.AuthMetadataPlugin):
