@@ -513,6 +513,9 @@ message BehaviorTree {
     // This is only set on retrieval by the executive. It is ignored when
     // uploading a tree.
     optional State state = 13 [(google.api.field_behavior) = OUTPUT_ONLY];
+    // Set to true, when the state has been set from a recovery procedure (and
+    // not by execution).
+    bool recovered = 22 [(google.api.field_behavior) = OUTPUT_ONLY];
     optional FailureReason failure_reason = 14
         [(google.api.field_behavior) = OUTPUT_ONLY];
 
