@@ -690,6 +690,7 @@ service ClustersService {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "DeleteCluster"
     };
+    option (aclType) = "can_delete";
   }
 
   rpc PoweroffCluster(PoweroffClusterRequest)
