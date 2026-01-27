@@ -12,3 +12,8 @@ cc_library(
     name = "cookie_names",
     hdrs = ["cookie_names.h"],
 )
+
+cc_library(
+    name = "header_names",
+    hdrs = ["header_names.h"],
+)
