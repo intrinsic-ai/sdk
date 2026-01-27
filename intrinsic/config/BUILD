@@ -66,7 +66,7 @@ go_library(
 go_test(
     name = "environments_test",
     srcs = ["environments_test.go"],
-    library = ":environments",
+    embed = [":environments"],
 )
 
 go_library(
@@ -78,6 +78,6 @@ go_library(
 go_test(
     name = "operationmode_test",
     srcs = ["operation_mode_test.go"],
-    library = ":operationmode",
+    embed = [":operationmode"],
     deps = ["//intrinsic/config/proto:operation_mode_go_proto"],
 )

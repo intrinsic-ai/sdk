@@ -17,7 +17,7 @@ go_library(
 go_test(
     name = "volumemount_test",
     srcs = ["volumemount_test.go"],
-    library = ":volumemount",
+    embed = [":volumemount"],
     deps = [
         "//intrinsic/assets/services/examples/volume_mount/proto/v1:volume_mount_go_grpc_proto",
         "@com_github_google_go_cmp//cmp:go_default_library",

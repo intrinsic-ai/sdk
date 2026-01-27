@@ -33,5 +33,5 @@ go_library(
 go_test(
     name = "device_test",
     srcs = ["register_test.go"],
-    library = ":device",
+    embed = [":device"],
 )

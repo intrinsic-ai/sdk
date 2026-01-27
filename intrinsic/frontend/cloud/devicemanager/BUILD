@@ -19,5 +19,5 @@ go_test(
     name = "version_test",
     size = "small",
     srcs = ["version_test.go"],
-    library = ":version",
+    embed = [":version"],
 )

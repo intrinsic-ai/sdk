@@ -32,7 +32,7 @@ go_test(
         "//intrinsic/tools/inbuild/cmd/skill/test_data:example_skill_proto",
         "//intrinsic/tools/inbuild/cmd/skill/test_data:example_skill_py_image.tar",
     ],
-    library = ":bundle",
+    embed = [":bundle"],
     deps = [
         "//intrinsic/skills:skillbundle",
         "//intrinsic/tools/inbuild/cmd/skill/test_data:example_skill_go_proto",

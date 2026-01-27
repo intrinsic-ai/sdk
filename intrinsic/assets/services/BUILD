@@ -33,7 +33,7 @@ go_library(
 go_test(
     name = "config_test",
     srcs = ["config_test.go"],
-    library = ":config",
+    embed = [":config"],
     deps = [
         "//intrinsic/resources/proto:runtime_context_go_proto",
         "//intrinsic/util/proto:protoio",

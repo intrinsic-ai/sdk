@@ -24,6 +24,6 @@ go_library(
 go_test(
     name = "check_test",
     srcs = ["topological_sort_test.go"],
-    library = ":check",
+    embed = [":check"],
     deps = ["@com_github_google_go_cmp//cmp:go_default_library"],
 )

@@ -45,7 +45,7 @@ go_test(
         "list_test.go",
         "visualize_test.go",
     ],
-    library = ":recordings",
+    embed = [":recordings"],
     deps = [
         "//intrinsic/kubernetes/vmpool/manager/api/v1:lease_api_go_grpc_proto",
         "//intrinsic/kubernetes/vmpool/manager/api/v1:lease_api_go_proto",

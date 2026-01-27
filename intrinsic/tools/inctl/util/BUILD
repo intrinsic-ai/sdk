@@ -57,7 +57,7 @@ go_library(
 go_test(
     name = "orgutil_test",
     srcs = ["orgutil_test.go"],
-    library = ":orgutil",
+    embed = [":orgutil"],
     deps = [
         "//intrinsic/tools/inctl/auth",
         "//intrinsic/tools/inctl/auth:authtest",

@@ -515,7 +515,7 @@ go_library(
 go_test(
     name = "extstatus_test",
     srcs = ["extstatus_test.go"],
-    library = ":extstatus",
+    embed = [":extstatus"],
     deps = [
         ":extended_status_go_proto",
         ":test_service_go_grpc_proto",
@@ -582,7 +582,7 @@ go_library(
 go_test(
     name = "statusspecs_test",
     srcs = ["statusspecs_test.go"],
-    library = ":statusspecs",
+    embed = [":statusspecs"],
     deps = [
         ":extended_status_go_proto",
         ":extstatus",

@@ -55,10 +55,9 @@ def go_proto_library(name, deps, go_deps = None, **kwargs):
         go_proto_library = name,
     )
 
-def go_test(name, library = None, **kwargs):
+def go_test(name, **kwargs):
     _go_test(
         name = name,
-        embed = [library] if library else None,
         importpath = calculate_importpath(name, kwargs.pop("importpath", None)),
         **kwargs
     )

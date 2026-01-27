@@ -20,7 +20,7 @@ go_library(
 go_test(
     name = "tartooling_test",
     srcs = ["tartooling_test.go"],
-    library = ":tartooling",
+    embed = [":tartooling"],
     deps = [
         "//intrinsic/util/proto/testing:diamond_a_go_proto",
         "@com_github_google_go_cmp//cmp:go_default_library",

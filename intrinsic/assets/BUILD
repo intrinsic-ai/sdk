@@ -148,7 +148,7 @@ go_library(
 go_test(
     name = "tagutils_test",
     srcs = ["tagutils_test.go"],
-    library = ":tagutils",
+    embed = [":tagutils"],
     deps = [
         ":typeutils",
         "//intrinsic/assets/proto:asset_tag_go_proto",
@@ -276,7 +276,7 @@ go_library(
 go_test(
     name = "metadatautils_test",
     srcs = ["metadatautils_test.go"],
-    library = ":metadatautils",
+    embed = [":metadatautils"],
     deps = [
         "//intrinsic/assets:typeutils",
         "//intrinsic/assets/data/proto/v1:data_manifest_go_proto",

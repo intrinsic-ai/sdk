@@ -31,7 +31,7 @@ go_test(
     data = [
         "//intrinsic/tools/inbuild/cmd/skill/test_data:example_skill_files",
     ],
-    library = ":entrypoint",
+    embed = [":entrypoint"],
     deps = ["//intrinsic/util/testing:testio"],
 )
 
@@ -53,6 +53,6 @@ go_test(
         "//intrinsic/tools/inbuild/cmd/skill/test_data:example_skill_files",
         "//intrinsic/tools/inbuild/cmd/skill/test_data:example_skill_proto",
     ],
-    library = ":config",
+    embed = [":config"],
     deps = ["//intrinsic/util/testing:testio"],
 )

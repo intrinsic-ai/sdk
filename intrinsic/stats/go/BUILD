@@ -23,7 +23,7 @@ go_library(
 go_test(
     name = "telemetry_test",
     srcs = ["telemetry_test.go"],
-    library = ":telemetry",
+    embed = [":telemetry"],
     tags = [
         "requires-net:loopback",
     ],
@@ -52,6 +52,6 @@ go_library(
 go_test(
     name = "slogattrs_test",
     srcs = ["slogattrs_test.go"],
-    library = ":slogattrs",
+    embed = [":slogattrs"],
     deps = ["@com_github_google_go_cmp//cmp:go_default_library"],
 )

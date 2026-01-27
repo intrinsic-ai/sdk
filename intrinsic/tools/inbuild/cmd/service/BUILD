@@ -32,7 +32,7 @@ go_test(
         "//intrinsic/tools/inbuild/cmd/service/test_data:example_service_proto",
         "//intrinsic/tools/inbuild/cmd/service/test_data:example_service_py_image.tar",
     ],
-    library = ":bundle",
+    embed = [":bundle"],
     deps = [
         "//intrinsic/assets/services:servicebundle",
         "//intrinsic/tools/inbuild/cmd/service/test_data:example_service_go_proto",

@@ -27,7 +27,7 @@ go_library(
 go_test(
     name = "utils_test",
     srcs = ["utils_test.go"],
-    library = ":utils",
+    embed = [":utils"],
     deps = [
         "//intrinsic/assets/data:fakedataassets",
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",

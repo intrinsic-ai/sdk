@@ -172,7 +172,7 @@ go_library(
 go_test(
     name = "statusutil_test",
     srcs = ["status_util_test.go"],
-    library = ":statusutil",
+    embed = [":statusutil"],
     deps = [
         "//intrinsic/testing:grpctest",
         "//intrinsic/util/grpc/testing:ping_go_grpc_proto",

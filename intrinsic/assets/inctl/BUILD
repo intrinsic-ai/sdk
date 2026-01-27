@@ -34,7 +34,7 @@ go_library(
 go_test(
     name = "assetviews_test",
     srcs = ["assetviews_test.go"],
-    library = ":assetviews",
+    embed = [":assetviews"],
     deps = [
         "//intrinsic/assets/catalog/proto/v1:asset_catalog_go_grpc_proto",
         "//intrinsic/assets/proto:asset_type_go_proto",

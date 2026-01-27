@@ -69,7 +69,7 @@ intrinsic_service(
 go_test(
     name = "deviceservice_test",
     srcs = ["device_service_test.go"],
-    library = ":deviceservice",
+    embed = [":deviceservice"],
     deps = [
         "//intrinsic/assets/data:fakedataassets",
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",

@@ -279,7 +279,7 @@ go_library(
 go_test(
     name = "names_test",
     srcs = ["names_test.go"],
-    library = ":names",
+    embed = [":names"],
     deps = [
         "//intrinsic/util/proto/testing:diamond_a_go_proto",
         "@org_golang_google_protobuf//proto",

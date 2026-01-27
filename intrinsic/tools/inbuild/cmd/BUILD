@@ -18,5 +18,5 @@ go_library(
 go_test(
     name = "root_test",
     srcs = ["root_test.go"],
-    library = ":root",
+    embed = [":root"],
 )

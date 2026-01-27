@@ -20,6 +20,6 @@ go_library(
 go_test(
     name = "validate_test",
     srcs = ["validate_test.go"],
-    library = ":validate",
+    embed = [":validate"],
     deps = ["//intrinsic/kubernetes/workcell_spec/proto:image_go_proto"],
 )
