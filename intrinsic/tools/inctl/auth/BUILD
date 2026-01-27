@@ -19,6 +19,7 @@ go_library(
         "//intrinsic/kubernetes/acl:cookies",
         "//intrinsic/kubernetes/acl:identity",
         "//intrinsic/kubernetes/acl:jwt",
+        "//intrinsic/kubernetes/acl:org",
         "//intrinsic/tools/inctl/util:vmalias",
         "@com_github_cenkalti_backoff_v4//:go_default_library",
         "@com_github_golang_glog//:go_default_library",

@@ -12,6 +12,7 @@ import (
 
 	"intrinsic/config/environments"
 	"intrinsic/kubernetes/acl/identity"
+	"intrinsic/kubernetes/acl/org"
 	"intrinsic/tools/inctl/util/vmalias"
 
 	"github.com/spf13/viper"
@@ -276,7 +277,8 @@ func newOrLoadTokenSource(ctx context.Context, optsFuncs ...ConnectionOptsFunc) 
 		metadata: map[string]string{},
 	}
 	if opts.org != "" {
-		md.cookies["org-id"] = opts.org
+		md.cookies[org.OrgIDCookie] = opts.org
+		md.metadata[org.OrgIDHeader] = opts.org
 	}
 	if opts.cluster != "" {
 		md.metadata["x-server-name"] = opts.cluster
