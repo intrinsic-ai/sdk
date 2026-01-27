@@ -657,6 +657,7 @@ service ClustersService {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "GetStatus"
     };
+    option (aclType) = "has_access";
   }
 
   // PingFromDevice retrieves the status of a device.
