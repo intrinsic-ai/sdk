@@ -12,6 +12,8 @@ import (
 // OrgIDCookie is the cookie key for the organization identifier.
 const OrgIDCookie = "org-id"
 
+const OrgIDHeader = "x-intrinsic-org"
+
 // Organization represents an organization inside the Intrinsic stack.
 type Organization struct {
 	ID string

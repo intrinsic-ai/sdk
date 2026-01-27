@@ -967,6 +967,35 @@ func TestOrgFromContext(t *testing.T) {
 			want: "testorg",
 		},
 		{
+			name: "with header",
+			md:   metadata.Pairs(org.OrgIDHeader, "headerorg"),
+			want: "headerorg",
+		},
+		{
+			name: "header precedence",
+			md: metadata.Pairs(
+				org.OrgIDHeader, "headerorg",
+				cookies.CookieHeaderName, org.OrgIDCookie+"=cookieorg",
+			),
+			want: "headerorg",
+		},
+		{
+			name: "multiple headers",
+			md: metadata.Pairs(
+				org.OrgIDHeader, "headerorg",
+				org.OrgIDHeader, "headerorg2",
+			),
+			wantErr: true,
+		},
+		{
+			name: "empty org header",
+			md: metadata.Pairs(
+				org.OrgIDHeader, "",
+				cookies.CookieHeaderName, org.OrgIDCookie+"=cookieorg",
+			),
+			want: "cookieorg",
+		},
+		{
 			name:    "with metadata",
 			md:      metadata.Pairs(org.OrgIDCookie, "wrongorg"),
 			wantErr: true,

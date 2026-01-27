@@ -9,6 +9,18 @@ package(default_visibility = [
 ])
 
 go_library(
+    name = "headers",
+    srcs = ["headers.go"],
+    deps = [
+        ":org",
+        "//intrinsic/stats/go:telemetry",
+        "@com_github_golang_glog//:go_default_library",
+        "@io_opencensus_go//trace:go_default_library",
+        "@org_golang_google_grpc//metadata:go_default_library",
+    ],
+)
+
+go_library(
     name = "cookies",
     srcs = ["cookies.go"],
     deps = [
@@ -38,6 +50,7 @@ go_library(
     srcs = ["identity.go"],
     deps = [
         ":cookies",
+        ":headers",
         ":jwt",
         ":org",
         "//intrinsic/stats/go:telemetry",
