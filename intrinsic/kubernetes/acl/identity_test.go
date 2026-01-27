@@ -1079,6 +1079,7 @@ func TestClearRequestOrg(t *testing.T) {
 	r.AddCookie(&http.Cookie{Name: org.OrgIDCookie, Value: "testorg"})
 	r.AddCookie(&http.Cookie{Name: "othercookie", Value: "othervalue"})
 	r.Header.Set(org.OrgIDCookie, "testorg") // legacy header
+	r.Header.Set(org.OrgIDHeader, "testorg")
 	ClearRequestOrg(r)
 	if c, err := r.Cookie(org.OrgIDCookie); err == nil {
 		t.Errorf("ClearRequestOrg(..) = %q, did not clear org cookie", c)
@@ -1088,6 +1089,9 @@ func TestClearRequestOrg(t *testing.T) {
 	}
 	if r.Header.Get(org.OrgIDCookie) != "" {
 		t.Errorf("ClearRequestOrg(..) = %q, want empty legacy org header", r.Header.Get(org.OrgIDCookie))
+	}
+	if r.Header.Get(org.OrgIDHeader) != "" {
+		t.Errorf("ClearRequestOrg(..) = %q, want empty org header", r.Header.Get(org.OrgIDHeader))
 	}
 }
 
@@ -1113,6 +1117,44 @@ func TestClearRequestUser(t *testing.T) {
 	}
 	if r.Header.Get(ApikeyTokenHeaderName) != "" {
 		t.Errorf("ClearRequestUser(..) = %q, want empty apikey header", r.Header.Get(ApikeyTokenHeaderName))
+	}
+}
+
+func TestClearContextOrg(t *testing.T) {
+	// setup context with all org cookies and headers
+	testCookies := []*http.Cookie{
+		{Name: "othercookie", Value: "othervalue"},
+		{Name: org.OrgIDCookie, Value: "testorg"},
+	}
+	testMD := metadata.Pairs(cookies.ToMDString(testCookies...)...)
+	testMD.Set(org.OrgIDHeader, "testorg")
+	testMD.Set(org.OrgIDCookie, "testorg") // Legacy header
+
+	ctx := metadata.NewOutgoingContext(t.Context(), testMD)
+	ctx, err := ClearContextOrg(ctx)
+	if err != nil {
+		t.Fatalf("ClearContextOrg(..) = _, %v, want no error", err)
+	}
+
+	// check cookies
+	cs, err := cookies.FromContext(ctx)
+	if err != nil {
+		t.Fatalf("FromContext(..) = _, %v, want no error", err)
+	}
+	for _, c := range cs {
+		if c.Name == "othercookie" {
+			continue
+		}
+		t.Errorf("ClearContextOrg(..) = %q, did not clear cookie %v", c, c.Name)
+	}
+
+	// check headers
+	md, _ := metadata.FromOutgoingContext(ctx)
+	if len(md.Get(org.OrgIDHeader)) > 0 {
+		t.Errorf("ClearContextOrg(..) = %q, want empty org header", md.Get(org.OrgIDHeader)[0])
+	}
+	if len(md.Get(org.OrgIDCookie)) > 0 {
+		t.Errorf("ClearContextOrg(..) = %q, want empty org cookie header", md.Get(org.OrgIDCookie)[0])
 	}
 }
 
