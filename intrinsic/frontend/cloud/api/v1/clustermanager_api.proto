@@ -567,6 +567,7 @@ service ClustersService {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "UpdateCluster"
     };
+    option (aclType) = "can_configure";
   }
 
   // SchedulePlatformUpdateRequest triggers and update request for a cluster
