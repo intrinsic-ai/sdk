@@ -46,6 +46,7 @@ cc_library(
         "//intrinsic/frontend/cloud/api/v1:solutiondiscovery_api_cc_grpc_proto",
         "//intrinsic/frontend/cloud/api/v1:solutiondiscovery_api_cc_proto",
         "//intrinsic/kubernetes/acl/cc:cookie_names",
+        "//intrinsic/kubernetes/acl/cc:header_names",
         "//intrinsic/util/status:status_conversion_grpc",
         "//intrinsic/util/status:status_macros",
         "@abseil-cpp//absl/status",

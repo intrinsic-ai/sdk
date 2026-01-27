@@ -27,6 +27,7 @@
 #include "intrinsic/frontend/cloud/api/v1/solutiondiscovery_api.grpc.pb.h"
 #include "intrinsic/frontend/cloud/api/v1/solutiondiscovery_api.pb.h"
 #include "intrinsic/kubernetes/acl/cc/cookie_names.h"
+#include "intrinsic/kubernetes/acl/cc/header_names.h"
 #include "intrinsic/util/grpc/auth.h"
 #include "intrinsic/util/grpc/channel_interface.h"
 #include "intrinsic/util/grpc/connection_params.h"
@@ -83,6 +84,7 @@ class OrgNamePlugin : public grpc::MetadataCredentialsPlugin {
       std::multimap<grpc::string, std::string>* metadata) override {
     metadata->insert(
         {"cookie", absl::StrCat(acl::kOrgIDCookieName, "=", org_id_)});
+    metadata->insert({acl::kOrganizationHeaderName, org_id_});
     return grpc::Status::OK;
   }
 
