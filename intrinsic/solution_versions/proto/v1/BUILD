@@ -75,7 +75,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "solution_version_service_go_grpc_proto",
-    srcs = [":solution_version_service_proto"],
+    protos = [":solution_version_service_proto"],
     visibility = [
         "//intrinsic/assets/deploy:__pkg__",
         "//intrinsic/frontend/cloud:__subpackages__",

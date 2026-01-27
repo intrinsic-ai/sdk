@@ -44,7 +44,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "tokens_go_grpc_proto",
-    srcs = [":tokens_proto"],
+    protos = [":tokens_proto"],
     deps = [
         "@org_golang_google_genproto_googleapis_api//annotations",
     ],

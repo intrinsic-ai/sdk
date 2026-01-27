@@ -74,7 +74,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "asset_catalog_go_grpc_proto",
-    srcs = [":asset_catalog_proto"],
+    protos = [":asset_catalog_proto"],
     deps = [
         ":release_metadata_go_proto",
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",

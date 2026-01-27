@@ -31,7 +31,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "product_reader_go_grpc_proto",
-    srcs = [":product_reader_proto"],
+    protos = [":product_reader_proto"],
     deps = [
         "//intrinsic/scene/product/proto:product_go_proto",
         "//intrinsic/scene/proto/v1:scene_object_go_proto",

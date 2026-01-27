@@ -31,7 +31,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "provisioner_go_grpc_proto",
-    srcs = [":provisioner_proto"],
+    protos = [":provisioner_proto"],
     visibility = ["//intrinsic:intrinsic_internal"],
     deps = [
         ":provisioner_go_proto",

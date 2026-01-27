@@ -37,7 +37,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "dynamic_reconfiguration_go_grpc_proto",
-    srcs = [":dynamic_reconfiguration_proto"],
+    protos = [":dynamic_reconfiguration_proto"],
     deps = [
         "@org_golang_google_protobuf//types/known/anypb",
         "@org_golang_google_protobuf//types/known/emptypb",
@@ -86,7 +86,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "service_state_go_grpc_proto",
-    srcs = [":service_state_proto"],
+    protos = [":service_state_proto"],
     deps = [
         "//intrinsic/util/status:extended_status_go_proto",
     ],
@@ -137,7 +137,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "system_service_state_go_grpc_proto",
-    srcs = [":system_service_state_proto"],
+    protos = [":system_service_state_proto"],
     deps = ["//intrinsic/util/status:extended_status_go_proto"],
 )
 

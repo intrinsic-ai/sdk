@@ -204,7 +204,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "camera_service_go_grpc_proto",
-    srcs = [":camera_service_proto"],
+    protos = [":camera_service_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         ":camera_config_go_proto",
@@ -817,7 +817,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "train_service_go_grpc_proto",
-    srcs = [":train_service_proto"],
+    protos = [":train_service_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         ":pose_estimation_config_go_proto",

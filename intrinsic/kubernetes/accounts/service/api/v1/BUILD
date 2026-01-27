@@ -26,7 +26,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "discoveryapi_go_grpc_proto",
-    srcs = [":discoveryapi_proto"],
+    protos = [":discoveryapi_proto"],
     deps = [
         "@org_golang_google_genproto_googleapis_api//annotations",
     ],

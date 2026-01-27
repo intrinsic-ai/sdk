@@ -35,7 +35,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "resource_registry_go_grpc_proto",
-    srcs = [":resource_registry_proto"],
+    protos = [":resource_registry_proto"],
     deps = [
         "//intrinsic/assets/proto:metadata_go_proto",
         "//intrinsic/assets/proto:view_go_proto",

@@ -38,7 +38,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "resourcemanager_go_grpc_proto",
-    srcs = [":resourcemanager_proto"],
+    protos = [":resourcemanager_proto"],
     deps = [
         "@com_github_grpc_ecosystem_grpc_gateway_v2//protoc-gen-openapiv2/options",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",

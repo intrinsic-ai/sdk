@@ -18,7 +18,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "inversion_go_grpc_proto",
-    srcs = [":inversion_proto"],
+    protos = [":inversion_proto"],
 )
 
 proto_source_code_info_transitive_descriptor_set(

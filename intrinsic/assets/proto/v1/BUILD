@@ -238,7 +238,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "solution_deployment_go_grpc_proto",
-    srcs = [":solution_deployment_proto"],
+    protos = [":solution_deployment_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/config/proto:operation_mode_go_proto",

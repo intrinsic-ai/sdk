@@ -91,7 +91,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "device_service_go_grpc_proto",
-    srcs = [":device_service_proto"],
+    protos = [":device_service_proto"],
     deps = [
         ":device_service_config_go_proto",
         ":esi_go_proto",

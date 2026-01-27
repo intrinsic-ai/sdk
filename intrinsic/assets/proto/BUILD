@@ -343,7 +343,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "asset_deployment_go_grpc_proto",
-    srcs = [":asset_deployment_proto"],
+    protos = [":asset_deployment_proto"],
     visibility = ["//intrinsic:intrinsic_internal"],
     deps = [
         ":id_go_proto",
@@ -425,7 +425,7 @@ py_grpc_library(
 
 go_grpc_library(
     name = "installed_assets_go_grpc_proto",
-    srcs = [":installed_assets_proto"],
+    protos = [":installed_assets_proto"],
     visibility = ["//intrinsic:intrinsic_internal"],
     deps = [
         ":asset_tag_go_proto",

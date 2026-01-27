@@ -26,7 +26,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "admin_set_go_grpc_proto",
-    srcs = [":admin_set_proto"],
+    protos = [":admin_set_proto"],
     visibility = ["//intrinsic:intrinsic_internal"],
     deps = [
         ":admin_set_go_proto",

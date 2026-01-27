@@ -21,7 +21,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "any_conversion_service_go_grpc_proto",
-    srcs = [":any_conversion_service_proto"],
+    protos = [":any_conversion_service_proto"],
     deps = [
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
         "@org_golang_google_protobuf//types/known/anypb",

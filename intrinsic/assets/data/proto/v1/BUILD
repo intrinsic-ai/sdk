@@ -159,7 +159,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "data_assets_go_grpc_proto",
-    srcs = [":data_assets_proto"],
+    protos = [":data_assets_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         ":data_asset_go_proto",

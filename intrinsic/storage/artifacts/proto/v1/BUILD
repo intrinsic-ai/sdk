@@ -20,7 +20,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "artifact_go_grpc_proto",
-    srcs = [":artifact_proto"],
+    protos = [":artifact_proto"],
     deps = [":artifact_go_proto"],
 )
 
@@ -38,7 +38,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "articat_go_grpc_proto",
-    srcs = [":articat_proto"],
+    protos = [":articat_proto"],
     deps = [
         ":articat_go_proto",
     ],

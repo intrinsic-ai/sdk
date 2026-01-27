@@ -57,7 +57,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "service_go_grpc_proto",
-    srcs = [":service_proto"],
+    protos = [":service_proto"],
     deps = [
         "//intrinsic/icon/proto:joint_space_go_proto",
         "//intrinsic/icon/proto:logging_mode_go_proto",
@@ -181,7 +181,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "jogging_service_go_grpc_proto",
-    srcs = [":jogging_service_proto"],
+    protos = [":jogging_service_proto"],
     deps = [
         "//intrinsic/icon/proto:cart_space_go_proto",
         "//intrinsic/kinematics/types:joint_limits_go_proto",

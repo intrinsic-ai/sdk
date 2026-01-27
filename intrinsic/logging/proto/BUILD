@@ -65,7 +65,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "bag_packager_service_go_grpc_proto",
-    srcs = [":bag_packager_service"],
+    protos = [":bag_packager_service"],
     deps = [
         ":bag_metadata_go_proto",
         ":bag_packager_service_go_proto",
@@ -228,7 +228,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "log_dispatcher_service_go_grpc_proto",
-    srcs = [":log_dispatcher_service"],
+    protos = [":log_dispatcher_service"],
     deps = [
         "downsampler_go_proto",
         ":blob_go_proto",
@@ -406,7 +406,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "logger_service_go_grpc_proto",
-    srcs = [":logger_service"],
+    protos = [":logger_service"],
     deps = [
         ":bag_metadata_go_proto",
         ":downsampler_go_proto",
@@ -483,7 +483,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "replay_service_go_grpc_proto",
-    srcs = [":replay_service"],
+    protos = [":replay_service"],
     deps = [
         ":replay_service_go_proto",
         ":replay_service_options_go_proto",

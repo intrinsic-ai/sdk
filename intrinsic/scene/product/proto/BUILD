@@ -77,7 +77,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "product_service_go_grpc_proto",
-    srcs = [":product_service_proto"],
+    protos = [":product_service_proto"],
     deps = [
         ":product_go_proto",
         "//intrinsic/assets/proto:id_go_proto",

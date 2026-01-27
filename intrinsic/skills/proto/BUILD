@@ -104,7 +104,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "skill_registry_go_grpc_proto",
-    srcs = [":skill_registry_proto"],
+    protos = [":skill_registry_proto"],
     deps = [":skills_go_proto"],
 )
 
@@ -153,7 +153,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "behavior_tree_registry_go_grpc_proto",
-    srcs = [":behavior_tree_registry_proto"],
+    protos = [":behavior_tree_registry_proto"],
     deps = [
         ":skill_registry_config_go_proto",
         ":skills_go_proto",
@@ -218,7 +218,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "skill_service_go_grpc_proto",
-    srcs = [":skill_service_proto"],
+    protos = [":skill_service_proto"],
     deps = [
         ":error_go_proto",
         ":footprint_go_proto",

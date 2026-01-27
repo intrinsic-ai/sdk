@@ -28,11 +28,10 @@ def go_library(name, **kwargs):
         **kwargs
     )
 
-def go_grpc_library(name, srcs, deps = None, **kwargs):
+def go_grpc_library(name, deps = None, **kwargs):
     _go_grpc_library(
         name = name,
         deps = deps,
-        protos = srcs,
         importpath = calculate_importpath(name, kwargs.pop("importpath", None)),
         **kwargs
     )

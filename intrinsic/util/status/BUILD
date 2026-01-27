@@ -559,7 +559,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "test_service_go_grpc_proto",
-    srcs = [":test_service_proto"],
+    protos = [":test_service_proto"],
     visibility = ["//intrinsic/util/status:__pkg__"],
     deps = [
         "@org_golang_google_protobuf//types/known/emptypb",

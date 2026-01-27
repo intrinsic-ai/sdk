@@ -17,7 +17,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "file_upload_service_go_grpc_proto",
-    srcs = [":file_upload_service_proto"],
+    protos = [":file_upload_service_proto"],
     deps = [":file_upload_service_go_proto"],
 )
 

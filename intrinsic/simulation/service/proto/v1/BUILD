@@ -41,7 +41,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "simulation_service_go_grpc_proto",
-    srcs = [":simulation_service_proto"],
+    protos = [":simulation_service_proto"],
     deps = [
         "@org_golang_google_protobuf//types/known/emptypb",
         "@org_golang_google_protobuf//types/known/wrapperspb",

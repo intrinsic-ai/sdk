@@ -115,7 +115,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "code_execution_info_service_go_grpc_proto",
-    srcs = [":code_execution_info_service_proto"],
+    protos = [":code_execution_info_service_proto"],
     deps = [
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
     ],
@@ -306,7 +306,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "blackboard_service_go_grpc_proto",
-    srcs = [":blackboard_service_proto"],
+    protos = [":blackboard_service_proto"],
     deps = [
         ":blackboard_service_go_proto",
         "//intrinsic/util/status:extended_status_go_proto",
@@ -557,6 +557,6 @@ go_proto_library(
 
 go_grpc_library(
     name = "proto_builder_go_grpc_proto",
-    srcs = [":proto_builder_proto"],
+    protos = [":proto_builder_proto"],
     deps = ["@io_bazel_rules_go//proto/wkt:descriptor_go_proto"],
 )

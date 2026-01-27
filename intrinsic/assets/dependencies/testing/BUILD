@@ -52,7 +52,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "test_service_go_grpc_proto",
-    srcs = [":test_service_proto"],
+    protos = [":test_service_proto"],
     visibility = ["//intrinsic/assets/dependencies:__pkg__"],
     deps = [":test_service_go_proto"],
 )

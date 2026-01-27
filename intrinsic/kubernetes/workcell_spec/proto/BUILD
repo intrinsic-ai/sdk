@@ -37,6 +37,6 @@ go_proto_library(
 
 go_grpc_library(
     name = "deploy_go_grpc_proto",
-    srcs = [":deploy_proto"],
+    protos = [":deploy_proto"],
     deps = ["//intrinsic/config/proto:operation_mode_go_proto"],
 )

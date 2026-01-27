@@ -71,7 +71,7 @@ cc_grpc_library(
 
 go_grpc_library(
     name = "gpio_service_go_grpc_proto",
-    srcs = [":gpio_service_proto"],
+    protos = [":gpio_service_proto"],
     deps = [
         ":gpio_service_go_proto",
         "//intrinsic/hardware/gpio/v1:signal_go_proto",

@@ -32,7 +32,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "lease_api_go_grpc_proto",
-    srcs = [":lease_api_proto"],
+    protos = [":lease_api_proto"],
     deps = [
         ":lease_api_go_proto",
         "@org_golang_google_protobuf//types/known/emptypb",

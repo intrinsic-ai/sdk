@@ -22,7 +22,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "clusterdiscovery_api_go_grpc_proto",
-    srcs = [":clusterdiscovery_api_proto"],
+    protos = [":clusterdiscovery_api_proto"],
     deps = [":clusterdiscovery_api_go_proto"],
 )
 
@@ -56,7 +56,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "clustermanager_api_go_grpc_proto",
-    srcs = [":clustermanager_api_proto"],
+    protos = [":clustermanager_api_proto"],
     deps = [
         "//intrinsic/util/status:extended_status_go_proto",
         "@com_github_grpc_ecosystem_grpc_gateway_v2//protoc-gen-openapiv2/options",
@@ -105,7 +105,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "solutiondiscovery_api_go_grpc_proto",
-    srcs = [":solutiondiscovery_api_proto"],
+    protos = [":solutiondiscovery_api_proto"],
     deps = [
         ":solutiondiscovery_api_go_proto",
         "//intrinsic/frontend/cloud/api/v1:clusterdiscovery_api_go_grpc_proto",

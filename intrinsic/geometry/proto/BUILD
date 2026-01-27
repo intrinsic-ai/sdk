@@ -141,7 +141,7 @@ cc_grpc_library(
 
 go_grpc_library(
     name = "geometry_service_go_grpc_proto",
-    srcs = [":geometry_service_proto"],
+    protos = [":geometry_service_proto"],
     deps = [
         ":geometry_service_types_go_proto",
         ":geometry_storage_refs_go_proto",

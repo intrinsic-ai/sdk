@@ -19,6 +19,6 @@ go_proto_library(
 
 go_grpc_library(
     name = "volume_mount_go_grpc_proto",
-    srcs = [":volume_mount_proto"],
+    protos = [":volume_mount_proto"],
     deps = [":volume_mount_go_proto"],
 )

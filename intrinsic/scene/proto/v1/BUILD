@@ -207,7 +207,7 @@ cc_grpc_library(
 
 go_grpc_library(
     name = "scene_object_import_go_grpc_proto",
-    srcs = [":scene_object_import_proto"],
+    protos = [":scene_object_import_proto"],
     deps = [
         ":geometry_stats_go_proto",
         ":scene_object_go_proto",

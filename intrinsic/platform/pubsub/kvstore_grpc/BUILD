@@ -31,7 +31,7 @@ go_proto_library(
 
 go_grpc_library(
     name = "kvstore_go_grpc_proto",
-    srcs = [":kvstore_proto"],
+    protos = [":kvstore_proto"],
     deps = [":kvstore_go_proto"],
 )
 
