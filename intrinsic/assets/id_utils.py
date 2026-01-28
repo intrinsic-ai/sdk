@@ -169,6 +169,28 @@ def id_proto_from(package: str, name: str) -> id_pb2.Id:
   return id_pb2.Id(package=package, name=name)
 
 
+def id_proto_from_string(id_string: str) -> id_pb2.Id:
+  """Creates an Id proto from an ID string.
+
+  Args:
+    id_string: The ID string to convert.
+
+  Returns:
+    The Id proto.
+
+  Raises:
+    IdValidationError: If the specified package or name are not valid.
+  """
+
+  try:
+    package = package_from(id_string)
+    name = name_from(id_string)
+  except IdValidationError as err:
+    raise IdValidationError(f"Cannot create Id from '{id_string}'") from err
+
+  return id_pb2.Id(package=package, name=name)
+
+
 def id_from_proto(id: id_pb2.Id) -> str:  # pylint: disable=redefined-builtin
   """Creates an id string from an Id proto message.
 
