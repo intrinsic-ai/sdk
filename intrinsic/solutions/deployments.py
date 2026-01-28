@@ -66,6 +66,12 @@ _WORLD_ID = "world"
 class Solution:
   """Wraps a connection to a deployed solution.
 
+  WARNING: This class is NOT thread-safe. Sharing a Solution object or any of
+  its descendants between multiple threads can lead to undefined behavior. If
+  you require to interact with the same solution from multiple threads, create
+  one Solution object per thread by calling `connect()` or
+  `connect_to_selected_solution()` multiple times.
+
   Attributes:
     grpc_channel: gRPC channel to the cluster which hosts the deployed solution.
     is_simulated: Whether the solution is deployed on a simulated workcell
@@ -355,6 +361,12 @@ def connect(
   If arguments are not provided, connect to the solution specified in the user
   config.
 
+  WARNING: The returned Solution object is NOT thread-safe. Sharing the Solution
+  object or any of its descendants between multiple threads can lead to
+  undefined behavior. If you require to interact with the same solution from
+  multiple threads, create one Solution object per thread by calling this method
+  multiple times.
+
   Args:
     grpc_channel: gRPC channel to use for connection.
     address: Connect directly to an address (e.g. localhost). Only one of
@@ -429,6 +441,12 @@ def connect_to_selected_solution() -> "Solution":
   E.g., in VS Code you can use the Intrinsic extension to select a deployed
   solution from a list of available solutions and then use this method to
   connect to this solution.
+  WARNING: The returned Solution object is NOT thread-safe. Sharing the Solution
+  object or any of its descendants between multiple threads can lead to
+  undefined behavior. If you require to interact with the same solution from
+  multiple threads, create one Solution object per thread by calling this method
+  multiple times.
+
   Raises:
     NotFoundError: If no valid solution is specified in the user config.
 
