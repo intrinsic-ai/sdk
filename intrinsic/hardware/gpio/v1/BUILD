@@ -29,7 +29,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "signal_go_proto",
-    deps = [":signal_proto"],
+    protos = [":signal_proto"],
 )
 
 proto_library(
@@ -49,11 +49,11 @@ py_proto_library(
 
 go_proto_library(
     name = "gpio_service_go_proto",
-    go_deps = [
-        "@org_golang_google_genproto_googleapis_rpc//status",
+    protos = [":gpio_service_proto"],
+    deps = [
         "//intrinsic/hardware/gpio/v1:signal_go_proto",
+        "@org_golang_google_genproto_googleapis_rpc//status",
     ],
-    deps = [":gpio_service_proto"],
 )
 
 cc_proto_library(

@@ -20,7 +20,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "dio_config_go_proto",
-    deps = [":dio_config_proto"],
+    protos = [":dio_config_proto"],
 )
 
 proto_library(
@@ -35,7 +35,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "services_config_go_proto",
-    deps = [":services_config_proto"],
+    protos = [":services_config_proto"],
 )
 
 proto_library(
@@ -56,12 +56,12 @@ cc_proto_library(
 
 go_proto_library(
     name = "icon_main_config_go_proto",
-    go_deps = [
+    protos = [":icon_main_config_proto"],
+    deps = [
         ":realtime_control_config_go_proto",
         ":services_config_go_proto",
         "//intrinsic/icon/proto:logging_mode_go_proto",
     ],
-    deps = [":icon_main_config_proto"],
 )
 
 proto_library(
@@ -88,9 +88,9 @@ cc_proto_library(
 
 go_proto_library(
     name = "realtime_control_config_go_proto",
-    go_deps = [
-        "//intrinsic/icon/control/parts/proto/v1:realtime_part_config_go_proto",
+    protos = [":realtime_control_config_proto"],
+    deps = [
         "//intrinsic/icon/control/parts/hal/v1:hal_part_config_go_proto",
+        "//intrinsic/icon/control/parts/proto/v1:realtime_part_config_go_proto",
     ],
-    deps = [":realtime_control_config_proto"],
 )

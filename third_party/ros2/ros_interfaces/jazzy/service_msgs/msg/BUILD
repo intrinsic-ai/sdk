@@ -27,8 +27,8 @@ cc_proto_library(
 
 go_proto_library(
     name = "service_event_info_go_proto",
-    go_deps = [
+    protos = ["service_event_info_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:time_go_proto",
     ],
-    deps = ["service_event_info_proto"],
 )

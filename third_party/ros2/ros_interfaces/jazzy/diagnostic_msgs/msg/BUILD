@@ -30,11 +30,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "diagnostic_array_go_proto",
-    go_deps = [
+    protos = ["diagnostic_array_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/diagnostic_msgs/msg:diagnostic_status_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["diagnostic_array_proto"],
 )
 
 proto_library(
@@ -55,10 +55,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "diagnostic_status_go_proto",
-    go_deps = [
+    protos = ["diagnostic_status_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/diagnostic_msgs/msg:key_value_go_proto",
     ],
-    deps = ["diagnostic_status_proto"],
 )
 
 proto_library(
@@ -78,5 +78,5 @@ cc_proto_library(
 
 go_proto_library(
     name = "key_value_go_proto",
-    deps = ["key_value_proto"],
+    protos = ["key_value_proto"],
 )

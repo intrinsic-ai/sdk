@@ -32,13 +32,13 @@ cc_proto_library(
 
 go_proto_library(
     name = "generic_part_config_go_proto",
-    go_deps = [
+    protos = [":generic_part_config_proto"],
+    deps = [
         ":cart_space_go_proto",
         "//intrinsic/kinematics/proto:skeleton_go_proto",
         "//intrinsic/kinematics/types:joint_limits_go_proto",
         "//intrinsic/math/proto:pose_go_proto",
     ],
-    deps = [":generic_part_config_proto"],
 )
 
 py_proto_library(
@@ -72,16 +72,16 @@ py_proto_library(
 
 go_proto_library(
     name = "part_status_go_proto",
-    go_deps = [
-        "//intrinsic/icon/proto/v1:types_go_proto",
+    protos = [":part_status_proto"],
+    deps = [
         ":cart_space_go_proto",
-        "//intrinsic/math/proto:quaternion_go_proto",
-        "//intrinsic/math/proto:pose_go_proto",
-        "//intrinsic/math/proto:vector3_go_proto",
         ":io_block_go_proto",
         ":safety_status_go_proto",
+        "//intrinsic/icon/proto/v1:types_go_proto",
+        "//intrinsic/math/proto:pose_go_proto",
+        "//intrinsic/math/proto:quaternion_go_proto",
+        "//intrinsic/math/proto:vector3_go_proto",
     ],
-    deps = [":part_status_proto"],
 )
 
 proto_library(
@@ -99,7 +99,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "streaming_output_go_proto",
-    deps = [":streaming_output_proto"],
+    protos = [":streaming_output_proto"],
 )
 
 py_proto_library(
@@ -153,7 +153,7 @@ py_proto_library(
 
 go_proto_library(
     name = "matrix_go_proto",
-    deps = [":matrix_proto"],
+    protos = [":matrix_proto"],
 )
 
 proto_library(
@@ -173,7 +173,7 @@ py_proto_library(
 
 go_proto_library(
     name = "cart_space_go_proto",
-    deps = [":cart_space_proto"],
+    protos = [":cart_space_proto"],
 )
 
 cc_library(
@@ -231,11 +231,11 @@ py_proto_library(
 
 go_proto_library(
     name = "joint_space_go_proto",
-    go_deps = [
+    protos = [":joint_space_proto"],
+    deps = [
         "//intrinsic/kinematics/types:dynamic_limits_check_mode_go_proto",
         "//intrinsic/skills/proto:skill_parameter_metadata_go_proto",
     ],
-    deps = [":joint_space_proto"],
 )
 
 proto_library(
@@ -265,7 +265,7 @@ py_proto_library(
 
 go_proto_library(
     name = "io_block_go_proto",
-    deps = [":io_block_proto"],
+    protos = [":io_block_proto"],
 )
 
 cc_proto_library(
@@ -307,7 +307,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "linear_joint_acceleration_filter_config_go_proto",
-    deps = [":linear_joint_acceleration_filter_config_proto"],
+    protos = [":linear_joint_acceleration_filter_config_proto"],
 )
 
 proto_library(
@@ -319,7 +319,7 @@ proto_library(
 
 go_proto_library(
     name = "joint_position_pid_torque_controller_config_go_proto",
-    deps = [":joint_position_pid_torque_controller_config_proto"],
+    protos = [":joint_position_pid_torque_controller_config_proto"],
 )
 
 proto_library(
@@ -339,7 +339,7 @@ py_proto_library(
 
 go_proto_library(
     name = "safety_status_go_proto",
-    deps = [":safety_status_proto"],
+    protos = [":safety_status_proto"],
 )
 
 proto_library(
@@ -349,7 +349,7 @@ proto_library(
 
 go_proto_library(
     name = "logging_mode_go_proto",
-    deps = [":logging_mode_proto"],
+    protos = [":logging_mode_proto"],
 )
 
 cc_proto_library(

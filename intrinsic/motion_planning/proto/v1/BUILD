@@ -175,11 +175,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "compute_ik_go_proto",
-    go_deps = [
+    protos = [":compute_ik_proto"],
+    deps = [
         "//intrinsic/icon/proto:joint_space_go_proto",
         "//intrinsic/world/proto:collision_settings_go_proto",
     ],
-    deps = [":compute_ik_proto"],
 )
 
 py_proto_library(
@@ -209,7 +209,7 @@ py_proto_library(
 
 go_proto_library(
     name = "motion_planner_config_go_proto",
-    deps = [":motion_planner_config_proto"],
+    protos = [":motion_planner_config_proto"],
 )
 
 cc_proto_library(

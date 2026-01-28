@@ -28,14 +28,14 @@ cc_proto_library(
 go_proto_library(
     name = "test_configs_go_proto",
     testonly = True,
-    go_deps = [
-        "//intrinsic/assets/proto:field_metadata_go_proto",
-        "//intrinsic/assets/proto/v1:resolved_dependency_go_proto",
-    ],
+    protos = [":test_configs_proto"],
     visibility = [
         "//intrinsic/assets:__subpackages__",
     ],
-    deps = [":test_configs_proto"],
+    deps = [
+        "//intrinsic/assets/proto:field_metadata_go_proto",
+        "//intrinsic/assets/proto/v1:resolved_dependency_go_proto",
+    ],
 )
 
 proto_library(
@@ -46,8 +46,8 @@ proto_library(
 
 go_proto_library(
     name = "test_service_go_proto",
+    protos = [":test_service_proto"],
     visibility = ["//intrinsic/assets/dependencies:__pkg__"],
-    deps = [":test_service_proto"],
 )
 
 go_grpc_library(

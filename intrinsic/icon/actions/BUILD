@@ -123,7 +123,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "adio_go_proto",
-    deps = [":adio_proto"],
+    protos = [":adio_proto"],
 )
 
 cc_library(

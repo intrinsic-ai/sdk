@@ -19,11 +19,11 @@ proto_library(
 
 go_proto_library(
     name = "sim_bus_hardware_module_go_proto",
-    go_deps = [
+    protos = [":sim_bus_hardware_module_proto"],
+    deps = [
         "//intrinsic/icon/server/config:dio_config_go_proto",
         "//intrinsic/simulation/gazebo/plugins:sim_hardware_module_config_go_proto",
     ],
-    deps = [":sim_bus_hardware_module_proto"],
 )
 
 cc_proto_library(

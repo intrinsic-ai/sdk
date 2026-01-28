@@ -20,12 +20,12 @@ proto_library(
 
 go_proto_library(
     name = "hal_force_torque_sensor_part_config_go_proto",
-    go_deps = [
+    protos = [":hal_force_torque_sensor_part_config_proto"],
+    deps = [
         "//intrinsic/icon/control/parts/hal/v1:hal_part_config_go_proto",
         "//intrinsic/icon/equipment:force_control_settings_go_proto",
         "//intrinsic/icon/proto:linear_joint_acceleration_filter_config_go_proto",
     ],
-    deps = [":hal_force_torque_sensor_part_config_proto"],
 )
 
 cc_proto_library(

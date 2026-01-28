@@ -47,7 +47,7 @@ py_grpc_library(
 
 go_proto_library(
     name = "proto_registry_go_proto",
-    deps = [":proto_registry_proto"],
+    protos = [":proto_registry_proto"],
 )
 
 go_grpc_library(

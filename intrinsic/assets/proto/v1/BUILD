@@ -29,12 +29,12 @@ py_proto_library(
 
 go_proto_library(
     name = "asset_go_proto",
-    go_deps = [
+    protos = [":asset_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
         ":processed_asset_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
     ],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":asset_proto"],
 )
 
 proto_library(
@@ -57,8 +57,8 @@ py_proto_library(
 
 go_proto_library(
     name = "asset_graph_go_proto",
+    protos = [":asset_graph_proto"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = [":asset_graph_proto"],
 )
 
 proto_library(
@@ -69,8 +69,8 @@ proto_library(
 
 go_proto_library(
     name = "grpc_connection_go_proto",
+    protos = [":grpc_connection_proto"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = [":grpc_connection_proto"],
 )
 
 cc_proto_library(
@@ -113,7 +113,9 @@ py_proto_library(
 
 go_proto_library(
     name = "processed_asset_go_proto",
-    go_deps = [
+    protos = [":processed_asset_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
         "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",
         "//intrinsic/assets/processes/proto:process_asset_go_proto",
@@ -121,8 +123,6 @@ go_proto_library(
         "//intrinsic/assets/services/proto:service_manifest_go_proto",
         "//intrinsic/skills/proto:processed_skill_manifest_go_proto",
     ],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":processed_asset_proto"],
 )
 
 proto_library(
@@ -143,12 +143,12 @@ cc_proto_library(
 
 go_proto_library(
     name = "reference_go_proto",
-    go_deps = [
+    protos = [":reference_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
         "//intrinsic/assets/proto:asset_type_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
     ],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":reference_proto"],
 )
 
 py_proto_library(
@@ -171,8 +171,8 @@ py_proto_library(
 
 go_proto_library(
     name = "search_go_proto",
+    protos = [":search_proto"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = [":search_proto"],
 )
 
 cc_proto_library(
@@ -195,13 +195,13 @@ proto_library(
 
 go_proto_library(
     name = "resolved_dependency_go_proto",
-    go_deps = [
-        "@org_golang_google_genproto_googleapis_api//annotations",
+    protos = [":resolved_dependency_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
         "//intrinsic/assets/proto:id_go_proto",
         "//intrinsic/assets/proto/v1:grpc_connection_go_proto",
+        "@org_golang_google_genproto_googleapis_api//annotations",
     ],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":resolved_dependency_proto"],
 )
 
 cc_proto_library(
@@ -228,12 +228,12 @@ proto_library(
 
 go_proto_library(
     name = "solution_deployment_go_proto",
-    go_deps = [
-        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
-        "//intrinsic/config/proto:operation_mode_go_proto",
-    ],
+    protos = [":solution_deployment_proto"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = [":solution_deployment_proto"],
+    deps = [
+        "//intrinsic/config/proto:operation_mode_go_proto",
+        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
+    ],
 )
 
 go_grpc_library(
@@ -266,8 +266,8 @@ proto_library(
 
 go_proto_library(
     name = "dependency_go_proto",
+    protos = [":dependency_proto"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = [":dependency_proto"],
 )
 
 cc_proto_library(

@@ -26,12 +26,12 @@ cc_proto_library(
 
 go_proto_library(
     name = "device_service_config_go_proto",
-    go_deps = [
-        "//intrinsic/assets/proto/v1:resolved_dependency_go_proto",
-        "//intrinsic/assets/proto/v1:dependency_go_proto",
+    protos = [":device_service_config_proto"],
+    deps = [
         "//intrinsic/assets/proto:field_metadata_go_proto",
+        "//intrinsic/assets/proto/v1:dependency_go_proto",
+        "//intrinsic/assets/proto/v1:resolved_dependency_go_proto",
     ],
-    deps = [":device_service_config_proto"],
 )
 
 proto_library(
@@ -61,7 +61,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "esi_go_proto",
-    deps = [":esi_proto"],
+    protos = [":esi_proto"],
 )
 
 cc_proto_library(
@@ -79,13 +79,13 @@ cc_grpc_library(
 
 go_proto_library(
     name = "device_service_go_proto",
-    go_deps = [
+    protos = [
+        ":device_service_proto",
+    ],
+    deps = [
         ":device_service_config_go_proto",
         ":esi_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
-    ],
-    deps = [
-        ":device_service_proto",
     ],
 )
 
@@ -111,5 +111,5 @@ cc_proto_library(
 
 go_proto_library(
     name = "eni_go_proto",
-    deps = [":eni_proto"],
+    protos = [":eni_proto"],
 )

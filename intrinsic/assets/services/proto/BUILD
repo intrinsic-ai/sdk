@@ -29,7 +29,8 @@ proto_library(
 
 go_proto_library(
     name = "service_manifest_go_proto",
-    go_deps = [
+    protos = [":service_manifest_proto"],
+    deps = [
         ":env_var_go_proto",
         ":service_http_config_go_proto",
         ":service_permissions_go_proto",
@@ -41,7 +42,6 @@ go_proto_library(
         "//intrinsic/assets/services/proto/v1:service_inspection_go_proto",
         "//intrinsic/kubernetes/workcell_spec/proto:image_go_proto",
     ],
-    deps = [":service_manifest_proto"],
 )
 
 py_proto_library(
@@ -56,7 +56,7 @@ proto_library(
 
 go_proto_library(
     name = "env_var_go_proto",
-    deps = [":env_var_proto"],
+    protos = [":env_var_proto"],
 )
 
 py_proto_library(
@@ -71,7 +71,7 @@ proto_library(
 
 go_proto_library(
     name = "service_http_config_go_proto",
-    deps = [":service_http_config_proto"],
+    protos = [":service_http_config_proto"],
 )
 
 py_proto_library(
@@ -86,7 +86,7 @@ proto_library(
 
 go_proto_library(
     name = "service_volume_go_proto",
-    deps = [":service_volume_proto"],
+    protos = [":service_volume_proto"],
 )
 
 py_proto_library(
@@ -101,7 +101,7 @@ proto_library(
 
 go_proto_library(
     name = "service_permissions_go_proto",
-    deps = [":service_permissions_proto"],
+    protos = [":service_permissions_proto"],
 )
 
 py_proto_library(

@@ -26,7 +26,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "list_nodes_go_proto",
-    deps = ["list_nodes_proto"],
+    protos = ["list_nodes_proto"],
 )
 
 proto_library(
@@ -47,10 +47,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "load_node_go_proto",
-    go_deps = [
+    protos = ["load_node_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg:parameter_go_proto",
     ],
-    deps = ["load_node_proto"],
 )
 
 proto_library(
@@ -70,5 +70,5 @@ cc_proto_library(
 
 go_proto_library(
     name = "unload_node_go_proto",
-    deps = ["unload_node_proto"],
+    protos = ["unload_node_proto"],
 )

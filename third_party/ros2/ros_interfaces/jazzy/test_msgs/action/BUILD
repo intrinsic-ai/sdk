@@ -30,11 +30,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "fibonacci_go_proto",
-    go_deps = [
+    protos = ["fibonacci_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:time_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/unique_identifier_msgs/msg:uuid_go_proto",
     ],
-    deps = ["fibonacci_proto"],
 )
 
 proto_library(
@@ -60,11 +60,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "nested_message_go_proto",
-    go_deps = [
+    protos = ["nested_message_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:time_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:basic_types_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:builtins_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/unique_identifier_msgs/msg:uuid_go_proto",
     ],
-    deps = ["nested_message_proto"],
 )

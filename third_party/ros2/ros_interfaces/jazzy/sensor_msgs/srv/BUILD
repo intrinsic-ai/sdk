@@ -27,8 +27,8 @@ cc_proto_library(
 
 go_proto_library(
     name = "set_camera_info_go_proto",
-    go_deps = [
+    protos = ["set_camera_info_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg:camera_info_go_proto",
     ],
-    deps = ["set_camera_info_proto"],
 )

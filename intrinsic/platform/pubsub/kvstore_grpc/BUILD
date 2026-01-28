@@ -26,7 +26,7 @@ exports_files(
 
 go_proto_library(
     name = "kvstore_go_proto",
-    deps = [":kvstore_proto"],
+    protos = [":kvstore_proto"],
 )
 
 go_grpc_library(

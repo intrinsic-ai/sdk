@@ -130,10 +130,10 @@ py_proto_library(
 
 go_proto_library(
     name = "no_op_skill_go_proto",
+    protos = [":no_op_skill_proto"],
     visibility = [
         "//intrinsic/skills/build_defs:__pkg__",
     ],
-    deps = [":no_op_skill_proto"],
 )
 
 py_library(

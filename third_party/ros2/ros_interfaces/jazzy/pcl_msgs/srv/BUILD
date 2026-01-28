@@ -26,5 +26,5 @@ cc_proto_library(
 
 go_proto_library(
     name = "update_filename_go_proto",
-    deps = ["update_filename_proto"],
+    protos = ["update_filename_proto"],
 )

@@ -27,8 +27,8 @@ cc_proto_library(
 
 go_proto_library(
     name = "get_interactive_markers_go_proto",
-    go_deps = [
+    protos = ["get_interactive_markers_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg:interactive_marker_go_proto",
     ],
-    deps = ["get_interactive_markers_proto"],
 )

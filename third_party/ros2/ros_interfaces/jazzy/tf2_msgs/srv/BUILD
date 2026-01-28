@@ -26,5 +26,5 @@ cc_proto_library(
 
 go_proto_library(
     name = "frame_graph_go_proto",
-    deps = ["frame_graph_proto"],
+    protos = ["frame_graph_proto"],
 )

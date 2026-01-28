@@ -52,9 +52,9 @@ cc_grpc_library(
 
 go_proto_library(
     name = "asset_catalog_go_proto",
-    go_deps = [
+    protos = [":asset_catalog_proto"],
+    deps = [
         ":release_metadata_go_proto",
-        "@org_golang_google_genproto_googleapis_api//annotations",
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
         "//intrinsic/assets/data/proto/v1:referenced_data_go_proto",
         "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",
@@ -68,8 +68,8 @@ go_proto_library(
         "//intrinsic/assets/scene_objects/proto:scene_object_manifest_go_proto",
         "//intrinsic/assets/services/proto:service_manifest_go_proto",
         "//intrinsic/skills/proto:processed_skill_manifest_go_proto",
+        "@org_golang_google_genproto_googleapis_api//annotations",
     ],
-    deps = [":asset_catalog_proto"],
 )
 
 go_grpc_library(
@@ -124,5 +124,5 @@ cc_proto_library(
 
 go_proto_library(
     name = "release_metadata_go_proto",
-    deps = [":release_metadata_proto"],
+    protos = [":release_metadata_proto"],
 )

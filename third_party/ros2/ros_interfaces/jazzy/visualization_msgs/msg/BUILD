@@ -32,13 +32,13 @@ cc_proto_library(
 
 go_proto_library(
     name = "image_marker_go_proto",
-    go_deps = [
+    protos = ["image_marker_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:duration_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:point_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:color_rgba_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["image_marker_proto"],
 )
 
 proto_library(
@@ -64,13 +64,13 @@ cc_proto_library(
 
 go_proto_library(
     name = "interactive_marker_go_proto",
-    go_deps = [
+    protos = ["interactive_marker_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:pose_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg:interactive_marker_control_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg:menu_entry_go_proto",
     ],
-    deps = ["interactive_marker_proto"],
 )
 
 proto_library(
@@ -94,11 +94,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "interactive_marker_control_go_proto",
-    go_deps = [
+    protos = ["interactive_marker_control_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:quaternion_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg:marker_go_proto",
     ],
-    deps = ["interactive_marker_control_proto"],
 )
 
 proto_library(
@@ -123,12 +123,12 @@ cc_proto_library(
 
 go_proto_library(
     name = "interactive_marker_feedback_go_proto",
-    go_deps = [
+    protos = ["interactive_marker_feedback_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:point_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:pose_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["interactive_marker_feedback_proto"],
 )
 
 proto_library(
@@ -149,10 +149,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "interactive_marker_init_go_proto",
-    go_deps = [
+    protos = ["interactive_marker_init_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg:interactive_marker_go_proto",
     ],
-    deps = ["interactive_marker_init_proto"],
 )
 
 proto_library(
@@ -176,11 +176,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "interactive_marker_pose_go_proto",
-    go_deps = [
+    protos = ["interactive_marker_pose_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:pose_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["interactive_marker_pose_proto"],
 )
 
 proto_library(
@@ -204,11 +204,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "interactive_marker_update_go_proto",
-    go_deps = [
+    protos = ["interactive_marker_update_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg:interactive_marker_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg:interactive_marker_pose_go_proto",
     ],
-    deps = ["interactive_marker_update_proto"],
 )
 
 proto_library(
@@ -239,7 +239,8 @@ cc_proto_library(
 
 go_proto_library(
     name = "marker_go_proto",
-    go_deps = [
+    protos = ["marker_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:duration_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:point_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:pose_go_proto",
@@ -250,7 +251,6 @@ go_proto_library(
         "//third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg:mesh_file_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg:uv_coordinate_go_proto",
     ],
-    deps = ["marker_proto"],
 )
 
 proto_library(
@@ -271,10 +271,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "marker_array_go_proto",
-    go_deps = [
+    protos = ["marker_array_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg:marker_go_proto",
     ],
-    deps = ["marker_array_proto"],
 )
 
 proto_library(
@@ -294,7 +294,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "menu_entry_go_proto",
-    deps = ["menu_entry_proto"],
+    protos = ["menu_entry_proto"],
 )
 
 proto_library(
@@ -314,7 +314,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "mesh_file_go_proto",
-    deps = ["mesh_file_proto"],
+    protos = ["mesh_file_proto"],
 )
 
 proto_library(
@@ -334,5 +334,5 @@ cc_proto_library(
 
 go_proto_library(
     name = "uv_coordinate_go_proto",
-    deps = ["uv_coordinate_proto"],
+    protos = ["uv_coordinate_proto"],
 )

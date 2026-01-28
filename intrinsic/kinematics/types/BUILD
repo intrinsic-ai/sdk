@@ -61,7 +61,7 @@ py_proto_library(
 
 go_proto_library(
     name = "joint_limits_go_proto",
-    deps = [":joint_limits_proto"],
+    protos = [":joint_limits_proto"],
 )
 
 proto_library(
@@ -100,7 +100,7 @@ py_proto_library(
 
 go_proto_library(
     name = "dynamic_limits_check_mode_go_proto",
-    deps = [":dynamic_limits_check_mode_proto"],
+    protos = [":dynamic_limits_check_mode_proto"],
 )
 
 cc_library(

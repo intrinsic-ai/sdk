@@ -36,11 +36,10 @@ def go_grpc_library(name, deps = None, **kwargs):
         **kwargs
     )
 
-def go_proto_library(name, deps, go_deps = None, **kwargs):
+def go_proto_library(name, protos, **kwargs):
     _go_proto_library(
         name = name,
-        protos = deps,
-        deps = go_deps,
+        protos = protos,
         importpath = calculate_importpath(name, kwargs.pop("importpath", None)),
         **kwargs
     )
@@ -50,7 +49,7 @@ def go_proto_library(name, deps, go_deps = None, **kwargs):
         # Some proto_library files contain multiple proto files; however, protoc-gen-go requires
         # all proto files in a proto_library target have the same go_package. We only need to
         # check the go_package of one of the files.
-        proto = deps[0],
+        proto = protos[0],
         go_proto_library = name,
     )
 

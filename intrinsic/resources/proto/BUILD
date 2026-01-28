@@ -24,13 +24,13 @@ proto_library(
 
 go_proto_library(
     name = "resource_registry_go_proto",
-    go_deps = [
+    protos = [":resource_registry_proto"],
+    deps = [
         "//intrinsic/assets/proto:metadata_go_proto",
         "//intrinsic/assets/proto:view_go_proto",
         "//intrinsic/resources/proto:resource_handle_go_proto",
         "//intrinsic/scene/proto/v1:scene_object_config_go_proto",
     ],
-    deps = [":resource_registry_proto"],
 )
 
 go_grpc_library(
@@ -90,7 +90,7 @@ py_proto_library(
 
 go_proto_library(
     name = "resource_handle_go_proto",
-    deps = [":resource_handle_proto"],
+    protos = [":resource_handle_proto"],
 )
 
 proto_library(
@@ -108,7 +108,7 @@ py_proto_library(
 
 go_proto_library(
     name = "runtime_context_go_proto",
-    deps = [":runtime_context_proto"],
+    protos = [":runtime_context_proto"],
 )
 
 cc_proto_library(

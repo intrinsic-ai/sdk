@@ -18,12 +18,12 @@ proto_library(
 
 go_proto_library(
     name = "clustermanager_api_go_proto",
-    go_deps = [
-        "@org_golang_google_genproto_googleapis_api//annotations",
+    protos = [":clustermanager_api_proto"],
+    deps = [
+        "@com_github_grpc_ecosystem_grpc_gateway_v2//protoc-gen-openapiv2/options",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
-        "@com_github_grpc_ecosystem_grpc_gateway_v2//protoc-gen-openapiv2/options:options",
+        "@org_golang_google_genproto_googleapis_api//annotations",
     ],
-    deps = [":clustermanager_api_proto"],
 )
 
 go_grpc_library(

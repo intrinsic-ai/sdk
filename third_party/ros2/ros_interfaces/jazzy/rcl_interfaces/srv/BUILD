@@ -27,10 +27,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "describe_parameters_go_proto",
-    go_deps = [
+    protos = ["describe_parameters_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg:parameter_descriptor_go_proto",
     ],
-    deps = ["describe_parameters_proto"],
 )
 
 proto_library(
@@ -51,10 +51,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "get_logger_levels_go_proto",
-    go_deps = [
+    protos = ["get_logger_levels_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg:logger_level_go_proto",
     ],
-    deps = ["get_logger_levels_proto"],
 )
 
 proto_library(
@@ -74,7 +74,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "get_parameter_types_go_proto",
-    deps = ["get_parameter_types_proto"],
+    protos = ["get_parameter_types_proto"],
 )
 
 proto_library(
@@ -95,10 +95,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "get_parameters_go_proto",
-    go_deps = [
+    protos = ["get_parameters_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg:parameter_value_go_proto",
     ],
-    deps = ["get_parameters_proto"],
 )
 
 proto_library(
@@ -119,10 +119,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "list_parameters_go_proto",
-    go_deps = [
+    protos = ["list_parameters_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg:list_parameters_result_go_proto",
     ],
-    deps = ["list_parameters_proto"],
 )
 
 proto_library(
@@ -146,11 +146,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "set_logger_levels_go_proto",
-    go_deps = [
+    protos = ["set_logger_levels_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg:logger_level_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg:set_logger_levels_result_go_proto",
     ],
-    deps = ["set_logger_levels_proto"],
 )
 
 proto_library(
@@ -174,11 +174,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "set_parameters_go_proto",
-    go_deps = [
+    protos = ["set_parameters_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg:parameter_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg:set_parameters_result_go_proto",
     ],
-    deps = ["set_parameters_proto"],
 )
 
 proto_library(
@@ -202,9 +202,9 @@ cc_proto_library(
 
 go_proto_library(
     name = "set_parameters_atomically_go_proto",
-    go_deps = [
+    protos = ["set_parameters_atomically_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg:parameter_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg:set_parameters_result_go_proto",
     ],
-    deps = ["set_parameters_atomically_proto"],
 )

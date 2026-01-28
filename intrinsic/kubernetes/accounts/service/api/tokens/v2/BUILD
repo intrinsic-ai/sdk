@@ -36,10 +36,10 @@ py_grpc_library(
 
 go_proto_library(
     name = "tokens_go_proto",
-    go_deps = [
+    protos = [":tokens_proto"],
+    deps = [
         "@org_golang_google_genproto_googleapis_api//annotations",
     ],
-    deps = [":tokens_proto"],
 )
 
 go_grpc_library(

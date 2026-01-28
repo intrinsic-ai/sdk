@@ -14,11 +14,11 @@ proto_library(
 
 go_proto_library(
     name = "snapshot_go_proto",
+    protos = [":snapshot_proto"],
     visibility = [
         "//intrinsic/solution_versions:__subpackages__",
         "//intrinsic/tools/inctl/cmd:__subpackages__",
     ],
-    deps = [":snapshot_proto"],
 )
 
 proto_library(
@@ -33,7 +33,7 @@ proto_library(
 
 go_proto_library(
     name = "branch_go_proto",
-    go_deps = ["//intrinsic/config/proto:operation_mode_go_proto"],
+    protos = [":branch_proto"],
     visibility = [
         "//intrinsic/frontend/cloud:__subpackages__",
         "//intrinsic/frontend/cloud/portal_bridge:__subpackages__",
@@ -42,7 +42,7 @@ go_proto_library(
         "//intrinsic/solution_versions:__subpackages__",
         "//intrinsic/tools/inctl/cmd:__subpackages__",
     ],
-    deps = [":branch_proto"],
+    deps = ["//intrinsic/config/proto:operation_mode_go_proto"],
 )
 
 proto_library(
@@ -57,10 +57,7 @@ proto_library(
 
 go_proto_library(
     name = "solution_version_service_go_proto",
-    go_deps = [
-        ":branch_go_proto",
-        ":snapshot_go_proto",
-    ],
+    protos = [":solution_version_service_proto"],
     visibility = [
         "//intrinsic/assets/deploy:__pkg__",
         "//intrinsic/frontend/cloud:__subpackages__",
@@ -70,7 +67,10 @@ go_proto_library(
         "//intrinsic/solution_versions:__subpackages__",
         "//intrinsic/tools/inctl/cmd:__subpackages__",
     ],
-    deps = [":solution_version_service_proto"],
+    deps = [
+        ":branch_go_proto",
+        ":snapshot_go_proto",
+    ],
 )
 
 go_grpc_library(

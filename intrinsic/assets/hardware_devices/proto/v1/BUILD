@@ -24,7 +24,9 @@ proto_library(
 
 go_proto_library(
     name = "hardware_device_manifest_go_proto",
-    go_deps = [
+    protos = [":hardware_device_manifest_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
         "//intrinsic/assets/proto:asset_tag_go_proto",
         "//intrinsic/assets/proto:documentation_go_proto",
@@ -35,8 +37,6 @@ go_proto_library(
         "//intrinsic/assets/scene_objects/proto:scene_object_manifest_go_proto",
         "//intrinsic/assets/services/proto:service_manifest_go_proto",
     ],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":hardware_device_manifest_proto"],
 )
 
 py_proto_library(

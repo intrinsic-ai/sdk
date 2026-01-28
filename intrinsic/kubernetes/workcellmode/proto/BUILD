@@ -17,8 +17,8 @@ proto_library(
 
 go_proto_library(
     name = "workcellmode_service_go_proto",
+    protos = [":workcellmode_service_proto"],
     visibility = ["//intrinsic:intrinsic_internal"],
-    deps = [":workcellmode_service_proto"],
 )
 
 go_grpc_library(

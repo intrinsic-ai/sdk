@@ -32,7 +32,7 @@ cc_grpc_library(
 
 go_proto_library(
     name = "dynamic_reconfiguration_go_proto",
-    deps = [":dynamic_reconfiguration_proto"],
+    protos = [":dynamic_reconfiguration_proto"],
 )
 
 go_grpc_library(
@@ -78,10 +78,10 @@ cc_grpc_library(
 
 go_proto_library(
     name = "service_state_go_proto",
-    go_deps = [
+    protos = [":service_state_proto"],
+    deps = [
         "//intrinsic/util/status:extended_status_go_proto",
     ],
-    deps = [":service_state_proto"],
 )
 
 go_grpc_library(
@@ -120,7 +120,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "service_inspection_go_proto",
-    deps = [":service_inspection_proto"],
+    protos = [":service_inspection_proto"],
 )
 
 proto_library(
@@ -131,8 +131,8 @@ proto_library(
 
 go_proto_library(
     name = "system_service_state_go_proto",
-    go_deps = ["//intrinsic/util/status:extended_status_go_proto"],
-    deps = [":system_service_state_proto"],
+    protos = [":system_service_state_proto"],
+    deps = ["//intrinsic/util/status:extended_status_go_proto"],
 )
 
 go_grpc_library(

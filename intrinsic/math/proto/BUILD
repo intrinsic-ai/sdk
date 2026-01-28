@@ -26,7 +26,7 @@ py_proto_library(
 
 go_proto_library(
     name = "array_go_proto",
-    deps = [":array_proto"],
+    protos = [":array_proto"],
 )
 
 proto_library(
@@ -46,7 +46,7 @@ py_proto_library(
 
 go_proto_library(
     name = "point_go_proto",
-    deps = [":point_proto"],
+    protos = [":point_proto"],
 )
 
 proto_library(
@@ -66,7 +66,7 @@ py_proto_library(
 
 go_proto_library(
     name = "quaternion_go_proto",
-    deps = [":quaternion_proto"],
+    protos = [":quaternion_proto"],
 )
 
 proto_library(
@@ -90,11 +90,11 @@ py_proto_library(
 
 go_proto_library(
     name = "pose_go_proto",
-    go_deps = [
+    protos = [":pose_proto"],
+    deps = [
         ":point_go_proto",
         ":quaternion_go_proto",
     ],
-    deps = [":pose_proto"],
 )
 
 proto_library(
@@ -118,11 +118,11 @@ py_proto_library(
 
 go_proto_library(
     name = "affine_go_proto",
-    go_deps = [
+    protos = [":affine_proto"],
+    deps = [
         ":matrix_go_proto",
         ":point_go_proto",
     ],
-    deps = [":affine_proto"],
 )
 
 proto_library(
@@ -142,7 +142,7 @@ py_proto_library(
 
 go_proto_library(
     name = "matrix_go_proto",
-    deps = [":matrix_proto"],
+    protos = [":matrix_proto"],
 )
 
 proto_library(
@@ -160,10 +160,10 @@ py_proto_library(
 
 go_proto_library(
     name = "accel_go_proto",
-    go_deps = [
+    protos = [":accel_proto"],
+    deps = [
         ":vector3_go_proto",
     ],
-    deps = [":accel_proto"],
 )
 
 cc_proto_library(
@@ -186,10 +186,10 @@ py_proto_library(
 
 go_proto_library(
     name = "twist_go_proto",
-    go_deps = [
+    protos = [":twist_proto"],
+    deps = [
         ":vector3_go_proto",
     ],
-    deps = [":twist_proto"],
 )
 
 cc_proto_library(
@@ -214,7 +214,7 @@ py_proto_library(
 
 go_proto_library(
     name = "vector2_go_proto",
-    deps = [":vector2_proto"],
+    protos = [":vector2_proto"],
 )
 
 proto_library(
@@ -229,7 +229,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "vector3_go_proto",
-    deps = [":vector3_proto"],
+    protos = [":vector3_proto"],
 )
 
 py_proto_library(
@@ -274,7 +274,7 @@ py_proto_library(
 
 go_proto_library(
     name = "header_go_proto",
-    deps = [":header_proto"],
+    protos = [":header_proto"],
 )
 
 proto_library(
@@ -298,11 +298,11 @@ py_proto_library(
 
 go_proto_library(
     name = "transform_go_proto",
-    go_deps = [
-        ":vector3_go_proto",
+    protos = [":transform_proto"],
+    deps = [
         ":quaternion_go_proto",
+        ":vector3_go_proto",
     ],
-    deps = [":transform_proto"],
 )
 
 proto_library(
@@ -326,11 +326,11 @@ py_proto_library(
 
 go_proto_library(
     name = "transform_stamped_go_proto",
-    go_deps = [
+    protos = [":transform_stamped_proto"],
+    deps = [
         ":header_go_proto",
         ":transform_go_proto",
     ],
-    deps = [":transform_stamped_proto"],
 )
 
 proto_library(
@@ -353,8 +353,8 @@ py_proto_library(
 
 go_proto_library(
     name = "tf_message_go_proto",
-    go_deps = [
+    protos = [":tf_message_proto"],
+    deps = [
         ":transform_stamped_go_proto",
     ],
-    deps = [":tf_message_proto"],
 )

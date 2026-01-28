@@ -16,7 +16,7 @@ proto_library(
 
 go_proto_library(
     name = "any_conversion_service_go_proto",
-    deps = [":any_conversion_service_proto"],
+    protos = [":any_conversion_service_proto"],
 )
 
 go_grpc_library(

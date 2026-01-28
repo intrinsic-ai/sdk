@@ -32,11 +32,11 @@ py_proto_library(
 
 go_proto_library(
     name = "asset_go_proto",
-    go_deps = [
+    protos = [":asset_proto"],
+    deps = [
         "//intrinsic/assets/proto:asset_type_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
     ],
-    deps = [":asset_proto"],
 )
 
 go_binary(

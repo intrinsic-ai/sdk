@@ -20,7 +20,7 @@ py_proto_library(
 
 go_proto_library(
     name = "example_skill_go_proto",
-    deps = [":example_skill_proto"],
+    protos = [":example_skill_proto"],
 )
 
 py_binary(

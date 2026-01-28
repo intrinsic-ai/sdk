@@ -33,9 +33,9 @@ py_proto_library(
 
 go_proto_library(
     name = "error_report_go_proto",
-    go_deps = [
-        "@org_golang_google_genproto_googleapis_rpc//status",
+    protos = [":error_report_proto"],
+    deps = [
         "//intrinsic/executive/proto:clips_snapshot_go_proto",
+        "@org_golang_google_genproto_googleapis_rpc//status",
     ],
-    deps = [":error_report_proto"],
 )

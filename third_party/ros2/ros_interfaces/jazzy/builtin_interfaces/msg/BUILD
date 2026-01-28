@@ -26,7 +26,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "duration_go_proto",
-    deps = ["duration_proto"],
+    protos = ["duration_proto"],
 )
 
 proto_library(
@@ -46,5 +46,5 @@ cc_proto_library(
 
 go_proto_library(
     name = "time_go_proto",
-    deps = ["time_proto"],
+    protos = ["time_proto"],
 )

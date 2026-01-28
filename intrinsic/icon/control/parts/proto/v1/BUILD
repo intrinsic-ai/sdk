@@ -31,11 +31,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "realtime_part_config_go_proto",
+    protos = [":realtime_part_config_proto"],
     visibility = [
         "//intrinsic:intrinsic_internal",
         "//intrinsic/icon/control/parts/proto:__subpackages__",
     ],
-    deps = [":realtime_part_config_proto"],
 )
 
 proto_library(
@@ -54,9 +54,9 @@ cc_proto_library(
 
 go_proto_library(
     name = "mode_of_safe_operation_limits_config_go_proto",
+    protos = [":mode_of_safe_operation_limits_config_proto"],
     visibility = [
         "//intrinsic:intrinsic_internal",
         "//intrinsic/icon/control/parts/proto:__subpackages__",
     ],
-    deps = [":mode_of_safe_operation_limits_config_proto"],
 )

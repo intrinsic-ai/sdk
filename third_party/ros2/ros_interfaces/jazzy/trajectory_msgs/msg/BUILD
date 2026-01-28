@@ -30,11 +30,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "joint_trajectory_go_proto",
-    go_deps = [
+    protos = ["joint_trajectory_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/trajectory_msgs/msg:joint_trajectory_point_go_proto",
     ],
-    deps = ["joint_trajectory_proto"],
 )
 
 proto_library(
@@ -55,10 +55,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "joint_trajectory_point_go_proto",
-    go_deps = [
+    protos = ["joint_trajectory_point_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:duration_go_proto",
     ],
-    deps = ["joint_trajectory_point_proto"],
 )
 
 proto_library(
@@ -82,11 +82,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "multi_dof_joint_trajectory_go_proto",
-    go_deps = [
+    protos = ["multi_dof_joint_trajectory_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/trajectory_msgs/msg:multi_dof_joint_trajectory_point_go_proto",
     ],
-    deps = ["multi_dof_joint_trajectory_proto"],
 )
 
 proto_library(
@@ -111,10 +111,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "multi_dof_joint_trajectory_point_go_proto",
-    go_deps = [
+    protos = ["multi_dof_joint_trajectory_point_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:duration_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:transform_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:twist_go_proto",
     ],
-    deps = ["multi_dof_joint_trajectory_point_proto"],
 )

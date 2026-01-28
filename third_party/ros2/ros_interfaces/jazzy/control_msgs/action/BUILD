@@ -38,7 +38,8 @@ cc_proto_library(
 
 go_proto_library(
     name = "follow_joint_trajectory_go_proto",
-    go_deps = [
+    protos = ["follow_joint_trajectory_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:duration_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:time_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/control_msgs/msg:joint_component_tolerance_go_proto",
@@ -50,7 +51,6 @@ go_proto_library(
         "//third_party/ros2/ros_interfaces/jazzy/trajectory_msgs/msg:multi_dof_joint_trajectory_point_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/unique_identifier_msgs/msg:uuid_go_proto",
     ],
-    deps = ["follow_joint_trajectory_proto"],
 )
 
 proto_library(
@@ -75,12 +75,12 @@ cc_proto_library(
 
 go_proto_library(
     name = "gripper_command_go_proto",
-    go_deps = [
+    protos = ["gripper_command_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:time_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/control_msgs/msg:gripper_command_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/unique_identifier_msgs/msg:uuid_go_proto",
     ],
-    deps = ["gripper_command_proto"],
 )
 
 proto_library(
@@ -105,12 +105,12 @@ cc_proto_library(
 
 go_proto_library(
     name = "joint_trajectory_go_proto",
-    go_deps = [
+    protos = ["joint_trajectory_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:time_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/trajectory_msgs/msg:joint_trajectory_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/unique_identifier_msgs/msg:uuid_go_proto",
     ],
-    deps = ["joint_trajectory_proto"],
 )
 
 proto_library(
@@ -135,12 +135,12 @@ cc_proto_library(
 
 go_proto_library(
     name = "parallel_gripper_command_go_proto",
-    go_deps = [
+    protos = ["parallel_gripper_command_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:time_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg:joint_state_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/unique_identifier_msgs/msg:uuid_go_proto",
     ],
-    deps = ["parallel_gripper_command_proto"],
 )
 
 proto_library(
@@ -167,14 +167,14 @@ cc_proto_library(
 
 go_proto_library(
     name = "point_head_go_proto",
-    go_deps = [
+    protos = ["point_head_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:duration_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:time_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:point_stamped_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:vector3_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/unique_identifier_msgs/msg:uuid_go_proto",
     ],
-    deps = ["point_head_proto"],
 )
 
 proto_library(
@@ -200,11 +200,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "single_joint_position_go_proto",
-    go_deps = [
+    protos = ["single_joint_position_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:duration_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:time_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/unique_identifier_msgs/msg:uuid_go_proto",
     ],
-    deps = ["single_joint_position_proto"],
 )

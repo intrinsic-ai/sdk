@@ -36,7 +36,7 @@ cc_grpc_library(
 
 go_proto_library(
     name = "ping_go_proto",
-    deps = [":ping_proto"],
+    protos = [":ping_proto"],
 )
 
 go_grpc_library(

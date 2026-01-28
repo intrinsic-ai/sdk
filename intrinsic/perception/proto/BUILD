@@ -31,8 +31,8 @@ proto_library(
 
 go_proto_library(
     name = "dimensions_go_proto",
+    protos = [":dimensions_proto"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = [":dimensions_proto"],
 )
 
 proto_library(
@@ -55,8 +55,8 @@ py_proto_library(
 
 go_proto_library(
     name = "distortion_params_go_proto",
+    protos = [":distortion_params_proto"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = [":distortion_params_proto"],
 )
 
 proto_library(
@@ -96,9 +96,9 @@ py_proto_library(
 
 go_proto_library(
     name = "intrinsic_params_go_proto",
-    go_deps = [":dimensions_go_proto"],
+    protos = [":intrinsic_params_proto"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = [":intrinsic_params_proto"],
+    deps = [":dimensions_go_proto"],
 )
 
 proto_library(
@@ -159,8 +159,8 @@ py_proto_library(
 
 go_proto_library(
     name = "camera_drivers_go_proto",
+    protos = [":camera_drivers_proto"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = [":camera_drivers_proto"],
 )
 
 proto_library(
@@ -187,9 +187,9 @@ py_proto_library(
 
 go_proto_library(
     name = "camera_identifier_go_proto",
-    go_deps = [":camera_drivers_go_proto"],
+    protos = [":camera_identifier_proto"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = [":camera_identifier_proto"],
+    deps = [":camera_drivers_go_proto"],
 )
 
 proto_library(
@@ -219,15 +219,15 @@ cc_proto_library(
 
 go_proto_library(
     name = "camera_config_go_proto",
-    go_deps = [
+    protos = [":camera_config"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
         ":camera_identifier_go_proto",
         ":camera_settings_go_proto",
         ":distortion_params_go_proto",
         ":intrinsic_params_go_proto",
         ":sensor_config_go_proto",
     ],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":camera_config"],
 )
 
 proto_library(
@@ -254,12 +254,12 @@ cc_proto_library(
 
 go_proto_library(
     name = "sensor_config_go_proto",
-    go_deps = [
+    protos = [":sensor_config"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
         ":camera_params_go_proto",
         "//intrinsic/math/proto:pose_go_proto",
     ],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":sensor_config"],
 )
 
 proto_library(
@@ -355,9 +355,9 @@ cc_proto_library(
 
 go_proto_library(
     name = "camera_settings_go_proto",
-    go_deps = ["//intrinsic/perception/proto/v1:settings_go_proto"],
+    protos = [":camera_settings_proto"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = [":camera_settings_proto"],
+    deps = ["//intrinsic/perception/proto/v1:settings_go_proto"],
 )
 
 py_proto_library(
@@ -368,9 +368,9 @@ py_proto_library(
 
 go_proto_library(
     name = "image_buffer_go_proto",
-    go_deps = [":dimensions_go_proto"],
+    protos = [":image_buffer_proto"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = [":image_buffer_proto"],
+    deps = [":dimensions_go_proto"],
 )
 
 proto_library(
@@ -423,12 +423,12 @@ cc_proto_library(
 
 go_proto_library(
     name = "camera_params_go_proto",
-    go_deps = [
+    protos = [":camera_params_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
         ":distortion_params_go_proto",
         ":intrinsic_params_go_proto",
     ],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":camera_params_proto"],
 )
 
 proto_library(
@@ -472,19 +472,19 @@ py_proto_library(
 
 go_proto_library(
     name = "pattern_detection_result_go_proto",
-    go_deps = [":vector_go_proto"],
+    protos = [":pattern_detection_result"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = [":pattern_detection_result"],
+    deps = [":vector_go_proto"],
 )
 
 go_proto_library(
     name = "pose_estimation_result_go_proto",
-    go_deps = [
+    protos = [":pose_estimation_result"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
         ":image_buffer_go_proto",
         "//intrinsic/math/proto:pose_go_proto",
     ],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":pose_estimation_result"],
 )
 
 py_proto_library(
@@ -513,15 +513,15 @@ py_proto_library(
 
 go_proto_library(
     name = "hand_eye_calibration_go_proto",
-    go_deps = [
+    protos = [":hand_eye_calibration"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
         ":intrinsic_calibration_go_proto",
-        "//intrinsic/math/proto:pose_go_proto",
         "//intrinsic/math/proto:point_go_proto",
+        "//intrinsic/math/proto:pose_go_proto",
         "//intrinsic/math/proto:quaternion_go_proto",
         "//intrinsic/perception/proto:pattern_detection_result_go_proto",
     ],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":hand_eye_calibration"],
 )
 
 cc_proto_library(
@@ -538,28 +538,28 @@ py_proto_library(
 
 go_proto_library(
     name = "camera_to_robot_calibration_with_metadata_go_proto",
-    go_deps = [
+    protos = [":camera_to_robot_calibration_with_metadata"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
         ":hand_eye_calibration_go_proto",
     ],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":camera_to_robot_calibration_with_metadata"],
 )
 
 go_proto_library(
     name = "intrinsic_calibration_go_proto",
-    go_deps = [
+    protos = [":intrinsic_calibration_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
         "//intrinsic/perception/proto:camera_params_go_proto",
         "//intrinsic/perception/proto:dimensions_go_proto",
         "//intrinsic/perception/proto:pattern_detection_result_go_proto",
     ],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":intrinsic_calibration_proto"],
 )
 
 go_proto_library(
     name = "vector_go_proto",
+    protos = [":vector_proto"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = [":vector_proto"],
 )
 
 proto_library(
@@ -583,8 +583,8 @@ py_proto_library(
 
 go_proto_library(
     name = "pose_estimator_id_go_proto",
+    protos = [":pose_estimator_id_proto"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = [":pose_estimator_id_proto"],
 )
 
 proto_library(
@@ -595,8 +595,8 @@ proto_library(
 
 go_proto_library(
     name = "image_processing_go_proto",
+    protos = [":image_processing_proto"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = [":image_processing_proto"],
 )
 
 proto_library(
@@ -633,11 +633,11 @@ py_proto_library(
 
 go_proto_library(
     name = "pose_estimate_in_root_go_proto",
-    go_deps = [
+    protos = [":pose_estimate_in_root_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
         "//intrinsic/math/proto:pose_go_proto",
     ],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":pose_estimate_in_root_proto"],
 )
 
 py_proto_library(
@@ -654,12 +654,12 @@ cc_proto_library(
 
 go_proto_library(
     name = "point_cloud_go_proto",
-    go_deps = [
+    protos = [":point_cloud_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
         "//intrinsic/math/proto:pose_go_proto",
         "//intrinsic/perception/proto/v1:sensor_image_go_proto",
     ],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":point_cloud_proto"],
 )
 
 cc_proto_library(

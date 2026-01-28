@@ -384,7 +384,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "status_go_proto",
-    deps = [":status_proto"],
+    protos = [":status_proto"],
 )
 
 proto_library(
@@ -398,10 +398,10 @@ proto_library(
 
 go_proto_library(
     name = "extended_status_go_proto",
-    go_deps = [
+    protos = [":extended_status_proto"],
+    deps = [
         "//intrinsic/logging/proto:context_go_proto",
     ],
-    deps = [":extended_status_proto"],
 )
 
 cc_proto_library(
@@ -553,8 +553,8 @@ py_grpc_library(
 
 go_proto_library(
     name = "test_service_go_proto",
+    protos = [":test_service_proto"],
     visibility = ["//intrinsic/util/status:__pkg__"],
-    deps = [":test_service_proto"],
 )
 
 go_grpc_library(

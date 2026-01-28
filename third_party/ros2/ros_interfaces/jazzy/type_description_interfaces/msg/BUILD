@@ -27,10 +27,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "field_go_proto",
-    go_deps = [
+    protos = ["field_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/type_description_interfaces/msg:field_type_go_proto",
     ],
-    deps = ["field_proto"],
 )
 
 proto_library(
@@ -50,7 +50,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "field_type_go_proto",
-    deps = ["field_type_proto"],
+    protos = ["field_type_proto"],
 )
 
 proto_library(
@@ -71,10 +71,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "individual_type_description_go_proto",
-    go_deps = [
+    protos = ["individual_type_description_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/type_description_interfaces/msg:field_go_proto",
     ],
-    deps = ["individual_type_description_proto"],
 )
 
 proto_library(
@@ -94,7 +94,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "key_value_go_proto",
-    deps = ["key_value_proto"],
+    protos = ["key_value_proto"],
 )
 
 proto_library(
@@ -115,10 +115,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "type_description_go_proto",
-    go_deps = [
+    protos = ["type_description_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/type_description_interfaces/msg:individual_type_description_go_proto",
     ],
-    deps = ["type_description_proto"],
 )
 
 proto_library(
@@ -138,5 +138,5 @@ cc_proto_library(
 
 go_proto_library(
     name = "type_source_go_proto",
-    deps = ["type_source_proto"],
+    protos = ["type_source_proto"],
 )

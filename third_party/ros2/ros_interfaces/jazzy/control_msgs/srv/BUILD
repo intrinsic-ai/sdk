@@ -26,7 +26,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "query_calibration_state_go_proto",
-    deps = ["query_calibration_state_proto"],
+    protos = ["query_calibration_state_proto"],
 )
 
 proto_library(
@@ -47,8 +47,8 @@ cc_proto_library(
 
 go_proto_library(
     name = "query_trajectory_state_go_proto",
-    go_deps = [
+    protos = ["query_trajectory_state_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:time_go_proto",
     ],
-    deps = ["query_trajectory_state_proto"],
 )

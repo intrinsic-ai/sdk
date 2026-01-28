@@ -27,10 +27,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "model_coefficients_go_proto",
-    go_deps = [
+    protos = ["model_coefficients_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["model_coefficients_proto"],
 )
 
 proto_library(
@@ -51,10 +51,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "point_indices_go_proto",
-    go_deps = [
+    protos = ["point_indices_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["point_indices_proto"],
 )
 
 proto_library(
@@ -79,12 +79,12 @@ cc_proto_library(
 
 go_proto_library(
     name = "polygon_mesh_go_proto",
-    go_deps = [
+    protos = ["polygon_mesh_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/pcl_msgs/msg:vertices_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg:point_cloud2_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["polygon_mesh_proto"],
 )
 
 proto_library(
@@ -104,5 +104,5 @@ cc_proto_library(
 
 go_proto_library(
     name = "vertices_go_proto",
-    deps = ["vertices_proto"],
+    protos = ["vertices_proto"],
 )

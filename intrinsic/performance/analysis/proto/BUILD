@@ -47,5 +47,5 @@ cc_proto_library(
 
 go_proto_library(
     name = "performance_metrics_go_proto",
-    deps = ["//intrinsic/performance/analysis/proto:performance_metrics_proto"],
+    protos = ["//intrinsic/performance/analysis/proto:performance_metrics_proto"],
 )

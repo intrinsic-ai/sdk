@@ -36,7 +36,7 @@ cc_grpc_library(
 
 go_proto_library(
     name = "simulation_service_go_proto",
-    deps = [":simulation_service_proto"],
+    protos = [":simulation_service_proto"],
 )
 
 go_grpc_library(

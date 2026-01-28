@@ -28,8 +28,8 @@ py_proto_library(
 
 go_proto_library(
     name = "equipment_go_proto",
-    go_deps = [":footprint_go_proto"],
-    deps = [":equipment_proto"],
+    protos = [":equipment_proto"],
+    deps = [":footprint_go_proto"],
 )
 
 proto_library(
@@ -55,11 +55,11 @@ py_proto_library(
 
 go_proto_library(
     name = "skills_go_proto",
-    go_deps = [
+    protos = [":skills_proto"],
+    deps = [
         ":equipment_go_proto",
         "//intrinsic/resources/proto:resource_handle_go_proto",
     ],
-    deps = [":skills_proto"],
 )
 
 proto_library(
@@ -98,8 +98,8 @@ py_grpc_library(
 
 go_proto_library(
     name = "skill_registry_go_proto",
-    go_deps = [":skills_go_proto"],
-    deps = [":skill_registry_proto"],
+    protos = [":skill_registry_proto"],
+    deps = [":skills_go_proto"],
 )
 
 go_grpc_library(
@@ -144,11 +144,11 @@ py_grpc_library(
 
 go_proto_library(
     name = "behavior_tree_registry_go_proto",
-    go_deps = [
-        ":skills_go_proto",
+    protos = [":behavior_tree_registry_proto"],
+    deps = [
         ":skill_registry_config_go_proto",
+        ":skills_go_proto",
     ],
-    deps = [":behavior_tree_registry_proto"],
 )
 
 go_grpc_library(
@@ -204,7 +204,8 @@ py_grpc_library(
 
 go_proto_library(
     name = "skill_service_go_proto",
-    go_deps = [
+    protos = [":skill_service_proto"],
+    deps = [
         ":error_go_proto",
         ":footprint_go_proto",
         ":prediction_go_proto",
@@ -213,7 +214,6 @@ go_proto_library(
         "//intrinsic/util/status:extended_status_go_proto",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
     ],
-    deps = [":skill_service_proto"],
 )
 
 go_grpc_library(
@@ -252,11 +252,11 @@ py_proto_library(
 
 go_proto_library(
     name = "skill_service_config_go_proto",
-    go_deps = [
+    protos = [":skill_service_config_proto"],
+    deps = [
         ":skills_go_proto",
         "//intrinsic/assets/proto:status_spec_go_proto",
     ],
-    deps = [":skill_service_config_proto"],
 )
 
 proto_library(
@@ -280,11 +280,11 @@ py_proto_library(
 
 go_proto_library(
     name = "skill_registry_config_go_proto",
-    go_deps = [
+    protos = [":skill_registry_config_proto"],
+    deps = [
         ":skills_go_proto",
         "//intrinsic/executive/proto:behavior_tree_go_proto",
     ],
-    deps = [":skill_registry_config_proto"],
 )
 
 proto_library(
@@ -308,11 +308,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "footprint_go_proto",
-    go_deps = [
+    protos = [":footprint_proto"],
+    deps = [
         "//intrinsic/geometry/proto:transformed_geometry_storage_refs_go_proto",
         "//intrinsic/world/proto:object_world_refs_go_proto",
     ],
-    deps = [":footprint_proto"],
 )
 
 proto_library(
@@ -333,10 +333,10 @@ py_proto_library(
 
 go_proto_library(
     name = "prediction_go_proto",
-    go_deps = [
+    protos = [":prediction_proto"],
+    deps = [
         "//intrinsic/world/proto:object_world_updates_go_proto",
     ],
-    deps = [":prediction_proto"],
 )
 
 cc_proto_library(
@@ -370,7 +370,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "error_go_proto",
-    deps = [":error_proto"],
+    protos = [":error_proto"],
 )
 
 py_proto_library(
@@ -399,14 +399,14 @@ cc_proto_library(
 
 go_proto_library(
     name = "skill_manifest_go_proto",
-    go_deps = [
+    protos = [":skill_manifest_proto"],
+    deps = [
         ":equipment_go_proto",
         "//intrinsic/assets/proto:documentation_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
         "//intrinsic/assets/proto:status_spec_go_proto",
         "//intrinsic/assets/proto:vendor_go_proto",
     ],
-    deps = [":skill_manifest_proto"],
 )
 
 py_proto_library(
@@ -430,7 +430,8 @@ proto_library(
 
 go_proto_library(
     name = "processed_skill_manifest_go_proto",
-    go_deps = [
+    protos = [":processed_skill_manifest_proto"],
+    deps = [
         ":skill_manifest_go_proto",
         "//intrinsic/assets/proto:documentation_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
@@ -438,7 +439,6 @@ go_proto_library(
         "//intrinsic/assets/proto:vendor_go_proto",
         "//intrinsic/kubernetes/workcell_spec/proto:image_go_proto",
     ],
-    deps = [":processed_skill_manifest_proto"],
 )
 
 proto_library(
@@ -454,7 +454,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "skill_parameter_metadata_go_proto",
-    deps = [":skill_parameter_metadata_proto"],
+    protos = [":skill_parameter_metadata_proto"],
 )
 
 py_proto_library(

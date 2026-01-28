@@ -30,11 +30,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "goals_go_proto",
-    go_deps = [
+    protos = ["goals_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:pose_stamped_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["goals_proto"],
 )
 
 proto_library(
@@ -58,11 +58,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "grid_cells_go_proto",
-    go_deps = [
+    protos = ["grid_cells_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:point_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["grid_cells_proto"],
 )
 
 proto_library(
@@ -86,11 +86,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "map_meta_data_go_proto",
-    go_deps = [
+    protos = ["map_meta_data_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:time_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:pose_go_proto",
     ],
-    deps = ["map_meta_data_proto"],
 )
 
 proto_library(
@@ -114,11 +114,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "occupancy_grid_go_proto",
-    go_deps = [
+    protos = ["occupancy_grid_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/nav_msgs/msg:map_meta_data_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["occupancy_grid_proto"],
 )
 
 proto_library(
@@ -143,12 +143,12 @@ cc_proto_library(
 
 go_proto_library(
     name = "odometry_go_proto",
-    go_deps = [
+    protos = ["odometry_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:pose_with_covariance_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:twist_with_covariance_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["odometry_proto"],
 )
 
 proto_library(
@@ -172,9 +172,9 @@ cc_proto_library(
 
 go_proto_library(
     name = "path_go_proto",
-    go_deps = [
+    protos = ["path_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:pose_stamped_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["path_proto"],
 )

@@ -27,7 +27,7 @@ proto_source_code_info_transitive_descriptor_set(
 
 go_proto_library(
     name = "lease_api_go_proto",
-    deps = [":lease_api_proto"],
+    protos = [":lease_api_proto"],
 )
 
 go_grpc_library(

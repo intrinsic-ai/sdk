@@ -55,12 +55,12 @@ py_grpc_library(
 
 go_proto_library(
     name = "solution_service_go_proto",
-    go_deps = [
+    protos = [":solution_service_proto"],
+    deps = [
         ":status_go_proto",
         "//intrinsic/executive/proto:behavior_tree_go_proto",
         "@org_golang_google_genproto_googleapis_api//annotations",
     ],
-    deps = [":solution_service_proto"],
 )
 
 go_grpc_http_library(
@@ -93,5 +93,5 @@ py_proto_library(
 
 go_proto_library(
     name = "status_go_proto",
-    deps = [":status_proto"],
+    protos = [":status_proto"],
 )

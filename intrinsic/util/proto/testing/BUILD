@@ -28,7 +28,7 @@ proto_library(
 
 go_proto_library(
     name = "test_message_go_proto",
-    deps = [":test_message_proto"],
+    protos = [":test_message_proto"],
 )
 
 cc_proto_library(
@@ -47,11 +47,11 @@ proto_library(
 
 go_proto_library(
     name = "descriptors_test_go_proto",
-    go_deps = [
+    protos = [":descriptors_test_proto"],
+    deps = [
         ":descriptors_test_left_wrapper_go_proto",
         ":descriptors_test_right_wrapper_go_proto",
     ],
-    deps = [":descriptors_test_proto"],
 )
 
 cc_proto_library(
@@ -74,7 +74,7 @@ proto_library(
 
 go_proto_library(
     name = "descriptors_test_left_wrapper_go_proto",
-    deps = [":descriptors_test_left_wrapper_proto"],
+    protos = [":descriptors_test_left_wrapper_proto"],
 )
 
 cc_proto_library(
@@ -97,7 +97,7 @@ proto_library(
 
 go_proto_library(
     name = "descriptors_test_right_wrapper_go_proto",
-    deps = [":descriptors_test_right_wrapper_proto"],
+    protos = [":descriptors_test_right_wrapper_proto"],
 )
 
 cc_proto_library(
@@ -185,52 +185,52 @@ proto_library(
 
 go_proto_library(
     name = "diamond_a_go_proto",
-    deps = [
+    protos = [
         ":diamond_a_proto",
     ],
 )
 
 go_proto_library(
     name = "diamond_b_go_proto",
-    go_deps = [
-        ":diamond_a_go_proto",
+    protos = [
+        ":diamond_b_proto",
     ],
     deps = [
-        ":diamond_b_proto",
+        ":diamond_a_go_proto",
     ],
 )
 
 go_proto_library(
     name = "diamond_c_go_proto",
-    go_deps = [
-        ":diamond_a_go_proto",
+    protos = [
+        ":diamond_c_proto",
     ],
     deps = [
-        ":diamond_c_proto",
+        ":diamond_a_go_proto",
     ],
 )
 
 go_proto_library(
     name = "diamond_d_go_proto",
-    go_deps = [
-        ":diamond_b_go_proto",
-        ":diamond_c_go_proto",
+    protos = [
+        ":diamond_d_proto",
     ],
     deps = [
-        ":diamond_d_proto",
+        ":diamond_b_go_proto",
+        ":diamond_c_go_proto",
     ],
 )
 
 go_proto_library(
     name = "embedded_go_proto",
-    deps = [
+    protos = [
         ":embedded_proto",
     ],
 )
 
 go_proto_library(
     name = "recursive_go_proto",
-    deps = [
+    protos = [
         ":recursive_proto",
     ],
 )

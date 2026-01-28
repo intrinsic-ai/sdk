@@ -33,12 +33,12 @@ cc_proto_library(
 
 go_proto_library(
     name = "lookup_transform_go_proto",
-    go_deps = [
+    protos = ["lookup_transform_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:duration_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:time_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:transform_stamped_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/tf2_msgs/msg:tf2_error_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/unique_identifier_msgs/msg:uuid_go_proto",
     ],
-    deps = ["lookup_transform_proto"],
 )

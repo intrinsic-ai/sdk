@@ -29,9 +29,9 @@ cc_proto_library(
 
 go_proto_library(
     name = "data_asset_go_proto",
-    go_deps = ["//intrinsic/assets/proto:metadata_go_proto"],
+    protos = [":data_asset_proto"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = [":data_asset_proto"],
+    deps = ["//intrinsic/assets/proto:metadata_go_proto"],
 )
 
 py_proto_library(
@@ -54,8 +54,8 @@ cc_proto_library(
 
 go_proto_library(
     name = "referenced_data_go_proto",
+    protos = [":referenced_data_proto"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = [":referenced_data_proto"],
 )
 
 py_proto_library(
@@ -79,11 +79,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "referenced_data_struct_go_proto",
-    go_deps = [
+    protos = [":referenced_data_struct_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
         ":referenced_data_go_proto",
     ],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":referenced_data_struct_proto"],
 )
 
 py_proto_library(
@@ -112,13 +112,13 @@ cc_proto_library(
 
 go_proto_library(
     name = "data_manifest_go_proto",
-    go_deps = [
+    protos = [":data_manifest_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
         "//intrinsic/assets/proto:documentation_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
         "//intrinsic/assets/proto:vendor_go_proto",
     ],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":data_manifest_proto"],
 )
 
 py_proto_library(
@@ -147,14 +147,14 @@ cc_proto_library(
 
 go_proto_library(
     name = "data_assets_go_proto",
-    go_deps = [
+    protos = [":data_assets_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
         ":data_asset_go_proto",
         ":referenced_data_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
         "//intrinsic/assets/proto:metadata_go_proto",
     ],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":data_assets_proto"],
 )
 
 go_grpc_library(

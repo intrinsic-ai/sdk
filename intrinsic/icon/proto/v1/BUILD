@@ -41,18 +41,18 @@ cc_proto_library(
 
 go_proto_library(
     name = "service_go_proto",
-    go_deps = [
+    protos = [":service_proto"],
+    deps = [
         "//intrinsic/icon/proto:joint_space_go_proto",
         "//intrinsic/icon/proto:logging_mode_go_proto",
         "//intrinsic/icon/proto:part_status_go_proto",
         "//intrinsic/icon/proto:safety_status_go_proto",
         "//intrinsic/icon/proto:streaming_output_go_proto",
         "//intrinsic/icon/proto/v1:types_go_proto",
-        "@org_golang_google_genproto_googleapis_rpc//status",
         "//intrinsic/logging/proto:context_go_proto",
         "//intrinsic/world/proto:robot_payload_go_proto",
+        "@org_golang_google_genproto_googleapis_rpc//status",
     ],
-    deps = [":service_proto"],
 )
 
 go_grpc_library(
@@ -113,11 +113,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "types_go_proto",
-    go_deps = [
+    protos = [":types_proto"],
+    deps = [
         ":condition_types_go_proto",
         "//intrinsic/icon/proto:generic_part_config_go_proto",
     ],
-    deps = [":types_proto"],
 )
 
 py_proto_library(
@@ -137,7 +137,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "condition_types_go_proto",
-    deps = [":condition_types_proto"],
+    protos = [":condition_types_proto"],
 )
 
 py_proto_library(
@@ -171,12 +171,12 @@ cc_grpc_library(
 
 go_proto_library(
     name = "jogging_service_go_proto",
-    go_deps = [
+    protos = [":jogging_service_proto"],
+    deps = [
         "//intrinsic/icon/proto:cart_space_go_proto",
         "//intrinsic/kinematics/types:joint_limits_go_proto",
         "//intrinsic/world/proto:object_world_refs_go_proto",
     ],
-    deps = [":jogging_service_proto"],
 )
 
 go_grpc_library(

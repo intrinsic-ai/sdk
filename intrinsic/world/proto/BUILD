@@ -28,8 +28,8 @@ py_proto_library(
 
 go_proto_library(
     name = "collision_action_go_proto",
+    protos = [":collision_action_proto"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = [":collision_action_proto"],
 )
 
 proto_library(
@@ -57,13 +57,13 @@ py_proto_library(
 
 go_proto_library(
     name = "collision_settings_go_proto",
-    go_deps = [
+    protos = [":collision_settings_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
         ":collision_action_go_proto",
         ":object_world_refs_go_proto",
         "//intrinsic/skills/proto:skill_parameter_metadata_go_proto",
     ],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":collision_settings_proto"],
 )
 
 proto_library(
@@ -91,13 +91,13 @@ py_proto_library(
 
 go_proto_library(
     name = "geometry_component_go_proto",
-    go_deps = [
-        "//intrinsic/math/proto:matrix_go_proto",
-        "//intrinsic/geometry/proto/v1:transformed_geometry_go_proto",
-        "//intrinsic/geometry/proto:geometry_storage_refs_go_proto",
-    ],
+    protos = [":geometry_component_proto"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = [":geometry_component_proto"],
+    deps = [
+        "//intrinsic/geometry/proto:geometry_storage_refs_go_proto",
+        "//intrinsic/geometry/proto/v1:transformed_geometry_go_proto",
+        "//intrinsic/math/proto:matrix_go_proto",
+    ],
 )
 
 proto_library(
@@ -118,12 +118,12 @@ cc_proto_library(
 
 go_proto_library(
     name = "kinematics_component_go_proto",
-    go_deps = [
-        "//intrinsic/math/proto:vector3_go_proto",
-        "//intrinsic/math/proto:pose_go_proto",
-    ],
+    protos = [":kinematics_component_proto"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = [":kinematics_component_proto"],
+    deps = [
+        "//intrinsic/math/proto:pose_go_proto",
+        "//intrinsic/math/proto:vector3_go_proto",
+    ],
 )
 
 proto_library(
@@ -146,8 +146,8 @@ py_proto_library(
 
 go_proto_library(
     name = "object_world_refs_go_proto",
+    protos = [":object_world_refs_proto"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = [":object_world_refs_proto"],
 )
 
 proto_library(
@@ -241,23 +241,23 @@ py_proto_library(
 
 go_proto_library(
     name = "object_world_updates_go_proto",
-    go_deps = [
+    protos = [":object_world_updates_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
         ":collision_action_go_proto",
         ":collision_settings_go_proto",
         ":geometry_component_go_proto",
         ":gripper_component_go_proto",
-        ":robot_payload_go_proto",
-        ":physics_component_go_proto",
-        ":simulation_component_go_proto",
         ":object_world_refs_go_proto",
+        ":physics_component_go_proto",
+        ":robot_payload_go_proto",
+        ":simulation_component_go_proto",
         ":user_data_go_proto",
         "//intrinsic/icon/proto:cart_space_go_proto",
         "//intrinsic/kinematics/types:joint_limits_go_proto",
         "//intrinsic/math/proto:pose_go_proto",
         "//intrinsic/scene/proto/v1:scene_object_go_proto",
     ],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":object_world_updates_proto"],
 )
 
 proto_library(
@@ -285,13 +285,13 @@ cc_proto_library(
 
 go_proto_library(
     name = "physics_component_go_proto",
-    go_deps = [
+    protos = [":physics_component_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
         "//intrinsic/math/proto:matrix_go_proto",
         "//intrinsic/math/proto:point_go_proto",
         "//intrinsic/math/proto:pose_go_proto",
     ],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":physics_component_proto"],
 )
 
 proto_library(
@@ -314,8 +314,8 @@ cc_proto_library(
 
 go_proto_library(
     name = "simulation_component_go_proto",
+    protos = [":simulation_component_proto"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = [":simulation_component_proto"],
 )
 
 proto_library(
@@ -332,8 +332,8 @@ cc_proto_library(
 
 go_proto_library(
     name = "sensor_component_go_proto",
+    protos = ["sensor_component_proto"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = ["sensor_component_proto"],
 )
 
 proto_library(
@@ -350,8 +350,8 @@ cc_proto_library(
 
 go_proto_library(
     name = "gripper_component_go_proto",
+    protos = ["gripper_component_proto"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = ["gripper_component_proto"],
 )
 
 proto_library(
@@ -372,12 +372,12 @@ py_proto_library(
 
 go_proto_library(
     name = "robot_payload_go_proto",
-    go_deps = [
+    protos = [":robot_payload_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
         "//intrinsic/math/proto:matrix_go_proto",
         "//intrinsic/math/proto:pose_go_proto",
     ],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":robot_payload_proto"],
 )
 
 cc_proto_library(
@@ -409,18 +409,18 @@ py_proto_library(
 
 go_proto_library(
     name = "user_data_go_proto",
-    go_deps = [
+    protos = [":user_data_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
         "//intrinsic/math/proto:matrix_go_proto",
         "//intrinsic/math/proto:pose_go_proto",
     ],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":user_data_proto"],
 )
 
 go_proto_library(
     name = "entity_search_go_proto",
+    protos = [":entity_search_proto"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = [":entity_search_proto"],
 )
 
 cc_proto_library(

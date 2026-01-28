@@ -30,7 +30,8 @@ cc_proto_library(
 
 go_proto_library(
     name = "scene_object_manifest_go_proto",
-    go_deps = [
+    protos = [":scene_object_manifest_proto"],
+    deps = [
         "//intrinsic/assets/proto:asset_tag_go_proto",
         "//intrinsic/assets/proto:documentation_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
@@ -38,7 +39,6 @@ go_proto_library(
         "//intrinsic/scene/proto/v1:scene_object_config_go_proto",
         "//intrinsic/scene/proto/v1:scene_object_go_proto",
     ],
-    deps = [":scene_object_manifest_proto"],
 )
 
 py_proto_library(

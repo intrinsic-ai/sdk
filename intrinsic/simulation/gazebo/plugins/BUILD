@@ -17,7 +17,7 @@ proto_library(
 
 go_proto_library(
     name = "sim_hardware_module_config_go_proto",
-    deps = [":sim_hardware_module_config_proto"],
+    protos = [":sim_hardware_module_config_proto"],
 )
 
 cc_proto_library(

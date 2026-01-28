@@ -69,10 +69,10 @@ proto_library(
 
 go_proto_library(
     name = "force_control_settings_go_proto",
-    go_deps = [
+    protos = [":force_control_settings_proto"],
+    deps = [
         "//intrinsic/icon/proto:cart_space_go_proto",
     ],
-    deps = [":force_control_settings_proto"],
 )
 
 cc_proto_library(

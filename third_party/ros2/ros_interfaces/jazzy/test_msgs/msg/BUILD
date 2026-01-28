@@ -31,12 +31,12 @@ cc_proto_library(
 
 go_proto_library(
     name = "arrays_go_proto",
-    go_deps = [
+    protos = ["arrays_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:basic_types_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:constants_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:defaults_go_proto",
     ],
-    deps = ["arrays_proto"],
 )
 
 proto_library(
@@ -56,7 +56,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "basic_types_go_proto",
-    deps = ["basic_types_proto"],
+    protos = ["basic_types_proto"],
 )
 
 proto_library(
@@ -81,12 +81,12 @@ cc_proto_library(
 
 go_proto_library(
     name = "bounded_plain_sequences_go_proto",
-    go_deps = [
+    protos = ["bounded_plain_sequences_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:basic_types_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:constants_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:defaults_go_proto",
     ],
-    deps = ["bounded_plain_sequences_proto"],
 )
 
 proto_library(
@@ -111,12 +111,12 @@ cc_proto_library(
 
 go_proto_library(
     name = "bounded_sequences_go_proto",
-    go_deps = [
+    protos = ["bounded_sequences_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:basic_types_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:constants_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:defaults_go_proto",
     ],
-    deps = ["bounded_sequences_proto"],
 )
 
 proto_library(
@@ -140,11 +140,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "builtins_go_proto",
-    go_deps = [
+    protos = ["builtins_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:duration_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:time_go_proto",
     ],
-    deps = ["builtins_proto"],
 )
 
 proto_library(
@@ -164,7 +164,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "constants_go_proto",
-    deps = ["constants_proto"],
+    protos = ["constants_proto"],
 )
 
 proto_library(
@@ -184,7 +184,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "defaults_go_proto",
-    deps = ["defaults_proto"],
+    protos = ["defaults_proto"],
 )
 
 proto_library(
@@ -204,7 +204,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "empty_go_proto",
-    deps = ["empty_proto"],
+    protos = ["empty_proto"],
 )
 
 proto_library(
@@ -229,12 +229,12 @@ cc_proto_library(
 
 go_proto_library(
     name = "multi_nested_go_proto",
-    go_deps = [
+    protos = ["multi_nested_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:arrays_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:bounded_sequences_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:unbounded_sequences_go_proto",
     ],
-    deps = ["multi_nested_proto"],
 )
 
 proto_library(
@@ -255,10 +255,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "nested_go_proto",
-    go_deps = [
+    protos = ["nested_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:basic_types_go_proto",
     ],
-    deps = ["nested_proto"],
 )
 
 proto_library(
@@ -278,7 +278,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "strings_go_proto",
-    deps = ["strings_proto"],
+    protos = ["strings_proto"],
 )
 
 proto_library(
@@ -303,12 +303,12 @@ cc_proto_library(
 
 go_proto_library(
     name = "unbounded_sequences_go_proto",
-    go_deps = [
+    protos = ["unbounded_sequences_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:basic_types_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:constants_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:defaults_go_proto",
     ],
-    deps = ["unbounded_sequences_proto"],
 )
 
 proto_library(
@@ -328,5 +328,5 @@ cc_proto_library(
 
 go_proto_library(
     name = "w_strings_go_proto",
-    deps = ["w_strings_proto"],
+    protos = ["w_strings_proto"],
 )

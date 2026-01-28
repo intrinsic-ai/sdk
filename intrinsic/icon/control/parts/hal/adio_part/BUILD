@@ -16,11 +16,11 @@ proto_library(
 
 go_proto_library(
     name = "hal_adio_part_config_go_proto",
-    go_deps = [
+    protos = [":hal_adio_part_config_proto"],
+    visibility = ["//visibility:private"],
+    deps = [
         "//intrinsic/icon/control/parts/hal/v1:hal_part_config_go_proto",
     ],
-    visibility = ["//visibility:private"],
-    deps = [":hal_adio_part_config_proto"],
 )
 
 cc_proto_library(

@@ -27,10 +27,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "change_state_go_proto",
-    go_deps = [
+    protos = ["change_state_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/lifecycle_msgs/msg:transition_go_proto",
     ],
-    deps = ["change_state_proto"],
 )
 
 proto_library(
@@ -51,10 +51,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "get_available_states_go_proto",
-    go_deps = [
+    protos = ["get_available_states_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/lifecycle_msgs/msg:state_go_proto",
     ],
-    deps = ["get_available_states_proto"],
 )
 
 proto_library(
@@ -75,10 +75,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "get_available_transitions_go_proto",
-    go_deps = [
+    protos = ["get_available_transitions_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/lifecycle_msgs/msg:transition_description_go_proto",
     ],
-    deps = ["get_available_transitions_proto"],
 )
 
 proto_library(
@@ -99,8 +99,8 @@ cc_proto_library(
 
 go_proto_library(
     name = "get_state_go_proto",
-    go_deps = [
+    protos = ["get_state_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/lifecycle_msgs/msg:state_go_proto",
     ],
-    deps = ["get_state_proto"],
 )

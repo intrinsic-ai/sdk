@@ -27,8 +27,8 @@ cc_proto_library(
 
 go_proto_library(
     name = "cancel_goal_go_proto",
-    go_deps = [
+    protos = ["cancel_goal_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/action_msgs/msg:goal_info_go_proto",
     ],
-    deps = ["cancel_goal_proto"],
 )

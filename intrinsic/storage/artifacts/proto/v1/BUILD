@@ -15,7 +15,7 @@ proto_library(
 
 go_proto_library(
     name = "artifact_go_proto",
-    deps = [":artifact_proto"],
+    protos = [":artifact_proto"],
 )
 
 go_grpc_library(
@@ -31,7 +31,7 @@ proto_library(
 
 go_proto_library(
     name = "articat_go_proto",
-    deps = [
+    protos = [
         ":articat_proto",
     ],
 )

@@ -15,7 +15,7 @@ proto_library(
 
 go_proto_library(
     name = "image_go_proto",
-    deps = [":image_proto"],
+    protos = [":image_proto"],
 )
 
 py_proto_library(
@@ -31,8 +31,8 @@ proto_library(
 
 go_proto_library(
     name = "deploy_go_proto",
-    go_deps = ["//intrinsic/config/proto:operation_mode_go_proto"],
-    deps = [":deploy_proto"],
+    protos = [":deploy_proto"],
+    deps = ["//intrinsic/config/proto:operation_mode_go_proto"],
 )
 
 go_grpc_library(

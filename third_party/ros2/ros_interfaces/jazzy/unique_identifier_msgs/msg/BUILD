@@ -26,5 +26,5 @@ cc_proto_library(
 
 go_proto_library(
     name = "uuid_go_proto",
-    deps = ["uuid_proto"],
+    protos = ["uuid_proto"],
 )

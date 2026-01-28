@@ -25,7 +25,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "operation_mode_go_proto",
-    deps = [":operation_mode_proto"],
+    protos = [":operation_mode_proto"],
 )
 
 py_proto_library(

@@ -130,7 +130,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "storage_location_go_proto",
-    deps = [":storage_location"],
+    protos = [":storage_location"],
 )
 
 cc_library(

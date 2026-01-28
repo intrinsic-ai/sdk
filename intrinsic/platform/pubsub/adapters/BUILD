@@ -26,11 +26,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "pubsub_go_proto",
-    go_deps = [
-        "@org_golang_google_genproto_googleapis_rpc//status",
+    protos = [":pubsub_proto"],
+    deps = [
         "//intrinsic/logging/proto:context_go_proto",
+        "@org_golang_google_genproto_googleapis_rpc//status",
     ],
-    deps = [":pubsub_proto"],
 )
 
 py_proto_library(

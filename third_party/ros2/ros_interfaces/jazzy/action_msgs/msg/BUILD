@@ -30,11 +30,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "goal_info_go_proto",
-    go_deps = [
+    protos = ["goal_info_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:time_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/unique_identifier_msgs/msg:uuid_go_proto",
     ],
-    deps = ["goal_info_proto"],
 )
 
 proto_library(
@@ -55,10 +55,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "goal_status_go_proto",
-    go_deps = [
+    protos = ["goal_status_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/action_msgs/msg:goal_info_go_proto",
     ],
-    deps = ["goal_status_proto"],
 )
 
 proto_library(
@@ -79,8 +79,8 @@ cc_proto_library(
 
 go_proto_library(
     name = "goal_status_array_go_proto",
-    go_deps = [
+    protos = ["goal_status_array_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/action_msgs/msg:goal_status_go_proto",
     ],
-    deps = ["goal_status_array_proto"],
 )

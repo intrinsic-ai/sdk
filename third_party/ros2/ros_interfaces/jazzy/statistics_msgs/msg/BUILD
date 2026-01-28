@@ -30,11 +30,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "metrics_message_go_proto",
-    go_deps = [
+    protos = ["metrics_message_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:time_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/statistics_msgs/msg:statistic_data_point_go_proto",
     ],
-    deps = ["metrics_message_proto"],
 )
 
 proto_library(
@@ -54,7 +54,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "statistic_data_point_go_proto",
-    deps = ["statistic_data_point_proto"],
+    protos = ["statistic_data_point_proto"],
 )
 
 proto_library(
@@ -74,5 +74,5 @@ cc_proto_library(
 
 go_proto_library(
     name = "statistic_data_type_go_proto",
-    deps = ["statistic_data_type_proto"],
+    protos = ["statistic_data_type_proto"],
 )

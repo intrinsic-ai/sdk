@@ -22,11 +22,11 @@ py_proto_library(
 
 go_proto_library(
     name = "process_asset_go_proto",
-    go_deps = [
+    protos = [":process_asset_proto"],
+    deps = [
         "//intrinsic/assets/proto:metadata_go_proto",
         "//intrinsic/executive/proto:behavior_tree_go_proto",
     ],
-    deps = [":process_asset_proto"],
 )
 
 proto_library(
@@ -48,12 +48,12 @@ py_proto_library(
 
 go_proto_library(
     name = "process_manifest_go_proto",
-    go_deps = [
+    protos = [":process_manifest_proto"],
+    deps = [
         "//intrinsic/assets/proto:asset_tag_go_proto",
         "//intrinsic/assets/proto:documentation_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
         "//intrinsic/assets/proto:vendor_go_proto",
         "//intrinsic/executive/proto:behavior_tree_go_proto",
     ],
-    deps = [":process_manifest_proto"],
 )

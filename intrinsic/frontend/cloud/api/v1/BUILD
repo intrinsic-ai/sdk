@@ -17,7 +17,7 @@ proto_library(
 
 go_proto_library(
     name = "clusterdiscovery_api_go_proto",
-    deps = [":clusterdiscovery_api_proto"],
+    protos = [":clusterdiscovery_api_proto"],
 )
 
 go_grpc_library(
@@ -45,13 +45,13 @@ proto_library(
 
 go_proto_library(
     name = "clustermanager_api_go_proto",
-    go_deps = [
-        "@org_golang_google_genproto_googleapis_api//annotations",
-        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
+    protos = [":clustermanager_api_proto"],
+    deps = [
         "//intrinsic/util/status:extended_status_go_proto",
-        "@com_github_grpc_ecosystem_grpc_gateway_v2//protoc-gen-openapiv2/options:options",
+        "@com_github_grpc_ecosystem_grpc_gateway_v2//protoc-gen-openapiv2/options",
+        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
+        "@org_golang_google_genproto_googleapis_api//annotations",
     ],
-    deps = [":clustermanager_api_proto"],
 )
 
 go_grpc_library(
@@ -97,10 +97,10 @@ py_grpc_library(
 
 go_proto_library(
     name = "solutiondiscovery_api_go_proto",
-    go_deps = ["//intrinsic/frontend/cloud/api/v1:clusterdiscovery_api_go_grpc_proto"],
-    deps = [
+    protos = [
         ":solutiondiscovery_api_proto",
     ],
+    deps = ["//intrinsic/frontend/cloud/api/v1:clusterdiscovery_api_go_grpc_proto"],
 )
 
 go_grpc_library(

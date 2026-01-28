@@ -20,8 +20,8 @@ proto_library(
 
 go_proto_library(
     name = "admin_set_go_proto",
+    protos = [":admin_set_proto"],
     visibility = ["//intrinsic:intrinsic_internal"],
-    deps = [":admin_set_proto"],
 )
 
 go_grpc_library(

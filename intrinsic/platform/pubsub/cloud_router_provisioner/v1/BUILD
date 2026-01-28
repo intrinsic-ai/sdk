@@ -22,11 +22,11 @@ proto_library(
 
 go_proto_library(
     name = "provisioner_go_proto",
-    go_deps = [
+    protos = [":provisioner_proto"],
+    visibility = ["//intrinsic:intrinsic_internal"],
+    deps = [
         "//intrinsic/platform/pubsub/admin_set_grpc/v1:admin_set_go_grpc_proto",
     ],
-    visibility = ["//intrinsic:intrinsic_internal"],
-    deps = [":provisioner_proto"],
 )
 
 go_grpc_library(

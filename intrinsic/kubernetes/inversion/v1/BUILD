@@ -13,7 +13,7 @@ proto_library(
 
 go_proto_library(
     name = "inversion_go_proto",
-    deps = [":inversion_proto"],
+    protos = [":inversion_proto"],
 )
 
 go_grpc_library(

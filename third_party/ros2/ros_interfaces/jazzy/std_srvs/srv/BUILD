@@ -26,7 +26,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "empty_go_proto",
-    deps = ["empty_proto"],
+    protos = ["empty_proto"],
 )
 
 proto_library(
@@ -46,7 +46,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "set_bool_go_proto",
-    deps = ["set_bool_proto"],
+    protos = ["set_bool_proto"],
 )
 
 proto_library(
@@ -66,5 +66,5 @@ cc_proto_library(
 
 go_proto_library(
     name = "trigger_go_proto",
-    deps = ["trigger_proto"],
+    protos = ["trigger_proto"],
 )

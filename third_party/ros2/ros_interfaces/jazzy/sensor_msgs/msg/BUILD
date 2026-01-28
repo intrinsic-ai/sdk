@@ -27,10 +27,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "battery_state_go_proto",
-    go_deps = [
+    protos = ["battery_state_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["battery_state_proto"],
 )
 
 proto_library(
@@ -54,11 +54,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "camera_info_go_proto",
-    go_deps = [
+    protos = ["camera_info_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg:region_of_interest_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["camera_info_proto"],
 )
 
 proto_library(
@@ -78,7 +78,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "channel_float32_go_proto",
-    deps = ["channel_float32_proto"],
+    protos = ["channel_float32_proto"],
 )
 
 proto_library(
@@ -99,10 +99,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "compressed_image_go_proto",
-    go_deps = [
+    protos = ["compressed_image_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["compressed_image_proto"],
 )
 
 proto_library(
@@ -123,10 +123,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "fluid_pressure_go_proto",
-    go_deps = [
+    protos = ["fluid_pressure_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["fluid_pressure_proto"],
 )
 
 proto_library(
@@ -147,10 +147,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "illuminance_go_proto",
-    go_deps = [
+    protos = ["illuminance_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["illuminance_proto"],
 )
 
 proto_library(
@@ -171,10 +171,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "image_go_proto",
-    go_deps = [
+    protos = ["image_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["image_proto"],
 )
 
 proto_library(
@@ -199,12 +199,12 @@ cc_proto_library(
 
 go_proto_library(
     name = "imu_go_proto",
-    go_deps = [
+    protos = ["imu_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:quaternion_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:vector3_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["imu_proto"],
 )
 
 proto_library(
@@ -225,10 +225,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "joint_state_go_proto",
-    go_deps = [
+    protos = ["joint_state_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["joint_state_proto"],
 )
 
 proto_library(
@@ -249,10 +249,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "joy_go_proto",
-    go_deps = [
+    protos = ["joy_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["joy_proto"],
 )
 
 proto_library(
@@ -272,7 +272,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "joy_feedback_go_proto",
-    deps = ["joy_feedback_proto"],
+    protos = ["joy_feedback_proto"],
 )
 
 proto_library(
@@ -293,10 +293,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "joy_feedback_array_go_proto",
-    go_deps = [
+    protos = ["joy_feedback_array_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg:joy_feedback_go_proto",
     ],
-    deps = ["joy_feedback_array_proto"],
 )
 
 proto_library(
@@ -316,7 +316,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "laser_echo_go_proto",
-    deps = ["laser_echo_proto"],
+    protos = ["laser_echo_proto"],
 )
 
 proto_library(
@@ -337,10 +337,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "laser_scan_go_proto",
-    go_deps = [
+    protos = ["laser_scan_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["laser_scan_proto"],
 )
 
 proto_library(
@@ -364,11 +364,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "magnetic_field_go_proto",
-    go_deps = [
+    protos = ["magnetic_field_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:vector3_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["magnetic_field_proto"],
 )
 
 proto_library(
@@ -394,13 +394,13 @@ cc_proto_library(
 
 go_proto_library(
     name = "multi_dof_joint_state_go_proto",
-    go_deps = [
+    protos = ["multi_dof_joint_state_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:transform_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:twist_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:wrench_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["multi_dof_joint_state_proto"],
 )
 
 proto_library(
@@ -424,11 +424,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "multi_echo_laser_scan_go_proto",
-    go_deps = [
+    protos = ["multi_echo_laser_scan_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg:laser_echo_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["multi_echo_laser_scan_proto"],
 )
 
 proto_library(
@@ -452,11 +452,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "nav_sat_fix_go_proto",
-    go_deps = [
+    protos = ["nav_sat_fix_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg:nav_sat_status_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["nav_sat_fix_proto"],
 )
 
 proto_library(
@@ -476,7 +476,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "nav_sat_status_go_proto",
-    deps = ["nav_sat_status_proto"],
+    protos = ["nav_sat_status_proto"],
 )
 
 proto_library(
@@ -501,12 +501,12 @@ cc_proto_library(
 
 go_proto_library(
     name = "point_cloud_go_proto",
-    go_deps = [
+    protos = ["point_cloud_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:point32_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg:channel_float32_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["point_cloud_proto"],
 )
 
 proto_library(
@@ -530,11 +530,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "point_cloud2_go_proto",
-    go_deps = [
+    protos = ["point_cloud2_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg:point_field_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["point_cloud2_proto"],
 )
 
 proto_library(
@@ -554,7 +554,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "point_field_go_proto",
-    deps = ["point_field_proto"],
+    protos = ["point_field_proto"],
 )
 
 proto_library(
@@ -575,10 +575,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "range_go_proto",
-    go_deps = [
+    protos = ["range_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["range_proto"],
 )
 
 proto_library(
@@ -598,7 +598,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "region_of_interest_go_proto",
-    deps = ["region_of_interest_proto"],
+    protos = ["region_of_interest_proto"],
 )
 
 proto_library(
@@ -619,10 +619,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "relative_humidity_go_proto",
-    go_deps = [
+    protos = ["relative_humidity_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["relative_humidity_proto"],
 )
 
 proto_library(
@@ -643,10 +643,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "temperature_go_proto",
-    go_deps = [
+    protos = ["temperature_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["temperature_proto"],
 )
 
 proto_library(
@@ -670,9 +670,9 @@ cc_proto_library(
 
 go_proto_library(
     name = "time_reference_go_proto",
-    go_deps = [
+    protos = ["time_reference_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:time_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["time_reference_proto"],
 )

@@ -21,16 +21,16 @@ proto_library(
 
 go_proto_library(
     name = "hal_arm_part_config_go_proto",
-    go_deps = [
-        "//intrinsic/icon/control/parts/proto/v1:mode_of_safe_operation_limits_config_go_proto",
-        "//intrinsic/icon/control/parts/hal/v1:hal_part_config_go_proto",
-        "//intrinsic/icon/proto:joint_position_pid_torque_controller_config_go_proto",
-        "//intrinsic/icon/proto:linear_joint_acceleration_filter_config_go_proto",
-    ],
+    protos = [":hal_arm_part_config_proto"],
     visibility = [
         "//intrinsic:intrinsic_internal",
     ],
-    deps = [":hal_arm_part_config_proto"],
+    deps = [
+        "//intrinsic/icon/control/parts/hal/v1:hal_part_config_go_proto",
+        "//intrinsic/icon/control/parts/proto/v1:mode_of_safe_operation_limits_config_go_proto",
+        "//intrinsic/icon/proto:joint_position_pid_torque_controller_config_go_proto",
+        "//intrinsic/icon/proto:linear_joint_acceleration_filter_config_go_proto",
+    ],
 )
 
 cc_proto_library(

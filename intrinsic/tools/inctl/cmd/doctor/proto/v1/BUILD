@@ -12,5 +12,5 @@ proto_library(
 
 go_proto_library(
     name = "report_go_proto",
-    deps = [":report_proto"],
+    protos = [":report_proto"],
 )

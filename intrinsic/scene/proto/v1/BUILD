@@ -24,7 +24,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "collision_rules_go_proto",
-    deps = [":collision_rules_proto"],
+    protos = [":collision_rules_proto"],
 )
 
 py_proto_library(
@@ -56,14 +56,14 @@ cc_proto_library(
 
 go_proto_library(
     name = "entity_go_proto",
-    go_deps = [
+    protos = [":entity_proto"],
+    deps = [
         "//intrinsic/math/proto:pose_go_proto",
         "//intrinsic/world/proto:geometry_component_go_proto",
         "//intrinsic/world/proto:kinematics_component_go_proto",
         "//intrinsic/world/proto:physics_component_go_proto",
         "//intrinsic/world/proto:sensor_component_go_proto",
     ],
-    deps = [":entity_proto"],
 )
 
 py_proto_library(
@@ -86,7 +86,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "object_properties_go_proto",
-    deps = [":object_properties_proto"],
+    protos = [":object_properties_proto"],
 )
 
 py_proto_library(
@@ -118,11 +118,11 @@ py_proto_library(
 
 go_proto_library(
     name = "geometry_stats_go_proto",
-    go_deps = [
+    protos = [":geometry_stats_proto"],
+    deps = [
         "//intrinsic/math/proto:point_go_proto",
         "//intrinsic/math/proto:vector3_go_proto",
     ],
-    deps = [":geometry_stats_proto"],
 )
 
 proto_library(
@@ -144,14 +144,14 @@ cc_proto_library(
 
 go_proto_library(
     name = "scene_object_go_proto",
-    go_deps = [
-        ":geometry_stats_go_proto",
+    protos = [":scene_object_proto"],
+    deps = [
         ":collision_rules_go_proto",
         ":entity_go_proto",
+        ":geometry_stats_go_proto",
         ":object_properties_go_proto",
         ":simulation_spec_go_proto",
     ],
-    deps = [":scene_object_proto"],
 )
 
 py_proto_library(
@@ -182,14 +182,14 @@ cc_proto_library(
 
 go_proto_library(
     name = "scene_object_import_go_proto",
-    go_deps = [
+    protos = [":scene_object_import_proto"],
+    deps = [
         ":geometry_stats_go_proto",
         ":scene_object_go_proto",
-        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
         "//intrinsic/geometry/proto/v1:material_go_proto",
         "//intrinsic/math/proto:quaternion_go_proto",
+        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
     ],
-    deps = [":scene_object_import_proto"],
 )
 
 py_proto_library(
@@ -244,13 +244,13 @@ cc_proto_library(
 
 go_proto_library(
     name = "scene_object_updates_go_proto",
-    go_deps = [
+    protos = [":scene_object_updates_proto"],
+    deps = [
         ":collision_rules_go_proto",
         ":object_properties_go_proto",
         "//intrinsic/kinematics/types:joint_limits_go_proto",
         "//intrinsic/math/proto:pose_go_proto",
     ],
-    deps = [":scene_object_updates_proto"],
 )
 
 py_proto_library(
@@ -273,7 +273,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "simulation_spec_go_proto",
-    deps = [":simulation_spec_proto"],
+    protos = [":simulation_spec_proto"],
 )
 
 proto_library(
@@ -291,7 +291,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "scene_object_config_go_proto",
-    deps = [":scene_object_config_proto"],
+    protos = [":scene_object_config_proto"],
 )
 
 py_proto_library(

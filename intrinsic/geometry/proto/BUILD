@@ -33,11 +33,11 @@ py_proto_library(
 
 go_proto_library(
     name = "axis_aligned_bounding_box_go_proto",
-    go_deps = [
+    protos = [":axis_aligned_bounding_box_proto"],
+    deps = [
         "//intrinsic/math/proto:vector2_go_proto",
         "//intrinsic/math/proto:vector3_go_proto",
     ],
-    deps = [":axis_aligned_bounding_box_proto"],
 )
 
 proto_library(
@@ -62,15 +62,15 @@ cc_proto_library(
 
 go_proto_library(
     name = "oriented_bounding_box_go_proto",
-    go_deps = [
-        "//intrinsic/math/proto:vector2_go_proto",
-        "//intrinsic/math/proto:vector3_go_proto",
+    protos = [":oriented_bounding_box_proto"],
+    deps = [
         ":axis_aligned_bounding_box_go_proto",
         "//intrinsic/math/proto:point_go_proto",
-        "//intrinsic/math/proto:quaternion_go_proto",
         "//intrinsic/math/proto:pose_go_proto",
+        "//intrinsic/math/proto:quaternion_go_proto",
+        "//intrinsic/math/proto:vector2_go_proto",
+        "//intrinsic/math/proto:vector3_go_proto",
     ],
-    deps = [":oriented_bounding_box_proto"],
 )
 
 proto_library(
@@ -122,13 +122,13 @@ py_grpc_library(
 
 go_proto_library(
     name = "geometry_service_go_proto",
-    go_deps = [
+    protos = [":geometry_service_proto"],
+    deps = [
         ":geometry_service_types_go_proto",
         ":geometry_storage_refs_go_proto",
         "//intrinsic/geometry/proto/v1:geometry_go_proto",
         "//intrinsic/geometry/proto/v1:geometry_storage_refs_go_proto",
     ],
-    deps = [":geometry_service_proto"],
 )
 
 cc_grpc_library(
@@ -177,7 +177,8 @@ cc_proto_library(
 
 go_proto_library(
     name = "geometry_service_types_go_proto",
-    go_deps = [
+    protos = [":geometry_service_types_proto"],
+    deps = [
         ":geometry_go_proto",
         ":geometry_storage_refs_go_proto",
         ":lazy_exact_geometry_go_proto",
@@ -187,7 +188,6 @@ go_proto_library(
         "//intrinsic/geometry/proto/v1:renderable_go_proto",
         "//intrinsic/geometry/proto/v1:transformed_primitive_shape_set_go_proto",
     ],
-    deps = [":geometry_service_types_proto"],
 )
 
 proto_library(
@@ -207,16 +207,16 @@ cc_proto_library(
 
 go_proto_library(
     name = "geometry_storage_refs_go_proto",
-    deps = [":geometry_storage_refs_proto"],
+    protos = [":geometry_storage_refs_proto"],
 )
 
 go_proto_library(
     name = "geometry_go_proto",
-    go_deps = [
+    protos = [":geometry_proto"],
+    deps = [
         ":lazy_exact_geometry_go_proto",
         ":renderable_go_proto",
     ],
-    deps = [":geometry_proto"],
 )
 
 proto_library(
@@ -241,12 +241,12 @@ py_proto_library(
 
 go_proto_library(
     name = "lazy_exact_geometry_go_proto",
-    go_deps = [
+    protos = [":lazy_exact_geometry_proto"],
+    deps = [
         ":mesh_octree_wrapping_go_proto",
         ":primitives_go_proto",
         ":triangle_mesh_go_proto",
     ],
-    deps = [":lazy_exact_geometry_proto"],
 )
 
 proto_library(
@@ -267,10 +267,10 @@ py_proto_library(
 
 go_proto_library(
     name = "mesh_octree_wrapping_go_proto",
-    go_deps = [
+    protos = [":mesh_octree_wrapping_proto"],
+    deps = [
         ":octree_go_proto",
     ],
-    deps = [":mesh_octree_wrapping_proto"],
 )
 
 proto_library(
@@ -291,10 +291,10 @@ py_proto_library(
 
 go_proto_library(
     name = "octree_go_proto",
-    go_deps = [
+    protos = [":octree_proto"],
+    deps = [
         ":axis_aligned_bounding_box_go_proto",
     ],
-    deps = [":octree_proto"],
 )
 
 proto_library(
@@ -315,10 +315,10 @@ py_proto_library(
 
 go_proto_library(
     name = "primitives_go_proto",
-    go_deps = [
+    protos = [":primitives_proto"],
+    deps = [
         "//intrinsic/math/proto:vector3_go_proto",
     ],
-    deps = [":primitives_proto"],
 )
 
 proto_library(
@@ -357,16 +357,16 @@ py_proto_library(
 
 go_proto_library(
     name = "transformed_geometry_storage_refs_go_proto",
-    go_deps = [
+    protos = [":transformed_geometry_storage_refs_proto"],
+    deps = [
         ":geometry_storage_refs_go_proto",
         "//intrinsic/math/proto:matrix_go_proto",
     ],
-    deps = [":transformed_geometry_storage_refs_proto"],
 )
 
 go_proto_library(
     name = "renderable_go_proto",
-    deps = [":renderable_proto"],
+    protos = [":renderable_proto"],
 )
 
 proto_library(
@@ -386,5 +386,5 @@ py_proto_library(
 
 go_proto_library(
     name = "triangle_mesh_go_proto",
-    deps = [":triangle_mesh_proto"],
+    protos = [":triangle_mesh_proto"],
 )

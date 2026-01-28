@@ -25,8 +25,8 @@ proto_library(
 
 go_proto_library(
     name = "vmpool_api_go_proto",
-    go_deps = ["@org_golang_google_genproto_googleapis_api//annotations"],
-    deps = [":vmpool_api_proto"],
+    protos = [":vmpool_api_proto"],
+    deps = ["@org_golang_google_genproto_googleapis_api//annotations"],
 )
 
 go_grpc_library(

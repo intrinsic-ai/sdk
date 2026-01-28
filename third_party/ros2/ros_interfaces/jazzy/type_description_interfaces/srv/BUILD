@@ -31,10 +31,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "get_type_description_go_proto",
-    go_deps = [
+    protos = ["get_type_description_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/type_description_interfaces/msg:key_value_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/type_description_interfaces/msg:type_description_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/type_description_interfaces/msg:type_source_go_proto",
     ],
-    deps = ["get_type_description_proto"],
 )

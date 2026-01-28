@@ -27,7 +27,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "product_go_proto",
-    deps = [
+    protos = [
         ":product_proto",
     ],
 )
@@ -65,14 +65,14 @@ cc_grpc_library(
 
 go_proto_library(
     name = "product_service_go_proto",
-    go_deps = [
+    protos = [":product_service_proto"],
+    deps = [
         ":product_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
         "//intrinsic/geometry/proto:primitives_go_proto",
         "//intrinsic/scene/proto/v1:scene_object_go_proto",
         "//intrinsic/scene/proto/v1:scene_object_updates_go_proto",
     ],
-    deps = [":product_service_proto"],
 )
 
 go_grpc_library(

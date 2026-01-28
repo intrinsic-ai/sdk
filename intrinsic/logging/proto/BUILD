@@ -25,7 +25,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "bag_metadata_go_proto",
-    deps = [":bag_metadata_proto"],
+    protos = [":bag_metadata_proto"],
 )
 
 py_proto_library(
@@ -57,10 +57,10 @@ cc_grpc_library(
 
 go_proto_library(
     name = "bag_packager_service_go_proto",
-    go_deps = [
+    protos = [":bag_packager_service"],
+    deps = [
         ":bag_metadata_go_proto",
     ],
-    deps = [":bag_packager_service"],
 )
 
 go_grpc_library(
@@ -96,7 +96,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "blob_go_proto",
-    deps = [":blob_proto"],
+    protos = [":blob_proto"],
 )
 
 py_proto_library(
@@ -116,8 +116,8 @@ cc_proto_library(
 
 go_proto_library(
     name = "context_go_proto",
+    protos = [":context_proto"],
     visibility = ["//intrinsic:intrinsic_internal"],
-    deps = [":context_proto"],
 )
 
 py_proto_library(
@@ -138,7 +138,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "critical_event_log_go_proto",
-    deps = [":critical_event_log"],
+    protos = [":critical_event_log"],
 )
 
 py_proto_library(
@@ -162,7 +162,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "downsampler_go_proto",
-    deps = [":downsampler_proto"],
+    protos = [":downsampler_proto"],
 )
 
 py_proto_library(
@@ -183,7 +183,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "flowstate_event_go_proto",
-    deps = [":flowstate_event"],
+    protos = [":flowstate_event"],
 )
 
 py_proto_library(
@@ -217,13 +217,13 @@ cc_grpc_library(
 
 go_proto_library(
     name = "log_dispatcher_service_go_proto",
-    go_deps = [
+    protos = [":log_dispatcher_service"],
+    deps = [
         ":bag_metadata_go_proto",
         ":blob_go_proto",
         ":downsampler_go_proto",
         ":log_item_go_proto",
     ],
-    deps = [":log_dispatcher_service"],
 )
 
 go_grpc_library(
@@ -280,88 +280,88 @@ cc_proto_library(
 
 go_proto_library(
     name = "log_item_go_proto",
-    go_deps = [
+    protos = [":log_item_proto"],
+    deps = [
+        ":bag_metadata_go_proto",
         ":blob_go_proto",
         ":context_go_proto",
-        ":bag_metadata_go_proto",
         ":critical_event_log_go_proto",
         ":flowstate_event_go_proto",
         ":visualization_context_go_proto",
         "//intrinsic/executive/proto:log_items_go_proto",
+        "//intrinsic/geometry/proto:axis_aligned_bounding_box_go_proto",
+        "//intrinsic/geometry/proto:geometry_storage_refs_go_proto",
+        "//intrinsic/geometry/proto:lazy_exact_geometry_go_proto",
+        "//intrinsic/geometry/proto:mesh_octree_wrapping_go_proto",
+        "//intrinsic/geometry/proto:octree_go_proto",
+        "//intrinsic/geometry/proto:oriented_bounding_box_go_proto",
+        "//intrinsic/geometry/proto:primitives_go_proto",
+        "//intrinsic/geometry/proto:transformed_geometry_storage_refs_go_proto",
+        "//intrinsic/geometry/proto:triangle_mesh_go_proto",
+        "//intrinsic/hardware/gpio/v1:signal_go_proto",
+        "//intrinsic/hardware/gripper/eoat:eoat_service_go_proto",
+        "//intrinsic/hardware/gripper/eoat:gripper_config_go_proto",
+        "//intrinsic/hardware/gripper/service/proto:generic_gripper_go_proto",
         "//intrinsic/icon/proto:cart_space_go_proto",
-        "//intrinsic/icon/proto:joint_space_go_proto",
+        "//intrinsic/icon/proto:generic_part_config_go_proto",
         "//intrinsic/icon/proto:io_block_go_proto",
+        "//intrinsic/icon/proto:joint_space_go_proto",
+        "//intrinsic/icon/proto:part_status_go_proto",
         "//intrinsic/icon/proto:safety_status_go_proto",
-        "//intrinsic/math/proto:matrix_go_proto",
-        "//intrinsic/math/proto:point_go_proto",
-        "//intrinsic/math/proto:quaternion_go_proto",
-        "//intrinsic/math/proto:pose_go_proto",
-        "//intrinsic/math/proto:tf_message_go_proto",
+        "//intrinsic/icon/proto/v1:types_go_proto",
         "//intrinsic/kinematics/proto:kinematics_go_proto",
         "//intrinsic/kinematics/proto:skeleton_go_proto",
-        "//intrinsic/kinematics/types:joint_limits_go_proto",
-        "//intrinsic/icon/proto:generic_part_config_go_proto",
-        "//intrinsic/icon/proto/v1:types_go_proto",
-        "//intrinsic/math/proto:vector3_go_proto",
-        "//intrinsic/icon/proto:part_status_go_proto",
-        "//intrinsic/util/status:extended_status_go_proto",
-        "//intrinsic/logging/errors/proto:error_report_go_proto",
-        "//intrinsic/hardware/gripper/service/proto:generic_gripper_go_proto",
-        "//intrinsic/hardware/gpio/v1:signal_go_proto",
-        "//intrinsic/hardware/gripper/eoat:gripper_config_go_proto",
-        "//intrinsic/hardware/gripper/eoat:eoat_service_go_proto",
         "//intrinsic/kinematics/types:dynamic_limits_check_mode_go_proto",
-        "//intrinsic/skills/proto:skill_parameter_metadata_go_proto",
-        "//intrinsic/perception/proto/v1:pose_estimate_in_root_go_proto",
-        "//intrinsic/world/proto:object_world_refs_go_proto",
-        "//intrinsic/world/proto:collision_action_go_proto",
-        "//intrinsic/world/proto:collision_settings_go_proto",
-        "//intrinsic/math/proto:vector2_go_proto",
-        "//intrinsic/geometry/proto:axis_aligned_bounding_box_go_proto",
-        "//intrinsic/geometry/proto:oriented_bounding_box_go_proto",
+        "//intrinsic/kinematics/types:joint_limits_go_proto",
+        "//intrinsic/logging/errors/proto:error_report_go_proto",
+        "//intrinsic/math/proto:affine_go_proto",
         "//intrinsic/math/proto:array_go_proto",
+        "//intrinsic/math/proto:matrix_go_proto",
+        "//intrinsic/math/proto:point_go_proto",
+        "//intrinsic/math/proto:pose_go_proto",
+        "//intrinsic/math/proto:quaternion_go_proto",
+        "//intrinsic/math/proto:tf_message_go_proto",
         "//intrinsic/math/proto:twist_go_proto",
-        "//intrinsic/perception/proto:distortion_params_go_proto",
-        "//intrinsic/perception/proto:dimensions_go_proto",
-        "//intrinsic/perception/proto:intrinsic_params_go_proto",
-        "//intrinsic/perception/proto:camera_params_go_proto",
-        "//intrinsic/perception/proto:image_buffer_go_proto",
-        "//intrinsic/geometry/proto:geometry_storage_refs_go_proto",
-        "//intrinsic/geometry/proto:transformed_geometry_storage_refs_go_proto",
-        "//intrinsic/geometry/proto:octree_go_proto",
-        "//intrinsic/geometry/proto:mesh_octree_wrapping_go_proto",
-        "//intrinsic/geometry/proto:primitives_go_proto",
-        "//intrinsic/geometry/proto:triangle_mesh_go_proto",
-        "//intrinsic/geometry/proto:lazy_exact_geometry_go_proto",
-        "//intrinsic/world/proto:geometry_component_go_proto",
-        "//intrinsic/world/proto:gripper_component_go_proto",
-        "//intrinsic/perception/proto:vector_go_proto",
-        "//intrinsic/perception/proto:pattern_detection_result_go_proto",
-        "//intrinsic/perception/proto:intrinsic_calibration_go_proto",
-        "//intrinsic/perception/proto:hand_eye_calibration_go_proto",
-        "//intrinsic/perception/proto:camera_to_robot_calibration_with_metadata_go_proto",
+        "//intrinsic/math/proto:vector2_go_proto",
+        "//intrinsic/math/proto:vector3_go_proto",
+        "//intrinsic/perception/proto:camera_config_go_proto",
         "//intrinsic/perception/proto:camera_drivers_go_proto",
         "//intrinsic/perception/proto:camera_identifier_go_proto",
+        "//intrinsic/perception/proto:camera_params_go_proto",
         "//intrinsic/perception/proto:camera_settings_go_proto",
-        "//intrinsic/perception/proto:sensor_config_go_proto",
-        "//intrinsic/perception/proto:camera_config_go_proto",
-        "//intrinsic/math/proto:affine_go_proto",
+        "//intrinsic/perception/proto:camera_to_robot_calibration_with_metadata_go_proto",
+        "//intrinsic/perception/proto:dimensions_go_proto",
+        "//intrinsic/perception/proto:distortion_params_go_proto",
+        "//intrinsic/perception/proto:hand_eye_calibration_go_proto",
+        "//intrinsic/perception/proto:image_buffer_go_proto",
+        "//intrinsic/perception/proto:intrinsic_calibration_go_proto",
+        "//intrinsic/perception/proto:intrinsic_params_go_proto",
+        "//intrinsic/perception/proto:pattern_detection_result_go_proto",
         "//intrinsic/perception/proto:pose_estimation_result_go_proto",
+        "//intrinsic/perception/proto:sensor_config_go_proto",
+        "//intrinsic/perception/proto:vector_go_proto",
+        "//intrinsic/perception/proto/v1:pose_estimate_in_root_go_proto",
+        "//intrinsic/resources/proto:resource_handle_go_proto",
         "//intrinsic/scene/proto/v1:entity_go_proto",
         "//intrinsic/scene/proto/v1:object_properties_go_proto",
-        "//intrinsic/scene/proto/v1:simulation_spec_go_proto",
-        "//intrinsic/skills/proto:error_go_proto",
         "//intrinsic/scene/proto/v1:scene_object_go_proto",
-        "//intrinsic/skills/proto:footprint_go_proto",
-        "//intrinsic/world/proto:object_world_updates_go_proto",
-        "//intrinsic/skills/proto:prediction_go_proto",
-        "//intrinsic/resources/proto:resource_handle_go_proto",
+        "//intrinsic/scene/proto/v1:simulation_spec_go_proto",
         "//intrinsic/skills/proto:equipment_go_proto",
-        "//intrinsic/skills/proto:skills_go_proto",
+        "//intrinsic/skills/proto:error_go_proto",
+        "//intrinsic/skills/proto:footprint_go_proto",
+        "//intrinsic/skills/proto:prediction_go_proto",
+        "//intrinsic/skills/proto:skill_parameter_metadata_go_proto",
         "//intrinsic/skills/proto:skill_service_go_grpc_proto",
+        "//intrinsic/skills/proto:skills_go_proto",
+        "//intrinsic/util/status:extended_status_go_proto",
+        "//intrinsic/world/proto:collision_action_go_proto",
+        "//intrinsic/world/proto:collision_settings_go_proto",
+        "//intrinsic/world/proto:geometry_component_go_proto",
+        "//intrinsic/world/proto:gripper_component_go_proto",
+        "//intrinsic/world/proto:object_world_refs_go_proto",
+        "//intrinsic/world/proto:object_world_updates_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg:marker_array_go_proto",
     ],
-    deps = [":log_item_proto"],
 )
 
 py_proto_library(
@@ -396,12 +396,12 @@ cc_grpc_library(
 
 go_proto_library(
     name = "logger_service_go_proto",
-    go_deps = [
+    protos = [":logger_service"],
+    deps = [
         ":bag_metadata_go_proto",
         ":downsampler_go_proto",
         ":log_item_go_proto",
     ],
-    deps = [":logger_service"],
 )
 
 go_grpc_library(
@@ -477,8 +477,8 @@ cc_grpc_library(
 
 go_proto_library(
     name = "replay_service_go_proto",
-    go_deps = [":replay_service_options_go_proto"],
-    deps = [":replay_service"],
+    protos = [":replay_service"],
+    deps = [":replay_service_options_go_proto"],
 )
 
 go_grpc_library(
@@ -518,7 +518,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "replay_service_options_go_proto",
-    deps = [":replay_service_options"],
+    protos = [":replay_service_options"],
 )
 
 py_proto_library(
@@ -544,13 +544,13 @@ cc_proto_library(
 
 go_proto_library(
     name = "visualization_context_go_proto",
-    go_deps = [
+    protos = [":visualization_context_proto"],
+    deps = [
         ":blob_go_proto",
         "//intrinsic/geometry/proto:renderable_go_proto",
         "//intrinsic/geometry/proto/v1:renderable_go_proto",
         "//intrinsic/world/proto:geometry_component_go_proto",
     ],
-    deps = [":visualization_context_proto"],
 )
 
 py_proto_library(

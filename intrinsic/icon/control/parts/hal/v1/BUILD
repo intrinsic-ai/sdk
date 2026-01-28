@@ -21,5 +21,5 @@ cc_proto_library(
 
 go_proto_library(
     name = "hal_part_config_go_proto",
-    deps = [":hal_part_config_proto"],
+    protos = [":hal_part_config_proto"],
 )

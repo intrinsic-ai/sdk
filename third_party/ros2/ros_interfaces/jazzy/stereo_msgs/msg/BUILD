@@ -31,10 +31,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "disparity_image_go_proto",
-    go_deps = [
+    protos = ["disparity_image_proto"],
+    deps = [
         "//third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg:image_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg:region_of_interest_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
     ],
-    deps = ["disparity_image_proto"],
 )

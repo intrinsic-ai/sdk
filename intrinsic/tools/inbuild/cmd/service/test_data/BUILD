@@ -20,7 +20,7 @@ py_proto_library(
 
 go_proto_library(
     name = "example_service_go_proto",
-    deps = [":example_service_proto"],
+    protos = [":example_service_proto"],
 )
 
 py_binary(
