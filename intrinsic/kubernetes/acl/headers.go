@@ -21,6 +21,18 @@ var (
 	ErrMultipleOrgsInHeader = errors.New("multiple organizations specified in X-Intrinsic-Org header")
 )
 
+// OrgFromRequest extracts the organization identifier from the HTTP request.
+func OrgFromRequest(r *http.Request) (*org.Organization, error) {
+	if r == nil {
+		return nil, nil
+	}
+	ctx, span := trace.StartSpan(r.Context(), "headers.OrgFromRequest")
+	defer span.End()
+
+	orgs := r.Header.Values(org.OrgIDHeader)
+	return validateAndExtractOrgID(ctx, orgs)
+}
+
 // AddOrgToRequest adds the org header to the request.
 // It overwrites the existing header should it be set.
 func AddOrgToRequest(r *http.Request, orgID string) {
@@ -49,14 +61,21 @@ func OrgFromContext(ctx context.Context) (*org.Organization, error) {
 		return nil, nil
 	}
 	orgs := md.Get(org.OrgIDHeader)
+	return validateAndExtractOrgID(ctx, orgs)
+}
+
+func validateAndExtractOrgID(ctx context.Context, orgs []string) (*org.Organization, error) {
+	ctx, span := trace.StartSpan(ctx, "headers.validateAndExtractOrgID")
+	defer span.End()
+
 	if len(orgs) > 1 {
-		telemetry.SetError(span, trace.StatusCodeInvalidArgument, fmt.Sprintf("OrgFromContext: Multiple organizations specified in the %q header.", org.OrgIDHeader), ErrMultipleOrgsInHeader)
+		telemetry.SetError(span, trace.StatusCodeInvalidArgument, fmt.Sprintf("Multiple organizations specified in the %q header.", org.OrgIDHeader), ErrMultipleOrgsInHeader)
 		log.ErrorContextf(ctx, "Multiple organizations specified in the %q header, only a single organization value is supported.", org.OrgIDHeader)
 		return nil, ErrMultipleOrgsInHeader
 	}
 	if len(orgs) == 1 {
 		if orgs[0] == "" {
-			log.WarningContextf(ctx, "Header %q specifies an empty organization. This is likely an implementation error. Falling back to using the organziation from cookies.", org.OrgIDHeader)
+			log.WarningContextf(ctx, "Header %q specifies an empty organization. This is likely an implementation error. Falling back to using the organization from cookies.", org.OrgIDHeader)
 		} else {
 			log.V(2).InfoContextf(ctx, "Using org from header %q", org.OrgIDHeader)
 			return &org.Organization{ID: orgs[0]}, nil

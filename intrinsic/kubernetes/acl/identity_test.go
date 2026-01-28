@@ -222,6 +222,20 @@ func TestRequestToContext(t *testing.T) {
 				"cookie":                   "auth-proxy=" + token + "; org-id=customorg",
 			},
 		},
+		{
+			desc: "x-intrinsic-org header",
+			cookies: map[string]string{
+				"auth-proxy": token,
+			},
+			headers: map[string]string{
+				"x-intrinsic-org": "neworg",
+			},
+			wantMd: map[string]string{
+				"x-intrinsic-auth-project": aud,
+				"cookie":                   "auth-proxy=" + token,
+				"x-intrinsic-org":          "neworg",
+			},
+		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.desc, func(t *testing.T) {
@@ -734,6 +748,36 @@ func TestToContextFromIncoming(t *testing.T) {
 			wantError: true,
 		},
 		{
+			desc: "incoming org header",
+			incoming: metadata.NewIncomingContext(t.Context(),
+				metadata.Pairs(org.OrgIDHeader, "org1"),
+			),
+			wantMd: metadata.MD{
+				org.OrgIDHeader: []string{"org1"},
+			},
+			wantChanged: true,
+		},
+		{
+			desc: "multiple incoming org headers are ignored",
+			incoming: metadata.NewIncomingContext(t.Context(),
+				metadata.Pairs(
+					org.OrgIDHeader, "org1",
+					org.OrgIDHeader, "org2",
+				),
+			),
+			wantError: true,
+		},
+		{
+			desc: "incoming org header collides with outgoing",
+			incoming: metadata.NewIncomingContext(
+				metadata.NewOutgoingContext(t.Context(), metadata.Pairs(org.OrgIDHeader, "org1")),
+				metadata.Pairs(
+					org.OrgIDHeader, "org2",
+				),
+			),
+			wantError: true,
+		},
+		{
 			desc: "happy case - merge incoming metadata with outgoing metadata",
 			incoming: metadata.NewIncomingContext(
 				metadata.NewOutgoingContext(
@@ -840,6 +884,15 @@ func TestContextToRequest(t *testing.T) {
 				cookies.CookieHeaderName: org.OrgIDCookie + "=testorg",
 			}),
 		},
+		{
+			name:   "with-org-header",
+			noAuth: false,
+			meta: metadata.New(map[string]string{
+				ApikeyTokenHeaderName:    token,
+				cookies.CookieHeaderName: org.OrgIDCookie + "=testorg",
+				org.OrgIDHeader:          "headerorg",
+			}),
+		},
 	}
 
 	for _, tc := range testCases {
@@ -870,6 +923,13 @@ func TestContextToRequest(t *testing.T) {
 
 			if len(req.Cookies()) > 2 {
 				t.Errorf("ContextToRequest(..) = %q, want max 2 cookies", req.Cookies())
+			}
+
+			// Check if OrgIDHeader is propagated
+			if wantVals := tc.meta.Get(org.OrgIDHeader); len(wantVals) > 0 {
+				if got := req.Header.Get(org.OrgIDHeader); got != wantVals[0] {
+					t.Errorf("Header %q = %q, want %q", org.OrgIDHeader, got, wantVals[0])
+				}
 			}
 		})
 	}
