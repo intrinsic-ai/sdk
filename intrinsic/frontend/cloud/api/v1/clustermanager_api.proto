@@ -731,6 +731,21 @@ service ClustersService {
     option (aclType) = "can_configure";
   }
 
+  // CreateLogReceiverUpdate creates a new update entry to set the log receiver
+  // for a cluster.
+  // The update will be applied the next time the cluster is reachable.
+  rpc CreateLogReceiverUpdate(CreateLogReceiverUpdateRequest)
+      returns (LogReceiverUpdate) {
+    option (google.api.http) = {
+      post: "/v1/project/{project}/org/{org}/clusters/{cluster_id}/config/log_receiver_update"
+      body: "log_receiver"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "CreateLogReceiverUpdate"
+    };
+    option (aclType) = "can_configure";
+  }
+
   //  ---------------google.longrunning.Operations------------------------------
   // Lists operations that match the specified filter in the request. If the
   // server doesn't support this method, it returns `UNIMPLEMENTED`.
@@ -771,18 +786,4 @@ service ClustersService {
   // At this point, this is unimplemented for ClustersService.
   rpc WaitOperation(google.longrunning.WaitOperationRequest)
       returns (google.longrunning.Operation);
-
-  // CreateLogReceiverUpdate creates a new update entry to set the log receiver
-  // for a cluster.
-  // The update will be applied the next time the cluster is reachable.
-  rpc CreateLogReceiverUpdate(CreateLogReceiverUpdateRequest)
-      returns (LogReceiverUpdate) {
-    option (google.api.http) = {
-      post: "/v1/project/{project}/org/{org}/clusters/{cluster_id}/config/log_receiver_update"
-      body: "log_receiver"
-    };
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      operation_id: "CreateLogReceiverUpdate"
-    };
-  }
 }
