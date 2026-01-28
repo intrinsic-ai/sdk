@@ -716,6 +716,7 @@ service ClustersService {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "RebootCluster"
     };
+    option (aclType) = "has_access";
   }
 
   //  ---------------google.longrunning.Operations------------------------------
