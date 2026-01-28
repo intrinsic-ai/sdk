@@ -706,6 +706,7 @@ service ClustersService {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "PoweroffCluster"
     };
+    option (aclType) = "has_access";
   }
 
   rpc RebootCluster(RebootClusterRequest) returns (RebootClusterResponse) {
