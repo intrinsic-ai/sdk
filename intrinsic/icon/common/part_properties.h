@@ -12,7 +12,7 @@
 #include "absl/status/statusor.h"
 #include "absl/time/time.h"
 #include "intrinsic/icon/proto/v1/service.pb.h"
-#include "ortools/base/strong_int.h"
+#include "intrinsic/production/external/intops/strong_int.h"
 
 namespace intrinsic::icon {
 

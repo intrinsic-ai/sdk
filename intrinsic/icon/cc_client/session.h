@@ -37,10 +37,10 @@
 #include "intrinsic/icon/proto/v1/types.pb.h"
 #include "intrinsic/icon/release/source_location.h"
 #include "intrinsic/logging/proto/context.pb.h"
+#include "intrinsic/production/external/intops/strong_int.h"
 #include "intrinsic/util/atomic_sequence_num.h"
 #include "intrinsic/util/grpc/channel_interface.h"
 #include "intrinsic/util/thread/thread.h"
-#include "ortools/base/strong_int.h"
 
 namespace intrinsic {
 namespace icon {

@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-#include "ortools/base/strong_int.h"
+#include "intrinsic/production/external/intops/strong_int.h"
 
 namespace intrinsic {
 

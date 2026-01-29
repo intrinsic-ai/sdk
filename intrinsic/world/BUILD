@@ -12,8 +12,8 @@ cc_library(
     srcs = ["entity_id.cc"],
     hdrs = ["entity_id.h"],
     deps = [
+        "//intrinsic/production/external/intops:strong_int",
         "//intrinsic/util:aggregate_type",
-        "@or_tools//ortools/base:strong_int",
     ],
 )
 

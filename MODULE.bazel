@@ -247,6 +247,7 @@ use_repo(
 use_repo(
     non_module_deps,
     # keep-sorted start
+    "com_google_xls_strong_int_h",
     # keep-sorted end
 )
 
