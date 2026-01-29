@@ -70,7 +70,7 @@ use_repo(
 # Python #
 ##########
 
-bazel_dep(name = "rules_python", version = "1.7.0")
+bazel_dep(name = "rules_python", version = "1.6.3")
 
 # The root module defines the default toolchain version.
 # If it doesn't find dependencies which that version it errors out.
