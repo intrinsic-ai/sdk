@@ -174,7 +174,7 @@ func (p *IDVersionParts) VersionPreRelease() string {
 
 // IDFrom creates an id from package and name strings.
 //
-// Ids are formatted as in IsId.
+// Ids are formatted as in IsID.
 //
 // Returns an error if `pkg` or `name` strings not valid.
 func IDFrom(pkg string, name string) (string, error) {
@@ -191,7 +191,7 @@ func IDFrom(pkg string, name string) (string, error) {
 
 // IDProtoFrom creates an Id proto from package and name strings.
 //
-// Returns an error if `pkg` or `name` strings not valid.
+// Returns an error if `pkg` or `name` strings are not valid.
 func IDProtoFrom(pkg string, name string) (*idpb.Id, error) {
 	err := ValidatePackage(pkg)
 	if err == nil {
@@ -204,13 +204,15 @@ func IDProtoFrom(pkg string, name string) (*idpb.Id, error) {
 	return &idpb.Id{Name: name, Package: pkg}, nil
 }
 
-// NewIDProto constructs a new ID proto from a full id string.  A valid id is
-// formatted as in IsID.
-func NewIDProto(id string) (*idpb.Id, error) {
+// IDProtoFromString creates an Id proto from an id string.
+//
+// A valid id is formatted as in IsID.
+func IDProtoFromString(id string) (*idpb.Id, error) {
 	matches, err := getNamedMatches(id, idRegex, []string{"name", "package"})
 	if err != nil {
-		return nil, fmt.Errorf("%q is not a valid asset id", id)
+		return nil, err
 	}
+
 	return &idpb.Id{
 		Name:    matches["name"],
 		Package: matches["package"],
@@ -219,23 +221,23 @@ func NewIDProto(id string) (*idpb.Id, error) {
 
 // IDFromProto creates an id string from an Id proto message.
 //
-// Ids are formatted as in IsId.
+// Ids are formatted as in IsID.
 //
 // Returns an error if `package` or `name` fields are not valid.
 func IDFromProto(id *idpb.Id) (string, error) {
 	return IDFrom(id.GetPackage(), id.GetName())
 }
 
-// IDFromProtoUnchecked creates an id string from an Id proto message, but does
-// no validation.  This should be used in cases where validation has already
-// been done and conversion between APIs or for mapping is required.
+// IDFromProtoUnchecked creates an id string from an Id proto message, but does no validation. This
+// variant should be used in cases where validation has already been done and conversion between
+// APIs or for mapping is required.
 func IDFromProtoUnchecked(p *idpb.Id) string {
 	return fmt.Sprintf("%s.%s", p.GetPackage(), p.GetName())
 }
 
 // IDVersionFrom creates an id_version from package, name, and version strings.
 //
-// Id_versions are formatted as in IsIdVersion.
+// Id_versions are formatted as in IsIDVersion.
 //
 // Returns an error if `pkg`, `name`, or `version` strings are not valid.
 func IDVersionFrom(pkg string, name string, version string) (string, error) {
@@ -268,11 +270,10 @@ func IDVersionProtoFrom(pkg string, name string, version string) (*idpb.IdVersio
 	return &idpb.IdVersion{Id: id, Version: version}, nil
 }
 
-// IDOrIDVersionProtoFrom creates an IdVersion proto with an optionally empty
-// version string from a candidate input.
+// IDOrIDVersionProtoFrom creates an IdVersion proto with an optionally empty version string from a
+// candidate input.
 func IDOrIDVersionProtoFrom(str string) (*idpb.IdVersion, error) {
-	matches, err := getNamedMatches(str, idVersionRegex, []string{"name", "package", "version"})
-	if err == nil {
+	if matches, err := getNamedMatches(str, idVersionRegex, []string{"name", "package", "version"}); err == nil {
 		return &idpb.IdVersion{
 			Id: &idpb.Id{
 				Name:    matches["name"],
@@ -281,8 +282,7 @@ func IDOrIDVersionProtoFrom(str string) (*idpb.IdVersion, error) {
 			Version: matches["version"],
 		}, nil
 	}
-	matches, err = getNamedMatches(str, idRegex, []string{"name", "package"})
-	if err == nil {
+	if matches, err := getNamedMatches(str, idRegex, []string{"name", "package"}); err == nil {
 		return &idpb.IdVersion{
 			Id: &idpb.Id{
 				Name:    matches["name"],
@@ -295,24 +295,23 @@ func IDOrIDVersionProtoFrom(str string) (*idpb.IdVersion, error) {
 
 // IDVersionFromProto creates an id_version string from an IdVersion proto message.
 //
-// Id_versions are formatted as in IsIdVersion.
+// Id_versions are formatted as in IsIDVersion.
 //
 // Returns an error if `package`, `name`, or `version` fields are not valid.
 func IDVersionFromProto(idVersion *idpb.IdVersion) (string, error) {
 	return IDVersionFrom(idVersion.GetId().GetPackage(), idVersion.GetId().GetName(), idVersion.GetVersion())
 }
 
-// IDVersionFromProtoUnchecked creates an id version string from an IdVersion
-// proto message, but does no validation.  This should be used in cases where
-// validation has already been done and conversion between APIs or for mapping
-// is required.
+// IDVersionFromProtoUnchecked creates an id_version string from an IdVersion proto message, but
+// does no validation. This variant should be used in cases where validation has already been done
+// and conversion between APIs or for mapping is required.
 func IDVersionFromProtoUnchecked(p *idpb.IdVersion) string {
 	return fmt.Sprintf("%s.%s.%s", p.GetId().GetPackage(), p.GetId().GetName(), p.GetVersion())
 }
 
 // NameFrom returns the name part of an id or id_version.
 //
-// `id` must be formatted as an id or id_version, as described in IsId and IsIdVersion,
+// `id` must be formatted as an id or id_version, as described in IsID and IsIDVersion,
 // respectively.
 func NameFrom(id string) (string, error) {
 	name, err := getNamedMatch(id, idVersionRegex, "name")
@@ -325,7 +324,7 @@ func NameFrom(id string) (string, error) {
 
 // PackageFrom returns the package part of an id or id_version.
 //
-// `id` must be formatted as an id or id_version, as described in IsId and IsIdVersion,
+// `id` must be formatted as an id or id_version, as described in IsID and IsIDVersion,
 // respectively.
 func PackageFrom(id string) (string, error) {
 	pkg, err := getNamedMatch(id, idVersionRegex, "package")
@@ -338,14 +337,14 @@ func PackageFrom(id string) (string, error) {
 
 // VersionFrom returns the  version part of an id_version.
 //
-// `id_version` must be formatted as described in IsIdVersion.
+// `id_version` must be formatted as described in IsIDVersion.
 func VersionFrom(idVersion string) (string, error) {
 	return getNamedMatch(idVersion, idVersionRegex, "version")
 }
 
 // RemoveVersionFrom strips the version from `id` and returns the id substring.
 //
-// `id` must be formatted as an id or id_version, as described in IsId and IsIdVersion,
+// `id` must be formatted as an id or id_version, as described in IsID and IsIDVersion,
 // respectively.
 //
 // If there is no version information in the given `id`, the returned value will equal `id`.
@@ -430,7 +429,7 @@ func IsUnreleasedVersion(version string) bool {
 
 // ValidateID validates an id.
 //
-// A valid id is formatted as described in IsId.
+// A valid id is formatted as described in IsID.
 //
 // Returns an error if `id` is not valid.
 func ValidateID(id string) error {
@@ -469,7 +468,7 @@ func ValidateIDVersionProto(idVersion *idpb.IdVersion) error {
 
 // ValidateIDVersion validates an id_version.
 //
-// A valid id_version is formatted as described in IsIdVersion.
+// A valid id_version is formatted as described in IsIDVersion.
 //
 // Returns an error if `idVersion` is not valid.
 func ValidateIDVersion(idVersion string) error {

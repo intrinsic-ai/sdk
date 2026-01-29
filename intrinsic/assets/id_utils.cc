@@ -23,7 +23,6 @@
 
 namespace intrinsic::assets {
 namespace {
-
 static LazyRE2 kNameExpr = {R"((?P<name>^[a-z]([a-z0-9_]?[a-z0-9])*$))"};
 static LazyRE2 kPackageExpr = {
     R"((?P<package>^([a-z]([a-z0-9_]?[a-z0-9])*\.)+([a-z]([a-z0-9_]?[a-z0-9])*)+$))"};
@@ -36,6 +35,7 @@ static LazyRE2 kIdVersionExpr = {
     R"((?P<id_version>^(?P<id>(?P<package>([a-z]([a-z0-9_]?[a-z0-9])*\.)+[a-z]([a-z0-9_]?[a-z0-9])*)\.(?P<name>[a-z]([a-z0-9_]?[a-z0-9])*))\.(?P<version>(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?)$))"};
 
 static LazyRE2 kLabelExpr = {R"(^[a-z]([a-z0-9-]*[a-z0-9])*$)"};
+
 // Verifies that the specified string matches the specified regex pattern.
 absl::Status ValidateMatch(absl::string_view str, const RE2* re) {
   if (!RE2::FullMatch(str, *re)) {

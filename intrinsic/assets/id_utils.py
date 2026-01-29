@@ -40,14 +40,13 @@ _COARSE_ID_VERSION_PATTERN = re.compile(
 
 _LABEL_PATTERN = re.compile(r"^([a-z])|([a-z][a-z0-9-]*[a-z0-9])$")
 
+
 class IdValidationError(ValueError):
   """An id_version or part of one is not valid."""
 
 
 class CannotConvertLabelError(ValueError):
   """A string cannot be converted into a label."""
-
-
 @dataclasses.dataclass(frozen=True)
 class IdVersionParts:
   """Provides access to all of the parts of an id_version.
@@ -607,7 +606,6 @@ def from_label(label: str) -> str:
     The recovered string.
   """
   return label.replace("--", ".").replace("-", "_")
-
 
 
 def _match_package(package: str) -> re.Match[str] | None:

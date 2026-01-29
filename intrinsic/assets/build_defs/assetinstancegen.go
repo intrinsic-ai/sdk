@@ -41,7 +41,7 @@ func main() {
 		log.Exitf("--output_asset_instance is required")
 	}
 
-	idp, err := idutils.NewIDProto(*id)
+	idp, err := idutils.IDProtoFromString(*id)
 	if err != nil {
 		log.Exitf("invalid asset id: %v", err)
 	}

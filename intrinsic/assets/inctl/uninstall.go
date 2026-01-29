@@ -44,7 +44,7 @@ func GetCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 			idString := args[0]
-			id, err := idutils.NewIDProto(idString)
+			id, err := idutils.IDProtoFromString(idString)
 			if err != nil {
 				return err
 			}
