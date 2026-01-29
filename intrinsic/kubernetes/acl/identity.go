@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"intrinsic/kubernetes/acl/cookies"
+	"intrinsic/kubernetes/acl/headers"
 	"intrinsic/kubernetes/acl/jwt"
 	"intrinsic/kubernetes/acl/org"
 
@@ -169,6 +170,7 @@ func OrgToRequest(r *http.Request, orgID string) {
 	_, span := trace.StartSpan(r.Context(), "identity.OrgToRequest")
 	defer span.End()
 	cookies.AddToRequest(r, org.IDCookie(orgID))
+	headers.AddOrgToRequest(r, orgID)
 }
 
 // OrgToContext returns a new context that has the org-id stored in its metadata.

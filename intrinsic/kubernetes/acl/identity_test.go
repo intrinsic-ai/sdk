@@ -948,6 +948,9 @@ func TestOrgToRequest(t *testing.T) {
 	if r.Cookies()[0].Value != "testorg" {
 		t.Errorf("OrgToRequest(..) = %q, want %q", r.Cookies()[0].Value, "testorg")
 	}
+	if got := r.Header.Get(org.OrgIDHeader); got != "testorg" {
+		t.Errorf("OrgToRequest(..) header %q = %q, want %q", org.OrgIDHeader, got, "testorg")
+	}
 }
 
 func TestOrgToContext(t *testing.T) {
