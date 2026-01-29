@@ -658,10 +658,6 @@ class Executive:
     If plan_or_action is None, runs the initial plan as specified in the
     Kubernetes template.
 
-    Implicitly calls simulation.reset() if this is the first action or plan
-    being executed (after an executive.reset()). This makes sure that any world
-    edits that might have occurred are reflected in the simulation.
-
     Args:
       plan_or_action: A behavior tree, list of actions, or a single action or
         skill.
@@ -708,9 +704,6 @@ class Executive:
       start_node: Optional[bt.NodeIdentifierType] = None,
       simulation_mode: Optional["Executive.SimulationMode"] = None,
       embed_skill_traces: bool = False,
-      # intrinsic:solutions_lib_executive_run_sim_reset_option:strip_begin
-      sim_reset_on_no_operation: bool = True,
-      # intrinsic:solutions_lib_executive_run_sim_reset_option:strip_end
   ):
     """Executes an action or plan and blocks until completion.
 
@@ -721,10 +714,6 @@ class Executive:
 
     If plan_or_action is None, runs the initial plan as specified in the
     Kubernetes template.
-
-    Implicitly calls simulation.reset() if this is the first action or plan
-    being executed (after an executive.reset()). This makes sure that any world
-    edits that might have occurred are reflected in the simulation.
 
     Args:
       plan_or_action: A behavior tree, a list of actions (can be nested one
@@ -743,11 +732,6 @@ class Executive:
       embed_skill_traces: If true, execution traces in Google Cloud will
         incorporate all information from skill traces, otherwise execution
         traces contain links to individual skill traces.
-
-    # intrinsic:solutions_lib_executive_run_sim_reset_option:strip_begin
-      sim_reset_on_no_operation: Set this to True if the world was changed to
-        ensure that sim and belief worlds can be synced.
-    # intrinsic:solutions_lib_executive_run_sim_reset_option:strip_end
 
     Raises:
       ExecutionFailedError: On unexpected state of the executive during plan
@@ -768,13 +752,30 @@ class Executive:
         start_node=start_node,
         simulation_mode=simulation_mode,
         embed_skill_traces=embed_skill_traces,
-        sim_reset_on_no_operation=sim_reset_on_no_operation,  # pylint: disable=line-too-long # intrinsic:solutions_lib_executive_run_sim_reset_option:strip
     )
     if not silence_outputs:
       ipython.display_html_or_print_msg(
           f'<span style="{_CSS_SUCCESS_STYLE}">Execution successful</span>',
           "Execution successful",
       )
+
+  def _reset_simulation_if_needed(self, silence_outputs: bool) -> None:
+    # Legacy method to reset the simulation the first time that anything in the
+    # executive is run. This uses the presence of the operation as a heuristic
+    # to determine that this is the case under the assumption that any
+    # subsequent runs by this file or the frontend will always leave an
+    # operation behind and only deleted it before loading a new one.
+
+    if self._simulation is not None:
+      try:
+        self.operation
+      except OperationNotFoundError:
+        if not silence_outputs:
+          print(
+              "Triggering simulation.reset() "
+              "since world edits might have occurred."
+          )
+        self._simulation.reset()
 
   def _run(
       self,
@@ -787,7 +788,6 @@ class Executive:
       simulation_mode: "Executive.SimulationMode",
       embed_skill_traces: bool,
       start_node: Optional[bt.NodeIdentifierType],
-      sim_reset_on_no_operation: bool = True,  # pylint: disable=line-too-long # intrinsic:solutions_lib_executive_run_sim_reset_option:strip
   ) -> None:
     """Implementation of run and run_async.
 
@@ -811,11 +811,6 @@ class Executive:
       start_node: Run the specified node as if it were the root node of a tree
         instead of the complete tree.
 
-    # intrinsic:solutions_lib_executive_run_sim_reset_option:strip_begin
-      sim_reset_on_no_operation: Set this to True if the world was changed to
-        ensure that sim and belief worlds can be synced.
-    # intrinsic:solutions_lib_executive_run_sim_reset_option:strip_end
-
     Raises:
       ExecutionFailedError: On unexpected state of the executive during plan
                 execution.
@@ -823,27 +818,7 @@ class Executive:
       grpc.RpcError: On any other gRPC error.
       OperationNotFoundError: if no operation is currently active.
     """
-    # Reset the simulation the first time that anything in the executive is run.
-    # This uses the presence of the operation as a heuristic to determine that
-    # this is the case under the assumption that any subsequent runs by this
-    # file or the frontend will always leave an operation behind and only
-    # deleted it before loading a new one.
-
-    # pylint: disable-next=unused-variable
-    try_sim_reset = True
-    # intrinsic:solutions_lib_executive_run_sim_reset_option:strip_begin
-    try_sim_reset = sim_reset_on_no_operation
-    # intrinsic:solutions_lib_executive_run_sim_reset_option:strip_end
-    if try_sim_reset and self._simulation is not None:
-      try:
-        self.operation
-      except OperationNotFoundError:
-        if not silence_outputs:
-          print(
-              "Triggering simulation.reset() "
-              "since world edits might have occurred."
-          )
-        self._simulation.reset()
+    self._reset_simulation_if_needed(silence_outputs)
 
     if plan_or_action is None:
       if self._operation is None:

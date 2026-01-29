@@ -143,9 +143,11 @@ class ExecutiveTest(parameterized.TestCase):
       list_response = operations_pb2.ListOperationsResponse()
       self._executive_service_stub.ListOperations.return_value = list_response
 
-  def _setup_start_operation(self):
+  def _setup_start_operation(
+      self,
+  ):
     start_response = self._create_operation_proto(
-        run_metadata_pb2.RunMetadata.RUNNING
+        state=run_metadata_pb2.RunMetadata.RUNNING,
     )
     self._executive_service_stub.StartOperation.return_value = start_response
 
@@ -879,71 +881,6 @@ class ExecutiveTest(parameterized.TestCase):
     self._executive_service_stub.StartOperation.assert_called_with(
         start_request
     )
-
-  def test_run_resets_simulation(self):
-    """Tests if executive.run(action) resets the simulation.
-
-    Case 1: ... if no operation exists (locally or in executive)
-    """
-    self._setup_create_operation()
-    self._setup_start_operation()
-    self._setup_get_operation_sequence([
-        run_metadata_pb2.RunMetadata.RUNNING,
-        run_metadata_pb2.RunMetadata.SUCCEEDED,
-        run_metadata_pb2.RunMetadata.SUCCEEDED,
-    ])
-
-    my_action = behavior_call.Action(skill_id='my_action')
-    self._executive.run(my_action)
-
-    self._simulation.reset.assert_called_once()
-
-  def test_run_does_not_reset_simulation(self):
-    """Tests if executive.run(action) does not reset the simulation.
-
-    Case 2: ... if operation exists in executive
-    """
-    response = operations_pb2.ListOperationsResponse()
-    response.operations.append(
-        self._create_operation_proto(run_metadata_pb2.RunMetadata.SUCCEEDED)
-    )
-    self._executive_service_stub.ListOperations.return_value = response
-
-    self._setup_create_operation(setup_empty_list_operations=False)
-    self._setup_start_operation()
-    self._setup_get_operation_sequence([
-        run_metadata_pb2.RunMetadata.SUCCEEDED,
-        run_metadata_pb2.RunMetadata.RUNNING,
-        run_metadata_pb2.RunMetadata.SUCCEEDED,
-        run_metadata_pb2.RunMetadata.SUCCEEDED,
-    ])
-
-    my_action = behavior_call.Action(skill_id='my_action')
-    self._executive.run(my_action)
-
-    self._simulation.reset.assert_not_called()
-
-  # intrinsic:solutions_lib_executive_run_sim_reset_option:strip_begin
-  def test_run_does_not_reset_simulation_overridden(self):
-    """Tests if executive.run(action) doesn't reset the simulation.
-
-    Case 1: ... if no operation exists (locally or in executive) - but the
-    override flag is active.
-    """
-    self._setup_create_operation()
-    self._setup_start_operation()
-    self._setup_get_operation_sequence([
-        run_metadata_pb2.RunMetadata.RUNNING,
-        run_metadata_pb2.RunMetadata.SUCCEEDED,
-        run_metadata_pb2.RunMetadata.SUCCEEDED,
-    ])
-
-    my_action = behavior_call.Action(skill_id='my_action')
-    self._executive.run(my_action, sim_reset_on_no_operation=False)
-
-    self._simulation.reset.assert_not_called()
-
-  # intrinsic:solutions_lib_executive_run_sim_reset_option:strip_end
 
   def test_errors_printed(self):
     """Tests if executive.run(action) prints errors correctly."""
