@@ -923,6 +923,28 @@ class ExecutiveTest(parameterized.TestCase):
 
     self._simulation.reset.assert_not_called()
 
+  # intrinsic:solutions_lib_executive_run_sim_reset_option:strip_begin
+  def test_run_does_not_reset_simulation_overridden(self):
+    """Tests if executive.run(action) doesn't reset the simulation.
+
+    Case 1: ... if no operation exists (locally or in executive) - but the
+    override flag is active.
+    """
+    self._setup_create_operation()
+    self._setup_start_operation()
+    self._setup_get_operation_sequence([
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+    ])
+
+    my_action = behavior_call.Action(skill_id='my_action')
+    self._executive.run(my_action, sim_reset_on_no_operation=False)
+
+    self._simulation.reset.assert_not_called()
+
+  # intrinsic:solutions_lib_executive_run_sim_reset_option:strip_end
+
   def test_errors_printed(self):
     """Tests if executive.run(action) prints errors correctly."""
     self._setup_create_operation()

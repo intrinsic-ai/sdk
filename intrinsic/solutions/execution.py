@@ -708,6 +708,9 @@ class Executive:
       start_node: Optional[bt.NodeIdentifierType] = None,
       simulation_mode: Optional["Executive.SimulationMode"] = None,
       embed_skill_traces: bool = False,
+      # intrinsic:solutions_lib_executive_run_sim_reset_option:strip_begin
+      sim_reset_on_no_operation: bool = True,
+      # intrinsic:solutions_lib_executive_run_sim_reset_option:strip_end
   ):
     """Executes an action or plan and blocks until completion.
 
@@ -741,6 +744,11 @@ class Executive:
         incorporate all information from skill traces, otherwise execution
         traces contain links to individual skill traces.
 
+    # intrinsic:solutions_lib_executive_run_sim_reset_option:strip_begin
+      sim_reset_on_no_operation: Set this to True if the world was changed to
+        ensure that sim and belief worlds can be synced.
+    # intrinsic:solutions_lib_executive_run_sim_reset_option:strip_end
+
     Raises:
       ExecutionFailedError: On unexpected state of the executive during plan
                 execution.
@@ -760,6 +768,7 @@ class Executive:
         start_node=start_node,
         simulation_mode=simulation_mode,
         embed_skill_traces=embed_skill_traces,
+        sim_reset_on_no_operation=sim_reset_on_no_operation,  # pylint: disable=line-too-long # intrinsic:solutions_lib_executive_run_sim_reset_option:strip
     )
     if not silence_outputs:
       ipython.display_html_or_print_msg(
@@ -778,6 +787,7 @@ class Executive:
       simulation_mode: "Executive.SimulationMode",
       embed_skill_traces: bool,
       start_node: Optional[bt.NodeIdentifierType],
+      sim_reset_on_no_operation: bool = True,  # pylint: disable=line-too-long # intrinsic:solutions_lib_executive_run_sim_reset_option:strip
   ) -> None:
     """Implementation of run and run_async.
 
@@ -801,6 +811,11 @@ class Executive:
       start_node: Run the specified node as if it were the root node of a tree
         instead of the complete tree.
 
+    # intrinsic:solutions_lib_executive_run_sim_reset_option:strip_begin
+      sim_reset_on_no_operation: Set this to True if the world was changed to
+        ensure that sim and belief worlds can be synced.
+    # intrinsic:solutions_lib_executive_run_sim_reset_option:strip_end
+
     Raises:
       ExecutionFailedError: On unexpected state of the executive during plan
                 execution.
@@ -816,6 +831,9 @@ class Executive:
 
     # pylint: disable-next=unused-variable
     try_sim_reset = True
+    # intrinsic:solutions_lib_executive_run_sim_reset_option:strip_begin
+    try_sim_reset = sim_reset_on_no_operation
+    # intrinsic:solutions_lib_executive_run_sim_reset_option:strip_end
     if try_sim_reset and self._simulation is not None:
       try:
         self.operation
