@@ -55,7 +55,6 @@ message MotionPlanningRequest {
   // The logging context for the skill sending the request.
   optional intrinsic_proto.data_logger.Context context = 7;
 }
-
 message TrajectoryPlanningResponse {
   oneof trajectory {
     // The computed discretized trajectory that can be executed by the input
