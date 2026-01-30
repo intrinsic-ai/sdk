@@ -963,6 +963,9 @@ func TestOrgToContext(t *testing.T) {
 	if md.Get(cookies.CookieHeaderName)[0] != org.OrgIDCookie+"=testorg" {
 		t.Errorf("UserToContext(..) did not add the user's identity to the context")
 	}
+	if md.Get(org.OrgIDHeader)[0] != "testorg" {
+		t.Errorf("OrgToContext(..) did not add the org header to the context")
+	}
 }
 
 func TestOrgToIncomingContext(t *testing.T) {

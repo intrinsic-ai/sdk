@@ -51,6 +51,26 @@ func AddOrgToRequest(r *http.Request, orgID string) {
 	r.Header.Set(org.OrgIDHeader, orgID)
 }
 
+// AddOrgToContext adds the org header to the context.
+// It overwrites the existing header should it be set.
+func AddOrgToContext(ctx context.Context, orgID string) context.Context {
+	_, span := trace.StartSpan(ctx, "headers.AddOrgToContext")
+	span.AddAttributes(trace.StringAttribute("org_id", orgID))
+	defer span.End()
+
+	md, ok := metadata.FromOutgoingContext(ctx)
+	if !ok {
+		return metadata.NewOutgoingContext(ctx, metadata.Pairs(org.OrgIDHeader, orgID))
+	}
+
+	newMD := md.Copy()
+	if newMD == nil {
+		newMD = metadata.MD{}
+	}
+	newMD.Set(org.OrgIDHeader, orgID)
+	return metadata.NewOutgoingContext(ctx, newMD)
+}
+
 // OrgFromContext extracts the organization identifier from the gRPC context.
 func OrgFromContext(ctx context.Context) (*org.Organization, error) {
 	ctx, span := trace.StartSpan(ctx, "headers.OrgFromContext")

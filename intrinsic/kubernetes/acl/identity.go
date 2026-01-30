@@ -179,6 +179,7 @@ func OrgToContext(ctx context.Context, orgID string) (context.Context, error) {
 		log.WarningContextf(ctx, "OrgToContext: orgID is empty, returning unchanged context")
 		return ctx, nil
 	}
+	ctx = headers.AddOrgToContext(ctx, orgID)
 	return cookies.AddToContext(ctx, org.IDCookie(orgID))
 }
 

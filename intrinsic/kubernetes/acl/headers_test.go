@@ -9,7 +9,69 @@ import (
 	"intrinsic/kubernetes/acl/org"
 
 	"github.com/google/go-cmp/cmp"
+	"google.golang.org/grpc/metadata"
 )
+
+func TestAddOrgToContext(t *testing.T) {
+	tests := []struct {
+		name     string
+		existing metadata.MD
+		orgID    string
+		expected metadata.MD
+	}{
+		{
+			name:     "add org header",
+			existing: metadata.MD{},
+			orgID:    "my-org",
+			expected: metadata.MD{
+				org.OrgIDHeader: []string{"my-org"},
+			},
+		},
+		{
+			name: "add to existing headers",
+			existing: metadata.MD{
+				"other-header": []string{"value"},
+			},
+			orgID: "my-org",
+			expected: metadata.MD{
+				"other-header":  []string{"value"},
+				org.OrgIDHeader: []string{"my-org"},
+			},
+		},
+		{
+			name: "overwrite existing org header",
+			existing: metadata.MD{
+				org.OrgIDHeader: []string{"old-org"},
+			},
+			orgID: "new-org",
+			expected: metadata.MD{
+				org.OrgIDHeader: []string{"new-org"},
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := t.Context()
+			if len(tc.existing) > 0 {
+				ctx = metadata.NewOutgoingContext(ctx, tc.existing)
+			}
+
+			ctx = AddOrgToContext(ctx, tc.orgID)
+
+			md, ok := metadata.FromOutgoingContext(ctx)
+			if !ok {
+				t.Fatal("AddOrgToContext() did not set outgoing metadata")
+			}
+
+			// We need to check if expected metadata is present.
+			// Since we might be appending, we should check specifically for our header.
+			if diff := cmp.Diff(tc.expected, md); diff != "" {
+				t.Errorf("AddOrgToContext() mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
 
 func TestAddOrgToRequest(t *testing.T) {
 	tests := []struct {
