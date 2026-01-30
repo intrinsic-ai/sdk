@@ -32,6 +32,8 @@ import (
 const (
 	defaultLookback    = 10 * time.Minute
 	defaultReceiveSize = 100 * 1024 * 1024
+	defaultMaxPageSizeMB = 25
+
 	defaultMaxNumItems = 5
 )
 
@@ -147,13 +149,18 @@ func getLogsFromCloud(ctx context.Context, eventSource string, dir string) error
 				EndTime:   timestamppb.New(endTime),
 			},
 		},
-		SessionToken:   loadResp.GetSessionToken(),
-		MaxNumItems:    proto.Uint32(defaultMaxNumItems),
-		OrganizationId: orgID,
+		SessionToken:       loadResp.GetSessionToken(),
+		MaxNumItems:        proto.Uint32(defaultMaxNumItems),
+		MaxTotalByteSizeMb: proto.Float64(defaultMaxPageSizeMB),
+		OrganizationId:     orgID,
 	}
 	waitTimeForLogs := 5 * time.Second
 	waitAttemptsForLogs := 20
+	totalLogItemSize := uint64(0)
+	numDownloadedLogItems := uint64(0)
+	maxNumItems := uint32(defaultMaxNumItems)
 	for {
+		getStartTime := time.Now()
 		getResp, err := client.GetCloudLogItems(ctx, getReq, grpc.MaxCallRecvMsgSize(defaultReceiveSize))
 		if err != nil {
 			if waitAttemptsForLogs > 0 && strings.Contains(err.Error(), "NotFound") {
@@ -164,7 +171,10 @@ func getLogsFromCloud(ctx context.Context, eventSource string, dir string) error
 			}
 			return errors.Wrap(err, "client.GetCloudLogItems")
 		}
+		fmt.Printf("It took %s to load a page of %v items\n", time.Since(getStartTime), len(getResp.GetItems()))
 		for _, item := range getResp.GetItems() {
+			totalLogItemSize += uint64(proto.Size(item))
+			numDownloadedLogItems++
 			blob := item.GetBlobPayload()
 			if blob != nil {
 				writeBlob(blob, dir)
@@ -179,15 +189,21 @@ func getLogsFromCloud(ctx context.Context, eventSource string, dir string) error
 		if len(getResp.GetNextPageCursor()) == 0 {
 			break
 		}
+		if numDownloadedLogItems != 0 {
+			maxNumItems = uint32(defaultMaxPageSizeMB * 1024 * 1024 / (totalLogItemSize / numDownloadedLogItems))
+			fmt.Printf("Setting next page size to %d items\n", maxNumItems)
+		}
 		getReq = &dpb.GetCloudLogItemsRequest{
 			Query: &dpb.GetCloudLogItemsRequest_Cursor{
 				Cursor: getResp.GetNextPageCursor(),
 			},
-			SessionToken:   loadResp.GetSessionToken(),
-			MaxNumItems:    proto.Uint32(defaultMaxNumItems),
-			OrganizationId: orgID,
+			SessionToken:       loadResp.GetSessionToken(),
+			MaxNumItems:        proto.Uint32(maxNumItems),
+			MaxTotalByteSizeMb: proto.Float64(defaultMaxPageSizeMB),
+			OrganizationId:     orgID,
 		}
 	}
+	fmt.Printf("Downloaded %d log items. Total size: %d bytes\n", numDownloadedLogItems, totalLogItemSize)
 	return nil
 }
 
@@ -197,6 +213,11 @@ var logsCpCmd = &cobra.Command{
 	Long:  "Copies recently logged blobs & logs to a local folder",
 	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
+		startTime := time.Now()
+		defer func() {
+			fmt.Printf("Download took %s\n", time.Since(startTime))
+		}()
+
 		if flagContext == "minikube" && !flagUseLocalhost {
 			fmt.Printf("Context is set to \"minikube\". Setting --use_localhost.\n")
 			flagUseLocalhost = true
