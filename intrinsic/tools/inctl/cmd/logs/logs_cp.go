@@ -181,12 +181,16 @@ func getLogsFromCloud(ctx context.Context, eventSource string, dir string) error
 			}
 			item.BlobPayload = nil
 		}
+
+		nextPageCursor := getResp.GetNextPageCursor()
 		responseFilename := fmt.Sprintf("response_%d.pbtxt", time.Now().UnixNano())
 		p := path.Join(dir, responseFilename)
+		getResp.NextPageCursor = nil
+		getResp.NextPageCursorExpiry = nil
 		if err = os.WriteFile(p, []byte(prototext.Format(getResp)), 0o644); err != nil {
 			return errors.Wrapf(err, "os.WriteFile of response to %s", p)
 		}
-		if len(getResp.GetNextPageCursor()) == 0 {
+		if len(nextPageCursor) == 0 {
 			break
 		}
 		if numDownloadedLogItems != 0 {
@@ -195,7 +199,7 @@ func getLogsFromCloud(ctx context.Context, eventSource string, dir string) error
 		}
 		getReq = &dpb.GetCloudLogItemsRequest{
 			Query: &dpb.GetCloudLogItemsRequest_Cursor{
-				Cursor: getResp.GetNextPageCursor(),
+				Cursor: nextPageCursor,
 			},
 			SessionToken:       loadResp.GetSessionToken(),
 			MaxNumItems:        proto.Uint32(maxNumItems),
