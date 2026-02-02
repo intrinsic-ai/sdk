@@ -8,6 +8,7 @@ go_library(
     name = "pool",
     srcs = [
         "create.go",
+        "describe.go",
         "leases.go",
         "list.go",
         "pool.go",

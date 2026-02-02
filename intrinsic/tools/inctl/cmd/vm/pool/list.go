@@ -4,6 +4,8 @@ package pool
 
 import (
 	"context"
+	"slices"
+	"strings"
 
 	"intrinsic/tools/inctl/util/printer"
 
@@ -77,20 +79,31 @@ var vmpoolsListCmd = &cobra.Command{
 
 func listVMPoolsUserfacing(ctx context.Context, cmd *cobra.Command) error {
 	prtr := getPoolRowCommandPrinter(cmd)
-	cl, err := newVmpoolsClient(ctx)
-	if err != nil {
-		return err
-	}
-	resp, err := cl.ListPools(ctx, &vmpoolspb.ListPoolsRequest{})
+	pools, err := fetchPoolsUserfacing(ctx)
 	if err != nil {
 		return err
 	}
 	var view printer.View = nil // this is to reuse reflectors in default views
-	for i, p := range resp.GetPools() {
+	for i, p := range pools {
 		view = printer.NextView(asPoolRow(p, i), view)
 		prtr.Println(view)
 	}
 	return printer.Flush(prtr)
+}
+
+func fetchPoolsUserfacing(ctx context.Context) ([]*vmpoolspb.Pool, error) {
+	cl, err := newVmpoolsClient(ctx)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := cl.ListPools(ctx, &vmpoolspb.ListPoolsRequest{})
+	if err != nil {
+		return nil, err
+	}
+	pools := resp.GetPools()
+	// make output deterministic
+	slices.SortFunc(pools, func(a, b *vmpoolspb.Pool) int { return strings.Compare(a.Name, b.Name) })
+	return pools, nil
 }
 
 var listTiersDesc = `

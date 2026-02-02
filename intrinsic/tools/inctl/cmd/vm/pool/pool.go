@@ -69,6 +69,10 @@ func init() {
 	PoolCmd.AddCommand(vmpoolsListTiersCmd)
 	PoolCmd.AddCommand(vmpoolsListHardwareTemplatesCmd)
 
+	vmpoolsDescribeCmd.Flags().StringVar(&flagPool, "pool", "", poolFlagDesc)
+	vmpoolsDescribeCmd.MarkFlagRequired("pool")
+	PoolCmd.AddCommand(vmpoolsDescribeCmd)
+
 	vmpoolsDeleteCmd.Flags().StringVar(&flagPool, "pool", "", poolFlagDesc)
 	PoolCmd.AddCommand(vmpoolsDeleteCmd)
 	vmpoolsResumeCmd.Flags().StringVar(&flagPool, "pool", "", poolFlagDesc)
