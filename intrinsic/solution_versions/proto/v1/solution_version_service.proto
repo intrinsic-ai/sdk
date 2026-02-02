@@ -94,6 +94,10 @@ service SolutionVersionService {
   //
   // This RPC will gracefully handle all types of branches.
   rpc GetBranchOwner(GetBranchOwnerRequest) returns (GetBranchOwnerResponse) {}
+
+  // Returns descendant branches of the branch given in the request.
+  rpc ListBranchDescendants(ListBranchDescendantsRequest)
+      returns (ListBranchDescendantsResponse) {}
 }
 
 // A tree is a collection of branches of a solution.
@@ -302,4 +306,12 @@ message GetBranchOwnerRequest {
 
 message GetBranchOwnerResponse {
   string owner = 1;
+}
+
+message ListBranchDescendantsRequest {
+  string branch_id = 1;
+}
+
+message ListBranchDescendantsResponse {
+  repeated Branch branches = 1;
 }
