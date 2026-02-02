@@ -218,7 +218,7 @@ oci.pull(
 )
 oci.pull(
     name = "distroless_cc",
-    digest = "sha256:72344f7f909a8bf003c67f55687e6d51a441b49661af8f660aa7b285f00e57df",
+    digest = "sha256:d7ac2f9af248f31fe6270002755722afdf6875e0e49cd52b9150208e6a23875c",
     image = "gcr.io/distroless/cc",
     platforms = ["linux/amd64"],
 )
