@@ -1435,29 +1435,6 @@ def _gen_enum_class(
   return enum_class
 
 
-class _ClassPropertyRaisingRemovalError:
-  """Class property which raises an error when accessed.
-
-  Instances of this class can be used as class properties which raise an error
-  that the corresponding property (which used to return a message wrapper class)
-  has been removed.
-  """
-
-  def __init__(
-      self, skill_name: str, message_name: str, full_message_name: str
-  ):
-    self._skill_name = skill_name
-    self._message_name = message_name
-    self._full_message_name = full_message_name
-
-  def __get__(self, instance, owner):
-    raise AttributeError(
-        f'The shortcut notation "{self._skill_name}.{self._message_name} Has'
-        " been removed. Please use"
-        f' "{self._skill_name}.{self._full_message_name}" instead.'
-    )
-
-
 def update_message_class_modules(
     cls: Type[Any],
     skill_info: provided.SkillInfo,
@@ -1524,25 +1501,6 @@ def update_message_class_modules(
         skill_info.skill_name,
         skill_info.package_name,
     )
-
-  # Create error properties for what used to be shortcuts of the form
-  # my_skill.<message name>. Note that iteration over a dict is in insertion
-  # order by default, so the shortcuts are deterministic in case of name
-  # collisions.
-  message_names_done = set()
-  for message_full_name, wrapper_class in wrapper_classes.items():
-    message_name = wrapper_class.wrapped_type.DESCRIPTOR.name
-    if message_name not in message_names_done:
-      setattr(
-          cls,
-          message_name,
-          _ClassPropertyRaisingRemovalError(
-              skill_info.skill_name,
-              message_name,
-              message_full_name,
-          ),
-      )
-      message_names_done.add(message_name)
 
   for enum_full_name, enum_class in enum_classes.items():
     _attach_wrapper_class(

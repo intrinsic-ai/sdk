@@ -972,10 +972,7 @@ def _ast_typedefs_and_classdefs_for_message_wrapper_container(
   nodes: list[ast.ClassDef | ast.Assign] = []
 
   for name in dir(container):
-    try:
-      attribute = getattr(container, name)
-    except AttributeError:
-      continue
+    attribute = getattr(container, name)
 
     if isinstance(attribute, enum.IntEnum):
       nodes.append(_ast_assign_for_enum_value_shortcut(name, attribute))
