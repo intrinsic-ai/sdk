@@ -33,6 +33,47 @@ cc_library(
     ],
 )
 
+py_library(
+    name = "auth_py",
+    srcs = ["auth.py"],
+    deps = [
+        ":userconfig",
+    ],
+)
+
+py_test(
+    name = "auth_test",
+    srcs = ["auth_test.py"],
+    deps = [
+        ":auth_py",
+        ":userconfig",
+        "@com_google_absl_py//absl/testing:absltest",
+    ],
+)
+
+py_library(
+    name = "dialerutil",
+    srcs = ["dialerutil.py"],
+    deps = [
+        ":auth_py",
+        "//intrinsic/frontend/cloud/api/v1:solutiondiscovery_api_py_pb2",
+        "//intrinsic/frontend/cloud/api/v1:solutiondiscovery_api_py_pb2_grpc",
+        "//intrinsic/kubernetes/acl/py:identity",
+        requirement("grpcio"),
+    ],
+)
+
+py_test(
+    name = "dialerutil_test",
+    srcs = ["dialerutil_test.py"],
+    deps = [
+        ":auth_py",
+        ":dialerutil",
+        requirement("grpcio"),
+        "@com_google_absl_py//absl/testing:absltest",
+    ],
+)
+
 cc_library(
     name = "channel",
     srcs = ["channel.cc"],
@@ -208,6 +249,20 @@ py_test(
         ":grpc_utils",
         "//intrinsic/kubernetes/acl/ipcidentity:ipcidentity_py",
         requirement("grpcio"),
+        "@com_google_absl_py//absl/testing:absltest",
+    ],
+)
+
+py_library(
+    name = "userconfig",
+    srcs = ["userconfig.py"],
+)
+
+py_test(
+    name = "userconfig_test",
+    srcs = ["userconfig_test.py"],
+    deps = [
+        ":userconfig",
         "@com_google_absl_py//absl/testing:absltest",
     ],
 )

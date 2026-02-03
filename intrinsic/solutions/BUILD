@@ -104,8 +104,6 @@ py_library(
     name = "deployments",
     srcs = ["deployments.py"],
     deps = [
-        ":auth",
-        ":dialerutil",
         ":error_processing",
         ":errors",
         ":execution",
@@ -115,7 +113,6 @@ py_library(
         ":proto_building",
         ":providers",
         ":simulation",
-        ":userconfig",
         ":worlds",
         "//intrinsic/frontend/solution_service/proto:solution_service_py_pb2",
         "//intrinsic/frontend/solution_service/proto:solution_service_py_pb2_grpc",
@@ -129,6 +126,9 @@ py_library(
         "//intrinsic/solutions/internal:resources",
         "//intrinsic/solutions/internal:skill_providing",
         "//intrinsic/solutions/internal:stubs",
+        "//intrinsic/util/grpc:auth_py",
+        "//intrinsic/util/grpc:dialerutil",
+        "//intrinsic/util/grpc:userconfig",
         requirement("grpcio"),
     ],
 )
@@ -137,36 +137,22 @@ py_test(
     name = "deployments_test",
     srcs = ["deployments_test.py"],
     deps = [
-        ":auth",
         ":deployments",
-        ":dialerutil",
         ":error_processing",
         ":errors",
         ":execution",
         ":simulation",
-        ":userconfig",
         ":worlds",
         "//intrinsic/frontend/solution_service/proto:solution_service_py_pb2",
         "//intrinsic/frontend/solution_service/proto:status_py_pb2",
         "//intrinsic/skills/client:skill_registry_client",
         "//intrinsic/skills/proto:skill_registry_py_pb2",
+        "//intrinsic/util/grpc:auth_py",
+        "//intrinsic/util/grpc:dialerutil",
+        "//intrinsic/util/grpc:userconfig",
         requirement("grpcio"),
         "@com_google_absl_py//absl/testing:absltest",
         "@com_google_protobuf//:protobuf_python",
-    ],
-)
-
-py_library(
-    name = "userconfig",
-    srcs = ["userconfig.py"],
-)
-
-py_test(
-    name = "userconfig_test",
-    srcs = ["userconfig_test.py"],
-    deps = [
-        ":userconfig",
-        "@com_google_absl_py//absl/testing:absltest",
     ],
 )
 
@@ -488,42 +474,13 @@ py_library(
 py_library(
     name = "auth",
     srcs = ["auth.py"],
-    deps = [
-        ":userconfig",
-    ],
+    deps = ["//intrinsic/util/grpc:auth_py"],
 )
 
 py_library(
     name = "dialerutil",
     srcs = ["dialerutil.py"],
-    deps = [
-        ":auth",
-        "//intrinsic/frontend/cloud/api/v1:solutiondiscovery_api_py_pb2",
-        "//intrinsic/frontend/cloud/api/v1:solutiondiscovery_api_py_pb2_grpc",
-        "//intrinsic/kubernetes/acl/py:identity",
-        requirement("grpcio"),
-    ],
-)
-
-py_test(
-    name = "auth_test",
-    srcs = ["auth_test.py"],
-    deps = [
-        ":auth",
-        ":userconfig",
-        "@com_google_absl_py//absl/testing:absltest",
-    ],
-)
-
-py_test(
-    name = "dialerutil_test",
-    srcs = ["dialerutil_test.py"],
-    deps = [
-        ":auth",
-        ":dialerutil",
-        requirement("grpcio"),
-        "@com_google_absl_py//absl/testing:absltest",
-    ],
+    deps = ["//intrinsic/util/grpc:dialerutil"],
 )
 
 py_library(

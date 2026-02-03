@@ -29,8 +29,6 @@ from intrinsic.frontend.solution_service.proto import status_pb2 as solution_sta
 from intrinsic.resources.client import resource_registry_client
 from intrinsic.scene.product.client import product_client as product_client_mod
 from intrinsic.skills.client import skill_registry_client
-from intrinsic.solutions import auth
-from intrinsic.solutions import dialerutil
 from intrinsic.solutions import error_processing
 from intrinsic.solutions import errors as solution_errors
 from intrinsic.solutions import execution
@@ -40,7 +38,6 @@ from intrinsic.solutions import pose_estimation
 from intrinsic.solutions import proto_building
 from intrinsic.solutions import providers
 from intrinsic.solutions import simulation
-from intrinsic.solutions import userconfig
 from intrinsic.solutions import worlds
 from intrinsic.solutions.internal import installed_assets_client
 from intrinsic.solutions.internal import process_providing
@@ -48,6 +45,9 @@ from intrinsic.solutions.internal import products as products_mod
 from intrinsic.solutions.internal import resources as resources_mod
 from intrinsic.solutions.internal import skill_providing
 from intrinsic.solutions.internal import stubs
+from intrinsic.util.grpc import auth
+from intrinsic.util.grpc import dialerutil
+from intrinsic.util.grpc import userconfig
 
 _GRPC_OPTIONS = [
     # Remove limit on message size for e.g. images.

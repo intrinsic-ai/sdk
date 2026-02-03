@@ -11,15 +11,15 @@ from intrinsic.frontend.solution_service.proto import solution_service_pb2
 from intrinsic.frontend.solution_service.proto import status_pb2 as solution_status_pb2
 from intrinsic.skills.client import skill_registry_client
 from intrinsic.skills.proto import skill_registry_pb2
-from intrinsic.solutions import auth
 from intrinsic.solutions import deployments
-from intrinsic.solutions import dialerutil
 from intrinsic.solutions import error_processing
 from intrinsic.solutions import errors as solutions_errors
 from intrinsic.solutions import execution
 from intrinsic.solutions import simulation as simulation_mod
-from intrinsic.solutions import userconfig
 from intrinsic.solutions import worlds
+from intrinsic.util.grpc import auth
+from intrinsic.util.grpc import dialerutil
+from intrinsic.util.grpc import userconfig
 
 
 class DeploymentsTest(absltest.TestCase):

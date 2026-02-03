@@ -5,8 +5,8 @@ from unittest import mock
 from absl.testing import absltest
 import grpc
 
-from intrinsic.solutions import auth
-from intrinsic.solutions import dialerutil
+from intrinsic.util.grpc import auth
+from intrinsic.util.grpc import dialerutil
 
 
 class DialerutilTest(absltest.TestCase):

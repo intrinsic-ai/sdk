@@ -6,8 +6,8 @@ from unittest import mock
 
 from absl.testing import absltest
 
-from intrinsic.solutions import auth
-from intrinsic.solutions import userconfig
+from intrinsic.util.grpc import auth
+from intrinsic.util.grpc import userconfig
 
 
 class AuthTest(absltest.TestCase):
