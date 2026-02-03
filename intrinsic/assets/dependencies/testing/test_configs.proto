@@ -20,7 +20,7 @@ message SimpleGrpcDependencyConfig {
 message SimpleDataDependencyConfig {
   intrinsic_proto.assets.v1.ResolvedDependency single_dependency = 1
       [(intrinsic_proto.assets.field_metadata).dependency = {
-        requires: "data://intrinsic_proto.foo.v1.Data",
+        requires: "data://intrinsic_proto.test.A",
       }];
 }
 
@@ -39,7 +39,7 @@ message WithMultipleDependencies {
 
   intrinsic_proto.assets.v1.ResolvedDependency second_dependency = 2
       [(intrinsic_proto.assets.field_metadata).dependency = {
-        requires: "data://intrinsic_proto.foo.v1.Data",
+        requires: "data://intrinsic_proto.test.A",
       }];
 
   string unaffected_field = 3;
