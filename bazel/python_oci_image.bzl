@@ -4,11 +4,7 @@
 
 load("@aspect_bazel_lib//lib:tar.bzl", "mtree_mutate", "mtree_spec", "tar")
 load("@bazel_skylib//lib:paths.bzl", "paths")
-load(
-    "//bazel:container.bzl",
-    "container_image",
-    "container_layer",
-)
+load("//bazel:container.bzl", "container_image")
 
 def python_layers(name, binary, **kwargs):
     """Create list of layers for a py_binary target.
@@ -24,9 +20,6 @@ def python_layers(name, binary, **kwargs):
     Returns:
         a list of labels for the layers, which are tar files
     """
-
-    binary_label = native.package_relative_label(binary)
-    binary_path = "/" + binary_label.package + "/" + binary_label.name
 
     layers = []
 
