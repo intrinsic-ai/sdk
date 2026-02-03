@@ -33,8 +33,6 @@ const (
 	defaultLookback    = 10 * time.Minute
 	defaultReceiveSize = 100 * 1024 * 1024
 	defaultMaxPageSizeMB = 25
-
-	defaultMaxNumItems = 5
 )
 
 var (
@@ -150,7 +148,6 @@ func getLogsFromCloud(ctx context.Context, eventSource string, dir string) error
 			},
 		},
 		SessionToken:       loadResp.GetSessionToken(),
-		MaxNumItems:        proto.Uint32(defaultMaxNumItems),
 		MaxTotalByteSizeMb: proto.Float64(defaultMaxPageSizeMB),
 		OrganizationId:     orgID,
 	}
@@ -158,7 +155,6 @@ func getLogsFromCloud(ctx context.Context, eventSource string, dir string) error
 	waitAttemptsForLogs := 20
 	totalLogItemSize := uint64(0)
 	numDownloadedLogItems := uint64(0)
-	maxNumItems := uint32(defaultMaxNumItems)
 	for {
 		getStartTime := time.Now()
 		getResp, err := client.GetCloudLogItems(ctx, getReq, grpc.MaxCallRecvMsgSize(defaultReceiveSize))
@@ -171,10 +167,12 @@ func getLogsFromCloud(ctx context.Context, eventSource string, dir string) error
 			}
 			return errors.Wrap(err, "client.GetCloudLogItems")
 		}
-		fmt.Printf("It took %s to load a page of %v items\n", time.Since(getStartTime), len(getResp.GetItems()))
+		numDownloadedLogItems += uint64(len(getResp.GetItems()))
+		fmt.Printf(
+			"It took %s to load a page of %v items. Total number of items downloaded so far: %d\n",
+			time.Since(getStartTime), len(getResp.GetItems()), numDownloadedLogItems)
 		for _, item := range getResp.GetItems() {
 			totalLogItemSize += uint64(proto.Size(item))
-			numDownloadedLogItems++
 			blob := item.GetBlobPayload()
 			if blob != nil {
 				writeBlob(blob, dir)
@@ -193,21 +191,17 @@ func getLogsFromCloud(ctx context.Context, eventSource string, dir string) error
 		if len(nextPageCursor) == 0 {
 			break
 		}
-		if numDownloadedLogItems != 0 {
-			maxNumItems = uint32(defaultMaxPageSizeMB * 1024 * 1024 / (totalLogItemSize / numDownloadedLogItems))
-			fmt.Printf("Setting next page size to %d items\n", maxNumItems)
-		}
+		fmt.Println("Downloading next page...")
 		getReq = &dpb.GetCloudLogItemsRequest{
 			Query: &dpb.GetCloudLogItemsRequest_Cursor{
 				Cursor: nextPageCursor,
 			},
 			SessionToken:       loadResp.GetSessionToken(),
-			MaxNumItems:        proto.Uint32(maxNumItems),
 			MaxTotalByteSizeMb: proto.Float64(defaultMaxPageSizeMB),
 			OrganizationId:     orgID,
 		}
 	}
-	fmt.Printf("Downloaded %d log items. Total size: %d bytes\n", numDownloadedLogItems, totalLogItemSize)
+	fmt.Printf("Download complete. Total number of items: %d. Total size: %d bytes\n", numDownloadedLogItems, totalLogItemSize)
 	return nil
 }
 
