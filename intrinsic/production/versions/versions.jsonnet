@@ -4,7 +4,7 @@
 # they do use in versions.go. Make sure not to add `xfa.` here, as it will
 # break the fleet-manager.
 {
-  previous: '20251106.RC02',
-  stable: '20251126.RC01', # Version that is currently running with the intrinsic stack
+  previous: '20251126.RC01',
+  stable: '20260128.RC01', # Version that is currently running with the intrinsic stack
   canary: '20260128.RC01'
 }
