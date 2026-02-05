@@ -4,9 +4,6 @@
 common --enable_bzlmod
 common --enable_workspace=false
 
-# Disable empty glob check
-common --incompatible_disallow_empty_glob=false
-
 # Custom downloader configs. This makes it so that external URLs to download dependencies from
 # can be rewritten at build time and, for example, support custom mirrors.
 common               --downloader_config=bazel/content_mirror/permissive.cfg
