@@ -215,7 +215,7 @@ go_proto_library(
     name = "material_go_proto",
     protos = [":material_proto"],
     deps = [
-        "@com_google_googleapis//google/type:color_go_proto",
+        "@org_golang_google_genproto//googleapis/type/color",
     ],
 )
 
