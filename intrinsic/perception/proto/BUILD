@@ -118,7 +118,7 @@ proto_library(
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         ":intrinsic_calibration_proto",
-        ":pattern_detection_result",
+        ":pattern_detection_result_proto",
         "//intrinsic/math/proto:pose_proto",
     ],
 )
@@ -380,7 +380,7 @@ proto_library(
     deps = [
         ":camera_params_proto",
         ":dimensions_proto",
-        ":pattern_detection_result",
+        ":pattern_detection_result_proto",
     ],
 )
 
@@ -391,7 +391,7 @@ py_proto_library(
 )
 
 proto_library(
-    name = "pattern_detection_result",
+    name = "pattern_detection_result_proto",
     srcs = ["pattern_detection_result.proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [":vector_proto"],
@@ -400,7 +400,7 @@ proto_library(
 py_proto_library(
     name = "pattern_detection_result_py_pb2",
     visibility = ["//intrinsic:public_api_users"],
-    deps = [":pattern_detection_result"],
+    deps = [":pattern_detection_result_proto"],
 )
 
 proto_library(
@@ -472,7 +472,7 @@ py_proto_library(
 
 go_proto_library(
     name = "pattern_detection_result_go_proto",
-    protos = [":pattern_detection_result"],
+    protos = [":pattern_detection_result_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [":vector_go_proto"],
 )
