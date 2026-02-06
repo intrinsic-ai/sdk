@@ -76,7 +76,6 @@ py_library(
         "//intrinsic/math/python:data_types",
         "//intrinsic/math/python:proto_conversion",
         "//intrinsic/resources/proto:resource_handle_py_pb2",
-        "//intrinsic/scene/product/proto:product_world_object_data_py_pb2",
         "//intrinsic/scene/proto/v1:scene_object_py_pb2",
         "//intrinsic/util/grpc:error_handling",
         "//intrinsic/world/proto:geometry_component_py_pb2",

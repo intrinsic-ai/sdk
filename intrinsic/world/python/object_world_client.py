@@ -27,7 +27,6 @@ from intrinsic.kinematics.types import joint_limits_pb2
 from intrinsic.math.python import data_types
 from intrinsic.math.python import proto_conversion as math_proto_conversion
 from intrinsic.resources.proto import resource_handle_pb2
-from intrinsic.scene.product.proto import product_world_object_data_pb2
 from intrinsic.scene.proto.v1 import scene_object_pb2
 from intrinsic.util.grpc import error_handling
 from intrinsic.world.proto import geometry_component_pb2
@@ -57,11 +56,6 @@ INCLUDE_ALL_ENTITIES = object_world_refs_pb2.ObjectEntityFilter(
 )
 
 ICON2_POSITION_PART_KEY = 'Icon2PositionPart'
-
-PRODUCT_USER_DATA_KEY = 'FLOWSTATE_product'
-
-class ProductPartDoesNotExistError(ValueError):
-  """A non-existent product part was specified."""
 
 
 class CreateObjectError(ValueError):
@@ -1318,9 +1312,9 @@ class ObjectWorldClient:
       object_name: The name of the newly created object.
       geometry_spec: The geometry information for the new object. Can be either
         a SceneObject or a GeometryComponent.
-      parent: The parent object the new product object will be attached to.
+      parent: The parent object the new object will be attached to.
       parent_object_t_created_object: The transform between the parent object
-        and the new product object.
+        and the new object.
       user_data: Arbitrary data to be attached to the object.
 
     Raises:
@@ -1358,56 +1352,6 @@ class ObjectWorldClient:
       self._call_create_object(request=req)
     except grpc.RpcError as err:
       raise CreateObjectError(f'Create object failed: {err}') from err
-
-  def create_object_from_product(
-      self,
-      *,
-      product_name: str,
-      product_metadata: Optional[struct_pb2.Struct] = None,
-      scene_object: scene_object_pb2.SceneObject,
-      object_name: object_world_ids.WorldObjectName,
-      parent: Optional[object_world_resources.WorldObject] = None,
-      parent_object_t_created_object: data_types.Pose3 = data_types.Pose3(),
-  ) -> None:
-    """Adds a product as object to the world.
-
-    Arguments:
-      product_name: The name of the product.
-      product_metadata: Product metadata to be associated with the product
-        object.
-      scene_object: The SceneObject to instantiate the product WorldObject from.
-      object_name: The name of the newly created object.
-      parent: The parent object the new product object will be attached to.
-      parent_object_t_created_object: The transform between the parent object
-        and the new product object.
-
-    Raises:
-      CreateObjectError: If the call to the ObjectWorldService fails.
-    """
-    world_object_data = product_world_object_data_pb2.ProductWorldObjectData(
-        product_name=product_name, metadata=product_metadata
-    )
-    world_object_data_any = any_pb2.Any()
-    world_object_data_any.Pack(world_object_data)
-    user_data = {PRODUCT_USER_DATA_KEY: world_object_data_any}
-
-    product_utils_path = 'intrinsic.scene.product.object_world.python.product_utils.create_object_from_product'  # pylint: disable=line-too-long
-
-    warnings.warn(
-        'ObjectWorldClient.create_object_from_product is deprecated. This'
-        ' method will be removed in the future. Please use'
-        f' `ObjectWorldClient.create_object` or `{product_utils_path}`'
-        ' instead.',
-        DeprecationWarning,
-    )
-
-    self.create_object(
-        object_name=object_name,
-        geometry_spec=scene_object,
-        parent=parent,
-        parent_object_t_created_object=parent_object_t_created_object,
-        user_data=user_data,
-    )
 
   def register_geometry(
       self,

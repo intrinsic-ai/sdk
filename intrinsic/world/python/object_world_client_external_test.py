@@ -110,21 +110,6 @@ class ObjectWorldClientTest(absltest.TestCase):
         user_data={'my_key': my_user_data_any},
     )
 
-  def test_create_object_from_product_part(self):
-    my_object = self._create_object_proto(
-        name='foo', object_id='23', world_id='world'
-    )
-    self._stub.CreateObject.return_value = my_object
-    world_client = object_world_client.ObjectWorldClient(
-        'world', self._stub, self._geometry_service_stub
-    )
-    world_client.create_object_from_product(
-        product_name='my_product',
-        product_metadata=struct_pb2.Struct(),
-        scene_object=scene_object_pb2.SceneObject(),
-        object_name=object_world_ids.WorldObjectName('my_object'),
-    )
-
 
 if __name__ == '__main__':
   absltest.main()
