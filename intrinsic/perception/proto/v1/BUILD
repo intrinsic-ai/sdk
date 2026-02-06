@@ -73,10 +73,7 @@ proto_library(
     name = "camera_identifier_proto",
     srcs = ["camera_identifier.proto"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = [
-        ":camera_drivers_proto",
-        "@com_google_protobuf//:any_proto",
-    ],
+    deps = [":camera_drivers_proto"],
 )
 
 cc_proto_library(
