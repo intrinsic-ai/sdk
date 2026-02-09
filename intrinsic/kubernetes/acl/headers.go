@@ -88,6 +88,8 @@ func validateAndExtractOrgID(ctx context.Context, orgs []string) (*org.Organizat
 	ctx, span := trace.StartSpan(ctx, "headers.validateAndExtractOrgID")
 	defer span.End()
 
+	orgs = deduplicate(orgs)
+
 	if len(orgs) > 1 {
 		telemetry.SetError(span, trace.StatusCodeInvalidArgument, fmt.Sprintf("Multiple organizations specified in the %q header.", org.OrgIDHeader), ErrMultipleOrgsInHeader)
 		log.ErrorContextf(ctx, "Multiple organizations specified in the %q header, only a single organization value is supported.", org.OrgIDHeader)
@@ -103,4 +105,19 @@ func validateAndExtractOrgID(ctx context.Context, orgs []string) (*org.Organizat
 	}
 
 	return nil, nil
+}
+
+func deduplicate(s []string) []string {
+	if len(s) <= 1 {
+		return s
+	}
+	seen := make(map[string]struct{})
+	result := make([]string, 0, len(s))
+	for _, val := range s {
+		if _, ok := seen[val]; !ok {
+			seen[val] = struct{}{}
+			result = append(result, val)
+		}
+	}
+	return result
 }

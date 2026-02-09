@@ -180,6 +180,16 @@ func TestOrgFromRequest(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "duplicate identical org headers",
+			req: &http.Request{
+				Header: http.Header{
+					http.CanonicalHeaderKey(org.OrgIDHeader): []string{"my-org", "my-org"},
+				},
+			},
+			wantOrg: &org.Organization{ID: "my-org"},
+			wantErr: false,
+		},
+		{
 			name: "empty org header",
 			req: &http.Request{
 				Header: http.Header{
@@ -200,6 +210,112 @@ func TestOrgFromRequest(t *testing.T) {
 			}
 			if diff := cmp.Diff(tc.wantOrg, gotOrg); diff != "" {
 				t.Errorf("OrgFromRequest() mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestOrgFromContext(t *testing.T) {
+	tests := []struct {
+		name    string
+		md      metadata.MD
+		wantOrg *org.Organization
+		wantErr bool
+	}{
+		{
+			name:    "no metadata",
+			md:      nil,
+			wantOrg: nil,
+			wantErr: false,
+		},
+		{
+			name:    "no org header",
+			md:      metadata.MD{},
+			wantOrg: nil,
+			wantErr: false,
+		},
+		{
+			name: "single org header",
+			md: metadata.MD{
+				org.OrgIDHeader: []string{"my-org"},
+			},
+			wantOrg: &org.Organization{ID: "my-org"},
+			wantErr: false,
+		},
+		{
+			name: "multiple different org headers",
+			md: metadata.MD{
+				org.OrgIDHeader: []string{"org1", "org2"},
+			},
+			wantOrg: nil,
+			wantErr: true,
+		},
+		{
+			name: "duplicate identical org headers",
+			md: metadata.MD{
+				org.OrgIDHeader: []string{"my-org", "my-org"},
+			},
+			wantOrg: &org.Organization{ID: "my-org"},
+			wantErr: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := t.Context()
+			if tc.md != nil {
+				ctx = metadata.NewIncomingContext(ctx, tc.md)
+			}
+			gotOrg, err := OrgFromContext(ctx)
+			if (err != nil) != tc.wantErr {
+				t.Errorf("OrgFromContext() error = %v, wantErr %v", err, tc.wantErr)
+				return
+			}
+			if diff := cmp.Diff(tc.wantOrg, gotOrg); diff != "" {
+				t.Errorf("OrgFromContext() mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestDeduplicate(t *testing.T) {
+	tests := []struct {
+		name string
+		in   []string
+		want []string
+	}{
+		{
+			name: "empty",
+			in:   []string{},
+			want: []string{},
+		},
+		{
+			name: "single",
+			in:   []string{"a"},
+			want: []string{"a"},
+		},
+		{
+			name: "no duplicates",
+			in:   []string{"a", "b", "c"},
+			want: []string{"a", "b", "c"},
+		},
+		{
+			name: "duplicates",
+			in:   []string{"a", "b", "a", "c", "b"},
+			want: []string{"a", "b", "c"},
+		},
+		{
+			name: "all duplicates",
+			in:   []string{"a", "a", "a"},
+			want: []string{"a"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := deduplicate(tc.in)
+			if diff := cmp.Diff(tc.want, got); diff != "" {
+				t.Errorf("deduplicate() mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}
