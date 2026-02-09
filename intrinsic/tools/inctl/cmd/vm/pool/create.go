@@ -4,7 +4,6 @@ package pool
 
 import (
 	"fmt"
-	"intrinsic/kubernetes/acl/identity"
 	"intrinsic/kubernetes/vmpool/service/pkg/defaults/defaults"
 	"intrinsic/tools/inctl/util/printer"
 
@@ -74,10 +73,7 @@ var vmpoolsCreateCmd = &cobra.Command{
 	Short: "Create a new VM pool.",
 	Long:  createDesc,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx, err := identity.OrgToContext(cmd.Context(), poolCmdFlags.GetFlagOrganization())
-		if err != nil {
-			return err
-		}
+		ctx := cmd.Context()
 		ctx, span := trace.StartSpan(ctx, "inctl.vmpools.create")
 		defer span.End()
 		prtr := printer.GetDefaultPrinter(cmd)
