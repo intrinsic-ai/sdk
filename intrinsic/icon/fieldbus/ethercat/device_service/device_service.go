@@ -1,15 +1,18 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package deviceservice implements a bare minimal DeviceService rpc service.
+// Package deviceservice implements a DeviceService rpc service that resolves logical EtherCAT
+// variable references into concrete hardware addresses and EBI instructions.
 package deviceservice
 
 import (
 	"context"
 	"errors"
 	"fmt"
-	"intrinsic/assets/dependencies/utils"
 	"path"
+	"regexp"
 	"strings"
+
+	"intrinsic/assets/dependencies/utils"
 
 	log "github.com/golang/glog"
 
@@ -20,53 +23,72 @@ import (
 )
 
 var (
-	// ErrConfigNil indicates that the configuration is nil.
+	// ErrConfigNil indicates that the user-provided configuration is nil.
 	ErrConfigNil = errors.New("config must not be nil")
-	// ErrNoEsiBundleID indicates that the configuration has no ESI bundle ID.
-	ErrNoEsiBundleID = errors.New("config must have esi_bundle_data_asset_id")
-	// ErrNoDeviceIdentifier indicates that the configuration has no device identifier.
+	// ErrNoDeviceIdentifier indicates that the configuration is missing the mandatory vendor/product ID.
 	ErrNoDeviceIdentifier = errors.New("config must have a device identifier")
-	// ErrEsiListMetadata indicates that listing ESI data asset metadata failed.
-	ErrEsiListMetadata = errors.New("listing ESI data asset metadata")
-	// ErrNoEsiDataAssets indicates that no ESI data assets were found.
-	ErrNoEsiDataAssets = errors.New("no ESI data assets found")
-	// ErrEsiBundleNotFound indicates that one or more requested ESI data assets were not found.
+	// ErrEsiBundleNotFound indicates the requested ESI bundle data asset could not be retrieved.
 	ErrEsiBundleNotFound = errors.New("ESI data asset(s) not found")
-	// ErrEsiGet indicates that getting an ESI data asset failed.
-	ErrEsiGet = errors.New("getting ESI data asset")
-	// ErrEsiUnmarshal indicates that unmarshalling an ESI data asset failed.
+	// ErrEsiUnmarshal indicates that the ESI XML data is malformed or incompatible.
 	ErrEsiUnmarshal = errors.New("unmarshalling ESI data asset")
-	// ErrEsiInvalidPath indicates that an ESI bundle contains an invalid path.
+	// ErrEsiInvalidPath indicates that an ESI bundle contains invalid paths that might violate security constraints.
 	ErrEsiInvalidPath = errors.New("ESI bundle contains invalid path")
+	// ErrEsiDeepNesting indicates that an ESI file contains nested InfoReferences beyond the supported depth.
+	ErrEsiDeepNesting = errors.New("ESI bundle contains unsupported nested InfoReferences")
 
 	esiBundleMsg                esipb.EsiBundle
 	esiBundleDataAssetProtoName = string(esiBundleMsg.ProtoReflect().Descriptor().FullName())
+
+	addressPattern = regexp.MustCompile(`^(?i)(?:0x|#x)?([0-9a-f]+)\.(?:0x|#x)?([0-9a-f]+)$`)
+)
+
+const (
+	// variableReferenceSeparator is the string used to concatenate PDO and Object
+	// references for use as unique keys in mapping tables.
+	variableReferenceSeparator = "::"
 )
 
 // DeviceService implements the DeviceService rpc service.
+// It maintains indices derived from the ESI to perform rapid variable resolution.
 type DeviceService struct {
-	// config holds the user-provided service configuration of the DeviceService.
+	// config holds the user-provided service configuration.
 	config *dscpb.DeviceServiceConfig
 	// esiBundle contains the ESI bundle loaded as a data asset.
 	esiBundle *esipb.EsiBundle
+
+	// objectIndex maps object addresses (Index.SubIndex) to their metadata.
+	objectIndex map[objectAddress]*objectMetadata
+	// objectNameIndex maps localized name strings to one or more object addresses.
+	objectNameIndex map[string][]objectAddress
+	// pdoIndex maps PDO indices to their metadata.
+	pdoIndex map[uint32]*pdoMetadata
+
+	// activePdos tracks PDOs used in the current resolution request.
+	activePdos map[uint32]bool
+	// exclusionsToAdd tracks default-active PDOs that must be disabled due to exclusions.
+	exclusionsToAdd []uint32
+	// exclusionsToRemove tracks default-inactive PDOs that must be enabled.
+	exclusionsToRemove []uint32
+	// objectsToAdd tracks variables that must be appended to a dynamic PDO mapping.
+	objectsToAdd []*dspb.ResolvedConfiguration_EbiPdoInstructions_ObjectAddition
+	// resolvedVars stores the final mapping of "pdo::object" to resolution metadata.
+	resolvedVars map[string]*dspb.ResolvedVariable
+
+	// resolvedConfiguration holds the pre-computed configuration response data.
+	resolvedConfiguration *dspb.ResolvedConfiguration
 }
 
-// fetchESIBundle fetches the ESI bundle data asset specified in the config from the data asset
-// service. It returns the ESI bundle, its asset ID, or an error if fetching or validation fails.
+// fetchESIBundle retrieves the ESI bundle data asset from the DataAsset service.
 //
 // Parameters:
-//   - ctx: The context for the request.
-//   - config: The DeviceServiceConfig containing the ESI bundle data asset ID.
-//   - daClient: The DataAssetsClient to use for fetching the data asset.
+//   - ctx: The context for the RPC call.
+//   - config: The config containing the EsiBundle dependency.
+//   - daClient: The client used to fetch the asset data.
 //
 // Returns:
-//   - The fetched ESI bundle.
-//   - An error under one of the following conditions:
-//   - ErrEsiBundleNotFound: if the requested bundle is not found.
-//   - ErrEsiUnmarshal: if unmarshalling fails.
-//   - ErrEsiInvalidPath: if the bundle contains invalid paths.
+//   - The populated EsiBundle proto.
+//   - An error if the asset is missing, unmarshalling fails, or paths are invalid.
 func fetchESIBundle(ctx context.Context, config *dscpb.DeviceServiceConfig, daClient dagrpcpb.DataAssetsClient) (*esipb.EsiBundle, error) {
-
 	iface := "data://" + esiBundleDataAssetProtoName
 	anyProto, err := utils.GetDataPayload(ctx, config.GetEsiBundle(), iface, utils.WithDataAssetsClient(daClient))
 	if err != nil {
@@ -79,35 +101,31 @@ func fetchESIBundle(ctx context.Context, config *dscpb.DeviceServiceConfig, daCl
 	}
 
 	if len(esiBundle.GetFiles()) == 0 {
-		return nil, fmt.Errorf("ESI bundle has no files: %w", `ErrEsiUnmarshal`)
+		return nil, fmt.Errorf("ESI bundle has no files: %w", ErrEsiUnmarshal)
 	}
 	for p := range esiBundle.GetFiles() {
 		if path.IsAbs(p) {
-			return nil, fmt.Errorf("ESI bundle contains absolute path %q: %w: %w", p, ErrEsiInvalidPath, ErrEsiUnmarshal)
+			return nil, fmt.Errorf("ESI bundle contains absolute path %q: %w", p, ErrEsiInvalidPath)
 		}
 		cleaned := path.Clean(p)
 		if cleaned == ".." || strings.HasPrefix(cleaned, "../") {
-			return nil, fmt.Errorf("ESI bundle contains path %q resolving to outside bundle: %w: %w", p, ErrEsiInvalidPath, ErrEsiUnmarshal)
+			return nil, fmt.Errorf("ESI bundle contains path %q resolving to outside bundle: %w", p, ErrEsiInvalidPath)
 		}
 	}
 
-	log.InfoContextf(ctx, "Successfully loaded ESI bundle\n")
 	return esiBundle, nil
 }
 
-// NewDeviceService creates a new DeviceService.
+// NewDeviceService constructs a new service instance and performs ESI indexing.
 //
 // Parameters:
-//   - ctx: The context for the request.
-//   - config: The DeviceServiceConfig containing service configuration.
-//   - daClient: The DataAssetsClient to use for fetching ESI data assets.
+//   - ctx: Request context.
+//   - config: Service configuration containing device IDs and bundle references.
+//   - daClient: Client for the Data Asset service.
 //
 // Returns:
-//   - A new DeviceService instance.
-//   - An error under one of the following conditions:
-//   - ErrConfigNil: if config is nil.
-//   - ErrNoDeviceIdentifier: if device identifier is missing.
-//   - If fetching the ESI bundle fails.
+//   - An initialized DeviceService ready to process GetConfiguration calls.
+//   - An error if the config is invalid, indexing fails, or the device isn't found in the ESI.
 func NewDeviceService(ctx context.Context, config *dscpb.DeviceServiceConfig, daClient dagrpcpb.DataAssetsClient) (*DeviceService, error) {
 	if config == nil {
 		return nil, ErrConfigNil
@@ -119,26 +137,248 @@ func NewDeviceService(ctx context.Context, config *dscpb.DeviceServiceConfig, da
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch ESI bundle: %w", err)
 	}
+
+	s := &DeviceService{config: config, esiBundle: esiBundle}
+
+	di := config.GetDeviceIdentifier()
+	if err := s.loadAndIndexESI(ctx, esiBundle, uint32(di.VendorId), uint32(di.ProductCode), uint32(di.Revision)); err != nil {
+		return nil, fmt.Errorf("failed to index ESI: %w", err)
+	}
+
+	if err := s.computeResolvedConfiguration(ctx); err != nil {
+		return nil, fmt.Errorf("failed to resolve configuration: %w", err)
+	}
+
 	log.InfoContextf(ctx, "Device service started with config: %v", config)
-	return &DeviceService{config: config, esiBundle: esiBundle}, nil
+	return s, nil
 }
 
-// GetConfiguration returns the configuration of the DeviceService.
+// GetConfiguration returns the configuration including the resolved VariableReferences, EBI instructions and metadata.
 //
 // Parameters:
-//   - ctx: The context for the request.
-//   - req: The GetConfigurationRequest.
+//   - ctx: Request context.
+//   - req: The GetConfigurationRequest (currently empty).
 //
 // Returns:
-//   - The GetConfigurationResponse containing the service configuration and ESI bundle Asset.
-//   - An error if no ESI bundle is loaded.
+//   - A response containing the ESI bundle and the fully resolved ResolvedConfiguration.
+//   - An error if resolution fails, a variable cannot be found, or PDO conflicts are detected.
 func (s *DeviceService) GetConfiguration(ctx context.Context, req *dspb.GetConfigurationRequest) (*dspb.GetConfigurationResponse, error) {
 	if s.esiBundle == nil {
 		return nil, fmt.Errorf("no ESI bundle loaded")
 	}
-	// Assuming esipb.EsiBundle has a field named 'Esis' of type []*esipb.Esi
+
 	return &dspb.GetConfigurationResponse{
-		DeviceServiceConfig: s.config,
-		EsiBundle:           s.esiBundle,
+		DeviceServiceConfig:   s.config,
+		EsiBundle:             s.esiBundle,
+		ResolvedConfiguration: s.resolvedConfiguration,
 	}, nil
+}
+
+// computeResolvedConfiguration resolves all VariableReferences and detects ESI-related errors at startup.
+func (s *DeviceService) computeResolvedConfiguration(ctx context.Context) error {
+	// Initialize/Reset internal state.
+	s.activePdos = make(map[uint32]bool)
+	s.exclusionsToAdd = nil
+	s.exclusionsToRemove = nil
+	s.objectsToAdd = nil
+	s.resolvedVars = make(map[string]*dspb.ResolvedVariable)
+
+	// Resolve all mapped interfaces.
+	for _, im := range s.config.GetInterfaceMappings() {
+		if ds402 := im.GetDeviceData().GetDs402DeviceData(); ds402 != nil {
+			if err := s.resolveDs402Device(ctx, ds402); err != nil {
+				return err
+			}
+		}
+
+		if joint := im.GetDeviceData().GetJointDeviceData(); joint != nil {
+			if err := s.resolveJointDevice(ctx, joint); err != nil {
+				return err
+			}
+		}
+		// Handle other DeviceData types here in the future
+	}
+
+	// Validate that no mutually exclusive PDOs were activated across different variables.
+	for pdoIdx := range s.activePdos {
+		meta, ok := s.pdoIndex[pdoIdx]
+		if !ok {
+			continue
+		}
+		for _, excludeIdx := range meta.Excludes {
+			if s.activePdos[excludeIdx] {
+				otherMeta := s.pdoIndex[excludeIdx]
+				return fmt.Errorf("PDO conflict detected: %q (#x%04X) and %q (#x%04X) are mutually exclusive", meta.Name, pdoIdx, otherMeta.Name, excludeIdx)
+			}
+		}
+	}
+
+	var instructions *dspb.ResolvedConfiguration_EbiPdoInstructions
+	if len(s.exclusionsToAdd) > 0 || len(s.exclusionsToRemove) > 0 || len(s.objectsToAdd) > 0 {
+		instructions = &dspb.ResolvedConfiguration_EbiPdoInstructions{
+			PdoExclusionsToAdd:    s.exclusionsToAdd,
+			PdoExclusionsToRemove: s.exclusionsToRemove,
+			ObjectsToAdd:          s.objectsToAdd,
+		}
+	}
+
+	s.resolvedConfiguration = &dspb.ResolvedConfiguration{
+		EbiPdoInstructions: instructions,
+		VariableMappings:   s.resolvedVars,
+	}
+
+	return nil
+}
+
+// resolveDs402Device resolves all variables required for a DS402 drive.
+func (s *DeviceService) resolveDs402Device(ctx context.Context, ds402 *dscpb.Ds402DeviceData) error {
+	if err := s.resolveVariable(ctx, ds402.GetStatusWordReference(), PdoDirectionTx); err != nil {
+		return err
+	}
+	if err := s.resolveVariable(ctx, ds402.GetErrorCodeReference(), PdoDirectionTx); err != nil {
+		return err
+	}
+	if err := s.resolveVariable(ctx, ds402.GetControlWordReference(), PdoDirectionRx); err != nil {
+		return err
+	}
+	if ds402.GetDigitalOutputsReference() != nil {
+		if err := s.resolveVariable(ctx, ds402.GetDigitalOutputsReference(), PdoDirectionRx); err != nil {
+			return err
+		}
+	}
+
+	// Handle Homing configuration.
+	if homing := ds402.GetHomingReference(); homing != nil {
+		switch config := homing.GetConfiguration().(type) {
+		case *dscpb.HomingReference_Disabled_:
+			// Do nothing.
+		case *dscpb.HomingReference_Auto_:
+			return fmt.Errorf("homing 'auto' configuration is not implemented yet")
+		case *dscpb.HomingReference_Manual_:
+			m := config.Manual
+			// Homing parameters are typically set via SDO/Rx during init, but some
+			// can be mapped to PDOs. We treat them as Rx (Commands) or Tx (Status)
+			// based on their DS402 nature.
+			homingVars := []struct {
+				ref *dscpb.VariableReference
+				dir PdoDirection
+			}{
+				{m.GetHomingMethod(), PdoDirectionRx},
+				{m.GetHomeOffset(), PdoDirectionRx},
+				{m.GetHomingSpeed(), PdoDirectionRx},
+				{m.GetHomingCreepSpeed(), PdoDirectionRx},
+				{m.GetHomingAcceleration(), PdoDirectionRx},
+				{m.GetModesOfOperation(), PdoDirectionRx},
+				{m.GetModesOfOperationDisplay(), PdoDirectionTx},
+			}
+			for _, v := range homingVars {
+				if v.ref != nil {
+					if err := s.resolveVariable(ctx, v.ref, v.dir); err != nil {
+						return err
+					}
+				}
+			}
+		}
+	}
+	return nil
+}
+
+// resolveJointDevice resolves all variables required for a standard joint device.
+func (s *DeviceService) resolveJointDevice(ctx context.Context, joint *dscpb.JointDeviceData) error {
+	if err := s.resolveVariable(ctx, joint.GetJointPositionCommandReference(), PdoDirectionRx); err != nil {
+		return err
+	}
+	if err := s.resolveVariable(ctx, joint.GetJointPositionStateReference(), PdoDirectionTx); err != nil {
+		return err
+	}
+	if joint.GetJointVelocityStateReference() != nil {
+		if err := s.resolveVariable(ctx, joint.GetJointVelocityStateReference(), PdoDirectionTx); err != nil {
+			return err
+		}
+	}
+	if joint.GetJointAccelerationStateReference() != nil {
+		if err := s.resolveVariable(ctx, joint.GetJointAccelerationStateReference(), PdoDirectionTx); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// resolveVariable translates a logical VariableReference into a hardware address and EBI instructions.
+func (s *DeviceService) resolveVariable(ctx context.Context, ref *dscpb.VariableReference, preferredDir PdoDirection) error {
+	if ref == nil {
+		return nil
+	}
+	tracingEnabled := s.config.GetOptions().GetEnableVariableResolutionTracing()
+	if tracingEnabled {
+		log.InfoContextf(ctx, "--- Tracing resolution for variable: pdo=%q, object=%q (PreferredDir=%v) ---", ref.GetPdo(), ref.GetObject(), preferredDir)
+	}
+
+	key := ref.GetPdo() + variableReferenceSeparator + ref.GetObject()
+	if _, ok := s.resolvedVars[key]; ok {
+		if tracingEnabled {
+			log.InfoContextf(ctx, "Variable already resolved (cached).")
+		}
+		return nil
+	}
+
+	// 1. Resolve PDO Index (Implicit or Explicit).
+	// We do this first because the Object resolution now depends on the PDO context.
+	pdoIdx, pdoMeta, err := s.findPdo(ctx, ref.GetPdo(), objectAddress{}, nil, preferredDir)
+	if err != nil && ref.GetPdo() != "" {
+		// If explicit PDO resolution failed, we can't proceed.
+		return fmt.Errorf("explicit PDO %q requested for variable %q was not found in ESI or is ambiguous: %w", ref.GetPdo(), ref.GetObject(), err)
+	}
+
+	if tracingEnabled {
+		if pdoMeta != nil {
+			log.InfoContextf(ctx, "Resolved PDO context: %q (#x%04X, Dir=%v)", pdoMeta.Name, pdoIdx, pdoMeta.Direction)
+		} else {
+			log.InfoContextf(ctx, "No explicit PDO context provided (implicit resolution).")
+		}
+	}
+
+	// 2. Resolve Object Address (Hardware index/subindex).
+	addr, meta, err := s.findObject(ctx, ref.GetObject(), pdoMeta, preferredDir)
+	if err != nil {
+		return fmt.Errorf("variable %q could not be resolved. Please check if the name or address matches the ESI file: %w", ref.GetObject(), err)
+	}
+
+	if tracingEnabled {
+		log.InfoContextf(ctx, "Resolved Object: %q (#x%04X.%d, Mapping=%q)", meta.Name, addr.Index, addr.SubIndex, meta.PdoMapping)
+	}
+
+	// 3. If PDO was implicit (empty), we might need to re-resolve it now that we have the object's mapping flags.
+	if ref.GetPdo() == "" {
+		if tracingEnabled {
+			log.InfoContextf(ctx, "Re-resolving PDO based on object mapping flags and preferred direction...")
+		}
+		pdoIdx, pdoMeta, err = s.findPdo(ctx, "", addr, meta, preferredDir)
+		if err != nil {
+			return fmt.Errorf("could not find suitable PDO for variable %q: %w", ref.GetObject(), err)
+		}
+		if tracingEnabled {
+			log.InfoContextf(ctx, "Implicit PDO choice: %q (#x%04X)", pdoMeta.Name, pdoIdx)
+		}
+	}
+
+	// 4. EBI Instruction Generation.
+	if err := s.generateInstructions(ctx, pdoIdx, pdoMeta, addr, meta); err != nil {
+		return fmt.Errorf("failed to map variable %q to PDO %q. This usually happens if the PDO is 'Fixed' or has a direction mismatch: %w", ref.GetObject(), pdoMeta.Name, err)
+	}
+
+	if tracingEnabled {
+		log.InfoContextf(ctx, "Successfully resolved to PDO %q and Object %q.", pdoMeta.Name, meta.Name)
+	}
+
+	// Record resolution metadata.
+	s.resolvedVars[key] = &dspb.ResolvedVariable{
+		PdoIndex:      pdoIdx,
+		Index:         addr.Index,
+		SubIndex:      addr.SubIndex,
+		PdoEniName:    pdoMeta.Name,
+		ObjectEniName: meta.Name,
+	}
+
+	return nil
 }

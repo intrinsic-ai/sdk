@@ -40,7 +40,6 @@ proto_library(
     deps = [
         ":device_service_config_proto",
         ":esi_proto",
-        "//intrinsic/assets/proto:id_proto",
     ],
 )
 

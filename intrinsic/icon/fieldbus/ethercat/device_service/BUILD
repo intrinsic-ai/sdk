@@ -10,7 +10,10 @@ package(default_visibility = [
 
 go_library(
     name = "deviceservice",
-    srcs = ["device_service.go"],
+    srcs = [
+        "device_service.go",
+        "esi_handler.go",
+    ],
     deps = [
         "//intrinsic/assets:idutils",
         "//intrinsic/assets/data/proto/v1:data_assets_go_grpc_proto",
