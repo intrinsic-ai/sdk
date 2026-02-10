@@ -53,6 +53,11 @@ const (
 	AssetsDomainStaging = "assets-qa.intrinsic.ai"
 	// AssetsDomainProd is the domain for the asset service in prod.
 	AssetsDomainProd = "assets.intrinsic.ai"
+
+	// ArtifactsProjectProd is the project for artifacts in prod.
+	ArtifactsProjectProd = "intrinsic-artifacts-prod"
+	// ArtifactsProjectDev is the project for artifacts in dev.
+	ArtifactsProjectDev = "intrinsic-artifacts-dev"
 )
 
 // All is the list of all environments.
@@ -94,6 +99,15 @@ func FromComputeProject(project string) string {
 	default:
 		return Prod
 	}
+}
+
+// ArtifactsProjects returns the list of artifact projects to check for releases.
+func ArtifactsProjects(project string) []string {
+	projects := []string{ArtifactsProjectProd}
+	if FromComputeProject(project) == Dev {
+		projects = append(projects, ArtifactsProjectDev)
+	}
+	return projects
 }
 
 // PortalDomain returns the portal domain for the given environment.
