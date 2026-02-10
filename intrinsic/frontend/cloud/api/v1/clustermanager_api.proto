@@ -231,6 +231,7 @@ message CreateClusterRequest {
   string org = 2 [(google.api.field_behavior) = REQUIRED];
   CreateClusterInfo cluster_info = 3 [(google.api.field_behavior) = REQUIRED];
   bool preserve_versions = 4 [(google.api.field_behavior) = OPTIONAL];
+  string copy_cluster = 5 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message CreateClusterResponse {}
