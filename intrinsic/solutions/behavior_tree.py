@@ -34,6 +34,7 @@ from typing import Union
 import uuid
 import warnings
 
+from cel.expr import syntax_pb2
 from google.protobuf import any_pb2
 from google.protobuf import descriptor
 from google.protobuf import descriptor_pb2
@@ -1151,14 +1152,18 @@ class Blackboard(Condition):
     proto: The proto representation of the node.
     condition_type: A string label of the condition type.
     cel_expression: string containing a CEL expression for evaluation.
+    cel_expression_proto: Proto for the CEL expression.
   """
 
-  _cel_expression: str
+  _cel_expression: Union[str, syntax_pb2.Expr]
 
-  # pylint: disable=line-too-long
-  def __init__(self, cel_expression: Union[str, cel.CelExpression]):
-    self._cel_expression: str = str(cel_expression)
-  # pylint: enable=line-too-long
+  def __init__(
+      self, cel_expression: Union[str, cel.CelExpression, syntax_pb2.Expr]
+  ):
+    if isinstance(cel_expression, syntax_pb2.Expr):
+      self._cel_expression = cel_expression
+    else:
+      self._cel_expression: str = str(cel_expression)
 
   # Returns the expression that sets the value of the blackboard key.
   #
@@ -1179,6 +1184,8 @@ class Blackboard(Condition):
   # and eliminate the data node entirely.
   @property
   def cel_expression(self) -> Optional[str]:
+    if isinstance(self._cel_expression, syntax_pb2.Expr):
+      return None
     return self._cel_expression
 
   # Assigns the expression that sets the value of the blackboard key.
@@ -1202,6 +1209,12 @@ class Blackboard(Condition):
   def cel_expression(self, expression: str):
     self._cel_expression = expression
 
+  @property
+  def cel_expression_proto(self) -> Optional[syntax_pb2.Expr]:
+    if isinstance(self._cel_expression, str):
+      return None
+    return self._cel_expression
+
   def __repr__(self) -> str:
     """Returns a compact, human-readable string representation."""
     expr = str(self._cel_expression)
@@ -1211,9 +1224,12 @@ class Blackboard(Condition):
   @property
   def proto(self) -> behavior_tree_pb2.BehaviorTree.Condition:
     proto_object = behavior_tree_pb2.BehaviorTree.Condition()
-    # pylint: disable=line-too-long
-    proto_object.blackboard.cel_expression = self._cel_expression
-    # pylint: enable=line-too-long
+    if isinstance(self._cel_expression, syntax_pb2.Expr):
+      proto_object.blackboard.cel_expression_proto.CopyFrom(
+          self._cel_expression
+      )
+    else:
+      proto_object.blackboard.cel_expression = self._cel_expression
     return proto_object
 
   @property
@@ -1228,27 +1244,7 @@ class Blackboard(Condition):
     if proto_object.HasField('cel_expression'):
       return cls(proto_object.cel_expression)
     else:
-      # pylint: disable=line-too-long
-      if proto_object.ByteSize() != 0:
-        print(
-            'Warning: Possible data loss when creating a blackboard/cel'
-            ' condition from proto. If the BehaviorTree was created by the'
-            ' frontend, conditions are currently not loadable from the proto.'
-        )
-        ipython.display_html_or_print_msg(
-          (
-            '<span style="{_CSS_INTERRUPTED_STYLE}">'
-            'Warning: Possible data loss when creating a blackboard/cel'
-            ' condition from proto. If the BehaviorTree was created by the'
-            ' frontend, conditions are currently not loadable from the proto.'
-            '</span>'
-          ),
-          'Warning: Possible data loss when creating a blackboard/cel'
-          ' condition from proto. If the BehaviorTree was created by the'
-          ' frontend, conditions are currently not loadable from the proto.',
-        )
-      return cls('')
-      # pylint: enable=line-too-long
+      return cls(proto_object.cel_expression_proto)
 
 
 class CompoundCondition(Condition):

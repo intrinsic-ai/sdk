@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.executive;
 
+import "cel/expr/syntax.proto";
 import "google/api/field_behavior.proto";
 import "google/protobuf/any.proto";
 import "intrinsic/executive/proto/any_list.proto";
@@ -79,6 +80,7 @@ message BehaviorTree {
     message BlackboardExpression {
       oneof expression_type {
         string cel_expression = 1;  // https://cel.dev/
+        cel.expr.Expr cel_expression_proto = 2;
       }
     }
 

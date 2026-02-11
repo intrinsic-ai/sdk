@@ -42,6 +42,7 @@ py_library(
         "//intrinsic/world/proto:object_world_refs_py_pb2",
         "//intrinsic/world/python:object_world_resources",
         "@ai_intrinsic_sdks_pip_deps//graphviz",
+        "@com_google_cel_spec//proto/cel/expr:syntax_py_pb2",
         "@com_google_protobuf//:protobuf_python",
     ],
 )
@@ -83,6 +84,7 @@ py_test(
         "//intrinsic/world/python:object_world_resources",
         "@com_google_absl_py//absl/testing:absltest",
         "@com_google_absl_py//absl/testing:parameterized",
+        "@com_google_cel_spec//proto/cel/expr:syntax_py_pb2",
         "@com_google_protobuf//:protobuf_python",
     ],
 )
@@ -275,6 +277,7 @@ py_test(
 py_library(
     name = "solutions_lib",
     deps = [
+        ":behavior_tree",
         ":blackboard_value",
         ":cel",
         ":deployments",
@@ -580,6 +583,7 @@ py_package(
     name = "solutions_py_package",
     packages = [
         "intrinsic",
+        "proto.cel.expr._virtual_imports.syntax_proto",
         "third_party",
     ],
     deps = [
@@ -603,6 +607,14 @@ py_wheel(
         "retrying",
         "typing-extensions",
     ],
+    # py_package / py_wheel do not understand dependencies on proto_libraries
+    # which use the strip_import_prefix option, so some paths here need to be
+    # _virtual_imports folders and then get stripped appropriately.
+    strip_path_prefixes = [
+        "proto/cel/expr/_virtual_imports/syntax_proto/",
+    ],
     version = "0.0.1",
-    deps = [":solutions_py_package"],
+    deps = [
+        ":solutions_py_package",
+    ],
 )

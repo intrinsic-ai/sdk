@@ -369,6 +369,7 @@ proto_library(
         ":code_execution_proto",
         "//intrinsic/skills/proto:skills_proto",
         "//intrinsic/util/status:extended_status_proto",
+        "@com_google_cel_spec//proto/cel/expr:syntax_proto",
         "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_googleapis//google/api:field_behavior_proto",
         "@com_google_protobuf//:any_proto",
@@ -395,6 +396,7 @@ go_proto_library(
         ":code_execution_go_proto",
         "//intrinsic/skills/proto:skills_go_proto",
         "//intrinsic/util/status:extended_status_go_proto",
+        "@com_google_cel_spec//:expr",
         "@org_golang_google_genproto_googleapis_api//annotations",
     ],
 )

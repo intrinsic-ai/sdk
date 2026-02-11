@@ -8,6 +8,7 @@ from unittest import mock
 
 from absl.testing import absltest
 from absl.testing import parameterized
+from cel.expr import syntax_pb2
 from google.protobuf import any_pb2
 from google.protobuf import descriptor_pb2
 from google.protobuf import text_format
@@ -5090,6 +5091,22 @@ class BehaviorTreeBlackboardConditionTest(absltest.TestCase):
     condition_proto.blackboard.cel_expression = 'result.accepted'
     compare.assertProto2Equal(self, condition.proto, condition_proto)
 
+  def test_init_from_cel_expression_proto(self):
+    """Tests if BehaviorTree.Blackboard is correctly constructed."""
+    # equivalent to 'result.accepted'
+    expr = syntax_pb2.Expr(
+        select_expr=syntax_pb2.Expr.Select(
+            operand=syntax_pb2.Expr(
+                ident_expr=syntax_pb2.Expr.Ident(name='result')
+            ),
+            field='accepted',
+        )
+    )
+    condition = bt.Blackboard(expr)
+    condition_proto = behavior_tree_pb2.BehaviorTree.Condition()
+    condition_proto.blackboard.cel_expression_proto.CopyFrom(expr)
+    compare.assertProto2Equal(self, condition.proto, condition_proto)
+
   def test_str_conversion(self):
     """Tests if conversion to string works."""
     condition = bt.Blackboard('result.accepted')
@@ -5101,6 +5118,29 @@ class BehaviorTreeBlackboardConditionTest(absltest.TestCase):
 
     condition_proto = behavior_tree_pb2.BehaviorTree.Condition()
     condition_proto.blackboard.cel_expression = 'result.accepted'
+
+    compare.assertProto2Equal(self, condition.proto, condition_proto)
+    compare.assertProto2Equal(
+        self,
+        bt.Condition.create_from_proto(condition_proto).proto,
+        condition_proto,
+    )
+
+  def test_to_proto_and_from_proto_with_expression_proto(self):
+    """Tests if conversion to and from a proto representation works."""
+    # equivalent to 'result.accepted'
+    expr = syntax_pb2.Expr(
+        select_expr=syntax_pb2.Expr.Select(
+            operand=syntax_pb2.Expr(
+                ident_expr=syntax_pb2.Expr.Ident(name='result')
+            ),
+            field='accepted',
+        )
+    )
+    condition = bt.Blackboard(expr)
+
+    condition_proto = behavior_tree_pb2.BehaviorTree.Condition()
+    condition_proto.blackboard.cel_expression_proto.CopyFrom(expr)
 
     compare.assertProto2Equal(self, condition.proto, condition_proto)
     compare.assertProto2Equal(
