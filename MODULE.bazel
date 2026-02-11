@@ -210,7 +210,7 @@ bazel_dep(name = "rules_java", version = "9.5.0")
 # Containers #
 ##############
 
-bazel_dep(name = "rules_oci", version = "2.2.6")
+bazel_dep(name = "rules_oci", version = "2.2.7")
 bazel_dep(name = "container_structure_test", version = "1.22.1")
 
 oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
