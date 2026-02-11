@@ -220,6 +220,15 @@ oci.pull(
     image = "gcr.io/distroless/base",
     platforms = ["linux/amd64"],
 )
+
+# Version pinned to last known version for EC-Engineer, due to b/478927987.
+oci.pull(
+    name = "distroless_base_bookworm",
+    digest = "sha256:9e9b50d2048db3741f86a48d939b4e4cc775f5889b3496439343301ff54cdba8",
+    image = "gcr.io/distroless/base",
+    platforms = ["linux/amd64"],
+    tag = "bookworm",
+)
 oci.pull(
     name = "distroless_cc",
     digest = "sha256:d7ac2f9af248f31fe6270002755722afdf6875e0e49cd52b9150208e6a23875c",
@@ -237,6 +246,8 @@ oci.pull(
 use_repo(
     oci,
     "distroless_base",
+    "distroless_base_bookworm",
+    "distroless_base_bookworm_linux_amd64",
     "distroless_base_linux_amd64",
     "distroless_cc",
     "distroless_cc_linux_amd64",
