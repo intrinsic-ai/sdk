@@ -419,9 +419,13 @@ func (kv *kvStoreHandle) addKeyPrefix(key string) string {
 }
 
 func (kv *kvStoreHandle) Set(key string, value proto.Message, highConsistency bool) error {
-	valueAny, err := anypb.New(value)
-	if err != nil {
-		return err
+	valueAny, ok := value.(*anypb.Any)
+	if !ok {
+		var err error
+		valueAny, err = anypb.New(value)
+		if err != nil {
+			return err
+		}
 	}
 
 	valueBytes, err := proto.Marshal(valueAny)
