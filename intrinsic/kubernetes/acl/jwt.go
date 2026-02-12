@@ -34,6 +34,7 @@ const (
 	ClaimAuthorized    = "authorized"
 	ClaimProjects      = "ps"
 	ClaimProjectsAll   = "*"
+	ClaimClusterID     = "cluster_id"
 )
 
 // UnmarshalUnsafe unmarshals the JWT payload and returns the parsed data.
