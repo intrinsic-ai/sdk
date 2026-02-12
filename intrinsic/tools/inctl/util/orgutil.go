@@ -304,20 +304,16 @@ func WrapCmd(cmd *cobra.Command, vipr *viper.Viper, options ...WrapCmdOption) *c
 	return cmd
 }
 
-// SharedOrg identifies if an org name is ambiguous, ie if it is unqualified and present in multiple
-// projects.
-func SharedOrg(orgName string) bool {
-	return orgName == "intrinsic"
-}
-
 // QualifiedOrg returns a "unique" org name, adding an @project suffix for orgs that are present in
 // multiple projects. This undoes the "cleaning" applied by PreRunOrganization when using WrapCmd().
 func QualifiedOrg(projectName, orgName string) string {
-	if orgName == "" {
+	if orgName == "" { // fallback, not sure if this is really required
 		return fmt.Sprintf("intrinsic@%s", projectName)
 	}
-	if SharedOrg(orgName) {
-		orgName = fmt.Sprintf("%s@%s", orgName, projectName)
+	// for most customer organizations there is no project required
+	if projectName == "" {
+		return orgName
 	}
-	return orgName
+	// for organizations with multiple projects
+	return fmt.Sprintf("%s@%s", orgName, projectName)
 }
