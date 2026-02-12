@@ -11,6 +11,7 @@ from google.protobuf import any_pb2
 from google.protobuf import text_format
 import grpc
 
+from intrinsic.assets.proto import id_pb2
 from intrinsic.executive.proto import behavior_tree_pb2
 from intrinsic.executive.proto import blackboard_service_pb2
 from intrinsic.executive.proto import blackboard_service_pb2_grpc
@@ -242,6 +243,40 @@ class ExecutiveTest(parameterized.TestCase):
         operations_pb2.DeleteOperationRequest(name=_OPERATION_NAME)
     )
 
+  def test_load_from_process_id_works(self):
+    """Tests if executive.load() calls CreateOperation with a process id."""
+    list_response = operations_pb2.ListOperationsResponse()
+    self._executive_service_stub.ListOperations.return_value = list_response
+
+    response = self._create_operation_proto(
+        run_metadata_pb2.RunMetadata.ACCEPTED
+    )
+    self._executive_service_stub.CreateOperation.return_value = response
+
+    self._executive.load('ai.intrinsic.test')
+
+    process_id = id_pb2.Id(package='ai.intrinsic', name='test')
+    self._executive_service_stub.CreateOperation.assert_called_with(
+        executive_service_pb2.CreateOperationRequest(process_id=process_id)
+    )
+
+  def test_load_from_process_id_proto_works(self):
+    """Tests if executive.load() calls CreateOperation with a process id."""
+    list_response = operations_pb2.ListOperationsResponse()
+    self._executive_service_stub.ListOperations.return_value = list_response
+
+    response = self._create_operation_proto(
+        run_metadata_pb2.RunMetadata.ACCEPTED
+    )
+    self._executive_service_stub.CreateOperation.return_value = response
+
+    process_id = id_pb2.Id(package='ai.intrinsic', name='test')
+    self._executive.load(process_id)
+
+    self._executive_service_stub.CreateOperation.assert_called_with(
+        executive_service_pb2.CreateOperationRequest(process_id=process_id)
+    )
+
   def test_run_async_works(self):
     """Tests if executive.run_async() calls start in the executive service."""
     self._create_operation()
@@ -424,6 +459,30 @@ class ExecutiveTest(parameterized.TestCase):
     create_request = executive_service_pb2.CreateOperationRequest()
     create_request.behavior_tree.root.task.call_behavior.CopyFrom(
         my_action.proto
+    )
+    self._executive_service_stub.CreateOperation.assert_called_once_with(
+        create_request
+    )
+    self._executive_service_stub.GetOperation.assert_called_with(
+        operations_pb2.GetOperationRequest(name=_OPERATION_NAME)
+    )
+
+  def test_run_from_process_id_works(self):
+    self._setup_create_operation()
+    self._setup_start_operation()
+    state_sequence = [
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+    ]
+    self._setup_get_operation_sequence(state_sequence)
+
+    self._executive.run('ai.intrinsic.process')
+
+    create_request = executive_service_pb2.CreateOperationRequest()
+    create_request.process_id.CopyFrom(
+        id_pb2.Id(package='ai.intrinsic', name='process')
     )
     self._executive_service_stub.CreateOperation.assert_called_once_with(
         create_request

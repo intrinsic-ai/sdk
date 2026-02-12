@@ -34,6 +34,8 @@ from google.protobuf import message as protobuf_message
 from google.protobuf import message_factory
 import grpc
 
+from intrinsic.assets import id_utils
+from intrinsic.assets.proto import id_pb2
 from intrinsic.executive.proto import behavior_tree_pb2
 from intrinsic.executive.proto import blackboard_service_pb2
 from intrinsic.executive.proto import blackboard_service_pb2_grpc
@@ -72,6 +74,8 @@ BehaviorTreeOrActionType = Union[
     bt.Node,
     List[Union[actions.ActionBase, List[actions.ActionBase]]],
     actions.ActionBase,
+    id_pb2.Id,  # Must refer to a process id to load
+    str,  # Must refer to a process id to load
 ]
 
 
@@ -659,8 +663,8 @@ class Executive:
     Kubernetes template.
 
     Args:
-      plan_or_action: A behavior tree, list of actions, or a single action or
-        skill.
+      plan_or_action: A behavior tree, list of actions, a single action or
+        skill, or an asset id of an installed process asset to run.
       parameters: Parameter proto if the operation's behavior tree is
         parameterizable.
       resources: Maps from resource references in a PBT to the actual resource
@@ -717,7 +721,8 @@ class Executive:
 
     Args:
       plan_or_action: A behavior tree, a list of actions (can be nested one
-        level), or a single action.
+        level), or a single action, or an asset id of an installed process asset
+        to run.
       parameters: Parameter proto if the operation's behavior tree is
         parameterizable.
       resources: Maps from resource references in a PBT to the actual resource
@@ -793,7 +798,8 @@ class Executive:
 
     Args:
       plan_or_action: A behavior tree, list of actions (can be nested one
-        level), or a single action.
+        level), or a single action, or an asset id of an installed process asset
+        to run.
       blocking: If True, waits until execution finishes. Otherwise, returns
         immediately after starting.
       silence_outputs: If true, do not show success or error outputs of the
@@ -859,7 +865,8 @@ class Executive:
 
     Args:
       behavior_tree_or_action: A behavior tree, a list of actions (can be nested
-        one level) or a single action.
+        one level), or a single action, or an asset id of an installed process
+        asset to run.
 
     Raises:
       solutions_errors.UnavailableError: On executive service not reachable.
@@ -888,6 +895,11 @@ class Executive:
     if behavior_tree is not None:
       behavior_tree.validate_id_uniqueness()
       request.behavior_tree.CopyFrom(behavior_tree.proto)
+    elif isinstance(behavior_tree_or_action, id_pb2.Id):
+      request.process_id.CopyFrom(behavior_tree_or_action)
+    elif isinstance(behavior_tree_or_action, str):
+      id_proto = id_utils.id_proto_from_string(behavior_tree_or_action)
+      request.process_id.CopyFrom(id_proto)
 
     try:
       self._delete_with_retry()
