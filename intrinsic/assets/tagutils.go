@@ -29,10 +29,11 @@ var allAssetTagMetadataComputed bool
 //
 // Tags are returned in enum order.
 func AllAssetTags() []atagpb.AssetTag {
-	allTags := make([]atagpb.AssetTag, 0, len(atagpb.AssetTag_name)-1)
-	for tag := range atagpb.AssetTag_name {
-		if tag != int32(atagpb.AssetTag_ASSET_TAG_UNSPECIFIED) {
-			allTags = append(allTags, atagpb.AssetTag(tag))
+	allTags := make([]atagpb.AssetTag, len(atagpb.AssetTag_value)-1)
+	for _, value := range atagpb.AssetTag_value {
+		tag := atagpb.AssetTag(value)
+		if tag != atagpb.AssetTag_ASSET_TAG_UNSPECIFIED {
+			allTags[value-1] = tag
 		}
 	}
 	return allTags
