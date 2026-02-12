@@ -534,6 +534,88 @@ message RebootClusterRequest {
 // This isn't empty because it might get an LRO identifier at some point.
 message RebootClusterResponse {}
 
+// Hardware Information for node
+message NodeHardware {
+  message IPC {
+    string vendor = 1;
+    string model = 2;
+    string version = 3;
+  }
+
+  message BIOS {
+    string vendor = 1;
+    string version = 2;
+  }
+
+  message Mainboard {
+    string vendor = 1;
+    string model = 2;
+    BIOS bios = 3;
+  }
+
+  message MemoryBank {
+    string vendor = 1;
+    string type = 2;
+    int64 size_bytes = 3;
+  }
+
+  message Memory {
+    int64 slots = 1;
+    int64 size_bytes = 2;
+    repeated MemoryBank banks = 3;
+  }
+
+  message CPU {
+    string vendor = 1;
+    string model = 2;
+    int64 max_frequency_hz = 3;
+  }
+
+  message StorageDisk {
+    string type = 1;
+    int64 capacity_bytes = 2;
+  }
+
+  message NIC {
+    string vendor = 1;
+    string model = 2;
+    string mac_address = 3;
+  }
+
+  message GPU {
+    string vendor = 1;
+    string model = 2;
+  }
+
+  string name = 1;
+  IPC ipc = 2;
+  Mainboard mainboard = 3;
+  Memory memory = 4;
+  CPU cpu = 5;
+  repeated StorageDisk storage_disks = 6;
+  repeated NIC nics = 7;
+  repeated GPU gpus = 8;
+}
+
+message ClusterHardware {
+  repeated NodeHardware nodes = 1;
+}
+
+message GetClusterHardwareRequest {
+  string cluster_name = 1 [(google.api.field_behavior) = REQUIRED];
+  string project = 2 [(google.api.field_behavior) = REQUIRED];
+  string org = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+message UpdateClusterHardwareRequest {
+  string cluster_name = 1 [(google.api.field_behavior) = REQUIRED];
+  string project = 2 [(google.api.field_behavior) = REQUIRED];
+  string org = 3 [(google.api.field_behavior) = REQUIRED];
+  ClusterHardware hardware = 4 [(google.api.field_behavior) = REQUIRED];
+}
+
+message UpdateClusterHardwareResponse {}
+
 // ClustersService holds a set of methods to interact with clusters.
 service ClustersService {
 
@@ -743,6 +825,30 @@ service ClustersService {
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "CreateLogReceiverUpdate"
+    };
+    option (aclType) = "can_configure";
+  }
+
+  rpc GetClusterHardware(GetClusterHardwareRequest) returns (ClusterHardware) {
+    option (google.api.http) = {
+      get: "/v1/project/{project}/org/{org}/clusters/{cluster_name}/hardware"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "GetClusterHardware"
+    };
+    option (aclType) = "has_access";
+  }
+
+  // UpdateClusterHardware is used to update the hardware configuration of a
+  // cluster. Currently, this only sets the hardware of the control plane node.
+  rpc UpdateClusterHardware(UpdateClusterHardwareRequest)
+      returns (UpdateClusterHardwareResponse) {
+    option (google.api.http) = {
+      put: "/v1/project/{project}/org/{org}/clusters/{cluster_name}/hardware"
+      body: "hardware"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "UpdateClusterHardware"
     };
     option (aclType) = "can_configure";
   }
