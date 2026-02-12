@@ -9,6 +9,7 @@ import "google/longrunning/operations.proto";
 import "google/protobuf/any.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/field_mask.proto";
+import "intrinsic/assets/proto/id.proto";
 import "intrinsic/executive/proto/behavior_tree.proto";
 import "intrinsic/executive/proto/executive_execution_mode.proto";
 import "intrinsic/executive/proto/run_metadata.proto";
@@ -235,6 +236,9 @@ message CreateOperationRequest {
     // If set to true, will load the default process specified for the solution.
     // Deprecated: Specify a behavior_tree explicitly.
     bool use_default_plan = 2 [deprecated = true];
+    // Id of a process asset to create the operation from. The asset must
+    // be installed.
+    intrinsic_proto.assets.Id process_id = 3;
   }
 }
 
