@@ -89,6 +89,9 @@ message ParameterizedPinchGripperSpecs {
   // to the gripper opening direction, and x-axis is aligned to the gripper
   // finger width.
   optional Pose gripper_origin_t_tool_frame = 5;
+  // The additional collision mesh of the gripper.
+  // The mesh is assumed to be relative to the tool frame.
+  optional MeshData collision_mesh = 7;
 }
 
 message ParameterizedCentricGripperSpecs {
