@@ -1,7 +1,7 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
-load("//bazel:go_macros.bzl", "go_binary", "go_grpc_library", "go_proto_library")
+load("//bazel:go_macros.bzl", "go_binary", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -12,13 +12,11 @@ proto_library(
 
 go_proto_library(
     name = "file_upload_service_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+    ],
     protos = [":file_upload_service_proto"],
-)
-
-go_grpc_library(
-    name = "file_upload_service_go_grpc_proto",
-    protos = [":file_upload_service_proto"],
-    deps = [":file_upload_service_go_proto"],
 )
 
 go_binary(
@@ -27,7 +25,6 @@ go_binary(
         "file_upload_cli.go",
     ],
     deps = [
-        ":file_upload_service_go_grpc_proto",
         ":file_upload_service_go_proto",
         "@com_github_golang_glog//:go_default_library",
         "@com_github_google_subcommands//:go_default_library",

@@ -20,7 +20,7 @@ go_library(
     name = "solutionutil",
     srcs = ["solutionutil.go"],
     deps = [
-        "//intrinsic/frontend/cloud/api/v1:clusterdiscovery_api_go_grpc_proto",
+        "//intrinsic/frontend/cloud/api/v1:clusterdiscovery_api_go_proto",
         "//intrinsic/tools/inctl/cmd/solution/get",
         "@org_golang_google_grpc//:go_default_library",
     ],
@@ -61,7 +61,7 @@ go_library(
     name = "waitforskill",
     srcs = ["waitforskill.go"],
     deps = [
-        "//intrinsic/skills/proto:skill_registry_go_grpc_proto",
+        "//intrinsic/skills/proto:skill_registry_go_proto",
         "@org_golang_google_grpc//:go_default_library",
         "@org_golang_google_grpc//codes:go_default_library",
         "@org_golang_google_grpc//status:go_default_library",

@@ -18,8 +18,8 @@ import (
 	"google.golang.org/grpc/status"
 
 	dapb "intrinsic/assets/data/proto/v1/data_asset_go_proto"
-	dasgrpcpb "intrinsic/assets/data/proto/v1/data_assets_go_grpc_proto"
-	daspb "intrinsic/assets/data/proto/v1/data_assets_go_grpc_proto"
+	dasgrpcpb "intrinsic/assets/data/proto/v1/data_assets_go_proto"
+	daspb "intrinsic/assets/data/proto/v1/data_assets_go_proto"
 	mpb "intrinsic/assets/proto/metadata_go_proto"
 )
 

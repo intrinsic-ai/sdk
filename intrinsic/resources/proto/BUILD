@@ -6,7 +6,7 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
-load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
+load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = [
     "//visibility:public",
@@ -24,17 +24,10 @@ proto_library(
 
 go_proto_library(
     name = "resource_registry_go_proto",
-    protos = [":resource_registry_proto"],
-    deps = [
-        "//intrinsic/assets/proto:metadata_go_proto",
-        "//intrinsic/assets/proto:view_go_proto",
-        "//intrinsic/resources/proto:resource_handle_go_proto",
-        "//intrinsic/scene/proto/v1:scene_object_config_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
     ],
-)
-
-go_grpc_library(
-    name = "resource_registry_go_grpc_proto",
     protos = [":resource_registry_proto"],
     deps = [
         "//intrinsic/assets/proto:metadata_go_proto",

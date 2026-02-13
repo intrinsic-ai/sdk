@@ -8,7 +8,7 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
-load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
+load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -122,12 +122,18 @@ py_grpc_library(
 
 go_proto_library(
     name = "geometry_service_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+    ],
     protos = [":geometry_service_proto"],
     deps = [
         ":geometry_service_types_go_proto",
         ":geometry_storage_refs_go_proto",
         "//intrinsic/geometry/proto/v1:geometry_go_proto",
         "//intrinsic/geometry/proto/v1:geometry_storage_refs_go_proto",
+        "@org_golang_google_protobuf//types/known/anypb",
+        "@org_golang_google_protobuf//types/known/timestamppb",
     ],
 )
 
@@ -137,17 +143,6 @@ cc_grpc_library(
     generate_mocks = True,
     grpc_only = True,
     deps = [":geometry_service_cc_proto"],
-)
-
-go_grpc_library(
-    name = "geometry_service_go_grpc_proto",
-    protos = [":geometry_service_proto"],
-    deps = [
-        ":geometry_service_types_go_proto",
-        ":geometry_storage_refs_go_proto",
-        "//intrinsic/geometry/proto/v1:geometry_go_proto",
-        "//intrinsic/geometry/proto/v1:geometry_storage_refs_go_proto",
-    ],
 )
 
 proto_library(

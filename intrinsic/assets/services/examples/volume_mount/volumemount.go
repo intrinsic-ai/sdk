@@ -12,7 +12,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	vmpb "intrinsic/assets/services/examples/volume_mount/proto/v1/volume_mount_go_grpc_proto"
+	vmpb "intrinsic/assets/services/examples/volume_mount/proto/v1/volume_mount_go_proto"
 )
 
 // Service implements VolumeMountService.

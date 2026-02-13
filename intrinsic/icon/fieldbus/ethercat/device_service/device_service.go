@@ -16,9 +16,9 @@ import (
 
 	log "github.com/golang/glog"
 
-	dagrpcpb "intrinsic/assets/data/proto/v1/data_assets_go_grpc_proto"
+	dagrpcpb "intrinsic/assets/data/proto/v1/data_assets_go_proto"
 	dscpb "intrinsic/icon/fieldbus/ethercat/device_service/v1/device_service_config_go_proto"
-	dspb "intrinsic/icon/fieldbus/ethercat/device_service/v1/device_service_go_grpc_proto"
+	dspb "intrinsic/icon/fieldbus/ethercat/device_service/v1/device_service_go_proto"
 	esipb "intrinsic/icon/fieldbus/ethercat/device_service/v1/esi_go_proto"
 )
 

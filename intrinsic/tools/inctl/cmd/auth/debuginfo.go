@@ -20,7 +20,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	accdiscoverv1grpcpb "intrinsic/kubernetes/accounts/service/api/v1/discoveryapi_go_grpc_proto"
+	accdiscoverv1grpcpb "intrinsic/kubernetes/accounts/service/api/v1/discoveryapi_go_proto"
 
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )

@@ -11,7 +11,7 @@ go_library(
     srcs = ["utils.go"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
-        "//intrinsic/assets/data/proto/v1:data_assets_go_grpc_proto",
+        "//intrinsic/assets/data/proto/v1:data_assets_go_proto",
         "//intrinsic/assets/proto:field_metadata_go_proto",
         "//intrinsic/assets/proto/v1:resolved_dependency_go_proto",
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
@@ -32,7 +32,7 @@ go_test(
         "//intrinsic/assets/data:fakedataassets",
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
         "//intrinsic/assets/dependencies/testing:test_configs_go_proto",
-        "//intrinsic/assets/dependencies/testing:test_service_go_grpc_proto",
+        "//intrinsic/assets/dependencies/testing:test_service_go_proto",
         "//intrinsic/assets/proto:asset_type_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
         "//intrinsic/assets/proto:metadata_go_proto",

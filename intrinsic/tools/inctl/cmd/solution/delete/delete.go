@@ -15,8 +15,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	solutionversionservicegrpcpb "intrinsic/solution_versions/proto/v1/solution_version_service_go_grpc_proto"
-	solutionversionservicepb "intrinsic/solution_versions/proto/v1/solution_version_service_go_grpc_proto"
+	solutionversionservicegrpcpb "intrinsic/solution_versions/proto/v1/solution_version_service_go_proto"
+	solutionversionservicepb "intrinsic/solution_versions/proto/v1/solution_version_service_go_proto"
 )
 
 // NewCommand returns the delete command.

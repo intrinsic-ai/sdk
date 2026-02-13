@@ -17,7 +17,7 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/atomic"
 
-	artifactgrpcpb "intrinsic/storage/artifacts/proto/v1/artifact_go_grpc_proto"
+	artifactgrpcpb "intrinsic/storage/artifacts/proto/v1/artifact_go_proto"
 )
 
 // Option allows setting direct upload transferer options.

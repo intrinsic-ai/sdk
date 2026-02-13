@@ -6,7 +6,7 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
-load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
+load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -98,12 +98,10 @@ py_grpc_library(
 
 go_proto_library(
     name = "skill_registry_go_proto",
-    protos = [":skill_registry_proto"],
-    deps = [":skills_go_proto"],
-)
-
-go_grpc_library(
-    name = "skill_registry_go_grpc_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+    ],
     protos = [":skill_registry_proto"],
     deps = [":skills_go_proto"],
 )
@@ -144,15 +142,10 @@ py_grpc_library(
 
 go_proto_library(
     name = "behavior_tree_registry_go_proto",
-    protos = [":behavior_tree_registry_proto"],
-    deps = [
-        ":skill_registry_config_go_proto",
-        ":skills_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
     ],
-)
-
-go_grpc_library(
-    name = "behavior_tree_registry_go_grpc_proto",
     protos = [":behavior_tree_registry_proto"],
     deps = [
         ":skill_registry_config_go_proto",
@@ -204,20 +197,10 @@ py_grpc_library(
 
 go_proto_library(
     name = "skill_service_go_proto",
-    protos = [":skill_service_proto"],
-    deps = [
-        ":error_go_proto",
-        ":footprint_go_proto",
-        ":prediction_go_proto",
-        ":skills_go_proto",
-        "//intrinsic/logging/proto:context_go_proto",
-        "//intrinsic/util/status:extended_status_go_proto",
-        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
     ],
-)
-
-go_grpc_library(
-    name = "skill_service_go_grpc_proto",
     protos = [":skill_service_proto"],
     deps = [
         ":error_go_proto",

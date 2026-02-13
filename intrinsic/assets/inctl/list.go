@@ -14,8 +14,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	iagrpcpb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
-	iapb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
+	iagrpcpb "intrinsic/assets/proto/installed_assets_go_proto"
+	iapb "intrinsic/assets/proto/installed_assets_go_proto"
 	spb "intrinsic/assets/proto/v1/search_go_proto"
 )
 

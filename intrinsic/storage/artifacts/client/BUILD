@@ -16,7 +16,7 @@ go_library(
     ],
     deps = [
         "//intrinsic/storage/artifacts/internal:utils",
-        "//intrinsic/storage/artifacts/proto/v1:artifact_go_grpc_proto",
+        "//intrinsic/storage/artifacts/proto/v1:artifact_go_proto",
         "@com_github_cenkalti_backoff_v4//:go_default_library",
         "@com_github_golang_glog//:go_default_library",
         "@com_github_google_go_containerregistry//pkg/name:go_default_library",

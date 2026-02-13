@@ -12,7 +12,7 @@ go_library(
     deps = [
         "//intrinsic/solution_versions/proto/v1:branch_go_proto",
         "//intrinsic/solution_versions/proto/v1:snapshot_go_proto",
-        "//intrinsic/solution_versions/proto/v1:solution_version_service_go_grpc_proto",
+        "//intrinsic/solution_versions/proto/v1:solution_version_service_go_proto",
         "//intrinsic/tools/inctl/auth",
         "//intrinsic/tools/inctl/cmd:root",
         "//intrinsic/tools/inctl/util:color",

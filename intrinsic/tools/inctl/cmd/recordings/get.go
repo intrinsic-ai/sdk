@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/viper"
 	"google.golang.org/protobuf/encoding/prototext"
 
-	pb "intrinsic/logging/proto/bag_packager_service_go_grpc_proto"
+	pb "intrinsic/logging/proto/bag_packager_service_go_proto"
 )
 
 var flagURL bool

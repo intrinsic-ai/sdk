@@ -10,8 +10,8 @@ go_library(
         "//intrinsic/tools/inctl/cmd/solution:__pkg__",
     ],
     deps = [
-        "//intrinsic/frontend/cloud/api/v1:clusterdiscovery_api_go_grpc_proto",
-        "//intrinsic/frontend/cloud/api/v1:solutiondiscovery_api_go_grpc_proto",
+        "//intrinsic/frontend/cloud/api/v1:clusterdiscovery_api_go_proto",
+        "//intrinsic/frontend/cloud/api/v1:solutiondiscovery_api_go_proto",
         "//intrinsic/tools/inctl/auth",
         "//intrinsic/tools/inctl/cmd:root",
         "//intrinsic/tools/inctl/util:orgutil",

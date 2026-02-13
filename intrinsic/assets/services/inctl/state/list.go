@@ -17,8 +17,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	systemservicestategrpcpb "intrinsic/assets/services/proto/v1/system_service_state_go_grpc_proto"
-	systemservicestatepb "intrinsic/assets/services/proto/v1/system_service_state_go_grpc_proto"
+	systemservicestategrpcpb "intrinsic/assets/services/proto/v1/system_service_state_go_proto"
+	systemservicestatepb "intrinsic/assets/services/proto/v1/system_service_state_go_proto"
 )
 
 // Command returns a command to list the states of all running service assets in a solution.

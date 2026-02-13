@@ -22,7 +22,7 @@ import (
 	"github.com/google/safearchive/tar"
 	"google.golang.org/protobuf/proto"
 
-	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
+	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_proto"
 	rmpb "intrinsic/assets/catalog/proto/v1/release_metadata_go_proto"
 	dapb "intrinsic/assets/data/proto/v1/data_asset_go_proto"
 	hdmpb "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest_go_proto"
@@ -30,7 +30,7 @@ import (
 	assettagpb "intrinsic/assets/proto/asset_tag_go_proto"
 	assettypepb "intrinsic/assets/proto/asset_type_go_proto"
 	idpb "intrinsic/assets/proto/id_go_proto"
-	iapb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
+	iapb "intrinsic/assets/proto/installed_assets_go_proto"
 	metadatapb "intrinsic/assets/proto/metadata_go_proto"
 	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
 	psmpb "intrinsic/skills/proto/processed_skill_manifest_go_proto"

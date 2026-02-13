@@ -14,7 +14,7 @@ import (
 	"golang.org/x/text/language"
 	"google.golang.org/protobuf/encoding/protojson"
 
-	systemservicestatepb "intrinsic/assets/services/proto/v1/system_service_state_go_grpc_proto"
+	systemservicestatepb "intrinsic/assets/services/proto/v1/system_service_state_go_proto"
 )
 
 // StatePrinter is a struct that contains the state of a running service asset in a solution. It

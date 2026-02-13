@@ -12,8 +12,8 @@ import (
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 
-	accaccesscontrolgrpcpb "intrinsic/kubernetes/accounts/service/api/accesscontrol/v1/accesscontrol_go_grpc_proto"
-	accresourcemanagergrpcpb "intrinsic/kubernetes/accounts/service/api/resourcemanager/v1/resourcemanager_go_grpc_proto"
+	accaccesscontrolgrpcpb "intrinsic/kubernetes/accounts/service/api/accesscontrol/v1/accesscontrol_go_proto"
+	accresourcemanagergrpcpb "intrinsic/kubernetes/accounts/service/api/resourcemanager/v1/resourcemanager_go_proto"
 )
 
 // NewResourceManagerV1Client creates a new secure ResourceManagerServiceClient using API keys.

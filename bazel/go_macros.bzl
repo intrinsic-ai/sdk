@@ -4,7 +4,7 @@
 
 load("@com_google_protobuf//bazel/common:proto_info.bzl", "ProtoInfo")
 load("@io_bazel_rules_go//go:def.bzl", "GoInfo", _go_binary = "go_binary", _go_library = "go_library", _go_test = "go_test")
-load("@io_bazel_rules_go//proto:def.bzl", _go_grpc_library = "go_grpc_library", _go_proto_library = "go_proto_library")
+load("@io_bazel_rules_go//proto:def.bzl", _go_proto_library = "go_proto_library")
 
 def calculate_importpath(name, importpath):
     label = native.package_relative_label(name)
@@ -28,12 +28,11 @@ def go_library(name, **kwargs):
         **kwargs
     )
 
-def go_grpc_library(name, deps = None, **kwargs):
-    _go_grpc_library(
-        name = name,
-        deps = deps,
-        importpath = calculate_importpath(name, kwargs.pop("importpath", None)),
-        **kwargs
+def go_grpc_library(name):
+    fail(
+        "❌ DEPRECATED: rule 'go_grpc_library' is banned.\n" +
+        "Please migrate target '{}' to use 'go_proto_library' with " +
+        "compilers=['@io_bazel_rules_go//proto:go_grpc_v2', ...].".format(name),
     )
 
 def go_proto_library(name, protos, **kwargs):

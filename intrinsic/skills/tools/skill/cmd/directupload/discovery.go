@@ -11,8 +11,8 @@ import (
 
 	"google.golang.org/grpc"
 
-	articatgrpcpb "intrinsic/storage/artifacts/proto/v1/articat_go_grpc_proto"
-	artifactgrpcpb "intrinsic/storage/artifacts/proto/v1/artifact_go_grpc_proto"
+	articatgrpcpb "intrinsic/storage/artifacts/proto/v1/articat_go_proto"
+	artifactgrpcpb "intrinsic/storage/artifacts/proto/v1/artifact_go_proto"
 )
 
 // TargetDiscovery interface represent an implementation of the discovery

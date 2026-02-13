@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	pb "intrinsic/logging/proto/bag_packager_service_go_grpc_proto"
+	pb "intrinsic/logging/proto/bag_packager_service_go_proto"
 )
 
 // Number of times to status-check the recording generation after encountering a 504 timeout error

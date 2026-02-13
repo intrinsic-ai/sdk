@@ -3,7 +3,7 @@
 load("@com_github_grpc_grpc//bazel:cc_grpc_library.bzl", "cc_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
-load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
+load("//bazel:go_macros.bzl", "go_proto_library")
 load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "proto_source_code_info_transitive_descriptor_set")
 
 package(default_visibility = [
@@ -78,19 +78,13 @@ cc_grpc_library(
 
 go_proto_library(
     name = "device_service_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+    ],
     protos = [
         ":device_service_proto",
     ],
-    deps = [
-        ":device_service_config_go_proto",
-        ":esi_go_proto",
-        "//intrinsic/assets/proto:id_go_proto",
-    ],
-)
-
-go_grpc_library(
-    name = "device_service_go_grpc_proto",
-    protos = [":device_service_proto"],
     deps = [
         ":device_service_config_go_proto",
         ":esi_go_proto",

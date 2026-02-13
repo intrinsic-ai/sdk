@@ -10,7 +10,7 @@ go_library(
     deps = [
         "//intrinsic/assets:clientutils",
         "//intrinsic/assets:cmdutils",
-        "//intrinsic/skills/proto:skill_registry_go_grpc_proto",
+        "//intrinsic/skills/proto:skill_registry_go_proto",
         "//intrinsic/skills/proto:skills_go_proto",
         "//intrinsic/skills/tools/skill/cmd:listutil",
         "//intrinsic/tools/inctl/cmd:root",

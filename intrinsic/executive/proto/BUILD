@@ -6,8 +6,7 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
-load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
-load("//intrinsic/httpjson:go_grpc_http_library.bzl", "go_grpc_http_library")
+load("//bazel:go_macros.bzl", "go_proto_library")
 load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "proto_source_code_info_transitive_descriptor_set")
 
 package(default_visibility = ["//intrinsic:public_api_users"])
@@ -110,15 +109,12 @@ cc_grpc_library(
 
 go_proto_library(
     name = "code_execution_info_service_go_proto",
-    protos = [":code_execution_info_service_proto"],
-)
-
-go_grpc_library(
-    name = "code_execution_info_service_go_grpc_proto",
-    protos = [":code_execution_info_service_proto"],
-    deps = [
-        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
     ],
+    protos = [":code_execution_info_service_proto"],
+    deps = ["@io_bazel_rules_go//proto/wkt:descriptor_go_proto"],
 )
 
 # executive_service
@@ -170,19 +166,11 @@ cc_proto_library(
 
 go_proto_library(
     name = "executive_service_go_proto",
-    protos = [":executive_service_proto"],
-    deps = [
-        ":behavior_tree_go_proto",
-        ":executive_execution_mode_go_proto",
-        ":run_metadata_go_proto",
-        "//intrinsic/assets/proto:id_go_proto",
-        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
-        "@org_golang_google_genproto_googleapis_api//annotations",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+        "//bazel:go_gen_grpc_gateway",
     ],
-)
-
-go_grpc_http_library(
-    name = "executive_service_go_grpc_proto",
     protos = [":executive_service_proto"],
     deps = [
         ":behavior_tree_go_proto",
@@ -300,18 +288,12 @@ cc_proto_library(
 
 go_proto_library(
     name = "blackboard_service_go_proto",
-    protos = [":blackboard_service_proto"],
-    deps = [
-        "//intrinsic/util/status:extended_status_go_proto",
-        "@org_golang_google_genproto_googleapis_api//annotations",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
     ],
-)
-
-go_grpc_library(
-    name = "blackboard_service_go_grpc_proto",
     protos = [":blackboard_service_proto"],
     deps = [
-        ":blackboard_service_go_proto",
         "//intrinsic/util/status:extended_status_go_proto",
         "@org_golang_google_genproto_googleapis_api//annotations",
         "@org_golang_google_protobuf//types/known/anypb",
@@ -557,11 +539,10 @@ cc_grpc_library(
 
 go_proto_library(
     name = "proto_builder_go_proto",
-    protos = [":proto_builder_proto"],
-)
-
-go_grpc_library(
-    name = "proto_builder_go_grpc_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+    ],
     protos = [":proto_builder_proto"],
     deps = ["@io_bazel_rules_go//proto/wkt:descriptor_go_proto"],
 )

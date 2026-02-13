@@ -13,7 +13,7 @@ go_library(
     deps = [
         "//intrinsic/assets:idutils",
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
-        "//intrinsic/assets/data/proto/v1:data_assets_go_grpc_proto",
+        "//intrinsic/assets/data/proto/v1:data_assets_go_proto",
         "//intrinsic/assets/proto:metadata_go_proto",
         "//intrinsic/testing:grpctest",
         "@org_golang_google_grpc//:go_default_library",
@@ -69,7 +69,7 @@ go_library(
         ":datavalidate",
         ":utils",
         "//intrinsic/assets:ioutils",
-        "//intrinsic/assets/catalog/proto/v1:asset_catalog_go_grpc_proto",
+        "//intrinsic/assets/catalog/proto/v1:asset_catalog_go_proto",
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
         "//intrinsic/assets/data/proto/v1:referenced_data_go_proto",
         "//intrinsic/assets/proto:asset_type_go_proto",

@@ -20,7 +20,7 @@ import (
 	log "github.com/golang/glog"
 	"github.com/google/safearchive/tar"
 
-	acgrpcpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
+	acgrpcpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_proto"
 	dapb "intrinsic/assets/data/proto/v1/data_asset_go_proto"
 	rdpb "intrinsic/assets/data/proto/v1/referenced_data_go_proto"
 	atpb "intrinsic/assets/proto/asset_type_go_proto"

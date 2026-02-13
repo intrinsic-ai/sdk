@@ -6,7 +6,7 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
-load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
+load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = [
     "//visibility:public",
@@ -32,11 +32,10 @@ cc_grpc_library(
 
 go_proto_library(
     name = "dynamic_reconfiguration_go_proto",
-    protos = [":dynamic_reconfiguration_proto"],
-)
-
-go_grpc_library(
-    name = "dynamic_reconfiguration_go_grpc_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+    ],
     protos = [":dynamic_reconfiguration_proto"],
     deps = [
         "@org_golang_google_protobuf//types/known/anypb",
@@ -78,14 +77,10 @@ cc_grpc_library(
 
 go_proto_library(
     name = "service_state_go_proto",
-    protos = [":service_state_proto"],
-    deps = [
-        "//intrinsic/util/status:extended_status_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
     ],
-)
-
-go_grpc_library(
-    name = "service_state_go_grpc_proto",
     protos = [":service_state_proto"],
     deps = [
         "//intrinsic/util/status:extended_status_go_proto",
@@ -131,12 +126,10 @@ proto_library(
 
 go_proto_library(
     name = "system_service_state_go_proto",
-    protos = [":system_service_state_proto"],
-    deps = ["//intrinsic/util/status:extended_status_go_proto"],
-)
-
-go_grpc_library(
-    name = "system_service_state_go_grpc_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+    ],
     protos = [":system_service_state_proto"],
     deps = ["//intrinsic/util/status:extended_status_go_proto"],
 )

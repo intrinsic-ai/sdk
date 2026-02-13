@@ -15,8 +15,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	workcellmodeservicegrpcpb "intrinsic/kubernetes/workcellmode/proto/workcellmode_service_go_grpc_proto"
-	workcellmodeservicepb "intrinsic/kubernetes/workcellmode/proto/workcellmode_service_go_grpc_proto"
+	workcellmodeservicegrpcpb "intrinsic/kubernetes/workcellmode/proto/workcellmode_service_go_proto"
+	workcellmodeservicepb "intrinsic/kubernetes/workcellmode/proto/workcellmode_service_go_proto"
 )
 
 var (

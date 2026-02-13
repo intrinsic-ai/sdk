@@ -10,7 +10,7 @@ load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
-load("//bazel:go_macros.bzl", "go_grpc_library", "go_library", "go_proto_library", "go_test")
+load("//bazel:go_macros.bzl", "go_library", "go_proto_library", "go_test")
 
 package(
     default_visibility = ["//visibility:public"],
@@ -518,7 +518,7 @@ go_test(
     embed = [":extstatus"],
     deps = [
         ":extended_status_go_proto",
-        ":test_service_go_grpc_proto",
+        ":test_service_go_proto",
         "//intrinsic/logging/proto:context_go_proto",
         "//intrinsic/testing:grpctest",
         "@com_github_google_go_cmp//cmp:go_default_library",
@@ -553,17 +553,13 @@ py_grpc_library(
 
 go_proto_library(
     name = "test_service_go_proto",
-    protos = [":test_service_proto"],
-    visibility = ["//intrinsic/util/status:__pkg__"],
-)
-
-go_grpc_library(
-    name = "test_service_go_grpc_proto",
-    protos = [":test_service_proto"],
-    visibility = ["//intrinsic/util/status:__pkg__"],
-    deps = [
-        "@org_golang_google_protobuf//types/known/emptypb",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
     ],
+    protos = [":test_service_proto"],
+    visibility = [":__pkg__"],
+    deps = ["@org_golang_google_protobuf//types/known/emptypb"],
 )
 
 go_library(

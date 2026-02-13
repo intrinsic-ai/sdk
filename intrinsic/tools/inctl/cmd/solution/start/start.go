@@ -20,8 +20,8 @@ import (
 	"google.golang.org/grpc/status"
 
 	opmodepb "intrinsic/config/proto/operation_mode_go_proto"
-	deploygrpcpb "intrinsic/kubernetes/workcell_spec/proto/deploy_go_grpc_proto"
-	deploypb "intrinsic/kubernetes/workcell_spec/proto/deploy_go_grpc_proto"
+	deploygrpcpb "intrinsic/kubernetes/workcell_spec/proto/deploy_go_proto"
+	deploypb "intrinsic/kubernetes/workcell_spec/proto/deploy_go_proto"
 )
 
 func startSolution(ctx context.Context, conn *grpc.ClientConn, solutionID string, operationMode string) error {

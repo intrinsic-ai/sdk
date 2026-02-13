@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	pb "intrinsic/logging/proto/bag_packager_service_go_grpc_proto"
+	pb "intrinsic/logging/proto/bag_packager_service_go_proto"
 )
 
 type mockBagPackagerClient struct {

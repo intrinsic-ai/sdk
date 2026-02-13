@@ -17,7 +17,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	bmpb "intrinsic/logging/proto/bag_metadata_go_proto"
-	pb "intrinsic/logging/proto/bag_packager_service_go_grpc_proto"
+	pb "intrinsic/logging/proto/bag_packager_service_go_proto"
 )
 
 var (

@@ -14,12 +14,12 @@ import (
 	"intrinsic/assets/data/fakedataassets"
 
 	dapb "intrinsic/assets/data/proto/v1/data_asset_go_proto"
-	dagrpcpb "intrinsic/assets/data/proto/v1/data_assets_go_grpc_proto"
+	dagrpcpb "intrinsic/assets/data/proto/v1/data_assets_go_proto"
 	ipb "intrinsic/assets/proto/id_go_proto"
 	mpb "intrinsic/assets/proto/metadata_go_proto"
 	rdpb "intrinsic/assets/proto/v1/resolved_dependency_go_proto"
 	dscpb "intrinsic/icon/fieldbus/ethercat/device_service/v1/device_service_config_go_proto"
-	dspb "intrinsic/icon/fieldbus/ethercat/device_service/v1/device_service_go_grpc_proto"
+	dspb "intrinsic/icon/fieldbus/ethercat/device_service/v1/device_service_go_proto"
 	esipb "intrinsic/icon/fieldbus/ethercat/device_service/v1/esi_go_proto"
 
 	"github.com/google/go-cmp/cmp"

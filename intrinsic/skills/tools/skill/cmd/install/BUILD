@@ -12,7 +12,7 @@ go_library(
         "//intrinsic/assets:cmdutils",
         "//intrinsic/assets:idutils",
         "//intrinsic/assets:imagetransfer",
-        "//intrinsic/assets/proto:installed_assets_go_grpc_proto",
+        "//intrinsic/assets/proto:installed_assets_go_proto",
         "//intrinsic/assets/services:bundleimages",
         "//intrinsic/skills:skillbundle",
         "//intrinsic/skills/tools/skill/cmd:waitforskill",

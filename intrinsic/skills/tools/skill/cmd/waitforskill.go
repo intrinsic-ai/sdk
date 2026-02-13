@@ -12,8 +12,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	srgrpcpb "intrinsic/skills/proto/skill_registry_go_grpc_proto"
-	srpb "intrinsic/skills/proto/skill_registry_go_grpc_proto"
+	srgrpcpb "intrinsic/skills/proto/skill_registry_go_proto"
+	srpb "intrinsic/skills/proto/skill_registry_go_proto"
 )
 
 // Params holds parameters for waitForSkill.

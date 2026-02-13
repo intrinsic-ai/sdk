@@ -17,8 +17,8 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
-	dasgrpcpb "intrinsic/assets/data/proto/v1/data_assets_go_grpc_proto"
-	daspb "intrinsic/assets/data/proto/v1/data_assets_go_grpc_proto"
+	dasgrpcpb "intrinsic/assets/data/proto/v1/data_assets_go_proto"
+	daspb "intrinsic/assets/data/proto/v1/data_assets_go_proto"
 	fieldmetadatapb "intrinsic/assets/proto/field_metadata_go_proto"
 	rdpb "intrinsic/assets/proto/v1/resolved_dependency_go_proto"
 

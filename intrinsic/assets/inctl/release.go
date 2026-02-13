@@ -25,8 +25,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	acgrpcpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
-	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
+	acgrpcpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_proto"
+	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_proto"
 	rmpb "intrinsic/assets/catalog/proto/v1/release_metadata_go_proto"
 )
 

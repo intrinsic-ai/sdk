@@ -6,7 +6,7 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
-load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
+load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(
     default_visibility = [
@@ -41,22 +41,10 @@ cc_proto_library(
 
 go_proto_library(
     name = "service_go_proto",
-    protos = [":service_proto"],
-    deps = [
-        "//intrinsic/icon/proto:joint_space_go_proto",
-        "//intrinsic/icon/proto:logging_mode_go_proto",
-        "//intrinsic/icon/proto:part_status_go_proto",
-        "//intrinsic/icon/proto:safety_status_go_proto",
-        "//intrinsic/icon/proto:streaming_output_go_proto",
-        "//intrinsic/icon/proto/v1:types_go_proto",
-        "//intrinsic/logging/proto:context_go_proto",
-        "//intrinsic/world/proto:robot_payload_go_proto",
-        "@org_golang_google_genproto_googleapis_rpc//status",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
     ],
-)
-
-go_grpc_library(
-    name = "service_go_grpc_proto",
     protos = [":service_proto"],
     deps = [
         "//intrinsic/icon/proto:joint_space_go_proto",
@@ -171,16 +159,10 @@ cc_grpc_library(
 
 go_proto_library(
     name = "jogging_service_go_proto",
-    protos = [":jogging_service_proto"],
-    deps = [
-        "//intrinsic/icon/proto:cart_space_go_proto",
-        "//intrinsic/kinematics/types:joint_limits_go_proto",
-        "//intrinsic/world/proto:object_world_refs_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
     ],
-)
-
-go_grpc_library(
-    name = "jogging_service_go_grpc_proto",
     protos = [":jogging_service_proto"],
     deps = [
         "//intrinsic/icon/proto:cart_space_go_proto",

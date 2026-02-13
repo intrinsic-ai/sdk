@@ -21,8 +21,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	artifactgrpcpb "intrinsic/storage/artifacts/proto/v1/artifact_go_grpc_proto"
-	artifactpb "intrinsic/storage/artifacts/proto/v1/artifact_go_grpc_proto"
+	artifactgrpcpb "intrinsic/storage/artifacts/proto/v1/artifact_go_proto"
+	artifactpb "intrinsic/storage/artifacts/proto/v1/artifact_go_proto"
 )
 
 const (

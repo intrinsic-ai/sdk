@@ -217,7 +217,7 @@ go_test(
     embed = [":statusutil"],
     deps = [
         "//intrinsic/testing:grpctest",
-        "//intrinsic/util/grpc/testing:ping_go_grpc_proto",
+        "//intrinsic/util/grpc/testing:ping_go_proto",
         "@com_github_google_go_cmp//cmp:go_default_library",
         "@com_github_google_go_cmp//cmp/cmpopts:go_default_library",
         "@com_github_pkg_errors//:go_default_library",

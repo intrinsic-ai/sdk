@@ -24,10 +24,10 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	leaseapigrpcpb "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_grpc_proto"
-	leasepb "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_grpc_proto"
-	vmpoolapigrpcpb "intrinsic/kubernetes/vmpool/service/api/v1/vmpool_api_go_grpc_proto"
-	vmpoolpb "intrinsic/kubernetes/vmpool/service/api/v1/vmpool_api_go_grpc_proto"
+	leaseapigrpcpb "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_proto"
+	leasepb "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_proto"
+	vmpoolapigrpcpb "intrinsic/kubernetes/vmpool/service/api/v1/vmpool_api_go_proto"
+	vmpoolpb "intrinsic/kubernetes/vmpool/service/api/v1/vmpool_api_go_proto"
 
 	tpb "google.golang.org/protobuf/types/known/timestamppb"
 )

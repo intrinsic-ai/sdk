@@ -17,8 +17,8 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	leasegrpcpb "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_grpc_proto"
-	replaygrpcpb "intrinsic/logging/proto/replay_service_go_grpc_proto"
+	leasegrpcpb "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_proto"
+	replaygrpcpb "intrinsic/logging/proto/replay_service_go_proto"
 )
 
 type mockLeaseClient struct {

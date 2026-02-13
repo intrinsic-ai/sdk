@@ -18,8 +18,8 @@ import (
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 
-	clusterdiscoverygrpcpb "intrinsic/frontend/cloud/api/v1/clusterdiscovery_api_go_grpc_proto"
-	clusterdiscoverypb "intrinsic/frontend/cloud/api/v1/clusterdiscovery_api_go_grpc_proto"
+	clusterdiscoverygrpcpb "intrinsic/frontend/cloud/api/v1/clusterdiscovery_api_go_proto"
+	clusterdiscoverypb "intrinsic/frontend/cloud/api/v1/clusterdiscovery_api_go_proto"
 )
 
 // ListClusterDescriptionsResponse embeds clusterdiscoverypb.ListClusterDescriptionsResponse.

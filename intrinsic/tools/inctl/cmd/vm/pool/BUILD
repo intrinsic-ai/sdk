@@ -17,8 +17,8 @@ go_library(
     deps = [
         "//intrinsic/assets:cmdutils",
         "//intrinsic/kubernetes/acl:identity",
-        "//intrinsic/kubernetes/vmpool/manager/api/v1:lease_api_go_grpc_proto",
-        "//intrinsic/kubernetes/vmpool/service/api/v1:vmpool_api_go_grpc_proto",
+        "//intrinsic/kubernetes/vmpool/manager/api/v1:lease_api_go_proto",
+        "//intrinsic/kubernetes/vmpool/service/api/v1:vmpool_api_go_proto",
         "//intrinsic/kubernetes/vmpool/service/pkg/defaults",
         "//intrinsic/tools/inctl/auth",
         "//intrinsic/tools/inctl/util:cobrautil",

@@ -8,7 +8,7 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
-load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
+load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = ["//visibility:private"])
 
@@ -36,16 +36,13 @@ cc_grpc_library(
 
 go_proto_library(
     name = "ping_go_proto",
-    protos = [":ping_proto"],
-)
-
-go_grpc_library(
-    name = "ping_go_grpc_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+    ],
     protos = [":ping_proto"],
     visibility = ["//intrinsic:intrinsic_internal"],
-    deps = [
-        "@org_golang_google_protobuf//types/known/emptypb",
-    ],
+    deps = ["@org_golang_google_protobuf//types/known/emptypb"],
 )
 
 py_proto_library(

@@ -9,7 +9,7 @@ go_library(
     visibility = ["//intrinsic:intrinsic_internal"],
     deps = [
         "//intrinsic/assets:idutils",
-        "//intrinsic/assets/catalog/proto/v1:asset_catalog_go_grpc_proto",
+        "//intrinsic/assets/catalog/proto/v1:asset_catalog_go_proto",
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
         "//intrinsic/assets/data/testing:utils",
         "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",

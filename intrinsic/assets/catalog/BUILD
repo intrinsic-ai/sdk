@@ -7,7 +7,7 @@ go_library(
     srcs = ["assetutils.go"],
     visibility = ["//intrinsic:intrinsic_internal"],
     deps = [
-        "//intrinsic/assets/catalog/proto/v1:asset_catalog_go_grpc_proto",
+        "//intrinsic/assets/catalog/proto/v1:asset_catalog_go_proto",
         "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",
         "//intrinsic/assets/proto:asset_type_go_proto",
         "//intrinsic/assets/services/proto:service_manifest_go_proto",

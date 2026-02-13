@@ -17,7 +17,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	pb "intrinsic/kubernetes/accounts/service/api/accesscontrol/v1/accesscontrol_go_grpc_proto"
+	pb "intrinsic/kubernetes/accounts/service/api/accesscontrol/v1/accesscontrol_go_proto"
 )
 
 func init() {

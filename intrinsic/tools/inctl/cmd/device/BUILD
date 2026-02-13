@@ -13,7 +13,7 @@ go_library(
         "register.go",
     ],
     deps = [
-        "//intrinsic/frontend/cloud/api/v1:clustermanager_api_go_grpc_proto",
+        "//intrinsic/frontend/cloud/api/v1:clustermanager_api_go_proto",
         "//intrinsic/frontend/cloud/devicemanager/shared",
         "//intrinsic/tools/inctl/auth",
         "//intrinsic/tools/inctl/cmd:root",

@@ -22,8 +22,8 @@ import (
 
 	dapb "intrinsic/assets/data/proto/v1/data_asset_go_proto"
 	tcpb "intrinsic/assets/dependencies/testing/test_configs_go_proto"
-	tsgrpcpb "intrinsic/assets/dependencies/testing/test_service_go_grpc_proto"
-	tspb "intrinsic/assets/dependencies/testing/test_service_go_grpc_proto"
+	tsgrpcpb "intrinsic/assets/dependencies/testing/test_service_go_proto"
+	tspb "intrinsic/assets/dependencies/testing/test_service_go_proto"
 	atpb "intrinsic/assets/proto/asset_type_go_proto"
 	idpb "intrinsic/assets/proto/id_go_proto"
 	mpb "intrinsic/assets/proto/metadata_go_proto"

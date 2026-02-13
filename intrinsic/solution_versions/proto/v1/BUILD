@@ -1,7 +1,7 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
-load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
+load("//bazel:go_macros.bzl", "go_proto_library")
 
 proto_library(
     name = "snapshot_proto",
@@ -57,31 +57,16 @@ proto_library(
 
 go_proto_library(
     name = "solution_version_service_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+    ],
     protos = [":solution_version_service_proto"],
     visibility = [
         "//intrinsic/assets/deploy:__pkg__",
         "//intrinsic/frontend/cloud:__subpackages__",
         "//intrinsic/kubernetes/data_store/http_endpoints:__pkg__",
         "//intrinsic/kubernetes/workcell_spec:__pkg__",
-        "//intrinsic/performance/inctl:__subpackages__",
-        "//intrinsic/solution_versions:__subpackages__",
-        "//intrinsic/tools/inctl/cmd:__subpackages__",
-    ],
-    deps = [
-        ":branch_go_proto",
-        ":snapshot_go_proto",
-    ],
-)
-
-go_grpc_library(
-    name = "solution_version_service_go_grpc_proto",
-    protos = [":solution_version_service_proto"],
-    visibility = [
-        "//intrinsic/assets/deploy:__pkg__",
-        "//intrinsic/frontend/cloud:__subpackages__",
-        "//intrinsic/kubernetes/data_store/http_endpoints:__pkg__",
-        "//intrinsic/kubernetes/workcell_spec:__pkg__",
-        "//intrinsic/modified_solution:__subpackages__",
         "//intrinsic/performance/inctl:__subpackages__",
         "//intrinsic/solution_versions:__subpackages__",
         "//intrinsic/tools/inctl/cmd:__subpackages__",

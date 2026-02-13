@@ -12,7 +12,7 @@ import (
 	"google.golang.org/protobuf/encoding/prototext"
 	fmpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 
-	vmpoolspb "intrinsic/kubernetes/vmpool/service/api/v1/vmpool_api_go_grpc_proto"
+	vmpoolspb "intrinsic/kubernetes/vmpool/service/api/v1/vmpool_api_go_proto"
 )
 
 func textForUpsert(command string) string {

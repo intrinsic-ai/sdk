@@ -15,8 +15,8 @@ import (
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 
-	deploygrpcpb "intrinsic/kubernetes/workcell_spec/proto/deploy_go_grpc_proto"
-	deploypb "intrinsic/kubernetes/workcell_spec/proto/deploy_go_grpc_proto"
+	deploygrpcpb "intrinsic/kubernetes/workcell_spec/proto/deploy_go_proto"
+	deploypb "intrinsic/kubernetes/workcell_spec/proto/deploy_go_proto"
 )
 
 func stopSolution(ctx context.Context, conn *grpc.ClientConn) error {

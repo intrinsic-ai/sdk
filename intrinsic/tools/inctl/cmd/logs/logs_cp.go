@@ -23,8 +23,8 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	bpb "intrinsic/logging/proto/blob_go_proto"
-	dgrpcpb "intrinsic/logging/proto/log_dispatcher_service_go_grpc_proto"
-	dpb "intrinsic/logging/proto/log_dispatcher_service_go_grpc_proto"
+	dgrpcpb "intrinsic/logging/proto/log_dispatcher_service_go_proto"
+	dpb "intrinsic/logging/proto/log_dispatcher_service_go_proto"
 
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )

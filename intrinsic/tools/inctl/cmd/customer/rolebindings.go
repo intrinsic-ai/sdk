@@ -16,7 +16,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	pb "intrinsic/kubernetes/accounts/service/api/accesscontrol/v1/accesscontrol_go_grpc_proto"
+	pb "intrinsic/kubernetes/accounts/service/api/accesscontrol/v1/accesscontrol_go_proto"
 )
 
 var rolebindingsCmd = cobrautil.ParentOfNestedSubcommands("role-bindings", "List the role bindings on a given resource.")

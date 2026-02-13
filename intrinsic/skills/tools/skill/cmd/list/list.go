@@ -17,8 +17,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	skillregistrygrpcpb "intrinsic/skills/proto/skill_registry_go_grpc_proto"
-	skillregistrypb "intrinsic/skills/proto/skill_registry_go_grpc_proto"
+	skillregistrygrpcpb "intrinsic/skills/proto/skill_registry_go_proto"
+	skillregistrypb "intrinsic/skills/proto/skill_registry_go_proto"
 	spb "intrinsic/skills/proto/skills_go_proto"
 )
 

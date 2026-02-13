@@ -8,7 +8,7 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
-load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
+load("//bazel:go_macros.bzl", "go_proto_library")
 load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "proto_source_code_info_transitive_descriptor_set")
 
 proto_library(
@@ -183,25 +183,10 @@ py_grpc_library(
 
 go_proto_library(
     name = "camera_service_go_proto",
-    protos = [":camera_service_proto"],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [
-        ":camera_config_go_proto",
-        ":camera_identifier_go_proto",
-        ":camera_params_go_proto",
-        ":camera_settings_go_proto",
-        ":capture_result_go_proto",
-        ":dimensions_go_proto",
-        ":image_buffer_go_proto",
-        ":post_processing_go_proto",
-        "//intrinsic/logging/proto:context_go_proto",
-        "//intrinsic/math/proto:pose_go_proto",
-        "//intrinsic/platform/pubsub:storage_location_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
     ],
-)
-
-go_grpc_library(
-    name = "camera_service_go_grpc_proto",
     protos = [":camera_service_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
@@ -803,18 +788,10 @@ cc_grpc_library(
 
 go_proto_library(
     name = "train_service_go_proto",
-    protos = [":train_service_proto"],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [
-        ":pose_estimation_config_go_proto",
-        "//intrinsic/assets/proto:id_go_proto",
-        "//intrinsic/util/status:extended_status_go_proto",
-        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
     ],
-)
-
-go_grpc_library(
-    name = "train_service_go_grpc_proto",
     protos = [":train_service_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [

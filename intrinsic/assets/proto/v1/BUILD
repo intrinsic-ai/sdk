@@ -3,7 +3,7 @@
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
-load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
+load("//bazel:go_macros.bzl", "go_proto_library")
 
 proto_library(
     name = "asset_proto",
@@ -228,16 +228,10 @@ proto_library(
 
 go_proto_library(
     name = "solution_deployment_go_proto",
-    protos = [":solution_deployment_proto"],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [
-        "//intrinsic/config/proto:operation_mode_go_proto",
-        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
     ],
-)
-
-go_grpc_library(
-    name = "solution_deployment_go_grpc_proto",
     protos = [":solution_deployment_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [

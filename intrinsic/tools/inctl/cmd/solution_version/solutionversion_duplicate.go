@@ -11,8 +11,8 @@ import (
 	"github.com/spf13/cobra"
 
 	branchpb "intrinsic/solution_versions/proto/v1/branch_go_proto"
-	solutionversionservicegrpcpb "intrinsic/solution_versions/proto/v1/solution_version_service_go_grpc_proto"
-	solutionversionservicepb "intrinsic/solution_versions/proto/v1/solution_version_service_go_grpc_proto"
+	solutionversionservicegrpcpb "intrinsic/solution_versions/proto/v1/solution_version_service_go_proto"
+	solutionversionservicepb "intrinsic/solution_versions/proto/v1/solution_version_service_go_proto"
 )
 
 var (

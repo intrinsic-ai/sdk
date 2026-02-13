@@ -14,8 +14,8 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	idpb "intrinsic/assets/proto/id_go_proto"
-	iagrpcpb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
-	iapb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
+	iagrpcpb "intrinsic/assets/proto/installed_assets_go_proto"
+	iapb "intrinsic/assets/proto/installed_assets_go_proto"
 )
 
 var (

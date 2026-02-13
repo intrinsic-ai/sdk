@@ -15,8 +15,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	fileuploadgrpcpb "intrinsic/platform/file_upload/file_upload_service_go_grpc_proto"
-	fileuploadpb "intrinsic/platform/file_upload/file_upload_service_go_grpc_proto"
+	fileuploadgrpcpb "intrinsic/platform/file_upload/file_upload_service_go_proto"
+	fileuploadpb "intrinsic/platform/file_upload/file_upload_service_go_proto"
 )
 
 type fileServiceClient struct {

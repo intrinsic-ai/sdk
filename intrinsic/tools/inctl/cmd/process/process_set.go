@@ -20,10 +20,10 @@ import (
 	"google.golang.org/protobuf/reflect/protoregistry"
 
 	btpb "intrinsic/executive/proto/behavior_tree_go_proto"
-	execgrpcpb "intrinsic/executive/proto/executive_service_go_grpc_proto"
-	sgrpcpb "intrinsic/frontend/solution_service/proto/solution_service_go_grpc_proto"
-	spb "intrinsic/frontend/solution_service/proto/solution_service_go_grpc_proto"
-	skillregistrygrpcpb "intrinsic/skills/proto/skill_registry_go_grpc_proto"
+	execgrpcpb "intrinsic/executive/proto/executive_service_go_proto"
+	sgrpcpb "intrinsic/frontend/solution_service/proto/solution_service_go_proto"
+	spb "intrinsic/frontend/solution_service/proto/solution_service_go_proto"
+	skillregistrygrpcpb "intrinsic/skills/proto/skill_registry_go_proto"
 
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )

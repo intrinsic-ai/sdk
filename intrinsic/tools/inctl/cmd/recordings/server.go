@@ -9,7 +9,7 @@ import (
 
 	"github.com/spf13/viper"
 
-	grpcpb "intrinsic/logging/proto/bag_packager_service_go_grpc_proto"
+	grpcpb "intrinsic/logging/proto/bag_packager_service_go_proto"
 )
 
 func newBagPackagerClient(ctx context.Context, v *viper.Viper) (grpcpb.BagPackagerClient, error) {

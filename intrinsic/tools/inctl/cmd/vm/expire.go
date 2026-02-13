@@ -13,8 +13,8 @@ import (
 	"github.com/spf13/cobra"
 	"go.opencensus.io/trace"
 
-	leaseapigrpcpb "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_grpc_proto"
-	leasepb "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_grpc_proto"
+	leaseapigrpcpb "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_proto"
+	leasepb "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_proto"
 
 	tpb "google.golang.org/protobuf/types/known/timestamppb"
 )

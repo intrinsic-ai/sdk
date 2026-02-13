@@ -1,7 +1,7 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
-load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
+load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = ["//intrinsic:public_api_users"])
 
@@ -16,11 +16,10 @@ proto_library(
 
 go_proto_library(
     name = "any_conversion_service_go_proto",
-    protos = [":any_conversion_service_proto"],
-)
-
-go_grpc_library(
-    name = "any_conversion_service_go_grpc_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+    ],
     protos = [":any_conversion_service_proto"],
     deps = [
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",

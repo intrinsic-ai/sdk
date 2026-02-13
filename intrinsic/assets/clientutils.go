@@ -14,9 +14,9 @@ import (
 	"intrinsic/assets/baseclientutils"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/config/environments"
-	clusterdiscoverypb "intrinsic/frontend/cloud/api/v1/clusterdiscovery_api_go_grpc_proto"
-	solutiondiscoverygrpcpb "intrinsic/frontend/cloud/api/v1/solutiondiscovery_api_go_grpc_proto"
-	solutiondiscoverypb "intrinsic/frontend/cloud/api/v1/solutiondiscovery_api_go_grpc_proto"
+	clusterdiscoverypb "intrinsic/frontend/cloud/api/v1/clusterdiscovery_api_go_proto"
+	solutiondiscoverygrpcpb "intrinsic/frontend/cloud/api/v1/solutiondiscovery_api_go_proto"
+	solutiondiscoverypb "intrinsic/frontend/cloud/api/v1/solutiondiscovery_api_go_proto"
 	"intrinsic/kubernetes/acl/identity"
 	"intrinsic/tools/inctl/auth/auth"
 

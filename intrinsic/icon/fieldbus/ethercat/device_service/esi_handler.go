@@ -12,7 +12,7 @@ import (
 
 	log "github.com/golang/glog"
 
-	dspb "intrinsic/icon/fieldbus/ethercat/device_service/v1/device_service_go_grpc_proto"
+	dspb "intrinsic/icon/fieldbus/ethercat/device_service/v1/device_service_go_proto"
 	esipb "intrinsic/icon/fieldbus/ethercat/device_service/v1/esi_go_proto"
 )
 

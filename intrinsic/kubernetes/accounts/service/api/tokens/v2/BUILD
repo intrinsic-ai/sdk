@@ -4,7 +4,7 @@ load("@ai_intrinsic_sdks_pip_deps//:requirements.bzl", "requirement")
 load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
-load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
+load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = [
     "//visibility:public",
@@ -36,14 +36,10 @@ py_grpc_library(
 
 go_proto_library(
     name = "tokens_go_proto",
-    protos = [":tokens_proto"],
-    deps = [
-        "@org_golang_google_genproto_googleapis_api//annotations",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
     ],
-)
-
-go_grpc_library(
-    name = "tokens_go_grpc_proto",
     protos = [":tokens_proto"],
     deps = [
         "@org_golang_google_genproto_googleapis_api//annotations",

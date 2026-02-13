@@ -6,7 +6,7 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
-load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
+load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -57,19 +57,12 @@ cc_grpc_library(
 
 go_proto_library(
     name = "bag_packager_service_go_proto",
-    protos = [":bag_packager_service"],
-    deps = [
-        ":bag_metadata_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
     ],
-)
-
-go_grpc_library(
-    name = "bag_packager_service_go_grpc_proto",
     protos = [":bag_packager_service"],
-    deps = [
-        ":bag_metadata_go_proto",
-        ":bag_packager_service_go_proto",
-    ],
+    deps = [":bag_metadata_go_proto"],
 )
 
 py_proto_library(
@@ -217,22 +210,15 @@ cc_grpc_library(
 
 go_proto_library(
     name = "log_dispatcher_service_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+    ],
     protos = [":log_dispatcher_service"],
     deps = [
         ":bag_metadata_go_proto",
         ":blob_go_proto",
         ":downsampler_go_proto",
-        ":log_item_go_proto",
-    ],
-)
-
-go_grpc_library(
-    name = "log_dispatcher_service_go_grpc_proto",
-    protos = [":log_dispatcher_service"],
-    deps = [
-        "downsampler_go_proto",
-        ":blob_go_proto",
-        ":log_dispatcher_service_go_proto",
         ":log_item_go_proto",
     ],
 )
@@ -351,7 +337,7 @@ go_proto_library(
         "//intrinsic/skills/proto:footprint_go_proto",
         "//intrinsic/skills/proto:prediction_go_proto",
         "//intrinsic/skills/proto:skill_parameter_metadata_go_proto",
-        "//intrinsic/skills/proto:skill_service_go_grpc_proto",
+        "//intrinsic/skills/proto:skill_service_go_proto",
         "//intrinsic/skills/proto:skills_go_proto",
         "//intrinsic/util/status:extended_status_go_proto",
         "//intrinsic/world/proto:collision_action_go_proto",
@@ -396,22 +382,15 @@ cc_grpc_library(
 
 go_proto_library(
     name = "logger_service_go_proto",
-    protos = [":logger_service"],
-    deps = [
-        ":bag_metadata_go_proto",
-        ":downsampler_go_proto",
-        ":log_item_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
     ],
-)
-
-go_grpc_library(
-    name = "logger_service_go_grpc_proto",
     protos = [":logger_service"],
     deps = [
         ":bag_metadata_go_proto",
         ":downsampler_go_proto",
         ":log_item_go_proto",
-        ":logger_service_go_proto",
     ],
 )
 
@@ -477,17 +456,12 @@ cc_grpc_library(
 
 go_proto_library(
     name = "replay_service_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+    ],
     protos = [":replay_service"],
     deps = [":replay_service_options_go_proto"],
-)
-
-go_grpc_library(
-    name = "replay_service_go_grpc_proto",
-    protos = [":replay_service"],
-    deps = [
-        ":replay_service_go_proto",
-        ":replay_service_options_go_proto",
-    ],
 )
 
 py_proto_library(

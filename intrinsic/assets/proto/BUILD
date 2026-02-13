@@ -5,7 +5,7 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
-load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
+load("//bazel:go_macros.bzl", "go_proto_library")
 
 proto_library(
     name = "field_metadata_proto",
@@ -330,19 +330,10 @@ py_grpc_library(
 
 go_proto_library(
     name = "asset_deployment_go_proto",
-    protos = [":asset_deployment_proto"],
-    visibility = ["//intrinsic:intrinsic_internal"],
-    deps = [
-        ":id_go_proto",
-        "//intrinsic/math/proto:pose_go_proto",
-        "//intrinsic/scene/proto/v1:scene_object_config_go_proto",
-        "//intrinsic/world/proto:object_world_refs_go_proto",
-        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
     ],
-)
-
-go_grpc_library(
-    name = "asset_deployment_go_grpc_proto",
     protos = [":asset_deployment_proto"],
     visibility = ["//intrinsic:intrinsic_internal"],
     deps = [
@@ -383,6 +374,10 @@ proto_library(
 
 go_proto_library(
     name = "installed_assets_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+    ],
     protos = [":installed_assets_proto"],
     visibility = ["//intrinsic:intrinsic_internal"],
     deps = [
@@ -421,26 +416,4 @@ py_grpc_library(
         "//intrinsic/solutions:__pkg__",
     ],
     deps = [":installed_assets_py_pb2"],
-)
-
-go_grpc_library(
-    name = "installed_assets_go_grpc_proto",
-    protos = [":installed_assets_proto"],
-    visibility = ["//intrinsic:intrinsic_internal"],
-    deps = [
-        ":asset_tag_go_proto",
-        ":asset_type_go_proto",
-        ":id_go_proto",
-        ":metadata_go_proto",
-        ":view_go_proto",
-        "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
-        "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",
-        "//intrinsic/assets/processes/proto:process_asset_go_proto",
-        "//intrinsic/assets/proto/v1:search_go_proto",
-        "//intrinsic/assets/scene_objects/proto:scene_object_manifest_go_proto",
-        "//intrinsic/assets/services/proto:service_manifest_go_proto",
-        "//intrinsic/assets/services/proto/v1:service_inspection_go_proto",
-        "//intrinsic/skills/proto:processed_skill_manifest_go_proto",
-        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
-    ],
 )

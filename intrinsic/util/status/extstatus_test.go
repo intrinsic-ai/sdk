@@ -19,7 +19,7 @@ import (
 
 	ctxpb "intrinsic/logging/proto/context_go_proto"
 	estpb "intrinsic/util/status/extended_status_go_proto"
-	testsvcgrpcpb "intrinsic/util/status/test_service_go_grpc_proto"
+	testsvcgrpcpb "intrinsic/util/status/test_service_go_proto"
 
 	epb "google.golang.org/genproto/googleapis/rpc/errdetails"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"

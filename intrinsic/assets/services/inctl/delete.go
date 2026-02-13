@@ -17,8 +17,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	adgrpcpb "intrinsic/assets/proto/asset_deployment_go_grpc_proto"
-	adpb "intrinsic/assets/proto/asset_deployment_go_grpc_proto"
+	adgrpcpb "intrinsic/assets/proto/asset_deployment_go_proto"
+	adpb "intrinsic/assets/proto/asset_deployment_go_proto"
 
 	lrogrpcpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"

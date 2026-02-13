@@ -17,8 +17,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	acgrpcpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
-	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
+	acgrpcpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_proto"
+	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_proto"
 	dapb "intrinsic/assets/data/proto/v1/data_asset_go_proto"
 	hdmpb "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest_go_proto"
 	atypepb "intrinsic/assets/proto/asset_type_go_proto"

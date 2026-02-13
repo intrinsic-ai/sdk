@@ -10,10 +10,10 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/protobuf/proto"
 
-	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
+	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_proto"
 	atypepb "intrinsic/assets/proto/asset_type_go_proto"
 	ipb "intrinsic/assets/proto/id_go_proto"
-	iapb "intrinsic/assets/proto/installed_assets_go_grpc_proto"
+	iapb "intrinsic/assets/proto/installed_assets_go_proto"
 	metadatapb "intrinsic/assets/proto/metadata_go_proto"
 )
 

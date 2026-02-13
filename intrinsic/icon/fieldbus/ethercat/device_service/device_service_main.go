@@ -23,12 +23,12 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 
-	dagrpcpb "intrinsic/assets/data/proto/v1/data_assets_go_grpc_proto"
-	ssgrpcpb "intrinsic/assets/services/proto/v1/service_state_go_grpc_proto"
-	sspb "intrinsic/assets/services/proto/v1/service_state_go_grpc_proto"
+	dagrpcpb "intrinsic/assets/data/proto/v1/data_assets_go_proto"
+	ssgrpcpb "intrinsic/assets/services/proto/v1/service_state_go_proto"
+	sspb "intrinsic/assets/services/proto/v1/service_state_go_proto"
 	dscpb "intrinsic/icon/fieldbus/ethercat/device_service/v1/device_service_config_go_proto"
-	dsgrpcpb "intrinsic/icon/fieldbus/ethercat/device_service/v1/device_service_go_grpc_proto"
-	dspb "intrinsic/icon/fieldbus/ethercat/device_service/v1/device_service_go_grpc_proto"
+	dsgrpcpb "intrinsic/icon/fieldbus/ethercat/device_service/v1/device_service_go_proto"
+	dspb "intrinsic/icon/fieldbus/ethercat/device_service/v1/device_service_go_proto"
 	rtpb "intrinsic/resources/proto/runtime_context_go_proto"
 	espb "intrinsic/util/status/extended_status_go_proto"
 )

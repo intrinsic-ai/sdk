@@ -9,7 +9,7 @@ load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("//bazel:cc_oci_image.bzl", "cc_oci_image")
-load("//bazel:go_macros.bzl", "go_grpc_library", "go_proto_library")
+load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -26,13 +26,11 @@ exports_files(
 
 go_proto_library(
     name = "kvstore_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+    ],
     protos = [":kvstore_proto"],
-)
-
-go_grpc_library(
-    name = "kvstore_go_grpc_proto",
-    protos = [":kvstore_proto"],
-    deps = [":kvstore_go_proto"],
 )
 
 cc_proto_library(

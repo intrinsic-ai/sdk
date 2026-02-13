@@ -22,14 +22,14 @@ import (
 	"google.golang.org/grpc/codes"
 	grpcstatus "google.golang.org/grpc/status"
 
-	assetCataloggrpcpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
-	assetCatalogpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_grpc_proto"
+	assetCataloggrpcpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_proto"
+	assetCatalogpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_proto"
 	assetIDpb "intrinsic/assets/proto/id_go_proto"
-	clustermanagergrpcpb "intrinsic/frontend/cloud/api/v1/clustermanager_api_go_grpc_proto"
-	clustermanagerpb "intrinsic/frontend/cloud/api/v1/clustermanager_api_go_grpc_proto"
-	clustermanageralphagrpcpb "intrinsic/frontend/cloud/api/v1alpha1/clustermanager_api_go_grpc_proto"
-	inversiongrpcpb "intrinsic/kubernetes/inversion/v1/inversion_go_grpc_proto"
-	inversionpb "intrinsic/kubernetes/inversion/v1/inversion_go_grpc_proto"
+	clustermanagergrpcpb "intrinsic/frontend/cloud/api/v1/clustermanager_api_go_proto"
+	clustermanagerpb "intrinsic/frontend/cloud/api/v1/clustermanager_api_go_proto"
+	clustermanageralphagrpcpb "intrinsic/frontend/cloud/api/v1alpha1/clustermanager_api_go_proto"
+	inversiongrpcpb "intrinsic/kubernetes/inversion/v1/inversion_go_proto"
+	inversionpb "intrinsic/kubernetes/inversion/v1/inversion_go_proto"
 
 	fmpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 )
@@ -457,7 +457,6 @@ Example:
 
 inctl cluster upgrade --org my_org@my-project --cluster node-fc66c2ab-5770-43b8-aefe-a36a2f356fb1
 `
-
 
 // clusterUpgradeCmd is the base command to query the upgrade state
 var clusterUpgradeCmd = &cobra.Command{

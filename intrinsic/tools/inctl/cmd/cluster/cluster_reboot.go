@@ -9,8 +9,8 @@ import (
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 
-	clustermanagergrpcpb "intrinsic/frontend/cloud/api/v1/clustermanager_api_go_grpc_proto"
-	clustermanagerpb "intrinsic/frontend/cloud/api/v1/clustermanager_api_go_grpc_proto"
+	clustermanagergrpcpb "intrinsic/frontend/cloud/api/v1/clustermanager_api_go_proto"
+	clustermanagerpb "intrinsic/frontend/cloud/api/v1/clustermanager_api_go_proto"
 )
 
 var rebootDesc = `

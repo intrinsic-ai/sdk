@@ -11,7 +11,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	clustermanageralphapb "intrinsic/frontend/cloud/api/v1alpha1/clustermanager_api_go_grpc_proto"
+	clustermanageralphapb "intrinsic/frontend/cloud/api/v1alpha1/clustermanager_api_go_proto"
 )
 
 var (

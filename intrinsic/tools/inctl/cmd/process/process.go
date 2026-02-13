@@ -23,11 +23,11 @@ import (
 	"google.golang.org/protobuf/reflect/protoregistry"
 
 	btpb "intrinsic/executive/proto/behavior_tree_go_proto"
-	execgrpcpb "intrinsic/executive/proto/executive_service_go_grpc_proto"
-	exsvcpb "intrinsic/executive/proto/executive_service_go_grpc_proto"
+	execgrpcpb "intrinsic/executive/proto/executive_service_go_proto"
+	exsvcpb "intrinsic/executive/proto/executive_service_go_proto"
 	rmdpb "intrinsic/executive/proto/run_metadata_go_proto"
-	skillregistrygrpcpb "intrinsic/skills/proto/skill_registry_go_grpc_proto"
-	srpb "intrinsic/skills/proto/skill_registry_go_grpc_proto"
+	skillregistrygrpcpb "intrinsic/skills/proto/skill_registry_go_proto"
+	srpb "intrinsic/skills/proto/skill_registry_go_proto"
 	skillspb "intrinsic/skills/proto/skills_go_proto"
 
 	lrpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
