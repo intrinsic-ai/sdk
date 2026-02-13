@@ -40,6 +40,8 @@ message GraspAnnotatorRequest {
   optional int32 max_num_annotations = 5;
   // Constraints to filter grasp poses.
   optional GraspAnnotationConstraint constraint = 6;
+  // Options for configurable sampling parameters.
+  optional SamplingOptions sampling_options = 7;
 }
 
 message VisualizationOptions {
@@ -126,6 +128,8 @@ message GraspAnnotatorGenerateRequest {
   ParameterizedGripperSpecs gripper_specs = 2;
   // The number of samples to query on the mesh.
   int64 num_samples = 3;
+  // Options for configurable sampling parameters.
+  optional SamplingOptions sampling_options = 4;
 }
 
 message GraspAnnotatorGenerateResponse {

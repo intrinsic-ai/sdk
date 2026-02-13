@@ -77,6 +77,7 @@ class GraspAnnotatorClient:
       ) = None,
       max_num_annotations: int | None = None,
       constraint: grasp_annotator_pb2.GraspAnnotationConstraint | None = None,
+      sampling_options: grasp_annotator_pb2.SamplingOptions | None = None,
   ) -> grasp_annotations_pb2.GraspAnnotations:
     """Annotates grasps.
 
@@ -90,6 +91,7 @@ class GraspAnnotatorClient:
       annotation_metrics_weights: The metrics weights to score annotation with.
       max_num_annotations: The maximum number of annotations to return.
       constraint: Constraints to filter grasp poses.
+      sampling_options: Sampling parameters for generating annotations.
 
     Returns:
       The annotated grasps as a `GraspAnnotations` proto.
@@ -105,6 +107,8 @@ class GraspAnnotatorClient:
       request.max_num_annotations = max_num_annotations
     if constraint:
       request.constraint.CopyFrom(constraint)
+    if sampling_options:
+      request.sampling_options.CopyFrom(sampling_options)
     response: grasp_annotator_service_pb2.GraspAnnotatorResponse = (
         self._stub.Annotate(request, **self._connection_params)
     )
@@ -115,6 +119,7 @@ class GraspAnnotatorClient:
       triangle_mesh: triangle_mesh_pb2.TriangleMesh,
       gripper_specs: grasp_annotator_pb2.ParameterizedGripperSpecs,
       num_samples: int,
+      sampling_options: grasp_annotator_pb2.SamplingOptions | None = None,
   ) -> grasp_annotations_pb2.GraspAnnotations:
     """Generates raw grasp annotations.
 
@@ -125,6 +130,7 @@ class GraspAnnotatorClient:
         object reference or SceneObject to a triangle mesh.
       gripper_specs: The gripper specifications.
       num_samples: The number of samples to query on the mesh.
+      sampling_options: Sampling parameters for generating annotations.
 
     Returns:
       The unprocessed grasp annotations as a `GraspAnnotations` proto.
@@ -134,6 +140,8 @@ class GraspAnnotatorClient:
         gripper_specs=gripper_specs,
         num_samples=num_samples,
     )
+    if sampling_options:
+      request.sampling_options.CopyFrom(sampling_options)
     response: grasp_annotator_service_pb2.GraspAnnotatorGenerateResponse = (
         self._stub.Generate(request, **self._connection_params)
     )

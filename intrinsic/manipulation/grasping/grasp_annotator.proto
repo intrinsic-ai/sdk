@@ -159,3 +159,12 @@ message GraspAnnotationConstraint {
     optional float angle_tolerance_in_radians = 2;
   }
 }
+
+message SamplingOptions {
+  // Add additional samples (on top of num_samples) along the center lines of
+  // each face. Number of additonal samples are computed based on object
+  // dimensions and spacing. Defaults to true.
+  optional bool centered_samples = 1;
+  // Minimum distance between samples in meters, defaults to 0.005m.
+  optional float min_sample_distance_in_meters = 2;
+}
