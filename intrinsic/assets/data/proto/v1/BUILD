@@ -29,6 +29,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "data_asset_go_proto",
+    importpath = "intrinsic/assets/data/proto/v1/data_asset_go_proto",
     protos = [":data_asset_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = ["//intrinsic/assets/proto:metadata_go_proto"],
@@ -54,6 +55,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "referenced_data_go_proto",
+    importpath = "intrinsic/assets/data/proto/v1/referenced_data_go_proto",
     protos = [":referenced_data_proto"],
     visibility = ["//intrinsic:public_api_users"],
 )
@@ -79,6 +81,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "referenced_data_struct_go_proto",
+    importpath = "intrinsic/assets/data/proto/v1/referenced_data_struct_go_proto",
     protos = [":referenced_data_struct_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
@@ -112,6 +115,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "data_manifest_go_proto",
+    importpath = "intrinsic/assets/data/proto/v1/data_manifest_go_proto",
     protos = [":data_manifest_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
@@ -151,6 +155,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/assets/data/proto/v1/data_assets_go_proto",
     protos = [":data_assets_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [

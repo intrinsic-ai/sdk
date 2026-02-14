@@ -14,6 +14,7 @@ proto_library(
 
 go_proto_library(
     name = "snapshot_go_proto",
+    importpath = "intrinsic/solution_versions/proto/v1/snapshot_go_proto",
     protos = [":snapshot_proto"],
     visibility = [
         "//intrinsic/solution_versions:__subpackages__",
@@ -33,6 +34,7 @@ proto_library(
 
 go_proto_library(
     name = "branch_go_proto",
+    importpath = "intrinsic/solution_versions/proto/v1/branch_go_proto",
     protos = [":branch_proto"],
     visibility = [
         "//intrinsic/frontend/cloud:__subpackages__",
@@ -61,6 +63,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/solution_versions/proto/v1/solution_version_service_go_proto",
     protos = [":solution_version_service_proto"],
     visibility = [
         "//intrinsic/assets/deploy:__pkg__",

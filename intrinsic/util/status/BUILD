@@ -384,6 +384,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "status_go_proto",
+    importpath = "intrinsic/util/status/status_go_proto",
     protos = [":status_proto"],
 )
 
@@ -398,6 +399,7 @@ proto_library(
 
 go_proto_library(
     name = "extended_status_go_proto",
+    importpath = "intrinsic/util/status/extended_status_go_proto",
     protos = [":extended_status_proto"],
     deps = [
         "//intrinsic/logging/proto:context_go_proto",
@@ -499,6 +501,7 @@ py_test(
 go_library(
     name = "extstatus",
     srcs = ["extstatus.go"],
+    importpath = "intrinsic/util/status/extstatus",
     deps = [
         ":extended_status_go_proto",
         "//intrinsic/logging/proto:context_go_proto",
@@ -516,6 +519,7 @@ go_test(
     name = "extstatus_test",
     srcs = ["extstatus_test.go"],
     embed = [":extstatus"],
+    importpath = "intrinsic/util/status/extstatus_test",
     deps = [
         ":extended_status_go_proto",
         ":test_service_go_proto",
@@ -557,6 +561,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/util/status/test_service_go_proto",
     protos = [":test_service_proto"],
     visibility = [":__pkg__"],
     deps = ["@org_golang_google_protobuf//types/known/emptypb"],
@@ -565,6 +570,7 @@ go_proto_library(
 go_library(
     name = "statusspecs",
     srcs = ["statusspecs.go"],
+    importpath = "intrinsic/util/status/statusspecs",
     deps = [
         ":extended_status_go_proto",
         ":extstatus",
@@ -579,6 +585,7 @@ go_test(
     name = "statusspecs_test",
     srcs = ["statusspecs_test.go"],
     embed = [":statusspecs"],
+    importpath = "intrinsic/util/status/statusspecs_test",
     deps = [
         ":extended_status_go_proto",
         ":extstatus",

@@ -20,6 +20,7 @@ go_library(
         "templates/skill_py_manifest.template",  #keep
         "templates/skill_py_test.template",  #keep
     ],
+    importpath = "intrinsic/skills/tools/skill/cmd/create/create",
     deps = [
         "//intrinsic/assets:idutils",
         "//intrinsic/tools/inctl/cmd:root",

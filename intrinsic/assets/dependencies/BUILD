@@ -9,6 +9,7 @@ load("//bazel:go_macros.bzl", "go_library", "go_test")
 go_library(
     name = "utils",
     srcs = ["utils.go"],
+    importpath = "intrinsic/assets/dependencies/utils",
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/assets/data/proto/v1:data_assets_go_proto",
@@ -28,6 +29,7 @@ go_test(
     name = "utils_test",
     srcs = ["utils_test.go"],
     embed = [":utils"],
+    importpath = "intrinsic/assets/dependencies/utils_test",
     deps = [
         "//intrinsic/assets/data:fakedataassets",
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",

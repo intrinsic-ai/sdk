@@ -56,6 +56,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/assets/catalog/proto/v1/asset_catalog_go_proto",
     protos = [":asset_catalog_proto"],
     deps = [
         ":release_metadata_go_proto",
@@ -106,5 +107,6 @@ cc_proto_library(
 
 go_proto_library(
     name = "release_metadata_go_proto",
+    importpath = "intrinsic/assets/catalog/proto/v1/release_metadata_go_proto",
     protos = [":release_metadata_proto"],
 )

@@ -19,6 +19,7 @@ proto_library(
 
 go_proto_library(
     name = "hal_rangefinder_part_config_go_proto",
+    importpath = "intrinsic/icon/control/parts/hal/rangefinder_part/hal_rangefinder_part_config_go_proto",
     protos = [":hal_rangefinder_part_config_proto"],
     visibility = ["//visibility:private"],
     deps = [

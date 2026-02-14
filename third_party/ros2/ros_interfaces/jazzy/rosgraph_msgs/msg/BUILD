@@ -27,6 +27,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "clock_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/rosgraph_msgs/msg/clock_go_proto",
     protos = ["clock_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:time_go_proto",

@@ -24,6 +24,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "collision_rules_go_proto",
+    importpath = "intrinsic/scene/proto/v1/collision_rules_go_proto",
     protos = [":collision_rules_proto"],
 )
 
@@ -56,6 +57,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "entity_go_proto",
+    importpath = "intrinsic/scene/proto/v1/entity_go_proto",
     protos = [":entity_proto"],
     deps = [
         "//intrinsic/math/proto:pose_go_proto",
@@ -86,6 +88,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "object_properties_go_proto",
+    importpath = "intrinsic/scene/proto/v1/object_properties_go_proto",
     protos = [":object_properties_proto"],
 )
 
@@ -118,6 +121,7 @@ py_proto_library(
 
 go_proto_library(
     name = "geometry_stats_go_proto",
+    importpath = "intrinsic/scene/proto/v1/geometry_stats_go_proto",
     protos = [":geometry_stats_proto"],
     deps = [
         "//intrinsic/math/proto:point_go_proto",
@@ -144,6 +148,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "scene_object_go_proto",
+    importpath = "intrinsic/scene/proto/v1/scene_object_go_proto",
     protos = [":scene_object_proto"],
     deps = [
         ":collision_rules_go_proto",
@@ -186,6 +191,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/scene/proto/v1/scene_object_import_go_proto",
     protos = [":scene_object_import_proto"],
     deps = [
         ":geometry_stats_go_proto",
@@ -236,6 +242,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "scene_object_updates_go_proto",
+    importpath = "intrinsic/scene/proto/v1/scene_object_updates_go_proto",
     protos = [":scene_object_updates_proto"],
     deps = [
         ":collision_rules_go_proto",
@@ -265,6 +272,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "simulation_spec_go_proto",
+    importpath = "intrinsic/scene/proto/v1/simulation_spec_go_proto",
     protos = [":simulation_spec_proto"],
 )
 
@@ -283,6 +291,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "scene_object_config_go_proto",
+    importpath = "intrinsic/scene/proto/v1/scene_object_config_go_proto",
     protos = [":scene_object_config_proto"],
 )
 

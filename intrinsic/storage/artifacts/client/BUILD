@@ -14,6 +14,7 @@ go_library(
         "task.go",
         "uploader.go",
     ],
+    importpath = "intrinsic/storage/artifacts/client/client",
     deps = [
         "//intrinsic/storage/artifacts/internal:utils",
         "//intrinsic/storage/artifacts/proto/v1:artifact_go_proto",

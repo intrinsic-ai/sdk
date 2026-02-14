@@ -20,6 +20,7 @@ py_proto_library(
 
 go_proto_library(
     name = "example_service_go_proto",
+    importpath = "intrinsic/tools/inbuild/cmd/service/test_data/example_service_go_proto",
     protos = [":example_service_proto"],
 )
 

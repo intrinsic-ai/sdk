@@ -7,6 +7,7 @@ package(default_visibility = ["//visibility:public"])
 go_library(
     name = "doctor",
     srcs = ["doctor.go"],
+    importpath = "intrinsic/tools/inctl/cmd/doctor/doctor",
     deps = [
         "//intrinsic/tools/inctl/cmd:root",
         "//intrinsic/tools/inctl/cmd/doctor/api",

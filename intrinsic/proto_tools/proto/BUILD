@@ -51,6 +51,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/proto_tools/proto/proto_registry_go_proto",
     protos = [":proto_registry_proto"],
     deps = [
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",

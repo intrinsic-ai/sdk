@@ -14,6 +14,7 @@ go_library(
         "//intrinsic/tools/inctl/cmd/bazel/templates:bazelversion.template",  #keep
         "//intrinsic/tools/inctl/cmd/bazel/templates:permissive_content_mirror.template",  #keep
     ],
+    importpath = "intrinsic/tools/inctl/cmd/bazel/bazel",
     visibility = [
         "//intrinsic/skills/tools:__subpackages__",
         "//intrinsic/tools/inctl:__subpackages__",

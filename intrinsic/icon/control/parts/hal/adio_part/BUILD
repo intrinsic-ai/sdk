@@ -16,6 +16,7 @@ proto_library(
 
 go_proto_library(
     name = "hal_adio_part_config_go_proto",
+    importpath = "intrinsic/icon/control/parts/hal/adio_part/hal_adio_part_config_go_proto",
     protos = [":hal_adio_part_config_proto"],
     visibility = ["//visibility:private"],
     deps = [

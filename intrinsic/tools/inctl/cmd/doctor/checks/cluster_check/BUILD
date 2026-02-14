@@ -7,6 +7,7 @@ package(default_visibility = ["//visibility:public"])
 go_library(
     name = "clustercheck",
     srcs = ["clustercheck.go"],
+    importpath = "intrinsic/tools/inctl/cmd/doctor/checks/cluster_check/clustercheck",
     deps = [
         "//intrinsic/tools/inctl/cmd/doctor/api",
         "//intrinsic/tools/inctl/cmd/doctor/proto/v1:report_go_proto",

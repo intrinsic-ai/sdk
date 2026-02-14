@@ -32,6 +32,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "generic_part_config_go_proto",
+    importpath = "intrinsic/icon/proto/generic_part_config_go_proto",
     protos = [":generic_part_config_proto"],
     deps = [
         ":cart_space_go_proto",
@@ -72,6 +73,7 @@ py_proto_library(
 
 go_proto_library(
     name = "part_status_go_proto",
+    importpath = "intrinsic/icon/proto/part_status_go_proto",
     protos = [":part_status_proto"],
     deps = [
         ":cart_space_go_proto",
@@ -99,6 +101,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "streaming_output_go_proto",
+    importpath = "intrinsic/icon/proto/streaming_output_go_proto",
     protos = [":streaming_output_proto"],
 )
 
@@ -153,6 +156,7 @@ py_proto_library(
 
 go_proto_library(
     name = "matrix_go_proto",
+    importpath = "intrinsic/icon/proto/matrix_go_proto",
     protos = [":matrix_proto"],
 )
 
@@ -173,6 +177,7 @@ py_proto_library(
 
 go_proto_library(
     name = "cart_space_go_proto",
+    importpath = "intrinsic/icon/proto/cart_space_go_proto",
     protos = [":cart_space_proto"],
 )
 
@@ -231,6 +236,7 @@ py_proto_library(
 
 go_proto_library(
     name = "joint_space_go_proto",
+    importpath = "intrinsic/icon/proto/joint_space_go_proto",
     protos = [":joint_space_proto"],
     deps = [
         "//intrinsic/kinematics/types:dynamic_limits_check_mode_go_proto",
@@ -265,6 +271,7 @@ py_proto_library(
 
 go_proto_library(
     name = "io_block_go_proto",
+    importpath = "intrinsic/icon/proto/io_block_go_proto",
     protos = [":io_block_proto"],
 )
 
@@ -307,6 +314,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "linear_joint_acceleration_filter_config_go_proto",
+    importpath = "intrinsic/icon/proto/linear_joint_acceleration_filter_config_go_proto",
     protos = [":linear_joint_acceleration_filter_config_proto"],
 )
 
@@ -319,6 +327,7 @@ proto_library(
 
 go_proto_library(
     name = "joint_position_pid_torque_controller_config_go_proto",
+    importpath = "intrinsic/icon/proto/joint_position_pid_torque_controller_config_go_proto",
     protos = [":joint_position_pid_torque_controller_config_proto"],
 )
 
@@ -339,6 +348,7 @@ py_proto_library(
 
 go_proto_library(
     name = "safety_status_go_proto",
+    importpath = "intrinsic/icon/proto/safety_status_go_proto",
     protos = [":safety_status_proto"],
 )
 
@@ -349,6 +359,7 @@ proto_library(
 
 go_proto_library(
     name = "logging_mode_go_proto",
+    importpath = "intrinsic/icon/proto/logging_mode_go_proto",
     protos = [":logging_mode_proto"],
 )
 

@@ -7,33 +7,39 @@ package(default_visibility = ["//visibility:public"])
 go_library(
     name = "printer",
     srcs = ["printer.go"],
+    importpath = "intrinsic/tools/inctl/util/printer",
     deps = ["@com_github_spf13_cobra//:go_default_library"],
 )
 
 go_library(
     name = "cobrautil",
     srcs = ["cobrautil.go"],
+    importpath = "intrinsic/tools/inctl/util/cobrautil",
     deps = ["@com_github_spf13_cobra//:go_default_library"],
 )
 
 go_library(
     name = "vmalias",
     srcs = ["vmalias.go"],
+    importpath = "intrinsic/tools/inctl/util/vmalias",
 )
 
 go_library(
     name = "templateutil",
     srcs = ["templateutil.go"],
+    importpath = "intrinsic/tools/inctl/util/templateutil",
 )
 
 go_library(
     name = "color",
     srcs = ["color.go"],
+    importpath = "intrinsic/tools/inctl/util/color",
 )
 
 go_library(
     name = "viperutil",
     srcs = ["viperutil.go"],
+    importpath = "intrinsic/tools/inctl/util/viperutil",
     deps = [
         "@com_github_spf13_pflag//:go_default_library",
         "@com_github_spf13_viper//:go_default_library",
@@ -43,6 +49,7 @@ go_library(
 go_library(
     name = "orgutil",
     srcs = ["orgutil.go"],
+    importpath = "intrinsic/tools/inctl/util/orgutil",
     deps = [
         ":color",
         ":viperutil",
@@ -58,6 +65,7 @@ go_test(
     name = "orgutil_test",
     srcs = ["orgutil_test.go"],
     embed = [":orgutil"],
+    importpath = "intrinsic/tools/inctl/util/orgutil_test",
     deps = [
         "//intrinsic/tools/inctl/auth",
         "//intrinsic/tools/inctl/auth:authtest",

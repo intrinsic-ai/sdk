@@ -7,6 +7,7 @@ package(default_visibility = ["//intrinsic/tools/inbuild:__subpackages__"])
 go_library(
     name = "skillmanifest",
     srcs = ["skillmanifest.go"],
+    importpath = "intrinsic/tools/inbuild/util/skillmanifest",
     deps = [
         "//intrinsic/skills:skillmanifest",
         "//intrinsic/skills:skillvalidate",

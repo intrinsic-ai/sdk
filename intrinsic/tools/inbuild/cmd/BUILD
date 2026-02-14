@@ -7,6 +7,7 @@ package(default_visibility = ["//intrinsic/tools/inbuild:__subpackages__"])
 go_library(
     name = "root",
     srcs = ["root.go"],
+    importpath = "intrinsic/tools/inbuild/cmd/root",
     deps = [
         "//intrinsic/production:intrinsic",
         "//intrinsic/tools/inbuild/cmd/service",
@@ -19,4 +20,5 @@ go_test(
     name = "root_test",
     srcs = ["root_test.go"],
     embed = [":root"],
+    importpath = "intrinsic/tools/inbuild/cmd/root_test",
 )

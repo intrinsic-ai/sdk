@@ -20,6 +20,7 @@ py_proto_library(
 
 go_proto_library(
     name = "example_skill_go_proto",
+    importpath = "intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_go_proto",
     protos = [":example_skill_proto"],
 )
 

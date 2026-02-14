@@ -26,5 +26,6 @@ cc_proto_library(
 
 go_proto_library(
     name = "frame_graph_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/tf2_msgs/srv/frame_graph_go_proto",
     protos = ["frame_graph_proto"],
 )

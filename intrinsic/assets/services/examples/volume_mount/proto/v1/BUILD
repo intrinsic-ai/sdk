@@ -18,5 +18,6 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/assets/services/examples/volume_mount/proto/v1/volume_mount_go_proto",
     protos = [":volume_mount_proto"],
 )

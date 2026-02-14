@@ -26,6 +26,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "list_nodes_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/composition_interfaces/srv/list_nodes_go_proto",
     protos = ["list_nodes_proto"],
 )
 
@@ -47,6 +48,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "load_node_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/composition_interfaces/srv/load_node_go_proto",
     protos = ["load_node_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg:parameter_go_proto",
@@ -70,5 +72,6 @@ cc_proto_library(
 
 go_proto_library(
     name = "unload_node_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/composition_interfaces/srv/unload_node_go_proto",
     protos = ["unload_node_proto"],
 )

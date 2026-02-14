@@ -16,6 +16,7 @@ go_library(
     srcs = [
         "imagetags.go",
     ],
+    importpath = "intrinsic/kubernetes/workcell_spec/imagetags",
     deps = [
         "@com_github_pborman_uuid//:go_default_library",
         "@com_github_pkg_errors//:go_default_library",

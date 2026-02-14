@@ -26,6 +26,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "tf2_error_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/tf2_msgs/msg/tf2_error_go_proto",
     protos = ["tf2_error_proto"],
 )
 
@@ -47,6 +48,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "tf_message_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/tf2_msgs/msg/tf_message_go_proto",
     protos = ["tf_message_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:transform_stamped_go_proto",

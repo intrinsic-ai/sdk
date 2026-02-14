@@ -14,6 +14,7 @@ go_library(
         "token_source.go",
         "tokenshttp.go",
     ],
+    importpath = "intrinsic/tools/inctl/auth/auth",
     deps = [
         "//intrinsic/config:environments",
         "//intrinsic/kubernetes/acl:cookies",
@@ -35,5 +36,6 @@ go_library(
     name = "authtest",
     testonly = True,
     srcs = ["authtest.go"],
+    importpath = "intrinsic/tools/inctl/auth/authtest",
     deps = [":auth"],
 )

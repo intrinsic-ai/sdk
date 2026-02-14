@@ -9,6 +9,7 @@ package(default_visibility = ["//visibility:public"])
 go_library(
     name = "version",
     srcs = ["version.go"],
+    importpath = "intrinsic/frontend/cloud/devicemanager/version",
     visibility = [
         "//intrinsic/kubernetes/vmpool/service/internal/clients:__subpackages__",
         "//intrinsic/tools/inctl/cmd/cluster:__subpackages__",
@@ -20,4 +21,5 @@ go_test(
     size = "small",
     srcs = ["version_test.go"],
     embed = [":version"],
+    importpath = "intrinsic/frontend/cloud/devicemanager/version_test",
 )

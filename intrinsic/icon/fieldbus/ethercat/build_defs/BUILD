@@ -7,6 +7,7 @@ package(default_visibility = ["//visibility:public"])
 go_binary(
     name = "eni_datagen",
     embed = [":build_defs_lib"],
+    importpath = "intrinsic/icon/fieldbus/ethercat/build_defs/eni_datagen",
 )
 
 filegroup(
@@ -17,6 +18,7 @@ filegroup(
 go_library(
     name = "build_defs_lib",
     srcs = ["eni_datagen.go"],
+    importpath = "intrinsic/icon/fieldbus/ethercat/build_defs/build_defs_lib",
     deps = [
         "//intrinsic/assets/data/proto/v1:data_manifest_go_proto",
         "//intrinsic/assets/proto:id_go_proto",

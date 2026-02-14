@@ -7,6 +7,7 @@ package(default_visibility = ["//visibility:public"])
 go_library(
     name = "inctldetails",
     srcs = ["inctldetails.go"],
+    importpath = "intrinsic/tools/inctl/cmd/doctor/reporters/inctl_details/inctldetails",
     deps = [
         "//intrinsic/tools/inctl/cmd/doctor/api",
         "//intrinsic/tools/inctl/cmd/doctor/proto/v1:report_go_proto",

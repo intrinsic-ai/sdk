@@ -7,6 +7,7 @@ package(default_visibility = ["//intrinsic/tools/inbuild:__subpackages__"])
 go_library(
     name = "generate",
     srcs = ["generate.go"],
+    importpath = "intrinsic/tools/inbuild/cmd/skill/generate/generate",
     deps = [
         ":config",
         ":entrypoint",
@@ -17,6 +18,7 @@ go_library(
 go_library(
     name = "entrypoint",
     srcs = ["entrypoint.go"],
+    importpath = "intrinsic/tools/inbuild/cmd/skill/generate/entrypoint",
     deps = [
         "//intrinsic/skills/generator:gen",
         "//intrinsic/skills/proto:skill_manifest_go_proto",
@@ -32,12 +34,14 @@ go_test(
         "//intrinsic/tools/inbuild/cmd/skill/test_data:example_skill_files",
     ],
     embed = [":entrypoint"],
+    importpath = "intrinsic/tools/inbuild/cmd/skill/generate/entrypoint_test",
     deps = ["//intrinsic/util/testing:testio"],
 )
 
 go_library(
     name = "config",
     srcs = ["config.go"],
+    importpath = "intrinsic/tools/inbuild/cmd/skill/generate/config",
     deps = [
         "//intrinsic/skills/build_defs:skillserviceconfiggen",
         "//intrinsic/tools/inbuild/util:skillmanifest",
@@ -54,5 +58,6 @@ go_test(
         "//intrinsic/tools/inbuild/cmd/skill/test_data:example_skill_proto",
     ],
     embed = [":config"],
+    importpath = "intrinsic/tools/inbuild/cmd/skill/generate/config_test",
     deps = ["//intrinsic/util/testing:testio"],
 )

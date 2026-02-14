@@ -6,6 +6,7 @@ go_library(
     name = "jwttesting",
     testonly = True,
     srcs = ["jwt_testing.go"],
+    importpath = "intrinsic/kubernetes/acl/testing/jwttesting",
     visibility = ["//visibility:public"],
     deps = [
         "@com_github_golang_glog//:go_default_library",
@@ -17,5 +18,6 @@ go_library(
 go_test(
     name = "jwttesting_test",
     srcs = ["jwt_testing_test.go"],
+    importpath = "intrinsic/kubernetes/acl/testing/jwttesting_test",
     deps = [":jwttesting"],
 )

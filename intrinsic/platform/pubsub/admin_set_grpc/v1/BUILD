@@ -24,6 +24,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/platform/pubsub/admin_set_grpc/v1/admin_set_go_proto",
     protos = [":admin_set_proto"],
     visibility = ["//intrinsic:intrinsic_internal"],
 )

@@ -20,6 +20,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "dio_config_go_proto",
+    importpath = "intrinsic/icon/server/config/dio_config_go_proto",
     protos = [":dio_config_proto"],
 )
 
@@ -35,6 +36,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "services_config_go_proto",
+    importpath = "intrinsic/icon/server/config/services_config_go_proto",
     protos = [":services_config_proto"],
 )
 
@@ -56,6 +58,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "icon_main_config_go_proto",
+    importpath = "intrinsic/icon/server/config/icon_main_config_go_proto",
     protos = [":icon_main_config_proto"],
     deps = [
         ":realtime_control_config_go_proto",
@@ -88,6 +91,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "realtime_control_config_go_proto",
+    importpath = "intrinsic/icon/server/config/realtime_control_config_go_proto",
     protos = [":realtime_control_config_proto"],
     deps = [
         "//intrinsic/icon/control/parts/hal/v1:hal_part_config_go_proto",

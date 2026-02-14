@@ -31,6 +31,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "arrays_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/test_msgs/srv/arrays_go_proto",
     protos = ["arrays_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:basic_types_go_proto",
@@ -56,6 +57,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "basic_types_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/test_msgs/srv/basic_types_go_proto",
     protos = ["basic_types_proto"],
 )
 
@@ -76,5 +78,6 @@ cc_proto_library(
 
 go_proto_library(
     name = "empty_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/test_msgs/srv/empty_go_proto",
     protos = ["empty_proto"],
 )

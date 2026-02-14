@@ -29,6 +29,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "signal_go_proto",
+    importpath = "intrinsic/hardware/gpio/v1/signal_go_proto",
     protos = [":signal_proto"],
 )
 
@@ -53,6 +54,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/hardware/gpio/v1/gpio_service_go_proto",
     protos = [":gpio_service_proto"],
     deps = [
         "//intrinsic/hardware/gpio/v1:signal_go_proto",

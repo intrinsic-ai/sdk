@@ -5,6 +5,7 @@ load("//bazel:go_macros.bzl", "go_library", "go_test")
 go_library(
     name = "bundleimages",
     srcs = ["bundleimages.go"],
+    importpath = "intrinsic/assets/services/bundleimages",
     visibility = ["//intrinsic:intrinsic_internal"],
     deps = [
         ":readeropener",
@@ -23,6 +24,7 @@ go_library(
 go_library(
     name = "config",
     srcs = ["config.go"],
+    importpath = "intrinsic/assets/services/config",
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/resources/proto:runtime_context_go_proto",
@@ -34,6 +36,7 @@ go_test(
     name = "config_test",
     srcs = ["config_test.go"],
     embed = [":config"],
+    importpath = "intrinsic/assets/services/config_test",
     deps = [
         "//intrinsic/resources/proto:runtime_context_go_proto",
         "//intrinsic/util/proto:protoio",
@@ -45,11 +48,13 @@ go_test(
 go_library(
     name = "readeropener",
     srcs = ["readeropener.go"],
+    importpath = "intrinsic/assets/services/readeropener",
 )
 
 go_library(
     name = "servicebundle",
     srcs = ["servicebundle.go"],
+    importpath = "intrinsic/assets/services/servicebundle",
     visibility = ["//intrinsic:internal_api_users"],
     deps = [
         ":servicevalidate",
@@ -71,6 +76,7 @@ go_library(
 go_library(
     name = "servicevalidate",
     srcs = ["servicevalidate.go"],
+    importpath = "intrinsic/assets/services/servicevalidate",
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/assets:idutils",

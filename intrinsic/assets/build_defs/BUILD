@@ -32,6 +32,7 @@ py_proto_library(
 
 go_proto_library(
     name = "asset_go_proto",
+    importpath = "intrinsic/assets/build_defs/asset_go_proto",
     protos = [":asset_proto"],
     deps = [
         "//intrinsic/assets/proto:asset_type_go_proto",
@@ -42,6 +43,7 @@ go_proto_library(
 go_binary(
     name = "assetlocalinfogen",
     srcs = ["assetlocalinfogen.go"],
+    importpath = "intrinsic/assets/build_defs/assetlocalinfogen",
     deps = [
         ":asset_go_proto",
         "//intrinsic/assets:typeutils",
@@ -66,6 +68,7 @@ go_binary(
 go_binary(
     name = "assetcatalogrefinfogen",
     srcs = ["assetcatalogrefinfogen.go"],
+    importpath = "intrinsic/assets/build_defs/assetcatalogrefinfogen",
     deps = [
         ":asset_go_proto",
         "//intrinsic/assets:idutils",
@@ -84,6 +87,7 @@ go_binary(
 go_binary(
     name = "assetinstancegen",
     srcs = ["assetinstancegen.go"],
+    importpath = "intrinsic/assets/build_defs/assetinstancegen",
     deps = [
         ":asset_go_proto",
         "//intrinsic/assets:idutils",

@@ -7,6 +7,7 @@ package(default_visibility = ["//visibility:public"])
 go_library(
     name = "skillbundle",
     srcs = ["skillbundle.go"],
+    importpath = "intrinsic/skills/skillbundle",
     visibility = ["//intrinsic:internal_api_users"],
     deps = [
         ":skillmanifest",
@@ -26,6 +27,7 @@ go_library(
 go_library(
     name = "skillmanifest",
     srcs = ["skillmanifest.go"],
+    importpath = "intrinsic/skills/skillmanifest",
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/skills/proto:skill_manifest_go_proto",
@@ -37,6 +39,7 @@ go_library(
 go_library(
     name = "skillvalidate",
     srcs = ["skillvalidate.go"],
+    importpath = "intrinsic/skills/skillvalidate",
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/assets:idutils",

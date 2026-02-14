@@ -12,6 +12,7 @@ go_library(
         "projectclient.go",
         "register.go",
     ],
+    importpath = "intrinsic/tools/inctl/cmd/device/device",
     deps = [
         "//intrinsic/frontend/cloud/api/v1:clustermanager_api_go_proto",
         "//intrinsic/frontend/cloud/devicemanager/shared",
@@ -34,4 +35,5 @@ go_test(
     name = "device_test",
     srcs = ["register_test.go"],
     embed = [":device"],
+    importpath = "intrinsic/tools/inctl/cmd/device/device_test",
 )

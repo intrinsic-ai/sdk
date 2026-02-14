@@ -35,6 +35,7 @@ go_library(
     data = [
         "//intrinsic/platform/pubsub/zenoh_util:peer_config.json",
     ],
+    importpath = "intrinsic/platform/pubsub/golang/pubsub",
     deps = [
         ":kvstore",
         ":pubsubinterface",
@@ -50,6 +51,7 @@ go_library(
 go_library(
     name = "pubsubinterface",
     srcs = ["pubsub_interface.go"],
+    importpath = "intrinsic/platform/pubsub/golang/pubsubinterface",
     deps = [
         "//intrinsic/platform/pubsub/adapters:pubsub_go_proto",
         "@org_golang_google_protobuf//proto",
@@ -59,6 +61,7 @@ go_library(
 go_library(
     name = "kvstore",
     srcs = ["kvstore.go"],
+    importpath = "intrinsic/platform/pubsub/golang/kvstore",
     deps = [
         ":pubsubinterface",
         "@org_golang_google_protobuf//proto",

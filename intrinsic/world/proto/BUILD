@@ -28,6 +28,7 @@ py_proto_library(
 
 go_proto_library(
     name = "collision_action_go_proto",
+    importpath = "intrinsic/world/proto/collision_action_go_proto",
     protos = [":collision_action_proto"],
     visibility = ["//intrinsic:public_api_users"],
 )
@@ -57,6 +58,7 @@ py_proto_library(
 
 go_proto_library(
     name = "collision_settings_go_proto",
+    importpath = "intrinsic/world/proto/collision_settings_go_proto",
     protos = [":collision_settings_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
@@ -91,6 +93,7 @@ py_proto_library(
 
 go_proto_library(
     name = "geometry_component_go_proto",
+    importpath = "intrinsic/world/proto/geometry_component_go_proto",
     protos = [":geometry_component_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
@@ -118,6 +121,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "kinematics_component_go_proto",
+    importpath = "intrinsic/world/proto/kinematics_component_go_proto",
     protos = [":kinematics_component_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
@@ -146,6 +150,7 @@ py_proto_library(
 
 go_proto_library(
     name = "object_world_refs_go_proto",
+    importpath = "intrinsic/world/proto/object_world_refs_go_proto",
     protos = [":object_world_refs_proto"],
     visibility = ["//intrinsic:public_api_users"],
 )
@@ -241,6 +246,7 @@ py_proto_library(
 
 go_proto_library(
     name = "object_world_updates_go_proto",
+    importpath = "intrinsic/world/proto/object_world_updates_go_proto",
     protos = [":object_world_updates_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
@@ -285,6 +291,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "physics_component_go_proto",
+    importpath = "intrinsic/world/proto/physics_component_go_proto",
     protos = [":physics_component_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
@@ -314,6 +321,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "simulation_component_go_proto",
+    importpath = "intrinsic/world/proto/simulation_component_go_proto",
     protos = [":simulation_component_proto"],
     visibility = ["//intrinsic:public_api_users"],
 )
@@ -332,6 +340,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "sensor_component_go_proto",
+    importpath = "intrinsic/world/proto/sensor_component_go_proto",
     protos = ["sensor_component_proto"],
     visibility = ["//intrinsic:public_api_users"],
 )
@@ -350,6 +359,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "gripper_component_go_proto",
+    importpath = "intrinsic/world/proto/gripper_component_go_proto",
     protos = ["gripper_component_proto"],
     visibility = ["//intrinsic:public_api_users"],
 )
@@ -372,6 +382,7 @@ py_proto_library(
 
 go_proto_library(
     name = "robot_payload_go_proto",
+    importpath = "intrinsic/world/proto/robot_payload_go_proto",
     protos = [":robot_payload_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
@@ -409,6 +420,7 @@ py_proto_library(
 
 go_proto_library(
     name = "user_data_go_proto",
+    importpath = "intrinsic/world/proto/user_data_go_proto",
     protos = [":user_data_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [

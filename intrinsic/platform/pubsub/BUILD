@@ -130,6 +130,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "storage_location_go_proto",
+    importpath = "intrinsic/platform/pubsub/storage_location_go_proto",
     protos = [":storage_location"],
 )
 

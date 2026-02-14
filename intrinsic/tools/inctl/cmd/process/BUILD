@@ -11,6 +11,7 @@ go_library(
         "process_get.go",
         "process_set.go",
     ],
+    importpath = "intrinsic/tools/inctl/cmd/process/process",
     deps = [
         "//intrinsic/executive/go:behaviortree",
         "//intrinsic/executive/proto:behavior_tree_go_proto",

@@ -26,6 +26,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "device_service_config_go_proto",
+    importpath = "intrinsic/icon/fieldbus/ethercat/device_service/v1/device_service_config_go_proto",
     protos = [":device_service_config_proto"],
     deps = [
         "//intrinsic/assets/proto:field_metadata_go_proto",
@@ -60,6 +61,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "esi_go_proto",
+    importpath = "intrinsic/icon/fieldbus/ethercat/device_service/v1/esi_go_proto",
     protos = [":esi_proto"],
 )
 
@@ -82,6 +84,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/icon/fieldbus/ethercat/device_service/v1/device_service_go_proto",
     protos = [
         ":device_service_proto",
     ],
@@ -104,5 +107,6 @@ cc_proto_library(
 
 go_proto_library(
     name = "eni_go_proto",
+    importpath = "intrinsic/icon/fieldbus/ethercat/device_service/v1/eni_go_proto",
     protos = [":eni_proto"],
 )

@@ -40,6 +40,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/kubernetes/accounts/service/api/tokens/v2/tokens_go_proto",
     protos = [":tokens_proto"],
     deps = [
         "@org_golang_google_genproto_googleapis_api//annotations",

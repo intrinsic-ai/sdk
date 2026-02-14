@@ -26,5 +26,6 @@ cc_proto_library(
 
 go_proto_library(
     name = "update_filename_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/pcl_msgs/srv/update_filename_go_proto",
     protos = ["update_filename_proto"],
 )

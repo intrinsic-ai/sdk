@@ -28,6 +28,7 @@ cc_proto_library(
 go_proto_library(
     name = "test_configs_go_proto",
     testonly = True,
+    importpath = "intrinsic/assets/dependencies/testing/test_configs_go_proto",
     protos = [":test_configs_proto"],
     visibility = [
         "//intrinsic/assets:__subpackages__",
@@ -50,6 +51,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/assets/dependencies/testing/test_service_go_proto",
     protos = [":test_service_proto"],
     visibility = ["//intrinsic/assets/dependencies:__pkg__"],
 )

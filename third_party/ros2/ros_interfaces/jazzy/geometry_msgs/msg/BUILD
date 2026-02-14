@@ -27,6 +27,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "accel_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/accel_go_proto",
     protos = ["accel_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:vector3_go_proto",
@@ -54,6 +55,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "accel_stamped_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/accel_stamped_go_proto",
     protos = ["accel_stamped_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:accel_go_proto",
@@ -79,6 +81,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "accel_with_covariance_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/accel_with_covariance_go_proto",
     protos = ["accel_with_covariance_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:accel_go_proto",
@@ -106,6 +109,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "accel_with_covariance_stamped_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/accel_with_covariance_stamped_go_proto",
     protos = ["accel_with_covariance_stamped_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:accel_with_covariance_go_proto",
@@ -131,6 +135,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "inertia_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/inertia_go_proto",
     protos = ["inertia_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:vector3_go_proto",
@@ -158,6 +163,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "inertia_stamped_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/inertia_stamped_go_proto",
     protos = ["inertia_stamped_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:inertia_go_proto",
@@ -182,6 +188,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "point_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/point_go_proto",
     protos = ["point_proto"],
 )
 
@@ -202,6 +209,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "point32_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/point32_go_proto",
     protos = ["point32_proto"],
 )
 
@@ -226,6 +234,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "point_stamped_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/point_stamped_go_proto",
     protos = ["point_stamped_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:point_go_proto",
@@ -251,6 +260,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "polygon_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/polygon_go_proto",
     protos = ["polygon_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:point32_go_proto",
@@ -275,6 +285,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "polygon_instance_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/polygon_instance_go_proto",
     protos = ["polygon_instance_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:polygon_go_proto",
@@ -302,6 +313,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "polygon_instance_stamped_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/polygon_instance_stamped_go_proto",
     protos = ["polygon_instance_stamped_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:polygon_instance_go_proto",
@@ -330,6 +342,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "polygon_stamped_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/polygon_stamped_go_proto",
     protos = ["polygon_stamped_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:polygon_go_proto",
@@ -358,6 +371,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "pose_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/pose_go_proto",
     protos = ["pose_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:point_go_proto",
@@ -382,6 +396,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "pose2_d_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/pose2_d_go_proto",
     protos = ["pose2_d_proto"],
 )
 
@@ -406,6 +421,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "pose_array_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/pose_array_go_proto",
     protos = ["pose_array_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:pose_go_proto",
@@ -434,6 +450,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "pose_stamped_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/pose_stamped_go_proto",
     protos = ["pose_stamped_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:pose_go_proto",
@@ -459,6 +476,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "pose_with_covariance_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/pose_with_covariance_go_proto",
     protos = ["pose_with_covariance_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:pose_go_proto",
@@ -486,6 +504,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "pose_with_covariance_stamped_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/pose_with_covariance_stamped_go_proto",
     protos = ["pose_with_covariance_stamped_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:pose_with_covariance_go_proto",
@@ -510,6 +529,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "quaternion_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/quaternion_go_proto",
     protos = ["quaternion_proto"],
 )
 
@@ -534,6 +554,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "quaternion_stamped_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/quaternion_stamped_go_proto",
     protos = ["quaternion_stamped_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:quaternion_go_proto",
@@ -562,6 +583,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "transform_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/transform_go_proto",
     protos = ["transform_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:quaternion_go_proto",
@@ -590,6 +612,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "transform_stamped_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/transform_stamped_go_proto",
     protos = ["transform_stamped_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:transform_go_proto",
@@ -615,6 +638,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "twist_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/twist_go_proto",
     protos = ["twist_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:vector3_go_proto",
@@ -642,6 +666,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "twist_stamped_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/twist_stamped_go_proto",
     protos = ["twist_stamped_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:twist_go_proto",
@@ -667,6 +692,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "twist_with_covariance_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/twist_with_covariance_go_proto",
     protos = ["twist_with_covariance_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:twist_go_proto",
@@ -694,6 +720,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "twist_with_covariance_stamped_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/twist_with_covariance_stamped_go_proto",
     protos = ["twist_with_covariance_stamped_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:twist_with_covariance_go_proto",
@@ -718,6 +745,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "vector3_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/vector3_go_proto",
     protos = ["vector3_proto"],
 )
 
@@ -742,6 +770,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "vector3_stamped_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/vector3_stamped_go_proto",
     protos = ["vector3_stamped_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:vector3_go_proto",
@@ -770,6 +799,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "velocity_stamped_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/velocity_stamped_go_proto",
     protos = ["velocity_stamped_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:twist_go_proto",
@@ -795,6 +825,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "wrench_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/wrench_go_proto",
     protos = ["wrench_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:vector3_go_proto",
@@ -822,6 +853,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "wrench_stamped_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg/wrench_stamped_go_proto",
     protos = ["wrench_stamped_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:wrench_go_proto",

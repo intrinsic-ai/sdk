@@ -26,6 +26,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "hardware_module_config_go_proto",
+    importpath = "intrinsic/icon/hal/hardware_module_config_go_proto",
     protos = [":hardware_module_config_proto"],
     deps = [
         "//intrinsic/icon/hardware_modules/sim_bus:sim_bus_hardware_module_go_proto",
@@ -54,6 +55,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "hardware_module_inspection_go_proto",
+    importpath = "intrinsic/icon/hal/hardware_module_inspection_go_proto",
     protos = [":hardware_module_inspection_proto"],
     deps = [
         "//intrinsic/icon/proto:safety_status_go_proto",

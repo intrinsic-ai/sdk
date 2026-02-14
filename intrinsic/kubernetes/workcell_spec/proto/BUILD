@@ -15,6 +15,7 @@ proto_library(
 
 go_proto_library(
     name = "image_go_proto",
+    importpath = "intrinsic/kubernetes/workcell_spec/proto/image_go_proto",
     protos = [":image_proto"],
 )
 
@@ -35,6 +36,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/kubernetes/workcell_spec/proto/deploy_go_proto",
     protos = [":deploy_proto"],
     deps = ["//intrinsic/config/proto:operation_mode_go_proto"],
 )

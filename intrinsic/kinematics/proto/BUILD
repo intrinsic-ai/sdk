@@ -29,6 +29,7 @@ py_proto_library(
 
 go_proto_library(
     name = "kinematics_go_proto",
+    importpath = "intrinsic/kinematics/proto/kinematics_go_proto",
     protos = [":kinematics_proto"],
     deps = [
         "//intrinsic/math/proto:matrix_go_proto",
@@ -58,6 +59,7 @@ py_proto_library(
 
 go_proto_library(
     name = "skeleton_go_proto",
+    importpath = "intrinsic/kinematics/proto/skeleton_go_proto",
     protos = [":skeleton_proto"],
     deps = [
         ":kinematics_go_proto",

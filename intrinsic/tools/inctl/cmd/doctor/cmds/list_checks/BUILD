@@ -7,6 +7,7 @@ package(default_visibility = ["//visibility:public"])
 go_library(
     name = "listchecks",
     srcs = ["listchecks.go"],
+    importpath = "intrinsic/tools/inctl/cmd/doctor/cmds/list_checks/listchecks",
     deps = [
         "//intrinsic/tools/inctl/cmd/doctor/checks",
         "//intrinsic/tools/inctl/util:printer",

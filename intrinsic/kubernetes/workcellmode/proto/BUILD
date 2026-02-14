@@ -21,6 +21,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/kubernetes/workcellmode/proto/workcellmode_service_go_proto",
     protos = [":workcellmode_service_proto"],
     visibility = ["//intrinsic:intrinsic_internal"],
 )

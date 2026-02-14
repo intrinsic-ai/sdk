@@ -17,6 +17,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/kubernetes/inversion/v1/inversion_go_proto",
     protos = [":inversion_proto"],
 )
 

@@ -31,6 +31,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_proto",
     protos = [":lease_api_proto"],
     deps = [
         "@org_golang_google_protobuf//types/known/emptypb",

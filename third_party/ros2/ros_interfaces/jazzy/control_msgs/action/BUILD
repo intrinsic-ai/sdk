@@ -38,6 +38,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "follow_joint_trajectory_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/control_msgs/action/follow_joint_trajectory_go_proto",
     protos = ["follow_joint_trajectory_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:duration_go_proto",
@@ -75,6 +76,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "gripper_command_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/control_msgs/action/gripper_command_go_proto",
     protos = ["gripper_command_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:time_go_proto",
@@ -105,6 +107,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "joint_trajectory_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/control_msgs/action/joint_trajectory_go_proto",
     protos = ["joint_trajectory_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:time_go_proto",
@@ -135,6 +138,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "parallel_gripper_command_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/control_msgs/action/parallel_gripper_command_go_proto",
     protos = ["parallel_gripper_command_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:time_go_proto",
@@ -167,6 +171,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "point_head_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/control_msgs/action/point_head_go_proto",
     protos = ["point_head_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:duration_go_proto",
@@ -200,6 +205,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "single_joint_position_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/control_msgs/action/single_joint_position_go_proto",
     protos = ["single_joint_position_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:duration_go_proto",

@@ -36,6 +36,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "admittance_controller_state_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/admittance_controller_state_go_proto",
     protos = ["admittance_controller_state_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:quaternion_go_proto",
@@ -70,6 +71,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "dynamic_interface_group_values_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/dynamic_interface_group_values_go_proto",
     protos = ["dynamic_interface_group_values_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/control_msgs/msg:interface_value_go_proto",
@@ -98,6 +100,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "dynamic_interface_values_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/dynamic_interface_values_go_proto",
     protos = ["dynamic_interface_values_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/control_msgs/msg:interface_value_go_proto",
@@ -126,6 +129,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "dynamic_joint_state_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/dynamic_joint_state_go_proto",
     protos = ["dynamic_joint_state_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/control_msgs/msg:interface_value_go_proto",
@@ -150,6 +154,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "gripper_command_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/gripper_command_go_proto",
     protos = ["gripper_command_proto"],
 )
 
@@ -170,6 +175,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "interface_value_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/interface_value_go_proto",
     protos = ["interface_value_proto"],
 )
 
@@ -190,6 +196,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "joint_component_tolerance_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/joint_component_tolerance_go_proto",
     protos = ["joint_component_tolerance_proto"],
 )
 
@@ -211,6 +218,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "joint_controller_state_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/joint_controller_state_go_proto",
     protos = ["joint_controller_state_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
@@ -235,6 +243,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "joint_jog_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/joint_jog_go_proto",
     protos = ["joint_jog_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
@@ -258,6 +267,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "joint_tolerance_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/joint_tolerance_go_proto",
     protos = ["joint_tolerance_proto"],
 )
 
@@ -283,6 +293,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "joint_trajectory_controller_state_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/joint_trajectory_controller_state_go_proto",
     protos = ["joint_trajectory_controller_state_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
@@ -312,6 +323,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "mecanum_drive_controller_state_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/mecanum_drive_controller_state_go_proto",
     protos = ["mecanum_drive_controller_state_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:twist_go_proto",
@@ -336,6 +348,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "multi_dof_command_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/multi_dof_command_go_proto",
     protos = ["multi_dof_command_proto"],
 )
 
@@ -360,6 +373,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "multi_dof_state_stamped_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/multi_dof_state_stamped_go_proto",
     protos = ["multi_dof_state_stamped_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/control_msgs/msg:single_dof_state_go_proto",
@@ -388,6 +402,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "pid_state_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/pid_state_go_proto",
     protos = ["pid_state_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:duration_go_proto",
@@ -412,6 +427,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "single_dof_state_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/single_dof_state_go_proto",
     protos = ["single_dof_state_proto"],
 )
 
@@ -436,6 +452,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "single_dof_state_stamped_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/single_dof_state_stamped_go_proto",
     protos = ["single_dof_state_stamped_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/control_msgs/msg:single_dof_state_go_proto",
@@ -460,6 +477,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "speed_scaling_factor_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/speed_scaling_factor_go_proto",
     protos = ["speed_scaling_factor_proto"],
 )
 
@@ -481,6 +499,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "steering_controller_status_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/control_msgs/msg/steering_controller_status_go_proto",
     protos = ["steering_controller_status_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",

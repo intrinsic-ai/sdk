@@ -69,6 +69,7 @@ proto_library(
 
 go_proto_library(
     name = "force_control_settings_go_proto",
+    importpath = "intrinsic/icon/equipment/force_control_settings_go_proto",
     protos = [":force_control_settings_proto"],
     deps = [
         "//intrinsic/icon/proto:cart_space_go_proto",

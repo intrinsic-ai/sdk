@@ -9,6 +9,7 @@ go_library(
     name = "fakedataassets",
     testonly = True,
     srcs = ["fake_data_assets.go"],
+    importpath = "intrinsic/assets/data/fakedataassets",
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/assets:idutils",
@@ -64,6 +65,7 @@ py_library(
 go_library(
     name = "databundle",
     srcs = ["databundle.go"],
+    importpath = "intrinsic/assets/data/databundle",
     visibility = ["//intrinsic:internal_api_users"],
     deps = [
         ":datavalidate",
@@ -83,6 +85,7 @@ go_library(
 go_library(
     name = "datavalidate",
     srcs = ["datavalidate.go"],
+    importpath = "intrinsic/assets/data/datavalidate",
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         ":utils",
@@ -100,6 +103,7 @@ go_library(
 go_library(
     name = "utils",
     srcs = ["utils.go"],
+    importpath = "intrinsic/assets/data/utils",
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",

@@ -15,6 +15,7 @@ go_library(
         "cluster_upgrade.go",
         "cluster_ups.go",
     ],
+    importpath = "intrinsic/tools/inctl/cmd/cluster/cluster",
     visibility = [
         "//intrinsic/tools/inctl:__subpackages__",
     ],

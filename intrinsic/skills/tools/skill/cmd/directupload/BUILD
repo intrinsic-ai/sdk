@@ -11,6 +11,7 @@ go_library(
         "monitor.go",
         "transfer.go",
     ],
+    importpath = "intrinsic/skills/tools/skill/cmd/directupload/directupload",
     deps = [
         "//intrinsic/assets:imagetransfer",
         "//intrinsic/storage/artifacts/client",

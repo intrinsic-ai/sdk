@@ -26,6 +26,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "empty_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_srvs/srv/empty_go_proto",
     protos = ["empty_proto"],
 )
 
@@ -46,6 +47,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "set_bool_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_srvs/srv/set_bool_go_proto",
     protos = ["set_bool_proto"],
 )
 
@@ -66,5 +68,6 @@ cc_proto_library(
 
 go_proto_library(
     name = "trigger_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_srvs/srv/trigger_go_proto",
     protos = ["trigger_proto"],
 )

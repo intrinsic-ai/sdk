@@ -29,6 +29,7 @@ py_proto_library(
 
 go_proto_library(
     name = "asset_go_proto",
+    importpath = "intrinsic/assets/proto/v1/asset_go_proto",
     protos = [":asset_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
@@ -57,6 +58,7 @@ py_proto_library(
 
 go_proto_library(
     name = "asset_graph_go_proto",
+    importpath = "intrinsic/assets/proto/v1/asset_graph_go_proto",
     protos = [":asset_graph_proto"],
     visibility = ["//intrinsic:public_api_users"],
 )
@@ -69,6 +71,7 @@ proto_library(
 
 go_proto_library(
     name = "grpc_connection_go_proto",
+    importpath = "intrinsic/assets/proto/v1/grpc_connection_go_proto",
     protos = [":grpc_connection_proto"],
     visibility = ["//intrinsic:public_api_users"],
 )
@@ -113,6 +116,7 @@ py_proto_library(
 
 go_proto_library(
     name = "processed_asset_go_proto",
+    importpath = "intrinsic/assets/proto/v1/processed_asset_go_proto",
     protos = [":processed_asset_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
@@ -143,6 +147,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "reference_go_proto",
+    importpath = "intrinsic/assets/proto/v1/reference_go_proto",
     protos = [":reference_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
@@ -171,6 +176,7 @@ py_proto_library(
 
 go_proto_library(
     name = "search_go_proto",
+    importpath = "intrinsic/assets/proto/v1/search_go_proto",
     protos = [":search_proto"],
     visibility = ["//intrinsic:public_api_users"],
 )
@@ -195,6 +201,7 @@ proto_library(
 
 go_proto_library(
     name = "resolved_dependency_go_proto",
+    importpath = "intrinsic/assets/proto/v1/resolved_dependency_go_proto",
     protos = [":resolved_dependency_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
@@ -232,6 +239,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/assets/proto/v1/solution_deployment_go_proto",
     protos = [":solution_deployment_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
@@ -260,6 +268,7 @@ proto_library(
 
 go_proto_library(
     name = "dependency_go_proto",
+    importpath = "intrinsic/assets/proto/v1/dependency_go_proto",
     protos = [":dependency_proto"],
     visibility = ["//intrinsic:public_api_users"],
 )

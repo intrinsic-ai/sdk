@@ -30,6 +30,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "mesh_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/shape_msgs/msg/mesh_go_proto",
     protos = ["mesh_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:point_go_proto",
@@ -54,6 +55,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "mesh_triangle_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/shape_msgs/msg/mesh_triangle_go_proto",
     protos = ["mesh_triangle_proto"],
 )
 
@@ -74,6 +76,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "plane_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/shape_msgs/msg/plane_go_proto",
     protos = ["plane_proto"],
 )
 
@@ -95,6 +98,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "solid_primitive_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/shape_msgs/msg/solid_primitive_go_proto",
     protos = ["solid_primitive_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:polygon_go_proto",

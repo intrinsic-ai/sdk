@@ -7,6 +7,7 @@ load("//bazel:go_macros.bzl", "go_library")
 go_library(
     name = "grpctest",
     srcs = ["grpctest.go"],
+    importpath = "intrinsic/testing/grpctest",
     visibility = [
         "//intrinsic:public_api_users",
     ],

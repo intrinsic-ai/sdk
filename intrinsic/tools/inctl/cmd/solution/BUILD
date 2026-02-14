@@ -7,6 +7,7 @@ go_library(
     srcs = [
         "solution.go",
     ],
+    importpath = "intrinsic/tools/inctl/cmd/solution/solution",
     visibility = [
         "//intrinsic/skills/tools:__subpackages__",
         "//intrinsic/tools/inctl:__subpackages__",

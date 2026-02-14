@@ -8,4 +8,5 @@ package(default_visibility = ["//intrinsic/storage/artifacts:__subpackages__"])
 go_library(
     name = "utils",
     srcs = ["utils.go"],
+    importpath = "intrinsic/storage/artifacts/internal/utils",
 )

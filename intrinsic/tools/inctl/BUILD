@@ -7,6 +7,7 @@ package(default_visibility = ["//visibility:public"])
 go_binary(
     name = "inctl_external",
     srcs = ["inctl_external.go"],
+    importpath = "intrinsic/tools/inctl/inctl_external",
     deps = [
         "//intrinsic/assets/inctl:assetcmd",
         "//intrinsic/assets/services/inctl:service",

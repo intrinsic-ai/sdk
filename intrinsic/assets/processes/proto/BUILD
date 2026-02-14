@@ -22,6 +22,7 @@ py_proto_library(
 
 go_proto_library(
     name = "process_asset_go_proto",
+    importpath = "intrinsic/assets/processes/proto/process_asset_go_proto",
     protos = [":process_asset_proto"],
     deps = [
         "//intrinsic/assets/proto:metadata_go_proto",
@@ -48,6 +49,7 @@ py_proto_library(
 
 go_proto_library(
     name = "process_manifest_go_proto",
+    importpath = "intrinsic/assets/processes/proto/process_manifest_go_proto",
     protos = [":process_manifest_proto"],
     deps = [
         "//intrinsic/assets/proto:asset_tag_go_proto",

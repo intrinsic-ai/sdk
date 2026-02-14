@@ -11,6 +11,7 @@ go_library(
         "roles.go",
         "users.go",
     ],
+    importpath = "intrinsic/tools/inctl/cmd/customer/customer",
     visibility = ["//intrinsic/tools/inctl:__pkg__"],
     deps = [
         "//intrinsic/config:environments",

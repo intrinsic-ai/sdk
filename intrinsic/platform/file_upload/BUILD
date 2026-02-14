@@ -16,6 +16,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/platform/file_upload/file_upload_service_go_proto",
     protos = [":file_upload_service_proto"],
 )
 
@@ -24,6 +25,7 @@ go_binary(
     srcs = [
         "file_upload_cli.go",
     ],
+    importpath = "intrinsic/platform/file_upload/file_upload_cli",
     deps = [
         ":file_upload_service_go_proto",
         "@com_github_golang_glog//:go_default_library",

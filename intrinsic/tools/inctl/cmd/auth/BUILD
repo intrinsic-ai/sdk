@@ -14,6 +14,7 @@ go_library(
         "print.go",
         "revoke.go",
     ],
+    importpath = "intrinsic/tools/inctl/cmd/auth/auth",
     deps = [
         "//intrinsic/assets:cmdutils",
         "//intrinsic/config:environments",

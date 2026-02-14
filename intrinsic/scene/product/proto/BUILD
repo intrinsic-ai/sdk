@@ -27,6 +27,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "product_go_proto",
+    importpath = "intrinsic/scene/product/proto/product_go_proto",
     protos = [
         ":product_proto",
     ],
@@ -69,6 +70,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/scene/product/proto/product_service_go_proto",
     protos = [":product_service_proto"],
     deps = [
         ":product_go_proto",

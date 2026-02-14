@@ -24,6 +24,7 @@ proto_library(
 
 go_proto_library(
     name = "hardware_device_manifest_go_proto",
+    importpath = "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest_go_proto",
     protos = [":hardware_device_manifest_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [

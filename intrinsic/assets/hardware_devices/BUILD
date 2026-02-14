@@ -5,6 +5,7 @@ load("//bazel:go_macros.bzl", "go_library")
 go_library(
     name = "hardwaredevicebundle",
     srcs = ["hardwaredevicebundle.go"],
+    importpath = "intrinsic/assets/hardware_devices/hardwaredevicebundle",
     visibility = ["//intrinsic:internal_api_users"],
     deps = [
         ":hardwaredevicevalidate",
@@ -23,6 +24,7 @@ go_library(
 go_library(
     name = "hardwaredevicevalidate",
     srcs = ["hardwaredevicevalidate.go"],
+    importpath = "intrinsic/assets/hardware_devices/hardwaredevicevalidate",
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/assets:idutils",

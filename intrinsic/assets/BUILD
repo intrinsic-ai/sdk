@@ -9,6 +9,7 @@ load("//bazel:go_macros.bzl", "go_library", "go_test")
 go_library(
     name = "baseclientutils",
     srcs = ["baseclientutils.go"],
+    importpath = "intrinsic/assets/baseclientutils",
     visibility = ["//intrinsic:internal_api_users"],
     deps = [
         "@com_github_pkg_errors//:go_default_library",
@@ -22,6 +23,7 @@ go_library(
 go_library(
     name = "clientutils",
     srcs = ["clientutils.go"],
+    importpath = "intrinsic/assets/clientutils",
     visibility = ["//intrinsic:internal_api_users"],
     deps = [
         ":baseclientutils",
@@ -47,6 +49,7 @@ go_library(
 go_library(
     name = "cmdutils",
     srcs = ["cmdutils.go"],
+    importpath = "intrinsic/assets/cmdutils",
     visibility = ["//intrinsic:internal_api_users"],
     deps = [
         ":imagetransfer",
@@ -97,6 +100,7 @@ py_library(
 go_library(
     name = "idutils",
     srcs = ["idutils.go"],
+    importpath = "intrinsic/assets/idutils",
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/assets/proto:id_go_proto",
@@ -107,6 +111,7 @@ go_library(
 go_library(
     name = "imagetransfer",
     srcs = ["imagetransfer.go"],
+    importpath = "intrinsic/assets/imagetransfer",
     visibility = [
         "//intrinsic:internal_api_users",
         "//intrinsic:public_api_users",
@@ -124,6 +129,7 @@ go_library(
 go_library(
     name = "imageutils",
     srcs = ["imageutils.go"],
+    importpath = "intrinsic/assets/imageutils",
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/assets/proto:id_go_proto",
@@ -137,6 +143,7 @@ go_library(
     embedsrcs = [
         "//intrinsic/assets/proto:asset_tags",  # keep
     ],
+    importpath = "intrinsic/assets/tagutils",
     visibility = ["//intrinsic:internal_api_users"],
     deps = [
         "//intrinsic/assets/proto:asset_tag_go_proto",
@@ -149,6 +156,7 @@ go_test(
     name = "tagutils_test",
     srcs = ["tagutils_test.go"],
     embed = [":tagutils"],
+    importpath = "intrinsic/assets/tagutils_test",
     deps = [
         ":typeutils",
         "//intrinsic/assets/proto:asset_tag_go_proto",
@@ -161,6 +169,7 @@ go_test(
 go_library(
     name = "typeutils",
     srcs = ["typeutils.go"],
+    importpath = "intrinsic/assets/typeutils",
     visibility = ["//intrinsic:internal_api_users"],
     deps = ["//intrinsic/assets/proto:asset_type_go_proto"],
 )
@@ -168,6 +177,7 @@ go_library(
 go_library(
     name = "viewutils",
     srcs = ["viewutils.go"],
+    importpath = "intrinsic/assets/viewutils",
     visibility = ["//intrinsic:internal_api_users"],
     deps = [
         "//intrinsic/assets/proto:metadata_go_proto",
@@ -183,6 +193,7 @@ go_library(
 go_library(
     name = "bundle",
     srcs = ["bundle.go"],
+    importpath = "intrinsic/assets/bundle",
     visibility = ["//intrinsic:internal_api_users"],
     deps = [
         ":imageutils",
@@ -213,6 +224,7 @@ go_library(
 go_library(
     name = "version",
     srcs = ["version.go"],
+    importpath = "intrinsic/assets/version",
     visibility = ["//intrinsic:internal_api_users"],
     deps = [
         ":idutils",
@@ -225,6 +237,7 @@ go_library(
 go_library(
     name = "ioutils",
     srcs = ["ioutils.go"],
+    importpath = "intrinsic/assets/ioutils",
     visibility = [
         "//intrinsic/assets:__subpackages__",
         "//intrinsic/skills:__subpackages__",
@@ -238,6 +251,7 @@ go_library(
 go_library(
     name = "listutils",
     srcs = ["listutils.go"],
+    importpath = "intrinsic/assets/listutils",
     visibility = ["//intrinsic:internal_api_users"],
     deps = [
         "//intrinsic/assets/catalog/proto/v1:asset_catalog_go_proto",
@@ -249,6 +263,7 @@ go_library(
 go_library(
     name = "metadatautils",
     srcs = ["metadatautils.go"],
+    importpath = "intrinsic/assets/metadatautils",
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         ":idutils",
@@ -277,6 +292,7 @@ go_test(
     name = "metadatautils_test",
     srcs = ["metadatautils_test.go"],
     embed = [":metadatautils"],
+    importpath = "intrinsic/assets/metadatautils_test",
     deps = [
         "//intrinsic/assets:typeutils",
         "//intrinsic/assets/data/proto/v1:data_manifest_go_proto",
@@ -302,6 +318,7 @@ go_test(
 go_library(
     name = "interfaceutils",
     srcs = ["interfaceutils.go"],
+    importpath = "intrinsic/assets/interfaceutils",
     visibility = ["//intrinsic:public_api_users"],
     deps = ["@com_github_pkg_errors//:go_default_library"],
 )

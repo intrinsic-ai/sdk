@@ -13,6 +13,7 @@ go_library(
     embedsrcs = [
         "//intrinsic/tools/inctl/cmd/notebook/templates:empty_notebook.ipynb.template",  #keep
     ],
+    importpath = "intrinsic/tools/inctl/cmd/notebook/notebook",
     deps = [
         "//intrinsic/tools/inctl/cmd:root",
         "//intrinsic/tools/inctl/util:cobrautil",

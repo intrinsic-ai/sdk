@@ -17,6 +17,7 @@ bzl_library(
 go_library(
     name = "datagen",
     srcs = ["datagen.go"],
+    importpath = "intrinsic/assets/data/build_defs/datagen",
     visibility = ["//visibility:private"],
     deps = [
         "//intrinsic/assets/data:databundle",
@@ -37,6 +38,7 @@ go_library(
 go_binary(
     name = "datagen_main",
     srcs = ["datagen_main.go"],
+    importpath = "intrinsic/assets/data/build_defs/datagen_main",
     visibility = ["//visibility:private"],
     deps = [
         ":datagen",

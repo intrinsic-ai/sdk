@@ -20,6 +20,7 @@ bzl_library(
 go_library(
     name = "servicegen",
     srcs = ["servicegen.go"],
+    importpath = "intrinsic/assets/services/build_defs/servicegen",
     deps = [
         "//intrinsic/assets/services:servicebundle",
         "//intrinsic/assets/services/proto:service_manifest_go_proto",
@@ -35,6 +36,7 @@ go_library(
 go_binary(
     name = "servicegen_main",
     srcs = ["servicegen_main.go"],
+    importpath = "intrinsic/assets/services/build_defs/servicegen_main",
     deps = [
         ":servicegen",
         "//intrinsic/assets/services/proto:service_manifest_go_proto",

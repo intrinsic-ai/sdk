@@ -26,6 +26,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "floating_point_range_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/floating_point_range_go_proto",
     protos = ["floating_point_range_proto"],
 )
 
@@ -46,6 +47,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "integer_range_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/integer_range_go_proto",
     protos = ["integer_range_proto"],
 )
 
@@ -66,6 +68,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "list_parameters_result_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/list_parameters_result_go_proto",
     protos = ["list_parameters_result_proto"],
 )
 
@@ -87,6 +90,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "log_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/log_go_proto",
     protos = ["log_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:time_go_proto",
@@ -110,6 +114,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "logger_level_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/logger_level_go_proto",
     protos = ["logger_level_proto"],
 )
 
@@ -131,6 +136,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "parameter_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/parameter_go_proto",
     protos = ["parameter_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg:parameter_value_go_proto",
@@ -158,6 +164,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "parameter_descriptor_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/parameter_descriptor_go_proto",
     protos = ["parameter_descriptor_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg:floating_point_range_go_proto",
@@ -186,6 +193,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "parameter_event_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/parameter_event_go_proto",
     protos = ["parameter_event_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:time_go_proto",
@@ -211,6 +219,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "parameter_event_descriptors_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/parameter_event_descriptors_go_proto",
     protos = ["parameter_event_descriptors_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg:parameter_descriptor_go_proto",
@@ -234,6 +243,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "parameter_type_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/parameter_type_go_proto",
     protos = ["parameter_type_proto"],
 )
 
@@ -254,6 +264,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "parameter_value_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/parameter_value_go_proto",
     protos = ["parameter_value_proto"],
 )
 
@@ -274,6 +285,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "set_logger_levels_result_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/set_logger_levels_result_go_proto",
     protos = ["set_logger_levels_result_proto"],
 )
 
@@ -294,5 +306,6 @@ cc_proto_library(
 
 go_proto_library(
     name = "set_parameters_result_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg/set_parameters_result_go_proto",
     protos = ["set_parameters_result_proto"],
 )

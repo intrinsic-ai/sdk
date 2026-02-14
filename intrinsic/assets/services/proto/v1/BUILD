@@ -36,6 +36,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/assets/services/proto/v1/dynamic_reconfiguration_go_proto",
     protos = [":dynamic_reconfiguration_proto"],
     deps = [
         "@org_golang_google_protobuf//types/known/anypb",
@@ -81,6 +82,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/assets/services/proto/v1/service_state_go_proto",
     protos = [":service_state_proto"],
     deps = [
         "//intrinsic/util/status:extended_status_go_proto",
@@ -115,6 +117,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "service_inspection_go_proto",
+    importpath = "intrinsic/assets/services/proto/v1/service_inspection_go_proto",
     protos = [":service_inspection_proto"],
 )
 
@@ -130,6 +133,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/assets/services/proto/v1/system_service_state_go_proto",
     protos = [":system_service_state_proto"],
     deps = ["//intrinsic/util/status:extended_status_go_proto"],
 )

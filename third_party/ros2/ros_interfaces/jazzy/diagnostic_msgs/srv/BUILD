@@ -26,6 +26,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "add_diagnostics_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/diagnostic_msgs/srv/add_diagnostics_go_proto",
     protos = ["add_diagnostics_proto"],
 )
 
@@ -47,6 +48,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "self_test_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/diagnostic_msgs/srv/self_test_go_proto",
     protos = ["self_test_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/diagnostic_msgs/msg:diagnostic_status_go_proto",

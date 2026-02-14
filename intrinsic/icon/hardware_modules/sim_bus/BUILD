@@ -19,6 +19,7 @@ proto_library(
 
 go_proto_library(
     name = "sim_bus_hardware_module_go_proto",
+    importpath = "intrinsic/icon/hardware_modules/sim_bus/sim_bus_hardware_module_go_proto",
     protos = [":sim_bus_hardware_module_proto"],
     deps = [
         "//intrinsic/icon/server/config:dio_config_go_proto",

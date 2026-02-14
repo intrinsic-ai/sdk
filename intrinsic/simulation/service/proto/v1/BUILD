@@ -40,6 +40,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/simulation/service/proto/v1/simulation_service_go_proto",
     protos = [":simulation_service_proto"],
     deps = [
         "@org_golang_google_protobuf//types/known/emptypb",

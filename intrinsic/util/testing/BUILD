@@ -9,6 +9,7 @@ load("//bazel:go_macros.bzl", "go_library")
 go_library(
     name = "testio",
     srcs = ["test_io.go"],
+    importpath = "intrinsic/util/testing/testio",
     visibility = ["//intrinsic:intrinsic_internal"],
     deps = [
         "//intrinsic/util/path_resolver:pathresolver",

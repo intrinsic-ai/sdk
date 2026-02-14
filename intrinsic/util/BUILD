@@ -131,4 +131,5 @@ cc_library(
 go_library(
     name = "flag",
     srcs = ["flag.go"],
+    importpath = "intrinsic/util/flag",
 )

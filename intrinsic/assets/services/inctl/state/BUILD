@@ -7,6 +7,7 @@ package(default_visibility = ["//visibility:public"])
 go_library(
     name = "get",
     srcs = ["get.go"],
+    importpath = "intrinsic/assets/services/inctl/state/get",
     deps = [
         ":stateutils",
         "//intrinsic/assets:clientutils",
@@ -20,6 +21,7 @@ go_library(
 go_library(
     name = "list",
     srcs = ["list.go"],
+    importpath = "intrinsic/assets/services/inctl/state/list",
     deps = [
         ":stateutils",
         "//intrinsic/assets:clientutils",
@@ -33,6 +35,7 @@ go_library(
 go_library(
     name = "stateutils",
     srcs = ["stateutils.go"],
+    importpath = "intrinsic/assets/services/inctl/state/stateutils",
     deps = [
         "//intrinsic/assets/services/proto/v1:system_service_state_go_proto",
         "//intrinsic/tools/inctl/util:printer",
@@ -45,6 +48,7 @@ go_library(
 go_library(
     name = "state",
     srcs = ["state.go"],
+    importpath = "intrinsic/assets/services/inctl/state/state",
     deps = [
         ":disable",
         ":enable",
@@ -58,6 +62,7 @@ go_library(
 go_library(
     name = "disable",
     srcs = ["disable.go"],
+    importpath = "intrinsic/assets/services/inctl/state/disable",
     deps = [
         "//intrinsic/assets:clientutils",
         "//intrinsic/assets:cmdutils",
@@ -69,6 +74,7 @@ go_library(
 go_library(
     name = "enable",
     srcs = ["enable.go"],
+    importpath = "intrinsic/assets/services/inctl/state/enable",
     deps = [
         "//intrinsic/assets:clientutils",
         "//intrinsic/assets:cmdutils",
@@ -80,6 +86,7 @@ go_library(
 go_library(
     name = "restart",
     srcs = ["restart.go"],
+    importpath = "intrinsic/assets/services/inctl/state/restart",
     deps = [
         "//intrinsic/assets:clientutils",
         "//intrinsic/assets:cmdutils",

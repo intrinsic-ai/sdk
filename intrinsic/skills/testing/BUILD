@@ -130,6 +130,7 @@ py_proto_library(
 
 go_proto_library(
     name = "no_op_skill_go_proto",
+    importpath = "intrinsic/skills/testing/no_op_skill_go_proto",
     protos = [":no_op_skill_proto"],
     visibility = [
         "//intrinsic/skills/build_defs:__pkg__",
@@ -313,6 +314,7 @@ go_library(
     data = [
         "//intrinsic/skills/build_defs/tests:no_op_skill_cc_manifest",
     ],
+    importpath = "intrinsic/skills/testing/utils",
     visibility = ["//intrinsic:intrinsic_internal"],
     deps = [
         "//intrinsic/assets/proto:documentation_go_proto",

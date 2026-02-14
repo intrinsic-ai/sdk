@@ -175,6 +175,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "compute_ik_go_proto",
+    importpath = "intrinsic/motion_planning/proto/v1/compute_ik_go_proto",
     protos = [":compute_ik_proto"],
     deps = [
         "//intrinsic/icon/proto:joint_space_go_proto",
@@ -209,6 +210,7 @@ py_proto_library(
 
 go_proto_library(
     name = "motion_planner_config_go_proto",
+    importpath = "intrinsic/motion_planning/proto/v1/motion_planner_config_go_proto",
     protos = [":motion_planner_config_proto"],
 )
 

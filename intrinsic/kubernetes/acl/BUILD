@@ -11,6 +11,7 @@ package(default_visibility = [
 go_library(
     name = "headers",
     srcs = ["headers.go"],
+    importpath = "intrinsic/kubernetes/acl/headers",
     deps = [
         ":org",
         "//intrinsic/stats/go:telemetry",
@@ -23,6 +24,7 @@ go_library(
 go_library(
     name = "cookies",
     srcs = ["cookies.go"],
+    importpath = "intrinsic/kubernetes/acl/cookies",
     deps = [
         "@com_github_golang_glog//:go_default_library",
         "@io_opencensus_go//trace:go_default_library",
@@ -33,12 +35,14 @@ go_library(
 go_library(
     name = "jwt",
     srcs = ["jwt.go"],
+    importpath = "intrinsic/kubernetes/acl/jwt",
     deps = ["@com_github_pkg_errors//:go_default_library"],
 )
 
 go_library(
     name = "org",
     srcs = ["org.go"],
+    importpath = "intrinsic/kubernetes/acl/org",
     deps = [
         "@com_github_golang_glog//:go_default_library",
         "@com_github_rs_xid//:go_default_library",
@@ -48,6 +52,7 @@ go_library(
 go_library(
     name = "identity",
     srcs = ["identity.go"],
+    importpath = "intrinsic/kubernetes/acl/identity",
     deps = [
         ":cookies",
         ":headers",

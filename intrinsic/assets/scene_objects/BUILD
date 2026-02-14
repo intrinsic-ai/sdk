@@ -5,6 +5,7 @@ load("//bazel:go_macros.bzl", "go_library")
 go_library(
     name = "sceneobjectvalidate",
     srcs = ["sceneobjectvalidate.go"],
+    importpath = "intrinsic/assets/scene_objects/sceneobjectvalidate",
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/assets:idutils",

@@ -17,6 +17,7 @@ bzl_library(
 go_library(
     name = "processgen",
     srcs = ["processgen.go"],
+    importpath = "intrinsic/assets/processes/build_defs/processgen",
     deps = [
         "//intrinsic/assets/processes:processbundle",
         "//intrinsic/assets/processes/proto:process_manifest_go_proto",
@@ -32,6 +33,7 @@ go_library(
 go_binary(
     name = "processgen_main",
     srcs = ["processgen_main.go"],
+    importpath = "intrinsic/assets/processes/build_defs/processgen_main",
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         ":processgen",

@@ -21,5 +21,6 @@ cc_proto_library(
 
 go_proto_library(
     name = "hal_part_config_go_proto",
+    importpath = "intrinsic/icon/control/parts/hal/v1/hal_part_config_go_proto",
     protos = [":hal_part_config_proto"],
 )

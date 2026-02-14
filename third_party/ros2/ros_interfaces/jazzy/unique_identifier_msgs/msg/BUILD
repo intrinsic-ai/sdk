@@ -26,5 +26,6 @@ cc_proto_library(
 
 go_proto_library(
     name = "uuid_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/unique_identifier_msgs/msg/uuid_go_proto",
     protos = ["uuid_proto"],
 )

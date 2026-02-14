@@ -31,6 +31,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "arrays_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/arrays_go_proto",
     protos = ["arrays_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:basic_types_go_proto",
@@ -56,6 +57,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "basic_types_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/basic_types_go_proto",
     protos = ["basic_types_proto"],
 )
 
@@ -81,6 +83,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "bounded_plain_sequences_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/bounded_plain_sequences_go_proto",
     protos = ["bounded_plain_sequences_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:basic_types_go_proto",
@@ -111,6 +114,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "bounded_sequences_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/bounded_sequences_go_proto",
     protos = ["bounded_sequences_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:basic_types_go_proto",
@@ -140,6 +144,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "builtins_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/builtins_go_proto",
     protos = ["builtins_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:duration_go_proto",
@@ -164,6 +169,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "constants_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/constants_go_proto",
     protos = ["constants_proto"],
 )
 
@@ -184,6 +190,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "defaults_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/defaults_go_proto",
     protos = ["defaults_proto"],
 )
 
@@ -204,6 +211,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "empty_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/empty_go_proto",
     protos = ["empty_proto"],
 )
 
@@ -229,6 +237,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "multi_nested_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/multi_nested_go_proto",
     protos = ["multi_nested_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:arrays_go_proto",
@@ -255,6 +264,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "nested_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/nested_go_proto",
     protos = ["nested_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:basic_types_go_proto",
@@ -278,6 +288,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "strings_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/strings_go_proto",
     protos = ["strings_proto"],
 )
 
@@ -303,6 +314,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "unbounded_sequences_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/unbounded_sequences_go_proto",
     protos = ["unbounded_sequences_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/test_msgs/msg:basic_types_go_proto",
@@ -328,5 +340,6 @@ cc_proto_library(
 
 go_proto_library(
     name = "w_strings_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/test_msgs/msg/w_strings_go_proto",
     protos = ["w_strings_proto"],
 )

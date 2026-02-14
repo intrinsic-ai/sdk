@@ -30,6 +30,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "scene_object_manifest_go_proto",
+    importpath = "intrinsic/assets/scene_objects/proto/scene_object_manifest_go_proto",
     protos = [":scene_object_manifest_proto"],
     deps = [
         "//intrinsic/assets/proto:asset_tag_go_proto",

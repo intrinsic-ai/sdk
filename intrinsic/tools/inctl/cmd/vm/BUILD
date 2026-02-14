@@ -14,6 +14,7 @@ go_library(
         "return.go",
         "vm.go",
     ],
+    importpath = "intrinsic/tools/inctl/cmd/vm/vm",
     visibility = [
         "//intrinsic/assets:__pkg__",
         "//intrinsic/tools/inctl:__subpackages__",

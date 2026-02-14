@@ -20,6 +20,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/frontend/any_conversion_service/v1/any_conversion_service_go_proto",
     protos = [":any_conversion_service_proto"],
     deps = [
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",

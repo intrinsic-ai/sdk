@@ -58,6 +58,7 @@ py_test(
 go_library(
     name = "environments",
     srcs = ["environments.go"],
+    importpath = "intrinsic/config/environments",
     visibility = [
         "//visibility:public",
     ],
@@ -67,11 +68,13 @@ go_test(
     name = "environments_test",
     srcs = ["environments_test.go"],
     embed = [":environments"],
+    importpath = "intrinsic/config/environments_test",
 )
 
 go_library(
     name = "operationmode",
     srcs = ["operation_mode.go"],
+    importpath = "intrinsic/config/operationmode",
     deps = ["//intrinsic/config/proto:operation_mode_go_proto"],
 )
 
@@ -79,5 +82,6 @@ go_test(
     name = "operationmode_test",
     srcs = ["operation_mode_test.go"],
     embed = [":operationmode"],
+    importpath = "intrinsic/config/operationmode_test",
     deps = ["//intrinsic/config/proto:operation_mode_go_proto"],
 )

@@ -123,6 +123,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "adio_go_proto",
+    importpath = "intrinsic/icon/actions/adio_go_proto",
     protos = [":adio_proto"],
 )
 

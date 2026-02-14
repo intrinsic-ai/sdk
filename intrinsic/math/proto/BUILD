@@ -26,6 +26,7 @@ py_proto_library(
 
 go_proto_library(
     name = "array_go_proto",
+    importpath = "intrinsic/math/proto/array_go_proto",
     protos = [":array_proto"],
 )
 
@@ -46,6 +47,7 @@ py_proto_library(
 
 go_proto_library(
     name = "point_go_proto",
+    importpath = "intrinsic/math/proto/point_go_proto",
     protos = [":point_proto"],
 )
 
@@ -66,6 +68,7 @@ py_proto_library(
 
 go_proto_library(
     name = "quaternion_go_proto",
+    importpath = "intrinsic/math/proto/quaternion_go_proto",
     protos = [":quaternion_proto"],
 )
 
@@ -90,6 +93,7 @@ py_proto_library(
 
 go_proto_library(
     name = "pose_go_proto",
+    importpath = "intrinsic/math/proto/pose_go_proto",
     protos = [":pose_proto"],
     deps = [
         ":point_go_proto",
@@ -118,6 +122,7 @@ py_proto_library(
 
 go_proto_library(
     name = "affine_go_proto",
+    importpath = "intrinsic/math/proto/affine_go_proto",
     protos = [":affine_proto"],
     deps = [
         ":matrix_go_proto",
@@ -142,6 +147,7 @@ py_proto_library(
 
 go_proto_library(
     name = "matrix_go_proto",
+    importpath = "intrinsic/math/proto/matrix_go_proto",
     protos = [":matrix_proto"],
 )
 
@@ -160,6 +166,7 @@ py_proto_library(
 
 go_proto_library(
     name = "accel_go_proto",
+    importpath = "intrinsic/math/proto/accel_go_proto",
     protos = [":accel_proto"],
     deps = [
         ":vector3_go_proto",
@@ -186,6 +193,7 @@ py_proto_library(
 
 go_proto_library(
     name = "twist_go_proto",
+    importpath = "intrinsic/math/proto/twist_go_proto",
     protos = [":twist_proto"],
     deps = [
         ":vector3_go_proto",
@@ -214,6 +222,7 @@ py_proto_library(
 
 go_proto_library(
     name = "vector2_go_proto",
+    importpath = "intrinsic/math/proto/vector2_go_proto",
     protos = [":vector2_proto"],
 )
 
@@ -229,6 +238,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "vector3_go_proto",
+    importpath = "intrinsic/math/proto/vector3_go_proto",
     protos = [":vector3_proto"],
 )
 
@@ -274,6 +284,7 @@ py_proto_library(
 
 go_proto_library(
     name = "header_go_proto",
+    importpath = "intrinsic/math/proto/header_go_proto",
     protos = [":header_proto"],
 )
 
@@ -298,6 +309,7 @@ py_proto_library(
 
 go_proto_library(
     name = "transform_go_proto",
+    importpath = "intrinsic/math/proto/transform_go_proto",
     protos = [":transform_proto"],
     deps = [
         ":quaternion_go_proto",
@@ -326,6 +338,7 @@ py_proto_library(
 
 go_proto_library(
     name = "transform_stamped_go_proto",
+    importpath = "intrinsic/math/proto/transform_stamped_go_proto",
     protos = [":transform_stamped_proto"],
     deps = [
         ":header_go_proto",
@@ -353,6 +366,7 @@ py_proto_library(
 
 go_proto_library(
     name = "tf_message_go_proto",
+    importpath = "intrinsic/math/proto/tf_message_go_proto",
     protos = [":tf_message_proto"],
     deps = [
         ":transform_stamped_go_proto",

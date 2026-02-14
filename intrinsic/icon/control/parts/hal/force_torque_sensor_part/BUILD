@@ -20,6 +20,7 @@ proto_library(
 
 go_proto_library(
     name = "hal_force_torque_sensor_part_config_go_proto",
+    importpath = "intrinsic/icon/control/parts/hal/force_torque_sensor_part/hal_force_torque_sensor_part_config_go_proto",
     protos = [":hal_force_torque_sensor_part_config_proto"],
     deps = [
         "//intrinsic/icon/control/parts/hal/v1:hal_part_config_go_proto",

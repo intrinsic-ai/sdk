@@ -29,6 +29,7 @@ proto_library(
 
 go_proto_library(
     name = "service_manifest_go_proto",
+    importpath = "intrinsic/assets/services/proto/service_manifest_go_proto",
     protos = [":service_manifest_proto"],
     deps = [
         ":env_var_go_proto",
@@ -56,6 +57,7 @@ proto_library(
 
 go_proto_library(
     name = "env_var_go_proto",
+    importpath = "intrinsic/assets/services/proto/env_var_go_proto",
     protos = [":env_var_proto"],
 )
 
@@ -71,6 +73,7 @@ proto_library(
 
 go_proto_library(
     name = "service_http_config_go_proto",
+    importpath = "intrinsic/assets/services/proto/service_http_config_go_proto",
     protos = [":service_http_config_proto"],
 )
 
@@ -86,6 +89,7 @@ proto_library(
 
 go_proto_library(
     name = "service_volume_go_proto",
+    importpath = "intrinsic/assets/services/proto/service_volume_go_proto",
     protos = [":service_volume_proto"],
 )
 
@@ -101,6 +105,7 @@ proto_library(
 
 go_proto_library(
     name = "service_permissions_go_proto",
+    importpath = "intrinsic/assets/services/proto/service_permissions_go_proto",
     protos = [":service_permissions_proto"],
 )
 

@@ -6,6 +6,7 @@ go_library(
     name = "utils",
     testonly = True,
     srcs = ["utils.go"],
+    importpath = "intrinsic/assets/data/testing/utils",
     visibility = ["//intrinsic:intrinsic_internal"],
     deps = [
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",

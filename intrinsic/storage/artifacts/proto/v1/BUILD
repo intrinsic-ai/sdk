@@ -19,6 +19,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/storage/artifacts/proto/v1/artifact_go_proto",
     protos = [":artifact_proto"],
 )
 
@@ -33,6 +34,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/storage/artifacts/proto/v1/articat_go_proto",
     protos = [
         ":articat_proto",
     ],

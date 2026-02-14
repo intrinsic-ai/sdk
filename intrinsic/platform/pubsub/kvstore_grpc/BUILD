@@ -30,6 +30,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/platform/pubsub/kvstore_grpc/kvstore_go_proto",
     protos = [":kvstore_proto"],
 )
 

@@ -27,6 +27,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "describe_parameters_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/srv/describe_parameters_go_proto",
     protos = ["describe_parameters_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg:parameter_descriptor_go_proto",
@@ -51,6 +52,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "get_logger_levels_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/srv/get_logger_levels_go_proto",
     protos = ["get_logger_levels_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg:logger_level_go_proto",
@@ -74,6 +76,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "get_parameter_types_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/srv/get_parameter_types_go_proto",
     protos = ["get_parameter_types_proto"],
 )
 
@@ -95,6 +98,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "get_parameters_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/srv/get_parameters_go_proto",
     protos = ["get_parameters_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg:parameter_value_go_proto",
@@ -119,6 +123,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "list_parameters_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/srv/list_parameters_go_proto",
     protos = ["list_parameters_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg:list_parameters_result_go_proto",
@@ -146,6 +151,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "set_logger_levels_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/srv/set_logger_levels_go_proto",
     protos = ["set_logger_levels_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg:logger_level_go_proto",
@@ -174,6 +180,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "set_parameters_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/srv/set_parameters_go_proto",
     protos = ["set_parameters_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg:parameter_go_proto",
@@ -202,6 +209,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "set_parameters_atomically_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/srv/set_parameters_atomically_go_proto",
     protos = ["set_parameters_atomically_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/rcl_interfaces/msg:parameter_go_proto",

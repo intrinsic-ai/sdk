@@ -165,6 +165,7 @@ py_library(
 go_library(
     name = "grpclimits",
     srcs = ["limits.go"],
+    importpath = "intrinsic/util/grpc/grpclimits",
     visibility = ["//intrinsic:public_api_users"],
 )
 
@@ -204,6 +205,7 @@ py_test(
 go_library(
     name = "statusutil",
     srcs = ["status_util.go"],
+    importpath = "intrinsic/util/grpc/statusutil",
     deps = [
         "@com_github_golang_glog//:go_default_library",
         "@org_golang_google_grpc//codes:go_default_library",
@@ -215,6 +217,7 @@ go_test(
     name = "statusutil_test",
     srcs = ["status_util_test.go"],
     embed = [":statusutil"],
+    importpath = "intrinsic/util/grpc/statusutil_test",
     deps = [
         "//intrinsic/testing:grpctest",
         "//intrinsic/util/grpc/testing:ping_go_proto",

@@ -28,6 +28,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/resources/proto/resource_registry_go_proto",
     protos = [":resource_registry_proto"],
     deps = [
         "//intrinsic/assets/proto:metadata_go_proto",
@@ -83,6 +84,7 @@ py_proto_library(
 
 go_proto_library(
     name = "resource_handle_go_proto",
+    importpath = "intrinsic/resources/proto/resource_handle_go_proto",
     protos = [":resource_handle_proto"],
 )
 
@@ -101,6 +103,7 @@ py_proto_library(
 
 go_proto_library(
     name = "runtime_context_go_proto",
+    importpath = "intrinsic/resources/proto/runtime_context_go_proto",
     protos = [":runtime_context_proto"],
 )
 

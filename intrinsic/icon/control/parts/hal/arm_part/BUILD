@@ -21,6 +21,7 @@ proto_library(
 
 go_proto_library(
     name = "hal_arm_part_config_go_proto",
+    importpath = "intrinsic/icon/control/parts/hal/arm_part/hal_arm_part_config_go_proto",
     protos = [":hal_arm_part_config_proto"],
     visibility = [
         "//intrinsic:intrinsic_internal",

@@ -23,6 +23,7 @@ proto_library(
 
 go_proto_library(
     name = "eoat_service_go_proto",
+    importpath = "intrinsic/hardware/gripper/eoat/eoat_service_go_proto",
     protos = [":eoat_service_proto"],
     deps = [
         "//intrinsic/hardware/gpio/v1:gpio_service_go_proto",
@@ -63,6 +64,7 @@ proto_library(
 
 go_proto_library(
     name = "gripper_config_go_proto",
+    importpath = "intrinsic/hardware/gripper/eoat/gripper_config_go_proto",
     protos = [":gripper_config_proto"],
     deps = [
         "//intrinsic/hardware/gpio/v1:signal_go_proto",

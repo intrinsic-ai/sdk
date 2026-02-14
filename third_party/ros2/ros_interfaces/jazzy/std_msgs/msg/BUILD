@@ -26,6 +26,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "bool_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/bool_go_proto",
     protos = ["bool_proto"],
 )
 
@@ -46,6 +47,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "byte_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/byte_go_proto",
     protos = ["byte_proto"],
 )
 
@@ -67,6 +69,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "byte_multi_array_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/byte_multi_array_go_proto",
     protos = ["byte_multi_array_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:multi_array_layout_go_proto",
@@ -90,6 +93,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "char_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/char_go_proto",
     protos = ["char_proto"],
 )
 
@@ -110,6 +114,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "color_rgba_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/color_rgba_go_proto",
     protos = ["color_rgba_proto"],
 )
 
@@ -130,6 +135,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "empty_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/empty_go_proto",
     protos = ["empty_proto"],
 )
 
@@ -150,6 +156,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "float32_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/float32_go_proto",
     protos = ["float32_proto"],
 )
 
@@ -171,6 +178,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "float32_multi_array_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/float32_multi_array_go_proto",
     protos = ["float32_multi_array_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:multi_array_layout_go_proto",
@@ -194,6 +202,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "float64_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/float64_go_proto",
     protos = ["float64_proto"],
 )
 
@@ -215,6 +224,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "float64_multi_array_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/float64_multi_array_go_proto",
     protos = ["float64_multi_array_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:multi_array_layout_go_proto",
@@ -239,6 +249,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "header_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/header_go_proto",
     protos = ["header_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:time_go_proto",
@@ -262,6 +273,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "int16_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/int16_go_proto",
     protos = ["int16_proto"],
 )
 
@@ -283,6 +295,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "int16_multi_array_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/int16_multi_array_go_proto",
     protos = ["int16_multi_array_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:multi_array_layout_go_proto",
@@ -306,6 +319,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "int32_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/int32_go_proto",
     protos = ["int32_proto"],
 )
 
@@ -327,6 +341,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "int32_multi_array_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/int32_multi_array_go_proto",
     protos = ["int32_multi_array_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:multi_array_layout_go_proto",
@@ -350,6 +365,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "int64_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/int64_go_proto",
     protos = ["int64_proto"],
 )
 
@@ -371,6 +387,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "int64_multi_array_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/int64_multi_array_go_proto",
     protos = ["int64_multi_array_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:multi_array_layout_go_proto",
@@ -394,6 +411,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "int8_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/int8_go_proto",
     protos = ["int8_proto"],
 )
 
@@ -415,6 +433,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "int8_multi_array_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/int8_multi_array_go_proto",
     protos = ["int8_multi_array_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:multi_array_layout_go_proto",
@@ -438,6 +457,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "multi_array_dimension_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/multi_array_dimension_go_proto",
     protos = ["multi_array_dimension_proto"],
 )
 
@@ -459,6 +479,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "multi_array_layout_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/multi_array_layout_go_proto",
     protos = ["multi_array_layout_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:multi_array_dimension_go_proto",
@@ -482,6 +503,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "string_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/string_go_proto",
     protos = ["string_proto"],
 )
 
@@ -502,6 +524,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "u_int16_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/u_int16_go_proto",
     protos = ["u_int16_proto"],
 )
 
@@ -523,6 +546,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "u_int16_multi_array_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/u_int16_multi_array_go_proto",
     protos = ["u_int16_multi_array_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:multi_array_layout_go_proto",
@@ -546,6 +570,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "u_int32_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/u_int32_go_proto",
     protos = ["u_int32_proto"],
 )
 
@@ -567,6 +592,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "u_int32_multi_array_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/u_int32_multi_array_go_proto",
     protos = ["u_int32_multi_array_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:multi_array_layout_go_proto",
@@ -590,6 +616,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "u_int64_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/u_int64_go_proto",
     protos = ["u_int64_proto"],
 )
 
@@ -611,6 +638,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "u_int64_multi_array_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/u_int64_multi_array_go_proto",
     protos = ["u_int64_multi_array_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:multi_array_layout_go_proto",
@@ -634,6 +662,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "u_int8_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/u_int8_go_proto",
     protos = ["u_int8_proto"],
 )
 
@@ -655,6 +684,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "u_int8_multi_array_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/std_msgs/msg/u_int8_multi_array_go_proto",
     protos = ["u_int8_multi_array_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:multi_array_layout_go_proto",

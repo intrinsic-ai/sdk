@@ -22,6 +22,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/kubernetes/accounts/service/api/v1/discoveryapi_go_proto",
     protos = [
         ":discoveryapi_proto",
     ],

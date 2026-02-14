@@ -14,6 +14,7 @@ go_library(
         "server.go",
         "visualize.go",
     ],
+    importpath = "intrinsic/tools/inctl/cmd/recordings/recordings",
     deps = [
         "//intrinsic/assets:cmdutils",
         "//intrinsic/kubernetes/vmpool/manager/api/v1:lease_api_go_proto",
@@ -46,6 +47,7 @@ go_test(
         "visualize_test.go",
     ],
     embed = [":recordings"],
+    importpath = "intrinsic/tools/inctl/cmd/recordings/recordings_test",
     deps = [
         "//intrinsic/kubernetes/vmpool/manager/api/v1:lease_api_go_proto",
         "//intrinsic/logging/proto:bag_metadata_go_proto",

@@ -7,6 +7,7 @@ package(default_visibility = ["//intrinsic/tools/inbuild:__subpackages__"])
 go_library(
     name = "bundle",
     srcs = ["bundle.go"],
+    importpath = "intrinsic/tools/inbuild/cmd/service/bundle",
     deps = [
         "//intrinsic/assets/services/build_defs:servicegen",
         "//intrinsic/assets/services/proto:service_manifest_go_proto",
@@ -18,6 +19,7 @@ go_library(
 go_library(
     name = "service",
     srcs = ["service.go"],
+    importpath = "intrinsic/tools/inbuild/cmd/service/service",
     deps = [
         ":bundle",
         "@com_github_spf13_cobra//:go_default_library",
@@ -33,6 +35,7 @@ go_test(
         "//intrinsic/tools/inbuild/cmd/service/test_data:example_service_py_image.tar",
     ],
     embed = [":bundle"],
+    importpath = "intrinsic/tools/inbuild/cmd/service/bundle_test",
     deps = [
         "//intrinsic/assets/services:servicebundle",
         "//intrinsic/tools/inbuild/cmd/service/test_data:example_service_go_proto",

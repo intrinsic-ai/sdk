@@ -26,6 +26,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "query_calibration_state_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/control_msgs/srv/query_calibration_state_go_proto",
     protos = ["query_calibration_state_proto"],
 )
 
@@ -47,6 +48,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "query_trajectory_state_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/control_msgs/srv/query_trajectory_state_go_proto",
     protos = ["query_trajectory_state_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:time_go_proto",

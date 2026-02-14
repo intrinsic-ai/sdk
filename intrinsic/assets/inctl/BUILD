@@ -7,6 +7,7 @@ package(default_visibility = ["//visibility:public"])
 go_library(
     name = "assetcmd",
     srcs = ["assetcmd.go"],
+    importpath = "intrinsic/assets/inctl/assetcmd",
     deps = [
         ":getreleased",
         ":install",
@@ -24,6 +25,7 @@ go_library(
 go_library(
     name = "assetviews",
     srcs = ["assetviews.go"],
+    importpath = "intrinsic/assets/inctl/assetviews",
     deps = [
         "//intrinsic/assets:idutils",
         "//intrinsic/assets/proto:metadata_go_proto",
@@ -35,6 +37,7 @@ go_test(
     name = "assetviews_test",
     srcs = ["assetviews_test.go"],
     embed = [":assetviews"],
+    importpath = "intrinsic/assets/inctl/assetviews_test",
     deps = [
         "//intrinsic/assets/catalog/proto/v1:asset_catalog_go_proto",
         "//intrinsic/assets/proto:asset_type_go_proto",
@@ -49,6 +52,7 @@ go_test(
 go_library(
     name = "getreleased",
     srcs = ["getreleased.go"],
+    importpath = "intrinsic/assets/inctl/getreleased",
     deps = [
         "//intrinsic/assets:clientutils",
         "//intrinsic/assets:cmdutils",
@@ -63,6 +67,7 @@ go_library(
 go_library(
     name = "install",
     srcs = ["install.go"],
+    importpath = "intrinsic/assets/inctl/install",
     deps = [
         "//intrinsic/assets:bundle",
         "//intrinsic/assets:clientutils",
@@ -83,6 +88,7 @@ go_library(
 go_library(
     name = "list",
     srcs = ["list.go"],
+    importpath = "intrinsic/assets/inctl/list",
     deps = [
         ":assetviews",
         "//intrinsic/assets:clientutils",
@@ -98,6 +104,7 @@ go_library(
 go_library(
     name = "listreleased",
     srcs = ["listreleased.go"],
+    importpath = "intrinsic/assets/inctl/listreleased",
     deps = [
         "//intrinsic/assets:clientutils",
         "//intrinsic/assets:cmdutils",
@@ -115,6 +122,7 @@ go_library(
 go_library(
     name = "listreleasedversions",
     srcs = ["listreleasedversions.go"],
+    importpath = "intrinsic/assets/inctl/listreleasedversions",
     deps = [
         ":assetviews",
         "//intrinsic/assets:clientutils",
@@ -133,6 +141,7 @@ go_library(
 go_library(
     name = "release",
     srcs = ["release.go"],
+    importpath = "intrinsic/assets/inctl/release",
     deps = [
         "//intrinsic/assets:bundle",
         "//intrinsic/assets:clientutils",
@@ -158,6 +167,7 @@ go_library(
 go_library(
     name = "uninstall",
     srcs = ["uninstall.go"],
+    importpath = "intrinsic/assets/inctl/uninstall",
     deps = [
         "//intrinsic/assets:clientutils",
         "//intrinsic/assets:cmdutils",
@@ -172,6 +182,7 @@ go_library(
 go_library(
     name = "updatereleasemetadata",
     srcs = ["updatereleasemetadata.go"],
+    importpath = "intrinsic/assets/inctl/updatereleasemetadata",
     deps = [
         "//intrinsic/assets:clientutils",
         "//intrinsic/assets:cmdutils",

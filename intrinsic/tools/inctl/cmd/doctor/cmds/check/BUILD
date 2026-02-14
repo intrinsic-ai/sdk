@@ -10,6 +10,7 @@ go_library(
         "check.go",
         "topological_sort.go",
     ],
+    importpath = "intrinsic/tools/inctl/cmd/doctor/cmds/check/check",
     deps = [
         "//intrinsic/tools/inctl/cmd/doctor/api",
         "//intrinsic/tools/inctl/cmd/doctor/checks",
@@ -25,5 +26,6 @@ go_test(
     name = "check_test",
     srcs = ["topological_sort_test.go"],
     embed = [":check"],
+    importpath = "intrinsic/tools/inctl/cmd/doctor/cmds/check/check_test",
     deps = ["@com_github_google_go_cmp//cmp:go_default_library"],
 )

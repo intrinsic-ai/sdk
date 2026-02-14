@@ -12,5 +12,6 @@ proto_library(
 
 go_proto_library(
     name = "report_go_proto",
+    importpath = "intrinsic/tools/inctl/cmd/doctor/proto/v1/report_go_proto",
     protos = [":report_proto"],
 )

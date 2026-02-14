@@ -17,6 +17,7 @@ proto_library(
 
 go_proto_library(
     name = "sim_hardware_module_config_go_proto",
+    importpath = "intrinsic/simulation/gazebo/plugins/sim_hardware_module_config_go_proto",
     protos = [":sim_hardware_module_config_proto"],
 )
 

@@ -7,12 +7,14 @@ package(default_visibility = ["//intrinsic:internal_api_users"])
 go_library(
     name = "behaviortree",
     srcs = ["behavior_tree_visitor.go"],
+    importpath = "intrinsic/executive/go/behaviortree",
     deps = ["//intrinsic/executive/proto:behavior_tree_go_proto"],
 )
 
 go_test(
     name = "behaviortreevisitor_test",
     srcs = ["behavior_tree_visitor_test.go"],
+    importpath = "intrinsic/executive/go/behaviortreevisitor_test",
     deps = [
         ":behaviortree",
         "//intrinsic/executive/proto:behavior_tree_go_proto",

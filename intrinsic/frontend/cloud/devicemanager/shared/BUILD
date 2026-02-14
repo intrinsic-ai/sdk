@@ -11,4 +11,5 @@ package(default_visibility = [
 go_library(
     name = "shared",
     srcs = ["shared.go"],
+    importpath = "intrinsic/frontend/cloud/devicemanager/shared/shared",
 )

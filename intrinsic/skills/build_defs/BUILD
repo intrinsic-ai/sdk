@@ -32,6 +32,7 @@ bzl_library(
 go_binary(
     name = "skillmanifestgen",
     srcs = ["skillmanifestgen.go"],
+    importpath = "intrinsic/skills/build_defs/skillmanifestgen",
     visibility = ["//visibility:public"],
     deps = [
         "//intrinsic/production:intrinsic",
@@ -48,6 +49,7 @@ go_binary(
 go_library(
     name = "skillgen",
     srcs = ["skillgen.go"],
+    importpath = "intrinsic/skills/build_defs/skillgen",
     visibility = ["//visibility:public"],
     deps = [
         "//intrinsic/production:intrinsic",
@@ -62,6 +64,7 @@ go_library(
 go_binary(
     name = "skillgen_main",
     srcs = ["skillgen_main.go"],
+    importpath = "intrinsic/skills/build_defs/skillgen_main",
     visibility = ["//visibility:public"],
     deps = [
         ":skillgen",
@@ -77,6 +80,7 @@ go_binary(
 go_library(
     name = "skillserviceconfiggen",
     srcs = ["skillserviceconfiggen.go"],
+    importpath = "intrinsic/skills/build_defs/skillserviceconfiggen",
     visibility = ["//intrinsic/tools/inbuild:__subpackages__"],
     deps = [
         "//intrinsic/assets:idutils",
@@ -92,6 +96,7 @@ go_library(
 go_binary(
     name = "skillserviceconfiggen_main",
     srcs = ["skillserviceconfiggen_main.go"],
+    importpath = "intrinsic/skills/build_defs/skillserviceconfiggen_main",
     visibility = ["//visibility:public"],
     deps = [
         ":skillserviceconfiggen",

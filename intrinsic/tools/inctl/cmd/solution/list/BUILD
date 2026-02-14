@@ -5,6 +5,7 @@ load("//bazel:go_macros.bzl", "go_library")
 go_library(
     name = "list",
     srcs = ["list.go"],
+    importpath = "intrinsic/tools/inctl/cmd/solution/list/list",
     visibility = ["//intrinsic/tools/inctl/cmd/solution:__pkg__"],
     deps = [
         "//intrinsic/frontend/cloud/api/v1:clusterdiscovery_api_go_proto",

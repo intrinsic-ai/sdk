@@ -27,6 +27,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "model_coefficients_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/pcl_msgs/msg/model_coefficients_go_proto",
     protos = ["model_coefficients_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
@@ -51,6 +52,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "point_indices_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/pcl_msgs/msg/point_indices_go_proto",
     protos = ["point_indices_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/std_msgs/msg:header_go_proto",
@@ -79,6 +81,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "polygon_mesh_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/pcl_msgs/msg/polygon_mesh_go_proto",
     protos = ["polygon_mesh_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/pcl_msgs/msg:vertices_go_proto",
@@ -104,5 +107,6 @@ cc_proto_library(
 
 go_proto_library(
     name = "vertices_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/pcl_msgs/msg/vertices_go_proto",
     protos = ["vertices_proto"],
 )

@@ -7,6 +7,7 @@ load("//intrinsic/assets/services/build_defs:services.bzl", "intrinsic_service")
 go_library(
     name = "volumemount",
     srcs = ["volumemount.go"],
+    importpath = "intrinsic/assets/services/examples/volume_mount/volumemount",
     deps = [
         "//intrinsic/assets/services/examples/volume_mount/proto/v1:volume_mount_go_proto",
         "@org_golang_google_grpc//codes:go_default_library",
@@ -18,6 +19,7 @@ go_test(
     name = "volumemount_test",
     srcs = ["volumemount_test.go"],
     embed = [":volumemount"],
+    importpath = "intrinsic/assets/services/examples/volume_mount/volumemount_test",
     deps = [
         "//intrinsic/assets/services/examples/volume_mount/proto/v1:volume_mount_go_proto",
         "@com_github_google_go_cmp//cmp:go_default_library",
@@ -28,6 +30,7 @@ go_test(
 go_binary(
     name = "volumemount_main",
     srcs = ["volumemount_main.go"],
+    importpath = "intrinsic/assets/services/examples/volume_mount/volumemount_main",
     deps = [
         ":volumemount",
         "//intrinsic/assets/services:config",

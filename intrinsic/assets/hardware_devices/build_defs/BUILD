@@ -15,6 +15,7 @@ bzl_library(
 go_library(
     name = "hardwaredevicegen",
     srcs = ["hardwaredevicegen.go"],
+    importpath = "intrinsic/assets/hardware_devices/build_defs/hardwaredevicegen",
     visibility = ["//visibility:private"],
     deps = [
         "//intrinsic/assets:idutils",
@@ -29,6 +30,7 @@ go_library(
 go_binary(
     name = "hardwaredevicegen_main",
     srcs = ["hardwaredevicegen_main.go"],
+    importpath = "intrinsic/assets/hardware_devices/build_defs/hardwaredevicegen_main",
     visibility = ["//visibility:private"],
     deps = [
         ":hardwaredevicegen",

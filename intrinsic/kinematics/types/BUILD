@@ -61,6 +61,7 @@ py_proto_library(
 
 go_proto_library(
     name = "joint_limits_go_proto",
+    importpath = "intrinsic/kinematics/types/joint_limits_go_proto",
     protos = [":joint_limits_proto"],
 )
 
@@ -100,6 +101,7 @@ py_proto_library(
 
 go_proto_library(
     name = "dynamic_limits_check_mode_go_proto",
+    importpath = "intrinsic/kinematics/types/dynamic_limits_check_mode_go_proto",
     protos = [":dynamic_limits_check_mode_proto"],
 )
 

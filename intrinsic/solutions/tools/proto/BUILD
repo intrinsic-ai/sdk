@@ -16,5 +16,6 @@ proto_library(
 go_proto_library(
     name = "my_msg_go_proto",
     testonly = True,
+    importpath = "intrinsic/solutions/tools/proto/my_msg_go_proto",
     protos = [":my_msg_proto"],
 )

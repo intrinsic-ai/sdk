@@ -25,6 +25,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "bag_metadata_go_proto",
+    importpath = "intrinsic/logging/proto/bag_metadata_go_proto",
     protos = [":bag_metadata_proto"],
 )
 
@@ -61,6 +62,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/logging/proto/bag_packager_service_go_proto",
     protos = [":bag_packager_service"],
     deps = [":bag_metadata_go_proto"],
 )
@@ -89,6 +91,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "blob_go_proto",
+    importpath = "intrinsic/logging/proto/blob_go_proto",
     protos = [":blob_proto"],
 )
 
@@ -109,6 +112,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "context_go_proto",
+    importpath = "intrinsic/logging/proto/context_go_proto",
     protos = [":context_proto"],
     visibility = ["//intrinsic:intrinsic_internal"],
 )
@@ -131,6 +135,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "critical_event_log_go_proto",
+    importpath = "intrinsic/logging/proto/critical_event_log_go_proto",
     protos = [":critical_event_log"],
 )
 
@@ -155,6 +160,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "downsampler_go_proto",
+    importpath = "intrinsic/logging/proto/downsampler_go_proto",
     protos = [":downsampler_proto"],
 )
 
@@ -176,6 +182,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "flowstate_event_go_proto",
+    importpath = "intrinsic/logging/proto/flowstate_event_go_proto",
     protos = [":flowstate_event"],
 )
 
@@ -214,6 +221,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/logging/proto/log_dispatcher_service_go_proto",
     protos = [":log_dispatcher_service"],
     deps = [
         ":bag_metadata_go_proto",
@@ -266,6 +274,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "log_item_go_proto",
+    importpath = "intrinsic/logging/proto/log_item_go_proto",
     protos = [":log_item_proto"],
     deps = [
         ":bag_metadata_go_proto",
@@ -386,6 +395,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/logging/proto/logger_service_go_proto",
     protos = [":logger_service"],
     deps = [
         ":bag_metadata_go_proto",
@@ -460,6 +470,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/logging/proto/replay_service_go_proto",
     protos = [":replay_service"],
     deps = [":replay_service_options_go_proto"],
 )
@@ -492,6 +503,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "replay_service_options_go_proto",
+    importpath = "intrinsic/logging/proto/replay_service_options_go_proto",
     protos = [":replay_service_options"],
 )
 
@@ -518,6 +530,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "visualization_context_go_proto",
+    importpath = "intrinsic/logging/proto/visualization_context_go_proto",
     protos = [":visualization_context_proto"],
     deps = [
         ":blob_go_proto",

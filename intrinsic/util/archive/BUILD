@@ -9,6 +9,7 @@ package(default_visibility = ["//visibility:private"])
 go_library(
     name = "tartooling",
     srcs = ["tartooling.go"],
+    importpath = "intrinsic/util/archive/tartooling",
     visibility = ["//intrinsic:intrinsic_internal"],
     deps = [
         "@com_github_google_safearchive//tar",
@@ -21,6 +22,7 @@ go_test(
     name = "tartooling_test",
     srcs = ["tartooling_test.go"],
     embed = [":tartooling"],
+    importpath = "intrinsic/util/archive/tartooling_test",
     deps = [
         "//intrinsic/util/proto/testing:diamond_a_go_proto",
         "@com_github_google_go_cmp//cmp:go_default_library",
@@ -33,6 +35,7 @@ go_test(
 go_library(
     name = "untar",
     srcs = ["untar.go"],
+    importpath = "intrinsic/util/archive/untar",
     visibility = ["//intrinsic:intrinsic_internal"],
     deps = ["@com_github_google_safearchive//tar"],
 )

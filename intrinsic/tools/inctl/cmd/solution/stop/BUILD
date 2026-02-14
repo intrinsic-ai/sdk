@@ -5,6 +5,7 @@ load("//bazel:go_macros.bzl", "go_library")
 go_library(
     name = "stop",
     srcs = ["stop.go"],
+    importpath = "intrinsic/tools/inctl/cmd/solution/stop/stop",
     visibility = ["//intrinsic/tools/inctl/cmd/solution:__pkg__"],
     deps = [
         "//intrinsic/assets:clientutils",

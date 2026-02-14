@@ -36,6 +36,7 @@ py_proto_library(
 
 go_proto_library(
     name = "camera_config_go_proto",
+    importpath = "intrinsic/perception/proto/v1/camera_config_go_proto",
     protos = [":camera_config_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
@@ -65,6 +66,7 @@ py_proto_library(
 
 go_proto_library(
     name = "camera_drivers_go_proto",
+    importpath = "intrinsic/perception/proto/v1/camera_drivers_go_proto",
     protos = [":camera_drivers_proto"],
     visibility = ["//intrinsic:public_api_users"],
 )
@@ -90,6 +92,7 @@ py_proto_library(
 
 go_proto_library(
     name = "camera_identifier_go_proto",
+    importpath = "intrinsic/perception/proto/v1/camera_identifier_go_proto",
     protos = [":camera_identifier_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [":camera_drivers_go_proto"],
@@ -119,6 +122,7 @@ py_proto_library(
 
 go_proto_library(
     name = "camera_params_go_proto",
+    importpath = "intrinsic/perception/proto/v1/camera_params_go_proto",
     protos = [":camera_params_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
@@ -187,6 +191,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/perception/proto/v1/camera_service_go_proto",
     protos = [":camera_service_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
@@ -228,6 +233,7 @@ py_proto_library(
 
 go_proto_library(
     name = "camera_settings_go_proto",
+    importpath = "intrinsic/perception/proto/v1/camera_settings_go_proto",
     protos = [":camera_settings_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [":settings_go_proto"],
@@ -257,6 +263,7 @@ py_proto_library(
 
 go_proto_library(
     name = "capture_data_go_proto",
+    importpath = "intrinsic/perception/proto/v1/capture_data_go_proto",
     protos = [":capture_data_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
@@ -290,6 +297,7 @@ py_proto_library(
 
 go_proto_library(
     name = "capture_result_go_proto",
+    importpath = "intrinsic/perception/proto/v1/capture_result_go_proto",
     protos = [":capture_result_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
@@ -317,6 +325,7 @@ py_proto_library(
 
 go_proto_library(
     name = "charuco_pattern_go_proto",
+    importpath = "intrinsic/perception/proto/v1/charuco_pattern_go_proto",
     protos = [":charuco_pattern_proto"],
     visibility = ["//intrinsic:public_api_users"],
 )
@@ -341,6 +350,7 @@ py_proto_library(
 
 go_proto_library(
     name = "dimensions_go_proto",
+    importpath = "intrinsic/perception/proto/v1/dimensions_go_proto",
     protos = [":dimensions_proto"],
     visibility = ["//intrinsic:public_api_users"],
 )
@@ -365,6 +375,7 @@ py_proto_library(
 
 go_proto_library(
     name = "distortion_params_go_proto",
+    importpath = "intrinsic/perception/proto/v1/distortion_params_go_proto",
     protos = [":distortion_params_proto"],
     visibility = ["//intrinsic:public_api_users"],
 )
@@ -390,6 +401,7 @@ py_proto_library(
 
 go_proto_library(
     name = "image_buffer_go_proto",
+    importpath = "intrinsic/perception/proto/v1/image_buffer_go_proto",
     protos = [":image_buffer_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [":dimensions_go_proto"],
@@ -416,6 +428,7 @@ py_proto_library(
 
 go_proto_library(
     name = "intrinsic_params_go_proto",
+    importpath = "intrinsic/perception/proto/v1/intrinsic_params_go_proto",
     protos = [":intrinsic_params_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [":dimensions_go_proto"],
@@ -433,6 +446,7 @@ proto_library(
 
 go_proto_library(
     name = "perception_model_go_proto",
+    importpath = "intrinsic/perception/proto/v1/perception_model_go_proto",
     protos = [":perception_model_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
@@ -476,6 +490,7 @@ py_proto_library(
 
 go_proto_library(
     name = "pose_estimate_in_root_go_proto",
+    importpath = "intrinsic/perception/proto/v1/pose_estimate_in_root_go_proto",
     protos = [":pose_estimate_in_root_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
@@ -508,6 +523,7 @@ py_proto_library(
 
 go_proto_library(
     name = "pose_estimation_config_go_proto",
+    importpath = "intrinsic/perception/proto/v1/pose_estimation_config_go_proto",
     protos = [":pose_estimation_config"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
@@ -536,6 +552,7 @@ py_proto_library(
 
 go_proto_library(
     name = "pose_estimator_id_go_proto",
+    importpath = "intrinsic/perception/proto/v1/pose_estimator_id_go_proto",
     protos = [":pose_estimator_id_proto"],
     visibility = ["//intrinsic:public_api_users"],
 )
@@ -560,6 +577,7 @@ py_proto_library(
 
 go_proto_library(
     name = "pose_range_go_proto",
+    importpath = "intrinsic/perception/proto/v1/pose_range_go_proto",
     protos = [":pose_range_proto"],
     visibility = ["//intrinsic:public_api_users"],
 )
@@ -588,6 +606,7 @@ py_proto_library(
 
 go_proto_library(
     name = "post_processing_go_proto",
+    importpath = "intrinsic/perception/proto/v1/post_processing_go_proto",
     protos = [":post_processing_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
@@ -620,6 +639,7 @@ py_proto_library(
 
 go_proto_library(
     name = "sensor_config_go_proto",
+    importpath = "intrinsic/perception/proto/v1/sensor_config_go_proto",
     protos = [":sensor_config_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
@@ -653,6 +673,7 @@ py_proto_library(
 
 go_proto_library(
     name = "sensor_image_go_proto",
+    importpath = "intrinsic/perception/proto/v1/sensor_image_go_proto",
     protos = [":sensor_image_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
@@ -681,6 +702,7 @@ py_proto_library(
 
 go_proto_library(
     name = "settings_go_proto",
+    importpath = "intrinsic/perception/proto/v1/settings_go_proto",
     protos = [":settings_proto"],
     visibility = ["//intrinsic:public_api_users"],
 )
@@ -708,6 +730,7 @@ py_proto_library(
 
 go_proto_library(
     name = "symmetry_go_proto",
+    importpath = "intrinsic/perception/proto/v1/symmetry_go_proto",
     protos = [":symmetry_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = ["//intrinsic/math/proto:vector3_go_proto"],
@@ -740,6 +763,7 @@ py_proto_library(
 
 go_proto_library(
     name = "target_go_proto",
+    importpath = "intrinsic/perception/proto/v1/target_go_proto",
     protos = [":target_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
@@ -792,6 +816,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/perception/proto/v1/train_service_go_proto",
     protos = [":train_service_proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [

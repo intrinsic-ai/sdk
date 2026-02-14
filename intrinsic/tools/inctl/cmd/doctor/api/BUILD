@@ -11,6 +11,7 @@ go_library(
         "diagnostic_check.go",
         "diagnostic_info.go",
     ],
+    importpath = "intrinsic/tools/inctl/cmd/doctor/api/api",
     deps = [
         "//intrinsic/assets:cmdutils",
         "//intrinsic/tools/inctl/cmd/doctor/proto/v1:report_go_proto",

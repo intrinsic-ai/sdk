@@ -29,6 +29,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/kubernetes/vmpool/service/api/v1/vmpool_api_go_proto",
     protos = [":vmpool_api_proto"],
     deps = [
         "@org_golang_google_genproto_googleapis_api//annotations",

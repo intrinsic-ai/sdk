@@ -28,6 +28,7 @@ proto_library(
 
 go_proto_library(
     name = "test_message_go_proto",
+    importpath = "intrinsic/util/proto/testing/test_message_go_proto",
     protos = [":test_message_proto"],
 )
 
@@ -47,6 +48,7 @@ proto_library(
 
 go_proto_library(
     name = "descriptors_test_go_proto",
+    importpath = "intrinsic/util/proto/testing/descriptors_test_go_proto",
     protos = [":descriptors_test_proto"],
     deps = [
         ":descriptors_test_left_wrapper_go_proto",
@@ -74,6 +76,7 @@ proto_library(
 
 go_proto_library(
     name = "descriptors_test_left_wrapper_go_proto",
+    importpath = "intrinsic/util/proto/testing/descriptors_test_left_wrapper_go_proto",
     protos = [":descriptors_test_left_wrapper_proto"],
 )
 
@@ -97,6 +100,7 @@ proto_library(
 
 go_proto_library(
     name = "descriptors_test_right_wrapper_go_proto",
+    importpath = "intrinsic/util/proto/testing/descriptors_test_right_wrapper_go_proto",
     protos = [":descriptors_test_right_wrapper_proto"],
 )
 
@@ -185,6 +189,7 @@ proto_library(
 
 go_proto_library(
     name = "diamond_a_go_proto",
+    importpath = "intrinsic/util/proto/testing/diamond_a_go_proto",
     protos = [
         ":diamond_a_proto",
     ],
@@ -192,6 +197,7 @@ go_proto_library(
 
 go_proto_library(
     name = "diamond_b_go_proto",
+    importpath = "intrinsic/util/proto/testing/diamond_b_go_proto",
     protos = [
         ":diamond_b_proto",
     ],
@@ -202,6 +208,7 @@ go_proto_library(
 
 go_proto_library(
     name = "diamond_c_go_proto",
+    importpath = "intrinsic/util/proto/testing/diamond_c_go_proto",
     protos = [
         ":diamond_c_proto",
     ],
@@ -212,6 +219,7 @@ go_proto_library(
 
 go_proto_library(
     name = "diamond_d_go_proto",
+    importpath = "intrinsic/util/proto/testing/diamond_d_go_proto",
     protos = [
         ":diamond_d_proto",
     ],
@@ -223,6 +231,7 @@ go_proto_library(
 
 go_proto_library(
     name = "embedded_go_proto",
+    importpath = "intrinsic/util/proto/testing/embedded_go_proto",
     protos = [
         ":embedded_proto",
     ],
@@ -230,6 +239,7 @@ go_proto_library(
 
 go_proto_library(
     name = "recursive_go_proto",
+    importpath = "intrinsic/util/proto/testing/recursive_go_proto",
     protos = [
         ":recursive_proto",
     ],
@@ -238,6 +248,7 @@ go_proto_library(
 go_library(
     name = "prototestutil",
     srcs = ["proto_test_util.go"],
+    importpath = "intrinsic/util/proto/testing/prototestutil",
     deps = [
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
         "@org_golang_google_protobuf//encoding/protojson:go_default_library",

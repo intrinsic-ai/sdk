@@ -28,6 +28,7 @@ py_proto_library(
 
 go_proto_library(
     name = "equipment_go_proto",
+    importpath = "intrinsic/skills/proto/equipment_go_proto",
     protos = [":equipment_proto"],
     deps = [":footprint_go_proto"],
 )
@@ -55,6 +56,7 @@ py_proto_library(
 
 go_proto_library(
     name = "skills_go_proto",
+    importpath = "intrinsic/skills/proto/skills_go_proto",
     protos = [":skills_proto"],
     deps = [
         ":equipment_go_proto",
@@ -102,6 +104,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/skills/proto/skill_registry_go_proto",
     protos = [":skill_registry_proto"],
     deps = [":skills_go_proto"],
 )
@@ -146,6 +149,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/skills/proto/behavior_tree_registry_go_proto",
     protos = [":behavior_tree_registry_proto"],
     deps = [
         ":skill_registry_config_go_proto",
@@ -201,6 +205,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/skills/proto/skill_service_go_proto",
     protos = [":skill_service_proto"],
     deps = [
         ":error_go_proto",
@@ -235,6 +240,7 @@ py_proto_library(
 
 go_proto_library(
     name = "skill_service_config_go_proto",
+    importpath = "intrinsic/skills/proto/skill_service_config_go_proto",
     protos = [":skill_service_config_proto"],
     deps = [
         ":skills_go_proto",
@@ -263,6 +269,7 @@ py_proto_library(
 
 go_proto_library(
     name = "skill_registry_config_go_proto",
+    importpath = "intrinsic/skills/proto/skill_registry_config_go_proto",
     protos = [":skill_registry_config_proto"],
     deps = [
         ":skills_go_proto",
@@ -291,6 +298,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "footprint_go_proto",
+    importpath = "intrinsic/skills/proto/footprint_go_proto",
     protos = [":footprint_proto"],
     deps = [
         "//intrinsic/geometry/proto:transformed_geometry_storage_refs_go_proto",
@@ -316,6 +324,7 @@ py_proto_library(
 
 go_proto_library(
     name = "prediction_go_proto",
+    importpath = "intrinsic/skills/proto/prediction_go_proto",
     protos = [":prediction_proto"],
     deps = [
         "//intrinsic/world/proto:object_world_updates_go_proto",
@@ -353,6 +362,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "error_go_proto",
+    importpath = "intrinsic/skills/proto/error_go_proto",
     protos = [":error_proto"],
 )
 
@@ -382,6 +392,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "skill_manifest_go_proto",
+    importpath = "intrinsic/skills/proto/skill_manifest_go_proto",
     protos = [":skill_manifest_proto"],
     deps = [
         ":equipment_go_proto",
@@ -413,6 +424,7 @@ proto_library(
 
 go_proto_library(
     name = "processed_skill_manifest_go_proto",
+    importpath = "intrinsic/skills/proto/processed_skill_manifest_go_proto",
     protos = [":processed_skill_manifest_proto"],
     deps = [
         ":skill_manifest_go_proto",
@@ -437,6 +449,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "skill_parameter_metadata_go_proto",
+    importpath = "intrinsic/skills/proto/skill_parameter_metadata_go_proto",
     protos = [":skill_parameter_metadata_proto"],
 )
 

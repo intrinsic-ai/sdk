@@ -31,6 +31,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "disparity_image_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/stereo_msgs/msg/disparity_image_go_proto",
     protos = ["disparity_image_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg:image_go_proto",

@@ -26,6 +26,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "duration_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg/duration_go_proto",
     protos = ["duration_proto"],
 )
 
@@ -46,5 +47,6 @@ cc_proto_library(
 
 go_proto_library(
     name = "time_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg/time_go_proto",
     protos = ["time_proto"],
 )

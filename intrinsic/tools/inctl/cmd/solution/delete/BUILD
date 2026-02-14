@@ -5,6 +5,7 @@ load("//bazel:go_macros.bzl", "go_library")
 go_library(
     name = "delete",
     srcs = ["delete.go"],
+    importpath = "intrinsic/tools/inctl/cmd/solution/delete/delete",
     visibility = [
         "//intrinsic/tools/inctl/cmd/solution:__pkg__",
     ],

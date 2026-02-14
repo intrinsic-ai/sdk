@@ -7,6 +7,7 @@ package(default_visibility = ["//visibility:public"])
 go_library(
     name = "cmd",
     srcs = ["root.go"],
+    importpath = "intrinsic/skills/tools/skill/cmd/cmd",
     deps = [
         "//intrinsic/skills/tools/skill/cmd/create",
         "//intrinsic/skills/tools/skill/cmd/install",
@@ -19,6 +20,7 @@ go_library(
 go_library(
     name = "solutionutil",
     srcs = ["solutionutil.go"],
+    importpath = "intrinsic/skills/tools/skill/cmd/solutionutil",
     deps = [
         "//intrinsic/frontend/cloud/api/v1:clusterdiscovery_api_go_proto",
         "//intrinsic/tools/inctl/cmd/solution/get",
@@ -30,6 +32,7 @@ go_library(
 go_library(
     name = "dialerutil",
     srcs = ["dialerutil.go"],
+    importpath = "intrinsic/skills/tools/skill/cmd/dialerutil",
     visibility = [
         "//intrinsic/skills/tools/resource/cmd:__pkg__",
         "//intrinsic/skills/tools/skill/cmd:__pkg__",
@@ -60,6 +63,7 @@ go_library(
 go_library(
     name = "waitforskill",
     srcs = ["waitforskill.go"],
+    importpath = "intrinsic/skills/tools/skill/cmd/waitforskill",
     deps = [
         "//intrinsic/skills/proto:skill_registry_go_proto",
         "@org_golang_google_grpc//:go_default_library",
@@ -71,5 +75,6 @@ go_library(
 go_library(
     name = "listutil",
     srcs = ["listutil.go"],
+    importpath = "intrinsic/skills/tools/skill/cmd/listutil",
     deps = ["//intrinsic/skills/proto:skills_go_proto"],
 )

@@ -7,6 +7,7 @@ package(default_visibility = ["//intrinsic/tools/inbuild:__subpackages__"])
 go_library(
     name = "bundle",
     srcs = ["bundle.go"],
+    importpath = "intrinsic/tools/inbuild/cmd/skill/bundle",
     deps = [
         "//intrinsic/skills:skillbundle",
         "//intrinsic/tools/inbuild/util:skillmanifest",
@@ -17,6 +18,7 @@ go_library(
 go_library(
     name = "skill",
     srcs = ["skill.go"],
+    importpath = "intrinsic/tools/inbuild/cmd/skill/skill",
     deps = [
         ":bundle",
         "//intrinsic/tools/inbuild/cmd/skill/generate",
@@ -33,6 +35,7 @@ go_test(
         "//intrinsic/tools/inbuild/cmd/skill/test_data:example_skill_py_image.tar",
     ],
     embed = [":bundle"],
+    importpath = "intrinsic/tools/inbuild/cmd/skill/bundle_test",
     deps = [
         "//intrinsic/skills:skillbundle",
         "//intrinsic/tools/inbuild/cmd/skill/test_data:example_skill_go_proto",

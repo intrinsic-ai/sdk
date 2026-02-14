@@ -5,6 +5,7 @@ load("//bazel:go_macros.bzl", "go_library")
 go_library(
     name = "version",
     srcs = ["version.go"],
+    importpath = "intrinsic/tools/inctl/cmd/version/version",
     visibility = [
         "//intrinsic/skills/tools:__subpackages__",
         "//intrinsic/tools/inctl:__subpackages__",

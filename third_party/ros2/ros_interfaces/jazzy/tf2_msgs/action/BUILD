@@ -33,6 +33,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "lookup_transform_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/tf2_msgs/action/lookup_transform_go_proto",
     protos = ["lookup_transform_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/builtin_interfaces/msg:duration_go_proto",

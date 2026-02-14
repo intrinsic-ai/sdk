@@ -33,6 +33,7 @@ py_proto_library(
 
 go_proto_library(
     name = "error_report_go_proto",
+    importpath = "intrinsic/logging/errors/proto/error_report_go_proto",
     protos = [":error_report_proto"],
     deps = [
         "//intrinsic/executive/proto:clips_snapshot_go_proto",

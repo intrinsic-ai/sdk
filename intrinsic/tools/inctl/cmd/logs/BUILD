@@ -11,6 +11,7 @@ go_library(
         "logs_cp.go",
         "processor.go",
     ],
+    importpath = "intrinsic/tools/inctl/cmd/logs/logs",
     deps = [
         "//intrinsic/assets:cmdutils",
         "//intrinsic/assets:idutils",

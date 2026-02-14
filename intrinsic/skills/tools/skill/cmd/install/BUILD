@@ -7,6 +7,7 @@ package(default_visibility = ["//visibility:public"])
 go_library(
     name = "install",
     srcs = ["install.go"],
+    importpath = "intrinsic/skills/tools/skill/cmd/install/install",
     deps = [
         "//intrinsic/assets:clientutils",
         "//intrinsic/assets:cmdutils",

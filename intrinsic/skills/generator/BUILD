@@ -16,6 +16,7 @@ go_library(
         "skill_service_main.py.tmpl",
         "skill_service_main_tmpl.cc",
     ],
+    importpath = "intrinsic/skills/generator/gen",
     visibility = ["//intrinsic/tools/inbuild:__subpackages__"],
     deps = ["//intrinsic/skills/proto:skill_manifest_go_proto"],
 )
@@ -23,6 +24,7 @@ go_library(
 go_binary(
     name = "skill_service_generator",
     srcs = ["skill_service_generator.go"],
+    importpath = "intrinsic/skills/generator/skill_service_generator",
     visibility = ["//visibility:public"],
     deps = [
         ":gen",

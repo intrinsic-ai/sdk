@@ -14,6 +14,7 @@ go_library(
         "device_service.go",
         "esi_handler.go",
     ],
+    importpath = "intrinsic/icon/fieldbus/ethercat/device_service/deviceservice",
     deps = [
         "//intrinsic/assets:idutils",
         "//intrinsic/assets/data/proto/v1:data_assets_go_proto",
@@ -30,6 +31,7 @@ go_library(
 go_binary(
     name = "device_service_main",
     srcs = ["device_service_main.go"],
+    importpath = "intrinsic/icon/fieldbus/ethercat/device_service/device_service_main",
     deps = [
         ":deviceservice",
         "//intrinsic/assets/data/proto/v1:data_assets_go_proto",
@@ -73,6 +75,7 @@ go_test(
     name = "deviceservice_test",
     srcs = ["device_service_test.go"],
     embed = [":deviceservice"],
+    importpath = "intrinsic/icon/fieldbus/ethercat/device_service/deviceservice_test",
     deps = [
         "//intrinsic/assets/data:fakedataassets",
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",

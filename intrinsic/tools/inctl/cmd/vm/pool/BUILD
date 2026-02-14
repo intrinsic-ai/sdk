@@ -14,6 +14,7 @@ go_library(
         "pool.go",
         "state.go",
     ],
+    importpath = "intrinsic/tools/inctl/cmd/vm/pool/pool",
     deps = [
         "//intrinsic/assets:cmdutils",
         "//intrinsic/kubernetes/acl:identity",

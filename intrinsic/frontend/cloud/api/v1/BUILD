@@ -21,6 +21,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/frontend/cloud/api/v1/clusterdiscovery_api_go_proto",
     protos = [":clusterdiscovery_api_proto"],
 )
 
@@ -47,6 +48,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/frontend/cloud/api/v1/clustermanager_api_go_proto",
     protos = [":clustermanager_api_proto"],
     deps = [
         "//intrinsic/util/status:extended_status_go_proto",
@@ -92,6 +94,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/frontend/cloud/api/v1/solutiondiscovery_api_go_proto",
     protos = [
         ":solutiondiscovery_api_proto",
     ],

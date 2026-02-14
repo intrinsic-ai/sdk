@@ -59,6 +59,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_proto",
         "//bazel:go_gen_grpc_gateway",
     ],
+    importpath = "intrinsic/frontend/solution_service/proto/solution_service_go_proto",
     protos = [":solution_service_proto"],
     deps = [
         ":status_go_proto",
@@ -85,5 +86,6 @@ py_proto_library(
 
 go_proto_library(
     name = "status_go_proto",
+    importpath = "intrinsic/frontend/solution_service/proto/status_go_proto",
     protos = [":status_proto"],
 )

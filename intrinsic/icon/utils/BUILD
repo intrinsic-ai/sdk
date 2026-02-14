@@ -108,6 +108,7 @@ cc_library(
 go_binary(
     name = "init_hwm",
     srcs = ["init_hwm.go"],
+    importpath = "intrinsic/icon/utils/init_hwm",
     deps = [
         "//intrinsic/production:intrinsic",
         "@com_github_golang_glog//:go_default_library",

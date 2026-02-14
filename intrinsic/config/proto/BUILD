@@ -25,6 +25,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "operation_mode_go_proto",
+    importpath = "intrinsic/config/proto/operation_mode_go_proto",
     protos = [":operation_mode_proto"],
 )
 

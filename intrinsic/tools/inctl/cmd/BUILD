@@ -7,6 +7,7 @@ package(default_visibility = ["//visibility:public"])
 go_library(
     name = "root",
     srcs = ["root.go"],
+    importpath = "intrinsic/tools/inctl/cmd/root",
     deps = [
         "//intrinsic/production:intrinsic",
         "//intrinsic/skills/tools/skill/cmd:dialerutil",
@@ -25,6 +26,7 @@ go_library(
 go_library(
     name = "markdown",
     srcs = ["markdown.go"],
+    importpath = "intrinsic/tools/inctl/cmd/markdown",
     deps = [
         ":root",
         "//intrinsic/util/archive:tartooling",

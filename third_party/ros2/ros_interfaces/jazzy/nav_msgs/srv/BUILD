@@ -27,6 +27,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "get_map_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/nav_msgs/srv/get_map_go_proto",
     protos = ["get_map_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/nav_msgs/msg:occupancy_grid_go_proto",
@@ -54,6 +55,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "get_plan_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/nav_msgs/srv/get_plan_go_proto",
     protos = ["get_plan_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:pose_stamped_go_proto",
@@ -79,6 +81,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "load_map_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/nav_msgs/srv/load_map_go_proto",
     protos = ["load_map_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/nav_msgs/msg:occupancy_grid_go_proto",
@@ -106,6 +109,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "set_map_go_proto",
+    importpath = "third_party/ros2/ros_interfaces/jazzy/nav_msgs/srv/set_map_go_proto",
     protos = ["set_map_proto"],
     deps = [
         "//third_party/ros2/ros_interfaces/jazzy/geometry_msgs/msg:pose_with_covariance_stamped_go_proto",

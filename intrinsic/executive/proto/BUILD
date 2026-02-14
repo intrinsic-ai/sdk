@@ -36,6 +36,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "behavior_call_go_proto",
+    importpath = "intrinsic/executive/proto/behavior_call_go_proto",
     protos = [":behavior_call_proto"],
     deps = [
         "//intrinsic/skills/proto:footprint_go_proto",
@@ -66,6 +67,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "code_execution_go_proto",
+    importpath = "intrinsic/executive/proto/code_execution_go_proto",
     protos = [":code_execution_proto"],
     deps = [
         ":any_with_assignments_go_proto",
@@ -113,6 +115,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/executive/proto/code_execution_info_service_go_proto",
     protos = [":code_execution_info_service_proto"],
     deps = ["@io_bazel_rules_go//proto/wkt:descriptor_go_proto"],
 )
@@ -171,6 +174,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_proto",
         "//bazel:go_gen_grpc_gateway",
     ],
+    importpath = "intrinsic/executive/proto/executive_service_go_proto",
     protos = [":executive_service_proto"],
     deps = [
         ":behavior_tree_go_proto",
@@ -211,6 +215,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "run_metadata_go_proto",
+    importpath = "intrinsic/executive/proto/run_metadata_go_proto",
     protos = [":run_metadata_proto"],
     deps = [
         ":behavior_tree_go_proto",
@@ -241,6 +246,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "run_response_go_proto",
+    importpath = "intrinsic/executive/proto/run_response_go_proto",
     protos = [":run_response_proto"],
 )
 
@@ -292,6 +298,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/executive/proto/blackboard_service_go_proto",
     protos = [":blackboard_service_proto"],
     deps = [
         "//intrinsic/util/status:extended_status_go_proto",
@@ -320,6 +327,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "executive_execution_mode_go_proto",
+    importpath = "intrinsic/executive/proto/executive_execution_mode_go_proto",
     protos = [":executive_execution_mode_proto"],
 )
 
@@ -337,6 +345,7 @@ py_proto_library(
 
 go_proto_library(
     name = "log_items_go_proto",
+    importpath = "intrinsic/executive/proto/log_items_go_proto",
     protos = [":log_items_proto"],
     deps = [
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
@@ -373,6 +382,7 @@ py_proto_library(
 
 go_proto_library(
     name = "behavior_tree_go_proto",
+    importpath = "intrinsic/executive/proto/behavior_tree_go_proto",
     protos = [":behavior_tree_proto"],
     deps = [
         ":any_list_go_proto",
@@ -410,6 +420,7 @@ py_proto_library(
 
 go_proto_library(
     name = "world_query_go_proto",
+    importpath = "intrinsic/executive/proto/world_query_go_proto",
     protos = [":world_query_proto"],
     deps = [
         "//intrinsic/world/proto:object_world_refs_go_proto",
@@ -425,6 +436,7 @@ proto_library(
 
 go_proto_library(
     name = "any_list_go_proto",
+    importpath = "intrinsic/executive/proto/any_list_go_proto",
     protos = [":any_list_proto"],
 )
 
@@ -457,6 +469,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "any_with_assignments_go_proto",
+    importpath = "intrinsic/executive/proto/any_with_assignments_go_proto",
     protos = [":any_with_assignments_proto"],
 )
 
@@ -503,6 +516,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "clips_snapshot_go_proto",
+    importpath = "intrinsic/executive/proto/clips_snapshot_go_proto",
     protos = [":clips_snapshot_proto"],
 )
 
@@ -543,6 +557,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/executive/proto/proto_builder_go_proto",
     protos = [":proto_builder_proto"],
     deps = ["@io_bazel_rules_go//proto/wkt:descriptor_go_proto"],
 )

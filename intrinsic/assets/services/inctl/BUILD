@@ -7,6 +7,7 @@ package(default_visibility = ["//visibility:public"])
 go_library(
     name = "service",
     srcs = ["service.go"],
+    importpath = "intrinsic/assets/services/inctl/service",
     deps = [
         ":add",
         ":delete",
@@ -19,6 +20,7 @@ go_library(
 go_library(
     name = "add",
     srcs = ["add.go"],
+    importpath = "intrinsic/assets/services/inctl/add",
     deps = [
         "//intrinsic/assets:clientutils",
         "//intrinsic/assets:cmdutils",
@@ -36,6 +38,7 @@ go_library(
 go_library(
     name = "delete",
     srcs = ["delete.go"],
+    importpath = "intrinsic/assets/services/inctl/delete",
     deps = [
         "//intrinsic/assets:clientutils",
         "//intrinsic/assets:cmdutils",

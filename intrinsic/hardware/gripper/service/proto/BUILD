@@ -38,6 +38,7 @@ py_proto_library(
 
 go_proto_library(
     name = "generic_gripper_go_proto",
+    importpath = "intrinsic/hardware/gripper/service/proto/generic_gripper_go_proto",
     protos = [":generic_gripper_proto"],
 )
 

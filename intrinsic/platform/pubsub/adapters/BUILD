@@ -26,6 +26,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "pubsub_go_proto",
+    importpath = "intrinsic/platform/pubsub/adapters/pubsub_go_proto",
     protos = [":pubsub_proto"],
     deps = [
         "//intrinsic/logging/proto:context_go_proto",

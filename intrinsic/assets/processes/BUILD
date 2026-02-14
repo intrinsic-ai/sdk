@@ -7,6 +7,7 @@ package(default_visibility = ["//intrinsic:public_api_users"])
 go_library(
     name = "processbundle",
     srcs = ["processbundle.go"],
+    importpath = "intrinsic/assets/processes/processbundle",
     visibility = ["//intrinsic:internal_api_users"],
     deps = [
         ":processmanifest",
@@ -25,6 +26,7 @@ go_library(
 go_library(
     name = "processmanifest",
     srcs = ["processmanifest.go"],
+    importpath = "intrinsic/assets/processes/processmanifest",
     deps = [
         "//intrinsic/assets:idutils",
         "//intrinsic/assets/proto:metadata_go_proto",
@@ -36,6 +38,7 @@ go_library(
 go_library(
     name = "processvalidate",
     srcs = ["processvalidate.go"],
+    importpath = "intrinsic/assets/processes/processvalidate",
     deps = [
         "//intrinsic/assets:idutils",
         "//intrinsic/assets:metadatautils",

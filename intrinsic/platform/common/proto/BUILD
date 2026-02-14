@@ -51,6 +51,7 @@ py_proto_library(
 
 go_proto_library(
     name = "workcell_info_go_proto",
+    importpath = "intrinsic/platform/common/proto/workcell_info_go_proto",
     protos = [":workcell_info_proto"],
     visibility = ["//intrinsic:intrinsic_internal"],
 )

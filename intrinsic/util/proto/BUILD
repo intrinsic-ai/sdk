@@ -37,6 +37,7 @@ cc_test(
 go_library(
     name = "descriptor",
     srcs = ["descriptor.go"],
+    importpath = "intrinsic/util/proto/descriptor",
     deps = [
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
         "@org_golang_google_protobuf//proto",
@@ -95,6 +96,7 @@ cc_library(
 go_library(
     name = "protoio",
     srcs = ["protoio.go"],
+    importpath = "intrinsic/util/proto/protoio",
     deps = [
         "@com_github_protocolbuffers_txtpbfmt//config:go_default_library",
         "@com_github_protocolbuffers_txtpbfmt//parser:go_default_library",
@@ -107,6 +109,7 @@ go_library(
 go_library(
     name = "resolvercache",
     srcs = ["resolver_cache.go"],
+    importpath = "intrinsic/util/proto/resolvercache",
     deps = [
         ":registryutil",
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
@@ -117,6 +120,7 @@ go_library(
 go_library(
     name = "registryutil",
     srcs = ["registryutil.go"],
+    importpath = "intrinsic/util/proto/registryutil",
     deps = [
         ":protoio",
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
@@ -263,6 +267,7 @@ cc_test(
 go_library(
     name = "sourcecodeinfoview",
     srcs = ["source_code_info_view.go"],
+    importpath = "intrinsic/util/proto/sourcecodeinfoview",
     deps = [
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
         "@org_golang_google_protobuf//reflect/protodesc:go_default_library",
@@ -273,6 +278,7 @@ go_library(
 go_library(
     name = "names",
     srcs = ["names.go"],
+    importpath = "intrinsic/util/proto/names",
     deps = ["@org_golang_google_protobuf//types/known/anypb"],
 )
 
@@ -280,6 +286,7 @@ go_test(
     name = "names_test",
     srcs = ["names_test.go"],
     embed = [":names"],
+    importpath = "intrinsic/util/proto/names_test",
     deps = [
         "//intrinsic/util/proto/testing:diamond_a_go_proto",
         "@org_golang_google_protobuf//proto",
@@ -291,6 +298,7 @@ go_test(
 go_library(
     name = "walkmessages",
     srcs = ["walk_messages.go"],
+    importpath = "intrinsic/util/proto/walkmessages",
     deps = [
         "@org_golang_google_protobuf//proto",
         "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",

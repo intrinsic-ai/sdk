@@ -45,6 +45,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/icon/proto/v1/service_go_proto",
     protos = [":service_proto"],
     deps = [
         "//intrinsic/icon/proto:joint_space_go_proto",
@@ -101,6 +102,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "types_go_proto",
+    importpath = "intrinsic/icon/proto/v1/types_go_proto",
     protos = [":types_proto"],
     deps = [
         ":condition_types_go_proto",
@@ -125,6 +127,7 @@ cc_proto_library(
 
 go_proto_library(
     name = "condition_types_go_proto",
+    importpath = "intrinsic/icon/proto/v1/condition_types_go_proto",
     protos = [":condition_types_proto"],
 )
 
@@ -163,6 +166,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
+    importpath = "intrinsic/icon/proto/v1/jogging_service_go_proto",
     protos = [":jogging_service_proto"],
     deps = [
         "//intrinsic/icon/proto:cart_space_go_proto",
