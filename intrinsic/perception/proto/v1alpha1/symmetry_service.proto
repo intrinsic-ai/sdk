@@ -1,0 +1,41 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.perception.v1alpha1;
+
+import "google/longrunning/operations.proto";
+import "google/protobuf/empty.proto";
+import "intrinsic/geometry/proto/v1/transformed_geometry.proto";
+import "intrinsic/perception/proto/v1/symmetry.proto";
+import "intrinsic/scene/proto/v1/scene_object.proto";
+
+option go_package = "intrinsic/perception/proto/v1alpha1/symmetry_service_go_proto";
+
+// Service for detecting symmetries in 3d objects.
+service SymmetryService {
+  // Starts symmetry detection job.
+  rpc CreateSymmetryDetectionJob(CreateSymmetryDetectionJobRequest)
+      returns (google.longrunning.Operation);
+
+  // Gets current state of symmetry detection job.
+  rpc GetSymmetryDetectionJob(google.longrunning.GetOperationRequest)
+      returns (google.longrunning.Operation);
+
+  // Deletes symmetry detection job.
+  rpc DeleteSymmetryDetectionJob(google.longrunning.DeleteOperationRequest)
+      returns (google.protobuf.Empty);
+}
+
+message CreateSymmetryDetectionJobRequest {
+  oneof geometry_type {
+    geometry.v1.TransformedGeometry geometry = 1;
+    scene_object.v1.SceneObject scene_object = 2;
+  }
+}
+
+message SymmetryDetectionJobStatus {}
+
+message SymmetryDetectionResult {
+  repeated v1.Symmetry symmetry = 1;
+}
