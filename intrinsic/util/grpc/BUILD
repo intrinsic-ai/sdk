@@ -182,8 +182,10 @@ py_library(
     name = "error_handling",
     srcs = ["error_handling.py"],
     deps = [
+        "//intrinsic/util/status:get_extended_status_py",
         "@ai_intrinsic_sdks_pip_deps//retrying",
         requirement("grpcio"),
+        "@com_google_absl_py//absl/logging",
         "@com_google_googleapis//google/rpc:status_py_proto",
         "@com_google_protobuf//:protobuf_python",
     ],

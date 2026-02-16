@@ -3,12 +3,16 @@
 """Shared handlers for grpc errors."""
 
 from collections.abc import Iterable
+import functools
 from typing import cast
 
+from absl import logging
 from google.protobuf import message as protobuf_message
 from google.rpc import status_pb2
 import grpc
 import retrying
+
+from intrinsic.util.status.get_extended_status import get_extended_status_from_rpc_error
 
 # The Ingress will return UNIMPLEMENTED if the server it wants to forward to
 # is unavailable, so we check for both UNAVAILABLE and UNIMPLEMENTED.
@@ -150,3 +154,35 @@ retry_on_grpc_transient_errors = retrying.retry(
     wait_incrementing_start=1000,  # in milliseconds
     wait_jitter_max=1000,  # in milliseconds
 )
+
+
+def log_extended_status(log_func=logging.info):
+  """
+  A decorator factory that intercepts gRPC errors that have an ExtendedStatus.
+
+  Args:
+      display_extended_status (callable): A function to handle the output
+                                          of the extended status.
+  """
+
+  def decorator(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+      try:
+        return func(*args, **kwargs)
+      except grpc.RpcError as e:
+        try:
+          extended_status = get_extended_status_from_rpc_error(e)
+          if extended_status:
+            log_func(extended_status)
+        except Exception as get_extended_status_error:
+          logging.error(
+              f"Failed to extract ExtendedStatus: {get_extended_status_error}"
+          )
+
+        # Always re-raise the original exception
+        raise e
+
+    return wrapper
+
+  return decorator

@@ -47,8 +47,10 @@ py_wheel(
     name = "code_execution_wheel",
     distribution = "code-execution",
     requires = [
+        "absl-py",
         "googleapis-common-protos",
         "grpcio",
+        "grpcio-status",
         "retrying",
     ],
     version = "0.0.1",

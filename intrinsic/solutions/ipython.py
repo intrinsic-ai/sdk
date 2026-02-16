@@ -17,6 +17,7 @@ from typing import Any
 
 import ipywidgets as widgets
 
+from intrinsic.util.status import extended_status_pb2
 from intrinsic.util.status import status_exception
 
 
@@ -152,6 +153,22 @@ def display_extended_status_if_ipython(
   """
   if running_in_ipython():
     display_if_ipython(_create_extended_status_widget(extended_status_error))
+
+
+def display_extended_status_proto_if_ipython(
+    extended_status_proto: extended_status_pb2.ExtendedStatus,
+) -> None:
+  """Displays the given ExtendedStatus if running in IPython.
+
+  Args:
+    extended_status_error: Extended status error to display.
+  """
+  extended_status_error = (
+      status_exception.ExtendedStatusError.create_from_proto(
+          extended_status_proto
+      )
+  )
+  display_extended_status_if_ipython(extended_status_error)
 
 
 def display_if_ipython(python_object: Any) -> None:

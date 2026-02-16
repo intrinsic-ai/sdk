@@ -259,6 +259,7 @@ py_library(
     name = "ipython",
     srcs = ["ipython.py"],
     deps = [
+        "//intrinsic/util/status:extended_status_py_pb2",
         "//intrinsic/util/status:status_exception",
         "@ai_intrinsic_sdks_pip_deps//ipywidgets",
     ],

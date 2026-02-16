@@ -1295,6 +1295,9 @@ class Executive:
     )
 
   @error_handling.retry_on_grpc_unavailable
+  @error_handling.log_extended_status(
+      ipython.display_extended_status_proto_if_ipython
+  )
   def _create_with_retry(self, request) -> None:
     self._operation = Operation(self._stub, self._stub.CreateOperation(request))
 
