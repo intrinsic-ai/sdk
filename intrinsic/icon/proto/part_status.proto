@@ -83,6 +83,10 @@ message PartStatus {
   // The sensed wrench (wrench_at_ft) transformed to the robot tip frame.
   optional intrinsic_proto.icon.Wrench wrench_at_tip = 8;
 
+  // The stability index vector to monitor high-frequency oscillations in the
+  // sensed wrench transformed to the robot tip frame.
+  optional CartVec6 wrench_stability_index_at_tip = 18;
+
   // The sensed Twist at the robot tip expressed in the base frame of the
   // kinematic chain.
   // WARNING: This value depends on the used kinematics solver and might not be
