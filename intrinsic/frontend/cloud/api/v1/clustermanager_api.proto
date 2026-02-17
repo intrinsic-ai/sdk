@@ -607,14 +607,14 @@ message GetClusterHardwareRequest {
   string org = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
-message UpdateClusterHardwareRequest {
+message UpdateNodeHardwareRequest {
   string cluster_name = 1 [(google.api.field_behavior) = REQUIRED];
   string project = 2 [(google.api.field_behavior) = REQUIRED];
   string org = 3 [(google.api.field_behavior) = REQUIRED];
-  ClusterHardware hardware = 4 [(google.api.field_behavior) = REQUIRED];
+  NodeHardware hardware = 4 [(google.api.field_behavior) = REQUIRED];
 }
 
-message UpdateClusterHardwareResponse {}
+message UpdateNodeHardwareResponse {}
 
 // ClustersService holds a set of methods to interact with clusters.
 service ClustersService {
@@ -839,16 +839,16 @@ service ClustersService {
     option (aclType) = "has_access";
   }
 
-  // UpdateClusterHardware is used to update the hardware configuration of a
-  // cluster. Currently, this only sets the hardware of the control plane node.
-  rpc UpdateClusterHardware(UpdateClusterHardwareRequest)
-      returns (UpdateClusterHardwareResponse) {
+  // UpdateNodeHardware is used to update the hardware configuration of a
+  // node.
+  rpc UpdateNodeHardware(UpdateNodeHardwareRequest)
+      returns (UpdateNodeHardwareResponse) {
     option (google.api.http) = {
       put: "/v1/project/{project}/org/{org}/clusters/{cluster_name}/hardware"
       body: "hardware"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      operation_id: "UpdateClusterHardware"
+      operation_id: "UpdateNodeHardware"
     };
     option (aclType) = "can_configure";
   }
