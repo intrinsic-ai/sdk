@@ -1,0 +1,45 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.icon;
+
+option go_package = "intrinsic/icon/proto/joint_position_pid_velocity_controller_config_go_proto";
+
+message JointPositionPidVelocityControllerConfig {
+  // This is the time period between successive control steps.
+  double cycle_time_seconds = 1;
+
+  // Proportional gains for each joint. All values must be non-negative. For any
+  // degree of freedom in k_i which is non-zero the equivalent value of k_p must
+  // be strictly positive.
+  repeated double k_p = 2;
+
+  // Integral gains for each joint. All values must be non-negative.
+  repeated double k_i = 3;
+
+  // Derivative gains for each joint. All values must be non-negative.
+  repeated double k_d = 4;
+
+  // Velocity feedforward scaling terms. All values must be between 0 and 1.
+  repeated double k_ff = 5;
+
+  // Maximum integral velocity control term for each joint. If left empty this
+  // defaults to zeros for every joint and no integration is applied.
+  //
+  // Note: handle with care as these values affect control integral windup which
+  // may affect stability.
+  repeated double max_integral_control = 6;
+
+  // The absolute value of the output from the controller for each joint
+  // saturates to this.
+  repeated double max_velocity_command = 7;
+
+  // Cut-off frequency for low pass filter used on sensed joint position data.
+  // If unset no filtering is applied.
+  optional double position_filter_cuttoff_frequency_hz = 8;
+
+  // Cut-off frequency for low pass filter used on sensed joint velocity data.
+  // If unset no filtering is applied.
+  optional double velocity_filter_cuttoff_frequency_hz = 9;
+}
