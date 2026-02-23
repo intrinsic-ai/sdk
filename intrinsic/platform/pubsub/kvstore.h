@@ -35,6 +35,7 @@ constexpr absl::Duration kDefaultGetTimeout = absl::Seconds(10);
 constexpr absl::Duration kDefaultAdminCloudCopyTimeout = absl::Seconds(20);
 constexpr absl::string_view kDefaultKeyPrefix = "kv_store";
 constexpr absl::string_view kReplicationPrefix = "kv_store_repl";
+constexpr absl::string_view kGlobalReplicationNamespace = "global";
 
 using KeyValueCallback = std::function<void(
     absl::string_view key, std::unique_ptr<google::protobuf::Any> value)>;
@@ -96,12 +97,7 @@ class KeyValueStore {
     if constexpr (std::is_same_v<google::protobuf::Any, T>) {
       return any_value;
     } else {
-      T value;
-      if (!any_value.UnpackTo(&value)) {
-        return absl::InternalError(
-            absl::StrCat("Failed to unpack value for the key: ", key));
-      }
-      return value;
+      return ExtractFromAny<T>(key, any_value);
     }
   }
 
@@ -144,6 +140,19 @@ class KeyValueStore {
   // Same as GetAll, but does not need a callback. The tradeoff is less control.
   absl::StatusOr<absl::flat_hash_map<std::string, google::protobuf::Any>>
   GetAllSynchronous(absl::string_view keyexpr, absl::Duration timeout);
+
+  // Creates a key from an arbitrary number of strings, removing leading and
+  // trailing slashes, and joining them with a slash delimiter.
+  template <typename... Args>
+  static std::string MakeKey(const Args&... args) {
+    return MakeKeyImpl({absl::string_view(args)...});
+  }
+
+  // Creates a key from a vector of string views, removing leading and
+  // trailing slashes, and joining them with a slash delimiter.
+  //
+  // Unlike MakeKey, this method is compatible with PyBind.
+  static std::string MakeKeyFromVector(const std::vector<std::string>& parts);
 
   // Creates a subscription to changes in value of the specified key expression.
   //
@@ -222,14 +231,68 @@ class KeyValueStore {
                               std::move(deletion_callback));
   }
 
+  // Returns a string that corresponds to the namespace needed for the
+  // workcell's replicated namespace. Using this namespace prefix for keyexprs
+  // will make the KVStore use replicated storage.
+  //
+  // This function will block until the workcell info is received or the timeout
+  // expires. The calling code should check the returned value, and retry if
+  // the returned status code is absl::StatusCode::kDeadlineExceeded.
+  absl::StatusOr<std::string> GetWorkcellReplicationNamespace(
+      absl::Duration timeout = kDefaultGetTimeout);
+
+  // Returns a string that corresponds to the namespace needed for the
+  // global replicated namespace. Using this namespace prefix for keyexprs
+  // will make the KVStore use replicated storage available to all cloud
+  // connected workcells within an organization.
+  std::string GetGlobalReplicationNamespace() {
+    return std::string(kGlobalReplicationNamespace);
+  }
+
  private:
   explicit KeyValueStore(std::optional<std::string> prefix_override);
+
+  static std::string MakeKeyImpl(
+      std::initializer_list<absl::string_view> parts);
 
   absl::StatusOr<std::vector<std::string>> ExecuteList(
       absl::string_view keyexpr, absl::Duration timeout);
 
+  // Returns the value for the given key, wrapped into a google::protobuf::Any.
+  // The KV store's key prefix is added to the key before fetching the value.
   absl::StatusOr<google::protobuf::Any> GetAny(absl::string_view key,
                                                absl::Duration timeout);
+
+  // Returns the value for the given key, wrapped into a google::protobuf::Any.
+  // The key is processed as is, i.e. no prefixes are added to it.
+  //
+  // This method is private because the raw keys contain prefixes not known
+  // to the client code, such as `kv_store` or `kv_store_repl`.
+  //
+  // Parameters:
+  // - raw_key - the key to fetch the value for. Its type is const std::string&
+  //   to avoid unnecessary conversions to std::string. The std::string is
+  //   available at call site, and a reference to it can be passed to this
+  //   method.
+  // - timeout - the timeout for the query.
+  absl::StatusOr<google::protobuf::Any> GetAnyWithRawKey(
+      const std::string& raw_key, absl::Duration timeout);
+
+  template <typename T>
+  absl::StatusOr<T> ExtractFromAny(absl::string_view key,
+                                   const google::protobuf::Any& any_value)
+    requires(std::is_base_of_v<google::protobuf::Message, T>)
+  {
+    T value;
+    if (!any_value.UnpackTo(&value)) {
+      return absl::InternalError(
+          absl::StrCat("Failed to unpack value for the key: ", key));
+    }
+    return value;
+  }
+
+  static void StripSlashesAndAppend(std::string& result,
+                                    absl::string_view part);
 
   std::string key_prefix_;
 };

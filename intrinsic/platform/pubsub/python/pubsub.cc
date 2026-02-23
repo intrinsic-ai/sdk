@@ -251,6 +251,22 @@ GetAllSynchronous(KeyValueStore* self, const std::string& keyexpr,
   return self->GetAllSynchronous(keyexpr, absl::Seconds(timeout));
 }
 
+absl::StatusOr<std::string> GetWorkcellReplicationNamespace(KeyValueStore* self,
+                                                            int timeout) {
+  return self->GetWorkcellReplicationNamespace(absl::Seconds(timeout));
+}
+
+std::string MakeKey(pybind11::args args) {
+  std::vector<std::string> parts;
+  parts.reserve(args.size());
+
+  for (const auto& arg : args) {
+    parts.push_back(arg.cast<std::string>());
+  }
+
+  return KeyValueStore::MakeKeyFromVector(parts);
+}
+
 struct PySubscriptionDeleter {
   void operator()(Subscription* s) {
     // To avoid deadlock, the call to Zenoh.imw_destroy_subscription() needs
@@ -345,7 +361,12 @@ PYBIND11_MODULE(pubsub, m) {
            pybind11::arg("key_expression"), pybind11::arg("config"),
            pybind11::arg("exemplar"), pybind11::arg("value_callback") = nullptr,
            pybind11::arg("del_callback") = nullptr,
-           pybind11::arg("err_callback") = nullptr);
+           pybind11::arg("err_callback") = nullptr)
+      .def("GetWorkcellReplicationNamespace", &GetWorkcellReplicationNamespace,
+           pybind11::arg("timeout") = 10)
+      .def("GetGlobalReplicationNamespace",
+           &KeyValueStore::GetGlobalReplicationNamespace)
+      .def_static("MakeKey", &MakeKey);
 
   // The python GIL does not need to be locked during the entire destructor
   // of this class. Instead, the custom deleter provided during its

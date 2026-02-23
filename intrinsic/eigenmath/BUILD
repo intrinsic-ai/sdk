@@ -37,3 +37,13 @@ cc_library(
         "@com_gitlab_libeigen_eigen//:eigen",
     ],
 )
+
+cc_library(
+    name = "clamp",
+    hdrs = [
+        "clamp.h",
+    ],
+    deps = [
+        "@abseil-cpp//absl/base:core_headers",
+    ],
+)

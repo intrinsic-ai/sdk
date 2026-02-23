@@ -280,15 +280,15 @@ class Operation:
         )
     )
 
-  def find_tree_and_node_id(self, node_name: str) -> bt.NodeIdentifierType:
+  def find_tree_and_node_id(self, node_name: str) -> bt.NodeIdentifier:
     """Searches the tree in this Operation for a node with name node_name.
 
     Args:
       node_name: Name of a node to search for in the tree.
 
     Returns:
-      A NodeIdentifierType referencing the tree id and node id for the node. The
-      result can be passed to calls requiring a NodeIdentifierType.
+      A NodeIdentifier referencing the tree id and node id for the node. The
+      result can be passed to calls requiring a NodeIdentifier.
 
     Raises:
       solution_errors.NotFoundError if there is not behavior_tree.
@@ -301,9 +301,7 @@ class Operation:
     tree = bt.BehaviorTree.create_from_proto(self.metadata.behavior_tree)
     return tree.find_tree_and_node_id(node_name)
 
-  def find_tree_and_node_ids(
-      self, node_name: str
-  ) -> list[bt.NodeIdentifierType]:
+  def find_tree_and_node_ids(self, node_name: str) -> list[bt.NodeIdentifier]:
     """Searches the tree in this Operation for all nodes with name node_name.
 
     Args:
@@ -311,7 +309,7 @@ class Operation:
 
     Returns:
       solution_errors.NotFoundError if there is not behavior_tree.
-      A list of NodeIdentifierType referencing the tree id and node id for the
+      A list of NodeIdentifier referencing the tree id and node id for the
       node. The list contains information about all matching nodes, even if the
       nodes do not have a node or tree id. In that case the values are None.
     """
@@ -650,7 +648,7 @@ class Executive:
       resources: Mapping[str, str | provided.ResourceHandle] | None = None,
       silence_outputs: bool = False,
       step_wise: bool = False,
-      start_node: Optional[bt.NodeIdentifierType] = None,
+      start_node: Optional[bt.NodeInTreeType] = None,
       simulation_mode: Optional["Executive.SimulationMode"] = None,
       embed_skill_traces: bool = False,
   ):
@@ -705,7 +703,7 @@ class Executive:
       resources: Mapping[str, str | provided.ResourceHandle] | None = None,
       silence_outputs: bool = False,
       step_wise: bool = False,
-      start_node: Optional[bt.NodeIdentifierType] = None,
+      start_node: Optional[bt.NodeInTreeType] = None,
       simulation_mode: Optional["Executive.SimulationMode"] = None,
       embed_skill_traces: bool = False,
   ):
@@ -747,6 +745,7 @@ class Executive:
     Returns:
       The start and end timestamps which can be used to query the logs.
     """
+
     self._run(
         plan_or_action,
         blocking=True,
@@ -792,7 +791,7 @@ class Executive:
       step_wise: bool,
       simulation_mode: "Executive.SimulationMode",
       embed_skill_traces: bool,
-      start_node: Optional[bt.NodeIdentifierType],
+      start_node: Optional[bt.NodeInTreeType],
   ) -> None:
     """Implementation of run and run_async.
 
@@ -831,7 +830,13 @@ class Executive:
         raise OperationNotFoundError(
             "No operation loaded, run() requires passing a BT"
         )
-
+      if start_node is not None and not isinstance(
+          start_node, bt.NodeIdentifier
+      ):
+        raise solution_errors.InvalidArgumentError(
+            "When providing a start_node to run() without a behavior tree"
+            " start_node must be a NodeIdentifier"
+        )
       self._start_with_retry(
           step_wise=step_wise,
           start_node=start_node,
@@ -842,12 +847,32 @@ class Executive:
       return
 
     self.load(plan_or_action)
+
+    def get_node_identifier_for_node_in_tree(
+        node_in_tree: bt.NodeInTreeType,
+    ) -> bt.NodeIdentifier:
+      if isinstance(node_in_tree, bt.NodeIdentifier):
+        return node_in_tree
+      if not isinstance(plan_or_action, bt.BehaviorTree):
+        raise solution_errors.InvalidArgumentError(
+            f"Passing a node of type {type(node_in_tree)} is only possible"
+            " when starting with a BehaviorTree object"
+        )
+      tree = cast(bt.BehaviorTree, plan_or_action)
+      return tree.get_node_identifier(
+          node_in_tree, autogenerate_missing_ids=True
+      )
+
+    start_node_id = None
+    if start_node is not None:
+      start_node_id = get_node_identifier_for_node_in_tree(start_node)
+
     self.start(
         blocking,
         parameters=parameters,
         resources=resources,
         step_wise=step_wise,
-        start_node=start_node,
+        start_node=start_node_id,
         simulation_mode=simulation_mode,
         embed_skill_traces=embed_skill_traces,
         silence_outputs=silence_outputs,
@@ -923,7 +948,7 @@ class Executive:
       parameters: protobuf_message.Message | None = None,
       resources: Mapping[str, str | provided.ResourceHandle] | None = None,
       step_wise: bool = False,
-      start_node: Optional[bt.NodeIdentifierType] = None,
+      start_node: Optional[bt.NodeIdentifier] = None,
       simulation_mode: Optional["Executive.SimulationMode"] = None,
       embed_skill_traces: bool = False,
   ) -> None:
@@ -1217,7 +1242,7 @@ class Executive:
       parameters: any_pb2.Any | None,
       resources: Mapping[str, str] | None,
       step_wise: bool = False,
-      start_node: Optional[bt.NodeIdentifierType] = None,
+      start_node: Optional[bt.NodeIdentifier] = None,
       simulation_mode: Optional["Executive.SimulationMode"] = None,
       embed_skill_traces: bool = False,
   ) -> None:

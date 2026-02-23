@@ -7,6 +7,7 @@ package intrinsic_proto.solution_versions.v1;
 import "google/protobuf/field_mask.proto";
 
 import "intrinsic/solution_versions/proto/v1/branch.proto";
+import "intrinsic/solution_versions/proto/v1/diff_mask.proto";
 import "intrinsic/solution_versions/proto/v1/snapshot.proto";
 
 option go_package = "intrinsic/solution_versions/proto/v1/solution_version_service_go_proto";
@@ -98,6 +99,7 @@ service SolutionVersionService {
   // Returns descendant branches of the branch given in the request.
   rpc ListBranchDescendants(ListBranchDescendantsRequest)
       returns (ListBranchDescendantsResponse) {}
+
 }
 
 // A tree is a collection of branches of a solution.
@@ -120,7 +122,7 @@ message CreateBranchRequest {
   Branch branch = 1;
 
   message SnapshotSource {
-    // The ID of the snapshot to create the tree from.
+    // The ID of the snapshot to create the branch from.
     string snapshot_id = 1;
     // The branch ID that contains the snapshot in its history.
     string branch_id = 2;

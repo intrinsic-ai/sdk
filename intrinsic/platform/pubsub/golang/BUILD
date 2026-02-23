@@ -39,6 +39,7 @@ go_library(
     deps = [
         ":kvstore",
         ":pubsubinterface",
+        "//intrinsic/platform/common/proto:workcell_info_go_proto",
         "//intrinsic/platform/pubsub/adapters:pubsub_go_proto",
         "//intrinsic/util/path_resolver:pathresolver",
         "@com_github_golang_glog//:go_default_library",

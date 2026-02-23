@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	// IDVersionURLRegex is a regex for HTTP handlers that captures all valid IDVersions.
+	// IDVersionURLRegex is a regex for HTTP handlers that captures all valid IDs and IDVersions.
 	// It also captures some invalid IDVersions, but those can be invalidated by the handler function
 	// so a validation error rather than a 404 can be returned.
 	// For fully qualified regex according to go/intrinsic-assets-metadata, use idVersionRegex.

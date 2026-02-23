@@ -47,6 +47,19 @@ py_test(
 )
 
 py_test(
+    name = "kvstore_test",
+    srcs = ["kvstore_test.py"],
+    tags = [
+        "noasan",
+        "nomsan",
+    ],
+    deps = [
+        ":pubsub",
+        "@com_google_absl_py//absl/testing:absltest",
+    ],
+)
+
+py_test(
     name = "callback_exception_test",
     srcs = ["callback_exception_test.py"],
     deps = [

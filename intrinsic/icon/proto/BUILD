@@ -332,6 +332,18 @@ go_proto_library(
 )
 
 proto_library(
+    name = "joint_position_pid_velocity_controller_config_proto",
+    srcs = [
+        "joint_position_pid_velocity_controller_config.proto",
+    ],
+)
+
+cc_proto_library(
+    name = "joint_position_pid_velocity_controller_config_cc_proto",
+    deps = [":joint_position_pid_velocity_controller_config_proto"],
+)
+
+proto_library(
     name = "safety_status_proto",
     srcs = ["safety_status.proto"],
 )

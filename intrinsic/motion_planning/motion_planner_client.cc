@@ -149,7 +149,6 @@ MotionPlannerClient::PlanPath(
                              response.swept_volume().begin(),
                              response.swept_volume().end());
   result.logging_id = response.logging_id();
-
   return result;
 }
 

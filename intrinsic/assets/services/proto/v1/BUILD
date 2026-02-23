@@ -142,3 +142,10 @@ py_proto_library(
     name = "system_service_state_py_proto",
     deps = [":system_service_state_proto"],
 )
+
+py_grpc_library(
+    name = "system_service_state_py_proto_grpc",
+    srcs = [":system_service_state_proto"],
+    grpc_library = requirement("grpcio"),
+    deps = [":system_service_state_py_proto"],
+)

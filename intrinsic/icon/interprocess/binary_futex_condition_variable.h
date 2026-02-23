@@ -124,7 +124,7 @@ struct ConditionVariableData {
   // The condition variable using state.
   BinaryFutexConditionVariable condition_variable;
   // The state that the condition variable waits for.
-  StateType state ABSL_GUARDED_BY(mutex) = 0;
+  StateType state ABSL_GUARDED_BY(mutex);
 };
 
 }  // namespace intrinsic::icon

@@ -815,6 +815,19 @@ func TestToContextFromIncoming(t *testing.T) {
 			},
 			wantChanged: true,
 		},
+		{
+			desc: "duplicate incoming org headers are ignored",
+			incoming: metadata.NewIncomingContext(t.Context(),
+				metadata.Pairs(
+					org.OrgIDHeader, "org1",
+					org.OrgIDHeader, "org1",
+				),
+			),
+			wantMd: metadata.MD{
+				org.OrgIDHeader: []string{"org1"},
+			},
+			wantChanged: true,
+		},
 	}
 	for _, test := range tests {
 		t.Run("ToContextFromIncomingChecked "+test.desc, func(t *testing.T) {

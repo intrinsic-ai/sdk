@@ -52,6 +52,7 @@ proto_library(
     srcs = ["solution_version_service.proto"],
     deps = [
         ":branch_proto",
+        ":diff_mask_proto",
         ":snapshot_proto",
         "@com_google_protobuf//:field_mask_proto",
     ],
@@ -76,6 +77,21 @@ go_proto_library(
     ],
     deps = [
         ":branch_go_proto",
+        ":diff_mask_go_proto",
         ":snapshot_go_proto",
+    ],
+)
+
+proto_library(
+    name = "diff_mask_proto",
+    srcs = ["diff_mask.proto"],
+)
+
+go_proto_library(
+    name = "diff_mask_go_proto",
+    protos = [":diff_mask_proto"],
+    visibility = [
+        "//intrinsic/solution_versions:__subpackages__",
+        "//intrinsic/tools/inctl/cmd:__subpackages__",
     ],
 )

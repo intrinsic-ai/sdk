@@ -26,6 +26,7 @@
 #include "grpcpp/create_channel.h"
 #include "grpcpp/security/credentials.h"
 #include "grpcpp/support/channel_arguments.h"
+#include "intrinsic/platform/common/proto/workcell_info.pb.h"
 #include "intrinsic/platform/pubsub/admin_set_grpc/v1/admin_set.grpc.pb.h"
 #include "intrinsic/platform/pubsub/admin_set_grpc/v1/admin_set.pb.h"
 #include "intrinsic/platform/pubsub/subscription.h"
@@ -39,10 +40,13 @@ ABSL_FLAG(bool, use_replicated_kv_store, false,
 
 namespace intrinsic {
 
+using platform::proto::WorkcellInfo;
+
 namespace {
 constexpr static absl::Duration kHighConsistencyTimeout = absl::Seconds(30);
 constexpr static absl::string_view kAdminSetProxyEndpoint =
     "zenoh-router.app-intrinsic-base.svc.cluster.local:8081";
+constexpr static absl::string_view kWorkcellInfoKey = "workcell_info";
 }  // namespace
 
 KeyValueStore::KeyValueStore(std::optional<std::string> prefix_override)
@@ -51,6 +55,41 @@ KeyValueStore::KeyValueStore(std::optional<std::string> prefix_override)
   if (absl::GetFlag(FLAGS_use_replicated_kv_store)) {
     key_prefix_ = kReplicationPrefix;
   }
+}
+
+/* static */
+std::string KeyValueStore::MakeKeyFromVector(
+    const std::vector<std::string>& parts) {
+  std::string result;
+  for (absl::string_view part : parts) {
+    StripSlashesAndAppend(result, part);
+  }
+  return result;
+}
+
+/* static */
+std::string KeyValueStore::MakeKeyImpl(
+    std::initializer_list<absl::string_view> parts) {
+  std::string result;
+  for (absl::string_view part : parts) {
+    StripSlashesAndAppend(result, part);
+  }
+  return result;
+}
+
+/* static */
+void KeyValueStore::StripSlashesAndAppend(std::string& result,
+                                          absl::string_view part) {
+  auto start = part.find_first_not_of('/');
+  if (start == absl::string_view::npos) {
+    return;
+  }
+  auto end = part.find_last_not_of('/');
+  absl::string_view trimmed = part.substr(start, end - start + 1);
+  if (!result.empty()) {
+    result.push_back('/');
+  }
+  result.append(trimmed.data(), trimmed.size());
 }
 
 absl::Status KeyValueStore::Set(absl::string_view key,
@@ -101,8 +140,13 @@ absl::Status KeyValueStore::Set(absl::string_view key,
 absl::StatusOr<google::protobuf::Any> KeyValueStore::GetAny(
     absl::string_view key, absl::Duration timeout) {
   INTR_RETURN_IF_ERROR(intrinsic::ValidZenohKey(key));
-  INTR_ASSIGN_OR_RETURN(absl::StatusOr<std::string> prefixed_name,
+  INTR_ASSIGN_OR_RETURN(absl::StatusOr<std::string> raw_key,
                         ZenohHandle::add_key_prefix(key, key_prefix_));
+  return GetAnyWithRawKey(*raw_key, timeout);
+}
+
+absl::StatusOr<google::protobuf::Any> KeyValueStore::GetAnyWithRawKey(
+    const std::string& raw_key, absl::Duration timeout) {
   if (timeout < absl::ZeroDuration()) {
     return absl::InvalidArgumentError("Timeout must be zero or positive");
   }
@@ -129,10 +173,9 @@ absl::StatusOr<google::protobuf::Any> KeyValueStore::GetAny(
 
   imw_query_options_t query_options{
       .timeout_ms = static_cast<uint64_t>(timeout / absl::Milliseconds(1))};
-  imw_ret ret =
-      Zenoh().imw_query(prefixed_name->c_str(), zenoh_query_static_callback,
-                        zenoh_query_static_on_done, nullptr, 0,
-                        query.GetContext(), &query_options);
+  imw_ret ret = Zenoh().imw_query(raw_key.c_str(), zenoh_query_static_callback,
+                                  zenoh_query_static_on_done, nullptr, 0,
+                                  query.GetContext(), &query_options);
   if (ret != IMW_OK) {
     return absl::InternalError(
         absl::StrFormat("Error getting a key, return code: %d", ret));
@@ -379,6 +422,30 @@ absl::StatusOr<Subscription> KeyValueStore::CreateSubscription(
     return absl::InternalError("Error creating a subscription");
   }
   return Subscription(prefixed_key_expression, std::move(subscription_data));
+}
+
+absl::StatusOr<std::string> KeyValueStore::GetWorkcellReplicationNamespace(
+    absl::Duration timeout) {
+  absl::Time deadline = absl::Now() + timeout;
+  while (absl::Now() < deadline) {
+    absl::StatusOr<WorkcellInfo> workcell_info =
+        Get<WorkcellInfo>(kWorkcellInfoKey);
+    if (workcell_info.ok()) {
+      LOG(INFO) << "Workcell info received. Workcell name: "
+                << workcell_info->workcell_name();
+      return workcell_info->workcell_name();
+    } else if (workcell_info.status().code() == absl::StatusCode::kNotFound) {
+      absl::SleepFor(absl::Milliseconds(100));
+      continue;
+    } else {
+      LOG(ERROR) << "Failed to get workcell info: "
+                 << workcell_info.status().message();
+      return workcell_info.status();
+    }
+  }
+
+  LOG(ERROR) << "Timed out waiting for workcell info";
+  return absl::DeadlineExceededError("Timeout waiting for workcell info");
 }
 
 }  // namespace intrinsic

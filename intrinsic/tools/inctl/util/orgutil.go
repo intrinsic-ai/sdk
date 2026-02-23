@@ -32,8 +32,6 @@ var (
 	authStore        = auth.NewStore()
 	errNoOrg         = fmt.Errorf("expected --%s=<org>", KeyOrganization)
 	errOrgAndProject = fmt.Errorf("do not set --%s, use --%s=<org> or <org@project> instead", KeyProject, KeyOrganization)
-
-	noOrg = false
 )
 
 // ErrOrgNotFound indicates that the lookup for a given credential
@@ -183,19 +181,19 @@ func preRunOrganizationOptional(cmd *cobra.Command, vipr *viper.Viper, enableOrg
 // preRunOrganizationOptional() itself.
 //
 // It enforces that exactly one of --project or --org is set.
-func PreRunOrganization(cmd *cobra.Command, vipr *viper.Viper) error {
+func PreRunOrganization(cmd *cobra.Command, vipr *viper.Viper) (noOrg bool, err error) {
 	org := vipr.GetString(KeyOrganization)
 	project := vipr.GetString(KeyProject)
 
 	if project == "" && org == "" {
-		return errNoOrg
+		return false, errNoOrg
 	}
 	if org == "" {
-		noOrg = true
 		fmt.Fprintf(os.Stderr, "\ninctl was called without an organization. This is deprecated and will soon be an error. Please use --org intrinsic@%v.\n", project)
+		return true, nil
 	}
 
-	return nil
+	return false, nil
 }
 
 // WrapCmdOption is an interface for options that configure the behavior of
@@ -272,6 +270,7 @@ func WrapCmdOptional(cmd *cobra.Command, vipr *viper.Viper, options ...WrapCmdOp
 func WrapCmd(cmd *cobra.Command, vipr *viper.Viper, options ...WrapCmdOption) *cobra.Command {
 	cmd = WrapCmdOptional(cmd, vipr, options...)
 
+	var noOrg bool
 	oldPreRunE := cmd.PersistentPreRunE
 	cmd.PersistentPreRunE = func(c *cobra.Command, args []string) error {
 		// This is required to cooperate with cobrautil.
@@ -279,7 +278,9 @@ func WrapCmd(cmd *cobra.Command, vipr *viper.Viper, options ...WrapCmdOption) *c
 		// causes cobra to run the PersistentPreRunE either way. So we need to short-circuit
 		// the flag handling here.
 		if !c.DisableFlagParsing {
-			if err := PreRunOrganization(cmd, vipr); err != nil {
+			var err error
+			noOrg, err = PreRunOrganization(cmd, vipr)
+			if err != nil {
 				return err
 			}
 		}

@@ -45,6 +45,8 @@ import (
 
 	anypb "google.golang.org/protobuf/types/known/anypb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
+
+	workcellinfopb "intrinsic/platform/common/proto/workcell_info_go_proto"
 )
 
 /*
@@ -61,10 +63,12 @@ import "C"
 var zenohRouter = flag.String("zenoh_router", "", "Override the default Zenoh connection to PROTOCOL/HOSTNAME:PORT")
 
 const (
-	highConsistencyTimeout    = 30 * time.Second
-	highConsistencyGetTimeout = 10 * time.Second
-	defaultKeyPrefix          = "kv_store"
-	replicationKeyPrefix      = "kv_store_repl"
+	highConsistencyTimeout     = 30 * time.Second
+	highConsistencyGetTimeout  = 10 * time.Second
+	defaultKeyPrefix           = "kv_store"
+	replicationKeyPrefix       = "kv_store_repl"
+	workcellInfoKey            = "workcell_info"
+	globalReplicationNamespace = "global"
 )
 
 // NewPubSub creates a new PubSub adapter if possible. Returns either a valid handle
@@ -331,6 +335,26 @@ func (ps *Handle) KVStoreReplicated() kvstore.KVStore {
 	return &kvStoreHandle{ps: ps, zenohHandle: ps.zenohHandle, keyPrefix: replicationKeyPrefix}
 }
 
+func (ps *Handle) ReplicatedKVStoreForWorkcell() (kvstore.KVStore, error) {
+	localKVStore := ps.KVStore()
+	any, err := localKVStore.Get(workcellInfoKey, nil /* timeout */)
+	if err != nil {
+		return nil, err
+	}
+
+	workcellInfo := &workcellinfopb.WorkcellInfo{}
+	if err := any.UnmarshalTo(workcellInfo); err != nil {
+		return nil, err
+	}
+
+	prefix := fmt.Sprintf("%s/%s", replicationKeyPrefix, workcellInfo.WorkcellName)
+	return ps.KVStoreWithPrefix(prefix), nil
+}
+
+func (ps *Handle) GlobalReplicatedKVStore() kvstore.KVStore {
+	return ps.KVStoreWithPrefix(fmt.Sprintf("%s/global", replicationKeyPrefix))
+}
+
 // KVStoreWithPrefix returns an interface to the KVStore associated with this pubsub
 // but default key prefixes are overridden with the given prefix.
 func (ps *Handle) KVStoreWithPrefix(prefix string) kvstore.KVStore {
@@ -477,6 +501,15 @@ func (q *queryHandle) Close() {
 }
 
 func (kv *kvStoreHandle) GetAll(key string, valueCallback func(*anypb.Any), ondoneCallback func(string)) (kvstore.KVQuery, error) {
+	return kv.getAllRaw(kv.addKeyPrefix(key), valueCallback, ondoneCallback)
+}
+
+// getAllRaw invokes the valueCallback for each given key that matches the expression.
+// The key expression is used as-is, i.e. no prefixes are added to it.
+//
+// This function is not exported because the raw keys contain prefixes not known
+// to the client code, such as `kv_store` or `kv_store_repl`.
+func (kv *kvStoreHandle) getAllRaw(rawKey string, valueCallback func(*anypb.Any), ondoneCallback func(string)) (kvstore.KVQuery, error) {
 	var qh *queryHandle
 	qh = &queryHandle{
 		query: func(keyexpr string, bytes []byte) {
@@ -492,7 +525,7 @@ func (kv *kvStoreHandle) GetAll(key string, valueCallback func(*anypb.Any), ondo
 	}
 	qh.handle = cgo.NewHandle(qh)
 
-	if err := kv.zenohHandle.ImwQuery(kv.addKeyPrefix(key), qh); err != nil {
+	if err := kv.zenohHandle.ImwQuery(rawKey, qh); err != nil {
 		return nil, err
 	}
 
@@ -520,6 +553,15 @@ func intrinsic_ImwQueryDoneStaticCallback(keyexpr unsafe.Pointer, userContext un
 }
 
 func (kv *kvStoreHandle) Get(key string, timeout *time.Duration) (*anypb.Any, error) {
+	return kv.getRaw(kv.addKeyPrefix(key), timeout)
+}
+
+// getRaw returns the value for the given key.
+// The key is used as-is, i.e. no prefixes are added to it.
+//
+// This function is not exported because the raw keys contain prefixes not known
+// to the client code, such as `kv_store` or `kv_store_repl`.
+func (kv *kvStoreHandle) getRaw(rawKey string, timeout *time.Duration) (*anypb.Any, error) {
 	resultCh := make(chan *anypb.Any)
 
 	valueCallback := func(value *anypb.Any) {
@@ -534,7 +576,7 @@ func (kv *kvStoreHandle) Get(key string, timeout *time.Duration) (*anypb.Any, er
 	errCh := make(chan error)
 
 	go func() {
-		query, err := kv.GetAll(key, valueCallback, onDoneCallback)
+		query, err := kv.getAllRaw(rawKey, valueCallback, onDoneCallback)
 		if err != nil {
 			errCh <- err
 		}
@@ -554,11 +596,11 @@ func (kv *kvStoreHandle) Get(key string, timeout *time.Duration) (*anypb.Any, er
 	case result := <-resultCh:
 		return result, nil
 	case _ = <-done:
-		return nil, fmt.Errorf("%q not found: %w", key, kvstore.ErrNotFound)
+		return nil, fmt.Errorf("%q not found: %w", rawKey, kvstore.ErrNotFound)
 	case err := <-errCh:
 		return nil, err
 	case _ = <-timeoutCh:
-		return nil, fmt.Errorf("timeout waiting for %q: %w", key, kvstore.ErrDeadlineExceeded)
+		return nil, fmt.Errorf("timeout waiting for %q: %w", rawKey, kvstore.ErrDeadlineExceeded)
 	}
 }
 
@@ -608,6 +650,24 @@ func (kv *kvStoreHandle) SubscribeToRawValues(
 		msgCallback,
 		deletionCallback,
 	)
+}
+
+func (kv *kvStoreHandle) GetWorkcellReplicationNamespace() (string, error) {
+	key := fmt.Sprintf("%s/%s", defaultKeyPrefix, workcellInfoKey)
+	any, err := kv.getRaw(key, nil /* timeout */)
+	if err != nil {
+		return "", err
+	}
+
+	workcellInfo := &workcellinfopb.WorkcellInfo{}
+	if err := any.UnmarshalTo(workcellInfo); err != nil {
+		return "", err
+	}
+	return workcellInfo.WorkcellName, nil
+}
+
+func (kv *kvStoreHandle) GetGlobalReplicationNamespace() string {
+	return globalReplicationNamespace
 }
 
 type zenohHandle interface {

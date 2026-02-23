@@ -90,6 +90,7 @@ def python_layers(name, binary, **kwargs):
         mtree = ":" + name + "_interpreter_tar_manifest",
         compress = "gzip",
         compatible_with = kwargs.get("compatible_with"),
+        compute_unused_inputs = 1,
         testonly = kwargs.get("testonly"),
         tags = kwargs.get("tags"),
     )
@@ -117,6 +118,7 @@ def python_layers(name, binary, **kwargs):
         mtree = ":" + name + "_packages_tar_manifest",
         compress = "gzip",
         compatible_with = kwargs.get("compatible_with"),
+        compute_unused_inputs = 1,
         testonly = kwargs.get("testonly"),
         tags = kwargs.get("tags"),
     )
@@ -140,6 +142,7 @@ def python_layers(name, binary, **kwargs):
         mtree = ":" + name + "_app_tar_manifest",
         compress = "gzip",
         compatible_with = kwargs.get("compatible_with"),
+        compute_unused_inputs = 1,
         testonly = kwargs.get("testonly"),
         tags = kwargs.get("tags"),
     )

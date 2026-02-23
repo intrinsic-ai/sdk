@@ -4,6 +4,7 @@
 Bazel rules for service types.
 """
 
+load("@aspect_bazel_lib//lib:paths.bzl", "to_rlocation_path")
 load("@com_google_protobuf//bazel/common:proto_info.bzl", "ProtoInfo")
 load("//intrinsic/assets/build_defs:asset.bzl", "AssetInfo", "AssetLocalInfo")
 load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "ProtoSourceCodeInfo", "gen_source_code_info_descriptor_set")
@@ -75,6 +76,9 @@ def _intrinsic_service_impl(ctx):
     ).add(
         "--bundle_short_path",
         bundle_output.short_path,
+    ).add(
+        "--bundle_runfiles_path",
+        to_rlocation_path(ctx, ctx.outputs.bundle_out),
     ).add_all(
         transitive_descriptor_sets,
         before_each = "--file_descriptor_set",

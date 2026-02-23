@@ -1181,10 +1181,22 @@ user_data {
         )
     )
 
-    self.assertEqual(my_bt.find_tree_and_node_id('root_node'), ('tree', 1))
-    self.assertEqual(my_bt.find_tree_and_node_id('child_node'), ('tree', 2))
-    self.assertEqual(my_bt.find_tree_and_node_ids('root_node'), [('tree', 1)])
-    self.assertEqual(my_bt.find_tree_and_node_ids('child_node'), [('tree', 2)])
+    self.assertEqual(
+        my_bt.find_tree_and_node_id('root_node'),
+        bt.NodeIdentifier(tree_id='tree', node_id=1),
+    )
+    self.assertEqual(
+        my_bt.find_tree_and_node_id('child_node'),
+        bt.NodeIdentifier(tree_id='tree', node_id=2),
+    )
+    self.assertEqual(
+        my_bt.find_tree_and_node_ids('root_node'),
+        [bt.NodeIdentifier(tree_id='tree', node_id=1)],
+    )
+    self.assertEqual(
+        my_bt.find_tree_and_node_ids('child_node'),
+        [bt.NodeIdentifier(tree_id='tree', node_id=2)],
+    )
 
   def test_find_nodes_by_name(self):
     my_bt = bt.BehaviorTree('my_bt', tree_id='tree')
@@ -1272,14 +1284,257 @@ user_data {
     with self.assertRaises(solutions_errors.InvalidArgumentError):
       my_bt.find_tree_and_node_id('duplicate')
     self.assertEqual(
-        my_bt.find_tree_and_node_ids('duplicate'), [('tree', 3), ('tree', 4)]
+        my_bt.find_tree_and_node_ids('duplicate'),
+        [
+            bt.NodeIdentifier(tree_id='tree', node_id=3),
+            bt.NodeIdentifier(tree_id='tree', node_id=4),
+        ],
     )
 
     with self.assertRaises(solutions_errors.InvalidArgumentError):
       my_bt.find_tree_and_node_id('child_node')
-    self.assertEqual(
-        my_bt.find_tree_and_node_ids('child_node'), [('tree', None)]
+    with self.assertRaises(solutions_errors.InvalidArgumentError):
+      my_bt.find_tree_and_node_ids('child_node')
+
+  def test_get_node_identifier_from_reference(self):
+    child3 = bt.Fail(name='some_child', node_id=3)
+    sub_tree_child = bt.Fail(name='sub_tree_child', node_id=10)
+    my_bt = bt.BehaviorTree('my_bt', tree_id='tree')
+    my_bt.set_root(
+        bt.Sequence(name='root_node', node_id=1).set_children(
+            bt.SubTree(
+                behavior_tree=bt.BehaviorTree(
+                    root=sub_tree_child, tree_id='sub-tree'
+                )
+            ),
+            child3,
+        )
     )
+
+    some_child_id = bt.NodeIdentifier(tree_id='tree', node_id=3)
+    sub_tree_child_id = bt.NodeIdentifier(tree_id='sub-tree', node_id=10)
+    # get_node_identifier must accept: NodeIdentifier directly, a node name, a
+    # node id, or a node object
+    self.assertEqual(
+        my_bt.get_node_identifier(some_child_id),
+        some_child_id,
+    )
+
+    self.assertEqual(
+        my_bt.get_node_identifier(bt.NodeName('some_child')), some_child_id
+    )
+    self.assertEqual(
+        my_bt.get_node_identifier(bt.NodeName('sub_tree_child')),
+        sub_tree_child_id,
+    )
+
+    self.assertEqual(my_bt.get_node_identifier(bt.NodeId(3)), some_child_id)
+    self.assertEqual(
+        my_bt.get_node_identifier(bt.NodeId(10)), sub_tree_child_id
+    )
+
+    self.assertEqual(my_bt.get_node_identifier(child3), some_child_id)
+    self.assertEqual(
+        my_bt.get_node_identifier(sub_tree_child), sub_tree_child_id
+    )
+
+  @parameterized.named_parameters(
+      dict(
+          testcase_name='no_autogenerate_missing_ids',
+          autogenerate_missing_ids=False,
+      ),
+      dict(
+          testcase_name='autogenerate_missing_ids',
+          autogenerate_missing_ids=True,
+      ),
+  )
+  def test_get_node_identifier_from_reference_fails_not_finding_node(
+      self, autogenerate_missing_ids
+  ):
+    my_bt = bt.BehaviorTree('my_bt')
+    my_bt.set_root(
+        bt.Sequence().set_children(
+            bt.SubTree(behavior_tree=bt.BehaviorTree(root=bt.Fail())),
+            bt.Fail(name='some_child'),
+        )
+    )
+
+    with self.assertRaises(ValueError):
+      my_bt.get_node_identifier(
+          bt.NodeName('unknown'),
+          autogenerate_missing_ids=autogenerate_missing_ids,
+      )
+    with self.assertRaises(ValueError):
+      my_bt.get_node_identifier(
+          bt.NodeId(99), autogenerate_missing_ids=autogenerate_missing_ids
+      )
+
+    # The node must be the actual node in the tree not a similar node
+    with self.assertRaises(ValueError):
+      my_bt.get_node_identifier(
+          bt.Fail(name='some_child'),
+          autogenerate_missing_ids=autogenerate_missing_ids,
+      )
+
+  @parameterized.named_parameters(
+      dict(
+          testcase_name='no_autogenerate_missing_ids',
+          autogenerate_missing_ids=False,
+      ),
+      dict(
+          testcase_name='autogenerate_missing_ids',
+          autogenerate_missing_ids=True,
+      ),
+  )
+  def test_get_node_identifier_from_reference_fails_non_unique_node(
+      self, autogenerate_missing_ids
+  ):
+    my_bt = bt.BehaviorTree('my_bt')
+    my_bt.set_root(
+        bt.Sequence().set_children(
+            bt.Fail(name='some_child', node_id=10),
+            bt.Fail(name='some_child'),
+            bt.SubTree(behavior_tree=bt.BehaviorTree(root=bt.Fail(node_id=10))),
+        )
+    )
+
+    with self.assertRaises(ValueError):
+      my_bt.get_node_identifier(
+          bt.NodeName('some_child'),
+          autogenerate_missing_ids=autogenerate_missing_ids,
+      )
+    with self.assertRaises(ValueError):
+      my_bt.get_node_identifier(
+          bt.NodeId(10), autogenerate_missing_ids=autogenerate_missing_ids
+      )
+
+  def test_get_node_identifier_from_reference_ensures_ids_from_node(self):
+    # Node input by user
+    some_child = bt.Fail()
+    # Note: tree and nodes do not have ids set
+    my_bt = bt.BehaviorTree('my_bt')
+    my_bt.set_root(
+        bt.Sequence().set_children(
+            bt.Fail(name='other'),
+            some_child,
+        )
+    )
+    node_identifier = my_bt.get_node_identifier(
+        some_child, autogenerate_missing_ids=True
+    )
+    expected_node_identifier = bt.NodeIdentifier(
+        tree_id=my_bt.tree_id, node_id=some_child.node_id
+    )
+    self.assertEqual(node_identifier, expected_node_identifier)
+
+  def test_get_node_identifier_from_reference_ensures_ids_from_subtree_node(
+      self,
+  ):
+    # Node input by user
+    sub_tree_child = bt.Fail()
+    # Note: tree and nodes do not have ids set
+    my_bt = bt.BehaviorTree('my_bt')
+    my_bt.set_root(
+        bt.Sequence().set_children(
+            bt.SubTree(behavior_tree=bt.BehaviorTree(root=sub_tree_child)),
+            bt.Fail(),
+        )
+    )
+
+    sub_tree = my_bt.root.children[0].behavior_tree
+    node_identifier = my_bt.get_node_identifier(
+        sub_tree_child, autogenerate_missing_ids=True
+    )
+    expected_node_identifier = bt.NodeIdentifier(
+        tree_id=sub_tree.tree_id, node_id=sub_tree_child.node_id
+    )
+    self.assertEqual(node_identifier, expected_node_identifier)
+
+  def test_get_node_identifier_from_reference_ensures_ids_from_node_name(self):
+    # Note: tree and nodes do not have ids set
+    my_bt = bt.BehaviorTree('my_bt')
+    my_bt.set_root(
+        bt.Sequence().set_children(
+            bt.Fail(name='some_child'),
+            bt.Fail(name='other'),
+        )
+    )
+
+    node_identifier = my_bt.get_node_identifier(
+        bt.NodeName('some_child'), autogenerate_missing_ids=True
+    )
+    some_child = my_bt.root.children[0]
+    expected_node_identifier = bt.NodeIdentifier(
+        tree_id=my_bt.tree_id, node_id=some_child.node_id
+    )
+    self.assertEqual(node_identifier, expected_node_identifier)
+
+  def test_get_node_identifier_from_reference_ensures_ids_from_subtree_node_name(
+      self,
+  ):
+    # Note: tree and nodes do not have ids set
+    my_bt = bt.BehaviorTree('my_bt')
+    my_bt.set_root(
+        bt.Sequence().set_children(
+            bt.SubTree(
+                behavior_tree=bt.BehaviorTree(
+                    root=bt.Fail(name='sub_tree_child')
+                )
+            ),
+            bt.Fail(name='some_child'),
+        )
+    )
+
+    node_identifier = my_bt.get_node_identifier(
+        bt.NodeName('sub_tree_child'), autogenerate_missing_ids=True
+    )
+    sub_tree = my_bt.root.children[0].behavior_tree
+    sub_tree_child = sub_tree.root
+    expected_node_identifier = bt.NodeIdentifier(
+        tree_id=sub_tree.tree_id, node_id=sub_tree_child.node_id
+    )
+    self.assertEqual(node_identifier, expected_node_identifier)
+
+  def test_get_node_identifier_from_reference_ensures_ids_from_node_id(self):
+    # Note: tree and nodes do not have ids set
+    my_bt = bt.BehaviorTree('my_bt')
+    my_bt.set_root(
+        bt.Sequence().set_children(
+            bt.Fail(node_id=42),
+            bt.Fail(name='other'),
+        )
+    )
+
+    node_identifier = my_bt.get_node_identifier(
+        bt.NodeId(42), autogenerate_missing_ids=True
+    )
+    some_child = my_bt.root.children[0]
+    expected_node_identifier = bt.NodeIdentifier(
+        tree_id=my_bt.tree_id, node_id=some_child.node_id
+    )
+    self.assertEqual(node_identifier, expected_node_identifier)
+
+  def test_get_node_identifier_from_reference_ensures_ids_from_subtree_node_id(
+      self,
+  ):
+    # Note: tree and nodes do not have ids set
+    my_bt = bt.BehaviorTree('my_bt')
+    my_bt.set_root(
+        bt.Sequence().set_children(
+            bt.SubTree(behavior_tree=bt.BehaviorTree(root=bt.Fail(node_id=42))),
+            bt.Fail(),
+        )
+    )
+
+    node_identifier = my_bt.get_node_identifier(
+        bt.NodeId(42), autogenerate_missing_ids=True
+    )
+    sub_tree = my_bt.root.children[0].behavior_tree
+    sub_tree_child = sub_tree.root
+    expected_node_identifier = bt.NodeIdentifier(
+        tree_id=sub_tree.tree_id, node_id=sub_tree_child.node_id
+    )
+    self.assertEqual(node_identifier, expected_node_identifier)
 
   def test_dot_graph_empty_instance(self):
     """Tests if an empty behavior tree converts to a dot representation ok."""

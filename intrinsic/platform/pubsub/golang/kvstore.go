@@ -5,6 +5,7 @@ package kvstore
 
 import (
 	"fmt"
+	"path"
 	"time"
 
 	"intrinsic/platform/pubsub/golang/pubsubinterface"
@@ -13,6 +14,12 @@ import (
 
 	anypb "google.golang.org/protobuf/types/known/anypb"
 )
+
+// MakeKey creates a key from an arbitrary number of strings, removing leading and
+// trailing slashes, and joining them with a slash delimiter.
+func MakeKey(parts ...string) string {
+	return path.Join(parts...)
+}
 
 // KVStore represents an instance of a KVStore object. It provides an
 // interface that allows getting and setting key/value pairs.
@@ -67,6 +74,21 @@ type KVStore interface {
 		keyExpression string, config pubsubinterface.TopicConfig,
 		msgCallback func(string, *anypb.Any),
 		deletionCallback func(string)) (pubsubinterface.Subscription, error)
+
+	// GetWorkcellReplicationNamespace returns a string that corresponds to the
+	// namespace needed for the workcell's replicated namespace. Using this
+	// namespace prefix for keyexprs will make the KVStore use replicated storage.
+	//
+	// This function may return an error because the namespace may not be available
+	// immediately. The calling code should check whether the returned error is
+	// kvstore.ErrNotFound, and retry.
+	GetWorkcellReplicationNamespace() (string, error)
+
+	// GetGlobalReplicationNamespace returns a string that corresponds to the
+	// namespace needed for the global replicated namespace. Using this
+	// namespace prefix for keyexprs will make the KVStore use replicated storage
+	// available to all workcells within an organization.
+	GetGlobalReplicationNamespace() string
 }
 
 // KVQuery is a handle for a GetALl KVStore query. Keep the handle alive to

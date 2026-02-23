@@ -85,9 +85,49 @@ _NODE_TYPES_TO_DOT_SHAPES = {
     'debug': 'box',
 }
 
-NodeIdentifierType = collections.namedtuple(
-    'NodeIdentifierType', ['tree_id', 'node_id']
-)
+
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class NodeIdentifier:
+  """A class identifying a specific node in a process.
+
+  Currently only nodes in the main process tree can be identified. Nodes within
+  reusable processes are not yet supported.
+  """
+
+  tree_id: str
+  node_id: int
+
+  def __post_init__(self):
+    # Check for valid identifier: tree id and node id are set and not "" or 0.
+    assert self.tree_id and self.node_id
+
+  @property
+  def proto(self) -> behavior_tree_pb2.BehaviorTree.NodeIdentifier:
+    return behavior_tree_pb2.BehaviorTree.NodeIdentifier(
+        tree_id=self.tree_id, node_id=self.node_id
+    )
+
+
+class NodeName(str):
+  """Strong type for a node name"""
+
+
+class NodeId(int):
+  """Strong type for a node id.
+
+  This only refers to the node's id field. To fully identify a node in a tree,
+  use a NodeIdentifier (i.e., include the tree id)
+  """
+
+
+# A generic type interface that allows API calls to refer to a specific node in
+# a tree. Node objects, names or ids are only valid in relation to a tree.
+NodeInTreeType = Union[
+    NodeIdentifier,
+    'Node',  # must be a unique Node in the related tree
+    NodeName,  # refers to the name of a node, must be unique in the process
+    NodeId,  # refers to a node id, must be unique in the process
+]
 
 
 def generate_unique_node_id() -> int:
@@ -4880,18 +4920,18 @@ class BehaviorTree:
     if self.root is not None:
       self.root.visit(self, callback)
 
-  def find_tree_and_node_id(self, node_name: str) -> NodeIdentifierType:
+  def find_tree_and_node_id(self, node_name: str) -> NodeIdentifier:
     """Searches the tree recursively for a node with name node_name.
 
     Args:
       node_name: Name of a node to search for in the tree.
 
     Returns:
-      A NodeIdentifierType referencing the tree id and node id for the node. The
-      result can be passed to calls requiring a NodeIdentifierType.
+      A NodeIdentifier referencing the tree id and node id for the node. The
+      result can be passed to calls requiring a NodeIdentifier.
 
     Raises:
-      solution_errors.NotFoundError if not matching node exists.
+      solution_errors.NotFoundError if no matching node exists.
       solution_errors.InvalidArgumentError if there is more than one matching
         node or if the node or its tree do not have an id defined.
     """
@@ -4899,7 +4939,7 @@ class BehaviorTree:
 
     if not node_identifiers:
       raise solutions_errors.NotFoundError(
-          f'Could not find node with name {node_name}'
+          f'Could not find node with name {node_name} or determine its id'
       )
     if len(node_identifiers) > 1:
       raise solutions_errors.InvalidArgumentError(
@@ -4907,15 +4947,9 @@ class BehaviorTree:
           f' following entries: {node_identifiers}.'
       )
     unique_node = node_identifiers[0]
-    if unique_node.tree_id is None or unique_node.node_id is None:
-      raise solutions_errors.InvalidArgumentError(
-          f'Unique node with name {node_name} did not have tree id and node id'
-          f' set. Got: {unique_node}.'
-      )
-
     return unique_node
 
-  def find_tree_and_node_ids(self, node_name: str) -> list[NodeIdentifierType]:
+  def find_tree_and_node_ids(self, node_name: str) -> list[NodeIdentifier]:
     """Searches the tree recursively for all nodes with name node_name.
 
     This is usually used, when find_tree_and_node_id cannot find a unique
@@ -4927,7 +4961,7 @@ class BehaviorTree:
       node_name: Name of a node to search for in the tree.
 
     Returns:
-      A list of NodeIdentifierType referencing the tree id and node id for the
+      A list of NodeIdentifier referencing the tree id and node id for the
       node. The list contains information about all matching nodes, even if the
       nodes do not have a node or tree id. In that case the values are None.
     """
@@ -4942,14 +4976,48 @@ class BehaviorTree:
           and tree_object.name
           and tree_object.name == node_name
       ):
+        if not containing_tree.tree_id or not tree_object.node_id:
+          raise solutions_errors.InvalidArgumentError(
+              f'Node with name {node_name!r} found, but it or its containing'
+              ' tree does not have an ID set.'
+          )
+          return
         node_identifiers.append(
-            NodeIdentifierType(
+            NodeIdentifier(
                 tree_id=containing_tree.tree_id, node_id=tree_object.node_id
             )
         )
 
     self.visit(search_matching_name)
     return node_identifiers
+
+  def find_trees_and_nodes_by_name(
+      self, node_name: str
+  ) -> list[tuple[BehaviorTree, Node]]:
+    """Searches the tree recursively for nodes with given display name.
+
+    Finds tree,node tuples where the node matches the name. tree here could be
+    this tree, i.e., self or any contained trees, e.g., subtrees.
+
+    Args:
+      node_name: Name of a node to search for in the tree.
+
+    Returns:
+      A list of containing tree and nodes, where the node has the given (display) name. Note that the name is
+      not necessariy unique, which is why there can be multiple such nodes.
+    """
+    trees_and_nodes: list[tuple[BehaviorTree, Node]] = []
+
+    def search_matching_name(
+        containing_tree: BehaviorTree,
+        tree_object: Union[BehaviorTree, Node, Condition],
+    ):
+      if isinstance(tree_object, Node) and tree_object.name == node_name:
+        nonlocal trees_and_nodes
+        trees_and_nodes.append((containing_tree, cast(Node, tree_object)))
+
+    self.visit(search_matching_name)
+    return trees_and_nodes
 
   def find_nodes_by_name(self, node_name: str) -> list[Node]:
     """Searches the tree recursively for nodes with given display name.
@@ -4958,22 +5026,50 @@ class BehaviorTree:
       node_name: Name of a node to search for in the tree.
 
     Returns:
-      A list of nodes that have the given (display) name. Node that the name is
+      A list of nodes that have the given (display) name. Note that the name is
       not necessariy unique, which is why there can be multiple such nodes.
     """
-    nodes: list[Node] = []
+    trees_and_nodes = self.find_trees_and_nodes_by_name(node_name)
+    nodes: list[Node] = [node for tree, node in trees_and_nodes]
+    return nodes
 
-    def search_matching_name(
+  def find_tree_and_node_by_id(
+      self, node_id: int | NodeId
+  ) -> tuple[BehaviorTree, Node]:
+    """Searches the tree recursively for a node with the given ID.
+
+    This will recurse into subtrees. The node_id must be unique within all
+    sub-trees within this tree.
+
+    Args:
+      node_id: ID to search for in the tree.
+
+    Returns:
+      A tuple of the tree and node matching the node id.
+
+    Raises:
+      ValueError if no matching node exists or if there is more than one matching node.
+    """
+    trees_and_nodes: list[tuple[BehaviorTree, Node]] = []
+
+    def search_matching_id(
         containing_tree: BehaviorTree,
         tree_object: Union[BehaviorTree, Node, Condition],
     ):
-      del containing_tree  # unused
-      if isinstance(tree_object, Node) and tree_object.name == node_name:
-        nonlocal nodes
-        nodes.append(cast(Node, tree_object))
+      if isinstance(tree_object, Node) and tree_object.node_id == node_id:
+        nonlocal trees_and_nodes
+        trees_and_nodes.append((containing_tree, cast(Node, tree_object)))
 
-    self.visit(search_matching_name)
-    return nodes
+    self.visit(search_matching_id)
+
+    if not trees_and_nodes:
+      raise ValueError(f'Could not find node with id {node_id}')
+    if len(trees_and_nodes) > 1:
+      raise ValueError(
+          f'Could not find unique node for id {node_id}. Found'
+          f' {len(trees_and_nodes)} entries.'
+      )
+    return trees_and_nodes[0]
 
   def find_node_by_id(self, node_id: int) -> Node | None:
     """Searches the tree recursively for a node with the given ID.
@@ -5002,6 +5098,78 @@ class BehaviorTree:
 
     self.visit(search_matching_id)
     return node
+
+  def _find_containing_tree_for_node(self, node: Node) -> BehaviorTree:
+    """Finds the nested BehaviorTree that contains node."""
+    containing_tree_for_node = None
+
+    def search_containing_tree(
+        containing_tree: BehaviorTree,
+        tree_object: Union[BehaviorTree, Node, Condition],
+    ):
+      nonlocal containing_tree_for_node
+      if isinstance(tree_object, Node) and tree_object == node:
+        containing_tree_for_node = containing_tree
+
+    self.visit(search_containing_tree)
+    return containing_tree_for_node
+
+  def get_node_identifier(
+      self,
+      node_in_tree: NodeInTreeType,
+      autogenerate_missing_ids: bool = False,
+  ) -> NodeIdentifier:
+    """Gets an actual NodeIdentifier from a NodeInTreeType.
+
+    Accepts any of the types in NodeInTreeType and returns the proper
+    NodeIdentifier matching a node in this tree.
+
+    Args:
+      node_in_tree: A NodeInTreeType for a node.
+      autogenerate_missing_ids: If true, will try to ensure valid ids by generating ids
+        if not set.
+
+    Raises:
+      ValueError if the node_in_tree is not in this tree.
+    """
+    if isinstance(node_in_tree, NodeIdentifier):
+      return node_in_tree
+
+    def node_identifier_for(tree: BehaviorTree, node: Node):
+      if autogenerate_missing_ids:
+        if not tree.tree_id:
+          tree.generate_and_set_unique_id()
+        if not node.node_id:
+          node.generate_and_set_unique_id()
+      if not tree.tree_id or not node.node_id:
+        raise solutions_errors.InvalidArgumentError(
+            'Found matching node, but it does not have identifiers set.'
+        )
+      return NodeIdentifier(tree_id=tree.tree_id, node_id=node.node_id)
+
+    if isinstance(node_in_tree, NodeName):
+      trees_and_nodes = self.find_trees_and_nodes_by_name(node_in_tree)
+      if not trees_and_nodes:
+        raise ValueError(f'Could not find node with name {node_in_tree}')
+      if len(trees_and_nodes) > 1:
+        raise ValueError(
+            f'Could not find unique node for name {node_in_tree}. Found'
+            f' {len(trees_and_nodes)} entries.'
+        )
+      tree_for_node = trees_and_nodes[0][0]
+      node = trees_and_nodes[0][1]
+      return node_identifier_for(tree_for_node, node)
+    if isinstance(node_in_tree, NodeId):
+      tree_and_node = self.find_tree_and_node_by_id(node_in_tree)
+      return node_identifier_for(tree_and_node[0], tree_and_node[1])
+    if isinstance(node_in_tree, Node):
+      tree_for_node = self._find_containing_tree_for_node(node_in_tree)
+      if tree_for_node is None:
+        raise ValueError('node must be in the given tree')
+      return node_identifier_for(tree_for_node, node_in_tree)
+    raise TypeError(
+        f'node_in_tree of type {type(node_in_tree)} is not an accepted type'
+    )
 
   def remove_node(self, node_id: int) -> None:
     """Removes a given node from this behavior tree.

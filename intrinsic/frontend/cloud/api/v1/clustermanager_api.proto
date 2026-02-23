@@ -574,12 +574,15 @@ message NodeHardware {
   message StorageDisk {
     string type = 1;
     int64 capacity_bytes = 2;
+    string model = 3;
   }
 
   message NIC {
     string vendor = 1;
     string model = 2;
     string mac_address = 3;
+    string logical_name = 4;
+    string display_name = 5;
   }
 
   message GPU {

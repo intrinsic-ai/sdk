@@ -15,20 +15,41 @@
 namespace intrinsic {
 namespace icon {
 
-// PI controller to convert cyclic position setpoints to velocity setpoints.
+// Joint PID controller to convert cyclic position setpoints to velocity
+// setpoints.
 class JointPositionPIDVelocityController {
  public:
   struct Params {
+    // Proportional controller gains acting on joint position errors.
+    // Must be >= 0.
     eigenmath::VectorNd k_p;
+
+    // Integral controller gains acting on integral of joint position errors.
+    // Must be >= 0.
     eigenmath::VectorNd k_i;
+
+    // Derivative controller gains acting on velocity errors.
+    // Must be >= 0.
     eigenmath::VectorNd k_d;
+
+    // Fraction of velocity feedforward added to the command output.
+    // Must be between 0 and 1.
     eigenmath::VectorNd k_ff;
+
+    // Absolute value of the integral control terms. The integral control value
+    // magnitudes will saturate at these values.
     eigenmath::VectorNd max_integral_control;
+
+    // The max velocity commands.
     eigenmath::VectorNd max_velocity_command;
+
     double cycle_time_sec;
+
+    // Optional filtering for measured position and velocity states.
     std::optional<double> position_filter_cuttoff_frequency_hz = std::nullopt;
     std::optional<double> velocity_filter_cuttoff_frequency_hz = std::nullopt;
   };
+
   struct Filters {
     std::unique_ptr<ButterFilter2<eigenmath::VectorNd>>
         butterworth_position_filter;

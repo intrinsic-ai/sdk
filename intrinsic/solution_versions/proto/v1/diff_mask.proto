@@ -1,0 +1,96 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.solution_versions.v1;
+
+option go_package = "intrinsic/solution_versions/proto/v1/diff_mask_go_proto";
+
+// Action defines the mutation type to be performed on a specific field, map
+// entry, or list element.
+enum Action {
+  ACTION_UNSPECIFIED = 0;
+
+  // Inserts a new element or field.
+  // - For Lists: Inserts the element at the given path, shifting subsequent
+  //   elements right (index + 1).
+  // - For Maps: Inserts a new key-value pair. If the key exists,
+  //   this acts as an overwrite.
+  //  - For Singular Fields: Sets the field value if it was previously unset
+  //    or at its default.
+  ACTION_ADD = 1;
+
+  // Deletes an existing element or field.
+  // - For Lists: Removes the element at the given path and shifts subsequent
+  //   elements left (index - 1).
+  // - For Maps: Removes the entry associated with the key.
+  // - For Singular Fields: Clears the field, returning it to its
+  //   unset/default state.
+  ACTION_REMOVE = 2;
+
+  // Updates an existing field or element.
+  // - For Lists: Replaces the value at the specified path with the
+  //   value from the patch without changing the list size.
+  // - For Maps: Updates the value for an existing key.
+  // - For Singular Fields: Overwrites the existing value with the
+  //   new value provided in the patch.
+  ACTION_MODIFY = 3;
+}
+
+// DiffMask provides the operational instructions required to transform a
+// reference solution into a target solution using data found in a
+// `solution_patch`.
+//
+// A `solution_patch` is a sparse representation of the Solution containing only
+// the fields that differ between `reference` and `target`.
+//
+// Unlike standard declarative FieldMasks, which replace entire lists when a
+// single element changes, `DiffMask` is a sequence-based mutation tool that
+// supports granular list operations.
+// It uses ACTION_ADDED and ACTION_REMOVED to insert or delete elements,
+// which shifts the indices of all subsequent items in the list.
+//
+// Because these actions dynamically alter the list structure, the paths
+// must be applied sequentially to ensure each instruction correctly
+// references the updated locations within the solution_patch.
+//
+// Example:
+//
+//    diff_mask = {
+//      actionable_paths:
+//        [
+//          {path: "updates[2]", action: ACTION_REMOVED},
+//          {path: "updates[3]", action: ACTION_ADDED},
+//          {path: "updates[5].property", action: ACTION_MODIFIED},
+//        ],
+//    }
+//
+//
+// How to apply:
+//
+//  Step 1: Delete updates[2] element. All subsequent elements in updates list
+//          shift left (original_index-1).
+//  Step 2: Insert new element to updates list at index 3. All subsequent
+//          elements in updates list shift right (original_index+1).
+//  Step 3: Modify a subfield of the updates[5] element. Other list elements are
+//          not updated.
+//
+message DiffMask {
+  // A single modification instruction consisting of a target path and an
+  // action.
+  message ActionablePath {
+    // The path to the field within the solution_patch.
+    // This path is used to identify the added, removed, or modified data to be
+    // applied to the reference solution.
+    string path = 1;
+
+    // The specific operation (ADDED, REMOVED, MODIFIED) to perform at the
+    // specified path.
+    Action action = 2;
+  }
+
+  // An ordered list of actionable paths.
+  // It is critical that these are applied in the order provided to ensure
+  // correct list indexing as elements are shifted by add or remove actions.
+  repeated ActionablePath actionable_paths = 1;
+}

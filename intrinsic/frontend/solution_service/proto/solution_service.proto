@@ -31,7 +31,11 @@ service SolutionService {
 
   // Gets multiple behavior trees from the running solution.
   rpc BatchGetBehaviorTrees(BatchGetBehaviorTreesRequest)
-      returns (BatchGetBehaviorTreesResponse);
+      returns (BatchGetBehaviorTreesResponse) {
+    option (google.api.http) = {
+      get: "/solution/v1/behaviorTrees:batchGet"
+    };
+  };
 
   // Lists behavior trees from the running solution.
   rpc ListBehaviorTrees(ListBehaviorTreesRequest)
@@ -43,19 +47,38 @@ service SolutionService {
 
   // Creates a new behavior tree in the running solution.
   rpc CreateBehaviorTree(CreateBehaviorTreeRequest)
-      returns (intrinsic_proto.executive.BehaviorTree);
+      returns (intrinsic_proto.executive.BehaviorTree) {
+    option (google.api.http) = {
+      post: "/solution/v1/behaviorTrees"
+      body: "behavior_tree"
+    };
+  };
 
   // Updates an existing behavior tree in the running solution.
   rpc UpdateBehaviorTree(UpdateBehaviorTreeRequest)
-      returns (intrinsic_proto.executive.BehaviorTree);
+      returns (intrinsic_proto.executive.BehaviorTree) {
+    option (google.api.http) = {
+      patch: "/solution/v1/behaviorTrees/{behavior_tree.name}"
+      body: "behavior_tree"
+    };
+  };
 
   // Updates multiple behavior trees in the running solution.
   rpc BatchUpdateBehaviorTrees(BatchUpdateBehaviorTreesRequest)
-      returns (BatchUpdateBehaviorTreesResponse);
+      returns (BatchUpdateBehaviorTreesResponse) {
+    option (google.api.http) = {
+      post: "/solution/v1/behaviorTrees:batchUpdate"
+      body: "*"
+    };
+  };
 
   // Deletes a behavior tree in the running solution.
   rpc DeleteBehaviorTree(DeleteBehaviorTreeRequest)
-      returns (google.protobuf.Empty);
+      returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/solution/v1/behaviorTrees/{name}"
+    };
+  };
 }
 
 enum BehaviorTreeView {

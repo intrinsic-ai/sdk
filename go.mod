@@ -5,7 +5,7 @@ module intrinsic
 go 1.25.0
 
 require (
-	cel.dev/expr v0.24.0
+	cel.dev/expr v0.25.1
 	cloud.google.com/go/asset v1.20.4
 	cloud.google.com/go/bigquery v1.66.2
 	cloud.google.com/go/compute/metadata v0.7.0
@@ -29,7 +29,7 @@ require (
 	github.com/authzed/zed v0.30.2
 	github.com/bazelbuild/buildtools v0.0.0-20251112105957-8e68360eeafa
 	github.com/bazelbuild/remote-apis-sdks v0.0.0-20230919142202-aa1c266ae342
-	github.com/bazelbuild/rules_go v0.56.1
+	github.com/bazelbuild/rules_go v0.60.0
 	github.com/bits-and-blooms/bitset v1.20.0
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/containerd/containerd v1.7.27
@@ -99,7 +99,6 @@ require (
 	golang.org/x/time v0.11.0
 	gonum.org/v1/gonum v0.16.0
 	google.golang.org/api v0.228.0
-	google.golang.org/genproto v0.0.0-20250303144028-a0af3efb3deb
 	google.golang.org/genproto/googleapis/api v0.0.0-20250929231259-57b25ae835d4
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250929231259-57b25ae835d4
 	google.golang.org/grpc v1.75.1
@@ -127,6 +126,7 @@ require (
 	cloud.google.com/go/orgpolicy v1.14.2 // indirect
 	cloud.google.com/go/osconfig v1.14.3 // indirect
 	cloud.google.com/go/trace v1.11.3 // indirect
+  google.golang.org/genproto v0.0.0-20250303144028-a0af3efb3deb // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
 	github.com/AdaLogics/go-fuzz-headers v0.0.0-20230811130428-ced1acdcaa24 // indirect

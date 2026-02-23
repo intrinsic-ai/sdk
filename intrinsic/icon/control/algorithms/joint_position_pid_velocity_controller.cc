@@ -187,8 +187,7 @@ JointPositionPIDVelocityController::CalculateSetpoints(
   }
   if (position_desired.size() != params_.k_p.size()) {
     return InvalidArgumentError(
-        "The position_desired and control gain (k_p and k_i) sizes don't"
-        "match.");
+        "The position_desired and control gain sizes don't match.");
   }
   const eigenmath::VectorNd position_error = position_desired - position_state;
   const eigenmath::VectorNd velocity_error =

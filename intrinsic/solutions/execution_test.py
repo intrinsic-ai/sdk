@@ -307,7 +307,8 @@ class ExecutiveTest(parameterized.TestCase):
     )
 
     self.assertEqual(
-        self._executive.operation.find_tree_and_node_id('a_node'), ('tree', 2)
+        self._executive.operation.find_tree_and_node_id('a_node'),
+        bt.NodeIdentifier(tree_id='tree', node_id=2),
     )
 
   def test_run_async_fails_on_unavailable_error(self):
@@ -510,7 +511,7 @@ class ExecutiveTest(parameterized.TestCase):
     tree.set_root(bt.Sequence(children=[bt.Sequence(), n2, bt.Sequence()]))
 
     self._executive.run(
-        tree, start_node=bt.NodeIdentifierType(tree_id=tree_id, node_id=n2_id)
+        tree, start_node=bt.NodeIdentifier(tree_id=tree_id, node_id=n2_id)
     )
 
     start_request = executive_service_pb2.StartOperationRequest(
@@ -521,6 +522,109 @@ class ExecutiveTest(parameterized.TestCase):
     )
     start_request.start_tree_id = tree_id
     start_request.start_node_id = n2_id
+    self._executive_service_stub.StartOperation.assert_called_once_with(
+        start_request
+    )
+
+  def test_run_start_node_by_name_works(self):
+    """Tests if executive.run(start_node) executes the start node."""
+    self._setup_create_operation()
+    self._setup_start_operation()
+    self._setup_get_operation_sequence([
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+    ])
+
+    n2 = bt.Sequence(name='my_node')
+    tree = bt.BehaviorTree()
+    tree.set_root(bt.Sequence(children=[bt.Sequence(), n2, bt.Sequence()]))
+
+    self._executive.run(tree, start_node=bt.NodeName('my_node'))
+
+    start_request = executive_service_pb2.StartOperationRequest(
+        name=_OPERATION_NAME
+    )
+    start_request.skill_trace_handling = (
+        run_metadata_pb2.RunMetadata.TracingInfo.SKILL_TRACES_LINK
+    )
+    # Ids should have been generated on demand
+    self.assertIsNotNone(tree.tree_id)
+    self.assertNotEqual(tree.tree_id, '')
+    self.assertIsNotNone(n2.node_id)
+    self.assertNotEqual(n2.node_id, 0)
+    start_request.start_tree_id = tree.tree_id
+    start_request.start_node_id = n2.node_id
+    self._executive_service_stub.StartOperation.assert_called_once_with(
+        start_request
+    )
+
+  def test_run_start_node_by_id_works(self):
+    """Tests if executive.run(start_node) executes the start node."""
+    self._setup_create_operation()
+    self._setup_start_operation()
+    self._setup_get_operation_sequence([
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+    ])
+
+    n2 = bt.Sequence(node_id=42)
+    tree = bt.BehaviorTree()
+    tree.set_root(bt.Sequence(children=[bt.Sequence(), n2, bt.Sequence()]))
+
+    self._executive.run(tree, start_node=bt.NodeId(42))
+
+    start_request = executive_service_pb2.StartOperationRequest(
+        name=_OPERATION_NAME
+    )
+    start_request.skill_trace_handling = (
+        run_metadata_pb2.RunMetadata.TracingInfo.SKILL_TRACES_LINK
+    )
+    # Ids should have been generated on demand
+    self.assertIsNotNone(tree.tree_id)
+    self.assertNotEqual(tree.tree_id, '')
+    self.assertIsNotNone(n2.node_id)
+    self.assertNotEqual(n2.node_id, 0)
+    start_request.start_tree_id = tree.tree_id
+    start_request.start_node_id = n2.node_id
+    self._executive_service_stub.StartOperation.assert_called_once_with(
+        start_request
+    )
+
+  def test_run_start_node_by_object_works(self):
+    """Tests if executive.run(start_node) executes the start node."""
+    self._setup_create_operation()
+    self._setup_start_operation()
+    self._setup_get_operation_sequence([
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+    ])
+
+    tree = bt.BehaviorTree()
+    n2 = bt.Sequence()
+
+    tree.set_root(bt.Sequence(children=[bt.Sequence(), n2, bt.Sequence()]))
+
+    self._executive.run(tree, start_node=n2)
+
+    start_request = executive_service_pb2.StartOperationRequest(
+        name=_OPERATION_NAME
+    )
+    start_request.skill_trace_handling = (
+        run_metadata_pb2.RunMetadata.TracingInfo.SKILL_TRACES_LINK
+    )
+    # Ids should have been generated on demand
+    self.assertIsNotNone(tree.tree_id)
+    self.assertNotEqual(tree.tree_id, '')
+    self.assertIsNotNone(n2.node_id)
+    self.assertNotEqual(n2.node_id, 0)
+    start_request.start_tree_id = tree.tree_id
+    start_request.start_node_id = n2.node_id
     self._executive_service_stub.StartOperation.assert_called_once_with(
         start_request
     )

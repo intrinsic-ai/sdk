@@ -9,6 +9,7 @@ bzl_library(
     visibility = ["//visibility:private"],
     deps = [
         "//intrinsic/assets/build_defs:asset_bzl",
+        "@aspect_bazel_lib//lib:paths.bzl",
     ],
 )
 

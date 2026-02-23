@@ -13,7 +13,8 @@ namespace intrinsic {
 namespace {
 
 // Compute digital filter coefficients from analog coefficients using bilinear
-// transform, sb[0]+sb[1]*s + sb[2]*s^2          zb[0]+zb[1]*z^-1 + zb[2]*z^-2
+// transform:
+// sb[0]+sb[1]*s + sb[2]*s^2          zb[0]+zb[1]*z^-1 + zb[2]*z^-2
 // ------------- -----------    ==>   -----------------------------
 // sa[0]+sa[1]*s + sa[2]*s^2          1 + za[1]*z^-1 +za[2]*z^-3
 void Bilinear(const std::array<double, 3>& sb, const std::array<double, 3>& sa,
@@ -33,18 +34,18 @@ void Bilinear(const std::array<double, 3>& sb, const std::array<double, 3>& sa,
   (*za)[2] = (sa[0] - sa[1] + sa[2]) * inv_denom;
 }
 
-// analog (cutoff) frequency from digital (cutoff) frequency,
+// Analog (cutoff) frequency from digital (cutoff) frequency,
 // without 2*fs factor (cancels in transfer function)
 // [from s = exp(i*omg_analog)  and s= 2*fs*(z-1)/(z+1)]
 // fs = sampling frequency
 double prewarp(const double omegaD, const double fs) {
   // actually 2*fs*tan(omegaD*0.5/fs), but 2*fs cancels,
-  // so omit to avoid large arithmetic with large numbers ...
+  // So omit to avoid large arithmetic with large numbers ...
   CHECK_GT(std::fabs(fs), std::numeric_limits<double>::epsilon());
   return std::tan(omegaD * 0.5 / fs);
 }
 
-// analog prototype butterworth lowpass filter coefficients
+// Analog prototype butterworth lowpass filter coefficients
 constexpr std::array<double, 3> kButterProtoB = {{1.0, 0.0, 0.0}};
 constexpr std::array<double, 3> kButterProtoA = {{1.0, M_SQRT2, 1.0}};
 
@@ -65,7 +66,7 @@ void ProtoToLP(const double omega, const std::array<double, 3>& sb_in,
   (*sa_out)[2] = sa_in[2];
 }
 
-// analog lowpass to highpass transformation
+// Analog lowpass to highpass transformation
 void ProtoToHP(const double omega, const std::array<double, 3>& sb_in,
                const std::array<double, 3>& sa_in,
                std::array<double, 3>* sb_out, std::array<double, 3>* sa_out) {
@@ -89,7 +90,7 @@ bool ButterFilter2Coeffs(const double sampling_frequency,
   CHECK(nullptr != a);
   CHECK(nullptr != b);
 
-  // logic check
+  // Logic check
   if (2 * cutoff_frequency >= sampling_frequency) {
     INTRINSIC_RT_LOG(ERROR)
         << "cutoff frequency must be smaller than .5* sampling frequency!\n"
@@ -115,11 +116,11 @@ bool ButterFilter2Coeffs(const double sampling_frequency,
     return false;
   }
 
-  // prewarp analog frequency
+  // Prewarp analog frequency
   const double omega_warp =
       prewarp(cutoff_frequency * 2.0 * M_PI, sampling_frequency);
 
-  // get analog transfer function coefficients from prototype low-pass filter
+  // Get analog transfer function coefficients from prototype low-pass filter
   std::array<double, 3> sa = {};
   std::array<double, 3> sb = {};
   switch (type) {
@@ -131,7 +132,7 @@ bool ButterFilter2Coeffs(const double sampling_frequency,
       break;
   }
 
-  // digital coefficients from bilinear transform
+  // Digital coefficients from bilinear transform
   Bilinear(sb, sa, b, a);
 
   return true;

@@ -2,6 +2,7 @@
 
 """Build rules for HardwareDevice assets."""
 
+load("@aspect_bazel_lib//lib:paths.bzl", "to_rlocation_path")
 load("//intrinsic/assets/build_defs:asset.bzl", "AssetCatalogRefInfo", "AssetInfo", "AssetLocalInfo")
 
 HardwareDeviceAssetInfo = provider(
@@ -69,6 +70,9 @@ def _intrinsic_hardware_device_impl(ctx):
     ).add(
         "--bundle_short_path",
         ctx.outputs.bundle_out.short_path,
+    ).add(
+        "--bundle_runfiles_path",
+        to_rlocation_path(ctx, ctx.outputs.bundle_out),
     ).add_all(
         transitive_descriptor_sets,
         before_each = "--file_descriptor_set",

@@ -2,6 +2,7 @@
 
 """Bazel rules for Process assets."""
 
+load("@aspect_bazel_lib//lib:paths.bzl", "to_rlocation_path")
 load("@com_google_protobuf//bazel/common:proto_info.bzl", "ProtoInfo")
 load("//intrinsic/assets/build_defs:asset.bzl", "AssetInfo", "AssetLocalInfo")
 load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "ProtoSourceCodeInfo", "gen_source_code_info_descriptor_set")
@@ -77,6 +78,9 @@ def _intrinsic_process_impl(ctx):
     ).add(
         "--bundle_short_path",
         ctx.outputs.bundle_out.short_path,
+    ).add(
+        "--bundle_runfiles_path",
+        to_rlocation_path(ctx, ctx.outputs.bundle_out),
     ).add(
         # This file is empty if the Process asset does not have a parameter file descriptor set
         # (also see comment above).

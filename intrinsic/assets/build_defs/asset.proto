@@ -33,6 +33,8 @@ message AssetLocalInfo {
   string bundle_short_path = 3;
   // The full path to the bundle file.
   string bundle_path = 4;
+  // This is the Bazel runfiles path to the bundle file.
+  string bundle_runfiles_path = 5;
 
   reserved 199;
 }
