@@ -102,6 +102,7 @@ proto_library(
         ":geometry_storage_refs_proto",
         "//intrinsic/geometry/proto/v1:geometry_proto",
         "//intrinsic/geometry/proto/v1:geometry_storage_refs_proto",
+        "@com_google_googleapis//google/api:annotations_proto",
     ],
 )
 
@@ -127,6 +128,7 @@ go_proto_library(
     compilers = [
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
+        "//bazel:go_gen_grpc_gateway",
     ],
     importpath = "intrinsic/geometry/proto/geometry_service_go_proto",
     protos = [":geometry_service_proto"],
@@ -135,6 +137,7 @@ go_proto_library(
         ":geometry_storage_refs_go_proto",
         "//intrinsic/geometry/proto/v1:geometry_go_proto",
         "//intrinsic/geometry/proto/v1:geometry_storage_refs_go_proto",
+        "@org_golang_google_genproto_googleapis_api//annotations",
         "@org_golang_google_protobuf//types/known/anypb",
         "@org_golang_google_protobuf//types/known/timestamppb",
     ],

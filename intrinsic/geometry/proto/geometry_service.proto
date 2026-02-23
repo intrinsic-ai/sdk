@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.geometry;
 
+import "google/api/annotations.proto";
 import "intrinsic/geometry/proto/geometry_service_types.proto";
 import "intrinsic/geometry/proto/geometry_storage_refs.proto";
 import "intrinsic/geometry/proto/v1/geometry.proto";
@@ -17,13 +18,27 @@ service GeometryService {
   // Gets the requested Geometry data. Includes computational geometry data as
   // well as the optional Renderable data if available. The Renderable data will
   // be at original quality.
-  rpc GetGeometry(GetGeometryRequest) returns (GeometryWithMetadata) {}
+  rpc GetGeometry(GetGeometryRequest) returns (GeometryWithMetadata) {
+    option (google.api.http) = {
+      // The required ref becomes the path parameter.
+      // The optional renderable_ref will automatically map to a query parameter
+      get: "/geometry/v0/geometries/{geometry_storage_refs.exact_geometry_ref}"
+    };
+  }
 
   // Gets the requested Renderable data at the requested LOD(Level of Detail).
-  rpc GetRenderable(GetRenderableRequest) returns (RenderableWithMetadata) {}
+  rpc GetRenderable(GetRenderableRequest) returns (RenderableWithMetadata) {
+    option (google.api.http) = {
+      get: "/geometry/v0/renderables/{geometry_storage_refs.exact_geometry_ref}"
+    };
+  }
 
   // Adds new geometry data to the service that can be fetched later.
   rpc CreateGeometry(CreateGeometryRequest) returns (GeometryWithMetadata) {
+    option (google.api.http) = {
+      post: "/geometry/v0/geometries"
+      body: "*"
+    };
   }
 
 }
