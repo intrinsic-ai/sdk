@@ -188,6 +188,70 @@ class BehaviorTreeMadeParametrizableTest(parameterized.TestCase):
       ('legacy_process', False),
       ('process_asset', True),
   )
+  def test_initialize_pbt_single_schema(self, make_process_asset):
+    proto_builder_stub: proto_builder_pb2.ProtoBuilderStub = mock.MagicMock()
+    proto_builder = proto_building.ProtoBuilder(proto_builder_stub)
+
+    desc_set = descriptor_pb2.FileDescriptorSet(
+        file=[descriptor_pb2.FileDescriptorProto(name='alpha_params.proto')]
+    )
+    proto_builder_stub.Compile.return_value = (
+        proto_builder_pb2.ProtoCompileResponse(file_descriptor_set=desc_set)
+    )
+
+    proto_schema = """
+          syntax = "proto3";
+          message Parameters { string value = 1; }
+          message ReturnValue { repeated int32 bar = 1; }
+        """
+
+    if make_process_asset:
+      bt1 = bt.BehaviorTree('Alpha', root=bt.Sequence())
+      bt1.set_asset_metadata(id='ai.intrinsic.alpha', vendor='intrinsic')
+      bt1.initialize_pbt(
+          parameter_proto_schema=proto_schema,
+          proto_builder=proto_builder,
+          parameter_message_full_name='Parameters',
+          return_value_message_full_name='ReturnValue',
+      )
+    else:
+      bt1 = bt.BehaviorTree('My Tree', root=bt.Sequence())
+      bt1.initialize_pbt(
+          skill_id='ai.intrinsic.alpha',
+          display_name='Alpha',
+          parameter_proto_schema=proto_schema,
+          proto_builder=proto_builder,
+          parameter_message_full_name='Parameters',
+          return_value_message_full_name='ReturnValue',
+      )
+
+    # Verify only ONE call to compile
+    self.assertEqual(proto_builder_stub.Compile.call_count, 1)
+
+    # Verify both descriptions use the same descriptor set
+    compare.assertProto2Equal(
+        self,
+        bt1.proto.description.parameter_description.parameter_descriptor_fileset,
+        desc_set,
+    )
+    compare.assertProto2Equal(
+        self,
+        bt1.proto.description.return_value_description.descriptor_fileset,
+        desc_set,
+    )
+    self.assertEqual(
+        bt1.proto.description.parameter_description.parameter_message_full_name,
+        'Parameters',
+    )
+    self.assertEqual(
+        bt1.proto.description.return_value_description.return_value_message_full_name,
+        'ReturnValue',
+    )
+
+  @parameterized.named_parameters(
+      ('legacy_process', False),
+      ('process_asset', True),
+  )
   def test_initialize_pbt_with_known_types(self, make_process_asset):
     if make_process_asset:
       bt1 = bt.BehaviorTree('Alpha', root=bt.Sequence())

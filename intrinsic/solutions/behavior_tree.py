@@ -5377,8 +5377,8 @@ class BehaviorTree:
       self,
       *,
       parameter_proto_schema: str,
-      return_value_proto_schema: str,
       proto_builder: proto_building.ProtoBuilder,
+      return_value_proto_schema: str | None = None,
       parameter_message_full_name: str = '',
       return_value_message_full_name: str = '',
       skill_id: str = '',
@@ -5397,8 +5397,10 @@ class BehaviorTree:
 
     Args:
       parameter_proto_schema: A full proto schema for the PBT parameters.
-      return_value_proto_schema: A full proto schema for the return value.
       proto_builder: An instance of the proto builder service.
+      return_value_proto_schema: An optional proto schema for the return value.
+        If omitted and return_value_message_full_name is set, the parameter
+        schema is used for the return value as well.
       parameter_message_full_name: The full name of the parameter message.
       return_value_message_full_name: The full name of the return value proto.
       skill_id: The skill id that this PBT registers under. If the BehaviorTree
@@ -5443,6 +5445,12 @@ class BehaviorTree:
           return_value_message_full_name=return_full_name
       )
       rd.descriptor_fileset.CopyFrom(return_descriptor_set)
+      self._description.return_value_description.CopyFrom(rd)
+    elif return_value_message_full_name:
+      rd = skills_pb2.ReturnValueDescription(
+          return_value_message_full_name=return_value_message_full_name
+      )
+      rd.descriptor_fileset.CopyFrom(param_descriptor_set)
       self._description.return_value_description.CopyFrom(rd)
 
   def initialize_pbt_with_protos(
