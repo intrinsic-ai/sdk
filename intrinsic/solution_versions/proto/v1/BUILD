@@ -68,6 +68,7 @@ go_proto_library(
     protos = [":solution_version_service_proto"],
     visibility = [
         "//intrinsic/assets/deploy:__pkg__",
+        "//intrinsic/assets/install:__pkg__",
         "//intrinsic/frontend/cloud:__subpackages__",
         "//intrinsic/kubernetes/data_store/http_endpoints:__pkg__",
         "//intrinsic/kubernetes/workcell_spec:__pkg__",

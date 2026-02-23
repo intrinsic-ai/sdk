@@ -19,3 +19,11 @@ message LocalAsset {
   intrinsic_proto.assets.Id id = 2;
   string bundle_path = 3;
 }
+
+// References an Asset that is installed in a Solution.
+message SolutionAsset {
+  // The branch ID of the Solution.
+  string branch_id = 1;
+  // The name (i.e., the ID string)  of the Asset in the Solution.
+  string name = 2;
+}
