@@ -1,5 +1,7 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
+"""Tests for behavior_tree.py."""
+
 import copy
 import textwrap
 from typing import cast
@@ -222,10 +224,8 @@ class BehaviorTreeMadeParametrizableTest(parameterized.TestCase):
             'parameter_description.parameter_descriptor_fileset',
         ],
     )
-    self.assertLen(
-        bt1.proto.description.parameter_description.parameter_descriptor_fileset.file,
-        3,
-    )
+    parameter_description = bt1.proto.description.parameter_description
+    self.assertLen(parameter_description.parameter_descriptor_fileset.file, 3)
 
   def test_initialize_pbt_with_custom_proto_dependencies(self):
     bt1 = bt.BehaviorTree('test')
@@ -247,9 +247,11 @@ class BehaviorTreeMadeParametrizableTest(parameterized.TestCase):
     )
 
     # Verify the transitive file descriptor set has been recovered in full
+    # pylint: disable-next=protected-access
     expected_fd_set = skill_test_utils._get_test_message_file_descriptor_set(
         path_resolver.resolve_runfiles_path(
-            'intrinsic/solutions/testing/test_skill_params_proto_descriptors_transitive_set_sci.proto.bin'
+            'intrinsic/solutions/testing/'
+            'test_skill_params_proto_descriptors_transitive_set_sci.proto.bin'
         )
     )
     descriptors_by_name = {
@@ -287,6 +289,7 @@ class BehaviorTreeMadeParametrizableTest(parameterized.TestCase):
         display_name='Alpha',
         parameter_proto=test_message_pb2.TestMessage,
     )
+    # pylint: disable-next=protected-access
     bt1._return_value_expression = '42'
     bt1.set_root(bt.Sequence())  # Empty root.
 
@@ -299,7 +302,8 @@ class BehaviorTreeMadeParametrizableTest(parameterized.TestCase):
     my_proto.name = 'test'
     my_proto.root.CopyFrom(bt.Sequence().proto)
 
-    my_proto.description.parameter_description.parameter_descriptor_fileset.CopyFrom(
+    parameter_description = my_proto.description.parameter_description
+    parameter_description.parameter_descriptor_fileset.CopyFrom(
         test_message_fds
     )
     my_proto.description.parameter_description.parameter_message_full_name = (
@@ -487,9 +491,8 @@ class BehaviorTreeTest(parameterized.TestCase):
             ),
         ),
     )
-    proto.behavior_tree.root.sequence.children.add().task.call_behavior.skill_id = (
-        'ai.intrinsic.skill-0'
-    )
+    child = proto.behavior_tree.root.sequence.children.add()
+    child.task.call_behavior.skill_id = 'ai.intrinsic.skill-0'
     my_bt = bt.BehaviorTree.create_from_proto(proto)
 
     my_bt.set_asset_metadata(
@@ -607,9 +610,8 @@ class BehaviorTreeTest(parameterized.TestCase):
             name='My tree', description=skills_pb2.Skill(display_name='My tree')
         ),
     )
-    proto.behavior_tree.root.sequence.children.add().task.call_behavior.skill_id = (
-        'ai.intrinsic.skill-0'
-    )
+    child = proto.behavior_tree.root.sequence.children.add()
+    child.task.call_behavior.skill_id = 'ai.intrinsic.skill-0'
     my_bt = bt.BehaviorTree.create_from_proto(proto)
 
     my_bt.name = 'My new tree'
@@ -1164,7 +1166,8 @@ user_data {
 .*violates_4_and_2_times.*contains 4 nodes with id 44.*4x_0.*4x_1.*4x_2.*4x_3.*
 .*violates_4_and_2_times.*contains 2 nodes with id 22.*2x_0.*2x_1.*
 .*violates_2_times.*contains 2 nodes with id 44.*2x_0.*2x_1.*
-.*contains 3 trees with id "tree_id_3x".*violates_4_and_2_times.*sub_sub_tree0.*sub_sub_tree1.*
+.*contains 3 trees with id "tree_id_3x".*violates_4_and_2_times.*sub_sub_tree0\
+.*sub_sub_tree1.*
 .*contains 2 trees with id "tree_id_2x".*violates_2_times.*sub_sub_tree2.*$""",
     ):
       my_bt.validate_id_uniqueness()
@@ -1469,7 +1472,7 @@ user_data {
     )
     self.assertEqual(node_identifier, expected_node_identifier)
 
-  def test_get_node_identifier_from_reference_ensures_ids_from_subtree_node_name(
+  def test_get_node_identifier_from_ref_ensures_ids_from_subtree_node_name(
       self,
   ):
     # Note: tree and nodes do not have ids set
@@ -1717,7 +1720,9 @@ user_data {
 
     node_execution = behavior_tree_pb2.BehaviorTree.Node.ExecutionSettings(
         mode=behavior_tree_pb2.BehaviorTree.Node.ExecutionSettings.DISABLED,
-        disabled_result_state=behavior_tree_pb2.BehaviorTree.Node.ExecutionSettings.FAILED,
+        disabled_result_state=(
+            behavior_tree_pb2.BehaviorTree.Node.ExecutionSettings.FAILED
+        ),
     )
     node_execution_mode = bt.NodeExecutionMode.from_proto(node_execution.mode)
 
@@ -2726,13 +2731,12 @@ class BehaviorTreeFailTest(absltest.TestCase):
 
   def test_init(self):
     """Tests if BehaviorTree.Fail is correctly constructed."""
-    node = bt.Fail('some_failure_message', name='expected failure')
+    node = bt.Fail('some_failure', name='expected failure')
     node_proto = behavior_tree_pb2.BehaviorTree.Node(
         name='expected failure', fail=behavior_tree_pb2.BehaviorTree.FailNode()
     )
-    node_proto.decorators.on_failure.emit_extended_status.extended_status.title = (
-        'some_failure_message'
-    )
+    on_failure = node_proto.decorators.on_failure
+    on_failure.emit_extended_status.extended_status.title = 'some_failure'
     compare.assertProto2Equal(self, node.proto, node_proto)
 
   def test_node_type(self):
@@ -2760,10 +2764,14 @@ class BehaviorTreeFailTest(absltest.TestCase):
         name='expected failure',
         fail=behavior_tree_pb2.BehaviorTree.FailNode(),
         decorators=behavior_tree_pb2.BehaviorTree.Node.Decorators(
-            on_failure=behavior_tree_pb2.BehaviorTree.Node.Decorators.FailureSettings(
-                emit_extended_status=behavior_tree_pb2.BehaviorTree.Node.Decorators.FailureSettings.ExtendedStatusSettings(
-                    extended_status=extended_status_pb2.ExtendedStatus(
-                        title='some_failure_message'
+            on_failure=(
+                behavior_tree_pb2.BehaviorTree.Node.Decorators.FailureSettings(
+                    emit_extended_status=(
+                        behavior_tree_pb2.BehaviorTree.Node.Decorators.FailureSettings.ExtendedStatusSettings(  # pylint: disable=line-too-long
+                            extended_status=extended_status_pb2.ExtendedStatus(
+                                title='some_failure_message'
+                            )
+                        )
                     )
                 )
             )
@@ -2807,9 +2815,6 @@ class BehaviorTreeFailTest(absltest.TestCase):
         state=behavior_tree_pb2.BehaviorTree.State.SUCCEEDED,
         fail=behavior_tree_pb2.BehaviorTree.FailNode(),
     )
-    node_proto.decorators.on_failure.emit_extended_status.extended_status.title = (
-        'some_failure_message'
-    )
 
     self.assertEqual(
         bt.Node.create_from_proto(node_proto).state, bt.NodeState.SUCCEEDED
@@ -2848,9 +2853,8 @@ class BehaviorTreeFailTest(absltest.TestCase):
     my_proto = behavior_tree_pb2.BehaviorTree.Node(
         id=42, fail=behavior_tree_pb2.BehaviorTree.FailNode()
     )
-    my_proto.decorators.on_failure.emit_extended_status.extended_status.title = (
-        'failed'
-    )
+    on_failure = my_proto.decorators.on_failure
+    on_failure.emit_extended_status.extended_status.title = 'failed'
 
     compare.assertProto2Equal(self, my_node.proto, my_proto)
     compare.assertProto2Equal(
@@ -3043,7 +3047,8 @@ class BehaviorTreeSequenceTest(absltest.TestCase):
     )
     self.assertEqual(
         str(node),
-        'Sequence(children=[Task(action=behavior_call.Action(skill_id="skill_0")),'
+        'Sequence(children=[Task(action='
+        'behavior_call.Action(skill_id="skill_0")),'
         ' Task(action=behavior_call.Action(skill_id="skill_1"))])',
     )
 
@@ -3295,7 +3300,8 @@ class BehaviorTreeParallelTest(absltest.TestCase):
     )
     self.assertEqual(
         str(node),
-        'Parallel(children=[Task(action=behavior_call.Action(skill_id="skill_0")),'
+        'Parallel(children=[Task(action='
+        'behavior_call.Action(skill_id="skill_0")),'
         ' Task(action=behavior_call.Action(skill_id="skill_1"))])',
     )
 
@@ -3543,7 +3549,8 @@ class BehaviorTreeSelectorTest(absltest.TestCase):
     )
     self.assertEqual(
         str(node),
-        'Selector(children=[Task(action=behavior_call.Action(skill_id="skill_0")),'
+        'Selector(children=[Task(action='
+        'behavior_call.Action(skill_id="skill_0")),'
         ' Task(action=behavior_call.Action(skill_id="skill_1"))])',
     )
 
@@ -4883,7 +4890,8 @@ class BehaviorTreeDataTest(parameterized.TestCase):
     """Tests if BehaviorTree.Data is correctly constructed."""
     skill_utils = skill_test_utils.SkillTestUtils(
         path_resolver.resolve_runfiles_path(
-            'intrinsic/solutions/testing/test_skill_params_proto_descriptors_transitive_set_sci.proto.bin'
+            'intrinsic/solutions/testing/'
+            + 'test_skill_params_proto_descriptors_transitive_set_sci.proto.bin'
         )
     )
     skill_info = skill_utils.create_test_skill_info(
@@ -4913,7 +4921,10 @@ class BehaviorTreeDataTest(parameterized.TestCase):
 
     expected_node_proto = behavior_tree_pb2.BehaviorTree.Node(name='foo')
     expected_node_proto.data.create_or_update.proto.Pack(expected_test_msg)
-    expected_node_proto.data.create_or_update.proto.type_url = 'type.intrinsic.ai/skills/ai.intrinsic.my_skill/42.0.0/intrinsic_proto.test_data.TestMessage'
+    expected_node_proto.data.create_or_update.proto.type_url = (
+        'type.intrinsic.ai/skills/ai.intrinsic.my_skill/42.0.0/'
+        + 'intrinsic_proto.test_data.TestMessage'
+    )
     expected_node_proto.data.create_or_update.blackboard_key = 'bbfoo'
 
     compare.assertProto2Equal(self, node.proto, expected_node_proto)
@@ -4925,7 +4936,8 @@ class BehaviorTreeDataTest(parameterized.TestCase):
     """Tests if BehaviorTree.Data is correctly constructed."""
     skill_utils = skill_test_utils.SkillTestUtils(
         path_resolver.resolve_runfiles_path(
-            'intrinsic/solutions/testing/test_skill_params_proto_descriptors_transitive_set_sci.proto.bin'
+            'intrinsic/solutions/testing/'
+            + 'test_skill_params_proto_descriptors_transitive_set_sci.proto.bin'
         )
     )
     skill_info = skill_utils.create_test_skill_info(
@@ -5279,7 +5291,7 @@ class BehaviorTreeSubTreeConditionTest(absltest.TestCase):
     )
 
   def test_init_from_skill(self):
-    """Tests if BehaviorTree.SubTreeCondition is correctly constructed from a skill."""
+    """Tests if SubTreeCondition is correctly constructed from a skill."""
     condition = bt.SubTreeCondition(
         behavior_call.Action(skill_id='ai.intrinsic.skill-0')
     )
@@ -5301,7 +5313,8 @@ class BehaviorTreeSubTreeConditionTest(absltest.TestCase):
     )
     self.assertEqual(
         str(condition),
-        'SubTreeCondition(BehaviorTree(root=Task(action=behavior_call.Action(skill_id="ai.intrinsic.skill-0"))))',
+        'SubTreeCondition(BehaviorTree(root=Task(action=behavior_call.Action'
+        + '(skill_id="ai.intrinsic.skill-0"))))',
     )
 
   def test_to_proto_and_from_proto(self):
@@ -5619,9 +5632,13 @@ class DecoratorsTest(absltest.TestCase):
     decorators_proto.breakpoint = (
         behavior_tree_pb2.BehaviorTree.Breakpoint.BEFORE
     )
-    execution_settings_proto = behavior_tree_pb2.BehaviorTree.Node.ExecutionSettings(
-        mode=behavior_tree_pb2.BehaviorTree.Node.ExecutionSettings.DISABLED,
-        disabled_result_state=behavior_tree_pb2.BehaviorTree.Node.ExecutionSettings.FAILED,
+    execution_settings_proto = (
+        behavior_tree_pb2.BehaviorTree.Node.ExecutionSettings(
+            mode=behavior_tree_pb2.BehaviorTree.Node.ExecutionSettings.DISABLED,
+            disabled_result_state=(
+                behavior_tree_pb2.BehaviorTree.Node.ExecutionSettings.FAILED
+            ),
+        )
     )
     decorators_proto.execution_settings.CopyFrom(execution_settings_proto)
 

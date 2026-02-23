@@ -293,7 +293,9 @@ class WorldQuery:
 
   @utils.protoenum(
       proto_enum_type=world_query_pb2.WorldQuery.Order.Criterion,
-      unspecified_proto_enum_map_to_none=world_query_pb2.WorldQuery.Order.Criterion.SORT_ORDER_UNSPECIFIED,
+      unspecified_proto_enum_map_to_none=(
+          world_query_pb2.WorldQuery.Order.Criterion.SORT_ORDER_UNSPECIFIED
+      ),
   )
   class OrderCriterion(enum.Enum):
     """Specifies what to sort returned values by."""
@@ -439,7 +441,9 @@ class WorldQuery:
 
 @utils.protoenum(
     proto_enum_type=behavior_tree_pb2.BehaviorTree.Breakpoint.Type,
-    unspecified_proto_enum_map_to_none=behavior_tree_pb2.BehaviorTree.Breakpoint.TYPE_UNSPECIFIED,
+    unspecified_proto_enum_map_to_none=(
+        behavior_tree_pb2.BehaviorTree.Breakpoint.TYPE_UNSPECIFIED
+    ),
 )
 class BreakpointType(enum.Enum):
   """Specifies when to apply a breakpoint."""
@@ -447,15 +451,23 @@ class BreakpointType(enum.Enum):
 
 @utils.protoenum(
     proto_enum_type=behavior_tree_pb2.BehaviorTree.Node.ExecutionSettings.Mode,
-    unspecified_proto_enum_map_to_none=behavior_tree_pb2.BehaviorTree.Node.ExecutionSettings.UNSPECIFIED,
+    unspecified_proto_enum_map_to_none=(
+        behavior_tree_pb2.BehaviorTree.Node.ExecutionSettings.UNSPECIFIED
+    ),
 )
 class NodeExecutionMode(enum.Enum):
   """Specifies the execution mode for a node."""
 
 
 @utils.protoenum(
-    proto_enum_type=behavior_tree_pb2.BehaviorTree.Node.ExecutionSettings.DisabledResultState,
-    unspecified_proto_enum_map_to_none=behavior_tree_pb2.BehaviorTree.Node.ExecutionSettings.DISABLED_RESULT_STATE_UNSPECIFIED,
+    proto_enum_type=(
+        # pylint: disable=line-too-long
+        behavior_tree_pb2.BehaviorTree.Node.ExecutionSettings.DisabledResultState
+    ),
+    unspecified_proto_enum_map_to_none=(
+        # pylint: disable=line-too-long
+        behavior_tree_pb2.BehaviorTree.Node.ExecutionSettings.DISABLED_RESULT_STATE_UNSPECIFIED
+    ),
 )
 class DisabledResultState(enum.Enum):
   """Specifies the forced resulting state for a disabled node."""
@@ -547,7 +559,9 @@ class Decorators:
 
 @utils.protoenum(
     proto_enum_type=behavior_tree_pb2.BehaviorTree.Node.State,
-    unspecified_proto_enum_map_to_none=behavior_tree_pb2.BehaviorTree.Node.State.UNSPECIFIED,
+    unspecified_proto_enum_map_to_none=(
+        behavior_tree_pb2.BehaviorTree.Node.State.UNSPECIFIED
+    ),
 )
 class NodeState(enum.Enum):
   """Specifies the node state."""
@@ -726,6 +740,7 @@ class Node(abc.ABC):
     def create_from_proto(
         cls,
         parent_node: Node,
+        # pylint: disable=line-too-long
         proto_object: behavior_tree_pb2.BehaviorTree.Node.Decorators.FailureSettings,
     ) -> Node.FailureSettings:
       instance = cls(parent_node)
@@ -931,7 +946,6 @@ class Node(abc.ABC):
     Returns:
       True if node has a direct child with the given ID, False otherwise.
     """
-    ...
 
   @abc.abstractmethod
   def remove_child(self, node_id: int) -> None:
@@ -945,7 +959,6 @@ class Node(abc.ABC):
     Raises:
       ValueError if node cannot remove a child or the child is not found.
     """
-    ...
 
   @abc.abstractmethod
   def set_user_data_proto(
@@ -963,7 +976,6 @@ class Node(abc.ABC):
     Returns:
       self
     """
-    ...
 
   @abc.abstractmethod
   def set_user_data_proto_from_any(
@@ -980,7 +992,6 @@ class Node(abc.ABC):
     Returns:
       self
     """
-    ...
 
   @property
   @abc.abstractmethod
@@ -1279,6 +1290,7 @@ class Blackboard(Condition):
   @classmethod
   def _create_from_proto(
       cls,
+      # pylint: disable=line-too-long
       proto_object: behavior_tree_pb2.BehaviorTree.Condition.BlackboardExpression,
   ) -> Blackboard:
     if proto_object.HasField('cel_expression'):
@@ -1470,7 +1482,6 @@ class ExtendedStatusMatch(Condition):
         proto: behavior_tree_pb2.BehaviorTree.Condition.ExtendedStatusMatch,
     ) -> None:
       """Updates an ExtendedStatusMatch from the matcher's configuration."""
-      ...
 
     @classmethod
     @abc.abstractmethod
@@ -1486,7 +1497,6 @@ class ExtendedStatusMatch(Condition):
       Returns:
         New matcher instance for given configuration.
       """
-      ...
 
   class MatchStatusCode(StatusMatcherDeclaration):
     """Status matcher to match component and code."""
@@ -1641,7 +1651,10 @@ class Task(Node):
       action_str = f'skill_id="{self._behavior_call_proto.skill_id}"'
     elif self._code_execution_proto:
       action_str = 'CodeExecution()'
-    return f'{type(self).__name__}({self._name_repr()}action=behavior_call.Action({action_str}))'
+    return (
+        f'{type(self).__name__}({self._name_repr()}'
+        + f'action=behavior_call.Action({action_str}))'
+    )
 
   @property
   def name(self) -> Optional[str]:
@@ -1768,21 +1781,25 @@ class Task(Node):
       return cls(proto_object.execute_code)
     return cls(proto_object.call_behavior)
 
-  def dot_graph(  # pytype: disable=signature-mismatch  # overriding-parameter-count-checks
-      self, node_id_suffix: str = ''
+  def dot_graph(
+      self,
+      node_id_suffix: str = '',
+      node_label: Optional[str] = None,
+      name: Optional[str] = None,
   ) -> Tuple[graphviz.Digraph, str]:
-    name = self._name or ''
-    if self._behavior_call_proto:
-      if name:
-        name += f' ({self._behavior_call_proto.skill_id})'
-      else:
-        name += f'Skill {self._behavior_call_proto.skill_id}'
-    if self._code_execution_proto:
-      if name:
-        name += ' (CodeExecution)'
-      else:
-        name += 'CodeExecution'
-    return super().dot_graph(node_id_suffix, name)
+    if node_label is None:
+      node_label = self._name or ''
+      if self._behavior_call_proto:
+        if node_label:
+          node_label += f' ({self._behavior_call_proto.skill_id})'
+        else:
+          node_label += f'Skill {self._behavior_call_proto.skill_id}'
+      if self._code_execution_proto:
+        if node_label:
+          node_label += ' (CodeExecution)'
+        else:
+          node_label += 'CodeExecution'
+    return super().dot_graph(node_id_suffix, node_label, name)
 
 
 class SubTree(Node):
@@ -1864,7 +1881,10 @@ class SubTree(Node):
     if not self.behavior_tree:
       return f'{type(self).__name__}({self._name_repr()})'
     else:
-      return f'{type(self).__name__}({self._name_repr()}behavior_tree={repr(self.behavior_tree)})'
+      return (
+          f'{type(self).__name__}({self._name_repr()}'
+          + f'behavior_tree={repr(self.behavior_tree)})'
+      )
 
   @property
   def name(self) -> Optional[str]:
@@ -1942,8 +1962,11 @@ class SubTree(Node):
   ) -> SubTree:
     return cls(behavior_tree=BehaviorTree.create_from_proto(proto_object.tree))
 
-  def dot_graph(  # pytype: disable=signature-mismatch  # overriding-parameter-count-checks
-      self, node_id_suffix: str = ''
+  def dot_graph(
+      self,
+      node_id_suffix: str = '',
+      node_label: Optional[str] = None,
+      name: Optional[str] = None,
   ) -> Tuple[graphviz.Digraph, str]:
     """Converts the given subtree into a graphviz dot graph.
 
@@ -1952,6 +1975,9 @@ class SubTree(Node):
     Args:
       node_id_suffix: A little string with the suffix to make the given node
         unique in the dot graph.
+      node_label: The label is typically just the type of the node. To use a
+        different value, this argument can be used.
+      name: name of the node as set by the user.
 
     Returns:
       A tuple of graphviz dot graph representation of the full subtree and
@@ -1964,7 +1990,7 @@ class SubTree(Node):
           node_id_suffix + '_0'
       )
     else:
-      return super().dot_graph(node_id_suffix)
+      return super().dot_graph(node_id_suffix, node_label, name)
 
     box_dot_graph = _dot_wrap_in_box(
         child_graph=child_dot_graph,
@@ -2034,6 +2060,7 @@ class Fail(Node):
   def proto(self) -> behavior_tree_pb2.BehaviorTree.Node:
     proto_object = super().proto
     if self.failure_message:
+      # pylint: disable=line-too-long
       if (
           proto_object.decorators.on_failure.emit_extended_status.extended_status.title
       ):
@@ -2120,10 +2147,13 @@ class Fail(Node):
     del proto_object
     return cls()
 
-  def dot_graph(  # pytype: disable=signature-mismatch  # overriding-parameter-count-checks
-      self, node_id_suffix: str = ''
+  def dot_graph(
+      self,
+      node_id_suffix: str = '',
+      node_label: Optional[str] = None,
+      name: Optional[str] = None,
   ) -> Tuple[graphviz.Digraph, str]:
-    return super().dot_graph(node_id_suffix=node_id_suffix, name=self._name)
+    return super().dot_graph(node_id_suffix, node_label, name or self._name)
 
 
 class Debug(Node):
@@ -2235,10 +2265,13 @@ class Debug(Node):
   ) -> Debug:
     return cls(proto_object.suspend.fail_on_resume)
 
-  def dot_graph(  # pytype: disable=signature-mismatch  # overriding-parameter-count-checks
-      self, node_id_suffix: str = ''
+  def dot_graph(
+      self,
+      node_id_suffix: str = '',
+      node_label: Optional[str] = None,
+      name: Optional[str] = None,
   ) -> Tuple[graphviz.Digraph, str]:
-    return super().dot_graph(node_id_suffix=node_id_suffix, name=self._name)
+    return super().dot_graph(node_id_suffix, node_label, name or self._name)
 
 
 class NodeWithChildren(Node):
@@ -2258,16 +2291,17 @@ class NodeWithChildren(Node):
     if not children:
       self.children = []
     else:
-      self.children = [  # pytype: disable=annotation-type-mismatch  # always-use-return-annotations
-          _transform_to_optional_node(x) for x in children
-      ]
+      # pytype: disable=annotation-type-mismatch,always-use-return-annotations
+      self.children = [_transform_to_optional_node(x) for x in children]
     super().__init__()
 
   def set_children(self, *children: Node) -> Node:
     if isinstance(children[0], list):
-      self.children = [_transform_to_optional_node(x) for x in children[0]]  # pytype: disable=annotation-type-mismatch  # always-use-return-annotations
+      # pytype: disable=annotation-type-mismatch,always-use-return-annotations
+      self.children = [_transform_to_optional_node(x) for x in children[0]]
     else:
-      self.children = [_transform_to_optional_node(x) for x in children]  # pytype: disable=annotation-type-mismatch  # always-use-return-annotations
+      # pytype: disable=annotation-type-mismatch,always-use-return-annotations
+      self.children = [_transform_to_optional_node(x) for x in children]
 
     return self
 
@@ -2287,17 +2321,21 @@ class NodeWithChildren(Node):
     representation += '])'
     return representation
 
-  def dot_graph(  # pytype: disable=signature-mismatch  # overriding-parameter-count-checks
-      self, node_id_suffix: str = ''
+  def dot_graph(
+      self,
+      node_id_suffix: str = '',
+      node_label: Optional[str] = None,
+      name: Optional[str] = None,
   ) -> Tuple[graphviz.Digraph, str]:
     dot_graph, node_name = super().dot_graph(
-        node_id_suffix=node_id_suffix, name=self.name
+        node_id_suffix, node_label, name or self.name
     )
     _dot_append_children(dot_graph, node_name, self.children, node_id_suffix, 0)
+    label_to_use = name or self.name or ''
     box_dot_graph = _dot_wrap_in_box(
         child_graph=dot_graph,
-        name=(self.name or '') + node_id_suffix,
-        label=self.name or '',
+        name=label_to_use + node_id_suffix,
+        label=label_to_use,
     )
     return box_dot_graph, node_name
 
@@ -2741,11 +2779,14 @@ class Selector(NodeWithChildren):
       )
     return node
 
-  def dot_graph(  # pytype: disable=signature-mismatch  # overriding-parameter-count-checks
-      self, node_id_suffix: str = ''
+  def dot_graph(
+      self,
+      node_id_suffix: str = '',
+      node_label: Optional[str] = None,
+      name: Optional[str] = None,
   ) -> Tuple[graphviz.Digraph, str]:
     dot_graph, node_name = Node.dot_graph(
-        self, node_id_suffix=node_id_suffix, name=self.name
+        self, node_id_suffix, node_label, name or self.name
     )
     if self.children:
       _dot_append_children(
@@ -2756,10 +2797,11 @@ class Selector(NodeWithChildren):
       _dot_append_children(
           dot_graph, node_name, branch_children, node_id_suffix, 0
       )
+    label_to_use = name or self.name or ''
     box_dot_graph = _dot_wrap_in_box(
         child_graph=dot_graph,
-        name=(self.name or '') + node_id_suffix,
-        label=self.name or '',
+        name=label_to_use + node_id_suffix,
+        label=label_to_use,
     )
     return box_dot_graph, node_name
 
@@ -2944,11 +2986,16 @@ class Retry(Node):
     retry._retry_counter_key = proto_object.retry_counter_blackboard_key
     return retry
 
-  def dot_graph(  # pytype: disable=signature-mismatch  # overriding-parameter-count-checks
-      self, node_id_suffix: str = ''
+  def dot_graph(
+      self,
+      node_id_suffix: str = '',
+      node_label: Optional[str] = None,
+      name: Optional[str] = None,
   ) -> Tuple[graphviz.Digraph, str]:
+    label_to_use = node_label or ('retry ' + str(self.max_tries))
+    name_to_use = name or self._name
     dot_graph, node_name = super().dot_graph(
-        node_id_suffix, 'retry ' + str(self.max_tries), self._name
+        node_id_suffix, label_to_use, name_to_use
     )
     if self.child is not None:
       _dot_append_child(
@@ -2962,10 +3009,11 @@ class Retry(Node):
           node_id_suffix + '_recovery',
           edge_label='Recovery',
       )
+    box_label = name_to_use or ''
     box_dot_graph = _dot_wrap_in_box(
         child_graph=dot_graph,
-        name=(self._name or '') + node_id_suffix,
-        label=self._name or '',
+        name=box_label + node_id_suffix,
+        label=box_label,
     )
     return box_dot_graph, node_name
 
@@ -3216,19 +3264,23 @@ class Fallback(Node):
   def tries(self) -> list[Fallback.Try]:
     return self._tries
 
-  def dot_graph(  # pytype: disable=signature-mismatch  # overriding-parameter-count-checks
-      self, node_id_suffix: str = ''
+  def dot_graph(
+      self,
+      node_id_suffix: str = '',
+      node_label: Optional[str] = None,
+      name: Optional[str] = None,
   ) -> Tuple[graphviz.Digraph, str]:
     dot_graph, node_name = Node.dot_graph(
-        self, node_id_suffix=node_id_suffix, name=self.name
+        self, node_id_suffix, node_label, name or self.name
     )
     if self.tries:
       try_nodes = [b.node for b in self.tries]
       _dot_append_children(dot_graph, node_name, try_nodes, node_id_suffix, 0)
+    label_to_use = name or self.name or ''
     box_dot_graph = _dot_wrap_in_box(
         child_graph=dot_graph,
-        name=(self.name or '') + node_id_suffix,
-        label=self.name or '',
+        name=label_to_use + node_id_suffix,
+        label=label_to_use,
     )
     return box_dot_graph, node_name
 
@@ -3538,7 +3590,8 @@ class Loop(Node):
         protos.append(value)
       elif isinstance(value, skill_utils.MessageWrapper):
         if value.wrapped_message is not None:
-          protos.append(value.wrapped_message)  # pytype: disable=container-type-mismatch
+          # pytype: disable=container-type-mismatch
+          protos.append(value.wrapped_message)
       elif isinstance(value, object_world_resources.WorldObject):
         wo: object_world_resources.WorldObject = value
         protos.append(wo.reference)
@@ -3603,9 +3656,10 @@ class Loop(Node):
     if self._for_each_generator_cel_expression is not None:
       for_each_set_fields.append('for_each_generator_cel_expression')
     if for_each_set_fields and self.while_condition is not None:
+      set_fields_str = ', '.join(for_each_set_fields)
       raise solutions_errors.InvalidArgumentError(
           'Loop node defines for each properties'
-          f' ({", ".join(for_each_set_fields)}) and a while condition. Only'
+          f' ({set_fields_str}) and a while condition. Only'
           ' one of these can be set at a time.'
       )
     if (
@@ -3778,30 +3832,38 @@ class Loop(Node):
     )
     return loop
 
-  def dot_graph(  # pytype: disable=signature-mismatch  # overriding-parameter-count-checks
-      self, node_id_suffix: str = ''
+  def dot_graph(
+      self,
+      node_id_suffix: str = '',
+      node_label: Optional[str] = None,
+      name: Optional[str] = None,
   ) -> Tuple[graphviz.Digraph, str]:
-    label = 'loop'
-    if self.max_times:
-      label += ' ' + str(self.max_times)
-    if self.while_condition:
-      label += ' + while condition'
-    if (
-        self._for_each_generator_cel_expression is not None
-        or self._for_each_protos is not None
-    ):
-      label += ' + for_each'
+    if node_label is None:
+      label = 'loop'
+      if self.max_times:
+        label += ' ' + str(self.max_times)
+      if self.while_condition:
+        label += ' + while condition'
+      if (
+          self._for_each_generator_cel_expression is not None
+          or self._for_each_protos is not None
+      ):
+        label += ' + for_each'
+      node_label = label
 
-    dot_graph, node_name = super().dot_graph(node_id_suffix, label, self._name)
+    dot_graph, node_name = super().dot_graph(
+        node_id_suffix, node_label, name or self._name
+    )
     if self.do_child is not None:
       _dot_append_child(
           dot_graph, node_name, self.do_child, node_id_suffix + '_0'
       )
 
+    label_to_use = name or self._name or ''
     box_dot_graph = _dot_wrap_in_box(
         child_graph=dot_graph,
-        name=(self._name or '') + node_id_suffix,
-        label=self._name or '',
+        name=label_to_use + node_id_suffix,
+        label=label_to_use,
     )
     return box_dot_graph, node_name
 
@@ -4000,11 +4062,14 @@ class Branch(Node):
     )
     return branch
 
-  def dot_graph(  # pytype: disable=signature-mismatch  # overriding-parameter-count-checks
-      self, node_id_suffix: str = ''
+  def dot_graph(
+      self,
+      node_id_suffix: str = '',
+      node_label: Optional[str] = None,
+      name: Optional[str] = None,
   ) -> Tuple[graphviz.Digraph, str]:
     dot_graph, node_name = super().dot_graph(
-        node_id_suffix=node_id_suffix, name=self._name
+        node_id_suffix, node_label, name or self._name
     )
     if self.then_child is not None:
       _dot_append_child(
@@ -4022,10 +4087,11 @@ class Branch(Node):
           node_id_suffix + '_2',
           edge_label='else',
       )
+    label_to_use = name or self._name or ''
     box_dot_graph = _dot_wrap_in_box(
         child_graph=dot_graph,
-        name=(self._name or '') + node_id_suffix,
-        label=self._name or '',
+        name=label_to_use + node_id_suffix,
+        label=label_to_use,
     )
     return box_dot_graph, node_name
 
@@ -4506,8 +4572,11 @@ class Data(Node):
     data.validate()
     return data
 
-  def dot_graph(  # pytype: disable=signature-mismatch  # overriding-parameter-count-checks
-      self, node_id_suffix: str = ''
+  def dot_graph(
+      self,
+      node_id_suffix: str = '',
+      node_label: Optional[str] = None,
+      name: Optional[str] = None,
   ) -> Tuple[graphviz.Digraph, str]:
     """Converts this node suitable for inclusion in a dot graph.
 
@@ -4516,11 +4585,14 @@ class Data(Node):
         make a unique node name in the graph. If the node names clash within the
         graph, they are merged into one, and we do not want to merge unrelated
         nodes.
+      node_label: The label is typically just the type of the node. To use a
+        different value, this argument can be used.
+      name: name of the node as set by the user.
 
     Returns:
       Dot graph representation for this node.
     """
-    return super().dot_graph(node_id_suffix=node_id_suffix, name=self._name)
+    return super().dot_graph(node_id_suffix, node_label, name or self._name)
 
 
 class IdRecorder:
@@ -4981,7 +5053,7 @@ class BehaviorTree:
               f'Node with name {node_name!r} found, but it or its containing'
               ' tree does not have an ID set.'
           )
-          return
+
         node_identifiers.append(
             NodeIdentifier(
                 tree_id=containing_tree.tree_id, node_id=tree_object.node_id
@@ -5003,8 +5075,9 @@ class BehaviorTree:
       node_name: Name of a node to search for in the tree.
 
     Returns:
-      A list of containing tree and nodes, where the node has the given (display) name. Note that the name is
-      not necessariy unique, which is why there can be multiple such nodes.
+      A list of containing tree and nodes, where the node has the given
+      (display) name. Note that the name is not necessariy unique, which is why
+      there can be multiple such nodes.
     """
     trees_and_nodes: list[tuple[BehaviorTree, Node]] = []
 
@@ -5048,7 +5121,8 @@ class BehaviorTree:
       A tuple of the tree and node matching the node id.
 
     Raises:
-      ValueError if no matching node exists or if there is more than one matching node.
+      ValueError if no matching node exists or if there is more than one
+      matching node.
     """
     trees_and_nodes: list[tuple[BehaviorTree, Node]] = []
 
@@ -5126,8 +5200,8 @@ class BehaviorTree:
 
     Args:
       node_in_tree: A NodeInTreeType for a node.
-      autogenerate_missing_ids: If true, will try to ensure valid ids by generating ids
-        if not set.
+      autogenerate_missing_ids: If true, will try to ensure valid ids by
+        generating ids if not set.
 
     Raises:
       ValueError if the node_in_tree is not in this tree.
