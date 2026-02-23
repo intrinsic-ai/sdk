@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.executive;
 
+import "google/api/annotations.proto";
 import "google/protobuf/descriptor.proto";
 
 option go_package = "intrinsic/executive/proto/proto_builder_go_proto";
@@ -12,18 +13,32 @@ service ProtoBuilder {
 
   // Compiles a proto schema into a file descriptor set, e.g., to
   // generate one for skill parameters.
-  rpc Compile(ProtoCompileRequest) returns (ProtoCompileResponse) {}
+  rpc Compile(ProtoCompileRequest) returns (ProtoCompileResponse) {
+    option (google.api.http) = {
+      post: "/protoBuilder/v0:compile"
+      body: "*"
+    };
+  }
 
   // Composes file descriptor set from given descriptors using only well-known
   // types. This creates a transitively closed file descriptor set which
   // contains the given input descriptors and transitive dependencies.
-  rpc Compose(ProtoComposeRequest) returns (ProtoComposeResponse) {}
+  rpc Compose(ProtoComposeRequest) returns (ProtoComposeResponse) {
+    option (google.api.http) = {
+      post: "/protoBuilder/v0:compose"
+      body: "*"
+    };
+  }
 
   // Retrieves list of well-known types as a list of names and transitively
   // closed file descriptor set (that may also contain dependencies which are
   // not considered to be well-known types themselves).
   rpc GetWellKnownTypes(GetWellKnownTypesRequest)
-      returns (GetWellKnownTypesResponse) {}
+      returns (GetWellKnownTypesResponse) {
+    option (google.api.http) = {
+      get: "/protoBuilder/v0:wellKnownTypes"
+    };
+  }
 }
 
 message ProtoCompileRequest {

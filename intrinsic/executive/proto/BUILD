@@ -523,7 +523,10 @@ go_proto_library(
 proto_library(
     name = "proto_builder_proto",
     srcs = ["proto_builder.proto"],
-    deps = ["@com_google_protobuf//:descriptor_proto"],
+    deps = [
+        "@com_google_googleapis//google/api:annotations_proto",
+        "@com_google_protobuf//:descriptor_proto",
+    ],
 )
 
 py_proto_library(
@@ -556,8 +559,12 @@ go_proto_library(
     compilers = [
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
+        "//bazel:go_gen_grpc_gateway",
     ],
     importpath = "intrinsic/executive/proto/proto_builder_go_proto",
     protos = [":proto_builder_proto"],
-    deps = ["@io_bazel_rules_go//proto/wkt:descriptor_go_proto"],
+    deps = [
+        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
+        "@org_golang_google_genproto_googleapis_api//annotations",
+    ],
 )
