@@ -808,14 +808,6 @@ user_data {
         self, read_node.user_data_protos['testkey'], packed_test_msg
     )
 
-  def test_to_proto_required_root_attribute(self):
-    """Tests if conversion to a proto fails when the root node is None."""
-    my_bt = bt.BehaviorTree()
-    with self.assertRaises(ValueError):
-      # We disable the warning because this is statement is necessary as it will
-      # raise the expected ValueError
-      my_bt.proto  # pylint: disable=pointless-statement
-
   def test_to_proto_with_default_behavior_tree_name(self):
     """Tests if conversion to a proto succeeds when name is set to default."""
     my_bt = bt.BehaviorTree(

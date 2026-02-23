@@ -4856,14 +4856,9 @@ class BehaviorTree:
   @property
   def proto(self) -> behavior_tree_pb2.BehaviorTree:
     """Returns the proto representation of the BehaviorTree."""
-    if self.root is None:
-      raise ValueError(
-          'A behavior tree has to have a root node but currently '
-          'it is not set. Please call `bt.root = bt_node` or '
-          'bt.set_root(bt_node)`.'
-      )
     proto_object = behavior_tree_pb2.BehaviorTree(name=self.name)
-    proto_object.root.CopyFrom(self.root.proto)
+    if self.root is not None:
+      proto_object.root.CopyFrom(self.root.proto)
     if self.tree_id:
       proto_object.tree_id = self.tree_id
     if self._description is not None:
@@ -4915,7 +4910,8 @@ class BehaviorTree:
     bt = cls()
     if bt_proto.HasField('tree_id'):
       bt.tree_id = bt_proto.tree_id
-    bt.root = Node.create_from_proto(bt_proto.root)
+    if bt_proto.HasField('root'):
+      bt.root = Node.create_from_proto(bt_proto.root)
     bt._name = bt_proto.name
     if bt_proto.HasField('description'):
       bt._description = skills_pb2.Skill()
