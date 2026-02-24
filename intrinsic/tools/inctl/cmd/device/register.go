@@ -189,7 +189,7 @@ var registerCmd = &cobra.Command{
 			"cloudConnection": map[string]any{
 				"project": projectName,
 				"token":   "not-a-valid-token",
-				"name":    hostname,
+				"name":    clusterName,
 			},
 			"cluster": map[string]any{
 				"role": deviceRole,
