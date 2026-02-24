@@ -226,7 +226,11 @@ func (c *client) run(ctx context.Context) error {
 		req.UpdateType = clustermanagerpb.SchedulePlatformUpdateRequest_UPDATE_TYPE_ROLLBACK
 	} else if osFlag != "" || runtimeFlag != "" {
 		_, conn, err := clientutils.DialCatalog(ctx, clientutils.DialCatalogOptions{
-			Org: c.org,
+			// DialCatalog is broken and wants the qualified org name
+			// Internally it's not requried due to some defaulting logic.
+			// Externally it's not required when customers can avoid using the `@` logic.
+			// But the way the code is written, it'll always work when the `@` is provided here.
+			Org: c.org + "@" + c.project,
 		})
 		if err != nil {
 			return fmt.Errorf("dial catalog: %w", err)
