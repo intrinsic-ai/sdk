@@ -210,7 +210,10 @@ class Solution:
     # Remaining backends.
     product_client = product_client_mod.ProductClient.connect(grpc_channel)
 
-    object_world = worlds.ObjectWorld.connect(_WORLD_ID, grpc_channel)
+    object_world = worlds.ObjectWorld.connect(
+        _WORLD_ID,
+        grpc_channel,
+    )
     installed_assets = (
         installed_assets_client.InstalledAssetsClient.from_channel(grpc_channel)
     )

@@ -2,6 +2,7 @@
 
 """Provides functionality to interact with a running simulation.
 
+
 Typical usage example:
   from intrinsic.executive.jupyter.workcell import intrinsic
 
@@ -10,6 +11,7 @@ Typical usage example:
 
   simulation.reset()
 """
+
 
 import grpc
 
