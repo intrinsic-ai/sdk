@@ -501,24 +501,36 @@ func (q *queryHandle) Close() {
 }
 
 func (kv *kvStoreHandle) GetAll(key string, valueCallback func(*anypb.Any), ondoneCallback func(string)) (kvstore.KVQuery, error) {
-	return kv.getAllRaw(kv.addKeyPrefix(key), valueCallback, ondoneCallback)
+	queryCallback := func(keyexpr string, bytes []byte) {
+		valueCallback(value(bytes))
+	}
+	return kv.query(kv.addKeyPrefix(key), queryCallback, ondoneCallback)
 }
 
-// getAllRaw invokes the valueCallback for each given key that matches the expression.
+func (kv *kvStoreHandle) ListAllKeys(key string, keyCallback func(string), ondoneCallback func(string)) (kvstore.KVQuery, error) {
+	queryCallback := func(keyexpr string, bytes []byte) {
+		keyCallback(keyexpr)
+	}
+	return kv.query(kv.addKeyPrefix(key), queryCallback, ondoneCallback)
+}
+
+func value(bytes []byte) *anypb.Any {
+	value := &anypb.Any{}
+	if err := proto.Unmarshal(bytes, value); err != nil {
+		panic(err)
+	}
+	return value
+}
+
+// query invokes the queryCallback for each given key that matches the expression.
 // The key expression is used as-is, i.e. no prefixes are added to it.
 //
 // This function is not exported because the raw keys contain prefixes not known
 // to the client code, such as `kv_store` or `kv_store_repl`.
-func (kv *kvStoreHandle) getAllRaw(rawKey string, valueCallback func(*anypb.Any), ondoneCallback func(string)) (kvstore.KVQuery, error) {
+func (kv *kvStoreHandle) query(rawKey string, queryCallback func(keyexpr string, bytes []byte), ondoneCallback func(string)) (kvstore.KVQuery, error) {
 	var qh *queryHandle
 	qh = &queryHandle{
-		query: func(keyexpr string, bytes []byte) {
-			value := &anypb.Any{}
-			if err := proto.Unmarshal(bytes, value); err != nil {
-				panic(err)
-			}
-			valueCallback(value)
-		},
+		query: queryCallback,
 		done: func(keyexpr string) {
 			ondoneCallback(keyexpr)
 		},
@@ -564,8 +576,8 @@ func (kv *kvStoreHandle) Get(key string, timeout *time.Duration) (*anypb.Any, er
 func (kv *kvStoreHandle) getRaw(rawKey string, timeout *time.Duration) (*anypb.Any, error) {
 	resultCh := make(chan *anypb.Any)
 
-	valueCallback := func(value *anypb.Any) {
-		resultCh <- value
+	queryCallback := func(keyexpr string, bytes []byte) {
+		resultCh <- value(bytes)
 	}
 
 	done := make(chan any)
@@ -576,7 +588,7 @@ func (kv *kvStoreHandle) getRaw(rawKey string, timeout *time.Duration) (*anypb.A
 	errCh := make(chan error)
 
 	go func() {
-		query, err := kv.getAllRaw(rawKey, valueCallback, onDoneCallback)
+		query, err := kv.query(rawKey, queryCallback, onDoneCallback)
 		if err != nil {
 			errCh <- err
 		}

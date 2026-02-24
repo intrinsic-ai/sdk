@@ -37,6 +37,9 @@ type KVStore interface {
 	// GetAll invokes the valueCallback for a given key that matches the expression.
 	GetAll(key string, valueCallback func(*anypb.Any), ondoneCallback func(string)) (KVQuery, error)
 
+	// ListAllKeys invokes the keyCallback for a given key that matches the expression.
+	ListAllKeys(key string, keyCallback func(string), ondoneCallback func(string)) (KVQuery, error)
+
 	// Delete removes a value from the store for the given key.
 	Delete(key string) error
 
