@@ -16,6 +16,7 @@ import (
 	"intrinsic/kubernetes/vmpool/service/pkg/defaults/defaults"
 	"intrinsic/tools/inctl/util/color"
 	"intrinsic/tools/inctl/util/orgutil"
+	"intrinsic/tools/inctl/util/printer"
 
 	"github.com/pborman/uuid"
 	"github.com/rs/xid"
@@ -23,6 +24,7 @@ import (
 	"go.opencensus.io/trace"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	leaseapigrpcpb "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_proto"
 	leasepb "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_proto"
@@ -73,7 +75,7 @@ var vmLeaseCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		return Lease(ctx, cl, &pc, &LeaseOptions{
+		return Lease(ctx, cl, &pc, printer.GetFlagOutputType(cmd), &LeaseOptions{
 			AbortAfter:    flagAbortAfter,
 			Duration:      flagDuration,
 			ReservationID: flagReservationID,
@@ -107,7 +109,7 @@ type LeaseOptions struct {
 }
 
 // Lease leases a VM from a pool of VMs.
-func Lease(ctx context.Context, leaseClient leaseapigrpcpb.VMPoolLeaseServiceClient, poolClient *vmpoolapigrpcpb.VMPoolServiceClient, opts *LeaseOptions) error {
+func Lease(ctx context.Context, leaseClient leaseapigrpcpb.VMPoolLeaseServiceClient, poolClient *vmpoolapigrpcpb.VMPoolServiceClient, outputType printer.OutputType, opts *LeaseOptions) error {
 	span := trace.FromContext(ctx)
 	ctx, cancel := context.WithTimeout(ctx, opts.AbortAfter)
 	defer cancel()
@@ -147,6 +149,22 @@ func Lease(ctx context.Context, leaseClient leaseapigrpcpb.VMPoolLeaseServiceCli
 		return fmt.Errorf("failed lease: %w", err)
 	}
 	l := lr.lease
+
+	if outputType == printer.OutputTypeJSON {
+		ms, err := protojson.MarshalOptions{
+			Multiline:         true,
+			UseProtoNames:     true,
+			EmitUnpopulated:   true,
+			EmitDefaultValues: true,
+		}.Marshal(l)
+		if err != nil {
+			return fmt.Errorf("failed to marshal lease to json: %w", err)
+		}
+		// We print directly to stdout to avoid double encoding by the json printer
+		fmt.Println(string(ms))
+		return nil
+	}
+
 	if opts.Silent {
 		fmt.Print(l.GetInstance())
 		return nil
@@ -275,11 +293,12 @@ func createPoolIfNeeded(ctx context.Context, poolClient *vmpoolapigrpcpb.VMPoolS
 	if err != nil {
 		return false, err
 	}
-	fmt.Printf("Created pool with runtime %s and IntrinsicOS %s to satisfy the request.\n", resp.GetSpec().GetRuntime(), resp.GetSpec().GetIntrinsicOs())
-	fmt.Println("Leasing from this pool, once lease succeeds, this pool will be deleted.")
-	fmt.Println("\nIf you abort this command from now on before the pool is deleted, you need to delete it manually:")
-	fmt.Printf("\tinctl vm pool delete --pool %s --org %s\n\n", resp.GetName(), orgutil.QualifiedOrg(vmCmdFlags.GetFlagProject(), vmCmdFlags.GetFlagOrganization()))
-	fmt.Println("This can take a few minutes, please be patient or grab a coffee c|_|")
+	// use stderr for debug logs
+	fmt.Fprintf(opts.Stderr, "Created pool with runtime %s and IntrinsicOS %s to satisfy the request.\n", resp.GetSpec().GetRuntime(), resp.GetSpec().GetIntrinsicOs())
+	fmt.Fprintln(opts.Stderr, "Leasing from this pool, once lease succeeds, this pool will be deleted.")
+	fmt.Fprintln(opts.Stderr, "\nIf you abort this command from now on before the pool is deleted, you need to delete it manually:")
+	fmt.Fprintf(opts.Stderr, "\tinctl vm pool delete --pool %s --org %s\n\n", resp.GetName(), orgutil.QualifiedOrg(vmCmdFlags.GetFlagProject(), vmCmdFlags.GetFlagOrganization()))
+	fmt.Fprintln(opts.Stderr, "This can take a few minutes, please be patient or grab a coffee c|_|")
 	opts.Pool = resp.GetName()
 	return true, nil
 }
@@ -315,11 +334,11 @@ func requestAdhocLease(ctx context.Context, duration time.Duration, leaseClient 
 				return nil, fmt.Errorf("lease request failed: %v. please try again", ctx.Err())
 			}
 			if status.Code(err) == codes.NotFound && poolIsBooting {
-				fmt.Print(".")
+				fmt.Fprint(opts.Stderr, ".")
 			}
 			if status.Code(err) != codes.NotFound && poolIsBooting { // once the pool is present we deactivate the booting state
 				poolIsBooting = false
-				fmt.Println()
+				fmt.Fprintln(opts.Stderr)
 			}
 			if !poolIsBooting { // skip messages about pool not beeing present if the pool is booting to not confuse users
 				fmt.Fprintf(opts.Stderr, "lease request did not succeed yet, retrying soon: %v\n", err)
@@ -331,14 +350,14 @@ func requestAdhocLease(ctx context.Context, duration time.Duration, leaseClient 
 
 	if isAdhocPoolPath {
 		if _, err := (*poolClient).DeletePool(ctx, &vmpoolpb.DeletePoolRequest{Name: opts.Pool}); err != nil {
-			fmt.Printf("Failed to delete pool %s: %v\n This is not critical, please delete it manually with: \n\t`inctl vm pool delete --pool %s --org %s`\n\n", opts.Pool, err, opts.Pool, orgutil.QualifiedOrg(vmCmdFlags.GetFlagProject(), vmCmdFlags.GetFlagOrganization()))
+			fmt.Fprintf(opts.Stderr, "Failed to delete pool %s: %v\n This is not critical, please delete it manually with: \n\t`inctl vm pool delete --pool %s --org %s`\n\n", opts.Pool, err, opts.Pool, orgutil.QualifiedOrg(vmCmdFlags.GetFlagProject(), vmCmdFlags.GetFlagOrganization()))
 		}
-		fmt.Printf("\nCleaned up temporary pool %s\n\n", opts.Pool)
+		fmt.Fprintf(opts.Stderr, "\nCleaned up temporary pool %s\n\n", opts.Pool)
 	}
 
 	retContext, err := getContext(ctx, opts, l)
 	if err != nil {
-		fmt.Printf("Failed to get context: %v\n", err)
+		fmt.Fprintf(opts.Stderr, "Failed to get context: %v\n", err)
 	}
 
 	return &leaseResult{lease: l, context: retContext}, nil
