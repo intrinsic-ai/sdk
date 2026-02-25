@@ -256,6 +256,7 @@ proto_library(
     srcs = ["blackboard_service.proto"],
     deps = [
         "//intrinsic/util/status:extended_status_proto",
+        "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_protobuf//:any_proto",
         "@com_google_protobuf//:empty_proto",
         "@com_google_protobuf//:timestamp_proto",
@@ -297,6 +298,7 @@ go_proto_library(
     compilers = [
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
+        "//bazel:go_gen_grpc_gateway",
     ],
     importpath = "intrinsic/executive/proto/blackboard_service_go_proto",
     protos = [":blackboard_service_proto"],

@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.executive;
 
+import "google/api/annotations.proto";
 import "google/protobuf/any.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
@@ -20,21 +21,38 @@ message BlackboardValue {
 service ExecutiveBlackboard {
 
   // Retrieves a specified blackboard value.
-  rpc GetBlackboardValue(GetBlackboardValueRequest) returns (BlackboardValue) {}
+  rpc GetBlackboardValue(GetBlackboardValueRequest) returns (BlackboardValue) {
+    option (google.api.http) = {
+      get: "/executive/v0/operations/{operation_name}/blackboard/{key}"
+    };
+  }
 
   // List all available entries on the blackboard.
   rpc ListBlackboardValues(ListBlackboardValuesRequest)
-      returns (ListBlackboardValuesResponse) {}
+      returns (ListBlackboardValuesResponse) {
+    option (google.api.http) = {
+      get: "/executive/v0/operations/{operation_name}/blackboard"
+    };
+  }
 
   // Update a specific value on the blackboard.
   // Updating a blackboard value that is a loop or retry node counter will also
   // change the node's internal counter.
   rpc UpdateBlackboardValue(UpdateBlackboardValueRequest)
-      returns (BlackboardValue) {}
+      returns (BlackboardValue) {
+    option (google.api.http) = {
+      patch: "/executive/v0/operations/{value.operation_name}/blackboard/{value.key}"
+      body: "*"
+    };
+  }
 
   // Delete a specific value on the blackboard.
   rpc DeleteBlackboardValue(DeleteBlackboardValueRequest)
-      returns (google.protobuf.Empty) {}
+      returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/executive/v0/operations/{operation_name}/blackboard/{key}"
+    };
+  }
 
 }
 
