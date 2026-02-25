@@ -75,7 +75,8 @@ message DeviceData {
   oneof data {
     JointDeviceData joint_device_data = 1;
     Ds402DeviceData ds402_device_data = 2;
-    // More to be added in the future (i.e. ADIO, F/T)
+    AdioDeviceData adio_device_data = 3;
+    // More to be added in the future (i.e. F/T)
   }
 }
 
@@ -172,6 +173,33 @@ message HomingReference {
     // Object 0x6061: Modes of operation display
     optional VariableReference modes_of_operation_display = 7;
   }
+}
+
+message AdioDeviceData {
+  oneof adio_variable {
+    DigitalVariableReference digital_input = 1;
+    DigitalVariableReference digital_output = 2;
+    AnalogVariableReferences analog_inputs = 3;
+    AnalogVariableReferences analog_outputs = 4;
+  }
+}
+
+message DigitalVariableReference {
+  VariableReference variable_reference = 1;
+  // If the value referenced by `variable_reference` is an array,
+  // this is the index of the desired array element.
+  optional uint64 array_index = 2;
+  // Optional aliases for the individual bits of the variable.
+  // The key is the bit index (LSB first) and the value is the alias.
+  // The indices are zero indexed and need to be smaller than the size of the
+  // variable.
+  map<uint32, string> bit_index_to_alias = 3;
+}
+
+message AnalogVariableReferences {
+  // The key is the alias name of each variable reference and must be unique.
+  // The value is the variable reference to the device's object dictionary.
+  map<string, VariableReference> named_variable_references = 1;
 }
 
 // Represents a variable (object) within an EtherCAT device.

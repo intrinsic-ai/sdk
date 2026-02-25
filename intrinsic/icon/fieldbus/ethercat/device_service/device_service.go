@@ -196,6 +196,12 @@ func (s *DeviceService) computeResolvedConfiguration(ctx context.Context) error 
 				return err
 			}
 		}
+
+		if adio := im.GetDeviceData().GetAdioDeviceData(); adio != nil {
+			if err := s.resolveAdioDevice(ctx, adio); err != nil {
+				return err
+			}
+		}
 		// Handle other DeviceData types here in the future
 	}
 
@@ -299,6 +305,34 @@ func (s *DeviceService) resolveJointDevice(ctx context.Context, joint *dscpb.Joi
 	if joint.GetJointAccelerationStateReference() != nil {
 		if err := s.resolveVariable(ctx, joint.GetJointAccelerationStateReference(), PdoDirectionTx); err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+// resolveAdioDevice resolves all variables required for an ADIO device.
+// Silently ignores when AdioDeviceData is empty (i.e. no actual ADIO variable has been specified).
+func (s *DeviceService) resolveAdioDevice(ctx context.Context, adio *dscpb.AdioDeviceData) error {
+	switch v := adio.GetAdioVariable().(type) {
+	case *dscpb.AdioDeviceData_DigitalInput:
+		if err := s.resolveVariable(ctx, v.DigitalInput.GetVariableReference(), PdoDirectionTx); err != nil {
+			return err
+		}
+	case *dscpb.AdioDeviceData_DigitalOutput:
+		if err := s.resolveVariable(ctx, v.DigitalOutput.GetVariableReference(), PdoDirectionRx); err != nil {
+			return err
+		}
+	case *dscpb.AdioDeviceData_AnalogInputs:
+		for _, ref := range v.AnalogInputs.GetNamedVariableReferences() {
+			if err := s.resolveVariable(ctx, ref, PdoDirectionTx); err != nil {
+				return err
+			}
+		}
+	case *dscpb.AdioDeviceData_AnalogOutputs:
+		for _, ref := range v.AnalogOutputs.GetNamedVariableReferences() {
+			if err := s.resolveVariable(ctx, ref, PdoDirectionRx); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
