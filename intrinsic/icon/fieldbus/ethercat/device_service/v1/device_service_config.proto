@@ -76,7 +76,8 @@ message DeviceData {
     JointDeviceData joint_device_data = 1;
     Ds402DeviceData ds402_device_data = 2;
     AdioDeviceData adio_device_data = 3;
-    // More to be added in the future (i.e. F/T)
+    ForceTorqueDeviceData force_torque_device_data = 4;
+    // More to be added in the future (i.e. SDO r/w, PDO r/w)
   }
 }
 
@@ -200,6 +201,28 @@ message AnalogVariableReferences {
   // The key is the alias name of each variable reference and must be unique.
   // The value is the variable reference to the device's object dictionary.
   map<string, VariableReference> named_variable_references = 1;
+}
+
+message ForceTorqueDeviceData {
+  enum ForceTorqueDeviceModel {
+    DEVICE_MODEL_UNSPECIFIED = 0;
+    DEVICE_MODEL_ATI_OEM = 1;
+  }
+
+  VariableReference force_x = 1;
+  VariableReference force_y = 2;
+  VariableReference force_z = 3;
+
+  VariableReference torque_x = 4;
+  VariableReference torque_y = 5;
+  VariableReference torque_z = 6;
+
+  VariableReference status_code = 7;
+  VariableReference sample_counter = 9;
+  VariableReference control_code = 10;
+
+  ForceTorqueDeviceModel device_model = 11;
+  optional uint32 filter_index = 12;
 }
 
 // Represents a variable (object) within an EtherCAT device.

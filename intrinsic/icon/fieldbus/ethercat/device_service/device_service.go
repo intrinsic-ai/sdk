@@ -202,6 +202,13 @@ func (s *DeviceService) computeResolvedConfiguration(ctx context.Context) error 
 				return err
 			}
 		}
+
+		if ft := im.GetDeviceData().GetForceTorqueDeviceData(); ft != nil {
+			if err := s.resolveForceTorqueDevice(ctx, ft); err != nil {
+				return err
+			}
+		}
+
 		// Handle other DeviceData types here in the future
 	}
 
@@ -331,6 +338,32 @@ func (s *DeviceService) resolveAdioDevice(ctx context.Context, adio *dscpb.AdioD
 	case *dscpb.AdioDeviceData_AnalogOutputs:
 		for _, ref := range v.AnalogOutputs.GetNamedVariableReferences() {
 			if err := s.resolveVariable(ctx, ref, PdoDirectionRx); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// resolveForceTorqueDevice resolves all variables required for a force torque sensor.
+func (s *DeviceService) resolveForceTorqueDevice(ctx context.Context, ft *dscpb.ForceTorqueDeviceData) error {
+	ftVars := []struct {
+		ref *dscpb.VariableReference
+		dir PdoDirection
+	}{
+		{ft.GetForceX(), PdoDirectionTx},
+		{ft.GetForceY(), PdoDirectionTx},
+		{ft.GetForceZ(), PdoDirectionTx},
+		{ft.GetTorqueX(), PdoDirectionTx},
+		{ft.GetTorqueY(), PdoDirectionTx},
+		{ft.GetTorqueZ(), PdoDirectionTx},
+		{ft.GetStatusCode(), PdoDirectionTx},
+		{ft.GetSampleCounter(), PdoDirectionTx},
+		{ft.GetControlCode(), PdoDirectionRx},
+	}
+	for _, v := range ftVars {
+		if v.ref != nil {
+			if err := s.resolveVariable(ctx, v.ref, v.dir); err != nil {
 				return err
 			}
 		}
