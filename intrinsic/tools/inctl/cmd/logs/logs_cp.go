@@ -40,6 +40,7 @@ var (
 	flagHistoric               bool
 	flagHistoricStartTimestamp string
 	flagHistoricEndTimestamp   string
+	flagQuiet                  bool
 )
 
 func newConn(ctx context.Context) (*grpc.ClientConn, error) {
@@ -216,6 +217,13 @@ var logsCpCmd = &cobra.Command{
 			fmt.Printf("Download took %s\n", time.Since(startTime))
 		}()
 
+		if !flagQuiet {
+			fmt.Fprintln(os.Stderr, "Reminder: this command retrieves logs that were recorded using a best effort pipeline.")
+			fmt.Fprintln(os.Stderr, "For more information about log retention, please review https://flowstate.intrinsic.ai/docs/operate/store_transmit_and_access_data/structured_logging/overview/#data-flow .")
+			fmt.Fprintln(os.Stderr, "If your use case has stricter requirements about reliability, we recommend using the Recordings feature, documented at https://flowstate.intrinsic.ai/docs/operate/store_transmit_and_access_data/structured_logging/solution_recordings/")
+			fmt.Fprintln(os.Stderr, "Pass --quiet to suppress this notice.")
+		}
+
 		if flagContext == "minikube" && !flagUseLocalhost {
 			fmt.Printf("Context is set to \"minikube\". Setting --use_localhost.\n")
 			flagUseLocalhost = true
@@ -241,5 +249,6 @@ func init() {
 	logsCpCmd.Flags().BoolVar(&flagHistoric, "historic", false, "Uses the cloud to fetch historical logs.")
 	logsCpCmd.Flags().StringVar(&flagHistoricStartTimestamp, "historic_start_timestamp", "", "Start timestamp in RFC3339 format for fetching historical logs. eg. 2024-08-20T12:00:00Z")
 	logsCpCmd.Flags().StringVar(&flagHistoricEndTimestamp, "historic_end_timestamp", "", "End timestamp in RFC3339 format for fetching historical logs. eg. 2024-08-20T12:00:00Z")
+	logsCpCmd.Flags().BoolVarP(&flagQuiet, "quiet", "q", false, "Suppress the best-effort pipeline reminder message")
 	logsCpCmd.MarkFlagRequired("context")
 }
