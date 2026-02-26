@@ -115,6 +115,25 @@ func errorFromImwRet(imwRet C.int) error {
 	}
 }
 
+func validZenohKey(key string) error {
+	if len(key) == 0 {
+		return fmt.Errorf("Keyexpr must not be empty")
+	}
+	if strings.HasPrefix(key, "/") {
+		return fmt.Errorf("Keyexpr must not start with /")
+	}
+	if strings.HasSuffix(key, "/") {
+		return fmt.Errorf("Keyexpr must not end with /")
+	}
+	parts := strings.Split(key, "/")
+	for _, part := range parts {
+		if len(part) == 0 {
+			return fmt.Errorf("Keyexpr must not contain empty parts")
+		}
+	}
+	return nil
+}
+
 // Handle represents an instance of a Fast DDS pubsub adapter, as exposed via
 // the interface defined in pubsubinterface.PubSub.
 type Handle struct {

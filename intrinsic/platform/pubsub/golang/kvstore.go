@@ -6,6 +6,7 @@ package kvstore
 import (
 	"fmt"
 	"path"
+	"strings"
 	"time"
 
 	"intrinsic/platform/pubsub/golang/pubsubinterface"
@@ -18,7 +19,10 @@ import (
 // MakeKey creates a key from an arbitrary number of strings, removing leading and
 // trailing slashes, and joining them with a slash delimiter.
 func MakeKey(parts ...string) string {
-	return path.Join(parts...)
+	// path.Join correctly removes leading and trailing slashes from all parts,
+	// except the leading slash in the first part. TrimPrefix removes that
+	// leading slash.
+	return strings.TrimPrefix(path.Join(parts...), "/")
 }
 
 // KVStore represents an instance of a KVStore object. It provides an

@@ -15,7 +15,7 @@ func TestMakeKey(t *testing.T) {
 		{
 			name:     "some parts without slashes and some without",
 			parts:    []string{"/foo", "bar", "baz/"},
-			expected: "/foo/bar/baz",
+			expected: "foo/bar/baz",
 		},
 		{
 			name:     "no slashes present",
@@ -25,12 +25,12 @@ func TestMakeKey(t *testing.T) {
 		{
 			name:     "multiple slashes",
 			parts:    []string{"///foo", "bar///", "///baz///"},
-			expected: "/foo/bar/baz",
+			expected: "foo/bar/baz",
 		},
 		{
 			name:     "single slashes on both sides",
 			parts:    []string{"/foo/", "/bar/", "/baz/"},
-			expected: "/foo/bar/baz",
+			expected: "foo/bar/baz",
 		},
 		{
 			name:     "empty part in middle",
@@ -45,7 +45,7 @@ func TestMakeKey(t *testing.T) {
 		{
 			name:     "only slashes across all parts",
 			parts:    []string{"///", "///", "///"},
-			expected: "/",
+			expected: "",
 		},
 		{
 			name:     "no parts",
