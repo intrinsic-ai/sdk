@@ -13,6 +13,50 @@ from intrinsic.perception.proto.v1 import dimensions_pb2
 from intrinsic.perception.proto.v1 import image_buffer_pb2
 
 
+class Metadata:
+
+  class Keys:
+    PIXEL_TYPE = "pixel_type"
+
+
+def _image_buffer_pixel_type(
+    image_buffer: image_buffer_pb2.ImageBuffer,
+) -> Optional[str]:
+  pixel_type = image_buffer.pixel_type
+  if pixel_type == image_buffer_pb2.PixelType.PIXEL_UNSPECIFIED:
+    return None
+  elif pixel_type == image_buffer_pb2.PixelType.PIXEL_INTENSITY:
+    return "INTENSITY"
+  elif pixel_type == image_buffer_pb2.PixelType.PIXEL_DEPTH:
+    return "DEPTH"
+  elif pixel_type == image_buffer_pb2.PixelType.PIXEL_POINT:
+    return "POINT"
+  elif pixel_type == image_buffer_pb2.PixelType.PIXEL_NORMAL:
+    return "NORMAL"
+  else:
+    raise ValueError(
+        "Pixel type not supported:"
+        f" {image_buffer_pb2.PixelType.Name(pixel_type)}."
+    )
+
+
+def _get_image_buffer_pixel_type(
+    pixel_type: Optional[str],
+) -> image_buffer_pb2.PixelType:
+  if pixel_type is None:
+    return image_buffer_pb2.PIXEL_UNSPECIFIED
+  elif pixel_type == "INTENSITY":
+    return image_buffer_pb2.PIXEL_INTENSITY
+  elif pixel_type == "DEPTH":
+    return image_buffer_pb2.PIXEL_DEPTH
+  elif pixel_type == "POINT":
+    return image_buffer_pb2.PIXEL_POINT
+  elif pixel_type == "NORMAL":
+    return image_buffer_pb2.PIXEL_NORMAL
+  else:
+    raise ValueError(f"Pixel type not supported: {pixel_type}.")
+
+
 def _image_buffer_data_type(
     image_buffer: image_buffer_pb2.ImageBuffer,
 ) -> Union[np.dtype, type[np.generic]]:
@@ -82,13 +126,21 @@ def _image_buffer_decoded(
 ) -> np.ndarray:
   encoding = image_buffer_encoding(image_buffer)
   if encoding is None:
-    return np.frombuffer(
+    array = np.frombuffer(
         image_buffer.data, dtype=_image_buffer_data_type(image_buffer)
     )
   else:
-    return np.asarray(
+    array = np.asarray(
         Image.open(io.BytesIO(image_buffer.data), formats=[encoding])
     )
+  pixel_type = _image_buffer_pixel_type(image_buffer)
+  if pixel_type is not None:
+    metadata = (
+        array.dtype.metadata.copy() if array.dtype.metadata is not None else {}
+    )
+    metadata[Metadata.Keys.PIXEL_TYPE] = pixel_type
+    array = array.astype(np.dtype(array.dtype, metadata=metadata))
+  return array
 
 
 def _image_buffer_shape(
@@ -130,7 +182,8 @@ def serialize_image_buffer(
   Args:
     image_array: The image to serialize.
     encoding: The encoding to use for the image.
-    pixel_type: The pixel type of the image.
+    pixel_type: The pixel type of the image. If unspecified, it will be
+      retrieved from the metadata of the numpy array type.
     packing_type: The packing type of the image.
 
   Returns:
@@ -166,6 +219,13 @@ def serialize_image_buffer(
     image.save(image_bytes, format=encoding)
     buffer = image_bytes.getvalue()
 
+  if (
+      pixel_type == image_buffer_pb2.PixelType.PIXEL_UNSPECIFIED
+      and image_array.dtype.metadata is not None
+  ):
+    pixel_type = _get_image_buffer_pixel_type(
+        image_array.dtype.metadata.get(Metadata.Keys.PIXEL_TYPE)
+    )
   if pixel_type == image_buffer_pb2.PixelType.PIXEL_POINT:
     num_channels = 3
   elif len(image_array.shape) == 3:
@@ -221,6 +281,6 @@ def deserialize_image_buffer(
   size = _image_buffer_size(image)
 
   if buffer.size != size:
-    raise ValueError("Invalid buffer size %d != %d" % (buffer.size, size))
+    raise ValueError(f"Invalid buffer size {buffer.size} != {size}")
 
   return buffer.reshape(shape)

@@ -79,7 +79,18 @@ class Camera:
     # capture from all of the camera's currently configured sensors
     capture_result = camera.capture()
     for sensor_name, sensor_image in capture_result.sensor_images.items():
-      pass  # access each sensor's image buffer using sensor_image.array
+      # access each sensor's image buffer using sensor_image.array, e.g.:
+      array = sensor_image.array  # type: np.ndarray
+      logging.info("Sensor name: %s", sensor_name)
+      pixel_type = None
+      if array.dtype.metadata is not None:
+        pixel_type = array.dtype.metadata.get(
+            image_utils.Metadata.Keys.PIXEL_TYPE
+        )
+      logging.info("Pixel type: %s", pixel_type)
+      logging.info("Image size and shape: %s, %s", array.size, array.shape)
+      logging.info("Image min and max: %s, %s", array.min(), array.max())
+      logging.info("Intrinsic matrix: %s", sensor_image.intrinsic_matrix)
     ```
     ...
   """
