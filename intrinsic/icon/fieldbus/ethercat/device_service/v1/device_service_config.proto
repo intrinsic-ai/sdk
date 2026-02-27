@@ -37,6 +37,18 @@ message DeviceServiceConfig {
 
   // Options to configure the behavior of the device service.
   DeviceServiceOptions options = 4;
+
+  // Configuration for the device's synchronization mode.
+  SyncConfig sync_config = 5;
+}
+
+message SyncConfig {
+  // The name of the synchronization mode to use (must match an <OpMode> name
+  // from the ESI). If empty, the system selects a default mode:
+  // 1. If Ds402DeviceData is mapped: Selects the first mode with DC support
+  // (AssignActivate > 0).
+  // 2. Otherwise: Selects the first available mode (typically SM/FreeRun).
+  string selected_op_mode_name = 1;
 }
 
 // Options to configure the behavior of the device service.

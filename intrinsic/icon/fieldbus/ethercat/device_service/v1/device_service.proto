@@ -62,6 +62,22 @@ message ResolvedConfiguration {
   // Key: Unique concatenator of the user VariableReference as "pdo::object".
   // Value: Metadata used to construct the final ENI variable access string.
   map<string, ResolvedVariable> variable_mappings = 2;
+
+  // The list of available synchronization modes as defined in the ESI.
+  // Each mode corresponds to an <OpMode> entry.
+  repeated OpModeInfo supported_op_modes = 4;
+
+  // The active OpMode name that was selected for this device.
+  // This is the result of resolving the `selected_op_mode_name` from the
+  // config.
+  string active_op_mode_name = 5;
+}
+
+message OpModeInfo {
+  string name = 1;
+  string description = 2;
+  // True if this mode supports Distributed Clocks (AssignActivate > 0).
+  bool is_dc = 3;
 }
 
 // Metadata for a resolved variable within the bus configuration.

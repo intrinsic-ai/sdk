@@ -65,6 +65,17 @@ type esiDevice struct {
 	RxPdo   []esiPdo   `xml:"RxPdo"`
 	TxPdo   []esiPdo   `xml:"TxPdo"`
 	Profile esiProfile `xml:"Profile"`
+	Dc      *esiDc     `xml:"Dc"`
+}
+
+type esiDc struct {
+	OpModes []esiOpMode `xml:"OpMode"`
+}
+
+type esiOpMode struct {
+	Name           string `xml:"Name"`
+	Desc           string `xml:"Desc"`
+	AssignActivate string `xml:"AssignActivate"`
 }
 
 type esiSm struct {
@@ -292,6 +303,25 @@ func (s *DeviceService) loadAndIndexESI(ctx context.Context, bundle *esipb.EsiBu
 	if targetDevice == nil {
 		return fmt.Errorf("device with VendorID %d, ProductCode %d, Revision %d not found in ESI bundle", vendorID, productCode, revision)
 	}
+
+	// Parse OpModes from ESI.
+	if targetDevice.Dc != nil {
+		for _, mode := range targetDevice.Dc.OpModes {
+			isDc := false
+			if val, err := parseUint32(mode.AssignActivate); err == nil && val > 0 {
+				isDc = true
+			}
+			s.supportedOpModes = append(s.supportedOpModes, &dspb.OpModeInfo{
+				Name:        mode.Name,
+				Description: mode.Desc,
+				IsDc:        isDc,
+			})
+		}
+	}
+
+	// If a device has no <Dc> element or no <OpMode>s, s.supportedOpModes will be empty.
+	// This is valid and implies the device does not support explicit Synchronization Mode selection
+	// (it likely operates in FreeRun or SM-Synchronous mode implicitly).
 
 	// Index Objects (including external DictionaryFile)
 	if err := s.indexObjects(bundle, targetDevice.Profile); err != nil {

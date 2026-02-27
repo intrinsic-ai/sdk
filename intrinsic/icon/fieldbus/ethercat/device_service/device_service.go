@@ -74,6 +74,9 @@ type DeviceService struct {
 	// resolvedVars stores the final mapping of "pdo::object" to resolution metadata.
 	resolvedVars map[string]*dspb.ResolvedVariable
 
+	// supportedOpModes lists the synchronization modes supported by the device (from ESI).
+	supportedOpModes []*dspb.OpModeInfo
+
 	// resolvedConfiguration holds the pre-computed configuration response data.
 	resolvedConfiguration *dspb.ResolvedConfiguration
 }
@@ -235,9 +238,17 @@ func (s *DeviceService) computeResolvedConfiguration(ctx context.Context) error 
 		}
 	}
 
+	// Determine active OpMode.
+	activeOpMode, err := s.resolveActiveOpMode(ctx)
+	if err != nil {
+		return err
+	}
+
 	s.resolvedConfiguration = &dspb.ResolvedConfiguration{
 		EbiPdoInstructions: instructions,
 		VariableMappings:   s.resolvedVars,
+		SupportedOpModes:   s.supportedOpModes,
+		ActiveOpModeName:   activeOpMode,
 	}
 
 	return nil
@@ -448,4 +459,57 @@ func (s *DeviceService) resolveVariable(ctx context.Context, ref *dscpb.Variable
 	}
 
 	return nil
+}
+
+// resolveActiveOpMode determines the synchronization mode to use based on the user configuration
+// and the device's supported modes (from ESI).
+func (s *DeviceService) resolveActiveOpMode(ctx context.Context) (string, error) {
+	selectedOpMode := s.config.GetSyncConfig().GetSelectedOpModeName()
+
+	// 1. Explicit selection by user.
+	if selectedOpMode != "" {
+		// Validate that the selected mode is actually supported by the device.
+		for _, m := range s.supportedOpModes {
+			if m.Name == selectedOpMode {
+				return selectedOpMode, nil
+			}
+		}
+		// Not found: this is a configuration error.
+		var available []string
+		for _, m := range s.supportedOpModes {
+			available = append(available, fmt.Sprintf("%q", m.Name))
+		}
+		return "", fmt.Errorf("selected sync mode '%q' is not supported by this device (supported: %s)", selectedOpMode, strings.Join(available, ", "))
+	}
+
+	// 2. Automatic selection (user left it empty).
+
+	// If the device reports NO OpModes in ESI, we cannot select one.
+	// This implies the device uses its default implicit synchronization (FreeRun/SM).
+	if len(s.supportedOpModes) == 0 {
+		return "", nil
+	}
+
+	// Check if we have Ds402 mappings, which usually benefit from DC.
+	hasDs402 := false
+	for _, m := range s.config.GetInterfaceMappings() {
+		if m.GetDeviceData().GetDs402DeviceData() != nil {
+			hasDs402 = true
+			break
+		}
+	}
+
+	// If Ds402 is present, prefer the first available DC mode.
+	if hasDs402 {
+		for _, m := range s.supportedOpModes {
+			if m.IsDc {
+				log.InfoContextf(ctx, "Auto-selected DC mode '%q' for DS402 device.", m.Name)
+				return m.Name, nil
+			}
+		}
+	}
+
+	// Fallback: Default to the first available mode.
+	// ESI spec typically puts the default/preferred mode first.
+	return s.supportedOpModes[0].Name, nil
 }

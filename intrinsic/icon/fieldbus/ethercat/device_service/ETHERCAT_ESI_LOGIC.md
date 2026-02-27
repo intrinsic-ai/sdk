@@ -59,7 +59,23 @@ If the PDO was implicit (empty) in Step 1, the service selects the best mappable
 3.  **Pass 3 (Matching Search):** Search for any mappable PDO that matches the **Preferred Direction**.
 4.  **Pass 4 (Fallback):** Fallback to any valid mappable PDO.
 
-## 4. EBI Instruction Generation (Phase C)
+## 4. Synchronization Mode & Distributed Clock (DC)
+
+The service parses the `<Dc>` section of the target `<Device>` to identify available synchronization modes (`OpModes`) and detect Distributed Clock capabilities.
+
+### OpMode Parsing
+*   **Discovery:** Every `<OpMode>` element in the ESI is indexed.
+*   **DC Capability:** A mode is considered to support Distributed Clocks if its `AssignActivate` value is non-zero (e.g., `#x0300`).
+*   **Reporting:** The full list of `supported_op_modes` (including their names, descriptions, and DC status) is returned in the `ResolvedConfiguration`.
+
+### Active OpMode Selection
+The service determines the `active_op_mode_name` for the device following these rules:
+1.  **Manual Selection:** If the user provides a `selected_op_mode_name` in the `SyncConfig`, it is used (validated against the supported modes).
+2.  **DS402 Auto-Selection:** If no selection is made and the device specifies `Ds402DeviceData`, the service automatically picks the first available mode that supports DC. This ensures stable motor control.
+3.  **Default Fallback:** Otherwise, the service defaults to the first `<OpMode>` listed in the ESI (typically the vendor's preferred mode, often FreeRun or SM-Synchronous).
+4.  **Implicit Synchronization:** If no `<Dc>` section or `<OpMode>`s exist, the field is left empty, implying the device uses its default internal synchronization.
+
+## 5. EBI Instruction Generation (Phase C)
 
 Once resolved, the service generates a set of EBI instructions that inform the ENI Builder component on how to align the hardware configuration with the user's request:
 *   **PDO Activation:** If a variable is mapped to a PDO that is disabled by default, it is added to `pdo_exclusions_to_remove`.

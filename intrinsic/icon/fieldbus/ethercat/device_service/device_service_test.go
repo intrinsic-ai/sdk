@@ -1351,3 +1351,275 @@ func TestDeepNestingError(t *testing.T) {
 		t.Errorf("Error %v does not contain expected message", err)
 	}
 }
+
+func TestOpModeConfiguration(t *testing.T) {
+	// ESI with DC support enabled (AssignActivate > 0).
+	esiDc := `<?xml version="1.0" encoding="utf-8"?>
+<EtherCATInfo Version="1.4">
+  <Vendor><Id>1</Id><Name>TestVendor</Name></Vendor>
+  <Descriptions>
+    <Devices>
+      <Device Physics="YY">
+        <Type ProductCode="#x00000002" RevisionNo="#x00000003">TestDevice</Type>
+        <Name>Test Device</Name>
+        <Dc>
+          <OpMode>
+            <Name>DC Sync 1</Name>
+            <Desc>DC Mode 1</Desc>
+            <AssignActivate>#x0300</AssignActivate>
+          </OpMode>
+          <OpMode>
+            <Name>SM Sync</Name>
+            <Desc>SM Mode</Desc>
+            <AssignActivate>#x0000</AssignActivate>
+          </OpMode>
+        </Dc>
+      </Device>
+    </Devices>
+  </Descriptions>
+</EtherCATInfo>`
+
+	// ESI with multiple DC modes.
+	esiMultiDc := `<?xml version="1.0" encoding="utf-8"?>
+<EtherCATInfo Version="1.4">
+  <Vendor><Id>1</Id><Name>TestVendor</Name></Vendor>
+  <Descriptions>
+    <Devices>
+      <Device Physics="YY">
+        <Type ProductCode="#x00000002" RevisionNo="#x00000003">TestDevice</Type>
+        <Name>Multi DC Device</Name>
+        <Dc>
+          <OpMode>
+            <Name>Free Run</Name>
+            <Desc>Free Run Mode</Desc>
+            <AssignActivate>0</AssignActivate>
+          </OpMode>
+          <OpMode>
+            <Name>DC Mode A</Name>
+            <Desc>Description A</Desc>
+            <AssignActivate>#x0300</AssignActivate>
+          </OpMode>
+          <OpMode>
+            <Name>DC Mode B</Name>
+            <Desc>Description B</Desc>
+            <AssignActivate>#x0700</AssignActivate>
+          </OpMode>
+        </Dc>
+      </Device>
+    </Devices>
+  </Descriptions>
+</EtherCATInfo>`
+
+	// ESI without DC support (no OpModes or AssignActivate=0).
+	esiNoDc := `<?xml version="1.0" encoding="utf-8"?>
+<EtherCATInfo Version="1.4">
+  <Vendor><Id>1</Id><Name>TestVendor</Name></Vendor>
+  <Descriptions>
+    <Devices>
+      <Device Physics="YY">
+        <Type ProductCode="#x00000002" RevisionNo="#x00000003">TestDevice</Type>
+        <Name>Test Device No DC</Name>
+        <Dc>
+           <OpMode>
+            <Name>SM Sync only</Name>
+            <Desc>SM Mode</Desc>
+            <AssignActivate>0</AssignActivate>
+          </OpMode>
+        </Dc>
+      </Device>
+    </Devices>
+  </Descriptions>
+</EtherCATInfo>`
+
+	// ESI with absolutely no OpModes (legacy/simple device).
+	esiEmpty := `<?xml version="1.0" encoding="utf-8"?>
+<EtherCATInfo Version="1.4">
+  <Vendor><Id>1</Id><Name>TestVendor</Name></Vendor>
+  <Descriptions>
+    <Devices>
+      <Device Physics="YY">
+        <Type ProductCode="#x00000002" RevisionNo="#x00000003">TestDevice</Type>
+        <Name>Simple Device</Name>
+      </Device>
+    </Devices>
+  </Descriptions>
+</EtherCATInfo>`
+
+	tests := []struct {
+		desc    string
+		esiData string
+		// Input config
+		selectedOpMode string
+		hasDs402       bool
+		// Expectations
+		wantSupported []*dspb.OpModeInfo
+		wantActive    string
+		wantErr       string
+	}{
+		{
+			desc:           "DC supported, no selection, no DS402 -> Default to first available (DC Sync 1)",
+			esiData:        esiDc,
+			selectedOpMode: "",
+			hasDs402:       false,
+			wantSupported: []*dspb.OpModeInfo{
+				{Name: "DC Sync 1", Description: "DC Mode 1", IsDc: true},
+				{Name: "SM Sync", Description: "SM Mode", IsDc: false},
+			},
+			// Default logic: if no Ds402, pick first available.
+			// In this case, "DC Sync 1" is first.
+			wantActive: "DC Sync 1",
+		},
+		{
+			desc:           "DC supported, no selection, HAS DS402 -> Default to first DC mode (DC Sync 1)",
+			esiData:        esiDc,
+			selectedOpMode: "",
+			hasDs402:       true,
+			wantSupported: []*dspb.OpModeInfo{
+				{Name: "DC Sync 1", Description: "DC Mode 1", IsDc: true},
+				{Name: "SM Sync", Description: "SM Mode", IsDc: false},
+			},
+			wantActive: "DC Sync 1",
+		},
+		{
+			desc:           "Multi DC, no selection, HAS DS402 -> Prefer first DC mode (DC Mode A)",
+			esiData:        esiMultiDc,
+			selectedOpMode: "",
+			hasDs402:       true,
+			wantSupported: []*dspb.OpModeInfo{
+				{Name: "Free Run", Description: "Free Run Mode", IsDc: false},
+				{Name: "DC Mode A", Description: "Description A", IsDc: true},
+				{Name: "DC Mode B", Description: "Description B", IsDc: true},
+			},
+			// Should skip "Free Run" and pick "DC Mode A" because it's the first DC mode.
+			wantActive: "DC Mode A",
+		},
+		{
+			desc:           "Multi DC, no selection, NO DS402 -> Prefer first available (Free Run)",
+			esiData:        esiMultiDc,
+			selectedOpMode: "",
+			hasDs402:       false,
+			wantSupported: []*dspb.OpModeInfo{
+				{Name: "Free Run", Description: "Free Run Mode", IsDc: false},
+				{Name: "DC Mode A", Description: "Description A", IsDc: true},
+				{Name: "DC Mode B", Description: "Description B", IsDc: true},
+			},
+			// Should pick "Free Run".
+			wantActive: "Free Run",
+		},
+		{
+			desc:           "Explicit selection of SM Sync",
+			esiData:        esiDc,
+			selectedOpMode: "SM Sync",
+			hasDs402:       true, // Presence of DS402 shouldn't override explicit selection
+			wantSupported: []*dspb.OpModeInfo{
+				{Name: "DC Sync 1", Description: "DC Mode 1", IsDc: true},
+				{Name: "SM Sync", Description: "SM Mode", IsDc: false},
+			},
+			wantActive: "SM Sync",
+		},
+		{
+			desc:           "Invalid selection",
+			esiData:        esiDc,
+			selectedOpMode: "NonExistentMode",
+			wantErr:        "is not supported by this device",
+		},
+		{
+			desc:           "No DC supported, auto selection",
+			esiData:        esiNoDc,
+			selectedOpMode: "",
+			hasDs402:       true, // Even with DS402, if no DC mode exists, fall back to first available.
+			wantSupported: []*dspb.OpModeInfo{
+				{Name: "SM Sync only", Description: "SM Mode", IsDc: false},
+			},
+			wantActive: "SM Sync only",
+		},
+		{
+			desc:           "Empty OpModes (Simple Device)",
+			esiData:        esiEmpty,
+			selectedOpMode: "",
+			wantSupported:  nil, // No OpModes
+			wantActive:     "",  // No effective OpMode
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.desc, func(t *testing.T) {
+			ctx := context.Background()
+
+			// Construct config with potential DS402 mapping
+			mappings := []*dscpb.InterfaceMapping{}
+			if tc.hasDs402 {
+				mappings = append(mappings, &dscpb.InterfaceMapping{
+					DeviceData: &dscpb.DeviceData{
+						Data: &dscpb.DeviceData_Ds402DeviceData{
+							Ds402DeviceData: &dscpb.Ds402DeviceData{}, // Empty but present
+						},
+					},
+				})
+			}
+
+			config := &dscpb.DeviceServiceConfig{
+				DeviceIdentifier: &dscpb.DeviceIdentifier{VendorId: 1, ProductCode: 2, Revision: 3},
+				SyncConfig: &dscpb.SyncConfig{
+					SelectedOpModeName: tc.selectedOpMode,
+				},
+				InterfaceMappings: mappings,
+			}
+
+			bundle := &esipb.EsiBundle{
+				Files: map[string]*esipb.Esi{
+					"device.xml": {Data: tc.esiData},
+				},
+			}
+
+			fakeDA := fakedataassets.StartServer(ctx, t, fakedataassets.WithDataAssets([]*dapb.DataAsset{
+				{
+					Metadata: &mpb.Metadata{IdVersion: &ipb.IdVersion{Id: &ipb.Id{Name: "test_bundle"}}},
+					Data:     mustMarshalAny(bundle),
+				},
+			}))
+			config.EsiBundle = &rdpb.ResolvedDependency{
+				Interfaces: map[string]*rdpb.ResolvedDependency_Interface{
+					"data://" + esiBundleDataAssetProtoName: {
+						Protocol: &rdpb.ResolvedDependency_Interface_Data_{
+							Data: &rdpb.ResolvedDependency_Interface_Data{Id: &ipb.Id{Name: "test_bundle"}},
+						},
+					},
+				},
+			}
+
+			service, err := NewDeviceService(ctx, config, fakeDA.Client)
+			if err != nil {
+				if tc.wantErr != "" {
+					if !strings.Contains(err.Error(), tc.wantErr) {
+						t.Fatalf("NewDeviceService error = %v, want error containing %q", err, tc.wantErr)
+					}
+					return
+				}
+				t.Fatalf("NewDeviceService failed: %v", err)
+			}
+
+			resp, err := service.GetConfiguration(ctx, &dspb.GetConfigurationRequest{})
+			if tc.wantErr != "" {
+				if err == nil {
+					t.Fatalf("GetConfiguration matched no error, want error containing %q", tc.wantErr)
+				}
+				if !strings.Contains(err.Error(), tc.wantErr) {
+					t.Fatalf("GetConfiguration error = %v, want error containing %q", err, tc.wantErr)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("GetConfiguration failed: %v", err)
+			}
+
+			resolved := resp.GetResolvedConfiguration()
+			if diff := cmp.Diff(tc.wantSupported, resolved.GetSupportedOpModes(), protocmp.Transform()); diff != "" {
+				t.Errorf("SupportedOpModes diff (-want +got):\n%s", diff)
+			}
+			if diff := cmp.Diff(tc.wantActive, resolved.GetActiveOpModeName(), protocmp.Transform()); diff != "" {
+				t.Errorf("ActiveOpModeName diff (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
