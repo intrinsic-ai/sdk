@@ -30,6 +30,12 @@ func WithMaxRetries(maxRetries int) Option {
 	}
 }
 
+func WithCatalogOptions() Option {
+	return func(transfer *directTransfer) {
+		transfer.uploadType = client.WithStreamingUpload()
+	}
+}
+
 // WithClient allows caller to set client side implementation. If this option
 // is specified, the client will be used to create an uploader instance,
 // ignoring discovery strategy set by WithDiscovery
@@ -68,6 +74,8 @@ func WithFailOver(failOver imagetransfer.Transferer) Option {
 func NewTransferer(opts ...Option) imagetransfer.Transferer {
 	transfer := &directTransfer{
 		maxRetries: 5,
+		parallelism: 1,
+		uploadType:  client.WithSequentialUpload(),
 	}
 
 	for _, opt := range opts {
@@ -85,12 +93,14 @@ func NewTransferer(opts ...Option) imagetransfer.Transferer {
 }
 
 type directTransfer struct {
-	maxRetries int
-	failOver   imagetransfer.Transferer
-	uploader   client.Uploader
-	client     artifactgrpcpb.ArtifactServiceApiClient
-	discovery  TargetDiscovery
-	writer     io.Writer
+	maxRetries  int
+	failOver    imagetransfer.Transferer
+	uploader    client.Uploader
+	client      artifactgrpcpb.ArtifactServiceApiClient
+	discovery   TargetDiscovery
+	writer      io.Writer
+	parallelism int
+	uploadType  client.UploaderOption
 }
 
 func (dt *directTransfer) Write(ctx context.Context, ref name.Reference, img crv1.Image) error {
@@ -103,10 +113,7 @@ func (dt *directTransfer) Write(ctx context.Context, ref name.Reference, img crv
 			return fmt.Errorf("cannot connect: %w", err)
 		}
 		dt.uploader, err = client.NewUploader(apiClient, client.WithSequentialUpload(),
-			// To mitigate b/330747118; this is not full fix, but should help.
-			// This setting is forcing to run only 1 upload task at a time.
-			// We are taking significant performance penalty.
-			client.WithUploadParallelism(1))
+			client.WithUploadParallelism(dt.parallelism))
 		if err != nil {
 			return fmt.Errorf("cannot create uploader: %w", err)
 		}

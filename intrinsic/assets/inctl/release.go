@@ -123,6 +123,7 @@ func makeCreateAssetRequest(ctx context.Context, opts makeCreateAssetRequestOpti
 			directupload.WithDiscovery(directupload.NewCatalogTarget(opts.conn)),
 			directupload.WithOutput(opts.progressWriter),
 			directupload.WithFailOver(transferer),
+			directupload.WithCatalogOptions(), // this allows uploading images with max size of the single layer of 2GiB.
 		)
 	}
 	referencedDataProcessor := databundle.NoOpReferencedData()
