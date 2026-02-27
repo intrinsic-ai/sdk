@@ -47,6 +47,10 @@ type KVStore interface {
 	// Delete removes a value from the store for the given key.
 	Delete(key string) error
 
+	// AdminCloudCopy copies local key-value pairs to the cloud key value
+	// store.
+	AdminCloudCopy(sourceKey string, targetKey string, timeout time.Duration) error
+
 	// Subscribe creates a subscription to changes in the KV store.
 	//
 	// It assumes that all values whose keys match the given key expression have

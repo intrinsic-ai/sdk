@@ -42,11 +42,15 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	pubsubpb "intrinsic/platform/pubsub/adapters/pubsub_go_proto"
+	adminsetpb "intrinsic/platform/pubsub/admin_set_grpc/v1/admin_set_go_proto"
 
 	anypb "google.golang.org/protobuf/types/known/anypb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 
 	workcellinfopb "intrinsic/platform/common/proto/workcell_info_go_proto"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 /*
@@ -60,7 +64,16 @@ void intrinsic_ImwQueryDoneStaticCallback(void*, void*);
 */
 import "C"
 
-var zenohRouter = flag.String("zenoh_router", "", "Override the default Zenoh connection to PROTOCOL/HOSTNAME:PORT")
+var (
+	zenohRouter = flag.String(
+		"zenoh_router",
+		"",
+		"Override the default Zenoh connection to PROTOCOL/HOSTNAME:PORT")
+	adminSetProxyEndpoint = flag.String(
+		"admin_set_proxy_endpoint",
+		"zenoh-router.app-intrinsic-base.svc.cluster.local:8081",
+		"Override the default admin set proxy URL")
+)
 
 const (
 	highConsistencyTimeout     = 30 * time.Second
@@ -644,6 +657,44 @@ func (kv *kvStoreHandle) Delete(key string) error {
 	if res := C.ZenohHandleImwDeleteKeyExpr(kv.zenohHandle.Ptr(), cPrefixedKey); res != 0 {
 		return errorFromImwRet(res)
 	}
+	return nil
+}
+
+func (kv *kvStoreHandle) AdminCloudCopy(sourceKey string, targetKey string, timeout time.Duration) error {
+	if err := validZenohKey(sourceKey); err != nil {
+		return err
+	}
+	if err := validZenohKey(targetKey); err != nil {
+		return err
+	}
+	value, err := kv.Get(sourceKey, &timeout)
+	if err != nil {
+		log.Errorf("Failed to get value for %q", sourceKey)
+		return err
+	}
+
+	conn, err := grpc.Dial(*adminSetProxyEndpoint, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return fmt.Errorf("failed to create channel: %w", err)
+	}
+	defer conn.Close()
+
+	client := adminsetpb.NewAdminSetServiceClient(conn)
+
+	req := &adminsetpb.AdminSetRequest{
+		Key:       targetKey,
+		Value:     value,
+		TimeoutMs: timeout.Milliseconds(),
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	_, err = client.AdminCopy(ctx, req)
+	if err != nil {
+		return fmt.Errorf("gRPC call failed: %w", err)
+	}
+
 	return nil
 }
 
