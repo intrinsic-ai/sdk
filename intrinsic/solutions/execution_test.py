@@ -629,6 +629,158 @@ class ExecutiveTest(parameterized.TestCase):
         start_request
     )
 
+
+  def test_run_recovery_nodes_works(self):
+    """Tests if executive.run(start_node) executes the start node."""
+    self._setup_create_operation()
+    self._setup_start_operation()
+    self._setup_get_operation_sequence([
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+    ])
+
+    tree = bt.BehaviorTree()
+    tree_id = tree.generate_and_set_unique_id()
+    n2 = bt.Sequence()
+    n2_id = n2.generate_and_set_unique_id()
+
+    tree.set_root(bt.Sequence(children=[bt.Sequence(), n2, bt.Sequence()]))
+
+    self._executive.run(
+        tree,
+        recover_from_nodes=[bt.NodeIdentifier(tree_id=tree_id, node_id=n2_id)],
+    )
+
+    start_request = executive_service_pb2.StartOperationRequest(
+        name=_OPERATION_NAME
+    )
+    start_request.skill_trace_handling = (
+        run_metadata_pb2.RunMetadata.TracingInfo.SKILL_TRACES_LINK
+    )
+    start_request.recovery_nodes.append(
+        behavior_tree_pb2.BehaviorTree.NodeIdentifier(
+            tree_id=tree_id, node_id=n2_id
+        )
+    )
+    self._executive_service_stub.StartOperation.assert_called_once_with(
+        start_request
+    )
+
+  def test_run_recovery_nodes_by_name_works(self):
+    self._setup_create_operation()
+    self._setup_start_operation()
+    self._setup_get_operation_sequence([
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+    ])
+
+    n2 = bt.Sequence(name='my_node')
+    tree = bt.BehaviorTree()
+    tree.set_root(bt.Sequence(children=[bt.Sequence(), n2, bt.Sequence()]))
+
+    self._executive.run(tree, recover_from_nodes=[bt.NodeName('my_node')])
+
+    start_request = executive_service_pb2.StartOperationRequest(
+        name=_OPERATION_NAME
+    )
+    start_request.skill_trace_handling = (
+        run_metadata_pb2.RunMetadata.TracingInfo.SKILL_TRACES_LINK
+    )
+    # Ids should have been generated on demand
+    self.assertIsNotNone(tree.tree_id)
+    self.assertNotEqual(tree.tree_id, '')
+    self.assertIsNotNone(n2.node_id)
+    self.assertNotEqual(n2.node_id, 0)
+    start_request.recovery_nodes.append(
+        behavior_tree_pb2.BehaviorTree.NodeIdentifier(
+            tree_id=tree.tree_id, node_id=n2.node_id
+        )
+    )
+    self._executive_service_stub.StartOperation.assert_called_once_with(
+        start_request
+    )
+
+  def test_run_recovery_nodes_by_id_works(self):
+    """Tests if executive.run(recovery_nodes) executes the start node."""
+    self._setup_create_operation()
+    self._setup_start_operation()
+    self._setup_get_operation_sequence([
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+    ])
+
+    n2 = bt.Sequence(node_id=42)
+    tree = bt.BehaviorTree()
+    tree.set_root(bt.Sequence(children=[bt.Sequence(), n2, bt.Sequence()]))
+
+    self._executive.run(tree, recover_from_nodes=[bt.NodeId(42)])
+
+    start_request = executive_service_pb2.StartOperationRequest(
+        name=_OPERATION_NAME
+    )
+    start_request.skill_trace_handling = (
+        run_metadata_pb2.RunMetadata.TracingInfo.SKILL_TRACES_LINK
+    )
+    # Ids should have been generated on demand
+    self.assertIsNotNone(tree.tree_id)
+    self.assertNotEqual(tree.tree_id, '')
+    self.assertIsNotNone(n2.node_id)
+    self.assertNotEqual(n2.node_id, 0)
+    start_request.recovery_nodes.append(
+        behavior_tree_pb2.BehaviorTree.NodeIdentifier(
+            tree_id=tree.tree_id, node_id=n2.node_id
+        )
+    )
+    self._executive_service_stub.StartOperation.assert_called_once_with(
+        start_request
+    )
+
+  def test_run_recovery_nodes_by_object_works(self):
+    """Tests if executive.run(recovery_nodes) executes the start node."""
+    self._setup_create_operation()
+    self._setup_start_operation()
+    self._setup_get_operation_sequence([
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+    ])
+
+    tree = bt.BehaviorTree()
+    n2 = bt.Sequence()
+
+    tree.set_root(bt.Sequence(children=[bt.Sequence(), n2, bt.Sequence()]))
+
+    self._executive.run(tree, recover_from_nodes=[n2])
+
+    start_request = executive_service_pb2.StartOperationRequest(
+        name=_OPERATION_NAME
+    )
+    start_request.skill_trace_handling = (
+        run_metadata_pb2.RunMetadata.TracingInfo.SKILL_TRACES_LINK
+    )
+    # Ids should have been generated on demand
+    self.assertIsNotNone(tree.tree_id)
+    self.assertNotEqual(tree.tree_id, '')
+    self.assertIsNotNone(n2.node_id)
+    self.assertNotEqual(n2.node_id, 0)
+    start_request.recovery_nodes.append(
+        behavior_tree_pb2.BehaviorTree.NodeIdentifier(
+            tree_id=tree.tree_id, node_id=n2.node_id
+        )
+    )
+    self._executive_service_stub.StartOperation.assert_called_once_with(
+        start_request
+    )
+
+
+
   def test_has_operation_true(self):
     """Tests if executive.has_operation returns true for an operation loaded."""
     response = operations_pb2.ListOperationsResponse()

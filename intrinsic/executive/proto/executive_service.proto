@@ -319,6 +319,20 @@ message StartOperationRequest {
   optional string scene_id = 9;
 
 
+
+  // Specifies a set of nodes to recover execution from. The current operation
+  // will be forwarded into a state as if everything before the recovery nodes
+  // had already been executed, so that execution will continue from the
+  // recovery nodes.
+  // As such it is incompatible with specifying a start_tree_id/start_node_id.
+  // It is an error to set start_node/start_tree and execution_mode when
+  // recovery_nodes is set.
+  //
+  // Must contain at most one node identifier per parallel branch of execution.
+  // If no recovery node is specified for a parallel branch then that branch is
+  // assumed to be skipped, i.e., it will not be executed.
+  repeated BehaviorTree.NodeIdentifier recovery_nodes = 10;
+
 }
 
 message SuspendOperationRequest {

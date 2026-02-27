@@ -9,6 +9,11 @@ import "google/protobuf/any.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
+
+import "intrinsic/util/status/extended_status.proto";
+
+
+
 option go_package = "intrinsic/executive/proto/blackboard_service_go_proto";
 
 message BlackboardValue {
@@ -17,6 +22,27 @@ message BlackboardValue {
   string operation_name = 4;
   google.protobuf.Any value = 3;
 }
+
+
+// Reference to a blackboard snapshot that was saved with
+// CreateBlackboardSnapshot
+message BlackboardSnapshot {
+  enum SnapshotSource {
+    SNAPSHOT_SOURCE_UNSPECIFIED = 0;
+    SNAPSHOT_SOURCE_USER = 1;
+    SNAPSHOT_SOURCE_AUTOMATIC = 2;
+  }
+
+  string handle = 1;
+
+  string display_name = 2;
+  google.protobuf.Timestamp save_time = 3;
+  uint64 estimated_size_bytes = 4;  // An estimate of the size of the snapshot
+
+  // Provided by the user to indicate why the snapshot was created
+  SnapshotSource snapshot_source = 5;
+}
+
 
 service ExecutiveBlackboard {
 
@@ -51,6 +77,44 @@ service ExecutiveBlackboard {
       returns (google.protobuf.Empty) {
     option (google.api.http) = {
       delete: "/executive/v0/operations/{operation_name}/blackboard/{key}"
+    };
+  }
+
+
+  // Save the given operation's blackboard as a snapshot.
+  rpc CreateBlackboardSnapshot(CreateBlackboardSnapshotRequest)
+      returns (CreateBlackboardSnapshotResponse) {
+    option (google.api.http) = {
+      post: "/executive/v0/operations/{operation_name}/blackboard:createSnapshot"
+      body: "*"
+    };
+  }
+
+  // Load a previously saved snapshot into the given operation's blackboard.
+  // Values from the snapshot are integrated into the given operation's
+  // blackboard according to the specified integration mode. Snapshot return
+  // values from skills are migrated to the version in the workcell.
+  rpc LoadBlackboardSnapshot(LoadBlackboardSnapshotRequest)
+      returns (LoadBlackboardSnapshotResponse) {
+    option (google.api.http) = {
+      post: "/executive/v0/operations/{operation_name}/blackboard:loadSnapshot"
+      body: "*"
+    };
+  }
+
+  // List the currently saved snapshots.
+  rpc ListBlackboardSnapshots(ListBlackboardSnapshotsRequest)
+      returns (ListBlackboardSnapshotsResponse) {
+    option (google.api.http) = {
+      get: "/executive/v0/blackboardSnapshots"
+    };
+  }
+
+  // Delete the given snapshot.
+  rpc DeleteBlackboardSnapshot(DeleteBlackboardSnapshotRequest)
+      returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/executive/v0/blackboardSnapshots/{handle}"
     };
   }
 
@@ -102,3 +166,60 @@ message DeleteBlackboardValueRequest {
   string scope = 2;
   string operation_name = 3;
 }
+
+
+
+message CreateBlackboardSnapshotRequest {
+  string operation_name = 1;
+  string display_name = 2;
+  BlackboardSnapshot.SnapshotSource snapshot_source = 3;
+}
+message CreateBlackboardSnapshotResponse {
+  BlackboardSnapshot snapshot = 1;
+}
+
+message LoadBlackboardSnapshotRequest {
+  string operation_name = 1;
+  string handle = 2;
+
+  // Controls how a snapshot is loaded into a target operation.
+  enum IntegrationMode {
+    // Default integration mode. The default is MERGE.
+    INTEGRATION_MODE_UNSPECIFIED = 0;
+
+    // Merge the snapshot into the blackboard of the target operation. Keys that
+    // are present in both the existing blackboard and the snapshot will be
+    // overridden from the snapshot.
+    INTEGRATION_MODE_MERGE = 1;
+  }
+  IntegrationMode integration_mode = 3;
+}
+
+message LoadBlackboardSnapshotResponse {
+  // Information about the load process for individual values. This need not
+  // necessarily be all errors. The top-level status indicates if there were any
+  // issues restoring individual values. Its severity is the worst severity of
+  // its context ExtendedStatus entries.
+  intrinsic_proto.status.ExtendedStatus diagnostics = 1;
+}
+
+message DeleteBlackboardSnapshotRequest {
+  string handle = 1;
+}
+
+message ListBlackboardSnapshotsRequest {
+  // The maximum number of BlackboardSnapshots to return in one call.
+  // The maximum value is 200; values above 200 will be coerced to 200.
+  // If unspecified, at most 200 will be returned.
+  int64 page_size = 1;
+
+  string page_token = 2;
+}
+message ListBlackboardSnapshotsResponse {
+  repeated BlackboardSnapshot snapshots = 1;
+
+  // Pass this token to the subsequent list request to obtain the next page.
+  string next_page_token = 2;
+}
+
+

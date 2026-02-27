@@ -590,6 +590,25 @@ message BehaviorTree {
     CANCELED = 8;     // Tree was canceled as requested.
   }
 
+
+  // A NodeIdentifier uniquely identifies a specific node in a (recursive) tree.
+  // It points to the node with 'node_id' in 'tree_id'.
+  message NodeIdentifier {
+    string tree_id = 1;  // Refers to the 'tree_id' field of a BehaviorTree
+    uint32 node_id = 2;  // Refers to the 'id' field of a Node
+
+    // If 'node_within_task_node' is set then 'tree_id'/'node_id' must point to
+    // a TaskNode, where its call_behavior field is calling a BehaviorTree
+    // (i.e., not a skill). Then `node_within_task_node` identifies a node
+    // within that called behavior tree.
+    // If 'node_within_task_node' is not set for a TaskNode, it identifies this
+    // TaskNode.
+    // This can be set recursively, i.e., when a TaskNode calls a behavior tree
+    // that in turn has a TaskNode calling a BehaviorTree, etc.
+    optional NodeIdentifier node_within_task_node = 3;
+  }
+
+
   // A name for the tree that may be used for display.
   string name = 1;
   Node root = 2;

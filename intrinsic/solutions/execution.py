@@ -649,6 +649,9 @@ class Executive:
       silence_outputs: bool = False,
       step_wise: bool = False,
       start_node: Optional[bt.NodeInTreeType] = None,
+
+      recover_from_nodes: list[bt.NodeInTreeType] | None = None,
+
       simulation_mode: Optional["Executive.SimulationMode"] = None,
       embed_skill_traces: bool = False,
   ):
@@ -678,6 +681,11 @@ class Executive:
         incorporate all information from skill traces, otherwise execution
         traces contain links to individual skill traces.
 
+
+      recover_from_nodes: List of nodes to recover from. Execution will forward
+        to these nodes and run from there. Only one of recover_from_nodes or
+        start_node can be set.
+
     Raises:
       solutions_errors.UnavailableError: On executive service not reachable.
       grpc.RpcError: On any other gRPC error.
@@ -690,6 +698,9 @@ class Executive:
         silence_outputs=silence_outputs,
         step_wise=step_wise,
         start_node=start_node,
+
+        recover_from_nodes=recover_from_nodes,
+
         simulation_mode=simulation_mode,
         embed_skill_traces=embed_skill_traces,
     )
@@ -704,6 +715,9 @@ class Executive:
       silence_outputs: bool = False,
       step_wise: bool = False,
       start_node: Optional[bt.NodeInTreeType] = None,
+
+      recover_from_nodes: list[bt.NodeInTreeType] | None = None,
+
       simulation_mode: Optional["Executive.SimulationMode"] = None,
       embed_skill_traces: bool = False,
   ):
@@ -736,6 +750,11 @@ class Executive:
         incorporate all information from skill traces, otherwise execution
         traces contain links to individual skill traces.
 
+
+      recover_from_nodes: List of nodes to recover from. Execution will forward
+        to these nodes and run from there. Only one of recover_from_nodes or
+        start_node can be set.
+
     Raises:
       ExecutionFailedError: On unexpected state of the executive during plan
                 execution.
@@ -754,6 +773,9 @@ class Executive:
         resources=resources,
         step_wise=step_wise,
         start_node=start_node,
+
+        recover_from_nodes=recover_from_nodes,
+
         simulation_mode=simulation_mode,
         embed_skill_traces=embed_skill_traces,
     )
@@ -792,6 +814,9 @@ class Executive:
       simulation_mode: "Executive.SimulationMode",
       embed_skill_traces: bool,
       start_node: Optional[bt.NodeInTreeType],
+
+      recover_from_nodes: list[bt.NodeInTreeType] | None,
+
   ) -> None:
     """Implementation of run and run_async.
 
@@ -816,6 +841,11 @@ class Executive:
       start_node: Run the specified node as if it were the root node of a tree
         instead of the complete tree.
 
+
+      recover_from_nodes: List of nodes to recover from. Execution will forward
+        to these nodes and run from there. Only one of recover_from_nodes or
+        start_node can be set.
+
     Raises:
       ExecutionFailedError: On unexpected state of the executive during plan
                 execution.
@@ -824,6 +854,13 @@ class Executive:
       OperationNotFoundError: if no operation is currently active.
     """
     self._reset_simulation_if_needed(silence_outputs)
+
+
+    if recover_from_nodes and start_node is not None:
+      raise solutions_errors.InvalidArgumentError(
+          "start_node and recover_from_nodes cannot be both set together"
+      )
+
 
     if plan_or_action is None:
       if self._operation is None:
@@ -837,9 +874,22 @@ class Executive:
             "When providing a start_node to run() without a behavior tree"
             " start_node must be a NodeIdentifier"
         )
+
+      if recover_from_nodes and not all(
+          isinstance(rn, bt.NodeIdentifier) for rn in recover_from_nodes
+      ):
+        raise solution_errors.InvalidArgumentError(
+            "When providing a recover_from_nodes to run() without a behavior"
+            " tree all entries must be a NodeIdentifier"
+        )
+
+
       self._start_with_retry(
           step_wise=step_wise,
           start_node=start_node,
+
+          recover_from_nodes=recover_from_nodes,
+
           embed_skill_traces=embed_skill_traces,
           parameters=None,
           resources=None,
@@ -867,12 +917,23 @@ class Executive:
     if start_node is not None:
       start_node_id = get_node_identifier_for_node_in_tree(start_node)
 
+
+    recover_from_node_ids = (
+        [get_node_identifier_for_node_in_tree(rn) for rn in recover_from_nodes]
+        if recover_from_nodes
+        else []
+    )
+
+
     self.start(
         blocking,
         parameters=parameters,
         resources=resources,
         step_wise=step_wise,
         start_node=start_node_id,
+
+        recover_from_nodes=recover_from_node_ids,
+
         simulation_mode=simulation_mode,
         embed_skill_traces=embed_skill_traces,
         silence_outputs=silence_outputs,
@@ -949,6 +1010,9 @@ class Executive:
       resources: Mapping[str, str | provided.ResourceHandle] | None = None,
       step_wise: bool = False,
       start_node: Optional[bt.NodeIdentifier] = None,
+
+      recover_from_nodes: list[bt.NodeIdentifier] | None = None,
+
       simulation_mode: Optional["Executive.SimulationMode"] = None,
       embed_skill_traces: bool = False,
   ) -> None:
@@ -970,6 +1034,10 @@ class Executive:
       embed_skill_traces: If true, execution traces in Google Cloud will
         incorporate all information from skill traces, otherwise execution
         traces contain links to individual skill traces.
+
+
+      recover_from_nodes: List of nodes to recover from. Execution will forward
+        to these nodes and run from there.
 
     Raises:
       solutions_errors.UnavailableError: On executive service not reachable.
@@ -1001,6 +1069,9 @@ class Executive:
         resources=resource_map,
         step_wise=step_wise,
         start_node=start_node,
+
+        recover_from_nodes=recover_from_nodes,
+
         simulation_mode=simulation_mode,
         embed_skill_traces=embed_skill_traces,
     )
@@ -1243,6 +1314,9 @@ class Executive:
       resources: Mapping[str, str] | None,
       step_wise: bool = False,
       start_node: Optional[bt.NodeIdentifier] = None,
+
+      recover_from_nodes: list[bt.NodeIdentifier] | None = None,
+
       simulation_mode: Optional["Executive.SimulationMode"] = None,
       embed_skill_traces: bool = False,
   ) -> None:
@@ -1274,6 +1348,11 @@ class Executive:
     if start_node is not None:
       request.start_tree_id = start_node.tree_id
       request.start_node_id = start_node.node_id
+
+    if recover_from_nodes is not None:
+      for rn in recover_from_nodes:
+        request.recovery_nodes.append(rn.proto)
+
     if parameters is not None:
       request.parameters.CopyFrom(parameters)
     if resources is not None:
