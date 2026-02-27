@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.world;
 
+import "google/api/annotations.proto";
 import "google/protobuf/any.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
@@ -58,24 +59,41 @@ service ObjectWorldService {
 
   // Returns the metadata about a single world.
   rpc GetWorld(GetWorldRequest) returns (WorldMetadata) {
+    option (google.api.http) = {
+      get: "/world/v0/worlds/{world_id}"
+    };
   }
 
   // Clones a world and creates a new copy.
   // Once the cloned world is no longer needed, it should be deleted using
   // `DeleteWorld` rpc.
   rpc CloneWorld(CloneWorldRequest) returns (WorldMetadata) {
+    option (google.api.http) = {
+      post: "/world/v0/worlds/{world_id}:clone"
+      body: "*"
+    };
   }
 
   // Swaps worlds in the service.
   rpc SwapWorld(SwapWorldRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/world/v0/worlds/{world_id}:swap"
+      body: "*"
+    };
   }
 
   // Deletes a world from the service.
   rpc DeleteWorld(DeleteWorldRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/world/v0/worlds/{world_id}"
+    };
   }
 
   // Lists the metadatas of the worlds currently stored in the world service.
   rpc ListWorlds(ListWorldsRequest) returns (ListWorldsResponse) {
+    option (google.api.http) = {
+      get: "/world/v0/worlds"
+    };
   }
 
   // ---------------------------------------------------------------------------
@@ -87,15 +105,26 @@ service ObjectWorldService {
   // Returns the current collision settings for the given world.
   rpc GetCollisionSettings(GetCollisionSettingsRequest)
       returns (CollisionSettings) {
+    option (google.api.http) = {
+      get: "/world/v0/worlds/{world_id}/collisionSettings"
+    };
   }
 
   // Updates the collision settings used for the given world. This will override
   // the previous settings and will not attempt to merge anything.
   rpc UpdateCollisionSettings(UpdateCollisionSettingsRequest) returns (World) {
+    option (google.api.http) = {
+      put: "/world/v0/worlds/{world_id}/collisionSettings"
+      body: "*"
+    };
   }
 
   // Enables or disables collisions between two objects.
   rpc ToggleCollisions(ToggleCollisionsRequest) returns (Objects) {
+    option (google.api.http) = {
+      post: "/world/v0/worlds/{world_id}:toggleCollisions"
+      body: "*"
+    };
   }
 
   // ---------------------------------------------------------------------------
@@ -106,41 +135,74 @@ service ObjectWorldService {
 
   // Returns a single object.
   rpc GetObject(GetObjectRequest) returns (Object) {
+    option (google.api.http) = {
+      get: "/world/v0/worlds/{world_id}/objects/{object.id}"
+    };
   }
 
   // Lists objects in a world.
   rpc ListObjects(ListObjectsRequest) returns (ListObjectsResponse) {
+    option (google.api.http) = {
+      get: "/world/v0/worlds/{world_id}/objects"
+    };
   }
 
   // Creates a new object.
   rpc CreateObject(CreateObjectRequest) returns (Object) {
+    option (google.api.http) = {
+      post: "/world/v0/worlds/{world_id}/objects"
+      body: "*"
+    };
   }
 
   // Deletes an object in the world.
   rpc DeleteObject(DeleteObjectRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/world/v0/worlds/{world_id}/objects/{object.id}"
+    };
   }
 
   // Updates the name of an object.
   rpc UpdateObjectName(UpdateObjectNameRequest) returns (Object) {
+    option (google.api.http) = {
+      post: "/world/v0/worlds/{world_id}/objects:updateName"
+      body: "*"
+    };
   }
 
   // Reparents an object to another parent object.
   rpc ReparentObject(ReparentObjectRequest) returns (Object) {
+    option (google.api.http) = {
+      post: "/world/v0/worlds/{world_id}/objects:reparent"
+      body: "*"
+    };
   }
 
   // Updates the current joint positions and/or limits of an object with
   // ObjectType==KINEMATIC_OBJECT.
   rpc UpdateObjectJoints(UpdateObjectJointsRequest) returns (Object) {
+    option (google.api.http) = {
+      post: "/world/v0/worlds/{world_id}/objects:updateJoints"
+      body: "*"
+    };
   }
 
   // Updates the properties stored on an object with
   // ObjectType==KINEMATIC_OBJECT.
   rpc UpdateKinematicObjectProperties(UpdateKinematicObjectPropertiesRequest)
       returns (Object) {
+    option (google.api.http) = {
+      post: "/world/v0/worlds/{world_id}/objects:updateKinematicProperties"
+      body: "*"
+    };
   }
 
   // Updates advanced properties of an object.
   rpc UpdateObjectProperties(UpdateObjectPropertiesRequest) returns (Object) {
+    option (google.api.http) = {
+      post: "/world/v0/worlds/{world_id}/objects:updateProperties"
+      body: "*"
+    };
   }
 
   // ---------------------------------------------------------------------------
@@ -152,6 +214,10 @@ service ObjectWorldService {
 
   // Updates properties of an entity.
   rpc UpdateEntityProperties(UpdateEntityPropertiesRequest) returns (Entity) {
+    option (google.api.http) = {
+      post: "/world/v0/worlds/{world_id}/entities:updateProperties"
+      body: "*"
+    };
   }
 
   // ---------------------------------------------------------------------------
@@ -162,30 +228,56 @@ service ObjectWorldService {
 
   // Returns a single frame.
   rpc GetFrame(GetFrameRequest) returns (Frame) {
+    option (google.api.http) = {
+      get: "/world/v0/worlds/{world_id}/frames/{frame.id}"
+    };
   }
 
   // Lists frames in a world.
   rpc ListFrames(ListFramesRequest) returns (ListFramesResponse) {
+    option (google.api.http) = {
+      get: "/world/v0/worlds/{world_id}/frames"
+    };
   }
 
   // Creates a new frame.
   rpc CreateFrame(CreateFrameRequest) returns (Frame) {
+    option (google.api.http) = {
+      post: "/world/v0/worlds/{world_id}/frames"
+      body: "*"
+    };
   }
 
   // Deletes a frame.
   rpc DeleteFrame(DeleteFrameRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      // Changed from POST to DELETE (AIP-135)
+      delete: "/world/v0/worlds/{world_id}/frames/{frame.id}"
+    };
   }
 
   // Updates the name of a frame.
   rpc UpdateFrameName(UpdateFrameNameRequest) returns (Frame) {
+    option (google.api.http) = {
+      post: "/world/v0/worlds/{world_id}/frames/{frame.id}:updateName"
+      body: "*"
+    };
   }
 
   // Reparents a frame to another parent object or frame.
   rpc ReparentFrame(ReparentFrameRequest) returns (Frame) {
+    option (google.api.http) = {
+      post: "/world/v0/worlds/{world_id}/frames:reparent"
+      body: "*"
+    };
   }
 
   // Updates properties of a frame.
   rpc UpdateFrameProperties(UpdateFramePropertiesRequest) returns (Frame) {
+    option (google.api.http) = {
+      post: "/world/v0/worlds/{world_id}/frames:updateProperties"
+      body: "*"
+    };
   }
 
   // ---------------------------------------------------------------------------
@@ -196,11 +288,19 @@ service ObjectWorldService {
 
   // Returns a transform between objects or frames.
   rpc GetTransform(GetTransformRequest) returns (GetTransformResponse) {
+    option (google.api.http) = {
+      post: "/world/v0/worlds/{world_id}:getTransform"
+      body: "*"
+    };
   }
 
   // Updates a transform between objects or frames.
   rpc UpdateTransform(UpdateTransformRequest)
       returns (UpdateTransformResponse) {
+    option (google.api.http) = {
+      post: "/world/v0/worlds/{world_id}:updateTransform"
+      body: "*"
+    };
   }
 
   // Performs a sequence of update operations on various resources in a single
@@ -210,6 +310,10 @@ service ObjectWorldService {
   // updates will be applied.
   rpc UpdateWorldResources(UpdateWorldResourcesRequest)
       returns (UpdateWorldResourcesResponse) {
+    option (google.api.http) = {
+      post: "/world/v0/worlds/{world_id}:updateResources"
+      body: "*"
+    };
   }
 
   // ---------------------------------------------------------------------------
@@ -219,11 +323,19 @@ service ObjectWorldService {
   // with respect to a given world.
   rpc AreFootprintsCompatible(AreFootprintsCompatibleRequest)
       returns (AreFootprintsCompatibleResponse) {
+    option (google.api.http) = {
+      post: "/world/v0/worlds/{world_id}:areFootprintsCompatible"
+      body: "*"
+    };
   }
 
   // Compares two worlds objectwise.
   // Added, modified and removed objects are returned.
   rpc CompareWorlds(CompareWorldsRequest) returns (CompareWorldsResponse) {
+    option (google.api.http) = {
+      post: "/world/v0/worlds:compare"
+      body: "*"
+    };
   }
 
   // Syncs a object state from one world to another.
@@ -237,6 +349,10 @@ service ObjectWorldService {
   //
   // If the object already exists in the destination world, it is overwritten.
   rpc SyncObject(SyncObjectRequest) returns (SyncObjectResponse) {
+    option (google.api.http) = {
+      post: "/world/v0/worlds/{to_world_id}:syncObject"
+      body: "*"
+    };
   }
 }
 
