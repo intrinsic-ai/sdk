@@ -229,22 +229,24 @@ class BehaviorTreeMadeParametrizableTest(parameterized.TestCase):
     self.assertEqual(proto_builder_stub.Compile.call_count, 1)
 
     # Verify both descriptions use the same descriptor set
+    parameter_description = bt1.proto.description.parameter_description
+    return_value_description = bt1.proto.description.return_value_description
     compare.assertProto2Equal(
         self,
-        bt1.proto.description.parameter_description.parameter_descriptor_fileset,
+        parameter_description.parameter_descriptor_fileset,
         desc_set,
     )
     compare.assertProto2Equal(
         self,
-        bt1.proto.description.return_value_description.descriptor_fileset,
+        return_value_description.descriptor_fileset,
         desc_set,
     )
     self.assertEqual(
-        bt1.proto.description.parameter_description.parameter_message_full_name,
+        parameter_description.parameter_message_full_name,
         'Parameters',
     )
     self.assertEqual(
-        bt1.proto.description.return_value_description.return_value_message_full_name,
+        return_value_description.return_value_message_full_name,
         'ReturnValue',
     )
 
@@ -808,6 +810,42 @@ user_data {
         self, read_node.user_data_protos['testkey'], packed_test_msg
     )
 
+  def test_node_user_data_bytes(self):
+    """Tests if behavior tree node user data bytes works."""
+    node = bt.Sequence()
+    node.set_user_data_bytes('testkey', b'testvalue')
+    self.assertEqual(node.user_data_bytes['testkey'], b'testvalue')
+    self.assertEqual(
+        str(node.proto),
+        textwrap.dedent("""\
+            sequence {
+            }
+            user_data {
+              data_bytes {
+                key: "testkey"
+                value: "testvalue"
+              }
+            }
+            """),
+    )
+
+  def test_node_user_data_delete(self):
+    """Tests if behavior tree node user data deletion works."""
+    node = bt.Sequence()
+    node.set_user_data_proto(
+        'protokey', test_message_pb2.TestMessage(int32_value=123)
+    )
+    node.set_user_data_bytes('byteskey', b'testvalue')
+
+    self.assertIn('protokey', node.user_data_protos)
+    self.assertIn('byteskey', node.user_data_bytes)
+
+    node.delete_user_data_proto('protokey')
+    node.delete_user_data_bytes('byteskey')
+
+    self.assertNotIn('protokey', node.user_data_protos)
+    self.assertNotIn('byteskey', node.user_data_bytes)
+
   def test_to_proto_with_default_behavior_tree_name(self):
     """Tests if conversion to a proto succeeds when name is set to default."""
     my_bt = bt.BehaviorTree(
@@ -919,6 +957,65 @@ user_data {
         self, my_bt.asset_metadata_proto, my_proto.metadata
     )
     compare.assertProto2Equal(self, my_bt.proto, my_proto.behavior_tree)
+
+  def test_behavior_tree_user_data(self):
+    """Tests if behavior tree user data works."""
+    my_bt = bt.BehaviorTree('my_bt')
+    my_bt.set_user_data_proto(
+        'protokey', test_message_pb2.TestMessage(int32_value=123)
+    )
+    my_bt.set_user_data_bytes('byteskey', b'testvalue')
+
+    packed_test_msg = any_pb2.Any()
+    packed_test_msg.Pack(test_message_pb2.TestMessage(int32_value=123))
+
+    compare.assertProto2Equal(
+        self, my_bt.user_data_protos['protokey'], packed_test_msg
+    )
+    self.assertEqual(my_bt.user_data_bytes['byteskey'], b'testvalue')
+
+    expected_proto = behavior_tree_pb2.BehaviorTree(name='my_bt')
+    expected_proto.user_data.data_any['protokey'].CopyFrom(packed_test_msg)
+    expected_proto.user_data.data_bytes['byteskey'] = b'testvalue'
+
+    compare.assertProto2Equal(
+        self, my_bt.proto, expected_proto, ignored_fields=['tree_id']
+    )
+
+  def test_behavior_tree_user_data_delete(self):
+    """Tests if behavior tree user data deletion works."""
+    my_bt = bt.BehaviorTree('my_bt')
+    my_bt.set_user_data_proto(
+        'protokey', test_message_pb2.TestMessage(int32_value=123)
+    )
+    my_bt.set_user_data_bytes('byteskey', b'testvalue')
+
+    my_bt.delete_user_data_proto('protokey')
+    my_bt.delete_user_data_bytes('byteskey')
+
+    self.assertNotIn('protokey', my_bt.user_data_protos)
+    self.assertNotIn('byteskey', my_bt.user_data_bytes)
+
+  def test_behavior_tree_to_from_proto_with_user_data(self):
+    """Tests if behavior tree conversion to/from proto with user data works."""
+    my_bt = bt.BehaviorTree('my_bt')
+    my_bt.set_user_data_proto(
+        'protokey', test_message_pb2.TestMessage(int32_value=123)
+    )
+    my_bt.set_user_data_bytes('byteskey', b'testvalue')
+
+    proto = my_bt.proto
+    read_bt = bt.BehaviorTree.create_from_proto(proto)
+
+    self.assertIn('protokey', read_bt.user_data_protos)
+    self.assertIn('byteskey', read_bt.user_data_bytes)
+
+    packed_test_msg = any_pb2.Any()
+    packed_test_msg.Pack(test_message_pb2.TestMessage(int32_value=123))
+    compare.assertProto2Equal(
+        self, read_bt.user_data_protos['protokey'], packed_test_msg
+    )
+    self.assertEqual(read_bt.user_data_bytes['byteskey'], b'testvalue')
 
   def test_validate_accepts_nested_same_node_ids_across_subtrees(self):
     my_bt = bt.BehaviorTree('my_bt', tree_id='tree_id')

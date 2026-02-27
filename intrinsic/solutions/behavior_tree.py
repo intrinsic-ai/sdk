@@ -798,6 +798,8 @@ class Node(abc.ABC):
     if proto_object.HasField('user_data'):
       for k, m in proto_object.user_data.data_any.items():
         created_node.set_user_data_proto_from_any(k, m)
+      for k, b in proto_object.user_data.data_bytes.items():
+        created_node.set_user_data_bytes(k, b)
     if proto_object.HasField('name'):
       created_node.name = proto_object.name
     if proto_object.HasField('id') and proto_object.id != 0:
@@ -825,9 +827,12 @@ class Node(abc.ABC):
       proto_message.state = self.state.value
     if self.decorators is not None:
       proto_message.decorators.CopyFrom(self.decorators.proto)
-    if self.user_data_protos:
-      for k, m in self.user_data_protos.items():
+    if hasattr(self, '_user_data_protos') and self._user_data_protos:
+      for k, m in self._user_data_protos.items():
         proto_message.user_data.data_any[k].CopyFrom(m)
+    if hasattr(self, '_user_data_bytes') and self._user_data_bytes:
+      for k, b in self._user_data_bytes.items():
+        proto_message.user_data.data_bytes[k] = b
     if (
         # The base class only specifies the type, therefore unless something has
         # actually been set with the property this may not exist, yet.
@@ -960,7 +965,6 @@ class Node(abc.ABC):
       ValueError if node cannot remove a child or the child is not found.
     """
 
-  @abc.abstractmethod
   def set_user_data_proto(
       self, key: str, proto: protobuf_message.Message
   ) -> Node:
@@ -976,8 +980,15 @@ class Node(abc.ABC):
     Returns:
       self
     """
+    packed = any_pb2.Any()
+    packed.Pack(proto)
+    self._user_data_protos[key] = packed
+    return self
 
-  @abc.abstractmethod
+  def delete_user_data_proto(self, key: str) -> None:
+    if key in self._user_data_protos:
+      del self._user_data_protos[key]
+
   def set_user_data_proto_from_any(
       self, key: str, any_proto: any_pb2.Any
   ) -> Node:
@@ -992,11 +1003,41 @@ class Node(abc.ABC):
     Returns:
       self
     """
+    if not hasattr(self, '_user_data_protos'):
+      self._user_data_protos = {}
+    self._user_data_protos[key] = any_proto
+    return self
 
   @property
-  @abc.abstractmethod
   def user_data_protos(self) -> dict[str, any_pb2.Any]:
-    ...
+    if not hasattr(self, '_user_data_protos'):
+      self._user_data_protos = {}
+    return self._user_data_protos
+
+  def delete_user_data_bytes(self, key: str) -> None:
+    if key in self._user_data_bytes:
+      del self._user_data_bytes[key]
+
+  def set_user_data_bytes(self, key: str, value: bytes) -> Node:
+    """Sets a user data byte for a specified key.
+
+    Args:
+      key: key to store value at
+      value: byte sequence to store
+
+    Returns:
+      self
+    """
+    if not hasattr(self, '_user_data_bytes'):
+      self._user_data_bytes = {}
+    self._user_data_bytes[key] = value
+    return self
+
+  @property
+  def user_data_bytes(self) -> dict[str, bytes]:
+    if not hasattr(self, '_user_data_bytes'):
+      self._user_data_bytes = {}
+    return self._user_data_bytes
 
   def visit(
       self,
@@ -1612,7 +1653,6 @@ class Task(Node):
   _name: Optional[str]
   _node_id: Optional[int]
   _state: Optional[NodeState]
-  _user_data_protos: dict[str, any_pb2.Any]
 
   def __init__(
       self,
@@ -1627,7 +1667,6 @@ class Task(Node):
     self._behavior_call_proto = None
     self._code_execution_proto = None
     self._decorators = None
-    self._user_data_protos = {}
     if isinstance(action, actions.ActionBase):
       self._behavior_call_proto = action.proto
       self._action = action
@@ -1748,24 +1787,6 @@ class Task(Node):
   @property
   def decorators(self) -> Optional[Decorators]:
     return self._decorators
-
-  def set_user_data_proto(
-      self, key: str, proto: protobuf_message.Message
-  ) -> Node:
-    packed = any_pb2.Any()
-    packed.Pack(proto)
-    self._user_data_protos[key] = packed
-    return self
-
-  def set_user_data_proto_from_any(
-      self, key: str, any_proto: any_pb2.Any
-  ) -> Node:
-    self._user_data_protos[key] = any_proto
-    return self
-
-  @property
-  def user_data_protos(self) -> dict[str, any_pb2.Any]:
-    return self._user_data_protos
 
   def has_child(self, node_id: int) -> bool:
     return False
@@ -4646,6 +4667,8 @@ class BehaviorTree:
   _description: skills_pb2.Skill | None
   _return_value_expression: str | None
   _metadata: metadata_pb2.Metadata | None
+  _user_data_protos: dict[str, any_pb2.Any]
+  _user_data_bytes: dict[str, bytes]
 
   def __init__(
       self,
@@ -4688,6 +4711,8 @@ class BehaviorTree:
       self._description = bt_copy._description
       self._return_value_expression = bt_copy._return_value_expression
       self._metadata = bt_copy._metadata
+      self._user_data_protos = bt_copy._user_data_protos.copy()
+      self._user_data_bytes = bt_copy._user_data_bytes.copy()
       return
 
     self.root = root
@@ -4696,6 +4721,8 @@ class BehaviorTree:
     self._description = None
     self._return_value_expression = None
     self._metadata = None
+    self._user_data_protos = {}
+    self._user_data_bytes = {}
 
   def __repr__(self) -> str:
     """Converts a BT into a compact, human-readable string representation.
@@ -4865,6 +4892,12 @@ class BehaviorTree:
       proto_object.description.CopyFrom(self._description)
     if self._return_value_expression is not None:
       proto_object.return_value_expression = self._return_value_expression
+    if self._user_data_protos:
+      for k, m in self._user_data_protos.items():
+        proto_object.user_data.data_any[k].CopyFrom(m)
+    if self._user_data_bytes:
+      for k, b in self._user_data_bytes.items():
+        proto_object.user_data.data_bytes[k] = b
     return proto_object
 
   @classmethod
@@ -4918,6 +4951,11 @@ class BehaviorTree:
       bt._description.CopyFrom(bt_proto.description)
     if bt_proto.return_value_expression:
       bt._return_value_expression = bt_proto.return_value_expression
+    if bt_proto.HasField('user_data'):
+      for k, m in bt_proto.user_data.data_any.items():
+        bt.set_user_data_proto_from_any(k, m)
+      for k, b in bt_proto.user_data.data_bytes.items():
+        bt.set_user_data_bytes(k, b)
     bt._metadata = metadata_proto
 
     return bt
@@ -4952,6 +4990,72 @@ class BehaviorTree:
           node.generate_and_set_unique_id()
 
     self.visit(ensure_node_unique_id)
+
+  def delete_user_data_proto(self, key: str) -> None:
+    if key in self._user_data_protos:
+      del self._user_data_protos[key]
+
+  def set_user_data_proto(
+      self, key: str, proto: protobuf_message.Message
+  ) -> BehaviorTree:
+    """Sets a user data proto for a specified key.
+
+    This will modify the user_data field of the tree proto to contain the
+    specified proto encoded as Any proto in the data_any field.
+
+    Args:
+      key: key to store value at
+      proto: proto to store
+
+    Returns:
+      self
+    """
+    packed = any_pb2.Any()
+    packed.Pack(proto)
+    self._user_data_protos[key] = packed
+    return self
+
+  def set_user_data_proto_from_any(
+      self, key: str, any_proto: any_pb2.Any
+  ) -> BehaviorTree:
+    """Sets a user data proto for a specified key.
+
+    This will take the Any proto as-is.
+
+    Args:
+      key: key to store value at
+      any_proto: proto to store encoded as Any proto
+
+    Returns:
+      self
+    """
+    self._user_data_protos[key] = any_proto
+    return self
+
+  def delete_user_data_bytes(self, key: str) -> None:
+    if key in self._user_data_bytes:
+      del self._user_data_bytes[key]
+
+  def set_user_data_bytes(self, key: str, value: bytes) -> BehaviorTree:
+    """Sets a user data byte for a specified key.
+
+    Args:
+      key: key to store value at
+      value: byte sequence to store
+
+    Returns:
+      self
+    """
+    self._user_data_bytes[key] = value
+    return self
+
+  @property
+  def user_data_protos(self) -> dict[str, any_pb2.Any]:
+    return self._user_data_protos
+
+  @property
+  def user_data_bytes(self) -> dict[str, bytes]:
+    return self._user_data_bytes
 
   def visit(
       self,
