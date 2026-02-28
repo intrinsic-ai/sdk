@@ -70,6 +70,7 @@ go_proto_library(
         "//intrinsic/assets/deploy:__pkg__",
         "//intrinsic/assets/install:__pkg__",
         "//intrinsic/frontend/cloud:__subpackages__",
+        "//intrinsic/frontend/go/api:__subpackages__",
         "//intrinsic/kubernetes/data_store/http_endpoints:__pkg__",
         "//intrinsic/kubernetes/workcell_spec:__pkg__",
         "//intrinsic/performance/inctl:__subpackages__",

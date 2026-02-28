@@ -46,6 +46,8 @@ type customViewValue struct {
 
 type fDeploymentData func() (proto.Message, error)
 
+type fFileDescriptorSet func() (*dpb.FileDescriptorSet, error)
+
 type assetToViewOptions struct {
 	// CustomViewValues are custom values to set for some asset views.
 	CustomViewValues []customViewValue
@@ -64,7 +66,7 @@ type assetToViewOptions struct {
 	//
 	// If provided, the returned FileDescriptorSet is used to populate the metadata instead of the
 	// FileDescriptorSet from the input metadata.
-	FileDescriptorSet func() (*dpb.FileDescriptorSet, error)
+	FileDescriptorSet fFileDescriptorSet
 	// Metadata is the metadata to use for the asset view, instead of the input metadata.
 	Metadata *metadatapb.Metadata
 }
@@ -94,7 +96,7 @@ func WithFullDeploymentData(dd fDeploymentData) AssetToViewOption {
 
 // WithFileDescriptorSet returns an AssetToViewOption that specifies a function to compute the
 // FileDescriptorSet.
-func WithFileDescriptorSet(fds func() (*dpb.FileDescriptorSet, error)) AssetToViewOption {
+func WithFileDescriptorSet(fds fFileDescriptorSet) AssetToViewOption {
 	return func(opts *assetToViewOptions) {
 		opts.FileDescriptorSet = fds
 	}
@@ -118,7 +120,13 @@ func AssetToView[T Asset](asset T, view viewpb.AssetViewType, options ...AssetTo
 	}
 
 	assetView := newMessage(asset)
-	if err := setFieldValue(assetView, metadataFieldName, &metadatapb.Metadata{}); err != nil {
+
+	metadataView, err := MetadataToView(opts.Metadata, view)
+	if err != nil {
+		return assetView, err
+	}
+
+	if err := setFieldValue(assetView, metadataFieldName, metadataView); err != nil {
 		return assetView, err
 	}
 
@@ -137,25 +145,11 @@ func AssetToView[T Asset](asset T, view viewpb.AssetViewType, options ...AssetTo
 
 	switch view {
 	case viewpb.AssetViewType_ASSET_VIEW_TYPE_BASIC:
-		assetView.GetMetadata().AssetType = opts.Metadata.GetAssetType()
-		assetView.GetMetadata().IdVersion = opts.Metadata.GetIdVersion()
 	case viewpb.AssetViewType_ASSET_VIEW_TYPE_DETAIL:
-		assetView.GetMetadata().AssetTag = opts.Metadata.GetAssetTag()
-		assetView.GetMetadata().AssetType = opts.Metadata.GetAssetType()
-		assetView.GetMetadata().DisplayName = opts.Metadata.GetDisplayName()
-		assetView.GetMetadata().Documentation = opts.Metadata.GetDocumentation()
-		assetView.GetMetadata().IdVersion = opts.Metadata.GetIdVersion()
-		assetView.GetMetadata().Vendor = opts.Metadata.GetVendor()
-		assetView.GetMetadata().Provides = opts.Metadata.GetProvides()
 		if err := copyOneOfFieldValue(asset, assetView, assetSpecificMetadataOneOfName); err != nil {
 			return assetView, err
 		}
 	case viewpb.AssetViewType_ASSET_VIEW_TYPE_VERSIONS:
-		assetView.GetMetadata().AssetType = opts.Metadata.GetAssetType()
-		assetView.GetMetadata().IdVersion = opts.Metadata.GetIdVersion()
-		assetView.GetMetadata().ReleaseNotes = opts.Metadata.GetReleaseNotes()
-		assetView.GetMetadata().UpdateTime = opts.Metadata.GetUpdateTime()
-		assetView.GetMetadata().Vendor = opts.Metadata.GetVendor()
 	case viewpb.AssetViewType_ASSET_VIEW_TYPE_ALL_METADATA:
 		if err := mergeAllMetadataToView(asset, assetView, opts); err != nil {
 			return assetView, err
@@ -202,6 +196,39 @@ func AssetToView[T Asset](asset T, view viewpb.AssetViewType, options ...AssetTo
 	return assetView, nil
 }
 
+// MetadataToView returns the specified view of the Metadata part of an Asset.
+func MetadataToView(metadata *metadatapb.Metadata, view viewpb.AssetViewType) (*metadatapb.Metadata, error) {
+	metadataView := &metadatapb.Metadata{}
+
+	switch view {
+	case viewpb.AssetViewType_ASSET_VIEW_TYPE_BASIC:
+		metadataView.AssetType = metadata.GetAssetType()
+		metadataView.IdVersion = metadata.GetIdVersion()
+	case viewpb.AssetViewType_ASSET_VIEW_TYPE_DETAIL:
+		metadataView.AssetTag = metadata.GetAssetTag()
+		metadataView.AssetType = metadata.GetAssetType()
+		metadataView.DisplayName = metadata.GetDisplayName()
+		metadataView.Documentation = metadata.GetDocumentation()
+		metadataView.IdVersion = metadata.GetIdVersion()
+		metadataView.Vendor = metadata.GetVendor()
+		metadataView.Provides = metadata.GetProvides()
+	case viewpb.AssetViewType_ASSET_VIEW_TYPE_VERSIONS:
+		metadataView.AssetType = metadata.GetAssetType()
+		metadataView.IdVersion = metadata.GetIdVersion()
+		metadataView.ReleaseNotes = metadata.GetReleaseNotes()
+		metadataView.UpdateTime = metadata.GetUpdateTime()
+		metadataView.Vendor = metadata.GetVendor()
+	case viewpb.AssetViewType_ASSET_VIEW_TYPE_ALL_METADATA:
+		fallthrough
+	case viewpb.AssetViewType_ASSET_VIEW_TYPE_FULL:
+		metadataView = metadata
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "unsupported asset view type %v", view.String())
+	}
+
+	return metadataView, nil
+}
+
 // ViewHasDeploymentData returns true if the view has deployment data.
 func ViewHasDeploymentData(view viewpb.AssetViewType) bool {
 	switch view {
@@ -213,12 +240,6 @@ func ViewHasDeploymentData(view viewpb.AssetViewType) bool {
 }
 
 func mergeAllMetadataToView[T Asset](asset T, assetView T, opts assetToViewOptions) error {
-	if opts.Metadata != nil {
-		if err := setFieldValue(assetView, metadataFieldName, opts.Metadata); err != nil {
-			return err
-		}
-	}
-
 	if opts.FileDescriptorSet != nil {
 		fds, err := opts.FileDescriptorSet()
 		if err != nil {
