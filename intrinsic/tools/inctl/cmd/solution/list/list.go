@@ -102,9 +102,9 @@ func getSolutionRowCommandPrinter(cmd *cobra.Command) printer.CommandPrinter {
 }
 
 func (s *solutionRow) Tabulated(columns []string) []string {
-	name := s.DisplayName
+	name := s.Name
 	if name == "" {
-		name = s.Name
+		name = "<NOT FOUND>"
 	}
 
 	statusStr := strings.TrimPrefix(s.State, "SOLUTION_STATE_")
@@ -112,7 +112,7 @@ func (s *solutionRow) Tabulated(columns []string) []string {
 		statusStr = fmt.Sprintf("%s on %s", statusStr, s.ClusterName)
 	}
 
-	return []string{name, statusStr, s.Name}
+	return []string{name, statusStr, s.DisplayName}
 }
 
 func validateAndGetFilters(filterNames []string) ([]clusterdiscoverypb.SolutionState, error) {
