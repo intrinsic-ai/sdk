@@ -6,6 +6,7 @@ import enum
 import typing
 
 from google.protobuf import any_pb2
+from google.protobuf import empty_pb2
 from google.protobuf import message
 from google.protobuf import wrappers_pb2
 
@@ -13,6 +14,7 @@ from intrinsic.executive.proto import blackboard_service_pb2
 from intrinsic.executive.proto import blackboard_service_pb2_grpc
 from intrinsic.solutions import blackboard_value
 from intrinsic.solutions import ipython
+from intrinsic.solutions import utils
 from intrinsic.solutions.internal import skill_utils
 from intrinsic.util.grpc import error_handling
 
@@ -59,6 +61,28 @@ _PYTHON_TYPE_TO_WRAPPERS = {
     str: {wrappers_pb2.StringValue},
     bytes: {wrappers_pb2.BytesValue},
 }
+
+
+
+@utils.protoenum(
+    proto_enum_type=blackboard_service_pb2.BlackboardSnapshot.SnapshotSource,
+    unspecified_proto_enum_map_to_none=blackboard_service_pb2.BlackboardSnapshot.SNAPSHOT_SOURCE_UNSPECIFIED,
+    strip_prefix="SNAPSHOT_SOURCE_",
+)
+class SnapshotSource(enum.Enum):
+  """Represents the reason why a snapshot was created."""
+
+
+@utils.protoenum(
+    proto_enum_type=blackboard_service_pb2.LoadBlackboardSnapshotRequest.IntegrationMode,
+    unspecified_proto_enum_map_to_none=blackboard_service_pb2.LoadBlackboardSnapshotRequest.INTEGRATION_MODE_UNSPECIFIED,
+    strip_prefix="INTEGRATION_MODE_",
+)
+class IntegrationMode(enum.Enum):
+  """Represents how a snapshot is integrated into a blackboard."""
+
+
+
 
 
 class Blackboard:
@@ -280,3 +304,66 @@ class Blackboard:
         )
     )
     self._stub.UpdateBlackboardValue(request)
+
+
+
+class BlackboardSnapshots:
+  """Convenience wrapper for blackboard snapshots."""
+
+  _stub: blackboard_service_pb2_grpc.ExecutiveBlackboardStub
+
+  def __init__(self, stub: blackboard_service_pb2_grpc.ExecutiveBlackboardStub):
+    """Initializes the blackboard snapshots.
+
+    Args:
+      stub: The gRPC stub to be used for blackboard related calls.
+    """
+    self._stub = stub
+
+  @error_handling.retry_on_grpc_unavailable
+  @error_handling.log_extended_status(
+      ipython.display_extended_status_proto_if_ipython
+  )
+  def list(self) -> list[blackboard_service_pb2.BlackboardSnapshot]:
+    """Lists the currently saved snapshots.
+
+    Returns:
+      A list of BlackboardSnapshot objects.
+    """
+    snapshots = []
+    page_token = ""
+    while True:
+      request = blackboard_service_pb2.ListBlackboardSnapshotsRequest(
+          page_size=100,
+          page_token=page_token,
+      )
+      response = self._stub.ListBlackboardSnapshots(request)
+      snapshots.extend(response.snapshots)
+      page_token = response.next_page_token
+      if not page_token:
+        break
+    return snapshots
+
+  @error_handling.retry_on_grpc_unavailable
+  @error_handling.log_extended_status(
+      ipython.display_extended_status_proto_if_ipython
+  )
+  def delete(
+      self, handle: str | blackboard_service_pb2.BlackboardSnapshot
+  ) -> None:
+    """Deletes a given snapshot.
+
+    Args:
+      handle: The handle of the snapshot to delete, or the BlackboardSnapshot
+        proto itself.
+    """
+    if isinstance(handle, blackboard_service_pb2.BlackboardSnapshot):
+      handle = handle.handle
+
+    request = blackboard_service_pb2.DeleteBlackboardSnapshotRequest(
+        handle=handle
+    )
+    self._stub.DeleteBlackboardSnapshot(request)
+
+
+

@@ -509,5 +509,95 @@ class BlackboardTest(absltest.TestCase):
       self._blackboard.update_value("test_key", [1, 2, 3])
 
 
+
+class BlackboardSnapshotsTest(absltest.TestCase):
+
+  def setUp(self):
+    super().setUp()
+    self._stub = mock.MagicMock()
+    self._snapshots = blackboard.BlackboardSnapshots(self._stub)
+
+  def test_list(self):
+    self._stub.ListBlackboardSnapshots.return_value = (
+        blackboard_service_pb2.ListBlackboardSnapshotsResponse(
+            snapshots=[
+                blackboard_service_pb2.BlackboardSnapshot(
+                    handle="h1", display_name="s1"
+                ),
+                blackboard_service_pb2.BlackboardSnapshot(
+                    handle="h2", display_name="s2"
+                ),
+            ]
+        )
+    )
+
+    result = self._snapshots.list()
+
+    self.assertEqual(len(result), 2)
+    self.assertEqual(result[0].handle, "h1")
+    self.assertEqual(result[1].handle, "h2")
+    self._stub.ListBlackboardSnapshots.assert_called_once()
+
+  def test_list_paginated(self):
+    self._stub.ListBlackboardSnapshots.side_effect = [
+        blackboard_service_pb2.ListBlackboardSnapshotsResponse(
+            snapshots=[
+                blackboard_service_pb2.BlackboardSnapshot(
+                    handle="h1", display_name="s1"
+                )
+            ],
+            next_page_token="token2",
+        ),
+        blackboard_service_pb2.ListBlackboardSnapshotsResponse(
+            snapshots=[
+                blackboard_service_pb2.BlackboardSnapshot(
+                    handle="h2", display_name="s2"
+                )
+            ],
+            next_page_token="",
+        ),
+    ]
+
+    result = self._snapshots.list()
+
+    self.assertEqual(len(result), 2)
+    self.assertEqual(result[0].handle, "h1")
+    self.assertEqual(result[1].handle, "h2")
+    self.assertEqual(self._stub.ListBlackboardSnapshots.call_count, 2)
+    self._stub.ListBlackboardSnapshots.assert_has_calls([
+        mock.call(
+            blackboard_service_pb2.ListBlackboardSnapshotsRequest(
+                page_size=100, page_token=""
+            )
+        ),
+        mock.call(
+            blackboard_service_pb2.ListBlackboardSnapshotsRequest(
+                page_size=100, page_token="token2"
+            )
+        ),
+    ])
+
+  def test_delete(self):
+    self._snapshots.delete("test_handle")
+
+    self._stub.DeleteBlackboardSnapshot.assert_called_once_with(
+        blackboard_service_pb2.DeleteBlackboardSnapshotRequest(
+            handle="test_handle"
+        )
+    )
+
+  def test_delete_with_proto(self):
+    snapshot = blackboard_service_pb2.BlackboardSnapshot(handle="proto_handle")
+    self._snapshots.delete(snapshot)
+
+    self._stub.DeleteBlackboardSnapshot.assert_called_once_with(
+        blackboard_service_pb2.DeleteBlackboardSnapshotRequest(
+            handle="proto_handle"
+        )
+    )
+
+
+
+
 if __name__ == "__main__":
   absltest.main()

@@ -435,6 +435,14 @@ class Executive:
     self._update_operation()
     return self._operation is not None
 
+
+  @property
+  def blackboard_snapshots(self) -> blackboard.BlackboardSnapshots:
+    """Returns the blackboard snapshots wrapper."""
+    return blackboard.BlackboardSnapshots(self._blackboard_stub)
+
+
+
   @error_handling.retry_on_grpc_unavailable
   def _update_operation(self) -> None:
     """Gets up to date information about the current operation."""
