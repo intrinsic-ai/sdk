@@ -27,6 +27,7 @@ from typing import List
 from typing import Mapping
 from typing import Optional
 from typing import Union
+import warnings
 
 from google.longrunning import operations_pb2
 from google.protobuf import any_pb2
@@ -1238,6 +1239,13 @@ class Executive:
       True if a value has been set
       False otherwise
     """
+    warnings.warn(
+        "Executive.is_value_available is deprecated. Use"
+        " execution.operation.blackboard.get_value instead and observe any"
+        " errors.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     scope = value.scope() if value.scope() is not None else _PROCESS_TREE_SCOPE
     available_entries = self._list_blackboard_values(scope=scope)
     return any(
@@ -1261,6 +1269,12 @@ class Executive:
       ValueError if the received value is not of the expected type based on the
         return value description of the skill
     """
+    warnings.warn(
+        "Executive.get_value is deprecated. Use"
+        " executive.operation.blackboard.get_value instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     if not value.is_toplevel_value:
       raise solutions_errors.InvalidArgumentError(
           f"BlackboardValue with path {value.value_access_path()} is not a"
@@ -1303,6 +1317,11 @@ class Executive:
     Args:
       value: wait for this value to be available on the blackboard
     """
+    warnings.warn(
+        "Executive.await_value is deprecated.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     while not self.is_value_available(value):
       time.sleep(self._polling_interval_in_seconds)
     return
