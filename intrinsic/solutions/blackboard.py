@@ -341,7 +341,7 @@ class Blackboard:
       self,
       handle: str | blackboard_service_pb2.BlackboardSnapshot,
       integration_mode: IntegrationMode = IntegrationMode.MERGE,
-  ) -> None:
+  ) -> blackboard_service_pb2.LoadBlackboardSnapshotResponse:
     """Loads a previously saved snapshot into the current operation's blackboard.
 
     Args:
@@ -349,6 +349,9 @@ class Blackboard:
         proto itself.
       integration_mode: How to integrate the snapshot values into the existing
         blackboard.
+
+    Returns:
+      The LoadBlackboardSnapshotResponse.
     """
     if isinstance(handle, blackboard_service_pb2.BlackboardSnapshot):
       handle = handle.handle
@@ -366,6 +369,7 @@ class Blackboard:
         != extended_status_pb2.ExtendedStatus.Severity.INFO
     ):
       ipython.display_extended_status_proto_if_ipython(response.diagnostics)
+    return response
 
 
 class BlackboardSnapshots:

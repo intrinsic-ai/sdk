@@ -32,6 +32,8 @@ from intrinsic.solutions import simulation as simulation_mod
 from intrinsic.solutions.internal import behavior_call
 from intrinsic.solutions.testing import compare
 from intrinsic.solutions.testing import test_skill_params_pb2
+from intrinsic.util.status import extended_status_pb2
+from intrinsic.util.status import status_exception
 
 # Make sure all log items are considered.
 _TIMESTAMP = 2147483647
@@ -80,6 +82,14 @@ class ExecutiveTest(parameterized.TestCase):
         self._blackboard_stub,
         self._errors,
         self._simulation,
+    )
+    # Ensure ListOperations returns a real empty list by default instead of truthy MagicMock
+    self._executive_service_stub.ListOperations.return_value = (
+        operations_pb2.ListOperationsResponse()
+    )
+    # Default valid response for operation updates
+    self._executive_service_stub.GetOperation.return_value = (
+        self._create_operation_proto()
     )
 
   def _create_operation_proto(
@@ -703,6 +713,149 @@ class ExecutiveTest(parameterized.TestCase):
     self._executive_service_stub.StartOperation.assert_called_once_with(
         start_request
     )
+
+  def test_load_keep_blackboard_works(self):
+    # Mock existing operation for snapshotting
+    existing_op = self._create_operation_proto(
+        run_metadata_pb2.RunMetadata.RUNNING, name='old_op'
+    )
+    self._executive_service_stub.ListOperations.return_value = (
+        operations_pb2.ListOperationsResponse(operations=[existing_op])
+    )
+    # multiple states for has_operation, create_snapshot, delete_with_retry
+    self._setup_get_operation_sequence([
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.RUNNING,
+    ])
+
+    self._setup_create_operation(setup_empty_list_operations=False)
+
+    # Setup snapshot mocks
+    snapshot = blackboard_service_pb2.BlackboardSnapshot(handle='h1')
+    self._blackboard_stub.CreateBlackboardSnapshot.return_value = (
+        blackboard_service_pb2.CreateBlackboardSnapshotResponse(
+            snapshot=snapshot
+        )
+    )
+    diagnostics = extended_status_pb2.ExtendedStatus()
+    diagnostics.status_code.code = 80114
+    diagnostics.severity = extended_status_pb2.ExtendedStatus.Severity.INFO
+    self._blackboard_stub.LoadBlackboardSnapshot.return_value = (
+        blackboard_service_pb2.LoadBlackboardSnapshotResponse(
+            diagnostics=diagnostics
+        )
+    )
+
+    tree = bt.BehaviorTree()
+    self._executive.load(tree, keep_blackboard=True)
+
+    self._blackboard_stub.CreateBlackboardSnapshot.assert_called_once()
+    self._blackboard_stub.LoadBlackboardSnapshot.assert_called_once_with(
+        blackboard_service_pb2.LoadBlackboardSnapshotRequest(
+            operation_name=_OPERATION_NAME,
+            handle='h1',
+            integration_mode=blackboard_service_pb2.LoadBlackboardSnapshotRequest.INTEGRATION_MODE_MERGE,
+        )
+    )
+    self._blackboard_stub.DeleteBlackboardSnapshot.assert_called_once_with(
+        blackboard_service_pb2.DeleteBlackboardSnapshotRequest(handle='h1')
+    )
+
+  def test_run_keep_blackboard_works(self):
+    # Mock existing operation for snapshotting
+    existing_op = self._create_operation_proto(
+        run_metadata_pb2.RunMetadata.RUNNING, name='old_op'
+    )
+    self._executive_service_stub.ListOperations.return_value = (
+        operations_pb2.ListOperationsResponse(operations=[existing_op])
+    )
+    # has_operation, load, and _delete_with_retry will trigger update() calls
+    self._setup_get_operation_sequence([
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+    ])
+
+    self._setup_create_operation(setup_empty_list_operations=False)
+    self._setup_start_operation()
+
+    # Setup snapshot mocks
+    snapshot = blackboard_service_pb2.BlackboardSnapshot(handle='h1')
+    self._blackboard_stub.CreateBlackboardSnapshot.return_value = (
+        blackboard_service_pb2.CreateBlackboardSnapshotResponse(
+            snapshot=snapshot
+        )
+    )
+    diagnostics = extended_status_pb2.ExtendedStatus()
+    diagnostics.status_code.code = 80114
+    diagnostics.severity = extended_status_pb2.ExtendedStatus.Severity.INFO
+    self._blackboard_stub.LoadBlackboardSnapshot.return_value = (
+        blackboard_service_pb2.LoadBlackboardSnapshotResponse(
+            diagnostics=diagnostics
+        )
+    )
+
+    tree = bt.BehaviorTree()
+    self._executive.run(tree, keep_blackboard=True)
+
+    self._blackboard_stub.CreateBlackboardSnapshot.assert_called_once()
+    self._blackboard_stub.LoadBlackboardSnapshot.assert_called_once()
+    self._blackboard_stub.DeleteBlackboardSnapshot.assert_called_once_with(
+        blackboard_service_pb2.DeleteBlackboardSnapshotRequest(handle='h1')
+    )
+
+  def test_run_keep_blackboard_fails_load(self):
+    # Mock existing operation for snapshotting
+    existing_op = self._create_operation_proto(
+        run_metadata_pb2.RunMetadata.RUNNING, name='old_op'
+    )
+    self._executive_service_stub.ListOperations.return_value = (
+        operations_pb2.ListOperationsResponse(operations=[existing_op])
+    )
+    # has_operation, load, and _delete_with_retry will trigger update() calls
+    self._setup_get_operation_sequence([
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.RUNNING,
+    ])
+
+    self._setup_create_operation(setup_empty_list_operations=False)
+
+    # Setup snapshot mocks
+    snapshot = blackboard_service_pb2.BlackboardSnapshot(handle='h1')
+    self._blackboard_stub.CreateBlackboardSnapshot.return_value = (
+        blackboard_service_pb2.CreateBlackboardSnapshotResponse(
+            snapshot=snapshot
+        )
+    )
+    diagnostics = extended_status_pb2.ExtendedStatus()
+    diagnostics.status_code.code = 12345
+    diagnostics.severity = extended_status_pb2.ExtendedStatus.Severity.ERROR
+    diagnostics.title = 'Failed load'
+    self._blackboard_stub.LoadBlackboardSnapshot.return_value = (
+        blackboard_service_pb2.LoadBlackboardSnapshotResponse(
+            diagnostics=diagnostics
+        )
+    )
+
+    tree = bt.BehaviorTree()
+    with self.assertRaises(status_exception.ExtendedStatusError) as cm:
+      self._executive.run(tree, keep_blackboard=True)
+
+    self.assertEqual(cm.exception.title, 'Failed load')
+
+    self._blackboard_stub.DeleteBlackboardSnapshot.assert_called_once()
+    self._executive_service_stub.StartOperation.assert_not_called()
 
   def test_run_recovery_nodes_by_id_works(self):
     """Tests if executive.run(recovery_nodes) executes the start node."""

@@ -672,6 +672,9 @@ class Executive:
 
       simulation_mode: Optional["Executive.SimulationMode"] = None,
       embed_skill_traces: bool = False,
+
+      keep_blackboard: bool = False,
+
   ):
     """Requests execution of an action or plan and returns immediately.
 
@@ -700,6 +703,8 @@ class Executive:
         traces contain links to individual skill traces.
 
 
+      keep_blackboard: If True, keep the blackboard values from the current
+        active operation (if any) and load them into the new operation.
       recover_from_nodes: List of nodes to recover from. Execution will forward
         to these nodes and run from there. Only one of recover_from_nodes or
         start_node can be set.
@@ -721,6 +726,9 @@ class Executive:
 
         simulation_mode=simulation_mode,
         embed_skill_traces=embed_skill_traces,
+
+        keep_blackboard=keep_blackboard,
+
     )
 
   # pylint doesn't understand the copybara transforms for the params
@@ -738,6 +746,9 @@ class Executive:
 
       simulation_mode: Optional["Executive.SimulationMode"] = None,
       embed_skill_traces: bool = False,
+
+      keep_blackboard: bool = False,
+
   ):
     """Executes an action or plan and blocks until completion.
 
@@ -769,6 +780,8 @@ class Executive:
         traces contain links to individual skill traces.
 
 
+      keep_blackboard: If True, keep the blackboard values from the current
+        active operation (if any) and load them into the new operation.
       recover_from_nodes: List of nodes to recover from. Execution will forward
         to these nodes and run from there. Only one of recover_from_nodes or
         start_node can be set.
@@ -796,6 +809,9 @@ class Executive:
 
         simulation_mode=simulation_mode,
         embed_skill_traces=embed_skill_traces,
+
+        keep_blackboard=keep_blackboard,
+
     )
     if not silence_outputs:
       ipython.display_html_or_print_msg(
@@ -835,6 +851,9 @@ class Executive:
 
       recover_from_nodes: list[bt.NodeInTreeType] | None,
 
+
+      keep_blackboard: bool = False,
+
   ) -> None:
     """Implementation of run and run_async.
 
@@ -860,6 +879,8 @@ class Executive:
         instead of the complete tree.
 
 
+      keep_blackboard: If True, keep the blackboard values from the current
+        active operation (if any) and load them into the new operation.
       recover_from_nodes: List of nodes to recover from. Execution will forward
         to these nodes and run from there. Only one of recover_from_nodes or
         start_node can be set.
@@ -914,7 +935,12 @@ class Executive:
       )
       return
 
-    self.load(plan_or_action)
+    self.load(
+        plan_or_action,
+
+        keep_blackboard=keep_blackboard,
+
+    )
 
     def get_node_identifier_for_node_in_tree(
         node_in_tree: bt.NodeInTreeType,
@@ -960,7 +986,11 @@ class Executive:
   # pylint: enable=g-doc-args
 
   def load(
-      self, behavior_tree_or_action: Optional[BehaviorTreeOrActionType]
+      self,
+      behavior_tree_or_action: Optional[BehaviorTreeOrActionType],
+
+      keep_blackboard: bool = False,
+
   ) -> None:
     """Loads an action or behavior tree into the executive.
 
@@ -971,6 +1001,10 @@ class Executive:
       behavior_tree_or_action: A behavior tree, a list of actions (can be nested
         one level), or a single action, or an asset id of an installed process
         asset to run.
+
+      keep_blackboard: If True, keep the blackboard values from the current
+        active operation (if any) and load them into the new operation.
+
 
     Raises:
       solutions_errors.UnavailableError: On executive service not reachable.
@@ -1005,12 +1039,58 @@ class Executive:
       id_proto = id_utils.id_proto_from_string(behavior_tree_or_action)
       request.process_id.CopyFrom(id_proto)
 
-    try:
-      self._delete_with_retry()
-    except OperationNotFoundError:
-      pass
+    snapshot = None
 
-    self._create_with_retry(request)
+    if keep_blackboard:
+      if self.has_operation:
+        snapshot = self.operation.blackboard.create_snapshot(
+            "run_keep_blackboard",
+            snapshot_source=blackboard.SnapshotSource.AUTOMATIC,
+        )
+      else:
+        warnings.warn(
+            "keep_blackboard is True, but no active operation was found to"
+            " snapshot.",
+            RuntimeWarning,
+        )
+
+
+    try:
+      try:
+        self._delete_with_retry()
+      except OperationNotFoundError:
+        pass
+
+      self._create_with_retry(request)
+
+
+      if snapshot is not None:
+        try:
+          load_resp = self.operation.blackboard.load_snapshot(snapshot)
+          if (
+              load_resp.diagnostics.severity
+              >= extended_status_pb2.ExtendedStatus.Severity.ERROR
+          ):
+            raise status_exception.ExtendedStatusError.create_from_proto(
+                load_resp.diagnostics
+            )
+        finally:
+          # Always delete the snapshot as this wasn't explicitly created by the
+          # user and thus they are not expected to manage this
+          self.blackboard_snapshots.delete(snapshot)
+          snapshot = None
+
+    except:
+
+      # If anything failed during setup, we should ensure the snapshot is
+      # cleaned up if it was created.
+      if snapshot is not None:
+        try:
+          self.blackboard_snapshots.delete(snapshot)
+        except:  # pylint: disable=bare-except
+          pass
+
+      raise
 
   def unload(self) -> None:
     """Unload current behavior tree from the executive."""
