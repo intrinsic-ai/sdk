@@ -16,6 +16,7 @@ pybind_extension(
         "//intrinsic/platform/pubsub:publisher",
         "//intrinsic/platform/pubsub:subscription",
         "@abseil-cpp//absl/container:flat_hash_map",
+        "@abseil-cpp//absl/flags:parse",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
         "@abseil-cpp//absl/strings",

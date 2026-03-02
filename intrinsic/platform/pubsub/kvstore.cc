@@ -37,6 +37,9 @@
 
 ABSL_FLAG(bool, use_replicated_kv_store, false,
           "If true, use the replicated KV store.");
+ABSL_FLAG(std::string, admin_set_proxy_endpoint,
+          "zenoh-router.app-intrinsic-base.svc.cluster.local:8081",
+          "Override the default admin set proxy URL");
 
 namespace intrinsic {
 
@@ -44,8 +47,6 @@ using platform::proto::WorkcellInfo;
 
 namespace {
 constexpr static absl::Duration kHighConsistencyTimeout = absl::Seconds(30);
-constexpr static absl::string_view kAdminSetProxyEndpoint =
-    "zenoh-router.app-intrinsic-base.svc.cluster.local:8081";
 constexpr static absl::string_view kWorkcellInfoKey = "workcell_info";
 }  // namespace
 
@@ -324,7 +325,7 @@ absl::Status KeyValueStore::AdminCloudCopy(absl::string_view source_key,
                         GetAny(source_key, timeout));
 
   std::shared_ptr<::grpc::Channel> channel = ::grpc::CreateCustomChannel(
-      std::string(kAdminSetProxyEndpoint),
+      absl::GetFlag(FLAGS_admin_set_proxy_endpoint),
       ::grpc::                       // NOLINTNEXTLINE
       InsecureChannelCredentials(),  // NO_LINT(grpc_insecure_credential_linter)
       ::grpc::ChannelArguments());

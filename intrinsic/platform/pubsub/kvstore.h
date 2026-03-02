@@ -28,6 +28,7 @@
 #include "intrinsic/util/status/status_macros.h"
 
 ABSL_DECLARE_FLAG(bool, use_replicated_kv_store);
+ABSL_DECLARE_FLAG(std::string, admin_set_proxy_endpoint);
 
 namespace intrinsic {
 

@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
+#include "absl/flags/parse.h"
 #include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
@@ -267,6 +268,17 @@ std::string MakeKey(pybind11::args args) {
   return KeyValueStore::MakeKeyFromVector(parts);
 }
 
+void ParseCommandLine(const std::vector<std::string>& args) {
+  std::vector<char*> argv_c;
+  for (const auto& arg : args) {
+    argv_c.push_back(const_cast<char*>(arg.c_str()));
+  }
+  int argc_c = argv_c.size();
+  char** argv_c_ptr = argv_c.data();
+
+  absl::ParseCommandLine(argc_c, argv_c_ptr);
+}
+
 struct PySubscriptionDeleter {
   void operator()(Subscription* s) {
     // To avoid deadlock, the call to Zenoh.imw_destroy_subscription() needs
@@ -377,6 +389,11 @@ PYBIND11_MODULE(pubsub, m) {
       m, "Subscription")
       .def("TopicName", &Subscription::TopicName)
       .def("Unsubscribe", &Subscription::Unsubscribe);
+
+  // Helper function for passing command line flags from Python code
+  // to C++. Can be used in Python tests which start their own Zenoh routers,
+  // and need to pass their URLs to C++ code.
+  m.def("parse_command_line", &ParseCommandLine);
 }
 
 }  // namespace pubsub
