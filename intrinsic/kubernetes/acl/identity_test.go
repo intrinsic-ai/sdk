@@ -902,8 +902,8 @@ func TestContextToRequest(t *testing.T) {
 			noAuth: false,
 			meta: metadata.New(map[string]string{
 				ApikeyTokenHeaderName:    token,
-				cookies.CookieHeaderName: org.OrgIDCookie + "=testorg",
-				org.OrgIDHeader:          "headerorg",
+				cookies.CookieHeaderName: org.OrgIDCookie + "=cookieorg",
+				org.OrgIDHeader:          "testorg",
 			}),
 		},
 	}
@@ -997,6 +997,7 @@ func TestOrgFromRequest(t *testing.T) {
 	tests := []struct {
 		name    string
 		cookie  string
+		header  string
 		want    string
 		wantErr bool
 	}{
@@ -1007,7 +1008,20 @@ func TestOrgFromRequest(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "without cookie",
+			name:    "header_and_cookie",
+			cookie:  "cookieorg",
+			header:  "headerorg",
+			want:    "headerorg",
+			wantErr: false,
+		},
+		{
+			name:    "header_only",
+			header:  "headerorg",
+			want:    "headerorg",
+			wantErr: false,
+		},
+		{
+			name:    "no_org",
 			want:    "",
 			wantErr: true,
 		},
@@ -1017,6 +1031,9 @@ func TestOrgFromRequest(t *testing.T) {
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
 			if tc.cookie != "" {
 				r.AddCookie(&http.Cookie{Name: org.OrgIDCookie, Value: tc.cookie})
+			}
+			if tc.header != "" {
+				r.Header.Set(org.OrgIDHeader, tc.header)
 			}
 			o, err := OrgFromRequest(r)
 			if tc.wantErr {
