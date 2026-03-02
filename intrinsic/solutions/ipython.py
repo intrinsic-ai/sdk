@@ -103,8 +103,7 @@ def _create_extended_status_widget(
   ):
     box_children.append(
         widgets.HTML(
-            '<div><b>External'
-            ' Report</b><br'
+            '<div><b>User Report</b><br'
             f' /><pre><samp>\n{textwrap.indent(extended_status_error.user_report.message, "  ")}</samp></pre></div>\n'
         )
     )

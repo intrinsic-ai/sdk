@@ -45,6 +45,7 @@ from intrinsic.executive.proto import executive_service_pb2_grpc
 from intrinsic.executive.proto import run_metadata_pb2
 from intrinsic.executive.proto import run_response_pb2
 from intrinsic.solutions import behavior_tree as bt
+from intrinsic.solutions import blackboard
 from intrinsic.solutions import blackboard_value
 from intrinsic.solutions import error_processing
 from intrinsic.solutions import errors as solutions_errors
@@ -131,20 +132,26 @@ class Operation:
     response: RunResponse for an operation. Only expected to be available when
       the operation is done and successful.
     result: Result proto of a successful operation that returned a result.
+    blackboard: Blackboard for the operation.
   """
 
   _stub: executive_service_pb2_grpc.ExecutiveServiceStub
+  _blackboard_stub: blackboard_service_pb2_grpc.ExecutiveBlackboardStub
   _operation_proto: operations_pb2.Operation
   _metadata: run_metadata_pb2.RunMetadata
   _response: run_response_pb2.RunResponse | None
+  blackboard: blackboard.Blackboard
 
   def __init__(
       self,
       stub: executive_service_pb2_grpc.ExecutiveServiceStub,
+      blackboard_stub: blackboard_service_pb2_grpc.ExecutiveBlackboardStub,
       operation_proto: operations_pb2.Operation,
   ):
     self._stub = stub
+    self._blackboard_stub = blackboard_stub
     self.update_from_proto(operation_proto)
+    self.blackboard = blackboard.Blackboard(self._blackboard_stub, self.name)
 
   def update_from_proto(self, proto: operations_pb2.Operation) -> None:
     """Update information from a proto."""
@@ -444,7 +451,9 @@ class Executive:
     if self._operation is None:
       resp = self._stub.ListOperations(operations_pb2.ListOperationsRequest())
       if resp.operations:
-        self._operation = Operation(self._stub, resp.operations[0])
+        self._operation = Operation(
+            self._stub, self._blackboard_stub, resp.operations[0]
+        )
 
   @property
   def execution_mode(self) -> "Executive.ExecutionMode":
@@ -1403,7 +1412,9 @@ class Executive:
       ipython.display_extended_status_proto_if_ipython
   )
   def _create_with_retry(self, request) -> None:
-    self._operation = Operation(self._stub, self._stub.CreateOperation(request))
+    self._operation = Operation(
+        self._stub, self._blackboard_stub, self._stub.CreateOperation(request)
+    )
 
   @error_handling.retry_on_grpc_unavailable
   def _list_blackboard_values(

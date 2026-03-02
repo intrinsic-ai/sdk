@@ -90,6 +90,32 @@ py_test(
 )
 
 py_library(
+    name = "blackboard",
+    srcs = ["blackboard.py"],
+    deps = [
+        ":ipython",
+        "//intrinsic/executive/proto:blackboard_service_py_pb2",
+        "//intrinsic/executive/proto:blackboard_service_py_pb2_grpc",
+        "//intrinsic/solutions/internal:skill_utils",
+        "//intrinsic/util/grpc:error_handling",
+    ],
+)
+
+py_test(
+    name = "blackboard_test",
+    srcs = ["blackboard_test.py"],
+    deps = [
+        ":blackboard",
+        ":blackboard_value",
+        "//intrinsic/executive/proto:blackboard_service_py_pb2",
+        "//intrinsic/executive/proto:test_message_py_pb2",
+        "//intrinsic/solutions/internal:skill_utils",
+        "@com_google_absl_py//absl/testing:absltest",
+        "@com_google_protobuf//:protobuf_python",
+    ],
+)
+
+py_library(
     name = "blackboard_value",
     srcs = ["blackboard_value.py"],
     deps = [
@@ -197,6 +223,7 @@ py_library(
     srcs = ["execution.py"],
     deps = [
         ":behavior_tree",
+        ":blackboard",
         ":blackboard_value",
         ":error_processing",
         ":errors",
@@ -279,6 +306,7 @@ py_library(
     name = "solutions_lib",
     deps = [
         ":behavior_tree",
+        ":blackboard",
         ":blackboard_value",
         ":cel",
         ":deployments",
