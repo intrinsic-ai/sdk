@@ -13,6 +13,7 @@ from intrinsic.executive.proto import test_message_pb2
 from intrinsic.solutions import blackboard
 from intrinsic.solutions import blackboard_value
 from intrinsic.solutions.internal import skill_utils
+from intrinsic.util.status import extended_status_pb2
 
 
 class BlackboardTest(absltest.TestCase):
@@ -21,6 +22,18 @@ class BlackboardTest(absltest.TestCase):
     super().setUp()
     self._stub = mock.MagicMock()
     self._blackboard = blackboard.Blackboard(self._stub, "test_operation")
+
+    # Default success response for load_snapshot
+    success_diagnostics = extended_status_pb2.ExtendedStatus()
+    success_diagnostics.status_code.code = 80114
+    success_diagnostics.severity = (
+        extended_status_pb2.ExtendedStatus.Severity.INFO
+    )
+    self._stub.LoadBlackboardSnapshot.return_value = (
+        blackboard_service_pb2.LoadBlackboardSnapshotResponse(
+            diagnostics=success_diagnostics
+        )
+    )
 
   def test_delete_value_without_scope(self):
     self._blackboard.delete_value("test_key")
@@ -508,6 +521,84 @@ class BlackboardTest(absltest.TestCase):
     with self.assertRaises(TypeError):
       self._blackboard.update_value("test_key", [1, 2, 3])
 
+
+  def test_create_snapshot(self):
+    expected_snapshot = blackboard_service_pb2.BlackboardSnapshot(
+        handle="new_handle", display_name="new_name"
+    )
+    self._stub.CreateBlackboardSnapshot.return_value = (
+        blackboard_service_pb2.CreateBlackboardSnapshotResponse(
+            snapshot=expected_snapshot
+        )
+    )
+
+    result = self._blackboard.create_snapshot("new_name")
+
+    self.assertEqual(result, expected_snapshot)
+    self._stub.CreateBlackboardSnapshot.assert_called_once_with(
+        blackboard_service_pb2.CreateBlackboardSnapshotRequest(
+            operation_name="test_operation",
+            display_name="new_name",
+            snapshot_source=blackboard.SnapshotSource.USER.value,
+        )
+    )
+
+  def test_create_snapshot_default_name(self):
+    self._stub.CreateBlackboardSnapshot.return_value = (
+        blackboard_service_pb2.CreateBlackboardSnapshotResponse(
+            snapshot=blackboard_service_pb2.BlackboardSnapshot(handle="h")
+        )
+    )
+
+    self._blackboard.create_snapshot()
+
+    self._stub.CreateBlackboardSnapshot.assert_called_once_with(
+        blackboard_service_pb2.CreateBlackboardSnapshotRequest(
+            operation_name="test_operation",
+            display_name="",
+            snapshot_source=blackboard.SnapshotSource.USER.value,
+        )
+    )
+
+  def test_load_snapshot(self):
+    self._blackboard.load_snapshot("test_handle")
+
+    self._stub.LoadBlackboardSnapshot.assert_called_once_with(
+        blackboard_service_pb2.LoadBlackboardSnapshotRequest(
+            operation_name="test_operation",
+            handle="test_handle",
+            integration_mode=blackboard.IntegrationMode.MERGE.value,
+        )
+    )
+
+  def test_load_snapshot_with_proto(self):
+    snapshot = blackboard_service_pb2.BlackboardSnapshot(handle="proto_handle")
+    self._blackboard.load_snapshot(snapshot)
+
+    self._stub.LoadBlackboardSnapshot.assert_called_once_with(
+        blackboard_service_pb2.LoadBlackboardSnapshotRequest(
+            operation_name="test_operation",
+            handle="proto_handle",
+            integration_mode=blackboard.IntegrationMode.MERGE.value,
+        )
+    )
+
+  @mock.patch(
+      "intrinsic.solutions.ipython.display_extended_status_proto_if_ipython"
+  )
+  def test_load_snapshot_with_diagnostics(self, mock_display):
+    diagnostics = extended_status_pb2.ExtendedStatus()
+    diagnostics.status_code.code = 12345
+    diagnostics.severity = extended_status_pb2.ExtendedStatus.Severity.ERROR
+    self._stub.LoadBlackboardSnapshot.return_value = (
+        blackboard_service_pb2.LoadBlackboardSnapshotResponse(
+            diagnostics=diagnostics
+        )
+    )
+
+    self._blackboard.load_snapshot("test_handle")
+
+    mock_display.assert_called_once_with(diagnostics)
 
 
 class BlackboardSnapshotsTest(absltest.TestCase):

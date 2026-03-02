@@ -17,6 +17,7 @@ from intrinsic.solutions import ipython
 from intrinsic.solutions import utils
 from intrinsic.solutions.internal import skill_utils
 from intrinsic.util.grpc import error_handling
+from intrinsic.util.status import extended_status_pb2
 
 
 class ScopedBlackboardKey(typing.NamedTuple):
@@ -305,6 +306,66 @@ class Blackboard:
     )
     self._stub.UpdateBlackboardValue(request)
 
+
+  @error_handling.retry_on_grpc_unavailable
+  @error_handling.log_extended_status(
+      ipython.display_extended_status_proto_if_ipython
+  )
+  def create_snapshot(
+      self,
+      display_name: str = "",
+      snapshot_source: SnapshotSource = SnapshotSource.USER,
+  ) -> blackboard_service_pb2.BlackboardSnapshot:
+    """Saves the current operation's blackboard as a snapshot.
+
+    Args:
+      display_name: A user-friendly name for the snapshot.
+      snapshot_source: The source/reason for creating this snapshot.
+
+    Returns:
+      The created BlackboardSnapshot proto.
+    """
+    request = blackboard_service_pb2.CreateBlackboardSnapshotRequest(
+        operation_name=self._operation_name,
+        display_name=display_name,
+        snapshot_source=snapshot_source.value,
+    )
+    response = self._stub.CreateBlackboardSnapshot(request)
+    return response.snapshot
+
+  @error_handling.retry_on_grpc_unavailable
+  @error_handling.log_extended_status(
+      ipython.display_extended_status_proto_if_ipython
+  )
+  def load_snapshot(
+      self,
+      handle: str | blackboard_service_pb2.BlackboardSnapshot,
+      integration_mode: IntegrationMode = IntegrationMode.MERGE,
+  ) -> None:
+    """Loads a previously saved snapshot into the current operation's blackboard.
+
+    Args:
+      handle: The handle of the snapshot to load, or the BlackboardSnapshot
+        proto itself.
+      integration_mode: How to integrate the snapshot values into the existing
+        blackboard.
+    """
+    if isinstance(handle, blackboard_service_pb2.BlackboardSnapshot):
+      handle = handle.handle
+
+    request = blackboard_service_pb2.LoadBlackboardSnapshotRequest(
+        operation_name=self._operation_name,
+        handle=handle,
+        integration_mode=integration_mode.value,
+    )
+    response = self._stub.LoadBlackboardSnapshot(request)
+    # 80114: Successfully restored snapshot
+    if (
+        response.diagnostics.status_code.code != 80114
+        or response.diagnostics.severity
+        != extended_status_pb2.ExtendedStatus.Severity.INFO
+    ):
+      ipython.display_extended_status_proto_if_ipython(response.diagnostics)
 
 
 class BlackboardSnapshots:

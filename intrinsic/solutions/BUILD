@@ -93,11 +93,13 @@ py_library(
     name = "blackboard",
     srcs = ["blackboard.py"],
     deps = [
+        ":blackboard_value",
         ":ipython",
         "//intrinsic/executive/proto:blackboard_service_py_pb2",
         "//intrinsic/executive/proto:blackboard_service_py_pb2_grpc",
         "//intrinsic/solutions/internal:skill_utils",
         "//intrinsic/util/grpc:error_handling",
+        "//intrinsic/util/status:extended_status_py_pb2",
     ],
 )
 
@@ -110,6 +112,7 @@ py_test(
         "//intrinsic/executive/proto:blackboard_service_py_pb2",
         "//intrinsic/executive/proto:test_message_py_pb2",
         "//intrinsic/solutions/internal:skill_utils",
+        "//intrinsic/util/status:extended_status_py_pb2",
         "@com_google_absl_py//absl/testing:absltest",
         "@com_google_protobuf//:protobuf_python",
     ],
