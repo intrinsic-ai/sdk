@@ -245,6 +245,8 @@ class SolutionTest(absltest.TestCase):
 
     pose_estimators = mock.MagicMock()
 
+    self._proto_registry = mock.MagicMock()
+
     self._executive = executive
     self._skill_registry = skill_registry
     self._resource_registry = resource_registry
@@ -269,6 +271,7 @@ class SolutionTest(absltest.TestCase):
         self._simulation,
         self._errors,
         self._pose_estimators,
+        proto_registry=self._proto_registry,
     )
 
   def test_initializes(self):
@@ -284,6 +287,7 @@ class SolutionTest(absltest.TestCase):
     self.assertIsNotNone(solution.pose_estimators)
     self.assertIsNotNone(solution.processes)
     self.assertIsNotNone(solution.behavior_trees)
+    self.assertIsNotNone(solution._proto_registry)
 
     self.assertIsNotNone(solution.skills.ai.intrinsic.my_skill)
     self._skill_registry_stub.GetSkills.assert_called_once_with(

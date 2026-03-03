@@ -26,6 +26,7 @@ import grpc
 from intrinsic.frontend.solution_service.proto import solution_service_pb2
 from intrinsic.frontend.solution_service.proto import solution_service_pb2_grpc
 from intrinsic.frontend.solution_service.proto import status_pb2 as solution_status_pb2
+from intrinsic.proto_tools.registry import proto_registry_client
 from intrinsic.resources.client import resource_registry_client
 from intrinsic.scene.product.client import product_client as product_client_mod
 from intrinsic.skills.client import skill_registry_client
@@ -116,6 +117,7 @@ class Solution:
   _resource_registry: resource_registry_client.ResourceRegistryClient
   pbt_registry: pbt_registration.BehaviorTreeRegistry | None
   proto_builder: proto_building.ProtoBuilder | None
+  _proto_registry: proto_registry_client.ProtoRegistryClient | None
 
   def __init__(
       self,
@@ -133,6 +135,7 @@ class Solution:
       pose_estimators: pose_estimation.PoseEstimators | None,
       pbt_registry: pbt_registration.BehaviorTreeRegistry | None = None,
       proto_builder: proto_building.ProtoBuilder | None = None,
+      proto_registry: proto_registry_client.ProtoRegistryClient | None = None,
   ):
     self.grpc_channel: grpc.Channel = grpc_channel
     self.is_simulated: bool = is_simulated
@@ -160,6 +163,7 @@ class Solution:
     self.errors = errors
     self.pbt_registry = pbt_registry
     self.proto_builder = proto_builder
+    self._proto_registry = proto_registry
 
   @classmethod
   def for_channel(
@@ -224,6 +228,9 @@ class Solution:
 
     pbt_registry = pbt_registration.BehaviorTreeRegistry.connect(grpc_channel)
     proto_builder = proto_building.ProtoBuilder.connect(grpc_channel)
+    proto_registry = proto_registry_client.ProtoRegistryClient.connect(
+        grpc_channel
+    )
 
     print(
         "Connected successfully to"
@@ -245,6 +252,7 @@ class Solution:
         pose_estimators,
         pbt_registry,
         proto_builder,
+        proto_registry,
     )
 
   @property
