@@ -631,6 +631,23 @@ class BlackboardTest(absltest.TestCase):
 
     mock_display.assert_called_once_with(diagnostics)
 
+  @mock.patch(
+      "intrinsic.solutions.ipython.display_extended_status_proto_if_ipython"
+  )
+  def test_load_snapshot_with_success_diagnostics(self, mock_display):
+    diagnostics = extended_status_pb2.ExtendedStatus()
+    diagnostics.status_code.code = 80114
+    diagnostics.severity = extended_status_pb2.ExtendedStatus.Severity.INFO
+    self._stub.LoadBlackboardSnapshot.return_value = (
+        blackboard_service_pb2.LoadBlackboardSnapshotResponse(
+            diagnostics=diagnostics
+        )
+    )
+
+    self._blackboard.load_snapshot("test_handle")
+
+    mock_display.assert_not_called()
+
 
 class BlackboardSnapshotsTest(absltest.TestCase):
 
