@@ -11,8 +11,8 @@ from google.protobuf import wrappers_pb2
 
 from intrinsic.executive.proto import blackboard_service_pb2
 from intrinsic.executive.proto import test_message_pb2
-from intrinsic.solutions import blackboard
 from intrinsic.solutions import blackboard_value
+from intrinsic.solutions.internal import blackboard
 from intrinsic.solutions.internal import skill_utils
 from intrinsic.util.proto import descriptors
 from intrinsic.util.status import extended_status_pb2

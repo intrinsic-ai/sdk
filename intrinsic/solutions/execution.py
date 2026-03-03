@@ -47,7 +47,6 @@ from intrinsic.executive.proto import run_metadata_pb2
 from intrinsic.executive.proto import run_response_pb2
 from intrinsic.proto_tools.registry import proto_registry_client
 from intrinsic.solutions import behavior_tree as bt
-from intrinsic.solutions import blackboard
 from intrinsic.solutions import blackboard_value
 from intrinsic.solutions import error_processing
 from intrinsic.solutions import errors as solutions_errors
@@ -56,6 +55,7 @@ from intrinsic.solutions import provided
 from intrinsic.solutions import simulation as simulation_mod
 from intrinsic.solutions import utils
 from intrinsic.solutions.internal import actions
+from intrinsic.solutions.internal import blackboard as blackboard_internal
 from intrinsic.util.grpc import error_handling
 from intrinsic.util.proto import descriptors
 from intrinsic.util.status import extended_status_pb2
@@ -71,6 +71,8 @@ _CSS_INTERRUPTED_STYLE = (
     "padding-left: var(--jp-code-padding);"
 )
 _PROCESS_TREE_SCOPE = "PROCESS_TREE"
+
+Blackboard = blackboard_internal.Blackboard
 
 BehaviorTreeOrActionType = Union[
     bt.BehaviorTree,
@@ -143,7 +145,7 @@ class Operation:
   _metadata: run_metadata_pb2.RunMetadata
   _response: run_response_pb2.RunResponse | None
   _proto_registry: proto_registry_client.ProtoRegistryClient
-  blackboard: blackboard.Blackboard
+  blackboard: Blackboard
 
   def __init__(
       self,
@@ -156,7 +158,7 @@ class Operation:
     self._blackboard_stub = blackboard_stub
     self._proto_registry = proto_registry
     self.update_from_proto(operation_proto)
-    self.blackboard = blackboard.Blackboard(
+    self.blackboard = Blackboard(
         self._blackboard_stub, self.name, self._proto_registry
     )
 
@@ -450,9 +452,9 @@ class Executive:
 
 
   @property
-  def blackboard_snapshots(self) -> blackboard.BlackboardSnapshots:
+  def blackboard_snapshots(self) -> blackboard_internal.BlackboardSnapshots:
     """Returns the blackboard snapshots wrapper."""
-    return blackboard.BlackboardSnapshots(self._blackboard_stub)
+    return blackboard_internal.BlackboardSnapshots(self._blackboard_stub)
 
 
 
@@ -1061,7 +1063,7 @@ class Executive:
       if self.has_operation:
         snapshot = self.operation.blackboard.create_snapshot(
             "run_keep_blackboard",
-            snapshot_source=blackboard.SnapshotSource.AUTOMATIC,
+            snapshot_source=blackboard_internal.SnapshotSource.AUTOMATIC,
         )
       else:
         warnings.warn(
