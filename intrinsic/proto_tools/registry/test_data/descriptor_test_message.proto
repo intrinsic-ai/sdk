@@ -1,0 +1,13 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic.testing.proto;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "intrinsic/proto_tools/registry/test_data/descriptor_test_message_go_proto";
+
+message DescriptorTestMessage {
+  google.protobuf.Timestamp timestamp = 1;
+}
