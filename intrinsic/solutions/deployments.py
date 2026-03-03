@@ -61,7 +61,7 @@ _CSS_FAILURE_STYLE = (
     "padding-left: var(--jp-code-padding);"
 )
 
-_WORLD_ID = "world"
+
 
 
 class Solution:

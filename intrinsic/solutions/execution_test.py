@@ -30,6 +30,7 @@ from intrinsic.solutions import errors as solutions_errors
 from intrinsic.solutions import execution
 from intrinsic.solutions import provided
 from intrinsic.solutions import simulation as simulation_mod
+from intrinsic.solutions import worlds  # pylint: disable=line-too-long 
 from intrinsic.solutions.internal import behavior_call
 from intrinsic.solutions.testing import compare
 from intrinsic.solutions.testing import test_skill_params_pb2
@@ -103,6 +104,7 @@ class ExecutiveTest(parameterized.TestCase):
       bt_proto: behavior_tree_pb2.BehaviorTree = behavior_tree_pb2.BehaviorTree(),
       name: str = _OPERATION_NAME,
       response: run_response_pb2.RunResponse | None = None,
+      scene_id: str = '',  # pylint: disable=line-too-long 
   ):
     metadata = run_metadata_pb2.RunMetadata(operation_state=state)
     metadata.behavior_tree.CopyFrom(bt_proto)
@@ -113,6 +115,10 @@ class ExecutiveTest(parameterized.TestCase):
         run_metadata_pb2.RunMetadata.CANCELED,
     ]:
       done = True
+
+    if scene_id:
+      metadata.scene_id = scene_id
+
     return operations_pb2.Operation(
         name=name,
         done=done,
@@ -161,9 +167,11 @@ class ExecutiveTest(parameterized.TestCase):
 
   def _setup_start_operation(
       self,
+      scene_id: str = '',  # pylint: disable=line-too-long 
   ):
     start_response = self._create_operation_proto(
         state=run_metadata_pb2.RunMetadata.RUNNING,
+        scene_id=scene_id,  # pylint: disable=line-too-long 
     )
     self._executive_service_stub.StartOperation.return_value = start_response
 
@@ -437,6 +445,41 @@ class ExecutiveTest(parameterized.TestCase):
     self._executive_service_stub.CreateOperation.assert_called_once_with(
         create_request
     )
+
+
+  @parameterized.named_parameters(
+      dict(
+          testcase_name='initial_world_id',
+          edit_world_id=worlds.EditWorldId.INITIAL,
+      ),
+      dict(
+          testcase_name='execute_world_id',
+          edit_world_id=worlds.EditWorldId.BELIEF,
+      ),
+  )
+  def test_run_async_sets_scene_id(self, edit_world_id):
+    """Tests if executive.run_async(start_from_world_state) propagates the world id."""
+    self._create_operation()
+    response = self._create_operation_proto(
+        state=run_metadata_pb2.RunMetadata.RUNNING,
+        scene_id=edit_world_id,
+    )
+    self._executive_service_stub.StartOperation.return_value = response
+
+    self._executive.run_async(start_from_world_state=edit_world_id)
+
+    start_request = executive_service_pb2.StartOperationRequest(
+        name=_OPERATION_NAME
+    )
+    start_request.skill_trace_handling = (
+        run_metadata_pb2.RunMetadata.TracingInfo.SKILL_TRACES_LINK
+    )
+    start_request.scene_id = edit_world_id
+    self._executive_service_stub.StartOperation.assert_called_once_with(
+        start_request
+    )
+
+
 
   @parameterized.named_parameters(
       dict(
@@ -933,6 +976,44 @@ class ExecutiveTest(parameterized.TestCase):
             tree_id=tree.tree_id, node_id=n2.node_id
         )
     )
+    self._executive_service_stub.StartOperation.assert_called_once_with(
+        start_request
+    )
+
+
+
+
+  @parameterized.named_parameters(
+      dict(
+          testcase_name='initial_world_id',
+          edit_world_id=worlds.EditWorldId.INITIAL,
+      ),
+      dict(
+          testcase_name='execute_world_id',
+          edit_world_id=worlds.EditWorldId.BELIEF,
+      ),
+  )
+  def test_run_sets_scene_id(self, edit_world_id):
+    """Tests if executive.run(start_from_world_state) propagates the world id."""
+    self._setup_create_operation()
+    self._setup_start_operation(scene_id=edit_world_id)
+    self._setup_get_operation_sequence([
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+    ])
+
+    my_action = behavior_call.Action(skill_id='my_action')
+    self._executive.run(my_action, start_from_world_state=edit_world_id)
+
+    start_request = executive_service_pb2.StartOperationRequest(
+        name=_OPERATION_NAME
+    )
+    start_request.skill_trace_handling = (
+        run_metadata_pb2.RunMetadata.TracingInfo.SKILL_TRACES_LINK
+    )
+    start_request.scene_id = edit_world_id
     self._executive_service_stub.StartOperation.assert_called_once_with(
         start_request
     )

@@ -54,6 +54,7 @@ from intrinsic.solutions import ipython
 from intrinsic.solutions import provided
 from intrinsic.solutions import simulation as simulation_mod
 from intrinsic.solutions import utils
+from intrinsic.solutions import worlds  # pylint: disable=line-too-long 
 from intrinsic.solutions.internal import actions
 from intrinsic.solutions.internal import blackboard as blackboard_internal
 from intrinsic.util.grpc import error_handling
@@ -691,6 +692,9 @@ class Executive:
       simulation_mode: Optional["Executive.SimulationMode"] = None,
       embed_skill_traces: bool = False,
 
+      start_from_world_state: worlds.EditWorldId | None = None,
+
+
       keep_blackboard: bool = False,
 
   ):
@@ -727,6 +731,21 @@ class Executive:
         to these nodes and run from there. Only one of recover_from_nodes or
         start_node can be set.
 
+
+      start_from_world_state: Optional parameter to specify what starting world
+        state to run the operation from. If an EditWorldId is set, the execute
+        belief world and simulation world will be reset to the specified world
+        before running the operation. Otherwise, the operation will be run in
+        the current world state as-is.
+
+        Specifying `worlds.EditWorldId.INITIAL` resets the world state to the
+        state of the Initial editing world before running the operation.
+
+        Specifying `worlds.EditWorldId.BELIEF` keeps the execute belief world in
+        its current state, but the simulation world state is first reset to
+        match the execute world.
+
+
     Raises:
       solutions_errors.UnavailableError: On executive service not reachable.
       grpc.RpcError: On any other gRPC error.
@@ -744,6 +763,7 @@ class Executive:
 
         simulation_mode=simulation_mode,
         embed_skill_traces=embed_skill_traces,
+        start_from_world_state=start_from_world_state,  # pylint: disable=line-too-long 
 
         keep_blackboard=keep_blackboard,
 
@@ -764,6 +784,9 @@ class Executive:
 
       simulation_mode: Optional["Executive.SimulationMode"] = None,
       embed_skill_traces: bool = False,
+
+      start_from_world_state: worlds.EditWorldId | None = None,
+
 
       keep_blackboard: bool = False,
 
@@ -804,6 +827,21 @@ class Executive:
         to these nodes and run from there. Only one of recover_from_nodes or
         start_node can be set.
 
+
+      start_from_world_state: Optional parameter to specify what starting world
+        state to run the operation from. If an EditWorldId is set, the execute
+        belief world and simulation world will be reset to the specified world
+        before running the operation. Otherwise, the operation will be run in
+        the current world state as-is.
+
+        Specifying `worlds.EditWorldId.INITIAL` resets the world state to the
+        state of the Initial editing world before running the operation.
+
+        Specifying `worlds.EditWorldId.BELIEF` keeps the execute belief world in
+        its current state, but the simulation world state is first reset to
+        match the execute world.
+
+
     Raises:
       ExecutionFailedError: On unexpected state of the executive during plan
                 execution.
@@ -827,6 +865,7 @@ class Executive:
 
         simulation_mode=simulation_mode,
         embed_skill_traces=embed_skill_traces,
+        start_from_world_state=start_from_world_state,  # pylint: disable=line-too-long 
 
         keep_blackboard=keep_blackboard,
 
@@ -869,6 +908,7 @@ class Executive:
 
       recover_from_nodes: list[bt.NodeInTreeType] | None,
 
+      start_from_world_state: worlds.EditWorldId | None,  # pylint: disable=line-too-long 
 
       keep_blackboard: bool = False,
 
@@ -903,6 +943,21 @@ class Executive:
         to these nodes and run from there. Only one of recover_from_nodes or
         start_node can be set.
 
+
+      start_from_world_state: Optional parameter to specify what starting world
+        state to run the operation from. If an EditWorldId is set, the execute
+        belief world and simulation world will be reset to the specified world
+        before running the operation. Otherwise, the operation will be run in
+        the current world state as-is.
+
+        Specifying `worlds.EditWorldId.INITIAL` resets the world state to the
+        state of the Initial editing world before running the operation.
+
+        Specifying `worlds.EditWorldId.BELIEF` keeps the execute belief world in
+        its current state, but the simulation world state is first reset to
+        match the execute world.
+
+
     Raises:
       ExecutionFailedError: On unexpected state of the executive during plan
                 execution.
@@ -910,7 +965,7 @@ class Executive:
       grpc.RpcError: On any other gRPC error.
       OperationNotFoundError: if no operation is currently active.
     """
-    self._reset_simulation_if_needed(silence_outputs)
+
 
 
     if recover_from_nodes and start_node is not None:
@@ -950,6 +1005,7 @@ class Executive:
           embed_skill_traces=embed_skill_traces,
           parameters=None,
           resources=None,
+          start_from_world_state=start_from_world_state,  # pylint: disable=line-too-long 
       )
       return
 
@@ -999,6 +1055,7 @@ class Executive:
         simulation_mode=simulation_mode,
         embed_skill_traces=embed_skill_traces,
         silence_outputs=silence_outputs,
+        start_from_world_state=start_from_world_state,  # pylint: disable=line-too-long 
     )
 
   # pylint: enable=g-doc-args
@@ -1131,6 +1188,7 @@ class Executive:
 
       simulation_mode: Optional["Executive.SimulationMode"] = None,
       embed_skill_traces: bool = False,
+      start_from_world_state: worlds.EditWorldId | None = None,  # pylint: disable=line-too-long 
   ) -> None:
     """Starts the currently loaded plan.
 
@@ -1154,6 +1212,21 @@ class Executive:
 
       recover_from_nodes: List of nodes to recover from. Execution will forward
         to these nodes and run from there.
+
+
+      start_from_world_state: Optional parameter to specify what starting world
+        state to start the operation from. If an EditWorldId is set, the execute
+        belief world and simulation world will be reset to the specified world
+        before starting the operation. Otherwise, the operation will be started
+        in the current world state as-is.
+
+        Specifying `worlds.EditWorldId.INITIAL` resets the world state to the
+        state of the Initial editing world before starting the operation.
+
+        Specifying `worlds.EditWorldId.BELIEF` keeps the execute belief world in
+        its current state, but the simulation world state is first reset to
+        match the execute world.
+
 
     Raises:
       solutions_errors.UnavailableError: On executive service not reachable.
@@ -1190,6 +1263,7 @@ class Executive:
 
         simulation_mode=simulation_mode,
         embed_skill_traces=embed_skill_traces,
+        start_from_world_state=start_from_world_state,  # pylint: disable=line-too-long 
     )
 
     if blocking:
@@ -1453,6 +1527,7 @@ class Executive:
 
       simulation_mode: Optional["Executive.SimulationMode"] = None,
       embed_skill_traces: bool = False,
+      start_from_world_state: worlds.EditWorldId | None = None,  # pylint: disable=line-too-long 
   ) -> None:
     """Starts the executive and handles errors."""
     if self._operation is None:
@@ -1492,6 +1567,10 @@ class Executive:
     if resources is not None:
       for reference, handle in resources.items():
         request.resources[reference] = handle
+
+    if start_from_world_state is not None:
+      request.scene_id = start_from_world_state
+
     self._operation.update_from_proto(self._stub.StartOperation(request))
 
   @error_handling.retry_on_grpc_unavailable

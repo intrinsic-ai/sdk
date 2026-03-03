@@ -2,6 +2,7 @@
 
 """Extends the general ObjectWorldClient with Workcell API specific features."""
 
+import enum  # pylint: disable=line-too-long 
 from typing import Optional
 from typing import Union
 
@@ -24,6 +25,18 @@ TransformNodeTypes = Union[
     object_world_refs_pb2.FrameReference,
     object_world_refs_pb2.TransformNodeReference,
 ]
+
+
+
+class EditWorldId(str, enum.Enum):
+  """Identifier for standard worlds that can be edited.
+
+  The INITIAL world provides the ID for the Initial editing world where as the
+  BELIEF world provides the ID for the Execute Belief world.
+  """
+
+  INITIAL = "init_world"
+  BELIEF = "world"
 
 
 
