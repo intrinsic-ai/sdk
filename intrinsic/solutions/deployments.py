@@ -117,7 +117,7 @@ class Solution:
   _resource_registry: resource_registry_client.ResourceRegistryClient
   pbt_registry: pbt_registration.BehaviorTreeRegistry | None
   proto_builder: proto_building.ProtoBuilder | None
-  _proto_registry: proto_registry_client.ProtoRegistryClient | None
+  _proto_registry: proto_registry_client.ProtoRegistryClient
 
   def __init__(
       self,
@@ -201,8 +201,14 @@ class Solution:
 
     # Required backends.
     error_loader = error_processing.ErrorsLoader()
+    proto_registry = proto_registry_client.ProtoRegistryClient.connect(
+        grpc_channel
+    )
     executive = execution.Executive.connect(
-        grpc_channel, error_loader, simulator
+        grpc_channel,
+        error_loader,
+        proto_registry=proto_registry,
+        simulation=simulator,
     )
     skill_registry = skill_registry_client.SkillRegistryClient.connect(
         grpc_channel
@@ -228,9 +234,6 @@ class Solution:
 
     pbt_registry = pbt_registration.BehaviorTreeRegistry.connect(grpc_channel)
     proto_builder = proto_building.ProtoBuilder.connect(grpc_channel)
-    proto_registry = proto_registry_client.ProtoRegistryClient.connect(
-        grpc_channel
-    )
 
     print(
         "Connected successfully to"

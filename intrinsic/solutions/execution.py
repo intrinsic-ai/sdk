@@ -45,6 +45,7 @@ from intrinsic.executive.proto import executive_service_pb2
 from intrinsic.executive.proto import executive_service_pb2_grpc
 from intrinsic.executive.proto import run_metadata_pb2
 from intrinsic.executive.proto import run_response_pb2
+from intrinsic.proto_tools.registry import proto_registry_client
 from intrinsic.solutions import behavior_tree as bt
 from intrinsic.solutions import blackboard
 from intrinsic.solutions import blackboard_value
@@ -141,6 +142,7 @@ class Operation:
   _operation_proto: operations_pb2.Operation
   _metadata: run_metadata_pb2.RunMetadata
   _response: run_response_pb2.RunResponse | None
+  _proto_registry: proto_registry_client.ProtoRegistryClient
   blackboard: blackboard.Blackboard
 
   def __init__(
@@ -148,11 +150,15 @@ class Operation:
       stub: executive_service_pb2_grpc.ExecutiveServiceStub,
       blackboard_stub: blackboard_service_pb2_grpc.ExecutiveBlackboardStub,
       operation_proto: operations_pb2.Operation,
+      proto_registry: proto_registry_client.ProtoRegistryClient,
   ):
     self._stub = stub
     self._blackboard_stub = blackboard_stub
+    self._proto_registry = proto_registry
     self.update_from_proto(operation_proto)
-    self.blackboard = blackboard.Blackboard(self._blackboard_stub, self.name)
+    self.blackboard = blackboard.Blackboard(
+        self._blackboard_stub, self.name, self._proto_registry
+    )
 
   def update_from_proto(self, proto: operations_pb2.Operation) -> None:
     """Update information from a proto."""
@@ -359,12 +365,14 @@ class Executive:
   _simulation: Optional[simulation_mod.Simulation]
   _polling_interval_in_seconds: float
   _operation: Optional[Operation]
+  _proto_registry: proto_registry_client.ProtoRegistryClient
 
   def __init__(
       self,
       stub: executive_service_pb2_grpc.ExecutiveServiceStub,
       blackboard_stub: blackboard_service_pb2_grpc.ExecutiveBlackboardStub,
       error_loader: error_processing.ErrorsLoader,
+      proto_registry: proto_registry_client.ProtoRegistryClient,
       simulation: Optional[simulation_mod.Simulation] = None,
       polling_interval_in_seconds: float = _DEFAULT_POLLING_INTERVAL_IN_SECONDS,
   ):
@@ -378,12 +386,14 @@ class Executive:
       simulation: The workcell simulation module (optional).
       polling_interval_in_seconds: Number of seconds to wait while polling for
         the operation state in blocking calls such as Executive.suspend().
+      proto_registry: Optional ProtoRegistry service wrapper.
     """
     self._stub = stub
     self._blackboard_stub = blackboard_stub
     self._error_loader = error_loader
     self._simulation = simulation
     self._polling_interval_in_seconds = polling_interval_in_seconds
+    self._proto_registry = proto_registry
     self._operation = None
 
   @classmethod
@@ -391,6 +401,7 @@ class Executive:
       cls,
       grpc_channel: grpc.Channel,
       error_loader: error_processing.ErrorsLoader,
+      proto_registry: proto_registry_client.ProtoRegistryClient,
       simulation: Optional[simulation_mod.Simulation] = None,
       polling_interval_in_seconds: float = _DEFAULT_POLLING_INTERVAL_IN_SECONDS,
   ) -> "Executive":
@@ -402,6 +413,7 @@ class Executive:
       simulation: The workcell simulation module (optional).
       polling_interval_in_seconds: Number of seconds to wait while polling for
         the operation state in blocking calls such as Executive.suspend().
+      proto_registry: Optional ProtoRegistry service wrapper.
 
     Returns:
       A newly created instance of the Executive wrapper class.
@@ -414,6 +426,7 @@ class Executive:
         stub,
         blackboard_stub,
         error_loader,
+        proto_registry,
         simulation,
         polling_interval_in_seconds,
     )
@@ -461,7 +474,10 @@ class Executive:
       resp = self._stub.ListOperations(operations_pb2.ListOperationsRequest())
       if resp.operations:
         self._operation = Operation(
-            self._stub, self._blackboard_stub, resp.operations[0]
+            self._stub,
+            self._blackboard_stub,
+            resp.operations[0],
+            self._proto_registry,
         )
 
   @property
@@ -1520,7 +1536,10 @@ class Executive:
   )
   def _create_with_retry(self, request) -> None:
     self._operation = Operation(
-        self._stub, self._blackboard_stub, self._stub.CreateOperation(request)
+        self._stub,
+        self._blackboard_stub,
+        self._stub.CreateOperation(request),
+        self._proto_registry,
     )
 
   @error_handling.retry_on_grpc_unavailable

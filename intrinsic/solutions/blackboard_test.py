@@ -6,6 +6,7 @@ from unittest import mock
 
 from absl.testing import absltest
 from google.protobuf import any_pb2
+from google.protobuf import message
 from google.protobuf import wrappers_pb2
 
 from intrinsic.executive.proto import blackboard_service_pb2
@@ -13,6 +14,7 @@ from intrinsic.executive.proto import test_message_pb2
 from intrinsic.solutions import blackboard
 from intrinsic.solutions import blackboard_value
 from intrinsic.solutions.internal import skill_utils
+from intrinsic.util.proto import descriptors
 from intrinsic.util.status import extended_status_pb2
 
 
@@ -21,7 +23,10 @@ class BlackboardTest(absltest.TestCase):
   def setUp(self):
     super().setUp()
     self._stub = mock.MagicMock()
-    self._blackboard = blackboard.Blackboard(self._stub, "test_operation")
+    self._proto_registry = mock.MagicMock()
+    self._blackboard = blackboard.Blackboard(
+        self._stub, "test_operation", proto_registry=self._proto_registry
+    )
 
     # Default success response for load_snapshot
     success_diagnostics = extended_status_pb2.ExtendedStatus()
@@ -239,6 +244,32 @@ class BlackboardTest(absltest.TestCase):
     self.assertIsInstance(result, any_pb2.Any)
     self.assertEqual(result.type_url, any_val.type_url)
     self.assertEqual(result.value, any_val.value)
+
+  def test_get_value_proto_unpacking(self):
+    msg = test_message_pb2.TestMessage(int32_value=123)
+    any_val = any_pb2.Any()
+    any_val.Pack(msg)
+    any_val.type_url = "type.intrinsic.ai/intrinsic_proto.executive.TestMessage"
+    self._stub.GetBlackboardValue.return_value = (
+        blackboard_service_pb2.BlackboardValue(value=any_val)
+    )
+
+    # Mock ProtoRegistry to return FileDescriptorSet for TestMessage
+    fds = descriptors.gen_file_descriptor_set(
+        test_message_pb2.TestMessage.DESCRIPTOR
+    )
+    self._proto_registry.get_descriptor_set_by_typeurl.return_value = fds
+
+    result = self._blackboard.get_value("test_key")
+
+    self.assertIsInstance(result, message.Message)
+    self.assertEqual(
+        result.DESCRIPTOR.full_name, "intrinsic_proto.executive.TestMessage"
+    )
+    self.assertEqual(result.int32_value, 123)
+    self._proto_registry.get_descriptor_set_by_typeurl.assert_called_once_with(
+        any_val.type_url
+    )
 
   def test_update_value_any(self):
     existing_any = any_pb2.Any()

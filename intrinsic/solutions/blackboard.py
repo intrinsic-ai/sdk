@@ -8,15 +8,18 @@ import typing
 from google.protobuf import any_pb2
 from google.protobuf import empty_pb2
 from google.protobuf import message
+from google.protobuf import message_factory
 from google.protobuf import wrappers_pb2
 
 from intrinsic.executive.proto import blackboard_service_pb2
 from intrinsic.executive.proto import blackboard_service_pb2_grpc
+from intrinsic.proto_tools.registry import proto_registry_client
 from intrinsic.solutions import blackboard_value
 from intrinsic.solutions import ipython
 from intrinsic.solutions import utils
 from intrinsic.solutions.internal import skill_utils
 from intrinsic.util.grpc import error_handling
+from intrinsic.util.proto import descriptors
 from intrinsic.util.status import extended_status_pb2
 
 
@@ -91,20 +94,24 @@ class Blackboard:
 
   _stub: blackboard_service_pb2_grpc.ExecutiveBlackboardStub
   _operation_name: str
+  _proto_registry: proto_registry_client.ProtoRegistryClient
 
   def __init__(
       self,
       stub: blackboard_service_pb2_grpc.ExecutiveBlackboardStub,
       operation_name: str,
+      proto_registry: proto_registry_client.ProtoRegistryClient,
   ):
     """Initializes the blackboard.
 
     Args:
       stub: The gRPC stub to be used for blackboard related calls.
       operation_name: The name of the operation this blackboard belongs to.
+      proto_registry: Optional ProtoRegistry service wrapper.
     """
     self._stub = stub
     self._operation_name = operation_name
+    self._proto_registry = proto_registry
 
   def _resolve_key_and_scope(
       self, key: str | blackboard_value.BlackboardValue, scope: str | None
@@ -223,11 +230,25 @@ class Blackboard:
     """
     any_value = self.get_value_any(key, scope)
 
-    type_name = any_value.type_url.rpartition("/")[-1]
-    if type_name in _WRAPPER_TYPES:
-      wrapper = _WRAPPER_TYPES[type_name]()
+    type_url = any_value.type_url
+    proto_name = type_url.rpartition("/")[-1]
+    if proto_name in _WRAPPER_TYPES:
+      wrapper = _WRAPPER_TYPES[proto_name]()
       any_value.Unpack(wrapper)
       return wrapper.value
+
+    if self._proto_registry is not None:
+      try:
+        fds = self._proto_registry.get_descriptor_set_by_typeurl(type_url)
+        pool = descriptors.create_descriptor_pool(fds)
+        msg_descriptor = pool.FindMessageTypeByName(proto_name)
+        if msg_descriptor:
+          message_class = message_factory.GetMessageClass(msg_descriptor)
+          msg = message_class()
+          any_value.Unpack(msg)
+          return msg
+      except Exception:  # pylint: disable=broad-except
+        pass
 
     return any_value
 

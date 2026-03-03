@@ -21,6 +21,7 @@ from intrinsic.executive.proto import executive_service_pb2_grpc
 from intrinsic.executive.proto import run_metadata_pb2
 from intrinsic.executive.proto import run_response_pb2
 from intrinsic.logging.errors.proto import error_report_pb2
+from intrinsic.proto_tools.registry import proto_registry_client
 from intrinsic.resources.proto import resource_handle_pb2
 from intrinsic.solutions import behavior_tree as bt
 from intrinsic.solutions import blackboard_value
@@ -77,11 +78,15 @@ class ExecutiveTest(parameterized.TestCase):
         blackboard_service_pb2_grpc.ExecutiveBlackboardStub
     ) = mock.MagicMock()
     self._simulation: simulation_mod.Simulation = mock.MagicMock()
+    self._proto_registry: proto_registry_client.ProtoRegistryClient = (
+        mock.MagicMock()
+    )
     self._executive: execution.Executive = execution.Executive(
         self._executive_service_stub,
         self._blackboard_stub,
         self._errors,
-        self._simulation,
+        proto_registry=self._proto_registry,
+        simulation=self._simulation,
     )
     # Ensure ListOperations returns a real empty list by default instead of truthy MagicMock
     self._executive_service_stub.ListOperations.return_value = (

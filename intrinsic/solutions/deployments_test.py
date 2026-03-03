@@ -215,6 +215,7 @@ class SolutionTest(absltest.TestCase):
     self._mock_channel = mock.MagicMock()
 
     self._executive_stub = mock.MagicMock()
+    self._blackboard_stub = mock.MagicMock()
 
     errors = error_processing.ErrorsLoader()
 
@@ -226,7 +227,15 @@ class SolutionTest(absltest.TestCase):
         simulation_service_stub, self._object_world_service_stub
     )
 
-    executive = execution.Executive(self._executive_stub, errors, simulation)
+    proto_registry = mock.MagicMock()
+
+    executive = execution.Executive(
+        self._executive_stub,
+        self._blackboard_stub,
+        errors,
+        proto_registry,
+        simulation=simulation,
+    )
 
     self._solution_service = mock.MagicMock()
     self._installed_assets = mock.MagicMock()
