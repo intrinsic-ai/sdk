@@ -17,7 +17,10 @@ package(default_visibility = [
 proto_library(
     name = "proto_registry_proto",
     srcs = ["proto_registry.proto"],
-    deps = ["@com_google_protobuf//:descriptor_proto"],
+    deps = [
+        "@com_google_googleapis//google/api:annotations_proto",
+        "@com_google_protobuf//:descriptor_proto",
+    ],
 )
 
 cc_proto_library(
@@ -50,11 +53,13 @@ go_proto_library(
     compilers = [
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
+        "//bazel:go_gen_grpc_gateway",
     ],
     importpath = "intrinsic/proto_tools/proto/proto_registry_go_proto",
     protos = [":proto_registry_proto"],
     deps = [
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
+        "@org_golang_google_genproto_googleapis_api//annotations",
         "@org_golang_google_protobuf//types/known/anypb",
     ],
 )
