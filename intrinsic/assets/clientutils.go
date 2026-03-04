@@ -110,8 +110,7 @@ type DialCatalogOptions struct {
 	Project string // Defaults to the global assets project.
 }
 
-// DialCatalog creates a connection to a asset catalog service.
-func DialCatalog(ctx context.Context, opts DialCatalogOptions) (context.Context, *grpc.ClientConn, error) {
+func dialCatalogOptions(ctx context.Context, opts DialCatalogOptions) (context.Context, []grpc.DialOption, string, error) {
 	catalogProject := ResolveCatalogProject(opts.Project)
 	// Get the catalog address.
 	address, err := resolveCatalogAddress(ctx, resolveCatalogAddressOptions{
@@ -119,7 +118,7 @@ func DialCatalog(ctx context.Context, opts DialCatalogOptions) (context.Context,
 		Project: catalogProject,
 	})
 	if err != nil {
-		return nil, nil, fmt.Errorf("cannot resolve catalog address: %w", err)
+		return nil, nil, "", fmt.Errorf("cannot resolve catalog address: %w", err)
 	}
 
 	optsOpts := getDialContextOptionsOptions{
@@ -142,10 +141,18 @@ func DialCatalog(ctx context.Context, opts DialCatalogOptions) (context.Context,
 			}
 		}
 		if err != nil {
-			return nil, nil, fmt.Errorf("cannot get dial context options for catalog: %w", err)
+			return nil, nil, "", fmt.Errorf("cannot get dial context options for catalog: %w", err)
 		}
 	}
+	return dialCtx, dialOpts, address, nil
+}
 
+// DialCatalog creates a connection to a asset catalog service.
+func DialCatalog(ctx context.Context, opts DialCatalogOptions) (context.Context, *grpc.ClientConn, error) {
+	dialCtx, dialOpts, address, err := dialCatalogOptions(ctx, opts)
+	if err != nil {
+		return nil, nil, err
+	}
 	conn, err := grpc.NewClient(address, dialOpts...)
 	if err != nil {
 		return nil, nil, fmt.Errorf("cannot dial catalog: %w", err)
