@@ -2,8 +2,8 @@
 
 """Helpers for dealing with Python docker images."""
 
-load("@aspect_bazel_lib//lib:tar.bzl", "mtree_mutate", "mtree_spec", "tar")
 load("@bazel_skylib//lib:paths.bzl", "paths")
+load("@tar.bzl", "mtree_mutate", "mtree_spec", "tar")
 load("//bazel:container.bzl", "container_image")
 
 def python_layers(name, binary, **kwargs):

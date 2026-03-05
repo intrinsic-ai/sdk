@@ -2,7 +2,7 @@
 
 """Build rules for HardwareDevice assets."""
 
-load("@aspect_bazel_lib//lib:paths.bzl", "to_rlocation_path")
+load("@bazel_lib//lib:paths.bzl", "to_rlocation_path")
 load("//intrinsic/assets/build_defs:asset.bzl", "AssetCatalogRefInfo", "AssetInfo", "AssetLocalInfo")
 
 HardwareDeviceAssetInfo = provider(

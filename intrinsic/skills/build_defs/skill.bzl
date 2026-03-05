@@ -2,7 +2,7 @@
 
 """Build rules for creating Skill artifacts."""
 
-load("@aspect_bazel_lib//lib:paths.bzl", "to_rlocation_path")
+load("@bazel_lib//lib:paths.bzl", "to_rlocation_path")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")

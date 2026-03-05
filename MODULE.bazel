@@ -274,7 +274,7 @@ use_repo(
 # keep-sorted start
 bazel_dep(name = "abseil-cpp", version = "20250814.1")
 bazel_dep(name = "abseil-py", version = "2.1.0", repo_name = "com_google_absl_py")
-bazel_dep(name = "aspect_bazel_lib", version = "2.22.5")
+bazel_dep(name = "bazel_lib", version = "3.2.2")
 bazel_dep(name = "bazel_skylib", version = "1.9.0")
 bazel_dep(name = "boringssl", version = "0.20260211.0")
 bazel_dep(name = "cel-cpp", version = "0.14.0", repo_name = "com_google_cel_cpp")
@@ -302,6 +302,7 @@ bazel_dep(name = "protobuf-matchers", version = "0.1.1", repo_name = "com_github
 bazel_dep(name = "re2", version = "2024-07-02.bcr.1", repo_name = "com_googlesource_code_re2")
 bazel_dep(name = "rules_license", version = "1.0.0")
 bazel_dep(name = "rules_pkg", version = "1.2.0")
+bazel_dep(name = "tar.bzl", version = "0.9.0")
 # keep-sorted end
 
 use_repo(
@@ -309,7 +310,3 @@ use_repo(
     # keep-sorted start
     # keep-sorted end
 )
-
-bazel_lib_toolchains = use_extension("@aspect_bazel_lib//lib:extensions.bzl", "toolchains")
-bazel_lib_toolchains.jq()
-use_repo(bazel_lib_toolchains, "jq")
