@@ -6,11 +6,8 @@
 
 #include "absl/log/log.h"
 #include "absl/status/statusor.h"
-#include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "google/protobuf/descriptor.pb.h"
-#include "intrinsic/assets/proto/id.pb.h"
-#include "intrinsic/assets/proto/status_spec.pb.h"
 #include "intrinsic/icon/release/file_helpers.h"
 #include "intrinsic/skills/internal/skill_proto_utils.h"
 #include "intrinsic/skills/proto/skill_manifest.pb.h"
@@ -18,21 +15,6 @@
 #include "intrinsic/util/status/status_macros.h"
 
 namespace intrinsic::skills {
-
-void LogLimitedSkillServiceConfig(
-    const intrinsic_proto::skills::SkillServiceConfig& config) {
-  // Copy to modify.
-  intrinsic_proto::skills::SkillServiceConfig service_config_copy = config;
-  service_config_copy.mutable_skill_description()
-      ->mutable_parameter_description()
-      ->clear_parameter_descriptor_fileset();
-  service_config_copy.mutable_skill_description()
-      ->mutable_return_value_description()
-      ->clear_descriptor_fileset();
-  LOG(INFO) << absl::StrCat(
-      "\nUsing skill configuration proto (minus the descriptor filesets):\n",
-      service_config_copy);
-}
 
 absl::StatusOr<intrinsic_proto::skills::SkillServiceConfig>
 GetSkillServiceConfig(absl::string_view skill_service_config_filename) {
