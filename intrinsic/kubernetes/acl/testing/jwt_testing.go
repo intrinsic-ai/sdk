@@ -20,6 +20,7 @@ type customClaims struct {
 	// intrinsic custom claims
 	Authorized bool     `json:"authorized,omitempty"`
 	Projects   []string `json:"ps,omitempty"`
+	ClusterID  string   `json:"cluster_id,omitempty"`
 	// standard claims
 	jwt.StandardClaims
 }
@@ -125,6 +126,13 @@ func WithAuthorized(a bool) Option {
 func WithProjects(ps []string) Option {
 	return func(c *config) {
 		c.claims.Projects = ps
+	}
+}
+
+// WithClusterID sets the custom "cluster_id" field in the JWT payload.
+func WithClusterID(clusterID string) Option {
+	return func(c *config) {
+		c.claims.ClusterID = clusterID
 	}
 }
 

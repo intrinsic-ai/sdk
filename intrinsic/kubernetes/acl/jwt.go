@@ -25,6 +25,7 @@ type Data struct {
 	// intrinsic custom claims
 	Authorized bool     `json:"authorized"`
 	Projects   []string `json:"ps"`
+	ClusterID  string   `json:"cluster_id"`
 }
 
 // Claim keys and values found in the JWT.
