@@ -2,7 +2,8 @@
 
 """Provides functionality to interact with a running simulation.
 
-Deprecated. See migration note in `reset()` method below.  # pylint: disable=line-too-long 
+Deprecated. See migration note in `reset()` method below.
+TODO(b/489493047): Clean up after deprecation period.
 
 Typical usage example:
   from intrinsic.executive.jupyter.workcell import intrinsic
@@ -13,7 +14,7 @@ Typical usage example:
   simulation.reset()
 """
 
-import warnings  # pylint: disable=line-too-long 
+import warnings
 
 import grpc
 
@@ -73,16 +74,13 @@ class Simulation:
   def reset(self) -> None:
     """Resets the simulation world to its initial state.
 
-
     Deprecated: To reset the simulation world before running a process, set the
     `start_from_world_state` parameter in `Solution.executive.run()` instead.
     See execution.py for more details.
 
-
     Also makes sure that all affected components such as ICON are in a working
     state.
     """
-
     warnings.warn(
         'Simulation.reset() is deprecated. To reset the simulation'
         ' world before running a process, set the `start_from_world_state'
@@ -91,7 +89,6 @@ class Simulation:
         DeprecationWarning,
         stacklevel=2,
     )
-
 
     request = simulation_service_pb2.ResetSimulationRequest()
     self._call_simulation_service_reset(request)

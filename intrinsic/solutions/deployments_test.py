@@ -234,7 +234,6 @@ class SolutionTest(absltest.TestCase):
         self._blackboard_stub,
         errors,
         proto_registry,
-        simulation=simulation,
     )
 
     self._solution_service = mock.MagicMock()

@@ -62,8 +62,6 @@ _CSS_FAILURE_STYLE = (
 )
 
 
-
-
 class Solution:
   """Wraps a connection to a deployed solution.
 
@@ -208,7 +206,6 @@ class Solution:
         grpc_channel,
         error_loader,
         proto_registry=proto_registry,
-        simulation=simulator,
     )
     skill_registry = skill_registry_client.SkillRegistryClient.connect(
         grpc_channel

@@ -52,9 +52,8 @@ from intrinsic.solutions import error_processing
 from intrinsic.solutions import errors as solutions_errors
 from intrinsic.solutions import ipython
 from intrinsic.solutions import provided
-from intrinsic.solutions import simulation as simulation_mod
 from intrinsic.solutions import utils
-from intrinsic.solutions import worlds  # pylint: disable=line-too-long 
+from intrinsic.solutions import worlds
 from intrinsic.solutions.internal import actions
 from intrinsic.solutions.internal import blackboard as blackboard_internal
 from intrinsic.util.grpc import error_handling
@@ -365,7 +364,6 @@ class Executive:
   _stub: executive_service_pb2_grpc.ExecutiveServiceStub
   _blackboard_stub: blackboard_service_pb2_grpc.ExecutiveBlackboardStub
   _error_loader: error_processing.ErrorsLoader
-  _simulation: Optional[simulation_mod.Simulation]
   _polling_interval_in_seconds: float
   _operation: Optional[Operation]
   _proto_registry: proto_registry_client.ProtoRegistryClient
@@ -376,7 +374,6 @@ class Executive:
       blackboard_stub: blackboard_service_pb2_grpc.ExecutiveBlackboardStub,
       error_loader: error_processing.ErrorsLoader,
       proto_registry: proto_registry_client.ProtoRegistryClient,
-      simulation: Optional[simulation_mod.Simulation] = None,
       polling_interval_in_seconds: float = _DEFAULT_POLLING_INTERVAL_IN_SECONDS,
   ):
     """Constructs a new Executive object.
@@ -386,7 +383,6 @@ class Executive:
         service.
       blackboard_stub: The gRPC stub to be used for blackboard related calls.
       error_loader: Can load ErrorReports about executions
-      simulation: The workcell simulation module (optional).
       polling_interval_in_seconds: Number of seconds to wait while polling for
         the operation state in blocking calls such as Executive.suspend().
       proto_registry: Optional ProtoRegistry service wrapper.
@@ -394,7 +390,6 @@ class Executive:
     self._stub = stub
     self._blackboard_stub = blackboard_stub
     self._error_loader = error_loader
-    self._simulation = simulation
     self._polling_interval_in_seconds = polling_interval_in_seconds
     self._proto_registry = proto_registry
     self._operation = None
@@ -405,7 +400,6 @@ class Executive:
       grpc_channel: grpc.Channel,
       error_loader: error_processing.ErrorsLoader,
       proto_registry: proto_registry_client.ProtoRegistryClient,
-      simulation: Optional[simulation_mod.Simulation] = None,
       polling_interval_in_seconds: float = _DEFAULT_POLLING_INTERVAL_IN_SECONDS,
   ) -> "Executive":
     """Connect to a running executive.
@@ -413,7 +407,6 @@ class Executive:
     Args:
       grpc_channel: Channel to the executive gRPC service.
       error_loader: Loads error data for executive runs.
-      simulation: The workcell simulation module (optional).
       polling_interval_in_seconds: Number of seconds to wait while polling for
         the operation state in blocking calls such as Executive.suspend().
       proto_registry: Optional ProtoRegistry service wrapper.
@@ -430,7 +423,6 @@ class Executive:
         blackboard_stub,
         error_loader,
         proto_registry,
-        simulation,
         polling_interval_in_seconds,
     )
 
@@ -691,9 +683,7 @@ class Executive:
 
       simulation_mode: Optional["Executive.SimulationMode"] = None,
       embed_skill_traces: bool = False,
-
       start_from_world_state: worlds.EditWorldId | None = None,
-
 
       keep_blackboard: bool = False,
 
@@ -731,7 +721,6 @@ class Executive:
         to these nodes and run from there. Only one of recover_from_nodes or
         start_node can be set.
 
-
       start_from_world_state: Optional parameter to specify what starting world
         state to run the operation from. If an EditWorldId is set, the execute
         belief world and simulation world will be reset to the specified world
@@ -744,7 +733,6 @@ class Executive:
         Specifying `worlds.EditWorldId.BELIEF` keeps the execute belief world in
         its current state, but the simulation world state is first reset to
         match the execute world.
-
 
     Raises:
       solutions_errors.UnavailableError: On executive service not reachable.
@@ -763,7 +751,7 @@ class Executive:
 
         simulation_mode=simulation_mode,
         embed_skill_traces=embed_skill_traces,
-        start_from_world_state=start_from_world_state,  # pylint: disable=line-too-long 
+        start_from_world_state=start_from_world_state,
 
         keep_blackboard=keep_blackboard,
 
@@ -784,9 +772,7 @@ class Executive:
 
       simulation_mode: Optional["Executive.SimulationMode"] = None,
       embed_skill_traces: bool = False,
-
       start_from_world_state: worlds.EditWorldId | None = None,
-
 
       keep_blackboard: bool = False,
 
@@ -827,7 +813,6 @@ class Executive:
         to these nodes and run from there. Only one of recover_from_nodes or
         start_node can be set.
 
-
       start_from_world_state: Optional parameter to specify what starting world
         state to run the operation from. If an EditWorldId is set, the execute
         belief world and simulation world will be reset to the specified world
@@ -840,7 +825,6 @@ class Executive:
         Specifying `worlds.EditWorldId.BELIEF` keeps the execute belief world in
         its current state, but the simulation world state is first reset to
         match the execute world.
-
 
     Raises:
       ExecutionFailedError: On unexpected state of the executive during plan
@@ -865,7 +849,7 @@ class Executive:
 
         simulation_mode=simulation_mode,
         embed_skill_traces=embed_skill_traces,
-        start_from_world_state=start_from_world_state,  # pylint: disable=line-too-long 
+        start_from_world_state=start_from_world_state,
 
         keep_blackboard=keep_blackboard,
 
@@ -875,24 +859,6 @@ class Executive:
           f'<span style="{_CSS_SUCCESS_STYLE}">Execution successful</span>',
           "Execution successful",
       )
-
-  def _reset_simulation_if_needed(self, silence_outputs: bool) -> None:
-    # Legacy method to reset the simulation the first time that anything in the
-    # executive is run. This uses the presence of the operation as a heuristic
-    # to determine that this is the case under the assumption that any
-    # subsequent runs by this file or the frontend will always leave an
-    # operation behind and only deleted it before loading a new one.
-
-    if self._simulation is not None:
-      try:
-        self.operation
-      except OperationNotFoundError:
-        if not silence_outputs:
-          print(
-              "Triggering simulation.reset() "
-              "since world edits might have occurred."
-          )
-        self._simulation.reset()
 
   def _run(
       self,
@@ -908,7 +874,7 @@ class Executive:
 
       recover_from_nodes: list[bt.NodeInTreeType] | None,
 
-      start_from_world_state: worlds.EditWorldId | None,  # pylint: disable=line-too-long 
+      start_from_world_state: worlds.EditWorldId | None,
 
       keep_blackboard: bool = False,
 
@@ -943,7 +909,6 @@ class Executive:
         to these nodes and run from there. Only one of recover_from_nodes or
         start_node can be set.
 
-
       start_from_world_state: Optional parameter to specify what starting world
         state to run the operation from. If an EditWorldId is set, the execute
         belief world and simulation world will be reset to the specified world
@@ -957,7 +922,6 @@ class Executive:
         its current state, but the simulation world state is first reset to
         match the execute world.
 
-
     Raises:
       ExecutionFailedError: On unexpected state of the executive during plan
                 execution.
@@ -965,7 +929,6 @@ class Executive:
       grpc.RpcError: On any other gRPC error.
       OperationNotFoundError: if no operation is currently active.
     """
-
 
 
     if recover_from_nodes and start_node is not None:
@@ -1005,7 +968,7 @@ class Executive:
           embed_skill_traces=embed_skill_traces,
           parameters=None,
           resources=None,
-          start_from_world_state=start_from_world_state,  # pylint: disable=line-too-long 
+          start_from_world_state=start_from_world_state,
       )
       return
 
@@ -1055,7 +1018,7 @@ class Executive:
         simulation_mode=simulation_mode,
         embed_skill_traces=embed_skill_traces,
         silence_outputs=silence_outputs,
-        start_from_world_state=start_from_world_state,  # pylint: disable=line-too-long 
+        start_from_world_state=start_from_world_state,
     )
 
   # pylint: enable=g-doc-args
@@ -1188,7 +1151,7 @@ class Executive:
 
       simulation_mode: Optional["Executive.SimulationMode"] = None,
       embed_skill_traces: bool = False,
-      start_from_world_state: worlds.EditWorldId | None = None,  # pylint: disable=line-too-long 
+      start_from_world_state: worlds.EditWorldId | None = None,
   ) -> None:
     """Starts the currently loaded plan.
 
@@ -1213,7 +1176,6 @@ class Executive:
       recover_from_nodes: List of nodes to recover from. Execution will forward
         to these nodes and run from there.
 
-
       start_from_world_state: Optional parameter to specify what starting world
         state to start the operation from. If an EditWorldId is set, the execute
         belief world and simulation world will be reset to the specified world
@@ -1226,7 +1188,6 @@ class Executive:
         Specifying `worlds.EditWorldId.BELIEF` keeps the execute belief world in
         its current state, but the simulation world state is first reset to
         match the execute world.
-
 
     Raises:
       solutions_errors.UnavailableError: On executive service not reachable.
@@ -1263,7 +1224,7 @@ class Executive:
 
         simulation_mode=simulation_mode,
         embed_skill_traces=embed_skill_traces,
-        start_from_world_state=start_from_world_state,  # pylint: disable=line-too-long 
+        start_from_world_state=start_from_world_state,
     )
 
     if blocking:
@@ -1527,7 +1488,7 @@ class Executive:
 
       simulation_mode: Optional["Executive.SimulationMode"] = None,
       embed_skill_traces: bool = False,
-      start_from_world_state: worlds.EditWorldId | None = None,  # pylint: disable=line-too-long 
+      start_from_world_state: worlds.EditWorldId | None = None,
   ) -> None:
     """Starts the executive and handles errors."""
     if self._operation is None:
@@ -1567,10 +1528,8 @@ class Executive:
     if resources is not None:
       for reference, handle in resources.items():
         request.resources[reference] = handle
-
     if start_from_world_state is not None:
       request.scene_id = start_from_world_state
-
     self._operation.update_from_proto(self._stub.StartOperation(request))
 
   @error_handling.retry_on_grpc_unavailable

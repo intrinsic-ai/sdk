@@ -29,8 +29,7 @@ from intrinsic.solutions import error_processing
 from intrinsic.solutions import errors as solutions_errors
 from intrinsic.solutions import execution
 from intrinsic.solutions import provided
-from intrinsic.solutions import simulation as simulation_mod
-from intrinsic.solutions import worlds  # pylint: disable=line-too-long 
+from intrinsic.solutions import worlds
 from intrinsic.solutions.internal import behavior_call
 from intrinsic.solutions.testing import compare
 from intrinsic.solutions.testing import test_skill_params_pb2
@@ -78,7 +77,6 @@ class ExecutiveTest(parameterized.TestCase):
     self._blackboard_stub: (
         blackboard_service_pb2_grpc.ExecutiveBlackboardStub
     ) = mock.MagicMock()
-    self._simulation: simulation_mod.Simulation = mock.MagicMock()
     self._proto_registry: proto_registry_client.ProtoRegistryClient = (
         mock.MagicMock()
     )
@@ -87,7 +85,6 @@ class ExecutiveTest(parameterized.TestCase):
         self._blackboard_stub,
         self._errors,
         proto_registry=self._proto_registry,
-        simulation=self._simulation,
     )
     # Ensure ListOperations returns a real empty list by default instead of truthy MagicMock
     self._executive_service_stub.ListOperations.return_value = (
@@ -104,7 +101,7 @@ class ExecutiveTest(parameterized.TestCase):
       bt_proto: behavior_tree_pb2.BehaviorTree = behavior_tree_pb2.BehaviorTree(),
       name: str = _OPERATION_NAME,
       response: run_response_pb2.RunResponse | None = None,
-      scene_id: str = '',  # pylint: disable=line-too-long 
+      scene_id: str = '',
   ):
     metadata = run_metadata_pb2.RunMetadata(operation_state=state)
     metadata.behavior_tree.CopyFrom(bt_proto)
@@ -115,10 +112,8 @@ class ExecutiveTest(parameterized.TestCase):
         run_metadata_pb2.RunMetadata.CANCELED,
     ]:
       done = True
-
     if scene_id:
       metadata.scene_id = scene_id
-
     return operations_pb2.Operation(
         name=name,
         done=done,
@@ -167,11 +162,11 @@ class ExecutiveTest(parameterized.TestCase):
 
   def _setup_start_operation(
       self,
-      scene_id: str = '',  # pylint: disable=line-too-long 
+      scene_id: str = '',
   ):
     start_response = self._create_operation_proto(
         state=run_metadata_pb2.RunMetadata.RUNNING,
-        scene_id=scene_id,  # pylint: disable=line-too-long 
+        scene_id=scene_id,
     )
     self._executive_service_stub.StartOperation.return_value = start_response
 
@@ -446,7 +441,6 @@ class ExecutiveTest(parameterized.TestCase):
         create_request
     )
 
-
   @parameterized.named_parameters(
       dict(
           testcase_name='initial_world_id',
@@ -478,8 +472,6 @@ class ExecutiveTest(parameterized.TestCase):
     self._executive_service_stub.StartOperation.assert_called_once_with(
         start_request
     )
-
-
 
   @parameterized.named_parameters(
       dict(
@@ -982,7 +974,6 @@ class ExecutiveTest(parameterized.TestCase):
 
 
 
-
   @parameterized.named_parameters(
       dict(
           testcase_name='initial_world_id',
@@ -1017,8 +1008,6 @@ class ExecutiveTest(parameterized.TestCase):
     self._executive_service_stub.StartOperation.assert_called_once_with(
         start_request
     )
-
-
 
   def test_has_operation_true(self):
     """Tests if executive.has_operation returns true for an operation loaded."""
