@@ -128,12 +128,24 @@ message CreateBranchRequest {
     string branch_id = 2;
   }
 
-  // The source to create the tree from.
+  // Allows to create a version branch from the specified template ID.
+  // Can only be used without specifying an upstream branch ID and for version
+  // branches.
+  message TemplateSource {
+    // The ID of the template to create a version branch from.
+    string template_id = 1;
+  }
+
+  // The source to create the branch from.
   //
   // This can be unset if the branch specifies an upstream branch ID.
   oneof from {
-    // The snapshot to create the tree from.
+    // The snapshot to create the branch from.
     SnapshotSource snapshot_source = 3;
+    // The template to create the branch from.
+    // Can only be used without specifying an `upstream_branch_id` and for
+    // version branches.
+    TemplateSource template_source = 5;
   }
 
   // Optional commit message that can be provided during the creation of the
