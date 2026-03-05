@@ -33,7 +33,6 @@ def get_skill_service_config(
   logging.info("\nImporting service_config from file.")
   with open(filename, "rb") as f:
     service_config.ParseFromString(f.read())
-  logging.info("\nUsing skill configuration proto:\n%s", service_config)
   return service_config
 
 
