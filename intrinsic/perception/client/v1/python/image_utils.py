@@ -18,6 +18,12 @@ class Metadata:
   class Keys:
     PIXEL_TYPE = "pixel_type"
 
+  class Values:
+    PIXEL_INTENSITY = "INTENSITY"
+    PIXEL_DEPTH = "DEPTH"
+    PIXEL_POINT = "POINT"
+    PIXEL_NORMAL = "NORMAL"
+
 
 def _image_buffer_pixel_type(
     image_buffer: image_buffer_pb2.ImageBuffer,
@@ -26,13 +32,13 @@ def _image_buffer_pixel_type(
   if pixel_type == image_buffer_pb2.PixelType.PIXEL_UNSPECIFIED:
     return None
   elif pixel_type == image_buffer_pb2.PixelType.PIXEL_INTENSITY:
-    return "INTENSITY"
+    return Metadata.Values.PIXEL_INTENSITY
   elif pixel_type == image_buffer_pb2.PixelType.PIXEL_DEPTH:
-    return "DEPTH"
+    return Metadata.Values.PIXEL_DEPTH
   elif pixel_type == image_buffer_pb2.PixelType.PIXEL_POINT:
-    return "POINT"
+    return Metadata.Values.PIXEL_POINT
   elif pixel_type == image_buffer_pb2.PixelType.PIXEL_NORMAL:
-    return "NORMAL"
+    return Metadata.Values.PIXEL_NORMAL
   else:
     raise ValueError(
         "Pixel type not supported:"
@@ -45,13 +51,13 @@ def _get_image_buffer_pixel_type(
 ) -> image_buffer_pb2.PixelType:
   if pixel_type is None:
     return image_buffer_pb2.PIXEL_UNSPECIFIED
-  elif pixel_type == "INTENSITY":
+  elif pixel_type == Metadata.Values.PIXEL_INTENSITY:
     return image_buffer_pb2.PIXEL_INTENSITY
-  elif pixel_type == "DEPTH":
+  elif pixel_type == Metadata.Values.PIXEL_DEPTH:
     return image_buffer_pb2.PIXEL_DEPTH
-  elif pixel_type == "POINT":
+  elif pixel_type == Metadata.Values.PIXEL_POINT:
     return image_buffer_pb2.PIXEL_POINT
-  elif pixel_type == "NORMAL":
+  elif pixel_type == Metadata.Values.PIXEL_NORMAL:
     return image_buffer_pb2.PIXEL_NORMAL
   else:
     raise ValueError(f"Pixel type not supported: {pixel_type}.")
