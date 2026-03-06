@@ -46,4 +46,7 @@ message CriticalEventLog {
 
   // The timestamp of the log message.
   google.protobuf.Timestamp timestamp = 7;
+
+  // Labels associated with the log message.
+  map<string, string> labels = 8;
 }
