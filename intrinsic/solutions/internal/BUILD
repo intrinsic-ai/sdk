@@ -97,15 +97,17 @@ py_library(
     name = "blackboard",
     srcs = ["blackboard.py"],
     deps = [
+        ":skill_utils",
         "//intrinsic/executive/proto:blackboard_service_py_pb2",
         "//intrinsic/executive/proto:blackboard_service_py_pb2_grpc",
         "//intrinsic/proto_tools/registry:proto_registry_client",
         "//intrinsic/solutions:blackboard_value",
         "//intrinsic/solutions:ipython",
-        "//intrinsic/solutions/internal:skill_utils",
+        "//intrinsic/solutions:utils",
         "//intrinsic/util/grpc:error_handling",
         "//intrinsic/util/proto:descriptors_py",
         "//intrinsic/util/status:extended_status_py_pb2",
+        "@com_google_protobuf//:protobuf_python",
     ],
 )
 
@@ -114,10 +116,10 @@ py_test(
     srcs = ["blackboard_test.py"],
     deps = [
         ":blackboard",
+        ":skill_utils",
         "//intrinsic/executive/proto:blackboard_service_py_pb2",
         "//intrinsic/executive/proto:test_message_py_pb2",
         "//intrinsic/solutions:blackboard_value",
-        "//intrinsic/solutions/internal:skill_utils",
         "//intrinsic/util/proto:descriptors_py",
         "//intrinsic/util/status:extended_status_py_pb2",
         "@com_google_absl_py//absl/testing:absltest",
@@ -137,7 +139,6 @@ py_library(
         "//intrinsic/assets/proto:installed_assets_py_pb2",
         "//intrinsic/assets/proto:view_py_pb2",
         "//intrinsic/util/grpc:error_handling",
-        "@ai_intrinsic_sdks_pip_deps//googleapis_common_protos",
         "@ai_intrinsic_sdks_pip_deps//grpcio_status",
         requirement("grpcio"),
         "@com_google_googleapis//google/longrunning:operations_py_proto",

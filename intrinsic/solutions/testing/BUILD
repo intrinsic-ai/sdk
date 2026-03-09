@@ -48,10 +48,7 @@ py_library(
     name = "compare",
     srcs = ["compare.py"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = [
-        "@com_google_absl_py//absl/testing:absltest",
-        "@com_google_protobuf//:protobuf_python",
-    ],
+    deps = ["@com_google_protobuf//:protobuf_python"],
 )
 
 py_test(
@@ -88,7 +85,6 @@ py_library(
         "//intrinsic/skills/proto:skills_py_pb2",
         "//intrinsic/solutions/internal:installed_assets_client",
         "@com_google_absl_py//absl/flags",
-        "@com_google_absl_py//absl/testing:absltest",
         "@com_google_protobuf//:protobuf_python",
     ],
 )
