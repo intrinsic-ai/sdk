@@ -164,7 +164,7 @@ func (t *streamingTask) runWithCtx(ctx context.Context) error {
 			Length:  int32(length),
 			Data:    dataSlice,
 		}
-		log.InfoContextf(ctx, "[%s]: sending chunk %5d: (%d/%d) in %d increment", asShortName(t.name), idTracker.Load(), totalSize, t.descriptor.Size, t.updateSize)
+		log.InfoContextf(ctx, "[%s:%5d]: sending chunk (%d/%d) %s", asShortName(t.name), idTracker.Load(), totalSize+int64(length), t.descriptor.Size, action)
 
 		if firstChunk {
 			digest := t.descriptor.Digest.String()
@@ -176,7 +176,10 @@ func (t *streamingTask) runWithCtx(ctx context.Context) error {
 		if err != nil {
 			if errors.Is(err, io.EOF) {
 				// fetch error details and break the loop.
-				_, ctxErr = stream.CloseAndRecv()
+				log.WarningContextf(ctx, "[%s:%5d]: stream.CloseAndRecv() on stream.Send() err: %s", asShortName(t.name), idTracker.Load(), err)
+				var resp *artifactpb.UpdateResponse
+				resp, ctxErr = stream.CloseAndRecv()
+				doUpdateMonitor(t.monitor, resp, t.descriptor)
 				break
 			}
 			if firstChunk {

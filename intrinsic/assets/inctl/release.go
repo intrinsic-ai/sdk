@@ -88,6 +88,7 @@ func GetCommand() *cobra.Command {
 	flags.AddFlagDefault("asset")
 	flags.AddFlagDryRun()
 	flags.AddFlagIgnoreExisting("asset")
+	flags.AddFlagImageUploadParallelism(1)
 	flags.AddFlagOrganizationOptional()
 	flags.AddFlagOrgPrivate()
 	flags.AddFlagReleaseNotes("asset")
@@ -123,7 +124,7 @@ func makeCreateAssetRequest(ctx context.Context, opts makeCreateAssetRequestOpti
 			directupload.WithDiscovery(directupload.NewCatalogTarget(opts.conn)),
 			directupload.WithOutput(opts.progressWriter),
 			directupload.WithFailOver(transferer),
-			directupload.WithCatalogOptions(), // this allows uploading images with max size of the single layer of 2GiB.
+			directupload.WithCatalogOptions(opts.flags.GetFlagImageUploadParallelism()), // this allows uploading images with max size of the single layer of 2GiB.
 		)
 	}
 	referencedDataProcessor := databundle.NoOpReferencedData()

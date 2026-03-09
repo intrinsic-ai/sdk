@@ -54,6 +54,8 @@ const (
 	KeyFilter = "filter"
 	// KeyIgnoreExisting is the name of the flag to ignore AlreadyExists errors.
 	KeyIgnoreExisting = "ignore_existing"
+	// KeyImageUploadParallelism indicates how many layers of the image should be uploaded in parallel.
+	KeyImageUploadParallelism = "image_upload_parallelism"
 	// KeyManifestFile is the file path to the manifest binary.
 	KeyManifestFile = "manifest_file"
 	// KeyManifestTarget is the build target to the skill manifest.
@@ -203,6 +205,16 @@ func (cf *CmdFlags) AddFlagIgnoreExisting(assetType string) {
 // GetFlagIgnoreExisting gets the value of the flag added by AddFlagIgnoreExisting.
 func (cf *CmdFlags) GetFlagIgnoreExisting() bool {
 	return cf.GetBool(KeyIgnoreExisting)
+}
+
+// AddFlagImageUploadParallelism adds flag for modifying image upload parallelism.
+func (cf *CmdFlags) AddFlagImageUploadParallelism(defVal int) {
+	cf.OptionalInt(KeyImageUploadParallelism, defVal, "The number of image layers uploaded in parallel.")
+}
+
+// GetFlagImageUploadParallelism returns number of image layers which should be uploaded in parallel.
+func (cf *CmdFlags) GetFlagImageUploadParallelism() int {
+	return cf.GetInt(KeyImageUploadParallelism)
 }
 
 // AddFlagAddress adds a flag for the installer service address.

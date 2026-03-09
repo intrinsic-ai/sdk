@@ -30,9 +30,17 @@ func WithMaxRetries(maxRetries int) Option {
 	}
 }
 
-func WithCatalogOptions() Option {
+// WithCatalogOptions configures meaningful defaults for transferrer towards Catalog.
+func WithCatalogOptions(parallelism int) Option {
 	return func(transfer *directTransfer) {
 		transfer.uploadType = client.WithStreamingUpload()
+		if parallelism < 1 {
+			parallelism = 1 // we do need at least ONE stream.
+		}
+		if parallelism > 10 {
+			parallelism = 10 // upper bound for single client.
+		}
+		transfer.parallelism = parallelism
 	}
 }
 
@@ -112,8 +120,7 @@ func (dt *directTransfer) Write(ctx context.Context, ref name.Reference, img crv
 		if err != nil {
 			return fmt.Errorf("cannot connect: %w", err)
 		}
-		dt.uploader, err = client.NewUploader(apiClient, client.WithSequentialUpload(),
-			client.WithUploadParallelism(dt.parallelism))
+		dt.uploader, err = client.NewUploader(apiClient, dt.uploadType, client.WithUploadParallelism(dt.parallelism))
 		if err != nil {
 			return fmt.Errorf("cannot create uploader: %w", err)
 		}
