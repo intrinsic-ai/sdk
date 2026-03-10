@@ -33,9 +33,17 @@ message NamedFileDescriptorSet {
 
 message GetNamedFileDescriptorSetRequest {
   oneof identifier_type {
-    // Intrinsic-style type URL of a message in the requested file descriptor
-    // set (the message name at the end of the URL will be ignored). E.g.
-    // "type.intrinsic.ai/assets/com.example.my_asset/my_package.MyMessage".
+    // Intrinsic-style type URL of a message for which to retrieve the file
+    // descriptor set. The file descriptor set is guaranteed to satisfy the
+    // message referenced in the type URL.
+    //
+    // For type URLs in the "assets" area, the descriptor set may not be the
+    // same as when specifying `asset_id` for the same asset. In particular, the
+    // descriptor set returned for the type URL may not contain any descriptors
+    // for components the specified message does not transitively depend on.
+    //
+    // Example:
+    // type.intrinsic.ai/assets/com.example.my_asset/my_package.MyMessage
     string type_url = 1;
 
     // Name of the requested file descriptor set in the proto registry, see
@@ -43,8 +51,7 @@ message GetNamedFileDescriptorSetRequest {
     string name = 2;
 
     // Asset ID for which to get the file descriptor set of the currently
-    // installed version. Equivalent to specifying a [type_url] with the prefix
-    // "type.intrinsic.ai/assets/<asset_id>/".
+    // installed version.
     string asset_id = 3;
   }
 }
