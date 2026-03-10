@@ -83,7 +83,7 @@ class Solution:
     simulator: Simulator instance for controlling simulation.
     errors: Exposes error reports from executions.
     pose_estimators: Optional. Wrapper to access pose estimators.
-    world: default world in world service.
+    world: The execute belief world from the world service.
     pbt_registry: gRPC wrapper to sideload PBTs
     proto_builder: service to build proto FileDescriptorSets from proto schemas
   """
@@ -218,8 +218,7 @@ class Solution:
     product_client = product_client_mod.ProductClient.connect(grpc_channel)
 
     object_world = worlds.ObjectWorld.connect(
-        _WORLD_ID,
-        grpc_channel,
+        worlds.EditWorldId.BELIEF, grpc_channel
     )
     installed_assets = (
         installed_assets_client.InstalledAssetsClient.from_channel(grpc_channel)
