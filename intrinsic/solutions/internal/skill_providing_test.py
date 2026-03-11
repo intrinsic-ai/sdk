@@ -446,6 +446,32 @@ class SkillsTest(parameterized.TestCase):
     for _, skill_class in ids_and_classes:
       self.assertIsInstance(skill_class(), skill_generation.GeneratedSkill)
 
+  def test_type_url_areas(self):
+    legacy_pbt = self._utils.create_parameterless_skill_info(
+        'ai.intr.legacy_pbt'
+    )
+    legacy_pbt.behavior_tree_description.SetInParent()
+    registry_skills = [
+        self._utils.create_parameterless_skill_info('ai.intr.skill'),
+        legacy_pbt,
+    ]
+    asset_skills = [
+        self._utils.create_parameterless_skill_info('ai.intr.subprocess'),
+    ]
+    skills = skill_providing.Skills(
+        self._utils.create_skill_registry_for_skill_infos(registry_skills),
+        self._utils.create_empty_resource_registry(),
+        self._utils.create_installed_assets_for_skill_infos(asset_skills),
+    )
+
+    self.assertEqual(
+        skills.ai.intr.legacy_pbt.skill_info.type_url_area, 'skills'
+    )
+    self.assertEqual(skills.ai.intr.skill.skill_info.type_url_area, 'assets')
+    self.assertEqual(
+        skills.ai.intr.subprocess.skill_info.type_url_area, 'assets'
+    )
+
   def test_gen_skill(self):
     skill_registry, skill_registry_stub = (
         _create_skill_registry_with_mock_stub()
@@ -521,7 +547,7 @@ class SkillsTest(parameterized.TestCase):
     )
     expected_proto.resources[resource_slot].handle = resource_name
     expected_proto.parameters.Pack(parameters)
-    expected_proto.parameters.type_url = f'type.intrinsic.ai/skills/{skill_id}/{skill_version}/intrinsic_proto.test_data.TestMessage'
+    expected_proto.parameters.type_url = f'type.intrinsic.ai/assets/{skill_id}/intrinsic_proto.test_data.TestMessage'
 
     compare.assertProto2Equal(self, expected_proto, skill.proto)
 
@@ -582,7 +608,10 @@ class SkillsTest(parameterized.TestCase):
         skill_id=skill_id, return_value_name=skill.proto.return_value_name
     )
     expected_proto.resources[resource_slot].handle = resource_name
-    expected_proto.parameters.Pack(parameter_defaults)
+    expected_proto.parameters.Pack(
+        parameter_defaults,
+        type_url_prefix='type.intrinsic.ai/assets/ai.intrinsic.my_skill',
+    )
 
     compare.assertProto2Equal(self, expected_proto, skill.proto)
 
@@ -662,7 +691,10 @@ class SkillsTest(parameterized.TestCase):
         skill_id=skill_id, return_value_name=skill.proto.return_value_name
     )
     expected_proto.resources[resource_slot].handle = resource_name
-    expected_proto.parameters.Pack(parameters)
+    expected_proto.parameters.Pack(
+        parameters,
+        type_url_prefix='type.intrinsic.ai/assets/ai.intrinsic.my_skill',
+    )
 
     compare.assertProto2Equal(self, expected_proto, skill.proto)
 
@@ -720,7 +752,10 @@ class SkillsTest(parameterized.TestCase):
         skill_id=skill_id, return_value_name=skill.proto.return_value_name
     )
     expected_proto.resources[resource_slot].handle = resource_name
-    expected_proto.parameters.Pack(parameter_defaults)
+    expected_proto.parameters.Pack(
+        parameter_defaults,
+        type_url_prefix='type.intrinsic.ai/assets/ai.intrinsic.my_skill',
+    )
     expected_proto.assignments.append(
         behavior_call_pb2.BehaviorCall.ParameterAssignment(
             parameter_path='my_oneof_double', cel_expression='test'
@@ -898,7 +933,10 @@ class SkillsTest(parameterized.TestCase):
             ]
         )
     )
-    expected_proto.parameters.Pack(expected_parameters)
+    expected_proto.parameters.Pack(
+        expected_parameters,
+        type_url_prefix='type.intrinsic.ai/assets/ai.intrinsic.my_skill',
+    )
     compare.assertProto2Equal(self, expected_proto, skill.proto)
 
   @parameterized.parameters(
@@ -955,7 +993,10 @@ class SkillsTest(parameterized.TestCase):
     expected_parameters = test_skill_params_pb2.TestMessage(
         repeated_submessages=[test_skill_params_pb2.SubMessage()]
     )
-    expected_proto.parameters.Pack(expected_parameters)
+    expected_proto.parameters.Pack(
+        expected_parameters,
+        type_url_prefix='type.intrinsic.ai/assets/ai.intrinsic.my_skill',
+    )
     compare.assertProto2Equal(self, expected_proto, skill.proto)
 
   def test_gen_skill_with_map_parameter(self):
@@ -2171,7 +2212,8 @@ Returns:
         self._utils.create_test_skill_info(
             skill_id='ai.intrinsic.my_skill',
             parameter_defaults=test_skill_params_pb2.TestMessage(),
-        )
+        ),
+        'someTypeUrlArea',
     )
 
   @parameterized.parameters(
@@ -2185,7 +2227,7 @@ Returns:
       {'skill': skills_pb2.Skill(id='my_skill')},
   )
   def test_skill_info_skill_name(self, skill):
-    info = skill_generation.SkillInfoImpl(skill)
+    info = skill_generation.SkillInfoImpl(skill, 'someTypeUrlArea')
     self.assertEqual(info.skill_name, 'my_skill')
 
   @parameterized.parameters(
@@ -2209,7 +2251,7 @@ Returns:
       },
   )
   def test_skill_info_package_name(self, skill, expected_package_name):
-    info = skill_generation.SkillInfoImpl(skill)
+    info = skill_generation.SkillInfoImpl(skill, 'someTypeUrlArea')
     self.assertEqual(info.package_name, expected_package_name)
 
   def test_construct_skill_info_incomplete_fileset(self):
@@ -2227,7 +2269,7 @@ Returns:
     )
 
     with self.assertRaises(TypeError):
-      skill_generation.SkillInfoImpl(skill)
+      skill_generation.SkillInfoImpl(skill, 'someTypeUrlArea')
 
   def test_result_access(self):
     """Tests if BlackboardValue gets created when accessing result."""
@@ -2690,7 +2732,7 @@ Fields:
     compare.assertProto2Equal(self, unpacked_msg, expected_test_message)
     self.assertEqual(
         any_msg.type_url,
-        'type.intrinsic.ai/skills/ai.intrinsic.my_skill/42.0.0/intrinsic_proto.test_data.TestMessage',
+        'type.intrinsic.ai/assets/ai.intrinsic.my_skill/intrinsic_proto.test_data.TestMessage',
     )
 
   def test_enum_wrapper_class(self):

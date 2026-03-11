@@ -5614,7 +5614,8 @@ class BehaviorTree:
           'description is not set. This is not a Parameterizable Behavior Tree.'
           ' params are only available for PBTs.'
       )
-    info = skill_generation.SkillInfoImpl(self._description)
+    # The type area passed here is irrelevant and has no effect.
+    info = skill_generation.SkillInfoImpl(self._description, type_url_area='')
 
     msg = info.create_param_message()
     return blackboard_value.BlackboardValue(

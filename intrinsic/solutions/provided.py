@@ -187,6 +187,11 @@ class SkillInfo(abc.ABC):
   def skill_proto(self) -> skills_pb2.Skill:
     ...
 
+  @property
+  @abc.abstractmethod
+  def type_url_area(self) -> str:
+    ...
+
   @abc.abstractmethod
   def create_param_message(self) -> message.Message:
     ...

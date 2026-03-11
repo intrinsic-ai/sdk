@@ -193,10 +193,7 @@ class Skills(providers.SkillProvider):
 
   def update(self) -> None:
     """Retrieve most recent list of available skills."""
-    skill_infos = [
-        skill_generation.SkillInfoImpl(skill_proto)
-        for skill_proto in self._get_skill_protos()
-    ]
+    skill_infos = self._collect_skill_infos()
 
     self._global_skills_by_name = {
         info.skill_name: info for info in skill_infos if not info.package_name
@@ -328,10 +325,10 @@ class Skills(providers.SkillProvider):
             )
         )
 
-  def _get_skill_protos(self) -> list[skills_pb2.Skill]:
+  def _collect_skill_infos(self) -> list[provided.SkillInfo]:
     # Get all Process assets with the SUBPROCESS tag, i.e., the Process assets
     # that are marked to be listed alongside regular "skills" in UIs.
-    process_asset_skills: list[skills_pb2.Skill] = []
+    process_asset_skills: list[provided.SkillInfo] = []
     for asset in self._installed_assets.list_all_installed_assets(
         asset_types=[asset_type_pb2.AssetType.ASSET_TYPE_PROCESS],
         asset_tag=asset_tag_pb2.AssetTag.ASSET_TAG_SUBPROCESS,
@@ -340,16 +337,32 @@ class Skills(providers.SkillProvider):
       bt = asset.deployment_data.process.process.behavior_tree
       # Skip behavior trees without a Skill proto (this is unexpected)
       if bt.HasField("description"):
-        process_asset_skills.append(bt.description)
+        process_asset_skills.append(
+            skill_generation.SkillInfoImpl(
+                bt.description, skill_utils.INTRINSIC_TYPE_URL_AREA_ASSETS
+            )
+        )
 
     # Merge skill protos from process assets with skill protos from the skill
     # registry (legacy processes and regular skills), assets taking precedence.
-    result: list[skills_pb2.Skill] = process_asset_skills
+    result: list[provided.SkillInfo] = process_asset_skills
     collected_ids = set(skill.id for skill in process_asset_skills)
     for skill in self._skill_registry.get_skills():
       if skill.id not in collected_ids:
-        result.append(skill)
+        # This skill proto is from the skill registry and can represent either
+        # an actual skill or a legacy PBT (but not a Process asset). This can be
+        # told based on the presence of 'behavior_tree_description'. For actual
+        # skills we should use the 'assets' area since those can also be looked
+        # up via the installed assets service. Legacy PBT's are only available
+        # in the skill registry and thus need the 'skills' area.
+        area = (
+            skill_utils.INTRINSIC_TYPE_URL_AREA_SKILLS
+            if skill.HasField("behavior_tree_description")
+            else skill_utils.INTRINSIC_TYPE_URL_AREA_ASSETS
+        )
+        result.append(skill_generation.SkillInfoImpl(skill, area))
         collected_ids.add(skill.id)
 
     result.sort(key=lambda skill: skill.id)
+
     return result

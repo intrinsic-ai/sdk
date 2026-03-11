@@ -65,8 +65,13 @@ class SkillInfoImpl(provided.SkillInfo):
   """Implementation of the SkillInfo interface."""
 
   _skill_proto: skills_pb2.Skill
+  _type_url_area: str
 
-  def __init__(self, skill_proto: skills_pb2.Skill):
+  _message_pool: descriptor_pool.DescriptorPool
+  _message_classes: dict[str, Type[message.Message]]
+  _field_names: Set[str]
+
+  def __init__(self, skill_proto: skills_pb2.Skill, type_url_area: str):
     """Creates a SkillInfoImpl object from the skill_proto.
 
     Args:
@@ -78,6 +83,7 @@ class SkillInfoImpl(provided.SkillInfo):
     """
 
     self._skill_proto = skill_proto
+    self._type_url_area = type_url_area
     # Each SkillInfoImpl class uses its own descriptor pool so that the
     # creation of each SkillBase class is hermetic. Ie., Skill A and Skill B
     # do not incidentally clash over the definition of a proto.
@@ -126,10 +132,10 @@ class SkillInfoImpl(provided.SkillInfo):
       )
       raise e
 
-    self._message_pool: descriptor_pool.DescriptorPool = desc_pool
-    self._message_classes: dict[str, Type[message.Message]] = message_classes
+    self._message_pool = desc_pool
+    self._message_classes = message_classes
 
-    self._field_names: Set[str] = set()
+    self._field_names = set()
     if self._skill_proto.HasField("parameter_description"):
       self._field_names = set(
           [field.name for field in self.parameter_descriptor().fields]
@@ -164,6 +170,10 @@ class SkillInfoImpl(provided.SkillInfo):
   @property
   def skill_proto(self) -> skills_pb2.Skill:
     return self._skill_proto
+
+  @property
+  def type_url_area(self) -> str:
+    return self._type_url_area
 
   @property
   def parameter_message_full_name(self) -> str:

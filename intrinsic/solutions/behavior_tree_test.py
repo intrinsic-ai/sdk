@@ -5073,10 +5073,9 @@ class BehaviorTreeDataTest(parameterized.TestCase):
     )
 
     expected_node_proto = behavior_tree_pb2.BehaviorTree.Node(name='foo')
-    expected_node_proto.data.create_or_update.proto.Pack(expected_test_msg)
-    expected_node_proto.data.create_or_update.proto.type_url = (
-        'type.intrinsic.ai/skills/ai.intrinsic.my_skill/42.0.0/'
-        + 'intrinsic_proto.test_data.TestMessage'
+    expected_node_proto.data.create_or_update.proto.Pack(
+        expected_test_msg,
+        type_url_prefix='type.intrinsic.ai/assets/ai.intrinsic.my_skill',
     )
     expected_node_proto.data.create_or_update.blackboard_key = 'bbfoo'
 
@@ -5121,9 +5120,7 @@ class BehaviorTreeDataTest(parameterized.TestCase):
       )
       expected_node_proto.data.create_or_update.protos.items.add().Pack(
           expected_test_msg,
-          type_url_prefix=(
-              'type.intrinsic.ai/skills/ai.intrinsic.my_skill/42.0.0'
-          ),
+          type_url_prefix='type.intrinsic.ai/assets/ai.intrinsic.my_skill',
       )
     expected_node_proto.data.create_or_update.blackboard_key = 'bbfoo'
 

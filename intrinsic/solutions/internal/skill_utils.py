@@ -65,8 +65,8 @@ _PROTO_PACKAGE_SEPARATOR = "."
 RESOURCE_SLOT_DECONFLICT_SUFFIX = "_resource"
 
 INTRINSIC_TYPE_URL_PREFIX = "type.intrinsic.ai/"
-TYPE_URL_PREFIX = "type.googleapis.com/"
 INTRINSIC_TYPE_URL_AREA_SKILLS = "skills"
+INTRINSIC_TYPE_URL_AREA_ASSETS = "assets"
 TYPE_URL_SEPARATOR = "/"
 
 
@@ -94,16 +94,13 @@ def type_url_prefix_for_skill(skill_info: provided.SkillInfo) -> str:
   The specific prefix allows lookup of a packed proto by the proto registry.
 
   Args:
-    skill_info: Skill Info that contains an id_version.
+    skill_info: SkillInfo of the skill for which the type URL prefix should be
+      generated.
 
   Returns:
-    A type URL prefix that can be passed into Any.Pack.
+    A type URL prefix that can be passed, e.g., into Any.Pack.
   """
-  if not skill_info.skill_proto.id_version:
-    return TYPE_URL_PREFIX
-  skill_id = skill_info.id
-  skill_version = id_utils.version_from(skill_info.id_version)
-  return f"{INTRINSIC_TYPE_URL_PREFIX}{INTRINSIC_TYPE_URL_AREA_SKILLS}{TYPE_URL_SEPARATOR}{skill_id}{TYPE_URL_SEPARATOR}{skill_version}"
+  return f"{INTRINSIC_TYPE_URL_PREFIX}{skill_info.type_url_area}{TYPE_URL_SEPARATOR}{skill_info.id}"
 
 
 @dataclasses.dataclass
