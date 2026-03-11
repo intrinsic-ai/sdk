@@ -26,6 +26,9 @@ type Data struct {
 	Authorized bool     `json:"authorized"`
 	Projects   []string `json:"ps"`
 	ClusterID  string   `json:"cluster_id"`
+	// Organization indicates the organization an IPC identity
+	// is registered to. Only available for IPC user records.
+	Organization string `json:"orgid"`
 }
 
 // Claim keys and values found in the JWT.
@@ -35,6 +38,7 @@ const (
 	ClaimAuthorized    = "authorized"
 	ClaimProjects      = "ps"
 	ClaimProjectsAll   = "*"
+	ClaimOrgID         = "orgid"
 	ClaimClusterID     = "cluster_id"
 )
 
