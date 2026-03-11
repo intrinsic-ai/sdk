@@ -58,7 +58,11 @@ grpc::Status KVStoreServerImpl::Set(
     grpc::ServerContext* context,
     const intrinsic_proto::kvstore::SetRequest* request,
     intrinsic_proto::kvstore::SetResponse* response) {
-  LOG(INFO) << "Setting key: " << request->key();
+  bool high_consistency =
+      request->consistency() ==
+      intrinsic_proto::kvstore::SetRequest_Consistency_CONSISTENCY_HIGH;
+  LOG(INFO) << "Setting key: " << request->key()
+            << (high_consistency ? " with high consistency" : "");
   return ToGrpcStatus(kvstore_->Set(request->key(), request->value(),
                                     /*high_consistency=*/true));
 }

@@ -19,6 +19,19 @@ message GetResponse {
 message SetRequest {
   string key = 1;
   google.protobuf.Any value = 2;
+
+  enum Consistency {
+    CONSISTENCY_UNSPECIFIED = 0;
+
+    // Waits for reads to return the written value.
+    CONSISTENCY_HIGH = 1;
+
+    // Writes without any additional waiting.
+    CONSISTENCY_BEST_EFFORT = 2;
+  };
+
+  // Specifies the consistency policy to use when setting the value.
+  Consistency consistency = 3;
 }
 
 message SetResponse {}
