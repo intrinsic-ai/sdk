@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.inversion.v1;
 
+
 option go_package = "intrinsic/kubernetes/inversion/v1/inversion_go_proto";
 
 // The IpcUpdater service manages updates of a single IPC. It is intended for
@@ -15,6 +16,7 @@ option go_package = "intrinsic/kubernetes/inversion/v1/inversion_go_proto";
 // This document is based on the [protobuf
 // definition](https://github.com/intrinsic-ai/sdk/blob/main/intrinsic/kubernetes/inversion/v1/inversion.proto).
 service IpcUpdater {
+
   // ReportUpdateInfo reports the current status regarding the installed version
   // and available updates.
   rpc ReportUpdateInfo(GetUpdateInfoRequest) returns (UpdateInfo) {}
