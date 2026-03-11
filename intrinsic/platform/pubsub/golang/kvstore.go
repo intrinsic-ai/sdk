@@ -115,4 +115,7 @@ var (
 
 	// ErrNotFound is returned if Get does not find any values.
 	ErrNotFound = fmt.Errorf("not found")
+
+	// ErrAborted is returned if the set operation was aborted due to a write race.
+	ErrAborted = fmt.Errorf("aborted")
 )

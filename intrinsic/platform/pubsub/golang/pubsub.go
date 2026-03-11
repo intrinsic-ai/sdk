@@ -23,6 +23,7 @@ package pubsub
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -61,6 +62,7 @@ import (
 void intrinsic_ImwSubscriptionCallback(void*, void*, size_t, void*);
 void intrinsic_ImwQueryStaticCallback(void*, void*, size_t, void*);
 void intrinsic_ImwQueryDoneStaticCallback(void*, void*);
+void intrinsic_ImwQueryableStaticCallback(void*, void*, size_t, void*, void*);
 */
 import "C"
 
@@ -489,6 +491,16 @@ func (kv *kvStoreHandle) Set(key string, value proto.Message, highConsistency bo
 		return err
 	}
 
+	var initialValue *anypb.Any
+	if highConsistency {
+		timeout := highConsistencyGetTimeout
+		var err error
+		initialValue, err = kv.Get(key, &timeout)
+		if err != nil && !errors.Is(err, kvstore.ErrNotFound) {
+			return err
+		}
+	}
+
 	if err := kv.zenohHandle.ImwSet(kv.addKeyPrefix(key), valueBytes); err != nil {
 		return err
 	}
@@ -505,16 +517,33 @@ func (kv *kvStoreHandle) Set(key string, value proto.Message, highConsistency bo
 				return fmt.Errorf("timeout waiting for high consistency: %w", kvstore.ErrDeadlineExceeded)
 			default:
 				timeout := highConsistencyGetTimeout
-				value, err := kv.Get(key, &timeout)
+				currentValue, err := kv.Get(key, &timeout)
 				if err != nil {
 					// Small wait before retrying.
 					time.Sleep(100 * time.Millisecond)
 					continue
 				}
-				if string(value.GetValue()) != string(valueAny.GetValue()) {
-					continue
+
+				// We read back the written value, so the write has applied.
+				if proto.Equal(currentValue, valueAny) {
+					break loopUntilWritten
 				}
-				break loopUntilWritten
+
+				// If there was no initial value, then any value that is not our
+				// value is a "new value".
+				if initialValue == nil {
+					return fmt.Errorf("value for key %q was set by another process while waiting for high consistency: %w", key, kvstore.ErrAborted)
+				}
+
+				// If the value is different from both the value we set and the initial
+				// value, then it means another process has changed it.
+				if !proto.Equal(currentValue, initialValue) {
+					return fmt.Errorf("value for key %q was changed by another process while waiting for high consistency: %w", key, kvstore.ErrAborted)
+				}
+
+				// Small wait before retrying.
+				time.Sleep(10 * time.Millisecond)
+				continue
 			}
 		}
 	}
@@ -530,6 +559,60 @@ type queryHandle struct {
 
 func (q *queryHandle) Close() {
 	q.handle.Delete()
+}
+
+type queryableHandle struct {
+	zenohHandle zenohHandle
+	keyexpr     string
+	callback    func(key string, query []byte, context unsafe.Pointer)
+	handle      cgo.Handle
+}
+
+func (q *queryableHandle) Reply(key string, context unsafe.Pointer, reply proto.Message) error {
+	replyAny, ok := reply.(*anypb.Any)
+	if !ok {
+		var err error
+		replyAny, err = anypb.New(reply)
+		if err != nil {
+			return err
+		}
+	}
+	bytes, err := proto.Marshal(replyAny)
+	if err != nil {
+		return err
+	}
+	return q.zenohHandle.ImwQueryableReply(context, key, bytes)
+}
+
+func (q *queryableHandle) Close() {
+	if err := q.zenohHandle.ImwDestroyQueryable(q.keyexpr, q); err != nil {
+		panic(err)
+	}
+	q.handle.Delete()
+}
+
+//export intrinsic_ImwQueryableStaticCallback
+func intrinsic_ImwQueryableStaticCallback(keyexpr unsafe.Pointer, queryBytes unsafe.Pointer, queryBytesLen C.size_t, queryContext unsafe.Pointer, userContext unsafe.Pointer) {
+	if userContext == nil {
+		return
+	}
+	h := *(*cgo.Handle)(userContext)
+	qh := h.Value().(*queryableHandle)
+	qh.callback(C.GoString((*C.char)(keyexpr)), C.GoBytes(queryBytes, C.int(queryBytesLen)), queryContext)
+}
+
+func (ps *Handle) CreateQueryable(keyexpr string, callback func(string, []byte, unsafe.Pointer)) (*queryableHandle, error) {
+	qh := &queryableHandle{
+		zenohHandle: ps.zenohHandle,
+		keyexpr:     keyexpr,
+		callback:    callback,
+	}
+	qh.handle = cgo.NewHandle(qh)
+	if err := ps.zenohHandle.ImwCreateQueryable(keyexpr, qh, false); err != nil {
+		qh.handle.Delete()
+		return nil, err
+	}
+	return qh, nil
 }
 
 func (kv *kvStoreHandle) GetAll(key string, valueCallback func(*anypb.Any), ondoneCallback func(string)) (kvstore.KVQuery, error) {
@@ -764,6 +847,9 @@ type zenohHandle interface {
 	ImwDestroySubscription(keyExpr string, sub *subscriptionHandle) error
 	ImwSet(keyExpr string, value []byte) error
 	ImwQuery(keyExpr string, query *queryHandle) error
+	ImwCreateQueryable(keyExpr string, queryable *queryableHandle, isRosService bool) error
+	ImwDestroyQueryable(keyExpr string, queryable *queryableHandle) error
+	ImwQueryableReply(queryContext unsafe.Pointer, keyExpr string, reply []byte) error
 	Ptr() unsafe.Pointer
 }
 
@@ -936,6 +1022,42 @@ func (z *zenohHandleImpl) ImwQuery(keyExpr string, query *queryHandle) error {
 	defer C.free(unsafe.Pointer(keyExprString))
 
 	if res := C.ZenohHandleImwQuery(z.ptr, keyExprString, C.zenoh_handle_imw_query_callback_fn(C.intrinsic_ImwQueryStaticCallback), C.zenoh_handle_imw_query_on_done_fn(C.intrinsic_ImwQueryDoneStaticCallback), nil, 0, unsafe.Pointer(&query.handle), C.uint64_t(0), false); res != 0 {
+		return errorFromImwRet(res)
+	}
+
+	return nil
+}
+
+func (z *zenohHandleImpl) ImwCreateQueryable(keyExpr string, queryable *queryableHandle, isRosService bool) error {
+	keyExprString := C.CString(keyExpr)
+	defer C.free(unsafe.Pointer(keyExprString))
+
+	if res := C.ZenohHandleImwCreateQueryable(z.ptr, keyExprString, C.zenoh_handle_imw_queryable_callback_fn(C.intrinsic_ImwQueryableStaticCallback), unsafe.Pointer(&queryable.handle), C.bool(isRosService)); res != 0 {
+		return errorFromImwRet(res)
+	}
+
+	return nil
+}
+
+func (z *zenohHandleImpl) ImwDestroyQueryable(keyExpr string, queryable *queryableHandle) error {
+	keyExprString := C.CString(keyExpr)
+	defer C.free(unsafe.Pointer(keyExprString))
+
+	if res := C.ZenohHandleImwDestroyQueryable(z.ptr, keyExprString, C.zenoh_handle_imw_queryable_callback_fn(C.intrinsic_ImwQueryableStaticCallback), unsafe.Pointer(&queryable.handle)); res != 0 {
+		return errorFromImwRet(res)
+	}
+
+	return nil
+}
+
+func (z *zenohHandleImpl) ImwQueryableReply(queryContext unsafe.Pointer, keyExpr string, reply []byte) error {
+	keyExprString := C.CString(keyExpr)
+	defer C.free(unsafe.Pointer(keyExprString))
+
+	replyBytes := C.CBytes(reply)
+	defer C.free(replyBytes)
+
+	if res := C.ZenohHandleImwQueryableReply(z.ptr, queryContext, keyExprString, replyBytes, C.size_t(len(reply))); res != 0 {
 		return errorFromImwRet(res)
 	}
 

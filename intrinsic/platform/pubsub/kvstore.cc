@@ -46,7 +46,9 @@ namespace intrinsic {
 using platform::proto::WorkcellInfo;
 
 namespace {
-constexpr static absl::Duration kHighConsistencyTimeout = absl::Seconds(30);
+constexpr static absl::Duration kHighConsistencySetTimeout = absl::Seconds(30);
+constexpr static absl::Duration kHighConsistencyGetTimeout =
+    absl::Milliseconds(100);
 constexpr static absl::string_view kWorkcellInfoKey = "workcell_info";
 }  // namespace
 
@@ -103,9 +105,20 @@ absl::Status KeyValueStore::Set(absl::string_view key,
     // Should not happen since ValidKeyexpr was called before this.
     return prefixed_name.status();
   }
+
+  // Get the initial value if high consistency is requested.
+  std::optional<std::string> initial_value;
+  if (high_consistency.has_value() && *high_consistency) {
+    auto initial_result = GetAny(key, absl::Seconds(10));
+    if (initial_result.ok()) {
+      initial_value = initial_result.value().SerializeAsString();
+    }
+  }
+
+  std::string value_serialized = value.SerializeAsString();
   imw_ret_t ret =
-      Zenoh().imw_set(prefixed_name->c_str(), value.SerializeAsString().c_str(),
-                      value.ByteSizeLong());
+      Zenoh().imw_set(prefixed_name->c_str(), value_serialized.c_str(),
+                      value_serialized.size());
   if (ret != IMW_OK) {
     return absl::InternalError(
         absl::StrFormat("Error setting a key, return code: %d", ret));
@@ -113,26 +126,46 @@ absl::Status KeyValueStore::Set(absl::string_view key,
   // If high consistency is set, we need to block until the key value is
   // committed.
   if (high_consistency.has_value() && *high_consistency) {
-    absl::Time deadline = absl::Now() + kHighConsistencyTimeout;
+    absl::Time deadline = absl::Now() + kHighConsistencySetTimeout;
     while (true) {
-      auto set_result = GetAny(key, absl::Seconds(10));
-      if (set_result.ok() &&
-          set_result.value().SerializeAsString() == value.SerializeAsString()) {
-        // Key value is committed.
-        return absl::OkStatus();
+      auto get_result = GetAny(key, kHighConsistencyGetTimeout);
+      if (get_result.ok()) {
+        std::string current_value = get_result.value().SerializeAsString();
+        if (current_value == value_serialized) {
+          // Key value is committed.
+          return absl::OkStatus();
+        }
+
+        // If the value is different from both the value we set and the initial
+        // value, then it means another process has changed it.
+        if (initial_value.has_value()) {
+          if (current_value != *initial_value) {
+            return absl::AbortedError(absl::StrFormat(
+                "Value for key '%s' was changed by another process while "
+                "waiting for high consistency",
+                key));
+          }
+        } else {
+          // If there was no initial value, then any value that is not our
+          // value is a "new value".
+          return absl::AbortedError(absl::StrFormat(
+              "Value for key '%s' was set by another process while "
+              "waiting for high consistency",
+              key));
+        }
       } else {
-        if (!set_result.ok() &&
-            set_result.status() != absl::NotFoundError("Key not found")) {
+        if (get_result.status() != absl::NotFoundError("Key not found")) {
           return absl::InternalError(
               absl::StrFormat("Unexpected error, return code: %d", ret));
         }
-        if (absl::Now() > deadline) {
-          return absl::DeadlineExceededError(
-              "Timeout waiting for high consistency");
-        }
-        // Small wait before retrying.
-        absl::SleepFor(absl::Milliseconds(100));
       }
+
+      if (absl::Now() > deadline) {
+        return absl::DeadlineExceededError(
+            "Timeout waiting for high consistency");
+      }
+      // Small wait before retrying.
+      absl::SleepFor(absl::Milliseconds(100));
     }
   }
   return absl::OkStatus();
