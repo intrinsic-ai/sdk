@@ -96,11 +96,7 @@ func runLogsCmd(cmd *cobra.Command, args []string) error {
 		targets = append(targets, targetInfo{resourceType: rtSkill, resourceID: resourceID})
 	}
 	for _, name := range serviceNames {
-		resourceID, err := getResourceID(rtService, name)
-		if err != nil {
-			return err
-		}
-		targets = append(targets, targetInfo{resourceType: rtService, resourceID: resourceID})
+		targets = append(targets, targetInfo{resourceType: rtService, resourceID: name})
 	}
 	ctx, cancelFx := signal.NotifyContext(cmd.Context(), os.Interrupt, os.Kill)
 	defer cancelFx()
