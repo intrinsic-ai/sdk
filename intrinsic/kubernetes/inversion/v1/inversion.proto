@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.inversion.v1;
 
+import "google/api/annotations.proto";
 
 option go_package = "intrinsic/kubernetes/inversion/v1/inversion_go_proto";
 
@@ -19,7 +20,11 @@ service IpcUpdater {
 
   // ReportUpdateInfo reports the current status regarding the installed version
   // and available updates.
-  rpc ReportUpdateInfo(GetUpdateInfoRequest) returns (UpdateInfo) {}
+  rpc ReportUpdateInfo(GetUpdateInfoRequest) returns (UpdateInfo) {
+    option (google.api.http) = {
+      get: "/ipcUpdater/v1/updateInfo"
+    };
+  }
   // ApproveUpdate approves the update to the given version.
   //
   // It must be called with a version_id that matches the available version
@@ -29,7 +34,12 @@ service IpcUpdater {
   //
   // Note that approval is only required when the IPC is configured to require
   // it. By default, the IPC applies updates as soon as they are available.
-  rpc ApproveUpdate(ApproveUpdateRequest) returns (ApproveUpdateResponse) {}
+  rpc ApproveUpdate(ApproveUpdateRequest) returns (ApproveUpdateResponse) {
+    option (google.api.http) = {
+      post: "/ipcUpdater/v1/updateInfo:approve"
+      body: "*"
+    };
+  }
 }
 
 message IntrinsicVersion {

@@ -9,6 +9,7 @@ package(default_visibility = ["//intrinsic:public_api_users"])
 proto_library(
     name = "inversion_proto",
     srcs = ["inversion.proto"],
+    deps = ["@com_google_googleapis//google/api:annotations_proto"],
 )
 
 go_proto_library(
@@ -16,9 +17,11 @@ go_proto_library(
     compilers = [
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
+        "//bazel:go_gen_grpc_gateway",
     ],
     importpath = "intrinsic/kubernetes/inversion/v1/inversion_go_proto",
     protos = [":inversion_proto"],
+    deps = ["@org_golang_google_genproto_googleapis_api//annotations"],
 )
 
 proto_source_code_info_transitive_descriptor_set(
