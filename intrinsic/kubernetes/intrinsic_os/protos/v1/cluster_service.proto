@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.cluster.v1;
 
+import "google/api/annotations.proto";
 import "intrinsic/kubernetes/intrinsic_os/protos/v1/cluster.proto";
 import "intrinsic/kubernetes/intrinsic_os/protos/v1/shutdown.proto";
 
@@ -19,13 +20,40 @@ option go_package = "intrinsic/kubernetes/intrinsic_os/protos/v1/cluster_service
 // It is available on IPCs running IntrinsicOS 20250814.RC01 or later.
 service ClusterService {
   // GetCluster returns the cluster information.
-  rpc GetCluster(GetClusterRequest) returns (Cluster) {}
+  rpc GetCluster(GetClusterRequest) returns (Cluster) {
+    option (google.api.http) = {
+      get: "/cluster/v1/cluster"
+    };
+  }
+
   // Shutdown shuts down the cluster.
-  rpc Shutdown(ShutdownRequest) returns (ShutdownResponse) {}
+  rpc Shutdown(ShutdownRequest) returns (ShutdownResponse) {
+    option (google.api.http) = {
+      post: "/cluster/v1/cluster:shutdown"
+      body: "*"
+    };
+  }
+
   // Reboot reboots the cluster.
-  rpc Reboot(RebootRequest) returns (RebootResponse) {}
+  rpc Reboot(RebootRequest) returns (RebootResponse) {
+    option (google.api.http) = {
+      post: "/cluster/v1/cluster:reboot"
+      body: "*"
+    };
+  }
+
   // GetUptime returns the uptime of the cluster.
-  rpc GetUptime(GetUptimeRequest) returns (Uptime) {}
+  rpc GetUptime(GetUptimeRequest) returns (Uptime) {
+    option (google.api.http) = {
+      get: "/cluster/v1/cluster/uptime"
+    };
+  }
+
   // Reset resets the cluster.
-  rpc Reset(ResetRequest) returns (ResetResponse) {}
+  rpc Reset(ResetRequest) returns (ResetResponse) {
+    option (google.api.http) = {
+      post: "/cluster/v1/cluster:reset"
+      body: "*"
+    };
+  }
 }
