@@ -567,6 +567,16 @@ class NodeState(enum.Enum):
   """Specifies the node state."""
 
 
+@utils.protoenum(
+    proto_enum_type=behavior_tree_pb2.BehaviorTree.TaskNode.State,
+    unspecified_proto_enum_map_to_none=(
+        behavior_tree_pb2.BehaviorTree.TaskNode.State.ACCEPTED
+    ),
+)
+class TaskNodeState(enum.Enum):
+  """Specifies the task state of a task node."""
+
+
 class Node(abc.ABC):
   """Parent abstract base class for all the supported behavior tree nodes.
 
@@ -1653,6 +1663,7 @@ class Task(Node):
   _name: Optional[str]
   _node_id: Optional[int]
   _state: Optional[NodeState]
+  _task_state: behavior_tree_pb2.BehaviorTree.TaskNode.State | None
 
   def __init__(
       self,
@@ -1663,6 +1674,7 @@ class Task(Node):
       ],
       name: Optional[str] = None,
       node_id: int | None = None,
+      task_state: behavior_tree_pb2.BehaviorTree.TaskNode.state | None = None,
   ):
     self._behavior_call_proto = None
     self._code_execution_proto = None
@@ -1681,6 +1693,7 @@ class Task(Node):
     self._name = name
     self._node_id = node_id
     self._state = None
+    self._task_state = task_state
     super().__init__()
 
   def __repr__(self) -> str:
@@ -1716,12 +1729,18 @@ class Task(Node):
     return self._state
 
   @property
+  def task_state(self) -> TaskNodeState | None:
+    return self._task_state
+
+  @property
   def proto(self) -> behavior_tree_pb2.BehaviorTree.Node:
     proto_object = super().proto
     if self._behavior_call_proto:
       proto_object.task.call_behavior.CopyFrom(self._behavior_call_proto)
     if self._code_execution_proto:
       proto_object.task.execute_code.CopyFrom(self._code_execution_proto)
+    if self._task_state is not None:
+      proto_object.task.state = self._task_state
     return proto_object
 
   @property
@@ -1798,9 +1817,10 @@ class Task(Node):
   def _create_from_proto(
       cls, proto_object: behavior_tree_pb2.BehaviorTree.TaskNode
   ) -> Task:
+    task_state = proto_object.state if proto_object.HasField('state') else None
     if proto_object.HasField('execute_code'):
-      return cls(proto_object.execute_code)
-    return cls(proto_object.call_behavior)
+      return cls(proto_object.execute_code, task_state=task_state)
+    return cls(proto_object.call_behavior, task_state=task_state)
 
   def dot_graph(
       self,
