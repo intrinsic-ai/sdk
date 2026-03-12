@@ -5,6 +5,6 @@
 # break the fleet-manager.
 {
   previous: '20260128.RC01',
-  stable: '20260226.RC00', # Version that is currently running with the intrinsic stack
-  canary: '20260226.RC00'
+  stable: '20260226.RC01', # Version that is currently running with the intrinsic stack
+  canary: '20260226.RC01'
 }
