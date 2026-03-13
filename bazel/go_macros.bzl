@@ -6,43 +6,25 @@ load("@com_google_protobuf//bazel/common:proto_info.bzl", "ProtoInfo")
 load("@io_bazel_rules_go//go:def.bzl", "GoInfo", _go_binary = "go_binary", _go_library = "go_library", _go_test = "go_test")
 load("@io_bazel_rules_go//proto:def.bzl", _go_proto_library = "go_proto_library")
 
-def calculate_importpath(name, importpath):
-    if importpath:
-        return importpath
-
-    label = native.package_relative_label(name)
-
-    # buildifier: disable=print
-    print("WARNING: Target //%s:%s is missing an explicit 'importpath'." % (label.package, label.name))
-    return label.package + "/" + label.name
-
-def go_binary(name, importpath = None, **kwargs):
+def go_binary(name, **kwargs):
     """go_binary modifies the binary out path, by creating the output binary at "name" instead of "name_/name"
 
     Args:
         name: The name of the target.
-        importpath: The importpath to set. respected if passed, else auto-calculated based on the `package/name`.
         **kwargs: Other arguments passed to the macro
     """
-    if not importpath:
-        importpath = calculate_importpath(name, None)
     if kwargs.get("linkmode", None) in (None, "normal", "pie"):  # executables
         # Create the output binary at "name" instead of "name_/name"
         kwargs["out"] = name
 
     _go_binary(
         name = name,
-        importpath = importpath,
         **kwargs
     )
 
-def go_library(name, importpath = None, **kwargs):
-    if not importpath:
-        importpath = calculate_importpath(name, None)
-
+def go_library(name, **kwargs):
     _go_library(
         name = name,
-        importpath = importpath,
         **kwargs
     )
 
@@ -53,14 +35,10 @@ def go_grpc_library(name):
         "compilers=['@io_bazel_rules_go//proto:go_grpc_v2', ...].".format(name),
     )
 
-def go_proto_library(name, protos, importpath = None, **kwargs):
-    if not importpath:
-        importpath = calculate_importpath(name, None)
-
+def go_proto_library(name, protos, **kwargs):
     _go_proto_library(
         name = name,
         protos = protos,
-        importpath = importpath,
         **kwargs
     )
 
@@ -76,7 +54,6 @@ def go_proto_library(name, protos, importpath = None, **kwargs):
 def go_test(name, **kwargs):
     _go_test(
         name = name,
-        importpath = calculate_importpath(name, kwargs.pop("importpath", None)),
         **kwargs
     )
 

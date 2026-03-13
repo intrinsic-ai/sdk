@@ -91,6 +91,7 @@ proto_library(
 
 go_proto_library(
     name = "diff_mask_go_proto",
+    importpath = "intrinsic/solution_versions/proto/v1/diff_mask_go_proto",
     protos = [":diff_mask_proto"],
     visibility = [
         "//intrinsic/solution_versions:__subpackages__",
