@@ -11,7 +11,7 @@ proto_library(
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         ":processed_asset_proto",
-        "//intrinsic/assets/proto:id_proto",
+        ":reference_proto",
     ],
 )
 
@@ -34,7 +34,7 @@ go_proto_library(
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         ":processed_asset_go_proto",
-        "//intrinsic/assets/proto:id_go_proto",
+        ":reference_go_proto",
     ],
 )
 
