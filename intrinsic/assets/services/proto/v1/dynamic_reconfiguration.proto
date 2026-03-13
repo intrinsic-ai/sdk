@@ -21,3 +21,20 @@ message ApplyConfigurationRequest {
 }
 
 message ApplyConfigurationResponse {}
+
+// intrinsic:assets_platform_provided_dependencies:strip_begin
+// Configuration for the dynamic reconfiguration interfaces provided to the
+// Intrinsic platform.
+message DynamicReconfigurationConfig {
+  enum ServiceVersion {
+    UNSPECIFIED = 0;
+    // The service implements
+    // intrinsic_proto.services.v1.DynamicReconfiguration.
+    INTRINSIC_PROTO_SERVICES_V1_DYNAMIC_RECONFIGURATION = 1;
+  }
+  // The list of dynamic reconfiguration services provided to the platform.
+  // Authors might choose to implement multiple versions to increase
+  // compatibility across a wider range of platform versions.
+  repeated ServiceVersion service_versions = 1;
+}
+// intrinsic:assets_platform_provided_dependencies:strip_end

@@ -14,7 +14,9 @@ import "intrinsic/assets/services/proto/env_var.proto";
 import "intrinsic/assets/services/proto/service_http_config.proto";
 import "intrinsic/assets/services/proto/service_permissions.proto";
 import "intrinsic/assets/services/proto/service_volume.proto";
+import "intrinsic/assets/services/proto/v1/dynamic_reconfiguration.proto"; // intrinsic:assets_platform_provided_dependencies:strip
 import "intrinsic/assets/services/proto/v1/service_inspection.proto"; 
+import "intrinsic/assets/services/proto/v1/service_state.proto"; // intrinsic:assets_platform_provided_dependencies:strip
 import "intrinsic/kubernetes/workcell_spec/proto/image.proto";
 
 option go_package = "intrinsic/assets/services/proto/service_manifest_go_proto";
@@ -59,6 +61,18 @@ message ServiceDef {
   // (`/etc/intrinsic/runtime_config.pb`) or `INTRINSIC_HTTP_PATH_PREFIX` and
   // `INTRINSIC_HTTP_PORT` environment variables.
   ServiceHttpConfig http_config = 4;
+
+  // intrinsic:assets_platform_provided_dependencies:strip_begin
+  // Optional configuration for the dynamic reconfiguration service interfaces
+  // provided to the Intrinsic platform.
+  optional intrinsic_proto.services.v1.DynamicReconfigurationConfig
+      dynamic_reconfiguration_config = 10;
+  // Optional configuration for the service state service interfaces provided
+  // to the Intrinsic platform.
+  optional intrinsic_proto.services.v1.ServiceStateConfig service_state_config =
+      11;
+  // intrinsic:assets_platform_provided_dependencies:strip_end
+
   // True if this Service supports dynamic reconfiguration by serving the
   // DynamicReconfiguration service on its configured gRPC port.
   bool supports_dynamic_reconfiguration = 5;
