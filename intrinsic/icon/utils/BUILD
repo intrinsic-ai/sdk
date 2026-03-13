@@ -50,6 +50,15 @@ cc_library(
 )
 
 cc_library(
+    name = "strerror",
+    hdrs = ["strerror.h"],
+    deps = [
+        ":fixed_str_cat",
+        ":fixed_string",
+    ],
+)
+
+cc_library(
     name = "realtime_status",
     srcs = ["realtime_status.cc"],
     hdrs = ["realtime_status.h"],
