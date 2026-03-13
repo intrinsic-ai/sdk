@@ -93,3 +93,15 @@ go_library(
         "@org_golang_google_protobuf//types/known/anypb",
     ],
 )
+
+go_library(
+    name = "servicefix",
+    srcs = ["servicefix.go"],
+    importpath = "intrinsic/assets/services/servicefix",
+    visibility = ["//intrinsic:internal_api_users"],
+    deps = [
+        "//intrinsic/assets/services/proto:service_manifest_go_proto",
+        "//intrinsic/assets/services/proto/v1:dynamic_reconfiguration_go_proto",  # intrinsic:assets_platform_provided_dependencies:strip
+        "//intrinsic/assets/services/proto/v1:service_state_go_proto",  # intrinsic:assets_platform_provided_dependencies:strip
+    ],
+)

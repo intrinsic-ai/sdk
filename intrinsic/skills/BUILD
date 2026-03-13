@@ -52,3 +52,14 @@ go_library(
         "@org_golang_google_protobuf//reflect/protoregistry:go_default_library",
     ],
 )
+
+go_library(
+    name = "skillfix",
+    srcs = ["skillfix.go"],
+    importpath = "intrinsic/skills/skillfix",
+    visibility = ["//intrinsic:internal_api_users"],
+    deps = [
+        "//intrinsic/skills/proto:processed_skill_manifest_go_proto",
+        "//intrinsic/skills/proto:skill_manifest_go_proto",
+    ],
+)

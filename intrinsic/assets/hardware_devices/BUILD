@@ -36,3 +36,14 @@ go_library(
         "//intrinsic/assets/proto/v1:reference_go_proto",
     ],
 )
+
+go_library(
+    name = "hardwaredevicefix",
+    srcs = ["hardwaredevicefix.go"],
+    importpath = "intrinsic/assets/hardware_devices/hardwaredevicefix",
+    visibility = ["//intrinsic:internal_api_users"],
+    deps = [
+        "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",
+        "//intrinsic/assets/services:servicefix",
+    ],
+)
