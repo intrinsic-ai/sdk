@@ -32,4 +32,32 @@ message ForceControlSettings {
   // tugging or sensor drift.
   intrinsic_proto.icon.Wrench sensed_wrench_deadband = 5;
 
+  // Settings to configure the instability detection algorithm based on force /
+  // torque measured at the tool frame.
+  InstabilityDetectionSettings instability_detection_settings = 8;
+}
+
+// A set of parameters to configure the computation of the stability index based
+// on force / torque measurement (measured at the tool frame), which is used to
+// detect instability during force control.
+message InstabilityDetectionSettings {
+  // The frequency value separating low from high frequencies, in Hz. Valid
+  // range is [1.0, 0.5 * f_c], where `f_c` is the robot control frequency.
+  // Ideally, this is the maximum observable frequency during stable
+  // interactions. Default value is 4 Hz.
+  optional double crossover_frequency = 1;
+
+  // A critical threshold for the Root-Mean-Square of the measured force at the
+  // tool frame, in N. Stability index growth will be limited to instances
+  // where the RMS of the measured force approaches or exceeds this value on any
+  // dimension. Ideally, this is the minimum force (distinguishable from noise)
+  // observable during unstable interactions. Default value is 10 N.
+  optional double force_rms_threshold = 2;
+
+  // A critical threshold for the Root-Mean-Square of the measured torque at the
+  // tool frame, in N m. Stability index growth will be limited to instances
+  // where the RMS of the measured torque approaches or exceeds this value on
+  // any dimension. Ideally, this is the minimum torque (distinguishable from
+  // noise) observable during unstable interactions. Default value is 4 N m.
+  optional double torque_rms_threshold = 3;
 }
