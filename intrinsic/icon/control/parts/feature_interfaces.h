@@ -11,7 +11,6 @@
 #include <string_view>
 
 #include "absl/strings/string_view.h"
-#include "absl/types/optional.h"
 #include "absl/types/span.h"
 #include "intrinsic/eigenmath/types.h"
 #include "intrinsic/icon/control/joint_acceleration_command.h"
