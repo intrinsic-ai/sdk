@@ -28,7 +28,6 @@ from intrinsic.frontend.solution_service.proto import solution_service_pb2_grpc
 from intrinsic.frontend.solution_service.proto import status_pb2 as solution_status_pb2
 from intrinsic.proto_tools.registry import proto_registry_client
 from intrinsic.resources.client import resource_registry_client
-from intrinsic.scene.product.client import product_client as product_client_mod
 from intrinsic.skills.client import skill_registry_client
 from intrinsic.solutions import error_processing
 from intrinsic.solutions import errors as solution_errors
@@ -42,7 +41,6 @@ from intrinsic.solutions import simulation
 from intrinsic.solutions import worlds
 from intrinsic.solutions.internal import installed_assets_client
 from intrinsic.solutions.internal import process_providing
-from intrinsic.solutions.internal import products as products_mod
 from intrinsic.solutions.internal import resources as resources_mod
 from intrinsic.solutions.internal import skill_providing
 from intrinsic.solutions.internal import stubs
@@ -79,7 +77,6 @@ class Solution:
     processes: Processes (=behavior trees) stored on the solution.
     skills: Wrapper to easily access skills.
     resources: Provides access to resources.
-    products: Provides access to products.
     simulator: Simulator instance for controlling simulation.
     errors: Exposes error reports from executions.
     pose_estimators: Optional. Wrapper to access pose estimators.
@@ -103,7 +100,6 @@ class Solution:
   is_simulated: bool
   executive: execution.Executive
   resources: providers.ResourceProvider
-  products: providers.ProductProvider
   world: worlds.ObjectWorld
   simulator: simulation.Simulation | None
   processes: providers.ProcessProvider
@@ -126,7 +122,6 @@ class Solution:
       installed_assets: installed_assets_client.InstalledAssetsClient,
       skill_registry: skill_registry_client.SkillRegistryClient,
       resource_registry: resource_registry_client.ResourceRegistryClient,
-      product_client: product_client_mod.ProductClient,
       object_world: worlds.ObjectWorld,
       simulator: simulation.Simulation | None,
       errors: error_processing.ErrorsLoader,
@@ -142,9 +137,7 @@ class Solution:
     self._solution_service = solution_service
     self._skill_registry = skill_registry
     self._resource_registry = resource_registry
-    self._product_client = product_client
     self.resources = resources_mod.Resources(self._resource_registry)
-    self.products = products_mod.Products(self._product_client)
 
     self.world: worlds.ObjectWorld = object_world
     self.simulator: simulation.Simulation | None = simulator
@@ -215,8 +208,6 @@ class Solution:
     )
 
     # Remaining backends.
-    product_client = product_client_mod.ProductClient.connect(grpc_channel)
-
     object_world = worlds.ObjectWorld.connect(
         worlds.EditWorldId.BELIEF, grpc_channel
     )
@@ -244,7 +235,6 @@ class Solution:
         installed_assets,
         skill_registry,
         resource_registry,
-        product_client,
         object_world,
         simulator,
         error_loader,

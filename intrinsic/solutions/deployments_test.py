@@ -249,8 +249,6 @@ class SolutionTest(absltest.TestCase):
     resource_registry = mock.MagicMock()
     resource_registry.list_all_resource_handles.return_value = []
 
-    product_client = mock.MagicMock()
-
     pose_estimators = mock.MagicMock()
 
     self._proto_registry = mock.MagicMock()
@@ -258,7 +256,6 @@ class SolutionTest(absltest.TestCase):
     self._executive = executive
     self._skill_registry = skill_registry
     self._resource_registry = resource_registry
-    self._product_client = product_client
     self._object_world = object_world
     self._simulation = simulation
     self._errors = errors
@@ -274,7 +271,6 @@ class SolutionTest(absltest.TestCase):
         self._installed_assets,
         self._skill_registry,
         self._resource_registry,
-        self._product_client,
         self._object_world,
         self._simulation,
         self._errors,
@@ -289,7 +285,6 @@ class SolutionTest(absltest.TestCase):
     self.assertIsNotNone(solution.executive)
     self.assertIsNotNone(solution.skills)
     self.assertIsNotNone(solution.resources)
-    self.assertIsNotNone(solution.products)
     self.assertIsNotNone(solution.simulator)
     self.assertIsInstance(solution.world, worlds.ObjectWorld)
     self.assertIsNotNone(solution.pose_estimators)

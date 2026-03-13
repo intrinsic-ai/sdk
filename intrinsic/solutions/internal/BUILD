@@ -359,30 +359,6 @@ py_library(
     ],
 )
 
-py_library(
-    name = "products",
-    srcs = ["products.py"],
-    deps = [
-        "//intrinsic/scene/product/client:product_client",
-        "//intrinsic/scene/proto/v1:scene_object_py_pb2",
-        "//intrinsic/solutions:provided",
-        "//intrinsic/solutions:providers",
-        "@com_google_protobuf//:protobuf_python",
-    ],
-)
-
-py_test(
-    name = "products_test",
-    srcs = ["products_test.py"],
-    deps = [
-        ":products",
-        "//intrinsic/scene/product/proto:product_py_pb2",
-        "//intrinsic/scene/proto/v1:scene_object_py_pb2",
-        "@com_google_absl_py//absl/testing:absltest",
-        "@com_google_protobuf//:protobuf_python",
-    ],
-)
-
 proto_library(
     name = "stubs_test_proto",
     testonly = True,
