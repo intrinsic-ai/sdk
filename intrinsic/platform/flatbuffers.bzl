@@ -6,6 +6,7 @@ load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_skylib//lib:types.bzl", "types")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load("@rules_python//python:py_info.bzl", "PyInfo")
@@ -385,7 +386,7 @@ def _make_cc_flatbuffers_library(*, doc, aspect):
         implementation = _cc_flatbuffers_library_impl,
     )
 
-cc_flatbuffers_library = _make_cc_flatbuffers_library(
+_cc_flatbuffers_library = _make_cc_flatbuffers_library(
     aspect = _cc_flatbuffers_aspect,
     doc = """\
 `cc_flatbuffers_library` generates C++ code from `.fbs` files.
@@ -426,7 +427,20 @@ Where `foo_user.h` would include the generated code via: `#include "path/to/proj
 """,
 )
 
-cc_lite_flatbuffers_library = _make_cc_flatbuffers_library(
+def cc_flatbuffers_library(name, deps, **kwargs):
+    _cc_flatbuffers_library(
+        name = name + "_internal",
+        deps = deps,
+        **kwargs
+    )
+    cc_library(
+        name = name,
+        hdrs = [name + "_internal"],
+        deps = [name + "_internal"],
+        **kwargs
+    )
+
+_cc_lite_flatbuffers_library = _make_cc_flatbuffers_library(
     aspect = _cc_lite_flatbuffers_aspect,
     doc = """\
 `cc_lite_flatbuffers_library` generates C++ code from `.fbs` files.
@@ -464,6 +478,19 @@ cc_library(
 Where `foo_user.h` would include the generated code via: `#include "path/to/project/foo.lite.fbs.h"`.
 ```""",
 )
+
+def cc_lite_flatbuffers_library(name, deps, **kwargs):
+    _cc_lite_flatbuffers_library(
+        name = name + "_internal",
+        deps = deps,
+        **kwargs
+    )
+    cc_library(
+        name = name,
+        hdrs = [name + "_internal"],
+        deps = [name + "_internal"],
+        **kwargs
+    )
 
 ############
 ## Python ##
