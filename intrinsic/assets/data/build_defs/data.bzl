@@ -41,11 +41,11 @@ def _intrinsic_data_impl(ctx):
     )
 
     ctx.actions.run(
-        inputs = depset(inputs, transitive = transitive_inputs),
-        outputs = [ctx.outputs.bundle_out],
-        executable = ctx.executable._datagen,
         arguments = [args],
+        executable = ctx.executable._datagen,
+        inputs = depset(inputs, transitive = transitive_inputs),
         mnemonic = "Databundle",
+        outputs = [ctx.outputs.bundle_out],
         progress_message = "Data bundle %s" % ctx.outputs.bundle_out.short_path,
     )
 
@@ -78,11 +78,11 @@ def _intrinsic_data_impl(ctx):
         asset_local_info_output,
     )
     ctx.actions.run(
-        inputs = depset([ctx.file.manifest], transitive = transitive_inputs),
-        outputs = [asset_info_output, asset_local_info_output],
-        executable = ctx.executable._assetlocalinfogen,
         arguments = [local_info_args],
+        executable = ctx.executable._assetlocalinfogen,
+        inputs = depset([ctx.file.manifest], transitive = transitive_inputs),
         mnemonic = "AssetLocalInfo",
+        outputs = [asset_info_output, asset_local_info_output],
         progress_message = "Writing asset local info %{output} for %{label}",
     )
 
@@ -104,41 +104,45 @@ def _intrinsic_data_impl(ctx):
     ]
 
 _intrinsic_data = rule(
-    implementation = _intrinsic_data_impl,
     attrs = {
         "manifest": attr.label(
             allow_single_file = [".textproto"],
-            mandatory = True,
             doc = "A manifest that provides the data payload and metadata.",
+            mandatory = True,
         ),
         "data": attr.label_list(
             allow_empty = True,
             allow_files = True,
-            mandatory = False,
             doc = "Data files that are referenced via ReferencedData in the data payload.",
+            mandatory = False,
         ),
         "deps": attr.label_list(
+            aspects = [gen_source_code_info_descriptor_set],
+            doc = "Proto dependencies needed to construct the data payload's FileDescriptorSet.",
             mandatory = True,
             providers = [ProtoInfo],
-            doc = "Proto dependencies needed to construct the data payload's FileDescriptorSet.",
-            aspects = [gen_source_code_info_descriptor_set],
         ),
         "_datagen": attr.label(
-            default = Label("//intrinsic/assets/data/build_defs:datagen_main"),
             cfg = "exec",
+            default = Label("//intrinsic/assets/data/build_defs:datagen_main"),
             executable = True,
         ),
         "_assetlocalinfogen": attr.label(
-            default = Label("//intrinsic/assets/build_defs:assetlocalinfogen"),
             cfg = "exec",
+            default = Label("//intrinsic/assets/build_defs:assetlocalinfogen"),
             executable = True,
         ),
     },
+    doc = "Bundles a Data asset into a tar file.",
     outputs = {
         "bundle_out": "%{name}.bundle.tar",
     },
-    provides = [DataAssetInfo, AssetInfo, AssetLocalInfo],
-    doc = "Bundles a Data asset into a tar file.",
+    provides = [
+        DataAssetInfo,
+        AssetInfo,
+        AssetLocalInfo,
+    ],
+    implementation = _intrinsic_data_impl,
 )
 
 # buildifier: disable=function-docstring

@@ -42,11 +42,11 @@ def _hal_manifest_impl(ctx):
         )
 
     ctx.actions.run(
-        inputs = depset([ctx.file.manifest]),
-        outputs = [out],
-        executable = ctx.executable._hal_manifest,
         arguments = [args],
+        executable = ctx.executable._hal_manifest,
+        inputs = depset([ctx.file.manifest]),
         mnemonic = "HalManifest",
+        outputs = [out],
         progress_message = "Generating complete hal manifest %s" % out.short_path,
     )
     return [
@@ -57,8 +57,6 @@ def _hal_manifest_impl(ctx):
     ]
 
 hardware_module_manifest = rule(
-    implementation = _hal_manifest_impl,
-    doc = "Completes a partial resource manifest file for hardware modules",
     attrs = {
         "manifest": attr.label(
             allow_single_file = [".textproto"],
@@ -71,10 +69,10 @@ hardware_module_manifest = rule(
         ),
         "image_sim": attr.label(
             allow_single_file = [".tar"],
-            mandatory = True,
             doc = """The image archive to be included in the bundle for
             simulation.  This can be the same as image if it supports both sim
             and real""",
+            mandatory = True,
         ),
         "provides_service_inspection": attr.bool(
             default = False,
@@ -97,9 +95,11 @@ hardware_module_manifest = rule(
             exposed.""",
         ),
         "_hal_manifest": attr.label(
-            default = Label("//intrinsic/icon/hal/bzl:hal_manifest"),
             cfg = "exec",
+            default = Label("//intrinsic/icon/hal/bzl:hal_manifest"),
             executable = True,
         ),
     },
+    doc = "Completes a partial resource manifest file for hardware modules",
+    implementation = _hal_manifest_impl,
 )

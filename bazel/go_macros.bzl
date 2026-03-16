@@ -44,11 +44,11 @@ def go_proto_library(name, protos, **kwargs):
 
     importpath_matches_go_package_test(
         name = "importpath_matches_go_package_" + name + "_test",
+        go_proto_library = name,
         # Some proto_library files contain multiple proto files; however, protoc-gen-go requires
         # all proto files in a proto_library target have the same go_package. We only need to
         # check the go_package of one of the files.
         proto = protos[0],
-        go_proto_library = name,
     )
 
 def go_test(name, **kwargs):
@@ -67,7 +67,6 @@ def _importpath_matches_go_package_test_impl(ctx):
     # The 'set -e' ensures that the script will exit with a non-zero status
     # if the checker fails, which then fails the test.
     ctx.actions.write(
-        output = test_script,
         content = """#!/bin/bash
 set -e
 checker="{checker_path}"
@@ -80,6 +79,7 @@ proto_file="{proto_file_path}"
             proto_file_path = ctx.attr.proto[ProtoInfo].direct_sources[0].short_path,
         ),
         is_executable = True,
+        output = test_script,
     )
 
     proto_runfiles = ctx.runfiles(ctx.attr.proto[ProtoInfo].direct_sources)
@@ -90,25 +90,25 @@ proto_file="{proto_file_path}"
     )]
 
 importpath_matches_go_package_test = rule(
-    implementation = _importpath_matches_go_package_test_impl,
-    test = True,
     attrs = {
         "go_proto_library": attr.label(
+            doc = "The go_proto_library target to check.",
             mandatory = True,
             providers = [GoInfo],
-            doc = "The go_proto_library target to check.",
         ),
         "proto": attr.label(
+            doc = "The proto_library target that has a go_package option.",
             mandatory = True,
             providers = [ProtoInfo],
-            doc = "The proto_library target that has a go_package option.",
         ),
         "_checker": attr.label(
-            default = Label("//bazel:checkimportpathmatchesgopackage"),
             cfg = "exec",
-            executable = True,
+            default = Label("//bazel:checkimportpathmatchesgopackage"),
             doc = "Internal: The binary that performs the check.",
+            executable = True,
         ),
     },
     doc = "A test rule that ensures a go_proto_library's importpath matches the go_package option in its .proto file.",
+    test = True,
+    implementation = _importpath_matches_go_package_test_impl,
 )

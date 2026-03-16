@@ -45,11 +45,11 @@ def _skill_manifest_impl(ctx):
 
     outputs = [outputfile, file_descriptor_set_out]
     ctx.actions.run(
-        outputs = outputs,
-        inputs = depset([pbtxt], transitive = [transitive_descriptor_sets]),
-        executable = ctx.executable._skillmanifestgen,
         arguments = [args],
+        executable = ctx.executable._skillmanifestgen,
+        inputs = depset([pbtxt], transitive = [transitive_descriptor_sets]),
         mnemonic = "SkillManifest",
+        outputs = outputs,
     )
 
     return [
@@ -58,12 +58,35 @@ def _skill_manifest_impl(ctx):
             runfiles = ctx.runfiles(outputs),
         ),
         SkillManifestInfo(
-            manifest_binary_file = outputfile,
             file_descriptor_set = file_descriptor_set_out,
+            manifest_binary_file = outputfile,
         ),
     ]
 
 skill_manifest = rule(
+    attrs = {
+        "src": attr.label(
+            allow_single_file = True,
+            doc = "textproto specifying an intrinsic_proto.skills.SkillManifest",
+        ),
+        "deps": attr.label_list(
+            aspects = [gen_source_code_info_descriptor_set],
+            doc = "proto deps of the manifest textproto for this skill. " +
+                  "This is normally the proto message declaring the skill's return type and parameter " +
+                  "type messages.",
+            providers = [ProtoInfo],
+        ),
+        "incompatible_disallow_manifest_dependencies": attr.bool(
+            default = False,
+            doc = "whether this manifest is prevented from using the old dependency model. " +
+                  "This is a temporary attribute to allow a safe migration to the new model.",
+        ),
+        "_skillmanifestgen": attr.label(
+            cfg = "exec",
+            default = Label("//intrinsic/skills/build_defs:skillmanifestgen"),
+            executable = True,
+        ),
+    },
     doc = """Compiles a binary proto message for the given intrinsic_proto.skills.SkillManifest textproto
            and writes it to file.
 
@@ -79,27 +102,4 @@ skill_manifest = rule(
            Provides SkillManifestInfo.
            """,
     implementation = _skill_manifest_impl,
-    attrs = {
-        "src": attr.label(
-            allow_single_file = True,
-            doc = "textproto specifying an intrinsic_proto.skills.SkillManifest",
-        ),
-        "deps": attr.label_list(
-            doc = "proto deps of the manifest textproto for this skill. " +
-                  "This is normally the proto message declaring the skill's return type and parameter " +
-                  "type messages.",
-            providers = [ProtoInfo],
-            aspects = [gen_source_code_info_descriptor_set],
-        ),
-        "incompatible_disallow_manifest_dependencies": attr.bool(
-            doc = "whether this manifest is prevented from using the old dependency model. " +
-                  "This is a temporary attribute to allow a safe migration to the new model.",
-            default = False,
-        ),
-        "_skillmanifestgen": attr.label(
-            default = Label("//intrinsic/skills/build_defs:skillmanifestgen"),
-            executable = True,
-            cfg = "exec",
-        ),
-    },
 )

@@ -65,17 +65,17 @@ def _intrinsic_asset_reference_impl(ctx):
     )
 
     ctx.actions.run(
-        inputs = transitive_descriptor_sets,
-        outputs = [asset_info_output, asset_catalog_ref_info_output],
-        executable = ctx.executable._assetcatalogrefinfogen,
-        mnemonic = "AssetReference",
-        progress_message = "Writing %{output} for %{label}",
         arguments = [args],
+        executable = ctx.executable._assetcatalogrefinfogen,
+        inputs = transitive_descriptor_sets,
+        mnemonic = "AssetReference",
+        outputs = [asset_info_output, asset_catalog_ref_info_output],
+        progress_message = "Writing %{output} for %{label}",
     )
     return [
         DefaultInfo(
-            files = depset([asset_catalog_ref_info_output]),
             executable = asset_catalog_ref_info_output,
+            files = depset([asset_catalog_ref_info_output]),
         ),
         AssetInfo(
             asset_info = asset_info_output,
@@ -87,7 +87,6 @@ def _intrinsic_asset_reference_impl(ctx):
     ]
 
 intrinsic_asset_reference = rule(
-    implementation = _intrinsic_asset_reference_impl,
     attrs = {
         "type": attr.string(),
         "id": attr.string(
@@ -97,19 +96,23 @@ intrinsic_asset_reference = rule(
             mandatory = True,
         ),
         "deps": attr.label_list(
-            providers = [ProtoInfo],
             doc = "Proto dependencies that are compatible with the catalog " +
                   "asset. These are optional but required to parse config " +
                   "files. Note that version skew or other errors may happen " +
                   "if the wrong protos are used.",
+            providers = [ProtoInfo],
         ),
         "_assetcatalogrefinfogen": attr.label(
-            default = Label("//intrinsic/assets/build_defs:assetcatalogrefinfogen"),
             cfg = "exec",
+            default = Label("//intrinsic/assets/build_defs:assetcatalogrefinfogen"),
             executable = True,
         ),
     },
-    provides = [AssetInfo, AssetCatalogRefInfo],
+    provides = [
+        AssetInfo,
+        AssetCatalogRefInfo,
+    ],
+    implementation = _intrinsic_asset_reference_impl,
 )
 
 def _intrinsic_asset_instance_impl(ctx):
@@ -139,29 +142,28 @@ def _intrinsic_asset_instance_impl(ctx):
         inputs.append(ctx.file.config)
 
     ctx.actions.run(
-        inputs = depset(inputs, transitive = transitive_inputs),
-        outputs = [asset_instance_output],
-        executable = ctx.executable._assetinstancegen,
         arguments = [args],
+        executable = ctx.executable._assetinstancegen,
+        inputs = depset(inputs, transitive = transitive_inputs),
         mnemonic = "AssetInstance",
+        outputs = [asset_instance_output],
         progress_message = "Writing %{output} for %{label}",
     )
     return [
         DefaultInfo(
-            files = depset([asset_instance_output]),
             executable = asset_instance_output,
+            files = depset([asset_instance_output]),
             runfiles = ctx.runfiles(
                 transitive_files = depset(transitive = transitive_runfiles),
             ),
         ),
         AssetInstanceInfo(
-            instance_info = asset_instance_output,
             config = ctx.file.config,
+            instance_info = asset_instance_output,
         ),
     ]
 
 intrinsic_asset_instance = rule(
-    implementation = _intrinsic_asset_instance_impl,
     attrs = {
         "id": attr.string(
             mandatory = True,
@@ -170,16 +172,21 @@ intrinsic_asset_instance = rule(
             doc = "Name of the instance, if it should be different than 'name'",
         ),
         "config": attr.label(
-            allow_single_file = [".pbtxt", ".txtpb", ".textproto"],
+            allow_single_file = [
+                ".pbtxt",
+                ".txtpb",
+                ".textproto",
+            ],
         ),
         "required_node_hostname": attr.string(
             mandatory = False,
         ),
         "_assetinstancegen": attr.label(
-            default = Label("//intrinsic/assets/build_defs:assetinstancegen"),
             cfg = "exec",
+            default = Label("//intrinsic/assets/build_defs:assetinstancegen"),
             executable = True,
         ),
     },
     provides = [AssetInstanceInfo],
+    implementation = _intrinsic_asset_instance_impl,
 )

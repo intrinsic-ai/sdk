@@ -56,21 +56,21 @@ def _fbs_library_impl(ctx):
 
     fbs_info_out = FbsInfo(
         direct_fbs_srcs = fbs_src_files,
-        indirect_fbs_srcs = depset(transitive = indirect_fbs_srcs),
         direct_include_dirs = depset(direct_include_dirs),
-        transitive_include_dirs = depset(transitive = transitive_include_dirs),
         gen_mutable = ctx.attr.gen_mutable,
+        indirect_fbs_srcs = depset(transitive = indirect_fbs_srcs),
+        transitive_include_dirs = depset(transitive = transitive_include_dirs),
     )
     return [fbs_info_out]
 
 fbs_library = rule(
-    implementation = _fbs_library_impl,
     attrs = {
         "srcs": attr.label_list(allow_files = True),
         "gen_mutable": attr.bool(default = True),
         "deps": attr.label_list(),
     },
     provides = [FbsInfo],
+    implementation = _fbs_library_impl,
 )
 
 def make_flatc_include_args(fbs_info, ctx):

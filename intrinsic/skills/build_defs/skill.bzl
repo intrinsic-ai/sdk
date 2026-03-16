@@ -49,10 +49,10 @@ def _gen_cc_skill_service_main_impl(ctx):
     )
 
     ctx.actions.run(
-        outputs = [output_file],
+        arguments = [args],
         executable = ctx.executable._skill_service_gen,
         inputs = [manifest_pbbin_file],
-        arguments = [args],
+        outputs = [output_file],
     )
 
     return [
@@ -60,8 +60,6 @@ def _gen_cc_skill_service_main_impl(ctx):
     ]
 
 _gen_cc_skill_service_main = rule(
-    implementation = _gen_cc_skill_service_main_impl,
-    doc = "Generates a file containing a main function for a skill's services.",
     attrs = {
         "manifest": attr.label(
             mandatory = True,
@@ -72,12 +70,14 @@ _gen_cc_skill_service_main = rule(
             providers = [CcInfo],
         ),
         "_skill_service_gen": attr.label(
+            cfg = "exec",
             default = Label("//intrinsic/skills/generator:skill_service_generator"),
             doc = "The skill_service_generator executable to invoke for the code generation action.",
             executable = True,
-            cfg = "exec",
         ),
     },
+    doc = "Generates a file containing a main function for a skill's services.",
+    implementation = _gen_cc_skill_service_main_impl,
 )
 
 def _cc_skill_service(name, deps, manifest, **kwargs):
@@ -95,11 +95,11 @@ def _cc_skill_service(name, deps, manifest, **kwargs):
     gen_main_name = "_%s_main" % name
     _gen_cc_skill_service_main(
         name = gen_main_name,
-        manifest = manifest,
-        deps = deps,
         testonly = kwargs.get("testonly"),
+        manifest = manifest,
+        tags = ["avoid_dep", "manual"],
         visibility = ["//visibility:private"],
-        tags = ["manual", "avoid_dep"],
+        deps = deps,
     )
 
     cc_binary(
@@ -138,10 +138,10 @@ def _gen_py_skill_service_main_impl(ctx):
     )
 
     ctx.actions.run(
-        outputs = [output_file],
+        arguments = [args],
         executable = ctx.executable._skill_service_gen,
         inputs = [manifest_pbbin_file],
-        arguments = [args],
+        outputs = [output_file],
     )
 
     return [
@@ -149,8 +149,6 @@ def _gen_py_skill_service_main_impl(ctx):
     ]
 
 _gen_py_skill_service_main = rule(
-    implementation = _gen_py_skill_service_main_impl,
-    doc = "Generates a file containing a main function for a skill's services.",
     attrs = {
         "manifest": attr.label(
             mandatory = True,
@@ -161,12 +159,14 @@ _gen_py_skill_service_main = rule(
             providers = [PyInfo],
         ),
         "_skill_service_gen": attr.label(
+            cfg = "exec",
             default = Label("//intrinsic/skills/generator:skill_service_generator"),
             doc = "The skill_service_generator executable to invoke for the code generation action.",
             executable = True,
-            cfg = "exec",
         ),
     },
+    doc = "Generates a file containing a main function for a skill's services.",
+    implementation = _gen_py_skill_service_main_impl,
 )
 
 def _py_skill_service(name, deps, manifest, **kwargs):
@@ -183,11 +183,11 @@ def _py_skill_service(name, deps, manifest, **kwargs):
     gen_main_name = "_%s_main" % name
     _gen_py_skill_service_main(
         name = gen_main_name,
-        manifest = manifest,
-        deps = deps,
         testonly = kwargs.get("testonly"),
+        manifest = manifest,
+        tags = ["avoid_dep", "manual"],
         visibility = ["//visibility:private"],
-        tags = ["manual", "avoid_dep"],
+        deps = deps,
     )
 
     py_binary(
@@ -223,10 +223,10 @@ def _skill_service_config_manifest_impl(ctx):
         outputfile,
     )
     ctx.actions.run(
-        outputs = [outputfile],
+        arguments = [arguments],
         executable = ctx.executable._skill_service_config_gen,
         inputs = [manifest_pbbin_file, proto_desc_fileset_file],
-        arguments = [arguments],
+        outputs = [outputfile],
     )
 
     return DefaultInfo(
@@ -235,18 +235,18 @@ def _skill_service_config_manifest_impl(ctx):
     )
 
 _skill_service_config_manifest = rule(
-    implementation = _skill_service_config_manifest_impl,
     attrs = {
         "_skill_service_config_gen": attr.label(
-            executable = True,
-            default = Label("//intrinsic/skills/build_defs:skillserviceconfiggen_main"),
             cfg = "exec",
+            default = Label("//intrinsic/skills/build_defs:skillserviceconfiggen_main"),
+            executable = True,
         ),
         "manifest": attr.label(
             mandatory = True,
             providers = [SkillManifestInfo],
         ),
     },
+    implementation = _skill_service_config_manifest_impl,
 )
 
 SkillInfo = provider(
@@ -279,11 +279,11 @@ def _intrinsic_skill_rule_impl(ctx):
     )
 
     ctx.actions.run(
-        inputs = inputs,
-        outputs = [bundle_output],
-        executable = ctx.executable._skillgen,
         arguments = [args],
+        executable = ctx.executable._skillgen,
+        inputs = inputs,
         mnemonic = "Skillbundle",
+        outputs = [bundle_output],
         progress_message = "Skill bundle %s" % bundle_output.short_path,
     )
 
@@ -315,11 +315,11 @@ def _intrinsic_skill_rule_impl(ctx):
         asset_local_info_output,
     )
     ctx.actions.run(
-        inputs = depset([manifest, fds]),
-        outputs = [asset_info_output, asset_local_info_output],
-        executable = ctx.executable._assetlocalinfogen,
         arguments = [local_info_args],
+        executable = ctx.executable._assetlocalinfogen,
+        inputs = depset([manifest, fds]),
         mnemonic = "AssetLocalInfo",
+        outputs = [asset_info_output, asset_local_info_output],
         progress_message = "Writing asset local info %{output} for %{label}",
     )
 
@@ -343,32 +343,36 @@ def _intrinsic_skill_rule_impl(ctx):
     ]
 
 _intrinsic_skill_rule = rule(
-    implementation = _intrinsic_skill_rule_impl,
     attrs = {
         "image": attr.label(
-            mandatory = True,
             allow_single_file = [".tar"],
             doc = "The image tarball of the skill.",
+            mandatory = True,
         ),
         "manifest": attr.label(
             mandatory = True,
             providers = [SkillManifestInfo],
         ),
         "_skillgen": attr.label(
-            default = Label("//intrinsic/skills/build_defs:skillgen_main"),
             cfg = "exec",
+            default = Label("//intrinsic/skills/build_defs:skillgen_main"),
             executable = True,
         ),
         "_assetlocalinfogen": attr.label(
-            default = Label("//intrinsic/assets/build_defs:assetlocalinfogen"),
             cfg = "exec",
+            default = Label("//intrinsic/assets/build_defs:assetlocalinfogen"),
             executable = True,
         ),
     },
     outputs = {
         "bundle_out": "%{name}.bundle.tar",
     },
-    provides = [SkillInfo, AssetInfo, AssetLocalInfo],
+    provides = [
+        SkillInfo,
+        AssetInfo,
+        AssetLocalInfo,
+    ],
+    implementation = _intrinsic_skill_rule_impl,
 )
 
 def _intrinsic_skill(name, image, manifest, **kwargs):
@@ -395,10 +399,10 @@ def _intrinsic_skill(name, image, manifest, **kwargs):
 
     _intrinsic_skill_rule(
         name = name,
+        testonly = kwargs.get("testonly"),
         image = image_name + ".tar",
         manifest = manifest,
         visibility = visibility,
-        testonly = kwargs.get("testonly"),
     )
 
 def cc_skill(
@@ -426,29 +430,31 @@ def cc_skill(
     binary_name = "_%s_binary" % name
     _cc_skill_service(
         name = binary_name,
-        deps = deps,
-        manifest = manifest,
         testonly = kwargs.get("testonly"),
+        manifest = manifest,
+        tags = ["avoid_dep", "manual"],
         visibility = ["//visibility:private"],
-        tags = ["manual", "avoid_dep"],
+        deps = deps,
     )
 
     skill_service_config_name = "_%s_skill_service_config" % name
     _skill_service_config_manifest(
         name = skill_service_config_name,
-        manifest = manifest,
         testonly = kwargs.get("testonly"),
+        manifest = manifest,
+        tags = ["avoid_dep", "manual"],
         visibility = ["//visibility:private"],
-        tags = ["manual", "avoid_dep"],
     )
 
     service_image_name = "_%s_service_image" % name
     cc_oci_image(
         name = service_image_name,
+        testonly = kwargs.get("testonly"),
         base = base_image,
         binary = binary_name,
-        directory = _SKILL_USER_DIR,
+        compatible_with = kwargs.get("compatible_with"),
         data_path = "/",
+        directory = _SKILL_USER_DIR,
         files = [
             skill_service_config_name,
         ],
@@ -456,10 +462,8 @@ def cc_skill(
             "/skills/skill_service": paths.join(_SKILL_USER_DIR, native.package_name(), binary_name),
             "/skills/skill_service_config.proto.bin": paths.join(_SKILL_USER_DIR, native.package_name(), skill_service_config_name + ".pbbin"),
         },
-        workdir = "/",
-        compatible_with = kwargs.get("compatible_with"),
         visibility = ["//visibility:private"],
-        testonly = kwargs.get("testonly"),
+        workdir = "/",
     )
 
     _intrinsic_skill(
@@ -492,30 +496,32 @@ def py_skill(
     binary_name = "_%s_binary" % name
     _py_skill_service(
         name = binary_name,
-        deps = deps,
+        testonly = kwargs.get("testonly"),
         manifest = manifest,
         python_version = "PY3",
-        testonly = kwargs.get("testonly"),
+        tags = ["avoid_dep", "manual"],
         visibility = ["//visibility:private"],
-        tags = ["manual", "avoid_dep"],
+        deps = deps,
     )
 
     skill_service_config_name = "_%s_skill_service_config" % name
     _skill_service_config_manifest(
         name = skill_service_config_name,
-        manifest = manifest,
         testonly = kwargs.get("testonly"),
+        manifest = manifest,
+        tags = ["avoid_dep", "manual"],
         visibility = ["//visibility:private"],
-        tags = ["manual", "avoid_dep"],
     )
 
     service_image_name = "_%s_service_image" % name
     python_oci_image(
         name = service_image_name,
+        testonly = kwargs.get("testonly"),
         base = base_image,
         binary = binary_name,
-        directory = _SKILL_USER_DIR,
+        compatible_with = kwargs.get("compatible_with"),
         data_path = "/",
+        directory = _SKILL_USER_DIR,
         files = [
             skill_service_config_name,
         ],
@@ -524,10 +530,8 @@ def py_skill(
             "/skills/skill_service.runfiles": paths.join(_SKILL_USER_DIR, native.repo_name(), native.package_name(), binary_name + ".runfiles"),
             "/skills/skill_service_config.proto.bin": paths.join(_SKILL_USER_DIR, native.package_name(), skill_service_config_name + ".pbbin"),
         },
-        workdir = "/",
-        compatible_with = kwargs.get("compatible_with"),
         visibility = ["//visibility:private"],
-        testonly = kwargs.get("testonly"),
+        workdir = "/",
     )
 
     _intrinsic_skill(

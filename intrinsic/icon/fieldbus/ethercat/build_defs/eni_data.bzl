@@ -42,11 +42,11 @@ def intrinsic_eni_data(
             --display_name=\"{display_name}\" \
             --vendor_display_name=\"{vendor_display_name}\" \
     """.format(
-        tool = eni_datagen_label,
-        eni_file = eni_file,
-        asset_package = asset_package,
         asset_name = asset_name,
+        asset_package = asset_package,
         display_name = display_name,
+        eni_file = eni_file,
+        tool = eni_datagen_label,
         vendor_display_name = vendor_display_name,
     )
 
@@ -55,8 +55,8 @@ def intrinsic_eni_data(
         name = manifest_name,
         srcs = [eni_file],
         outs = [manifest_file],
-        tools = [eni_datagen_label],
         cmd = eni_datagen_cmd,
+        tools = [eni_datagen_label],
         visibility = ["//visibility:private"],
     )
 
@@ -68,6 +68,6 @@ def intrinsic_eni_data(
     intrinsic_data(
         name = name,
         manifest = ":" + manifest_file,
-        deps = data_deps,
         visibility = visibility,
+        deps = data_deps,
     )

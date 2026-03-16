@@ -27,10 +27,10 @@ def python_layers(name, binary, **kwargs):
     # into fine-grained layers for better docker performance.
     mtree_spec(
         name = name + "_tar_manifest_raw",
-        srcs = [binary],
-        include_runfiles = True,
-        compatible_with = kwargs.get("compatible_with"),
         testonly = kwargs.get("testonly"),
+        srcs = [binary],
+        compatible_with = kwargs.get("compatible_with"),
+        include_runfiles = True,
         tags = kwargs.get("tags"),
     )
 
@@ -38,34 +38,34 @@ def python_layers(name, binary, **kwargs):
     # Without this the resulting image manifest is malformed and tools like dive cannot open the image.
     native.genrule(
         name = name + "_tar_manifest_filtered",
+        testonly = kwargs.get("testonly"),
         srcs = [":" + name + "_tar_manifest_raw"],
         outs = [name + "_tar_manifest_filtered.spec"],
         cmd = "sed -e 's/^\\.\\.\\///' $< | sed -e 's/ external\\///g' >$@",
         compatible_with = kwargs.get("compatible_with"),
-        testonly = kwargs.get("testonly"),
         tags = kwargs.get("tags"),
     )
 
     # Apply mutations for path prefixes
     mtree_mutate(
         name = name + "_tar_manifest_prefix",
+        testonly = kwargs.get("testonly"),
+        compatible_with = kwargs.get("compatible_with"),
         mtree = ":" + name + "_tar_manifest_filtered",
         # BUG: https://github.com/bazel-contrib/bazel-lib/issues/946
         # strip_prefix = kwargs.pop("data_path", None),
         package_dir = kwargs.pop("directory", None),
-        compatible_with = kwargs.get("compatible_with"),
-        testonly = kwargs.get("testonly"),
         tags = kwargs.get("tags"),
     )
 
     # Workaround unsupported "strip_prefix"
     native.genrule(
         name = name + "_tar_manifest",
+        testonly = kwargs.get("testonly"),
         srcs = [":" + name + "_tar_manifest_prefix"],
         outs = [name + "_tar_manifest.spec"],
         cmd = "sed -e 's,^/,,' $< >$@",
         compatible_with = kwargs.get("compatible_with"),
-        testonly = kwargs.get("testonly"),
         tags = kwargs.get("tags"),
     )
 
@@ -76,22 +76,22 @@ def python_layers(name, binary, **kwargs):
 
     native.genrule(
         name = name + "_interpreter_tar_manifest",
+        testonly = kwargs.get("testonly"),
         srcs = [":" + name + "_tar_manifest"],
         outs = [name + "_interpreter_tar_manifest.spec"],
         cmd = "grep '{}' $< >$@".format(PY_INTERPRETER_REGEX),
         compatible_with = kwargs.get("compatible_with"),
-        testonly = kwargs.get("testonly"),
         tags = kwargs.get("tags"),
     )
 
     tar(
         name = name + "_interpreter_layer",
-        srcs = [binary],
-        mtree = ":" + name + "_interpreter_tar_manifest",
-        compress = "gzip",
-        compatible_with = kwargs.get("compatible_with"),
-        compute_unused_inputs = 1,
         testonly = kwargs.get("testonly"),
+        srcs = [binary],
+        compatible_with = kwargs.get("compatible_with"),
+        compress = "gzip",
+        compute_unused_inputs = 1,
+        mtree = ":" + name + "_interpreter_tar_manifest",
         tags = kwargs.get("tags"),
     )
     layers.append(":" + name + "_interpreter_layer")
@@ -104,22 +104,22 @@ def python_layers(name, binary, **kwargs):
     # To make sure some dependencies with surprising paths are not included twice, exclude the interpreter from the site-packages layer.
     native.genrule(
         name = name + "_packages_tar_manifest",
+        testonly = kwargs.get("testonly"),
         srcs = [":" + name + "_tar_manifest"],
         outs = [name + "_packages_tar_manifest.spec"],
         cmd = "if ! grep -v '{}' $< | grep '{}' >$@; then touch $@; fi".format(PY_INTERPRETER_REGEX, PACKAGES_REGEX),
         compatible_with = kwargs.get("compatible_with"),
-        testonly = kwargs.get("testonly"),
         tags = kwargs.get("tags"),
     )
 
     tar(
         name = name + "_packages_layer",
-        srcs = [binary],
-        mtree = ":" + name + "_packages_tar_manifest",
-        compress = "gzip",
-        compatible_with = kwargs.get("compatible_with"),
-        compute_unused_inputs = 1,
         testonly = kwargs.get("testonly"),
+        srcs = [binary],
+        compatible_with = kwargs.get("compatible_with"),
+        compress = "gzip",
+        compute_unused_inputs = 1,
+        mtree = ":" + name + "_packages_tar_manifest",
         tags = kwargs.get("tags"),
     )
     layers.append(":" + name + "_packages_layer")
@@ -127,23 +127,23 @@ def python_layers(name, binary, **kwargs):
     # Any lines that didn't match one of the two grep above...
     native.genrule(
         name = name + "_app_tar_manifest",
+        testonly = kwargs.get("testonly"),
         srcs = [":" + name + "_tar_manifest"],
         outs = [name + "_app_tar_manifest.spec"],
         cmd = "grep -v '{}' $< | grep -v '{}' >$@".format(PACKAGES_REGEX, PY_INTERPRETER_REGEX),
         compatible_with = kwargs.get("compatible_with"),
-        testonly = kwargs.get("testonly"),
         tags = kwargs.get("tags"),
     )
 
     # ... go into the third layer which is the application. We assume it changes the most frequently.
     tar(
         name = name + "_app_layer",
-        srcs = [binary],
-        mtree = ":" + name + "_app_tar_manifest",
-        compress = "gzip",
-        compatible_with = kwargs.get("compatible_with"),
-        compute_unused_inputs = 1,
         testonly = kwargs.get("testonly"),
+        srcs = [binary],
+        compatible_with = kwargs.get("compatible_with"),
+        compress = "gzip",
+        compute_unused_inputs = 1,
+        mtree = ":" + name + "_app_tar_manifest",
         tags = kwargs.get("tags"),
     )
     layers.append(":" + name + "_app_layer")

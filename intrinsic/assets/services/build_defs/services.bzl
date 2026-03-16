@@ -54,11 +54,11 @@ def _intrinsic_service_impl(ctx):
         args.add("--default_config", ctx.file.default_config.path)
 
     ctx.actions.run(
-        inputs = depset(inputs, transitive = transitive_inputs),
-        outputs = [bundle_output],
-        executable = ctx.executable._servicegen,
         arguments = [args],
+        executable = ctx.executable._servicegen,
+        inputs = depset(inputs, transitive = transitive_inputs),
         mnemonic = "Servicebundle",
+        outputs = [bundle_output],
         progress_message = "Creating service bundle %{output} for %{label}",
     )
 
@@ -91,11 +91,11 @@ def _intrinsic_service_impl(ctx):
         asset_local_info_output,
     )
     ctx.actions.run(
-        inputs = depset([ctx.file.manifest], transitive = transitive_inputs),
-        outputs = [asset_info_output, asset_local_info_output],
-        executable = ctx.executable._assetlocalinfogen,
         arguments = [local_info_args],
+        executable = ctx.executable._assetlocalinfogen,
+        inputs = depset([ctx.file.manifest], transitive = transitive_inputs),
         mnemonic = "AssetLocalInfo",
+        outputs = [asset_info_output, asset_local_info_output],
         progress_message = "Writing asset local info %{output} for %{label}",
     )
 
@@ -117,10 +117,12 @@ def _intrinsic_service_impl(ctx):
     ]
 
 _intrinsic_service = rule(
-    implementation = _intrinsic_service_impl,
     attrs = {
         "default_config": attr.label(
-            allow_single_file = [".pbtxt", ".textproto"],
+            allow_single_file = [
+                ".pbtxt",
+                ".textproto",
+            ],
             doc = """The path to the default configuration text proto for the service. If
             unspecified, the default configuration will be an empty message of the type specified in
             the manifest's ServiceDef.config_message_full_name.""",
@@ -132,30 +134,35 @@ _intrinsic_service = rule(
         ),
         "manifest": attr.label(
             allow_single_file = [".textproto"],
-            mandatory = True,
             doc = (
                 "A manifest that can be used to provide the service definition and metadata."
             ),
+            mandatory = True,
         ),
         "deps": attr.label_list(
-            providers = [ProtoInfo],
             aspects = [gen_source_code_info_descriptor_set],
+            providers = [ProtoInfo],
         ),
         "_servicegen": attr.label(
-            default = Label("//intrinsic/assets/services/build_defs:servicegen_main"),
             cfg = "exec",
+            default = Label("//intrinsic/assets/services/build_defs:servicegen_main"),
             executable = True,
         ),
         "_assetlocalinfogen": attr.label(
-            default = Label("//intrinsic/assets/build_defs:assetlocalinfogen"),
             cfg = "exec",
+            default = Label("//intrinsic/assets/build_defs:assetlocalinfogen"),
             executable = True,
         ),
     },
     outputs = {
         "bundle_out": "%{name}.bundle.tar",
     },
-    provides = [ServiceTypeInfo, AssetInfo, AssetLocalInfo],
+    provides = [
+        ServiceTypeInfo,
+        AssetInfo,
+        AssetLocalInfo,
+    ],
+    implementation = _intrinsic_service_impl,
 )
 
 # buildifier: disable=function-docstring

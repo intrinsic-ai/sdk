@@ -14,16 +14,16 @@ load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 def _container_import_impl(ctx):
     output = ctx.actions.declare_directory(ctx.label.name)
     ctx.actions.run(
-        outputs = [output],
-        inputs = [ctx.file.tarball],
-        executable = ctx.toolchains["@rules_oci//oci:regctl_toolchain_type"].regctl_info.binary,
         arguments = [
             "image",
             "import",
             "ocidir://%s" % output.path,
             ctx.file.tarball.path,
         ],
+        executable = ctx.toolchains["@rules_oci//oci:regctl_toolchain_type"].regctl_info.binary,
+        inputs = [ctx.file.tarball],
         mnemonic = "ExtractContainerTarball",
+        outputs = [output],
     )
     return DefaultInfo(
         files = depset([output]),
@@ -31,31 +31,31 @@ def _container_import_impl(ctx):
     )
 
 container_import = rule(
-    implementation = _container_import_impl,
-    doc = "Imports an image tarball into an oci-layout directory",
     attrs = {
         "tarball": attr.label(
             allow_single_file = [".tar"],
         ),
     },
+    doc = "Imports an image tarball into an oci-layout directory",
     toolchains = [
         "@rules_oci//oci:regctl_toolchain_type",
     ],
+    implementation = _container_import_impl,
 )
 
 def _symlink_tarball_impl(ctx):
     ctx.actions.symlink(output = ctx.outputs.output, target_file = ctx.attr.src[OutputGroupInfo].tarball.to_list()[0])
 
 _symlink_tarball = rule(
-    implementation = _symlink_tarball_impl,
-    doc = "Creates a symlink to tarball.tar in src's DefaultInfo at output",
     attrs = {
         "src": attr.label(
-            providers = [OutputGroupInfo],
             mandatory = True,
+            providers = [OutputGroupInfo],
         ),
         "output": attr.output(),
     },
+    doc = "Creates a symlink to tarball.tar in src's DefaultInfo at output",
+    implementation = _symlink_tarball_impl,
 )
 
 def _container_tarball(name, image, **kwargs):
@@ -66,12 +66,12 @@ def _container_tarball(name, image, **kwargs):
     )
     _symlink_tarball(
         name = "%s_symlink" % name,
-        src = name,
-        output = "%s.tar" % image,
-        compatible_with = kwargs.get("compatible_with"),
-        visibility = kwargs.get("visibility"),
-        tags = kwargs.get("tags"),
         testonly = kwargs.get("testonly"),
+        src = name,
+        compatible_with = kwargs.get("compatible_with"),
+        output = "%s.tar" % image,
+        tags = kwargs.get("tags"),
+        visibility = kwargs.get("visibility"),
     )
 
 def container_layer(name, **kwargs):
@@ -116,38 +116,38 @@ def container_image(
     if tars:
         container_layer(
             name = name + "_tar_layer",
-            tars = tars,
+            testonly = kwargs.get("testonly"),
+            compatible_with = kwargs.get("compatible_with"),
             data_path = data_path,
             directory = directory,
-            compatible_with = kwargs.get("compatible_with"),
-            visibility = kwargs.get("visibility"),
             tags = kwargs.get("tags"),
-            testonly = kwargs.get("testonly"),
+            tars = tars,
+            visibility = kwargs.get("visibility"),
         )
         layers.append(name + "_tar_layer")
 
     if files:
         container_layer(
             name = name + "_files_layer",
-            files = files,
+            testonly = kwargs.get("testonly"),
+            compatible_with = kwargs.get("compatible_with"),
             data_path = data_path,
             directory = directory,
-            compatible_with = kwargs.get("compatible_with"),
-            visibility = kwargs.get("visibility"),
+            files = files,
             tags = kwargs.get("tags"),
-            testonly = kwargs.get("testonly"),
+            visibility = kwargs.get("visibility"),
         )
         layers.append(name + "_files_layer")
 
     if symlinks:
         container_layer(
             name = name + "_symlink_layer",
-            symlinks = symlinks,
-            data_path = "/",
-            compatible_with = kwargs.get("compatible_with"),
-            visibility = kwargs.get("visibility"),
-            tags = kwargs.get("tags"),
             testonly = kwargs.get("testonly"),
+            compatible_with = kwargs.get("compatible_with"),
+            data_path = "/",
+            symlinks = symlinks,
+            tags = kwargs.get("tags"),
+            visibility = kwargs.get("visibility"),
         )
         layers.append(name + "_symlink_layer")
 
@@ -169,12 +169,12 @@ def container_image(
     tarball_name = "_%s_tarball" % name
     _container_tarball(
         name = tarball_name,
-        image = name,
-        compatible_with = kwargs.get("compatible_with"),
-        repo_tags = [tag],
-        visibility = kwargs.get("visibility"),
-        tags = kwargs.get("tags"),
         testonly = kwargs.get("testonly"),
+        compatible_with = kwargs.get("compatible_with"),
+        image = name,
+        repo_tags = [tag],
+        tags = kwargs.get("tags"),
+        visibility = kwargs.get("visibility"),
     )
 
     path_under_test = None

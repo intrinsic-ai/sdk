@@ -88,16 +88,16 @@ def hardware_module_image(
     hardware_module_binary_layer = name + "_binary_layer"
     container_layer(
         name = hardware_module_binary_layer,
+        testonly = kwargs.get("testonly"),
+        compatible_with = kwargs.get("compatible_with"),
+        data_path = "/",
         files = [hardware_module_binary],
         include_runfiles = True,  # Include dynamic libraries
-        data_path = "/",
         visibility = ["//visibility:private"],
-        compatible_with = kwargs.get("compatible_with"),
-        testonly = kwargs.get("testonly"),
     )
     layers.append(hardware_module_binary_layer)
     for file in ["@dumb-init"]:
-       symlinks.update(_build_symlink(file, "/"))
+        symlinks.update(_build_symlink(file, "/"))
     extra_files = ["@dumb-init"] + extra_files
 
     container_image(

@@ -11,7 +11,10 @@ load("@com_google_protobuf//bazel/common:proto_info.bzl", "ProtoInfo")
 # if desired, etc.
 ProtoSourceCodeInfo = provider(
     "Provides a FileDescriptorSet with source_code_info",
-    fields = ["direct_descriptor_set", "transitive_descriptor_sets"],
+    fields = [
+        "direct_descriptor_set",
+        "transitive_descriptor_sets",
+    ],
 )
 
 def _remove_prefix(a, prefix):
@@ -70,11 +73,11 @@ def _gen_source_code_info_descriptor_set_aspect_impl(target, ctx):
     ] + proto_srcs)
 
     ctx.actions.run(
-        executable = ctx.executable._protoc,
         arguments = [args],
-        mnemonic = "GenDescriptorWithSourceInfo",
+        executable = ctx.executable._protoc,
         inputs = input_descriptor_sets.to_list() +
                  target[ProtoInfo].direct_sources,
+        mnemonic = "GenDescriptorWithSourceInfo",
         outputs = [output_file],
         progress_message = "Generating proto descriptor set with source info",
     )
@@ -91,17 +94,17 @@ def _gen_source_code_info_descriptor_set_aspect_impl(target, ctx):
     )
 
 gen_source_code_info_descriptor_set = aspect(
-    implementation = _gen_source_code_info_descriptor_set_aspect_impl,
-    required_providers = [ProtoInfo],
-    provides = [ProtoSourceCodeInfo],
     attr_aspects = ["deps"],
     attrs = {
         "_protoc": attr.label(
-            executable = True,
-            default = Label("@com_google_protobuf//:protoc"),
             cfg = "exec",
+            default = Label("@com_google_protobuf//:protoc"),
+            executable = True,
         ),
     },
+    provides = [ProtoSourceCodeInfo],
+    required_providers = [ProtoInfo],
+    implementation = _gen_source_code_info_descriptor_set_aspect_impl,
 )
 
 def _proto_source_code_info_transitive_descriptor_set(ctx):
@@ -126,14 +129,14 @@ def _proto_source_code_info_transitive_descriptor_set(ctx):
     # We look to see if the first argument begins with a '--arg-file=' and
     # selectively choose xargs vs. just supplying the arguments to `cat`.
     ctx.actions.run_shell(
-        outputs = [output_file],
-        inputs = transitive_descriptor_sets,
-        progress_message = "Joining descriptors.",
+        arguments = [args],
         command = (
             "if [[ \"$1\" =~ ^--arg-file=.* ]]; then xargs \"$1\" cat; " +
             "else cat \"$@\"; fi >{output}".format(output = output_file.path)
         ),
-        arguments = [args],
+        inputs = transitive_descriptor_sets,
+        outputs = [output_file],
+        progress_message = "Joining descriptors.",
     )
     return DefaultInfo(
         files = depset([output_file]),
@@ -154,10 +157,10 @@ def _proto_source_code_info_transitive_descriptor_set(ctx):
 #
 # Outputs a file named: my_proto_descriptors_transitive_set_sci.proto.bin
 proto_source_code_info_transitive_descriptor_set = rule(
-    implementation = _proto_source_code_info_transitive_descriptor_set,
     attrs = {
         "deps": attr.label_list(
             aspects = [gen_source_code_info_descriptor_set],
         ),
     },
+    implementation = _proto_source_code_info_transitive_descriptor_set,
 )

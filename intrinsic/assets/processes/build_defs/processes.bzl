@@ -36,8 +36,8 @@ def _intrinsic_process_impl(ctx):
         ctx.file.manifest,
     ).add_all(
         transitive_textproto_descriptor_sets,
-        uniquify = True,
         before_each = "--textproto_file_descriptor_set",
+        uniquify = True,
     ).add(
         "--output_bundle",
         ctx.outputs.bundle_out,
@@ -56,11 +56,11 @@ def _intrinsic_process_impl(ctx):
         processgen_inputs.append(ctx.file.behavior_tree)
 
     ctx.actions.run(
-        inputs = depset(processgen_inputs, transitive = [transitive_textproto_descriptor_sets]),
-        outputs = [ctx.outputs.bundle_out, file_descriptor_set_file, manifest_binary_file],
-        executable = ctx.executable._processgen,
         arguments = [processgen_args],
+        executable = ctx.executable._processgen,
+        inputs = depset(processgen_inputs, transitive = [transitive_textproto_descriptor_sets]),
         mnemonic = "Processbundle",
+        outputs = [ctx.outputs.bundle_out, file_descriptor_set_file, manifest_binary_file],
         progress_message = "Process bundle %s" % ctx.outputs.bundle_out.short_path,
     )
 
@@ -94,11 +94,11 @@ def _intrinsic_process_impl(ctx):
         asset_local_info_output,
     )
     ctx.actions.run(
-        inputs = depset([ctx.file.manifest, file_descriptor_set_file, manifest_binary_file]),
-        outputs = [asset_info_output, asset_local_info_output],
-        executable = ctx.executable._assetlocalinfogen,
         arguments = [assetlocalinfogen_args],
+        executable = ctx.executable._assetlocalinfogen,
+        inputs = depset([ctx.file.manifest, file_descriptor_set_file, manifest_binary_file]),
         mnemonic = "AssetLocalInfo",
+        outputs = [asset_info_output, asset_local_info_output],
         progress_message = "Writing asset local info %{output} for %{label}",
     )
 
@@ -120,13 +120,11 @@ def _intrinsic_process_impl(ctx):
     ]
 
 intrinsic_process = rule(
-    implementation = _intrinsic_process_impl,
-    doc = "Bundles a Process asset into a tar file.",
     attrs = {
         "manifest": attr.label(
             allow_single_file = [".txtpb"],
-            mandatory = True,
             doc = "A ProcessManifest message that provides the metadata and process definition.",
+            mandatory = True,
         ),
         "behavior_tree": attr.label(
             allow_single_file = [".txtpb"],
@@ -134,27 +132,33 @@ intrinsic_process = rule(
                   "(if the manifest does not contain a behavior tree).",
         ),
         "textproto_deps": attr.label_list(
-            providers = [ProtoInfo],
             aspects = [gen_source_code_info_descriptor_set],
             doc = "Optional proto dependencies for parsing expanded Any protos in the input " +
                   "textprotos. This attribute is for convenience only to allow for more readable " +
                   "input textprotos. These deps will NOT be included in the file descriptor set " +
                   "of the created Process asset. If there are no expanded Any protos in the " +
                   "input, you can safely omit this attribute.",
+            providers = [ProtoInfo],
         ),
         "_processgen": attr.label(
-            default = Label("//intrinsic/assets/processes/build_defs:processgen_main"),
             cfg = "exec",
+            default = Label("//intrinsic/assets/processes/build_defs:processgen_main"),
             executable = True,
         ),
         "_assetlocalinfogen": attr.label(
-            default = Label("//intrinsic/assets/build_defs:assetlocalinfogen"),
             cfg = "exec",
+            default = Label("//intrinsic/assets/build_defs:assetlocalinfogen"),
             executable = True,
         ),
     },
+    doc = "Bundles a Process asset into a tar file.",
     outputs = {
         "bundle_out": "%{name}.bundle.tar",
     },
-    provides = [ProcessAssetInfo, AssetInfo, AssetLocalInfo],
+    provides = [
+        ProcessAssetInfo,
+        AssetInfo,
+        AssetLocalInfo,
+    ],
+    implementation = _intrinsic_process_impl,
 )

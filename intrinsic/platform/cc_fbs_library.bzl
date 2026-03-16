@@ -43,6 +43,7 @@ load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load("//intrinsic/platform:fbs_library.bzl", "FbsInfo", "make_flatc_include_args")
+
 def use_cpp_toolchain():
     return ["@bazel_tools//tools/cpp:toolchain_type"]
 
@@ -92,17 +93,17 @@ def _gen_flatbuffers_cc_aspect_impl(target, ctx):
 
         # Invoke flatc to generate code.
         ctx.actions.run(
-            outputs = generated_files,
-            inputs = flatc_input_files,
-            executable = ctx.file._flatc,
             arguments = [args],
+            executable = ctx.file._flatc,
+            inputs = flatc_input_files,
+            outputs = generated_files,
         )
 
     # Configure the C++ toolchain.
     cc_toolchain = find_cpp_toolchain(ctx)
     feature_configuration = cc_common.configure_features(
-        ctx = ctx,
         cc_toolchain = cc_toolchain,
+        ctx = ctx,
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
     )
@@ -127,20 +128,20 @@ def _gen_flatbuffers_cc_aspect_impl(target, ctx):
         # Add a suffix to the compile name to avoid collisions when a rule
         # already does its own C++ compilation.
         name = ctx.label.name + "_fbs",
-        actions = ctx.actions,
-        feature_configuration = feature_configuration,
-        cc_toolchain = cc_toolchain,
         srcs = [],
-        public_hdrs = generated_files,
+        actions = ctx.actions,
+        cc_toolchain = cc_toolchain,
         compilation_contexts = compilation_contexts,
+        feature_configuration = feature_configuration,
+        public_hdrs = generated_files,
     )
 
     (linking_context, _linking_outputs) = cc_common.create_linking_context_from_compilation_outputs(
         name = ctx.label.name + "_fbs",
         actions = ctx.actions,
-        feature_configuration = feature_configuration,
         cc_toolchain = cc_toolchain,
         compilation_outputs = compilation_outputs,
+        feature_configuration = feature_configuration,
     )
 
     # Return our compilation context in a CcInfo provider so cc_.* rules can
@@ -152,26 +153,29 @@ def _gen_flatbuffers_cc_aspect_impl(target, ctx):
 
     # Merge the CcInfos and return a FbsCcInfo.
     return FbsCcInfo(ccinfo = cc_common.merge_cc_infos(
-        direct_cc_infos = [direct_cc_info] + dep_ccinfos,
         cc_infos = [ctx.attr._flatbuffers_lib[CcInfo]],
+        direct_cc_infos = [direct_cc_info] + dep_ccinfos,
     ))
 
 _gen_flatbuffers_cc = aspect(
-    implementation = _gen_flatbuffers_cc_aspect_impl,
-    required_aspect_providers = [FbsInfo],
-    provides = [FbsCcInfo],
     attr_aspects = ["deps"],
-    fragments = ["google_cpp", "cpp"],
     attrs = {
         "_flatc": attr.label(
-            default = Label("//third_party/flatbuffers:flatc"),
-            cfg = "exec",
             allow_single_file = True,
+            cfg = "exec",
+            default = Label("//third_party/flatbuffers:flatc"),
             executable = True,
         ),
         "_flatbuffers_lib": attr.label(default = Label("//third_party/flatbuffers:runtime_cc")),
     },
+    fragments = [
+        "google_cpp",
+        "cpp",
+    ],
+    provides = [FbsCcInfo],
+    required_aspect_providers = [FbsInfo],
     toolchains = use_cpp_toolchain(),
+    implementation = _gen_flatbuffers_cc_aspect_impl,
 )
 
 def _cc_fbs_library_impl(ctx):
@@ -180,10 +184,10 @@ def _cc_fbs_library_impl(ctx):
     return ctx.attr.deps[0][FbsCcInfo].ccinfo
 
 cc_fbs_library = rule(
-    implementation = _cc_fbs_library_impl,
-    provides = [CcInfo],
     attrs = {
         "deps": attr.label_list(aspects = [_gen_flatbuffers_cc]),
     },
+    provides = [CcInfo],
     toolchains = use_cpp_toolchain(),
+    implementation = _cc_fbs_library_impl,
 )

@@ -42,11 +42,11 @@ def _intrinsic_hardware_device_impl(ctx):
     )
 
     ctx.actions.run(
-        inputs = asset_bundles + local_assets + catalog_assets + [ctx.file.manifest],
-        outputs = [ctx.outputs.bundle_out],
-        executable = ctx.executable._hardwaredevicegen,
         arguments = [args],
+        executable = ctx.executable._hardwaredevicegen,
+        inputs = asset_bundles + local_assets + catalog_assets + [ctx.file.manifest],
         mnemonic = "HardwareDeviceBundle",
+        outputs = [ctx.outputs.bundle_out],
         progress_message = "HardwareDevice bundle %s" % ctx.outputs.bundle_out.short_path,
     )
 
@@ -90,11 +90,11 @@ def _intrinsic_hardware_device_impl(ctx):
         asset_local_info_output,
     )
     ctx.actions.run(
-        inputs = depset([ctx.file.manifest], transitive = transitive_inputs),
-        outputs = [asset_info_output, asset_local_info_output],
-        executable = ctx.executable._assetlocalinfogen,
         arguments = [local_info_args],
+        executable = ctx.executable._assetlocalinfogen,
+        inputs = depset([ctx.file.manifest], transitive = transitive_inputs),
         mnemonic = "AssetLocalInfo",
+        outputs = [asset_info_output, asset_local_info_output],
         progress_message = "Writing asset local info %{output} for %{label}",
     )
 
@@ -116,37 +116,47 @@ def _intrinsic_hardware_device_impl(ctx):
     ]
 
 _intrinsic_hardware_device = rule(
-    implementation = _intrinsic_hardware_device_impl,
     attrs = {
         "manifest": attr.label(
             allow_single_file = [".textproto"],
-            mandatory = True,
             doc = "A manifest that provides the HardwareDevice definition.",
+            mandatory = True,
         ),
         "assets": attr.label_list(
-            providers = [
-                [AssetInfo, AssetLocalInfo],
-                [AssetInfo, AssetCatalogRefInfo],
-            ],
             doc = """Assets to add to the HardwareDeviceManifest saved in the bundle. These assets
                   must not already be listed in the manifest.""",
+            providers = [
+                [
+                    AssetInfo,
+                    AssetLocalInfo,
+                ],
+                [
+                    AssetInfo,
+                    AssetCatalogRefInfo,
+                ],
+            ],
         ),
         "_hardwaredevicegen": attr.label(
-            default = Label("//intrinsic/assets/hardware_devices/build_defs:hardwaredevicegen_main"),
             cfg = "exec",
+            default = Label("//intrinsic/assets/hardware_devices/build_defs:hardwaredevicegen_main"),
             executable = True,
         ),
         "_assetlocalinfogen": attr.label(
-            default = Label("//intrinsic/assets/build_defs:assetlocalinfogen"),
             cfg = "exec",
+            default = Label("//intrinsic/assets/build_defs:assetlocalinfogen"),
             executable = True,
         ),
     },
+    doc = "Bundles a HardwareDevice asset into a tar file.",
     outputs = {
         "bundle_out": "%{name}.bundle.tar",
     },
-    provides = [HardwareDeviceAssetInfo, AssetInfo, AssetLocalInfo],
-    doc = "Bundles a HardwareDevice asset into a tar file.",
+    provides = [
+        HardwareDeviceAssetInfo,
+        AssetInfo,
+        AssetLocalInfo,
+    ],
+    implementation = _intrinsic_hardware_device_impl,
 )
 
 # buildifier: disable=function-docstring

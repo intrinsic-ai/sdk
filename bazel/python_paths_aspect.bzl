@@ -61,7 +61,7 @@ def _python_paths_aspect_impl(target, ctx):
     paths_json = json.encode(paths_struct)
 
     file = ctx.actions.declare_file("%s.python_paths.json" % ctx.label.name)
-    ctx.actions.write(output = file, content = paths_json + "\n")
+    ctx.actions.write(content = paths_json + "\n", output = file)
 
     return [
         DefaultInfo(files = depset([file])),
@@ -69,9 +69,9 @@ def _python_paths_aspect_impl(target, ctx):
     ]
 
 python_paths_aspect = aspect(
-    implementation = _python_paths_aspect_impl,
     # Do not propagate automatically. PyInfo.imports and
     # PyInfo.transitive_sources are already accumulated across all transitive
     # dependencies so no additional traversal is necessary.
     attr_aspects = [],
+    implementation = _python_paths_aspect_impl,
 )

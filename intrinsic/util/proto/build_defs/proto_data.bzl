@@ -6,24 +6,22 @@ load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "proto_source_code_
 
 def _convert_text_proto_to_binary_impl(ctx):
     ctx.actions.run(
-        inputs = [ctx.file.in_text_proto, ctx.file.transitive_descriptor_set],
-        outputs = [ctx.outputs.out_binary_proto],
-        executable = ctx.executable._proto_converter,
         arguments = [
             "--message_full_name=%s" % ctx.attr.message_full_name,
             "--in_text_proto=%s" % ctx.file.in_text_proto.path,
             "--out_binary_proto=%s" % ctx.outputs.out_binary_proto.path,
             "--transitive_descriptor_set=%s" % ctx.file.transitive_descriptor_set.path,
         ],
+        executable = ctx.executable._proto_converter,
+        inputs = [ctx.file.in_text_proto, ctx.file.transitive_descriptor_set],
         mnemonic = "ConvertTextProtoToBinary",
+        outputs = [ctx.outputs.out_binary_proto],
         progress_message = "Convert %s" % ctx.outputs.out_binary_proto.short_path,
     )
 
     return [DefaultInfo(runfiles = ctx.runfiles(files = [ctx.outputs.out_binary_proto]))]
 
 _convert_text_proto_to_binary = rule(
-    implementation = _convert_text_proto_to_binary_impl,
-    doc = "Creates a binary proto from a text proto using a given file descriptor set.",
     attrs = {
         "in_text_proto": attr.label(
             allow_single_file = True,
@@ -41,11 +39,13 @@ _convert_text_proto_to_binary = rule(
                   "to convert.",
         ),
         "_proto_converter": attr.label(
-            default = Label("//intrinsic/util/proto/tools:proto_converter"),
             cfg = "exec",
+            default = Label("//intrinsic/util/proto/tools:proto_converter"),
             executable = True,
         ),
     },
+    doc = "Creates a binary proto from a text proto using a given file descriptor set.",
+    implementation = _convert_text_proto_to_binary_impl,
 )
 
 def proto_data(
@@ -72,16 +72,16 @@ def proto_data(
     transitive_descriptor_set = "_%s_tds" % name
     proto_source_code_info_transitive_descriptor_set(
         name = transitive_descriptor_set,
-        deps = proto_deps,
         testonly = testonly,
         visibility = visibility,
+        deps = proto_deps,
     )
     _convert_text_proto_to_binary(
         name = name,
-        in_text_proto = src,
-        out_binary_proto = out or name + ".binarypb",
-        message_full_name = proto_name,
-        transitive_descriptor_set = transitive_descriptor_set,
         testonly = testonly,
+        in_text_proto = src,
+        message_full_name = proto_name,
+        out_binary_proto = out or name + ".binarypb",
+        transitive_descriptor_set = transitive_descriptor_set,
         visibility = visibility,
     )
