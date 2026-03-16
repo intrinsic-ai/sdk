@@ -148,7 +148,6 @@ bazel_dep(name = "rules_foreign_cc", version = "0.15.1")
 # Bazel dependencies #
 ######################
 
-
 bazel_dep(name = "abseil-cpp", version = "20250814.1")
 bazel_dep(name = "abseil-py", version = "2.1.0", repo_name = "com_google_absl_py")
 bazel_dep(name = "bazel_lib", version = "3.2.2")
@@ -170,7 +169,6 @@ bazel_dep(name = "googletest", version = "1.17.0.bcr.2", repo_name = "com_google
 bazel_dep(name = "grpc_ecosystem_grpc_gateway", version = "2.27.3", repo_name = "com_github_grpc_ecosystem_grpc_gateway_v2")
 bazel_dep(name = "grpc", version = "1.74.0", repo_name = "com_github_grpc_grpc")
 bazel_dep(name = "jsonnet", version = "0.21.0")
-
 bazel_dep(name = "nlohmann_json", version = "3.12.0.bcr.1", repo_name = "com_github_nlohmann_json")
 bazel_dep(name = "opencensus-cpp", version = "0.0.0-20230502-50eb5de.bcr.2", repo_name = "io_opencensus_cpp")
 bazel_dep(name = "or-tools", version = "9.12", repo_name = "or_tools")
