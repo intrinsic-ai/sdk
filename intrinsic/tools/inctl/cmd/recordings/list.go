@@ -69,6 +69,13 @@ func NewListCmd(runner *ListCmdRunner) *cobra.Command {
 		Long:    "Lists available recordings for a given workcell",
 		Args:    cobra.NoArgs,
 		RunE:    runner.RunE,
+		Example: `  # List the latest recordings
+  inctl recordings list --workcell my-workcell --org my-org
+
+  # List recordings generated since a specific time
+  inctl recordings list --workcell my-workcell --org my-org \
+    --start_timestamp 2024-08-20T12:00:00Z \
+    --end_timestamp 2024-08-20T14:00:00Z`,
 	}
 
 	flags := listCmd.Flags()
