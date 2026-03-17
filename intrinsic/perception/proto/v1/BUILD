@@ -783,6 +783,7 @@ proto_library(
         ":pose_estimation_config",
         "//intrinsic/assets/proto:id_proto",
         "//intrinsic/util/status:extended_status_proto",
+        "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_googleapis//google/longrunning:operations_proto",
         "@com_google_protobuf//:any_proto",
         "@com_google_protobuf//:empty_proto",
@@ -815,6 +816,7 @@ go_proto_library(
     compilers = [
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
+        "//bazel:go_gen_grpc_gateway",
     ],
     importpath = "intrinsic/perception/proto/v1/train_service_go_proto",
     protos = [":train_service_proto"],
@@ -825,6 +827,7 @@ go_proto_library(
         "//intrinsic/scene/proto/v1:scene_object_go_proto",
         "//intrinsic/util/status:extended_status_go_proto",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
+        "@org_golang_google_genproto_googleapis_api//annotations",
         "@org_golang_google_protobuf//types/known/anypb",
         "@org_golang_google_protobuf//types/known/durationpb",
         "@org_golang_google_protobuf//types/known/emptypb",

@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.perception.v1;
 
+import "google/api/annotations.proto";
 import "google/longrunning/operations.proto";
 import "google/protobuf/any.proto";
 import "google/protobuf/empty.proto";
@@ -22,25 +23,48 @@ service TrainService {
   //   metadata of type TrainingJobStatus (progress information, etc.)
   // Training errors are reported through the longrunning.Operation.error field.
   rpc CreateTrainingJob(CreateTrainingJobRequest)
-      returns (google.longrunning.Operation);
+      returns (google.longrunning.Operation) {
+    option (google.api.http) = {
+      post: "/trainService/v1/trainingJobs"
+      body: "*"
+    };
+  }
 
   // Save a training job into a data asset.
-  rpc SaveTrainingJob(SaveTrainingJobRequest) returns (SaveTrainingJobResponse);
+  rpc SaveTrainingJob(SaveTrainingJobRequest)
+      returns (SaveTrainingJobResponse) {
+    option (google.api.http) = {
+      post: "/trainService/v1/trainingJobs/{name}:save"
+      body: "*"
+    };
+  }
 
   // Lists training job operations that match the specified filter in the
   // request.
   rpc ListTrainingJobs(google.longrunning.ListOperationsRequest)
-      returns (google.longrunning.ListOperationsResponse);
+      returns (google.longrunning.ListOperationsResponse) {
+    option (google.api.http) = {
+      get: "/trainService/v1/trainingJobs"
+    };
+  }
 
   // Gets the latest state of a training job operation.  Clients can use this
   // method to poll the operation result at intervals.
   rpc GetTrainingJob(google.longrunning.GetOperationRequest)
-      returns (google.longrunning.Operation);
+      returns (google.longrunning.Operation) {
+    option (google.api.http) = {
+      get: "/trainService/v1/trainingJobs/{name}"
+    };
+  }
 
   // Deletes a training job operation. Only training jobs which have been
   // successfully cancelled or which are not running can be deleted.
   rpc DeleteTrainingJob(google.longrunning.DeleteOperationRequest)
-      returns (google.protobuf.Empty);
+      returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/trainService/v1/trainingJobs/{name}"
+    };
+  }
 
   // Starts asynchronous cancellation on a training job operation. The server
   // makes a best effort to cancel the operation, but success is not
@@ -48,12 +72,22 @@ service TrainService {
   // instead, it becomes an operation with an [Operation.error][] value with a
   // [google.rpc.Status.code][] of 1, corresponding to `Code.CANCELLED`.
   rpc CancelTrainingJob(google.longrunning.CancelOperationRequest)
-      returns (google.protobuf.Empty);
+      returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/trainService/v1/trainingJobs/{name}:cancel"
+      body: "*"
+    };
+  }
 
   // Checks an incoming CreateTrainingJobRequest for potential issues and
   // provides feedback on the selected training configuration.
   rpc VerifyTrainingJob(CreateTrainingJobRequest)
-      returns (VerifyTrainingJobResponse);
+      returns (VerifyTrainingJobResponse) {
+    option (google.api.http) = {
+      post: "/trainService/v1/trainingJobs:verify"
+      body: "*"
+    };
+  }
 }
 
 enum PoseEstimatorType {
