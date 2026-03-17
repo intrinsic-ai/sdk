@@ -128,7 +128,9 @@ var vmpoolsListTiersCmd = &cobra.Command{
 		prtr, err := printer.NewPrinterOfType(
 			ot,
 			cmd,
-			printer.WithDefaultsFromValue(&vmpoolspb.Tier{}, nil),
+			printer.WithDefaultsFromValue(&vmpoolspb.Tier{}, func(columns []string) []string {
+				return []string{"idx", "name", "description"}
+			}),
 		)
 		if err != nil {
 			return err
@@ -142,8 +144,15 @@ var vmpoolsListTiersCmd = &cobra.Command{
 			return err
 		}
 		var view printer.View = nil // this is to reuse reflectors in default views
-		for _, t := range resp.GetTiers() {
-			view = printer.NextView(t, view)
+		for i, t := range resp.GetTiers() {
+			row := struct {
+				Idx uint16 `json:"idx"`
+				*vmpoolspb.Tier
+			}{
+				Idx:  uint16(i),
+				Tier: t,
+			}
+			view = printer.NextView(row, view)
 			prtr.Println(view)
 		}
 		printer.Flush(prtr)
@@ -173,7 +182,9 @@ var vmpoolsListHardwareTemplatesCmd = &cobra.Command{
 		prtr, err := printer.NewPrinterOfType(
 			ot,
 			cmd,
-			printer.WithDefaultsFromValue(&vmpoolspb.HardwareTemplate{}, nil),
+			printer.WithDefaultsFromValue(&vmpoolspb.HardwareTemplate{}, func(columns []string) []string {
+				return []string{"idx", "name", "description", "has_gpu"}
+			}),
 		)
 		if err != nil {
 			return err
@@ -187,8 +198,15 @@ var vmpoolsListHardwareTemplatesCmd = &cobra.Command{
 			return err
 		}
 		var view printer.View = nil // this is to reuse reflectors in default views
-		for _, hwt := range resp.GetHwTemplates() {
-			view = printer.NextView(hwt, view)
+		for i, hwt := range resp.GetHwTemplates() {
+			row := struct {
+				Idx uint16 `json:"idx"`
+				*vmpoolspb.HardwareTemplate
+			}{
+				Idx:              uint16(i),
+				HardwareTemplate: hwt,
+			}
+			view = printer.NextView(row, view)
 			prtr.Println(view)
 		}
 		printer.Flush(prtr)
