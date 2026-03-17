@@ -89,7 +89,38 @@ message DeviceData {
     Ds402DeviceData ds402_device_data = 2;
     AdioDeviceData adio_device_data = 3;
     ForceTorqueDeviceData force_torque_device_data = 4;
+    BusVariableDeviceData bus_variable_device_data = 5;
     // More to be added in the future (i.e. SDO r/w, PDO r/w)
+  }
+}
+
+// Describes device data for writing fixed values to bus variables.
+message BusVariableDeviceData {
+  repeated BusVariableWrite bus_variable_writes = 1;
+}
+
+// Configuration for writing a fixed value to a bus variable.
+message BusVariableWrite {
+  VariableReference variable_reference = 1;
+  BusVariableValue value = 2;
+}
+
+// The value to write to a bus variable.
+// Intermediate bit lengths (e.g., 24-bit, 40-bit) should be stored in the
+// next largest standard container (e.g., uint32_value for 24-bit).
+message BusVariableValue {
+  oneof value {
+    bool bool_value = 1;
+    uint32 uint8_value = 2;
+    int32 int8_value = 3;
+    uint32 uint16_value = 4;
+    int32 int16_value = 5;
+    uint32 uint32_value = 6;
+    int32 int32_value = 7;
+    uint64 uint64_value = 8;
+    int64 int64_value = 9;
+    float float_value = 10;
+    double double_value = 11;
   }
 }
 

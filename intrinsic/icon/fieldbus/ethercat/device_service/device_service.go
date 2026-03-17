@@ -212,6 +212,12 @@ func (s *DeviceService) computeResolvedConfiguration(ctx context.Context) error 
 			}
 		}
 
+		if busVar := im.GetDeviceData().GetBusVariableDeviceData(); busVar != nil {
+			if err := s.resolveBusVariableWrite(ctx, busVar); err != nil {
+				return err
+			}
+		}
+
 		// Handle other DeviceData types here in the future
 	}
 
@@ -512,4 +518,210 @@ func (s *DeviceService) resolveActiveOpMode(ctx context.Context) (string, error)
 	// Fallback: Default to the first available mode.
 	// ESI spec typically puts the default/preferred mode first.
 	return s.supportedOpModes[0].Name, nil
+}
+
+// resolveBusVariableWrite resolves all variables required for a bus variable write.
+//
+// This function iterates over the list of bus variable writes configured in `busVar`
+// and attempts to resolve each one against the parsed ESI data using the current context `ctx`.
+// It ensures that the variable is mapped to an RxPDO, as these are variables written to the device.
+// After resolution, it verifies that the requested value type matches the data type
+// defined in the device's ESI.
+//
+// It returns an error if any variable cannot be resolved or if there is a type mismatch.
+func (s *DeviceService) resolveBusVariableWrite(ctx context.Context, busVar *dscpb.BusVariableDeviceData) error {
+	for _, write := range busVar.GetBusVariableWrites() {
+		ref := write.GetVariableReference()
+		if err := s.resolveVariable(ctx, ref, PdoDirectionRx); err != nil {
+			return err
+		}
+		key := ref.GetPdo() + variableReferenceSeparator + ref.GetObject()
+		resolved := s.resolvedVars[key]
+		addr := objectAddress{Index: resolved.Index, SubIndex: resolved.SubIndex}
+		meta := s.objectIndex[addr]
+
+		if err := verifyBusVariableType(write.GetValue(), meta.DataType, meta.BitSize); err != nil {
+			return fmt.Errorf("type mismatch for variable %q (ESI type %s, %d bits): %w", ref.GetObject(), meta.DataType, meta.BitSize, err)
+		}
+	}
+	return nil
+}
+
+// verifyBusVariableType checks if a bus variable value matches the device's expected data type.
+//
+// This function compares the type of `val` against the `esiType` and `bitSize`
+// specified in the device's ESI file. It ensures that the provided value
+// fits within the required number of bits and that there is no signedness mismatch
+// (e.g., trying to write a signed integer to an unsigned type).
+//
+// It returns an error if the type validation fails or if `val` is nil.
+func verifyBusVariableType(val *dscpb.BusVariableValue, esiType string, bitSize uint32) error {
+	if val == nil {
+		return fmt.Errorf("value is nil")
+	}
+	esiTypeUpper := strings.ToUpper(esiType)
+
+	// Helper function for range checking
+	checkRange := func(val uint64, bitSize uint32) error {
+		if bitSize >= 64 {
+			return nil
+		}
+		maxVal := (uint64(1) << bitSize) - 1
+		if val > maxVal {
+			return fmt.Errorf("value %d exceeds maximum for %d bits", val, bitSize)
+		}
+		return nil
+	}
+
+	checkSignedRange := func(val int64, bitSize uint32) error {
+		if bitSize >= 64 {
+			return nil
+		}
+		maxVal := (int64(1) << (bitSize - 1)) - 1
+		minVal := -(int64(1) << (bitSize - 1))
+		if val > maxVal || val < minVal {
+			return fmt.Errorf("value %d out of bounds for %d signed bits", val, bitSize)
+		}
+		return nil
+	}
+
+	switch val.GetValue().(type) {
+	case *dscpb.BusVariableValue_BoolValue:
+		if bitSize > 8 {
+			return fmt.Errorf("expected <= 8 bits for bool, got %d", bitSize)
+		}
+		switch esiTypeUpper {
+		case "BOOL", "BOOLEAN", "BIT", "BIT1":
+			// OK
+		default:
+			return fmt.Errorf("bool value provided for non-bool type %s", esiTypeUpper)
+		}
+	case *dscpb.BusVariableValue_Uint8Value:
+		if bitSize > 8 {
+			return fmt.Errorf("expected <= 8 bits for uint8, got %d", bitSize)
+		}
+		if err := checkRange(uint64(val.GetUint8Value()), bitSize); err != nil {
+			return err
+		}
+		switch esiTypeUpper {
+		case "USINT", "UNSIGNED8", "BYTE", "BITARR8", "BIT2", "BIT3", "BIT4", "BIT5", "BIT6", "BIT7", "BIT8":
+			// OK
+		default:
+			return fmt.Errorf("uint8 value provided for non-uint8 type %s", esiTypeUpper)
+		}
+	case *dscpb.BusVariableValue_Int8Value:
+		if bitSize > 8 {
+			return fmt.Errorf("expected <= 8 bits for int8, got %d", bitSize)
+		}
+		if err := checkSignedRange(int64(val.GetInt8Value()), bitSize); err != nil {
+			return err
+		}
+		switch esiTypeUpper {
+		case "SINT", "INTEGER8":
+			// OK
+		default:
+			return fmt.Errorf("int8 value provided for non-int8 type %s", esiTypeUpper)
+		}
+	case *dscpb.BusVariableValue_Uint16Value:
+		if bitSize > 16 {
+			return fmt.Errorf("expected <= 16 bits for uint16, got %d", bitSize)
+		}
+		if err := checkRange(uint64(val.GetUint16Value()), bitSize); err != nil {
+			return err
+		}
+		switch esiTypeUpper {
+		case "UINT", "UNSIGNED16", "WORD", "BITARR16", "BIT9", "BIT10", "BIT11", "BIT12", "BIT13", "BIT14", "BIT15", "BIT16":
+			// OK
+		default:
+			return fmt.Errorf("uint16 value provided for non-uint16 type %s", esiTypeUpper)
+		}
+	case *dscpb.BusVariableValue_Int16Value:
+		if bitSize > 16 {
+			return fmt.Errorf("expected <= 16 bits for int16, got %d", bitSize)
+		}
+		if err := checkSignedRange(int64(val.GetInt16Value()), bitSize); err != nil {
+			return err
+		}
+		switch esiTypeUpper {
+		case "INT", "INTEGER16":
+			// OK
+		default:
+			return fmt.Errorf("int16 value provided for non-int16 type %s", esiTypeUpper)
+		}
+	case *dscpb.BusVariableValue_Uint32Value:
+		if bitSize > 32 {
+			return fmt.Errorf("expected <= 32 bits for uint32, got %d", bitSize)
+		}
+		if err := checkRange(uint64(val.GetUint32Value()), bitSize); err != nil {
+			return err
+		}
+		switch esiTypeUpper {
+		case "UDINT", "UNSIGNED32", "DWORD", "UNSIGNED24", "BITARR32":
+			// OK
+		default:
+			return fmt.Errorf("uint32 value provided for non-uint32 type %s", esiTypeUpper)
+		}
+	case *dscpb.BusVariableValue_Int32Value:
+		if bitSize > 32 {
+			return fmt.Errorf("expected <= 32 bits for int32, got %d", bitSize)
+		}
+		if err := checkSignedRange(int64(val.GetInt32Value()), bitSize); err != nil {
+			return err
+		}
+		switch esiTypeUpper {
+		case "DINT", "INTEGER32", "INTEGER24":
+			// OK
+		default:
+			return fmt.Errorf("int32 value provided for non-int32 type %s", esiTypeUpper)
+		}
+	case *dscpb.BusVariableValue_Uint64Value:
+		if bitSize > 64 {
+			return fmt.Errorf("expected <= 64 bits for uint64, got %d", bitSize)
+		}
+		if err := checkRange(val.GetUint64Value(), bitSize); err != nil {
+			return err
+		}
+		switch esiTypeUpper {
+		case "ULINT", "UNSIGNED64", "LWORD", "UNSIGNED40", "UNSIGNED48", "UNSIGNED56":
+			// OK
+		default:
+			return fmt.Errorf("uint64 value provided for non-uint64 type %s", esiTypeUpper)
+		}
+	case *dscpb.BusVariableValue_Int64Value:
+		if bitSize > 64 {
+			return fmt.Errorf("expected <= 64 bits for int64, got %d", bitSize)
+		}
+		if err := checkSignedRange(val.GetInt64Value(), bitSize); err != nil {
+			return err
+		}
+		switch esiTypeUpper {
+		case "LINT", "INTEGER64", "INTEGER40", "INTEGER48", "INTEGER56":
+			// OK
+		default:
+			return fmt.Errorf("int64 value provided for non-int64 type %s", esiTypeUpper)
+		}
+	case *dscpb.BusVariableValue_FloatValue:
+		if bitSize != 32 {
+			return fmt.Errorf("expected 32 bits for float, got %d", bitSize)
+		}
+		switch esiTypeUpper {
+		case "REAL", "REAL32", "FLOAT32", "FLOAT":
+			// OK
+		default:
+			return fmt.Errorf("float value provided for non-float type %s", esiTypeUpper)
+		}
+	case *dscpb.BusVariableValue_DoubleValue:
+		if bitSize != 64 {
+			return fmt.Errorf("expected 64 bits for double, got %d", bitSize)
+		}
+		switch esiTypeUpper {
+		case "LREAL", "REAL64", "FLOAT64", "DOUBLE":
+			// OK
+		default:
+			return fmt.Errorf("double value provided for non-double type %s", esiTypeUpper)
+		}
+	default:
+		return fmt.Errorf("unsupported value type: %T", val.GetValue())
+	}
+	return nil
 }

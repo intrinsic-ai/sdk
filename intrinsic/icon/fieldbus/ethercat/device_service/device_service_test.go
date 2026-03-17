@@ -675,6 +675,53 @@ func TestDiscoveryLogic(t *testing.T) {
 			},
 		},
 		{
+			desc: "BusVariableDeviceData Resolution",
+			mappings: []*dscpb.InterfaceMapping{
+				{
+					DeviceData: &dscpb.DeviceData{
+						Data: &dscpb.DeviceData_BusVariableDeviceData{
+							BusVariableDeviceData: &dscpb.BusVariableDeviceData{
+								BusVariableWrites: []*dscpb.BusVariableWrite{
+									{
+										VariableReference: &dscpb.VariableReference{Pdo: "Default RxPDO", Object: "Control word"},
+										Value: &dscpb.BusVariableValue{
+											Value: &dscpb.BusVariableValue_Uint16Value{Uint16Value: 123},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			wantMap: map[string]*dspb.ResolvedVariable{
+				"Default RxPDO::Control word": {PdoIndex: 0x1600, Index: 0x6040, SubIndex: 0, PdoEniName: "Default RxPDO", ObjectEniName: "Control word"},
+			},
+		},
+		{
+			desc: "BusVariableDeviceData Type Mismatch",
+			mappings: []*dscpb.InterfaceMapping{
+				{
+					DeviceData: &dscpb.DeviceData{
+						Data: &dscpb.DeviceData_BusVariableDeviceData{
+							BusVariableDeviceData: &dscpb.BusVariableDeviceData{
+								BusVariableWrites: []*dscpb.BusVariableWrite{
+									{
+										VariableReference: &dscpb.VariableReference{Pdo: "Default RxPDO", Object: "Control word"},
+										Value: &dscpb.BusVariableValue{
+											// Control word is UINT (16 bits), but we provide uint8
+											Value: &dscpb.BusVariableValue_Uint8Value{Uint8Value: 123},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			wantErr: "type mismatch",
+		},
+		{
 			desc: "PDO Conflict Error",
 			mappings: []*dscpb.InterfaceMapping{
 				{
@@ -1619,6 +1666,120 @@ func TestOpModeConfiguration(t *testing.T) {
 			}
 			if diff := cmp.Diff(tc.wantActive, resolved.GetActiveOpModeName(), protocmp.Transform()); diff != "" {
 				t.Errorf("ActiveOpModeName diff (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestIntermediateBitLengths(t *testing.T) {
+	objects := []string{
+		makeEsiObjectXml(testEsiObject{Index: "#x2000", ObjName: "Uint24Var", ObjType: "UNSIGNED24", ObjBitSize: 24, ObjPdoMapping: "R"}),
+		makeEsiObjectXml(testEsiObject{Index: "#x2001", ObjName: "Int48Var", ObjType: "INTEGER48", ObjBitSize: 48, ObjPdoMapping: "R"}),
+	}
+	pdos := []string{
+		makeEsiPdoXml("Rx", "#x1600", "RxPDO", false, 0,
+			testPdoEntry{Index: "#x2000", SubIndex: 0, BitLen: 24, EntryName: "Uint24Var"},
+			testPdoEntry{Index: "#x2001", SubIndex: 0, BitLen: 48, EntryName: "Int48Var"}),
+	}
+	esiData := makeTestEsiXml(nil, objects, pdos)
+
+	bundle := &esipb.EsiBundle{
+		Files: map[string]*esipb.Esi{
+			"device.xml": {Data: esiData},
+		},
+	}
+
+	tests := []struct {
+		desc    string
+		write   *dscpb.BusVariableWrite
+		wantErr string
+	}{
+		{
+			desc: "Uint24 Valid Value",
+			write: &dscpb.BusVariableWrite{
+				VariableReference: &dscpb.VariableReference{Pdo: "RxPDO", Object: "Uint24Var"},
+				Value: &dscpb.BusVariableValue{
+					Value: &dscpb.BusVariableValue_Uint32Value{Uint32Value: 0xFFFFFF},
+				},
+			},
+		},
+		{
+			desc: "Uint24 Overflow",
+			write: &dscpb.BusVariableWrite{
+				VariableReference: &dscpb.VariableReference{Pdo: "RxPDO", Object: "Uint24Var"},
+				Value: &dscpb.BusVariableValue{
+					Value: &dscpb.BusVariableValue_Uint32Value{Uint32Value: 0x1000000},
+				},
+			},
+			wantErr: "exceeds maximum for 24 bits",
+		},
+		{
+			desc: "Int48 Valid Value",
+			write: &dscpb.BusVariableWrite{
+				VariableReference: &dscpb.VariableReference{Pdo: "RxPDO", Object: "Int48Var"},
+				Value: &dscpb.BusVariableValue{
+					Value: &dscpb.BusVariableValue_Int64Value{Int64Value: (int64(1) << 47) - 1},
+				},
+			},
+		},
+		{
+			desc: "Int48 Overflow",
+			write: &dscpb.BusVariableWrite{
+				VariableReference: &dscpb.VariableReference{Pdo: "RxPDO", Object: "Int48Var"},
+				Value: &dscpb.BusVariableValue{
+					Value: &dscpb.BusVariableValue_Int64Value{Int64Value: (int64(1) << 47)},
+				},
+			},
+			wantErr: "out of bounds for 48 signed bits",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.desc, func(t *testing.T) {
+			ctx := context.Background()
+			config := &dscpb.DeviceServiceConfig{
+				DeviceIdentifier: &dscpb.DeviceIdentifier{VendorId: 1, ProductCode: 2, Revision: 3},
+				InterfaceMappings: []*dscpb.InterfaceMapping{
+					{
+						DeviceData: &dscpb.DeviceData{
+							Data: &dscpb.DeviceData_BusVariableDeviceData{
+								BusVariableDeviceData: &dscpb.BusVariableDeviceData{
+									BusVariableWrites: []*dscpb.BusVariableWrite{tc.write},
+								},
+							},
+						},
+					},
+				},
+			}
+
+			fakeDA := fakedataassets.StartServer(ctx, t, fakedataassets.WithDataAssets([]*dapb.DataAsset{
+				{
+					Metadata: &mpb.Metadata{IdVersion: &ipb.IdVersion{Id: &ipb.Id{Name: "test_bundle"}}},
+					Data:     mustMarshalAny(bundle),
+				},
+			}))
+			config.EsiBundle = &rdpb.ResolvedDependency{
+				Interfaces: map[string]*rdpb.ResolvedDependency_Interface{
+					"data://" + esiBundleDataAssetProtoName: {
+						Protocol: &rdpb.ResolvedDependency_Interface_Data_{
+							Data: &rdpb.ResolvedDependency_Interface_Data{Id: &ipb.Id{Name: "test_bundle"}},
+						},
+					},
+				},
+			}
+
+			_, err := NewDeviceService(ctx, config, fakeDA.Client)
+			if tc.wantErr != "" {
+				if err == nil {
+					t.Fatalf("Expected error containing %q, got nil", tc.wantErr)
+				}
+				if !strings.Contains(err.Error(), tc.wantErr) {
+					t.Fatalf("Expected error containing %q, got %v", tc.wantErr, err)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("Unexpected error: %v", err)
 			}
 		})
 	}
