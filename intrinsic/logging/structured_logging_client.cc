@@ -345,4 +345,18 @@ StructuredLoggingClient::ListLocalRecordings(
   return bags;
 }
 
+absl::StatusOr<intrinsic_proto::data_logger::BagMetadata>
+StructuredLoggingClient::GetLocalRecording(absl::string_view bag_id,
+                                           bool only_summary_metadata) const {
+  intrinsic_proto::data_logger::GetLocalRecordingRequest request;
+  request.set_bag_id(std::string(bag_id));
+  request.set_only_summary_metadata(only_summary_metadata);
+
+  grpc::ClientContext context;
+  intrinsic_proto::data_logger::GetLocalRecordingResponse response;
+  INTR_RETURN_IF_ERROR(ToAbslStatus(
+      impl_->stub->GetLocalRecording(&context, request, &response)));
+  return response.bag();
+}
+
 }  // namespace intrinsic

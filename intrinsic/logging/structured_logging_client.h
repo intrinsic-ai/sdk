@@ -177,6 +177,10 @@ class StructuredLoggingClient {
                       bool only_summary_metadata,
                       absl::Span<const absl::string_view> bag_ids) const;
 
+  // Gets a specific local recording.
+  absl::StatusOr<intrinsic_proto::data_logger::BagMetadata> GetLocalRecording(
+      absl::string_view bag_id, bool only_summary_metadata = false) const;
+
  private:
   // Use of pimpl / firewall idiom to hide gRPC details.
   struct StructuredLoggingClientImpl;
