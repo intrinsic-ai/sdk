@@ -18,6 +18,7 @@ executive.run(throw_ball)
 
 import enum
 import inspect
+import logging
 import sys
 import warnings
 
@@ -58,6 +59,8 @@ _CSS_FAILURE_STYLE = (
     "color: #ab0000; font-family: monospace; font-weight: bold; "
     "padding-left: var(--jp-code-padding);"
 )
+
+logger = logging.getLogger("intrinsic.solutions." + __name__)
 
 
 class Solution:
@@ -171,7 +174,7 @@ class Solution:
       A fully initialized Workcell instance.
     """
 
-    print("Connecting to deployed solution...")
+    logger.debug("Connecting to deployed solution...")
 
     solution_service = solution_service_pb2_grpc.SolutionServiceStub(
         grpc_channel
@@ -222,10 +225,11 @@ class Solution:
     pbt_registry = pbt_registration.BehaviorTreeRegistry.connect(grpc_channel)
     proto_builder = proto_building.ProtoBuilder.connect(grpc_channel)
 
-    print(
-        "Connected successfully to"
-        f' "{solution_status.display_name}({solution_status.platform_version})"'
-        f' at "{solution_status.cluster_name}".'
+    logger.info(
+        "Connected successfully to %s (%s) at %s.",
+        solution_status.display_name,
+        solution_status.platform_version,
+        solution_status.cluster_name,
     )
     return cls(
         grpc_channel,
@@ -575,8 +579,10 @@ def _get_solution_status_with_retry(
           solution_status_pb2.Status.State.PLATFORM_READY,
           solution_status_pb2.Status.State.DEPLOYING,
       ]:
-        print("Solution not ready yet. Retrying...")
-        print(f"Reason: {response.state_reason}")
+        logger.warning(
+            "Solution not ready yet (reason: %s). Retrying...",
+            response.state_reason,
+        )
         # Note this error leads to a retry given the retry_on_pending_backend
         # decorator.
         raise solution_errors.BackendPendingError(
