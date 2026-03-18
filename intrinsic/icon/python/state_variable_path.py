@@ -36,6 +36,7 @@ _CURRENT_CONTROL_MODE_NODE_NAME = "current_control_mode"
 _WRENCH_NODE_NAME = "wrench_at_tip"
 _FORCE_MAGNITUDE_NODE_NAME = "force_magnitude_at_tip"
 _TORQUE_MAGNITUDE_NODE_NAME = "torque_magnitude_at_tip"
+_WRENCH_STABILITY_INDEX_NODE_NAME = "wrench_stability_index"
 
 # Simple gripper part related nodes.
 _GRIPPER_STATUS_NODE_NAME = "sensed_state"
@@ -426,6 +427,29 @@ class StateVariablePath:
           _StateVariablePathBuilder()
           .add_nodes(
               [part_name, _FT_TYPE_NODE_NAME, _TORQUE_MAGNITUDE_NODE_NAME]
+          )
+          .build()
+      )
+
+    @classmethod
+    def wrench_stability_index(
+        cls,
+        part_name: str,
+    ) -> str:
+      """Generates a state variable path for the stability index of the wrench sensed at the force torque sensor.
+
+      Field type: double
+
+      Args:
+        part_name: Name of the force torque sensor part.
+
+      Returns:
+        Generated state variable path string.
+      """
+      return (
+          _StateVariablePathBuilder()
+          .add_nodes(
+              [part_name, _FT_TYPE_NODE_NAME, _WRENCH_STABILITY_INDEX_NODE_NAME]
           )
           .build()
       )

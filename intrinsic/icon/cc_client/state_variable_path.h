@@ -78,8 +78,7 @@ std::string FTWrenchAtTipStateVariablePath(absl::string_view part_name,
                                            WrenchDimension wrench_dimesion);
 
 // Generates a state variable path for the magnitude (Euclidean or l^2-Norm) of
-// the
-// **force** sensed at the force torque sensor in the frame of the arm tip.
+// the **force** sensed at the force torque sensor in the frame of the arm tip.
 //
 // The referenced field has the type: double
 //
@@ -89,8 +88,7 @@ std::string FTWrenchAtTipStateVariablePath(absl::string_view part_name,
 std::string FTForceMagnitudeAtTipStateVariablePath(absl::string_view part_name);
 
 // Generates a state variable path for the magnitude (Euclidean or l^2-Norm) of
-// the
-// **torque** sensed at the force torque sensor in the frame of the arm tip.
+// the **torque** sensed at the force torque sensor in the frame of the arm tip.
 //
 // The referenced field has the type: double
 //
@@ -98,6 +96,17 @@ std::string FTForceMagnitudeAtTipStateVariablePath(absl::string_view part_name);
 //
 // Returns a generated state variable path string.
 std::string FTTorqueMagnitudeAtTipStateVariablePath(
+    absl::string_view part_name);
+
+// Generates a state variable path for the stability index of the wrench sensed
+// at the force torque sensor.
+//
+// The referenced field has the type: double
+//
+//     part_name: Name of the force torque sensor part.
+//
+// Returns a generated state variable path string.
+std::string FTWrenchStabilityIndexStateVariablePath(
     absl::string_view part_name);
 
 // Generates a state variable path for sensed state of the gripper.

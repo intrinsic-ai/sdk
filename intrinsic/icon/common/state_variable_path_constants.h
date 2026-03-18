@@ -41,6 +41,7 @@ constexpr const char* kCurrentControlModeNodeName = "current_control_mode";
 constexpr const char* kWrenchAtTipNodeName = "wrench_at_tip";
 constexpr const char* kForceMagnitudeAtTipNodeName = "force_magnitude_at_tip";
 constexpr const char* kTorqueMagnitudeAtTipNodeName = "torque_magnitude_at_tip";
+constexpr const char* kWrenchStabilityIndexNodeName = "wrench_stability_index";
 
 // Simple gripper
 constexpr const char* kGripperSensedStateNodeName = "sensed_state";

@@ -96,6 +96,13 @@ std::string FTTorqueMagnitudeAtTipStateVariablePath(
                                  {.name = kTorqueMagnitudeAtTipNodeName}});
 }
 
+std::string FTWrenchStabilityIndexStateVariablePath(
+    absl::string_view part_name) {
+  return BuildStateVariablePath({{.name = std::string(part_name)},
+                                 {.name = kFTTypeNodeName},
+                                 {.name = kWrenchStabilityIndexNodeName}});
+}
+
 std::string GripperSensedStateStateVariablePath(absl::string_view part_name) {
   return BuildStateVariablePath({{.name = std::string(part_name)},
                                  {.name = kGripperTypeNodeName},
