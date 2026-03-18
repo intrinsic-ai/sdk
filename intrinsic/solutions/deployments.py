@@ -24,6 +24,7 @@ import warnings
 
 import grpc
 
+from intrinsic.assets.install import installed_assets_client
 from intrinsic.frontend.solution_service.proto import solution_service_pb2
 from intrinsic.frontend.solution_service.proto import solution_service_pb2_grpc
 from intrinsic.frontend.solution_service.proto import status_pb2 as solution_status_pb2
@@ -40,7 +41,6 @@ from intrinsic.solutions import proto_building
 from intrinsic.solutions import providers
 from intrinsic.solutions import simulation
 from intrinsic.solutions import worlds
-from intrinsic.solutions.internal import installed_assets_client
 from intrinsic.solutions.internal import process_providing
 from intrinsic.solutions.internal import resources as resources_mod
 from intrinsic.solutions.internal import skill_providing

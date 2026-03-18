@@ -12,6 +12,7 @@ from google.protobuf import message
 from google.protobuf import text_format
 
 from intrinsic.assets import id_utils
+from intrinsic.assets.install import installed_assets_client
 from intrinsic.assets.processes.proto import process_asset_pb2
 from intrinsic.assets.proto import asset_tag_pb2
 from intrinsic.assets.proto import asset_type_pb2
@@ -25,7 +26,6 @@ from intrinsic.resources.proto import resource_registry_pb2
 from intrinsic.skills.client import skill_registry_client
 from intrinsic.skills.proto import skill_registry_pb2
 from intrinsic.skills.proto import skills_pb2
-from intrinsic.solutions.internal import installed_assets_client
 from intrinsic.solutions.testing import test_skill_params_pb2
 
 FLAGS = flags.FLAGS

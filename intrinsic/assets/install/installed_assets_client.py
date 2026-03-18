@@ -1,11 +1,10 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-"""Provides a client for using the InstalledAssets service.
-
-The provided client class is for use in the Solution Building Library.
-"""
+"""Provides a client for using the InstalledAssets service."""
 
 from __future__ import annotations
+
+import logging
 
 from google.longrunning import operations_pb2
 from google.longrunning import operations_pb2_grpc
@@ -30,9 +29,7 @@ _WAIT_OPERATION_TIMEOUT = duration_pb2.Duration(seconds=10)
 def _to_id_proto(id: str | id_pb2.Id) -> id_pb2.Id:  # pylint: disable=redefined-builtin
   """Converts a string or id_pb2.Id to an id_pb2.Id proto."""
   if isinstance(id, str):
-    return id_pb2.Id(
-        package=id_utils.package_from(id), name=id_utils.name_from(id)
-    )
+    return id_utils.id_proto_from_string(id)
   elif isinstance(id, id_pb2.Id):
     return id
   else:
@@ -124,14 +121,13 @@ class InstalledAssetsClient:
     list.
 
     Args:
-      asset_types: The asset types to filter by.
-      asset_tag: The asset tag to filter by.
-      view: The view of the assets to return.
+      asset_types: The Asset types to filter by.
+      asset_tag: The Asset tag to filter by.
+      view: The view of the Assets to return.
 
     Returns:
-      The list of all installed assets matching the filter.
+      The list of all installed Assets matching the filter.
     """
-
     next_page_token = None
 
     result: list[installed_assets_pb2.InstalledAsset] = []
@@ -164,12 +160,11 @@ class InstalledAssetsClient:
     Blocks until the installation operation has completed.
 
     Args:
-      asset: The asset to create.
+      asset: The Asset to create.
       update_policy: The update policy to use.
 
     Returns:
-      The installed asset that was created. Note that in this asset only the
-      metadata is set.
+      The installed Asset that was created.
 
     Raises:
       OperationError: If the installation operation fails.
@@ -187,7 +182,9 @@ class InstalledAssetsClient:
           )
       )
       if not operation.done:
-        print('Waiting for operation to create installed asset to finish...')
+        logging.info(
+            'Waiting for operation to create installed asset to finish...'
+        )
 
     if operation.HasField('error'):
       raise OperationError(operation.error)
@@ -200,13 +197,13 @@ class InstalledAssetsClient:
       self,
       id: str | id_pb2.Id,  # pylint: disable=redefined-builtin
       delete_policy: installed_assets_pb2.DeletePolicy = installed_assets_pb2.DeletePolicy.POLICY_UNSPECIFIED,
-  ):
+  ) -> None:
     """Calls the DeleteInstalledAsset method of the InstalledAssets service.
 
     Blocks until the deletion operation has completed.
 
     Args:
-      id: The id of the asset to delete.
+      id: The id of the Asset to delete.
       delete_policy: The delete policy to use.
 
     Raises:
@@ -225,7 +222,9 @@ class InstalledAssetsClient:
           )
       )
       if not operation.done:
-        print('Waiting for operation to delete installed asset to finish...')
+        logging.info(
+            'Waiting for operation to delete installed asset to finish...'
+        )
 
     if operation.HasField('error'):
       raise OperationError(operation.error)

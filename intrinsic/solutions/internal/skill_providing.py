@@ -9,6 +9,7 @@ from typing import Iterable
 from typing import Type
 from typing import Union
 
+from intrinsic.assets.install import installed_assets_client
 from intrinsic.assets.proto import asset_tag_pb2
 from intrinsic.assets.proto import asset_type_pb2
 from intrinsic.assets.proto import view_pb2
@@ -17,7 +18,6 @@ from intrinsic.skills.client import skill_registry_client
 from intrinsic.skills.proto import skills_pb2
 from intrinsic.solutions import provided
 from intrinsic.solutions import providers
-from intrinsic.solutions.internal import installed_assets_client
 from intrinsic.solutions.internal import resources
 from intrinsic.solutions.internal import skill_generation
 from intrinsic.solutions.internal import skill_utils

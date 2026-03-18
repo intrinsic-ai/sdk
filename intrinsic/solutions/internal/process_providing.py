@@ -12,6 +12,7 @@ from google.protobuf import duration_pb2
 import grpc
 
 from intrinsic.assets import id_utils
+from intrinsic.assets.install import installed_assets_client
 from intrinsic.assets.processes.proto import process_asset_pb2
 from intrinsic.assets.proto import asset_type_pb2
 from intrinsic.assets.proto import installed_assets_pb2
@@ -22,7 +23,6 @@ from intrinsic.frontend.solution_service.proto import solution_service_pb2
 from intrinsic.frontend.solution_service.proto import solution_service_pb2_grpc
 from intrinsic.solutions import behavior_tree
 from intrinsic.solutions import providers
-from intrinsic.solutions.internal import installed_assets_client
 from intrinsic.util.grpc import error_handling
 
 _INSTALLED_ASSETS_MAX_PAGE_SIZE = 200

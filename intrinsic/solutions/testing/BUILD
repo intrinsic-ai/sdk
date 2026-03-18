@@ -70,6 +70,7 @@ py_library(
     deps = [
         ":test_skill_params_py_pb2",
         "//intrinsic/assets:id_utils_py",
+        "//intrinsic/assets/install:installed_assets_client",
         "//intrinsic/assets/processes/proto:process_asset_py_pb2",
         "//intrinsic/assets/proto:asset_tag_py_pb2",
         "//intrinsic/assets/proto:asset_type_py_pb2",
@@ -83,7 +84,6 @@ py_library(
         "//intrinsic/skills/client:skill_registry_client",
         "//intrinsic/skills/proto:skill_registry_py_pb2",
         "//intrinsic/skills/proto:skills_py_pb2",
-        "//intrinsic/solutions/internal:installed_assets_client",
         "@com_google_absl_py//absl/flags",
         "@com_google_protobuf//:protobuf_python",
     ],

@@ -10,6 +10,7 @@ from google.rpc import code_pb2
 from google.rpc import status_pb2
 import grpc
 
+from intrinsic.assets.install import installed_assets_client
 from intrinsic.assets.processes.proto import process_asset_pb2
 from intrinsic.assets.proto import asset_type_pb2
 from intrinsic.assets.proto import id_pb2
@@ -21,7 +22,6 @@ from intrinsic.frontend.solution_service.proto import solution_service_pb2
 from intrinsic.skills.proto import skills_pb2
 from intrinsic.solutions import behavior_tree
 from intrinsic.solutions.internal import behavior_call
-from intrinsic.solutions.internal import installed_assets_client
 from intrinsic.solutions.internal import process_providing
 
 
