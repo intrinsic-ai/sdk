@@ -23,6 +23,16 @@ cc_test(
 )
 
 cc_library(
+    name = "byte_order",
+    hdrs = ["byte_order.h"],
+    deps = [
+        "@abseil-cpp//absl/base:core_headers",
+        "@abseil-cpp//absl/numeric:bits",
+        "@abseil-cpp//absl/types:span",
+    ],
+)
+
+cc_library(
     name = "constants",
     hdrs = ["constants.h"],
     deps = [
