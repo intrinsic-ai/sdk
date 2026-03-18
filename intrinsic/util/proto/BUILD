@@ -185,6 +185,12 @@ cc_test(
     ],
 )
 
+go_library(
+    name = "typeurl",
+    srcs = ["typeurl.go"],
+    importpath = "intrinsic/util/proto/typeurl",
+)
+
 cc_library(
     name = "error_collector",
     hdrs = ["error_collector.h"],
