@@ -26,7 +26,7 @@ namespace intrinsic::icon {
 // Among other things, it does not warn about undesirable corner cases like
 // constructing with kOk, or ambiguous construction with "{}".
 template <typename T>
-class RealtimeStatusOr {
+class ABSL_MUST_USE_RESULT RealtimeStatusOr {
  private:
   static_assert(!std::is_rvalue_reference_v<T>,
                 "RealtimeStatusOr<T> does not support rvalue reference types.");
