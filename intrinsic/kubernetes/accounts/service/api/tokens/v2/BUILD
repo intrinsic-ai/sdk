@@ -39,6 +39,7 @@ go_proto_library(
     compilers = [
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
+        "//bazel:go_gen_grpc_gateway",
     ],
     importpath = "intrinsic/kubernetes/accounts/service/api/tokens/v2/tokens_go_proto",
     protos = [":tokens_proto"],

@@ -47,6 +47,7 @@ go_proto_library(
     compilers = [
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
+        "//bazel:go_gen_grpc_gateway",
     ],
     importpath = "intrinsic/frontend/cloud/api/v1/clustermanager_api_go_proto",
     protos = [":clustermanager_api_proto"],

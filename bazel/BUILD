@@ -70,6 +70,7 @@ go_proto_compiler(
     options = [
         "paths=source_relative",
         "logtostderr=true",
+        "allow_delete_body=true",
     ],
     plugin = "@com_github_grpc_ecosystem_grpc_gateway_v2//protoc-gen-grpc-gateway",
     suffix = ".pb.gw.go",

@@ -31,6 +31,7 @@ go_proto_library(
     compilers = [
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
+        "//bazel:go_gen_grpc_gateway",
     ],
     importpath = "intrinsic/kubernetes/accounts/service/api/resourcemanager/v1/resourcemanager_go_proto",
     protos = [":resourcemanager_proto"],
