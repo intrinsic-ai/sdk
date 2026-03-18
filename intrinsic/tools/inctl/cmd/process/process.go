@@ -9,30 +9,29 @@ import (
 	"os"
 	"strings"
 
+	lrpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
+
 	"intrinsic/skills/tools/skill/cmd/dialerutil"
 	"intrinsic/skills/tools/skill/cmd/solutionutil"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/cobrautil"
+	"intrinsic/util/proto/registryutil"
 
+	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	annotationspb "google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 
+	"intrinsic/executive/go/behaviortree"
 	btpb "intrinsic/executive/proto/behavior_tree_go_proto"
 	execgrpcpb "intrinsic/executive/proto/executive_service_go_proto"
 	exsvcpb "intrinsic/executive/proto/executive_service_go_proto"
 	rmdpb "intrinsic/executive/proto/run_metadata_go_proto"
-	skillregistrygrpcpb "intrinsic/skills/proto/skill_registry_go_proto"
-	srpb "intrinsic/skills/proto/skill_registry_go_proto"
-	skillspb "intrinsic/skills/proto/skills_go_proto"
-
-	lrpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
-	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
-	fbpb "google.golang.org/genproto/googleapis/api/annotations"
 )
 
 const (
@@ -86,10 +85,11 @@ func clearTree(m proto.Message, clearTreeID bool, clearNodeIDs bool) error {
 			continue
 		}
 		options := field.Options().(*descriptorpb.FieldOptions)
-		if proto.HasExtension(options, fbpb.E_FieldBehavior) {
-			behaviors := proto.GetExtension(options, fbpb.E_FieldBehavior).([]fbpb.FieldBehavior)
+		if proto.HasExtension(options, annotationspb.E_FieldBehavior) {
+			behaviors := proto.GetExtension(
+				options, annotationspb.E_FieldBehavior).([]annotationspb.FieldBehavior)
 			for _, behavior := range behaviors {
-				if behavior == fbpb.FieldBehavior_OUTPUT_ONLY {
+				if behavior == annotationspb.FieldBehavior_OUTPUT_ONLY {
 					refl.Clear(field)
 				}
 			}
@@ -196,27 +196,6 @@ func setBT(ctx context.Context, exC execgrpcpb.ExecutiveServiceClient, bt *btpb.
 	return nil
 }
 
-func getSkills(ctx context.Context, srC skillregistrygrpcpb.SkillRegistryClient) ([]*skillspb.Skill, error) {
-	var (
-		skills        []*skillspb.Skill
-		nextPageToken string
-	)
-	for {
-		resp, err := srC.ListSkills(ctx, &srpb.ListSkillsRequest{
-			PageToken: nextPageToken,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("could not list skills: %w", err)
-		}
-		skills = append(skills, resp.GetSkills()...)
-		nextPageToken = resp.GetNextPageToken()
-		if nextPageToken == "" {
-			break
-		}
-	}
-	return skills, nil
-}
-
 // fileDescriptorSetCollector is a behavior tree visitor that collects all file descriptor sets in a
 // behavior tree.
 type fileDescriptorSetCollector struct {
@@ -259,6 +238,32 @@ func addFileDescriptorSetToFiles(fileDescriptorSet *descriptorpb.FileDescriptorS
 		}
 	}
 	return nil
+}
+
+// Creates a merged pool of the file descriptor sets of all script nodes in
+// the given behavior tree.
+//
+// This is required until the parameter Any protos of script nodes in behavior
+// trees have Intrinsic type URLs and are fully supported by the proto registry.
+func MergedTypesForAllScriptNodesInTree(ctx context.Context, bt *btpb.BehaviorTree) (*protoregistry.Types, error) {
+	collector := fileDescriptorSetCollector{}
+	if err := behaviortree.Walk(ctx, bt, &collector); err != nil {
+		return nil, errors.Wrap(err, "failed walking behavior tree")
+	}
+
+	files := new(protoregistry.Files)
+	for _, fileDescriptorSet := range collector.fileDescriptorSets {
+		if err := addFileDescriptorSetToFiles(fileDescriptorSet, files); err != nil {
+			return nil, errors.Wrap(err, "failed adding file descriptor set to files")
+		}
+	}
+
+	types := new(protoregistry.Types)
+	if err := registryutil.PopulateTypesFromFiles(types, files); err != nil {
+		return nil, errors.Wrapf(err, "failed to populate types from files")
+	}
+
+	return types, nil
 }
 
 func addCommonGetSetFlags(cmd *cobra.Command) {

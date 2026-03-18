@@ -7,10 +7,8 @@ import (
 	"fmt"
 	"os"
 
-	"intrinsic/executive/go/behaviortree"
 	"intrinsic/proto_tools/registry/protoregistryclient"
 	"intrinsic/tools/inctl/util/orgutil"
-	"intrinsic/util/proto/registryutil"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -27,32 +25,6 @@ import (
 )
 
 var viperProcessGet = viper.New()
-
-// Creates a merged pool of the file descriptor sets of all script nodes in
-// the given behavior tree.
-//
-// This is required until the parameter Any protos of script nodes in behavior
-// trees have Intrinsic type URLs and are fully supported by the proto registry.
-func MergedTypesForAllScriptNodesInTree(ctx context.Context, bt *btpb.BehaviorTree) (*protoregistry.Types, error) {
-	collector := fileDescriptorSetCollector{}
-	if err := behaviortree.Walk(ctx, bt, &collector); err != nil {
-		return nil, errors.Wrap(err, "failed walking behavior tree")
-	}
-
-	files := new(protoregistry.Files)
-	for _, fileDescriptorSet := range collector.fileDescriptorSets {
-		if err := addFileDescriptorSetToFiles(fileDescriptorSet, files); err != nil {
-			return nil, errors.Wrap(err, "failed adding file descriptor set to files")
-		}
-	}
-
-	types := new(protoregistry.Types)
-	if err := registryutil.PopulateTypesFromFiles(types, files); err != nil {
-		return nil, errors.Wrapf(err, "failed to populate types from files")
-	}
-
-	return types, nil
-}
 
 func serializeToTextProto(ctx context.Context, bt *btpb.BehaviorTree, protoRegistry protoregistrygrpcpb.ProtoRegistryClient) ([]byte, error) {
 	nodeTypes, err := MergedTypesForAllScriptNodesInTree(ctx, bt)

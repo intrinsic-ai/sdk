@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"intrinsic/executive/go/behaviortree"
+	protoregistrypb "intrinsic/proto_tools/proto/proto_registry_go_proto"
+	"intrinsic/proto_tools/registry/protoregistryclient"
 	"intrinsic/tools/inctl/util/orgutil"
-	"intrinsic/util/proto/registryutil"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -18,14 +18,12 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 
 	btpb "intrinsic/executive/proto/behavior_tree_go_proto"
 	execgrpcpb "intrinsic/executive/proto/executive_service_go_proto"
 	sgrpcpb "intrinsic/frontend/solution_service/proto/solution_service_go_proto"
 	spb "intrinsic/frontend/solution_service/proto/solution_service_go_proto"
-	skillregistrygrpcpb "intrinsic/skills/proto/skill_registry_go_proto"
-
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 var viperProcessSet = viper.New()
@@ -56,66 +54,45 @@ func (d *resolverToEmpty) FindExtensionByNumber(message protoreflect.FullName, f
 	return nil, errors.New("dummyResolver.FindExtensionByNumber is not implemented")
 }
 
-type deserializer interface {
-	deserialize(ctx context.Context, content []byte) (*btpb.BehaviorTree, error)
-}
-
-type textDeserializer struct {
-	srC skillregistrygrpcpb.SkillRegistryClient
-}
-
-func (t *textDeserializer) deserialize(ctx context.Context, content []byte) (*btpb.BehaviorTree, error) {
-	// Collect all file descriptor sets from skills.
-	skills, err := getSkills(ctx, t.srC)
-	if err != nil {
-		return nil, errors.Wrapf(err, "could not list skills")
-	}
-
-	files := new(protoregistry.Files)
-	for _, skill := range skills {
-		if err := addFileDescriptorSetToFiles(skill.GetParameterDescription().GetParameterDescriptorFileset(), files); err != nil {
-			return nil, errors.Wrap(err, "failed adding file descriptor set to files")
-		}
-	}
-
-	// To unmarshal expanded Any protos in the given behavior tree correctly, we need all the file
-	// descriptor sets from the behavior tree. But to get the file descriptor sets from the behavior
-	// tree, we need to unmarshal it first. We solve this by unmarshalling the behavior tree in two
-	// passes.
+func deserializeFromText(ctx context.Context, content []byte, protoRegistry protoregistrypb.ProtoRegistryClient) (*btpb.BehaviorTree, error) {
+	// To unmarshal expanded Any protos from script node parameters in the given
+	// behavior tree correctly, we need all the file descriptor sets from the
+	// behavior tree. But to get the file descriptor sets from the behavior tree,
+	// we need to unmarshal it first. We solve this by unmarshalling the behavior
+	// tree in two passes.
 	//
-	// Pass 1: Unmarshal with a dummy resolver. All expanded Any protos are unmarshalled to empty
-	// messages (more precisely, to Any protos with a correct 'type_url' and empty 'data') but the
-	// file descriptor sets in the behavior tree are unmarshalled correctly.
-	dummyUnmarshaller := prototext.UnmarshalOptions{
-		Resolver:       newResolverToEmpty(),
-		AllowPartial:   true,
-		DiscardUnknown: true, // To unmarshal any text format to an Empty proto without errors
+	// Pass 1: Unmarshal with a dummy resolver. All expanded Any protos are
+	// unmarshalled to empty messages (more precisely, to Any protos with a
+	// correct 'type_url' and empty 'data') but the file descriptor sets in the
+	// behavior tree are unmarshalled correctly.
+	emptyUnmarshaller := prototext.UnmarshalOptions{
+		Resolver:     newResolverToEmpty(),
+		AllowPartial: true,
+		// Unmarshal any expanded Any proto to an Empty proto without errors. Since
+		// Empty has no fields, all parsed fields are treated as unknown fields and
+		// will simply be discarded.
+		DiscardUnknown: true,
 	}
 
 	btWithEmptyAnys := &btpb.BehaviorTree{}
-	if err := dummyUnmarshaller.Unmarshal(content, btWithEmptyAnys); err != nil {
+	if err := emptyUnmarshaller.Unmarshal(content, btWithEmptyAnys); err != nil {
 		return nil, errors.Wrapf(err, "could not parse input file in first pass")
 	}
 
-	// Collect all file descriptor sets from the behavior tree.
-	collector := fileDescriptorSetCollector{}
-	behaviortree.Walk(ctx, btWithEmptyAnys, &collector)
-
-	for _, fileDescriptorSet := range collector.fileDescriptorSets {
-		if err := addFileDescriptorSetToFiles(fileDescriptorSet, files); err != nil {
-			return nil, errors.Wrap(err, "failed adding file descriptor set to files")
-		}
+	nodeTypes, err := MergedTypesForAllScriptNodesInTree(ctx, btWithEmptyAnys)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed creating merged Types from behavior tree script nodes")
 	}
 
-	types := new(protoregistry.Types)
-	if err := registryutil.PopulateTypesFromFiles(types, files); err != nil {
-		return nil, errors.Wrapf(err, "failed to populate types from files")
-	}
-
-	// Pass 2: Unmarshal with a proper resolver that now uses the file descriptors sets from all
-	// skills and from the behavior tree.
+	// Pass 2: Unmarshal while resolving Intrinsic type URLs using the proto
+	// registry and other type URLs using the descriptors collected from the
+	// behavior tree (with the compiled-in types as a last fallback).
 	unmarshaller := prototext.UnmarshalOptions{
-		Resolver:       types,
+		Resolver: protoregistryclient.NewProtoRegistryResolver(
+			ctx,
+			protoRegistry,
+			[]protoregistryclient.Resolver{nodeTypes, protoregistry.GlobalTypes},
+		),
 		AllowPartial:   true,
 		DiscardUnknown: true,
 	}
@@ -128,13 +105,7 @@ func (t *textDeserializer) deserialize(ctx context.Context, content []byte) (*bt
 	return bt, nil
 }
 
-func newTextDeserializer(srC skillregistrygrpcpb.SkillRegistryClient) *textDeserializer {
-	return &textDeserializer{srC: srC}
-}
-
-type binaryDeserializer struct{}
-
-func (b *binaryDeserializer) deserialize(ctx context.Context, content []byte) (*btpb.BehaviorTree, error) {
+func deserializeFromBinary(ctx context.Context, content []byte) (*btpb.BehaviorTree, error) {
 	bt := &btpb.BehaviorTree{}
 	if err := proto.Unmarshal(content, bt); err != nil {
 		return nil, errors.Wrapf(err, "could not parse input file")
@@ -142,41 +113,41 @@ func (b *binaryDeserializer) deserialize(ctx context.Context, content []byte) (*
 	return bt, nil
 }
 
-func newBinaryDeserializer() *binaryDeserializer {
-	return &binaryDeserializer{}
-}
-
 type setProcessParams struct {
-	exC          execgrpcpb.ExecutiveServiceClient
-	srC          skillregistrygrpcpb.SkillRegistryClient
-	soC          sgrpcpb.SolutionServiceClient
-	name         string
-	format       string
-	content      []byte
-	clearTreeID  bool
-	clearNodeIDs bool
+	executive       execgrpcpb.ExecutiveServiceClient
+	solutionService sgrpcpb.SolutionServiceClient
+	protoRegistry   protoregistrypb.ProtoRegistryClient
+	name            string
+	format          string
+	content         []byte
+	clearTreeID     bool
+	clearNodeIDs    bool
 }
 
-func deserializeBT(ctx context.Context, srC skillregistrygrpcpb.SkillRegistryClient, format string, content []byte) (*btpb.BehaviorTree, error) {
-	var d deserializer
+func deserializeBT(ctx context.Context, format string, content []byte, protoRegistry protoregistrypb.ProtoRegistryClient) (*btpb.BehaviorTree, error) {
+	var err error
+	var bt *btpb.BehaviorTree
+
 	switch format {
 	case TextProtoFormat:
-		d = newTextDeserializer(srC)
+		bt, err = deserializeFromText(ctx, content, protoRegistry)
+		if err != nil {
+			return nil, errors.Wrapf(err, "could not deserialize BT from text")
+		}
 	case BinaryProtoFormat:
-		d = newBinaryDeserializer()
+		bt, err = deserializeFromBinary(ctx, content)
+		if err != nil {
+			return nil, errors.Wrapf(err, "could not deserialize BT from binary")
+		}
 	default:
 		return nil, fmt.Errorf("unknown format %s", format)
 	}
 
-	bt, err := d.deserialize(ctx, content)
-	if err != nil {
-		return nil, errors.Wrapf(err, "could not serialize BT")
-	}
 	return bt, nil
 }
 
 func setProcess(ctx context.Context, params *setProcessParams) error {
-	bt, err := deserializeBT(ctx, params.srC, params.format, params.content)
+	bt, err := deserializeBT(ctx, params.format, params.content, params.protoRegistry)
 	if err != nil {
 		return errors.Wrapf(err, "could not deserialize BT")
 	}
@@ -184,11 +155,11 @@ func setProcess(ctx context.Context, params *setProcessParams) error {
 	clearTree(bt, params.clearTreeID, params.clearNodeIDs)
 
 	if params.name == "" {
-		if err := setBT(ctx, params.exC, bt); err != nil {
+		if err := setBT(ctx, params.executive, bt); err != nil {
 			return errors.Wrapf(err, "could not set active behavior tree")
 		}
 	} else {
-		if _, err := params.soC.CreateBehaviorTree(ctx, &spb.CreateBehaviorTreeRequest{
+		if _, err := params.solutionService.CreateBehaviorTree(ctx, &spb.CreateBehaviorTreeRequest{
 			BehaviorTreeId: params.name,
 			BehaviorTree:   bt,
 		}); err != nil {
@@ -250,14 +221,14 @@ inctl process set name_to_store_with --solution my-solution --cluster my-cluster
 			}
 
 			if err = setProcess(ctx, &setProcessParams{
-				exC:          execgrpcpb.NewExecutiveServiceClient(conn),
-				srC:          skillregistrygrpcpb.NewSkillRegistryClient(conn),
-				soC:          sgrpcpb.NewSolutionServiceClient(conn),
-				content:      content,
-				name:         name,
-				format:       flagProcessFormat,
-				clearTreeID:  flagClearTreeID,
-				clearNodeIDs: flagClearNodeIDs,
+				executive:       execgrpcpb.NewExecutiveServiceClient(conn),
+				solutionService: sgrpcpb.NewSolutionServiceClient(conn),
+				protoRegistry:   protoregistrypb.NewProtoRegistryClient(conn),
+				content:         content,
+				name:            name,
+				format:          flagProcessFormat,
+				clearTreeID:     flagClearTreeID,
+				clearNodeIDs:    flagClearNodeIDs,
 			}); err != nil {
 				return errors.Wrapf(err, "could not set BT")
 			}
