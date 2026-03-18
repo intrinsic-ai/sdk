@@ -18,6 +18,8 @@ go_library(
         "//intrinsic/executive/proto:executive_service_go_proto",
         "//intrinsic/executive/proto:run_metadata_go_proto",
         "//intrinsic/frontend/solution_service/proto:solution_service_go_proto",
+        "//intrinsic/proto_tools/proto:proto_registry_go_proto",
+        "//intrinsic/proto_tools/registry:protoregistryclient",
         "//intrinsic/skills/proto:skill_registry_go_proto",
         "//intrinsic/skills/proto:skills_go_proto",
         "//intrinsic/skills/tools/skill/cmd:dialerutil",

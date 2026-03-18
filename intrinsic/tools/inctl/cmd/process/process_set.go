@@ -134,7 +134,7 @@ func newTextDeserializer(srC skillregistrygrpcpb.SkillRegistryClient) *textDeser
 
 type binaryDeserializer struct{}
 
-func (b *binarySerializer) deserialize(ctx context.Context, content []byte) (*btpb.BehaviorTree, error) {
+func (b *binaryDeserializer) deserialize(ctx context.Context, content []byte) (*btpb.BehaviorTree, error) {
 	bt := &btpb.BehaviorTree{}
 	if err := proto.Unmarshal(content, bt); err != nil {
 		return nil, errors.Wrapf(err, "could not parse input file")
@@ -142,8 +142,8 @@ func (b *binarySerializer) deserialize(ctx context.Context, content []byte) (*bt
 	return bt, nil
 }
 
-func newBinaryDeserializer() *binarySerializer {
-	return &binarySerializer{}
+func newBinaryDeserializer() *binaryDeserializer {
+	return &binaryDeserializer{}
 }
 
 type setProcessParams struct {

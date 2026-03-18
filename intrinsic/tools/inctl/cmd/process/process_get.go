@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"intrinsic/executive/go/behaviortree"
+	"intrinsic/proto_tools/registry/protoregistryclient"
 	"intrinsic/tools/inctl/util/orgutil"
 	"intrinsic/util/proto/registryutil"
 
@@ -22,41 +23,52 @@ import (
 	execgrpcpb "intrinsic/executive/proto/executive_service_go_proto"
 	sgrpcpb "intrinsic/frontend/solution_service/proto/solution_service_go_proto"
 	spb "intrinsic/frontend/solution_service/proto/solution_service_go_proto"
-	skillregistrygrpcpb "intrinsic/skills/proto/skill_registry_go_proto"
+	protoregistrygrpcpb "intrinsic/proto_tools/proto/proto_registry_go_proto"
 )
 
 var viperProcessGet = viper.New()
 
-type serializer interface {
-	Serialize(context.Context, *btpb.BehaviorTree) ([]byte, error)
-}
-
-type textSerializer struct {
-	commonFiles *protoregistry.Files
-}
-
-// Serialize serializes the given behavior tree to textproto.
-func (t *textSerializer) Serialize(ctx context.Context, bt *btpb.BehaviorTree) ([]byte, error) {
-	files := *t.commonFiles
-
+// Creates a merged pool of the file descriptor sets of all script nodes in
+// the given behavior tree.
+//
+// This is required until the parameter Any protos of script nodes in behavior
+// trees have Intrinsic type URLs and are fully supported by the proto registry.
+func MergedTypesForAllScriptNodesInTree(ctx context.Context, bt *btpb.BehaviorTree) (*protoregistry.Types, error) {
 	collector := fileDescriptorSetCollector{}
 	if err := behaviortree.Walk(ctx, bt, &collector); err != nil {
 		return nil, errors.Wrap(err, "failed walking behavior tree")
 	}
 
+	files := new(protoregistry.Files)
 	for _, fileDescriptorSet := range collector.fileDescriptorSets {
-		if err := addFileDescriptorSetToFiles(fileDescriptorSet, &files); err != nil {
+		if err := addFileDescriptorSetToFiles(fileDescriptorSet, files); err != nil {
 			return nil, errors.Wrap(err, "failed adding file descriptor set to files")
 		}
 	}
 
 	types := new(protoregistry.Types)
-	if err := registryutil.PopulateTypesFromFiles(types, &files); err != nil {
+	if err := registryutil.PopulateTypesFromFiles(types, files); err != nil {
 		return nil, errors.Wrapf(err, "failed to populate types from files")
 	}
 
+	return types, nil
+}
+
+func serializeToTextProto(ctx context.Context, bt *btpb.BehaviorTree, protoRegistry protoregistrygrpcpb.ProtoRegistryClient) ([]byte, error) {
+	nodeTypes, err := MergedTypesForAllScriptNodesInTree(ctx, bt)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed creating merged Types from behavior tree script nodes")
+	}
+
+	// Marshal while resolving Intrinsic type URLs using the proto registry and
+	// other type URLs using the descriptors collected from the behavior tree
+	// (with the compiled-in types as a last fallback).
 	marshaller := prototext.MarshalOptions{
-		Resolver:  types,
+		Resolver: protoregistryclient.NewProtoRegistryResolver(
+			ctx,
+			protoRegistry,
+			[]protoregistryclient.Resolver{nodeTypes, protoregistry.GlobalTypes},
+		),
 		Indent:    "  ",
 		Multiline: true,
 	}
@@ -64,81 +76,56 @@ func (t *textSerializer) Serialize(ctx context.Context, bt *btpb.BehaviorTree) (
 	return []byte(s), nil
 }
 
-func newTextSerializer(ctx context.Context, srC skillregistrygrpcpb.SkillRegistryClient) (*textSerializer, error) {
-	skills, err := getSkills(ctx, srC)
-	if err != nil {
-		return nil, errors.Wrapf(err, "could not list skills")
-	}
-
-	files := new(protoregistry.Files)
-	for _, skill := range skills {
-		if err := addFileDescriptorSetToFiles(skill.GetParameterDescription().GetParameterDescriptorFileset(), files); err != nil {
-			return nil, errors.Wrap(err, "failed adding file descriptor set to files")
-		}
-	}
-
-	return &textSerializer{commonFiles: files}, nil
-}
-
-type binarySerializer struct{}
-
-// Serialize serializes the given behavior tree to binary proto.
-func (b *binarySerializer) Serialize(ctx context.Context, bt *btpb.BehaviorTree) ([]byte, error) {
+func serializeToBinaryProto(bt *btpb.BehaviorTree) ([]byte, error) {
 	marshaller := proto.MarshalOptions{}
 	content, err := marshaller.Marshal(bt)
 	if err != nil {
-		return nil, errors.Wrapf(err, "could not marshal BT")
+		return nil, errors.Wrap(err, "could not marshal BT")
 	}
 	return content, nil
 }
 
-func newBinarySerializer() *binarySerializer {
-	return &binarySerializer{}
-}
-
-func serializeBT(ctx context.Context, srC skillregistrygrpcpb.SkillRegistryClient, bt *btpb.BehaviorTree, format string) ([]byte, error) {
-	var s serializer
+func serializeBT(ctx context.Context, protoRegistry protoregistrygrpcpb.ProtoRegistryClient, bt *btpb.BehaviorTree, format string) ([]byte, error) {
+	var data []byte
 	var err error
 	switch format {
 	case TextProtoFormat:
-		s, err = newTextSerializer(ctx, srC)
+		data, err = serializeToTextProto(ctx, bt, protoRegistry)
 		if err != nil {
-			return nil, errors.Wrapf(err, "could not create textproto serializer")
+			return nil, errors.Wrapf(err, "could not serialize BT to text")
 		}
 	case BinaryProtoFormat:
-		s = newBinarySerializer()
+		data, err = serializeToBinaryProto(bt)
+		if err != nil {
+			return nil, errors.Wrapf(err, "could not serialize BT to binary")
+		}
 	default:
 		return nil, fmt.Errorf("unknown format %s", format)
-	}
-
-	data, err := s.Serialize(ctx, bt)
-	if err != nil {
-		return nil, errors.Wrapf(err, "could not serialize BT")
 	}
 
 	return data, nil
 }
 
 type getProcessParams struct {
-	exC          execgrpcpb.ExecutiveServiceClient
-	soC          sgrpcpb.SolutionServiceClient
-	srC          skillregistrygrpcpb.SkillRegistryClient
-	name         string
-	format       string
-	clearTreeID  bool
-	clearNodeIDs bool
+	executive       execgrpcpb.ExecutiveServiceClient
+	solutionService sgrpcpb.SolutionServiceClient
+	protoRegistry   protoregistrygrpcpb.ProtoRegistryClient
+	name            string
+	format          string
+	clearTreeID     bool
+	clearNodeIDs    bool
 }
 
 func getProcess(ctx context.Context, params *getProcessParams) ([]byte, error) {
 	var bt *btpb.BehaviorTree
 	if params.name == "" {
-		activeBT, err := getActiveBT(ctx, params.exC)
+		activeBT, err := getActiveBT(ctx, params.executive)
 		if err != nil {
 			return nil, errors.Wrap(err, "could not get active behavior tree")
 		}
 		bt = activeBT
 	} else {
-		namedBT, err := params.soC.GetBehaviorTree(ctx, &spb.GetBehaviorTreeRequest{
+		namedBT, err := params.solutionService.GetBehaviorTree(ctx, &spb.GetBehaviorTreeRequest{
 			Name: params.name,
 		})
 		if err != nil {
@@ -149,7 +136,7 @@ func getProcess(ctx context.Context, params *getProcessParams) ([]byte, error) {
 
 	clearTree(bt, params.clearTreeID, params.clearNodeIDs)
 
-	return serializeBT(ctx, params.srC, bt, params.format)
+	return serializeBT(ctx, params.protoRegistry, bt, params.format)
 }
 
 var processGetCmd = orgutil.WrapCmd(
@@ -188,13 +175,13 @@ inctl process get my_process --solution my-solution-id --cluster my-cluster [--o
 			defer conn.Close()
 
 			content, err := getProcess(ctx, &getProcessParams{
-				exC:          execgrpcpb.NewExecutiveServiceClient(conn),
-				soC:          sgrpcpb.NewSolutionServiceClient(conn),
-				srC:          skillregistrygrpcpb.NewSkillRegistryClient(conn),
-				name:         name,
-				format:       flagProcessFormat,
-				clearTreeID:  flagClearTreeID,
-				clearNodeIDs: flagClearNodeIDs,
+				executive:       execgrpcpb.NewExecutiveServiceClient(conn),
+				solutionService: sgrpcpb.NewSolutionServiceClient(conn),
+				protoRegistry:   protoregistrygrpcpb.NewProtoRegistryClient(conn),
+				name:            name,
+				format:          flagProcessFormat,
+				clearTreeID:     flagClearTreeID,
+				clearNodeIDs:    flagClearNodeIDs,
 			})
 			if err != nil {
 				return errors.Wrapf(err, "could not get BT")
