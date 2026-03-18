@@ -124,7 +124,6 @@ class NodeId(int):
 # a tree. Node objects, names or ids are only valid in relation to a tree.
 NodeInTreeType = Union[
     NodeIdentifier,
-    'Node',  # must be a unique Node in the related tree
     NodeName,  # refers to the name of a node, must be unique in the process
     NodeId,  # refers to a node id, must be unique in the process
 ]
