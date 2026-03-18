@@ -121,6 +121,7 @@ cc_library(
         "//intrinsic/icon/utils:fixed_string",
         "//intrinsic/icon/utils:realtime_status",
         "//intrinsic/icon/utils:realtime_status_or",
+        "//intrinsic/icon/utils:strerror",
         "@abseil-cpp//absl/strings:str_format",
         "@abseil-cpp//absl/strings:string_view",
         "@com_github_google_flatbuffers//:runtime_cc",

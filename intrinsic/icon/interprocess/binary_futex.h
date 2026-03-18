@@ -29,7 +29,7 @@ namespace intrinsic::icon {
 //
 //  auto pid = fork();
 //  if (pid == -1) {
-//    return absl::InternalError(strerror(errno));
+//    return absl::InternalError(icon::StrError(errno));
 //  }
 //
 //  // Server process

@@ -15,6 +15,7 @@ cc_library(
     deps = [
         "//intrinsic/icon/testing:realtime_annotations",
         "//intrinsic/icon/utils:realtime_status",
+        "//intrinsic/icon/utils:strerror",
         "@abseil-cpp//absl/time",
     ],
 )

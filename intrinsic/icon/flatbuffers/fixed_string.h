@@ -17,6 +17,7 @@
 #include "intrinsic/icon/utils/fixed_string.h"
 #include "intrinsic/icon/utils/realtime_status.h"
 #include "intrinsic/icon/utils/realtime_status_or.h"
+#include "intrinsic/icon/utils/strerror.h"
 
 namespace intrinsic_fbs {
 
@@ -50,7 +51,8 @@ intrinsic::icon::RealtimeStatus StringCopy(
     if (bytes_copied < 0) {
       return intrinsic::icon::InvalidArgumentError(
           intrinsic::icon::RealtimeStatus::StrCat(
-              "Failed to copy to FixedString: ", strerror(errno)));
+              "Failed to copy to FixedString: ",
+              intrinsic::icon::StrError(errno)));
     }
     if (bytes_copied < source.size()) {
       return intrinsic::icon::InvalidArgumentError(

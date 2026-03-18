@@ -17,6 +17,7 @@
 #include "absl/time/time.h"
 #include "intrinsic/icon/testing/realtime_annotations.h"
 #include "intrinsic/icon/utils/realtime_status.h"
+#include "intrinsic/icon/utils/strerror.h"
 
 namespace intrinsic::icon {
 namespace {
@@ -88,7 +89,7 @@ RealtimeStatus Wait(std::atomic<uint32_t>& val, const timespec* ts,
     // retry sleeping. If we have any other error message, that means we have an
     // actual error.
     if (ret == -1 && errno != EAGAIN && errno != EINTR) {
-      return InternalError(strerror(errno));
+      return InternalError(icon::StrError(errno));
     }
   }
 }
