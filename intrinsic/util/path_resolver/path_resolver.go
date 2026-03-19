@@ -13,7 +13,9 @@ import (
 	"github.com/bazelbuild/rules_go/go/runfiles"
 )
 
-const repoName = "ai_intrinsic_sdks"
+const (
+	repoName = "ai_intrinsic_sdks"
+)
 
 // ResolveRunfilesFsRoot gets an fs.FS for runfiles root.
 func ResolveRunfilesFsRoot() (fs.FS, error) {
@@ -34,22 +36,20 @@ func Env() ([]string, error) {
 // ResolveRunfilesFs gets an fs.FS for runfiles relative to the repo root.
 func ResolveRunfilesFs() (fs.FS, error) {
 	root, err := ResolveRunfilesFsRoot()
+
 	baseDirFs, err := fs.Sub(root, repoName)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get runfiles sub: %v", err)
+	  return nil, fmt.Errorf("unable to get runfiles sub: %v", err)
 	}
 	return baseDirFs, nil
+
+	//
 }
 
 // ResolveRunfilesPath gets the runfiles location of a file.
-//
 // Use the typical runfiles path without the repository name.
 //
-// Correct:
-//
-//	ResolveRunfilesPath("intrinsic/skills/build_defs/tests/no_op_skill_py_manifest.pbbin")
-//
-// Incorrect:
+// Example:
 //
 //	ResolveRunfilesPath("intrinsic/skills/build_defs/tests/no_op_skill_py_manifest.pbbin")
 func ResolveRunfilesPath(p string) (string, error) {
@@ -57,6 +57,7 @@ func ResolveRunfilesPath(p string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return r.Rlocation(path.Join(repoName, p))
 }
 
@@ -69,7 +70,11 @@ func ResolveRunfilesOrLocalPath(p string) (string, error) {
 	if errRunfile == nil {
 		return resolvedPath, nil
 	}
-	resolvedRepos := []string{repoName + "+", "."}
+	resolvedRepos := []string{
+		repoName + "+",
+		".",       // Flat container layout
+	}
+
 	for _, resolvedRepo := range resolvedRepos {
 		resolvedPath = filepath.Join(".", resolvedRepo, p)
 		if _, err := os.Stat(resolvedPath); err == nil {

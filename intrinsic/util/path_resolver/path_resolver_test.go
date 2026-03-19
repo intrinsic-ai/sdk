@@ -30,12 +30,55 @@ func TestResolveRunfilesPath(t *testing.T) {
 		t.Fatalf("Unable to get location of %v: %v", sourcePath, err)
 	}
 
+	if _, err := os.Stat(path); err != nil {
+		t.Fatalf("Expected file to exist at %v, got error: %v", path, err)
+	}
+
 	content, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("Unable to read %v: %v", path, err)
 	}
 
 	testThisFileContent(t, content)
+}
+
+func TestResolveRunfilesPath_InvalidPath(t *testing.T) {
+	nonExistentFile := "non_existent_file.txt"
+	path, err := pathresolver.ResolveRunfilesPath(nonExistentFile)
+	if err != nil {
+		t.Fatalf("Expected no error for non-existent file, got: %v", err)
+	}
+	if !strings.HasSuffix(path, nonExistentFile) {
+		t.Errorf("Expected path to end with %q, got: %v", nonExistentFile, path)
+	}
+
+	if _, err := os.Stat(path); err == nil {
+		t.Errorf("Expected file not to exist at %v, but it does", path)
+	}
+}
+
+func TestResolveRunfilesOrLocalPath(t *testing.T) {
+	// 1. Valid path
+	path, err := pathresolver.ResolveRunfilesOrLocalPath(sourcePath)
+	if err != nil {
+		t.Fatalf("Unable to resolve %v: %v", sourcePath, err)
+	}
+	if _, err := os.Stat(path); err != nil {
+		t.Fatalf("Expected file to exist at %v, got error: %v", path, err)
+	}
+
+	// 2. Invalid path - should still return a path ending with the filename, but not exist
+	invalidPath := "some/totally/fake/path.txt"
+	path, err = pathresolver.ResolveRunfilesOrLocalPath(invalidPath)
+	if err != nil {
+		t.Fatalf("Expected no error for non-existent path mapping, got: %v", err)
+	}
+	if !strings.HasSuffix(path, invalidPath) {
+		t.Errorf("Expected path to end with %q, got: %v", invalidPath, path)
+	}
+	if _, err := os.Stat(path); err == nil {
+		t.Errorf("Expected file not to exist at %v, but it does", path)
+	}
 }
 
 func TestGlob(t *testing.T) {

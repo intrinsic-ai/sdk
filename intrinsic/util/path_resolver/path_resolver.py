@@ -6,12 +6,11 @@ import os
 
 from python.runfiles import runfiles
 
-_repo_name = 'ai_intrinsic_sdks'
+_repo_name = "ai_intrinsic_sdks"
 def rlocation(path: str) -> str:
   """Resolves the runfiles path for the given rlocationpath."""
-  return os.path.normpath(
-      runfiles.Create().Rlocation(path),
-  )
+  r = runfiles.Create()
+  return os.path.normpath(r.Rlocation(path))
 def resolve_runfiles_path(path: str) -> str:
   """Returns the runfiles path for the given path."""
   if os.path.isabs(path):
