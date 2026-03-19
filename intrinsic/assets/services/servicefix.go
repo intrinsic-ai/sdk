@@ -14,7 +14,8 @@ import (
 
 // fixOpts contains options for fixing a manifest.
 type fixOpts struct {
-	populateOldFields bool
+	populateOldFields   bool
+	clearObsoleteFields bool
 }
 
 // FixOption is an option for fixing a manifest.
@@ -24,6 +25,14 @@ type FixOption func(*fixOpts)
 func WithPopulateOldFields(populate bool) FixOption {
 	return func(opts *fixOpts) {
 		opts.populateOldFields = populate
+	}
+}
+
+// WithClearObsoleteFields specifies whether to clear obsolete manifest fields. A field is
+// considered obsolete if the platform no longer uses it.
+func WithClearObsoleteFields(clear bool) FixOption {
+	return func(opts *fixOpts) {
+		opts.clearObsoleteFields = clear
 	}
 }
 
@@ -94,6 +103,11 @@ func backfillServiceDef(sd *smpb.ServiceDef, opts *fixOpts) {
 				sd.SupportsServiceState = true
 			}
 		}
+	}
+
+	if opts.clearObsoleteFields {
+		sd.SupportsDynamicReconfiguration = false
+		sd.SupportsServiceState = false
 	}
 	// intrinsic:assets_platform_provided_dependencies:strip_end
 }
