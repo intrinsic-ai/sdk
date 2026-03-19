@@ -73,7 +73,7 @@ func TestCreateRecordingE(t *testing.T) {
 	}{
 		{
 			name:                           "Successfully creates a recording with explicit flags and declines generate",
-			args:                           []string{"--workcell", testWorkcell, "--org", testOrg, "--include_scene", "--include_robot_data"},
+			args:                           []string{"--workcell", testWorkcell, "--org", testOrg, "--include_scene_data", "--include_robot_data"},
 			promptConfirmRecordAllResponse: true,
 			promptGenerateResponse:         false,
 			createFunc: func(ctx context.Context, in *loggerpb.CreateLocalRecordingRequest, opts ...grpc.CallOption) (*loggerpb.CreateLocalRecordingResponse, error) {
@@ -85,12 +85,12 @@ func TestCreateRecordingE(t *testing.T) {
 			},
 			wantOut:               testBagID,
 			wantEventSourcesRegex: []string{"/assets/.*/markers", "motion_planner_service.PlanTrajectory.debug_data"},
-			wantDescRegex:         "CLI generated recording at .* containing: robot_data, scene",
+			wantDescRegex:         "CLI generated recording at .* containing: robot_data, scene_data",
 			mockBagStatus:         bagmetadatapb.BagStatus_COMPLETED,
 		},
 		{
 			name:                           "Successfully creates a recording and accepts generate prompt",
-			args:                           []string{"--workcell", testWorkcell, "--org", testOrg, "--include_scene"},
+			args:                           []string{"--workcell", testWorkcell, "--org", testOrg, "--include_scene_data"},
 			promptConfirmRecordAllResponse: true,
 			promptGenerateResponse:         true,
 			createFunc: func(ctx context.Context, in *loggerpb.CreateLocalRecordingRequest, opts ...grpc.CallOption) (*loggerpb.CreateLocalRecordingResponse, error) {
@@ -102,7 +102,7 @@ func TestCreateRecordingE(t *testing.T) {
 			},
 			wantOut:               "Running: inctl recordings generate",
 			wantEventSourcesRegex: []string{"/assets/.*/markers"},
-			wantDescRegex:         "CLI generated recording at .* containing: scene",
+			wantDescRegex:         "CLI generated recording at .* containing: scene_data",
 			mockBagStatus:         bagmetadatapb.BagStatus_COMPLETED,
 		},
 		{
@@ -130,7 +130,7 @@ func TestCreateRecordingE(t *testing.T) {
 		},
 		{
 			name:    "Errors when mixed data exceeds 10 minutes",
-			args:    []string{"--workcell", testWorkcell, "--org", testOrg, "--include_scene", "--start_timestamp", "2024-08-20T12:00:00Z", "--end_timestamp", "2024-08-20T13:00:00Z"},
+			args:    []string{"--workcell", testWorkcell, "--org", testOrg, "--include_scene_data", "--start_timestamp", "2024-08-20T12:00:00Z", "--end_timestamp", "2024-08-20T13:00:00Z"},
 			wantErr: "exceeds the 10-minute limit for mixed data",
 		},
 		{
@@ -189,7 +189,7 @@ func TestCreateRecordingE(t *testing.T) {
 		},
 		{
 			name: "Errors when creation backend fails",
-			args: []string{"--workcell", testWorkcell, "--org", testOrg, "--include_scene"},
+			args: []string{"--workcell", testWorkcell, "--org", testOrg, "--include_scene_data"},
 			createFunc: func(ctx context.Context, in *loggerpb.CreateLocalRecordingRequest, opts ...grpc.CallOption) (*loggerpb.CreateLocalRecordingResponse, error) {
 				return nil, errors.New("backend failed")
 			},
@@ -197,7 +197,7 @@ func TestCreateRecordingE(t *testing.T) {
 		},
 		{
 			name: "Successfully creates recording with explicit description",
-			args: []string{"--workcell", testWorkcell, "--org", testOrg, "--include_scene", "--description", "my awesome recording"},
+			args: []string{"--workcell", testWorkcell, "--org", testOrg, "--include_scene_data", "--description", "my awesome recording"},
 			createFunc: func(ctx context.Context, in *loggerpb.CreateLocalRecordingRequest, opts ...grpc.CallOption) (*loggerpb.CreateLocalRecordingResponse, error) {
 				return &loggerpb.CreateLocalRecordingResponse{
 					Bag: &bagmetadatapb.BagMetadata{
@@ -226,7 +226,7 @@ func TestCreateRecordingE(t *testing.T) {
 		},
 		{
 			name:                           "Warns when upload finishes with FAILED status",
-			args:                           []string{"--workcell", testWorkcell, "--org", testOrg, "--include_scene"},
+			args:                           []string{"--workcell", testWorkcell, "--org", testOrg, "--include_scene_data"},
 			promptConfirmRecordAllResponse: true,
 			promptGenerateResponse:         false,
 			createFunc: func(ctx context.Context, in *loggerpb.CreateLocalRecordingRequest, opts ...grpc.CallOption) (*loggerpb.CreateLocalRecordingResponse, error) {
@@ -241,7 +241,7 @@ func TestCreateRecordingE(t *testing.T) {
 		},
 		{
 			name:                           "Succeeds silently when upload finishes with UNCOMPLETABLE status",
-			args:                           []string{"--workcell", testWorkcell, "--org", testOrg, "--include_scene"},
+			args:                           []string{"--workcell", testWorkcell, "--org", testOrg, "--include_scene_data"},
 			promptConfirmRecordAllResponse: true,
 			promptGenerateResponse:         false,
 			createFunc: func(ctx context.Context, in *loggerpb.CreateLocalRecordingRequest, opts ...grpc.CallOption) (*loggerpb.CreateLocalRecordingResponse, error) {
@@ -274,9 +274,9 @@ func TestCreateRecordingE(t *testing.T) {
 				flagEndTimestamp = originalFlagEnd
 				flagTextLogs = false
 				flagFlowstateData = false
-				flagScene = false
+				flagSceneData = false
 				flagRobotData = false
-				flagPerception = false
+				flagPerceptionData = false
 				flagDebugData = false
 				flagAdditionalEventSources = []string{}
 				flagQuiet = false

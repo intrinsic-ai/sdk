@@ -7,27 +7,40 @@ import (
 	"fmt"
 	"os"
 
+	"intrinsic/assets/idutils"
+	"intrinsic/assets/processes/processbundle"
+	installedassetspb "intrinsic/assets/proto/installed_assets_go_proto"
+	viewpb "intrinsic/assets/proto/view_go_proto"
+	behaviortreepb "intrinsic/executive/proto/behavior_tree_go_proto"
+	executiveservicepb "intrinsic/executive/proto/executive_service_go_proto"
+	solutionservicepb "intrinsic/frontend/solution_service/proto/solution_service_go_proto"
+	protoregistrygrpcpb "intrinsic/proto_tools/proto/proto_registry_go_proto"
 	"intrinsic/proto_tools/registry/protoregistryclient"
 	"intrinsic/tools/inctl/util/orgutil"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoregistry"
-
-	btpb "intrinsic/executive/proto/behavior_tree_go_proto"
-	execgrpcpb "intrinsic/executive/proto/executive_service_go_proto"
-	sgrpcpb "intrinsic/frontend/solution_service/proto/solution_service_go_proto"
-	spb "intrinsic/frontend/solution_service/proto/solution_service_go_proto"
-	protoregistrygrpcpb "intrinsic/proto_tools/proto/proto_registry_go_proto"
 )
 
 var viperProcessGet = viper.New()
 
-func serializeToTextProto(ctx context.Context, bt *btpb.BehaviorTree, protoRegistry protoregistrygrpcpb.ProtoRegistryClient) ([]byte, error) {
-	nodeTypes, err := MergedTypesForAllScriptNodesInTree(ctx, bt)
+type messageWithBT struct {
+	// A BehaviorTree or ProcessManifest (which contains a nested BehaviorTree).
+	message proto.Message
+
+	// Points to the BehaviorTree in 'message' or to 'message' itself (if
+	// 'message' is a BehaviorTree).
+	behaviorTree *behaviortreepb.BehaviorTree
+}
+
+func serializeToTextProto(ctx context.Context, msg messageWithBT, protoRegistry protoregistrygrpcpb.ProtoRegistryClient) ([]byte, error) {
+	nodeTypes, err := MergedTypesForAllScriptNodesInTree(ctx, msg.behaviorTree)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed creating merged Types from behavior tree script nodes")
 	}
@@ -44,30 +57,30 @@ func serializeToTextProto(ctx context.Context, bt *btpb.BehaviorTree, protoRegis
 		Indent:    "  ",
 		Multiline: true,
 	}
-	s := marshaller.Format(bt)
+	s := marshaller.Format(msg.message)
 	return []byte(s), nil
 }
 
-func serializeToBinaryProto(bt *btpb.BehaviorTree) ([]byte, error) {
+func serializeToBinaryProto(msg messageWithBT) ([]byte, error) {
 	marshaller := proto.MarshalOptions{}
-	content, err := marshaller.Marshal(bt)
+	content, err := marshaller.Marshal(msg.message)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not marshal BT")
 	}
 	return content, nil
 }
 
-func serializeBT(ctx context.Context, protoRegistry protoregistrygrpcpb.ProtoRegistryClient, bt *btpb.BehaviorTree, format string) ([]byte, error) {
+func serializeMessage(ctx context.Context, protoRegistry protoregistrygrpcpb.ProtoRegistryClient, msg messageWithBT, format string) ([]byte, error) {
 	var data []byte
 	var err error
 	switch format {
 	case TextProtoFormat:
-		data, err = serializeToTextProto(ctx, bt, protoRegistry)
+		data, err = serializeToTextProto(ctx, msg, protoRegistry)
 		if err != nil {
 			return nil, errors.Wrapf(err, "could not serialize BT to text")
 		}
 	case BinaryProtoFormat:
-		data, err = serializeToBinaryProto(bt)
+		data, err = serializeToBinaryProto(msg)
 		if err != nil {
 			return nil, errors.Wrapf(err, "could not serialize BT to binary")
 		}
@@ -79,62 +92,116 @@ func serializeBT(ctx context.Context, protoRegistry protoregistrygrpcpb.ProtoReg
 }
 
 type getProcessParams struct {
-	executive       execgrpcpb.ExecutiveServiceClient
-	solutionService sgrpcpb.SolutionServiceClient
+	executive       executiveservicepb.ExecutiveServiceClient
+	solutionService solutionservicepb.SolutionServiceClient
 	protoRegistry   protoregistrygrpcpb.ProtoRegistryClient
-	name            string
+	installedAssets installedassetspb.InstalledAssetsClient
+	nameOrId        string
 	format          string
 	clearTreeID     bool
 	clearNodeIDs    bool
 }
 
-func getProcess(ctx context.Context, params *getProcessParams) ([]byte, error) {
-	var bt *btpb.BehaviorTree
-	if params.name == "" {
+func downloadProcess(ctx context.Context, params *getProcessParams) (messageWithBT, error) {
+	if params.nameOrId == "" {
 		activeBT, err := getActiveBT(ctx, params.executive)
 		if err != nil {
-			return nil, errors.Wrap(err, "could not get active behavior tree")
+			return messageWithBT{}, errors.Wrap(err, "could not get active behavior tree")
 		}
-		bt = activeBT
-	} else {
-		namedBT, err := params.solutionService.GetBehaviorTree(ctx, &spb.GetBehaviorTreeRequest{
-			Name: params.name,
-		})
-		if err != nil {
-			return nil, errors.Wrap(err, "could not get named behavior tree")
-		}
-		bt = namedBT
+		return messageWithBT{
+			message:      activeBT,
+			behaviorTree: activeBT,
+		}, nil
 	}
 
-	clearTree(bt, params.clearTreeID, params.clearNodeIDs)
+	// Try installed assets if nameOrId looks like an asset ID.
+	id, err := idutils.IDProtoFromString(params.nameOrId)
+	if err == nil {
+		asset, err := params.installedAssets.GetInstalledAsset(
+			ctx,
+			&installedassetspb.GetInstalledAssetRequest{
+				Id:   id,
+				View: viewpb.AssetViewType_ASSET_VIEW_TYPE_FULL,
+			},
+		)
 
-	return serializeBT(ctx, params.protoRegistry, bt, params.format)
+		if err == nil {
+			// Explicitly do not support getting Process assets as binary protos. The
+			// proper binary representation for Process assets on disk are bundle
+			// files which are not supported by this command.
+			//
+			// We cannot perform this check earlier since we don't know whether the
+			// given nameOrId really is an asset ID or a legacy process name.
+			if params.format == BinaryProtoFormat {
+				return messageWithBT{}, fmt.Errorf("--process_format=%v is not supported for getting process assets", BinaryProtoFormat)
+			}
+
+			// Convert asset to a manifest which can be inspected as textproto and is
+			// also suitable for creating a bundle file from it.
+			manifest, err := processbundle.ManifestFromAsset(asset.DeploymentData.GetProcess().Process)
+			if err != nil {
+				return messageWithBT{}, errors.Wrap(err, "could not convert asset to manifest")
+			}
+
+			return messageWithBT{
+				message:      manifest,
+				behaviorTree: manifest.BehaviorTree,
+			}, nil
+		}
+
+		// If we see a NotFound error, proceed and try legacy lookup. Even if it
+		// looks like an asset ID it can still be a legacy proccess name name such
+		// as "my_tree.bt.pb".
+		if status.Code(err) != codes.NotFound {
+			return messageWithBT{}, errors.Wrap(err, "could not query installed assets")
+		}
+	}
+
+	// Try the legacy lookup if we weren't successful so far
+	namedBT, err := params.solutionService.GetBehaviorTree(
+		ctx, &solutionservicepb.GetBehaviorTreeRequest{Name: params.nameOrId},
+	)
+	if err != nil {
+		return messageWithBT{}, errors.Wrap(err, "could not get named behavior tree")
+	}
+	return messageWithBT{
+		message:      namedBT,
+		behaviorTree: namedBT,
+	}, nil
+}
+
+func getProcess(ctx context.Context, params *getProcessParams) ([]byte, error) {
+	// Returns a BehaviorTree or ProcessManifest depending on the source
+	outputMsg, err := downloadProcess(ctx, params)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not download process")
+	}
+
+	clearTree(outputMsg.behaviorTree, params.clearTreeID, params.clearNodeIDs)
+
+	return serializeMessage(ctx, params.protoRegistry, outputMsg, params.format)
 }
 
 var processGetCmd = orgutil.WrapCmd(
 	&cobra.Command{
-		Use:   "get",
-		Short: "Get process (behavior tree) of a solution. ",
-		Long: `Get the process (behavior tree) of a currently deployed solution.
+		Use:   "get [asset_id]",
+		Short: "Get a process from a solution.",
+		Long: `Get a process from a currently deployed solution.
 
-There are two main operation modes. The first one is to get the "active" process
-in the executive. This is the default behavior if no name is provided as the
-first argument.
+One positional argument: Get the Process asset with the given ID as installed in the solution. The output is an intrinsic_proto.processes.ProcessManifest proto.
+$ inctl process get --org my_org --solution my_solution_id [--output_file /tmp/process.txtpb] [--process_format textproto|binaryproto] com.example.my_process
 
-inctl process get --solution my-solution-id --cluster my-cluster [--output_file /tmp/process.textproto] [--process_format textproto|binaryproto]
+No positional argument: Get the "active" process which is currently loaded in the executive. The output is an intrinsic_proto.executive.BehaviorTree proto.
+$ inctl process get --org my_org --solution my_solution_id [--output_file /tmp/process.txtpb] [--process_format textproto|binaryproto]
 
----
-
-Alternatively, the process can be retrieved from the solution. The command will
-do this if you specify the name of the process as the first argument. The
-process must already exist in the solution.
-
-inctl process get my_process --solution my-solution-id --cluster my-cluster [--output_file /tmp/process.textproto] [--process_format textproto|binaryproto]`,
+[legacy process support]
+One positional argument: Get the legacy process with the given name as stored in the solution. The output is an intrinsic_proto.executive.BehaviorTree proto.
+$ inctl process get --org my_org --solution my_solution_id [--output_file /tmp/process.txtpb] [--process_format textproto|binaryproto] "My Process"`,
 		Args: cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			name := ""
+			nameOrId := ""
 			if len(args) == 1 {
-				name = args[0]
+				nameOrId = args[0]
 			}
 			projectName := viperProcessGet.GetString(orgutil.KeyProject)
 			orgName := viperProcessGet.GetString(orgutil.KeyOrganization)
@@ -147,16 +214,17 @@ inctl process get my_process --solution my-solution-id --cluster my-cluster [--o
 			defer conn.Close()
 
 			content, err := getProcess(ctx, &getProcessParams{
-				executive:       execgrpcpb.NewExecutiveServiceClient(conn),
-				solutionService: sgrpcpb.NewSolutionServiceClient(conn),
+				executive:       executiveservicepb.NewExecutiveServiceClient(conn),
+				solutionService: solutionservicepb.NewSolutionServiceClient(conn),
 				protoRegistry:   protoregistrygrpcpb.NewProtoRegistryClient(conn),
-				name:            name,
+				installedAssets: installedassetspb.NewInstalledAssetsClient(conn),
+				nameOrId:        nameOrId,
 				format:          flagProcessFormat,
 				clearTreeID:     flagClearTreeID,
 				clearNodeIDs:    flagClearNodeIDs,
 			})
 			if err != nil {
-				return errors.Wrapf(err, "could not get BT")
+				return errors.Wrapf(err, "could not get process")
 			}
 
 			if flagOutputFile != "" {

@@ -172,29 +172,18 @@ func setProcess(ctx context.Context, params *setProcessParams) error {
 
 var processSetCmd = orgutil.WrapCmd(
 	&cobra.Command{
-		Use:   "set",
-		Short: "Set process (behavior tree) of a solution. ",
-		Long: `Set the process (behavior tree) of a currently deployed solution.
+		Use:   "set [legacy process name]",
+		Short: "Set a process in a solution.",
+		Long: `Set a process in a currently deployed solution.
 
-There are two main operation modes. The first one is to set the "active" process
-in the executive. This prepares the process for execution. This is the default
-behavior if no name is provided as the first argument.
+The input is a intrinsic_proto.executive.BehaviorTree proto in binary or text format.
 
-inctl process set --solution my-solution --cluster my-cluster --input_file /tmp/my-process.textproto [--process_format textproto|binaryproto]
+No positional argument: Create a new operation with the input process in the executive.
+$ inctl process set --org my_org --solution my_solution_id --input_file /tmp/my-process.textproto [--process_format textproto|binaryproto]
 
----
-
-Alternatively, the process can be added to the solution. The command will do
-this if you specify a name for the process as the first argument. This makes the
-process available in the list of processes in the Flowstate frontend. The
-process will NOT be loaded into the executive. It can instead be executed by
-selecting it in the frontend and running from there.
-
-Note: The name you provide as an argument will be set as the "name" field in the
-process regardless of the value that may or may not already be present. If there
-is already a process with the same name this will fail.
-
-inctl process set name_to_store_with --solution my-solution --cluster my-cluster --input_file /tmp/my-process.textproto [--process_format textproto|binaryproto]`,
+[legacy process support]
+One positional argument: Store the input process as a legacy process with the given name in the solution. Afterwards, the process can be loaded in the Flowstate frontend and then be executed from there.
+$ inctl process set --org my_org --solution my_solution_id --input_file /tmp/my-process.textproto [--process_format textproto|binaryproto] "My Process"`,
 		Args: cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if flagInputFile == "" {

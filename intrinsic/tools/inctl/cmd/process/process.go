@@ -9,14 +9,17 @@ import (
 	"os"
 	"strings"
 
-	lrpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
-
+	"intrinsic/executive/go/behaviortree"
+	behaviortreepb "intrinsic/executive/proto/behavior_tree_go_proto"
+	executiveservicepb "intrinsic/executive/proto/executive_service_go_proto"
+	runmetadatapb "intrinsic/executive/proto/run_metadata_go_proto"
 	"intrinsic/skills/tools/skill/cmd/dialerutil"
 	"intrinsic/skills/tools/skill/cmd/solutionutil"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/cobrautil"
 	"intrinsic/util/proto/registryutil"
 
+	longrunningpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -26,12 +29,6 @@ import (
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
-
-	"intrinsic/executive/go/behaviortree"
-	btpb "intrinsic/executive/proto/behavior_tree_go_proto"
-	execgrpcpb "intrinsic/executive/proto/executive_service_go_proto"
-	exsvcpb "intrinsic/executive/proto/executive_service_go_proto"
-	rmdpb "intrinsic/executive/proto/run_metadata_go_proto"
 )
 
 const (
@@ -57,8 +54,8 @@ var (
 )
 
 var (
-	protoNameBehaviorTree     = proto.MessageName(new(btpb.BehaviorTree))
-	protoNameBehaviorTreeNode = proto.MessageName(new(btpb.BehaviorTree_Node))
+	protoNameBehaviorTree     = proto.MessageName(new(behaviortreepb.BehaviorTree))
+	protoNameBehaviorTreeNode = proto.MessageName(new(behaviortreepb.BehaviorTree_Node))
 )
 
 func clearField(fieldName string, refl protoreflect.Message) {
@@ -144,8 +141,8 @@ func connectToCluster(ctx context.Context, projectName string, orgName string, a
 	return ctx, conn, nil
 }
 
-func getActiveBT(ctx context.Context, exC execgrpcpb.ExecutiveServiceClient) (*btpb.BehaviorTree, error) {
-	listOpResp, err := exC.ListOperations(ctx, &lrpb.ListOperationsRequest{})
+func getActiveBT(ctx context.Context, exC executiveservicepb.ExecutiveServiceClient) (*behaviortreepb.BehaviorTree, error) {
+	listOpResp, err := exC.ListOperations(ctx, &longrunningpb.ListOperationsRequest{})
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to list executive operations")
 	}
@@ -159,7 +156,7 @@ func getActiveBT(ctx context.Context, exC execgrpcpb.ExecutiveServiceClient) (*b
 	}
 	operation := listOpResp.Operations[0]
 
-	metadata := new(rmdpb.RunMetadata)
+	metadata := new(runmetadatapb.RunMetadata)
 	if err := operation.GetMetadata().UnmarshalTo(metadata); err != nil {
 		return nil, errors.Wrap(err, "unable to unmarshal RunMetadata proto")
 	}
@@ -167,8 +164,8 @@ func getActiveBT(ctx context.Context, exC execgrpcpb.ExecutiveServiceClient) (*b
 	return metadata.GetBehaviorTree(), nil
 }
 
-func setBT(ctx context.Context, exC execgrpcpb.ExecutiveServiceClient, bt *btpb.BehaviorTree) error {
-	listOpResp, err := exC.ListOperations(ctx, &lrpb.ListOperationsRequest{})
+func setBT(ctx context.Context, exC executiveservicepb.ExecutiveServiceClient, bt *behaviortreepb.BehaviorTree) error {
+	listOpResp, err := exC.ListOperations(ctx, &longrunningpb.ListOperationsRequest{})
 	if err != nil {
 		return errors.Wrap(err, "unable to list executive operations")
 	}
@@ -179,15 +176,15 @@ func setBT(ctx context.Context, exC execgrpcpb.ExecutiveServiceClient, bt *btpb.
 
 	if len(listOpResp.Operations) == 1 {
 		operationToDelete := listOpResp.Operations[0]
-		if _, err = exC.DeleteOperation(ctx, &lrpb.DeleteOperationRequest{
+		if _, err = exC.DeleteOperation(ctx, &longrunningpb.DeleteOperationRequest{
 			Name: operationToDelete.Name,
 		}); err != nil {
 			return errors.Wrap(err, "unable to delete operation")
 		}
 	}
 
-	req := &exsvcpb.CreateOperationRequest{}
-	req.RunnableType = &exsvcpb.CreateOperationRequest_BehaviorTree{BehaviorTree: bt}
+	req := &executiveservicepb.CreateOperationRequest{}
+	req.RunnableType = &executiveservicepb.CreateOperationRequest_BehaviorTree{BehaviorTree: bt}
 
 	if _, err = exC.CreateOperation(ctx, req); err != nil {
 		return errors.Wrap(err, "unable to create executive operation")
@@ -202,11 +199,11 @@ type fileDescriptorSetCollector struct {
 	fileDescriptorSets []*descriptorpb.FileDescriptorSet
 }
 
-func (c *fileDescriptorSetCollector) VisitCondition(ctx context.Context, cond *btpb.BehaviorTree_Condition) error {
+func (c *fileDescriptorSetCollector) VisitCondition(ctx context.Context, cond *behaviortreepb.BehaviorTree_Condition) error {
 	return nil
 }
 
-func (c *fileDescriptorSetCollector) VisitNode(ctx context.Context, node *btpb.BehaviorTree_Node) error {
+func (c *fileDescriptorSetCollector) VisitNode(ctx context.Context, node *behaviortreepb.BehaviorTree_Node) error {
 	fileDescriptorSet := node.GetTask().GetExecuteCode().GetFileDescriptorSet()
 	if fileDescriptorSet != nil {
 		c.fileDescriptorSets = append(c.fileDescriptorSets, fileDescriptorSet)
@@ -245,7 +242,7 @@ func addFileDescriptorSetToFiles(fileDescriptorSet *descriptorpb.FileDescriptorS
 //
 // This is required until the parameter Any protos of script nodes in behavior
 // trees have Intrinsic type URLs and are fully supported by the proto registry.
-func MergedTypesForAllScriptNodesInTree(ctx context.Context, bt *btpb.BehaviorTree) (*protoregistry.Types, error) {
+func MergedTypesForAllScriptNodesInTree(ctx context.Context, bt *behaviortreepb.BehaviorTree) (*protoregistry.Types, error) {
 	collector := fileDescriptorSetCollector{}
 	if err := behaviortree.Walk(ctx, bt, &collector); err != nil {
 		return nil, errors.Wrap(err, "failed walking behavior tree")
@@ -271,7 +268,7 @@ func addCommonGetSetFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(
 		&flagProcessFormat, "process_format", TextProtoFormat,
 		fmt.Sprintf("(optional) input/output format. One of: (%s)", strings.Join(allowedFormats, ", ")))
-	cmd.Flags().StringVar(&flagSolutionName, "solution", "", "Id of the solution to interact with. For example, use `inctl solutions list --org orgname@projectname --output json [--filter running_in_sim]` to see the list of solutions.")
+	cmd.Flags().StringVar(&flagSolutionName, "solution", "", "Id of the solution to interact with. For example, use 'inctl solutions list --org my_org --output json [--filter running_in_sim]' to see the list of solutions.")
 	cmd.Flags().StringVar(&flagClusterName, "cluster", "", "Name of the cluster to interact with.")
 	cmd.Flags().StringVar(&flagServerAddress, "server", "", "Server address of the cluster. Format is {ADDRESS}:{PORT}, for example 'localhost:17080'")
 	cmd.Flags().BoolVar(&flagClearTreeID, "clear_tree_id", true, "Clear the tree_id field from the BT proto.")

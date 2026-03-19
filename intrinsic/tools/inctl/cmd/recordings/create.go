@@ -37,9 +37,9 @@ var (
 	flagIncludeAllData         bool
 	flagTextLogs               bool
 	flagFlowstateData          bool
-	flagScene                  bool
+	flagSceneData              bool
 	flagRobotData              bool
-	flagPerception             bool
+	flagPerceptionData         bool
 	flagDebugData              bool
 	flagAdditionalEventSources []string
 )
@@ -48,7 +48,7 @@ var eventSourceWorkflowMap = map[string][]string{
 		"/text-log-out",
 		"/asset-text-log-out",
 	},
-	"include_scene": {
+	"include_scene_data": {
 		"/assets/.*/markers",
 		"/tf",
 		"trace_cube_.*",
@@ -57,7 +57,7 @@ var eventSourceWorkflowMap = map[string][]string{
 		"motion_planner_service.PlanTrajectory.debug_data",
 		"/icon/.*/robot_status",
 	},
-	"include_perception": {
+	"include_perception_data": {
 		"perception.*",
 	},
 	"include_flowstate_data": {
@@ -122,7 +122,7 @@ func parseAndValidateRecordingTimestamps(cmd *cobra.Command) (time.Time, time.Ti
 // Mixed data recordings are limited to 10 minutes, while text/flowstate-only recordings can be up to 24 hours.
 func validateRecordingDuration(duration time.Duration) error {
 	isOnlyTextLogsOrFlowstate := (flagTextLogs || flagFlowstateData) &&
-		!flagScene && !flagRobotData && !flagPerception && !flagDebugData && len(flagAdditionalEventSources) == 0
+		!flagSceneData && !flagRobotData && !flagPerceptionData && !flagDebugData && len(flagAdditionalEventSources) == 0
 
 	if !isOnlyTextLogsOrFlowstate && duration > mixedDataLimit {
 		return fmt.Errorf("recording duration of %v exceeds the 10-minute limit for mixed data. Please specify a shorter duration or reduce the requested data", duration)
@@ -349,7 +349,7 @@ func (r *CreateCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	flagNames := []string{"include_text_logs", "include_flowstate_data", "include_scene", "include_robot_data", "include_perception", "include_debug_data"}
+	flagNames := []string{"include_text_logs", "include_flowstate_data", "include_scene_data", "include_robot_data", "include_perception_data", "include_debug_data"}
 	finalEventSources, includedFlags, err := determineEventSourcesToRecord(cmd, r, flagNames)
 	if err != nil {
 		if err.Error() == "aborted" {
@@ -505,9 +505,9 @@ func NewCreateCmd(runner *CreateCmdRunner) *cobra.Command {
 	flags.BoolVar(&flagIncludeAllData, "include_all_data", false, "Include all eligible event sources (.*). Use this flag to suppress the interactive prompt and intentionally record everything.")
 	flags.BoolVar(&flagTextLogs, "include_text_logs", false, "Include text logs (/text-log-out, /asset-text-log-out).")
 	flags.BoolVar(&flagFlowstateData, "include_flowstate_data", false, "Include Flowstate execution data.")
-	flags.BoolVar(&flagScene, "include_scene", false, "Include scene and TF data.")
+	flags.BoolVar(&flagSceneData, "include_scene_data", false, "Include scene and TF data.")
 	flags.BoolVar(&flagRobotData, "include_robot_data", false, "Include robot statuses and trajectory plans.")
-	flags.BoolVar(&flagPerception, "include_perception", false, "Include perception data.")
+	flags.BoolVar(&flagPerceptionData, "include_perception_data", false, "Include perception data.")
 	flags.BoolVar(&flagDebugData, "include_debug_data", false, "Include system metrics and error reports.")
 	flags.StringSliceVar(&flagAdditionalEventSources, "additional_event_sources", []string{}, "Custom RE2 regex patterns of event sources to record.")
 
