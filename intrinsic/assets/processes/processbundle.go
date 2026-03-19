@@ -82,10 +82,11 @@ func Write(manifest *processmanifestpb.ProcessManifest, path string, options ...
 	return nil
 }
 
-// WriteFromAsset writes a Process Asset .tar bundle, given a ProcessAsset.
-func WriteFromAsset(pa *processassetpb.ProcessAsset, path string, options ...WriteOption) error {
+// ManifestFromAsset extracts from the given ProcessAsset a ProcessManifest which is suitable for
+// creating a corrensponding bundle from it.
+func ManifestFromAsset(pa *processassetpb.ProcessAsset) (*processmanifestpb.ProcessManifest, error) {
 	if pa == nil {
-		return fmt.Errorf("ProcessAsset must not be nil")
+		return nil, fmt.Errorf("ProcessAsset must not be nil")
 	}
 
 	manifest := &processmanifestpb.ProcessManifest{
@@ -106,6 +107,16 @@ func WriteFromAsset(pa *processassetpb.ProcessAsset, path string, options ...Wri
 	skill := manifest.GetBehaviorTree().GetDescription()
 	if skill != nil {
 		skill.IdVersion = ""
+	}
+
+	return manifest, nil
+}
+
+// WriteFromAsset writes a Process Asset .tar bundle, given a ProcessAsset.
+func WriteFromAsset(pa *processassetpb.ProcessAsset, path string, options ...WriteOption) error {
+	manifest, err := ManifestFromAsset(pa)
+	if err != nil {
+		return err
 	}
 
 	return Write(manifest, path, options...)
