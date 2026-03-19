@@ -55,6 +55,7 @@ go_library(
     deps = [
         "//intrinsic/production:intrinsic",
         "//intrinsic/skills:skillbundle",
+        "//intrinsic/skills:skillfix",
         "//intrinsic/skills/proto:skill_manifest_go_proto",
         "//intrinsic/util/proto:protoio",
         "@com_github_golang_glog//:go_default_library",

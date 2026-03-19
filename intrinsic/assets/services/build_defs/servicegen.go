@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"intrinsic/assets/services/servicebundle"
+	"intrinsic/assets/services/servicefix"
 	"intrinsic/util/proto/protoio"
 	"intrinsic/util/proto/registryutil"
 	"intrinsic/util/proto/sourcecodeinfoview"
@@ -74,6 +75,9 @@ func CreateServiceBundle(opts *CreateServiceBundleOptions) error {
 		}
 	}
 
+	if err := servicefix.Manifest(m, servicefix.WithPopulateOldFields(true)); err != nil {
+		return fmt.Errorf("unable to make manifest compatible with the latest version of the platform: %v", err)
+	}
 	if err := servicebundle.Write(m, opts.OutputBundlePath,
 		servicebundle.WithFileDescriptorSet(fds),
 		servicebundle.WithDefaultConfig(defaultConfig),

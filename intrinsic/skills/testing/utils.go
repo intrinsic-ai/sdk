@@ -169,6 +169,15 @@ func MakeProcessedSkillManifest(t *testing.T, options ...MakeProcessedSkillManif
 			},
 		},
 		skillDetails: &psmpb.SkillDetails{
+			Options: &smpb.Options{
+				SkillServicesConfig: &smpb.SkillServicesConfig{
+					ServiceVersions: []smpb.SkillServicesConfig_ServiceVersion{
+						smpb.SkillServicesConfig_INTRINSIC_PROTO_SKILLS_PROJECTOR,
+						smpb.SkillServicesConfig_INTRINSIC_PROTO_SKILLS_EXECUTOR,
+						smpb.SkillServicesConfig_INTRINSIC_PROTO_SKILLS_SKILL_INFORMATION,
+					},
+				},
+			},
 			StatusInfo: []*sspb.StatusSpec{
 				{
 					Code:  10001,

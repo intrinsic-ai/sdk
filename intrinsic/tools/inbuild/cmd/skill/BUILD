@@ -10,6 +10,7 @@ go_library(
     importpath = "intrinsic/tools/inbuild/cmd/skill/bundle",
     deps = [
         "//intrinsic/skills:skillbundle",
+        "//intrinsic/skills:skillfix",
         "//intrinsic/tools/inbuild/util:skillmanifest",
         "@com_github_spf13_cobra//:go_default_library",
     ],

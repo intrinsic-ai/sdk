@@ -24,6 +24,7 @@ go_library(
     importpath = "intrinsic/assets/services/build_defs/servicegen",
     deps = [
         "//intrinsic/assets/services:servicebundle",
+        "//intrinsic/assets/services:servicefix",
         "//intrinsic/assets/services/proto:service_manifest_go_proto",
         "//intrinsic/util/proto:protoio",
         "//intrinsic/util/proto:registryutil",

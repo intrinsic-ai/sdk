@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"intrinsic/assets/hardware_devices/hardwaredevicebundle"
+	"intrinsic/assets/hardware_devices/hardwaredevicefix"
 	"intrinsic/assets/idutils"
 	"intrinsic/util/proto/protoio"
 
@@ -84,6 +85,9 @@ func CreateHardwareDeviceBundle(opts *CreateHardwareDeviceBundleOptions) error {
 	}
 	m.Assets = assets
 
+	if err := hardwaredevicefix.Manifest(m, hardwaredevicefix.WithPopulateOldFields(true)); err != nil {
+		return fmt.Errorf("unable to make manifest compatible with the latest version of the platform: %v", err)
+	}
 	if err := hardwaredevicebundle.Write(m, opts.OutputBundlePath); err != nil {
 		return fmt.Errorf("failed to write HardwareDevice Asset bundle: %w", err)
 	}

@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"intrinsic/skills/skillbundle"
+	"intrinsic/skills/skillfix"
 	"intrinsic/tools/inbuild/util/skillmanifest"
 
 	"github.com/spf13/cobra"
@@ -58,6 +59,9 @@ func run(cmd *cobra.Command, args []string) error {
 	m, fds, err := skillmanifest.LoadManifestAndFileDescriptorSets(flagManifest, flagFileDescriptorSets, flagIncompatibleDisallowManifestDependencies)
 	if err != nil {
 		return fmt.Errorf("unable to load manifest and file descriptor sets: %v", err)
+	}
+	if err := skillfix.Manifest(m, skillfix.WithPopulateOldFields(true)); err != nil {
+		return fmt.Errorf("unable to make manifest compatible with the latest version of the platform: %v", err)
 	}
 
 	// Actually create the skill bundle

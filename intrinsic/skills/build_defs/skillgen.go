@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"intrinsic/skills/skillbundle"
+	"intrinsic/skills/skillfix"
 	"intrinsic/util/proto/protoio"
 
 	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
@@ -34,6 +35,9 @@ func CreateSkillBundle(opts *CreateSkillBundleOptions) error {
 		return fmt.Errorf("failed to read manifest: %w", err)
 	}
 
+	if err := skillfix.Manifest(m, skillfix.WithPopulateOldFields(true)); err != nil {
+		return fmt.Errorf("unable to make manifest compatible with the latest version of the platform: %v", err)
+	}
 	if err := skillbundle.Write(m, opts.OutputBundlePath,
 		skillbundle.WithFileDescriptorSet(fds),
 		skillbundle.WithImageTarPath(opts.ImageTarPath),
