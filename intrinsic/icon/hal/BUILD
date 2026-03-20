@@ -276,6 +276,20 @@ cc_library(
 )
 
 cc_library(
+    name = "realtime_inspection_data_queue",
+    hdrs = ["realtime_inspection_data_queue.h"],
+    deps = [
+        ":hardware_module_inspection_cc_proto",
+        "//intrinsic/icon/utils:fixed_string",
+        "//intrinsic/icon/utils:realtime_status",
+        "//intrinsic/platform/common/buffers:rt_queue",
+        "//intrinsic/util:proto_time",
+        "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/status:statusor",
+    ],
+)
+
+cc_library(
     name = "realtime_clock",
     srcs = ["realtime_clock.cc"],
     hdrs = ["realtime_clock.h"],
