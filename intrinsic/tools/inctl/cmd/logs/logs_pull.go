@@ -195,6 +195,7 @@ Example:
 			return err
 		}
 
+		ctx = metadata.AppendToOutgoingContext(ctx, orgHeader, params.org)
 		var opName string
 		if params.withOpName == "" {
 			req := &tfpb.AssetLogsQueryRequest{
@@ -204,8 +205,6 @@ Example:
 				WorkcellName:    params.workcell,
 				Filters:         params.filters,
 			}
-
-			ctx = metadata.AppendToOutgoingContext(ctx, orgHeader, params.org)
 
 			op, err := client.CreateAssetLogsPackage(ctx, req)
 			if err != nil {
