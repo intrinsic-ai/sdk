@@ -41,7 +41,8 @@ def python_layers(name, binary, **kwargs):
         testonly = kwargs.get("testonly"),
         srcs = [":" + name + "_tar_manifest_raw"],
         outs = [name + "_tar_manifest_filtered.spec"],
-        cmd = "sed -e 's/^\\.\\.\\///' $< | sed -e 's/ external\\///g' >$@",
+        cmd = "sed -e 's#^\\.\\./##' $< | sed -e 's# external/##g' " +
+              " >$@",
         compatible_with = kwargs.get("compatible_with"),
         tags = kwargs.get("tags"),
     )
@@ -184,7 +185,9 @@ def python_oci_image(
     )
 
     binary_label = native.package_relative_label(binary)
-    binary_path = paths.join("/", kwargs.get("directory", ""), binary_label.package, binary_label.name)
+    package_str = binary_label.package
+
+    binary_path = paths.join("/", kwargs.get("directory", ""), package_str, binary_label.name)
 
     if kwargs.get("cmd") == None:
         kwargs["cmd"] = [binary_path]

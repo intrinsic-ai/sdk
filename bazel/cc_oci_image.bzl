@@ -43,7 +43,9 @@ def cc_oci_image(
     layers = [name + "_binary_layer"]
 
     binary_label = native.package_relative_label(binary)
-    binary_path = paths.join("/", kwargs.get("directory", ""), binary_label.package, binary_label.name)
+    package_str = binary_label.package
+
+    binary_path = paths.join("/", kwargs.get("directory", ""), package_str, binary_label.name)
 
     if kwargs.get("cmd") == None:
         kwargs["cmd"] = [binary_path]
