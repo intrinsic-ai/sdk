@@ -25,6 +25,7 @@ go_library(
         "//intrinsic/logging/proto:replay_service_go_proto",
         "//intrinsic/tools/inctl/auth",
         "//intrinsic/tools/inctl/cmd:root",
+        "//intrinsic/tools/inctl/util",
         "//intrinsic/tools/inctl/util:cobrautil",
         "//intrinsic/tools/inctl/util:color",
         "//intrinsic/tools/inctl/util:orgutil",

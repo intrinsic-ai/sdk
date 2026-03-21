@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"intrinsic/tools/inctl/auth/auth"
+	"intrinsic/tools/inctl/util"
 	"intrinsic/tools/inctl/util/color"
 	"intrinsic/tools/inctl/util/orgutil"
 	"intrinsic/tools/inctl/util/promptutil"
@@ -32,6 +33,15 @@ var (
 	flagDescription  string
 	flagQuiet        bool
 	flagSkipGenerate bool
+
+	// Variables used to control the poll wait logic and the spinner animation speed.
+	// They are exported as vars so they can be tweaked directly in unit tests to avoid slowing down execution.
+	// pollTickerInterval controls how fast the console spinner rotates.
+	pollTickerInterval = 100 * time.Millisecond
+	// pollApiTickThreshold dictates how many spinner ticks happen before querying the cloud API.
+	pollApiTickThreshold = 40
+	// pollPendingTimeout determines how much wait time must pass before printing the backlog note.
+	pollPendingTimeout = 60 * time.Second
 
 	// Data inclusion flags
 	flagIncludeAllData         bool
@@ -246,7 +256,7 @@ func printRecordingMetadata(out io.Writer, duration time.Duration, startTime tim
 	if bag != nil && len(bag.GetEventSources()) > 0 {
 		fmt.Fprintf(out, "  Created bag contains the following event sources:\n")
 		for _, source := range bag.GetEventSources() {
-			fmt.Fprintf(out, "    - %s: %d items, %d bytes\n",
+			fmt.Fprintf(out, "    - %s: %d log items, %d bytes\n",
 				source.GetEventSourceWithTypeHints().GetEventSource(),
 				source.GetNumLogItems(),
 				source.GetNumBytes())
@@ -257,10 +267,14 @@ func printRecordingMetadata(out io.Writer, duration time.Duration, startTime tim
 
 // sendCreateLocalRecordingRequest dispatches the creation request to the remote DataLogger service,
 // applying an exponential backoff retry in case the workcell is momentarily unavailable.
-func sendCreateLocalRecordingRequest(ctx context.Context, out io.Writer, client loggerpb.DataLoggerClient, req *loggerpb.CreateLocalRecordingRequest) (*loggerpb.CreateLocalRecordingResponse, error) {
+func sendCreateLocalRecordingRequest(ctx context.Context, out io.Writer, client loggerpb.DataLoggerClient, req *loggerpb.CreateLocalRecordingRequest, workcellName string) (*loggerpb.CreateLocalRecordingResponse, error) {
 	var resp *loggerpb.CreateLocalRecordingResponse
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, 2*time.Minute)
 	defer cancel()
+
+	msg := fmt.Sprintf("Requesting workcell %q to create recording...", workcellName)
+	spinner := util.NewSpinner(ctx, out, pollTickerInterval, util.PositionFront, util.StyleSpinningDots, util.ColorRGB, util.DirectionForward)
+	spinner.Start(msg)
 
 	boff := backoff.WithContext(backoff.NewExponentialBackOff(), ctxWithTimeout)
 	err := backoff.RetryNotify(func() error {
@@ -274,62 +288,100 @@ func sendCreateLocalRecordingRequest(ctx context.Context, out io.Writer, client 
 		}
 		return nil
 	}, boff, func(err error, d time.Duration) {
-		color.C.Yellow().Fprintf(out, "Warning: failed to request recording, workcell may be offline. Retrying in %v...\n", d.Truncate(time.Millisecond))
+		msg := fmt.Sprintf("Warning: failed to request recording, workcell may be offline. Retrying in %v...", d.Truncate(time.Millisecond))
+		interruptMsg := color.C.Yellow().Sprintf("%s", msg)
+		spinner.Interrupt(interruptMsg)
 	})
+
+	spinner.Stop(msg)
+
 	if err != nil {
-		return nil, fmt.Errorf("failed to create local recording on workcell: %v", err)
+		return nil, fmt.Errorf("failed to create recording on workcell: %v", err)
 	}
 	return resp, nil
 }
 
 // Poll until recording reaches a terminal state.
 func (r *CreateCmdRunner) pollUploadProgress(ctx context.Context, out io.Writer, client bagpackagerpb.BagPackagerClient, bagID string) error {
-	ticker := time.NewTicker(10 * time.Second)
+	ticker := time.NewTicker(pollTickerInterval)
 	defer ticker.Stop()
 
-	fmt.Fprintf(out, "Waiting for recording %s to be uploaded from the workcell...", bagID)
+	fmt.Fprintf(out, "Waiting for recording %s to be uploaded from the workcell...\n", bagID)
 
 	req := &bagpackagerpb.GetBagRequest{
 		BagId: bagID,
 	}
 
+	spinner := util.NewSpinner(ctx, out, pollTickerInterval, util.PositionFront, util.StyleWaveThrough, util.ColorRGB, util.DirectionForward)
+	spinner.Start("Waiting for workcell to register recording with cloud...")
+
+	apiTickCounter := pollApiTickThreshold // Force first API call immediately
+	timeSpentPending := time.Duration(0)
+	printedPleaseWait := false
+
+	checkPendingTimeout := func() {
+		timeSpentPending += pollTickerInterval * time.Duration(pollApiTickThreshold)
+		if timeSpentPending >= pollPendingTimeout && !printedPleaseWait {
+			spinner.Interrupt(color.C.Yellow().Sprintf("\n[NOTE] Previously created recordings likely being uploaded first and will take a while...\n"))
+			printedPleaseWait = true
+		}
+	}
+
 	for {
 		select {
 		case <-ctx.Done():
+			spinner.Stop("")
 			return ctx.Err()
 		case <-ticker.C:
-			resp, err := client.GetBag(ctx, req)
-			if err != nil {
-				if status.Code(err) == codes.NotFound || strings.Contains(err.Error(), "does not exist") || strings.Contains(err.Error(), "failed to get bag record") {
-					fmt.Fprintf(out, "\nWaiting for workcell to register recording with cloud...")
-					continue
-				}
-				return err
-			}
+			if apiTickCounter >= pollApiTickThreshold {
+				apiTickCounter = 0
 
-			bagMeta := resp.GetBag().GetBagMetadata()
-			bagStatus := bagMeta.GetStatus().GetStatus()
-
-			pct := 0.0
-			if bagMeta.GetTotalBytes() > 0 {
-				pct = float64(bagMeta.GetTotalUploadedBytes()) / float64(bagMeta.GetTotalBytes()) * 100.0
-			}
-
-			fmt.Fprintf(out, "\nUpload progress: %.1f%% (%d / %d items, %dMB / %dMB) - Status: %s",
-				pct,
-				bagMeta.GetTotalUploadedLogItems(), bagMeta.GetTotalLogItems(),
-				bagMeta.GetTotalUploadedBytes()/(1024*1024), bagMeta.GetTotalBytes()/(1024*1024),
-				bagStatus.String())
-
-			if bagStatus >= bagmetadatapb.BagStatus_UPLOADED {
-				fmt.Fprintln(out, "\n\nUpload finished!\n")
-				if bagStatus == bagmetadatapb.BagStatus_FAILED {
-					color.C.Yellow().Fprintf(out, "Warning: Bag upload finished with terminal failure state: %s. Reason: %s\n", bagStatus.String(), bagMeta.GetStatus().GetReason())
-				} else if bagStatus == bagmetadatapb.BagStatus_UNCOMPLETABLE {
-					color.C.Yellow().Fprintf(out, "Note: Bag upload finished in state: %s. There might be missing data, but the recording can still be generated. Reason: %s\n", bagStatus.String(), bagMeta.GetStatus().GetReason())
+				resp, err := client.GetBag(ctx, req)
+				if err != nil {
+					if status.Code(err) == codes.NotFound || strings.Contains(err.Error(), "does not exist") || strings.Contains(err.Error(), "failed to get bag record") {
+						checkPendingTimeout()
+						spinner.UpdateMessage("Waiting for workcell to register recording with cloud...")
+						continue
+					}
+					spinner.Stop("")
+					return err
 				}
 
-				return nil
+				bagMeta := resp.GetBag().GetBagMetadata()
+				bagStatus := bagMeta.GetStatus().GetStatus()
+
+				pct := 0.0
+				if bagMeta.GetTotalBytes() > 0 {
+					pct = float64(bagMeta.GetTotalUploadedBytes()) / float64(bagMeta.GetTotalBytes()) * 100.0
+				}
+
+				if bagStatus < bagmetadatapb.BagStatus_UPLOADING || (bagStatus == bagmetadatapb.BagStatus_UPLOADING && bagMeta.GetTotalUploadedBytes() == 0) {
+					checkPendingTimeout()
+				} else {
+					timeSpentPending = 0
+				}
+
+				msg := fmt.Sprintf("Upload progress: %.1f%% (%d / %d log items, %dMB / %dMB) - Status: %s",
+					pct,
+					bagMeta.GetTotalUploadedLogItems(), bagMeta.GetTotalLogItems(),
+					bagMeta.GetTotalUploadedBytes()/(1024*1024), bagMeta.GetTotalBytes()/(1024*1024),
+					bagStatus.String())
+
+				spinner.UpdateMessage(msg)
+
+				if bagStatus >= bagmetadatapb.BagStatus_UPLOADED {
+					spinner.Stop(msg) // clear the spinner line and print final state
+					fmt.Fprintln(out, "\nUpload finished!\n")
+					if bagStatus == bagmetadatapb.BagStatus_FAILED {
+						color.C.Yellow().Fprintf(out, "Warning: Bag upload finished with terminal failure state: %s. Reason: %s\n", bagStatus.String(), bagMeta.GetStatus().GetReason())
+					} else if bagStatus == bagmetadatapb.BagStatus_UNCOMPLETABLE {
+						color.C.Yellow().Fprintf(out, "Note: Bag upload finished in state: %s. There might be missing data, but the recording can still be generated. Reason: %s\n", bagStatus.String(), bagMeta.GetStatus().GetReason())
+					}
+
+					return nil
+				}
+			} else {
+				apiTickCounter++
 			}
 		}
 	}
@@ -375,9 +427,8 @@ func (r *CreateCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 		EventSourcesToRecord: finalEventSources,
 	}
 
-	fmt.Fprintf(out, "\nRequesting workcell %q to create local recording...\n", flagWorkcellName)
-
-	resp, err := sendCreateLocalRecordingRequest(ctx, out, loggerClient, req)
+	fmt.Fprintln(out)
+	resp, err := sendCreateLocalRecordingRequest(ctx, out, loggerClient, req, flagWorkcellName)
 	if err != nil {
 		return err
 	}
@@ -395,7 +446,7 @@ func (r *CreateCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 
 	fullOrgName := orgutil.QualifiedOrg(createParams.GetString(orgutil.KeyProject), createParams.GetString(orgutil.KeyOrganization))
 
-	fmt.Fprintln(out, "\nWaiting for bag upload completion... (Press Ctrl+C to abort)\n")
+	fmt.Fprintln(out, "\nWaiting for bag upload completion... (Press Ctrl+C to skip waiting, it will continue in the background)\n")
 	err = r.pollUploadProgress(ctx, out, bagPackagerClient, bagID)
 	if err != nil {
 		return err

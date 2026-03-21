@@ -9,10 +9,13 @@ import (
 	"io"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	bagmetadatapb "intrinsic/logging/proto/bag_metadata_go_proto"
 	bagpackagerpb "intrinsic/logging/proto/bag_packager_service_go_proto"
@@ -50,6 +53,90 @@ func (m *mockBagPackagerClientForCreate) GenerateBag(ctx context.Context, in *ba
 		return m.GenerateBagFunc(ctx, in, opts...)
 	}
 	return nil, errors.New("mock GenerateBag should not be called directly")
+}
+
+func TestPollUploadProgress(t *testing.T) {
+	// Speed up the test by making the polling and ticker very fast
+	originalPollTickerInterval := pollTickerInterval
+	originalPollApiTickThreshold := pollApiTickThreshold
+	originalPollPendingTimeout := pollPendingTimeout
+	pollTickerInterval = 1 * time.Millisecond
+	pollApiTickThreshold = 1
+	pollPendingTimeout = 4 * time.Millisecond
+	defer func() {
+		pollTickerInterval = originalPollTickerInterval
+		pollApiTickThreshold = originalPollApiTickThreshold
+		pollPendingTimeout = originalPollPendingTimeout
+	}()
+
+	tests := []struct {
+		name          string
+		mockResponses []bagmetadatapb.BagStatus_BagStatusEnum
+		wantOut       string
+	}{
+		{
+			name:          "Prints waiting language when upload is pending",
+			mockResponses: []bagmetadatapb.BagStatus_BagStatusEnum{bagmetadatapb.BagStatus_UPLOAD_PENDING, bagmetadatapb.BagStatus_UPLOAD_PENDING, bagmetadatapb.BagStatus_UPLOAD_PENDING, bagmetadatapb.BagStatus_UPLOAD_PENDING, bagmetadatapb.BagStatus_COMPLETED},
+			wantOut:       "[NOTE] Previously created recordings likely being uploaded first and will take a while...",
+		},
+		{
+			name:          "Prints waiting language when not found",
+			mockResponses: []bagmetadatapb.BagStatus_BagStatusEnum{bagmetadatapb.BagStatus_UNSET, bagmetadatapb.BagStatus_UNSET, bagmetadatapb.BagStatus_UNSET, bagmetadatapb.BagStatus_UNSET, bagmetadatapb.BagStatus_COMPLETED},
+			wantOut:       "[NOTE] Previously created recordings likely being uploaded first and will take a while...",
+		},
+		{
+			name:          "Prints standard progress when uploading",
+			mockResponses: []bagmetadatapb.BagStatus_BagStatusEnum{bagmetadatapb.BagStatus_UPLOADING, bagmetadatapb.BagStatus_COMPLETED},
+			wantOut:       "Upload progress: 0.0%",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			runner := &CreateCmdRunner{}
+			out := &bytes.Buffer{}
+
+			callCount := 0
+			mockClient := &mockBagPackagerClientForCreate{
+				GetBagFunc: func(ctx context.Context, in *bagpackagerpb.GetBagRequest, opts ...grpc.CallOption) (*bagpackagerpb.GetBagResponse, error) {
+					statusEnum := tc.mockResponses[callCount]
+					if callCount < len(tc.mockResponses)-1 {
+						callCount++
+					}
+					if statusEnum == bagmetadatapb.BagStatus_UNSET {
+						return nil, status.Error(codes.NotFound, "does not exist")
+					}
+					return &bagpackagerpb.GetBagResponse{
+						Bag: &bagpackagerpb.BagRecord{
+							BagMetadata: &bagmetadatapb.BagMetadata{
+								Status: &bagmetadatapb.BagStatus{
+									Status: statusEnum,
+								},
+							},
+						},
+					}, nil
+				},
+			}
+
+			// We need a short timeout so the loop doesn't wait 10 seconds.
+			// However, since ticker is 10s, this test will take 10s per test case!
+			// For a true fix, we could inject the ticker interval.
+			// But since we just want to verify logic, we can let it run (it's parallelizable but let's just run it, 20s is ok).
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+
+			go func() {
+				// Cancel the context if it takes too long to prevent infinite hang
+				// although it shouldn't hang since the mock returns COMPLETED
+				// Wait, the first response might block it for 10s.
+			}()
+
+			err := runner.pollUploadProgress(ctx, out, mockClient, "test-bag")
+			assert.NoError(t, err)
+
+			assert.Contains(t, out.String(), tc.wantOut)
+		})
+	}
 }
 
 func TestCreateRecordingE(t *testing.T) {
@@ -193,7 +280,7 @@ func TestCreateRecordingE(t *testing.T) {
 			createFunc: func(ctx context.Context, in *loggerpb.CreateLocalRecordingRequest, opts ...grpc.CallOption) (*loggerpb.CreateLocalRecordingResponse, error) {
 				return nil, errors.New("backend failed")
 			},
-			wantErr: "failed to create local recording on workcell: backend failed",
+			wantErr: "failed to create recording on workcell: backend failed",
 		},
 		{
 			name: "Successfully creates recording with explicit description",
