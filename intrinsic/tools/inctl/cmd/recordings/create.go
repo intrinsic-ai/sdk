@@ -72,9 +72,9 @@ var eventSourceWorkflowMap = map[string][]string{
 	},
 	"include_flowstate_data": {
 		"/flowstate_events",
-		"executive.*",
 	},
 	"include_debug_data": {
+		"executive.*",
 		"/system/metrics",
 		"error_report",
 	},
@@ -555,11 +555,11 @@ func NewCreateCmd(runner *CreateCmdRunner) *cobra.Command {
 	// Data inclusion flags.
 	flags.BoolVar(&flagIncludeAllData, "include_all_data", false, "Include all eligible event sources (.*). Use this flag to suppress the interactive prompt and intentionally record everything.")
 	flags.BoolVar(&flagTextLogs, "include_text_logs", false, "Include text logs (/text-log-out, /asset-text-log-out).")
-	flags.BoolVar(&flagFlowstateData, "include_flowstate_data", false, "Include Flowstate execution data.")
+	flags.BoolVar(&flagFlowstateData, "include_flowstate_data", false, "Include Flowstate data.")
 	flags.BoolVar(&flagSceneData, "include_scene_data", false, "Include scene and TF data.")
 	flags.BoolVar(&flagRobotData, "include_robot_data", false, "Include robot statuses and trajectory plans.")
 	flags.BoolVar(&flagPerceptionData, "include_perception_data", false, "Include perception data.")
-	flags.BoolVar(&flagDebugData, "include_debug_data", false, "Include system metrics and error reports.")
+	flags.BoolVar(&flagDebugData, "include_debug_data", false, "Include system metrics, error reports, and the executive state.")
 	flags.StringSliceVar(&flagAdditionalEventSources, "additional_event_sources", []string{}, "Custom RE2 regex patterns of event sources to record.")
 
 	createCmd.MarkFlagRequired("workcell")
