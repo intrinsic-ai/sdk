@@ -1,0 +1,85 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.httpjson.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "intrinsic/httpjson/test/inventory_service_go_proto";
+
+// InventoryService tracks number of in-stock SKUs.
+service InventoryService {
+  // Registers a new SKU in the inventory system.
+  rpc AddSku(AddSkuRequest) returns (Sku) {
+    option (google.api.http) = {
+      post: "/v1/skus/{sku_id}"
+      body: "*"
+    };
+  }
+
+  // Sets how many items of SKU are in stock.
+  rpc SetStockLevel(SetStockLevelRequest) returns (StockLevel) {
+    option (google.api.http) = {
+      post: "/v1/skus/{sku_id}:setStockLevel"
+      body: "*"
+    };
+  }
+
+  // Get the number of SKU in stock.
+  rpc GetStockLevel(GetStockLevelRequest) returns (StockLevel) {
+    option (google.api.http) = {
+      get: "/v1/skus/{sku_id}:stockLevel"
+    };
+  }
+
+  // Lists all SKUs and stock levels.
+  rpc ListSkus(ListSkusRequest) returns (ListSkusResponse) {
+    option (google.api.http) = {
+      get: "/v1/skus"
+    };
+  }
+}
+
+// Represents a unique, trackable variation of an Item.
+message Sku {
+  string sku_id = 1;
+  string display_name = 2;
+}
+
+// Represents the inventory level of a specific SKU.
+message StockLevel {
+  string sku_id = 1;
+  int64 quantity = 2;
+}
+
+// Combines SKU and stock levels.
+message SkuWithStockLevel {
+  Sku sku = 1;
+  StockLevel stock_level = 2;
+}
+
+// Request to register a new SKU.
+message AddSkuRequest {
+  string sku_id = 1;
+  string display_name = 2;
+}
+
+// Request to adjust the stock level of an SKU.
+message SetStockLevelRequest {
+  string sku_id = 1;
+  int64 quantity = 2;
+}
+
+// Request to get the stock level of an SKU.
+message GetStockLevelRequest {
+  string sku_id = 1;
+}
+
+// Request to list SKUs with low stock.
+message ListSkusRequest {}
+
+// Response for the ListLowStockSkus RPC.
+message ListSkusResponse {
+  repeated SkuWithStockLevel skus = 1;
+}

@@ -1,0 +1,85 @@
+{{/*
+Copyright 2023 Intrinsic Innovation LLC
+*/ -}}
+
+package main
+
+import (
+	"context"
+	"encoding/base64"
+	"fmt"
+	"log"
+	"net/http"
+
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc"
+
+	// Internal Intrinsic dependencies
+	"intrinsic/httpjson/any/anyresolver"
+	oah "intrinsic/httpjson/openapi/handlers"
+	rcpb "intrinsic/resources/proto/runtime_context_go_proto"
+	"intrinsic/util/proto/protoio"
+
+	// Template-injected dependencies
+	pb "{{ .ServiceGoImportpath }}"
+)
+
+const (
+	runtimeContextPath = "/etc/intrinsic/runtime_config.pb"
+	ingressAddress     = "istio-ingressgateway.app-ingress.svc.cluster.local:80"
+)
+
+var openAPIContentBase64 = "{{ .OpenAPIB64 }}"
+
+func main() {
+	rc := new(rcpb.RuntimeContext)
+	if err := protoio.ReadBinaryProto(runtimeContextPath, rc); err != nil {
+		log.Fatalf("Failed to read runtime context: %v", err)
+	}
+
+	// Enable resolving Any messages
+	resolver, err := anyresolver.NewAnyResolver(ingressAddress, ingressAddress)
+	if err != nil {
+		log.Fatalf("Failed to create AnyResolver: %v", err)
+	}
+	jsonMarshaller := runtime.JSONPb{
+		MarshalOptions: protojson.MarshalOptions{Resolver: resolver},
+		UnmarshalOptions: protojson.UnmarshalOptions{Resolver: resolver},
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	mux := runtime.NewServeMux(runtime.WithMarshalerOption(runtime.MIMEWildcard, &jsonMarshaller))
+
+	// Setup /openapi.yaml handler
+	decodedOpenAPI, err := base64.StdEncoding.DecodeString(openAPIContentBase64)
+	if err != nil {
+		log.Fatalf("Failed to decode OpenAPI content: %v", err)
+	}
+	mux.HandlePath("GET", "/openapi.yaml", oah.MakeOpenAPIHandlerFromContent(string(decodedOpenAPI)))
+
+	grpcAddr := fmt.Sprintf("0.0.0.0:%d", rc.GetPort())
+	opts := []grpc.DialOption{
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	}
+
+	log.Printf("Connecting to gRPC Service: %v", grpcAddr)
+
+	// Register generated HTTP -> gRPC handlers.
+	err = pb.Register{{ .ServiceName }}HandlerFromEndpoint(ctx, mux, grpcAddr, opts)
+	if err != nil {
+		log.Fatalf("Failed to register gRPC service HTTP/JSON handlers: %v", err)
+	}
+
+	addr := fmt.Sprintf(":%d", rc.GetHttpPort())
+	log.Printf("Listening on %s", addr)
+
+	// Start server with Cross-Origin Protection
+	server := http.NewCrossOriginProtection().Handler(mux)
+	if err := http.ListenAndServe(addr, server); err != nil {
+		log.Fatalf("HTTP server failed: %v", err)
+	}
+}

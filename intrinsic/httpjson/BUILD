@@ -8,3 +8,13 @@ bzl_library(
     visibility = ["//visibility:private"],
     deps = ["//bazel:go_macros"],
 )
+
+bzl_library(
+    name = "intrinsic_http_image_bzl",
+    srcs = ["intrinsic_http_image.bzl"],
+    visibility = ["//visibility:private"],
+    deps = [
+        "//bazel:go_macros",
+        "//intrinsic/httpjson/private:gen_http_bridge_bzl",
+    ],
+)

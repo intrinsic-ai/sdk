@@ -1,0 +1,38 @@
+# Copyright 2023 Intrinsic Innovation LLC
+
+# proto-file: https://github.com/intrinsic-ai/sdk/blob/main/intrinsic/assets/services/proto/service_manifest.proto
+# proto-message: intrinsic_proto.services.ServiceManifest
+
+metadata {
+  id {
+    package: "com.example"
+    name: "inventoryservice"
+  }
+  vendor {
+    display_name: "Intrinsic"
+  }
+  documentation {
+    description: "Offers gRPC API for managing inventory."
+  }
+  display_name: "Inventory Service"
+}
+service_def {
+  http_config: {}
+  service_proto_prefixes: "/intrinsic_proto.httpjson.v1.InventoryService/"
+  real_spec {
+    image {
+      archive_filename: "tarball.tar"
+    }
+    extra_images {
+      archive_filename: "inventoryserver_http_image.tar"
+    }
+  }
+  sim_spec {
+    image {
+      archive_filename: "tarball.tar"
+    }
+    extra_images {
+      archive_filename: "inventoryserver_http_image.tar"
+    }
+  }
+}

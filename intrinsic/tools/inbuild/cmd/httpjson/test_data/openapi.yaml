@@ -1,0 +1,28 @@
+# Copyright 2023 Intrinsic Innovation LLC
+
+openapi: 3.0.3
+info:
+  title: Tiny Greeting API
+  version: 1.0.0
+  description: A minimal API to say hello.
+
+paths:
+  /hello:
+    get:
+      summary: Returns a greeting
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Greeting'
+
+components:
+  schemas:
+    Greeting:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Hello, world!"
