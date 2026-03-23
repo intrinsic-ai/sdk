@@ -29,6 +29,5 @@ service_def {
       archive_filename: "device_service_image.tar"
     }
   }
-  supports_dynamic_reconfiguration: false
   supports_service_state: true
 }
