@@ -1,0 +1,152 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.ecat.v1;
+
+import "google/protobuf/duration.proto";
+import "intrinsic/icon/hal/lib/ecat/v1/value_parsing.proto";
+
+option go_package = "intrinsic/icon/hal/lib/sdo_value/v1/sdo_value_config_go_proto";
+
+enum SdoExportType {
+  // The default behavior is to publish the SDO values via PubSub so that they
+  // can be read by the frontend.
+  SDO_EXPORT_TYPE_DEFAULT = 0;
+  // Only logs the SDO values. They will not be visible in the frontend.
+  SDO_EXPORT_TYPE_LOG = 1;
+  // Logs the SDO values and publishes them to pubsub so that they can be read
+  // by the frontend.
+  SDO_EXPORT_TYPE_PUBSUB_AND_LOG = 2;
+  // Disables SDO reading and exporting.
+  SDO_EXPORT_TYPE_NONE = 3;
+  // Exposes the SDO values as analog input variables.
+  SDO_EXPORT_TYPE_ANALOG_INPUT = 4;
+  // Exposes the SDO values as analog input variables and pubsub.
+  SDO_EXPORT_TYPE_ANALOG_INPUT_AND_PUBSUB = 5;
+  // Exposes the SDO values as analog input variables, publishes them to
+  // pubsub and logs them.
+  SDO_EXPORT_TYPE_ANALOG_INPUT_AND_PUBSUB_AND_LOG = 6;
+}
+
+// Configuration for a SDO value device.
+// Example configuration:
+// sdo_writes: [
+//   {
+//     sdo_variable: {
+//       index: 0x6061
+//       sub_index: 0x00
+//       bus_position: 1
+//     }
+//     value: {
+//       int8_value: 8
+//     }
+//   }
+// ]
+// sdo_reads: [
+//   {
+//     sdo_variable: {
+//       index: 0x6061
+//       sub_index: 0x00
+//       bus_position: 1
+//     }
+//     type: INT8_SDO_TYPE
+//     alias: "foo"
+// // If the bit with the lowest order is 'true', the exported
+// // `value_interpretation` will be "bar".
+// interpretations_of_values: {
+//   key: "bar"
+//   value: {
+//     patterns: [
+//       {
+//        expected_value: 0x01
+//        signal_mask: 0x01
+//       }
+//     ]
+//   }
+// }
+//   }
+// // Additionally logs the SDO values.
+// sdo_export_type: SDO_EXPORT_TYPE_PUBSUB_AND_LOG
+//
+// Next ID: 5
+message SdoConfig {
+  repeated SdoWrite sdo_writes = 1;
+  repeated SdoRead sdo_reads = 2;
+  // Minimum time between two consecutive exports.
+  // Defaults to 5 seconds. Must be positive and non-zero.
+  // May overload the frontend when choosing a very low value.
+  optional google.protobuf.Duration sdo_export_interval = 3;
+  // Defaults to SDO_EXPORT_TYPE_PUBSUB.
+  SdoExportType sdo_export_type = 4;
+}
+message SdoValueType {
+  oneof value {
+    bool bool_value = 1;
+    uint32 uint8_value = 2;
+    int32 int8_value = 3;
+    uint32 uint16_value = 4;
+    int32 int16_value = 5;
+    uint32 uint32_value = 6;
+    int32 int32_value = 7;
+    uint64 uint64_value = 8;
+    int64 int64_value = 9;
+    float float_value = 10;
+    double double_value = 11;
+  }
+}
+
+enum SdoVariableType {
+  UNDEFINED_SDO_TYPE = 0;
+  BOOL_SDO_TYPE = 11;
+  UINT8_SDO_TYPE = 1;
+  INT8_SDO_TYPE = 2;
+  UINT16_SDO_TYPE = 3;
+  INT16_SDO_TYPE = 4;
+  UINT32_SDO_TYPE = 5;
+  INT32_SDO_TYPE = 6;
+  UINT64_SDO_TYPE = 7;
+  INT64_SDO_TYPE = 8;
+  FLOAT_SDO_TYPE = 9;
+  DOUBLE_SDO_TYPE = 10;
+}
+
+// Next ID: 4
+message SdoVariable {
+  // The index of the variable.
+  uint32 index = 1;
+  // The sub index of the variable.
+  uint32 sub_index = 2;
+  // The address of the device.
+  oneof device_address {
+    // The bus position of the device.
+    uint32 bus_position = 3;
+  }
+}
+
+// Next ID: 3
+message SdoWrite {
+  // The SDO variable to write to.
+  SdoVariable sdo_variable = 1;
+  // The value to write.
+  SdoValueType value = 2;
+}
+
+// Next ID: 5
+message SdoRead {
+  // The SDO variable to read.
+  SdoVariable sdo_variable = 1;
+  // The type to read. A wrong type can result in a runtime error when reading
+  // the variable.
+  SdoVariableType type = 2;
+  // The alias for the variable.
+  // Required if any of the ANALOG_INPUT export types are enabled.
+  string alias = 3;
+  // Maps the value as read from the device to a string representation.
+  // Multiple interpretations can match a single value.
+  // This way the frontend can display a generic as well as a specific
+  // representation of the value.
+  // Interpretations for non integer types are not supported and will be
+  // ignored.
+  map<string, ValuePatterns> interpretations_of_values = 4;
+}

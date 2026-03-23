@@ -7,11 +7,15 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"intrinsic/assets/data/fakedataassets"
 	"os"
 	"strings"
 	testing "testing"
 
-	"intrinsic/assets/data/fakedataassets"
+	"github.com/google/go-cmp/cmp"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/testing/protocmp"
+	anypb "google.golang.org/protobuf/types/known/anypb"
 
 	dapb "intrinsic/assets/data/proto/v1/data_asset_go_proto"
 	dagrpcpb "intrinsic/assets/data/proto/v1/data_assets_go_proto"
@@ -21,11 +25,7 @@ import (
 	dscpb "intrinsic/icon/fieldbus/ethercat/device_service/v1/device_service_config_go_proto"
 	dspb "intrinsic/icon/fieldbus/ethercat/device_service/v1/device_service_go_proto"
 	esipb "intrinsic/icon/fieldbus/ethercat/device_service/v1/esi_go_proto"
-
-	"github.com/google/go-cmp/cmp"
-	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/testing/protocmp"
-	anypb "google.golang.org/protobuf/types/known/anypb"
+	ecatpb "intrinsic/icon/hal/lib/sdo_value/v1/sdo_value_config_go_proto"
 )
 
 // Required (apparently) so that flags are parsed.
@@ -419,7 +419,7 @@ func TestDiscoveryLogic(t *testing.T) {
 		desc     string
 		mappings []*dscpb.InterfaceMapping
 		wantEbi  *dspb.ResolvedConfiguration_EbiPdoInstructions
-		wantMap  map[string]*dspb.ResolvedVariable
+		wantMap  map[string]*dspb.ResolvedPdoVariable
 		wantErr  string
 	}{
 		{
@@ -436,7 +436,7 @@ func TestDiscoveryLogic(t *testing.T) {
 				},
 			},
 			// Expect basic name resolution within an explicitly named PDO.
-			wantMap: map[string]*dspb.ResolvedVariable{
+			wantMap: map[string]*dspb.ResolvedPdoVariable{
 				"Default TxPDO::Status word": {PdoIndex: 0x1A00, Index: 0x6041, SubIndex: 0, PdoEniName: "Default TxPDO", ObjectEniName: "Status word"},
 			},
 		},
@@ -454,7 +454,7 @@ func TestDiscoveryLogic(t *testing.T) {
 				},
 			},
 			// Expect numeric address resolution using the #x prefix.
-			wantMap: map[string]*dspb.ResolvedVariable{
+			wantMap: map[string]*dspb.ResolvedPdoVariable{
 				"#x1A00::#x6041.0": {PdoIndex: 0x1A00, Index: 0x6041, SubIndex: 0, PdoEniName: "Default TxPDO", ObjectEniName: "Status word"},
 			},
 		},
@@ -472,7 +472,7 @@ func TestDiscoveryLogic(t *testing.T) {
 				},
 			},
 			// Expect numeric address resolution using the 0x prefix.
-			wantMap: map[string]*dspb.ResolvedVariable{
+			wantMap: map[string]*dspb.ResolvedPdoVariable{
 				"0x1A00::0x6041.0": {PdoIndex: 0x1A00, Index: 0x6041, SubIndex: 0, PdoEniName: "Default TxPDO", ObjectEniName: "Status word"},
 			},
 		},
@@ -490,7 +490,7 @@ func TestDiscoveryLogic(t *testing.T) {
 				},
 			},
 			// Expect engine to pick the default-active PDO (#x1A02) containing the variable.
-			wantMap: map[string]*dspb.ResolvedVariable{
+			wantMap: map[string]*dspb.ResolvedPdoVariable{
 				"::Status word": {PdoIndex: 0x1A02, Index: 0x6041, SubIndex: 0, PdoEniName: "Fixed TxPDO", ObjectEniName: "Status word"},
 			},
 		},
@@ -513,7 +513,7 @@ func TestDiscoveryLogic(t *testing.T) {
 					{PdoIndex: 0x1A00, ObjectIndex: 0x603F, ObjectSubIndex: 0, DataType: "UINT", BitSize: 16, Name: "Error code"},
 				},
 			},
-			wantMap: map[string]*dspb.ResolvedVariable{
+			wantMap: map[string]*dspb.ResolvedPdoVariable{
 				"Default TxPDO::Error code": {PdoIndex: 0x1A00, Index: 0x603F, SubIndex: 0, PdoEniName: "Default TxPDO", ObjectEniName: "Error code"},
 			},
 		},
@@ -535,7 +535,7 @@ func TestDiscoveryLogic(t *testing.T) {
 				PdoExclusionsToAdd:    []uint32{0x1A00},
 				PdoExclusionsToRemove: []uint32{0x1A01},
 			},
-			wantMap: map[string]*dspb.ResolvedVariable{
+			wantMap: map[string]*dspb.ResolvedPdoVariable{
 				"Optional TxPDO::Status word": {PdoIndex: 0x1A01, Index: 0x6041, SubIndex: 0, PdoEniName: "Optional TxPDO", ObjectEniName: "Status word"},
 			},
 		},
@@ -649,7 +649,7 @@ func TestDiscoveryLogic(t *testing.T) {
 					{PdoIndex: 0x1A00, ObjectIndex: 0x6040, ObjectSubIndex: 0, DataType: "UINT", BitSize: 16, Name: "Control word"},
 				},
 			},
-			wantMap: map[string]*dspb.ResolvedVariable{
+			wantMap: map[string]*dspb.ResolvedPdoVariable{
 				"Default TxPDO::Control word": {PdoIndex: 0x1A00, Index: 0x6040, SubIndex: 0, PdoEniName: "Default TxPDO", ObjectEniName: "Control word"},
 			},
 		},
@@ -670,7 +670,7 @@ func TestDiscoveryLogic(t *testing.T) {
 				},
 			},
 			// Expect resolution to succeed by scoping the search to the requested PDO context.
-			wantMap: map[string]*dspb.ResolvedVariable{
+			wantMap: map[string]*dspb.ResolvedPdoVariable{
 				"Default RxPDO::Duplicate Name": {PdoIndex: 0x1600, Index: 0x2000, SubIndex: 0, PdoEniName: "Default RxPDO", ObjectEniName: "Duplicate Name"},
 			},
 		},
@@ -694,7 +694,7 @@ func TestDiscoveryLogic(t *testing.T) {
 					},
 				},
 			},
-			wantMap: map[string]*dspb.ResolvedVariable{
+			wantMap: map[string]*dspb.ResolvedPdoVariable{
 				"Default RxPDO::Control word": {PdoIndex: 0x1600, Index: 0x6040, SubIndex: 0, PdoEniName: "Default RxPDO", ObjectEniName: "Control word"},
 			},
 		},
@@ -754,7 +754,7 @@ func TestDiscoveryLogic(t *testing.T) {
 				},
 			},
 			// Expect resolution of multiple joint-related variables across different PDOs.
-			wantMap: map[string]*dspb.ResolvedVariable{
+			wantMap: map[string]*dspb.ResolvedPdoVariable{
 				"Default RxPDO::Control word": {PdoIndex: 0x1600, Index: 0x6040, SubIndex: 0, PdoEniName: "Default RxPDO", ObjectEniName: "Control word"},
 				"Default TxPDO::Status word":  {PdoIndex: 0x1A00, Index: 0x6041, SubIndex: 0, PdoEniName: "Default TxPDO", ObjectEniName: "Status word"},
 				"Default TxPDO::Error code":   {PdoIndex: 0x1A00, Index: 0x603F, SubIndex: 0, PdoEniName: "Default TxPDO", ObjectEniName: "Error code"},
@@ -825,7 +825,7 @@ func TestDiscoveryLogic(t *testing.T) {
 			if diff := cmp.Diff(tc.wantEbi, resolved.GetEbiPdoInstructions(), protocmp.Transform()); diff != "" {
 				t.Errorf("EBI instructions diff (-want +got):\n%s", diff)
 			}
-			if diff := cmp.Diff(tc.wantMap, resolved.GetVariableMappings(), protocmp.Transform()); diff != "" {
+			if diff := cmp.Diff(tc.wantMap, resolved.GetPdoMappings(), protocmp.Transform()); diff != "" {
 				t.Errorf("Variable mappings diff (-want +got):\n%s", diff)
 			}
 		})
@@ -928,13 +928,13 @@ func TestMultiFileResolution(t *testing.T) {
 		t.Fatalf("GetConfiguration failed: %v", err)
 	}
 
-	wantMap := map[string]*dspb.ResolvedVariable{
+	wantMap := map[string]*dspb.ResolvedPdoVariable{
 		"Module TxPDO::External Status Word": {
 			PdoIndex: 0x1A00, Index: 0x6041, SubIndex: 0, PdoEniName: "Module TxPDO", ObjectEniName: "External Status Word",
 		},
 	}
 
-	if diff := cmp.Diff(wantMap, resp.GetResolvedConfiguration().GetVariableMappings(), protocmp.Transform()); diff != "" {
+	if diff := cmp.Diff(wantMap, resp.GetResolvedConfiguration().GetPdoMappings(), protocmp.Transform()); diff != "" {
 		t.Errorf("Variable mappings diff (-want +got):\n%s", diff)
 	}
 }
@@ -1026,13 +1026,13 @@ func TestRealWorldStyleResolution(t *testing.T) {
 		t.Fatalf("GetConfiguration failed: %v", err)
 	}
 
-	wantMap := map[string]*dspb.ResolvedVariable{
+	wantMap := map[string]*dspb.ResolvedPdoVariable{
 		"Inputs::DI 0": {
 			PdoIndex: 0x1A00, Index: 0x6000, SubIndex: 1, PdoEniName: "Inputs", ObjectEniName: "DI 0",
 		},
 	}
 
-	if diff := cmp.Diff(wantMap, resp.GetResolvedConfiguration().GetVariableMappings(), protocmp.Transform()); diff != "" {
+	if diff := cmp.Diff(wantMap, resp.GetResolvedConfiguration().GetPdoMappings(), protocmp.Transform()); diff != "" {
 		t.Errorf("Variable mappings diff (-want +got):\n%s", diff)
 	}
 }
@@ -1059,7 +1059,7 @@ func TestDs402HomingResolution(t *testing.T) {
 		desc    string
 		homing  *dscpb.HomingReference
 		wantEbi *dspb.ResolvedConfiguration_EbiPdoInstructions
-		wantMap map[string]*dspb.ResolvedVariable
+		wantMap map[string]*dspb.ResolvedPdoVariable
 		wantErr string
 	}{
 		{
@@ -1080,7 +1080,7 @@ func TestDs402HomingResolution(t *testing.T) {
 					{PdoIndex: 0x1A00, ObjectIndex: 0x6061, ObjectSubIndex: 0, DataType: "INT", BitSize: 8, Name: "Modes of operation display"},
 				},
 			},
-			wantMap: map[string]*dspb.ResolvedVariable{
+			wantMap: map[string]*dspb.ResolvedPdoVariable{
 				"RxPDO::Modes of operation":         {PdoIndex: 0x1600, Index: 0x6060, SubIndex: 0, PdoEniName: "RxPDO", ObjectEniName: "Modes of operation"},
 				"TxPDO::Modes of operation display": {PdoIndex: 0x1A00, Index: 0x6061, SubIndex: 0, PdoEniName: "TxPDO", ObjectEniName: "Modes of operation display"},
 			},
@@ -1160,7 +1160,7 @@ func TestDs402HomingResolution(t *testing.T) {
 			if diff := cmp.Diff(tc.wantEbi, resolved.GetEbiPdoInstructions(), protocmp.Transform()); diff != "" {
 				t.Errorf("EBI instructions diff (-want +got):\n%s", diff)
 			}
-			if diff := cmp.Diff(tc.wantMap, resolved.GetVariableMappings(), protocmp.Transform()); diff != "" {
+			if diff := cmp.Diff(tc.wantMap, resolved.GetPdoMappings(), protocmp.Transform()); diff != "" {
 				t.Errorf("Variable mappings diff (-want +got):\n%s", diff)
 			}
 		})
@@ -1241,7 +1241,7 @@ func TestDataTypeResolution(t *testing.T) {
 		t.Fatalf("GetConfiguration failed: %v", err)
 	}
 
-	wantMap := map[string]*dspb.ResolvedVariable{
+	wantMap := map[string]*dspb.ResolvedPdoVariable{
 		"::SubItem1": {
 			PdoIndex: 0x1A00, Index: 0x6000, SubIndex: 1, PdoEniName: "TxPDO", ObjectEniName: "SubItem1",
 		},
@@ -1250,7 +1250,7 @@ func TestDataTypeResolution(t *testing.T) {
 		},
 	}
 
-	if diff := cmp.Diff(wantMap, resp.GetResolvedConfiguration().GetVariableMappings(), protocmp.Transform()); diff != "" {
+	if diff := cmp.Diff(wantMap, resp.GetResolvedConfiguration().GetPdoMappings(), protocmp.Transform()); diff != "" {
 		t.Errorf("Variable mappings diff (-want +got):\n%s", diff)
 	}
 }
@@ -1275,7 +1275,7 @@ func TestPreferredDirectionResolution(t *testing.T) {
 	tests := []struct {
 		desc     string
 		mappings []*dscpb.InterfaceMapping
-		wantMap  map[string]*dspb.ResolvedVariable
+		wantMap  map[string]*dspb.ResolvedPdoVariable
 	}{
 		{
 			desc: "Pick Rx address for Control word (Command)",
@@ -1292,7 +1292,7 @@ func TestPreferredDirectionResolution(t *testing.T) {
 					},
 				},
 			},
-			wantMap: map[string]*dspb.ResolvedVariable{
+			wantMap: map[string]*dspb.ResolvedPdoVariable{
 				"::Ambiguous Object": {PdoIndex: 0x1600, Index: 0x6000, SubIndex: 0, PdoEniName: "RxPDO", ObjectEniName: "Ambiguous Object"},
 			},
 		},
@@ -1311,7 +1311,7 @@ func TestPreferredDirectionResolution(t *testing.T) {
 					},
 				},
 			},
-			wantMap: map[string]*dspb.ResolvedVariable{
+			wantMap: map[string]*dspb.ResolvedPdoVariable{
 				"::Ambiguous Object": {PdoIndex: 0x1A00, Index: 0x7000, SubIndex: 0, PdoEniName: "TxPDO", ObjectEniName: "Ambiguous Object"},
 			},
 		},
@@ -1351,7 +1351,7 @@ func TestPreferredDirectionResolution(t *testing.T) {
 				t.Fatalf("GetConfiguration failed: %v", err)
 			}
 
-			if diff := cmp.Diff(tc.wantMap, resp.GetResolvedConfiguration().GetVariableMappings(), protocmp.Transform()); diff != "" {
+			if diff := cmp.Diff(tc.wantMap, resp.GetResolvedConfiguration().GetPdoMappings(), protocmp.Transform()); diff != "" {
 				t.Errorf("Variable mappings diff (-want +got):\n%s", diff)
 			}
 		})
@@ -1666,6 +1666,186 @@ func TestOpModeConfiguration(t *testing.T) {
 			}
 			if diff := cmp.Diff(tc.wantActive, resolved.GetActiveOpModeName(), protocmp.Transform()); diff != "" {
 				t.Errorf("ActiveOpModeName diff (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestSDOResolution(t *testing.T) {
+	ctx := context.Background()
+	vendorID, productCode, revision := 0x00000001, 0x00000002, 0x00000003
+
+	// Setup ESI with a Dictionary
+	esiObjects := []string{
+		makeEsiObjectXml(testEsiObject{Index: "#x6040", ObjName: "Control word", ObjType: "UINT", ObjBitSize: 16, ObjAccess: "rw"}),
+		makeEsiObjectXml(testEsiObject{Index: "#x6041", ObjName: "Status word", ObjType: "UINT", ObjBitSize: 16, ObjAccess: "ro"}),
+		makeEsiObjectXml(testEsiObject{Index: "#x6060", ObjName: "Modes of operation", ObjType: "SINT", ObjBitSize: 8, ObjAccess: "rw"}),
+	}
+	esiXML := makeTestEsiXml(nil, esiObjects, nil)
+	bundle := &esipb.EsiBundle{
+		Files: map[string]*esipb.Esi{
+			"device.esi": {Data: esiXML},
+		},
+	}
+
+	bundleID := &ipb.Id{Name: "esi_sdo", Package: "test"}
+	fakeDA := fakedataassets.StartServer(ctx, t, fakedataassets.WithDataAssets([]*dapb.DataAsset{
+		{
+			Metadata: &mpb.Metadata{IdVersion: &ipb.IdVersion{Id: bundleID}},
+			Data:     mustMarshalAny(bundle),
+		},
+	}))
+
+	tests := []struct {
+		name       string
+		mappings   []*dscpb.InterfaceMapping
+		wantSdos   map[string]*dspb.ResolvedSdoVariable
+		wantErrSub string
+	}{
+		{
+			name: "Successful SDO reads and writes",
+			mappings: []*dscpb.InterfaceMapping{
+				{
+					Interface: &dscpb.Interface{InterfaceName: "sdo_iface"},
+					DeviceData: &dscpb.DeviceData{
+						Data: &dscpb.DeviceData_SdoDeviceData{
+							SdoDeviceData: &dscpb.SdoDeviceData{
+								SdoWrites: []*dscpb.SdoWrite{
+									{Object: "Control word", Value: &dscpb.BusVariableValue{Value: &dscpb.BusVariableValue_Uint16Value{Uint16Value: 0x0006}}},
+								},
+								SdoReads: []*dscpb.SdoRead{
+									{Object: "Status word", Type: ecatpb.SdoVariableType_UINT16_SDO_TYPE, Alias: "status"},
+									{Object: "#x6060.0", Type: ecatpb.SdoVariableType_INT8_SDO_TYPE, Alias: "mode"},
+								},
+							},
+						},
+					},
+				},
+			},
+			wantSdos: map[string]*dspb.ResolvedSdoVariable{
+				"Control word": {Index: 0x6040, SubIndex: 0},
+				"Status word":  {Index: 0x6041, SubIndex: 0},
+				"#x6060.0":     {Index: 0x6060, SubIndex: 0},
+			},
+		},
+		{
+			name: "Raw numeric address bypasses dictionary",
+			mappings: []*dscpb.InterfaceMapping{
+				{
+					Interface: &dscpb.Interface{InterfaceName: "sdo_raw"},
+					DeviceData: &dscpb.DeviceData{
+						Data: &dscpb.DeviceData_SdoDeviceData{
+							SdoDeviceData: &dscpb.SdoDeviceData{
+								SdoReads: []*dscpb.SdoRead{
+									{Object: "0x1234.5", Type: ecatpb.SdoVariableType_UINT32_SDO_TYPE, Alias: "raw"},
+								},
+							},
+						},
+					},
+				},
+			},
+			wantSdos: map[string]*dspb.ResolvedSdoVariable{
+				"0x1234.5": {Index: 0x1234, SubIndex: 5},
+			},
+		},
+		{
+			name: "Type mismatch in SDO write",
+			mappings: []*dscpb.InterfaceMapping{
+				{
+					Interface: &dscpb.Interface{InterfaceName: "sdo_fail_write"},
+					DeviceData: &dscpb.DeviceData{
+						Data: &dscpb.DeviceData_SdoDeviceData{
+							SdoDeviceData: &dscpb.SdoDeviceData{
+								SdoWrites: []*dscpb.SdoWrite{
+									{Object: "Modes of operation", Value: &dscpb.BusVariableValue{Value: &dscpb.BusVariableValue_Uint16Value{Uint16Value: 123}}},
+								},
+							},
+						},
+					},
+				},
+			},
+			wantErrSub: "type mismatch for SDO write \"Modes of operation\"",
+		},
+		{
+			name: "Type mismatch in SDO read",
+			mappings: []*dscpb.InterfaceMapping{
+				{
+					Interface: &dscpb.Interface{InterfaceName: "sdo_fail_read"},
+					DeviceData: &dscpb.DeviceData{
+						Data: &dscpb.DeviceData_SdoDeviceData{
+							SdoDeviceData: &dscpb.SdoDeviceData{
+								SdoReads: []*dscpb.SdoRead{
+									{Object: "Control word", Type: ecatpb.SdoVariableType_UINT8_SDO_TYPE, Alias: "bad_type"},
+								},
+							},
+						},
+					},
+				},
+			},
+			wantErrSub: "type mismatch for SDO read \"Control word\"",
+		},
+		{
+			name: "Unknown object name",
+			mappings: []*dscpb.InterfaceMapping{
+				{
+					Interface: &dscpb.Interface{InterfaceName: "sdo_fail_name"},
+					DeviceData: &dscpb.DeviceData{
+						Data: &dscpb.DeviceData_SdoDeviceData{
+							SdoDeviceData: &dscpb.SdoDeviceData{
+								SdoReads: []*dscpb.SdoRead{
+									{Object: "NonExistentObject", Type: ecatpb.SdoVariableType_UINT16_SDO_TYPE},
+								},
+							},
+						},
+					},
+				},
+			},
+			wantErrSub: "could not be resolved from ESI dictionary",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := &dscpb.DeviceServiceConfig{
+				DeviceIdentifier: &dscpb.DeviceIdentifier{
+					VendorId:    int32(vendorID),
+					ProductCode: int32(productCode),
+					Revision:    int32(revision),
+				},
+				EsiBundle: &rdpb.ResolvedDependency{
+					Interfaces: map[string]*rdpb.ResolvedDependency_Interface{
+						"data://" + esiBundleDataAssetProtoName: {
+							Protocol: &rdpb.ResolvedDependency_Interface_Data_{
+								Data: &rdpb.ResolvedDependency_Interface_Data{Id: bundleID},
+							},
+						},
+					},
+				},
+				InterfaceMappings: tt.mappings,
+			}
+
+			s, err := NewDeviceService(ctx, config, fakeDA.Client)
+			if tt.wantErrSub != "" {
+				if err == nil {
+					t.Errorf("NewDeviceService() expected error containing %q, got nil", tt.wantErrSub)
+				} else if !strings.Contains(err.Error(), tt.wantErrSub) {
+					t.Errorf("NewDeviceService() error = %v, want substring %q", err, tt.wantErrSub)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("NewDeviceService() failed: %v", err)
+			}
+
+			resp, err := s.GetConfiguration(ctx, &dspb.GetConfigurationRequest{})
+			if err != nil {
+				t.Fatalf("GetConfiguration() failed: %v", err)
+			}
+
+			gotSdos := resp.GetResolvedConfiguration().GetSdoMappings()
+			if diff := cmp.Diff(tt.wantSdos, gotSdos, protocmp.Transform()); diff != "" {
+				t.Errorf("SDO mappings mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

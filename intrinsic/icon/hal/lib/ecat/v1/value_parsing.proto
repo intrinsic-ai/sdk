@@ -1,0 +1,23 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.ecat.v1;
+
+option go_package = "intrinsic/icon/hal/lib/ecat/v1/value_parsing_go_proto";
+
+// An expected mask and value for a signal.
+// The comparison is: read_value & signal_mask == expected_value
+message ValuePattern {
+  // The values of the bits where the mask is 'true' will be compared.
+  uint32 expected_value = 1;
+  // Ones for bits that should be compared
+  uint32 signal_mask = 2;
+}
+// List of ValuePatterns to use in a map.
+// Usage:
+// map<string, intrinsic_proto.ecat.ValuePatterns> interpretation_of_value = 1;
+// Where the key string is the interpretation of the value.
+message ValuePatterns {
+  repeated ValuePattern patterns = 1;
+}

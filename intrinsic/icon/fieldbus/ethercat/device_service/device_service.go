@@ -8,11 +8,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"intrinsic/assets/dependencies/utils"
 	"path"
 	"regexp"
 	"strings"
-
-	"intrinsic/assets/dependencies/utils"
 
 	log "github.com/golang/glog"
 
@@ -20,6 +19,7 @@ import (
 	dscpb "intrinsic/icon/fieldbus/ethercat/device_service/v1/device_service_config_go_proto"
 	dspb "intrinsic/icon/fieldbus/ethercat/device_service/v1/device_service_go_proto"
 	esipb "intrinsic/icon/fieldbus/ethercat/device_service/v1/esi_go_proto"
+	ecatpb "intrinsic/icon/hal/lib/sdo_value/v1/sdo_value_config_go_proto"
 )
 
 var (
@@ -71,8 +71,10 @@ type DeviceService struct {
 	exclusionsToRemove []uint32
 	// objectsToAdd tracks variables that must be appended to a dynamic PDO mapping.
 	objectsToAdd []*dspb.ResolvedConfiguration_EbiPdoInstructions_ObjectAddition
-	// resolvedVars stores the final mapping of "pdo::object" to resolution metadata.
-	resolvedVars map[string]*dspb.ResolvedVariable
+	// pdoMappings stores the final mapping of "pdo::object" to resolution metadata.
+	pdoMappings map[string]*dspb.ResolvedPdoVariable
+	// sdoMappings stores the final mapping of SDO "object" strings to resolution metadata.
+	sdoMappings map[string]*dspb.ResolvedSdoVariable
 
 	// supportedOpModes lists the synchronization modes supported by the device (from ESI).
 	supportedOpModes []*dspb.OpModeInfo
@@ -184,7 +186,8 @@ func (s *DeviceService) computeResolvedConfiguration(ctx context.Context) error 
 	s.exclusionsToAdd = nil
 	s.exclusionsToRemove = nil
 	s.objectsToAdd = nil
-	s.resolvedVars = make(map[string]*dspb.ResolvedVariable)
+	s.pdoMappings = make(map[string]*dspb.ResolvedPdoVariable)
+	s.sdoMappings = make(map[string]*dspb.ResolvedSdoVariable)
 
 	// Resolve all mapped interfaces.
 	for _, im := range s.config.GetInterfaceMappings() {
@@ -214,6 +217,12 @@ func (s *DeviceService) computeResolvedConfiguration(ctx context.Context) error 
 
 		if busVar := im.GetDeviceData().GetBusVariableDeviceData(); busVar != nil {
 			if err := s.resolveBusVariableWrite(ctx, busVar); err != nil {
+				return err
+			}
+		}
+
+		if sdo_data := im.GetDeviceData().GetSdoDeviceData(); sdo_data != nil {
+			if err := s.resolveSdoDeviceData(ctx, sdo_data); err != nil {
 				return err
 			}
 		}
@@ -252,7 +261,8 @@ func (s *DeviceService) computeResolvedConfiguration(ctx context.Context) error 
 
 	s.resolvedConfiguration = &dspb.ResolvedConfiguration{
 		EbiPdoInstructions: instructions,
-		VariableMappings:   s.resolvedVars,
+		PdoMappings:        s.pdoMappings,
+		SdoMappings:        s.sdoMappings,
 		SupportedOpModes:   s.supportedOpModes,
 		ActiveOpModeName:   activeOpMode,
 	}
@@ -399,7 +409,7 @@ func (s *DeviceService) resolveVariable(ctx context.Context, ref *dscpb.Variable
 	}
 
 	key := ref.GetPdo() + variableReferenceSeparator + ref.GetObject()
-	if _, ok := s.resolvedVars[key]; ok {
+	if _, ok := s.pdoMappings[key]; ok {
 		if tracingEnabled {
 			log.InfoContextf(ctx, "Variable already resolved (cached).")
 		}
@@ -456,7 +466,7 @@ func (s *DeviceService) resolveVariable(ctx context.Context, ref *dscpb.Variable
 	}
 
 	// Record resolution metadata.
-	s.resolvedVars[key] = &dspb.ResolvedVariable{
+	s.pdoMappings[key] = &dspb.ResolvedPdoVariable{
 		PdoIndex:      pdoIdx,
 		Index:         addr.Index,
 		SubIndex:      addr.SubIndex,
@@ -536,13 +546,154 @@ func (s *DeviceService) resolveBusVariableWrite(ctx context.Context, busVar *dsc
 			return err
 		}
 		key := ref.GetPdo() + variableReferenceSeparator + ref.GetObject()
-		resolved := s.resolvedVars[key]
+		resolved := s.pdoMappings[key]
 		addr := objectAddress{Index: resolved.Index, SubIndex: resolved.SubIndex}
 		meta := s.objectIndex[addr]
 
 		if err := verifyBusVariableType(write.GetValue(), meta.DataType, meta.BitSize); err != nil {
 			return fmt.Errorf("type mismatch for variable %q (ESI type %s, %d bits): %w", ref.GetObject(), meta.DataType, meta.BitSize, err)
 		}
+	}
+	return nil
+}
+
+// resolveSdoDeviceData resolves all SDO variables required for reading and writing.
+//
+// Parameters:
+//   - ctx: Request context.
+//   - sdo_data: The SDO device data containing lists of reads and writes.
+//
+// Returns:
+//   - An error if a named variable cannot be found in the dictionary.
+func (s *DeviceService) resolveSdoDeviceData(ctx context.Context, sdo_data *dscpb.SdoDeviceData) error {
+	resolved := make(map[string]*dspb.ResolvedSdoVariable)
+
+	for _, write := range sdo_data.GetSdoWrites() {
+		idx, sub, meta, err := s.resolveSdoVariable(ctx, write.GetObject(), PdoDirectionRx)
+		if err != nil {
+			return err
+		}
+		// We might be using undocumented SDOs. So only verify if we have metadata.
+		if meta != nil {
+			if err := verifyBusVariableType(write.GetValue(), meta.DataType, meta.BitSize); err != nil {
+				return fmt.Errorf("type mismatch for SDO write %q (ESI type %s, %d bits): %w", write.GetObject(), meta.DataType, meta.BitSize, err)
+			}
+		}
+		resolved[write.GetObject()] = &dspb.ResolvedSdoVariable{Index: idx, SubIndex: sub}
+	}
+
+	for _, read := range sdo_data.GetSdoReads() {
+		idx, sub, meta, err := s.resolveSdoVariable(ctx, read.GetObject(), PdoDirectionTx)
+		if err != nil {
+			return err
+		}
+		// We might be using undocumented SDOs. So only verify if we have metadata.
+		if meta != nil {
+			if err := verifySdoReadType(read.GetType(), meta.DataType, meta.BitSize); err != nil {
+				return fmt.Errorf("type mismatch for SDO read %q (ESI type %s, %d bits): %w", read.GetObject(), meta.DataType, meta.BitSize, err)
+			}
+		}
+		resolved[read.GetObject()] = &dspb.ResolvedSdoVariable{Index: idx, SubIndex: sub}
+	}
+
+	for k, v := range resolved {
+		s.sdoMappings[k] = v
+	}
+	return nil
+}
+
+// resolveSdoVariable resolves a string identifier to a hardware address.
+//
+// SDOs (Service Data Objects) follow a different resolution path than PDOs
+// because they use acyclic mailbox communication (CoE) rather than the
+// real-time process data image. Crucially:
+//  1. They do NOT need to be mapped to a PDO.
+//  2. They do NOT trigger PDO exclusion conflicts or "Fixed PDO" errors.
+//  3. They may target objects NOT present in the ESI dictionary (raw addresses).
+//
+// Parameters:
+//   - ctx: Request context.
+//   - object: The identifier string, e.g., "Status word" or "0x6041.0".
+//   - expectedDir: The expected direction of the SDO variable (Rx for write, Tx for read).
+//
+// Returns:
+//   - idx: The resolved 16-bit object index.
+//   - sub: The resolved 8-bit sub-index.
+//   - meta: Metadata from the ESI dictionary (nil if the object is not in the dictionary).
+//   - err: An error if the name cannot be resolved or parsing fails.
+func (s *DeviceService) resolveSdoVariable(ctx context.Context, object string, expectedDir PdoDirection) (uint32, uint32, *objectMetadata, error) {
+	// 1. Try to parse as a raw numeric address (e.g. "0x605A.0")
+	idxStr, subIdxStr := object, "0"
+	if strings.Contains(object, ".") {
+		parts := strings.SplitN(object, ".", 2)
+		idxStr, subIdxStr = parts[0], parts[1]
+	}
+
+	idx, errIdx := parseUint32(idxStr)
+	sub, errSub := parseUint32(subIdxStr)
+
+	if errIdx == nil && errSub == nil {
+		addr := objectAddress{Index: idx, SubIndex: sub}
+		if meta, ok := s.objectIndex[addr]; ok {
+			return idx, sub, meta, nil
+		}
+		// SDOs are allowed even if they are not in the dictionary (e.g. vendor-specific indices
+		// missing from a generic ESI).
+		log.WarningContextf(ctx, "SDO address #x%04X.%d not found in ESI dictionary. Type validation will be skipped.", idx, sub)
+		return idx, sub, nil, nil
+	}
+
+	// 2. Resolve by name from the global dictionary.
+	addr, meta, err := s.resolveObjectByName(ctx, object, nil, expectedDir)
+	if err != nil {
+		return 0, 0, nil, fmt.Errorf("SDO variable %q could not be resolved from ESI dictionary: %w", object, err)
+	}
+	return addr.Index, addr.SubIndex, meta, nil
+}
+
+// verifySdoReadType checks if a requested SDO read type matches the device's expected data type.
+//
+// Parameters:
+//   - requestedType: The type requested by the user, as a proto enum.
+//   - esiType: The expected data type as defined in the device's ESI dictionary.
+//   - bitSize: The expected size of the variable in bits, as defined in the ESI.
+//
+// Returns:
+//   - An error if the type validation fails, indicating a mismatch between the requested
+//     type and the ESI specification, or if the `requestedType` is unsupported.
+func verifySdoReadType(requestedType ecatpb.SdoVariableType, esiType string, bitSize uint32) error {
+	// Map the requested SDO read type to a dummy BusVariableValue so we can reuse verifyBusVariableType
+	dummyVal := &dscpb.BusVariableValue{}
+	switch requestedType {
+	case ecatpb.SdoVariableType_BOOL_SDO_TYPE:
+		dummyVal.Value = &dscpb.BusVariableValue_BoolValue{}
+	case ecatpb.SdoVariableType_UINT8_SDO_TYPE:
+		dummyVal.Value = &dscpb.BusVariableValue_Uint8Value{}
+	case ecatpb.SdoVariableType_INT8_SDO_TYPE:
+		dummyVal.Value = &dscpb.BusVariableValue_Int8Value{}
+	case ecatpb.SdoVariableType_UINT16_SDO_TYPE:
+		dummyVal.Value = &dscpb.BusVariableValue_Uint16Value{}
+	case ecatpb.SdoVariableType_INT16_SDO_TYPE:
+		dummyVal.Value = &dscpb.BusVariableValue_Int16Value{}
+	case ecatpb.SdoVariableType_UINT32_SDO_TYPE:
+		dummyVal.Value = &dscpb.BusVariableValue_Uint32Value{}
+	case ecatpb.SdoVariableType_INT32_SDO_TYPE:
+		dummyVal.Value = &dscpb.BusVariableValue_Int32Value{}
+	case ecatpb.SdoVariableType_UINT64_SDO_TYPE:
+		dummyVal.Value = &dscpb.BusVariableValue_Uint64Value{}
+	case ecatpb.SdoVariableType_INT64_SDO_TYPE:
+		dummyVal.Value = &dscpb.BusVariableValue_Int64Value{}
+	case ecatpb.SdoVariableType_FLOAT_SDO_TYPE:
+		dummyVal.Value = &dscpb.BusVariableValue_FloatValue{}
+	case ecatpb.SdoVariableType_DOUBLE_SDO_TYPE:
+		dummyVal.Value = &dscpb.BusVariableValue_DoubleValue{}
+	default:
+		// Unknown or UNDEFINED_SDO_TYPE
+		return fmt.Errorf("unsupported or missing requested type %q", requestedType)
+	}
+
+	if err := verifyBusVariableType(dummyVal, esiType, bitSize); err != nil {
+		return fmt.Errorf(strings.ReplaceAll(err.Error(), "provided", "requested"))
 	}
 	return nil
 }
