@@ -1,6 +1,7 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
 // Package telemetry sets up OpenCensus tracing and metrics.
+// In the process of migrating to OpenTelemetry.
 package telemetry
 
 import (
@@ -23,7 +24,33 @@ import (
 	"go.opencensus.io/plugin/ocgrpc"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/trace"
+	b3prop "go.opentelemetry.io/contrib/propagators/b3"
+	ocprop "go.opentelemetry.io/contrib/propagators/opencensus"
+	"go.opentelemetry.io/otel/propagation"
 	"google.golang.org/grpc/status"
+)
+
+var (
+	// HTTPPropagator is a composite propagator for HTTP services.
+	// With this we can support multiple trace context formats (both opencensus and opentelemetry).
+	// WARNING: We can't set a global propagator with all formatters because the binary format could break HTTP headers.
+	HTTPPropagator = propagation.NewCompositeTextMapPropagator(
+		// Default propagator for opentelemetry, uses traceparent header
+		propagation.TraceContext{},
+		// OpenCensus http propagator, uses b3 format with multiple headers
+		// See https://github.com/census-instrumentation/opencensus-go/blob/master/plugin/ochttp/trace.go#L29
+		b3prop.New(b3prop.WithInjectEncoding(b3prop.B3MultipleHeader)),
+	)
+
+	// GRPCPropagator is a composite propagator for gRPC services.
+	// With this we can support multiple trace context formats (both opencensus and opentelemetry).
+	GRPCPropagator = propagation.NewCompositeTextMapPropagator(
+		// Default propagator for opentelemetry, uses traceparent header
+		propagation.TraceContext{},
+		// OpenCensus grpc propagator, uses grpc-trace-bin header
+		// See https://github.com/census-instrumentation/opencensus-go/blob/master/plugin/ocgrpc/trace_common.go#L30
+		ocprop.Binary{},
+	)
 )
 
 // tracingConfig contains the configuration parameters for tracing.

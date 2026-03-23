@@ -6,17 +6,29 @@ package(default_visibility = ["//visibility:public"])
 
 go_library(
     name = "telemetry",
-    srcs = ["telemetry.go"],
+    srcs = [
+        "otel_telemetry.go",
+        "telemetry.go",
+    ],
     importpath = "intrinsic/stats/go/telemetry",
     deps = [
         "@com_github_golang_glog//:go_default_library",
         "@com_github_pborman_uuid//:go_default_library",
         "@io_opencensus_go//plugin/ocgrpc:go_default_library",
+        "@io_opencensus_go//stats:go_default_library",
         "@io_opencensus_go//stats/view:go_default_library",
+        "@io_opencensus_go//tag:go_default_library",
         "@io_opencensus_go//trace:go_default_library",
         "@io_opencensus_go_contrib_exporter_ocagent//:go_default_library",
         "@io_opencensus_go_contrib_exporter_prometheus//:go_default_library",
         "@io_opencensus_go_contrib_exporter_stackdriver//:go_default_library",
+        "@io_opentelemetry_go_contrib_instrumentation_google_golang_org_grpc_otelgrpc//:otelgrpc",
+        "@io_opentelemetry_go_contrib_propagators_b3//:b3",
+        "@io_opentelemetry_go_contrib_propagators_opencensus//:opencensus",
+        "@io_opentelemetry_go_otel//propagation",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//codes:go_default_library",
+        "@org_golang_google_grpc//stats:go_default_library",
         "@org_golang_google_grpc//status:go_default_library",
     ],
 )
