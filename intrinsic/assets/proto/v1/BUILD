@@ -229,6 +229,7 @@ proto_library(
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/config/proto:operation_mode_proto",
+        "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_googleapis//google/longrunning:operations_proto",
     ],
 )
@@ -245,6 +246,7 @@ go_proto_library(
     deps = [
         "//intrinsic/config/proto:operation_mode_go_proto",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
+        "@org_golang_google_genproto_googleapis_api//annotations",
     ],
 )
 

@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.services.v1;
 
+import "google/api/annotations.proto";
 import "intrinsic/util/status/extended_status.proto";
 
 option go_package = "intrinsic/assets/services/proto/v1/system_service_state_go_proto";
@@ -24,11 +25,19 @@ option go_package = "intrinsic/assets/services/proto/v1/system_service_state_go_
 service SystemServiceState {
 
   // Returns the current state of the requested Service instance.
-  rpc GetInstanceState(GetInstanceStateRequest) returns (InstanceState) {}
+  rpc GetInstanceState(GetInstanceStateRequest) returns (InstanceState) {
+    option (google.api.http) = {
+      get: "/v1/serviceState/{name}"
+    };
+  }
 
   // Returns the states for all Service instances in the solution.
   rpc ListInstanceStates(ListInstanceStatesRequest)
-      returns (ListInstanceStatesResponse) {}
+      returns (ListInstanceStatesResponse) {
+    option (google.api.http) = {
+      get: "/v1/serviceState"
+    };
+  }
 
   // Enables the requested running Service instance if supported.
   //
@@ -48,7 +57,11 @@ service SystemServiceState {
   //    enabling the Service. This is left to the Service author to implement.
   //  - If the Service is in STATE_CODE_DISABLED, this call should enable the
   //    Service, but is left to the Service author to implement.
-  rpc EnableService(EnableServiceRequest) returns (EnableServiceResponse) {}
+  rpc EnableService(EnableServiceRequest) returns (EnableServiceResponse) {
+    option (google.api.http) = {
+      post: "/v1/serviceState/{name}:enable"
+    };
+  }
 
   // Disables the requested running Service instance if supported.
   //
@@ -69,7 +82,11 @@ service SystemServiceState {
   //  - If the Service is in STATE_CODE_DISABLED, this call should
   //    have no effect since the Service should not be operating and should not
   //    be servicing requests. It is left to the Service author to implement.
-  rpc DisableService(DisableServiceRequest) returns (DisableServiceResponse) {}
+  rpc DisableService(DisableServiceRequest) returns (DisableServiceResponse) {
+    option (google.api.http) = {
+      post: "/v1/serviceState/{name}:disable"
+    };
+  }
 
   // Restarts the running Service instance.
   //
@@ -78,7 +95,11 @@ service SystemServiceState {
   // trigger a new operation immediately.
   //
   // Note: This will stop all ongoing processes in the Service.
-  rpc RestartService(RestartServiceRequest) returns (RestartServiceResponse) {}
+  rpc RestartService(RestartServiceRequest) returns (RestartServiceResponse) {
+    option (google.api.http) = {
+      post: "/v1/serviceState/{name}:restart"
+    };
+  }
 }
 
 message InstanceState {

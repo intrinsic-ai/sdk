@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.assets.v1;
 
+import "google/api/annotations.proto";
 import "google/longrunning/operations.proto";
 import "intrinsic/config/proto/operation_mode.proto";
 
@@ -23,6 +24,10 @@ service SolutionDeploymentService {
       metadata_type: "CreateSolutionDeploymentFromVersionedSolutionMetadata"
       response_type: "SolutionDeployment"
     };
+    option (google.api.http) = {
+      post: "/v1/solutionDeployment:createFromVersionedSolution"
+      body: "*"
+    };
   }
 
   // Stops the current solution deployment, if running.  Will not return an
@@ -32,6 +37,9 @@ service SolutionDeploymentService {
     option (google.longrunning.operation_info) = {
       metadata_type: "DeleteSolutionDeploymentMetadata"
       response_type: "google.protobuf.Empty"
+    };
+    option (google.api.http) = {
+      delete: "/v1/solutionDeployment"
     };
   }
 }

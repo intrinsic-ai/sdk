@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.data.v1;
 
+import "google/api/annotations.proto";
 import "intrinsic/assets/data/proto/v1/data_asset.proto";
 import "intrinsic/assets/data/proto/v1/referenced_data.proto";
 import "intrinsic/assets/proto/id.proto";
@@ -17,18 +18,35 @@ option go_package = "intrinsic/assets/data/proto/v1/data_assets_go_proto";
 service DataAssets {
 
   // Lists installed Data assets.
-  rpc ListDataAssets(ListDataAssetsRequest) returns (ListDataAssetsResponse) {}
+  rpc ListDataAssets(ListDataAssetsRequest) returns (ListDataAssetsResponse) {
+    option (google.api.http) = {
+      get: "/v1/dataAssets"
+    };
+  }
 
   // Lists only the metadata of installed Data assets.
   rpc ListDataAssetMetadata(ListDataAssetMetadataRequest)
-      returns (ListDataAssetMetadataResponse) {}
+      returns (ListDataAssetMetadataResponse) {
+    option (google.api.http) = {
+      get: "/v1/dataAssets/metadata"
+    };
+  }
 
   // Gets a specific Data asset.
-  rpc GetDataAsset(GetDataAssetRequest) returns (DataAsset) {}
+  rpc GetDataAsset(GetDataAssetRequest) returns (DataAsset) {
+    option (google.api.http) = {
+      get: "/v1/dataAssets/{id.package}/{id.name}"
+    };
+  }
 
   // Streams the bytes referenced by ReferencedData in an installed Data asset.
   rpc StreamReferencedData(StreamReferencedDataRequest)
-      returns (stream StreamReferencedDataResponse) {}
+      returns (stream StreamReferencedDataResponse) {
+    option (google.api.http) = {
+      post: "/v1/dataAssets/{id.package}/{id.name}:streamReferencedData"
+      body: "*"
+    };
+  }
 }
 
 // Used to filter responses from requests to list Data assets.

@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.catalog.v1;
 
+import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
 import "google/protobuf/descriptor.proto";
 import "google/protobuf/field_mask.proto";
@@ -27,10 +28,21 @@ option go_package = "intrinsic/assets/catalog/proto/v1/asset_catalog_go_proto";
 // Provides access to assets in the asset catalog.
 service AssetCatalog {
   // Gets (a view of) the specified asset.
-  rpc GetAsset(GetAssetRequest) returns (Asset);
+  rpc GetAsset(GetAssetRequest) returns (Asset) {
+    option (google.api.http) = {
+      get: "/v1/assetCatalog/{id_version.id.package}/{id_version.id.name}/{id_version.version}"
+      additional_bindings: {
+        get: "/v1/assetCatalog/{id.package}/{id.name}"  // Default version.
+      }
+    };
+  }
 
   // Lists (views of) assets that satisfy the specified constraints.
-  rpc ListAssets(ListAssetsRequest) returns (ListAssetsResponse);
+  rpc ListAssets(ListAssetsRequest) returns (ListAssetsResponse) {
+    option (google.api.http) = {
+      get: "/v1/assetCatalog"
+    };
+  }
 
   // Adds a new version of an asset to the catalog.
   //
@@ -38,14 +50,24 @@ service AssetCatalog {
   // (asset.metadata.id_version.package) to create an asset within it. The first
   // two elements of the package are the top-level package (eg "ai.intrinsic").
   // If the package does not exist, this will fail.
-  rpc CreateAsset(CreateAssetRequest) returns (Asset);
+  rpc CreateAsset(CreateAssetRequest) returns (Asset) {
+    option (google.api.http) = {
+      post: "/v1/assetCatalog"
+      body: "asset"
+    };
+  }
 
   // Updates the release metadata of the specified asset.
   //
   // NOTE: If this RPC is used to remove the org-private flag on an asset, that
   // flag CANNOT be re-added later.
   rpc UpdateReleaseMetadata(UpdateReleaseMetadataRequest)
-      returns (ReleaseMetadata);
+      returns (ReleaseMetadata) {
+    option (google.api.http) = {
+      patch: "/v1/assetCatalog/releaseMetadata/{id_version.id.package}/{id_version.id.name}/{id_version.version}"
+      body: "*"
+    };
+  }
 
   // Prepares a ReferencedData so that it can be included in an asset that will
   // be released to the catalog.
@@ -59,7 +81,7 @@ service AssetCatalog {
   // of the file data until the entire file has been sent. Finally, the client
   // should close the stream.
   rpc PrepareReferencedData(stream PrepareReferencedDataRequest)
-      returns (PrepareReferencedDataResponse);
+      returns (PrepareReferencedDataResponse) {}
 }
 
 // A specific version of an asset in the catalog.

@@ -379,6 +379,7 @@ proto_library(
         "//intrinsic/assets/services/proto:service_manifest_proto",
         "//intrinsic/assets/services/proto/v1:service_inspection_proto",
         "//intrinsic/skills/proto:processed_skill_manifest_proto",
+        "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_googleapis//google/longrunning:operations_proto",
     ],
 )
@@ -407,6 +408,7 @@ go_proto_library(
         "//intrinsic/assets/services/proto/v1:service_inspection_go_proto",
         "//intrinsic/skills/proto:processed_skill_manifest_go_proto",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
+        "@org_golang_google_genproto_googleapis_api//annotations",
     ],
 )
 

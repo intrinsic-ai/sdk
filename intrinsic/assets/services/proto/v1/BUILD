@@ -124,7 +124,10 @@ go_proto_library(
 proto_library(
     name = "system_service_state_proto",
     srcs = ["system_service_state.proto"],
-    deps = ["//intrinsic/util/status:extended_status_proto"],
+    deps = [
+        "//intrinsic/util/status:extended_status_proto",
+        "@com_google_googleapis//google/api:annotations_proto",
+    ],
 )
 
 go_proto_library(
@@ -135,7 +138,10 @@ go_proto_library(
     ],
     importpath = "intrinsic/assets/services/proto/v1/system_service_state_go_proto",
     protos = [":system_service_state_proto"],
-    deps = ["//intrinsic/util/status:extended_status_go_proto"],
+    deps = [
+        "//intrinsic/util/status:extended_status_go_proto",
+        "@org_golang_google_genproto_googleapis_api//annotations",
+    ],
 )
 
 py_proto_library(

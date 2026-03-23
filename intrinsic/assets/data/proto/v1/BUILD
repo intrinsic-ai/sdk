@@ -32,7 +32,9 @@ go_proto_library(
     importpath = "intrinsic/assets/data/proto/v1/data_asset_go_proto",
     protos = [":data_asset_proto"],
     visibility = ["//intrinsic:public_api_users"],
-    deps = ["//intrinsic/assets/proto:metadata_go_proto"],
+    deps = [
+        "//intrinsic/assets/proto:metadata_go_proto",
+    ],
 )
 
 py_proto_library(
@@ -140,6 +142,7 @@ proto_library(
         ":referenced_data_proto",
         "//intrinsic/assets/proto:id_proto",
         "//intrinsic/assets/proto:metadata_proto",
+        "@com_google_googleapis//google/api:annotations_proto",
     ],
 )
 
@@ -163,6 +166,7 @@ go_proto_library(
         ":referenced_data_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
         "//intrinsic/assets/proto:metadata_go_proto",
+        "@org_golang_google_genproto_googleapis_api//annotations",
     ],
 )
 

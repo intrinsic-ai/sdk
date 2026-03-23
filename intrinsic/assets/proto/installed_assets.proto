@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.assets.v1;
 
+import "google/api/annotations.proto";
 import "google/longrunning/operations.proto";
 import "intrinsic/assets/data/proto/v1/data_asset.proto";
 import "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest.proto";
@@ -26,14 +27,27 @@ service InstalledAssets {
 
   // Lists the currently installed assets.
   rpc ListInstalledAssets(ListInstalledAssetsRequest)
-      returns (ListInstalledAssetsResponse);
+      returns (ListInstalledAssetsResponse) {
+    option (google.api.http) = {
+      get: "/v1/installedAssets"
+    };
+  }
 
   // Gets a specific installed asset.
-  rpc GetInstalledAsset(GetInstalledAssetRequest) returns (InstalledAsset);
+  rpc GetInstalledAsset(GetInstalledAssetRequest) returns (InstalledAsset) {
+    option (google.api.http) = {
+      get: "/v1/installedAssets/{id.package}/{id.name}"
+    };
+  }
 
   // Gets a batch of installed assets.
   rpc BatchGetInstalledAssets(BatchGetInstalledAssetsRequest)
-      returns (BatchGetInstalledAssetsResponse);
+      returns (BatchGetInstalledAssetsResponse) {
+    option (google.api.http) = {
+      get: "/v1/installedAssets:batchGet"
+      body: "*"
+    };
+  }
 
   // Installs the specified asset into the solution.
   rpc CreateInstalledAsset(CreateInstalledAssetRequest)
@@ -41,6 +55,10 @@ service InstalledAssets {
     option (google.longrunning.operation_info) = {
       metadata_type: "CreateInstalledAssetMetadata"
       response_type: "InstalledAsset"
+    };
+    option (google.api.http) = {
+      post: "/v1/installedAssets"
+      body: "asset"
     };
   }
 
@@ -51,6 +69,10 @@ service InstalledAssets {
       metadata_type: "CreateInstalledAssetsMetadata"
       response_type: "CreateInstalledAssetsResponse"
     };
+    option (google.api.http) = {
+      post: "/v1/installedAssets:batchCreate"
+      body: "*"
+    };
   }
 
   // Uninstalls the specified asset from the solution.
@@ -60,6 +82,9 @@ service InstalledAssets {
       metadata_type: "DeleteInstalledAssetMetadata"
       response_type: "google.protobuf.Empty"
     };
+    option (google.api.http) = {
+      delete: "/v1/installedAssets/{id.package}/{id.name}"
+    };
   }
 
   // Uninstalls the specified assets from the solution.
@@ -68,6 +93,10 @@ service InstalledAssets {
     option (google.longrunning.operation_info) = {
       metadata_type: "DeleteInstalledAssetsMetadata"
       response_type: "google.protobuf.Empty"
+    };
+    option (google.api.http) = {
+      delete: "/v1/installedAssets:batchDelete"
+      body: "*"
     };
   }
 }
