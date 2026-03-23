@@ -1,0 +1,45 @@
+{{/*
+Copyright 2023 Intrinsic Innovation LLC
+*/ -}}
+
+{{/*empty line at top since this template is appended to an existing file*/}}
+proto_library(
+    name = "{{.ServiceNameSnakeCase}}_proto",
+    srcs = ["{{.ServiceNameSnakeCase}}.proto"],
+)
+
+cc_proto_library(
+    name = "{{.ServiceNameSnakeCase}}_cc_proto",
+    deps = [":{{.ServiceNameSnakeCase}}_proto"],
+)
+
+cc_binary(
+    name = "{{.ServiceNameSnakeCase}}_bin",
+    srcs = ["{{.ServiceNameSnakeCase}}.cc"],
+    deps = [
+        ":{{.ServiceNameSnakeCase}}_cc_proto",
+        "@ai_intrinsic_sdks//intrinsic/icon/release:file_helpers",
+        "@ai_intrinsic_sdks//intrinsic/resources/proto:runtime_context_cc_proto",
+        "@ai_intrinsic_sdks//intrinsic/util/proto:any",
+    ],
+)
+
+container_image(
+    name = "{{.ServiceNameSnakeCase}}_image",
+    base = "@distroless_base",
+    cmd = ["/" + package_name() + "/{{.ServiceNameSnakeCase}}_bin"],
+    data_path = "/",
+    files = [":{{.ServiceNameSnakeCase}}_bin"],
+)
+
+intrinsic_service(
+    name = "{{.ServiceNameSnakeCase}}_service",
+    default_config = ":{{.ServiceNameSnakeCase}}_defaults.textproto",
+    images = [
+        ":{{.ServiceNameSnakeCase}}_image.tar",
+    ],
+    manifest = ":{{.ServiceNameSnakeCase}}_manifest.textproto",
+    deps = [
+        ":{{.ServiceNameSnakeCase}}_proto",
+    ],
+)

@@ -1,0 +1,11 @@
+{{/*
+Copyright 2023 Intrinsic Innovation LLC
+*/ -}}
+
+syntax = "proto3";
+
+package {{strJoin .ProtoPackage "."}};
+
+message {{.ServiceNameUpperCamelCase}}Config {
+  string text = 1;
+}

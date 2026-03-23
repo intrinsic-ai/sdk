@@ -1,0 +1,47 @@
+{{/*
+Copyright 2023 Intrinsic Innovation LLC
+*/ -}}
+
+{{/*empty line at top since this template is appended to an existing file*/}}
+proto_library(
+    name = "{{.ServiceNameSnakeCase}}_proto",
+    srcs = ["{{.ServiceNameSnakeCase}}.proto"],
+)
+
+py_proto_library(
+    name = "{{.ServiceNameSnakeCase}}_py_pb2",
+    deps = [":{{.ServiceNameSnakeCase}}_proto"],
+)
+
+py_binary(
+    name = "{{.ServiceNameSnakeCase}}_bin",
+    srcs = ["{{.ServiceNameSnakeCase}}.py"],
+    main = "{{.ServiceNameSnakeCase}}.py",
+    deps = [
+        ":{{.ServiceNameSnakeCase}}_py_pb2",
+        "@ai_intrinsic_sdks//intrinsic/resources/proto:runtime_context_py_pb2",
+    ],
+)
+
+python_oci_image(
+    name = "{{.ServiceNameSnakeCase}}_image",
+    base = "@distroless_python3",
+    binary = "{{.ServiceNameSnakeCase}}_bin",
+    entrypoint = [
+        "python3",
+        "-u",
+        "/" + package_name() + "/{{.ServiceNameSnakeCase}}_bin",
+    ],
+)
+
+intrinsic_service(
+    name = "{{.ServiceNameSnakeCase}}_service",
+    default_config = "{{.ServiceNameSnakeCase}}_defaults.textproto",
+    images = [
+        ":{{.ServiceNameSnakeCase}}_image.tar",
+    ],
+    manifest = ":{{.ServiceNameSnakeCase}}_manifest.textproto",
+    deps = [
+        ":{{.ServiceNameSnakeCase}}_proto",
+    ],
+)

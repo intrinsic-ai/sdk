@@ -1,0 +1,71 @@
+{{/*
+Copyright 2023 Intrinsic Innovation LLC
+*/ -}}
+
+#include <iostream>
+#include <string>
+#include <string_view>
+#include <chrono>
+#include <thread>
+#include <memory>
+
+#include "intrinsic/icon/release/file_helpers.h"
+#include "intrinsic/resources/proto/runtime_context.pb.h"
+#include "intrinsic/util/proto/any.h"
+#include "{{strJoin .BazelPackage "/"}}{{if .BazelPackage}}/{{end}}{{.ServiceNameSnakeCase}}.pb.h"
+
+using ::{{strJoin .ProtoPackage "::"}}::{{.ServiceNameUpperCamelCase}}Config;
+
+void RunRealService(
+  const intrinsic_proto::config::RuntimeContext & context,
+  std::unique_ptr<{{.ServiceNameUpperCamelCase}}Config> config)
+{
+  while (true) {
+    std::cerr << "Hello real world: " << config->text() << "\n";
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+  }
+}
+
+void RunSimulatedService(
+  const intrinsic_proto::config::RuntimeContext & context,
+  std::unique_ptr<{{.ServiceNameUpperCamelCase}}Config> config)
+{
+  while (true) {
+    std::cerr << "Hello simulated world: " << config->text() << "\n";
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+  }
+}
+
+int main(int argc, char** argv) {
+  std::cerr << "------------------------------------" << std::endl;
+  std::cerr << "-- {{.ServiceNameUpperCamelCase}} service starting" << std::endl;
+  std::cerr << "------------------------------------" << std::endl;
+
+  constexpr std::string_view kContextFilePath = "/etc/intrinsic/runtime_config.pb";
+
+  // Read the RuntimeContext from the binary proto file
+  auto context_result = intrinsic::GetBinaryProto<intrinsic_proto::config::RuntimeContext>(std::string(kContextFilePath));
+  if (!context_result.ok()) {
+    std::cerr << "[FATAL] Reading runtime context failed." << std::endl;
+    return 1;
+  }
+  const auto& context = *context_result;
+
+  // Parse/Unpack the service-specific configuration
+  auto config = std::make_unique<{{.ServiceNameUpperCamelCase}}Config>();
+  if (!intrinsic::UnpackAny(context.config(), *config).ok()) {
+    std::cerr << "[FATAL] Failed to unpack configuration." << std::endl;
+    return 1;
+  }
+
+  if (intrinsic_proto::config::RuntimeContext::REALITY == context.level()) {
+    RunRealService(context, std::move(config));
+  } else if (intrinsic_proto::config::RuntimeContext::PHYSICS_SIM == context.level()) {
+    RunSimulatedService(context, std::move(config));
+  } else {
+    std::cerr << "[FATAL] Unknown runtime level: " << context.level() << std::endl;
+    return 1;
+  }
+
+  return 0;
+}

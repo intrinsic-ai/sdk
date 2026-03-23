@@ -1,0 +1,9 @@
+{{/*
+Copyright 2023 Intrinsic Innovation LLC
+*/ -}}
+
+# proto-file: google/protobuf/any.proto
+# proto-message: Any
+[type.googleapis.com/{{strJoin .ProtoPackage "."}}.{{.ServiceNameUpperCamelCase}}Config] {
+    text: "Hello World"
+  }

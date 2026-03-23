@@ -1,0 +1,32 @@
+{{/*
+Copyright 2023 Intrinsic Innovation LLC
+*/ -}}
+
+# proto-file: https://github.com/intrinsic-ai/sdk/blob/main/intrinsic/assets/services/proto/service_manifest.proto
+# proto-message: intrinsic_proto.services.ServiceManifest
+
+metadata {
+    id {
+      package: "{{.ServicePackageName}}"
+      name: "{{.ServiceNameSnakeCase}}"
+    }
+    vendor {
+      display_name: "TODO: Provide your organization name"
+    }
+    documentation {
+      description: "TODO: Describe what the service asset does here."
+    }
+    display_name: "{{.ServiceNameUpperCamelCase}}"
+  }
+  service_def {
+    real_spec {
+      image {
+        archive_filename: "{{.ServiceNameSnakeCase}}_image.tar"
+      }
+    }
+    sim_spec {
+      image {
+        archive_filename: "{{.ServiceNameSnakeCase}}_image.tar"
+      }
+    }
+  }

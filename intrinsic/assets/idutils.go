@@ -360,6 +360,15 @@ func RemoveVersionFrom(id string) (string, error) {
 	return id, nil
 }
 
+// SplitID splits an id by its separator character ".".
+// If the input is an id_version, it returns only the id part split by periods.
+func SplitID(id string) []string {
+	if p, err := NewIDVersionParts(id); err == nil {
+		return strings.Split(p.ID(), ".")
+	}
+	return strings.Split(id, ".")
+}
+
 // IsID Tests whether a string is a valid Asset id.
 //
 // A valid id is formatted as "<package>.<name>", where `package` and `name` are formatted as

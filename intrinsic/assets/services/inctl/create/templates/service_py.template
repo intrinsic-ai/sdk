@@ -1,0 +1,49 @@
+{{/*
+Copyright 2023 Intrinsic Innovation LLC
+*/ -}}
+
+#!/usr/bin/env python3
+
+import logging
+import sys
+import time
+
+from intrinsic.resources.proto import runtime_context_pb2
+
+{{if .BazelPackage}}from {{strJoin .BazelPackage "."}} {{end}}import {{.ServiceNameSnakeCase}}_pb2
+
+
+def main():
+  logging.info('--------------------------------')
+  logging.info('-- {{.ServiceNameUpperCamelCase}} service starting')
+  logging.info('--------------------------------')
+
+  # Parse the configuration
+  with open('/etc/intrinsic/runtime_config.pb', 'rb') as fin:
+    context = runtime_context_pb2.RuntimeContext.FromString(fin.read())
+  config = {{.ServiceNameSnakeCase}}_pb2.{{.ServiceNameUpperCamelCase}}Config()
+  context.config.Unpack(config)
+
+  if runtime_context_pb2.RuntimeContext.PHYSICS_SIM == context.level:
+    run_real_service(context, config)
+  elif runtime_context_pb2.RuntimeContext.REALITY == context.level:
+    run_simulated_service(context, config)
+  else:
+    raise RuntimeError(f"Unknown runtime level {context.level}")
+
+
+def run_real_service(context, config):
+ while True:
+    logging.info(f'Hello real world: {config.text}')
+    time.sleep(5)
+
+
+def run_simulated_service(context, config):
+  while True:
+    logging.info(f'Hello simulated world: {config.text}')
+    time.sleep(5)
+
+
+if __name__ == '__main__':
+  logging.basicConfig(stream=sys.stderr, level=logging.INFO)
+  main()

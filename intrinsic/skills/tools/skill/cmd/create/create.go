@@ -4,7 +4,6 @@
 package create
 
 import (
-	"bytes"
 	"embed"
 	"fmt"
 	"io"
@@ -20,10 +19,10 @@ import (
 	"intrinsic/tools/inctl/cmd/bazel/bazel"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/cmd/version/version"
+	"intrinsic/tools/inctl/util/buildozer"
 	"intrinsic/tools/inctl/util/printer"
 	"intrinsic/tools/inctl/util/templateutil"
 
-	"github.com/bazelbuild/buildtools/edit"
 	"github.com/spf13/cobra"
 	strcase "github.com/stoewer/go-strcase"
 )
@@ -277,36 +276,6 @@ func createBazelWorkspaceIfNeeded(workspaceRoot string, params *cmdParams, stdou
 	return bazel.RunInitCmd(bazelinitParams)
 }
 
-// executeBuildozerCommands runs the given package-level buildozer commands
-// (which have the form "buildozer ... //my_package:__pkg__"). Modify or
-// fork this function if you need to run non-package-level buildozer commands.
-func executeBuildozerCommands(cmds []string, bazelWorkspaceDir string, bazelPackage []string) error {
-	opts := edit.NewOpts()
-	opts.RootDir = bazelWorkspaceDir
-	packageLabel := fmt.Sprintf("//%s:__pkg__", strings.Join(bazelPackage, "/"))
-
-	for _, cmd := range cmds {
-		// Capture and suppress output (buildozer uses stdout/stderr by default)
-		// and only print it in case of an error (see below).
-		var out, err bytes.Buffer
-		opts.OutWriter = &out
-		opts.ErrWriter = &err
-
-		args := []string{cmd, packageLabel}
-		result := edit.Buildozer(opts, args)
-
-		// Buildozer return codes:
-		// 0: success
-		// 3: no error, but no files were modified
-		if result != 0 && result != 3 {
-			return fmt.Errorf("command %q returned with error code %d:\n%s",
-				strings.Join(args, " "), result, err.String())
-		}
-	}
-
-	return nil
-}
-
 func createOrUpdateBuildFile(bazelWorkspaceDir string, bazelPackage []string, buildozerCmds []string, params *templateParams, buildTemplateName string, templateSet *template.Template) error {
 	path := filepath.Join(bazelWorkspaceDir, strings.Join(bazelPackage, "/"), "BUILD")
 
@@ -325,7 +294,7 @@ func createOrUpdateBuildFile(bazelWorkspaceDir string, bazelPackage []string, bu
 	}
 
 	// Add new or update existing load statements.
-	if err := executeBuildozerCommands(buildozerCmds, bazelWorkspaceDir, bazelPackage); err != nil {
+	if err := buildozer.ExecuteBuildozerCommands(buildozerCmds, bazelWorkspaceDir, bazelPackage); err != nil {
 		return fmt.Errorf("updating BUILD file with buildozer: %w", err)
 	}
 

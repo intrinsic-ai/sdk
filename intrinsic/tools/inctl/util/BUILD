@@ -13,6 +13,13 @@ go_binary(
 )
 
 go_library(
+    name = "buildozer",
+    srcs = ["buildozer.go"],
+    importpath = "intrinsic/tools/inctl/util/buildozer",
+    deps = ["@com_github_bazelbuild_buildtools//edit:go_default_library"],
+)
+
+go_library(
     name = "printer",
     srcs = ["printer.go"],
     importpath = "intrinsic/tools/inctl/util/printer",
