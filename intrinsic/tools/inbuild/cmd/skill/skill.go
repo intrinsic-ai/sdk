@@ -6,6 +6,7 @@ package skill
 import (
 	"intrinsic/tools/inbuild/cmd/skill/bundle"
 	"intrinsic/tools/inbuild/cmd/skill/generate/generate"
+	"intrinsic/tools/inbuild/cmd/skill/manifest"
 
 	"github.com/spf13/cobra"
 )
@@ -21,4 +22,5 @@ var SkillCmd = &cobra.Command{
 func init() {
 	SkillCmd.AddCommand(bundle.BundleCmd)
 	SkillCmd.AddCommand(generate.GenerateCmd)
+	SkillCmd.AddCommand(manifest.ManifestCmd)
 }

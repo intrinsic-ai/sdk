@@ -35,8 +35,12 @@ func LoadManifestAndFileDescriptorSets(manifestPath string, fdsPaths []string, i
 		return nil, nil, fmt.Errorf("failed to populate the files registry: %v", err)
 	}
 	m := new(smpb.SkillManifest)
-	if err := protoio.ReadTextProto(manifestPath, m, protoio.WithResolver(types)); err != nil {
-		return nil, nil, fmt.Errorf("failed to read manifest: %v", err)
+	// Try loading as binary first.
+	if err := protoio.ReadBinaryProto(manifestPath, m); err != nil {
+		// If binary fails, try loading as text.
+		if err := protoio.ReadTextProto(manifestPath, m, protoio.WithResolver(types)); err != nil {
+			return nil, nil, fmt.Errorf("failed to read manifest as binary or text: %v", err)
+		}
 	}
 	if err := skillvalidate.SkillManifest(m,
 		skillvalidate.WithFiles(files),
