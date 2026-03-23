@@ -197,6 +197,9 @@ var registerCmd = &cobra.Command{
 				"controlPlaneURI": fmt.Sprintf("%s:6443", clusterName),
 				"token":           shared.TokenPlaceholder,
 			},
+			"proxyConfig": map[string]any{
+				"aqualine": 2,
+			},
 			"version": "v1alphav1",
 		}
 		// For now, assume that control planes have a GPU...
