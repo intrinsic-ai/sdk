@@ -3,7 +3,7 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("@rules_pkg//:pkg.bzl", "pkg_tar")
-load("//bazel:go_macros.bzl", "go_binary")
+load("//bazel:go_macros.bzl", "go_binary", "go_test")
 load("//intrinsic/icon/testing:cc_test_and_malloc_test.bzl", "cc_test_and_malloc_test")
 
 package(default_visibility = ["//visibility:public"])
@@ -126,10 +126,24 @@ cc_library(
 
 go_binary(
     name = "init_hwm",
-    srcs = ["init_hwm.go"],
+    srcs = [
+        "init_hwm.go",
+        "init_runner.go",
+    ],
     importpath = "intrinsic/icon/utils/init_hwm",
     deps = [
         "//intrinsic/production:intrinsic",
+        "@com_github_golang_glog//:go_default_library",
+    ],
+)
+
+go_test(
+    name = "init_runner_test",
+    srcs = [
+        "init_runner.go",
+        "init_runner_test.go",
+    ],
+    deps = [
         "@com_github_golang_glog//:go_default_library",
     ],
 )
