@@ -162,7 +162,7 @@ class BehaviorTreeVisitorTest(parameterized.TestCase):
                   }
                 }
                 branches {
-                  condition { any_of{} } 
+                  condition { any_of{} }
                   node {
                     id: 82
                     fail {}
@@ -177,7 +177,7 @@ class BehaviorTreeVisitorTest(parameterized.TestCase):
                         fail {}
                       }
                     }
-                  } 
+                  }
                   node{
                     id: 83
                     fail {}
@@ -195,7 +195,7 @@ class BehaviorTreeVisitorTest(parameterized.TestCase):
                   }
                 }
                 tries {
-                  condition { any_of{} } 
+                  condition { any_of{} }
                   node {
                     id: 92
                     fail {}
@@ -210,7 +210,7 @@ class BehaviorTreeVisitorTest(parameterized.TestCase):
                         fail {}
                       }
                     }
-                  } 
+                  }
                   node{
                     id: 93
                     fail {}
@@ -352,6 +352,51 @@ class BehaviorTreeVisitorTest(parameterized.TestCase):
             ),
         ],
     )
+
+  def test_walk_called_tree_state(self):
+    behavior_tree = behavior_tree_pb2.BehaviorTree()
+    text_format.Parse(
+        r"""
+      tree_id: "T1"
+      root {
+        id: 1
+        task {
+          called_tree_state {
+            tree_id: "T2"
+            root {
+              id: 21
+              fail {}
+            }
+          }
+        }
+      }
+    """,
+        behavior_tree,
+    )
+
+    node_ids_no_visit = []
+
+    def visit_node_no_visit(tree, node):
+      node_ids_no_visit.append((tree.tree_id, node.id))
+
+    behavior_tree_visitor.walk(
+        behavior_tree,
+        node_visitor=visit_node_no_visit,
+        visit_called_tree_state=False,
+    )
+    self.assertEqual(node_ids_no_visit, [("T1", 1)])
+
+    node_ids_visit = []
+
+    def visit_node_visit(tree, node):
+      node_ids_visit.append((tree.tree_id, node.id))
+
+    behavior_tree_visitor.walk(
+        behavior_tree,
+        node_visitor=visit_node_visit,
+        visit_called_tree_state=True,
+    )
+    self.assertEqual(node_ids_visit, [("T1", 1), ("T2", 21)])
 
 
 if __name__ == "__main__":
