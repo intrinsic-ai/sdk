@@ -18,6 +18,7 @@ proto_library(
         "//intrinsic/assets/proto/v1:resolved_dependency_proto",
         "//intrinsic/icon/hal/lib/ecat/v1:value_parsing_proto",
         "//intrinsic/icon/hal/lib/sdo_value/v1:sdo_value_config_proto",
+        "@com_google_protobuf//:duration_proto",
     ],
 )
 

@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.fieldbus.ethercat.device_service.v1;
 
+import "google/protobuf/duration.proto";
 import "intrinsic/assets/proto/field_metadata.proto";
 import "intrinsic/assets/proto/v1/resolved_dependency.proto";
 import "intrinsic/icon/hal/lib/ecat/v1/value_parsing.proto";
@@ -216,6 +217,12 @@ message Ds402DeviceData {
   // Text output may be truncated.
   map<string, intrinsic_proto.ecat.v1.ValuePatterns>
       error_code_interpretations = 6;
+
+  // The delay to wait after enabling the drive before actually sending the
+  // enabling control words. Useful for temporally displacing potential spikes
+  // of electrical current during enabling, which might otherwise cause unstable
+  // supply voltage. Defaults to 0s if not set.
+  google.protobuf.Duration enable_delay = 7;
 }
 
 // Configuration for DS402 homing variables.
