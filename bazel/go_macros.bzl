@@ -23,6 +23,8 @@ def go_binary(name, **kwargs):
     )
 
 def go_library(name, **kwargs):
+    if not kwargs.get("importpath", None):
+        fail("{} is missing 'importpath'".format(name))
     _go_library(
         name = name,
         **kwargs
