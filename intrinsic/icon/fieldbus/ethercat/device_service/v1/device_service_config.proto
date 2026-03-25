@@ -209,6 +209,13 @@ message Ds402DeviceData {
   // Configuration for DS402 homing.
   // If not provided, homing support is disabled for this drive.
   optional HomingReference homing_reference = 5;
+
+  // Interpretations of the error code (read from `error_code_reference`) to
+  // a human readable string.
+  // Multiple interpretations can match a single error code.
+  // Text output may be truncated.
+  map<string, intrinsic_proto.ecat.v1.ValuePatterns>
+      error_code_interpretations = 6;
 }
 
 // Configuration for DS402 homing variables.
