@@ -66,10 +66,13 @@ class KeyValueStore {
  public:
   friend class PubSub;
 
+  virtual ~KeyValueStore() = default;
+
   // Sets the value for the given key. A key can't include any of the following
   // characters: /, *, ?, #, [ and ].
-  absl::Status Set(absl::string_view key, const google::protobuf::Any& value,
-                   std::optional<bool> high_consistency = std::nullopt);
+  virtual absl::Status Set(absl::string_view key,
+                           const google::protobuf::Any& value,
+                           std::optional<bool> high_consistency = std::nullopt);
 
   // Sets the value for the given key. A key can't include any of the following
   // characters: /, *, ?, #, [ and ].
@@ -110,7 +113,7 @@ class KeyValueStore {
       OnDoneCallback on_done = [](absl::string_view key) {});
 
   // Deletes the key from the KVStore.
-  absl::Status Delete(absl::string_view key);
+  virtual absl::Status Delete(absl::string_view key);
 
   // Lists all keys in the non replicated KVStore. Returns an error if called on
   // replicated KVStore. Essentially lists keys in kv_store/**
@@ -251,19 +254,21 @@ class KeyValueStore {
   }
 
  private:
-  explicit KeyValueStore(std::optional<std::string> prefix_override);
-
   static std::string MakeKeyImpl(
       std::initializer_list<absl::string_view> parts);
 
   absl::StatusOr<std::vector<std::string>> ExecuteList(
       absl::string_view keyexpr, absl::Duration timeout);
 
+ protected:
+  explicit KeyValueStore(std::optional<std::string> prefix_override);
+
   // Returns the value for the given key, wrapped into a google::protobuf::Any.
   // The KV store's key prefix is added to the key before fetching the value.
-  absl::StatusOr<google::protobuf::Any> GetAny(absl::string_view key,
-                                               absl::Duration timeout);
+  virtual absl::StatusOr<google::protobuf::Any> GetAny(absl::string_view key,
+                                                       absl::Duration timeout);
 
+ private:
   // Returns the value for the given key, wrapped into a google::protobuf::Any.
   // The key is processed as is, i.e. no prefixes are added to it.
   //

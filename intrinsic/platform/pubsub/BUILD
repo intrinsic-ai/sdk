@@ -7,6 +7,7 @@ load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
@@ -110,6 +111,34 @@ cc_library(
         "@abseil-cpp//absl/synchronization",
         "@abseil-cpp//absl/time",
         "@com_github_grpc_grpc//:grpc++",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_library(
+    name = "fake_kvstore",
+    srcs = ["fake_kvstore.cc"],
+    hdrs = ["fake_kvstore.h"],
+    deps = [
+        ":kvstore",
+        "@abseil-cpp//absl/base:core_headers",
+        "@abseil-cpp//absl/container:node_hash_map",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings:string_view",
+        "@abseil-cpp//absl/synchronization",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_test(
+    name = "fake_kvstore_test",
+    srcs = ["fake_kvstore_test.cc"],
+    deps = [
+        ":fake_kvstore",
+        "//intrinsic/util/testing:gtest_wrapper_main",
+        "@abseil-cpp//absl/status",
+        "@com_google_googletest//:gtest",
         "@com_google_protobuf//:protobuf",
     ],
 )
