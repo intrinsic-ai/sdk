@@ -59,19 +59,3 @@ message DisableResponse {}
 
 message EnableRequest {}
 message EnableResponse {}
-
-// intrinsic:assets_platform_provided_dependencies:strip_begin
-// Configuration for the service state interfaces provided to the Intrinsic
-// platform.
-message ServiceStateConfig {
-  enum ServiceVersion {
-    UNSPECIFIED = 0;
-    // The service implements intrinsic_proto.services.v1.ServiceState.
-    INTRINSIC_PROTO_SERVICES_V1_SERVICE_STATE = 1;
-  }
-  // The list of service state services provided to the platform.
-  // Authors might choose to implement multiple versions to increase
-  // compatibility across a wider range of platform versions.
-  repeated ServiceVersion service_versions = 1;
-}
-// intrinsic:assets_platform_provided_dependencies:strip_end

@@ -5,11 +5,8 @@
 package servicefix
 
 import (
-	"slices" // intrinsic:assets_platform_provided_dependencies:strip
 
 	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
-	drpb "intrinsic/assets/services/proto/v1/dynamic_reconfiguration_go_proto" // intrinsic:assets_platform_provided_dependencies:strip
-	sspb "intrinsic/assets/services/proto/v1/service_state_go_proto"           // intrinsic:assets_platform_provided_dependencies:strip
 )
 
 // fixOpts contains options for fixing a manifest.
@@ -68,46 +65,4 @@ func backfillServiceDef(sd *smpb.ServiceDef, opts *fixOpts) {
 		return
 	}
 
-	// intrinsic:assets_platform_provided_dependencies:strip_begin
-	// Populate the dynamic reconfiguration platform gRPC interface if only the deprecated boolean
-	// setting is present and true.
-	if conf := sd.GetDynamicReconfigurationConfig(); conf == nil && sd.GetSupportsDynamicReconfiguration() {
-		sd.DynamicReconfigurationConfig = &drpb.DynamicReconfigurationConfig{
-			ServiceVersions: []drpb.DynamicReconfigurationConfig_ServiceVersion{
-				drpb.DynamicReconfigurationConfig_INTRINSIC_PROTO_SERVICES_V1_DYNAMIC_RECONFIGURATION,
-			},
-		}
-	}
-
-	// Populate the service state platform gRPC interface if only the deprecated boolean setting is
-	// present and true.
-	if conf := sd.GetServiceStateConfig(); conf == nil && sd.GetSupportsServiceState() {
-		sd.ServiceStateConfig = &sspb.ServiceStateConfig{
-			ServiceVersions: []sspb.ServiceStateConfig_ServiceVersion{
-				sspb.ServiceStateConfig_INTRINSIC_PROTO_SERVICES_V1_SERVICE_STATE,
-			},
-		}
-	}
-
-	if opts.populateOldFields {
-		// Backfill the deprecated SupportsDynamicReconfiguration field if the new config is present.
-		if conf := sd.GetDynamicReconfigurationConfig(); conf != nil {
-			if slices.Contains(conf.GetServiceVersions(), drpb.DynamicReconfigurationConfig_INTRINSIC_PROTO_SERVICES_V1_DYNAMIC_RECONFIGURATION) {
-				sd.SupportsDynamicReconfiguration = true
-			}
-		}
-
-		// Backfill the deprecated SupportsServiceState field if the new config is present.
-		if conf := sd.GetServiceStateConfig(); conf != nil {
-			if slices.Contains(conf.GetServiceVersions(), sspb.ServiceStateConfig_INTRINSIC_PROTO_SERVICES_V1_SERVICE_STATE) {
-				sd.SupportsServiceState = true
-			}
-		}
-	}
-
-	if opts.clearObsoleteFields {
-		sd.SupportsDynamicReconfiguration = false
-		sd.SupportsServiceState = false
-	}
-	// intrinsic:assets_platform_provided_dependencies:strip_end
 }

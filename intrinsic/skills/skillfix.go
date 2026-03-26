@@ -76,17 +76,4 @@ func backfillSkillOptions(options *smpb.Options, opts *fixOpts) {
 		return
 	}
 
-	// intrinsic:assets_platform_provided_dependencies:strip_begin
-	// If SkillsServicesConfig is not present, we assume this skill provides the following skill
-	// service gRPC interfaces to the platform.
-	if options.GetSkillServicesConfig() == nil {
-		options.SkillServicesConfig = &smpb.SkillServicesConfig{
-			ServiceVersions: []smpb.SkillServicesConfig_ServiceVersion{
-				smpb.SkillServicesConfig_INTRINSIC_PROTO_SKILLS_PROJECTOR,
-				smpb.SkillServicesConfig_INTRINSIC_PROTO_SKILLS_EXECUTOR,
-				smpb.SkillServicesConfig_INTRINSIC_PROTO_SKILLS_SKILL_INFORMATION,
-			},
-		}
-	}
-	// intrinsic:assets_platform_provided_dependencies:strip_end
 }

@@ -89,25 +89,6 @@ message PubTopicMetadata {
   string message_full_name = 3;
 }
 
-// intrinsic:assets_platform_provided_dependencies:strip_begin
-// Configuration for the skill service interfaces provided to the Intrinsic
-// platform.
-message SkillServicesConfig {
-  enum ServiceVersion {
-    UNSPECIFIED = 0;
-    // The skill service implements intrinsic_proto.skills.Projector
-    INTRINSIC_PROTO_SKILLS_PROJECTOR = 1;
-    // The skill service implements intrinsic_proto.skills.Executor
-    INTRINSIC_PROTO_SKILLS_EXECUTOR = 2;
-    // The skill service implements intrinsic_proto.skills.SkillInformation
-    INTRINSIC_PROTO_SKILLS_SKILL_INFORMATION = 3;
-  }
-  // The list of skill services provided to the platform. This field is
-  // automatically populated when the skill asset is built.
-  repeated ServiceVersion service_versions = 1;
-}
-// intrinsic:assets_platform_provided_dependencies:strip_end
-
 message Options {
   // Indicates whether the skill supports cooperative cancellation during
   // execution. True if the skill supports cancellation, false otherwise.
@@ -135,11 +116,6 @@ message Options {
     CcServiceConfig cc_config = 11;
   }
 
-  // intrinsic:assets_platform_provided_dependencies:strip_begin
-  // Configuration for the skill service interfaces provided to the
-  // Intrinsic platform.
-  SkillServicesConfig skill_services_config = 5;
-  // intrinsic:assets_platform_provided_dependencies:strip_end
 }
 
 message Dependencies {
