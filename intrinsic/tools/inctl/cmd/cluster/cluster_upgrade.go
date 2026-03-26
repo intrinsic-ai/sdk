@@ -417,7 +417,7 @@ Examples:
 inctl cluster upgrade run --org my_org@my-project --cluster node-fc66c2ab-5770-43b8-aefe-a36a2f356fb1
 
 # Upgrade to specific OS and runtime releases:
-inctl cluster upgrade run --os 20250428.RC00 --base 20250721.RC05 \
+inctl cluster upgrade run --os 20251126.RC01 --runtime 0.20260126.0-RC07 \
   --org my_org@my-project --cluster node-fc66c2ab-5770-43b8-aefe-a36a2f356fb1
 
 # Undo the last automatic upgrade:
