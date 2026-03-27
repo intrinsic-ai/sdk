@@ -45,7 +45,7 @@ func rolebindingsInit(root *cobra.Command) {
 var grantRoleBindingCmdHelp = `
 Grant a user a role on a given resource and all its descendants.
 
-		inctl customer role-bindings grant --customer=exampleorg --email=user@example.com --role=owner
+		inctl customer role-bindings grant --customer=exampleorg --email=user@example.com --role=admin
 `
 
 var grantRoleBindingCmd = &cobra.Command{
