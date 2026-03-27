@@ -41,8 +41,7 @@ def python_layers(name, binary, **kwargs):
         testonly = kwargs.get("testonly"),
         srcs = [":" + name + "_tar_manifest_raw"],
         outs = [name + "_tar_manifest_filtered.spec"],
-        cmd = "sed -e 's#^\\.\\./##' $< | sed -e 's# external/##g' " +
-              " >$@",
+        cmd = "sed -e 's#^\\.\\./##' $< | sed -e 's# external/##g' >$@",
         compatible_with = kwargs.get("compatible_with"),
         tags = kwargs.get("tags"),
     )
