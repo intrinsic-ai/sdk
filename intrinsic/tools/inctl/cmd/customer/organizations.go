@@ -31,7 +31,8 @@ var (
 )
 
 func organizationsInit(root *cobra.Command) {
-	createCmd.Flags().StringVar(&flagCustomer, "customer", "", "The human-friendly identifier of the organization to create (format: ^[a-z][a-z0-9_-]{0,63}$). Keep empty to auto-generate a random identifier.")
+	createCmd.Flags().StringVar(&flagCustomer, "customer", "", "The human-friendly identifier of the organization. Deprecated and ignored.")
+	createCmd.Flags().MarkHidden("customer")
 	createCmd.Flags().StringVar(&flagOrgDisplayName, "display-name", "", "The display name of the organization to create.")
 	createCmd.MarkFlagRequired("display-name")
 	root.AddCommand(createCmd)
@@ -49,7 +50,7 @@ You must have permissions to create new organization on your current organizatio
 
 Example:
 
-		inctl customer create --customer=exampleorg --display-name="My Organization"
+		inctl customer create --display-name="My Organization"
 `
 
 var createCmd = &cobra.Command{
@@ -62,8 +63,13 @@ var createCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+
+		if flagCustomer != "" {
+			fmt.Fprintln(cmd.OutOrStderr(), "Warning: the --customer flag is ignored and will be removed in a future version.")
+		}
+
 		req := accresourcemanager1pb.CreateOrganizationRequest{
-			OrganizationId: flagCustomer,
+			OrganizationId: "",
 			Organization: &accresourcemanager1pb.Organization{
 				DisplayName: flagOrgDisplayName,
 			},
@@ -71,11 +77,8 @@ var createCmd = &cobra.Command{
 		if flagDebugRequests {
 			protoPrint(&req)
 		}
-		if flagCustomer == "" {
-			fmt.Printf("Creating organization with random identifier (display name: %q).\n", flagOrgDisplayName)
-		} else {
-			fmt.Printf("Creating organization %q (%q).\n", flagCustomer, flagOrgDisplayName)
-		}
+
+		fmt.Printf("Creating organization (display name: %q).\n", flagOrgDisplayName)
 
 		op, err := cl.CreateOrganization(ctx, &req)
 		if err != nil {
@@ -95,7 +98,7 @@ var createCmd = &cobra.Command{
 		if operr != nil {
 			return fmt.Errorf("failed to create organization: %v", operr)
 		}
-		if flagCustomer == "" && op.GetResult() != nil {
+		if op.GetResult() != nil {
 			res := op.GetResult().(*lropb.Operation_Response).Response
 			org := &accresourcemanager1pb.Organization{}
 			if err := res.UnmarshalTo(org); err != nil {
