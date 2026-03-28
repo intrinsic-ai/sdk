@@ -77,11 +77,9 @@ use_repo(
 # Python #
 ##########
 
-RULES_PYTHON_VERSION = "1.6.3"
-
 PYTHON_VERSION = "3.11"
 
-bazel_dep(name = "rules_python", version = RULES_PYTHON_VERSION)
+bazel_dep(name = "rules_python", version = "1.7.0")
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
@@ -94,7 +92,6 @@ bazel_dep(name = "pybind11_abseil", version = "202402.0")
 bazel_dep(name = "pybind11_protobuf", version = "0.0.0-20250210-f02a2b7")
 
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
-
 pip.parse(
     # Enable the Bazel downloader for whl fetches, see
     # https://rules-python.readthedocs.io/en/latest/pypi-dependencies.html#bazel-downloader-and-multi-platform-wheel-hub-repository.
@@ -103,7 +100,7 @@ pip.parse(
         "blender-headless": "https://us-central1-python.pkg.dev/intrinsic-mirror/intrinsic-public-python/simple",
         "cadexchanger": "https://download.cadexchanger.com/python",
         "pyrender": "https://us-central1-python.pkg.dev/intrinsic-mirror/intrinsic-public-python/simple",
-        "pytorch3d":  "https://us-central1-python.pkg.dev/intrinsic-mirror/intrinsic-public-python/simple",
+        "pytorch3d": "https://us-central1-python.pkg.dev/intrinsic-mirror/intrinsic-public-python/simple",
         "tensorflow": "https://us-central1-python.pkg.dev/intrinsic-mirror/intrinsic-public-python/simple",
     },
     hub_name = "ai_intrinsic_sdks_pip_deps",
@@ -195,7 +192,7 @@ oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
 
 oci.pull(
     name = "distroless_base",
-    digest = "sha256:97406725e9ca912013f59ae49fa3362d44f2745c07eba00705247216225b810c",
+    digest = "sha256:b0510424f0c7c1d6fdae75ef5c1d349fa72d312e96f69728fad6beb04755b8b4",
     image = "gcr.io/distroless/base",
     platforms = ["linux/amd64"],
 )
@@ -210,13 +207,13 @@ oci.pull(
 )
 oci.pull(
     name = "distroless_cc",
-    digest = "sha256:8c1a496b055d36c222e95ebd5c53bdd1fee447689a97ad889febca8380d578ec",
+    digest = "sha256:e1cc90d06703f5dc30ae869fbfce78fce688f21a97efecd226375233a882e62f",
     image = "gcr.io/distroless/cc",
     platforms = ["linux/amd64"],
 )
 oci.pull(
     name = "distroless_python3",
-    digest = "sha256:819a784061c2dd756c951d3d8ca7d02fae2a7ddd83e9dff2aa05d5edc0bf3b96",
+    digest = "sha256:cb8e12bde699c3912ed13022ed9aba6a9e6f093cf6e3ad5ded0fca36ccaedf93",
     image = "gcr.io/distroless/python3",
     platforms = ["linux/amd64"],
 )
