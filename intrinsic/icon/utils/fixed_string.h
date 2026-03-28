@@ -102,6 +102,11 @@ class FixedString {
     return absl::string_view(data_.data(), size_);
   }
 
+  template <typename Sink>
+  friend void AbslStringify(Sink& sink, const FixedString& s) {
+    sink.Append(absl::string_view{s});
+  }
+
  private:
   std::array<char, MaxSize> data_;
   std::size_t size_ = 0;

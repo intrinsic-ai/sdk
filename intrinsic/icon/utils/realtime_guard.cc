@@ -49,7 +49,7 @@ void TriggerRealtimeCheck(const intrinsic::SourceLocation& loc) {
           << "Unsafe code executed from realtime thread '"
           << s_current_thread.thread_name << "' at (" << loc.file_name() << ":"
           << loc.line() << "). Stack trace: \n"
-          << absl::string_view(GenerateRtErrorStackTrace());
+          << GenerateRtErrorStackTrace();
 
       break;
     }

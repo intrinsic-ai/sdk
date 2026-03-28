@@ -132,6 +132,12 @@ class LogEntryBuilder {
     return *this;
   }
 
+  template <size_t N>
+  LogEntryBuilder& operator<<(const FixedString<N>& s) {
+    message_.append(absl::string_view{s});
+    return *this;
+  }
+
   LogSinkInterface::LogEntry GetEntry() const {
     LogSinkInterface::LogEntry entry;
     entry.priority = priority_;
