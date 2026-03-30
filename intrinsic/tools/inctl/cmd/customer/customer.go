@@ -56,6 +56,16 @@ func addPrefixes(s []string, prefix string) []string {
 	return ps
 }
 
+func checkOrgCustomer() error {
+	if vipr.GetString(orgutil.KeyOrganization) == "intrinsic" {
+		return fmt.Errorf("the current organization cannot be 'intrinsic' for this command")
+	}
+	if flagCustomer == "intrinsic" {
+		return fmt.Errorf("the --customer flag cannot be 'intrinsic'")
+	}
+	return nil
+}
+
 func protoPrint(p proto.Message) {
 	fmt.Println(p.ProtoReflect().Descriptor().Name())
 	ms, err := protojson.MarshalOptions{

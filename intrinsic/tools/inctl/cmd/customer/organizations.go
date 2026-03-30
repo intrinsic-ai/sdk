@@ -58,6 +58,9 @@ var createCmd = &cobra.Command{
 	Short: "Create a new organization.",
 	Long:  createCmdHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if err := checkOrgCustomer(); err != nil {
+			return err
+		}
 		ctx := cmd.Context()
 		cl, err := accounts.NewResourceManagerV1Client(ctx, vipr)
 		if err != nil {
@@ -126,6 +129,9 @@ var deleteCmd = &cobra.Command{
 	Short: "Delete an organization.",
 	Long:  deleteCmdHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if err := checkOrgCustomer(); err != nil {
+			return err
+		}
 		ctx := cmd.Context()
 		cl, err := accounts.NewResourceManagerV1Client(ctx, vipr)
 		if err != nil {
@@ -205,6 +211,9 @@ var listCmd = &cobra.Command{
 	Short: "List customer organizations.",
 	Long:  listCmdHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if err := checkOrgCustomer(); err != nil {
+			return err
+		}
 		ctx := cmd.Context()
 		cl, err := accounts.NewResourceManagerV1Client(ctx, vipr)
 		if err != nil {

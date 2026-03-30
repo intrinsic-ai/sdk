@@ -53,6 +53,9 @@ var grantRoleBindingCmd = &cobra.Command{
 	Short: "Grant a user a role on a given resource.",
 	Long:  grantRoleBindingCmdHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if err := checkOrgCustomer(); err != nil {
+			return err
+		}
 		ctx := cmd.Context()
 		cl, err := accounts.NewAccessControlV1Client(ctx, vipr)
 		if err != nil {
@@ -97,6 +100,9 @@ var revokeRoleBindingCmd = &cobra.Command{
 	Short: "Revoke a given role binding.",
 	Long:  revokeRoleBindingCmdHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if err := checkOrgCustomer(); err != nil {
+			return err
+		}
 		ctx := cmd.Context()
 		cl, err := accounts.NewAccessControlV1Client(ctx, vipr)
 		if err != nil {
@@ -151,6 +157,9 @@ var listRoleBindingsCmd = &cobra.Command{
 	Short: "List the role bindings on a given resource.",
 	Long:  listRoleBindingsCmdHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if err := checkOrgCustomer(); err != nil {
+			return err
+		}
 		ctx := cmd.Context()
 		cOrg := addPrefix(flagCustomer, "organizations/")
 		cl, err := accounts.NewAccessControlV1Client(ctx, vipr)

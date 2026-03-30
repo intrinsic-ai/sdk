@@ -36,6 +36,9 @@ var listRolesCmd = &cobra.Command{
 	Short: "List available roles.",
 	Long:  listRolesCmdHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if err := checkOrgCustomer(); err != nil {
+			return err
+		}
 		ctx := cmd.Context()
 		cl, err := accounts.NewAccessControlV1Client(ctx, vipr)
 		if err != nil {
