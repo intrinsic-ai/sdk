@@ -29,7 +29,6 @@ bool RunningInKubernetes() {
 
 std::string GetZenohRunfilesPath(absl::string_view file_path) {
   std::string error;
-  std::string path = std::string(file_path);
   std::string repository = BAZEL_CURRENT_REPOSITORY;
   std::string apparentRepoName = "";
   std::unique_ptr<Runfiles> runfiles;
