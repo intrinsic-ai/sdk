@@ -6,7 +6,7 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
-load("//bazel:go_macros.bzl", "go_proto_library")
+load("//bazel:go_macros.bzl", "go_library", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -443,6 +443,45 @@ py_grpc_library(
     srcs = [":pubsub_listener_service"],
     grpc_library = requirement("grpcio"),
     deps = [":pubsub_listener_service_py_pb2"],
+)
+
+proto_library(
+    name = "recording_data_categories_proto",
+    srcs = ["recording_data_categories.proto"],
+)
+
+cc_proto_library(
+    name = "recording_data_categories_cc_proto",
+    deps = [":recording_data_categories_proto"],
+)
+
+go_proto_library(
+    name = "recording_data_categories_go_proto",
+    importpath = "intrinsic/logging/proto/recording_data_categories_go_proto",
+    protos = [":recording_data_categories_proto"],
+)
+
+py_proto_library(
+    name = "recording_data_categories_py_pb2",
+    deps = [":recording_data_categories_proto"],
+)
+
+go_library(
+    name = "recording_data_categories_go",
+    srcs = ["recording_data_categories.go"],
+    embedsrcs = ["recording_data_categories.pbtxt"],
+    importpath = "intrinsic/logging/proto",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":recording_data_categories_go_proto",
+        "@org_golang_google_protobuf//encoding/prototext",
+    ],
+)
+
+filegroup(
+    name = "recording_data_categories_file",
+    srcs = ["recording_data_categories.pbtxt"],
+    visibility = ["//visibility:public"],
 )
 
 proto_library(
