@@ -4,17 +4,17 @@ package recordings
 
 import (
 	"context"
+	_ "embed"
 	"fmt"
-	"io"
-	"sort"
-	"strings"
-	"time"
-
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util"
 	"intrinsic/tools/inctl/util/color"
 	"intrinsic/tools/inctl/util/orgutil"
 	"intrinsic/tools/inctl/util/promptutil"
+	"io"
+	"sort"
+	"strings"
+	"time"
 
 	backoff "github.com/cenkalti/backoff/v4"
 	"github.com/spf13/cobra"
@@ -27,6 +27,8 @@ import (
 	loggerpb "intrinsic/logging/proto/logger_service_go_proto"
 
 	tpb "google.golang.org/protobuf/types/known/timestamppb"
+
+	recordingdatacategories "intrinsic/logging/proto"
 )
 
 var (
@@ -42,42 +44,33 @@ var (
 	pollApiTickThreshold = 40
 	// pollPendingTimeout determines how much wait time must pass before printing the backlog note.
 	pollPendingTimeout = 60 * time.Second
+	// pollResourceExhaustedWait determines the wait time when workcell resources are exhausted.
+	pollResourceExhaustedWait = 10 * time.Second
 
 	// Data inclusion flags
 	flagIncludeAllData         bool
-	flagTextLogs               bool
-	flagFlowstateData          bool
-	flagSceneData              bool
-	flagRobotData              bool
-	flagPerceptionData         bool
-	flagDebugData              bool
 	flagAdditionalEventSources []string
 )
-var eventSourceWorkflowMap = map[string][]string{
-	"include_text_logs": {
-		"/text-log-out",
-		"/asset-text-log-out",
-	},
-	"include_scene_data": {
-		"/assets/.*/markers",
-		"/tf",
-		"trace_cube_.*",
-	},
-	"include_robot_data": {
-		"motion_planner_service.PlanTrajectory.debug_data",
-		"/icon/.*/robot_status",
-	},
-	"include_perception_data": {
-		"perception.*",
-	},
-	"include_flowstate_data": {
-		"/flowstate_events",
-	},
-	"include_debug_data": {
-		"executive.*",
-		"/system/metrics",
-		"error_report",
-	},
+
+// eventSourceWorkflowMap maps a CLI flag name (e.g., "include_text_logs", "include_scene_data")
+// to the list of RE2 regex strings representing the event sources to record when that flag is provided.
+//
+// This mapping is populated at initialization from the single source of truth defined in:
+// intrinsic/logging/proto/recording_data_categories.pbtxt.
+//
+// The mapping is used throughout the `create` command's lifecycle to dynamically process
+// CLI flags and translate user selections into the final list of event sources dispatched
+// to the DataLogger.
+var eventSourceWorkflowMap map[string][]string
+
+func init() {
+	eventSourceWorkflowMap = make(map[string][]string)
+	for _, cat := range recordingdatacategories.GetRecordingDataCategories().GetCategories() {
+		// Prepend "include_" to the category ID to create the corresponding CLI flag name.
+		// For example, the category ID "text_logs" becomes the flag "include_text_logs".
+		// The mapped value is the list of event source regexes defined for that category.
+		eventSourceWorkflowMap["include_"+cat.GetCategoryId()] = cat.GetEventSources()
+	}
 }
 
 // Limits following the create_recording skill.
@@ -130,13 +123,27 @@ func parseAndValidateRecordingTimestamps(cmd *cobra.Command) (time.Time, time.Ti
 // validateRecordingDuration checks if the requested recording duration exceeds limits.
 //
 // Mixed data recordings are limited to 10 minutes, while text/flowstate-only recordings can be up to 24 hours.
-func validateRecordingDuration(duration time.Duration) error {
-	isOnlyTextLogsOrFlowstate := (flagTextLogs || flagFlowstateData) &&
-		!flagSceneData && !flagRobotData && !flagPerceptionData && !flagDebugData && len(flagAdditionalEventSources) == 0
+func validateRecordingDuration(cmd *cobra.Command, duration time.Duration) error {
+	cats := recordingdatacategories.GetRecordingDataCategories()
 
-	if !isOnlyTextLogsOrFlowstate && duration > mixedDataLimit {
+	isOnlyLightweight := true
+	hasAnyData := false
+
+	// Check if any non-lightweight flags were provided
+	for _, cat := range cats.GetCategories() {
+		if flagProvided, err := cmd.Flags().GetBool("include_" + cat.GetCategoryId()); err == nil && flagProvided {
+			hasAnyData = true
+			if !cat.GetIsLightweight() {
+				isOnlyLightweight = false
+			}
+		}
+	}
+
+	isOnlyLightweight = isOnlyLightweight && hasAnyData && len(flagAdditionalEventSources) == 0
+
+	if !isOnlyLightweight && duration > mixedDataLimit {
 		return fmt.Errorf("recording duration of %v exceeds the 10-minute limit for mixed data. Please specify a shorter duration or reduce the requested data", duration)
-	} else if isOnlyTextLogsOrFlowstate && duration > textOrFlowstateDataLimit {
+	} else if isOnlyLightweight && duration > textOrFlowstateDataLimit {
 		return fmt.Errorf("recording duration of %v exceeds the 24-hour limit for text/flowstate data. Please specify a shorter duration", duration)
 	}
 	return nil
@@ -273,20 +280,53 @@ func sendCreateLocalRecordingRequest(ctx context.Context, out io.Writer, client 
 	defer cancel()
 
 	msg := fmt.Sprintf("Requesting workcell %q to create recording...", workcellName)
-	spinner := util.NewSpinner(ctx, out, pollTickerInterval, util.PositionFront, util.StyleSpinningDots, util.ColorRGB, util.DirectionForward)
+	spinner := util.NewSpinner(ctx, out, pollTickerInterval, util.PositionFront, util.StyleArc, util.ColorRGB, util.DirectionForward)
 	spinner.Start(msg)
 
 	boff := backoff.WithContext(backoff.NewExponentialBackOff(), ctxWithTimeout)
 	err := backoff.RetryNotify(func() error {
 		var rpcErr error
-		resp, rpcErr = client.CreateLocalRecording(ctxWithTimeout, req)
-		if rpcErr != nil {
-			if status.Code(rpcErr) == codes.Unavailable {
-				return rpcErr // Retryable error (e.g., workcell offline momentarily)
+		for {
+			resp, rpcErr = client.CreateLocalRecording(ctxWithTimeout, req)
+			if rpcErr != nil {
+				if status.Code(rpcErr) == codes.ResourceExhausted {
+					originalMsg := fmt.Sprintf("Requesting workcell %q to create recording...", workcellName)
+
+					remaining := int(pollResourceExhaustedWait.Seconds())
+					if remaining > 0 {
+						for remaining > 0 {
+							countdownMsg := color.C.Yellow().Sprintf("Warning: creating recordings too frequently. Waiting %ds before retrying...", remaining)
+							spinner.UpdateMessage(countdownMsg)
+
+							select {
+							case <-time.After(1 * time.Second):
+								remaining--
+							case <-ctxWithTimeout.Done():
+								return ctxWithTimeout.Err()
+							}
+						}
+					} else {
+						// Fallback for tests where pollResourceExhaustedWait < 1s
+						countdownMsg := color.C.Yellow().Sprintf("Warning: creating recordings too frequently. Waiting 10s before retrying...")
+						spinner.UpdateMessage(countdownMsg)
+						select {
+						case <-time.After(pollResourceExhaustedWait):
+						case <-ctxWithTimeout.Done():
+							return ctxWithTimeout.Err()
+						}
+					}
+
+					spinner.UpdateMessage(originalMsg)
+					continue
+				}
+
+				if status.Code(rpcErr) == codes.Unavailable {
+					return rpcErr // Retryable error (e.g., workcell offline momentarily)
+				}
+				return backoff.Permanent(rpcErr)
 			}
-			return backoff.Permanent(rpcErr)
+			return nil
 		}
-		return nil
 	}, boff, func(err error, d time.Duration) {
 		msg := fmt.Sprintf("Warning: failed to request recording, workcell may be offline. Retrying in %v...", d.Truncate(time.Millisecond))
 		interruptMsg := color.C.Yellow().Sprintf("%s", msg)
@@ -312,8 +352,8 @@ func (r *CreateCmdRunner) pollUploadProgress(ctx context.Context, out io.Writer,
 		BagId: bagID,
 	}
 
-	spinner := util.NewSpinner(ctx, out, pollTickerInterval, util.PositionFront, util.StyleWaveThrough, util.ColorRGB, util.DirectionForward)
-	spinner.Start("Waiting for workcell to register recording with cloud...")
+	spinner := util.NewSpinner(ctx, out, pollTickerInterval, util.PositionFront, util.StyleDotsUpload, util.ColorRGB, util.DirectionForward)
+	spinner.Start("Waiting for workcell to register recording with cloud to track upload progress...")
 
 	apiTickCounter := pollApiTickThreshold // Force first API call immediately
 	timeSpentPending := time.Duration(0)
@@ -340,7 +380,7 @@ func (r *CreateCmdRunner) pollUploadProgress(ctx context.Context, out io.Writer,
 				if err != nil {
 					if status.Code(err) == codes.NotFound || strings.Contains(err.Error(), "does not exist") || strings.Contains(err.Error(), "failed to get bag record") {
 						checkPendingTimeout()
-						spinner.UpdateMessage("Waiting for workcell to register recording with cloud...")
+						spinner.UpdateMessage("Waiting for workcell to register recording with cloud to track upload progress...")
 						continue
 					}
 					spinner.Stop("")
@@ -397,11 +437,14 @@ func (r *CreateCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 	}
 
 	duration := endTime.Sub(startTime)
-	if err := validateRecordingDuration(duration); err != nil {
+	if err := validateRecordingDuration(cmd, duration); err != nil {
 		return err
 	}
 
-	flagNames := []string{"include_text_logs", "include_flowstate_data", "include_scene_data", "include_robot_data", "include_perception_data", "include_debug_data"}
+	var flagNames []string
+	for k := range eventSourceWorkflowMap {
+		flagNames = append(flagNames, k)
+	}
 	finalEventSources, includedFlags, err := determineEventSourcesToRecord(cmd, r, flagNames)
 	if err != nil {
 		if err.Error() == "aborted" {
@@ -554,12 +597,14 @@ func NewCreateCmd(runner *CreateCmdRunner) *cobra.Command {
 
 	// Data inclusion flags.
 	flags.BoolVar(&flagIncludeAllData, "include_all_data", false, "Include all eligible event sources (.*). Use this flag to suppress the interactive prompt and intentionally record everything.")
-	flags.BoolVar(&flagTextLogs, "include_text_logs", false, "Include text logs (/text-log-out, /asset-text-log-out).")
-	flags.BoolVar(&flagFlowstateData, "include_flowstate_data", false, "Include Flowstate data.")
-	flags.BoolVar(&flagSceneData, "include_scene_data", false, "Include scene and TF data.")
-	flags.BoolVar(&flagRobotData, "include_robot_data", false, "Include robot statuses and trajectory plans.")
-	flags.BoolVar(&flagPerceptionData, "include_perception_data", false, "Include perception data.")
-	flags.BoolVar(&flagDebugData, "include_debug_data", false, "Include system metrics, error reports, and the executive state.")
+
+	// Dynamically generated category-specific data inclusion flags from the single source of truth defined in:
+	// intrinsic/logging/proto/recording_data_categories.pbtxt
+	cats := recordingdatacategories.GetRecordingDataCategories()
+	for _, cat := range cats.GetCategories() {
+		desc := fmt.Sprintf("Include %s. %s", cat.GetDisplayName(), cat.GetDescription())
+		flags.Bool("include_"+cat.GetCategoryId(), false, desc)
+	}
 	flags.StringSliceVar(&flagAdditionalEventSources, "additional_event_sources", []string{}, "Custom RE2 regex patterns of event sources to record.")
 
 	createCmd.MarkFlagRequired("workcell")

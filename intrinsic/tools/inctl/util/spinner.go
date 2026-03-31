@@ -5,11 +5,10 @@ package util
 import (
 	"context"
 	"fmt"
+	"intrinsic/tools/inctl/util/color"
 	"io"
 	"math"
 	"time"
-
-	"intrinsic/tools/inctl/util/color"
 )
 
 // hsvToRGB converts an HSV color (0-360, 0-1, 0-1) to an RGB color (0-255).
@@ -110,6 +109,9 @@ var (
 	StyleBarThrough = SpinnerStyle{"[    ]", "[    ]", "[=   ]", "[==  ]", "[=== ]", "[====]", "[ ===]", "[  ==]", "[   =]"}
 	// StyleDotsDrop simulates dots dropping.
 	StyleDotsDrop = SpinnerStyle{"⠁", "⠂", "⠄", "⡀", "⡈", "⡐", "⡠", "⣀", "⣁", "⣂", "⣄", "⣌", "⣔", "⣤", "⣥", "⣦", "⣮", "⣶", "⣷", "⣿", "⡿", "⠿", "⢟", "⠟", "⡛", "⠛", "⠫", "⢋", "⠋", "⠍", "⡉", "⠉", "⠑", "⠡", "⢁"}
+	// StyleDotsUpload first fills upwards, then animates them moving up dot by dot.
+	StyleDotsUpload = SpinnerStyle{" ", " ", " ", " ", " ", " ", " ", " ", "⣀", "⣤", "⣶", "⣿", "⣷", "⣶", "⣮", "⣦", "⣥", "⣤", "⣔", "⣌", "⣄", "⣂", "⣁", "⣀", "⡠", "⡐", "⡈", "⡀", "⠄", "⠂", "⠁"}
+
 	// StyleSimpleDots is a simple progressing dots animation.
 	StyleSimpleDots = SpinnerStyle{".  ", ".. ", "...", "   ", "   "}
 	// StyleStar rotates a star-like pattern.

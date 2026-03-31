@@ -283,6 +283,26 @@ func TestCreateRecordingE(t *testing.T) {
 			wantErr: "failed to create recording on workcell: backend failed",
 		},
 		{
+			name: "Successfully retries on ResourceExhausted",
+			args: []string{"--workcell", testWorkcell, "--org", testOrg, "--include_scene_data"},
+			createFunc: func() func(ctx context.Context, in *loggerpb.CreateLocalRecordingRequest, opts ...grpc.CallOption) (*loggerpb.CreateLocalRecordingResponse, error) {
+				callCount := 0
+				return func(ctx context.Context, in *loggerpb.CreateLocalRecordingRequest, opts ...grpc.CallOption) (*loggerpb.CreateLocalRecordingResponse, error) {
+					callCount++
+					if callCount == 1 {
+						return nil, status.Error(codes.ResourceExhausted, "creating recordings too frequently")
+					}
+					return &loggerpb.CreateLocalRecordingResponse{
+						Bag: &bagmetadatapb.BagMetadata{
+							BagId: testBagID,
+						},
+					}, nil
+				}
+			}(),
+			wantOut:       "Warning: creating recordings too frequently. Waiting 10s before retrying...",
+			mockBagStatus: bagmetadatapb.BagStatus_COMPLETED,
+		},
+		{
 			name: "Successfully creates recording with explicit description",
 			args: []string{"--workcell", testWorkcell, "--org", testOrg, "--include_scene_data", "--description", "my awesome recording"},
 			createFunc: func(ctx context.Context, in *loggerpb.CreateLocalRecordingRequest, opts ...grpc.CallOption) (*loggerpb.CreateLocalRecordingResponse, error) {
@@ -349,6 +369,10 @@ func TestCreateRecordingE(t *testing.T) {
 	checkOrgExists = false
 	t.Cleanup(func() { checkOrgExists = originalCheckOrgExists })
 
+	originalPollResourceExhaustedWait := pollResourceExhaustedWait
+	pollResourceExhaustedWait = 1 * time.Millisecond
+	t.Cleanup(func() { pollResourceExhaustedWait = originalPollResourceExhaustedWait })
+
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			// Cleanup global flags
@@ -359,12 +383,6 @@ func TestCreateRecordingE(t *testing.T) {
 				flagWorkcellName = originalFlagWorkcell
 				flagStartTimestamp = originalFlagStart
 				flagEndTimestamp = originalFlagEnd
-				flagTextLogs = false
-				flagFlowstateData = false
-				flagSceneData = false
-				flagRobotData = false
-				flagPerceptionData = false
-				flagDebugData = false
 				flagAdditionalEventSources = []string{}
 				flagQuiet = false
 				flagIncludeAllData = false
