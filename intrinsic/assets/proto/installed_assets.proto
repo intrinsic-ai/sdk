@@ -13,7 +13,7 @@ import "intrinsic/assets/proto/asset_tag.proto";
 import "intrinsic/assets/proto/asset_type.proto";
 import "intrinsic/assets/proto/id.proto";
 import "intrinsic/assets/proto/metadata.proto";
-import "intrinsic/assets/proto/v1/reference.proto"; // intrinsic:install_from_solution:strip
+import "intrinsic/assets/proto/v1/reference.proto";
 import "intrinsic/assets/proto/v1/search.proto";
 import "intrinsic/assets/proto/view.proto";
 import "intrinsic/assets/scene_objects/proto/scene_object_manifest.proto";
@@ -250,9 +250,7 @@ message CreateInstalledAssetRequest {
   message Asset {
     oneof variant {
       IdVersion catalog = 1;
-      // intrinsic:install_from_solution:strip_begin
       SolutionAsset solution_asset = 8;
-      // intrinsic:install_from_solution:strip_end
       intrinsic_proto.services.ProcessedServiceManifest service = 2;
       intrinsic_proto.scene_objects.ProcessedSceneObjectManifest scene_object =
           3;
@@ -283,9 +281,7 @@ message CreateInstalledAssetsRequest {
   message Asset {
     oneof variant {
       IdVersion catalog = 1;
-      // intrinsic:install_from_solution:strip_begin
       SolutionAsset solution_asset = 8;
-      // intrinsic:install_from_solution:strip_end
       intrinsic_proto.services.ProcessedServiceManifest service = 2;
       intrinsic_proto.scene_objects.ProcessedSceneObjectManifest scene_object =
           3;

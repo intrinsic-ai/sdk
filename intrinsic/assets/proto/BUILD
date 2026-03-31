@@ -374,7 +374,7 @@ proto_library(
         "//intrinsic/assets/data/proto/v1:data_asset_proto",
         "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_proto",
         "//intrinsic/assets/processes/proto:process_asset_proto",
-        "//intrinsic/assets/proto/v1:reference_proto",  # intrinsic:install_from_solution:strip
+        "//intrinsic/assets/proto/v1:reference_proto",
         "//intrinsic/assets/proto/v1:search_proto",
         "//intrinsic/assets/scene_objects/proto:scene_object_manifest_proto",
         "//intrinsic/assets/services/proto:service_manifest_proto",
@@ -403,7 +403,7 @@ go_proto_library(
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
         "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",
         "//intrinsic/assets/processes/proto:process_asset_go_proto",
-        "//intrinsic/assets/proto/v1:reference_go_proto",  # intrinsic:install_from_solution:strip
+        "//intrinsic/assets/proto/v1:reference_go_proto",
         "//intrinsic/assets/proto/v1:search_go_proto",
         "//intrinsic/assets/scene_objects/proto:scene_object_manifest_go_proto",
         "//intrinsic/assets/services/proto:service_manifest_go_proto",
