@@ -4,6 +4,8 @@
 # and what constitutes a "lightweight" event source across the stack.
 #
 # Proto definition (RecordingDataCategories): intrinsic/logging/proto/recording_data_categories.proto
+#
+# Note: Some files might still need some changes propagated.
 categories: {
   category_id: "text_logs"
   display_name: "Text logs"
