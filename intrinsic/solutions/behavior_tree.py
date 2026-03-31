@@ -588,16 +588,27 @@ class Node(abc.ABC):
     breakpoint: Optional type of breakpoint configured for this node.
     execution_mode: Optional execution mode for this node.
     node_id: A unique id for this node.
-    user_data_protos: user data protos as dict key to Any protos.
+    user_data_protos: user data protos as dict from key to Any protos.
+    user_data_bytes: bytes user data as dict from key to bytes.
   """
 
-  # This is the declaration of an expected member. We cannot initialize this
-  # here (would become a class variable), and we do not implement a constructor
-  # for the base class that initializes it (that would require for all
-  # sub-classes to invoke the super constructor, something we consider doing in
-  # the future). So on first access, in the on_failure property, we initialize
-  # this if not already set. This requires using hasattr in a few places.
+  _name: str | None
+  _node_id: int | None
+  _decorators: Decorators | None
+  _state: NodeState | None
+  _user_data_protos: dict[str, any_pb2.Any]
+  _user_data_bytes: dict[str, bytes]
   _failure_settings: Node.FailureSettings | None
+
+  def __init__(self, name: str | None = None, node_id: int | None = None):
+    self._name = name
+    self._node_id = node_id
+
+    self._decorators = None
+    self._state = None
+    self._user_data_protos = {}
+    self._user_data_bytes = {}
+    self._failure_settings = None
 
   def __repr__(self) -> str:
     """Returns a compact, human-readable string representation."""
@@ -836,18 +847,13 @@ class Node(abc.ABC):
       proto_message.state = self.state.value
     if self.decorators is not None:
       proto_message.decorators.CopyFrom(self.decorators.proto)
-    if hasattr(self, '_user_data_protos') and self._user_data_protos:
+    if self._user_data_protos:
       for k, m in self._user_data_protos.items():
         proto_message.user_data.data_any[k].CopyFrom(m)
-    if hasattr(self, '_user_data_bytes') and self._user_data_bytes:
+    if self._user_data_bytes:
       for k, b in self._user_data_bytes.items():
         proto_message.user_data.data_bytes[k] = b
-    if (
-        # The base class only specifies the type, therefore unless something has
-        # actually been set with the property this may not exist, yet.
-        hasattr(self, '_failure_settings')
-        and self._failure_settings is not None
-    ):
+    if self._failure_settings is not None:
       proto_message.decorators.on_failure.CopyFrom(self._failure_settings.proto)
 
     return proto_message
@@ -865,7 +871,7 @@ class Node(abc.ABC):
   @property
   def on_failure(self) -> Node.FailureSettings:
     """Sets extra settings for behavior on failure."""
-    if not hasattr(self, '_failure_settings') or self._failure_settings is None:
+    if self._failure_settings is None:
       self._failure_settings = Node.FailureSettings(self)
     return self._failure_settings
 
@@ -913,40 +919,32 @@ class Node(abc.ABC):
     return ipython.display_if_ipython(self.dot_graph()[0])
 
   @property
-  @abc.abstractmethod
-  def name(self) -> Optional[str]:
-    ...
+  def name(self) -> str | None:
+    return self._name
 
   @name.setter
-  @abc.abstractmethod
-  def name(self, value: str):
-    ...
+  def name(self, value: str | None):
+    self._name = value
 
   @property
-  @abc.abstractmethod
-  def node_id(self) -> Optional[int]:
-    ...
+  def node_id(self) -> int | None:
+    return self._node_id
 
   @node_id.setter
-  @abc.abstractmethod
-  def node_id(self, value: int):
-    ...
+  def node_id(self, value: int | None):
+    self._node_id = value
 
   @property
-  @abc.abstractmethod
-  def state(self) -> Optional[NodeState]:
-    # The internal field _state must exist in all subclasses of Node, as it is
-    # referred to in Node.create_from_proto.
-    ...
-
-  @abc.abstractmethod
-  def set_decorators(self, decorators: Optional[Decorators]) -> Node:
-    ...
+  def state(self) -> NodeState | None:
+    return self._state
 
   @property
-  @abc.abstractmethod
-  def decorators(self) -> Optional[Decorators]:
-    ...
+  def decorators(self) -> Decorators | None:
+    return self._decorators
+
+  def set_decorators(self, decorators: Decorators | None) -> Node:
+    self._decorators = decorators
+    return self
 
   @abc.abstractmethod
   def has_child(self, node_id: int) -> bool:
@@ -1012,15 +1010,11 @@ class Node(abc.ABC):
     Returns:
       self
     """
-    if not hasattr(self, '_user_data_protos'):
-      self._user_data_protos = {}
     self._user_data_protos[key] = any_proto
     return self
 
   @property
   def user_data_protos(self) -> dict[str, any_pb2.Any]:
-    if not hasattr(self, '_user_data_protos'):
-      self._user_data_protos = {}
     return self._user_data_protos
 
   def delete_user_data_bytes(self, key: str) -> None:
@@ -1037,15 +1031,11 @@ class Node(abc.ABC):
     Returns:
       self
     """
-    if not hasattr(self, '_user_data_bytes'):
-      self._user_data_bytes = {}
     self._user_data_bytes[key] = value
     return self
 
   @property
   def user_data_bytes(self) -> dict[str, bytes]:
-    if not hasattr(self, '_user_data_bytes'):
-      self._user_data_bytes = {}
     return self._user_data_bytes
 
   def visit(
@@ -1658,10 +1648,6 @@ class Task(Node):
   _action: Optional[actions.ActionBase]
   _behavior_call_proto: Optional[behavior_call_pb2.BehaviorCall]
   _code_execution_proto: Optional[code_execution_pb2.CodeExecution]
-  _decorators: Optional[Decorators]
-  _name: Optional[str]
-  _node_id: Optional[int]
-  _state: Optional[NodeState]
   _task_state: behavior_tree_pb2.BehaviorTree.TaskNode.State | None
 
   def __init__(
@@ -1675,9 +1661,9 @@ class Task(Node):
       node_id: int | None = None,
       task_state: behavior_tree_pb2.BehaviorTree.TaskNode.state | None = None,
   ):
+    super().__init__(name, node_id)
     self._behavior_call_proto = None
     self._code_execution_proto = None
-    self._decorators = None
     if isinstance(action, actions.ActionBase):
       self._behavior_call_proto = action.proto
       self._action = action
@@ -1689,11 +1675,7 @@ class Task(Node):
       raise solutions_errors.InvalidArgumentError(
           f'Unknown action specification: {action}'
       )
-    self._name = name
-    self._node_id = node_id
-    self._state = None
     self._task_state = task_state
-    super().__init__()
 
   def __repr__(self) -> str:
     """Returns a compact, human-readable string representation."""
@@ -1706,26 +1688,6 @@ class Task(Node):
         f'{type(self).__name__}({self._name_repr()}'
         + f'action=behavior_call.Action({action_str}))'
     )
-
-  @property
-  def name(self) -> Optional[str]:
-    return self._name
-
-  @name.setter
-  def name(self, value: str):
-    self._name = value
-
-  @property
-  def node_id(self) -> Optional[int]:
-    return self._node_id
-
-  @node_id.setter
-  def node_id(self, value: int):
-    self._node_id = value
-
-  @property
-  def state(self) -> Optional[NodeState]:
-    return self._state
 
   @property
   def task_state(self) -> TaskNodeState | None:
@@ -1798,14 +1760,6 @@ class Task(Node):
       return self._action.result
     return None
 
-  def set_decorators(self, decorators: Optional[Decorators]) -> Node:
-    self._decorators = decorators
-    return self
-
-  @property
-  def decorators(self) -> Optional[Decorators]:
-    return self._decorators
-
   def has_child(self, node_id: int) -> bool:
     return False
 
@@ -1849,16 +1803,9 @@ class SubTree(Node):
 
   Attributes:
     behavior_tree: The subtree, a BehaviorTree object.
-    name: The name of the subtree node.
     proto: The proto representation of the node.
     node_type: A string label of the node type.
   """
-
-  _decorators: Optional[Decorators]
-  _name: Optional[str]
-  _node_id: Optional[int]
-  _state: Optional[NodeState]
-  _user_data_protos: dict[str, any_pb2.Any]
 
   def __init__(
       self,
@@ -1875,17 +1822,10 @@ class SubTree(Node):
         node of a tree; otherwise, the name of this node.
       node_id: Pre-determined node ID, must be unique in the tree.
     """
+    super().__init__(name, node_id)
     self.behavior_tree: Optional[BehaviorTree] = None
-    self._decorators = None
-    self._name = None
-    self._node_id = node_id
-    self._state = None
-    self._user_data_protos = {}
     if behavior_tree is not None:
       self.set_behavior_tree(behavior_tree, name)
-    else:
-      self._name = name
-    super().__init__()
 
   def set_behavior_tree(
       self,
@@ -1903,7 +1843,7 @@ class SubTree(Node):
     Returns:
       self for chaining.
     """
-    self._name = name
+    self.name = name
     if isinstance(behavior_tree, BehaviorTree):
       self.behavior_tree = behavior_tree
     elif isinstance(behavior_tree, Node):
@@ -1927,26 +1867,6 @@ class SubTree(Node):
       )
 
   @property
-  def name(self) -> Optional[str]:
-    return self._name
-
-  @name.setter
-  def name(self, value: str):
-    self._name = value
-
-  @property
-  def node_id(self) -> Optional[int]:
-    return self._node_id
-
-  @node_id.setter
-  def node_id(self, value: int):
-    self._node_id = value
-
-  @property
-  def state(self) -> Optional[NodeState]:
-    return self._state
-
-  @property
   def proto(self) -> behavior_tree_pb2.BehaviorTree.Node:
     proto_object = super().proto
     if self.behavior_tree is None:
@@ -1961,14 +1881,6 @@ class SubTree(Node):
   def node_type(cls) -> str:  # pylint:disable=no-self-argument
     return 'sub_tree'
 
-  def set_decorators(self, decorators: Optional[Decorators]) -> Node:
-    self._decorators = decorators
-    return self
-
-  @property
-  def decorators(self) -> Optional[Decorators]:
-    return self._decorators
-
   def has_child(self, node_id: int) -> bool:
     return False
 
@@ -1977,24 +1889,6 @@ class SubTree(Node):
         'Subtree node does not support child removal, call on immediate parent'
         ' of node to remove.'
     )
-
-  def set_user_data_proto(
-      self, key: str, proto: protobuf_message.Message
-  ) -> Node:
-    packed = any_pb2.Any()
-    packed.Pack(proto)
-    self._user_data_protos[key] = packed
-    return self
-
-  def set_user_data_proto_from_any(
-      self, key: str, any_proto: any_pb2.Any
-  ) -> Node:
-    self._user_data_protos[key] = any_proto
-    return self
-
-  @property
-  def user_data_protos(self) -> dict[str, any_pb2.Any]:
-    return self._user_data_protos
 
   @classmethod
   def _create_from_proto(
@@ -2067,11 +1961,6 @@ class Fail(Node):
     node_type: A string label of the node type.
   """
 
-  _decorators: Optional[Decorators]
-  _name: Optional[str]
-  _node_id: Optional[int]
-  _state: Optional[NodeState]
-  _user_data_protos: dict[str, any_pb2.Any]
   failure_message: str
 
   def __init__(
@@ -2080,13 +1969,8 @@ class Fail(Node):
       name: Optional[str] = None,
       node_id: int | None = None,
   ):
-    self._decorators = None
+    super().__init__(name, node_id)
     self.failure_message = failure_message
-    self._name = name
-    self._node_id = node_id
-    self._state = None
-    self._user_data_protos = {}
-    super().__init__()
 
   def __repr__(self) -> str:
     """Returns a compact, human-readable string representation."""
@@ -2116,61 +2000,15 @@ class Fail(Node):
     proto_object.fail.CopyFrom(behavior_tree_pb2.BehaviorTree.FailNode())
     return proto_object
 
-  @property
-  def name(self) -> Optional[str]:
-    return self._name
-
-  @name.setter
-  def name(self, value: str):
-    self._name = value
-
-  @property
-  def node_id(self) -> Optional[int]:
-    return self._node_id
-
-  @node_id.setter
-  def node_id(self, value: int):
-    self._node_id = value
-
-  @property
-  def state(self) -> Optional[NodeState]:
-    return self._state
-
   @utils.classproperty
   def node_type(cls) -> str:  # pylint:disable=no-self-argument
     return 'fail'
-
-  def set_decorators(self, decorators: Optional[Decorators]) -> Node:
-    self._decorators = decorators
-    return self
-
-  @property
-  def decorators(self) -> Optional[Decorators]:
-    return self._decorators
 
   def has_child(self, node_id: int) -> bool:
     return False
 
   def remove_child(self, node_id: int) -> None:
     raise ValueError('Fail node does not have children to remove')
-
-  def set_user_data_proto(
-      self, key: str, proto: protobuf_message.Message
-  ) -> Node:
-    packed = any_pb2.Any()
-    packed.Pack(proto)
-    self._user_data_protos[key] = packed
-    return self
-
-  def set_user_data_proto_from_any(
-      self, key: str, any_proto: any_pb2.Any
-  ) -> Node:
-    self._user_data_protos[key] = any_proto
-    return self
-
-  @property
-  def user_data_protos(self) -> dict[str, any_pb2.Any]:
-    return self._user_data_protos
 
   @classmethod
   def _create_from_proto(
@@ -2209,25 +2047,14 @@ class Debug(Node):
     node_type: A string label of the node type.
   """
 
-  _decorators: Optional[Decorators]
-  _name: Optional[str]
-  _node_id: Optional[int]
-  _state: Optional[NodeState]
-  _user_data_protos: dict[str, any_pb2.Any]
-
   def __init__(
       self,
       fail_on_resume: Optional[bool] = False,
       name: Optional[str] = None,
       node_id: int | None = None,
   ):
-    self._decorators = None
+    super().__init__(name, node_id)
     self.fail_on_resume: Optional[bool] = fail_on_resume
-    self._name = name
-    self._node_id = node_id
-    self._state = None
-    self._user_data_protos = {}
-    super().__init__()
 
   def __repr__(self) -> str:
     """Returns a compact, human-readable string representation."""
@@ -2243,61 +2070,15 @@ class Debug(Node):
     proto_object.debug.suspend.fail_on_resume = self.fail_on_resume
     return proto_object
 
-  @property
-  def name(self) -> Optional[str]:
-    return self._name
-
-  @name.setter
-  def name(self, value: str):
-    self._name = value
-
-  @property
-  def node_id(self) -> Optional[int]:
-    return self._node_id
-
-  @node_id.setter
-  def node_id(self, value: int):
-    self._node_id = value
-
-  @property
-  def state(self) -> Optional[NodeState]:
-    return self._state
-
   @utils.classproperty
   def node_type(cls) -> str:  # pylint:disable=no-self-argument
     return 'debug'
-
-  def set_decorators(self, decorators: Optional[Decorators]) -> Node:
-    self._decorators = decorators
-    return self
-
-  @property
-  def decorators(self) -> Optional[Decorators]:
-    return self._decorators
 
   def has_child(self, node_id: int) -> bool:
     return False
 
   def remove_child(self, node_id: int) -> None:
     raise ValueError('Debug node does not have children to remove')
-
-  def set_user_data_proto(
-      self, key: str, proto: protobuf_message.Message
-  ) -> Node:
-    packed = any_pb2.Any()
-    packed.Pack(proto)
-    self._user_data_protos[key] = packed
-    return self
-
-  def set_user_data_proto_from_any(
-      self, key: str, any_proto: any_pb2.Any
-  ) -> Node:
-    self._user_data_protos[key] = any_proto
-    return self
-
-  @property
-  def user_data_protos(self) -> dict[str, any_pb2.Any]:
-    return self._user_data_protos
 
   @classmethod
   def _create_from_proto(
@@ -2327,13 +2108,15 @@ class NodeWithChildren(Node):
   def __init__(
       self,
       children: Optional[SequenceType[Union[Node, actions.ActionBase]]],
+      name: str | None,
+      node_id: int | None,
   ):
+    super().__init__(name, node_id)
     if not children:
       self.children = []
     else:
       # pytype: disable=annotation-type-mismatch,always-use-return-annotations
       self.children = [_transform_to_optional_node(x) for x in children]
-    super().__init__()
 
   def set_children(self, *children: Node) -> Node:
     if isinstance(children[0], list):
@@ -2406,12 +2189,6 @@ class Sequence(NodeWithChildren):
     node_type: A string label of the node type.
   """
 
-  _decorators: Optional[Decorators]
-  _name: Optional[str]
-  _node_id: Optional[int]
-  _state: Optional[NodeState]
-  _user_data_protos: dict[str, any_pb2.Any]
-
   def __init__(
       self,
       children: Optional[SequenceType[Union[Node, actions.ActionBase]]] = None,
@@ -2419,12 +2196,7 @@ class Sequence(NodeWithChildren):
       *,
       node_id: int | None = None,
   ):
-    super().__init__(children=children)
-    self._decorators = None
-    self._name = name
-    self._node_id = node_id
-    self._state = None
-    self._user_data_protos = {}
+    super().__init__(children, name, node_id)
 
   @property
   def proto(self) -> behavior_tree_pb2.BehaviorTree.Node:
@@ -2441,52 +2213,6 @@ class Sequence(NodeWithChildren):
   @utils.classproperty
   def node_type(cls) -> str:  # pylint:disable=no-self-argument
     return 'sequence'
-
-  @property
-  def name(self) -> Optional[str]:
-    return self._name
-
-  @name.setter
-  def name(self, value: str):
-    self._name = value
-
-  @property
-  def node_id(self) -> Optional[int]:
-    return self._node_id
-
-  @node_id.setter
-  def node_id(self, value: int):
-    self._node_id = value
-
-  @property
-  def state(self) -> Optional[NodeState]:
-    return self._state
-
-  def set_decorators(self, decorators: Optional[Decorators]) -> Node:
-    self._decorators = decorators
-    return self
-
-  @property
-  def decorators(self) -> Optional[Decorators]:
-    return self._decorators
-
-  def set_user_data_proto(
-      self, key: str, proto: protobuf_message.Message
-  ) -> Node:
-    packed = any_pb2.Any()
-    packed.Pack(proto)
-    self._user_data_protos[key] = packed
-    return self
-
-  def set_user_data_proto_from_any(
-      self, key: str, any_proto: any_pb2.Any
-  ) -> Node:
-    self._user_data_protos[key] = any_proto
-    return self
-
-  @property
-  def user_data_protos(self) -> dict[str, any_pb2.Any]:
-    return self._user_data_protos
 
   @classmethod
   def _create_from_proto(
@@ -2512,12 +2238,6 @@ class Parallel(NodeWithChildren):
     node_type: A string label of the node type.
   """
 
-  _decorators: Optional[Decorators]
-  _name: Optional[str]
-  _node_id: Optional[int]
-  _state: Optional[NodeState]
-  _user_data_protos: dict[str, any_pb2.Any]
-
   def __init__(
       self,
       children: Optional[SequenceType[Union[Node, actions.ActionBase]]] = None,
@@ -2525,12 +2245,7 @@ class Parallel(NodeWithChildren):
       *,
       node_id: int | None = None,
   ):
-    super().__init__(children)
-    self._decorators = None
-    self._name = name
-    self._node_id = node_id
-    self._state = None
-    self._user_data_protos = {}
+    super().__init__(children, name, node_id)
 
   @property
   def proto(self) -> behavior_tree_pb2.BehaviorTree.Node:
@@ -2548,52 +2263,6 @@ class Parallel(NodeWithChildren):
   @utils.classproperty
   def node_type(cls) -> str:  # pylint:disable=no-self-argument
     return 'parallel'
-
-  @property
-  def name(self) -> Optional[str]:
-    return self._name
-
-  @name.setter
-  def name(self, value: str):
-    self._name = value
-
-  @property
-  def node_id(self) -> Optional[int]:
-    return self._node_id
-
-  @node_id.setter
-  def node_id(self, value: int):
-    self._node_id = value
-
-  @property
-  def state(self) -> Optional[NodeState]:
-    return self._state
-
-  def set_decorators(self, decorators: Optional[Decorators]) -> Node:
-    self._decorators = decorators
-    return self
-
-  @property
-  def decorators(self) -> Optional[Decorators]:
-    return self._decorators
-
-  def set_user_data_proto(
-      self, key: str, proto: protobuf_message.Message
-  ) -> Node:
-    packed = any_pb2.Any()
-    packed.Pack(proto)
-    self._user_data_protos[key] = packed
-    return self
-
-  def set_user_data_proto_from_any(
-      self, key: str, any_proto: any_pb2.Any
-  ) -> Node:
-    self._user_data_protos[key] = any_proto
-    return self
-
-  @property
-  def user_data_protos(self) -> dict[str, any_pb2.Any]:
-    return self._user_data_protos
 
   @classmethod
   def _create_from_proto(
@@ -2652,12 +2321,6 @@ class Selector(NodeWithChildren):
       )
       return node
 
-  _decorators: Optional[Decorators]
-  _name: Optional[str]
-  _node_id: Optional[int]
-  _state: Optional[NodeState]
-  _user_data_protos: dict[str, any_pb2.Any]
-
   # Either the children: list[Node] from the super class or this must be filled,
   # but never both
   branches: list[Selector.Branch]
@@ -2694,20 +2357,15 @@ class Selector(NodeWithChildren):
       )
 
     if node_children:
-      super().__init__(children=node_children)
+      super().__init__(children=node_children, name=name, node_id=node_id)
       self.branches = []
       print(
           'Passing nodes or skills directly to a selector is deprecated. Use a'
           ' Selector.Branch that contains a node and its condition explicitly.'
       )
     else:
-      super().__init__(children=[])
+      super().__init__(children=[], name=name, node_id=node_id)
       self.branches = node_branches
-    self._decorators = None
-    self._name = name
-    self._node_id = node_id
-    self._state = None
-    self._user_data_protos = {}
 
   def set_children(self, *children: Node) -> Node:
     self.branches = []
@@ -2753,52 +2411,6 @@ class Selector(NodeWithChildren):
   @utils.classproperty
   def node_type(cls) -> str:  # pylint:disable=no-self-argument
     return 'selector'
-
-  @property
-  def name(self) -> Optional[str]:
-    return self._name
-
-  @name.setter
-  def name(self, value: str):
-    self._name = value
-
-  @property
-  def node_id(self) -> Optional[int]:
-    return self._node_id
-
-  @node_id.setter
-  def node_id(self, value: int):
-    self._node_id = value
-
-  @property
-  def state(self) -> Optional[NodeState]:
-    return self._state
-
-  def set_decorators(self, decorators: Optional[Decorators]) -> Node:
-    self._decorators = decorators
-    return self
-
-  @property
-  def decorators(self) -> Optional[Decorators]:
-    return self._decorators
-
-  def set_user_data_proto(
-      self, key: str, proto: protobuf_message.Message
-  ) -> Node:
-    packed = any_pb2.Any()
-    packed.Pack(proto)
-    self._user_data_protos[key] = packed
-    return self
-
-  def set_user_data_proto_from_any(
-      self, key: str, any_proto: any_pb2.Any
-  ) -> Node:
-    self._user_data_protos[key] = any_proto
-    return self
-
-  @property
-  def user_data_protos(self) -> dict[str, any_pb2.Any]:
-    return self._user_data_protos
 
   @classmethod
   def _create_from_proto(
@@ -2880,11 +2492,6 @@ class Retry(Node):
       available while inside the retry node.
   """
 
-  _decorators: Optional[Decorators]
-  _name: Optional[str]
-  _node_id: Optional[int]
-  _state: Optional[NodeState]
-  _user_data_protos: dict[str, any_pb2.Any]
   child: Optional[Node]
   recovery: Optional[Node]
   max_tries: int
@@ -2899,18 +2506,13 @@ class Retry(Node):
       *,
       node_id: int | None = None,
   ):
-    self._decorators = None
+    super().__init__(name, node_id)
     self.child = _transform_to_optional_node(child)
     self.recovery = _transform_to_optional_node(recovery)
     self.max_tries = max_tries
-    self._name = name
-    self._node_id = node_id
-    self._state = None
-    self._user_data_protos = {}
     self._retry_counter_key = retry_counter_key or 'retry_counter_' + str(
         uuid.uuid4()
     ).replace('-', '_')
-    super().__init__()
 
   def set_child(self, child: Union[Node, actions.ActionBase]) -> Retry:
     self.child = _transform_to_optional_node(child)
@@ -2944,26 +2546,6 @@ class Retry(Node):
     )
 
   @property
-  def name(self) -> Optional[str]:
-    return self._name
-
-  @name.setter
-  def name(self, value: str):
-    self._name = value
-
-  @property
-  def node_id(self) -> Optional[int]:
-    return self._node_id
-
-  @node_id.setter
-  def node_id(self, value: int):
-    self._node_id = value
-
-  @property
-  def state(self) -> Optional[NodeState]:
-    return self._state
-
-  @property
   def proto(self) -> behavior_tree_pb2.BehaviorTree.Node:
     proto_object = super().proto
     proto_object.retry.max_tries = self.max_tries
@@ -2986,32 +2568,6 @@ class Retry(Node):
   @utils.classproperty
   def node_type(cls) -> str:  # pylint:disable=no-self-argument
     return 'retry'
-
-  def set_decorators(self, decorators: Optional[Decorators]) -> Node:
-    self._decorators = decorators
-    return self
-
-  @property
-  def decorators(self) -> Optional[Decorators]:
-    return self._decorators
-
-  def set_user_data_proto(
-      self, key: str, proto: protobuf_message.Message
-  ) -> Node:
-    packed = any_pb2.Any()
-    packed.Pack(proto)
-    self._user_data_protos[key] = packed
-    return self
-
-  def set_user_data_proto_from_any(
-      self, key: str, any_proto: any_pb2.Any
-  ) -> Node:
-    self._user_data_protos[key] = any_proto
-    return self
-
-  @property
-  def user_data_protos(self) -> dict[str, any_pb2.Any]:
-    return self._user_data_protos
 
   @classmethod
   def _create_from_proto(
@@ -3115,12 +2671,6 @@ class Fallback(Node):
       )
       return node
 
-  _decorators: Optional[Decorators]
-  _name: Optional[str]
-  _node_id: Optional[int]
-  _state: Optional[NodeState]
-  _user_data_protos: dict[str, any_pb2.Any]
-
   # Note that the FallbackNode does NOT have a children member. Even when
   # children are passed to the constructor or set via set_children() they are
   # automatically converted to tries.
@@ -3134,6 +2684,7 @@ class Fallback(Node):
       tries: list[Node | actions.ActionBase | Fallback.Try] | None = None,
       node_id: int | None = None,
   ):
+    super().__init__(name, node_id)
     self._tries = []
     if children is not None and tries is not None:
       raise ValueError(
@@ -3155,13 +2706,6 @@ class Fallback(Node):
             Fallback.Try(condition=None, node=_transform_to_node(child))
         )
 
-    super().__init__()
-    self._decorators = None
-    self._name = name
-    self._node_id = node_id
-    self._state = None
-    self._user_data_protos = {}
-
   def __repr__(self) -> str:
     """Returns a compact, human-readable string representation."""
     representation = f'{type(self).__name__}({self._name_repr()}tries=['
@@ -3182,52 +2726,6 @@ class Fallback(Node):
   @utils.classproperty
   def node_type(cls) -> str:  # pylint:disable=no-self-argument
     return 'fallback'
-
-  @property
-  def name(self) -> Optional[str]:
-    return self._name
-
-  @name.setter
-  def name(self, value: str):
-    self._name = value
-
-  @property
-  def node_id(self) -> Optional[int]:
-    return self._node_id
-
-  @node_id.setter
-  def node_id(self, value: int):
-    self._node_id = value
-
-  @property
-  def state(self) -> Optional[NodeState]:
-    return self._state
-
-  def set_decorators(self, decorators: Optional[Decorators]) -> Node:
-    self._decorators = decorators
-    return self
-
-  @property
-  def decorators(self) -> Optional[Decorators]:
-    return self._decorators
-
-  def set_user_data_proto(
-      self, key: str, proto: protobuf_message.Message
-  ) -> Node:
-    packed = any_pb2.Any()
-    packed.Pack(proto)
-    self._user_data_protos[key] = packed
-    return self
-
-  def set_user_data_proto_from_any(
-      self, key: str, any_proto: any_pb2.Any
-  ) -> Node:
-    self._user_data_protos[key] = any_proto
-    return self
-
-  @property
-  def user_data_protos(self) -> dict[str, any_pb2.Any]:
-    return self._user_data_protos
 
   @classmethod
   def _create_from_proto(
@@ -3374,11 +2872,6 @@ class Loop(Node):
       protos. The loop iterates over the result of this list.
   """
 
-  _decorators: Optional[Decorators]
-  _name: Optional[str]
-  _node_id: Optional[int]
-  _state: Optional[NodeState]
-  _user_data_protos: dict[str, any_pb2.Any]
   _for_each_value_key: Optional[str]
   _for_each_value: Optional[blackboard_value.BlackboardValue]
   _for_each_protos: Optional[List[protobuf_message.Message]]
@@ -3399,8 +2892,7 @@ class Loop(Node):
       for_each_generator_cel_expression: Optional[str] = None,
       node_id: int | None = None,
   ):
-    self._decorators = None
-    self._user_data_protos = {}
+    super().__init__(name, node_id)
 
     self.do_child: Optional[Node] = _transform_to_optional_node(do_child)
     self.max_times: int = max_times
@@ -3408,9 +2900,6 @@ class Loop(Node):
     self._loop_counter_key = loop_counter_key or 'loop_counter_' + str(
         uuid.uuid4()
     ).replace('-', '_')
-    self._name = name
-    self._node_id = node_id
-    self._state = None
     self._for_each_value_key = for_each_value_key
     self._for_each_value = None
     self._for_each_protos = Loop._for_each_proto_input_to_protos(
@@ -3423,7 +2912,6 @@ class Loop(Node):
     ):
       self._ensure_for_each_value_key()
     self._check_consistency()
-    super().__init__()
 
     if (
         self._for_each_protos is not None
@@ -3727,26 +3215,6 @@ class Loop(Node):
     return representation
 
   @property
-  def name(self) -> Optional[str]:
-    return self._name
-
-  @name.setter
-  def name(self, value: str):
-    self._name = value
-
-  @property
-  def node_id(self) -> Optional[int]:
-    return self._node_id
-
-  @node_id.setter
-  def node_id(self, value: int):
-    self._node_id = value
-
-  @property
-  def state(self) -> Optional[NodeState]:
-    return self._state
-
-  @property
   def proto(self) -> behavior_tree_pb2.BehaviorTree.Node:
     self.validate()
     proto_object = super().proto
@@ -3808,32 +3276,6 @@ class Loop(Node):
   @utils.classproperty
   def node_type(cls) -> str:  # pylint:disable=no-self-argument
     return 'loop'
-
-  def set_decorators(self, decorators: Optional[Decorators]) -> Node:
-    self._decorators = decorators
-    return self
-
-  @property
-  def decorators(self) -> Optional[Decorators]:
-    return self._decorators
-
-  def set_user_data_proto(
-      self, key: str, proto: protobuf_message.Message
-  ) -> Node:
-    packed = any_pb2.Any()
-    packed.Pack(proto)
-    self._user_data_protos[key] = packed
-    return self
-
-  def set_user_data_proto_from_any(
-      self, key: str, any_proto: any_pb2.Any
-  ) -> Node:
-    self._user_data_protos[key] = any_proto
-    return self
-
-  @property
-  def user_data_protos(self) -> dict[str, any_pb2.Any]:
-    return self._user_data_protos
 
   @classmethod
   def _create_from_proto(
@@ -3936,12 +3378,6 @@ class Branch(Node):
     node_type: A string label of the node type.
   """
 
-  _decorators: Optional[Decorators]
-  _name: Optional[str]
-  _node_id: Optional[int]
-  _state: Optional[NodeState]
-  _user_data_protos: dict[str, any_pb2.Any]
-
   def __init__(
       self,
       if_condition: Optional[Condition] = None,
@@ -3951,15 +3387,10 @@ class Branch(Node):
       *,
       node_id: int | None = None,
   ):
-    self._decorators = None
+    super().__init__(name, node_id)
     self.then_child: Optional[Node] = _transform_to_optional_node(then_child)
     self.else_child: Optional[Node] = _transform_to_optional_node(else_child)
     self.if_condition: Optional[Condition] = if_condition
-    self._name = name
-    self._node_id = node_id
-    self._state = None
-    self._user_data_protos = {}
-    super().__init__()
 
   def set_then_child(
       self, then_child: Union[Node, actions.ActionBase]
@@ -4010,26 +3441,6 @@ class Branch(Node):
     return representation
 
   @property
-  def name(self) -> Optional[str]:
-    return self._name
-
-  @name.setter
-  def name(self, value: str):
-    self._name = value
-
-  @property
-  def node_id(self) -> Optional[int]:
-    return self._node_id
-
-  @node_id.setter
-  def node_id(self, value: int):
-    self._node_id = value
-
-  @property
-  def state(self) -> Optional[NodeState]:
-    return self._state
-
-  @property
   def proto(self) -> behavior_tree_pb2.BehaviorTree.Node:
     if self.if_condition is None:
       raise ValueError(
@@ -4057,32 +3468,6 @@ class Branch(Node):
   @utils.classproperty
   def node_type(cls) -> str:  # pylint:disable=no-self-argument
     return 'branch'
-
-  def set_decorators(self, decorators: Optional[Decorators]) -> Node:
-    self._decorators = decorators
-    return self
-
-  @property
-  def decorators(self) -> Optional[Decorators]:
-    return self._decorators
-
-  def set_user_data_proto(
-      self, key: str, proto: protobuf_message.Message
-  ) -> Node:
-    packed = any_pb2.Any()
-    packed.Pack(proto)
-    self._user_data_protos[key] = packed
-    return self
-
-  def set_user_data_proto_from_any(
-      self, key: str, any_proto: any_pb2.Any
-  ) -> Node:
-    self._user_data_protos[key] = any_proto
-    return self
-
-  @property
-  def user_data_protos(self) -> dict[str, any_pb2.Any]:
-    return self._user_data_protos
 
   @classmethod
   def _create_from_proto(
@@ -4176,11 +3561,6 @@ class Data(Node):
   _world_query: Optional[WorldQuery]
   _proto: Optional[protobuf_message.Message | skill_utils.MessageWrapper]
   _protos: Optional[List[protobuf_message.Message | skill_utils.MessageWrapper]]
-  _name: Optional[str]
-  _node_id: Optional[int]
-  _state: Optional[NodeState]
-  _decorators: Optional[Decorators]
-  _user_data_protos: dict[str, any_pb2.Any]
 
   class OperationType(enum.Enum):
     """Defines the kind of operation to perform for the data node."""
@@ -4204,6 +3584,7 @@ class Data(Node):
       name: Optional[str] = None,
       node_id: int | None = None,
   ):
+    super().__init__(name, node_id)
     self._decorators = None
     self._blackboard_key = blackboard_key
     self._operation = operation
@@ -4211,12 +3592,6 @@ class Data(Node):
     self._world_query = world_query
     self._proto = proto
     self._protos = protos
-    self._name = name
-    self._node_id = node_id
-    self._state = None
-    self._user_data_protos = {}
-
-    super().__init__()
 
     if self._cel_expression is not None:
       print(
@@ -4241,26 +3616,6 @@ class Data(Node):
         f'{type(self).__name__}({self._name_repr()},'
         f' blackboard_key="{self.blackboard_key}")'
     )
-
-  @property
-  def name(self) -> Optional[str]:
-    return self._name
-
-  @name.setter
-  def name(self, value: str):
-    self._name = value
-
-  @property
-  def node_id(self) -> Optional[int]:
-    return self._node_id
-
-  @node_id.setter
-  def node_id(self, value: int):
-    self._node_id = value
-
-  @property
-  def state(self) -> Optional[NodeState]:
-    return self._state
 
   @property
   def proto(self) -> behavior_tree_pb2.BehaviorTree.Node:
@@ -4320,38 +3675,11 @@ class Data(Node):
   def node_type(cls) -> str:  # pylint:disable=no-self-argument
     return 'data'
 
-  def set_decorators(self, decorators: Optional[Decorators]) -> Node:
-    """Sets decorators for this node."""
-    self._decorators = decorators
-    return self
-
-  @property
-  def decorators(self) -> Optional[Decorators]:
-    return self._decorators
-
   def has_child(self, node_id: int) -> bool:
     return False
 
   def remove_child(self, node_id: int) -> None:
     raise ValueError('Data node does not have children to remove')
-
-  def set_user_data_proto(
-      self, key: str, proto: protobuf_message.Message
-  ) -> Node:
-    packed = any_pb2.Any()
-    packed.Pack(proto)
-    self._user_data_protos[key] = packed
-    return self
-
-  def set_user_data_proto_from_any(
-      self, key: str, any_proto: any_pb2.Any
-  ) -> Node:
-    self._user_data_protos[key] = any_proto
-    return self
-
-  @property
-  def user_data_protos(self) -> dict[str, any_pb2.Any]:
-    return self._user_data_protos
 
   def validate(self) -> None:
     """Validates the current input.
