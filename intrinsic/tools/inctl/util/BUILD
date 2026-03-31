@@ -1,8 +1,16 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-load("//bazel:go_macros.bzl", "go_library", "go_test")
+load("//bazel:go_macros.bzl", "go_binary", "go_library", "go_test")
 
 package(default_visibility = ["//visibility:public"])
+
+go_binary(
+    name = "spinner_demo",
+    srcs = ["spinner_demo.go"],
+    deps = [
+        ":util",
+    ],
+)
 
 go_library(
     name = "printer",
@@ -34,6 +42,25 @@ go_library(
     name = "color",
     srcs = ["color.go"],
     importpath = "intrinsic/tools/inctl/util/color",
+)
+
+go_library(
+    name = "util",
+    srcs = ["spinner.go"],
+    importpath = "intrinsic/tools/inctl/util",
+    deps = [
+        ":color",
+    ],
+)
+
+go_test(
+    name = "util_test",
+    srcs = ["spinner_test.go"],
+    embed = [":util"],
+    importpath = "intrinsic/tools/inctl/util_test",
+    deps = [
+        "@com_github_stretchr_testify//assert:go_default_library",
+    ],
 )
 
 go_library(

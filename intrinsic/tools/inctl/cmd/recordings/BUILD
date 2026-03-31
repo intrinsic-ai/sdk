@@ -7,6 +7,7 @@ package(default_visibility = ["//visibility:public"])
 go_library(
     name = "recordings",
     srcs = [
+        "create.go",
         "generate.go",
         "get.go",
         "list.go",
@@ -20,13 +21,17 @@ go_library(
         "//intrinsic/kubernetes/vmpool/manager/api/v1:lease_api_go_proto",
         "//intrinsic/logging/proto:bag_metadata_go_proto",
         "//intrinsic/logging/proto:bag_packager_service_go_proto",
+        "//intrinsic/logging/proto:logger_service_go_proto",
         "//intrinsic/logging/proto:replay_service_go_proto",
         "//intrinsic/tools/inctl/auth",
         "//intrinsic/tools/inctl/cmd:root",
+        "//intrinsic/tools/inctl/util",
         "//intrinsic/tools/inctl/util:cobrautil",
         "//intrinsic/tools/inctl/util:color",
         "//intrinsic/tools/inctl/util:orgutil",
         "//intrinsic/tools/inctl/util:printer",
+        "//intrinsic/tools/inctl/util/promptutil",
+        "@com_github_cenkalti_backoff_v4//:go_default_library",
         "@com_github_pborman_uuid//:go_default_library",
         "@com_github_pkg_errors//:go_default_library",
         "@com_github_spf13_cobra//:go_default_library",
@@ -41,6 +46,7 @@ go_library(
 go_test(
     name = "recordings_test",
     srcs = [
+        "create_test.go",
         "generate_test.go",
         "get_test.go",
         "list_test.go",
@@ -52,6 +58,7 @@ go_test(
         "//intrinsic/kubernetes/vmpool/manager/api/v1:lease_api_go_proto",
         "//intrinsic/logging/proto:bag_metadata_go_proto",
         "//intrinsic/logging/proto:bag_packager_service_go_proto",
+        "//intrinsic/logging/proto:logger_service_go_proto",
         "//intrinsic/logging/proto:replay_service_go_proto",
         "//intrinsic/tools/inctl/util:orgutil",
         "@com_github_spf13_cobra//:go_default_library",

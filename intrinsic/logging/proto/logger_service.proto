@@ -286,6 +286,19 @@ message ListLocalRecordingsResponse {
   repeated intrinsic_proto.data_logger.BagMetadata bags = 1;
 }
 
+message GetLocalRecordingRequest {
+  // The unique ID of the recording to retrieve.
+  string bag_id = 1;
+
+  // Allow users to specify whether to return a summary of the recording or the
+  // full metadata, which includes statistics for each event source.
+  bool only_summary_metadata = 2;
+}
+
+message GetLocalRecordingResponse {
+  intrinsic_proto.data_logger.BagMetadata bag = 1;
+}
+
 // Service to:
 // - Persistently store structured logging data on-prem
 // - Retrieve stored structued logging data on-prem
@@ -363,4 +376,8 @@ service DataLogger {
   // local recordings and their upload progress.
   rpc ListLocalRecordings(ListLocalRecordingsRequest)
       returns (ListLocalRecordingsResponse) {}
+
+  // Gets a specific local recording.
+  rpc GetLocalRecording(GetLocalRecordingRequest)
+      returns (GetLocalRecordingResponse) {}
 }

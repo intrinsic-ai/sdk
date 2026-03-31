@@ -214,7 +214,8 @@ absl::StatusOr<google::protobuf::Any> KeyValueStore::GetAnyWithRawKey(
     return absl::InternalError(
         absl::StrFormat("Error getting a key, return code: %d", ret));
   }
-  bool returned = notif.WaitForNotificationWithTimeout(timeout);
+  bool returned =
+      notif.WaitForNotificationWithTimeout(timeout + absl::Seconds(1));
   if (!returned) {
     return absl::DeadlineExceededError("Timeout waiting for key");
   }

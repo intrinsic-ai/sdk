@@ -1,0 +1,114 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.textlogs.v1;
+
+import "google/longrunning/operations.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "intrinsic/logging/textlogfetcher/proto/v1/textlogfetcher_go_proto";
+
+// Service to fetch and package asset text logs.
+service TextLogFetcher {
+  // Starts a long-running operation to query and package logs matching the
+  // request.
+  rpc CreateAssetLogsPackage(AssetLogsQueryRequest)
+      returns (google.longrunning.Operation) {
+    option (google.longrunning.operation_info) = {
+      response_type: "AssetLogsPackageResponse"
+      metadata_type: "AssetLogsPackageMetadata"
+    };
+  }
+
+  // Lists operations that match the specified filter in the request.
+  // For more details see google/longrunning/operations.proto
+  rpc ListOperations(google.longrunning.ListOperationsRequest)
+      returns (google.longrunning.ListOperationsResponse);
+
+  // Gets the latest state of a long-running operation.
+  // For more details see google/longrunning/operations.proto
+  rpc GetOperation(google.longrunning.GetOperationRequest)
+      returns (google.longrunning.Operation);
+
+  // Deletes a long-running operation.
+  // For more details see google/longrunning/operations.proto
+  rpc DeleteOperation(google.longrunning.DeleteOperationRequest)
+      returns (google.protobuf.Empty);
+
+  // Starts asynchronous cancellation on a long-running operation.
+  // For more details see google/longrunning/operations.proto
+  rpc CancelOperation(google.longrunning.CancelOperationRequest)
+      returns (google.protobuf.Empty);
+
+  // Waits until the specified long-running operation is done or reaches at most
+  // a specified timeout, returning the latest state.
+  // For more details see google/longrunning/operations.proto
+  rpc WaitOperation(google.longrunning.WaitOperationRequest)
+      returns (google.longrunning.Operation);
+}
+
+// Identifies a Skill.
+message SkillReference {
+  // Asset id of the skill.
+  string id = 1;
+}
+
+// Identifies a Resource instance.
+message ResourceReference {
+  // Asset id of the resource.
+  string id = 1;
+  // Optional instance id to filter logs for a specific instance. If omitted,
+  // logs for all instances of the resource will be fetched.
+  optional string instance_id = 2;
+}
+
+// A reference wrapper for supported asset types.
+message AssetReference {
+  oneof asset_reference {
+    SkillReference skill = 1;
+    ResourceReference resource = 2;
+  }
+}
+
+// Request parameters for querying and packaging asset logs.
+message AssetLogsQueryRequest {
+  // Inclusive start time for logs query range.
+  google.protobuf.Timestamp start_time = 1;
+
+  // Inclusive end time for logs query range.
+  google.protobuf.Timestamp end_time = 2;
+
+  // The assets to fetch logs for. At least one required.
+  repeated AssetReference asset_references = 3;
+
+  // Logic Filter parameters.
+  // These filters are combined with a logical AND.
+  // E.g., Adding ["hello", "world"] means a log line must contain BOTH
+  // "hello" and "world" to be included in output.
+  repeated string filters = 4;
+
+  // Workcell name to fetch logs for.
+  string workcell_name = 5;
+}
+
+// Response containing URL for log package access.
+message AssetLogsPackageResponse {
+  // Signed URL to download the zip/tarball of text logs.
+  string signed_url = 1;
+}
+
+// Metadata capturing operation progress states.
+message AssetLogsPackageMetadata {
+  enum Stage {
+    STAGE_UNSPECIFIED = 0;
+    STAGE_INITIATED = 1;
+    STAGE_QUERYING = 2;
+    STAGE_PACKAGING = 3;
+    STAGE_DONE = 4;
+    STAGE_CANCELLED = 5;
+    STAGE_FAILED = 6;
+  }
+  Stage stage = 1;
+}

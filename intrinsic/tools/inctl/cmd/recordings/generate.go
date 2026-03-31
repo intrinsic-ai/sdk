@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"intrinsic/tools/inctl/util/color"
 	"intrinsic/tools/inctl/util/orgutil"
 
 	"github.com/spf13/cobra"
@@ -134,6 +135,13 @@ func (r *GenerateCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 
 	fmt.Fprintln(cmd.OutOrStdout(), "")
 	fmt.Fprintln(cmd.OutOrStdout(), fmt.Sprintf("Generated recording file for recording ID %s", flagBagID))
+	fmt.Fprintln(cmd.OutOrStdout(), "")
+	color.C.Blue().Fprintf(cmd.OutOrStdout(), "Next steps:\n")
+	color.C.Blue().Fprintf(cmd.OutOrStdout(), "  Download the recording:\n")
+	color.C.Blue().Fprintf(cmd.OutOrStdout(), fmt.Sprintf("    inctl recordings get --recording_id %s --with_url --org %s@%s\n", flagBagID, generateParam.GetString(orgutil.KeyOrganization), generateParam.GetString(orgutil.KeyProject)))
+	color.C.Blue().Fprintf(cmd.OutOrStdout(), "\n")
+	color.C.Blue().Fprintf(cmd.OutOrStdout(), "  Visualize the recording in your browser:\n")
+	color.C.Blue().Fprintf(cmd.OutOrStdout(), fmt.Sprintf("    inctl recordings visualize create --recording_id %s --duration 1h --org %s@%s\n", flagBagID, generateParam.GetString(orgutil.KeyOrganization), generateParam.GetString(orgutil.KeyProject)))
 	fmt.Fprintln(cmd.OutOrStdout(), "")
 	return nil
 }
