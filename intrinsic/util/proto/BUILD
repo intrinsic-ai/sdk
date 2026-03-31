@@ -236,7 +236,6 @@ cc_test(
         ":parsed_type_url",
         "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/status",
-        "@com_google_protobuf//:protobuf",
     ],
 )
 

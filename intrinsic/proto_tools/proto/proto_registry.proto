@@ -42,8 +42,9 @@ message GetNamedFileDescriptorSetRequest {
     // descriptor set returned for the type URL may not contain any descriptors
     // for components the specified message does not transitively depend on.
     //
-    // Example:
-    // type.intrinsic.ai/assets/com.example.my_asset/my_package.MyMessage
+    // Examples:
+    // * type.intrinsic.ai/assets/com.example.my_asset/my_package.MyMessage
+    // * type.intrinsic.ai/well-known/google.protobuf.Duration
     string type_url = 1;
 
     // Name of the requested file descriptor set in the proto registry, see

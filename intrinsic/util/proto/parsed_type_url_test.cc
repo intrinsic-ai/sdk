@@ -6,7 +6,6 @@
 #include <gtest/gtest.h>
 
 #include "absl/status/status.h"
-#include "google/protobuf/wrappers.pb.h"
 #include "intrinsic/util/testing/gtest_wrapper.h"
 
 using ::absl_testing::StatusIs;
@@ -32,6 +31,16 @@ TEST(TypeUrl, ParseTypeUrl) {
   EXPECT_EQ(pu.message_type, "google.protobuf.Int64Value");
 }
 
+TEST(TypeUrl, ParseTypeUrlEmptyPath) {
+  ASSERT_OK_AND_ASSIGN(
+      ParsedUrl pu,
+      ParseTypeUrl("type.intrinsic.ai/area/google.protobuf.Int64Value"));
+
+  EXPECT_EQ(pu.area, "area");
+  EXPECT_EQ(pu.path, "");
+  EXPECT_EQ(pu.message_type, "google.protobuf.Int64Value");
+}
+
 TEST(ParsedTypeUrl, ParseTypeUrlPrefixGoogleSpec) {
   EXPECT_THAT(
       ParseTypeUrlPrefix("type.googleapis.com/google.protobuf.Int64Value"),
@@ -42,9 +51,9 @@ TEST(TypeUrl, ParseTypeUrlInvalid) {
   EXPECT_THAT(
       ParseTypeUrl("type.intrinsic.ai///"),
       StatusIs(absl::StatusCode::kInvalidArgument, HasSubstr("missing area")));
-  EXPECT_THAT(
-      ParseTypeUrl("type.intrinsic.ai/area//"),
-      StatusIs(absl::StatusCode::kInvalidArgument, HasSubstr("missing path")));
+  EXPECT_THAT(ParseTypeUrl("type.intrinsic.ai/area//"),
+              StatusIs(absl::StatusCode::kInvalidArgument,
+                       HasSubstr("missing message type")));
   EXPECT_THAT(
       ParseTypeUrl("type.intrinsic.ai/area/path/"),
       StatusIs(absl::StatusCode::kInvalidArgument, HasSubstr("message type")));
@@ -59,6 +68,15 @@ TEST(TypeUrl, ParseTypeUrlPrefix) {
 
   EXPECT_EQ(pu.area, "area");
   EXPECT_EQ(pu.path, "foo/bar");
+  EXPECT_EQ(pu.message_type, "");
+}
+
+TEST(TypeUrl, ParseTypeUrlPrefixEmptyPath) {
+  ASSERT_OK_AND_ASSIGN(ParsedUrl pu,
+                       ParseTypeUrlPrefix("type.intrinsic.ai/area/"));
+
+  EXPECT_EQ(pu.area, "area");
+  EXPECT_EQ(pu.path, "");
   EXPECT_EQ(pu.message_type, "");
 }
 
@@ -91,11 +109,13 @@ TEST(TypeUrl, ParseTypeUrlPrefixWithoutArea) {
       ParseTypeUrlPrefix("type.intrinsic.ai///"),
       StatusIs(absl::StatusCode::kInvalidArgument, HasSubstr("missing area")));
   EXPECT_THAT(
-      ParseTypeUrlPrefix("type.intrinsic.ai/area//"),
-      StatusIs(absl::StatusCode::kInvalidArgument, HasSubstr("missing path")));
-  EXPECT_THAT(
       ParseTypeUrlPrefix("type.intrinsic.ai//asd/"),
       StatusIs(absl::StatusCode::kInvalidArgument, HasSubstr("missing area")));
+
+  ASSERT_OK_AND_ASSIGN(ParsedUrl pu,
+                       ParseTypeUrlPrefix("type.intrinsic.ai/area//"));
+  EXPECT_EQ(pu.area, "area");
+  EXPECT_EQ(pu.path, "");
 }
 
 }  // namespace

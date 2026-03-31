@@ -77,22 +77,16 @@ absl::StatusOr<ParsedUrl> ParseTypeUrl(std::string_view type_url) {
   std::string_view::size_type last_slash_pos =
       remainder_after_area.rfind(kTypeUrlSeparator);
   if (last_slash_pos == std::string_view::npos) {
-    std::string message = absl::StrFormat(
-        "Type URL '%s' is missing separator after area", type_url);
-    return (StatusBuilder(absl::StatusCode::kInvalidArgument) << message)
-        .AttachExtendedStatus(
-            util::proto::kExtendedStatusComponent, util::proto::kInvalidUrlCode,
-            {.title = util::proto::kInvalidUrlTitle,
-             .user_message = message,
-             .user_instructions = util::proto::kInvalidUrlInstructions});
+    parsed_url.path = "";
+    parsed_url.message_type = remainder_after_area;
+  } else {
+    parsed_url.path = remainder_after_area.substr(0, last_slash_pos);
+    parsed_url.message_type = remainder_after_area.substr(last_slash_pos + 1);
   }
 
-  parsed_url.path = remainder_after_area.substr(0, last_slash_pos);
-  parsed_url.message_type = remainder_after_area.substr(last_slash_pos + 1);
-
-  if (parsed_url.path.empty() || parsed_url.message_type.empty()) {
-    std::string message = absl::StrFormat(
-        "Type URL '%s' is missing path or message type", type_url);
+  if (parsed_url.message_type.empty()) {
+    std::string message =
+        absl::StrFormat("Type URL '%s' is missing message type", type_url);
     return (StatusBuilder(absl::StatusCode::kInvalidArgument) << message)
         .AttachExtendedStatus(
             util::proto::kExtendedStatusComponent, util::proto::kInvalidUrlCode,
@@ -112,10 +106,6 @@ absl::StatusOr<ParsedUrl> ParseTypeUrlPrefix(std::string_view type_url_prefix) {
 
   if (remainder_after_area.ends_with(kTypeUrlSeparator)) {
     remainder_after_area.remove_suffix(kTypeUrlSeparator.length());
-  }
-  if (remainder_after_area.empty()) {
-    return absl::InvalidArgumentError(absl::StrFormat(
-        "Type URL prefix '%s' is missing path", type_url_prefix));
   }
 
   parsed_url.path = remainder_after_area;
