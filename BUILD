@@ -1,7 +1,7 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
 load("@bazel_gazelle//:def.bzl", "gazelle")
-load("@rules_python//python:pip.bzl", "compile_pip_requirements")
+load("@rules_uv//uv:pip.bzl", "pip_compile")
 
 gazelle(name = "gazelle")
 
@@ -22,12 +22,12 @@ exports_files(
     visibility = ["//intrinsic/production/external:__pkg__"],
 )
 
-compile_pip_requirements(
+pip_compile(
     name = "requirements_sdk",
-    src = "requirements.in",
-    generate_hashes = True,
+    requirements_in = "requirements.in",
     requirements_txt = "requirements.txt",
-    # Disable the automatically generated test target as it is slow, requires network access and
-    # adds unnecessary dependencies on external services we do not control.
+    # Disable the automatically generated test target as it is slow, requires
+    # network access and adds unnecessary dependencies on external services we
+    # do not control.
     tags = ["manual"],
 )
