@@ -54,13 +54,21 @@ message VisualizationGeometry {
 // A visualizable renderable in the world at time of requesting the recording.
 // A renderable, with a reference to identify it.
 message VisualizationRenderable {
-  // The reference of the renderable to uniquely identify it.
+  // The ID of the renderable to uniquely identify it.
   //
   // Use this to join with the geometry components in the
-  // VisualizationFrameResources, which contain references to visualizable
-  // renderables via their references, alongside further affine transformations
-  // to be applied.
-  string renderable_ref = 1;
+  // VisualizationFrameResources or the TFAssociations message
+  // (via the geometry_path_to_renderable_id map), which contain references to
+  // visualizable renderables via their IDs, alongside further affine
+  // transformations to be applied.
+  //
+  // Renderable IDs differ based off the geometries they originate from:
+  // - InlineGeometry:
+  //   - The C++ generated fingerprint on the InlineGeometry's ExactGeometry
+  // - Geometry with v1.GeometryStorageRefs:
+  //   - Prefer renderable_ref (CAS URL), but fallback to exact_geometry_ref
+  //   (CAS URL)
+  string renderable_id = 1;
 
   // Either:
   //   - The data itself or;
@@ -147,4 +155,15 @@ message VisualizationContext {
   // Used to interpret ROS TF messages in the recording and join them with
   // data in the visualization context.
   map<string, VisualizationFrameResources> frame_resources = 3;
+
+  // The next offset index to use when writing visualization log items on-prem.
+  //
+  // This is used by downstream components to continue the offset logic for new
+  // visualization related messages to ensure they don't overlap in acquisition
+  // time.
+  //
+  // Invariant: The VisualizationContext message itself is ALWAYS written with
+  // an offset index of 0, ensuring it appears chronologically FIRST in the
+  // recording, before any other visualization messages.
+  int64 next_offset_index = 5;
 }
