@@ -194,6 +194,21 @@ service ExecutiveService {
     };
   }
 
+  // Force the operation to stop independent of ongoing skill calls.
+  // This is a last resort when CancelOperation does not lead to a cancelled
+  // state, usually because a skill does not cancel or terminate.
+  // This will abandon all ongoing skill calls and declare these failed without
+  // waiting for a reply by the skill. This effectively terminates the
+  // operation. The operation is usually left in a FAILED state with an
+  // ExtendedStatus indicating which skill calls have been abandoned.
+  //
+  // Only available after CancelOperation has been called on the operation. Do
+  // not use CancelOperation and ForceAbandonOperation in an automatic sequence
+  // to "quickly stop" as ForceAbandonOperation leaves all affected skills in an
+  // unknown state!
+  rpc ForceAbandonOperation(ForceAbandonOperationRequest)
+      returns (google.protobuf.Empty) {}
+
   // ========= Methods for breakpoints (on a specific behavior tree) ===========
 
   // Breakpoints are a means to request automatically suspending a tree at
@@ -248,6 +263,11 @@ message ResetOperationRequest {
   // If set to true, the blackboard of the operation will not be reset and all
   // keys are kept.
   bool keep_blackboard = 2;
+}
+
+message ForceAbandonOperationRequest {
+  // Name of the operation
+  string name = 1;
 }
 
 message GetOperationViewRequest {
