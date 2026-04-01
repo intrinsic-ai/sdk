@@ -57,7 +57,7 @@ absl::Status PeriodicOperation::Start() {
   // Wait for the last start time to be something more recent than infinite
   // past, which would indicate the start of our first operation.
   absl::Condition wait_for_operation_start(
-      +[](PeriodicOperation* op) ABSL_EXCLUSIVE_LOCKS_REQUIRED(mutex_) {
+      +[](PeriodicOperation* op) ABSL_EXCLUSIVE_LOCKS_REQUIRED(op->mutex_) {
         return op->last_operation_start_time_ > absl::InfinitePast();
       },
       this);
@@ -100,10 +100,11 @@ void PeriodicOperation::RunNow() {
   };
 
   absl::Condition wait_until_ran(
-      +[](WaitUntilRanProps* props) ABSL_EXCLUSIVE_LOCKS_REQUIRED(mutex_) {
-        return !props->op->operation_executor_.joinable() ||
-               props->op->last_operation_start_time_ > props->last_op_time;
-      },
+      +[](WaitUntilRanProps* props)
+           ABSL_EXCLUSIVE_LOCKS_REQUIRED(props->op->mutex_) {
+             return !props->op->operation_executor_.joinable() ||
+                    props->op->last_operation_start_time_ > props->last_op_time;
+           },
       &props);
 
   absl::MutexLock l(&mutex_);
@@ -137,7 +138,7 @@ void PeriodicOperation::ExecutorLoop() {
     }
 
     absl::Condition should_run_again(
-        +[](PeriodicOperation* op) ABSL_EXCLUSIVE_LOCKS_REQUIRED(mutex_) {
+        +[](PeriodicOperation* op) ABSL_EXCLUSIVE_LOCKS_REQUIRED(op->mutex_) {
           return op->run_now_request_ || !op->run_executor_thread_;
         },
         this);
