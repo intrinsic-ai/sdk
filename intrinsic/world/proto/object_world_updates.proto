@@ -217,6 +217,18 @@ message DeleteObjectRequest {
   // This setting does *not* affect the frames grouped under the deleted object
   // itself. Those frames will always be deleted regardless of this setting.
   bool force = 3;
+
+  // If set to true, child objects of the deleted object will be reparented to
+  // the deleted object's parent while retaining their relative pose wrt the
+  // parent object.
+  //
+  // This setting does *not* affect the frames grouped under the deleted object
+  // itself. Those frames will always be deleted regardless of this setting.
+  //
+  // Only one of `force` or `reparent_child_objects` should be set.
+  // If both `force` and `reparent_child_objects` are false, deletion will fail
+  // if there are child objects.
+  bool reparent_child_objects = 4;
 }
 
 message UpdateObjectNameRequest {
