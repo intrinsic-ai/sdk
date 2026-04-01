@@ -23,6 +23,7 @@ int main(int argc, char** argv) {
   }
 
   // Before usage, the fuzzy tests need to be initialized.
+  fuzztest::ParseAbslFlags(argc, argv);
   fuzztest::InitFuzzTest(&argc, &argv);
 
   // Run unit tests if there are any. Since Google Mock depends on Google
