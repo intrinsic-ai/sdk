@@ -13,13 +13,13 @@ namespace intrinsic {
 
 // The settings are platform-dependent on Linux.
 ThreadOptions& ThreadOptions::SetRealtimeHighPriorityAndScheduler() {
-  priority_ = 92;  // High real-time priority.
+  priority_ = kHighRealtimePriority;
   policy_ = SCHED_FIFO;
   return *this;
 }
 
 ThreadOptions& ThreadOptions::SetRealtimeLowPriorityAndScheduler() {
-  priority_ = 83;  // Low real-time priority.
+  priority_ = kLowRealtimePriority;
   policy_ = SCHED_FIFO;
   return *this;
 }

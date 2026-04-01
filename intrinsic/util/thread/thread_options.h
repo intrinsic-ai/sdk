@@ -11,6 +11,16 @@
 
 namespace intrinsic {
 
+// The priority for high-priority real-time threads. The priority of the
+// real-time NIC is 50 on intrinsic OS IPCs. This priority must be lower. It is
+// a few values lower to give some room for special applications that need to
+// sit in between.
+constexpr int kHighRealtimePriority = 45;
+// The priority for low-priority real-time threads. This priority must be lower
+// than kHighRealtimePriority. It is a few values lower to give some room for
+// special applications that need to sit in between.
+constexpr int kLowRealtimePriority = 40;
+
 // Options for the thread. These allow for non-default behavior of the thread.
 class ThreadOptions {
  public:
