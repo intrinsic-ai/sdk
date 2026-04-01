@@ -66,7 +66,7 @@ priority. Otherwise, it runs in a normal thread.
 )";
 
 constexpr char kLoggerAddress[] =
-    "logger.app-intrinsic-base.svc.cluster.local:8080";
+    "istio-ingressgateway.app-ingress.svc.cluster.local:80";
 static constexpr absl::Duration kLoggerConnectionTimeout = absl::Seconds(1);
 
 absl::StatusOr<HardwareModuleExitCode> ModuleMain(int argc, char** argv) {
