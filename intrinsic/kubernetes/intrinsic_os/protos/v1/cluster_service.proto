@@ -56,4 +56,19 @@ service ClusterService {
       body: "*"
     };
   }
+
+  rpc GetRemoteAccessSettings(GetRemoteAccessSettingsRequest)
+      returns (RemoteAccessSettings) {
+    option (google.api.http) = {
+      get: "/cluster/v1/cluster/remoteAccessSettings"
+    };
+  }
+
+  rpc UpdateRemoteAccessSettings(UpdateRemoteAccessSettingsRequest)
+      returns (UpdateRemoteAccessSettingsResponse) {
+    option (google.api.http) = {
+      post: "/cluster/v1/cluster/remoteAccessSettings"
+      body: "*"
+    };
+  }
 }

@@ -19,3 +19,15 @@ message Cluster {
 }
 
 message GetClusterRequest {}
+
+message RemoteAccessSettings {
+  bool enabled = 1;
+}
+
+message GetRemoteAccessSettingsRequest {}
+
+message UpdateRemoteAccessSettingsRequest {
+  RemoteAccessSettings remote_access_settings = 1;
+}
+
+message UpdateRemoteAccessSettingsResponse {}
