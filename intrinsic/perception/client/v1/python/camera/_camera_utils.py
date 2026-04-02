@@ -40,6 +40,8 @@ def extract_identifier(config: camera_config_pb2.CameraConfig) -> Optional[str]:
   camera_driver = identifier.WhichOneof("drivers")
   if camera_driver == "genicam":
     return identifier.genicam.device_id
+  elif camera_driver == "ros":
+    return identifier.ros.device_id
   else:
     return None
 
@@ -138,6 +140,9 @@ def from_v1_camera_identifier(
   camera_identifier_v0 = camera_identifier_v0_pb2.CameraIdentifier()
   if camera_identifier.HasField("genicam"):
     camera_identifier_v0.genicam.device_id = camera_identifier.genicam.device_id
+  elif camera_identifier.HasField("ros"):
+    camera_identifier_v0.ros.driver_type = camera_identifier.ros.driver_type
+    camera_identifier_v0.ros.device_id = camera_identifier.ros.device_id
   else:
     raise ValueError(
         "Unsupported camera identifier type: %s"
@@ -153,6 +158,9 @@ def to_v1_camera_identifier(
   camera_identifier_v1 = camera_identifier_pb2.CameraIdentifier()
   if camera_identifier.HasField("genicam"):
     camera_identifier_v1.genicam.device_id = camera_identifier.genicam.device_id
+  elif camera_identifier.HasField("ros"):
+    camera_identifier_v1.ros.driver_type = camera_identifier.ros.driver_type
+    camera_identifier_v1.ros.device_id = camera_identifier.ros.device_id
   else:
     raise ValueError(
         "Unsupported camera identifier type: %s"
