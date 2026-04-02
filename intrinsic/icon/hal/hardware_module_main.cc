@@ -53,6 +53,11 @@ ABSL_FLAG(std::string, shared_memory_namespace_testonly, "",
 ABSL_FLAG(
     std::optional<int>, grpc_server_port, std::nullopt,
     "The port to use for the grpc server. Only used if not in resource mode.");
+// Hardware modules may be started before the k8s network is fully functional
+// because they define `hostNetwork=true`. This lead to b/498457789.
+ABSL_FLAG(absl::Duration, logger_connection_timeout, absl::Minutes(5),
+          "Maximum duration to connect to the Intrinsic Logger. Pass '0s' when "
+          "using without logger.");
 
 namespace intrinsic::icon {
 
@@ -67,7 +72,6 @@ priority. Otherwise, it runs in a normal thread.
 
 constexpr char kLoggerAddress[] =
     "istio-ingressgateway.app-ingress.svc.cluster.local:80";
-static constexpr absl::Duration kLoggerConnectionTimeout = absl::Seconds(1);
 
 absl::StatusOr<HardwareModuleExitCode> ModuleMain(int argc, char** argv) {
   // Handle SIGTERM, sent by Kubernetes to shut down.
@@ -75,13 +79,24 @@ absl::StatusOr<HardwareModuleExitCode> ModuleMain(int argc, char** argv) {
   // Handle Ctrl+C to shut down.
   std::signal(SIGINT, ShutdownSignalHandler);
 
+  const absl::Duration logger_connection_timeout =
+      absl::GetFlag(FLAGS_logger_connection_timeout);
+
+  LOG(INFO) << "Trying to connect to the Intrinsic Logger at " << kLoggerAddress
+            << " for " << absl::FormatDuration(logger_connection_timeout);
+  const auto logger_start = absl::Now();
   if (absl::Status status =
           intrinsic::data_logger::StartUpIntrinsicLoggerViaGrpc(
-              kLoggerAddress, kLoggerConnectionTimeout);
+              kLoggerAddress, logger_connection_timeout);
       !status.ok()) {
-    LOG(WARNING) << "Failed to connect to data logger, robot metadata will not "
+    LOG(WARNING) << "Failed to connect to the Intrinsic Logger within "
+                 << absl::FormatDuration(logger_connection_timeout)
+                 << ", robot metadata will not "
                     "be published. Error: "
                  << status;
+  } else {
+    LOG(INFO) << "Connected to the Intrinsic Logger at " << kLoggerAddress
+              << " after " << absl::FormatDuration(absl::Now() - logger_start);
   }
   std::string runtime_context_file = absl::GetFlag(FLAGS_runtime_context_file);
   absl::StatusOr<HardwareModuleMainConfig> hwm_main_config =
