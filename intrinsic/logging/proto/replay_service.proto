@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.replay;
 
+import "google/api/annotations.proto";
 import "intrinsic/logging/proto/replay_service_options.proto";
 
 option go_package = "intrinsic/logging/proto/replay_service_go_proto";
@@ -30,5 +31,10 @@ service Replay {
 
   // Visualize a recording.
   rpc VisualizeRecording(VisualizeRecordingRequest)
-      returns (VisualizeRecordingResponse) {}
+      returns (VisualizeRecordingResponse) {
+    option (google.api.http) = {
+      post: "/replay/v0/recordings/{recording_id}:visualize"
+      body: "*"
+    };
+  }
 }

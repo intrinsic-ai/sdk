@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.data_logger;
 
+import "google/api/annotations.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
@@ -313,10 +314,19 @@ message GetLocalRecordingResponse {
 service DataLogger {
 
   // Sends one structured log to be stored on-prem.
-  rpc Log(LogRequest) returns (google.protobuf.Empty) {}
+  rpc Log(LogRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/logger/v0/logs"
+      body: "*"
+    };
+  }
 
   // Returns a list of event sources that can be accessed using `GetLogItems`.
-  rpc ListLogSources(google.protobuf.Empty) returns (ListLogSourcesResponse) {}
+  rpc ListLogSources(google.protobuf.Empty) returns (ListLogSourcesResponse) {
+    option (google.api.http) = {
+      get: "/logger/v0/logSources"
+    };
+  }
 
   // Reads the on-prem logs seqentially, performing basic filtering and
   // sampling.
@@ -330,7 +340,12 @@ service DataLogger {
   //   - The next log item has acquisition time > min(request.end_time, now)
   //   - The end of the logged data has been reached
   //   - The response size has reached 1GB
-  rpc GetLogItems(GetLogItemsRequest) returns (GetLogItemsResponse) {}
+  rpc GetLogItems(GetLogItemsRequest) returns (GetLogItemsResponse) {
+    option (google.api.http) = {
+      post: "/logger/v0/logs:fetch"
+      body: "*"
+    };
+  }
 
   // Returns the most recent LogItem that has been logged for the given event
   // source, from an in-memory cache.
@@ -338,29 +353,54 @@ service DataLogger {
   // If no `LogItem` with a matching event_source has been logged since
   // --file_ttl, then NOT_FOUND will be returned instead.
   rpc GetMostRecentItem(GetMostRecentItemRequest)
-      returns (GetMostRecentItemResponse) {}
+      returns (GetMostRecentItemResponse) {
+    option (google.api.http) = {
+      get: "/logger/v0/logSources/{event_source}:mostRecentItem"
+    };
+  }
 
   // Sets the LogOptions for matching event sources in the request.
   //
   // This RPC supports matching event sources via regex, and will apply the log
   // options to all current and future event sources that match the request
   // (with caveat, see request proto).
-  rpc SetLogOptions(SetLogOptionsRequest) returns (SetLogOptionsResponse) {}
+  rpc SetLogOptions(SetLogOptionsRequest) returns (SetLogOptionsResponse) {
+    option (google.api.http) = {
+      post: "/logger/v0/logOptions"
+      body: "*"
+    };
+  }
 
   // Returns the LogOptions for a specific `event_source`. If no user defined
   // options have been specified, the call returns NOT_FOUND status.
-  rpc GetLogOptions(GetLogOptionsRequest) returns (GetLogOptionsResponse) {}
+  rpc GetLogOptions(GetLogOptionsRequest) returns (GetLogOptionsResponse) {
+    option (google.api.http) = {
+      get: "/logger/v0/logOptions/{key}"
+      additional_bindings: {
+        get: "/logger/v0/logSources/{event_source}:logOptions"
+      }
+    };
+  }
 
   // Manually trigger a flush of all buffered LogItems to the cloud.
   //
   // This is an expensive operation and should NOT be called after every
   // `Log` call. Each event source will have a global throttle on user-requested
   // flushes.
-  rpc SyncAndRotateLogs(SyncRequest) returns (SyncResponse) {}
+  rpc SyncAndRotateLogs(SyncRequest) returns (SyncResponse) {
+    option (google.api.http) = {
+      post: "/logger/v0/logs:sync"
+      body: "*"
+    };
+  }
 
   // Returns true if recordings are supported by the logger.
   rpc RecordingsSupported(google.protobuf.Empty)
-      returns (RecordingsSupportedResponse) {}
+      returns (RecordingsSupportedResponse) {
+    option (google.api.http) = {
+      get: "/logger/v0/recordings:supported"
+    };
+  }
 
   // Creates a local recording from structured logging data.
   //
@@ -368,16 +408,29 @@ service DataLogger {
   // that it does not get deleted from the rolling-buffer TimescaleDB tables if
   // the upload process is very slow due to limited internet connectivity.
   rpc CreateLocalRecording(CreateLocalRecordingRequest)
-      returns (CreateLocalRecordingResponse) {}
+      returns (CreateLocalRecordingResponse) {
+    option (google.api.http) = {
+      post: "/logger/v0/recordings"
+      body: "*"
+    };
+  }
 
   // List recordings stored locally.
   //
   // This RPC is intended to be used by the frontend to display a list of
   // local recordings and their upload progress.
   rpc ListLocalRecordings(ListLocalRecordingsRequest)
-      returns (ListLocalRecordingsResponse) {}
+      returns (ListLocalRecordingsResponse) {
+    option (google.api.http) = {
+      get: "/logger/v0/recordings"
+    };
+  }
 
   // Gets a specific local recording.
   rpc GetLocalRecording(GetLocalRecordingRequest)
-      returns (GetLocalRecordingResponse) {}
+      returns (GetLocalRecordingResponse) {
+    option (google.api.http) = {
+      get: "/logger/v0/recordings/{bag_id}"
+    };
+  }
 }

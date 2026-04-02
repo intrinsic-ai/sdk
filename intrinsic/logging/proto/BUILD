@@ -262,6 +262,7 @@ proto_library(
         "//intrinsic/skills/proto:skill_service_proto",
         "//intrinsic/util/status:extended_status_proto",
         "//third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg:marker_array_proto",
+        "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_protobuf//:any_proto",
         "@com_google_protobuf//:timestamp_proto",
     ],
@@ -371,6 +372,7 @@ proto_library(
         ":bag_metadata_proto",
         ":downsampler_proto",
         ":log_item_proto",
+        "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_protobuf//:duration_proto",
         "@com_google_protobuf//:empty_proto",
         "@com_google_protobuf//:timestamp_proto",
@@ -394,6 +396,7 @@ go_proto_library(
     compilers = [
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
+        "//bazel:go_gen_grpc_gateway",
     ],
     importpath = "intrinsic/logging/proto/logger_service_go_proto",
     protos = [":logger_service"],
@@ -401,6 +404,7 @@ go_proto_library(
         ":bag_metadata_go_proto",
         ":downsampler_go_proto",
         ":log_item_go_proto",
+        "@org_golang_google_genproto_googleapis_api//annotations",
     ],
 )
 
@@ -487,7 +491,10 @@ filegroup(
 proto_library(
     name = "replay_service",
     srcs = ["replay_service.proto"],
-    deps = [":replay_service_options"],
+    deps = [
+        ":replay_service_options",
+        "@com_google_googleapis//google/api:annotations_proto",
+    ],
 )
 
 cc_proto_library(
@@ -508,10 +515,14 @@ go_proto_library(
     compilers = [
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
+        "//bazel:go_gen_grpc_gateway",
     ],
     importpath = "intrinsic/logging/proto/replay_service_go_proto",
     protos = [":replay_service"],
-    deps = [":replay_service_options_go_proto"],
+    deps = [
+        ":replay_service_options_go_proto",
+        "@org_golang_google_genproto_googleapis_api//annotations",
+    ],
 )
 
 py_proto_library(
