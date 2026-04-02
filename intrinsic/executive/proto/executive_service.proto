@@ -207,7 +207,12 @@ service ExecutiveService {
   // to "quickly stop" as ForceAbandonOperation leaves all affected skills in an
   // unknown state!
   rpc ForceAbandonOperation(ForceAbandonOperationRequest)
-      returns (google.protobuf.Empty) {}
+      returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/executive/v0/operations/{name}:forceAbandon"
+      body: "*"
+    };
+  }
 
   // ========= Methods for breakpoints (on a specific behavior tree) ===========
 
