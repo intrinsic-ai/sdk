@@ -465,6 +465,7 @@ message CreateFrameRequest {
   // If attached to an object we can mark this frame as an attachment frame when
   // creating it.
   bool designate_as_attachment_frame = 6;
+
 }
 
 message DeleteFrameRequest {
