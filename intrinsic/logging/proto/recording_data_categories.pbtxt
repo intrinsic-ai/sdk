@@ -66,3 +66,12 @@ categories: {
   ]
   is_lightweight: false
 }
+categories: {
+  category_id: "skill_data"
+  display_name: "Skill data"
+  description: "Includes skill data, such as skill inputs and execution results."
+  event_sources: [
+    "skills..*"
+  ]
+  is_lightweight: false
+}
