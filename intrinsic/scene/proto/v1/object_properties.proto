@@ -39,6 +39,20 @@ message CartesianLimits {
   double max_rotational_acceleration = 10;
   double max_rotational_jerk = 11;
 }
+message IkSolver {
+  // Name of the IK solver.
+  // For example, spherical_wrist, ur or kinematic_chain.
+  // If no solver is provided, then `kinematic_chain` would be used as a
+  // fallback even though it is not real-time safe.
+  string ik_solver = 1;
+
+  // The optional name of the tip link. This is important when there are
+  // branches in the scene object and you want to specify the solver to end
+  // before the branch.
+  optional string tip_link_name = 2;
+
+}
+
 // A named configuration for a kinematic object.
 message NamedConfiguration {
   // The name of the configuration.
