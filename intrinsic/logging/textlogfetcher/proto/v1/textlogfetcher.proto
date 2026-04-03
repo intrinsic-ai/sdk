@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.textlogs.v1;
 
+import "google/api/annotations.proto";
 import "google/longrunning/operations.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
@@ -12,6 +13,7 @@ option go_package = "intrinsic/logging/textlogfetcher/proto/v1/textlogfetcher_go
 
 // Service to fetch and package asset text logs.
 service TextLogFetcher {
+
   // Starts a long-running operation to query and package logs matching the
   // request.
   rpc CreateAssetLogsPackage(AssetLogsQueryRequest)

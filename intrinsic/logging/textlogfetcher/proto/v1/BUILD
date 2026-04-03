@@ -9,6 +9,7 @@ proto_library(
     name = "textlogfetcher_proto",
     srcs = ["textlogfetcher.proto"],
     deps = [
+        "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_googleapis//google/longrunning:operations_proto",
         "@com_google_protobuf//:empty_proto",
         "@com_google_protobuf//:timestamp_proto",
@@ -25,6 +26,7 @@ go_proto_library(
     protos = [":textlogfetcher_proto"],
     deps = [
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
+        "@org_golang_google_genproto_googleapis_api//annotations",
         "@org_golang_google_protobuf//types/known/timestamppb",
     ],
 )
