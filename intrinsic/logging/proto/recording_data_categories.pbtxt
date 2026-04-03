@@ -32,6 +32,7 @@ categories: {
   event_sources: [
     "/assets/.*/markers",
     "/tf",
+    "/tf_associations",
     "trace_cube_.*"
   ]
   is_lightweight: false
