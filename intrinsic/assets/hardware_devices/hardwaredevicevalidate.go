@@ -181,9 +181,15 @@ func validateGraph(g *agpb.AssetGraph, ai map[string]*assetInfo) error {
 		return fmt.Errorf("must contain at most one Service, found %d", numServices)
 	}
 
-	// Verify that all Assets were referenced.
+	// Verify that all non Data Assets were referenced in the Assets graph.
+	//
+	// Data Assets may be referenced in the default Service configuration, but we have no access
+	// to that configuration here for catalog Assets. So, we just skip Data Assets from this check.
 	for key := range ai {
 		if _, ok := referencedAssets[key]; !ok {
+			if ai[key].assetType == atpb.AssetType_ASSET_TYPE_DATA {
+				continue
+			}
 			return fmt.Errorf("Asset %q is not referenced in the graph", key)
 		}
 	}
