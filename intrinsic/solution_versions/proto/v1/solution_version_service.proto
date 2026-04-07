@@ -291,7 +291,7 @@ message ListBranchAncestorsRequest {
 }
 
 message ListBranchAncestorsResponse {
-  // A minimal view of the ancestor snapshots.
+  // A list of ancestor snapshots.
   repeated Snapshot snapshots = 1;
 
   // The page token to fetch the next page of snapshots.
