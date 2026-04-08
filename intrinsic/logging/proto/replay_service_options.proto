@@ -121,6 +121,16 @@ message TextLogsVisualizerOptions {
   optional FilterOptions filters = 2;
 }
 
+// Options for the Info visualizer, which visualizes:
+//   - Recording status and metadata
+message InfoVisualizerOptions {
+  // If true, enables the visualizer.
+  bool enabled = 1;
+
+  // Options for filtering out recorded logs going into the visualizer.
+  optional FilterOptions filters = 2;
+}
+
 // Options for the Scene visualizer, which visualizes:
 //   - World transforms (including robot and scene)
 //   - World renderable geometries
@@ -174,6 +184,9 @@ message VisualizationOptions {
 
     // Options for the Perception visualizer.
     optional PerceptionVisualizerOptions perception = 5;
+
+    // Options for the Info visualizer.
+    optional InfoVisualizerOptions info = 6;
   }
 
   // An optional name for the visualization.
