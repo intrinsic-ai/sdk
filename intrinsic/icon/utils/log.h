@@ -50,6 +50,8 @@ void RtLogInitForThisThread();
 
 }  // namespace intrinsic
 
+// Real-time safe logging.
+// Supports SEVERITY levels: INFO, WARNING, ERROR.
 // NOLINTBEGIN(readability/braces)
 #define INTRINSIC_RT_LOG(SEVERITY)                          \
   if (true)                                                 \
@@ -58,6 +60,10 @@ void RtLogInitForThisThread();
           ::intrinsic::icon::LogPriority::SEVERITY, INTRINSIC_LOC)
 // NOLINTEND(readability/braces)
 
+// Throttled real-time safe logging.
+// Logs at most once every LogThrottler::kSpamPeriodNanoseconds (2 seconds).
+// This macro uses a syscall to get the time even when no log is produced. This
+// takes time. Thus do not overuse this macro in realtime contexts.
 // NOLINTBEGIN(readability/braces)
 #define INTRINSIC_RT_LOG_THROTTLED(SEVERITY)                              \
   if (static ::intrinsic::icon::internal::LogThrottler throttler; true)   \
@@ -70,7 +76,28 @@ void RtLogInitForThisThread();
           INTRINSIC_LOC)
 // NOLINTEND(readability/braces)
 
-// Logs the message the first N times this macro instance is called.
+// Real-time safe logging with exponential backoff.
+// Starts with a throttle of 500ms and doubles each time a log is emitted,
+// up to 30 seconds.
+// Resets to 500ms if no logs are emitted for twice the current throttle period.
+// If RESET is true, the backoff is reset to 500ms and the message is logged.
+// This macro uses a syscall to get the time even when no log is produced. This
+// takes time. Thus do not overuse this macro in realtime contexts.
+// NOLINTBEGIN(readability/braces)
+#define INTRINSIC_RT_LOG_BACKOFF(SEVERITY, RESET)                              \
+  if (static ::intrinsic::icon::internal::LogBackoffThrottler throttler; true) \
+    if (auto result = throttler.Tick(                                          \
+            ::intrinsic::icon::GlobalLogContext::GetTime, RESET);              \
+        result.has_value())                                                    \
+  ::intrinsic::icon::internal::LogClient() +=                                  \
+      ::intrinsic::icon::internal::LogEntryBuilder::Create(                    \
+          ::intrinsic::icon::LogPriority::SEVERITY, result.value(),            \
+          INTRINSIC_LOC)
+// NOLINTEND(readability/braces)
+
+// Real-time safe logging that logs the first N times it is called.
+// This macro uses a syscall to get the time even when no log is produced. This
+// takes time. Thus do not overuse this macro in realtime contexts.
 // NOLINTBEGIN(readability/braces)
 #define INTRINSIC_RT_LOG_FIRST_N(SEVERITY, N)                         \
   if (static size_t COUNTER_##__LINE__ = 0; COUNTER_##__LINE__++ < N) \
@@ -79,10 +106,12 @@ void RtLogInitForThisThread();
           ::intrinsic::icon::LogPriority::SEVERITY, INTRINSIC_LOC)
 // NOLINTEND(readability/braces)
 
-// Logs the first time it is called.
+// Real-time safe logging that logs only the first time it is called.
+// This macro uses a syscall to get the time even when no log is produced. This
+// takes time. Thus do not overuse this macro in realtime contexts.
 #define INTRINSIC_RT_LOG_FIRST(SEVERITY) INTRINSIC_RT_LOG_FIRST_N(SEVERITY, 1)
 
-// Logs if the condition is met.
+// Real-time safe logging that logs only if CONDITION is true.
 #define INTRINSIC_RT_LOG_IF(SEVERITY, CONDITION) \
   if (CONDITION) INTRINSIC_RT_LOG(SEVERITY)
 

@@ -106,7 +106,7 @@ void LogGetTime(int64_t* robot_timestamp_ns, int64_t* wall_timestamp_ns) {
 }
 
 std::optional<LogThrottler::Result> LogThrottler::Tick(
-    GetTimeFunction get_time_function) {
+    absl::FunctionRef<void(int64_t*, int64_t*)> get_time_function) {
   Result result;
   get_time_function(&result.robot_timestamp_ns, &result.wall_timestamp_ns);
   if (num_calls_merged == 0) {
@@ -122,6 +122,41 @@ std::optional<LogThrottler::Result> LogThrottler::Tick(
     // Log and reset.
     last_log_time = result.robot_timestamp_ns;
     num_calls_merged = 0;
+    return result;
+  }
+  return {};
+}
+
+std::optional<LogBackoffThrottler::Result> LogBackoffThrottler::Tick(
+    absl::FunctionRef<void(int64_t*, int64_t*)> get_time_function, bool reset) {
+  Result result;
+  get_time_function(&result.robot_timestamp_ns, &result.wall_timestamp_ns);
+  if (num_calls_merged == 0) {
+    // Record first log time.
+    first_log_time = result.robot_timestamp_ns;
+  }
+  ++num_calls_merged;
+  result.period_nanoseconds = result.robot_timestamp_ns - first_log_time;
+  result.num_calls_merged = num_calls_merged;
+
+  const int64_t current_period = current_period_ns.load();
+  const int64_t delta = result.robot_timestamp_ns - last_log_time;
+
+  if (reset || delta >= current_period) [[unlikely]] {
+    // Log and reset.
+    last_log_time = result.robot_timestamp_ns;
+    num_calls_merged = 0;
+
+    // Update period for the next log.
+    if (reset || delta > current_period * kResetFactor) {
+      // Reset backoff if there has been a long period of inactivity.
+      current_period_ns = kInitialPeriodNanoseconds;
+    } else {
+      // Increase backoff, clamped to max period.
+      current_period_ns =
+          std::min(kMaxPeriodNanoseconds, current_period * kBackoffFactor);
+    }
+
     return result;
   }
   return {};

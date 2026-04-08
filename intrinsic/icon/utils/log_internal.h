@@ -11,6 +11,7 @@
 #include <memory>
 #include <optional>
 
+#include "absl/functional/function_ref.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "intrinsic/icon/release/source_location.h"
@@ -54,7 +55,8 @@ struct LogThrottler {
   // Counts calls from a INTRINSIC_RT_LOG_THROTTLED call site and decides if we
   // should log.
   // Returns nullopt if the call should be ignored.
-  std::optional<Result> Tick(GetTimeFunction get_time_function = LogGetTime);
+  std::optional<Result> Tick(absl::FunctionRef<void(int64_t*, int64_t*)>
+                                 get_time_function = LogGetTime);
 
  private:
   // Number of log calls that have not been reported yet.
@@ -63,6 +65,42 @@ struct LogThrottler {
   std::atomic<int64_t> first_log_time = 0;
   // Time of the previous log call.
   std::atomic<int64_t> last_log_time = 0;
+};
+
+// A throttler that increases the throttle duration exponentially.
+// Starts at 500ms, doubles each log up to 30s. Resets to 500ms if
+// no log is emitted for twice the current throttle period.
+struct LogBackoffThrottler {
+ public:
+  using Result = LogThrottler::Result;
+  using GetTimeFunction = LogThrottler::GetTimeFunction;
+
+  // Initial throttle duration in nanoseconds.
+  static constexpr int64_t kInitialPeriodNanoseconds = 0.5e9;
+  // Maximum throttle duration in nanoseconds.
+  static constexpr int64_t kMaxPeriodNanoseconds = 30e9;
+  // The factor by which the throttle duration is increased each time.
+  static constexpr int kBackoffFactor = 2;
+  // The factor of the current throttle period after which the period is
+  // period is reset to kInitialPeriodNanoseconds if no new log message arrived.
+  static constexpr int kResetFactor = 2;
+
+  // Counts calls from a INTRINSIC_RT_LOG_BACKOFF call site and decides if we
+  // should log.
+  // Returns nullopt if the call should be ignored.
+  std::optional<Result> Tick(absl::FunctionRef<void(int64_t*, int64_t*)>
+                                 get_time_function = LogGetTime,
+                             bool reset = false);
+
+ private:
+  // Number of log calls that have not been reported yet.
+  std::atomic<int32_t> num_calls_merged = 0;
+  // Time of oldest log call that was not reported.
+  std::atomic<int64_t> first_log_time = 0;
+  // Time of the previous log call.
+  std::atomic<int64_t> last_log_time = 0;
+  // The current throttle duration in nanoseconds.
+  std::atomic<int64_t> current_period_ns = kInitialPeriodNanoseconds;
 };
 
 }  // namespace internal

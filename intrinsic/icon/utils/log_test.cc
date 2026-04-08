@@ -179,6 +179,20 @@ TEST(IconUtilsLogTest, LogFirstNDoesNotAllocate) {
   }
 }
 
+TEST(IconUtilsLogTest, LogBackoffDoesNotAllocate) {
+  GlobalLogContext::SetThreadLocalLogSink(nullptr);
+  RtLogInitForThisThread();
+  double d = 0.5;
+  std::string s = "text";
+  INTRINSIC_RT_LOG_BACKOFF(INFO, false) << "dof:" << 3 << " d:" << d;
+  INTRINSIC_RT_LOG_BACKOFF(ERROR, false) << "error: " << s;
+  INTRINSIC_RT_LOG_BACKOFF(WARNING, false) << "logged1";
+  for (int i = 0; i < 2000; ++i) {
+    INTRINSIC_RT_LOG_BACKOFF(WARNING, false) << "rarely logged i:" << i;
+  }
+  INTRINSIC_RT_LOG_BACKOFF(WARNING, true) << "manual reset";
+}
+
 TEST(IconUtilsLogTest, LogIfWorksWhenTrue) {
   auto unique_logger = std::make_unique<FakeLogger>();
   auto* logger = unique_logger.get();
@@ -204,6 +218,86 @@ TEST(IconUtilsLogTest, LogIfDoesNotLogWhenFalse) {
   INTRINSIC_RT_LOG_IF(INFO, false) << "dof:" << 3 << " d:" << d;
   EXPECT_THAT(logger->messages_, IsEmpty());
   EXPECT_THAT(logger->text_, IsEmpty());
+}
+
+static int64_t fake_robot_time_ns = 0;
+static int64_t fake_wall_time_ns = 0;
+
+void FakeTimeFunction(int64_t* robot_timestamp_ns, int64_t* wall_timestamp_ns) {
+  *robot_timestamp_ns = fake_robot_time_ns;
+  *wall_timestamp_ns = fake_wall_time_ns;
+}
+
+TEST(IconUtilsLogTest, Backoff) {
+  auto unique_logger = std::make_unique<FakeLogger>();
+  auto* logger = unique_logger.get();
+  GlobalLogContext::SetThreadLocalLogSink(std::move(unique_logger));
+
+  GlobalLogContext::SetTimeFunction(FakeTimeFunction);
+  // Use a large enough start time.
+  fake_robot_time_ns =
+      100 * internal::LogBackoffThrottler::kMaxPeriodNanoseconds;
+
+  const int64_t kP0 = internal::LogBackoffThrottler::kInitialPeriodNanoseconds;
+
+  // Use a loop to ensure we hit the same call site (same static throttler).
+  for (int i = 0; i < 3; ++i) {
+    INTRINSIC_RT_LOG_BACKOFF(INFO, false) << "backoff_msg";
+    if (i == 0) {
+      // 1. First call should always log.
+      EXPECT_THAT(logger->messages_, ElementsAre("backoff_msg"));
+      fake_robot_time_ns += kP0 / 5;
+    } else if (i == 1) {
+      // 2. Immediate second call should be throttled.
+      EXPECT_THAT(logger->messages_, ElementsAre("backoff_msg"));
+      fake_robot_time_ns += kP0;
+    } else {
+      // 3. Call after kP0 should log and multiply period by factor.
+      EXPECT_THAT(logger->messages_,
+                  ElementsAre("backoff_msg",
+                              StartsWith("backoff_msg (repeated 2 times")));
+    }
+  }
+
+  GlobalLogContext::SetTimeFunction(nullptr);
+}
+
+TEST(IconUtilsLogTest, BackoffReset) {
+  auto unique_logger = std::make_unique<FakeLogger>();
+  auto* logger = unique_logger.get();
+  GlobalLogContext::SetThreadLocalLogSink(std::move(unique_logger));
+
+  GlobalLogContext::SetTimeFunction(FakeTimeFunction);
+  fake_robot_time_ns =
+      100 * internal::LogBackoffThrottler::kMaxPeriodNanoseconds;
+
+  const int64_t kP0 = internal::LogBackoffThrottler::kInitialPeriodNanoseconds;
+  const int kBackoffFactor = internal::LogBackoffThrottler::kBackoffFactor;
+  const int kResetFactor = internal::LogBackoffThrottler::kResetFactor;
+
+  // Use a loop to hit the same call site.
+  for (int i = 0; i < 4; ++i) {
+    INTRINSIC_RT_LOG_BACKOFF(INFO, false) << "reset_msg";
+    if (i == 0) {
+      fake_robot_time_ns += kP0;
+    } else if (i == 1) {
+      // Now period is kP0 * kBackoffFactor. Wait for inactivity reset.
+      fake_robot_time_ns += kP0 * kBackoffFactor * kResetFactor + kP0;
+    } else if (i == 2) {
+      // Should log and reset period to kP0. Now wait for kP0.
+      fake_robot_time_ns += kP0 * 1.1;
+    } else {
+      // Should log.
+      EXPECT_EQ(logger->messages_.size(), 4);
+    }
+  }
+
+  // Test manual reset via macro
+  INTRINSIC_RT_LOG_BACKOFF(INFO, true) << "manual_reset";
+  EXPECT_EQ(logger->messages_.size(), 5);
+  EXPECT_THAT(logger->messages_.back(), StrEq("manual_reset"));
+
+  GlobalLogContext::SetTimeFunction(nullptr);
 }
 
 }  // namespace

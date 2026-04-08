@@ -274,7 +274,11 @@ class HardwareModuleRuntime::CallbackHandler final {
     if (auto ret = instance_->ReadStatus();
         !ret.ok() && hardware_module_state_code_ !=
                          intrinsic_fbs::StateCode::kClearingFaults) {
-      INTRINSIC_RT_LOG_THROTTLED(ERROR)
+      // Reset backoff when we are currently enabled, which means there was no
+      // error just before.
+      const bool reset_backoff = hardware_module_state_code_ ==
+                                 intrinsic_fbs::StateCode::kMotionEnabled;
+      INTRINSIC_RT_LOG_BACKOFF(ERROR, reset_backoff)
           << "PUBLIC: Call to 'ReadStatus' failed: " << ret.message();
       if (SetStateDirectly(ret.code() == absl::StatusCode::kAborted
                                ? intrinsic_fbs::StateCode::kFatallyFaulted

@@ -232,8 +232,18 @@ cc_library(
         ":log_sink",
         "//intrinsic/icon/release:source_location",
         "//intrinsic/icon/testing:realtime_annotations",
+        "@abseil-cpp//absl/functional:function_ref",
         "@abseil-cpp//absl/log",
         "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/time",
+    ],
+)
+
+cc_test_and_malloc_test(
+    name = "log_backoff_test",
+    srcs = ["log_backoff_test.cc"],
+    deps = [
+        ":log_internal",
         "@abseil-cpp//absl/time",
     ],
 )
