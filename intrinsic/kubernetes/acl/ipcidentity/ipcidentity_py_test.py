@@ -200,6 +200,70 @@ class IpcidentityTest(absltest.TestCase):
     # Remember to close to avoid resource warnings if your test runner cares
     identity_provider.close()
 
+  def test_metadata(self):
+    """Tests the metadata() method."""
+    identity_provider, mock_tokens_stub, _ = setup_mock_identity_provider()
+
+    # Prepare the mock response with an orgid claim
+    expiration_time = time.time() + 3600
+    expected_ipc_token_payload = {
+        "exp": int(expiration_time),
+        "user_id": "test_user@example.com",
+        "orgid": "test_org",
+    }
+    expected_ipc_token_str = create_test_jwt(expected_ipc_token_payload)
+
+    mock_response = tokens_pb2.GetIPCTokenResponse(
+        ipc_token=expected_ipc_token_str
+    )
+    mock_tokens_stub.GetIPCToken.return_value = mock_response
+
+    # Call metadata()
+    metadata_list = identity_provider.metadata()
+
+    # Assertions
+    metadata_dict = dict(metadata_list)
+    self.assertIn("cookie", metadata_dict)
+    # Check that both cookies are present (they might be in separate 'cookie' entries
+    # or merged, depending on how identity.py works and how we appended)
+    # In our implementation, we have two 'cookie' entries in the list.
+    # dict(metadata_list) will only keep the last one if keys are same.
+    # So let's check the list directly.
+
+    cookies = [v for k, v in metadata_list if k == "cookie"]
+    self.assertTrue(any("org-id=test_org" in c for c in cookies))
+    self.assertTrue(
+        any("auth-proxy=" + expected_ipc_token_str in c for c in cookies)
+    )
+
+    self.assertEqual(metadata_dict["x-intrinsic-org"], "test_org")
+
+    identity_provider.close()
+
+  def test_metadata_missing_orgid(self):
+    """Tests metadata() when orgid claim is missing."""
+    identity_provider, mock_tokens_stub, _ = setup_mock_identity_provider()
+
+    # Prepare the mock response WITHOUT an orgid claim
+    expiration_time = time.time() + 3600
+    expected_ipc_token_payload = {
+        "exp": int(expiration_time),
+        "user_id": "test_user@example.com",
+    }
+    expected_ipc_token_str = create_test_jwt(expected_ipc_token_payload)
+
+    mock_response = tokens_pb2.GetIPCTokenResponse(
+        ipc_token=expected_ipc_token_str
+    )
+    mock_tokens_stub.GetIPCToken.return_value = mock_response
+
+    with self.assertRaisesRegex(
+        RuntimeError, "does not contain an 'orgid' claim"
+    ):
+      identity_provider.metadata()
+
+    identity_provider.close()
+
 
 if __name__ == "__main__":
   absltest.main()

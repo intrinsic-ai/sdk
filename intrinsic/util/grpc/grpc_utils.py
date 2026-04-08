@@ -51,8 +51,7 @@ def _create_auth_interceptor(
     ipc_identity: ipcidentity.IpcIdentity,
 ) -> interceptor.ClientCallDetailsInterceptor:
   """Creates an interceptor that adds an auth header to the gRPC channel."""
-  auth_header = lambda: [("cookie", "auth-proxy=" + ipc_identity.token())]
-  return interceptor.HeaderAdderInterceptor(auth_header)
+  return interceptor.HeaderAdderInterceptor(ipc_identity.metadata)
 
 
 def _add_auth_header(
@@ -76,16 +75,6 @@ def _create_channel(address: str) -> grpc.Channel:
   )
 
 
-def _create_channel_with_org_metadata(address: str, org: str) -> grpc.Channel:
-  return grpc.secure_channel(
-      address,
-      grpc.composite_channel_credentials(
-          grpc.ssl_channel_credentials(), identity.OrgNameCallCredentials(org)
-      ),
-      options=[("grpc.max_receive_message_length", -1)],
-  )
-
-
 def create_assets_channel() -> grpc.Channel:
   """Creates a gRPC channel for the assets service with an IPC ID auth header.
 
@@ -98,26 +87,19 @@ def create_assets_channel() -> grpc.Channel:
   return _add_auth_header(assets_channel, _shared_ipc_identity)
 
 
-def create_cloud_channel(org: str | None = None) -> grpc.Channel:
+def create_cloud_channel() -> grpc.Channel:
   """Creates a gRPC channel for the cloud service with an IPC ID auth header.
 
-  Setting the org will add the org credentials to the channel. This is for
-  example needed when working with data-silos.
+  The organization ID is automatically derived from the IPC identity token.
 
   The returned channel has max_receive_message_length set to unlimited.
-
-  Args:
-    org: If set the org credentials will be added to the channel.
 
   Returns:
     The gRPC channel for the cloud service.
   """
   compute_project = _get_compute_project()
   address = f"www.endpoints.{compute_project}.cloud.goog:443"
-  if org:
-    cloud_channel = _create_channel_with_org_metadata(address, org)
-  else:
-    cloud_channel = _create_channel(address)
+  cloud_channel = _create_channel(address)
   return _add_auth_header(cloud_channel, _shared_ipc_identity)
 
 

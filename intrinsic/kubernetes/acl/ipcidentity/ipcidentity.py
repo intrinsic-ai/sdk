@@ -12,6 +12,7 @@ from intrinsic.config import environments  # For service discovery
 from intrinsic.kubernetes.accounts.service.api.tokens.v2 import tokens_pb2
 from intrinsic.kubernetes.accounts.service.api.tokens.v2 import tokens_pb2_grpc
 from intrinsic.kubernetes.acl.ipcidentity.internal import metadata
+from intrinsic.kubernetes.acl.py import identity
 from intrinsic.kubernetes.acl.py import jwt
 
 TOKEN_EXPIRY_MARGIN = datetime.timedelta(seconds=30)
@@ -150,6 +151,36 @@ class IpcIdentity:
           "Failed to obtain a valid IPC token after refresh attempt."
       )
     return self._token
+
+  def metadata(self) -> list[tuple[str, str]]:
+    """Returns the IPC identity token and organization ID as gRPC metadata.
+
+    The metadata includes the IPC identity token as an 'auth-proxy' cookie,
+    and the organization identifier as an 'org-id' cookie and
+    'x-intrinsic-org' header.
+
+    Returns:
+      A list of (key, value) pairs for gRPC metadata.
+
+    Raises:
+      RuntimeError: If the token or orgid could not be retrieved.
+    """
+    token = self.token()
+    payload = jwt.PayloadUnsafe(token)
+    org_id = payload.get("orgid")
+    if not org_id:
+      raise RuntimeError("IPC token does not contain an 'orgid' claim.")
+
+    # We use identity.OrgIDToGRPCMetadata which provides both the cookie and
+    # the header for the organization ID.
+    res = identity.OrgIDToGRPCMetadata(org_id)
+
+    # Now we need to add the auth-proxy cookie.
+    res.append(
+        (identity.COOKIE_KEY, f"{identity.AUTH_PROXY_COOKIE_NAME}={token}")
+    )
+
+    return res
 
   def close(self) -> None:
     """Closes any open resources, like the gRPC channel."""
