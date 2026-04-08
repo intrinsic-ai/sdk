@@ -139,6 +139,12 @@ message GetLogItemsRequest {
   // more matching items available due to global throttles.
   optional int32 max_num_items = 7;
 
+  // If true, the payload and blob_payload fields of the returned LogItems
+  // will be empty. Use this to efficiently fetch metadata (including context).
+  //
+  // This will still include other non-payload fields.
+  optional bool only_metadata = 10;
+
   reserved 1, 3, 4, 5, 6, 8;
 }
 
@@ -170,6 +176,10 @@ message GetLogItemsResponse {
 message GetMostRecentItemRequest {
   // The event_source to return the most recent LogItem for.
   string event_source = 1;
+
+  // If true, the payload and blob_payload fields of the returned LogItem
+  // will be empty.
+  optional bool only_metadata = 2;
 }
 
 message GetMostRecentItemResponse {

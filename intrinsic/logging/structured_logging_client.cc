@@ -152,16 +152,19 @@ StructuredLoggingClient::ListLogSources() const {
 }
 
 absl::StatusOr<StructuredLoggingClient::GetResult>
-StructuredLoggingClient::GetLogItems(absl::string_view event_source) const {
-  return GetLogItems(event_source, std::numeric_limits<int>::max());
+StructuredLoggingClient::GetLogItems(absl::string_view event_source,
+                                     bool only_metadata) const {
+  return GetLogItems(event_source, std::numeric_limits<int>::max(),
+                     absl::UniversalEpoch(), absl::Now(), {}, std::nullopt,
+                     only_metadata);
 }
 
 absl::StatusOr<StructuredLoggingClient::GetResult>
 StructuredLoggingClient::GetLogItems(absl::string_view event_source,
-                                     absl::Time start_time,
-                                     absl::Time end_time) const {
+                                     absl::Time start_time, absl::Time end_time,
+                                     bool only_metadata) const {
   return GetLogItems(event_source, std::numeric_limits<int>::max(), start_time,
-                     end_time);
+                     end_time, {}, std::nullopt, only_metadata);
 }
 
 absl::StatusOr<StructuredLoggingClient::GetResult>
@@ -169,9 +172,11 @@ StructuredLoggingClient::GetLogItems(
     absl::string_view event_source, int page_size, absl::Time start_time,
     absl::Time end_time,
     absl::flat_hash_map<std::string, std::string> filter_labels,
-    std::optional<DownsamplerOptions> downsampler_options) const {
+    std::optional<DownsamplerOptions> downsampler_options,
+    bool only_metadata) const {
   intrinsic_proto::data_logger::GetLogItemsRequest request;
   request.set_max_num_items(page_size);
+  request.set_only_metadata(only_metadata);
 
   request.mutable_get_query()->set_event_source(event_source);
   INTR_ASSIGN_OR_RETURN(*request.mutable_get_query()->mutable_start_time(),
@@ -204,13 +209,15 @@ StructuredLoggingClient::GetLogItems(
 
 absl::StatusOr<StructuredLoggingClient::GetResult>
 StructuredLoggingClient::GetLogItems(int page_size,
-                                     absl::string_view page_token) const {
+                                     absl::string_view page_token,
+                                     bool only_metadata) const {
   if (page_token.empty()) {
     return absl::InvalidArgumentError("page_token must not be empty");
   }
   intrinsic_proto::data_logger::GetLogItemsRequest request;
   request.set_max_num_items(page_size);
   request.set_cursor(page_token);
+  request.set_only_metadata(only_metadata);
 
   grpc::ClientContext context;
   intrinsic_proto::data_logger::GetLogItemsResponse response;
@@ -228,10 +235,11 @@ StructuredLoggingClient::GetLogItems(int page_size,
 }
 
 absl::StatusOr<intrinsic_proto::data_logger::LogItem>
-StructuredLoggingClient::GetMostRecentItem(
-    absl::string_view event_source) const {
+StructuredLoggingClient::GetMostRecentItem(absl::string_view event_source,
+                                           bool only_metadata) const {
   intrinsic_proto::data_logger::GetMostRecentItemRequest request;
   request.set_event_source(event_source);
+  request.set_only_metadata(only_metadata);
 
   grpc::ClientContext context;
   intrinsic_proto::data_logger::GetMostRecentItemResponse response;

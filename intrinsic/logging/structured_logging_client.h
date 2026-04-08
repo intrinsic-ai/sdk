@@ -96,14 +96,22 @@ class StructuredLoggingClient {
   // Returns a list of log items for the specified event source. If no data is
   // available, an empty vector is returned and the function does not generate
   // an error.
-  absl::StatusOr<GetResult> GetLogItems(absl::string_view event_source) const;
+  //
+  // If `only_metadata` is true, the LogItems returned will not contain their
+  // payload or blob_payload.
+  absl::StatusOr<GetResult> GetLogItems(absl::string_view event_source,
+                                        bool only_metadata = false) const;
 
   // Returns a list of log items for the specified event source. If no data is
   // available, an empty vector is returned and the function does not generate
   // an error.
+  //
+  // If `only_metadata` is true, the LogItems returned will not contain their
+  // payload or blob_payload.
   absl::StatusOr<GetResult> GetLogItems(absl::string_view event_source,
                                         absl::Time start_time,
-                                        absl::Time end_time) const;
+                                        absl::Time end_time,
+                                        bool only_metadata = false) const;
 
   // Returns a list of log items for the specified event source. If no data is
   // available, an empty vector is returned and the function does not generate
@@ -118,23 +126,32 @@ class StructuredLoggingClient {
   //
   // Filtering is supported in the same way as documented on the logging
   // service.
+  //
+  // If `only_metadata` is true, the LogItems returned will not contain their
+  // payload or blob_payload.
   absl::StatusOr<GetResult> GetLogItems(
       absl::string_view event_source, int page_size,
       absl::Time start_time = absl::UniversalEpoch(),
       absl::Time end_time = absl::Now(),
       absl::flat_hash_map<std::string, std::string> filter_labels = {},
-      std::optional<DownsamplerOptions> downsampler_options =
-          std::nullopt) const;
+      std::optional<DownsamplerOptions> downsampler_options = std::nullopt,
+      bool only_metadata = false) const;
 
   // Returns a list of log items for the specified page token.
+  //
+  // If `only_metadata` is true, the LogItems returned will not contain their
+  // payload or blob_payload.
   absl::StatusOr<GetResult> GetLogItems(int page_size,
-                                        absl::string_view page_token) const;
+                                        absl::string_view page_token,
+                                        bool only_metadata = false) const;
 
   // Returns the most recent LogItem that has been logged for the given event
   // source. If no LogItem with a matching event_source has been logged since
   // --file_ttl, then NOT_FOUND will be returned instead.
-  absl::StatusOr<LogItem> GetMostRecentItem(
-      absl::string_view event_source) const;
+  // If `only_metadata` is true, the returned LogItem will not contain its
+  // payload or blob_payload.
+  absl::StatusOr<LogItem> GetMostRecentItem(absl::string_view event_source,
+                                            bool only_metadata = false) const;
 
   // Set the logging configuration for an event_source
   absl::Status SetLogOptions(

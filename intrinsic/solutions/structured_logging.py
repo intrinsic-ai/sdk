@@ -503,6 +503,7 @@ class EventSourceReader:
       sampling_period_ms: int = 0,
       max_num_items: int = 10000,
       filter_labels: Optional[dict[str, str]] = None,
+      only_metadata: bool = False,
   ) -> DataSource:
     """Read the last `seconds_to_read` of onprem logs for this event source.
 
@@ -519,6 +520,8 @@ class EventSourceReader:
         minimum time in milliseconds between successive samples.
       max_num_items: The maximum number of returned items.
       filter_labels: Dictionary of label to value to filter the query.
+      only_metadata: If true, payload and blob_payload will not be returned.
+        Other fields like metadata and context are preserved.
 
     When specifying time_window, the user should typically make sure to use
     "aware" datetime objects to avoid ambiguity. This can be done by simply
@@ -553,6 +556,7 @@ class EventSourceReader:
         sampling_period_ms=sampling_period_ms,
         max_num_items=max_num_items,
         filter_labels=filter_labels,
+        only_metadata=only_metadata,
     )
 
   def _read_time_window(
@@ -562,6 +566,7 @@ class EventSourceReader:
       sampling_period_ms: int = 0,
       max_num_items: int = 10000,
       filter_labels: Optional[dict[str, str]] = None,
+      only_metadata: bool = False,
   ):
     """Read the onprem logs for a given time window for this event source.
 
@@ -571,6 +576,9 @@ class EventSourceReader:
         minimum time in milliseconds between successive samples.
       max_num_items: The maximum number of returned items.
       filter_labels: Dictionary of label to value to filter the query.
+      only_metadata: If true, payload and blob_payload will not be returned.
+        Other fields like metadata and context are preserved.
+        Other fields like metadata and context are preserved.
 
     Returns:
       The DataSource for the read items.
@@ -585,6 +593,7 @@ class EventSourceReader:
 
     get_request = logger_service_pb2.GetLogItemsRequest()
     get_request.max_num_items = max_num_items
+    get_request.only_metadata = only_metadata
 
     if self._cursor:  # This is the cursor from the previous response
       get_request.cursor = self._cursor
@@ -629,11 +638,19 @@ class EventSourceReader:
     return _data_source_factory(self._data)
 
   @error_handling.retry_on_grpc_transient_errors
-  def peek(self) -> log_item_pb2.LogItem:
-    """Returns the most recent LogItem for this event source."""
+  def peek(self, only_metadata: bool = False) -> log_item_pb2.LogItem:
+    """Returns the most recent LogItem for this event source.
+
+    Args:
+      only_metadata: If true, payload and blob_payload will not be returned.
+
+    Returns:
+      The most recent LogItem.
+    """
     request = logger_service_pb2.GetMostRecentItemRequest(
         event_source=self._event_source
     )
+    request.only_metadata = only_metadata
     response = self._stub.GetMostRecentItem(request)
     return response.item
 
@@ -921,6 +938,7 @@ class StructuredLogs:
       seconds_to_read: int = 1200,
       max_num_items: int = 10000,
       filter_labels: dict[str, str] | None = None,
+      only_metadata: bool = False,
   ) -> list[log_item_pb2.LogItem]:
     """Queries the data logs.
 
@@ -931,6 +949,8 @@ class StructuredLogs:
         range.
       filter_labels: Optional dictionary of labels to filter the logs by. Only
         logs that match all of the provided labels will be returned.
+      only_metadata: If true, payload and blob_payload will not be returned.
+        Other fields like metadata and context are preserved.
 
     Returns:
       Log items from the given event source
@@ -939,6 +959,7 @@ class StructuredLogs:
     window_start = now - datetime.timedelta(seconds=seconds_to_read)
     get_request = logger_service_pb2.GetLogItemsRequest()
     get_request.max_num_items = max_num_items
+    get_request.only_metadata = only_metadata
     get_request.get_query.event_source = event_source
     get_request.get_query.start_time.FromDatetime(window_start)
     get_request.get_query.end_time.FromDatetime(now)
@@ -956,6 +977,7 @@ class StructuredLogs:
       start_time: datetime.datetime,
       end_time: datetime.datetime,
       max_num_items: int = 10000,
+      only_metadata: bool = False,
   ) -> list[log_item_pb2.LogItem]:
     """Queries the data logs for a given time range.
 
@@ -965,12 +987,15 @@ class StructuredLogs:
       end_time: End of window to query data for.
       max_num_items: Return at most this many items from the start of the time
         range.
+      only_metadata: If true, payload and blob_payload will not be returned.
+        Other fields like metadata and context are preserved.
 
     Returns:
       Log items from the given event source within the specified time range.
     """
     get_request = logger_service_pb2.GetLogItemsRequest()
     get_request.max_num_items = max_num_items
+    get_request.only_metadata = only_metadata
     get_request.get_query.event_source = event_source
     get_request.get_query.start_time.FromDatetime(start_time)
     get_request.get_query.end_time.FromDatetime(end_time)
