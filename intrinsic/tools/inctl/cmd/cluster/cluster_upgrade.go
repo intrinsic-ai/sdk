@@ -7,20 +7,20 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
-	"strings"
-	"text/tabwriter"
-
 	"intrinsic/assets/clientutils"
 	"intrinsic/frontend/cloud/devicemanager/version"
 	"intrinsic/skills/tools/skill/cmd/dialerutil"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/orgutil"
+	"os"
+	"strings"
+	"text/tabwriter"
 
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	grpcstatus "google.golang.org/grpc/status"
+	fmpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 
 	assetCataloggrpcpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_proto"
 	assetCatalogpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_proto"
@@ -30,16 +30,15 @@ import (
 	clustermanageralphagrpcpb "intrinsic/frontend/cloud/api/v1alpha1/clustermanager_api_go_proto"
 	inversiongrpcpb "intrinsic/kubernetes/inversion/v1/inversion_go_proto"
 	inversionpb "intrinsic/kubernetes/inversion/v1/inversion_go_proto"
-
-	fmpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 )
 
 var (
-	clusterName  string
-	rollbackFlag bool
-	runtimeFlag  string
-	osFlag       string
-	userDataFlag string
+	clusterName               string
+	rollbackFlag              bool
+	runtimeFlag               string
+	osFlag                    string
+	userDataFlag              string
+	skipAssetVerificationFlag bool
 )
 
 // client helps run auth'ed requests for a specific cluster
@@ -225,69 +224,82 @@ func (c *client) run(ctx context.Context) error {
 	if rollbackFlag {
 		req.UpdateType = clustermanagerpb.SchedulePlatformUpdateRequest_UPDATE_TYPE_ROLLBACK
 	} else if osFlag != "" || runtimeFlag != "" {
-		_, conn, err := clientutils.DialCatalog(ctx, clientutils.DialCatalogOptions{
-			// DialCatalog is broken and wants the qualified org name
-			// Internally it's not requried due to some defaulting logic.
-			// Externally it's not required when customers can avoid using the `@` logic.
-			// But the way the code is written, it'll always work when the `@` is provided here.
-			Org: c.org + "@" + c.project,
-		})
-		if err != nil {
-			return fmt.Errorf("dial catalog: %w", err)
-		}
-		defer conn.Close()
-		assetCatalogClient := assetCataloggrpcpb.NewAssetCatalogClient(conn)
 		req.Versions = &clustermanagerpb.UpdateVersions{}
-		if runtimeFlag != "" {
-			runtimeVersion := runtimeFlag
-			if strings.HasPrefix(runtimeVersion, "202") {
-				// runtimeVersion is old format and not semver
-				runtimeVersion = version.TranslateBaseUIToAPI(runtimeVersion)
-			}
-			assetRequest := &assetCatalogpb.GetAssetRequest{}
-			assetRequest.AssetId = &assetCatalogpb.GetAssetRequest_IdVersion{
-				IdVersion: &assetIDpb.IdVersion{
-					Id: &assetIDpb.Id{
-						Package: "ai.intrinsic",
-						Name:    "runtime",
-					},
-					Version: runtimeVersion,
-				},
-			}
-			_, err := assetCatalogClient.GetAsset(ctx, assetRequest)
+		runtimeVersion := runtimeFlag
+		if strings.HasPrefix(runtimeVersion, "202") {
+			// runtimeVersion is old format and not semver
+			runtimeVersion = version.TranslateBaseUIToAPI(runtimeVersion)
+		}
+		osVersion := version.TranslateOSUIToAPI(osFlag)
+
+		if !skipAssetVerificationFlag {
+			_, conn, err := clientutils.DialCatalog(ctx, clientutils.DialCatalogOptions{
+				// DialCatalog is broken and wants the qualified org name
+				// Internally it's not requried due to some defaulting logic.
+				// Externally it's not required when customers can avoid using the `@` logic.
+				// But the way the code is written, it'll always work when the `@` is provided here.
+				Org: c.org + "@" + c.project,
+			})
 			if err != nil {
-				if grpcstatus.Code(err) == codes.NotFound {
-					return fmt.Errorf("runtime version %q not found", runtimeFlag)
-				}
-				return fmt.Errorf("get asset: %w", err)
+				return fmt.Errorf("dial catalog: %w", err)
 			}
+			defer conn.Close()
+			assetCatalogClient := assetCataloggrpcpb.NewAssetCatalogClient(conn)
+
+			if runtimeFlag != "" {
+				assetRequest := &assetCatalogpb.GetAssetRequest{}
+				assetRequest.AssetId = &assetCatalogpb.GetAssetRequest_IdVersion{
+					IdVersion: &assetIDpb.IdVersion{
+						Id: &assetIDpb.Id{
+							Package: "ai.intrinsic",
+							Name:    "runtime",
+						},
+						Version: runtimeVersion,
+					},
+				}
+				_, err := assetCatalogClient.GetAsset(ctx, assetRequest)
+				if err != nil {
+					if grpcstatus.Code(err) == codes.NotFound {
+						return fmt.Errorf("runtime version %q not found", runtimeFlag)
+					}
+					return fmt.Errorf("get asset: %w", err)
+				}
+			}
+			if osFlag != "" {
+				assetRequest := &assetCatalogpb.GetAssetRequest{}
+				assetRequest.AssetId = &assetCatalogpb.GetAssetRequest_IdVersion{
+					IdVersion: &assetIDpb.IdVersion{
+						Id: &assetIDpb.Id{
+							Package: "ai.intrinsic",
+							Name:    "os",
+						},
+						Version: osVersion,
+					},
+				}
+				_, err := assetCatalogClient.GetAsset(ctx, assetRequest)
+				if err != nil {
+					if grpcstatus.Code(err) == codes.NotFound {
+						return fmt.Errorf("OS version %q not found", osFlag)
+					}
+					return fmt.Errorf("get asset: %w", err)
+				}
+			}
+		}
+
+		if runtimeFlag != "" {
 			req.Versions.BaseVersion = runtimeVersion
 		}
 		if osFlag != "" {
-			osVersion := version.TranslateOSUIToAPI(osFlag)
-			assetRequest := &assetCatalogpb.GetAssetRequest{}
-			assetRequest.AssetId = &assetCatalogpb.GetAssetRequest_IdVersion{
-				IdVersion: &assetIDpb.IdVersion{
-					Id: &assetIDpb.Id{
-						Package: "ai.intrinsic",
-						Name:    "os",
-					},
-					Version: osVersion,
-				},
-			}
-			_, err := assetCatalogClient.GetAsset(ctx, assetRequest)
-			if err != nil {
-				if grpcstatus.Code(err) == codes.NotFound {
-					return fmt.Errorf("OS version %q not found", osFlag)
-				}
-				return fmt.Errorf("get asset: %w", err)
-			}
 			req.Versions.OsVersion = osVersion
 		}
 		if userDataFlag != "" {
 			req.Versions.UserData = userDataFlag
 		}
-		req.UpdateType = clustermanagerpb.SchedulePlatformUpdateRequest_UPDATE_TYPE_VERSIONED
+		if skipAssetVerificationFlag {
+			req.UpdateType = clustermanagerpb.SchedulePlatformUpdateRequest_UPDATE_TYPE_VERSIONED_UNCHECKED
+		} else {
+			req.UpdateType = clustermanagerpb.SchedulePlatformUpdateRequest_UPDATE_TYPE_VERSIONED
+		}
 	}
 
 	_, err := c.grpcClient.SchedulePlatformUpdate(ctx, &req)
@@ -641,6 +653,7 @@ func init() {
 	runCmd.PersistentFlags().MarkDeprecated("base", "Use --runtime instead.")
 	runCmd.PersistentFlags().StringVar(&runtimeFlag, "runtime", "", "The runtime version to upgrade to.")
 	runCmd.PersistentFlags().StringVar(&userDataFlag, "user-data", "", "Optional data describing the update.")
+	runCmd.PersistentFlags().BoolVar(&skipAssetVerificationFlag, "skip-asset-verification", false, "If true, the update will skip asset catalog verification.")
 	clusterUpgradeCmd.AddCommand(modeCmd)
 	clusterUpgradeCmd.AddCommand(acceptCmd)
 	clusterUpgradeCmd.AddCommand(reportCmd)
