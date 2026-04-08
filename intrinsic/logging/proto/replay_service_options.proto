@@ -123,12 +123,41 @@ message TextLogsVisualizerOptions {
 
 // Options for the Info visualizer, which visualizes:
 //   - Recording status and metadata
+//   - Process execution status and history
 message InfoVisualizerOptions {
+  // Options for the recording panel, which visualizes:
+  //   - Overall recording metadata (workcell, solution, creation time)
+  //   - Loading progress and message statistics
+  message RecordingPanelOptions {
+    // If true, enables the recording panel.
+    bool enabled = 1;
+  }
+
+  // Options for the process panel, which visualizes:
+  //   - Skill execution tracking (requests, summaries, extended status)
+  //   - Execution durations and error traces
+  message ProcessPanelOptions {
+    // If true, enables the process panel.
+    bool enabled = 1;
+
+    // Maximum number of bytes to display in stringified protobuf fields before
+    // truncating. Use this to prevent excessive memory usage or layout freezing
+    // when rendering massive parameters or results. Defaults to 1,000,000
+    // bytes.
+    optional uint32 proto_max_display_length = 2;
+  }
+
   // If true, enables the visualizer.
   bool enabled = 1;
 
   // Options for filtering out recorded logs going into the visualizer.
   optional FilterOptions filters = 2;
+
+  // Options for the recording panel.
+  optional RecordingPanelOptions recording_panel = 3;
+
+  // Options for the process panel.
+  optional ProcessPanelOptions process_panel = 4;
 }
 
 // Options for the Scene visualizer, which visualizes:
