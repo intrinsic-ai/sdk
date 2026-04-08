@@ -56,15 +56,10 @@ CreateParameterDescription(
   *description.mutable_parameter_descriptor_fileset() = file_descriptor_set;
 
   SourceCodeInfoView source_code_info;
-  if (absl::Status status = source_code_info.InitStrict(file_descriptor_set);
+  if (absl::Status status = source_code_info.Init(file_descriptor_set);
       !status.ok()) {
     if (status.code() == absl::StatusCode::kInvalidArgument) {
       return status;
-    }
-    if (status.code() == absl::StatusCode::kNotFound) {
-      LOG(INFO) << "parameter FileDescriptorSet missing source_code_info, "
-                   "comment map will be empty.";
-      return description;
     }
   }
 
@@ -87,15 +82,10 @@ CreateReturnDescription(
 
   *description.mutable_descriptor_fileset() = file_descriptor_set;
   SourceCodeInfoView source_code_info;
-  if (absl::Status status = source_code_info.InitStrict(file_descriptor_set);
+  if (absl::Status status = source_code_info.Init(file_descriptor_set);
       !status.ok()) {
     if (status.code() == absl::StatusCode::kInvalidArgument) {
       return status;
-    }
-    if (status.code() == absl::StatusCode::kNotFound) {
-      LOG(INFO) << "return type FileDescriptorSet missing source_code_info, "
-                   "comment map will be empty.";
-      return description;
     }
   }
 

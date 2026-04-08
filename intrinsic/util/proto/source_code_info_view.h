@@ -6,7 +6,7 @@
 #include <memory>
 #include <string>
 
-#include "absl/container/flat_hash_map.h"
+#include "absl/container/flat_hash_set.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
@@ -39,31 +39,6 @@ class SourceCodeInfoView {
   absl::Status Init(
       const google::protobuf::FileDescriptorSet& file_descriptor_set);
 
-  // Initializes this with the given `file_descriptor_set`.
-  //
-  // Provides a more strict alternative initialization for when the user cares
-  // that *all* files in the `file_descriptor_set` provide source_code_info.
-  //
-  // Returns an InvalidArgument error if the `file_descriptor_set` contains
-  // multiple FileDescriptorProtos with the same filename.
-  //
-  // Returns a NotFound error if any FileDescriptorSet.file in the provided
-  // file_descriptor_set is missing the `source_code_info` field.
-  absl::Status InitStrict(
-      const google::protobuf::FileDescriptorSet& file_descriptor_set);
-
-  // Retrieves the leading comments for a field, specified by the full name of
-  // the field. Returns an error if the field does not exist, or the
-  // corresponding FileDescriptorProto does not contain `source_code_info`.
-  absl::StatusOr<std::string> GetLeadingCommentsByFieldName(
-      absl::string_view field_name) const;
-
-  // Retrieves the leading comments for a message, specified by the full name of
-  // the message. Returns an error if the message does not exist, or the
-  // corresponding FileDescriptorProto does not contain `source_code_info`.
-  absl::StatusOr<std::string> GetLeadingCommentsByMessageType(
-      absl::string_view message_name) const;
-
   // Retrieves all field comments and message comments of the given message and
   // all of its nested submessages. They keys of the map are the full name of
   // the message or field that the comment applies to, the value is the comment.
@@ -71,9 +46,32 @@ class SourceCodeInfoView {
   GetNestedFieldCommentMap(absl::string_view message_name);
 
  private:
+  bool MaybeCollectComment(
+      const google::protobuf::Descriptor* message,
+      google::protobuf::Map<std::string, std::string>& comment_map,
+      absl::flat_hash_set<std::string>& visited) const;
+  bool MaybeCollectComment(
+      const google::protobuf::FieldDescriptor* field,
+      google::protobuf::Map<std::string, std::string>& comment_map,
+      absl::flat_hash_set<std::string>& visited) const;
+  bool MaybeCollectComment(
+      const google::protobuf::ServiceDescriptor* service,
+      google::protobuf::Map<std::string, std::string>& comment_map,
+      absl::flat_hash_set<std::string>& visited) const;
+  bool MaybeCollectComment(
+      const google::protobuf::MethodDescriptor* method,
+      google::protobuf::Map<std::string, std::string>& comment_map,
+      absl::flat_hash_set<std::string>& visited) const;
+
   absl::Status GetNestedFieldCommentMap(
       const google::protobuf::Descriptor* message,
-      google::protobuf::Map<std::string, std::string>& comment_map);
+      google::protobuf::Map<std::string, std::string>& comment_map,
+      absl::flat_hash_set<std::string>& visited) const;
+
+  absl::Status GetNestedFieldCommentMap(
+      const google::protobuf::ServiceDescriptor* service,
+      google::protobuf::Map<std::string, std::string>& comment_map,
+      absl::flat_hash_set<std::string>& visited) const;
 
   struct Pool {
     Pool() : descriptor_pool(&descriptor_database) {}

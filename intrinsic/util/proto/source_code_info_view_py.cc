@@ -26,11 +26,6 @@ class SourceCodeInfoViewPython {
     return source_code_info_view_.Init(file_descriptor_set);
   }
 
-  absl::StatusOr<std::string> GetLeadingCommentsByFieldName(
-      absl::string_view field_name) {
-    return source_code_info_view_.GetLeadingCommentsByFieldName(field_name);
-  }
-
   // pybind has an issue with automatically converting google::protobuf::Map,
   // this works around it by copying the output of the existing
   // function to an absl::flat_hash_map
@@ -59,10 +54,6 @@ PYBIND11_MODULE(source_code_info_view_py, m) {
       .def(pybind11::init<>())
       .def("Init", WithWrappedProtos(&SourceCodeInfoViewPython::Init),
            pybind11::arg("file_descriptor_set"))
-      .def("GetLeadingCommentsByFieldName",
-           WithWrappedProtos(
-               &SourceCodeInfoViewPython::GetLeadingCommentsByFieldName),
-           pybind11::arg("field_name"))
       .def("GetNestedFieldCommentMap",
            WithWrappedProtos(
                &SourceCodeInfoViewPython::GetNestedFieldCommentMap),

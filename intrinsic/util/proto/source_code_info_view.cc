@@ -6,10 +6,10 @@
 #include <memory>
 #include <string>
 
+#include "absl/container/flat_hash_set.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
-#include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
 #include "google/protobuf/descriptor.h"
 #include "google/protobuf/descriptor.pb.h"
@@ -35,103 +35,108 @@ absl::Status SourceCodeInfoView::Init(
   return absl::OkStatus();
 }
 
-absl::Status SourceCodeInfoView::InitStrict(
-    const google::protobuf::FileDescriptorSet& file_descriptor_set) {
-  for (const google::protobuf::FileDescriptorProto& file :
-       file_descriptor_set.file()) {
-    if (!file.has_source_code_info()) {
-      return absl::NotFoundError(absl::StrFormat(
-          "FileDescriptorProto for file %s is missing source_code_info",
-          file.name()));
-    }
-  }
-  return Init(file_descriptor_set);
-}
-
-absl::StatusOr<std::string> SourceCodeInfoView::GetLeadingCommentsByMessageType(
-    absl::string_view message_name) const {
-  if (pool_ == nullptr) {
-    return absl::FailedPreconditionError("SourceCodeInfoView not Init()ed.");
-  }
-
-  const google::protobuf::Descriptor* const message =
-      // Need the std::string(.) conversion here because the external version of
-      // the function does not have a version that takes absl::string_view.
-      pool_->descriptor_pool.FindMessageTypeByName(
-          std::string(message_name));  // NOLINT
-  if (message == nullptr) {
-    return absl::NotFoundError(
-        absl::StrCat("Message does not exist with: ", message_name));
-  }
-
-  google::protobuf::SourceLocation source_location;
-  if (!message->GetSourceLocation(&source_location)) {
-    return absl::NotFoundError(
-        "SourceLocation not available for FileDescriptor.");
-  }
-
-  return source_location.leading_comments;
-}
-
-absl::StatusOr<std::string> SourceCodeInfoView::GetLeadingCommentsByFieldName(
-    absl::string_view field_name) const {
-  if (pool_ == nullptr) {
-    return absl::FailedPreconditionError("SourceCodeInfoView not Init()ed.");
-  }
-
-  const google::protobuf::FieldDescriptor* const field =
-      // Need the std::string(.) conversion here because the external version of
-      // the function does not have a version that takes absl::string_view.
-      pool_->descriptor_pool.FindFieldByName(
-          std::string(field_name));  // NOLINT
-  if (field == nullptr) {
-    return absl::NotFoundError(
-        absl::StrCat("Field does not exist with: ", field_name));
-  }
-
-  google::protobuf::SourceLocation source_location;
-  if (!field->GetSourceLocation(&source_location)) {
-    return absl::NotFoundError(
-        "SourceLocation not available for FileDescriptor.");
-  }
-
-  return source_location.leading_comments;
-}
-
 absl::StatusOr<google::protobuf::Map<std::string, std::string>>
 SourceCodeInfoView::GetNestedFieldCommentMap(absl::string_view message_name) {
   if (pool_ == nullptr) {
     return absl::FailedPreconditionError("SourceCodeInfoView not Init()ed.");
   }
+  google::protobuf::Map<std::string, std::string> comment_map;
+  absl::flat_hash_set<std::string> visited;
 
   const google::protobuf::Descriptor* const message =
-      // Need the std::string(.) conversion here because the external version of
-      // the function does not have a version that takes absl::string_view.
-      pool_->descriptor_pool.FindMessageTypeByName(
-          std::string(message_name));  // NOLINT
-
-  if (message == nullptr) {
-    return absl::NotFoundError(
-        absl::StrCat("Message does not exist with: ", message_name));
+      pool_->descriptor_pool.FindMessageTypeByName(std::string(message_name));
+  if (message != nullptr) {
+    INTR_RETURN_IF_ERROR(
+        GetNestedFieldCommentMap(message, comment_map, visited));
+    return comment_map;
   }
+  const google::protobuf::ServiceDescriptor* const service =
+      pool_->descriptor_pool.FindServiceByName(std::string(message_name));
+  if (service != nullptr) {
+    INTR_RETURN_IF_ERROR(
+        GetNestedFieldCommentMap(service, comment_map, visited));
+    return comment_map;
+  }
+  return absl::NotFoundError(
+      absl::StrCat("Message does not exist with: ", message_name));
+}
 
-  google::protobuf::Map<std::string, std::string> comment_map;
-  INTR_RETURN_IF_ERROR(GetNestedFieldCommentMap(message, comment_map));
-  return comment_map;
+bool SourceCodeInfoView::MaybeCollectComment(
+    const google::protobuf::Descriptor* message,
+    google::protobuf::Map<std::string, std::string>& comment_map,
+    absl::flat_hash_set<std::string>& visited) const {
+  absl::string_view name = message->full_name();
+  if (!visited.contains(name)) {
+    google::protobuf::SourceLocation source_location;
+    if (message->GetSourceLocation(&source_location)) {
+      comment_map.emplace(name, source_location.leading_comments);
+    }
+    visited.emplace(name);
+    return true;
+  }
+  return false;
+}
+
+bool SourceCodeInfoView::MaybeCollectComment(
+    const google::protobuf::FieldDescriptor* field,
+    google::protobuf::Map<std::string, std::string>& comment_map,
+    absl::flat_hash_set<std::string>& visited) const {
+  absl::string_view name = field->full_name();
+  if (!visited.contains(name)) {
+    google::protobuf::SourceLocation source_location;
+    if (field->GetSourceLocation(&source_location)) {
+      comment_map.emplace(name, source_location.leading_comments);
+    }
+    visited.emplace(name);
+    return true;
+  }
+  return false;
+}
+
+bool SourceCodeInfoView::MaybeCollectComment(
+    const google::protobuf::ServiceDescriptor* service,
+    google::protobuf::Map<std::string, std::string>& comment_map,
+    absl::flat_hash_set<std::string>& visited) const {
+  absl::string_view name = service->full_name();
+  if (!visited.contains(name)) {
+    google::protobuf::SourceLocation source_location;
+    if (service->GetSourceLocation(&source_location)) {
+      comment_map.emplace(name, source_location.leading_comments);
+    }
+    visited.emplace(name);
+    return true;
+  }
+  return false;
+}
+
+bool SourceCodeInfoView::MaybeCollectComment(
+    const google::protobuf::MethodDescriptor* method,
+    google::protobuf::Map<std::string, std::string>& comment_map,
+    absl::flat_hash_set<std::string>& visited) const {
+  absl::string_view name = method->full_name();
+  if (!visited.contains(name)) {
+    google::protobuf::SourceLocation source_location;
+    if (method->GetSourceLocation(&source_location)) {
+      comment_map.emplace(name, source_location.leading_comments);
+    }
+    visited.emplace(name);
+    return true;
+  }
+  return false;
 }
 
 absl::Status SourceCodeInfoView::GetNestedFieldCommentMap(
     const google::protobuf::Descriptor* message,
-    google::protobuf::Map<std::string, std::string>& comment_map) {
+    google::protobuf::Map<std::string, std::string>& comment_map,
+    absl::flat_hash_set<std::string>& visited) const {
+  MaybeCollectComment(message, comment_map, visited);
+
   for (int field_index = 0; field_index < message->field_count();
        ++field_index) {
     const google::protobuf::FieldDescriptor* field =
         message->field(field_index);
-
-    // Add leading comments for this field, i.e., the comments above the field.
-    INTR_ASSIGN_OR_RETURN(std::string comment,
-                          GetLeadingCommentsByFieldName(field->full_name()));
-    comment_map.emplace(field->full_name(), comment);
+    // Add leading comments for this message field.
+    MaybeCollectComment(field, comment_map, visited);
 
     // Recursively process the message type of the field.
     const google::protobuf::FieldDescriptor* field_to_recursively_process =
@@ -147,19 +152,43 @@ absl::Status SourceCodeInfoView::GetNestedFieldCommentMap(
         google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE) {
       const google::protobuf::Descriptor* msg_descriptor =
           field_to_recursively_process->message_type();
-      auto msg_iter = comment_map.find(msg_descriptor->full_name());
-      if (msg_iter == comment_map.end()) {
-        // Get top-level message comments
-        INTR_ASSIGN_OR_RETURN(
-            std::string comment,
-            GetLeadingCommentsByMessageType(msg_descriptor->full_name()));
-        comment_map.emplace(msg_descriptor->full_name(), comment);
+      // Recursively process the field's message type.
+      if (MaybeCollectComment(msg_descriptor, comment_map, visited)) {
         INTR_RETURN_IF_ERROR(
-            GetNestedFieldCommentMap(msg_descriptor, comment_map));
+            GetNestedFieldCommentMap(msg_descriptor, comment_map, visited));
       }
     }
   }
 
+  return absl::OkStatus();
+}
+
+absl::Status SourceCodeInfoView::GetNestedFieldCommentMap(
+    const google::protobuf::ServiceDescriptor* service,
+    google::protobuf::Map<std::string, std::string>& comment_map,
+    absl::flat_hash_set<std::string>& visited) const {
+  MaybeCollectComment(service, comment_map, visited);
+
+  for (int method_index = 0; method_index < service->method_count();
+       ++method_index) {
+    const google::protobuf::MethodDescriptor* method =
+        service->method(method_index);
+    // Add leading comments for this method.
+    MaybeCollectComment(method, comment_map, visited);
+
+    // Recursively process the service's input message type.
+    const google::protobuf::Descriptor* input_type = method->input_type();
+    if (MaybeCollectComment(input_type, comment_map, visited)) {
+      INTR_RETURN_IF_ERROR(
+          GetNestedFieldCommentMap(input_type, comment_map, visited));
+    }
+    // Recursively process the service's output message type.
+    const google::protobuf::Descriptor* output_type = method->output_type();
+    if (MaybeCollectComment(output_type, comment_map, visited)) {
+      INTR_RETURN_IF_ERROR(
+          GetNestedFieldCommentMap(output_type, comment_map, visited));
+    }
+  }
   return absl::OkStatus();
 }
 
