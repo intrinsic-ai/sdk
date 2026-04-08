@@ -101,18 +101,14 @@ message VisualizationFrameResources {
   }
 }
 
-// Additional context for visualizing Intrinsic recordings.
-//
-// Some items contained in here are references to blobs in other LogItems that
-// should have been logged after the context is logged. Be sure to join them
-// with the `context.visualization_context_id` field.
+// Contextual data related to the scene, geometry, and the world itself.
 //
 // The information included in the context can be used throughout a recording,
 // such as:
 //   - World and entities
 //   - Renderable geometries
 //   - Mappings of ROS TF frames to fully qualified TF frames
-message VisualizationContext {
+message VisualizationSceneContext {
   // The belief world at time of requesting the recording.
   // Used to generate geometry mappings, amongst other things.
   //
@@ -138,6 +134,56 @@ message VisualizationContext {
   //   the world at request time.
   VisualizationWorld world = 1;
 
+  // Mappings of ROS-style TF frames IDs to frame-related data.
+  //
+  // Used to interpret ROS TF messages in the recording and join them with
+  // data in the visualization context.
+  map<string, VisualizationFrameResources> frame_resources = 2;
+
+  // Mappings of renderable references to their corresponding visualization
+  // renderables.
+  //
+  // The renderable data will be stripped out.
+  map<string, VisualizationRenderable> renderables = 3;
+}
+
+// Additional context for visualizing Intrinsic recordings.
+//
+// This message captures contextual data that is useful for visualization but
+// is not associated with the specific time range of the recording. This
+// includes information gathered at the time the recording is requested, rather
+// than buffered and saved across the recording timespan (e.g., the belief world
+// structure, or system information like the OS runtime).
+//
+// Some items contained in here are references to blobs in other LogItems that
+// should have been logged after the context is logged. Be sure to join them
+// with the `context.visualization_context_id` field.
+message VisualizationContext {
+  // The belief world at time of requesting the recording.
+  // Used to generate geometry mappings, amongst other things.
+  //
+  // NOTE:
+  //   Will be slightly desynchronized from the world at the start of the
+  //   recording.
+  //
+  //   To elaborate, Intrinsic recordings are a snapshot of some timerange of
+  //   logs, requested in some time after that timerange has passed.
+  //
+  //   For example:
+  //     0s (start) ----> 5s ----> 10s (end) --...--> REQUEST TIME.
+  //
+  //   The visualization context messages here are information gathered at time
+  //   of requesting the recording, which is necessarily in the future.
+  //
+  //   What we truly want is the world (and all related data) at 0s.
+  //   But since we cannot be saving the world every time because it will blow
+  //   up the on-prem disk storage, we instead substitute in the world at
+  //   recording request time (in the future).
+  //
+  //   This means that there is a potential desync between the world at 0s and
+  //   the world at request time.
+  VisualizationWorld world = 1 [deprecated = true];
+
   // Mappings of geometry fingerprints to their corresponding visualization
   // geometries.
   //
@@ -148,13 +194,14 @@ message VisualizationContext {
 
   // Mappings of renderable references to their corresponding visualization
   // renderables.
-  map<string, VisualizationRenderable> renderables = 4;
+  map<string, VisualizationRenderable> renderables = 4 [deprecated = true];
 
   // Mappings of ROS-style TF frames IDs to frame-related data.
   //
   // Used to interpret ROS TF messages in the recording and join them with
   // data in the visualization context.
-  map<string, VisualizationFrameResources> frame_resources = 3;
+  map<string, VisualizationFrameResources> frame_resources = 3
+      [deprecated = true];
 
   // The next offset index to use when writing visualization log items on-prem.
   //
@@ -166,4 +213,7 @@ message VisualizationContext {
   // an offset index of 0, ensuring it appears chronologically FIRST in the
   // recording, before any other visualization messages.
   int64 next_offset_index = 5;
+
+  // Contextual data related to the scene, geometry, and the world itself.
+  VisualizationSceneContext scene_context = 6;
 }
