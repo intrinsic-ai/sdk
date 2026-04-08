@@ -109,6 +109,7 @@ go_library(
         "//intrinsic/assets:clientutils",
         "//intrinsic/assets:cmdutils",
         "//intrinsic/assets:idutils",
+        "//intrinsic/assets:interfaceutils",
         "//intrinsic/assets:listutils",
         "//intrinsic/assets/catalog/proto/v1:asset_catalog_go_proto",
         "//intrinsic/assets/proto:view_go_proto",

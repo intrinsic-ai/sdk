@@ -5,15 +5,15 @@ package listreleased
 
 import (
 	"fmt"
-	"sort"
-	"strings"
-
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/assets/idutils"
+	"intrinsic/assets/interfaceutils"
 	"intrinsic/assets/listutils"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/printer"
+	"sort"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"google.golang.org/protobuf/proto"
@@ -52,6 +52,11 @@ func GetCommand() *cobra.Command {
 			provides, err := flags.GetFlagProvides()
 			if err != nil {
 				return err
+			}
+			for _, p := range provides {
+				if err := interfaceutils.ValidateInterfaceName(p); err != nil {
+					return fmt.Errorf("invalid --%s filter (must use protocol prefix, e.g., 'grpc://intrinsic_proto.services.Calculator'): %w", cmdutils.KeyProvides, err)
+				}
 			}
 
 			assets, err := listutils.ListAllAssets(

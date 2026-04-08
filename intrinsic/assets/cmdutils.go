@@ -6,19 +6,19 @@ package cmdutils
 import (
 	"context"
 	"fmt"
-	"slices"
-	"strings"
-	"time"
-
 	"intrinsic/assets/imagetransfer"
 	"intrinsic/assets/imageutils"
-	atypepb "intrinsic/assets/proto/asset_type_go_proto"
-	iapb "intrinsic/assets/proto/installed_assets_go_proto"
-	viewpb "intrinsic/assets/proto/view_go_proto"
 	"intrinsic/assets/services/bundleimages"
 	"intrinsic/assets/typeutils"
 	"intrinsic/assets/viewutils"
 	"intrinsic/tools/inctl/util/orgutil"
+	"slices"
+	"strings"
+	"time"
+
+	atypepb "intrinsic/assets/proto/asset_type_go_proto"
+	iapb "intrinsic/assets/proto/installed_assets_go_proto"
+	viewpb "intrinsic/assets/proto/view_go_proto"
 
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/v1/google"
@@ -370,7 +370,7 @@ func (cf *CmdFlags) GetFlagProject() string {
 
 // AddFlagProvides adds a flag for specifying provided interfaces.
 func (cf *CmdFlags) AddFlagProvides() {
-	cf.OptionalString(KeyProvides, "", fmt.Sprintf("A comma-separated list of interfaces that assets must provide in order to be included in the output."))
+	cf.OptionalString(KeyProvides, "", "A comma-separated list of protocol-prefixed interfaces that assets must provide in order to be included in the output.")
 }
 
 // GetFlagProvides gets the value of the provides flag added by AddFlagProvides.
