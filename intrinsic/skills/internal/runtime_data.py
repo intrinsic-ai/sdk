@@ -62,7 +62,9 @@ class ExecutionOptions:
   cancellation_ready_timeout: datetime.timedelta = datetime.timedelta(
       seconds=30
   )
-  execution_timeout: datetime.timedelta = datetime.timedelta(seconds=180)
+  # datetime.timedelta.max does not work through gRPC calls.
+  # 100 years is practically infinite.
+  execution_timeout: datetime.timedelta = datetime.timedelta(days=365 * 100)
   supports_cancellation: bool = False
 
 

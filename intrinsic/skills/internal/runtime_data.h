@@ -79,7 +79,7 @@ class ExecutionOptions {
  private:
   bool supports_cancellation_ = false;
   absl::Duration cancellation_ready_timeout_ = absl::Seconds(30);
-  absl::Duration execution_timeout_ = skills::kClientDefaultTimeout;
+  absl::Duration execution_timeout_ = absl::InfiniteDuration();
 };
 
 // Contains data about resources for a skill that are relevant to the
