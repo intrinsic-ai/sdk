@@ -177,6 +177,12 @@ func Lease(ctx context.Context, leaseClient leaseapigrpcpb.VMPoolLeaseServiceCli
 	fmt.Println("")
 	gotExpires := l.GetExpires().AsTime()
 	fmt.Printf("- Lease expires: %s (in %s)\n", gotExpires.Format(time.RFC3339), time.Until(gotExpires).Round(time.Second))
+	fmt.Println("\nPlease return the VM when you don't need it anymore:")
+	fmt.Printf("	inctl vm return %s --org %s\n", l.GetInstance(), orgutil.QualifiedOrg(opts.Project, vmCmdFlags.GetFlagOrganization()))
+
+	fmt.Println("\nExtend the lease for the VM if you need it longer:")
+	fmt.Printf("	inctl vm expire-in %s 1h --org %s\n", l.GetInstance(), orgutil.QualifiedOrg(opts.Project, vmCmdFlags.GetFlagOrganization()))
+
 	return nil
 }
 
