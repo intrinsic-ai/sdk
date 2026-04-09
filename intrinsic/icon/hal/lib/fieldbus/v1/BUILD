@@ -22,6 +22,6 @@ cc_proto_library(
 
 go_proto_library(
     name = "value_parsing_go_proto",
-    importpath = "intrinsic/icon/hal/lib/ecat/v1/value_parsing_go_proto",
+    importpath = "intrinsic/icon/hal/lib/fieldbus/v1/value_parsing_go_proto",
     protos = [":value_parsing_proto"],
 )

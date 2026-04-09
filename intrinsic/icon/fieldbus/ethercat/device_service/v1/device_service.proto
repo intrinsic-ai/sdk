@@ -65,8 +65,8 @@ message ResolvedConfiguration {
 
   // Mapping from logical SDO references (names or raw addresses) to their
   // resolved hardware indices.
-  // Key: The exact 'object' string provided in the SdoRead or SdoWrite config.
-  // Value: The resolved index and sub-index.
+  // Key: The exact 'object' string provided in the ServiceVariableRead or
+  // ServiceVariableWrite config. Value: The resolved index and sub-index.
   map<string, ResolvedSdoVariable> sdo_mappings = 6;
 
   // The list of available synchronization modes as defined in the ESI.

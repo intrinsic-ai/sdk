@@ -25,7 +25,7 @@ import (
 	dscpb "intrinsic/icon/fieldbus/ethercat/device_service/v1/device_service_config_go_proto"
 	dspb "intrinsic/icon/fieldbus/ethercat/device_service/v1/device_service_go_proto"
 	esipb "intrinsic/icon/fieldbus/ethercat/device_service/v1/esi_go_proto"
-	ecatpb "intrinsic/icon/hal/lib/sdo_value/v1/sdo_value_config_go_proto"
+	ecatpb "intrinsic/icon/hal/lib/service_variable_value/v1/service_variable_config_go_proto"
 )
 
 // Required (apparently) so that flags are parsed.
@@ -675,12 +675,12 @@ func TestDiscoveryLogic(t *testing.T) {
 			},
 		},
 		{
-			desc: "BusVariableDeviceData Resolution",
+			desc: "ProcessVariableDeviceData Resolution",
 			mappings: []*dscpb.InterfaceMapping{
 				{
 					DeviceData: &dscpb.DeviceData{
 						Data: &dscpb.DeviceData_BusVariableDeviceData{
-							BusVariableDeviceData: &dscpb.BusVariableDeviceData{
+							BusVariableDeviceData: &dscpb.ProcessVariableDeviceData{
 								BusVariableWrites: []*dscpb.BusVariableWrite{
 									{
 										VariableReference: &dscpb.VariableReference{Pdo: "Default RxPDO", Object: "Control word"},
@@ -699,12 +699,12 @@ func TestDiscoveryLogic(t *testing.T) {
 			},
 		},
 		{
-			desc: "BusVariableDeviceData Type Mismatch",
+			desc: "ProcessVariableDeviceData Type Mismatch",
 			mappings: []*dscpb.InterfaceMapping{
 				{
 					DeviceData: &dscpb.DeviceData{
 						Data: &dscpb.DeviceData_BusVariableDeviceData{
-							BusVariableDeviceData: &dscpb.BusVariableDeviceData{
+							BusVariableDeviceData: &dscpb.ProcessVariableDeviceData{
 								BusVariableWrites: []*dscpb.BusVariableWrite{
 									{
 										VariableReference: &dscpb.VariableReference{Pdo: "Default RxPDO", Object: "Control word"},
@@ -1709,13 +1709,13 @@ func TestSDOResolution(t *testing.T) {
 					Interface: &dscpb.Interface{InterfaceName: "sdo_iface"},
 					DeviceData: &dscpb.DeviceData{
 						Data: &dscpb.DeviceData_SdoDeviceData{
-							SdoDeviceData: &dscpb.SdoDeviceData{
-								SdoWrites: []*dscpb.SdoWrite{
+							SdoDeviceData: &dscpb.ServiceVariableDeviceData{
+								SdoWrites: []*dscpb.ServiceVariableWrite{
 									{Object: "Control word", Value: &dscpb.BusVariableValue{Value: &dscpb.BusVariableValue_Uint16Value{Uint16Value: 0x0006}}},
 								},
-								SdoReads: []*dscpb.SdoRead{
-									{Object: "Status word", Type: ecatpb.SdoVariableType_UINT16_SDO_TYPE, Alias: "status"},
-									{Object: "#x6060.0", Type: ecatpb.SdoVariableType_INT8_SDO_TYPE, Alias: "mode"},
+								SdoReads: []*dscpb.ServiceVariableRead{
+									{Object: "Status word", Type: ecatpb.ServiceVariableType_UINT16_SDO_TYPE, Alias: "status"},
+									{Object: "#x6060.0", Type: ecatpb.ServiceVariableType_INT8_SDO_TYPE, Alias: "mode"},
 								},
 							},
 						},
@@ -1735,9 +1735,9 @@ func TestSDOResolution(t *testing.T) {
 					Interface: &dscpb.Interface{InterfaceName: "sdo_raw"},
 					DeviceData: &dscpb.DeviceData{
 						Data: &dscpb.DeviceData_SdoDeviceData{
-							SdoDeviceData: &dscpb.SdoDeviceData{
-								SdoReads: []*dscpb.SdoRead{
-									{Object: "0x1234.5", Type: ecatpb.SdoVariableType_UINT32_SDO_TYPE, Alias: "raw"},
+							SdoDeviceData: &dscpb.ServiceVariableDeviceData{
+								SdoReads: []*dscpb.ServiceVariableRead{
+									{Object: "0x1234.5", Type: ecatpb.ServiceVariableType_UINT32_SDO_TYPE, Alias: "raw"},
 								},
 							},
 						},
@@ -1755,8 +1755,8 @@ func TestSDOResolution(t *testing.T) {
 					Interface: &dscpb.Interface{InterfaceName: "sdo_fail_write"},
 					DeviceData: &dscpb.DeviceData{
 						Data: &dscpb.DeviceData_SdoDeviceData{
-							SdoDeviceData: &dscpb.SdoDeviceData{
-								SdoWrites: []*dscpb.SdoWrite{
+							SdoDeviceData: &dscpb.ServiceVariableDeviceData{
+								SdoWrites: []*dscpb.ServiceVariableWrite{
 									{Object: "Modes of operation", Value: &dscpb.BusVariableValue{Value: &dscpb.BusVariableValue_Uint16Value{Uint16Value: 123}}},
 								},
 							},
@@ -1773,9 +1773,9 @@ func TestSDOResolution(t *testing.T) {
 					Interface: &dscpb.Interface{InterfaceName: "sdo_fail_read"},
 					DeviceData: &dscpb.DeviceData{
 						Data: &dscpb.DeviceData_SdoDeviceData{
-							SdoDeviceData: &dscpb.SdoDeviceData{
-								SdoReads: []*dscpb.SdoRead{
-									{Object: "Control word", Type: ecatpb.SdoVariableType_UINT8_SDO_TYPE, Alias: "bad_type"},
+							SdoDeviceData: &dscpb.ServiceVariableDeviceData{
+								SdoReads: []*dscpb.ServiceVariableRead{
+									{Object: "Control word", Type: ecatpb.ServiceVariableType_UINT8_SDO_TYPE, Alias: "bad_type"},
 								},
 							},
 						},
@@ -1791,9 +1791,9 @@ func TestSDOResolution(t *testing.T) {
 					Interface: &dscpb.Interface{InterfaceName: "sdo_fail_name"},
 					DeviceData: &dscpb.DeviceData{
 						Data: &dscpb.DeviceData_SdoDeviceData{
-							SdoDeviceData: &dscpb.SdoDeviceData{
-								SdoReads: []*dscpb.SdoRead{
-									{Object: "NonExistentObject", Type: ecatpb.SdoVariableType_UINT16_SDO_TYPE},
+							SdoDeviceData: &dscpb.ServiceVariableDeviceData{
+								SdoReads: []*dscpb.ServiceVariableRead{
+									{Object: "NonExistentObject", Type: ecatpb.ServiceVariableType_UINT16_SDO_TYPE},
 								},
 							},
 						},
@@ -1923,7 +1923,7 @@ func TestIntermediateBitLengths(t *testing.T) {
 					{
 						DeviceData: &dscpb.DeviceData{
 							Data: &dscpb.DeviceData_BusVariableDeviceData{
-								BusVariableDeviceData: &dscpb.BusVariableDeviceData{
+								BusVariableDeviceData: &dscpb.ProcessVariableDeviceData{
 									BusVariableWrites: []*dscpb.BusVariableWrite{tc.write},
 								},
 							},

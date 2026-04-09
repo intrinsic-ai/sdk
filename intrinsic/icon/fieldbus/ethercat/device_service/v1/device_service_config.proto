@@ -7,8 +7,8 @@ package intrinsic_proto.fieldbus.ethercat.device_service.v1;
 import "google/protobuf/duration.proto";
 import "intrinsic/assets/proto/field_metadata.proto";
 import "intrinsic/assets/proto/v1/resolved_dependency.proto";
-import "intrinsic/icon/hal/lib/ecat/v1/value_parsing.proto";
-import "intrinsic/icon/hal/lib/sdo_value/v1/sdo_value_config.proto";
+import "intrinsic/icon/hal/lib/fieldbus/v1/value_parsing.proto";
+import "intrinsic/icon/hal/lib/service_variable_value/v1/service_variable_config.proto";
 
 option go_package = "intrinsic/icon/fieldbus/ethercat/device_service/v1/device_service_config_go_proto";
 
@@ -92,14 +92,14 @@ message DeviceData {
     Ds402DeviceData ds402_device_data = 2;
     AdioDeviceData adio_device_data = 3;
     ForceTorqueDeviceData force_torque_device_data = 4;
-    BusVariableDeviceData bus_variable_device_data = 5;
-    SdoDeviceData sdo_device_data = 6;
+    ProcessVariableDeviceData bus_variable_device_data = 5;
+    ServiceVariableDeviceData sdo_device_data = 6;
     // More to be added in the future
   }
 }
 
 // Describes device data for writing fixed values to bus variables.
-message BusVariableDeviceData {
+message ProcessVariableDeviceData {
   repeated BusVariableWrite bus_variable_writes = 1;
 }
 
@@ -132,13 +132,13 @@ message BusVariableValue {
 // SDOs (Service Data Objects) use the acyclic CoE (CANopen over EtherCAT)
 // mailbox mechanism. They are read/written on demand and do not need to be
 // mapped to a PDO.
-message SdoDeviceData {
-  repeated SdoWrite sdo_writes = 1;
-  repeated SdoRead sdo_reads = 2;
+message ServiceVariableDeviceData {
+  repeated ServiceVariableWrite sdo_writes = 1;
+  repeated ServiceVariableRead sdo_reads = 2;
 }
 
 // Configuration for writing a fixed value to an SDO variable.
-message SdoWrite {
+message ServiceVariableWrite {
   // The target object. Can be a localized name (e.g. "Quick Stop Option Code")
   // or a raw address (e.g. "#x605A.0").
   string object = 1;
@@ -146,18 +146,18 @@ message SdoWrite {
 }
 
 // Configuration for reading an SDO variable.
-message SdoRead {
+message ServiceVariableRead {
   // The target object. Can be a localized name or a raw address.
   string object = 1;
   // The expected variable type to read. A wrong type can result in a
   // runtime error when reading the variable.
-  intrinsic_proto.ecat.v1.SdoVariableType type = 2;
+  intrinsic_proto.fieldbus.v1.ServiceVariableType type = 2;
   // The alias for the variable.
   // Required if any of the ANALOG_INPUT export types are enabled.
   string alias = 3;
   // Maps the value as read from the device to a string representation.
-  map<string, intrinsic_proto.ecat.v1.ValuePatterns> interpretations_of_values =
-      4;
+  map<string, intrinsic_proto.fieldbus.v1.ValuePatterns>
+      interpretations_of_values = 4;
 }
 
 // Describes joint device data of a single joint.
@@ -215,7 +215,7 @@ message Ds402DeviceData {
   // a human readable string.
   // Multiple interpretations can match a single error code.
   // Text output may be truncated.
-  map<string, intrinsic_proto.ecat.v1.ValuePatterns>
+  map<string, intrinsic_proto.fieldbus.v1.ValuePatterns>
       error_code_interpretations = 6;
 
   // The delay to wait after enabling the drive before actually sending the

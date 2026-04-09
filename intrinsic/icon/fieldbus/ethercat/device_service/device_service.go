@@ -19,7 +19,7 @@ import (
 	dscpb "intrinsic/icon/fieldbus/ethercat/device_service/v1/device_service_config_go_proto"
 	dspb "intrinsic/icon/fieldbus/ethercat/device_service/v1/device_service_go_proto"
 	esipb "intrinsic/icon/fieldbus/ethercat/device_service/v1/esi_go_proto"
-	ecatpb "intrinsic/icon/hal/lib/sdo_value/v1/sdo_value_config_go_proto"
+	ecatpb "intrinsic/icon/hal/lib/service_variable_value/v1/service_variable_config_go_proto"
 )
 
 var (
@@ -532,15 +532,15 @@ func (s *DeviceService) resolveActiveOpMode(ctx context.Context) (string, error)
 
 // resolveBusVariableWrite resolves all variables required for a bus variable write.
 //
-// This function iterates over the list of bus variable writes configured in `busVar`
+// This function iterates over the list of process variable writes configured in `procVar`
 // and attempts to resolve each one against the parsed ESI data using the current context `ctx`.
 // It ensures that the variable is mapped to an RxPDO, as these are variables written to the device.
 // After resolution, it verifies that the requested value type matches the data type
 // defined in the device's ESI.
 //
 // It returns an error if any variable cannot be resolved or if there is a type mismatch.
-func (s *DeviceService) resolveBusVariableWrite(ctx context.Context, busVar *dscpb.BusVariableDeviceData) error {
-	for _, write := range busVar.GetBusVariableWrites() {
+func (s *DeviceService) resolveBusVariableWrite(ctx context.Context, procVar *dscpb.ProcessVariableDeviceData) error {
+	for _, write := range procVar.GetBusVariableWrites() {
 		ref := write.GetVariableReference()
 		if err := s.resolveVariable(ctx, ref, PdoDirectionRx); err != nil {
 			return err
@@ -550,7 +550,7 @@ func (s *DeviceService) resolveBusVariableWrite(ctx context.Context, busVar *dsc
 		addr := objectAddress{Index: resolved.Index, SubIndex: resolved.SubIndex}
 		meta := s.objectIndex[addr]
 
-		if err := verifyBusVariableType(write.GetValue(), meta.DataType, meta.BitSize); err != nil {
+		if err := verifyProcessVariableType(write.GetValue(), meta.DataType, meta.BitSize); err != nil {
 			return fmt.Errorf("type mismatch for variable %q (ESI type %s, %d bits): %w", ref.GetObject(), meta.DataType, meta.BitSize, err)
 		}
 	}
@@ -565,7 +565,7 @@ func (s *DeviceService) resolveBusVariableWrite(ctx context.Context, busVar *dsc
 //
 // Returns:
 //   - An error if a named variable cannot be found in the dictionary.
-func (s *DeviceService) resolveSdoDeviceData(ctx context.Context, sdo_data *dscpb.SdoDeviceData) error {
+func (s *DeviceService) resolveSdoDeviceData(ctx context.Context, sdo_data *dscpb.ServiceVariableDeviceData) error {
 	resolved := make(map[string]*dspb.ResolvedSdoVariable)
 
 	for _, write := range sdo_data.GetSdoWrites() {
@@ -575,7 +575,7 @@ func (s *DeviceService) resolveSdoDeviceData(ctx context.Context, sdo_data *dscp
 		}
 		// We might be using undocumented SDOs. So only verify if we have metadata.
 		if meta != nil {
-			if err := verifyBusVariableType(write.GetValue(), meta.DataType, meta.BitSize); err != nil {
+			if err := verifyProcessVariableType(write.GetValue(), meta.DataType, meta.BitSize); err != nil {
 				return fmt.Errorf("type mismatch for SDO write %q (ESI type %s, %d bits): %w", write.GetObject(), meta.DataType, meta.BitSize, err)
 			}
 		}
@@ -661,44 +661,44 @@ func (s *DeviceService) resolveSdoVariable(ctx context.Context, object string, e
 // Returns:
 //   - An error if the type validation fails, indicating a mismatch between the requested
 //     type and the ESI specification, or if the `requestedType` is unsupported.
-func verifySdoReadType(requestedType ecatpb.SdoVariableType, esiType string, bitSize uint32) error {
-	// Map the requested SDO read type to a dummy BusVariableValue so we can reuse verifyBusVariableType
+func verifySdoReadType(requestedType ecatpb.ServiceVariableType, esiType string, bitSize uint32) error {
+	// Map the requested SDO read type to a dummy BusVariableValue so we can reuse verifyProcessVariableType
 	dummyVal := &dscpb.BusVariableValue{}
 	switch requestedType {
-	case ecatpb.SdoVariableType_BOOL_SDO_TYPE:
+	case ecatpb.ServiceVariableType_BOOL_SDO_TYPE:
 		dummyVal.Value = &dscpb.BusVariableValue_BoolValue{}
-	case ecatpb.SdoVariableType_UINT8_SDO_TYPE:
+	case ecatpb.ServiceVariableType_UINT8_SDO_TYPE:
 		dummyVal.Value = &dscpb.BusVariableValue_Uint8Value{}
-	case ecatpb.SdoVariableType_INT8_SDO_TYPE:
+	case ecatpb.ServiceVariableType_INT8_SDO_TYPE:
 		dummyVal.Value = &dscpb.BusVariableValue_Int8Value{}
-	case ecatpb.SdoVariableType_UINT16_SDO_TYPE:
+	case ecatpb.ServiceVariableType_UINT16_SDO_TYPE:
 		dummyVal.Value = &dscpb.BusVariableValue_Uint16Value{}
-	case ecatpb.SdoVariableType_INT16_SDO_TYPE:
+	case ecatpb.ServiceVariableType_INT16_SDO_TYPE:
 		dummyVal.Value = &dscpb.BusVariableValue_Int16Value{}
-	case ecatpb.SdoVariableType_UINT32_SDO_TYPE:
+	case ecatpb.ServiceVariableType_UINT32_SDO_TYPE:
 		dummyVal.Value = &dscpb.BusVariableValue_Uint32Value{}
-	case ecatpb.SdoVariableType_INT32_SDO_TYPE:
+	case ecatpb.ServiceVariableType_INT32_SDO_TYPE:
 		dummyVal.Value = &dscpb.BusVariableValue_Int32Value{}
-	case ecatpb.SdoVariableType_UINT64_SDO_TYPE:
+	case ecatpb.ServiceVariableType_UINT64_SDO_TYPE:
 		dummyVal.Value = &dscpb.BusVariableValue_Uint64Value{}
-	case ecatpb.SdoVariableType_INT64_SDO_TYPE:
+	case ecatpb.ServiceVariableType_INT64_SDO_TYPE:
 		dummyVal.Value = &dscpb.BusVariableValue_Int64Value{}
-	case ecatpb.SdoVariableType_FLOAT_SDO_TYPE:
+	case ecatpb.ServiceVariableType_FLOAT_SDO_TYPE:
 		dummyVal.Value = &dscpb.BusVariableValue_FloatValue{}
-	case ecatpb.SdoVariableType_DOUBLE_SDO_TYPE:
+	case ecatpb.ServiceVariableType_DOUBLE_SDO_TYPE:
 		dummyVal.Value = &dscpb.BusVariableValue_DoubleValue{}
 	default:
 		// Unknown or UNDEFINED_SDO_TYPE
 		return fmt.Errorf("unsupported or missing requested type %q", requestedType)
 	}
 
-	if err := verifyBusVariableType(dummyVal, esiType, bitSize); err != nil {
+	if err := verifyProcessVariableType(dummyVal, esiType, bitSize); err != nil {
 		return fmt.Errorf(strings.ReplaceAll(err.Error(), "provided", "requested"))
 	}
 	return nil
 }
 
-// verifyBusVariableType checks if a bus variable value matches the device's expected data type.
+// verifyProcessVariableType checks if a bus variable value matches the device's expected data type.
 //
 // This function compares the type of `val` against the `esiType` and `bitSize`
 // specified in the device's ESI file. It ensures that the provided value
@@ -706,7 +706,7 @@ func verifySdoReadType(requestedType ecatpb.SdoVariableType, esiType string, bit
 // (e.g., trying to write a signed integer to an unsigned type).
 //
 // It returns an error if the type validation fails or if `val` is nil.
-func verifyBusVariableType(val *dscpb.BusVariableValue, esiType string, bitSize uint32) error {
+func verifyProcessVariableType(val *dscpb.BusVariableValue, esiType string, bitSize uint32) error {
 	if val == nil {
 		return fmt.Errorf("value is nil")
 	}

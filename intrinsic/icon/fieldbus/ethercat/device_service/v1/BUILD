@@ -16,8 +16,8 @@ proto_library(
     deps = [
         "//intrinsic/assets/proto:field_metadata_proto",
         "//intrinsic/assets/proto/v1:resolved_dependency_proto",
-        "//intrinsic/icon/hal/lib/ecat/v1:value_parsing_proto",
-        "//intrinsic/icon/hal/lib/sdo_value/v1:sdo_value_config_proto",
+        "//intrinsic/icon/hal/lib/fieldbus/v1:value_parsing_proto",
+        "//intrinsic/icon/hal/lib/service_variable_value/v1:service_variable_config_proto",
         "@com_google_protobuf//:duration_proto",
     ],
 )
@@ -35,8 +35,8 @@ go_proto_library(
         "//intrinsic/assets/proto:field_metadata_go_proto",
         "//intrinsic/assets/proto/v1:dependency_go_proto",
         "//intrinsic/assets/proto/v1:resolved_dependency_go_proto",
-        "//intrinsic/icon/hal/lib/ecat/v1:value_parsing_go_proto",
-        "//intrinsic/icon/hal/lib/sdo_value/v1:sdo_value_config_go_proto",
+        "//intrinsic/icon/hal/lib/fieldbus/v1:value_parsing_go_proto",
+        "//intrinsic/icon/hal/lib/service_variable_value/v1:service_variable_config_go_proto",
     ],
 )
 

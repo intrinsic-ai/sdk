@@ -2,9 +2,9 @@
 
 syntax = "proto3";
 
-package intrinsic_proto.ecat.v1;
+package intrinsic_proto.fieldbus.v1;
 
-option go_package = "intrinsic/icon/hal/lib/ecat/v1/value_parsing_go_proto";
+option go_package = "intrinsic/icon/hal/lib/fieldbus/v1/value_parsing_go_proto";
 
 // An expected mask and value for a signal.
 // The comparison is: read_value & signal_mask == expected_value

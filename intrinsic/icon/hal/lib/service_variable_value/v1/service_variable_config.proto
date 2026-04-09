@@ -2,14 +2,14 @@
 
 syntax = "proto3";
 
-package intrinsic_proto.ecat.v1;
+package intrinsic_proto.fieldbus.v1;
 
 import "google/protobuf/duration.proto";
-import "intrinsic/icon/hal/lib/ecat/v1/value_parsing.proto";
+import "intrinsic/icon/hal/lib/fieldbus/v1/value_parsing.proto";
 
-option go_package = "intrinsic/icon/hal/lib/sdo_value/v1/sdo_value_config_go_proto";
+option go_package = "intrinsic/icon/hal/lib/service_variable_value/v1/service_variable_config_go_proto";
 
-enum SdoExportType {
+enum ServiceVariableExportType {
   // The default behavior is to publish the SDO values via PubSub so that they
   // can be read by the frontend.
   SDO_EXPORT_TYPE_DEFAULT = 0;
@@ -70,17 +70,17 @@ enum SdoExportType {
 // sdo_export_type: SDO_EXPORT_TYPE_PUBSUB_AND_LOG
 //
 // Next ID: 5
-message SdoConfig {
-  repeated SdoWrite sdo_writes = 1;
-  repeated SdoRead sdo_reads = 2;
+message ServiceVariableConfig {
+  repeated ServiceVariableWrite sdo_writes = 1;
+  repeated ServiceVariableRead sdo_reads = 2;
   // Minimum time between two consecutive exports.
   // Defaults to 5 seconds. Must be positive and non-zero.
   // May overload the frontend when choosing a very low value.
   optional google.protobuf.Duration sdo_export_interval = 3;
   // Defaults to SDO_EXPORT_TYPE_PUBSUB.
-  SdoExportType sdo_export_type = 4;
+  ServiceVariableExportType sdo_export_type = 4;
 }
-message SdoValueType {
+message ServiceVariableValueType {
   oneof value {
     bool bool_value = 1;
     uint32 uint8_value = 2;
@@ -96,7 +96,7 @@ message SdoValueType {
   }
 }
 
-enum SdoVariableType {
+enum ServiceVariableType {
   UNDEFINED_SDO_TYPE = 0;
   BOOL_SDO_TYPE = 11;
   UINT8_SDO_TYPE = 1;
@@ -112,7 +112,7 @@ enum SdoVariableType {
 }
 
 // Next ID: 4
-message SdoVariable {
+message ServiceVariable {
   // The index of the variable.
   uint32 index = 1;
   // The sub index of the variable.
@@ -125,20 +125,20 @@ message SdoVariable {
 }
 
 // Next ID: 3
-message SdoWrite {
+message ServiceVariableWrite {
   // The SDO variable to write to.
-  SdoVariable sdo_variable = 1;
+  ServiceVariable sdo_variable = 1;
   // The value to write.
-  SdoValueType value = 2;
+  ServiceVariableValueType value = 2;
 }
 
 // Next ID: 5
-message SdoRead {
+message ServiceVariableRead {
   // The SDO variable to read.
-  SdoVariable sdo_variable = 1;
+  ServiceVariable sdo_variable = 1;
   // The type to read. A wrong type can result in a runtime error when reading
   // the variable.
-  SdoVariableType type = 2;
+  ServiceVariableType type = 2;
   // The alias for the variable.
   // Required if any of the ANALOG_INPUT export types are enabled.
   string alias = 3;
