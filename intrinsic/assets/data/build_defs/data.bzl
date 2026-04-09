@@ -26,18 +26,27 @@ def _intrinsic_data_impl(ctx):
     transitive_inputs.append(transitive_descriptor_sets)
 
     args = ctx.actions.args().add(
-        "--manifest",
+        "--manifest_path",
         ctx.file.manifest,
     ).add(
-        "--output_bundle",
+        "--output_bundle_path",
         ctx.outputs.bundle_out,
     ).add_all(
         transitive_descriptor_sets,
-        before_each = "--file_descriptor_set",
+        before_each = "--file_descriptor_set_path",
         uniquify = True,
     ).add_all(
         ctx.files.data,
-        before_each = "--expected_referenced_file",
+        before_each = "--referenced_file_path",
+    ).add_all(
+        ctx.files.exclude_data_from_bundle,
+        before_each = "--excluded_referenced_file_path",
+    ).add_all(
+        [
+            to_rlocation_path(ctx, f)
+            for f in ctx.files.exclude_data_from_bundle
+        ],
+        before_each = "--remapped_referenced_file_path",
     )
 
     ctx.actions.run(
@@ -89,6 +98,7 @@ def _intrinsic_data_impl(ctx):
     return [
         DefaultInfo(
             executable = ctx.outputs.bundle_out,
+            runfiles = ctx.runfiles(ctx.files.exclude_data_from_bundle),
         ),
         DataAssetInfo(
             bundle_tar = ctx.outputs.bundle_out,
@@ -114,6 +124,12 @@ _intrinsic_data = rule(
             allow_empty = True,
             allow_files = True,
             doc = "Data files that are referenced via ReferencedData in the data payload.",
+            mandatory = False,
+        ),
+        "exclude_data_from_bundle": attr.label_list(
+            allow_empty = True,
+            allow_files = True,
+            doc = "Referenced data files to exclude from the output tar bundle.",
             mandatory = False,
         ),
         "deps": attr.label_list(

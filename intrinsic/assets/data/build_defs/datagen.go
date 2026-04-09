@@ -25,24 +25,22 @@ import (
 
 // CreateDataBundleOptions provides the data needed to create a Data Asset bundle.
 type CreateDataBundleOptions struct {
-	// ExcludedReferencedFilePaths is a list of paths to files that should not be included in the tar
-	// bundle.
+	// ManifestPath is the path to a DataManifest .textproto file.
+	ManifestPath string
+	// ReferencedFilePaths is a list of paths to files that are referenced in the Data Asset.
+	ReferencedFilePaths []string
+	// ExternalReferencedFilePaths is a map specifying the referenced files to exclude from the .tar
+	// bundle and the paths to which to remap those references in the payload.
 	//
-	// Relative paths must be relative to the same base as the output bundle path.
+	// Keys are paths to referenced files to exclude.
+	// Values are remapped paths for references in the output payload.
 	//
-	// These files are left as is and referenced by the Data Asset along with a digest to ensure the
-	// data are not modified.
-	ExcludedReferencedFilePaths []string
-	// ExpectedReferencedFilePaths is a list of paths to files that are expected to be referenced in
-	// the Data asset.
-	//
-	// Relative paths must be relative to the same base as the output bundle path.
-	ExpectedReferencedFilePaths []string
+	// Excluded files are left out of the .tar bundle and are kept as external references in the
+	// payload along with digests to ensure the data are not modified after bundle creation.
+	ExternalReferencedFilePaths map[string]string
 	// FileDescriptorSetPaths is the paths to binary file descriptor set protos to be used to resolve
 	// the data payload message.
 	FileDescriptorSetPaths []string
-	// Manifest is the path to a DataManifest .textproto file.
-	ManifestPath string
 	// OutputBundlePath is the output path for the tar bundle.
 	OutputBundlePath string
 }
@@ -87,20 +85,13 @@ func CreateDataBundle(opts *CreateDataBundleOptions) error {
 		},
 	}
 
+	// Resolve relative file path references (that should be relative to the manifest directory).
 	manifestDir := filepath.Dir(opts.ManifestPath)
-	outputBundleDir := filepath.Dir(opts.OutputBundlePath)
-
-	// Change relative file path references to be based on the output bundle directory.
 	if payload, err := utils.ExtractPayload(da); err != nil {
 		return fmt.Errorf("failed to extract data payload: %w", err)
 	} else if payloadOut, err := utils.WalkUniqueReferencedData(payload, func(ref *utils.ReferencedDataExt) error {
 		if ref.Type() == utils.FileReferenceType && !filepath.IsAbs(ref.Reference()) {
-			pathFromManifest := filepath.Join(manifestDir, ref.Reference())
-			pathFromOutputBundle, err := filepath.Rel(outputBundleDir, pathFromManifest)
-			if err != nil {
-				return fmt.Errorf("failed to get relative path: %w", err)
-			}
-			ref.SetReference(pathFromOutputBundle)
+			ref.SetReference(filepath.Join(manifestDir, ref.Reference()))
 		}
 		return nil
 	}); err != nil {
@@ -111,27 +102,8 @@ func CreateDataBundle(opts *CreateDataBundleOptions) error {
 		da.Data = payloadOutAny
 	}
 
-	// Get the excluded and expected referenced file paths relative to the output bundle directory.
-	excludedReferencedFilePaths := make([]string, len(opts.ExcludedReferencedFilePaths))
-	for i, path := range opts.ExcludedReferencedFilePaths {
-		if !filepath.IsAbs(path) {
-			if excludedReferencedFilePaths[i], err = filepath.Rel(outputBundleDir, path); err != nil {
-				return fmt.Errorf("failed to get relative path: %w", err)
-			}
-		}
-	}
-	expectedReferencedFilePaths := make([]string, len(opts.ExpectedReferencedFilePaths))
-	for i, path := range opts.ExpectedReferencedFilePaths {
-		if !filepath.IsAbs(path) {
-			if expectedReferencedFilePaths[i], err = filepath.Rel(outputBundleDir, path); err != nil {
-				return fmt.Errorf("failed to get relative path: %w", err)
-			}
-		}
-	}
-
 	if err := databundle.Write(da, opts.OutputBundlePath,
-		databundle.WithExcludedReferencedFilePaths(excludedReferencedFilePaths),
-		databundle.WithExpectedReferencedFilePaths(expectedReferencedFilePaths),
+		databundle.WithExternalReferencedFilePaths(opts.ExternalReferencedFilePaths),
 	); err != nil {
 		return fmt.Errorf("failed to write Data Asset bundle: %w", err)
 	}

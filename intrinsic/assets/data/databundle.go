@@ -17,6 +17,7 @@ import (
 	"intrinsic/assets/ioutils"
 	"intrinsic/util/archive/tartooling"
 
+	"github.com/bazelbuild/rules_go/go/runfiles"
 	log "github.com/golang/glog"
 	"github.com/google/safearchive/tar"
 
@@ -253,34 +254,24 @@ func ToPortableReferencedData() ReferencedDataProcessor {
 }
 
 type writeOptions struct {
-	excludedReferencedFilePaths []string
-	expectedReferencedFilePaths []string
+	externalReferencedFilePaths map[string]string
 	writer                      io.Writer
 }
 
 // WriteOption is a functional option for Write.
 type WriteOption func(*writeOptions)
 
-// WithExcludedReferencedFilePaths provides a list of paths to files that should not be included in
-// the .tar bundle.
+// WithExternalReferencedFilePaths provides a a map specifying the referenced files to exclude from
+// the .tar bundle and the paths to which to remap those references in the payload.
 //
-// Relative paths must be relative to the output bundle's directory.
+// Keys are paths to referenced files to exclude.
+// Values are remapped paths for references in the output payload.
 //
-// These files are left as is and referenced by the Data Asset along with a digest to ensure the
-// data are not modified.
-func WithExcludedReferencedFilePaths(paths []string) WriteOption {
+// Excluded files are left out of the .tar bundle and are kept as external references in the payload
+// along with digests to ensure the data are not modified after bundle creation.
+func WithExternalReferencedFilePaths(paths map[string]string) WriteOption {
 	return func(opts *writeOptions) {
-		opts.excludedReferencedFilePaths = paths
-	}
-}
-
-// WithExpectedReferencedFilePaths provides a list of paths to files that are expected to be
-// referenced in the Data Asset.
-//
-// Relative paths must be relative to the output bundle's directory.
-func WithExpectedReferencedFilePaths(paths []string) WriteOption {
-	return func(opts *writeOptions) {
-		opts.expectedReferencedFilePaths = paths
+		opts.externalReferencedFilePaths = paths
 	}
 }
 
@@ -292,8 +283,6 @@ func WithWriter(w io.Writer) WriteOption {
 }
 
 // Write writes a Data Asset .tar bundle.
-//
-// Relative path references in the Data Asset must be relative to the output bundle's directory.
 func Write(da *dapb.DataAsset, path string, options ...WriteOption) error {
 	opts := &writeOptions{}
 	for _, opt := range options {
@@ -313,7 +302,6 @@ func Write(da *dapb.DataAsset, path string, options ...WriteOption) error {
 	if path == "" {
 		return fmt.Errorf("path must not be empty")
 	}
-	baseDir := filepath.Dir(path)
 
 	writer := opts.writer
 	if writer == nil {
@@ -332,49 +320,32 @@ func Write(da *dapb.DataAsset, path string, options ...WriteOption) error {
 		return fmt.Errorf("failed to extract data payload: %w", err)
 	}
 
-	excludedReferencedFilePaths := map[string]struct{}{}
-	for _, path := range opts.excludedReferencedFilePaths {
-		excludedReferencedFilePaths[path] = struct{}{}
-	}
-
-	expectedReferencedFilePaths := map[string]struct{}{}
-	for _, path := range opts.expectedReferencedFilePaths {
-		expectedReferencedFilePaths[path] = struct{}{}
-	}
-
 	// Records all file path references that were found.
-	referencedFilePaths := map[string]struct{}{}
+	foundReferencedFilePaths := map[string]struct{}{}
 
 	// Walk through the data payload. For each ReferencedData:
 	// - Validate it;
 	// - If it is a file reference that is not excluded, copy it to the tar bundle;
-	// - If it is a file reference that is excluded, ensure it has a digest.
+	// - If it is a file reference that is excluded, remap it and ensure it has a digest.
 	tarPaths := map[string]struct{}{} // Keeps track of used tar paths.
 	payloadOut, err := utils.WalkUniqueReferencedData(payload, func(ref *utils.ReferencedDataExt) error {
-		refBase := ref.Copy().SetBaseDir(baseDir)
-
-		if err := datavalidate.ReferencedData(refBase); err != nil {
+		if err := datavalidate.ReferencedData(ref); err != nil {
 			return fmt.Errorf("invalid ReferencedData: %w", err)
 		}
 
-		// Process file references. We either add the file to the tar bundle or ensure the reference has
-		// a digest to guard against later modification to the file.
+		// Process file references. We either add the file to the tar bundle or remap it and ensure the
+		// reference has a digest to guard against later modification to the file.
 		if ref.Type() == utils.FileReferenceType {
-			referencedFilePaths[ref.Reference()] = struct{}{}
+			foundReferencedFilePaths[ref.Reference()] = struct{}{}
 
-			if _, ok := excludedReferencedFilePaths[ref.Reference()]; !ok { // Add to the tar bundle.
+			if remappedPath, ok := opts.externalReferencedFilePaths[ref.Reference()]; !ok { // Add to the tar bundle.
 				inBundlePath := toUniqueTarPath(ref.Reference(), dataFileBaseDir, tarPaths)
-				if err := tartooling.AddFile(refBase.Reference(), tw, inBundlePath); err != nil {
+				if err := tartooling.AddFile(ref.Reference(), tw, inBundlePath); err != nil {
 					return fmt.Errorf("failed to add data file to bundle: %w", err)
 				}
 				ref.SetReference(inBundlePath)
-			} else if ref.Digest() == "" { // Keep the file external; ensure its reference has a digest.
-				file, err := os.Open(refBase.Reference())
-				if err != nil {
-					return fmt.Errorf("failed to open referenced file %q: %w", refBase.Reference(), err)
-				}
-				defer file.Close()
-
+			} else { // Keep the file external.
+				ref.SetReference(remappedPath)
 			}
 		}
 
@@ -384,17 +355,10 @@ func Write(da *dapb.DataAsset, path string, options ...WriteOption) error {
 		return fmt.Errorf("failed to walk referenced data: %w", err)
 	}
 
-	// Verify that all excluded referenced file paths are actually referenced by the data payload.
-	for path := range excludedReferencedFilePaths {
-		if _, ok := referencedFilePaths[path]; !ok {
-			return fmt.Errorf("excluded referenced file path %q is not referenced by the data payload. referenced: %v", path, referencedFilePaths)
-		}
-	}
-
-	// Verify that all expected referenced file paths are actually referenced by the data payload.
-	for path := range expectedReferencedFilePaths {
-		if _, ok := referencedFilePaths[path]; !ok {
-			return fmt.Errorf("expected referenced file path %q is not referenced by the data payload. referenced: %v", path, referencedFilePaths)
+	// Verify that all external referenced file paths are actually referenced by the data payload.
+	for path := range opts.externalReferencedFilePaths {
+		if _, ok := foundReferencedFilePaths[path]; !ok {
+			return fmt.Errorf("external referenced file path %q is not referenced in the data payload. referenced: %v", path, foundReferencedFilePaths)
 		}
 	}
 
@@ -455,7 +419,15 @@ func WithReader(r io.Reader) ReadOption {
 
 // Read reads a Data Asset bundle (see Write).
 //
-// Relative file references in the Data Asset must be relative to the bundle's directory.
+// Relative file references in the Data Asset payload must be one of the following:
+//   - relative to the bundle's directory (for manually constructed bundles that refer in a
+//     straightforward way to data at a location relative to the bundle);
+//   - relative to the bazel .runfiles directory generated along with the bundle (for bundles that
+//     are generated by the intrinsic_data build rule and then later passed to a tool such as
+//     `inctl asset install`);
+//   - an rlocation path for a runfile of the binary that is calling this function (for bazel
+//     targets that take in the bundle generated by an intrinsic_data target as a dependency [e.g.,
+//     unit tests]).
 func Read(ctx context.Context, path string, options ...ReadOption) (*DataBundle, error) {
 	opts := &readOptions{}
 	for _, opt := range options {
@@ -465,7 +437,6 @@ func Read(ctx context.Context, path string, options ...ReadOption) (*DataBundle,
 	if path == "" {
 		return nil, fmt.Errorf("path must not be empty")
 	}
-	baseDir := filepath.Dir(path)
 
 	reader := opts.reader
 	if reader == nil {
@@ -504,7 +475,7 @@ func Read(ctx context.Context, path string, options ...ReadOption) (*DataBundle,
 			}
 			da.GetMetadata().AssetType = atpb.AssetType_ASSET_TYPE_DATA
 		default:
-			if strings.HasPrefix(tarPath, dataFileBaseDir) { // Found a referenced data file.
+			if strings.HasPrefix(tarPath, dataFileBaseDir) { // Found a referenced in-tar data file.
 				// Process the reference for the in-tar file now, since we won't be able to pass the reader
 				// to the processor below when we walk the payload.
 				// Note that we don't validate the referenced data in this case.
@@ -548,10 +519,13 @@ func Read(ctx context.Context, path string, options ...ReadOption) (*DataBundle,
 			return nil
 		}
 
-		refBase := ref.Copy().SetBaseDir(baseDir)
+		// Find the reference (see function comment about relative paths).
+		if err := findReference(ref, path); err != nil {
+			return fmt.Errorf("failed to find reference: %w", err)
+		}
 
 		// Validate the ReferencedData (e.g., verify its digest).
-		if err := datavalidate.ReferencedData(refBase); err != nil {
+		if err := datavalidate.ReferencedData(ref); err != nil {
 			return fmt.Errorf("invalid ReferencedData: %w", err)
 		}
 
@@ -653,4 +627,37 @@ func toUniqueTarPath(path string, tarDir string, tarPaths map[string]struct{}) s
 		}
 		suffix = fmt.Sprintf("%03d", i)
 	}
+}
+
+func findReference(ref *utils.ReferencedDataExt, bundlePath string) error {
+	if ref.Type() == utils.FileReferenceType && !filepath.IsAbs(ref.Reference()) {
+		bundleDir, bundleName := filepath.Split(bundlePath)
+		// See explanation in Read() about about why we use these candidates.
+		candidatePathFuncs := []func() (string, error){
+			func() (string, error) {
+				return filepath.Join(bundleDir, ref.Reference()), nil
+			},
+			func() (string, error) {
+				return filepath.Join(bundleDir, fmt.Sprintf("%s.runfiles", bundleName), ref.Reference()), nil
+			},
+			func() (string, error) {
+				return runfiles.Rlocation(ref.Reference())
+			},
+		}
+		var candidatePaths []string
+		for _, candidatePathFunc := range candidatePathFuncs {
+			candidatePath, err := candidatePathFunc()
+			if err != nil {
+				continue
+			}
+			if _, err := os.Stat(candidatePath); err == nil {
+				ref.SetReference(candidatePath)
+				return nil
+			}
+			candidatePaths = append(candidatePaths, candidatePath)
+		}
+		return fmt.Errorf("no valid base directory found for referenced file %q (tried: %v)", ref.Reference(), candidatePaths)
+	}
+
+	return nil
 }
