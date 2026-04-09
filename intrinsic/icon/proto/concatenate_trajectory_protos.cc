@@ -41,6 +41,10 @@ SplitTrajectoryProto(const intrinsic_proto::icon::JointTrajectoryPVA& proto,
       *split_trajectories[subel].add_time_since_start() =
           proto.time_since_start(i);
       *split_trajectories[subel].add_state() = proto.state(i);
+      if (proto.cartesian_arc_length_meters_size() > 0) {
+        split_trajectories[subel].add_cartesian_arc_length_meters(
+            proto.cartesian_arc_length_meters(i));
+      }
     }
     split_trajectories[subel].set_joint_dynamic_limits_check_mode(
         proto.joint_dynamic_limits_check_mode());
@@ -59,6 +63,8 @@ ConcatenateTrajectoryProtos(
         "Vector of trajectory protos is empty.");
 
   intrinsic_proto::icon::JointTrajectoryPVA trajectory = trajectory_segments[0];
+  const bool trajectory_has_arc_lengths =
+      trajectory.cartesian_arc_length_meters_size() > 0;
   for (int subel = 1; subel < trajectory_segments.size(); subel++) {
     if (trajectory_segments[subel].joint_dynamic_limits_check_mode() !=
         trajectory.joint_dynamic_limits_check_mode()) {
@@ -72,11 +78,22 @@ ConcatenateTrajectoryProtos(
           "All trajectory segments should have the same "
           "interpolation_type.");
     }
+    const bool segment_has_arc_lengths =
+        trajectory_segments[subel].cartesian_arc_length_meters_size() > 0;
+    if (segment_has_arc_lengths != trajectory_has_arc_lengths) {
+      return absl::InvalidArgumentError(
+          "All trajectory segments should either have "
+          "cartesian_arc_length_meters or none should.");
+    }
     for (int i = 0; i < trajectory_segments[subel].time_since_start_size();
          i++) {
       *trajectory.add_time_since_start() =
           trajectory_segments[subel].time_since_start(i);
       *trajectory.add_state() = trajectory_segments[subel].state(i);
+      if (segment_has_arc_lengths) {
+        trajectory.add_cartesian_arc_length_meters(
+            trajectory_segments[subel].cartesian_arc_length_meters(i));
+      }
     }
   }
 
