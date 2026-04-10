@@ -73,9 +73,6 @@ TEST(EntityHandle, TypeTests) {
 
   struct ComplexType {
     int a;
-
-   private:
-    int b;
   };
 
   // using InvalidType = TypedEntityId<ComplexType>;
