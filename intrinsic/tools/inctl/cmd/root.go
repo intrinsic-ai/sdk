@@ -32,12 +32,8 @@ const (
 	// ClusterCmdName is the name of the `inctl cluster` command.
 	ClusterCmdName = "cluster"
 
-
-
 	// DoctorCmdName is the name of the `inctl doctor` command.
 	DoctorCmdName = "doctor"
-
-
 
 	// ProcessCmdName is the name of the `inctl process` command.
 	ProcessCmdName = "process"
