@@ -93,6 +93,7 @@ intrinsic_service(
     manifest = ":loopback_hal_module_service_manifest",
     deps = [
         ":loopback_config_proto",
+        "//intrinsic/assets/services/proto/v1:service_state_proto",
         "//intrinsic/icon/hal:hardware_module_config_proto",
     ],
 )
