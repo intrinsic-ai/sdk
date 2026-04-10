@@ -8,7 +8,7 @@ import (
 	"os"
 
 	"intrinsic/production/intrinsic"
-	"intrinsic/tools/inbuild/cmd/httpjson/httpjson" 
+	"intrinsic/tools/inbuild/cmd/httpjson/httpjson"
 	"intrinsic/tools/inbuild/cmd/service/service"
 	"intrinsic/tools/inbuild/cmd/skill/skill"
 
@@ -36,7 +36,7 @@ func Inbuild() {
 
 // The init function adds subcommands to `inbuild`.
 func init() {
-	RootCmd.AddCommand(httpjson.HttpJsonCmd) 
+	RootCmd.AddCommand(httpjson.HttpJsonCmd)
 	RootCmd.AddCommand(service.ServiceCmd)
 	RootCmd.AddCommand(skill.SkillCmd)
 }
