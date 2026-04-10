@@ -25,6 +25,7 @@ go_library(
         "//intrinsic/logging/proto:recording_data_categories_go",
         "//intrinsic/logging/proto:recording_data_categories_go_proto",
         "//intrinsic/logging/proto:replay_service_go_proto",
+        "//intrinsic/logging/proto:replay_service_options_go_proto",
         "//intrinsic/tools/inctl/auth",
         "//intrinsic/tools/inctl/cmd:root",
         "//intrinsic/tools/inctl/util",

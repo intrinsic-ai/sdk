@@ -18,6 +18,8 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	leasegrpcpb "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_proto"
+	bagmetadatapb "intrinsic/logging/proto/bag_metadata_go_proto"
+	bagpackagerpb "intrinsic/logging/proto/bag_packager_service_go_proto"
 	replaygrpcpb "intrinsic/logging/proto/replay_service_go_proto"
 )
 
@@ -45,6 +47,18 @@ func (m *mockReplayClient) VisualizeRecording(ctx context.Context, in *replaygrp
 	return nil, status.Error(codes.Unimplemented, "VisualizeRecordingFunc not set")
 }
 
+type visualizeMockBagPackagerClient struct {
+	bagpackagerpb.BagPackagerClient
+	GetBagFunc func(ctx context.Context, in *bagpackagerpb.GetBagRequest, opts ...grpc.CallOption) (*bagpackagerpb.GetBagResponse, error)
+}
+
+func (m *visualizeMockBagPackagerClient) GetBag(ctx context.Context, in *bagpackagerpb.GetBagRequest, opts ...grpc.CallOption) (*bagpackagerpb.GetBagResponse, error) {
+	if m.GetBagFunc != nil {
+		return m.GetBagFunc(ctx, in, opts...)
+	}
+	return nil, status.Error(codes.Unimplemented, "GetBagFunc not set")
+}
+
 func TestVisualizeRecordingE(t *testing.T) {
 	const (
 		testRecordingID = "test-recording-id"
@@ -58,11 +72,12 @@ func TestVisualizeRecordingE(t *testing.T) {
 		args                   []string
 		leaseFunc              func(ctx context.Context, in *leasegrpcpb.LeaseRequest, opts ...grpc.CallOption) (*leasegrpcpb.LeaseResponse, error)
 		visualizeRecordingFunc func(ctx context.Context, in *replaygrpcpb.VisualizeRecordingRequest, opts ...grpc.CallOption) (*replaygrpcpb.VisualizeRecordingResponse, error)
+		getBagFunc             func(ctx context.Context, in *bagpackagerpb.GetBagRequest, opts ...grpc.CallOption) (*bagpackagerpb.GetBagResponse, error)
 		wantErr                string
 		wantOut                string
 	}{
 		{
-			name: "Successful visualization",
+			name: "creates visualization host and generates URL on success",
 			args: []string{"--recording_id", testRecordingID, "--duration", testDuration, "--org", testOrg},
 			leaseFunc: func(ctx context.Context, in *leasegrpcpb.LeaseRequest, opts ...grpc.CallOption) (*leasegrpcpb.LeaseResponse, error) {
 				return &leasegrpcpb.LeaseResponse{
@@ -77,20 +92,31 @@ func TestVisualizeRecordingE(t *testing.T) {
 					Url: testURL,
 				}, nil
 			},
+			getBagFunc: func(ctx context.Context, in *bagpackagerpb.GetBagRequest, opts ...grpc.CallOption) (*bagpackagerpb.GetBagResponse, error) {
+				return &bagpackagerpb.GetBagResponse{
+					Bag: &bagpackagerpb.BagRecord{
+						BagMetadata: &bagmetadatapb.BagMetadata{
+							EventSources: []*bagmetadatapb.EventSourceMetadata{
+								{EventSourceWithTypeHints: &bagmetadatapb.EventSourceWithTypeHints{EventSource: "executive.operation_state"}},
+							},
+						},
+					},
+				}, nil
+			},
 			wantOut: testURL,
 		},
 		{
-			name:    "Missing recording ID",
+			name:    "returns error when recording_id flag is missing",
 			args:    []string{"--duration", testDuration, "--org", testOrg},
 			wantErr: `required flag(s) "recording_id" not set`,
 		},
 		{
-			name:    "Missing duration",
+			name:    "returns error when duration flag is missing",
 			args:    []string{"--recording_id", testRecordingID, "--org", testOrg},
 			wantErr: `required flag(s) "duration" not set`,
 		},
 		{
-			name: "Lease error",
+			name: "returns error when lease creation fails",
 			args: []string{"--recording_id", testRecordingID, "--duration", testDuration, "--org", testOrg},
 			leaseFunc: func(ctx context.Context, in *leasegrpcpb.LeaseRequest, opts ...grpc.CallOption) (*leasegrpcpb.LeaseResponse, error) {
 				return nil, status.Error(codes.PermissionDenied, "permission denied")
@@ -98,7 +124,7 @@ func TestVisualizeRecordingE(t *testing.T) {
 			wantErr: "visualization host create request failed",
 		},
 		{
-			name: "Visualize error",
+			name: "returns error when visualization creation fails",
 			args: []string{"--recording_id", testRecordingID, "--duration", testDuration, "--org", testOrg},
 			leaseFunc: func(ctx context.Context, in *leasegrpcpb.LeaseRequest, opts ...grpc.CallOption) (*leasegrpcpb.LeaseResponse, error) {
 				return &leasegrpcpb.LeaseResponse{
@@ -111,7 +137,48 @@ func TestVisualizeRecordingE(t *testing.T) {
 			visualizeRecordingFunc: func(ctx context.Context, in *replaygrpcpb.VisualizeRecordingRequest, opts ...grpc.CallOption) (*replaygrpcpb.VisualizeRecordingResponse, error) {
 				return nil, status.Error(codes.AlreadyExists, "already exists")
 			},
+			getBagFunc: func(ctx context.Context, in *bagpackagerpb.GetBagRequest, opts ...grpc.CallOption) (*bagpackagerpb.GetBagResponse, error) {
+				return &bagpackagerpb.GetBagResponse{
+					Bag: &bagpackagerpb.BagRecord{
+						BagMetadata: &bagmetadatapb.BagMetadata{},
+					},
+				}, nil
+			},
 			wantErr: "already exists",
+		},
+		{
+			name: "constructs precise denylist that excludes debug data but retains skill data overlap",
+			args: []string{"--recording_id", testRecordingID, "--duration", testDuration, "--org", testOrg, "--exclude_debug_data"},
+			leaseFunc: func(ctx context.Context, in *leasegrpcpb.LeaseRequest, opts ...grpc.CallOption) (*leasegrpcpb.LeaseResponse, error) {
+				return &leasegrpcpb.LeaseResponse{
+					Lease: &leasegrpcpb.Lease{
+						Instance: "test-instance",
+						Expires:  timestamppb.New(time.Now().Add(1 * time.Hour)),
+					},
+				}, nil
+			},
+			visualizeRecordingFunc: func(ctx context.Context, in *replaygrpcpb.VisualizeRecordingRequest, opts ...grpc.CallOption) (*replaygrpcpb.VisualizeRecordingResponse, error) {
+				// Verify denylist includes operation_state but NOT extended_status.
+				denylist := in.GetVisualizationOptions().GetDefaultVisualizerFilters().GetEventSources().GetDenylistRegexes()
+				assert.Contains(t, denylist, "^executive\\.operation_state$")
+				assert.NotContains(t, denylist, "^executive\\.extended_status$")
+				return &replaygrpcpb.VisualizeRecordingResponse{
+					Url: testURL,
+				}, nil
+			},
+			getBagFunc: func(ctx context.Context, in *bagpackagerpb.GetBagRequest, opts ...grpc.CallOption) (*bagpackagerpb.GetBagResponse, error) {
+				return &bagpackagerpb.GetBagResponse{
+					Bag: &bagpackagerpb.BagRecord{
+						BagMetadata: &bagmetadatapb.BagMetadata{
+							EventSources: []*bagmetadatapb.EventSourceMetadata{
+								{EventSourceWithTypeHints: &bagmetadatapb.EventSourceWithTypeHints{EventSource: "executive.operation_state"}},
+								{EventSourceWithTypeHints: &bagmetadatapb.EventSourceWithTypeHints{EventSource: "executive.extended_status"}},
+							},
+						},
+					},
+				}, nil
+			},
+			wantOut: testURL,
 		},
 	}
 
@@ -131,12 +198,28 @@ func TestVisualizeRecordingE(t *testing.T) {
 			t.Cleanup(func() { flagDuration = originalFlagDuration })
 			flagDuration = ""
 
+			// Provide a default getBagFunc if the test case didn't define one
+			// to avoid panics on tests that don't care about the bag fetch logic.
+			getBagFunc := tc.getBagFunc
+			if getBagFunc == nil {
+				getBagFunc = func(ctx context.Context, in *bagpackagerpb.GetBagRequest, opts ...grpc.CallOption) (*bagpackagerpb.GetBagResponse, error) {
+					return &bagpackagerpb.GetBagResponse{
+						Bag: &bagpackagerpb.BagRecord{
+							BagMetadata: &bagmetadatapb.BagMetadata{},
+						},
+					}, nil
+				}
+			}
+
 			runner := &VisualizeCmdRunner{
 				NewLeaseClient: func(cmd *cobra.Command) (leasegrpcpb.VMPoolLeaseServiceClient, error) {
 					return &mockLeaseClient{LeaseFunc: tc.leaseFunc}, nil
 				},
 				ReplayClientFactory: func(ctx context.Context, v *viper.Viper, clusterName string) (replaygrpcpb.ReplayClient, io.Closer, error) {
 					return &mockReplayClient{VisualizeRecordingFunc: tc.visualizeRecordingFunc}, nil, nil
+				},
+				NewBagPackagerClient: func(cmd *cobra.Command) (bagpackagerpb.BagPackagerClient, error) {
+					return &visualizeMockBagPackagerClient{GetBagFunc: getBagFunc}, nil
 				},
 			}
 

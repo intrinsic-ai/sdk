@@ -5,13 +5,13 @@ package recordings
 import (
 	"context"
 	"fmt"
-	"io"
-	"time"
-
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/cobrautil"
 	"intrinsic/tools/inctl/util/color"
 	"intrinsic/tools/inctl/util/orgutil"
+	"io"
+	"regexp"
+	"time"
 
 	"github.com/pborman/uuid"
 	"github.com/spf13/cobra"
@@ -21,8 +21,11 @@ import (
 
 	leaseapigrpcpb "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_proto"
 	leasepb "intrinsic/kubernetes/vmpool/manager/api/v1/lease_api_go_proto"
+	recordingdatacategories "intrinsic/logging/proto"
+	bagpackagerpb "intrinsic/logging/proto/bag_packager_service_go_proto"
 	replaygrpcpb "intrinsic/logging/proto/replay_service_go_proto"
 	replaypb "intrinsic/logging/proto/replay_service_go_proto"
+	replayoptionspb "intrinsic/logging/proto/replay_service_options_go_proto"
 
 	tpb "google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -44,8 +47,9 @@ var (
 type VisualizeCmdRunner struct {
 	// A factory function to create a ReplayClient.
 	// This is a factory because the client can only be created after a VM is leased.
-	ReplayClientFactory func(ctx context.Context, v *viper.Viper, clusterName string) (replaygrpcpb.ReplayClient, io.Closer, error)
-	NewLeaseClient      func(cmd *cobra.Command) (leaseapigrpcpb.VMPoolLeaseServiceClient, error)
+	ReplayClientFactory  func(ctx context.Context, v *viper.Viper, clusterName string) (replaygrpcpb.ReplayClient, io.Closer, error)
+	NewLeaseClient       func(cmd *cobra.Command) (leaseapigrpcpb.VMPoolLeaseServiceClient, error)
+	NewBagPackagerClient func(cmd *cobra.Command) (bagpackagerpb.BagPackagerClient, error)
 }
 
 func (r *VisualizeCmdRunner) leaseVM(cmd *cobra.Command, v *viper.Viper, duration time.Duration, leaseClient leaseapigrpcpb.VMPoolLeaseServiceClient) (*leasepb.Lease, error) {
@@ -71,6 +75,83 @@ func (r *VisualizeCmdRunner) leaseVM(cmd *cobra.Command, v *viper.Viper, duratio
 	}
 }
 
+// buildDenylist generates a list of exact-match regexes to pass to the visualization
+// backend based on the excluded categories provided as CLI flags.
+//
+// It resolves overlapping category rules by prioritizing inclusion over exclusion.
+// E.g., if a topic matches both an excluded category (like "debug_data": "executive.*")
+// and an included category (like "skill_data": "executive.extended_status"),
+// the topic will NOT be excluded.
+func buildDenylist(cmd *cobra.Command, eventSources []string) []string {
+	cats := recordingdatacategories.GetRecordingDataCategories()
+	var excludedCategories, includedCategories []string
+	for _, cat := range cats.GetCategories() {
+		if b, err := cmd.Flags().GetBool("exclude_" + cat.GetCategoryId()); err == nil && b {
+			excludedCategories = append(excludedCategories, cat.GetCategoryId())
+		} else {
+			includedCategories = append(includedCategories, cat.GetCategoryId())
+		}
+	}
+
+	// Build compiled regexes for excluded and included categories.
+	excludedRegexes := make([]*regexp.Regexp, 0)
+	includedRegexes := make([]*regexp.Regexp, 0)
+
+	for _, cat := range cats.GetCategories() {
+		isExcluded := false
+		for _, excl := range excludedCategories {
+			if cat.GetCategoryId() == excl {
+				isExcluded = true
+				break
+			}
+		}
+
+		for _, srcRegexStr := range cat.GetEventSources() {
+			// RE2 is compatible with Go's regexp package.
+			re, err := regexp.Compile(srcRegexStr)
+			if err != nil {
+				// Ignore invalid regexes from the config just in case.
+				continue
+			}
+			if isExcluded {
+				excludedRegexes = append(excludedRegexes, re)
+			} else {
+				includedRegexes = append(includedRegexes, re)
+			}
+		}
+	}
+
+	var denylist []string
+	for _, topic := range eventSources {
+		matchesExcluded := false
+		for _, re := range excludedRegexes {
+			if re.MatchString(topic) {
+				matchesExcluded = true
+				break
+			}
+		}
+
+		if matchesExcluded {
+			matchesIncluded := false
+			for _, re := range includedRegexes {
+				if re.MatchString(topic) {
+					matchesIncluded = true
+					break
+				}
+			}
+
+			// If it matches an excluded category but NO included categories, we must exclude it.
+			if !matchesIncluded {
+				// We append the EXACT string anchored to ensure it only matches this specific topic
+				// in the backend's RE2 filter.
+				exactRegex := fmt.Sprintf("^%s$", regexp.QuoteMeta(topic))
+				denylist = append(denylist, exactRegex)
+			}
+		}
+	}
+	return denylist
+}
+
 // RunE executes the visualize command.
 func (r *VisualizeCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 	v := visualizeCreateParam
@@ -80,6 +161,34 @@ func (r *VisualizeCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 	if err != nil {
 		return fmt.Errorf("Duration '%v' entered is not valid, use something like '30m' or '1h': %v", flagDuration, err)
 	}
+
+	bagPackagerClient, err := r.NewBagPackagerClient(cmd)
+	if err != nil {
+		return fmt.Errorf("could not create bag packager client: %v", err)
+	}
+
+	bagResp, err := bagPackagerClient.GetBag(cmd.Context(), &bagpackagerpb.GetBagRequest{BagId: flagRecordingID})
+	if err != nil {
+		return fmt.Errorf("failed to get recording metadata: %v", err)
+	}
+
+	var eventSources []string
+	for _, source := range bagResp.GetBag().GetBagMetadata().GetEventSources() {
+		eventSources = append(eventSources, source.GetEventSourceWithTypeHints().GetEventSource())
+	}
+	denylist := buildDenylist(cmd, eventSources)
+
+	var vizOpts *replayoptionspb.VisualizationOptions
+	if len(denylist) > 0 {
+		vizOpts = &replayoptionspb.VisualizationOptions{
+			DefaultVisualizerFilters: &replayoptionspb.FilterOptions{
+				EventSources: &replayoptionspb.FilterOptions_RegexFilterOptions{
+					DenylistRegexes: denylist,
+				},
+			},
+		}
+	}
+
 	leaseClient, err := r.NewLeaseClient(cmd)
 	if err != nil {
 		return fmt.Errorf("could not create visualization host client: %v", err)
@@ -100,7 +209,8 @@ func (r *VisualizeCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 	}
 
 	req := &replaypb.VisualizeRecordingRequest{
-		RecordingId: flagRecordingID,
+		RecordingId:          flagRecordingID,
+		VisualizationOptions: vizOpts,
 	}
 
 	resp, err := replayClient.VisualizeRecording(cmd.Context(), req)
@@ -142,6 +252,9 @@ func NewVisualizeCmd(runner *VisualizeCmdRunner) *cobra.Command {
 				}
 				return leaseapigrpcpb.NewVMPoolLeaseServiceClient(conn), nil
 			},
+			NewBagPackagerClient: func(cmd *cobra.Command) (bagpackagerpb.BagPackagerClient, error) {
+				return newBagPackagerClient(cmd.Context(), visualizeCreateParam)
+			},
 		}
 	}
 	cmd := &cobra.Command{
@@ -153,6 +266,13 @@ func NewVisualizeCmd(runner *VisualizeCmdRunner) *cobra.Command {
 	}
 	cmd.Flags().StringVar(&flagRecordingID, "recording_id", "", "The recording id to visualize.")
 	cmd.Flags().StringVarP(&flagDuration, "duration", "d", "", "Desired duration for the visualization to be accessible.")
+
+	cats := recordingdatacategories.GetRecordingDataCategories()
+	for _, cat := range cats.GetCategories() {
+		desc := fmt.Sprintf("Exclude %s. %s", cat.GetDisplayName(), cat.GetDescription())
+		cmd.Flags().Bool("exclude_"+cat.GetCategoryId(), false, desc)
+	}
+
 	cmd.MarkFlagRequired("recording_id")
 	cmd.MarkFlagRequired("duration")
 	return orgutil.WrapCmd(cmd, visualizeCreateParam, orgutil.WithOrgExistsCheck(func() bool { return checkOrgExists }))

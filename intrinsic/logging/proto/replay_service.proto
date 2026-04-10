@@ -27,6 +27,7 @@ message VisualizeRecordingResponse {
   string url = 1;
 }
 
+// Replay provides services for visualizing recordings.
 service Replay {
 
   // Visualize a recording.
