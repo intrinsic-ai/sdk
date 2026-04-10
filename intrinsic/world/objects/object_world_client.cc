@@ -292,12 +292,17 @@ ObjectWorldClient::ListObjectNames() const {
   return objects;
 }
 
-absl::Status ObjectWorldClient::DeleteObject(const WorldObject& object,
-                                             const ForceDeleteOption& option) {
+absl::Status ObjectWorldClient::DeleteObject(
+    const WorldObject& object, const DeleteObjectWithChildrenOption& option) {
   intrinsic_proto::world::DeleteObjectRequest request;
   request.set_world_id(world_id_);
   request.mutable_object()->set_id(object.Id().value());
-  request.set_force(option == ForceDeleteOption::kForce);
+  if (option == DeleteObjectWithChildrenOption::kDeleteChildren) {
+    request.set_force(true);
+  } else if (option == DeleteObjectWithChildrenOption::kReparentChildren) {
+    request.set_reparent_child_objects(true);
+  }
+
   grpc::ClientContext ctx;
   google::protobuf::Empty response;
   INTR_RETURN_IF_ERROR(ToAbslStatus(

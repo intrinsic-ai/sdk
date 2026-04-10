@@ -1175,16 +1175,26 @@ class ObjectWorldClient:
       world_object: object_world_resources.WorldObject,
       *,
       force: bool = False,
+      reparent_child_objects: bool = False,
   ) -> None:
     """Deletes an object.
+
+    Only one of force or reparent_child_objects should be set to True.
+    Neither setting affects the frames grouped under the deleted object
+    itself. Those frames will always be deleted regardless of these settings.
 
     Arguments:
       world_object: The object to delete.
       force: Enables force deletion to remove objects including their children.
+      reparent_child_objects: Reparents child objects to the deleted object's
+        parent while retaining their relative pose wrt the parent object.
     """
     self._stub.DeleteObject(
         object_world_updates_pb2.DeleteObjectRequest(
-            world_id=self._world_id, force=force, object=world_object.reference
+            world_id=self._world_id,
+            force=force,
+            reparent_child_objects=reparent_child_objects,
+            object=world_object.reference,
         )
     )
 

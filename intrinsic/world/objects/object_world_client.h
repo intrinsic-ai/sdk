@@ -95,16 +95,30 @@ class ObjectWorldClient {
   // Returns all object names in the world.
   absl::StatusOr<std::vector<WorldObjectName>> ListObjectNames() const;
 
-  // Option on whether to delete only an object (kErrorIfChildren) or to delete
-  // the object including all children (kForce).
-  enum class ForceDeleteOption { kErrorIfChildren = 0, kForce };
+  // Option on how to handle child objects when deleting an object.
+  enum class DeleteObjectWithChildrenOption {
+    kErrorIfChildren = 0,
+    kDeleteChildren,
+    kReparentChildren
+  };
 
-  // Deletes object from world. If option is set to kForce, all children of the
-  // object are deleted as well; kErrorIfChildren will only delete the object
-  // itself or will return an error if the object has children.
+  // Deletes object from world. Set `option` to specify what should happen if
+  // the deleted object has child objects:
+  //
+  // kErrorIfChildren: Return an error if the object has any child objects.
+  //
+  // kDeleteChildren: Delete child objects along with the object.
+  //
+  // kReparentChildren: Reparent child objects to the deleted object's parent.
+  //   Relative pose of the child object with repect to the new parent object
+  //   will be retained.
+  //
+  // Frames grouped under the deleted object will be deleted regardless of the
+  // selected option.
   absl::Status DeleteObject(
       const WorldObject& object,
-      const ForceDeleteOption& option = ForceDeleteOption::kErrorIfChildren);
+      const DeleteObjectWithChildrenOption& option =
+          DeleteObjectWithChildrenOption::kErrorIfChildren);
 
   // Returns a local copy of the robot part object identified by the given
   // reference. Returns an error if the referenced object is not a robot part.
