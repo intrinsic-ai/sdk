@@ -101,6 +101,7 @@ py_grpc_library(
     deps = [":service_state_py_pb2"],
 )
 
+# intrinsic:service_inspection:strip_begin
 proto_library(
     name = "service_inspection_proto",
     srcs = ["service_inspection.proto"],
@@ -120,6 +121,8 @@ go_proto_library(
     importpath = "intrinsic/assets/services/proto/v1/service_inspection_go_proto",
     protos = [":service_inspection_proto"],
 )
+
+# intrinsic:service_inspection:strip_end
 
 proto_library(
     name = "system_service_state_proto",

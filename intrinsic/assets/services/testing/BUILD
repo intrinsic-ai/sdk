@@ -12,7 +12,7 @@ go_library(
         "//intrinsic/assets/proto:id_go_proto",
         "//intrinsic/assets/proto:vendor_go_proto",
         "//intrinsic/assets/services/proto:service_manifest_go_proto",
-        "//intrinsic/assets/services/proto/v1:service_inspection_go_proto",
+        "//intrinsic/assets/services/proto/v1:service_inspection_go_proto",  # intrinsic:service_inspection:strip
         "//intrinsic/kubernetes/workcell_spec/proto:image_go_proto",
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
         "@org_golang_google_protobuf//proto",

@@ -36,7 +36,7 @@
 #include "intrinsic/icon/hal/interfaces/hardware_module_state.fbs.h"
 #include "intrinsic/icon/hal/interfaces/hardware_module_state_utils.h"
 #include "intrinsic/icon/hal/interfaces/icon_state.fbs.h"
-#include "intrinsic/icon/hal/proto/hardware_module_inspection.pb.h"  
+#include "intrinsic/icon/hal/proto/hardware_module_inspection.pb.h"  // intrinsic:service_inspection:strip
 #include "intrinsic/icon/interprocess/remote_trigger/remote_trigger_server.h"
 #include "intrinsic/icon/interprocess/shared_memory_manager/domain_socket_server.h"
 #include "intrinsic/icon/interprocess/shared_memory_manager/domain_socket_utils.h"
@@ -46,7 +46,7 @@
 #include "intrinsic/icon/utils/async_request.h"
 #include "intrinsic/icon/utils/clock.h"
 #include "intrinsic/icon/utils/fixed_string.h"
-#include "intrinsic/icon/utils/inspection_publisher.h"  
+#include "intrinsic/icon/utils/inspection_publisher.h"  // intrinsic:service_inspection:strip
 #include "intrinsic/icon/utils/log.h"
 #include "intrinsic/icon/utils/metrics_logger.h"
 #include "intrinsic/icon/utils/realtime_metrics.h"
@@ -938,13 +938,13 @@ absl::Status HardwareModuleRuntime::Run(
   // Ensures that no methods on the uninitialized module can be called.
   INTR_RETURN_IF_ERROR(init_status);
 
-
+  // intrinsic:service_inspection:strip_begin
   if (const auto status =
           StartInspectionThread(init_context, service_inspection_topic);
       !status.ok()) {
     LOG(ERROR) << "Failed to start inspection thread: " << status;
   }
-
+  // intrinsic:service_inspection:strip_end
 
   if (const absl::Duration cycle_duration =
           init_context.GetCycleDurationForCycleTimeMetrics();
@@ -1047,10 +1047,10 @@ absl::Status HardwareModuleRuntime::Run(
 
 absl::Status HardwareModuleRuntime::Stop() {
   LOG(INFO) << "Stopping hardware module runtime.";
-
+  // intrinsic:service_inspection:strip_begin
   // Stops and joins the thread.
   inspection_thread_ = {};
-
+  // intrinsic:service_inspection:strip_end
   callback_handler_->Shutdown();
   apply_command_server_->RequestStop();
   read_status_server_->RequestStop();
@@ -1096,7 +1096,7 @@ void HardwareModuleRuntime::SetStateTestOnly(intrinsic_fbs::StateCode state,
   callback_handler_->SetStateDirectly(state, fault_reason, /*force=*/true);
 }
 
-
+// intrinsic:service_inspection:strip_begin
 absl::Status HardwareModuleRuntime::StartInspectionThread(
     const HardwareModuleInitContext& init_context,
     absl::string_view service_inspection_topic) {
@@ -1153,6 +1153,6 @@ absl::Status HardwareModuleRuntime::PublishInspectionData(
   }
   return publisher.Publish(data);
 }
-
+// intrinsic:service_inspection:strip_end
 
 }  // namespace intrinsic::icon
