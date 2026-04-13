@@ -79,7 +79,7 @@ use_repo(
 
 PYTHON_VERSION = "3.11"
 
-bazel_dep(name = "rules_python", version = "1.7.0")
+bazel_dep(name = "rules_python", version = "1.9.0")
 bazel_dep(name = "rules_uv", version = "0.89.2")
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
@@ -94,23 +94,9 @@ bazel_dep(name = "pybind11_protobuf", version = "0.0.0-20250210-f02a2b7")
 
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 pip.parse(
-    # Enable the Bazel downloader for whl fetches, see
-    # https://rules-python.readthedocs.io/en/latest/pypi-dependencies.html#bazel-downloader-and-multi-platform-wheel-hub-repository.
-    experimental_index_url = "https://pypi.org/simple",
-    experimental_index_url_overrides = {
-        "blender-headless": "https://us-central1-python.pkg.dev/intrinsic-mirror/intrinsic-public-python/simple",
-        "cadexchanger": "https://download.cadexchanger.com/python",
-        "pyrender": "https://us-central1-python.pkg.dev/intrinsic-mirror/intrinsic-public-python/simple",
-        "pytorch3d": "https://us-central1-python.pkg.dev/intrinsic-mirror/intrinsic-public-python/simple",
-        "tensorflow": "https://us-central1-python.pkg.dev/intrinsic-mirror/intrinsic-public-python/simple",
-    },
     hub_name = "ai_intrinsic_sdks_pip_deps",
     python_version = PYTHON_VERSION,
     requirements_lock = "//:requirements.txt",
-    simpleapi_skip = [
-        "collision-avoidance-metric",
-        "proto-breaking-change-detector",
-    ],
 )
 use_repo(pip, "ai_intrinsic_sdks_pip_deps")
 
