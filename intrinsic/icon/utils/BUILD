@@ -432,7 +432,6 @@ cc_library(
     ],
 )
 
-# intrinsic:service_inspection:strip_begin
 cc_library(
     name = "inspection_publisher",
     hdrs = ["inspection_publisher.h"],
@@ -466,5 +465,3 @@ cc_test(
         "@abseil-cpp//absl/time",
     ],
 )
-
-# intrinsic:service_inspection:strip_end

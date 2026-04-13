@@ -9,7 +9,7 @@ import (
 	idpb "intrinsic/assets/proto/id_go_proto"
 	vendorpb "intrinsic/assets/proto/vendor_go_proto"
 	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
-	sipb "intrinsic/assets/services/proto/v1/service_inspection_go_proto" // intrinsic:service_inspection:strip
+	sipb "intrinsic/assets/services/proto/v1/service_inspection_go_proto"
 	imagepb "intrinsic/kubernetes/workcell_spec/proto/image_go_proto"
 
 	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
@@ -22,7 +22,7 @@ type makeServiceManifestOptions struct {
 	imageFilenames               []string
 	metadata                     *smpb.ServiceMetadata
 	realSpec                     *smpb.ServicePodSpec
-	serviceInspectionConfig      *sipb.ServiceInspectionConfig // intrinsic:service_inspection:strip
+	serviceInspectionConfig      *sipb.ServiceInspectionConfig
 	serviceProtoPrefixes         []string
 	simSpec                      *smpb.ServicePodSpec
 }
@@ -66,7 +66,6 @@ func WithRealSpec(spec *smpb.ServicePodSpec) MakeServiceManifestOption {
 	}
 }
 
-// intrinsic:service_inspection:strip_begin
 // WithServiceInspectionConfig specifies the service inspection config to use in the
 // ServiceManifest.
 func WithServiceInspectionConfig(config *sipb.ServiceInspectionConfig) MakeServiceManifestOption {
@@ -74,8 +73,6 @@ func WithServiceInspectionConfig(config *sipb.ServiceInspectionConfig) MakeServi
 		opts.serviceInspectionConfig = config
 	}
 }
-
-// intrinsic:service_inspection:strip_end
 
 // WithServiceProtoPrefixes specifies the service proto prefixes to use in the ServiceManifest.
 func WithServiceProtoPrefixes(prefixes []string) MakeServiceManifestOption {
@@ -138,7 +135,7 @@ func MakeServiceManifest(t *testing.T, options ...MakeServiceManifestOption) *sm
 		Metadata: opts.metadata,
 		ServiceDef: &smpb.ServiceDef{
 			ConfigMessageFullName:   opts.configMessageFullName,
-			ServiceInspectionConfig: opts.serviceInspectionConfig, // intrinsic:service_inspection:strip
+			ServiceInspectionConfig: opts.serviceInspectionConfig,
 			ServiceProtoPrefixes:    opts.serviceProtoPrefixes,
 			RealSpec:                opts.realSpec,
 			SimSpec:                 opts.simSpec,
@@ -157,7 +154,7 @@ type makeProcessedServiceManifestOptions struct {
 	images                  map[string]*imagepb.Image
 	metadata                *smpb.ServiceMetadata
 	realSpec                *smpb.ServicePodSpec
-	serviceInspectionConfig *sipb.ServiceInspectionConfig // intrinsic:service_inspection:strip
+	serviceInspectionConfig *sipb.ServiceInspectionConfig
 	serviceProtoPrefixes    []string
 	simSpec                 *smpb.ServicePodSpec
 }
@@ -209,7 +206,6 @@ func WithProcessedRealSpec(spec *smpb.ServicePodSpec) MakeProcessedServiceManife
 	}
 }
 
-// intrinsic:service_inspection:strip_begin
 // WithProcessedServiceInspectionConfig specifies the service inspection config to use in the
 // ProcessedServiceManifest.
 func WithProcessedServiceInspectionConfig(config *sipb.ServiceInspectionConfig) MakeProcessedServiceManifestOption {
@@ -217,8 +213,6 @@ func WithProcessedServiceInspectionConfig(config *sipb.ServiceInspectionConfig) 
 		opts.serviceInspectionConfig = config
 	}
 }
-
-// intrinsic:service_inspection:strip_end
 
 // WithProcessedServiceProtoPrefixes specifies the service proto prefixes to use in the
 // ProcessedServiceManifest.
@@ -298,7 +292,7 @@ func MakeProcessedServiceManifest(t *testing.T, options ...MakeProcessedServiceM
 		Metadata: opts.metadata,
 		ServiceDef: &smpb.ServiceDef{
 			ConfigMessageFullName:   opts.configMessageFullName,
-			ServiceInspectionConfig: opts.serviceInspectionConfig, // intrinsic:service_inspection:strip
+			ServiceInspectionConfig: opts.serviceInspectionConfig,
 			ServiceProtoPrefixes:    opts.serviceProtoPrefixes,
 			RealSpec:                opts.realSpec,
 			SimSpec:                 opts.simSpec,

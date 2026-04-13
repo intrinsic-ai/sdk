@@ -212,7 +212,6 @@ func validateServiceDef(sd *smpb.ServiceDef, files *protoregistry.Files) (map[st
 				return nil, fmt.Errorf("checking against the file descriptor set failed unexpectedly: %w", err)
 			}
 		}
-		// intrinsic:service_inspection:strip_begin
 		if sd.GetServiceInspectionConfig() != nil {
 			config := sd.GetServiceInspectionConfig()
 			if config.GetDataProtoMessageFullName() == "" {
@@ -226,7 +225,6 @@ func validateServiceDef(sd *smpb.ServiceDef, files *protoregistry.Files) (map[st
 				return nil, fmt.Errorf("could not find inspection data proto message %q in provided descriptors: %w", config.GetDataProtoMessageFullName(), err)
 			}
 		}
-		// intrinsic:service_inspection:strip_end
 	}
 
 	// Validate the Service's volumes.
