@@ -1,5 +1,6 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
+
 # Enable Bzlmod for every Bazel command
 common --enable_bzlmod
 common --enable_workspace=false
