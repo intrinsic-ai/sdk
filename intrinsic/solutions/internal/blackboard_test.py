@@ -552,7 +552,6 @@ class BlackboardTest(absltest.TestCase):
     with self.assertRaises(TypeError):
       self._blackboard.update_value("test_key", [1, 2, 3])
 
-
   def test_create_snapshot(self):
     expected_snapshot = blackboard_service_pb2.BlackboardSnapshot(
         handle="new_handle", display_name="new_name"
@@ -734,8 +733,6 @@ class BlackboardSnapshotsTest(absltest.TestCase):
             handle="proto_handle"
         )
     )
-
-
 
 
 if __name__ == "__main__":

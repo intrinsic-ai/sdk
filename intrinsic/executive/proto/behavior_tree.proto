@@ -590,7 +590,6 @@ message BehaviorTree {
     CANCELED = 8;     // Tree was canceled as requested.
   }
 
-
   // A NodeIdentifier uniquely identifies a specific node in a (recursive) tree.
   // It points to the node with 'node_id' in 'tree_id'.
   message NodeIdentifier {
@@ -607,7 +606,6 @@ message BehaviorTree {
     // that in turn has a TaskNode calling a BehaviorTree, etc.
     optional NodeIdentifier node_within_task_node = 3;
   }
-
 
   // A name for the tree that may be used for display.
   string name = 1;

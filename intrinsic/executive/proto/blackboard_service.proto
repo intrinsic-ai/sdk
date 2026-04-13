@@ -9,10 +9,7 @@ import "google/protobuf/any.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
-
 import "intrinsic/util/status/extended_status.proto";
-
-
 
 option go_package = "intrinsic/executive/proto/blackboard_service_go_proto";
 
@@ -22,7 +19,6 @@ message BlackboardValue {
   string operation_name = 4;
   google.protobuf.Any value = 3;
 }
-
 
 // Reference to a blackboard snapshot that was saved with
 // CreateBlackboardSnapshot
@@ -42,7 +38,6 @@ message BlackboardSnapshot {
   // Provided by the user to indicate why the snapshot was created
   SnapshotSource snapshot_source = 5;
 }
-
 
 service ExecutiveBlackboard {
 
@@ -80,7 +75,6 @@ service ExecutiveBlackboard {
     };
   }
 
-
   // Save the given operation's blackboard as a snapshot.
   rpc CreateBlackboardSnapshot(CreateBlackboardSnapshotRequest)
       returns (CreateBlackboardSnapshotResponse) {
@@ -117,7 +111,6 @@ service ExecutiveBlackboard {
       delete: "/executive/v0/blackboardSnapshots/{handle}"
     };
   }
-
 }
 
 message GetBlackboardValueRequest {
@@ -166,8 +159,6 @@ message DeleteBlackboardValueRequest {
   string scope = 2;
   string operation_name = 3;
 }
-
-
 
 message CreateBlackboardSnapshotRequest {
   string operation_name = 1;
@@ -221,5 +212,3 @@ message ListBlackboardSnapshotsResponse {
   // Pass this token to the subsequent list request to obtain the next page.
   string next_page_token = 2;
 }
-
-

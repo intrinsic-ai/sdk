@@ -67,7 +67,6 @@ _PYTHON_TYPE_TO_WRAPPERS = {
 }
 
 
-
 @utils.protoenum(
     proto_enum_type=blackboard_service_pb2.BlackboardSnapshot.SnapshotSource,
     unspecified_proto_enum_map_to_none=blackboard_service_pb2.BlackboardSnapshot.SNAPSHOT_SOURCE_UNSPECIFIED,
@@ -84,9 +83,6 @@ class SnapshotSource(enum.Enum):
 )
 class IntegrationMode(enum.Enum):
   """Represents how a snapshot is integrated into a blackboard."""
-
-
-
 
 
 class Blackboard:
@@ -327,7 +323,6 @@ class Blackboard:
     )
     self._stub.UpdateBlackboardValue(request)
 
-
   @error_handling.retry_on_grpc_unavailable
   @error_handling.log_extended_status(
       ipython.display_extended_status_proto_if_ipython
@@ -450,6 +445,3 @@ class BlackboardSnapshots:
         handle=handle
     )
     self._stub.DeleteBlackboardSnapshot(request)
-
-
-

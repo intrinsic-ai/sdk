@@ -443,12 +443,10 @@ class Executive:
     self._update_operation()
     return self._operation is not None
 
-
   @property
   def blackboard_snapshots(self) -> blackboard_internal.BlackboardSnapshots:
     """Returns the blackboard snapshots wrapper."""
     return blackboard_internal.BlackboardSnapshots(self._blackboard_stub)
-
 
 
   @error_handling.retry_on_grpc_unavailable
@@ -678,15 +676,11 @@ class Executive:
       silence_outputs: bool = False,
       step_wise: bool = False,
       start_node: Optional[bt.NodeInTreeType] = None,
-
       recover_from_nodes: list[bt.NodeInTreeType] | None = None,
-
       simulation_mode: Optional["Executive.SimulationMode"] = None,
       embed_skill_traces: bool = False,
       start_from_world_state: worlds.EditWorldId | None = None,
-
       keep_blackboard: bool = False,
-
   ):
     """Requests execution of an action or plan and returns immediately.
 
@@ -714,13 +708,11 @@ class Executive:
         incorporate all information from skill traces, otherwise execution
         traces contain links to individual skill traces.
 
-
       keep_blackboard: If True, keep the blackboard values from the current
         active operation (if any) and load them into the new operation.
       recover_from_nodes: List of nodes to recover from. Execution will forward
         to these nodes and run from there. Only one of recover_from_nodes or
         start_node can be set.
-
       start_from_world_state: Optional parameter to specify what starting world
         state to run the operation from. If an EditWorldId is set, the execute
         belief world and simulation world will be reset to the specified world
@@ -746,15 +738,11 @@ class Executive:
         silence_outputs=silence_outputs,
         step_wise=step_wise,
         start_node=start_node,
-
         recover_from_nodes=recover_from_nodes,
-
         simulation_mode=simulation_mode,
         embed_skill_traces=embed_skill_traces,
         start_from_world_state=start_from_world_state,
-
         keep_blackboard=keep_blackboard,
-
     )
 
   # pylint doesn't understand the copybara transforms for the params
@@ -767,15 +755,11 @@ class Executive:
       silence_outputs: bool = False,
       step_wise: bool = False,
       start_node: Optional[bt.NodeInTreeType] = None,
-
       recover_from_nodes: list[bt.NodeInTreeType] | None = None,
-
       simulation_mode: Optional["Executive.SimulationMode"] = None,
       embed_skill_traces: bool = False,
       start_from_world_state: worlds.EditWorldId | None = None,
-
       keep_blackboard: bool = False,
-
   ):
     """Executes an action or plan and blocks until completion.
 
@@ -806,13 +790,11 @@ class Executive:
         incorporate all information from skill traces, otherwise execution
         traces contain links to individual skill traces.
 
-
       keep_blackboard: If True, keep the blackboard values from the current
         active operation (if any) and load them into the new operation.
       recover_from_nodes: List of nodes to recover from. Execution will forward
         to these nodes and run from there. Only one of recover_from_nodes or
         start_node can be set.
-
       start_from_world_state: Optional parameter to specify what starting world
         state to run the operation from. If an EditWorldId is set, the execute
         belief world and simulation world will be reset to the specified world
@@ -844,15 +826,11 @@ class Executive:
         resources=resources,
         step_wise=step_wise,
         start_node=start_node,
-
         recover_from_nodes=recover_from_nodes,
-
         simulation_mode=simulation_mode,
         embed_skill_traces=embed_skill_traces,
         start_from_world_state=start_from_world_state,
-
         keep_blackboard=keep_blackboard,
-
     )
     if not silence_outputs:
       ipython.display_html_or_print_msg(
@@ -871,13 +849,9 @@ class Executive:
       simulation_mode: "Executive.SimulationMode",
       embed_skill_traces: bool,
       start_node: Optional[bt.NodeInTreeType],
-
       recover_from_nodes: list[bt.NodeInTreeType] | None,
-
       start_from_world_state: worlds.EditWorldId | None,
-
       keep_blackboard: bool = False,
-
   ) -> None:
     """Implementation of run and run_async.
 
@@ -902,13 +876,11 @@ class Executive:
       start_node: Run the specified node as if it were the root node of a tree
         instead of the complete tree.
 
-
       keep_blackboard: If True, keep the blackboard values from the current
         active operation (if any) and load them into the new operation.
       recover_from_nodes: List of nodes to recover from. Execution will forward
         to these nodes and run from there. Only one of recover_from_nodes or
         start_node can be set.
-
       start_from_world_state: Optional parameter to specify what starting world
         state to run the operation from. If an EditWorldId is set, the execute
         belief world and simulation world will be reset to the specified world
@@ -930,12 +902,10 @@ class Executive:
       OperationNotFoundError: if no operation is currently active.
     """
 
-
     if recover_from_nodes and start_node is not None:
       raise solutions_errors.InvalidArgumentError(
           "start_node and recover_from_nodes cannot be both set together"
       )
-
 
     if plan_or_action is None:
       if self._operation is None:
@@ -949,7 +919,6 @@ class Executive:
             "When providing a start_node to run() without a behavior tree"
             " start_node must be a NodeIdentifier"
         )
-
       if recover_from_nodes and not all(
           isinstance(rn, bt.NodeIdentifier) for rn in recover_from_nodes
       ):
@@ -958,13 +927,10 @@ class Executive:
             " tree all entries must be a NodeIdentifier"
         )
 
-
       self._start_with_retry(
           step_wise=step_wise,
           start_node=start_node,
-
           recover_from_nodes=recover_from_nodes,
-
           embed_skill_traces=embed_skill_traces,
           parameters=None,
           resources=None,
@@ -974,9 +940,7 @@ class Executive:
 
     self.load(
         plan_or_action,
-
         keep_blackboard=keep_blackboard,
-
     )
 
     def get_node_identifier_for_node_in_tree(
@@ -998,13 +962,11 @@ class Executive:
     if start_node is not None:
       start_node_id = get_node_identifier_for_node_in_tree(start_node)
 
-
     recover_from_node_ids = (
         [get_node_identifier_for_node_in_tree(rn) for rn in recover_from_nodes]
         if recover_from_nodes
         else []
     )
-
 
     self.start(
         blocking,
@@ -1012,9 +974,7 @@ class Executive:
         resources=resources,
         step_wise=step_wise,
         start_node=start_node_id,
-
         recover_from_nodes=recover_from_node_ids,
-
         simulation_mode=simulation_mode,
         embed_skill_traces=embed_skill_traces,
         silence_outputs=silence_outputs,
@@ -1026,9 +986,7 @@ class Executive:
   def load(
       self,
       behavior_tree_or_action: Optional[BehaviorTreeOrActionType],
-
       keep_blackboard: bool = False,
-
   ) -> None:
     """Loads an action or behavior tree into the executive.
 
@@ -1039,10 +997,8 @@ class Executive:
       behavior_tree_or_action: A behavior tree, a list of actions (can be nested
         one level), or a single action, or an asset id of an installed process
         asset to run.
-
       keep_blackboard: If True, keep the blackboard values from the current
         active operation (if any) and load them into the new operation.
-
 
     Raises:
       solutions_errors.UnavailableError: On executive service not reachable.
@@ -1078,7 +1034,6 @@ class Executive:
       request.process_id.CopyFrom(id_proto)
 
     snapshot = None
-
     if keep_blackboard:
       if self.has_operation:
         snapshot = self.operation.blackboard.create_snapshot(
@@ -1092,7 +1047,6 @@ class Executive:
             RuntimeWarning,
         )
 
-
     try:
       try:
         self._delete_with_retry()
@@ -1100,7 +1054,6 @@ class Executive:
         pass
 
       self._create_with_retry(request)
-
 
       if snapshot is not None:
         try:
@@ -1117,9 +1070,7 @@ class Executive:
           # user and thus they are not expected to manage this
           self.blackboard_snapshots.delete(snapshot)
           snapshot = None
-
     except:
-
       # If anything failed during setup, we should ensure the snapshot is
       # cleaned up if it was created.
       if snapshot is not None:
@@ -1127,7 +1078,6 @@ class Executive:
           self.blackboard_snapshots.delete(snapshot)
         except:  # pylint: disable=bare-except
           pass
-
       raise
 
   def unload(self) -> None:
@@ -1146,9 +1096,7 @@ class Executive:
       resources: Mapping[str, str | provided.ResourceHandle] | None = None,
       step_wise: bool = False,
       start_node: Optional[bt.NodeIdentifier] = None,
-
       recover_from_nodes: list[bt.NodeIdentifier] | None = None,
-
       simulation_mode: Optional["Executive.SimulationMode"] = None,
       embed_skill_traces: bool = False,
       start_from_world_state: worlds.EditWorldId | None = None,
@@ -1172,10 +1120,8 @@ class Executive:
         incorporate all information from skill traces, otherwise execution
         traces contain links to individual skill traces.
 
-
       recover_from_nodes: List of nodes to recover from. Execution will forward
         to these nodes and run from there.
-
       start_from_world_state: Optional parameter to specify what starting world
         state to start the operation from. If an EditWorldId is set, the execute
         belief world and simulation world will be reset to the specified world
@@ -1219,9 +1165,7 @@ class Executive:
         resources=resource_map,
         step_wise=step_wise,
         start_node=start_node,
-
         recover_from_nodes=recover_from_nodes,
-
         simulation_mode=simulation_mode,
         embed_skill_traces=embed_skill_traces,
         start_from_world_state=start_from_world_state,
@@ -1483,9 +1427,7 @@ class Executive:
       resources: Mapping[str, str] | None,
       step_wise: bool = False,
       start_node: Optional[bt.NodeIdentifier] = None,
-
       recover_from_nodes: list[bt.NodeIdentifier] | None = None,
-
       simulation_mode: Optional["Executive.SimulationMode"] = None,
       embed_skill_traces: bool = False,
       start_from_world_state: worlds.EditWorldId | None = None,
@@ -1518,11 +1460,9 @@ class Executive:
     if start_node is not None:
       request.start_tree_id = start_node.tree_id
       request.start_node_id = start_node.node_id
-
     if recover_from_nodes is not None:
       for rn in recover_from_nodes:
         request.recovery_nodes.append(rn.proto)
-
     if parameters is not None:
       request.parameters.CopyFrom(parameters)
     if resources is not None:

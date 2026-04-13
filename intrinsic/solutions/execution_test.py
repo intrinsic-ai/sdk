@@ -679,7 +679,6 @@ class ExecutiveTest(parameterized.TestCase):
         start_request
     )
 
-
   def test_run_recovery_nodes_works(self):
     """Tests if executive.run(start_node) executes the start node."""
     self._setup_create_operation()
@@ -971,7 +970,6 @@ class ExecutiveTest(parameterized.TestCase):
     self._executive_service_stub.StartOperation.assert_called_once_with(
         start_request
     )
-
 
 
   @parameterized.named_parameters(
