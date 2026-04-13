@@ -181,6 +181,7 @@ py_proto_library(
     visibility = [
         "//intrinsic:internal_api_users",
         "//intrinsic/apps:__subpackages__",
+        "//third_party/nvidia:__pkg__",
     ],
     deps = [":grasp_annotations_proto"],
 )
