@@ -200,6 +200,24 @@ message PerceptionVisualizerOptions {
   optional ImageCompressionOptions image_compression = 4;
 }
 
+// Options for the Plots visualizer, which visualizes:
+//   - Robot status data plots
+message PlotsVisualizerOptions {
+  // If true, enables the visualizer.
+  bool enabled = 1;
+
+  // Options for filtering which recorded logs (messages) are processed.
+  // This is handled at the loader level.
+  //
+  // Example: Only process logs from a specific robot event source.
+  //   filters {
+  //     event_sources {
+  //       allowlist_regexes: ["icon/my_robot/.*"]
+  //     }
+  //   }
+  optional FilterOptions filters = 2;
+}
+
 message VisualizationOptions {
   message VisualizerOptions {
     // Options for the RawMessage visualizer.
@@ -207,6 +225,9 @@ message VisualizationOptions {
 
     // Options for the TextLogs visualizer.
     optional TextLogsVisualizerOptions text_logs = 2;
+
+    // Options for the Plots visualizer.
+    optional PlotsVisualizerOptions plots = 3;
 
     // Options for the Scene visualizer.
     optional SceneVisualizerOptions scene = 4;
