@@ -8,7 +8,29 @@ import "google/longrunning/operations.proto";
 
 option go_package = "intrinsic/executive/proto/log_items_go_proto";
 
+// Contextual information for a behavior tree in a `LoggedOperation`.
+message BehaviorTreeContext {
+  // Unique identifier for a single node in a behavior tree. This can be in the
+  // root level behavior tree or in a `called_tree_state` within a task node.
+  // Unlike `BehaviorTree.NodeIdentifier`, the tree and node ID can be looked up
+  // without consideration for whether they are in `called_tree_state` or not.
+  message NodeIdentifier {
+    string tree_id = 1;
+    uint32 node_id = 2;
+  }
+
+  // The identifier for the node whose action is being logged. This identifier
+  // corresponds to the node associated with the `executive_plan_action_id` in
+  // the context or the wrapping `LogItem`. Will be empty when this log does not
+  // originate from a plan action.
+  NodeIdentifier action_node_identifier = 1;
+}
+
 // Message to log an operation snapshot.
 message LoggedOperation {
   google.longrunning.Operation operation = 1;
+
+  // Contextual information for the behavior tree inside the `RunMetadata` of
+  // the `operation`.
+  BehaviorTreeContext behavior_tree_context = 2;
 }
