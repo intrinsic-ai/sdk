@@ -79,8 +79,8 @@ func runLogsCmd(cmd *cobra.Command, args []string) error {
 	verboseDebug = cmdFlags.GetBool(keyHiddenDebug)
 	verboseOut = cmd.OutOrStderr()
 
-	skillIDs := cmdFlags.GetStringSlice(keyTypeSkill)
-	serviceNames := cmdFlags.GetStringSlice(keyTypeService)
+	skillIDs, _ := cmd.Flags().GetStringSlice(keyTypeSkill)
+	serviceNames, _ := cmd.Flags().GetStringSlice(keyTypeService)
 	var assetNames []string
 	if len(skillIDs) == 0 && len(serviceNames) == 0 && len(assetNames) == 0 {
 		cmd.PrintErrln("Error: at least one target must be specified.")
@@ -188,25 +188,25 @@ func init() {
 
 	cmdFlags.AddFlagsProjectOrg()
 
-	cmdFlags.OptionalEnvString(cmdutils.KeySolution, "", "Solution ID from which logs will be read.")
-	cmdFlags.OptionalEnvString(cmdutils.KeyContext, "", fmt.Sprintf("The Kubernetes cluster to use or localhost if used with --%s", cmdutils.KeyAddress))
-	cmdFlags.MarkHidden(cmdutils.KeyContext)
-	cmdFlags.AddFlagAddress()
-	cmdFlags.OptionalString(cmdutils.KeyTimeout, "300s", "Maximum time to wait to receive logs.")
-	cmdFlags.OptionalBool(keyPrefixType, false, "Prefix each log line with the asset type, e.g., '[Skill]' or '[Service]'.")
-	cmdFlags.OptionalBool(keyPrefixID, false, "Prefix each log line with the asset ID, e.g., '[my-skill-id]'. Enabled for multiple targets are provided.")
-	cmdFlags.OptionalBool(keyFollow, false, "Whether to follow the solution logs.")
-	cmdFlags.OptionalBool(keyTimestamps, false, "Whether to include timestamps on each log line.")
-	cmdFlags.OptionalInt(keyTailLines, 10, "The number of recent log lines to display. An input number less than 0 shows all log lines.")
-	cmdFlags.OptionalString(keySinceSec, "", "Show logs starting since value. Value is either relative (e.g 10m) or \ndate time in RFC3339 format (e.g: 2006-01-02T15:04:05Z07:00)")
+	showLogs.Flags().String(cmdutils.KeySolution, "", "Solution ID from which logs will be read.")
+	showLogs.Flags().String(cmdutils.KeyContext, "", fmt.Sprintf("The Kubernetes cluster to use or localhost if used with --%s", cmdutils.KeyAddress))
+	showLogs.Flags().String(cmdutils.KeyTimeout, "300s", "Maximum time to wait to receive logs.")
+	showLogs.Flags().Bool(keyPrefixType, false, "Prefix each log line with the asset type, e.g., '[Skill]' or '[Service]'.")
+	showLogs.Flags().Bool(keyPrefixID, false, "Prefix each log line with the asset ID, e.g., '[my-skill-id]'. Enabled for multiple targets are provided.")
+	showLogs.Flags().Bool(keyFollow, false, "Whether to follow the solution logs.")
+	showLogs.Flags().Bool(keyTimestamps, false, "Whether to include timestamps on each log line.")
+	showLogs.Flags().Int(keyTailLines, 10, "(optional) The number of recent log lines to display. An input number less than 0 shows all log lines.")
+	showLogs.Flags().String(keySinceSec, "", "Show logs starting since value. Value is either relative (e.g 10m) or \ndate time in RFC3339 format (e.g: 2006-01-02T15:04:05Z07:00)")
+	showLogs.Flags().StringSlice(keyTypeSkill, []string{}, "(optional) Indicates logs source is a skill (or a list of skills)")
+	showLogs.Flags().StringSlice(keyTypeService, []string{}, "(optional) Indicates logs source is a service (or a list of services)")
+	showLogs.Flags().StringSlice(keyTypeAsset, []string{}, "(optional) Indicates logs source is a generic asset (or a list of assets)")
+	showLogs.Flags().Bool(keyHiddenDebug, false, "Prints extensive debug messages")
+	showLogs.Flags().String(keyOnpremAddress, "", "The onprem address (host:port) of the workcell. Used to circumvent the need of routing through the cloud, if the workcell is running in the same network as the inctl")
 
-	cmdFlags.OptionalStringSlice(keyTypeSkill, []string{}, "Indicates logs source is a skill (or a list of skills)")
-	cmdFlags.OptionalStringSlice(keyTypeService, []string{}, "Indicates logs source is a service (or a list of services)")
-
-	cmdFlags.OptionalBool(keyHiddenDebug, false, "Prints extensive debug messages")
-
-	// For using the onprem address to fetch logs
-	cmdFlags.OptionalString(keyOnpremAddress, "", "The onprem address (host:port) of the workcell. Used to circumvent the need of routing through the cloud, if the workcell is running in the same network as the inctl")
+	// Bind all flags to viper
+	if err := localViper.BindPFlags(showLogs.Flags()); err != nil {
+		showLogs.PrintErrln("Internal error: ", err)
+	}
 
 	cmdFlags.MarkHidden(cmdutils.KeyContext, cmdutils.KeyProject, keyTypeAsset)
 }

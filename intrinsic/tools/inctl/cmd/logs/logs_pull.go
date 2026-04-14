@@ -308,6 +308,7 @@ func init() {
 	pullCmdFlags.SetCommand(fetchCmd)
 
 	pullCmdFlags.StringSlice(keyTypeResource, []string{}, "The names of the resources to include.")
+	pullCmdFlags.StringSlice(keyTypeSkill, []string{}, "The skill IDs to include.")
 	pullCmdFlags.StringSlice(keyInstance, []string{}, "The instances of the resources to include (format: resource/instance).")
 	pullCmdFlags.String(keyWorkcell, "", "The name of the workcell.")
 	pullCmdFlags.String(keyStartTime, "", "The start time of the logs to include (RFC3339 format).")
