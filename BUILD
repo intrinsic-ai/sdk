@@ -19,7 +19,10 @@ exports_files(
         "requirements.in",
         "requirements.txt",
     ],
-    visibility = ["//intrinsic/production/external:__pkg__"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic/production/external:__pkg__",
+    ],
 )
 
 pip_compile(

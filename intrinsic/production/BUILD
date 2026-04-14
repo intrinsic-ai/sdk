@@ -6,5 +6,8 @@ go_library(
     name = "intrinsic",
     srcs = ["init.go"],
     importpath = "intrinsic/production/intrinsic",
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
 )

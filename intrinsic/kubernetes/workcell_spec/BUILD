@@ -8,7 +8,10 @@ exports_files(
     srcs = [
         "templates/workcell-cluster-service.yaml",
     ],
-    visibility = ["//intrinsic/kubernetes/intrinsic_base:__pkg__"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic/kubernetes/intrinsic_base:__pkg__",
+    ],
 )
 
 go_library(

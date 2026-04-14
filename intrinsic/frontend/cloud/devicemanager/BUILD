@@ -11,6 +11,7 @@ go_library(
     srcs = ["version.go"],
     importpath = "intrinsic/frontend/cloud/devicemanager/version",
     visibility = [
+        "//intrinsic:insrc_sot_users",
         "//intrinsic/kubernetes/vmpool/service/internal/clients:__subpackages__",
         "//intrinsic/tools/inctl/cmd/cluster:__subpackages__",
     ],

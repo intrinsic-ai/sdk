@@ -7,7 +7,10 @@ go_library(
     testonly = True,
     srcs = ["utils.go"],
     importpath = "intrinsic/assets/hardware_devices/testing/utils",
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
     deps = [
         "//intrinsic/assets:idutils",
         "//intrinsic/assets/catalog/proto/v1:asset_catalog_go_proto",

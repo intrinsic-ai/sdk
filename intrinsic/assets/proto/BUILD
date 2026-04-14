@@ -42,19 +42,28 @@ py_proto_library(
 proto_library(
     name = "asset_tag_proto",
     srcs = ["asset_tag.proto"],
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
     deps = [":asset_type_proto"],
 )
 
 cc_proto_library(
     name = "asset_tag_cc_proto",
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
     deps = [":asset_tag_proto"],
 )
 
 py_proto_library(
     name = "asset_tag_py_pb2",
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
     deps = [":asset_tag_proto"],
 )
 
@@ -62,7 +71,10 @@ go_proto_library(
     name = "asset_tag_go_proto",
     importpath = "intrinsic/assets/proto/asset_tag_go_proto",
     protos = [":asset_tag_proto"],
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
     deps = [
         ":asset_type_go_proto",
     ],
@@ -81,18 +93,25 @@ filegroup(
 proto_library(
     name = "asset_type_proto",
     srcs = ["asset_type.proto"],
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
 )
 
 cc_proto_library(
     name = "asset_type_cc_proto",
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
     deps = [":asset_type_proto"],
 )
 
 py_proto_library(
     name = "asset_type_py_pb2",
     visibility = [
+        "//intrinsic:insrc_sot_users",
         "//intrinsic:intrinsic_internal",
         "//intrinsic:public_api_users",
     ],
@@ -103,24 +122,36 @@ go_proto_library(
     name = "asset_type_go_proto",
     importpath = "intrinsic/assets/proto/asset_type_go_proto",
     protos = [":asset_type_proto"],
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
 )
 
 proto_library(
     name = "documentation_proto",
     srcs = ["documentation.proto"],
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
 )
 
 cc_proto_library(
     name = "documentation_cc_proto",
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
     deps = [":documentation_proto"],
 )
 
 py_proto_library(
     name = "documentation_py_pb2",
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
     deps = [":documentation_proto"],
 )
 
@@ -128,24 +159,36 @@ go_proto_library(
     name = "documentation_go_proto",
     importpath = "intrinsic/assets/proto/documentation_go_proto",
     protos = [":documentation_proto"],
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
 )
 
 proto_library(
     name = "status_spec_proto",
     srcs = ["status_spec.proto"],
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
 )
 
 cc_proto_library(
     name = "status_spec_cc_proto",
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
     deps = [":status_spec_proto"],
 )
 
 py_proto_library(
     name = "status_spec_py_pb2",
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
     deps = [":status_spec_proto"],
 )
 
@@ -153,18 +196,25 @@ go_proto_library(
     name = "status_spec_go_proto",
     importpath = "intrinsic/assets/proto/status_spec_go_proto",
     protos = [":status_spec_proto"],
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
 )
 
 proto_library(
     name = "id_proto",
     srcs = ["id.proto"],
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
 )
 
 py_proto_library(
     name = "id_py_pb2",
     visibility = [
+        "//intrinsic:insrc_sot_users",
         "//intrinsic:intrinsic_internal",
         "//intrinsic:public_api_users",
     ],
@@ -173,7 +223,10 @@ py_proto_library(
 
 cc_proto_library(
     name = "id_cc_proto",
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
     deps = [":id_proto"],
 )
 
@@ -181,13 +234,19 @@ go_proto_library(
     name = "id_go_proto",
     importpath = "intrinsic/assets/proto/id_go_proto",
     protos = [":id_proto"],
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
 )
 
 proto_library(
     name = "metadata_proto",
     srcs = ["metadata.proto"],
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
     deps = [
         ":asset_tag_proto",
         ":asset_type_proto",
@@ -211,7 +270,10 @@ cc_proto_library(
 
 py_proto_library(
     name = "metadata_py_pb2",
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
     deps = [":metadata_proto"],
 )
 
@@ -219,7 +281,10 @@ go_proto_library(
     name = "metadata_go_proto",
     importpath = "intrinsic/assets/proto/metadata_go_proto",
     protos = [":metadata_proto"],
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
     deps = [
         ":asset_tag_go_proto",
         ":asset_type_go_proto",
@@ -234,25 +299,37 @@ go_proto_library(
 proto_library(
     name = "release_tag_proto",
     srcs = ["release_tag.proto"],
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
 )
 
 go_proto_library(
     name = "release_tag_go_proto",
     importpath = "intrinsic/assets/proto/release_tag_go_proto",
     protos = [":release_tag_proto"],
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
 )
 
 proto_library(
     name = "vendor_proto",
     srcs = ["vendor.proto"],
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
 )
 
 py_proto_library(
     name = "vendor_py_pb2",
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
     deps = [":vendor_proto"],
 )
 
@@ -266,13 +343,19 @@ go_proto_library(
     name = "vendor_go_proto",
     importpath = "intrinsic/assets/proto/vendor_go_proto",
     protos = [":vendor_proto"],
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
 )
 
 proto_library(
     name = "view_proto",
     srcs = ["view.proto"],
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
 )
 
 cc_proto_library(
@@ -287,12 +370,16 @@ go_proto_library(
     name = "view_go_proto",
     importpath = "intrinsic/assets/proto/view_go_proto",
     protos = [":view_proto"],
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
 )
 
 py_proto_library(
     name = "view_py_pb2",
     visibility = [
+        "//intrinsic:insrc_sot_users",
         "//intrinsic:intrinsic_internal",
         "//intrinsic:public_api_users",
     ],
@@ -321,6 +408,7 @@ proto_library(
 py_proto_library(
     name = "asset_deployment_py_pb2",
     visibility = [
+        "//intrinsic:insrc_sot_users",
         "//intrinsic:intrinsic_internal",
         "//intrinsic:public_api_users",
     ],
@@ -332,6 +420,7 @@ py_grpc_library(
     srcs = [":asset_deployment_proto"],
     grpc_library = requirement("grpcio"),
     visibility = [
+        "//intrinsic:insrc_sot_users",
         "//intrinsic:intrinsic_internal",
         "//intrinsic:public_api_users",
     ],
@@ -346,7 +435,10 @@ go_proto_library(
     ],
     importpath = "intrinsic/assets/proto/asset_deployment_go_proto",
     protos = [":asset_deployment_proto"],
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
     deps = [
         ":id_go_proto",
         "//intrinsic/math/proto:pose_go_proto",
@@ -393,7 +485,10 @@ go_proto_library(
     ],
     importpath = "intrinsic/assets/proto/installed_assets_go_proto",
     protos = [":installed_assets_proto"],
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
     deps = [
         ":asset_tag_go_proto",
         ":asset_type_go_proto",

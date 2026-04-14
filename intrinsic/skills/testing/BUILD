@@ -315,7 +315,10 @@ go_library(
         "//intrinsic/skills/build_defs/tests:no_op_skill_cc_manifest",
     ],
     importpath = "intrinsic/skills/testing/utils",
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:insrc_sot_users",
+        "//intrinsic:intrinsic_internal",
+    ],
     deps = [
         "//intrinsic/assets/proto:documentation_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
