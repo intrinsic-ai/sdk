@@ -67,6 +67,8 @@ CreateMotionPlanningRequest(
   request.mutable_motion_planner_config()
       ->set_shortcutting_combine_collinear_segments(
           options.shortcutting_combine_collinear_segments);
+  *request.mutable_motion_planner_config()->mutable_collision_checker_config() =
+      options.collision_checker_config;
   request.set_caller_id(caller_id);
   *request.mutable_context() = context;
 

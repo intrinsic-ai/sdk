@@ -413,12 +413,6 @@ py_proto_library(
     deps = [":user_data_proto"],
 )
 
-py_proto_library(
-    name = "entity_search_py_pb2",
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":entity_search_proto"],
-)
-
 go_proto_library(
     name = "user_data_go_proto",
     importpath = "intrinsic/world/proto/user_data_go_proto",
@@ -428,12 +422,6 @@ go_proto_library(
         "//intrinsic/math/proto:matrix_go_proto",
         "//intrinsic/math/proto:pose_go_proto",
     ],
-)
-
-go_proto_library(
-    name = "entity_search_go_proto",
-    protos = [":entity_search_proto"],
-    visibility = ["//intrinsic:public_api_users"],
 )
 
 cc_proto_library(
@@ -457,7 +445,44 @@ proto_library(
 )
 
 proto_library(
+    name = "collision_checker_config_proto",
+    srcs = ["collision_checker_config.proto"],
+    visibility = ["//intrinsic:public_api_users"],
+)
+
+proto_library(
     name = "entity_search_proto",
     srcs = ["entity_search.proto"],
     visibility = ["//intrinsic:public_api_users"],
+)
+
+cc_proto_library(
+    name = "collision_checker_config_cc_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":collision_checker_config_proto"],
+)
+
+go_proto_library(
+    name = "collision_checker_config_go_proto",
+    importpath = "intrinsic/world/proto/collision_checker_config_go_proto",
+    protos = [":collision_checker_config_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+)
+
+go_proto_library(
+    name = "entity_search_go_proto",
+    protos = [":entity_search_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+)
+
+py_proto_library(
+    name = "collision_checker_config_py_pb2",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":collision_checker_config_proto"],
+)
+
+py_proto_library(
+    name = "entity_search_py_pb2",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":entity_search_proto"],
 )

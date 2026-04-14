@@ -5,6 +5,7 @@ syntax = "proto3";
 package intrinsic_proto.motion_planning.v1;
 
 import "google/protobuf/duration.proto";
+import "intrinsic/world/proto/collision_checker_config.proto";
 
 option go_package = "intrinsic/motion_planning/proto/v1/motion_planner_config_go_proto";
 
@@ -26,6 +27,11 @@ message MotionPlannerConfiguration {
   // that are collinear. This speeds up shortcutting time but can result in
   // longer paths.
   optional bool shortcutting_combine_collinear_segments = 6;
+
+  // Overrides the default collision checker configuration. This will affect
+  // planning time and potentially the generated solution.
+  optional intrinsic_proto.world.CollisionCheckerConfig
+      collision_checker_config = 7;
 
   reserved 2;
   reserved "use_projection_onto_constraint_manifold";

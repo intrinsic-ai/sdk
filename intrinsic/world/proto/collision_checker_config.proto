@@ -1,0 +1,20 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.world;
+
+option go_package = "intrinsic/world/proto/collision_checker_config_go_proto";
+
+// Configuration settings for the Legacy collision checker.
+message LegacyCollisionCheckerConfig {}
+// Configuration settings for the Coal collision checker.
+message CoalCollisionCheckerConfig {}
+// Configuration settings for the collision checker.
+message CollisionCheckerConfig {
+  // If unset, uses the default collision checking configuration.
+  oneof config {
+    LegacyCollisionCheckerConfig legacy = 1;
+    CoalCollisionCheckerConfig coal = 2;
+  }
+}

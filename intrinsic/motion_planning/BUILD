@@ -27,6 +27,7 @@ cc_library(
         "//intrinsic/util/status:status_macros",
         "//intrinsic/world/objects:kinematic_object",
         "//intrinsic/world/objects:transform_node",
+        "//intrinsic/world/proto:collision_checker_config_cc_proto",
         "//intrinsic/world/proto:collision_settings_cc_proto",
         "//intrinsic/world/proto:object_world_refs_cc_proto",
         "@abseil-cpp//absl/status:statusor",

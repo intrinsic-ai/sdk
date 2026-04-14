@@ -26,6 +26,7 @@ proto_library(
         "//intrinsic/logging/proto:context_proto",
         "//intrinsic/math/proto:point_proto",
         "//intrinsic/math/proto:pose_proto",
+        "//intrinsic/world/proto:collision_checker_config_proto",
         "//intrinsic/world/proto:collision_settings_proto",
         "//intrinsic/world/proto:object_world_refs_proto",
         "@com_google_protobuf//:duration_proto",
@@ -147,7 +148,10 @@ cc_proto_library(
 proto_library(
     name = "motion_planner_config_proto",
     srcs = ["motion_planner_config.proto"],
-    deps = ["@com_google_protobuf//:duration_proto"],
+    deps = [
+        "//intrinsic/world/proto:collision_checker_config_proto",
+        "@com_google_protobuf//:duration_proto",
+    ],
 )
 
 proto_library(
@@ -212,6 +216,9 @@ go_proto_library(
     name = "motion_planner_config_go_proto",
     importpath = "intrinsic/motion_planning/proto/v1/motion_planner_config_go_proto",
     protos = [":motion_planner_config_proto"],
+    deps = [
+        "//intrinsic/world/proto:collision_checker_config_go_proto",
+    ],
 )
 
 cc_proto_library(

@@ -22,6 +22,7 @@
 #include "intrinsic/motion_planning/proto/v1/motion_specification.pb.h"
 #include "intrinsic/world/objects/kinematic_object.h"
 #include "intrinsic/world/objects/transform_node.h"
+#include "intrinsic/world/proto/collision_checker_config.pb.h"
 #include "intrinsic/world/proto/collision_settings.pb.h"
 #include "intrinsic/world/proto/object_world_refs.pb.h"
 
@@ -59,6 +60,8 @@ class MotionPlannerClient {
     // into a single segment. This speeds up planning time, but can result in
     // longer paths and trajectories.
     bool shortcutting_combine_collinear_segments = false;
+
+    intrinsic_proto::world::CollisionCheckerConfig collision_checker_config;
 
     // Returns the default set of options to use with the plan path requests.
     static const MotionPlanningOptions& Defaults();

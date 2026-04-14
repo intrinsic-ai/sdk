@@ -15,6 +15,7 @@ import "intrinsic/motion_planning/proto/v1/motion_planner_config.proto";
 import "intrinsic/motion_planning/proto/v1/motion_planning.proto";
 import "intrinsic/motion_planning/proto/v1/motion_specification.proto";
 import "intrinsic/motion_planning/proto/v1/robot_specification.proto";
+import "intrinsic/world/proto/collision_checker_config.proto";
 import "intrinsic/world/proto/collision_settings.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 
@@ -132,6 +133,10 @@ message IkRequest {
   // if no collision free solution is found. This is useful when accessing the
   // collision debug information. Defaults to false.
   optional bool disable_error_on_collisions = 10;
+
+  // Optional override for default collision checker configuration.
+  optional intrinsic_proto.world.CollisionCheckerConfig
+      collision_checker_config = 11;
 }
 
 message IkResponse {
@@ -203,6 +208,10 @@ message CheckCollisionsRequest {
   // Collision settings to applied during collision checking. If not defined,
   // the default setting with zero margin will be applied.
   intrinsic_proto.world.CollisionSettings collision_settings = 4;
+
+  // Optional override for default collision checker configuration.
+  optional intrinsic_proto.world.CollisionCheckerConfig
+      collision_checker_config = 5;
 }
 
 message CheckCollisionsResponse {
