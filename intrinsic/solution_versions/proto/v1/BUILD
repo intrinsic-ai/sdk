@@ -7,7 +7,6 @@ proto_library(
     name = "snapshot_proto",
     srcs = ["snapshot.proto"],
     visibility = [
-        "//intrinsic:insrc_sot_users",
         "//intrinsic/modified_solution/proto/v1:__pkg__",
     ],
     deps = [
@@ -20,7 +19,6 @@ go_proto_library(
     importpath = "intrinsic/solution_versions/proto/v1/snapshot_go_proto",
     protos = [":snapshot_proto"],
     visibility = [
-        "//intrinsic:insrc_sot_users",
         "//intrinsic/solution_versions:__subpackages__",
         "//intrinsic/tools/inctl/cmd:__subpackages__",
     ],
@@ -30,7 +28,6 @@ proto_library(
     name = "branch_proto",
     srcs = ["branch.proto"],
     visibility = [
-        "//intrinsic:insrc_sot_users",
         "//intrinsic/frontend/cloud/portal_bridge:__subpackages__",
     ],
     deps = [
@@ -44,7 +41,6 @@ go_proto_library(
     importpath = "intrinsic/solution_versions/proto/v1/branch_go_proto",
     protos = [":branch_proto"],
     visibility = [
-        "//intrinsic:insrc_sot_users",
         "//intrinsic/frontend/cloud:__subpackages__",
         "//intrinsic/frontend/cloud/portal_bridge:__subpackages__",
         "//intrinsic/kubernetes/data_store/http_endpoints:__pkg__",
@@ -75,7 +71,6 @@ go_proto_library(
     importpath = "intrinsic/solution_versions/proto/v1/solution_version_service_go_proto",
     protos = [":solution_version_service_proto"],
     visibility = [
-        "//intrinsic:insrc_sot_users",
         "//intrinsic/assets/deploy:__pkg__",
         "//intrinsic/assets/install:__pkg__",
         "//intrinsic/frontend/cloud:__subpackages__",
@@ -96,9 +91,6 @@ go_proto_library(
 proto_library(
     name = "diff_mask_proto",
     srcs = ["diff_mask.proto"],
-    visibility = [
-        "//intrinsic:insrc_sot_users",
-    ],
 )
 
 go_proto_library(
@@ -106,7 +98,6 @@ go_proto_library(
     importpath = "intrinsic/solution_versions/proto/v1/diff_mask_go_proto",
     protos = [":diff_mask_proto"],
     visibility = [
-        "//intrinsic:insrc_sot_users",
         "//intrinsic/solution_versions:__subpackages__",
         "//intrinsic/tools/inctl/cmd:__subpackages__",
     ],

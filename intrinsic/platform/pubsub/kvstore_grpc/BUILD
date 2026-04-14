@@ -22,7 +22,6 @@ proto_library(
 exports_files(
     ["kvservice.yaml"],
     visibility = [
-        "//intrinsic:insrc_sot_users",
         "//intrinsic:intrinsic_internal",
     ],
 )
@@ -101,7 +100,6 @@ cc_oci_image(
     binary = ":server_main",
     data_path = "/",
     visibility = [
-        "//intrinsic:insrc_sot_users",
         "//intrinsic:intrinsic_internal",
     ],
 )

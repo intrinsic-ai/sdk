@@ -14,7 +14,6 @@ exports_files(
         "timescaledb.yaml",
     ],
     visibility = [
-        "//intrinsic:insrc_sot_users",
         "//intrinsic:intrinsic_internal",
     ],
 )

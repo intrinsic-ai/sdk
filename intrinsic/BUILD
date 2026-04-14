@@ -25,7 +25,9 @@ package_group(
 # intrinsic_internal contains the set of packages allowed to depend on internal code.
 package_group(
     name = "intrinsic_internal",
-    packages = ["//intrinsic/..."],
+    packages = [
+        "//intrinsic/...",
+    ],
 )
 
 # public_asset_users contains the set of packages allowed to depend on assets built by Intrinsic.

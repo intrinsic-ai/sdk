@@ -20,7 +20,7 @@ exports_files(
         "requirements.txt",
     ],
     visibility = [
-        "//intrinsic:insrc_sot_users",
+        "//:__pkg__",
         "//intrinsic/production/external:__pkg__",
     ],
 )

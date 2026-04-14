@@ -245,7 +245,6 @@ py_library(
     name = "skill_providing",
     srcs = ["skill_providing.py"],
     visibility = [
-        "//intrinsic:insrc_sot_users",
         "//intrinsic/solutions:__subpackages__",
     ],
     deps = [

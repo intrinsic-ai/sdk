@@ -8,7 +8,6 @@ go_library(
     srcs = ["utils.go"],
     importpath = "intrinsic/assets/processes/testing/utils",
     visibility = [
-        "//intrinsic:insrc_sot_users",
         "//intrinsic:intrinsic_internal",
     ],
     deps = [

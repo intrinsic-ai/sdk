@@ -316,7 +316,6 @@ go_library(
     ],
     importpath = "intrinsic/skills/testing/utils",
     visibility = [
-        "//intrinsic:insrc_sot_users",
         "//intrinsic:intrinsic_internal",
     ],
     deps = [

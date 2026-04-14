@@ -19,7 +19,6 @@ exports_files(
         "zenoh-router-with-storage.yaml",
     ],
     visibility = [
-        "//intrinsic:insrc_sot_users",
         "//intrinsic/kubernetes:__subpackages__",
         "//intrinsic/manipulation:__subpackages__",
         "//intrinsic/perception:__subpackages__",
