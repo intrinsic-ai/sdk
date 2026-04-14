@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"intrinsic/tools/inctl/util"
 	"intrinsic/tools/inctl/util/color"
 	"intrinsic/tools/inctl/util/orgutil"
 
@@ -96,7 +97,9 @@ func (r *GenerateCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 		fmt.Fprintln(cmd.OutOrStdout(), "")
 	}
 
-	fmt.Fprintln(cmd.OutOrStdout(), fmt.Sprintf("Starting generation of recording with id \"%s\"...", flagBagID))
+	msg := fmt.Sprintf("Starting generation of recording with id \"%s\"...", flagBagID)
+	spinner := util.NewSpinner(cmd.Context(), cmd.OutOrStdout(), 100*time.Millisecond, util.PositionFront, util.StyleDotsConstruct, util.ColorRGB, util.DirectionForward)
+	spinner.Start(msg)
 
 	generateReq := &pb.GenerateBagRequest{
 		Query: &pb.GenerateBagRequest_BagId{
@@ -111,15 +114,16 @@ func (r *GenerateCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 		// It usually means that the server is still processing the request, so we should GetBag until
 		// we see the file or timeout.
 		if !strings.Contains(err.Error(), "504") {
+			spinner.Stop("")
 			return err
 		}
 
 		for i := 0; i < maxPostTimeoutRetries; i++ {
-			fmt.Fprintln(cmd.OutOrStdout(), fmt.Sprintf("Still generating%s", strings.Repeat(".", i)))
+			spinner.UpdateMessage(fmt.Sprintf("Still generating%s", strings.Repeat(".", i)))
 
 			getResp, err := client.GetBag(cmd.Context(), getReq)
 			if err != nil {
-				fmt.Fprintln(cmd.OutOrStdout(), fmt.Sprintf("Failed to get recording with id \"%s\" to check generation status, server might still be processing: %v", flagBagID, err))
+				spinner.Interrupt(fmt.Sprintf("Failed to get recording with id \"%s\" to check generation status, server might still be processing: %v", flagBagID, err))
 			}
 
 			if getResp.GetBag().GetBagFile() != nil {
@@ -127,11 +131,14 @@ func (r *GenerateCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 			}
 
 			if i == maxPostTimeoutRetries-1 {
+				spinner.Stop("")
 				return fmt.Errorf("failed to generate recording with id \"%s\" after %d retries, try generating again or waiting longer for the recording to be generated", flagBagID, maxPostTimeoutRetries)
 			}
 			time.Sleep(postTimeoutRetryDelay + time.Duration(rand.Float32()*5.0)*time.Second)
 		}
 	}
+
+	spinner.Stop(msg)
 
 	fmt.Fprintln(cmd.OutOrStdout(), "")
 	fmt.Fprintln(cmd.OutOrStdout(), fmt.Sprintf("Generated recording file for recording ID %s", flagBagID))

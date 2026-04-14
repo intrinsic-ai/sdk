@@ -111,6 +111,20 @@ var (
 	StyleDotsDrop = SpinnerStyle{"⠁", "⠂", "⠄", "⡀", "⡈", "⡐", "⡠", "⣀", "⣁", "⣂", "⣄", "⣌", "⣔", "⣤", "⣥", "⣦", "⣮", "⣶", "⣷", "⣿", "⡿", "⠿", "⢟", "⠟", "⡛", "⠛", "⠫", "⢋", "⠋", "⠍", "⡉", "⠉", "⠑", "⠡", "⢁"}
 	// StyleDotsUpload first fills upwards, then animates them moving up dot by dot.
 	StyleDotsUpload = SpinnerStyle{" ", " ", " ", " ", " ", " ", " ", " ", "⣀", "⣤", "⣶", "⣿", "⣷", "⣶", "⣮", "⣦", "⣥", "⣤", "⣔", "⣌", "⣄", "⣂", "⣁", "⣀", "⡠", "⡐", "⡈", "⡀", "⠄", "⠂", "⠁"}
+	// StyleDotsConstruct appears to build downwards. As each individual dot hits the surface, it bounces. After it is full, there is a brief pause.
+	StyleDotsConstruct = SpinnerStyle{
+		" ", " ", " ",
+		"⠁", "⠂", "⠄", "⡀", "⠄", "⡀",
+		"⡈", "⡐", "⡠", "⣀", "⡠", "⣀",
+		"⣁", "⣂", "⣄", "⣂", "⣄",
+		"⣌", "⣔", "⣤", "⣔", "⣤",
+		"⣥", "⣦", "⣥", "⣦",
+		"⣮", "⣶", "⣮", "⣶",
+		"⣷", "⣶", "⣷",
+		"⣿", "⣷", "⣿",
+		"⣿", "⣿", "⣿", "⣿", "⣿",
+		"⣶", "⣤", "⣀", " ", " ", " ",
+	}
 
 	// StyleSimpleDots is a simple progressing dots animation.
 	StyleSimpleDots = SpinnerStyle{".  ", ".. ", "...", "   ", "   "}
