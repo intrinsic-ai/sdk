@@ -27,8 +27,52 @@ message HardwareDeviceManifest {
   // Metadata about the HardwareDevice.
   HardwareDeviceMetadata metadata = 1;
 
-  // A map from asset IDs to assets that are assigned as nodes in the
-  // HardwareDevice's graph.
+  // A map from Asset IDs to Assets that are used within this
+  // HardwareDevice's definition.
+  //
+  // Assets in this map may be assigned as nodes in the HardwareDevice's graph.
+  // Data Assets in particular, can also be assigned as values in this
+  // HardwareDevice's default configuration.
+  // The `intrinsic_hardware_device` build rule provides an `assets` attribute
+  // that can be used to specify the assets that are used within this
+  // HardwareDevice's definition.
+  //
+  // Any Data Asset provided in this map and also referenced in the default
+  // configuration will be installed if it would not replace any previously
+  // installed Assets.
+  //
+  // Adding Data Assets this way and referencing them in the default
+  // configuration could be useful, for example, to provide a suggestion of a
+  // specific Asset to resolve a `ResolvedDependency` present in the
+  // configuration.
+  //
+  // For example, if a HardwareDevice has a dependency on a particular data
+  // interface defined in its configuration, as:
+  //
+  //   ```proto
+  //   message MyHardwareDeviceConfig {
+  //     ResolvedDependency a_data_asset_dependency = 1
+  //       [(intrinsic_proto.assets.field_metadata).dependency = {
+  //         requires: "data://intrinsic_proto.foo.v1.Bar",
+  //       }];
+  //   }
+  //   ```
+  //
+  // and if the Asset author would like to suggest using the Data Asset with ID
+  // "com.package.bar" to resolve this dependency, they could add the
+  // following to the HardwareDevice's default configuration:
+  //
+  //   ```textproto
+  //   a_data_asset_dependency: {
+  //     name: "com.package.bar"
+  //   }
+  //   ```
+  //
+  // The Data Asset "com.package.bar" could be added as a CatalogAsset or
+  // LocalAsset in the `assets` map, and it would be auto-installed when the
+  // HardwareDevice is installed if that Data Asset: a) provides the
+  // "data://intrinsic_proto.foo.v1.Bar" interface, and b) is not already
+  // installed.
   map<string, Asset> assets = 2;
 
   // The graph that defines the composition of the HardwareDevice.

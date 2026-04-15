@@ -1,0 +1,24 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.assets.dependencies.testing;
+
+import "intrinsic/assets/proto/field_metadata.proto";
+import "intrinsic/assets/proto/v1/resolved_dependency.proto";
+
+option go_package = "intrinsic/assets/dependencies/testing/multi_data_dependency_config_go_proto";
+
+// A config proto that can be used for ResolvedDependency tests where
+// multiple data dependencies are expected.
+message MultiDataDependencyConfig {
+  intrinsic_proto.assets.v1.ResolvedDependency a_dependency = 1
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "data://intrinsic_proto.data.v1.ReferencedDataStruct",
+      }];
+
+  intrinsic_proto.assets.v1.ResolvedDependency b_dependency = 2
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "data://intrinsic_proto.test.B",
+      }];
+}

@@ -83,3 +83,27 @@ cc_grpc_library(
     visibility = ["//intrinsic/assets/dependencies:__pkg__"],
     deps = [":test_service_cc_proto"],
 )
+
+proto_library(
+    name = "multi_data_dependency_config_proto",
+    srcs = ["multi_data_dependency_config.proto"],
+    visibility = ["//intrinsic/assets/dependencies:__pkg__"],
+    deps = [
+        "//intrinsic/assets/proto:field_metadata_proto",
+        "//intrinsic/assets/proto/v1:resolved_dependency_proto",
+    ],
+)
+
+go_proto_library(
+    name = "multi_data_dependency_config_go_proto",
+    testonly = True,
+    importpath = "intrinsic/assets/dependencies/testing/multi_data_dependency_config_go_proto",
+    protos = [":multi_data_dependency_config_proto"],
+    visibility = [
+        "//intrinsic/assets:__subpackages__",
+    ],
+    deps = [
+        "//intrinsic/assets/proto:field_metadata_go_proto",
+        "//intrinsic/assets/proto/v1:resolved_dependency_go_proto",
+    ],
+)
