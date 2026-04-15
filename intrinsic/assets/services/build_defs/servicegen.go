@@ -44,8 +44,9 @@ func pruneSourceCodeInfo(defaultConfig *anypb.Any, fds *dpb.FileDescriptorSet) e
 
 	// Note that a nil default config will cause all source code info fields to be
 	// stripped out.
-	sourcecodeinfoview.PruneSourceCodeInfo(fullNames, fds)
-	return nil
+	return sourcecodeinfoview.PruneSourceCodeInfo(fds,
+		sourcecodeinfoview.WithExcludeNames(fullNames),
+	)
 }
 
 // CreateServiceBundle creates a Service Asset bundle on disk.

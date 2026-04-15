@@ -48,7 +48,9 @@ func LoadManifestAndFileDescriptorSets(manifestPath string, fdsPaths []string, i
 	); err != nil {
 		return nil, nil, fmt.Errorf("failed to validate manifest: %v", err)
 	}
-	skillmanifest.PruneSourceCodeInfo(m, fds)
+	if err := skillmanifest.PruneSourceCodeInfo(m, fds); err != nil {
+		return nil, nil, fmt.Errorf("failed to prune source code info: %v", err)
+	}
 
 	return m, fds, nil
 }

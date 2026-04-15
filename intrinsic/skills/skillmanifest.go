@@ -13,7 +13,7 @@ import (
 
 // PruneSourceCodeInfo removes source code info from the FileDescriptorSet for all message types
 // except those that are referenced by the SkillManifest.
-func PruneSourceCodeInfo(m *smpb.SkillManifest, fds *dpb.FileDescriptorSet) {
+func PruneSourceCodeInfo(m *smpb.SkillManifest, fds *dpb.FileDescriptorSet) error {
 	var fullNames []string
 	if name := m.GetParameter().GetMessageFullName(); name != "" {
 		fullNames = append(fullNames, name)
@@ -21,5 +21,7 @@ func PruneSourceCodeInfo(m *smpb.SkillManifest, fds *dpb.FileDescriptorSet) {
 	if name := m.GetReturnType().GetMessageFullName(); name != "" {
 		fullNames = append(fullNames, name)
 	}
-	sourcecodeinfoview.PruneSourceCodeInfo(fullNames, fds)
+	return sourcecodeinfoview.PruneSourceCodeInfo(fds,
+		sourcecodeinfoview.WithExcludeNames(fullNames),
+	)
 }

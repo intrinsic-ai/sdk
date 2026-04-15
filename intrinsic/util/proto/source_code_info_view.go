@@ -98,7 +98,7 @@ func dependencyGraph(fds *dpb.FileDescriptorSet) (map[string]map[string]struct{}
 
 	files, err := protodesc.NewFiles(fds)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("failed to create new files: %w\n\nfds: %v", err, fds)
 	}
 	files.RangeFiles(func(f protoreflect.FileDescriptor) bool {
 		for i := 0; i < f.Messages().Len(); i++ {
@@ -192,16 +192,46 @@ func NestedFieldCommentMap(protoDescriptors *dpb.FileDescriptorSet, messageFullN
 	return comments, nil
 }
 
-// PruneSourceCodeInfo removes comments and other source code information. It
-// always retains comments that are needed by the passed in list of message type
-// names and their transitive dependencies. Leading detached comments are
-// always removed.
-func PruneSourceCodeInfo(fullNames []string, fds *dpb.FileDescriptorSet) error {
-	depGraph, pathsWithFile, err := dependencyGraph(fds)
-	if err != nil {
-		return err
+type pruneSourceCodeInfoOptions struct {
+	excludeNames []string
+}
+
+// PruneSourceCodeInfoOption is an option for PruneSourceCodeInfo.
+type PruneSourceCodeInfoOption func(*pruneSourceCodeInfoOptions)
+
+// WithExcludeNames specifies a list of message type names to partially-exclude from the pruning
+// (along with their transitive dependencies).
+//
+// Leading detached comments are always pruned.
+func WithExcludeNames(excludeNames []string) PruneSourceCodeInfoOption {
+	return func(opts *pruneSourceCodeInfoOptions) {
+		opts.excludeNames = excludeNames
 	}
-	depSet := allDependencies(fullNames, depGraph)
+}
+
+// PruneSourceCodeInfo removes comments and other source code information from the specified
+// FileDescriptorSet.
+func PruneSourceCodeInfo(fds *dpb.FileDescriptorSet, options ...PruneSourceCodeInfoOption) error {
+	if fds == nil {
+		return nil
+	}
+
+	opts := pruneSourceCodeInfoOptions{}
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var excludedDepSet map[string]struct{}
+	var pathsWithFile map[string]pathInfo
+	if len(opts.excludeNames) > 0 {
+		var depGraph map[string]map[string]struct{}
+		var err error
+		depGraph, pathsWithFile, err = dependencyGraph(fds)
+		if err != nil {
+			return err
+		}
+		excludedDepSet = allDependencies(opts.excludeNames, depGraph)
+	}
 
 	for _, file := range fds.GetFile() {
 		// Skip files that lack source code info. This happens when someone asks protoc to generate a
@@ -210,9 +240,9 @@ func PruneSourceCodeInfo(fullNames []string, fds *dpb.FileDescriptorSet) error {
 			continue
 		}
 
-		// We keep comments in any file that contains at least one message that
-		// belong to the set of transitive dependencies.
-		if !anyMessageInDepSet(file, depSet) {
+		// We keep comments in any file that contains at least one message that belong to the set of
+		// excluded transitive dependencies.
+		if !anyMessageInDepSet(file, excludedDepSet) {
 			file.SourceCodeInfo = nil
 			continue
 		}

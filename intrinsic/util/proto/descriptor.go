@@ -6,6 +6,9 @@ package descriptor
 import (
 	"fmt"
 
+	"intrinsic/util/proto/sourcecodeinfoview"
+
+	log "github.com/golang/glog"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -13,9 +16,14 @@ import (
 	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
 
+// ComparisonPreprocessor preprocesses a FileDescriptorSet to a form to use when comparing with
+// another FileDescriptorSet.
+type ComparisonPreprocessor func(*dpb.FileDescriptorSet) (*dpb.FileDescriptorSet, error)
+
 // mergeFileDescriptorSetsOptions contains options for MergeFileDescriptorSets.
 type mergeFileDescriptorSetsOptions struct {
-	keys []string
+	keys                   []string
+	comparisonPreprocessor ComparisonPreprocessor
 }
 
 // MergeFileDescriptorSetsOption is a functional option for MergeFileDescriptorSets.
@@ -33,6 +41,32 @@ func WithKeys(keys []string) MergeFileDescriptorSetsOption {
 	}
 }
 
+// WithComparisonPreprocessor specifies a function to pass input FileDescriptorSets through to
+// construct a form to use for equality of FileDescriptorProtos between FileDescriptorSets.
+func WithComparisonPreprocessor(preprocessor ComparisonPreprocessor) MergeFileDescriptorSetsOption {
+	return func(opts *mergeFileDescriptorSetsOptions) {
+		opts.comparisonPreprocessor = preprocessor
+	}
+}
+
+// WithStrictEqualityComparison specifies that FileDescriptorProtos compare as equal only if they
+// are strictly identical.
+func WithStrictEqualityComparison() MergeFileDescriptorSetsOption {
+	return WithComparisonPreprocessor(func(fds *dpb.FileDescriptorSet) (*dpb.FileDescriptorSet, error) {
+		return fds, nil
+	})
+}
+
+func WithSourceCodePrunedComparison() MergeFileDescriptorSetsOption {
+	return WithComparisonPreprocessor(func(fds *dpb.FileDescriptorSet) (*dpb.FileDescriptorSet, error) {
+		fdsPruned := proto.Clone(fds).(*dpb.FileDescriptorSet)
+		if err := sourcecodeinfoview.PruneSourceCodeInfo(fdsPruned); err != nil {
+			return nil, fmt.Errorf("failed to prune source code info: %v", err)
+		}
+		return fdsPruned, nil
+	})
+}
+
 func defaultMergedFileDescriptorSetsKeys(n int) []string {
 	keys := make([]string, n)
 	for i := range keys {
@@ -48,9 +82,15 @@ type fileDescriptorAndKey struct {
 
 // MergeFileDescriptorSets merges a list of FileDescriptorSets into a single FileDescriptorSet.
 //
-// It returns an error if any duplicate FileDescriptorProtos are not identical.
+// It returns an error if any duplicate FileDescriptorProtos (by name) are not equal according to
+// the specified ComparisonPreprocessor (e.g., WithStrictEqualityComparison or
+// WithSourceCodePrunedComparison), which defaults to that specified by
+// WithSourceCodePrunedComparison.
 func MergeFileDescriptorSets(fdss []*dpb.FileDescriptorSet, options ...MergeFileDescriptorSetsOption) (*dpb.FileDescriptorSet, error) {
 	opts := mergeFileDescriptorSetsOptions{}
+	options = append([]MergeFileDescriptorSetsOption{
+		WithSourceCodePrunedComparison(),
+	}, options...)
 	for _, opt := range options {
 		opt(&opts)
 	}
@@ -63,17 +103,31 @@ func MergeFileDescriptorSets(fdss []*dpb.FileDescriptorSet, options ...MergeFile
 
 	// Merge them into a single FileDescriptorSet.
 	merged := &dpb.FileDescriptorSet{}
+	// `seen` maps FileDescriptorProto.name to (pruned) FileDescriptorProto and the key that
+	// referenced it.
 	seen := map[string]fileDescriptorAndKey{}
 	for i, fds := range fdss {
-		for _, f := range fds.GetFile() {
+		if fds == nil {
+			continue
+		}
+
+		fdsCmp, err := opts.comparisonPreprocessor(fds)
+		if err != nil {
+			return nil, fmt.Errorf("failed to preprocess FileDescriptorSet for %q: %v", opts.keys[i], err)
+		}
+		filesCmp := fdsCmp.GetFile()
+		for j, f := range fds.GetFile() {
+			fCmp := filesCmp[j]
 			if existing, ok := seen[f.GetName()]; !ok {
 				merged.File = append(merged.File, f)
-				// seen maps FileDescriptorProto.name to FileDescriptorProto and the key that referenced it.
-				seen[f.GetName()] = fileDescriptorAndKey{f: f, key: opts.keys[i]}
-			} else if !proto.Equal(existing.f, f) {
-				// We currently require that any duplicate FileDescriptorProtos are identical. We could
+				seen[f.GetName()] = fileDescriptorAndKey{f: fCmp, key: opts.keys[i]}
+				continue
+			} else if !proto.Equal(existing.f, fCmp) {
+				// We currently require that any duplicate FileDescriptorProtos are equal. We could
 				// potentially relax this constraint later by determining which of multiple compatible
 				// FileDescriptorProtos we find is the "latest" one and using that.
+				var d string
+				log.Errorf("duplicate FileDescriptorProto %q with different contents for %q and %q%s", f.GetName(), existing.key, opts.keys[i], d)
 				return nil, fmt.Errorf("duplicate FileDescriptorProto %q with different contents for %q and %q", f.GetName(), existing.key, opts.keys[i])
 			}
 		}

@@ -61,7 +61,10 @@ func createSkillManifest() error {
 		return fmt.Errorf("could not write skill manifest proto: %v", err)
 	}
 
-	skillmanifest.PruneSourceCodeInfo(m, set)
+	if err := skillmanifest.PruneSourceCodeInfo(m, set); err != nil {
+		return fmt.Errorf("failed to prune source code info: %v", err)
+	}
+
 	if err := protoio.WriteBinaryProto(*flagFileDescriptorSetOut, set, protoio.WithDeterministic(true)); err != nil {
 		return fmt.Errorf("could not write file descriptor set proto: %v", err)
 	}
