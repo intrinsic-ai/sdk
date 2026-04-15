@@ -7,10 +7,10 @@ from google.protobuf import descriptor_pb2
 from google.protobuf import text_format
 
 from intrinsic.executive.proto import proto_builder_pb2
-from intrinsic.solutions import behavior_tree
 from intrinsic.solutions import errors as solutions_errors
 from intrinsic.solutions import proto_building
 from intrinsic.solutions.testing import compare
+from intrinsic.util.proto import descriptors
 
 
 class ProtoBuildingTest(absltest.TestCase):
@@ -265,8 +265,8 @@ class ProtoBuildingTest(absltest.TestCase):
 
     # The created msg object must also have a DESCRIPTOR similar to the
     # expected_input_descriptor
-    msg_full_name, fds = behavior_tree._build_file_descriptor_set(msg)
-    self.assertEqual(msg_full_name, 'test_pkg.sub_pkg.TestMessage')
+    fds = descriptors.gen_file_descriptor_set(msg.DESCRIPTOR)
+    self.assertEqual(msg.DESCRIPTOR.full_name, 'test_pkg.sub_pkg.TestMessage')
     compare.assertProto2Equal(
         self,
         expected_input_descriptor,
@@ -341,8 +341,8 @@ class ProtoBuildingTest(absltest.TestCase):
 
     # The created msg object must also have a DESCRIPTOR similar to the
     # expected_input_descriptor
-    msg_full_name, fds = behavior_tree._build_file_descriptor_set(msg)
-    self.assertEqual(msg_full_name, 'test_pkg.sub_pkg.TestMessage')
+    fds = descriptors.gen_file_descriptor_set(msg.DESCRIPTOR)
+    self.assertEqual(msg.DESCRIPTOR.full_name, 'test_pkg.sub_pkg.TestMessage')
     compare.assertProto2Equal(
         self,
         expected_input_descriptor,
@@ -401,8 +401,8 @@ class ProtoBuildingTest(absltest.TestCase):
 
     # The created msg object must also have a DESCRIPTOR similar to the
     # expected_input_descriptor
-    msg_full_name, fds = behavior_tree._build_file_descriptor_set(msg)
-    self.assertEqual(msg_full_name, 'test_pkg.sub_pkg.TestMessage')
+    fds = descriptors.gen_file_descriptor_set(msg.DESCRIPTOR)
+    self.assertEqual(msg.DESCRIPTOR.full_name, 'test_pkg.sub_pkg.TestMessage')
 
     # The type_names generated from proto tooling are absolute package names
     # (leading '.').

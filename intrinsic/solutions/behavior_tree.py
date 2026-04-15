@@ -36,8 +36,6 @@ import warnings
 
 from cel.expr import syntax_pb2
 from google.protobuf import any_pb2
-from google.protobuf import descriptor
-from google.protobuf import descriptor_pb2
 from google.protobuf import message as protobuf_message
 import graphviz
 
@@ -50,7 +48,6 @@ from intrinsic.assets.proto import id_pb2
 from intrinsic.assets.proto import metadata_pb2
 from intrinsic.assets.proto import vendor_pb2
 from intrinsic.executive.proto import any_list_pb2
-from intrinsic.executive.proto import any_with_assignments_pb2
 from intrinsic.executive.proto import behavior_call_pb2
 from intrinsic.executive.proto import behavior_tree_pb2
 from intrinsic.executive.proto import code_execution_pb2
@@ -65,8 +62,9 @@ from intrinsic.solutions import utils
 from intrinsic.solutions.internal import actions
 from intrinsic.solutions.internal import skill_generation
 from intrinsic.solutions.internal import skill_utils
+from intrinsic.solutions.internal.bt import bt_util
+from intrinsic.solutions.internal.bt import world_query as _world_query_internal
 from intrinsic.util.status import extended_status_pb2
-from intrinsic.world.proto import object_world_refs_pb2
 from intrinsic.world.python import object_world_resources
 
 _SUBTREE_DOT_ATTRIBUTES = {'labeljust': 'l', 'labelloc': 't'}
@@ -128,26 +126,7 @@ NodeInTreeType = Union[
     NodeId,  # refers to a node id, must be unique in the process
 ]
 
-
-def generate_unique_node_id() -> int:
-  """Generates a unique node ID suitable to use in a behavior tree.
-
-  Returns:
-    32 bit portion as int from an UUID that can be used as a randomized node ID.
-  """
-  uid = uuid.uuid4()
-  uid_128 = uid.int
-  # The proto only specifies uint32, so a 128-bit UUID wouldn't fit. XOR
-  # this together to retain sufficient randomness to prevent collisions.
-  # Node Ids must be unique only within the behavior tree that is being
-  # created.
-  uid_32 = (
-      (uid_128 & 0xFFFFFFFF)
-      ^ (uid_128 & (0xFFFFFFFF << 32)) >> 32
-      ^ (uid_128 & (0xFFFFFFFF << 64)) >> 64
-      ^ (uid_128 & (0xFFFFFFFF << 96)) >> 96
-  )
-  return int(uid_32)
+generate_unique_node_id = bt_util.generate_unique_node_id
 
 
 def _transform_to_node(node: Union[Node, actions.ActionBase]) -> Node:
@@ -237,205 +216,8 @@ def _dot_append_children(
     )
 
 
-# The following is of type TypeAlias, but this is not available in Python 3.9
-# which is still used for the externalized version.
-WorldQueryObject = Union[
-    object_world_resources.WorldObject,
-    object_world_refs_pb2.ObjectReference,
-    blackboard_value.BlackboardValue,
-]
-
-
-class WorldQuery:
-  """Wrapper for WorldQuery proto for easier construction and conversion."""
-
-  _proto: world_query_pb2.WorldQuery
-  _assignments: List[any_with_assignments_pb2.AnyWithAssignments.Assignment]
-
-  def __init__(self, proto: Optional[world_query_pb2.WorldQuery] = None):
-    self._proto = world_query_pb2.WorldQuery()
-    if proto is not None:
-      self._proto.CopyFrom(proto)
-    self._assignments = []
-
-  def _object_to_reference(
-      self, obj: Optional[WorldQueryObject]
-  ) -> Optional[object_world_refs_pb2.ObjectReference]:
-    """Converts an object to a reference (or returns as-is if reference given).
-
-    Args:
-      obj: object to convert
-
-    Returns:
-      An object reference, either retrieved from the WorldObject or just the
-      reference that was passed in.
-
-    Raises:
-      TypeError: if the passed in object is neither a WorldObject nor an
-        ObjectReference.
-    """
-    if obj is None:
-      return None
-
-    if isinstance(obj, blackboard_value.BlackboardValue):
-      return object_world_refs_pb2.ObjectReference()
-
-    if isinstance(obj, object_world_resources.WorldObject):
-      return obj.reference
-
-    if isinstance(obj, object_world_refs_pb2.ObjectReference):
-      return obj
-
-    raise TypeError(
-        'Invalid type for object, cannot convert to ObjectReference'
-    )
-
-  @utils.protoenum(
-      proto_enum_type=world_query_pb2.WorldQuery.Order.Criterion,
-      unspecified_proto_enum_map_to_none=(
-          world_query_pb2.WorldQuery.Order.Criterion.SORT_ORDER_UNSPECIFIED
-      ),
-  )
-  class OrderCriterion(enum.Enum):
-    """Specifies what to sort returned values by."""
-
-  @utils.protoenum(proto_enum_type=world_query_pb2.WorldQuery.Order.Direction)
-  class OrderDirection(enum.Enum):
-    """Specifies sort order for returned items."""
-
-  def _handle_blackboard_assignments(
-      self, path: str, assigned: AnyType
-  ) -> None:
-    """Handle assignments that might come from the blackboard.
-
-    If the assigned object is a BlackboardValue an assignment to path will be
-    added. Otherwise nothing happens.
-
-    Args:
-      path: The field in the WorldQuery that would be set.
-      assigned: Either a BlackboardValue or something else.
-    """
-    if isinstance(assigned, blackboard_value.BlackboardValue):
-      self._assignments.append(
-          any_with_assignments_pb2.AnyWithAssignments.Assignment(
-              path=path,
-              cel_expression=assigned.value_access_path(),
-          )
-      )
-
-  def select(
-      self,
-      *,
-      child_frames_of: Optional[WorldQueryObject] = None,
-      child_objects_of: Optional[WorldQueryObject] = None,
-      children_of: Optional[WorldQueryObject] = None,
-  ) -> WorldQuery:
-    """Sets the query of the world query.
-
-    Set only one of the possible arguments.
-
-    Args:
-      child_frames_of: the object of which to retrieve child frames of
-      child_objects_of: the object of which to retrieve child objects of
-      children_of: the object of which to retrieve children of
-
-    Returns:
-      Self (for chaining in a builder pattern)
-
-    Raises:
-      InvalidArgumentError: if zero or more than 1 input argument is set
-    """
-    num_inputs = 0
-
-    if child_frames_of is not None:
-      num_inputs += 1
-      self._proto.select.child_frames_of.CopyFrom(
-          self._object_to_reference(child_frames_of)
-      )
-      self._handle_blackboard_assignments(
-          'select.child_frames_of', child_frames_of
-      )
-    if child_objects_of is not None:
-      num_inputs += 1
-      self._proto.select.child_objects_of.CopyFrom(
-          self._object_to_reference(child_objects_of)
-      )
-      self._handle_blackboard_assignments(
-          'select.child_objects_of', child_objects_of
-      )
-    if children_of is not None:
-      num_inputs += 1
-      self._proto.select.children_of.CopyFrom(
-          self._object_to_reference(children_of)
-      )
-      self._handle_blackboard_assignments('select.children_of', children_of)
-
-    if num_inputs != 1:
-      raise solutions_errors.InvalidArgumentError(
-          'Data node for create or update requires exactly 1 input'
-          f' element, got {num_inputs}'
-      )
-
-    return self
-
-  def filter(
-      self, *, name_regex: Union[str, blackboard_value.BlackboardValue]
-  ) -> WorldQuery:
-    """Sets the filter of the world query.
-
-    Args:
-      name_regex: RE2 regular expression that names must fully match to be
-        returned.
-
-    Returns:
-      Self (for chaining in a builder pattern)
-    """
-    if isinstance(name_regex, blackboard_value.BlackboardValue):
-      self._handle_blackboard_assignments('filter.name_regex', name_regex)
-    else:
-      self._proto.filter.name_regex = name_regex
-    return self
-
-  def order(
-      self,
-      *,
-      by: OrderCriterion,
-      direction: OrderDirection = OrderDirection.ASCENDING,
-  ) -> WorldQuery:
-    """Sets the ordering of the world query.
-
-    Args:
-      by: criterion identifying what to order by
-      direction: ordering direction, ascending or descending
-
-    Returns:
-      Self (for chaining in a builder pattern)
-    """
-    self._proto.order.by = by.value
-    self._proto.order.direction = direction.value
-    return self
-
-  @property
-  def proto(self) -> world_query_pb2.WorldQuery:
-    return self._proto
-
-  @property
-  def assignments(
-      self,
-  ) -> List[any_with_assignments_pb2.AnyWithAssignments.Assignment]:
-    return self._assignments
-
-  @classmethod
-  def create_from_proto(
-      cls, proto_object: world_query_pb2.WorldQuery
-  ) -> WorldQuery:
-    return cls(proto_object)
-
-  def __str__(self) -> str:
-    return (
-        f'WorldQuery(text_format.Parse("""{self._proto}""",'
-        ' intrinsic_proto.executive.WorldQuery()))'
-    )
+WorldQueryObject = _world_query_internal.WorldQueryObject
+WorldQuery = _world_query_internal.WorldQuery
 
 
 @utils.protoenum(
@@ -865,7 +647,7 @@ class Node(abc.ABC):
           'Warning: Creating a new unique id, but this node already had an id'
           f' ({self.node_id})'
       )
-    self.node_id = generate_unique_node_id()
+    self.node_id = bt_util.generate_unique_node_id()
     return self.node_id
 
   @property
@@ -4794,7 +4576,7 @@ class BehaviorTree:
     if parameter_message_full_name:
       param_full_name = parameter_message_full_name
     else:
-      param_full_name = _get_single_message_name_from_file(
+      param_full_name = bt_util.get_single_message_name_from_file(
           param_descriptor_set, pseudo_file + '_params.proto'
       )
     pd = skills_pb2.ParameterDescription(
@@ -4810,7 +4592,7 @@ class BehaviorTree:
       if return_value_message_full_name:
         return_full_name = return_value_message_full_name
       else:
-        return_full_name = _get_single_message_name_from_file(
+        return_full_name = bt_util.get_single_message_name_from_file(
             return_descriptor_set, pseudo_file + '_return.proto'
         )
       rd = skills_pb2.ReturnValueDescription(
@@ -4857,7 +4639,7 @@ class BehaviorTree:
 
     if parameter_proto:
       parameter_message_name, parameter_file_descriptor_set = (
-          _build_file_descriptor_set(parameter_proto)
+          bt_util.build_file_descriptor_set(parameter_proto)
       )
       pd = skills_pb2.ParameterDescription(
           parameter_message_full_name=parameter_message_name
@@ -4866,7 +4648,7 @@ class BehaviorTree:
       self._description.parameter_description.CopyFrom(pd)
     if return_value_proto:
       return_value_message_name, return_value_file_descriptor_set = (
-          _build_file_descriptor_set(return_value_proto)
+          bt_util.build_file_descriptor_set(return_value_proto)
       )
       rd = skills_pb2.ReturnValueDescription(
           return_value_message_full_name=return_value_message_name
@@ -4940,85 +4722,3 @@ class BehaviorTree:
         if self._metadata.HasField('documentation')
         else ''
     )
-
-
-def _add_to_transitive_file_descriptor_set(
-    fd: descriptor.FileDescriptor,
-    fd_set: descriptor_pb2.FileDescriptorSet,
-    added_files: set[str],
-) -> descriptor_pb2.FileDescriptorSet:
-  """Adds fd to the FileDescriptorSet proto given by fd_set.
-
-  fd and all of its transitive dependencies will be added unless already present
-  in added_files.
-
-  Args:
-    fd: The FileDescriptor to add
-    fd_set: The FileDescriptorSet proto to add fd to.
-    added_files: Set of files already in fd_set. Updated from any files added by
-      this call recursively.
-
-  Returns:
-    fd_set
-  """
-  if fd.name in added_files:
-    return fd_set
-
-  fd_proto = descriptor_pb2.FileDescriptorProto()
-  fd.CopyToProto(fd_proto)
-  fd_set.file.append(fd_proto)
-  added_files.add(fd.name)
-
-  for dep in fd.dependencies:
-    _add_to_transitive_file_descriptor_set(dep, fd_set, added_files)
-
-  return fd_set
-
-
-def _build_file_descriptor_set(
-    msg: type[AnyType],
-) -> tuple[str, descriptor_pb2.FileDescriptorSet]:
-  """Build a FileDescriptorSet proto from a given proto class.
-
-  The given proto must have a DESCRIPTOR property. This is usually the case,
-  when it is generated by the build system and imported.
-
-  Args:
-    msg: The proto message to generate a descriptor set for.
-
-  Returns:
-    A tuple that contains the full name of the message and the FileDescriptorSet
-    proto with the extracted transitive file descriptor set.
-  """
-
-  if not hasattr(msg, 'DESCRIPTOR'):
-    raise AttributeError(
-        'Passed message does not have a DESCRIPTOR. Ensure that the proto is'
-        ' build and imported correctly.'
-    )
-
-  fds = descriptor_pb2.FileDescriptorSet()
-  added_files = set()
-  _add_to_transitive_file_descriptor_set(msg.DESCRIPTOR.file, fds, added_files)
-
-  return msg.DESCRIPTOR.full_name, fds
-
-
-def _get_single_message_name_from_file(
-    desc_set: descriptor_pb2.FileDescriptorSet, filename
-) -> str | None:
-  """Returns the single message name defined in a FileDescriptorSet file.
-
-  Returns the full name of the message type which is defined in the given file
-  of the given FileDescriptorSet. Returns None if the file is not found. Raises
-  an assertion error if the file does not define exactly one message type.
-
-  Args:
-    desc_set: The FileDescriptorSet in which to search.
-    filename: The name of the file in which to search for the message type.
-  """
-  for file in desc_set.file:
-    if file.name == filename:
-      assert len(file.message_type) == 1
-      return file.package + '.' + file.message_type[0].name
-  return None
