@@ -98,12 +98,21 @@ func ServiceManifest(m *smpb.ServiceManifest, options ...ServiceManifestOption) 
 	); err != nil {
 		return fmt.Errorf("invalid service config for Service %q: %w", id, err)
 	}
-
 	return nil
 }
 
+type processedServiceManifestOptions struct {
+}
+
+// ProcessedServiceManifestOption is an option for validating a ProcessedServiceManifest.
+type ProcessedServiceManifestOption func(*processedServiceManifestOptions)
+
 // ProcessedServiceManifest validates a ProcessedServiceManifest.
-func ProcessedServiceManifest(m *smpb.ProcessedServiceManifest) error {
+func ProcessedServiceManifest(m *smpb.ProcessedServiceManifest, options ...ProcessedServiceManifestOption) error {
+	opts := &processedServiceManifestOptions{}
+	for _, opt := range options {
+		opt(opts)
+	}
 	if m == nil {
 		return fmt.Errorf("ProcessedServiceManifest must not be nil")
 	}
@@ -225,6 +234,7 @@ func validateServiceDef(sd *smpb.ServiceDef, files *protoregistry.Files) (map[st
 				return nil, fmt.Errorf("could not find inspection data proto message %q in provided descriptors: %w", config.GetDataProtoMessageFullName(), err)
 			}
 		}
+
 	}
 
 	// Validate the Service's volumes.

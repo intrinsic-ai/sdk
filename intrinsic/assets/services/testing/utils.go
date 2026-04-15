@@ -17,14 +17,16 @@ import (
 )
 
 type makeServiceManifestOptions struct {
-	configMessageFullName        string
-	defaultConfigurationFilename *string
-	imageFilenames               []string
-	metadata                     *smpb.ServiceMetadata
-	realSpec                     *smpb.ServicePodSpec
-	serviceInspectionConfig      *sipb.ServiceInspectionConfig
-	serviceProtoPrefixes         []string
-	simSpec                      *smpb.ServicePodSpec
+	configMessageFullName          string
+	defaultConfigurationFilename   *string
+	imageFilenames                 []string
+	metadata                       *smpb.ServiceMetadata
+	realSpec                       *smpb.ServicePodSpec
+	serviceInspectionConfig        *sipb.ServiceInspectionConfig
+	serviceProtoPrefixes           []string
+	simSpec                        *smpb.ServicePodSpec
+	supportsDynamicReconfiguration bool
+	supportsServiceState           bool
 }
 
 // MakeServiceManifestOption is an option for MakeServiceManifest.
@@ -88,6 +90,20 @@ func WithSimSpec(spec *smpb.ServicePodSpec) MakeServiceManifestOption {
 	}
 }
 
+// WithSupportsDynamicReconfiguration specifies the boolean supports_dynamic_reconfiguration field.
+func WithSupportsDynamicReconfiguration(supports bool) MakeServiceManifestOption {
+	return func(opts *makeServiceManifestOptions) {
+		opts.supportsDynamicReconfiguration = supports
+	}
+}
+
+// WithSupportsServiceState specifies the boolean supports_service_state field.
+func WithSupportsServiceState(supports bool) MakeServiceManifestOption {
+	return func(opts *makeServiceManifestOptions) {
+		opts.supportsServiceState = supports
+	}
+}
+
 // MakeServiceManifest makes a ServiceManifest for testing.
 func MakeServiceManifest(t *testing.T, options ...MakeServiceManifestOption) *smpb.ServiceManifest {
 	t.Helper()
@@ -134,11 +150,13 @@ func MakeServiceManifest(t *testing.T, options ...MakeServiceManifestOption) *sm
 	return &smpb.ServiceManifest{
 		Metadata: opts.metadata,
 		ServiceDef: &smpb.ServiceDef{
-			ConfigMessageFullName:   opts.configMessageFullName,
-			ServiceInspectionConfig: opts.serviceInspectionConfig,
-			ServiceProtoPrefixes:    opts.serviceProtoPrefixes,
-			RealSpec:                opts.realSpec,
-			SimSpec:                 opts.simSpec,
+			ConfigMessageFullName:          opts.configMessageFullName,
+			RealSpec:                       opts.realSpec,
+			ServiceInspectionConfig:        opts.serviceInspectionConfig,
+			ServiceProtoPrefixes:           opts.serviceProtoPrefixes,
+			SimSpec:                        opts.simSpec,
+			SupportsDynamicReconfiguration: opts.supportsDynamicReconfiguration,
+			SupportsServiceState:           opts.supportsServiceState,
 		},
 		Assets: &smpb.ServiceAssets{
 			DefaultConfigurationFilename: opts.defaultConfigurationFilename,
@@ -148,15 +166,17 @@ func MakeServiceManifest(t *testing.T, options ...MakeServiceManifestOption) *sm
 }
 
 type makeProcessedServiceManifestOptions struct {
-	configMessageFullName   string
-	defaultConfiguration    *anypb.Any
-	fileDescriptorSet       *dpb.FileDescriptorSet
-	images                  map[string]*imagepb.Image
-	metadata                *smpb.ServiceMetadata
-	realSpec                *smpb.ServicePodSpec
-	serviceInspectionConfig *sipb.ServiceInspectionConfig
-	serviceProtoPrefixes    []string
-	simSpec                 *smpb.ServicePodSpec
+	configMessageFullName          string
+	defaultConfiguration           *anypb.Any
+	fileDescriptorSet              *dpb.FileDescriptorSet
+	images                         map[string]*imagepb.Image
+	metadata                       *smpb.ServiceMetadata
+	realSpec                       *smpb.ServicePodSpec
+	serviceInspectionConfig        *sipb.ServiceInspectionConfig
+	serviceProtoPrefixes           []string
+	simSpec                        *smpb.ServicePodSpec
+	supportsDynamicReconfiguration bool
+	supportsServiceState           bool
 }
 
 // MakeProcessedServiceManifestOption is an option for MakeProcessedServiceManifest.
@@ -229,6 +249,20 @@ func WithProcessedSimSpec(spec *smpb.ServicePodSpec) MakeProcessedServiceManifes
 	}
 }
 
+// WithProcessedSupportsDynamicReconfiguration specifies the deprecated supports_dynamic_reconfiguration field.
+func WithProcessedSupportsDynamicReconfiguration(supports bool) MakeProcessedServiceManifestOption {
+	return func(opts *makeProcessedServiceManifestOptions) {
+		opts.supportsDynamicReconfiguration = supports
+	}
+}
+
+// WithProcessedSupportsServiceState specifies the deprecated supports_service_state field.
+func WithProcessedSupportsServiceState(supports bool) MakeProcessedServiceManifestOption {
+	return func(opts *makeProcessedServiceManifestOptions) {
+		opts.supportsServiceState = supports
+	}
+}
+
 // MakeProcessedServiceManifest makes a ProcessedServiceManifest for testing.
 func MakeProcessedServiceManifest(t *testing.T, options ...MakeProcessedServiceManifestOption) *smpb.ProcessedServiceManifest {
 	t.Helper()
@@ -291,11 +325,13 @@ func MakeProcessedServiceManifest(t *testing.T, options ...MakeProcessedServiceM
 	return &smpb.ProcessedServiceManifest{
 		Metadata: opts.metadata,
 		ServiceDef: &smpb.ServiceDef{
-			ConfigMessageFullName:   opts.configMessageFullName,
-			ServiceInspectionConfig: opts.serviceInspectionConfig,
-			ServiceProtoPrefixes:    opts.serviceProtoPrefixes,
-			RealSpec:                opts.realSpec,
-			SimSpec:                 opts.simSpec,
+			ConfigMessageFullName:          opts.configMessageFullName,
+			RealSpec:                       opts.realSpec,
+			ServiceInspectionConfig:        opts.serviceInspectionConfig,
+			ServiceProtoPrefixes:           opts.serviceProtoPrefixes,
+			SimSpec:                        opts.simSpec,
+			SupportsDynamicReconfiguration: opts.supportsDynamicReconfiguration,
+			SupportsServiceState:           opts.supportsServiceState,
 		},
 		Assets: &smpb.ProcessedServiceAssets{
 			DefaultConfiguration: opts.defaultConfiguration,
