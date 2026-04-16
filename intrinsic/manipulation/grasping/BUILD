@@ -9,11 +9,29 @@ load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@rules_python//python:defs.bzl", "py_library")
+load("//bazel:go_macros.bzl", "go_proto_library")
 
 cc_proto_library(
     name = "grasp_cc_proto",
     visibility = ["//intrinsic:public_api_users"],
     deps = [":grasp_proto"],
+)
+
+go_proto_library(
+    name = "grasp_annotations_go_proto",
+    importpath = "intrinsic/manipulation/grasping/grasp_annotations_go_proto",
+    protos = [":grasp_annotations_proto"],
+    visibility = [
+        "//intrinsic/logging:__subpackages__",
+        "//intrinsic/manipulation/service:__subpackages__",
+        "//intrinsic/manipulation/skills:__subpackages__",
+    ],
+    deps = [
+        "//intrinsic/math/proto:point_go_proto",
+        "//intrinsic/math/proto:pose_go_proto",
+        "//intrinsic/math/proto:quaternion_go_proto",
+        "//intrinsic/math/proto:vector3_go_proto",
+    ],
 )
 
 proto_library(
@@ -37,6 +55,26 @@ py_proto_library(
     name = "grasp_py_pb2",
     visibility = ["//intrinsic:public_api_users"],
     deps = [":grasp_proto"],
+)
+
+go_proto_library(
+    name = "grasp_annotator_go_proto",
+    importpath = "intrinsic/manipulation/grasping/grasp_annotator_go_proto",
+    protos = [":grasp_annotator_proto"],
+    visibility = [
+        "//intrinsic/manipulation/service:__subpackages__",
+        "//intrinsic/manipulation/skills:__subpackages__",
+        "//intrinsic/perception:__subpackages__",
+    ],
+    deps = [
+        "//intrinsic/geometry/proto:axis_aligned_bounding_box_go_proto",
+        "//intrinsic/geometry/proto:oriented_bounding_box_go_proto",
+        "//intrinsic/geometry/proto:triangle_mesh_go_proto",
+        "//intrinsic/geometry/proto/v1:triangle_mesh_go_proto",
+        "//intrinsic/math/proto:pose_go_proto",
+        "//intrinsic/math/proto:vector2_go_proto",
+        "//intrinsic/math/proto:vector3_go_proto",
+    ],
 )
 
 py_library(

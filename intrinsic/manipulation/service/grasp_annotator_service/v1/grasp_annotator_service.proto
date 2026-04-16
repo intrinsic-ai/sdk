@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.grasping.service.grasp_annotator_service.v1;
 
+import "google/api/annotations.proto";
 import "google/rpc/status.proto";
 import "intrinsic/manipulation/grasping/grasp_annotations.proto";
 import "intrinsic/manipulation/grasping/grasp_annotator.proto";
@@ -182,18 +183,38 @@ message ResetAnnotationsResponse {}
 
 service GraspAnnotator {
   // Annotate grasps.
-  rpc Annotate(GraspAnnotatorRequest) returns (GraspAnnotatorResponse) {}
+  rpc Annotate(GraspAnnotatorRequest) returns (GraspAnnotatorResponse) {
+    option (google.api.http) = {
+      post: "/v1/graspAnnotator:annotate"
+      body: "*"
+    };
+  }
 
   // Generate list of unprocessed grasp annotation poses.
   rpc Generate(GraspAnnotatorGenerateRequest)
-      returns (GraspAnnotatorGenerateResponse) {}
+      returns (GraspAnnotatorGenerateResponse) {
+    option (google.api.http) = {
+      post: "/v1/graspAnnotator:generate"
+      body: "*"
+    };
+  }
 
   // Score grasp annotations.
-  rpc Score(GraspAnnotatorScoreRequest) returns (GraspAnnotatorScoreResponse) {}
+  rpc Score(GraspAnnotatorScoreRequest) returns (GraspAnnotatorScoreResponse) {
+    option (google.api.http) = {
+      post: "/v1/graspAnnotator:score"
+      body: "*"
+    };
+  }
 
   // Filter grasp annotations by constraints.
   rpc Filter(GraspAnnotatorFilterRequest)
-      returns (GraspAnnotatorFilterResponse) {}
+      returns (GraspAnnotatorFilterResponse) {
+    option (google.api.http) = {
+      post: "/v1/graspAnnotator:filter"
+      body: "*"
+    };
+  }
 
   // Visualize grasp annotations.
   rpc Visualize(GraspAnnotatorVisualizeRequest)
@@ -201,17 +222,37 @@ service GraspAnnotator {
 
   // Save annotations to KV store.
   rpc SaveAnnotations(SaveAnnotationsRequest)
-      returns (SaveAnnotationsResponse) {}
+      returns (SaveAnnotationsResponse) {
+    option (google.api.http) = {
+      post: "/v1/graspAnnotator:saveAnnotations"
+      body: "*"
+    };
+  }
 
   // Fetch saved annotations from KV store
   rpc FetchAnnotations(FetchAnnotationsRequest)
-      returns (FetchAnnotationsResponse) {}
+      returns (FetchAnnotationsResponse) {
+    option (google.api.http) = {
+      post: "/v1/graspAnnotator:fetchAnnotations"
+      body: "*"
+    };
+  }
 
   // Copy annotations to another KV store
   rpc CopyAnnotations(CopyAnnotationsRequest)
-      returns (CopyAnnotationsResponse) {}
+      returns (CopyAnnotationsResponse) {
+    option (google.api.http) = {
+      post: "/v1/graspAnnotator:copyAnnotations"
+      body: "*"
+    };
+  }
 
   // Reset annotations.
   rpc ResetAnnotations(ResetAnnotationsRequest)
-      returns (ResetAnnotationsResponse) {}
+      returns (ResetAnnotationsResponse) {
+    option (google.api.http) = {
+      post: "/v1/graspAnnotator:resetAnnotations"
+      body: "*"
+    };
+  }
 }
