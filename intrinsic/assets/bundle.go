@@ -15,7 +15,6 @@ import (
 	"intrinsic/assets/imageutils"
 	"intrinsic/assets/ioutils"
 	"intrinsic/assets/processes/processbundle"
-	"intrinsic/assets/processes/processvalidate"
 	"intrinsic/assets/services/servicebundle"
 	"intrinsic/skills/skillbundle"
 
@@ -217,7 +216,6 @@ func (b processedProcessBundle) Release(details VersionDetails) *acpb.Asset {
 	m := cloneOf(pa.GetMetadata())
 	m.IdVersion.Version = details.Version
 	m.ReleaseNotes = details.ReleaseNotes
-	processvalidate.FillBackwardsCompatibleVersion(pa, details.Version)
 
 	return &acpb.Asset{
 		Metadata:        m,

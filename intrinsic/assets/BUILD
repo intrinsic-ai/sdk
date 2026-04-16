@@ -205,7 +205,6 @@ go_library(
         "//intrinsic/assets/hardware_devices:hardwaredevicebundle",
         "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",
         "//intrinsic/assets/processes:processbundle",
-        "//intrinsic/assets/processes:processvalidate",
         "//intrinsic/assets/processes/proto:process_asset_go_proto",
         "//intrinsic/assets/proto:asset_tag_go_proto",
         "//intrinsic/assets/proto:asset_type_go_proto",
