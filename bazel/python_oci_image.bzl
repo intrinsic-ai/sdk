@@ -175,7 +175,7 @@ def python_oci_image(
     if base == None:
         base = Label("@distroless_python3")
 
-    layer_kwargs = {key: value for key, value in kwargs.items() if key in ["compatible_with", "data_path", "directory", "tags", "testonly"]}
+    layer_kwargs = {key: value for key, value in kwargs.items() if key in ["compatible_with", "directory", "tags", "testonly"]}
     layers = python_layers(
         name = name,
         binary = binary,
