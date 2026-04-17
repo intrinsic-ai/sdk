@@ -9,6 +9,12 @@ option go_package = "intrinsic/world/proto/simulation_component_go_proto";
 // Component indicating how the owning Entity (or the object/collection
 // represented by the owning entity) should be treated in simulation.
 message SimulationComponent {
+  // If true, the entity or object is disabled in the simulated world.
+  //
+  // NOTE: It is recommended to *not* set this value to true for objects with
+  // non-fixed joints or sensors as associated hardware device services may not
+  // function in sim.
+  bool disabled = 4;
   // If true, the entity or object is immovable (not affected by physics during
   // simulation.).
   bool is_static = 1;
