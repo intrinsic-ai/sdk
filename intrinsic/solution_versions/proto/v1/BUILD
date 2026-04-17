@@ -19,6 +19,7 @@ go_proto_library(
     importpath = "intrinsic/solution_versions/proto/v1/snapshot_go_proto",
     protos = [":snapshot_proto"],
     visibility = [
+        "//intrinsic/solution_copy:__subpackages__",
         "//intrinsic/solution_versions:__subpackages__",
         "//intrinsic/tools/inctl/cmd:__subpackages__",
     ],
@@ -45,6 +46,7 @@ go_proto_library(
         "//intrinsic/frontend/cloud/portal_bridge:__subpackages__",
         "//intrinsic/kubernetes/data_store/http_endpoints:__pkg__",
         "//intrinsic/performance/inctl:__subpackages__",
+        "//intrinsic/solution_copy:__subpackages__",
         "//intrinsic/solution_versions:__subpackages__",
         "//intrinsic/tools/inctl/cmd:__subpackages__",
     ],
@@ -78,6 +80,7 @@ go_proto_library(
         "//intrinsic/kubernetes/data_store/http_endpoints:__pkg__",
         "//intrinsic/kubernetes/workcell_spec:__pkg__",
         "//intrinsic/performance/inctl:__subpackages__",
+        "//intrinsic/solution_copy:__subpackages__",
         "//intrinsic/solution_versions:__subpackages__",
         "//intrinsic/tools/inctl/cmd:__subpackages__",
     ],
