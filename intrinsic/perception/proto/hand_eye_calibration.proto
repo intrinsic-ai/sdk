@@ -26,6 +26,8 @@ option go_package = "intrinsic/perception/proto/hand_eye_calibration_go_proto";
 // pairs ((D_t_A)_1, (B_t_C)_1),...,((D_t_A)_n, (B_t_C)_n) such that, for all i:
 //   (A_t_D)_i ~= A_t_B * (B_t_C)_i * C_t_D
 message HandEyeCalibrationRequest {
+  option deprecated = true;
+
   enum HandEyeCalibrationType {
     UNKNOWN = 0;
     // The camera is stationary (fixed in world-space/relative to the robot's
@@ -50,6 +52,8 @@ message HandEyeCalibrationRequest {
   // A pair of input poses corresponding to one possible state of the
   // hand-eye-calibration setup.
   message InputPosePair {
+    option deprecated = true;
+
     oneof result_detection {
       intrinsic_proto.Pose camera_t_object = 1;
       PatternDetection pattern_detection = 3;
@@ -104,14 +108,20 @@ message HandEyeCalibrationRequest {
 }
 
 message HandEyeCalibrationResult {
+  option deprecated = true;
+
   // Returned poses if HandEyeCalibrationRequest.type == 'STATIONARY_CAMERA'.
   message StationaryCameraResultPoses {
+    option deprecated = true;
+
     intrinsic_proto.Pose flange_t_object = 1;
     intrinsic_proto.Pose base_t_camera = 2;
   }
 
   // Returned poses if HandEyeCalibrationRequest.type == 'MOVING_CAMERA'.
   message MovingCameraResultPoses {
+    option deprecated = true;
+
     intrinsic_proto.Pose flange_t_camera = 1;
     intrinsic_proto.Pose base_t_object = 2;
   }
