@@ -53,6 +53,9 @@ var (
 	// FlagOutput holds the value of the --output flag.
 	FlagOutput = printer.TextOutputFormat
 
+
+	// FlagFullHelp holds the value of the --full help flag.
+	FlagFullHelp = false
 )
 
 // RootCmd is the top level command of inctl.
@@ -187,8 +190,44 @@ func Inctl() {
 	}
 }
 
+// helpCmd overrides the default help command to support the --full flag.
+var helpCmd = &cobra.Command{
+	Use:   "help [command]",
+	Short: "Help about any command",
+	Run: func(cmd *cobra.Command, args []string) {
+		if FlagFullHelp {
+			target := RootCmd
+			// If arguments are provided, find the specific subcommand to print help for.
+			if len(args) > 0 {
+				var err error
+				target, _, err = RootCmd.Find(args)
+				if err != nil {
+					fmt.Fprintln(cmd.OutOrStderr(), err)
+					return
+				}
+			}
+			PrintFullTree(target, "")
+			return
+		}
+		// Fallback to standard help
+		if len(args) == 0 {
+			RootCmd.Help()
+			return
+		}
+		// Find the target command from the arguments.
+		target, _, err := RootCmd.Find(args)
+		if err != nil {
+			fmt.Fprintln(cmd.OutOrStderr(), err)
+			return
+		}
+		target.Help()
+	},
+}
+
 func init() {
 	RootCmd.PersistentFlags().StringVarP(
 		&FlagOutput, printer.KeyOutput, "o", printer.TextOutputFormat,
 		fmt.Sprintf("(optional) Output format. One of: (%s)", strings.Join(printer.AllowedFormats, ", ")))
+	helpCmd.Flags().BoolVar(&FlagFullHelp, "full", false, "Display description of all subcommands and exit.")
+	RootCmd.SetHelpCommand(helpCmd)
 }

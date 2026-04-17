@@ -6,7 +6,10 @@ package(default_visibility = ["//visibility:public"])
 
 go_library(
     name = "root",
-    srcs = ["root.go"],
+    srcs = [
+        "full_help.go",
+        "root.go",
+    ],
     importpath = "intrinsic/tools/inctl/cmd/root",
     deps = [
         "//intrinsic/production:intrinsic",
