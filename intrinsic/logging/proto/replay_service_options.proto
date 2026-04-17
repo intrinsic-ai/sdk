@@ -84,18 +84,8 @@ message LayoutGenerationOptions {
   // If true, enables layout generation.
   bool enabled = 1;
 
-  // The float percentage of the recording time at which to generate the
-  // heuristic visualization layout.
-  //
-  // This value must be in the range [0, 1].
-  // Defaults to 0.6, which causes the layout to be generated after 60% of the
-  // recording time has been parsed.
-  //
-  // If this threshold is too low, then the visualizers might not have
-  // encountered the necessary state to generate all desired layouts. But if
-  // this threshold is too high, then for a large recording, visualization
-  // layouts might take a long time to be generated.
-  optional float layout_generation_threshold = 2;
+  reserved 2;
+  reserved "layout_generation_threshold";
 }
 
 // Options for the RawMessage visualizer, which visualizes:
