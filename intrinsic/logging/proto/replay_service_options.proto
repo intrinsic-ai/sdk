@@ -99,6 +99,16 @@ message RawMessageVisualizerOptions {
 
   // Maximum number of bytes to display in bytes fields.
   optional uint32 bytes_max_display_length = 3;
+
+  // The priority level for this visualizer during the progressive data loading
+  // phase. Higher numbers = processed earlier. Visualizers with identical
+  // priorities are grouped into the same time-step pass over the recording
+  // file.
+  //
+  // This enables progressive sequential loading, where critical data (e.g.,
+  // text logs) is fully loaded and visualized before heavier data (e.g., point
+  // clouds).
+  optional int32 load_priority = 4;
 }
 
 // Options for the TextLogs visualizer, which visualizes:
@@ -109,6 +119,16 @@ message TextLogsVisualizerOptions {
 
   // Options for filtering out recorded logs going into the visualizer.
   optional FilterOptions filters = 2;
+
+  // The priority level for this visualizer during the progressive data loading
+  // phase. Higher numbers = processed earlier. Visualizers with identical
+  // priorities are grouped into the same time-step pass over the recording
+  // file.
+  //
+  // This enables progressive sequential loading, where critical data (e.g.,
+  // text logs) is fully loaded and visualized before heavier data (e.g., point
+  // clouds).
+  optional int32 load_priority = 3;
 }
 
 // Options for the Info visualizer, which visualizes:
@@ -148,6 +168,16 @@ message InfoVisualizerOptions {
 
   // Options for the process panel.
   optional ProcessPanelOptions process_panel = 4;
+
+  // The priority level for this visualizer during the progressive data loading
+  // phase. Higher numbers = processed earlier. Visualizers with identical
+  // priorities are grouped into the same time-step pass over the recording
+  // file.
+  //
+  // This enables progressive sequential loading, where critical data (e.g.,
+  // text logs) is fully loaded and visualized before heavier data (e.g., point
+  // clouds).
+  optional int32 load_priority = 5;
 }
 
 // Options for the Scene visualizer, which visualizes:
@@ -159,6 +189,16 @@ message SceneVisualizerOptions {
 
   // Options for filtering out recorded logs going into the visualizer.
   optional FilterOptions filters = 2;
+
+  // The priority level for this visualizer during the progressive data loading
+  // phase. Higher numbers = processed earlier. Visualizers with identical
+  // priorities are grouped into the same time-step pass over the recording
+  // file.
+  //
+  // This enables progressive sequential loading, where critical data (e.g.,
+  // text logs) is fully loaded and visualized before heavier data (e.g., point
+  // clouds).
+  optional int32 load_priority = 3;
 }
 
 // Options for the Perception visualizer, which visualizes:
@@ -188,6 +228,16 @@ message PerceptionVisualizerOptions {
 
   // Options for image compression.
   optional ImageCompressionOptions image_compression = 4;
+
+  // The priority level for this visualizer during the progressive data loading
+  // phase. Higher numbers = processed earlier. Visualizers with identical
+  // priorities are grouped into the same time-step pass over the recording
+  // file.
+  //
+  // This enables progressive sequential loading, where critical data (e.g.,
+  // text logs) is fully loaded and visualized before heavier data (e.g., point
+  // clouds).
+  optional int32 load_priority = 5;
 }
 
 // Options for the Plots visualizer, which visualizes:
@@ -206,6 +256,16 @@ message PlotsVisualizerOptions {
   //     }
   //   }
   optional FilterOptions filters = 2;
+
+  // The priority level for this visualizer during the progressive data loading
+  // phase. Higher numbers = processed earlier. Visualizers with identical
+  // priorities are grouped into the same time-step pass over the recording
+  // file.
+  //
+  // This enables progressive sequential loading, where critical data (e.g.,
+  // text logs) is fully loaded and visualized before heavier data (e.g., point
+  // clouds).
+  optional int32 load_priority = 3;
 }
 
 message VisualizationOptions {
