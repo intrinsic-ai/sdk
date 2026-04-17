@@ -41,6 +41,8 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":gtest_wrapper",
+        "@abseil-cpp//absl/debugging:failure_signal_handler",
+        "@abseil-cpp//absl/debugging:symbolize",
         "@abseil-cpp//absl/flags:parse",
         "@com_google_fuzztest//fuzztest:init_fuzztest",
     ],

@@ -7,6 +7,8 @@
 
 #include <cstdio>
 
+#include "absl/debugging/failure_signal_handler.h"
+#include "absl/debugging/symbolize.h"
 #include "absl/flags/parse.h"
 #include "benchmark/benchmark.h"
 #include "fuzztest/init_fuzztest.h"
@@ -35,6 +37,12 @@ int main(int argc, char** argv) {
 
   // absl::ParseCommandLine to return error on invalid flags.
   absl::ParseCommandLine(argc, argv);
+
+  // Provide stack traces on SIGSEGV and other signals.
+  absl::InitializeSymbolizer(argv[0]);
+  absl::FailureSignalHandlerOptions options;
+  options.call_previous_handler = true;
+  absl::InstallFailureSignalHandler(options);
 
   return RUN_ALL_TESTS();
 }

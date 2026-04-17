@@ -13,6 +13,8 @@ cc_library(
     hdrs = ["init_intrinsic.h"],
     deps = [
         "//intrinsic/icon/utils:log",
+        "@abseil-cpp//absl/debugging:failure_signal_handler",
+        "@abseil-cpp//absl/debugging:symbolize",
         "@abseil-cpp//absl/flags:flag",
         "@abseil-cpp//absl/flags:parse",
         "@abseil-cpp//absl/flags:usage",
