@@ -110,6 +110,7 @@ proto_library(
     deps = [
         "//intrinsic/math/proto:pose_proto",
         "//intrinsic/math/proto:vector3_proto",
+        "@com_google_protobuf//:timestamp_proto",
     ],
 )
 

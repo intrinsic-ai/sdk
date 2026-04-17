@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.world;
 
+import "google/protobuf/timestamp.proto";
 import "intrinsic/math/proto/pose.proto";
 import "intrinsic/math/proto/vector3.proto";
 
