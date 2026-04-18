@@ -4,6 +4,7 @@ package logs
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -29,15 +30,19 @@ import (
 )
 
 const (
-	keyOutputDir    = "output_dir"
-	keyWorkcell     = "workcell"
-	keyFilters      = "filters"
-	keyInstance     = "instance"
-	keyWithOpName   = "operation"
-	orgHeader       = "organization-id"
-	keyTypeResource = "resource"
-	keyStartTime    = "start_time"
-	keyEndTime      = "end_time"
+	keyOutputDir       = "output_dir"
+	keyWorkcell        = "workcell"
+	keyFilters         = "filters"
+	keyInstance        = "instance"
+	keyWithOpName      = "operation"
+	orgHeader          = "organization-id"
+	keyTypeResource    = "resource"
+	keyStartTime       = "start_time"
+	keyEndTime         = "end_time"
+	maxFailures        = 3
+	keyMaxWaitTime     = "max_wait_time"
+	keyOutput          = "output"
+	defaultMaxWaitTime = 15 * time.Minute
 )
 
 func newClient(ctx context.Context) (tfpb.TextLogFetcherClient, *grpc.ClientConn, error) {
@@ -60,6 +65,14 @@ type pullRequestParams struct {
 	endTime       *timestamppb.Timestamp
 	withOpName    string
 	filters       []string
+	maxWaitTime   time.Duration
+}
+
+type jsonOutput struct {
+	Status        string `json:"status"`
+	Message       string `json:"message,omitempty"`
+	OperationName string `json:"operation_name,omitempty"`
+	DownloadPath  string `json:"download_path,omitempty"`
 }
 
 // validatePullFlags validates the pull command flags.
@@ -115,6 +128,7 @@ func validatePullFlags(in *pullRequestParams) (*pullRequestParams, error) {
 		endTime:       in.endTime,
 		withOpName:    withOpName,
 		filters:       in.filters,
+		maxWaitTime:   in.maxWaitTime,
 	}, nil
 }
 
@@ -138,6 +152,21 @@ Example:
 	Args: cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
+		isJSON := pullCmdFlags.GetString(keyOutput) == "json"
+
+		fail := func(err error) error {
+			if isJSON {
+				output := jsonOutput{
+					Status:  "error",
+					Message: err.Error(),
+				}
+				enc := json.NewEncoder(cmd.OutOrStdout())
+				enc.SetIndent("", "  ")
+				enc.Encode(output)
+				os.Exit(1)
+			}
+			return err
+		}
 
 		var startTime, endTime *timestamppb.Timestamp
 		startTimeStr := pullCmdFlags.GetString(keyStartTime)
@@ -145,7 +174,7 @@ Example:
 		if startTimeStr != "" {
 			t, err := time.Parse(time.RFC3339, startTimeStr)
 			if err != nil {
-				return errors.Wrapf(err, "invalid --start_time value: %s", startTimeStr)
+				return fail(errors.Wrapf(err, "invalid --start_time value: %s", startTimeStr))
 			}
 			startTime = timestamppb.New(t)
 		}
@@ -153,9 +182,17 @@ Example:
 		if endTimeStr != "" {
 			t, err := time.Parse(time.RFC3339, endTimeStr)
 			if err != nil {
-				return errors.Wrapf(err, "invalid --end_time value: %s", endTimeStr)
+				return fail(errors.Wrapf(err, "invalid --end_time value: %s", endTimeStr))
 			}
 			endTime = timestamppb.New(t)
+		}
+
+		wt, err := time.ParseDuration(pullCmdFlags.GetString(keyMaxWaitTime))
+		if err != nil {
+			return fail(errors.Errorf("invalid --max_wait_time value: %s", pullCmdFlags.GetString(keyMaxWaitTime)))
+		}
+		if wt < 0 {
+			return fail(errors.Errorf("--max_wait_time must be non-negative"))
 		}
 
 		in := &pullRequestParams{
@@ -169,30 +206,31 @@ Example:
 			endTime:       endTime,
 			withOpName:    pullCmdFlags.GetString(keyWithOpName),
 			filters:       pullCmdFlags.GetStringSlice(keyFilters),
+			maxWaitTime:   wt,
 		}
 
 		params, err := validatePullFlags(in)
 		if err != nil {
-			return err
+			return fail(err)
 		}
 
 		fileInfo, err := os.Stat(params.outputDir)
 		if err != nil {
-			return errors.Errorf("%s specified cannot be found: %s", params.outputDir, err.Error())
+			return fail(errors.Errorf("%s specified cannot be found: %s", params.outputDir, err.Error()))
 		}
 		if !fileInfo.IsDir() {
-			return errors.Errorf("%s is not a directory", params.outputDir)
+			return fail(errors.Errorf("%s is not a directory", params.outputDir))
 		}
 
 		client, conn, err := newClient(ctx)
 		if err != nil {
-			return errors.Wrap(err, "failed to create connection")
+			return fail(errors.Wrap(err, "failed to create connection"))
 		}
 		defer conn.Close()
 
 		assetRefs, err := buildAssetReferences(params.skillIDs, params.resourceNames, params.instanceNames)
 		if err != nil {
-			return err
+			return fail(err)
 		}
 
 		ctx = metadata.AppendToOutgoingContext(ctx, orgHeader, params.org)
@@ -208,44 +246,95 @@ Example:
 
 			op, err := client.CreateAssetLogsPackage(ctx, req)
 			if err != nil {
-				return errors.Wrap(err, "failed to initiate log packaging")
+				return fail(errors.Wrap(err, "failed to initiate log packaging"))
 			}
 
-			fmt.Fprintf(cmd.OutOrStdout(), "Operation started: %s\n", op.GetName())
+			printIfNotJSON(cmd.OutOrStdout(), isJSON, "Operation started: %s\n", op.GetName())
 			opName = op.GetName()
 		} else {
 			opName = params.withOpName
 		}
 
-		fmt.Fprintf(cmd.OutOrStdout(), "Waiting for operation %s to complete...\n", opName)
-		op, err := client.WaitOperation(ctx, &lropb.WaitOperationRequest{Name: opName})
-		if err != nil {
-			return errors.Wrap(err, "failed to get operation status")
-		}
+		printIfNotJSON(cmd.OutOrStdout(), isJSON, "Waiting for operation %s to complete...\n", opName)
+		var op *lropb.Operation
+		failureCount := 0
+		waitStartTime := time.Now()
 
-		if op.GetError() != nil {
-			return errors.Errorf("operation failed: %s", op.GetError().Message)
-		}
+		for {
+			if time.Since(waitStartTime) > params.maxWaitTime {
+				return fail(errors.Errorf("spent %s waiting for operation %s to complete.\n Run with --operation=%s to reinitialize waiting", waitStartTime, opName, opName))
+			}
+			var err error
+			op, err = client.GetOperation(ctx, &lropb.GetOperationRequest{Name: opName})
+			if err != nil {
+				failureCount++
+				printIfNotJSON(cmd.OutOrStderr(), isJSON, "Failed to get operation status (attempt %d/%d): %v\n", failureCount, maxFailures, err)
+				if failureCount > maxFailures {
+					return fail(errors.Wrapf(err, "failed to get operation status after %d failures", maxFailures))
+				}
+				time.Sleep(time.Second)
+				continue
+			}
 
-		if op.Done {
-			fmt.Fprintf(cmd.OutOrStdout(), "Operation completed.\n")
-		} else {
-			fmt.Fprintf(cmd.OutOrStdout(), "Operation is not completed yet. Retry with --operation=%s\n", op.GetName())
-			return nil
+			if op.GetError() != nil {
+				return fail(errors.Errorf("operation failed: %s", op.GetError().Message))
+			}
+
+			if op.Done {
+				printIfNotJSON(cmd.OutOrStdout(), isJSON, "Operation completed.\n")
+				break
+			}
+
+			time.Sleep(5 * time.Second)
 		}
 
 		var resp tfpb.AssetLogsPackageResponse
 		if err := op.GetResponse().UnmarshalTo(&resp); err != nil {
-			return errors.Wrap(err, "failed to unmarshal response")
+			return fail(errors.Wrap(err, "failed to unmarshal response"))
 		}
 
 		if params.outputDir == "" {
-			fmt.Fprintf(cmd.OutOrStdout(), "Since --output_dir is not specified, you can download the logs from %s\n", resp.SignedUrl)
+			if isJSON {
+				output := jsonOutput{
+					Status:        "success",
+					OperationName: opName,
+				}
+				enc := json.NewEncoder(cmd.OutOrStdout())
+				enc.SetIndent("", "  ")
+				enc.Encode(output)
+			} else {
+				fmt.Fprintf(cmd.OutOrStdout(), "Since --output_dir is not specified, you can download the logs from %s\n", resp.SignedUrl)
+			}
 			return nil
 		}
 
-		if err := downloadFile(ctx, resp.SignedUrl, params.outputDir, cmd.OutOrStdout()); err != nil {
-			return err
+		out := cmd.OutOrStdout()
+		if isJSON {
+			out = io.Discard
+		}
+
+		if err := downloadFile(ctx, resp.SignedUrl, params.outputDir, out); err != nil {
+			return fail(err)
+		}
+
+		if isJSON {
+			u, err := url.Parse(resp.SignedUrl)
+			if err != nil {
+				return fail(errors.Wrap(err, "failed to parse signed URL"))
+			}
+			filename := path.Base(u.Path)
+			downloadPath := ""
+			if filename != "" {
+				downloadPath = path.Join(params.outputDir, filename)
+			}
+			output := jsonOutput{
+				Status:        "success",
+				OperationName: opName,
+				DownloadPath:  downloadPath,
+			}
+			enc := json.NewEncoder(cmd.OutOrStdout())
+			enc.SetIndent("", "  ")
+			enc.Encode(output)
 		}
 
 		return nil
@@ -298,6 +387,12 @@ func downloadFile(ctx context.Context, signedURL, outputDir string, out io.Write
 	return nil
 }
 
+func printIfNotJSON(w io.Writer, isJSON bool, format string, a ...any) {
+	if !isJSON {
+		fmt.Fprintf(w, format, a...)
+	}
+}
+
 var pullCmdFlags *cmdutils.CmdFlags
 
 // init registers the fetch command with the showLogs command.
@@ -316,6 +411,8 @@ func init() {
 	pullCmdFlags.StringSlice(keyFilters, []string{}, "Additional regex filters to apply to the query.")
 	pullCmdFlags.String(keyWithOpName, "", "Use this flag to reuse the operation name from a previous fetch command.")
 	pullCmdFlags.String(keyOutputDir, "", "The directory to save the logs to.")
+	pullCmdFlags.String(keyMaxWaitTime, defaultMaxWaitTime.String(), "The maximum time to wait for the operation to complete.")
+	pullCmdFlags.String(keyOutput, "", "Output format. Supported values: json")
 }
 
 // buildAssetReferences builds a list of asset references from the given skill IDs, resource names, and instance names.
