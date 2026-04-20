@@ -6,7 +6,6 @@ package start
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
@@ -16,8 +15,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	opmodepb "intrinsic/config/proto/operation_mode_go_proto"
 	deploygrpcpb "intrinsic/kubernetes/workcell_spec/proto/deploy_go_proto"
@@ -81,14 +78,6 @@ For example:
 			defer conn.Close()
 
 			if err := startSolution(ctx, conn, solutionName, flagOperationMode); err != nil {
-				// intrinsic:*:begin_strip
-				if status.Code(err) == codes.NotFound && strings.HasSuffix(solutionName, "_APPLIC") {
-					printer.PrintSf(
-						"Failed to start solution '%s' which ends with '_APPLIC', which normally will not work with 'inctl solution start'."+
-							"Did you mean to use 'inctl app start-from-catalog' instead?\n",
-						solutionName)
-				}
-				// intrinsic:*:end_strip
 				return err
 			}
 
