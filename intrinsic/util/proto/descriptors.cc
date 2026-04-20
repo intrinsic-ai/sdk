@@ -47,6 +47,21 @@ void MergeFileDescriptorSet(const google::protobuf::Descriptor& descriptor,
   }
 }
 
+void MergeFileDescriptorSet(const google::protobuf::FileDescriptorSet& src_set,
+                            google::protobuf::FileDescriptorSet& dst_set) {
+  absl::flat_hash_set<std::string> dst_files;
+  for (const auto& dst_file : dst_set.file()) {
+    dst_files.emplace(dst_file.name());
+  }
+  for (const google::protobuf::FileDescriptorProto& src_file : src_set.file()) {
+    if (dst_files.contains(src_file.name())) {
+      continue;
+    }
+    dst_files.insert(src_file.name());
+    *dst_set.add_file() = src_file;
+  }
+}
+
 absl::Status AddToDescriptorDatabase(
     google::protobuf::SimpleDescriptorDatabase* db,
     const google::protobuf::FileDescriptorProto& file_descriptor,

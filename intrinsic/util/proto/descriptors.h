@@ -39,6 +39,11 @@ void MergeFileDescriptorSet(google::protobuf::FileDescriptorSet& set) {
   return MergeFileDescriptorSet(*ProtoT::GetDescriptor(), set);
 }
 
+// Merges files from a file descriptor set into another file descriptor set. If
+// a file descriptor already exists in the destination set it is skipped.
+void MergeFileDescriptorSet(const google::protobuf::FileDescriptorSet& src_set,
+                            google::protobuf::FileDescriptorSet& dst_set);
+
 // Populates the given descriptor database with all file descriptors in the
 // given FileDescriptorSet.
 absl::Status PopulateDescriptorDatabase(
