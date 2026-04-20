@@ -3,7 +3,12 @@
 // Package environments provides utilities and helpers for working with the various environments.
 package environments
 
-import "fmt"
+import (
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
+	"strings"
+)
 const (
 	// Prod is the production environment.
 	Prod = "prod"
@@ -93,8 +98,13 @@ func FromProject(project string) (string, error) {
 
 // FromComputeProject returns the environment for the given compute project.
 func FromComputeProject(project string) string {
-	switch project {
-	case "intrinsic-staging":
+	if strings.Contains(project, "-prod-") {
+		return Prod
+	}
+	switch hashProjectName(project) {
+	case "b7219186c3255926d0c158c14b3e0363d6b386115d4c3f1d8e0c9723369ea3b4":
+		return Dev
+	case "bb46d3dc2d207a46a66397e36698c40b66d3c0c364cd3fd2d196f60f4b1d9fd9":
 		return Staging
 	default:
 		return Prod
@@ -239,4 +249,14 @@ func Domain(project string) string {
 	default:
 		return fmt.Sprintf("www.endpoints.%s.cloud.goog", project)
 	}
+}
+
+const projectNameSalt = "2lJEUX97RpOzOvXQJhN+NRt0+KJ4z1KyPXtfe7"
+
+func hashProjectName(name string) string {
+	hasher := sha256.New()
+	hasher.Write([]byte(projectNameSalt))
+	hasher.Write([]byte(name))
+	digest := hasher.Sum(nil)
+	return hex.EncodeToString(digest)
 }
