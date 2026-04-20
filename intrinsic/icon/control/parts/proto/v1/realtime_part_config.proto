@@ -31,8 +31,8 @@ message RealtimePartConfig {
   // Must match an action type that has been registered with
   // `GetGlobalRealtimeActionFactoryRegistry().Register(...)`.
   string safety_action_type_name = 4;
-  // The optional safety configuration for this part.
-  optional SafetyConfig safety_config = 5;
+  // Deprecated
+  optional SafetyConfig safety_config = 5 [deprecated = true];
 
   // If present, this is the name of the resource that this part connects to.
   // Parts can use this to look up kinematics models etc.
