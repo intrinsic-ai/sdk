@@ -195,6 +195,7 @@ func init() {
 	showLogs.Flags().Bool(keyPrefixID, false, "Prefix each log line with the asset ID, e.g., '[my-skill-id]'. Enabled for multiple targets are provided.")
 	showLogs.Flags().Bool(keyFollow, false, "Whether to follow the solution logs.")
 	showLogs.Flags().Bool(keyTimestamps, false, "Whether to include timestamps on each log line.")
+	showLogs.Flags().MarkDeprecated(keyTimestamps, "Flag is deprecated. Timestamps are always added.")
 	showLogs.Flags().Int(keyTailLines, 10, "(optional) The number of recent log lines to display. An input number less than 0 shows all log lines.")
 	showLogs.Flags().String(keySinceSec, "", "Show logs starting since value. Value is either relative (e.g 10m) or \ndate time in RFC3339 format (e.g: 2006-01-02T15:04:05Z07:00)")
 	showLogs.Flags().StringSlice(keyTypeSkill, []string{}, "(optional) Indicates logs source is a skill (or a list of skills)")
