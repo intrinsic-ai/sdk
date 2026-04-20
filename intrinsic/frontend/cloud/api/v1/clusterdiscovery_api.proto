@@ -34,7 +34,9 @@ message ClusterDescription {
   bool can_do_real = 5;
 
   // True if cluster has a GPU.
-  bool has_gpu = 6;
+  // This field is not updated if the GPU is removed or added after
+  // registration. Use GetClusterHardware() instead.
+  bool has_gpu = 6 [deprecated = true];
 
   // Name/ID of the currently running solution. Empty if no solution is running.
   string solution_name = 7;

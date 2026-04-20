@@ -108,7 +108,10 @@ message Cluster {
   string location = 14;  // used for ui only
   string platform_version = 15;
   bool can_do_real = 8;
-  bool has_gpu = 13;
+  // has_gpu is only set on registration and does not update.
+  // Use GetClusterHardware()() if you need to know if the cluster
+  // has a GPU instead.
+  bool has_gpu = 13 [deprecated = true];
   bool rollback_available = 18;
   bool update_available = 20;
   ClusterState cluster_state = 19;
