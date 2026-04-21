@@ -39,6 +39,7 @@ func NewCommand() *cobra.Command {
 		Use:   "stop",
 		Short: "Stop the solution running on a cluster",
 		Long:  "Stop the solution running on a given cluster",
+		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			printer, err := printer.NewPrinter(cmd.Flags().Lookup("output").Value.String())
 			if err != nil {
