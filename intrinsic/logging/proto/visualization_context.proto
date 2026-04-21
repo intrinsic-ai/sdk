@@ -99,6 +99,16 @@ message VisualizationFrameResources {
     intrinsic_proto.world.GeometryComponent geometry = 2;
     BlobReference geometry_blob_ref = 3;
   }
+
+  // Mappings of geometry path to a renderable ID that should be attached.
+  //
+  // Renderable IDs differ based off the geometries they originate from:
+  // - InlineGeometry:
+  //   - The C++ generated fingerprint on the InlineGeometry's ExactGeometry
+  // - Geometry with v1.GeometryStorageRefs:
+  //   - Prefer renderable_ref (CAS URL), but fallback to exact_geometry_ref
+  //   (CAS URL)
+  map<string, string> geometry_path_to_renderable_id = 4;
 }
 
 // Contextual data related to the scene, geometry, and the world itself.
