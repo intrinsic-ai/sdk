@@ -12,6 +12,7 @@
 #include "grpcpp/security/server_credentials.h"
 #include "grpcpp/server.h"
 #include "grpcpp/server_builder.h"
+#include "intrinsic/assets/dependencies/utils.h"
 #include "intrinsic/assets/services/examples/calcserver/calc_server.h"
 #include "intrinsic/assets/services/examples/calcserver/calc_server.pb.h"
 #include "intrinsic/icon/release/file_helpers.h"
@@ -33,7 +34,10 @@ absl::Status MainImpl() {
   auto config = std::make_unique<intrinsic_proto::services::CalculatorConfig>();
   INTR_RETURN_IF_ERROR(UnpackAny(context.config(), *config));
 
-  CalculatorServiceImpl calculator_service(*config);
+  CalculatorServiceImpl calculator_service(
+      *config, [](const auto& dep, absl::string_view interface) {
+        return assets::dependencies::GetDataPayload(dep, interface);
+      });
 
   // Use the port passed in the runtime context, and use a localhost address.
   std::string server_address = absl::StrCat("0.0.0.0:", context.port());

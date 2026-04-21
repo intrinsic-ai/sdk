@@ -21,30 +21,94 @@ enum CalculatorOperation {
 }
 
 message CalculatorConfig {
-  // True to reverse the order of operands when calculating (i.e., y then x
-  // rather than x then y).
+  // True to reverse the order of operands when calculating or converting units
+  // (i.e., y then x rather than x then y).
   bool reverse_order = 1;
 
   optional intrinsic_proto.assets.v1.ResolvedDependency custom_calculation = 2
       [(intrinsic_proto.assets.field_metadata).dependency = {
         requires: "grpc://intrinsic_proto.services.CustomCalculation",
       }];
+
+  optional intrinsic_proto.assets.v1.ResolvedDependency conversion_dataset = 3
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "data://intrinsic_proto.services.ConversionDataset",
+      }];
 }
 
+// ConversionDataset is a container for multiple unit categories.
+// It allows the service to support different types of conversions (e.g.,
+// Length, Weight).
+message ConversionDataset {
+  repeated UnitCategory categories = 1;
+}
+
+// UnitCategory defines a category of units (e.g., "length").
+message UnitCategory {
+  // The name of the category.
+  string name = 1;
+  // The reference unit for this category. All other units in this category
+  // define their conversion relative to this base unit.
+  string base_unit = 2;
+  // The units belonging to this category.
+  repeated Unit units = 3;
+}
+
+// Unit represents a specific unit of measurement.
+message Unit {
+  // The name of the unit (e.g., "meter", "inch").
+  string name = 1;
+  // The conversion method to the base unit.
+  oneof conversion {
+    LinearConversion linear = 2;
+  }
+}
+
+// LinearConversion defines a linear conversion to the base unit using the
+// formula: BaseValue = (Value * factor) + offset
+message LinearConversion {
+  // The multiplicative factor.
+  double factor = 1;
+  // The additive offset.
+  double offset = 2;
+}
+
+// CalculatorRequest specifies operands and the operation for basic
+// calculations.
 message CalculatorRequest {
   CalculatorOperation operation = 1;
   int64 x = 2;
   int64 y = 3;
 }
 
+// CalculatorResponse is the result of a calculation.
 message CalculatorResponse {
   int64 result = 1;
+}
+
+// ConvertRequest specifies the value and units for a conversion request.
+message ConvertRequest {
+  // The numeric value to convert.
+  double value = 1;
+  // The unit of the input value.
+  string from_unit = 2;
+  // The desired output unit.
+  string to_unit = 3;
+  // The category these units belong to (e.g., "length").
+  string category = 4;
+}
+
+// ConvertResponse is the result of a conversion.
+message ConvertResponse {
+  double result = 1;
 }
 
 // Calculator is an example service that performs basic calculations.
 service Calculator {
   // Calculate performs basic calculator operations on two input numbers.
   rpc Calculate(CalculatorRequest) returns (CalculatorResponse) {}
+  // Convert performs unit conversion based on a dataset.
+  rpc Convert(ConvertRequest) returns (ConvertResponse) {}
 }
 
 message CustomCalculateRequest {

@@ -72,6 +72,7 @@ cc_library(
         "//intrinsic/assets/dependencies:utils_cc",
         "//intrinsic/assets/proto/v1:resolved_dependency_cc_proto",
         "//intrinsic/resources/proto:runtime_context_cc_proto",
+        "//intrinsic/util/status:status_conversion_grpc",
         "//intrinsic/util/status:status_macros_grpc",
         "@abseil-cpp//absl/log",
         "@com_github_grpc_grpc//:grpc++",
@@ -343,6 +344,7 @@ py_library(
     deps = [
         ":calc_server_py_pb2",
         ":calc_server_py_pb2_grpc",
+        "//intrinsic/assets/dependencies:utils_py",
         requirement("grpcio"),
         "@com_google_absl_py//absl/logging",
     ],

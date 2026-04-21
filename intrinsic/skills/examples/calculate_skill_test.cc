@@ -32,7 +32,12 @@ TEST(CalculateSkillTest, CalculatesSum) {
   params.set_x(7);
   params.set_y(3);
 
-  CalculatorServiceImpl calculator_service(CalculatorConfig{});
+  CalculatorServiceImpl calculator_service(
+      CalculatorConfig{},
+      [](const auto&,
+         absl::string_view) -> absl::StatusOr<google::protobuf::Any> {
+        return absl::UnimplementedError("Not implemented");
+      });
   intrinsic_proto::assets::v1::ResolvedDependency::Interface interface =
       skill_test_factory.RunService(&calculator_service, "calculator");
   params.mutable_calculator()->mutable_interfaces()->insert(
