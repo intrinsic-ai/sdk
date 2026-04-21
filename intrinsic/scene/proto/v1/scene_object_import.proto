@@ -9,6 +9,7 @@ import "google/longrunning/operations.proto";
 import "google/protobuf/any.proto";
 import "intrinsic/geometry/proto/v1/material.proto";
 import "intrinsic/math/proto/quaternion.proto";
+import "intrinsic/math/proto/vector3.proto";
 import "intrinsic/scene/proto/v1/geometry_stats.proto";
 import "intrinsic/scene/proto/v1/scene_object.proto";
 
@@ -139,6 +140,10 @@ message TransformSceneObject {
   // Rotation to apply to the imported scene object. The rotation is applied to
   // the scene object after scaling.
   optional intrinsic_proto.Quaternion rotation = 2;
+
+  // Translation to apply to the imported scene object. The translation is
+  // applied after scaling and rotation.
+  optional intrinsic_proto.Vector3 translation = 3;
 }
 
 // Geometry operations to apply to the imported geometries in the scene object.
