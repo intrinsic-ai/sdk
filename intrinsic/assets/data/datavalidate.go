@@ -67,17 +67,24 @@ func DataManifest(m *dmpb.DataManifest, options ...DataManifestOption) error {
 }
 
 type dataAssetOptions struct {
-	disallowFileReferences bool
+	referencedDataOptions []ReferencedDataOption
 }
 
 // DataAssetOption is an option for validating a DataAsset.
 type DataAssetOption func(*dataAssetOptions)
 
-// WithDisallowFileReferences specifies whether the Data Asset must not contain ReferencedData with
-// file references.
-func WithDisallowFileReferences(disallowFileReferences bool) DataAssetOption {
+// WithReferencedDataOptions specifies the options for validating ReferencedData within the Data
+// Asset.
+func WithReferencedDataOptions(referencedDataOptions ...ReferencedDataOption) DataAssetOption {
 	return func(opts *dataAssetOptions) {
-		opts.disallowFileReferences = disallowFileReferences
+		opts.referencedDataOptions = referencedDataOptions
+	}
+}
+
+// WithReferencedDataOption specifies an option for validating ReferencedData within the Data Asset.
+func WithReferencedDataOption(referencedDataOption ReferencedDataOption) DataAssetOption {
+	return func(opts *dataAssetOptions) {
+		opts.referencedDataOptions = append(opts.referencedDataOptions, referencedDataOption)
 	}
 }
 
@@ -119,27 +126,60 @@ func DataAsset(da *dapb.DataAsset, options ...DataAssetOption) error {
 		return fmt.Errorf("cannot find data payload message %q for %q: %w", name, id, err)
 	}
 
-	if opts.disallowFileReferences {
-		if payload, err := utils.ExtractPayload(da); err != nil {
-			return err
-		} else if _, err := utils.WalkUniqueReferencedData(payload, func(ref *utils.ReferencedDataExt) error {
-			if ref.Type() == utils.FileReferenceType {
-				return fmt.Errorf("file references are not allowed for %q, (got: %q)", id, ref.Reference())
-			}
-			return nil
-		}); err != nil {
-			return err
+	// Validate the payload's referenced data.
+	if payload, err := utils.ExtractPayload(da); err != nil {
+		return err
+	} else if _, err := utils.WalkUniqueReferencedData(payload, func(ref *utils.ReferencedDataExt) error {
+		if err := ReferencedData(ref, opts.referencedDataOptions...); err != nil {
+			return fmt.Errorf("invalid ReferencedData for %q: %w", id, err)
 		}
+		return nil
+	}); err != nil {
+		return err
 	}
 
 	return nil
+}
+
+type referencedDataOptions struct {
+	disallowFileReferences bool
+}
+
+// ReferencedDataOption is an option for validating a ReferencedData.
+type ReferencedDataOption func(*referencedDataOptions)
+
+// WithDisallowFileReferences specifies whether file references are disallowed in the
+// ReferencedData.
+func WithDisallowFileReferences(disallowFileReferences bool) ReferencedDataOption {
+	return func(opts *referencedDataOptions) {
+		opts.disallowFileReferences = disallowFileReferences
+	}
 }
 
 // ReferencedData validates a ReferencedData.
 //
 // Validation includes:
 // - If specified, compare the digest against the referenced data.
-func ReferencedData(ref *utils.ReferencedDataExt) error {
+// - If the type is a file reference and file references are disallowed, return an error.
+func ReferencedData(ref *utils.ReferencedDataExt, options ...ReferencedDataOption) error {
+	opts := &referencedDataOptions{}
+	for _, opt := range options {
+		opt(opts)
+	}
+
+	// Type-specific validation.
+	switch ref.Type() {
+	case utils.FileReferenceType:
+		if opts.disallowFileReferences {
+			return fmt.Errorf("file references are not allowed (got: %q)", ref.Reference())
+		}
+	case utils.CASReferenceType:
+	case utils.InlinedReferenceType:
+		// Nothing to do.
+	default:
+		return fmt.Errorf("unknown reference type: %d", ref.Type())
+	}
+
 	// Validate the digest against the referenced data.
 	if ref.Digest() != "" {
 		// Get a reader for the data.
