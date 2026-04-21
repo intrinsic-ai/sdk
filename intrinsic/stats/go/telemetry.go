@@ -18,7 +18,7 @@ import (
 
 	"contrib.go.opencensus.io/exporter/ocagent"
 	"contrib.go.opencensus.io/exporter/prometheus"
-	"contrib.go.opencensus.io/exporter/stackdriver"
+	traceexporter "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
 	log "github.com/golang/glog"
 	"github.com/pborman/uuid"
 	"go.opencensus.io/plugin/ocgrpc"
@@ -26,7 +26,13 @@ import (
 	"go.opencensus.io/trace"
 	b3prop "go.opentelemetry.io/contrib/propagators/b3"
 	ocprop "go.opentelemetry.io/contrib/propagators/opencensus"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/bridge/opencensus"
 	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/resource"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 	"google.golang.org/grpc/status"
 )
 
@@ -224,6 +230,7 @@ func WithViews(Views []*view.View) ConfigOption {
 
 // Telemetry is an object to configure tracing and metrics export in services.
 type Telemetry struct {
+	tp            *sdktrace.TracerProvider
 	exporter      *trace.Exporter
 	metricsServer *http.Server
 }
@@ -235,28 +242,62 @@ func Initialize(opts ...ConfigOption) Telemetry {
 	return t
 }
 
-func (t *Telemetry) createCloudTraceExporter(project string, serviceName string) (trace.Exporter, error) {
-	if project == "" {
-		return nil, fmt.Errorf("project must be specified")
+type filterErrorHandler struct{}
+
+func (f filterErrorHandler) Handle(err error) {
+	if err == nil {
+		return
 	}
-	defaultAttributes := map[string]any{
-		"service.name": serviceName,
+
+	// Ignore "unsupported sampler" errors originating from the OpenCensus-to-OpenTelemetry bridge.
+	// Context: The OpenCensus metrics exporter relies on a custom sampler that OpenTelemetry does not support.
+	// Reference: https://github.com/census-instrumentation/opencensus-go/blob/v0.24.0/metric/metricexport/reader.go#L191
+	if strings.Contains(err.Error(), "unsupported sampler") {
+		return
 	}
-	if h, err := os.Hostname(); err == nil { // no error
-		defaultAttributes["hostname"] = h
-	}
-	log.Info("Creating Stackdriver exporter for tracing.")
-	return stackdriver.NewExporter(stackdriver.Options{
-		ProjectID:              project,
-		DefaultTraceAttributes: defaultAttributes,
-	})
+
+	log.Warningf("OpenTelemetry error: %v", err)
 }
 
-func (t *Telemetry) createTraceExporter(project string, serviceName string, cloudTracing bool) (trace.Exporter, error) {
-	if cloudTracing {
-		return t.createCloudTraceExporter(project, serviceName)
+func (t *Telemetry) createCloudTracerProvider(project string, serviceName string, probability float64) error {
+	if project == "" {
+		return fmt.Errorf("project must be specified")
+	}
+	otel.SetErrorHandler(filterErrorHandler{})
+
+	defaultAttributes := []attribute.KeyValue{
+		semconv.ServiceNameKey.String(serviceName),
+	}
+	if h, err := os.Hostname(); err == nil { // no error
+		defaultAttributes = append(defaultAttributes, attribute.String("hostname", h))
+	}
+	log.Info("Creating Google Cloud Trace exporter for tracing.")
+
+	exporter, err := traceexporter.New(traceexporter.WithProjectID(project))
+	if err != nil {
+		return fmt.Errorf("create trace exporter: %w", err)
 	}
 
+	res, err := resource.New(context.Background(),
+		resource.WithAttributes(defaultAttributes...),
+	)
+	if err != nil {
+		return fmt.Errorf("create resource: %w", err)
+	}
+
+	t.tp = sdktrace.NewTracerProvider(
+		sdktrace.WithBatcher(exporter),
+		sdktrace.WithResource(res),
+		sdktrace.WithSampler(sdktrace.ParentBased(sdktrace.TraceIDRatioBased(probability))),
+	)
+
+	otel.SetTracerProvider(t.tp)
+	opencensus.InstallTraceBridge()
+
+	return nil
+}
+
+func (t *Telemetry) createTraceExporter(serviceName string) (trace.Exporter, error) {
 	log.Info("Creating OpenCensus Agent exporter for tracing.")
 	return ocagent.NewExporter(
 		ocagent.WithInsecure(),
@@ -287,13 +328,17 @@ func (t *Telemetry) init(cfg config) {
 //	}
 //	log.Println("Graceful telemetry shutdown complete.")
 func (t *Telemetry) Shutdown(ctx context.Context) error {
+	var err error
+	if t.tp != nil {
+		err = errors.Join(err, t.tp.Shutdown(ctx))
+	}
 	if t.exporter != nil {
 		trace.UnregisterExporter(*t.exporter)
 	}
 	if t.metricsServer != nil {
-		return t.metricsServer.Shutdown(ctx)
+		err = errors.Join(err, t.metricsServer.Shutdown(ctx))
 	}
-	return nil
+	return err
 }
 
 // enableTracing enables tracing for the current telemetry instance.
@@ -301,9 +346,17 @@ func (t *Telemetry) enableTracing(c tracingConfig) {
 	if !c.Enabled {
 		return
 	}
-	exp, err := t.createTraceExporter(c.ProjectName, c.ServiceName, c.CloudDeployment)
+	if c.CloudDeployment {
+		err := t.createCloudTracerProvider(c.ProjectName, c.ServiceName, c.Probability)
+		if err != nil {
+			log.Warningf("Tracing is disabled! Tracing setup failed: %v", err)
+		}
+		return
+	}
+	exp, err := t.createTraceExporter(c.ServiceName)
 	if err != nil {
 		log.Warningf("Tracing is disabled! Tracing setup failed: %v", err)
+		return
 	}
 	t.exporter = &exp
 	trace.RegisterExporter(exp)
