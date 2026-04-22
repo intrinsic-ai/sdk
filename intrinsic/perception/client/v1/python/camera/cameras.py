@@ -100,6 +100,7 @@ class Camera:
   _resource_handle: resource_handle_pb2.ResourceHandle
   _world_object: Optional[object_world_resources.WorldObject]
   _sensor_id_to_name: Mapping[int, str]
+  _sensor_name_to_id: Mapping[str, int]
 
   config: data_classes.CameraConfig
   factory_sensor_info: Mapping[str, data_classes.SensorInformation]
@@ -222,6 +223,7 @@ class Camera:
         else None
     )
     self._sensor_id_to_name = {}
+    self._sensor_name_to_id = {}
 
     # parse config
     camera_config = _camera_utils.unpack_camera_config(self._resource_handle)
@@ -245,9 +247,10 @@ class Camera:
     # attempt to describe cameras to get factory configurations
     try:
       describe_camera_proto = self._client.describe_camera()
+      sorted_sensors = sorted(describe_camera_proto.sensors, key=lambda s: s.id)
       self.factory_sensor_info = {
           sensor_info.display_name: data_classes.SensorInformation(sensor_info)
-          for sensor_info in describe_camera_proto.sensors
+          for sensor_info in sorted_sensors
       }
 
       # map sensor_ids to human readable sensor names from camera description
@@ -255,6 +258,10 @@ class Camera:
       self._sensor_id_to_name = {
           sensor_info.sensor_id: sensor_name
           for sensor_name, sensor_info in self.factory_sensor_info.items()
+      }
+      self._sensor_name_to_id = {
+          sensor_name: sensor_id
+          for sensor_id, sensor_name in self._sensor_id_to_name.items()
       }
     except grpc.RpcError as e:
       logging.warning("Could not load factory configuration: %s", e)
@@ -297,6 +304,55 @@ class Camera:
         for sensor_name, sensor_info in self.factory_sensor_info.items()
     }
 
+  def sensor_info(
+      self, sensor_name: str
+  ) -> Optional[data_classes.SensorInformation]:
+    """Get factory sensor information by name.
+
+    Args:
+      sensor_name: The desired sensor name.
+
+    Returns:
+      The sensor's factory information or None if it could not be found.
+    """
+    return self.factory_sensor_info.get(sensor_name)
+
+  def sensor_config(
+      self, sensor_name: str
+  ) -> Optional[data_classes.SensorConfig]:
+    """Get sensor configuration by name.
+
+    Args:
+      sensor_name: The desired sensor name.
+
+    Returns:
+      The sensor's configuration or None if it could not be found.
+    """
+    sensor_id = self._sensor_name_to_id.get(sensor_name)
+    return (
+        self.config.sensor_configs.get(sensor_id)
+        if sensor_id is not None
+        else None
+    )
+
+  def camera_params(
+      self, sensor_name: str
+  ) -> Optional[data_classes.CameraParams]:
+    """Get the camera params of a specific sensor, falling back to factory settings if missing.
+
+    Args:
+      sensor_name: The desired sensor name.
+
+    Returns:
+      The sensor's CameraParams or None if it could not be found.
+    """
+    config = self.sensor_config(sensor_name)
+    if config is not None and config.camera_params is not None:
+      return config.camera_params
+
+    info = self.sensor_info(sensor_name)
+    return info.factory_camera_params if info is not None else None
+
   def intrinsic_matrix(self, sensor_name: str) -> Optional[np.ndarray]:
     """Get the intrinsic matrix of a specific sensor (for multi-sensor cameras), falling back to factory settings if the intrinsic params are missing from the sensor config.
 
@@ -306,26 +362,12 @@ class Camera:
     Returns:
       The sensor's intrinsic matrix or None if it could not be found.
     """
-    sensor_info = self.factory_sensor_info.get(sensor_name)
-    if sensor_info is None:
-      return None
+    config = self.sensor_config(sensor_name)
+    if config is not None and config.intrinsic_matrix is not None:
+      return config.intrinsic_matrix
 
-    sensor_id = sensor_info.sensor_id
-    sensor_config = (
-        self.config.sensor_configs[sensor_id]
-        if sensor_id in self.config.sensor_configs
-        else None
-    )
-
-    if sensor_config is not None and sensor_config.intrinsic_matrix is not None:
-      return sensor_config.intrinsic_matrix
-    elif (
-        sensor_info is not None
-        and sensor_info.factory_intrinsic_matrix is not None
-    ):
-      return sensor_info.factory_intrinsic_matrix
-    else:
-      return None
+    info = self.sensor_info(sensor_name)
+    return info.factory_intrinsic_matrix if info is not None else None
 
   def distortion_params(self, sensor_name: str) -> Optional[np.ndarray]:
     """Get the distortion params of a specific sensor (for multi-sensor cameras), falling back to factory settings if distortion params are missing from the sensor config.
@@ -337,29 +379,12 @@ class Camera:
       The distortion params (k1, k2, p1, p2, [k3, [k4, k5, k6, [s1, s2, s3, s4,
         [tx, ty]]]]) or None if it couldn't be found.
     """
-    sensor_info = self.factory_sensor_info.get(sensor_name)
-    if sensor_info is None:
-      return None
+    config = self.sensor_config(sensor_name)
+    if config is not None and config.distortion_params is not None:
+      return config.distortion_params
 
-    sensor_id = sensor_info.sensor_id
-    sensor_config = (
-        self.config.sensor_configs[sensor_id]
-        if sensor_id in self.config.sensor_configs
-        else None
-    )
-
-    if (
-        sensor_config is not None
-        and sensor_config.distortion_params is not None
-    ):
-      return sensor_config.distortion_params
-    elif (
-        sensor_info is not None
-        and sensor_info.factory_distortion_params is not None
-    ):
-      return sensor_info.factory_distortion_params
-    else:
-      return None
+    info = self.sensor_info(sensor_name)
+    return info.factory_distortion_params if info is not None else None
 
   @property
   def world_object(self) -> Optional[object_world_resources.WorldObject]:
@@ -387,23 +412,12 @@ class Camera:
       The pose3.Pose3 of the sensor relative to the pose of the camera itself or
         None if it couldn't be found.
     """
-    sensor_info = self.factory_sensor_info.get(sensor_name)
-    if sensor_info is None:
-      return None
+    config = self.sensor_config(sensor_name)
+    if config is not None and config.camera_t_sensor is not None:
+      return config.camera_t_sensor
 
-    sensor_id = sensor_info.sensor_id
-    sensor_config = (
-        self.config.sensor_configs[sensor_id]
-        if sensor_id in self.config.sensor_configs
-        else None
-    )
-
-    if sensor_config is not None and sensor_config.camera_t_sensor is not None:
-      return sensor_config.camera_t_sensor
-    elif sensor_info is not None and sensor_info.camera_t_sensor is not None:
-      return sensor_info.camera_t_sensor
-    else:
-      return None
+    info = self.sensor_info(sensor_name)
+    return info.camera_t_sensor if info is not None else None
 
   def world_t_sensor(self, sensor_name: str) -> Optional[pose3.Pose3]:
     """Get the sensor world_t_sensor pose, falling back to factory settings for camera_t_sensor if pose is missing from the sensor config.
