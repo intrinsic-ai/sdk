@@ -1,6 +1,9 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
+load("@ai_intrinsic_sdks_pip_deps//:requirements.bzl", "requirement")
+load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
+load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 proto_library(
@@ -23,6 +26,12 @@ go_proto_library(
         "//intrinsic/solution_versions:__subpackages__",
         "//intrinsic/tools/inctl/cmd:__subpackages__",
     ],
+)
+
+py_proto_library(
+    name = "snapshot_py_pb2",
+    visibility = ["//visibility:public"],
+    deps = [":snapshot_proto"],
 )
 
 proto_library(
@@ -53,6 +62,12 @@ go_proto_library(
     deps = ["//intrinsic/config/proto:operation_mode_go_proto"],
 )
 
+py_proto_library(
+    name = "branch_py_pb2",
+    visibility = ["//visibility:public"],
+    deps = [":branch_proto"],
+)
+
 proto_library(
     name = "solution_version_service_proto",
     srcs = ["solution_version_service.proto"],
@@ -62,6 +77,20 @@ proto_library(
         ":snapshot_proto",
         "@com_google_protobuf//:field_mask_proto",
     ],
+)
+
+py_proto_library(
+    name = "solution_version_service_py_pb2",
+    visibility = ["//visibility:public"],
+    deps = [":solution_version_service_proto"],
+)
+
+py_grpc_library(
+    name = "solution_version_service_pb2_grpc",
+    srcs = [":solution_version_service_proto"],
+    grpc_library = requirement("grpcio"),
+    visibility = ["//visibility:public"],
+    deps = [":solution_version_service_py_pb2"],
 )
 
 go_proto_library(
@@ -104,4 +133,10 @@ go_proto_library(
         "//intrinsic/solution_versions:__subpackages__",
         "//intrinsic/tools/inctl/cmd:__subpackages__",
     ],
+)
+
+py_proto_library(
+    name = "diff_mask_py_pb2",
+    visibility = ["//visibility:public"],
+    deps = [":diff_mask_proto"],
 )
