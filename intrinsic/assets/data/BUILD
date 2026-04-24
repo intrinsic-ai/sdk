@@ -84,6 +84,17 @@ go_library(
 )
 
 go_library(
+    name = "datafix",
+    srcs = ["datafix.go"],
+    importpath = "intrinsic/assets/data/datafix",
+    visibility = ["//intrinsic:internal_api_users"],
+    deps = [
+        "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
+        "//intrinsic/assets/data/proto/v1:data_manifest_go_proto",
+    ],
+)
+
+go_library(
     name = "datavalidate",
     srcs = ["datavalidate.go"],
     importpath = "intrinsic/assets/data/datavalidate",

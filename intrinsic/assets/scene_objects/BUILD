@@ -3,6 +3,17 @@
 load("//bazel:go_macros.bzl", "go_library")
 
 go_library(
+    name = "sceneobjectfix",
+    srcs = ["sceneobjectfix.go"],
+    importpath = "intrinsic/assets/scene_objects/sceneobjectfix",
+    visibility = ["//intrinsic:internal_api_users"],
+    deps = [
+        "//intrinsic/assets/scene_objects/proto:scene_object_manifest_go_proto",
+        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
+    ],
+)
+
+go_library(
     name = "sceneobjectvalidate",
     srcs = ["sceneobjectvalidate.go"],
     importpath = "intrinsic/assets/scene_objects/sceneobjectvalidate",

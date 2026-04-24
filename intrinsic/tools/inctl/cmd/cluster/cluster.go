@@ -31,6 +31,6 @@ func init() {
 	root.RootCmd.AddCommand(ClusterCmd)
 }
 
-func newCloudConn(ctx context.Context) (*grpc.ClientConn, error) {
+func NewCloudConn(ctx context.Context) (*grpc.ClientConn, error) {
 	return auth.NewCloudConnection(ctx, auth.WithFlagValues(ClusterCmdViper))
 }

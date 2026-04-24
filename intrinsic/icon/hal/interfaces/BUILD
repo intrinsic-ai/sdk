@@ -3,7 +3,10 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("//intrinsic/platform:flatbuffers.bzl", "cc_flatbuffers_library", "flatbuffers_library")
 
-package(default_visibility = ["//visibility:public"])
+package(default_visibility = [
+    "//sdk:__subpackages__",
+    "//visibility:public",
+])
 
 flatbuffers_library(
     name = "adio_fbs",
@@ -50,6 +53,108 @@ cc_library(
     deps = [
         ":control_mode_fbs_cc",
         "@com_github_google_flatbuffers//:runtime_cc",
+    ],
+)
+
+flatbuffers_library(
+    name = "electrical_motor_fbs",
+    srcs = [
+        "electrical_motor.fbs",
+    ],
+)
+
+cc_flatbuffers_library(
+    name = "electrical_motor_fbs_cc",
+    deps = [":electrical_motor_fbs"],
+)
+
+cc_library(
+    name = "electrical_motor_fbs_utils",
+    srcs = ["electrical_motor_utils.cc"],
+    hdrs = ["electrical_motor_utils.h"],
+    deps = [
+        ":electrical_motor_fbs_cc",
+        "//intrinsic/icon/flatbuffers:fixed_string",
+        "//intrinsic/icon/utils:log",
+        "@abseil-cpp//absl/container:flat_hash_set",
+        "@abseil-cpp//absl/strings:string_view",
+        "@com_github_google_flatbuffers//:flatbuffers",
+    ],
+)
+
+cc_library(
+    name = "electrical_motor_hardware_interfaces",
+    hdrs = ["electrical_motor_hardware_interfaces.h"],
+    deps = [
+        ":electrical_motor_fbs_cc",
+        ":electrical_motor_fbs_utils",
+        "//intrinsic/icon/hal:hardware_interface_traits",
+    ],
+)
+
+flatbuffers_library(
+    name = "force_sensor_fbs",
+    srcs = [
+        "force_sensor.fbs",
+    ],
+    deps = [
+        "//intrinsic/icon/flatbuffers:transform_types_fbs",
+    ],
+)
+
+cc_flatbuffers_library(
+    name = "force_sensor_fbs_cc",
+    deps = [":force_sensor_fbs"],
+)
+
+cc_library(
+    name = "force_sensor_fbs_utils",
+    srcs = [
+        "force_sensor_utils.cc",
+    ],
+    hdrs = [
+        "force_sensor_utils.h",
+    ],
+    deps = [
+        ":force_sensor_fbs_cc",
+        "//intrinsic/icon/flatbuffers:transform_types_fbs_cc",
+        "//intrinsic/icon/utils:fixed_string",
+        "@com_github_google_flatbuffers//:flatbuffers",
+    ],
+)
+
+flatbuffers_library(
+    name = "force_torque_fbs",
+    srcs = [
+        "force_torque.fbs",
+    ],
+    deps = [
+        ":force_sensor_fbs",
+        "//intrinsic/icon/flatbuffers:transform_types_fbs",
+    ],
+)
+
+cc_flatbuffers_library(
+    name = "force_torque_fbs_cc",
+    deps = [":force_torque_fbs"],
+)
+
+cc_library(
+    name = "force_torque_fbs_utils",
+    srcs = [
+        "force_torque_utils.cc",
+    ],
+    hdrs = [
+        "force_torque_utils.h",
+    ],
+    deps = [
+        ":force_sensor_fbs_cc",
+        ":force_torque_fbs_cc",
+        "//intrinsic/icon/flatbuffers:transform_types",  # fixdeps: keep
+        "//intrinsic/icon/flatbuffers:transform_types_fbs_cc",
+        "//intrinsic/icon/utils:fixed_str_cat",
+        "//intrinsic/icon/utils:fixed_string",
+        "@com_github_google_flatbuffers//:flatbuffers",
     ],
 )
 
@@ -104,31 +209,25 @@ cc_library(
 )
 
 flatbuffers_library(
-    name = "imu_fbs",
-    srcs = [
-        "imu.fbs",
-    ],
+    name = "io_controller_fbs",
+    srcs = ["io_controller.fbs"],
     deps = [
-        "//intrinsic/icon/flatbuffers:transform_types_fbs",
+        ":adio_fbs",
     ],
 )
 
 cc_flatbuffers_library(
-    name = "imu_fbs_cc",
-    deps = [":imu_fbs"],
+    name = "io_controller_fbs_cc",
+    deps = [":io_controller_fbs"],
 )
 
 cc_library(
-    name = "imu_fbs_utils",
-    srcs = [
-        "imu_utils.cc",
-    ],
-    hdrs = [
-        "imu_utils.h",
-    ],
+    name = "io_controller_fbs_utils",
+    srcs = ["io_controller_utils.cc"],
+    hdrs = ["io_controller_utils.h"],
     deps = [
-        ":imu_fbs_cc",
-        "//intrinsic/icon/flatbuffers:transform_types_fbs_cc",
+        ":adio_fbs_cc",
+        ":io_controller_fbs_cc",
         "@com_github_google_flatbuffers//:runtime_cc",
     ],
 )

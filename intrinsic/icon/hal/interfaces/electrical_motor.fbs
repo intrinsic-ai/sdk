@@ -1,0 +1,438 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+namespace intrinsic_fbs;
+
+
+//  ProfileType maps to DS-402 Object 6086 h : Motion profile type
+enum ProfileType : uint16 {
+  LINEAR_RAMP = 0,
+  SIN2_RAMP = 1,
+  JERK_FREE_RAMP = 2,
+  JERK_LIMITED_RAMP = 3,
+}
+
+// HomeMethod enumerates the different types of homing routines.
+enum HomeMethod : uint16 {
+  NONE = 0,
+  NEG_LIMIT_INDEX_PULSE = 1,
+  POS_LIMIT_INDEX_PULSE = 2,
+  POS_HOME_SW_OFF_INDEX_PULSE = 3,
+  POS_HOME_SW_ON_INDEX_PULSE = 4,
+  NEG_HOME_SW_OFF_INDEX_PULSE = 5,
+  NEG_HOME_SW_ON_INDEX_PULSE = 6,
+  MIN_HOME_SW_OFF_INDEX_PULSE_POS_LIMIT = 7,
+  MIN_HOME_SW_ON_INDEX_PULSE_POS_LIMIT = 8,
+  MAX_HOME_SW_ON_INDEX_PULSE_POS_LIMIT = 9,
+  MAX_HOME_SW_OFF_INDEX_PULSE_POS_LIMIT = 10,
+  MIN_HOME_SW_OFF_INDEX_PULSE_NEG_LIMIT = 11,
+  MIN_HOME_SW_ON_INDEX_PULSE_NEG_LIMIT = 12,
+  MAX_HOME_SW_ON_INDEX_PULSE_NEG_LIMIT = 13,
+  MAX_HOME_SW_OFF_INDEX_PULSE_NEG_LIMIT = 14,
+  NEG_LIMIT = 17,
+  POS_LIMIT = 18,
+  POS_HOME_SW_OFF = 19,
+  POS_HOME_SW_ON = 20,
+  NEG_HOME_SW_OFF = 21,
+  NEG_HOME_SW_ON = 22,
+  MIN_HOME_SW_OFF_POS_LIMIT = 23,
+  MIN_HOME_SW_ON_POS_LIMIT = 24,
+  MAX_HOME_SW_ON_POS_LIMIT = 25,
+  MAX_HOME_SW_OFF_POS_LIMIT = 26,
+  MIN_HOME_SW_OFF_NEG_LIMIT = 27,
+  MIN_HOME_SW_ON_NEG_LIMIT = 28,
+  MAX_HOME_SW_ON_NEG_LIMIT = 29,
+  MAX_HOME_SW_OFF_NEG_LIMIT = 30,
+  REVERSE_INDEX_PULSE = 33,
+  FORWARD_INDEX_PULSE = 34,
+  USE_CURRENT_POSITION = 35,
+  TOUCH_PROBE = 36,
+}
+
+/**
+ *  ControlField enumerates the Controlword fields from DS-402 Object 6040h
+ *
+ *  Manufacturer specific and operation mode specific flags have been ommited.
+ *
+ *  Control flags are passes to every command method
+ *
+ * If you change the data type of this enum, you will also have to adjust the
+ * data type of any control words.
+ */
+enum GenericOperationModeFlags : uint16 {
+  NONE = 0x0000,
+  SWITCH_ON = 0x0001,
+  ENABLE_VOLTAGE = 0x0002,
+  QUICK_STOP_OFF = 0x0004,
+  ENABLE = 0x0008,
+  FAULT_RESET = 0x0080,
+  HALT = 0x0100,
+}
+enum ErrorCode : int32 {
+  COMMAND_NOT_SUPPORTED = -1,
+  NO_ERROR = 0x0,
+  CONTROL_MODE_NOT_SUPPORTED = 1,
+  CONTROL_DATA_NOT_SUPPORTED = 2,
+  CONTROL_MODE_ALREADY_SET = 3
+}
+
+// PositionProfileFlags lists the control flags specific to the PositionProfile
+// control mode.
+enum PositionProfileFlags : uint16 {
+  NEW_SET_POINT = 0x0010,
+  CHANGE_SET_POINT_NOW = 0x0020,
+  RELATIVE = 0x0040,
+  HALT = 0x0100,
+  CHANGE_ON_SET_POINT = 0x0200,
+}
+
+// This struct provides all the necessary information to activate the
+// profile position mode of an electrical motor
+//
+// Note: PositionProfile assumes the following DS-402 objects are set
+// through another method:
+//
+//  * Object 607B h : Position range limit
+//  * Object 607D h : Software position limit
+//  * Object 607F h : Max profile velocity
+//  * Object 6080 h : Max motor speed
+//  * Object 6085 h : Quick stop deceleration
+//  * Object 60A3 h : Profile jerk use
+//  * Object 60A4 h : Profile jerk
+//  * Object 60C5 h : Max acceleration
+//  * Object 60C6 h : Max deceleration
+struct PositionProfileCommand {
+  target_position:double; //< Object 607Ah : Target position
+  profile_velocity:double; //< Object 6081 h : Profile velocity
+  end_velocity:double; //< Object 6082 h : End velocity
+  acceleration:double; //< Object 6083 h : Profile acceleration
+  deceleration:double; //< Object 6084 h : Profile deceleration
+  type:ProfileType;
+}
+
+// VelocityProfileFlags lists the control flags specific to the VelocityProfile
+// control mode.
+enum VelocityProfileFlags : uint16 {
+  HALT = 0x0100,
+}
+
+// Command parameters for VelocityProfile control mode.
+//
+// NOTE: VelocityProfile assumes the following DS-402 objects are set
+// through an asynchronous channel:
+//  * Object 606D h : Velocity window
+//  * Object 606E h : Velocity window time
+//  * Object 606F h : Velocity threshold
+//  * Object 6070 h : Velocity threshold time
+//  * Object 60F8 h : Max slippage
+//  * Object 60A3 h: Profile jerk use
+//  * Object 60A4 h : Profile jerk
+//  * Object 60C5 h : Max acceleration
+//  * Object 60C6 h : Max deceleration
+struct VelocityProfileCommand {
+  target_velocity:double; //< Object 60FF h : Target velocity
+  acceleration:double; //< Object 6083 h : Profile acceleration
+  deceleration:double; //< Object 6084 h : Profile deceleration
+  type:ProfileType;
+}
+
+// TorqueProfileFlags lists the control flags specific to the TorqueProfile
+// control mode.
+enum TorqueProfileFlags : uint16 {
+  HALT = 0x0100,
+}
+
+// Command parameters for TorqueProfile control mode.
+//
+// NOTE: TorqueProfile assumes the following DS-402 objects are set
+// through an asynchronous channel:
+//   * Object 6072 h : Max torque
+//   * Object 6073 h : Max current
+//   * Object 6075 h : Motor rated current
+//   * Object 6076 h : Motor rated torque
+struct TorqueProfileCommand {
+  target_torque:double; //< Object 6071 h : Target torque
+  target_slope:double; //< Object 6087 h : Torque slope
+  type:ProfileType;
+}
+
+// Command parameters for CyclicPosition control mode.
+//
+// NOTE: CyclicPosition assumes the following DS-402 objects are set
+// through an asynchronous channel:
+//   * Object 60B0 h : Position offset, which should be zero
+//   * Object 6065 h : Following error window
+//   * Object 6066 h : Following error time out
+//   * Object 6080 h : Max motor speed
+//   * Object 607E h : Polarity
+//   * Object 60C2 h : Interpolation time period
+//   * Object 6085 h : Quick-stop deceleration
+//   * Object 605A h : Quick-stop option code
+//   * Object 6072 h : Max torque
+struct CyclicPositionCommand {
+  target_position:double; //< Object 607Ah : Target position
+  velocity_feedforward:double; //< Object 60B1 h : Velocity offset
+  acceleration_feedforward:double; // Not part of DS-402, but required for some robots.
+  torque_feedforward:double; //< Object 60B2 h : Torque offset
+}
+
+// Command parameters for CyclicVelocity control mode.
+//
+// NOTE: CyclicVelocity assumes the following DS-402 objects are set
+// through an asynchronous channel:
+//   * Object 6080 h : Max motor speed
+//   * Object 607E h : Polarity
+//   * Object 60C2 h : Interpolation time period
+//   * Object 6085 h : Quick-stop deceleration
+//   * Object 605A h : Quick-stop option code
+//   * Object 6072 h : Max torque
+struct CyclicVelocityCommand {
+  target_velocity:double; //< Object 60FF h : Target velocity
+  torque_offset:double; //< Object 60B2 h : Torque offset (a.k.a
+  // torque_feedforward)
+}
+
+// Command parameters for CyclicTorque control mode.
+// NOTE: CyclicTorque assumes the following DS-402 objects are set through an
+// asynchronous channel:
+//   * Object 6080 h : Max motor speed
+//   * Object 607E h : Polarity
+//   * Object 60C2 h : Interpolation time period
+//   * Object 6072 h : Max torque
+struct CyclicTorqueCommand {
+  target_torque:double; //< Object 6071 h : Target torque
+}
+
+// Command parameters for CyclicJointImpedance control mode.
+struct CyclicJointImpedanceCommand {
+  // cmd_torq = trgt_torq + pos_err * stiffness + vel_err * damping
+  // Stiffness coefficient in Nm/rad
+  target_stiffness:double;
+  // Damping coefficient in Nms/rad
+  target_damping:double;
+  // Target position in rad
+  target_position:double;
+  // Target position in rad/s
+  target_velocity:double;
+  // Feedforward torque in Nm
+  target_torque:double;
+}
+
+// Command parameters for CyclicPositionTorque control mode.
+struct CyclicPositionTorqueCommand {
+  target_position:double;
+  velocity_offset:double;
+  // Unlike CyclicPositionCommand, this is not a feedforward torque, but rather
+  // an absolute desired torque value.
+  target_torque:double;
+}
+
+enum VelocityFlags : uint16 {
+  ENABLE_RAMP = 0x0010,
+  UNLOCK_RAMP = 0x0020,
+  REFERENCE_RAMP = 0x0040,
+  HALT = 0x0100,
+}
+
+// VelocityCommand mimics the functionality for variable fequency drives (VFD).
+// VFD typical have a simple input but a fairly complex set of parameters for
+// configuring applications.
+//
+// NOTE: Velocity mode assumes the following DS-402 objects are set through an
+// asynchronous channel:
+//   * Object 6046 h : vl velocity min max amount
+//   * Object 6049 h : vl velocity deceleration
+//   * Object 6048 h : vl velocity acceleration
+//   * Object 604A h : vl velocity quick stop
+//   * Object 604B h : vl set-point factor
+//   * Object 604C h : vl dimension factor
+struct VelocityCommand {
+  target_velocity:double; //< Object 6042 h : vl target velocity
+}
+
+// Command structure for the full state feedback
+struct FullStateFeedbackCommand {
+  // Target position in [rad]
+  target_pos:float;
+  // Target position gain in [Nm/rad]
+  position_gain:float;
+  // Target speed in [rad/s]
+  target_speed:float;
+  // Target speed gain in [Nm/rad/s]
+  speed_gain:float;
+  // Torque command in [Nm]
+  target_torque:float;
+  // Torque gain (no unit)
+  torque_gain:float;
+  // Torque damping gain
+  torque_damping_gain:float;
+  // Torque feedforward in [Nm]
+  torque_ffwd:float;
+}
+
+// HomeFlags lists the control flags specific to HomeCommand. These flags
+// should be combined with the control flags in setHome().
+enum HomeFlags : uint16 {
+  START_CONTINUE = 0x0010,
+  HALT = 0x0100,
+}
+
+// Command parameters for the Homing control mode
+//
+// HomeCommand defines numerous methods for determining the motors position.
+struct HomeCommand {
+  offset:double; //< Object 607C h : Home offset
+  search_speed:double; //< Object 6099 h : Homing speeds[0]
+  creep_speed:double; //< Object 6099 h : Homing speeds[1]
+  acceleration:double; //< Object 609A h : Homing acceleration
+  method:int8; //< Object 6098 h : Homing method, not using enum as an integer
+               // allows for manufacturer specific values.
+}
+
+// Bit masks for the Statusword fields from DS-402 Object 6041h
+enum OperationModeStatusFlags : uint16 {
+  READY_TO_SWITCH_ON = 0x0001,
+  SWITCHED_ON = 0x0002,
+  OPERATION_ENABLED = 0x0004,
+  FAULT = 0x0008,
+  VOLTAGE_ENABLED = 0x0010,
+  QUICK_STOP = 0x0020,
+  SWITCH_ON_DISABLED = 0x0040,
+  WARNING = 0x0080,
+  REMOTE = 0x0200,
+  TARGET_REACHED = 0x0400,
+  INTERNAL_LIMIT_ACTIVE = 0x0800,
+}
+
+// PositionProfileStatusFlags enumerates the meaning of the status flags
+// specific to position profile.
+enum PositionProfileStatusFlags : uint16 {
+  SET_POINT_ACK = 0x1000,
+  FOLLOWING_ERROR = 0x2000,
+}
+
+// VelocityProfileStatusFlag enumerates the meaning of the status Flags
+// specific to velocity profile.
+enum VelocityProfileStatusFlag : uint16 {
+  NON_ZERO_SPEED = 0x1000,
+  SLIPPAGE_ERROR = 0x2000,
+}
+
+// CyclicPositionStatusFlag enumerates the meaning of the status Flags
+// specific to cyclic positioning.
+enum CyclicPositionStatusFlag : uint16 {
+  TARGET_POSITION_IGNORED = 0x1000,
+  FOLLOWING_ERROR = 0x2000,
+}
+
+// CyclicVelocityStatusFlag enumerates the meaning of the status Flags
+// specific to cyclic velocity.
+enum CyclicVelocityStatusFlag : uint16 {
+  TARGET_VELOCITY_IGNORED = 0x1000,
+}
+
+// HomingStatusFlag enumerates the meaning of the status Flags specific to
+// homing.
+enum HomingStatusFlag : uint16 {
+  HomingUnknown = 0x0000,
+  HomingAttained = 0x1000,
+  HomingError = 0x2000,
+  HomingInProgress = 0x4000,
+  HomingNotStarted = 0x8000,
+}
+
+// Error message struct.
+// Convertable to/from an `absl::string_view`` through
+// `intrinsic_fbs::StringView`and `intrinsic_fbs::StringCopy`.
+struct ErrorMessage {
+  data:[uint8:128];
+  size:ubyte;
+}
+
+// HomingStatus is a struct that contains the status of homing.
+// Use `HomingStatusFlag` to interpret the `state` field.
+struct HomingStatus {
+  state:HomingStatusFlag;
+  error_message:ErrorMessage;
+}
+
+// MotorControlModeField defines the type of motor control operations from
+// DS-402.
+//
+// Object 6061 h : Modes of operation
+//
+// WARNING: bit 5 is normally reserved, but we use it for the full state
+// feedback mode.
+// We prefer to integrate this mode in the DS402 like interfaces to avoid over
+// designing those interfaces by creating an intermediate interface for full
+// state feedback control
+enum MotorControlMode : int8 {
+  // If MotorControlMode is NONE, Object 6060 h ("Modes of operation") should
+  // also be set to NONE.
+  NONE = 0,
+  PROFILE_POSITION = 1,
+  VELOCITY = 2,
+  VELOCITY_PROFILE = 3,
+  TORQUE_PROFILE = 4,
+  // FULL_STATE = 5,
+  HOME = 6,
+  // INTERPOLATED_POSITION = 7,
+  CYCLIC_POSITION = 8,
+  CYCLIC_VELOCITY = 9,
+  CYCLIC_TORQUE = 10,
+  CYCLIC_JOINT_IMPEDANCE = 11,
+  CYCLIC_POSITION_TORQUE = 12,
+  MAX_CONTROL_MODES = 20,
+}
+
+// MotorStatus only contains the status related to open loop control of a motor.
+// Typical feedback data, such as encoder position, velocity, rms current, etc.,
+// are contained in other status objects, such as EncoderStatus.
+//
+// MotorStatus assumes the following objects are available through other means
+//  * Object 6069 h : Velocity sensor actual value
+//  * Object 606A h : Sensor selection code
+//  * Object 606C h : Velocity actual value
+//  * Object 6074 h : Torque demand
+//  * Object 6075 h : Motor rated current
+//  * Object 6076 h : Motor rated torque
+//  * Object 6077 h : Torque actual value
+//  * Object 6078 h : Current actual value
+//  * Object 6079 h : DC link circuit voltage
+//  * Object 6043 h : vl velocity demand
+//  * Object 6044 h : vl velocity actual value
+table ElectricalMotorStatus {
+  motor_control_mode:MotorControlMode;
+  ready_to_switch_on:bool;
+  in_quick_stop:bool;
+  switched_on:bool;
+  in_fault:bool;
+  target_reached:bool;
+  operation_enabled:bool;
+  voltage_enabled:bool;
+  homing:bool;
+  internal_limit_active:bool;
+  error_code:uint32;
+}
+
+table ElectricalMotorCommand {
+  // Indicates which of the below command objects should be read.
+  control_mode:MotorControlMode;
+  // This can be thought to map to Object 6060 h ("Modes of operation").
+  // Was previously contained in the NoControlCommand data type.
+  control_word:uint16;
+
+  // Each device *may* provide one or more of these.
+  position_profile:PositionProfileCommand;
+  velocity:VelocityCommand;
+  velocity_profile:VelocityProfileCommand;
+  torque_profile:TorqueProfileCommand;
+  // There used to be a FullStateFeedbackCommand too, but that was never really
+  // used.
+  home:HomeCommand;
+  // Interpolated position is not implemented (yet?).
+  cyclic_position:CyclicPositionCommand;
+  cyclic_velocity:CyclicVelocityCommand;
+  cyclic_torque:CyclicTorqueCommand;
+  cyclic_joint_impedance:CyclicJointImpedanceCommand;
+  cyclic_position_torque:CyclicPositionTorqueCommand;
+}

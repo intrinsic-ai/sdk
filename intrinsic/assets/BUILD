@@ -216,6 +216,7 @@ go_library(
         "//intrinsic/skills:skillbundle",
         "//intrinsic/skills/proto:processed_skill_manifest_go_proto",
         "@com_github_google_safearchive//tar",
+        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
         "@org_golang_google_protobuf//proto",
     ],
 )

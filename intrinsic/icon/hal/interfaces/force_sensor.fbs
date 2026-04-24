@@ -1,0 +1,73 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+include "intrinsic/icon/flatbuffers/transform_types.fbs";
+
+namespace intrinsic_fbs;
+
+// A canonical (vendor-independent) enum for sensor status codes. Not all
+// sensor-specific status codes may be covered here.
+enum ForceSensorStatusCode:ubyte {
+  Ok,
+  InternalErrorRequiringPowerCycling,
+  MechanicalOverloadDetected,
+  SupplyOutOfRange,
+  BrokenGage,
+  Busy,
+  ReadingsSaturated,
+  CalibrationChecksumError,
+  SimulatedError,
+  ReportedConstantReadings,
+  GenericError,
+}
+
+
+// Force sensor command.
+table ForceSensorCommand {
+  // True if we should tare the sensor. Should be set to false by the sender
+  // once tared is true in the ForceSensorStatus.
+  tare_sensor:bool = false;
+  // The number of taring cycles over which the force torque sensor bias should
+  // be avaraged. Defaults to 1.
+  num_taring_cycles:int = 1;
+}
+
+// All "Wrench" variables represent the force the robot is applying to the
+// world. FT Sensors typically report the wrench being applied to the sensor,
+// which is equal and opposite to the force the sensor is applying to the
+// world.
+table ForceSensorStatus {
+  // Estimated wrench at F/T sensor as a result of dynamic load due to
+  // post-sensor mass/inertia. Does not include static load due to gravity
+  // (see wrench_at_ft_support_mass).
+  wrench_at_ft_dynamic_load:intrinsic_fbs.Wrench;
+
+  // Estimated wrench at target as a result of dynamic load due to
+  // post-sensor mass/inertia. Does not include static load due to gravity
+  // (see wrench_at_ft_support_mass).
+  wrench_at_target_dynamic_load:intrinsic_fbs.Wrench;
+
+  // Wrench at F/T sensor, compensated for static load (support mass) and sensor
+  // bias, and filtered according to configuration. Not compensated for dynamic
+  // load.
+  wrench_at_ft:intrinsic_fbs.Wrench;
+
+  // Wrench at the target point, compensated for mass and sensor bias.
+  // The target point here is the point of interest specified in the
+  // config, relative to the F/T.
+  wrench_at_target:intrinsic_fbs.Wrench;
+
+  // Sensor status code field to propagate error codes from plugin to ICON.
+  status_code:ForceSensorStatusCode = GenericError;
+
+  // Magnitude of the force component of the wrench at the target point,
+  // compensated for mass and sensor bias
+  magnitude_force_at_target:double = 0;
+
+  // Magnitude of the torque component of the wrench at the target point,
+  // compensated for mass and sensor bias
+  magnitude_torque_at_target:double = 0;
+
+  // True if sensor bias has been successfully calculated. While this bool is
+  // false, all wrenches are rubbish.
+  tared:bool = false;
+}

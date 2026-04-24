@@ -1,0 +1,174 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.icon.v1;
+
+import "google/protobuf/duration.proto";
+import "intrinsic/icon/hal/lib/adio/v1/adio_bus_component_config.proto";
+import "intrinsic/icon/hal/lib/fieldbus/v1/value_parsing.proto";
+
+option go_package = "intrinsic/icon/hal/lib/ds402/v1/ds402_bus_component_config_go_proto";
+
+enum Ds402State {
+  DS402_STATE_NOT_READY_TO_SWITCH_ON = 0;
+  DS402_STATE_SWITCH_ON_DISABLED = 1;
+  DS402_STATE_READY_TO_SWITCH_ON = 2;
+  DS402_STATE_SWITCHED_ON = 3;
+  DS402_STATE_OPERATION_ENABLED = 4;
+  DS402_STATE_FAULT = 5;
+  DS402_STATE_FAULT_REACTION_ACTIVE = 6;
+  DS402_STATE_QUICK_STOP_ACTIVE = 7;
+}
+
+// Next ID: 2
+message PdoVariable {
+  string variable_name = 1;
+}
+
+// Next ID: 3
+message ServiceVariable {
+  int32 index = 1;
+  int32 subindex = 2;
+}
+
+// Next ID: 3
+message BusVariable {
+  oneof variable {
+    PdoVariable pdo_variable = 1;
+    ServiceVariable sdo_variable = 2;
+  }
+}
+
+// Next ID: 3
+message ModesOfOperationConfig {
+  // The modes of operation bus variable.
+  // Defaults to sdo_variable with index 0x6060 and subindex 0.
+  // Optional for normal operation (defaults to 6, Cyclic Synchronous
+  // Positioning).
+  optional BusVariable output_variable = 1;
+  // Name of the modes of operation display bus variable.
+  // Defaults to sdo_variable with index 0x6061 and subindex 0.
+  optional BusVariable display_variable = 2;
+}
+
+// Next ID: 6
+message HomingConfig {
+  // Name of the homing method bus variable.
+  // Defaults to sdo_variable with index 0x6098 and subindex 0.
+  optional BusVariable homing_method = 1;
+  // Name of the homing offset bus variable.
+  // Defaults to sdo_variable with index 0x607C and subindex 0.
+  optional BusVariable homing_offset = 2;
+  // Name of the homing search speed bus variable.
+  // Defaults to sdo_variable with index 0x6099 and subindex 1.
+  optional BusVariable homing_search_speed = 3;
+  // Name of the homing creep speed bus variable.
+  // Defaults to sdo_variable with index 0x6099 and subindex 2.
+  optional BusVariable homing_creep_speed = 4;
+  // Name of the homing acceleration bus variable.
+  // Defaults to sdo_variable with index 0x609A and subindex 0.
+  optional BusVariable homing_acceleration = 5;
+}
+
+// Configuration for handling unexpected state transitions.
+// When not configured, the device defaults to faulting on unexpected state
+// transitions.
+message Ds402UnexpectedStateTransitionConfiguration {
+  // A generic digital input to use as a signal.
+  message DigitalInputPattern {
+    // Definition of the digital input variable.
+    intrinsic_proto.icon.v1.AdioBusComponent.DigitalVariable digital_variable =
+        1;
+    // Expected mask and value when the signal is active.
+    intrinsic_proto.fieldbus.v1.ValuePattern value_pattern = 2;
+  }
+
+  // Behaviors for unexpected state transitions from the motion enabled state.
+  enum Behavior {
+    // Default behavior is to fault.
+    BEHAVIOR_UNSPECIFIED = 0;
+    // An unexpected transition will trigger a fault.
+    BEHAVIOR_FAULT = 1;
+    // An unexpected transition will not trigger a fault when the configured
+    // signal is active.
+    BEHAVIOR_IGNORE_ON_SIGNAL = 2;
+    // An unexpected transition will not trigger a fault.
+    BEHAVIOR_IGNORE_ALWAYS = 3;
+  }
+
+  // Configuration of the behavior when the device unexpectedly transitions
+  // from the motion enabled state.
+  Behavior behavior = 1;
+
+  // Only meaningful when the behavior is IGNORE_ON_SIGNAL.
+  oneof input {
+    // When the bit is set, the device will not fault on an unexpected state
+    // transition.
+    // Valid range is bits 8 - 15 (the Manufacturer-specific range).
+    // The bits 0 - 7 of the `Statusword` are defined by the DS402 standard.
+    int32 status_word_bit_index = 2;
+    // A generic digital input pattern.
+    // When this pattern validates to true, the device will not fault on an
+    // unexpected state transition.
+    DigitalInputPattern digital_input_pattern = 3;
+  }
+}
+
+// Next ID: 18
+message Ds402BusComponent {
+  // Name of the control word bus variable.
+  string control_word_variable_name = 1;
+  // Name of the status word bus variable.
+  string status_word_variable_name = 2;
+  // Name of the error code bus variable.
+  string error_code_variable_name = 3;
+  // Name of the digital outputs bus variable.
+  string digital_outputs_variable_name = 4;
+  // Modes of operation configuration.
+  optional ModesOfOperationConfig modes_of_operation_config = 15;
+  // Homing configuration.
+  optional HomingConfig homing_config = 16;
+  // The position of the device on the bus.
+  int32 bus_position = 5;
+  // The name of the device.
+  string device_name = 6;
+  // Automatically set the interpolation window.
+  bool enable_automatic_interpolation_window = 7;
+  // When true will treat the `InternalLimitsActive` flag as an error.
+  // `InternalLimitsActive` is reported by the device to indicate that the
+  // target/set-point values can't be reached. This can be due to e.g. hardware
+  // position switches, current limiter or thermal overload.
+  bool treat_internal_limits_active_as_error = 8;
+  // Delay enabling of the device.
+  google.protobuf.Duration enable_delay = 9;
+  // The initial target state of the device.
+  // Debug only. Defaults to DS402_STATE_SWITCH_ON_DISABLED.
+  // Change only to debug DS402 state machine behavior.
+  optional Ds402State initial_target_state = 10;
+  // The enabled target state of the device.
+  // Debug only. Defaults to DS402_STATE_OPERATION_ENABLED.
+  // Change only to debug DS402 state machine behavior.
+  optional Ds402State enabled_target_state = 11;
+  // Interpretations of the error code (read from `error_code_variable_name`) to
+  // a human readable string.
+  // Multiple interpretations can match a single error code.
+  // Text output may be truncated.
+  map<string, intrinsic_proto.fieldbus.v1.ValuePatterns>
+      error_code_interpretations = 12;
+  // Optionally configure the behavior when the device unexpectedly transitions
+  // from the operation enabled (OE) state.
+  // When not configured, the device defaults to faulting on unexpected state
+  // transitions.
+  optional Ds402UnexpectedStateTransitionConfiguration
+      unexpected_state_transition_configuration = 13;
+
+  // The bit value of the digital output bit that engages/releases the brakes
+  // (according the DS402 spec).
+  // Defaults to bits 18 and 0, thus 262145 (decimal), 0x40001 (hex).
+  // Allowed values are 0 to 0xFFFFFFFF..
+  optional int64 brake_release_bit_value = 17;
+
+  reserved 14;
+  reserved "modes_of_operation_variable_name";
+}

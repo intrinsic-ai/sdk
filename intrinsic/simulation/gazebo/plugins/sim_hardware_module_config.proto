@@ -316,6 +316,79 @@ message SimHardwareModuleConfig {
     map<string, SimHardwareInterface> name_to_interface = 2;
   }
 
+  // Infers hardware interfaces from multiple Flowstate instances and allows
+  // renaming them. Use this when you have multiple scene objects (instances)
+  // contributing to a single hardware module.
+  //
+  // By default, all inferred interface names are prefixed with the instance
+  // name (see `Instance::prefix_override` for details).
+  //
+  // Example configuration:
+  // instances {
+  //   instance_name: "drive_1"
+  //   # mapping is optional, default would be `drive_1_joint_position_command`
+  //   interface_mappings {
+  //     from_interface_name: "joint_position_command"
+  //     to_interface_name: "custom_joint_position_command"
+  //   }
+  // }
+  message InferInterfacesFromInstances {
+    // Configuration for a single instance of a device/robot.
+    message Instance {
+      // Defines a mapping from the simulated interface name to the name
+      // expected by the real-time controller.
+      message InterfaceMapping {
+        // The name of the simulated interface as derived from the scene object.
+        // This refers to the raw, unprefixed name (e.g.
+        // "joint_position_command").
+        string from_interface_name = 1;
+
+        // The name of the simulated interface as expected by the real-time
+        // controller.
+        string to_interface_name = 2;
+      }
+
+      // The name of the Flowstate instance whose interfaces we want to
+      // infer/map.
+      string instance_name = 1;
+
+      // By default, the simulated hardware module prefixes all interface names
+      // from an instance with the instance name and an underscore.
+      // For example: Interface "joint_position_command" in instance "drive_1"
+      // becomes "drive_1_joint_position_command".
+      //
+      // Override this behavior using this `oneof` and the `interface_mappings`
+      // below.
+      oneof prefix_override {
+        // Omits the instance name prefix for all interfaces in this instance.
+        // Example: "joint_position_command" remains unchanged.
+        //
+        // Warning: This easily causes name collisions if multiple instances
+        // share interface names.
+        bool omit_instance_name_prefix = 2;
+
+        // Replaces the instance name prefix with this string and an underscore.
+        // Example: If `custom_prefix` is "left", "joint_position_command"
+        // becomes "left_joint_position_command".
+        //
+        // Note: This field cannot be empty. Use `omit_instance_name_prefix`
+        // to remove the prefix entirely.
+        string custom_prefix = 3;
+      }
+
+      // Defines custom interface mappings when default prefixing and
+      // `prefix_override` logic are not sufficient to match the real-time
+      // controller's naming expectations.
+      //
+      // The module still exports interfaces omitted from this list using
+      // the default prefixing logic (subject to `prefix_override`).
+      repeated InterfaceMapping interface_mappings = 4;
+    }
+
+    // List of instances to infer interfaces from.
+    repeated Instance instances = 1;
+  }
+
   // This determines how the simulated HWM decides which interfaces to expose.
   oneof hardware_interfaces {
     // Infer hardware interfaces based on a SceneObject bundled with the HWM
@@ -349,6 +422,9 @@ message SimHardwareModuleConfig {
     // `manual_hardware_interfaces` are the *only* ones that exist, and there
     // are no name collisions.
     ManualInterfaceMap manual_hardware_interfaces = 4;
+    // Infers hardware interfaces from multiple Flowstate instances and allows
+    // renaming them.
+    InferInterfacesFromInstances from_instances = 7;
   }
 
   // If present, look up the control frequency for this HWM in the Gazebo

@@ -4,6 +4,7 @@ load("//intrinsic/platform:flatbuffers.bzl", "cc_flatbuffers_library", "flatbuff
 
 package(
     default_visibility = [
+        "//sdk:__subpackages__",
         "//visibility:public",
     ],
 )

@@ -1,7 +1,7 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package servicefix contains utils that adapt a given manifest to meet the requirements of
-// the latest platform version.
+// Package servicefix contains utils that adapt Services to meet the requirements of the latest
+// platform version.
 package servicefix
 
 import (

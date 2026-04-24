@@ -44,7 +44,7 @@ var clusterDeleteCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, argv []string) error {
 		ctx := cmd.Context()
-		conn, err := newCloudConn(ctx)
+		conn, err := NewCloudConn(ctx)
 		if err != nil {
 			return err
 		}

@@ -6,6 +6,7 @@ load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(
     default_visibility = [
+        "//sdk:__subpackages__",
         "//visibility:public",
     ],
 )
@@ -29,4 +30,18 @@ go_proto_library(
     importpath = "intrinsic/icon/hal/lib/service_variable_value/v1/service_variable_config_go_proto",
     protos = [":service_variable_config_proto"],
     deps = ["//intrinsic/icon/hal/lib/fieldbus/v1:value_parsing_go_proto"],
+)
+
+proto_library(
+    name = "service_variable_export_proto",
+    srcs = ["service_variable_export.proto"],
+    deps = [
+        ":service_variable_config_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "service_variable_export_cc_proto",
+    deps = [":service_variable_export_proto"],
 )

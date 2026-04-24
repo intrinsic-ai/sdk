@@ -1,0 +1,45 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+include "intrinsic/icon/flatbuffers/transform_types.fbs";
+include "intrinsic/icon/hal/interfaces/force_sensor.fbs";
+
+namespace intrinsic_fbs;
+
+// Status message from ForceTorque
+table ForceTorqueStatus {
+  // Indicates whether the force/torque sensor is running and outputting valid
+  // data
+  enabled:bool = false;
+
+  // Indicates whether any previous taring operations have been completed and a
+  // new tare operation may be requested. The variable defaults to false, and
+  // should be set to true when a tare operation may be requested. Upon
+  // requesting a new tare operation, the variable should be set to false and
+  // remain false until the tare operation is complete. After the tare operation
+  // is complete, the variable should become and remain true until a new tare
+  // operation is requested.
+  retare_completed:bool = false;
+
+  // Indicates whether the force/torque sensor is saturated or has saturated
+  // since the last tare and that a retare should be performed.
+  retare_suggested:bool = false;
+
+  // A wrench is a x,y,z force and rx, ry, rz torque.
+  wrench:intrinsic_fbs.Wrench;
+
+  // Sensor status code field to propagate error codes from plugin to ICON.
+  status_code:intrinsic_fbs.ForceSensorStatusCode = GenericError;
+
+  // Raw status code field to propagate error codes from plugin to ICON.
+  raw_status_code:int = 0;
+}
+
+// Command message from ForceTorque
+table ForceTorqueCommand {
+  // Indicates whether the force/torque sensor should be retared
+  retare:bool = false;
+
+  // The number of taring cycles over which the force torque sensor bias should
+  // be avaraged. Defaults to 1.
+  num_taring_cycles:int = 1;
+}

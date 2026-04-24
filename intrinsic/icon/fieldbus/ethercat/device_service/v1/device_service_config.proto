@@ -183,11 +183,15 @@ message JointDeviceData {
   // If not provided, order will be determined from the logical bus position.
   optional uint32 joint_index = 5;
 
-  // The scale factor from encoder ticks (or ticks/s, or ticks/s^2) as read from
-  // the variable references above to radian (or radian/s, or radian/s^2).
+  // The resolution of the encoder in ticks per radian (or ticks/s per radian/s,
+  // or ticks/s^2 per radian/s^2).
+  //
   // Applied in the following way:
-  //   radian_value = ticks_to_radian * variable_reference.
-  double ticks_to_radian = 6;
+  //   radian_value = variable_reference (in ticks) / ticks_per_radian.
+  //   command_ticks = radian_command * ticks_per_radian.
+  //
+  // Note: Using negative values changes the turn direction.
+  double ticks_per_radian = 6;
 }
 
 // Describes device data for a drive following the CiA 402 (DS402) profile for

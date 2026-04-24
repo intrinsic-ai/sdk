@@ -1,0 +1,24 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+include "intrinsic/icon/hal/interfaces/adio.fbs";
+
+namespace intrinsic_fbs;
+
+/// Status to interface with analog signals of the IO controller
+table AIOStatus{
+  signals:[intrinsic_fbs.AnalogInputStatus];
+}
+
+/// Status to interface with analog signals of the IO controller
+table AIOCommand{
+  signals:[intrinsic_fbs.AnalogOutputCommand];
+}
+
+/// Status to interface with digital signals of the IO controller
+table DIOStatus{
+  signals:[intrinsic_fbs.DigitalInputStatus];
+}
+/// Command to interface with digital signals of the IO controller
+table DIOCommand{
+  signals:[intrinsic_fbs.DigitalOutputCommand];
+}

@@ -101,7 +101,7 @@ var clusterListCmd = &cobra.Command{
 		}
 
 		ctx := cmd.Context()
-		conn, err := newCloudConn(ctx)
+		conn, err := NewCloudConn(ctx)
 		if err != nil {
 			return err
 		}

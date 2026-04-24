@@ -1,0 +1,32 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.fieldbus.v1;
+
+import "google/protobuf/timestamp.proto";
+import "intrinsic/icon/hal/lib/service_variable_value/v1/service_variable_config.proto";
+
+option go_package = "intrinsic/icon/hal/lib/service_variable_value/v1/service_variable_export_go_proto";
+
+// Next ID: 7
+message SdoStatus {
+  google.protobuf.Timestamp read_time = 1;
+  // The SDO variable to read.
+  ServiceVariable sdo_variable = 2;
+  // The type to read.
+  ServiceVariableType type = 3;
+  // The alias for the variable.
+  string alias = 4;
+  ServiceVariableValueType value = 5;
+  // All string representations of the value, where a `ValuePattern`
+  // see
+  // intrinsic/icon/hal/lib/service_variable_value/v1/service_variable_config.proto
+  // matched.
+  repeated string value_interpretations = 6;
+}
+
+// One round of SDO exports for publishing.
+message ServiceVariableExport {
+  repeated SdoStatus sdo_status = 1;
+}

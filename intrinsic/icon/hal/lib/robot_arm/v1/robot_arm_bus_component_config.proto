@@ -1,0 +1,52 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.icon.v1;
+
+option go_package = "intrinsic/icon/hal/lib/robot_arm/v1/robot_arm_bus_component_config_go_proto";
+
+// Used to define bus variables with scale, i.e. to convert encoder ticks to
+// radian values.
+// Scale is applied post-read and pre-write. For instance:
+// Read: radian_value = scale * ticks;
+// ticks = value of `variable_name`
+// Write: ticks = scale * radian_value;
+// Next ID: 4
+message BusVariableWithScale {
+  string variable_name = 1;
+  double scale = 2;
+}
+
+// Next ID: 7
+message RobotArmBusComponentConfig {
+  // Optional prefix to distinguish multiple arms.
+  // Prefixes all corresponding hardware module interfaces with
+  // "<device_prefix>_", i.e. device_prefix "robot" will result in
+  // "robot_joint_position_command".
+  string device_prefix = 1;
+  // Bus variable names for the position command variables for each joint.
+  // The list is expected to be ordered from base to tip.
+  // Use scale to define the conversion from radian to encoder ticks.
+  repeated BusVariableWithScale position_command_variables = 2;
+  // Bus variable names for the position state variables of each joint.
+  // The list is expected to be ordered from base to tip.
+  // Use scale to define the conversion from encoder ticks to radian.
+  repeated BusVariableWithScale position_state_variables = 3;
+  // Optional bus variable names for the velocity state variables of each joint.
+  // The list is expected to be ordered from base to tip.
+  // Use scale to define the conversion from encoder ticks to radian/s.
+  // If empty, no velocity state interface will be created,
+  // and you'll have to use `calculate_velocity_state_from_position` in the
+  // real-time controller config.
+  repeated BusVariableWithScale velocity_state_variables = 4;
+  // Optional bus variable names for the feedforward velocity variables of each
+  // joint. The list is expected to be ordered from base to tip.
+  // Use scale to define the conversion from encoder ticks to radian.
+  repeated BusVariableWithScale feedforward_velocity_command_variables = 5;
+  // Optional bus variable names for the acceleration state variables of each
+  // joint. The list is expected to be ordered from base to tip. Use scale to
+  // define the conversion from encoder ticks to radian/s². If empty, no
+  // acceleration state interface will be created.
+  repeated BusVariableWithScale acceleration_state_variables = 6;
+}

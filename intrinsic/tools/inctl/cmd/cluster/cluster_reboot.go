@@ -38,7 +38,7 @@ var clusterRebootCmd = &cobra.Command{
 	Long:  rebootDesc,
 	RunE: func(cmd *cobra.Command, argv []string) error {
 		ctx := cmd.Context()
-		conn, err := newCloudConn(ctx)
+		conn, err := NewCloudConn(ctx)
 		if err != nil {
 			return err
 		}

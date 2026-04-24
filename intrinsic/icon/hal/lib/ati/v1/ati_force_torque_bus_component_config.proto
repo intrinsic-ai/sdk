@@ -1,0 +1,60 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.ati.v1;
+
+option go_package = "intrinsic/icon/hal/lib/ati/v1/ati_force_torque_bus_component_config_go_proto";
+
+// Bus variable configuration for a force torque sensor.
+// This is highly inspired by the ATI axia F/T series.
+// Next ID: 17
+message ForceTorqueBusComponentConfig {
+  // False for ATI Axia devices (like ATI Axia 80).
+  // True for ATI EtherCAT OEM board-powered devices (like Omega 191).
+  bool ati_oem_device = 15;
+  // Position on the EtherCAT bus.
+  int32 bus_position = 1;
+  // Name of the bus variable for force in x.
+  string input_f_x = 2;
+  // Name of the bus variable for force in y.
+  string input_f_y = 3;
+  // Name of the bus variable for force in z.
+  string input_f_z = 4;
+  // Name of the bus variable for torque around x.
+  string input_t_x = 5;
+  // Name of the bus variable for torque around y.
+  string input_t_y = 6;
+  // Name of the bus variable for torque around z.
+  string input_t_z = 7;
+  // Name of the bus variable for the device's status code.
+  string status_code = 8;
+  // Name of the bus variable for the device's sample counter.
+  string sample_counter = 9;
+  // Name of the control codes.
+  repeated string control_codes = 10;
+  // Name of the bus variable that holds the counts per Newton.
+  // If empty, the counts per force will be read via SDO. If non-empty, you must
+  // also set `torque_count`.
+  optional string force_count = 11;
+  // Name of the bus variable that holds the counts per Newtonmeter.
+  // If empty, the counts per torque will be read via SDO. If non-empty, you
+  // must also set `force_count`.
+  optional string torque_count = 12;
+
+  // The interface names for this device. This typically only needs to be
+  // provided if there are going to be multiple force-torque sensors on the same
+  // ethercat bus.
+  //
+  // If not provided or empty, defaults to "force_torque_status".
+  optional string hardware_module_status_interface = 13;
+  // If not provided or empty, defaults to "force_torque_command".
+  optional string hardware_module_command_interface = 14;
+
+  // If specified, sets the index of the filter to be used.
+  //
+  // Note that the usage of this field depends entirely on the type of force
+  // torque sensor being used, and the same value can have different meanings
+  // across types (or even be completely ignored!).
+  optional uint32 filter_index = 16;
+}

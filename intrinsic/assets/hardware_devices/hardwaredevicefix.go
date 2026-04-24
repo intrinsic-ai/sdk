@@ -5,32 +5,38 @@
 package hardwaredevicefix
 
 import (
+	"fmt"
+
 	hdmpb "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest_go_proto"
 
+	"intrinsic/assets/data/datafix"
+	"intrinsic/assets/scene_objects/sceneobjectfix"
 	"intrinsic/assets/services/servicefix"
 )
 
 // fixOpts contains options for fixing a manifest.
 type fixOpts struct {
-	populateOldFields   bool
-	clearObsoleteFields bool
+	serviceOptions []servicefix.FixOption
 }
 
 // FixOption is an option for fixing a manifest.
 type FixOption func(*fixOpts)
 
-// WithPopulateOldFields specifies whether to backfill old deprecated fields if empty.
-func WithPopulateOldFields(populate bool) FixOption {
-	return func(opts *fixOpts) {
-		opts.populateOldFields = populate
-	}
-}
-
 // WithClearObsoleteFields specifies whether to clear obsolete manifest fields. A field is
 // considered obsolete if the platform no longer uses it.
 func WithClearObsoleteFields(clear bool) FixOption {
+	return WithServiceOptions(servicefix.WithClearObsoleteFields(clear))
+}
+
+// WithPopulateOldFields specifies whether to backfill old deprecated fields if empty.
+func WithPopulateOldFields(populate bool) FixOption {
+	return WithServiceOptions(servicefix.WithPopulateOldFields(populate))
+}
+
+// WithServiceOptions appends options to use for fixing Service Assets.
+func WithServiceOptions(options ...servicefix.FixOption) FixOption {
 	return func(opts *fixOpts) {
-		opts.clearObsoleteFields = clear
+		opts.serviceOptions = append(opts.serviceOptions, options...)
 	}
 }
 
@@ -54,11 +60,22 @@ func ProcessedManifest(manifest *hdmpb.ProcessedHardwareDeviceManifest, options 
 	if manifest == nil {
 		return nil
 	}
-	for _, pa := range manifest.GetAssets() {
-		// Note that non-inlined Services that are stored in the catalog will need to be "fixed"
+	for k, pa := range manifest.GetAssets() {
+		// Note that non-inlined Assets that are stored in the catalog will need to be "fixed"
 		// downstream when the asset is installed.
-		if m := pa.GetService(); m != nil {
-			servicefix.ProcessedManifest(m, servicefix.WithPopulateOldFields(opts.populateOldFields), servicefix.WithClearObsoleteFields(opts.clearObsoleteFields))
+		switch pa.GetVariant().(type) {
+		case *hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset_Data:
+			if err := datafix.DataAsset(pa.GetData()); err != nil {
+				return fmt.Errorf("failed to fix Data Asset %q: %w", k, err)
+			}
+		case *hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset_SceneObject:
+			if err := sceneobjectfix.ProcessedManifest(pa.GetSceneObject()); err != nil {
+				return fmt.Errorf("failed to fix SceneObject Asset %q: %w", k, err)
+			}
+		case *hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset_Service:
+			if err := servicefix.ProcessedManifest(pa.GetService(), opts.serviceOptions...); err != nil {
+				return fmt.Errorf("failed to fix Service Asset %q: %w", k, err)
+			}
 		}
 	}
 	return nil

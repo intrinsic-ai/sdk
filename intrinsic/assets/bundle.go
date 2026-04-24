@@ -33,6 +33,8 @@ import (
 	metadatapb "intrinsic/assets/proto/metadata_go_proto"
 	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
 	psmpb "intrinsic/skills/proto/processed_skill_manifest_go_proto"
+
+	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
 
 const (
@@ -120,8 +122,17 @@ type VersionDetails struct {
 // ProcessedBundle is a bundle that has been processed and can be viewed as a
 // message for use in different outbound requests.
 type ProcessedBundle interface {
+	// Install returns a processed asset in the form required to be installed in
+	// a solution.
 	Install() *iapb.CreateInstalledAssetRequest_Asset
+
+	// Install returns a processed asset in the form required to be released to
+	// the catalog.
 	Release(VersionDetails) *acpb.Asset
+	// FileDescriptorSet may return nil for asset types that do not have a file
+	// descriptor set or do not have one available from the given information
+	// (due to referencing catalog assets).
+	FileDescriptorSet() *dpb.FileDescriptorSet
 }
 
 type processedDataBundle struct {
@@ -152,6 +163,10 @@ func (b processedDataBundle) Release(details VersionDetails) *acpb.Asset {
 			},
 		},
 	}
+}
+
+func (b processedDataBundle) FileDescriptorSet() *dpb.FileDescriptorSet {
+	return cloneOf(b.da.GetFileDescriptorSet())
 }
 
 type processedHardwareDeviceBundle struct {
@@ -199,6 +214,10 @@ func (b processedHardwareDeviceBundle) Release(details VersionDetails) *acpb.Ass
 	}
 }
 
+func (b processedHardwareDeviceBundle) FileDescriptorSet() *dpb.FileDescriptorSet {
+	return nil
+}
+
 type processedProcessBundle struct {
 	pa *processassetpb.ProcessAsset
 }
@@ -228,6 +247,10 @@ func (b processedProcessBundle) Release(details VersionDetails) *acpb.Asset {
 			},
 		},
 	}
+}
+
+func (b processedProcessBundle) FileDescriptorSet() *dpb.FileDescriptorSet {
+	return nil
 }
 
 type processedServiceBundle struct {
@@ -268,6 +291,10 @@ func (b processedServiceBundle) Release(details VersionDetails) *acpb.Asset {
 	}
 }
 
+func (b processedServiceBundle) FileDescriptorSet() *dpb.FileDescriptorSet {
+	return cloneOf(b.manifest.GetAssets().GetFileDescriptorSet())
+}
+
 type processedSkillBundle struct {
 	manifest *psmpb.ProcessedSkillManifest
 }
@@ -303,6 +330,10 @@ func (b processedSkillBundle) Release(details VersionDetails) *acpb.Asset {
 			},
 		},
 	}
+}
+
+func (b processedSkillBundle) FileDescriptorSet() *dpb.FileDescriptorSet {
+	return cloneOf(b.manifest.GetAssets().GetFileDescriptorSet())
 }
 
 // Process auto-detects a bundle type and processes it to be sent to an

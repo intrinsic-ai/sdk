@@ -24,6 +24,17 @@ go_library(
 )
 
 go_library(
+    name = "processfix",
+    srcs = ["processfix.go"],
+    importpath = "intrinsic/assets/processes/processfix",
+    visibility = ["//intrinsic:internal_api_users"],
+    deps = [
+        "//intrinsic/assets/processes/proto:process_asset_go_proto",
+        "//intrinsic/assets/processes/proto:process_manifest_go_proto",
+    ],
+)
+
+go_library(
     name = "processmanifest",
     srcs = ["processmanifest.go"],
     importpath = "intrinsic/assets/processes/processmanifest",

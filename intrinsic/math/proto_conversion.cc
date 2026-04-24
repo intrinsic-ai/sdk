@@ -126,7 +126,13 @@ namespace intrinsic {
 intrinsic_proto::Pose ToProto(const Pose& pose) {
   intrinsic_proto::Pose proto_pose;
   *proto_pose.mutable_position() = ToProto(pose.translation());
-  *proto_pose.mutable_orientation() = ToProto(pose.quaternion());
+  // Compensate for numerical inaccuracies which may accumulate from many
+  // composed rotations to maintain serialization idempotency.
+  eigenmath::Quaterniond quat = pose.quaternion();
+  if (!intrinsic::AlmostEquals(quat.squaredNorm(), 1)) {
+    quat.normalize();
+  }
+  *proto_pose.mutable_orientation() = ToProto(quat);
   return proto_pose;
 }
 

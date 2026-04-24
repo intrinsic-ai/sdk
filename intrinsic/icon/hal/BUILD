@@ -7,6 +7,7 @@ load("//bazel:go_macros.bzl", "go_proto_library")
 load("//intrinsic/icon/hal/bzl:hardware_module_binary.bzl", "hardware_module_binary")
 
 package(default_visibility = [
+    "//sdk:__subpackages__",
     "//visibility:public",
 ])
 
@@ -180,6 +181,39 @@ cc_library(
     deps = [
         ":hardware_module_config_cc_proto",
         ":hardware_module_interface",
+    ],
+    alwayslink = 1,
+)
+
+cc_library(
+    name = "default_hardware_interfaces",
+    hdrs = ["default_hardware_interfaces.h"],
+    deps = [
+        ":hardware_interface_traits",
+        "//intrinsic/icon/control/safety:safety_messages_fbs_cc",
+        "//intrinsic/icon/control/safety:safety_messages_fbs_utils",
+        "//intrinsic/icon/flatbuffers:transform_types",
+        "//intrinsic/icon/flatbuffers:transform_types_fbs_cc",
+        "//intrinsic/icon/hal/interfaces:control_mode_fbs_cc",
+        "//intrinsic/icon/hal/interfaces:control_mode_fbs_utils",
+        "//intrinsic/icon/hal/interfaces:electrical_motor_fbs_cc",
+        "//intrinsic/icon/hal/interfaces:electrical_motor_fbs_utils",
+        "//intrinsic/icon/hal/interfaces:force_torque_fbs_cc",
+        "//intrinsic/icon/hal/interfaces:force_torque_fbs_utils",
+        "//intrinsic/icon/hal/interfaces:hardware_module_state_fbs_cc",
+        "//intrinsic/icon/hal/interfaces:hardware_module_state_fbs_utils",
+        "//intrinsic/icon/hal/interfaces:io_controller_fbs_cc",
+        "//intrinsic/icon/hal/interfaces:io_controller_fbs_utils",
+        "//intrinsic/icon/hal/interfaces:joint_command_fbs_cc",
+        "//intrinsic/icon/hal/interfaces:joint_command_fbs_utils",
+        "//intrinsic/icon/hal/interfaces:joint_limits_fbs_cc",
+        "//intrinsic/icon/hal/interfaces:joint_limits_fbs_utils",
+        "//intrinsic/icon/hal/interfaces:joint_state_fbs_cc",
+        "//intrinsic/icon/hal/interfaces:joint_state_fbs_utils",
+        "//intrinsic/icon/hal/interfaces:payload_command_fbs_cc",
+        "//intrinsic/icon/hal/interfaces:payload_command_utils",
+        "//intrinsic/icon/hal/interfaces:payload_state_fbs_cc",
+        "//intrinsic/icon/hal/interfaces:payload_state_utils",
     ],
     alwayslink = 1,
 )

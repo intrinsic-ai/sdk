@@ -211,30 +211,30 @@ func (c *fileDescriptorSetCollector) VisitNode(ctx context.Context, node *behavi
 	return nil
 }
 
-func addFileDescriptorSetToFiles(fileDescriptorSet *descriptorpb.FileDescriptorSet, files *protoregistry.Files) error {
-	for _, fileDescriptor := range fileDescriptorSet.GetFile() {
-		file, err := protodesc.NewFile(fileDescriptor, files)
-		if err != nil {
-			return errors.Wrap(err, "failed creating file from file descriptor")
-		}
+func addAllFilesToFiles(dst *protoregistry.Files, files *protoregistry.Files) error {
+	var err error
+	files.RangeFiles(func(file protoreflect.FileDescriptor) bool {
 		// Add file if not already present. The error returned by RegisterFile() below cannot easily be
 		// classified into "not found" vs "other error". So we check for the file's presence first using
 		// FindFileByPath() which does return a specific error for "not found".
 		fileExists := true
-		_, err = files.FindFileByPath(file.Path())
+		_, err = dst.FindFileByPath(file.Path())
 		if errors.Is(err, protoregistry.NotFound) {
 			fileExists = false
 		} else if err != nil {
-			return errors.Wrap(err, "failed finding file by path")
+			err = errors.Wrap(err, "failed finding file by path")
+			return false
 		}
 
 		if !fileExists {
-			if err = files.RegisterFile(file); err != nil {
-				return errors.Wrap(err, "failed registering file")
+			if err = dst.RegisterFile(file); err != nil {
+				err = errors.Wrap(err, "failed registering file")
+				return false
 			}
 		}
-	}
-	return nil
+		return true
+	})
+	return err
 }
 
 // Creates a merged pool of the file descriptor sets of all script nodes in
@@ -250,8 +250,12 @@ func MergedTypesForAllScriptNodesInTree(ctx context.Context, bt *behaviortreepb.
 
 	files := new(protoregistry.Files)
 	for _, fileDescriptorSet := range collector.fileDescriptorSets {
-		if err := addFileDescriptorSetToFiles(fileDescriptorSet, files); err != nil {
-			return nil, errors.Wrap(err, "failed adding file descriptor set to files")
+		setFiles, err := protodesc.NewFiles(fileDescriptorSet)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed creating files from file descriptor set")
+		}
+		if err := addAllFilesToFiles(files, setFiles); err != nil {
+			return nil, errors.Wrap(err, "failed adding file descriptor set files to files")
 		}
 	}
 

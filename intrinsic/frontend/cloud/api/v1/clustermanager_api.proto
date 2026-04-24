@@ -12,6 +12,7 @@ import "google/protobuf/duration.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
+import "intrinsic/kubernetes/intrinsic_os/protos/v1/cluster.proto";
 import "intrinsic/util/status/extended_status.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
@@ -96,7 +97,7 @@ message UpdateProgress {
   int32 total_update_progress = 3 [(google.api.field_behavior) = OPTIONAL];
 }
 
-// next number is 27
+// next number is 28
 message Cluster {
   // name shown to admins - globally unique
   string cluster_name = 1;
@@ -123,6 +124,7 @@ message Cluster {
   repeated intrinsic_proto.status.ExtendedStatus extended_statuses = 23;
   google.protobuf.Timestamp last_seen = 24;
   UpdateProgress update_progress = 25 [(google.api.field_behavior) = OPTIONAL];
+  intrinsic_proto.cluster.v1.RemoteAccessSettings remote_access_settings = 27;
   // removed fields:
   reserved 4, 5, 10, 11, 12;
   reserved frontend_url, jupyter_url, is_public, is_mine, is_shared;

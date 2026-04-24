@@ -143,6 +143,14 @@ message InfoVisualizerOptions {
     bool enabled = 1;
   }
 
+  // Options for the system panel, which visualizes:
+  //   - Controller operational state and safety status
+  //   - Individual hardware parts status and modes
+  message SystemPanelOptions {
+    // If true, enables the system panel.
+    bool enabled = 1;
+  }
+
   // Options for the process panel, which visualizes:
   //   - Skill execution tracking (requests, summaries, extended status)
   //   - Execution durations and error traces
@@ -165,6 +173,9 @@ message InfoVisualizerOptions {
 
   // Options for the recording panel.
   optional RecordingPanelOptions recording_panel = 3;
+
+  // Options for the system panel.
+  optional SystemPanelOptions system_panel = 6;
 
   // Options for the process panel.
   optional ProcessPanelOptions process_panel = 4;

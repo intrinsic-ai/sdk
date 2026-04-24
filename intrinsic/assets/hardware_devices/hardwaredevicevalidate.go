@@ -7,8 +7,11 @@ import (
 	"fmt"
 	"os"
 
+	"intrinsic/assets/data/datavalidate"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/metadatautils"
+	"intrinsic/assets/scene_objects/sceneobjectvalidate"
+	"intrinsic/assets/services/servicevalidate"
 
 	hdmpb "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest_go_proto"
 	atpb "intrinsic/assets/proto/asset_type_go_proto"
@@ -93,11 +96,19 @@ func HardwareDeviceManifest(m *hdmpb.HardwareDeviceManifest, options ...Hardware
 }
 
 type processedHardwareDeviceManifestOptions struct {
+	dataAssetOptions         []datavalidate.DataAssetOption
 	verifyCatalogAssetsExist VerifyCatalogAssetsExist
 }
 
 // ProcessedHardwareDeviceManifestOption is an option for validating a ProcessedHardwareDeviceManifest.
 type ProcessedHardwareDeviceManifestOption func(*processedHardwareDeviceManifestOptions)
+
+// WithDataAssetOptions appends options for verifying Data Assets in the HardwareDevice.
+func WithDataAssetOptions(dataAssetOptions ...datavalidate.DataAssetOption) ProcessedHardwareDeviceManifestOption {
+	return func(opts *processedHardwareDeviceManifestOptions) {
+		opts.dataAssetOptions = append(opts.dataAssetOptions, dataAssetOptions...)
+	}
+}
 
 // WithVerifyProcessedCatalogAssetsExist provides a function that verifies that referenced catalog
 // Assets exist.
@@ -315,12 +326,24 @@ func validateProcessedAssets(assets map[string]*hdmpb.ProcessedHardwareDeviceMan
 			}
 			catalogAssets = append(catalogAssets, asset.GetCatalog())
 		case *hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset_Service:
+			if err := servicevalidate.ProcessedServiceManifest(asset.GetService()); err != nil {
+				return nil, fmt.Errorf("invalid Service %q: %w", key, err)
+			}
+
 			assetType = atpb.AssetType_ASSET_TYPE_SERVICE
 			id = asset.GetService().GetMetadata().GetId()
 		case *hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset_SceneObject:
+			if err := sceneobjectvalidate.ProcessedSceneObjectManifest(asset.GetSceneObject()); err != nil {
+				return nil, fmt.Errorf("invalid SceneObject %q: %w", key, err)
+			}
+
 			assetType = atpb.AssetType_ASSET_TYPE_SCENE_OBJECT
 			id = asset.GetSceneObject().GetMetadata().GetId()
 		case *hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset_Data:
+			if err := datavalidate.DataAsset(asset.GetData(), opts.dataAssetOptions...); err != nil {
+				return nil, fmt.Errorf("invalid Data %q: %w", key, err)
+			}
+
 			assetType = atpb.AssetType_ASSET_TYPE_DATA
 			id = asset.GetData().GetMetadata().GetIdVersion().GetId()
 		default:

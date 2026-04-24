@@ -197,8 +197,8 @@ message CreateObjectRequest {
   // Requested object view for the returned, created object.
   ObjectView view = 7;
 
-  reserved "create_from_product";
-  reserved 8;
+  reserved "create_from_product", "create_from_world_fragment";
+  reserved 6, 8;
 }
 
 // Request to delete an object including any frames that are grouped under it.

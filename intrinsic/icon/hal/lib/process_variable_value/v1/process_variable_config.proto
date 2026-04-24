@@ -1,0 +1,42 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.fieldbus.v1;
+
+option go_package = "intrinsic/icon/hal/lib/process_variable_value/v1/process_variable_config_go_proto";
+
+// Next ID: 2
+message ProcessVariableConfig {
+  repeated ProcessVariableWrite pdo_writes = 1;
+}
+
+message ProcessVariableValueType {
+  oneof value {
+    bool bool_value = 1;
+    uint32 uint8_value = 2;
+    int32 int8_value = 3;
+    uint32 uint16_value = 4;
+    int32 int16_value = 5;
+    uint32 uint32_value = 6;
+    int32 int32_value = 7;
+    uint64 uint64_value = 8;
+    int64 int64_value = 9;
+    float float_value = 10;
+    double double_value = 11;
+  }
+}
+
+// Next ID: 5
+message ProcessVariableWrite {
+  // The name of the output variable on the bus.
+  string variable_name = 1;
+  // The value that the output variable shall assume.
+  ProcessVariableValueType value = 2;
+  // The value that the output variable shall assume when the module is
+  // enabling. If not set, the value is the same as the `value`.
+  optional ProcessVariableValueType enabling_override_value = 3;
+  // The value that the output variable shall assume when the module is
+  // disabling. If not set, the value is the same as the `value`.
+  optional ProcessVariableValueType disabling_override_value = 4;
+}

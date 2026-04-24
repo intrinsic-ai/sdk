@@ -6,7 +6,10 @@ load("@rules_pkg//:pkg.bzl", "pkg_tar")
 load("//bazel:go_macros.bzl", "go_binary", "go_test")
 load("//intrinsic/icon/testing:cc_test_and_malloc_test.bzl", "cc_test_and_malloc_test")
 
-package(default_visibility = ["//visibility:public"])
+package(default_visibility = [
+    "//sdk:__subpackages__",
+    "//visibility:public",
+])
 
 cc_library(
     name = "bitset",
@@ -65,6 +68,15 @@ cc_library(
     deps = [
         ":fixed_str_cat",
         ":fixed_string",
+    ],
+)
+
+cc_library(
+    name = "sensor_utils",
+    srcs = ["sensor_utils.cc"],
+    hdrs = ["sensor_utils.h"],
+    deps = [
+        "//intrinsic/eigenmath",
     ],
 )
 
@@ -429,6 +441,27 @@ cc_library(
         "@abseil-cpp//absl/types:span",
         "@com_google_googletest//:gtest_prod",
         "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_library(
+    name = "async_function",
+    hdrs = ["async_function.h"],
+    visibility = [
+        "//sdk:__subpackages__",
+        "//visibility:public",
+    ],
+    deps = [
+        ":realtime_status",
+        ":realtime_status_macro",
+        ":realtime_status_or",
+        "//intrinsic/icon/testing:realtime_annotations",
+        "//intrinsic/platform/common/buffers:rt_promise",
+        "//intrinsic/util/thread",
+        "//intrinsic/util/thread:stop_token",
+        "@abseil-cpp//absl/functional:any_invocable",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/time",
     ],
 )
 
