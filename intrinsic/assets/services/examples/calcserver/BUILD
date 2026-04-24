@@ -221,6 +221,14 @@ intrinsic_data(
     deps = [":two_dimensional_function_data_proto"],
 )
 
+intrinsic_data(
+    name = "units_conversion_data",
+    manifest = "units_conversion_data.textproto",
+    deps = [
+        ":calc_server_proto",
+    ],
+)
+
 cc_library(
     name = "exponentiate",
     srcs = ["exponentiate.cc"],
