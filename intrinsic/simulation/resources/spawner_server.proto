@@ -1,0 +1,72 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.simulation;
+
+import "google/protobuf/empty.proto";
+import "intrinsic/math/proto/pose.proto";
+import "intrinsic/math/proto/vector3.proto";
+import "intrinsic/scene/proto/v1/scene_object.proto";
+import "intrinsic/world/proto/object_world_refs.proto";
+
+option go_package = "intrinsic/simulation/resources/spawner_server_go_proto";
+
+message SpawnObjectRequest {
+  // The bounding box centered at `spawn_offset` that describe the extents an
+  // object may spawn at. The default value of (0, 0, 0) indicates no
+  // randomization. The random position is selected from a uniform distribution
+  // within this domain.
+  intrinsic_proto.Vector3 positional_randomization_domain = 4;
+
+  // DEPRECATED: Please use 'positional_randomization_domain' instead.
+  //
+  // True if the spawner should randomize the position of the spawned object
+  // based on the spawner configuration in the world.
+  bool randomize_position = 1 [deprecated = true];
+
+  // The options for randomizing the orientation. If neither are set, no
+  // rotation will be randomized.
+  oneof orientation_randomization {
+    // The resulting object may be in any orientation.
+    bool randomize_any_orientation = 5;
+
+    // A world-space axis along which the spawned object will be rotated at a
+    // random uniformly distributed angle.
+    intrinsic_proto.Vector3 axially_constrained_orientation = 6;
+  }
+
+  // DEPRECATED: Please use 'rotation_randomization' instead.
+  //
+  // True if the spawner should randomize the orientation of the spawned object
+  // based on the spawner configuration in the world.
+  bool randomize_orientation = 2 [deprecated = true];
+
+  // Optional pose offset from the spawner origin to the location where the
+  // product will be spawned in simulation. Defaults to identity if unspecified.
+  optional intrinsic_proto.Pose spawn_offset = 3;
+
+  // Scene object to spawn. If this is set, the `spawn_offset` will be the world
+  // space "base" pose for the spawned object from which we may further
+  // randomize position or orientation.
+  intrinsic_proto.scene_object.v1.SceneObject scene_object = 7;
+
+  // If set, the spawned object will be attached to this parent.
+  intrinsic_proto.world.TransformNodeReference parent = 8;
+
+  // If set, the spawned object will be named according to this field.
+  // Otherwise, a unique name will be generated.
+  string name = 9;
+}
+
+// This service spawns objects in simulation based on the configured spawner
+// in the world.
+service Spawner {
+  // Communicates with the simulator to spawn an object. This has no effect if
+  // we are running on a real workcell.
+  rpc SpawnObject(SpawnObjectRequest) returns (google.protobuf.Empty) {}
+
+  // Returns a pose that could have been spawned by this spawner. The pose is
+  // local to the spawner's coordinate frame.
+  rpc GetSpawnPose(SpawnObjectRequest) returns (intrinsic_proto.Pose) {}
+}
