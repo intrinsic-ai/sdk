@@ -277,6 +277,10 @@ message PlotsVisualizerOptions {
   // text logs) is fully loaded and visualized before heavier data (e.g., point
   // clouds).
   optional int32 load_priority = 3;
+
+  // Maximum number of nodes to display in a Grid before falling back to Tabs
+  // to avoid unreadable congested layouts. Defaults to 8.
+  optional int32 max_grid_nodes = 4;
 }
 
 message VisualizationOptions {
