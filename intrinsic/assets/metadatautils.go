@@ -6,6 +6,7 @@ package metadatautils
 import (
 	"slices"
 
+	"intrinsic/assets/dependencies/platform"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/interfaceutils"
 	"intrinsic/assets/tagutils"
@@ -87,6 +88,7 @@ type metadataWithTags interface {
 }
 
 type validateMetadataOptions struct {
+	allowRuntimeAssetID        *bool
 	specifiesFileDescriptorSet *bool
 	specifiesProvides          *bool
 	specifiesReleaseNotes      *bool
@@ -97,6 +99,13 @@ type validateMetadataOptions struct {
 
 // ValidateMetadataOption is a functional option for ValidateMetadata.
 type ValidateMetadataOption func(*validateMetadataOptions)
+
+// WithAllowRuntimeAssetID allows the metadata to have the reserved runtime Asset ID.
+func WithAllowRuntimeAssetID() ValidateMetadataOption {
+	return func(opts *validateMetadataOptions) {
+		opts.allowRuntimeAssetID = proto.Bool(true)
+	}
+}
 
 // WithAssetType requires that the metadata has the given Asset type.
 func WithAssetType(at atypepb.AssetType) ValidateMetadataOption {
@@ -140,6 +149,7 @@ func WithInAssetOptionsIgnoreVersion() ValidateMetadataOption {
 // WithCatalogOptions adds options for validating metadata for use in the AssetCatalog.
 func WithCatalogOptions() ValidateMetadataOption {
 	return func(opts *validateMetadataOptions) {
+		opts.allowRuntimeAssetID = proto.Bool(true)
 		opts.specifiesUpdateTime = proto.Bool(true)
 		opts.specifiesVersion = proto.Bool(true)
 	}
@@ -160,6 +170,14 @@ func ValidateMetadata(m *metadatapb.Metadata, options ...ValidateMetadataOption)
 		return status.Errorf(codes.InvalidArgument, "invalid id version: %v", err)
 	}
 	id := idutils.IDFromProtoUnchecked(m.GetIdVersion().GetId())
+
+	// Verify that the Asset ID is not reserved, except when opts.allowRuntimeAssetID permits the
+	// use of platform.RuntimeAssetID.
+	if opts.allowRuntimeAssetID == nil || !*opts.allowRuntimeAssetID || id != platform.RuntimeAssetID {
+		if err := platform.ValidateIDNotReserved(m.GetIdVersion().GetId()); err != nil {
+			return err
+		}
+	}
 
 	if err := validateFieldPresence(m.GetFileDescriptorSet(), opts.specifiesFileDescriptorSet, "file descriptor set", id); err != nil {
 		return err
@@ -217,13 +235,13 @@ func ValidateMetadata(m *metadatapb.Metadata, options ...ValidateMetadataOption)
 }
 
 // ValidateManifestMetadata validates asset manifest metadata.
-func ValidateManifestMetadata(m ManifestMetadata) error {
+func ValidateManifestMetadata(m ManifestMetadata, options ...ValidateMetadataOption) error {
 	metadata, err := metadataFromManifestMetadata(m)
 	if err != nil {
 		return err
 	}
 
-	return ValidateMetadata(metadata)
+	return ValidateMetadata(metadata, options...)
 }
 
 // ToInputMetadata returns a clone of the input Metadata with output-only fields stripped.

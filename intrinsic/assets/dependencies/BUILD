@@ -134,3 +134,16 @@ py_test(
         "@com_google_protobuf//:protobuf_python",
     ],
 )
+
+go_library(
+    name = "platform",
+    srcs = ["platform.go"],
+    importpath = "intrinsic/assets/dependencies/platform",
+    visibility = ["//intrinsic:__subpackages__"],
+    deps = [
+        "//intrinsic/assets:idutils",
+        "//intrinsic/assets/proto:id_go_proto",
+        "@org_golang_google_grpc//codes:go_default_library",
+        "@org_golang_google_grpc//status:go_default_library",
+    ],
+)

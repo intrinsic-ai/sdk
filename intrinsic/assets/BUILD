@@ -270,6 +270,7 @@ go_library(
         ":interfaceutils",
         ":tagutils",
         "//intrinsic/assets/data/proto/v1:data_manifest_go_proto",
+        "//intrinsic/assets/dependencies:platform",
         "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",
         "//intrinsic/assets/processes/proto:process_manifest_go_proto",
         "//intrinsic/assets/proto:asset_tag_go_proto",

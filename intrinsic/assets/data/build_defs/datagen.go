@@ -67,6 +67,7 @@ func CreateDataBundle(opts *CreateDataBundleOptions) error {
 	}
 	if err := datavalidate.DataManifest(m,
 		datavalidate.WithFiles(files),
+		datavalidate.WithAllowDataManifestRuntimeAssetID(),
 	); err != nil {
 		return fmt.Errorf("invalid DataManifest: %w", err)
 	}

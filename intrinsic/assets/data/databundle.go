@@ -295,7 +295,7 @@ func Write(da *dapb.DataAsset, path string, options ...WriteOption) error {
 	if da.GetMetadata().GetAssetType() == atpb.AssetType_ASSET_TYPE_UNSPECIFIED {
 		da.Metadata.AssetType = atpb.AssetType_ASSET_TYPE_DATA
 	}
-	if err := datavalidate.DataAsset(da); err != nil {
+	if err := datavalidate.DataAsset(da, datavalidate.WithAllowDataAssetRuntimeAssetID()); err != nil {
 		return fmt.Errorf("invalid DataAsset: %w", err)
 	}
 

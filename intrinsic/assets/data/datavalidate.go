@@ -22,11 +22,19 @@ import (
 )
 
 type dataManifestOptions struct {
-	files *protoregistry.Files
+	files               *protoregistry.Files
+	allowRuntimeAssetID bool
 }
 
 // DataManifestOption is an option for validating a DataManifest.
 type DataManifestOption func(*dataManifestOptions)
+
+// WithAllowDataManifestRuntimeAssetID allows the metadata to have the reserved runtime Asset ID.
+func WithAllowDataManifestRuntimeAssetID() DataManifestOption {
+	return func(opts *dataManifestOptions) {
+		opts.allowRuntimeAssetID = true
+	}
+}
 
 // WithFiles provides a Files for validating proto messages.
 func WithFiles(files *protoregistry.Files) DataManifestOption {
@@ -49,7 +57,11 @@ func DataManifest(m *dmpb.DataManifest, options ...DataManifestOption) error {
 		return fmt.Errorf("DataManifest must not be nil")
 	}
 
-	if err := metadatautils.ValidateManifestMetadata(m.GetMetadata()); err != nil {
+	mdOpts := []metadatautils.ValidateMetadataOption{}
+	if opts.allowRuntimeAssetID {
+		mdOpts = append(mdOpts, metadatautils.WithAllowRuntimeAssetID())
+	}
+	if err := metadatautils.ValidateManifestMetadata(m.GetMetadata(), mdOpts...); err != nil {
 		return fmt.Errorf("invalid DataManifest metadata: %w", err)
 	}
 	id := idutils.IDFromProtoUnchecked(m.GetMetadata().GetId())
@@ -68,6 +80,7 @@ func DataManifest(m *dmpb.DataManifest, options ...DataManifestOption) error {
 
 type dataAssetOptions struct {
 	referencedDataOptions []ReferencedDataOption
+	allowRuntimeAssetID   bool
 }
 
 // DataAssetOption is an option for validating a DataAsset.
@@ -88,6 +101,13 @@ func WithReferencedDataOption(referencedDataOption ReferencedDataOption) DataAss
 	}
 }
 
+// WithAllowDataAssetRuntimeAssetID allows the metadata to have the reserved runtime Asset ID.
+func WithAllowDataAssetRuntimeAssetID() DataAssetOption {
+	return func(opts *dataAssetOptions) {
+		opts.allowRuntimeAssetID = true
+	}
+}
+
 // DataAsset validates a DataAsset.
 func DataAsset(da *dapb.DataAsset, options ...DataAssetOption) error {
 	opts := &dataAssetOptions{}
@@ -100,10 +120,14 @@ func DataAsset(da *dapb.DataAsset, options ...DataAssetOption) error {
 	}
 
 	m := da.GetMetadata()
-	if err := metadatautils.ValidateMetadata(m,
+	mdOpts := []metadatautils.ValidateMetadataOption{
 		metadatautils.WithAssetType(atpb.AssetType_ASSET_TYPE_DATA),
 		metadatautils.WithInAssetOptions(),
-	); err != nil {
+	}
+	if opts.allowRuntimeAssetID {
+		mdOpts = append(mdOpts, metadatautils.WithAllowRuntimeAssetID())
+	}
+	if err := metadatautils.ValidateMetadata(m, mdOpts...); err != nil {
 		return fmt.Errorf("invalid DataAsset metadata: %w", err)
 	}
 	id := idutils.IDFromProtoUnchecked(da.GetMetadata().GetIdVersion().GetId())

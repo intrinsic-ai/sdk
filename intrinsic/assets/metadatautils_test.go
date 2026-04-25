@@ -415,6 +415,26 @@ func TestValidateMetadata(t *testing.T) {
 			}(),
 			wantErrorCode: codes.ResourceExhausted,
 		},
+		{
+			name: "reserved platform runtime ID",
+			m: func() *metadatapb.Metadata {
+				m := metadataWithAllFields()
+				m.IdVersion.Id.Package = "ai.intrinsic"
+				m.IdVersion.Id.Name = "runtime"
+				return m
+			}(),
+			wantErrorCode: codes.InvalidArgument,
+		},
+		{
+			name: "reserved platform runtime ID with allow option",
+			m: func() *metadatapb.Metadata {
+				m := metadataWithAllFields()
+				m.IdVersion.Id.Package = "ai.intrinsic"
+				m.IdVersion.Id.Name = "runtime"
+				return m
+			}(),
+			opts: []ValidateMetadataOption{WithAllowRuntimeAssetID()},
+		},
 	}
 
 	for _, tc := range tests {
