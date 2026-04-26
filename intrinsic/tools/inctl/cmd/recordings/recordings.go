@@ -5,7 +5,6 @@ package recordings
 
 import (
 	"intrinsic/tools/inctl/cmd/root"
-	"intrinsic/tools/inctl/util/printer"
 
 	"github.com/spf13/cobra"
 )
@@ -24,20 +23,12 @@ const (
 	keyProjectShort = "p"
 )
 
-func setPrinterFromOutputFlag(command *cobra.Command, args []string) (err error) {
-	if out, err := printer.NewPrinter(root.FlagOutput); err == nil {
-		command.SetOut(out)
-	}
-	return
-}
-
 var RecordingsCmd = &cobra.Command{
 	Use:   "recordings",
 	Short: "Provides access to recordings for a given workcell.",
 	Long:  "Provides access to recordings for a given workcell.",
 	// Catching common typos and potential alternatives
-	SuggestFor:        []string{"recording", "record", "bag"},
-	PersistentPreRunE: setPrinterFromOutputFlag,
+	SuggestFor: []string{"recording", "record", "bag"},
 }
 
 func init() {

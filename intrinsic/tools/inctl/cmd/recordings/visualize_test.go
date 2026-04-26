@@ -5,7 +5,9 @@ package recordings
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"io"
+	"strings"
 	"testing"
 	"time"
 
@@ -21,6 +23,7 @@ import (
 	bagmetadatapb "intrinsic/logging/proto/bag_metadata_go_proto"
 	bagpackagerpb "intrinsic/logging/proto/bag_packager_service_go_proto"
 	replaygrpcpb "intrinsic/logging/proto/replay_service_go_proto"
+	"intrinsic/tools/inctl/cmd/root"
 )
 
 type mockLeaseClient struct {
@@ -180,6 +183,31 @@ func TestVisualizeRecordingE(t *testing.T) {
 			},
 			wantOut: testURL,
 		},
+		{
+			name: "JSON output returns correctly structured data without prompts",
+			args: []string{"--recording_id", testRecordingID, "--duration", testDuration, "--org", testOrg},
+			leaseFunc: func(ctx context.Context, in *leasegrpcpb.LeaseRequest, opts ...grpc.CallOption) (*leasegrpcpb.LeaseResponse, error) {
+				return &leasegrpcpb.LeaseResponse{
+					Lease: &leasegrpcpb.Lease{
+						Instance: "test-instance",
+						Expires:  timestamppb.New(time.Now().Add(1 * time.Hour)),
+					},
+				}, nil
+			},
+			visualizeRecordingFunc: func(ctx context.Context, in *replaygrpcpb.VisualizeRecordingRequest, opts ...grpc.CallOption) (*replaygrpcpb.VisualizeRecordingResponse, error) {
+				return &replaygrpcpb.VisualizeRecordingResponse{
+					Url: testURL,
+				}, nil
+			},
+			getBagFunc: func(ctx context.Context, in *bagpackagerpb.GetBagRequest, opts ...grpc.CallOption) (*bagpackagerpb.GetBagResponse, error) {
+				return &bagpackagerpb.GetBagResponse{
+					Bag: &bagpackagerpb.BagRecord{
+						BagMetadata: &bagmetadatapb.BagMetadata{},
+					},
+				}, nil
+			},
+			wantOut: `"status": "success"`,
+		},
 	}
 
 	// We disable the org check in tests because the test environment does not have
@@ -197,6 +225,14 @@ func TestVisualizeRecordingE(t *testing.T) {
 			originalFlagDuration := flagDuration
 			t.Cleanup(func() { flagDuration = originalFlagDuration })
 			flagDuration = ""
+
+			originalFlagOutput := root.FlagOutput
+			t.Cleanup(func() { root.FlagOutput = originalFlagOutput })
+			if strings.Contains(tc.name, "JSON") {
+				root.FlagOutput = "json"
+			} else {
+				root.FlagOutput = ""
+			}
 
 			// Provide a default getBagFunc if the test case didn't define one
 			// to avoid panics on tests that don't care about the bag fetch logic.
@@ -244,7 +280,17 @@ func TestVisualizeRecordingE(t *testing.T) {
 				assert.Contains(t, err.Error(), tc.wantErr)
 			} else {
 				assert.NoError(t, err)
-				assert.Contains(t, out.String(), tc.wantOut)
+
+				if strings.Contains(tc.name, "JSON") {
+					var parsed map[string]interface{}
+					assert.NoError(t, json.Unmarshal([]byte(out.String()), &parsed), "Output should be valid JSON")
+					assert.Equal(t, "success", parsed["status"])
+					data, ok := parsed["data"].(map[string]interface{})
+					assert.True(t, ok, "Data should be a map")
+					assert.Equal(t, testURL, data["url"])
+				} else {
+					assert.Contains(t, out.String(), tc.wantOut)
+				}
 			}
 		})
 	}

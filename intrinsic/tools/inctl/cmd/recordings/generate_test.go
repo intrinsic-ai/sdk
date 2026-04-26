@@ -5,7 +5,9 @@ package recordings
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/spf13/cobra"
@@ -16,6 +18,7 @@ import (
 
 	bmpb "intrinsic/logging/proto/bag_metadata_go_proto"
 	pb "intrinsic/logging/proto/bag_packager_service_go_proto"
+	"intrinsic/tools/inctl/cmd/root"
 )
 
 type mockBagPackagerClientForGenerate struct {
@@ -107,6 +110,21 @@ func TestGenerateRecordingE(t *testing.T) {
 			},
 			wantErr: "gRPC error",
 		},
+		{
+			name: "JSON output returns correctly structured data without prompts",
+			args: []string{"--recording_id", testBagID, "--org", testOrg},
+			getBagFunc: func(ctx context.Context, in *pb.GetBagRequest, opts ...grpc.CallOption) (*pb.GetBagResponse, error) {
+				return &pb.GetBagResponse{
+					Bag: &pb.BagRecord{
+						BagMetadata: &bmpb.BagMetadata{},
+					},
+				}, nil
+			},
+			generateBagFunc: func(ctx context.Context, in *pb.GenerateBagRequest, opts ...grpc.CallOption) (*pb.GenerateBagResponse, error) {
+				return &pb.GenerateBagResponse{}, nil
+			},
+			wantOut: `"status": "success"`,
+		},
 	}
 
 	// We disable the org check in tests because the test environment does not have
@@ -119,6 +137,15 @@ func TestGenerateRecordingE(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			originalFlagBagID := flagBagID
 			t.Cleanup(func() { flagBagID = originalFlagBagID })
+			flagBagID = ""
+
+			originalFlagOutput := root.FlagOutput
+			t.Cleanup(func() { root.FlagOutput = originalFlagOutput })
+			if strings.Contains(tc.name, "JSON") {
+				root.FlagOutput = "json"
+			} else {
+				root.FlagOutput = ""
+			}
 
 			mockClient := &mockBagPackagerClientForGenerate{
 				GetBagFunc:      tc.getBagFunc,
@@ -148,7 +175,17 @@ func TestGenerateRecordingE(t *testing.T) {
 				assert.Contains(t, err.Error(), tc.wantErr)
 			} else {
 				assert.NoError(t, err)
-				assert.Contains(t, out.String(), tc.wantOut)
+				if strings.Contains(tc.name, "JSON") {
+					var parsed map[string]interface{}
+					err := json.Unmarshal([]byte(out.String()), &parsed)
+					assert.NoError(t, err, "Output should be valid JSON")
+					assert.Equal(t, "success", parsed["status"])
+					data, ok := parsed["data"].(map[string]interface{})
+					assert.True(t, ok, "Data should be a map")
+					assert.Equal(t, testBagID, data["recording_id"])
+				} else {
+					assert.Contains(t, out.String(), tc.wantOut)
+				}
 			}
 		})
 	}

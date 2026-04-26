@@ -5,6 +5,7 @@ package recordings
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"strings"
@@ -20,6 +21,7 @@ import (
 	bagmetadatapb "intrinsic/logging/proto/bag_metadata_go_proto"
 	bagpackagerpb "intrinsic/logging/proto/bag_packager_service_go_proto"
 	loggerpb "intrinsic/logging/proto/logger_service_go_proto"
+	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/promptutil"
 )
 
@@ -361,6 +363,19 @@ func TestCreateRecordingE(t *testing.T) {
 			wantOut:       "Note: Bag upload finished in state: UNCOMPLETABLE. There might be missing data, but the recording can still be generated.",
 			mockBagStatus: bagmetadatapb.BagStatus_UNCOMPLETABLE,
 		},
+		{
+			name:                           "JSON output returns correctly structured data without prompts",
+			args:                           []string{"--workcell", testWorkcell, "--org", testOrg, "--include_scene_data"},
+			promptConfirmRecordAllResponse: false,
+			promptGenerateResponse:         false,
+			createFunc: func(ctx context.Context, in *loggerpb.CreateLocalRecordingRequest, opts ...grpc.CallOption) (*loggerpb.CreateLocalRecordingResponse, error) {
+				return &loggerpb.CreateLocalRecordingResponse{
+					Bag: &bagmetadatapb.BagMetadata{BagId: testBagID},
+				}, nil
+			},
+			wantOut:       `"status": "success"`,
+			mockBagStatus: bagmetadatapb.BagStatus_COMPLETED,
+		},
 	}
 
 	// We disable the org check in tests because the test environment does not have
@@ -391,6 +406,14 @@ func TestCreateRecordingE(t *testing.T) {
 			flagWorkcellName = ""
 			flagStartTimestamp = ""
 			flagEndTimestamp = ""
+
+			originalFlagOutput := root.FlagOutput
+			t.Cleanup(func() { root.FlagOutput = originalFlagOutput })
+			if strings.Contains(tc.name, "JSON") {
+				root.FlagOutput = "json"
+			} else {
+				root.FlagOutput = ""
+			}
 
 			mockClient := &mockDataLoggerClient{
 				CreateLocalRecordingFunc: func(ctx context.Context, in *loggerpb.CreateLocalRecordingRequest, opts ...grpc.CallOption) (*loggerpb.CreateLocalRecordingResponse, error) {
@@ -502,11 +525,22 @@ func TestCreateRecordingE(t *testing.T) {
 				assert.Contains(t, err.Error(), tc.wantErr)
 			} else {
 				assert.NoError(t, err)
-				if tc.wantOut != "" {
-					assert.Contains(t, out.String(), tc.wantOut)
-				}
-				if tc.wantDescRegex != "" {
-					assert.Regexp(t, tc.wantDescRegex, out.String())
+
+				if strings.Contains(tc.name, "JSON") {
+					var parsed map[string]interface{}
+					err := json.Unmarshal([]byte(out.String()), &parsed)
+					assert.NoError(t, err, "Output should be valid JSON")
+					assert.Equal(t, "success", parsed["status"])
+					data, ok := parsed["data"].(map[string]interface{})
+					assert.True(t, ok, "Data should be a map")
+					assert.Equal(t, testBagID, data["recording_id"])
+				} else {
+					if tc.wantOut != "" {
+						assert.Contains(t, out.String(), tc.wantOut)
+					}
+					if tc.wantDescRegex != "" {
+						assert.Regexp(t, tc.wantDescRegex, out.String())
+					}
 				}
 			}
 		})

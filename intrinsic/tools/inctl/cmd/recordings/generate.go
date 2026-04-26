@@ -4,6 +4,7 @@ package recordings
 
 import (
 	"fmt"
+	"io"
 	"math/rand"
 	"strings"
 	"time"
@@ -66,9 +67,15 @@ func NewGenerateCmd(runner *GenerateCmdRunner) *cobra.Command {
 }
 
 func (r *GenerateCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
+	out := cmd.OutOrStdout()
+	if IsJSON(cmd) {
+		out = io.Discard
+	}
+	fail := JSONFailFunc(cmd)
+
 	client, err := r.NewClient(cmd)
 	if err != nil {
-		return err
+		return fail(err)
 	}
 
 	// Fetch to validate.
@@ -79,26 +86,26 @@ func (r *GenerateCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 	getResp, err := client.GetBag(cmd.Context(), getReq)
 	if err != nil {
 		if strings.Contains(err.Error(), "does not exist") {
-			return fmt.Errorf("recording with id \"%s\" does not exist", flagBagID)
+			return fail(fmt.Errorf("recording with id \"%s\" does not exist", flagBagID))
 		}
-		return err
+		return fail(err)
 	}
 	if getResp.GetBag().GetBagFile() != nil {
-		return fmt.Errorf("recording with id \"%s\" is already generated", flagBagID)
+		return fail(fmt.Errorf("recording with id \"%s\" is already generated", flagBagID))
 	}
 
 	// Generate.
 	recordingByteSize := getResp.GetBag().GetBagMetadata().GetTotalBytes()
 	if recordingByteSize > largeRecordingByteSize {
-		fmt.Fprintln(cmd.OutOrStdout(), "")
-		fmt.Fprintln(cmd.OutOrStdout(), "WARNING:")
-		fmt.Fprintln(cmd.OutOrStdout(), fmt.Sprintf("  Recording with id \"%s\" is large (%d MB) and might take several minutes (usually up to ~15 minutes) to generate...", flagBagID, recordingByteSize/numBytesInMB))
-		fmt.Fprintln(cmd.OutOrStdout(), "  Please wait and do NOT close this terminal or attempt to generate the recording again, the server will continue processing the request.")
-		fmt.Fprintln(cmd.OutOrStdout(), "")
+		fmt.Fprintln(out, "")
+		fmt.Fprintln(out, "WARNING:")
+		fmt.Fprintln(out, fmt.Sprintf("  Recording with id \"%s\" is large (%d MB) and might take several minutes (usually up to ~15 minutes) to generate...", flagBagID, recordingByteSize/numBytesInMB))
+		fmt.Fprintln(out, "  Please wait and do NOT close this terminal or attempt to generate the recording again, the server will continue processing the request.")
+		fmt.Fprintln(out, "")
 	}
 
 	msg := fmt.Sprintf("Starting generation of recording with id \"%s\"...", flagBagID)
-	spinner := util.NewSpinner(cmd.Context(), cmd.OutOrStdout(), 100*time.Millisecond, util.PositionFront, util.StyleDotsConstruct, util.ColorRGB, util.DirectionForward)
+	spinner := util.NewSpinner(cmd.Context(), out, 100*time.Millisecond, util.PositionFront, util.StyleDotsConstruct, util.ColorRGB, util.DirectionForward)
 	spinner.Start(msg)
 
 	generateReq := &pb.GenerateBagRequest{
@@ -115,7 +122,7 @@ func (r *GenerateCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 		// we see the file or timeout.
 		if !strings.Contains(err.Error(), "504") {
 			spinner.Stop("")
-			return err
+			return fail(err)
 		}
 
 		for i := 0; i < maxPostTimeoutRetries; i++ {
@@ -132,7 +139,7 @@ func (r *GenerateCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 
 			if i == maxPostTimeoutRetries-1 {
 				spinner.Stop("")
-				return fmt.Errorf("failed to generate recording with id \"%s\" after %d retries, try generating again or waiting longer for the recording to be generated", flagBagID, maxPostTimeoutRetries)
+				return fail(fmt.Errorf("failed to generate recording with id \"%s\" after %d retries, try generating again or waiting longer for the recording to be generated", flagBagID, maxPostTimeoutRetries))
 			}
 			time.Sleep(postTimeoutRetryDelay + time.Duration(rand.Float32()*5.0)*time.Second)
 		}
@@ -140,16 +147,27 @@ func (r *GenerateCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 
 	spinner.Stop(msg)
 
-	fmt.Fprintln(cmd.OutOrStdout(), "")
-	fmt.Fprintln(cmd.OutOrStdout(), fmt.Sprintf("Generated recording file for recording ID %s", flagBagID))
-	fmt.Fprintln(cmd.OutOrStdout(), "")
-	color.C.Blue().Fprintf(cmd.OutOrStdout(), "Next steps:\n")
-	color.C.Blue().Fprintf(cmd.OutOrStdout(), "  Download the recording:\n")
-	color.C.Blue().Fprintf(cmd.OutOrStdout(), fmt.Sprintf("    inctl recordings get --recording_id %s --with_url --org %s@%s\n", flagBagID, generateParam.GetString(orgutil.KeyOrganization), generateParam.GetString(orgutil.KeyProject)))
-	color.C.Blue().Fprintf(cmd.OutOrStdout(), "\n")
-	color.C.Blue().Fprintf(cmd.OutOrStdout(), "  Visualize the recording in your browser:\n")
-	color.C.Blue().Fprintf(cmd.OutOrStdout(), fmt.Sprintf("    inctl recordings visualize create --recording_id %s --duration 1h --org %s@%s\n", flagBagID, generateParam.GetString(orgutil.KeyOrganization), generateParam.GetString(orgutil.KeyProject)))
-	fmt.Fprintln(cmd.OutOrStdout(), "")
+	if IsJSON(cmd) {
+		payload := map[string]interface{}{
+			"recording_id": flagBagID,
+		}
+		if getResp != nil && getResp.GetBag() != nil {
+			payload["bag"] = getResp.GetBag()
+		}
+		emitJSONSuccess(cmd.OutOrStdout(), payload)
+		return nil
+	}
+
+	fmt.Fprintln(out, "")
+	fmt.Fprintln(out, fmt.Sprintf("Generated recording file for recording ID %s", flagBagID))
+	fmt.Fprintln(out, "")
+	color.C.Blue().Fprintf(out, "Next steps:\n")
+	color.C.Blue().Fprintf(out, "  Download the recording:\n")
+	color.C.Blue().Fprintf(out, fmt.Sprintf("    inctl recordings get --recording_id %s --with_url --org %s@%s\n", flagBagID, generateParam.GetString(orgutil.KeyOrganization), generateParam.GetString(orgutil.KeyProject)))
+	color.C.Blue().Fprintf(out, "\n")
+	color.C.Blue().Fprintf(out, "  Visualize the recording in your browser:\n")
+	color.C.Blue().Fprintf(out, fmt.Sprintf("    inctl recordings visualize create --recording_id %s --duration 1h --org %s@%s\n", flagBagID, generateParam.GetString(orgutil.KeyOrganization), generateParam.GetString(orgutil.KeyProject)))
+	fmt.Fprintln(out, "")
 	return nil
 }
 

@@ -4,6 +4,7 @@ package recordings
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"strings"
@@ -14,6 +15,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	bmpb "intrinsic/logging/proto/bag_metadata_go_proto"
@@ -25,6 +27,7 @@ var (
 	flagEndTimestamp   string
 	flagMaxNumResults  uint32
 	flagWorkcellName   string
+	flagCursor         string
 )
 
 var bagStatusToString = map[bmpb.BagStatus_BagStatusEnum]string{
@@ -83,6 +86,7 @@ func NewListCmd(runner *ListCmdRunner) *cobra.Command {
 	flags.StringVar(&flagStartTimestamp, "start_timestamp", "", "Start timestamp in RFC3339 format for fetching recordings. eg. 2024-08-20T12:00:00Z")
 	flags.StringVar(&flagEndTimestamp, "end_timestamp", "", "End timestamp in RFC3339 format for fetching recordings. eg. 2024-08-20T12:00:00Z")
 	flags.Uint32Var(&flagMaxNumResults, "max_num_results", 10, "The maximum number of recordings to list per page.")
+	flags.StringVar(&flagCursor, "cursor", "", "Page cursor for pagination.")
 	listCmd.MarkFlagRequired("workcell")
 
 	return orgutil.WrapCmd(listCmd, listParams, orgutil.WithOrgExistsCheck(func() bool { return checkOrgExists }))
@@ -99,7 +103,23 @@ func (r *ListCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	req := newListBagsRequest(startTime, endTime)
+	var req *pb.ListBagsRequest
+	if flagCursor != "" {
+		cursorBytes, err := base64.StdEncoding.DecodeString(flagCursor)
+		if err != nil {
+			return errors.Wrap(err, "could not parse cursor")
+		}
+		req = &pb.ListBagsRequest{
+			OrganizationId: listParams.GetString(orgutil.KeyOrganization),
+			MaxNumResults:  &flagMaxNumResults,
+			Query: &pb.ListBagsRequest_Cursor{
+				Cursor: cursorBytes,
+			},
+		}
+	} else {
+		req = newListBagsRequest(startTime, endTime)
+	}
+
 	return r.executeAndPaginate(cmd, client, req)
 }
 
@@ -147,10 +167,28 @@ func (r *ListCmdRunner) executeAndPaginate(cmd *cobra.Command, client pb.BagPack
 	var err error
 	var numLines uint32
 
-	numLines, nextPageCursor, err = r.executeAndPrintListBagsResponse(cmd, client, req)
+	fail := JSONFailFunc(cmd)
+	isJSON := IsJSON(cmd)
+
+	bags, nextPageCursor, err := r.executeListBagsRequest(cmd, client, req)
 	if err != nil {
-		return err
+		return fail(err)
 	}
+
+	if isJSON {
+		// In JSON mode, we emit just the requested page and return without prompting
+		var pbBags []proto.Message
+		for _, b := range bags {
+			pbBags = append(pbBags, b)
+		}
+		emitJSONSuccess(cmd.OutOrStdout(), map[string]interface{}{
+			"bags":             pbBags,
+			"next_page_cursor": base64.StdEncoding.EncodeToString(nextPageCursor),
+		})
+		return nil
+	}
+
+	numLines = r.printBags(cmd, bags)
 
 	page := 0
 	seenRecordings := numLines
@@ -168,10 +206,11 @@ func (r *ListCmdRunner) executeAndPaginate(cmd *cobra.Command, client pb.BagPack
 		}
 
 		req.Query = &pb.ListBagsRequest_Cursor{Cursor: nextPageCursor}
-		numLines, nextPageCursor, err = r.executeAndPrintListBagsResponse(cmd, client, req)
+		bags, nextPageCursor, err = r.executeListBagsRequest(cmd, client, req)
 		if err != nil {
 			return err
 		}
+		numLines = r.printBags(cmd, bags)
 		seenRecordings += numLines
 	}
 
@@ -180,14 +219,18 @@ func (r *ListCmdRunner) executeAndPaginate(cmd *cobra.Command, client pb.BagPack
 	return nil
 }
 
-func (r *ListCmdRunner) executeAndPrintListBagsResponse(cmd *cobra.Command, client pb.BagPackagerClient, req *pb.ListBagsRequest) (uint32, []byte, error) {
+func (r *ListCmdRunner) executeListBagsRequest(cmd *cobra.Command, client pb.BagPackagerClient, req *pb.ListBagsRequest) ([]*pb.BagRecord, []byte, error) {
 	resp, err := client.ListBags(cmd.Context(), req)
 	if err != nil {
-		return 0, nil, err
+		return nil, nil, err
 	}
-	if len(resp.GetBags()) == 0 {
+	return resp.GetBags(), resp.GetNextPageCursor(), nil
+}
+
+func (r *ListCmdRunner) printBags(cmd *cobra.Command, bags []*pb.BagRecord) uint32 {
+	if len(bags) == 0 {
 		fmt.Fprintln(cmd.OutOrStdout(), "No recordings found")
-		return 0, nil, nil
+		return 0
 	}
 
 	var out bytes.Buffer
@@ -196,7 +239,7 @@ func (r *ListCmdRunner) executeAndPrintListBagsResponse(cmd *cobra.Command, clie
 	fmt.Fprintf(&out, formatString, "Start Time", "End Time", "ID", "Status", "Description")
 	fmt.Fprintln(&out)
 
-	for _, bag := range resp.GetBags() {
+	for _, bag := range bags {
 		description := bag.GetBagMetadata().GetDescription()
 		if description == "" {
 			description = "<NO-DESCRIPTION>"
@@ -217,7 +260,7 @@ func (r *ListCmdRunner) executeAndPrintListBagsResponse(cmd *cobra.Command, clie
 	}
 
 	fmt.Fprint(cmd.OutOrStdout(), out.String())
-	return uint32(len(resp.GetBags())), resp.GetNextPageCursor(), nil
+	return uint32(len(bags))
 }
 
 var listParams = viper.New()

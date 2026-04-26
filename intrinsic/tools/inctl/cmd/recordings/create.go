@@ -6,15 +6,16 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"io"
+	"sort"
+	"strings"
+	"time"
+
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util"
 	"intrinsic/tools/inctl/util/color"
 	"intrinsic/tools/inctl/util/orgutil"
 	"intrinsic/tools/inctl/util/promptutil"
-	"io"
-	"sort"
-	"strings"
-	"time"
 
 	backoff "github.com/cenkalti/backoff/v4"
 	"github.com/spf13/cobra"
@@ -111,7 +112,9 @@ func parseAndValidateRecordingTimestamps(cmd *cobra.Command) (time.Time, time.Ti
 			return startTime, endTime, fmt.Errorf("invalid end timestamp: %s", flagEndTimestamp)
 		}
 	} else if flagStartTimestamp == "" && flagEndTimestamp == "" {
-		color.C.Yellow().Fprintf(cmd.ErrOrStderr(), "Warning: No --start_timestamp or --end_timestamp provided, defaulting to the last 5 minutes.\n")
+		if !IsJSON(cmd) {
+			color.C.Yellow().Fprintf(cmd.ErrOrStderr(), "Warning: No --start_timestamp or --end_timestamp provided, defaulting to the last 5 minutes.\n")
+		}
 		endTime = time.Now()
 		startTime = endTime.Add(-5 * time.Minute)
 	} else {
@@ -429,16 +432,26 @@ func (r *CreateCmdRunner) pollUploadProgress(ctx context.Context, out io.Writer,
 
 func (r *CreateCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 	ctx := cmd.Context()
+	isJSON := IsJSON(cmd)
 	out := cmd.OutOrStdout()
+	if isJSON {
+		out = io.Discard
+	}
+	fail := JSONFailFunc(cmd)
+
+	if isJSON {
+		flagQuiet = true
+		flagSkipGenerate = true
+	}
 
 	startTime, endTime, err := parseAndValidateRecordingTimestamps(cmd)
 	if err != nil {
-		return err
+		return fail(err)
 	}
 
 	duration := endTime.Sub(startTime)
 	if err := validateRecordingDuration(cmd, duration); err != nil {
-		return err
+		return fail(err)
 	}
 
 	var flagNames []string
@@ -449,14 +462,14 @@ func (r *CreateCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 	if err != nil {
 		if err.Error() == "aborted" {
 			// This causes a non-zero exit status as requested
-			return fmt.Errorf("aborted")
+			return fail(fmt.Errorf("aborted"))
 		}
-		return err
+		return fail(err)
 	}
 
 	loggerClient, closer, err := r.NewDataLoggerClient(cmd)
 	if err != nil {
-		return err
+		return fail(err)
 	}
 	if closer != nil {
 		defer closer.Close()
@@ -473,7 +486,7 @@ func (r *CreateCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 	fmt.Fprintln(out)
 	resp, err := sendCreateLocalRecordingRequest(ctx, out, loggerClient, req, flagWorkcellName)
 	if err != nil {
-		return err
+		return fail(err)
 	}
 
 	bagID := resp.GetBag().GetBagId()
@@ -484,7 +497,7 @@ func (r *CreateCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 
 	bagPackagerClient, err := r.NewBagPackagerClient(cmd)
 	if err != nil {
-		return err
+		return fail(err)
 	}
 
 	fullOrgName := orgutil.QualifiedOrg(createParams.GetString(orgutil.KeyProject), createParams.GetString(orgutil.KeyOrganization))
@@ -492,7 +505,19 @@ func (r *CreateCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 	fmt.Fprintln(out, "\nWaiting for bag upload completion... (Press Ctrl+C to skip waiting, it will continue in the background)\n")
 	err = r.pollUploadProgress(ctx, out, bagPackagerClient, bagID)
 	if err != nil {
-		return err
+		return fail(err)
+	}
+
+	if isJSON {
+		emitJSONSuccess(cmd.OutOrStdout(), map[string]interface{}{
+			"recording_id":  bagID,
+			"duration":      duration.String(),
+			"start_time":    startTime.Format(time.RFC3339),
+			"end_time":      endTime.Format(time.RFC3339),
+			"description":   desc,
+			"event_sources": resp.GetBag().GetEventSources(),
+		})
+		return nil
 	}
 
 	// Prompt to generate recording.

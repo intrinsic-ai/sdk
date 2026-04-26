@@ -24,9 +24,11 @@ type GetCmdRunner struct {
 }
 
 func (r *GetCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
+	fail := JSONFailFunc(cmd)
+
 	client, err := r.NewClient(cmd)
 	if err != nil {
-		return err
+		return fail(err)
 	}
 	req := &pb.GetBagRequest{
 		BagId:   flagBagID,
@@ -35,12 +37,17 @@ func (r *GetCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 	resp, err := client.GetBag(cmd.Context(), req)
 	if err != nil {
 		if strings.Contains(err.Error(), "file does not exist") {
-			return fmt.Errorf("download URL requested for recording with id %q, but file is not generated yet, please generate it first with `inctl recordings generate`", flagBagID)
+			return fail(fmt.Errorf("download URL requested for recording with id %q, but file is not generated yet, please generate it first with `inctl recordings generate`", flagBagID))
 		}
 		if strings.Contains(err.Error(), "failed to get bag record") {
-			return fmt.Errorf("recording with id %q does not exist", flagBagID)
+			return fail(fmt.Errorf("recording with id %q does not exist", flagBagID))
 		}
-		return err
+		return fail(err)
+	}
+
+	if IsJSON(cmd) {
+		emitJSONSuccess(cmd.OutOrStdout(), resp)
+		return nil
 	}
 
 	fmt.Fprint(cmd.OutOrStdout(), prototext.Format(resp))

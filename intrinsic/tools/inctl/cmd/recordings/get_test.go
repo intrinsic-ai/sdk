@@ -5,7 +5,9 @@ package recordings
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/spf13/cobra"
@@ -15,6 +17,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	pb "intrinsic/logging/proto/bag_packager_service_go_proto"
+	"intrinsic/tools/inctl/cmd/root"
 )
 
 type mockBagPackagerClient struct {
@@ -76,6 +79,17 @@ func TestGetRecordingE(t *testing.T) {
 			},
 			wantErr: "download URL requested for recording with id \"test-bag-id\", but file is not generated yet, please generate it first with `inctl recordings generate`",
 		},
+		{
+			name: "JSON output returns correctly structured data",
+			args: []string{"--recording_id", testBagID, "--with_url", "--org", testOrg},
+			getBagFunc: func(ctx context.Context, in *pb.GetBagRequest, opts ...grpc.CallOption) (*pb.GetBagResponse, error) {
+				url := testURL
+				return &pb.GetBagResponse{
+					Url: &url,
+				}, nil
+			},
+			wantOut: `"status": "success"`,
+		},
 	}
 
 	// We disable the org check in tests because the test environment does not have
@@ -93,6 +107,14 @@ func TestGetRecordingE(t *testing.T) {
 			originalFlagURL := flagURL
 			t.Cleanup(func() { flagURL = originalFlagURL })
 			flagURL = false
+
+			originalFlagOutput := root.FlagOutput
+			t.Cleanup(func() { root.FlagOutput = originalFlagOutput })
+			if strings.Contains(tc.name, "JSON") {
+				root.FlagOutput = "json"
+			} else {
+				root.FlagOutput = ""
+			}
 
 			mockClient := &mockBagPackagerClient{
 				GetBagFunc: tc.getBagFunc,
@@ -121,7 +143,16 @@ func TestGetRecordingE(t *testing.T) {
 				assert.Contains(t, err.Error(), tc.wantErr)
 			} else {
 				assert.NoError(t, err)
-				assert.Contains(t, out.String(), tc.wantOut)
+				if strings.Contains(tc.name, "JSON") {
+					var parsed map[string]interface{}
+					assert.NoError(t, json.Unmarshal([]byte(out.String()), &parsed), "Output should be valid JSON")
+					assert.Equal(t, "success", parsed["status"])
+					data, ok := parsed["data"].(map[string]interface{})
+					assert.True(t, ok, "Data should be a map")
+					assert.Equal(t, testURL, data["url"])
+				} else {
+					assert.Contains(t, out.String(), tc.wantOut)
+				}
 			}
 		})
 	}
