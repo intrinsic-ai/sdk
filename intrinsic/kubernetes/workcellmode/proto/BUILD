@@ -3,7 +3,9 @@
 # GRPC service definition for the workcell mode service.
 
 load("@ai_intrinsic_sdks_pip_deps//:requirements.bzl", "requirement")
+load("@com_github_grpc_grpc//bazel:cc_grpc_library.bzl", "cc_grpc_library")
 load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
+load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
@@ -13,6 +15,18 @@ package(default_visibility = ["//visibility:public"])
 proto_library(
     name = "workcellmode_service_proto",
     srcs = ["workcellmode.proto"],
+)
+
+cc_proto_library(
+    name = "workcellmode_service_cc_proto",
+    deps = [":workcellmode_service_proto"],
+)
+
+cc_grpc_library(
+    name = "workcellmode_service_cc_grpc_proto",
+    srcs = [":workcellmode_service_proto"],
+    grpc_only = True,
+    deps = [":workcellmode_service_cc_proto"],
 )
 
 go_proto_library(

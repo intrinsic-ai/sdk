@@ -1,5 +1,7 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
+load("@com_github_grpc_grpc//bazel:cc_grpc_library.bzl", "cc_grpc_library")
+load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "proto_source_code_info_transitive_descriptor_set")
@@ -10,6 +12,18 @@ proto_library(
     name = "inversion_proto",
     srcs = ["inversion.proto"],
     deps = ["@com_google_googleapis//google/api:annotations_proto"],
+)
+
+cc_proto_library(
+    name = "inversion_cc_proto",
+    deps = [":inversion_proto"],
+)
+
+cc_grpc_library(
+    name = "inversion_cc_grpc_proto",
+    srcs = [":inversion_proto"],
+    grpc_only = True,
+    deps = [":inversion_cc_proto"],
 )
 
 go_proto_library(

@@ -213,6 +213,11 @@ message VisualizationContext {
   map<string, VisualizationFrameResources> frame_resources = 3
       [deprecated = true];
 
+  // Contextual data related to the scene, geometry, and the world itself.
+  VisualizationSceneContext scene_context = 6;
+
+  VisualizationSystemContext system_context = 7;
+
   // The next offset index to use when writing visualization log items on-prem.
   //
   // This is used by downstream components to continue the offset logic for new
@@ -223,7 +228,17 @@ message VisualizationContext {
   // an offset index of 0, ensuring it appears chronologically FIRST in the
   // recording, before any other visualization messages.
   int64 next_offset_index = 5;
+}
 
-  // Contextual data related to the scene, geometry, and the world itself.
-  VisualizationSceneContext scene_context = 6;
+// System context available at the time of recording.
+message VisualizationSystemContext {
+  // IntrinsicOS version of the node where the logger is running.
+  optional string os_version = 2;
+
+  // intrinsic-base (runtime) version of the platform.
+  optional string platform_version = 3;
+
+  // Workcell mode indicating whether the workcell is in operate or develop
+  // mode.
+  string workcell_mode = 4;
 }
