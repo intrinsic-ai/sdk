@@ -47,7 +47,7 @@ const (
 	// description.
 	RelNotesCharLength = 2400
 	// MaxMetadataSize is the maximum size of a Metadata message.
-	MaxMetadataSize = 750 * 1024 // 750 kiB
+	MaxMetadataSize = 1024 * 1024 // 1 MiB
 )
 
 // NameCharLength sets character limits for asset names as a function of their type.
