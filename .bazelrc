@@ -94,4 +94,7 @@ common:docker --host_platform=//bazel:linux_x86_64
 # See https://github.com/google/googletest/issues/2883#issuecomment-647540343
 common --define absl=1
 
+# Default compilation mode is opt.
+common -c opt
+# Define --config intrinsic as a no-op to not break current users.
 common:intrinsic -c opt
