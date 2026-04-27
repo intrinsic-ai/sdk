@@ -4,7 +4,8 @@ package pool
 
 import (
 	"fmt"
-	"intrinsic/kubernetes/vmpool/service/pkg/defaults/defaults"
+
+	"intrinsic/kubernetes/vmpool/service/pkg/defaults"
 	"intrinsic/tools/inctl/util/printer"
 
 	"github.com/spf13/cobra"

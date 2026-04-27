@@ -6,12 +6,13 @@ package pool
 import (
 	"context"
 	"fmt"
-	"intrinsic/assets/cmdutils"
-	"intrinsic/kubernetes/vmpool/service/pkg/defaults/defaults"
-	"intrinsic/tools/inctl/auth/auth"
-	"intrinsic/tools/inctl/util/cobrautil"
 	"os"
 	"strings"
+
+	"intrinsic/assets/cmdutils"
+	"intrinsic/kubernetes/vmpool/service/pkg/defaults"
+	"intrinsic/tools/inctl/auth/auth"
+	"intrinsic/tools/inctl/util/cobrautil"
 
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"

@@ -13,7 +13,7 @@ import (
 	"time"
 	"unicode"
 
-	"intrinsic/kubernetes/vmpool/service/pkg/defaults/defaults"
+	"intrinsic/kubernetes/vmpool/service/pkg/defaults"
 	"intrinsic/tools/inctl/util/color"
 	"intrinsic/tools/inctl/util/orgutil"
 	"intrinsic/tools/inctl/util/printer"

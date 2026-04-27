@@ -15,7 +15,6 @@ proto_library(
     name = "vmpool_api_proto",
     srcs = ["vmpool_api.proto"],
     deps = [
-        "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_googleapis//google/api:field_behavior_proto",
         "@com_google_protobuf//:empty_proto",
         "@com_google_protobuf//:field_mask_proto",
@@ -30,12 +29,8 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_proto",
     ],
     importpath = "intrinsic/kubernetes/vmpool/service/api/v1/vmpool_api_go_proto",
-    protos = [":vmpool_api_proto"],
-    deps = [
-        "@org_golang_google_genproto_googleapis_api//annotations",
-        "@org_golang_google_protobuf//types/known/emptypb",
-        "@org_golang_google_protobuf//types/known/timestamppb",
-    ],
+    proto = ":vmpool_api_proto",
+    deps = ["@org_golang_google_genproto_googleapis_api//annotations"],
 )
 
 proto_source_code_info_transitive_descriptor_set(

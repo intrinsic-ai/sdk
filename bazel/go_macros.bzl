@@ -37,7 +37,9 @@ def go_grpc_library(name):
         "compilers=['@io_bazel_rules_go//proto:go_grpc_v2', ...].".format(name),
     )
 
-def go_proto_library(name, protos, **kwargs):
+def go_proto_library(name, proto = None, protos = None, **kwargs):
+    if not protos:
+        protos = [proto]
     _go_proto_library(
         name = name,
         protos = protos,

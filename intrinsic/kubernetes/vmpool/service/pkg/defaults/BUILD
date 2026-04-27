@@ -9,5 +9,5 @@ package(default_visibility = [
 go_library(
     name = "defaults",
     srcs = ["defaults.go"],
-    importpath = "intrinsic/kubernetes/vmpool/service/pkg/defaults/defaults",
+    importpath = "intrinsic/kubernetes/vmpool/service/pkg/defaults",
 )

@@ -1,9 +1,6 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-load("@bazel_gazelle//:def.bzl", "gazelle")
 load("@rules_uv//uv:pip.bzl", "pip_compile")
-
-gazelle(name = "gazelle")
 
 exports_files(
     srcs = [
