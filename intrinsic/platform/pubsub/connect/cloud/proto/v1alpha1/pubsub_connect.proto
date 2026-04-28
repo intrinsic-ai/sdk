@@ -1,0 +1,124 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.pubsub.connect.v1alpha1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/longrunning/operations.proto";
+
+option go_package = "intrinsic/platform/pubsub/connect/cloud/proto/v1alpha1/pubsub_connect_go_proto";
+
+message EndpointConnectStatus {
+  Endpoint connect_endpoint = 1;
+  bool success = 2;
+  string error_message = 3;
+}
+
+message Endpoint {
+  oneof endpoint {
+    string workcell_name = 1;
+    string static_endpoint = 2;
+  }
+}
+
+message CreateHubRequest {
+  string hub_workcell_name = 1;
+  repeated Endpoint spoke_endpoints = 2;
+}
+
+message CreateHubStatus {
+  repeated EndpointConnectStatus hub_statuses = 1;
+}
+
+message DeleteHubRequest {
+  string hub_workcell_name = 1;
+}
+
+message DeleteHubStatus {
+  bool success = 1;
+  string error_message = 2;
+}
+
+message GetHubRequest {
+  string hub_workcell_name = 1;
+}
+
+message GetHubResponse {
+  repeated EndpointConnectStatus hub_status = 1;
+}
+
+message ConfigureSpokeRequest {
+  string spoke_workcell_name = 1;
+  repeated string allowed_topics = 2;
+}
+
+message ConfigureSpokeResponse {
+  bool success = 1;
+  string error_message = 2;
+}
+
+// PubSubConnectService is the IPC service for managing external connections of
+// an IPC's PubSub Zenoh network. Please note that this service is still in
+// v1alpha1 status. The connection endpoints currently only work if it is in the
+// same local network to the IPC. This is constraint is temporary and will be
+// extended when we support remote endpoints.
+service PubSubConnectService {
+
+  // CreateHub creates a new Spoke<->Hub<->Spoke zenoh network.
+  rpc CreateHub(CreateHubRequest) returns (google.longrunning.Operation) {
+    option (google.longrunning.operation_info) = {
+      response_type: "CreateHubStatus"
+      metadata_type: "google.protobuf.Empty"
+    };
+  };
+
+  // DeleteHub deletes a Spoke<->Hub zenoh network.
+  rpc DeleteHub(DeleteHubRequest) returns (google.longrunning.Operation) {
+    option (google.longrunning.operation_info) = {
+      response_type: "DeleteHubStatus"
+      metadata_type: "google.protobuf.Empty"
+    };
+  };
+
+  // GetHub retrieves the status of a Spoke<->Hub zenoh network.
+  // Please note the status can be stale if the workcell is not reachable.
+  rpc GetHub(GetHubRequest) returns (GetHubResponse);
+
+  // Lists operations that match the specified filter in the request.
+  // For more details see google/longrunning/operations.proto
+  rpc ListOperations(google.longrunning.ListOperationsRequest)
+      returns (google.longrunning.ListOperationsResponse);
+
+  // Gets the latest state of a long-running operation.
+  // For more details see google/longrunning/operations.proto
+  rpc GetOperation(google.longrunning.GetOperationRequest)
+      returns (google.longrunning.Operation);
+
+  // Deletes a long-running operation.
+  // For more details see google/longrunning/operations.proto
+  rpc DeleteOperation(google.longrunning.DeleteOperationRequest)
+      returns (google.protobuf.Empty);
+
+  // Starts asynchronous cancellation on a long-running operation.
+  // For more details see google/longrunning/operations.proto
+  rpc CancelOperation(google.longrunning.CancelOperationRequest)
+      returns (google.protobuf.Empty);
+
+  // Waits until the specified long-running operation is done or reaches at most
+  // a specified timeout, returning the latest state.
+  // For more details see google/longrunning/operations.proto
+  rpc WaitOperation(google.longrunning.WaitOperationRequest)
+      returns (google.longrunning.Operation);
+
+  // Configures the allowlist configure for the spoke. This allow certain
+  // traffic to flow to the Hub.
+  rpc ConfigureSpoke(ConfigureSpokeRequest)
+      returns (google.longrunning.Operation) {
+    option (google.longrunning.operation_info) = {
+      response_type: "ConfigureSpokeResponse"
+      metadata_type: "google.protobuf.Empty"
+    };
+  };
+}
