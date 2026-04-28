@@ -1,0 +1,115 @@
+# Copyright 2023 Intrinsic Innovation LLC
+
+# proto-file: intrinsic/assets/data/proto/v1/data_manifest.proto
+# proto-message: DataManifest
+
+metadata {
+  id {
+    package: "ai.intrinsic"
+    name: "units_conversion_data"
+  }
+  display_name: "Units Conversion Data"
+  vendor {
+    display_name: "Intrinsic"
+  }
+}
+data {
+  [type.googleapis.com/intrinsic_proto.services.ConversionDataset] {
+    categories {
+      name: "length"
+      base_unit: "meter"
+      units {
+        name: "centimeter"
+        linear {
+          factor: 0.01
+        }
+      }
+      units {
+        name: "inch"
+        linear {
+          factor: 0.0254
+        }
+      }
+      units {
+        name: "kilometer"
+        linear {
+          factor: 1000.0
+        }
+      }
+      units {
+        name: "mile"
+        linear {
+          factor: 1609.344
+        }
+      }
+    }
+    categories {
+      name: "temperature"
+      base_unit: "celsius"
+      units {
+        name: "kelvin"
+        linear {
+          factor: 1.0
+          offset: 273.15
+        }
+      }
+      units {
+        name: "fahrenheit"
+        linear {
+          factor: 0.555
+          offset: -17.778
+        }
+      }
+    }
+    categories {
+      name: "time"
+      base_unit: "second"
+      units {
+        name: "millisecond"
+        linear {
+          factor: 0.001
+        }
+      }
+      units {
+        name: "minute"
+        linear {
+          factor: 60.0
+        }
+      }
+      units {
+        name: "hour"
+        linear {
+          factor: 3600.0
+        }
+      }
+    }
+    categories {
+      name: "mass"
+      base_unit: "gram"
+      units {
+        name: "kilogram"
+        linear {
+          factor: 1000.0
+        }
+      }
+      units {
+        name: "milligram"
+        linear {
+          factor: 0.001
+        }
+      }
+      units {
+        name: "pound"
+        linear {
+          factor: 453.59237
+        }
+      }
+      units {
+        name: "ounce"
+        linear {
+          factor: 28.3495231
+        }
+      }
+    }
+  }
+}

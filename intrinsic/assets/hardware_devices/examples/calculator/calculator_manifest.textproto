@@ -1,0 +1,42 @@
+# Copyright 2023 Intrinsic Innovation LLC
+
+# proto-file: intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest.proto
+# proto-message: intrinsic_proto.hardware_devices.v1.HardwareDeviceManifest
+metadata {
+  id {
+    package: "ai.intrinsic"
+    name: "calculator"
+  }
+  vendor {
+    display_name: "Intrinsic"
+  }
+  documentation {
+    description: "An example calculator device."
+  }
+  display_name: "Calculator Device"
+}
+graph {
+  nodes {
+    key: "scene_object"
+    value {
+      asset: "ai.intrinsic.calculator_object"
+    }
+  }
+  nodes {
+    key: "service"
+    value {
+      asset: "ai.intrinsic.calculator_service"
+    }
+  }
+  nodes {
+    key: "config"
+    value {
+      asset: "ai.intrinsic.calculator_config_data"
+    }
+  }
+  edges {
+    source: "config"
+    target: "service"
+    configures {}
+  }
+}
