@@ -243,6 +243,18 @@ class SkillInfoImpl(provided.SkillInfo):
     )
 
 
+def _get_param_defaults(info: provided.SkillInfo) -> message.Message | None:
+  """Extracts default parameter values from the skill description proto."""
+  if not info.skill_proto.HasField("parameter_description"):
+    return None
+
+  param_defaults = info.create_param_message()
+  if info.skill_proto.parameter_description.HasField("default_value"):
+    info.skill_proto.parameter_description.default_value.Unpack(param_defaults)
+
+  return param_defaults
+
+
 def _gen_class_docstring(info: provided.SkillInfo) -> str:
   """Generates the class docstring for a skill class.
 
@@ -274,6 +286,7 @@ def _gen_class_docstring(info: provided.SkillInfo) -> str:
 def _gen_init_docstring(
     info: provided.SkillInfo,
     compatible_resources: dict[str, provided.ResourceList],
+    param_defaults: Optional[message.Message],
 ) -> str:
   """Generates the __init__ docstring for a skill class.
 
@@ -282,6 +295,7 @@ def _gen_init_docstring(
     compatible_resources: Map from resource slot names to resources suitable for
       that slot. It is used to determine whether a default value can be assigned
       for resource parameters.
+    param_defaults: The skill's default parameters.
 
   Returns:
     The generated Python docstring.
@@ -297,14 +311,7 @@ def _gen_init_docstring(
   params: list[skill_utils.ParameterInformation] = []
   param_names: list[str] = []
 
-  if info.skill_proto.HasField("parameter_description"):
-    param_defaults = info.create_param_message()
-
-    if info.skill_proto.parameter_description.HasField("default_value"):
-      info.skill_proto.parameter_description.default_value.Unpack(
-          param_defaults
-      )
-
+  if param_defaults is not None:
     params = skill_utils.extract_docstring_from_message(
         param_defaults, info.skill_proto.parameter_description
     )
@@ -397,6 +404,7 @@ def _gen_init_params(
     compatible_resources: dict[str, provided.ResourceList],
     wrapper_classes: dict[str, Type[skill_utils.MessageWrapper]],
     enum_classes: dict[str, Type[enum.IntEnum]],
+    param_defaults: message.Message | None,
 ) -> list[inspect.Parameter]:
   """Create argument typing information for a given skill info.
 
@@ -412,6 +420,7 @@ def _gen_init_params(
     wrapper_classes: Map from proto message names to corresponding message
       wrapper classes.
     enum_classes: Map from full enum names to corresponding enum classes.
+    param_defaults: The skill's default parameters.
 
   Returns:
     A dict mapping from field name to pythonic type.
@@ -423,14 +432,7 @@ def _gen_init_params(
   params: list[inspect.Parameter] = []
   param_names: list[str] = []
 
-  if info.skill_proto.HasField("parameter_description"):
-    param_defaults = info.create_param_message()
-
-    if info.skill_proto.parameter_description.HasField("default_value"):
-      info.skill_proto.parameter_description.default_value.Unpack(
-          param_defaults
-      )
-
+  if param_defaults is not None:
     # Extract those fields from the default parameter proto which may contain
     # actual default values.
     param_info = skill_utils.extract_parameter_information_from_message(
@@ -517,6 +519,8 @@ def _gen_init_fun(
     if extra_args_set:
       raise NameError(f"Unknown argument(s): {', '.join(extra_args_set)}")
 
+  param_defaults = _get_param_defaults(info)
+
   params = [
       inspect.Parameter(
           "self",
@@ -524,13 +528,15 @@ def _gen_init_fun(
           annotation="Skill_" + info.skill_name,
       )
   ] + _gen_init_params(
-      info, compatible_resources, wrapper_classes, enum_classes
+      info, compatible_resources, wrapper_classes, enum_classes, param_defaults
   )
   new_init_fun.__signature__ = inspect.Signature(params)
   new_init_fun.__annotations__ = collections.OrderedDict(
       [(p.name, p.annotation) for p in params]
   )
-  new_init_fun.__doc__ = _gen_init_docstring(info, compatible_resources)
+  new_init_fun.__doc__ = _gen_init_docstring(
+      info, compatible_resources, param_defaults
+  )
 
   return new_init_fun
 
@@ -740,12 +746,7 @@ class GeneratedSkill(provided.SkillBase):
     params_set = []
 
     if self._info.skill_proto.HasField("parameter_description"):
-      default_message = None
-      if self._info.skill_proto.parameter_description.HasField("default_value"):
-        default_message = self._info.create_param_message()
-        self._info.skill_proto.parameter_description.default_value.Unpack(
-            default_message
-        )
+      default_message = _get_param_defaults(self._info)
 
       self._param_message = self._info.create_param_message()
       if default_message:
