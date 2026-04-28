@@ -4,7 +4,6 @@ syntax = "proto3";
 
 package intrinsic_proto.textlogs.v1;
 
-import "google/api/annotations.proto";
 import "google/longrunning/operations.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
