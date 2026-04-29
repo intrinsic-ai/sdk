@@ -115,75 +115,75 @@ jobs:
           path: RELEASE_NOTES.md 
           if-no-files-found: error
 
-  intrinsic-os-sbom:
-    runs-on: ubuntu-22.04
-    permissions:
-      contents: read
-    needs: 
-      - package-sdk
-    steps:
-      - name: Download sources
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0
-        with:
-          name: sources
-
-      - name: Extract sources
-        run: |
-          mkdir sdk_build
-          tar --extract --directory sdk_build --file sdk.tar.gz
-
-      - name: Install Dependencies (Jsonnet, jq)
-        shell: bash
-        run: |
-          echo "Installing dependencies: jsonnet, jq..."
-          sudo apt-get update -y && sudo apt-get install -y jsonnet jq
-
-      - name: Set up Cloud SDK (gcloud/gsutil)
-        uses: google-github-actions/setup-gcloud@77e7a554d41e2ee56fc945c52dfd3f33d12def9a  # v2.1.4
-
-      - name: Extract Stable Version and Download SBOM
-        id: get_sbom # Give ID to access outputs easily later if needed internally
-        shell: bash
-        run: |
-          VERSIONS_FILE="sdk_build/intrinsic/production/versions/versions.jsonnet"
-          GCS_BASE="gs://intrinsic-os-releases-us/realtime"
-          GCS_FILENAME="sbom.spdx.json"
-          LOCAL_PREFIX="sbom.intrinsic-os"
-
-          echo "::group::Extracting Stable Version"
-          echo "Reading stable version from ${VERSIONS_FILE}"
-          if [[ ! -f "$VERSIONS_FILE" ]]; then
-            echo "Error: Versions file not found at ${VERSIONS_FILE}"
-            exit 1;
-          fi
-          STABLE_VERSION=$(jsonnet "${VERSIONS_FILE}" | jq -r .stable)
-          if [[ -z "$STABLE_VERSION" || "$STABLE_VERSION" == "null" ]]; then
-            echo "Error: Could not extract 'stable' version from ${VERSIONS_FILE}"
-            exit 1;
-          fi
-          echo "Found stable OS version: ${STABLE_VERSION}"
-          echo "::endgroup::"
-
-          echo "::group::Downloading SBOM"
-          GCS_SBOM_PATH="${GCS_BASE}/xfa.${STABLE_VERSION}/${GCS_FILENAME}"
-          LOCAL_SBOM_FILENAME="${LOCAL_PREFIX}.${STABLE_VERSION}.spdx.json"
-          echo "Attempting to download SBOM from ${GCS_SBOM_PATH} to ${LOCAL_SBOM_FILENAME}"
-
-          if gsutil cp "${GCS_SBOM_PATH}" "${LOCAL_SBOM_FILENAME}"; then
-            echo "Successfully downloaded SBOM to ${LOCAL_SBOM_FILENAME}"
-            echo "sbom-local-path=$LOCAL_SBOM_FILENAME" >> $GITHUB_OUTPUT
-            echo "::endgroup::"
-          else
-            echo "Error: Failed to download SBOM from ${GCS_SBOM_PATH}"
-            exit 1;
-          fi
-
-      - name: Save build artifacts
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # 4.6.2
-        with:
-          name: intrinsic-os-sbom
-          path: ${{ steps.get_sbom.outputs.sbom-local-path }}
-          if-no-files-found: error
+#  intrinsic-os-sbom:
+#    runs-on: ubuntu-22.04
+#    permissions:
+#      contents: read
+#    needs: 
+#      - package-sdk
+#    steps:
+#      - name: Download sources
+#        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0
+#        with:
+#          name: sources
+#
+#      - name: Extract sources
+#        run: |
+#          mkdir sdk_build
+#          tar --extract --directory sdk_build --file sdk.tar.gz
+#
+#      - name: Install Dependencies (Jsonnet, jq)
+#        shell: bash
+#        run: |
+#          echo "Installing dependencies: jsonnet, jq..."
+#          sudo apt-get update -y && sudo apt-get install -y jsonnet jq
+#
+#      - name: Set up Cloud SDK (gcloud/gsutil)
+#        uses: google-github-actions/setup-gcloud@77e7a554d41e2ee56fc945c52dfd3f33d12def9a  # v2.1.4
+#
+#      - name: Extract Stable Version and Download SBOM
+#        id: get_sbom # Give ID to access outputs easily later if needed internally
+#        shell: bash
+#        run: |
+#          VERSIONS_FILE="sdk_build/intrinsic/production/versions/versions.jsonnet"
+#          GCS_BASE="gs://intrinsic-os-releases-us/realtime"
+#          GCS_FILENAME="sbom.spdx.json"
+#          LOCAL_PREFIX="sbom.intrinsic-os"
+#
+#          echo "::group::Extracting Stable Version"
+#          echo "Reading stable version from ${VERSIONS_FILE}"
+#          if [[ ! -f "$VERSIONS_FILE" ]]; then
+#            echo "Error: Versions file not found at ${VERSIONS_FILE}"
+#            exit 1;
+#          fi
+#          STABLE_VERSION=$(jsonnet "${VERSIONS_FILE}" | jq -r .stable)
+#          if [[ -z "$STABLE_VERSION" || "$STABLE_VERSION" == "null" ]]; then
+#            echo "Error: Could not extract 'stable' version from ${VERSIONS_FILE}"
+#            exit 1;
+#          fi
+#          echo "Found stable OS version: ${STABLE_VERSION}"
+#          echo "::endgroup::"
+#
+#          echo "::group::Downloading SBOM"
+#          GCS_SBOM_PATH="${GCS_BASE}/xfa.${STABLE_VERSION}/${GCS_FILENAME}"
+#          LOCAL_SBOM_FILENAME="${LOCAL_PREFIX}.${STABLE_VERSION}.spdx.json"
+#          echo "Attempting to download SBOM from ${GCS_SBOM_PATH} to ${LOCAL_SBOM_FILENAME}"
+#
+#          if gsutil cp "${GCS_SBOM_PATH}" "${LOCAL_SBOM_FILENAME}"; then
+#            echo "Successfully downloaded SBOM to ${LOCAL_SBOM_FILENAME}"
+#            echo "sbom-local-path=$LOCAL_SBOM_FILENAME" >> $GITHUB_OUTPUT
+#            echo "::endgroup::"
+#          else
+#            echo "Error: Failed to download SBOM from ${GCS_SBOM_PATH}"
+#            exit 1;
+#          fi
+#
+#      - name: Save build artifacts
+#        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # 4.6.2
+#        with:
+#          name: intrinsic-os-sbom
+#          path: ${{ steps.get_sbom.outputs.sbom-local-path }}
+#          if-no-files-found: error
 
   build-sdk-artifacts:
     runs-on: ubuntu-22.04
@@ -264,7 +264,7 @@ jobs:
       - determine-checkout-ref
       - package-sdk
       - build-sdk-artifacts
-      - intrinsic-os-sbom
+      # - intrinsic-os-sbom
       - create-release-notes
     if: needs.determine-checkout-ref.outputs.should_run == 'true'
     steps:
@@ -273,10 +273,10 @@ jobs:
         with:
           name: sources
 
-      - name: Download Intrinsic OS SBOM 
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0
-        with:
-          name: intrinsic-os-sbom
+      # - name: Download Intrinsic OS SBOM 
+      #   uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0
+      #   with:
+      #     name: intrinsic-os-sbom
 
       - name: Download binary artifacts
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0
