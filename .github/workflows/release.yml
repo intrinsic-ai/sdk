@@ -145,7 +145,7 @@ jobs:
         id: get_sbom # Give ID to access outputs easily later if needed internally
         shell: bash
         run: |
-          VERSIONS_FILE="sdk_build/intrinsic/production/versions/versions.jsonnet"
+          VERSIONS_FILE="sdk_build/intrinsic/production/versions/versions.bzl"
           GCS_BASE="gs://intrinsic-os-releases-us/realtime"
           GCS_FILENAME="sbom.spdx.json"
           LOCAL_PREFIX="sbom.intrinsic-os"
@@ -156,7 +156,7 @@ jobs:
             echo "Error: Versions file not found at ${VERSIONS_FILE}"
             exit 1;
           fi
-          STABLE_VERSION=$(jsonnet "${VERSIONS_FILE}" | jq -r .stable)
+          STABLE_VERSION=$(sed -En 's/STABLE_OS_VERSION = "(.+)"$/\1/p' ${VERSIONS_FILE})
           if [[ -z "$STABLE_VERSION" || "$STABLE_VERSION" == "null" ]]; then
             echo "Error: Could not extract 'stable' version from ${VERSIONS_FILE}"
             exit 1;
