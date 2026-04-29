@@ -173,6 +173,13 @@ message GetClusterRequest {
   string cluster_id = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
+message SolutionVersion {
+  // Each branch can only be assigned to a single IPC at a time.
+  // During the deployment it will look up the tip of the branch
+  // and deploy it to the IPC.
+  string branch_id = 1 [(google.api.field_behavior) = OPTIONAL];
+}
+
 message UpdateVersions {
   // Accompanying metadata about the update.
   string user_data = 1 [(google.api.field_behavior) = OPTIONAL];
@@ -180,6 +187,8 @@ message UpdateVersions {
   string os_version = 2 [(google.api.field_behavior) = OPTIONAL];
   // The version of the Intrinsic Base to update to.
   string base_version = 3 [(google.api.field_behavior) = OPTIONAL];
+  // The version of the Solution to update to.
+  SolutionVersion solution_version = 4 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message SchedulePlatformUpdateRequest {
