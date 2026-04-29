@@ -116,6 +116,30 @@ blob_payload <
     # Receives the expected return value
     self.assertIsNone(result)
 
+  def test_set_log_options_raw_proto(self):
+    stub = mock.MagicMock()
+    stub.SetLogOptions.return_value = logger_service_pb2.SetLogOptionsResponse()
+    event_source = 'ev1'
+    log_options = logger_service_pb2.LogOptions(max_buffer_byte_size=20)
+    logs = structured_logging.StructuredLogs(stub)
+
+    result = logs.set_log_options({event_source: log_options})
+
+    # At least sends the expected argument type
+    self.assertEqual(
+        type(stub.SetLogOptions.call_args.args[0]),
+        logger_service_pb2.SetLogOptionsRequest,
+    )
+    # Sends the expected buffer size
+    self.assertEqual(
+        stub.SetLogOptions.call_args.args[0]
+        .log_options[event_source]
+        .max_buffer_byte_size,
+        20,
+    )
+    # Receives the expected return value
+    self.assertIsNone(result)
+
   def test_get_log_options_fails_if_no_key_or_event_source(self):
     stub = mock.MagicMock()
     logs = structured_logging.StructuredLogs(stub)

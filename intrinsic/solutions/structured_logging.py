@@ -873,11 +873,18 @@ class StructuredLogs:
   @error_handling.retry_on_grpc_transient_errors
   def set_log_options(
       self,
-      log_options: Dict[str, LogOptions],
+      log_options: Dict[str, Union[LogOptions, logger_service_pb2.LogOptions]],
   ) -> None:
     """Configures log options for an event_source."""
     log_options_request = logger_service_pb2.SetLogOptionsRequest(
-        log_options={e: i.log_options for e, i in log_options.items()}
+        log_options={
+            key: (
+                options.log_options
+                if isinstance(options, StructuredLogs.LogOptions)
+                else options
+            )
+            for key, options in log_options.items()
+        }
     )
     self._stub.SetLogOptions(log_options_request)
 
