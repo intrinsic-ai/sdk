@@ -165,7 +165,7 @@ func Execute(ec executionContext) bool {
 	ctx := context.Background()
 	RootCmd.SetArgs(flag.Args())
 
-	ctx, span := trace.StartSpan(ctx, "inctl", trace.WithSampler(trace.AlwaysSample()))
+	ctx, span := trace.StartSpan(ctx, "inctl")
 	defer span.End()
 
 	success := true

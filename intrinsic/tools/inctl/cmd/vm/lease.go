@@ -63,7 +63,7 @@ var vmLeaseCmd = &cobra.Command{
 	Short: "Lease a VM from a pool of VMs.",
 	Long:  leaseDesc,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx, span := trace.StartSpan(cmd.Context(), "inctl.vm.lease", trace.WithSampler(trace.AlwaysSample()))
+		ctx, span := trace.StartSpan(cmd.Context(), "inctl.vm.lease")
 		span.AddAttributes(trace.StringAttribute("pool", flagPool))
 		span.AddAttributes(trace.StringAttribute("org", vmCmdFlags.GetFlagOrganization()))
 		defer span.End()

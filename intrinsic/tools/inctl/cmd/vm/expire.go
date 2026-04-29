@@ -36,7 +36,7 @@ var vmExpireInCmd = &cobra.Command{
 	Long:  extendDesc,
 	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx, span := trace.StartSpan(cmd.Context(), "inctl.vm.expire-in", trace.WithSampler(trace.AlwaysSample()))
+		ctx, span := trace.StartSpan(cmd.Context(), "inctl.vm.expire-in")
 		span.AddAttributes(trace.StringAttribute("vm", args[0]))
 		span.AddAttributes(trace.StringAttribute("org", vmCmdFlags.GetFlagOrganization()))
 		defer span.End()

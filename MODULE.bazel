@@ -59,7 +59,6 @@ use_repo(
     "io_opencensus_go",
     "io_opencensus_go_contrib_exporter_ocagent",
     "io_opencensus_go_contrib_exporter_prometheus",
-    "io_opencensus_go_contrib_exporter_stackdriver",
     "io_opentelemetry_go_contrib_instrumentation_google_golang_org_grpc_otelgrpc",
     "io_opentelemetry_go_contrib_propagators_b3",
     "io_opentelemetry_go_contrib_propagators_opencensus",

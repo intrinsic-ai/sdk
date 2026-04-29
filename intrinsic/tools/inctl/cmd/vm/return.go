@@ -31,7 +31,7 @@ var vmReturnCmd = &cobra.Command{
 	Long:  returnDesc,
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx, span := trace.StartSpan(cmd.Context(), "inctl.vm.return", trace.WithSampler(trace.AlwaysSample()))
+		ctx, span := trace.StartSpan(cmd.Context(), "inctl.vm.return")
 		span.AddAttributes(trace.StringAttribute("vm", args[0]))
 		span.AddAttributes(trace.StringAttribute("org", vmCmdFlags.GetFlagOrganization()))
 		defer span.End()
