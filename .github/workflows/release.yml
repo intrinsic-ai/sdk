@@ -132,12 +132,6 @@ jobs:
           mkdir sdk_build
           tar --extract --directory sdk_build --file sdk.tar.gz
 
-      - name: Install Dependencies (Jsonnet, jq)
-        shell: bash
-        run: |
-          echo "Installing dependencies: jsonnet, jq..."
-          sudo apt-get update -y && sudo apt-get install -y jsonnet jq
-
       - name: Set up Cloud SDK (gcloud/gsutil)
         uses: google-github-actions/setup-gcloud@77e7a554d41e2ee56fc945c52dfd3f33d12def9a  # v2.1.4
 
