@@ -53,10 +53,11 @@ class CameraParams:
   @property
   def distortion_params(self) -> Optional[np.ndarray]:
     """Camera distortion params; (k1, k2, p1, p2, [k3, [k4, k5, k6, [s1, s2, s3, s4, [tx, ty]]]]) or None."""
-    dp = self._proto.distortion_params
-    if dp is None:
+    if not self._proto.HasField("distortion_params"):
       return None
-    return _camera_utils.extract_distortion_params(dp)
+    return _camera_utils.extract_distortion_params(
+        self._proto.distortion_params
+    )
 
 
 class SensorInformation:
@@ -88,7 +89,7 @@ class SensorInformation:
   @property
   def factory_camera_params(self) -> Optional[CameraParams]:
     """Sensor factory camera params."""
-    if self._proto.factory_camera_params is None:
+    if not self._proto.HasField("factory_camera_params"):
       return None
     return CameraParams(self._proto.factory_camera_params)
 
@@ -109,7 +110,7 @@ class SensorInformation:
   @property
   def camera_t_sensor(self) -> Optional[pose3.Pose3]:
     """Camera to sensor pose."""
-    if self._proto.camera_t_sensor is None:
+    if not self._proto.HasField("camera_t_sensor"):
       return None
     return math_proto_conversion.pose_from_proto(self._proto.camera_t_sensor)
 
@@ -144,14 +145,14 @@ class SensorConfig:
   @property
   def camera_t_sensor(self) -> Optional[pose3.Pose3]:
     """Camera to sensor pose."""
-    if self._proto.camera_t_sensor is None:
+    if not self._proto.HasField("camera_t_sensor"):
       return None
     return math_proto_conversion.pose_from_proto(self._proto.camera_t_sensor)
 
   @property
   def camera_params(self) -> Optional[CameraParams]:
     """Sensor camera params."""
-    if self._proto.camera_params is None:
+    if not self._proto.HasField("camera_params"):
       return None
     return CameraParams(self._proto.camera_params)
 
@@ -227,7 +228,7 @@ class SensorImage:
     """Creates a SensorImage object."""
     if sensor_image is None:
       raise ValueError("Sensor image cannot be None.")
-    if sensor_image.buffer is None:
+    if not sensor_image.HasField("buffer"):
       raise ValueError("Sensor image buffer cannot be None.")
 
     self._proto = sensor_image
@@ -268,8 +269,10 @@ class SensorImage:
   @property
   def world_t_sensor(self) -> Optional[pose3.Pose3]:
     """Sensor world pose."""
-    if self._world_t_camera is None or self.camera_t_sensor is None:
+    if self._world_t_camera is None:
       return None
+    if self.camera_t_sensor is None:
+      return self._world_t_camera
     return self._world_t_camera.multiply(self.camera_t_sensor)
 
   @property
