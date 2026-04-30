@@ -38,6 +38,7 @@ var (
 	runtimeFlag               string
 	osFlag                    string
 	userDataFlag              string
+	solutionBranchFlag        string
 	skipAssetVerificationFlag bool
 )
 
@@ -223,7 +224,7 @@ func (c *client) run(ctx context.Context) error {
 	}
 	if rollbackFlag {
 		req.UpdateType = clustermanagerpb.SchedulePlatformUpdateRequest_UPDATE_TYPE_ROLLBACK
-	} else if osFlag != "" || runtimeFlag != "" {
+	} else if osFlag != "" || runtimeFlag != "" || solutionBranchFlag != "" {
 		req.Versions = &clustermanagerpb.UpdateVersions{}
 		runtimeVersion := runtimeFlag
 		if strings.HasPrefix(runtimeVersion, "202") {
@@ -294,6 +295,11 @@ func (c *client) run(ctx context.Context) error {
 		}
 		if userDataFlag != "" {
 			req.Versions.UserData = userDataFlag
+		}
+		if solutionBranchFlag != "" {
+			req.Versions.SolutionVersion = &clustermanagerpb.SolutionVersion{
+				BranchId: solutionBranchFlag,
+			}
 		}
 		if skipAssetVerificationFlag {
 			req.UpdateType = clustermanagerpb.SchedulePlatformUpdateRequest_UPDATE_TYPE_VERSIONED_UNCHECKED
@@ -654,6 +660,7 @@ func init() {
 	runCmd.PersistentFlags().StringVar(&runtimeFlag, "runtime", "", "The runtime version to upgrade to.")
 	runCmd.PersistentFlags().StringVar(&userDataFlag, "user-data", "", "Optional data describing the update.")
 	runCmd.PersistentFlags().BoolVar(&skipAssetVerificationFlag, "skip-asset-verification", false, "If true, the update will skip asset catalog verification.")
+	runCmd.PersistentFlags().StringVar(&solutionBranchFlag, "solution-branch", "", "The solution branch to upgrade to.")
 	clusterUpgradeCmd.AddCommand(modeCmd)
 	clusterUpgradeCmd.AddCommand(acceptCmd)
 	clusterUpgradeCmd.AddCommand(reportCmd)
