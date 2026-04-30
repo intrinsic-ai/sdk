@@ -446,12 +446,21 @@ message CreateFrameRequest {
   oneof attach_to {
     // The object under which the frame shall be created. The frame will be
     // attached to the base entity of the object.
-    ObjectReference parent_object = 2;
+    //
+    // DEPRECATED: Use 'parent_object_with_filter' instead.
+    ObjectReference parent_object = 2 [deprecated = true];
 
     // The frame to which the new frame shall be attached to (instead of being
     // attached directly to an object entity). The new frame will be grouped
     // under the same object as the given frame.
     FrameReference parent_frame = 3;
+
+    // The object under which the frame shall be created, including an entity
+    // filter specifying to which entity in the object the frame shall be
+    // attached to. If the entity filter is unset, we add the frame to the
+    // base entity of the object, otherwise the entity filter must match exactly
+    // one object entity.
+    ObjectReferenceWithEntityFilter parent_object_with_filter = 8;
   }
 
   // Name of the new frame to be created. Must be unique amongst all frames
@@ -459,7 +468,8 @@ message CreateFrameRequest {
   string new_frame_name = 4;
 
   // Pose of the frame in the space of the parent object's origin (if
-  // 'parent_object' is set) or frame (if 'parent_frame' is set).
+  // 'parent_object' or 'parent_object_with_filter' is set) or frame (if
+  // 'parent_frame' is set).
   intrinsic_proto.Pose parent_t_new_frame = 5;
 
   // If attached to an object we can mark this frame as an attachment frame when
