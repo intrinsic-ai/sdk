@@ -50,6 +50,8 @@ message ErrorContext {
     GOAL_CONF_VALIDATION = 13;
     // Joint configuration validation
     CONF_VALIDATION = 14;
+    // Refinement validation
+    REFINEMENT_VALIDATION = 15;
   }
 }
 
