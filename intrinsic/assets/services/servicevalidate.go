@@ -102,10 +102,18 @@ func ServiceManifest(m *smpb.ServiceManifest, options ...ServiceManifestOption) 
 }
 
 type processedServiceManifestOptions struct {
+	requiredRegistry               string
 }
 
 // ProcessedServiceManifestOption is an option for validating a ProcessedServiceManifest.
 type ProcessedServiceManifestOption func(*processedServiceManifestOptions)
+
+// WithRequiredRegistry specifies the registry that must have been used for all images.
+func WithRequiredRegistry(registry string) ProcessedServiceManifestOption {
+	return func(opts *processedServiceManifestOptions) {
+		opts.requiredRegistry = registry
+	}
+}
 
 // ProcessedServiceManifest validates a ProcessedServiceManifest.
 func ProcessedServiceManifest(m *smpb.ProcessedServiceManifest, options ...ProcessedServiceManifestOption) error {
@@ -113,6 +121,7 @@ func ProcessedServiceManifest(m *smpb.ProcessedServiceManifest, options ...Proce
 	for _, opt := range options {
 		opt(opts)
 	}
+
 	if m == nil {
 		return fmt.Errorf("ProcessedServiceManifest must not be nil")
 	}
@@ -145,6 +154,13 @@ func ProcessedServiceManifest(m *smpb.ProcessedServiceManifest, options ...Proce
 	for _, p := range imagePaths {
 		if _, ok := expectedImagePaths[p]; !ok {
 			return fmt.Errorf("image %q in the assets for Service %q is not used in the manifest", p, id)
+		}
+	}
+	if opts.requiredRegistry != "" {
+		for k, image := range m.GetAssets().GetImages() {
+			if image.GetRegistry() != opts.requiredRegistry {
+				return fmt.Errorf("unexpected registry specified for image %s (expected %q, got %q)", k, opts.requiredRegistry, image.GetRegistry())
+			}
 		}
 	}
 

@@ -86,18 +86,10 @@ type dataAssetOptions struct {
 // DataAssetOption is an option for validating a DataAsset.
 type DataAssetOption func(*dataAssetOptions)
 
-// WithReferencedDataOptions specifies the options for validating ReferencedData within the Data
-// Asset.
+// WithReferencedDataOptions appends options for validating ReferencedData within the Data Asset.
 func WithReferencedDataOptions(referencedDataOptions ...ReferencedDataOption) DataAssetOption {
 	return func(opts *dataAssetOptions) {
-		opts.referencedDataOptions = referencedDataOptions
-	}
-}
-
-// WithReferencedDataOption specifies an option for validating ReferencedData within the Data Asset.
-func WithReferencedDataOption(referencedDataOption ReferencedDataOption) DataAssetOption {
-	return func(opts *dataAssetOptions) {
-		opts.referencedDataOptions = append(opts.referencedDataOptions, referencedDataOption)
+		opts.referencedDataOptions = append(opts.referencedDataOptions, referencedDataOptions...)
 	}
 }
 

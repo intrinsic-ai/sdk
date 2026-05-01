@@ -172,6 +172,7 @@ type makeProcessedServiceManifestOptions struct {
 	images                         map[string]*imagepb.Image
 	metadata                       *smpb.ServiceMetadata
 	realSpec                       *smpb.ServicePodSpec
+	registry                       string
 	serviceInspectionConfig        *sipb.ServiceInspectionConfig
 	serviceProtoPrefixes           []string
 	simSpec                        *smpb.ServicePodSpec
@@ -223,6 +224,13 @@ func WithProcessedMetadata(metadata *smpb.ServiceMetadata) MakeProcessedServiceM
 func WithProcessedRealSpec(spec *smpb.ServicePodSpec) MakeProcessedServiceManifestOption {
 	return func(opts *makeProcessedServiceManifestOptions) {
 		opts.realSpec = spec
+	}
+}
+
+// WithProcessedRegistry specifies the image registry URL to use.
+func WithProcessedRegistry(registry string) MakeProcessedServiceManifestOption {
+	return func(opts *makeProcessedServiceManifestOptions) {
+		opts.registry = registry
 	}
 }
 
@@ -278,6 +286,7 @@ func MakeProcessedServiceManifest(t *testing.T, options ...MakeProcessedServiceM
 				DisplayName: "Intrinsic",
 			},
 		},
+		registry: "gcr.io/test-project",
 	}
 	for _, opt := range options {
 		opt(opts)
@@ -285,17 +294,17 @@ func MakeProcessedServiceManifest(t *testing.T, options ...MakeProcessedServiceM
 	if opts.images == nil && opts.realSpec == nil && opts.simSpec == nil {
 		opts.images = map[string]*imagepb.Image{
 			"extra_image": {
-				Registry: "gcr.io/test-project",
+				Registry: opts.registry,
 				Name:     "extra_image",
 				Tag:      ":real",
 			},
 			"real_image": {
-				Registry: "gcr.io/test-project",
+				Registry: opts.registry,
 				Name:     "real_image",
 				Tag:      ":real",
 			},
 			"sim_image": {
-				Registry: "gcr.io/test-project",
+				Registry: opts.registry,
 				Name:     "sim_image",
 				Tag:      ":real",
 			},

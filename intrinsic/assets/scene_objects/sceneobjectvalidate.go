@@ -17,8 +17,8 @@ import (
 )
 
 type sceneObjectManifestOptions struct {
-	gzfPaths map[string]string
 	files    *protoregistry.Files
+	gzfPaths map[string]string
 }
 
 // SceneObjectManifestOption is an option for validating a SceneObjectManifest.
@@ -89,8 +89,19 @@ func SceneObjectManifest(m *sompb.SceneObjectManifest, options ...SceneObjectMan
 	return nil
 }
 
+type processedSceneObjectManifestOptions struct {
+}
+
+// ProcessedSceneObjectManifestOption is an option for validating a ProcessedSceneObjectManifest.
+type ProcessedSceneObjectManifestOption func(*processedSceneObjectManifestOptions)
+
 // ProcessedSceneObjectManifest validates a ProcessedSceneObjectManifest.
-func ProcessedSceneObjectManifest(m *sompb.ProcessedSceneObjectManifest) error {
+func ProcessedSceneObjectManifest(m *sompb.ProcessedSceneObjectManifest, options ...ProcessedSceneObjectManifestOption) error {
+	opts := &processedSceneObjectManifestOptions{}
+	for _, opt := range options {
+		opt(opts)
+	}
+
 	if m == nil {
 		return fmt.Errorf("ProcessedSceneObjectManifest must not be nil")
 	}

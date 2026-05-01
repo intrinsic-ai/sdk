@@ -77,8 +77,27 @@ func SkillManifest(m *smpb.SkillManifest, options ...SkillManifestOption) error 
 	return nil
 }
 
+type processedSkillManifestOptions struct {
+	requiredRegistry string
+}
+
+// ProcessedSkillManifestOption is an option for validating a ProcessedSkillManifest.
+type ProcessedSkillManifestOption func(*processedSkillManifestOptions)
+
+// WithRequiredRegistry specifies the registry that must have been used for all images.
+func WithRequiredRegistry(registry string) ProcessedSkillManifestOption {
+	return func(opts *processedSkillManifestOptions) {
+		opts.requiredRegistry = registry
+	}
+}
+
 // ProcessedSkillManifest validates a ProcessedSkillManifest.
-func ProcessedSkillManifest(m *psmpb.ProcessedSkillManifest) error {
+func ProcessedSkillManifest(m *psmpb.ProcessedSkillManifest, options ...ProcessedSkillManifestOption) error {
+	opts := &processedSkillManifestOptions{}
+	for _, opt := range options {
+		opt(opts)
+	}
+
 	if m == nil {
 		return fmt.Errorf("ProcessedSkillManifest must not be nil")
 	}
@@ -100,6 +119,15 @@ func ProcessedSkillManifest(m *psmpb.ProcessedSkillManifest) error {
 		files: files,
 	}); err != nil {
 		return fmt.Errorf("invalid Skill details for %q: %w", id, err)
+	}
+
+	if opts.requiredRegistry != "" {
+		switch d := m.GetAssets().GetDeploymentType().(type) {
+		case *psmpb.ProcessedSkillAssets_Image:
+			if d.Image.GetRegistry() != opts.requiredRegistry {
+				return fmt.Errorf("unexpected registry specified (expected %q, got %q)", opts.requiredRegistry, d.Image.GetRegistry())
+			}
+		}
 	}
 
 	return nil

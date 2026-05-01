@@ -127,6 +127,7 @@ func mustLoadSkillManifest(t *testing.T, path string) *smpb.SkillManifest {
 type makeProcessedSkillManifestOptions struct {
 	fileDescriptorSet *dpb.FileDescriptorSet
 	metadata          *psmpb.SkillMetadata
+	registry          string
 	skillDetails      *psmpb.SkillDetails
 }
 
@@ -144,6 +145,13 @@ func WithFileDescriptorSet(fds *dpb.FileDescriptorSet) MakeProcessedSkillManifes
 func WithProcessedMetadata(m *psmpb.SkillMetadata) MakeProcessedSkillManifestOption {
 	return func(opts *makeProcessedSkillManifestOptions) {
 		opts.metadata = m
+	}
+}
+
+// WithProcessedRegistry specifies the image registry URL to use.
+func WithProcessedRegistry(registry string) MakeProcessedSkillManifestOption {
+	return func(opts *makeProcessedSkillManifestOptions) {
+		opts.registry = registry
 	}
 }
 
@@ -168,6 +176,7 @@ func MakeProcessedSkillManifest(t *testing.T, options ...MakeProcessedSkillManif
 				DisplayName: "Intrinsic",
 			},
 		},
+		registry: "gcr.io/test-project",
 		skillDetails: &psmpb.SkillDetails{
 			StatusInfo: []*sspb.StatusSpec{
 				{
@@ -187,7 +196,7 @@ func MakeProcessedSkillManifest(t *testing.T, options ...MakeProcessedSkillManif
 		Assets: &psmpb.ProcessedSkillAssets{
 			DeploymentType: &psmpb.ProcessedSkillAssets_Image{
 				Image: &imagepb.Image{
-					Registry: "gcr.io/test-project",
+					Registry: opts.registry,
 					Name:     "some_skill",
 					Tag:      ":skill",
 				},

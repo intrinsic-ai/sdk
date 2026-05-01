@@ -97,6 +97,8 @@ func HardwareDeviceManifest(m *hdmpb.HardwareDeviceManifest, options ...Hardware
 
 type processedHardwareDeviceManifestOptions struct {
 	dataAssetOptions         []datavalidate.DataAssetOption
+	sceneObjectOptions       []sceneobjectvalidate.ProcessedSceneObjectManifestOption
+	serviceOptions           []servicevalidate.ProcessedServiceManifestOption
 	verifyCatalogAssetsExist VerifyCatalogAssetsExist
 }
 
@@ -104,9 +106,23 @@ type processedHardwareDeviceManifestOptions struct {
 type ProcessedHardwareDeviceManifestOption func(*processedHardwareDeviceManifestOptions)
 
 // WithDataAssetOptions appends options for verifying Data Assets in the HardwareDevice.
-func WithDataAssetOptions(dataAssetOptions ...datavalidate.DataAssetOption) ProcessedHardwareDeviceManifestOption {
+func WithDataAssetOptions(options ...datavalidate.DataAssetOption) ProcessedHardwareDeviceManifestOption {
 	return func(opts *processedHardwareDeviceManifestOptions) {
-		opts.dataAssetOptions = append(opts.dataAssetOptions, dataAssetOptions...)
+		opts.dataAssetOptions = append(opts.dataAssetOptions, options...)
+	}
+}
+
+// WithSceneObjectOptions appends options to use for validating SceneObjects.
+func WithSceneObjectOptions(options ...sceneobjectvalidate.ProcessedSceneObjectManifestOption) ProcessedHardwareDeviceManifestOption {
+	return func(opts *processedHardwareDeviceManifestOptions) {
+		opts.sceneObjectOptions = append(opts.sceneObjectOptions, options...)
+	}
+}
+
+// WithServiceAssetOptions appends options for verifying Services in the HardwareDevice.
+func WithServiceOptions(options ...servicevalidate.ProcessedServiceManifestOption) ProcessedHardwareDeviceManifestOption {
+	return func(opts *processedHardwareDeviceManifestOptions) {
+		opts.serviceOptions = append(opts.serviceOptions, options...)
 	}
 }
 
@@ -326,14 +342,14 @@ func validateProcessedAssets(assets map[string]*hdmpb.ProcessedHardwareDeviceMan
 			}
 			catalogAssets = append(catalogAssets, asset.GetCatalog())
 		case *hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset_Service:
-			if err := servicevalidate.ProcessedServiceManifest(asset.GetService()); err != nil {
+			if err := servicevalidate.ProcessedServiceManifest(asset.GetService(), opts.serviceOptions...); err != nil {
 				return nil, fmt.Errorf("invalid Service %q: %w", key, err)
 			}
 
 			assetType = atpb.AssetType_ASSET_TYPE_SERVICE
 			id = asset.GetService().GetMetadata().GetId()
 		case *hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset_SceneObject:
-			if err := sceneobjectvalidate.ProcessedSceneObjectManifest(asset.GetSceneObject()); err != nil {
+			if err := sceneobjectvalidate.ProcessedSceneObjectManifest(asset.GetSceneObject(), opts.sceneObjectOptions...); err != nil {
 				return nil, fmt.Errorf("invalid SceneObject %q: %w", key, err)
 			}
 

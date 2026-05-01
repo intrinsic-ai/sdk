@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	sceneobjecttestutils "intrinsic/assets/scene_objects/testing/utils"
+	"intrinsic/storage/content_addressable_storage/testing/go/contentaddressablestoragetesting"
 	"intrinsic/util/testing/testio"
 
 	"google.golang.org/protobuf/encoding/prototext"
@@ -14,6 +15,9 @@ import (
 	"google.golang.org/protobuf/reflect/protodesc"
 
 	sompb "intrinsic/assets/scene_objects/proto/scene_object_manifest_go_proto"
+	gsrpb "intrinsic/geometry/proto/geometry_storage_refs_go_proto"
+	epb "intrinsic/scene/proto/v1/entity_go_proto"
+	gcpb "intrinsic/world/proto/geometry_component_go_proto"
 
 	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	anypb "google.golang.org/protobuf/types/known/anypb"
@@ -219,11 +223,13 @@ func TestProcessedSceneObjectManifest(t *testing.T) {
 		},
 	}
 
-	tests := []struct {
+	type testCase struct {
 		desc    string
 		m       *sompb.ProcessedSceneObjectManifest
+		options []ProcessedSceneObjectManifestOption
 		wantErr bool
-	}{
+	}
+	tests := []testCase{
 		{
 			desc: "valid",
 			m:    sceneobjecttestutils.MakeProcessedSceneObjectManifest(t),
@@ -290,11 +296,83 @@ func TestProcessedSceneObjectManifest(t *testing.T) {
 			}(),
 			wantErr: true,
 		},
+		func() testCase {
+			fakeCAS := contentaddressablestoragetesting.NewFake(t)
+			casURL := fakeCAS.Create(t.Context(), t, []byte("i am a geometry!"))
+
+			m := sceneobjecttestutils.MakeProcessedSceneObjectManifest(t)
+			so := m.GetAssets().GetSceneObjectModel()
+			entity := &epb.Entity{
+				Name: "tip",
+				EntityType: &epb.Entity_Link{
+					Link: &epb.Link{
+						GeometryComponent: &gcpb.GeometryComponent{
+							NamedGeometries: map[string]*gcpb.GeometryComponent_GeometrySet{
+								"geometry": {
+									Geometries: []*gcpb.GeometryComponent_Geometry{
+										{
+											GeometryStorageRefs: &gsrpb.GeometryStorageRefs{
+												GeometryRef: casURL,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+			so.Entities[0] = entity
+
+			return testCase{
+				desc: "valid cas reference",
+				m:    m,
+				options: []ProcessedSceneObjectManifestOption{
+					WithCASClient(t.Context(), fakeCAS.CASC),
+				},
+			}
+		}(),
+		func() testCase {
+			fakeCAS := contentaddressablestoragetesting.NewFake(t)
+
+			m := sceneobjecttestutils.MakeProcessedSceneObjectManifest(t)
+			so := m.GetAssets().GetSceneObjectModel()
+			entity := &epb.Entity{
+				Name: "tip",
+				EntityType: &epb.Entity_Link{
+					Link: &epb.Link{
+						GeometryComponent: &gcpb.GeometryComponent{
+							NamedGeometries: map[string]*gcpb.GeometryComponent_GeometrySet{
+								"geometry": {
+									Geometries: []*gcpb.GeometryComponent_Geometry{
+										{
+											GeometryStorageRefs: &gsrpb.GeometryStorageRefs{
+												GeometryRef: "intcas://28579fc2bae9f4ae5f195028165617113a2472ce5eee860c766ffb0fe2f0522c294c75938eb6530e0d807a77872d9881124e83ba63338e081290ccd693bc0f66",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+			so.Entities[0] = entity
+
+			return testCase{
+				desc: "invalid cas reference",
+				m:    m,
+				options: []ProcessedSceneObjectManifestOption{
+					WithCASClient(t.Context(), fakeCAS.CASC),
+				},
+				wantErr: true,
+			}
+		}(),
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.desc, func(t *testing.T) {
-			err := ProcessedSceneObjectManifest(tc.m)
+			err := ProcessedSceneObjectManifest(tc.m, tc.options...)
 			if tc.wantErr && err == nil {
 				t.Error("ProcessedSceneObjectManifest() succeeded, want error")
 			} else if !tc.wantErr && err != nil {
