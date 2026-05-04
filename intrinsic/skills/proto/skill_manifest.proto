@@ -10,6 +10,7 @@ import "intrinsic/assets/proto/documentation.proto";
 import "intrinsic/assets/proto/id.proto";
 import "intrinsic/assets/proto/status_spec.proto";
 import "intrinsic/assets/proto/vendor.proto";
+import "intrinsic/assets/proto/v1/asset_configuration.proto";
 import "intrinsic/skills/proto/equipment.proto";
 
 option go_package = "intrinsic/skills/proto/skill_manifest_go_proto";
@@ -115,6 +116,13 @@ message Options {
     PythonServiceConfig python_config = 10;
     CcServiceConfig cc_config = 11;
   }
+
+  // Config recommendation options for the Skill.
+  //
+  // Leaving this undefined implies that the default platform behavior
+  // will be provided for the Skill.
+  optional intrinsic_proto.assets.v1.RecommendedConfigurationConfig
+      recommended_configuration_config = 4;
 
 }
 

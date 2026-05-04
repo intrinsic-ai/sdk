@@ -29,4 +29,7 @@ service_def {
       archive_filename: "calculator-image.tar"
     }
   }
+  recommended_configuration_config {
+    source: SOURCE_PLATFORM_DEFAULT
+  }
 }

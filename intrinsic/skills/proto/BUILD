@@ -380,6 +380,7 @@ proto_library(
         "//intrinsic/assets/proto:id_proto",
         "//intrinsic/assets/proto:status_spec_proto",
         "//intrinsic/assets/proto:vendor_proto",
+        "//intrinsic/assets/proto/v1:asset_configuration_proto",
         "@com_google_protobuf//:any_proto",
         "@com_google_protobuf//:duration_proto",
     ],
@@ -400,6 +401,7 @@ go_proto_library(
         "//intrinsic/assets/proto:id_go_proto",
         "//intrinsic/assets/proto:status_spec_go_proto",
         "//intrinsic/assets/proto:vendor_go_proto",
+        "//intrinsic/assets/proto/v1:asset_configuration_go_proto",
     ],
 )
 

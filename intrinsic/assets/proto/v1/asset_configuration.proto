@@ -1,0 +1,109 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+import "google/protobuf/any.proto";
+import "google/api/annotations.proto";
+
+package intrinsic_proto.assets.v1;
+
+option go_package = "intrinsic/assets/proto/v1/asset_configuration_go_proto";
+
+service AssetConfigurationService {
+
+  // Gets the recommended Asset configuration for the requested Asset instance,
+  // or Skill parameters in case of a Skill node.
+  //
+  // The `RecommendAssetConfigurationResponse` may be a partially filled value
+  // of the Asset's configuration proto or a Skill's parameters.
+  //
+  // The configurations will be recommended based on
+  // the RecommendedConfigurationConfig.Source enum specified by
+  // the Asset's manifest.
+  //
+  // Calling this service for Services and Hardware Devices that do not have
+  // their configuration message types defined in their manifests will throw
+  // a FAILED_PRECONDITION error.
+  rpc RecommendAssetConfiguration(RecommendAssetConfigurationRequest)
+      returns (RecommendAssetConfigurationResponse) {
+    option (google.api.http) = {
+      post: "/v1/assetConfiguration/{name}:recommendConfiguration"
+      body: "*"
+    };
+  }
+
+  // Gets information on the Asset's configuration recommendation.
+  rpc GetAssetRecommendationInfo(GetAssetRecommendationInfoRequest)
+      returns (AssetRecommendationInfo) {
+    option (google.api.http) = {
+      get: "/v1/assetConfiguration/assetRecommendationInfo/{name}"
+    };
+  }
+}
+
+message RecommendAssetConfigurationResponse {
+  // The recommended configuration value.
+  //
+  // This will be the same type as the Asset's configuration proto.
+  google.protobuf.Any config = 1;
+}
+
+message RecommendAssetConfigurationRequest {
+  // The identifier for the Asset in the Solution whose
+  // configuration or parameters are to be populated.
+  //
+  // Provide the Asset ID here in case of a Skill, and the name of the
+  // Asset instance in the Solution in case of Services and Hardware
+  // Devices.
+  string name = 1;
+
+  // Input configuration on which to base the recommendation.
+  optional google.protobuf.Any input_configuration = 2;
+}
+
+// Options to configure the behavior for generating recommended configuration
+// for Asset instances and Skill parameters.
+message RecommendedConfigurationConfig {
+  enum Source {
+    // If unspecified, `SOURCE_PLATFORM_DEFAULT` will be selected
+    // by default.
+    SOURCE_UNSPECIFIED = 0;
+    // No recommendations will be provided for the configuration.
+    SOURCE_NO_RECOMMENDATION = 1;
+    // Rely on the platform to provide a recommended configuration.
+    //
+    // The platform uses the following heuristic to recommend configurations:
+    //
+    //  1. If no initial configuration is provided, start with the Asset's
+    //     default configuration if it has one, or start with a new empty
+    //     configuration message.
+    //  2. If any ResolvedDependency in the configuration is unspecified and
+    //     there is currently only one Asset (instance) in the Solution that
+    //     fulfills the dependency constraints, resolve the dependency with that
+    //     Asset (instance).
+    SOURCE_PLATFORM_DEFAULT = 2;
+  }
+
+  // Declares how the Asset's configuration or the Skill's parameters
+  // will be recommended when RecommendAssetConfiguration is called for
+  // the respective Asset type.
+  Source source = 1;
+}
+
+// Information on whether an Asset has configuration recommendations.
+message AssetRecommendationInfo {
+  // The identifier of the Asset in the Solution.
+  string name = 1;
+
+  // Whether the Asset has configuration recommendations.
+  bool has_recommendation = 2;
+}
+
+message GetAssetRecommendationInfoRequest {
+  // The Asset identifier in the Solution to check recommendation
+  // availability for.
+  //
+  // Provide the Asset ID here in case of a Skill, and the name of the
+  // Asset instance in the Solution in case of Services and HardwareDevices.
+  string name = 1;
+}

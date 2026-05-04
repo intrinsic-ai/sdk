@@ -286,3 +286,68 @@ py_proto_library(
     visibility = ["//intrinsic:public_api_users"],
     deps = [":dependency_proto"],
 )
+
+proto_library(
+    name = "asset_configuration_proto",
+    srcs = ["asset_configuration.proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        "@com_google_googleapis//google/api:annotations_proto",
+        "@com_google_protobuf//:any_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "asset_configuration_cc_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":asset_configuration_proto"],
+)
+
+py_proto_library(
+    name = "asset_configuration_py_pb2",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":asset_configuration_proto"],
+)
+
+go_proto_library(
+    name = "asset_configuration_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+        "//bazel:go_gen_grpc_gateway",
+    ],
+    importpath = "intrinsic/assets/proto/v1/asset_configuration_go_proto",
+    protos = [":asset_configuration_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = ["@org_golang_google_genproto_googleapis_api//annotations"],
+)
+
+proto_library(
+    name = "recommended_configuration_proto",
+    srcs = ["recommended_configuration.proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = ["@com_google_protobuf//:any_proto"],
+)
+
+cc_proto_library(
+    name = "recommended_configuration_cc_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":recommended_configuration_proto"],
+)
+
+py_proto_library(
+    name = "recommended_configuration_py_pb2",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":recommended_configuration_proto"],
+)
+
+go_proto_library(
+    name = "recommended_configuration_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+    ],
+    importpath = "intrinsic/assets/proto/v1/recommended_configuration_go_proto",
+    protos = [":recommended_configuration_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+)

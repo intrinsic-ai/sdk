@@ -1,0 +1,27 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+import "google/protobuf/any.proto";
+
+package intrinsic_proto.assets.v1;
+
+option go_package = "intrinsic/assets/proto/v1/recommended_configuration_go_proto";
+
+service RecommendedConfigurationService {
+  // Gets the RecommendedConfiguration for an Asset instance or a Skill node.
+  rpc GetRecommendedConfiguration(GetRecommendedConfigurationRequest)
+      returns (RecommendedConfiguration) {}
+}
+
+message RecommendedConfiguration {
+  // The recommended configuration value.
+  //
+  // This must be the same type as the Asset's configuration proto.
+  google.protobuf.Any config = 1;
+}
+
+message GetRecommendedConfigurationRequest {
+  // Input configuration on which to base the recommendation.
+  optional google.protobuf.Any input_config = 1;
+}
