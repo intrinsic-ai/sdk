@@ -8,7 +8,10 @@ go_library(
     name = "behaviortree",
     srcs = ["behavior_tree_visitor.go"],
     importpath = "intrinsic/executive/go/behaviortree",
-    deps = ["//intrinsic/executive/proto:behavior_tree_go_proto"],
+    deps = [
+        "//intrinsic/executive/proto:behavior_tree_go_proto",
+        "@org_golang_google_protobuf//proto",
+    ],
 )
 
 go_test(

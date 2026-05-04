@@ -199,14 +199,12 @@ type fileDescriptorSetCollector struct {
 	fileDescriptorSets []*descriptorpb.FileDescriptorSet
 }
 
-func (c *fileDescriptorSetCollector) VisitCondition(ctx context.Context, cond *behaviortreepb.BehaviorTree_Condition) error {
-	return nil
-}
-
-func (c *fileDescriptorSetCollector) VisitNode(ctx context.Context, node *behaviortreepb.BehaviorTree_Node) error {
-	fileDescriptorSet := node.GetTask().GetExecuteCode().GetFileDescriptorSet()
-	if fileDescriptorSet != nil {
-		c.fileDescriptorSets = append(c.fileDescriptorSets, fileDescriptorSet)
+func (c *fileDescriptorSetCollector) Visit(ctx context.Context, element behaviortree.VisitElement) error {
+	if node := element.Node(); node != nil {
+		fileDescriptorSet := node.GetTask().GetExecuteCode().GetFileDescriptorSet()
+		if fileDescriptorSet != nil {
+			c.fileDescriptorSets = append(c.fileDescriptorSets, fileDescriptorSet)
+		}
 	}
 	return nil
 }
