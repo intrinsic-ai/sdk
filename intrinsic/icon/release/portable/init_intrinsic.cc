@@ -10,7 +10,7 @@
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
 #include "absl/flags/usage.h"
-#include "absl/log/globals.h"
+#include "absl/log/flags.h"
 #include "absl/log/initialize.h"
 #include "absl/log/log.h"
 #include "absl/time/clock.h"
@@ -27,7 +27,6 @@ void InitIntrinsic(const char* usage, int argc, char* argv[]) {
   }
   absl::ParseCommandLine(argc, argv);
   absl::InitializeLog();
-  absl::SetStderrThreshold(absl::LogSeverityAtLeast::kInfo);
 
   // Provide stack traces on SIGSEGV and other signals.
   absl::InitializeSymbolizer(argv[0]);
