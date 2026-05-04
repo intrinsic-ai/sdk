@@ -439,6 +439,7 @@ proto_library(
         "//intrinsic/assets/services/proto/v1:service_inspection_proto",
         "//intrinsic/skills/proto:processed_skill_manifest_proto",
         "@com_google_googleapis//google/api:annotations_proto",
+        "@com_google_googleapis//google/api:field_behavior_proto",
         "@com_google_googleapis//google/longrunning:operations_proto",
     ],
 )

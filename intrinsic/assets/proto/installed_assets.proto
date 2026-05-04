@@ -5,6 +5,7 @@ syntax = "proto3";
 package intrinsic_proto.assets.v1;
 
 import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
 import "google/longrunning/operations.proto";
 import "intrinsic/assets/data/proto/v1/data_asset.proto";
 import "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest.proto";
@@ -195,16 +196,21 @@ message InstalledAsset {
     }
   }
 
-  Metadata metadata = 1;
+  Metadata metadata = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   oneof asset_specific_metadata {
-    DataMetadata data_specific_metadata = 4;
-    ServiceMetadata service_specific_metadata = 3;
-    SkillMetadata skill_specific_metadata = 6;
-    HardwareDeviceMetadata hardware_device_specific_metadata = 5;
+    DataMetadata data_specific_metadata = 4
+        [(google.api.field_behavior) = OUTPUT_ONLY];
+    ServiceMetadata service_specific_metadata = 3
+        [(google.api.field_behavior) = OUTPUT_ONLY];
+    SkillMetadata skill_specific_metadata = 6
+        [(google.api.field_behavior) = OUTPUT_ONLY];
+    HardwareDeviceMetadata hardware_device_specific_metadata = 5
+        [(google.api.field_behavior) = OUTPUT_ONLY];
   }
 
-  DeploymentData deployment_data = 2;
+  DeploymentData deployment_data = 2
+      [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
 message ListInstalledAssetsResponse {
