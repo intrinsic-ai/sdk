@@ -141,8 +141,9 @@ func waitForStatusAvailable(ctx context.Context, client authedClient, clusterNam
 }
 
 func waitForCluster(ctx context.Context, client authedClient, clusterName, deviceID, hostname string) error {
-	// Set a total timeout of 15min
-	ctx, cancel := context.WithTimeout(ctx, time.Minute*15)
+	// 40 min timeout as this might require both an OS and an intrinsic-base update
+	// See also devicemanager/create_cluster.go.
+	ctx, cancel := context.WithTimeout(ctx, time.Minute*40)
 	defer cancel()
 
 	if err := waitForConfigDownload(ctx, client, clusterName, deviceID); err != nil {
