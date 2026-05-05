@@ -4,6 +4,7 @@
 package jwttesting
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -11,6 +12,12 @@ import (
 	log "github.com/golang/glog"
 	"github.com/pborman/uuid"
 )
+
+// MapClaims is alias for [jwt.MapClaims] to hide v4 vs v5 implementation details
+type MapClaims = jwt.MapClaims
+
+// Claims is alias for [jwt.Claims] to hide v4 vs v5 implementation details
+type Claims = jwt.Claims
 
 type customClaims struct {
 	Email         string `json:"email"`
@@ -165,4 +172,25 @@ func MustMintToken(opts ...Option) string {
 		log.Exitf("Could not create a signed JWT: %v", err)
 	}
 	return ss
+}
+
+// TestJWTFromString creates valid JWT with NONE signature with claims taken from
+// input string in form of serialized JSON.
+func TestJWTFromString(t *testing.T, str string) string {
+	var claims MapClaims
+	if err := json.Unmarshal([]byte(str), &claims); err != nil {
+		t.Errorf("failed to unmarshal input as json: %v", err)
+		return ""
+	}
+	return TestJWT(t, claims)
+}
+
+// TestJWT creates valid JWT with NONE signature with given claims.
+func TestJWT(t *testing.T, claims Claims) string {
+	token := jwt.NewWithClaims(jwt.SigningMethodNone, claims)
+	signed, err := token.SignedString(jwt.UnsafeAllowNoneSignatureType)
+	if err != nil {
+		t.Errorf("failed to sign jwt: %v", err)
+	}
+	return signed
 }

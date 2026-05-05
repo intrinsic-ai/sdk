@@ -128,7 +128,7 @@ func (s *cachedTokenSource) Token(ctx context.Context) (string, error) {
 		}
 		s.c = &tokenCache{
 			t:      t,
-			expiry: time.Unix(d.ExpiresAt, 0),
+			expiry: d.ExpiresAt(),
 		}
 	}
 	return s.c.t, nil

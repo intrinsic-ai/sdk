@@ -36,7 +36,10 @@ go_library(
     name = "jwt",
     srcs = ["jwt.go"],
     importpath = "intrinsic/kubernetes/acl/jwt",
-    deps = ["@com_github_pkg_errors//:go_default_library"],
+    deps = [
+        "@com_github_golang_jwt_jwt_v5//:jwt",
+        "@com_github_pkg_errors//:go_default_library",
+    ],
 )
 
 go_library(

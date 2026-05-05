@@ -5,22 +5,26 @@ package jwt
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"net/mail"
 	"strings"
+	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/pkg/errors"
 )
 
 // Data defines our relevant subset of the oauth standard plus our custom claims.
 // Extend with more attributes when needed.
 type Data struct {
-	UserID        string `json:"user_id"`
-	Aud           string `json:"aud"`
+	RegisteredClaims        // Embedded standard JWT Claims
+	UserID           string `json:"user_id"`
+	// Aud represents single audience in our claims.
+	//
+	// DEPRECATED: User Audience field from jwt.RegisteredClaims
+	Aud           string `json:"-"`
 	Email         string `json:"email"`
 	EmailVerified bool   `json:"email_verified"`
-	ExpiresAt     int64  `json:"exp"`
 
 	// intrinsic custom claims
 	Authorized bool     `json:"authorized"`
@@ -29,6 +33,14 @@ type Data struct {
 	// Organization indicates the organization an IPC identity
 	// is registered to. Only available for IPC user records.
 	Organization string `json:"orgid"`
+}
+
+// ExpiresAt is helper method to extract expiration information from [Data]
+func (d *Data) ExpiresAt() time.Time {
+	if d.RegisteredClaims.ExpiresAt != nil {
+		return d.RegisteredClaims.ExpiresAt.Time
+	}
+	return time.Now()
 }
 
 // Claim keys and values found in the JWT.
@@ -42,29 +54,42 @@ const (
 	ClaimClusterID     = "cluster_id"
 )
 
+var jwtParser = jwt.NewParser(jwt.WithoutClaimsValidation())
+
+// Claims is type alias for [jwt.Claims] to hide implementation details.
+type Claims = jwt.Claims
+
+// RegisteredClaims is type alias for [jwt.RegisteredClaims] to hide
+// implementation details
+type RegisteredClaims = jwt.RegisteredClaims
+
+var _ Claims = &Data{} // forces Data to always implement Claims
+
 // UnmarshalUnsafe unmarshals the JWT payload and returns the parsed data.
 //
 // Unsafe because the content can not be trusted if you do not also verify
 // the signature of the JWT.
 func UnmarshalUnsafe(jwtk string) (*Data, error) {
-	bs, err := decodePayload(jwtk)
+	var claims Data
+	err := PayloadClaimsUnsafe(jwtk, &claims)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decode JWT payload section: %w", err)
+		return nil, fmt.Errorf("cannot parse jwt token: %w", err)
 	}
-	d := Data{}
-	if err := json.Unmarshal(bs, &d); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal JWT payload section: %w", err)
+
+	// for backwards compatibility only
+	if len(claims.Audience) > 0 {
+		claims.Aud = claims.Audience[0]
 	}
-	return &d, nil
+	return &claims, nil
 }
 
 // PayloadUnsafe returns the unverified payload section of a given JWT.
-// Use PayloadUnsafe if you need raw access to the JWT. Otherwise prefer ParseUnsafe.
+// Use PayloadUnsafe if you need raw access to the JWT.
 //
 // Unsafe because the content can not be trusted if you do not also verify
 // the signature of the JWT.
 func PayloadUnsafe(jwtk string) (map[string]any, error) {
-	dat := map[string]any{}
+	dat := jwt.MapClaims{}
 
 	if err := PayloadClaimsUnsafe(jwtk, &dat); err != nil {
 		return nil, fmt.Errorf("cannot decode payload: %w", err)
@@ -76,14 +101,10 @@ func PayloadUnsafe(jwtk string) (map[string]any, error) {
 // PayloadClaimsUnsafe parses claims of provided JWT based on claims input.
 // It's unsafe as it does not validate JWT signature. Use only when you know
 // what are you doing.
-func PayloadClaimsUnsafe(jwtk string, claims any) error {
-	bs, err := decodePayload(jwtk)
+func PayloadClaimsUnsafe(jwtk string, claims Claims) error {
+	_, _, err := jwtParser.ParseUnverified(jwtk, claims)
 	if err != nil {
-		return fmt.Errorf("failed to decode JWT payload section: %w", err)
-	}
-	err = json.Unmarshal(bs, claims)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal JWT payload section: %w", err)
+		return fmt.Errorf("cannot parse jwt token: %w", err)
 	}
 	return nil
 }

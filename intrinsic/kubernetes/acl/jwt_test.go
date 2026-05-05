@@ -8,6 +8,7 @@ import (
 
 	"intrinsic/kubernetes/acl/testing/jwttesting"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
@@ -43,7 +44,10 @@ func TestUnmarshalUnsafe(t *testing.T) {
 				Authorized:    true,
 				Email:         "test@domain",
 				EmailVerified: true,
-				ExpiresAt:     123,
+				RegisteredClaims: RegisteredClaims{
+					Audience:  []string{"testaud"},
+					ExpiresAt: jwt.NewNumericDate(time.Unix(123, 0)),
+				},
 			},
 		},
 		{
