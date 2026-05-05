@@ -41,7 +41,13 @@ namespace skills {
 
 absl::StatusOr<std::unique_ptr<SkillRegistryClient>> CreateSkillRegistryClient(
     absl::string_view grpc_address, absl::Duration timeout) {
-  grpc::ChannelArguments channel_args = connect::DefaultGrpcChannelArgs();
+  // Increase the message size limits.
+  //
+  // Some of the responses we're receiving here may contain the proto
+  // descriptors for multiple skills which can get large. In practice, we've
+  // seen up to ~4MB so far.
+  grpc::ChannelArguments channel_args =
+      connect::UnlimitedMessageSizeGrpcChannelArgs();
 
   // The skill registry may need to call out to one or more skill information
   // services. Those services might not be ready at startup. We configure a
@@ -64,14 +70,6 @@ absl::StatusOr<std::unique_ptr<SkillRegistryClient>> CreateSkillRegistryClient(
           }
         }]
       })");
-
-  // Increase the message size limits.
-  //
-  // Some of the responses we're receiving here may contain the proto
-  // descriptors for multiple skills which can get large. In practice, we've
-  // seen up to ~4MB so far.
-  channel_args.SetMaxReceiveMessageSize(10000000);  // 10 MB
-  channel_args.SetMaxSendMessageSize(10000000);     // 10 MB
 
   INTR_ASSIGN_OR_RETURN(std::shared_ptr<grpc::Channel> channel,
                         connect::CreateClientChannel(
