@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"intrinsic/tools/inctl/util/accounts/accounts"
+	"intrinsic/tools/inctl/util/agents"
 	"intrinsic/tools/inctl/util/orgutil"
 	"intrinsic/tools/inctl/util/printer"
 
@@ -132,6 +133,7 @@ var deleteCmd = &cobra.Command{
 		if err := checkOrgCustomer(); err != nil {
 			return err
 		}
+		agents.CheckAndExit(cmd)
 		ctx := cmd.Context()
 		cl, err := accounts.NewResourceManagerV1Client(ctx, vipr)
 		if err != nil {

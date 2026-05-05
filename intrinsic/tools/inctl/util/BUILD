@@ -108,3 +108,19 @@ go_test(
         "@com_github_spf13_viper//:go_default_library",
     ],
 )
+
+go_library(
+    name = "agents",
+    srcs = ["agents.go"],
+    importpath = "intrinsic/tools/inctl/util/agents",
+    deps = [
+        "@com_github_spf13_cobra//:go_default_library",
+    ],
+)
+
+go_test(
+    name = "agents_test",
+    srcs = ["agents_test.go"],
+    embed = [":agents"],
+    importpath = "intrinsic/tools/inctl/util/agents_test",
+)

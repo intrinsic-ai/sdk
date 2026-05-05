@@ -18,6 +18,7 @@ go_library(
         "//intrinsic/kubernetes/accounts/service/api/accesscontrol/v1:accesscontrol_go_proto",
         "//intrinsic/kubernetes/accounts/service/api/resourcemanager/v1:resourcemanager_go_proto",
         "//intrinsic/tools/inctl/cmd:root",
+        "//intrinsic/tools/inctl/util:agents",
         "//intrinsic/tools/inctl/util:cobrautil",
         "//intrinsic/tools/inctl/util:orgutil",
         "//intrinsic/tools/inctl/util:printer",
