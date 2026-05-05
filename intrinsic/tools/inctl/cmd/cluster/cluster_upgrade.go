@@ -310,6 +310,26 @@ func (c *client) run(ctx context.Context) error {
 
 	_, err := c.grpcClient.SchedulePlatformUpdate(ctx, &req)
 	if err != nil {
+		if st, ok := grpcstatus.FromError(err); ok {
+			switch st.Code() {
+			case codes.FailedPrecondition:
+				return fmt.Errorf("Cannot Upgrade due to current settings: %s", st.Message())
+			case codes.NotFound:
+				if req.UpdateType == clustermanagerpb.SchedulePlatformUpdateRequest_UPDATE_TYPE_FORWARD {
+					return fmt.Errorf("Cluster does not exist, or doesn't have an update pending: %s", st.Message())
+				} else {
+					return fmt.Errorf("Cluster does not exist: %s", st.Message())
+				}
+			case codes.InvalidArgument:
+				return fmt.Errorf("Request was malformed: %s", st.Message())
+			case codes.AlreadyExists:
+				return fmt.Errorf("Cluster solution was deployed manually. Cannot upgrade solutions that are not managed via cluster upgrade: %s", st.Message())
+			case codes.Internal:
+				return fmt.Errorf("Update request could not be handled by the server: %s", st.Message())
+			default:
+				return fmt.Errorf("Upgrade failed (status %v): %s", st.Code(), st.Message())
+			}
+		}
 		return fmt.Errorf("cluster upgrade run: %w", err)
 	}
 	return nil
