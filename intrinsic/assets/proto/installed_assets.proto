@@ -196,6 +196,12 @@ message InstalledAsset {
     }
   }
 
+  // The name of the Installed Asset.  By convention this is the id (e.g.
+  // some.package.name) and setting it manually is not yet supported.  This
+  // field can be used to populate the asset field for AssetInstances and to
+  // reference Assets within a solution.
+  string name = 7 [(google.api.field_behavior) = IDENTIFIER];
+
   Metadata metadata = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   oneof asset_specific_metadata {
