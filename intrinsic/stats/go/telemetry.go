@@ -36,6 +36,8 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+type localSamplerKey struct{}
+
 var (
 	// HTTPPropagator is a composite propagator for HTTP services.
 	// With this we can support multiple trace context formats (both opencensus and opentelemetry).
@@ -288,7 +290,7 @@ func (t *Telemetry) createCloudTracerProvider(project string, serviceName string
 	t.tp = sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(exporter),
 		sdktrace.WithResource(res),
-		sdktrace.WithSampler(sdktrace.ParentBased(sdktrace.TraceIDRatioBased(probability))),
+		sdktrace.WithSampler(LocalBased(sdktrace.ParentBased(sdktrace.TraceIDRatioBased(probability)))),
 	)
 
 	otel.SetTracerProvider(t.tp)
@@ -615,4 +617,41 @@ func ContextSpanAddAttributes(ctx context.Context, attributes ...trace.Attribute
 		return
 	}
 	span.AddAttributes(attributes...)
+}
+
+// LocalBased returns a sampler that delegates to a sampler stored in the context
+// if one is present, falling back to the provided delegate sampler otherwise.
+func LocalBased(delegate sdktrace.Sampler) sdktrace.Sampler {
+	return localSampler{
+		delegate: delegate,
+	}
+}
+
+type localSampler struct {
+	delegate sdktrace.Sampler
+}
+
+func (s localSampler) Description() string {
+	return "local sampler wrapping: " + s.delegate.Description()
+}
+
+func (s localSampler) ShouldSample(p sdktrace.SamplingParameters) sdktrace.SamplingResult {
+	val, ok := p.ParentContext.Value(localSamplerKey{}).(sdktrace.Sampler)
+	if ok {
+		return val.ShouldSample(p)
+	}
+	return s.delegate.ShouldSample(p)
+}
+
+// WithLocalSampler returns a context containing the specified sampler.
+// The LocalBased sampler will use this sampler for sampling decisions.
+//
+// WARNING: Using WithLocalSampler to force a sampling decision (e.g., with AlwaysSample)
+// is highly discouraged for general use because it can break trace continuity (e.g.,
+// if a parent span is not sampled but a child is).
+//
+// For standard production environments, prefer tail-based sampling:
+// https://opentelemetry.io/docs/concepts/sampling/#tail-sampling
+func WithLocalSampler(ctx context.Context, sampler sdktrace.Sampler) context.Context {
+	return context.WithValue(ctx, localSamplerKey{}, sampler)
 }
