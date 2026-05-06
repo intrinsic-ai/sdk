@@ -687,7 +687,16 @@ message Frame {
   // `parent_t_this` pose of the *entity* will not.
   intrinsic_proto.Pose parent_t_this = 5;
 
-  // If set then this frame is designated as an attachment frame.
+  // If true, this frame is designated as an attachment frame.
+  //
+  // Attachment frames differ from regular frames in their behavior during
+  // object parenting. When an object is parented to
+  // an attachment frame, it automatically snaps to the frame's transform,
+  // aligning the object'd origin with the frame's origin and setting its
+  // relative pose (`parent_t_this`) to identity.
+  //
+  // In contrast, parenting to a regular frame typically maintains the object's
+  // current world-space pose by calculating a non-identity relative offset.
   bool is_attachment_frame = 9;
 }
 

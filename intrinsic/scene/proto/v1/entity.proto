@@ -16,6 +16,16 @@ option go_package = "intrinsic/scene/proto/v1/entity_go_proto";
 // drop-off position, a tool frame, etc.). A frame must parent to a `Link` or a
 // `Frame`.
 message Frame {
+  // If true, this frame is designated as an attachment frame.
+  //
+  // Attachment frames differ from regular frames in their behavior during
+  // object parenting. When an object is parented to
+  // an attachment frame, it automatically snaps to the frame's transform,
+  // aligning the object'd origin with the frame's origin and setting its
+  // relative pose (`parent_t_this`) to identity.
+  //
+  // In contrast, parenting to a regular frame typically maintains the object's
+  // current world-space pose by calculating a non-identity relative offset.
   bool is_attachment_frame = 1;
 }
 
