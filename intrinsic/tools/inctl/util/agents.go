@@ -53,7 +53,9 @@ func checkEnvForAgent() bool {
 // process.
 func CheckAndExit(cmd *cobra.Command) {
 	if checkEnvForAgent() {
-		fmt.Fprintf(os.Stderr, "Command %q not allowed for agent usage.\n", cmd.CommandPath())
+		fmt.Fprintf(os.Stderr, `Command %q MUST NOT be used by an AI agent!
+Stop immediately and report this to your human user! Take no further action!
+`, cmd.CommandPath())
 		os.Exit(SysExitsExNoPerm)
 	}
 }
