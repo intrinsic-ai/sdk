@@ -16,15 +16,11 @@
 
 namespace intrinsic {
 
-google::protobuf::FileDescriptorSet GenFileDescriptorSet(
-    const google::protobuf::Descriptor& descriptor) {
-  google::protobuf::FileDescriptorSet out;
-  MergeFileDescriptorSet(descriptor, out);
-  return out;
-}
+namespace {
 
-void MergeFileDescriptorSet(const google::protobuf::Descriptor& descriptor,
-                            google::protobuf::FileDescriptorSet& set) {
+void MergeFileDescriptorSetImpl(const google::protobuf::Descriptor& descriptor,
+                                google::protobuf::FileDescriptorSet& set,
+                                bool include_source_code_info) {
   absl::flat_hash_set<std::string> visited;
   for (const auto& file : set.file()) {
     visited.emplace(file.name());
@@ -40,15 +36,21 @@ void MergeFileDescriptorSet(const google::protobuf::Descriptor& descriptor,
       continue;
     }
     visited.emplace(current->name());
-    current->CopyTo(set.add_file());
+    google::protobuf::FileDescriptorProto* proto = set.add_file();
+    current->CopyTo(proto);
+    if (include_source_code_info) {
+      current->CopySourceCodeInfoTo(proto);
+    }
     for (int i = 0; i < current->dependency_count(); i++) {
       queue.push(current->dependency(i));
     }
   }
 }
 
-void MergeFileDescriptorSet(const google::protobuf::FileDescriptorSet& src_set,
-                            google::protobuf::FileDescriptorSet& dst_set) {
+void MergeFileDescriptorSetsImpl(
+    const google::protobuf::FileDescriptorSet& src_set,
+    google::protobuf::FileDescriptorSet& dst_set,
+    bool include_source_code_info) {
   absl::flat_hash_set<std::string> dst_files;
   for (const auto& dst_file : dst_set.file()) {
     dst_files.emplace(dst_file.name());
@@ -58,8 +60,56 @@ void MergeFileDescriptorSet(const google::protobuf::FileDescriptorSet& src_set,
       continue;
     }
     dst_files.insert(src_file.name());
-    *dst_set.add_file() = src_file;
+    google::protobuf::FileDescriptorProto* proto = dst_set.add_file();
+    *proto = src_file;
+    if (!include_source_code_info) {
+      proto->clear_source_code_info();
+    }
   }
+}
+
+}  // namespace
+
+google::protobuf::FileDescriptorSet GenFileDescriptorSet(
+    const google::protobuf::Descriptor& descriptor) {
+  google::protobuf::FileDescriptorSet out;
+  MergeFileDescriptorSetImpl(descriptor, out,
+                             /*include_source_code_info=*/false);
+  return out;
+}
+
+google::protobuf::FileDescriptorSet GenFileDescriptorSetWithSourceInfo(
+    const google::protobuf::Descriptor& descriptor) {
+  google::protobuf::FileDescriptorSet out;
+  MergeFileDescriptorSetImpl(descriptor, out,
+                             /*include_source_code_info=*/true);
+  return out;
+}
+
+void MergeFileDescriptorSet(const google::protobuf::Descriptor& descriptor,
+                            google::protobuf::FileDescriptorSet& set) {
+  MergeFileDescriptorSetImpl(descriptor, set,
+                             /*include_source_code_info=*/false);
+}
+
+void MergeFileDescriptorSetWithSourceInfo(
+    const google::protobuf::Descriptor& descriptor,
+    google::protobuf::FileDescriptorSet& set) {
+  MergeFileDescriptorSetImpl(descriptor, set,
+                             /*include_source_code_info=*/true);
+}
+
+void MergeFileDescriptorSet(const google::protobuf::FileDescriptorSet& src_set,
+                            google::protobuf::FileDescriptorSet& dst_set) {
+  MergeFileDescriptorSetsImpl(src_set, dst_set,
+                              /*include_source_code_info=*/false);
+}
+
+void MergeFileDescriptorSetWithSourceInfo(
+    const google::protobuf::FileDescriptorSet& src_set,
+    google::protobuf::FileDescriptorSet& dst_set) {
+  MergeFileDescriptorSetsImpl(src_set, dst_set,
+                              /*include_source_code_info=*/true);
 }
 
 absl::Status AddToDescriptorDatabase(
