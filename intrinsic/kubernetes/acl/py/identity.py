@@ -100,6 +100,37 @@ def GetJWTFromContext(context: grpc.ServicerContext) -> Optional[str]:
   return None
 
 
+def UserFromMetadata(metadata: list[tuple[str, str]]) -> str:
+  """Extracts user identity from gRPC metadata."""
+  metadata_dict = dict(metadata)
+  token = None
+
+  # 1. Check cookies (auth-proxy or portal-token)
+  if COOKIE_KEY in metadata_dict:
+    cks = http.cookies.SimpleCookie()
+    cks.load(str(metadata_dict[COOKIE_KEY]))
+    for key in (AUTH_PROXY_COOKIE_NAME, PORTAL_TOKEN_COOKIE_NAME):
+      if key in cks:
+        token = cks[key].value
+        break
+
+  # 2. Check apikey-token header
+  if not token and APIKEY_TOKEN_HEADER_NAME in metadata_dict:
+    token = metadata_dict[APIKEY_TOKEN_HEADER_NAME]
+
+  # 3. Check authorization header
+  if not token and AUTH_HEADER_NAME in metadata_dict:
+    val = metadata_dict[AUTH_HEADER_NAME]
+    if val.lower().startswith('bearer '):
+      token = val[7:]
+    else:
+      token = val
+
+  if token:
+    return CanonicalizeEmail(jwt.Email(token))
+  raise KeyError('no jwt found in metadata')
+
+
 def UserFromContext(context: grpc.ServicerContext) -> User:
   """Get user identity from grpc context.
 
