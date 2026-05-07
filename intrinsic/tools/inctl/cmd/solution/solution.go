@@ -5,6 +5,7 @@ package solution
 
 import (
 	"intrinsic/tools/inctl/cmd/root"
+	"intrinsic/tools/inctl/cmd/solution/create/create"
 	"intrinsic/tools/inctl/cmd/solution/delete/delete"
 	"intrinsic/tools/inctl/cmd/solution/get/get"
 	"intrinsic/tools/inctl/cmd/solution/list/list"
@@ -28,6 +29,7 @@ func init() {
 
 	SolutionCmd.AddCommand(get.NewCommand())
 	SolutionCmd.AddCommand(list.NewCommand())
+	SolutionCmd.AddCommand(create.NewCommand())
 	SolutionCmd.AddCommand(start.NewCommand())
 	SolutionCmd.AddCommand(stop.NewCommand())
 	SolutionCmd.AddCommand(delete.NewCommand())
