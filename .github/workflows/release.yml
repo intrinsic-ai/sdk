@@ -132,12 +132,6 @@ jobs:
           mkdir sdk_build
           tar --extract --directory sdk_build --file sdk.tar.gz
 
-      - name: Install Dependencies (Jsonnet, jq)
-        shell: bash
-        run: |
-          echo "Installing dependencies: jsonnet, jq..."
-          sudo apt-get update -y && sudo apt-get install -y jsonnet jq
-
       - name: Set up Cloud SDK (gcloud/gsutil)
         uses: google-github-actions/setup-gcloud@77e7a554d41e2ee56fc945c52dfd3f33d12def9a  # v2.1.4
 
@@ -145,7 +139,7 @@ jobs:
         id: get_sbom # Give ID to access outputs easily later if needed internally
         shell: bash
         run: |
-          VERSIONS_FILE="sdk_build/intrinsic/production/versions/versions.jsonnet"
+          VERSIONS_FILE="sdk_build/intrinsic/production/versions/versions.bzl"
           GCS_BASE="gs://intrinsic-os-releases-us/realtime"
           GCS_FILENAME="sbom.spdx.json"
           LOCAL_PREFIX="sbom.intrinsic-os"
@@ -156,7 +150,7 @@ jobs:
             echo "Error: Versions file not found at ${VERSIONS_FILE}"
             exit 1;
           fi
-          STABLE_VERSION=$(jsonnet "${VERSIONS_FILE}" | jq -r .stable)
+          STABLE_VERSION=$(sed -En 's/STABLE_OS_VERSION = "(.+)"$/\1/p' ${VERSIONS_FILE})
           if [[ -z "$STABLE_VERSION" || "$STABLE_VERSION" == "null" ]]; then
             echo "Error: Could not extract 'stable' version from ${VERSIONS_FILE}"
             exit 1;
