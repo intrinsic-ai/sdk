@@ -3,6 +3,7 @@
 """Helpers for viewing and manipulating proto descriptors."""
 
 from collections.abc import Iterable
+import textwrap
 
 from google.protobuf import descriptor
 from google.protobuf import descriptor_pb2
@@ -101,3 +102,204 @@ def create_descriptor_pool(
   pool = descriptor_pool.DescriptorPool()
   _append_file_descriptor_set_to_pool(pool, file_set)
   return pool
+
+
+def _add_location_with_path(
+    path: list[int],
+    full_name: str,
+    source_code_info: descriptor_pb2.SourceCodeInfo,
+    locations: dict[str, descriptor_pb2.SourceCodeInfo.Location],
+):
+  for location in source_code_info.location:
+    if path == location.path and (
+        location.leading_detached_comments
+        or location.leading_comments
+        or location.trailing_comments
+    ):
+      locations[full_name] = location
+
+
+def _extract_locations_from_message_type(
+    message_type: descriptor_pb2.DescriptorProto,
+    message_full_name: str,
+    path: list[int],
+    source_code_info: descriptor_pb2.SourceCodeInfo,
+    locations: dict[str, descriptor_pb2.SourceCodeInfo.Location],
+):
+  _add_location_with_path(path, message_full_name, source_code_info, locations)
+
+  for i, nested_message_type in enumerate(message_type.nested_type):
+    nested_path = path + [
+        descriptor_pb2.DescriptorProto.NESTED_TYPE_FIELD_NUMBER,
+        i,
+    ]
+    _extract_locations_from_message_type(
+        nested_message_type,
+        f'{message_full_name}.{nested_message_type.name}',
+        nested_path,
+        source_code_info,
+        locations,
+    )
+
+  for i, enum_type in enumerate(message_type.enum_type):
+    enum_path = path + [
+        descriptor_pb2.DescriptorProto.ENUM_TYPE_FIELD_NUMBER,
+        i,
+    ]
+    _extract_locations_from_enum_type(
+        enum_type,
+        f'{message_full_name}.{enum_type.name}',
+        enum_path,
+        source_code_info,
+        locations,
+    )
+
+  for i, field in enumerate(message_type.field):
+    field_path = path + [descriptor_pb2.DescriptorProto.FIELD_FIELD_NUMBER, i]
+    _add_location_with_path(
+        field_path,
+        f'{message_full_name}.{field.name}',
+        source_code_info,
+        locations,
+    )
+
+
+def _extract_locations_from_enum_type(
+    enum_type: descriptor_pb2.EnumDescriptorProto,
+    enum_full_name: str,
+    path: list[int],
+    source_code_info: descriptor_pb2.SourceCodeInfo,
+    locations: dict[str, descriptor_pb2.SourceCodeInfo.Location],
+):
+  _add_location_with_path(path, enum_full_name, source_code_info, locations)
+
+  for i, value in enumerate(enum_type.value):
+    value_path = path + [
+        descriptor_pb2.EnumDescriptorProto.VALUE_FIELD_NUMBER,
+        i,
+    ]
+    value_full_name = f'{enum_full_name}.{value.name}'
+    _add_location_with_path(
+        value_path, value_full_name, source_code_info, locations
+    )
+
+
+def _extract_locations_from_file(
+    file: descriptor_pb2.FileDescriptorProto,
+    locations: dict[str, descriptor_pb2.SourceCodeInfo.Location],
+):
+  for i, message_type in enumerate(file.message_type):
+    path = [descriptor_pb2.FileDescriptorProto.MESSAGE_TYPE_FIELD_NUMBER, i]
+    message_full_name = f'{file.package}.{message_type.name}'
+    _extract_locations_from_message_type(
+        message_type, message_full_name, path, file.source_code_info, locations
+    )
+
+  for i, enum_type in enumerate(file.enum_type):
+    path = [descriptor_pb2.FileDescriptorProto.ENUM_TYPE_FIELD_NUMBER, i]
+    enum_full_name = f'{file.package}.{enum_type.name}'
+    _extract_locations_from_enum_type(
+        enum_type, enum_full_name, path, file.source_code_info, locations
+    )
+
+  return None
+
+
+def extract_comment_locations_from_file_descriptor_set(
+    fds: descriptor_pb2.FileDescriptorSet,
+) -> dict[str, descriptor_pb2.SourceCodeInfo.Location]:
+  """Extracts comment locations from a file descriptor set.
+
+  Extracts from the given file descriptor set a mapping from full names to
+  corresponding SourceCodeInfo.Location objects. Entries are only generated for
+  source code elements which have associated comments and only for the following
+  types of source code elements:
+    - messages    (example key: "intrinsic_proto.Pose")
+    - fields      (example key: "intrinsic_proto.Pose.x")
+    - enums       (example key: "intrinsic_proto.UpdateMode")
+    - enum values (example key: "intrinsic_proto.UpdateMode.OVERWRITE")
+
+  For example, assume the input is a file descriptor set created from the
+  following, single proto file:
+
+  ```
+  syntax = "proto3";
+  package intrinsic_proto;
+
+  // Number detached comment
+
+  // Number leading comment
+  message Number { // Number trailing comment
+  }
+  ```
+
+  Then the result would be:
+
+  {
+    "intrinsic_proto.Number": descriptor_pb2.SourceCodeInfo.Location(
+      leading_detached_comments=[' Number detached comment\n'],
+      leading_comments=' Number leading comment\n',
+      trailing_comments=' Number trailing comment\n',
+      path: ...,
+      span: ...,
+    )
+  }
+  """
+  locations: dict[str, descriptor_pb2.SourceCodeInfo.Location] = {}
+
+  for file in fds.file:
+    _extract_locations_from_file(file, locations)
+
+  return locations
+
+
+def extract_attached_comments_from_file_descriptor_set(
+    fds: descriptor_pb2.FileDescriptorSet,
+) -> dict[str, str]:
+  """Extracts attached comments from a file descriptor set.
+
+  This is a convenience variant of
+  extract_comment_locations_from_file_descriptor_set() above.
+
+  Extracts from the given file descriptor set a mapping from full names to a
+  concatenation of all leading and trailing comments (a multi-line string).
+  Entries are only generated for source code elements which have associated
+  comments and only for the following types of source code elements:
+    - messages    (example key: "intrinsic_proto.Pose")
+    - fields      (example key: "intrinsic_proto.Pose.x")
+    - enums       (example key: "intrinsic_proto.UpdateMode")
+    - enum values (example key: "intrinsic_proto.UpdateMode.OVERWRITE")
+
+  For example, assume the input is a file descriptor set created from the
+  following, single proto file:
+
+  ```
+  syntax = "proto3";
+  package intrinsic_proto;
+
+  // Number leading comment
+  message Number { // Number trailing comment
+  }
+  ```
+
+  Then the result would be:
+
+  {
+    "intrinsic_proto.Number":
+      "Number leading comment\nNumber trailing comment\n"
+  }
+
+  """
+
+  locations = extract_comment_locations_from_file_descriptor_set(fds)
+
+  comments: dict[str, str] = {}
+  for full_name, location in locations.items():
+    comment = ''
+    if location.leading_comments:
+      comment += textwrap.dedent(location.leading_comments)
+    if location.trailing_comments:
+      comment += textwrap.dedent(location.trailing_comments)
+    comments[full_name] = comment
+
+  return comments
