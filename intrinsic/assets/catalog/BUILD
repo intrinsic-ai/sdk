@@ -19,3 +19,24 @@ go_library(
         "@org_golang_google_grpc//status:go_default_library",
     ],
 )
+
+go_library(
+    name = "releaseasset",
+    srcs = ["releaseasset.go"],
+    importpath = "intrinsic/assets/catalog/releaseasset",
+    visibility = [
+        "//intrinsic:intrinsic_internal",
+    ],
+    deps = [
+        "//intrinsic/assets:bundle",
+        "//intrinsic/assets:idutils",
+        "//intrinsic/assets:imagetransfer",
+        "//intrinsic/assets/catalog/proto/v1:asset_catalog_go_proto",
+        "//intrinsic/assets/catalog/proto/v1:release_metadata_go_proto",
+        "//intrinsic/assets/data:databundle",
+        "//intrinsic/assets/services:bundleimages",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//codes:go_default_library",
+        "@org_golang_google_grpc//status:go_default_library",
+    ],
+)

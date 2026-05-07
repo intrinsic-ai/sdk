@@ -4,33 +4,18 @@
 package release
 
 import (
-	"context"
 	"fmt"
-	"io"
 
-	"intrinsic/assets/bundle"
+	"intrinsic/assets/catalog/releaseasset"
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
-	"intrinsic/assets/data/databundle"
-	"intrinsic/assets/idutils"
 	"intrinsic/assets/imagetransfer"
 	"intrinsic/assets/imageutils"
-	"intrinsic/assets/services/bundleimages"
 	"intrinsic/skills/tools/skill/cmd/directupload/directupload"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/printer"
 
 	"github.com/spf13/cobra"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
-	acgrpcpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_proto"
-	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_proto"
-	rmpb "intrinsic/assets/catalog/proto/v1/release_metadata_go_proto"
-)
-
-const (
 )
 
 // GetCommand returns command to release an asset.
@@ -57,31 +42,28 @@ func GetCommand() *cobra.Command {
 			}
 			defer conn.Close()
 
-			client := acgrpcpb.NewAssetCatalogClient(conn)
-
-			req, err := makeCreateAssetRequest(ctx, makeCreateAssetRequestOptions{
-				acClient:       client,
-				conn:           conn,
-				flags:          flags,
-				progressWriter: cmd.OutOrStdout(),
-				target:         args[0],
-			})
-			if err != nil {
-				return err
+			var transferer imagetransfer.Transferer
+			if true {
+				transferer = directupload.NewTransferer(
+					directupload.WithDiscovery(directupload.NewCatalogTarget(conn)),
+					directupload.WithOutput(cmd.OutOrStdout()),
+					directupload.WithFailOver(transferer),
+					directupload.WithCatalogOptions(flags.GetFlagImageUploadParallelism()), // this allows uploading images with max size of the single layer of 2GiB.
+				)
 			}
 
-			idVersion, err := idutils.IDVersionFromProto(req.GetAsset().GetMetadata().GetIdVersion())
-			if err != nil {
-				return err
-			}
-			printer.PrintSf("Releasing %q to the asset catalog", idVersion)
-
-			if flags.GetFlagDryRun() {
-				printer.PrintS("Skipping release: dry-run")
-				return nil
-			}
-
-			return release(ctx, client, req, flags.GetFlagIgnoreExisting(), printer)
+			return releaseasset.FromBundle(ctx, args[0],
+				releaseasset.WithConnection(conn),
+				releaseasset.WithDryRun(flags.GetFlagDryRun()),
+				releaseasset.WithFlagDefault(flags.GetFlagDefault()),
+				releaseasset.WithFlagOrgPrivate(flags.GetFlagOrgPrivate()),
+				releaseasset.WithIgnoreExisting(flags.GetFlagIgnoreExisting()),
+				releaseasset.WithImageTransferer(transferer),
+				releaseasset.WithPrinter(printer.PrintSf),
+				releaseasset.WithRegistry(imageutils.GetRegistry(clientutils.ResolveCatalogProjectFromInctl(flags))),
+				releaseasset.WithReleaseNotes(flags.GetFlagReleaseNotes()),
+				releaseasset.WithVersion(flags.GetFlagVersion()),
+			)
 		},
 	}
 	flags.SetCommand(cmd)
@@ -95,72 +77,4 @@ func GetCommand() *cobra.Command {
 	flags.AddFlagVersion("asset")
 
 	return cmd
-}
-
-func release(ctx context.Context, client acgrpcpb.AssetCatalogClient, req *acpb.CreateAssetRequest, ignoreExisting bool, printer printer.Printer) error {
-	if _, err := client.CreateAsset(ctx, req); err != nil {
-		if s, ok := status.FromError(err); ok && ignoreExisting && s.Code() == codes.AlreadyExists {
-			printer.PrintS("Skipping release: asset already exists in the catalog")
-			return nil
-		}
-		return fmt.Errorf("could not release the asset: %w", err)
-	}
-	printer.PrintS("Finished releasing the asset")
-	return nil
-}
-
-type makeCreateAssetRequestOptions struct {
-	acClient       acgrpcpb.AssetCatalogClient
-	conn           *grpc.ClientConn
-	flags          *cmdutils.CmdFlags
-	progressWriter io.Writer
-	target         string
-}
-
-func makeCreateAssetRequest(ctx context.Context, opts makeCreateAssetRequestOptions) (*acpb.CreateAssetRequest, error) {
-	var transferer imagetransfer.Transferer
-	if true {
-		transferer = directupload.NewTransferer(
-			directupload.WithDiscovery(directupload.NewCatalogTarget(opts.conn)),
-			directupload.WithOutput(opts.progressWriter),
-			directupload.WithFailOver(transferer),
-			directupload.WithCatalogOptions(opts.flags.GetFlagImageUploadParallelism()), // this allows uploading images with max size of the single layer of 2GiB.
-		)
-	}
-	referencedDataProcessor := databundle.NoOpReferencedData()
-	if !opts.flags.GetFlagDryRun() {
-		referencedDataProcessor = databundle.ToCatalogReferencedData(ctx, databundle.WithACClient(opts.acClient))
-	}
-	processor := bundle.Processor{
-		ImageProcessor: bundleimages.CreateImageProcessor(bundleimages.RegistryOptions{
-			Transferer: transferer,
-			URI:        imageutils.GetRegistry(clientutils.ResolveCatalogProjectFromInctl(opts.flags)),
-		}),
-		ProcessReferencedData:   referencedDataProcessor,
-	}
-
-	processedBundle, err := processor.Process(ctx, opts.target)
-	if err != nil {
-		return nil, fmt.Errorf("unable to process: %w", err)
-	}
-
-	asset := processedBundle.Release(bundle.VersionDetails{
-		Version:      opts.flags.GetFlagVersion(),
-		ReleaseNotes: opts.flags.GetFlagReleaseNotes(),
-		ReleaseMetadata: &rmpb.ReleaseMetadata{
-			Default:    opts.flags.GetFlagDefault(),
-			OrgPrivate: opts.flags.GetFlagOrgPrivate(),
-		},
-	})
-
-	// This is a very asset-specific piece of validation, but it didn't seem to
-	// make sense to bury it in Release, and force every other implementation
-	// to add an error case.
-	if len(asset.GetDeploymentData().GetHardwareDeviceSpecificDeploymentData().GetManifest().GetMetadata().GetAssetTags()) > 1 {
-		return nil, fmt.Errorf("HardwareDevice %q specifies more than one asset tag, but at most one is allowed", idutils.IDFromProtoUnchecked(asset.GetMetadata().GetIdVersion().GetId()))
-	}
-
-	return &acpb.CreateAssetRequest{
-		Asset: asset,
-	}, nil
 }
