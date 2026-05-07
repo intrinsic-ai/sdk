@@ -230,6 +230,8 @@ jobs:
       - name: Build inctl and inbuild
         working-directory: sdk_build
         run: |
+          # https://github.com/bazel-contrib/rules_kotlin/issues/1352
+          unset -v ANDROID_HOME ANDROID_SDK_HOME
           bazel build \
             //intrinsic/tools/inctl:inctl_external \
             //intrinsic/tools/inbuild:inbuild \
