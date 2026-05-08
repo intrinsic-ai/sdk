@@ -36,6 +36,7 @@ import warnings
 
 from cel.expr import syntax_pb2
 from google.protobuf import any_pb2
+from google.protobuf import descriptor_pb2
 from google.protobuf import message as protobuf_message
 import graphviz
 
@@ -4664,18 +4665,30 @@ class BehaviorTree:
     parameterizable behavior tree.
     """
     if self._description is None:
-      raise solutions_errors.InvalidArgumentError(
-          'description is not set. This is not a Parameterizable Behavior Tree.'
-          ' params are only available for PBTs.'
+      raise TypeError(
+          "description is not set. 'params' is only available for callable"
+          ' processes.'
       )
-    # The type area passed here is irrelevant and has no effect.
-    info = skill_generation.SkillInfoImpl(self._description, type_url_area='')
+    if not self._description.HasField('parameter_description'):
+      raise TypeError(
+          "parameter_description is not set. 'params' is only available for"
+          ' processes with parameters.'
+      )
 
-    msg = info.create_param_message()
+    pool, message_classes = (
+        skill_utils.generate_proto_infra_from_filedescriptorset(
+            self._description.parameter_description.parameter_descriptor_fileset
+        )
+    )
+    full_name = (
+        self._description.parameter_description.parameter_message_full_name
+    )
+    descriptor = pool.FindMessageTypeByName(full_name)
+
     return blackboard_value.BlackboardValue(
-        msg.DESCRIPTOR.fields_by_name,
+        descriptor.fields_by_name,
         'params',
-        info.get_param_message_type(),
+        message_classes[full_name],
         None,
     )
 
