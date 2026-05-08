@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
 
 	"intrinsic/testing/grpctest"
@@ -469,5 +470,68 @@ func TestGrpcServiceCall(t *testing.T) {
 		protocmp.IgnoreFields(&estpb.ExtendedStatus{}, "timestamp"),
 	); diff != "" {
 		t.Errorf("FromGRPCError(%v) returned unexpected diff (-want +got):\n%s", err, diff)
+	}
+}
+
+func TestExtendedStatusFormat(t *testing.T) {
+	es := New("ai.intrinsic.test", 1234,
+		WithTitle("Outer Error"),
+		WithUserMessage("User issue outer"),
+		WithDebugMessage("Debug trace outer"),
+		WithContext(New("ai.intrinsic.nested", 5678,
+			WithTitle("Inner Error"),
+			WithUserMessage("User issue inner"),
+		)),
+	)
+
+	// Test default %v verb, should include rich output
+	got := fmt.Sprintf("%v", es)
+
+	keywords := []string{
+		"StatusCode: ai.intrinsic.test:1234",
+		"Title: Outer Error",
+		"User Report:",
+		"User issue outer",
+		"Debug Report:",
+		"Debug trace outer",
+		"Context:",
+		"Context[0]:",
+		"StatusCode: ai.intrinsic.nested:5678",
+		"Title: Inner Error",
+		"User issue inner",
+	}
+
+	for _, kw := range keywords {
+		if !strings.Contains(got, kw) {
+			t.Errorf("Format(%%v) output missing keyword %q.\nGot:\n%s", kw, got)
+		}
+	}
+}
+
+func TestExtendedStatusString(t *testing.T) {
+	es := New("ai.intrinsic.test", 1234, WithTitle("My Error"))
+	got := es.String()
+	if !strings.Contains(got, "StatusCode: ai.intrinsic.test:1234") {
+		t.Errorf("String() output missing status code. Got:\n%s", got)
+	}
+}
+
+func TestExtendedStatusFormatNil(t *testing.T) {
+	var es *ExtendedStatus = nil
+
+	tests := []struct {
+		verb string
+		want string
+	}{
+		{"%v", "<nil>"},
+		{"%s", "<nil>"},
+		{"%q", "\"<nil>\""},
+	}
+
+	for _, tc := range tests {
+		got := fmt.Sprintf(tc.verb, es)
+		if got != tc.want {
+			t.Errorf("fmt.Sprintf(%q, nil) = %q; want %q", tc.verb, got, tc.want)
+		}
 	}
 }

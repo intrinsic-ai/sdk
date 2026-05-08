@@ -7,6 +7,8 @@ package extstatus
 
 import (
 	"fmt"
+	"io"
+	"strings"
 	"time"
 
 	"intrinsic/util/grpc/grpclimits"
@@ -308,6 +310,85 @@ func (e *ExtendedStatus) Proto() *espb.ExtendedStatus {
 // Err converts to an error.
 func (e *ExtendedStatus) Err() error {
 	return &Error{es: e}
+}
+
+// String implements [fmt.Stringer].
+func (e *ExtendedStatus) String() string {
+	if e == nil || e.s == nil {
+		return "<nil>"
+	}
+	return formatExtendedStatus(e.s, 0)
+}
+
+// Format implements [fmt.Formatter].
+func (e *ExtendedStatus) Format(s fmt.State, verb rune) {
+	res := e.String()
+	switch verb {
+	case 'v', 's':
+		io.WriteString(s, res)
+	case 'q':
+		fmt.Fprintf(s, "%q", res)
+	}
+}
+
+func indentLines(s string, indent string) string {
+	if s == "" {
+		return ""
+	}
+	lines := strings.Split(s, "\n")
+	for i, l := range lines {
+		lines[i] = indent + l
+	}
+	return strings.Join(lines, "\n")
+}
+
+func formatExtendedStatus(p *espb.ExtendedStatus, level int) string {
+	if p == nil {
+		return ""
+	}
+	var sb strings.Builder
+	indent := strings.Repeat("  ", level)
+
+	sc := p.GetStatusCode()
+	if sc != nil {
+		sb.WriteString(fmt.Sprintf("%sStatusCode: %s:%d\n", indent, sc.GetComponent(), sc.GetCode()))
+	}
+
+	if title := p.GetTitle(); title != "" {
+		sb.WriteString(fmt.Sprintf("%sTitle: %s\n", indent, title))
+	}
+
+	if ts := p.GetTimestamp(); ts != nil {
+		t := ts.AsTime()
+		if !t.IsZero() {
+			sb.WriteString(fmt.Sprintf("%sTimestamp: %s\n", indent, t.Format(time.RFC3339)))
+		}
+	}
+
+	if ur := p.GetUserReport(); ur != nil {
+		if msg := ur.GetMessage(); msg != "" {
+			sb.WriteString(fmt.Sprintf("%sUser Report:\n%s\n", indent, indentLines(msg, indent+"  ")))
+		}
+		if inst := ur.GetInstructions(); inst != "" {
+			sb.WriteString(fmt.Sprintf("%sInstructions:\n%s\n", indent, indentLines(inst, indent+"  ")))
+		}
+	}
+
+	if dr := p.GetDebugReport(); dr != nil {
+		if msg := dr.GetMessage(); msg != "" {
+			sb.WriteString(fmt.Sprintf("%sDebug Report:\n%s\n", indent, indentLines(msg, indent+"  ")))
+		}
+	}
+
+	if ctxs := p.GetContext(); len(ctxs) > 0 {
+		sb.WriteString(fmt.Sprintf("%sContext:\n", indent))
+		for i, c := range ctxs {
+			sb.WriteString(fmt.Sprintf("%s  Context[%d]:\n", indent, i))
+			sb.WriteString(formatExtendedStatus(c, level+2))
+		}
+	}
+
+	return sb.String()
 }
 
 // Error wraps an ExtendedStatus. It implements error and gRPC's Status.
