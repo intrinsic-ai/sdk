@@ -35,9 +35,9 @@ cc_library(
     name = "streaming_io_types",
     hdrs = ["streaming_io_types.h"],
     deps = [
-        "//intrinsic/production/external/intops:strong_int",
         "@abseil-cpp//absl/status:statusor",
         "@com_google_protobuf//:protobuf",
+        "@or_tools//ortools/base:strong_int",
     ],
 )
 
@@ -46,7 +46,7 @@ cc_library(
     hdrs = ["slot_types.h"],
     deps = [
         "//intrinsic/icon/proto/v1:types_cc_proto",
-        "//intrinsic/production/external/intops:strong_int",
+        "@or_tools//ortools/base:strong_int",
     ],
 )
 
@@ -67,7 +67,7 @@ cc_library(
 cc_library(
     name = "realtime_signal_types",
     hdrs = ["realtime_signal_types.h"],
-    deps = ["//intrinsic/production/external/intops:strong_int"],
+    deps = ["@or_tools//ortools/base:strong_int"],
 )
 
 cc_library(

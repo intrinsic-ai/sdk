@@ -28,8 +28,8 @@
 #include <type_traits>
 #include <utility>
 
-#include "intrinsic/production/external/intops/strong_int.h"
 #include "intrinsic/util/aggregate_type.h"
+#include "ortools/base/strong_int.h"
 
 namespace intrinsic {
 

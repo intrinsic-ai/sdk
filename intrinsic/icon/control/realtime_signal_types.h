@@ -5,7 +5,7 @@
 
 #include <cstdint>
 
-#include "intrinsic/production/external/intops/strong_int.h"
+#include "ortools/base/strong_int.h"
 
 namespace intrinsic::icon {
 

@@ -4,8 +4,6 @@
 
 #include <algorithm>
 
-#include "intrinsic/production/external/intops/strong_int.h"
-
 namespace intrinsic {
 
 const AttachmentEntityId kRootEntityId = AttachmentEntityId(1);

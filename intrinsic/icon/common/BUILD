@@ -16,7 +16,7 @@ cc_library(
 cc_library(
     name = "id_types",
     hdrs = ["id_types.h"],
-    deps = ["//intrinsic/production/external/intops:strong_int"],
+    deps = ["@or_tools//ortools/base:strong_int"],
 )
 
 cc_library(
@@ -36,12 +36,12 @@ cc_library(
     hdrs = ["part_properties.h"],
     deps = [
         "//intrinsic/icon/proto/v1:service_cc_proto",
-        "//intrinsic/production/external/intops:strong_int",
         "@abseil-cpp//absl/container:flat_hash_map",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
         "@abseil-cpp//absl/strings",
         "@abseil-cpp//absl/time",
+        "@or_tools//ortools/base:strong_int",
     ],
 )
 
