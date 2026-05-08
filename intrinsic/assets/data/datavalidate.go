@@ -158,7 +158,7 @@ func DataAsset(da *dapb.DataAsset, options ...DataAssetOption) error {
 }
 
 type referencedDataOptions struct {
-	disallowFileReferences bool
+	disallowFileReferences     bool
 }
 
 // ReferencedDataOption is an option for validating a ReferencedData.
