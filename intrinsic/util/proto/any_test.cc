@@ -5,9 +5,12 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <string>
+
 #include "absl/status/status.h"
 #include "google/protobuf/any.pb.h"
 #include "google/protobuf/wrappers.pb.h"
+#include "intrinsic/util/proto/parse_text_proto.h"
 #include "intrinsic/util/proto/testing/param_message.pb.h"
 #include "intrinsic/util/testing/gtest_wrapper.h"
 
@@ -49,27 +52,82 @@ TEST(UnpackAny, UnpackAnyToParamWorks) {
   EXPECT_THAT(recovered, EqualsProto(float_value));
 }
 
-TEST(UnpackAnyAndMerge, AppliesDefaults) {
-  intrinsic_proto::test::ParamMessageDefaultsTestMessage msg;
-  google::protobuf::Any msg_any;
-  msg.set_my_string("foo");
-  msg_any.PackFrom(msg);
+struct UnpackAnyAndMergeTestCase {
+  std::string name;
+  std::string defaults;
+  std::string params;
+  std::string expected;
+};
 
-  intrinsic_proto::test::ParamMessageDefaultsTestMessage defaults;
+using UnpackAnyAndMergeTest =
+    ::testing::TestWithParam<UnpackAnyAndMergeTestCase>;
+
+TEST_P(UnpackAnyAndMergeTest, MergeBehavior) {
+  const auto& test_case = GetParam();
+  auto defaults_msg =
+      ParseTextOrDie<intrinsic_proto::test::ParamMessageDefaultsTestMessage>(
+          test_case.defaults);
+  auto params_msg =
+      ParseTextOrDie<intrinsic_proto::test::ParamMessageDefaultsTestMessage>(
+          test_case.params);
+  auto expected_msg =
+      ParseTextOrDie<intrinsic_proto::test::ParamMessageDefaultsTestMessage>(
+          test_case.expected);
+
   google::protobuf::Any defaults_any;
-  defaults.set_my_string("bar");
-  defaults.set_maybe_int32(7);
-  defaults_any.PackFrom(defaults);
-
-  intrinsic_proto::test::ParamMessageDefaultsTestMessage expected;
-  expected.set_my_string("foo");
-  expected.set_maybe_int32(7);
+  defaults_any.PackFrom(defaults_msg);
+  google::protobuf::Any params_any;
+  params_any.PackFrom(params_msg);
 
   EXPECT_THAT(
       UnpackAnyAndMerge<intrinsic_proto::test::ParamMessageDefaultsTestMessage>(
-          msg_any, defaults_any),
-      IsOkAndHolds(EqualsProto(expected)));
+          params_any, defaults_any),
+      IsOkAndHolds(EqualsProto(expected_msg)));
 }
+
+INSTANTIATE_TEST_SUITE_P(
+    UnpackAnyAndMergeTests, UnpackAnyAndMergeTest,
+    ::testing::ValuesIn<UnpackAnyAndMergeTestCase>({
+        {.name = "AppliesDefaults",
+         .defaults = "my_string: 'bar' maybe_int32: 7",
+         .params = "my_string: 'foo'",
+         .expected = "my_string: 'foo' maybe_int32: 7"},
+        {.name = "UnsetOptionalOverwrittenByDefault",
+         .defaults = "my_string: 'default_value'",
+         .params = "",
+         .expected = "my_string: 'default_value'"},
+        {.name = "SetOptionalNotOverwrittenByDefault",
+         .defaults = "my_string: 'default_value'",
+         .params = "my_string: ''",
+         .expected = "my_string: ''"},
+        {.name = "NonOptionalSetToDefaultOverwrittenByDefault",
+         .defaults = "my_non_optional_int: 42",
+         .params = "my_non_optional_int: 0",
+         .expected = "my_non_optional_int: 42"},
+        {.name = "UnsetOneofOverwrittenByDefault",
+         .defaults = "maybe_int32: 100",
+         .params = "",
+         .expected = "maybe_int32: 100"},
+        {.name = "SetOneofNotOverwrittenByDefault",
+         .defaults = "maybe_int32: 100",
+         .params = "maybe_int64: 0",
+         .expected = "maybe_int64: 0"},
+        {.name = "UnsetOptionalBoolOverwrittenByDefault",
+         .defaults = "my_optional_bool: false",
+         .params = "",
+         .expected = "my_optional_bool: false"},
+        {.name = "SetOptionalBoolNotOverwrittenByDefault",
+         .defaults = "my_optional_bool: true",
+         .params = "my_optional_bool: false",
+         .expected = "my_optional_bool: false"},
+        {.name = "NonOptionalBoolSetToDefaultOverwrittenByDefault",
+         .defaults = "my_non_optional_bool: true",
+         .params = "my_non_optional_bool: false",
+         .expected = "my_non_optional_bool: true"},
+    }),
+    [](const ::testing::TestParamInfo<UnpackAnyAndMergeTestCase>& info) {
+      return info.param.name;
+    });
 
 }  // namespace
 }  // namespace intrinsic

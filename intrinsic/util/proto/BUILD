@@ -27,6 +27,7 @@ cc_test(
     srcs = ["any_test.cc"],
     deps = [
         ":any",
+        ":parse_text_proto",
         "//intrinsic/util/proto/testing:param_message_cc_proto",
         "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/status",

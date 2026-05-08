@@ -34,6 +34,9 @@ message ParamMessageDefaultsTestMessage {
     int32 maybe_int32 = 10;
     int64 maybe_int64 = 11;
   }
+
+  optional bool my_optional_bool = 12;
+  bool my_non_optional_bool = 13;
 }
 
 message ParamsWithSubMessage {
