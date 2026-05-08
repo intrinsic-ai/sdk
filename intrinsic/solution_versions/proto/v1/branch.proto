@@ -73,4 +73,9 @@ message Branch {
   // A tree is a collection of branches, that are connected by the
   // upstream_branch_id.
   string tree_id = 8;
+
+  // A list of branch IDs this branch has received versions from. These branch
+  // IDs can originate from parent organizations that users of this solution
+  // might not have access to.
+  repeated string copy_source_branch_ids = 9;
 }
