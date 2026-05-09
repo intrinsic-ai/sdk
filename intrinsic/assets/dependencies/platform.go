@@ -19,6 +19,11 @@ const (
 	RuntimeAssetID = "ai.intrinsic.runtime"
 	// RuntimeInstanceName is the Asset instance name of the "Platform as Asset".
 	RuntimeInstanceName = "intrinsic_runtime"
+
+	// DynamicReconfigurationV1Name is the proto name of the v1 DynamicReconfiguration service.
+	DynamicReconfigurationV1Name = "intrinsic_proto.services.v1.DynamicReconfiguration"
+	// ServiceStateV1Name is the proto name of the v1 ServiceState service.
+	ServiceStateV1Name = "intrinsic_proto.services.v1.ServiceState"
 )
 
 // ValidateIDNotReserved validates that the given Asset ID is not reserved.

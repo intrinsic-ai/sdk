@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strings"
 
+	"intrinsic/assets/dependencies/platform"
 	deputils "intrinsic/assets/dependencies/utils"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/metadatautils"
@@ -27,7 +28,13 @@ import (
 )
 
 var (
-	missingServiceAllowlist = []string{
+	// Services that are allowed to be missing from the Service's FileDescriptorSet.
+	allowedMissingFDSProvidedServices = []string{
+	}
+
+	// Services that may not be provided, along with a reason.
+	disallowedProvidedServices = map[string]string{
+		platform.DynamicReconfigurationV1Name: "should only be called by platform runtime",
 	}
 
 	errContainsSkillAnnotations = errors.New("config message for the Service must not contain Skill-specific dependency annotations")
@@ -224,17 +231,18 @@ func validateServiceDef(sd *smpb.ServiceDef, files *protoregistry.Files) (map[st
 			}
 
 			strippedPrefix := strings.TrimSuffix(strings.TrimPrefix(prefix, "/"), "/")
-			inAllowlist := slices.Contains(missingServiceAllowlist, strippedPrefix)
-			if files == nil {
-				if !inAllowlist {
+			if reason, ok := disallowedProvidedServices[strippedPrefix]; ok {
+				return nil, fmt.Errorf("disallowed service proto prefix %q specified (%s)", prefix, reason)
+			}
+			if !slices.Contains(allowedMissingFDSProvidedServices, strippedPrefix) {
+				if files == nil {
 					return nil, fmt.Errorf("service proto prefix %q specified, but no descriptors provided", prefix)
 				}
-			} else if _, err := files.FindDescriptorByName(protoreflect.FullName(strippedPrefix)); err == protoregistry.NotFound {
-				if !inAllowlist {
+				if _, err := files.FindDescriptorByName(protoreflect.FullName(strippedPrefix)); err == protoregistry.NotFound {
 					return nil, fmt.Errorf("could not find service proto prefix %q in provided descriptors: %w", prefix, err)
+				} else if err != nil {
+					return nil, fmt.Errorf("checking against the file descriptor set failed unexpectedly: %w", err)
 				}
-			} else if err != nil {
-				return nil, fmt.Errorf("checking against the file descriptor set failed unexpectedly: %w", err)
 			}
 		}
 		if sd.GetServiceInspectionConfig() != nil {

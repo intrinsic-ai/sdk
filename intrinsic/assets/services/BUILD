@@ -81,6 +81,7 @@ go_library(
     deps = [
         "//intrinsic/assets:idutils",
         "//intrinsic/assets:metadatautils",
+        "//intrinsic/assets/dependencies:platform",
         "//intrinsic/assets/dependencies:utils",
         "//intrinsic/assets/services/proto:service_manifest_go_proto",
         "//intrinsic/assets/services/proto:service_volume_go_proto",
