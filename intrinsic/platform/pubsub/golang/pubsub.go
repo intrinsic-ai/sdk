@@ -500,6 +500,10 @@ func (kv *kvStoreHandle) Set(key string, value proto.Message, highConsistency bo
 		}
 	}
 
+	return kv.SetAny(key, valueAny, highConsistency)
+}
+
+func (kv *kvStoreHandle) SetAny(key string, valueAny *anypb.Any, highConsistency bool) error {
 	valueBytes, err := proto.Marshal(valueAny)
 	if err != nil {
 		return err

@@ -28,10 +28,21 @@ func MakeKey(parts ...string) string {
 // KVStore represents an instance of a KVStore object. It provides an
 // interface that allows getting and setting key/value pairs.
 type KVStore interface {
-	// Set sets the value for the given key. A key can't include any of the
+	// Set sets the value for the given key. The value is wrapped into anypb.Any
+	// before it's written to the KV store.
+	//
+	// A key can't include any of the
 	// following characters: /, *, ?, #, [ and ]. It will be namespaced according
 	// to the settings provided in the NamespaceConfig.
 	Set(key string, value proto.Message, highConsistency bool) error
+
+	// SetAny sets the value for the given key. The value is expected to be Any proto,
+	// and it's written to the KV store as is.
+	//
+	// A key can't include any of the
+	// following characters: /, *, ?, #, [ and ]. It will be namespaced according
+	// to the settings provided in the NamespaceConfig.
+	SetAny(key string, valueAny *anypb.Any, highConsistency bool) error
 
 	// Get returns the value for the given key. Wildcard queries are not supported
 	// with this method, use the GetAll method instead. If wildcard values are
