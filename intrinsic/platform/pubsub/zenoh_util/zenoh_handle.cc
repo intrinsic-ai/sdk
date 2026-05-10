@@ -9,6 +9,7 @@
 #include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "intrinsic/platform/pubsub/zenoh_util/zenoh_helpers.h"
@@ -126,11 +127,18 @@ absl::StatusOr<std::string> ZenohHandle::add_topic_prefix(
     absl::string_view topic) {
   if (topic.empty()) {
     return absl::InvalidArgumentError("Empty topic string");
-  } else if (topic[0] == '/') {
-    return absl::StrCat("in", topic);
-  } else {
-    return absl::StrCat("in/", topic);
   }
+
+  absl::string_view topic_without_leading_slash = topic;
+  if (topic[0] == '/') {
+    topic_without_leading_slash.remove_prefix(1);
+  }
+
+  if (absl::StartsWith(topic_without_leading_slash, "interipc_ps")) {
+    return std::string(topic_without_leading_slash);
+  }
+
+  return absl::StrCat("in/", topic_without_leading_slash);
 }
 
 absl::StatusOr<std::string> ZenohHandle::add_key_prefix(

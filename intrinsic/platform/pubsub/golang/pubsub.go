@@ -111,10 +111,11 @@ func NewPubSub() (*Handle, error) {
 }
 
 func addTopicPrefix(topic string) string {
-	if topic[0] == '/' {
-		return "in" + topic
+	topicWithoutLeadingSlash := strings.TrimPrefix(topic, "/")
+	if strings.HasPrefix(topicWithoutLeadingSlash, "interipc_ps/") {
+		return topicWithoutLeadingSlash
 	}
-	return "in/" + topic
+	return "in/" + topicWithoutLeadingSlash
 }
 
 func errorFromImwRet(imwRet C.int) error {

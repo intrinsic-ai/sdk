@@ -10,6 +10,13 @@ TEST(ZenohHandleTest, AddTopicPrefix) {
   EXPECT_EQ(*ZenohHandle::add_topic_prefix("foo"), "in/foo");
   EXPECT_EQ(*ZenohHandle::add_topic_prefix("/foo"), "in/foo");
   EXPECT_EQ(ZenohHandle::add_topic_prefix("").ok(), false);
+  EXPECT_EQ(*ZenohHandle::add_topic_prefix("interipc_something/tf"),
+            "in/interipc_something/tf");
+  EXPECT_EQ(*ZenohHandle::add_topic_prefix("/interipc_something/tf"),
+            "in/interipc_something/tf");
+  EXPECT_EQ(*ZenohHandle::add_topic_prefix("/interipc_ps/tf"),
+            "interipc_ps/tf");
+  EXPECT_EQ(*ZenohHandle::add_topic_prefix("interipc_ps/tf"), "interipc_ps/tf");
 }
 
 TEST(ZenohHandleTest, RemoveTopicPrefix) {
