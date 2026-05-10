@@ -9,6 +9,8 @@ package pubsubinterface
 import (
 	"google.golang.org/protobuf/proto"
 
+	anypb "google.golang.org/protobuf/types/known/anypb"
+
 	pubsubpb "intrinsic/platform/pubsub/adapters/pubsub_go_proto"
 )
 
@@ -56,8 +58,13 @@ type Subscription interface {
 
 // Publisher is a handle for a created PubSub publisher
 type Publisher interface {
-	// Publish publishes the message
+	// Publish publishes the message.
+	// The message is wrapped into anypb.Any before publishing.
 	Publish(msg proto.Message) error
+
+	// Publish publishes the given Any proto as is.
+	PublishAny(msg *anypb.Any) error
+
 	// TopicName returns the name of the topic for the subscription
 	TopicName() string
 	// Close closes out the Publisher

@@ -433,6 +433,15 @@ type publisherHandle struct {
 
 func (p *publisherHandle) TopicName() string { return p.topicName }
 
+func (p *publisherHandle) PublishAny(msg *anypb.Any) error {
+	packet := &pubsubpb.PubSubPacket{
+		PublishTime: timestamppb.New(time.Now()),
+		Payload:     msg,
+	}
+
+	return p.publishPacket(packet)
+}
+
 func (p *publisherHandle) Publish(msg proto.Message) error {
 	packet := &pubsubpb.PubSubPacket{
 		PublishTime: timestamppb.New(time.Now()),
@@ -443,6 +452,10 @@ func (p *publisherHandle) Publish(msg proto.Message) error {
 		return err
 	}
 
+	return p.publishPacket(packet)
+}
+
+func (p *publisherHandle) publishPacket(packet *pubsubpb.PubSubPacket) error {
 	bytes, err := proto.Marshal(packet)
 	if err != nil {
 		return err
