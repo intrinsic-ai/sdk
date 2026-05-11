@@ -248,18 +248,17 @@ service ExecutiveService {
 }
 
 message CreateOperationRequest {
-  // New runnable to load. If default_plan is set to true, the default plan of
-  // the executive (configured at startup) is created. Error if unset.
+  // New runnable to load. Error if unset.
   oneof runnable_type {
     // The behavior tree to create the operation for
     BehaviorTree behavior_tree = 1;
-    // If set to true, will load the default process specified for the solution.
-    // Deprecated: Specify a behavior_tree explicitly.
-    bool use_default_plan = 2 [deprecated = true];
     // Id of a process asset to create the operation from. The asset must
     // be installed.
     intrinsic_proto.assets.Id process_id = 3;
   }
+
+  reserved 2;
+  reserved "use_default_plan";
 }
 
 message ResetOperationRequest {
