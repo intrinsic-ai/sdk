@@ -6,11 +6,13 @@
 #include <string>
 #include <vector>
 
+#include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_split.h"
 #include "absl/strings/string_view.h"
+#include "ortools/base/file.h"
 #include "ortools/base/path.h"
 #include "rules_cc/cc/runfiles/runfiles.h"
 
@@ -28,18 +30,26 @@ bool RunningInKubernetes() {
 }
 
 std::string GetZenohRunfilesPath(absl::string_view file_path) {
+  // The simplest scenario is that the file is available at a global
+  // path, which happens when running in Kubernetes or in Docker.
+  std::string global_path = absl::StrCat("/", file_path);
+  if (file::Exists(global_path, file::Defaults()).ok()) {
+    return global_path;
+  }
+
+  // Otherwise, try to calculate a path using Bazel runfiles.
   std::string error;
   std::string repository = BAZEL_CURRENT_REPOSITORY;
   std::string apparentRepoName = "";
   std::unique_ptr<Runfiles> runfiles;
   if (RunningUnderTest()) {
     runfiles.reset(Runfiles::CreateForTest(repository, &error));
-  } else if (RunningInKubernetes()) {
-    runfiles.reset(Runfiles::Create(repository, &error));
   } else {
     runfiles.reset(Runfiles::Create(program_invocation_name, &error));
   }
-
+  if (!runfiles) {
+    LOG(FATAL) << "Could not initialize runfiles: " << error;
+  }
   if (RunningInKubernetes() || RunningUnderTest()) {
     apparentRepoName = "ai_intrinsic_sdks";
   } else {

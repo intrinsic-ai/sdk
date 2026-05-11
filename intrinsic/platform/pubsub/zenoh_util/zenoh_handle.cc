@@ -4,6 +4,7 @@
 
 #include <dlfcn.h>
 
+#include <cstdlib>
 #include <string>
 
 #include "absl/log/log.h"
@@ -18,7 +19,7 @@
 
 namespace intrinsic {
 
-constexpr char libZenohPath[] = "intrinsic/middleware/libimw_zenoh.so.1";
+constexpr char libZenohPath[] = "incode/middleware/zenoh/libimw_zenoh.so";
 // NOLINTBEGIN(clang-diagnostic-unused-const-variable)
 constexpr char libTestMsanZenohPath[] =
     "intrinsic/middleware/"
@@ -100,8 +101,9 @@ void ZenohHandle::Initialize() {
 #endif
 
   if (handle == nullptr) {
-    LOG(FATAL) << "Cannot open the shared library at: " << path
+    LOG(ERROR) << "Cannot open the shared library at: " << path
                << " dlerror() output: " << dlerror();
+    exit(EXIT_FAILURE);
   }
   GET_FUNCTION_PTR(handle, imw_init);
   GET_FUNCTION_PTR(handle, imw_fini);

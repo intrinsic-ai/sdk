@@ -137,6 +137,23 @@ register_toolchains(
 bazel_dep(name = "rules_cc", version = "0.2.17")
 bazel_dep(name = "rules_foreign_cc", version = "0.15.1")
 
+########
+# Rust #
+########
+
+bazel_dep(name = "rules_rust", version = "0.69.0")
+
+rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
+rust.toolchain(
+    edition = "2021",
+    versions = [
+        "1.75.0",
+    ],
+)
+use_repo(rust, "rust_toolchains")
+
+register_toolchains("@rust_toolchains//:all")
+
 ######################
 # Bazel dependencies #
 ######################
@@ -172,6 +189,8 @@ bazel_dep(name = "re2", version = "2024-07-02.bcr.1", repo_name = "com_googlesou
 bazel_dep(name = "rules_license", version = "1.0.0")
 bazel_dep(name = "rules_pkg", version = "1.2.0")
 bazel_dep(name = "tar.bzl", version = "0.10.4")
+bazel_dep(name = "zenoh-c", version = "1.7.2.bcr.1")
+bazel_dep(name = "zenoh-cpp", version = "1.7.2.bcr.1")
 
 ##############
 # Containers #

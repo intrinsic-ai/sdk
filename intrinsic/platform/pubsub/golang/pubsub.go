@@ -182,12 +182,13 @@ func getZenohPeerConfig() (string, error) {
 	var path string
 	var err error
 
-	// If we're running in k8s, then we can assume the config file is
-	// available via base layer, rather than needing to find it in
-	// runfiles.
-	if isRunningInKubernetes() {
-		path = zenohConfigPath
-	} else {
+	// If we're running in k8s or otherwise containerized, the config file is
+	// available via a base layer. Try this first, and only try runfiles if that
+	// fails.
+	path_prefix := "/"
+	path = path_prefix + zenohConfigPath
+	_, err = os.Stat(path)
+	if err != nil {
 		path, err = pathresolver.ResolveRunfilesPath(zenohConfigPath)
 		if err != nil {
 			return "", err

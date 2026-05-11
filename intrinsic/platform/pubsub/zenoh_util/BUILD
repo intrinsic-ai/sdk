@@ -20,7 +20,7 @@ cc_library(
     srcs = ["zenoh_handle.cc"],
     hdrs = ["zenoh_handle.h"],
     data = [
-        "//intrinsic/middleware:libimw_zenoh.so.1",
+        "//incode/middleware/zenoh:imw_zenoh",
     ],
     linkopts = ["-ldl"],  # for dlfcn.h, dlsym in zenoh_handle.cc
     visibility = ["//intrinsic/platform/pubsub:__subpackages__"],
@@ -52,9 +52,11 @@ cc_library(
         "//intrinsic/platform/pubsub:__subpackages__",
     ],
     deps = [
+        "@abseil-cpp//absl/log",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/strings",
         "@abseil-cpp//absl/strings:string_view",
+        "@or_tools//ortools/base:file",
         "@or_tools//ortools/base:path",
         "@rules_cc//cc/runfiles",
     ],
