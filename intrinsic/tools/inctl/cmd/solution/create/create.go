@@ -5,12 +5,14 @@ package create
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"intrinsic/assets/cmdutils"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/color"
 	"intrinsic/tools/inctl/util/orgutil"
+	"intrinsic/tools/inctl/util/printer"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -27,6 +29,16 @@ type createParams struct {
 	templateID        string
 	commitTitle       string
 	commitDescription string
+}
+
+type branchInfo struct {
+	ID          string `json:"id"`
+	DisplayName string `json:"displayName"`
+}
+
+type createResult struct {
+	VersionBranch    branchInfo `json:"versionBranch"`
+	DeploymentBranch branchInfo `json:"deploymentBranch"`
 }
 
 func makeCreateVersionBranchRequest(p createParams) *solutionversionservicepb.CreateBranchRequest {
@@ -67,14 +79,12 @@ func makeCreateVersionBranchRequest(p createParams) *solutionversionservicepb.Cr
 	return req
 }
 
-func createSolution(ctx context.Context, svsC solutionversionservicepb.SolutionVersionServiceClient, reqVersion *solutionversionservicepb.CreateBranchRequest) error {
+func createSolution(ctx context.Context, svsC solutionversionservicepb.SolutionVersionServiceClient, reqVersion *solutionversionservicepb.CreateBranchRequest) (*createResult, error) {
 	// 1. Create Version Branch
 	respVersion, err := svsC.CreateBranch(ctx, reqVersion)
 	if err != nil {
-		return fmt.Errorf("failed to create version branch: %v. Try again or contact support the issue persists.", err)
+		return nil, fmt.Errorf("failed to create version branch: %v. Try again or contact support the issue persists.", err)
 	}
-
-	color.C.Blue().Printf("Successfully created version branch %q with ID %q\n", respVersion.GetDisplayName(), respVersion.GetId())
 
 	// 2. Create Deployment Branch
 	reqDeployment := &solutionversionservicepb.CreateBranchRequest{
@@ -87,10 +97,33 @@ func createSolution(ctx context.Context, svsC solutionversionservicepb.SolutionV
 
 	respDeployment, err := svsC.CreateBranch(ctx, reqDeployment)
 	if err != nil {
-		return fmt.Errorf("failed to create deployment branch: %v. Try again or contact support if the issue persists.", err)
+		return nil, fmt.Errorf("failed to create deployment branch: %v. Try again or contact support if the issue persists.", err)
 	}
 
-	color.C.Blue().Printf("Successfully created deployment branch %q with ID %q\n", respDeployment.GetDisplayName(), respDeployment.GetId())
+	return &createResult{
+		VersionBranch: branchInfo{
+			ID:          respVersion.GetId(),
+			DisplayName: respVersion.GetDisplayName(),
+		},
+		DeploymentBranch: branchInfo{
+			ID:          respDeployment.GetId(),
+			DisplayName: respDeployment.GetDisplayName(),
+		},
+	}, nil
+}
+
+func printResult(cmd *cobra.Command, result *createResult) error {
+	ot := printer.GetFlagOutputType(cmd)
+	if ot == printer.OutputTypeJSON {
+		b, err := json.Marshal(result)
+		if err != nil {
+			return err
+		}
+		cmd.Println(string(b))
+	} else {
+		color.C.Blue().Printf("Successfully created version branch %q with ID %q\n", result.VersionBranch.DisplayName, result.VersionBranch.ID)
+		color.C.Blue().Printf("Successfully created deployment branch %q with ID %q\n", result.DeploymentBranch.DisplayName, result.DeploymentBranch.ID)
+	}
 	return nil
 }
 
@@ -139,7 +172,13 @@ func NewCommand() *cobra.Command {
 				commitTitle:       flagCommitTitle,
 				commitDescription: flagCommitDescription,
 			})
-			return createSolution(ctx, svsC, reqVersion)
+
+			result, err := createSolution(ctx, svsC, reqVersion)
+			if err != nil {
+				return err
+			}
+
+			return printResult(cmd, result)
 		},
 	}, viperLocal)
 
