@@ -1,0 +1,32 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.assets.v1;
+
+option go_package = "intrinsic/assets/proto/v1/recommended_configuration_config_go_proto";
+
+// Options to configure the behavior for generating recommended configuration
+// for Asset instances and Skill parameters.
+message RecommendedConfigurationConfig {
+  enum Source {
+    // If unspecified, `SOURCE_PLATFORM_DEFAULT` will be selected
+    // by default.
+    SOURCE_UNSPECIFIED = 0;
+    // No recommendations will be provided for the configuration.
+    SOURCE_NO_RECOMMENDATION = 1;
+    // Rely on the platform to provide a recommended configuration.
+    //
+    // The platform uses the following heuristic to recommend configurations:
+    //
+    //  1. If no initial configuration is provided, start with the Asset's
+    //     default configuration if it has one, or start with a new empty
+    //     configuration message.
+    //  2. If any ResolvedDependency in the configuration is unspecified and
+    //     there is currently only one Asset (instance) in the Solution that
+    //     fulfills the dependency constraints, resolve the dependency with that
+    //     Asset (instance).
+    SOURCE_PLATFORM_DEFAULT = 2;
+  }
+  Source source = 1;
+}

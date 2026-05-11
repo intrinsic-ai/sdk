@@ -351,3 +351,28 @@ go_proto_library(
     protos = [":recommended_configuration_proto"],
     visibility = ["//intrinsic:public_api_users"],
 )
+
+proto_library(
+    name = "recommended_configuration_config_proto",
+    srcs = ["recommended_configuration_config.proto"],
+    visibility = ["//intrinsic:public_api_users"],
+)
+
+cc_proto_library(
+    name = "recommended_configuration_config_cc_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":recommended_configuration_config_proto"],
+)
+
+py_proto_library(
+    name = "recommended_configuration_config_py_pb2",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":recommended_configuration_config_proto"],
+)
+
+go_proto_library(
+    name = "recommended_configuration_config_go_proto",
+    importpath = "intrinsic/assets/proto/v1/recommended_configuration_config_go_proto",
+    protos = [":recommended_configuration_config_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+)
