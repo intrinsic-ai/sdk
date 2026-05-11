@@ -2,7 +2,7 @@
 
 module intrinsic
 
-go 1.25.0
+go 1.26.3
 
 require (
 	cel.dev/expr v0.25.1
