@@ -222,6 +222,14 @@ message SchedulePlatformUpdateResponse {
   string operation_name = 1;
 }
 
+message GetAssignedVersionsRequest {
+  string cluster_id = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+message GetAssignedVersionsResponse {
+  UpdateVersions versions = 1;
+}
+
 // This message is shared between the CreateCluster and AddDevice rpcs.
 // It describes the device that needs to be registered during the operation and
 // will later also describe operations that are specific to this IPC/node, not
@@ -687,6 +695,18 @@ service ClustersService {
       operation_id: "SchedulePlatformUpdate"
     };
     option (aclType) = "can_configure";
+  }
+
+  // GetAssignedVersions returns the currently assigned versions for a cluster.
+  rpc GetAssignedVersions(GetAssignedVersionsRequest)
+      returns (GetAssignedVersionsResponse) {
+    option (google.api.http) = {
+      get: "/v1/project/*/org/*/clusters/{cluster_id}/assignedVersions"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "GetAssignedVersions"
+    };
+    option (aclType) = "has_access";
   }
 
   // CreateCluster allows to add a new cluster.
