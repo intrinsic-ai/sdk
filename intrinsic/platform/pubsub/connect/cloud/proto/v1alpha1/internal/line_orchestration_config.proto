@@ -1,0 +1,61 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.pubsub.connect.v1alpha1.internal;
+
+option go_package = "intrinsic/platform/pubsub/connect/cloud/proto/v1alpha1/internal/line_orchestration_config_go_proto";
+
+// Wrapper for spoke endpoints.
+message SpokeEndpoints {
+  // List of spoke endpoints to connect to the hub.
+  repeated string endpoints = 1;
+}
+
+// Configuration of the hub in the line orchestration network.
+message HubConnectCommand {
+  // Identifier of the command.
+  string command_id = 1;
+
+  oneof action {
+    // List of spoke endpoints to connect to the hub.
+    SpokeEndpoints spoke_endpoints = 2;
+
+    // Is set when the hub is to be deleted.
+    bool delete = 3;
+  }
+}
+
+// Configuration of the spoke in the line orchestration network.
+message KeyexprForwardingCommand {
+  // Identifier of the command.
+  string command_id = 1;
+
+  // List of PubSub topics that are forwarded to and from the hub.
+  // The naming convention is the following:
+  //  - On the spoke, the topic name is used as is.
+  //  - Messages published to that topic are forwarded to `interipc_ps/<workcell
+  //  id>/<topic name>`,
+  //      where <topic name> is the name of the topic used on the spoke.
+  repeated string forwarded_pubsub_topics = 2;
+
+  // List of paths in workcell's private key-value store that are forwarded
+  // to the interipc KV store.
+  // The naming convention is the following:
+  //  - On the spoke, the path is used as is.
+  //  - Values stored at that path are copied to `interipc_kv/<workcell
+  //  id>/<original path>`.
+  repeated string forwarded_kvstore_paths = 3;
+}
+
+// Result of execution of a single command.
+message CommandExecutionStatus {
+  // Identifier of the command.
+  string command_id = 1;
+
+  // True if the command has succeeded.
+  bool succeeded = 2;
+
+  // Error message describing why the command failed.
+  string error_message = 3;
+}

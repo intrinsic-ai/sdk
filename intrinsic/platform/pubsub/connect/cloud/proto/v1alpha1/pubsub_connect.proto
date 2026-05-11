@@ -52,6 +52,7 @@ message GetHubResponse {
 message ConfigureSpokeRequest {
   string spoke_workcell_name = 1;
   repeated string allowed_topics = 2;
+  repeated string allowed_kvstore_keys = 3;
 }
 
 message ConfigureSpokeResponse {
