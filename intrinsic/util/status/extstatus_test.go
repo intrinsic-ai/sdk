@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"intrinsic/testing/grpctest"
 
@@ -474,37 +475,40 @@ func TestGrpcServiceCall(t *testing.T) {
 }
 
 func TestExtendedStatusFormat(t *testing.T) {
+	fixedTime := time.Date(2026, 5, 11, 12, 0, 0, 0, time.UTC)
 	es := New("ai.intrinsic.test", 1234,
+		WithTimestamp(fixedTime),
 		WithTitle("Outer Error"),
 		WithUserMessage("User issue outer"),
+		WithUserInstructions("Instructions outer"),
 		WithDebugMessage("Debug trace outer"),
 		WithContext(New("ai.intrinsic.nested", 5678,
+			WithTimestamp(fixedTime),
 			WithTitle("Inner Error"),
 			WithUserMessage("User issue inner"),
 		)),
 	)
 
-	// Test default %v verb, should include rich output
 	got := fmt.Sprintf("%v", es)
-
-	keywords := []string{
-		"StatusCode: ai.intrinsic.test:1234",
-		"Title: Outer Error",
-		"User Report:",
-		"User issue outer",
-		"Debug Report:",
-		"Debug trace outer",
-		"Context:",
-		"Context[0]:",
-		"StatusCode: ai.intrinsic.nested:5678",
-		"Title: Inner Error",
-		"User issue inner",
-	}
-
-	for _, kw := range keywords {
-		if !strings.Contains(got, kw) {
-			t.Errorf("Format(%%v) output missing keyword %q.\nGot:\n%s", kw, got)
-		}
+	want := `StatusCode: ai.intrinsic.test:1234
+Title: Outer Error
+Timestamp: 2026-05-11T12:00:00Z
+User Report:
+  User issue outer
+Instructions:
+  Instructions outer
+Debug Report:
+  Debug trace outer
+Context:
+  Context[0]:
+    StatusCode: ai.intrinsic.nested:5678
+    Title: Inner Error
+    Timestamp: 2026-05-11T12:00:00Z
+    User Report:
+      User issue inner
+`
+	if got != want {
+		t.Errorf("Format(%%v) diff (-want +got):\n%s", cmp.Diff(want, got))
 	}
 }
 
