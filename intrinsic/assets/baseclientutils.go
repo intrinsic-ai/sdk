@@ -23,10 +23,10 @@ const (
 	maxMsgSize = math.MaxInt64
 	// policy for retrying failed gRPC requests as documented here:
 	// https://pkg.go.dev/google.golang.org/grpc/examples/features/retry
-	// Note that the Ingress will return UNIMPLEMENTED if the server it wants to forward to
-	// is unavailable, so we also check for UNIMPLEMENTED.
-	// A policy specific to CAS copies the default, but adds retries on
-	// "UNKNOWN", see b/292473318.
+	// Note that the Ingress will return UNIMPLEMENTED if the server it wants to forward to is
+	// unavailable, so we also check for UNIMPLEMENTED.
+	//
+	// Policy specific to CAS copies the default, but adds retries on "UNKNOWN", see b/292473318.
 	retryPolicy = `{
 		"methodConfig": [{
 				"name": [{}],
@@ -47,6 +47,16 @@ const (
 						"MaxBackoff": ".5s",
 						"BackoffMultiplier": 1.5,
 						"RetryableStatusCodes": [ "UNAVAILABLE", "RESOURCE_EXHAUSTED", "UNIMPLEMENTED", "UNKNOWN"]
+				}
+		}, {
+				"name": [{"service": "intrinsic_proto.storage.artifacts.v1.ArtifactServiceApi"}],
+				"waitForReady": true,
+				"retryPolicy": {
+						"MaxAttempts": 4,
+						"InitialBackoff": ".5s",
+						"MaxBackoff": ".5s",
+						"BackoffMultiplier": 1.5,
+						"RetryableStatusCodes": [ "UNAVAILABLE", "RESOURCE_EXHAUSTED", "UNIMPLEMENTED", "ABORTED"]
 				}
 		}]
 }`
