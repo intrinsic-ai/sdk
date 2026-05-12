@@ -127,7 +127,9 @@ intrinsic_process = rule(
             mandatory = True,
         ),
         "behavior_tree": attr.label(
-            allow_single_file = [".txtpb"],
+            allow_single_file = [
+                ".txtpb",
+            ],
             doc = "An optional BehaviorTree representing the process " +
                   "(if the manifest does not contain a behavior tree).",
         ),
