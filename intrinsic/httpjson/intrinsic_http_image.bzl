@@ -14,7 +14,8 @@ def intrinsic_http_image(
         name,
         grpc_service,
         proto,
-        go_proto):
+        go_proto,
+        visibility = None):
     """Generate a Service Asset that offers HTTP/JSON endpoints for another Service Asset.
 
     Args:
@@ -22,6 +23,7 @@ def intrinsic_http_image(
         grpc_service: The fully qualified name of an annotated gRPC service
         proto: The proto_library target of the gRPC service
         go_proto: The go_grpc_http_library of the gRPC service
+        visibility: Visibility of the resulting tar file
     """
 
     gen_name = "_" + name + "_generate"
@@ -103,4 +105,5 @@ def intrinsic_http_image(
         src = ":" + ocitar_name,
         out = name + ".tar",
         allow_symlink = True,
+        visibility = visibility,
     )
