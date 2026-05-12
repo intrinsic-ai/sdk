@@ -131,6 +131,7 @@ func metadataWithAllFields() *metadatapb.Metadata {
 			Seconds: 1711177200,
 			Nanos:   0,
 		},
+		AssetTag:  atagpb.AssetTag_ASSET_TAG_UNSPECIFIED,
 		AssetType: atypepb.AssetType_ASSET_TYPE_SERVICE,
 		Provides: []*metadatapb.Interface{
 			{
@@ -383,7 +384,7 @@ func TestValidateMetadata(t *testing.T) {
 			name: "display name too long",
 			m: func() *metadatapb.Metadata {
 				m := metadataWithAllFields()
-				m.DisplayName = strings.Repeat("a", DisplayNameCharLength+1)
+				m.DisplayName = strings.Repeat("a", MaxDisplayNameLength+1)
 				return m
 			}(),
 			wantErrorCode: codes.ResourceExhausted,
@@ -392,7 +393,7 @@ func TestValidateMetadata(t *testing.T) {
 			name: "version too long",
 			m: func() *metadatapb.Metadata {
 				m := metadataWithAllFields()
-				m.IdVersion.Version = fmt.Sprintf("1.0.0+%s", strings.Repeat("a", VersionCharLength+1))
+				m.IdVersion.Version = fmt.Sprintf("1.0.0+%s", strings.Repeat("a", MaxVersionLength+1))
 				return m
 			}(),
 			wantErrorCode: codes.ResourceExhausted,
@@ -401,7 +402,7 @@ func TestValidateMetadata(t *testing.T) {
 			name: "description too long",
 			m: func() *metadatapb.Metadata {
 				m := metadataWithAllFields()
-				m.Documentation.Description = strings.Repeat("a", DescriptionCharLength+1)
+				m.Documentation.Description = strings.Repeat("a", MaxDescriptionLength+1)
 				return m
 			}(),
 			wantErrorCode: codes.ResourceExhausted,
@@ -410,7 +411,7 @@ func TestValidateMetadata(t *testing.T) {
 			name: "release notes too long",
 			m: func() *metadatapb.Metadata {
 				m := metadataWithAllFields()
-				m.ReleaseNotes = strings.Repeat("a", RelNotesCharLength+1)
+				m.ReleaseNotes = strings.Repeat("a", MaxRelNotesLength+1)
 				return m
 			}(),
 			wantErrorCode: codes.ResourceExhausted,
@@ -468,7 +469,7 @@ func TestValidateManifestMetadata(t *testing.T) {
 	mNameTooLong := proto.Clone(mSkill).(*skillmanifestpb.SkillManifest)
 	mNameTooLong.Id.Name = strings.Repeat("a", NameCharLength[atypepb.AssetType_ASSET_TYPE_SKILL]+1)
 	mDisplayNameTooLong := proto.Clone(mSkill).(*skillmanifestpb.SkillManifest)
-	mDisplayNameTooLong.DisplayName = strings.Repeat("a", DisplayNameCharLength+1)
+	mDisplayNameTooLong.DisplayName = strings.Repeat("a", MaxDisplayNameLength+1)
 
 	mService := manifestMetadata[atypepb.AssetType_ASSET_TYPE_SERVICE]
 	mInvalidAssetTag := proto.Clone(mService).(*servicemanifestpb.ServiceMetadata)
@@ -553,6 +554,18 @@ func TestValidateManifestMetadata(t *testing.T) {
 				}
 			} else if err != nil {
 				t.Errorf("ValidateManifestMetadata(%v) = %v, want no error", tc.m, err)
+			}
+		})
+	}
+}
+
+func TestValidateMetadataSupportsAllAssetTypes(t *testing.T) {
+	for _, at := range typeutils.AllAssetTypes() {
+		t.Run(at.String(), func(t *testing.T) {
+			m := metadataWithAllFields()
+			m.AssetType = at
+			if err := ValidateMetadata(m); err != nil {
+				t.Errorf("ValidateMetadata(%v) = %v, want no error", m, err)
 			}
 		})
 	}
