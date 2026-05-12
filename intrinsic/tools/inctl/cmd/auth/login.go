@@ -146,9 +146,9 @@ func queryProjectsForAPIKey(ctx context.Context, apiKey string, optionalOrg stri
 		fmt.Println("Could not find the project for this token. Please restart the login process and make sure to provide the exact key shown by the portal.")
 		return nil, fmt.Errorf("failed to list organizations: %w", err)
 	}
-	// multiple organizations are fine, but they must be all on the same project
 	orgs := resp.GetOrganizations()
 	projects := map[string]struct{}{}
+	// determine unique project names
 	for _, org := range orgs {
 		// filter by org if specified
 		if optionalOrg != "" && optionalOrg != org.GetName() {
@@ -195,6 +195,7 @@ func loginCmdE(cmd *cobra.Command, _ []string) (err error) {
 			return fmt.Errorf("no project found for API key. Please double check the value of the -org flag for typos" +
 				".")
 		}
+		// For a given orgName the subsequent code expects only a single project as a result.
 		if len(projects) > 1 {
 			slices.Sort(projects)
 			return fmt.Errorf("multiple projects found for API key (and org %q): %+v", org, projects)
