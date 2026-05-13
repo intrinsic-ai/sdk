@@ -135,6 +135,40 @@ SubscriptionErrorExpandedCallback WrapErrorExpandedCallback(
   return error_callback;
 }
 
+KeyValueCallback WrapKeyValueCallback(pybind11::object cb) {
+  if (!cb || cb.is_none()) {
+    return [](absl::string_view key,
+              std::unique_ptr<google::protobuf::Any> value) {};
+  }
+  return [py_cb = std::move(cb)](absl::string_view key,
+                                 std::unique_ptr<google::protobuf::Any> value) {
+    pybind11::gil_scoped_acquire gil;
+    try {
+      if (value) {
+        py_cb(key, *value);
+      } else {
+        py_cb(key, pybind11::none());
+      }
+    } catch (const pybind11::error_already_set& e) {
+      LOG(ERROR) << "Exception in KeyValueCallback: " << e.what();
+    }
+  };
+}
+
+OnDoneCallback WrapOnDoneCallback(pybind11::object cb) {
+  if (!cb || cb.is_none()) {
+    return [](absl::string_view key) {};
+  }
+  return [py_cb = std::move(cb)](absl::string_view key) {
+    pybind11::gil_scoped_acquire gil;
+    try {
+      py_cb();
+    } catch (const pybind11::error_already_set& e) {
+      LOG(ERROR) << "Exception in OnDoneCallback: " << e.what();
+    }
+  };
+}
+
 absl::StatusOr<Subscription> CreateSubscriptionWithConfig(
     PubSub* self, absl::string_view topic, const TopicConfig& config,
     const google::protobuf::Message& exemplar, pybind11::object msg_callback,
@@ -216,9 +250,10 @@ absl::StatusOr<KeyValueStore> CreateReplicationKVStore(PubSub* self) {
 }
 
 absl::StatusOr<KVQuery> GetAll(KeyValueStore* self, const std::string& key,
-                               KeyValueCallback callback,
-                               OnDoneCallback on_done) {
-  return self->GetAll(key, callback, on_done);
+                               pybind11::object callback,
+                               pybind11::object on_done) {
+  return self->GetAll(key, WrapKeyValueCallback(std::move(callback)),
+                      WrapOnDoneCallback(std::move(on_done)));
 }
 
 absl::StatusOr<google::protobuf::Any> Get(KeyValueStore* self,
