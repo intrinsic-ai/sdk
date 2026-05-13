@@ -322,6 +322,8 @@ go_proto_library(
     deps = ["@org_golang_google_genproto_googleapis_api//annotations"],
 )
 
+# intrinsic:custom_asset_config_recommendation:strip_begin
+
 proto_library(
     name = "recommended_configuration_proto",
     srcs = ["recommended_configuration.proto"],
@@ -351,6 +353,8 @@ go_proto_library(
     protos = [":recommended_configuration_proto"],
     visibility = ["//intrinsic:public_api_users"],
 )
+
+# intrinsic:custom_asset_config_recommendation:strip_end
 
 proto_library(
     name = "recommended_configuration_config_proto",
