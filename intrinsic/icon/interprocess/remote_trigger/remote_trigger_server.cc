@@ -213,7 +213,6 @@ void RemoteTriggerServer::Run() {
       INTRINSIC_RT_LOG(ERROR)
           << "unable to receive client request: " << wait_status.message();
       RequestStop();
-      JoinAsyncThread();
       return;
     }
 
@@ -226,7 +225,6 @@ void RemoteTriggerServer::Run() {
     // invalid.
     if (callback_ == nullptr) {
       RequestStop();
-      JoinAsyncThread();
       return;
     }
     // Call the passed in user callback.
@@ -242,7 +240,6 @@ void RemoteTriggerServer::Run() {
       INTRINSIC_RT_LOG(ERROR)
           << "unable to send response to client: " << post_status.message();
       RequestStop();
-      JoinAsyncThread();
       return;
     }
   }
