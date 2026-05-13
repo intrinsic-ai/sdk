@@ -6,13 +6,81 @@ package intrinsic_proto.icon;
 
 import "intrinsic/icon/control/parts/hal/v1/hal_part_config.proto";
 import "intrinsic/icon/control/parts/proto/v1/realtime_part_config.proto";
+import "intrinsic/icon/hal/lib/fieldbus/v1/value_parsing.proto";
+import "intrinsic/icon/proto/v1/types.proto";
 
 option go_package = "intrinsic/icon/server/config/realtime_control_config_go_proto";
+
+// HardwareInterface and patterns to check for a Signal.
+// Signal is considered active if any of the patterns matches.
+message ExpectedSignal {
+  // The digital input can be at most 32bit to be compatible with the
+  // `ValuePattern`s.
+  intrinsic_proto.icon.v1.HardwareInterface digital_input_hardware_interface =
+      1;
+
+  // The signal is active if the hardware value matches any of these patterns
+  // (Logical OR). This allows for multiple distinct bit-patterns to trigger the
+  // same request.
+  // InvalidArgumentError wil be raised if too many patterns are defined
+  // (current max 32).
+  repeated intrinsic_proto.fieldbus.v1.ValuePattern match_patterns = 2;
+}
+
+// Allows multiplexing of zero, or more `safety_hardware_interface`s.
+//
+// Injects a `requested_behavior` based on the `BehaviorOverrideRequestSignal`.
+// The strictest currently requested behavior will be used.
+//
+// When a single `safety_hardware_interface` is defined, the values will be
+// passed through.
+//
+// When multiple `safety_hardware_interfaces are defined, the states are
+// combined using the strictest entry.
+// NOTE: UNKNOWN is treated as as least strict.
+//
+// Order for multiplexing.
+// mode_of_safe_operation:
+// UNKNOWN < AUTOMATIC <TEACH_PENDANT_1 < TEACH_PENDANT_2
+// <CONFIGURATION < UPDATING
+//
+// estop_button_status:
+// UNKNOWN < NOT_AVAILABLE < DISENGAGED < ENGAGED
+//
+// enable_button_status:
+// UNKNOWN < NOT_AVAILABLE < DISENGAGED < ENGAGED
+//
+// Example:
+// S1: [mode_of_safe_operation: UNKNOWN, requested_behavior:
+// SAFE_STOP_2_TIME_MONITORED, enable_button_status: UNKNOWN, ...]
+//
+// S2: [mode_of_safe_operation: TEACH_PENDANT_2, requested_behavior:
+// NORMAL_OPERATION, enable_button_status: ENGAGED ...]
+//
+// Combined: [mode_of_safe_operation: TEACH_PENDANT_2,
+// requested_behavior: SAFE_STOP_2_TIME_MONITORED, enable_button_status:
+// ENGAGED , ...]
+message SafetyMessageHandlerConfig {
+  repeated intrinsic_proto.icon.v1.HardwareInterface
+      safety_hardware_interfaces = 1;
+
+  // Optionally define Signals to trigger a `BEHAVIOR_OVERRIDE_REQUEST_PAUSE`.
+  // See intrinsic_proto.icon.v1.BehaviorOverrideRequest.
+  optional ExpectedSignal behavior_override_request_pause_signal = 2;
+}
 
 message RealtimeControlConfig {
   // List of parts supported by this RealtimeControlManager, keyed by part name.
   map<string, intrinsic_proto.v1.RealtimePartConfig> parts_by_name = 1;
 
-  optional intrinsic_proto.icon.v1.HardwareInterface safety_hardware_interface =
-      2;
+  // Optional.
+  oneof behavior_control {
+    // DEPRECATED, use `safety_message_config` instead.
+    // Interface exposed by safety hardware used to request behaviors.
+    intrinsic_proto.icon.v1.HardwareInterface safety_hardware_interface = 2
+        [deprecated = true];
+    // Configuration of the SafetyMessageHandler.
+    // Can be used to inject special behaviors via digital input.
+    SafetyMessageHandlerConfig safety_message_handler_config = 3;
+  }
 }

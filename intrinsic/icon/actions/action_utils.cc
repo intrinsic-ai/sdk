@@ -101,5 +101,24 @@ absl::Status ActionSignatureBuilder::AddRealtimeSignal(
   return absl::OkStatus();
 }
 
+absl::Status ActionSignatureBuilder::AddSupportedBehaviorOverride(
+    intrinsic_proto::icon::v1::BehaviorOverrideRequest behavior_override,
+    intrinsic::SourceLocation loc) {
+  if (supported_behavior_overrides_.contains(behavior_override)) {
+    return absl::AlreadyExistsError(
+        absl::StrCat(loc.file_name(), ":", loc.line(),
+                     " Duplicate supported BehaviorOverrideRequest \"",
+                     intrinsic_proto::icon::v1::BehaviorOverrideRequest_Name(
+                         behavior_override),
+                     "\""));
+  }
+  // Add the new override to the repeated field.
+  signature_.add_supported_behavior_overrides(behavior_override);
+
+  // Store the override to check for duplicates later.
+  supported_behavior_overrides_.insert(behavior_override);
+  return absl::OkStatus();
+}
+
 }  // namespace icon
 }  // namespace intrinsic

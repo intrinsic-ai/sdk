@@ -162,6 +162,16 @@ class ActionSignatureBuilder {
       absl::string_view signal_name, absl::string_view signal_description,
       intrinsic::SourceLocation loc = intrinsic::SourceLocation::current());
 
+  // Adds a BehaviorOverrideCapability to the action.
+  // Supported Behaviors can be requested by the framework at any time during
+  // realtime execution.
+  // The action is expected to resume once the request is done.
+  //
+  // Returns AlreadyExistsError if a supported `behavior` is already registered.
+  absl::Status AddSupportedBehaviorOverride(
+      intrinsic_proto::icon::v1::BehaviorOverrideRequest behavior_override,
+      intrinsic::SourceLocation loc = intrinsic::SourceLocation::current());
+
   intrinsic_proto::icon::v1::ActionSignature Finish() const {
     return signature_;
   }
@@ -180,6 +190,8 @@ class ActionSignatureBuilder {
   absl::flat_hash_set<std::string> state_variable_names_;
   absl::flat_hash_set<std::string> part_slot_names_;
   absl::flat_hash_set<std::string> realtime_signal_names_;
+  absl::flat_hash_set<intrinsic_proto::icon::v1::BehaviorOverrideRequest>
+      supported_behavior_overrides_;
 };
 
 }  // namespace icon

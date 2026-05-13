@@ -60,7 +60,7 @@ enum InputStatusIndex : ubyte {
   PROTECTIVE_STOP = 16,
 }
 
-// Enum encoding the behavior that the safety system requests from ICON.
+// Enum encoding the behavior that the safety system requests from the robot control framework.
 enum RequestedBehavior : byte {
   // We don't (yet) know if any behavior is requested.
   UNKNOWN = 0,
@@ -83,6 +83,13 @@ enum RequestedBehavior : byte {
   // SS0: The robot is performing a hardware stop maneuver, aka STO (Safe Torque
   // Off)/SBC (Safe Brake Control).
   SAFE_STOP_0 = 4,
+
+  // The robot control framework is requested to pause motion. This is not
+  // enforced by the robot or safety system.
+  // The robot control framework will automatically resume motion once the
+  // behavior is not requested anymore.
+  // A pause request is overwritten by all `SAFE_STOP_...` requests.
+  PAUSE = 5,
 
 }
 

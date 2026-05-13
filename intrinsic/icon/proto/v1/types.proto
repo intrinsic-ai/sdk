@@ -149,6 +149,10 @@ message ActionSignature {
   // one via realtime reactions.
   repeated RealtimeSignalInfo realtime_signal_infos = 10;
 
+  // List of `BehaviorOverride`s that can be sent to the action to trigger
+  // special behavior.
+  repeated BehaviorOverrideRequest supported_behavior_overrides = 11;
+
   reserved 6;
 }
 
@@ -393,4 +397,22 @@ enum FeatureInterfaceTypes {
   FEATURE_INTERFACE_PAYLOAD_STATE = 24;
   FEATURE_INTERFACE_CARTESIAN_POSITION_STATE = 25;
   FEATURE_INTERFACE_HOMING = 26;
+}
+
+// Behavior overrides as desigend in go/intrinsic-icon-safety-scanner-support.
+// The supported behavior overrides declared using the ActionSignature are used
+// by RTCL to temporarily request special behavior by an action.
+// RTCL takes care to only request supported behaviors and stops the action if
+// no acceptable behavior is supported.
+// The enum is used for both, the override request and for registering supported
+// override behaviors.
+//
+// Enum values need to stay consecutive, because they are used as indices.
+enum BehaviorOverrideRequest {
+  // Indicates that no special behavior is requested.
+  // Can also indicate that the action did not register any capabilities.
+  // Is the default for proto access.
+  BEHAVIOR_OVERRIDE_REQUEST_UNKNOWN = 0;
+  // Indicates that the action supports Pausing and Resuming.
+  BEHAVIOR_OVERRIDE_REQUEST_PAUSE = 1;
 }
