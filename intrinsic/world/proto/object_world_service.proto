@@ -509,7 +509,11 @@ message KinematicObjectComponent {
 // world APIs.
 //
 // Each world contains one special object - the root object (ObjectType==ROOT) -
-// which is always present and has no parent.
+// which is always present and has no parent. By convention, the root Object has
+// an empty root Entity with name "eid_root", which is the root Entity of the
+// world. The root Object may also have some number of frame Entities, which are
+// children of the eid_root Entity. These frames are considered free-floating
+// within the world.
 message Object {
   // Id of the world which the object is part of.
   string world_id = 1;
