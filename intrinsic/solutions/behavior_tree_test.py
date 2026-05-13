@@ -5056,6 +5056,7 @@ class BehaviorTreeDataTest(parameterized.TestCase):
         skill_utils.create_skill_registry_for_skill_info(skill_info),
         skill_utils.create_empty_resource_registry(),
         skill_utils.create_empty_installed_assets(),
+        skill_utils.create_asset_configuration_client(),
     )
 
     test_msg = (
@@ -5101,6 +5102,7 @@ class BehaviorTreeDataTest(parameterized.TestCase):
         skill_utils.create_skill_registry_for_skill_info(skill_info),
         skill_utils.create_empty_resource_registry(),
         skill_utils.create_empty_installed_assets(),
+        skill_utils.create_asset_configuration_client(),
     )
 
     node = bt.Data(name='foo')

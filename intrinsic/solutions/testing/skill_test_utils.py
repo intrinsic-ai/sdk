@@ -12,6 +12,7 @@ from google.protobuf import message
 from google.protobuf import text_format
 
 from intrinsic.assets import id_utils
+from intrinsic.assets.configuration import asset_configuration_client
 from intrinsic.assets.install import installed_assets_client
 from intrinsic.assets.processes.proto import process_asset_pb2
 from intrinsic.assets.proto import asset_tag_pb2
@@ -19,6 +20,7 @@ from intrinsic.assets.proto import asset_type_pb2
 from intrinsic.assets.proto import id_pb2
 from intrinsic.assets.proto import installed_assets_pb2
 from intrinsic.assets.proto import metadata_pb2
+from intrinsic.assets.proto.v1 import asset_configuration_pb2
 from intrinsic.executive.proto import behavior_tree_pb2
 from intrinsic.resources.client import resource_registry_client
 from intrinsic.resources.proto import resource_handle_pb2
@@ -425,3 +427,14 @@ class SkillTestUtils:
       The mock resource registry client.
     """
     return self.create_resource_registry_with_handles([])
+
+  def create_asset_configuration_client(
+      self,
+  ) -> asset_configuration_client.AssetConfigurationClient:
+    """Creates a client for the asset configuration service."""
+    stub = mock.MagicMock()
+    mock_response = (
+        asset_configuration_pb2.RecommendAssetConfigurationResponse()
+    )
+    stub.RecommendAssetConfiguration.return_value = mock_response
+    return asset_configuration_client.AssetConfigurationClient(stub)

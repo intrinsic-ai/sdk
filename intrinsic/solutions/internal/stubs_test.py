@@ -51,6 +51,7 @@ class StubsTest(absltest.TestCase):
         self._utils.create_skill_registry_for_skill_infos(skill_infos),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
 
@@ -117,6 +118,7 @@ class StubsTest(absltest.TestCase):
         self._utils.create_skill_registry_for_skill_infos([]),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
 
@@ -138,6 +140,7 @@ class StubsTest(absltest.TestCase):
         self._utils.create_skill_registry_for_skill_infos(skill_infos),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
 
@@ -163,6 +166,7 @@ class StubsTest(absltest.TestCase):
         self._utils.create_skill_registry_for_skill_infos(skill_infos),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
 
@@ -183,14 +187,14 @@ from intrinsic.solutions.internal import skill_generation\n*
 class skill_one\(skill_generation.GeneratedSkill\):
     """Skill class[^"]*ai.intr.skill_one[^"]*"""\n*
 
-    def __init__\(self\):
+    def __init__\(self, \*, _with_recommended_config: bool = ...\):
         """Initializes[^"]*ai.intr.skill_one[^"]*"""
         \.\.\.\n*
 
 class skill_two\(skill_generation.GeneratedSkill\):
     """Skill class[^"]*ai.intr.skill_two[^"]*"""\n*
 
-    def __init__\(self\):
+    def __init__\(self, \*, _with_recommended_config: bool = ...\):
         """Initializes[^"]*ai.intr.skill_two[^"]*"""
         \.\.\.''',
     )
@@ -205,6 +209,7 @@ class skill_two\(skill_generation.GeneratedSkill\):
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
 
@@ -235,30 +240,31 @@ class skill_two\(skill_generation.GeneratedSkill\):
         r"    def __init__\(\s*"
         r"self,\s*"
         r"\*,\s*"
-        r"required_double: float \| ParamAssignment,\s*"
-        r"required_message:"
-        r" \(?\s*my_skill.intrinsic_proto.stubs_test.EmptyMessage\s*\|"
-        r" ParamAssignment\s*\)?,\s*"
-        r"my_enum:"
-        r" \(?\s*my_skill.intrinsic_proto.stubs_test.BasicParams.MyEnum\s*\|"
-        r" ParamAssignment\s*\)?,\s*"
         r"my_double: float \| ParamAssignment \| None = ...,\s*"
         r"my_int: int \| ParamAssignment \| None = ...,\s*"
         r"my_bool: bool \| ParamAssignment \| None = ...,\s*"
         r"my_string: str \| ParamAssignment \| None = ...,\s*"
+        r"required_double: float \| ParamAssignment \| None = ...,\s*"
         r"repeated_double: \(?\s*Sequence\[float \| ParamAssignment] \|"
-        r" ParamAssignment\s*\)? = \[\],\s*"
+        r" ParamAssignment\s*\| None\s*\)? = ...,\s*"
+        r"required_message:"
+        r" \(?\s*my_skill.intrinsic_proto.stubs_test.EmptyMessage\s*\|"
+        r" ParamAssignment\s*\| None\s*\)? = ...,\s*"
         r"optional_message:"
         r" \(?\s*my_skill.intrinsic_proto.stubs_test.EmptyMessage\s*\|"
         r" ParamAssignment\s*\| None\s*\)? = ...,\s*"
         r"repeated_message:"
         r" \(?\s*Sequence\[\s*my_skill.intrinsic_proto.stubs_test.EmptyMessage\s*\|"
-        r" ParamAssignment\s*\]\s*\| ParamAssignment\s*\)? = \[\],\s*"
-        r"string_int_map: dict\[str, int\] \| ParamAssignment = \{\},\s*"
+        r" ParamAssignment\s*\]\s*\| ParamAssignment\s*\| None\s*\)? = ...,\s*"
+        r"string_int_map: dict\[str, int\] \| ParamAssignment \| None = ...,\s*"
         r"string_message_map: \(?\s*dict\[str,"
         r" my_skill.intrinsic_proto.stubs_test.EmptyMessage\]\s*\|"
-        r" ParamAssignment\s*\)? = \{\},\s*"
+        r" ParamAssignment\s*\| None\s*\)? = ...,\s*"
+        r"my_enum:"
+        r" \(?\s*my_skill.intrinsic_proto.stubs_test.BasicParams.MyEnum\s*\|"
+        r" ParamAssignment\s*\| None\s*\)? = ...,\s*"
         r"return_value_key: str \| None = ...,?\s*"
+        r"_with_recommended_config: bool = ...,?\s*"
         r"\):\s*"
         r'"""[^"]*Initializes[^"]*skill ai.intr.my_skill[^"]*"""\s*'
         r"\.\.\.",
@@ -273,6 +279,7 @@ class skill_two\(skill_generation.GeneratedSkill\):
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
 
@@ -309,12 +316,15 @@ class skill_two\(skill_generation.GeneratedSkill\):
         r"self,\s*"
         r"\*,\s*"
         r"duration: \(\s*datetime.timedelta\s*\| float\s*\| int\s*\|"
-        r" my_skill.google.protobuf.Duration\s*\| ParamAssignment\s*\),\s*"
-        r"pose: data_types.Pose3 \| my_skill.intrinsic_proto.Pose \|"
-        r" ParamAssignment,\s*"
+        r" my_skill.google.protobuf.Duration\s*\| ParamAssignment\s*\|"
+        r" None\s*\) ="
+        r" ...,\s*"
+        r"pose: \(\s*data_types.Pose3 \| my_skill.intrinsic_proto.Pose \|"
+        r" ParamAssignment \| None\s*\) = ...,\s*"
         r"object_reference: \(\s*object_world_resources.TransformNode\s*\|"
         r" my_skill.intrinsic_proto.world.ObjectReference\s*\|"
-        r" ParamAssignment\s*\),\s*"
+        r" ParamAssignment\s*\| None\s*\) = ...,\s*"
+        r"_with_recommended_config: bool = \.\.\.,?\s*"
         r"\):\s*"
         r'"""[^"]*Initializes[^"]*skill ai.intr.my_skill[^"]*"""\s*'
         r"\.\.\.",
@@ -329,6 +339,7 @@ class skill_two\(skill_generation.GeneratedSkill\):
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
 
@@ -389,6 +400,7 @@ class my_skill\(skill_generation.GeneratedSkill\):.*
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
 
@@ -446,6 +458,7 @@ class my_skill\(skill_generation.GeneratedSkill\):.*
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
 
@@ -480,29 +493,25 @@ class my_skill\(skill_generation.GeneratedSkill\):.*
                 def __init__\(\s*'''
         r"self,\s*"
         r"\*,\s*"
-        r"required_double: float \| ParamAssignment,\s*"
-        r"required_message:"
-        r" \(?\s*my_skill.intrinsic_proto.stubs_test.EmptyMessage\s*\|"
-        r" ParamAssignment\s*\)?,\s*"
-        r"my_enum:"
-        r" \(?\s*my_skill.intrinsic_proto.stubs_test.BasicParams.MyEnum\s*\|"
-        r" ParamAssignment\s*\)?,\s*"
         r"my_double: float \| ParamAssignment \| None = ...,\s*"
         r"my_int: int \| ParamAssignment \| None = ...,\s*"
         r"my_bool: bool \| ParamAssignment \| None = ...,\s*"
         r"my_string: str \| ParamAssignment \| None = ...,\s*"
-        r"repeated_double: \(?\s*Sequence\[float \| ParamAssignment] \|"
-        r" ParamAssignment\s*\)? = \[\],\s*"
-        r"optional_message:"
-        r" \(?\s*my_skill.intrinsic_proto.stubs_test.EmptyMessage\s*\|"
-        r" ParamAssignment\s*\| None\s*\)? = ...,\s*"
-        r"repeated_message:"
-        r" \(?\s*Sequence\[\s*my_skill.intrinsic_proto.stubs_test.EmptyMessage\s*\|"
-        r" ParamAssignment\s*\]\s*\| ParamAssignment\s*\)? = \[\],\s*"
-        r"string_int_map: dict\[str, int\] \| ParamAssignment = \{\},\s*"
-        r"string_message_map: \(?\s*dict\[str,"
-        r" my_skill.intrinsic_proto.stubs_test.EmptyMessage\]\s*\|"
-        r" ParamAssignment\s*\)? = \{\},?\s*"
+        r"required_double: float \| ParamAssignment \| None = ...,\s*"
+        r"repeated_double:\s*\(?\s*Sequence\[float\s*\|\s*ParamAssignment\]\s*\|"
+        r"\s*ParamAssignment\s*\|\s*None\s*\)?\s*=\s*...,\s*"
+        r"required_message:\s*\(?\s*my_skill.intrinsic_proto.stubs_test.EmptyMessage\s*\|"
+        r"\s*ParamAssignment\s*\|\s*None\s*\)?\s*=\s*...,\s*"
+        r"optional_message:\s*\(?\s*my_skill.intrinsic_proto.stubs_test.EmptyMessage\s*\|"
+        r"\s*ParamAssignment\s*\|\s*None\s*\)?\s*=\s*...,\s*"
+        r"repeated_message:\s*\(?\s*Sequence\[\s*my_skill.intrinsic_proto.stubs_test.EmptyMessage\s*\|"
+        r"\s*ParamAssignment\s*\]\s*\|\s*ParamAssignment\s*\|\s*None\s*\)?\s*=\s*...,\s*"
+        r"string_int_map:\s*\(?\s*dict\[str,\s*int\]\s*\|\s*ParamAssignment\s*\|\s*None\s*\)?\s*=\s*...,\s*"
+        r"string_message_map:\s*\(?\s*dict\[str,\s*my_skill.intrinsic_proto.stubs_test.EmptyMessage\]\s*\|"
+        r"\s*ParamAssignment\s*\|\s*None\s*\)?\s*=\s*...,\s*"
+        r"my_enum:"
+        r" \(?\s*my_skill.intrinsic_proto.stubs_test.BasicParams.MyEnum\s*\|"
+        r" ParamAssignment\s*\| None\s*\)? = ...,?\s*"
         r"\):\s*"
         r'"""[^"]*Initializes[^"]*intrinsic_proto.stubs_test.BasicParams[^"]*"""\s*'
         r"\.\.\.",
@@ -517,6 +526,7 @@ class my_skill\(skill_generation.GeneratedSkill\):.*
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
 
@@ -551,6 +561,7 @@ class my_skill\(skill_generation.GeneratedSkill\):.*
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
     other_skill_info = self._utils.create_test_skill_info(
         "ai.intr.my_skill",
@@ -560,6 +571,7 @@ class my_skill\(skill_generation.GeneratedSkill\):.*
         self._utils.create_skill_registry_for_skill_info(other_skill_info),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
 

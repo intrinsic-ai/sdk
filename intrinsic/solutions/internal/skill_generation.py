@@ -15,13 +15,17 @@ from typing import Optional
 from typing import Set
 from typing import Type
 import uuid
+import warnings
 
+from google.protobuf import any_pb2
 from google.protobuf import descriptor
 from google.protobuf import descriptor_pb2
 from google.protobuf import descriptor_pool
 from google.protobuf import message
+import grpc
 
 from intrinsic.assets import id_utils
+from intrinsic.assets.configuration import asset_configuration_client
 from intrinsic.executive.proto import behavior_call_pb2
 from intrinsic.skills.proto import skills_pb2
 from intrinsic.solutions import blackboard_value
@@ -243,18 +247,6 @@ class SkillInfoImpl(provided.SkillInfo):
     )
 
 
-def _get_param_defaults(info: provided.SkillInfo) -> message.Message | None:
-  """Extracts default parameter values from the skill description proto."""
-  if not info.skill_proto.HasField("parameter_description"):
-    return None
-
-  param_defaults = info.create_param_message()
-  if info.skill_proto.parameter_description.HasField("default_value"):
-    info.skill_proto.parameter_description.default_value.Unpack(param_defaults)
-
-  return param_defaults
-
-
 def _gen_class_docstring(info: provided.SkillInfo) -> str:
   """Generates the class docstring for a skill class.
 
@@ -286,7 +278,6 @@ def _gen_class_docstring(info: provided.SkillInfo) -> str:
 def _gen_init_docstring(
     info: provided.SkillInfo,
     compatible_resources: dict[str, provided.ResourceList],
-    param_defaults: Optional[message.Message],
 ) -> str:
   """Generates the __init__ docstring for a skill class.
 
@@ -295,7 +286,6 @@ def _gen_init_docstring(
     compatible_resources: Map from resource slot names to resources suitable for
       that slot. It is used to determine whether a default value can be assigned
       for resource parameters.
-    param_defaults: The skill's default parameters.
 
   Returns:
     The generated Python docstring.
@@ -311,9 +301,9 @@ def _gen_init_docstring(
   params: list[skill_utils.ParameterInformation] = []
   param_names: list[str] = []
 
-  if param_defaults is not None:
+  if info.skill_proto.HasField("parameter_description"):
     params = skill_utils.extract_docstring_from_message(
-        param_defaults, info.skill_proto.parameter_description
+        info.get_param_message_type(), info.skill_proto.parameter_description
     )
     param_names = [p.name for p in params]
 
@@ -376,8 +366,8 @@ def _gen_init_docstring(
     docstring.append("\nThis skill requires no resources.")
 
   # Generate actual docstring for arguments
+  docstring.append("\nArgs:")
   if params:
-    docstring.append("\nArgs:")
     params.sort(key=lambda p: (p.has_default, p.name, p.default, p.doc_string))
     for p in params:
       docstring.append(f"    {p.name}:")
@@ -387,6 +377,17 @@ def _gen_init_docstring(
           docstring.append(f"        {line}")
       if p.has_default:
         docstring.append(f"        Default value: {p.default}")
+
+  docstring.append("    _with_recommended_config:")
+  recommended_config_description = (
+      "Whether to update the parameters with the recommended configuration "
+      "for this Skill.\n**Warning**: This field will be removed in a future "
+      "release. Do not use this field in scripts."
+  )
+  for part in recommended_config_description.split("\n"):
+    for line in textwrap.wrap(part, 72):
+      docstring.append(f"        {line}")
+  docstring.append("        Default value: True")
 
   if return_values:
     docstring.append("\nReturns:")
@@ -404,7 +405,6 @@ def _gen_init_params(
     compatible_resources: dict[str, provided.ResourceList],
     wrapper_classes: dict[str, Type[skill_utils.MessageWrapper]],
     enum_classes: dict[str, Type[enum.IntEnum]],
-    param_defaults: message.Message | None,
 ) -> list[inspect.Parameter]:
   """Create argument typing information for a given skill info.
 
@@ -420,10 +420,9 @@ def _gen_init_params(
     wrapper_classes: Map from proto message names to corresponding message
       wrapper classes.
     enum_classes: Map from full enum names to corresponding enum classes.
-    param_defaults: The skill's default parameters.
 
   Returns:
-    A dict mapping from field name to pythonic type.
+    A list of inspect.Parameter objects for the skill constructor.
 
   Raises:
     NameError: a parameter name and resource name are the same and even
@@ -432,11 +431,9 @@ def _gen_init_params(
   params: list[inspect.Parameter] = []
   param_names: list[str] = []
 
-  if param_defaults is not None:
-    # Extract those fields from the default parameter proto which may contain
-    # actual default values.
+  if info.skill_proto.HasField("parameter_description"):
     param_info = skill_utils.extract_parameter_information_from_message(
-        param_defaults,
+        info.get_param_message_type(),
         info.skill_proto.parameter_description,
         wrapper_classes,
         enum_classes,
@@ -476,6 +473,15 @@ def _gen_init_params(
         )
     )
 
+  params.append(
+      inspect.Parameter(
+          name="_with_recommended_config",
+          kind=inspect.Parameter.KEYWORD_ONLY,
+          default=True,
+          annotation=bool,
+      )
+  )
+
   # Sort items without default arguments before the ones with defaults.
   # This is required to generate valid function signatures.
   params.sort(key=lambda f: f.default == inspect.Parameter.empty, reverse=True)
@@ -504,22 +510,60 @@ def _gen_init_fun(
     derivative.
   """
 
+  param_defaults = None
+  if info.skill_proto.HasField("parameter_description"):
+    param_defaults = info.create_param_message()
+    if info.skill_proto.parameter_description.HasField("default_value"):
+      info.skill_proto.parameter_description.default_value.Unpack(
+          param_defaults
+      )
+
+  is_process = info.skill_proto.HasField("behavior_tree_description")
+
   def new_init_fun(self, **kwargs):
-    # We disable the warning because we are generating a sub-class function that
-    # can actually access the protected method.
     GeneratedSkill.__init__(self)
     self._resources: ResourceMap = {}
-    params_set = self._set_params(**kwargs)  # pylint: disable=protected-access
-    resource_set = self._set_resources(**kwargs)  # pylint: disable=protected-access
-    return_value_key_set = self._set_return_value_key(**kwargs)  # pylint: disable=protected-access
+
+    _with_recommended_config = kwargs.pop("_with_recommended_config", True)
+
+    if param_defaults is not None:
+      self._param_message = self._info.create_param_message()
+      self._param_message.CopyFrom(param_defaults)
+
+    if (
+        not is_process
+        and _with_recommended_config
+        and self._param_message is not None
+    ):
+      input_config = any_pb2.Any()
+      input_config.Pack(self._param_message)
+      try:
+        recommended_config = (
+            self._asset_config_client.recommend_asset_configuration(
+                name=self._info.id, input_configuration=input_config
+            )
+        )
+        if recommended_config.HasField("config"):
+          recommended_config.config.Unpack(self._param_message)
+      except grpc.RpcError as e:
+        if e.code() == grpc.StatusCode.NOT_FOUND:
+          warnings.warn(
+              f"Could not get recommended parameters for '{self._info.id}': "
+              f"{e.details()}. This may occur if the Skill is not installed.",
+              RuntimeWarning,
+          )
+        else:
+          raise
+
+    params_set = self._set_params(**kwargs)
+    resource_set = self._set_resources(**kwargs)
+    return_value_key_set = self._set_return_value_key(**kwargs)
     # Arguments which are neither skill param, resources nor return_value_key
     extra_args_set = set(kwargs.keys()) - set(
         params_set + resource_set + return_value_key_set
     )
     if extra_args_set:
       raise NameError(f"Unknown argument(s): {', '.join(extra_args_set)}")
-
-  param_defaults = _get_param_defaults(info)
 
   params = [
       inspect.Parameter(
@@ -528,15 +572,13 @@ def _gen_init_fun(
           annotation="Skill_" + info.skill_name,
       )
   ] + _gen_init_params(
-      info, compatible_resources, wrapper_classes, enum_classes, param_defaults
+      info, compatible_resources, wrapper_classes, enum_classes
   )
   new_init_fun.__signature__ = inspect.Signature(params)
   new_init_fun.__annotations__ = collections.OrderedDict(
       [(p.name, p.annotation) for p in params]
   )
-  new_init_fun.__doc__ = _gen_init_docstring(
-      info, compatible_resources, param_defaults
-  )
+  new_init_fun.__doc__ = _gen_init_docstring(info, compatible_resources)
 
   return new_init_fun
 
@@ -544,6 +586,7 @@ def _gen_init_fun(
 def gen_skill_class(
     info: provided.SkillInfo,
     compatible_resources: dict[str, provided.ResourceList],
+    asset_config_client: asset_configuration_client.AssetConfigurationClient,
 ) -> Type[Any]:
   """This generates a new skill wrapper class type.
 
@@ -557,6 +600,8 @@ def gen_skill_class(
   Args:
     info: Skill information.
     compatible_resources: Map with compatible resources.
+    asset_config_client: Asset configuration client to fetch dynamic
+      evaluated defaults recommendations.
 
   Returns:
     A new type for a GeneratedSkill sub-class.
@@ -587,6 +632,7 @@ def gen_skill_class(
           "_compatible_resources": provided.SkillCompatibleResourcesMap(
               compatible_resources
           ),
+          "_asset_config_client": asset_config_client,
           # We use the __init__ documentation because that is shown in the
           # auto-completion tooltip, not __init__.__doc__.
           "__doc__": _gen_class_docstring(info),
@@ -745,16 +791,16 @@ class GeneratedSkill(provided.SkillBase):
     """
     params_set = []
 
-    if self._info.skill_proto.HasField("parameter_description"):
-      default_message = _get_param_defaults(self._info)
-
-      self._param_message = self._info.create_param_message()
-      if default_message:
-        self._param_message.CopyFrom(default_message)
-
+    if self._param_message is not None:
       fields = {}
       for param_name, value in kwargs.items():
         if param_name in self._param_message.DESCRIPTOR.fields_by_name:
+          # Mark None values as recognized, since Skill parameters in the
+          # constructor can be initialized with None.
+          if value is None:
+            params_set.append(param_name)
+            continue
+
           if isinstance(value, blackboard_value.BlackboardValue):
             self._blackboard_params[param_name] = value.value_access_path()
             continue
@@ -805,7 +851,12 @@ class GeneratedSkill(provided.SkillBase):
                   f"Cannot set field {param_name} to dict, not a map field"
               )
 
-      params_set = skill_utils.set_fields_in_msg(self._param_message, fields)
+      applied_params = skill_utils.set_fields_in_msg(
+          self._param_message, fields
+      )
+      # Extend params_set rather than overwriting it. This preserves any None
+      # valued parameters that were registered as recognized in the loop above.
+      params_set.extend(applied_params)
       params_set.extend(self._blackboard_params.keys())
 
     return params_set

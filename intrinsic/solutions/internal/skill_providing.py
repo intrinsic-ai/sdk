@@ -9,6 +9,7 @@ from typing import Iterable
 from typing import Type
 from typing import Union
 
+from intrinsic.assets.configuration import asset_configuration_client
 from intrinsic.assets.install import installed_assets_client
 from intrinsic.assets.proto import asset_tag_pb2
 from intrinsic.assets.proto import asset_type_pb2
@@ -30,6 +31,7 @@ def _create_skill_packages(
     relative_child_package_names: set[str],
     skill_infos: list[skill_generation.SkillInfoImpl],
     compatible_resources_by_id: dict[str, dict[str, provided.ResourceList]],
+    asset_config_client: asset_configuration_client.AssetConfigurationClient,
 ) -> dict[str, _SkillPackageImpl]:
   """Recursively creates a hierarchy of skill packages.
 
@@ -63,6 +65,7 @@ def _create_skill_packages(
         relative_child_package_names_of_child,
         skill_infos,
         compatible_resources_by_id,
+        asset_config_client,
     )
 
   return skill_packages
@@ -87,6 +90,7 @@ class _SkillPackageImpl(provided.SkillPackage):
       relative_child_package_names: set[str],
       skill_infos: list[skill_generation.SkillInfoImpl],
       compatible_resources_by_id: dict[str, dict[str, provided.ResourceList]],
+      asset_config_client: asset_configuration_client.AssetConfigurationClient,
   ):
     """Creates a new skills package including all child packages.
 
@@ -101,6 +105,7 @@ class _SkillPackageImpl(provided.SkillPackage):
     """
 
     self._package_name = package_name
+    self._asset_config_client = asset_config_client
     self._skills_by_name = {
         info.skill_name: info
         for info in skill_infos
@@ -116,6 +121,7 @@ class _SkillPackageImpl(provided.SkillPackage):
         relative_child_package_names,
         skill_infos,
         compatible_resources_by_id,
+        asset_config_client,
     )
 
   @property
@@ -140,6 +146,7 @@ class _SkillPackageImpl(provided.SkillPackage):
       self._skill_type_classes_by_name[name] = skill_generation.gen_skill_class(
           self._skills_by_name[name],
           self._compatible_resources_by_name[name],
+          self._asset_config_client,
       )
     return self._skill_type_classes_by_name[name]
 
@@ -175,10 +182,12 @@ class Skills(providers.SkillProvider):
       skill_registry: skill_registry_client.SkillRegistryClient,
       resource_registry: resource_registry_client.ResourceRegistryClient,
       installed_assets: installed_assets_client.InstalledAssetsClient,
+      asset_config_client: asset_configuration_client.AssetConfigurationClient,
   ):
     self._skill_registry = skill_registry
     self._resource_registry = resource_registry
     self._installed_assets = installed_assets
+    self._asset_config_client = asset_config_client
 
     self._skills_by_id = {}
     self._skill_type_classes_by_id = {}
@@ -248,7 +257,11 @@ class Skills(providers.SkillProvider):
         if (package_name := info.package_name)
     }
     self._skill_packages = _create_skill_packages(
-        "", package_names, skill_infos, self._compatible_resources_by_id
+        "",
+        package_names,
+        skill_infos,
+        self._compatible_resources_by_id,
+        self._asset_config_client,
     )
 
   def __getattr__(self, name: str) -> Union[Type[Any], provided.SkillPackage]:
@@ -268,6 +281,7 @@ class Skills(providers.SkillProvider):
           skill_generation.gen_skill_class(
               self._global_skills_by_name[name],
               self._global_compatible_resources_by_name[name],
+              self._asset_config_client,
           )
       )
     return self._global_skill_type_classes_by_name[name]
@@ -287,6 +301,7 @@ class Skills(providers.SkillProvider):
             skill_generation.gen_skill_class(
                 self._skills_by_id[skill_id],
                 self._compatible_resources_by_id[skill_id],
+                self._asset_config_client,
             )
         )
       return self._skill_type_classes_by_id[skill_id]
@@ -322,6 +337,7 @@ class Skills(providers.SkillProvider):
             skill_generation.gen_skill_class(
                 self._skills_by_id[skill_id],
                 self._compatible_resources_by_id[skill_id],
+                self._asset_config_client,
             )
         )
 

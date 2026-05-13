@@ -166,8 +166,7 @@ py_test(
     ],
     deps = [
         ":skill_parameters",
-        "//intrinsic/math/python:data_types",
-        "//intrinsic/math/python:proto_conversion",
+        "//intrinsic/assets/configuration:asset_configuration_client",
         "//intrinsic/solutions/testing:skill_test_utils",
         "//intrinsic/solutions/testing:test_skill_params_py_pb2",
         "//intrinsic/util/path_resolver:path_resolver_py",
@@ -231,6 +230,7 @@ py_library(
     deps = [
         ":skill_utils",
         "//intrinsic/assets:id_utils_py",
+        "//intrinsic/assets/configuration:asset_configuration_client",
         "//intrinsic/executive/proto:behavior_call_py_pb2",
         "//intrinsic/skills/proto:skills_py_pb2",
         "//intrinsic/solutions:blackboard_value",

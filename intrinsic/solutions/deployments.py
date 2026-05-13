@@ -24,6 +24,7 @@ import warnings
 
 import grpc
 
+from intrinsic.assets.configuration import asset_configuration_client
 from intrinsic.assets.install import installed_assets_client
 from intrinsic.frontend.solution_service.proto import solution_service_pb2
 from intrinsic.frontend.solution_service.proto import solution_service_pb2_grpc
@@ -129,6 +130,7 @@ class Solution:
       simulator: simulation.Simulation | None,
       errors: error_processing.ErrorsLoader,
       pose_estimators: pose_estimation.PoseEstimators | None,
+      asset_config_client: asset_configuration_client.AssetConfigurationClient,
       pbt_registry: pbt_registration.BehaviorTreeRegistry | None = None,
       proto_builder: proto_building.ProtoBuilder | None = None,
       proto_registry: proto_registry_client.ProtoRegistryClient | None = None,
@@ -142,6 +144,7 @@ class Solution:
     self._resource_registry = resource_registry
     self.resources = resources_mod.Resources(self._resource_registry)
 
+    self._asset_config_client = asset_config_client
     self.world: worlds.ObjectWorld = object_world
     self.simulator: simulation.Simulation | None = simulator
 
@@ -150,7 +153,10 @@ class Solution:
     )
 
     self.skills = skill_providing.Skills(
-        self._skill_registry, self._resource_registry, installed_assets
+        self._skill_registry,
+        self._resource_registry,
+        installed_assets,
+        self._asset_config_client,
     )
 
     self.pose_estimators = pose_estimators
@@ -218,6 +224,11 @@ class Solution:
         installed_assets_client.InstalledAssetsClient.from_channel(grpc_channel)
     )
 
+    asset_config_client = (
+        asset_configuration_client.AssetConfigurationClient.from_channel(
+            grpc_channel
+        )
+    )
     pose_estimators = pose_estimation.PoseEstimators(
         installed_assets,
     )
@@ -243,6 +254,7 @@ class Solution:
         simulator,
         error_loader,
         pose_estimators,
+        asset_config_client,
         pbt_registry,
         proto_builder,
         proto_registry,

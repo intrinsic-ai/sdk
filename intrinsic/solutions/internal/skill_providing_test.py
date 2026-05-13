@@ -11,10 +11,13 @@ from absl.testing import parameterized
 from google.protobuf import descriptor_pb2
 from google.protobuf import empty_pb2
 from google.protobuf import text_format
+import grpc
 
+from intrinsic.assets.configuration import asset_configuration_client
 from intrinsic.assets.proto import asset_tag_pb2
 from intrinsic.assets.proto import asset_type_pb2
 from intrinsic.assets.proto import view_pb2
+from intrinsic.assets.proto.v1 import asset_configuration_pb2
 from intrinsic.executive.proto import behavior_call_pb2
 from intrinsic.executive.proto import test_message_pb2
 from intrinsic.math.proto import point_pb2
@@ -184,6 +187,7 @@ class SkillsTest(parameterized.TestCase):
         skill_registry,
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     with self.assertRaises(TypeError):
@@ -199,7 +203,12 @@ class SkillsTest(parameterized.TestCase):
     ]
     resource_registry = mock.MagicMock()
 
-    skill_providing.Skills(skill_registry, resource_registry, installed_assets)
+    skill_providing.Skills(
+        skill_registry,
+        resource_registry,
+        installed_assets,
+        self._utils.create_asset_configuration_client(),
+    )
 
     installed_assets.list_all_installed_assets.assert_called_once_with(
         asset_types=[asset_type_pb2.AssetType.ASSET_TYPE_PROCESS],
@@ -226,6 +235,7 @@ class SkillsTest(parameterized.TestCase):
         self._utils.create_skill_registry_for_skill_infos(registry_skills),
         self._utils.create_empty_resource_registry(),
         self._utils.create_installed_assets_for_skill_infos(asset_skills),
+        self._utils.create_asset_configuration_client(),
     )
 
     self.assertEqual(
@@ -266,6 +276,7 @@ class SkillsTest(parameterized.TestCase):
         self._utils.create_skill_registry_for_skill_infos(registry_skills),
         self._utils.create_empty_resource_registry(),
         self._utils.create_installed_assets_for_skill_infos(asset_skills),
+        self._utils.create_asset_configuration_client(),
     )
 
     # Id notation: skills.<skill_id>
@@ -310,6 +321,7 @@ class SkillsTest(parameterized.TestCase):
         self._utils.create_skill_registry_for_skill_infos(skill_infos),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     self.assertIsInstance(
@@ -333,6 +345,7 @@ class SkillsTest(parameterized.TestCase):
         self._utils.create_skill_registry_for_skill_infos([registry_skill]),
         self._utils.create_empty_resource_registry(),
         self._utils.create_installed_assets_for_skill_infos([asset_skill]),
+        self._utils.create_asset_configuration_client(),
     )
 
     self.assertEqual(skills.ai.intr.same_name.info.skill_name, 'asset skill')
@@ -351,6 +364,7 @@ class SkillsTest(parameterized.TestCase):
         self._utils.create_skill_registry_for_skill_infos(registry_skills),
         self._utils.create_empty_resource_registry(),
         self._utils.create_installed_assets_for_skill_infos(asset_skills),
+        self._utils.create_asset_configuration_client(),
     )
 
     self.assertIsInstance(
@@ -382,6 +396,7 @@ class SkillsTest(parameterized.TestCase):
         self._utils.create_skill_registry_for_skill_infos(registry_skills),
         self._utils.create_empty_resource_registry(),
         self._utils.create_installed_assets_for_skill_infos(asset_skills),
+        self._utils.create_asset_configuration_client(),
     )
 
     skill_ids = skills.get_skill_ids()
@@ -409,6 +424,7 @@ class SkillsTest(parameterized.TestCase):
         self._utils.create_skill_registry_for_skill_infos(registry_skills),
         self._utils.create_empty_resource_registry(),
         self._utils.create_installed_assets_for_skill_infos(asset_skills),
+        self._utils.create_asset_configuration_client(),
     )
 
     skill_classes = skills.get_skill_classes()
@@ -430,6 +446,7 @@ class SkillsTest(parameterized.TestCase):
         self._utils.create_skill_registry_for_skill_infos(registry_skills),
         self._utils.create_empty_resource_registry(),
         self._utils.create_installed_assets_for_skill_infos(asset_skills),
+        self._utils.create_asset_configuration_client(),
     )
 
     ids_and_classes = skills.get_skill_ids_and_classes()
@@ -462,6 +479,7 @@ class SkillsTest(parameterized.TestCase):
         self._utils.create_skill_registry_for_skill_infos(registry_skills),
         self._utils.create_empty_resource_registry(),
         self._utils.create_installed_assets_for_skill_infos(asset_skills),
+        self._utils.create_asset_configuration_client(),
     )
 
     self.assertEqual(
@@ -501,6 +519,7 @@ class SkillsTest(parameterized.TestCase):
         skill_registry,
         resource_registry,
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     expected_repeated_doubles = [2.1, 3.1]
@@ -598,6 +617,7 @@ class SkillsTest(parameterized.TestCase):
         skill_registry,
         resource_registry,
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     skill = skills.ai.intrinsic.my_skill(
@@ -674,6 +694,7 @@ class SkillsTest(parameterized.TestCase):
         skill_registry,
         resource_registry,
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     parameters = test_skill_params_pb2.TestMessage(
@@ -741,6 +762,7 @@ class SkillsTest(parameterized.TestCase):
         skill_registry,
         resource_registry,
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     skill = skills.ai.intrinsic.my_skill(
@@ -799,6 +821,7 @@ class SkillsTest(parameterized.TestCase):
         skill_registry,
         resource_registry,
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     my_skill = skills.ai.intrinsic.my_skill
@@ -972,6 +995,7 @@ class SkillsTest(parameterized.TestCase):
         skill_registry,
         resource_registry,
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     my_skill = skills.ai.intrinsic.my_skill
@@ -1024,6 +1048,7 @@ class SkillsTest(parameterized.TestCase):
         skill_registry,
         resource_registry,
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     expected_parameters = test_skill_params_pb2.TestMessage(
@@ -1062,6 +1087,7 @@ class SkillsTest(parameterized.TestCase):
         skill_registry,
         resource_registry,
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     expected_parameters = test_skill_params_pb2.TestMessage(
@@ -1114,6 +1140,7 @@ class SkillsTest(parameterized.TestCase):
         skill_registry,
         resource_registry,
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     expected_parameters = test_skill_params_pb2.TestMessage(
@@ -1147,6 +1174,7 @@ class SkillsTest(parameterized.TestCase):
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
     my_skill = skills.ai.intrinsic.my_skill
 
@@ -1183,6 +1211,7 @@ class SkillsTest(parameterized.TestCase):
         skill_registry,
         resource_registry,
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     with self.assertRaisesRegex(TypeError, 'Got set where expected dict'):
@@ -1215,6 +1244,7 @@ class SkillsTest(parameterized.TestCase):
         skill_registry,
         resource_registry,
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     with self.assertRaisesRegex(
@@ -1251,6 +1281,7 @@ class SkillsTest(parameterized.TestCase):
         skill_registry,
         resource_registry,
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     # Normal assignment to known field should work
@@ -1345,6 +1376,7 @@ class SkillsTest(parameterized.TestCase):
         skill_registry,
         resource_registry,
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     self.assertCountEqual(
@@ -1384,6 +1416,7 @@ class SkillsTest(parameterized.TestCase):
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     resource_a = provided.ResourceHandle.create('resource_a', ['some-type'])
@@ -1400,6 +1433,7 @@ class SkillsTest(parameterized.TestCase):
         self._utils.create_skill_registry_for_skill_infos(skill_infos),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     self.assertEqual(skills.ai.intrinsic.my_skill.__name__, 'my_skill')
@@ -1416,6 +1450,318 @@ class SkillsTest(parameterized.TestCase):
         'intrinsic.solutions.skills',
     )
 
+  def test_skill_uses_recommended_config(self):
+    skill_registry, skill_registry_stub = (
+        _create_skill_registry_with_mock_stub()
+    )
+    stub = mock.MagicMock()
+
+    skill_id = 'ai.intrinsic.my_skill'
+
+    parameter_defaults = test_skill_params_pb2.TestMessage(my_double=2.5)
+    skill_registry_stub.GetSkills.return_value = (
+        self._utils.create_get_skills_response(
+            skill_id=skill_id,
+            parameter_defaults=parameter_defaults,
+        )
+    )
+
+    recommended_params = test_skill_params_pb2.TestMessage()
+    recommended_params.CopyFrom(parameter_defaults)
+    recommended_params.my_float = 99.9
+
+    mock_response = (
+        asset_configuration_pb2.RecommendAssetConfigurationResponse()
+    )
+    mock_response.config.Pack(recommended_params)
+    stub.RecommendAssetConfiguration.return_value = mock_response
+    asset_config_client = asset_configuration_client.AssetConfigurationClient(
+        stub
+    )
+
+    skills = skill_providing.Skills(
+        skill_registry,
+        self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
+        asset_config_client,
+    )
+
+    skill = skills.ai.intrinsic.my_skill()
+
+    expected_proto = behavior_call_pb2.BehaviorCall(
+        skill_id=skill_id, return_value_name=skill.proto.return_value_name
+    )
+    expected_proto.parameters.Pack(
+        recommended_params,
+        type_url_prefix='type.intrinsic.ai/assets/ai.intrinsic.my_skill',
+    )
+
+    compare.assertProto2Equal(self, expected_proto, skill.proto)
+
+  def test_skill_skips_recommended_config(self):
+    skill_registry, skill_registry_stub = (
+        _create_skill_registry_with_mock_stub()
+    )
+    stub = mock.MagicMock()
+
+    skill_id = 'ai.intrinsic.my_skill'
+
+    parameter_defaults = test_skill_params_pb2.TestMessage(my_double=2.5)
+    skill_registry_stub.GetSkills.return_value = (
+        self._utils.create_get_skills_response(
+            skill_id=skill_id,
+            parameter_defaults=parameter_defaults,
+        )
+    )
+
+    recommended_params = test_skill_params_pb2.TestMessage()
+    recommended_params.CopyFrom(parameter_defaults)
+    recommended_params.my_float = 99.9
+
+    mock_response = (
+        asset_configuration_pb2.RecommendAssetConfigurationResponse()
+    )
+    mock_response.config.Pack(recommended_params)
+    stub.RecommendAssetConfiguration.return_value = mock_response
+    asset_config_client = asset_configuration_client.AssetConfigurationClient(
+        stub
+    )
+
+    skills = skill_providing.Skills(
+        skill_registry,
+        self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
+        asset_config_client,
+    )
+
+    skill = skills.ai.intrinsic.my_skill(
+        _with_recommended_config=False,
+    )
+
+    stub.RecommendAssetConfiguration.assert_not_called()
+
+    expected_proto = behavior_call_pb2.BehaviorCall(
+        skill_id=skill_id, return_value_name=skill.proto.return_value_name
+    )
+    expected_proto.parameters.Pack(
+        parameter_defaults,
+        type_url_prefix='type.intrinsic.ai/assets/ai.intrinsic.my_skill',
+    )
+
+    compare.assertProto2Equal(self, expected_proto, skill.proto)
+
+  @parameterized.named_parameters(
+      {
+          'testcase_name': 'from_registry',
+          'is_legacy_pbt': True,
+      },
+      {
+          'testcase_name': 'from_installed_assets',
+          'is_legacy_pbt': False,
+      },
+  )
+  def test_process_skips_recommended_config(self, is_legacy_pbt):
+    stub = mock.MagicMock()
+
+    process_id = 'ai.intrinsic.my_process'
+
+    parameter_defaults = test_skill_params_pb2.TestMessage(my_double=2.5)
+    skill_info = self._utils.create_test_skill_info(
+        skill_id=process_id,
+        parameter_defaults=parameter_defaults,
+    )
+    skill_info.behavior_tree_description.SetInParent()
+
+    recommended_params = test_skill_params_pb2.TestMessage()
+    recommended_params.CopyFrom(parameter_defaults)
+    recommended_params.my_float = 99.9
+
+    mock_response = (
+        asset_configuration_pb2.RecommendAssetConfigurationResponse()
+    )
+    mock_response.config.Pack(recommended_params)
+    stub.RecommendAssetConfiguration.return_value = mock_response
+    asset_config_client = asset_configuration_client.AssetConfigurationClient(
+        stub
+    )
+
+    skill_registry = (
+        self._utils.create_skill_registry_for_skill_infos([skill_info])
+        if is_legacy_pbt
+        else self._utils.create_skill_registry_for_skill_infos([])
+    )
+    installed_assets = (
+        self._utils.create_empty_installed_assets()
+        if is_legacy_pbt
+        else self._utils.create_installed_assets_for_skill_infos([skill_info])
+    )
+
+    skills = skill_providing.Skills(
+        skill_registry,
+        self._utils.create_empty_resource_registry(),
+        installed_assets,
+        asset_config_client,
+    )
+
+    process = skills.ai.intrinsic.my_process()
+
+    stub.RecommendAssetConfiguration.assert_not_called()
+
+    expected_proto = behavior_call_pb2.BehaviorCall(
+        skill_id=process_id, return_value_name=process.proto.return_value_name
+    )
+
+    # Reasoning for this type URL area is explained here:
+    # https://github.com/intrinsic-ai/sdk/blob/fc73005c1488495a8a99fcb7ffc1dfb1be315bcd/intrinsic/solutions/internal/skill_providing.py#L352-L357
+    expected_type_url_area = (
+        skill_utils.INTRINSIC_TYPE_URL_AREA_SKILLS
+        if is_legacy_pbt
+        else skill_utils.INTRINSIC_TYPE_URL_AREA_ASSETS
+    )
+    expected_proto.parameters.Pack(
+        parameter_defaults,
+        type_url_prefix=(
+            f'type.intrinsic.ai/{expected_type_url_area}/{process_id}'
+        ),
+    )
+
+    compare.assertProto2Equal(self, expected_proto, process.proto)
+
+  def test_skill_recommended_config_unavailable(self):
+    class FakeUnavailableGrpcError(grpc.RpcError, grpc.Call):
+
+      def code(self) -> grpc.StatusCode:
+        return grpc.StatusCode.UNAVAILABLE
+
+      def details(self) -> str:
+        return 'Asset configuration service is temporarily down.'
+
+    skill_registry, skill_registry_stub = (
+        _create_skill_registry_with_mock_stub()
+    )
+    stub = mock.MagicMock()
+
+    skill_id = 'ai.intrinsic.my_skill'
+    parameter_defaults = test_skill_params_pb2.TestMessage(my_double=2.5)
+    skill_registry_stub.GetSkills.return_value = (
+        self._utils.create_get_skills_response(
+            skill_id=skill_id,
+            parameter_defaults=parameter_defaults,
+        )
+    )
+
+    stub.RecommendAssetConfiguration.side_effect = FakeUnavailableGrpcError()
+    asset_config_client = asset_configuration_client.AssetConfigurationClient(
+        stub
+    )
+
+    skills = skill_providing.Skills(
+        skill_registry,
+        self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
+        asset_config_client,
+    )
+
+    skill = skills.ai.intrinsic.my_skill()
+
+    expected_proto = behavior_call_pb2.BehaviorCall(
+        skill_id=skill_id, return_value_name=skill.proto.return_value_name
+    )
+    expected_proto.parameters.Pack(
+        parameter_defaults,
+        type_url_prefix='type.intrinsic.ai/assets/ai.intrinsic.my_skill',
+    )
+
+    compare.assertProto2Equal(self, expected_proto, skill.proto)
+
+  def test_skill_recommended_config_override_precedence(self):
+    skill_registry, skill_registry_stub = (
+        _create_skill_registry_with_mock_stub()
+    )
+    stub = mock.MagicMock()
+
+    skill_id = 'ai.intrinsic.my_skill'
+
+    # Parameter default in the proto definition
+    parameter_defaults = test_skill_params_pb2.TestMessage(
+        my_string='proto-default'
+    )
+    skill_registry_stub.GetSkills.return_value = (
+        self._utils.create_get_skills_response(
+            skill_id=skill_id,
+            parameter_defaults=parameter_defaults,
+        )
+    )
+
+    # Recommendation recommends a different value ('recommended-config')
+    recommended_params = test_skill_params_pb2.TestMessage(
+        my_string='recommended-config'
+    )
+
+    mock_response = (
+        asset_configuration_pb2.RecommendAssetConfigurationResponse()
+    )
+    mock_response.config.Pack(recommended_params)
+    stub.RecommendAssetConfiguration.return_value = mock_response
+    asset_config_client = asset_configuration_client.AssetConfigurationClient(
+        stub
+    )
+
+    skills = skill_providing.Skills(
+        skill_registry,
+        self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
+        asset_config_client,
+    )
+
+    # User overrides in the constructor to 'user-override'
+    skill = skills.ai.intrinsic.my_skill(
+        my_string='user-override',
+    )
+
+    expected_params = test_skill_params_pb2.TestMessage(
+        my_string='user-override'
+    )
+
+    expected_proto = behavior_call_pb2.BehaviorCall(
+        skill_id=skill_id, return_value_name=skill.proto.return_value_name
+    )
+    expected_proto.parameters.Pack(
+        expected_params,
+        type_url_prefix='type.intrinsic.ai/assets/ai.intrinsic.my_skill',
+    )
+
+    compare.assertProto2Equal(self, expected_proto, skill.proto)
+
+  def test_skill_constructor_fails_for_unknown_arguments(self):
+    skill_registry, skill_registry_stub = (
+        _create_skill_registry_with_mock_stub()
+    )
+    skill_id = 'ai.intrinsic.my_skill'
+    skill_registry_stub.GetSkills.return_value = (
+        self._utils.create_get_skills_response(
+            skill_id=skill_id,
+            parameter_defaults=test_skill_params_pb2.TestMessage(),
+        )
+    )
+
+    skills = skill_providing.Skills(
+        skill_registry,
+        self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
+    )
+
+    with self.assertRaisesRegex(
+        NameError, 'Unknown argument\(s\): key_that_does_not_exist'
+    ):
+      skills.ai.intrinsic.my_skill(key_that_does_not_exist=None)
+
+    with self.assertRaisesRegex(
+        NameError, 'Unknown argument\(s\): non_existent_key_with_non_none_value'
+    ):
+      skills.ai.intrinsic.my_skill(non_existent_key_with_non_none_value=42)
+
   def test_skill_signature_without_default_values(self):
     skill_info = self._utils.create_test_skill_info_with_return_value(
         skill_id='ai.intrinsic.my_skill',
@@ -1426,26 +1772,7 @@ class SkillsTest(parameterized.TestCase):
 
     # pyformat: disable
     expected_signature = (
-        '(*, sub_message:'
-        ' Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.SubMessage,'
-        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression], my_required_int32: Union[int,'
-        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression], pose:'
-        ' Union[intrinsic.math.python.pose3.Pose3,'
-        ' intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.Pose,'
-        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression], ros_pose:'
-        ' Union[intrinsic.math.python.pose3.Pose3,'
-        ' intrinsic.solutions.skills.ai.intrinsic.my_skill.geometry_msgs.msg.pb.jazzy.Pose,'
-        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression], executive_test_message:'
-        ' Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.executive.TestMessage,'
-        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression], non_unique_field_name:'
-        ' Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.TestMessage.SomeType,'
-        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression], my_double: Union[float,'
+        '(*, my_double: Union[float,'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
         ' intrinsic.solutions.cel.CelExpression, NoneType] = None, my_float:'
         ' Union[float, intrinsic.solutions.blackboard_value.BlackboardValue,'
@@ -1461,6 +1788,9 @@ class SkillsTest(parameterized.TestCase):
         ' Union[bool, intrinsic.solutions.blackboard_value.BlackboardValue,'
         ' intrinsic.solutions.cel.CelExpression, NoneType] = None, my_string:'
         ' Union[str, intrinsic.solutions.blackboard_value.BlackboardValue,'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None, sub_message:'
+        ' Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.SubMessage,'
+        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
         ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
         ' optional_sub_message:'
         ' Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.SubMessage,'
@@ -1470,16 +1800,29 @@ class SkillsTest(parameterized.TestCase):
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
         ' intrinsic.solutions.cel.CelExpression]],'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression] = [], repeated_submessages:'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
+        ' repeated_submessages:'
         ' Union[Sequence[Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.SubMessage,'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
         ' intrinsic.solutions.cel.CelExpression]],'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression] = [], my_oneof_double:'
-        ' Union[float, intrinsic.solutions.blackboard_value.BlackboardValue,'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
+        ' my_required_int32: Union[int,'
+        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
+        ' my_oneof_double: Union[float,'
+        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
         ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
         ' my_oneof_sub_message:'
         ' Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.SubMessage,'
+        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None, pose:'
+        ' Union[intrinsic.math.python.pose3.Pose3,'
+        ' intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.Pose,'
+        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None, ros_pose:'
+        ' Union[intrinsic.math.python.pose3.Pose3,'
+        ' intrinsic.solutions.skills.ai.intrinsic.my_skill.geometry_msgs.msg.pb.jazzy.Pose,'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
         ' intrinsic.solutions.cel.CelExpression, NoneType] = None, foo:'
         ' Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.TestMessage.Foo,'
@@ -1490,15 +1833,24 @@ class SkillsTest(parameterized.TestCase):
         ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
         ' string_int32_map: Union[dict[str, int],'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression] = {}, int32_string_map:'
-        ' Union[dict[int, str],'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
+        ' int32_string_map: Union[dict[int, str],'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression] = {}, string_message_map:'
-        ' Union[dict[str,'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
+        ' string_message_map: Union[dict[str,'
         ' intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.TestMessage.MessageMapValue],'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression] = {}, return_value_key:'
-        ' Optional[str] = None)'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
+        ' executive_test_message:'
+        ' Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.executive.TestMessage,'
+        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
+        ' non_unique_field_name:'
+        ' Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.TestMessage.SomeType,'
+        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
+        ' return_value_key: Optional[str] = None, _with_recommended_config:'
+        ' bool = True)'
     )
     # pyformat: enable
 
@@ -1506,6 +1858,7 @@ class SkillsTest(parameterized.TestCase):
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     my_skill = skills.ai.intrinsic.my_skill(**parameters)
@@ -1521,7 +1874,8 @@ class SkillsTest(parameterized.TestCase):
               '(*, param_pose: Union[intrinsic.math.python.pose3.Pose3,'
               ' intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.Pose,'
               ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-              ' intrinsic.solutions.cel.CelExpression, NoneType] = None)'
+              ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
+              ' _with_recommended_config: bool = True)'
               # pyformat: enable
           ),
       },
@@ -1534,7 +1888,8 @@ class SkillsTest(parameterized.TestCase):
               ' Union[intrinsic.world.python.object_world_resources.JointConfiguration,'
               ' intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.icon.JointVec,'
               ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-              ' intrinsic.solutions.cel.CelExpression, NoneType] = None)'
+              ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
+              ' _with_recommended_config: bool = True)'
               # pyformat: enable
           ),
       },
@@ -1547,7 +1902,8 @@ class SkillsTest(parameterized.TestCase):
               ' Union[intrinsic.solutions.worlds.CollisionSettings,'
               ' intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.world.CollisionSettings,'
               ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-              ' intrinsic.solutions.cel.CelExpression, NoneType] = None)'
+              ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
+              ' _with_recommended_config: bool = True)'
               # pyformat: enable
           ),
       },
@@ -1562,7 +1918,8 @@ class SkillsTest(parameterized.TestCase):
               ' Union[intrinsic.solutions.worlds.CartesianMotionTarget,'
               ' intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.motion_planning.CartesianMotionTarget,'
               ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-              ' intrinsic.solutions.cel.CelExpression, NoneType] = None)'
+              ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
+              ' _with_recommended_config: bool = True)'
               # pyformat: enable
           ),
       },
@@ -1574,7 +1931,8 @@ class SkillsTest(parameterized.TestCase):
               '(*, param_duration: Union[datetime.timedelta, float, int,'
               ' intrinsic.solutions.skills.ai.intrinsic.my_skill.google.protobuf.Duration,'
               ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-              ' intrinsic.solutions.cel.CelExpression, NoneType] = None)'
+              ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
+              ' _with_recommended_config: bool = True)'
               # pyformat: enable
           ),
       },
@@ -1602,7 +1960,8 @@ class SkillsTest(parameterized.TestCase):
               ' Union[intrinsic.world.python.object_world_resources.WorldObject,'
               ' intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.world.ObjectOrEntityReference,'
               ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-              ' intrinsic.solutions.cel.CelExpression, NoneType] = None)'
+              ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
+              ' _with_recommended_config: bool = True)'
               # pyformat: enable
           ),
       },
@@ -1615,7 +1974,8 @@ class SkillsTest(parameterized.TestCase):
               ' Union[intrinsic.solutions.pose_estimation.PoseEstimatorId,'
               ' intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.perception.v1.PoseEstimatorId,'
               ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-              ' intrinsic.solutions.cel.CelExpression, NoneType] = None)'
+              ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
+              ' _with_recommended_config: bool = True)'
               # pyformat: enable
           ),
       },
@@ -1632,6 +1992,7 @@ class SkillsTest(parameterized.TestCase):
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     my_skill = skills.ai.intrinsic.my_skill
@@ -1649,6 +2010,7 @@ class SkillsTest(parameterized.TestCase):
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     my_skill = skills.ai.intrinsic.my_skill()
@@ -1658,44 +2020,45 @@ class SkillsTest(parameterized.TestCase):
     expected_signature = (
         '(*, my_double: Union[float,'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression] = 2.5, my_float: Union[float,'
-        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression] = -1.5, my_int32: Union[int,'
-        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression] = 5, my_int64: Union[int,'
-        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression] = 9, my_uint32: Union[int,'
-        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression] = 11, my_uint64: Union[int,'
-        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression] = 21, my_bool: Union[bool,'
-        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression] = False, my_string: Union[str,'
-        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        " intrinsic.solutions.cel.CelExpression] = 'bar', sub_message:"
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None, my_float:'
+        ' Union[float, intrinsic.solutions.blackboard_value.BlackboardValue,'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None, my_int32:'
+        ' Union[int, intrinsic.solutions.blackboard_value.BlackboardValue,'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None, my_int64:'
+        ' Union[int, intrinsic.solutions.blackboard_value.BlackboardValue,'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None, my_uint32:'
+        ' Union[int, intrinsic.solutions.blackboard_value.BlackboardValue,'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None, my_uint64:'
+        ' Union[int, intrinsic.solutions.blackboard_value.BlackboardValue,'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None, my_bool:'
+        ' Union[bool, intrinsic.solutions.blackboard_value.BlackboardValue,'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None, my_string:'
+        ' Union[str, intrinsic.solutions.blackboard_value.BlackboardValue,'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None, sub_message:'
         ' Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.SubMessage,'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression] = name: "baz"\n,'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
         ' optional_sub_message:'
         ' Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.SubMessage,'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression] = name: "quz"\n,'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
         ' my_repeated_doubles: Union[Sequence[Union[float,'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
         ' intrinsic.solutions.cel.CelExpression]],'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression] = [-5.5, 10.5],'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
         ' repeated_submessages:'
         ' Union[Sequence[Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.SubMessage,'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
         ' intrinsic.solutions.cel.CelExpression]],'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression] = [name: "foo"\n, name:'
-        ' "bar"\n], my_required_int32: Union[int,'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
+        ' my_required_int32: Union[int,'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression] = 42, my_oneof_double:'
-        ' Union[float, intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression, NoneType] = 1.5,'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
+        ' my_oneof_double: Union[float,'
+        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
         ' my_oneof_sub_message:'
         ' Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.SubMessage,'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
@@ -1703,40 +2066,36 @@ class SkillsTest(parameterized.TestCase):
         ' Union[intrinsic.math.python.pose3.Pose3,'
         ' intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.Pose,'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression] ='
-        ' Pose3(Rotation3(Quaternion([0.5, 0.5, 0.5, 0.5])),array([0., 0.,'
-        ' 0.])), ros_pose: Union[intrinsic.math.python.pose3.Pose3,'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None, ros_pose:'
+        ' Union[intrinsic.math.python.pose3.Pose3,'
         ' intrinsic.solutions.skills.ai.intrinsic.my_skill.geometry_msgs.msg.pb.jazzy.Pose,'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression] ='
-        ' Pose3(Rotation3(Quaternion([0.5, 0.5, 0.5, 0.5])),array([0., 0.,'
-        ' 0.])), foo:'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None, foo:'
         ' Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.TestMessage.Foo,'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression] = bar {\n  test: "test"\n}\n,'
-        ' enum_v:'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None, enum_v:'
         ' Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.TestMessage.TestEnum,'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression] = 3, string_int32_map:'
-        ' Union[dict[str, int],'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
+        ' string_int32_map: Union[dict[str, int],'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        " intrinsic.solutions.cel.CelExpression] = {'foo': 1},"
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
         ' int32_string_map: Union[dict[int, str],'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        " intrinsic.solutions.cel.CelExpression] = {3: 'foobar'},"
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
         ' string_message_map: Union[dict[str,'
         ' intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.TestMessage.MessageMapValue],'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression] = {\'bar\': value: "baz"\n},'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
         ' executive_test_message:'
         ' Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.executive.TestMessage,'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression] = int32_value: 123\n,'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
         ' non_unique_field_name:'
         ' Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.TestMessage.SomeType,'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression] = non_unique_field_name'
-        ' {\n}\n)'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
+        ' _with_recommended_config: bool = True)'
     )
     # pyformat: enable
     self.assertSignature(signature, expected_signature)
@@ -1758,6 +2117,7 @@ This is an awesome skill."""
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     self.assertEqual(skills.ai.intrinsic.my_skill.__doc__, docstring)
@@ -1791,90 +2151,62 @@ Args:
         Resource with capability some-type-a
     b:
         Resource with capability some-type-b
+    enum_v:
+        Mockup comment
+    executive_test_message:
+        Mockup comment
+    foo:
+        Mockup comment
+    int32_string_map:
+        Mockup comment
+    my_bool:
+        Mockup comment
+    my_double:
+        Mockup comment
+    my_float:
+        Mockup comment
+    my_int32:
+        Mockup comment
+    my_int64:
+        Mockup comment
+    my_oneof_double:
+        Mockup comment
     my_oneof_sub_message:
+        Mockup comment
+    my_repeated_doubles:
+        Mockup comment
+    my_required_int32:
+        Mockup comment
+    my_string:
+        Mockup comment
+    my_uint32:
+        Mockup comment
+    my_uint64:
+        Mockup comment
+    non_unique_field_name:
+        Mockup comment
+    optional_sub_message:
+        Mockup comment
+    pose:
+        Mockup comment
+    repeated_submessages:
         Mockup comment
     return_value_key:
         Blackboard key where to store the return value
-    enum_v:
-        Mockup comment
-        Default value: 3
-    executive_test_message:
-        Mockup comment
-        Default value: int32_value: 123
-
-    foo:
-        Mockup comment
-        Default value: bar {
-  test: "test"
-}
-
-    int32_string_map:
-        Mockup comment
-        Default value: {3: 'foobar'}
-    my_bool:
-        Mockup comment
-        Default value: False
-    my_double:
-        Mockup comment
-        Default value: 2.5
-    my_float:
-        Mockup comment
-        Default value: -1.5
-    my_int32:
-        Mockup comment
-        Default value: 5
-    my_int64:
-        Mockup comment
-        Default value: 9
-    my_oneof_double:
-        Mockup comment
-        Default value: 1.5
-    my_repeated_doubles:
-        Mockup comment
-        Default value: [-5.5, 10.5]
-    my_required_int32:
-        Mockup comment
-        Default value: 42
-    my_string:
-        Mockup comment
-        Default value: bar
-    my_uint32:
-        Mockup comment
-        Default value: 11
-    my_uint64:
-        Mockup comment
-        Default value: 21
-    non_unique_field_name:
-        Mockup comment
-        Default value: non_unique_field_name {
-}
-
-    optional_sub_message:
-        Mockup comment
-        Default value: name: "quz"
-
-    pose:
-        Mockup comment
-        Default value: Pose3(Rotation3([0.5i + 0.5j + 0.5k + 0.5]),[0. 0. 0.])
-    repeated_submessages:
-        Mockup comment
-        Default value: [name: "foo"
-, name: "bar"
-]
     ros_pose:
         Mockup comment
-        Default value: Pose3(Rotation3([0.5i + 0.5j + 0.5k + 0.5]),[0. 0. 0.])
     string_int32_map:
         Mockup comment
-        Default value: {'foo': 1}
     string_message_map:
         Mockup comment
-        Default value: {'bar': value: "baz"
-}
     sub_message:
         Mockup comment
-        Default value: name: "baz"
-
+    _with_recommended_config:
+        Whether to update the parameters with the recommended configuration for
+        this Skill.
+        **Warning**: This field will be removed in a future release. Do not use
+        this field in scripts.
+        Default value: True
 
 Returns:
     enum_v:
@@ -1930,6 +2262,7 @@ Returns:
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     self.assertEqual(skills.ai.intrinsic.my_skill.__init__.__doc__, docstring)
@@ -1978,6 +2311,7 @@ Returns:
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     resource_a = provided.ResourceHandle.create('resource_a', ['some-type-a'])
@@ -2016,6 +2350,7 @@ Returns:
         self._utils.create_skill_registry_for_skill_info(skill_info),
         resource_registry,
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     self.assertEqual(
@@ -2024,11 +2359,16 @@ Returns:
             Initializes an instance of the skill ai.intrinsic.my_skill.
 
             Args:
-                a_resource:
-                    Resource with capability some-type-a
                 a:
                     Mockup comment
-                    Default value: bar"""),
+                a_resource:
+                    Resource with capability some-type-a
+                _with_recommended_config:
+                    Whether to update the parameters with the recommended configuration for
+                    this Skill.
+                    **Warning**: This field will be removed in a future release. Do not use
+                    this field in scripts.
+                    Default value: True"""),
     )
 
     resource_a = provided.ResourceHandle.create('resource_a', ['some-type-a'])
@@ -2066,6 +2406,7 @@ Returns:
         self._utils.create_skill_registry_for_skill_info(skill_info),
         resource_registry,
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     self.assertEqual(
@@ -2076,7 +2417,13 @@ Returns:
       Args:
           a:
               Resource with capability some-type-a
-              Default resource: some-resource"""),
+              Default resource: some-resource
+          _with_recommended_config:
+              Whether to update the parameters with the recommended configuration for
+              this Skill.
+              **Warning**: This field will be removed in a future release. Do not use
+              this field in scripts.
+              Default value: True"""),
     )
 
     # Ensure that no "resource not found" exception is thrown
@@ -2108,6 +2455,7 @@ Returns:
         self._utils.create_skill_registry_for_skill_info(skill_info),
         resource_registry,
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     class BogusObject:
@@ -2126,6 +2474,7 @@ Returns:
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     skill = skills.ai.intrinsic.my_skill()
@@ -2157,6 +2506,7 @@ Returns:
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     sub_message = (
@@ -2185,6 +2535,7 @@ Returns:
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     sub_message = (
@@ -2282,6 +2633,7 @@ Returns:
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     parameters = {'my_float': 1.0, 'my_bool': True}
@@ -2321,6 +2673,7 @@ Returns:
         skill_registry,
         resource_registry,
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     parameters = test_skill_params_pb2.SubMessage(name='bar')
@@ -2343,6 +2696,7 @@ Returns:
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     my_skill = skills.ai.intrinsic.my_skill
@@ -2395,6 +2749,7 @@ Returns:
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     my_skill = skills.ai.intrinsic.my_skill
@@ -2447,6 +2802,7 @@ Returns:
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     self.assertEqual(
@@ -2532,6 +2888,7 @@ Fields:
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
     my_skill = skills.ai.intrinsic.my_skill
 
@@ -2548,26 +2905,7 @@ Fields:
 
     # pyformat: disable
     expected_signature = (
-        '(*, sub_message:'
-        ' Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.SubMessage,'
-        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression], my_required_int32: Union[int,'
-        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression], pose:'
-        ' Union[intrinsic.math.python.pose3.Pose3,'
-        ' intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.Pose,'
-        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression], ros_pose:'
-        ' Union[intrinsic.math.python.pose3.Pose3,'
-        ' intrinsic.solutions.skills.ai.intrinsic.my_skill.geometry_msgs.msg.pb.jazzy.Pose,'
-        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression], executive_test_message:'
-        ' Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.executive.TestMessage,'
-        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression], non_unique_field_name:'
-        ' Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.TestMessage.SomeType,'
-        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression], my_double: Union[float,'
+        '(*, my_double: Union[float,'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
         ' intrinsic.solutions.cel.CelExpression, NoneType] = None, my_float:'
         ' Union[float, intrinsic.solutions.blackboard_value.BlackboardValue,'
@@ -2583,6 +2921,9 @@ Fields:
         ' Union[bool, intrinsic.solutions.blackboard_value.BlackboardValue,'
         ' intrinsic.solutions.cel.CelExpression, NoneType] = None, my_string:'
         ' Union[str, intrinsic.solutions.blackboard_value.BlackboardValue,'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None, sub_message:'
+        ' Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.SubMessage,'
+        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
         ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
         ' optional_sub_message:'
         ' Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.SubMessage,'
@@ -2592,16 +2933,29 @@ Fields:
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
         ' intrinsic.solutions.cel.CelExpression]],'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression] = [], repeated_submessages:'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
+        ' repeated_submessages:'
         ' Union[Sequence[Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.SubMessage,'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
         ' intrinsic.solutions.cel.CelExpression]],'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression] = [], my_oneof_double:'
-        ' Union[float, intrinsic.solutions.blackboard_value.BlackboardValue,'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
+        ' my_required_int32: Union[int,'
+        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
+        ' my_oneof_double: Union[float,'
+        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
         ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
         ' my_oneof_sub_message:'
         ' Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.SubMessage,'
+        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None, pose:'
+        ' Union[intrinsic.math.python.pose3.Pose3,'
+        ' intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.Pose,'
+        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None, ros_pose:'
+        ' Union[intrinsic.math.python.pose3.Pose3,'
+        ' intrinsic.solutions.skills.ai.intrinsic.my_skill.geometry_msgs.msg.pb.jazzy.Pose,'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
         ' intrinsic.solutions.cel.CelExpression, NoneType] = None, foo:'
         ' Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.TestMessage.Foo,'
@@ -2612,14 +2966,22 @@ Fields:
         ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
         ' string_int32_map: Union[dict[str, int],'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression] = {}, int32_string_map:'
-        ' Union[dict[int, str],'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
+        ' int32_string_map: Union[dict[int, str],'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression] = {}, string_message_map:'
-        ' Union[dict[str,'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
+        ' string_message_map: Union[dict[str,'
         ' intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.TestMessage.MessageMapValue],'
         ' intrinsic.solutions.blackboard_value.BlackboardValue,'
-        ' intrinsic.solutions.cel.CelExpression] = {})'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
+        ' executive_test_message:'
+        ' Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.executive.TestMessage,'
+        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None,'
+        ' non_unique_field_name:'
+        ' Union[intrinsic.solutions.skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.TestMessage.SomeType,'
+        ' intrinsic.solutions.blackboard_value.BlackboardValue,'
+        ' intrinsic.solutions.cel.CelExpression, NoneType] = None)'
     )
     # pyformat: enable
 
@@ -2627,6 +2989,7 @@ Fields:
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     my_skill = skills.ai.intrinsic.my_skill
@@ -2634,6 +2997,30 @@ Fields:
         my_skill.intrinsic_proto.test_data.TestMessage
     )
     self.assertSignature(signature, expected_signature)
+
+  def test_message_wrapper_explicit_none(self):
+    skill_info = self._utils.create_test_skill_info(
+        skill_id='ai.intrinsic.my_skill',
+        parameter_defaults=test_skill_params_pb2.TestMessageWrapped(),
+    )
+    skills = skill_providing.Skills(
+        self._utils.create_skill_registry_for_skill_info(skill_info),
+        self._utils.create_empty_resource_registry(),
+        self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
+    )
+
+    my_skill = skills.ai.intrinsic.my_skill
+
+    # Test explicit None initializations for submessages, repeated and map fields.
+    m = my_skill.intrinsic_proto.test_data.TestMessage(
+        sub_message=None,
+        my_repeated_doubles=None,
+        string_int32_map=None,
+    )
+
+    expected_proto = test_skill_params_pb2.TestMessage()
+    compare.assertProto2Equal(self, expected_proto, m.wrapped_message)
 
   def test_message_wrapper_params(self):
     skill_info = self._utils.create_test_skill_info(
@@ -2644,6 +3031,7 @@ Fields:
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     expected_test_message = test_skill_params_pb2.TestMessage(
@@ -2706,6 +3094,7 @@ Fields:
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     expected_test_message = test_skill_params_pb2.TestMessage(
@@ -2744,6 +3133,7 @@ Fields:
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     my_skill = skills.ai.intrinsic.my_skill
@@ -2781,6 +3171,7 @@ Fields:
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     my_skill = skills.ai.intrinsic.my_skill
@@ -2867,6 +3258,7 @@ Fields:
         self._utils.create_skill_registry_for_skill_infos(skill_infos),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     self.assertLen(skills, 3)
@@ -2881,6 +3273,7 @@ Fields:
         self._utils.create_skill_registry_for_skill_infos(skill_infos),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     self.assertIn('ai.intr.intr_skill_one', skills)
@@ -2899,6 +3292,7 @@ Fields:
         self._utils.create_skill_registry_for_skill_infos(skill_infos),
         self._utils.create_empty_resource_registry(),
         self._utils.create_empty_installed_assets(),
+        self._utils.create_asset_configuration_client(),
     )
 
     iterated_skills = []

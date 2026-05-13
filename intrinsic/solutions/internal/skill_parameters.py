@@ -122,31 +122,29 @@ def _is_oneof_field(field_proto: descriptor_pb2.FieldDescriptorProto) -> bool:
 class SkillParameters:
   """A utility class which allows to inspect different skill parameters."""
 
-  _default_message: message.Message
+  _descriptor: descriptor.Descriptor
   _descriptor_proto: descriptor_pb2.DescriptorProto
 
   def __init__(
       self,
-      default_message: message.Message,
+      msg_descriptor: descriptor.Descriptor,
       parameter_description: skills_pb2.ParameterDescription,
   ):
     """Creates an instance of the SkillParameters class.
 
     Args:
-      default_message: A message which contains default parameters in all
-        non-empty proto3 optional fields. Non-empty `repeated` and `oneof`
-        fields are also considered default parameters.
+      msg_descriptor: The message descriptor to inspect.
       parameter_description: The skill's parameter description.
     """
 
-    self._default_message = default_message
+    self._descriptor = msg_descriptor
     # We need the descriptor *proto* (descriptor_pb2.DescriptorProto and
     # friends) and not just its Python representation (
-    # 'default_message.DESCRIPTOR' of type google.protobuf.descriptor.Descriptor
+    # 'msg_descriptor' of type google.protobuf.descriptor.Descriptor
     # and friends). For example, in the Python representation we cannot reliably
     # check for the presence of the 'optional' keyword on message fields.
     self._descriptor_proto = _get_descriptor(
-        parameter_description, default_message.DESCRIPTOR.full_name
+        parameter_description, msg_descriptor.full_name
     )
 
   def _get_field_proto(
@@ -210,7 +208,7 @@ class SkillParameters:
     Returns:
       True if the given field is a map.
     """
-    field = self._default_message.DESCRIPTOR.fields_by_name[field_name]
+    field = self._descriptor.fields_by_name[field_name]
     return (
         field.is_repeated
         # Under the hood, a map is a repeated field with a special,
@@ -268,6 +266,4 @@ class SkillParameters:
       return True
     if _is_repeated_or_map_field(field_proto):
       return False
-    return _field_is_marked_optional(
-        field_proto
-    ) and not self._default_message.HasField(field_proto.name)
+    return _field_is_marked_optional(field_proto)
