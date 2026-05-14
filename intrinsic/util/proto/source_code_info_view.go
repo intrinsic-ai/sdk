@@ -22,8 +22,15 @@ type pathInfo struct {
 	leadingComment string
 }
 
-func toString(file string, path protoreflect.SourcePath) string {
-	return fmt.Sprintf("%s %s", file, path.String())
+type pathKey struct {
+	// The file that this path comes from.
+	file string
+	// The path as a string. E.g., .message_type[0].nested_type[1].field[2]
+	path string
+}
+
+func (k pathKey) String() string {
+	return fmt.Sprintf("%s %s", k.file, k.path)
 }
 
 func addEdge(from string, to string, graph map[string]map[string]struct{}) {
@@ -33,17 +40,25 @@ func addEdge(from string, to string, graph map[string]map[string]struct{}) {
 	graph[from][to] = struct{}{}
 }
 
-func addPath(md protoreflect.Descriptor, d protoreflect.Descriptor, paths map[string]pathInfo) {
+func addPath(md protoreflect.Descriptor, d protoreflect.Descriptor, paths map[pathKey]pathInfo) {
 	filePath := md.ParentFile().Path()
-	sourcePath := md.ParentFile().SourceLocations().ByDescriptor(d).Path
-	paths[toString(filePath, sourcePath)] = pathInfo{
+	sourceLocation := md.ParentFile().SourceLocations().ByDescriptor(d)
+	// The source location path might be missing if the source code has already been pruned.
+	if sourceLocation.Path == nil {
+		return
+	}
+	key := pathKey{
+		file: filePath,
+		path: sourceLocation.Path.String(),
+	}
+	paths[key] = pathInfo{
 		messageName:    string(md.FullName()),
 		fullName:       string(d.FullName()),
-		leadingComment: md.ParentFile().SourceLocations().ByDescriptor(d).LeadingComments,
+		leadingComment: sourceLocation.LeadingComments,
 	}
 }
 
-func addMessageDependencies(index int, md protoreflect.MessageDescriptor, graph map[string]map[string]struct{}, paths map[string]pathInfo) {
+func addMessageDependencies(md protoreflect.MessageDescriptor, graph map[string]map[string]struct{}, paths map[pathKey]pathInfo) {
 	// This is the comment of a proto message definition.
 	addPath(md, md, paths)
 
@@ -62,11 +77,11 @@ func addMessageDependencies(index int, md protoreflect.MessageDescriptor, graph 
 	// Process nested proto messages.
 	for i := 0; i < md.Messages().Len(); i++ {
 		nested := md.Messages().Get(i)
-		addMessageDependencies(index, nested, graph, paths)
+		addMessageDependencies(nested, graph, paths)
 	}
 }
 
-func addServiceDependencies(index int, sd protoreflect.ServiceDescriptor, graph map[string]map[string]struct{}, paths map[string]pathInfo) {
+func addServiceDependencies(sd protoreflect.ServiceDescriptor, graph map[string]map[string]struct{}, paths map[pathKey]pathInfo) {
 	// This is the comment of a gRPC service definition.
 	addPath(sd, sd, paths)
 
@@ -74,7 +89,7 @@ func addServiceDependencies(index int, sd protoreflect.ServiceDescriptor, graph 
 	addEdge(from, from, graph)
 	for i := 0; i < sd.Methods().Len(); i++ {
 		md := sd.Methods().Get(i)
-		// // This is the comment associated with a method of a service.
+		// This is the comment associated with a method of a service.
 		addPath(sd, md, paths)
 
 		// Add the method's input proto as a dependency.
@@ -88,13 +103,13 @@ func addServiceDependencies(index int, sd protoreflect.ServiceDescriptor, graph 
 	}
 }
 
-func dependencyGraph(fds *dpb.FileDescriptorSet) (map[string]map[string]struct{}, map[string]pathInfo, error) {
+func dependencyGraph(fds *dpb.FileDescriptorSet) (map[string]map[string]struct{}, map[pathKey]pathInfo, error) {
 	// A map between full message names to set of direct dependencies.
 	graph := map[string]map[string]struct{}{}
 	// A set of descriptor location "paths" that we need to retain. These paths
 	// currently hold message, nested messages, and message field descriptors. All
 	// other sources will be pruned.
-	pathsWithFile := map[string]pathInfo{}
+	pathsWithFile := map[pathKey]pathInfo{}
 
 	files, err := protodesc.NewFiles(fds)
 	if err != nil {
@@ -103,11 +118,11 @@ func dependencyGraph(fds *dpb.FileDescriptorSet) (map[string]map[string]struct{}
 	files.RangeFiles(func(f protoreflect.FileDescriptor) bool {
 		for i := 0; i < f.Messages().Len(); i++ {
 			md := f.Messages().Get(i)
-			addMessageDependencies(i, md, graph, pathsWithFile)
+			addMessageDependencies(md, graph, pathsWithFile)
 		}
 		for i := 0; i < f.Services().Len(); i++ {
 			sd := f.Services().Get(i)
-			addServiceDependencies(i, sd, graph, pathsWithFile)
+			addServiceDependencies(sd, graph, pathsWithFile)
 		}
 		return true
 	})
@@ -180,7 +195,7 @@ func NestedFieldCommentMap(protoDescriptors *dpb.FileDescriptorSet, messageFullN
 	for _, file := range protoDescriptors.GetFile() {
 		locations := file.GetSourceCodeInfo().GetLocation()
 		for _, l := range locations {
-			pi, exists := pathsWithFile[toString(file.GetName(), protoreflect.SourcePath(l.Path))]
+			pi, exists := pathsWithFile[pathKey{file: file.GetName(), path: protoreflect.SourcePath(l.Path).String()}]
 			if !exists {
 				continue
 			}
@@ -222,7 +237,7 @@ func PruneSourceCodeInfo(fds *dpb.FileDescriptorSet, options ...PruneSourceCodeI
 	}
 
 	var excludedDepSet map[string]struct{}
-	var pathsWithFile map[string]pathInfo
+	var pathsWithFile map[pathKey]pathInfo
 	if len(opts.excludeNames) > 0 {
 		var depGraph map[string]map[string]struct{}
 		var err error
@@ -255,7 +270,7 @@ func PruneSourceCodeInfo(fds *dpb.FileDescriptorSet, options ...PruneSourceCodeI
 
 		// Remove source locations that don't point to a proto message location.
 		file.GetSourceCodeInfo().Location = slices.DeleteFunc(locations, func(l *dpb.SourceCodeInfo_Location) bool {
-			_, exists := pathsWithFile[toString(file.GetName(), protoreflect.SourcePath(l.Path))]
+			_, exists := pathsWithFile[pathKey{file: file.GetName(), path: protoreflect.SourcePath(l.Path).String()}]
 			return !exists
 		})
 	}
