@@ -329,6 +329,7 @@ IMWZenoh::resolve_pending_publishers_and_get_matching(
   // now see if we can find the publisher we actually wanted
   for (auto it = publishers_.begin(); it != publishers_.end(); ++it) {
     if ((*it)->get_keyexpr() != keyexpr) continue;
+    if ((*it)->marked_for_deletion_.load()) continue;
 
     // If we get here, we're on the iterator for the requested publisher
     return *it;
@@ -572,6 +573,9 @@ void IMWZenoh::destroy_publishers_marked_for_deletion() {
   // remove any publishers marked for deletion
   for (auto it = publishers_.begin(); it != publishers_.end();) {
     if (!(*it)->marked_for_deletion_.load()) {
+      ++it;
+    } else if (it->use_count() > 1) {
+      // Skip deletion if shared_ptr is held by others (e.g. in publish)
       ++it;
     } else {
       z_undeclare_publisher(z_move((*it)->get_zenoh_pub()));
