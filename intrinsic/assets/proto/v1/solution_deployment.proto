@@ -42,6 +42,7 @@ service SolutionDeploymentService {
       delete: "/v1/solutionDeployment"
     };
   }
+
 }
 
 message SolutionDeployment {
