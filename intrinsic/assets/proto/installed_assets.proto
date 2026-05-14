@@ -14,6 +14,7 @@ import "intrinsic/assets/proto/asset_tag.proto";
 import "intrinsic/assets/proto/asset_type.proto";
 import "intrinsic/assets/proto/id.proto";
 import "intrinsic/assets/proto/metadata.proto";
+import "intrinsic/assets/proto/v1/asset.proto";
 import "intrinsic/assets/proto/v1/reference.proto";
 import "intrinsic/assets/proto/v1/search.proto";
 import "intrinsic/assets/proto/view.proto";
@@ -201,6 +202,12 @@ message InstalledAsset {
   // field can be used to populate the asset field for AssetInstances and to
   // reference Assets within a solution.
   string name = 7 [(google.api.field_behavior) = IDENTIFIER];
+
+  // The definition of the Asset that is being installed in the solution.  This
+  // is only returned in a FULL view for backwards compatibilty with older
+  // clients using limited views that may be sensitive to the amount of data
+  // received.
+  Asset asset = 8;
 
   Metadata metadata = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
 
