@@ -1246,11 +1246,13 @@ class ObjectWorldClient:
         parent_t_new_frame=math_proto_conversion.pose_to_proto(parent_t_frame),
     )
     if isinstance(parent, object_world_resources.WorldObject):
-      request.parent_object.CopyFrom(parent.reference)
+      request.parent_object_with_filter.reference.CopyFrom(parent.reference)
     elif isinstance(parent, object_world_resources.Frame):
       request.parent_frame.CopyFrom(parent.reference)
     elif parent is None:
-      request.parent_object.id = object_world_ids.ROOT_OBJECT_ID
+      request.parent_object_with_filter.reference.id = (
+          object_world_ids.ROOT_OBJECT_ID
+      )
     else:
       raise TypeError(f'Cannot use {parent} as parent frame or object.')
     return object_world_resources.Frame(

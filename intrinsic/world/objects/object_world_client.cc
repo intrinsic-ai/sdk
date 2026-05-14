@@ -442,7 +442,8 @@ absl::Status ObjectWorldClient::CreateFrame(const FrameName& new_frame_name,
                                             const WorldObject& parent_object,
                                             const Pose3d& parent_t_new_frame) {
   intrinsic_proto::world::CreateFrameRequest request;
-  request.mutable_parent_object()->set_id(parent_object.Id().value());
+  request.mutable_parent_object_with_filter()->mutable_reference()->set_id(
+      parent_object.Id().value());
   return CallCreateFrame(std::move(request), new_frame_name, parent_t_new_frame,
                          world_id_, *object_world_service_);
 }
