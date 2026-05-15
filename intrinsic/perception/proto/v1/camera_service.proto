@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.perception.v1;
 
+import "google/api/annotations.proto";
 import "google/protobuf/duration.proto";
 import "intrinsic/logging/proto/context.proto";
 import "intrinsic/math/proto/pose.proto";
@@ -22,19 +23,57 @@ option go_package = "intrinsic/perception/proto/v1/camera_service_go_proto";
 service CameraService {
   // Returns all available cameras connected on the server side.
   rpc ListAvailableCameras(ListAvailableCamerasRequest)
-      returns (ListAvailableCamerasResponse) {}
+      returns (ListAvailableCamerasResponse) {
+    option (google.api.http) = {
+      get: "/v1/cameras"
+    };
+  }
 
   // Describes the camera and its sensors. Enumerates connected sensors.
-  rpc DescribeCamera(DescribeCameraRequest) returns (DescribeCameraResponse) {}
+  rpc DescribeCamera(DescribeCameraRequest) returns (DescribeCameraResponse) {
+    option (google.api.http) = {
+      post: "/v1/cameras:describe"
+      body: "*"
+      additional_bindings {
+        get: "/v1/cameras/genicam/{camera_identifier.genicam.device_id}:describe"
+      }
+      additional_bindings {
+        get: "/v1/cameras/ros/{camera_identifier.ros.driver_type}/{camera_identifier.ros.device_id}:describe"
+      }
+    };
+  }
 
   // Captures image data from the requested sensors of the specified camera.
   rpc Capture(CaptureRequest) returns (CaptureResponse) {
+    option (google.api.http) = {
+      post: "/v1/cameras:capture"
+      body: "*"
+      additional_bindings {
+        post: "/v1/cameras/genicam/{camera_config.identifier.genicam.device_id}:capture"
+        body: "*"
+      }
+      additional_bindings {
+        post: "/v1/cameras/ros/{camera_config.identifier.ros.driver_type}/{camera_config.identifier.ros.device_id}:capture"
+        body: "*"
+      }
+    };
   }
 
   // Reads and returns the access mode of a specific setting from a camera.
   // The function returns an error if the camera is unknown.
   rpc ReadCameraSettingAccess(ReadCameraSettingAccessRequest)
-      returns (ReadCameraSettingAccessResponse) {}
+      returns (ReadCameraSettingAccessResponse) {
+    option (google.api.http) = {
+      post: "/v1/cameras/settings:access"
+      body: "*"
+      additional_bindings {
+        get: "/v1/cameras/genicam/{camera_identifier.genicam.device_id}/settings/{name}/access"
+      }
+      additional_bindings {
+        get: "/v1/cameras/ros/{camera_identifier.ros.driver_type}/{camera_identifier.ros.device_id}/settings/{name}/access"
+      }
+    };
+  }
 
   // Read the properties of the user specified camera and setting.
   // The function returns an error if the camera is unknown or if the setting is
@@ -43,13 +82,35 @@ service CameraService {
   // and triggers no errors for non-existing properties as these are optional to
   // be implemented by the camera vendors.
   rpc ReadCameraSettingProperties(ReadCameraSettingPropertiesRequest)
-      returns (ReadCameraSettingPropertiesResponse) {}
+      returns (ReadCameraSettingPropertiesResponse) {
+    option (google.api.http) = {
+      post: "/v1/cameras/settings:properties"
+      body: "*"
+      additional_bindings {
+        get: "/v1/cameras/genicam/{camera_identifier.genicam.device_id}/settings/{name}/properties"
+      }
+      additional_bindings {
+        get: "/v1/cameras/ros/{camera_identifier.ros.driver_type}/{camera_identifier.ros.device_id}/settings/{name}/properties"
+      }
+    };
+  }
 
   // Reads and returns the current value of a specific setting from a camera.
   // The function returns an error if the camera is unknown or if the setting is
   // not supported.
   rpc ReadCameraSetting(ReadCameraSettingRequest)
-      returns (ReadCameraSettingResponse) {}
+      returns (ReadCameraSettingResponse) {
+    option (google.api.http) = {
+      post: "/v1/cameras/settings:read"
+      body: "*"
+      additional_bindings {
+        get: "/v1/cameras/genicam/{camera_identifier.genicam.device_id}/settings/{name}"
+      }
+      additional_bindings {
+        get: "/v1/cameras/ros/{camera_identifier.ros.driver_type}/{camera_identifier.ros.device_id}/settings/{name}"
+      }
+    };
+  }
 
   // Update the value of a specific camera setting.
   // The function returns an error if the camera is unknown or if the setting is
@@ -58,7 +119,20 @@ service CameraService {
   //   apply to all instances. I.e. it will also affect all other clients who
   //   are using the same camera.
   rpc UpdateCameraSetting(UpdateCameraSettingRequest)
-      returns (UpdateCameraSettingResponse) {}
+      returns (UpdateCameraSettingResponse) {
+    option (google.api.http) = {
+      post: "/v1/cameras/settings:update"
+      body: "*"
+      additional_bindings {
+        patch: "/v1/cameras/genicam/{camera_identifier.genicam.device_id}/settings/{setting.name}"
+        body: "setting"
+      }
+      additional_bindings {
+        patch: "/v1/cameras/ros/{camera_identifier.ros.driver_type}/{camera_identifier.ros.device_id}/settings/{setting.name}"
+        body: "setting"
+      }
+    };
+  }
 }
 
 // In the future, this proto may contain a filter property to specify which

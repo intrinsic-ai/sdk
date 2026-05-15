@@ -147,6 +147,7 @@ proto_library(
         "//intrinsic/logging/proto:context_proto",
         "//intrinsic/math/proto:pose_proto",
         "//intrinsic/platform/pubsub:storage_location",
+        "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_protobuf//:duration_proto",
     ],
 )
@@ -190,6 +191,7 @@ go_proto_library(
     compilers = [
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
+        "//bazel:go_gen_grpc_gateway",
     ],
     importpath = "intrinsic/perception/proto/v1/camera_service_go_proto",
     protos = [":camera_service_proto"],
@@ -206,6 +208,7 @@ go_proto_library(
         "//intrinsic/logging/proto:context_go_proto",
         "//intrinsic/math/proto:pose_go_proto",
         "//intrinsic/platform/pubsub:storage_location_go_proto",
+        "@org_golang_google_genproto_googleapis_api//annotations",
     ],
 )
 
