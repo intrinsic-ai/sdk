@@ -1,24 +1,9 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
-load("@rules_cc//cc:cc_shared_library.bzl", "cc_shared_library")
-
-cc_shared_library(
-    name = "imw_zenoh",
-    additional_linker_inputs = [
-        ":imw-versionscript.lds",
-    ],
-    user_link_flags = [
-        "-Wl,--version-script=$(location :imw-versionscript.lds)",
-    ],
-    visibility = ["//visibility:public"],
-    deps = [
-        ":imw_zenoh_library",
-    ],
-)
 
 cc_library(
-    name = "imw_zenoh_library",
+    name = "imw_zenoh",
     srcs = [
         "imw_zenoh.cc",
         "imw_zenoh_data_callback_context.cc",
@@ -38,6 +23,7 @@ cc_library(
         "imw_zenoh_reply_context.h",
         "imw_zenoh_subscription.h",
     ],
+    linkstatic = True,
     visibility = ["//visibility:public"],
     deps = [
         "//incode/middleware:imw_interface",

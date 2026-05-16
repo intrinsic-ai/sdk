@@ -11,46 +11,14 @@
 
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
+#include "incode/middleware/imw.h"
 
 namespace intrinsic {
-
-typedef enum imw_ret {
-  IMW_OK = 0,
-  IMW_ERROR = 1,
-  IMW_NOT_INITIALIZED = 2,
-} imw_ret_t;
-
-typedef void imw_subscription_callback_fn(const char* keyexpr,
-                                          const void* bytes,
-                                          const size_t bytes_len,
-                                          void* user_context);
-
-typedef void imw_queryable_callback_fn(const char* keyexpr,
-                                       const void* query_bytes,
-                                       const size_t query_bytes_len,
-                                       const void* query_context,
-                                       void* user_context);
-
-typedef void imw_query_callback_fn(const char* keyexpr,
-                                   const void* response_bytes,
-                                   const size_t response_bytes_len,
-                                   void* user_context);
-
-typedef void imw_query_on_done_fn(const char* keyexpr, void* query_context);
 
 typedef std::function<void(const char*, const void*, const size_t)>
     imw_callback_functor_t;
 
 typedef std::function<void(const char*)> imw_on_done_functor_t;
-
-struct imw_queryable_options_t {
-  bool is_ros_service = false;
-};
-
-struct imw_query_options_t {
-  uint64_t timeout_ms = 0;
-  bool call_ros_service = false;
-};
 
 struct QueryContext {
   imw_callback_functor_t* callback;
@@ -94,7 +62,7 @@ struct ZenohHandle {
 
   std::add_pointer_t<imw_ret_t(const char* keyexpr,
                                imw_subscription_callback_fn* callback,
-                               void* user_context)>
+                               const void* user_context)>
       imw_destroy_subscription;
 
   std::add_pointer_t<int(const char* left, const char* right)>
@@ -126,7 +94,7 @@ struct ZenohHandle {
 
   std::add_pointer_t<imw_ret_t(
       const char* keyexpr, imw_query_callback_fn* callback,
-      imw_query_on_done_fn* on_done, const void* query_payload,
+      imw_query_on_done_callback_fn* on_done, const void* query_payload,
       const size_t query_payload_len, void* user_context,
       imw_query_options_t* options)>
       imw_query;
@@ -142,7 +110,6 @@ struct ZenohHandle {
       absl::string_view topic);
 
  private:
-  void* handle = nullptr;
   void Initialize();
 };
 

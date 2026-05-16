@@ -13,29 +13,10 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
+#include "incode/middleware/imw.h"
 #include "intrinsic/platform/pubsub/zenoh_util/zenoh_helpers.h"
 
-#define GET_FUNCTION_PTR(handle, func) GetFunctionHandle(handle, #func, &func);
-
 namespace intrinsic {
-
-constexpr char libZenohPath[] = "incode/middleware/zenoh/libimw_zenoh.so";
-// NOLINTBEGIN(clang-diagnostic-unused-const-variable)
-constexpr char libTestMsanZenohPath[] =
-    "intrinsic/middleware/"
-    "libimw_intraprocess_only_msan.so.1";
-constexpr char libTestTsanZenohPath[] =
-    "intrinsic/middleware/"
-    "libimw_intraprocess_only_tsan.so.1";
-// NOLINTEND(clang-diagnostic-unused-const-variable)
-
-template <typename T>
-void GetFunctionHandle(void* handle, const std::string& name, T* func_ptr) {
-  *func_ptr = reinterpret_cast<T>(dlsym(handle, name.c_str()));
-  if (*func_ptr == nullptr) {
-    LOG(FATAL) << "Failed to resolve function '" << name << "'";
-  }
-}
 
 void zenoh_static_callback(const char* keyexpr, const void* blob,
                            const size_t blob_len, void* fptr) {
@@ -60,69 +41,25 @@ ZenohHandle* ZenohHandle::CreateZenohHandle() {
 }
 
 void ZenohHandle::Initialize() {
-  std::string library_path;
-  if (!RunningInKubernetes()) {
-#if defined(MEMORY_SANITIZER)
-    library_path = libTestMsanZenohPath;
-#elif defined(THREAD_SANITIZER)
-    library_path = libTestTsanZenohPath;
-#else
-    library_path = libZenohPath;
-#endif
-  } else {
-    // These are here to avoid any unused variable linter warnings.
-    (void)libTestMsanZenohPath;
-    (void)libTestTsanZenohPath;
-    library_path = libZenohPath;
-  }
-  std::string path = GetZenohRunfilesPath(library_path);
-
-#if defined(MEMORY_SANITIZER) || defined(THREAD_SANITIZER) || \
-    defined(ADDRESS_SANITIZER)
-  // When using the sanitizers, we can allow the loader to use the default
-  // behavior of sharing symbols between the parent process and the shared
-  // object, since absl::log (among other libraries) is guaranteed to have the
-  // same code, since the sanitizer-friendly intra-process implementation is
-  // built from the same source tree as the parent process. For complex
-  // reasons, setting RTLD_DEEPBIND here causes the sanitizers to fail with
-  // many false-alarms.
-  handle = dlopen(path.c_str(), RTLD_LAZY);
-#else
-  // The "full" externally-built IMW implementation links against the external
-  // absl::log implementation (among other libraries), which is different from
-  // the internal build in the parent process. Allowing the loader to share
-  // symbols between the parent process and the Zenoh shared object has led to
-  // undefined behavior and weird crashes in LOG() calls. To prevent this,
-  // RTLD_DEEPBIND causes dlopen() to not mix symbols from the parent
-  // executable with symbols it finds in the shared-object, so LOG() calls in
-  // the shared-object will use the absl::log implementation and globals that
-  // it was built against.
-  handle = dlopen(path.c_str(), RTLD_LAZY | RTLD_DEEPBIND);
-#endif
-
-  if (handle == nullptr) {
-    LOG(ERROR) << "Cannot open the shared library at: " << path
-               << " dlerror() output: " << dlerror();
-    exit(EXIT_FAILURE);
-  }
-  GET_FUNCTION_PTR(handle, imw_init);
-  GET_FUNCTION_PTR(handle, imw_fini);
-  GET_FUNCTION_PTR(handle, imw_create_publisher);
-  GET_FUNCTION_PTR(handle, imw_destroy_publisher);
-  GET_FUNCTION_PTR(handle, imw_publish);
-  GET_FUNCTION_PTR(handle, imw_publisher_has_matching_subscribers);
-  GET_FUNCTION_PTR(handle, imw_create_subscription);
-  GET_FUNCTION_PTR(handle, imw_destroy_subscription);
-  GET_FUNCTION_PTR(handle, imw_keyexpr_includes);
-  GET_FUNCTION_PTR(handle, imw_keyexpr_intersects);
-  GET_FUNCTION_PTR(handle, imw_keyexpr_is_canon);
-  GET_FUNCTION_PTR(handle, imw_version);
-  GET_FUNCTION_PTR(handle, imw_create_queryable);
-  GET_FUNCTION_PTR(handle, imw_destroy_queryable);
-  GET_FUNCTION_PTR(handle, imw_queryable_reply);
-  GET_FUNCTION_PTR(handle, imw_query);
-  GET_FUNCTION_PTR(handle, imw_set);
-  GET_FUNCTION_PTR(handle, imw_delete_keyexpr);
+  this->imw_init = ::intrinsic::imw_init;
+  this->imw_fini = ::intrinsic::imw_fini;
+  this->imw_create_publisher = ::intrinsic::imw_create_publisher;
+  this->imw_destroy_publisher = ::intrinsic::imw_destroy_publisher;
+  this->imw_publish = ::intrinsic::imw_publish;
+  this->imw_publisher_has_matching_subscribers =
+      ::intrinsic::imw_publisher_has_matching_subscribers;
+  this->imw_create_subscription = ::intrinsic::imw_create_subscription;
+  this->imw_destroy_subscription = ::intrinsic::imw_destroy_subscription;
+  this->imw_keyexpr_includes = ::intrinsic::imw_keyexpr_includes;
+  this->imw_keyexpr_intersects = ::intrinsic::imw_keyexpr_intersects;
+  this->imw_keyexpr_is_canon = ::intrinsic::imw_keyexpr_is_canon;
+  this->imw_version = ::intrinsic::imw_version;
+  this->imw_create_queryable = ::intrinsic::imw_create_queryable;
+  this->imw_destroy_queryable = ::intrinsic::imw_destroy_queryable;
+  this->imw_queryable_reply = ::intrinsic::imw_queryable_reply;
+  this->imw_query = ::intrinsic::imw_query;
+  this->imw_set = ::intrinsic::imw_set;
+  this->imw_delete_keyexpr = ::intrinsic::imw_delete_keyexpr;
 }
 
 absl::StatusOr<std::string> ZenohHandle::add_topic_prefix(

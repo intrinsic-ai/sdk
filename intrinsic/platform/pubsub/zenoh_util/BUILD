@@ -19,19 +19,15 @@ cc_library(
     name = "zenoh_handle",
     srcs = ["zenoh_handle.cc"],
     hdrs = ["zenoh_handle.h"],
-    data = [
-        "//incode/middleware/zenoh:imw_zenoh",
-    ],
-    linkopts = ["-ldl"],  # for dlfcn.h, dlsym in zenoh_handle.cc
     visibility = ["//intrinsic/platform/pubsub:__subpackages__"],
     deps = [
         ":zenoh_helpers",
+        "//incode/middleware/zenoh:imw_zenoh",
         "@abseil-cpp//absl/log",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
         "@abseil-cpp//absl/strings",
     ],
-    alwayslink = True,
 )
 
 cc_test(
