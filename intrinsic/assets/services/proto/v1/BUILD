@@ -121,6 +121,11 @@ go_proto_library(
     protos = [":service_inspection_proto"],
 )
 
+py_proto_library(
+    name = "service_inspection_py_pb2",
+    deps = [":service_inspection_proto"],
+)
+
 proto_library(
     name = "system_service_state_proto",
     srcs = ["system_service_state.proto"],
