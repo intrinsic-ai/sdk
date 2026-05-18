@@ -223,6 +223,28 @@ class InstalledAssetsClientTest(parameterized.TestCase):
         )
     )
 
+  def test_list_installed_assets_supports_provides_filter(self):
+    proto = _installed_asset_with_id("ai.intrinsic.process")
+    self._installed_assets.ListInstalledAssets.return_value = (
+        installed_assets_pb2.ListInstalledAssetsResponse(
+            installed_assets=[proto],
+            next_page_token=None,
+        )
+    )
+    proto_path = "intrinsic_proto.some_asset_interface"
+    self._client.list_all_installed_assets(provides=[proto_path])
+
+    self._installed_assets.ListInstalledAssets.assert_called_once_with(
+        installed_assets_pb2.ListInstalledAssetsRequest(
+            strict_filter=installed_assets_pb2.ListInstalledAssetsRequest.Filter(
+                provides=[proto_path]
+            ),
+            page_size=installed_assets_client._MAX_PAGE_SIZE,
+            page_token=None,
+            view=view_pb2.AssetViewType.ASSET_VIEW_TYPE_BASIC,
+        )
+    )
+
   def test_list_installed_assets_supports_view(self):
     proto = _installed_asset_with_id("ai.intrinsic.process")
     self._installed_assets.ListInstalledAssets.return_value = (

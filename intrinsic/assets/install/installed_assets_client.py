@@ -113,6 +113,7 @@ class InstalledAssetsClient:
       self,
       asset_types: list[asset_type_pb2.AssetType] | None = None,
       asset_tag: asset_tag_pb2.AssetTag | None = None,
+      provides: list[str] | None = None,
       view: view_pb2.AssetViewType = view_pb2.AssetViewType.ASSET_VIEW_TYPE_BASIC,
   ) -> list[installed_assets_pb2.InstalledAsset]:
     """Calls the ListInstalledAssets method of the InstalledAssets service.
@@ -123,6 +124,7 @@ class InstalledAssetsClient:
     Args:
       asset_types: The Asset types to filter by.
       asset_tag: The Asset tag to filter by.
+      provides: The Asset interfaces to filter by.
       view: The view of the Assets to return.
 
     Returns:
@@ -137,6 +139,7 @@ class InstalledAssetsClient:
               strict_filter=installed_assets_pb2.ListInstalledAssetsRequest.Filter(
                   asset_types=asset_types,
                   asset_tag=asset_tag,
+                  provides=provides,
               ),
               page_size=_MAX_PAGE_SIZE,
               page_token=next_page_token,
