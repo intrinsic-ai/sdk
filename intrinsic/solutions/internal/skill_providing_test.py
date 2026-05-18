@@ -2558,15 +2558,6 @@ Returns:
     )
     self.assertEqual(action_proto.assignments[0].cel_expression, 'test')
 
-  def test_construct_skill_info(self):
-    skill_generation.SkillInfoImpl(
-        self._utils.create_test_skill_info(
-            skill_id='ai.intrinsic.my_skill',
-            parameter_defaults=test_skill_params_pb2.TestMessage(),
-        ),
-        'someTypeUrlArea',
-    )
-
   @parameterized.parameters(
       {
           'skill': skills_pb2.Skill(
@@ -2578,7 +2569,7 @@ Returns:
       {'skill': skills_pb2.Skill(id='my_skill')},
   )
   def test_skill_info_skill_name(self, skill):
-    info = skill_generation.SkillInfoImpl(skill, 'someTypeUrlArea')
+    info = skill_generation.SkillInfoImpl(skill, {}, 'someTypeUrlArea')
     self.assertEqual(info.skill_name, 'my_skill')
 
   @parameterized.parameters(
@@ -2602,7 +2593,7 @@ Returns:
       },
   )
   def test_skill_info_package_name(self, skill, expected_package_name):
-    info = skill_generation.SkillInfoImpl(skill, 'someTypeUrlArea')
+    info = skill_generation.SkillInfoImpl(skill, {}, 'someTypeUrlArea')
     self.assertEqual(info.package_name, expected_package_name)
 
   def test_construct_skill_info_incomplete_fileset(self):
@@ -2620,7 +2611,27 @@ Returns:
     )
 
     with self.assertRaises(TypeError):
-      skill_generation.SkillInfoImpl(skill, 'someTypeUrlArea')
+      skill_generation.SkillInfoImpl(skill, {}, 'someTypeUrlArea')
+
+  def test_skill_info_proto_comments(self):
+    info = skill_generation.SkillInfoImpl(
+        skills_pb2.Skill(id='ai.intrinsic.my_skill'),
+        {
+            'intrinsic_proto.MyMessage': 'MyMessage comment\n',
+            'intrinsic_proto.MyMessage.my_field': 'my_field comment\n',
+        },
+        'someTypeUrlArea',
+    )
+
+    self.assertEqual(
+        info.get_proto_comment('intrinsic_proto.MyMessage'),
+        'MyMessage comment\n',
+    )
+    self.assertEqual(
+        info.get_proto_comment('intrinsic_proto.MyMessage.my_field'),
+        'my_field comment\n',
+    )
+    self.assertEqual(info.get_proto_comment('non_existing.Name'), '')
 
   def test_result_access(self):
     """Tests if BlackboardValue gets created when accessing result."""

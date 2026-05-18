@@ -992,15 +992,13 @@ def _gen_wrapper_class(
   Returns:
     A new type for a MessageWrapper sub-class.
   """
-  field_doc_strings: Dict[str, str] = dict(
-      skill_info.skill_proto.parameter_description.parameter_field_comments
-  )
+
   return type(
       # E.g.: 'Pose'
       wrapped_type.DESCRIPTOR.name,
       (MessageWrapper,),
       {
-          "__doc__": _gen_class_docstring(wrapped_type, field_doc_strings),
+          "__doc__": _gen_class_docstring(wrapped_type, skill_info),
           # E.g.: 'move_robot.intrinsic_proto.Pose'.
           "__qualname__": (
               skill_info.skill_name + "." + wrapped_type.DESCRIPTOR.full_name
@@ -1015,8 +1013,7 @@ def _gen_wrapper_class(
 
 def _gen_init_fun(
     wrapped_type: Type[message.Message],
-    skill_name: str,
-    parameter_description: skills_pb2.ParameterDescription,
+    skill_info: provided.SkillInfo,
     type_name: str,
     wrapper_classes: dict[str, Type[MessageWrapper]],
     enum_classes: dict[str, Type[enum.IntEnum]],
@@ -1054,21 +1051,22 @@ def _gen_init_fun(
           annotation="MessageWrapper_" + type_name,
       )
   ] + _gen_init_params(
-      wrapped_type, wrapper_classes, enum_classes, parameter_description
+      wrapped_type,
+      wrapper_classes,
+      enum_classes,
+      skill_info.skill_proto.parameter_description,
   )
   new_init_fun.__signature__ = inspect.Signature(params)
   new_init_fun.__annotations__ = collections.OrderedDict(
       [(p.name, p.annotation) for p in params]
   )
-  new_init_fun.__doc__ = _gen_init_docstring(
-      wrapped_type, skill_name, parameter_description
-  )
+  new_init_fun.__doc__ = _gen_init_docstring(wrapped_type, skill_info)
   return new_init_fun
 
 
 def _gen_class_docstring(
     wrapped_type: Type[message.Message],
-    field_doc_strings: Dict[str, str],
+    skill_info: provided.SkillInfo,
 ) -> str:
   """Generates the class docstring for a message wrapper class.
 
@@ -1083,9 +1081,13 @@ def _gen_class_docstring(
       f"Proto message wrapper class for {wrapped_type.DESCRIPTOR.full_name}."
   ]
   message_doc_string = ""
-  if wrapped_type.DESCRIPTOR.full_name in field_doc_strings:
+
+  proto_comment = skill_info.get_proto_comment(
+      wrapped_type.DESCRIPTOR.full_name
+  )
+  if proto_comment:
     docstring += [""]
-    message_doc_string = field_doc_strings[wrapped_type.DESCRIPTOR.full_name]
+    message_doc_string = proto_comment
   # Expect 80 chars width.
   is_first_line = True
   for doc_string_line in textwrap.dedent(message_doc_string).splitlines():
@@ -1147,8 +1149,7 @@ def append_used_proto_full_names(
 
 def _gen_init_docstring(
     wrapped_type: Type[message.Message],
-    skill_name: str,
-    parameter_description: skills_pb2.ParameterDescription,
+    skill_info: provided.SkillInfo,
 ) -> str:
   """Generates the __init__ docstring for a message wrapper class.
 
@@ -1162,14 +1163,12 @@ def _gen_init_docstring(
   """
   docstring: list[str] = [
       "Initializes an instance of"
-      f" {skill_name}.{wrapped_type.DESCRIPTOR.full_name}."
+      f" {skill_info.skill_name}.{wrapped_type.DESCRIPTOR.full_name}."
   ]
 
-  message_fields = extract_docstring_from_message(
-      wrapped_type, parameter_description
-  )
+  message_fields = extract_docstring_from_message(wrapped_type, skill_info)
 
-  append_used_proto_full_names(skill_name, message_fields, docstring)
+  append_used_proto_full_names(skill_info.skill_name, message_fields, docstring)
 
   if message_fields:
     docstring.append("\nFields:")
@@ -1441,8 +1440,7 @@ def update_message_class_modules(
   for message_full_name, wrapper_class in wrapper_classes.items():
     wrapper_class.__init__ = _gen_init_fun(
         wrapper_class.wrapped_type,
-        skill_info.skill_name,
-        skill_info.skill_proto.parameter_description,
+        skill_info,
         message_full_name,
         wrapper_classes,
         enum_classes,
@@ -1640,7 +1638,7 @@ def extract_parameter_information_from_message(
 
 def extract_docstring_from_message(
     message_type: Type[message.Message],
-    parameter_description: skills_pb2.ParameterDescription,
+    skill_info: provided.SkillInfo,
 ) -> List[ParameterInformation]:
   """Extracts docstring information for the fields of the given message.
 
@@ -1649,7 +1647,7 @@ def extract_docstring_from_message(
 
   Args:
     message_type: The message type to extract docstring information for.
-    parameter_description: The skill's parameter description.
+    skill_info: Metadata of the skill.
 
   Returns:
     List containing a ParameterInformation object describing for each field.
@@ -1657,21 +1655,16 @@ def extract_docstring_from_message(
   params: List[ParameterInformation] = []
   msg_descriptor = message_type.DESCRIPTOR
   skill_params = skill_parameters.SkillParameters(
-      msg_descriptor, parameter_description
+      msg_descriptor, skill_info.skill_proto.parameter_description
   )
-  comments = dict(parameter_description.parameter_field_comments)
 
   for field in msg_descriptor.fields:
-    doc_string = ""
-    if field.full_name in comments:
-      doc_string = comments[field.full_name]
-
     params.append(
         ParameterInformation(
             has_default=False,
             name=field.name,
             default=None,
-            doc_string=[doc_string],
+            doc_string=[skill_info.get_proto_comment(field.full_name)],
             message_full_name=(
                 field.message_type.full_name
                 if field.message_type is not None

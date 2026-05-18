@@ -227,30 +227,38 @@ class SkillInfo(abc.ABC):
     ...
 
   @abc.abstractmethod
-  def get_parameter_field_comments(self, full_field_name: str) -> str:
-    """Returns the leading_comments associated with the field in the proto.
+  def get_proto_comment(self, full_name: str) -> str:
+    """Returns the comment associated with the given name.
 
-    Args:
-      full_field_name: The full name of the field.
+    Returns the comment associated with the given name in the skill's file
+    descriptor set (parameter and return value file descriptor set combined) as
+    a multi-line string ending with '\n'. Returns an empty string if the name is
+    invalid or if there was no associated comment in the original .proto file.
 
-    Raises:
-      status.StatusNotOk if the field does not exist or there is no
-      source_code_info in the associated FileDescriptor.
+    E.g., if the original .proto file had the following contents:
+
+    ```
+    package my_package;
+
+    // Message comment
+    message MyMessage {
+
+      // Leading comment 1
+      // Leading comment 2
+      string my_string = 1; // Trailing comment
+
+      bool my_bool = 2;
+    }
+    ```
+
+    Then:
+
+    - get_proto_comment('my_package.MyMessage') -> 'Message comment\n'
+    - get_proto_comment('my_package.MyMessage.my_string') ->
+        'Leading comment 1\nLeading comment 2\nTrailing comment\n'
+    - get_proto_comment('my_package.MyMessage.my_bool') -> ''
+    - get_proto_comment('non_existing.Name') -> ''
     """
-    ...
-
-  @abc.abstractmethod
-  def get_result_field_comments(self, full_field_name: str) -> str:
-    """Returns the leading_comments associated with the field in the proto.
-
-    Args:
-      full_field_name: The full name of the field.
-
-    Raises:
-      status.StatusNotOk if the field does not exist or there is no
-      source_code_info in the associated FileDescriptor.
-    """
-    ...
 
 
 class SkillCompatibleResourcesMap:

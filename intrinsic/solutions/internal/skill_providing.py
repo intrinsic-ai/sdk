@@ -22,6 +22,7 @@ from intrinsic.solutions import providers
 from intrinsic.solutions.internal import resources
 from intrinsic.solutions.internal import skill_generation
 from intrinsic.solutions.internal import skill_utils
+from intrinsic.util.proto import descriptors
 
 _SKILL_ID_SEP = "."
 
@@ -352,12 +353,23 @@ class Skills(providers.SkillProvider):
     ):
       bt = asset.deployment_data.process.process.behavior_tree
       # Skip behavior trees without a Skill proto (this is unexpected)
-      if bt.HasField("description"):
-        process_asset_skills.append(
-            skill_generation.SkillInfoImpl(
-                bt.description, skill_utils.INTRINSIC_TYPE_URL_AREA_ASSETS
-            )
-        )
+      if not bt.HasField("description"):
+        continue
+
+      # Comments are currently only available from the skill proto and not from
+      # the file descriptor set in the asset metadata (b/510731384).
+      proto_comments = dict(
+          bt.description.parameter_description.parameter_field_comments
+      ) | dict(
+          bt.description.return_value_description.return_value_field_comments
+      )
+      process_asset_skills.append(
+          skill_generation.SkillInfoImpl(
+              bt.description,
+              proto_comments,
+              skill_utils.INTRINSIC_TYPE_URL_AREA_ASSETS,
+          )
+      )
 
     # Merge skill protos from process assets with skill protos from the skill
     # registry (legacy processes and regular skills), assets taking precedence.
@@ -365,6 +377,10 @@ class Skills(providers.SkillProvider):
     collected_ids = set(skill.id for skill in process_asset_skills)
     for skill in self._skill_registry.get_skills():
       if skill.id not in collected_ids:
+        proto_comments = dict(
+            skill.parameter_description.parameter_field_comments
+        ) | dict(skill.return_value_description.return_value_field_comments)
+
         # This skill proto is from the skill registry and can represent either
         # an actual skill or a legacy PBT (but not a Process asset). This can be
         # told based on the presence of 'behavior_tree_description'. For actual
@@ -376,7 +392,9 @@ class Skills(providers.SkillProvider):
             if skill.HasField("behavior_tree_description")
             else skill_utils.INTRINSIC_TYPE_URL_AREA_ASSETS
         )
-        result.append(skill_generation.SkillInfoImpl(skill, area))
+        result.append(
+            skill_generation.SkillInfoImpl(skill, proto_comments, area)
+        )
         collected_ids.add(skill.id)
 
     result.sort(key=lambda skill: skill.id)

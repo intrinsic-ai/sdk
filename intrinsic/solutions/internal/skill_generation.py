@@ -71,15 +71,27 @@ class SkillInfoImpl(provided.SkillInfo):
   _skill_proto: skills_pb2.Skill
   _type_url_area: str
 
+  _proto_comments: dict[str, str]
+
   _message_pool: descriptor_pool.DescriptorPool
   _message_classes: dict[str, Type[message.Message]]
   _field_names: Set[str]
 
-  def __init__(self, skill_proto: skills_pb2.Skill, type_url_area: str):
+  def __init__(
+      self,
+      skill_proto: skills_pb2.Skill,
+      proto_comments: dict[str, str],
+      type_url_area: str,
+  ):
     """Creates a SkillInfoImpl object from the skill_proto.
 
     Args:
-      skill_proto: the protobuf description of this skill.
+      skill_proto: The protobuf description of this skill.
+      proto_comments: Message/field/enum comments from the parameter and return
+        value file descriptor set (combined) as a mapping from full name to
+        comment. Comments can have multiple lines and always end with '\n'.
+      type_url_area: the type URL area under which too lookup this skill using
+        an Intrinsic-style type URL.
 
     Raises:
       TypeError if the skill_proto does not contain all transitive dependencies
@@ -88,6 +100,7 @@ class SkillInfoImpl(provided.SkillInfo):
 
     self._skill_proto = skill_proto
     self._type_url_area = type_url_area
+    self._proto_comments = proto_comments
     # Each SkillInfoImpl class uses its own descriptor pool so that the
     # creation of each SkillBase class is hermetic. Ie., Skill A and Skill B
     # do not incidentally clash over the definition of a proto.
@@ -232,19 +245,8 @@ class SkillInfoImpl(provided.SkillInfo):
   ) -> Type[message.Message]:
     return self._message_classes[msg_descriptor.full_name]
 
-  def get_parameter_field_comments(self, full_field_name: str) -> str:
-    return textwrap.dedent(
-        self._skill_proto.parameter_description.parameter_field_comments[
-            full_field_name
-        ]
-    )
-
-  def get_result_field_comments(self, full_field_name: str) -> str:
-    return textwrap.dedent(
-        self._skill_proto.return_value_description.return_value_field_comments[
-            full_field_name
-        ]
-    )
+  def get_proto_comment(self, full_name: str) -> str:
+    return self._proto_comments.get(full_name, "")
 
 
 def _gen_class_docstring(info: provided.SkillInfo) -> str:
@@ -303,7 +305,7 @@ def _gen_init_docstring(
 
   if info.skill_proto.HasField("parameter_description"):
     params = skill_utils.extract_docstring_from_message(
-        info.get_param_message_type(), info.skill_proto.parameter_description
+        info.get_param_message_type(), info
     )
     param_names = [p.name for p in params]
 
@@ -312,7 +314,7 @@ def _gen_init_docstring(
     result_defaults = info.create_result_message()
 
     for field in result_defaults.DESCRIPTOR.fields:
-      doc_string = info.get_result_field_comments(field.full_name)
+      doc_string = info.get_proto_comment(field.full_name)
       return_values.append((field.name, doc_string))
 
     params.append(
