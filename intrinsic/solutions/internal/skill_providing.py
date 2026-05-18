@@ -13,10 +13,10 @@ from intrinsic.assets.configuration import asset_configuration_client
 from intrinsic.assets.install import installed_assets_client
 from intrinsic.assets.proto import asset_tag_pb2
 from intrinsic.assets.proto import asset_type_pb2
+from intrinsic.assets.proto import id_pb2
 from intrinsic.assets.proto import view_pb2
 from intrinsic.resources.client import resource_registry_client
 from intrinsic.skills.client import skill_registry_client
-from intrinsic.skills.proto import skills_pb2
 from intrinsic.solutions import provided
 from intrinsic.solutions import providers
 from intrinsic.solutions.internal import resources
@@ -366,6 +366,8 @@ class Skills(providers.SkillProvider):
       process_asset_skills.append(
           skill_generation.SkillInfoImpl(
               bt.description,
+              asset.metadata.id_version,
+              asset.metadata.documentation.description,
               proto_comments,
               skill_utils.INTRINSIC_TYPE_URL_AREA_ASSETS,
           )
@@ -392,8 +394,21 @@ class Skills(providers.SkillProvider):
             if skill.HasField("behavior_tree_description")
             else skill_utils.INTRINSIC_TYPE_URL_AREA_ASSETS
         )
+        # Manually decompose the 'id_version' here. We cannot use 'idutils'
+        # since PBTs from the skill registry can still have invalid package
+        # names (empty or with only a single period). See b/512066439.
+        package, _, name = skill.id.rpartition(".")
+        version = skill.id_version.removeprefix(skill.id + ".")
         result.append(
-            skill_generation.SkillInfoImpl(skill, proto_comments, area)
+            skill_generation.SkillInfoImpl(
+                skill,
+                id_pb2.IdVersion(
+                    id=id_pb2.Id(package=package, name=name), version=version
+                ),
+                skill.description,
+                proto_comments,
+                area,
+            )
         )
         collected_ids.add(skill.id)
 

@@ -11,6 +11,7 @@ from intrinsic.frontend.solution_service.proto import solution_service_pb2
 from intrinsic.frontend.solution_service.proto import status_pb2 as solution_status_pb2
 from intrinsic.skills.client import skill_registry_client
 from intrinsic.skills.proto import skill_registry_pb2
+from intrinsic.skills.proto import skills_pb2
 from intrinsic.solutions import deployments
 from intrinsic.solutions import error_processing
 from intrinsic.solutions import errors as solutions_errors
@@ -239,9 +240,16 @@ class SolutionTest(absltest.TestCase):
     self._solution_service = mock.MagicMock()
     self._installed_assets = mock.MagicMock()
     self._skill_registry_stub = mock.MagicMock()
-    skill_registry_response = skill_registry_pb2.GetSkillsResponse()
-    skill_registry_response.skills.add().id = "ai.intrinsic.my_skill"
-    self._skill_registry_stub.GetSkills.return_value = skill_registry_response
+    self._skill_registry_stub.GetSkills.return_value = (
+        skill_registry_pb2.GetSkillsResponse(
+            skills=[
+                skills_pb2.Skill(
+                    id="ai.intrinsic.my_skill",
+                    id_version="ai.intrinsic.my_skill.0.0.1",
+                )
+            ]
+        )
+    )
     skill_registry = skill_registry_client.SkillRegistryClient(
         self._skill_registry_stub
     )
@@ -326,6 +334,7 @@ class SolutionTest(absltest.TestCase):
     skill_registry_response = self._skill_registry_stub.GetSkills.return_value
     z_move = skill_registry_response.skills.add()
     z_move.id = "ai.intrinsic.z_move"
+    z_move.id_version = "ai.intrinsic.z_move.0.0.1"
     z_move.description = r"""DocFor z_move.
 
 More z_move Doc."""

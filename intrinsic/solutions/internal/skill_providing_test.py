@@ -16,6 +16,7 @@ import grpc
 from intrinsic.assets.configuration import asset_configuration_client
 from intrinsic.assets.proto import asset_tag_pb2
 from intrinsic.assets.proto import asset_type_pb2
+from intrinsic.assets.proto import id_pb2
 from intrinsic.assets.proto import view_pb2
 from intrinsic.assets.proto.v1 import asset_configuration_pb2
 from intrinsic.executive.proto import behavior_call_pb2
@@ -571,7 +572,7 @@ class SkillsTest(parameterized.TestCase):
     compare.assertProto2Equal(self, expected_proto, skill.proto)
 
     skill_str = (
-        'skills.my_skill('
+        'skills.ai.intrinsic.my_skill('
         'my_double=1.1, '
         'my_float=2.0, '
         'my_int32=1, '
@@ -636,7 +637,7 @@ class SkillsTest(parameterized.TestCase):
     compare.assertProto2Equal(self, expected_proto, skill.proto)
 
     skill_str = (
-        'skills.my_skill('
+        'skills.ai.intrinsic.my_skill('
         'my_double=2.5, '
         'my_float=-1.5, '
         'my_int32=5, '
@@ -720,7 +721,7 @@ class SkillsTest(parameterized.TestCase):
     compare.assertProto2Equal(self, expected_proto, skill.proto)
 
     skill_str = (
-        'skills.my_skill('
+        'skills.ai.intrinsic.my_skill('
         'executive_test_message=string_int32_map {\n  key: "foo"\n  value:'
         ' 2\n}\n, '
         'a={handle: "some-name"})'
@@ -1312,6 +1313,7 @@ class SkillsTest(parameterized.TestCase):
         """
         skills {
           id: 'ai.intrinsic.skill_one'
+          id_version: 'ai.intrinsic.skill_one.0.0.1'
           resource_selectors {
             key: 'slot_one'
             value {
@@ -1322,6 +1324,7 @@ class SkillsTest(parameterized.TestCase):
         }
         skills {
           id: 'ai.intrinsic.skill_two'
+          id_version: 'ai.intrinsic.skill_two.0.0.1'
           resource_selectors {
             key: 'slot_two_a'
             value {
@@ -1337,9 +1340,11 @@ class SkillsTest(parameterized.TestCase):
         }
         skills {
           id: 'ai.intrinsic.skill_three'
+          id_version: 'ai.intrinsic.skill_three.0.0.1'
         }
         skills {
           id: 'ai.intrinsic.skill_four'
+          id_version: 'ai.intrinsic.skill_four.0.0.1'
           resource_selectors {
             key: 'slot_one'
             value {
@@ -1399,9 +1404,10 @@ class SkillsTest(parameterized.TestCase):
     )
 
   def test_gen_skill_incompatible_resources(self):
-    skill_id = 'ai.intrinsic.my_skill'
     skill_info = text_format.Parse(
-        """id: '%s'
+        """
+        id: 'ai.intrinsic.my_skill'
+        id_version: 'ai.intrinsic.my_skill.0.0.1'
            resource_selectors {
              key: 'a'
              value {
@@ -1409,7 +1415,7 @@ class SkillsTest(parameterized.TestCase):
                capability_names: 'another-type'
              }
            }
-        """ % skill_id,
+        """,
         skills_pb2.Skill(),
     )
     skills = skill_providing.Skills(
@@ -2277,7 +2283,7 @@ Returns:
     parameters = {'my_float': 1.25, 'my_bool': True}
 
     skill_repr = (
-        'skills.my_skill('
+        'skills.ai.intrinsic.my_skill('
         'my_double=2.5, '
         'my_float=1.25, '
         'my_int32=5, '
@@ -2376,7 +2382,7 @@ Returns:
     skill = skills.ai.intrinsic.my_skill(a='foo', a_resource=resource_a)
     self.assertEqual(
         repr(skill),
-        """skills.my_skill(a='foo', a_resource={handle: "resource_a"})""",
+        """skills.ai.intrinsic.my_skill(a='foo', a_resource={handle: "resource_a"})""",
     )
 
     with self.assertRaises(TypeError):
@@ -2387,14 +2393,15 @@ Returns:
 
   def test_resource_default_value(self):
     """Tests default resource is used properly."""
-    skill_id = 'ai.intrinsic.my_skill'
     skill_info = text_format.Parse(
-        """id: '%s'
+        """
+           id: 'ai.intrinsic.my_skill'
+           id_version: 'ai.intrinsic.my_skill.0.0.1'
            resource_selectors {
              key: 'a'
              value { capability_names: 'some-type-a' }
            }
-        """ % skill_id,
+        """,
         skills_pb2.Skill(),
     )
 
@@ -2434,16 +2441,17 @@ Returns:
 
   def test_non_resource_as_resource_is_rejected(self):
     """Tests non-resource passed for resource parameter is rejected."""
-    skill_id = 'ai.intrinsic.my_skill'
     skill_info = text_format.Parse(
-        """id: '%s'
+        """
+           id: 'ai.intrinsic.my_skill'
+           id_version: 'ai.intrinsic.my_skill.0.0.1'
            resource_selectors {
              key: 'a'
              value {
                capability_names: 'some-type-a'
              }
            }
-        """ % skill_id,
+        """,
         skills_pb2.Skill(),
     )
 
@@ -2469,7 +2477,7 @@ Returns:
   def test_timeouts(self):
     """Tests if timeouts are transferred to proto."""
     skill_id = 'ai.intrinsic.my_skill'
-    skill_info = text_format.Parse(f"id: '{skill_id}'", skills_pb2.Skill())
+    skill_info = self._utils.create_parameterless_skill_info(skill_id)
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_info(skill_info),
         self._utils.create_empty_resource_registry(),
@@ -2558,43 +2566,54 @@ Returns:
     )
     self.assertEqual(action_proto.assignments[0].cel_expression, 'test')
 
-  @parameterized.parameters(
-      {
-          'skill': skills_pb2.Skill(
-              skill_name='name to be ignored', id='com.foo.my_skill'
-          )
-      },
-      {'skill': skills_pb2.Skill(id='com.foo.my_skill')},
-      {'skill': skills_pb2.Skill(id='foo.my_skill')},
-      {'skill': skills_pb2.Skill(id='my_skill')},
-  )
-  def test_skill_info_skill_name(self, skill):
-    info = skill_generation.SkillInfoImpl(skill, {}, 'someTypeUrlArea')
+  def test_skill_info_id_version_properties(self):
+    info = skill_generation.SkillInfoImpl(
+        skills_pb2.Skill(),
+        id_pb2.IdVersion(
+            id=id_pb2.Id(package='ai.intrinsic', name='my_skill'),
+            version='0.0.1',
+        ),
+        'some description',
+        {},
+        'someTypeUrlArea',
+    )
+    self.assertEqual(info.id, 'ai.intrinsic.my_skill')
+    self.assertEqual(info.id_version, 'ai.intrinsic.my_skill.0.0.1')
+    self.assertEqual(info.version, '0.0.1')
     self.assertEqual(info.skill_name, 'my_skill')
-
-  @parameterized.parameters(
-      {
-          'skill': skills_pb2.Skill(
-              package_name='com.foo', id='com.bar.my_skill'
-          ),
-          'expected_package_name': 'com.foo',
-      },
-      {
-          'skill': skills_pb2.Skill(id='com.foo.my_skill'),
-          'expected_package_name': 'com.foo',
-      },
-      {
-          'skill': skills_pb2.Skill(id='foo.my_skill'),
-          'expected_package_name': 'foo',
-      },
-      {
-          'skill': skills_pb2.Skill(id='my_skill'),
-          'expected_package_name': '',
-      },
-  )
-  def test_skill_info_package_name(self, skill, expected_package_name):
-    info = skill_generation.SkillInfoImpl(skill, {}, 'someTypeUrlArea')
-    self.assertEqual(info.package_name, expected_package_name)
+    self.assertEqual(info.package_name, 'ai.intrinsic')
+  def test_skill_info_invalid_package(self):
+    info = skill_generation.SkillInfoImpl(
+        skills_pb2.Skill(),
+        id_pb2.IdVersion(
+            id=id_pb2.Id(package='no_period', name='my_skill'),
+            version='0.0.1',
+        ),
+        'some description',
+        {},
+        'someTypeUrlArea',
+    )
+    self.assertEqual(info.id, 'no_period.my_skill')
+    self.assertEqual(info.id_version, 'no_period.my_skill.0.0.1')
+    self.assertEqual(info.version, '0.0.1')
+    self.assertEqual(info.skill_name, 'my_skill')
+    self.assertEqual(info.package_name, 'no_period')
+  def test_skill_info_empty_package(self):
+    info = skill_generation.SkillInfoImpl(
+        skills_pb2.Skill(),
+        id_pb2.IdVersion(
+            id=id_pb2.Id(package='', name='my_skill'),
+            version='0.0.1',
+        ),
+        'some description',
+        {},
+        'someTypeUrlArea',
+    )
+    self.assertEqual(info.id, 'my_skill')
+    self.assertEqual(info.id_version, 'my_skill.0.0.1')
+    self.assertEqual(info.version, '0.0.1')
+    self.assertEqual(info.skill_name, 'my_skill')
+    self.assertEqual(info.package_name, '')
 
   def test_construct_skill_info_incomplete_fileset(self):
     skill = self._utils.create_test_skill_info(
@@ -2611,11 +2630,25 @@ Returns:
     )
 
     with self.assertRaises(TypeError):
-      skill_generation.SkillInfoImpl(skill, {}, 'someTypeUrlArea')
+      skill_generation.SkillInfoImpl(
+          skill,
+          id_pb2.IdVersion(
+              id=id_pb2.Id(package='ai.intrinsic', name='my_skill'),
+              version='0.0.1',
+          ),
+          'some description',
+          {},
+          'someTypeUrlArea',
+      )
 
   def test_skill_info_proto_comments(self):
     info = skill_generation.SkillInfoImpl(
-        skills_pb2.Skill(id='ai.intrinsic.my_skill'),
+        skills_pb2.Skill(),
+        id_pb2.IdVersion(
+            id=id_pb2.Id(package='ai.intrinsic', name='my_skill'),
+            version='0.0.1',
+        ),
+        'some description',
         {
             'intrinsic_proto.MyMessage': 'MyMessage comment\n',
             'intrinsic_proto.MyMessage.my_field': 'my_field comment\n',

@@ -148,6 +148,7 @@ py_test(
         "//intrinsic/frontend/solution_service/proto:status_py_pb2",
         "//intrinsic/skills/client:skill_registry_client",
         "//intrinsic/skills/proto:skill_registry_py_pb2",
+        "//intrinsic/skills/proto:skills_py_pb2",
         "//intrinsic/util/grpc:auth_py",
         "//intrinsic/util/grpc:dialerutil",
         "//intrinsic/util/grpc:userconfig",

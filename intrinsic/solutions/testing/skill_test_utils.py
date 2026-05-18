@@ -86,6 +86,7 @@ class SkillTestUtils:
     id_parts = skill_id.split('.')
     skill_info = skills_pb2.Skill(
         id=skill_id,
+        id_version=f'{skill_id}.0.0.1',
         skill_name=id_parts[-1],
         package_name='.'.join(id_parts[:-1]),
     )
@@ -113,9 +114,9 @@ class SkillTestUtils:
       The skill proto.
     """
     id_parts = skill_id.split('.')
-    id_version = None
-    if skill_version is not None:
-      id_version = f'{skill_id}.{skill_version}'
+    id_version = (
+        f'{skill_id}.{"0.0.1" if skill_version is None else skill_version}'
+    )
     skill_info = skills_pb2.Skill(
         id=skill_id,
         id_version=id_version,
@@ -171,9 +172,9 @@ class SkillTestUtils:
       The skill proto.
     """
     id_parts = skill_id.split('.')
-    id_version = None
-    if skill_version is not None:
-      id_version = f'{skill_id}.{skill_version}'
+    id_version = (
+        f'{skill_id}.{"0.0.1" if skill_version is None else skill_version}'
+    )
     skill_info = skills_pb2.Skill(
         id=skill_id,
         id_version=id_version,
@@ -301,6 +302,7 @@ class SkillTestUtils:
                 package=id_utils.package_from(skill_info.id),
                 name=id_utils.name_from(skill_info.id),
             ),
+            version=id_utils.version_from(skill_info.id_version),
         ),
         display_name=skill_info.skill_name,
         asset_type=asset_type_pb2.AssetType.ASSET_TYPE_PROCESS,

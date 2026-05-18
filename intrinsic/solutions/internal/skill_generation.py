@@ -26,6 +26,7 @@ import grpc
 
 from intrinsic.assets import id_utils
 from intrinsic.assets.configuration import asset_configuration_client
+from intrinsic.assets.proto import id_pb2
 from intrinsic.executive.proto import behavior_call_pb2
 from intrinsic.skills.proto import skills_pb2
 from intrinsic.solutions import blackboard_value
@@ -68,6 +69,9 @@ def print_failed_descriptor_infra(
 class SkillInfoImpl(provided.SkillInfo):
   """Implementation of the SkillInfo interface."""
 
+  _id_version: id_pb2.IdVersion
+  _description: str
+
   _skill_proto: skills_pb2.Skill
   _type_url_area: str
 
@@ -80,6 +84,8 @@ class SkillInfoImpl(provided.SkillInfo):
   def __init__(
       self,
       skill_proto: skills_pb2.Skill,
+      id_version: id_pb2.IdVersion,
+      description: str,
       proto_comments: dict[str, str],
       type_url_area: str,
   ):
@@ -87,6 +93,8 @@ class SkillInfoImpl(provided.SkillInfo):
 
     Args:
       skill_proto: The protobuf description of this skill.
+      id_version: The IdVersion of this skill.
+      description: The description of this skill.
       proto_comments: Message/field/enum comments from the parameter and return
         value file descriptor set (combined) as a mapping from full name to
         comment. Comments can have multiple lines and always end with '\n'.
@@ -98,6 +106,14 @@ class SkillInfoImpl(provided.SkillInfo):
       in skill_proto.parameter_description.parameter_descriptor_fileset.
     """
 
+    # Validate IdVersion proto. Don't validate package name since PBTs from the
+    # skill registry can have invalid package names (empty or with only a single
+    # period).
+    id_utils.validate_name(id_version.id.name)
+    id_utils.validate_version(id_version.version)
+
+    self._id_version = id_version
+    self._description = description
     self._skill_proto = skill_proto
     self._type_url_area = type_url_area
     self._proto_comments = proto_comments
@@ -121,9 +137,7 @@ class SkillInfoImpl(provided.SkillInfo):
           )
       )
     except NotImplementedError as e:
-      print(
-          f"Failed to load proto file descriptors for skill: {skill_proto.id}"
-      )
+      print(f"Failed to load proto file descriptors for skill: {self.id}")
       # Try to "dummy" generate pools, etc. individually to determine, which
       # part failed for a more informative error message.
       if not print_failed_descriptor_infra(
@@ -160,29 +174,34 @@ class SkillInfoImpl(provided.SkillInfo):
 
   @property
   def id(self) -> str:
-    return self._skill_proto.id
+    # Don't use 'id_utils', package might be invalid or empty.
+    id_proto = self._id_version.id
+    return (
+        f"{id_proto.package}.{id_proto.name}"
+        if id_proto.package
+        else id_proto.name
+    )
 
   @property
   def id_version(self) -> str:
-    return self._skill_proto.id_version
+    # Don't use 'id_utils', package might be invalid or empty.
+    return f"{self.id}.{self._id_version.version}"
 
   @property
   def version(self) -> str:
-    return id_utils.version_from(self._skill_proto.id_version)
+    return self._id_version.version
 
   @property
   def skill_name(self) -> str:
-    # Use skill ID as ground truth. Don't use the 'skill_name' in the proto
-    # which is a display name that might contain, e.g., spaces.
-    return _skill_name_from_id(self._skill_proto.id)
+    return self._id_version.id.name
 
   @property
   def package_name(self) -> str:
-    if self._skill_proto.package_name:
-      return self._skill_proto.package_name
+    return self._id_version.id.package
 
-    # Extract from the skill ID if the package name is not explicitly set.
-    return _skill_package_name_from_id(self._skill_proto.id)
+  @property
+  def description(self) -> str:
+    return self._description
 
   @property
   def skill_proto(self) -> skills_pb2.Skill:
@@ -258,13 +277,11 @@ def _gen_class_docstring(info: provided.SkillInfo) -> str:
   Returns:
     The generated Python docstring.
   """
-  docstring: list[str] = [f"Skill class for {info.skill_proto.id}.\n"]
+  docstring: list[str] = [f"Skill class for {info.id}.\n"]
 
   # Expect 80 chars width
   is_first_line = True
-  for description_line in textwrap.dedent(
-      info.skill_proto.description
-  ).splitlines():
+  for description_line in textwrap.dedent(info.description).splitlines():
     wrapped_lines = textwrap.wrap(description_line, 80)
     # Make sure that an empty line is wrapped to an empty line
     # and not removed. We assume that the skill author intended
@@ -296,9 +313,7 @@ def _gen_init_docstring(
     NameError: if a parameter name and resource name are the same and even
       disambiguation adding a "_resource" suffix failed.
   """
-  docstring: list[str] = [
-      f"Initializes an instance of the skill {info.skill_proto.id}."
-  ]
+  docstring: list[str] = [f"Initializes an instance of the skill {info.id}."]
 
   params: list[skill_utils.ParameterInformation] = []
   param_names: list[str] = []
@@ -695,48 +710,6 @@ def _field_to_repr(field: descriptor.FieldDescriptor, field_value: Any) -> str:
   return repr(field_value)
 
 
-_SKILL_ID_VERSION_REGEX = (
-    r"^(?P<id>(?:(?P<package>(?:\D\w*\.)*\D\w*)\.)?(?P<name>\D\w*))$"
-)
-
-
-def _skill_name_from_id(skill_id: str) -> str:
-  """Extracts the name from the given skill ID.
-
-  Args:
-    skill_id: The skill ID.
-
-  Returns:
-    The name extracted from the ID.
-  """
-
-  m = re.search(_SKILL_ID_VERSION_REGEX, skill_id)
-
-  if m is not None:
-    return m.group("name")
-
-  return skill_id
-
-
-def _skill_package_name_from_id(skill_id: str) -> str:
-  """Extracts the name from the given skill ID.
-
-  Args:
-    skill_id: The skill ID.
-
-  Returns:
-    The name extracted from the ID.
-  """
-  m = re.search(_SKILL_ID_VERSION_REGEX, skill_id)
-
-  if m is not None:
-    package = m.group("package")
-    if package is not None:
-      return package
-
-  return ""
-
-
 class GeneratedSkill(provided.SkillBase):
   """Base class for skill classes dynamically generated at runtime."""
 
@@ -950,7 +923,7 @@ class GeneratedSkill(provided.SkillBase):
   @property
   def proto(self) -> behavior_call_pb2.BehaviorCall:
     proto = behavior_call_pb2.BehaviorCall(
-        skill_id=self._info.skill_proto.id,
+        skill_id=self._info.id,
         return_value_name=self._return_value_key,
     )
 
@@ -997,9 +970,7 @@ class GeneratedSkill(provided.SkillBase):
         resource_params.append(
             "{}={{{}}}".format(slot_param_name, repr(value).strip())
         )
-    return (
-        f"skills.{_skill_name_from_id(self.proto.skill_id)}({', '.join(params+resource_params)})"
-    )
+    return f'skills.{self._info.id}({", ".join(params+resource_params)})'
 
   @utils.classproperty
   def compatible_resources(cls) -> provided.SkillCompatibleResourcesMap:  # pylint:disable=no-self-argument
