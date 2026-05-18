@@ -14,7 +14,6 @@ go_library(
     deps = [
         "@com_github_golang_glog//:go_default_library",
         "@com_github_googlecloudplatform_opentelemetry_operations_go_exporter_trace//:go_default_library",
-        "@com_github_pborman_uuid//:go_default_library",
         "@io_opencensus_go//plugin/ocgrpc:go_default_library",
         "@io_opencensus_go//stats:go_default_library",
         "@io_opencensus_go//stats/view:go_default_library",

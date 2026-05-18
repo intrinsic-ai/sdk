@@ -12,15 +12,12 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"regexp"
 	"strings"
-	"time"
 
 	"contrib.go.opencensus.io/exporter/ocagent"
 	"contrib.go.opencensus.io/exporter/prometheus"
 	traceexporter "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
 	log "github.com/golang/glog"
-	"github.com/pborman/uuid"
 	"go.opencensus.io/plugin/ocgrpc"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/trace"
@@ -394,24 +391,6 @@ func (t *Telemetry) enableMetrics(c metricsConfig) {
 	}()
 }
 
-// Tracing session identifier
-const trsid = "trsid"
-
-// TraceOnCookie samples the request if a custom tracing session cookie is present.
-func TraceOnCookie(req *http.Request) trace.StartOptions {
-	hdr, err := req.Cookie(trsid)
-	if err != nil || !validateTRSID.MatchString(hdr.Value) {
-		return trace.StartOptions{}
-	}
-	// If we have a valid cookie set, we trace always, independently on the user defined
-	// probability. I.e. even in a project where we might by default sample with a probability
-	// of 20%, we can set to always sample using the cookie.
-	return trace.StartOptions{Sampler: trace.AlwaysSample()}
-}
-
-// Validates the tracing session identifier
-var validateTRSID = regexp.MustCompile(`^[A-Za-z0-9\-_]+$`)
-
 // TraceIDWriter makes sure only one trace identifier header is written.
 // Otherwise our proxy setup in the portal would also add the
 // upstream header after we set the header in the first handler.
@@ -458,10 +437,10 @@ func (w *TraceIDWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	return h.Hijack()
 }
 
-// DefaultHandler returns a handler which adds a trace ID, a TRS ID (if there exists a
-// cookie on the request) and the 'service.name' attribute.
+// DefaultHandler returns a handler wrapping [http.DefaultServeMux] that adds a
+// trace ID and annotates the span with the given serviceName.
 func DefaultHandler(serviceName string) http.Handler {
-	return ServiceNameHandler(serviceName, AddSpanTRSIDHandler(TraceIDHandler(http.DefaultServeMux)))
+	return ServiceNameHandler(serviceName, TraceIDHandler(http.DefaultServeMux))
 }
 
 // ServiceNameHandler returns a handler which annotates the current span with the given service
@@ -495,87 +474,6 @@ func TraceIDHandler(h http.Handler) http.Handler {
 		}
 		h.ServeHTTP(&TraceIDWriter{w, tid}, r)
 	})
-}
-
-// AddSpanTRSIDHandler adds the current tracing session identifier as span attribute.
-func AddSpanTRSIDHandler(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if hdr, err := r.Cookie(trsid); err == nil { // no error
-			if !validateTRSID.MatchString(hdr.Value) {
-				log.Warningf("tracing session identifier invalid, ignoring")
-			} else {
-				if span := trace.FromContext(r.Context()); span != nil {
-					span.AddAttributes(trace.StringAttribute("trsid", hdr.Value))
-				}
-			}
-		}
-		h.ServeHTTP(w, r)
-	})
-}
-
-// TracingEndpointsHandler provides endpoints for turning tracing for specific requests on / off.
-type TracingEndpointsHandler struct {
-	base string
-}
-
-// RegisterTracingEndpoints registers the endpoints under a specific base path.
-func RegisterTracingEndpoints(mux *http.ServeMux, base string) (*TracingEndpointsHandler, error) {
-	h := &TracingEndpointsHandler{base: strings.TrimSuffix(base, "/")}
-	mux.HandleFunc(base+"/", h.tracingHandler)
-	return h, nil
-}
-
-func genCookie(value string, delete bool) *http.Cookie {
-	c := http.Cookie{
-		Name:     trsid,
-		Value:    value,
-		Secure:   true,
-		HttpOnly: true,
-		Path:     "/",
-	}
-	if delete {
-		c.MaxAge = -1
-		c.Expires = time.Unix(1, 0)
-	} else {
-		c.Expires = time.Now().Add(30 * time.Minute)
-	}
-	return &c
-}
-
-var uuidNew = uuid.New // for unit testing
-
-// Handles all available tracing operations
-// The endpoints accept GET requests so that a new tracing session can be created via golinks.
-// Expecting these paths:
-// - [GET] [base]/enable: Create a new tracing session, even if one exists
-// - [GET] [base]/trsid: Return the current tracing session identifier or NotFound
-// - [GET] [base]/disable: Delete the current tracing session
-func (h *TracingEndpointsHandler) tracingHandler(w http.ResponseWriter, r *http.Request) {
-	_, span := trace.StartSpan(r.Context(), "telemetry.tracingHandler")
-	defer span.End()
-
-	// format: [base]/[op]
-	op := strings.TrimPrefix(r.URL.Path, h.base+"/")
-	switch op {
-	case "enable":
-		t := uuidNew()[0:8]
-		c := genCookie(t, false)
-		http.SetCookie(w, c)
-		w.Write([]byte(fmt.Sprintf("created tracing session %s for you", t)))
-	case "trsid":
-		if t, err := r.Cookie(trsid); err == nil { // no error, cookie found
-			w.Write([]byte(t.Value))
-		} else { // error or cookie not found
-			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte("no tracing session cookie found"))
-		}
-	case "disable":
-		c := genCookie("", true)
-		http.SetCookie(w, c)
-		w.Write([]byte("disabled your tracing session"))
-	default:
-		http.Error(w, "invalid tracing operation", http.StatusBadRequest)
-	}
 }
 
 // SetError sets the error status code and message for the given span.
