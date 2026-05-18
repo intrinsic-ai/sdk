@@ -58,6 +58,43 @@ def gen_file_descriptor_set(
   return file_descriptor_set
 
 
+def merge_file_descriptor_sets(
+    sets: Iterable[descriptor_pb2.FileDescriptorSet],
+) -> descriptor_pb2.FileDescriptorSet:
+  """Merges the files of the given file descriptor sets into a single set.
+
+  Merges the given file descriptor sets into a single set without duplicate
+  files. If a file name appears in more than one input file descriptor set this
+  checks that all instances are identical.
+
+  Args:
+    sets: The file descriptor sets to merge.
+
+  Returns:
+    The merged file descriptor set.
+
+  Raises:
+    TypeError: If a file is contained in more that one input file descriptor set
+      but the file's instances are not identical.
+  """
+  files: dict[str, descriptor_pb2.FileDescriptorProto] = {}
+  result_set = descriptor_pb2.FileDescriptorSet()
+
+  for input_set in sets:
+    for file in input_set.file:
+      if file.name not in files:
+        # This makes a copy of 'file'
+        result_set.file.append(file)
+        files[file.name] = file
+      elif file != files[file.name]:
+        raise ValueError(
+            f'"{file.name}" contained in more than one input file descriptor'
+            ' set but file instances are not identical'
+        )
+
+  return result_set
+
+
 def _append_file_descriptor_set_to_pool(
     pool: descriptor_pool.DescriptorPool,
     file_set: descriptor_pb2.FileDescriptorSet,
