@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/signal"
 	"os/user"
 	"regexp"
 	"strings"
+	"syscall"
 	"time"
 	"unicode"
 
@@ -63,7 +65,9 @@ var vmLeaseCmd = &cobra.Command{
 	Short: "Lease a VM from a pool of VMs.",
 	Long:  leaseDesc,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx, span := trace.StartSpan(cmd.Context(), "inctl.vm.lease")
+		ctx, stop := signal.NotifyContext(cmd.Context(), os.Interrupt, syscall.SIGTERM)
+		defer stop()
+		ctx, span := trace.StartSpan(ctx, "inctl.vm.lease")
 		span.AddAttributes(trace.StringAttribute("pool", flagPool))
 		span.AddAttributes(trace.StringAttribute("org", vmCmdFlags.GetFlagOrganization()))
 		defer span.End()
@@ -75,7 +79,7 @@ var vmLeaseCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		return Lease(ctx, cl, &pc, printer.GetFlagOutputType(cmd), &LeaseOptions{
+		err = Lease(ctx, cl, &pc, printer.GetFlagOutputType(cmd), &LeaseOptions{
 			AbortAfter:    flagAbortAfter,
 			Duration:      flagDuration,
 			ReservationID: flagReservationID,
@@ -89,6 +93,15 @@ var vmLeaseCmd = &cobra.Command{
 			Silent:        flagSilent,
 			Stderr:        os.Stderr,
 		})
+		if err != nil {
+			// If the context of RunE (which intercepts SIGINT/SIGTERM) was cancelled,
+			// it means the user interrupted the command. Exit gracefully without printing error.
+			if ctx.Err() != nil {
+				return nil
+			}
+			return err
+		}
+		return nil
 	},
 }
 
@@ -320,6 +333,27 @@ func requestAdhocLease(ctx context.Context, duration time.Duration, leaseClient 
 		return nil, err
 	}
 
+	var leasedVM *leasepb.Lease
+
+	if isAdhocPoolPath {
+		defer func() {
+			cleanupCtx, cleanupCancel := context.WithTimeout(context.WithoutCancel(ctx), 30*time.Second)
+			defer cleanupCancel()
+
+			if leasedVM == nil {
+				fmt.Fprintf(opts.Stderr, "\nAborting... Cleaning up temporary pool %s\n", opts.Pool)
+			} else {
+				fmt.Fprintf(opts.Stderr, "\nCleaned up temporary pool %s\n", opts.Pool)
+			}
+
+			if _, err := (*poolClient).DeletePool(cleanupCtx, &vmpoolpb.DeletePoolRequest{Name: opts.Pool}); err != nil {
+				fmt.Fprintf(opts.Stderr, "Failed to delete pool %s: %v\n Please delete it manually with: \n\t`inctl vm pool delete --pool %s --org %s`\n\n", opts.Pool, err, opts.Pool, orgutil.QualifiedOrg(vmCmdFlags.GetFlagProject(), vmCmdFlags.GetFlagOrganization()))
+			} else if leasedVM == nil {
+				fmt.Fprintf(opts.Stderr, "Successfully deleted temporary pool %s. No manual cleanup required.\n", opts.Pool)
+			}
+		}()
+	}
+
 	poolIsBooting := isAdhocPoolPath
 
 	var l *leasepb.Lease
@@ -349,17 +383,17 @@ func requestAdhocLease(ctx context.Context, duration time.Duration, leaseClient 
 			if !poolIsBooting { // skip messages about pool not beeing present if the pool is booting to not confuse users
 				fmt.Fprintf(opts.Stderr, "lease request did not succeed yet, retrying soon: %v\n", err)
 			}
-			time.Sleep(retryInterval)
+			select {
+			case <-ctx.Done():
+				return nil, fmt.Errorf("lease request failed: %v. please try again", ctx.Err())
+			case <-time.After(retryInterval):
+			}
+		} else {
+			l = lResp.GetLease()
 		}
-		l = lResp.GetLease()
 	}
 
-	if isAdhocPoolPath {
-		if _, err := (*poolClient).DeletePool(ctx, &vmpoolpb.DeletePoolRequest{Name: opts.Pool}); err != nil {
-			fmt.Fprintf(opts.Stderr, "Failed to delete pool %s: %v\n This is not critical, please delete it manually with: \n\t`inctl vm pool delete --pool %s --org %s`\n\n", opts.Pool, err, opts.Pool, orgutil.QualifiedOrg(vmCmdFlags.GetFlagProject(), vmCmdFlags.GetFlagOrganization()))
-		}
-		fmt.Fprintf(opts.Stderr, "\nCleaned up temporary pool %s\n\n", opts.Pool)
-	}
+	leasedVM = l
 
 	retContext, err := getContext(ctx, opts, l)
 	if err != nil {
