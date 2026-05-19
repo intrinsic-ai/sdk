@@ -34,7 +34,6 @@ from google.protobuf import message
 from google.protobuf import message_factory
 import grpc
 
-from intrinsic.assets import id_utils
 from intrinsic.icon.proto import joint_space_pb2
 from intrinsic.math.proto import pose_pb2
 from intrinsic.math.python import data_types
@@ -43,14 +42,12 @@ from intrinsic.math.python import ros_proto_conversion
 from intrinsic.motion_planning.proto import motion_target_pb2
 from intrinsic.perception.proto.v1 import pose_estimator_id_pb2
 from intrinsic.skills.client import skill_registry_client
-from intrinsic.skills.proto import skills_pb2
 from intrinsic.solutions import blackboard_value
 from intrinsic.solutions import cel
 from intrinsic.solutions import pose_estimation
 from intrinsic.solutions import provided
 from intrinsic.solutions import utils
 from intrinsic.solutions import worlds
-from intrinsic.solutions.internal import skill_parameters
 from intrinsic.util.proto import descriptors
 from intrinsic.world.proto import collision_settings_pb2
 from intrinsic.world.proto import object_world_refs_pb2
@@ -1053,7 +1050,6 @@ def _gen_init_fun(
       wrapped_type,
       wrapper_classes,
       enum_classes,
-      skill_info.file_descriptor_set,
   )
   new_init_fun.__signature__ = inspect.Signature(params)
   new_init_fun.__annotations__ = collections.OrderedDict(
@@ -1191,7 +1187,6 @@ def _gen_init_params(
     wrapped_type: Type[message.Message],
     wrapper_classes: dict[str, Type[MessageWrapper]],
     enum_classes: dict[str, Type[enum.IntEnum]],
-    file_descriptor_set: descriptor_pb2.FileDescriptorSet,
 ) -> List[inspect.Parameter]:
   """Create argument typing information for a given message.
 
@@ -1201,14 +1196,12 @@ def _gen_init_params(
       wrapper classes.
     enum_classes: Map from full proto enum names to corresponding enum wrapper
       classes.
-    file_descriptor_set: The skill's file descriptor set.
 
   Returns:
     List of extracted parameters with typing information.
   """
   param_info = extract_parameter_information_from_message(
       wrapped_type,
-      file_descriptor_set,
       wrapper_classes,
       enum_classes,
   )
@@ -1527,9 +1520,24 @@ def deconflict_param_and_resources(
   return try_slot
 
 
+def _is_map_field(field: descriptor.FieldDescriptor) -> bool:
+  """Returns True if the given field is a map."""
+  return (
+      field.is_repeated
+      # Under the hood, a map is a repeated field with a special,
+      # auto-generated message type. This type has the 'map_entry' flag set.
+      and field.type == descriptor.FieldDescriptor.TYPE_MESSAGE
+      and field.message_type.GetOptions().map_entry
+  )
+
+
+def _is_repeated_field(field: descriptor.FieldDescriptor) -> bool:
+  """Returns True if the given field is a repeated field (but not a map!)."""
+  return field.is_repeated and not _is_map_field(field)
+
+
 def _extract_field_type_from_message_field(
     field: descriptor.FieldDescriptor,
-    skill_params: skill_parameters.SkillParameters,
     wrapper_classes: dict[str, Type[MessageWrapper]],
     enum_classes: dict[str, Type[enum.IntEnum]],
 ) -> Type[Any]:
@@ -1540,7 +1548,6 @@ def _extract_field_type_from_message_field(
 
   Args:
     field: The field for which to extract the Pythonic type.
-    skill_params: Utility class to inspect the skill's parameters.
     wrapper_classes: Map from proto message names to corresponding message
       wrapper classes.
     enum_classes: Map from full proto enum names to corresponding enum wrapper
@@ -1549,7 +1556,7 @@ def _extract_field_type_from_message_field(
   Returns:
     The Pythonic type of the given field.
   """
-  if skill_params.is_map_field(field.name):
+  if _is_map_field(field):
     # Under the hood, map fields are repeated fields whose type is an
     # auto-generated message type with two fields called 'key' and 'value'.
     # See https://protobuf.dev/programming-guides/proto3/#backwards.
@@ -1563,7 +1570,7 @@ def _extract_field_type_from_message_field(
     )
     field_type = Union[dict[key_type, value_type], provided.ParamAssignment]
     field_type = Optional[field_type]
-  elif skill_params.is_repeated_field(field.name):
+  elif _is_repeated_field(field):
     field_type = Union[
         Sequence[
             Union[
@@ -1587,7 +1594,6 @@ def _extract_field_type_from_message_field(
 
 def extract_parameter_information_from_message(
     message_type: Type[message.Message],
-    file_descriptor_set: descriptor_pb2.FileDescriptorSet,
     wrapper_classes: dict[str, Type[MessageWrapper]],
     enum_classes: dict[str, Type[enum.IntEnum]],
 ) -> list[tuple[inspect.Parameter, str]]:
@@ -1595,7 +1601,6 @@ def extract_parameter_information_from_message(
 
   Args:
     message_type: The proto message type to inspect.
-    file_descriptor_set: The skill's file descriptor set.
     wrapper_classes: Map from proto message names to corresponding wrapper
       classes.
     enum_classes: Map from full proto enum names to corresponding enum wrappers.
@@ -1604,16 +1609,10 @@ def extract_parameter_information_from_message(
     A list of tuples containing the signature Parameter and field name.
   """
   params: List[Tuple[inspect.Parameter, str]] = []
-  msg_descriptor = message_type.DESCRIPTOR
 
-  skill_params = skill_parameters.SkillParameters(
-      msg_descriptor, file_descriptor_set
-  )
-
-  for field in msg_descriptor.fields:
+  for field in message_type.DESCRIPTOR.fields:
     field_type = _extract_field_type_from_message_field(
         field,
-        skill_params,
         wrapper_classes,
         enum_classes,
     )
@@ -1648,12 +1647,8 @@ def extract_docstring_from_message(
     List containing a ParameterInformation object describing for each field.
   """
   params: List[ParameterInformation] = []
-  msg_descriptor = message_type.DESCRIPTOR
-  skill_params = skill_parameters.SkillParameters(
-      msg_descriptor, skill_info.file_descriptor_set
-  )
 
-  for field in msg_descriptor.fields:
+  for field in message_type.DESCRIPTOR.fields:
     params.append(
         ParameterInformation(
             has_default=False,

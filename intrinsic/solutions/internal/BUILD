@@ -150,35 +150,9 @@ py_test(
 )
 
 py_library(
-    name = "skill_parameters",
-    srcs = ["skill_parameters.py"],
-    deps = [
-        "@com_google_protobuf//:protobuf_python",
-    ],
-)
-
-py_test(
-    name = "skill_parameters_test",
-    srcs = ["skill_parameters_test.py"],
-    data = [
-        "//intrinsic/solutions/testing:test_skill_params_proto_descriptors",
-    ],
-    deps = [
-        ":skill_parameters",
-        "//intrinsic/solutions/testing:skill_test_utils",
-        "//intrinsic/solutions/testing:test_skill_params_py_pb2",
-        "//intrinsic/util/path_resolver:path_resolver_py",
-        "@com_google_absl_py//absl/testing:absltest",
-        "@com_google_absl_py//absl/testing:parameterized",
-    ],
-)
-
-py_library(
     name = "skill_utils",
     srcs = ["skill_utils.py"],
     deps = [
-        ":skill_parameters",
-        "//intrinsic/assets:id_utils_py",
         "//intrinsic/icon/proto:joint_space_py_pb2",
         "//intrinsic/math/proto:pose_py_pb2",
         "//intrinsic/math/python:data_types",
@@ -187,7 +161,6 @@ py_library(
         "//intrinsic/motion_planning/proto:motion_target_py_pb2",
         "//intrinsic/perception/proto/v1:pose_estimator_id_py_pb2",
         "//intrinsic/skills/client:skill_registry_client",
-        "//intrinsic/skills/proto:skills_py_pb2",
         "//intrinsic/solutions:blackboard_value",
         "//intrinsic/solutions:cel",
         "//intrinsic/solutions:pose_estimation",
@@ -232,7 +205,6 @@ py_library(
         "//intrinsic/assets/proto:id_py_pb2",
         "//intrinsic/executive/proto:behavior_call_py_pb2",
         "//intrinsic/skills/proto:equipment_py_pb2",
-        "//intrinsic/skills/proto:skills_py_pb2",
         "//intrinsic/solutions:blackboard_value",
         "//intrinsic/solutions:cel",
         "//intrinsic/solutions:provided",

@@ -8,7 +8,6 @@ import collections
 import enum
 import inspect
 import pprint
-import re
 import textwrap
 from typing import Any
 from typing import Callable
@@ -30,7 +29,6 @@ from intrinsic.assets.configuration import asset_configuration_client
 from intrinsic.assets.proto import id_pb2
 from intrinsic.executive.proto import behavior_call_pb2
 from intrinsic.skills.proto import equipment_pb2
-from intrinsic.skills.proto import skills_pb2
 from intrinsic.solutions import blackboard_value
 from intrinsic.solutions import cel
 from intrinsic.solutions import provided
@@ -480,7 +478,6 @@ def _gen_init_params(
   if info.parameter_message_full_name:
     param_info = skill_utils.extract_parameter_information_from_message(
         info.get_param_message_type(),
-        info.file_descriptor_set,
         wrapper_classes,
         enum_classes,
     )
