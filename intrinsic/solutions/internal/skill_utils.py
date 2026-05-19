@@ -1477,13 +1477,9 @@ def update_message_class_modules(
   #   move_robot.intrinsic_proto.MoveRobotParams.MyEnum.MY_ENUM_VALUE_ONE
   # available as
   #   move_robot.MY_ENUM_VALUE_ONE
-  skill_proto = cls.info
-  if skill_proto.HasField("parameter_description"):
-    parameter_message_full_name = (
-        skill_proto.parameter_description.parameter_message_full_name
-    )
+  if cls.info.parameter_message_full_name:
     for enum_full_name, enum_class in enum_classes.items():
-      if enum_full_name.startswith(parameter_message_full_name):
+      if enum_full_name.startswith(cls.info.parameter_message_full_name):
         _add_enum_value_shortcuts(add_to_class=cls, enum_class=enum_class)
 
   return wrapper_classes, enum_classes

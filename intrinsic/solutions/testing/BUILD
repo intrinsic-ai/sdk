@@ -75,6 +75,7 @@ py_library(
         "//intrinsic/assets/processes/proto:process_asset_py_pb2",
         "//intrinsic/assets/proto:asset_tag_py_pb2",
         "//intrinsic/assets/proto:asset_type_py_pb2",
+        "//intrinsic/assets/proto:documentation_py_pb2",
         "//intrinsic/assets/proto:id_py_pb2",
         "//intrinsic/assets/proto:installed_assets_py_pb2",
         "//intrinsic/assets/proto:metadata_py_pb2",

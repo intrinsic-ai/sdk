@@ -7,6 +7,7 @@ from __future__ import annotations
 import collections
 import enum
 import inspect
+import pprint
 import re
 import textwrap
 from typing import Any
@@ -80,7 +81,6 @@ class SkillInfoImpl(provided.SkillInfo):
   _resource_selectors: dict[str, equipment_pb2.ResourceSelector]
 
   _skill_type: provided.SkillType
-  _skill_proto: skills_pb2.Skill
   _type_url_area: str
 
   _proto_comments: dict[str, str]
@@ -91,7 +91,6 @@ class SkillInfoImpl(provided.SkillInfo):
 
   def __init__(
       self,
-      skill_proto: skills_pb2.Skill,
       id_version: id_pb2.IdVersion,
       description: str,
       parameter_message_full_name: str,
@@ -103,10 +102,9 @@ class SkillInfoImpl(provided.SkillInfo):
       skill_type: provided.SkillType,
       type_url_area: str,
   ):
-    """Creates a SkillInfoImpl object from the skill_proto.
+    """Creates a SkillInfoImpl object from the given skill metadata.
 
     Args:
-      skill_proto: The protobuf description of this skill.
       id_version: The IdVersion of this skill.
       description: The description of this skill.
       parameter_message_full_name: Full name of the skill's parameter message or
@@ -126,8 +124,8 @@ class SkillInfoImpl(provided.SkillInfo):
         an Intrinsic-style type URL.
 
     Raises:
-      TypeError if the skill_proto does not contain all transitive dependencies
-      in skill_proto.parameter_description.parameter_descriptor_fileset.
+      TypeError if the file descriptor set does not contain all transitive
+       dependencies for the given parameter message and return value messages.
     """
 
     # Validate IdVersion proto. Don't validate package name since PBTs from the
@@ -144,7 +142,6 @@ class SkillInfoImpl(provided.SkillInfo):
     self._default_params = default_params
     self._resource_selectors = resource_selectors
     self._skill_type = skill_type
-    self._skill_proto = skill_proto
     self._type_url_area = type_url_area
     self._proto_comments = proto_comments
 
@@ -211,10 +208,6 @@ class SkillInfoImpl(provided.SkillInfo):
     return self._skill_type
 
   @property
-  def skill_proto(self) -> skills_pb2.Skill:
-    return self._skill_proto
-
-  @property
   def type_url_area(self) -> str:
     return self._type_url_area
 
@@ -275,6 +268,33 @@ class SkillInfoImpl(provided.SkillInfo):
 
   def get_proto_comment(self, full_name: str) -> str:
     return self._proto_comments.get(full_name, "")
+
+  def __str__(self):
+    fds_files = [file.name for file in self.file_descriptor_set.file[:10]]
+    if len(self.file_descriptor_set.file) > 10:
+      fds_files.append(f"... <{len(self.file_descriptor_set.file)} files>")
+    fds_summary = pprint.pformat(fds_files)
+
+    default_params = None
+    if self._default_params is not None:
+      default_params = (
+          f"{{\n{textwrap.indent(str(self.default_params), '  ')}}}"
+      )
+
+    # fmt: off
+    output = (
+        f"id_version: '{self.id_version}'\n"
+        f"description: '{self.description}'\n"
+        f"parameter_message_full_name: '{self.parameter_message_full_name}'\n"
+        f"return_value_message_full_name: '{self.return_value_message_full_name}'\n"
+        f"file_descriptor_set (summary): \n{fds_summary}\n"
+        f"default_params: {default_params}\n"
+        f"resource_selectors: {str(self.resource_selectors)}\n"
+        f"type_url_area: '{self.type_url_area}'\n"
+        f"proto_comments (summary): <{len(self._proto_comments)} comments>\n"
+    )
+    # fmt: on
+    return output
 
 
 def _gen_class_docstring(info: provided.SkillInfo) -> str:
@@ -924,8 +944,12 @@ class GeneratedSkill(provided.SkillBase):
     return resource_set
 
   @utils.classproperty
-  def info(cls) -> skills_pb2.Skill:  # pylint:disable=no-self-argument
-    return cls._info.skill_proto
+  def info(cls) -> provided.SkillInfo:  # pylint:disable=no-self-argument
+    return cls._info
+
+  @utils.classproperty
+  def skill_info(cls) -> provided.SkillInfo:  # pylint:disable=no-self-argument
+    return cls._info
 
   @property
   def proto(self) -> behavior_call_pb2.BehaviorCall:
@@ -982,10 +1006,6 @@ class GeneratedSkill(provided.SkillBase):
   @utils.classproperty
   def compatible_resources(cls) -> provided.SkillCompatibleResourcesMap:  # pylint:disable=no-self-argument
     return cls._compatible_resources
-
-  @utils.classproperty
-  def skill_info(cls) -> provided.SkillInfo:  # pylint:disable=no-self-argument
-    return cls._info
 
   @utils.classproperty
   def message_classes(cls) -> dict[str, Type[message.Message]]:  # pylint:disable=no-self-argument

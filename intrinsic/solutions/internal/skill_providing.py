@@ -364,7 +364,6 @@ class Skills(providers.SkillProvider):
         skill.parameter_description.parameter_field_comments
     ) | dict(skill.return_value_description.return_value_field_comments)
     return skill_generation.SkillInfoImpl(
-        skill,
         asset.metadata.id_version,
         asset.metadata.documentation.description,
         skill.parameter_description.parameter_message_full_name,
@@ -417,7 +416,6 @@ class Skills(providers.SkillProvider):
       area = skill_utils.INTRINSIC_TYPE_URL_AREA_ASSETS
 
     return skill_generation.SkillInfoImpl(
-        skill,
         id_version,
         skill.description,
         skill.parameter_description.parameter_message_full_name,

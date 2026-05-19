@@ -338,11 +338,11 @@ class SkillsTest(parameterized.TestCase):
     registry_skill = self._utils.create_parameterless_skill_info(
         'ai.intr.same_name'
     )
-    registry_skill.skill_name = 'registry skill'
+    registry_skill.description = 'registry skill description'
     asset_skill = self._utils.create_parameterless_skill_info(
         'ai.intr.same_name'
     )
-    asset_skill.skill_name = 'asset skill'
+    asset_skill.description = 'asset skill description'
 
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_infos([registry_skill]),
@@ -351,7 +351,9 @@ class SkillsTest(parameterized.TestCase):
         self._utils.create_asset_configuration_client(),
     )
 
-    self.assertEqual(skills.ai.intr.same_name.info.skill_name, 'asset skill')
+    self.assertEqual(
+        skills.ai.intr.same_name.info.description, 'asset skill description'
+    )
 
   def test_skills_dict_access(self):
     """Tests id-string-based access via __getitem__ (skills['<skill_id>'])."""
@@ -1761,12 +1763,13 @@ class SkillsTest(parameterized.TestCase):
     )
 
     with self.assertRaisesRegex(
-        NameError, 'Unknown argument\(s\): key_that_does_not_exist'
+        NameError, r'Unknown argument\(s\): key_that_does_not_exist'
     ):
       skills.ai.intrinsic.my_skill(key_that_does_not_exist=None)
 
     with self.assertRaisesRegex(
-        NameError, 'Unknown argument\(s\): non_existent_key_with_non_none_value'
+        NameError,
+        r'Unknown argument\(s\): non_existent_key_with_non_none_value',
     ):
       skills.ai.intrinsic.my_skill(non_existent_key_with_non_none_value=42)
 
@@ -2570,7 +2573,6 @@ Returns:
 
   def test_skill_info_id_version_properties(self):
     info = skill_generation.SkillInfoImpl(
-        skill_proto=skills_pb2.Skill(),
         id_version=id_pb2.IdVersion(
             id=id_pb2.Id(package='ai.intrinsic', name='my_skill'),
             version='0.0.1',
@@ -2592,7 +2594,6 @@ Returns:
     self.assertEqual(info.package_name, 'ai.intrinsic')
   def test_skill_info_invalid_package(self):
     info = skill_generation.SkillInfoImpl(
-        skill_proto=skills_pb2.Skill(),
         id_version=id_pb2.IdVersion(
             id=id_pb2.Id(package='no_period', name='my_skill'),
             version='0.0.1',
@@ -2614,7 +2615,6 @@ Returns:
     self.assertEqual(info.package_name, 'no_period')
   def test_skill_info_empty_package(self):
     info = skill_generation.SkillInfoImpl(
-        skill_proto=skills_pb2.Skill(),
         id_version=id_pb2.IdVersion(
             id=id_pb2.Id(package='', name='my_skill'),
             version='0.0.1',
@@ -2636,9 +2636,6 @@ Returns:
     self.assertEqual(info.package_name, '')
 
   def test_skill_info_parameter_and_return_value_properties(self):
-    skill = self._utils.create_parameterless_skill_info(
-        skill_id='ai.intrinsic.my_skill'
-    )
     file_descriptor_set = descriptor_pb2.FileDescriptorSet(
         file=[
             descriptor_pb2.FileDescriptorProto(
@@ -2656,7 +2653,6 @@ Returns:
     )
 
     info = skill_generation.SkillInfoImpl(
-        skill_proto=skill,
         id_version=id_pb2.IdVersion(
             id=id_pb2.Id(package='ai.intrinsic', name='my_skill'),
             version='0.0.1',
@@ -2682,10 +2678,6 @@ Returns:
     self.assertEqual(info.default_params, defaults_any)
 
   def test_construct_skill_info_incomplete_fileset(self):
-    skill = self._utils.create_test_skill_info(
-        skill_id='ai.intrinsic.my_skill',
-        parameter_defaults=test_skill_params_pb2.TestMessage(),
-    )
     file_descriptor_set = descriptor_pb2.FileDescriptorSet()
     test_skill_params_pb2.TestMessage.DESCRIPTOR.file.CopyToProto(
         file_descriptor_set.file.add()
@@ -2693,7 +2685,6 @@ Returns:
 
     with self.assertRaises(TypeError):
       skill_generation.SkillInfoImpl(
-          skill_proto=skill,
           id_version=id_pb2.IdVersion(
               id=id_pb2.Id(package='ai.intrinsic', name='my_skill'),
               version='0.0.1',
@@ -2710,14 +2701,10 @@ Returns:
       )
 
   def test_skill_info_resource_selectors(self):
-    skill = self._utils.create_parameterless_skill_info(
-        skill_id='ai.intrinsic.my_skill'
-    )
     resource_selectors = {
         'robot': equipment_pb2.ResourceSelector(capability_names=['IconApi'])
     }
     info = skill_generation.SkillInfoImpl(
-        skill_proto=skill,
         id_version=id_pb2.IdVersion(
             id=id_pb2.Id(package='ai.intrinsic', name='my_skill'),
             version='0.0.1',
@@ -2737,7 +2724,6 @@ Returns:
 
   def test_skill_info_type_and_type_url(self):
     info = skill_generation.SkillInfoImpl(
-        skill_proto=skills_pb2.Skill(),
         id_version=id_pb2.IdVersion(
             id=id_pb2.Id(package='ai.intrinsic', name='my_skill'),
             version='0.0.1',
@@ -2758,7 +2744,6 @@ Returns:
 
   def test_skill_info_proto_comments(self):
     info = skill_generation.SkillInfoImpl(
-        skill_proto=skills_pb2.Skill(),
         id_version=id_pb2.IdVersion(
             id=id_pb2.Id(package='ai.intrinsic', name='my_skill'),
             version='0.0.1',

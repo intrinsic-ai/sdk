@@ -173,7 +173,6 @@ class SkillInfo(abc.ABC):
     package_name: Skill package name (e.g. 'ai.intrinsic').
     description: Skill description (e.g. 'This skill moves a robot').
     skill_type: Skill type (regular skill or process, see SkillType).
-    skill_proto: proto with skill information that this instance represents.
     type_url_area: Area to be used in Intrinsic type URLs for this skill.
     parameter_message_full_name: Full name of the skill's parameter message.
       Empty if the skill does not have a parameter message.
@@ -216,11 +215,6 @@ class SkillInfo(abc.ABC):
   @property
   @abc.abstractmethod
   def skill_type(self) -> SkillType:
-    ...
-
-  @property
-  @abc.abstractmethod
-  def skill_proto(self) -> skills_pb2.Skill:
     ...
 
   @property
@@ -389,14 +383,25 @@ class SkillBase(actions.ActionBase):
 
   @utils.classproperty
   @abc.abstractmethod
-  def info(cls) -> skills_pb2.Skill:  # pylint:disable=no-self-argument
-    """Get skill signature information.
+  def info(cls) -> SkillInfo:  # pylint:disable=no-self-argument
+    """Get skill metadata information.
 
     Returns:
-      Skill proto with structured information.
+      SkillInfo object associated with this skill.
     """
     # @classproperty requires an error-free default implementation.
-    return skills_pb2.Skill()
+    return None
+
+  @utils.classproperty
+  @abc.abstractmethod
+  def skill_info(cls) -> SkillInfo:  # pylint:disable=no-self-argument
+    """Get skill metadata information.
+
+    Returns:
+      SkillInfo object associated with this skill.
+    """
+    # @classproperty requires an error-free default implementation.
+    return None
 
   @utils.classproperty
   @abc.abstractmethod
@@ -410,17 +415,6 @@ class SkillBase(actions.ActionBase):
     """
     # @classproperty requires an error-free default implementation.
     return SkillCompatibleResourcesMap({})
-
-  @utils.classproperty
-  @abc.abstractmethod
-  def skill_info(cls) -> SkillInfo:  # pylint:disable=no-self-argument
-    """Access skill info for this skill.
-
-    Returns:
-      SkillInfo object associated with this skill.
-    """
-    # @classproperty requires an error-free default implementation.
-    return None
 
   @utils.classproperty
   @abc.abstractmethod

@@ -17,6 +17,7 @@ from intrinsic.assets.install import installed_assets_client
 from intrinsic.assets.processes.proto import process_asset_pb2
 from intrinsic.assets.proto import asset_tag_pb2
 from intrinsic.assets.proto import asset_type_pb2
+from intrinsic.assets.proto import documentation_pb2
 from intrinsic.assets.proto import id_pb2
 from intrinsic.assets.proto import installed_assets_pb2
 from intrinsic.assets.proto import metadata_pb2
@@ -305,6 +306,9 @@ class SkillTestUtils:
             version=id_utils.version_from(skill_info.id_version),
         ),
         display_name=skill_info.skill_name,
+        documentation=documentation_pb2.Documentation(
+            description=skill_info.description
+        ),
         asset_type=asset_type_pb2.AssetType.ASSET_TYPE_PROCESS,
         asset_tag=asset_tag_pb2.AssetTag.ASSET_TAG_SUBPROCESS,
     )
