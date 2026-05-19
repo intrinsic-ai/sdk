@@ -28,6 +28,7 @@ from intrinsic.assets import id_utils
 from intrinsic.assets.configuration import asset_configuration_client
 from intrinsic.assets.proto import id_pb2
 from intrinsic.executive.proto import behavior_call_pb2
+from intrinsic.skills.proto import equipment_pb2
 from intrinsic.skills.proto import skills_pb2
 from intrinsic.solutions import blackboard_value
 from intrinsic.solutions import cel
@@ -76,6 +77,7 @@ class SkillInfoImpl(provided.SkillInfo):
   _return_value_message_full_name: str
   _file_descriptor_set: descriptor_pb2.FileDescriptorSet
   _default_params: any_pb2.Any | None
+  _resource_selectors: dict[str, equipment_pb2.ResourceSelector]
 
   _skill_type: provided.SkillType
   _skill_proto: skills_pb2.Skill
@@ -96,6 +98,7 @@ class SkillInfoImpl(provided.SkillInfo):
       return_value_message_full_name: str,
       file_descriptor_set: descriptor_pb2.FileDescriptorSet,
       default_params: any_pb2.Any | None,
+      resource_selectors: dict[str, equipment_pb2.ResourceSelector],
       proto_comments: dict[str, str],
       skill_type: provided.SkillType,
       type_url_area: str,
@@ -114,6 +117,7 @@ class SkillInfoImpl(provided.SkillInfo):
         the skill's parameter and return value message.
       default_params: Default value for the skill parameters or None if the
         skill does not provide a default value proto.
+      resource_selectors: Resource selectors for the skill.
       proto_comments: Message/field/enum comments from the parameter and return
         value file descriptor set (combined) as a mapping from full name to
         comment. Comments can have multiple lines and always end with '\n'.
@@ -138,6 +142,7 @@ class SkillInfoImpl(provided.SkillInfo):
     self._return_value_message_full_name = return_value_message_full_name
     self._file_descriptor_set = file_descriptor_set
     self._default_params = default_params
+    self._resource_selectors = resource_selectors
     self._skill_type = skill_type
     self._skill_proto = skill_proto
     self._type_url_area = type_url_area
@@ -228,6 +233,10 @@ class SkillInfoImpl(provided.SkillInfo):
   @property
   def default_params(self) -> any_pb2.Any | None:
     return self._default_params
+
+  @property
+  def resource_selectors(self) -> dict[str, equipment_pb2.ResourceSelector]:
+    return self._resource_selectors
 
   def create_param_message(self) -> message.Message:
     return self._message_classes[self._parameter_message_full_name]()
@@ -344,7 +353,7 @@ def _gen_init_docstring(
     )
     param_names.append("return_value_key")
 
-  for slot, selector in sorted(info.skill_proto.resource_selectors.items()):
+  for slot, selector in sorted(info.resource_selectors.items()):
     param_name = skill_utils.deconflict_param_and_resources(slot, param_names)
 
     slot_docstring = []
@@ -379,7 +388,7 @@ def _gen_init_docstring(
 
   skill_utils.append_used_proto_full_names(info.skill_name, params, docstring)
 
-  if not info.skill_proto.resource_selectors:
+  if not info.resource_selectors:
     docstring.append("\nThis skill requires no resources.")
 
   # Generate actual docstring for arguments
@@ -461,7 +470,7 @@ def _gen_init_params(
   # Add resource slot names, if a resource slot has the same name as
   # a skill parameter (actually different namespaces) disambiguate by suffixing
   # the slot name with "_resource".
-  for slot in sorted(info.skill_proto.resource_selectors.keys()):
+  for slot in sorted(info.resource_selectors.keys()):
     default = inspect.Parameter.empty
     if slot in compatible_resources:
       slot_compatible_resource = compatible_resources[slot]
@@ -869,7 +878,7 @@ class GeneratedSkill(provided.SkillBase):
     """
     resource_set = []
 
-    for slot, selector in self._info.skill_proto.resource_selectors.items():
+    for slot, selector in self._info.resource_selectors.items():
       slot_param_name = slot
       if slot in self._info.field_names:
         slot_param_name = slot + skill_utils.RESOURCE_SLOT_DECONFLICT_SUFFIX

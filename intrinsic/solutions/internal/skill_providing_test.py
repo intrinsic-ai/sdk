@@ -29,6 +29,7 @@ from intrinsic.math.python import data_types
 from intrinsic.math.python import proto_conversion as math_proto_conversion
 from intrinsic.resources.proto import resource_handle_pb2
 from intrinsic.skills.client import skill_registry_client
+from intrinsic.skills.proto import equipment_pb2
 from intrinsic.skills.proto import skill_registry_pb2
 from intrinsic.skills.proto import skills_pb2
 from intrinsic.solutions import blackboard_value
@@ -2579,6 +2580,7 @@ Returns:
         return_value_message_full_name='',
         file_descriptor_set=descriptor_pb2.FileDescriptorSet(),
         default_params=None,
+        resource_selectors={},
         proto_comments={},
         skill_type=provided.SkillType.REGULAR_SKILL,
         type_url_area='someTypeUrlArea',
@@ -2600,6 +2602,7 @@ Returns:
         return_value_message_full_name='',
         file_descriptor_set=descriptor_pb2.FileDescriptorSet(),
         default_params=None,
+        resource_selectors={},
         proto_comments={},
         skill_type=provided.SkillType.REGULAR_SKILL,
         type_url_area='someTypeUrlArea',
@@ -2621,6 +2624,7 @@ Returns:
         return_value_message_full_name='',
         file_descriptor_set=descriptor_pb2.FileDescriptorSet(),
         default_params=None,
+        resource_selectors={},
         proto_comments={},
         skill_type=provided.SkillType.REGULAR_SKILL,
         type_url_area='someTypeUrlArea',
@@ -2662,6 +2666,7 @@ Returns:
         return_value_message_full_name='my_package.MySkillResult',
         file_descriptor_set=file_descriptor_set,
         default_params=defaults_any,
+        resource_selectors={},
         proto_comments={},
         skill_type=provided.SkillType.REGULAR_SKILL,
         type_url_area='someTypeUrlArea',
@@ -2698,10 +2703,37 @@ Returns:
           return_value_message_full_name='',
           file_descriptor_set=file_descriptor_set,
           default_params=None,
+          resource_selectors={},
           proto_comments={},
           skill_type=provided.SkillType.REGULAR_SKILL,
           type_url_area='someTypeUrlArea',
       )
+
+  def test_skill_info_resource_selectors(self):
+    skill = self._utils.create_parameterless_skill_info(
+        skill_id='ai.intrinsic.my_skill'
+    )
+    resource_selectors = {
+        'robot': equipment_pb2.ResourceSelector(capability_names=['IconApi'])
+    }
+    info = skill_generation.SkillInfoImpl(
+        skill_proto=skill,
+        id_version=id_pb2.IdVersion(
+            id=id_pb2.Id(package='ai.intrinsic', name='my_skill'),
+            version='0.0.1',
+        ),
+        description='',
+        parameter_message_full_name='',
+        return_value_message_full_name='',
+        file_descriptor_set=descriptor_pb2.FileDescriptorSet(),
+        default_params=None,
+        resource_selectors=resource_selectors,
+        proto_comments={},
+        skill_type=provided.SkillType.REGULAR_SKILL,
+        type_url_area='someTypeUrlArea',
+    )
+
+    self.assertEqual(info.resource_selectors, resource_selectors)
 
   def test_skill_info_type_and_type_url(self):
     info = skill_generation.SkillInfoImpl(
@@ -2715,6 +2747,7 @@ Returns:
         return_value_message_full_name='',
         file_descriptor_set=descriptor_pb2.FileDescriptorSet(),
         default_params=None,
+        resource_selectors={},
         proto_comments={},
         skill_type=provided.SkillType.REGULAR_SKILL,
         type_url_area='someTypeUrlArea',
@@ -2735,6 +2768,7 @@ Returns:
         return_value_message_full_name='',
         file_descriptor_set=descriptor_pb2.FileDescriptorSet(),
         default_params=None,
+        resource_selectors={},
         proto_comments={
             'intrinsic_proto.MyMessage': 'MyMessage comment\n',
             'intrinsic_proto.MyMessage.my_field': 'my_field comment\n',

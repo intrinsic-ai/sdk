@@ -25,6 +25,7 @@ from google.protobuf import struct_pb2
 
 from intrinsic.resources.proto import resource_handle_pb2
 from intrinsic.scene.proto.v1 import scene_object_pb2
+from intrinsic.skills.proto import equipment_pb2
 from intrinsic.skills.proto import skills_pb2
 from intrinsic.solutions import blackboard_value
 from intrinsic.solutions import cel
@@ -182,6 +183,7 @@ class SkillInfo(abc.ABC):
       skill's parameter and return value message.
     default_params: Default value for the skill parameters or None if the skill
       does not provide a default value proto.
+    resource_selectors: Resource selectors for the skill.
     field_names: names of top-level fields in parameter proto.
     message_classes: mapping from type names to default messages for that type.
   """
@@ -244,6 +246,11 @@ class SkillInfo(abc.ABC):
   @property
   @abc.abstractmethod
   def default_params(self) -> any_pb2.Any | None:
+    ...
+
+  @property
+  @abc.abstractmethod
+  def resource_selectors(self) -> dict[str, equipment_pb2.ResourceSelector]:
     ...
 
   @abc.abstractmethod

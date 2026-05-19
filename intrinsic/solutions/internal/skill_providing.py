@@ -220,7 +220,7 @@ class Skills(providers.SkillProvider):
     # batch request for performance reasons.
     capability_names_batch = []
     for skill_info in skill_infos:
-      for slot_selector in skill_info.skill_proto.resource_selectors.values():
+      for slot_selector in skill_info.resource_selectors.values():
         capability_names_batch.append(slot_selector.capability_names)
 
     handles_by_selector = self._resource_registry.batch_list_all_resource_handles(  # pytype: disable=wrong-arg-types  # always-use-property-annotation
@@ -236,7 +236,7 @@ class Skills(providers.SkillProvider):
       if is_global:
         self._global_compatible_resources_by_name[skill_name] = {}
       self._compatible_resources_by_id[skill_info.id] = {}
-      for resource_slot in skill_info.skill_proto.resource_selectors:
+      for resource_slot in skill_info.resource_selectors:
         handles = handles_by_selector[selector_index]
         slot = resource_slot
         if slot in skill_info.field_names:
@@ -371,6 +371,7 @@ class Skills(providers.SkillProvider):
         skill.return_value_description.return_value_message_full_name,
         file_descriptor_set,
         default_value,
+        dict(skill.resource_selectors),
         proto_comments,
         provided.SkillType.PROCESS,
         skill_utils.INTRINSIC_TYPE_URL_AREA_ASSETS,
@@ -423,6 +424,7 @@ class Skills(providers.SkillProvider):
         skill.return_value_description.return_value_message_full_name,
         file_descriptor_set,
         default_value,
+        dict(skill.resource_selectors),
         proto_comments,
         skill_type,
         area,
