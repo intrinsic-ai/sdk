@@ -7,6 +7,26 @@ load("@rules_python//python:defs.bzl", "py_library")
 load("//bazel:go_macros.bzl", "go_library", "go_test")
 
 go_library(
+    name = "assetvalidate",
+    srcs = ["assetvalidate.go"],
+    importpath = "intrinsic/assets/assetvalidate",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        "//intrinsic/assets:idutils",
+        "//intrinsic/assets/data:datavalidate",
+        "//intrinsic/assets/hardware_devices:hardwaredevicevalidate",
+        "//intrinsic/assets/processes:processvalidate",
+        "//intrinsic/assets/proto:asset_type_go_proto",
+        "//intrinsic/assets/proto/v1:asset_go_proto",
+        "//intrinsic/assets/proto/v1:processed_asset_go_proto",
+        "//intrinsic/assets/proto/v1:reference_go_proto",
+        "//intrinsic/assets/scene_objects:sceneobjectvalidate",
+        "//intrinsic/assets/services:servicevalidate",
+        "//intrinsic/skills:skillvalidate",
+    ],
+)
+
+go_library(
     name = "baseclientutils",
     srcs = ["baseclientutils.go"],
     importpath = "intrinsic/assets/baseclientutils",
