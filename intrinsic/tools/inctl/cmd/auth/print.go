@@ -5,23 +5,33 @@ package auth
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
+	env "intrinsic/config/environments"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/orgutil"
+	"intrinsic/tools/inctl/util/viperutil"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
-
-var flagFlowstateAddr string
 
 func init() {
 	authCmd.AddCommand(printAPIKeyCmd)
 	printAPIKeyCmd.Flags().MarkHidden(orgutil.KeyProject)
 
 	authCmd.AddCommand(printAccessTokenCmd)
-	printAccessTokenCmd.Flags().StringVar(&flagFlowstateAddr, "flowstate", "flowstate.intrinsic.ai", "Flowstate address.")
 	printAccessTokenCmd.Flags().MarkHidden(orgutil.KeyProject)
+	printAccessTokenCmd.Flags().String(
+		orgutil.KeyEnvironment,
+		"",
+		fmt.Sprintf("Auth environment to use. This should be one of %v. %q is used by default. See http://go/intrinsic-users#environments for the compatible environment corresponding to a cloud project.",
+			strings.Join(env.All, ", "),
+			env.Prod,
+		),
+	)
+	printAccessTokenCmd.Flags().MarkHidden(orgutil.KeyEnvironment)
+	viperutil.BindFlags(printAccessTokenParams, printAccessTokenCmd.Flags(), viperutil.BindToListEnv(orgutil.KeyEnvironment))
 }
 
 var printAPIKeyParams = viper.New()
@@ -82,12 +92,17 @@ var printAccessTokenCmd = orgutil.WrapCmd(&cobra.Command{
 			return fmt.Errorf("failed to get default API key for project %q: %v", project, err)
 		}
 		ctx := cmd.Context()
-		resp, err := auth.GetIDToken(ctx, makeHTTPClient(), flagFlowstateAddr, &auth.GetIDTokenRequest{
+		e := printAccessTokenParams.GetString(orgutil.KeyEnvironment)
+		if e == "" {
+			e = env.FromComputeProject(project)
+		}
+		portal := env.PortalDomain(e)
+		resp, err := auth.GetIDToken(ctx, makeHTTPClient(), portal, &auth.GetIDTokenRequest{
 			APIKey:   key.APIKey,
 			DoFanOut: true,
 		})
 		if err != nil {
-			return fmt.Errorf("failed to get ID token : %v", err)
+			return fmt.Errorf("failed to get ID token: %v", err)
 		}
 		fmt.Fprintf(cmd.OutOrStdout(), "%s", resp.IDToken)
 		return nil
