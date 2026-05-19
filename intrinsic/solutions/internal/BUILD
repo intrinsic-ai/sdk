@@ -153,7 +153,6 @@ py_library(
     name = "skill_parameters",
     srcs = ["skill_parameters.py"],
     deps = [
-        "//intrinsic/skills/proto:skills_py_pb2",
         "@com_google_protobuf//:protobuf_python",
     ],
 )
@@ -166,7 +165,6 @@ py_test(
     ],
     deps = [
         ":skill_parameters",
-        "//intrinsic/assets/configuration:asset_configuration_client",
         "//intrinsic/solutions/testing:skill_test_utils",
         "//intrinsic/solutions/testing:test_skill_params_py_pb2",
         "//intrinsic/util/path_resolver:path_resolver_py",
@@ -258,6 +256,7 @@ py_library(
         "//intrinsic/assets/proto:asset_tag_py_pb2",
         "//intrinsic/assets/proto:asset_type_py_pb2",
         "//intrinsic/assets/proto:id_py_pb2",
+        "//intrinsic/assets/proto:installed_assets_py_pb2",
         "//intrinsic/assets/proto:view_py_pb2",
         "//intrinsic/resources/client:resource_registry_client",
         "//intrinsic/skills/client:skill_registry_client",

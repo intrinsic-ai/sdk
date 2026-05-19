@@ -14,6 +14,7 @@ from intrinsic.assets.install import installed_assets_client
 from intrinsic.assets.proto import asset_tag_pb2
 from intrinsic.assets.proto import asset_type_pb2
 from intrinsic.assets.proto import id_pb2
+from intrinsic.assets.proto import installed_assets_pb2
 from intrinsic.assets.proto import view_pb2
 from intrinsic.resources.client import resource_registry_client
 from intrinsic.skills.client import skill_registry_client
@@ -342,6 +343,91 @@ class Skills(providers.SkillProvider):
             )
         )
 
+  def _process_asset_to_skill_info(
+      self,
+      asset: installed_assets_pb2.InstalledAsset,
+  ) -> provided.SkillInfo:
+    skill = asset.deployment_data.process.process.behavior_tree.description
+
+    file_descriptor_set = descriptors.merge_file_descriptor_sets([
+        skill.parameter_description.parameter_descriptor_fileset,
+        skill.return_value_description.descriptor_fileset,
+    ])
+    default_value = (
+        skill.parameter_description.default_value
+        if skill.parameter_description.HasField("default_value")
+        else None
+    )
+    # Comments are currently only available from the skill proto and not from
+    # the file descriptor set in the asset metadata (b/510731384).
+    proto_comments = dict(
+        skill.parameter_description.parameter_field_comments
+    ) | dict(skill.return_value_description.return_value_field_comments)
+    return skill_generation.SkillInfoImpl(
+        skill,
+        asset.metadata.id_version,
+        asset.metadata.documentation.description,
+        skill.parameter_description.parameter_message_full_name,
+        skill.return_value_description.return_value_message_full_name,
+        file_descriptor_set,
+        default_value,
+        proto_comments,
+        provided.SkillType.PROCESS,
+        skill_utils.INTRINSIC_TYPE_URL_AREA_ASSETS,
+    )
+
+  def _skill_proto_from_skill_registry_to_skill_info(
+      self,
+      skill: skills_pb2.Skill,
+  ) -> provided.SkillInfo:
+    # Manually decompose the 'id_version' here. We cannot use 'idutils'
+    # since PBTs from the skill registry can still have invalid package
+    # names (empty or with only a single period). See b/512066439.
+    package, _, name = skill.id.rpartition(".")
+    version = skill.id_version.removeprefix(skill.id + ".")
+    id_version = id_pb2.IdVersion(
+        id=id_pb2.Id(package=package, name=name), version=version
+    )
+
+    file_descriptor_set = descriptors.merge_file_descriptor_sets([
+        skill.parameter_description.parameter_descriptor_fileset,
+        skill.return_value_description.descriptor_fileset,
+    ])
+    default_value = (
+        skill.parameter_description.default_value
+        if skill.parameter_description.HasField("default_value")
+        else None
+    )
+    proto_comments = dict(
+        skill.parameter_description.parameter_field_comments
+    ) | dict(skill.return_value_description.return_value_field_comments)
+
+    # A skill proto from the skill registry can represent either an actual skill
+    # or a legacy PBT (but not a Process asset). This can be told based on the
+    # presence of 'behavior_tree_description'. For actual skills we should use
+    # the 'assets' area since those can also be looked up via the installed
+    # assets service. Legacy PBT's are only available in the skill registry and
+    # thus need the 'skills' area.
+    if skill.HasField("behavior_tree_description"):
+      skill_type = provided.SkillType.PROCESS
+      area = skill_utils.INTRINSIC_TYPE_URL_AREA_SKILLS
+    else:
+      skill_type = provided.SkillType.REGULAR_SKILL
+      area = skill_utils.INTRINSIC_TYPE_URL_AREA_ASSETS
+
+    return skill_generation.SkillInfoImpl(
+        skill,
+        id_version,
+        skill.description,
+        skill.parameter_description.parameter_message_full_name,
+        skill.return_value_description.return_value_message_full_name,
+        file_descriptor_set,
+        default_value,
+        proto_comments,
+        skill_type,
+        area,
+    )
+
   def _collect_skill_infos(self) -> list[provided.SkillInfo]:
     # Get all Process assets with the SUBPROCESS tag, i.e., the Process assets
     # that are marked to be listed alongside regular "skills" in UIs.
@@ -356,22 +442,7 @@ class Skills(providers.SkillProvider):
       if not bt.HasField("description"):
         continue
 
-      # Comments are currently only available from the skill proto and not from
-      # the file descriptor set in the asset metadata (b/510731384).
-      proto_comments = dict(
-          bt.description.parameter_description.parameter_field_comments
-      ) | dict(
-          bt.description.return_value_description.return_value_field_comments
-      )
-      process_asset_skills.append(
-          skill_generation.SkillInfoImpl(
-              bt.description,
-              asset.metadata.id_version,
-              asset.metadata.documentation.description,
-              proto_comments,
-              skill_utils.INTRINSIC_TYPE_URL_AREA_ASSETS,
-          )
-      )
+      process_asset_skills.append(self._process_asset_to_skill_info(asset))
 
     # Merge skill protos from process assets with skill protos from the skill
     # registry (legacy processes and regular skills), assets taking precedence.
@@ -379,36 +450,8 @@ class Skills(providers.SkillProvider):
     collected_ids = set(skill.id for skill in process_asset_skills)
     for skill in self._skill_registry.get_skills():
       if skill.id not in collected_ids:
-        proto_comments = dict(
-            skill.parameter_description.parameter_field_comments
-        ) | dict(skill.return_value_description.return_value_field_comments)
-
-        # This skill proto is from the skill registry and can represent either
-        # an actual skill or a legacy PBT (but not a Process asset). This can be
-        # told based on the presence of 'behavior_tree_description'. For actual
-        # skills we should use the 'assets' area since those can also be looked
-        # up via the installed assets service. Legacy PBT's are only available
-        # in the skill registry and thus need the 'skills' area.
-        area = (
-            skill_utils.INTRINSIC_TYPE_URL_AREA_SKILLS
-            if skill.HasField("behavior_tree_description")
-            else skill_utils.INTRINSIC_TYPE_URL_AREA_ASSETS
-        )
-        # Manually decompose the 'id_version' here. We cannot use 'idutils'
-        # since PBTs from the skill registry can still have invalid package
-        # names (empty or with only a single period). See b/512066439.
-        package, _, name = skill.id.rpartition(".")
-        version = skill.id_version.removeprefix(skill.id + ".")
         result.append(
-            skill_generation.SkillInfoImpl(
-                skill,
-                id_pb2.IdVersion(
-                    id=id_pb2.Id(package=package, name=name), version=version
-                ),
-                skill.description,
-                proto_comments,
-                area,
-            )
+            self._skill_proto_from_skill_registry_to_skill_info(skill)
         )
         collected_ids.add(skill.id)
 

@@ -40,7 +40,7 @@ from intrinsic.solutions.internal import skill_utils
 ResourceMap = dict[str, provided.ResourceHandle]
 
 
-def print_failed_descriptor_infra(
+def _print_failed_descriptor_infra(
     descriptor_set_message: descriptor_pb2.FileDescriptorSet,
 ) -> bool:
   """Prints proto message that failed to generate infra for.
@@ -72,6 +72,12 @@ class SkillInfoImpl(provided.SkillInfo):
   _id_version: id_pb2.IdVersion
   _description: str
 
+  _parameter_message_full_name: str
+  _return_value_message_full_name: str
+  _file_descriptor_set: descriptor_pb2.FileDescriptorSet
+  _default_params: any_pb2.Any | None
+
+  _skill_type: provided.SkillType
   _skill_proto: skills_pb2.Skill
   _type_url_area: str
 
@@ -86,7 +92,12 @@ class SkillInfoImpl(provided.SkillInfo):
       skill_proto: skills_pb2.Skill,
       id_version: id_pb2.IdVersion,
       description: str,
+      parameter_message_full_name: str,
+      return_value_message_full_name: str,
+      file_descriptor_set: descriptor_pb2.FileDescriptorSet,
+      default_params: any_pb2.Any | None,
       proto_comments: dict[str, str],
+      skill_type: provided.SkillType,
       type_url_area: str,
   ):
     """Creates a SkillInfoImpl object from the skill_proto.
@@ -95,9 +106,18 @@ class SkillInfoImpl(provided.SkillInfo):
       skill_proto: The protobuf description of this skill.
       id_version: The IdVersion of this skill.
       description: The description of this skill.
+      parameter_message_full_name: Full name of the skill's parameter message or
+        empty if the skill does not have a parameter message.
+      return_value_message_full_name: Full name of the skill's return value
+        message or empty if the skill does not have a return value message.
+      file_descriptor_set: File descriptor set containing all dependencies of
+        the skill's parameter and return value message.
+      default_params: Default value for the skill parameters or None if the
+        skill does not provide a default value proto.
       proto_comments: Message/field/enum comments from the parameter and return
         value file descriptor set (combined) as a mapping from full name to
         comment. Comments can have multiple lines and always end with '\n'.
+      skill_type: Skill type (regular skill or process, see provided.SkillType).
       type_url_area: the type URL area under which too lookup this skill using
         an Intrinsic-style type URL.
 
@@ -114,60 +134,38 @@ class SkillInfoImpl(provided.SkillInfo):
 
     self._id_version = id_version
     self._description = description
+    self._parameter_message_full_name = parameter_message_full_name
+    self._return_value_message_full_name = return_value_message_full_name
+    self._file_descriptor_set = file_descriptor_set
+    self._default_params = default_params
+    self._skill_type = skill_type
     self._skill_proto = skill_proto
     self._type_url_area = type_url_area
     self._proto_comments = proto_comments
+
     # Each SkillInfoImpl class uses its own descriptor pool so that the
     # creation of each SkillBase class is hermetic. Ie., Skill A and Skill B
     # do not incidentally clash over the definition of a proto.
-    parameter_description = self._skill_proto.parameter_description
-    file_descriptor_set = descriptor_pb2.FileDescriptorSet()
-    file_descriptor_set.MergeFrom(
-        parameter_description.parameter_descriptor_fileset
-    )
-    file_descriptor_set.MergeFrom(
-        self._skill_proto.return_value_description.descriptor_fileset
-    )
-
     desc_pool, message_classes = None, None
     try:
       desc_pool, message_classes = (
           skill_utils.generate_proto_infra_from_filedescriptorset(
-              file_descriptor_set
+              self._file_descriptor_set
           )
       )
     except NotImplementedError as e:
       print(f"Failed to load proto file descriptors for skill: {self.id}")
       # Try to "dummy" generate pools, etc. individually to determine, which
       # part failed for a more informative error message.
-      if not print_failed_descriptor_infra(
-          self._skill_proto.parameter_description.parameter_descriptor_fileset
-      ):
-        print(
-            "Could not generate file descriptor infra for the parameter"
-            " description."
-        )
-      if not print_failed_descriptor_infra(
-          self._skill_proto.return_value_description.descriptor_fileset
-      ):
-        print(
-            "Could not generate file descriptor infra for the return value"
-            " description."
-        )
-      print(
-          "Were this skill's protos build against a different code base than"
-          " the workcell API? An example case is a skill build in the internal"
-          " code base, but executed in an externally supplied Jupyter."
-          " This can be a direct dependency of the parameter or return value"
-          " proto or also an indirect dependency via the contained protos."
-      )
+      if not _print_failed_descriptor_infra(self._file_descriptor_set):
+        print("Could not generate file descriptor infra for the skill.")
       raise e
 
     self._message_pool = desc_pool
     self._message_classes = message_classes
 
     self._field_names = set()
-    if self._skill_proto.HasField("parameter_description"):
+    if self._parameter_message_full_name:
       self._field_names = set(
           [field.name for field in self.parameter_descriptor().fields]
       )
@@ -204,6 +202,10 @@ class SkillInfoImpl(provided.SkillInfo):
     return self._description
 
   @property
+  def skill_type(self) -> provided.SkillType:
+    return self._skill_type
+
+  @property
   def skill_proto(self) -> skills_pb2.Skill:
     return self._skill_proto
 
@@ -213,42 +215,40 @@ class SkillInfoImpl(provided.SkillInfo):
 
   @property
   def parameter_message_full_name(self) -> str:
-    return self._skill_proto.parameter_description.parameter_message_full_name
+    return self._parameter_message_full_name
 
   @property
   def return_value_message_full_name(self) -> str:
-    return (
-        self._skill_proto.return_value_description.return_value_message_full_name
-    )
+    return self._return_value_message_full_name
+
+  @property
+  def file_descriptor_set(self):
+    return self._file_descriptor_set
+
+  @property
+  def default_params(self) -> any_pb2.Any | None:
+    return self._default_params
 
   def create_param_message(self) -> message.Message:
-    return self._message_classes[
-        self._skill_proto.parameter_description.parameter_message_full_name
-    ]()
+    return self._message_classes[self._parameter_message_full_name]()
 
   def create_result_message(self) -> message.Message:
-    return self._message_classes[
-        self._skill_proto.return_value_description.return_value_message_full_name
-    ]()
+    return self._message_classes[self._return_value_message_full_name]()
 
   def get_param_message_type(self) -> Type[message.Message]:
-    return self._message_classes[
-        self._skill_proto.parameter_description.parameter_message_full_name
-    ]
+    return self._message_classes[self._parameter_message_full_name]
 
   def get_result_message_type(self) -> Type[message.Message]:
-    return self._message_classes[
-        self._skill_proto.return_value_description.return_value_message_full_name
-    ]
+    return self._message_classes[self._return_value_message_full_name]
 
   def parameter_descriptor(self) -> descriptor.Descriptor:
     return self._message_pool.FindMessageTypeByName(
-        self._skill_proto.parameter_description.parameter_message_full_name
+        self._parameter_message_full_name
     )
 
   def return_value_descriptor(self) -> descriptor.Descriptor:
     return self._message_pool.FindMessageTypeByName(
-        self._skill_proto.return_value_description.return_value_message_full_name
+        self._return_value_message_full_name
     )
 
   @property
@@ -318,14 +318,14 @@ def _gen_init_docstring(
   params: list[skill_utils.ParameterInformation] = []
   param_names: list[str] = []
 
-  if info.skill_proto.HasField("parameter_description"):
+  if info.parameter_message_full_name:
     params = skill_utils.extract_docstring_from_message(
         info.get_param_message_type(), info
     )
     param_names = [p.name for p in params]
 
   return_values: list[tuple[str, str]] = []
-  if info.skill_proto.HasField("return_value_description"):
+  if info.return_value_message_full_name:
     result_defaults = info.create_result_message()
 
     for field in result_defaults.DESCRIPTOR.fields:
@@ -448,10 +448,10 @@ def _gen_init_params(
   params: list[inspect.Parameter] = []
   param_names: list[str] = []
 
-  if info.skill_proto.HasField("parameter_description"):
+  if info.parameter_message_full_name:
     param_info = skill_utils.extract_parameter_information_from_message(
         info.get_param_message_type(),
-        info.skill_proto.parameter_description,
+        info.file_descriptor_set,
         wrapper_classes,
         enum_classes,
     )
@@ -480,7 +480,7 @@ def _gen_init_params(
         )
     )
 
-  if info.skill_proto.HasField("return_value_description"):
+  if info.return_value_message_full_name:
     params.append(
         inspect.Parameter(
             "return_value_key",
@@ -528,14 +528,12 @@ def _gen_init_fun(
   """
 
   param_defaults = None
-  if info.skill_proto.HasField("parameter_description"):
+  if info.parameter_message_full_name:
     param_defaults = info.create_param_message()
-    if info.skill_proto.parameter_description.HasField("default_value"):
-      info.skill_proto.parameter_description.default_value.Unpack(
-          param_defaults
-      )
+    if info.default_params is not None:
+      info.default_params.Unpack(param_defaults)
 
-  is_process = info.skill_proto.HasField("behavior_tree_description")
+  is_regular_skill = info.skill_type == provided.SkillType.REGULAR_SKILL
 
   def new_init_fun(self, **kwargs):
     GeneratedSkill.__init__(self)
@@ -548,7 +546,7 @@ def _gen_init_fun(
       self._param_message.CopyFrom(param_defaults)
 
     if (
-        not is_process
+        is_regular_skill
         and _with_recommended_config
         and self._param_message is not None
     ):
@@ -625,14 +623,14 @@ def gen_skill_class(
   """
   message_classes_to_wrap = {}
   enum_descriptors_to_wrap = {}
-  if info.skill_proto.HasField("parameter_description"):
+  if info.parameter_message_full_name:
     skill_utils.collect_message_classes_to_wrap(
         info.parameter_descriptor(),
         info.message_classes,
         message_classes_to_wrap,
         enum_descriptors_to_wrap,
     )
-  if info.skill_proto.HasField("return_value_description"):
+  if info.return_value_message_full_name:
     skill_utils.collect_message_classes_to_wrap(
         info.return_value_descriptor(),
         info.message_classes,

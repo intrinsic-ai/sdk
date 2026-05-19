@@ -1022,8 +1022,7 @@ def _gen_init_fun(
 
   Args:
     wrapped_type: Message to wrap.
-    skill_name: Name of the parent skill.
-    parameter_description: The skill's parameter description.
+    skill_info: Metadata of the skill.
     type_name: Type name of the object to wrap.
     wrapper_classes: Map from proto message names to corresponding message
       wrapper classes.
@@ -1054,7 +1053,7 @@ def _gen_init_fun(
       wrapped_type,
       wrapper_classes,
       enum_classes,
-      skill_info.skill_proto.parameter_description,
+      skill_info.file_descriptor_set,
   )
   new_init_fun.__signature__ = inspect.Signature(params)
   new_init_fun.__annotations__ = collections.OrderedDict(
@@ -1192,7 +1191,7 @@ def _gen_init_params(
     wrapped_type: Type[message.Message],
     wrapper_classes: dict[str, Type[MessageWrapper]],
     enum_classes: dict[str, Type[enum.IntEnum]],
-    parameter_description: skills_pb2.ParameterDescription,
+    file_descriptor_set: descriptor_pb2.FileDescriptorSet,
 ) -> List[inspect.Parameter]:
   """Create argument typing information for a given message.
 
@@ -1202,14 +1201,14 @@ def _gen_init_params(
       wrapper classes.
     enum_classes: Map from full proto enum names to corresponding enum wrapper
       classes.
-    parameter_description: The skill's parameter description.
+    file_descriptor_set: The skill's file descriptor set.
 
   Returns:
     List of extracted parameters with typing information.
   """
   param_info = extract_parameter_information_from_message(
       wrapped_type,
-      parameter_description,
+      file_descriptor_set,
       wrapper_classes,
       enum_classes,
   )
@@ -1592,7 +1591,7 @@ def _extract_field_type_from_message_field(
 
 def extract_parameter_information_from_message(
     message_type: Type[message.Message],
-    parameter_description: skills_pb2.ParameterDescription,
+    file_descriptor_set: descriptor_pb2.FileDescriptorSet,
     wrapper_classes: dict[str, Type[MessageWrapper]],
     enum_classes: dict[str, Type[enum.IntEnum]],
 ) -> list[tuple[inspect.Parameter, str]]:
@@ -1600,7 +1599,7 @@ def extract_parameter_information_from_message(
 
   Args:
     message_type: The proto message type to inspect.
-    parameter_description: The skill's parameter description.
+    file_descriptor_set: The skill's file descriptor set.
     wrapper_classes: Map from proto message names to corresponding wrapper
       classes.
     enum_classes: Map from full proto enum names to corresponding enum wrappers.
@@ -1612,7 +1611,7 @@ def extract_parameter_information_from_message(
   msg_descriptor = message_type.DESCRIPTOR
 
   skill_params = skill_parameters.SkillParameters(
-      msg_descriptor, parameter_description
+      msg_descriptor, file_descriptor_set
   )
 
   for field in msg_descriptor.fields:
@@ -1655,7 +1654,7 @@ def extract_docstring_from_message(
   params: List[ParameterInformation] = []
   msg_descriptor = message_type.DESCRIPTOR
   skill_params = skill_parameters.SkillParameters(
-      msg_descriptor, skill_info.skill_proto.parameter_description
+      msg_descriptor, skill_info.file_descriptor_set
   )
 
   for field in msg_descriptor.fields:

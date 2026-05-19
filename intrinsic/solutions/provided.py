@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import abc
+import enum
 from typing import Any
 from typing import Dict
 from typing import ItemsView
@@ -16,7 +17,9 @@ from typing import Type
 from typing import Union
 from typing import ValuesView
 
+from google.protobuf import any_pb2
 from google.protobuf import descriptor
+from google.protobuf import descriptor_pb2
 from google.protobuf import message
 from google.protobuf import struct_pb2
 
@@ -149,6 +152,16 @@ class ResourceList(abc.ABC):
     ...
 
 
+class SkillType(enum.Enum):
+  """Classifies different types of skills."""
+
+  # A regular skill installed as a Skill asset.
+  REGULAR_SKILL = 0
+
+  # A process installed as a Process asset.
+  PROCESS = 1
+
+
 class SkillInfo(abc.ABC):
   """Containes information about a Skill.
 
@@ -158,7 +171,17 @@ class SkillInfo(abc.ABC):
     skill_name: Skill name (e.g. 'move_robot').
     package_name: Skill package name (e.g. 'ai.intrinsic').
     description: Skill description (e.g. 'This skill moves a robot').
+    skill_type: Skill type (regular skill or process, see SkillType).
     skill_proto: proto with skill information that this instance represents.
+    type_url_area: Area to be used in Intrinsic type URLs for this skill.
+    parameter_message_full_name: Full name of the skill's parameter message.
+      Empty if the skill does not have a parameter message.
+    return_value_message_full_name: Full name of the skill's return value
+      message. Empty if the skill does not have a return value message.
+    file_descriptor_set: File descriptor set containing all dependencies of the
+      skill's parameter and return value message.
+    default_params: Default value for the skill parameters or None if the skill
+      does not provide a default value proto.
     field_names: names of top-level fields in parameter proto.
     message_classes: mapping from type names to default messages for that type.
   """
@@ -190,12 +213,37 @@ class SkillInfo(abc.ABC):
 
   @property
   @abc.abstractmethod
+  def skill_type(self) -> SkillType:
+    ...
+
+  @property
+  @abc.abstractmethod
   def skill_proto(self) -> skills_pb2.Skill:
     ...
 
   @property
   @abc.abstractmethod
   def type_url_area(self) -> str:
+    ...
+
+  @property
+  @abc.abstractmethod
+  def parameter_message_full_name(self) -> str:
+    ...
+
+  @property
+  @abc.abstractmethod
+  def return_value_message_full_name(self) -> str:
+    ...
+
+  @property
+  @abc.abstractmethod
+  def file_descriptor_set(self) -> descriptor_pb2.FileDescriptorSet:
+    ...
+
+  @property
+  @abc.abstractmethod
+  def default_params(self) -> any_pb2.Any | None:
     ...
 
   @abc.abstractmethod

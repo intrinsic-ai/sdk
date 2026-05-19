@@ -8,6 +8,7 @@ from unittest import mock
 
 from absl.testing import absltest
 from absl.testing import parameterized
+from google.protobuf import any_pb2
 from google.protobuf import descriptor_pb2
 from google.protobuf import empty_pb2
 from google.protobuf import text_format
@@ -2568,14 +2569,19 @@ Returns:
 
   def test_skill_info_id_version_properties(self):
     info = skill_generation.SkillInfoImpl(
-        skills_pb2.Skill(),
-        id_pb2.IdVersion(
+        skill_proto=skills_pb2.Skill(),
+        id_version=id_pb2.IdVersion(
             id=id_pb2.Id(package='ai.intrinsic', name='my_skill'),
             version='0.0.1',
         ),
-        'some description',
-        {},
-        'someTypeUrlArea',
+        description='',
+        parameter_message_full_name='',
+        return_value_message_full_name='',
+        file_descriptor_set=descriptor_pb2.FileDescriptorSet(),
+        default_params=None,
+        proto_comments={},
+        skill_type=provided.SkillType.REGULAR_SKILL,
+        type_url_area='someTypeUrlArea',
     )
     self.assertEqual(info.id, 'ai.intrinsic.my_skill')
     self.assertEqual(info.id_version, 'ai.intrinsic.my_skill.0.0.1')
@@ -2584,14 +2590,19 @@ Returns:
     self.assertEqual(info.package_name, 'ai.intrinsic')
   def test_skill_info_invalid_package(self):
     info = skill_generation.SkillInfoImpl(
-        skills_pb2.Skill(),
-        id_pb2.IdVersion(
+        skill_proto=skills_pb2.Skill(),
+        id_version=id_pb2.IdVersion(
             id=id_pb2.Id(package='no_period', name='my_skill'),
             version='0.0.1',
         ),
-        'some description',
-        {},
-        'someTypeUrlArea',
+        description='',
+        parameter_message_full_name='',
+        return_value_message_full_name='',
+        file_descriptor_set=descriptor_pb2.FileDescriptorSet(),
+        default_params=None,
+        proto_comments={},
+        skill_type=provided.SkillType.REGULAR_SKILL,
+        type_url_area='someTypeUrlArea',
     )
     self.assertEqual(info.id, 'no_period.my_skill')
     self.assertEqual(info.id_version, 'no_period.my_skill.0.0.1')
@@ -2600,14 +2611,19 @@ Returns:
     self.assertEqual(info.package_name, 'no_period')
   def test_skill_info_empty_package(self):
     info = skill_generation.SkillInfoImpl(
-        skills_pb2.Skill(),
-        id_pb2.IdVersion(
+        skill_proto=skills_pb2.Skill(),
+        id_version=id_pb2.IdVersion(
             id=id_pb2.Id(package='', name='my_skill'),
             version='0.0.1',
         ),
-        'some description',
-        {},
-        'someTypeUrlArea',
+        description='',
+        parameter_message_full_name='',
+        return_value_message_full_name='',
+        file_descriptor_set=descriptor_pb2.FileDescriptorSet(),
+        default_params=None,
+        proto_comments={},
+        skill_type=provided.SkillType.REGULAR_SKILL,
+        type_url_area='someTypeUrlArea',
     )
     self.assertEqual(info.id, 'my_skill')
     self.assertEqual(info.id_version, 'my_skill.0.0.1')
@@ -2615,45 +2631,116 @@ Returns:
     self.assertEqual(info.skill_name, 'my_skill')
     self.assertEqual(info.package_name, '')
 
+  def test_skill_info_parameter_and_return_value_properties(self):
+    skill = self._utils.create_parameterless_skill_info(
+        skill_id='ai.intrinsic.my_skill'
+    )
+    file_descriptor_set = descriptor_pb2.FileDescriptorSet(
+        file=[
+            descriptor_pb2.FileDescriptorProto(
+                name='my_skill.proto',
+                package='my_package',
+                message_type=[
+                    descriptor_pb2.DescriptorProto(name='MySkillParams'),
+                    descriptor_pb2.DescriptorProto(name='MySkillResult'),
+                ],
+            )
+        ]
+    )
+    defaults_any = any_pb2.Any(
+        type_url='type.intrinsic.ai/assets/ai.intrinsic.my_skill/my_package.MySkillParams'
+    )
+
+    info = skill_generation.SkillInfoImpl(
+        skill_proto=skill,
+        id_version=id_pb2.IdVersion(
+            id=id_pb2.Id(package='ai.intrinsic', name='my_skill'),
+            version='0.0.1',
+        ),
+        description='',
+        parameter_message_full_name='my_package.MySkillParams',
+        return_value_message_full_name='my_package.MySkillResult',
+        file_descriptor_set=file_descriptor_set,
+        default_params=defaults_any,
+        proto_comments={},
+        skill_type=provided.SkillType.REGULAR_SKILL,
+        type_url_area='someTypeUrlArea',
+    )
+
+    self.assertEqual(
+        info.parameter_message_full_name, 'my_package.MySkillParams'
+    )
+    self.assertEqual(
+        info.return_value_message_full_name, 'my_package.MySkillResult'
+    )
+    self.assertEqual(info.file_descriptor_set, file_descriptor_set)
+    self.assertEqual(info.default_params, defaults_any)
+
   def test_construct_skill_info_incomplete_fileset(self):
     skill = self._utils.create_test_skill_info(
         skill_id='ai.intrinsic.my_skill',
         parameter_defaults=test_skill_params_pb2.TestMessage(),
     )
-    file_descriptor = descriptor_pb2.FileDescriptorProto()
+    file_descriptor_set = descriptor_pb2.FileDescriptorSet()
     test_skill_params_pb2.TestMessage.DESCRIPTOR.file.CopyToProto(
-        file_descriptor
-    )
-    skill.parameter_description.parameter_descriptor_fileset.Clear()
-    skill.parameter_description.parameter_descriptor_fileset.file.append(
-        file_descriptor
+        file_descriptor_set.file.add()
     )
 
     with self.assertRaises(TypeError):
       skill_generation.SkillInfoImpl(
-          skill,
-          id_pb2.IdVersion(
+          skill_proto=skill,
+          id_version=id_pb2.IdVersion(
               id=id_pb2.Id(package='ai.intrinsic', name='my_skill'),
               version='0.0.1',
           ),
-          'some description',
-          {},
-          'someTypeUrlArea',
+          description='',
+          parameter_message_full_name='',
+          return_value_message_full_name='',
+          file_descriptor_set=file_descriptor_set,
+          default_params=None,
+          proto_comments={},
+          skill_type=provided.SkillType.REGULAR_SKILL,
+          type_url_area='someTypeUrlArea',
       )
 
-  def test_skill_info_proto_comments(self):
+  def test_skill_info_type_and_type_url(self):
     info = skill_generation.SkillInfoImpl(
-        skills_pb2.Skill(),
-        id_pb2.IdVersion(
+        skill_proto=skills_pb2.Skill(),
+        id_version=id_pb2.IdVersion(
             id=id_pb2.Id(package='ai.intrinsic', name='my_skill'),
             version='0.0.1',
         ),
-        'some description',
-        {
+        description='',
+        parameter_message_full_name='',
+        return_value_message_full_name='',
+        file_descriptor_set=descriptor_pb2.FileDescriptorSet(),
+        default_params=None,
+        proto_comments={},
+        skill_type=provided.SkillType.REGULAR_SKILL,
+        type_url_area='someTypeUrlArea',
+    )
+
+    self.assertEqual(info.skill_type, provided.SkillType.REGULAR_SKILL)
+    self.assertEqual(info.type_url_area, 'someTypeUrlArea')
+
+  def test_skill_info_proto_comments(self):
+    info = skill_generation.SkillInfoImpl(
+        skill_proto=skills_pb2.Skill(),
+        id_version=id_pb2.IdVersion(
+            id=id_pb2.Id(package='ai.intrinsic', name='my_skill'),
+            version='0.0.1',
+        ),
+        description='',
+        parameter_message_full_name='',
+        return_value_message_full_name='',
+        file_descriptor_set=descriptor_pb2.FileDescriptorSet(),
+        default_params=None,
+        proto_comments={
             'intrinsic_proto.MyMessage': 'MyMessage comment\n',
             'intrinsic_proto.MyMessage.my_field': 'my_field comment\n',
         },
-        'someTypeUrlArea',
+        skill_type=provided.SkillType.REGULAR_SKILL,
+        type_url_area='someTypeUrlArea',
     )
 
     self.assertEqual(

@@ -75,7 +75,9 @@ class SkillParametersTest(parameterized.TestCase):
     )
     skill_params = skill_parameters.SkillParameters(
         msg_descriptor=test_message.DESCRIPTOR,
-        parameter_description=skill_info.parameter_description,
+        file_descriptor_set=(
+            skill_info.parameter_description.parameter_descriptor_fileset
+        ),
     )
 
     self.assertEqual(

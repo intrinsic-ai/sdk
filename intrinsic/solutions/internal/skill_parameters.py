@@ -6,16 +6,13 @@ from typing import Optional
 
 from google.protobuf import descriptor
 from google.protobuf import descriptor_pb2
-from google.protobuf import message
-
-from intrinsic.skills.proto import skills_pb2
 
 # This field can be used to determine if a field is a 'oneof'.
 _ONEOF_INDEX = "oneof_index"
 
 
 def _get_descriptor(
-    parameter_description: skills_pb2.ParameterDescription,
+    file_descriptor_set: descriptor_pb2.FileDescriptorSet,
     message_full_name: str,
 ) -> descriptor_pb2.DescriptorProto:
   """Pulls a message descriptor out of the descriptor fileset.
@@ -24,7 +21,7 @@ def _get_descriptor(
   fileset from the given parameter description of a skill.
 
   Args:
-    parameter_description: The skill's parameter description proto.
+    file_descriptor_set: The skill's file descriptor set.
     message_full_name: The full name of the message.
 
   Returns:
@@ -53,7 +50,7 @@ def _get_descriptor(
           return found_msg
       return None
 
-  for file in parameter_description.parameter_descriptor_fileset.file:
+  for file in file_descriptor_set.file:
     if not message_full_name.startswith(file.package):
       continue
 
@@ -128,13 +125,13 @@ class SkillParameters:
   def __init__(
       self,
       msg_descriptor: descriptor.Descriptor,
-      parameter_description: skills_pb2.ParameterDescription,
+      file_descriptor_set: descriptor_pb2.FileDescriptorSet,
   ):
     """Creates an instance of the SkillParameters class.
 
     Args:
       msg_descriptor: The message descriptor to inspect.
-      parameter_description: The skill's parameter description.
+      file_descriptor_set: The skill's file descriptor set.
     """
 
     self._descriptor = msg_descriptor
@@ -144,7 +141,7 @@ class SkillParameters:
     # and friends). For example, in the Python representation we cannot reliably
     # check for the presence of the 'optional' keyword on message fields.
     self._descriptor_proto = _get_descriptor(
-        parameter_description, msg_descriptor.full_name
+        file_descriptor_set, msg_descriptor.full_name
     )
 
   def _get_field_proto(
