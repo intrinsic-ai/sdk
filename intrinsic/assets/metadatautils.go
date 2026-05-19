@@ -167,6 +167,15 @@ func WithNoOutputOnlyFields() ValidateMetadataOption {
 	}
 }
 
+// WithRuntimeOptions adds options for validating runtime Asset representations.
+func WithRuntimeOptions() ValidateMetadataOption {
+	return func(opts *validateMetadataOptions) {
+		opts.allowRuntimeAssetID = proto.Bool(false)
+		opts.specifiesFileDescriptorSet = proto.Bool(true)
+		opts.specifiesProvides = proto.Bool(true)
+	}
+}
+
 // ValidateMetadata validates Asset metadata.
 func ValidateMetadata(m *metadatapb.Metadata, options ...ValidateMetadataOption) error {
 	opts := &validateMetadataOptions{}
