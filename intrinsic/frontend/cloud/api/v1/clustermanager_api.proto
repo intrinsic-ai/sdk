@@ -208,6 +208,7 @@ message SchedulePlatformUpdateRequest {
     UPDATE_TYPE_ROLLBACK = 2;
     UPDATE_TYPE_VERSIONED = 3;
     UPDATE_TYPE_VERSIONED_UNCHECKED = 4;
+    UPDATE_TYPE_CLEAR_SOLUTION = 5;
   }
 
   UpdateType update_type = 4 [(google.api.field_behavior) = REQUIRED];
