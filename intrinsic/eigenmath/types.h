@@ -165,6 +165,9 @@ using MatrixXf = MatrixX<float, Eigen::DontAlign>;
 using MatrixXd = MatrixX<double, Eigen::DontAlign>;
 using MatrixXb = MatrixX<bool, Eigen::DontAlign>;
 
+using RowMajorMatrixXd = MatrixX<double, Eigen::RowMajor | Eigen::DontAlign>;
+using RowMajorMatrixXf = MatrixX<float, Eigen::RowMajor | Eigen::DontAlign>;
+
 template <class Scalar, int Options = Eigen::AutoAlign>
 using Plane3 = Eigen::Hyperplane<Scalar, 3, Options>;
 using Plane3dAligned =
