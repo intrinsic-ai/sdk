@@ -3,6 +3,7 @@
 package pool
 
 import (
+	"context"
 	"fmt"
 
 	"intrinsic/kubernetes/vmpool/service/pkg/defaults"
@@ -91,6 +92,14 @@ var vmpoolsCreateCmd = &cobra.Command{
 		}
 		prtr.Println("VM pool created.")
 		prtr.Println(prototext.MarshalOptions{Multiline: true}.Format(resp))
+
+		if flagWaitTimeout > 0 {
+			waitCtx, cancel := context.WithTimeout(ctx, flagWaitTimeout)
+			defer cancel()
+			if err := waitForPoolReady(waitCtx, cmd, resp.GetName(), resp.GetSpec()); err != nil {
+				return fmt.Errorf("failed to wait for pool readiness: %w", err)
+			}
+		}
 		return nil
 	},
 }
@@ -162,6 +171,15 @@ var vmpoolsUpdateCmd = &cobra.Command{
 			prtr.Println("VM pool updated.")
 		}
 		prtr.Println(prototext.MarshalOptions{Multiline: true}.Format(resp))
+
+		if flagWaitTimeout > 0 {
+			waitCtx, cancel := context.WithTimeout(ctx, flagWaitTimeout)
+			defer cancel()
+			// For update, resp contains the new desired spec.
+			if err := waitForPoolReady(waitCtx, cmd, resp.GetName(), resp.GetSpec()); err != nil {
+				return fmt.Errorf("failed to wait for pool readiness: %w", err)
+			}
+		}
 		return nil
 	},
 }

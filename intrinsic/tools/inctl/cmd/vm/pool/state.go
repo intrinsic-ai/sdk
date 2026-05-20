@@ -3,6 +3,8 @@
 package pool
 
 import (
+	"context"
+	"fmt"
 	"intrinsic/tools/inctl/util/printer"
 
 	"github.com/spf13/cobra"
@@ -71,6 +73,14 @@ var vmpoolsDeleteCmd = &cobra.Command{
 			return err
 		}
 		prtr.Println("VM pool will converge to deletion.")
+
+		if flagWaitTimeout > 0 {
+			waitCtx, cancel := context.WithTimeout(ctx, flagWaitTimeout)
+			defer cancel()
+			if err := waitForPoolDeletion(waitCtx, cmd, flagPool); err != nil {
+				return fmt.Errorf("failed to wait for pool deletion: %w", err)
+			}
+		}
 		return nil
 	},
 }

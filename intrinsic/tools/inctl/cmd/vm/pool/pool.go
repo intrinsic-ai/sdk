@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"intrinsic/assets/cmdutils"
 	"intrinsic/kubernetes/vmpool/service/pkg/defaults"
@@ -45,6 +46,7 @@ var (
 	flagLease            string
 	flagVerbose          bool
 	flagCount            int
+	flagWaitTimeout      time.Duration
 )
 
 func init() {
@@ -57,6 +59,7 @@ func init() {
 	vmpoolsCreateCmd.Flags().StringVar(&flagIntrinsicOS, "intrinsic-os", "", intOSFlagDesc)
 	vmpoolsCreateCmd.Flags().StringVar(&flagTier, "tier", defaults.Tier, tierFlagDesc)
 	vmpoolsCreateCmd.Flags().StringVar(&flagHardwareTemplate, "hwtemplate", defaults.HardwareTemplate, hardwareTemplateFlagDesc)
+	vmpoolsCreateCmd.Flags().DurationVar(&flagWaitTimeout, "wait-timeout", 0, "Timeout for waiting for the VM pool to become ready. If 0, do not wait.")
 	PoolCmd.AddCommand(vmpoolsCreateCmd)
 
 	vmpoolsUpdateCmd.Flags().StringVar(&flagPool, "pool", "", poolFlagDesc)
@@ -65,6 +68,7 @@ func init() {
 	vmpoolsUpdateCmd.Flags().StringVar(&flagIntrinsicOS, "intrinsic-os", "", intOSFlagDesc)
 	vmpoolsUpdateCmd.Flags().StringVar(&flagTier, "tier", defaults.Tier, tierFlagDesc)
 	vmpoolsUpdateCmd.Flags().StringVar(&flagHardwareTemplate, "hwtemplate", defaults.HardwareTemplate, hardwareTemplateFlagDesc)
+	vmpoolsUpdateCmd.Flags().DurationVar(&flagWaitTimeout, "wait-timeout", 0, "Timeout for waiting for the VM pool to become ready. If 0, do not wait.")
 	PoolCmd.AddCommand(vmpoolsUpdateCmd)
 	PoolCmd.AddCommand(vmpoolsListCmd)
 	PoolCmd.AddCommand(vmpoolsListTiersCmd)
@@ -75,6 +79,7 @@ func init() {
 	PoolCmd.AddCommand(vmpoolsDescribeCmd)
 
 	vmpoolsDeleteCmd.Flags().StringVar(&flagPool, "pool", "", poolFlagDesc)
+	vmpoolsDeleteCmd.Flags().DurationVar(&flagWaitTimeout, "wait-timeout", 0, "Timeout for waiting for the VM pool to be deleted. If 0, do not wait.")
 	PoolCmd.AddCommand(vmpoolsDeleteCmd)
 	vmpoolsResumeCmd.Flags().StringVar(&flagPool, "pool", "", poolFlagDesc)
 	PoolCmd.AddCommand(vmpoolsResumeCmd)
@@ -103,7 +108,7 @@ func newConn(ctx context.Context) (*grpc.ClientConn, error) {
 	return auth.NewCloudConnection(ctx, auth.WithFlagValues(viperLocal))
 }
 
-func newVmpoolsClient(ctx context.Context) (vmpoolsgrpcpb.VMPoolServiceClient, error) {
+var newVmpoolsClient = func(ctx context.Context) (vmpoolsgrpcpb.VMPoolServiceClient, error) {
 	conn, err := newConn(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("could not create VM pool client: %v", err)

@@ -13,6 +13,7 @@ go_library(
         "list.go",
         "pool.go",
         "state.go",
+        "wait.go",
     ],
     importpath = "intrinsic/tools/inctl/cmd/vm/pool/pool",
     deps = [
