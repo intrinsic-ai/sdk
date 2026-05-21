@@ -12,6 +12,7 @@ cc_library(
     visibility = ["//visibility:private"],
     deps = [
         "//intrinsic/platform/pubsub/adapters:pubsub_cc_proto",
+        "//intrinsic/platform/pubsub/zenoh_util:zenoh_config",
         "//intrinsic/platform/pubsub/zenoh_util:zenoh_handle",
         "@abseil-cpp//absl/base:core_headers",
         "@abseil-cpp//absl/log:check",
@@ -32,9 +33,6 @@ go_library(
         ":pubsub_c",
     ],
     cgo = 1,
-    data = [
-        "//intrinsic/platform/pubsub/zenoh_util:peer_config.json",
-    ],
     importpath = "intrinsic/platform/pubsub/golang/pubsub",
     deps = [
         ":kvstore",
@@ -42,7 +40,6 @@ go_library(
         "//intrinsic/platform/common/proto:workcell_info_go_proto",
         "//intrinsic/platform/pubsub/adapters:pubsub_go_proto",
         "//intrinsic/platform/pubsub/admin_set_grpc/v1:admin_set_go_proto",
-        "//intrinsic/util/path_resolver:pathresolver",
         "@com_github_golang_glog//:go_default_library",
         "@org_golang_google_grpc//:go_default_library",
         "@org_golang_google_grpc//credentials/insecure:go_default_library",

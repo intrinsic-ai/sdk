@@ -7,7 +7,6 @@ load("@rules_cc//cc:cc_test.bzl", "cc_test")
 
 exports_files(
     [
-        "peer_config.json",
         "zenoh_handle.h",
     ],
     visibility = [
@@ -52,9 +51,6 @@ cc_library(
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/strings",
         "@abseil-cpp//absl/strings:string_view",
-        "@or_tools//ortools/base:file",
-        "@or_tools//ortools/base:path",
-        "@rules_cc//cc/runfiles",
     ],
 )
 
@@ -62,9 +58,6 @@ cc_library(
     name = "zenoh_config",
     srcs = ["zenoh_config.cc"],
     hdrs = ["zenoh_config.h"],
-    data = [
-        ":peer_config.json",
-    ],
     visibility = [
         "//intrinsic/platform/pubsub:__subpackages__",
     ],
@@ -72,6 +65,8 @@ cc_library(
         ":zenoh_helpers",
         "@abseil-cpp//absl/flags:flag",
         "@abseil-cpp//absl/log",
+        "@abseil-cpp//absl/strings:string_view",
+        "@com_github_nlohmann_json//:json",
     ],
 )
 
@@ -83,5 +78,6 @@ cc_test(
         ":zenoh_config",
         "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/flags:flag",
+        "@com_github_nlohmann_json//:json",
     ],
 )

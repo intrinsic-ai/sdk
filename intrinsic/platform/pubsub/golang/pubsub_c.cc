@@ -4,12 +4,18 @@
 
 #include <cstdint>
 #include <cstdio>
+#include <cstring>
 
 #include "absl/base/attributes.h"
 #include "google/protobuf/any.pb.h"
 #include "google/protobuf/descriptor.pb.h"
 #include "intrinsic/platform/pubsub/adapters/pubsub.pb.h"
+#include "intrinsic/platform/pubsub/zenoh_util/zenoh_config.h"
 #include "intrinsic/platform/pubsub/zenoh_util/zenoh_handle.h"
+
+extern "C" char* GetZenohPeerConfigWrapper(const char* router_override) {
+  return strdup(intrinsic::GetZenohPeerConfig(router_override).c_str());
+}
 
 ABSL_ATTRIBUTE_UNUSED void* NewZenohHandle() {
   return intrinsic::ZenohHandle::CreateZenohHandle();

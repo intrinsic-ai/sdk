@@ -11,58 +11,45 @@
 #include "absl/flags/declare.h"
 #include "absl/flags/flag.h"
 #include "absl/log/log.h"
+#include "absl/strings/string_view.h"
 #include "intrinsic/platform/pubsub/zenoh_util/zenoh_helpers.h"
 
 ABSL_DECLARE_FLAG(std::string, zenoh_router);
 
 namespace intrinsic {
 
-inline std::string GetZenohPeerConfig() {
-  std::string config;
-  const std::string config_path =
-      "intrinsic/platform/pubsub/zenoh_util/peer_config.json";
+// The ZenohConfig object holds the two state variables that are potentially
+// adjusted when the config is generated: the "connect" endpoint, which can be
+// used to adjust the IP:port of the Zenoh router that this Zenoh peer tries to
+// connect to, and the "listen" endpoint, which can be used to limit which
+// interface, if any, that Zenoh will listen on for incoming connections. It
+// is important in some test environments to be able to disable listening.
+// This is detected and handled appropriately in the GetZenohPeerConfig()
+// implementation.
 
-  std::string path = GetZenohRunfilesPath(config_path);
+class ZenohConfig {
+ public:
+  std::string GenerateJsonString() const;
 
-  std::ifstream file(path);
-  if (file.is_open()) {
-    // Read the entire file into a string
-    file.seekg(0, std::ios::end);
-    config.resize(file.tellg());
-    file.seekg(0, std::ios::beg);
-    file.read(&config[0], config.size());
-    file.close();
-  } else {
-    LOG(ERROR) << "Could not open config file: " << path;
+  void set_connect_endpoint(absl::string_view endpoint) {
+    connect_endpoint_ = endpoint;
   }
 
-  if (!config.empty()) {
-    if (RunningUnderTest()) {
-      // Remove listen endpoints when running in test. (go/forge-limits#ipv4)
-      std::string listenIp("\"tcp/0.0.0.0:0\"");
-      size_t pos = config.find(listenIp);
-      config.replace(pos, listenIp.length(), std::string(""));
-    } else if (const char* allowed_ip = getenv("ALLOWED_PUBSUB_IPv4");
-               allowed_ip != nullptr) {
-      std::string listenIp("0.0.0.0");
-      size_t pos = config.find(listenIp);
-      config.replace(pos, listenIp.length(), std::string(allowed_ip));
-    }
+  void set_listen_endpoint(absl::string_view endpoint) {
+    listen_endpoint_ = endpoint;
   }
 
-  // If requested by the zenoh_router flag, try to alter the default router
-  // connection provided in peer_config.json
-  if (!absl::GetFlag(FLAGS_zenoh_router).empty()) {
-    std::string router_endpoint(
-        "tcp/zenoh-router.app-intrinsic-base.svc.cluster.local:7447");
-    size_t pos = config.find(router_endpoint);
-    if (pos != std::string::npos) {
-      config.replace(pos, router_endpoint.length(),
-                     absl::GetFlag(FLAGS_zenoh_router));
-    }
-  }
-  return config;
-}
+ private:
+  std::string connect_endpoint_ =
+      "tcp/zenoh-router.app-intrinsic-base.svc.cluster.local:7447";
+  std::string listen_endpoint_ = "tcp/0.0.0.0:0";
+};
+
+// GetZenohPeerConfig() uses a ZenohConfig instance to generate a JSON string
+// that is appropriate for the runtime environment and which uses the
+// requested connect and listen endpoints in env vars or absl flags.
+
+std::string GetZenohPeerConfig(absl::string_view router_override = "");
 
 }  // namespace intrinsic
 

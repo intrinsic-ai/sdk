@@ -26,8 +26,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io"
-	"os"
 	"runtime"
 	"runtime/cgo"
 	"strings"
@@ -37,7 +35,6 @@ import (
 
 	"intrinsic/platform/pubsub/golang/kvstore"
 	"intrinsic/platform/pubsub/golang/pubsubinterface"
-	"intrinsic/util/path_resolver/pathresolver"
 
 	log "github.com/golang/glog"
 	"google.golang.org/protobuf/proto"
@@ -160,68 +157,18 @@ type Handle struct {
 
 var _ pubsubinterface.PubSub = new(Handle)
 
-const zenohConfigPath = "intrinsic/platform/pubsub/zenoh_util/peer_config.json"
-
-func isRunningUnderTest() bool {
-	if os.Getenv("TEST_TMPDIR") == "" && os.Getenv("PORTSERVER_ADDRESS") == "" {
-		return true
-	}
-
-	return false
-}
-
-func isRunningInKubernetes() bool {
-	if os.Getenv("KUBERNETES_SERVICE_HOST") == "" {
-		return false
-	}
-
-	return true
-}
-
+// getZenohPeerConfig retrieves the Zenoh configuration.
+// We explicitly read the Go flag *zenohRouter and pass it to the CGO wrapper.
+// This is required because the underlying C++ code relies on Abseil flags,
+// which are not parsed when running inside a Go binary.
 func getZenohPeerConfig() (string, error) {
-	var path string
-	var err error
+	routerOverride := *zenohRouter
+	cRouterOverride := C.CString(routerOverride)
+	defer C.free(unsafe.Pointer(cRouterOverride))
 
-	// If we're running in k8s or otherwise containerized, the config file is
-	// available via a base layer. Try this first, and only try runfiles if that
-	// fails.
-	path_prefix := "/"
-	path = path_prefix + zenohConfigPath
-	_, err = os.Stat(path)
-	if err != nil {
-		path, err = pathresolver.ResolveRunfilesPath(zenohConfigPath)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	f, err := os.Open(path)
-	if err != nil {
-		return "", err
-	}
-	defer f.Close()
-
-	b, err := io.ReadAll(f)
-	config := string(b)
-
-	if len(config) != 0 {
-		// This logic all seems pretty fragile, and would benefit from some more structured handling.
-		if isRunningUnderTest() {
-			// Remove listen endpoints when running in test. (go/forge-limits#ipv4)
-			config = strings.ReplaceAll(config, `"tcp/0.0.0.0:0"`, "")
-		} else if isRunningInKubernetes() {
-			if allowedIP := os.Getenv("ALLOWED_PUBSUB_IPv4"); allowedIP != "" {
-				config = strings.ReplaceAll(config, "0.0.0.0", allowedIP)
-			}
-		}
-	}
-
-	if *zenohRouter != "" {
-		// replace router endpoint
-		config = strings.Replace(config, "tcp/zenoh-router.app-intrinsic-base.svc.cluster.local:7447", *zenohRouter, 1)
-	}
-
-	return config, nil
+	cZenohConfig := C.GetZenohPeerConfigWrapper(cRouterOverride)
+	defer C.free(unsafe.Pointer(cZenohConfig))
+	return C.GoString(cZenohConfig), nil
 }
 
 func topicConfigToZenohQos(config pubsubinterface.TopicConfig) (string, error) {

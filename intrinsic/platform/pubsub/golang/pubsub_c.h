@@ -13,6 +13,8 @@
 extern "C" {
 #endif
 
+ABSL_ATTRIBUTE_UNUSED char* GetZenohPeerConfigWrapper(
+    const char* router_override);
 ABSL_ATTRIBUTE_UNUSED void* NewZenohHandle();
 ABSL_ATTRIBUTE_UNUSED void DestroyZenohHandle(void* handle);
 ABSL_ATTRIBUTE_UNUSED int ZenohHandleImwInit(void* handle, const char* config);
