@@ -19,13 +19,6 @@ proto_library(
     deps = ["@com_google_protobuf//:any_proto"],
 )
 
-exports_files(
-    ["kvservice.yaml"],
-    visibility = [
-        "//intrinsic:intrinsic_internal",
-    ],
-)
-
 go_proto_library(
     name = "kvstore_go_proto",
     compilers = [

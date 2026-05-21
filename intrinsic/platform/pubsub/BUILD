@@ -12,20 +12,6 @@ load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
 
-exports_files(
-    srcs = [
-        "fds.yaml",
-        "zenoh-router.yaml",
-        "zenoh-router-with-storage.yaml",
-    ],
-    visibility = [
-        "//intrinsic/kubernetes:__subpackages__",
-        "//intrinsic/manipulation:__subpackages__",
-        "//intrinsic/perception:__subpackages__",
-        "//intrinsic/platform/pubsub:__subpackages__",
-    ],
-)
-
 cc_library(
     name = "zenoh_pubsub_data",
     srcs = ["zenoh_pubsub_data.cc"],

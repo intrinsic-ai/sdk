@@ -7,17 +7,6 @@ package(default_visibility = [
     "//visibility:public",
 ])
 
-exports_files(
-    srcs = [
-        "logger.yaml",
-        "logging_disk.yaml",
-        "timescaledb.yaml",
-    ],
-    visibility = [
-        "//intrinsic:intrinsic_internal",
-    ],
-)
-
 cc_library(
     name = "data_logger_client",
     srcs = ["data_logger_client.cc"],
