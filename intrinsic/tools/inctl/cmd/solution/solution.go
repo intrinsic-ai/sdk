@@ -9,6 +9,7 @@ import (
 	"intrinsic/tools/inctl/cmd/solution/delete/delete"
 	"intrinsic/tools/inctl/cmd/solution/get/get"
 	"intrinsic/tools/inctl/cmd/solution/list/list"
+	"intrinsic/tools/inctl/cmd/solution/share/share"
 	"intrinsic/tools/inctl/cmd/solution/start/start"
 	"intrinsic/tools/inctl/cmd/solution/stop/stop"
 	"intrinsic/tools/inctl/util/orgutil"
@@ -30,6 +31,7 @@ func init() {
 	SolutionCmd.AddCommand(get.NewCommand())
 	SolutionCmd.AddCommand(list.NewCommand())
 	SolutionCmd.AddCommand(create.NewCommand())
+	SolutionCmd.AddCommand(share.NewCommand())
 	SolutionCmd.AddCommand(start.NewCommand())
 	SolutionCmd.AddCommand(stop.NewCommand())
 	SolutionCmd.AddCommand(delete.NewCommand())

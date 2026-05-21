@@ -100,6 +100,11 @@ service SolutionVersionService {
   rpc ListBranchDescendants(ListBranchDescendantsRequest)
       returns (ListBranchDescendantsResponse) {}
 
+  // Shares the branch specified in the request with the organization.
+  //
+  // This RPC will gracefully handle all types of branches.
+  rpc ShareBranch(ShareBranchRequest) returns (ShareBranchResponse) {}
+
 }
 
 // A tree is a collection of branches of a solution.
@@ -329,3 +334,9 @@ message ListBranchDescendantsRequest {
 message ListBranchDescendantsResponse {
   repeated Branch branches = 1;
 }
+
+message ShareBranchRequest {
+  string branch_id = 1;
+}
+
+message ShareBranchResponse {}
