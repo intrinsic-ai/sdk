@@ -438,6 +438,11 @@ go_proto_library(
     ],
 )
 
+py_proto_library(
+    name = "processed_skill_manifest_py_pb2",
+    deps = [":processed_skill_manifest_proto"],
+)
+
 proto_library(
     name = "skill_parameter_metadata_proto",
     srcs = ["skill_parameter_metadata.proto"],
