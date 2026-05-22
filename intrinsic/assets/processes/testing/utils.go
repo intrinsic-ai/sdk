@@ -65,6 +65,7 @@ func MakeProcessManifest(t *testing.T, options ...MakeProcessManifestOption) *pm
 		opts.behaviorTree = &btpb.BehaviorTree{
 			Name: opts.metadata.GetDisplayName(),
 			Description: &skpb.Skill{
+				Sideloaded:              true,
 				SkillName:               opts.metadata.GetId().GetName(),
 				PackageName:             opts.metadata.GetId().GetPackage(),
 				Id:                      idutils.IDFromProtoUnchecked(opts.metadata.GetId()),
