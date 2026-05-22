@@ -7,7 +7,6 @@ package intrinsic_proto.icon;
 import "intrinsic/icon/control/parts/hal/v1/hal_part_config.proto";
 import "intrinsic/icon/control/parts/proto/v1/realtime_part_config.proto";
 import "intrinsic/icon/hal/lib/fieldbus/v1/value_parsing.proto";
-import "intrinsic/icon/proto/v1/types.proto";
 
 option go_package = "intrinsic/icon/server/config/realtime_control_config_go_proto";
 

@@ -14,7 +14,6 @@ proto_library(
     name = "pubsub_connect_proto",
     srcs = ["pubsub_connect.proto"],
     deps = [
-        "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_googleapis//google/longrunning:operations_proto",
         "@com_google_protobuf//:empty_proto",
     ],
@@ -28,10 +27,7 @@ go_proto_library(
     ],
     importpath = "intrinsic/platform/pubsub/connect/cloud/proto/v1alpha1/pubsub_connect_go_proto",
     protos = [":pubsub_connect_proto"],
-    deps = [
-        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
-        "@org_golang_google_genproto_googleapis_api//annotations",
-    ],
+    deps = ["@com_google_cloud_go_longrunning//autogen/longrunningpb"],
 )
 
 cc_proto_library(

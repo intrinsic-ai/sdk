@@ -82,7 +82,6 @@ proto_library(
         "//intrinsic/icon/control/parts/hal/v1:hal_part_config_proto",
         "//intrinsic/icon/control/parts/proto/v1:realtime_part_config_proto",
         "//intrinsic/icon/hal/lib/fieldbus/v1:value_parsing_proto",
-        "//intrinsic/icon/proto/v1:types_proto",
     ],
 )
 
@@ -99,6 +98,5 @@ go_proto_library(
         "//intrinsic/icon/control/parts/hal/v1:hal_part_config_go_proto",
         "//intrinsic/icon/control/parts/proto/v1:realtime_part_config_go_proto",
         "//intrinsic/icon/hal/lib/fieldbus/v1:value_parsing_go_proto",
-        "//intrinsic/icon/proto/v1:types_go_proto",
     ],
 )

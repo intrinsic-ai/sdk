@@ -4,7 +4,6 @@ syntax = "proto3";
 
 package intrinsic_proto.pubsub.connect.v1alpha1;
 
-import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 import "google/longrunning/operations.proto";
 
