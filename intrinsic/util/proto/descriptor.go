@@ -14,6 +14,12 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 
 	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+
+	// Register common protobuf extensions to prevent unknown field diffs. MergeFileDescriptorSets
+	// uses proto.Equal, which performs a strict byte comparison on unknown fields. This can cause
+	// false negatives if identical fields were serialized in a different order.
+	_ "cloud.google.com/go/longrunning/autogen/longrunningpb"
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 )
 
 // ComparisonPreprocessor preprocesses a FileDescriptorSet to a form to use when comparing with

@@ -27,7 +27,11 @@ _SKILL_USER_DIR = "/::skills::"
 
 def _gen_cc_skill_service_main_impl(ctx):
     output_file = ctx.actions.declare_file(ctx.label.name + ".cc")
+    file_descriptor_set_out = ctx.actions.declare_file(ctx.label.name + "_augmented_filedescriptor.pbbin")
+    manifest_pbbin_out = ctx.actions.declare_file(ctx.label.name + "_augmented_manifest.pbbin")
+
     manifest_pbbin_file = ctx.attr.manifest[SkillManifestInfo].manifest_binary_file
+    file_descriptor_set_file = ctx.attr.manifest[SkillManifestInfo].file_descriptor_set
     deps_headers = []
     for dep in ctx.attr.deps:
         deps_headers += dep[CcInfo].compilation_context.direct_public_headers
@@ -37,8 +41,17 @@ def _gen_cc_skill_service_main_impl(ctx):
         "--manifest",
         manifest_pbbin_file,
     ).add(
+        "--file_descriptor_set",
+        file_descriptor_set_file,
+    ).add(
         "--out",
         output_file,
+    ).add(
+        "--manifest_out",
+        manifest_pbbin_out,
+    ).add(
+        "--file_descriptor_set_out",
+        file_descriptor_set_out,
     ).add_joined(
         "--cc_headers",
         header_paths,
@@ -48,15 +61,20 @@ def _gen_cc_skill_service_main_impl(ctx):
         "cpp",
     )
 
+    outputs = [output_file, manifest_pbbin_out, file_descriptor_set_out]
     ctx.actions.run(
         arguments = [args],
         executable = ctx.executable._skill_service_gen,
-        inputs = [manifest_pbbin_file],
-        outputs = [output_file],
+        inputs = [manifest_pbbin_file, file_descriptor_set_file],
+        outputs = outputs,
     )
 
     return [
-        DefaultInfo(files = depset([output_file])),
+        DefaultInfo(files = depset(outputs)),
+        SkillManifestInfo(
+            file_descriptor_set = file_descriptor_set_out,
+            manifest_binary_file = manifest_pbbin_out,
+        ),
     ]
 
 _gen_cc_skill_service_main = rule(
@@ -124,28 +142,46 @@ def _cc_skill_service(name, deps, manifest, **kwargs):
 
 def _gen_py_skill_service_main_impl(ctx):
     output_file = ctx.actions.declare_file(ctx.label.name + ".py")
+    file_descriptor_set_out = ctx.actions.declare_file(ctx.label.name + "_augmented_filedescriptor.pbbin")
+    manifest_pbbin_out = ctx.actions.declare_file(ctx.label.name + "_augmented_manifest.pbbin")
+
     manifest_pbbin_file = ctx.attr.manifest[SkillManifestInfo].manifest_binary_file
+    file_descriptor_set_file = ctx.attr.manifest[SkillManifestInfo].file_descriptor_set
 
     args = ctx.actions.args().add(
         "--manifest",
         manifest_pbbin_file,
     ).add(
+        "--file_descriptor_set",
+        file_descriptor_set_file,
+    ).add(
         "--out",
         output_file,
+    ).add(
+        "--manifest_out",
+        manifest_pbbin_out,
+    ).add(
+        "--file_descriptor_set_out",
+        file_descriptor_set_out,
     ).add(
         "--lang",
         "python",
     )
 
+    outputs = [output_file, manifest_pbbin_out, file_descriptor_set_out]
     ctx.actions.run(
         arguments = [args],
         executable = ctx.executable._skill_service_gen,
-        inputs = [manifest_pbbin_file],
-        outputs = [output_file],
+        inputs = [manifest_pbbin_file, file_descriptor_set_file],
+        outputs = outputs,
     )
 
     return [
-        DefaultInfo(files = depset([output_file])),
+        DefaultInfo(files = depset(outputs)),
+        SkillManifestInfo(
+            file_descriptor_set = file_descriptor_set_out,
+            manifest_binary_file = manifest_pbbin_out,
+        ),
     ]
 
 _gen_py_skill_service_main = rule(
@@ -437,11 +473,14 @@ def cc_skill(
         deps = deps,
     )
 
+    # This is the label of the target that generates the augmented manifest.
+    augmented_manifest_provider_target = ":_%s_main" % binary_name
+
     skill_service_config_name = "_%s_skill_service_config" % name
     _skill_service_config_manifest(
         name = skill_service_config_name,
         testonly = kwargs.get("testonly"),
-        manifest = manifest,
+        manifest = augmented_manifest_provider_target,
         tags = ["avoid_dep", "manual"],
         visibility = ["//visibility:private"],
     )
@@ -469,7 +508,7 @@ def cc_skill(
     _intrinsic_skill(
         name = name,
         image = service_image_name,
-        manifest = manifest,
+        manifest = augmented_manifest_provider_target,
         **kwargs
     )
 
@@ -504,11 +543,14 @@ def py_skill(
         deps = deps,
     )
 
+    # This is the label of the target that generates the augmented manifest.
+    augmented_manifest_provider_target = ":_%s_main" % binary_name
+
     skill_service_config_name = "_%s_skill_service_config" % name
     _skill_service_config_manifest(
         name = skill_service_config_name,
         testonly = kwargs.get("testonly"),
-        manifest = manifest,
+        manifest = augmented_manifest_provider_target,
         tags = ["avoid_dep", "manual"],
         visibility = ["//visibility:private"],
     )
@@ -537,6 +579,6 @@ def py_skill(
     _intrinsic_skill(
         name = name,
         image = service_image_name,
-        manifest = manifest,
+        manifest = augmented_manifest_provider_target,
         **kwargs
     )

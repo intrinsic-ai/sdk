@@ -4,16 +4,20 @@
 package main
 
 import (
+	_ "embed"
 	"errors"
 	"flag"
 	"fmt"
-	"os"
 	"strings"
 
 	"intrinsic/production/intrinsic"
 	gen "intrinsic/skills/generator/gen"
+	"intrinsic/skills/skillmanifest"
+	"intrinsic/util/proto/descriptor"
+	"intrinsic/util/proto/protoio"
 
 	log "github.com/golang/glog"
+	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"google.golang.org/protobuf/proto"
 
 	manifestpb "intrinsic/skills/proto/skill_manifest_go_proto"
@@ -45,26 +49,53 @@ func (i *stringArray) Get() any {
 }
 
 var (
-	out           = flag.String("out", "", "The path for the generated file.")
-	manifestPath  = flag.String("manifest", "", "The path to the protobin file containing the intrinsic_proto.skills.SkillManifest.")
-	lang          = flag.String("lang", "", "The language the skill is implemented in; should be one of: {cpp, python}.")
-	ccHeaderPaths = func() *stringArray {
+	manifestPath         = flag.String("manifest", "", "The path to the protobin file containing the intrinsic_proto.skills.SkillManifest.")
+	fileDescriptorSet    = flag.String("file_descriptor_set", "", "The path to the protobin file containing the file descriptor set.")
+	out                  = flag.String("out", "", "The path for the generated skill service file.")
+	manifestOut          = flag.String("manifest_out", "", "The path to write the augmented skill manifest protobin.")
+	fileDescriptorSetOut = flag.String("file_descriptor_set_out", "", "The path to write the augmented file descriptor set protobin.")
+	lang                 = flag.String("lang", "", "The language the skill is implemented in; should be one of: {cpp, python}.")
+	ccHeaderPaths        = func() *stringArray {
 		p := new(stringArray)
 		flag.Var(p, "cc_headers", "The comma-separated list of paths to the cpp proto header files for the skill's cpp deps.")
 		return p
 	}()
 )
 
+const fdsProvidedToPlatformPath = "skill_services_provided_to_platform_transitive_set_sci.proto.bin"
+
+//go:embed skill_services_provided_to_platform_transitive_set_sci.proto.bin
+var providedToPlatformFDSBytes []byte
+
 func main() {
 	intrinsic.Init()
 
-	manifestBinary, err := os.ReadFile(*manifestPath)
-	if err != nil {
-		log.Exitf("cannot read file: %v", err)
-	}
 	manifest := &manifestpb.SkillManifest{}
-	if err := proto.Unmarshal(manifestBinary, manifest); err != nil {
-		log.Exitf("cannot unmarshal binary to proto: %v", err)
+	if err := protoio.ReadBinaryProto(*manifestPath, manifest); err != nil {
+		log.Exitf("cannot read manifest: %v", err)
+	}
+	fds := &descriptorpb.FileDescriptorSet{}
+	if err := protoio.ReadBinaryProto(*fileDescriptorSet, fds); err != nil {
+		log.Exitf("failed to read file descriptor set: %v", err)
+	}
+
+	providedToPlatformFDS := &descriptorpb.FileDescriptorSet{}
+	if err := proto.Unmarshal(providedToPlatformFDSBytes, providedToPlatformFDS); err != nil {
+		log.Exitf("failed to unmarshal provided to platform file descriptor set: %v", err)
+	}
+	augmentedFDS, err := descriptor.MergeFileDescriptorSets([]*descriptorpb.FileDescriptorSet{fds, providedToPlatformFDS})
+	if err != nil {
+		log.Exitf("failed to merge file descriptor sets: %v", err)
+	}
+	fds = augmentedFDS
+
+	skillmanifest.PruneSourceCodeInfo(manifest, fds)
+
+	if err := protoio.WriteBinaryProto(*manifestOut, manifest); err != nil {
+		log.Exitf("failed to write augmented skill manifest: %v", err)
+	}
+	if err := protoio.WriteBinaryProto(*fileDescriptorSetOut, fds); err != nil {
+		log.Exitf("failed to write augmented file descriptor set: %v", err)
 	}
 
 	switch *lang {

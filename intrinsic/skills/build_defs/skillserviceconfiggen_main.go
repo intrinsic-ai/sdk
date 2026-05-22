@@ -48,7 +48,6 @@ func main() {
 	if err := protoio.ReadBinaryProto(*flagProtoDescriptorFilename, fileDescriptorSet); err != nil {
 		log.Exitf("Unable to read FileDescriptorSet: %v", err)
 	}
-
 	manifest := new(smpb.SkillManifest)
 	if err := protoio.ReadBinaryProto(*flagManifestPbbinFilename, manifest); err != nil {
 		log.Exitf("Unable to read manifest: %v", err)

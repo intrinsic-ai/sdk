@@ -37,7 +37,6 @@ go_binary(
     visibility = ["//visibility:public"],
     deps = [
         "//intrinsic/production:intrinsic",
-        "//intrinsic/skills:skillmanifest",
         "//intrinsic/skills:skillvalidate",
         "//intrinsic/skills/proto:skill_manifest_go_proto",
         "//intrinsic/util/proto:protoio",

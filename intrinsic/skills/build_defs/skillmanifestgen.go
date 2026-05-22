@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"intrinsic/production/intrinsic"
-	"intrinsic/skills/skillmanifest"
 	"intrinsic/skills/skillvalidate"
 	"intrinsic/util/proto/protoio"
 	"intrinsic/util/proto/registryutil"
@@ -59,10 +58,6 @@ func createSkillManifest() error {
 	}
 	if err := protoio.WriteBinaryProto(*flagOutput, m, protoio.WithDeterministic(true)); err != nil {
 		return fmt.Errorf("could not write skill manifest proto: %v", err)
-	}
-
-	if err := skillmanifest.PruneSourceCodeInfo(m, set); err != nil {
-		return fmt.Errorf("failed to prune source code info: %v", err)
 	}
 
 	if err := protoio.WriteBinaryProto(*flagFileDescriptorSetOut, set, protoio.WithDeterministic(true)); err != nil {

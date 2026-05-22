@@ -29,7 +29,6 @@ func CreateSkillBundle(opts *CreateSkillBundleOptions) error {
 	if err := protoio.ReadBinaryProto(opts.FileDescriptorSetPath, fds); err != nil {
 		return fmt.Errorf("failed to read file descriptor set: %w", err)
 	}
-
 	m := &smpb.SkillManifest{}
 	if err := protoio.ReadBinaryProto(opts.ManifestPath, m); err != nil {
 		return fmt.Errorf("failed to read manifest: %w", err)
