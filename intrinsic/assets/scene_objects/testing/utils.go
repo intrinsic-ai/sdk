@@ -52,8 +52,11 @@ func MakeSceneObjectManifest(t *testing.T, options ...MakeSceneObjectManifestOpt
 				Package: "package.some",
 			},
 			DisplayName: "Some SceneObject",
+			Documentation: &documentationpb.Documentation{
+				Description: "Some documentation",
+			},
 			Vendor: &vendorpb.Vendor{
-				DisplayName: "Intrinsic",
+				DisplayName: "Some Company",
 			},
 		},
 	}
@@ -62,27 +65,34 @@ func MakeSceneObjectManifest(t *testing.T, options ...MakeSceneObjectManifestOpt
 	}
 
 	m := &sompb.SceneObjectManifest{
+		Assets:   &sompb.SceneObjectAssets{},
 		Metadata: opts.metadata,
 	}
 
 	if len(opts.gzfGeometryFilenames) > 0 {
-		m.Assets = &sompb.SceneObjectAssets{
-			GzfGeometryFilenames: opts.gzfGeometryFilenames,
-		}
+		m.Assets.GzfGeometryFilenames = opts.gzfGeometryFilenames
 	}
 
 	return m
 }
 
 type makeProcessedSceneObjectManifestOptions struct {
-	fileDescriptorSet *dpb.FileDescriptorSet
-	metadata          *sompb.SceneObjectMetadata
-	sceneObject       *sopb.SceneObject
-	userData          map[string]*anypb.Any
+	defaultSceneObjectConfig *socpb.SceneObjectConfig
+	fileDescriptorSet        *dpb.FileDescriptorSet
+	metadata                 *sompb.SceneObjectMetadata
+	sceneObject              *sopb.SceneObject
+	userData                 map[string]*anypb.Any
 }
 
 // MakeProcessedSceneObjectManifestOption is an option for MakeProcessedSceneObjectManifest.
 type MakeProcessedSceneObjectManifestOption func(*makeProcessedSceneObjectManifestOptions)
+
+// WithDefaultSceneObjectConfig specifies the default SceneObjectConfig to use.
+func WithDefaultSceneObjectConfig(config *socpb.SceneObjectConfig) MakeProcessedSceneObjectManifestOption {
+	return func(opts *makeProcessedSceneObjectManifestOptions) {
+		opts.defaultSceneObjectConfig = config
+	}
+}
 
 // WithProcessedMetadata specifies the metadata to use for the ProcessedSceneObjectManifest.
 func WithProcessedMetadata(metadata *sompb.SceneObjectMetadata) MakeProcessedSceneObjectManifestOption {
@@ -95,6 +105,13 @@ func WithProcessedMetadata(metadata *sompb.SceneObjectMetadata) MakeProcessedSce
 func WithProcessedFileDescriptorSet(fds *dpb.FileDescriptorSet) MakeProcessedSceneObjectManifestOption {
 	return func(opts *makeProcessedSceneObjectManifestOptions) {
 		opts.fileDescriptorSet = fds
+	}
+}
+
+// WithProcessedSceneObject specifies the ProcessedSceneObjectManifest's SceneObject.
+func WithProcessedSceneObject(so *sopb.SceneObject) MakeProcessedSceneObjectManifestOption {
+	return func(opts *makeProcessedSceneObjectManifestOptions) {
+		opts.sceneObject = so
 	}
 }
 
@@ -130,13 +147,14 @@ func MakeProcessedSceneObjectManifest(t *testing.T, options ...MakeProcessedScen
 	t.Helper()
 
 	opts := &makeProcessedSceneObjectManifestOptions{
-		fileDescriptorSet: &dpb.FileDescriptorSet{},
+		defaultSceneObjectConfig: &socpb.SceneObjectConfig{},
+		fileDescriptorSet:        &dpb.FileDescriptorSet{},
 		metadata: &sompb.SceneObjectMetadata{
 			Id: &idpb.Id{
 				Name:    "some_scene_object",
 				Package: "package.some",
 			},
-			DisplayName: "Some Scene Object",
+			DisplayName: "Some SceneObject",
 			Documentation: &documentationpb.Documentation{
 				Description: "Some documentation",
 			},
@@ -161,7 +179,7 @@ func MakeProcessedSceneObjectManifest(t *testing.T, options ...MakeProcessedScen
 	m := &sompb.ProcessedSceneObjectManifest{
 		Metadata: opts.metadata,
 		Assets: &sompb.ProcessedSceneObjectAssets{
-			DefaultSceneObjectConfig: &socpb.SceneObjectConfig{},
+			DefaultSceneObjectConfig: opts.defaultSceneObjectConfig,
 			FileDescriptorSet:        opts.fileDescriptorSet,
 			SceneObjectModel:         opts.sceneObject,
 		},
