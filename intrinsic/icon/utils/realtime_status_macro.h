@@ -15,6 +15,7 @@
 #include <utility>
 
 #include "absl/base/optimization.h"
+#include "absl/log/absl_check.h"
 #include "intrinsic/icon/utils/fixed_str_cat.h"
 #include "intrinsic/icon/utils/realtime_status.h"
 #include "intrinsic/util/status/status_macros.h"
@@ -183,7 +184,7 @@ class RealtimeStatusToBool {
 
 #define INTRINSIC_RT_ASSIGN_OR_DIE_IMPL_(result, lhs, expr)               \
   auto result = (expr);                                                   \
-  CHECK_EQ(::intrinsic::icon::OkStatus(), result.status());               \
+  ABSL_CHECK_EQ(::intrinsic::icon::OkStatus(), result.status());          \
   INTRINSIC_RT_STATUS_MACROS_IMPL_UNPARENTHESIZE_IF_PARENTHESIZED_(lhs) = \
       std::move(result.value());
 

@@ -102,7 +102,7 @@ cc_library(
         ":realtime_status",
         "//intrinsic/icon/testing:realtime_annotations",
         "@abseil-cpp//absl/base:core_headers",
-        "@abseil-cpp//absl/log:check",
+        "@abseil-cpp//absl/log:absl_check",
         "@abseil-cpp//absl/status",
     ],
 )
@@ -128,6 +128,7 @@ cc_library(
         ":realtime_status",
         "//intrinsic/util/status:status_macros",
         "@abseil-cpp//absl/base:core_headers",
+        "@abseil-cpp//absl/log:absl_check",
     ],
 )
 

@@ -13,7 +13,7 @@
 #include <type_traits>
 
 #include "Eigen/Core"
-#include "absl/log/check.h"
+#include "absl/log/absl_check.h"
 #include "absl/status/status.h"
 #include "intrinsic/eigenmath/rotation_utils.h"
 #include "intrinsic/eigenmath/types.h"
@@ -125,7 +125,7 @@ class SO3 {
     const bool is_normalized = IsNormalized();
     if (!is_normalized) {
       // Allocating here is OK, as the program will be terminated in any case.
-      CHECK(is_normalized) << ExplainUnNormalizedQuaternion(quaternion_);
+      ABSL_CHECK(is_normalized) << ExplainUnNormalizedQuaternion(quaternion_);
     }
   }
 
@@ -193,7 +193,7 @@ class SO3 {
     const bool is_normalized = IsNormalized();
     if (!is_normalized) {
       // Allocating here is OK, as the program will be terminated in any case.
-      CHECK(is_normalized) << ExplainUnNormalizedQuaternion(quaternion_);
+      ABSL_CHECK(is_normalized) << ExplainUnNormalizedQuaternion(quaternion_);
     }
     return *this;
   }

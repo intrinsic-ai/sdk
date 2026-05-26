@@ -8,7 +8,7 @@
 #include <variant>
 
 #include "absl/base/attributes.h"
-#include "absl/log/check.h"
+#include "absl/log/absl_check.h"
 #include "absl/status/status.h"
 #include "intrinsic/icon/testing/realtime_annotations.h"
 #include "intrinsic/icon/utils/realtime_status.h"
@@ -147,36 +147,40 @@ class ABSL_MUST_USE_RESULT RealtimeStatusOr {
 
 template <typename T>
 const T& RealtimeStatusOr<T>::value() const& INTRINSIC_SUPPRESS_REALTIME_CHECK {
-  CHECK(ok()) << "RealtimeStatusOr::value() only allowed if ok() aka usable "
-                 "value has been set";
+  ABSL_CHECK(ok())
+      << "RealtimeStatusOr::value() only allowed if ok() aka usable "
+         "value has been set";
   return std::get<kDataIndex>(status_or_data_);
 }
 
 template <typename T>
     T& RealtimeStatusOr<T>::value() & INTRINSIC_SUPPRESS_REALTIME_CHECK {
-  CHECK(ok()) << "RealtimeStatusOr::value() only allowed if ok() aka usable "
-                 "value has been set";
+  ABSL_CHECK(ok())
+      << "RealtimeStatusOr::value() only allowed if ok() aka usable "
+         "value has been set";
   return std::get<kDataIndex>(status_or_data_);
 }
 
 template <typename T>
 const T&& RealtimeStatusOr<T>::value()
     const&& INTRINSIC_SUPPRESS_REALTIME_CHECK {
-  CHECK(ok()) << "RealtimeStatusOr::value() only allowed if ok() aka usable "
-                 "value has been set";
+  ABSL_CHECK(ok())
+      << "RealtimeStatusOr::value() only allowed if ok() aka usable "
+         "value has been set";
   return std::move(std::get<kDataIndex>(status_or_data_));
 }
 
 template <typename T>
     T&& RealtimeStatusOr<T>::value() && INTRINSIC_SUPPRESS_REALTIME_CHECK {
-  CHECK(ok()) << "RealtimeStatusOr::value() only allowed if ok() aka usable "
-                 "value has been set";
+  ABSL_CHECK(ok())
+      << "RealtimeStatusOr::value() only allowed if ok() aka usable "
+         "value has been set";
   return std::move(std::get<kDataIndex>(status_or_data_));
 }
 
 template <typename T>
 const T& RealtimeStatusOr<T>::ValueOrDie() const& {
-  CHECK(ok())
+  ABSL_CHECK(ok())
       << "RealtimeStatusOr::ValueOrDie() only allowed if ok() aka usable "
          "value has been set";
   return std::get<kDataIndex>(status_or_data_);
@@ -184,7 +188,7 @@ const T& RealtimeStatusOr<T>::ValueOrDie() const& {
 
 template <typename T>
 T& RealtimeStatusOr<T>::ValueOrDie() & {
-  CHECK(ok())
+  ABSL_CHECK(ok())
       << "RealtimeStatusOr::ValueOrDie() only allowed if ok() aka usable "
          "value has been set";
   return std::get<kDataIndex>(status_or_data_);
@@ -192,7 +196,7 @@ T& RealtimeStatusOr<T>::ValueOrDie() & {
 
 template <typename T>
 const T&& RealtimeStatusOr<T>::ValueOrDie() const&& {
-  CHECK(ok())
+  ABSL_CHECK(ok())
       << "RealtimeStatusOr::ValueOrDie() only allowed if ok() aka usable "
          "value has been set";
   return std::move(std::get<kDataIndex>(status_or_data_));
@@ -200,7 +204,7 @@ const T&& RealtimeStatusOr<T>::ValueOrDie() const&& {
 
 template <typename T>
 T&& RealtimeStatusOr<T>::ValueOrDie() && {
-  CHECK(ok())
+  ABSL_CHECK(ok())
       << "RealtimeStatusOr::ValueOrDie() only allowed if ok() aka usable "
          "value has been set";
   return std::move(std::get<kDataIndex>(status_or_data_));
@@ -208,7 +212,7 @@ T&& RealtimeStatusOr<T>::ValueOrDie() && {
 
 template <typename T>
 const T& RealtimeStatusOr<T>::operator*() const& {
-  CHECK(ok())
+  ABSL_CHECK(ok())
       << "RealtimeStatusOr::operator*() only allowed if ok() aka usable "
          "value has been set";
   return std::get<kDataIndex>(status_or_data_);
@@ -216,7 +220,7 @@ const T& RealtimeStatusOr<T>::operator*() const& {
 
 template <typename T>
 T& RealtimeStatusOr<T>::operator*() & {
-  CHECK(ok())
+  ABSL_CHECK(ok())
       << "RealtimeStatusOr::operator*() only allowed if ok() aka usable "
          "value has been set";
   return std::get<kDataIndex>(status_or_data_);
@@ -224,7 +228,7 @@ T& RealtimeStatusOr<T>::operator*() & {
 
 template <typename T>
 const T&& RealtimeStatusOr<T>::operator*() const&& {
-  CHECK(ok())
+  ABSL_CHECK(ok())
       << "RealtimeStatusOr::operator*() only allowed if ok() aka usable "
          "value has been set";
   return std::move(std::get<kDataIndex>(status_or_data_));
@@ -232,7 +236,7 @@ const T&& RealtimeStatusOr<T>::operator*() const&& {
 
 template <typename T>
 T&& RealtimeStatusOr<T>::operator*() && {
-  CHECK(ok())
+  ABSL_CHECK(ok())
       << "RealtimeStatusOr::operator*() only allowed if ok() aka usable "
          "value has been set";
   return std::move(std::get<kDataIndex>(status_or_data_));

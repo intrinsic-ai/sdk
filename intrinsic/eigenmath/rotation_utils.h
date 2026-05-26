@@ -7,7 +7,7 @@
 #include <limits>
 
 #include "Eigen/Core"
-#include "absl/log/check.h"
+#include "absl/log/absl_check.h"
 #include "intrinsic/eigenmath/types.h"
 
 namespace intrinsic {
@@ -26,7 +26,7 @@ Matrix<Scalar, N, N> OrthogonalizeRotationMatrix(
 template <typename Scalar, int Options>
 void QuaternionFromRPY(Scalar roll, Scalar pitch, Scalar yaw,
                        Quaternion<Scalar, Options>* q) {
-  CHECK(q != nullptr);
+  ABSL_CHECK(q != nullptr);
   using std::cos;
   using std::sin;  // for ADL
 
@@ -53,7 +53,7 @@ void RotationFromRPY(Scalar roll, Scalar pitch, Scalar yaw,
 template <typename Scalar, int Options>
 void RotationFromRPY(Scalar roll, Scalar pitch, Scalar yaw,
                      Matrix3<Scalar, Options>* A) {
-  CHECK(A != nullptr);
+  ABSL_CHECK(A != nullptr);
   using std::cos;
   using std::sin;  // for ADL
   Matrix3<Scalar, Options> R_z = Matrix3<Scalar, Options>::Identity();
