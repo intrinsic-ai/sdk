@@ -45,10 +45,11 @@ AdioBusComponent::AdioBusComponent(
 
 template <typename T>
 absl::AnyInvocable<intrinsic::icon::RealtimeStatus(double)> CreateAnalogWriterT(
-    fieldbus::ProcessVariable analog_output_variable) {
-  return [analog_output_variable](
+    fieldbus::ProcessVariable analog_output_variable,
+    bool check_fractional_loss) {
+  return [analog_output_variable, check_fractional_loss](
              double value) mutable -> intrinsic::icon::RealtimeStatus {
-    if (fieldbus::IsOutOfRange<double, T>(value)) {
+    if (fieldbus::IsOutOfRange<double, T>(value, check_fractional_loss)) {
       return intrinsic::icon::InvalidArgumentError(
           intrinsic::icon::FixedStrCat<
               intrinsic::icon::RealtimeStatus::kMaxMessageLength>(
@@ -64,27 +65,38 @@ absl::AnyInvocable<intrinsic::icon::RealtimeStatus(double)> CreateAnalogWriterT(
 absl::StatusOr<absl::AnyInvocable<intrinsic::icon::RealtimeStatus(double)>>
 CreateAnalogWriter(fieldbus::ProcessVariable analog_output_variable) {
   if (analog_output_variable.IsCompatibleType<uint8_t>().ok()) {
-    return CreateAnalogWriterT<uint8_t>(analog_output_variable);
+    return CreateAnalogWriterT<uint8_t>(analog_output_variable,
+                                        /*check_fractional_loss=*/false);
   } else if (analog_output_variable.IsCompatibleType<uint16_t>().ok()) {
-    return CreateAnalogWriterT<uint16_t>(analog_output_variable);
+    return CreateAnalogWriterT<uint16_t>(analog_output_variable,
+                                         /*check_fractional_loss=*/false);
   } else if (analog_output_variable.IsCompatibleType<uint32_t>().ok()) {
-    return CreateAnalogWriterT<uint32_t>(analog_output_variable);
+    return CreateAnalogWriterT<uint32_t>(analog_output_variable,
+                                         /*check_fractional_loss=*/true);
   } else if (analog_output_variable.IsCompatibleType<uint64_t>().ok()) {
-    return CreateAnalogWriterT<uint64_t>(analog_output_variable);
+    return CreateAnalogWriterT<uint64_t>(analog_output_variable,
+                                         /*check_fractional_loss=*/true);
   } else if (analog_output_variable.IsCompatibleType<int8_t>().ok()) {
-    return CreateAnalogWriterT<int8_t>(analog_output_variable);
+    return CreateAnalogWriterT<int8_t>(analog_output_variable,
+                                       /*check_fractional_loss=*/false);
   } else if (analog_output_variable.IsCompatibleType<int16_t>().ok()) {
-    return CreateAnalogWriterT<int16_t>(analog_output_variable);
+    return CreateAnalogWriterT<int16_t>(analog_output_variable,
+                                        /*check_fractional_loss=*/false);
   } else if (analog_output_variable.IsCompatibleType<int32_t>().ok()) {
-    return CreateAnalogWriterT<int32_t>(analog_output_variable);
+    return CreateAnalogWriterT<int32_t>(analog_output_variable,
+                                        /*check_fractional_loss=*/true);
   } else if (analog_output_variable.IsCompatibleType<int64_t>().ok()) {
-    return CreateAnalogWriterT<int64_t>(analog_output_variable);
+    return CreateAnalogWriterT<int64_t>(analog_output_variable,
+                                        /*check_fractional_loss=*/true);
   } else if (analog_output_variable.IsCompatibleType<double>().ok()) {
-    return CreateAnalogWriterT<double>(analog_output_variable);
+    return CreateAnalogWriterT<double>(analog_output_variable,
+                                       /*check_fractional_loss=*/true);
   } else if (analog_output_variable.IsCompatibleType<float>().ok()) {
-    return CreateAnalogWriterT<float>(analog_output_variable);
+    return CreateAnalogWriterT<float>(analog_output_variable,
+                                      /*check_fractional_loss=*/true);
   } else if (analog_output_variable.IsCompatibleType<bool>().ok()) {
-    return CreateAnalogWriterT<bool>(analog_output_variable);
+    return CreateAnalogWriterT<bool>(analog_output_variable,
+                                     /*check_fractional_loss=*/false);
   }
   return absl::InvalidArgumentError(
       "Analog output variable type is not supported.");
