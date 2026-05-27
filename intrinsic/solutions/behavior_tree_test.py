@@ -5043,16 +5043,15 @@ class BehaviorTreeDataTest(parameterized.TestCase):
 
   def test_init_message_wrapper(self):
     """Tests if BehaviorTree.Data is correctly constructed."""
-    skill_utils = skill_test_utils.SkillTestUtils()
-    skill = skill_test_utils.SkillTestUtils().create_skill_asset(
+    skill = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
     )
     skills = skill_providing.Skills(
-        skill_utils.create_empty_skill_registry(),
-        skill_utils.create_empty_resource_registry(),
-        skill_utils.create_installed_assets([skill]),
-        skill_utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([skill]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     test_msg = (
@@ -5083,16 +5082,15 @@ class BehaviorTreeDataTest(parameterized.TestCase):
 
   def test_init_message_wrapper_list(self):
     """Tests if BehaviorTree.Data is correctly constructed."""
-    skill_utils = skill_test_utils.SkillTestUtils()
-    skill = skill_test_utils.SkillTestUtils().create_skill_asset(
+    skill = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
     )
     skills = skill_providing.Skills(
-        skill_utils.create_empty_skill_registry(),
-        skill_utils.create_empty_resource_registry(),
-        skill_utils.create_installed_assets([skill]),
-        skill_utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([skill]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     node = bt.Data(name='foo')

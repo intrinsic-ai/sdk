@@ -236,13 +236,14 @@ class SolutionTest(absltest.TestCase):
 
     self._solution_service = mock.MagicMock()
 
-    skill_utils = skill_test_utils.SkillTestUtils()
-    self._skill_registry = skill_utils.create_empty_skill_registry()
-    self._resource_registry = skill_utils.create_empty_resource_registry()
-    self._installed_assets = skill_utils.create_installed_assets(
-        [skill_utils.create_skill_asset("ai.intrinsic.my_skill")]
+    self._skill_registry = skill_test_utils.create_empty_skill_registry()
+    self._resource_registry = skill_test_utils.create_empty_resource_registry()
+    self._installed_assets = skill_test_utils.create_installed_assets(
+        [skill_test_utils.create_skill_asset("ai.intrinsic.my_skill")]
     )
-    self._asset_config_client = skill_utils.create_asset_configuration_client()
+    self._asset_config_client = (
+        skill_test_utils.create_asset_configuration_client()
+    )
 
     pose_estimators = mock.MagicMock()
 
@@ -312,10 +313,11 @@ class SolutionTest(absltest.TestCase):
     self.assertEqual(mock_stdout.getvalue(), "ai.intrinsic.my_skill\n")
 
     # Add a 'z_move' skill with description
-    skill_utils = skill_test_utils.SkillTestUtils()
-    self._installed_assets = skill_utils.create_installed_assets([
-        skill_utils.create_skill_asset("ai.intrinsic.my_skill", description=""),
-        skill_utils.create_skill_asset(
+    self._installed_assets = skill_test_utils.create_installed_assets([
+        skill_test_utils.create_skill_asset(
+            "ai.intrinsic.my_skill", description=""
+        ),
+        skill_test_utils.create_skill_asset(
             "ai.intrinsic.z_move",
             description="Doc for z_move.\n\nMore z_move Doc.",
         ),

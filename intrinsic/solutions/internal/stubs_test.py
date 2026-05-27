@@ -23,7 +23,6 @@ class StubsTest(absltest.TestCase):
 
   def setUp(self):
     super().setUp()
-    self._utils = skill_test_utils.SkillTestUtils()
 
   def assert_regex_with_pretty_printing(
       self, text: str, expected_regex: str
@@ -36,19 +35,19 @@ class StubsTest(absltest.TestCase):
 
   def test_providers_stub(self):
     skill_infos = [
-        self._utils.create_legacy_process("ai.ai_skill"),
-        self._utils.create_legacy_process("global_skill"),
+        skill_test_utils.create_legacy_process("ai.ai_skill"),
+        skill_test_utils.create_legacy_process("global_skill"),
     ]
     assets = [
-        self._utils.create_skill_asset("ai.intr.skill_one"),
-        self._utils.create_skill_asset("ai.intr.skill_two"),
-        self._utils.create_skill_asset("ai.other.skill_three"),
+        skill_test_utils.create_skill_asset("ai.intr.skill_one"),
+        skill_test_utils.create_skill_asset("ai.intr.skill_two"),
+        skill_test_utils.create_skill_asset("ai.other.skill_three"),
     ]
     skills = skill_providing.Skills(
-        self._utils.create_skill_registry_for_skill_infos(skill_infos),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets(assets),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_skill_registry_for_skill_infos(skill_infos),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets(assets),
+        skill_test_utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
 
@@ -110,10 +109,10 @@ class StubsTest(absltest.TestCase):
 
   def test_py_typed(self):
     skills = skill_providing.Skills(
-        self._utils.create_skill_registry_for_skill_infos([]),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_empty_installed_assets(),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_skill_registry_for_skill_infos([]),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_empty_installed_assets(),
+        skill_test_utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
 
@@ -125,19 +124,19 @@ class StubsTest(absltest.TestCase):
 
   def test_generates_one_skill_module_stub_for_each_skill_package(self):
     skill_infos = [
-        self._utils.create_legacy_process("ai.ai_skill"),
-        self._utils.create_legacy_process("global_skill"),
+        skill_test_utils.create_legacy_process("ai.ai_skill"),
+        skill_test_utils.create_legacy_process("global_skill"),
     ]
     assets = [
-        self._utils.create_skill_asset("ai.intr.skill_one"),
-        self._utils.create_skill_asset("ai.intr.skill_two"),
-        self._utils.create_skill_asset("ai.other.skill_three"),
+        skill_test_utils.create_skill_asset("ai.intr.skill_one"),
+        skill_test_utils.create_skill_asset("ai.intr.skill_two"),
+        skill_test_utils.create_skill_asset("ai.other.skill_three"),
     ]
     skills = skill_providing.Skills(
-        self._utils.create_skill_registry_for_skill_infos(skill_infos),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets(assets),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_skill_registry_for_skill_infos(skill_infos),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets(assets),
+        skill_test_utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
 
@@ -154,14 +153,14 @@ class StubsTest(absltest.TestCase):
 
   def test_skill_module_stub_for_paramless_skills(self):
     assets = [
-        self._utils.create_skill_asset("ai.intr.skill_one"),
-        self._utils.create_skill_asset("ai.intr.skill_two"),
+        skill_test_utils.create_skill_asset("ai.intr.skill_one"),
+        skill_test_utils.create_skill_asset("ai.intr.skill_two"),
     ]
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets(assets),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets(assets),
+        skill_test_utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
 
@@ -195,16 +194,16 @@ class skill_two\(skill_generation.GeneratedSkill\):
     )
 
   def test_skill_init_signature_with_basic_params(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         "ai.intr.my_skill",
         parameter_message=stubs_test_pb2.BasicParams,
         return_value_message=stubs_test_pb2.BasicParams,
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
 
@@ -266,15 +265,15 @@ class skill_two\(skill_generation.GeneratedSkill\):
     )
 
   def test_skill_init_signature_with_auto_conversion_params(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         "ai.intr.my_skill",
         parameter_message=stubs_test_pb2.AutoConversionParams,
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
 
@@ -326,15 +325,15 @@ class skill_two\(skill_generation.GeneratedSkill\):
     )
 
   def test_enum_defs(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         "ai.intr.my_skill",
         parameter_message=stubs_test_pb2.ParamsWithVariousEnums,
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
 
@@ -387,15 +386,15 @@ class my_skill\(skill_generation.GeneratedSkill\):.*
     )
 
   def test_multiple_wrapper_class_defs_for_single_skill(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         "ai.intr.my_skill",
         parameter_message=stubs_test_pb2.VariousMessageParams,
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
 
@@ -445,15 +444,15 @@ class my_skill\(skill_generation.GeneratedSkill\):.*
     )
 
   def test_wrapper_init_signature(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         "ai.intr.my_skill",
         parameter_message=stubs_test_pb2.BasicParams,
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
 
@@ -513,15 +512,15 @@ class my_skill\(skill_generation.GeneratedSkill\):.*
     )
 
   def test_output_gets_auto_formatted(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         "ai.intr.my_skill",
         parameter_message=stubs_test_pb2.BasicParams,
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
 
@@ -548,26 +547,26 @@ class my_skill\(skill_generation.GeneratedSkill\):.*
       )
 
   def test_prints_success_message(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         "ai.intr.my_skill",
         parameter_message=stubs_test_pb2.EmptyMessage,
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
-    other_asset = self._utils.create_skill_asset(
+    other_asset = skill_test_utils.create_skill_asset(
         "ai.intr.my_skill",
         # Same skill with different parameters
         parameter_message=stubs_test_pb2.BasicParams,
     )
     other_skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([other_asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([other_asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
     # Make sure relevant env vars are not set at beginning of test

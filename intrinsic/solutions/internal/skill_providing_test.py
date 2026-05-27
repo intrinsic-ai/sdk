@@ -103,13 +103,6 @@ def _create_skill_registry_with_mock_stub():
 class SkillsTest(parameterized.TestCase):
   """Tests public methods of the skills wrapper class."""
 
-  _utils: skill_test_utils.SkillTestUtils
-
-  def setUp(self):
-    super().setUp()
-
-    self._utils = skill_test_utils.SkillTestUtils()
-
   def assertSignature(self, actual, expected):
     actual = str(actual)
     # Insert newlines after commas, else the diff printed by assertEqual is
@@ -158,16 +151,16 @@ class SkillsTest(parameterized.TestCase):
       {'parameter': {'my_double': [1, 2]}},
   )
   def test_gen_skill_param_message_type_mismatch(self, parameter):
-    skill = self._utils.create_skill_asset(
+    skill = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
         default_params=_DEFAULT_TEST_MESSAGE,
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([skill]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([skill]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     with self.assertRaises(TypeError):
@@ -175,28 +168,28 @@ class SkillsTest(parameterized.TestCase):
 
   def test_list_skills(self):
     registry_skills = [
-        self._utils.create_legacy_process('ai.ai_pbt'),
-        self._utils.create_legacy_process('ai.intr.intr_pbt'),
-        self._utils.create_legacy_process('foo.bar.bar_pbt'),
-        self._utils.create_legacy_process('foo.foo_pbt'),
-        self._utils.create_legacy_process('foo.foo'),
-        self._utils.create_legacy_process('global_pbt'),
+        skill_test_utils.create_legacy_process('ai.ai_pbt'),
+        skill_test_utils.create_legacy_process('ai.intr.intr_pbt'),
+        skill_test_utils.create_legacy_process('foo.bar.bar_pbt'),
+        skill_test_utils.create_legacy_process('foo.foo_pbt'),
+        skill_test_utils.create_legacy_process('foo.foo'),
+        skill_test_utils.create_legacy_process('global_pbt'),
     ]
     assets = [
         # Regular skills
-        self._utils.create_skill_asset('ai.intr.intr_skill_a'),
-        self._utils.create_skill_asset('ai.intr.intr_skill_b'),
-        self._utils.create_skill_asset('foo.bar.bar_skill'),
-        self._utils.create_skill_asset('foo.bar.bar'),
+        skill_test_utils.create_skill_asset('ai.intr.intr_skill_a'),
+        skill_test_utils.create_skill_asset('ai.intr.intr_skill_b'),
+        skill_test_utils.create_skill_asset('foo.bar.bar_skill'),
+        skill_test_utils.create_skill_asset('foo.bar.bar'),
         # Process assets
-        self._utils.create_process_asset('ai.intr.intr_process_a'),
-        self._utils.create_process_asset('ai.intr.intr_process_b'),
+        skill_test_utils.create_process_asset('ai.intr.intr_process_a'),
+        skill_test_utils.create_process_asset('ai.intr.intr_process_b'),
     ]
     skills = skill_providing.Skills(
-        self._utils.create_skill_registry_for_skill_infos(registry_skills),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets(assets),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_skill_registry_for_skill_infos(registry_skills),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets(assets),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     self.assertEqual(
@@ -224,24 +217,24 @@ class SkillsTest(parameterized.TestCase):
   def test_skills_attribute_access(self):
     """Tests attribute-based access (skills.<skill_id>)."""
     registry_skills = [
-        self._utils.create_legacy_process('ai.intr.intr_pbt'),
-        self._utils.create_legacy_process('ai.ai_pbt'),
-        self._utils.create_legacy_process('foo.foo_pbt'),
-        self._utils.create_legacy_process('global_pbt'),
+        skill_test_utils.create_legacy_process('ai.intr.intr_pbt'),
+        skill_test_utils.create_legacy_process('ai.ai_pbt'),
+        skill_test_utils.create_legacy_process('foo.foo_pbt'),
+        skill_test_utils.create_legacy_process('global_pbt'),
     ]
     assets = [
         # Regular skills
-        self._utils.create_skill_asset('ai.intr.intr_skill'),
-        self._utils.create_skill_asset('foo.bar.bar_skill'),
+        skill_test_utils.create_skill_asset('ai.intr.intr_skill'),
+        skill_test_utils.create_skill_asset('foo.bar.bar_skill'),
         # Process assets
-        self._utils.create_process_asset('ai.intr.intr_process'),
-        self._utils.create_process_asset('foo.bar.bar_process'),
+        skill_test_utils.create_process_asset('ai.intr.intr_process'),
+        skill_test_utils.create_process_asset('foo.bar.bar_process'),
     ]
     skills = skill_providing.Skills(
-        self._utils.create_skill_registry_for_skill_infos(registry_skills),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets(assets),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_skill_registry_for_skill_infos(registry_skills),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets(assets),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     # Id notation: skills.<skill_id>
@@ -277,15 +270,15 @@ class SkillsTest(parameterized.TestCase):
 
   def test_skills_with_same_name_but_different_packages(self):
     assets = [
-        self._utils.create_skill_asset('ai.intr.my_skill'),
-        self._utils.create_skill_asset('com.foo.my_skill'),
+        skill_test_utils.create_skill_asset('ai.intr.my_skill'),
+        skill_test_utils.create_skill_asset('com.foo.my_skill'),
     ]
 
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets(assets),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets(assets),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     self.assertIsInstance(
@@ -296,18 +289,18 @@ class SkillsTest(parameterized.TestCase):
     )
 
   def test_asset_skill_takes_precedence_over_registry_skill(self):
-    registry_pbt = self._utils.create_legacy_process(
+    registry_pbt = skill_test_utils.create_legacy_process(
         'ai.intr.same_name', description='registry skill description'
     )
-    skill_asset = self._utils.create_skill_asset(
+    skill_asset = skill_test_utils.create_skill_asset(
         'ai.intr.same_name', description='asset skill description'
     )
 
     skills = skill_providing.Skills(
-        self._utils.create_skill_registry_for_skill_infos([registry_pbt]),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([skill_asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_skill_registry_for_skill_infos([registry_pbt]),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([skill_asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     self.assertEqual(
@@ -317,18 +310,18 @@ class SkillsTest(parameterized.TestCase):
   def test_skills_dict_access(self):
     """Tests id-string-based access via __getitem__ (skills['<skill_id>'])."""
     registry_skills = [
-        self._utils.create_legacy_process('global_pbt'),
+        skill_test_utils.create_legacy_process('global_pbt'),
     ]
     assets = [
-        self._utils.create_skill_asset('ai.intr.skill_two'),
-        self._utils.create_skill_asset('ai.intr.skill_one'),
-        self._utils.create_process_asset('ai.intr.process'),
+        skill_test_utils.create_skill_asset('ai.intr.skill_two'),
+        skill_test_utils.create_skill_asset('ai.intr.skill_one'),
+        skill_test_utils.create_process_asset('ai.intr.process'),
     ]
     skills = skill_providing.Skills(
-        self._utils.create_skill_registry_for_skill_infos(registry_skills),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets(assets),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_skill_registry_for_skill_infos(registry_skills),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets(assets),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     self.assertIsInstance(
@@ -349,18 +342,18 @@ class SkillsTest(parameterized.TestCase):
 
   def test_skills_get_skill_ids(self):
     registry_skills = [
-        self._utils.create_legacy_process('global_pbt'),
+        skill_test_utils.create_legacy_process('global_pbt'),
     ]
     assets = [
-        self._utils.create_skill_asset('ai.intr.skill_two'),
-        self._utils.create_skill_asset('ai.intr.skill_one'),
-        self._utils.create_process_asset('ai.intr.process'),
+        skill_test_utils.create_skill_asset('ai.intr.skill_two'),
+        skill_test_utils.create_skill_asset('ai.intr.skill_one'),
+        skill_test_utils.create_process_asset('ai.intr.process'),
     ]
     skills = skill_providing.Skills(
-        self._utils.create_skill_registry_for_skill_infos(registry_skills),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets(assets),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_skill_registry_for_skill_infos(registry_skills),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets(assets),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     skill_ids = skills.get_skill_ids()
@@ -377,18 +370,18 @@ class SkillsTest(parameterized.TestCase):
 
   def test_skills_get_skill_classes(self):
     registry_skills = [
-        self._utils.create_legacy_process('global_pbt'),
+        skill_test_utils.create_legacy_process('global_pbt'),
     ]
     assets = [
-        self._utils.create_skill_asset('ai.intr.skill_two'),
-        self._utils.create_skill_asset('ai.intr.skill_one'),
-        self._utils.create_process_asset('ai.intr.process'),
+        skill_test_utils.create_skill_asset('ai.intr.skill_two'),
+        skill_test_utils.create_skill_asset('ai.intr.skill_one'),
+        skill_test_utils.create_process_asset('ai.intr.process'),
     ]
     skills = skill_providing.Skills(
-        self._utils.create_skill_registry_for_skill_infos(registry_skills),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets(assets),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_skill_registry_for_skill_infos(registry_skills),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets(assets),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     skill_classes = skills.get_skill_classes()
@@ -399,18 +392,18 @@ class SkillsTest(parameterized.TestCase):
 
   def test_skills_get_skill_ids_and_classes(self):
     registry_skills = [
-        self._utils.create_legacy_process('global_pbt'),
+        skill_test_utils.create_legacy_process('global_pbt'),
     ]
     assets = [
-        self._utils.create_skill_asset('ai.intr.skill_two'),
-        self._utils.create_skill_asset('ai.intr.skill_one'),
-        self._utils.create_process_asset('ai.intr.process'),
+        skill_test_utils.create_skill_asset('ai.intr.skill_two'),
+        skill_test_utils.create_skill_asset('ai.intr.skill_one'),
+        skill_test_utils.create_process_asset('ai.intr.process'),
     ]
     skills = skill_providing.Skills(
-        self._utils.create_skill_registry_for_skill_infos(registry_skills),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets(assets),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_skill_registry_for_skill_infos(registry_skills),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets(assets),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     ids_and_classes = skills.get_skill_ids_and_classes()
@@ -428,16 +421,18 @@ class SkillsTest(parameterized.TestCase):
       self.assertIsInstance(skill_class(), skill_generation.GeneratedSkill)
 
   def test_type_url_areas(self):
-    registry_skills = [self._utils.create_legacy_process('ai.intr.legacy_pbt')]
+    registry_skills = [
+        skill_test_utils.create_legacy_process('ai.intr.legacy_pbt')
+    ]
     assets = [
-        self._utils.create_skill_asset('ai.intr.skill'),
-        self._utils.create_process_asset('ai.intr.process'),
+        skill_test_utils.create_skill_asset('ai.intr.skill'),
+        skill_test_utils.create_process_asset('ai.intr.process'),
     ]
     skills = skill_providing.Skills(
-        self._utils.create_skill_registry_for_skill_infos(registry_skills),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets(assets),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_skill_registry_for_skill_infos(registry_skills),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets(assets),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     self.assertEqual(skills.ai.intr.legacy_pbt.info.type_url_area, 'skills')
@@ -445,16 +440,18 @@ class SkillsTest(parameterized.TestCase):
     self.assertEqual(skills.ai.intr.process.info.type_url_area, 'assets')
 
   def test_skill_type(self):
-    registry_skills = [self._utils.create_legacy_process('ai.intr.legacy_pbt')]
+    registry_skills = [
+        skill_test_utils.create_legacy_process('ai.intr.legacy_pbt')
+    ]
     assets = [
-        self._utils.create_skill_asset('ai.intr.skill'),
-        self._utils.create_process_asset('ai.intr.process'),
+        skill_test_utils.create_skill_asset('ai.intr.skill'),
+        skill_test_utils.create_process_asset('ai.intr.process'),
     ]
     skills = skill_providing.Skills(
-        self._utils.create_skill_registry_for_skill_infos(registry_skills),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets(assets),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_skill_registry_for_skill_infos(registry_skills),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets(assets),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     self.assertEqual(
@@ -468,21 +465,23 @@ class SkillsTest(parameterized.TestCase):
     )
 
   def test_gen_skill(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
         resource_selectors={'my_resource_slot': ['my_capability']},
     )
 
-    resource_registry = self._utils.create_resource_registry_with_single_handle(
-        'my_resource', 'my_capability'
+    resource_registry = (
+        skill_test_utils.create_resource_registry_with_single_handle(
+            'my_resource', 'my_capability'
+        )
     )
 
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_skill_registry(),
         resource_registry,
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     expected_repeated_doubles = [2.1, 3.1]
@@ -557,22 +556,24 @@ class SkillsTest(parameterized.TestCase):
     self.assertEqual(str(skill), skill_str)
 
   def test_gen_skill_uses_defaults(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
         default_params=_DEFAULT_TEST_MESSAGE,
         resource_selectors={'my_resource_slot': ['my_capability']},
     )
 
-    resource_registry = self._utils.create_resource_registry_with_single_handle(
-        'my_resource', 'my_capability'
+    resource_registry = (
+        skill_test_utils.create_resource_registry_with_single_handle(
+            'my_resource', 'my_capability'
+        )
     )
 
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_skill_registry(),
         resource_registry,
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     skill = skills.ai.intrinsic.my_skill()
@@ -622,21 +623,23 @@ class SkillsTest(parameterized.TestCase):
     self.assertEqual(str(skill), skill_str)
 
   def test_gen_skill_nested_map(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
         resource_selectors={'my_resource_slot': ['my_capability']},
     )
 
-    resource_registry = self._utils.create_resource_registry_with_single_handle(
-        'my_resource', 'my_capability'
+    resource_registry = (
+        skill_test_utils.create_resource_registry_with_single_handle(
+            'my_resource', 'my_capability'
+        )
     )
 
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_skill_registry(),
         resource_registry,
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     parameters = test_skill_params_pb2.TestMessage(
@@ -680,17 +683,17 @@ class SkillsTest(parameterized.TestCase):
       {'value_specification': cel.CelExpression('test')},
   )
   def test_gen_skill_with_blackboard_parameter(self, value_specification):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
         default_params=_DEFAULT_TEST_MESSAGE,
     )
 
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     skill = skills.ai.intrinsic.my_skill(
@@ -724,16 +727,16 @@ class SkillsTest(parameterized.TestCase):
   def test_gen_skill_with_nested_blackboard_parameter(
       self, value_specification
   ):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
     )
 
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     my_skill = skills.ai.intrinsic.my_skill
@@ -881,16 +884,16 @@ class SkillsTest(parameterized.TestCase):
       {'value_specification': cel.CelExpression('test')},
   )
   def test_gen_skill_with_blackboard_parameter_list(self, value_specification):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
     )
 
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     my_skill = skills.ai.intrinsic.my_skill
@@ -918,16 +921,16 @@ class SkillsTest(parameterized.TestCase):
     compare.assertProto2Equal(self, expected_proto, skill.proto)
 
   def test_gen_skill_with_map_parameter(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
     )
 
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     expected_parameters = test_skill_params_pb2.TestMessage(
@@ -942,16 +945,16 @@ class SkillsTest(parameterized.TestCase):
     compare.assertProto2Equal(self, expected_parameters, actual_parameters)
 
   def test_gen_skill_with_message_map_parameter_from_alias(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
     )
 
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     expected_parameters = test_skill_params_pb2.TestMessage(
@@ -980,16 +983,16 @@ class SkillsTest(parameterized.TestCase):
     compare.assertProto2Equal(self, expected_parameters, actual_parameters)
 
   def test_gen_skill_with_message_map_parameter_from_actual_type(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
     )
 
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     expected_parameters = test_skill_params_pb2.TestMessage(
@@ -1014,16 +1017,16 @@ class SkillsTest(parameterized.TestCase):
     compare.assertProto2Equal(self, expected_parameters, actual_parameters)
 
   def test_gen_skill_with_return_value_key(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         return_value_message=test_skill_params_pb2.SubMessage,
     )
 
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     my_skill = skills.ai.intrinsic.my_skill
@@ -1037,16 +1040,16 @@ class SkillsTest(parameterized.TestCase):
     )
 
   def test_gen_skill_fails_for_set_instead_of_dict(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
     )
 
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     with self.assertRaisesRegex(TypeError, 'Got set where expected dict'):
@@ -1055,16 +1058,16 @@ class SkillsTest(parameterized.TestCase):
       skills.ai.intrinsic.my_skill(string_int32_map={'foo', 1})
 
   def test_gen_skill_map_rejects_blackboard_value(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
     )
 
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     with self.assertRaisesRegex(
@@ -1077,16 +1080,16 @@ class SkillsTest(parameterized.TestCase):
       )
 
   def test_gen_skill_with_invalid_parameter(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
     )
 
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     # Normal assignment to known field should work
@@ -1113,21 +1116,21 @@ class SkillsTest(parameterized.TestCase):
 
   def test_compatible_resources(self):
     assets = [
-        self._utils.create_skill_asset(
+        skill_test_utils.create_skill_asset(
             'ai.intrinsic.skill_one',
             resource_selectors={'slot_one': ['capability_a', 'capability_b']},
         ),
-        self._utils.create_skill_asset(
+        skill_test_utils.create_skill_asset(
             'ai.intrinsic.skill_two',
             resource_selectors={
                 'slot_one': ['capability_a'],
                 'slot_two': ['capability_b'],
             },
         ),
-        self._utils.create_skill_asset(
+        skill_test_utils.create_skill_asset(
             'ai.intrinsic.skill_three', resource_selectors={}
         ),
-        self._utils.create_skill_asset(
+        skill_test_utils.create_skill_asset(
             'ai.intrinsic.skill_four',
             resource_selectors={
                 'slot_one': ['capability_not_matched_by_any_resource']
@@ -1135,7 +1138,7 @@ class SkillsTest(parameterized.TestCase):
         ),
     ]
 
-    resource_registry = self._utils.create_resource_registry_with_handles([
+    resource_registry = skill_test_utils.create_resource_registry_with_handles([
         text_format.Parse(
             """name: 'a_resource'
                resource_data { key: 'capability_a' }""",
@@ -1155,10 +1158,10 @@ class SkillsTest(parameterized.TestCase):
     ])
 
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_skill_registry(),
         resource_registry,
-        self._utils.create_installed_assets(assets),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_installed_assets(assets),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     self.assertCountEqual(
@@ -1182,7 +1185,7 @@ class SkillsTest(parameterized.TestCase):
     )
 
   def test_gen_skill_incompatible_resources(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
         resource_selectors={
@@ -1191,10 +1194,10 @@ class SkillsTest(parameterized.TestCase):
     )
 
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     resource_a = provided.ResourceHandle.create('resource_a', ['capability_a'])
@@ -1203,13 +1206,13 @@ class SkillsTest(parameterized.TestCase):
       skills.ai.intrinsic.my_skill(my_resource_slot=resource_a)
 
   def test_skill_class_name(self):
-    legacy_pbt = self._utils.create_legacy_process('global_pbt')
-    asset = self._utils.create_skill_asset('ai.intrinsic.my_skill')
+    legacy_pbt = skill_test_utils.create_legacy_process('global_pbt')
+    asset = skill_test_utils.create_skill_asset('ai.intrinsic.my_skill')
     skills = skill_providing.Skills(
-        self._utils.create_skill_registry_for_skill_info(legacy_pbt),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_skill_registry_for_skill_info(legacy_pbt),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     self.assertEqual(skills.ai.intrinsic.my_skill.__name__, 'my_skill')
@@ -1231,16 +1234,16 @@ class SkillsTest(parameterized.TestCase):
     recommended_params = test_skill_params_pb2.TestMessage(
         my_double=2.5, my_float=99.9
     )
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
         default_params=default_params,
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client({
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client({
             'ai.intrinsic.my_skill': [(default_params, recommended_params)],
         }),
     )
@@ -1260,18 +1263,18 @@ class SkillsTest(parameterized.TestCase):
 
   def test_skill_skips_recommended_config(self):
     default_params = test_skill_params_pb2.TestMessage(my_double=2.5)
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
         default_params=default_params,
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
         # Configure no recommendations for my_skill. This causes an error if the
         # asset configuration client is called in any form.
-        self._utils.create_asset_configuration_client({
+        skill_test_utils.create_asset_configuration_client({
             'ai.intrinsic.my_skill': [],
         }),
     )
@@ -1307,7 +1310,7 @@ class SkillsTest(parameterized.TestCase):
     assets = []
     if is_legacy_pbt:
       legacy_pbts = [
-          self._utils.create_legacy_process(
+          skill_test_utils.create_legacy_process(
               'ai.intrinsic.my_process',
               parameter_message=test_skill_params_pb2.TestMessage,
               default_params=default_params,
@@ -1315,19 +1318,19 @@ class SkillsTest(parameterized.TestCase):
       ]
     else:
       assets = [
-          self._utils.create_process_asset(
+          skill_test_utils.create_process_asset(
               'ai.intrinsic.my_process',
               parameter_message=test_skill_params_pb2.TestMessage,
               default_params=default_params,
           )
       ]
     skills = skill_providing.Skills(
-        self._utils.create_skill_registry_for_skill_infos(legacy_pbts),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets(assets),
+        skill_test_utils.create_skill_registry_for_skill_infos(legacy_pbts),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets(assets),
         # Configure no recommendations for my_process. This causes an error if
         # the asset configuration client is called in any form.
-        self._utils.create_asset_configuration_client({
+        skill_test_utils.create_asset_configuration_client({
             'ai.intrinsic.my_process': [],
         }),
     )
@@ -1364,16 +1367,16 @@ class SkillsTest(parameterized.TestCase):
     )
 
     default_params = test_skill_params_pb2.TestMessage(my_double=2.5)
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
         default_params=default_params,
     )
 
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
         asset_config_client,
     )
 
@@ -1398,16 +1401,16 @@ class SkillsTest(parameterized.TestCase):
     recommended_params = test_skill_params_pb2.TestMessage(
         my_string='recommended-config'
     )
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
         default_params=default_params,
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client({
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client({
             'ai.intrinsic.my_skill': [(default_params, recommended_params)],
         }),
     )
@@ -1433,15 +1436,15 @@ class SkillsTest(parameterized.TestCase):
     compare.assertProto2Equal(self, expected_proto, skill.proto)
 
   def test_skill_constructor_fails_for_unknown_arguments(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     with self.assertRaisesRegex(
@@ -1456,7 +1459,7 @@ class SkillsTest(parameterized.TestCase):
       skills.ai.intrinsic.my_skill(non_existent_key_with_non_none_value=42)
 
   def test_skill_signature_without_default_values(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
         return_value_message=test_skill_params_pb2.TestMessage,
@@ -1547,10 +1550,10 @@ class SkillsTest(parameterized.TestCase):
     # pyformat: enable
 
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     my_skill = skills.ai.intrinsic.my_skill()
@@ -1673,16 +1676,16 @@ class SkillsTest(parameterized.TestCase):
   def test_skill_signature_for_types_with_auto_conversion(
       self, parameter_message, expected_signature
   ):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=parameter_message,
     )
 
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     my_skill = skills.ai.intrinsic.my_skill
@@ -1691,7 +1694,7 @@ class SkillsTest(parameterized.TestCase):
     self.assertSignature(signature, expected_signature)
 
   def test_skill_class_docstring(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
         return_value_message=test_skill_params_pb2.TestMessage,
@@ -1699,10 +1702,10 @@ class SkillsTest(parameterized.TestCase):
         resource_selectors={'a': ['some-type-a'], 'b': ['some-type-b']},
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     docstring = """\
@@ -1713,7 +1716,7 @@ This is an awesome skill."""
     self.assertEqual(skills.ai.intrinsic.my_skill.__doc__, docstring)
 
   def test_skill_init_docstring(self):
-    asset = self._utils.create_skill_asset_with_file_descriptor_set(
+    asset = skill_test_utils.create_skill_asset_with_file_descriptor_set(
         'ai.intrinsic.my_skill',
         file_descriptor_set=_test_skill_params_file_descriptor_set(),
         parameter_message_full_name='intrinsic_proto.test_data.TestMessage',
@@ -1722,10 +1725,10 @@ This is an awesome skill."""
         resource_selectors={'a': ['some-type-a'], 'b': ['some-type-b']},
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     docstring = """\
@@ -1864,17 +1867,17 @@ Returns:
     self.assertEqual(skills.ai.intrinsic.my_skill.__init__.__doc__, docstring)
 
   def test_skill_repr(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
         default_params=_DEFAULT_TEST_MESSAGE,
         resource_selectors={'a': ['some-type-a'], 'b': ['some-type-b']},
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     skill_repr = (
@@ -1918,14 +1921,14 @@ Returns:
 
   def test_ambiguous_parameter_and_resource_name(self):
     """Tests ambiguous parameter name and resource slot are handled properly."""
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.ResourceConflict,
         default_params=test_skill_params_pb2.ResourceConflict(a='bar'),
         # alias chosen to match a field name from ResourceConflict
         resource_selectors={'a': ['some-type-a']},
     )
-    resource_registry = self._utils.create_resource_registry_with_handles([
+    resource_registry = skill_test_utils.create_resource_registry_with_handles([
         text_format.Parse(
             """name: 'some-resource1'
                resource_data { key: 'some-type-a' }""",
@@ -1938,10 +1941,10 @@ Returns:
         ),
     ])
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_skill_registry(),
         resource_registry,
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     self.assertEqual(
@@ -1977,18 +1980,20 @@ Returns:
 
   def test_resource_default_value(self):
     """Tests default resource is used properly."""
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         resource_selectors={'a': ['some-type-a']},
     )
-    resource_registry = self._utils.create_resource_registry_with_single_handle(
-        'some-resource', 'some-type-a'
+    resource_registry = (
+        skill_test_utils.create_resource_registry_with_single_handle(
+            'some-resource', 'some-type-a'
+        )
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_skill_registry(),
         resource_registry,
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     self.assertEqual(
@@ -2016,18 +2021,20 @@ Returns:
 
   def test_non_resource_as_resource_is_rejected(self):
     """Tests non-resource passed for resource parameter is rejected."""
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         resource_selectors={'a': ['some-type-a']},
     )
-    resource_registry = self._utils.create_resource_registry_with_single_handle(
-        'some-resource', 'some-type-a'
+    resource_registry = (
+        skill_test_utils.create_resource_registry_with_single_handle(
+            'some-resource', 'some-type-a'
+        )
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_skill_registry(),
         resource_registry,
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     class BogusObject:
@@ -2040,12 +2047,12 @@ Returns:
 
   def test_timeouts(self):
     """Tests if timeouts are transferred to proto."""
-    asset = self._utils.create_skill_asset('ai.intrinsic.my_skill')
+    asset = skill_test_utils.create_skill_asset('ai.intrinsic.my_skill')
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     skill = skills.ai.intrinsic.my_skill()
@@ -2069,15 +2076,15 @@ Returns:
     compare.assertProto2Equal(self, skill.proto, expected_proto)
 
   def test_nested_message_classes(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     sub_message = (
@@ -2098,15 +2105,15 @@ Returns:
     )
 
   def test_nested_message_list_with_blackboard_value(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     sub_message = (
@@ -2332,15 +2339,15 @@ Returns:
 
   def test_result_access(self):
     """Tests if BlackboardValue gets created when accessing result."""
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         return_value_message=test_skill_params_pb2.TestMessage,
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     skill = skills.ai.intrinsic.my_skill()
@@ -2353,15 +2360,15 @@ Returns:
     self.assertEqual(skill.result.value_access_path(), skill.result_key)
 
   def test_gen_message_wrapper(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     test_message = (
@@ -2373,15 +2380,15 @@ Returns:
     self.assertEqual('name: "bar"\n', str(test_message.wrapped_message))
 
   def test_wrapper_class_name(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     my_skill = skills.ai.intrinsic.my_skill
@@ -2425,16 +2432,16 @@ Returns:
     )
 
   def test_wrapper_access(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
         return_value_message=test_skill_params_pb2.TestMessageReturn,
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     my_skill = skills.ai.intrinsic.my_skill
@@ -2474,15 +2481,15 @@ Returns:
     )
 
   def test_message_wrapper_class_docstring(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     self.assertEqual(
@@ -2492,16 +2499,16 @@ Returns:
     )
 
   def test_message_wrapper_init_docstring(self):
-    asset = self._utils.create_skill_asset_with_file_descriptor_set(
+    asset = skill_test_utils.create_skill_asset_with_file_descriptor_set(
         'ai.intrinsic.my_skill',
         file_descriptor_set=_test_skill_params_file_descriptor_set(),
         parameter_message_full_name='intrinsic_proto.test_data.TestMessage',
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     docstring = """\
@@ -2581,15 +2588,15 @@ Fields:
     )
 
   def test_message_wrapper_signature(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     # pyformat: disable
@@ -2681,15 +2688,15 @@ Fields:
     self.assertSignature(signature, expected_signature)
 
   def test_message_wrapper_explicit_none(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     my_skill = skills.ai.intrinsic.my_skill
@@ -2704,15 +2711,15 @@ Fields:
     compare.assertProto2Equal(self, expected_proto, m.wrapped_message)
 
   def test_message_wrapper_params(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     expected_test_message = test_skill_params_pb2.TestMessage(
@@ -2766,15 +2773,15 @@ Fields:
     )
 
   def test_message_wrapper_to_any(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     expected_test_message = test_skill_params_pb2.TestMessage(
@@ -2805,15 +2812,15 @@ Fields:
     )
 
   def test_enum_wrapper_class(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.VariousEnumsMessage,
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     my_skill = skills.ai.intrinsic.my_skill
@@ -2843,15 +2850,15 @@ Fields:
     )
 
   def test_enum_values(self):
-    asset = self._utils.create_skill_asset(
+    asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.VariousEnumsMessage,
     )
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets([asset]),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     my_skill = skills.ai.intrinsic.my_skill
@@ -2930,30 +2937,30 @@ Fields:
 
   def test_skills_len(self):
     assets = [
-        self._utils.create_skill_asset('ai.intr.intr_skill_one'),
-        self._utils.create_skill_asset('ai.intr.intr_skill_two'),
-        self._utils.create_process_asset('ai.intr.intr_process'),
+        skill_test_utils.create_skill_asset('ai.intr.intr_skill_one'),
+        skill_test_utils.create_skill_asset('ai.intr.intr_skill_two'),
+        skill_test_utils.create_process_asset('ai.intr.intr_process'),
     ]
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets(assets),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets(assets),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     self.assertLen(skills, 3)
 
   def test_skills_contains(self):
     assets = [
-        self._utils.create_skill_asset('ai.intr.intr_skill_one'),
-        self._utils.create_skill_asset('ai.intr.intr_skill_two'),
-        self._utils.create_process_asset('ai.intr.intr_process'),
+        skill_test_utils.create_skill_asset('ai.intr.intr_skill_one'),
+        skill_test_utils.create_skill_asset('ai.intr.intr_skill_two'),
+        skill_test_utils.create_process_asset('ai.intr.intr_process'),
     ]
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets(assets),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets(assets),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     self.assertIn('ai.intr.intr_skill_one', skills)
@@ -2962,15 +2969,15 @@ Fields:
 
   def test_skills_iter(self):
     assets = [
-        self._utils.create_skill_asset('ai.intr.intr_skill_one'),
-        self._utils.create_skill_asset('ai.intr.intr_skill_two'),
-        self._utils.create_process_asset('ai.intr.intr_process'),
+        skill_test_utils.create_skill_asset('ai.intr.intr_skill_one'),
+        skill_test_utils.create_skill_asset('ai.intr.intr_skill_two'),
+        skill_test_utils.create_process_asset('ai.intr.intr_process'),
     ]
     skills = skill_providing.Skills(
-        self._utils.create_empty_skill_registry(),
-        self._utils.create_empty_resource_registry(),
-        self._utils.create_installed_assets(assets),
-        self._utils.create_asset_configuration_client(),
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets(assets),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
     iterated_skills = []
