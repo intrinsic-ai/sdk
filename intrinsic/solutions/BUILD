@@ -50,9 +50,6 @@ py_library(
 py_test(
     name = "behavior_tree_test",
     srcs = ["behavior_tree_test.py"],
-    data = [
-        "//intrinsic/solutions/testing:test_skill_params_proto_descriptors",
-    ],
     deps = [
         ":behavior_tree",
         ":blackboard_value",
@@ -78,6 +75,7 @@ py_test(
         "//intrinsic/solutions/testing:skill_test_utils",
         "//intrinsic/solutions/testing:test_skill_params_py_pb2",
         "//intrinsic/util/path_resolver:path_resolver_py",
+        "//intrinsic/util/proto:descriptors_py",
         "//intrinsic/util/status:extended_status_py_pb2",
         "//intrinsic/world/proto:object_world_refs_py_pb2",
         "//intrinsic/world/proto:object_world_service_py_pb2",
@@ -146,15 +144,12 @@ py_test(
         ":worlds",
         "//intrinsic/frontend/solution_service/proto:solution_service_py_pb2",
         "//intrinsic/frontend/solution_service/proto:status_py_pb2",
-        "//intrinsic/skills/client:skill_registry_client",
-        "//intrinsic/skills/proto:skill_registry_py_pb2",
-        "//intrinsic/skills/proto:skills_py_pb2",
+        "//intrinsic/solutions/testing:skill_test_utils",
         "//intrinsic/util/grpc:auth_py",
         "//intrinsic/util/grpc:dialerutil",
         "//intrinsic/util/grpc:userconfig",
         requirement("grpcio"),
         "@com_google_absl_py//absl/testing:absltest",
-        "@com_google_protobuf//:protobuf_python",
     ],
 )
 

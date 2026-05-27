@@ -6,10 +6,6 @@ load("@ai_intrinsic_sdks_pip_deps//:requirements.bzl", "requirement")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
-load(
-    "//intrinsic/util/proto/build_defs:descriptor_set.bzl",
-    "proto_source_code_info_transitive_descriptor_set",
-)
 
 package(default_visibility = [
     "//intrinsic/solutions:__subpackages__",
@@ -250,11 +246,7 @@ py_test(
         ":skill_providing",
         ":skill_utils",
         "//intrinsic/assets/configuration:asset_configuration_client",
-        "//intrinsic/assets/proto:asset_tag_py_pb2",
-        "//intrinsic/assets/proto:asset_type_py_pb2",
         "//intrinsic/assets/proto:id_py_pb2",
-        "//intrinsic/assets/proto:view_py_pb2",
-        "//intrinsic/assets/proto/v1:asset_configuration_py_pb2",
         "//intrinsic/executive/proto:behavior_call_py_pb2",
         "//intrinsic/executive/proto:test_message_py_pb2",
         "//intrinsic/math/proto:point_py_pb2",
@@ -265,8 +257,6 @@ py_test(
         "//intrinsic/resources/proto:resource_handle_py_pb2",
         "//intrinsic/skills/client:skill_registry_client",
         "//intrinsic/skills/proto:equipment_py_pb2",
-        "//intrinsic/skills/proto:skill_registry_py_pb2",
-        "//intrinsic/skills/proto:skills_py_pb2",
         "//intrinsic/solutions:blackboard_value",
         "//intrinsic/solutions:cel",
         "//intrinsic/solutions:provided",
@@ -315,18 +305,9 @@ py_proto_library(
     deps = [":stubs_test_proto"],
 )
 
-proto_source_code_info_transitive_descriptor_set(
-    name = "stubs_test_proto_descriptors",
-    testonly = True,
-    deps = [":stubs_test_proto"],
-)
-
 py_test(
     name = "stubs_test",
     srcs = ["stubs_test.py"],
-    data = [
-        ":stubs_test_proto_descriptors",
-    ],
     deps = [
         ":skill_providing",
         ":stubs",

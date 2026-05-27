@@ -12,6 +12,7 @@ from absl.testing import absltest
 from absl.testing import parameterized
 from cel.expr import syntax_pb2
 from google.protobuf import any_pb2
+from google.protobuf import descriptor
 from google.protobuf import descriptor_pb2
 from google.protobuf import text_format
 
@@ -39,6 +40,7 @@ from intrinsic.solutions.testing import compare
 from intrinsic.solutions.testing import skill_test_utils
 from intrinsic.solutions.testing import test_skill_params_pb2
 from intrinsic.util.path_resolver import path_resolver
+from intrinsic.util.proto import descriptors
 from intrinsic.util.status import extended_status_pb2
 from intrinsic.world.proto import object_world_refs_pb2
 from intrinsic.world.proto import object_world_service_pb2
@@ -313,13 +315,13 @@ class BehaviorTreeMadeParametrizableTest(parameterized.TestCase):
     )
 
     # Verify the transitive file descriptor set has been recovered in full
-    # pylint: disable-next=protected-access
-    expected_fd_set = skill_test_utils._get_test_message_file_descriptor_set(
-        path_resolver.resolve_runfiles_path(
-            'intrinsic/solutions/testing/'
-            'test_skill_params_proto_descriptors_transitive_set_sci.proto.bin'
+    expected_fd_set = descriptors.gen_file_descriptor_set(
+        cast(
+            descriptor.Descriptor,
+            test_skill_params_pb2.CombinedSkillParams.DESCRIPTOR,
         )
     )
+
     descriptors_by_name = {
         file.name: file
         for file in parameter_description.parameter_descriptor_fileset.file
@@ -5041,21 +5043,15 @@ class BehaviorTreeDataTest(parameterized.TestCase):
 
   def test_init_message_wrapper(self):
     """Tests if BehaviorTree.Data is correctly constructed."""
-    skill_utils = skill_test_utils.SkillTestUtils(
-        path_resolver.resolve_runfiles_path(
-            'intrinsic/solutions/testing/'
-            + 'test_skill_params_proto_descriptors_transitive_set_sci.proto.bin'
-        )
-    )
-    skill_info = skill_utils.create_test_skill_info(
-        skill_id='ai.intrinsic.my_skill',
-        skill_version='42.0.0',
-        parameter_defaults=test_skill_params_pb2.TestMessageWrapped(),
+    skill_utils = skill_test_utils.SkillTestUtils()
+    skill = skill_test_utils.SkillTestUtils().create_skill_asset(
+        'ai.intrinsic.my_skill',
+        parameter_message=test_skill_params_pb2.TestMessage,
     )
     skills = skill_providing.Skills(
-        skill_utils.create_skill_registry_for_skill_info(skill_info),
+        skill_utils.create_empty_skill_registry(),
         skill_utils.create_empty_resource_registry(),
-        skill_utils.create_empty_installed_assets(),
+        skill_utils.create_installed_assets([skill]),
         skill_utils.create_asset_configuration_client(),
     )
 
@@ -5087,21 +5083,15 @@ class BehaviorTreeDataTest(parameterized.TestCase):
 
   def test_init_message_wrapper_list(self):
     """Tests if BehaviorTree.Data is correctly constructed."""
-    skill_utils = skill_test_utils.SkillTestUtils(
-        path_resolver.resolve_runfiles_path(
-            'intrinsic/solutions/testing/'
-            + 'test_skill_params_proto_descriptors_transitive_set_sci.proto.bin'
-        )
-    )
-    skill_info = skill_utils.create_test_skill_info(
-        skill_id='ai.intrinsic.my_skill',
-        skill_version='42.0.0',
-        parameter_defaults=test_skill_params_pb2.TestMessageWrapped(),
+    skill_utils = skill_test_utils.SkillTestUtils()
+    skill = skill_test_utils.SkillTestUtils().create_skill_asset(
+        'ai.intrinsic.my_skill',
+        parameter_message=test_skill_params_pb2.TestMessage,
     )
     skills = skill_providing.Skills(
-        skill_utils.create_skill_registry_for_skill_info(skill_info),
+        skill_utils.create_empty_skill_registry(),
         skill_utils.create_empty_resource_registry(),
-        skill_utils.create_empty_installed_assets(),
+        skill_utils.create_installed_assets([skill]),
         skill_utils.create_asset_configuration_client(),
     )
 

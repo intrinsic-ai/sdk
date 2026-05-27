@@ -4,20 +4,17 @@ import io
 from unittest import mock
 
 from absl.testing import absltest
-from google.protobuf import empty_pb2
 import grpc
 
 from intrinsic.frontend.solution_service.proto import solution_service_pb2
 from intrinsic.frontend.solution_service.proto import status_pb2 as solution_status_pb2
-from intrinsic.skills.client import skill_registry_client
-from intrinsic.skills.proto import skill_registry_pb2
-from intrinsic.skills.proto import skills_pb2
 from intrinsic.solutions import deployments
 from intrinsic.solutions import error_processing
 from intrinsic.solutions import errors as solutions_errors
 from intrinsic.solutions import execution
 from intrinsic.solutions import simulation as simulation_mod
 from intrinsic.solutions import worlds
+from intrinsic.solutions.testing import skill_test_utils
 from intrinsic.util.grpc import auth
 from intrinsic.util.grpc import dialerutil
 from intrinsic.util.grpc import userconfig
@@ -238,33 +235,20 @@ class SolutionTest(absltest.TestCase):
     )
 
     self._solution_service = mock.MagicMock()
-    self._installed_assets = mock.MagicMock()
-    self._skill_registry_stub = mock.MagicMock()
-    self._skill_registry_stub.GetSkills.return_value = (
-        skill_registry_pb2.GetSkillsResponse(
-            skills=[
-                skills_pb2.Skill(
-                    id="ai.intrinsic.my_skill",
-                    id_version="ai.intrinsic.my_skill.0.0.1",
-                )
-            ]
-        )
-    )
-    skill_registry = skill_registry_client.SkillRegistryClient(
-        self._skill_registry_stub
-    )
 
-    resource_registry = mock.MagicMock()
-    resource_registry.list_all_resource_handles.return_value = []
+    skill_utils = skill_test_utils.SkillTestUtils()
+    self._skill_registry = skill_utils.create_empty_skill_registry()
+    self._resource_registry = skill_utils.create_empty_resource_registry()
+    self._installed_assets = skill_utils.create_installed_assets(
+        [skill_utils.create_skill_asset("ai.intrinsic.my_skill")]
+    )
+    self._asset_config_client = skill_utils.create_asset_configuration_client()
 
     pose_estimators = mock.MagicMock()
 
     self._proto_registry = mock.MagicMock()
-    self._asset_config_client = mock.MagicMock()
 
     self._executive = executive
-    self._skill_registry = skill_registry
-    self._resource_registry = resource_registry
     self._object_world = object_world
     self._simulation = simulation
     self._errors = errors
@@ -303,9 +287,6 @@ class SolutionTest(absltest.TestCase):
     self.assertIsNotNone(solution._proto_registry)
 
     self.assertIsNotNone(solution.skills.ai.intrinsic.my_skill)
-    self._skill_registry_stub.GetSkills.assert_called_once_with(
-        empty_pb2.Empty()
-    )
 
   def test_health_query(self):
     """Tests that the health of the workcell backend can be queried."""
@@ -331,13 +312,15 @@ class SolutionTest(absltest.TestCase):
     self.assertEqual(mock_stdout.getvalue(), "ai.intrinsic.my_skill\n")
 
     # Add a 'z_move' skill with description
-    skill_registry_response = self._skill_registry_stub.GetSkills.return_value
-    z_move = skill_registry_response.skills.add()
-    z_move.id = "ai.intrinsic.z_move"
-    z_move.id_version = "ai.intrinsic.z_move.0.0.1"
-    z_move.description = r"""DocFor z_move.
+    skill_utils = skill_test_utils.SkillTestUtils()
+    self._installed_assets = skill_utils.create_installed_assets([
+        skill_utils.create_skill_asset("ai.intrinsic.my_skill", description=""),
+        skill_utils.create_skill_asset(
+            "ai.intrinsic.z_move",
+            description="Doc for z_move.\n\nMore z_move Doc.",
+        ),
+    ])
 
-More z_move Doc."""
     solution = self.init_solution()
 
     # Test the ordering in the printout
@@ -362,7 +345,7 @@ ai.intrinsic.z_move
 
 Skill class for ai.intrinsic.z_move.
 
-DocFor z_move.
+Doc for z_move.
 
 More z_move Doc.
 

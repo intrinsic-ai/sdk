@@ -376,6 +376,36 @@ class Skills(providers.SkillProvider):
         skill_utils.INTRINSIC_TYPE_URL_AREA_ASSETS,
     )
 
+  def _skill_asset_to_skill_info(
+      self,
+      asset: installed_assets_pb2.InstalledAsset,
+  ) -> provided.SkillInfo:
+    details = asset.skill_specific_metadata.details
+
+    default_value = (
+        details.parameter.default_value
+        if details.parameter.HasField("default_value")
+        else None
+    )
+    proto_comments = (
+        descriptors.extract_attached_comments_from_file_descriptor_set(
+            asset.metadata.file_descriptor_set
+        )
+    )
+
+    return skill_generation.SkillInfoImpl(
+        asset.metadata.id_version,
+        asset.metadata.documentation.description,
+        details.parameter.message_full_name,
+        details.execute_result.message_full_name,
+        asset.metadata.file_descriptor_set,
+        default_value,
+        dict(details.dependencies.required_equipment),
+        proto_comments,
+        provided.SkillType.REGULAR_SKILL,
+        skill_utils.INTRINSIC_TYPE_URL_AREA_ASSETS,
+    )
+
   def _skill_proto_from_skill_registry_to_skill_info(
       self,
       skill: skills_pb2.Skill,
@@ -429,9 +459,10 @@ class Skills(providers.SkillProvider):
     )
 
   def _collect_skill_infos(self) -> list[provided.SkillInfo]:
-    # Get all Process assets with the SUBPROCESS tag, i.e., the Process assets
+    infos: dict[str, provided.SkillInfo] = {}
+
+    # Add all Process assets with the SUBPROCESS tag, i.e., the Process assets
     # that are marked to be listed alongside regular "skills" in UIs.
-    process_asset_skills: list[provided.SkillInfo] = []
     for asset in self._installed_assets.list_all_installed_assets(
         asset_types=[asset_type_pb2.AssetType.ASSET_TYPE_PROCESS],
         asset_tag=asset_tag_pb2.AssetTag.ASSET_TAG_SUBPROCESS,
@@ -442,19 +473,25 @@ class Skills(providers.SkillProvider):
       if not bt.HasField("description"):
         continue
 
-      process_asset_skills.append(self._process_asset_to_skill_info(asset))
+      info = self._process_asset_to_skill_info(asset)
+      infos[info.id] = info
 
-    # Merge skill protos from process assets with skill protos from the skill
-    # registry (legacy processes and regular skills), assets taking precedence.
-    result: list[provided.SkillInfo] = process_asset_skills
-    collected_ids = set(skill.id for skill in process_asset_skills)
+    # Add all Skill assets.
+    for asset in self._installed_assets.list_all_installed_assets(
+        asset_types=[asset_type_pb2.AssetType.ASSET_TYPE_SKILL],
+        view=view_pb2.AssetViewType.ASSET_VIEW_TYPE_ALL_METADATA,
+    ):
+      info = self._skill_asset_to_skill_info(asset)
+      infos[info.id] = info
+
+    # Add legacy processes which have been side-loaded to the skill registry and
+    # which are not Process assets.
     for skill in self._skill_registry.get_skills():
-      if skill.id not in collected_ids:
-        result.append(
-            self._skill_proto_from_skill_registry_to_skill_info(skill)
-        )
-        collected_ids.add(skill.id)
+      # In case of id collisions assets take precedence.
+      if skill.id in infos:
+        continue
 
-    result.sort(key=lambda skill: skill.id)
+      info = self._skill_proto_from_skill_registry_to_skill_info(skill)
+      infos[info.id] = info
 
-    return result
+    return sorted(infos.values(), key=lambda info: info.id)

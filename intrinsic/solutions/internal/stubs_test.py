@@ -1,5 +1,7 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
+"""Tests of the stubs module."""
+
 import io
 import os
 
@@ -11,9 +13,6 @@ from intrinsic.solutions.internal import stubs_test_pb2
 from intrinsic.solutions.testing import skill_test_utils
 from intrinsic.util.path_resolver import path_resolver
 
-_INTRINSIC_STUBS_SOLUTIONS_PATH = "intrinsic-stubs/solutions"
-_INTRINSIC_STUBS_PATH = "intrinsic-stubs"
-
 
 def _read_tmp_file(tmp_dir: absltest._TempDir, relative_path: str) -> str:
   with open(os.path.join(tmp_dir, relative_path), "r") as file:
@@ -24,11 +23,7 @@ class StubsTest(absltest.TestCase):
 
   def setUp(self):
     super().setUp()
-    self._utils = skill_test_utils.SkillTestUtils(
-        path_resolver.resolve_runfiles_path(
-            "intrinsic/solutions/internal/stubs_test_proto_descriptors_transitive_set_sci.proto.bin"
-        )
-    )
+    self._utils = skill_test_utils.SkillTestUtils()
 
   def assert_regex_with_pretty_printing(
       self, text: str, expected_regex: str
@@ -41,25 +36,25 @@ class StubsTest(absltest.TestCase):
 
   def test_providers_stub(self):
     skill_infos = [
-        self._utils.create_parameterless_skill_info("ai.intr.skill_one"),
-        self._utils.create_parameterless_skill_info("ai.intr.skill_two"),
-        self._utils.create_parameterless_skill_info("ai.ai_skill"),
-        self._utils.create_parameterless_skill_info("foo.foo_skill"),
-        self._utils.create_parameterless_skill_info("global_skill"),
+        self._utils.create_legacy_process("ai.ai_skill"),
+        self._utils.create_legacy_process("global_skill"),
+    ]
+    assets = [
+        self._utils.create_skill_asset("ai.intr.skill_one"),
+        self._utils.create_skill_asset("ai.intr.skill_two"),
+        self._utils.create_skill_asset("ai.other.skill_three"),
     ]
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_infos(skill_infos),
         self._utils.create_empty_resource_registry(),
-        self._utils.create_empty_installed_assets(),
+        self._utils.create_installed_assets(assets),
         self._utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
 
     stubs.generate(tmp_dir.full_path, skills, io.StringIO())
 
-    content = _read_tmp_file(
-        tmp_dir, _INTRINSIC_STUBS_SOLUTIONS_PATH + "/providers.pyi"
-    )
+    content = _read_tmp_file(tmp_dir, "intrinsic-stubs/solutions/providers.pyi")
 
     # Smoke checks to see if the original content from providers.py is there and
     # if docstrings were preserved.
@@ -81,7 +76,7 @@ class StubsTest(absltest.TestCase):
         r"import intrinsic.solutions.skills\n.*"
         r"import intrinsic.solutions.skills.ai\n.*"
         r"import intrinsic.solutions.skills.ai.intr\n.*"
-        r"import intrinsic.solutions.skills.foo\n+"
+        r"import intrinsic.solutions.skills.ai.other\n+"
         "class ResourceProvider",
     )
 
@@ -108,9 +103,9 @@ class StubsTest(absltest.TestCase):
             skill_one = intrinsic.solutions.skills.ai.intr.skill_one
             skill_two = intrinsic.solutions.skills.ai.intr.skill_two\n*
 
-    class foo:
-        """.*Namespace class for the skill package 'foo'[^"]*"""\n*
-        foo_skill = intrinsic.solutions.skills.foo.foo_skill''',
+        class other:
+            """.*Namespace class for the skill package 'ai.other'[^"]*"""\n*
+            skill_three = intrinsic.solutions.skills.ai.other.skill_three''',
     )
 
   def test_py_typed(self):
@@ -124,22 +119,24 @@ class StubsTest(absltest.TestCase):
 
     stubs.generate(tmp_dir.full_path, skills, io.StringIO())
 
-    content = _read_tmp_file(tmp_dir, _INTRINSIC_STUBS_PATH + "/py.typed")
+    content = _read_tmp_file(tmp_dir, "intrinsic-stubs/py.typed")
 
     self.assertEqual("partial\n", content)
 
   def test_generates_one_skill_module_stub_for_each_skill_package(self):
     skill_infos = [
-        self._utils.create_parameterless_skill_info("ai.intr.skill_one"),
-        self._utils.create_parameterless_skill_info("ai.intr.skill_two"),
-        self._utils.create_parameterless_skill_info("ai.ai_skill"),
-        self._utils.create_parameterless_skill_info("foo.foo_skill"),
-        self._utils.create_parameterless_skill_info("global_skill"),
+        self._utils.create_legacy_process("ai.ai_skill"),
+        self._utils.create_legacy_process("global_skill"),
+    ]
+    assets = [
+        self._utils.create_skill_asset("ai.intr.skill_one"),
+        self._utils.create_skill_asset("ai.intr.skill_two"),
+        self._utils.create_skill_asset("ai.other.skill_three"),
     ]
     skills = skill_providing.Skills(
         self._utils.create_skill_registry_for_skill_infos(skill_infos),
         self._utils.create_empty_resource_registry(),
-        self._utils.create_empty_installed_assets(),
+        self._utils.create_installed_assets(assets),
         self._utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
@@ -148,24 +145,22 @@ class StubsTest(absltest.TestCase):
 
     for relative_path in [
         "skills/ai/intr/__init__.pyi",
+        "skills/ai/other/__init__.pyi",
         "skills/ai/__init__.pyi",
-        "skills/foo/__init__.pyi",
         "skills/__init__.pyi",
     ]:
-      path = os.path.join(
-          tmp_dir, _INTRINSIC_STUBS_SOLUTIONS_PATH, relative_path
-      )
+      path = os.path.join(tmp_dir, "intrinsic-stubs/solutions", relative_path)
       self.assertTrue(os.path.isfile(path), f"{path} does not exist")
 
   def test_skill_module_stub_for_paramless_skills(self):
-    skill_infos = [
-        self._utils.create_parameterless_skill_info("ai.intr.skill_one"),
-        self._utils.create_parameterless_skill_info("ai.intr.skill_two"),
+    assets = [
+        self._utils.create_skill_asset("ai.intr.skill_one"),
+        self._utils.create_skill_asset("ai.intr.skill_two"),
     ]
     skills = skill_providing.Skills(
-        self._utils.create_skill_registry_for_skill_infos(skill_infos),
+        self._utils.create_empty_skill_registry(),
         self._utils.create_empty_resource_registry(),
-        self._utils.create_empty_installed_assets(),
+        self._utils.create_installed_assets(assets),
         self._utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
@@ -174,7 +169,7 @@ class StubsTest(absltest.TestCase):
 
     content = _read_tmp_file(
         tmp_dir,
-        _INTRINSIC_STUBS_SOLUTIONS_PATH + "/skills/ai/intr/__init__.pyi",
+        "intrinsic-stubs/solutions/skills/ai/intr/__init__.pyi",
     )
 
     self.assert_regex_with_pretty_printing(
@@ -200,15 +195,15 @@ class skill_two\(skill_generation.GeneratedSkill\):
     )
 
   def test_skill_init_signature_with_basic_params(self):
-    skill_info = self._utils.create_test_skill_info_with_return_value(
+    asset = self._utils.create_skill_asset(
         "ai.intr.my_skill",
-        parameter_defaults=stubs_test_pb2.BasicParams(),
-        return_value_defaults=stubs_test_pb2.BasicParams(),
+        parameter_message=stubs_test_pb2.BasicParams,
+        return_value_message=stubs_test_pb2.BasicParams,
     )
     skills = skill_providing.Skills(
-        self._utils.create_skill_registry_for_skill_info(skill_info),
+        self._utils.create_empty_skill_registry(),
         self._utils.create_empty_resource_registry(),
-        self._utils.create_empty_installed_assets(),
+        self._utils.create_installed_assets([asset]),
         self._utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
@@ -217,7 +212,7 @@ class skill_two\(skill_generation.GeneratedSkill\):
 
     content = _read_tmp_file(
         tmp_dir,
-        _INTRINSIC_STUBS_SOLUTIONS_PATH + "/skills/ai/intr/__init__.pyi",
+        "intrinsic-stubs/solutions/skills/ai/intr/__init__.pyi",
     )
 
     self.assertRegex(
@@ -271,14 +266,14 @@ class skill_two\(skill_generation.GeneratedSkill\):
     )
 
   def test_skill_init_signature_with_auto_conversion_params(self):
-    skill_info = self._utils.create_test_skill_info(
+    asset = self._utils.create_skill_asset(
         "ai.intr.my_skill",
-        parameter_defaults=stubs_test_pb2.AutoConversionParams(),
+        parameter_message=stubs_test_pb2.AutoConversionParams,
     )
     skills = skill_providing.Skills(
-        self._utils.create_skill_registry_for_skill_info(skill_info),
+        self._utils.create_empty_skill_registry(),
         self._utils.create_empty_resource_registry(),
-        self._utils.create_empty_installed_assets(),
+        self._utils.create_installed_assets([asset]),
         self._utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
@@ -287,7 +282,7 @@ class skill_two\(skill_generation.GeneratedSkill\):
 
     content = _read_tmp_file(
         tmp_dir,
-        _INTRINSIC_STUBS_SOLUTIONS_PATH + "/skills/ai/intr/__init__.pyi",
+        "intrinsic-stubs/solutions/skills/ai/intr/__init__.pyi",
     )
 
     self.assertRegex(
@@ -331,14 +326,14 @@ class skill_two\(skill_generation.GeneratedSkill\):
     )
 
   def test_enum_defs(self):
-    skill_info = self._utils.create_test_skill_info(
+    asset = self._utils.create_skill_asset(
         "ai.intr.my_skill",
-        parameter_defaults=stubs_test_pb2.ParamsWithVariousEnums(),
+        parameter_message=stubs_test_pb2.ParamsWithVariousEnums,
     )
     skills = skill_providing.Skills(
-        self._utils.create_skill_registry_for_skill_info(skill_info),
+        self._utils.create_empty_skill_registry(),
         self._utils.create_empty_resource_registry(),
-        self._utils.create_empty_installed_assets(),
+        self._utils.create_installed_assets([asset]),
         self._utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
@@ -347,7 +342,7 @@ class skill_two\(skill_generation.GeneratedSkill\):
 
     content = _read_tmp_file(
         tmp_dir,
-        _INTRINSIC_STUBS_SOLUTIONS_PATH + "/skills/ai/intr/__init__.pyi",
+        "intrinsic-stubs/solutions/skills/ai/intr/__init__.pyi",
     )
 
     self.assert_regex_with_pretty_printing(
@@ -392,14 +387,14 @@ class my_skill\(skill_generation.GeneratedSkill\):.*
     )
 
   def test_multiple_wrapper_class_defs_for_single_skill(self):
-    skill_info = self._utils.create_test_skill_info(
+    asset = self._utils.create_skill_asset(
         "ai.intr.my_skill",
-        parameter_defaults=stubs_test_pb2.VariousMessageParams(),
+        parameter_message=stubs_test_pb2.VariousMessageParams,
     )
     skills = skill_providing.Skills(
-        self._utils.create_skill_registry_for_skill_info(skill_info),
+        self._utils.create_empty_skill_registry(),
         self._utils.create_empty_resource_registry(),
-        self._utils.create_empty_installed_assets(),
+        self._utils.create_installed_assets([asset]),
         self._utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
@@ -408,7 +403,7 @@ class my_skill\(skill_generation.GeneratedSkill\):.*
 
     content = _read_tmp_file(
         tmp_dir,
-        _INTRINSIC_STUBS_SOLUTIONS_PATH + "/skills/ai/intr/__init__.pyi",
+        "intrinsic-stubs/solutions/skills/ai/intr/__init__.pyi",
     )
 
     self.assert_regex_with_pretty_printing(
@@ -450,14 +445,14 @@ class my_skill\(skill_generation.GeneratedSkill\):.*
     )
 
   def test_wrapper_init_signature(self):
-    skill_info = self._utils.create_test_skill_info(
+    asset = self._utils.create_skill_asset(
         "ai.intr.my_skill",
-        parameter_defaults=stubs_test_pb2.NestedBasicParams(),
+        parameter_message=stubs_test_pb2.BasicParams,
     )
     skills = skill_providing.Skills(
-        self._utils.create_skill_registry_for_skill_info(skill_info),
+        self._utils.create_empty_skill_registry(),
         self._utils.create_empty_resource_registry(),
-        self._utils.create_empty_installed_assets(),
+        self._utils.create_installed_assets([asset]),
         self._utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
@@ -466,7 +461,7 @@ class my_skill\(skill_generation.GeneratedSkill\):.*
 
     content = _read_tmp_file(
         tmp_dir,
-        _INTRINSIC_STUBS_SOLUTIONS_PATH + "/skills/ai/intr/__init__.pyi",
+        "intrinsic-stubs/solutions/skills/ai/intr/__init__.pyi",
     )
 
     self.assertRegex(
@@ -518,14 +513,14 @@ class my_skill\(skill_generation.GeneratedSkill\):.*
     )
 
   def test_output_gets_auto_formatted(self):
-    skill_info = self._utils.create_test_skill_info(
+    asset = self._utils.create_skill_asset(
         "ai.intr.my_skill",
-        parameter_defaults=stubs_test_pb2.NestedBasicParams(),
+        parameter_message=stubs_test_pb2.BasicParams,
     )
     skills = skill_providing.Skills(
-        self._utils.create_skill_registry_for_skill_info(skill_info),
+        self._utils.create_empty_skill_registry(),
         self._utils.create_empty_resource_registry(),
-        self._utils.create_empty_installed_assets(),
+        self._utils.create_installed_assets([asset]),
         self._utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
@@ -538,7 +533,7 @@ class my_skill\(skill_generation.GeneratedSkill\):.*
     ]:
       content = _read_tmp_file(
           tmp_dir,
-          _INTRINSIC_STUBS_SOLUTIONS_PATH + relative_path,
+          "intrinsic-stubs/solutions" + relative_path,
       )
 
       # Check the longest line length against the formatting column limit. Admit
@@ -553,27 +548,31 @@ class my_skill\(skill_generation.GeneratedSkill\):.*
       )
 
   def test_prints_success_message(self):
-    skill_info = self._utils.create_test_skill_info(
+    asset = self._utils.create_skill_asset(
         "ai.intr.my_skill",
-        parameter_defaults=stubs_test_pb2.EmptyMessage(),
+        parameter_message=stubs_test_pb2.EmptyMessage,
     )
     skills = skill_providing.Skills(
-        self._utils.create_skill_registry_for_skill_info(skill_info),
+        self._utils.create_empty_skill_registry(),
         self._utils.create_empty_resource_registry(),
-        self._utils.create_empty_installed_assets(),
+        self._utils.create_installed_assets([asset]),
         self._utils.create_asset_configuration_client(),
     )
-    other_skill_info = self._utils.create_test_skill_info(
+    other_asset = self._utils.create_skill_asset(
         "ai.intr.my_skill",
-        parameter_defaults=stubs_test_pb2.BasicParams(),
+        # Same skill with different parameters
+        parameter_message=stubs_test_pb2.BasicParams,
     )
     other_skills = skill_providing.Skills(
-        self._utils.create_skill_registry_for_skill_info(other_skill_info),
+        self._utils.create_empty_skill_registry(),
         self._utils.create_empty_resource_registry(),
-        self._utils.create_empty_installed_assets(),
+        self._utils.create_installed_assets([other_asset]),
         self._utils.create_asset_configuration_client(),
     )
     tmp_dir = self.create_tempdir()
+    # Make sure relevant env vars are not set at beginning of test
+    os.environ.pop("VSCODE_CWD", None)
+    os.environ.pop("TERM_PROGRAM", None)
 
     # Smoke test a few scenarios, this is not meant to be an exhaustive test.
     # Generate stubs for the first time.

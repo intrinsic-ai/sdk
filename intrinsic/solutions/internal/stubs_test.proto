@@ -46,10 +46,6 @@ message AutoConversionParams {
   world.ObjectReference object_reference = 3;
 }
 
-message NestedBasicParams {
-  BasicParams basic_params = 1;
-}
-
 message OuterMessage {
   message NestedMessage {}
 }

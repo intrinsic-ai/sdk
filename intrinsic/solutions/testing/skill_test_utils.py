@@ -2,10 +2,11 @@
 
 """Utilities for testing skills in the solution building library."""
 
+from typing import cast
 from typing import Optional
 from unittest import mock
 
-from absl import flags
+from google.protobuf import any_pb2
 from google.protobuf import descriptor
 from google.protobuf import descriptor_pb2
 from google.protobuf import message
@@ -21,30 +22,24 @@ from intrinsic.assets.proto import documentation_pb2
 from intrinsic.assets.proto import id_pb2
 from intrinsic.assets.proto import installed_assets_pb2
 from intrinsic.assets.proto import metadata_pb2
+from intrinsic.assets.proto import view_pb2
 from intrinsic.assets.proto.v1 import asset_configuration_pb2
 from intrinsic.executive.proto import behavior_tree_pb2
 from intrinsic.resources.client import resource_registry_client
 from intrinsic.resources.proto import resource_handle_pb2
 from intrinsic.resources.proto import resource_registry_pb2
 from intrinsic.skills.client import skill_registry_client
+from intrinsic.skills.proto import equipment_pb2
+from intrinsic.skills.proto import processed_skill_manifest_pb2
 from intrinsic.skills.proto import skill_registry_pb2
 from intrinsic.skills.proto import skills_pb2
-from intrinsic.solutions.testing import test_skill_params_pb2
-
-FLAGS = flags.FLAGS
+from intrinsic.util.proto import descriptors
 
 
-def _read_message_from_pbbin_file(filename):
-  with open(filename, 'rb') as fileobj:
-    return descriptor_pb2.FileDescriptorSet.FromString(fileobj.read())
-
-
-def _get_test_message_file_descriptor_set(
+def read_file_descriptor_set(
     file_descriptor_set_pbbin_filename: str,
 ) -> descriptor_pb2.FileDescriptorSet:
   """Returns the file descriptor set loaded from the given file.
-
-  Requires FLAGS to be parsed prior to invocation.
 
   Args:
     file_descriptor_set_pbbin_filename: The filename of the file descriptor set
@@ -53,7 +48,8 @@ def _get_test_message_file_descriptor_set(
   Returns:
     The file descriptor set.
   """
-  return _read_message_from_pbbin_file(file_descriptor_set_pbbin_filename)
+  with open(file_descriptor_set_pbbin_filename, 'rb') as fileobj:
+    return descriptor_pb2.FileDescriptorSet.FromString(fileobj.read())
 
 
 class SkillTestUtils:
@@ -62,7 +58,7 @@ class SkillTestUtils:
   Provides helpers for creating SkillProvider instances.
   """
 
-  def __init__(self, file_descriptor_set_pbbin_filename: str):
+  def __init__(self, file_descriptor_set_pbbin_filename: str | None = None):
     """Initializes a new instance.
 
     Args:
@@ -71,28 +67,12 @@ class SkillTestUtils:
         that are created with this instance and which have parameters or return
         values.
     """
-    self._file_descriptor_set = _get_test_message_file_descriptor_set(
-        file_descriptor_set_pbbin_filename
-    )
-
-  def create_parameterless_skill_info(self, skill_id: str) -> skills_pb2.Skill:
-    """Creates a skill proto for a skill without parameters or return values.
-
-    Args:
-      skill_id: The ID of the skill.
-
-    Returns:
-      The skill proto.
-    """
-    id_parts = skill_id.split('.')
-    skill_info = skills_pb2.Skill(
-        id=skill_id,
-        id_version=f'{skill_id}.0.0.1',
-        skill_name=id_parts[-1],
-        package_name='.'.join(id_parts[:-1]),
-    )
-
-    return skill_info
+    if file_descriptor_set_pbbin_filename is not None:
+      self._file_descriptor_set = read_file_descriptor_set(
+          file_descriptor_set_pbbin_filename
+      )
+    else:
+      self._file_descriptor_set = None
 
   def create_test_skill_info(
       self,
@@ -230,34 +210,6 @@ class SkillTestUtils:
 
     return skill_info
 
-  def create_get_skills_response(
-      self,
-      skill_id: str,
-      parameter_defaults: test_skill_params_pb2.TestMessage,
-      resource_selectors: Optional[dict[str, str]] = None,
-      skill_version: str | None = None,
-  ) -> skill_registry_pb2.GetSkillsResponse:
-    """Creates a GetSkillsResponse for a skill with parameters.
-
-    Args:
-      skill_id: The ID of the skill.
-      parameter_defaults: The default values for the skill's parameters. The
-        type of this message will be used as the skill's parameter message type.
-      resource_selectors: A mapping from resource selector names to capability
-        names.
-      skill_version: An optional version string to generate id_version.
-
-    Returns:
-      The skill proto.
-    """
-    skill_info = self.create_test_skill_info(
-        skill_id, parameter_defaults, resource_selectors, skill_version
-    )
-
-    skill_registry_response = skill_registry_pb2.GetSkillsResponse()
-    skill_registry_response.skills.add().CopyFrom(skill_info)
-    return skill_registry_response
-
   def create_skill_registry_for_skill_infos(
       self,
       skill_infos: list[skills_pb2.Skill],
@@ -292,58 +244,357 @@ class SkillTestUtils:
     """
     return self.create_skill_registry_for_skill_infos([skill_info])
 
-  def create_installed_asset_for_skill_info(
+  def create_empty_skill_registry(
       self,
-      skill_info: skills_pb2.Skill,
+  ) -> skill_registry_client.SkillRegistryClient:
+    """Creates a mock client for an empty skill registry.
+
+    Returns:
+      The mock skill registry client.
+    """
+    return self.create_skill_registry_for_skill_infos([])
+
+  def create_legacy_process(
+      self,
+      skill_id: str,
+      version: str = '0.0.1',
+      description: str | None = None,
+      parameter_message: type[message.Message] | None = None,
+      return_value_message: type[message.Message] | None = None,
+      default_params: message.Message | None = None,
+  ) -> skills_pb2.Skill:
+    """Creates a Skill proto for a legacy process in the skill registry.
+
+    Args:
+      skill_id: The skill ID of the process.
+
+    Returns:
+      The Skill proto.
+    """
+    package, _, name = skill_id.rpartition('.')
+    display_name = f'Default display name ({name})'
+    if description is None:
+      description = f'Default description ({name})'
+    # If no parameter/result message is specified this will create an empty file
+    # descriptor set.
+    file_descriptor_set = descriptors.gen_file_descriptor_set([
+        cast(descriptor.Descriptor, msg.DESCRIPTOR)
+        for msg in (parameter_message, return_value_message)
+        if msg is not None
+    ])
+
+    skill = skills_pb2.Skill(
+        skill_name=name,
+        package_name=package,
+        id=skill_id,
+        id_version=f'{skill_id}.{version}',
+        display_name=display_name,
+        description=description,
+        behavior_tree_description=skills_pb2.BehaviorTreeDescription(),
+    )
+    if parameter_message is not None:
+      skill.parameter_description.parameter_message_full_name = cast(
+          descriptor.Descriptor, parameter_message.DESCRIPTOR
+      ).full_name
+      skill.parameter_description.parameter_descriptor_fileset.CopyFrom(
+          file_descriptor_set
+      )
+      if default_params is not None:
+        skill.parameter_description.default_value.Pack(default_params)
+    if return_value_message is not None:
+      skill.return_value_description.return_value_message_full_name = cast(
+          descriptor.Descriptor, return_value_message.DESCRIPTOR
+      ).full_name
+      skill.return_value_description.descriptor_fileset.CopyFrom(
+          file_descriptor_set
+      )
+
+    return skill
+
+  def _generate_asset_file_descriptor_set(
+      self,
+      parameter_message: type[message.Message] | None,
+      return_value_message: type[message.Message] | None,
+  ) -> tuple[descriptor_pb2.FileDescriptorSet, str | None, str | None]:
+    file_descriptor_set = descriptor_pb2.FileDescriptorSet()
+    parameter_message_full_name = None
+    return_value_message_full_name = None
+
+    if parameter_message is not None or return_value_message is not None:
+      file_descriptor_set = descriptors.gen_file_descriptor_set([
+          cast(descriptor.Descriptor, msg.DESCRIPTOR)
+          for msg in (parameter_message, return_value_message)
+          if msg is not None
+      ])
+      if parameter_message is not None:
+        parameter_message_full_name = cast(
+            descriptor.Descriptor, parameter_message.DESCRIPTOR
+        ).full_name
+      if return_value_message is not None:
+        return_value_message_full_name = cast(
+            descriptor.Descriptor, return_value_message.DESCRIPTOR
+        ).full_name
+
+    return (
+        file_descriptor_set,
+        parameter_message_full_name,
+        return_value_message_full_name,
+    )
+
+  def create_skill_asset_with_file_descriptor_set(
+      self,
+      id: str,
+      version: str = '0.0.1',
+      description: str | None = None,
+      file_descriptor_set: descriptor_pb2.FileDescriptorSet | None = None,
+      parameter_message_full_name: str | None = None,
+      return_value_message_full_name: str | None = None,
+      default_params: message.Message | None = None,
+      resource_selectors: dict[str, list[str]] | None = None,
   ) -> installed_assets_pb2.InstalledAsset:
-    """Creates an installed Process asset for the given Skill proto."""
+    """Creates a configurable Skill asset with a custom file descriptor set.
+
+    Use this method if the tests needs a file descriptor set with source code
+    info (i.e., proto comments) which cannot be generated from the compiled-in
+    descriptors. Otherwise, prefer create_skill_asset() below which is easier to
+    use and leads to more readable tests.
+    """
+    package = id_utils.package_from(id)
+    name = id_utils.name_from(id)
+    if description is None:
+      description = f'Default description ({name})'
+    if file_descriptor_set is None:
+      file_descriptor_set = descriptor_pb2.FileDescriptorSet()
+
     metadata = metadata_pb2.Metadata(
         id_version=id_pb2.IdVersion(
-            id=id_pb2.Id(
-                package=id_utils.package_from(skill_info.id),
-                name=id_utils.name_from(skill_info.id),
-            ),
-            version=id_utils.version_from(skill_info.id_version),
+            id=id_pb2.Id(package=package, name=name),
+            version=version,
         ),
-        display_name=skill_info.skill_name,
-        documentation=documentation_pb2.Documentation(
-            description=skill_info.description
+        display_name=f'Default display name ({name})',
+        documentation=documentation_pb2.Documentation(description=description),
+        asset_type=asset_type_pb2.ASSET_TYPE_SKILL,
+        file_descriptor_set=file_descriptor_set,
+    )
+
+    details = processed_skill_manifest_pb2.SkillDetails()
+    if parameter_message_full_name is not None:
+      details.parameter.message_full_name = parameter_message_full_name
+      if default_params is not None:
+        details.parameter.default_value.Pack(default_params)
+    if return_value_message_full_name is not None:
+      details.execute_result.message_full_name = return_value_message_full_name
+    if resource_selectors is not None:
+      for slot, capability_names in resource_selectors.items():
+        details.dependencies.required_equipment[slot].CopyFrom(
+            equipment_pb2.ResourceSelector(capability_names=capability_names)
+        )
+
+    return installed_assets_pb2.InstalledAsset(
+        metadata=metadata,
+        skill_specific_metadata=(
+            installed_assets_pb2.InstalledAsset.SkillMetadata(details=details)
         ),
-        asset_type=asset_type_pb2.AssetType.ASSET_TYPE_PROCESS,
-        asset_tag=asset_tag_pb2.AssetTag.ASSET_TAG_SUBPROCESS,
+    )
+
+  def create_skill_asset(
+      self,
+      id: str,
+      version: str = '0.0.1',
+      description: str | None = None,
+      parameter_message: type[message.Message] | None = None,
+      return_value_message: type[message.Message] | None = None,
+      default_params: message.Message | None = None,
+      resource_selectors: dict[str, list[str]] | None = None,
+  ) -> installed_assets_pb2.InstalledAsset:
+    """Creates a configurable Skill asset.
+
+    The file descriptor set gets auto-generated from the compiled-in
+    descriptors.
+    """
+    (
+        file_descriptor_set,
+        parameter_message_full_name,
+        return_value_message_full_name,
+    ) = self._generate_asset_file_descriptor_set(
+        parameter_message, return_value_message
+    )
+    return self.create_skill_asset_with_file_descriptor_set(
+        id,
+        version,
+        description,
+        file_descriptor_set,
+        parameter_message_full_name,
+        return_value_message_full_name,
+        default_params,
+        resource_selectors,
+    )
+
+  def create_process_asset_with_file_descriptor_set(
+      self,
+      id: str,
+      version: str = '0.0.1',
+      description: str | None = None,
+      file_descriptor_set: descriptor_pb2.FileDescriptorSet | None = None,
+      parameter_message_full_name: str | None = None,
+      return_value_message_full_name: str | None = None,
+      default_params: message.Message | None = None,
+      resource_selectors: dict[str, list[str]] | None = None,
+  ) -> installed_assets_pb2.InstalledAsset:
+    """Creates a configurable Process asset with a custom file descriptor set.
+
+    Use this method if the tests needs a file descriptor set with source code
+    info (i.e., proto comments) which cannot be generated from the compiled-in
+    descriptors. Otherwise, prefer create_process_asset() below which is easier
+    to use and leads to more readable tests.
+    """
+    package = id_utils.package_from(id)
+    name = id_utils.name_from(id)
+    display_name = f'Default display name ({name})'
+    if description is None:
+      description = f'Default description ({name})'
+    if file_descriptor_set is None:
+      file_descriptor_set = descriptor_pb2.FileDescriptorSet()
+
+    metadata = metadata_pb2.Metadata(
+        id_version=id_pb2.IdVersion(
+            id=id_pb2.Id(package=package, name=name),
+            version=version,
+        ),
+        display_name=display_name,
+        documentation=documentation_pb2.Documentation(description=description),
+        asset_type=asset_type_pb2.ASSET_TYPE_PROCESS,
+        # This file descriptor set can not yet be relied upon for Process
+        # assets. Thus in tests we set this to an empty set so that the prod
+        # code is forced to use the file descriptor set from the Skill proto
+        # below (see b/510731384).
+        file_descriptor_set=descriptor_pb2.FileDescriptorSet(),
+    )
+    skill = skills_pb2.Skill(
+        skill_name=name,
+        package_name=package,
+        id=id,
+        id_version=f'{id}.{version}',
+        display_name=display_name,
+        description=description,
+        behavior_tree_description=skills_pb2.BehaviorTreeDescription(),
+    )
+    if parameter_message_full_name is not None:
+      skill.parameter_description.parameter_message_full_name = (
+          parameter_message_full_name
+      )
+      skill.parameter_description.parameter_descriptor_fileset.CopyFrom(
+          file_descriptor_set
+      )
+      if default_params is not None:
+        skill.parameter_description.default_value.Pack(default_params)
+    if return_value_message_full_name is not None:
+      skill.return_value_description.return_value_message_full_name = (
+          return_value_message_full_name
+      )
+      skill.return_value_description.descriptor_fileset.CopyFrom(
+          file_descriptor_set
+      )
+    if resource_selectors is not None:
+      for slot, capability_names in resource_selectors.items():
+        skill.resource_selectors[slot].CopyFrom(
+            equipment_pb2.ResourceSelector(capability_names=capability_names)
+        )
+
+    behavior_tree = behavior_tree_pb2.BehaviorTree(
+        name=display_name,
+        root=behavior_tree_pb2.BehaviorTree.Node(
+            sequence=behavior_tree_pb2.BehaviorTree.SequenceNode()
+        ),
+        description=skill,
     )
     return installed_assets_pb2.InstalledAsset(
         metadata=metadata,
         deployment_data=installed_assets_pb2.InstalledAsset.DeploymentData(
             process=installed_assets_pb2.InstalledAsset.ProcessDeploymentData(
                 process=process_asset_pb2.ProcessAsset(
-                    metadata=metadata,
-                    behavior_tree=behavior_tree_pb2.BehaviorTree(
-                        name=skill_info.skill_name,
-                        description=skill_info,
-                    ),
+                    behavior_tree=behavior_tree
                 )
             )
         ),
     )
 
-  def create_installed_assets_for_skill_infos(
+  def create_process_asset(
       self,
-      skill_infos: list[skills_pb2.Skill],
-  ) -> installed_assets_client.InstalledAssetsClient:
-    """Creates a mock client for the installed assets service.
+      id: str,
+      version: str = '0.0.1',
+      description: str | None = None,
+      parameter_message: type[message.Message] | None = None,
+      return_value_message: type[message.Message] | None = None,
+      default_params: message.Message | None = None,
+      resource_selectors: dict[str, list[str]] | None = None,
+  ) -> installed_assets_pb2.InstalledAsset:
+    """Creates a configurable Process asset.
 
-    Args:
-      skill_infos: The skills to add to the installed assets service.
-
-    Returns:
-      The mock installed assets client.
+    The file descriptor set gets auto-generated from the compiled-in
+    descriptors.
     """
-    client = mock.MagicMock()
-    client.list_all_installed_assets.return_value = [
-        self.create_installed_asset_for_skill_info(skill_info)
-        for skill_info in skill_infos
+    (
+        file_descriptor_set,
+        parameter_message_full_name,
+        return_value_message_full_name,
+    ) = self._generate_asset_file_descriptor_set(
+        parameter_message, return_value_message
+    )
+    return self.create_process_asset_with_file_descriptor_set(
+        id,
+        version,
+        description,
+        file_descriptor_set,
+        parameter_message_full_name,
+        return_value_message_full_name,
+        default_params,
+        resource_selectors,
+    )
+
+  def create_installed_assets(
+      self, assets: list[installed_assets_pb2.InstalledAsset]
+  ) -> installed_assets_client.InstalledAssetsClient:
+    process_assets = [
+        asset
+        for asset in assets
+        if asset.metadata.asset_type
+        == asset_type_pb2.AssetType.ASSET_TYPE_PROCESS
     ]
+    skill_assets = [
+        asset
+        for asset in assets
+        if asset.metadata.asset_type
+        == asset_type_pb2.AssetType.ASSET_TYPE_SKILL
+    ]
+
+    # Only support exactly the calls that are made by the production code.
+    def mock_list_all_installed_assets(
+        asset_types: list[asset_type_pb2.AssetType],
+        asset_tag: asset_tag_pb2.AssetTag | None = None,
+        view: view_pb2.AssetViewType | None = None,
+    ):
+      if (
+          asset_types == [asset_type_pb2.AssetType.ASSET_TYPE_PROCESS]
+          and asset_tag == asset_tag_pb2.AssetTag.ASSET_TAG_SUBPROCESS
+          and view == view_pb2.AssetViewType.ASSET_VIEW_TYPE_FULL
+      ):
+        return process_assets
+      elif (
+          asset_types == [asset_type_pb2.AssetType.ASSET_TYPE_SKILL]
+          and view == view_pb2.AssetViewType.ASSET_VIEW_TYPE_ALL_METADATA
+      ):
+        return skill_assets
+      else:
+        raise ValueError(
+            'Unsupported call to mock_list_all_installed_assets'
+            f' (asset_types={asset_types}, asset_tag={asset_tag}, view={view})'
+        )
+
+    client = mock.MagicMock()
+    client.list_all_installed_assets.side_effect = (
+        mock_list_all_installed_assets
+    )
     return client
 
   def create_empty_installed_assets(
@@ -436,11 +687,52 @@ class SkillTestUtils:
 
   def create_asset_configuration_client(
       self,
+      recommendations: (
+          dict[str, list[tuple[message.Message | None, message.Message]]] | None
+      ) = None,
   ) -> asset_configuration_client.AssetConfigurationClient:
-    """Creates a client for the asset configuration service."""
-    stub = mock.MagicMock()
-    mock_response = (
-        asset_configuration_pb2.RecommendAssetConfigurationResponse()
+    """Creates a client for the asset configuration service.
+
+    If no recommendations are given, a default service will be created which
+    will always return an empty response, i.e., it will never provide any
+    recommended configuration. Otherwise, if recommendations are given, it is
+    expected that they cover all requests made by the test and the service will
+    raise an error for any request which does not match any preconfigured
+    recommendation.
+
+    Args:
+      recommendations: Mapping from asset ID to a list of preconfigured
+        recommendations in the form of (input_config, output_config) tuples.
+    """
+
+    def mock_recommend_asset_configuration(
+        name: str, input_configuration: any_pb2.Any | None
+    ) -> asset_configuration_pb2.RecommendAssetConfigurationResponse:
+      if recommendations is None:
+        return asset_configuration_pb2.RecommendAssetConfigurationResponse()
+
+      if name not in recommendations:
+        raise LookupError(f'No recommendations defined for {name}')
+
+      for input_config_canditate, output_config_candidate in recommendations[
+          name
+      ]:
+        if (input_config_canditate is None and input_configuration is None) or (
+            input_config_canditate.SerializeToString()
+            == input_configuration.value
+        ):
+          response = (
+              asset_configuration_pb2.RecommendAssetConfigurationResponse()
+          )
+          response.config.Pack(output_config_candidate)
+          return response
+
+      raise LookupError(
+          f'No defined recommendation for {name} matches the input config'
+      )
+
+    client = mock.MagicMock()
+    client.recommend_asset_configuration.side_effect = (
+        mock_recommend_asset_configuration
     )
-    stub.RecommendAssetConfiguration.return_value = mock_response
-    return asset_configuration_client.AssetConfigurationClient(stub)
+    return client
