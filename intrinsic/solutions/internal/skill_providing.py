@@ -406,7 +406,7 @@ class Skills(providers.SkillProvider):
         skill_utils.INTRINSIC_TYPE_URL_AREA_ASSETS,
     )
 
-  def _skill_proto_from_skill_registry_to_skill_info(
+  def _legacy_process_from_skill_registry_to_skill_info(
       self,
       skill: skills_pb2.Skill,
   ) -> provided.SkillInfo:
@@ -432,19 +432,6 @@ class Skills(providers.SkillProvider):
         skill.parameter_description.parameter_field_comments
     ) | dict(skill.return_value_description.return_value_field_comments)
 
-    # A skill proto from the skill registry can represent either an actual skill
-    # or a legacy PBT (but not a Process asset). This can be told based on the
-    # presence of 'behavior_tree_description'. For actual skills we should use
-    # the 'assets' area since those can also be looked up via the installed
-    # assets service. Legacy PBT's are only available in the skill registry and
-    # thus need the 'skills' area.
-    if skill.HasField("behavior_tree_description"):
-      skill_type = provided.SkillType.PROCESS
-      area = skill_utils.INTRINSIC_TYPE_URL_AREA_SKILLS
-    else:
-      skill_type = provided.SkillType.REGULAR_SKILL
-      area = skill_utils.INTRINSIC_TYPE_URL_AREA_ASSETS
-
     return skill_generation.SkillInfoImpl(
         id_version,
         skill.description,
@@ -454,8 +441,8 @@ class Skills(providers.SkillProvider):
         default_value,
         dict(skill.resource_selectors),
         proto_comments,
-        skill_type,
-        area,
+        provided.SkillType.PROCESS,
+        skill_utils.INTRINSIC_TYPE_URL_AREA_SKILLS,
     )
 
   def _collect_skill_infos(self) -> list[provided.SkillInfo]:
@@ -491,7 +478,11 @@ class Skills(providers.SkillProvider):
       if skill.id in infos:
         continue
 
-      info = self._skill_proto_from_skill_registry_to_skill_info(skill)
+      # Skip regular skills which we already get as Skill assets above.
+      if not skill.HasField("behavior_tree_description"):
+        continue
+
+      info = self._legacy_process_from_skill_registry_to_skill_info(skill)
       infos[info.id] = info
 
     return sorted(infos.values(), key=lambda info: info.id)
