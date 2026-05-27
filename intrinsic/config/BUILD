@@ -5,7 +5,7 @@ load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
 load("//bazel:go_macros.bzl", "go_library", "go_test")
 
-# Application, process, product, and resource set describe all user-accessible configuration of a
+# Application, process and resource set describe all user-accessible configuration of a
 # solution.
 
 package(default_visibility = ["//visibility:public"])
