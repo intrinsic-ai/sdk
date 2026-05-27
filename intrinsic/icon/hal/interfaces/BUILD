@@ -57,6 +57,37 @@ cc_library(
 )
 
 flatbuffers_library(
+    name = "control_period_fbs",
+    srcs = [
+        "control_period.fbs",
+    ],
+)
+
+cc_flatbuffers_library(
+    name = "control_period_fbs_cc",
+    deps = [":control_period_fbs"],
+)
+
+cc_library(
+    name = "control_period_fbs_utils",
+    srcs = [
+        "control_period_utils.cc",
+    ],
+    hdrs = [
+        "control_period_utils.h",
+    ],
+    deps = [
+        ":control_period_fbs_cc",
+        "//intrinsic/icon/hal:hardware_interface_handle",
+        "//intrinsic/icon/utils:core_time",
+        "//intrinsic/icon/utils:time",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/strings:str_format",
+        "@com_github_google_flatbuffers//:runtime_cc",
+    ],
+)
+
+flatbuffers_library(
     name = "electrical_motor_fbs",
     srcs = [
         "electrical_motor.fbs",

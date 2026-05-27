@@ -16,10 +16,13 @@
 #include "grpcpp/server_builder.h"
 #include "intrinsic/icon/hal/hardware_interface_handle.h"
 #include "intrinsic/icon/hal/hardware_interface_registry.h"
+#include "intrinsic/icon/hal/hardware_interface_traits.h"
 #include "intrinsic/icon/hal/hardware_module_init_context.h"
 #include "intrinsic/icon/hal/hardware_module_interface.h"
 #include "intrinsic/icon/hal/hardware_module_util.h"
-#include "intrinsic/icon/hal/interfaces/hardware_module_state.fbs.h"
+#include "intrinsic/icon/hal/interfaces/control_period.fbs.h"
+#include "intrinsic/icon/hal/interfaces/control_period_utils.h"
+#include "intrinsic/icon/hal/interfaces/hardware_module_state_utils.h"
 #include "intrinsic/icon/hal/interfaces/icon_state.fbs.h"
 #include "intrinsic/icon/interprocess/remote_trigger/remote_trigger_server.h"
 #include "intrinsic/icon/interprocess/shared_memory_manager/domain_socket_server.h"
@@ -171,6 +174,8 @@ class HardwareModuleRuntime final {
   MutableHardwareInterfaceHandle<intrinsic_fbs::HardwareModuleState>
       hardware_module_state_interface_;
   HardwareInterfaceHandle<intrinsic_fbs::IconState> icon_state_interface_;
+  MutableHardwareInterfaceHandle<intrinsic_fbs::ControlPeriod>
+      control_period_interface_;
 
   // Runs activate, deactivate, enable, disable and clear faults.
   std::unique_ptr<std::atomic<bool>> stop_requested_;

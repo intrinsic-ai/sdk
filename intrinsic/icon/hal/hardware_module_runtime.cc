@@ -26,6 +26,7 @@
 #include "absl/time/time.h"
 #include "absl/types/span.h"
 #include "grpcpp/server_builder.h"
+#include "intrinsic/icon/hal/control_period_register.h"
 #include "intrinsic/icon/hal/hardware_interface_handle.h"
 #include "intrinsic/icon/hal/hardware_interface_registry.h"
 #include "intrinsic/icon/hal/hardware_interface_traits.h"
@@ -761,6 +762,13 @@ absl::Status HardwareModuleRuntime::Connect(
           kIconStateInterfaceName));
 
   INTR_ASSIGN_OR_RETURN(
+      control_period_interface_,
+      interface_registry_
+          .AdvertiseMutableInterface<intrinsic_fbs::ControlPeriod>(
+              kControlPeriodInterfaceName,
+              intrinsic_fbs::BuildControlPeriod()));
+
+  INTR_ASSIGN_OR_RETURN(
       auto restart_server,
       RemoteTriggerServer::Create(
           *shared_memory_manager_, "restart",
@@ -930,6 +938,15 @@ absl::Status HardwareModuleRuntime::Run(
         "Run was called, but domain_socket_server_ is nullptr. This should "
         "never happen.");
   }
+
+  // Populate control period if configured
+  intrinsic::Duration period_val = intrinsic::ZeroDuration();
+  if (auto period = hardware_module_.config.GetControlPeriod(); period.ok()) {
+    period_val = intrinsic::Nanoseconds(absl::ToInt64Nanoseconds(*period));
+    INTR_RETURN_IF_ERROR(intrinsic::icon::UpdateControlPeriod(
+        control_period_interface_, period_val));
+  }
+
   // Segments added after this call will not be visible to DomainSocketServer
   // and its clients (like ICON).
   INTR_RETURN_IF_ERROR(domain_socket_server_->AddSegmentInfoServeShmDescriptors(

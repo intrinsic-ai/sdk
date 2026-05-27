@@ -158,6 +158,17 @@ cc_library(
 )
 
 cc_library(
+    name = "control_period_register",
+    hdrs = ["control_period_register.h"],
+    deps = [
+        ":hardware_interface_traits",
+        "//intrinsic/icon/hal/interfaces:control_period_fbs_cc",
+        "//intrinsic/icon/hal/interfaces:control_period_fbs_utils",
+        "@abseil-cpp//absl/strings:string_view",
+    ],
+)
+
+cc_library(
     name = "command_validator",
     srcs = ["command_validator.cc"],
     hdrs = [
@@ -189,6 +200,7 @@ cc_library(
     name = "default_hardware_interfaces",
     hdrs = ["default_hardware_interfaces.h"],
     deps = [
+        ":control_period_register",
         ":hardware_interface_traits",
         "//intrinsic/icon/control/safety:safety_messages_fbs_cc",
         "//intrinsic/icon/control/safety:safety_messages_fbs_utils",
@@ -239,6 +251,7 @@ cc_library(
     srcs = ["hardware_module_runtime.cc"],
     hdrs = ["hardware_module_runtime.h"],
     deps = [
+        ":control_period_register",
         ":hardware_interface_handle",
         ":hardware_interface_registry",
         ":hardware_interface_traits",

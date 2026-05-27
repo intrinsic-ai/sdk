@@ -7,6 +7,7 @@
 #include "intrinsic/icon/control/safety/safety_messages_utils.h"
 #include "intrinsic/icon/flatbuffers/transform_types.fbs.h"
 #include "intrinsic/icon/flatbuffers/transform_types.h"
+#include "intrinsic/icon/hal/control_period_register.h"
 #include "intrinsic/icon/hal/hardware_interface_traits.h"
 #include "intrinsic/icon/hal/interfaces/control_mode.fbs.h"
 #include "intrinsic/icon/hal/interfaces/control_mode_utils.h"

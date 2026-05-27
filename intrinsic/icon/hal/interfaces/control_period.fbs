@@ -1,0 +1,9 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+namespace intrinsic_fbs;
+
+struct ControlPeriod {
+  // Control period configured in the hardware module in nanoseconds.
+  // A value of <=0 is invalid.
+  control_period_ns:long;
+}
