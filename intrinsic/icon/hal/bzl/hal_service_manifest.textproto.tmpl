@@ -2,7 +2,9 @@
 
 {{- .PartialManifest -}}
 service_def {
-  supports_service_state: true
+  service_state_config {
+    service_versions: INTRINSIC_PROTO_SERVICES_V1_SERVICE_STATE
+  }
   {{- if .ProvidesServiceInspection }}
   service_inspection_config {
     data_proto_message_full_name: "intrinsic_proto.icon.v1.HardwareModuleInspectionData"

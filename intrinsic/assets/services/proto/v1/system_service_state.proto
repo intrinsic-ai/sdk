@@ -45,7 +45,7 @@ service SystemServiceState {
   //    FailedPrecondition error.
   //  - If the Service is in STATE_CODE_ENABLED:
   //    - If it does not support reporting its state (read from
-  //    `supports_service_state` in its manifest), this method will return an
+  //    `service_state_config` in its manifest), this method will return an
   //    UnimplementedError.
   //    - If the Service supports reporting states, this call should have no
   //    effect, but is left to the Service author to implement.
@@ -69,7 +69,7 @@ service SystemServiceState {
   //    FailedPrecondition error.
   //  - If the Service is in STATE_CODE_ENABLED:
   //    - If it does not support reporting its state (read from
-  //    `supports_service_state` in its manifest), this method will return an
+  //    `service_state_config` in its manifest), this method will return an
   //    UnimplementedError.
   //    - If the Service supports reporting states, this call should disable the
   //    Service, but is left to the Service author to implement.

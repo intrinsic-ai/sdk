@@ -15,7 +15,9 @@ import "intrinsic/assets/services/proto/service_http_config.proto";
 import "intrinsic/assets/services/proto/service_permissions.proto";
 import "intrinsic/assets/proto/v1/recommended_configuration_config.proto";
 import "intrinsic/assets/services/proto/service_volume.proto";
+import "intrinsic/assets/services/proto/v1/dynamic_reconfiguration.proto"; 
 import "intrinsic/assets/services/proto/v1/service_inspection.proto";
+import "intrinsic/assets/services/proto/v1/service_state.proto"; 
 import "intrinsic/kubernetes/workcell_spec/proto/image.proto";
 
 option go_package = "intrinsic/assets/services/proto/service_manifest_go_proto";
@@ -61,12 +63,23 @@ message ServiceDef {
   // `INTRINSIC_HTTP_PORT` environment variables.
   ServiceHttpConfig http_config = 4;
 
+
+  // Optional configuration for the dynamic reconfiguration service interfaces
+  // provided to the Intrinsic platform.
+  optional intrinsic_proto.services.v1.DynamicReconfigurationConfig
+      dynamic_reconfiguration_config = 10;
+  // Optional configuration for the service state service interfaces provided
+  // to the Intrinsic platform.
+  optional intrinsic_proto.services.v1.ServiceStateConfig service_state_config =
+      11;
+
+
   // True if this Service supports dynamic reconfiguration by serving the
   // DynamicReconfiguration service on its configured gRPC port.
-  bool supports_dynamic_reconfiguration = 5;
+  bool supports_dynamic_reconfiguration = 5 [deprecated = true];
   // True if the Service supports service state interaction by serving the
   // ServiceState service on its configured gRPC port.
-  bool supports_service_state = 6;
+  bool supports_service_state = 6 [deprecated = true];
   // The inspection config for the service. Optional since not all services
   // support inspection. If this is defined, the service is expected to publish
   // its inspection data on the topic provided in the `service_inspection_topic`

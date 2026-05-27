@@ -67,6 +67,34 @@ const fdsProvidedToPlatformPath = "skill_services_provided_to_platform_transitiv
 //go:embed skill_services_provided_to_platform_transitive_set_sci.proto.bin
 var providedToPlatformFDSBytes []byte
 
+
+var serviceVersionsProvidedToPlatform = []manifestpb.SkillServicesConfig_ServiceVersion{
+	manifestpb.SkillServicesConfig_INTRINSIC_PROTO_SKILLS_PROJECTOR,
+	manifestpb.SkillServicesConfig_INTRINSIC_PROTO_SKILLS_EXECUTOR,
+	manifestpb.SkillServicesConfig_INTRINSIC_PROTO_SKILLS_SKILL_INFORMATION,
+}
+
+// populateServiceVersions adds the services the skill provides to the platform.
+func populateServiceVersions(m *manifestpb.SkillManifest) error {
+	// We do not add anything if the manifest already contains servive versions.
+	if len(m.GetOptions().GetSkillServicesConfig().GetServiceVersions()) != 0 {
+		return nil
+	}
+	if m.GetOptions() == nil {
+		m.Options = &manifestpb.Options{}
+	}
+	if m.GetOptions().GetSkillServicesConfig() == nil {
+		m.Options.SkillServicesConfig = &manifestpb.SkillServicesConfig{}
+	}
+	config := m.GetOptions().GetSkillServicesConfig()
+	for _, sv := range serviceVersionsProvidedToPlatform {
+		config.ServiceVersions = append(config.ServiceVersions, sv)
+	}
+	return nil
+}
+
+
+
 func main() {
 	intrinsic.Init()
 
@@ -89,6 +117,7 @@ func main() {
 	}
 	fds = augmentedFDS
 
+	populateServiceVersions(manifest) 
 	skillmanifest.PruneSourceCodeInfo(manifest, fds)
 
 	if err := protoio.WriteBinaryProto(*manifestOut, manifest); err != nil {

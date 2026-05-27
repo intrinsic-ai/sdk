@@ -80,11 +80,15 @@ go_library(
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/assets:idutils",
+        "//intrinsic/assets:interfaceutils",
         "//intrinsic/assets:metadatautils",
         "//intrinsic/assets/dependencies:platform",
         "//intrinsic/assets/dependencies:utils",
+        "//intrinsic/assets/proto:metadata_go_proto",
         "//intrinsic/assets/services/proto:service_manifest_go_proto",
         "//intrinsic/assets/services/proto:service_volume_go_proto",
+        "//intrinsic/assets/services/proto/v1:dynamic_reconfiguration_go_proto",
+        "//intrinsic/assets/services/proto/v1:service_state_go_proto",
         "//intrinsic/util/go:validate",
         "//intrinsic/util/proto:names",
         "//intrinsic/util/proto:registryutil",
@@ -102,5 +106,7 @@ go_library(
     visibility = ["//intrinsic:internal_api_users"],
     deps = [
         "//intrinsic/assets/services/proto:service_manifest_go_proto",
+        "//intrinsic/assets/services/proto/v1:dynamic_reconfiguration_go_proto",
+        "//intrinsic/assets/services/proto/v1:service_state_go_proto",
     ],
 )

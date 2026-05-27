@@ -13,6 +13,7 @@ import (
 	"intrinsic/assets/dependencies/platform"
 	deputils "intrinsic/assets/dependencies/utils"
 	"intrinsic/assets/idutils"
+	"intrinsic/assets/interfaceutils" 
 	"intrinsic/assets/metadatautils"
 	"intrinsic/util/go/validate"
 	"intrinsic/util/proto/names"
@@ -21,8 +22,11 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 
+	metadatapb "intrinsic/assets/proto/metadata_go_proto" 
 	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
 	svpb "intrinsic/assets/services/proto/service_volume_go_proto"
+	drpb "intrinsic/assets/services/proto/v1/dynamic_reconfiguration_go_proto" 
+	sspb "intrinsic/assets/services/proto/v1/service_state_go_proto"           
 
 	anypb "google.golang.org/protobuf/types/known/anypb"
 )
@@ -105,11 +109,17 @@ func ServiceManifest(m *smpb.ServiceManifest, options ...ServiceManifestOption) 
 	); err != nil {
 		return fmt.Errorf("invalid service config for Service %q: %w", id, err)
 	}
+
+	if err := validatePlatformProvidesInFiles(platform.ProvidedByServiceManifest(m), opts.files); err != nil {
+		return fmt.Errorf("invalid platform provided interfaces for Service %q: %w", id, err)
+	}
+
 	return nil
 }
 
 type processedServiceManifestOptions struct {
 	requiredRegistry               string
+	skipPlatformServicesCheckInFDS bool 
 }
 
 // ProcessedServiceManifestOption is an option for validating a ProcessedServiceManifest.
@@ -121,6 +131,18 @@ func WithRequiredRegistry(registry string) ProcessedServiceManifestOption {
 		opts.requiredRegistry = registry
 	}
 }
+
+
+
+// WithSkipPlatformServicesCheckInFDS specifies whether to skip the check that platform-provided
+// services are present in the file descriptor set.
+func WithSkipPlatformServicesCheckInFDS(skip bool) ProcessedServiceManifestOption {
+	return func(opts *processedServiceManifestOptions) {
+		opts.skipPlatformServicesCheckInFDS = skip
+	}
+}
+
+
 
 // ProcessedServiceManifest validates a ProcessedServiceManifest.
 func ProcessedServiceManifest(m *smpb.ProcessedServiceManifest, options ...ProcessedServiceManifestOption) error {
@@ -175,6 +197,14 @@ func ProcessedServiceManifest(m *smpb.ProcessedServiceManifest, options ...Proce
 	if err := validateServiceConfig(m.GetServiceDef().GetConfigMessageFullName(), defaultConfig, defaultConfig != nil, files); err != nil {
 		return fmt.Errorf("invalid service config for Service %q: %w", id, err)
 	}
+
+
+	if !opts.skipPlatformServicesCheckInFDS {
+		if err := validatePlatformProvidesInFiles(platform.ProvidedByProcessedServiceManifest(m), files); err != nil {
+			return fmt.Errorf("invalid platform provided interfaces for Service %q: %w", id, err)
+		}
+	}
+
 
 	return nil
 }
@@ -257,6 +287,40 @@ func validateServiceDef(sd *smpb.ServiceDef, files *protoregistry.Files) (map[st
 			if _, err := files.FindDescriptorByName(protoreflect.FullName(config.GetDataProtoMessageFullName())); err != nil {
 				return nil, fmt.Errorf("could not find inspection data proto message %q in provided descriptors: %w", config.GetDataProtoMessageFullName(), err)
 			}
+		}
+
+
+		if drc := sd.GetDynamicReconfigurationConfig(); drc != nil {
+			// If DynamicReconfigurationConfig is present then at least one service version must be
+			// specified.
+			if len(drc.GetServiceVersions()) == 0 {
+				return nil, fmt.Errorf("dynamic reconfiguration config is present but no service versions are specified")
+			} else if slices.Contains(drc.GetServiceVersions(), drpb.DynamicReconfigurationConfig_UNSPECIFIED) {
+				return nil, fmt.Errorf("dynamic reconfiguration config contains UNSPECIFIED service version")
+			}
+			// If deprecated supports dynamic reconfiguration is true then the service must implement
+			// intrinsic_proto.services.v1.DynamicReconfiguration.
+			if sd.GetSupportsDynamicReconfiguration() && !slices.Contains(drc.GetServiceVersions(), drpb.DynamicReconfigurationConfig_INTRINSIC_PROTO_SERVICES_V1_DYNAMIC_RECONFIGURATION) {
+				return nil, fmt.Errorf("deprecated supports_dynamic_reconfiguration is true but DynamicReconfigurationConfig does not contain corresponding service version")
+			}
+		} else if sd.GetSupportsDynamicReconfiguration() {
+			return nil, fmt.Errorf("deprecated supports_dynamic_reconfiguration is true but DynamicReconfigurationConfig is not present")
+		}
+
+		if ss := sd.GetServiceStateConfig(); ss != nil {
+			// If ServiceStateConfig is present then at least one service version must be specified.
+			if len(ss.GetServiceVersions()) == 0 {
+				return nil, fmt.Errorf("service state config is present but no service versions are specified")
+			} else if slices.Contains(ss.GetServiceVersions(), sspb.ServiceStateConfig_UNSPECIFIED) {
+				return nil, fmt.Errorf("service state config contains UNSPECIFIED service version")
+			}
+			// If deprecated supports service state is true then the service must implement
+			// intrinsic_proto.services.v1.ServiceState.
+			if sd.GetSupportsServiceState() && !slices.Contains(ss.GetServiceVersions(), sspb.ServiceStateConfig_INTRINSIC_PROTO_SERVICES_V1_SERVICE_STATE) {
+				return nil, fmt.Errorf("deprecated supports_service_state is true but ServiceStateConfig does not contain corresponding service version")
+			}
+		} else if sd.GetSupportsServiceState() {
+			return nil, fmt.Errorf("deprecated supports_service_state is true but ServiceStateConfig is not present")
 		}
 
 	}
@@ -352,3 +416,22 @@ func validateServiceConfig(configMessageFullName string, defaultConfig *anypb.An
 
 	return nil
 }
+
+
+func validatePlatformProvidesInFiles(interfaces []*metadatapb.Interface, files *protoregistry.Files) error {
+	for _, i := range interfaces {
+		if strings.HasPrefix(i.GetUri(), interfaceutils.GRPCURIPrefix) {
+			serviceName := strings.TrimPrefix(i.GetUri(), interfaceutils.GRPCURIPrefix)
+			if files == nil {
+				return fmt.Errorf("platform provided interface specified (%q), but no descriptors provided", i)
+			}
+			_, err := files.FindDescriptorByName(protoreflect.FullName(serviceName))
+			if err != nil {
+				return fmt.Errorf("could not find service %q in provided descriptors: %w", serviceName, err)
+			}
+		}
+	}
+	return nil
+}
+
+

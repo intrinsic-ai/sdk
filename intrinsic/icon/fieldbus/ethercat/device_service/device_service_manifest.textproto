@@ -29,5 +29,7 @@ service_def {
       archive_filename: "device_service_image.tar"
     }
   }
-  supports_service_state: true
+  service_state_config {
+    service_versions: INTRINSIC_PROTO_SERVICES_V1_SERVICE_STATE
+  }
 }
