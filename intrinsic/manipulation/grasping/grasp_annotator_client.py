@@ -27,22 +27,26 @@ class GraspAnnotatorClient:
   def __init__(
       self,
       stub: grasp_annotator_service_pb2_grpc.GraspAnnotatorStub,
-      instance_name: str = DEFAULT_GRASP_ANNOTATOR_SERVICE_INSTANCE_NAME,
+      instance_name: str | None = DEFAULT_GRASP_ANNOTATOR_SERVICE_INSTANCE_NAME,
   ):
     """Constructor.
 
     Args:
       stub: The GraspannotatorService stub.
       instance_name: The service instance name of the grasp annotator service.
-        This is the name defined in `intrinsic_resource_instance`.
+        This is the name defined in `intrinsic_resource_instance`. Pass None if
+        the channel interceptor already attaches this metadata.
     """
     self._stub: grasp_annotator_service_pb2_grpc.GraspAnnotatorStub = stub
-    self._connection_params = {
-        "metadata": [(
-            "x-resource-instance-name",
-            instance_name,
-        )]
-    }
+    if instance_name is not None:
+      self._connection_params = {
+          "metadata": [(
+              "x-resource-instance-name",
+              instance_name,
+          )]
+      }
+    else:
+      self._connection_params = {}
 
   @classmethod
   def connect(
