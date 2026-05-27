@@ -70,6 +70,16 @@ class IdentityTest(parameterized.TestCase):
     u = identity.UserFromContext(ctx)
     self.assertIsNotNone(u)
 
+  @unittest.mock.patch.multiple(TestContext, __abstractmethods__=set())
+  def test_from_context_with_multiple_cookie_headers(self):
+    ctx = TestContext([
+        (identity.COOKIE_KEY, f'{identity.AUTH_PROXY_COOKIE_NAME}={TOKEN}'),
+        (identity.COOKIE_KEY, f'{identity.ORG_ID_COOKIE}=some-org'),
+    ])
+    u = identity.UserFromContext(ctx)
+    self.assertIsNotNone(u)
+    self.assertEqual(u.jwt, TOKEN)
+
   def test_user_to_grpc_metadata(self):
     user = identity.User(j=TOKEN)
     metadata = identity.UserToGRPCMetadata(user)
@@ -257,6 +267,15 @@ class OrgTest(absltest.TestCase):
     ])
     organization = identity.OrgFromContext(ctx)
     self.assertEqual(organization.org_id, 'header-org')
+
+  @unittest.mock.patch.multiple(TestContext, __abstractmethods__=set())
+  def test_org_from_context_with_multiple_cookie_headers_reversed(self):
+    ctx = TestContext([
+        (identity.COOKIE_KEY, f'{identity.ORG_ID_COOKIE}=some-org'),
+        (identity.COOKIE_KEY, f'{identity.AUTH_PROXY_COOKIE_NAME}={TOKEN}'),
+    ])
+    organization = identity.OrgFromContext(ctx)
+    self.assertEqual(organization.org_id, 'some-org')
 
   def test_org_name_call_credentials(self):
     self.assertEqual(

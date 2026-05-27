@@ -22,6 +22,26 @@ ORG_ID_COOKIE = 'org-id'
 ORG_ID_HEADER = 'x-intrinsic-org'
 
 
+def _metadata_dict(metadata) -> dict:
+  """Converts metadata sequence to a dict, merging duplicate 'cookie' headers."""
+  result = {}
+  cookies = []
+  for key, value in metadata:
+    if key == COOKIE_KEY:
+      cookies.append(value)
+    else:
+      result[key] = value
+
+  if cookies:
+    merged_cks = http.cookies.SimpleCookie()
+    for c_str in cookies:
+      merged_cks.load(str(c_str))
+    cookie_val = '; '.join([f'{k}={v.value}' for k, v in merged_cks.items()])
+    result[COOKIE_KEY] = cookie_val
+
+  return result
+
+
 class Organization:
   """Represents an organization inside the Intrinsic stack."""
 
@@ -76,7 +96,7 @@ def GetJWTFromContext(context: grpc.ServicerContext) -> Optional[str]:
     2. apikey-token header
     3. authorization header
   """
-  metadata = dict(context.invocation_metadata())
+  metadata = _metadata_dict(context.invocation_metadata())
 
   # 1. Check cookies (auth-proxy or portal-token)
   if COOKIE_KEY in metadata:
@@ -102,7 +122,7 @@ def GetJWTFromContext(context: grpc.ServicerContext) -> Optional[str]:
 
 def UserFromMetadata(metadata: list[tuple[str, str]]) -> str:
   """Extracts user identity from gRPC metadata."""
-  metadata_dict = dict(metadata)
+  metadata_dict = _metadata_dict(metadata)
   token = None
 
   # 1. Check cookies (auth-proxy or portal-token)
@@ -163,7 +183,7 @@ def OrgFromContext(context: grpc.ServicerContext) -> Organization:
   Raises:
     KeyError: If no org-id found.
   """
-  metadata = dict(context.invocation_metadata())
+  metadata = _metadata_dict(context.invocation_metadata())
   if ORG_ID_HEADER in metadata:
     return Organization(metadata[ORG_ID_HEADER])
 
@@ -232,7 +252,7 @@ def ToGRPCMetadataFromIncoming(
   Returns:
     A list of (key, value) pairs containing auth-related metadata.
   """
-  metadata = dict(context.invocation_metadata())
+  metadata = _metadata_dict(context.invocation_metadata())
   outgoing_cks = http.cookies.SimpleCookie()
 
   # Extract JWT token (identity) from context, to "normalize it" into the
