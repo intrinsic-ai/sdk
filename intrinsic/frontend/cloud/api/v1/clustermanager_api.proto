@@ -231,19 +231,32 @@ message GetAssignedVersionsResponse {
   UpdateVersions versions = 1;
 }
 
-// This message is shared between the CreateCluster and AddDevice rpcs.
-// It describes the device that needs to be registered during the operation and
-// will later also describe operations that are specific to this IPC/node, not
-// the cluster. Once it is supported, this will be extended to allow things like
-// setting the hostname(networking) or nodeid (k8s).
+// This message is shared between the CreateCluster and AddDevice RPCs.
+// It describes the device that needs to be registered during the operation.
 message PendingDeviceDescription {
-  // The device id (node-$UUID) of the device that needs to be registered.
+  // EITHER the device ID (typically node-$UUID) of the device that needs to be
+  // registered OR a partial ID, specifically the last 12 characters of the
+  // device ID.
+  //
+  // If the device has previously been registered with inctl and reset, the
+  // device ID may have been overridden to match the hostname (eg lab-bb-01).
+  //
+  // In the Portal UI, it's described as "Device ID".
+  // In the IPC UI, the partial ID is described as "Registration Code".
   string device_id = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
 message CreateClusterInfo {
   PendingDeviceDescription pending = 1 [(google.api.field_behavior) = REQUIRED];
-  // The technical id of the cluster (name for computers/inctl)
+  // EITHER a globally unique cluster identifier
+  // OR a partial ID, specifically the last 12 characters of the device ID
+  // ("node-<UUID>").
+  //
+  // If a partial ID is used, the cluster ID will be set to the device ID
+  // ("node-<UUID>").
+  //
+  // The network hostname of the control plane node will be set to match the
+  // cluster ID.
   string cluster_id = 2 [(google.api.field_behavior) = REQUIRED];
   string region = 3 [(google.api.field_behavior) = OPTIONAL];
   // Set to true, to automatically delete an old cluster on collision.
