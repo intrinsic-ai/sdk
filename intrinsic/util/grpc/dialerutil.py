@@ -10,22 +10,11 @@ from typing import Any
 
 import grpc
 
+from intrinsic.config import environments
 from intrinsic.frontend.cloud.api.v1 import solutiondiscovery_api_pb2
 from intrinsic.frontend.cloud.api.v1 import solutiondiscovery_api_pb2_grpc
 from intrinsic.kubernetes.acl.py import identity
 from intrinsic.util.grpc import auth
-
-
-class _TokenAuth(grpc.AuthMetadataPlugin):
-  """gRPC Metadata Plugin that adds an API key to the header."""
-
-  _token: auth.ProjectToken
-
-  def __init__(self, token: auth.ProjectToken):
-    self._token = token
-
-  def __call__(self, context, callback):
-    callback(self._token.get_request_metadata(), None)
 
 
 class _AuthProxy(grpc.AuthMetadataPlugin):
@@ -208,8 +197,12 @@ def _create_channel(
 
   if auth_token is None:
     token = auth.get_configuration(org_info.project).get_default_credentials()
+    env = environments.from_compute_project(org_info.project)
+    portal = environments.portal_domain(env)
+
+    token_source = token.as_id_token_credentials(portal_domain=portal)
     call_credentials.append(
-        grpc.metadata_call_credentials(_TokenAuth(token), name="TokenAuth")
+        grpc.metadata_call_credentials(token_source, name="TokenAuth")
     )
   else:
     call_credentials.append(

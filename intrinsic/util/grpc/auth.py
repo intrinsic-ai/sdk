@@ -11,16 +11,103 @@ Login etc. is handled by the inctl CLI.
 import dataclasses
 import datetime
 import json
+import logging
 import os.path
+import threading
 from typing import Dict
 from typing import Optional
 from typing import Tuple
+import urllib.error
+import urllib.request
 
+import grpc
+import retrying
+
+from intrinsic.kubernetes.acl.py import jwt
 from intrinsic.util.grpc import userconfig
 ALIAS_DEFAULT_TOKEN = "default"
 AUTH_CONFIG_EXTENSION = ".user-token"
 STORE_DIRECTORY = "intrinsic/projects"
 ORG_STORE_DIRECTORY = "intrinsic/organizations"
+
+_MIN_TOKEN_LIFETIME = datetime.timedelta(minutes=1)
+
+
+class APIKeyTokenSource(grpc.AuthMetadataPlugin):
+  """Provides a JWT token retrieved using an API key.
+
+  Can be used as a gRPC AuthMetadataPlugin.
+  """
+
+  def __init__(
+      self,
+      api_key: str,
+      portal_domain: str,
+  ):
+    super().__init__()
+    self._api_key = api_key
+    self._portal_domain = portal_domain
+
+    self._lock = threading.Lock()
+    self._cached_token: str | None = None
+    self._cached_expiry: datetime.datetime | None = None
+
+  # Retry even "non-transient" errors like 401 as these can occur transiently.
+  # http://b/504966163
+  @retrying.retry(
+      stop_max_attempt_number=4,
+      wait_exponential_multiplier=1000,
+      wait_jitter_max=1000,
+      retry_on_exception=lambda e: isinstance(e, urllib.error.URLError),
+  )
+  def _exchange_token(self) -> str:
+    url = f"https://{self._portal_domain}/api/v1/accountstokens:idtoken"
+    data = json.dumps({"api_key": self._api_key, "do_fan_out": True}).encode(
+        "utf-8"
+    )
+
+    headers = {
+        "Content-Type": "application/json",
+        "User-Agent": "sbl/1.0 (py, urllib)",
+    }
+
+    req = urllib.request.Request(url, data=data, headers=headers, method="POST")
+
+    try:
+      with urllib.request.urlopen(req, timeout=10) as response:
+        res_data = json.loads(response.read().decode("utf-8"))
+        return res_data["idToken"]
+    except Exception as e:
+      logging.warning("Failed to call accounts service: %s", e)
+      raise
+
+  def _get_now_utc(self) -> datetime.datetime:
+    # Allows mocking the current time in unit tests, avoiding:
+    #  TypeError: cannot set 'now' attribute of immutable type 'datetime.datetime'
+    return datetime.datetime.now(datetime.timezone.utc)
+
+  def token(self) -> str:
+    """Returns the cached JWT, fetching it from the portal if expired or missing."""
+    now = self._get_now_utc()
+    with self._lock:
+      if (
+          self._cached_token is None
+          or self._cached_expiry is None
+          or self._cached_expiry - _MIN_TOKEN_LIFETIME < now
+      ):
+        token = self._exchange_token()
+        self._cached_token = token
+        self._cached_expiry = jwt.ExpiresAt(token)
+      return self._cached_token
+
+  def __call__(self, context, callback):
+    try:
+      token = self.token()
+      callback((("cookie", f"auth-proxy={token}"),), None)
+    except Exception as e:
+      # gRPC wants the exception in the callback:
+      # https://grpc.github.io/grpc/python/grpc.html#grpc.AuthMetadataPluginCallback
+      callback(None, e)
 
 
 @dataclasses.dataclass()
@@ -38,6 +125,15 @@ class ProjectToken:
   def get_request_metadata(self) -> Tuple[Tuple[str, str], ...]:
     self.validate()
     return (("authorization", "Bearer " + self.api_key),)
+
+  def as_id_token_credentials(
+      self,
+      portal_domain: str = "flowstate.intrinsic.ai",
+  ) -> APIKeyTokenSource:
+    return APIKeyTokenSource(
+        api_key=self.api_key,
+        portal_domain=portal_domain,
+    )
 
 
 @dataclasses.dataclass()
