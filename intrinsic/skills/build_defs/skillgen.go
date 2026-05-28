@@ -12,7 +12,7 @@ import (
 
 	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 
-	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	descriptorpb "google.golang.org/protobuf/types/descriptorpb"
 )
 
 // CreateSkillBundleOptions provides the data needed to create a Skill Asset bundle.

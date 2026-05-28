@@ -9,7 +9,7 @@ go_library(
     visibility = ["//intrinsic:internal_api_users"],
     deps = [
         "//intrinsic/assets/scene_objects/proto:scene_object_manifest_go_proto",
-        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
+        "@org_golang_google_protobuf//types/descriptorpb:go_default_library",
     ],
 )
 

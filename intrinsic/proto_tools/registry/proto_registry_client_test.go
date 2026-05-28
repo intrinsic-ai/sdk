@@ -10,7 +10,6 @@ import (
 	"intrinsic/testing/grpctest"
 	"intrinsic/util/proto/registryutil"
 
-	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/grpc"
@@ -20,6 +19,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
+	descriptorpb "google.golang.org/protobuf/types/descriptorpb"
 
 	protoregistrypb "intrinsic/proto_tools/proto/proto_registry_go_proto"
 )

@@ -18,9 +18,9 @@ go_library(
         "//intrinsic/skills/proto:skill_manifest_go_proto",
         "//intrinsic/util/archive:tartooling",
         "@com_github_google_safearchive//tar",
-        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
         "@org_golang_google_protobuf//proto",
         "@org_golang_google_protobuf//reflect/protodesc:go_default_library",
+        "@org_golang_google_protobuf//types/descriptorpb:go_default_library",
     ],
 )
 
@@ -32,7 +32,7 @@ go_library(
     deps = [
         "//intrinsic/skills/proto:skill_manifest_go_proto",
         "//intrinsic/util/proto:sourcecodeinfoview",
-        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
+        "@org_golang_google_protobuf//types/descriptorpb:go_default_library",
     ],
 )
 

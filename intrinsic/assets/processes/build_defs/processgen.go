@@ -17,7 +17,7 @@ import (
 	processmanifestpb "intrinsic/assets/processes/proto/process_manifest_go_proto"
 	behaviortreepb "intrinsic/executive/proto/behavior_tree_go_proto"
 
-	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	descriptorpb "google.golang.org/protobuf/types/descriptorpb"
 )
 
 func readTextProtoWithAnys(path string, message proto.Message, types *protoregistry.Types) error {

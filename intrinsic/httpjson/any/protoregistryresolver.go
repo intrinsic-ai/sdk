@@ -20,7 +20,7 @@ import (
 	protoregistrygrpcpb "intrinsic/proto_tools/proto/proto_registry_go_proto"
 	"intrinsic/util/proto/registryutil"
 
-	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	descriptorpb "google.golang.org/protobuf/types/descriptorpb"
 )
 
 // ProtoRegistry service only resolves types that start with this URL

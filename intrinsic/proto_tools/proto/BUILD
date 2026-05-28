@@ -58,8 +58,8 @@ go_proto_library(
     importpath = "intrinsic/proto_tools/proto/proto_registry_go_proto",
     protos = [":proto_registry_proto"],
     deps = [
-        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
         "@org_golang_google_genproto_googleapis_api//annotations",
+        "@org_golang_google_protobuf//types/descriptorpb:go_default_library",
         "@org_golang_google_protobuf//types/known/anypb",
     ],
 )

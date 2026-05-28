@@ -204,11 +204,11 @@ go_library(
     deps = [
         "//intrinsic/assets/proto:metadata_go_proto",
         "//intrinsic/assets/proto:view_go_proto",
-        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
         "@org_golang_google_grpc//codes:go_default_library",
         "@org_golang_google_grpc//status:go_default_library",
         "@org_golang_google_protobuf//proto",
         "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
+        "@org_golang_google_protobuf//types/descriptorpb:go_default_library",
     ],
 )
 
@@ -238,8 +238,8 @@ go_library(
         "//intrinsic/skills:skillbundle",
         "//intrinsic/skills/proto:processed_skill_manifest_go_proto",
         "@com_github_google_safearchive//tar",
-        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
         "@org_golang_google_protobuf//proto",
+        "@org_golang_google_protobuf//types/descriptorpb:go_default_library",
     ],
 )
 
@@ -330,10 +330,10 @@ go_test(
         "//intrinsic/assets/scene_objects/proto:scene_object_manifest_go_proto",
         "//intrinsic/assets/services/proto:service_manifest_go_proto",
         "//intrinsic/skills/proto:skill_manifest_go_proto",
-        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
         "@org_golang_google_grpc//codes:go_default_library",
         "@org_golang_google_grpc//status:go_default_library",
         "@org_golang_google_protobuf//proto",
+        "@org_golang_google_protobuf//types/descriptorpb:go_default_library",
         "@org_golang_google_protobuf//types/known/timestamppb",
     ],
 )

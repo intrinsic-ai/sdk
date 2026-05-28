@@ -14,7 +14,7 @@ import (
 	servicempb "intrinsic/assets/services/proto/service_manifest_go_proto"
 	ipb "intrinsic/kubernetes/workcell_spec/proto/image_go_proto"
 
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	dpb "google.golang.org/protobuf/types/descriptorpb"
 )
 
 // FileDescriptorSetFrom returns a file descriptor set for the given asset.

@@ -15,7 +15,7 @@ import (
 
 	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	dpb "google.golang.org/protobuf/types/descriptorpb"
 )
 
 // LoadManifestAndFileDescriptorSets loads a skill manifest and consolidates multiple file descriptor sets into one.

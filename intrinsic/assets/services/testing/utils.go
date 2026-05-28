@@ -14,7 +14,7 @@ import (
 	sspb "intrinsic/assets/services/proto/v1/service_state_go_proto" 
 	imagepb "intrinsic/kubernetes/workcell_spec/proto/image_go_proto"
 
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	dpb "google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/known/anypb"
 )
 

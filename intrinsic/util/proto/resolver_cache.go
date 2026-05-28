@@ -12,7 +12,7 @@ import (
 
 	"google.golang.org/protobuf/reflect/protoregistry"
 
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	dpb "google.golang.org/protobuf/types/descriptorpb"
 )
 
 // Resolver fulfills prototext's Resolver interface to Marshal and Unmarshal

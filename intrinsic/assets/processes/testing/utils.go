@@ -18,8 +18,8 @@ import (
 	btpb "intrinsic/executive/proto/behavior_tree_go_proto"
 	skpb "intrinsic/skills/proto/skills_go_proto"
 
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"google.golang.org/protobuf/proto"
+	dpb "google.golang.org/protobuf/types/descriptorpb"
 )
 
 type makeProcessManifestOptions struct {

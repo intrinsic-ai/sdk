@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"slices"
 
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	dpb "google.golang.org/protobuf/types/descriptorpb"
 )
 
 type pathInfo struct {

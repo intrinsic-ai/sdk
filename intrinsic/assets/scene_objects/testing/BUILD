@@ -18,8 +18,8 @@ go_library(
         "//intrinsic/scene/proto/v1:entity_go_proto",
         "//intrinsic/scene/proto/v1:scene_object_config_go_proto",
         "//intrinsic/scene/proto/v1:scene_object_go_proto",
-        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
         "@org_golang_google_protobuf//proto",
+        "@org_golang_google_protobuf//types/descriptorpb:go_default_library",
         "@org_golang_google_protobuf//types/known/anypb",
     ],
 )

@@ -11,10 +11,10 @@ import (
 
 	prpb "intrinsic/proto_tools/proto/proto_registry_go_proto"
 
-	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	descriptorpb "google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/known/anypb"
 
 	iagrpcpb "intrinsic/assets/proto/installed_assets_go_proto"

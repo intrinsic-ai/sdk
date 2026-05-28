@@ -58,7 +58,6 @@ go_library(
         "//intrinsic/resources/proto:runtime_context_go_proto",
         "//intrinsic/util/proto:protoio",
         "//intrinsic/util/proto:registryutil",
-        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
         "@org_golang_google_grpc//:grpc",
         "@org_golang_google_grpc//codes:go_default_library",
         "@org_golang_google_grpc//credentials/insecure",
@@ -69,6 +68,7 @@ go_library(
         "@org_golang_google_protobuf//reflect/protodesc:go_default_library",
         "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
         "@org_golang_google_protobuf//reflect/protoregistry:go_default_library",
+        "@org_golang_google_protobuf//types/descriptorpb:go_default_library",
     ],
 )
 
@@ -95,7 +95,6 @@ go_library(
         "//intrinsic/util/proto:protoio",
         "//intrinsic/util/proto:registryutil",
         "@com_github_masterminds_semver//:semver",
-        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
         "@org_golang_google_grpc//:grpc",
         "@org_golang_google_grpc//credentials/insecure",
         "@org_golang_google_grpc//grpclog:go_default_library",
@@ -104,6 +103,7 @@ go_library(
         "@org_golang_google_protobuf//reflect/protodesc:go_default_library",
         "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
         "@org_golang_google_protobuf//reflect/protoregistry:go_default_library",
+        "@org_golang_google_protobuf//types/descriptorpb:go_default_library",
     ],
 )
 
@@ -129,10 +129,10 @@ go_library(
         "//intrinsic/assets/proto:metadata_go_proto",
         "//intrinsic/proto_tools/proto:proto_registry_go_proto",
         "//intrinsic/util/proto/testing:prototestutil",
-        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
         "@org_golang_google_grpc//:grpc",
         "@org_golang_google_grpc//codes:go_default_library",
         "@org_golang_google_grpc//status:go_default_library",
+        "@org_golang_google_protobuf//types/descriptorpb:go_default_library",
         "@org_golang_google_protobuf//types/known/anypb",
     ],
 )

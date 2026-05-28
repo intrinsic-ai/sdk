@@ -8,7 +8,7 @@ import (
 
 	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	dpb "google.golang.org/protobuf/types/descriptorpb"
 )
 
 // PruneSourceCodeInfo removes source code info from the FileDescriptorSet for all message types

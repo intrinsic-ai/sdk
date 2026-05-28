@@ -12,12 +12,12 @@ import (
 	"sync"
 
 	"github.com/Masterminds/semver"
-	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
+	descriptorpb "google.golang.org/protobuf/types/descriptorpb"
 
 	"intrinsic/assets/proto/id_go_proto"
 	iagrpcpb "intrinsic/assets/proto/installed_assets_go_proto"

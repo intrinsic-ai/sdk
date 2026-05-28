@@ -117,7 +117,7 @@ go_proto_library(
     ],
     importpath = "intrinsic/executive/proto/code_execution_info_service_go_proto",
     protos = [":code_execution_info_service_proto"],
-    deps = ["@io_bazel_rules_go//proto/wkt:descriptor_go_proto"],
+    deps = ["@org_golang_google_protobuf//types/descriptorpb:go_default_library"],
 )
 
 # executive_service
@@ -566,7 +566,7 @@ go_proto_library(
     importpath = "intrinsic/executive/proto/proto_builder_go_proto",
     protos = [":proto_builder_proto"],
     deps = [
-        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
         "@org_golang_google_genproto_googleapis_api//annotations",
+        "@org_golang_google_protobuf//types/descriptorpb:go_default_library",
     ],
 )

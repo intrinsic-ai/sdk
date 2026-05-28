@@ -22,7 +22,7 @@ import (
 	psmpb "intrinsic/skills/proto/processed_skill_manifest_go_proto"
 	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 
-	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	descriptorpb "google.golang.org/protobuf/types/descriptorpb"
 )
 
 const (

@@ -22,7 +22,7 @@ import (
 	fieldmetadatapb "intrinsic/assets/proto/field_metadata_go_proto"
 	rdpb "intrinsic/assets/proto/v1/resolved_dependency_go_proto"
 
-	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	descriptorpb "google.golang.org/protobuf/types/descriptorpb"
 	anypb "google.golang.org/protobuf/types/known/anypb"
 )
 

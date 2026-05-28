@@ -17,7 +17,7 @@ import (
 	metadatapb "intrinsic/assets/proto/metadata_go_proto"
 	viewpb "intrinsic/assets/proto/view_go_proto"
 
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	dpb "google.golang.org/protobuf/types/descriptorpb"
 )
 
 var (

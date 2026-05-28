@@ -14,8 +14,8 @@ import (
 	socpb "intrinsic/scene/proto/v1/scene_object_config_go_proto"
 	sopb "intrinsic/scene/proto/v1/scene_object_go_proto"
 
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"google.golang.org/protobuf/proto"
+	dpb "google.golang.org/protobuf/types/descriptorpb"
 	anypb "google.golang.org/protobuf/types/known/anypb"
 )
 

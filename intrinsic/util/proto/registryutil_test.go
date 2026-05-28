@@ -19,7 +19,7 @@ import (
 	epb "intrinsic/util/proto/testing/embedded_go_proto"
 	rpb "intrinsic/util/proto/testing/recursive_go_proto"
 
-	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	descriptorpb "google.golang.org/protobuf/types/descriptorpb"
 	anypb "google.golang.org/protobuf/types/known/anypb"
 )
 

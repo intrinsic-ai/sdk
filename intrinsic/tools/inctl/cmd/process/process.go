@@ -20,7 +20,6 @@ import (
 	"intrinsic/util/proto/registryutil"
 
 	longrunningpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
-	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	annotationspb "google.golang.org/genproto/googleapis/api/annotations"
@@ -29,6 +28,7 @@ import (
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
+	descriptorpb "google.golang.org/protobuf/types/descriptorpb"
 )
 
 const (

@@ -7,7 +7,7 @@ package sceneobjectfix
 import (
 	sompb "intrinsic/assets/scene_objects/proto/scene_object_manifest_go_proto"
 
-	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	descriptorpb "google.golang.org/protobuf/types/descriptorpb"
 )
 
 // Manifest updates a SceneObjectManifest to meet the requirements of the latest platform version.

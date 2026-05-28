@@ -73,8 +73,8 @@ go_proto_library(
         "//intrinsic/assets/scene_objects/proto:scene_object_manifest_go_proto",
         "//intrinsic/assets/services/proto:service_manifest_go_proto",
         "//intrinsic/skills/proto:processed_skill_manifest_go_proto",
-        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
         "@org_golang_google_genproto_googleapis_api//annotations",
+        "@org_golang_google_protobuf//types/descriptorpb:go_default_library",
     ],
 )
 

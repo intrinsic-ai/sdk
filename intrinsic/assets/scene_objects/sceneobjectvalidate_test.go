@@ -19,7 +19,7 @@ import (
 	epb "intrinsic/scene/proto/v1/entity_go_proto"
 	gcpb "intrinsic/world/proto/geometry_component_go_proto"
 
-	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	descriptorpb "google.golang.org/protobuf/types/descriptorpb"
 	anypb "google.golang.org/protobuf/types/known/anypb"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )

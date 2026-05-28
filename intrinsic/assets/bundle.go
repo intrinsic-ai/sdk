@@ -34,7 +34,7 @@ import (
 	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
 	psmpb "intrinsic/skills/proto/processed_skill_manifest_go_proto"
 
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	dpb "google.golang.org/protobuf/types/descriptorpb"
 )
 
 const (

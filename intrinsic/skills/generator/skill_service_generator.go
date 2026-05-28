@@ -17,8 +17,8 @@ import (
 	"intrinsic/util/proto/protoio"
 
 	log "github.com/golang/glog"
-	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"google.golang.org/protobuf/proto"
+	descriptorpb "google.golang.org/protobuf/types/descriptorpb"
 
 	manifestpb "intrinsic/skills/proto/skill_manifest_go_proto"
 )

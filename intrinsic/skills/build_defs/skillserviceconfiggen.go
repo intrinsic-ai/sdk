@@ -13,7 +13,7 @@ import (
 	sscpb "intrinsic/skills/proto/skill_service_config_go_proto"
 	spb "intrinsic/skills/proto/skills_go_proto"
 
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	dpb "google.golang.org/protobuf/types/descriptorpb"
 )
 
 func stripSourceCodeInfo(fds *dpb.FileDescriptorSet) {

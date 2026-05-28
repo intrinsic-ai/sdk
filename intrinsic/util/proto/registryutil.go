@@ -14,7 +14,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoregistry"
 	dynamicpb "google.golang.org/protobuf/types/dynamicpb"
 
-	descriptorpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	descriptorpb "google.golang.org/protobuf/types/descriptorpb"
 )
 
 // LoadFileDescriptorSets loads a list of binary proto files from disk and returns a

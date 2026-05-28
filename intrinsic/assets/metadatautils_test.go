@@ -25,7 +25,7 @@ import (
 	"intrinsic/assets/typeutils"
 	skillmanifestpb "intrinsic/skills/proto/skill_manifest_go_proto"
 
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	dpb "google.golang.org/protobuf/types/descriptorpb"
 	tpb "google.golang.org/protobuf/types/known/timestamppb"
 )
 

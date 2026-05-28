@@ -13,7 +13,7 @@ import (
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	dpb "google.golang.org/protobuf/types/descriptorpb"
 
 	// Register common protobuf extensions to prevent unknown field diffs. MergeFileDescriptorSets
 	// uses proto.Equal, which performs a strict byte comparison on unknown fields. This can cause

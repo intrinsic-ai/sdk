@@ -19,7 +19,7 @@ import (
 	mpb "intrinsic/assets/proto/metadata_go_proto"
 	vpb "intrinsic/assets/proto/vendor_go_proto"
 
-	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	dpb "google.golang.org/protobuf/types/descriptorpb"
 	anypb "google.golang.org/protobuf/types/known/anypb"
 )
 
