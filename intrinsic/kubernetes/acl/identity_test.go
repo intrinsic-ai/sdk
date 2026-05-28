@@ -1224,7 +1224,7 @@ func TestClearContextOrg(t *testing.T) {
 	}
 	testMD := metadata.Pairs(cookies.ToMDString(testCookies...)...)
 	testMD.Set(org.OrgIDHeader, "testorg")
-	testMD.Set(org.OrgIDCookie, "testorg") // Legacy header incorrectly set by C++ grpc_metadata_plugin.cc
+	testMD.Set(org.OrgIDCookie, "testorg")
 
 	ctx := metadata.NewOutgoingContext(t.Context(), testMD)
 	ctx, err := ClearContextOrg(ctx)
@@ -1324,7 +1324,7 @@ func TestClearContextChained(t *testing.T) {
 	}
 	testMD := metadata.Pairs(cookies.ToMDString(testCookies...)...)
 	testMD.Set(org.OrgIDHeader, "testorg")
-	testMD.Set(org.OrgIDCookie, "testorg") // Legacy header incorrectly set by C++ grpc_metadata_plugin.cc
+	testMD.Set(org.OrgIDCookie, "testorg")
 	testMD.Set(authHeaderName, "testuser")
 	testMD.Set(ApikeyTokenHeaderName, "testuser")
 
