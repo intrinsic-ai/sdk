@@ -1224,7 +1224,7 @@ func TestClearContextOrg(t *testing.T) {
 	}
 	testMD := metadata.Pairs(cookies.ToMDString(testCookies...)...)
 	testMD.Set(org.OrgIDHeader, "testorg")
-	testMD.Set(org.OrgIDCookie, "testorg") // Legacy header
+	testMD.Set(org.OrgIDCookie, "testorg") // Legacy header incorrectly set by C++ grpc_metadata_plugin.cc
 
 	ctx := metadata.NewOutgoingContext(t.Context(), testMD)
 	ctx, err := ClearContextOrg(ctx)
@@ -1233,15 +1233,23 @@ func TestClearContextOrg(t *testing.T) {
 	}
 
 	// check cookies
-	cs, err := cookies.FromContext(ctx)
+	cs, err := cookies.FromOutgoingContext(ctx)
 	if err != nil {
-		t.Fatalf("FromContext(..) = _, %v, want no error", err)
+		t.Fatalf("FromOutgoingContext(..) = _, %v, want no error", err)
 	}
+	foundOther := false
 	for _, c := range cs {
 		if c.Name == "othercookie" {
+			foundOther = true
+			if c.Value != "othervalue" {
+				t.Errorf("expected othercookie value 'othervalue', got %q", c.Value)
+			}
 			continue
 		}
-		t.Errorf("ClearContextOrg(..) = %q, did not clear cookie %v", c, c.Name)
+		t.Errorf("ClearContextOrg(..) did not clear cookie %v", c.Name)
+	}
+	if !foundOther {
+		t.Errorf("expected othercookie to be preserved, but it was lost")
 	}
 
 	// check headers
@@ -1251,6 +1259,9 @@ func TestClearContextOrg(t *testing.T) {
 	}
 	if len(md.Get(org.OrgIDCookie)) > 0 {
 		t.Errorf("ClearContextOrg(..) = %q, want empty org cookie header", md.Get(org.OrgIDCookie)[0])
+	}
+	if len(md.Get(cookies.CookieHeaderName)) != 1 {
+		t.Errorf("expected exactly 1 Cookie header list in metadata, got %d", len(md.Get(cookies.CookieHeaderName)))
 	}
 }
 
@@ -1271,15 +1282,23 @@ func TestClearContextUser(t *testing.T) {
 		t.Fatalf("ClearContextUser(..) = _, %v, want no error", err)
 	}
 	// check cookies
-	cs, err := cookies.FromContext(ctx)
+	cs, err := cookies.FromOutgoingContext(ctx)
 	if err != nil {
-		t.Fatalf("FromContext(..) = _, %v, want no error", err)
+		t.Fatalf("FromOutgoingContext(..) = _, %v, want no error", err)
 	}
+	foundOther := false
 	for _, c := range cs {
 		if c.Name == "othercookie" {
+			foundOther = true
+			if c.Value != "othervalue" {
+				t.Errorf("expected othercookie value 'othervalue', got %q", c.Value)
+			}
 			continue
 		}
-		t.Errorf("ClearContextUser(..) = %q, did not clear cookie %v", c, c.Name)
+		t.Errorf("ClearContextUser(..) did not clear cookie %v", c.Name)
+	}
+	if !foundOther {
+		t.Errorf("expected othercookie to be preserved, but it was lost")
 	}
 	// check headers
 	md, _ := metadata.FromOutgoingContext(ctx)
@@ -1288,6 +1307,71 @@ func TestClearContextUser(t *testing.T) {
 	}
 	if len(md.Get(ApikeyTokenHeaderName)) > 0 {
 		t.Errorf("ClearContextUser(..) = %q, want empty apikey header", md.Get(ApikeyTokenHeaderName)[0])
+	}
+	if len(md.Get(cookies.CookieHeaderName)) != 1 {
+		t.Errorf("expected exactly 1 Cookie header list in metadata, got %d", len(md.Get(cookies.CookieHeaderName)))
+	}
+}
+
+func TestClearContextChained(t *testing.T) {
+	// Setup context with both org and user cookies, and other cookies
+	testCookies := []*http.Cookie{
+		{Name: "othercookie", Value: "othervalue"},
+		{Name: org.OrgIDCookie, Value: "testorg"},
+	}
+	for _, name := range cookieHeaders {
+		testCookies = append(testCookies, &http.Cookie{Name: name, Value: "testvalue"})
+	}
+	testMD := metadata.Pairs(cookies.ToMDString(testCookies...)...)
+	testMD.Set(org.OrgIDHeader, "testorg")
+	testMD.Set(org.OrgIDCookie, "testorg") // Legacy header incorrectly set by C++ grpc_metadata_plugin.cc
+	testMD.Set(authHeaderName, "testuser")
+	testMD.Set(ApikeyTokenHeaderName, "testuser")
+
+	ctx := metadata.NewOutgoingContext(t.Context(), testMD)
+
+	// Call ClearContext (which chains ClearContextOrg and ClearContextUser)
+	ctx, err := ClearContext(ctx)
+	if err != nil {
+		t.Fatalf("ClearContext(..) = _, %v, want no error", err)
+	}
+
+	// Verify only othercookie remains
+	cs, err := cookies.FromOutgoingContext(ctx)
+	if err != nil {
+		t.Fatalf("FromOutgoingContext(..) = _, %v, want no error", err)
+	}
+	foundOther := false
+	for _, c := range cs {
+		if c.Name == "othercookie" {
+			foundOther = true
+			if c.Value != "othervalue" {
+				t.Errorf("expected othercookie value 'othervalue', got %q", c.Value)
+			}
+			continue
+		}
+		t.Errorf("ClearContext(..) did not clear cookie %v", c.Name)
+	}
+	if !foundOther {
+		t.Errorf("expected othercookie to be preserved, but it was lost")
+	}
+
+	// Verify headers are cleared
+	md, _ := metadata.FromOutgoingContext(ctx)
+	if len(md.Get(org.OrgIDHeader)) > 0 {
+		t.Errorf("ClearContext(..) = %q, want empty org header", md.Get(org.OrgIDHeader)[0])
+	}
+	if len(md.Get(org.OrgIDCookie)) > 0 {
+		t.Errorf("ClearContext(..) = %q, want empty org cookie header", md.Get(org.OrgIDCookie)[0])
+	}
+	if len(md.Get(authHeaderName)) > 0 {
+		t.Errorf("ClearContext(..) = %q, want empty auth header", md.Get(authHeaderName)[0])
+	}
+	if len(md.Get(ApikeyTokenHeaderName)) > 0 {
+		t.Errorf("ClearContext(..) = %q, want empty apikey header", md.Get(ApikeyTokenHeaderName)[0])
+	}
+	if len(md.Get(cookies.CookieHeaderName)) != 1 {
+		t.Errorf("expected exactly 1 Cookie header list in metadata, got %d", len(md.Get(cookies.CookieHeaderName)))
 	}
 }
 

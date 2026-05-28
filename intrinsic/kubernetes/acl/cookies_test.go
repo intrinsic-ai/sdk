@@ -368,3 +368,84 @@ func TestAddToRequest(t *testing.T) {
 		})
 	}
 }
+
+func TestCookiesFromOutgoingContext(t *testing.T) {
+	t.Run("no-metadata", func(t *testing.T) {
+		result, err := FromOutgoingContext(t.Context())
+		if len(result) != 0 {
+			t.Errorf("FromOutgoingContext() = %v, want empty", result)
+		}
+		if err != nil {
+			t.Errorf("FromOutgoingContext() = %v, want nil", err)
+		}
+	})
+
+	t.Run("no-cookie-header", func(t *testing.T) {
+		ctx := metadata.NewOutgoingContext(t.Context(), metadata.MD{})
+		result, err := FromOutgoingContext(ctx)
+		if len(result) != 0 {
+			t.Errorf("FromOutgoingContext() = %v, want empty", result)
+		}
+		if err != nil {
+			t.Errorf("FromOutgoingContext() = %v, want nil", err)
+		}
+	})
+
+	t.Run("empty cookie header", func(t *testing.T) {
+		ctx := metadata.NewOutgoingContext(t.Context(), metadata.New(map[string]string{CookieHeaderName: ""}))
+		result, err := FromOutgoingContext(ctx)
+		if len(result) != 0 {
+			t.Errorf("FromOutgoingContext() = %v, want empty", result)
+		}
+		if err != nil {
+			t.Errorf("FromOutgoingContext() = %v, want nil", err)
+		}
+	})
+
+	t.Run("happy case", func(t *testing.T) {
+		md := metadata.New(map[string]string{CookieHeaderName: "one=val1; two=val2"})
+		ctx := metadata.NewOutgoingContext(t.Context(), md)
+		expected := []*http.Cookie{
+			{Name: "one", Value: "val1"},
+			{Name: "two", Value: "val2"},
+		}
+		result, err := FromOutgoingContext(ctx)
+		if err != nil {
+			t.Errorf("FromOutgoingContext() = %v, want nil", err)
+		}
+		if diff := cmp.Diff(expected, result); diff != "" {
+			t.Errorf("FromOutgoingContext() returned diff (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("merge-cookie-headers", func(t *testing.T) {
+		md := metadata.New(map[string]string{CookieHeaderName: "org-id=exampleorg; user-id=doe@example.com"})
+		md.Append(CookieHeaderName, "org-id=exampleorg")
+		ctx := metadata.NewOutgoingContext(t.Context(), md)
+		want := []*http.Cookie{
+			{Name: "org-id", Value: "exampleorg"},
+			{Name: "user-id", Value: "doe@example.com"},
+		}
+		result, err := FromOutgoingContext(ctx)
+		if err != nil {
+			t.Errorf("Error in FromOutgoingContext() = %v, want no error", err)
+		}
+		if diff := cmp.Diff(want, result, cmpopts.SortSlices(func(a, b *http.Cookie) bool { return a.Name < b.Name })); diff != "" {
+			t.Errorf("FromOutgoingContext() returned diff (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("too-many-cookie-headers", func(t *testing.T) {
+		md := metadata.New(map[string]string{CookieHeaderName: "org-id=exampleorg; user-id=doe@example.com"})
+		md.Append(CookieHeaderName, "org-id=exampleorg; user-id=john@example.com")
+		ctx := metadata.NewOutgoingContext(t.Context(), md)
+
+		result, err := FromOutgoingContext(ctx)
+		if len(result) != 0 {
+			t.Errorf("FromOutgoingContext() = %v, want empty", result)
+		}
+		if err == nil {
+			t.Errorf("FromOutgoingContext() error was nil, want error")
+		}
+	})
+}

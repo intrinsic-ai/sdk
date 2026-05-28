@@ -155,6 +155,17 @@ func FromContext(ctx context.Context) ([]*http.Cookie, error) {
 	return FromMD(md)
 }
 
+// FromOutgoingContext extracts the "Cookies" from a GRPC outgoing context.
+// Cookie here refers to a mapped metadata that mirrors http cookies and is used to unify handling
+// of http and GRPC based metadata in our stack.
+func FromOutgoingContext(ctx context.Context) ([]*http.Cookie, error) {
+	md, ok := metadata.FromOutgoingContext(ctx)
+	if !ok {
+		return nil, nil
+	}
+	return FromMD(md)
+}
+
 // FromMD extracts the "Cookies" from a GRPC metadata.MD.
 // Cookie here refers to a mapped metadata that mirrors http cookies and is used to unify handling
 // of http and GRPC based metadata in our stack.
