@@ -19,6 +19,7 @@ import (
 
 	branchpb "intrinsic/solution_versions/proto/v1/branch_go_proto"
 	snapshotpb "intrinsic/solution_versions/proto/v1/snapshot_go_proto"
+	snapshotsourcepb "intrinsic/solution_versions/proto/v1/snapshot_source_go_proto"
 	solutionversionservicepb "intrinsic/solution_versions/proto/v1/solution_version_service_go_proto"
 )
 
@@ -59,8 +60,8 @@ func makeCreateVersionBranchRequest(p createParams) *solutionversionservicepb.Cr
 	}
 
 	if p.snapshotID != "" {
-		req.From = &solutionversionservicepb.CreateBranchRequest_SnapshotSource_{
-			SnapshotSource: &solutionversionservicepb.CreateBranchRequest_SnapshotSource{
+		req.From = &solutionversionservicepb.CreateBranchRequest_SnapshotSource{
+			SnapshotSource: &snapshotsourcepb.SnapshotSource{
 				SnapshotId: p.snapshotID,
 				BranchId:   p.sourceBranchID,
 			},

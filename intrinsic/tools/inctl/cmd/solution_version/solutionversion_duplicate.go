@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 
 	branchpb "intrinsic/solution_versions/proto/v1/branch_go_proto"
+	snapshotsourcepb "intrinsic/solution_versions/proto/v1/snapshot_source_go_proto"
 	solutionversionservicegrpcpb "intrinsic/solution_versions/proto/v1/solution_version_service_go_proto"
 	solutionversionservicepb "intrinsic/solution_versions/proto/v1/solution_version_service_go_proto"
 )
@@ -54,8 +55,8 @@ var SolutionVersionDuplicateCmd = &cobra.Command{
 				DisplayName: newSolutionDisplayName,
 				BranchType:  branchpb.Branch_BRANCH_TYPE_VERSION,
 			},
-			From: &solutionversionservicepb.CreateBranchRequest_SnapshotSource_{
-				SnapshotSource: &solutionversionservicepb.CreateBranchRequest_SnapshotSource{
+			From: &solutionversionservicepb.CreateBranchRequest_SnapshotSource{
+				SnapshotSource: &snapshotsourcepb.SnapshotSource{
 					SnapshotId: tipSnapshotID,
 					BranchId:   sourceSolutionID,
 				},

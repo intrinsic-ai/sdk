@@ -1,0 +1,18 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.solution_versions.v1;
+
+option go_package = "intrinsic/solution_versions/proto/v1/snapshot_source_go_proto";
+
+// A reference to a specific snapshot within a specific branch.
+// This is used to identify a snapshot when it needs to be accessed in the
+// context of its branch history (e.g., for duplication, diffing, or creation).
+message SnapshotSource {
+  // The ID of the snapshot. Depending on the RPC, this may be optional and
+  // default to the tip of the branch.
+  string snapshot_id = 1;
+  // The branch ID that contains the snapshot in its history.
+  string branch_id = 2;
+}

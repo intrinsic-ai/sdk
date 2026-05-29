@@ -9,6 +9,7 @@ import "google/protobuf/field_mask.proto";
 import "intrinsic/solution_versions/proto/v1/branch.proto";
 import "intrinsic/solution_versions/proto/v1/diff_mask.proto";
 import "intrinsic/solution_versions/proto/v1/snapshot.proto";
+import "intrinsic/solution_versions/proto/v1/snapshot_source.proto";
 
 option go_package = "intrinsic/solution_versions/proto/v1/solution_version_service_go_proto";
 
@@ -126,13 +127,6 @@ message CreateBranchRequest {
   // provided in the upstream_branch_id field.
   Branch branch = 1;
 
-  message SnapshotSource {
-    // The ID of the snapshot to create the branch from.
-    string snapshot_id = 1;
-    // The branch ID that contains the snapshot in its history.
-    string branch_id = 2;
-  }
-
   // Allows to create a version branch from the specified template ID.
   // Can only be used without specifying an upstream branch ID and for version
   // branches.
@@ -184,13 +178,6 @@ message CreateTreeRequest {
   //   ]
   // }
   Tree tree = 1;
-
-  message SnapshotSource {
-    // The ID of the snapshot to create the tree from.
-    string snapshot_id = 1;
-    // The branch ID that contains the snapshot in its history.
-    string branch_id = 2;
-  }
 
   // The source to create the tree from.
   oneof from {

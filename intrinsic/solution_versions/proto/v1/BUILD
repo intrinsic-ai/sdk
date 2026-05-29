@@ -35,6 +35,32 @@ py_proto_library(
 )
 
 proto_library(
+    name = "snapshot_source_proto",
+    srcs = ["snapshot_source.proto"],
+    visibility = [
+        "//intrinsic/modified_solution/proto/v1:__pkg__",
+    ],
+)
+
+go_proto_library(
+    name = "snapshot_source_go_proto",
+    importpath = "intrinsic/solution_versions/proto/v1/snapshot_source_go_proto",
+    protos = [":snapshot_source_proto"],
+    visibility = [
+        "//intrinsic/frontend/cloud/portal_bridge:__subpackages__",
+        "//intrinsic/solution_copy:__subpackages__",
+        "//intrinsic/solution_versions:__subpackages__",
+        "//intrinsic/tools/inctl/cmd:__subpackages__",
+    ],
+)
+
+py_proto_library(
+    name = "snapshot_source_py_pb2",
+    visibility = ["//visibility:public"],
+    deps = [":snapshot_source_proto"],
+)
+
+proto_library(
     name = "branch_proto",
     srcs = ["branch.proto"],
     visibility = [
@@ -75,6 +101,7 @@ proto_library(
         ":branch_proto",
         ":diff_mask_proto",
         ":snapshot_proto",
+        ":snapshot_source_proto",
         "@com_google_protobuf//:field_mask_proto",
     ],
 )
@@ -117,6 +144,7 @@ go_proto_library(
         ":branch_go_proto",
         ":diff_mask_go_proto",
         ":snapshot_go_proto",
+        ":snapshot_source_go_proto",
     ],
 )
 
