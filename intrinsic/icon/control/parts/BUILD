@@ -26,6 +26,18 @@ cc_library(
 )
 
 cc_library(
+    name = "io_block",
+    srcs = ["io_block.cc"],
+    hdrs = ["io_block.h"],
+    deps = [
+        "//intrinsic/icon/utils:realtime_status",
+        "//intrinsic/icon/utils:realtime_status_or",
+        "//intrinsic/util:fixed_vector",
+        "@abseil-cpp//absl/types:span",
+    ],
+)
+
+cc_library(
     name = "realtime_robot_payload",
     srcs = ["realtime_robot_payload.cc"],
     hdrs = ["realtime_robot_payload.h"],

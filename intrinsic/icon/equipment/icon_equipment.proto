@@ -4,6 +4,7 @@ syntax = "proto3";
 
 package intrinsic_proto.icon;
 
+import "intrinsic/hardware/gpio/gpio_service_equipment.proto";
 import "intrinsic/icon/equipment/force_control_settings.proto";
 
 option go_package = "intrinsic/icon/equipment/icon_equipment_go_proto";
@@ -36,6 +37,7 @@ message Icon2AdioPart {
 
   oneof target {
     IconTarget icon_target = 3 [deprecated = true];
+    gpio.GPIOServiceTarget gpio_service_target = 5 [deprecated = true];
   }
   repeated string icon_parts = 6;
 

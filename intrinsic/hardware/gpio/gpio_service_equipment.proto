@@ -1,0 +1,11 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.gpio;
+
+option go_package = "intrinsic/hardware/gpio/gpio_service_equipment_go_proto";
+
+message GPIOServiceTarget {
+  string gpio_service_grpc_target = 1;
+}

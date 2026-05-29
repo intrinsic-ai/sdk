@@ -48,6 +48,7 @@ proto_library(
     srcs = ["icon_equipment.proto"],
     deps = [
         ":force_control_settings_proto",
+        "//intrinsic/hardware/gpio:gpio_service_equipment_proto",
     ],
 )
 
