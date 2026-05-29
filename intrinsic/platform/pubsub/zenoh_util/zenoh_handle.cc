@@ -13,7 +13,7 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
-#include "incode/middleware/imw.h"
+#include "intrinsic/middleware/imw.h"
 #include "intrinsic/platform/pubsub/zenoh_util/zenoh_helpers.h"
 
 namespace intrinsic {

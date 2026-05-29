@@ -1,6 +1,6 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-#include "incode/middleware/zenoh/imw_zenoh.h"
+#include "intrinsic/middleware/zenoh/imw_zenoh.h"
 
 #include <pthread.h>
 #include <stdio.h>
@@ -15,10 +15,10 @@
 #include "absl/strings/escaping.h"
 #include "absl/strings/str_format.h"
 #include "absl/time/time.h"
-#include "incode/middleware/zenoh/imw_zenoh_data_callback_context.h"
-#include "incode/middleware/zenoh/imw_zenoh_query_context.h"
-#include "incode/middleware/zenoh/imw_zenoh_queryable_context.h"
-#include "incode/middleware/zenoh/imw_zenoh_reply_context.h"
+#include "intrinsic/middleware/zenoh/imw_zenoh_data_callback_context.h"
+#include "intrinsic/middleware/zenoh/imw_zenoh_query_context.h"
+#include "intrinsic/middleware/zenoh/imw_zenoh_queryable_context.h"
+#include "intrinsic/middleware/zenoh/imw_zenoh_reply_context.h"
 #include "nlohmann/json.hpp"
 
 using json = nlohmann::json;

@@ -1,12 +1,12 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-#include "incode/middleware/zenoh/imw_zenoh_queryable.h"
+#include "intrinsic/middleware/zenoh/imw_zenoh_queryable.h"
 
 #include <string>
 #include <utility>  // for std::move
 
 #include "absl/log/log.h"
-#include "incode/middleware/zenoh/imw_zenoh_reply_context.h"
+#include "intrinsic/middleware/zenoh/imw_zenoh_reply_context.h"
 
 using std::string;
 

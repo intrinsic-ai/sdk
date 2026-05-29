@@ -1,6 +1,6 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-#include "incode/middleware/zenoh/imw_zenoh_publisher.h"
+#include "intrinsic/middleware/zenoh/imw_zenoh_publisher.h"
 
 #include <string>
 #include <utility>  // for std::move

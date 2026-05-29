@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "absl/synchronization/mutex.h"
-#include "incode/middleware/imw.h"
+#include "intrinsic/middleware/imw.h"
 #include "zenoh.h"  // NOLINT(build/include_subdir)
 
 namespace intrinsic {

@@ -3,7 +3,7 @@
 #ifndef MIDDLEWARE_ZENOH_IMW_ZENOH_QUERY_CONTEXT_H_
 #define MIDDLEWARE_ZENOH_IMW_ZENOH_QUERY_CONTEXT_H_
 
-#include "incode/middleware/imw.h"
+#include "intrinsic/middleware/imw.h"
 
 namespace intrinsic {
 

@@ -1,6 +1,6 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-#include "incode/middleware/zenoh/imw_zenoh_queryable_context.h"
+#include "intrinsic/middleware/zenoh/imw_zenoh_queryable_context.h"
 
 using std::string;
 

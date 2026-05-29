@@ -1,10 +1,10 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-#include "incode/middleware/imw.h"
-#include "incode/middleware/zenoh/imw_zenoh.h"
-#include "incode/middleware/zenoh/imw_zenoh_data_callback_context.h"
-#include "incode/middleware/zenoh/imw_zenoh_query_context.h"
-#include "incode/middleware/zenoh/imw_zenoh_queryable_context.h"
+#include "intrinsic/middleware/imw.h"
+#include "intrinsic/middleware/zenoh/imw_zenoh.h"
+#include "intrinsic/middleware/zenoh/imw_zenoh_data_callback_context.h"
+#include "intrinsic/middleware/zenoh/imw_zenoh_query_context.h"
+#include "intrinsic/middleware/zenoh/imw_zenoh_queryable_context.h"
 
 namespace intrinsic {
 

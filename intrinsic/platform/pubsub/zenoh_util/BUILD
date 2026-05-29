@@ -21,7 +21,7 @@ cc_library(
     visibility = ["//intrinsic/platform/pubsub:__subpackages__"],
     deps = [
         ":zenoh_helpers",
-        "//incode/middleware/zenoh:imw_zenoh",
+        "//intrinsic/middleware/zenoh:imw_zenoh",
         "@abseil-cpp//absl/log",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",

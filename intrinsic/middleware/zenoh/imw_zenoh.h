@@ -12,10 +12,10 @@
 #include "absl/base/internal/sysinfo.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
-#include "incode/middleware/imw.h"
-#include "incode/middleware/zenoh/imw_zenoh_publisher.h"
-#include "incode/middleware/zenoh/imw_zenoh_queryable.h"
-#include "incode/middleware/zenoh/imw_zenoh_subscription.h"
+#include "intrinsic/middleware/imw.h"
+#include "intrinsic/middleware/zenoh/imw_zenoh_publisher.h"
+#include "intrinsic/middleware/zenoh/imw_zenoh_queryable.h"
+#include "intrinsic/middleware/zenoh/imw_zenoh_subscription.h"
 #include "nlohmann/json.hpp"
 #include "zenoh.h"  // NOLINT(build/include_subdir)
 

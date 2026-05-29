@@ -11,7 +11,7 @@
 
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
-#include "incode/middleware/imw.h"
+#include "intrinsic/middleware/imw.h"
 
 namespace intrinsic {
 

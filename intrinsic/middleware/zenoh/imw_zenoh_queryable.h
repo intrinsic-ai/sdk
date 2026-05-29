@@ -9,7 +9,7 @@
 
 #include "absl/log/log.h"
 #include "absl/synchronization/mutex.h"
-#include "incode/middleware/imw.h"
+#include "intrinsic/middleware/imw.h"
 #include "zenoh.h"  // NOLINT(build/include_subdir)
 
 struct z_loaned_query_t;
