@@ -74,6 +74,10 @@ message TypeVersion {
   // A short display name for the version, e.g., "v1" or "unversioned". May be
   // empty if a type has only one version.
   string display_version = 2;
+
+  // Name of the .proto file (relative to the source tree) from which this type
+  // can be imported (e.g. "intrinsic/math/proto/pose.proto").
+  string file = 3;
 }
 
 message TypeWithVersions {
