@@ -15,22 +15,52 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
+	solutiondeploymentpb "intrinsic/assets/proto/v1/solution_deployment_go_proto"
 	opmodepb "intrinsic/config/proto/operation_mode_go_proto"
 	deploygrpcpb "intrinsic/kubernetes/workcell_spec/proto/deploy_go_proto"
 	deploypb "intrinsic/kubernetes/workcell_spec/proto/deploy_go_proto"
+
+	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 )
 
 func startSolution(ctx context.Context, conn *grpc.ClientConn, solutionID string, operationMode string) error {
-	client := deploygrpcpb.NewDeployServiceClient(conn)
+	client := solutiondeploymentpb.NewSolutionDeploymentServiceClient(conn)
 	opMode := operationmode.FromString(operationMode)
 	if opMode == opmodepb.OperationMode_OPERATION_MODE_UNSPECIFIED {
 		return fmt.Errorf("invalid operation mode: %q", operationMode)
 	}
-	req := &deploypb.StartSolutionRequest{SolutionId: solutionID, OperationMode: opMode}
-	_, err := client.StartSolution(ctx, req)
-	if err != nil {
+	op, err := client.CreateSolutionDeploymentFromVersionedSolution(ctx, &solutiondeploymentpb.CreateSolutionDeploymentFromVersionedSolutionRequest{
+		SolutionId:    solutionID,
+		OperationMode: opMode,
+	})
+	if status.Code(err) == codes.Unimplemented {
+		if _, err := deploygrpcpb.NewDeployServiceClient(conn).StartSolution(ctx, &deploypb.StartSolutionRequest{
+			SolutionId:    solutionID,
+			OperationMode: opMode,
+		}); err != nil {
+			return fmt.Errorf("failed to start solution (fallback): %w", err)
+		}
+		return nil
+	} else if err != nil {
 		return fmt.Errorf("failed to start solution: %w", err)
+	}
+
+	name := op.GetName()
+	lroClient := lropb.NewOperationsClient(conn)
+	for !op.GetDone() {
+		op, err = lroClient.WaitOperation(ctx, &lropb.WaitOperationRequest{
+			Name: name,
+		})
+		if err != nil {
+			return fmt.Errorf("unable to check status of solution start operation %q: %w", name, err)
+		}
+	}
+
+	if err := status.ErrorProto(op.GetError()); err != nil {
+		return fmt.Errorf("solution start operation %q failed: %w", name, err)
 	}
 
 	return nil

@@ -10,10 +10,14 @@ go_library(
     deps = [
         "//intrinsic/assets:clientutils",
         "//intrinsic/assets:cmdutils",
+        "//intrinsic/assets/proto/v1:solution_deployment_go_proto",
         "//intrinsic/kubernetes/workcell_spec/proto:deploy_go_proto",
         "//intrinsic/tools/inctl/util:printer",
         "@com_github_spf13_cobra//:go_default_library",
         "@com_github_spf13_viper//:go_default_library",
+        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
         "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//codes:go_default_library",
+        "@org_golang_google_grpc//status:go_default_library",
     ],
 )

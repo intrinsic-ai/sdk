@@ -14,17 +14,41 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
+	solutiondeploymentpb "intrinsic/assets/proto/v1/solution_deployment_go_proto"
 	deploygrpcpb "intrinsic/kubernetes/workcell_spec/proto/deploy_go_proto"
 	deploypb "intrinsic/kubernetes/workcell_spec/proto/deploy_go_proto"
+
+	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 )
 
 func stopSolution(ctx context.Context, conn *grpc.ClientConn) error {
-	client := deploygrpcpb.NewDeployServiceClient(conn)
-	req := &deploypb.StopSolutionRequest{}
-	_, err := client.StopSolution(ctx, req)
-	if err != nil {
+	client := solutiondeploymentpb.NewSolutionDeploymentServiceClient(conn)
+	op, err := client.DeleteSolutionDeployment(ctx, &solutiondeploymentpb.DeleteSolutionDeploymentRequest{})
+	if status.Code(err) == codes.Unimplemented {
+		if _, err := deploygrpcpb.NewDeployServiceClient(conn).StopSolution(ctx, &deploypb.StopSolutionRequest{}); err != nil {
+			return fmt.Errorf("failed to stop solution (fallback): %w", err)
+		}
+		return nil
+	} else if err != nil {
 		return fmt.Errorf("failed to stop solution: %w", err)
+	}
+
+	name := op.GetName()
+	lroClient := lropb.NewOperationsClient(conn)
+	for !op.GetDone() {
+		op, err = lroClient.WaitOperation(ctx, &lropb.WaitOperationRequest{
+			Name: name,
+		})
+		if err != nil {
+			return fmt.Errorf("unable to check status of solution stop operation %q: %w", name, err)
+		}
+	}
+
+	if err := status.ErrorProto(op.GetError()); err != nil {
+		return fmt.Errorf("solution stop operation %q failed: %w", name, err)
 	}
 
 	return nil
