@@ -137,6 +137,15 @@ message IkRequest {
   // Optional override for default collision checker configuration.
   optional intrinsic_proto.world.CollisionCheckerConfig
       collision_checker_config = 11;
+
+  // Optional caller id to correlate the IKRequest logs with it's caller.
+  optional string caller_id = 12;
+
+  // The logging context for the skill sending the request.
+  optional intrinsic_proto.data_logger.Context context = 13;
+
+  // Optional boolean flag to disable logging of the ComputeIk request data.
+  bool disable_logging = 14;
 }
 
 message IkResponse {
@@ -154,6 +163,11 @@ message IkResponse {
   // identify the objects in collision.
   intrinsic_proto.motion_planning.v1.ComputeIkDebugInformation
       ik_debug_information = 2;
+
+  // Logging id to correlate with the corresponding IkRequest log
+  // This field will only be set if the disable_logging field is set to
+  // false (default) in the corresponding IkRequest.
+  optional string logging_id = 3;
 }
 
 message FkRequest {
