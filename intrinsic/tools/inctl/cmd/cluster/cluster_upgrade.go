@@ -8,13 +8,14 @@ import (
 	"errors"
 	"fmt"
 	"intrinsic/assets/clientutils"
-	"intrinsic/frontend/cloud/devicemanager/version"
 	"intrinsic/skills/tools/skill/cmd/dialerutil"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/orgutil"
 	"os"
 	"strings"
 	"text/tabwriter"
+
+	"intrinsic/cloud/devicemanager/version"
 
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"

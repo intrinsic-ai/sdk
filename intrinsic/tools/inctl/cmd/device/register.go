@@ -15,8 +15,9 @@ import (
 	"strings"
 	"time"
 
-	"intrinsic/frontend/cloud/devicemanager/shared/shared"
 	"intrinsic/tools/inctl/util/orgutil"
+
+	"intrinsic/cloud/devicemanager/shared"
 
 	log "github.com/golang/glog"
 	"github.com/spf13/cobra"

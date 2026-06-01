@@ -14,8 +14,8 @@ go_library(
     ],
     importpath = "intrinsic/tools/inctl/cmd/device/device",
     deps = [
+        "//intrinsic/cloud/devicemanager/shared",
         "//intrinsic/frontend/cloud/api/v1:clustermanager_api_go_proto",
-        "//intrinsic/frontend/cloud/devicemanager/shared",
         "//intrinsic/tools/inctl/auth",
         "//intrinsic/tools/inctl/cmd:root",
         "//intrinsic/tools/inctl/util:orgutil",
