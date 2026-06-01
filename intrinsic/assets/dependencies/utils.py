@@ -3,6 +3,8 @@
 """Provides utility functions for Asset dependencies."""
 
 import contextlib
+from typing import Any
+from typing import Sequence
 
 from google.protobuf import any_pb2
 import grpc
@@ -30,6 +32,7 @@ class NotGRPCError(ValueError):
 def connect(
     dep: resolved_dependency_pb2.ResolvedDependency,
     iface: str,
+    grpc_options: Sequence[tuple[str, Any]] | None = None,
 ) -> grpc.Channel:
   """Creates a gRPC channel to the provider of the specified interface.
 
@@ -59,7 +62,7 @@ def connect(
 
   metadata = iface_proto.grpc.connection.metadata
   channel = grpc.intercept_channel(
-      grpc.insecure_channel(iface_proto.grpc.connection.address),
+      grpc.insecure_channel(iface_proto.grpc.connection.address, grpc_options),
       interceptor.HeaderAdderInterceptor(
           lambda: [(m.key, m.value) for m in metadata]
       ),
