@@ -14,6 +14,7 @@ go_library(
     importpath = "intrinsic/skills/tools/skill/cmd/directupload/directupload",
     deps = [
         "//intrinsic/assets:imagetransfer",
+        "//intrinsic/kubernetes/workcell_spec/proto:image_go_proto",
         "//intrinsic/storage/artifacts/client",
         "//intrinsic/storage/artifacts/proto/v1:articat_go_proto",
         "//intrinsic/storage/artifacts/proto/v1:artifact_go_proto",

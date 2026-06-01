@@ -10,7 +10,6 @@ import (
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/assets/imagetransfer"
-	"intrinsic/assets/imageutils"
 	"intrinsic/skills/tools/skill/cmd/directupload/directupload"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/printer"
@@ -60,7 +59,6 @@ func GetCommand() *cobra.Command {
 				releaseasset.WithIgnoreExisting(flags.GetFlagIgnoreExisting()),
 				releaseasset.WithImageTransferer(transferer),
 				releaseasset.WithPrinter(printer.PrintSf),
-				releaseasset.WithRegistry(imageutils.GetRegistry(clientutils.ResolveCatalogProjectFromInctl(flags))),
 				releaseasset.WithReleaseNotes(flags.GetFlagReleaseNotes()),
 				releaseasset.WithVersion(flags.GetFlagVersion()),
 			)

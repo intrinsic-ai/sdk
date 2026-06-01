@@ -4,11 +4,8 @@
 package cmdutils
 
 import (
-	"context"
 	"fmt"
-	"intrinsic/assets/imagetransfer"
 	"intrinsic/assets/imageutils"
-	"intrinsic/assets/services/bundleimages"
 	"intrinsic/assets/typeutils"
 	"intrinsic/assets/viewutils"
 	"intrinsic/tools/inctl/util/orgutil"
@@ -20,9 +17,6 @@ import (
 	iapb "intrinsic/assets/proto/installed_assets_go_proto"
 	viewpb "intrinsic/assets/proto/view_go_proto"
 
-	"github.com/google/go-containerregistry/pkg/authn"
-	"github.com/google/go-containerregistry/pkg/v1/google"
-	"github.com/google/go-containerregistry/pkg/v1/remote"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -688,48 +682,6 @@ func parseNonNegativeDuration(durationStr string) (time.Duration, error) {
 		return 0, fmt.Errorf("duration must not be negative, but got %q", durationStr)
 	}
 	return duration, nil
-}
-
-func (cf *CmdFlags) createBasicAuth() *bundleimages.BasicAuth {
-	user, pwd := cf.GetFlagsRegistryAuthUserPassword()
-	if len(user) == 0 || len(pwd) == 0 {
-		return nil
-	}
-	return &bundleimages.BasicAuth{
-		User: user,
-		Pwd:  pwd,
-	}
-}
-
-func (cf *CmdFlags) authOpt() remote.Option {
-	if auth := cf.createBasicAuth(); auth != nil {
-		return remote.WithAuth(authn.FromConfig(authn.AuthConfig{
-			Username: auth.User,
-			Password: auth.Pwd,
-		}))
-	}
-	return remote.WithAuthFromKeychain(google.Keychain)
-}
-
-// CreateRegistryOpts creates registry options for processing images.
-func (cf *CmdFlags) CreateRegistryOpts(ctx context.Context) bundleimages.RegistryOptions {
-	return cf.CreateRegistryOptsWithTransferer(
-		ctx,
-		imagetransfer.RemoteTransferer(remote.WithContext(ctx), cf.authOpt()),
-		cf.GetFlagRegistry(),
-	)
-}
-
-// CreateRegistryOptsWithTransferer creates registry options for processing images.
-func (cf *CmdFlags) CreateRegistryOptsWithTransferer(ctx context.Context, transferer imagetransfer.Transferer, registry string) bundleimages.RegistryOptions {
-	opts := bundleimages.RegistryOptions{
-		Transferer: transferer,
-		URI:        registry,
-	}
-	if auth := cf.createBasicAuth(); auth != nil {
-		opts.BasicAuth = *auth
-	}
-	return opts
 }
 
 // MarkHidden marks all flags in the list as hidden for the given command

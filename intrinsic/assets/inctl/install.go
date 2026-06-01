@@ -82,32 +82,22 @@ func GetCommand() *cobra.Command {
 			defer conn.Close()
 
 			// Determine the image transferer to use. Default to direct injection into the cluster.
-			registry := flags.GetFlagRegistry()
-			remoteOpt, err := clientutils.RemoteOpt(flags)
-			if err != nil {
-				return err
+			var transfer imagetransfer.Transferer
+			if registry := flags.GetFlagRegistry(); registry != "" {
+				transfer = imagetransfer.RemoteTransferer(registry, flags.GetString(cmdutils.KeyAuthUser), flags.GetString(cmdutils.KeyAuthPassword))
 			}
-			transfer := imagetransfer.RemoteTransferer(remoteOpt)
 			if !flags.GetFlagSkipDirectUpload() {
-				opts := []directupload.Option{
+				transfer = directupload.NewTransferer(
 					directupload.WithDiscovery(directupload.NewFromConnection(conn)),
 					directupload.WithOutput(cmd.OutOrStdout()),
-				}
-				if registry != "" {
-					// User set external registry, so we can use it as failover.
-					opts = append(opts, directupload.WithFailOver(transfer))
-				} else {
-					// Fake name that ends in .local in order to indicate that this is local, directly
-					// uploaded image.
-					registry = "direct.upload.local"
-				}
-				transfer = directupload.NewTransferer(opts...)
+					directupload.WithFailOver(transfer),
+				)
 			}
 			client := iagrpcpb.NewInstalledAssetsClient(conn)
 			authCtx := clientutils.AuthInsecureConn(ctx, address, flags.GetFlagProject())
 
 			processor := bundle.Processor{
-				ImageProcessor:          bundleimages.CreateImageProcessor(flags.CreateRegistryOptsWithTransferer(ctx, transfer, registry)),
+				ImageProcessor:          bundleimages.CreateImageProcessor(transfer),
 				ProcessReferencedData:   databundle.ToPortableReferencedData(),
 			}
 

@@ -35,7 +35,6 @@ type fromBundleOptions struct {
 	ignoreExisting  bool
 	imageTransferer imagetransfer.Transferer
 	printer         Printer
-	registry        string
 	releaseNotes    string
 	version         string
 }
@@ -99,13 +98,6 @@ func WithPrinter(printer Printer) FromBundleOption {
 	}
 }
 
-// WithRegistry specifies the artifact registry to use.
-func WithRegistry(registry string) FromBundleOption {
-	return func(opts *fromBundleOptions) {
-		opts.registry = registry
-	}
-}
-
 // WithReleaseNotes specifies release notes to include with the Asset.
 func WithReleaseNotes(releaseNotes string) FromBundleOption {
 	return func(opts *fromBundleOptions) {
@@ -134,9 +126,6 @@ func FromBundle(ctx context.Context, path string, options ...FromBundleOption) e
 	if opts.imageTransferer == nil {
 		return fmt.Errorf("transferer must not be nil")
 	}
-	if opts.registry == "" {
-		return fmt.Errorf("registry must not be empty")
-	}
 	if opts.version == "" {
 		return fmt.Errorf("version must not be empty")
 	}
@@ -147,10 +136,7 @@ func FromBundle(ctx context.Context, path string, options ...FromBundleOption) e
 	}
 
 	processor := bundle.Processor{
-		ImageProcessor: bundleimages.CreateImageProcessor(bundleimages.RegistryOptions{
-			Transferer: opts.imageTransferer,
-			URI:        opts.registry,
-		}),
+		ImageProcessor:          bundleimages.CreateImageProcessor(opts.imageTransferer),
 		ProcessReferencedData:   referencedDataProcessor,
 	}
 

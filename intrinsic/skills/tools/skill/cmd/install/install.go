@@ -63,32 +63,20 @@ $ inctl skill install abc/skill.bundle.tar --solution=my-solution
 			}
 			defer conn.Close()
 
-			// Install the skill to the registry
-			registry := flags.GetFlagRegistry()
-
-			// Upload skill, directly, to workcell, with fail-over legacy transfer if possible
-			remoteOpt, err := clientutils.RemoteOpt(flags)
-			if err != nil {
-				return err
+			// Determine the image transferer to use. Default to direct injection into the cluster.
+			var transfer imagetransfer.Transferer
+			if registry := flags.GetFlagRegistry(); registry != "" {
+				transfer = imagetransfer.RemoteTransferer(registry, flags.GetString(cmdutils.KeyAuthUser), flags.GetString(cmdutils.KeyAuthPassword))
 			}
-			transfer := imagetransfer.RemoteTransferer(remoteOpt)
 			if !flags.GetFlagSkipDirectUpload() {
-				opts := []directupload.Option{
+				transfer = directupload.NewTransferer(
 					directupload.WithDiscovery(directupload.NewFromConnection(conn)),
 					directupload.WithOutput(command.OutOrStdout()),
-				}
-				if registry != "" {
-					// User set external registry, so we can use it as failover.
-					opts = append(opts, directupload.WithFailOver(transfer))
-				} else {
-					// Fake name that ends in .local in order to indicate that this is local, directly uploaded
-					// image.
-					registry = "direct.upload.local"
-				}
-				transfer = directupload.NewTransferer(opts...)
+					directupload.WithFailOver(transfer),
+				)
 			}
 			manifest, err := skillbundle.Process(ctx, target,
-				skillbundle.WithImageProcessor(bundleimages.CreateImageProcessor(flags.CreateRegistryOptsWithTransferer(ctx, transfer, registry))),
+				skillbundle.WithImageProcessor(bundleimages.CreateImageProcessor(transfer)),
 			)
 			if err != nil {
 				return fmt.Errorf("could not read bundle file %q: %v", target, err)

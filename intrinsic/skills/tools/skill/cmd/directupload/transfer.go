@@ -17,6 +17,7 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/atomic"
 
+	ipb "intrinsic/kubernetes/workcell_spec/proto/image_go_proto"
 	artifactgrpcpb "intrinsic/storage/artifacts/proto/v1/artifact_go_proto"
 )
 
@@ -77,6 +78,8 @@ func WithFailOver(failOver imagetransfer.Transferer) Option {
 	}
 }
 
+const directUploadRegistry = "direct.upload.local"
+
 // NewTransferer create a new instance of direct upload Transferer implementation
 // and applies options if specified.
 func NewTransferer(opts ...Option) imagetransfer.Transferer {
@@ -111,25 +114,31 @@ type directTransfer struct {
 	uploadType  client.UploaderOption
 }
 
-func (dt *directTransfer) Write(ctx context.Context, ref name.Reference, img crv1.Image) error {
+func (dt *directTransfer) Write(ctx context.Context, nameStr string, tag string, img crv1.Image) (*ipb.Image, error) {
+	dst := fmt.Sprintf("%s/%s:%s", directUploadRegistry, nameStr, tag)
+	ref, err := name.NewTag(dst)
+	if err != nil {
+		return nil, fmt.Errorf("name.NewTag(%q): %w", dst, err)
+	}
+
 	if dt.writer != nil {
 		ctx = client.SetProgressMonitor(ctx, newMonitor(dt.writer))
 	}
 	if dt.uploader == nil {
 		apiClient, err := dt.getClient(ctx)
 		if err != nil {
-			return fmt.Errorf("cannot connect: %w", err)
+			return nil, fmt.Errorf("cannot connect: %w", err)
 		}
 		dt.uploader, err = client.NewUploader(apiClient, dt.uploadType, client.WithUploadParallelism(dt.parallelism))
 		if err != nil {
-			return fmt.Errorf("cannot create uploader: %w", err)
+			return nil, fmt.Errorf("cannot create uploader: %w", err)
 		}
 	}
 
 	numAttempts := atomic.NewUint32(0)
 	// The initial attempt is not counted as a retry.
 	maxAttempts := 1 + dt.maxRetries
-	err := backoff.Retry(func() error {
+	err = backoff.Retry(func() error {
 		if ctx.Err() != nil {
 			return backoff.Permanent(ctx.Err())
 		}
@@ -146,15 +155,26 @@ func (dt *directTransfer) Write(ctx context.Context, ref name.Reference, img crv
 	}, backoff.WithMaxRetries(backoff.NewExponentialBackOff(), uint64(dt.maxRetries)))
 	if err != nil {
 		if dt.failOver != nil {
-			if foErr := dt.failOver.Write(ctx, ref, img); foErr != nil {
-				return fmt.Errorf("image write failed (direct: %s): %w", err, foErr)
+			res, foErr := dt.failOver.Write(ctx, nameStr, tag, img)
+			if foErr != nil {
+				return nil, fmt.Errorf("image write failed (direct: %s): %w", err, foErr)
 			}
 			log.WarningContextf(ctx, "fail over succeeded with prior direct upload failure: %s", err)
-			return nil
+			return res, nil
 		}
-		return fmt.Errorf("image write failed: %w", err)
+		return nil, fmt.Errorf("image write failed: %w", err)
 	}
-	return nil
+
+	digest, err := img.Digest()
+	if err != nil {
+		return nil, fmt.Errorf("could not get image digest: %w", err)
+	}
+
+	return &ipb.Image{
+		Registry: directUploadRegistry,
+		Name:     nameStr,
+		Tag:      "@" + digest.String(),
+	}, nil
 }
 
 func (dt *directTransfer) getClient(ctx context.Context) (artifactgrpcpb.ArtifactServiceApiClient, error) {

@@ -147,7 +147,6 @@ go_library(
         "//intrinsic/assets:clientutils",
         "//intrinsic/assets:cmdutils",
         "//intrinsic/assets:imagetransfer",
-        "//intrinsic/assets:imageutils",
         "//intrinsic/assets/catalog:releaseasset",
         "//intrinsic/skills/tools/skill/cmd/directupload",
         "//intrinsic/tools/inctl/cmd:root",
