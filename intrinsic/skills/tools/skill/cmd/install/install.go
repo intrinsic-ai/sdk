@@ -66,7 +66,8 @@ $ inctl skill install abc/skill.bundle.tar --solution=my-solution
 			// Determine the image transferer to use. Default to direct injection into the cluster.
 			var transfer imagetransfer.Transferer
 			if registry := flags.GetFlagRegistry(); registry != "" {
-				transfer = imagetransfer.RemoteTransferer(registry, flags.GetString(cmdutils.KeyAuthUser), flags.GetString(cmdutils.KeyAuthPassword))
+				user, pwd := flags.GetFlagsRegistryAuthUserPassword()
+				transfer = imagetransfer.RemoteTransferer(registry, user, pwd)
 			}
 			if !flags.GetFlagSkipDirectUpload() {
 				transfer = directupload.NewTransferer(
