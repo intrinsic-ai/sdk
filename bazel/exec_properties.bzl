@@ -5,7 +5,7 @@ Exec Properties used for executors.
 """
 
 DEFAULT = {
-    "container-image": "docker://gcr.io/cloud-robotics-releases/bazel-rbe-executor@sha256:85a5dfb319ca87dc958746f4f5e5a7ec509354744d39d6260b3f3d7c5074c251",
+    "container-image": "docker://us-central1-docker.pkg.dev/intrinsic-mirror/intrinsic-build-images/bazel-rbe-executor@sha256:c2d50e5f5a3bbea4c47ffcdc1b2755168d1c682ec2b3ba620fb3134eca4bab0d",
     "OSFamily": "Linux",
 }
 
