@@ -60,7 +60,7 @@ message DisableResponse {}
 message EnableRequest {}
 message EnableResponse {}
 
-
+// intrinsic:assets_platform_provided_dependencies:strip_begin
 // Configuration for the service state interfaces provided to the Intrinsic
 // platform.
 message ServiceStateConfig {
@@ -74,4 +74,4 @@ message ServiceStateConfig {
   // compatibility across a wider range of platform versions.
   repeated ServiceVersion service_versions = 1;
 }
-
+// intrinsic:assets_platform_provided_dependencies:strip_end

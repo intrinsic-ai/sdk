@@ -142,15 +142,15 @@ go_library(
     visibility = ["//intrinsic:__subpackages__"],
     deps = [
         "//intrinsic/assets:idutils",
-        "//intrinsic/assets:interfaceutils",
-        "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",
+        "//intrinsic/assets:interfaceutils",  # intrinsic:assets_platform_provided_dependencies:strip
+        "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",  # intrinsic:assets_platform_provided_dependencies:strip
         "//intrinsic/assets/proto:id_go_proto",
-        "//intrinsic/assets/proto:metadata_go_proto",
-        "//intrinsic/assets/services/proto:service_manifest_go_proto",
-        "//intrinsic/assets/services/proto/v1:dynamic_reconfiguration_go_proto",
-        "//intrinsic/assets/services/proto/v1:service_state_go_proto",
-        "//intrinsic/skills/proto:processed_skill_manifest_go_proto",
-        "//intrinsic/skills/proto:skill_manifest_go_proto",
+        "//intrinsic/assets/proto:metadata_go_proto",  # intrinsic:assets_platform_provided_dependencies:strip
+        "//intrinsic/assets/services/proto:service_manifest_go_proto",  # intrinsic:assets_platform_provided_dependencies:strip
+        "//intrinsic/assets/services/proto/v1:dynamic_reconfiguration_go_proto",  # intrinsic:assets_platform_provided_dependencies:strip
+        "//intrinsic/assets/services/proto/v1:service_state_go_proto",  # intrinsic:assets_platform_provided_dependencies:strip
+        "//intrinsic/skills/proto:processed_skill_manifest_go_proto",  # intrinsic:assets_platform_provided_dependencies:strip
+        "//intrinsic/skills/proto:skill_manifest_go_proto",  # intrinsic:assets_platform_provided_dependencies:strip
         "@org_golang_google_grpc//codes:go_default_library",
         "@org_golang_google_grpc//status:go_default_library",
     ],

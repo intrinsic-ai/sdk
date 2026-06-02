@@ -13,7 +13,7 @@ import (
 	"intrinsic/assets/dependencies/platform"
 	deputils "intrinsic/assets/dependencies/utils"
 	"intrinsic/assets/idutils"
-	"intrinsic/assets/interfaceutils" 
+	"intrinsic/assets/interfaceutils" // intrinsic:assets_platform_provided_dependencies:strip
 	"intrinsic/assets/metadatautils"
 	"intrinsic/util/go/validate"
 	"intrinsic/util/proto/names"
@@ -22,11 +22,11 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 
-	metadatapb "intrinsic/assets/proto/metadata_go_proto" 
+	metadatapb "intrinsic/assets/proto/metadata_go_proto" // intrinsic:assets_platform_provided_dependencies:strip
 	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
 	svpb "intrinsic/assets/services/proto/service_volume_go_proto"
-	drpb "intrinsic/assets/services/proto/v1/dynamic_reconfiguration_go_proto" 
-	sspb "intrinsic/assets/services/proto/v1/service_state_go_proto"           
+	drpb "intrinsic/assets/services/proto/v1/dynamic_reconfiguration_go_proto" // intrinsic:assets_platform_provided_dependencies:strip
+	sspb "intrinsic/assets/services/proto/v1/service_state_go_proto"           // intrinsic:assets_platform_provided_dependencies:strip
 
 	anypb "google.golang.org/protobuf/types/known/anypb"
 )
@@ -109,17 +109,17 @@ func ServiceManifest(m *smpb.ServiceManifest, options ...ServiceManifestOption) 
 	); err != nil {
 		return fmt.Errorf("invalid service config for Service %q: %w", id, err)
 	}
-
+	// intrinsic:assets_platform_provided_dependencies:strip_begin
 	if err := validatePlatformProvidesInFiles(platform.ProvidedByServiceManifest(m), opts.files); err != nil {
 		return fmt.Errorf("invalid platform provided interfaces for Service %q: %w", id, err)
 	}
-
+	// intrinsic:assets_platform_provided_dependencies:strip_end
 	return nil
 }
 
 type processedServiceManifestOptions struct {
 	requiredRegistry               string
-	skipPlatformServicesCheckInFDS bool 
+	skipPlatformServicesCheckInFDS bool // intrinsic:assets_platform_provided_dependencies:strip
 }
 
 // ProcessedServiceManifestOption is an option for validating a ProcessedServiceManifest.
@@ -132,7 +132,7 @@ func WithRequiredRegistry(registry string) ProcessedServiceManifestOption {
 	}
 }
 
-
+// intrinsic:assets_platform_provided_dependencies:strip_begin
 
 // WithSkipPlatformServicesCheckInFDS specifies whether to skip the check that platform-provided
 // services are present in the file descriptor set.
@@ -142,7 +142,7 @@ func WithSkipPlatformServicesCheckInFDS(skip bool) ProcessedServiceManifestOptio
 	}
 }
 
-
+// intrinsic:assets_platform_provided_dependencies:strip_end
 
 // ProcessedServiceManifest validates a ProcessedServiceManifest.
 func ProcessedServiceManifest(m *smpb.ProcessedServiceManifest, options ...ProcessedServiceManifestOption) error {
@@ -198,13 +198,13 @@ func ProcessedServiceManifest(m *smpb.ProcessedServiceManifest, options ...Proce
 		return fmt.Errorf("invalid service config for Service %q: %w", id, err)
 	}
 
-
+	// intrinsic:assets_platform_provided_dependencies:strip_begin
 	if !opts.skipPlatformServicesCheckInFDS {
 		if err := validatePlatformProvidesInFiles(platform.ProvidedByProcessedServiceManifest(m), files); err != nil {
 			return fmt.Errorf("invalid platform provided interfaces for Service %q: %w", id, err)
 		}
 	}
-
+	// intrinsic:assets_platform_provided_dependencies:strip_end
 
 	return nil
 }
@@ -289,7 +289,7 @@ func validateServiceDef(sd *smpb.ServiceDef, files *protoregistry.Files) (map[st
 			}
 		}
 
-
+		// intrinsic:assets_platform_provided_dependencies:strip_begin
 		if drc := sd.GetDynamicReconfigurationConfig(); drc != nil {
 			// If DynamicReconfigurationConfig is present then at least one service version must be
 			// specified.
@@ -322,7 +322,7 @@ func validateServiceDef(sd *smpb.ServiceDef, files *protoregistry.Files) (map[st
 		} else if sd.GetSupportsServiceState() {
 			return nil, fmt.Errorf("deprecated supports_service_state is true but ServiceStateConfig is not present")
 		}
-
+		// intrinsic:assets_platform_provided_dependencies:strip_end
 	}
 
 	// Validate the Service's volumes.
@@ -417,7 +417,7 @@ func validateServiceConfig(configMessageFullName string, defaultConfig *anypb.An
 	return nil
 }
 
-
+// intrinsic:assets_platform_provided_dependencies:strip_begin
 func validatePlatformProvidesInFiles(interfaces []*metadatapb.Interface, files *protoregistry.Files) error {
 	for _, i := range interfaces {
 		if strings.HasPrefix(i.GetUri(), interfaceutils.GRPCURIPrefix) {
@@ -434,4 +434,4 @@ func validatePlatformProvidesInFiles(interfaces []*metadatapb.Interface, files *
 	return nil
 }
 
-
+// intrinsic:assets_platform_provided_dependencies:strip_end

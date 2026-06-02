@@ -76,7 +76,7 @@ func backfillSkillOptions(options *smpb.Options, opts *fixOpts) {
 		return
 	}
 
-
+	// intrinsic:assets_platform_provided_dependencies:strip_begin
 	// If SkillsServicesConfig is not present, we assume this skill provides the following skill
 	// service gRPC interfaces to the platform.
 	if options.GetSkillServicesConfig() == nil {
@@ -88,5 +88,5 @@ func backfillSkillOptions(options *smpb.Options, opts *fixOpts) {
 			},
 		}
 	}
-
+	// intrinsic:assets_platform_provided_dependencies:strip_end
 }

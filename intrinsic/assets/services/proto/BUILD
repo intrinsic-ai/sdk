@@ -21,9 +21,9 @@ proto_library(
         "//intrinsic/assets/proto:id_proto",
         "//intrinsic/assets/proto:vendor_proto",
         "//intrinsic/assets/proto/v1:recommended_configuration_config_proto",
-        "//intrinsic/assets/services/proto/v1:dynamic_reconfiguration_proto",
+        "//intrinsic/assets/services/proto/v1:dynamic_reconfiguration_proto",  # intrinsic:assets_platform_provided_dependencies:strip
         "//intrinsic/assets/services/proto/v1:service_inspection_proto",
-        "//intrinsic/assets/services/proto/v1:service_state_proto",
+        "//intrinsic/assets/services/proto/v1:service_state_proto",  # intrinsic:assets_platform_provided_dependencies:strip
         "//intrinsic/kubernetes/workcell_spec/proto:image_proto",
         "@com_google_protobuf//:any_proto",
         "@com_google_protobuf//:descriptor_proto",
@@ -44,9 +44,9 @@ go_proto_library(
         "//intrinsic/assets/proto:id_go_proto",
         "//intrinsic/assets/proto:vendor_go_proto",
         "//intrinsic/assets/proto/v1:recommended_configuration_config_go_proto",
-        "//intrinsic/assets/services/proto/v1:dynamic_reconfiguration_go_proto",
+        "//intrinsic/assets/services/proto/v1:dynamic_reconfiguration_go_proto",  # intrinsic:assets_platform_provided_dependencies:strip
         "//intrinsic/assets/services/proto/v1:service_inspection_go_proto",
-        "//intrinsic/assets/services/proto/v1:service_state_go_proto",
+        "//intrinsic/assets/services/proto/v1:service_state_go_proto",  # intrinsic:assets_platform_provided_dependencies:strip
         "//intrinsic/kubernetes/workcell_spec/proto:image_go_proto",
     ],
 )

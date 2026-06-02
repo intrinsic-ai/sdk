@@ -9,9 +9,9 @@ import (
 	idpb "intrinsic/assets/proto/id_go_proto"
 	vendorpb "intrinsic/assets/proto/vendor_go_proto"
 	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
-	drpb "intrinsic/assets/services/proto/v1/dynamic_reconfiguration_go_proto" 
+	drpb "intrinsic/assets/services/proto/v1/dynamic_reconfiguration_go_proto" // intrinsic:assets_platform_provided_dependencies:strip
 	sipb "intrinsic/assets/services/proto/v1/service_inspection_go_proto"
-	sspb "intrinsic/assets/services/proto/v1/service_state_go_proto" 
+	sspb "intrinsic/assets/services/proto/v1/service_state_go_proto" // intrinsic:assets_platform_provided_dependencies:strip
 	imagepb "intrinsic/kubernetes/workcell_spec/proto/image_go_proto"
 
 	dpb "google.golang.org/protobuf/types/descriptorpb"
@@ -21,13 +21,13 @@ import (
 type makeServiceManifestOptions struct {
 	configMessageFullName          string
 	defaultConfigurationFilename   *string
-	dynamicReconfigurationConfig   *drpb.DynamicReconfigurationConfig 
+	dynamicReconfigurationConfig   *drpb.DynamicReconfigurationConfig // intrinsic:assets_platform_provided_dependencies:strip
 	imageFilenames                 []string
 	metadata                       *smpb.ServiceMetadata
 	realSpec                       *smpb.ServicePodSpec
 	serviceInspectionConfig        *sipb.ServiceInspectionConfig
 	serviceProtoPrefixes           []string
-	serviceStateConfig             *sspb.ServiceStateConfig 
+	serviceStateConfig             *sspb.ServiceStateConfig // intrinsic:assets_platform_provided_dependencies:strip
 	simSpec                        *smpb.ServicePodSpec
 	supportsDynamicReconfiguration bool
 	supportsServiceState           bool
@@ -94,7 +94,7 @@ func WithSimSpec(spec *smpb.ServicePodSpec) MakeServiceManifestOption {
 	}
 }
 
-
+// intrinsic:assets_platform_provided_dependencies:strip_begin
 
 // WithDynamicReconfigurationConfig specifies the dynamic reconfiguration config to use in the ServiceManifest.
 func WithDynamicReconfigurationConfig(config *drpb.DynamicReconfigurationConfig) MakeServiceManifestOption {
@@ -110,7 +110,7 @@ func WithServiceStateConfig(config *sspb.ServiceStateConfig) MakeServiceManifest
 	}
 }
 
-
+// intrinsic:assets_platform_provided_dependencies:strip_end
 
 // WithSupportsDynamicReconfiguration specifies the boolean supports_dynamic_reconfiguration field.
 func WithSupportsDynamicReconfiguration(supports bool) MakeServiceManifestOption {
@@ -173,11 +173,11 @@ func MakeServiceManifest(t *testing.T, options ...MakeServiceManifestOption) *sm
 		Metadata: opts.metadata,
 		ServiceDef: &smpb.ServiceDef{
 			ConfigMessageFullName:          opts.configMessageFullName,
-			DynamicReconfigurationConfig:   opts.dynamicReconfigurationConfig, 
+			DynamicReconfigurationConfig:   opts.dynamicReconfigurationConfig, // intrinsic:assets_platform_provided_dependencies:strip
 			RealSpec:                       opts.realSpec,
 			ServiceInspectionConfig:        opts.serviceInspectionConfig,
 			ServiceProtoPrefixes:           opts.serviceProtoPrefixes,
-			ServiceStateConfig:             opts.serviceStateConfig, 
+			ServiceStateConfig:             opts.serviceStateConfig, // intrinsic:assets_platform_provided_dependencies:strip
 			SimSpec:                        opts.simSpec,
 			SupportsDynamicReconfiguration: opts.supportsDynamicReconfiguration,
 			SupportsServiceState:           opts.supportsServiceState,
@@ -192,7 +192,7 @@ func MakeServiceManifest(t *testing.T, options ...MakeServiceManifestOption) *sm
 type makeProcessedServiceManifestOptions struct {
 	configMessageFullName          string
 	defaultConfiguration           *anypb.Any
-	dynamicReconfigurationConfig   *drpb.DynamicReconfigurationConfig 
+	dynamicReconfigurationConfig   *drpb.DynamicReconfigurationConfig // intrinsic:assets_platform_provided_dependencies:strip
 	fileDescriptorSet              *dpb.FileDescriptorSet
 	images                         map[string]*imagepb.Image
 	metadata                       *smpb.ServiceMetadata
@@ -200,7 +200,7 @@ type makeProcessedServiceManifestOptions struct {
 	registry                       string
 	serviceInspectionConfig        *sipb.ServiceInspectionConfig
 	serviceProtoPrefixes           []string
-	serviceStateConfig             *sspb.ServiceStateConfig 
+	serviceStateConfig             *sspb.ServiceStateConfig // intrinsic:assets_platform_provided_dependencies:strip
 	simSpec                        *smpb.ServicePodSpec
 	supportsDynamicReconfiguration bool
 	supportsServiceState           bool
@@ -283,7 +283,7 @@ func WithProcessedSimSpec(spec *smpb.ServicePodSpec) MakeProcessedServiceManifes
 	}
 }
 
-
+// intrinsic:assets_platform_provided_dependencies:strip_begin
 
 // WithProcessedDynamicReconfigurationConfig specifies the dynamic reconfiguration config to use in the ProcessedServiceManifest.
 func WithProcessedDynamicReconfigurationConfig(config *drpb.DynamicReconfigurationConfig) MakeProcessedServiceManifestOption {
@@ -299,7 +299,7 @@ func WithProcessedServiceStateConfig(config *sspb.ServiceStateConfig) MakeProces
 	}
 }
 
-
+// intrinsic:assets_platform_provided_dependencies:strip_end
 
 // WithProcessedSupportsDynamicReconfiguration specifies the deprecated supports_dynamic_reconfiguration field.
 func WithProcessedSupportsDynamicReconfiguration(supports bool) MakeProcessedServiceManifestOption {
@@ -379,11 +379,11 @@ func MakeProcessedServiceManifest(t *testing.T, options ...MakeProcessedServiceM
 		Metadata: opts.metadata,
 		ServiceDef: &smpb.ServiceDef{
 			ConfigMessageFullName:          opts.configMessageFullName,
-			DynamicReconfigurationConfig:   opts.dynamicReconfigurationConfig, 
+			DynamicReconfigurationConfig:   opts.dynamicReconfigurationConfig, // intrinsic:assets_platform_provided_dependencies:strip
 			RealSpec:                       opts.realSpec,
 			ServiceInspectionConfig:        opts.serviceInspectionConfig,
 			ServiceProtoPrefixes:           opts.serviceProtoPrefixes,
-			ServiceStateConfig:             opts.serviceStateConfig, 
+			ServiceStateConfig:             opts.serviceStateConfig, // intrinsic:assets_platform_provided_dependencies:strip
 			SimSpec:                        opts.simSpec,
 			SupportsDynamicReconfiguration: opts.supportsDynamicReconfiguration,
 			SupportsServiceState:           opts.supportsServiceState,

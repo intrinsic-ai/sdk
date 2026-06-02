@@ -90,7 +90,7 @@ message PubTopicMetadata {
   string message_full_name = 3;
 }
 
-
+// intrinsic:assets_platform_provided_dependencies:strip_begin
 // Configuration for the skill service interfaces provided to the Intrinsic
 // platform.
 message SkillServicesConfig {
@@ -107,7 +107,7 @@ message SkillServicesConfig {
   // automatically populated when the skill asset is built.
   repeated ServiceVersion service_versions = 1;
 }
-
+// intrinsic:assets_platform_provided_dependencies:strip_end
 
 message Options {
   // Indicates whether the skill supports cooperative cancellation during
@@ -143,11 +143,11 @@ message Options {
   optional intrinsic_proto.assets.v1.RecommendedConfigurationConfig
       recommended_configuration_config = 4;
 
-
+  // intrinsic:assets_platform_provided_dependencies:strip_begin
   // Configuration for the skill service interfaces provided to the
   // Intrinsic platform.
   SkillServicesConfig skill_services_config = 5;
-
+  // intrinsic:assets_platform_provided_dependencies:strip_end
 }
 
 message Dependencies {
