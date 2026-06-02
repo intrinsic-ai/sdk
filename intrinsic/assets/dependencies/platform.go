@@ -7,19 +7,19 @@ package platform
 
 import (
 	"intrinsic/assets/idutils"
-	"intrinsic/assets/interfaceutils" // intrinsic:assets_platform_provided_dependencies:strip
+	"intrinsic/assets/interfaceutils"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	hdmpb "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest_go_proto" // intrinsic:assets_platform_provided_dependencies:strip
+	hdmpb "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest_go_proto"
 	idpb "intrinsic/assets/proto/id_go_proto"
-	metadatapb "intrinsic/assets/proto/metadata_go_proto"                      // intrinsic:assets_platform_provided_dependencies:strip
-	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"           // intrinsic:assets_platform_provided_dependencies:strip
-	drpb "intrinsic/assets/services/proto/v1/dynamic_reconfiguration_go_proto" // intrinsic:assets_platform_provided_dependencies:strip
-	sspb "intrinsic/assets/services/proto/v1/service_state_go_proto"           // intrinsic:assets_platform_provided_dependencies:strip
-	pskmpb "intrinsic/skills/proto/processed_skill_manifest_go_proto"          // intrinsic:assets_platform_provided_dependencies:strip
-	skmpb "intrinsic/skills/proto/skill_manifest_go_proto"                     // intrinsic:assets_platform_provided_dependencies:strip
+	metadatapb "intrinsic/assets/proto/metadata_go_proto"
+	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
+	drpb "intrinsic/assets/services/proto/v1/dynamic_reconfiguration_go_proto"
+	sspb "intrinsic/assets/services/proto/v1/service_state_go_proto"
+	pskmpb "intrinsic/skills/proto/processed_skill_manifest_go_proto"
+	skmpb "intrinsic/skills/proto/skill_manifest_go_proto"
 )
 
 const (
@@ -33,8 +33,6 @@ const (
 	// ServiceStateV1Name is the proto name of the v1 ServiceState service.
 	ServiceStateV1Name = "intrinsic_proto.services.v1.ServiceState"
 )
-
-// intrinsic:assets_platform_provided_dependencies:strip_begin
 
 // ProvidedByProcessedSkillManifest lists the interfaces the Skill provides to the platform.
 func ProvidedByProcessedSkillManifest(manifest *pskmpb.ProcessedSkillManifest) []*metadatapb.Interface {
@@ -132,7 +130,6 @@ func ProvidedByProcessedHardwareDeviceManifest(manifest *hdmpb.ProcessedHardware
 	return interfaces
 }
 
-// intrinsic:assets_platform_provided_dependencies:strip_end
 // ValidateIDNotReserved validates that the given Asset ID is not reserved.
 func ValidateIDNotReserved(id *idpb.Id) error {
 	idStr, err := idutils.IDFromProto(id)

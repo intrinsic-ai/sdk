@@ -5,11 +5,11 @@
 package servicefix
 
 import (
-	"slices" // intrinsic:assets_platform_provided_dependencies:strip
+	"slices"
 
 	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
-	drpb "intrinsic/assets/services/proto/v1/dynamic_reconfiguration_go_proto" // intrinsic:assets_platform_provided_dependencies:strip
-	sspb "intrinsic/assets/services/proto/v1/service_state_go_proto"           // intrinsic:assets_platform_provided_dependencies:strip
+	drpb "intrinsic/assets/services/proto/v1/dynamic_reconfiguration_go_proto"
+	sspb "intrinsic/assets/services/proto/v1/service_state_go_proto"
 )
 
 // fixOpts contains options for fixing a manifest.
@@ -68,7 +68,6 @@ func backfillServiceDef(sd *smpb.ServiceDef, opts *fixOpts) {
 		return
 	}
 
-	// intrinsic:assets_platform_provided_dependencies:strip_begin
 	// Populate the dynamic reconfiguration platform gRPC interface if only the deprecated boolean
 	// setting is present and true.
 	if conf := sd.GetDynamicReconfigurationConfig(); conf == nil && sd.GetSupportsDynamicReconfiguration() {
@@ -109,5 +108,5 @@ func backfillServiceDef(sd *smpb.ServiceDef, opts *fixOpts) {
 		sd.SupportsDynamicReconfiguration = false
 		sd.SupportsServiceState = false
 	}
-	// intrinsic:assets_platform_provided_dependencies:strip_end
+
 }

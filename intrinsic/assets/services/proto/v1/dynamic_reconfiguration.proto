@@ -22,7 +22,6 @@ message ApplyConfigurationRequest {
 
 message ApplyConfigurationResponse {}
 
-// intrinsic:assets_platform_provided_dependencies:strip_begin
 // Configuration for the dynamic reconfiguration interfaces provided to the
 // Intrinsic platform.
 message DynamicReconfigurationConfig {
@@ -37,4 +36,3 @@ message DynamicReconfigurationConfig {
   // compatibility across a wider range of platform versions.
   repeated ServiceVersion service_versions = 1;
 }
-// intrinsic:assets_platform_provided_dependencies:strip_end

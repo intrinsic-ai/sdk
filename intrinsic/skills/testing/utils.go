@@ -178,7 +178,7 @@ func MakeProcessedSkillManifest(t *testing.T, options ...MakeProcessedSkillManif
 		},
 		registry: "gcr.io/test-project",
 		skillDetails: &psmpb.SkillDetails{
-			// intrinsic:assets_platform_provided_dependencies:strip_begin
+
 			Options: &smpb.Options{
 				SkillServicesConfig: &smpb.SkillServicesConfig{
 					ServiceVersions: []smpb.SkillServicesConfig_ServiceVersion{
@@ -188,7 +188,7 @@ func MakeProcessedSkillManifest(t *testing.T, options ...MakeProcessedSkillManif
 					},
 				},
 			},
-			// intrinsic:assets_platform_provided_dependencies:strip_end
+
 			StatusInfo: []*sspb.StatusSpec{
 				{
 					Code:  10001,
