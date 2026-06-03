@@ -1521,3 +1521,68 @@ func TestErrStatusCodes(t *testing.T) {
 		})
 	}
 }
+
+func TestClearContextAndSwitchUser(t *testing.T) {
+	ctx := t.Context()
+
+	// 1. Simulate incoming caller identity (e.g. a service).
+	callerUser, err := UserFromJWT(token)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx, err = UserToIncomingContext(ctx, callerUser)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// 2. Verify we can extract caller identity from incoming context.
+	fv := &FakeVerifier{WantToken: token}
+	extractedCaller, err := UserFromContextVerified(ctx, fv)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if extractedCaller.EmailCanonicalized() != email {
+		t.Errorf("extracted caller email: got %q, want %q", extractedCaller.EmailCanonicalized(), email)
+	}
+
+	// 3. We have a end-user token.
+	userToken := token2 // doe2@example.com (email2)
+	userUser, err := UserFromJWT(userToken)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// 4. Clear context (should only affect outgoing).
+	clearedCtx, err := ClearContext(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// 5. Add end-user identity to outgoing context.
+	userCtx, err := UserToContext(clearedCtx, userUser)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// 6. Verify results:
+	// a) Incoming context in userCtx should STILL have the caller identity.
+	incomingCaller, err := UserFromContextVerified(userCtx, fv)
+	if err != nil {
+		t.Errorf("failed to read caller from incoming context after clear: %v", err)
+	}
+	if incomingCaller.EmailCanonicalized() != email {
+		t.Errorf("incoming caller email after clear: got %q, want %q", incomingCaller.EmailCanonicalized(), email)
+	}
+
+	// b) Outgoing context in userCtx should have the end-user identity, and NOT the caller identity.
+	outgoingMd, ok := metadata.FromOutgoingContext(userCtx)
+	if !ok {
+		t.Fatal("missing outgoing metadata")
+	}
+
+	outgoingCookies := outgoingMd.Get(cookies.CookieHeaderName)
+	wantOutgoingCookies := []string{AuthProxyCookieName + "=" + token2}
+	if diff := cmp.Diff(wantOutgoingCookies, outgoingCookies); diff != "" {
+		t.Errorf("outgoing cookies diff (-want +got):\n%s", diff)
+	}
+}
