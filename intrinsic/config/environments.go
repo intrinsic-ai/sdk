@@ -67,6 +67,15 @@ const (
 
 // All is the list of all environments.
 var All = []string{Prod, Staging, Dev}
+const (
+	Prometheus           = "prometheus"
+	Grafana              = "grafana"
+	Alertmanager         = "alertmanager"
+	ComponentsPlayground = "components-playground"
+)
+
+var CloudPortalInternalObservabilityServices = []string{Prometheus, Grafana, Alertmanager}
+var CloudPortalInternalComputeServices = []string{ComponentsPlayground}
 
 // FromDomain returns the environment for the given domain of portal, accounts or assets projects.
 func FromDomain(domain string) (string, error) {
@@ -259,4 +268,12 @@ func hashProjectName(name string) string {
 	hasher.Write([]byte(name))
 	digest := hasher.Sum(nil)
 	return hex.EncodeToString(digest)
+}
+
+// FromAnyProject returns the environment for the given portal, accounts, assets or compute project.
+func FromAnyProject(project string) string {
+	if env, err := FromProject(project); err == nil {
+		return env
+	}
+	return FromComputeProject(project)
 }
