@@ -1019,6 +1019,77 @@ payload:<
 
     pd.testing.assert_frame_equal(wrench, wrench_from_part_helper)
 
+  def test_read_wrench_stability_index(self):
+    data = [
+        text_format.Parse(
+            """
+metadata <
+  event_source: "robot_status"
+>
+context <
+  skill_id: 12345
+  icon_action_id: 1
+>
+payload:<
+  icon_robot_status: <
+    status_map: <
+        key: 'ft_sensor'
+        value: <
+            timestamp_ns: 1200000000
+            wrench_stability_index: 0.45
+        >
+    >
+  >
+>
+""",
+            log_item_pb2.LogItem(),
+        ),
+        text_format.Parse(
+            """
+metadata <
+  event_source: "robot_status"
+>
+context <
+  skill_id: 12345
+  icon_action_id: 2
+>
+payload:<
+  icon_robot_status: <
+    status_map: <
+        key: 'ft_sensor'
+        value: <
+            timestamp_ns: 1300000000
+            wrench_stability_index: 0.85
+        >
+    >
+  >
+>
+""",
+            log_item_pb2.LogItem(),
+        ),
+    ]
+    stub = self._create_mock_stub('robot_status', data)
+    logs = structured_logging.StructuredLogs(stub)
+
+    items = logs.robot_status.read(seconds_to_read=10)
+    stability = items.ft_sensor.get_wrench_stability_index()
+
+    pd.testing.assert_frame_equal(
+        stability,
+        pd.DataFrame(
+            [
+                [0.45, 12345, 1],
+                [0.85, 12345, 2],
+            ],
+            columns=[
+                'wrench_stability_index',
+                'skill_log_id',
+                'icon_action_id',
+            ],
+            index=pd.Index([1.2, 1.3], name='time_s'),
+        ),
+    )
+
   def make_base_t_tip_sensed_item(
       self,
       *,

@@ -182,6 +182,7 @@ class PartStatusSource(DataSource):
             Union[proto_message.Message, list[proto_message.Message]],
         ],
         part_name: str,
+        field_name: Optional[str] = None,
     ):
       """Init the _CallablePayloadMethod.
 
@@ -190,10 +191,12 @@ class PartStatusSource(DataSource):
         payload_accessor: A function to access the payload in PartStatus of
           `part_name`.
         part_name: The name of the part which should be accessed.
+        field_name: The name of the field which is being accessed.
       """
       self._payload_accessor = payload_accessor
       self._log_items = log_items
       self._part_name = part_name
+      self._field_name = field_name
 
     def _get_data_frame(
         self,
@@ -217,11 +220,19 @@ class PartStatusSource(DataSource):
       items = []
       for log_item in self._log_items[::every_n]:
         part_status = _get_part_status(log_item, self._part_name)
-        item = json_format.MessageToDict(
-            payload_accessor(part_status),
-            always_print_fields_with_no_presence=True,
-            preserving_proto_field_name=True,
-        )
+        field_value = payload_accessor(part_status)
+        if isinstance(field_value, proto_message.Message):
+          item = json_format.MessageToDict(
+              field_value,
+              always_print_fields_with_no_presence=True,
+              preserving_proto_field_name=True,
+          )
+        elif isinstance(field_value, (int, float)):
+          item = {self._field_name: field_value}
+        else:
+          raise AttributeError(
+              f'Field "{self._field_name}" is not a numeric or message type.'
+          )
         item['time_s'] = part_status.timestamp_ns * 1e-9
         item['skill_log_id'] = log_item.context.skill_id
         icon_action_id = None
@@ -299,7 +310,7 @@ class PartStatusSource(DataSource):
       return getattr(log_item, field)
 
     return PartStatusSource._CallablePayloadMethod(
-        self._log_items, payload_accessor, self._part_name
+        self._log_items, payload_accessor, self._part_name, field_name=field
     )
 
   def has_field(self, field_name: str) -> bool:
