@@ -21,6 +21,7 @@ go_library(
     importpath = "intrinsic/assets/data/build_defs/datagen",
     visibility = ["//visibility:private"],
     deps = [
+        "//intrinsic/assets:referenceddata",
         "//intrinsic/assets/data:databundle",
         "//intrinsic/assets/data:datavalidate",
         "//intrinsic/assets/data:utils",

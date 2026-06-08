@@ -364,3 +364,35 @@ py_library(
     srcs = ["interface_utils.py"],
     visibility = ["//intrinsic:public_api_users"],
 )
+
+go_library(
+    name = "referenceddata",
+    srcs = ["referenceddata.go"],
+    importpath = "intrinsic/assets/referenceddata",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        "//intrinsic/assets/data/proto/v1:referenced_data_go_proto",
+        "//intrinsic/util/proto:walkmessages",
+        "@org_golang_google_protobuf//proto",
+        "@org_golang_google_protobuf//types/known/anypb",
+    ],
+)
+
+go_test(
+    name = "referenceddata_test",
+    srcs = ["referenceddata_test.go"],
+    embed = [":referenceddata"],
+    importpath = "intrinsic/assets/referenceddata_test",
+    deps = [
+        "//intrinsic/assets/data:utils",
+        "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
+        "//intrinsic/assets/data/proto/v1:referenced_data_go_proto",
+        "//intrinsic/assets/data/proto/v1:referenced_data_struct_go_proto",
+        "//intrinsic/util/proto:descriptor",
+        "@com_github_google_go_cmp//cmp:go_default_library",
+        "@org_golang_google_protobuf//proto",
+        "@org_golang_google_protobuf//testing/protocmp:go_default_library",
+        "@org_golang_google_protobuf//types/known/anypb",
+        "@org_golang_google_protobuf//types/known/emptypb",
+    ],
+)

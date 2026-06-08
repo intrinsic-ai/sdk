@@ -12,6 +12,7 @@ import (
 	"intrinsic/assets/data/utils"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/metadatautils"
+	"intrinsic/assets/referenceddata"
 
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoregistry"
@@ -145,7 +146,7 @@ func DataAsset(da *dapb.DataAsset, options ...DataAssetOption) error {
 	// Validate the payload's referenced data.
 	if payload, err := utils.ExtractPayload(da); err != nil {
 		return err
-	} else if _, err := utils.WalkUniqueReferencedData(payload, func(ref *utils.ReferencedDataExt) error {
+	} else if _, err := referenceddata.WalkUnique(payload, func(ref *referenceddata.ReferencedData) error {
 		if err := ReferencedData(ref, opts.referencedDataOptions...); err != nil {
 			return fmt.Errorf("invalid ReferencedData for %q: %w", id, err)
 		}
@@ -177,7 +178,7 @@ func WithDisallowFileReferences(disallowFileReferences bool) ReferencedDataOptio
 // Validation includes:
 // - If specified, compare the digest against the referenced data.
 // - If the type is a file reference and file references are disallowed, return an error.
-func ReferencedData(ref *utils.ReferencedDataExt, options ...ReferencedDataOption) error {
+func ReferencedData(ref *referenceddata.ReferencedData, options ...ReferencedDataOption) error {
 	opts := &referencedDataOptions{}
 	for _, opt := range options {
 		opt(opts)
@@ -185,12 +186,12 @@ func ReferencedData(ref *utils.ReferencedDataExt, options ...ReferencedDataOptio
 
 	// Type-specific validation.
 	switch ref.Type() {
-	case utils.FileReferenceType:
+	case referenceddata.FileReferenceType:
 		if opts.disallowFileReferences {
 			return fmt.Errorf("file references are not allowed (got: %q)", ref.Reference())
 		}
-	case utils.CASReferenceType:
-	case utils.InlinedReferenceType:
+	case referenceddata.CASReferenceType:
+	case referenceddata.InlinedReferenceType:
 		// Nothing to do.
 	default:
 		return fmt.Errorf("unknown reference type: %d", ref.Type())
@@ -201,16 +202,16 @@ func ReferencedData(ref *utils.ReferencedDataExt, options ...ReferencedDataOptio
 		// Get a reader for the data.
 		var reader io.Reader
 		switch ref.Type() {
-		case utils.FileReferenceType:
+		case referenceddata.FileReferenceType:
 			file, err := os.Open(ref.Reference())
 			if err != nil {
 				return fmt.Errorf("failed to open referenced file %q: %w", ref.Reference(), err)
 			}
 			defer file.Close()
 			reader = file
-		case utils.CASReferenceType:
+		case referenceddata.CASReferenceType:
 			return fmt.Errorf("cannot validate digest of CAS reference %q", ref.Reference())
-		case utils.InlinedReferenceType:
+		case referenceddata.InlinedReferenceType:
 			reader = bytes.NewReader(ref.Inlined())
 		default:
 			return fmt.Errorf("unknown reference type: %d", ref.Type())

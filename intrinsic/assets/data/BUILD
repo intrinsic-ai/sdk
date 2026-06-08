@@ -71,6 +71,7 @@ go_library(
         ":datavalidate",
         ":utils",
         "//intrinsic/assets:ioutils",
+        "//intrinsic/assets:referenceddata",
         "//intrinsic/assets/catalog/proto/v1:asset_catalog_go_proto",
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
         "//intrinsic/assets/data/proto/v1:referenced_data_go_proto",
@@ -103,6 +104,7 @@ go_library(
         ":utils",
         "//intrinsic/assets:idutils",
         "//intrinsic/assets:metadatautils",
+        "//intrinsic/assets:referenceddata",
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
         "//intrinsic/assets/data/proto/v1:data_manifest_go_proto",
         "//intrinsic/assets/proto:asset_type_go_proto",
@@ -119,10 +121,7 @@ go_library(
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
-        "//intrinsic/assets/data/proto/v1:referenced_data_go_proto",
         "//intrinsic/util/proto:registryutil",
-        "//intrinsic/util/proto:walkmessages",
         "@org_golang_google_protobuf//proto",
-        "@org_golang_google_protobuf//types/known/anypb",
     ],
 )

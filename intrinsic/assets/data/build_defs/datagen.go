@@ -10,6 +10,7 @@ import (
 	"intrinsic/assets/data/databundle"
 	"intrinsic/assets/data/datavalidate"
 	"intrinsic/assets/data/utils"
+	"intrinsic/assets/referenceddata"
 	"intrinsic/util/proto/protoio"
 	"intrinsic/util/proto/registryutil"
 
@@ -90,8 +91,8 @@ func CreateDataBundle(opts *CreateDataBundleOptions) error {
 	manifestDir := filepath.Dir(opts.ManifestPath)
 	if payload, err := utils.ExtractPayload(da); err != nil {
 		return fmt.Errorf("failed to extract data payload: %w", err)
-	} else if payloadOut, err := utils.WalkUniqueReferencedData(payload, func(ref *utils.ReferencedDataExt) error {
-		if ref.Type() == utils.FileReferenceType && !filepath.IsAbs(ref.Reference()) {
+	} else if payloadOut, err := referenceddata.WalkUnique(payload, func(ref *referenceddata.ReferencedData) error {
+		if ref.Type() == referenceddata.FileReferenceType && !filepath.IsAbs(ref.Reference()) {
 			ref.SetReference(filepath.Join(manifestDir, ref.Reference()))
 		}
 		return nil

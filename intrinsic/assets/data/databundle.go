@@ -15,6 +15,7 @@ import (
 	"intrinsic/assets/data/datavalidate"
 	"intrinsic/assets/data/utils"
 	"intrinsic/assets/ioutils"
+	"intrinsic/assets/referenceddata"
 	"intrinsic/util/archive/tartooling"
 
 	"github.com/bazelbuild/rules_go/go/runfiles"
@@ -44,7 +45,7 @@ const (
 // ReferencedDataReader contains a ReferencedData message and additional fields for reading it.
 type ReferencedDataReader struct {
 	// Ref is the referenced data.
-	Ref *utils.ReferencedDataExt
+	Ref *referenceddata.ReferencedData
 	// Reader can be used to read the data referenced by the ReferencedData.
 	Reader io.Reader
 	// Size is the size of the referenced data, in bytes.
@@ -54,7 +55,7 @@ type ReferencedDataReader struct {
 // ReferencedDataProcessor is an interface for processing ReferencedData.
 type ReferencedDataProcessor interface {
 	// NeedsReaderFor returns true if the processor needs an io.Reader for the given reference type.
-	NeedsReaderFor(utils.ReferenceType) bool
+	NeedsReaderFor(referenceddata.ReferenceType) bool
 
 	// Process is called for each ReferencedData value in the Data Asset. The processor should
 	// modify the ReferencedData in place.
@@ -64,7 +65,7 @@ type ReferencedDataProcessor interface {
 type noOpReferencedData struct{}
 
 // NeedsReaderFor returns false for all reference types.
-func (p *noOpReferencedData) NeedsReaderFor(rt utils.ReferenceType) bool {
+func (p *noOpReferencedData) NeedsReaderFor(rt referenceddata.ReferenceType) bool {
 	return false
 }
 
@@ -83,7 +84,7 @@ func NoOpReferencedData() ReferencedDataProcessor {
 type inlineReferencedData struct{}
 
 // NeedsReaderFor returns true for all reference types.
-func (p *inlineReferencedData) NeedsReaderFor(rt utils.ReferenceType) bool {
+func (p *inlineReferencedData) NeedsReaderFor(rt referenceddata.ReferenceType) bool {
 	return true
 }
 
@@ -141,8 +142,8 @@ func WithChunkSize(size int) ToCatalogReferencedDataOption {
 }
 
 // NeedsReaderFor returns true for file references.
-func (p *toCatalogReferencedData) NeedsReaderFor(rt utils.ReferenceType) bool {
-	return rt == utils.FileReferenceType
+func (p *toCatalogReferencedData) NeedsReaderFor(rt referenceddata.ReferenceType) bool {
+	return rt == referenceddata.FileReferenceType
 }
 
 // Process prepares the given ReferencedData for inclusion in an Asset that will be released to the
@@ -167,7 +168,7 @@ func (p *toCatalogReferencedData) Process(rdr *ReferencedDataReader) error {
 	}
 
 	// For file references, send the file data.
-	if rdr.Ref.Type() == utils.FileReferenceType {
+	if rdr.Ref.Type() == referenceddata.FileReferenceType {
 		log.Infof("Sending file data for %v", rdr.Ref.Reference())
 		buf := make([]byte, p.chunkSize)
 		for {
@@ -197,7 +198,7 @@ func (p *toCatalogReferencedData) Process(rdr *ReferencedDataReader) error {
 	}
 
 	// Replace the referenced data with the updated referenced data from the catalog.
-	rdr.Ref.Replace(utils.NewReferencedDataExt(response.GetReferencedData()))
+	rdr.Ref.Replace(referenceddata.FromProto(response.GetReferencedData()))
 
 	return nil
 }
@@ -218,13 +219,13 @@ func ToCatalogReferencedData(ctx context.Context, options ...ToCatalogReferenced
 
 type toPortableReferencedData struct{}
 
-func (p *toPortableReferencedData) NeedsReaderFor(rt utils.ReferenceType) bool {
-	return rt == utils.FileReferenceType
+func (p *toPortableReferencedData) NeedsReaderFor(rt referenceddata.ReferenceType) bool {
+	return rt == referenceddata.FileReferenceType
 }
 
 func (p *toPortableReferencedData) Process(rdr *ReferencedDataReader) error {
 	switch rdr.Ref.Type() {
-	case utils.FileReferenceType:
+	case referenceddata.FileReferenceType:
 		// If the file is below the size threshold, inline it. Otherwise, upload it to CAS.
 		if rdr.Size <= inlineReferenceFileSizeThresholdBytes {
 			b, err := io.ReadAll(rdr.Reader)
@@ -235,8 +236,8 @@ func (p *toPortableReferencedData) Process(rdr *ReferencedDataReader) error {
 		} else {
 			return fmt.Errorf("file upload is not supported: %v", rdr.Ref)
 		}
-	case utils.CASReferenceType:
-	case utils.InlinedReferenceType:
+	case referenceddata.CASReferenceType:
+	case referenceddata.InlinedReferenceType:
 		// Nothing to do.
 	default:
 		return fmt.Errorf("unknown referenced data: %v", rdr.Ref)
@@ -328,14 +329,14 @@ func Write(da *dapb.DataAsset, path string, options ...WriteOption) error {
 	// - If it is a file reference that is not excluded, copy it to the tar bundle;
 	// - If it is a file reference that is excluded, remap it and ensure it has a digest.
 	tarPaths := map[string]struct{}{} // Keeps track of used tar paths.
-	payloadOut, err := utils.WalkUniqueReferencedData(payload, func(ref *utils.ReferencedDataExt) error {
+	payloadOut, err := referenceddata.WalkUnique(payload, func(ref *referenceddata.ReferencedData) error {
 		if err := datavalidate.ReferencedData(ref); err != nil {
 			return fmt.Errorf("invalid ReferencedData: %w", err)
 		}
 
 		// Process file references. We either add the file to the tar bundle or remap it and ensure the
 		// reference has a digest to guard against later modification to the file.
-		if ref.Type() == utils.FileReferenceType {
+		if ref.Type() == referenceddata.FileReferenceType {
 			foundReferencedFilePaths[ref.Reference()] = struct{}{}
 
 			if remappedPath, ok := opts.externalReferencedFilePaths[ref.Reference()]; !ok { // Add to the tar bundle.
@@ -452,7 +453,7 @@ func Read(ctx context.Context, path string, options ...ReadOption) (*DataBundle,
 
 	// Read all files from the bundle, processing ReferencedData for in-tar data files as we go.
 	var da *dapb.DataAsset
-	processedReferences := map[string]*utils.ReferencedDataExt{}
+	processedReferences := map[string]*referenceddata.ReferencedData{}
 	var unknownFilePaths []string
 	for {
 		hdr, err := tr.Next()
@@ -479,7 +480,7 @@ func Read(ctx context.Context, path string, options ...ReadOption) (*DataBundle,
 				// Process the reference for the in-tar file now, since we won't be able to pass the reader
 				// to the processor below when we walk the payload.
 				// Note that we don't validate the referenced data in this case.
-				ref := utils.NewReferencedDataExt(&rdpb.ReferencedData{
+				ref := referenceddata.FromProto(&rdpb.ReferencedData{
 					Data: &rdpb.ReferencedData_Reference{
 						Reference: tarPath,
 					},
@@ -512,7 +513,7 @@ func Read(ctx context.Context, path string, options ...ReadOption) (*DataBundle,
 	if err != nil {
 		return nil, fmt.Errorf("failed to extract data payload: %w", err)
 	}
-	payloadOut, err := utils.WalkUniqueReferencedData(payload, func(ref *utils.ReferencedDataExt) error {
+	payloadOut, err := referenceddata.WalkUnique(payload, func(ref *referenceddata.ReferencedData) error {
 		// Check whether we already processed the reference during our pass through the .tar bundle.
 		if pRef, ok := processedReferences[ref.Reference()]; ok {
 			ref.Merge(pRef)
@@ -536,7 +537,7 @@ func Read(ctx context.Context, path string, options ...ReadOption) (*DataBundle,
 				Ref: ref,
 			}
 			switch ref.Type() {
-			case utils.FileReferenceType:
+			case referenceddata.FileReferenceType:
 				file, err := os.Open(ref.Reference())
 				if err != nil {
 					return fmt.Errorf("failed to open data file: %w", err)
@@ -549,11 +550,11 @@ func Read(ctx context.Context, path string, options ...ReadOption) (*DataBundle,
 					return fmt.Errorf("failed to stat data file: %w", err)
 				}
 				rdr.Size = fi.Size()
-			case utils.CASReferenceType:
-				if opts.processReferencedData.NeedsReaderFor(utils.CASReferenceType) {
+			case referenceddata.CASReferenceType:
+				if opts.processReferencedData.NeedsReaderFor(referenceddata.CASReferenceType) {
 					return fmt.Errorf("CAS references cannot be read. got: %v", ref.Reference())
 				}
-			case utils.InlinedReferenceType:
+			case referenceddata.InlinedReferenceType:
 				rdr.Reader = bytes.NewReader(ref.Inlined())
 				rdr.Size = int64(len(ref.Inlined()))
 			default:
@@ -629,8 +630,8 @@ func toUniqueTarPath(path string, tarDir string, tarPaths map[string]struct{}) s
 	}
 }
 
-func findReference(ref *utils.ReferencedDataExt, bundlePath string) error {
-	if ref.Type() == utils.FileReferenceType && !filepath.IsAbs(ref.Reference()) {
+func findReference(ref *referenceddata.ReferencedData, bundlePath string) error {
+	if ref.Type() == referenceddata.FileReferenceType && !filepath.IsAbs(ref.Reference()) {
 		bundleDir, bundleName := filepath.Split(bundlePath)
 		// See explanation in Read() about about why we use these candidates.
 		candidatePathFuncs := []func() (string, error){
