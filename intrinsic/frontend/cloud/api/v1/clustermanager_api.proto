@@ -198,32 +198,59 @@ message UpdateVersions {
   SolutionVersion solution_version = 4 [(google.api.field_behavior) = OPTIONAL];
 }
 
+// Request message for `SchedulePlatformUpdate`.
 message SchedulePlatformUpdateRequest {
+  // The project ID that the cluster belongs to.
   string project = 1 [(google.api.field_behavior) = REQUIRED];
+  // The organization ID that the cluster belongs to.
   string org = 2 [(google.api.field_behavior) = REQUIRED];
+  // The unique identifier of the cluster to update.
   string cluster_id = 3 [(google.api.field_behavior) = REQUIRED];
 
-  // Which type of update to execute e.g. forward, rollback, etc
+  // The type of update to perform.
   enum UpdateType {
+    // Unspecified update type. This is invalid and will result in an error.
     UPDATE_TYPE_UNSPECIFIED = 0;
+    // Update to the latest available recommended versions.
     UPDATE_TYPE_FORWARD = 1;
+    // Rollback to the previous version if available.
     UPDATE_TYPE_ROLLBACK = 2;
+    // Update to specific versions specified in the `versions` field.
+    // The system will validate that the target versions are compatible.
     UPDATE_TYPE_VERSIONED = 3;
+    // Update to specific versions specified in the `versions` field without
+    // compatibility checks. Use with caution.
     UPDATE_TYPE_VERSIONED_UNCHECKED = 4;
+    // Clear the active solution from the cluster.
     UPDATE_TYPE_CLEAR_SOLUTION = 5;
   }
 
+  // The type of update to execute.
   UpdateType update_type = 4 [(google.api.field_behavior) = REQUIRED];
 
-  // The versions to update to. Only used for UPDATE_TYPE_VERSIONED.
+  // The specific versions to update to.
+  // This field MUST be set if `update_type` is `UPDATE_TYPE_VERSIONED` or
+  // `UPDATE_TYPE_VERSIONED_UNCHECKED`. It is ignored for other update types.
   UpdateVersions versions = 5 [(google.api.field_behavior) = OPTIONAL];
 }
 
+// Response message for `SchedulePlatformUpdate`.
 message SchedulePlatformUpdateResponse {
-  // The name of a google.longrunning.Operation that can be used to track the
-  // progress of the update.
+  // The name of the long-running operation representing the update.
+  // This name can be passed to the `google.longrunning.Operations` service
+  // to poll for status or receive notifications of completion.
+  // The format of the name will be "operations/{operation_id}".
   string operation_name = 1;
 }
+
+// Request message for `ClearUpdateFault`.
+message ClearUpdateFaultRequest {
+  // The unique identifier of the cluster to clear the update fault for.
+  string cluster_id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// Response message for `ClearUpdateFault`.
+message ClearUpdateFaultResponse {}
 
 message GetAssignedVersionsRequest {
   string cluster_id = 3 [(google.api.field_behavior) = REQUIRED];
@@ -700,7 +727,15 @@ service ClustersService {
     option (aclType) = "can_configure";
   }
 
-  // SchedulePlatformUpdateRequest triggers and update request for a cluster
+  // Schedules a platform update for a specific cluster.
+  //
+  // This operation is asynchronous. The response contains an operation name
+  // that can be used to track the progress of the update via the Operations
+  // service.
+  //
+  // The update process may involve updating the Intrinsic OS, Intrinsic Base,
+  // and/or the Solution running on the cluster, depending on the requested
+  // `update_type`.
   rpc SchedulePlatformUpdate(SchedulePlatformUpdateRequest)
       returns (SchedulePlatformUpdateResponse) {
     option (google.api.http) = {
@@ -709,6 +744,27 @@ service ClustersService {
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "SchedulePlatformUpdate"
+    };
+    option (aclType) = "can_configure";
+  }
+
+  // Clears a platform update fault state for a specific cluster.
+  //
+  // If the cluster's `update_state` is `UPDATE_STATE_FAULT`, this RPC will
+  // clear the fault, allowing further update operations.
+  //
+  // NOTE: If the cluster's `update_mode` (PlatformUpdateMode) is enabled
+  // (value >= 2, i.e., ON, AUTOMATIC, MANUAL_WITH_ACCEPT, or
+  // AUTOMATIC_WITH_ACCEPT), clearing the fault may trigger an immediate retry
+  // of the last failed update attempt.
+  rpc ClearUpdateFault(ClearUpdateFaultRequest)
+      returns (ClearUpdateFaultResponse) {
+    option (google.api.http) = {
+      post: "/v1/project/*/org/*/clusters/{cluster_id}:clearUpdateFault"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "ClearUpdateFault"
     };
     option (aclType) = "can_configure";
   }

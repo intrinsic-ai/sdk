@@ -265,6 +265,7 @@ func readLogsFromSolution(ctx context.Context, params *cmdParams, w io.Writer) e
 				prefix := buildPrefix(params)
 				scanner := bufio.NewScanner(body)
 				for scanner.Scan() {
+					backOff.Reset() // successfully read a line, reset exponential backoff
 					stdoutMutex.Lock()
 					fmt.Fprintf(w, "%s%s\n", prefix, scanner.Text())
 					stdoutMutex.Unlock()
@@ -515,7 +516,18 @@ func retryAfter(response *http.Response, content string) error {
 
 func clientNotify(w io.Writer) backoff.Notify {
 	return func(err error, duration time.Duration) {
-		fmt.Fprintf(w, "[client] Connection lost, retrying in %dms...\n", duration.Milliseconds())
+		var msg string
+		if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
+			msg = "Connection closed by server"
+		} else if statusErr, ok := err.(*statusErr); ok && statusErr.httpCode >= 500 {
+			msg = fmt.Sprintf("Server proxy error (%d)", statusErr.httpCode)
+		} else if tErr, ok := err.(timeout); ok && tErr.Timeout() {
+			msg = "Network timeout"
+		} else {
+			msg = "Connection lost"
+		}
+
+		fmt.Fprintf(os.Stderr, "[inctl] %s, retrying in %dms...\n", msg, duration.Milliseconds())
 		if verboseDebug {
 			fmt.Fprintf(verboseOut, "Details: %s\n", err)
 		}

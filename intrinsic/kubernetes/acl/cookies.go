@@ -19,6 +19,10 @@ import (
 const (
 	// CookieHeaderName is the name of the header / metadata field used for cookies
 	CookieHeaderName = "Cookie"
+
+	// grpcCookieHeaderName is the lower-cased version of the CookieHeaderName.
+	// In gRPC metadata, all keys are normalized to lower-case.
+	grpcCookieHeaderName = "cookie"
 )
 
 // parseCookies parses cookies from a string into a list of http.Cookie objects.
@@ -50,8 +54,11 @@ func FromRequestNamed(r *http.Request, names []string) []*http.Cookie {
 	return cs
 }
 
-// AddToRequest adds cookies to the request and deduplicates already existing cookie key value pairs.
-// It will overwrite existing cookies inside the request if they have the same name.
+// AddToRequest adds cookies to the request and deduplicates already existing
+// cookie key value pairs.
+//
+// It will overwrite existing cookies inside the request if they have the same
+// name.
 func AddToRequest(r *http.Request, newCs ...*http.Cookie) {
 	_, span := trace.StartSpan(r.Context(), "cookies.AddToRequest")
 	defer span.End()
@@ -76,59 +83,88 @@ func AddToRequest(r *http.Request, newCs ...*http.Cookie) {
 	}
 }
 
-// AddToContext adds cookies to the outgoing context and respects already existing cookie key value pairs.
-// Cookies will overwrite existing cookies inside the outgoing context if they have the same name.
+// AddToContext adds cookies to the outgoing context, merging with existing
+// cookies.
+//
+// Cookies with the same name will be overwritten.
 func AddToContext(ctx context.Context, newCs ...*http.Cookie) (context.Context, error) {
 	md, _ := metadata.FromOutgoingContext(ctx)
-	md, err := addToMD(md, newCs...)
+	md, err := AddToMD(md, newCs...)
 	if err != nil {
 		return ctx, err
 	}
 	return metadata.NewOutgoingContext(ctx, md), nil
 }
 
-// AddToIncomingContext adds cookies to the incoming context and respects already existing cookie key value pairs.
-// Cookies will overwrite existing cookies inside the incoming context if they have the same name.
-// This is useful for testing and some special cases.
+// AddToIncomingContext adds cookies to the incoming context, merging with
+// existing cookies.
+//
+// Cookies with the same name will be overwritten.
 func AddToIncomingContext(ctx context.Context, newCs ...*http.Cookie) (context.Context, error) {
 	md, _ := metadata.FromIncomingContext(ctx)
-	md, err := addToMD(md, newCs...)
+	md, err := AddToMD(md, newCs...)
 	if err != nil {
 		return ctx, err
 	}
 	return metadata.NewIncomingContext(ctx, md), nil
 }
 
-func addToMD(md metadata.MD, newCs ...*http.Cookie) (metadata.MD, error) {
-	cs, err := mergeCookies(md.Get(CookieHeaderName)...)
+// AddToMD adds cookies to the gRPC metadata map, merging with existing cookies.
+//
+// Cookies with the same name will be overwritten.
+func AddToMD(md metadata.MD, newCs ...*http.Cookie) (metadata.MD, error) {
+	mergedList, err := mergeAndSortCookies(md.Get(CookieHeaderName), newCs)
 	if err != nil {
 		return nil, err
 	}
-	r, err := http.NewRequest("GET", "", nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create http request: %v", err)
-	}
-	cookieMap := make(map[string]string)
-	for _, c := range cs {
-		cookieMap[c.Name] = c.Value
-	}
-	for _, nc := range newCs {
-		cookieMap[nc.Name] = nc.Value
-	}
-	// add cookies in a deterministic order
-	for _, k := range slices.Sorted(maps.Keys(cookieMap)) {
-		r.AddCookie(&http.Cookie{Name: k, Value: cookieMap[k]})
-	}
-	cs = r.Cookies()
-	if len(cs) == 0 {
+
+	if len(mergedList) == 0 {
 		return md, nil
 	}
-	res := ToMDString(cs...)
+
+	res := ToMDString(mergedList...)
 	if md == nil {
 		md = metadata.MD{}
 	}
 	md.Set(res[0], res[1])
 	return md, nil
+}
+
+// AddToMetadataMap adds cookies to a flat metadata map, merging with existing
+// cookies.
+//
+// Cookies with the same name will be overwritten.
+func AddToMetadataMap(m map[string]string, newCs ...*http.Cookie) (map[string]string, error) {
+	if len(newCs) == 0 {
+		return m, nil
+	}
+
+	if m == nil {
+		m = make(map[string]string)
+	}
+
+	// Read existing cookies (handling potential casing variants)
+	existingHeader := m[grpcCookieHeaderName]
+	if existingHeader == "" {
+		existingHeader = m[CookieHeaderName]
+	}
+
+	var existing []string
+	if existingHeader != "" {
+		existing = []string{existingHeader}
+	}
+
+	mergedList, err := mergeAndSortCookies(existing, newCs)
+	if err != nil {
+		return m, err
+	}
+
+	if len(mergedList) > 0 {
+		res := ToMDString(mergedList...)
+		delete(m, CookieHeaderName) // strip any uppercase keys
+		m[grpcCookieHeaderName] = res[1]
+	}
+	return m, nil
 }
 
 // ToMDString converts a list of http.Cookie objects to a string that can be used as a metadata
@@ -219,4 +255,33 @@ func mergeCookies(cs ...string) ([]*http.Cookie, error) {
 	}
 
 	return result, nil
+}
+
+func mergeAndSortCookies(existing []string, newCs []*http.Cookie) ([]*http.Cookie, error) {
+	cs, err := mergeCookies(existing...)
+	if err != nil {
+		return nil, err
+	}
+
+	cookieMap := make(map[string]*http.Cookie)
+	for _, c := range cs {
+		if c != nil {
+			cookieMap[c.Name] = c
+		}
+	}
+	for _, c := range newCs {
+		if c != nil {
+			cookieMap[c.Name] = c
+		}
+	}
+
+	var mergedList []*http.Cookie
+	for _, c := range cookieMap {
+		mergedList = append(mergedList, c)
+	}
+
+	slices.SortFunc(mergedList, func(a, b *http.Cookie) int {
+		return strings.Compare(a.Name, b.Name)
+	})
+	return mergedList, nil
 }

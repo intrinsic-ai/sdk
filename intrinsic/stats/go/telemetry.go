@@ -378,10 +378,12 @@ func (t *Telemetry) enableMetrics(c metricsConfig) {
 	}
 	view.RegisterExporter(pe)
 
+	mux := http.NewServeMux()
+	mux.Handle(c.MetricsPath, pe)
 	t.metricsServer = &http.Server{
-		Addr: fmt.Sprintf("0.0.0.0:%v", c.MetricsPort),
+		Addr:    fmt.Sprintf("0.0.0.0:%v", c.MetricsPort),
+		Handler: mux,
 	}
-	http.Handle(c.MetricsPath, pe)
 
 	go func() {
 		if err := t.metricsServer.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {

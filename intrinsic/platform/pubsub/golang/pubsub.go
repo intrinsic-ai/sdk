@@ -655,45 +655,77 @@ func (kv *kvStoreHandle) Get(key string, timeout *time.Duration) (*anypb.Any, er
 // This function is not exported because the raw keys contain prefixes not known
 // to the client code, such as `kv_store` or `kv_store_repl`.
 func (kv *kvStoreHandle) getRaw(rawKey string, timeout *time.Duration) (*anypb.Any, error) {
-	resultCh := make(chan *anypb.Any)
+	ctx := context.Background()
+
+	if timeout != nil {
+		ctx, _ = context.WithTimeout(ctx, *timeout)
+	}
+
+	// queryResult represents the final outcome of processing a query.
+	// That outcome may be a value obtained from the KV store, or an error.
+	type queryResult struct {
+		result *anypb.Any
+		err    error
+	}
+
+	// Channel for query results.
+	resultCh := make(chan *queryResult)
+
+	// Channel for notifying the goroutine executing the query that the query can be
+	// closed. The query can only be closed after it completes, so a value is pushed
+	// to this channel at the end of onDoneCallback.
+	canCloseQueryCh := make(chan struct{}, 1)
+
+	var once sync.Once
+
+	sendFirstQueryResult := func(result *anypb.Any, err error) {
+		once.Do(func() {
+			resultCh <- &queryResult{result: result, err: err}
+		})
+	}
 
 	queryCallback := func(keyexpr string, bytes []byte) {
-		resultCh <- value(bytes)
+		// The first received result will be the one returned to the client.
+		// When the `key` parameter is really a key (not a keyexpr with
+		// wildcards), then this behavior is always correct.
+		// If the `key` parameter contains wildcards, then the first value
+		// passed to this callback will be returned to the caller of `Get`.
+		sendFirstQueryResult(value(bytes), nil /* error */)
 	}
 
-	done := make(chan any)
-	onDoneCallback := func(string) {
-		done <- true
+	onDoneCallback := func(keyexpr string) {
+		sendFirstQueryResult(
+			nil, /* result */
+			fmt.Errorf("%q not found: %w", rawKey, kvstore.ErrNotFound))
+		canCloseQueryCh <- struct{}{}
 	}
 
-	errCh := make(chan error)
-
+	// Starting the query in a separate goroutine. Callbacks will be called
+	// in that goroutine.
 	go func() {
 		query, err := kv.query(rawKey, queryCallback, onDoneCallback)
 		if err != nil {
-			errCh <- err
+			sendFirstQueryResult(nil /* result */, err)
+			return
 		}
-		_ = <-done
+		// When a value for the given key exists in the KV store,
+		// kv.query is blocks until the query completes. But when there is
+		// no value, kv.query may return before onDoneCallback is called.
+		// We need to keep the query alive until all callbacks are called,
+		// otherwise, we'll get a "use of invalid handle" error.
+		<-canCloseQueryCh
 		query.Close()
 	}()
 
-	timeoutCh := make(chan time.Time)
-
-	if timeout != nil {
-		go func() {
-			timeoutCh <- <-time.After(*timeout)
-		}()
-	}
-
-	select {
-	case result := <-resultCh:
-		return result, nil
-	case _ = <-done:
-		return nil, fmt.Errorf("%q not found: %w", rawKey, kvstore.ErrNotFound)
-	case err := <-errCh:
-		return nil, err
-	case _ = <-timeoutCh:
-		return nil, fmt.Errorf("timeout waiting for %q: %w", rawKey, kvstore.ErrDeadlineExceeded)
+	for {
+		select {
+		case result := <-resultCh:
+			return result.result, result.err
+		case _ = <-ctx.Done():
+			go sendFirstQueryResult(
+				nil, /* result */
+				fmt.Errorf("timeout waiting for %q: %w", rawKey, kvstore.ErrDeadlineExceeded))
+		}
 	}
 }
 

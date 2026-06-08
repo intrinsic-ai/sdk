@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	flagFileDescriptorSets                       []string
+	flagFileDescriptorSet                        string
 	flagOciImage                                 string
 	flagManifest                                 string
 	flagIncompatibleDisallowManifestDependencies bool
@@ -33,9 +33,9 @@ func resetBundleCommand() {
 		RunE:  run,
 	}
 
-	BundleCmd.Flags().StringArrayVar(&flagFileDescriptorSets, "file_descriptor_set", nil, "Path to binary file descriptor set protos to be used to resolve messages referenced by the skill manifest")
+	BundleCmd.Flags().StringVar(&flagFileDescriptorSet, "augmented_file_descriptor_set", "", "Path to an augmented file descriptor set binary proto used to resolve messages referenced in the skill manifest")
 	BundleCmd.Flags().StringVar(&flagOciImage, "oci_image", "", "Path to tar archive of an OCI image")
-	BundleCmd.Flags().StringVar(&flagManifest, "manifest", "", "Path to a SkillManifest textproto file")
+	BundleCmd.Flags().StringVar(&flagManifest, "augmented_manifest", "", "Path to an augmented SkillManifest binary proto")
 	BundleCmd.Flags().BoolVar(&flagIncompatibleDisallowManifestDependencies, "incompatible_disallow_manifest_dependencies", false, "Whether to prevent this manifest from declaring dependencies")
 	BundleCmd.Flags().StringVar(&flagOutput, "output", "skill.bundle.tar", "Path to write skill bundle to")
 }
@@ -43,10 +43,10 @@ func resetBundleCommand() {
 func run(cmd *cobra.Command, args []string) error {
 	// Validate flags.
 	if flagManifest == "" {
-		return fmt.Errorf("--manifest is required")
+		return fmt.Errorf("--augmented_manifest is required")
 	}
-	if len(flagFileDescriptorSets) == 0 {
-		return fmt.Errorf("at least one --file_descriptor_set is required")
+	if flagFileDescriptorSet == "" {
+		return fmt.Errorf("--augmented_file_descriptor_set is required")
 	}
 	if flagOciImage == "" {
 		return fmt.Errorf("--oci_image is required")
@@ -56,7 +56,7 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 
 	// Prep the manifest and file descriptor set
-	m, fds, err := skillmanifest.LoadManifestAndFileDescriptorSets(flagManifest, flagFileDescriptorSets, flagIncompatibleDisallowManifestDependencies)
+	m, fds, err := skillmanifest.LoadManifestAndFileDescriptorSets(flagManifest, []string{flagFileDescriptorSet}, flagIncompatibleDisallowManifestDependencies)
 	if err != nil {
 		return fmt.Errorf("unable to load manifest and file descriptor sets: %v", err)
 	}

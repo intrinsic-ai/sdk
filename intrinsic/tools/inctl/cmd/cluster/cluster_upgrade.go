@@ -5,12 +5,14 @@ package cluster
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"intrinsic/assets/clientutils"
 	"intrinsic/skills/tools/skill/cmd/dialerutil"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/orgutil"
+	"intrinsic/tools/inctl/util/printer"
 	"os"
 	"strings"
 	"text/tabwriter"
@@ -421,7 +423,16 @@ var modeCmd = &cobra.Command{
 			if err != nil {
 				return fmt.Errorf("get cluster upgrade mode:\n%w", err)
 			}
-			fmt.Printf("update mechanism mode: %s\n", mode)
+			ot := printer.GetFlagOutputType(cmd)
+			if ot == printer.OutputTypeJSON {
+				b, err := json.Marshal(map[string]string{"mode": mode})
+				if err != nil {
+					return err
+				}
+				cmd.Println(string(b))
+			} else {
+				fmt.Printf("update mechanism mode: %s\n", mode)
+			}
 			return nil
 		case 1:
 			if err := c.setMode(ctx, args[0]); err != nil {
@@ -612,7 +623,16 @@ var displayNameCmd = &cobra.Command{
 			if err != nil {
 				return fmt.Errorf("get cluster displayname:\n%w", err)
 			}
-			fmt.Printf("display name: %q\n", displayName)
+			ot := printer.GetFlagOutputType(cmd)
+			if ot == printer.OutputTypeJSON {
+				b, err := json.Marshal(map[string]string{"displayName": displayName})
+				if err != nil {
+					return err
+				}
+				cmd.Println(string(b))
+			} else {
+				fmt.Printf("display name: %q\n", displayName)
+			}
 			return nil
 		case 1:
 			if err := c.setDisplayName(ctx, args[0]); err != nil {
@@ -623,6 +643,12 @@ var displayNameCmd = &cobra.Command{
 			return fmt.Errorf("invalid number of arguments. At most 1: %d", len(args))
 		}
 	},
+}
+
+type upgradeReportInfo struct {
+	State       string `json:"state"`
+	VersionID   string `json:"versionId,omitempty"`
+	UpdateNotes string `json:"updateNotes,omitempty"`
 }
 
 // reportCmd is the command to report information about an upgrade.
@@ -646,6 +672,23 @@ var reportCmd = &cobra.Command{
 		uir, err := client.ReportUpdateInfo(ctx, &inversionpb.GetUpdateInfoRequest{})
 		if err != nil {
 			return fmt.Errorf("update info request: %w", err)
+		}
+
+		ot := printer.GetFlagOutputType(cmd)
+		if ot == printer.OutputTypeJSON {
+			info := upgradeReportInfo{
+				State: uir.GetState().String(),
+			}
+			if uir.GetState() == inversionpb.UpdateInfo_STATE_UPDATE_AVAILABLE {
+				info.VersionID = uir.GetAvailable().GetVersionId()
+				info.UpdateNotes = uir.GetAvailable().GetUpdateNotes()
+			}
+			b, err := json.Marshal(info)
+			if err != nil {
+				return err
+			}
+			cmd.Println(string(b))
+			return nil
 		}
 
 		switch uir.GetState() {

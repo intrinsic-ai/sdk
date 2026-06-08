@@ -61,8 +61,8 @@ func TestBundleCreate(t *testing.T) {
 		{
 			name: "create skill",
 			args: []string{
-				"--manifest", testio.MustCreateRunfilePath(t, exampleManifestPath),
-				"--file_descriptor_set", testio.MustCreateRunfilePath(t, exampleFileDescriptorSetPath),
+				"--augmented_manifest", testio.MustCreateRunfilePath(t, exampleManifestPath),
+				"--augmented_file_descriptor_set", testio.MustCreateRunfilePath(t, exampleFileDescriptorSetPath),
 				"--oci_image", testio.MustCreateRunfilePath(t, exampleImagePath),
 			},
 			checks: []bundleCheck{

@@ -61,6 +61,7 @@ go_library(
         ":headers",
         ":jwt",
         ":org",
+        "//intrinsic/frontend/go:origin",
         "//intrinsic/stats/go:telemetry",
         "@com_github_golang_glog//:go_default_library",
         "@io_opencensus_go//trace:go_default_library",

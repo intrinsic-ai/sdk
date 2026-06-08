@@ -99,9 +99,11 @@ proto_library(
     srcs = ["solution_version_service.proto"],
     deps = [
         ":branch_proto",
+        ":conflict_proto",
         ":diff_mask_proto",
         ":snapshot_proto",
         ":snapshot_source_proto",
+        ":warning_proto",
         "@com_google_protobuf//:field_mask_proto",
     ],
 )
@@ -142,9 +144,11 @@ go_proto_library(
     ],
     deps = [
         ":branch_go_proto",
+        ":conflict_go_proto",
         ":diff_mask_go_proto",
         ":snapshot_go_proto",
         ":snapshot_source_go_proto",
+        ":warning_go_proto",
     ],
 )
 
@@ -167,4 +171,58 @@ py_proto_library(
     name = "diff_mask_py_pb2",
     visibility = ["//visibility:public"],
     deps = [":diff_mask_proto"],
+)
+
+proto_library(
+    name = "conflict_proto",
+    srcs = ["conflict.proto"],
+    visibility = [
+        "//intrinsic/portal/protos/solutions/v1:__pkg__",
+    ],
+)
+
+go_proto_library(
+    name = "conflict_go_proto",
+    importpath = "intrinsic/solution_versions/proto/v1/conflict_go_proto",
+    protos = [":conflict_proto"],
+    visibility = [
+        "//intrinsic/portal/protos/solutions/v1:__pkg__",
+        "//intrinsic/solution_versions:__subpackages__",
+    ],
+)
+
+py_proto_library(
+    name = "conflict_py_pb2",
+    visibility = ["//visibility:public"],
+    deps = [":conflict_proto"],
+)
+
+proto_library(
+    name = "warning_proto",
+    srcs = ["warning.proto"],
+    visibility = [
+        "//intrinsic/portal/protos/solutions/v1:__pkg__",
+    ],
+    deps = [
+        "//intrinsic/assets/proto:id_proto",
+    ],
+)
+
+go_proto_library(
+    name = "warning_go_proto",
+    importpath = "intrinsic/solution_versions/proto/v1/warning_go_proto",
+    protos = [":warning_proto"],
+    visibility = [
+        "//intrinsic/portal/protos/solutions/v1:__pkg__",
+        "//intrinsic/solution_versions:__subpackages__",
+    ],
+    deps = [
+        "//intrinsic/assets/proto:id_go_proto",
+    ],
+)
+
+py_proto_library(
+    name = "warning_py_pb2",
+    visibility = ["//visibility:public"],
+    deps = [":warning_proto"],
 )

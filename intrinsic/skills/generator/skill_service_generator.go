@@ -115,7 +115,9 @@ func main() {
 	fds = augmentedFDS
 
 	populateServiceVersions(manifest)
-	skillmanifest.PruneSourceCodeInfo(manifest, fds)
+	if err := skillmanifest.PruneSourceCodeInfo(manifest, fds); err != nil {
+		log.Exitf("failed to prune source code info: %v", err)
+	}
 
 	if err := protoio.WriteBinaryProto(*manifestOut, manifest); err != nil {
 		log.Exitf("failed to write augmented skill manifest: %v", err)

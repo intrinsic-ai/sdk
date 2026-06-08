@@ -1,8 +1,18 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
 load("//bazel:go_macros.bzl", "go_library", "go_test")
+load(
+    "//intrinsic/util/proto/build_defs:descriptor_set.bzl",
+    "proto_source_code_info_transitive_descriptor_set",
+)
 
 package(default_visibility = ["//intrinsic/tools/inbuild:__subpackages__"])
+
+proto_source_code_info_transitive_descriptor_set(
+    name = "skill_services_provided_to_platform",
+    visibility = ["//visibility:private"],
+    deps = ["//intrinsic/skills/proto:skill_service_proto"],
+)
 
 go_library(
     name = "generate",
@@ -18,12 +28,17 @@ go_library(
 go_library(
     name = "entrypoint",
     srcs = ["entrypoint.go"],
+    embedsrcs = [":skill_services_provided_to_platform"],
     importpath = "intrinsic/tools/inbuild/cmd/skill/generate/entrypoint",
     deps = [
+        "//intrinsic/skills:skillmanifest",
         "//intrinsic/skills/generator:gen",
         "//intrinsic/skills/proto:skill_manifest_go_proto",
+        "//intrinsic/util/proto:descriptor",
         "//intrinsic/util/proto:protoio",
         "@com_github_spf13_cobra//:go_default_library",
+        "@org_golang_google_protobuf//proto",
+        "@org_golang_google_protobuf//types/descriptorpb:go_default_library",
     ],
 )
 
@@ -32,10 +47,15 @@ go_test(
     srcs = ["entrypoint_test.go"],
     data = [
         "//intrinsic/tools/inbuild/cmd/skill/test_data:example_skill_files",
+        "//intrinsic/tools/inbuild/cmd/skill/test_data:example_skill_proto",
     ],
     embed = [":entrypoint"],
     importpath = "intrinsic/tools/inbuild/cmd/skill/generate/entrypoint_test",
-    deps = ["//intrinsic/util/testing:testio"],
+    deps = [
+        "//intrinsic/skills/proto:skill_manifest_go_proto",
+        "//intrinsic/util/proto:protoio",
+        "//intrinsic/util/testing:testio",
+    ],
 )
 
 go_library(

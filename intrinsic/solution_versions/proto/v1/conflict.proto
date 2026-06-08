@@ -1,0 +1,49 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.solution_versions.v1;
+
+option go_package = "intrinsic/solution_versions/proto/v1/conflict_go_proto";
+
+// Conflict represents a merge-blocking structural or data integrity clash
+// between the incoming source snapshot and the destination branch.
+// A conflict is triggered when a merge would result in an irrecoverable,
+// invalid state that could not be achieved through standard Solution Editor
+// or SDK operations (e.g. both versions updating the same field to different
+// values, or one deleting a resource that the other updated).
+// Conflicts act as strict merge blockers, forcing explicit pre-merge
+// resolution.
+message Conflict {
+  // A deterministic unique identifier for the conflict, computed as a hash of
+  // the compared snapshot IDs and the conflicting paths (source_path and
+  // destination_path).
+  // This guarantees the following properties:
+  // 1. Determinism: Comparing the same snapshots will always yield identical
+  //    conflict IDs.
+  // 2. Uniqueness: Changing the compared snapshots will yield
+  //    entirely different conflict IDs, with no risk of overlapping.
+  string id = 1;
+
+  // Path to the solution field that is part of the conflict from the source
+  // snapshot.
+  // This path follows the custom DiffMask syntax (supporting list indices and
+  // map keys) rather than standard Protobuf FieldMask syntax.
+  // Examples:
+  //   - `assets["my-process"].local.behavior_tree`
+  //   - `instances["my-instance"].config`
+  //   - `updates[2]`
+  //   - `updates[5].property`
+  string source_path = 2;
+
+  // Path to the solution field that is part of the conflict from the
+  // destination branch tip.
+  // This path follows the custom DiffMask syntax (supporting list indices and
+  // map keys) rather than standard Protobuf FieldMask syntax.
+  // Examples:
+  //   - `assets["my-process"].local.behavior_tree`
+  //   - `instances["my-instance"].config`
+  //   - `updates[2]`
+  //   - `updates[5].property`
+  string destination_path = 3;
+}

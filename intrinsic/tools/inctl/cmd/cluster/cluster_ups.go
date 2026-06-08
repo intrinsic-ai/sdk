@@ -3,11 +3,13 @@
 package cluster
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"text/tabwriter"
 
 	"intrinsic/tools/inctl/util/orgutil"
+	"intrinsic/tools/inctl/util/printer"
 
 	"github.com/spf13/cobra"
 
@@ -31,6 +33,11 @@ Use the subcommands to show, enable or disable UPS monitoring, for example:
 
   inctl cluster ups show --enable-experimental --org <org>[@<project>] --cluster <cluster>
   inctl cluster ups enable --enable-experimental --org <org>[@<project>] --cluster <cluster> --driver <driver> [--port <port>]`,
+}
+
+type upsInfo struct {
+	Driver string `json:"driver,omitempty"`
+	Port   string `json:"port,omitempty"`
 }
 
 var upsShowCmd = &cobra.Command{
@@ -63,6 +70,22 @@ var upsShowCmd = &cobra.Command{
 		if ups == nil {
 			return fmt.Errorf("this IPC doesn't support UPS monitoring: please update the OS")
 		}
+
+		ot := printer.GetFlagOutputType(cmd)
+		if ot == printer.OutputTypeJSON {
+			info := upsInfo{}
+			if ups.GetDriver() != "" {
+				info.Driver = ups.GetDriver()
+				info.Port = ups.GetPort()
+			}
+			b, err := json.Marshal(info)
+			if err != nil {
+				return err
+			}
+			cmd.Println(string(b))
+			return nil
+		}
+
 		if ups.GetDriver() == "" {
 			fmt.Println("No UPS configured.")
 			return nil

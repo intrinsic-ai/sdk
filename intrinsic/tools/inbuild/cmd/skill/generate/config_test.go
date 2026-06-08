@@ -26,24 +26,24 @@ func TestConfig(t *testing.T) {
 		{
 			name: "cpp skill service",
 			args: []string{
-				"--manifest", testio.MustCreateRunfilePath(t, exampleCCManifestPath),
-				"--file_descriptor_set", testio.MustCreateRunfilePath(t, exampleFileDescriptorSetPath),
+				"--augmented_manifest", testio.MustCreateRunfilePath(t, exampleCCManifestPath),
+				"--augmented_file_descriptor_set", testio.MustCreateRunfilePath(t, exampleFileDescriptorSetPath),
 			},
 			wantFile: defaultOutput,
 		},
 		{
 			name: "python skill service",
 			args: []string{
-				"--manifest", testio.MustCreateRunfilePath(t, examplePyManifestPath),
-				"--file_descriptor_set", testio.MustCreateRunfilePath(t, exampleFileDescriptorSetPath),
+				"--augmented_manifest", testio.MustCreateRunfilePath(t, examplePyManifestPath),
+				"--augmented_file_descriptor_set", testio.MustCreateRunfilePath(t, exampleFileDescriptorSetPath),
 			},
 			wantFile: defaultOutput,
 		},
 		{
 			name: "cpp skill service custom output",
 			args: []string{
-				"--manifest", testio.MustCreateRunfilePath(t, exampleCCManifestPath),
-				"--file_descriptor_set", testio.MustCreateRunfilePath(t, exampleFileDescriptorSetPath),
+				"--augmented_manifest", testio.MustCreateRunfilePath(t, exampleCCManifestPath),
+				"--augmented_file_descriptor_set", testio.MustCreateRunfilePath(t, exampleFileDescriptorSetPath),
 				"--output", "foobar_cpp.pbbin",
 			},
 			wantFile: "foobar_cpp.pbbin",
@@ -51,8 +51,8 @@ func TestConfig(t *testing.T) {
 		{
 			name: "python skill service custom output",
 			args: []string{
-				"--manifest", testio.MustCreateRunfilePath(t, examplePyManifestPath),
-				"--file_descriptor_set", testio.MustCreateRunfilePath(t, exampleFileDescriptorSetPath),
+				"--augmented_manifest", testio.MustCreateRunfilePath(t, examplePyManifestPath),
+				"--augmented_file_descriptor_set", testio.MustCreateRunfilePath(t, exampleFileDescriptorSetPath),
 				"--output", "foobar_py.pbbin",
 			},
 			wantFile: "foobar_py.pbbin",
@@ -92,16 +92,16 @@ func TestConfigErrors(t *testing.T) {
 		{
 			name: "No manifest",
 			args: []string{
-				"--manifest", testio.MustCreateRunfilePath(t, "does_not_exist.pbtxt"),
-				"--file_descriptor_set", testio.MustCreateRunfilePath(t, exampleFileDescriptorSetPath),
+				"--augmented_manifest", testio.MustCreateRunfilePath(t, "does_not_exist.pbtxt"),
+				"--augmented_file_descriptor_set", testio.MustCreateRunfilePath(t, exampleFileDescriptorSetPath),
 			},
 			wantErrorContains: "failed to read manifest",
 		},
 		{
 			name: "No file descriptor set",
 			args: []string{
-				"--manifest", testio.MustCreateRunfilePath(t, exampleCCManifestPath),
-				"--file_descriptor_set", testio.MustCreateRunfilePath(t, "does_not_exist.pbbin"),
+				"--augmented_manifest", testio.MustCreateRunfilePath(t, exampleCCManifestPath),
+				"--augmented_file_descriptor_set", testio.MustCreateRunfilePath(t, "does_not_exist.pbbin"),
 			},
 			wantErrorContains: "failed to read file descriptor set",
 		},

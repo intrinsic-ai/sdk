@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	flagFileDescriptorSets                       []string
+	flagFileDescriptorSet                        string
 	flagManifest                                 string
 	flagIncompatibleDisallowManifestDependencies bool
 	flagOutput                                   string
@@ -32,26 +32,26 @@ func resetConfigCommand() {
 		RunE:  run,
 	}
 
-	ConfigCmd.Flags().StringArrayVar(&flagFileDescriptorSets, "file_descriptor_set", nil, "Path to binary file descriptor set protos to be used to resolve messages referenced by the skill manifest")
-	ConfigCmd.Flags().StringVar(&flagManifest, "manifest", "", "Path to a SkillManifest textproto file")
+	ConfigCmd.Flags().StringVar(&flagFileDescriptorSet, "augmented_file_descriptor_set", "", "Path to an augmented file descriptor set binary proto used to resolve messages referenced in the skill manifest")
+	ConfigCmd.Flags().StringVar(&flagManifest, "augmented_manifest", "", "Path to an augmented SkillManifest binary proto")
 	ConfigCmd.Flags().BoolVar(&flagIncompatibleDisallowManifestDependencies, "incompatible_disallow_manifest_dependencies", false, "Whether to prevent this manifest from declaring dependencies")
 	ConfigCmd.Flags().StringVar(&flagOutput, "output", "config.pbbin", "Path to write skill service")
 }
 
 func run(cmd *cobra.Command, args []string) error {
 	// Validate flags.
-	if len(flagFileDescriptorSets) == 0 {
-		return fmt.Errorf("at least one --file_descriptor_set is required")
+	if flagFileDescriptorSet == "" {
+		return fmt.Errorf("--augmented_file_descriptor_set is required")
 	}
 	if flagManifest == "" {
-		return fmt.Errorf("--manifest is required")
+		return fmt.Errorf("--augmented_manifest is required")
 	}
 	if flagOutput == "" {
 		return fmt.Errorf("--output must be a valid writable path")
 	}
 
 	// Prep the manifest and file descriptor set
-	m, fds, err := skillmanifest.LoadManifestAndFileDescriptorSets(flagManifest, flagFileDescriptorSets, flagIncompatibleDisallowManifestDependencies)
+	m, fds, err := skillmanifest.LoadManifestAndFileDescriptorSets(flagManifest, []string{flagFileDescriptorSet}, flagIncompatibleDisallowManifestDependencies)
 	if err != nil {
 		return fmt.Errorf("unable to load manifest and file descriptor sets: %v", err)
 	}

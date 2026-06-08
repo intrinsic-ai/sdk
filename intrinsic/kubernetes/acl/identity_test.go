@@ -5,13 +5,13 @@ package identity
 import (
 	"context"
 	"fmt"
-	"net/http"
-	"net/http/httptest"
-	"testing"
-
 	"intrinsic/kubernetes/acl/cookies"
 	"intrinsic/kubernetes/acl/org"
 	"intrinsic/kubernetes/acl/testing/jwttesting"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -604,7 +604,8 @@ func TestToContextFromIncoming(t *testing.T) {
 		{
 			desc: "keep metadata in outgoing if incoming has nothing to copyover",
 			incoming: metadata.NewIncomingContext(
-				metadata.NewOutgoingContext(t.Context(),
+				metadata.NewOutgoingContext(
+					t.Context(),
 					metadata.Pairs(cookies.CookieHeaderName, "something"),
 				),
 				metadata.Pairs(),
@@ -615,7 +616,8 @@ func TestToContextFromIncoming(t *testing.T) {
 		},
 		{
 			desc: "copy cookie from incoming to outgoing",
-			incoming: metadata.NewIncomingContext(t.Context(),
+			incoming: metadata.NewIncomingContext(
+				t.Context(),
 				metadata.Pairs(
 					cookies.CookieHeaderName, "something=somethingelse",
 				),
@@ -627,7 +629,8 @@ func TestToContextFromIncoming(t *testing.T) {
 		},
 		{
 			desc: "incoming auth-proxy and cookie with multiple values",
-			incoming: metadata.NewIncomingContext(t.Context(),
+			incoming: metadata.NewIncomingContext(
+				t.Context(),
 				metadata.Pairs(
 					AuthProxyCookieName, "anything", // do not copy over deprecated auth-proxy
 					cookies.CookieHeaderName, "something",
@@ -641,7 +644,8 @@ func TestToContextFromIncoming(t *testing.T) {
 		},
 		{
 			desc: "incoming authorization header",
-			incoming: metadata.NewIncomingContext(t.Context(),
+			incoming: metadata.NewIncomingContext(
+				t.Context(),
 				metadata.Pairs(authHeaderName, "some-token"),
 			),
 			wantMd: metadata.MD{
@@ -651,7 +655,8 @@ func TestToContextFromIncoming(t *testing.T) {
 		},
 		{
 			desc: "multiple incoming authorization headers are ignored",
-			incoming: metadata.NewIncomingContext(t.Context(),
+			incoming: metadata.NewIncomingContext(
+				t.Context(),
 				metadata.Pairs(
 					authHeaderName, "some-token",
 					authHeaderName, "other-token",
@@ -662,7 +667,8 @@ func TestToContextFromIncoming(t *testing.T) {
 		{
 			desc: "cookie comparison",
 			incoming: metadata.NewIncomingContext(
-				metadata.NewOutgoingContext(t.Context(),
+				metadata.NewOutgoingContext(
+					t.Context(),
 					metadata.MD{
 						"cookie": []string{"something=somethingelse", "something2=somethingelse2"},
 					},
@@ -681,7 +687,8 @@ func TestToContextFromIncoming(t *testing.T) {
 		{
 			desc: "cookie comparison reverse",
 			incoming: metadata.NewIncomingContext(
-				metadata.NewOutgoingContext(t.Context(),
+				metadata.NewOutgoingContext(
+					t.Context(),
 					metadata.MD{
 						"cookie": []string{"something2=somethingelse2", "something=somethingelse"},
 					},
@@ -700,7 +707,8 @@ func TestToContextFromIncoming(t *testing.T) {
 		{
 			desc: "cookies are not compared inside the cookie-MDstring",
 			incoming: metadata.NewIncomingContext(
-				metadata.NewOutgoingContext(t.Context(),
+				metadata.NewOutgoingContext(
+					t.Context(),
 					metadata.MD{
 						"cookie": []string{"something=somethingelse; something2=somethingelse2"},
 					},
@@ -749,7 +757,8 @@ func TestToContextFromIncoming(t *testing.T) {
 		},
 		{
 			desc: "incoming org header",
-			incoming: metadata.NewIncomingContext(t.Context(),
+			incoming: metadata.NewIncomingContext(
+				t.Context(),
 				metadata.Pairs(org.OrgIDHeader, "org1"),
 			),
 			wantMd: metadata.MD{
@@ -759,7 +768,8 @@ func TestToContextFromIncoming(t *testing.T) {
 		},
 		{
 			desc: "multiple incoming org headers are ignored",
-			incoming: metadata.NewIncomingContext(t.Context(),
+			incoming: metadata.NewIncomingContext(
+				t.Context(),
 				metadata.Pairs(
 					org.OrgIDHeader, "org1",
 					org.OrgIDHeader, "org2",
@@ -817,7 +827,8 @@ func TestToContextFromIncoming(t *testing.T) {
 		},
 		{
 			desc: "duplicate incoming org headers are ignored",
-			incoming: metadata.NewIncomingContext(t.Context(),
+			incoming: metadata.NewIncomingContext(
+				t.Context(),
 				metadata.Pairs(
 					org.OrgIDHeader, "org1",
 					org.OrgIDHeader, "org1",
@@ -1233,9 +1244,10 @@ func TestClearContextOrg(t *testing.T) {
 	}
 
 	// check cookies
-	cs, err := cookies.FromOutgoingContext(ctx)
+	md, _ := metadata.FromOutgoingContext(ctx)
+	cs, err := cookies.FromMD(md)
 	if err != nil {
-		t.Fatalf("FromOutgoingContext(..) = _, %v, want no error", err)
+		t.Fatalf("cookies.FromMD(..) = _, %v, want no error", err)
 	}
 	foundOther := false
 	for _, c := range cs {
@@ -1253,7 +1265,6 @@ func TestClearContextOrg(t *testing.T) {
 	}
 
 	// check headers
-	md, _ := metadata.FromOutgoingContext(ctx)
 	if len(md.Get(org.OrgIDHeader)) > 0 {
 		t.Errorf("ClearContextOrg(..) = %q, want empty org header", md.Get(org.OrgIDHeader)[0])
 	}
@@ -1282,9 +1293,10 @@ func TestClearContextUser(t *testing.T) {
 		t.Fatalf("ClearContextUser(..) = _, %v, want no error", err)
 	}
 	// check cookies
-	cs, err := cookies.FromOutgoingContext(ctx)
+	md, _ := metadata.FromOutgoingContext(ctx)
+	cs, err := cookies.FromMD(md)
 	if err != nil {
-		t.Fatalf("FromOutgoingContext(..) = _, %v, want no error", err)
+		t.Fatalf("cookies.FromMD(..) = _, %v, want no error", err)
 	}
 	foundOther := false
 	for _, c := range cs {
@@ -1301,7 +1313,6 @@ func TestClearContextUser(t *testing.T) {
 		t.Errorf("expected othercookie to be preserved, but it was lost")
 	}
 	// check headers
-	md, _ := metadata.FromOutgoingContext(ctx)
 	if len(md.Get(authHeaderName)) > 0 {
 		t.Errorf("ClearContextUser(..) = %q, want empty auth header", md.Get(authHeaderName)[0])
 	}
@@ -1395,7 +1406,7 @@ func TestUserOrgRetrieval(t *testing.T) {
 		{
 			name:    "without user",
 			org:     "testorg",
-			user:    &User{},
+			user:    nil,
 			wantErr: true,
 		},
 		{
@@ -1441,7 +1452,7 @@ func runUserOrgRetrievalContext(t *testing.T, tc *UserOrgRetrievalTest) {
 
 func runUserOrgRetrievalRequest(t *testing.T, tc *UserOrgRetrievalTest) {
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
-	ToRequest(r, tc.user, tc.org)
+	ToRequestDeprecated(r, tc.user, tc.org)
 	uo, err := UserOrgFromRequest(r)
 	if tc.wantErr {
 		if err == nil {
@@ -1522,67 +1533,870 @@ func TestErrStatusCodes(t *testing.T) {
 	}
 }
 
-func TestClearContextAndSwitchUser(t *testing.T) {
-	ctx := t.Context()
+func TestNewOutgoingContext(t *testing.T) {
+	u := &User{jwt: token, org: &org.Organization{ID: "testorg"}, project: "testproject"}
+	newUser := &User{jwt: "newtoken", org: &org.Organization{ID: "neworg"}, project: "newproject"}
 
-	// 1. Simulate incoming caller identity (e.g. a service).
-	callerUser, err := UserFromJWT(token)
-	if err != nil {
-		t.Fatal(err)
-	}
-	ctx, err = UserToIncomingContext(ctx, callerUser)
-	if err != nil {
-		t.Fatal(err)
+	tests := []struct {
+		name    string
+		opts    []Option
+		wantMD  metadata.MD
+		wantErr error
+	}{
+		{
+			name: "with user containing org and project",
+			opts: []Option{WithUser(u)},
+			wantMD: metadata.MD{
+				authProjectHeaderName: []string{"testproject"},
+				org.OrgIDHeader:       []string{"testorg"},
+				"cookie":              []string{"auth-proxy=" + token + "; org-id=testorg"},
+			},
+		},
+		{
+			name: "explicit options combined",
+			opts: []Option{WithUserJWT(token), WithOrg("testorg"), WithComputeProject("testproject")},
+			wantMD: metadata.MD{
+				authProjectHeaderName: []string{"testproject"},
+				org.OrgIDHeader:       []string{"testorg"},
+				"cookie":              []string{"auth-proxy=" + token + "; org-id=testorg"},
+			},
+		},
+		{
+			name:   "WithClearUser clears credentials on empty context",
+			opts:   []Option{WithClearUser()},
+			wantMD: metadata.MD{},
+		},
+		{
+			name: "WithClearUser combined with WithUser atomic swap",
+			opts: []Option{WithClearUser(), WithUser(newUser)},
+			wantMD: metadata.MD{
+				authProjectHeaderName: []string{"newproject"},
+				org.OrgIDHeader:       []string{"neworg"},
+				"cookie":              []string{"auth-proxy=newtoken; org-id=neworg"},
+			},
+		},
+		{
+			name: "empty options returns context unchanged",
+			opts: []Option{},
+		},
+		{
+			name:    "empty org error",
+			opts:    []Option{WithOrg("")},
+			wantErr: ErrMissingOrgID,
+		},
+		{
+			name:    "empty jwt error",
+			opts:    []Option{WithUserJWT("")},
+			wantErr: ErrUnauthenticated,
+		},
+		{
+			name:    "empty project error",
+			opts:    []Option{WithComputeProject("")},
+			wantErr: ErrMissingProject,
+		},
+		{
+			name:    "nil user error",
+			opts:    []Option{WithUser(nil)},
+			wantErr: ErrInvalidRequest,
+		},
 	}
 
-	// 2. Verify we can extract caller identity from incoming context.
-	fv := &FakeVerifier{WantToken: token}
-	extractedCaller, err := UserFromContextVerified(ctx, fv)
-	if err != nil {
-		t.Fatal(err)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx, err := NewOutgoingContext(t.Context(), tc.opts...)
+			if tc.wantErr != nil {
+				if !errors.Is(err, tc.wantErr) {
+					t.Fatalf("NewOutgoingContext() error = %v, want %v", err, tc.wantErr)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("NewOutgoingContext() unexpected error = %v", err)
+			}
+
+			gotMD, ok := metadata.FromOutgoingContext(ctx)
+			if !ok {
+				if len(tc.wantMD) > 0 {
+					t.Fatal("FromOutgoingContext() returned ok = false but expected some metadata")
+				}
+				return
+			}
+
+			if diff := cmp.Diff(tc.wantMD, gotMD, cmpopts.EquateEmpty()); diff != "" {
+				t.Errorf("metadata.FromOutgoingContext() returned unexpected diff (-want +got):\n%s", diff)
+			}
+		})
 	}
-	if extractedCaller.EmailCanonicalized() != email {
-		t.Errorf("extracted caller email: got %q, want %q", extractedCaller.EmailCanonicalized(), email)
+}
+
+func TestAppendToOutgoingContext(t *testing.T) {
+	u := &User{jwt: token, org: &org.Organization{ID: "testorg"}, project: "testproject"}
+	newUser := &User{jwt: "newtoken", org: &org.Organization{ID: "neworg"}, project: "newproject"}
+
+	initialCookies := []*http.Cookie{
+		{Name: "othercookie", Value: "othervalue"},
+		{Name: AuthProxyCookieName, Value: "oldtoken"},
+		{Name: org.OrgIDCookie, Value: "oldorg"},
+	}
+	initialMD := metadata.Pairs(cookies.ToMDString(initialCookies...)...)
+	initialMD.Set("x-initial-key", "initial-value")
+	initialMD.Set(authHeaderName, "Bearer oldtoken")
+	initialMD.Set(ApikeyTokenHeaderName, "oldapikey")
+	initialMD.Set(org.OrgIDHeader, "oldorg")
+	initialMD.Set(authProjectHeaderName, "oldproject")
+
+	tests := []struct {
+		name      string
+		initialMD metadata.MD
+		opts      []Option
+		wantMD    metadata.MD
+		wantErr   error
+	}{
+		{
+			name:      "with user containing org and project",
+			initialMD: initialMD.Copy(),
+			opts:      []Option{WithUser(u)},
+			wantMD: metadata.MD{
+				"x-initial-key":       []string{"initial-value"},
+				authHeaderName:        []string{"Bearer oldtoken"},
+				ApikeyTokenHeaderName: []string{"oldapikey"},
+				org.OrgIDHeader:       []string{"testorg"},
+				authProjectHeaderName: []string{"testproject"},
+				"cookie":              []string{"auth-proxy=" + token + "; org-id=testorg; othercookie=othervalue"},
+			},
+		},
+		{
+			name:      "explicit options combined",
+			initialMD: initialMD.Copy(),
+			opts:      []Option{WithUserJWT(token), WithOrg("testorg"), WithComputeProject("testproject")},
+			wantMD: metadata.MD{
+				"x-initial-key":       []string{"initial-value"},
+				authHeaderName:        []string{"Bearer oldtoken"},
+				ApikeyTokenHeaderName: []string{"oldapikey"},
+				org.OrgIDHeader:       []string{"testorg"},
+				authProjectHeaderName: []string{"testproject"},
+				"cookie":              []string{"auth-proxy=" + token + "; org-id=testorg; othercookie=othervalue"},
+			},
+		},
+		{
+			name:      "WithClearUser clears credentials but preserves unrelated config",
+			initialMD: initialMD.Copy(),
+			opts:      []Option{WithClearUser()},
+			wantMD: metadata.MD{
+				"x-initial-key": []string{"initial-value"},
+				"cookie":        []string{"othercookie=othervalue"},
+			},
+		},
+		{
+			name:      "WithClearUser combined with WithUser atomic swap",
+			initialMD: initialMD.Copy(),
+			opts:      []Option{WithClearUser(), WithUser(newUser)},
+			wantMD: metadata.MD{
+				"x-initial-key":       []string{"initial-value"},
+				org.OrgIDHeader:       []string{"neworg"},
+				authProjectHeaderName: []string{"newproject"},
+				"cookie":              []string{"auth-proxy=newtoken; org-id=neworg; othercookie=othervalue"},
+			},
+		},
+		{
+			name:      "empty options returns context unchanged",
+			initialMD: initialMD.Copy(),
+			opts:      []Option{},
+			wantMD: metadata.MD{
+				"x-initial-key":       []string{"initial-value"},
+				authHeaderName:        []string{"Bearer oldtoken"},
+				ApikeyTokenHeaderName: []string{"oldapikey"},
+				org.OrgIDHeader:       []string{"oldorg"},
+				authProjectHeaderName: []string{"oldproject"},
+				"cookie":              []string{"othercookie=othervalue; auth-proxy=oldtoken; org-id=oldorg"},
+			},
+		},
+		{
+			name:      "empty org error",
+			initialMD: initialMD.Copy(),
+			opts:      []Option{WithOrg("")},
+			wantErr:   ErrMissingOrgID,
+		},
 	}
 
-	// 3. We have a end-user token.
-	userToken := token2 // doe2@example.com (email2)
-	userUser, err := UserFromJWT(userToken)
-	if err != nil {
-		t.Fatal(err)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := metadata.NewOutgoingContext(t.Context(), tc.initialMD)
+
+			ctx, err := AppendToOutgoingContext(ctx, tc.opts...)
+			if tc.wantErr != nil {
+				if !errors.Is(err, tc.wantErr) {
+					t.Fatalf("AppendToOutgoingContext() error = %v, want %v", err, tc.wantErr)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("AppendToOutgoingContext() unexpected error = %v", err)
+			}
+
+			gotMD, ok := metadata.FromOutgoingContext(ctx)
+			if !ok {
+				if len(tc.wantMD) > 0 {
+					t.Fatal("FromOutgoingContext() returned ok = false but expected some metadata")
+				}
+				return
+			}
+
+			if diff := cmp.Diff(tc.wantMD, gotMD, cmpopts.EquateEmpty()); diff != "" {
+				t.Errorf("metadata.FromOutgoingContext() returned unexpected diff (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestToRequest(t *testing.T) {
+	u := &User{jwt: token, org: &org.Organization{ID: "testorg"}, project: "testproject"}
+
+	tests := []struct {
+		name        string
+		opts        []Option
+		wantHeaders map[string]string
+		wantCookies map[string]string
+		wantErr     error
+	}{
+		{
+			name: "with user",
+			opts: []Option{WithUser(u)},
+			wantHeaders: map[string]string{
+				authProjectHeaderName: "testproject",
+				org.OrgIDHeader:       "testorg",
+			},
+			wantCookies: map[string]string{
+				AuthProxyCookieName: token,
+				org.OrgIDCookie:     "testorg",
+			},
+		},
+		{
+			name:    "empty org error",
+			opts:    []Option{WithOrg("")},
+			wantErr: ErrMissingOrgID,
+		},
 	}
 
-	// 4. Clear context (should only affect outgoing).
-	clearedCtx, err := ClearContext(ctx)
-	if err != nil {
-		t.Fatal(err)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			err := ToRequest(r, tc.opts...)
+			if tc.wantErr != nil {
+				if !errors.Is(err, tc.wantErr) {
+					t.Fatalf("ToRequest() error = %v, want %v", err, tc.wantErr)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("ToRequest() unexpected error = %v", err)
+			}
+
+			for k, v := range tc.wantHeaders {
+				if got := r.Header.Get(k); got != v {
+					t.Errorf("Header %q = %q, want %q", k, got, v)
+				}
+			}
+
+			for k, v := range tc.wantCookies {
+				c, err := r.Cookie(k)
+				if err != nil {
+					t.Errorf("Cookie %q missing: %v", k, err)
+					continue
+				}
+				if c.Value != v {
+					t.Errorf("Cookie %q = %q, want %q", k, c.Value, v)
+				}
+			}
+		})
+	}
+}
+
+func TestAppendToIncomingContext(t *testing.T) {
+	u := &User{jwt: token, org: &org.Organization{ID: "testorg"}, project: "testproject"}
+	newUser := &User{jwt: "newtoken", org: &org.Organization{ID: "neworg"}, project: "newproject"}
+
+	initialCookies := []*http.Cookie{
+		{Name: "othercookie", Value: "othervalue"},
+		{Name: AuthProxyCookieName, Value: "oldtoken"},
+		{Name: org.OrgIDCookie, Value: "oldorg"},
+	}
+	initialMD := metadata.Pairs(cookies.ToMDString(initialCookies...)...)
+	initialMD.Set("x-initial-key", "initial-value")
+	initialMD.Set(authHeaderName, "Bearer oldtoken")
+	initialMD.Set(ApikeyTokenHeaderName, "oldapikey")
+	initialMD.Set(org.OrgIDHeader, "oldorg")
+	initialMD.Set(authProjectHeaderName, "oldproject")
+
+	tests := []struct {
+		name      string
+		initialMD metadata.MD
+		opts      []Option
+		wantMD    metadata.MD
+	}{
+		{
+			name:      "append user containing org and project to incoming context",
+			initialMD: initialMD.Copy(),
+			opts:      []Option{WithUser(u)},
+			wantMD: metadata.MD{
+				"x-initial-key":       []string{"initial-value"},
+				authHeaderName:        []string{"Bearer oldtoken"},
+				ApikeyTokenHeaderName: []string{"oldapikey"},
+				org.OrgIDHeader:       []string{"testorg"},
+				authProjectHeaderName: []string{"testproject"},
+				"cookie":              []string{"auth-proxy=" + token + "; org-id=testorg; othercookie=othervalue"},
+			},
+		},
+		{
+			name:      "explicit options combined",
+			initialMD: initialMD.Copy(),
+			opts:      []Option{WithUserJWT(token), WithOrg("testorg"), WithComputeProject("testproject")},
+			wantMD: metadata.MD{
+				"x-initial-key":       []string{"initial-value"},
+				authHeaderName:        []string{"Bearer oldtoken"},
+				ApikeyTokenHeaderName: []string{"oldapikey"},
+				org.OrgIDHeader:       []string{"testorg"},
+				authProjectHeaderName: []string{"testproject"},
+				"cookie":              []string{"auth-proxy=" + token + "; org-id=testorg; othercookie=othervalue"},
+			},
+		},
+		{
+			name:      "WithClearUser clears credentials but preserves system metadata and other cookies",
+			initialMD: initialMD.Copy(),
+			opts:      []Option{WithClearUser()},
+			wantMD: metadata.MD{
+				"x-initial-key": []string{"initial-value"},
+				"cookie":        []string{"othercookie=othervalue"},
+			},
+		},
+		{
+			name:      "WithClearUser combined with WithUser - atomic swap",
+			initialMD: initialMD.Copy(),
+			opts:      []Option{WithClearUser(), WithUser(newUser)},
+			wantMD: metadata.MD{
+				"x-initial-key":       []string{"initial-value"},
+				org.OrgIDHeader:       []string{"neworg"},
+				authProjectHeaderName: []string{"newproject"},
+				"cookie":              []string{"auth-proxy=newtoken; org-id=neworg; othercookie=othervalue"},
+			},
+		},
+		{
+			name:      "empty options returns context unchanged",
+			initialMD: initialMD.Copy(),
+			opts:      []Option{},
+			wantMD: metadata.MD{
+				"x-initial-key":       []string{"initial-value"},
+				authHeaderName:        []string{"Bearer oldtoken"},
+				ApikeyTokenHeaderName: []string{"oldapikey"},
+				org.OrgIDHeader:       []string{"oldorg"},
+				authProjectHeaderName: []string{"oldproject"},
+				"cookie":              []string{"othercookie=othervalue; auth-proxy=oldtoken; org-id=oldorg"},
+			},
+		},
 	}
 
-	// 5. Add end-user identity to outgoing context.
-	userCtx, err := UserToContext(clearedCtx, userUser)
-	if err != nil {
-		t.Fatal(err)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := metadata.NewIncomingContext(t.Context(), tc.initialMD)
+
+			ctx, err := AppendToIncomingContext(ctx, tc.opts...)
+			if err != nil {
+				t.Fatalf("AppendToIncomingContext() error = %v", err)
+			}
+
+			gotMD, ok := metadata.FromIncomingContext(ctx)
+			if !ok {
+				if len(tc.wantMD) > 0 {
+					t.Fatal("FromIncomingContext() returned ok = false but expected some metadata")
+				}
+				return
+			}
+
+			if diff := cmp.Diff(tc.wantMD, gotMD, cmpopts.EquateEmpty()); diff != "" {
+				t.Errorf("metadata.FromIncomingContext() returned unexpected diff (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+// COMPATIBILITY MIGRATION TEST: Safe to delete when deprecated wrappers are deleted.
+func TestMigrationCompatibility(t *testing.T) {
+	u := &User{jwt: token, org: &org.Organization{ID: "testorg"}, project: "testproject"}
+
+	t.Run("ToContext_vs_NewOutgoingContext", func(t *testing.T) {
+		ctxBaseline, err := ToContext(t.Context(), u, "testorg")
+		if err != nil {
+			t.Fatalf("ToContext() error = %v", err)
+		}
+		ctxMigrated, err := NewOutgoingContext(t.Context(), WithUser(u), WithOrg("testorg"))
+		if err != nil {
+			t.Fatalf("NewOutgoingContext() error = %v", err)
+		}
+
+		mdBaseline, _ := metadata.FromOutgoingContext(ctxBaseline)
+		mdMigrated, _ := metadata.FromOutgoingContext(ctxMigrated)
+
+		if diff := cmp.Diff(mdBaseline, mdMigrated); diff != "" {
+			t.Errorf("Metadata mismatch between ToContext and NewOutgoingContext (-baseline +migrated):\n%s", diff)
+		}
+	})
+
+	t.Run("UserToContext_vs_AppendToOutgoingContext", func(t *testing.T) {
+		ctxBaseline, err := UserToContext(t.Context(), u)
+		if err != nil {
+			t.Fatalf("UserToContext() error = %v", err)
+		}
+		ctxMigrated, err := AppendToOutgoingContext(t.Context(), WithUser(u))
+		if err != nil {
+			t.Fatalf("AppendToOutgoingContext() error = %v", err)
+		}
+
+		mdBaseline, _ := metadata.FromOutgoingContext(ctxBaseline)
+		mdMigrated, _ := metadata.FromOutgoingContext(ctxMigrated)
+
+		if diff := cmp.Diff(mdBaseline, mdMigrated); diff != "" {
+			t.Errorf("Metadata mismatch between UserToContext and AppendToOutgoingContext (-baseline +migrated):\n%s", diff)
+		}
+	})
+
+	t.Run("OrgToContext_vs_AppendToOutgoingContext", func(t *testing.T) {
+		ctxBaseline, err := OrgToContext(t.Context(), "testorg")
+		if err != nil {
+			t.Fatalf("OrgToContext() error = %v", err)
+		}
+		ctxMigrated, err := AppendToOutgoingContext(t.Context(), WithOrg("testorg"))
+		if err != nil {
+			t.Fatalf("AppendToOutgoingContext() error = %v", err)
+		}
+
+		mdBaseline, _ := metadata.FromOutgoingContext(ctxBaseline)
+		mdMigrated, _ := metadata.FromOutgoingContext(ctxMigrated)
+
+		if diff := cmp.Diff(mdBaseline, mdMigrated); diff != "" {
+			t.Errorf("Metadata mismatch between OrgToContext and AppendToOutgoingContext (-baseline +migrated):\n%s", diff)
+		}
+	})
+
+	t.Run("ToIncomingContext_vs_AppendToIncomingContext", func(t *testing.T) {
+		ctxBaseline, err := ToIncomingContext(t.Context(), u, "testorg")
+		if err != nil {
+			t.Fatalf("ToIncomingContext() error = %v", err)
+		}
+		ctxMigrated, err := AppendToIncomingContext(t.Context(), WithUser(u), WithOrg("testorg"))
+		if err != nil {
+			t.Fatalf("AppendToIncomingContext() error = %v", err)
+		}
+
+		mdBaseline, _ := metadata.FromIncomingContext(ctxBaseline)
+		mdMigrated, _ := metadata.FromIncomingContext(ctxMigrated)
+
+		if diff := cmp.Diff(mdBaseline, mdMigrated); diff != "" {
+			t.Errorf("Metadata mismatch between ToIncomingContext and AppendToIncomingContext (-baseline +migrated):\n%s", diff)
+		}
+	})
+
+	t.Run("UserToRequest_vs_ToRequest", func(t *testing.T) {
+		rBaseline := httptest.NewRequest(http.MethodGet, "/", nil)
+		UserToRequest(rBaseline, u)
+
+		rMigrated := httptest.NewRequest(http.MethodGet, "/", nil)
+		if err := ToRequest(rMigrated, WithUser(u)); err != nil {
+			t.Fatalf("ToRequest() error = %v", err)
+		}
+
+		if diff := cmp.Diff(rBaseline.Header, rMigrated.Header); diff != "" {
+			t.Errorf("Header mismatch between UserToRequest and ToRequest (-baseline +migrated):\n%s", diff)
+		}
+		if diff := cmp.Diff(rBaseline.Cookies(), rMigrated.Cookies()); diff != "" {
+			t.Errorf("Cookies mismatch between UserToRequest and ToRequest (-baseline +migrated):\n%s", diff)
+		}
+	})
+}
+
+func TestToMetadata(t *testing.T) {
+	token := jwttesting.MintToken(t, jwttesting.WithEmail("test@google.com"))
+	u := &User{jwt: token, org: &org.Organization{ID: "testorg"}, project: "testproject"}
+	newUser := &User{jwt: "newtoken", org: &org.Organization{ID: "neworg"}, project: "newproject"}
+
+	tests := []struct {
+		name       string
+		opts       []Option
+		wantMD     metadata.MD
+		wantErrSub string
+	}{
+		{
+			name: "with user containing org and project",
+			opts: []Option{WithUser(u)},
+			wantMD: metadata.MD{
+				authProjectHeaderName: []string{"testproject"},
+				org.OrgIDHeader:       []string{"testorg"},
+				"cookie":              []string{"auth-proxy=" + token + "; org-id=testorg"},
+			},
+		},
+		{
+			name: "explicit options combined",
+			opts: []Option{WithUserJWT(token), WithOrg("testorg"), WithComputeProject("testproject")},
+			wantMD: metadata.MD{
+				authProjectHeaderName: []string{"testproject"},
+				org.OrgIDHeader:       []string{"testorg"},
+				"cookie":              []string{"auth-proxy=" + token + "; org-id=testorg"},
+			},
+		},
+		{
+			name:   "WithClearUser clears credentials on empty context",
+			opts:   []Option{WithClearUser()},
+			wantMD: metadata.MD{},
+		},
+		{
+			name: "WithClearUser combined with WithUser atomic swap",
+			opts: []Option{WithClearUser(), WithUser(newUser)},
+			wantMD: metadata.MD{
+				authProjectHeaderName: []string{"newproject"},
+				org.OrgIDHeader:       []string{"neworg"},
+				"cookie":              []string{"auth-proxy=newtoken; org-id=neworg"},
+			},
+		},
+		{
+			name:   "empty options returns empty metadata",
+			opts:   []Option{},
+			wantMD: metadata.MD{},
+		},
+		{
+			name:       "option evaluation error propagated",
+			opts:       []Option{WithOrg("")},
+			wantErrSub: "no org-id found",
+		},
 	}
 
-	// 6. Verify results:
-	// a) Incoming context in userCtx should STILL have the caller identity.
-	incomingCaller, err := UserFromContextVerified(userCtx, fv)
-	if err != nil {
-		t.Errorf("failed to read caller from incoming context after clear: %v", err)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			gotMD, err := ToMetadata(tc.opts...)
+			if tc.wantErrSub != "" {
+				if err == nil || !strings.Contains(err.Error(), tc.wantErrSub) {
+					t.Fatalf("ToMetadata() returned error = %v, want error containing %q", err, tc.wantErrSub)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("ToMetadata() unexpected error = %v", err)
+			}
+			if diff := cmp.Diff(tc.wantMD, gotMD, cmpopts.EquateEmpty()); diff != "" {
+				t.Errorf("ToMetadata() returned unexpected metadata diff (-want +got):\n%s", diff)
+			}
+		})
 	}
-	if incomingCaller.EmailCanonicalized() != email {
-		t.Errorf("incoming caller email after clear: got %q, want %q", incomingCaller.EmailCanonicalized(), email)
+}
+
+func TestAppendToMetadata(t *testing.T) {
+	token := jwttesting.MintToken(t, jwttesting.WithEmail("test@google.com"))
+	u := &User{jwt: token, org: &org.Organization{ID: "testorg"}, project: "testproject"}
+	newUser := &User{jwt: "newtoken", org: &org.Organization{ID: "neworg"}, project: "newproject"}
+
+	initialCookies := []*http.Cookie{
+		{Name: "othercookie", Value: "othervalue"},
+		{Name: AuthProxyCookieName, Value: "oldtoken"},
+		{Name: org.OrgIDCookie, Value: "oldorg"},
+	}
+	initialMD := metadata.Pairs(cookies.ToMDString(initialCookies...)...)
+	initialMD.Set("x-initial-key", "initial-value")
+	initialMD.Set(authHeaderName, "Bearer oldtoken")
+	initialMD.Set(ApikeyTokenHeaderName, "oldapikey")
+	initialMD.Set(org.OrgIDHeader, "oldorg")
+	initialMD.Set(authProjectHeaderName, "oldproject")
+
+	tests := []struct {
+		name       string
+		initialMD  metadata.MD
+		opts       []Option
+		wantMD     metadata.MD
+		wantErrSub string
+	}{
+		{
+			name:      "with user containing org and project",
+			initialMD: initialMD.Copy(),
+			opts:      []Option{WithUser(u)},
+			wantMD: metadata.MD{
+				"x-initial-key":       []string{"initial-value"},
+				authHeaderName:        []string{"Bearer oldtoken"},
+				ApikeyTokenHeaderName: []string{"oldapikey"},
+				org.OrgIDHeader:       []string{"testorg"},
+				authProjectHeaderName: []string{"testproject"},
+				"cookie":              []string{"auth-proxy=" + token + "; org-id=testorg; othercookie=othervalue"},
+			},
+		},
+		{
+			name:      "explicit options combined",
+			initialMD: initialMD.Copy(),
+			opts:      []Option{WithUserJWT(token), WithOrg("testorg"), WithComputeProject("testproject")},
+			wantMD: metadata.MD{
+				"x-initial-key":       []string{"initial-value"},
+				authHeaderName:        []string{"Bearer oldtoken"},
+				ApikeyTokenHeaderName: []string{"oldapikey"},
+				org.OrgIDHeader:       []string{"testorg"},
+				authProjectHeaderName: []string{"testproject"},
+				"cookie":              []string{"auth-proxy=" + token + "; org-id=testorg; othercookie=othervalue"},
+			},
+		},
+		{
+			name:      "WithClearUser clears credentials but preserves unrelated config",
+			initialMD: initialMD.Copy(),
+			opts:      []Option{WithClearUser()},
+			wantMD: metadata.MD{
+				"x-initial-key": []string{"initial-value"},
+				"cookie":        []string{"othercookie=othervalue"},
+			},
+		},
+		{
+			name:      "WithClearUser combined with WithUser atomic swap",
+			initialMD: initialMD.Copy(),
+			opts:      []Option{WithClearUser(), WithUser(newUser)},
+			wantMD: metadata.MD{
+				"x-initial-key":       []string{"initial-value"},
+				org.OrgIDHeader:       []string{"neworg"},
+				authProjectHeaderName: []string{"newproject"},
+				"cookie":              []string{"auth-proxy=newtoken; org-id=neworg; othercookie=othervalue"},
+			},
+		},
+		{
+			name:      "empty options returns input unchanged",
+			initialMD: initialMD.Copy(),
+			opts:      []Option{},
+			wantMD: metadata.MD{
+				"x-initial-key":       []string{"initial-value"},
+				authHeaderName:        []string{"Bearer oldtoken"},
+				ApikeyTokenHeaderName: []string{"oldapikey"},
+				org.OrgIDHeader:       []string{"oldorg"},
+				authProjectHeaderName: []string{"oldproject"},
+				"cookie":              []string{"othercookie=othervalue; auth-proxy=oldtoken; org-id=oldorg"},
+			},
+		},
+		{
+			name:       "option evaluation error propagated",
+			initialMD:  nil,
+			opts:       []Option{WithOrg("")},
+			wantErrSub: "no org-id found",
+		},
 	}
 
-	// b) Outgoing context in userCtx should have the end-user identity, and NOT the caller identity.
-	outgoingMd, ok := metadata.FromOutgoingContext(userCtx)
-	if !ok {
-		t.Fatal("missing outgoing metadata")
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			gotMD, err := AppendToMetadata(tc.initialMD, tc.opts...)
+			if tc.wantErrSub != "" {
+				if err == nil || !strings.Contains(err.Error(), tc.wantErrSub) {
+					t.Fatalf("AppendToMetadata() returned error = %v, want error containing %q", err, tc.wantErrSub)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("AppendToMetadata() unexpected error = %v", err)
+			}
+			if diff := cmp.Diff(tc.wantMD, gotMD, cmpopts.EquateEmpty()); diff != "" {
+				t.Errorf("AppendToMetadata() returned unexpected metadata diff (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestToMetadataMap(t *testing.T) {
+	token := jwttesting.MintToken(t, jwttesting.WithEmail("test@google.com"))
+	u := &User{jwt: token, org: &org.Organization{ID: "testorg"}, project: "testproject"}
+	newUser := &User{jwt: "newtoken", org: &org.Organization{ID: "neworg"}, project: "newproject"}
+
+	tests := []struct {
+		name       string
+		opts       []Option
+		wantMap    map[string]string
+		wantErrSub string
+	}{
+		{
+			name: "with user containing org and project",
+			opts: []Option{WithUser(u)},
+			wantMap: map[string]string{
+				authProjectHeaderName: "testproject",
+				org.OrgIDHeader:       "testorg",
+				"cookie":              "auth-proxy=" + token + "; org-id=testorg",
+			},
+		},
+		{
+			name: "explicit options combined",
+			opts: []Option{WithUserJWT(token), WithOrg("testorg"), WithComputeProject("testproject")},
+			wantMap: map[string]string{
+				authProjectHeaderName: "testproject",
+				org.OrgIDHeader:       "testorg",
+				"cookie":              "auth-proxy=" + token + "; org-id=testorg",
+			},
+		},
+		{
+			name:    "WithClearUser clears credentials on empty context",
+			opts:    []Option{WithClearUser()},
+			wantMap: map[string]string{},
+		},
+		{
+			name: "WithClearUser combined with WithUser atomic swap",
+			opts: []Option{WithClearUser(), WithUser(newUser)},
+			wantMap: map[string]string{
+				authProjectHeaderName: "newproject",
+				org.OrgIDHeader:       "neworg",
+				"cookie":              "auth-proxy=newtoken; org-id=neworg",
+			},
+		},
+		{
+			name:    "empty options returns empty map",
+			opts:    []Option{},
+			wantMap: map[string]string{},
+		},
+		{
+			name:       "option evaluation error propagated",
+			opts:       []Option{WithOrg("")},
+			wantErrSub: "no org-id found",
+		},
 	}
 
-	outgoingCookies := outgoingMd.Get(cookies.CookieHeaderName)
-	wantOutgoingCookies := []string{AuthProxyCookieName + "=" + token2}
-	if diff := cmp.Diff(wantOutgoingCookies, outgoingCookies); diff != "" {
-		t.Errorf("outgoing cookies diff (-want +got):\n%s", diff)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			gotMap, err := ToMetadataMap(tc.opts...)
+			if tc.wantErrSub != "" {
+				if err == nil || !strings.Contains(err.Error(), tc.wantErrSub) {
+					t.Fatalf("ToMetadataMap() returned error = %v, want error containing %q", err, tc.wantErrSub)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("ToMetadataMap() unexpected error = %v", err)
+			}
+			if diff := cmp.Diff(tc.wantMap, gotMap, cmpopts.EquateEmpty()); diff != "" {
+				t.Errorf("ToMetadataMap() returned unexpected map diff (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func copyMap(m map[string]string) map[string]string {
+	if m == nil {
+		return nil
+	}
+	res := make(map[string]string, len(m))
+	for k, v := range m {
+		res[k] = v
+	}
+	return res
+}
+
+func TestAppendToMetadataMap(t *testing.T) {
+	token := jwttesting.MintToken(t, jwttesting.WithEmail("test@google.com"))
+	u := &User{jwt: token, org: &org.Organization{ID: "testorg"}, project: "testproject"}
+	newUser := &User{jwt: "newtoken", org: &org.Organization{ID: "neworg"}, project: "newproject"}
+
+	initialMapWithCreds := map[string]string{
+		"x-initial-key":       "initial-value",
+		"cookie":              "othercookie=othervalue; auth-proxy=oldtoken; org-id=oldorg",
+		"authorization":       "Bearer oldtoken",
+		"apikey-token":        "oldapikey",
+		org.OrgIDHeader:       "oldorg",
+		authProjectHeaderName: "oldproject",
+		"x-api-key":           "oldapikey",  // unrelated
+		"x-intrinsic-project": "oldproject", // unrelated
+	}
+
+	tests := []struct {
+		name       string
+		initialMap map[string]string
+		opts       []Option
+		wantMap    map[string]string
+		wantErrSub string
+	}{
+		{
+			name:       "with user containing org and project",
+			initialMap: copyMap(initialMapWithCreds),
+			opts:       []Option{WithUser(u)},
+			wantMap: map[string]string{
+				"x-initial-key":       "initial-value",
+				"authorization":       "Bearer oldtoken",
+				"apikey-token":        "oldapikey",
+				org.OrgIDHeader:       "testorg",
+				authProjectHeaderName: "testproject",
+				"cookie":              "auth-proxy=" + token + "; org-id=testorg; othercookie=othervalue",
+				"x-api-key":           "oldapikey",
+				"x-intrinsic-project": "oldproject",
+			},
+		},
+		{
+			name:       "explicit options combined",
+			initialMap: copyMap(initialMapWithCreds),
+			opts:       []Option{WithUserJWT(token), WithOrg("testorg"), WithComputeProject("testproject")},
+			wantMap: map[string]string{
+				"x-initial-key":       "initial-value",
+				"authorization":       "Bearer oldtoken",
+				"apikey-token":        "oldapikey",
+				org.OrgIDHeader:       "testorg",
+				authProjectHeaderName: "testproject",
+				"cookie":              "auth-proxy=" + token + "; org-id=testorg; othercookie=othervalue",
+				"x-api-key":           "oldapikey",
+				"x-intrinsic-project": "oldproject",
+			},
+		},
+		{
+			name:       "WithClearUser clears credentials but preserves unrelated config",
+			initialMap: copyMap(initialMapWithCreds),
+			opts:       []Option{WithClearUser()},
+			wantMap: map[string]string{
+				"x-initial-key":       "initial-value",
+				"cookie":              "othercookie=othervalue",
+				"x-api-key":           "oldapikey",
+				"x-intrinsic-project": "oldproject",
+			},
+		},
+		{
+			name:       "WithClearUser combined with WithUser atomic swap",
+			initialMap: copyMap(initialMapWithCreds),
+			opts:       []Option{WithClearUser(), WithUser(newUser)},
+			wantMap: map[string]string{
+				"x-initial-key":       "initial-value",
+				org.OrgIDHeader:       "neworg",
+				authProjectHeaderName: "newproject",
+				"cookie":              "auth-proxy=newtoken; org-id=neworg; othercookie=othervalue",
+				"x-api-key":           "oldapikey",
+				"x-intrinsic-project": "oldproject",
+			},
+		},
+		{
+			name:       "empty options returns input unchanged",
+			initialMap: copyMap(initialMapWithCreds),
+			opts:       []Option{},
+			wantMap: map[string]string{
+				"x-initial-key":       "initial-value",
+				"authorization":       "Bearer oldtoken",
+				"apikey-token":        "oldapikey",
+				org.OrgIDHeader:       "oldorg",
+				authProjectHeaderName: "oldproject",
+				"cookie":              "othercookie=othervalue; auth-proxy=oldtoken; org-id=oldorg",
+				"x-api-key":           "oldapikey",
+				"x-intrinsic-project": "oldproject",
+			},
+		},
+		{
+			name:       "option evaluation error propagated",
+			initialMap: nil,
+			opts:       []Option{WithOrg("")},
+			wantErrSub: "no org-id found",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			gotMap, err := AppendToMetadataMap(tc.initialMap, tc.opts...)
+			if tc.wantErrSub != "" {
+				if err == nil || !strings.Contains(err.Error(), tc.wantErrSub) {
+					t.Fatalf("AppendToMetadataMap() returned error = %v, want error containing %q", err, tc.wantErrSub)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("AppendToMetadataMap() unexpected error = %v", err)
+			}
+			if diff := cmp.Diff(tc.wantMap, gotMap, cmpopts.EquateEmpty()); diff != "" {
+				t.Errorf("AppendToMetadataMap() returned unexpected map diff (-want +got):\n%s", diff)
+			}
+		})
 	}
 }

@@ -10,6 +10,11 @@ import "intrinsic/config/proto/operation_mode.proto";
 option go_package = "intrinsic/solution_versions/proto/v1/branch_go_proto";
 
 message ExecutionStatus {
+  message HttpService {
+    // Name of the service asset instance exposing HTTP port.
+    string instance = 1;
+  }
+
   // The workcell ID may be ACL protected. Users may be able to see that a
   // solution is running, but may not have access to see the workcell the
   // solution is running on.
@@ -23,6 +28,9 @@ message ExecutionStatus {
 
   config.OperationMode operation_mode = 2;
   google.protobuf.Timestamp last_updated = 3;
+
+  // The HTTP services running on the workcell.
+  repeated HttpService http_services = 4;
 }
 
 message Branch {

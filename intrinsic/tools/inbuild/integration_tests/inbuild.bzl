@@ -4,19 +4,78 @@
 
 load("@com_google_protobuf//bazel/common:proto_info.bzl", "ProtoInfo")
 
+InbuildSkillManifestInfo = provider(
+    doc = "Encapsulates binary manifest and file descriptor set artifacts.",
+    fields = [
+        "manifest",
+        "file_descriptor_set",
+    ],
+)
+
+def _inbuild_skill_manifest_impl(ctx):
+    manifest_out = ctx.actions.declare_file(ctx.label.name + ".pbbin")
+    fds_out = ctx.actions.declare_file(ctx.label.name + "_filedescriptor.pbbin")
+    args = ctx.actions.args()
+    args.add("skill").add("manifest")
+    args.add("--manifest", ctx.file.manifest)
+    args.add_joined(
+        "--file_descriptor_sets",
+        ctx.attr.proto[ProtoInfo].transitive_descriptor_sets,
+        join_with = ",",
+    )
+    args.add("--output", manifest_out.path)
+    args.add("--file_descriptor_set_out", fds_out.path)
+
+    ctx.actions.run(
+        arguments = [args],
+        executable = ctx.executable._inbuild,
+        inputs = depset([ctx.file.manifest], transitive = [ctx.attr.proto[ProtoInfo].transitive_descriptor_sets]),
+        outputs = [manifest_out, fds_out],
+    )
+
+    return [
+        DefaultInfo(files = depset([manifest_out, fds_out])),
+        InbuildSkillManifestInfo(
+            file_descriptor_set = fds_out,
+            manifest = manifest_out,
+        ),
+    ]
+
+inbuild_skill_manifest = rule(
+    attrs = {
+        "manifest": attr.label(
+            allow_single_file = True,
+            mandatory = True,
+        ),
+        "proto": attr.label(
+            mandatory = True,
+            providers = [ProtoInfo],
+        ),
+        "_inbuild": attr.label(
+            cfg = "exec",
+            default = Label("//intrinsic/tools/inbuild:inbuild"),
+            doc = "The inbuild executable.",
+            executable = True,
+        ),
+    },
+    doc = "Generates binary manifest and consolidated file descriptor set",
+    implementation = _inbuild_skill_manifest_impl,
+)
+
 def _inbuild_skill_bundle_impl(ctx):
     output_file = ctx.actions.declare_file(ctx.label.name + ".bundle.tar")
+    manifest = ctx.attr.manifest[InbuildSkillManifestInfo].manifest
+    fds = ctx.attr.manifest[InbuildSkillManifestInfo].file_descriptor_set
     args = ctx.actions.args()
     args.add("skill").add("bundle")
-    args.add("--manifest", ctx.file.manifest)
-    for fds in ctx.attr.proto[ProtoInfo].transitive_descriptor_sets.to_list():
-        args.add("--file_descriptor_set", fds.path)
+    args.add("--augmented_manifest", manifest.path)
+    args.add("--augmented_file_descriptor_set", fds.path)
     args.add("--oci_image", ctx.file.oci_image.path)
     args.add("--output", output_file.path)
     ctx.actions.run(
         arguments = [args],
         executable = ctx.executable._inbuild,
-        inputs = depset([ctx.file.manifest, ctx.file.oci_image], transitive = [ctx.attr.proto[ProtoInfo].transitive_descriptor_sets]),
+        inputs = [manifest, fds, ctx.file.oci_image],
         outputs = [output_file],
     )
 
@@ -27,11 +86,8 @@ def _inbuild_skill_bundle_impl(ctx):
 inbuild_skill_bundle = rule(
     attrs = {
         "manifest": attr.label(
-            allow_single_file = True,
             mandatory = True,
-        ),
-        "proto": attr.label(
-            providers = [ProtoInfo],
+            providers = [InbuildSkillManifestInfo],
         ),
         "oci_image": attr.label(
             allow_single_file = True,
@@ -49,27 +105,38 @@ inbuild_skill_bundle = rule(
 
 def _inbuild_skill_generate_entrypoint_py_impl(ctx):
     output_file = ctx.actions.declare_file(ctx.label.name + ".py")
+    augmented_manifest_out = ctx.actions.declare_file(ctx.label.name + "_augmented_manifest.pbbin")
+    augmented_fds_out = ctx.actions.declare_file(ctx.label.name + "_augmented_filedescriptor.pbbin")
+    manifest = ctx.attr.manifest[InbuildSkillManifestInfo].manifest
+    fds = ctx.attr.manifest[InbuildSkillManifestInfo].file_descriptor_set
     args = ctx.actions.args()
     args.add("skill").add("generate").add("entrypoint")
-    args.add("--manifest", ctx.file.manifest)
+    args.add("--manifest", manifest.path)
     args.add("--language", "python")
+    args.add("--file_descriptor_set", fds.path)
+    args.add("--augmented_manifest_out", augmented_manifest_out.path)
+    args.add("--augmented_file_descriptor_set_out", augmented_fds_out.path)
     args.add("--output", output_file.path)
     ctx.actions.run(
         arguments = [args],
         executable = ctx.executable._inbuild,
-        inputs = [ctx.file.manifest],
-        outputs = [output_file],
+        inputs = [manifest, fds],
+        outputs = [output_file, augmented_manifest_out, augmented_fds_out],
     )
 
     return [
-        DefaultInfo(files = depset([output_file])),
+        DefaultInfo(files = depset([output_file, augmented_manifest_out, augmented_fds_out])),
+        InbuildSkillManifestInfo(
+            file_descriptor_set = augmented_fds_out,
+            manifest = augmented_manifest_out,
+        ),
     ]
 
 inbuild_skill_generate_entrypoint_py = rule(
     attrs = {
         "manifest": attr.label(
-            allow_single_file = True,
             mandatory = True,
+            providers = [InbuildSkillManifestInfo],
         ),
         "_inbuild": attr.label(
             cfg = "exec",
@@ -84,28 +151,39 @@ inbuild_skill_generate_entrypoint_py = rule(
 
 def _inbuild_skill_generate_entrypoint_cc_impl(ctx):
     output_file = ctx.actions.declare_file(ctx.label.name + ".cc")
+    augmented_manifest_out = ctx.actions.declare_file(ctx.label.name + "_augmented_manifest.pbbin")
+    augmented_fds_out = ctx.actions.declare_file(ctx.label.name + "_augmented_filedescriptor.pbbin")
+    manifest = ctx.attr.manifest[InbuildSkillManifestInfo].manifest
+    fds = ctx.attr.manifest[InbuildSkillManifestInfo].file_descriptor_set
     args = ctx.actions.args()
     args.add("skill").add("generate").add("entrypoint")
-    args.add("--manifest", ctx.file.manifest)
+    args.add("--manifest", manifest.path)
     args.add("--language", "cpp")
     args.add("--cc_header", ctx.attr.cc_header)
+    args.add("--file_descriptor_set", fds.path)
+    args.add("--augmented_manifest_out", augmented_manifest_out.path)
+    args.add("--augmented_file_descriptor_set_out", augmented_fds_out.path)
     args.add("--output", output_file.path)
     ctx.actions.run(
         arguments = [args],
         executable = ctx.executable._inbuild,
-        inputs = [ctx.file.manifest],
-        outputs = [output_file],
+        inputs = [manifest, fds],
+        outputs = [output_file, augmented_manifest_out, augmented_fds_out],
     )
 
     return [
-        DefaultInfo(files = depset([output_file])),
+        DefaultInfo(files = depset([output_file, augmented_manifest_out, augmented_fds_out])),
+        InbuildSkillManifestInfo(
+            file_descriptor_set = augmented_fds_out,
+            manifest = augmented_manifest_out,
+        ),
     ]
 
 inbuild_skill_generate_entrypoint_cc = rule(
     attrs = {
         "manifest": attr.label(
-            allow_single_file = True,
             mandatory = True,
+            providers = [InbuildSkillManifestInfo],
         ),
         "cc_header": attr.string(
             mandatory = True,
@@ -123,16 +201,17 @@ inbuild_skill_generate_entrypoint_cc = rule(
 
 def _inbuild_skill_generate_config_impl(ctx):
     output_file = ctx.actions.declare_file(ctx.label.name + ".pbbin")
+    manifest = ctx.attr.manifest[InbuildSkillManifestInfo].manifest
+    fds = ctx.attr.manifest[InbuildSkillManifestInfo].file_descriptor_set
     args = ctx.actions.args()
     args.add("skill").add("generate").add("config")
-    args.add("--manifest", ctx.file.manifest)
-    for fds in ctx.attr.proto[ProtoInfo].transitive_descriptor_sets.to_list():
-        args.add("--file_descriptor_set", fds.path)
+    args.add("--augmented_manifest", manifest.path)
+    args.add("--augmented_file_descriptor_set", fds.path)
     args.add("--output", output_file.path)
     ctx.actions.run(
         arguments = [args],
         executable = ctx.executable._inbuild,
-        inputs = depset([ctx.file.manifest], transitive = [ctx.attr.proto[ProtoInfo].transitive_descriptor_sets]),
+        inputs = [manifest, fds],
         outputs = [output_file],
     )
 
@@ -143,11 +222,8 @@ def _inbuild_skill_generate_config_impl(ctx):
 inbuild_skill_generate_config = rule(
     attrs = {
         "manifest": attr.label(
-            allow_single_file = True,
             mandatory = True,
-        ),
-        "proto": attr.label(
-            providers = [ProtoInfo],
+            providers = [InbuildSkillManifestInfo],
         ),
         "_inbuild": attr.label(
             cfg = "exec",

@@ -4,6 +4,8 @@
 package logs
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -134,8 +136,11 @@ func runLogsCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	if err := group.Wait(); err != nil {
-		cmd.PrintErrln("Error reading logs. Issue is non-transient and cannot be handled automatically. Please run command again.")
-		cmd.PrintErrf("Details: %s\n", err)
+		if errors.Is(err, context.DeadlineExceeded) {
+			cmd.PrintErrln("[inctl] Command timeout reached. Increase the --timeout or use --timeout=0 for infinite streaming. Exiting.")
+			return nil
+		}
+		cmd.PrintErrf("[inctl] Error reading logs: %v\n", err)
 		os.Exit(1) // we are doing custom exit, as we are doing custom error handling
 	}
 	return nil
@@ -190,7 +195,7 @@ func init() {
 
 	showLogs.Flags().String(cmdutils.KeySolution, "", "Solution ID from which logs will be read.")
 	showLogs.Flags().String(cmdutils.KeyContext, "", fmt.Sprintf("The Kubernetes cluster to use or localhost if used with --%s", cmdutils.KeyAddress))
-	showLogs.Flags().String(cmdutils.KeyTimeout, "300s", "Maximum time to wait to receive logs.")
+	showLogs.Flags().String(cmdutils.KeyTimeout, "300s", "Absolute wall-clock time that the command will run for before terminating (e.g. 300s, 1h). Note: this terminates the command even if logs are still actively streaming. Increase the --timeout or use --timeout=0 for infinite streaming.")
 	showLogs.Flags().Bool(keyPrefixType, false, "Prefix each log line with the asset type, e.g., '[Skill]' or '[Service]'.")
 	showLogs.Flags().Bool(keyPrefixID, false, "Prefix each log line with the asset ID, e.g., '[my-skill-id]'. Enabled for multiple targets are provided.")
 	showLogs.Flags().Bool(keyFollow, false, "Whether to follow the solution logs.")

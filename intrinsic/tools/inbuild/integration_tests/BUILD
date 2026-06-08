@@ -8,7 +8,7 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 load("//bazel:container.bzl", "container_image")
 load("//bazel:python_oci_image.bzl", "python_oci_image")
-load("//intrinsic/tools/inbuild/integration_tests:inbuild.bzl", "inbuild_service_bundle", "inbuild_skill_bundle", "inbuild_skill_generate_config", "inbuild_skill_generate_entrypoint_cc", "inbuild_skill_generate_entrypoint_py")
+load("//intrinsic/tools/inbuild/integration_tests:inbuild.bzl", "inbuild_service_bundle", "inbuild_skill_bundle", "inbuild_skill_generate_config", "inbuild_skill_generate_entrypoint_cc", "inbuild_skill_generate_entrypoint_py", "inbuild_skill_manifest")
 
 proto_library(
     name = "inbuild_skill_proto",
@@ -31,15 +31,20 @@ py_proto_library(
     deps = [":inbuild_skill_proto"],
 )
 
+inbuild_skill_manifest(
+    name = "skill_manifest_py",
+    manifest = "inbuild_skill_py.manifest.pbtxt",
+    proto = ":inbuild_skill_proto",
+)
+
 inbuild_skill_generate_entrypoint_py(
     name = "skill_service_py",
-    manifest = "inbuild_skill_py.manifest.pbtxt",
+    manifest = ":skill_manifest_py",
 )
 
 inbuild_skill_generate_config(
     name = "skill_service_config_py",
-    manifest = "inbuild_skill_py.manifest.pbtxt",
-    proto = ":inbuild_skill_proto",
+    manifest = ":skill_service_py",
 )
 
 py_library(
@@ -86,9 +91,8 @@ python_oci_image(
 
 inbuild_skill_bundle(
     name = "inbuild_skill_py",
-    manifest = "inbuild_skill_py.manifest.pbtxt",
+    manifest = ":skill_service_py",
     oci_image = "inbuild_skill_py_image.tar",
-    proto = ":inbuild_skill_proto",
     visibility = ["//intrinsic:internal_api_users"],
 )
 
@@ -119,16 +123,21 @@ cc_library(
     ],
 )
 
+inbuild_skill_manifest(
+    name = "skill_manifest_cc",
+    manifest = "inbuild_skill_cc.manifest.pbtxt",
+    proto = ":inbuild_skill_proto",
+)
+
 inbuild_skill_generate_entrypoint_cc(
     name = "skill_service_cc",
     cc_header = "intrinsic/tools/inbuild/integration_tests/inbuild_skill.h",
-    manifest = "inbuild_skill_cc.manifest.pbtxt",
+    manifest = ":skill_manifest_cc",
 )
 
 inbuild_skill_generate_config(
     name = "skill_service_config_cc",
-    manifest = "inbuild_skill_cc.manifest.pbtxt",
-    proto = ":inbuild_skill_proto",
+    manifest = ":skill_service_cc",
 )
 
 cc_binary(
@@ -165,9 +174,8 @@ container_image(
 
 inbuild_skill_bundle(
     name = "inbuild_skill_cc",
-    manifest = "inbuild_skill_cc.manifest.pbtxt",
+    manifest = ":skill_service_cc",
     oci_image = "inbuild_skill_cc_image.tar",
-    proto = ":inbuild_skill_proto",
     visibility = ["//intrinsic:internal_api_users"],
 )
 

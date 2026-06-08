@@ -1,0 +1,73 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.solution_versions.v1;
+
+import "intrinsic/assets/proto/id.proto";
+
+option go_package = "intrinsic/solution_versions/proto/v1/warning_go_proto";
+
+// Warning represents a non-blocking issue that the user should be aware of and
+// potentially remediate post-merge.
+// Warnings are surfaced when a merge introduces logically incompatible changes
+// that invalidate the Solution but leave it in a structurally recoverable and
+// deployable state.
+message Warning {
+  // The path to the solution field that is causing the warning from the source
+  // snapshot.
+  // Example: `assets["my-process"].local.behavior_tree`
+  // May be empty if the field does not exist in the source snapshot.
+  string source_path = 1;
+  // The path to the solution field that is causing the warning from the
+  // destination branch tip.
+  // Example: `instances["my-instance"].config`
+  // May be empty if the field does not exist in the destination branch tip.
+  string destination_path = 2;
+
+  oneof details {
+    UnresolvedAssetReference unresolved_reference = 3;
+  }
+
+  // Represents an unresolved or incompatible reference where an entity requires
+  // a target asset that is either missing or incompatible.
+  message UnresolvedAssetReference {
+    // The solution part (asset / instance) that is referencing the unresolved
+    // asset.
+    oneof referencer {
+      // The ID of the Asset that depends on another Asset directly within its
+      // definition (e.g., a Process Asset referencing a Skill Asset in its
+      // behavior tree).
+      intrinsic_proto.assets.Id referencing_asset_id = 1;
+      // The name of the instance for which the configuration is no longer
+      // compatible with its base asset (e.g., due to a version mismatch or
+      // schema change in the asset).
+      string referencing_instance = 2;
+    }
+
+    // The ID of the asset that changed or was uninstalled.
+    intrinsic_proto.assets.Id target_asset_id = 3;
+
+    enum ReferenceType {
+      REFERENCE_TYPE_UNSPECIFIED = 0;
+      // Target is the underlying asset the instance was created from (e.g., an
+      // instance configuration vs. base asset version mismatch).
+      REFERENCE_TYPE_BASE_ASSET = 1;
+      // Target is an interface or skill dependency (e.g., a process asset
+      // referencing a skill asset, or an instance configuration vs. dependency
+      // asset version mismatch).
+      REFERENCE_TYPE_DEPENDENCY = 2;
+    }
+    ReferenceType reference_type = 4;
+
+    // The expected version of the target Asset.
+    // Populated only for versioned catalog Assets; left empty for unversioned
+    // Assets.
+    string expected_version = 5;
+
+    // The version of the target asset actually provided in the destination.
+    // Left empty if the target asset is missing (uninstalled) or if the asset
+    // is unversioned (in which case `expected_version` is also left empty).
+    string provided_version = 6;
+  }
+}

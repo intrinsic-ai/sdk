@@ -279,13 +279,13 @@ func TestAddToMD(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			res, err := addToMD(tc.md, tc.cs...)
+			res, err := AddToMD(tc.md, tc.cs...)
 			if err != nil {
-				t.Errorf("addToMD() returned error %v, want nil", err)
+				t.Errorf("AddToMD() returned error %v, want nil", err)
 			}
 			got := res.Get(CookieHeaderName)
 			if diff := cmp.Diff(tc.want, got, cmpopts.EquateEmpty()); diff != "" {
-				t.Errorf("addToMD() returned diff (-want +got):\n%s", diff)
+				t.Errorf("AddToMD() returned diff (-want +got):\n%s", diff)
 			}
 		})
 	}
@@ -324,7 +324,8 @@ func TestAddToRequest(t *testing.T) {
 		},
 		{
 			name: "happy case",
-			req: makeRequest(t,
+			req: makeRequest(
+				t,
 				&http.Cookie{Name: "a", Value: "5"},
 				&http.Cookie{Name: "c", Value: "3"},
 			),
@@ -340,7 +341,8 @@ func TestAddToRequest(t *testing.T) {
 		},
 		{
 			name: "multiple cookie header values are merged",
-			req: makeRequest(t,
+			req: makeRequest(
+				t,
 				&http.Cookie{Name: "a", Value: "5"},
 				&http.Cookie{Name: "c", Value: "3"},
 			),
@@ -448,4 +450,65 @@ func TestCookiesFromOutgoingContext(t *testing.T) {
 			t.Errorf("FromOutgoingContext() error was nil, want error")
 		}
 	})
+}
+
+func TestAddToMetadataMap(t *testing.T) {
+	tests := []struct {
+		name string
+		m    map[string]string
+		cs   []*http.Cookie
+		want map[string]string
+	}{
+		{
+			name: "no-cookies",
+			m:    map[string]string{},
+			cs:   []*http.Cookie{},
+			want: map[string]string{},
+		},
+		{
+			name: "nil map",
+			m:    nil,
+			cs:   []*http.Cookie{{Name: "a", Value: "1"}},
+			want: map[string]string{"cookie": "a=1"},
+		},
+		{
+			name: "happy case",
+			m: map[string]string{
+				"cookie": "a=5; c=3",
+				"other":  "some-val",
+			},
+			cs: []*http.Cookie{
+				{Name: "b", Value: "2"},
+				{Name: "a", Value: "1"},
+			},
+			want: map[string]string{
+				"cookie": "a=1; b=2; c=3",
+				"other":  "some-val",
+			},
+		},
+		{
+			name: "casing variants are stripped and merged",
+			m: map[string]string{
+				"Cookie": "a=5",
+			},
+			cs: []*http.Cookie{
+				{Name: "b", Value: "2"},
+			},
+			want: map[string]string{
+				"cookie": "a=5; b=2",
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := AddToMetadataMap(tc.m, tc.cs...)
+			if err != nil {
+				t.Errorf("AddToMetadataMap() returned error %v, want nil", err)
+			}
+			if diff := cmp.Diff(tc.want, got, cmpopts.EquateEmpty()); diff != "" {
+				t.Errorf("AddToMetadataMap() returned diff (-want +got):\n%s", diff)
+			}
+		})
+	}
 }
