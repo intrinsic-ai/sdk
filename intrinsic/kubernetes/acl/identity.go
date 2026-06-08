@@ -134,13 +134,13 @@ type UserOrg struct {
 }
 
 const (
-	// AuthProxyCookieName is the name of the cookie for storing the auth proxy token
-	AuthProxyCookieName   = "auth-proxy"
+	// authProxyCookieName is the name of the cookie for storing the auth proxy token
+	authProxyCookieName   = "auth-proxy"
 	onpremTokenCookieName = "onprem-token"
 	portalCookieName      = "portal-token"
 	authHeaderName        = "authorization"
-	// ApikeyTokenHeaderName is the metadata key for api key-based authorization
-	ApikeyTokenHeaderName = "apikey-token"
+	// apikeyTokenHeaderName is the metadata key for api key-based authorization
+	apikeyTokenHeaderName = "apikey-token"
 	authProjectHeaderName = "x-intrinsic-auth-project"
 
 	// Real user accounts have @google.com email addresses
@@ -215,7 +215,7 @@ func extractProjectFromRequest(r *http.Request) (string, error) {
 	return projectVal, nil
 }
 
-var cookieHeaders = []string{AuthProxyCookieName, onpremTokenCookieName, portalCookieName}
+var cookieHeaders = []string{authProxyCookieName, onpremTokenCookieName, portalCookieName}
 
 // GetJWTFromRequest returns the JWT from a request.
 func GetJWTFromRequest(r *http.Request) (string, error) {
@@ -229,8 +229,8 @@ func GetJWTFromRequest(r *http.Request) (string, error) {
 			return jwt.Value, nil
 		}
 	}
-	if token := r.Header.Get(ApikeyTokenHeaderName); token != "" {
-		log.V(2).Infof("Using jwt from header %q", ApikeyTokenHeaderName)
+	if token := r.Header.Get(apikeyTokenHeaderName); token != "" {
+		log.V(2).Infof("Using jwt from header %q", apikeyTokenHeaderName)
 		return token, nil
 	}
 	// Retrieving the JWT from the authorization header.
@@ -267,7 +267,7 @@ func GetJWTFromContext(ctx context.Context) (string, error) {
 		}
 	}
 	// Retrieving the JWT from the apikey-token header.
-	if jwtMD, ok := md[ApikeyTokenHeaderName]; ok && len(jwtMD) > 0 && jwtMD[0] != "" {
+	if jwtMD, ok := md[apikeyTokenHeaderName]; ok && len(jwtMD) > 0 && jwtMD[0] != "" {
 		return jwtMD[0], nil
 	}
 	// Retrieving the JWT from the authorization header.
@@ -525,14 +525,14 @@ func requestToMetadata(ctx context.Context, r *http.Request) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Ensure that AuthProxyCookieName is set to GetJWTFromRequest if it is not set yet.
+	// Ensure that authProxyCookieName is set to GetJWTFromRequest if it is not set yet.
 	// This way downstream services do not have to check for the onpremTokenCookieName.
-	if _, err := r.Cookie(AuthProxyCookieName); err != nil { // if not set yet, add it
-		cookies.AddToRequest(r, &http.Cookie{Name: AuthProxyCookieName, Value: userJWT})
+	if _, err := r.Cookie(authProxyCookieName); err != nil { // if not set yet, add it
+		cookies.AddToRequest(r, &http.Cookie{Name: authProxyCookieName, Value: userJWT})
 	}
 
 	// Copy the relevant cookies to the context metadata
-	cs := cookies.FromRequestNamed(r, []string{AuthProxyCookieName, org.OrgIDCookie})
+	cs := cookies.FromRequestNamed(r, []string{authProxyCookieName, org.OrgIDCookie})
 	// backfill org-id cookie if it is not set, but passed as a header
 	if _, err := r.Cookie(org.OrgIDCookie); err != nil {
 		orgID := r.Header.Get(org.OrgIDCookie)
@@ -569,7 +569,7 @@ func ContextToRequest(ctx context.Context, r *http.Request) error {
 	ctx, span := trace.StartSpan(ctx, "identity.ContextToRequest")
 	defer span.End()
 
-	cookiesToCopy := []string{AuthProxyCookieName, portalCookieName, org.OrgIDCookie}
+	cookiesToCopy := []string{authProxyCookieName, portalCookieName, org.OrgIDCookie}
 	// Copy the relevant cookies to the context request
 	possibleCookies, err := cookies.FromContext(ctx)
 	if err != nil {
@@ -584,7 +584,7 @@ func ContextToRequest(ctx context.Context, r *http.Request) error {
 	}
 	cookies.AddToRequest(r, filteredCookies...)
 
-	metaToCopy := []string{ApikeyTokenHeaderName, org.OrgIDHeader}
+	metaToCopy := []string{apikeyTokenHeaderName, org.OrgIDHeader}
 	md, _ := metadata.FromIncomingContext(ctx)
 	for _, m := range metaToCopy {
 		if val := md.Get(m); len(val) == 1 {
@@ -602,7 +602,7 @@ func EnsureAuthProxyCookie(r *http.Request) error {
 	defer span.End()
 
 	// Return early if the auth-proxy cookie already exists.
-	if _, err := r.Cookie(AuthProxyCookieName); err == nil {
+	if _, err := r.Cookie(authProxyCookieName); err == nil {
 		return nil
 	}
 
@@ -612,10 +612,10 @@ func EnsureAuthProxyCookie(r *http.Request) error {
 		if err != nil {
 			continue
 		}
-		cookies.AddToRequest(r, &http.Cookie{Name: AuthProxyCookieName, Value: c.Value})
+		cookies.AddToRequest(r, &http.Cookie{Name: authProxyCookieName, Value: c.Value})
 		break
 	}
-	if _, err := r.Cookie(AuthProxyCookieName); err != nil {
+	if _, err := r.Cookie(authProxyCookieName); err != nil {
 		telemetry.SetError(span, trace.StatusCodeUnauthenticated, "EnsureAuthProxyCookie: No auth-proxy cookie found in request", err)
 		return errors.Join(ErrUnauthenticated, errNoIntrinsicCookie, err)
 	}
@@ -724,13 +724,13 @@ func ToContextFromIncomingChecked(ctx context.Context) (context.Context, bool, e
 		ctx = newCtx
 	}
 
-	apikeyHeaders := md.Get(ApikeyTokenHeaderName)
+	apikeyHeaders := md.Get(apikeyTokenHeaderName)
 	if len(apikeyHeaders) > 1 {
 		log.WarningContextf(ctx, "ToContextFromIncomingChecked: Multiple apikey headers found in incoming context metadata: %v", apikeyHeaders)
-		return ctx, false, fmt.Errorf("%w: %w for %q in incoming context metadata", ErrInvalidRequest, errMetadataKeyConflict, ApikeyTokenHeaderName)
+		return ctx, false, fmt.Errorf("%w: %w for %q in incoming context metadata", ErrInvalidRequest, errMetadataKeyConflict, apikeyTokenHeaderName)
 	}
 	if len(apikeyHeaders) == 1 { // only act if a apikey header is present in incoming
-		newCtx, apikeyChanged, err := setOutgoingValueCollisionAware(ctx, ApikeyTokenHeaderName, apikeyHeaders...)
+		newCtx, apikeyChanged, err := setOutgoingValueCollisionAware(ctx, apikeyTokenHeaderName, apikeyHeaders...)
 		if err != nil {
 			return ctx, false, err
 		}
@@ -761,7 +761,7 @@ func ToContextFromIncomingChecked(ctx context.Context) (context.Context, bool, e
 		// Headers (except for "cookie") are not generally expected to have multiple
 		// values. This can cause issues at target services. Printing a warning
 		// might make odd looking errors easier to root cause.
-		warnIfMultipleOutgoingValues(ctx, authHeaderName, ApikeyTokenHeaderName, org.OrgIDHeader)
+		warnIfMultipleOutgoingValues(ctx, authHeaderName, apikeyTokenHeaderName, org.OrgIDHeader)
 	}
 
 	return ctx, changed, nil
@@ -1159,7 +1159,7 @@ func WithUserJWT(jwt string) Option {
 		if jwt == "" {
 			return ErrUnauthenticated
 		}
-		return withCookie(&http.Cookie{Name: AuthProxyCookieName, Value: jwt})(u)
+		return withCookie(&http.Cookie{Name: authProxyCookieName, Value: jwt})(u)
 	}
 }
 
@@ -1223,7 +1223,7 @@ func withClearUserOrg() Option {
 func withClearUserAuth() Option {
 	return func(u *update) error {
 		u.clearHeader(authHeaderName)
-		u.clearHeader(ApikeyTokenHeaderName)
+		u.clearHeader(apikeyTokenHeaderName)
 		u.clearHeader(authProjectHeaderName)
 		for _, ch := range cookieHeaders {
 			u.clearCookie(ch)

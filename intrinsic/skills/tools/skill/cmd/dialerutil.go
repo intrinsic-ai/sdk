@@ -123,7 +123,7 @@ func dialInfoCtx(ctx context.Context, params DialInfoParams) (context.Context, *
 	params.Address = address
 
 	if params.CredOrg != "" {
-		ctx, err = identity.OrgToContext(ctx, strings.Split(params.CredOrg, "@")[0])
+		ctx, err = identity.AppendToOutgoingContext(ctx, identity.WithOrg(strings.Split(params.CredOrg, "@")[0]))
 		if err != nil {
 			return ctx, nil, "", err
 		}

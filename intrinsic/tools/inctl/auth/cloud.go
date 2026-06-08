@@ -12,7 +12,6 @@ import (
 
 	"intrinsic/config/environments"
 	"intrinsic/kubernetes/acl/identity"
-	"intrinsic/kubernetes/acl/org"
 	"intrinsic/tools/inctl/util/vmalias"
 
 	"github.com/spf13/viper"
@@ -164,11 +163,11 @@ var ErrUnableToRetrieveToken = errors.New("unable to retrieve token")
 //     a different project than the one associated with the organization. This can be  necessary for
 //     global services (e.g. accounts, assets, portal).
 func NewCloudConnection(ctx context.Context, optsFuncs ...ConnectionOptsFunc) (*grpc.ClientConn, error) {
-	opts, tkSource, addMd, err := newOrLoadTokenSource(ctx, optsFuncs...)
+	opts, tkSource, addMd, staticOpts, err := newOrLoadTokenSource(ctx, optsFuncs...)
 	if err != nil {
 		return nil, err
 	}
-	return newConnection(ctx, opts, tkSource, addMd)
+	return newConnection(ctx, opts, tkSource, addMd, staticOpts)
 }
 
 // NewCloudClient creates a new http.Client that is authenticated for the cloud project.
@@ -179,24 +178,26 @@ func NewCloudConnection(ctx context.Context, optsFuncs ...ConnectionOptsFunc) (*
 //
 // See NewCloudConnection for more details on how to configure the connection.
 func NewCloudClient(ctx context.Context, optsFuncs ...ConnectionOptsFunc) (*http.Client, error) {
-	_, tkSource, addMd, err := newOrLoadTokenSource(ctx, optsFuncs...)
+	_, tkSource, addMd, staticOpts, err := newOrLoadTokenSource(ctx, optsFuncs...)
 	if err != nil {
 		return nil, err
 	}
 	hc := &http.Client{
 		Transport: &authenticatedTransport{
-			base: http.DefaultTransport,
-			ts:   tkSource,
-			md:   addMd,
+			base:       http.DefaultTransport,
+			ts:         tkSource,
+			md:         addMd,
+			staticOpts: staticOpts,
 		},
 	}
 	return hc, nil
 }
 
 type authenticatedTransport struct {
-	base http.RoundTripper
-	ts   *cachedTokenSource
-	md   *AddMetadata
+	base       http.RoundTripper
+	ts         *cachedTokenSource
+	md         *AddMetadata
+	staticOpts []identity.Option
 }
 
 func (t *authenticatedTransport) RoundTrip(req *http.Request) (*http.Response, error) {
@@ -204,7 +205,10 @@ func (t *authenticatedTransport) RoundTrip(req *http.Request) (*http.Response, e
 	if err != nil {
 		return nil, err
 	}
-	req.AddCookie(&http.Cookie{Name: "auth-proxy", Value: tk})
+	options := append([]identity.Option{identity.WithUserJWT(tk)}, t.staticOpts...)
+	if err := identity.ToRequest(req, options...); err != nil {
+		return nil, err
+	}
 
 	for k, v := range t.md.metadata {
 		if k == "" || v == "" {
@@ -212,22 +216,21 @@ func (t *authenticatedTransport) RoundTrip(req *http.Request) (*http.Response, e
 		}
 		req.Header.Set(k, v)
 	}
-	for k, v := range t.md.cookies {
-		if k == "" || v == "" {
-			continue
+	for _, c := range t.md.cookies {
+		if c != nil {
+			req.AddCookie(c)
 		}
-		req.AddCookie(&http.Cookie{Name: k, Value: v})
 	}
 	return t.base.RoundTrip(req)
 }
 
-func newOrLoadTokenSource(ctx context.Context, optsFuncs ...ConnectionOptsFunc) (*ConnectionOpts, *cachedTokenSource, *AddMetadata, error) {
+func newOrLoadTokenSource(ctx context.Context, optsFuncs ...ConnectionOptsFunc) (*ConnectionOpts, *cachedTokenSource, *AddMetadata, []identity.Option, error) {
 	opts := ConnectionOpts{}
 	for _, f := range optsFuncs {
 		f(&opts)
 	}
 	if opts.project == "" && opts.org == "" {
-		return nil, nil, nil, fmt.Errorf("either project or org must be set")
+		return nil, nil, nil, nil, fmt.Errorf("either project or org must be set")
 	}
 	if opts.cluster != "" {
 		opts.cluster = vmalias.ResolvePrint(opts.cluster, "")
@@ -239,7 +242,7 @@ func newOrLoadTokenSource(ctx context.Context, optsFuncs ...ConnectionOptsFunc) 
 
 	ak, err := loadAPIKey(&opts)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 
 	// Determine the environment from the project.
@@ -255,40 +258,40 @@ func newOrLoadTokenSource(ctx context.Context, optsFuncs ...ConnectionOptsFunc) 
 	tkSource, err := newTokenSource(env, ak)
 	if err != nil {
 		errDetails.Message = "unable to create API key token source"
-		return nil, nil, nil, errors.Join(err, errDetails)
+		return nil, nil, nil, nil, errors.Join(err, errDetails)
 	}
 
 	tk, err := tkSource.Token(ctx)
 	if err != nil {
 		errDetails.Message = "unable to retrieve token"
 		errDetails.Help = "This often indicates that your API key is expired or got invalidated. Please run `inctl auth login` and follow the instructions."
-		return nil, nil, nil, errors.Join(err, errDetails)
+		return nil, nil, nil, nil, errors.Join(err, errDetails)
 	}
 	// if requested, return the identity of the authenticated user
 	if opts.onIdentity != nil {
 		u, err := identity.UserFromJWT(tk)
 		if err != nil {
-			return nil, nil, nil, fmt.Errorf("failed to get identity from context: %w", err)
+			return nil, nil, nil, nil, fmt.Errorf("failed to get identity from context: %w", err)
 		}
 		opts.onIdentity(u)
 	}
 	md := &AddMetadata{
-		cookies:  map[string]string{},
+		cookies:  []*http.Cookie{},
 		metadata: map[string]string{},
-	}
-	if opts.org != "" {
-		md.cookies[org.OrgIDCookie] = opts.org
-		md.metadata[org.OrgIDHeader] = opts.org
 	}
 	if opts.cluster != "" {
 		md.metadata["x-server-name"] = opts.cluster
 	}
-	return &opts, tkSource, md, nil
+	var staticOpts []identity.Option
+	if opts.org != "" {
+		staticOpts = append(staticOpts, identity.WithOrg(opts.org))
+	}
+	return &opts, tkSource, md, staticOpts, nil
 }
 
-func newConnection(ctx context.Context, opts *ConnectionOpts, tkSource *cachedTokenSource, md *AddMetadata) (*grpc.ClientConn, error) {
+func newConnection(ctx context.Context, opts *ConnectionOpts, tkSource *cachedTokenSource, md *AddMetadata, staticOpts []identity.Option) (*grpc.ClientConn, error) {
 	grpcOpts := []grpc.DialOption{
-		grpc.WithPerRPCCredentials(&perRPCCreds{ts: tkSource, md: md}),
+		grpc.WithPerRPCCredentials(&perRPCCreds{ts: tkSource, md: md, staticOpts: staticOpts}),
 		grpc.WithStatsHandler(new(ocgrpc.ClientHandler)),
 		grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{})),
 	}

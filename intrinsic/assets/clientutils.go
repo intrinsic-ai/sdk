@@ -247,7 +247,7 @@ func getDialContextOptions(ctx context.Context, opts getDialContextOptionsOption
 		if credProject == "" {
 			credProject = info.Project
 		}
-		ctx, err = identity.OrgToContext(ctx, info.Organization)
+		ctx, err = identity.AppendToOutgoingContext(ctx, identity.WithOrg(info.Organization))
 		if err != nil {
 			return nil, nil, err
 		}

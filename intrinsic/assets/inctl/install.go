@@ -71,7 +71,7 @@ func GetCommand() *cobra.Command {
 				return err
 			}
 
-			ctx, err = identity.OrgToContext(ctx, flags.GetFlagOrganization())
+			ctx, err = identity.AppendToOutgoingContext(ctx, identity.WithOrg(flags.GetFlagOrganization()))
 			if err != nil {
 				return fmt.Errorf("failed to add org information to context: %w", err)
 			}

@@ -12,6 +12,7 @@ go_library(
     name = "headers",
     srcs = ["headers.go"],
     importpath = "intrinsic/kubernetes/acl/headers",
+    visibility = ["//intrinsic/kubernetes/acl:__subpackages__"],
     deps = [
         ":org",
         "//intrinsic/stats/go:telemetry",
@@ -25,6 +26,16 @@ go_library(
     name = "cookies",
     srcs = ["cookies.go"],
     importpath = "intrinsic/kubernetes/acl/cookies",
+    visibility = [
+        "//intrinsic/frontend/experiments/mapping_provider:__subpackages__",
+        "//intrinsic/kubernetes/acl:__subpackages__",
+        "//intrinsic/kubernetes/datasilo/examples:__subpackages__",
+        "//intrinsic/kubernetes/vmpool/manager/internal:__subpackages__",
+        "//intrinsic/skills/tools/skill/cmd:__subpackages__",
+        "//intrinsic/storage/content_addressable_storage/internal/service:__subpackages__",
+        "//intrinsic/tools/inctl/auth:__subpackages__",
+        "//intrinsic/tools/inctl/util:__subpackages__",
+    ],
     deps = [
         "@com_github_golang_glog//:go_default_library",
         "@io_opencensus_go//trace:go_default_library",

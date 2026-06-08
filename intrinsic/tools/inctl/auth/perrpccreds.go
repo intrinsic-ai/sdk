@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"intrinsic/kubernetes/acl/cookies"
+	"intrinsic/kubernetes/acl/identity"
 )
 
 // AddMetadata contains additional metadata to be added to the request.
@@ -20,7 +21,7 @@ import (
 //	NewAPIKeyTokenSource("api-key", tp, WithAdditionalMetadata(md))
 type AddMetadata struct {
 	metadata map[string]string
-	cookies  map[string]string
+	cookies  []*http.Cookie
 }
 
 type tokenSource interface {
@@ -32,6 +33,7 @@ type tokenSource interface {
 type perRPCCreds struct {
 	ts            tokenSource
 	md            *AddMetadata
+	staticOpts    []identity.Option
 	allowInsecure bool
 }
 
@@ -42,24 +44,26 @@ func (s *perRPCCreds) GetRequestMetadata(ctx context.Context, _ ...string) (map[
 	if err != nil {
 		return nil, fmt.Errorf("could not get account token: %v", err)
 	}
-	cks := []*http.Cookie{
-		{Name: "auth-proxy", Value: t},
-	}
-	// add additional cookies if provided
-	for k, v := range s.md.cookies {
-		if k == "" || v == "" {
-			continue
-		}
-		cks = append(cks, &http.Cookie{Name: k, Value: v})
-	}
-	mdkv := cookies.ToMDString(cks...)
-	metadata := map[string]string{mdkv[0]: mdkv[1]}
-	// add additional metadata if provided
+
+	metadata := make(map[string]string)
 	for k, v := range s.md.metadata {
-		if k == "" || v == "" {
-			continue
+		if k != "" && v != "" {
+			metadata[k] = v
 		}
-		metadata[k] = v
+	}
+
+	opts := append([]identity.Option{identity.WithUserJWT(t)}, s.staticOpts...)
+	metadata, err = identity.AppendToMetadataMap(metadata, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to append request metadata: %w", err)
+	}
+
+	// Append additional custom cookies if provided
+	if len(s.md.cookies) > 0 {
+		metadata, err = cookies.AddToMetadataMap(metadata, s.md.cookies...)
+		if err != nil {
+			return nil, fmt.Errorf("failed to merge request cookies: %w", err)
+		}
 	}
 	return metadata, nil
 }

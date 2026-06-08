@@ -58,7 +58,7 @@ func TestUserFromJWTRaw(t *testing.T) {
 func TestUserFromRequest(t *testing.T) {
 	t.Run("cookie", func(t *testing.T) {
 		r := httptest.NewRequest(http.MethodGet, "/", nil)
-		r.AddCookie(&http.Cookie{Name: AuthProxyCookieName, Value: token})
+		r.AddCookie(&http.Cookie{Name: authProxyCookieName, Value: token})
 		u, err := UserFromRequest(r)
 		if err != nil {
 			t.Fatal(err)
@@ -82,7 +82,7 @@ func TestUserFromRequest(t *testing.T) {
 
 	t.Run("header", func(t *testing.T) {
 		r := httptest.NewRequest(http.MethodGet, "/", nil)
-		r.Header.Add(ApikeyTokenHeaderName, token)
+		r.Header.Add(apikeyTokenHeaderName, token)
 		u, err := UserFromRequest(r)
 		if err != nil {
 			t.Fatal(err)
@@ -98,7 +98,7 @@ func TestUserToRequest(t *testing.T) {
 	u := &User{jwt: token}
 	UserToRequest(r, &User{jwt: "overwrite me please"})
 	UserToRequest(r, u)
-	if cookies.FromRequestNamed(r, []string{AuthProxyCookieName})[0].Value != token {
+	if cookies.FromRequestNamed(r, []string{authProxyCookieName})[0].Value != token {
 		t.Errorf("UserToRequest(..) did not add the user's identity to the request")
 	}
 	if len(r.Cookies()) != 1 {
@@ -108,7 +108,7 @@ func TestUserToRequest(t *testing.T) {
 
 func TestUserFromMetadata(t *testing.T) {
 	ctx := metadata.NewIncomingContext(t.Context(),
-		metadata.Pairs(cookies.CookieHeaderName, AuthProxyCookieName+"="+token))
+		metadata.Pairs(cookies.CookieHeaderName, authProxyCookieName+"="+token))
 
 	u, err := UserFromContext(ctx)
 	if err != nil {
@@ -126,7 +126,7 @@ func TestUserToContext(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := []string{AuthProxyCookieName + "=" + token}
+	want := []string{authProxyCookieName + "=" + token}
 	md, _ := metadata.FromOutgoingContext(ctx)
 	if diff := cmp.Diff(want, md.Get(cookies.CookieHeaderName)); diff != "" {
 		t.Errorf("UserToContext(..) did not add the user's identity to the context (-want +got):\n%s", diff)
@@ -138,7 +138,7 @@ func TestUserToContext(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want = []string{AuthProxyCookieName + "=" + token2}
+	want = []string{authProxyCookieName + "=" + token2}
 	md, _ = metadata.FromOutgoingContext(ctx)
 	if diff := cmp.Diff(want, md.Get(cookies.CookieHeaderName)); diff != "" {
 		t.Errorf("UserToContext(..) did not add the user's identity to the context (-want +got):\n%s", diff)
@@ -153,7 +153,7 @@ func TestUserToIncomingContext(t *testing.T) {
 		t.Fatal(err)
 	}
 	md, _ := metadata.FromIncomingContext(ctx)
-	if md.Get(cookies.CookieHeaderName)[0] != AuthProxyCookieName+"="+token {
+	if md.Get(cookies.CookieHeaderName)[0] != authProxyCookieName+"="+token {
 		t.Errorf("UserToIncomingContext(..) did not add the user's identity to the context")
 	}
 }
@@ -298,7 +298,7 @@ func metadataTest(t *testing.T, wantMd map[string]string, gotMd metadata.MD) {
 
 func TestEnsureAuthProxyCookie(t *testing.T) {
 	requestWithAuthProxy := httptest.NewRequest(http.MethodGet, "/", nil)
-	requestWithAuthProxy.AddCookie(&http.Cookie{Name: AuthProxyCookieName, Value: token})
+	requestWithAuthProxy.AddCookie(&http.Cookie{Name: authProxyCookieName, Value: token})
 
 	requestWithOnPrem := httptest.NewRequest(http.MethodGet, "/", nil)
 	requestWithOnPrem.AddCookie(&http.Cookie{Name: onpremTokenCookieName, Value: token2})
@@ -307,7 +307,7 @@ func TestEnsureAuthProxyCookie(t *testing.T) {
 	requestWithPortal.AddCookie(&http.Cookie{Name: portalCookieName, Value: token2})
 
 	requestWithBoth := httptest.NewRequest(http.MethodGet, "/", nil)
-	requestWithBoth.AddCookie(&http.Cookie{Name: AuthProxyCookieName, Value: token})
+	requestWithBoth.AddCookie(&http.Cookie{Name: authProxyCookieName, Value: token})
 	requestWithBoth.AddCookie(&http.Cookie{Name: onpremTokenCookieName, Value: token2})
 
 	tests := []struct {
@@ -354,7 +354,7 @@ func TestEnsureAuthProxyCookie(t *testing.T) {
 			}
 
 			if !tc.wantError {
-				cookie, err := tc.request.Cookie(AuthProxyCookieName)
+				cookie, err := tc.request.Cookie(authProxyCookieName)
 				if err != nil {
 					t.Errorf("EnsureAuthProxyCookie(%v) has no auth-proxy cookie", tc.request)
 				}
@@ -427,7 +427,7 @@ type UserFromRequestVerifiedTest struct {
 
 func TestUserFromRequestVerified(t *testing.T) {
 	withAuthCookie := httptest.NewRequest(http.MethodGet, "/", nil)
-	withAuthCookie.AddCookie(&http.Cookie{Name: AuthProxyCookieName, Value: token})
+	withAuthCookie.AddCookie(&http.Cookie{Name: authProxyCookieName, Value: token})
 	tests := []UserFromRequestVerifiedTest{
 		{
 			desc:    "no auth",
@@ -480,7 +480,7 @@ type UserFromContextVerifiedTest struct {
 
 func TestUserFromContextVerified(t *testing.T) {
 	withAuthCookie := metadata.NewIncomingContext(t.Context(),
-		metadata.Pairs(cookies.CookieHeaderName, AuthProxyCookieName+"="+token))
+		metadata.Pairs(cookies.CookieHeaderName, authProxyCookieName+"="+token))
 	tests := []UserFromContextVerifiedTest{
 		{
 			desc:    "no auth",
@@ -632,7 +632,7 @@ func TestToContextFromIncoming(t *testing.T) {
 			incoming: metadata.NewIncomingContext(
 				t.Context(),
 				metadata.Pairs(
-					AuthProxyCookieName, "anything", // do not copy over deprecated auth-proxy
+					authProxyCookieName, "anything", // do not copy over deprecated auth-proxy
 					cookies.CookieHeaderName, "something",
 					cookies.CookieHeaderName, "something2",
 				),
@@ -743,15 +743,15 @@ func TestToContextFromIncoming(t *testing.T) {
 			desc: "multiple incoming apikey tokens",
 			incoming: metadata.NewIncomingContext(
 				t.Context(),
-				metadata.Pairs(ApikeyTokenHeaderName, "something", ApikeyTokenHeaderName, "something2"),
+				metadata.Pairs(apikeyTokenHeaderName, "something", apikeyTokenHeaderName, "something2"),
 			),
 			wantError: true,
 		},
 		{
 			desc: "incoming apikey token and outgoing collide",
 			incoming: metadata.NewIncomingContext(
-				metadata.NewOutgoingContext(t.Context(), metadata.Pairs(ApikeyTokenHeaderName, "anything")),
-				metadata.Pairs(ApikeyTokenHeaderName, "something"),
+				metadata.NewOutgoingContext(t.Context(), metadata.Pairs(apikeyTokenHeaderName, "anything")),
+				metadata.Pairs(apikeyTokenHeaderName, "something"),
 			),
 			wantError: true,
 		},
@@ -800,14 +800,14 @@ func TestToContextFromIncoming(t *testing.T) {
 				metadata.Pairs(
 					cookies.CookieHeaderName, "something=somethingelse; something2=somethingelse2",
 					authHeaderName, "some-token",
-					ApikeyTokenHeaderName, "something2",
+					apikeyTokenHeaderName, "something2",
 					"non identity relevant header", "irrelevant-value",
 				),
 			),
 			wantMd: metadata.MD{
 				"cookie":              []string{"something=somethingelse; something2=somethingelse2"},
 				authHeaderName:        []string{"some-token"},
-				ApikeyTokenHeaderName: []string{"something2"},
+				apikeyTokenHeaderName: []string{"something2"},
 				"other-key":           []string{"other-value"},
 			},
 			wantChanged: true,
@@ -893,18 +893,18 @@ func TestContextToRequest(t *testing.T) {
 		{
 			name:   "with-auth-coookie",
 			noAuth: false,
-			meta:   metadata.New(map[string]string{cookies.CookieHeaderName: AuthProxyCookieName + "=" + token + "; " + org.OrgIDCookie + "=" + "testorg"}),
+			meta:   metadata.New(map[string]string{cookies.CookieHeaderName: authProxyCookieName + "=" + token + "; " + org.OrgIDCookie + "=" + "testorg"}),
 		},
 		{
 			name:   "with-duplicated-auth-coookie",
 			noAuth: false,
-			meta:   metadata.New(map[string]string{cookies.CookieHeaderName: AuthProxyCookieName + "=" + token2 + "; " + AuthProxyCookieName + "=" + token + "; " + org.OrgIDCookie + "=" + "wrongorg" + "; " + org.OrgIDCookie + "=" + "testorg"}),
+			meta:   metadata.New(map[string]string{cookies.CookieHeaderName: authProxyCookieName + "=" + token2 + "; " + authProxyCookieName + "=" + token + "; " + org.OrgIDCookie + "=" + "wrongorg" + "; " + org.OrgIDCookie + "=" + "testorg"}),
 		},
 		{
 			name:   "with-apikey-meta",
 			noAuth: false,
 			meta: metadata.New(map[string]string{
-				ApikeyTokenHeaderName:    token,
+				apikeyTokenHeaderName:    token,
 				cookies.CookieHeaderName: org.OrgIDCookie + "=testorg",
 			}),
 		},
@@ -912,7 +912,7 @@ func TestContextToRequest(t *testing.T) {
 			name:   "with-org-header",
 			noAuth: false,
 			meta: metadata.New(map[string]string{
-				ApikeyTokenHeaderName:    token,
+				apikeyTokenHeaderName:    token,
 				cookies.CookieHeaderName: org.OrgIDCookie + "=cookieorg",
 				org.OrgIDHeader:          "testorg",
 			}),
@@ -1209,7 +1209,7 @@ func TestClearRequestUser(t *testing.T) {
 	}
 	r.AddCookie(&http.Cookie{Name: "othercookie", Value: "othervalue"})
 	r.Header.Set(authHeaderName, "testuser")
-	r.Header.Set(ApikeyTokenHeaderName, "testuser")
+	r.Header.Set(apikeyTokenHeaderName, "testuser")
 	ClearRequestUser(r)
 	for _, name := range cookieHeaders {
 		if c, err := r.Cookie(name); err == nil {
@@ -1222,8 +1222,8 @@ func TestClearRequestUser(t *testing.T) {
 	if r.Header.Get(authHeaderName) != "" {
 		t.Errorf("ClearRequestUser(..) = %q, want empty auth header", r.Header.Get(authHeaderName))
 	}
-	if r.Header.Get(ApikeyTokenHeaderName) != "" {
-		t.Errorf("ClearRequestUser(..) = %q, want empty apikey header", r.Header.Get(ApikeyTokenHeaderName))
+	if r.Header.Get(apikeyTokenHeaderName) != "" {
+		t.Errorf("ClearRequestUser(..) = %q, want empty apikey header", r.Header.Get(apikeyTokenHeaderName))
 	}
 }
 
@@ -1286,7 +1286,7 @@ func TestClearContextUser(t *testing.T) {
 	}
 	testMD := metadata.Pairs(cookies.ToMDString(testCookies...)...)
 	testMD.Set(authHeaderName, "testuser")
-	testMD.Set(ApikeyTokenHeaderName, "testuser")
+	testMD.Set(apikeyTokenHeaderName, "testuser")
 	ctx := metadata.NewOutgoingContext(t.Context(), testMD)
 	ctx, err := ClearContextUser(ctx)
 	if err != nil {
@@ -1316,8 +1316,8 @@ func TestClearContextUser(t *testing.T) {
 	if len(md.Get(authHeaderName)) > 0 {
 		t.Errorf("ClearContextUser(..) = %q, want empty auth header", md.Get(authHeaderName)[0])
 	}
-	if len(md.Get(ApikeyTokenHeaderName)) > 0 {
-		t.Errorf("ClearContextUser(..) = %q, want empty apikey header", md.Get(ApikeyTokenHeaderName)[0])
+	if len(md.Get(apikeyTokenHeaderName)) > 0 {
+		t.Errorf("ClearContextUser(..) = %q, want empty apikey header", md.Get(apikeyTokenHeaderName)[0])
 	}
 	if len(md.Get(cookies.CookieHeaderName)) != 1 {
 		t.Errorf("expected exactly 1 Cookie header list in metadata, got %d", len(md.Get(cookies.CookieHeaderName)))
@@ -1337,7 +1337,7 @@ func TestClearContextChained(t *testing.T) {
 	testMD.Set(org.OrgIDHeader, "testorg")
 	testMD.Set(org.OrgIDCookie, "testorg")
 	testMD.Set(authHeaderName, "testuser")
-	testMD.Set(ApikeyTokenHeaderName, "testuser")
+	testMD.Set(apikeyTokenHeaderName, "testuser")
 
 	ctx := metadata.NewOutgoingContext(t.Context(), testMD)
 
@@ -1378,8 +1378,8 @@ func TestClearContextChained(t *testing.T) {
 	if len(md.Get(authHeaderName)) > 0 {
 		t.Errorf("ClearContext(..) = %q, want empty auth header", md.Get(authHeaderName)[0])
 	}
-	if len(md.Get(ApikeyTokenHeaderName)) > 0 {
-		t.Errorf("ClearContext(..) = %q, want empty apikey header", md.Get(ApikeyTokenHeaderName)[0])
+	if len(md.Get(apikeyTokenHeaderName)) > 0 {
+		t.Errorf("ClearContext(..) = %q, want empty apikey header", md.Get(apikeyTokenHeaderName)[0])
 	}
 	if len(md.Get(cookies.CookieHeaderName)) != 1 {
 		t.Errorf("expected exactly 1 Cookie header list in metadata, got %d", len(md.Get(cookies.CookieHeaderName)))
@@ -1635,13 +1635,13 @@ func TestAppendToOutgoingContext(t *testing.T) {
 
 	initialCookies := []*http.Cookie{
 		{Name: "othercookie", Value: "othervalue"},
-		{Name: AuthProxyCookieName, Value: "oldtoken"},
+		{Name: authProxyCookieName, Value: "oldtoken"},
 		{Name: org.OrgIDCookie, Value: "oldorg"},
 	}
 	initialMD := metadata.Pairs(cookies.ToMDString(initialCookies...)...)
 	initialMD.Set("x-initial-key", "initial-value")
 	initialMD.Set(authHeaderName, "Bearer oldtoken")
-	initialMD.Set(ApikeyTokenHeaderName, "oldapikey")
+	initialMD.Set(apikeyTokenHeaderName, "oldapikey")
 	initialMD.Set(org.OrgIDHeader, "oldorg")
 	initialMD.Set(authProjectHeaderName, "oldproject")
 
@@ -1659,7 +1659,7 @@ func TestAppendToOutgoingContext(t *testing.T) {
 			wantMD: metadata.MD{
 				"x-initial-key":       []string{"initial-value"},
 				authHeaderName:        []string{"Bearer oldtoken"},
-				ApikeyTokenHeaderName: []string{"oldapikey"},
+				apikeyTokenHeaderName: []string{"oldapikey"},
 				org.OrgIDHeader:       []string{"testorg"},
 				authProjectHeaderName: []string{"testproject"},
 				"cookie":              []string{"auth-proxy=" + token + "; org-id=testorg; othercookie=othervalue"},
@@ -1672,7 +1672,7 @@ func TestAppendToOutgoingContext(t *testing.T) {
 			wantMD: metadata.MD{
 				"x-initial-key":       []string{"initial-value"},
 				authHeaderName:        []string{"Bearer oldtoken"},
-				ApikeyTokenHeaderName: []string{"oldapikey"},
+				apikeyTokenHeaderName: []string{"oldapikey"},
 				org.OrgIDHeader:       []string{"testorg"},
 				authProjectHeaderName: []string{"testproject"},
 				"cookie":              []string{"auth-proxy=" + token + "; org-id=testorg; othercookie=othervalue"},
@@ -1705,7 +1705,7 @@ func TestAppendToOutgoingContext(t *testing.T) {
 			wantMD: metadata.MD{
 				"x-initial-key":       []string{"initial-value"},
 				authHeaderName:        []string{"Bearer oldtoken"},
-				ApikeyTokenHeaderName: []string{"oldapikey"},
+				apikeyTokenHeaderName: []string{"oldapikey"},
 				org.OrgIDHeader:       []string{"oldorg"},
 				authProjectHeaderName: []string{"oldproject"},
 				"cookie":              []string{"othercookie=othervalue; auth-proxy=oldtoken; org-id=oldorg"},
@@ -1767,7 +1767,7 @@ func TestToRequest(t *testing.T) {
 				org.OrgIDHeader:       "testorg",
 			},
 			wantCookies: map[string]string{
-				AuthProxyCookieName: token,
+				authProxyCookieName: token,
 				org.OrgIDCookie:     "testorg",
 			},
 		},
@@ -1818,13 +1818,13 @@ func TestAppendToIncomingContext(t *testing.T) {
 
 	initialCookies := []*http.Cookie{
 		{Name: "othercookie", Value: "othervalue"},
-		{Name: AuthProxyCookieName, Value: "oldtoken"},
+		{Name: authProxyCookieName, Value: "oldtoken"},
 		{Name: org.OrgIDCookie, Value: "oldorg"},
 	}
 	initialMD := metadata.Pairs(cookies.ToMDString(initialCookies...)...)
 	initialMD.Set("x-initial-key", "initial-value")
 	initialMD.Set(authHeaderName, "Bearer oldtoken")
-	initialMD.Set(ApikeyTokenHeaderName, "oldapikey")
+	initialMD.Set(apikeyTokenHeaderName, "oldapikey")
 	initialMD.Set(org.OrgIDHeader, "oldorg")
 	initialMD.Set(authProjectHeaderName, "oldproject")
 
@@ -1841,7 +1841,7 @@ func TestAppendToIncomingContext(t *testing.T) {
 			wantMD: metadata.MD{
 				"x-initial-key":       []string{"initial-value"},
 				authHeaderName:        []string{"Bearer oldtoken"},
-				ApikeyTokenHeaderName: []string{"oldapikey"},
+				apikeyTokenHeaderName: []string{"oldapikey"},
 				org.OrgIDHeader:       []string{"testorg"},
 				authProjectHeaderName: []string{"testproject"},
 				"cookie":              []string{"auth-proxy=" + token + "; org-id=testorg; othercookie=othervalue"},
@@ -1854,7 +1854,7 @@ func TestAppendToIncomingContext(t *testing.T) {
 			wantMD: metadata.MD{
 				"x-initial-key":       []string{"initial-value"},
 				authHeaderName:        []string{"Bearer oldtoken"},
-				ApikeyTokenHeaderName: []string{"oldapikey"},
+				apikeyTokenHeaderName: []string{"oldapikey"},
 				org.OrgIDHeader:       []string{"testorg"},
 				authProjectHeaderName: []string{"testproject"},
 				"cookie":              []string{"auth-proxy=" + token + "; org-id=testorg; othercookie=othervalue"},
@@ -1887,7 +1887,7 @@ func TestAppendToIncomingContext(t *testing.T) {
 			wantMD: metadata.MD{
 				"x-initial-key":       []string{"initial-value"},
 				authHeaderName:        []string{"Bearer oldtoken"},
-				ApikeyTokenHeaderName: []string{"oldapikey"},
+				apikeyTokenHeaderName: []string{"oldapikey"},
 				org.OrgIDHeader:       []string{"oldorg"},
 				authProjectHeaderName: []string{"oldproject"},
 				"cookie":              []string{"othercookie=othervalue; auth-proxy=oldtoken; org-id=oldorg"},
@@ -2094,13 +2094,13 @@ func TestAppendToMetadata(t *testing.T) {
 
 	initialCookies := []*http.Cookie{
 		{Name: "othercookie", Value: "othervalue"},
-		{Name: AuthProxyCookieName, Value: "oldtoken"},
+		{Name: authProxyCookieName, Value: "oldtoken"},
 		{Name: org.OrgIDCookie, Value: "oldorg"},
 	}
 	initialMD := metadata.Pairs(cookies.ToMDString(initialCookies...)...)
 	initialMD.Set("x-initial-key", "initial-value")
 	initialMD.Set(authHeaderName, "Bearer oldtoken")
-	initialMD.Set(ApikeyTokenHeaderName, "oldapikey")
+	initialMD.Set(apikeyTokenHeaderName, "oldapikey")
 	initialMD.Set(org.OrgIDHeader, "oldorg")
 	initialMD.Set(authProjectHeaderName, "oldproject")
 
@@ -2118,7 +2118,7 @@ func TestAppendToMetadata(t *testing.T) {
 			wantMD: metadata.MD{
 				"x-initial-key":       []string{"initial-value"},
 				authHeaderName:        []string{"Bearer oldtoken"},
-				ApikeyTokenHeaderName: []string{"oldapikey"},
+				apikeyTokenHeaderName: []string{"oldapikey"},
 				org.OrgIDHeader:       []string{"testorg"},
 				authProjectHeaderName: []string{"testproject"},
 				"cookie":              []string{"auth-proxy=" + token + "; org-id=testorg; othercookie=othervalue"},
@@ -2131,7 +2131,7 @@ func TestAppendToMetadata(t *testing.T) {
 			wantMD: metadata.MD{
 				"x-initial-key":       []string{"initial-value"},
 				authHeaderName:        []string{"Bearer oldtoken"},
-				ApikeyTokenHeaderName: []string{"oldapikey"},
+				apikeyTokenHeaderName: []string{"oldapikey"},
 				org.OrgIDHeader:       []string{"testorg"},
 				authProjectHeaderName: []string{"testproject"},
 				"cookie":              []string{"auth-proxy=" + token + "; org-id=testorg; othercookie=othervalue"},
@@ -2164,7 +2164,7 @@ func TestAppendToMetadata(t *testing.T) {
 			wantMD: metadata.MD{
 				"x-initial-key":       []string{"initial-value"},
 				authHeaderName:        []string{"Bearer oldtoken"},
-				ApikeyTokenHeaderName: []string{"oldapikey"},
+				apikeyTokenHeaderName: []string{"oldapikey"},
 				org.OrgIDHeader:       []string{"oldorg"},
 				authProjectHeaderName: []string{"oldproject"},
 				"cookie":              []string{"othercookie=othervalue; auth-proxy=oldtoken; org-id=oldorg"},
