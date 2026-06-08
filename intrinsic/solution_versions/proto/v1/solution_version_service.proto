@@ -8,7 +8,6 @@ import "google/protobuf/field_mask.proto";
 
 import "intrinsic/solution_versions/proto/v1/branch.proto";
 import "intrinsic/solution_versions/proto/v1/conflict.proto";
-import "intrinsic/solution_versions/proto/v1/diff_mask.proto";
 import "intrinsic/solution_versions/proto/v1/snapshot.proto";
 import "intrinsic/solution_versions/proto/v1/snapshot_source.proto";
 import "intrinsic/solution_versions/proto/v1/warning.proto";

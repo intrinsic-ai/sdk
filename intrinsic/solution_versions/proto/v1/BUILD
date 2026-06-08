@@ -100,7 +100,6 @@ proto_library(
     deps = [
         ":branch_proto",
         ":conflict_proto",
-        ":diff_mask_proto",
         ":snapshot_proto",
         ":snapshot_source_proto",
         ":warning_proto",
@@ -145,7 +144,6 @@ go_proto_library(
     deps = [
         ":branch_go_proto",
         ":conflict_go_proto",
-        ":diff_mask_go_proto",
         ":snapshot_go_proto",
         ":snapshot_source_go_proto",
         ":warning_go_proto",
@@ -225,4 +223,32 @@ py_proto_library(
     name = "warning_py_pb2",
     visibility = ["//visibility:public"],
     deps = [":warning_proto"],
+)
+
+proto_library(
+    name = "solution_diff_proto",
+    srcs = ["solution_diff.proto"],
+    visibility = [
+    ],
+    deps = [
+        ":diff_mask_proto",
+    ],
+)
+
+go_proto_library(
+    name = "solution_diff_go_proto",
+    importpath = "intrinsic/solution_versions/proto/v1/solution_diff_go_proto",
+    protos = [":solution_diff_proto"],
+    visibility = [
+        "//intrinsic/solution_versions:__subpackages__",
+    ],
+    deps = [
+        ":diff_mask_go_proto",
+    ],
+)
+
+py_proto_library(
+    name = "solution_diff_py_pb2",
+    visibility = ["//visibility:public"],
+    deps = [":solution_diff_proto"],
 )

@@ -1,0 +1,18 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.solution_versions.v1;
+
+import "intrinsic/solution_versions/proto/v1/diff_mask.proto";
+
+option go_package = "intrinsic/solution_versions/proto/v1/solution_diff_go_proto";
+
+// SolutionDiff represents a sparse patch and mask of changes relative to a
+// reference version.
+message SolutionDiff {
+  // A custom mask used to interpret and apply the solution_patch, using paths
+  // that point at locations in the solution_patch. Changes must be applied in
+  // the order specified in the mask.
+  DiffMask mask = 2;
+}
