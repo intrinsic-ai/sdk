@@ -27,7 +27,7 @@ go_library(
 
 proto_source_code_info_transitive_descriptor_set(
     name = "skill_services_provided_to_platform",
-    visibility = ["//visibility:private"],
+    visibility = ["//intrinsic:intrinsic_internal"],
     deps = ["//intrinsic/skills/proto:skill_service_proto"],
 )
 
