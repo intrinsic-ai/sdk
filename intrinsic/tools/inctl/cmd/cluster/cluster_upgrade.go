@@ -512,6 +512,16 @@ Example:
 inctl cluster upgrade --org my_org@my-project --cluster node-fc66c2ab-5770-43b8-aefe-a36a2f356fb1
 `
 
+type upgradeStatusInfo struct {
+	Project           string `json:"project"`
+	Cluster           string `json:"cluster"`
+	Mode              string `json:"mode"`
+	State             string `json:"state"`
+	RollbackAvailable bool   `json:"rollbackAvailable"`
+	Runtime           string `json:"runtime"`
+	OS                string `json:"os"`
+}
+
 // clusterUpgradeCmd is the base command to query the upgrade state
 var clusterUpgradeCmd = &cobra.Command{
 	Use:   "upgrade",
@@ -532,16 +542,34 @@ var clusterUpgradeCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("cluster status:\n%w", err)
 		}
-		w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
-		os := version.TranslateOSAPIToUI(ui.currentOS)
+		osVer := version.TranslateOSAPIToUI(ui.currentOS)
 		runtime := ui.currentBase
 		if strings.HasPrefix(runtime, "0.0.1") {
 			// assume this is old format and needs translation
 			runtime = version.TranslateBaseAPIToUI(runtime)
 		}
-		fmt.Fprintf(w, "project\tcluster\tmode\tstate\trollback available\tflowstate\tos\n")
-		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%v\t%s\t%s\n", projectName, clusterName, ui.mode, ui.state, ui.rollback, runtime, os)
-		w.Flush()
+
+		ot := printer.GetFlagOutputType(cmd)
+		if ot == printer.OutputTypeJSON {
+			b, err := json.Marshal(upgradeStatusInfo{
+				Project:           projectName,
+				Cluster:           clusterName,
+				Mode:              ui.mode,
+				State:             ui.state,
+				RollbackAvailable: ui.rollback,
+				Runtime:           runtime,
+				OS:                osVer,
+			})
+			if err != nil {
+				return err
+			}
+			cmd.Println(string(b))
+		} else {
+			w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
+			fmt.Fprintf(w, "project\tcluster\tmode\tstate\trollback available\truntime\tos\n")
+			fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%v\t%s\t%s\n", projectName, clusterName, ui.mode, ui.state, ui.rollback, runtime, osVer)
+			w.Flush()
+		}
 		return nil
 	},
 }
