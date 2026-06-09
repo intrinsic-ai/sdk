@@ -15,6 +15,7 @@ import (
 	"intrinsic/assets/imageutils"
 	"intrinsic/assets/ioutils"
 	"intrinsic/assets/processes/processbundle"
+	"intrinsic/assets/referenceddata"
 	"intrinsic/assets/services/servicebundle"
 	"intrinsic/skills/skillbundle"
 
@@ -106,9 +107,9 @@ func detectBundleType(ctx context.Context, path string) (bundleType, error) {
 // should be for use across many bundles.
 type Processor struct {
 	imageutils.ImageProcessor
-	// ProcessReferencedData is the databundle.ReferencedDataProcessor to use for Data assets (see
+	// ProcessReferencedData is the referenceddata.Processor to use for Data assets (see
 	// ReadDataBundle).
-	ProcessReferencedData databundle.ReferencedDataProcessor
+	ProcessReferencedData referenceddata.Processor
 }
 
 // VersionDetails provides the specific details about a version when it is

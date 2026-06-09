@@ -5,15 +5,20 @@ package referenceddata
 
 import (
 	"bytes"
+	"context"
 	"fmt"
+	"io"
+	"os"
 	"path/filepath"
 	"strings"
 
 	"intrinsic/util/proto/walkmessages"
 
+	log "github.com/golang/glog"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 
+	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_proto"
 	rdpb "intrinsic/assets/data/proto/v1/referenced_data_go_proto"
 )
 
@@ -27,6 +32,11 @@ const (
 	CASReferenceType
 	// InlinedReferenceType is an inlined reference.
 	InlinedReferenceType
+)
+
+const (
+	defaultChunkSize                      = 1024 * 1024
+	InlineReferenceFileSizeThresholdBytes = 1024 * 1024
 )
 
 // ReferencedData represents a reference to data (e.g., in a file or the cloud).
@@ -189,23 +199,17 @@ func (ref *ReferencedData) ToProto() *rdpb.ReferencedData {
 	return proto.Clone(ref.rd).(*rdpb.ReferencedData)
 }
 
-// ReferencedDataProcessor is a function that takes a ReferencedData as input and processes it.
-//
-// Used in WalkUnique. If the ReferencedData is modified, it replaces the original value in the
-// message that is being walked.
-type ReferencedDataProcessor func(*ReferencedData) error
-
 // WalkUnique walks through a proto message, processing any unique ReferencedData it finds.
 //
 // Note that all inlined ReferencedData are considered unique.
 //
 // The function does not walk into Any protos.
 //
-// If the specified processor modifies a ReferencedData, it replaces all instances of the original
-// value in the message that is being walked.
+// If the specified processing function modifies a ReferencedData, it replaces all instances of the
+// original value in the message that is being walked.
 //
 // The input message may be mutated, and the processed message is returned.
-func WalkUnique(msg proto.Message, f ReferencedDataProcessor) (proto.Message, error) {
+func WalkUnique(msg proto.Message, f func(*ReferencedData) error) (proto.Message, error) {
 	// Records references that were visited.
 	type visited struct {
 		ref      *ReferencedData
@@ -303,4 +307,266 @@ func parseReference(reference string) (ReferenceType, string, bool) {
 		return FileReferenceType, reference[7:], true
 	}
 	return FileReferenceType, reference, false
+}
+
+// Reader represents ReferencedData and additional fields for reading the data it references.
+type Reader struct {
+	// Ref is a reference to the data.
+	Ref *ReferencedData
+	// Reader can be used to read the referenced data.
+	Reader io.Reader
+	// Size is the size of the referenced data, in bytes.
+	Size int64
+}
+
+// ProcessOption is an option for Process.
+type ProcessOption func(*Reader)
+
+// WithReader specifies a custom io.Reader to provide for the referenced data along with the size
+// of the reference data, in bytes.
+func WithReader(r io.Reader, sz int64) ProcessOption {
+	return func(rdr *Reader) {
+		rdr.Reader = r
+		rdr.Size = sz
+	}
+}
+
+// Process processes a ReferencedData using the specified Processor.
+//
+// The reference is modified in place to update it to its processed form.
+func Process(ctx context.Context, ref *ReferencedData, processor Processor, options ...ProcessOption) error {
+	rdr := &Reader{
+		Ref: ref,
+	}
+	for _, opt := range options {
+		opt(rdr)
+	}
+
+	// Construct a default reader, if possible.
+	if rdr.Reader == nil {
+		switch ref.Type() {
+		case FileReferenceType:
+			file, err := os.Open(ref.Reference())
+			if err != nil {
+				return fmt.Errorf("failed to open data file: %w", err)
+			}
+			defer file.Close()
+
+			rdr.Reader = file
+
+			fi, err := file.Stat()
+			if err != nil {
+				return fmt.Errorf("failed to stat data file: %w", err)
+			}
+			rdr.Size = fi.Size()
+		case CASReferenceType:
+			if processor.NeedsReaderFor(CASReferenceType) {
+				return fmt.Errorf("CAS references cannot be read. got: %v", ref.Reference())
+			}
+		case InlinedReferenceType:
+			rdr.Reader = bytes.NewReader(ref.Inlined())
+			rdr.Size = int64(len(ref.Inlined()))
+		default:
+			return fmt.Errorf("unknown reference type: %d", ref.Type())
+		}
+	}
+
+	return processor.Process(ctx, rdr)
+}
+
+// Processor is an interface for processing ReferencedData via a Reader.
+type Processor interface {
+	// NeedsReaderFor returns true if the processor needs an io.Reader for the given reference type.
+	NeedsReaderFor(ReferenceType) bool
+
+	// Process processes a ReferencedData. The processor should modify the ReferencedData in place.
+	Process(context.Context, *Reader) error
+}
+
+type noOpProcessor struct{}
+
+// NeedsReaderFor returns false for all reference types.
+func (p *noOpProcessor) NeedsReaderFor(rt ReferenceType) bool {
+	return false
+}
+
+// Process does not modify the given reference data.
+func (p *noOpProcessor) Process(ctx context.Context, rdr *Reader) error {
+	return nil
+}
+
+// NoOpProcessor returns a Processor that does nothing.
+//
+// This processor is only valid for dry runs.
+func NoOpProcessor() Processor {
+	return &noOpProcessor{}
+}
+
+type inlineProcessor struct{}
+
+// NeedsReaderFor returns true for all reference types.
+func (p *inlineProcessor) NeedsReaderFor(rt ReferenceType) bool {
+	return true
+}
+
+// Process inlines the data referenced by the given ReferencedData.
+func (p *inlineProcessor) Process(ctx context.Context, rdr *Reader) error {
+	// Nothing to do for already inlined data.
+	if rdr.Ref.Reference() == "" {
+		return nil
+	}
+
+	if rdr.Reader == nil {
+		return fmt.Errorf("no reader for referenced data: %v", rdr.Ref)
+	}
+
+	b, err := io.ReadAll(rdr.Reader)
+	if err != nil {
+		return fmt.Errorf("cannot read data: %w", err)
+	}
+
+	rdr.Ref.SetInlined(b)
+
+	return nil
+}
+
+// InlineProcessor returns a Processor that inlines the data referenced by the given ReferencedData.
+//
+// NOTE: This processor will read _all_ referenced data into memory and should not be used when
+// large data may be referenced.
+func InlineProcessor() Processor {
+	return &inlineProcessor{}
+}
+
+type catalogProcessor struct {
+	acClient  acpb.AssetCatalogClient
+	chunkSize int
+}
+
+// CatalogProcessorOption is an option for CatalogProcessor.
+type CatalogProcessorOption func(*catalogProcessor)
+
+// WithACClient sets the AssetCatalogClient for CatalogProcessor.
+func WithACClient(client acpb.AssetCatalogClient) CatalogProcessorOption {
+	return func(opts *catalogProcessor) {
+		opts.acClient = client
+	}
+}
+
+// WithChunkSize sets the chunk size for CatalogProcessor.
+func WithChunkSize(size int) CatalogProcessorOption {
+	return func(opts *catalogProcessor) {
+		opts.chunkSize = size
+	}
+}
+
+// NeedsReaderFor returns true for file references.
+func (p *catalogProcessor) NeedsReaderFor(rt ReferenceType) bool {
+	return rt == FileReferenceType
+}
+
+// Process prepares the given ReferencedData for inclusion in an Asset that will be released to the
+// AssetCatalog.
+func (p *catalogProcessor) Process(ctx context.Context, rdr *Reader) error {
+	if rdr.Ref.Reference() != "" {
+		log.Infof("Preparing reference %v", rdr.Ref.Reference())
+	}
+
+	stream, err := p.acClient.PrepareReferencedData(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to open PrepareReferencedData stream: %w", err)
+	}
+
+	// First send the referenced data.
+	if err := stream.Send(&acpb.PrepareReferencedDataRequest{
+		Data: &acpb.PrepareReferencedDataRequest_ReferencedData{
+			ReferencedData: rdr.Ref.ToProto(),
+		},
+	}); err != nil {
+		return fmt.Errorf("failed to send referenced data: %w", err)
+	}
+
+	// For file references, send the file data.
+	if rdr.Ref.Type() == FileReferenceType {
+		log.Infof("Sending file data for %v", rdr.Ref.Reference())
+		buf := make([]byte, p.chunkSize)
+		for {
+			n, err := rdr.Reader.Read(buf)
+			if err != io.EOF && err != nil {
+				return fmt.Errorf("failed to read data: %w", err)
+			}
+			if n > 0 {
+				if err := stream.Send(&acpb.PrepareReferencedDataRequest{
+					Data: &acpb.PrepareReferencedDataRequest_DataChunk{
+						DataChunk: buf[:n],
+					},
+				}); err != nil {
+					return fmt.Errorf("failed to send data chunk: %w", err)
+				}
+			}
+			if err == io.EOF {
+				break
+			}
+		}
+	}
+
+	// Close the stream and get the updated referenced data.
+	response, err := stream.CloseAndRecv()
+	if err != nil {
+		return fmt.Errorf("failed to close stream: %w", err)
+	}
+
+	// Replace the referenced data with the updated referenced data from the catalog.
+	rdr.Ref.Replace(FromProto(response.GetReferencedData()))
+
+	return nil
+}
+
+// CatalogProcessor returns a Processor that prepares ReferencedData for inclusion in an Asset that
+// will be released to the AssetCatalog.
+func CatalogProcessor(options ...CatalogProcessorOption) Processor {
+	p := &catalogProcessor{
+		chunkSize: defaultChunkSize,
+	}
+	for _, opt := range options {
+		opt(p)
+	}
+
+	return p
+}
+
+type solutionProcessor struct{}
+
+func (p *solutionProcessor) NeedsReaderFor(rt ReferenceType) bool {
+	return rt == FileReferenceType
+}
+
+func (p *solutionProcessor) Process(ctx context.Context, rdr *Reader) error {
+	switch rdr.Ref.Type() {
+	case FileReferenceType:
+		// If the file is below the size threshold, inline it. Otherwise, upload it to CAS.
+		if rdr.Size <= InlineReferenceFileSizeThresholdBytes {
+			b, err := io.ReadAll(rdr.Reader)
+			if err != nil {
+				return fmt.Errorf("failed to read data file: %w", err)
+			}
+			rdr.Ref.SetInlined(b)
+		} else {
+			return fmt.Errorf("file upload is not supported: %v", rdr.Ref)
+		}
+	case CASReferenceType:
+	case InlinedReferenceType:
+		// Nothing to do.
+	default:
+		return fmt.Errorf("unknown referenced data: %v", rdr.Ref)
+	}
+
+	return nil
+}
+
+// SolutionProcessor returns a Processor that prepares ReferencedData for inclusion in a Solution.
+//
+// File references below a size threshold are inlined. Otherwise, they are uploaded to CAS.
+func SolutionProcessor() Processor {
+	return &solutionProcessor{}
 }

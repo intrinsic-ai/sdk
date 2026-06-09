@@ -11,9 +11,9 @@ import (
 	"intrinsic/assets/bundle"
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
-	"intrinsic/assets/data/databundle"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/imagetransfer"
+	"intrinsic/assets/referenceddata"
 	"intrinsic/assets/services/bundleimages"
 	"intrinsic/kubernetes/acl/identity"
 	"intrinsic/skills/tools/skill/cmd/directupload/directupload"
@@ -99,7 +99,7 @@ func GetCommand() *cobra.Command {
 
 			processor := bundle.Processor{
 				ImageProcessor:          bundleimages.CreateImageProcessor(transfer),
-				ProcessReferencedData:   databundle.ToPortableReferencedData(),
+				ProcessReferencedData:   referenceddata.SolutionProcessor(),
 			}
 
 			var fileExists bool

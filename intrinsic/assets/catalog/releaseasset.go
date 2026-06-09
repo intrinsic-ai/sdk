@@ -8,9 +8,9 @@ import (
 	"fmt"
 
 	"intrinsic/assets/bundle"
-	"intrinsic/assets/data/databundle"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/imagetransfer"
+	"intrinsic/assets/referenceddata"
 	"intrinsic/assets/services/bundleimages"
 
 	"google.golang.org/grpc"
@@ -130,9 +130,11 @@ func FromBundle(ctx context.Context, path string, options ...FromBundleOption) e
 		return fmt.Errorf("version must not be empty")
 	}
 
-	referencedDataProcessor := databundle.NoOpReferencedData()
+	referencedDataProcessor := referenceddata.NoOpProcessor()
 	if !opts.dryRun {
-		referencedDataProcessor = databundle.ToCatalogReferencedData(ctx, databundle.WithACClient(opts.acClient))
+		referencedDataProcessor = referenceddata.CatalogProcessor(
+			referenceddata.WithACClient(opts.acClient),
+		)
 	}
 
 	processor := bundle.Processor{

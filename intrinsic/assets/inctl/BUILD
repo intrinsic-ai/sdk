@@ -74,7 +74,7 @@ go_library(
         "//intrinsic/assets:cmdutils",
         "//intrinsic/assets:idutils",
         "//intrinsic/assets:imagetransfer",
-        "//intrinsic/assets/data:databundle",
+        "//intrinsic/assets:referenceddata",
         "//intrinsic/assets/proto:installed_assets_go_proto",
         "//intrinsic/assets/services:bundleimages",
         "//intrinsic/kubernetes/acl:identity",

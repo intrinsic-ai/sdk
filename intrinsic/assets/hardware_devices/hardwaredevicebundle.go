@@ -16,6 +16,7 @@ import (
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/imageutils"
 	"intrinsic/assets/ioutils"
+	"intrinsic/assets/referenceddata"
 	"intrinsic/assets/services/servicebundle"
 	"intrinsic/util/archive/tartooling"
 
@@ -228,9 +229,9 @@ func PassThrough(ctx context.Context, a *hdmpb.HardwareDeviceManifest_Asset) (*h
 // LocalAssetInlinerOptions contains options for LocalAssetInliner.
 type LocalAssetInlinerOptions struct {
 	imageutils.ImageProcessor
-	// ProcessReferencedData is the databundle.ReferencedDataProcessor to use for Data assets (see
+	// ProcessReferencedData is the referenceddata.Processor to use for Data assets (see
 	// databundle.Read).
-	ProcessReferencedData databundle.ReferencedDataProcessor
+	ProcessReferencedData referenceddata.Processor
 }
 
 // LocalAssetInliner processes local Assets in a HardwareDevice by inlining them.

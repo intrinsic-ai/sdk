@@ -12,6 +12,7 @@ go_library(
         "//intrinsic/assets:idutils",
         "//intrinsic/assets:imageutils",
         "//intrinsic/assets:ioutils",
+        "//intrinsic/assets:referenceddata",
         "//intrinsic/assets/data:databundle",
         "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",
         "//intrinsic/assets/proto:asset_type_go_proto",
