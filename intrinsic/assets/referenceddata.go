@@ -446,13 +446,6 @@ type catalogProcessor struct {
 // CatalogProcessorOption is an option for CatalogProcessor.
 type CatalogProcessorOption func(*catalogProcessor)
 
-// WithACClient sets the AssetCatalogClient for CatalogProcessor.
-func WithACClient(client acpb.AssetCatalogClient) CatalogProcessorOption {
-	return func(opts *catalogProcessor) {
-		opts.acClient = client
-	}
-}
-
 // WithChunkSize sets the chunk size for CatalogProcessor.
 func WithChunkSize(size int) CatalogProcessorOption {
 	return func(opts *catalogProcessor) {
@@ -524,8 +517,9 @@ func (p *catalogProcessor) Process(ctx context.Context, rdr *Reader) error {
 
 // CatalogProcessor returns a Processor that prepares ReferencedData for inclusion in an Asset that
 // will be released to the AssetCatalog.
-func CatalogProcessor(options ...CatalogProcessorOption) Processor {
+func CatalogProcessor(client acpb.AssetCatalogClient, options ...CatalogProcessorOption) Processor {
 	p := &catalogProcessor{
+		acClient:  client,
 		chunkSize: defaultChunkSize,
 	}
 	for _, opt := range options {

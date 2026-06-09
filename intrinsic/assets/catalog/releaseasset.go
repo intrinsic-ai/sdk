@@ -132,9 +132,7 @@ func FromBundle(ctx context.Context, path string, options ...FromBundleOption) e
 
 	referencedDataProcessor := referenceddata.NoOpProcessor()
 	if !opts.dryRun {
-		referencedDataProcessor = referenceddata.CatalogProcessor(
-			referenceddata.WithACClient(opts.acClient),
-		)
+		referencedDataProcessor = referenceddata.CatalogProcessor(opts.acClient)
 	}
 
 	processor := bundle.Processor{
