@@ -2,6 +2,8 @@
 
 """Helper functions to work with environments."""
 
+import hashlib
+
 # Environment constants
 PROD = "prod"
 STAGING = "staging"
@@ -81,6 +83,19 @@ def from_project(project: str) -> str:
 
 def from_compute_project(project: str) -> str:
   """Returns the environment for a given compute project."""
+  if "-prod-" in project:
+    return PROD
+  hashed = _hash_project_name(project)
+  if (
+      hashed
+      == "b7219186c3255926d0c158c14b3e0363d6b386115d4c3f1d8e0c9723369ea3b4"
+  ):
+    return DEV
+  if (
+      hashed
+      == "bb46d3dc2d207a46a66397e36698c40b66d3c0c364cd3fd2d196f60f4b1d9fd9"
+  ):
+    return STAGING
   return PROD
 
 
@@ -157,3 +172,13 @@ def assets_project(env: str) -> str:
   if env == DEV:
     return ASSETS_PROJECT_DEV
   raise ValueError(f"Unknown environment: {env}")
+
+
+_PROJECT_NAME_SALT = "2lJEUX97RpOzOvXQJhN+NRt0+KJ4z1KyPXtfe7"
+
+
+def _hash_project_name(name: str) -> str:
+  hasher = hashlib.sha256()
+  hasher.update(_PROJECT_NAME_SALT.encode("utf-8"))
+  hasher.update(name.encode("utf-8"))
+  return hasher.hexdigest()

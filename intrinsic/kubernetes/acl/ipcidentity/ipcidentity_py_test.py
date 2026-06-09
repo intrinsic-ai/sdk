@@ -178,6 +178,7 @@ class IpcidentityTest(absltest.TestCase):
         metadata.MetadataClient, instance=True
     )
     mock_metadata_client.token.side_effect = ValueError("Robot token error")
+    mock_metadata_client.compute_project.return_value = "test-project"
 
     identity_provider = ipcidentity.IpcIdentity(
         metadata_client=mock_metadata_client

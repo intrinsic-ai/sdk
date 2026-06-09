@@ -52,11 +52,17 @@ class EnvironmentsTest(absltest.TestCase):
       environments.from_project("invalid-project")
 
   def test_from_compute_project(self):
-    # from_compute_project currently delegates to from_project
+    # Projects containing "-prod-" should return PROD
+    self.assertEqual(
+        environments.from_compute_project("intrinsic-prod-us"),
+        environments.PROD,
+    )
     self.assertEqual(
         environments.from_compute_project(environments.PORTAL_PROJECT_PROD),
         environments.PROD,
     )
+
+    # Default to PROD
     self.assertEqual(
         environments.from_compute_project("invalid-compute-project"),
         environments.PROD,
@@ -127,18 +133,33 @@ class EnvironmentsTest(absltest.TestCase):
       environments.accounts_project_from_env("invalid_env")
 
   def test_accounts_project_from_project(self):
+    # DEV projects
     self.assertEqual(
         environments.accounts_project_from_project(
-            environments.PORTAL_PROJECT_PROD
+            environments.PORTAL_PROJECT_DEV
         ),
-        environments.ACCOUNTS_PROJECT_PROD,
+        environments.ACCOUNTS_PROJECT_DEV,
     )
+    # STAGING projects
     self.assertEqual(
         environments.accounts_project_from_project(
             environments.ASSETS_PROJECT_STAGING
         ),
         environments.ACCOUNTS_PROJECT_STAGING,
     )
+    # PROD projects
+    self.assertEqual(
+        environments.accounts_project_from_project(
+            environments.PORTAL_PROJECT_PROD
+        ),
+        environments.ACCOUNTS_PROJECT_PROD,
+    )
+    # Projects containing "-prod-" should return PROD
+    self.assertEqual(
+        environments.accounts_project_from_project("intrinsic-prod-us"),
+        environments.ACCOUNTS_PROJECT_PROD,
+    )
+    # Default to PROD
     self.assertEqual(
         environments.accounts_project_from_project("invalid-project"),
         environments.ACCOUNTS_PROJECT_PROD,
