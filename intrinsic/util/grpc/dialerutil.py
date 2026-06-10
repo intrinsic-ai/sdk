@@ -9,10 +9,10 @@ This file implements a subset of the
 from typing import Any
 
 import grpc
-
-from intrinsic.config import environments
 from intrinsic.frontend.cloud.api.v1 import solutiondiscovery_api_pb2
 from intrinsic.frontend.cloud.api.v1 import solutiondiscovery_api_pb2_grpc
+
+from intrinsic.config import environments
 from intrinsic.kubernetes.acl.py import identity
 from intrinsic.util.grpc import auth
 

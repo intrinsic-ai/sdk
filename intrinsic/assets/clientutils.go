@@ -14,11 +14,12 @@ import (
 	"intrinsic/assets/baseclientutils"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/config/environments"
+	"intrinsic/kubernetes/acl/identity"
+	"intrinsic/tools/inctl/auth/auth"
+
 	clusterdiscoverypb "intrinsic/frontend/cloud/api/v1/clusterdiscovery_api_go_proto"
 	solutiondiscoverygrpcpb "intrinsic/frontend/cloud/api/v1/solutiondiscovery_api_go_proto"
 	solutiondiscoverypb "intrinsic/frontend/cloud/api/v1/solutiondiscovery_api_go_proto"
-	"intrinsic/kubernetes/acl/identity"
-	"intrinsic/tools/inctl/auth/auth"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"

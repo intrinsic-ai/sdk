@@ -28,11 +28,12 @@ import (
 	assetCataloggrpcpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_proto"
 	assetCatalogpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_proto"
 	assetIDpb "intrinsic/assets/proto/id_go_proto"
+	inversiongrpcpb "intrinsic/kubernetes/inversion/v1/inversion_go_proto"
+	inversionpb "intrinsic/kubernetes/inversion/v1/inversion_go_proto"
+
 	clustermanagergrpcpb "intrinsic/frontend/cloud/api/v1/clustermanager_api_go_proto"
 	clustermanagerpb "intrinsic/frontend/cloud/api/v1/clustermanager_api_go_proto"
 	clustermanageralphagrpcpb "intrinsic/frontend/cloud/api/v1alpha1/clustermanager_api_go_proto"
-	inversiongrpcpb "intrinsic/kubernetes/inversion/v1/inversion_go_proto"
-	inversionpb "intrinsic/kubernetes/inversion/v1/inversion_go_proto"
 )
 
 var (
