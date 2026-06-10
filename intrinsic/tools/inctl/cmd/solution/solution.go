@@ -12,29 +12,25 @@ import (
 	"intrinsic/tools/inctl/cmd/solution/share/share"
 	"intrinsic/tools/inctl/cmd/solution/start/start"
 	"intrinsic/tools/inctl/cmd/solution/stop/stop"
-	"intrinsic/tools/inctl/util/orgutil"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 func init() {
-	viperLocal := viper.New()
-
-	SolutionCmd := orgutil.WrapCmd(&cobra.Command{
+	cmd := &cobra.Command{
 		Use:                root.SolutionCmdName,
 		Aliases:            []string{root.SolutionsCmdName},
 		Short:              "Solution interacts with solutions",
 		DisableFlagParsing: true,
-	}, viperLocal)
+	}
 
-	SolutionCmd.AddCommand(get.NewCommand())
-	SolutionCmd.AddCommand(list.NewCommand())
-	SolutionCmd.AddCommand(create.NewCommand())
-	SolutionCmd.AddCommand(share.NewCommand())
-	SolutionCmd.AddCommand(start.NewCommand())
-	SolutionCmd.AddCommand(stop.NewCommand())
-	SolutionCmd.AddCommand(delete.NewCommand())
+	cmd.AddCommand(get.NewCommand())
+	cmd.AddCommand(list.NewCommand())
+	cmd.AddCommand(create.NewCommand())
+	cmd.AddCommand(share.NewCommand())
+	cmd.AddCommand(start.NewCommand())
+	cmd.AddCommand(stop.NewCommand())
+	cmd.AddCommand(delete.NewCommand())
 
-	root.RootCmd.AddCommand(SolutionCmd)
+	root.RootCmd.AddCommand(cmd)
 }
