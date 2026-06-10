@@ -38,7 +38,7 @@ func TestCheckEnv(t *testing.T) {
 		},
 	}
 	oldGetenv := getenv
-	defer func() { getenv = oldGetenv }()
+	t.Cleanup(func() { getenv = oldGetenv })
 	for _, tc := range tests {
 		getenv = func(k string) string {
 			if v, ok := tc.env[k]; ok {
@@ -54,4 +54,18 @@ func TestCheckEnv(t *testing.T) {
 		})
 	}
 
+}
+
+func TestAgentName(t *testing.T) {
+	oldGetenv := getenv
+	t.Cleanup(func() { getenv = oldGetenv })
+	getenv = func(k string) string {
+		if k == "INVOKER_INFO_NAME" {
+			return "antigravity"
+		}
+		return ""
+	}
+	if got := AgentName(); got != "antigravity" {
+		t.Errorf("AgentName() = %q, want %q", got, "antigravity")
+	}
 }

@@ -49,6 +49,16 @@ func checkEnvForAgent() bool {
 	return false
 }
 
+// IsAgent returns whether the command is invoked by an AI agent.
+func IsAgent() bool {
+	return checkEnvForAgent()
+}
+
+// AgentName returns the name of the AI agent invoking the command.
+func AgentName() string {
+	return getenv("INVOKER_INFO_NAME")
+}
+
 // CheckAndExit checks if running as an ai-agent and if so terminates the
 // process.
 func CheckAndExit(cmd *cobra.Command) {
