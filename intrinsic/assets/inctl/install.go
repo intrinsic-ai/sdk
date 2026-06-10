@@ -94,6 +94,9 @@ func GetCommand() *cobra.Command {
 					directupload.WithFailOver(transfer),
 				)
 			}
+			if transfer == nil {
+				return fmt.Errorf("--registry must be specified if --skip-direct-upload is used")
+			}
 			client := iagrpcpb.NewInstalledAssetsClient(conn)
 			authCtx := clientutils.AuthInsecureConn(ctx, address, flags.GetFlagProject())
 
