@@ -4,6 +4,8 @@
 #define INTRINSIC_ASSETS_DEPENDENCIES_UTILS_H_
 
 #include <memory>
+#include <string>
+#include <vector>
 
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"

@@ -6,7 +6,6 @@ package skillvalidate
 import (
 	"fmt"
 
-	"intrinsic/assets/dependencies/utils"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/metadatautils"
 
@@ -18,7 +17,6 @@ import (
 	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 )
 
-var errMixOfDependencyModels = fmt.Errorf("cannot declare dependencies in both the manifest's dependencies field (required equipment) and in the skill's parameter proto (annotation-based dependencies)")
 
 type skillManifestOptions struct {
 	files                                    *protoregistry.Files
@@ -148,11 +146,10 @@ func validateSkillDetails(sd *psmpb.SkillDetails, opts *validateSkillDetailsOpti
 		if err != nil {
 			return fmt.Errorf("cannot find parameter message %q: %w", name, err)
 		}
-		if md, ok := d.(protoreflect.MessageDescriptor); !ok {
+		if _, ok := d.(protoreflect.MessageDescriptor); !ok {
 			return fmt.Errorf("message %q is not a message", name)
-		} else if parameterHasResolvedDependencies := utils.HasResolvedDependency(md); parameterHasResolvedDependencies && len(sd.GetDependencies().GetRequiredEquipment()) != 0 {
-			return errMixOfDependencyModels
 		}
+
 	}
 	if name := sd.GetExecuteResult().GetMessageFullName(); name != "" {
 		if _, err := opts.files.FindDescriptorByName(protoreflect.FullName(name)); err != nil {
