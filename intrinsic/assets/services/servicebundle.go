@@ -339,7 +339,9 @@ func makeServiceAssetHandlers(manifest *smpb.ServiceManifest, opts *processOptio
 		return nil, handlers
 	}
 
-	processedAssets := new(smpb.ProcessedServiceAssets)
+	processedAssets := &smpb.ProcessedServiceAssets{
+		FileDescriptorSet: &descriptorpb.FileDescriptorSet{},
+	}
 	if p := manifest.GetAssets().DefaultConfigurationFilename; p != nil {
 		processedAssets.DefaultConfiguration = new(anypb.Any)
 		handlers[*p] = ioutils.MakeBinaryProtoHandler(processedAssets.DefaultConfiguration)
