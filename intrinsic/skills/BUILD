@@ -55,10 +55,22 @@ go_library(
 go_library(
     name = "skillfix",
     srcs = ["skillfix.go"],
+    data = [
+        "//intrinsic/skills/generator:skill_services_provided_to_platform",
+    ],
     importpath = "intrinsic/skills/skillfix",
     visibility = ["//intrinsic:internal_api_users"],
     deps = [
         "//intrinsic/skills/proto:processed_skill_manifest_go_proto",
         "//intrinsic/skills/proto:skill_manifest_go_proto",
+        "//intrinsic/skills/proto:skill_service_go_proto",
+        "//intrinsic/util/path_resolver:pathresolver",
+        "//intrinsic/util/proto:descriptor",
+        "//intrinsic/util/proto:protoio",
+        "//intrinsic/util/proto:sourcecodeinfoview",
+        "@org_golang_google_protobuf//proto",
+        "@org_golang_google_protobuf//reflect/protodesc:go_default_library",
+        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
+        "@org_golang_google_protobuf//types/descriptorpb:go_default_library",
     ],
 )
