@@ -8,6 +8,7 @@ import (
 
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/metadatautils"
+	validationerrors "intrinsic/assets/validation/errors"
 
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoregistry"
@@ -90,14 +91,23 @@ func SceneObjectManifest(m *sompb.SceneObjectManifest, options ...SceneObjectMan
 }
 
 type processedSceneObjectManifestOptions struct {
+	report           *validationerrors.Report
 }
 
 // ProcessedSceneObjectManifestOption is an option for validating a ProcessedSceneObjectManifest.
 type ProcessedSceneObjectManifestOption func(*processedSceneObjectManifestOptions)
 
+// WithReport sets the shared validation Report to use for collecting warnings.
+func WithReport(report *validationerrors.Report) ProcessedSceneObjectManifestOption {
+	return func(opts *processedSceneObjectManifestOptions) {
+		opts.report = report
+	}
+}
+
 // ProcessedSceneObjectManifest validates a ProcessedSceneObjectManifest.
 func ProcessedSceneObjectManifest(m *sompb.ProcessedSceneObjectManifest, options ...ProcessedSceneObjectManifestOption) error {
 	opts := &processedSceneObjectManifestOptions{}
+	WithReport(validationerrors.NewReport())(opts)
 	for _, opt := range options {
 		opt(opts)
 	}

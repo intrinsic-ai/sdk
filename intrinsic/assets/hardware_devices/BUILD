@@ -51,5 +51,6 @@ go_library(
         "//intrinsic/assets/proto/v1:reference_go_proto",
         "//intrinsic/assets/scene_objects:sceneobjectvalidate",
         "//intrinsic/assets/services:servicevalidate",
+        "//intrinsic/assets/validation:errors",
     ],
 )

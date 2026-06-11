@@ -44,6 +44,7 @@ go_library(
     deps = [
         "//intrinsic/assets:idutils",
         "//intrinsic/assets:metadatautils",
+        "//intrinsic/assets/validation:errors",
         "//intrinsic/skills/proto:processed_skill_manifest_go_proto",
         "//intrinsic/skills/proto:skill_manifest_go_proto",
         "@org_golang_google_protobuf//reflect/protodesc:go_default_library",

@@ -108,6 +108,7 @@ go_library(
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
         "//intrinsic/assets/data/proto/v1:data_manifest_go_proto",
         "//intrinsic/assets/proto:asset_type_go_proto",
+        "//intrinsic/assets/validation:errors",
         "//intrinsic/util/proto:registryutil",
         "@org_golang_google_protobuf//reflect/protodesc:go_default_library",
         "@org_golang_google_protobuf//reflect/protoregistry:go_default_library",

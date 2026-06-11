@@ -12,6 +12,7 @@ import (
 	"intrinsic/assets/metadatautils"
 	"intrinsic/assets/scene_objects/sceneobjectvalidate"
 	"intrinsic/assets/services/servicevalidate"
+	validationerrors "intrinsic/assets/validation/errors"
 
 	hdmpb "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest_go_proto"
 	atpb "intrinsic/assets/proto/asset_type_go_proto"
@@ -97,6 +98,7 @@ func HardwareDeviceManifest(m *hdmpb.HardwareDeviceManifest, options ...Hardware
 
 type processedHardwareDeviceManifestOptions struct {
 	dataAssetOptions         []datavalidate.DataAssetOption
+	report                   *validationerrors.Report
 	sceneObjectOptions       []sceneobjectvalidate.ProcessedSceneObjectManifestOption
 	serviceOptions           []servicevalidate.ProcessedServiceManifestOption
 	verifyCatalogAssetsExist VerifyCatalogAssetsExist
@@ -134,6 +136,16 @@ func WithVerifyProcessedCatalogAssetsExist(f VerifyCatalogAssetsExist) Processed
 	}
 }
 
+// WithReport sets the shared validation Report to use for collecting warnings.
+func WithReport(report *validationerrors.Report) ProcessedHardwareDeviceManifestOption {
+	return func(opts *processedHardwareDeviceManifestOptions) {
+		opts.report = report
+		WithDataAssetOptions(datavalidate.WithReport(report))(opts)
+		WithSceneObjectOptions(sceneobjectvalidate.WithReport(report))(opts)
+		WithServiceOptions(servicevalidate.WithReport(report))(opts)
+	}
+}
+
 // ProcessedHardwareDeviceManifest validates a ProcessedHardwareDeviceManifest.
 //
 // The following validation cannot be done on catalog reference nodes, since we don't read their
@@ -142,6 +154,7 @@ func WithVerifyProcessedCatalogAssetsExist(f VerifyCatalogAssetsExist) Processed
 // - Verify that configuration edges have matching source and target nodes.
 func ProcessedHardwareDeviceManifest(pm *hdmpb.ProcessedHardwareDeviceManifest, options ...ProcessedHardwareDeviceManifestOption) error {
 	opts := &processedHardwareDeviceManifestOptions{}
+	WithReport(validationerrors.NewReport())(opts)
 	for _, opt := range options {
 		opt(opts)
 	}

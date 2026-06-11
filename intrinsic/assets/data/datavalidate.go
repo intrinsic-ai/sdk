@@ -13,6 +13,7 @@ import (
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/metadatautils"
 	"intrinsic/assets/referenceddata"
+	validationerrors "intrinsic/assets/validation/errors"
 
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoregistry"
@@ -80,8 +81,9 @@ func DataManifest(m *dmpb.DataManifest, options ...DataManifestOption) error {
 }
 
 type dataAssetOptions struct {
-	referencedDataOptions []ReferencedDataOption
 	allowRuntimeAssetID   bool
+	referencedDataOptions []ReferencedDataOption
+	report                *validationerrors.Report
 }
 
 // DataAssetOption is an option for validating a DataAsset.
@@ -101,9 +103,17 @@ func WithAllowDataAssetRuntimeAssetID() DataAssetOption {
 	}
 }
 
+// WithReport sets the shared validation Report to use for collecting warnings.
+func WithReport(report *validationerrors.Report) DataAssetOption {
+	return func(opts *dataAssetOptions) {
+		opts.report = report
+	}
+}
+
 // DataAsset validates a DataAsset.
 func DataAsset(da *dapb.DataAsset, options ...DataAssetOption) error {
 	opts := &dataAssetOptions{}
+	WithReport(validationerrors.NewReport())(opts)
 	for _, opt := range options {
 		opt(opts)
 	}

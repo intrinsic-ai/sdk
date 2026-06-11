@@ -12,6 +12,7 @@ import (
 	"intrinsic/assets/processes/processvalidate"
 	"intrinsic/assets/scene_objects/sceneobjectvalidate"
 	"intrinsic/assets/services/servicevalidate"
+	validationerrors "intrinsic/assets/validation/errors"
 	"intrinsic/skills/skillvalidate"
 
 	atypepb "intrinsic/assets/proto/asset_type_go_proto"
@@ -24,6 +25,7 @@ type assetOptions struct {
 	dataOptions           []datavalidate.DataAssetOption
 	hardwareDeviceOptions []hardwaredevicevalidate.ProcessedHardwareDeviceManifestOption
 	processOptions        []processvalidate.ProcessAssetOption
+	report                *validationerrors.Report
 	sceneObjectOptions    []sceneobjectvalidate.ProcessedSceneObjectManifestOption
 	serviceOptions        []servicevalidate.ProcessedServiceManifestOption
 	skillOptions          []skillvalidate.ProcessedSkillManifestOption
@@ -79,9 +81,23 @@ func WithSkillOptions(options ...skillvalidate.ProcessedSkillManifestOption) Ass
 	}
 }
 
+// WithReport sets the shared validation Report to use for collecting warnings.
+func WithReport(report *validationerrors.Report) AssetOption {
+	return func(opts *assetOptions) {
+		opts.report = report
+		WithDataOptions(datavalidate.WithReport(report))(opts)
+		WithHardwareDeviceOptions(hardwaredevicevalidate.WithReport(report))(opts)
+		WithProcessOptions(processvalidate.WithReport(report))(opts)
+		WithSceneObjectOptions(sceneobjectvalidate.WithReport(report))(opts)
+		WithServiceOptions(servicevalidate.WithReport(report))(opts)
+		WithSkillOptions(skillvalidate.WithReport(report))(opts)
+	}
+}
+
 // Asset validates an Asset.
 func Asset(asset *assetpb.Asset, options ...AssetOption) error {
 	opts := &assetOptions{}
+	WithReport(validationerrors.NewReport())(opts)
 	for _, opt := range options {
 		opt(opts)
 	}

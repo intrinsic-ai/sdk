@@ -8,6 +8,7 @@ import (
 
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/metadatautils"
+	validationerrors "intrinsic/assets/validation/errors"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -125,6 +126,7 @@ func ProcessManifest(m *pmpb.ProcessManifest) error {
 
 type processAssetOptions struct {
 	ignoreVersion bool
+	report        *validationerrors.Report
 }
 
 // ProcessAssetOption is an option for validating a ProcessAsset.
@@ -138,9 +140,17 @@ func WithIgnoreVersion(ignore bool) ProcessAssetOption {
 	}
 }
 
+// WithReport sets the shared validation Report to use for collecting warnings.
+func WithReport(report *validationerrors.Report) ProcessAssetOption {
+	return func(opts *processAssetOptions) {
+		opts.report = report
+	}
+}
+
 // ProcessAsset validates a ProcessAsset.
 func ProcessAsset(pa *papb.ProcessAsset, options ...ProcessAssetOption) error {
 	opts := &processAssetOptions{}
+	WithReport(validationerrors.NewReport())(opts)
 	for _, opt := range options {
 		opt(opts)
 	}

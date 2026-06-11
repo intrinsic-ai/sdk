@@ -22,6 +22,7 @@ go_library(
         "//intrinsic/assets:idutils",
         "//intrinsic/assets:metadatautils",
         "//intrinsic/assets/scene_objects/proto:scene_object_manifest_go_proto",
+        "//intrinsic/assets/validation:errors",
         "//intrinsic/scene/proto/v1:scene_object_go_proto",
         "//intrinsic/util/proto:registryutil",
         "@org_golang_google_protobuf//reflect/protodesc:go_default_library",

@@ -89,6 +89,7 @@ go_library(
         "//intrinsic/assets/services/proto:service_volume_go_proto",
         "//intrinsic/assets/services/proto/v1:dynamic_reconfiguration_go_proto",
         "//intrinsic/assets/services/proto/v1:service_state_go_proto",
+        "//intrinsic/assets/validation:errors",
         "//intrinsic/util/go:validate",
         "//intrinsic/util/proto:names",
         "//intrinsic/util/proto:registryutil",

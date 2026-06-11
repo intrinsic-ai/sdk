@@ -8,6 +8,7 @@ import (
 
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/metadatautils"
+	validationerrors "intrinsic/assets/validation/errors"
 
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -76,6 +77,7 @@ func SkillManifest(m *smpb.SkillManifest, options ...SkillManifestOption) error 
 }
 
 type processedSkillManifestOptions struct {
+	report           *validationerrors.Report
 	requiredRegistry string
 }
 
@@ -89,9 +91,17 @@ func WithRequiredRegistry(registry string) ProcessedSkillManifestOption {
 	}
 }
 
+// WithReport sets the shared validation Report to use for collecting warnings.
+func WithReport(report *validationerrors.Report) ProcessedSkillManifestOption {
+	return func(opts *processedSkillManifestOptions) {
+		opts.report = report
+	}
+}
+
 // ProcessedSkillManifest validates a ProcessedSkillManifest.
 func ProcessedSkillManifest(m *psmpb.ProcessedSkillManifest, options ...ProcessedSkillManifestOption) error {
 	opts := &processedSkillManifestOptions{}
+	WithReport(validationerrors.NewReport())(opts)
 	for _, opt := range options {
 		opt(opts)
 	}

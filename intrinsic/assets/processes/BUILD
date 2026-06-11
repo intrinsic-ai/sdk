@@ -59,6 +59,7 @@ go_library(
         "//intrinsic/assets/proto:documentation_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
         "//intrinsic/assets/proto:metadata_go_proto",
+        "//intrinsic/assets/validation:errors",
         "//intrinsic/executive/proto:behavior_tree_go_proto",
         "//intrinsic/skills/proto:skills_go_proto",
         "@org_golang_google_grpc//codes:go_default_library",
