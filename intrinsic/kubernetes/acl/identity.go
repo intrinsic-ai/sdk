@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"intrinsic/frontend/go/origin"
 	"intrinsic/kubernetes/acl/cookies"
-	"intrinsic/kubernetes/acl/headers"
 	"intrinsic/kubernetes/acl/jwt"
 	"intrinsic/kubernetes/acl/org"
 	"intrinsic/stats/go/telemetry"
@@ -127,12 +126,6 @@ func (i *User) Project() string {
 	return i.project
 }
 
-// UserOrg is a return type used to answer combined requests.
-type UserOrg struct {
-	User *User
-	Org  *org.Organization
-}
-
 const (
 	// authProxyCookieName is the name of the cookie for storing the auth proxy token
 	authProxyCookieName   = "auth-proxy"
@@ -154,67 +147,6 @@ const (
 	IntrinsicIPCEmailSuffix = "@ipc.intrinsic.ai"
 )
 
-func (i *User) populateOrgAndProject(ctx context.Context) error {
-	if i == nil {
-		return nil
-	}
-	o, err := OrgFromContext(ctx)
-	if err == nil {
-		i.org = o
-	} else if !errors.Is(err, ErrMissingOrgID) {
-		return err
-	}
-	p, err := extractProjectFromContext(ctx)
-	if err == nil {
-		i.project = p
-	} else if !errors.Is(err, ErrMissingProject) {
-		return err
-	}
-	return nil
-}
-
-func (i *User) populateOrgAndProjectFromRequest(r *http.Request) error {
-	if i == nil {
-		return nil
-	}
-	o, err := OrgFromRequest(r)
-	if err == nil {
-		i.org = o
-	} else if !errors.Is(err, ErrMissingOrgID) {
-		return err
-	}
-	p, err := extractProjectFromRequest(r)
-	if err == nil {
-		i.project = p
-	} else if !errors.Is(err, ErrMissingProject) {
-		return err
-	}
-	return nil
-}
-
-func extractProjectFromContext(ctx context.Context) (string, error) {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return "", errors.Join(ErrMissingProject, errNoMetadata)
-	}
-	projectVal := md.Get(authProjectHeaderName)
-	if len(projectVal) == 0 || projectVal[0] == "" {
-		return "", errors.Join(ErrMissingProject, errNoProjectInMetadata)
-	}
-	return projectVal[0], nil
-}
-
-func extractProjectFromRequest(r *http.Request) (string, error) {
-	if r == nil {
-		return "", errors.Join(ErrMissingProject, ErrInvalidRequest)
-	}
-	projectVal := r.Header.Get(authProjectHeaderName)
-	if projectVal == "" {
-		return "", errors.Join(ErrMissingProject, errNoProjectInHeader)
-	}
-	return projectVal, nil
-}
-
 var cookieHeaders = []string{authProxyCookieName, onpremTokenCookieName, portalCookieName}
 
 // GetJWTFromRequest returns the JWT from a request.
@@ -224,7 +156,7 @@ func GetJWTFromRequest(r *http.Request) (string, error) {
 
 	for _, cn := range cookieHeaders {
 		jwt, err := r.Cookie(cn)
-		if err == nil {
+		if err == nil && jwt.Value != "" {
 			log.V(2).Infof("Using jwt from cookie %q", cn)
 			return jwt.Value, nil
 		}
@@ -261,7 +193,7 @@ func GetJWTFromContext(ctx context.Context) (string, error) {
 	}
 	for _, c := range contextCookies {
 		for _, cn := range cookieHeaders {
-			if c.Name == cn {
+			if c.Name == cn && c.Value != "" {
 				return c.Value, nil
 			}
 		}
@@ -297,6 +229,38 @@ type TokenVerifier interface {
 	VerifyIDToken(ctx context.Context, token string) error
 }
 
+func extractUserOptionsFromContext(ctx context.Context) ([]UserOption, error) {
+	results, err := extractFromContext(ctx, userExtractionSpecs...)
+	if err != nil {
+		return nil, err
+	}
+
+	var opts []UserOption
+	if orgID := results["Org"]; orgID != "" {
+		opts = append(opts, WithUserOrg(orgID))
+	}
+	if projectID := results["Project"]; projectID != "" {
+		opts = append(opts, WithUserProject(projectID))
+	}
+	return opts, nil
+}
+
+func extractUserOptionsFromRequest(r *http.Request) ([]UserOption, error) {
+	results, err := extractFromRequest(r, userExtractionSpecs...)
+	if err != nil {
+		return nil, err
+	}
+
+	var opts []UserOption
+	if orgID := results["Org"]; orgID != "" {
+		opts = append(opts, WithUserOrg(orgID))
+	}
+	if projectID := results["Project"]; projectID != "" {
+		opts = append(opts, WithUserProject(projectID))
+	}
+	return opts, nil
+}
+
 // UserFromContextVerified returns the verified user's identity from an incoming context.
 func UserFromContextVerified(ctx context.Context, tv TokenVerifier) (*User, error) {
 	ctx, span := trace.StartSpan(ctx, "identity.UserFromContextVerified")
@@ -310,14 +274,12 @@ func UserFromContextVerified(ctx context.Context, tv TokenVerifier) (*User, erro
 		telemetry.SetError(span, trace.StatusCodeUnauthenticated, "UserFromContextVerified: Failed to verify JWT", err)
 		return nil, errors.Join(ErrUnauthenticated, errJWTNotVerified, err)
 	}
-	u, err := UserFromJWT(t)
+	opts, err := extractUserOptionsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if err := u.populateOrgAndProject(ctx); err != nil {
-		return nil, err
-	}
-	return u, nil
+	opts = append(opts, WithJWT(t))
+	return NewUser(opts...)
 }
 
 // UserFromRequestVerified returns the verified user's identity from an incoming HTTP request.
@@ -333,14 +295,12 @@ func UserFromRequestVerified(r *http.Request, tv TokenVerifier) (*User, error) {
 		telemetry.SetError(span, trace.StatusCodeUnauthenticated, "UserFromRequestVerified: Failed to verify JWT", err)
 		return nil, errors.Join(ErrUnauthenticated, errJWTNotVerified, err)
 	}
-	u, err := UserFromJWT(jwt)
+	opts, err := extractUserOptionsFromRequest(r)
 	if err != nil {
 		return nil, err
 	}
-	if err := u.populateOrgAndProjectFromRequest(r); err != nil {
-		return nil, err
-	}
-	return u, nil
+	opts = append(opts, WithJWT(jwt))
+	return NewUser(opts...)
 }
 
 // UserFromRequest returns the user's identity from an HTTP request.
@@ -353,14 +313,12 @@ func UserFromRequest(r *http.Request) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
-	u, err := UserFromJWT(jwt)
+	opts, err := extractUserOptionsFromRequest(r)
 	if err != nil {
 		return nil, err
 	}
-	if err := u.populateOrgAndProjectFromRequest(r); err != nil {
-		return nil, err
-	}
-	return u, nil
+	opts = append(opts, WithJWT(jwt))
+	return NewUser(opts...)
 }
 
 // UserFromContext returns the user's identity from a gRPC context.
@@ -373,23 +331,12 @@ func UserFromContext(ctx context.Context) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
-	u, err := UserFromJWT(t)
+	opts, err := extractUserOptionsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if err := u.populateOrgAndProject(ctx); err != nil {
-		return nil, err
-	}
-	return u, nil
-}
-
-// UserToRequest adds the user's identity to an HTTP request.
-// Deprecated: use ToRequest with WithUser option.
-func UserToRequest(r *http.Request, u *User) {
-	_, span := trace.StartSpan(r.Context(), "identity.UserToRequest")
-	defer span.End()
-
-	ToRequest(r, WithUser(u))
+	opts = append(opts, WithJWT(t))
+	return NewUser(opts...)
 }
 
 // Email retrieves the canonalized user or service email of an identity.
@@ -413,12 +360,6 @@ func (i *User) EmailCanonicalized() string {
 	m, _ := jwt.Email(i.jwt)    // verified when created
 	m, _ = CanonicalizeEmail(m) // only error would be if m is not an email, can't happen here
 	return m
-}
-
-// UserToContext adds the user's identity to a gRPC context.
-// Deprecated: use AppendToOutgoingContext with WithUser option.
-func UserToContext(ctx context.Context, u *User) (context.Context, error) {
-	return AppendToOutgoingContext(ctx, WithUser(u))
 }
 
 func (i *User) lazyUnmarshalAndReturnData() (*jwt.Data, error) {
@@ -474,13 +415,6 @@ func (i *User) IsIntrinsicUser() bool {
 func isIntrinsicUser(email string) bool {
 	return strings.HasSuffix(email, googleEmailSuffix) ||
 		strings.HasSuffix(email, IntrinsicServiceAccountEmailSuffix)
-}
-
-// UserToIncomingContext adds the user's identity to an incoming gRPC context.
-// This is useful for testing and some special cases.
-// Deprecated: use AppendToIncomingContext with WithUser option.
-func UserToIncomingContext(ctx context.Context, u *User) (context.Context, error) {
-	return AppendToIncomingContext(ctx, WithUser(u))
 }
 
 // RequestToContext returns a new context that has the user's identity, audience, and org-id stored in its
@@ -546,12 +480,12 @@ func requestToMetadata(ctx context.Context, r *http.Request) ([]string, error) {
 	md := cookies.ToMDString(cs...)
 
 	// Copy organization header to the context metadata
-	o, err := headers.OrgFromRequest(r)
+	oID, err := extractRequestHeader(r, org.OrgIDHeader)
 	if err != nil {
 		return nil, err
 	}
-	if o != nil {
-		md = append(md, org.OrgIDHeader, o.ID)
+	if oID != "" {
+		md = append(md, org.OrgIDHeader, oID)
 	}
 
 	// Copy the audience to the context metadata.
@@ -817,175 +751,6 @@ func setOutgoingValueCollisionAware(ctx context.Context, key string, vals ...str
 	return ctx, false, fmt.Errorf("%w: %w for %q in outgoing context metadata", ErrInvalidRequest, errMetadataKeyConflict, key)
 }
 
-// OrgToRequest adds the organization identifier to the HTTP request.
-// Deprecated: use ToRequest with WithOrg option.
-func OrgToRequest(r *http.Request, orgID string) {
-	ToRequest(r, WithOrg(orgID))
-}
-
-// OrgToContext returns a new context that has the org-id stored in its metadata.
-// Deprecated: use AppendToOutgoingContext with WithOrg option.
-func OrgToContext(ctx context.Context, orgID string) (context.Context, error) {
-	if orgID == "" {
-		log.WarningContextf(ctx, "OrgToContext: orgID is empty, returning unchanged context")
-		return ctx, nil
-	}
-	return AppendToOutgoingContext(ctx, WithOrg(orgID))
-}
-
-// OrgFromRequest extracts the organization identifier from the HTTP header. If the header is not
-// present, it will look for the org-id cookie.
-func OrgFromRequest(r *http.Request) (*org.Organization, error) {
-	_, span := trace.StartSpan(r.Context(), "identity.OrgFromRequest")
-	defer span.End()
-
-	if o, _ := headers.OrgFromRequest(r); o != nil {
-		return o, nil
-	}
-	log.Warningf("OrgFromRequest could not retrieve the org from 'X-Intrinsic-Org'. Falling back to using cookies. URL=%v, %s", r.URL, origin.Description(r))
-
-	organization, err := r.Cookie(org.OrgIDCookie)
-	if err != nil {
-		orgName := r.Header.Get(org.OrgIDCookie)
-		if orgName != "" {
-			log.Warningf("Legacy org-id detected in request=%v, %s", r.URL, origin.Description(r))
-			return &org.Organization{ID: orgName}, nil
-		}
-		telemetry.SetError(span, trace.StatusCodeInvalidArgument, "OrgFromRequest", errNoOrgIDCookie)
-		return nil, errors.Join(ErrMissingOrgID, errNoOrgIDCookie)
-	}
-	if organization.Value == "" {
-		telemetry.SetError(span, trace.StatusCodeInvalidArgument, "OrgFromRequest", errOrgIDEmpty)
-		return nil, errors.Join(ErrMissingOrgID, errOrgIDEmpty)
-	}
-
-	return &org.Organization{ID: organization.Value}, nil
-}
-
-// OrgToIncomingContext returns a new context that has the org-id stored in its metadata.
-// This is useful for testing and some special cases.
-// Deprecated: use AppendToIncomingContext with WithOrg option.
-func OrgToIncomingContext(ctx context.Context, orgID string) (context.Context, error) {
-	if orgID == "" {
-		log.WarningContextf(ctx, "OrgToIncomingContext: orgID is empty, returning unchanged context")
-		return ctx, nil
-	}
-	return AppendToIncomingContext(ctx, WithOrg(orgID))
-}
-
-// OrgFromContext extracts the organization identifier from the  gRPC context.
-func OrgFromContext(ctx context.Context) (*org.Organization, error) {
-	ctx, span := trace.StartSpan(ctx, "identity.OrgFromContext")
-	defer span.End()
-
-	if o, err := headers.OrgFromContext(ctx); err != nil {
-		return nil, err
-	} else if o != nil {
-		return o, nil
-	}
-	log.WarningContext(ctx, "OrgFromContext: No org header found. Falling back to using cookies.")
-
-	contextCookies, err := cookies.FromContext(ctx)
-	if err != nil {
-		telemetry.SetError(span, trace.StatusCodeInvalidArgument, "OrgFromContext: Failed to get cookies from context", err)
-		return nil, errors.Join(ErrMissingOrgID, errCookiesParse, err)
-	}
-	for _, cookie := range contextCookies {
-		if cookie.Name == org.OrgIDCookie {
-			log.V(2).InfoContextf(ctx, "Using org from cookie %q", cookie)
-			return &org.Organization{ID: cookie.Value}, nil
-		}
-	}
-
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		telemetry.SetError(span, trace.StatusCodeInvalidArgument, "OrgFromContext", errNoMetadata)
-		return nil, errors.Join(ErrMissingOrgID, errNoMetadata)
-	}
-	orgMD, ok := md[org.OrgIDCookie]
-	if ok && len(orgMD) > 0 && orgMD[0] != "" {
-		log.ErrorContextf(ctx, "Tried using org from context metadata instead of a cookie %q. Update your code to use cookies instead.", org.OrgIDCookie)
-		return nil, errors.Join(ErrMissingOrgID, errOrgInMetadata, errNoOrgIDCookie)
-	}
-
-	telemetry.SetError(span, trace.StatusCodeInvalidArgument, "OrgFromContext", errNoOrgIDCookie)
-	return nil, errors.Join(ErrMissingOrgID, errNoOrgIDCookie)
-}
-
-// UserOrgFromContext extracts the user and organization identifier from the gRPC context.
-// Both the user and organization must be present.
-// On absence [ErrUnauthenticated] or [ErrMissingOrgID] will be returned .
-// Deprecated: use UserFromContext and the returned User's Org() getter.
-func UserOrgFromContext(ctx context.Context) (*UserOrg, error) {
-	ctx, span := trace.StartSpan(ctx, "identity.UserOrgFromContext")
-	defer span.End()
-
-	u, err := UserFromContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-	o, err := OrgFromContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return &UserOrg{User: u, Org: o}, nil
-}
-
-// UserOrgFromRequest extracts the user and organization identifier from the HTTP request.
-// Both the user and organization must be present.
-// On absence [ErrUnauthenticated] or [ErrMissingOrgID] will be returned .
-func UserOrgFromRequest(r *http.Request) (*UserOrg, error) {
-	_, span := trace.StartSpan(r.Context(), "identity.UserOrgFromRequest")
-	defer span.End()
-
-	u, err := UserFromRequest(r)
-	if err != nil {
-		return nil, err
-	}
-	o, err := OrgFromRequest(r)
-	if err != nil {
-		return nil, err
-	}
-	return &UserOrg{User: u, Org: o}, nil
-}
-
-// ToRequestDeprecated adds the user and org metadata to the HTTP request.
-// Deprecated: use ToRequest with WithUser and WithOrg options.
-func ToRequestDeprecated(r *http.Request, u *User, orgID string) {
-	_, span := trace.StartSpan(r.Context(), "identity.ToRequest")
-	defer span.End()
-
-	UserToRequest(r, u)
-	OrgToRequest(r, orgID)
-}
-
-// ToContext adds the user and org metadata to the context.
-// Deprecated: use AppendToOutgoingContext with WithUser and WithOrg options.
-func ToContext(ctx context.Context, u *User, orgID string) (context.Context, error) {
-	var opts []Option
-	if u != nil {
-		opts = append(opts, WithUser(u))
-	}
-	if orgID != "" {
-		opts = append(opts, WithOrg(orgID))
-	}
-	return AppendToOutgoingContext(ctx, opts...)
-}
-
-// ToIncomingContext adds the user and org metadata to the incoming context.
-// This is useful for testing and some special cases.
-// Deprecated: use AppendToIncomingContext with WithUser and WithOrg options.
-func ToIncomingContext(ctx context.Context, u *User, orgID string) (context.Context, error) {
-	var opts []Option
-	if u != nil {
-		opts = append(opts, WithUser(u))
-	}
-	if orgID != "" {
-		opts = append(opts, WithOrg(orgID))
-	}
-	return AppendToIncomingContext(ctx, opts...)
-}
-
 // ClearRequest removes the user and org metadata from the HTTP request.
 func ClearRequest(r *http.Request) {
 	_, span := trace.StartSpan(r.Context(), "identity.ClearRequest")
@@ -1004,22 +769,6 @@ func filterCookies(cookies []*http.Cookie, filter []string) []*http.Cookie {
 	return validCookies
 }
 
-// ClearRequestOrg removes the org metadata from the HTTP request.
-func ClearRequestOrg(r *http.Request) {
-	_, span := trace.StartSpan(r.Context(), "identity.ClearRequestOrg")
-	defer span.End()
-
-	ToRequest(r, withClearUserOrg())
-}
-
-// ClearRequestUser removes the user metadata from the HTTP request.
-func ClearRequestUser(r *http.Request) {
-	_, span := trace.StartSpan(r.Context(), "identity.ClearRequestUser")
-	defer span.End()
-
-	ToRequest(r, withClearUserAuth())
-}
-
 // ClearContext removes the user and org metadata from the outgoing context.
 func ClearContext(ctx context.Context) (context.Context, error) {
 	_, span := trace.StartSpan(ctx, "identity.ClearContext")
@@ -1028,35 +777,59 @@ func ClearContext(ctx context.Context) (context.Context, error) {
 	return AppendToOutgoingContext(ctx, WithClearUser())
 }
 
-// ClearContextOrg removes the org metadata from the outgoing context.
-func ClearContextOrg(ctx context.Context) (context.Context, error) {
-	_, span := trace.StartSpan(ctx, "identity.ClearContextOrg")
-	defer span.End()
-
-	return AppendToOutgoingContext(ctx, withClearUserOrg())
-}
-
-// ClearContextUser removes the user metadata from the outgoing context.
-func ClearContextUser(ctx context.Context) (context.Context, error) {
-	_, span := trace.StartSpan(ctx, "identity.ClearContextUser")
-	defer span.End()
-
-	return AppendToOutgoingContext(ctx, withClearUserAuth())
-}
-
 // IPCEmail returns the IPC email based on its identifier.
 // Example: "my-robot" -> "my-robot@ipc.intrinsic.ai"
 func IPCEmail(name string) string {
 	return name + IntrinsicIPCEmailSuffix
 }
 
-// UserFromJWT retrieves an Identity from a given JWT.
-func UserFromJWT(t string) (*User, error) {
-	_, err := jwt.Email(t)
+// UserOption configures a User struct during construction.
+type UserOption func(*User)
+
+// WithJWT sets the user's raw JWT.
+func WithJWT(token string) UserOption {
+	return func(u *User) {
+		u.jwt = token
+	}
+}
+
+// WithUserOrg sets the organization of the user.
+func WithUserOrg(orgID string) UserOption {
+	return func(u *User) {
+		if orgID != "" {
+			u.org = &org.Organization{ID: orgID}
+		}
+	}
+}
+
+// WithUserProject sets the compute project of the user.
+func WithUserProject(projectID string) UserOption {
+	return func(u *User) {
+		u.project = projectID
+	}
+}
+
+// NewUser constructs a User with the provided options.
+// A JWT is required to construct a valid User.
+func NewUser(opts ...UserOption) (*User, error) {
+	u := &User{}
+	for _, opt := range opts {
+		opt(u)
+	}
+	if u.jwt == "" {
+		return nil, fmt.Errorf("%w: JWT is required to construct a User", ErrInvalidRequest)
+	}
+	_, err := jwt.Email(u.jwt)
 	if err != nil {
 		return nil, fmt.Errorf("%w: failed to get email from JWT: %v", ErrUnauthenticated, err)
 	}
-	return &User{jwt: t}, nil
+	return u, nil
+}
+
+// UserFromJWT retrieves an Identity from a given JWT.
+// Deprecated: use NewUser with options.
+func UserFromJWT(t string) (*User, error) {
+	return NewUser(WithJWT(t))
 }
 
 // Option configures the context/request propagation.
@@ -1384,4 +1157,194 @@ func AppendToMetadataMap(m map[string]string, opts ...Option) (map[string]string
 // ToMetadataMap flattens identity options into a metadata key-value map from scratch.
 func ToMetadataMap(opts ...Option) (map[string]string, error) {
 	return AppendToMetadataMap(nil, opts...)
+}
+
+func deduplicate(s []string) []string {
+	if len(s) <= 1 {
+		return s
+	}
+	seen := make(map[string]struct{})
+	result := make([]string, 0, len(s))
+	for _, val := range s {
+		if _, ok := seen[val]; !ok {
+			seen[val] = struct{}{}
+			result = append(result, val)
+		}
+	}
+	return result
+}
+
+// OrgFromContext extracts the organization identifier from the gRPC context.
+// If a user identity is present, prefer to use UserFromContext and User.Org().
+func OrgFromContext(ctx context.Context) (*org.Organization, error) {
+	results, err := extractFromContext(ctx, orgExtractionSpec)
+	if err != nil {
+		return nil, err
+	}
+	orgID := results["Org"]
+	if orgID == "" {
+		return nil, ErrMissingOrgID
+	}
+	return &org.Organization{ID: orgID}, nil
+}
+
+// OrgFromRequest extracts the organization identifier from the HTTP request.
+// If a user identity is present, prefer to use UserFromRequest and User.Org().
+func OrgFromRequest(r *http.Request) (*org.Organization, error) {
+	results, err := extractFromRequest(r, orgExtractionSpec)
+	if err != nil {
+		return nil, err
+	}
+	orgID := results["Org"]
+	if orgID == "" {
+		return nil, ErrMissingOrgID
+	}
+	return &org.Organization{ID: orgID}, nil
+}
+
+type keyType int
+
+const (
+	headerKey keyType = iota
+	cookieKey
+)
+
+type keySpec struct {
+	Type keyType
+	Name string
+}
+
+type extractionSpec struct {
+	FieldName string
+	Keys      []keySpec
+}
+
+var (
+	orgExtractionSpec = extractionSpec{
+		FieldName: "Org",
+		Keys: []keySpec{
+			{headerKey, org.OrgIDHeader},
+			{cookieKey, org.OrgIDCookie},
+		},
+	}
+	projectExtractionSpec = extractionSpec{
+		FieldName: "Project",
+		Keys: []keySpec{
+			{headerKey, authProjectHeaderName},
+		},
+	}
+	userExtractionSpecs = []extractionSpec{
+		orgExtractionSpec,
+		projectExtractionSpec,
+	}
+)
+
+func extractMetadataHeader(md metadata.MD, key string) (string, error) {
+	vals := md.Get(key)
+	vals = deduplicate(vals)
+	if len(vals) > 1 {
+		return "", fmt.Errorf("multiple values specified in %q header", key)
+	}
+	if len(vals) == 1 && vals[0] != "" {
+		return vals[0], nil
+	}
+	return "", nil
+}
+
+func extractFromContext(ctx context.Context, specs ...extractionSpec) (map[string]string, error) {
+	results := make(map[string]string)
+
+	var md metadata.MD
+	var hasMetadata bool
+	var contextCookies []*http.Cookie
+	var cookiesErr error
+
+	for _, spec := range specs {
+		var foundVal string
+	KeysLoop:
+		for _, key := range spec.Keys {
+			switch key.Type {
+			case headerKey:
+				if md == nil {
+					md, hasMetadata = metadata.FromIncomingContext(ctx)
+				}
+				if hasMetadata {
+					val, err := extractMetadataHeader(md, key.Name)
+					if err != nil {
+						return nil, fmt.Errorf("field %s: %w", spec.FieldName, err)
+					}
+					if val != "" {
+						foundVal = val
+						break KeysLoop
+					}
+				}
+			case cookieKey:
+				if contextCookies == nil && cookiesErr == nil {
+					contextCookies, cookiesErr = cookies.FromContext(ctx)
+				}
+				if cookiesErr == nil {
+					for _, cookie := range contextCookies {
+						if cookie.Name == key.Name && cookie.Value != "" {
+							foundVal = cookie.Value
+							break KeysLoop
+						}
+					}
+				}
+			}
+		}
+		results[spec.FieldName] = foundVal
+	}
+	return results, nil
+}
+
+func extractRequestHeader(r *http.Request, key string) (string, error) {
+	vals := r.Header.Values(key)
+	vals = deduplicate(vals)
+	if len(vals) > 1 {
+		return "", fmt.Errorf("multiple values specified in %q header", key)
+	}
+	if len(vals) == 1 && vals[0] != "" {
+		return vals[0], nil
+	}
+	return "", nil
+}
+
+func extractFromRequest(r *http.Request, specs ...extractionSpec) (map[string]string, error) {
+	if r == nil {
+		return nil, nil
+	}
+	results := make(map[string]string)
+	for _, spec := range specs {
+		var foundVal string
+	KeysLoop:
+		for _, key := range spec.Keys {
+			switch key.Type {
+			case headerKey:
+				val, err := extractRequestHeader(r, key.Name)
+				if err != nil {
+					return nil, fmt.Errorf("field %s: %w", spec.FieldName, err)
+				}
+				if val != "" {
+					foundVal = val
+					break KeysLoop
+				}
+			case cookieKey:
+				cookie, err := r.Cookie(key.Name)
+				if err == nil && cookie.Value != "" {
+					foundVal = cookie.Value
+					break KeysLoop
+				}
+				// Legacy fallback specifically for Org ID in requests
+				if key.Name == org.OrgIDCookie {
+					orgName := r.Header.Get(org.OrgIDCookie)
+					if orgName != "" {
+						foundVal = orgName
+						break KeysLoop
+					}
+				}
+			}
+		}
+		results[spec.FieldName] = foundVal
+	}
+	return results, nil
 }

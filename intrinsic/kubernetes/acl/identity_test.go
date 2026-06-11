@@ -93,19 +93,6 @@ func TestUserFromRequest(t *testing.T) {
 	})
 }
 
-func TestUserToRequest(t *testing.T) {
-	r := httptest.NewRequest(http.MethodGet, "/", nil)
-	u := &User{jwt: token}
-	UserToRequest(r, &User{jwt: "overwrite me please"})
-	UserToRequest(r, u)
-	if cookies.FromRequestNamed(r, []string{authProxyCookieName})[0].Value != token {
-		t.Errorf("UserToRequest(..) did not add the user's identity to the request")
-	}
-	if len(r.Cookies()) != 1 {
-		t.Errorf("UserToRequest(..) did not add exactly one cookie to the request")
-	}
-}
-
 func TestUserFromMetadata(t *testing.T) {
 	ctx := metadata.NewIncomingContext(t.Context(),
 		metadata.Pairs(cookies.CookieHeaderName, authProxyCookieName+"="+token))
@@ -116,45 +103,6 @@ func TestUserFromMetadata(t *testing.T) {
 	}
 	if u.EmailCanonicalized() != email {
 		t.Fatalf("email, got %s, want %s", u.EmailCanonicalized(), email)
-	}
-}
-
-func TestUserToContext(t *testing.T) {
-	ctx := t.Context()
-	u := &User{jwt: token}
-	ctx, err := UserToContext(ctx, u)
-	if err != nil {
-		t.Fatal(err)
-	}
-	want := []string{authProxyCookieName + "=" + token}
-	md, _ := metadata.FromOutgoingContext(ctx)
-	if diff := cmp.Diff(want, md.Get(cookies.CookieHeaderName)); diff != "" {
-		t.Errorf("UserToContext(..) did not add the user's identity to the context (-want +got):\n%s", diff)
-	}
-
-	// Overwrite existing cookie.
-	u.jwt = token2
-	ctx, err = UserToContext(ctx, u)
-	if err != nil {
-		t.Fatal(err)
-	}
-	want = []string{authProxyCookieName + "=" + token2}
-	md, _ = metadata.FromOutgoingContext(ctx)
-	if diff := cmp.Diff(want, md.Get(cookies.CookieHeaderName)); diff != "" {
-		t.Errorf("UserToContext(..) did not add the user's identity to the context (-want +got):\n%s", diff)
-	}
-}
-
-func TestUserToIncomingContext(t *testing.T) {
-	ctx := t.Context()
-	u := &User{jwt: token}
-	ctx, err := UserToIncomingContext(ctx, u)
-	if err != nil {
-		t.Fatal(err)
-	}
-	md, _ := metadata.FromIncomingContext(ctx)
-	if md.Get(cookies.CookieHeaderName)[0] != authProxyCookieName+"="+token {
-		t.Errorf("UserToIncomingContext(..) did not add the user's identity to the context")
 	}
 }
 
@@ -932,17 +880,21 @@ func TestContextToRequest(t *testing.T) {
 				return
 			}
 
-			uo, err := UserOrgFromRequest(req)
+			u, err := UserFromRequest(req)
 			if err != nil {
-				t.Errorf("FromRequest(..) = _, %v, wantError=%v", err, tc.noAuth)
+				t.Fatalf("UserFromRequest(..) failed: %v", err)
 			}
 
-			if uo.User.EmailCanonicalized() != email {
-				t.Errorf("user.Email() = %q, want %q", uo.User.EmailCanonicalized(), "testorg")
+			if u.EmailCanonicalized() != email {
+				t.Errorf("user.Email() = %q, want %q", u.EmailCanonicalized(), email)
 			}
 
-			if uo.Org.GetID() != "testorg" {
-				t.Errorf("identity.OrgFromRequest(..) = %q, want %q", uo.Org, "testorg")
+			gotOrg := ""
+			if u.Org() != nil {
+				gotOrg = u.Org().GetID()
+			}
+			if gotOrg != "testorg" {
+				t.Errorf("user.Org().GetID() = %q, want %q", gotOrg, "testorg")
 			}
 
 			if len(req.Cookies()) > 2 {
@@ -954,181 +906,6 @@ func TestContextToRequest(t *testing.T) {
 				if got := req.Header.Get(org.OrgIDHeader); got != wantVals[0] {
 					t.Errorf("Header %q = %q, want %q", org.OrgIDHeader, got, wantVals[0])
 				}
-			}
-		})
-	}
-}
-
-func TestOrgToRequest(t *testing.T) {
-	r := httptest.NewRequest(http.MethodGet, "/", nil)
-	OrgToRequest(r, "wrongorg") // cookie set here should get overwritten
-	OrgToRequest(r, "testorg")
-	if len(r.Cookies()) != 1 {
-		t.Errorf("OrgToRequest(..) = %q, want 1 cookie", r.Cookies())
-	}
-	if r.Cookies()[0].Name != org.OrgIDCookie {
-		t.Errorf("OrgToRequest(..) = %q, want %q", r.Cookies()[0].Name, org.OrgIDCookie)
-	}
-	if r.Cookies()[0].Value != "testorg" {
-		t.Errorf("OrgToRequest(..) = %q, want %q", r.Cookies()[0].Value, "testorg")
-	}
-	if got := r.Header.Get(org.OrgIDHeader); got != "testorg" {
-		t.Errorf("OrgToRequest(..) header %q = %q, want %q", org.OrgIDHeader, got, "testorg")
-	}
-}
-
-func TestOrgToContext(t *testing.T) {
-	ctx := t.Context()
-	ctx, err := OrgToContext(ctx, "testorg")
-	if err != nil {
-		t.Fatalf("OrgToContext(..) = _, %v, want no error", err)
-	}
-	md, _ := metadata.FromOutgoingContext(ctx)
-	if md.Get(cookies.CookieHeaderName)[0] != org.OrgIDCookie+"=testorg" {
-		t.Errorf("UserToContext(..) did not add the user's identity to the context")
-	}
-	if md.Get(org.OrgIDHeader)[0] != "testorg" {
-		t.Errorf("OrgToContext(..) did not add the org header to the context")
-	}
-}
-
-func TestOrgToIncomingContext(t *testing.T) {
-	ctx := t.Context()
-	ctx, err := OrgToIncomingContext(ctx, "testorg")
-	if err != nil {
-		t.Fatalf("OrgToIncomingContext(..) = _, %v, want no error", err)
-	}
-	md, _ := metadata.FromIncomingContext(ctx)
-	if md.Get(cookies.CookieHeaderName)[0] != org.OrgIDCookie+"=testorg" {
-		t.Errorf("UserToIncomingContext(..) did not add the user's identity to the context")
-	}
-}
-
-func TestOrgFromRequest(t *testing.T) {
-	tests := []struct {
-		name    string
-		cookie  string
-		header  string
-		want    string
-		wantErr bool
-	}{
-		{
-			name:    "with cookie",
-			cookie:  "testorg",
-			want:    "testorg",
-			wantErr: false,
-		},
-		{
-			name:    "header_and_cookie",
-			cookie:  "cookieorg",
-			header:  "headerorg",
-			want:    "headerorg",
-			wantErr: false,
-		},
-		{
-			name:    "header_only",
-			header:  "headerorg",
-			want:    "headerorg",
-			wantErr: false,
-		},
-		{
-			name:    "no_org",
-			want:    "",
-			wantErr: true,
-		},
-	}
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			r := httptest.NewRequest(http.MethodGet, "/", nil)
-			if tc.cookie != "" {
-				r.AddCookie(&http.Cookie{Name: org.OrgIDCookie, Value: tc.cookie})
-			}
-			if tc.header != "" {
-				r.Header.Set(org.OrgIDHeader, tc.header)
-			}
-			o, err := OrgFromRequest(r)
-			if tc.wantErr {
-				if err == nil {
-					t.Fatal("got err == nil, wanted error")
-				}
-				return
-			}
-
-			if o.GetID() != tc.want {
-				t.Fatalf("org.GetID(), got %q, want %q", o.GetID(), tc.want)
-			}
-		})
-	}
-}
-
-func TestOrgFromContext(t *testing.T) {
-	tests := []struct {
-		name    string
-		md      metadata.MD
-		want    string
-		wantErr bool
-	}{
-		{
-			name: "with cookie",
-			md:   metadata.Pairs(cookies.CookieHeaderName, org.OrgIDCookie+"=testorg"),
-			want: "testorg",
-		},
-		{
-			name: "with header",
-			md:   metadata.Pairs(org.OrgIDHeader, "headerorg"),
-			want: "headerorg",
-		},
-		{
-			name: "header precedence",
-			md: metadata.Pairs(
-				org.OrgIDHeader, "headerorg",
-				cookies.CookieHeaderName, org.OrgIDCookie+"=cookieorg",
-			),
-			want: "headerorg",
-		},
-		{
-			name: "multiple headers",
-			md: metadata.Pairs(
-				org.OrgIDHeader, "headerorg",
-				org.OrgIDHeader, "headerorg2",
-			),
-			wantErr: true,
-		},
-		{
-			name: "empty org header",
-			md: metadata.Pairs(
-				org.OrgIDHeader, "",
-				cookies.CookieHeaderName, org.OrgIDCookie+"=cookieorg",
-			),
-			want: "cookieorg",
-		},
-		{
-			name:    "with metadata",
-			md:      metadata.Pairs(org.OrgIDCookie, "wrongorg"),
-			wantErr: true,
-		},
-		{
-			name:    "empty metadata",
-			md:      metadata.Pairs(),
-			wantErr: true,
-		},
-	}
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			ctx := metadata.NewIncomingContext(t.Context(), tc.md)
-			o, err := OrgFromContext(ctx)
-			if tc.wantErr {
-				if err == nil {
-					t.Fatal("got err == nil, wanted error")
-				}
-				return
-			}
-
-			if err != nil {
-				t.Fatal(err)
-			}
-			if o.GetID() != tc.want {
-				t.Fatalf("org.GetID(), got %q, want %q", o.GetID(), tc.want)
 			}
 		})
 	}
@@ -1178,149 +955,6 @@ func TestLoggableID(t *testing.T) {
 				t.Errorf("user.LoggableID() = %q, want %q", id, tc.want)
 			}
 		})
-	}
-}
-
-func TestClearRequestOrg(t *testing.T) {
-	r := httptest.NewRequest(http.MethodGet, "/", nil)
-	r.AddCookie(&http.Cookie{Name: org.OrgIDCookie, Value: "testorg"})
-	r.AddCookie(&http.Cookie{Name: "othercookie", Value: "othervalue"})
-	r.Header.Set(org.OrgIDCookie, "testorg") // legacy header
-	r.Header.Set(org.OrgIDHeader, "testorg")
-	ClearRequestOrg(r)
-	if c, err := r.Cookie(org.OrgIDCookie); err == nil {
-		t.Errorf("ClearRequestOrg(..) = %q, did not clear org cookie", c)
-	}
-	if c, err := r.Cookie("othercookie"); err != nil {
-		t.Errorf("ClearRequestOrg(..) = %q, cleared valid cookie", c)
-	}
-	if r.Header.Get(org.OrgIDCookie) != "" {
-		t.Errorf("ClearRequestOrg(..) = %q, want empty legacy org header", r.Header.Get(org.OrgIDCookie))
-	}
-	if r.Header.Get(org.OrgIDHeader) != "" {
-		t.Errorf("ClearRequestOrg(..) = %q, want empty org header", r.Header.Get(org.OrgIDHeader))
-	}
-}
-
-func TestClearRequestUser(t *testing.T) {
-	r := httptest.NewRequest(http.MethodGet, "/", nil)
-	for _, name := range cookieHeaders {
-		r.AddCookie(&http.Cookie{Name: name, Value: "testvalue"})
-	}
-	r.AddCookie(&http.Cookie{Name: "othercookie", Value: "othervalue"})
-	r.Header.Set(authHeaderName, "testuser")
-	r.Header.Set(apikeyTokenHeaderName, "testuser")
-	ClearRequestUser(r)
-	for _, name := range cookieHeaders {
-		if c, err := r.Cookie(name); err == nil {
-			t.Errorf("ClearRequestUser(..) = %q, did not clear cookie %v", c, name)
-		}
-	}
-	if c, err := r.Cookie("othercookie"); err != nil {
-		t.Errorf("ClearRequestUser(..) = %q, cleared valid cookie", c)
-	}
-	if r.Header.Get(authHeaderName) != "" {
-		t.Errorf("ClearRequestUser(..) = %q, want empty auth header", r.Header.Get(authHeaderName))
-	}
-	if r.Header.Get(apikeyTokenHeaderName) != "" {
-		t.Errorf("ClearRequestUser(..) = %q, want empty apikey header", r.Header.Get(apikeyTokenHeaderName))
-	}
-}
-
-func TestClearContextOrg(t *testing.T) {
-	// setup context with all org cookies and headers
-	testCookies := []*http.Cookie{
-		{Name: "othercookie", Value: "othervalue"},
-		{Name: org.OrgIDCookie, Value: "testorg"},
-	}
-	testMD := metadata.Pairs(cookies.ToMDString(testCookies...)...)
-	testMD.Set(org.OrgIDHeader, "testorg")
-	testMD.Set(org.OrgIDCookie, "testorg")
-
-	ctx := metadata.NewOutgoingContext(t.Context(), testMD)
-	ctx, err := ClearContextOrg(ctx)
-	if err != nil {
-		t.Fatalf("ClearContextOrg(..) = _, %v, want no error", err)
-	}
-
-	// check cookies
-	md, _ := metadata.FromOutgoingContext(ctx)
-	cs, err := cookies.FromMD(md)
-	if err != nil {
-		t.Fatalf("cookies.FromMD(..) = _, %v, want no error", err)
-	}
-	foundOther := false
-	for _, c := range cs {
-		if c.Name == "othercookie" {
-			foundOther = true
-			if c.Value != "othervalue" {
-				t.Errorf("expected othercookie value 'othervalue', got %q", c.Value)
-			}
-			continue
-		}
-		t.Errorf("ClearContextOrg(..) did not clear cookie %v", c.Name)
-	}
-	if !foundOther {
-		t.Errorf("expected othercookie to be preserved, but it was lost")
-	}
-
-	// check headers
-	if len(md.Get(org.OrgIDHeader)) > 0 {
-		t.Errorf("ClearContextOrg(..) = %q, want empty org header", md.Get(org.OrgIDHeader)[0])
-	}
-	if len(md.Get(org.OrgIDCookie)) > 0 {
-		t.Errorf("ClearContextOrg(..) = %q, want empty org cookie header", md.Get(org.OrgIDCookie)[0])
-	}
-	if len(md.Get(cookies.CookieHeaderName)) != 1 {
-		t.Errorf("expected exactly 1 Cookie header list in metadata, got %d", len(md.Get(cookies.CookieHeaderName)))
-	}
-}
-
-func TestClearContextUser(t *testing.T) {
-	// setup context with all user cookies and headers
-	testCookies := []*http.Cookie{
-		{Name: "othercookie", Value: "othervalue"},
-	}
-	for _, name := range cookieHeaders {
-		testCookies = append(testCookies, &http.Cookie{Name: name, Value: "testvalue"})
-	}
-	testMD := metadata.Pairs(cookies.ToMDString(testCookies...)...)
-	testMD.Set(authHeaderName, "testuser")
-	testMD.Set(apikeyTokenHeaderName, "testuser")
-	ctx := metadata.NewOutgoingContext(t.Context(), testMD)
-	ctx, err := ClearContextUser(ctx)
-	if err != nil {
-		t.Fatalf("ClearContextUser(..) = _, %v, want no error", err)
-	}
-	// check cookies
-	md, _ := metadata.FromOutgoingContext(ctx)
-	cs, err := cookies.FromMD(md)
-	if err != nil {
-		t.Fatalf("cookies.FromMD(..) = _, %v, want no error", err)
-	}
-	foundOther := false
-	for _, c := range cs {
-		if c.Name == "othercookie" {
-			foundOther = true
-			if c.Value != "othervalue" {
-				t.Errorf("expected othercookie value 'othervalue', got %q", c.Value)
-			}
-			continue
-		}
-		t.Errorf("ClearContextUser(..) did not clear cookie %v", c.Name)
-	}
-	if !foundOther {
-		t.Errorf("expected othercookie to be preserved, but it was lost")
-	}
-	// check headers
-	if len(md.Get(authHeaderName)) > 0 {
-		t.Errorf("ClearContextUser(..) = %q, want empty auth header", md.Get(authHeaderName)[0])
-	}
-	if len(md.Get(apikeyTokenHeaderName)) > 0 {
-		t.Errorf("ClearContextUser(..) = %q, want empty apikey header", md.Get(apikeyTokenHeaderName)[0])
-	}
-	if len(md.Get(cookies.CookieHeaderName)) != 1 {
-		t.Errorf("expected exactly 1 Cookie header list in metadata, got %d", len(md.Get(cookies.CookieHeaderName)))
 	}
 }
 
@@ -1383,91 +1017,6 @@ func TestClearContextChained(t *testing.T) {
 	}
 	if len(md.Get(cookies.CookieHeaderName)) != 1 {
 		t.Errorf("expected exactly 1 Cookie header list in metadata, got %d", len(md.Get(cookies.CookieHeaderName)))
-	}
-}
-
-type UserOrgRetrievalTest struct {
-	name    string
-	user    *User
-	org     string
-	wantErr bool
-}
-
-func TestUserOrgRetrieval(t *testing.T) {
-	tests := []*UserOrgRetrievalTest{
-		{
-			name: "with user and org",
-			user: &User{
-				jwt: token,
-			},
-			org:     "testorg",
-			wantErr: false,
-		},
-		{
-			name:    "without user",
-			org:     "testorg",
-			user:    nil,
-			wantErr: true,
-		},
-		{
-			name: "without org",
-			user: &User{
-				jwt: token,
-			},
-			wantErr: true,
-		},
-	}
-	for _, tc := range tests {
-		t.Run("Context/"+tc.name, func(t *testing.T) {
-			runUserOrgRetrievalContext(t, tc)
-		})
-		t.Run("Request/"+tc.name, func(t *testing.T) {
-			runUserOrgRetrievalRequest(t, tc)
-		})
-	}
-}
-
-func runUserOrgRetrievalContext(t *testing.T, tc *UserOrgRetrievalTest) {
-	ctx, err := ToIncomingContext(t.Context(), tc.user, tc.org)
-	if err != nil {
-		t.Fatal(err)
-	}
-	uo, err := UserOrgFromContext(ctx)
-	if tc.wantErr {
-		if err == nil {
-			t.Fatal("got err == nil, wanted error")
-		}
-		return
-	}
-	if err != nil {
-		t.Fatal(err)
-	}
-	if uo.User.EmailCanonicalized() != tc.user.EmailCanonicalized() {
-		t.Errorf("user.Email() = %q, want %q", uo.User.EmailCanonicalized(), tc.user.EmailCanonicalized())
-	}
-	if uo.Org.GetID() != tc.org {
-		t.Errorf("identity.OrgFromContext(..) = %q, want %q", uo.Org.GetID(), tc.org)
-	}
-}
-
-func runUserOrgRetrievalRequest(t *testing.T, tc *UserOrgRetrievalTest) {
-	r := httptest.NewRequest(http.MethodGet, "/", nil)
-	ToRequestDeprecated(r, tc.user, tc.org)
-	uo, err := UserOrgFromRequest(r)
-	if tc.wantErr {
-		if err == nil {
-			t.Fatal("got err == nil, wanted error")
-		}
-		return
-	}
-	if err != nil {
-		t.Fatal(err)
-	}
-	if uo.User.EmailCanonicalized() != tc.user.EmailCanonicalized() {
-		t.Errorf("user.Email() = %q, want %q", uo.User.EmailCanonicalized(), tc.user.EmailCanonicalized())
-	}
-	if uo.Org.GetID() != tc.org {
-		t.Errorf("identity.OrgFromRequest(..) = %q, want %q", uo.Org.GetID(), tc.org)
 	}
 }
 
@@ -1917,100 +1466,6 @@ func TestAppendToIncomingContext(t *testing.T) {
 			}
 		})
 	}
-}
-
-// COMPATIBILITY MIGRATION TEST: Safe to delete when deprecated wrappers are deleted.
-func TestMigrationCompatibility(t *testing.T) {
-	u := &User{jwt: token, org: &org.Organization{ID: "testorg"}, project: "testproject"}
-
-	t.Run("ToContext_vs_NewOutgoingContext", func(t *testing.T) {
-		ctxBaseline, err := ToContext(t.Context(), u, "testorg")
-		if err != nil {
-			t.Fatalf("ToContext() error = %v", err)
-		}
-		ctxMigrated, err := NewOutgoingContext(t.Context(), WithUser(u), WithOrg("testorg"))
-		if err != nil {
-			t.Fatalf("NewOutgoingContext() error = %v", err)
-		}
-
-		mdBaseline, _ := metadata.FromOutgoingContext(ctxBaseline)
-		mdMigrated, _ := metadata.FromOutgoingContext(ctxMigrated)
-
-		if diff := cmp.Diff(mdBaseline, mdMigrated); diff != "" {
-			t.Errorf("Metadata mismatch between ToContext and NewOutgoingContext (-baseline +migrated):\n%s", diff)
-		}
-	})
-
-	t.Run("UserToContext_vs_AppendToOutgoingContext", func(t *testing.T) {
-		ctxBaseline, err := UserToContext(t.Context(), u)
-		if err != nil {
-			t.Fatalf("UserToContext() error = %v", err)
-		}
-		ctxMigrated, err := AppendToOutgoingContext(t.Context(), WithUser(u))
-		if err != nil {
-			t.Fatalf("AppendToOutgoingContext() error = %v", err)
-		}
-
-		mdBaseline, _ := metadata.FromOutgoingContext(ctxBaseline)
-		mdMigrated, _ := metadata.FromOutgoingContext(ctxMigrated)
-
-		if diff := cmp.Diff(mdBaseline, mdMigrated); diff != "" {
-			t.Errorf("Metadata mismatch between UserToContext and AppendToOutgoingContext (-baseline +migrated):\n%s", diff)
-		}
-	})
-
-	t.Run("OrgToContext_vs_AppendToOutgoingContext", func(t *testing.T) {
-		ctxBaseline, err := OrgToContext(t.Context(), "testorg")
-		if err != nil {
-			t.Fatalf("OrgToContext() error = %v", err)
-		}
-		ctxMigrated, err := AppendToOutgoingContext(t.Context(), WithOrg("testorg"))
-		if err != nil {
-			t.Fatalf("AppendToOutgoingContext() error = %v", err)
-		}
-
-		mdBaseline, _ := metadata.FromOutgoingContext(ctxBaseline)
-		mdMigrated, _ := metadata.FromOutgoingContext(ctxMigrated)
-
-		if diff := cmp.Diff(mdBaseline, mdMigrated); diff != "" {
-			t.Errorf("Metadata mismatch between OrgToContext and AppendToOutgoingContext (-baseline +migrated):\n%s", diff)
-		}
-	})
-
-	t.Run("ToIncomingContext_vs_AppendToIncomingContext", func(t *testing.T) {
-		ctxBaseline, err := ToIncomingContext(t.Context(), u, "testorg")
-		if err != nil {
-			t.Fatalf("ToIncomingContext() error = %v", err)
-		}
-		ctxMigrated, err := AppendToIncomingContext(t.Context(), WithUser(u), WithOrg("testorg"))
-		if err != nil {
-			t.Fatalf("AppendToIncomingContext() error = %v", err)
-		}
-
-		mdBaseline, _ := metadata.FromIncomingContext(ctxBaseline)
-		mdMigrated, _ := metadata.FromIncomingContext(ctxMigrated)
-
-		if diff := cmp.Diff(mdBaseline, mdMigrated); diff != "" {
-			t.Errorf("Metadata mismatch between ToIncomingContext and AppendToIncomingContext (-baseline +migrated):\n%s", diff)
-		}
-	})
-
-	t.Run("UserToRequest_vs_ToRequest", func(t *testing.T) {
-		rBaseline := httptest.NewRequest(http.MethodGet, "/", nil)
-		UserToRequest(rBaseline, u)
-
-		rMigrated := httptest.NewRequest(http.MethodGet, "/", nil)
-		if err := ToRequest(rMigrated, WithUser(u)); err != nil {
-			t.Fatalf("ToRequest() error = %v", err)
-		}
-
-		if diff := cmp.Diff(rBaseline.Header, rMigrated.Header); diff != "" {
-			t.Errorf("Header mismatch between UserToRequest and ToRequest (-baseline +migrated):\n%s", diff)
-		}
-		if diff := cmp.Diff(rBaseline.Cookies(), rMigrated.Cookies()); diff != "" {
-			t.Errorf("Cookies mismatch between UserToRequest and ToRequest (-baseline +migrated):\n%s", diff)
-		}
-	})
 }
 
 func TestToMetadata(t *testing.T) {
