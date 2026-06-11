@@ -18,7 +18,6 @@ import (
 	"text/tabwriter"
 
 	"intrinsic/cloud/devicemanager/version"
-
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -335,6 +334,17 @@ func (c *client) run(ctx context.Context) error {
 			}
 		}
 		return fmt.Errorf("cluster upgrade run: %w", err)
+	}
+	return nil
+}
+
+func (c *client) clearFaults(ctx context.Context) error {
+	req := clustermanagerpb.ClearUpdateFaultRequest{
+		ClusterId: c.cluster,
+	}
+	_, err := c.grpcClient.ClearUpdateFault(ctx, &req)
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -738,6 +748,38 @@ var reportCmd = &cobra.Command{
 	},
 }
 
+const clearFaultsCmdDesc = `
+Clear a platform update fault state for a specific cluster.
+
+If the cluster's update_state is 'Fault', this command will clear the fault,
+allowing further update operations.
+
+Note: If the cluster's update_mode is enabled (e.g. 'on', 'automatic'),
+clearing the fault may trigger an immediate retry of the last failed update attempt.
+`
+
+var clearFaultsCmd = &cobra.Command{
+	Use:   "clear-faults",
+	Short: "Clear a platform update fault state for a specific cluster",
+	Long:  clearFaultsCmdDesc,
+	Args:  cobra.NoArgs,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		ctx := cmd.Context()
+		projectName := ClusterCmdViper.GetString(orgutil.KeyProject)
+		orgName := ClusterCmdViper.GetString(orgutil.KeyOrganization)
+		ctx, c, err := newClient(ctx, orgName, projectName, clusterName)
+		if err != nil {
+			return fmt.Errorf("cluster upgrade client: %w", err)
+		}
+		defer c.close()
+		if err := c.clearFaults(ctx); err != nil {
+			return fmt.Errorf("clear cluster upgrade faults:\n%w", err)
+		}
+		fmt.Printf("Cluster %q update fault cleared successfully.\n", clusterName)
+		return nil
+	},
+}
+
 func init() {
 	ClusterCmd.AddCommand(displayNameCmd)
 	displayNameCmd.PersistentFlags().StringVar(&clusterName, "cluster", "", "Name of cluster to upgrade.")
@@ -757,4 +799,5 @@ func init() {
 	clusterUpgradeCmd.AddCommand(modeCmd)
 	clusterUpgradeCmd.AddCommand(acceptCmd)
 	clusterUpgradeCmd.AddCommand(reportCmd)
+	clusterUpgradeCmd.AddCommand(clearFaultsCmd)
 }
