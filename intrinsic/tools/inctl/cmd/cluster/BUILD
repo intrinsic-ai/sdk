@@ -8,12 +8,12 @@ go_library(
     name = "cluster",
     srcs = [
         "cluster.go",
-        "cluster_delete.go",
-        "cluster_list.go",
-        "cluster_mode.go",
-        "cluster_poweroff.go",
-        "cluster_upgrade.go",
-        "cluster_ups.go",
+        "delete.go",
+        "list.go",
+        "mode.go",
+        "poweroff.go",
+        "upgrade.go",
+        "ups.go",
     ],
     importpath = "intrinsic/tools/inctl/cmd/cluster/cluster",
     visibility = [
