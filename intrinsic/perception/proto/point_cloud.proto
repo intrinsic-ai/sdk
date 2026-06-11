@@ -9,6 +9,13 @@ import "intrinsic/perception/proto/v1/sensor_image.proto";
 
 option go_package = "intrinsic/perception/proto/point_cloud_go_proto";
 
+enum OutlierThreshold {
+  NONE = 0;
+  LOW = 1;
+  MEDIUM = 2;
+  HIGH = 3;
+}
+
 message SingleView {
   perception.v1.SensorImage sensor_image = 1;
   // Camera position in the world coordinate system.
@@ -58,10 +65,11 @@ message MultiViewCREStereoConfig {
   repeated perception.StereoPairIds stereo_pair_ids = 1;
 
   message MVCREStereoInferenceConfig {
+    // Deprecated, will move to point_cloud_estimator.proto inference config
     // Minimum estimated depth.
-    int32 min_depth = 1;
+    int32 min_depth = 1 [deprecated = true];
     // Maximum estimated depth.
-    int32 max_depth = 2;
+    int32 max_depth = 2 [deprecated = true];
     // Number of iterations per GRUs in CREStereo.
     int32 iterations = 3;
     // Disparity scales used by crestereo at different inference run. The number
@@ -74,4 +82,10 @@ message MultiViewCREStereoConfig {
   }
   MVCREStereoInferenceConfig inference_config = 2 [deprecated = true];
   repeated MVCREStereoInferenceConfig inference_configs = 3;
+}
+
+message NBSConfig {
+  // Specifies the camera handle names that constitute a stereo pair.
+  // Only one stereo pair is specified as NBS does not support multi view
+  perception.StereoPairIds stereo_pair_ids = 1;
 }
