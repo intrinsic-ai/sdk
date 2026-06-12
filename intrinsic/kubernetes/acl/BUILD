@@ -1,7 +1,5 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
-# An acl engine using Authzed SpiceDB.
-
 load("//bazel:go_macros.bzl", "go_library")
 
 package(default_visibility = [
