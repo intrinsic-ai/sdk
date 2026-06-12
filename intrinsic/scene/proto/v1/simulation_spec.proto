@@ -22,6 +22,9 @@ message SimulationSpec {
   // to be carried forward to the sdf generation. Ideally this would be always
   // empty, but we still have a few users.
   repeated string extra_inlined_plugins = 4;
+
+  // If true, the entity or object is disabled in the simulated world.
+  bool disabled = 5;
 }
 
 // Simulation plugin specification for a multi camera devices.
