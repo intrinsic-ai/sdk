@@ -10,6 +10,7 @@ import (
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/assets/imagetransfer"
+	"intrinsic/assets/imageutils"
 	"intrinsic/skills/tools/skill/cmd/directupload/directupload"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/printer"
@@ -48,6 +49,7 @@ func GetCommand() *cobra.Command {
 					directupload.WithOutput(cmd.OutOrStdout()),
 					directupload.WithFailOver(transferer),
 					directupload.WithCatalogOptions(flags.GetFlagImageUploadParallelism()), // this allows uploading images with max size of the single layer of 2GiB.
+					directupload.WithRegistry(imageutils.GetRegistry(clientutils.ResolveCatalogProjectFromInctl(flags))),
 				)
 			}
 

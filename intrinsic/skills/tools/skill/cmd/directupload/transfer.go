@@ -78,6 +78,15 @@ func WithFailOver(failOver imagetransfer.Transferer) Option {
 	}
 }
 
+// WithRegistry allows setting the registry for the direct upload.
+func WithRegistry(registry string) Option {
+	return func(transfer *directTransfer) {
+		if registry != "" {
+			transfer.registry = registry
+		}
+	}
+}
+
 const directUploadRegistry = "direct.upload.local"
 
 // NewTransferer create a new instance of direct upload Transferer implementation
@@ -87,6 +96,7 @@ func NewTransferer(opts ...Option) imagetransfer.Transferer {
 		maxRetries: 5,
 		parallelism: 1,
 		uploadType:  client.WithSequentialUpload(),
+		registry:    directUploadRegistry,
 	}
 
 	for _, opt := range opts {
@@ -112,10 +122,11 @@ type directTransfer struct {
 	writer      io.Writer
 	parallelism int
 	uploadType  client.UploaderOption
+	registry    string
 }
 
 func (dt *directTransfer) Write(ctx context.Context, nameStr string, tag string, img crv1.Image) (*ipb.Image, error) {
-	dst := fmt.Sprintf("%s/%s:%s", directUploadRegistry, nameStr, tag)
+	dst := fmt.Sprintf("%s/%s:%s", dt.registry, nameStr, tag)
 	ref, err := name.NewTag(dst)
 	if err != nil {
 		return nil, fmt.Errorf("name.NewTag(%q): %w", dst, err)
@@ -171,7 +182,7 @@ func (dt *directTransfer) Write(ctx context.Context, nameStr string, tag string,
 	}
 
 	return &ipb.Image{
-		Registry: directUploadRegistry,
+		Registry: dt.registry,
 		Name:     nameStr,
 		Tag:      "@" + digest.String(),
 	}, nil
