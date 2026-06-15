@@ -113,7 +113,7 @@ def _intrinsic_data_impl(ctx):
         ),
     ]
 
-_intrinsic_data = rule(
+intrinsic_data = rule(
     attrs = {
         "manifest": attr.label(
             allow_single_file = [".textproto"],
@@ -160,13 +160,3 @@ _intrinsic_data = rule(
     ],
     implementation = _intrinsic_data_impl,
 )
-
-# buildifier: disable=function-docstring
-def intrinsic_data(name, **kwargs):
-    visibility = kwargs.pop("visibility", None)
-
-    _intrinsic_data(
-        name = name,
-        visibility = visibility,
-        **kwargs
-    )

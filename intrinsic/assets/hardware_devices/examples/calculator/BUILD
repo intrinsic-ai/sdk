@@ -6,7 +6,6 @@ load("//intrinsic/assets/hardware_devices/build_defs:hardware_device.bzl", "intr
 intrinsic_data(
     name = "calculator_config_data",
     manifest = "calculator_config_data_manifest.textproto",
-    visibility = ["//visibility:private"],
     deps = [
         "//intrinsic/assets/services/examples/calcserver:calc_server_proto",
     ],
