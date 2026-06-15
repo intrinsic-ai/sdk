@@ -116,7 +116,7 @@ def _intrinsic_service_impl(ctx):
         ),
     ]
 
-_intrinsic_service = rule(
+intrinsic_service = rule(
     attrs = {
         "default_config": attr.label(
             allow_single_file = [
@@ -164,13 +164,3 @@ _intrinsic_service = rule(
     ],
     implementation = _intrinsic_service_impl,
 )
-
-# buildifier: disable=function-docstring
-def intrinsic_service(name, **kwargs):
-    visibility = kwargs.pop("visibility", None)
-
-    _intrinsic_service(
-        name = name,
-        visibility = visibility,
-        **kwargs
-    )
