@@ -5,12 +5,11 @@
 package skillfix
 
 import (
+	_ "embed"
 	"fmt"
 	"sync"
 
-	"intrinsic/util/path_resolver/pathresolver"
 	"intrinsic/util/proto/descriptor"
-	"intrinsic/util/proto/protoio"
 	"intrinsic/util/proto/sourcecodeinfoview"
 
 	"google.golang.org/protobuf/proto"
@@ -24,7 +23,8 @@ import (
 	dpb "google.golang.org/protobuf/types/descriptorpb"
 )
 
-const skillServicesProvidedToPlatformFDSPath = "intrinsic/skills/generator/skill_services_provided_to_platform_transitive_set_sci.proto.bin"
+//go:embed generator/skill_services_provided_to_platform_transitive_set_sci.proto.bin
+var providedToPlatformFDSBytes []byte
 
 var (
 	cachedProvidedToPlatformFDS *dpb.FileDescriptorSet
@@ -36,14 +36,9 @@ var (
 
 func providedToPlatformFDS() (*dpb.FileDescriptorSet, error) {
 	providedToPlatformFDSOnce.Do(func() {
-		path, err := pathresolver.ResolveRunfilesPath(skillServicesProvidedToPlatformFDSPath)
-		if err != nil {
-			providedToPlatformFDSErr = fmt.Errorf("failed to resolve runfile path: %w", err)
-			return
-		}
 		fds := &dpb.FileDescriptorSet{}
-		if err := protoio.ReadBinaryProto(path, fds); err != nil {
-			providedToPlatformFDSErr = fmt.Errorf("failed to read platform descriptors: %w", err)
+		if err := proto.Unmarshal(providedToPlatformFDSBytes, fds); err != nil {
+			providedToPlatformFDSErr = fmt.Errorf("failed to unmarshal platform descriptors: %w", err)
 			return
 		}
 		if err := sourcecodeinfoview.PruneSourceCodeInfo(fds); err != nil {
