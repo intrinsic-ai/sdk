@@ -431,14 +431,12 @@ def _intrinsic_skill(name, image, manifest, **kwargs):
         **kwargs
     )
 
-    visibility = kwargs.get("visibility", None)
-
     _intrinsic_skill_rule(
         name = name,
         testonly = kwargs.get("testonly"),
         image = image_name + ".tar",
         manifest = manifest,
-        visibility = visibility,
+        visibility = kwargs.get("visibility"),
     )
 
 def cc_skill(
