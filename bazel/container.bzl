@@ -48,11 +48,11 @@ def _symlink_tarball_impl(ctx):
 
 _symlink_tarball = rule(
     attrs = {
+        "output": attr.output(),
         "src": attr.label(
             mandatory = True,
             providers = [OutputGroupInfo],
         ),
-        "output": attr.output(),
     },
     doc = "Creates a symlink to tarball.tar in src's DefaultInfo at output",
     implementation = _symlink_tarball_impl,
@@ -77,12 +77,12 @@ def _container_tarball(name, image, **kwargs):
 def container_layer(name, **kwargs):
     pkg_tar(
         name = name,
-        extension = "tar.gz",
         compressor_args = "--fast",
+        deps = kwargs.pop("tars", None),
+        extension = "tar.gz",
         package_dir = kwargs.pop("directory", None),
         strip_prefix = kwargs.pop("data_path", None),
         srcs = kwargs.pop("files", None),
-        deps = kwargs.pop("tars", None),
         **kwargs
     )
 
