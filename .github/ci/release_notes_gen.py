@@ -20,7 +20,7 @@ def generate_bazel_dep(version="main") -> str:
         strip_prefix = f"sdk-{version[1:]}/"
         url = f"https://github.com/intrinsic-ai/sdk/archive/refs/tags/{version}.tar.gz"
 
-    bazel_code = f"""## bazelmod configuration
+    bazel_code = f"""### bazelmod configuration
 
 Update your MODULE.bazel file to use the newest release archive:
 
@@ -37,7 +37,7 @@ archive_override(
 def generate_devcontainer_config(version="latest") -> str:
     """Generates the devcontainer configuration."""
     version = version.lstrip("v")
-    devcontainer_config = f"""## devcontainer configuration
+    devcontainer_config = f"""### devcontainer configuration
 
 Update your devcontainer configuration to use the latest base image:
 
@@ -58,22 +58,6 @@ Update your devcontainer configuration to use the latest base image:
 }}
 ```"""
     return devcontainer_config
-
-def generate_changelog(repo: git.Repo, last_release_tag: git.TagReference) -> str:
-    release_notes = ""
-    commits = list(repo.iter_commits(f'{last_release_tag.commit}..HEAD'))
-    commits.reverse()  # Order commits from oldest to newest
-    print(f"Found {len(commits)} commits")
-
-    if commits:
-        messages = []
-        for commit in commits:
-            message_lines = commit.message.strip().split('\n')
-            if message_lines and not message_lines[0].startswith("SDK update"):
-                messages.append(f'* {message_lines[0]}')
-        release_notes = '\n'.join(messages)
-    return release_notes
-
 
 def find_most_recent_release(repo: git.Repo, current_version: str) -> Optional[git.TagReference]:
     """
@@ -149,15 +133,17 @@ if __name__ == "__main__":
     else:
         last_release = find_most_recent_release(repo, args.version)
 
-    print(f"Generating changelog from last release: {last_release}")
-
-    changelog = generate_changelog(repo, last_release)
     bazel_config = generate_bazel_dep(args.version)
     devcontainer_config = generate_devcontainer_config(args.version)
 
     output = f"""## Changes since {last_release}
 
-{changelog}
+Read the [Release Notes](https://flowstate.intrinsic.ai/docs/learn/release_notes/) to learn about new features and bug fixes in this release.
+For a complete comparison, see the [diff between {args.version} and {last_release}](https://github.com/intrinsic-ai/sdk/compare/{args.version}..{last_release}).
+
+## Update your workspace
+
+Follow the [Update your development environment](https://flowstate.intrinsic.ai/docs/guides/build_with_code/set_up_your_development_environment/update_your_development_environment/) guide to upgrade to this release.
 
 {bazel_config}
 
