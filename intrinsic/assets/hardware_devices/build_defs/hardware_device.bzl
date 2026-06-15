@@ -115,7 +115,7 @@ def _intrinsic_hardware_device_impl(ctx):
         ),
     ]
 
-_intrinsic_hardware_device = rule(
+intrinsic_hardware_device = rule(
     attrs = {
         "manifest": attr.label(
             allow_single_file = [".textproto"],
@@ -158,13 +158,3 @@ _intrinsic_hardware_device = rule(
     ],
     implementation = _intrinsic_hardware_device_impl,
 )
-
-# buildifier: disable=function-docstring
-def intrinsic_hardware_device(name, **kwargs):
-    visibility = kwargs.pop("visibility", None)
-
-    _intrinsic_hardware_device(
-        name = name,
-        visibility = visibility,
-        **kwargs
-    )
