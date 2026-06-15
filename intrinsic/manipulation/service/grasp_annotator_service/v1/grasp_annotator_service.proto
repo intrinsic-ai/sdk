@@ -6,6 +6,7 @@ package intrinsic_proto.grasping.service.grasp_annotator_service.v1;
 
 import "google/api/annotations.proto";
 import "google/rpc/status.proto";
+import "intrinsic/logging/proto/context.proto";
 import "intrinsic/manipulation/grasping/grasp_annotations.proto";
 import "intrinsic/manipulation/grasping/grasp_annotator.proto";
 
@@ -43,6 +44,8 @@ message GraspAnnotatorRequest {
   optional GraspAnnotationConstraint constraint = 6;
   // Options for configurable sampling parameters.
   optional SamplingOptions sampling_options = 7;
+  // The logging context
+  optional intrinsic_proto.data_logger.Context context = 9;
 }
 
 message VisualizationOptions {
@@ -53,6 +56,8 @@ message VisualizationOptions {
 message GraspAnnotatorResponse {
   // Annotated grasps.
   GraspAnnotations annotations = 1;
+  // The service-generated unique logging ID for this request.
+  string logging_id = 2;
 }
 
 message GraspAnnotatorVisualizeRequest {
@@ -180,6 +185,15 @@ message GraspAnnotatorScoreResponse {
 message ResetAnnotationsRequest {}
 
 message ResetAnnotationsResponse {}
+
+message GraspAnnotatorDebugData {
+  // Unique ID to link logs across services
+  string logging_id = 1;
+  // The full input request to the service
+  GraspAnnotatorRequest request = 2;
+  // The final result returned by the service
+  GraspAnnotatorResponse response = 3;
+}
 
 service GraspAnnotator {
   // Annotate grasps.

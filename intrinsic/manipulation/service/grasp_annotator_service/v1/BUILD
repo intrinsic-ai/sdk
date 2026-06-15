@@ -26,6 +26,7 @@ go_proto_library(
     importpath = "intrinsic/manipulation/service/grasp_annotator_service/v1/grasp_annotator_service_go_proto",
     protos = [":grasp_annotator_service_proto"],
     deps = [
+        "//intrinsic/logging/proto:context_go_proto",
         "//intrinsic/manipulation/grasping:grasp_annotations_go_proto",
         "//intrinsic/manipulation/grasping:grasp_annotator_go_proto",
         "@org_golang_google_genproto_googleapis_api//annotations",
@@ -42,6 +43,7 @@ proto_library(
     name = "grasp_annotator_service_proto",
     srcs = ["grasp_annotator_service.proto"],
     deps = [
+        "//intrinsic/logging/proto:context_proto",
         "//intrinsic/manipulation/grasping:grasp_annotations_proto",
         "//intrinsic/manipulation/grasping:grasp_annotator_proto",
         "@com_google_googleapis//google/api:annotations_proto",

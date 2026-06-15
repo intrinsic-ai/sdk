@@ -310,6 +310,7 @@ go_proto_library(
         "//intrinsic/kinematics/types:dynamic_limits_check_mode_go_proto",
         "//intrinsic/kinematics/types:joint_limits_go_proto",
         "//intrinsic/logging/errors/proto:error_report_go_proto",
+        "//intrinsic/manipulation/service/grasp_annotator_service/v1:grasp_annotator_service_go_proto",
         "//intrinsic/math/proto:affine_go_proto",
         "//intrinsic/math/proto:array_go_proto",
         "//intrinsic/math/proto:matrix_go_proto",
