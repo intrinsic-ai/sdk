@@ -100,6 +100,7 @@ proto_library(
     deps = [
         ":branch_proto",
         ":conflict_proto",
+        ":conflict_resolution_proto",
         ":snapshot_proto",
         ":snapshot_source_proto",
         ":warning_proto",
@@ -144,6 +145,7 @@ go_proto_library(
     deps = [
         ":branch_go_proto",
         ":conflict_go_proto",
+        ":conflict_resolution_go_proto",
         ":snapshot_go_proto",
         ":snapshot_source_go_proto",
         ":warning_go_proto",
@@ -193,6 +195,30 @@ py_proto_library(
     name = "conflict_py_pb2",
     visibility = ["//visibility:public"],
     deps = [":conflict_proto"],
+)
+
+proto_library(
+    name = "conflict_resolution_proto",
+    srcs = ["conflict_resolution.proto"],
+    visibility = [
+        "//intrinsic/portal/protos/solutions/v1:__pkg__",
+    ],
+)
+
+go_proto_library(
+    name = "conflict_resolution_go_proto",
+    importpath = "intrinsic/solution_versions/proto/v1/conflict_resolution_go_proto",
+    protos = [":conflict_resolution_proto"],
+    visibility = [
+        "//intrinsic/portal/protos/solutions/v1:__pkg__",
+        "//intrinsic/solution_versions:__subpackages__",
+    ],
+)
+
+py_proto_library(
+    name = "conflict_resolution_py_pb2",
+    visibility = ["//visibility:public"],
+    deps = [":conflict_resolution_proto"],
 )
 
 proto_library(

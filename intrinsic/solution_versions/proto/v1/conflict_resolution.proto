@@ -1,0 +1,31 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.solution_versions.v1;
+
+option go_package = "intrinsic/solution_versions/proto/v1/conflict_resolution_go_proto";
+
+// ConflictResolution defines the user's decision on how to resolve a specific
+// conflict identified in a PreviewMerge.
+message ConflictResolution {
+  // A deterministic unique identifier for the conflict, computed as a hash of
+  // the compared snapshot IDs and conflicting paths (`source_path` and
+  // `destination_path`).  Must match the ID of a `Conflict` from a preceding
+  // PreviewMergeResponse.
+  string conflict_id = 1;
+
+  // The strategy chosen by the user to resolve the conflict.
+  enum ResolutionStrategy {
+    // Unspecified resolution strategy. Providing this strategy will cause the
+    // RPC to fail with an INVALID_ARGUMENT error.
+    RESOLUTION_STRATEGY_UNSPECIFIED = 0;
+
+    // Apply the change originating from the source snapshot.
+    RESOLUTION_STRATEGY_PICK_SOURCE = 1;
+
+    // Ignore the source change and retain the destination state.
+    RESOLUTION_STRATEGY_PICK_DESTINATION = 2;
+  }
+  ResolutionStrategy strategy = 2;
+}
