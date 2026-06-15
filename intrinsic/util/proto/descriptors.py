@@ -92,6 +92,19 @@ def merge_file_descriptor_sets(
             ' set but file instances are not identical'
         )
 
+  # Check that the merged FileDescriptorSet is valid.
+  try:
+    pool = create_descriptor_pool(result_set)
+    for file in result_set.file:
+      # FindFileByName forces lazy resolution of the file and its dependencies,
+      # which validates that all dependencies are present.
+      pool.FindFileByName(file.name)
+  except Exception as e:
+    raise ValueError(
+        'failed to generate a valid merged FileDescriptorSet (sets were likely'
+        ' built at different times).'
+    ) from e
+
   return result_set
 
 

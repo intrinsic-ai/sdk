@@ -47,7 +47,27 @@ void MergeFileDescriptorSetImpl(const google::protobuf::Descriptor& descriptor,
   }
 }
 
-void MergeFileDescriptorSetsImpl(
+absl::Status ValidateFileDescriptorSet(
+    const google::protobuf::FileDescriptorSet& set) {
+  google::protobuf::SimpleDescriptorDatabase db;
+  INTR_RETURN_IF_ERROR(PopulateDescriptorDatabase(&db, set))
+      << "failed to generate a valid merged FileDescriptorSet (sets were "
+         "likely built at different times).";
+  google::protobuf::DescriptorPool pool(&db);
+  for (const auto& file : set.file()) {
+    // FindFileByName forces lazy resolution of the file and its dependencies,
+    // which validates that all dependencies are present.
+    if (pool.FindFileByName(file.name()) == nullptr) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "failed to generate a valid merged FileDescriptorSet (sets were "
+          "likely built at different times): failed to resolve %s",
+          file.name()));
+    }
+  }
+  return absl::OkStatus();
+}
+
+absl::Status MergeFileDescriptorSetsImpl(
     const google::protobuf::FileDescriptorSet& src_set,
     google::protobuf::FileDescriptorSet& dst_set,
     bool include_source_code_info) {
@@ -66,6 +86,7 @@ void MergeFileDescriptorSetsImpl(
       proto->clear_source_code_info();
     }
   }
+  return ValidateFileDescriptorSet(dst_set);
 }
 
 }  // namespace
@@ -99,17 +120,18 @@ void MergeFileDescriptorSetWithSourceInfo(
                              /*include_source_code_info=*/true);
 }
 
-void MergeFileDescriptorSet(const google::protobuf::FileDescriptorSet& src_set,
-                            google::protobuf::FileDescriptorSet& dst_set) {
-  MergeFileDescriptorSetsImpl(src_set, dst_set,
-                              /*include_source_code_info=*/false);
-}
-
-void MergeFileDescriptorSetWithSourceInfo(
+absl::Status MergeFileDescriptorSet(
     const google::protobuf::FileDescriptorSet& src_set,
     google::protobuf::FileDescriptorSet& dst_set) {
-  MergeFileDescriptorSetsImpl(src_set, dst_set,
-                              /*include_source_code_info=*/true);
+  return MergeFileDescriptorSetsImpl(src_set, dst_set,
+                                     /*include_source_code_info=*/false);
+}
+
+absl::Status MergeFileDescriptorSetWithSourceInfo(
+    const google::protobuf::FileDescriptorSet& src_set,
+    google::protobuf::FileDescriptorSet& dst_set) {
+  return MergeFileDescriptorSetsImpl(src_set, dst_set,
+                                     /*include_source_code_info=*/true);
 }
 
 absl::Status AddToDescriptorDatabase(

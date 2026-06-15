@@ -139,6 +139,10 @@ func MergeFileDescriptorSets(fdss []*dpb.FileDescriptorSet, options ...MergeFile
 		}
 	}
 
+	// Check that the merged FileDescriptorSet is valid.
+	if _, err := protodesc.NewFiles(merged); err != nil {
+		return nil, fmt.Errorf("failed to generate a valid merged FileDescriptorSet (sets were likely built at different times): %w", err)
+	}
 	return merged, nil
 }
 
