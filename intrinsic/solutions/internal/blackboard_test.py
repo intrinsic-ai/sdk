@@ -13,7 +13,9 @@ from intrinsic.executive.proto import blackboard_service_pb2
 from intrinsic.executive.proto import test_message_pb2
 from intrinsic.solutions import blackboard_value
 from intrinsic.solutions.internal import blackboard
+from intrinsic.solutions.internal import skill_providing
 from intrinsic.solutions.internal import skill_utils
+from intrinsic.solutions.testing import skill_test_utils
 from intrinsic.util.proto import descriptors
 from intrinsic.util.status import extended_status_pb2
 
@@ -319,18 +321,29 @@ class BlackboardTest(absltest.TestCase):
     )
 
   def test_update_value_message_wrapper(self):
-    existing_any = any_pb2.Any()
-    existing_any.Pack(wrappers_pb2.StringValue(value="existing"))
-    self._stub.GetBlackboardValue.return_value = (
-        blackboard_service_pb2.BlackboardValue(value=existing_any)
+    asset = skill_test_utils.create_skill_asset(
+        "ai.intrinsic.my_skill",
+        parameter_message=wrappers_pb2.StringValue,
+    )
+    skills = skill_providing.Skills(
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
     )
 
-    mock_wrapper = mock.MagicMock(spec=skill_utils.MessageWrapper)
-    any_val = any_pb2.Any()
-    any_val.Pack(wrappers_pb2.StringValue(value="wrapped"))
-    mock_wrapper.to_any.return_value = any_val
+    existing_wrapper = skills.ai.intrinsic.my_skill.google.protobuf.StringValue(
+        value="existing"
+    )
+    self._stub.GetBlackboardValue.return_value = (
+        blackboard_service_pb2.BlackboardValue(value=existing_wrapper.to_any())
+    )
 
-    self._blackboard.update_value("test_key", mock_wrapper)
+    updated_wrapper = skills.ai.intrinsic.my_skill.google.protobuf.StringValue(
+        value="updated"
+    )
+
+    self._blackboard.update_value("test_key", updated_wrapper)
 
     self._stub.UpdateBlackboardValue.assert_called_once_with(
         blackboard_service_pb2.UpdateBlackboardValueRequest(
@@ -338,7 +351,7 @@ class BlackboardTest(absltest.TestCase):
                 key="test_key",
                 scope="",
                 operation_name="test_operation",
-                value=any_val,
+                value=updated_wrapper.to_any(),
             )
         )
     )

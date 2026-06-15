@@ -14,14 +14,12 @@ import time
 import typing
 from typing import Any
 from typing import Callable
+from typing import cast
 from typing import Container
-from typing import Dict
 from typing import Iterable
-from typing import List
 from typing import Mapping
 from typing import Optional
 from typing import Sequence
-from typing import Tuple
 from typing import Type
 from typing import Union
 
@@ -107,7 +105,7 @@ class ParameterInformation:
   has_default: bool
   name: str
   default: Any
-  doc_string: List[str]
+  doc_string: list[str]
   message_full_name: Optional[str]
   enum_full_name: Optional[str]
 
@@ -518,8 +516,8 @@ def _check_no_multiply_defined_oneof(
 
 
 def set_fields_in_msg(
-    msg: message.Message, fields: Dict[str, Any]
-) -> List[str]:
+    msg: message.Message, fields: dict[str, Any]
+) -> list[str]:
   """Sets the fields in the msg.
 
   Args:
@@ -699,9 +697,9 @@ def determine_failed_generate_proto_infra_from_filedescriptorset(
 
 def generate_proto_infra_from_filedescriptorset(
     filedescriptor_set: descriptor_pb2.FileDescriptorSet,
-) -> Tuple[
+) -> tuple[
     descriptor_pool.DescriptorPool,
-    Dict[str, Type[message.Message]],
+    dict[str, Type[message.Message]],
 ]:
   """Generates the infrastructure pieces to deal with protos from a given set.
 
@@ -738,7 +736,7 @@ def generate_proto_infra_from_filedescriptorset(
 def _get_nested_classes(
     desc: descriptor.Descriptor,
     name: str,
-    additional_msg_classes: Dict[str, descriptor.Descriptor],
+    additional_msg_classes: dict[str, descriptor.Descriptor],
 ):
   """Generates a mapping from type names to proto classes for nested types.
 
@@ -821,11 +819,14 @@ class MessageWrapper:
   cannot be added to the message directly.
   """
 
-  # Class attributes
-  _wrapped_type: Type[message.Message]
-  _skill_info: provided.SkillInfo
+  # Limit the attributes which instances of this class can have so that
+  # assignments such as my_msg_wrapper.non_existing_field = 42 will raise an
+  # AttributeError.
+  __slots__ = [
+      "_wrapped_message",
+      "_blackboard_params",
+  ]
 
-  # Instance attributes
   _wrapped_message: Optional[message.Message]
   _blackboard_params: dict[str, Any]
 
@@ -842,7 +843,7 @@ class MessageWrapper:
     )
     return any_msg
 
-  def _set_params(self, **kwargs) -> List[str]:
+  def _set_params(self, **kwargs) -> list[str]:
     """Set parameters of message.
 
     Args:
@@ -861,7 +862,7 @@ class MessageWrapper:
     return consumed
 
   def _set_parameter(
-      self, key: str, value: Any, consumed: Optional[List[str]] = None
+      self, key: str, value: Any, consumed: Optional[list[str]] = None
   ):
     """Sets a single parameter of the message.
 
@@ -899,7 +900,7 @@ class MessageWrapper:
       consumed.extend(fields)
 
   def _process_blackboard_params(
-      self, key: str, value: Any, consumed: Optional[List[str]] = None
+      self, key: str, value: Any, consumed: Optional[list[str]] = None
   ) -> bool:
     """Adds a parameter mapping in case the value is a blackboard parameter.
 
@@ -944,7 +945,7 @@ class MessageWrapper:
     return cls._wrapped_type
 
   @property
-  def blackboard_params(self) -> Dict[str, str]:
+  def blackboard_params(self) -> dict[str, str]:
     return self._blackboard_params
 
   def __setattr__(self, name: str, value: Any):
@@ -1004,6 +1005,7 @@ def _gen_wrapper_class(
           "__module__": module_for_generated_skill(skill_info.package_name),
           "_wrapped_type": wrapped_type,
           "_skill_info": skill_info,
+          "__slots__": [],  # no additonal slots compared to base class
       },
   )
 
@@ -1072,7 +1074,7 @@ def _gen_class_docstring(
   Returns:
     Python documentation string.
   """
-  docstring: List[str] = [
+  docstring: list[str] = [
       f"Proto message wrapper class for {wrapped_type.DESCRIPTOR.full_name}."
   ]
   message_doc_string = ""
@@ -1187,7 +1189,7 @@ def _gen_init_params(
     wrapped_type: Type[message.Message],
     wrapper_classes: dict[str, Type[MessageWrapper]],
     enum_classes: dict[str, Type[enum.IntEnum]],
-) -> List[inspect.Parameter]:
+) -> list[inspect.Parameter]:
   """Create argument typing information for a given message.
 
   Args:
@@ -1608,7 +1610,7 @@ def extract_parameter_information_from_message(
   Returns:
     A list of tuples containing the signature Parameter and field name.
   """
-  params: List[Tuple[inspect.Parameter, str]] = []
+  params: list[tuple[inspect.Parameter, str]] = []
 
   for field in message_type.DESCRIPTOR.fields:
     field_type = _extract_field_type_from_message_field(
@@ -1633,7 +1635,7 @@ def extract_parameter_information_from_message(
 def extract_docstring_from_message(
     message_type: Type[message.Message],
     skill_info: provided.SkillInfo,
-) -> List[ParameterInformation]:
+) -> list[ParameterInformation]:
   """Extracts docstring information for the fields of the given message.
 
   To be used for generating the __init__ docstring of a skill or message wrapper
@@ -1646,7 +1648,7 @@ def extract_docstring_from_message(
   Returns:
     List containing a ParameterInformation object describing for each field.
   """
-  params: List[ParameterInformation] = []
+  params: list[ParameterInformation] = []
 
   for field in message_type.DESCRIPTOR.fields:
     params.append(

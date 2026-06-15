@@ -2766,11 +2766,95 @@ Fields:
             'my_int64': 'my_int64',
             'my_uint64': 'my_uint64',
         },
-        test_message_wrapper._blackboard_params,
+        test_message_wrapper.blackboard_params,
     )
     compare.assertProto2Equal(
         self, test_message_wrapper.wrapped_message, expected_test_message
     )
+
+  def test_message_wrapper_attribute_assignment(self):
+    asset = skill_test_utils.create_skill_asset(
+        'ai.intrinsic.my_skill',
+        parameter_message=test_skill_params_pb2.TestMessage,
+    )
+    skills = skill_providing.Skills(
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
+    )
+    expected_test_message = test_skill_params_pb2.TestMessage(
+        my_double=2,
+        my_float=-1.8,
+        my_int32=5,
+        my_uint32=11,
+        my_bool=True,
+        my_string='bar',
+        repeated_submessages=[
+            test_skill_params_pb2.SubMessage(),
+            test_skill_params_pb2.SubMessage(name='foo'),
+            test_skill_params_pb2.SubMessage(),
+            test_skill_params_pb2.SubMessage(),
+        ],
+    )
+
+    test_message_wrapper = (
+        skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.TestMessage()
+    )
+    test_message_wrapper.my_double = 2.0
+    test_message_wrapper.my_float = -1.8
+    test_message_wrapper.my_int32 = 5
+    test_message_wrapper.my_int64 = blackboard_value.BlackboardValue(
+        {}, 'my_int64', None, None
+    )
+    test_message_wrapper.my_uint32 = 11
+    test_message_wrapper.my_uint64 = cel.CelExpression('my_uint64')
+    test_message_wrapper.my_bool = True
+    test_message_wrapper.my_string = 'bar'
+    test_message_wrapper.repeated_submessages = [
+        blackboard_value.BlackboardValue({}, 'test', None, None),
+        test_skill_params_pb2.SubMessage(name='foo'),
+        blackboard_value.BlackboardValue({}, 'bar', None, None),
+        cel.CelExpression('fax'),
+    ]
+
+    self.assertContainsSubset(
+        {
+            'repeated_submessages[0]': 'test',
+            'repeated_submessages[2]': 'bar',
+            'repeated_submessages[3]': 'fax',
+            'my_int64': 'my_int64',
+            'my_uint64': 'my_uint64',
+        },
+        test_message_wrapper.blackboard_params,
+    )
+    compare.assertProto2Equal(
+        self, test_message_wrapper.wrapped_message, expected_test_message
+    )
+
+  def test_message_wrapper_attribute_assignment_raises(self):
+    asset = skill_test_utils.create_skill_asset(
+        'ai.intrinsic.my_skill',
+        parameter_message=test_skill_params_pb2.TestMessage,
+    )
+    skills = skill_providing.Skills(
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
+    )
+
+    test_message_wrapper = (
+        skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.TestMessage()
+    )
+    with self.assertRaisesRegex(AttributeError, 'not_a_field'):
+      test_message_wrapper.not_a_field = 2.0
+
+    test_message_wrapper = (
+        skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.TestMessage()
+    )
+    with self.assertRaisesRegex(AttributeError, 'not_a_field'):
+      test_message_wrapper.not_a_field = cel.CelExpression('some_key')
 
   def test_message_wrapper_to_any(self):
     asset = skill_test_utils.create_skill_asset(

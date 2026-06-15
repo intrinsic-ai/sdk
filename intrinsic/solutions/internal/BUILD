@@ -112,10 +112,12 @@ py_test(
     srcs = ["blackboard_test.py"],
     deps = [
         ":blackboard",
+        ":skill_providing",
         ":skill_utils",
         "//intrinsic/executive/proto:blackboard_service_py_pb2",
         "//intrinsic/executive/proto:test_message_py_pb2",
         "//intrinsic/solutions:blackboard_value",
+        "//intrinsic/solutions/testing:skill_test_utils",
         "//intrinsic/util/proto:descriptors_py",
         "//intrinsic/util/status:extended_status_py_pb2",
         "@com_google_absl_py//absl/testing:absltest",
