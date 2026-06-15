@@ -197,6 +197,7 @@ fileExistenceTests:
             srcs = [],
             outs = ["_%s_test_config.yaml" % name],
             cmd = "echo '{}' > $@".format(test_config_template),
+            tags = kwargs.get("tags"),
             tools = [],
         )
         container_structure_test(
