@@ -4,9 +4,11 @@
 package install
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 
 	"intrinsic/assets/bundle"
 	"intrinsic/assets/clientutils"
@@ -23,10 +25,17 @@ import (
 
 	iagrpcpb "intrinsic/assets/proto/installed_assets_go_proto"
 	iapb "intrinsic/assets/proto/installed_assets_go_proto"
+	rpb "intrinsic/assets/proto/v1/reference_go_proto"
 
 	lrogrpcpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 )
+
+// solutionAssetRegex matches strings of the form <branch_id>/<asset_id> that indicate an Asset in
+// a specific Solution branch.
+//
+// Further validation is needed on both parts to ensure validity.
+var solutionAssetRegex = regexp.MustCompile(`^(?P<branch>[A-Za-z0-9_\-]+)/(?P<asset>[a-z0-9_\.]+)$`)
 
 const (
 )
@@ -36,30 +45,28 @@ func GetCommand() *cobra.Command {
 	flags := cmdutils.NewCmdFlags()
 	cmd := &cobra.Command{
 		Use:   "install <asset_id_version>",
-		Short: "Install an asset",
+		Short: "Install an Asset",
 		Example: `
-	Install a specific asset ID version from a catalog to the specified solution:
-	$ inctl asset install ai.intrinsic.calculator_service.0.20260126.0-RC00 \
-			--org my_org \
-			--solution my_solution_id
-
-	Install a local bundle to the specified solution:
+	Install a local Asset bundle into the specified Solution:
 	$ inctl asset install abc/bundle.tar \
-			--org my_org \
-			--solution my_solution_id
+			--org $my_org \
+			--solution $my_solution_id
 
-	To find a running solution's id, run:
-	$ inctl solution list --org my_org --filter "running_on_hw,running_in_sim" --output json
-
-	The asset can also be installed by specifying the cluster on which the solution is running:
+	Install an Asset from the catalog into the specified Solution:
 	$ inctl asset install ai.intrinsic.calculator_service.0.20260126.0-RC00 \
-			--org my_org \
-			--cluster my_cluster
+			--org $my_org \
+			--solution $my_solution_id
 
-	Install a local bundle to into a solution running on the specified cluster:
-	$ inctl asset install abc/bundle.tar \
-			--org my_org \
-			--cluster my_cluster
+	Install an Asset from another Solution into the specified Solution:
+	$ inctl asset install $source_solution_id/ai.intrinsic.calculator_service \
+			--org $my_org \
+			--solution $my_solution_id
+
+	To find a running Solution's id, run:
+	$ inctl solution list --org $my_org --filter "running_on_hw,running_in_sim" --output json
+
+	The Asset can also be installed by specifying the cluster on which the Solution is running:
+	$ inctl asset install $my_asset --org $my_org --cluster $my_cluster
 	`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -100,34 +107,14 @@ func GetCommand() *cobra.Command {
 			client := iagrpcpb.NewInstalledAssetsClient(conn)
 			authCtx := clientutils.AuthInsecureConn(ctx, address, flags.GetFlagProject())
 
-			processor := bundle.Processor{
+			processor := &bundle.Processor{
 				ImageProcessor:          bundleimages.CreateImageProcessor(transfer),
 				ProcessReferencedData:   referenceddata.SolutionProcessor(),
 			}
 
-			var fileExists bool
-			if _, err := os.Stat(target); err == nil {
-				fileExists = true
-			}
-			var asset *iapb.CreateInstalledAssetRequest_Asset
-			if idvParts, err := idutils.NewIDVersionParts(target); err != nil {
-				if !fileExists {
-					return fmt.Errorf("%q is neither a file nor a valid id_version (package.name.version); check that either the file path is correct or that the id_version is formatted correctly", target)
-				}
-				processedBundle, err := processor.Process(ctx, target)
-				if err != nil {
-					return fmt.Errorf("unable to process: %w", err)
-				}
-				asset = processedBundle.Install()
-			} else {
-				if fileExists {
-					return fmt.Errorf("input is ambiguous; %q is both a file and an id_version", target)
-				}
-				asset = &iapb.CreateInstalledAssetRequest_Asset{
-					Variant: &iapb.CreateInstalledAssetRequest_Asset_Catalog{
-						Catalog: idvParts.IDVersionProto(),
-					},
-				}
+			asset, err := assetFromTarget(ctx, target, processor.Process)
+			if err != nil {
+				return err
 			}
 
 			op, err := client.CreateInstalledAsset(authCtx, &iapb.CreateInstalledAssetRequest{
@@ -170,4 +157,55 @@ func GetCommand() *cobra.Command {
 	flags.AddFlagSkipDirectUpload("asset")
 
 	return cmd
+}
+
+type processBundle func(ctx context.Context, path string) (bundle.ProcessedBundle, error)
+
+func assetFromTarget(ctx context.Context, target string, process processBundle) (*iapb.CreateInstalledAssetRequest_Asset, error) {
+	fileExists := false
+	if _, err := os.Stat(target); err == nil {
+		fileExists = true
+	}
+
+	idvParts, err := idutils.NewIDVersionParts(target)
+	isIDVersion := err == nil
+
+	solutionAssetMatches := solutionAssetRegex.FindStringSubmatch(target)
+	isSolutionAsset := false
+	if solutionAssetMatches != nil {
+		isSolutionAsset = idutils.IsID(solutionAssetMatches[solutionAssetRegex.SubexpIndex("asset")])
+	}
+
+	if (isIDVersion || isSolutionAsset) && fileExists {
+		return nil, fmt.Errorf("input is ambiguous; %q is both a file and an id_version or Solution Asset", target)
+	}
+
+	if isIDVersion {
+		return &iapb.CreateInstalledAssetRequest_Asset{
+			Variant: &iapb.CreateInstalledAssetRequest_Asset_Catalog{
+				Catalog: idvParts.IDVersionProto(),
+			},
+		}, nil
+	}
+
+	if isSolutionAsset {
+		return &iapb.CreateInstalledAssetRequest_Asset{
+			Variant: &iapb.CreateInstalledAssetRequest_Asset_SolutionAsset{
+				SolutionAsset: &rpb.SolutionAsset{
+					BranchId: solutionAssetMatches[solutionAssetRegex.SubexpIndex("branch")],
+					Name:     solutionAssetMatches[solutionAssetRegex.SubexpIndex("asset")],
+				},
+			},
+		}, nil
+	}
+
+	if fileExists {
+		processedBundle, err := process(ctx, target)
+		if err != nil {
+			return nil, fmt.Errorf("unable to process file: %w", err)
+		}
+		return processedBundle.Install(), nil
+	}
+
+	return nil, fmt.Errorf("%q is not a file, id_version, or Solution Asset; check that the input is formatted correctly", target)
 }

@@ -76,6 +76,7 @@ go_library(
         "//intrinsic/assets:imagetransfer",
         "//intrinsic/assets:referenceddata",
         "//intrinsic/assets/proto:installed_assets_go_proto",
+        "//intrinsic/assets/proto/v1:reference_go_proto",
         "//intrinsic/assets/services:bundleimages",
         "//intrinsic/kubernetes/acl:identity",
         "//intrinsic/skills/tools/skill/cmd/directupload",
