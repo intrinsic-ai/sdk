@@ -21,6 +21,7 @@ var (
 	flagGrpcService         string
 	flagOpenAPIPath         string
 	flagOutput              string
+	flagHttpServices        []string
 )
 
 //go:embed templates/main.go.template
@@ -43,11 +44,45 @@ func resetGenerateCommand() {
 		RunE:  run,
 	}
 
-	// Updated flags to match current variable declarations
-	GenerateMainCmd.Flags().StringVar(&flagServiceGoImportPath, "service_go_importpath", "", "Import path for the generated golang code for a gRPC service.")
-	GenerateMainCmd.Flags().StringVar(&flagGrpcService, "grpc_service", "", "Fully qualified name of a gRPC service to bridge.")
+	GenerateMainCmd.Flags().StringVar(&flagServiceGoImportPath, "service_go_importpath", "", "Import path for the generated golang code for a gRPC service. (deprecated: use --http_service)")
+	GenerateMainCmd.Flags().StringVar(&flagGrpcService, "grpc_service", "", "Fully qualified name of a gRPC service to bridge. (deprecated: use --http_service)")
 	GenerateMainCmd.Flags().StringVar(&flagOpenAPIPath, "openapi_path", "", "Path to a generated OpenAPI specification.")
 	GenerateMainCmd.Flags().StringVar(&flagOutput, "output", "main.go", "Name of the golang file to generate.")
+	GenerateMainCmd.Flags().StringSliceVar(&flagHttpServices, "http_service", nil, "Mapping of gRPC service FQN and Go proto import path, formatted as <service_fqn>:<import_path>. Can be specified multiple times.")
+}
+
+type HttpServiceMapping struct {
+	GrpcService       string
+	GoProtoImportPath string
+}
+
+func parseDeprecatedServiceFlags() (*HttpServiceMapping, error) {
+	if flagGrpcService == "" && flagServiceGoImportPath == "" {
+		return nil, nil
+	}
+	if flagGrpcService == "" || flagServiceGoImportPath == "" {
+		return nil, errors.New("both --grpc_service and --service_go_importpath must be specified when using the deprecated flags")
+	}
+
+	// Print deprecation warning showing the correct syntax going forward
+	fmt.Fprintf(os.Stderr, "WARNING: Flags --grpc_service and --service_go_importpath are deprecated. "+
+		"Please use --http_service \"%s:%s\" instead.\n", flagGrpcService, flagServiceGoImportPath)
+
+	return &HttpServiceMapping{
+		GrpcService:       flagGrpcService,
+		GoProtoImportPath: flagServiceGoImportPath,
+	}, nil
+}
+
+func parseHttpServiceFlag(entry string) (*HttpServiceMapping, error) {
+	parts := strings.SplitN(entry, ":", 2)
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		return nil, fmt.Errorf("invalid --http_service mapping format %q; must be <service_fqn>:<import_path>", entry)
+	}
+	return &HttpServiceMapping{
+		GrpcService:       parts[0],
+		GoProtoImportPath: parts[1],
+	}, nil
 }
 
 func run(cmd *cobra.Command, args []string) error {
@@ -56,7 +91,39 @@ func run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Printf("Generating HTTP/JSON golang binary for %s...\n", flagServiceGoImportPath)
+	var services []*HttpServiceMapping
+
+	deprecatedService, err := parseDeprecatedServiceFlags()
+	if err != nil {
+		return err
+	}
+	if deprecatedService != nil {
+		services = append(services, deprecatedService)
+	}
+
+	for _, entry := range flagHttpServices {
+		s, err := parseHttpServiceFlag(entry)
+		if err != nil {
+			return err
+		}
+		services = append(services, s)
+	}
+
+	if len(services) == 0 {
+		return errors.New("no services specified: use --http_service or (deprecated) --grpc_service and --service_go_importpath")
+	}
+
+	// Check for duplicate service arguments
+	seen := make(map[string]bool)
+	for _, s := range services {
+		key := s.GrpcService + ":" + s.GoProtoImportPath
+		if seen[key] {
+			return fmt.Errorf("duplicate --http_service argument: %q", key)
+		}
+		seen[key] = true
+	}
+
+	fmt.Printf("Generating HTTP/JSON golang binary for %d services...\n", len(services))
 
 	// Read and Base64 encode the OpenAPI spec file
 	openAPIBytes, err := os.ReadFile(flagOpenAPIPath)
@@ -65,13 +132,8 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 	openAPIB64 := base64.StdEncoding.EncodeToString(openAPIBytes)
 
-	grpcServiceType, err := parseFullyQualifiedName(flagGrpcService)
-	if err != nil {
-		return err
-	}
-
-	// Use all collected information to generate the a main file
-	err = generateMainDotGo(flagOutput, flagServiceGoImportPath, openAPIB64, grpcServiceType)
+	// Use all collected information to generate a main file
+	err = generateMainDotGo(flagOutput, openAPIB64, services)
 	if err != nil {
 		return err
 	}
@@ -82,13 +144,6 @@ func run(cmd *cobra.Command, args []string) error {
 // validateFlags makes sure CLI arguments have usable values.
 // It operates on the global flag* variables.
 func validateFlags() error {
-	// Validate Required Flags
-	if flagServiceGoImportPath == "" {
-		return errors.New("--service_go_importpath is required")
-	}
-	if flagGrpcService == "" {
-		return errors.New("--grpc_service is required")
-	}
 	if flagOpenAPIPath == "" {
 		return errors.New("--openapi_path is required")
 	}
@@ -112,10 +167,37 @@ func validateFlags() error {
 	return nil
 }
 
+type ServiceTemplateInfo struct {
+	ImportPath  string
+	ImportAlias string
+	ServiceName string
+}
+
+func buildTemplateServices(mappings []*HttpServiceMapping) ([]ServiceTemplateInfo, error) {
+	var services []ServiceTemplateInfo
+	for i, mapping := range mappings {
+		grpcServiceType, err := parseFullyQualifiedName(mapping.GrpcService)
+		if err != nil {
+			return nil, err
+		}
+		services = append(services, ServiceTemplateInfo{
+			ImportPath:  mapping.GoProtoImportPath,
+			ImportAlias: fmt.Sprintf("pb%d", i),
+			ServiceName: grpcServiceType.Name,
+		})
+	}
+	return services, nil
+}
+
 // Generate output_dir/main.go for the http bridge
-func generateMainDotGo(outputPath string, serviceGoImportpath string, openAPIB64 string, serviceType *ProtoType) error {
+func generateMainDotGo(outputPath string, openAPIB64 string, mappings []*HttpServiceMapping) error {
 	// Parse the template content
 	tmpl, err := template.New("main").Parse(mainTemplateContent)
+	if err != nil {
+		return err
+	}
+
+	services, err := buildTemplateServices(mappings)
 	if err != nil {
 		return err
 	}
@@ -126,15 +208,13 @@ func generateMainDotGo(outputPath string, serviceGoImportpath string, openAPIB64
 	}
 	defer f.Close()
 
-	// Evaluate the template using an anonymous struct with field names matching those expected by the temlate
+	// Evaluate the template using an anonymous struct with field names matching those expected by the template
 	data := struct {
-		ServiceGoImportpath string
-		OpenAPIB64          string
-		ServiceName         string
+		OpenAPIB64 string
+		Services   []ServiceTemplateInfo
 	}{
-		OpenAPIB64:          openAPIB64,
-		ServiceName:         serviceType.Name,
-		ServiceGoImportpath: serviceGoImportpath,
+		OpenAPIB64: openAPIB64,
+		Services:   services,
 	}
 
 	return tmpl.Execute(f, data)

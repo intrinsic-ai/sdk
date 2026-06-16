@@ -1,0 +1,28 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.httpjson.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "intrinsic/httpjson/test/order_service_go_proto";
+
+// OrderService tracks orders.
+service OrderService {
+  rpc GetOrder(GetOrderRequest) returns (Order) {
+    option (google.api.http) = {
+      get: "/v1/orders/{order_id}"
+    };
+  }
+}
+
+message Order {
+  string order_id = 1;
+  string sku_id = 2;
+  int64 quantity = 3;
+}
+
+message GetOrderRequest {
+  string order_id = 1;
+}

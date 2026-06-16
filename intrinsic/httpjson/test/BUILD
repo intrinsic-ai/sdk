@@ -43,6 +43,38 @@ protoc_gen_openapi(
     ],
 )
 
+proto_library(
+    name = "order_service_proto",
+    srcs = ["order_service.proto"],
+    deps = [
+        "@com_google_googleapis//google/api:annotations_proto",
+    ],
+)
+
+go_proto_library(
+    name = "order_service_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+        "//bazel:go_gen_grpc_gateway",
+    ],
+    importpath = "intrinsic/httpjson/test/order_service_go_proto",
+    protos = [
+        ":order_service_proto",
+    ],
+    deps = [
+        "@org_golang_google_genproto_googleapis_api//annotations",
+    ],
+)
+
+protoc_gen_openapi(
+    name = "multiservice_openapi",
+    protos = [
+        ":inventory_service_proto",
+        ":order_service_proto",
+    ],
+)
+
 go_test(
     name = "openapi_test",
     srcs = ["openapi_test.go"],
@@ -145,4 +177,13 @@ intrinsic_service(
     ],
     manifest = "inventoryservice_manifest.textproto",
     deps = [":inventory_service_proto"],
+)
+
+intrinsic_http_image(
+    name = "inventoryserver_multiservice_http_image",
+    openapi_yaml = ":multiservice_openapi",
+    services = {
+        ":inventory_service_go_proto": "intrinsic_proto.httpjson.v1.InventoryService",
+        ":order_service_go_proto": "intrinsic_proto.httpjson.v1.OrderService",
+    },
 )

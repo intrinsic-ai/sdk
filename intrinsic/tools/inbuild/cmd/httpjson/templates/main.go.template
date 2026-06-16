@@ -23,7 +23,9 @@ import (
 	"intrinsic/util/proto/protoio"
 
 	// Template-injected dependencies
-	pb "{{ .ServiceGoImportpath }}"
+	{{- range .Services }}
+	{{ .ImportAlias }} "{{ .ImportPath }}"
+	{{- end }}
 )
 
 const (
@@ -69,10 +71,12 @@ func main() {
 	log.Printf("Connecting to gRPC Service: %v", grpcAddr)
 
 	// Register generated HTTP -> gRPC handlers.
-	err = pb.Register{{ .ServiceName }}HandlerFromEndpoint(ctx, mux, grpcAddr, opts)
+	{{- range .Services }}
+	err = {{ .ImportAlias }}.Register{{ .ServiceName }}HandlerFromEndpoint(ctx, mux, grpcAddr, opts)
 	if err != nil {
 		log.Fatalf("Failed to register gRPC service HTTP/JSON handlers: %v", err)
 	}
+	{{- end }}
 
 	addr := fmt.Sprintf(":%d", rc.GetHttpPort())
 	log.Printf("Listening on %s", addr)

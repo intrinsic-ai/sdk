@@ -9,15 +9,15 @@ def _gen_http_bridge_impl(ctx):
 
     openapi_file = ctx.file.openapi_path
 
-    go_info = ctx.attr.service_go_proto[GoInfo]
-    service_go_importpath = go_info.importpath
-
     args = ctx.actions.args()
     args.add("httpjson", "generatemain")
-    args.add("--grpc_service", ctx.attr.grpc_service)
     args.add("--openapi_path", openapi_file.path)
     args.add("--output", output_path)
-    args.add("--service_go_importpath", service_go_importpath)
+
+    for go_proto_target, grpc_service in ctx.attr.services.items():
+        go_info = go_proto_target[GoInfo]
+        service_go_importpath = go_info.importpath
+        args.add("--http_service", "%s:%s" % (grpc_service, service_go_importpath))
 
     ctx.actions.run(
         arguments = [args],
@@ -35,19 +35,15 @@ def _gen_http_bridge_impl(ctx):
 # gen_http_bridge calls `inbuild httpjson generatemain` for the intrinsic_http_image Bazel macro.
 gen_http_bridge = rule(
     attrs = {
-        "grpc_service": attr.string(
-            doc = "The fully qualified name of the grpc service to bridge (ex: foo.bar.MyService)",
+        "services": attr.label_keyed_string_dict(
+            doc = "A map from go_proto_library targets to their gRPC service FQNs.",
             mandatory = True,
+            providers = [GoInfo],
         ),
         "openapi_path": attr.label(
             allow_single_file = True,
             doc = "The path to an OpenAPI file whose content will be inserted into main.go, and which will be returned from the /openapi.yaml endpoint.",
             mandatory = True,
-        ),
-        "service_go_proto": attr.label(
-            doc = "The go_proto_library target for the service asset that the HTTP bridge will connect to.",
-            mandatory = True,
-            providers = [GoInfo],
         ),
         "_inbuild": attr.label(
             cfg = "exec",

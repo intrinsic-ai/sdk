@@ -10,50 +10,79 @@ load("//bazel:go_macros.bzl", "go_binary")
 load("//intrinsic/httpjson/openapi:protoc_gen_openapi.bzl", "protoc_gen_openapi")
 load("//intrinsic/httpjson/private:gen_http_bridge.bzl", _gen_http_bridge = "gen_http_bridge")
 
-def intrinsic_http_image(
+_attrs = {
+    "go_proto": attr.label(
+        configurable = False,
+        default = None,
+        doc = "The go_grpc_http_library of the gRPC service (deprecated - use services)",
+    ),
+    "grpc_service": attr.string(
+        configurable = False,
+        default = "",
+        doc = "The fully qualified name of an annotated gRPC service (deprecated - use services)",
+    ),
+    "openapi_yaml": attr.label(
+        allow_single_file = True,
+        configurable = False,
+        default = None,
+        doc = "An OpenAPI specification file or target (see protoc_gen_openapi)",
+    ),
+    "proto": attr.label(
+        configurable = False,
+        default = None,
+        doc = "The proto_library target of the gRPC service (deprecated - use openapi_yaml)",
+    ),
+    "services": attr.label_keyed_string_dict(
+        configurable = False,
+        default = {},
+        doc = "A dictionary mapping go_proto_library targets to gRPC service FQNs",
+    ),
+}
+
+def _intrinsic_http_image_impl(
         name,
+        visibility,
         grpc_service,
         proto,
         go_proto,
-        visibility = None):
-    """Generate a Service Asset that offers HTTP/JSON endpoints for another Service Asset.
+        services,
+        openapi_yaml):
+    # Backwards compatibility normalization
+    if grpc_service and go_proto:
+        services = {go_proto: grpc_service}
 
-    Args:
-        name: A name for the HTTP Bridge to be generated
-        grpc_service: The fully qualified name of an annotated gRPC service
-        proto: The proto_library target of the gRPC service
-        go_proto: The go_grpc_http_library of the gRPC service
-        visibility: Visibility of the resulting tar file
-    """
+    openapi_name = name + "_openapi"
 
-    gen_name = "_" + name + "_generate"
-    openapi_name = "_" + name + "_openapi"
-    gobin_name = "_" + name + "_gobin"
+    if proto:
+        # Generate openapi.yaml for backwards compatibility
+        protoc_gen_openapi(
+            name = openapi_name,
+            protos = [proto],
+        )
+        openapi_yaml = ":" + openapi_name
+    elif not openapi_yaml:
+        fail("Either 'openapi_yaml' or deprecated 'proto' must be specified.")
+
+    gen_name = name + "_generate"
+    gobin_name = name + "_gobin"
     binfiles_name = gobin_name + "_files"
-    tarbin_name = "_" + name + "_tarbin"
-    ociimage_name = "_" + name + "_ociimage"
-    ocitarball_name = "_" + name + "_tarball"
+    tarbin_name = name + "_tarbin"
+    ociimage_name = name + "_ociimage"
+    ocitarball_name = name + "_tarball"
     ocitar_name = ocitarball_name + ".tar"
-
-    protoc_gen_openapi(
-        name = openapi_name,
-        protos = [proto],
-    )
 
     # Generate main.go using `inbuild httpservice generate`
     _gen_http_bridge(
         name = gen_name,
-        grpc_service = grpc_service,
-        openapi_path = ":" + openapi_name,
-        service_go_proto = go_proto,
+        openapi_path = openapi_yaml,
+        services = services,
     )
 
     go_binary(
         name = gobin_name,
         srcs = [":" + gen_name],
-        embedsrcs = [":" + openapi_name],
-        deps = [
-            go_proto,
+        embedsrcs = [openapi_yaml],
+        deps = list(services.keys()) + [
             Label("//intrinsic/httpjson/openapi:handlers"),
             Label("//intrinsic/httpjson/any:anyresolver"),
             Label("//intrinsic/resources/proto:runtime_context_go_proto"),
@@ -107,3 +136,9 @@ def intrinsic_http_image(
         allow_symlink = True,
         visibility = visibility,
     )
+
+intrinsic_http_image = macro(
+    attrs = _attrs,
+    doc = "Generate an OCI image that offers HTTP/JSON endpoints for one or more gRPC services in the same Service Asset.",
+    implementation = _intrinsic_http_image_impl,
+)

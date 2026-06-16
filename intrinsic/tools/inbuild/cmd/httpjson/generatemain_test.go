@@ -15,7 +15,7 @@ const (
 	openapiPath = "intrinsic/tools/inbuild/cmd/httpjson/test_data/openapi.yaml"
 )
 
-func TestGenerate(t *testing.T) {
+func TestGenerateDeprecated(t *testing.T) {
 	// Setup temporary environment
 	tmpDir := t.TempDir()
 	outputPath := filepath.Join(tmpDir, "asdf.go")
@@ -41,9 +41,43 @@ func TestGenerate(t *testing.T) {
 	if err != nil {
 		t.Fatalf("os.ReadFile(%q) failed: %v", outputPath, err)
 	}
-	wantMainLine := `	pb "foo/bar/service_go_proto"`
+	wantMainLine := `	pb0 "foo/bar/service_go_proto"`
 	if !strings.Contains(string(content), wantMainLine) {
-		t.Errorf("main.go missing expected line: %s. Have lines: %v", wantMainLine, string(content))
+		t.Errorf("main.go missing expected line: %s. Have content: \n%s", wantMainLine, string(content))
+	}
+}
+
+func TestGenerateMultiService(t *testing.T) {
+	tmpDir := t.TempDir()
+	outputPath := filepath.Join(tmpDir, "asdf.go")
+
+	resetGenerateCommand()
+
+	args := []string{
+		"--http_service", "foo.bar.Baz:foo/bar/service_go_proto",
+		"--http_service", "foo.bar.Qux:foo/bar/qux_go_proto",
+		"--openapi_path", testio.MustCreateRunfilePath(t, openapiPath),
+		"--output", outputPath,
+	}
+
+	GenerateMainCmd.SetArgs(args)
+
+	if err := GenerateMainCmd.Execute(); err != nil {
+		t.Fatalf("GenerateMainCmd.Execute() failed: %v", err)
+	}
+
+	content, err := os.ReadFile(outputPath)
+	if err != nil {
+		t.Fatalf("os.ReadFile(%q) failed: %v", outputPath, err)
+	}
+
+	wantMainLine1 := `	pb0 "foo/bar/service_go_proto"`
+	wantMainLine2 := `	pb1 "foo/bar/qux_go_proto"`
+	if !strings.Contains(string(content), wantMainLine1) {
+		t.Errorf("main.go missing expected line: %s", wantMainLine1)
+	}
+	if !strings.Contains(string(content), wantMainLine2) {
+		t.Errorf("main.go missing expected line: %s", wantMainLine2)
 	}
 }
 
@@ -57,6 +91,7 @@ func TestGenerateErrors(t *testing.T) {
 		grpcService         *string
 		openapiPath         *string
 		outputPath          *string
+		httpServices        []string
 	}
 
 	// The "Golden" state: all flags are valid
@@ -65,6 +100,7 @@ func TestGenerateErrors(t *testing.T) {
 		grpcService:         ptr("foo.bar.Baz"),
 		openapiPath:         ptr(testio.MustCreateRunfilePath(t, openapiPath)),
 		outputPath:          ptr(filepath.Join(tmpDir, "asdf.go")),
+		httpServices:        nil,
 	}
 
 	tests := []struct {
@@ -73,18 +109,27 @@ func TestGenerateErrors(t *testing.T) {
 		wantErrContains string
 	}{
 		{
-			name: "Error when service_go_importpath is missing",
+			name: "Error when one deprecated flag is missing (serviceGoImportpath)",
 			modify: func(f *flags) {
 				f.serviceGoImportpath = nil
 			},
-			wantErrContains: "--service_go_importpath is required",
+			wantErrContains: "both --grpc_service and --service_go_importpath must be specified",
 		},
 		{
-			name: "Error when grpc_service is missing",
+			name: "Error when one deprecated flag is missing (grpcService)",
 			modify: func(f *flags) {
 				f.grpcService = nil
 			},
-			wantErrContains: "--grpc_service is required",
+			wantErrContains: "both --grpc_service and --service_go_importpath must be specified",
+		},
+		{
+			name: "Error when all services are missing",
+			modify: func(f *flags) {
+				f.serviceGoImportpath = nil
+				f.grpcService = nil
+				f.httpServices = nil
+			},
+			wantErrContains: "no services specified",
 		},
 		{
 			name: "Error when openapi_path is missing",
@@ -99,6 +144,27 @@ func TestGenerateErrors(t *testing.T) {
 				f.openapiPath = ptr("path/to/nowhere.yaml")
 			},
 			wantErrContains: "path/to/nowhere.yaml",
+		},
+		{
+			name: "Error when --http_service mapping is invalid",
+			modify: func(f *flags) {
+				f.serviceGoImportpath = nil
+				f.grpcService = nil
+				f.httpServices = []string{"foo.bar.Baz"}
+			},
+			wantErrContains: "invalid --http_service mapping format",
+		},
+		{
+			name: "Error when duplicate service targets are provided",
+			modify: func(f *flags) {
+				f.serviceGoImportpath = nil
+				f.grpcService = nil
+				f.httpServices = []string{
+					"foo.bar.Baz:foo/bar/service_go_proto",
+					"foo.bar.Baz:foo/bar/service_go_proto",
+				}
+			},
+			wantErrContains: "duplicate --http_service argument",
 		},
 	}
 
@@ -124,6 +190,9 @@ func TestGenerateErrors(t *testing.T) {
 			}
 			if f.outputPath != nil {
 				args = append(args, "--output", *f.outputPath)
+			}
+			for _, entry := range f.httpServices {
+				args = append(args, "--http_service", entry)
 			}
 
 			GenerateMainCmd.SetArgs(args)
