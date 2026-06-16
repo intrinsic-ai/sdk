@@ -42,4 +42,46 @@ absl::StatusOr<std::shared_ptr<intrinsic::Channel>> CreateChannelFromHandle(
   return intrinsic::Channel::MakeFromAddress(connection_params);
 }
 
+intrinsic_proto::skills::Footprint CreateObjectReservationFootprint(
+    absl::string_view object_name,
+    intrinsic_proto::skills::ObjectWorldReservation::SharingType type) {
+  intrinsic_proto::skills::Footprint footprint;
+  AddObjectReservation(object_name, type, footprint);
+  return footprint;
+}
+
+intrinsic_proto::skills::Footprint CreateObjectReservationFootprint(
+    const intrinsic_proto::world::ObjectReferenceByName& object,
+    intrinsic_proto::skills::ObjectWorldReservation::SharingType type) {
+  intrinsic_proto::skills::Footprint footprint;
+  auto* reservation = footprint.add_object_reservation();
+  reservation->set_type(type);
+  *reservation->mutable_object() = object;
+  return footprint;
+}
+
+intrinsic_proto::skills::Footprint CreateUniverseLockFootprint() {
+  intrinsic_proto::skills::Footprint footprint;
+  footprint.set_lock_the_universe(true);
+  return footprint;
+}
+
+void AddObjectReservation(
+    absl::string_view object_name,
+    intrinsic_proto::skills::ObjectWorldReservation::SharingType type,
+    intrinsic_proto::skills::Footprint& footprint) {
+  auto* reservation = footprint.add_object_reservation();
+  reservation->set_type(type);
+  reservation->mutable_object()->set_object_name(std::string(object_name));
+}
+
+void AddResourceReservation(
+    absl::string_view resource_name,
+    intrinsic_proto::skills::ResourceReservation::SharingType type,
+    intrinsic_proto::skills::Footprint& footprint) {
+  auto* reservation = footprint.add_resource_reservation();
+  reservation->set_name(std::string(resource_name));
+  reservation->set_type(type);
+}
+
 }  // namespace intrinsic::skills

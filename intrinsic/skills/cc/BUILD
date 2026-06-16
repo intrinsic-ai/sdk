@@ -198,6 +198,7 @@ cc_library(
     deps = [
         "//intrinsic/resources/proto:resource_handle_cc_proto",
         "//intrinsic/skills/proto:equipment_cc_proto",
+        "//intrinsic/skills/proto:footprint_cc_proto",
         "//intrinsic/skills/proto:skills_cc_proto",
         "//intrinsic/util/grpc:channel",
         "//intrinsic/util/grpc:connection_params",
