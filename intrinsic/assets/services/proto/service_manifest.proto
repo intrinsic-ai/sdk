@@ -9,6 +9,7 @@ import "google/protobuf/descriptor.proto";
 import "intrinsic/assets/proto/asset_tag.proto";
 import "intrinsic/assets/proto/documentation.proto";
 import "intrinsic/assets/proto/id.proto";
+import "intrinsic/assets/proto/status_spec.proto";
 import "intrinsic/assets/proto/vendor.proto";
 import "intrinsic/assets/services/proto/env_var.proto";
 import "intrinsic/assets/services/proto/service_http_config.proto";
@@ -86,10 +87,15 @@ message ServiceDef {
 
   // Config recommendation options for the Service.
   //
-  // Leaving this undefined implies that the default platform behavior
-  // will be provided for the Service.
+  // Leaving this undefined implies that the default platform behavior will be
+  // provided for the Service.
   optional intrinsic_proto.assets.v1.RecommendedConfigurationConfig
       recommended_configuration_config = 9;
+
+  // Specifications of codes that the Service may return. Codes are specific to
+  // this Service; i.e., different Assets may use the same numeric codes to
+  // represent different errors.
+  repeated intrinsic_proto.assets.StatusSpec status_info = 12;
 }
 
 message ServicePodSpec {

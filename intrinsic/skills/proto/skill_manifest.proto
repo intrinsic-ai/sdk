@@ -221,9 +221,9 @@ message SkillManifest {
   // The display name of the skill to be shown in the UI.
   string display_name = 9;
 
-  // List of status codes which the specific skill may return. Codes are
-  // specific to the skill's ID (<package>.<name>), i.e., different skills can
-  // have the same numeric ID representing different errors.
+  // Specifications of codes that the Skill may return. Codes are specific to
+  // this Skill; i.e., different Assets may use the same numeric codes to
+  // represent different errors.
   repeated intrinsic_proto.assets.StatusSpec status_info = 11;
 
   // This skill's assets.
