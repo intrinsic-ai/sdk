@@ -173,7 +173,7 @@ bazel_dep(name = "google_benchmark", version = "1.9.5", repo_name = "com_google_
 bazel_dep(name = "googleapis-cc", version = "1.1.5")
 bazel_dep(name = "googleapis-grpc-cc", version = "1.1.5")
 bazel_dep(name = "googleapis-python", version = "1.1.5")
-bazel_dep(name = "googleapis", version = "0.0.0-20260422-20ac242a", repo_name = "com_google_googleapis")
+bazel_dep(name = "googleapis", version = "0.0.0-20260525-ef19b7b7", repo_name = "com_google_googleapis")
 bazel_dep(name = "googletest", version = "1.17.0.bcr.2", repo_name = "com_google_googletest")
 bazel_dep(name = "grpc_ecosystem_grpc_gateway", version = "2.29.0.bcr.3", repo_name = "com_github_grpc_ecosystem_grpc_gateway_v2")
 bazel_dep(name = "grpc", version = "1.74.0", repo_name = "com_github_grpc_grpc")
