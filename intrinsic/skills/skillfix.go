@@ -96,7 +96,7 @@ func Manifest(manifest *smpb.SkillManifest, options ...FixOption) error {
 	if manifest.GetOptions() == nil {
 		manifest.Options = &smpb.Options{}
 	}
-	backfillSkillOptions(manifest.GetOptions(), opts)
+	backfillSkillOptions(manifest.GetOptions())
 	return nil
 }
 
@@ -117,7 +117,7 @@ func ProcessedManifest(manifest *psmpb.ProcessedSkillManifest, options ...FixOpt
 	if manifest.GetDetails().GetOptions() == nil {
 		manifest.Details.Options = &smpb.Options{}
 	}
-	backfillSkillOptions(manifest.GetDetails().GetOptions(), opts)
+	backfillSkillOptions(manifest.GetDetails().GetOptions())
 
 	if opts.mergeMissingProvidedToPlatformDescriptors {
 		if err := mergeMissingProvidedToPlatformDescriptors(manifest); err != nil {
@@ -128,7 +128,7 @@ func ProcessedManifest(manifest *psmpb.ProcessedSkillManifest, options ...FixOpt
 	return nil
 }
 
-func backfillSkillOptions(options *smpb.Options, opts *fixOpts) {
+func backfillSkillOptions(options *smpb.Options) {
 	if options == nil {
 		return
 	}
