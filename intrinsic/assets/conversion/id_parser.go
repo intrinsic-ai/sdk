@@ -11,7 +11,6 @@ import (
 	idpb "intrinsic/assets/proto/id_go_proto"
 	assetpb "intrinsic/assets/proto/v1/asset_go_proto"
 	processedassetpb "intrinsic/assets/proto/v1/processed_asset_go_proto"
-	applicationpb "intrinsic/config/proto/application_go_proto"
 )
 
 var (
@@ -101,43 +100,6 @@ func AssetIDFromAsset(asset *assetpb.Asset) (*idpb.Id, error) {
 
 	default:
 		return nil, ErrNoSource
-	}
-
-	if id == nil {
-		return nil, ErrMissingID
-	}
-	if err := idutils.ValidateIDProto(id); err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrInvalidID, err)
-	}
-
-	return id, nil
-}
-
-// AssetIDFromApplicationAsset return the asset id for the given application asset.
-func AssetIDFromApplicationAsset(asset *applicationpb.Application_Asset) (*idpb.Id, error) {
-	if asset == nil {
-		return nil, ErrAssetNil
-	}
-
-	var id *idpb.Id
-
-	switch asset.GetVariant().(type) {
-	case *applicationpb.Application_Asset_Catalog:
-		id = asset.GetCatalog().GetId()
-	case *applicationpb.Application_Asset_Data:
-		id = asset.GetData().GetMetadata().GetIdVersion().GetId()
-	case *applicationpb.Application_Asset_HardwareDevice:
-		id = asset.GetHardwareDevice().GetMetadata().GetId()
-	case *applicationpb.Application_Asset_Process:
-		id = asset.GetProcess().GetMetadata().GetIdVersion().GetId()
-	case *applicationpb.Application_Asset_SceneObject:
-		id = asset.GetSceneObject().GetMetadata().GetId()
-	case *applicationpb.Application_Asset_Service:
-		id = asset.GetService().GetMetadata().GetId()
-	case *applicationpb.Application_Asset_Skill:
-		id = asset.GetSkill().GetMetadata().GetId()
-	default:
-		return nil, ErrNoVariant
 	}
 
 	if id == nil {
