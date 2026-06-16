@@ -104,6 +104,8 @@ proto_library(
         ":snapshot_proto",
         ":snapshot_source_proto",
         ":warning_proto",
+        "@com_google_googleapis//google/rpc:status_proto",
+        "@com_google_protobuf//:descriptor_proto",
         "@com_google_protobuf//:field_mask_proto",
     ],
 )
@@ -149,6 +151,9 @@ go_proto_library(
         ":snapshot_go_proto",
         ":snapshot_source_go_proto",
         ":warning_go_proto",
+        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
+        "@io_bazel_rules_go//proto/wkt:field_mask_go_proto",
+        "@org_golang_google_genproto_googleapis_rpc//status",
     ],
 )
 
