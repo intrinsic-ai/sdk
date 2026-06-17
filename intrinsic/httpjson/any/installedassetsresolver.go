@@ -1,7 +1,6 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package installedassetsresolver resolves protobuf names and urls to MessageType using the InstalledAssets service
-package installedassetsresolver
+package any
 
 import (
 	"context"
@@ -87,6 +86,16 @@ func (r *InstalledAssetsResolver) FindMessageByURL(url string) (protoreflect.Mes
 	}
 
 	return r.FindMessageByName(protoreflect.FullName(name))
+}
+
+// FindExtensionByName looks up an extension field by the field's full name.
+func (r *InstalledAssetsResolver) FindExtensionByName(field protoreflect.FullName) (protoreflect.ExtensionType, error) {
+	return nil, fmt.Errorf("InstalledAssetsResolver.FindExtensionByName(%s) not supported: %w", field, protoregistry.NotFound)
+}
+
+// FindExtensionByNumber looks up an extension field by the field number.
+func (r *InstalledAssetsResolver) FindExtensionByNumber(message protoreflect.FullName, field protoreflect.FieldNumber) (protoreflect.ExtensionType, error) {
+	return nil, fmt.Errorf("InstalledAssetsResolver.FindExtensionByNumber(%s, %d) not supported: %w", message, field, protoregistry.NotFound)
 }
 
 func (r *InstalledAssetsResolver) RefreshInstalledAssets() error {

@@ -84,7 +84,7 @@ def _intrinsic_http_image_impl(
         embedsrcs = [openapi_yaml],
         deps = list(services.keys()) + [
             Label("//intrinsic/httpjson/openapi:handlers"),
-            Label("//intrinsic/httpjson/any:anyresolver"),
+            Label("//intrinsic/httpjson/any"),
             Label("//intrinsic/resources/proto:runtime_context_go_proto"),
             Label("@org_golang_google_grpc//credentials/insecure"),
             Label("//intrinsic/util/proto:protoio"),

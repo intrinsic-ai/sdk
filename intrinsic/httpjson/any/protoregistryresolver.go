@@ -1,7 +1,6 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package protoregistryresolver resolves protobuf names and urls to MessageType using the ProtoRegsitry service.
-package protoregistryresolver
+package any
 
 import (
 	"context"
@@ -135,4 +134,14 @@ func (r *ProtoRegistryResolver) FindMessageByURL(url string) (protoreflect.Messa
 	}
 
 	return cachedType.FindMessageByURL(url)
+}
+
+// FindExtensionByName looks up an extension field by the field's full name.
+func (r *ProtoRegistryResolver) FindExtensionByName(field protoreflect.FullName) (protoreflect.ExtensionType, error) {
+	return nil, fmt.Errorf("ProtoRegistryResolver.FindExtensionByName(%s) not supported: %w", field, protoregistry.NotFound)
+}
+
+// FindExtensionByNumber looks up an extension field by the field number.
+func (r *ProtoRegistryResolver) FindExtensionByNumber(message protoreflect.FullName, field protoreflect.FieldNumber) (protoreflect.ExtensionType, error) {
+	return nil, fmt.Errorf("ProtoRegistryResolver.FindExtensionByNumber(%s, %d) not supported: %w", message, field, protoregistry.NotFound)
 }

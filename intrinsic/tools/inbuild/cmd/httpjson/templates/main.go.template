@@ -17,7 +17,7 @@ import (
 	"google.golang.org/grpc"
 
 	// Internal Intrinsic dependencies
-	"intrinsic/httpjson/any/anyresolver"
+	"intrinsic/httpjson/any"
 	oah "intrinsic/httpjson/openapi/handlers"
 	rcpb "intrinsic/resources/proto/runtime_context_go_proto"
 	"intrinsic/util/proto/protoio"
@@ -42,7 +42,7 @@ func main() {
 	}
 
 	// Enable resolving Any messages
-	resolver, err := anyresolver.NewAnyResolver(ingressAddress, ingressAddress)
+	resolver, err := any.NewAnyResolver(ingressAddress, ingressAddress)
 	if err != nil {
 		log.Fatalf("Failed to create AnyResolver: %v", err)
 	}

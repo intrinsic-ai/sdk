@@ -1,7 +1,6 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package fakeserver has a fake server for unit testing anyresolver
-package fakeserver
+package any
 
 import (
 	"context"

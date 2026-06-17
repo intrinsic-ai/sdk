@@ -1,16 +1,11 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-// Package anyresolver resolves Any messages on a best-effort basis given only the type_url.
-package anyresolver
+package any
 
 import (
 	"context"
 	"sync"
 	"time"
-
-	"intrinsic/httpjson/any/greedyresolver"
-	"intrinsic/httpjson/any/installedassetsresolver"
-	"intrinsic/httpjson/any/protoregistryresolver"
 
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
@@ -24,19 +19,19 @@ const (
 
 // AnyResolver implements the MessageTypeResolver and ExtensionTypeResolver interfaces.
 type AnyResolver struct {
-	greedyResolver *greedyresolver.GreedyResolver
-	iaResolver     *installedassetsresolver.InstalledAssetsResolver
+	greedyResolver *GreedyResolver
+	iaResolver     *InstalledAssetsResolver
 	cancel         context.CancelFunc
 	wg             sync.WaitGroup
 }
 
 // NewAnyResolver creates and returns a new instance of AnyResolver.
 func NewAnyResolver(protoRegistryAddress string, installedAssetsAddress string) (*AnyResolver, error) {
-	protoRegistryResolver, err := protoregistryresolver.NewProtoRegistryResolver(protoRegistryAddress)
+	protoRegistryResolver, err := NewProtoRegistryResolver(protoRegistryAddress)
 	if err != nil {
 		return nil, err
 	}
-	installedAssetsResolver, err := installedassetsresolver.NewInstalledAssetsResolver(installedAssetsAddress)
+	installedAssetsResolver, err := NewInstalledAssetsResolver(installedAssetsAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +39,7 @@ func NewAnyResolver(protoRegistryAddress string, installedAssetsAddress string) 
 	ctx, cancel := context.WithCancel(context.Background())
 
 	r := &AnyResolver{
-		greedyResolver: greedyresolver.NewGreedyResolver([]protoregistry.MessageTypeResolver{
+		greedyResolver: NewGreedyResolver([]Resolver{
 			// Try the ProtoRegistry resolver first because it has a unique type url prefix,
 			// and it returns NotFound immediately if the URL lacks that prefix.
 			protoRegistryResolver,
@@ -91,8 +86,7 @@ func (a *AnyResolver) backgroundLoop(ctx context.Context) {
 //
 // This returns (nil, NotFound) if not found.
 func (a *AnyResolver) FindExtensionByName(field protoreflect.FullName) (protoreflect.ExtensionType, error) {
-	// Nothing to add, but must implement it
-	return protoregistry.GlobalTypes.FindExtensionByName(field)
+	return a.greedyResolver.FindExtensionByName(field)
 }
 
 // FindExtensionByNumber looks up a extension field by the field number
@@ -100,8 +94,7 @@ func (a *AnyResolver) FindExtensionByName(field protoreflect.FullName) (protoref
 //
 // This returns (nil, NotFound) if not found.
 func (a *AnyResolver) FindExtensionByNumber(message protoreflect.FullName, field protoreflect.FieldNumber) (protoreflect.ExtensionType, error) {
-	// Nothing to add, but must implement it
-	return protoregistry.GlobalTypes.FindExtensionByNumber(message, field)
+	return a.greedyResolver.FindExtensionByNumber(message, field)
 }
 
 // FindMessageByName looks up a message by its full name.

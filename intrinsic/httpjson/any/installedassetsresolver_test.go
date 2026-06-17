@@ -1,17 +1,16 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-package installedassetsresolver
+package any
 
 import (
+	"errors"
 	"testing"
 
 	"google.golang.org/protobuf/reflect/protoregistry"
-
-	"intrinsic/httpjson/any/fakeserver"
 )
 
-func TestFindMessageByURL(t *testing.T) {
-	fakeServerURL := fakeserver.MustMakeFakeServer(t)
+func TestInstalledAssetsResolver_FindMessageByURL(t *testing.T) {
+	fakeServerURL := MustMakeFakeServer(t)
 
 	resolver, err := NewInstalledAssetsResolver(fakeServerURL)
 	if err != nil {
@@ -44,4 +43,19 @@ func TestFindMessageByURL(t *testing.T) {
 			t.Errorf("Expected google.protobuf.Any, got %v", mt.Descriptor().FullName())
 		}
 	})
+}
+
+func TestInstalledAssetsResolver_FindExtension(t *testing.T) {
+	resolver, err := NewInstalledAssetsResolver("localhost:0")
+	if err != nil {
+		t.Fatalf("Failed to create resolver: %v", err)
+	}
+
+	if ext, err := resolver.FindExtensionByName("some.extension"); ext != nil || !errors.Is(err, protoregistry.NotFound) {
+		t.Errorf("FindExtensionByName: expected nil, NotFound; got %v, %v", ext, err)
+	}
+
+	if ext, err := resolver.FindExtensionByNumber("some.message", 42); ext != nil || !errors.Is(err, protoregistry.NotFound) {
+		t.Errorf("FindExtensionByNumber: expected nil, NotFound; got %v, %v", ext, err)
+	}
 }
