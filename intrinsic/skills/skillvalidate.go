@@ -4,6 +4,7 @@
 package skillvalidate
 
 import (
+	"context"
 	"fmt"
 
 	"intrinsic/assets/idutils"
@@ -43,7 +44,7 @@ func WithIncompatibleDisallowManifestDependencies(incompatible bool) SkillManife
 }
 
 // SkillManifest validates a SkillManifest.
-func SkillManifest(m *smpb.SkillManifest, options ...SkillManifestOption) error {
+func SkillManifest(ctx context.Context, m *smpb.SkillManifest, options ...SkillManifestOption) error {
 	opts := &skillManifestOptions{}
 	for _, opt := range options {
 		opt(opts)
@@ -99,7 +100,7 @@ func WithReport(report *validationerrors.Report) ProcessedSkillManifestOption {
 }
 
 // ProcessedSkillManifest validates a ProcessedSkillManifest.
-func ProcessedSkillManifest(m *psmpb.ProcessedSkillManifest, options ...ProcessedSkillManifestOption) error {
+func ProcessedSkillManifest(ctx context.Context, m *psmpb.ProcessedSkillManifest, options ...ProcessedSkillManifestOption) error {
 	opts := &processedSkillManifestOptions{}
 	WithReport(validationerrors.NewReport())(opts)
 	for _, opt := range options {

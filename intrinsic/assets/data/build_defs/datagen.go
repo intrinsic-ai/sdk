@@ -4,6 +4,7 @@
 package datagen
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 
@@ -47,7 +48,7 @@ type CreateDataBundleOptions struct {
 }
 
 // CreateDataBundle creates a Data Asset bundle on disk.
-func CreateDataBundle(opts *CreateDataBundleOptions) error {
+func CreateDataBundle(ctx context.Context, opts *CreateDataBundleOptions) error {
 	fds, err := registryutil.LoadFileDescriptorSets(opts.FileDescriptorSetPaths)
 	if err != nil {
 		return fmt.Errorf("failed to load FileDescriptorSets: %w", err)
@@ -66,7 +67,7 @@ func CreateDataBundle(opts *CreateDataBundleOptions) error {
 	if err := protoio.ReadTextProto(opts.ManifestPath, m, protoio.WithResolver(types)); err != nil {
 		return fmt.Errorf("failed to read manifest: %w", err)
 	}
-	if err := datavalidate.DataManifest(m,
+	if err := datavalidate.DataManifest(ctx, m,
 		datavalidate.WithFiles(files),
 		datavalidate.WithAllowDataManifestRuntimeAssetID(),
 	); err != nil {
@@ -104,7 +105,7 @@ func CreateDataBundle(opts *CreateDataBundleOptions) error {
 		da.Data = payloadOutAny
 	}
 
-	if err := databundle.Write(da, opts.OutputBundlePath,
+	if err := databundle.Write(ctx, da, opts.OutputBundlePath,
 		databundle.WithExternalReferencedFilePaths(opts.ExternalReferencedFilePaths),
 	); err != nil {
 		return fmt.Errorf("failed to write Data Asset bundle: %w", err)

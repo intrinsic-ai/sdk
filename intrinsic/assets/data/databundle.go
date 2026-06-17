@@ -62,7 +62,7 @@ func WithWriter(w io.Writer) WriteOption {
 }
 
 // Write writes a Data Asset .tar bundle.
-func Write(da *dapb.DataAsset, path string, options ...WriteOption) error {
+func Write(ctx context.Context, da *dapb.DataAsset, path string, options ...WriteOption) error {
 	opts := &writeOptions{}
 	for _, opt := range options {
 		opt(opts)
@@ -74,7 +74,7 @@ func Write(da *dapb.DataAsset, path string, options ...WriteOption) error {
 	if da.GetMetadata().GetAssetType() == atpb.AssetType_ASSET_TYPE_UNSPECIFIED {
 		da.Metadata.AssetType = atpb.AssetType_ASSET_TYPE_DATA
 	}
-	if err := datavalidate.DataAsset(da, datavalidate.WithAllowDataAssetRuntimeAssetID()); err != nil {
+	if err := datavalidate.DataAsset(ctx, da, datavalidate.WithAllowDataAssetRuntimeAssetID()); err != nil {
 		return fmt.Errorf("invalid DataAsset: %w", err)
 	}
 
@@ -108,7 +108,7 @@ func Write(da *dapb.DataAsset, path string, options ...WriteOption) error {
 	// - If it is a file reference that is excluded, remap it and ensure it has a digest.
 	tarPaths := map[string]struct{}{} // Keeps track of used tar paths.
 	payloadOut, err := referenceddata.WalkUnique(payload, func(ref *referenceddata.ReferencedData) error {
-		if err := datavalidate.ReferencedData(ref); err != nil {
+		if err := datavalidate.ReferencedData(ctx, ref); err != nil {
 			return fmt.Errorf("invalid ReferencedData: %w", err)
 		}
 
@@ -302,7 +302,7 @@ func Read(ctx context.Context, path string, options ...ReadOption) (*DataBundle,
 		}
 
 		// Validate the ReferencedData (e.g., verify its digest).
-		if err := datavalidate.ReferencedData(ref); err != nil {
+		if err := datavalidate.ReferencedData(ctx, ref); err != nil {
 			return fmt.Errorf("invalid ReferencedData: %w", err)
 		}
 

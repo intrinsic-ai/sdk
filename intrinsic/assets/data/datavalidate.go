@@ -5,6 +5,7 @@ package datavalidate
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -46,7 +47,7 @@ func WithFiles(files *protoregistry.Files) DataManifestOption {
 }
 
 // DataManifest validates a DataManifest.
-func DataManifest(m *dmpb.DataManifest, options ...DataManifestOption) error {
+func DataManifest(ctx context.Context, m *dmpb.DataManifest, options ...DataManifestOption) error {
 	opts := &dataManifestOptions{}
 	for _, opt := range options {
 		opt(opts)
@@ -111,7 +112,7 @@ func WithReport(report *validationerrors.Report) DataAssetOption {
 }
 
 // DataAsset validates a DataAsset.
-func DataAsset(da *dapb.DataAsset, options ...DataAssetOption) error {
+func DataAsset(ctx context.Context, da *dapb.DataAsset, options ...DataAssetOption) error {
 	opts := &dataAssetOptions{}
 	WithReport(validationerrors.NewReport())(opts)
 	for _, opt := range options {
@@ -157,7 +158,7 @@ func DataAsset(da *dapb.DataAsset, options ...DataAssetOption) error {
 	if payload, err := utils.ExtractPayload(da); err != nil {
 		return err
 	} else if _, err := referenceddata.WalkUnique(payload, func(ref *referenceddata.ReferencedData) error {
-		if err := ReferencedData(ref, opts.referencedDataOptions...); err != nil {
+		if err := ReferencedData(ctx, ref, opts.referencedDataOptions...); err != nil {
 			return fmt.Errorf("invalid ReferencedData for %q: %w", id, err)
 		}
 		return nil
@@ -188,7 +189,7 @@ func WithDisallowFileReferences(disallowFileReferences bool) ReferencedDataOptio
 // Validation includes:
 // - If specified, compare the digest against the referenced data.
 // - If the type is a file reference and file references are disallowed, return an error.
-func ReferencedData(ref *referenceddata.ReferencedData, options ...ReferencedDataOption) error {
+func ReferencedData(ctx context.Context, ref *referenceddata.ReferencedData, options ...ReferencedDataOption) error {
 	opts := &referencedDataOptions{}
 	for _, opt := range options {
 		opt(opts)

@@ -4,6 +4,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 
 	"intrinsic/assets/services/build_defs/servicegen"
@@ -24,7 +25,8 @@ var (
 func main() {
 	intrinsic.Init()
 
-	if err := servicegen.CreateServiceBundle(&servicegen.CreateServiceBundleOptions{
+	ctx := context.Background()
+	if err := servicegen.CreateServiceBundle(ctx, &servicegen.CreateServiceBundleOptions{
 		ManifestPath:           *manifestPath,
 		DefaultConfigPath:      *defaultConfigPath,
 		FileDescriptorSetPaths: *fileDescriptorSetPaths,

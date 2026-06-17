@@ -4,6 +4,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 
 	"intrinsic/assets/data/build_defs/datagen"
@@ -30,7 +31,8 @@ func main() {
 		externalReferencedFilePaths[excludedFilePath] = (*remappedReferencedFilePaths)[i]
 	}
 
-	if err := datagen.CreateDataBundle(&datagen.CreateDataBundleOptions{
+	ctx := context.Background()
+	if err := datagen.CreateDataBundle(ctx, &datagen.CreateDataBundleOptions{
 		ManifestPath:                *manifestPath,
 		ReferencedFilePaths:         *referencedFilePaths,
 		ExternalReferencedFilePaths: externalReferencedFilePaths,

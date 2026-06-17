@@ -4,6 +4,7 @@
 package skillgen
 
 import (
+	"context"
 	"fmt"
 
 	"intrinsic/skills/skillbundle"
@@ -24,7 +25,7 @@ type CreateSkillBundleOptions struct {
 }
 
 // CreateSkillBundle creates a Skill Asset bundle on disk.
-func CreateSkillBundle(opts *CreateSkillBundleOptions) error {
+func CreateSkillBundle(ctx context.Context, opts *CreateSkillBundleOptions) error {
 	fds := &descriptorpb.FileDescriptorSet{}
 	if err := protoio.ReadBinaryProto(opts.FileDescriptorSetPath, fds); err != nil {
 		return fmt.Errorf("failed to read file descriptor set: %w", err)
@@ -37,7 +38,7 @@ func CreateSkillBundle(opts *CreateSkillBundleOptions) error {
 	if err := skillfix.Manifest(m, skillfix.WithPopulateOldFields(true)); err != nil {
 		return fmt.Errorf("unable to make manifest compatible with the latest version of the platform: %v", err)
 	}
-	if err := skillbundle.Write(m, opts.OutputBundlePath,
+	if err := skillbundle.Write(ctx, m, opts.OutputBundlePath,
 		skillbundle.WithFileDescriptorSet(fds),
 		skillbundle.WithImageTarPath(opts.ImageTarPath),
 	); err != nil {

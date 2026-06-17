@@ -60,7 +60,7 @@ func WithWriter(w io.Writer) WriteOption {
 }
 
 // Write writes a Skill .tar bundle.
-func Write(m *smpb.SkillManifest, path string, options ...WriteOption) error {
+func Write(ctx context.Context, m *smpb.SkillManifest, path string, options ...WriteOption) error {
 	opts := &writeOptions{}
 	for _, opt := range options {
 		opt(opts)
@@ -111,7 +111,7 @@ func Write(m *smpb.SkillManifest, path string, options ...WriteOption) error {
 	if err != nil {
 		return fmt.Errorf("failed to populate the registry: %w", err)
 	}
-	if err := skillvalidate.SkillManifest(m,
+	if err := skillvalidate.SkillManifest(ctx, m,
 		skillvalidate.WithFiles(files),
 		skillvalidate.WithIncompatibleDisallowManifestDependencies(false),
 	); err != nil {

@@ -4,6 +4,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 
 	"intrinsic/assets/processes/build_defs/processgen"
@@ -25,7 +26,8 @@ var (
 func main() {
 	intrinsic.Init()
 
-	if err := processgen.CreateProcessBundle(&processgen.CreateProcessBundleOptions{
+	ctx := context.Background()
+	if err := processgen.CreateProcessBundle(ctx, &processgen.CreateProcessBundleOptions{
 		ManifestPath:                    *manifestPath,
 		BehaviorTreePath:                *behaviorTreePath,
 		TextprotoFileDescriptorSetPaths: *textprotoFileDescriptorSetPaths,

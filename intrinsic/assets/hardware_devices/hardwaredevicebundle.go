@@ -51,7 +51,7 @@ func WithWriter(w io.Writer) WriteOption {
 // The bundles of local Assets are included in the HardwareDevice .tar bundle.
 //
 // The input manifest may be mutated by this function.
-func Write(hdm *hdmpb.HardwareDeviceManifest, path string, options ...WriteOption) error {
+func Write(ctx context.Context, hdm *hdmpb.HardwareDeviceManifest, path string, options ...WriteOption) error {
 	opts := &writeOptions{}
 	for _, opt := range options {
 		opt(opts)
@@ -60,7 +60,7 @@ func Write(hdm *hdmpb.HardwareDeviceManifest, path string, options ...WriteOptio
 	if hdm == nil {
 		return fmt.Errorf("HardwareDeviceManifest must not be nil")
 	}
-	if err := hardwaredevicevalidate.HardwareDeviceManifest(hdm); err != nil {
+	if err := hardwaredevicevalidate.HardwareDeviceManifest(ctx, hdm); err != nil {
 		return fmt.Errorf("invalid HardwareDeviceManifest: %w", err)
 	}
 

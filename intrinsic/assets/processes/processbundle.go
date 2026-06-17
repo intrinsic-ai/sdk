@@ -42,7 +42,7 @@ func WithWriter(w io.Writer) WriteOption {
 }
 
 // Write writes a Process Asset .tar bundle.
-func Write(manifest *processmanifestpb.ProcessManifest, path string, options ...WriteOption) error {
+func Write(ctx context.Context, manifest *processmanifestpb.ProcessManifest, path string, options ...WriteOption) error {
 	opts := &writeOptions{}
 	for _, opt := range options {
 		opt(opts)
@@ -51,7 +51,7 @@ func Write(manifest *processmanifestpb.ProcessManifest, path string, options ...
 	if manifest == nil {
 		return fmt.Errorf("ProcessManifest must not be nil")
 	}
-	err := processvalidate.ProcessManifest(manifest)
+	err := processvalidate.ProcessManifest(ctx, manifest)
 	if err != nil {
 		return fmt.Errorf("invalid ProcessManifest: %w", err)
 	}
@@ -113,13 +113,13 @@ func ManifestFromAsset(pa *processassetpb.ProcessAsset) (*processmanifestpb.Proc
 }
 
 // WriteFromAsset writes a Process Asset .tar bundle, given a ProcessAsset.
-func WriteFromAsset(pa *processassetpb.ProcessAsset, path string, options ...WriteOption) error {
+func WriteFromAsset(ctx context.Context, pa *processassetpb.ProcessAsset, path string, options ...WriteOption) error {
 	manifest, err := ManifestFromAsset(pa)
 	if err != nil {
 		return err
 	}
 
-	return Write(manifest, path, options...)
+	return Write(ctx, manifest, path, options...)
 }
 
 // ProcessBundle represents a Process Asset bundle.

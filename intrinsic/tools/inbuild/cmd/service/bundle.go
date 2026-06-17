@@ -78,7 +78,7 @@ func run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	return servicegen.CreateServiceBundle(&servicegen.CreateServiceBundleOptions{
+	return servicegen.CreateServiceBundle(cmd.Context(), &servicegen.CreateServiceBundleOptions{
 		DefaultConfigPath:      flagDefaultConfig,
 		FileDescriptorSetPaths: fileDescriptorSets,
 		ImageTarPaths:          ociImages,

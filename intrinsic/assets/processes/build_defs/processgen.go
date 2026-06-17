@@ -4,6 +4,7 @@
 package processgen
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -49,7 +50,7 @@ type CreateProcessBundleOptions struct {
 }
 
 // CreateProcessBundle creates a Process Asset bundle on disk.
-func CreateProcessBundle(options *CreateProcessBundleOptions) error {
+func CreateProcessBundle(ctx context.Context, options *CreateProcessBundleOptions) error {
 	textprotoFileDescriptorSet, err := registryutil.LoadFileDescriptorSets(options.TextprotoFileDescriptorSetPaths)
 	if err != nil {
 		return fmt.Errorf("failed to load FileDescriptorSets: %w", err)
@@ -77,7 +78,7 @@ func CreateProcessBundle(options *CreateProcessBundleOptions) error {
 	}
 
 	// Write the ProcessManifest to the output file.
-	if err := processbundle.Write(manifest, options.OutputBundlePath); err != nil {
+	if err := processbundle.Write(ctx, manifest, options.OutputBundlePath); err != nil {
 		return fmt.Errorf("failed to write Process bundle: %w", err)
 	}
 

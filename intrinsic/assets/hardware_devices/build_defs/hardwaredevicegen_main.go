@@ -4,6 +4,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 
 	"intrinsic/assets/hardware_devices/build_defs/hardwaredevicegen"
@@ -23,7 +24,8 @@ var (
 func main() {
 	intrinsic.Init()
 
-	if err := hardwaredevicegen.CreateHardwareDeviceBundle(&hardwaredevicegen.CreateHardwareDeviceBundleOptions{
+	ctx := context.Background()
+	if err := hardwaredevicegen.CreateHardwareDeviceBundle(ctx, &hardwaredevicegen.CreateHardwareDeviceBundleOptions{
 		ManifestPath:             *manifestPath,
 		AssetLocalInfoPaths:      *localAssetPaths,
 		AssetCatalogRefInfoPaths: *catalogAssetPaths,

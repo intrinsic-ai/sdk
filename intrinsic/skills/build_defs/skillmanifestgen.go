@@ -4,6 +4,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"strings"
@@ -50,7 +51,7 @@ func createSkillManifest() error {
 	if err := protoio.ReadTextProto(*flagManifest, m, protoio.WithResolver(types)); err != nil {
 		return fmt.Errorf("failed to read manifest: %v", err)
 	}
-	if err := skillvalidate.SkillManifest(m,
+	if err := skillvalidate.SkillManifest(context.Background(), m,
 		skillvalidate.WithFiles(files),
 		skillvalidate.WithIncompatibleDisallowManifestDependencies(*flagIncompatibleDisallowManifestDependencies),
 	); err != nil {

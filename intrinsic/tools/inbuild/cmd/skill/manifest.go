@@ -53,7 +53,7 @@ func run(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("--file_descriptor_sets is required")
 	}
 
-	m, fds, err := skillmanifest.LoadManifestAndFileDescriptorSets(flagManifest, flagFileDescriptorSets, flagIncompatibleDisallowManifestDependencies)
+	m, fds, err := skillmanifest.LoadManifestAndFileDescriptorSets(cmd.Context(), flagManifest, flagFileDescriptorSets, flagIncompatibleDisallowManifestDependencies)
 	if err != nil {
 		return fmt.Errorf("unable to load manifest and file descriptor sets: %v", err)
 	}

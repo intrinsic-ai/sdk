@@ -4,6 +4,7 @@
 package assetvalidate
 
 import (
+	"context"
 	"fmt"
 
 	"intrinsic/assets/data/datavalidate"
@@ -95,7 +96,7 @@ func WithReport(report *validationerrors.Report) AssetOption {
 }
 
 // Asset validates an Asset.
-func Asset(asset *assetpb.Asset, options ...AssetOption) error {
+func Asset(ctx context.Context, asset *assetpb.Asset, options ...AssetOption) error {
 	opts := &assetOptions{}
 	WithReport(validationerrors.NewReport())(opts)
 	for _, opt := range options {
@@ -112,7 +113,7 @@ func Asset(asset *assetpb.Asset, options ...AssetOption) error {
 	case *assetpb.Asset_Local:
 		switch v := src.Local.GetVariant().(type) {
 		case *processedassetpb.ProcessedAsset_Data:
-			return datavalidate.DataAsset(v.Data, opts.dataOptions...)
+			return datavalidate.DataAsset(ctx, v.Data, opts.dataOptions...)
 		case *processedassetpb.ProcessedAsset_HardwareDevice:
 			hwdOpts := append([]hardwaredevicevalidate.ProcessedHardwareDeviceManifestOption{
 				hardwaredevicevalidate.WithDataAssetOptions(opts.dataOptions...),
@@ -120,15 +121,15 @@ func Asset(asset *assetpb.Asset, options ...AssetOption) error {
 				hardwaredevicevalidate.WithServiceOptions(opts.serviceOptions...),
 			}, opts.hardwareDeviceOptions...)
 
-			return hardwaredevicevalidate.ProcessedHardwareDeviceManifest(v.HardwareDevice, hwdOpts...)
+			return hardwaredevicevalidate.ProcessedHardwareDeviceManifest(ctx, v.HardwareDevice, hwdOpts...)
 		case *processedassetpb.ProcessedAsset_Process:
-			return processvalidate.ProcessAsset(v.Process, opts.processOptions...)
+			return processvalidate.ProcessAsset(ctx, v.Process, opts.processOptions...)
 		case *processedassetpb.ProcessedAsset_SceneObject:
-			return sceneobjectvalidate.ProcessedSceneObjectManifest(v.SceneObject, opts.sceneObjectOptions...)
+			return sceneobjectvalidate.ProcessedSceneObjectManifest(ctx, v.SceneObject, opts.sceneObjectOptions...)
 		case *processedassetpb.ProcessedAsset_Service:
-			return servicevalidate.ProcessedServiceManifest(v.Service, opts.serviceOptions...)
+			return servicevalidate.ProcessedServiceManifest(ctx, v.Service, opts.serviceOptions...)
 		case *processedassetpb.ProcessedAsset_Skill:
-			return skillvalidate.ProcessedSkillManifest(v.Skill, opts.skillOptions...)
+			return skillvalidate.ProcessedSkillManifest(ctx, v.Skill, opts.skillOptions...)
 		default:
 			return fmt.Errorf("unknown local Asset variant: %T", v)
 		}

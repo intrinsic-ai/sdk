@@ -71,7 +71,7 @@ func WithWriter(w io.Writer) WriteOption {
 }
 
 // Write writes a Service .tar bundle.
-func Write(m *smpb.ServiceManifest, path string, options ...WriteOption) error {
+func Write(ctx context.Context, m *smpb.ServiceManifest, path string, options ...WriteOption) error {
 	opts := &writeOptions{}
 	for _, opt := range options {
 		opt(opts)
@@ -127,7 +127,7 @@ func Write(m *smpb.ServiceManifest, path string, options ...WriteOption) error {
 			return fmt.Errorf("failed to create proto files: %w", err)
 		}
 	}
-	if err := servicevalidate.ServiceManifest(m,
+	if err := servicevalidate.ServiceManifest(ctx, m,
 		servicevalidate.WithFiles(files),
 		servicevalidate.WithDefaultConfig(opts.defaultConfig),
 	); err != nil {

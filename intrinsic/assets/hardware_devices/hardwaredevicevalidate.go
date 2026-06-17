@@ -4,6 +4,7 @@
 package hardwaredevicevalidate
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -66,7 +67,7 @@ func WithVerifyLocalAssetsExist(f VerifyLocalAssetsExist) HardwareDeviceManifest
 // metadata:
 // - Verify that the specified Asset type is actually what is stored in the catalog.
 // - Verify that configuration edges have matching source and target nodes.
-func HardwareDeviceManifest(m *hdmpb.HardwareDeviceManifest, options ...HardwareDeviceManifestOption) error {
+func HardwareDeviceManifest(ctx context.Context, m *hdmpb.HardwareDeviceManifest, options ...HardwareDeviceManifestOption) error {
 	opts := &hardwareDeviceManifestOptions{
 		verifyLocalAssetsExist: VerifyLocalAssetsExistOnDisk,
 	}
@@ -152,7 +153,7 @@ func WithReport(report *validationerrors.Report) ProcessedHardwareDeviceManifest
 // metadata:
 // - Verify that the specified Asset type is actually what is stored in the catalog.
 // - Verify that configuration edges have matching source and target nodes.
-func ProcessedHardwareDeviceManifest(pm *hdmpb.ProcessedHardwareDeviceManifest, options ...ProcessedHardwareDeviceManifestOption) error {
+func ProcessedHardwareDeviceManifest(ctx context.Context, pm *hdmpb.ProcessedHardwareDeviceManifest, options ...ProcessedHardwareDeviceManifestOption) error {
 	opts := &processedHardwareDeviceManifestOptions{}
 	WithReport(validationerrors.NewReport())(opts)
 	for _, opt := range options {
@@ -169,7 +170,7 @@ func ProcessedHardwareDeviceManifest(pm *hdmpb.ProcessedHardwareDeviceManifest, 
 	id := idutils.IDFromProtoUnchecked(pm.GetMetadata().GetId())
 
 	// Validate individual Assets.
-	assetInfoMap, err := validateProcessedAssets(pm.GetAssets(), opts)
+	assetInfoMap, err := validateProcessedAssets(ctx, pm.GetAssets(), opts)
 	if err != nil {
 		return fmt.Errorf("invalid processed Assets for %q: %w", id, err)
 	}
@@ -339,7 +340,7 @@ func validateAssets(assets map[string]*hdmpb.HardwareDeviceManifest_Asset, opts 
 	return ai, nil
 }
 
-func validateProcessedAssets(assets map[string]*hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset, opts *processedHardwareDeviceManifestOptions) (map[string]*assetInfo, error) {
+func validateProcessedAssets(ctx context.Context, assets map[string]*hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset, opts *processedHardwareDeviceManifestOptions) (map[string]*assetInfo, error) {
 	ai := make(map[string]*assetInfo)
 	var catalogAssets []*rpb.CatalogAsset
 	for key, asset := range assets {
@@ -355,21 +356,21 @@ func validateProcessedAssets(assets map[string]*hdmpb.ProcessedHardwareDeviceMan
 			}
 			catalogAssets = append(catalogAssets, asset.GetCatalog())
 		case *hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset_Service:
-			if err := servicevalidate.ProcessedServiceManifest(asset.GetService(), opts.serviceOptions...); err != nil {
+			if err := servicevalidate.ProcessedServiceManifest(ctx, asset.GetService(), opts.serviceOptions...); err != nil {
 				return nil, fmt.Errorf("invalid Service %q: %w", key, err)
 			}
 
 			assetType = atpb.AssetType_ASSET_TYPE_SERVICE
 			id = asset.GetService().GetMetadata().GetId()
 		case *hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset_SceneObject:
-			if err := sceneobjectvalidate.ProcessedSceneObjectManifest(asset.GetSceneObject(), opts.sceneObjectOptions...); err != nil {
+			if err := sceneobjectvalidate.ProcessedSceneObjectManifest(ctx, asset.GetSceneObject(), opts.sceneObjectOptions...); err != nil {
 				return nil, fmt.Errorf("invalid SceneObject %q: %w", key, err)
 			}
 
 			assetType = atpb.AssetType_ASSET_TYPE_SCENE_OBJECT
 			id = asset.GetSceneObject().GetMetadata().GetId()
 		case *hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset_Data:
-			if err := datavalidate.DataAsset(asset.GetData(), opts.dataAssetOptions...); err != nil {
+			if err := datavalidate.DataAsset(ctx, asset.GetData(), opts.dataAssetOptions...); err != nil {
 				return nil, fmt.Errorf("invalid Data %q: %w", key, err)
 			}
 

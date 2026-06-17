@@ -4,6 +4,7 @@
 package skillmanifest
 
 import (
+	"context"
 	"fmt"
 
 	"intrinsic/skills/skillmanifest"
@@ -21,7 +22,7 @@ import (
 // LoadManifestAndFileDescriptorSets loads a skill manifest and consolidates multiple file descriptor sets into one.
 // If the file descriptor sets have source code info, then it is stripped for all types not used by
 // the skill manifest.
-func LoadManifestAndFileDescriptorSets(manifestPath string, fdsPaths []string, incompatibleDisallowManifestDependencies bool) (*smpb.SkillManifest, *dpb.FileDescriptorSet, error) {
+func LoadManifestAndFileDescriptorSets(ctx context.Context, manifestPath string, fdsPaths []string, incompatibleDisallowManifestDependencies bool) (*smpb.SkillManifest, *dpb.FileDescriptorSet, error) {
 	fds, err := registryutil.LoadFileDescriptorSets(fdsPaths)
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to build FileDescriptorSet: %v", err)
@@ -42,7 +43,7 @@ func LoadManifestAndFileDescriptorSets(manifestPath string, fdsPaths []string, i
 			return nil, nil, fmt.Errorf("failed to read manifest as binary or text: %v", err)
 		}
 	}
-	if err := skillvalidate.SkillManifest(m,
+	if err := skillvalidate.SkillManifest(ctx, m,
 		skillvalidate.WithFiles(files),
 		skillvalidate.WithIncompatibleDisallowManifestDependencies(incompatibleDisallowManifestDependencies),
 	); err != nil {

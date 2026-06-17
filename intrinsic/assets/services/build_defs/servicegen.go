@@ -4,6 +4,7 @@
 package servicegen
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -50,7 +51,7 @@ func pruneSourceCodeInfo(defaultConfig *anypb.Any, fds *dpb.FileDescriptorSet) e
 }
 
 // CreateServiceBundle creates a Service Asset bundle on disk.
-func CreateServiceBundle(opts *CreateServiceBundleOptions) error {
+func CreateServiceBundle(ctx context.Context, opts *CreateServiceBundleOptions) error {
 	m := &smpb.ServiceManifest{}
 	if err := protoio.ReadTextProto(opts.ManifestPath, m); err != nil {
 		return fmt.Errorf("failed to read manifest: %w", err)
@@ -79,7 +80,7 @@ func CreateServiceBundle(opts *CreateServiceBundleOptions) error {
 	if err := servicefix.Manifest(m, servicefix.WithPopulateOldFields(true)); err != nil {
 		return fmt.Errorf("unable to make manifest compatible with the latest version of the platform: %v", err)
 	}
-	if err := servicebundle.Write(m, opts.OutputBundlePath,
+	if err := servicebundle.Write(ctx, m, opts.OutputBundlePath,
 		servicebundle.WithFileDescriptorSet(fds),
 		servicebundle.WithDefaultConfig(defaultConfig),
 		servicebundle.WithImageTarPaths(opts.ImageTarPaths),

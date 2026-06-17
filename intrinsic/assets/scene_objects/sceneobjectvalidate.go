@@ -4,6 +4,7 @@
 package sceneobjectvalidate
 
 import (
+	"context"
 	"fmt"
 
 	"intrinsic/assets/idutils"
@@ -42,7 +43,7 @@ func WithGZFPaths(gzfPaths map[string]string) SceneObjectManifestOption {
 }
 
 // SceneObjectManifest validates a SceneObjectManifest.
-func SceneObjectManifest(m *sompb.SceneObjectManifest, options ...SceneObjectManifestOption) error {
+func SceneObjectManifest(ctx context.Context, m *sompb.SceneObjectManifest, options ...SceneObjectManifestOption) error {
 	opts := &sceneObjectManifestOptions{}
 	for _, opt := range options {
 		opt(opts)
@@ -91,7 +92,7 @@ func SceneObjectManifest(m *sompb.SceneObjectManifest, options ...SceneObjectMan
 }
 
 type processedSceneObjectManifestOptions struct {
-	report           *validationerrors.Report
+	report    *validationerrors.Report
 }
 
 // ProcessedSceneObjectManifestOption is an option for validating a ProcessedSceneObjectManifest.
@@ -105,7 +106,7 @@ func WithReport(report *validationerrors.Report) ProcessedSceneObjectManifestOpt
 }
 
 // ProcessedSceneObjectManifest validates a ProcessedSceneObjectManifest.
-func ProcessedSceneObjectManifest(m *sompb.ProcessedSceneObjectManifest, options ...ProcessedSceneObjectManifestOption) error {
+func ProcessedSceneObjectManifest(ctx context.Context, m *sompb.ProcessedSceneObjectManifest, options ...ProcessedSceneObjectManifestOption) error {
 	opts := &processedSceneObjectManifestOptions{}
 	WithReport(validationerrors.NewReport())(opts)
 	for _, opt := range options {

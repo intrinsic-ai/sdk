@@ -194,7 +194,7 @@ func TestSceneObjectManifest(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.desc, func(t *testing.T) {
-			err := SceneObjectManifest(tc.m, tc.opts...)
+			err := SceneObjectManifest(t.Context(), tc.m, tc.opts...)
 			if tc.wantErr && err == nil {
 				t.Error("SceneObjectManifest() succeeded, want error")
 			} else if !tc.wantErr && err != nil {
@@ -328,7 +328,7 @@ func TestProcessedSceneObjectManifest(t *testing.T) {
 				desc: "valid cas reference",
 				m:    m,
 				options: []ProcessedSceneObjectManifestOption{
-					WithCASClient(t.Context(), fakeCAS.CASC),
+					WithCASClient(fakeCAS.CASC),
 				},
 			}
 		}(),
@@ -363,7 +363,7 @@ func TestProcessedSceneObjectManifest(t *testing.T) {
 				desc: "invalid cas reference",
 				m:    m,
 				options: []ProcessedSceneObjectManifestOption{
-					WithCASClient(t.Context(), fakeCAS.CASC),
+					WithCASClient(fakeCAS.CASC),
 				},
 				wantErr: true,
 			}
@@ -372,7 +372,7 @@ func TestProcessedSceneObjectManifest(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.desc, func(t *testing.T) {
-			err := ProcessedSceneObjectManifest(tc.m, tc.options...)
+			err := ProcessedSceneObjectManifest(t.Context(), tc.m, tc.options...)
 			if tc.wantErr && err == nil {
 				t.Error("ProcessedSceneObjectManifest() succeeded, want error")
 			} else if !tc.wantErr && err != nil {

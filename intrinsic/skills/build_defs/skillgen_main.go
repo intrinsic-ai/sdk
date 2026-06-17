@@ -4,6 +4,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 
 	"intrinsic/production/intrinsic"
@@ -22,7 +23,8 @@ var (
 func main() {
 	intrinsic.Init()
 
-	if err := skillgen.CreateSkillBundle(&skillgen.CreateSkillBundleOptions{
+	ctx := context.Background()
+	if err := skillgen.CreateSkillBundle(ctx, &skillgen.CreateSkillBundleOptions{
 		ManifestPath:          *manifestPath,
 		FileDescriptorSetPath: *fileDescriptorSetPath,
 		ImageTarPath:          *imageTarPath,

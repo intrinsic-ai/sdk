@@ -4,6 +4,7 @@
 package servicevalidate
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"maps"
@@ -70,7 +71,7 @@ func WithFiles(files *protoregistry.Files) ServiceManifestOption {
 }
 
 // ServiceManifest validates a ServiceManifest.
-func ServiceManifest(m *smpb.ServiceManifest, options ...ServiceManifestOption) error {
+func ServiceManifest(ctx context.Context, m *smpb.ServiceManifest, options ...ServiceManifestOption) error {
 	opts := &serviceManifestOptions{}
 	for _, opt := range options {
 		opt(opts)
@@ -148,7 +149,7 @@ func WithReport(report *validationerrors.Report) ProcessedServiceManifestOption 
 }
 
 // ProcessedServiceManifest validates a ProcessedServiceManifest.
-func ProcessedServiceManifest(m *smpb.ProcessedServiceManifest, options ...ProcessedServiceManifestOption) error {
+func ProcessedServiceManifest(ctx context.Context, m *smpb.ProcessedServiceManifest, options ...ProcessedServiceManifestOption) error {
 	opts := &processedServiceManifestOptions{}
 	WithReport(validationerrors.NewReport())(opts)
 	for _, opt := range options {

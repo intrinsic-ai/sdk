@@ -4,6 +4,7 @@
 package hardwaredevicegen
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -33,7 +34,7 @@ type CreateHardwareDeviceBundleOptions struct {
 }
 
 // CreateHardwareDeviceBundle creates a HardwareDevice Asset bundle on disk.
-func CreateHardwareDeviceBundle(opts *CreateHardwareDeviceBundleOptions) error {
+func CreateHardwareDeviceBundle(ctx context.Context, opts *CreateHardwareDeviceBundleOptions) error {
 	m := &hdmpb.HardwareDeviceManifest{}
 	if err := protoio.ReadTextProto(opts.ManifestPath, m); err != nil {
 		return fmt.Errorf("failed to read manifest: %w", err)
@@ -88,7 +89,7 @@ func CreateHardwareDeviceBundle(opts *CreateHardwareDeviceBundleOptions) error {
 	if err := hardwaredevicefix.Manifest(m, hardwaredevicefix.WithPopulateOldFields(true)); err != nil {
 		return fmt.Errorf("unable to make manifest compatible with the latest version of the platform: %v", err)
 	}
-	if err := hardwaredevicebundle.Write(m, opts.OutputBundlePath); err != nil {
+	if err := hardwaredevicebundle.Write(ctx, m, opts.OutputBundlePath); err != nil {
 		return fmt.Errorf("failed to write HardwareDevice Asset bundle: %w", err)
 	}
 

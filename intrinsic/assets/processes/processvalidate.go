@@ -4,6 +4,7 @@
 package processvalidate
 
 import (
+	"context"
 	"fmt"
 
 	"intrinsic/assets/idutils"
@@ -99,7 +100,7 @@ var (
 )
 
 // ProcessManifest validates a ProcessManifest.
-func ProcessManifest(m *pmpb.ProcessManifest) error {
+func ProcessManifest(ctx context.Context, m *pmpb.ProcessManifest) error {
 	if m == nil {
 		return fmt.Errorf("ProcessManifest must not be nil")
 	}
@@ -148,7 +149,7 @@ func WithReport(report *validationerrors.Report) ProcessAssetOption {
 }
 
 // ProcessAsset validates a ProcessAsset.
-func ProcessAsset(pa *papb.ProcessAsset, options ...ProcessAssetOption) error {
+func ProcessAsset(ctx context.Context, pa *papb.ProcessAsset, options ...ProcessAssetOption) error {
 	opts := &processAssetOptions{}
 	WithReport(validationerrors.NewReport())(opts)
 	for _, opt := range options {
