@@ -1,11 +1,24 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
+load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("//bazel:go_macros.bzl", "go_library", "go_test")
+load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "proto_source_code_info_transitive_descriptor_set")
+
+proto_library(
+    name = "test_messages_proto",
+    srcs = ["test_messages.proto"],
+)
+
+proto_source_code_info_transitive_descriptor_set(
+    name = "test_messages_descriptors",
+    deps = [":test_messages_proto"],
+)
 
 go_library(
     name = "any",
     srcs = [
         "anyresolver.go",
+        "filedescriptorsetresolver.go",
         "greedyresolver.go",
         "installedassetsresolver.go",
         "protoregistryresolver.go",
@@ -22,6 +35,7 @@ go_library(
         "//intrinsic/util/proto:protoio",
         "//intrinsic/util/proto:registryutil",
         "@com_github_masterminds_semver//:semver",
+        "@io_bazel_rules_go//go/runfiles:go_default_library",
         "@org_golang_google_grpc//:grpc",
         "@org_golang_google_grpc//codes:go_default_library",
         "@org_golang_google_grpc//credentials/insecure",
@@ -41,9 +55,13 @@ go_test(
     srcs = [
         "anyresolver_test.go",
         "fakeserver.go",
+        "filedescriptorsetresolver_test.go",
         "greedyresolver_test.go",
         "installedassetsresolver_test.go",
         "protoregistryresolver_test.go",
+    ],
+    data = [
+        ":test_messages_descriptors",
     ],
     embed = [":any"],
     importpath = "intrinsic/httpjson/any_test",

@@ -1,0 +1,23 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+// This file uses proto2 syntax specifically to define custom extensions.
+// Proto3 does not support declaring custom extensions on non-option messages.
+//
+// These extensions are used to test the FindExtensionByName and
+// FindExtensionByNumber capabilities of FileDescriptorSetResolver
+// under isolated, self-contained conditions, without requiring external imports
+// like google/protobuf/descriptor.proto.
+syntax = "proto2";
+
+package intrinsic.httpjson.any.test;
+
+option go_package = "intrinsic/httpjson/any/test";
+
+message TestMessage {
+  optional string value = 1;
+  extensions 100 to max;
+}
+
+extend TestMessage {
+  optional string test_extension = 101;
+}
