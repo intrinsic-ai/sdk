@@ -97,6 +97,8 @@ py_proto_library(
 proto_library(
     name = "solution_version_service_proto",
     srcs = ["solution_version_service.proto"],
+    visibility = [
+    ],
     deps = [
         ":branch_proto",
         ":conflict_proto",
