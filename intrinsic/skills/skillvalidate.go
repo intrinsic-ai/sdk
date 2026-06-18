@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	"intrinsic/assets/dependencies/platform"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/metadatautils"
 	validationerrors "intrinsic/assets/validation/errors"
@@ -78,8 +79,9 @@ func SkillManifest(ctx context.Context, m *smpb.SkillManifest, options ...SkillM
 }
 
 type processedSkillManifestOptions struct {
-	report           *validationerrors.Report
-	requiredRegistry string
+	report                            *validationerrors.Report
+	requiredPlatformSkillDependencies []string
+	requiredRegistry                  string
 }
 
 // ProcessedSkillManifestOption is an option for validating a ProcessedSkillManifest.
@@ -96,6 +98,16 @@ func WithRequiredRegistry(registry string) ProcessedSkillManifestOption {
 func WithReport(report *validationerrors.Report) ProcessedSkillManifestOption {
 	return func(opts *processedSkillManifestOptions) {
 		opts.report = report
+	}
+}
+
+// WithRequiredProvidedToPlatformInterfaces specifies the protocol-prefixed interfaces a Skill must
+// implement to be compatible with the current version of the platform. For example, if called with
+// 'grpc://intrinsic_proto.skills.Executor', the Skill validator will generate an error if the Skill
+// does not provide the Executor gRPC service to the platform.
+func WithRequiredProvidedToPlatformInterfaces(required ...string) ProcessedSkillManifestOption {
+	return func(opts *processedSkillManifestOptions) {
+		opts.requiredPlatformSkillDependencies = append(opts.requiredPlatformSkillDependencies, required...)
 	}
 }
 
@@ -139,6 +151,12 @@ func ProcessedSkillManifest(ctx context.Context, m *psmpb.ProcessedSkillManifest
 		}
 	}
 
+	if len(opts.requiredPlatformSkillDependencies) > 0 {
+		if err := validatePlatformSkillDependencies(m, opts.requiredPlatformSkillDependencies); err != nil {
+			return fmt.Errorf("invalid platform skill dependencies: %w", err)
+		}
+	}
+
 	return nil
 }
 
@@ -165,6 +183,29 @@ func validateSkillDetails(sd *psmpb.SkillDetails, opts *validateSkillDetailsOpti
 	if name := sd.GetExecuteResult().GetMessageFullName(); name != "" {
 		if _, err := opts.files.FindDescriptorByName(protoreflect.FullName(name)); err != nil {
 			return fmt.Errorf("cannot find return type message %q: %w", name, err)
+		}
+	}
+	return nil
+}
+
+func validatePlatformSkillDependencies(manifest *psmpb.ProcessedSkillManifest, required []string) error {
+	interfaces := platform.ProvidedByProcessedSkillManifest(manifest)
+
+	// provided is a map where keys are required interfaces and values indicate whether the Skill
+	// provides them.
+	provided := make(map[string]bool, len(required))
+	for _, r := range required {
+		provided[r] = false
+	}
+	for _, iface := range interfaces {
+		ifaceURI := iface.GetUri()
+		if _, ok := provided[ifaceURI]; ok {
+			provided[ifaceURI] = true
+		}
+	}
+	for uri, found := range provided {
+		if !found {
+			return fmt.Errorf("this platform version requires that each Skill provide %q", uri)
 		}
 	}
 	return nil

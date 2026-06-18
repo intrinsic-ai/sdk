@@ -32,7 +32,22 @@ const (
 	DynamicReconfigurationV1Name = "intrinsic_proto.services.v1.DynamicReconfiguration"
 	// ServiceStateV1Name is the proto name of the v1 ServiceState service.
 	ServiceStateV1Name = "intrinsic_proto.services.v1.ServiceState"
+
+	// ProjectorName is the proto name of the Projector service.
+	ProjectorName = "intrinsic_proto.skills.Projector"
+	// ExecutorName is the proto name of the Executor service.
+	ExecutorName = "intrinsic_proto.skills.Executor"
+	// SkillInformationName is the proto name of the SkillInformation service.
+	SkillInformationName = "intrinsic_proto.skills.SkillInformation"
 )
+
+// SkillRequiredProvidedToPlatformInterfaces lists the interfaces that a Skill must provide to be
+// compatible with the current platform version.
+var SkillRequiredProvidedToPlatformInterfaces = []string{
+	interfaceutils.GRPCURIPrefix + ProjectorName,
+	interfaceutils.GRPCURIPrefix + ExecutorName,
+	interfaceutils.GRPCURIPrefix + SkillInformationName,
+}
 
 // ProvidedByProcessedSkillManifest lists the interfaces the Skill provides to the platform.
 func ProvidedByProcessedSkillManifest(manifest *pskmpb.ProcessedSkillManifest) []*metadatapb.Interface {
@@ -59,11 +74,11 @@ func providedBySkillOptions(options *skmpb.Options) []*metadatapb.Interface {
 		var name string
 		switch v {
 		case skmpb.SkillServicesConfig_INTRINSIC_PROTO_SKILLS_PROJECTOR:
-			name = interfaceutils.GRPCURIPrefix + "intrinsic_proto.skills.Projector"
+			name = interfaceutils.GRPCURIPrefix + ProjectorName
 		case skmpb.SkillServicesConfig_INTRINSIC_PROTO_SKILLS_EXECUTOR:
-			name = interfaceutils.GRPCURIPrefix + "intrinsic_proto.skills.Executor"
+			name = interfaceutils.GRPCURIPrefix + ExecutorName
 		case skmpb.SkillServicesConfig_INTRINSIC_PROTO_SKILLS_SKILL_INFORMATION:
-			name = interfaceutils.GRPCURIPrefix + "intrinsic_proto.skills.SkillInformation"
+			name = interfaceutils.GRPCURIPrefix + SkillInformationName
 		default:
 			continue
 		}
