@@ -157,26 +157,35 @@ func WriteBinaryProto(path string, p proto.Message, opts ...BinaryWriteOption) e
 	return nil
 }
 
-// WriteStableTextProto writes out a textproto that has been formatted by
-// standard formatting txtpbfmt, and thus is stable to use in build rules.
-func WriteStableTextProto(path string, p proto.Message, opts ...TextWriteOption) error {
+// StableTextProto returns a textproto string that has been formatted by
+// standard formatting txtpbfmt, and thus is stable.
+func StableTextProto(p proto.Message, opts ...TextWriteOption) (string, error) {
 	options := new(prototext.MarshalOptions)
 	for _, opt := range opts {
 		opt(options)
 	}
 	b, err := options.Marshal(p)
 	if err != nil {
-		return fmt.Errorf("failed to serialize: %v", err)
+		return "", fmt.Errorf("failed to serialize: %w", err)
 	}
 	b, err = parser.FormatWithConfig(b, config.Config{
 		ExpandAllChildren: true,
 		SkipAllColons:     true,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to format: %v", err)
+		return "", fmt.Errorf("failed to format: %w", err)
 	}
+	return string(b), nil
+}
 
-	if err := os.WriteFile(path, b, 0o644); err != nil {
+// WriteStableTextProto writes out a textproto that has been formatted by
+// standard formatting txtpbfmt, and thus is stable to use in build rules.
+func WriteStableTextProto(path string, p proto.Message, opts ...TextWriteOption) error {
+	s, err := StableTextProto(p, opts...)
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(path, []byte(s), 0o644); err != nil {
 		return fmt.Errorf("failed to write file: %v", err)
 	}
 	return nil
