@@ -36,14 +36,14 @@ bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "protobuf", version = "30.1", repo_name = "com_google_protobuf")
 bazel_dep(name = "rules_go", version = "0.55.1", repo_name = "io_bazel_rules_go")
 bazel_dep(name = "rules_pkg", version = "1.1.0")
-bazel_dep(name = "rules_python", version = "1.4.1")
+bazel_dep(name = "rules_python", version = "1.9.1")
 
 # C++ toolchain
-bazel_dep(name = "toolchains_llvm", version = "1.4.0")
+bazel_dep(name = "toolchains_llvm", version = "1.7.0")
 
 llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
 llvm.toolchain(
-    llvm_version = "20.1.2",
+    llvm_version = "21.1.0",
 )
 
 non_module_deps = use_extension("@ai_intrinsic_sdks//bazel:non_module_deps.bzl", "non_module_deps_ext")
@@ -57,8 +57,8 @@ use_repo(llvm, "llvm_toolchain")
 
 register_toolchains("@llvm_toolchain//:all")
 
-bazel_dep(name = "rules_cc", version = "0.1.2")
-bazel_dep(name = "rules_foreign_cc", version = "0.15.0")
+bazel_dep(name = "rules_cc", version = "0.2.19")
+bazel_dep(name = "rules_foreign_cc", version = "0.15.1")
 
 # Google API bindings
 bazel_dep(name = "googleapis", version = "0.0.0-20240819-fe8ba054a", repo_name = "com_google_googleapis")
