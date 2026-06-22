@@ -371,14 +371,11 @@ py_library(
 )
 
 py_test(
-    name = "proto_building_test",
-    srcs = ["proto_building_test.py"],
+    name = "proto_building_external_test",
+    srcs = ["proto_building_external_test.py"],
     deps = [
-        ":errors",
         ":proto_building",
         "//intrinsic/executive/proto:proto_builder_py_pb2",
-        "//intrinsic/solutions/testing:compare",
-        "//intrinsic/util/proto:descriptors_py",
         "@com_google_absl_py//absl/testing:absltest",
         "@com_google_protobuf//:protobuf_python",
     ],
