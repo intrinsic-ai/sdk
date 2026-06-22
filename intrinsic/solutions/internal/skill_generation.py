@@ -782,83 +782,13 @@ class GeneratedSkill(provided.SkillBase):
 
     Returns:
       List of keys in arguments consumed as parameters.
-
-    Raises:
-      TypeError: If passing a value that does not match a field's type
-      ValueError: If passing a negative value for a UINT64 field
-      KeyError: If failing to provide a value for any skill argument
     """
-    params_set = []
-
+    consumed_args = []
     if self._param_message is not None:
-      fields = {}
-      for param_name, value in kwargs.items():
-        if param_name in self._param_message.DESCRIPTOR.fields_by_name:
-          # Mark None values as recognized, since Skill parameters in the
-          # constructor can be initialized with None.
-          if value is None:
-            params_set.append(param_name)
-            continue
-
-          if isinstance(value, blackboard_value.BlackboardValue):
-            self._blackboard_params[param_name] = value.value_access_path()
-            continue
-
-          if isinstance(value, cel.CelExpression):
-            self._blackboard_params[param_name] = str(value)
-            continue
-
-          fields[param_name] = value
-          if isinstance(value, skill_utils.MessageWrapper):
-            for k, v in value.blackboard_params.items():
-              self._blackboard_params[param_name + "." + k] = v
-
-          if isinstance(value, list):
-            if value and (
-                isinstance(value[0], skill_utils.MessageWrapper)
-                or isinstance(value[0], blackboard_value.BlackboardValue)
-                or isinstance(value[0], cel.CelExpression)
-            ):
-              # Guard this check for list non-scalar list values to allow
-              # assigning a VectorNd from a list[float].
-              if not self._param_message.DESCRIPTOR.fields_by_name[
-                  param_name
-              ].is_repeated:
-                raise TypeError(
-                    f"Cannot set field {param_name} to list, not a repeated"
-                    " field"
-                )
-            for i, listelem in enumerate(value):
-              if isinstance(listelem, skill_utils.MessageWrapper):
-                for k, v in listelem.blackboard_params.items():
-                  self._blackboard_params[param_name + f"[{i}]." + k] = v
-              elif isinstance(listelem, blackboard_value.BlackboardValue):
-                self._blackboard_params[param_name + f"[{i}]"] = (
-                    listelem.value_access_path()
-                )
-              elif isinstance(listelem, cel.CelExpression):
-                self._blackboard_params[param_name + f"[{i}]"] = str(listelem)
-
-          if isinstance(value, dict):
-            field = self._param_message.DESCRIPTOR.fields_by_name[param_name]
-            if (
-                not field.is_repeated
-                or field.type != descriptor.FieldDescriptor.TYPE_MESSAGE
-                or not field.message_type.GetOptions().map_entry
-            ):
-              raise TypeError(
-                  f"Cannot set field {param_name} to dict, not a map field"
-              )
-
-      applied_params = skill_utils.set_fields_in_msg(
-          self._param_message, fields
+      consumed_args = skill_utils.set_params(
+          self._param_message, self._blackboard_params, kwargs
       )
-      # Extend params_set rather than overwriting it. This preserves any None
-      # valued parameters that were registered as recognized in the loop above.
-      params_set.extend(applied_params)
-      params_set.extend(self._blackboard_params.keys())
-
-    return params_set
+    return consumed_args
 
   def _set_return_value_key(self, **kwargs) -> list[str]:
     """Set return value key, if provided.

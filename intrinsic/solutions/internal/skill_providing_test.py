@@ -1100,16 +1100,19 @@ class SkillsTest(parameterized.TestCase):
     compare.assertProto2Equal(self, expected_proto, m.wrapped_message)
 
     # Assignment to unknown field should fail
-    with self.assertRaisesRegex(KeyError, 'not_a_field.*does not exist'):
+    with self.assertRaisesRegex(
+        KeyError, 'also_not_a_field.*not_a_field.*do not exist'
+    ):
       skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.SubMessage(
-          not_a_field='hello'
+          not_a_field='hello',
+          also_not_a_field=42,
       )
 
     blackboard_test_value = blackboard_value.BlackboardValue(
         {}, 'test', None, None
     )
     # Assigning blackboard value to unknown field should fail
-    with self.assertRaisesRegex(KeyError, 'not_a_field.*does not exist'):
+    with self.assertRaisesRegex(KeyError, 'not_a_field.*do not exist'):
       skills.ai.intrinsic.my_skill.intrinsic_proto.test_data.SubMessage(
           not_a_field=blackboard_test_value
       )

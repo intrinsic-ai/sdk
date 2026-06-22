@@ -533,7 +533,7 @@ def set_fields_in_msg(
       msg.
   """
   field_descriptor_map = msg.DESCRIPTOR.fields_by_name
-  params_set = []
+  consumed_fields = []
 
   for field_name in fields.keys():
     if field_name not in field_descriptor_map:
@@ -552,13 +552,14 @@ def set_fields_in_msg(
   for field_name, arg_value in fields.items():
     if arg_value is None:
       msg.ClearField(field_name)
-      params_set.append(field_name)
+      consumed_fields.append(field_name)
       continue
 
     if isinstance(
         arg_value, blackboard_value.BlackboardValue | cel.CelExpression
     ):
       continue
+
     field_desc = field_descriptor_map[field_name]
     field_type = field_desc.type
     field_message_type = field_desc.message_type
@@ -661,8 +662,100 @@ def set_fields_in_msg(
               type(getattr(msg, field_name)),
           )
       )
-    params_set.append(field_name)
-  return params_set
+    consumed_fields.append(field_name)
+  return consumed_fields
+
+
+def set_params(
+    param_message: message.Message,
+    blackboard_params: dict[str, str],
+    args: dict[str, Any],
+) -> list[str]:
+  """Sets the parameters in the given msg and blackboard params.
+
+  Regular values will be directly set in the given message and BlackboardValues
+  and CelExpressions will be added as assigments to 'blackboard_params'.
+
+  Args:
+    param_message: Protobuf message to set fields of.
+    blackboard_params: Mapping from parameter paths to CEL expressions to which
+      to add additional assignments.
+
+  Returns:
+    List of keys in args which were successfully consumed by this method.
+
+  Raises:
+    TypeError: If one of the args has an invalid type.
+  """
+  consumed_args = []
+  param_message_descriptor = cast(
+      descriptor.Descriptor, param_message.DESCRIPTOR
+  )
+
+  fields: dict[str, Any] = {}
+  for param_name, value in args.items():
+    if param_name in param_message_descriptor.fields_by_name:
+      # Explicitly passing None means "use default value", nothing to do here.
+      if value is None:
+        consumed_args.append(param_name)
+        continue
+
+      if isinstance(value, blackboard_value.BlackboardValue):
+        blackboard_params[param_name] = value.value_access_path()
+        consumed_args.append(param_name)
+        continue
+
+      if isinstance(value, cel.CelExpression):
+        blackboard_params[param_name] = str(value)
+        consumed_args.append(param_name)
+        continue
+
+      fields[param_name] = value
+
+      if isinstance(value, MessageWrapper):
+        for k, v in value.blackboard_params.items():
+          blackboard_params[param_name + "." + k] = v
+
+      if isinstance(value, list):
+        if value and (
+            isinstance(value[0], MessageWrapper)
+            or isinstance(value[0], blackboard_value.BlackboardValue)
+            or isinstance(value[0], cel.CelExpression)
+        ):
+          # Guard this check for list non-scalar list values to allow
+          # assigning a VectorNd from a list[float].
+          if not param_message_descriptor.fields_by_name[
+              param_name
+          ].is_repeated:
+            raise TypeError(
+                f"Cannot set field {param_name} to list, not a repeated field"
+            )
+        for i, listelem in enumerate(value):
+          if isinstance(listelem, MessageWrapper):
+            for k, v in listelem.blackboard_params.items():
+              blackboard_params[param_name + f"[{i}]." + k] = v
+          elif isinstance(listelem, blackboard_value.BlackboardValue):
+            blackboard_params[param_name + f"[{i}]"] = (
+                listelem.value_access_path()
+            )
+          elif isinstance(listelem, cel.CelExpression):
+            blackboard_params[param_name + f"[{i}]"] = str(listelem)
+
+      if isinstance(value, dict):
+        field = param_message_descriptor.fields_by_name[param_name]
+        if (
+            not field.is_repeated
+            or field.type != descriptor.FieldDescriptor.TYPE_MESSAGE
+            or not field.message_type.GetOptions().map_entry
+        ):
+          raise TypeError(
+              f"Cannot set field {param_name} to dict, not a map field"
+          )
+
+  params_consumed_by_set_fields = set_fields_in_msg(param_message, fields)
+  consumed_args.extend(params_consumed_by_set_fields)
+
+  return consumed_args
 
 
 def determine_failed_generate_proto_infra_from_filedescriptorset(
@@ -843,96 +936,21 @@ class MessageWrapper:
     )
     return any_msg
 
-  def _set_params(self, **kwargs) -> list[str]:
-    """Set parameters of message.
-
-    Args:
-      **kwargs: Map from field name to value as specified by the message.
-        Unknown arguments are silently ignored.
-
-    Returns:
-      List of keys in arguments consumed as fields.
-    Raises:
-      TypeError: If passing a value that does not match a field's type.
-      KeyError: If failing to provide a value for any skill argument.
-    """
-    consumed = []
-    for param_name, value in kwargs.items():
-      self._set_parameter(param_name, value, consumed)
-    return consumed
-
-  def _set_parameter(
-      self, key: str, value: Any, consumed: Optional[list[str]] = None
-  ):
-    """Sets a single parameter of the message.
-
-    Args:
-      key: The parameter name.
-      value: The value for the parameter.
-      consumed: List of consumed parameters to append the key to in case it was
-        consumed.
-
-    Raises:
-      KeyError: If a set of fields in fields would apply to the same oneof in
-      msg.
-      TypeError: If passing a value that does not match a field's type.
-    """
+  def _set_parameter(self, key: str, value: Any):
     if self.wrapped_message is None:
       raise ValueError(
           f"Cannot set field {key} as the wrapped message is None."
       )
 
-    msg = self.wrapped_message
-    if msg is not None and key not in msg.DESCRIPTOR.fields_by_name:
+    consumed = set_params(
+        self.wrapped_message, self._blackboard_params, {key: value}
+    )
+
+    if not consumed:
       raise KeyError(
           f'Field "{key}" does not exist in message'
-          f' "{msg.DESCRIPTOR.full_name}".'
+          f' "{self.wrapped_message.DESCRIPTOR.full_name}".'
       )
-
-    if self._process_blackboard_params(key, value, consumed):
-      return
-    if isinstance(value, list):
-      for index, entry in enumerate(value):
-        self._process_blackboard_params(f"{key}[{index}]", entry, consumed)
-
-    fields = set_fields_in_msg(self.wrapped_message, {key: value})
-    if consumed is not None:
-      consumed.extend(fields)
-
-  def _process_blackboard_params(
-      self, key: str, value: Any, consumed: Optional[list[str]] = None
-  ) -> bool:
-    """Adds a parameter mapping in case the value is a blackboard parameter.
-
-    Parameters which will be provided during runtime by the blackboard are not
-    part of the parameter proto directly but need to be specified separately.
-
-    Args:
-      key: The parameter name.
-      value: The value for the parameter.
-      consumed: List of already consumed parameters, to ensure no missing
-        parameters.
-
-    Returns:
-      True if the value requires no further processing, False otherwise.
-    """
-
-    if isinstance(value, blackboard_value.BlackboardValue):
-      self._blackboard_params[key] = value.value_access_path()
-      if consumed is not None:
-        consumed.append(key)
-      return True
-
-    elif isinstance(value, cel.CelExpression):
-      self._blackboard_params[key] = str(value)
-      if consumed is not None:
-        consumed.append(key)
-      return True
-
-    elif isinstance(value, MessageWrapper):
-      for k, v in value.blackboard_params.items():
-        self._blackboard_params[key + "." + k] = v
-    return False
 
   @property
   def wrapped_message(self) -> Optional[message.Message]:
@@ -1036,11 +1054,18 @@ def _gen_init_fun(
   def new_init_fun(self, **kwargs) -> None:
     MessageWrapper.__init__(self)  # pytype: disable=wrong-arg-count
     self._wrapped_message = wrapped_type()  # pylint: disable=protected-access
-    params_set = self._set_params(**kwargs)  # pylint: disable=protected-access
+    params_set = set_params(
+        self._wrapped_message,  # pylint: disable=protected-access
+        self._blackboard_params,  # pylint: disable=protected-access
+        kwargs,
+    )
     # Arguments which are not expected parameters.
     extra_args_set = set(kwargs.keys()) - set(params_set)
     if extra_args_set:
-      raise NameError(f"Unknown argument(s): {', '.join(extra_args_set)}")
+      raise KeyError(
+          f'Fields {{{", ".join(sorted(extra_args_set))}}} do not exist in'
+          f' message "{self._wrapped_message.DESCRIPTOR.full_name}".'
+      )
 
   params = [
       inspect.Parameter(
