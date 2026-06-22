@@ -444,6 +444,11 @@ func (r *CreateCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 		flagSkipGenerate = true
 	}
 
+	cluster := resolveCluster(createParams)
+	if cluster == "" {
+		return fail(fmt.Errorf("must provide --cluster"))
+	}
+
 	startTime, endTime, err := parseAndValidateRecordingTimestamps(cmd)
 	if err != nil {
 		return fail(err)
@@ -484,13 +489,13 @@ func (r *CreateCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 	}
 
 	fmt.Fprintln(out)
-	resp, err := sendCreateLocalRecordingRequest(ctx, out, loggerClient, req, flagWorkcellName)
+	resp, err := sendCreateLocalRecordingRequest(ctx, out, loggerClient, req, cluster)
 	if err != nil {
 		return fail(err)
 	}
 
 	bagID := resp.GetBag().GetBagId()
-	color.C.BlueBackground().White().Fprintf(out, "\nSuccessfully created recording on %q - Recording ID: %s", flagWorkcellName, bagID)
+	color.C.BlueBackground().White().Fprintf(out, "\nSuccessfully created recording on %q - Recording ID: %s", cluster, bagID)
 	fmt.Fprint(out, "\n\n")
 
 	printRecordingMetadata(out, duration, startTime, endTime, desc, includedFlags, resp.GetBag())
@@ -559,7 +564,8 @@ func NewCreateCmd(runner *CreateCmdRunner) *cobra.Command {
 	if runner == nil {
 		runner = &CreateCmdRunner{
 			NewDataLoggerClient: func(cmd *cobra.Command) (loggerpb.DataLoggerClient, io.Closer, error) {
-				conn, err := auth.NewCloudConnection(cmd.Context(), auth.WithFlagValues(createParams), auth.WithCluster(flagWorkcellName))
+				cluster := resolveCluster(createParams)
+				conn, err := auth.NewCloudConnection(cmd.Context(), auth.WithFlagValues(createParams), auth.WithCluster(cluster))
 				if err != nil {
 					return nil, nil, err
 				}
@@ -586,34 +592,36 @@ func NewCreateCmd(runner *CreateCmdRunner) *cobra.Command {
 
 	createCmd := &cobra.Command{
 		Use:   "create",
-		Short: "Creates a new recording directly on the workcell",
-		Long:  "Creates a new recording directly on the workcell using the DataLogger API. You can specify exact times and content groupings.\n\nLimits:\n  - Mixed data (anything beyond text-logs or flowstate-data) will fail if it exceeds a maximum of 10 minutes.\n  - Text/flowstate-only data will fail if it exceeds a maximum of 24 hours.",
+		Short: "Creates a new recording directly on the cluster",
+		Long:  "Creates a new recording directly on the cluster using the DataLogger API. You can specify exact times and content groupings.\n\nLimits:\n  - Mixed data (anything beyond text-logs or flowstate-data) will fail if it exceeds a maximum of 10 minutes.\n  - Text/flowstate-only data will fail if it exceeds a maximum of 24 hours.",
 		Args:  cobra.NoArgs,
 		RunE:  runner.RunE,
 		Example: `  # Create a default recording (all data) for the last 5 minutes
-  inctl recordings create --workcell my-workcell --org my-org
+  inctl recordings create --cluster my-cluster --org my-org
 
   # Create a recording containing everything, with a custom timeframe in UTC (answer yes on prompt)
-  inctl recordings create --workcell my-workcell --org my-org \
+  inctl recordings create --cluster my-cluster --org my-org \
     --start_timestamp 2024-08-20T12:00:00Z \
     --end_timestamp 2024-08-20T12:05:00Z
 
   # Create a recording with a custom timeframe in a specific timezone (e.g. PST, -07:00)
-  inctl recordings create --workcell my-workcell --org my-org \
+  inctl recordings create --cluster my-cluster --org my-org \
     --start_timestamp 2024-08-20T12:00:00-07:00 \
     --end_timestamp 2024-08-20T12:05:00-07:00
 
   # Record only text logs plus a specific custom event source
-  inctl recordings create --workcell my-workcell --include_text_logs --additional_event_sources "^/my/custom/topic$"
+  inctl recordings create --cluster my-cluster --include_text_logs --additional_event_sources "^/my/custom/topic$"
 
   # Record multiple custom data sources using multiple flags or regex
-  inctl recordings create --workcell my-workcell \
+  inctl recordings create --cluster my-cluster \
     --additional_event_sources "^/my/custom/topic1$" \
     --additional_event_sources "^/my/custom/topic2/.*"`,
 	}
 
 	flags := createCmd.Flags()
-	flags.StringVar(&flagWorkcellName, "workcell", "", "The Kubernetes cluster to use.")
+	flags.StringVar(&flagClusterName, "cluster", "", "The Kubernetes cluster to use.")
+	flags.StringVar(&flagWorkcellName, "workcell", "", "The Kubernetes cluster to use. (Deprecated: use --cluster)")
+	createCmd.Flags().MarkDeprecated("workcell", "use --cluster instead")
 	flags.StringVar(&flagStartTimestamp, "start_timestamp", "", "Start timestamp in RFC3339 format for fetching recordings. eg. 2024-08-20T12:00:00Z (UTC) or 2024-08-20T12:00:00-07:00 (UTC-7)")
 	flags.StringVar(&flagEndTimestamp, "end_timestamp", "", "End timestamp in RFC3339 format for fetching recordings. eg. 2024-08-20T12:00:00Z (UTC) or 2024-08-20T12:00:00-07:00 (UTC-7)")
 	flags.StringVar(&flagDescription, "description", "", "A human-readable description for the recording.")
@@ -632,7 +640,11 @@ func NewCreateCmd(runner *CreateCmdRunner) *cobra.Command {
 	}
 	flags.StringSliceVar(&flagAdditionalEventSources, "additional_event_sources", []string{}, "Custom RE2 regex patterns of event sources to record.")
 
-	createCmd.MarkFlagRequired("workcell")
+	// Bind flags to Viper to support environment variables and handle the deprecated --workcell flag.
+	createParams.SetEnvPrefix("intrinsic")
+	createParams.BindPFlag("cluster", flags.Lookup("cluster"))
+	createParams.BindEnv("cluster")
+	createParams.BindPFlag("workcell", flags.Lookup("workcell"))
 
 	return orgutil.WrapCmd(createCmd, createParams, orgutil.WithOrgExistsCheck(func() bool { return checkOrgExists }))
 }

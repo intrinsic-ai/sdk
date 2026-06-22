@@ -7,6 +7,7 @@ import (
 	"intrinsic/tools/inctl/cmd/root"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // Exposed for testing
@@ -33,4 +34,14 @@ var RecordingsCmd = &cobra.Command{
 
 func init() {
 	root.RootCmd.AddCommand(RecordingsCmd)
+}
+
+// resolveCluster returns the cluster name, preferring the "cluster" parameter
+// and falling back to the deprecated "workcell" parameter.
+func resolveCluster(params *viper.Viper) string {
+	cluster := params.GetString("cluster")
+	if cluster == "" {
+		cluster = params.GetString("workcell")
+	}
+	return cluster
 }

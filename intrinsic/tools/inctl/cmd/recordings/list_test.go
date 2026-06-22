@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -39,7 +40,7 @@ func (m *mockBagPackagerClientForList) ListBags(ctx context.Context, in *pb.List
 func TestListRecordingsE(t *testing.T) {
 	const (
 		testOrg        = "test-org"
-		testWorkcell   = "test-workcell"
+		testCluster    = "test-cluster"
 		testRecording1 = "recording-1"
 		testRecording2 = "recording-2"
 	)
@@ -47,6 +48,7 @@ func TestListRecordingsE(t *testing.T) {
 	tests := []struct {
 		name         string
 		args         []string
+		setup        func(t *testing.T)
 		listBagsFunc func(ctx context.Context, in *pb.ListBagsRequest, opts ...grpc.CallOption) (*pb.ListBagsResponse, error)
 		promptResp   string
 		wantErr      string
@@ -54,8 +56,9 @@ func TestListRecordingsE(t *testing.T) {
 	}{
 		{
 			name: "Successful list",
-			args: []string{"--workcell", testWorkcell, "--org", testOrg},
+			args: []string{"--cluster", testCluster, "--org", testOrg},
 			listBagsFunc: func(ctx context.Context, in *pb.ListBagsRequest, opts ...grpc.CallOption) (*pb.ListBagsResponse, error) {
+				assert.Equal(t, testCluster, in.GetListQuery().GetWorkcellName())
 				return &pb.ListBagsResponse{
 					Bags: []*pb.BagRecord{
 						{BagMetadata: &bmpb.BagMetadata{BagId: testRecording1, StartTime: timestamppb.Now(), EndTime: timestamppb.Now()}},
@@ -67,15 +70,16 @@ func TestListRecordingsE(t *testing.T) {
 		},
 		{
 			name: "No recordings found",
-			args: []string{"--workcell", testWorkcell, "--org", testOrg},
+			args: []string{"--cluster", testCluster, "--org", testOrg},
 			listBagsFunc: func(ctx context.Context, in *pb.ListBagsRequest, opts ...grpc.CallOption) (*pb.ListBagsResponse, error) {
+				assert.Equal(t, testCluster, in.GetListQuery().GetWorkcellName())
 				return &pb.ListBagsResponse{Bags: []*pb.BagRecord{}}, nil
 			},
 			wantOut: "No recordings found",
 		},
 		{
 			name: "List bags error",
-			args: []string{"--workcell", testWorkcell, "--org", testOrg},
+			args: []string{"--cluster", testCluster, "--org", testOrg},
 			listBagsFunc: func(ctx context.Context, in *pb.ListBagsRequest, opts ...grpc.CallOption) (*pb.ListBagsResponse, error) {
 				return nil, errors.New("gRPC error")
 			},
@@ -83,12 +87,13 @@ func TestListRecordingsE(t *testing.T) {
 		},
 		{
 			name: "Pagination with continue",
-			args: []string{"--workcell", testWorkcell, "--org", testOrg},
+			args: []string{"--cluster", testCluster, "--org", testOrg},
 			listBagsFunc: func() func(context.Context, *pb.ListBagsRequest, ...grpc.CallOption) (*pb.ListBagsResponse, error) {
 				callCount := 0
 				return func(ctx context.Context, in *pb.ListBagsRequest, opts ...grpc.CallOption) (*pb.ListBagsResponse, error) {
 					callCount++
 					if callCount == 1 {
+						assert.Equal(t, testCluster, in.GetListQuery().GetWorkcellName())
 						return &pb.ListBagsResponse{
 							Bags:           []*pb.BagRecord{{BagMetadata: &bmpb.BagMetadata{BagId: testRecording1, StartTime: timestamppb.Now(), EndTime: timestamppb.Now()}}},
 							NextPageCursor: []byte("next-page"),
@@ -104,7 +109,7 @@ func TestListRecordingsE(t *testing.T) {
 		},
 		{
 			name: "JSON output returns correctly structured data without prompts",
-			args: []string{"--workcell", testWorkcell, "--org", testOrg, "--cursor", "bXktY3Vyc29y"},
+			args: []string{"--cluster", testCluster, "--org", testOrg, "--cursor", "bXktY3Vyc29y"},
 			listBagsFunc: func(ctx context.Context, in *pb.ListBagsRequest, opts ...grpc.CallOption) (*pb.ListBagsResponse, error) {
 				return &pb.ListBagsResponse{
 					Bags: []*pb.BagRecord{
@@ -114,6 +119,32 @@ func TestListRecordingsE(t *testing.T) {
 				}, nil
 			},
 			wantOut: `"status": "success"`,
+		},
+		{
+			name: "Backward compatibility with --workcell",
+			args: []string{"--workcell", testCluster, "--org", testOrg},
+			listBagsFunc: func(ctx context.Context, in *pb.ListBagsRequest, opts ...grpc.CallOption) (*pb.ListBagsResponse, error) {
+				assert.Equal(t, testCluster, in.GetListQuery().GetWorkcellName())
+				return &pb.ListBagsResponse{Bags: []*pb.BagRecord{}}, nil
+			},
+			wantOut: "No recordings found",
+		},
+		{
+			name: "Support INTRINSIC_CLUSTER env var",
+			args: []string{"--org", testOrg},
+			setup: func(t *testing.T) {
+				t.Setenv("INTRINSIC_CLUSTER", "env-cluster")
+			},
+			listBagsFunc: func(ctx context.Context, in *pb.ListBagsRequest, opts ...grpc.CallOption) (*pb.ListBagsResponse, error) {
+				assert.Equal(t, "env-cluster", in.GetListQuery().GetWorkcellName())
+				return &pb.ListBagsResponse{Bags: []*pb.BagRecord{}}, nil
+			},
+			wantOut: "No recordings found",
+		},
+		{
+			name:    "Missing cluster error",
+			args:    []string{"--org", testOrg},
+			wantErr: "must provide --cluster",
 		},
 	}
 
@@ -125,6 +156,16 @@ func TestListRecordingsE(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			listParams = viper.New()
+
+			if tc.setup != nil {
+				tc.setup(t)
+			}
+
+			originalFlagClusterName := flagClusterName
+			t.Cleanup(func() { flagClusterName = originalFlagClusterName })
+			flagClusterName = ""
+
 			originalFlagWorkcellName := flagWorkcellName
 			t.Cleanup(func() { flagWorkcellName = originalFlagWorkcellName })
 			flagWorkcellName = ""

@@ -26,7 +26,8 @@ var (
 	flagStartTimestamp string
 	flagEndTimestamp   string
 	flagMaxNumResults  uint32
-	flagWorkcellName   string
+	flagClusterName    string
+	flagWorkcellName   string // Deprecated
 	flagCursor         string
 )
 
@@ -68,26 +69,33 @@ func NewListCmd(runner *ListCmdRunner) *cobra.Command {
 	listCmd := &cobra.Command{
 		Use:     "list",
 		Aliases: []string{"ls"},
-		Short:   "Lists available recordings for a given workcell",
-		Long:    "Lists available recordings for a given workcell",
+		Short:   "Lists available recordings for a given cluster",
+		Long:    "Lists available recordings for a given cluster",
 		Args:    cobra.NoArgs,
 		RunE:    runner.RunE,
 		Example: `  # List the latest recordings
-  inctl recordings list --workcell my-workcell --org my-org
+  inctl recordings list --cluster my-cluster --org my-org
 
   # List recordings generated since a specific time
-  inctl recordings list --workcell my-workcell --org my-org \
+  inctl recordings list --cluster my-cluster --org my-org \
     --start_timestamp 2024-08-20T12:00:00Z \
     --end_timestamp 2024-08-20T14:00:00Z`,
 	}
 
 	flags := listCmd.Flags()
-	flags.StringVar(&flagWorkcellName, "workcell", "", "The Kubernetes cluster to use.")
+	flags.StringVar(&flagClusterName, "cluster", "", "The Kubernetes cluster to use.")
+	flags.StringVar(&flagWorkcellName, "workcell", "", "The Kubernetes cluster to use. (Deprecated: use --cluster)")
+	listCmd.Flags().MarkDeprecated("workcell", "use --cluster instead")
 	flags.StringVar(&flagStartTimestamp, "start_timestamp", "", "Start timestamp in RFC3339 format for fetching recordings. eg. 2024-08-20T12:00:00Z")
 	flags.StringVar(&flagEndTimestamp, "end_timestamp", "", "End timestamp in RFC3339 format for fetching recordings. eg. 2024-08-20T12:00:00Z")
 	flags.Uint32Var(&flagMaxNumResults, "max_num_results", 10, "The maximum number of recordings to list per page.")
 	flags.StringVar(&flagCursor, "cursor", "", "Page cursor for pagination.")
-	listCmd.MarkFlagRequired("workcell")
+
+	// Bind flags to Viper to support environment variables and handle the deprecated --workcell flag.
+	listParams.SetEnvPrefix("intrinsic")
+	listParams.BindPFlag("cluster", flags.Lookup("cluster"))
+	listParams.BindEnv("cluster")
+	listParams.BindPFlag("workcell", flags.Lookup("workcell"))
 
 	return orgutil.WrapCmd(listCmd, listParams, orgutil.WithOrgExistsCheck(func() bool { return checkOrgExists }))
 }
@@ -96,6 +104,11 @@ func (r *ListCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 	client, err := r.NewClient(cmd)
 	if err != nil {
 		return err
+	}
+
+	cluster := resolveCluster(listParams)
+	if cluster == "" {
+		return fmt.Errorf("must provide --cluster")
 	}
 
 	startTime, endTime, err := parseTimeFlags()
@@ -117,7 +130,7 @@ func (r *ListCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 			},
 		}
 	} else {
-		req = newListBagsRequest(startTime, endTime)
+		req = newListBagsRequest(cluster, startTime, endTime)
 	}
 
 	return r.executeAndPaginate(cmd, client, req)
@@ -148,13 +161,13 @@ func parseTimeFlags() (time.Time, time.Time, error) {
 	return startTime, endTime, nil
 }
 
-func newListBagsRequest(startTime, endTime time.Time) *pb.ListBagsRequest {
+func newListBagsRequest(cluster string, startTime, endTime time.Time) *pb.ListBagsRequest {
 	return &pb.ListBagsRequest{
 		OrganizationId: listParams.GetString(orgutil.KeyOrganization),
 		MaxNumResults:  &flagMaxNumResults,
 		Query: &pb.ListBagsRequest_ListQuery{
 			ListQuery: &pb.ListBagsRequest_Query{
-				WorkcellName: flagWorkcellName,
+				WorkcellName: cluster,
 				StartTime:    timestamppb.New(startTime),
 				EndTime:      timestamppb.New(endTime),
 			},
