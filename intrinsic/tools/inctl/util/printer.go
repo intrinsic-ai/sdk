@@ -42,6 +42,23 @@ type Message struct {
 	Msg string `json:"msg"`
 }
 
+func (m *Message) String() string {
+	return m.Msg
+}
+
+// PrintMsg prints a simple message in a structurally safe way across all output formats.
+func PrintMsg(prtr CommandPrinter, msg string) {
+	msg = strings.TrimSuffix(msg, "\n")
+	prtr.Println(&Message{Msg: msg})
+}
+
+// PrintMsgf formats and prints a message in a structurally safe way across all output formats.
+func PrintMsgf(prtr CommandPrinter, format string, args ...any) {
+	msg := fmt.Sprintf(format, args...)
+	msg = strings.TrimSuffix(msg, "\n")
+	prtr.Println(&Message{Msg: msg})
+}
+
 // Printer is the interface that wraps the basic Print methods.
 // DEPRECATED: Use CommandPrinter instead.
 type Printer interface {
