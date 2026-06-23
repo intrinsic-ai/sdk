@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import dataclasses
+from typing import Any
 
 from google.protobuf import descriptor_pb2
 from google.protobuf import message as protobuf_message
@@ -14,6 +15,7 @@ import grpc
 from intrinsic.executive.proto import proto_builder_pb2
 from intrinsic.executive.proto import proto_builder_pb2_grpc
 from intrinsic.solutions import errors as solutions_errors
+from intrinsic.solutions import provided
 from intrinsic.solutions.internal import skill_utils
 from intrinsic.util.grpc import error_handling
 from intrinsic.util.proto import descriptors
@@ -41,6 +43,10 @@ class FieldSpec:
       compatibility and follow Protobuf best practices always use new field
       numbers and never reuse field numbers, e.g., of removed fields.
     description: Description of the field. Can be a multi-line string.
+    arg: Value or parameter assignment to be applied to this field (see
+      Signature.with_args() for a of list accepted values). Passing arguments is
+      only applicable in some contexts, in other contexts setting this will
+      cause an error.
   """
 
   type: str
@@ -49,6 +55,7 @@ class FieldSpec:
   repeated: bool = False
   optional: bool = False
   description: str | None = None
+  arg: Any | provided.ParamAssignment | None = None
 
   def __post_init__(self):
     if self.repeated and self.optional:
@@ -83,6 +90,10 @@ class MapFieldSpec:
       compatibility and follow Protobuf best practices always use new field
       numbers and never reuse field numbers, e.g., of removed fields.
     description: Description of the field. Can be a multi-line string.
+    arg: Value or parameter assignment to be applied to this field (see
+      Signature.with_args() for a of list accepted values). Passing arguments is
+      only applicable in some contexts, in other contexts setting this will
+      cause an error.
   """
 
   key_type: str
@@ -90,6 +101,7 @@ class MapFieldSpec:
   name: str
   number: int
   description: str | None = None
+  arg: Any | provided.ParamAssignment | None = None
 
   def __post_init__(self):
     if self.number is not None and self.number <= 0:
@@ -565,7 +577,26 @@ class ProtoBuilder:
 
     Returns:
       A Signature object containing the compiled descriptors and message names.
+
+    Raises:
+      ValueError: If the field specs contained in the given message specs
+        do specify any args.
     """
+
+    # Check that the passed specs do not define any args
+    if parameters is not None:
+      for field in parameters.fields:
+        if field.arg is not None:
+          raise ValueError(
+              f"Parameter field '{field.name}' has arg set. Use"
+              " create_signature_with_args() to directly create a"
+              " SignatureWithArgs."
+          )
+    if return_value is not None:
+      for field in return_value.fields:
+        if field.arg is not None:
+          raise ValueError(f"Return value field '{field.name}' has arg set")
+
     if parameters is None and return_value is None:
       return Signature()
 
@@ -596,3 +627,52 @@ class ProtoBuilder:
         return_value_message_full_name=return_full_name,
         file_descriptor_set=file_descriptor_set,
     )
+
+  def create_signature_with_args(
+      self,
+      *,
+      parameters: MessageSpec | None = None,
+      return_value: MessageSpec | None = None,
+  ) -> SignatureWithArgs:
+    """Creates a SignatureWithArgs from parameters and return value specs.
+
+    This is a convenience method for creating a SignatureWithArgs in one step
+    instead of using create_signature() followed by Signature.with_args(). The
+    desired args can directly be specified in the passed message specs using
+    FieldSpec.arg / MapFieldSpec.arg.
+
+    Args:
+      parameters: Specification of the parameters message which includes the
+        args to be passed. If None, no parameter message is created.
+      return_value: Specification of the return value message. Cannot include
+        any args (return values cannot have args). If None, no return value
+        message is created.
+
+    Returns:
+      A SignatureWithArgs object containing the compiled Signature together with
+      corresponding parameter assignments.
+
+    Raises:
+      ValueError: If the field specs contained in the return_value message spec
+        do specify any args.
+    """
+    # Create a copy of 'parameters' without args, create_signature() does not
+    # accept any field specs with args.
+    argless_parameters = None
+    kwargs = {}
+    if parameters is not None:
+      argless_fields = []
+      for field in parameters.fields:
+        if field.arg is not None:
+          kwargs[field.name] = field.arg
+        argless_fields.append(dataclasses.replace(field, arg=None))
+      argless_parameters = dataclasses.replace(
+          parameters, fields=argless_fields
+      )
+
+    signature = self.create_signature(
+        parameters=argless_parameters,
+        return_value=return_value,
+    )
+
+    return signature.with_args(**kwargs)
