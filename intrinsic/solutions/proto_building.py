@@ -14,6 +14,7 @@ import grpc
 from intrinsic.executive.proto import proto_builder_pb2
 from intrinsic.executive.proto import proto_builder_pb2_grpc
 from intrinsic.solutions import errors as solutions_errors
+from intrinsic.solutions.internal import skill_utils
 from intrinsic.util.grpc import error_handling
 from intrinsic.util.proto import descriptors
 
@@ -154,6 +155,94 @@ class Signature:
       self.file_descriptor_set = descriptor_pb2.FileDescriptorSet()
     self.parameter_message_full_name = parameter_message_full_name
     self.return_value_message_full_name = return_value_message_full_name
+
+  def with_args(self, **kwargs) -> SignatureWithArgs:
+    """Adds a parameter message and/or parameter assignments to the signature.
+
+    The parameter message and/or parameter assignments are created from the
+    given key-value pairs (similar to skill constructors). The keys are the
+    field names of the parameter message and each value can be one of:
+     - A Python value matching the scalar type of the corresponding field
+     - A proto message matching the message type of the corresponding field
+     - A provided.ParamAssignment (= BlackboardValue or CelExpression) for
+       dynamically assigning a value from the blackboard during process
+       execution
+
+    Args:
+      **kwargs: Arguments matching the fields of the parameter message.
+
+    Returns:
+      A SignatureWithArgs instance with the applied arguments.
+    """
+    if not self.parameter_message_full_name:
+      if kwargs:
+        raise ValueError(
+            "Cannot apply arguments to a signature without parameters"
+        )
+      return SignatureWithArgs(
+          signature=self,
+          params_message=None,
+          blackboard_params={},
+      )
+
+    desc_pool = descriptors.create_descriptor_pool(self.file_descriptor_set)
+    message_type = desc_pool.FindMessageTypeByName(
+        self.parameter_message_full_name
+    )
+    if message_type is None:
+      raise ValueError(
+          f"Message type '{self.parameter_message_full_name}' not found in"
+          " descriptor pool"
+      )
+    params_message = message_factory.GetMessageClass(message_type)()
+    blackboard_params = {}
+    consumed = skill_utils.set_params(params_message, blackboard_params, kwargs)
+
+    unconsumed = set(kwargs) - set(consumed)
+    if unconsumed:
+      # A TypeError on unsupported kwargs is idiomatic Python.
+      raise TypeError(
+          f"Unexpected keyword arguments: {', '.join(sorted(unconsumed))}"
+      )
+
+    return SignatureWithArgs(
+        signature=self,
+        params_message=params_message,
+        blackboard_params=blackboard_params,
+    )
+
+
+@dataclasses.dataclass(frozen=True)
+class SignatureWithArgs:
+  """Represents a signature with concrete arguments or parameter assignments.
+
+  Attributes:
+    signature: The signature itself.
+    params_message: The parameter message containing all concretely assigned
+      values. None if the signature does not define a parameter message.
+    blackboard_params: Parameter assignments to be applied dynamically during
+      process execution, specified as a mapping from paths (into the parameter
+      message) to CEL expressions.
+  """
+
+  signature: Signature
+  params_message: protobuf_message.Message | None
+  blackboard_params: dict[str, str]
+
+  @property
+  def parameter_message_full_name(self) -> str:
+    """Returns signature.parameter_message_full_name."""
+    return self.signature.parameter_message_full_name
+
+  @property
+  def return_value_message_full_name(self) -> str:
+    """Returns signature.return_value_message_full_name."""
+    return self.signature.return_value_message_full_name
+
+  @property
+  def file_descriptor_set(self) -> descriptor_pb2.FileDescriptorSet:
+    """Returns signature.file_descriptor_set."""
+    return self.signature.file_descriptor_set
 
 
 class ProtoBuilder:
