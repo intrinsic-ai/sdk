@@ -33,7 +33,7 @@ func newNonStreamingTask(base taskData) (uploadTask, error) {
 }
 
 func (t *nonStreamingTask) runWithCtx(ctx context.Context) error {
-	log.InfoContextf(ctx, "[%s] starting upload", asShortName(t.name))
+	log.V(1).InfoContextf(ctx, "[%s] starting upload", asShortName(t.name))
 	updateMonitor(t.monitor, asShortName(t.name), ProgressUpdate{
 		Status:  StatusUndetermined,
 		Current: 0,
@@ -74,7 +74,7 @@ func (t *nonStreamingTask) runWithCtx(ctx context.Context) error {
 		}
 		totalSize += int64(length)
 
-		log.InfoContextf(ctx, "[%s]: sending chunk %5d (%s): (%d/%d) in %d increment", asShortName(t.name), idTracker.Load(), action, totalSize, t.descriptor.Size, t.updateSize)
+		log.V(1).InfoContextf(ctx, "[%s]: sending chunk %5d (%s): (%d/%d) in %d increment", asShortName(t.name), idTracker.Load(), action, totalSize, t.descriptor.Size, t.updateSize)
 
 		if firstChunk {
 			digest := t.descriptor.Digest.String()
@@ -123,7 +123,7 @@ func (t *nonStreamingTask) writeContent(ctx context.Context, updateRequest *arti
 			if errStatus, ok := status.FromError(localErr); ok {
 				// this is valid only for first request
 				if codes.AlreadyExists == errStatus.Code() && firstChunk {
-					log.InfoContextf(ctx, "[%s] already exists", asShortName(t.name))
+					log.V(1).InfoContextf(ctx, "[%s] already exists", asShortName(t.name))
 					return backoff.Permanent(errAlreadyExists) // our work is done.
 				}
 				if codes.Unavailable == errStatus.Code() {
