@@ -2,7 +2,7 @@
 
 syntax = "proto3";
 
-package intrinsic.httpjson.webpubsub.v1alpha;
+package intrinsic.httpjson.v1alpha;
 
 option go_package = "intrinsic/httpjson/proto/v1alpha/webpubsub_go_proto";
 

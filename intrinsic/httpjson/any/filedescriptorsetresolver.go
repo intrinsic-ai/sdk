@@ -1,5 +1,6 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
+// Package any resolves Any messages on a best-effort basis given only the type_url.
 package any
 
 import (
@@ -118,7 +119,7 @@ func (r *FileDescriptorSetResolver) FindMessageByName(message protoreflect.FullN
 // FindMessageByURL looks up a message by a URL identifier.
 func (r *FileDescriptorSetResolver) FindMessageByURL(url string) (protoreflect.MessageType, error) {
 	name := url
-	// Strip everything up to the last `/`, becaues no official protobuf library uses it.
+	// Strip everything up to the last `/`, because no official protobuf library uses it.
 	// https://github.com/protocolbuffers/protobuf/blob/c6f77c18ed34647b5358d9522e5854637df7bea5/src/google/protobuf/any.proto#L150-L153
 	if i := strings.LastIndexByte(url, '/'); i >= 0 {
 		name = url[i+1:]
