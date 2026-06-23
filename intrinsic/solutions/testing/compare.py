@@ -241,7 +241,7 @@ def _equalize_floats_in_tolerance(
 def assertProto2Equal(
     testobj: unittest.case.TestCase,
     proto_a: Union[message.Message, str, bytes],
-    proto_b: message.Message,
+    proto_b: Union[message.Message, str, bytes],
     *,
     ignored_fields: Optional[list[str]] = None,
     rtol: Optional[float] = None,
@@ -250,16 +250,19 @@ def assertProto2Equal(
 
   Args:
     testobj: The test case that called this comparison.
-    proto_a: A proto to compare.
-    proto_b: A proto to compare to.
+    proto_a: A proto or textproto to compare.
+    proto_b: A proto or textproto to compare to.
     ignored_fields: List of field paths into the proto to be ignored during
       comparison.
     rtol: Relative tolerance to compare floating point values. If not set,
       floats are compared using string comparison.
   """
-
+  if isinstance(proto_a, str | bytes) and isinstance(proto_b, str | bytes):
+    raise TypeError("At least one Message instance required")
   if isinstance(proto_a, str | bytes):
-    proto_a = text_format.Parse(proto_a, proto_b.__class__())
+    proto_a = text_format.Parse(proto_a, type(proto_b)())
+  if isinstance(proto_b, str | bytes):
+    proto_b = text_format.Parse(proto_b, type(proto_a)())
 
   copied = False
   if ignored_fields is not None:
@@ -323,7 +326,7 @@ def assertProto2Contains(
 def assertProto2SameElements(
     testobj: unittest.case.TestCase,
     proto_a: Union[message.Message, str, bytes],
-    proto_b: message.Message,
+    proto_b: Union[message.Message, str, bytes],
     *,
     ignored_fields: Optional[list[str]] = None,
     keep_duplicate_values: Optional[bool] = None,
@@ -338,16 +341,20 @@ def assertProto2SameElements(
 
   Args:
     testobj: The test case that called this comparison.
-    proto_a: A proto to compare with proto_b.
-    proto_b: The proto to compare to.
+    proto_a: A proto or textproto to compare with proto_b.
+    proto_b: The proto or textproto to compare to.
     ignored_fields: List of field paths into the proto to be ignored during
       comparison.
     keep_duplicate_values: Keep duplicate values before comparing. If not set or
       set to false, duplicate values will be considered one value. This makes it
       possible to compare similar to set semantics.
   """
+  if isinstance(proto_a, str | bytes) and isinstance(proto_b, str | bytes):
+    raise TypeError("At least one Message instance required")
   if isinstance(proto_a, str | bytes):
-    proto_a = text_format.Parse(proto_a, proto_b.__class__())
+    proto_a = text_format.Parse(proto_a, type(proto_b)())
+  if isinstance(proto_b, str | bytes):
+    proto_b = text_format.Parse(proto_b, type(proto_a)())
 
   proto_a = copy.deepcopy(proto_a)
   proto_b = copy.deepcopy(proto_b)

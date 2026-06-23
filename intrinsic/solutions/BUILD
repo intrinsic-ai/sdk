@@ -376,6 +376,7 @@ py_test(
     deps = [
         ":proto_building",
         "//intrinsic/executive/proto:proto_builder_py_pb2",
+        "//intrinsic/solutions/testing:compare",
         "@com_google_absl_py//absl/testing:absltest",
         "@com_google_protobuf//:protobuf_python",
     ],

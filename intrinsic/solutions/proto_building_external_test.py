@@ -10,9 +10,11 @@ from unittest import mock
 
 from absl.testing import absltest
 from google.protobuf import descriptor_pb2
+from google.protobuf import text_format
 
 from intrinsic.executive.proto import proto_builder_pb2
 from intrinsic.solutions import proto_building
+from intrinsic.solutions.testing import compare
 
 
 class ProtoBuildingExternalTest(absltest.TestCase):
@@ -114,6 +116,81 @@ class ProtoBuildingExternalTest(absltest.TestCase):
             input_descriptor=[expected_input_descriptor],
         )
     )
+
+  def test_create_signature(self):
+    self.stub.GetWellKnownTypes.return_value = (
+        proto_builder_pb2.GetWellKnownTypesResponse()
+    )
+    expected_fds = text_format.Parse(
+        """
+        file {
+          name: "gen/sbl/signature.proto"
+          package: "gen.sbl"
+          message_type {
+            name: "Params"
+            field {
+              name: "x"
+              number: 1
+              type: TYPE_INT64
+            }
+          }
+          message_type {
+            name: "ReturnValue"
+            field {
+              name: "y"
+              number: 1
+              type: TYPE_STRING
+            }
+          }
+          syntax: "proto3"
+        }""",
+        descriptor_pb2.FileDescriptorSet(),
+    )
+    self.stub.Compile.return_value = proto_builder_pb2.ProtoCompileResponse(
+        file_descriptor_set=expected_fds
+    )
+
+    sig = self.proto_builder.create_signature(
+        parameters=proto_building.MessageSpec(
+            fields=[proto_building.FieldSpec(name='x', type='int64', number=1)]
+        ),
+        return_value=proto_building.MessageSpec(
+            fields=[
+                proto_building.FieldSpec(name='y', type='string', number=42)
+            ]
+        ),
+    )
+
+    self.assertEqual(
+        sig.parameter_message_full_name,
+        f'gen.sbl.{proto_building._DEFAULT_PARAM_MSG_NAME}',
+    )
+    self.assertEqual(
+        sig.return_value_message_full_name,
+        f'gen.sbl.{proto_building._DEFAULT_RETURN_MSG_NAME}',
+    )
+    compare.assertProto2Equal(self, sig.file_descriptor_set, expected_fds)
+
+    expected_schema = (
+        'syntax = "proto3";\n'
+        'package gen.sbl;\n'
+        '\n'
+        '\n'
+        f'message {proto_building._DEFAULT_PARAM_MSG_NAME} {{\n'
+        '  int64 x = 1;\n'
+        '}\n'
+        '\n'
+        f'message {proto_building._DEFAULT_RETURN_MSG_NAME} {{\n'
+        '  string y = 42;\n'
+        '}\n'
+    )
+    self.stub.Compile.assert_called_once_with(
+        proto_builder_pb2.ProtoCompileRequest(
+            proto_filename=proto_building._DEFAULT_SIGNATURE_PROTO_FILENAME,
+            proto_schema=expected_schema,
+        )
+    )
+    self.stub.GetWellKnownTypes.assert_called_once()
 
 
 if __name__ == '__main__':
