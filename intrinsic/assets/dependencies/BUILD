@@ -155,3 +155,18 @@ go_library(
         "@org_golang_google_grpc//status:go_default_library",
     ],
 )
+
+cc_library(
+    name = "platform_cc",
+    hdrs = ["platform.h"],
+    visibility = ["//intrinsic:__subpackages__"],
+    deps = [
+        "@abseil-cpp//absl/strings:string_view",
+    ],
+)
+
+py_library(
+    name = "platform_py",
+    srcs = ["platform.py"],
+    visibility = ["//intrinsic:__subpackages__"],
+)
