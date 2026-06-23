@@ -27,7 +27,7 @@ class FieldSpec:
   """Specifies a singular or repeated field in a proto message.
 
   Attributes:
-    type: Proto type name as it would appear in a .proto file, i.e., a scalar
+    type: Proto type name as it would appear in a .proto file. Can be a scalar
       value type (see https://protobuf.dev/programming-guides/proto3/#scalar) or
       the full name of a well-known message type (see
       ProtoBuilder.get_well_known_types()).
@@ -56,6 +56,49 @@ class FieldSpec:
       )
     if self.number is not None and self.number <= 0:
       raise ValueError("Field numbers must be positive")
+    if any(c.isspace() for c in self.type):
+      raise ValueError(f"Field type '{self.type}' cannot contain whitespace")
+    if self.type.startswith("map<"):
+      raise ValueError(
+          f"FieldSpec cannot be used for map type '{self.type}'. "
+          "Use MapFieldSpec instead."
+      )
+
+
+@dataclasses.dataclass(kw_only=True, frozen=True)
+class MapFieldSpec:
+  """Specifies a map field in a proto message.
+
+  Attributes:
+    key_type: Proto type name for the key as it would appear in a .proto file.
+      Must be a scalar value type except float, double, and bytes (see
+      https://protobuf.dev/programming-guides/proto3/#scalar).
+    value_type: Proto type name for the value as it would appear in a .proto
+      file. Can be a scalar value type (see
+      https://protobuf.dev/programming-guides/proto3/#scalar) or the full name
+        of a well-known message type (see ProtoBuilder.get_well_known_types()).
+    name: Name of the field in the message.
+    number: Number of the field in the message. To ensure backwards
+      compatibility and follow Protobuf best practices always use new field
+      numbers and never reuse field numbers, e.g., of removed fields.
+    description: Description of the field. Can be a multi-line string.
+  """
+
+  key_type: str
+  value_type: str
+  name: str
+  number: int
+  description: str | None = None
+
+  def __post_init__(self):
+    if self.number is not None and self.number <= 0:
+      raise ValueError("Field numbers must be positive")
+    if any(c.isspace() for c in self.key_type):
+      raise ValueError(f"Key type '{self.key_type}' cannot contain whitespace")
+    if any(c.isspace() for c in self.value_type):
+      raise ValueError(
+          f"Value type '{self.value_type}' cannot contain whitespace"
+      )
 
 
 @dataclasses.dataclass(kw_only=True, frozen=True)
@@ -66,7 +109,7 @@ class MessageSpec:
     fields: The fields in the proto message.
   """
 
-  fields: list[FieldSpec]
+  fields: list[FieldSpec | MapFieldSpec]
 
 
 class Signature:
@@ -335,7 +378,10 @@ class ProtoBuilder:
     for spec in specs:
       if spec is not None:
         for field in spec.fields:
-          used_types.add(field.type)
+          if isinstance(field, FieldSpec):
+            used_types.add(field.type)
+          elif isinstance(field, MapFieldSpec):
+            used_types.add(field.value_type)
 
     if not used_types:
       return []
@@ -358,12 +404,17 @@ class ProtoBuilder:
           lines.append(f"  // {desc_line}")
 
       field_line = "  "
-      if field.repeated:
-        field_line += "repeated "
-      elif field.optional:
-        field_line += "optional "
-
-      field_line += f"{field.type} {field.name} = {field.number};"
+      if isinstance(field, FieldSpec):
+        if field.repeated:
+          field_line += "repeated "
+        elif field.optional:
+          field_line += "optional "
+        field_line += f"{field.type} {field.name} = {field.number};"
+      elif isinstance(field, MapFieldSpec):
+        field_line += (
+            f"map<{field.key_type}, {field.value_type}> {field.name} ="
+            f" {field.number};"
+        )
       lines.append(field_line)
     lines.append("}")
     return lines
