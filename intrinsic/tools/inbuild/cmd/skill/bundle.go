@@ -65,7 +65,7 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 
 	// Actually create the skill bundle
-	return skillbundle.Write(cmd.Context(), m, flagOutput,
+	return skillbundle.WriteFile(cmd.Context(), m, flagOutput,
 		skillbundle.WithFileDescriptorSet(fds),
 		skillbundle.WithImageTarPath(flagOciImage),
 	)

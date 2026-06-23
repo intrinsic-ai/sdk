@@ -105,7 +105,7 @@ func CreateDataBundle(ctx context.Context, opts *CreateDataBundleOptions) error 
 		da.Data = payloadOutAny
 	}
 
-	if err := databundle.Write(ctx, da, opts.OutputBundlePath,
+	if err := databundle.WriteFile(ctx, da, opts.OutputBundlePath,
 		databundle.WithExternalReferencedFilePaths(opts.ExternalReferencedFilePaths),
 	); err != nil {
 		return fmt.Errorf("failed to write Data Asset bundle: %w", err)

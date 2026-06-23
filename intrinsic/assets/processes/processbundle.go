@@ -28,21 +28,13 @@ const (
 )
 
 type writeOptions struct {
-	writer io.Writer
 }
 
 // WriteOption is a functional option for Write.
 type WriteOption func(*writeOptions)
 
-// WithWriter specifies the Writer to use instead of creating one for the specified path.
-func WithWriter(w io.Writer) WriteOption {
-	return func(opts *writeOptions) {
-		opts.writer = w
-	}
-}
-
-// Write writes a Process Asset .tar bundle.
-func Write(ctx context.Context, manifest *processmanifestpb.ProcessManifest, path string, options ...WriteOption) error {
+// Write writes a Process Asset .tar bundle to the given writer.
+func Write(ctx context.Context, manifest *processmanifestpb.ProcessManifest, w io.Writer, options ...WriteOption) error {
 	opts := &writeOptions{}
 	for _, opt := range options {
 		opt(opts)
@@ -56,20 +48,7 @@ func Write(ctx context.Context, manifest *processmanifestpb.ProcessManifest, pat
 		return fmt.Errorf("invalid ProcessManifest: %w", err)
 	}
 
-	writer := opts.writer
-	if writer == nil {
-		if path == "" {
-			return fmt.Errorf("path must not be empty if a writer is not specified")
-		}
-		f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
-		if err != nil {
-			return fmt.Errorf("failed to open %q for writing: %w", path, err)
-		}
-		defer f.Close()
-		writer = f
-	}
-
-	tw := tar.NewWriter(writer)
+	tw := tar.NewWriter(w)
 
 	if err := tartooling.AddBinaryProto(manifest, tw, processManifestFileName); err != nil {
 		return fmt.Errorf("failed write ProcessManifest to bundle: %w", err)
@@ -80,6 +59,20 @@ func Write(ctx context.Context, manifest *processmanifestpb.ProcessManifest, pat
 	}
 
 	return nil
+}
+
+// WriteFile writes a Process Asset .tar bundle to the specified path.
+func WriteFile(ctx context.Context, manifest *processmanifestpb.ProcessManifest, path string, options ...WriteOption) error {
+	if path == "" {
+		return fmt.Errorf("path must not be empty")
+	}
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
+	if err != nil {
+		return fmt.Errorf("failed to open %q for writing: %w", path, err)
+	}
+	defer f.Close()
+
+	return Write(ctx, manifest, f, options...)
 }
 
 // ManifestFromAsset extracts from the given ProcessAsset a ProcessManifest which is suitable for
@@ -112,14 +105,24 @@ func ManifestFromAsset(pa *processassetpb.ProcessAsset) (*processmanifestpb.Proc
 	return manifest, nil
 }
 
-// WriteFromAsset writes a Process Asset .tar bundle, given a ProcessAsset.
-func WriteFromAsset(ctx context.Context, pa *processassetpb.ProcessAsset, path string, options ...WriteOption) error {
+// WriteFromAsset writes a Process Asset .tar bundle to the given writer, given a ProcessAsset.
+func WriteFromAsset(ctx context.Context, pa *processassetpb.ProcessAsset, w io.Writer, options ...WriteOption) error {
 	manifest, err := ManifestFromAsset(pa)
 	if err != nil {
 		return err
 	}
 
-	return Write(ctx, manifest, path, options...)
+	return Write(ctx, manifest, w, options...)
+}
+
+// WriteFileFromAsset writes a Process Asset .tar bundle to the specified path, given a ProcessAsset.
+func WriteFileFromAsset(ctx context.Context, pa *processassetpb.ProcessAsset, path string, options ...WriteOption) error {
+	manifest, err := ManifestFromAsset(pa)
+	if err != nil {
+		return err
+	}
+
+	return WriteFile(ctx, manifest, path, options...)
 }
 
 // ProcessBundle represents a Process Asset bundle.
@@ -128,41 +131,20 @@ type ProcessBundle struct {
 }
 
 type readOptions struct {
-	reader io.Reader
 }
 
 // ReadOption is a functional option for Read.
 type ReadOption func(*readOptions)
 
-// WithReader specifies the Reader to use instead of creating one for the specified path.
-func WithReader(r io.Reader) ReadOption {
-	return func(opts *readOptions) {
-		opts.reader = r
-	}
-}
-
-// Read reads a Process Asset bundle (see Write).
-func Read(ctx context.Context, path string, options ...ReadOption) (*ProcessBundle, error) {
+// Read reads a Process Asset bundle from a reader.
+func Read(ctx context.Context, r io.Reader, options ...ReadOption) (*ProcessBundle, error) {
 	opts := &readOptions{}
 	for _, opt := range options {
 		opt(opts)
 	}
 
-	reader := opts.reader
-	if reader == nil {
-		if path == "" {
-			return nil, fmt.Errorf("path must not be empty if a reader is not specified")
-		}
-		f, err := os.Open(path)
-		if err != nil {
-			return nil, fmt.Errorf("failed to open %q for reading: %w", path, err)
-		}
-		defer f.Close()
-		reader = f
-	}
-
 	// Read single file from the bundle.
-	tr := tar.NewReader(reader)
+	tr := tar.NewReader(r)
 	header, err := tr.Next()
 	if err != nil {
 		return nil, fmt.Errorf("failed to read first entry of Process bundle: %w", err)
@@ -193,6 +175,24 @@ func Read(ctx context.Context, path string, options ...ReadOption) (*ProcessBund
 	}, nil
 }
 
+// ReadFile is a helper to read a Process Asset bundle from a file path.
+// It opens the file and calls Read.
+func ReadFile(ctx context.Context, path string, options ...ReadOption) (*ProcessBundle, error) {
+	if path == "" {
+		return nil, fmt.Errorf("path must not be empty")
+	}
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open %q for reading: %w", path, err)
+	}
+	defer f.Close()
+	bundle, err := Read(ctx, f, options...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read bundle from %q: %w", path, err)
+	}
+	return bundle, nil
+}
+
 type processOptions struct {
 	readOptions []ReadOption
 }
@@ -207,14 +207,14 @@ func WithReadOptions(options ...ReadOption) ProcessOption {
 	}
 }
 
-// Process creates a processed Process from a bundle.
-func Process(ctx context.Context, path string, options ...ProcessOption) (*processassetpb.ProcessAsset, error) {
+// Process creates a processed Process from a bundle reader.
+func Process(ctx context.Context, r io.Reader, options ...ProcessOption) (*processassetpb.ProcessAsset, error) {
 	opts := &processOptions{}
 	for _, opt := range options {
 		opt(opts)
 	}
 
-	bundle, err := Read(ctx, path, opts.readOptions...)
+	bundle, err := Read(ctx, r, opts.readOptions...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read Process bundle: %w", err)
 	}
@@ -242,4 +242,22 @@ func Process(ctx context.Context, path string, options ...ProcessOption) (*proce
 	)
 
 	return asset, nil
+}
+
+// ProcessFile is a helper to create a processed Process from a bundle file path.
+// It opens the file and calls Process.
+func ProcessFile(ctx context.Context, path string, options ...ProcessOption) (*processassetpb.ProcessAsset, error) {
+	if path == "" {
+		return nil, fmt.Errorf("path must not be empty")
+	}
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open %q for reading: %w", path, err)
+	}
+	defer f.Close()
+	m, err := Process(ctx, f, options...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to process bundle from %q: %w", path, err)
+	}
+	return m, nil
 }

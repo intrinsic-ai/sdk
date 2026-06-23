@@ -112,7 +112,7 @@ func GetCommand() *cobra.Command {
 				ProcessReferencedData:   referenceddata.SolutionProcessor(),
 			}
 
-			asset, err := assetFromTarget(ctx, target, processor.Process)
+			asset, err := assetFromTarget(ctx, target, processor.ProcessFile)
 			if err != nil {
 				return err
 			}

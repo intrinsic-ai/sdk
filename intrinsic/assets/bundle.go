@@ -339,14 +339,14 @@ func (b processedSkillBundle) FileDescriptorSet() *dpb.FileDescriptorSet {
 
 // Process auto-detects a bundle type and processes it to be sent to an
 // appropriate target.
-func (p *Processor) Process(ctx context.Context, path string) (ProcessedBundle, error) {
+func (p *Processor) ProcessFile(ctx context.Context, path string) (ProcessedBundle, error) {
 	bundleType, err := detectBundleType(ctx, path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to detect bundle type: %w", err)
 	}
 	switch bundleType {
 	case bundleTypeData:
-		da, err := databundle.Process(ctx, path,
+		da, err := databundle.ProcessFile(ctx, path,
 			databundle.WithReadOptions(databundle.WithProcessReferencedData(p.ProcessReferencedData)),
 		)
 		if err != nil {
@@ -365,7 +365,7 @@ func (p *Processor) Process(ctx context.Context, path string) (ProcessedBundle, 
 		}
 		defer os.RemoveAll(localAssetsDir)
 
-		hardwareDevice, err := hardwaredevicebundle.Process(ctx, path,
+		hardwareDevice, err := hardwaredevicebundle.ProcessFile(ctx, path,
 			hardwaredevicebundle.WithProcessAsset(assetInliner.Process),
 			hardwaredevicebundle.WithReadOptions(hardwaredevicebundle.WithExtractLocalAssetsDir(localAssetsDir)),
 		)
@@ -374,13 +374,13 @@ func (p *Processor) Process(ctx context.Context, path string) (ProcessedBundle, 
 		}
 		return &processedHardwareDeviceBundle{hardwareDevice}, nil
 	case bundleTypeProcess:
-		process, err := processbundle.Process(ctx, path)
+		process, err := processbundle.ProcessFile(ctx, path)
 		if err != nil {
 			return nil, fmt.Errorf("failed to process Process bundle: %w", err)
 		}
 		return processedProcessBundle{process}, nil
 	case bundleTypeService:
-		service, err := servicebundle.Process(ctx, path,
+		service, err := servicebundle.ProcessFile(ctx, path,
 			servicebundle.WithImageProcessor(p.ImageProcessor),
 		)
 		if err != nil {
@@ -388,7 +388,7 @@ func (p *Processor) Process(ctx context.Context, path string) (ProcessedBundle, 
 		}
 		return processedServiceBundle{service}, nil
 	case bundleTypeSkill:
-		skill, err := skillbundle.Process(ctx, path,
+		skill, err := skillbundle.ProcessFile(ctx, path,
 			skillbundle.WithImageProcessor(p.ImageProcessor),
 		)
 		if err != nil {

@@ -38,7 +38,7 @@ func CreateSkillBundle(ctx context.Context, opts *CreateSkillBundleOptions) erro
 	if err := skillfix.Manifest(m, skillfix.WithPopulateOldFields(true)); err != nil {
 		return fmt.Errorf("unable to make manifest compatible with the latest version of the platform: %v", err)
 	}
-	if err := skillbundle.Write(ctx, m, opts.OutputBundlePath,
+	if err := skillbundle.WriteFile(ctx, m, opts.OutputBundlePath,
 		skillbundle.WithFileDescriptorSet(fds),
 		skillbundle.WithImageTarPath(opts.ImageTarPath),
 	); err != nil {

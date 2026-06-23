@@ -79,7 +79,7 @@ $ inctl skill install abc/skill.bundle.tar --solution=my-solution
 			if transfer == nil {
 				return fmt.Errorf("--registry must be specified if --skip-direct-upload is used")
 			}
-			manifest, err := skillbundle.Process(ctx, target,
+			manifest, err := skillbundle.ProcessFile(ctx, target,
 				skillbundle.WithImageProcessor(bundleimages.CreateImageProcessor(transfer)),
 			)
 			if err != nil {

@@ -140,7 +140,7 @@ func FromBundle(ctx context.Context, path string, options ...FromBundleOption) e
 		ProcessReferencedData:   referencedDataProcessor,
 	}
 
-	processedBundle, err := processor.Process(ctx, path)
+	processedBundle, err := processor.ProcessFile(ctx, path)
 	if err != nil {
 		return fmt.Errorf("unable to process Asset: %w", err)
 	}

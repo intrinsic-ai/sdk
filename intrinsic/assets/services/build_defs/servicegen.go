@@ -80,7 +80,7 @@ func CreateServiceBundle(ctx context.Context, opts *CreateServiceBundleOptions) 
 	if err := servicefix.Manifest(m, servicefix.WithPopulateOldFields(true)); err != nil {
 		return fmt.Errorf("unable to make manifest compatible with the latest version of the platform: %v", err)
 	}
-	if err := servicebundle.Write(ctx, m, opts.OutputBundlePath,
+	if err := servicebundle.WriteFile(ctx, m, opts.OutputBundlePath,
 		servicebundle.WithFileDescriptorSet(fds),
 		servicebundle.WithDefaultConfig(defaultConfig),
 		servicebundle.WithImageTarPaths(opts.ImageTarPaths),

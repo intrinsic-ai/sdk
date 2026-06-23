@@ -89,7 +89,7 @@ func CreateHardwareDeviceBundle(ctx context.Context, opts *CreateHardwareDeviceB
 	if err := hardwaredevicefix.Manifest(m, hardwaredevicefix.WithPopulateOldFields(true)); err != nil {
 		return fmt.Errorf("unable to make manifest compatible with the latest version of the platform: %v", err)
 	}
-	if err := hardwaredevicebundle.Write(ctx, m, opts.OutputBundlePath); err != nil {
+	if err := hardwaredevicebundle.WriteFile(ctx, m, opts.OutputBundlePath); err != nil {
 		return fmt.Errorf("failed to write HardwareDevice Asset bundle: %w", err)
 	}
 

@@ -32,7 +32,6 @@ const (
 type writeOptions struct {
 	fileDescriptorSet *descriptorpb.FileDescriptorSet
 	imageTarPath      string
-	writer            io.Writer
 }
 
 // WriteOption is a functional option for Write.
@@ -52,15 +51,8 @@ func WithImageTarPath(path string) WriteOption {
 	}
 }
 
-// WithWriter specifies the Writer to use instead of creating one for the specified path.
-func WithWriter(w io.Writer) WriteOption {
-	return func(opts *writeOptions) {
-		opts.writer = w
-	}
-}
-
-// Write writes a Skill .tar bundle.
-func Write(ctx context.Context, m *smpb.SkillManifest, path string, options ...WriteOption) error {
+// Write writes a Skill .tar bundle to the given writer.
+func Write(ctx context.Context, m *smpb.SkillManifest, w io.Writer, options ...WriteOption) error {
 	opts := &writeOptions{}
 	for _, opt := range options {
 		opt(opts)
@@ -70,20 +62,7 @@ func Write(ctx context.Context, m *smpb.SkillManifest, path string, options ...W
 		return fmt.Errorf("SkillManifest must not be nil")
 	}
 
-	writer := opts.writer
-	if writer == nil {
-		if path == "" {
-			return fmt.Errorf("path must not be empty if a writer is not specified")
-		}
-		f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
-		if err != nil {
-			return fmt.Errorf("failed to open %q for writing: %w", path, err)
-		}
-		defer f.Close()
-		writer = f
-	}
-
-	tw := tar.NewWriter(writer)
+	tw := tar.NewWriter(w)
 
 	m.Assets = &smpb.SkillAssets{}
 	var fds *descriptorpb.FileDescriptorSet
@@ -103,7 +82,7 @@ func Write(ctx context.Context, m *smpb.SkillManifest, path string, options ...W
 			ImageFilename: base,
 		}
 		if err := tartooling.AddFile(opts.imageTarPath, tw, base); err != nil {
-			return fmt.Errorf("failed to write %q to bundle: %w", path, err)
+			return fmt.Errorf("failed to write %q to bundle: %w", opts.imageTarPath, err)
 		}
 	}
 
@@ -129,6 +108,20 @@ func Write(ctx context.Context, m *smpb.SkillManifest, path string, options ...W
 	return nil
 }
 
+// WriteFile writes a Skill .tar bundle to the specified path.
+func WriteFile(ctx context.Context, m *smpb.SkillManifest, path string, options ...WriteOption) error {
+	if path == "" {
+		return fmt.Errorf("path must not be empty")
+	}
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
+	if err != nil {
+		return fmt.Errorf("failed to open %q for writing: %w", path, err)
+	}
+	defer f.Close()
+
+	return Write(ctx, m, f, options...)
+}
+
 // SkillBundle represents a Skill Asset bundle.
 type SkillBundle struct {
 	Manifest *smpb.SkillManifest
@@ -137,7 +130,6 @@ type SkillBundle struct {
 
 type readOptions struct {
 	readFiles bool
-	reader    io.Reader
 }
 
 // ReadOption is a functional option for Read
@@ -150,31 +142,11 @@ func WithReadFiles(b bool) ReadOption {
 	}
 }
 
-// WithReader specifies the Reader to use instead of creating one for the specified path.
-func WithReader(r io.Reader) ReadOption {
-	return func(opts *readOptions) {
-		opts.reader = r
-	}
-}
-
-// Read reads a Skill Asset bundle (see Write).
-func Read(ctx context.Context, path string, options ...ReadOption) (*SkillBundle, error) {
+// Read reads a Skill Asset bundle from a reader.
+func Read(ctx context.Context, r io.Reader, options ...ReadOption) (*SkillBundle, error) {
 	opts := &readOptions{}
 	for _, opt := range options {
 		opt(opts)
-	}
-
-	reader := opts.reader
-	if reader == nil {
-		if path == "" {
-			return nil, fmt.Errorf("path must not be empty if a reader is not specified")
-		}
-		f, err := os.Open(path)
-		if err != nil {
-			return nil, fmt.Errorf("failed to open %q for reading: %w", path, err)
-		}
-		defer f.Close()
-		reader = f
 	}
 
 	m, handlers := makeOnlySkillManifestHandlers()
@@ -189,8 +161,8 @@ func Read(ctx context.Context, path string, options ...ReadOption) (*SkillBundle
 		walkTarOpts = append(walkTarOpts, ioutils.WithFallbackHandler(fallback))
 	}
 
-	if err := ioutils.WalkTarFile(ctx, tar.NewReader(reader), walkTarOpts...); err != nil {
-		return nil, fmt.Errorf("failed to walk tar file %q: %v", path, err)
+	if err := ioutils.WalkTarFile(ctx, tar.NewReader(r), walkTarOpts...); err != nil {
+		return nil, fmt.Errorf("failed to walk tar file: %w", err)
 	}
 
 	return &SkillBundle{
@@ -199,9 +171,26 @@ func Read(ctx context.Context, path string, options ...ReadOption) (*SkillBundle
 	}, nil
 }
 
+// ReadFile is a helper to read a Skill Asset bundle from a file path.
+// It opens the file and calls Read.
+func ReadFile(ctx context.Context, path string, options ...ReadOption) (*SkillBundle, error) {
+	if path == "" {
+		return nil, fmt.Errorf("path must not be empty")
+	}
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open %q for reading: %w", path, err)
+	}
+	defer f.Close()
+	bundle, err := Read(ctx, f, options...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read bundle from %q: %w", path, err)
+	}
+	return bundle, nil
+}
+
 type processOptions struct {
 	imageProcessor imageutils.ImageProcessor
-	reader         io.ReadSeeker
 }
 
 // ProcessOption is a functional option for Process.
@@ -214,51 +203,31 @@ func WithImageProcessor(p imageutils.ImageProcessor) ProcessOption {
 	}
 }
 
-// WithProcessReader specifies the Reader to use instead of creating one for the specified path.
-func WithProcessReader(r io.ReadSeeker) ProcessOption {
-	return func(opts *processOptions) {
-		opts.reader = r
-	}
-}
-
-// Process creates a processed Skill from a bundle.
-func Process(ctx context.Context, path string, options ...ProcessOption) (*psmpb.ProcessedSkillManifest, error) {
+// Process creates a processed Skill from a bundle reader.
+func Process(ctx context.Context, r io.ReadSeeker, options ...ProcessOption) (*psmpb.ProcessedSkillManifest, error) {
 	opts := &processOptions{}
 	for _, opt := range options {
 		opt(opts)
 	}
 
-	reader := opts.reader
-	if reader == nil {
-		if path == "" {
-			return nil, fmt.Errorf("path must not be empty if a reader is not specified")
-		}
-		f, err := os.Open(path)
-		if err != nil {
-			return nil, fmt.Errorf("failed to open %q for reading: %w", path, err)
-		}
-		defer f.Close()
-		reader = f
-	}
-
 	// Read the manifest and then reset the file once we have the information about the bundle we're
 	// going to process.
 	manifest, handlers := makeOnlySkillManifestHandlers()
-	if err := ioutils.WalkTarFile(ctx, tar.NewReader(reader), ioutils.WithHandlers(handlers)); err != nil {
-		return nil, fmt.Errorf("failed to walk tar file %q: %v", path, err)
+	if err := ioutils.WalkTarFile(ctx, tar.NewReader(r), ioutils.WithHandlers(handlers)); err != nil {
+		return nil, fmt.Errorf("failed to walk tar file to read manifest: %w", err)
 	}
-	if _, err := reader.Seek(0, io.SeekStart); err != nil {
-		return nil, fmt.Errorf("failed to seek in %q: %v", path, err)
+	if _, err := r.Seek(0, io.SeekStart); err != nil {
+		return nil, fmt.Errorf("failed to seek: %w", err)
 	}
 
 	// Initialize handlers for when we walk through the file again now that we know what we're looking
 	// for, but error on unexpected files this time.
 	processedAssets, handlers := makeSkillAssetHandlers(manifest, opts)
-	if err := ioutils.WalkTarFile(ctx, tar.NewReader(reader),
+	if err := ioutils.WalkTarFile(ctx, tar.NewReader(r),
 		ioutils.WithHandlers(handlers),
 		ioutils.WithFallbackHandler(ioutils.AlwaysErrorAsUnexpected),
 	); err != nil {
-		return nil, fmt.Errorf("failed to walk tar file %q: %v", path, err)
+		return nil, fmt.Errorf("failed to walk tar file to process assets: %w", err)
 	}
 
 	psm := &psmpb.ProcessedSkillManifest{
@@ -287,6 +256,24 @@ func Process(ctx context.Context, path string, options ...ProcessOption) (*psmpb
 	}
 
 	return psm, nil
+}
+
+// ProcessFile is a helper to create a processed Skill from a bundle file path.
+// It opens the file and calls Process.
+func ProcessFile(ctx context.Context, path string, options ...ProcessOption) (*psmpb.ProcessedSkillManifest, error) {
+	if path == "" {
+		return nil, fmt.Errorf("path must not be empty")
+	}
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open %q for reading: %w", path, err)
+	}
+	defer f.Close()
+	m, err := Process(ctx, f, options...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to process bundle from %q: %w", path, err)
+	}
+	return m, nil
 }
 
 // makeOnlySkillManifestHandlers returns a map of handlers that only pull out the SkillManifest from

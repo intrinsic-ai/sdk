@@ -33,25 +33,17 @@ const (
 var tarBundlePathRegex = regexp.MustCompile(`^assets/(?P<key>[^/]+)\.bundle\.tar$`)
 
 type writeOptions struct {
-	writer io.Writer
 }
 
 // WriteOption is a functional option for Write.
 type WriteOption func(*writeOptions)
 
-// WithWriter specifies the Writer to use instead of creating one for the specified path.
-func WithWriter(w io.Writer) WriteOption {
-	return func(opts *writeOptions) {
-		opts.writer = w
-	}
-}
-
-// Write writes a HardwareDevice Asset .tar bundle.
+// Write writes a HardwareDevice Asset .tar bundle to the given writer.
 //
 // The bundles of local Assets are included in the HardwareDevice .tar bundle.
 //
 // The input manifest may be mutated by this function.
-func Write(ctx context.Context, hdm *hdmpb.HardwareDeviceManifest, path string, options ...WriteOption) error {
+func Write(ctx context.Context, hdm *hdmpb.HardwareDeviceManifest, w io.Writer, options ...WriteOption) error {
 	opts := &writeOptions{}
 	for _, opt := range options {
 		opt(opts)
@@ -64,20 +56,7 @@ func Write(ctx context.Context, hdm *hdmpb.HardwareDeviceManifest, path string, 
 		return fmt.Errorf("invalid HardwareDeviceManifest: %w", err)
 	}
 
-	writer := opts.writer
-	if writer == nil {
-		if path == "" {
-			return fmt.Errorf("path must not be empty if a writer is not specified")
-		}
-		f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
-		if err != nil {
-			return fmt.Errorf("failed to open %q for writing: %w", path, err)
-		}
-		defer f.Close()
-		writer = f
-	}
-
-	tw := tar.NewWriter(writer)
+	tw := tar.NewWriter(w)
 
 	// Save local Assets into the bundle and update their paths in the manifest.
 	for key, asset := range hdm.GetAssets() {
@@ -102,6 +81,20 @@ func Write(ctx context.Context, hdm *hdmpb.HardwareDeviceManifest, path string, 
 	return nil
 }
 
+// WriteFile writes a HardwareDevice Asset .tar bundle to the specified path.
+func WriteFile(ctx context.Context, hdm *hdmpb.HardwareDeviceManifest, path string, options ...WriteOption) error {
+	if path == "" {
+		return fmt.Errorf("path must not be empty")
+	}
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
+	if err != nil {
+		return fmt.Errorf("failed to open %q for writing: %w", path, err)
+	}
+	defer f.Close()
+
+	return Write(ctx, hdm, f, options...)
+}
+
 // HardwareDeviceBundle represents a HardwareDevice Asset bundle.
 type HardwareDeviceBundle struct {
 	Manifest *hdmpb.HardwareDeviceManifest
@@ -109,7 +102,6 @@ type HardwareDeviceBundle struct {
 
 type readOptions struct {
 	extractLocalAssetsDir string
-	reader                io.Reader
 }
 
 // ReadOption is a functional option for Read.
@@ -125,31 +117,11 @@ func WithExtractLocalAssetsDir(dir string) ReadOption {
 	}
 }
 
-// WithReader specifies the Reader to use instead of creating one for the specified path.
-func WithReader(r io.Reader) ReadOption {
-	return func(opts *readOptions) {
-		opts.reader = r
-	}
-}
-
-// Read reads a HardwareDevice Asset bundle (see Write).
-func Read(ctx context.Context, p string, options ...ReadOption) (*HardwareDeviceBundle, error) {
+// Read reads a HardwareDevice Asset bundle from a reader.
+func Read(ctx context.Context, r io.Reader, options ...ReadOption) (*HardwareDeviceBundle, error) {
 	opts := &readOptions{}
 	for _, opt := range options {
 		opt(opts)
-	}
-
-	reader := opts.reader
-	if reader == nil {
-		if p == "" {
-			return nil, fmt.Errorf("path must not be empty if a reader is not specified")
-		}
-		f, err := os.Open(p)
-		if err != nil {
-			return nil, fmt.Errorf("failed to open %q for reading: %w", p, err)
-		}
-		defer f.Close()
-		reader = f
 	}
 
 	// Process the .tar bundle.
@@ -179,13 +151,13 @@ func Read(ctx context.Context, p string, options ...ReadOption) (*HardwareDevice
 		}
 		return fmt.Errorf("unexpected file %q", n)
 	}
-	if err := ioutils.WalkTarFile(ctx, tar.NewReader(reader),
+	if err := ioutils.WalkTarFile(ctx, tar.NewReader(r),
 		ioutils.WithHandlers(map[string]ioutils.WalkTarFileHandler{
 			hardwareDeviceManifestFileName: manifestHandler,
 		}),
 		ioutils.WithFallbackHandler(fallbackHandler),
 	); err != nil {
-		return nil, fmt.Errorf("failed to process tar file %q: %w", p, err)
+		return nil, fmt.Errorf("failed to process tar file: %w", err)
 	}
 
 	// Replace local asset bundle paths with their extracted paths.
@@ -205,6 +177,24 @@ func Read(ctx context.Context, p string, options ...ReadOption) (*HardwareDevice
 	return &HardwareDeviceBundle{
 		Manifest: hdm,
 	}, nil
+}
+
+// ReadFile is a helper to read a HardwareDevice Asset bundle from a file path.
+// It opens the file and calls Read.
+func ReadFile(ctx context.Context, path string, options ...ReadOption) (*HardwareDeviceBundle, error) {
+	if path == "" {
+		return nil, fmt.Errorf("path must not be empty")
+	}
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open %q for reading: %w", path, err)
+	}
+	defer f.Close()
+	bundle, err := Read(ctx, f, options...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read bundle from %q: %w", path, err)
+	}
+	return bundle, nil
 }
 
 // AssetProcessor is a function that processes a single Asset in a HardwareDeviceManifest.
@@ -247,7 +237,7 @@ func (p *LocalAssetInliner) Process(ctx context.Context, a *hdmpb.HardwareDevice
 	case *hdmpb.HardwareDeviceManifest_Asset_Local:
 		switch at := a.GetLocal().GetAssetType(); at {
 		case atpb.AssetType_ASSET_TYPE_SERVICE:
-			psm, err := servicebundle.Process(ctx, a.GetLocal().GetBundlePath(),
+			psm, err := servicebundle.ProcessFile(ctx, a.GetLocal().GetBundlePath(),
 				servicebundle.WithImageProcessor(p.opts.ImageProcessor),
 			)
 			if err != nil {
@@ -263,7 +253,7 @@ func (p *LocalAssetInliner) Process(ctx context.Context, a *hdmpb.HardwareDevice
 			if p.opts.ProcessReferencedData != nil {
 				opts = append(opts, databundle.WithProcessReferencedData(p.opts.ProcessReferencedData))
 			}
-			da, err := databundle.Process(ctx, a.GetLocal().GetBundlePath(),
+			da, err := databundle.ProcessFile(ctx, a.GetLocal().GetBundlePath(),
 				databundle.WithReadOptions(opts...),
 			)
 			if err != nil {
@@ -313,8 +303,8 @@ func WithReadOptions(options ...ReadOption) ProcessOption {
 	}
 }
 
-// Process creates a processed HardwareDevice from a bundle.
-func Process(ctx context.Context, path string, options ...ProcessOption) (*hdmpb.ProcessedHardwareDeviceManifest, error) {
+// Process creates a processed HardwareDevice from a bundle reader.
+func Process(ctx context.Context, r io.Reader, options ...ProcessOption) (*hdmpb.ProcessedHardwareDeviceManifest, error) {
 	opts := &processOptions{
 		processAsset: PassThrough,
 	}
@@ -322,7 +312,7 @@ func Process(ctx context.Context, path string, options ...ProcessOption) (*hdmpb
 		opt(opts)
 	}
 
-	bundle, err := Read(ctx, path, opts.readOptions...)
+	bundle, err := Read(ctx, r, opts.readOptions...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read HardwareDevice bundle: %w", err)
 	}
@@ -350,6 +340,24 @@ func Process(ctx context.Context, path string, options ...ProcessOption) (*hdmpb
 		Assets:   processedAssets,
 		Graph:    hdm.GetGraph(),
 	}, nil
+}
+
+// ProcessFile is a helper to create a processed HardwareDevice from a bundle file path.
+// It opens the file and calls Process.
+func ProcessFile(ctx context.Context, path string, options ...ProcessOption) (*hdmpb.ProcessedHardwareDeviceManifest, error) {
+	if path == "" {
+		return nil, fmt.Errorf("path must not be empty")
+	}
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open %q for reading: %w", path, err)
+	}
+	defer f.Close()
+	m, err := Process(ctx, f, options...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to process bundle from %q: %w", path, err)
+	}
+	return m, nil
 }
 
 // tarBundlePathFrom returns the in-tar path for a local asset bundle with the given key.

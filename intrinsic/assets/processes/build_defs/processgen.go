@@ -78,7 +78,7 @@ func CreateProcessBundle(ctx context.Context, options *CreateProcessBundleOption
 	}
 
 	// Write the ProcessManifest to the output file.
-	if err := processbundle.Write(ctx, manifest, options.OutputBundlePath); err != nil {
+	if err := processbundle.WriteFile(ctx, manifest, options.OutputBundlePath); err != nil {
 		return fmt.Errorf("failed to write Process bundle: %w", err)
 	}
 
