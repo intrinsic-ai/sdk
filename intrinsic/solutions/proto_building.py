@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import dataclasses
 from typing import Any
+import uuid
 
 from google.protobuf import descriptor_pb2
 from google.protobuf import message as protobuf_message
@@ -23,6 +24,32 @@ from intrinsic.util.proto import descriptors
 _DEFAULT_PARAM_MSG_NAME = "Params"
 _DEFAULT_RETURN_MSG_NAME = "ReturnValue"
 _DEFAULT_SIGNATURE_PROTO_FILENAME = "gen/sbl/signature.proto"
+# Expected to be filled with a UUID and a custom filename.
+_UNIQUE_MAIN_PROTO_FILENAME_PATTERN = "gen/sbl_%s/%s"
+
+
+def _partition_message_full_name(full_name: str) -> tuple[str, str]:
+  package, _, name = full_name.rpartition(".")
+  if not package:
+    raise ValueError(f"{full_name} has an empty package")
+  if not name:
+    raise ValueError(f"{full_name} has an empty name")
+  return package, name
+
+
+def _find_file_defining_top_level_message_or_raise(
+    file_descriptor_set: descriptor_pb2.FileDescriptorSet,
+    message_full_name: str,
+) -> descriptor_pb2.FileDescriptorProto:
+  package, name = _partition_message_full_name(message_full_name)
+  for file_proto in file_descriptor_set.file:
+    if file_proto.package == package and any(
+        message_type.name == name for message_type in file_proto.message_type
+    ):
+      return file_proto
+  raise LookupError(
+      f"File defining {message_full_name} not found in descriptor set."
+  )
 
 
 @dataclasses.dataclass(kw_only=True, frozen=True)
@@ -221,6 +248,96 @@ class Signature:
         signature=self,
         params_message=params_message,
         blackboard_params=blackboard_params,
+    )
+
+  def unique_copy(self, main_file_basename: str) -> Signature:
+    """Creates a unique copy of the signature.
+
+    This method assumes that there is a single "main" file in the file
+    descriptor set which defines both the parameter and the return value
+    message. This file is renamed to the given 'main_file_basename' and "moved"
+    to a folder with a unique, randomized name. The package of the file is
+    adapted to the path of the folder.
+
+    This method can be used to re-use one Signature object multiple times within
+    a single process while ensuring compatibility with process editors that
+    have no concept of sharing message definitions within a single process.
+
+    Args:
+      main_file_basename: The new basename of the main proto file (e.g.
+        'script_node.proto').
+
+    Returns:
+      A new Signature object with a unique main file name and package.
+    """
+    if (
+        not self.parameter_message_full_name
+        and not self.return_value_message_full_name
+    ):
+      return Signature(
+          parameter_message_full_name=self.parameter_message_full_name,
+          return_value_message_full_name=self.return_value_message_full_name,
+          file_descriptor_set=descriptor_pb2.FileDescriptorSet(),
+      )
+
+    # Find the files defining the messages and verify they are the same
+    param_file = None
+    if self.parameter_message_full_name:
+      param_file = _find_file_defining_top_level_message_or_raise(
+          self.file_descriptor_set, self.parameter_message_full_name
+      )
+    return_file = None
+    if self.return_value_message_full_name:
+      return_file = _find_file_defining_top_level_message_or_raise(
+          self.file_descriptor_set, self.return_value_message_full_name
+      )
+
+    if param_file and return_file and param_file.name != return_file.name:
+      raise ValueError(
+          f"Parameter message '{self.parameter_message_full_name}' is defined"
+          f" in '{param_file.name}' but return value message"
+          f" '{self.return_value_message_full_name}' is defined in"
+          f" '{return_file.name}'. They must be defined in the same file."
+      )
+
+    main_file = param_file or return_file
+    assert main_file
+
+    # Generate new main file name and package.
+    new_filename = _UNIQUE_MAIN_PROTO_FILENAME_PATTERN % (
+        uuid.uuid4().hex,
+        main_file_basename,
+    )
+    new_package = new_filename.rpartition("/")[0].replace("/", ".")
+
+    # Create file descriptor set copy with changed main file name and package.
+    new_fds = descriptor_pb2.FileDescriptorSet()
+    new_fds.CopyFrom(self.file_descriptor_set)
+
+    for file_proto in new_fds.file:
+      if file_proto.name == main_file.name:
+        file_proto.name = new_filename
+        file_proto.package = new_package
+
+    # Determine new message full names.
+    new_parameter_message_full_name = ""
+    if self.parameter_message_full_name:
+      new_parameter_message_full_name = (
+          new_package
+          + self.parameter_message_full_name.removeprefix(main_file.package)
+      )
+
+    new_return_value_message_full_name = ""
+    if self.return_value_message_full_name:
+      new_return_value_message_full_name = (
+          new_package
+          + self.return_value_message_full_name.removeprefix(main_file.package)
+      )
+
+    return Signature(
+        parameter_message_full_name=new_parameter_message_full_name,
+        return_value_message_full_name=new_return_value_message_full_name,
+        file_descriptor_set=new_fds,
     )
 
 
