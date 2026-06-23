@@ -1734,3 +1734,31 @@ def wait_for_skill(
 
     except grpc.RpcError:
       time.sleep(1)
+
+
+def create_message_from_file_descriptor_set(
+    file_descriptor_set: descriptor_pb2.FileDescriptorSet,
+    message_full_name: str,
+) -> message.Message:
+  """Creates an empty message instance from a file descriptor set and name.
+
+  Creates a single-use descriptor pool from the file desriptor set on-the-fly.
+
+  Args:
+    file_descriptor_set: The FileDescriptorSet containing the message
+      definition.
+    message_full_name: The fully qualified name of the message.
+
+  Returns:
+    An empty message instance.
+
+  Raises:
+    ValueError: If the message type is not found in the descriptor pool.
+  """
+  desc_pool = descriptors.create_descriptor_pool(file_descriptor_set)
+  message_type = desc_pool.FindMessageTypeByName(message_full_name)
+  if message_type is None:
+    raise ValueError(
+        f"Message type '{message_full_name}' not found in descriptor pool"
+    )
+  return message_factory.GetMessageClass(message_type)()

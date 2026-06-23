@@ -101,7 +101,6 @@ py_library(
         "//intrinsic/solutions:ipython",
         "//intrinsic/solutions:utils",
         "//intrinsic/util/grpc:error_handling",
-        "//intrinsic/util/proto:descriptors_py",
         "//intrinsic/util/status:extended_status_py_pb2",
         "@com_google_protobuf//:protobuf_python",
     ],

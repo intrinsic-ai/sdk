@@ -8,7 +8,6 @@ import typing
 from google.protobuf import any_pb2
 from google.protobuf import empty_pb2
 from google.protobuf import message
-from google.protobuf import message_factory
 from google.protobuf import wrappers_pb2
 
 from intrinsic.executive.proto import blackboard_service_pb2
@@ -19,7 +18,6 @@ from intrinsic.solutions import ipython
 from intrinsic.solutions import utils
 from intrinsic.solutions.internal import skill_utils
 from intrinsic.util.grpc import error_handling
-from intrinsic.util.proto import descriptors
 from intrinsic.util.status import extended_status_pb2
 
 
@@ -236,13 +234,11 @@ class Blackboard:
     if self._proto_registry is not None:
       try:
         fds = self._proto_registry.get_descriptor_set_by_typeurl(type_url)
-        pool = descriptors.create_descriptor_pool(fds)
-        msg_descriptor = pool.FindMessageTypeByName(proto_name)
-        if msg_descriptor:
-          message_class = message_factory.GetMessageClass(msg_descriptor)
-          msg = message_class()
-          any_value.Unpack(msg)
-          return msg
+        msg = skill_utils.create_message_from_file_descriptor_set(
+            fds, proto_name
+        )
+        any_value.Unpack(msg)
+        return msg
       except Exception:  # pylint: disable=broad-except
         pass
 

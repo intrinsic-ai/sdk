@@ -10,7 +10,6 @@ import uuid
 
 from google.protobuf import descriptor_pb2
 from google.protobuf import message as protobuf_message
-from google.protobuf import message_factory
 import grpc
 
 from intrinsic.executive.proto import proto_builder_pb2
@@ -19,7 +18,6 @@ from intrinsic.solutions import errors as solutions_errors
 from intrinsic.solutions import provided
 from intrinsic.solutions.internal import skill_utils
 from intrinsic.util.grpc import error_handling
-from intrinsic.util.proto import descriptors
 
 _DEFAULT_PARAM_MSG_NAME = "Params"
 _DEFAULT_RETURN_MSG_NAME = "ReturnValue"
@@ -50,19 +48,6 @@ def _find_file_defining_top_level_message_or_raise(
   raise LookupError(
       f"File defining {message_full_name} not found in descriptor set."
   )
-
-
-def _create_message_from_file_descriptor_set(
-    file_descriptor_set: descriptor_pb2.FileDescriptorSet,
-    message_full_name: str,
-) -> protobuf_message.Message:
-  desc_pool = descriptors.create_descriptor_pool(file_descriptor_set)
-  message_type = desc_pool.FindMessageTypeByName(message_full_name)
-  if message_type is None:
-    raise ValueError(
-        f"Message type '{message_full_name}' not found in descriptor pool"
-    )
-  return message_factory.GetMessageClass(message_type)()
 
 
 @dataclasses.dataclass(kw_only=True, frozen=True)
@@ -237,7 +222,7 @@ class Signature:
           blackboard_params={},
       )
 
-    params_message = _create_message_from_file_descriptor_set(
+    params_message = skill_utils.create_message_from_file_descriptor_set(
         self.file_descriptor_set, self.parameter_message_full_name
     )
     blackboard_params = {}
@@ -412,7 +397,7 @@ class SignatureWithArgs:
     # name and package, and not the contents of the message definition.
     serialized_params = self.params_message.SerializeToString()
 
-    new_params_message = _create_message_from_file_descriptor_set(
+    new_params_message = skill_utils.create_message_from_file_descriptor_set(
         new_signature.file_descriptor_set,
         new_signature.parameter_message_full_name,
     )
@@ -633,7 +618,7 @@ class ProtoBuilder:
     )
 
     # 3. Construct the message out of the file descriptor set
-    return _create_message_from_file_descriptor_set(
+    return skill_utils.create_message_from_file_descriptor_set(
         file_descriptor_set, package + "." + name
     )
 

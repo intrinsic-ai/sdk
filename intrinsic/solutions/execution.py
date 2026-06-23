@@ -32,7 +32,6 @@ import warnings
 from google.longrunning import operations_pb2
 from google.protobuf import any_pb2
 from google.protobuf import message as protobuf_message
-from google.protobuf import message_factory
 import grpc
 
 from intrinsic.assets import id_utils
@@ -56,8 +55,8 @@ from intrinsic.solutions import utils
 from intrinsic.solutions import worlds
 from intrinsic.solutions.internal import actions
 from intrinsic.solutions.internal import blackboard as blackboard_internal
+from intrinsic.solutions.internal import skill_utils
 from intrinsic.util.grpc import error_handling
-from intrinsic.util.proto import descriptors
 from intrinsic.util.status import extended_status_pb2
 from intrinsic.util.status import status_exception
 
@@ -218,15 +217,10 @@ class Operation:
       )
       return self._response.result
 
-    return_value_pool = descriptors.create_descriptor_pool(
-        return_value_description.descriptor_fileset
+    result_message = skill_utils.create_message_from_file_descriptor_set(
+        return_value_description.descriptor_fileset,
+        return_value_description.return_value_message_full_name,
     )
-    message_type = return_value_pool.FindMessageTypeByName(
-        return_value_description.return_value_message_full_name
-    )
-    assert message_type is not None
-
-    result_message = message_factory.GetMessageClass(message_type)()
     self._response.result.Unpack(result_message)
     return result_message
 
@@ -447,7 +441,6 @@ class Executive:
   def blackboard_snapshots(self) -> blackboard_internal.BlackboardSnapshots:
     """Returns the blackboard snapshots wrapper."""
     return blackboard_internal.BlackboardSnapshots(self._blackboard_stub)
-
 
   @error_handling.retry_on_grpc_unavailable
   def _update_operation(self) -> None:
