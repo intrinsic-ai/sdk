@@ -52,6 +52,19 @@ def _find_file_defining_top_level_message_or_raise(
   )
 
 
+def _create_message_from_file_descriptor_set(
+    file_descriptor_set: descriptor_pb2.FileDescriptorSet,
+    message_full_name: str,
+) -> protobuf_message.Message:
+  desc_pool = descriptors.create_descriptor_pool(file_descriptor_set)
+  message_type = desc_pool.FindMessageTypeByName(message_full_name)
+  if message_type is None:
+    raise ValueError(
+        f"Message type '{message_full_name}' not found in descriptor pool"
+    )
+  return message_factory.GetMessageClass(message_type)()
+
+
 @dataclasses.dataclass(kw_only=True, frozen=True)
 class FieldSpec:
   """Specifies a singular or repeated field in a proto message.
@@ -224,16 +237,9 @@ class Signature:
           blackboard_params={},
       )
 
-    desc_pool = descriptors.create_descriptor_pool(self.file_descriptor_set)
-    message_type = desc_pool.FindMessageTypeByName(
-        self.parameter_message_full_name
+    params_message = _create_message_from_file_descriptor_set(
+        self.file_descriptor_set, self.parameter_message_full_name
     )
-    if message_type is None:
-      raise ValueError(
-          f"Message type '{self.parameter_message_full_name}' not found in"
-          " descriptor pool"
-      )
-    params_message = message_factory.GetMessageClass(message_type)()
     blackboard_params = {}
     consumed = skill_utils.set_params(params_message, blackboard_params, kwargs)
 
@@ -372,6 +378,51 @@ class SignatureWithArgs:
   def file_descriptor_set(self) -> descriptor_pb2.FileDescriptorSet:
     """Returns signature.file_descriptor_set."""
     return self.signature.file_descriptor_set
+
+  def unique_copy(self, main_file_basename: str) -> SignatureWithArgs:
+    """Creates a unique copy of the signature and its arguments.
+
+    Calls Signature.unique_copy() to create a unique copy of the
+    underlying signature and re-creates the arguments based on this new
+    signature.
+
+    This method can be used to re-use one SignatureWithArgs object multiple
+    times within a single process while ensuring compatibility with process
+    editors which have no concept of sharing message definitions within a single
+    process.
+
+    Args:
+      main_file_basename: The new basename of the main proto file (e.g.
+        'script_node.proto').
+
+    Returns:
+      A new SignatureWithArgs object with a unique main file name, package,
+      and a new version of the parameter message.
+    """
+    new_signature = self.signature.unique_copy(main_file_basename)
+
+    if self.params_message is None:
+      return SignatureWithArgs(
+          signature=new_signature,
+          params_message=None,
+          blackboard_params=self.blackboard_params.copy(),
+      )
+
+    # We always expect this to work since we are only changing the main file
+    # name and package, and not the contents of the message definition.
+    serialized_params = self.params_message.SerializeToString()
+
+    new_params_message = _create_message_from_file_descriptor_set(
+        new_signature.file_descriptor_set,
+        new_signature.parameter_message_full_name,
+    )
+    new_params_message.ParseFromString(serialized_params)
+
+    return SignatureWithArgs(
+        signature=new_signature,
+        params_message=new_params_message,
+        blackboard_params=self.blackboard_params.copy(),
+    )
 
 
 class ProtoBuilder:
@@ -582,11 +633,9 @@ class ProtoBuilder:
     )
 
     # 3. Construct the message out of the file descriptor set
-    desc_pool = descriptors.create_descriptor_pool(file_descriptor_set)
-    message_type = desc_pool.FindMessageTypeByName(package + "." + name)
-    assert message_type is not None
-
-    return message_factory.GetMessageClass(message_type)()
+    return _create_message_from_file_descriptor_set(
+        file_descriptor_set, package + "." + name
+    )
 
   def _generate_import_lines(
       self,
