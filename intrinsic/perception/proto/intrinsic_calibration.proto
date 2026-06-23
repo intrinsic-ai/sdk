@@ -24,4 +24,6 @@ message IntrinsicCalibrationResult {
   double error = 2;
   // 3D error in m.
   optional double error_3d = 3;
+  // Reprojection error per image in pixels.
+  repeated double errors_per_image = 4;
 }
