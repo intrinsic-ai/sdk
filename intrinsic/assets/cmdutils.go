@@ -314,9 +314,7 @@ func (cf *CmdFlags) GetFlagPolicy() (iapb.UpdatePolicy, error) {
 
 // AddFlagOrganizationOptional adds an optional flag for the organization.
 func (cf *CmdFlags) AddFlagOrganizationOptional() {
-	cf.OptionalEnvString(KeyOrganization, "",
-		`The Intrinsic organization to use. You can set the environment variable
-		INTRINSIC_ORG=organization to set a default organization.`)
+	cf.OptionalEnvString(KeyOrganization, "", "The Intrinsic organization to use.")
 }
 
 // GetFlagOrganization gets the value of the organization flag added by AddFlagOrganizationOptional.
@@ -338,23 +336,17 @@ func (cf *CmdFlags) AddFlagsProjectOrgOptional(opts ...orgutil.WrapCmdOption) {
 
 // AddFlagProject adds a flag for the GCP project.
 func (cf *CmdFlags) AddFlagProject() {
-	cf.RequiredEnvString(KeyProject, "",
-		`The Google Cloud Project (GCP) project to use. You can set the environment variable
-		INTRINSIC_PROJECT=project_name to set a default project name.`)
+	cf.RequiredEnvString(KeyProject, "", "The Google Cloud Project (GCP) project to use.")
 }
 
 // AddFlagCatalogProjectOptional adds an optional flag for the GCP project to use for the catalog.
 func (cf *CmdFlags) AddFlagCatalogProjectOptional() {
-	cf.OptionalEnvString(KeyProject, "",
-		`The Google Cloud Project (GCP) project to use for the catalog. You can set the environment
-		variable INTRINSIC_PROJECT=project_name to set a default project name.`)
+	cf.OptionalEnvString(KeyProject, "", "The Google Cloud Project (GCP) project to use for the catalog.")
 }
 
 // AddFlagProjectOptional adds an optional flag for the GCP project.
 func (cf *CmdFlags) AddFlagProjectOptional() {
-	cf.OptionalEnvString(KeyProject, "",
-		`The Google Cloud Project (GCP) project to use. You can set the environment variable
-		INTRINSIC_PROJECT=project_name to set a default project name.`)
+	cf.OptionalEnvString(KeyProject, "", "The Google Cloud Project (GCP) project to use.")
 }
 
 // GetFlagProject gets the value of the project flag added by AddFlagProject.
