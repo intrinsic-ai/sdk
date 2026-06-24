@@ -39,6 +39,9 @@ ASSETS_DOMAIN_DEV = "assets-dev.intrinsic.ai"
 ASSETS_DOMAIN_STAGING = "assets-qa.intrinsic.ai"
 ASSETS_DOMAIN_PROD = "assets.intrinsic.ai"
 
+# Ops project constants
+OPS_PROJECT_PROD = "intrinsic-ops"
+
 # All environments
 ALL = [PROD, STAGING, DEV]
 
@@ -64,6 +67,7 @@ def from_project(project: str) -> str:
       ACCOUNTS_PROJECT_PROD,
       PORTAL_PROJECT_PROD,
       ASSETS_PROJECT_PROD,
+      OPS_PROJECT_PROD,
   ):
     return PROD
   if project in (

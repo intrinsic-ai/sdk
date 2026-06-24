@@ -46,6 +46,9 @@ inline constexpr char kAssetsDomainDev[] = "assets-dev.intrinsic.ai";
 inline constexpr char kAssetsDomainStaging[] = "assets-qa.intrinsic.ai";
 inline constexpr char kAssetsDomainProd[] = "assets.intrinsic.ai";
 
+// Ops project constants
+inline constexpr char kOpsProjectProd[] = "intrinsic-ops";
+
 namespace internal {
 // absl::Span, does not own data, so we need to declare a global constexpr array
 // for the span to point to. Make it internal to avoid accidental hard-coded

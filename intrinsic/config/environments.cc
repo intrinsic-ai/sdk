@@ -29,7 +29,7 @@ absl::StatusOr<std::string> FromDomain(absl::string_view domain) {
 
 absl::StatusOr<std::string> FromProject(absl::string_view project) {
   if (project == kPortalProjectProd || project == kAccountsProjectProd ||
-      project == kAssetsProjectProd) {
+      project == kAssetsProjectProd || project == kOpsProjectProd) {
     return kProd;
   } else if (project == kPortalProjectStaging ||
              project == kAccountsProjectStaging ||

@@ -63,6 +63,9 @@ const (
 	ArtifactsProjectProd = "intrinsic-artifacts-prod"
 	// ArtifactsProjectDev is the project for artifacts in dev.
 	ArtifactsProjectDev = "intrinsic-artifacts-dev"
+
+	// OpsProjectProd is the project for the ops cluster in prod.
+	OpsProjectProd = "intrinsic-ops"
 )
 
 // All is the list of all environments.
@@ -94,7 +97,7 @@ func FromDomain(domain string) (string, error) {
 // FromProject returns the environment for the given portal, accounts or assets project.
 func FromProject(project string) (string, error) {
 	switch project {
-	case PortalProjectProd, AccountsProjectProd, AssetsProjectProd:
+	case PortalProjectProd, AccountsProjectProd, AssetsProjectProd, OpsProjectProd:
 		return Prod, nil
 	case PortalProjectStaging, AccountsProjectStaging, AssetsProjectStaging:
 		return Staging, nil
