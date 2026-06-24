@@ -20,12 +20,6 @@ service ArtifactServiceApi {
   // the commit will be performed for the object, making it permanent.
   rpc WriteContent(UpdateRequest) returns (UpdateResponse);
 
-  // Streaming update of the artifact content. This should be used for objects
-  // which size is larger than max_update_size. While this is streaming
-  // API, caller needs to make sure they coordinate between request and
-  // response as those are linked in the backend via next.next_index.
-  rpc WriteContentStream(stream UpdateRequest) returns (stream UpdateResponse);
-
   // Streaming upload of the artifact content. While this is streaming
   // API, caller needs to make sure UpdateRequest.ChunkId is increasing sequence
   // of numbers.
