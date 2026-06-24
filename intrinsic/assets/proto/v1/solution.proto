@@ -1,0 +1,21 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.assets.v1;
+
+import "intrinsic/assets/proto/v1/asset.proto";
+import "intrinsic/assets/proto/v1/asset_instances.proto";
+import "intrinsic/world/proto/object_world_updates.proto";
+
+option go_package = "intrinsic/assets/proto/v1/solution_go_proto";
+
+// A Solution represents the Assets, Asset instances, and other information that
+// define an automation solution in the Intrinsic platform.
+message Solution {
+  map<string, Asset> assets = 1;
+
+  map<string, AssetInstance> instances = 2;
+
+  repeated intrinsic_proto.world.ObjectWorldUpdate object_world_updates = 3;
+}

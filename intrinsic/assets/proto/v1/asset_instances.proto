@@ -1,0 +1,195 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.assets.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "intrinsic/assets/proto/id.proto";
+import "intrinsic/assets/proto/asset_type.proto";
+import "intrinsic/assets/proto/asset_tag.proto";
+import "intrinsic/assets/proto/metadata.proto";
+import "intrinsic/assets/proto/v1/dependency.proto";
+import "intrinsic/assets/proto/v1/grpc_connection.proto";
+import "intrinsic/assets/proto/v1/instance_config.proto";
+
+option go_package = "intrinsic/assets/proto/v1/asset_instances_go_proto";
+
+// Service to manage the Asset instances within a Solution.
+service AssetInstances {
+
+  // Get an Asset instance.
+  rpc GetAssetInstance(GetAssetInstanceRequest) returns (AssetInstance) {
+    option (google.api.http) = {
+      get: "/v1/assetInstances/{name}"
+    };
+  }
+
+  // Get one or more Asset instances.
+  rpc BatchGetAssetInstances(BatchGetAssetInstancesRequest)
+      returns (BatchGetAssetInstancesResponse) {
+    option (google.api.http) = {
+      get: "/v1/assetInstances:batchGet"
+      body: "*"
+    };
+  }
+
+  // List the current Asset instances.
+  rpc ListAssetInstances(ListAssetInstancesRequest)
+      returns (ListAssetInstancesResponse) {
+    option (google.api.http) = {
+      get: "/v1/assetInstances"
+    };
+  }
+}
+
+// Service to get information about Asset instances within a Solution.
+service AssetInstancesReader {
+
+  // Get an Asset instance.
+  rpc GetAssetInstance(GetAssetInstanceRequest) returns (AssetInstance);
+
+  // Get one or more Asset instances.
+  rpc BatchGetAssetInstances(BatchGetAssetInstancesRequest)
+      returns (BatchGetAssetInstancesResponse);
+
+  // List the current Asset instances.
+  rpc ListAssetInstances(ListAssetInstancesRequest)
+      returns (ListAssetInstancesResponse);
+}
+
+enum AssetInstanceView {
+  // The default/unset value (depends on the RPC being called).
+  ASSET_INSTANCE_VIEW_UNSPECIFIED = 0;
+
+  // Provides minimal, basic information about the Asset.
+  //
+  // Includes the following fields:
+  // * name
+  // * asset
+  ASSET_INSTANCE_VIEW_BASIC = 1;
+
+  // Provides detailed metadata about the Asset.
+  //
+  // Includes the following fields:
+  // * name
+  // * asset
+  // * config
+  // * details
+  // * metadata.asset_tag
+  // * metadata.asset_type
+  // * metadata.id_version
+  // * metadata.provides
+  ASSET_INSTANCE_VIEW_DETAIL = 2;
+
+  // Provides all fields.
+  ASSET_INSTANCE_VIEW_FULL = 6;
+}
+
+// An AssetInstance represents an instance of an Asset in a Solution.
+message AssetInstance {
+  // The Details message provides information about how an Asset instance is
+  // being run within a Solution, and the effects that it triggers.  This
+  // provides a unified way of accessing services of both Service Assets and
+  // HardwareDevice Assets, for example.
+  message Details {
+    message Service {
+      // How to connect to the service within the cluster, if it exposes gRPC.
+      optional GrpcConnection grpc_connection = 1;
+      // The topic name for Service inspection if a Service inspection config is
+      // defined.
+      optional string service_inspection_topic = 2;
+      // Whether a SchedulingConfig is required for running on real hardware.
+      bool requires_scheduling_config = 3;
+    }
+
+    // The service field will be populated if the Asset instance generates a pod
+    // running a container.  This can happen for both Service and HardwareDevice
+    // Assets.
+    optional Service service = 5;
+    // Additional information may be added in the future to provide a unified
+    // way of accessing objects created in the world by the instance.
+  }
+
+  // The name of the Asset instance.
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // The Asset backing the Asset instance.  This is the local name of the Asset
+  // as specified in the Assets map of the Solution.  By convention, this is the
+  // id of the Asset.
+  string asset = 2;
+
+  // The configuration of the Asset instance.
+  InstanceConfig config = 3;
+
+  // Detailed information about the Asset instance.
+  Details details = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Metadata about the backing Asset.
+  intrinsic_proto.assets.Metadata metadata = 5
+      [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+message GetAssetInstanceRequest {
+  // The name of the Asset instance requested.
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // Specify the information returned in the request.
+  // ASSET_INSTANCE_VIEW_DETAIL is used by default.
+  AssetInstanceView view = 2;
+}
+
+message BatchGetAssetInstancesRequest {
+  // The names of the Asset instances requested.
+  repeated string names = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // Specify the information returned in the request.
+  // ASSET_INSTANCE_VIEW_DETAIL is used by default.
+  AssetInstanceView view = 2;
+}
+
+message BatchGetAssetInstancesResponse {
+  repeated AssetInstance asset_instances = 1;
+}
+
+message ListAssetInstancesRequest {
+  // Filter provides a set of criteria that can be specified about the returned
+  // Asset instances.  An Asset instance must match all specified criteria in
+  // order to match a filter (AND).
+  message Filter {
+    // The type of their backing Asset.
+    AssetType asset_type = 1;
+    // A tag attached to the backing Asset.
+    AssetTag asset_tag = 2;
+    // The local name of the backing Asset within the context of the Solution.
+    // By convention this is the id of the Asset.
+    optional string asset = 3;
+    // The ID of the backing Asset.
+    intrinsic_proto.assets.Id id = 4;
+    // The Dependency requirements the Asset instances must fulfill.
+    optional Dependency fulfills = 5;
+  }
+  // The maximum number of instances to return. If unspecified, at most 50
+  // instances will be returned. The maximum value is 200.
+  int64 page_size = 1;
+  // A page token from a previous call used to retrieve subsequent instances.
+  string page_token = 2;
+
+  // Specify the information returned in the request. ASSET_INSTANCE_VIEW_BASIC
+  // is used by default.
+  AssetInstanceView view = 3;
+
+  // Apply filters to the resulting request.  More than one filter can be
+  // specified.  Results matching any filter are returned (OR).
+  repeated Filter strict_filters = 4;
+
+  // Returned instances are sorted by name.
+}
+
+message ListAssetInstancesResponse {
+  repeated AssetInstance asset_instances = 1;
+
+  // This token can be used to retrieve the next results on a future call.
+  string next_page_token = 2;
+}

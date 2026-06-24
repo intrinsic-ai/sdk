@@ -6,6 +6,7 @@ package intrinsic_proto.assets.v1;
 
 import "google/api/annotations.proto";
 import "google/longrunning/operations.proto";
+import "intrinsic/assets/proto/v1/solution.proto"; 
 import "intrinsic/config/proto/operation_mode.proto";
 
 option go_package = "intrinsic/assets/proto/v1/solution_deployment_go_proto";
@@ -43,9 +44,41 @@ service SolutionDeploymentService {
     };
   }
 
+
+  // Gets the current solution deployment, if running. Returns NotFound if there
+  // is no active solution deployment.  Returns a basic view of the solution
+  // deployment.
+  rpc GetSolutionDeployment(GetSolutionDeploymentRequest)
+      returns (SolutionDeployment) {
+    option (google.api.http) = {
+      get: "/v1/solutionDeployment"
+    };
+  }
+
+  // Updates the current solution deployment, if running.  It provides the
+  // option to start a solution deployment if not.  Returns a basic view of the
+  // updated solution.
+  rpc UpdateSolutionDeployment(UpdateSolutionDeploymentRequest)
+      returns (google.longrunning.Operation) {
+    option (google.longrunning.operation_info) = {
+      metadata_type: "UpdateSolutionDeploymentMetadata"
+      response_type: "SolutionDeployment"
+    };
+    option (google.api.http) = {
+      patch: "/v1/solutionDeployment"
+    };
+  }
+
 }
 
 message SolutionDeployment {
+
+  // A basic view of the solution is returned by default by create calls.  In
+  // the basic view, solution will only contain id version and type information
+  // about assets and name and asset information for instances.  No object world
+  // updates are included.
+  Solution solution = 1;
+
   string solution_id = 2;
   intrinsic_proto.config.OperationMode operation_mode = 3;
 }
@@ -54,6 +87,19 @@ message CreateSolutionDeploymentFromVersionedSolutionRequest {
   string solution_id = 1;
   intrinsic_proto.config.OperationMode operation_mode = 2;
 }
+
+
+message GetSolutionDeploymentRequest {}
+
+message UpdateSolutionDeploymentMetadata {}
+
+message UpdateSolutionDeploymentRequest {
+  SolutionDeployment solution_deployment = 1;
+
+  // If set to true, and no solution deployment is running, one will be created.
+  bool allow_missing = 3;
+}
+
 
 message CreateSolutionDeploymentFromVersionedSolutionMetadata {}
 

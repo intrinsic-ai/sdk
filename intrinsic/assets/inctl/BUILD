@@ -17,6 +17,7 @@ go_library(
         ":release",
         ":uninstall",
         ":updatereleasemetadata",
+        "//intrinsic/assets/inctl/instance",
         "//intrinsic/tools/inctl/cmd:root",
         "//intrinsic/tools/inctl/util:cobrautil",
     ],
