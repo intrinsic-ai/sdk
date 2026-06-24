@@ -5,7 +5,6 @@ package getreleased
 
 import (
 	"fmt"
-	"strings"
 
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
@@ -24,13 +23,11 @@ func GetCommand() *cobra.Command {
 	flags := cmdutils.NewCmdFlags()
 
 	cmd := &cobra.Command{
-		Use: "get_released id_version",
-		Short: strings.Join([]string{
-			"Get information about the specified Asset version from the AssetCatalog.",
-		}, "\n"),
-		Example: strings.Join([]string{
-			"$ inctl asset get_released some.package.my_skill.0.0.1",
-		}, "\n"),
+		Use:   "get_released id_version",
+		Short: "Get information about the specified Asset version from the AssetCatalog.",
+		Example: `
+  $ inctl asset get_released some.package.my_skill.0.0.1
+`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ivp, err := idutils.NewIDVersionParts(args[0])

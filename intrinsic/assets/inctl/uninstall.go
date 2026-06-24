@@ -28,18 +28,18 @@ func GetCommand() *cobra.Command {
 		Use:   "uninstall <id>",
 		Short: "Uninstall an asset (Note: This will fail if there are instances of it in the solution.)",
 		Example: `
-		$ inctl asset uninstall ai.intrinsic.box \
-				--project my_project \
-				--solution my_solution_id
+  $ inctl asset uninstall ai.intrinsic.box \
+      --project my_project \
+      --solution my_solution_id
 
-		To find a running solution's id, run:
-		$ inctl solution list --project my-project --filter "running_on_hw,running_in_sim" --output json
+  To find a running solution's id, run:
+  $ inctl solution list --project my-project --filter "running_on_hw,running_in_sim" --output json
 
-		Can also use:
-		$ inctl asset uninstall <id> --project my_project --address my_address
-		or
-		$ inctl asset uninstall <id> --project my_project --cluster my_cluster
-	`,
+  Can also use:
+  $ inctl asset uninstall <id> --project my_project --address my_address
+  or
+  $ inctl asset uninstall <id> --project my_project --cluster my_cluster
+`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()

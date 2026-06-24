@@ -26,9 +26,9 @@ func GetCommand() *cobra.Command {
 		Use:   "release bundle.tar",
 		Short: "Release an Asset to the catalog.",
 		Example: `
-	Release an Asset to the catalog
-	$ inctl asset release abc/bundle.tar --version=0.0.1
-	`,
+  Release an Asset to the catalog
+  $ inctl asset release abc/bundle.tar --version=0.0.1
+`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			printer, err := printer.NewPrinter(root.FlagOutput)

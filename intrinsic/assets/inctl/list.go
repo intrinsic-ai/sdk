@@ -31,18 +31,17 @@ func GetCommand(defaultTypes string) *cobra.Command {
 		Use:   "list",
 		Short: "List installed assets",
 		Example: `
-		List the assets installed in a solution:
-		$ inctl asset list --org my_organization --solution my_solution_id
+  List the assets installed in a solution:
+  $ inctl asset list --org my_organization --solution my_solution_id
 
-		To find a running solution's id, run:
-		$ inctl solution list --project my_project --filter "running_on_hw,running_in_sim" --output json
+  To find a running solution's id, run:
+  $ inctl solution list --project my_project --filter "running_on_hw,running_in_sim" --output json
 
-		Can also use:
-		$ inctl asset list --project my_project --address my_address
-		or
-		$ inctl asset list --project my_project --cluster my_cluster
-
-		`,
+  Can also use:
+  $ inctl asset list --project my_project --address my_address
+  or
+  $ inctl asset list --project my_project --cluster my_cluster
+`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 

@@ -213,30 +213,30 @@ func Command() *cobra.Command {
 		Use:   "list",
 		Short: "List asset instances",
 		Example: `
-		List all asset instances in a solution:
-		$ inctl asset instance list --org my_organization --solution my_solution_id
+  List all asset instances in a solution:
+  $ inctl asset instance list --org my_organization --solution my_solution_id
 
-		List asset instances specifying the cluster:
-		$ inctl asset instance list --project my_project --cluster my_cluster
+  List asset instances specifying the cluster:
+  $ inctl asset instance list --project my_project --cluster my_cluster
 
-		List asset instances specifying the address:
-		$ inctl asset instance list --project my_project --address my_address
+  List asset instances specifying the address:
+  $ inctl asset instance list --project my_project --address my_address
 
-		List asset instances with json output:
-		$ inctl asset instance list --output json --org my_organization --solution my_solution_id
+  List asset instances with json output:
+  $ inctl asset instance list --output json --org my_organization --solution my_solution_id
 
-		Filter asset instances by type:
-		$ inctl asset instance list --filter asset_type=skill --org my_organization --solution my_solution_id
+  Filter asset instances by type:
+  $ inctl asset instance list --filter asset_type=skill --org my_organization --solution my_solution_id
 
-		Filter asset instances by type and ID (AND):
-		$ inctl asset instance list --filter asset_type=skill,id=ai.intrinsic.move_robot --org my_organization --solution my_solution_id
+  Filter asset instances by type and ID (AND):
+  $ inctl asset instance list --filter asset_type=skill,id=ai.intrinsic.move_robot --org my_organization --solution my_solution_id
 
-		Multiple filters are ORed:
-		$ inctl asset instance list --filter asset_type=skill --filter asset_type=service --org my_organization --solution my_solution_id
+  Multiple filters are ORed:
+  $ inctl asset instance list --filter asset_type=skill --filter asset_type=service --org my_organization --solution my_solution_id
 
-		Filter by dependency requirement (fulfills.requires):
-		$ inctl asset instance list --filter fulfills.requires=grpc://some.Service --org my_organization --solution my_solution_id
-		`,
+  Filter by dependency requirement (fulfills.requires):
+  $ inctl asset instance list --filter fulfills.requires=grpc://some.Service --org my_organization --solution my_solution_id
+`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()

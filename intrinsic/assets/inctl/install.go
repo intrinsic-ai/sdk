@@ -47,27 +47,27 @@ func GetCommand() *cobra.Command {
 		Use:   "install <asset_id_version>",
 		Short: "Install an Asset",
 		Example: `
-	Install a local Asset bundle into the specified Solution:
-	$ inctl asset install abc/bundle.tar \
-			--org $my_org \
-			--solution $my_solution_id
+  Install a local Asset bundle into the specified Solution:
+  $ inctl asset install abc/bundle.tar \
+      --org $my_org \
+      --solution $my_solution_id
 
-	Install an Asset from the catalog into the specified Solution:
-	$ inctl asset install ai.intrinsic.calculator_service.0.20260126.0-RC00 \
-			--org $my_org \
-			--solution $my_solution_id
+  Install an Asset from the catalog into the specified Solution:
+  $ inctl asset install ai.intrinsic.calculator_service.0.20260126.0-RC00 \
+      --org $my_org \
+      --solution $my_solution_id
 
-	Install an Asset from another Solution into the specified Solution:
-	$ inctl asset install $source_solution_id/ai.intrinsic.calculator_service \
-			--org $my_org \
-			--solution $my_solution_id
+  Install an Asset from another Solution into the specified Solution:
+  $ inctl asset install $source_solution_id/ai.intrinsic.calculator_service \
+      --org $my_org \
+      --solution $my_solution_id
 
-	To find a running Solution's id, run:
-	$ inctl solution list --org $my_org --filter "running_on_hw,running_in_sim" --output json
+  To find a running Solution's id, run:
+  $ inctl solution list --org $my_org --filter "running_on_hw,running_in_sim" --output json
 
-	The Asset can also be installed by specifying the cluster on which the Solution is running:
-	$ inctl asset install $my_asset --org $my_org --cluster $my_cluster
-	`,
+  The Asset can also be installed by specifying the cluster on which the Solution is running:
+  $ inctl asset install $my_asset --org $my_org --cluster $my_cluster
+`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()

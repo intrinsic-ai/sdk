@@ -7,7 +7,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"strings"
 	"unicode"
 
 	"intrinsic/assets/clientutils"
@@ -30,13 +29,11 @@ func GetCommand() *cobra.Command {
 	flags := cmdutils.NewCmdFlags()
 
 	cmd := &cobra.Command{
-		Use: "update_release_metadata id_version",
-		Short: strings.Join([]string{
-			"Update the release metadata of the specified asset id_version.",
-		}, "\n"),
-		Example: strings.Join([]string{
-			"$ inctl asset update_release_metadata some.package.my_skill.0.0.1 --org_private=false",
-		}, "\n"),
+		Use:   "update_release_metadata id_version",
+		Short: "Update the release metadata of the specified asset id_version.",
+		Example: `
+  $ inctl asset update_release_metadata some.package.my_skill.0.0.1 --org_private=false
+`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ivp, err := idutils.NewIDVersionParts(args[0])

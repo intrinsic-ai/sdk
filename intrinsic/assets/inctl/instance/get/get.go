@@ -117,21 +117,21 @@ func Command() *cobra.Command {
 		Use:   "get <name>",
 		Short: "Get asset instance details",
 		Example: `
-		Get details of an asset instance in a solution:
-		$ inctl asset instance get my_instance --org my_organization --solution my_solution_id
+  Get details of an asset instance in a solution:
+  $ inctl asset instance get my_instance --org my_organization --solution my_solution_id
 
-		Get details of an asset instance specifying the cluster:
-		$ inctl asset instance get my_instance --project my_project --cluster my_cluster
+  Get details of an asset instance specifying the cluster:
+  $ inctl asset instance get my_instance --project my_project --cluster my_cluster
 
-		Get details of an asset instance specifying the address:
-		$ inctl asset instance get my_instance --project my_project --address my_address
+  Get details of an asset instance specifying the address:
+  $ inctl asset instance get my_instance --project my_project --address my_address
 
-		Get basic details of an asset instance:
-		$ inctl asset instance get my_instance --view basic --org my_organization --solution my_solution_id
+  Get basic details of an asset instance:
+  $ inctl asset instance get my_instance --view basic --org my_organization --solution my_solution_id
 
-		Get full details of an asset instance including configuration:
-		$ inctl asset instance get my_instance --view full --org my_organization --solution my_solution_id
-		`,
+  Get full details of an asset instance including configuration:
+  $ inctl asset instance get my_instance --view full --org my_organization --solution my_solution_id
+`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name := args[0]
