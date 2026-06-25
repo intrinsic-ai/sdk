@@ -42,6 +42,7 @@ use_repo(
     "com_github_googlecloudplatform_opentelemetry_operations_go_exporter_trace",
     "com_github_gorilla_websocket",
     "com_github_masterminds_semver",
+    "com_github_mwitkow_grpc_proxy",
     "com_github_netresearch_go_cron",
     "com_github_pborman_uuid",
     "com_github_pkg_errors",

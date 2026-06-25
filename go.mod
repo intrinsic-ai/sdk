@@ -76,6 +76,7 @@ require (
 	github.com/lestrrat-go/libxml2 v0.0.0-20240905100032-c934e3fcb9d3
 	github.com/manifoldco/promptui v0.9.0
 	github.com/minio/highwayhash v1.0.2
+	github.com/mwitkow/grpc-proxy v0.0.0-20250813121105-2866842de9a5
 	github.com/netresearch/go-cron v0.14.0
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.38.2
