@@ -6,9 +6,12 @@ package skillvalidate
 import (
 	"context"
 	"fmt"
+	"slices"
+	"strings"
 
 	"intrinsic/assets/dependencies/platform"
 	"intrinsic/assets/idutils"
+	"intrinsic/assets/interfaceutils"
 	"intrinsic/assets/metadatautils"
 	validationerrors "intrinsic/assets/validation/errors"
 
@@ -16,6 +19,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 
+	metadatapb "intrinsic/assets/proto/metadata_go_proto"
 	psmpb "intrinsic/skills/proto/processed_skill_manifest_go_proto"
 	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 )
@@ -24,6 +28,7 @@ import (
 type skillManifestOptions struct {
 	files                                    *protoregistry.Files
 	incompatibleDisallowManifestDependencies bool
+	skipPlatformServicesCheck                bool
 }
 
 // SkillManifestOption is an option for validating a SkillManifest.
@@ -41,6 +46,14 @@ func WithFiles(files *protoregistry.Files) SkillManifestOption {
 func WithIncompatibleDisallowManifestDependencies(incompatible bool) SkillManifestOption {
 	return func(opts *skillManifestOptions) {
 		opts.incompatibleDisallowManifestDependencies = incompatible
+	}
+}
+
+// WithSkipPlatformServicesCheck specifies whether to skip the checks that platform-provided
+// services are present in the file descriptor set and that platform-provided services config is present.
+func WithSkipPlatformServicesCheck(skip bool) SkillManifestOption {
+	return func(opts *skillManifestOptions) {
+		opts.skipPlatformServicesCheck = skip
 	}
 }
 
@@ -64,6 +77,7 @@ func SkillManifest(ctx context.Context, m *smpb.SkillManifest, options ...SkillM
 	id := idutils.IDFromProtoUnchecked(m.GetId())
 
 	sd := &psmpb.SkillDetails{
+		Options:       m.GetOptions(),
 		Dependencies:  m.GetDependencies(),
 		Parameter:     m.GetParameter(),
 		ExecuteResult: m.GetReturnType(),
@@ -73,6 +87,17 @@ func SkillManifest(ctx context.Context, m *smpb.SkillManifest, options ...SkillM
 		incompatibleDisallowManifestDependencies: opts.incompatibleDisallowManifestDependencies,
 	}); err != nil {
 		return fmt.Errorf("invalid Skill details for %q: %w", id, err)
+	}
+
+	if !opts.skipPlatformServicesCheck {
+		if err := validateSkillServicesConfig(m.GetOptions().GetSkillServicesConfig()); err != nil {
+			return fmt.Errorf("invalid Skill details for %q: %w", id, err)
+		}
+		for _, iface := range platform.ProvidedBySkillManifest(m) {
+			if err := validatePlatformProvideInFiles(iface, opts.files); err != nil {
+				return fmt.Errorf("invalid platform provided interfaces for Skill %q: %w", id, err)
+			}
+		}
 	}
 
 	return nil
@@ -142,6 +167,10 @@ func ProcessedSkillManifest(ctx context.Context, m *psmpb.ProcessedSkillManifest
 		return fmt.Errorf("invalid Skill details for %q: %w", id, err)
 	}
 
+	if err := validateSkillServicesConfig(m.GetDetails().GetOptions().GetSkillServicesConfig()); err != nil {
+		return fmt.Errorf("invalid Skill details for %q: %w", id, err)
+	}
+
 	if opts.requiredRegistry != "" {
 		switch d := m.GetAssets().GetDeploymentType().(type) {
 		case *psmpb.ProcessedSkillAssets_Image:
@@ -206,6 +235,33 @@ func validatePlatformSkillDependencies(manifest *psmpb.ProcessedSkillManifest, r
 	for uri, found := range provided {
 		if !found {
 			return fmt.Errorf("this platform version requires that each Skill provide %q", uri)
+		}
+	}
+	return nil
+}
+
+func validateSkillServicesConfig(ssc *smpb.SkillServicesConfig) error {
+	if ssc == nil {
+		return fmt.Errorf("skill services config must be specified")
+	}
+	if len(ssc.GetServiceVersions()) == 0 {
+		return fmt.Errorf("skill services config is present but no service versions are specified")
+	}
+	if slices.Contains(ssc.GetServiceVersions(), smpb.SkillServicesConfig_UNSPECIFIED) {
+		return fmt.Errorf("skill services config contains UNSPECIFIED service version")
+	}
+
+	return nil
+}
+
+func validatePlatformProvideInFiles(iface *metadatapb.Interface, files *protoregistry.Files) error {
+	if strings.HasPrefix(iface.GetUri(), interfaceutils.GRPCURIPrefix) {
+		serviceName := strings.TrimPrefix(iface.GetUri(), interfaceutils.GRPCURIPrefix)
+		if files == nil {
+			return fmt.Errorf("platform provided interface specified (%q), but no descriptors provided", iface.GetUri())
+		}
+		if _, err := files.FindDescriptorByName(protoreflect.FullName(serviceName)); err != nil {
+			return fmt.Errorf("could not find service %q in provided descriptors: %w", serviceName, err)
 		}
 	}
 	return nil

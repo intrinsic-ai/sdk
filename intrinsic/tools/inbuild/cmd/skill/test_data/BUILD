@@ -5,6 +5,7 @@ load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@rules_python//python:defs.bzl", "py_binary")
 load("//bazel:go_macros.bzl", "go_proto_library")
 load("//bazel:python_oci_image.bzl", "python_oci_image")
+load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "proto_source_code_info_transitive_descriptor_set")
 
 package(default_visibility = ["//intrinsic/tools/inbuild:__subpackages__"])
 
@@ -48,5 +49,14 @@ filegroup(
         "example_skill_cc.manifest.pbtxt",
         "example_skill_main.py",
         "example_skill_py.manifest.pbtxt",
+    ],
+)
+
+proto_source_code_info_transitive_descriptor_set(
+    name = "example_skill_augmented_test_descriptors",
+    testonly = True,
+    deps = [
+        ":example_skill_proto",
+        "//intrinsic/skills/proto:skill_service_proto",
     ],
 )

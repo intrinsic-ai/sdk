@@ -43,8 +43,8 @@ go_test(
     name = "bundle_test",
     srcs = ["bundle_test.go"],
     data = [
+        "//intrinsic/tools/inbuild/cmd/skill/test_data:example_skill_augmented_test_descriptors",
         "//intrinsic/tools/inbuild/cmd/skill/test_data:example_skill_files",
-        "//intrinsic/tools/inbuild/cmd/skill/test_data:example_skill_proto",
         "//intrinsic/tools/inbuild/cmd/skill/test_data:example_skill_py_image.tar",
     ],
     embed = [":bundle"],

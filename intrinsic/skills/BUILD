@@ -43,8 +43,10 @@ go_library(
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/assets:idutils",
+        "//intrinsic/assets:interfaceutils",
         "//intrinsic/assets:metadatautils",
         "//intrinsic/assets/dependencies:platform",
+        "//intrinsic/assets/proto:metadata_go_proto",
         "//intrinsic/assets/validation:errors",
         "//intrinsic/skills/proto:processed_skill_manifest_go_proto",
         "//intrinsic/skills/proto:skill_manifest_go_proto",

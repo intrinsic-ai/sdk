@@ -46,6 +46,8 @@ func LoadManifestAndFileDescriptorSets(ctx context.Context, manifestPath string,
 	if err := skillvalidate.SkillManifest(ctx, m,
 		skillvalidate.WithFiles(files),
 		skillvalidate.WithIncompatibleDisallowManifestDependencies(incompatibleDisallowManifestDependencies),
+		// Skip platform services check as the manifest is incomplete at this stage and will be augmented later.
+		skillvalidate.WithSkipPlatformServicesCheck(true),
 	); err != nil {
 		return nil, nil, fmt.Errorf("failed to validate manifest: %v", err)
 	}

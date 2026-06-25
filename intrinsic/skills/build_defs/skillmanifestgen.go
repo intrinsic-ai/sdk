@@ -54,6 +54,8 @@ func createSkillManifest() error {
 	if err := skillvalidate.SkillManifest(context.Background(), m,
 		skillvalidate.WithFiles(files),
 		skillvalidate.WithIncompatibleDisallowManifestDependencies(*flagIncompatibleDisallowManifestDependencies),
+		// Skip platform services check as the manifest is incomplete at this stage and will be augmented later.
+		skillvalidate.WithSkipPlatformServicesCheck(true),
 	); err != nil {
 		return err
 	}

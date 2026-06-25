@@ -21,11 +21,12 @@ import (
 )
 
 type makeSkillManifestOptions struct {
-	displayName   string
-	documentation *documentationpb.Documentation
-	id            *idpb.Id
-	manifestPath  string
-	vendor        *vendorpb.Vendor
+	displayName         string
+	documentation       *documentationpb.Documentation
+	id                  *idpb.Id
+	manifestPath        string
+	skillServicesConfig *smpb.SkillServicesConfig
+	vendor              *vendorpb.Vendor
 }
 
 // MakeSkillManifestOption is an option for MakeSkillManifest.
@@ -59,6 +60,13 @@ func WithManifestPath(path string) MakeSkillManifestOption {
 	}
 }
 
+// WithSkillServicesConfig specifies the Skill services config to use in the SkillManifest.
+func WithSkillServicesConfig(config *smpb.SkillServicesConfig) MakeSkillManifestOption {
+	return func(opts *makeSkillManifestOptions) {
+		opts.skillServicesConfig = config
+	}
+}
+
 // WithVendor specifies the vendor to use in the SkillManifest.
 func WithVendor(vendor *vendorpb.Vendor) MakeSkillManifestOption {
 	return func(opts *makeSkillManifestOptions) {
@@ -78,6 +86,21 @@ func MakeSkillManifest(t *testing.T, options ...MakeSkillManifestOption) *smpb.S
 		m = mustLoadSkillManifest(t, opts.manifestPath)
 	} else {
 		m = &smpb.SkillManifest{}
+	}
+
+	if m.Options == nil {
+		m.Options = &smpb.Options{}
+	}
+	if opts.skillServicesConfig != nil {
+		m.Options.SkillServicesConfig = opts.skillServicesConfig
+	} else if m.Options.SkillServicesConfig == nil {
+		m.Options.SkillServicesConfig = &smpb.SkillServicesConfig{
+			ServiceVersions: []smpb.SkillServicesConfig_ServiceVersion{
+				smpb.SkillServicesConfig_INTRINSIC_PROTO_SKILLS_PROJECTOR,
+				smpb.SkillServicesConfig_INTRINSIC_PROTO_SKILLS_EXECUTOR,
+				smpb.SkillServicesConfig_INTRINSIC_PROTO_SKILLS_SKILL_INFORMATION,
+			},
+		}
 	}
 
 	if opts.displayName == "" && m.GetDisplayName() == "" {
@@ -125,10 +148,11 @@ func mustLoadSkillManifest(t *testing.T, path string) *smpb.SkillManifest {
 }
 
 type makeProcessedSkillManifestOptions struct {
-	fileDescriptorSet *dpb.FileDescriptorSet
-	metadata          *psmpb.SkillMetadata
-	registry          string
-	skillDetails      *psmpb.SkillDetails
+	fileDescriptorSet   *dpb.FileDescriptorSet
+	metadata            *psmpb.SkillMetadata
+	registry            string
+	skillDetails        *psmpb.SkillDetails
+	skillServicesConfig *smpb.SkillServicesConfig
 }
 
 // MakeProcessedSkillManifestOption is an option for MakeProcessedSkillManifest
@@ -162,6 +186,13 @@ func WithProcessedSkillDetails(sd *psmpb.SkillDetails) MakeProcessedSkillManifes
 	}
 }
 
+// WithProcessedSkillServicesConfig specifies the Skill services config to use in the ProcessedSkillManifest.
+func WithProcessedSkillServicesConfig(config *smpb.SkillServicesConfig) MakeProcessedSkillManifestOption {
+	return func(opts *makeProcessedSkillManifestOptions) {
+		opts.skillServicesConfig = config
+	}
+}
+
 // MakeProcessedSkillManifest makes a ProcessedSkillManifest for testing.
 func MakeProcessedSkillManifest(t *testing.T, options ...MakeProcessedSkillManifestOption) *psmpb.ProcessedSkillManifest {
 	opts := &makeProcessedSkillManifestOptions{
@@ -178,17 +209,6 @@ func MakeProcessedSkillManifest(t *testing.T, options ...MakeProcessedSkillManif
 		},
 		registry: "gcr.io/test-project",
 		skillDetails: &psmpb.SkillDetails{
-
-			Options: &smpb.Options{
-				SkillServicesConfig: &smpb.SkillServicesConfig{
-					ServiceVersions: []smpb.SkillServicesConfig_ServiceVersion{
-						smpb.SkillServicesConfig_INTRINSIC_PROTO_SKILLS_PROJECTOR,
-						smpb.SkillServicesConfig_INTRINSIC_PROTO_SKILLS_EXECUTOR,
-						smpb.SkillServicesConfig_INTRINSIC_PROTO_SKILLS_SKILL_INFORMATION,
-					},
-				},
-			},
-
 			StatusInfo: []*sspb.StatusSpec{
 				{
 					Code:  10001,
@@ -199,6 +219,21 @@ func MakeProcessedSkillManifest(t *testing.T, options ...MakeProcessedSkillManif
 	}
 	for _, opt := range options {
 		opt(opts)
+	}
+
+	if opts.skillDetails.Options == nil {
+		opts.skillDetails.Options = &smpb.Options{}
+	}
+	if opts.skillServicesConfig != nil {
+		opts.skillDetails.Options.SkillServicesConfig = opts.skillServicesConfig
+	} else if opts.skillDetails.Options.SkillServicesConfig == nil {
+		opts.skillDetails.Options.SkillServicesConfig = &smpb.SkillServicesConfig{
+			ServiceVersions: []smpb.SkillServicesConfig_ServiceVersion{
+				smpb.SkillServicesConfig_INTRINSIC_PROTO_SKILLS_PROJECTOR,
+				smpb.SkillServicesConfig_INTRINSIC_PROTO_SKILLS_EXECUTOR,
+				smpb.SkillServicesConfig_INTRINSIC_PROTO_SKILLS_SKILL_INFORMATION,
+			},
+		}
 	}
 
 	return &psmpb.ProcessedSkillManifest{

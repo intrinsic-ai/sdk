@@ -14,7 +14,7 @@ import (
 
 const (
 	exampleManifestPath          = "intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_py.manifest.pbtxt"
-	exampleFileDescriptorSetPath = "intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_proto-descriptor-set.proto.bin"
+	exampleFileDescriptorSetPath = "intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_augmented_test_descriptors_transitive_set_sci.proto.bin"
 	exampleImagePath             = "intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_py_image.tar"
 )
 

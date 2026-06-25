@@ -105,7 +105,10 @@ proto_library(
     name = "no_op_skill_proto",
     testonly = False,
     srcs = ["no_op_skill.proto"],
-    visibility = ["//intrinsic/skills/build_defs/tests:__pkg__"],
+    visibility = [
+        "//intrinsic/skills:__pkg__",
+        "//intrinsic/skills/build_defs/tests:__pkg__",
+    ],
 )
 
 cc_proto_library(

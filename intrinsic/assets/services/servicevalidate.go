@@ -111,9 +111,12 @@ func ServiceManifest(ctx context.Context, m *smpb.ServiceManifest, options ...Se
 	); err != nil {
 		return fmt.Errorf("invalid service config for Service %q: %w", id, err)
 	}
-	if err := validatePlatformProvidesInFiles(platform.ProvidedByServiceManifest(m), opts.files); err != nil {
-		return fmt.Errorf("invalid platform provided interfaces for Service %q: %w", id, err)
+	for _, iface := range platform.ProvidedByServiceManifest(m) {
+		if err := validatePlatformProvideInFiles(iface, opts.files); err != nil {
+			return fmt.Errorf("invalid platform provided interfaces for Service %q: %w", id, err)
+		}
 	}
+
 	return nil
 }
 
@@ -204,8 +207,10 @@ func ProcessedServiceManifest(ctx context.Context, m *smpb.ProcessedServiceManif
 	}
 
 	if !opts.skipPlatformServicesCheckInFDS {
-		if err := validatePlatformProvidesInFiles(platform.ProvidedByProcessedServiceManifest(m), files); err != nil {
-			return fmt.Errorf("invalid platform provided interfaces for Service %q: %w", id, err)
+		for _, iface := range platform.ProvidedByProcessedServiceManifest(m) {
+			if err := validatePlatformProvideInFiles(iface, files); err != nil {
+				return fmt.Errorf("invalid platform provided interfaces for Service %q: %w", id, err)
+			}
 		}
 	}
 
@@ -278,8 +283,7 @@ func validateServiceDef(sd *smpb.ServiceDef, files *protoregistry.Files) (map[st
 				}
 			}
 		}
-		if sd.GetServiceInspectionConfig() != nil {
-			config := sd.GetServiceInspectionConfig()
+		if config := sd.GetServiceInspectionConfig(); config != nil {
 			if config.GetDataProtoMessageFullName() == "" {
 				return nil, fmt.Errorf("inspection config is present but data_proto_message_full_name is empty")
 			}
@@ -297,7 +301,8 @@ func validateServiceDef(sd *smpb.ServiceDef, files *protoregistry.Files) (map[st
 			// specified.
 			if len(drc.GetServiceVersions()) == 0 {
 				return nil, fmt.Errorf("dynamic reconfiguration config is present but no service versions are specified")
-			} else if slices.Contains(drc.GetServiceVersions(), drpb.DynamicReconfigurationConfig_UNSPECIFIED) {
+			}
+			if slices.Contains(drc.GetServiceVersions(), drpb.DynamicReconfigurationConfig_UNSPECIFIED) {
 				return nil, fmt.Errorf("dynamic reconfiguration config contains UNSPECIFIED service version")
 			}
 			// If deprecated supports dynamic reconfiguration is true then the service must implement
@@ -313,7 +318,8 @@ func validateServiceDef(sd *smpb.ServiceDef, files *protoregistry.Files) (map[st
 			// If ServiceStateConfig is present then at least one service version must be specified.
 			if len(ss.GetServiceVersions()) == 0 {
 				return nil, fmt.Errorf("service state config is present but no service versions are specified")
-			} else if slices.Contains(ss.GetServiceVersions(), sspb.ServiceStateConfig_UNSPECIFIED) {
+			}
+			if slices.Contains(ss.GetServiceVersions(), sspb.ServiceStateConfig_UNSPECIFIED) {
 				return nil, fmt.Errorf("service state config contains UNSPECIFIED service version")
 			}
 			// If deprecated supports service state is true then the service must implement
@@ -418,17 +424,14 @@ func validateServiceConfig(configMessageFullName string, defaultConfig *anypb.An
 	return nil
 }
 
-func validatePlatformProvidesInFiles(interfaces []*metadatapb.Interface, files *protoregistry.Files) error {
-	for _, i := range interfaces {
-		if strings.HasPrefix(i.GetUri(), interfaceutils.GRPCURIPrefix) {
-			serviceName := strings.TrimPrefix(i.GetUri(), interfaceutils.GRPCURIPrefix)
-			if files == nil {
-				return fmt.Errorf("platform provided interface specified (%q), but no descriptors provided", i)
-			}
-			_, err := files.FindDescriptorByName(protoreflect.FullName(serviceName))
-			if err != nil {
-				return fmt.Errorf("could not find service %q in provided descriptors: %w", serviceName, err)
-			}
+func validatePlatformProvideInFiles(iface *metadatapb.Interface, files *protoregistry.Files) error {
+	if strings.HasPrefix(iface.GetUri(), interfaceutils.GRPCURIPrefix) {
+		serviceName := strings.TrimPrefix(iface.GetUri(), interfaceutils.GRPCURIPrefix)
+		if files == nil {
+			return fmt.Errorf("platform provided interface specified (%q), but no descriptors provided", iface.GetUri())
+		}
+		if _, err := files.FindDescriptorByName(protoreflect.FullName(serviceName)); err != nil {
+			return fmt.Errorf("could not find service %q in provided descriptors: %w", serviceName, err)
 		}
 	}
 	return nil
