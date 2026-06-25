@@ -42,6 +42,8 @@ py_library(
     srcs = ["motion_planner_client.py"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
+        "//intrinsic/assets/dependencies:utils_py",
+        "//intrinsic/assets/proto/v1:resolved_dependency_py_pb2",
         "//intrinsic/icon/proto:joint_space_py_pb2",
         "//intrinsic/math/python:data_types",
         "//intrinsic/math/python:proto_conversion",

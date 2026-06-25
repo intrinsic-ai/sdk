@@ -9,13 +9,17 @@ This includes:
 """
 
 import dataclasses
+from typing import Any
 from typing import Optional
+from typing import Sequence
 
 from google.protobuf import empty_pb2
 # This import is required to use the *_grpc imports.
 # pylint: disable=unused-import
 import grpc
 
+from intrinsic.assets.dependencies import utils as dep_utils
+from intrinsic.assets.proto.v1 import resolved_dependency_pb2
 from intrinsic.icon.proto import joint_space_pb2
 from intrinsic.math.python import data_types
 from intrinsic.math.python import proto_conversion as math_proto_conversion
@@ -333,3 +337,43 @@ class MotionPlannerClient(MotionPlannerClientBase):
     request.robot_reference.object_id.by_name.object_name = robot_name
     response = self._stub.CheckCollisions(request)
     return response
+
+
+def get_motion_planner_service_asset_client(
+    world_id: str,
+    mps_dependency: resolved_dependency_pb2.ResolvedDependency,
+    grpc_options: Optional[Sequence[tuple[str, Any]]] = None,
+) -> Optional[MotionPlannerClient]:
+  """Returns a MotionPlannerClient connected to the MotionPlannerService Asset.
+
+  Args:
+    world_id: The world ID.
+    mps_dependency: The resolved dependency.
+    grpc_options: Optional gRPC options.
+
+  Returns:
+    A MotionPlannerClient or None if mps_dependency has no interfaces.
+  """
+  if not mps_dependency.interfaces:
+    return None
+
+  # Dynamically find the MotionPlannerService interface key.
+  iface = None
+  for key in mps_dependency.interfaces:
+    if "MotionPlannerService" in key:
+      iface = key
+      break
+
+  if iface is None:
+    raise ValueError(
+        "Could not find MotionPlannerService interface in resolved dependency. "
+        f"Available interfaces: {list(mps_dependency.interfaces.keys())}"
+    )
+
+  channel = dep_utils.connect(
+      mps_dependency,
+      iface,
+      grpc_options=grpc_options,
+  )
+  stub = motion_planner_service_pb2_grpc.MotionPlannerServiceStub(channel)
+  return MotionPlannerClient(world_id, stub)
