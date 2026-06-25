@@ -11,8 +11,10 @@ go_library(
     deps = [
         "//intrinsic/skills:skillbundle",
         "//intrinsic/skills:skillfix",
+        "//intrinsic/skills:skillvalidate",
         "//intrinsic/tools/inbuild/util:skillmanifest",
         "@com_github_spf13_cobra//:go_default_library",
+        "@org_golang_google_protobuf//reflect/protodesc:go_default_library",
     ],
 )
 

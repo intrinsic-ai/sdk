@@ -1,0 +1,15 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package line_orchestration_relay;
+
+import "intrinsic/platform/pubsub/connect/cloud/proto/v1alpha1/endpoint_spec.proto";
+
+option go_package = "intrinsic/platform/pubsub/connect/onprem/relay_router_service/relay_router_service_go_proto";
+
+message RelayRouterServiceConfig {
+  string hub_workcell_name = 1;
+  repeated intrinsic_proto.pubsub.connect.v1alpha1.EndpointSpec
+      spoke_endpoint_specs = 2;
+}

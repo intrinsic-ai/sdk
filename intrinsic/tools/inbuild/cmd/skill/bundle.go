@@ -8,9 +8,11 @@ import (
 
 	"intrinsic/skills/skillbundle"
 	"intrinsic/skills/skillfix"
+	"intrinsic/skills/skillvalidate"
 	"intrinsic/tools/inbuild/util/skillmanifest"
 
 	"github.com/spf13/cobra"
+	"google.golang.org/protobuf/reflect/protodesc"
 )
 
 var (
@@ -62,6 +64,14 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 	if err := skillfix.Manifest(m, skillfix.WithPopulateOldFields(true)); err != nil {
 		return fmt.Errorf("unable to make manifest compatible with the latest version of the platform: %v", err)
+	}
+
+	files, err := protodesc.NewFiles(fds)
+	if err != nil {
+		return fmt.Errorf("failed to populate the registry: %w", err)
+	}
+	if err := skillvalidate.SkillManifest(cmd.Context(), m, skillvalidate.WithFiles(files)); err != nil {
+		return fmt.Errorf("invalid SkillManifest: %w", err)
 	}
 
 	// Actually create the skill bundle

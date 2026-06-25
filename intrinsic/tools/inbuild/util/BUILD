@@ -10,11 +10,9 @@ go_library(
     importpath = "intrinsic/tools/inbuild/util/skillmanifest",
     deps = [
         "//intrinsic/skills:skillmanifest",
-        "//intrinsic/skills:skillvalidate",
         "//intrinsic/skills/proto:skill_manifest_go_proto",
         "//intrinsic/util/proto:protoio",
         "//intrinsic/util/proto:registryutil",
-        "@org_golang_google_protobuf//reflect/protodesc:go_default_library",
         "@org_golang_google_protobuf//types/descriptorpb:go_default_library",
     ],
 )

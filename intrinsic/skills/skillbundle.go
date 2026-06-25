@@ -92,7 +92,6 @@ func Write(ctx context.Context, m *smpb.SkillManifest, w io.Writer, options ...W
 	}
 	if err := skillvalidate.SkillManifest(ctx, m,
 		skillvalidate.WithFiles(files),
-		skillvalidate.WithIncompatibleDisallowManifestDependencies(false),
 	); err != nil {
 		return fmt.Errorf("invalid SkillManifest: %w", err)
 	}

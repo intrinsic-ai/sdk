@@ -4,18 +4,15 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"strings"
 
 	"intrinsic/production/intrinsic"
-	"intrinsic/skills/skillvalidate"
 	"intrinsic/util/proto/protoio"
 	"intrinsic/util/proto/registryutil"
 
 	log "github.com/golang/glog"
-	"google.golang.org/protobuf/reflect/protodesc"
 
 	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 )
@@ -42,22 +39,13 @@ func createSkillManifest() error {
 	if err != nil {
 		return fmt.Errorf("failed to populate the types registry: %w", err)
 	}
-	files, err := protodesc.NewFiles(set)
-	if err != nil {
-		return fmt.Errorf("failed to populate the files registry: %w", err)
-	}
 
 	m := new(smpb.SkillManifest)
 	if err := protoio.ReadTextProto(*flagManifest, m, protoio.WithResolver(types)); err != nil {
 		return fmt.Errorf("failed to read manifest: %v", err)
 	}
-	if err := skillvalidate.SkillManifest(context.Background(), m,
-		skillvalidate.WithFiles(files),
-		skillvalidate.WithIncompatibleDisallowManifestDependencies(*flagIncompatibleDisallowManifestDependencies),
-		// Skip platform services check as the manifest is incomplete at this stage and will be augmented later.
-		skillvalidate.WithSkipPlatformServicesCheck(true),
-	); err != nil {
-		return err
+	if *flagIncompatibleDisallowManifestDependencies && len(m.GetDependencies().GetRequiredEquipment()) > 0 {
+		return fmt.Errorf("dependencies declared in the manifest's dependencies field but --incompatible_disallow_manifest_dependencies is true")
 	}
 	if err := protoio.WriteBinaryProto(*flagOutput, m, protoio.WithDeterministic(true)); err != nil {
 		return fmt.Errorf("could not write skill manifest proto: %v", err)

@@ -26,9 +26,7 @@ import (
 
 
 type skillManifestOptions struct {
-	files                                    *protoregistry.Files
-	incompatibleDisallowManifestDependencies bool
-	skipPlatformServicesCheck                bool
+	files *protoregistry.Files
 }
 
 // SkillManifestOption is an option for validating a SkillManifest.
@@ -38,22 +36,6 @@ type SkillManifestOption func(*skillManifestOptions)
 func WithFiles(files *protoregistry.Files) SkillManifestOption {
 	return func(opts *skillManifestOptions) {
 		opts.files = files
-	}
-}
-
-// WithIncompatibleDisallowManifestDependencies specifies whether to prevent the SkillManifest from
-// declaring dependencies in the manifest.
-func WithIncompatibleDisallowManifestDependencies(incompatible bool) SkillManifestOption {
-	return func(opts *skillManifestOptions) {
-		opts.incompatibleDisallowManifestDependencies = incompatible
-	}
-}
-
-// WithSkipPlatformServicesCheck specifies whether to skip the checks that platform-provided
-// services are present in the file descriptor set and that platform-provided services config is present.
-func WithSkipPlatformServicesCheck(skip bool) SkillManifestOption {
-	return func(opts *skillManifestOptions) {
-		opts.skipPlatformServicesCheck = skip
 	}
 }
 
@@ -82,21 +64,16 @@ func SkillManifest(ctx context.Context, m *smpb.SkillManifest, options ...SkillM
 		Parameter:     m.GetParameter(),
 		ExecuteResult: m.GetReturnType(),
 	}
-	if err := validateSkillDetails(sd, &validateSkillDetailsOptions{
-		files:                                    opts.files,
-		incompatibleDisallowManifestDependencies: opts.incompatibleDisallowManifestDependencies,
-	}); err != nil {
+	if err := validateSkillDetails(sd, opts.files); err != nil {
 		return fmt.Errorf("invalid Skill details for %q: %w", id, err)
 	}
 
-	if !opts.skipPlatformServicesCheck {
-		if err := validateSkillServicesConfig(m.GetOptions().GetSkillServicesConfig()); err != nil {
-			return fmt.Errorf("invalid Skill details for %q: %w", id, err)
-		}
-		for _, iface := range platform.ProvidedBySkillManifest(m) {
-			if err := validatePlatformProvideInFiles(iface, opts.files); err != nil {
-				return fmt.Errorf("invalid platform provided interfaces for Skill %q: %w", id, err)
-			}
+	if err := validateSkillServicesConfig(m.GetOptions().GetSkillServicesConfig()); err != nil {
+		return fmt.Errorf("invalid Skill details for %q: %w", id, err)
+	}
+	for _, iface := range platform.ProvidedBySkillManifest(m) {
+		if err := validatePlatformProvideInFiles(iface, opts.files); err != nil {
+			return fmt.Errorf("invalid platform provided interfaces for Skill %q: %w", id, err)
 		}
 	}
 
@@ -161,9 +138,7 @@ func ProcessedSkillManifest(ctx context.Context, m *psmpb.ProcessedSkillManifest
 		return fmt.Errorf("failed to populate the registry: %w", err)
 	}
 
-	if err := validateSkillDetails(m.GetDetails(), &validateSkillDetailsOptions{
-		files: files,
-	}); err != nil {
+	if err := validateSkillDetails(m.GetDetails(), files); err != nil {
 		return fmt.Errorf("invalid Skill details for %q: %w", id, err)
 	}
 
@@ -189,18 +164,10 @@ func ProcessedSkillManifest(ctx context.Context, m *psmpb.ProcessedSkillManifest
 	return nil
 }
 
-type validateSkillDetailsOptions struct {
-	files                                    *protoregistry.Files
-	incompatibleDisallowManifestDependencies bool
-}
-
-func validateSkillDetails(sd *psmpb.SkillDetails, opts *validateSkillDetailsOptions) error {
-	if opts.incompatibleDisallowManifestDependencies && len(sd.GetDependencies().GetRequiredEquipment()) > 0 {
-		return fmt.Errorf("dependencies declared in the manifest's dependencies field but --incompatible_disallow_manifest_dependencies is true")
-	}
+func validateSkillDetails(sd *psmpb.SkillDetails, files *protoregistry.Files) error {
 
 	if name := sd.GetParameter().GetMessageFullName(); name != "" {
-		d, err := opts.files.FindDescriptorByName(protoreflect.FullName(name))
+		d, err := files.FindDescriptorByName(protoreflect.FullName(name))
 		if err != nil {
 			return fmt.Errorf("cannot find parameter message %q: %w", name, err)
 		}
@@ -210,7 +177,7 @@ func validateSkillDetails(sd *psmpb.SkillDetails, opts *validateSkillDetailsOpti
 
 	}
 	if name := sd.GetExecuteResult().GetMessageFullName(); name != "" {
-		if _, err := opts.files.FindDescriptorByName(protoreflect.FullName(name)); err != nil {
+		if _, err := files.FindDescriptorByName(protoreflect.FullName(name)); err != nil {
 			return fmt.Errorf("cannot find return type message %q: %w", name, err)
 		}
 	}

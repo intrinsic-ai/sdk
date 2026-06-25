@@ -8,11 +8,8 @@ import (
 	"fmt"
 
 	"intrinsic/skills/skillmanifest"
-	"intrinsic/skills/skillvalidate"
 	"intrinsic/util/proto/protoio"
 	"intrinsic/util/proto/registryutil"
-
-	"google.golang.org/protobuf/reflect/protodesc"
 
 	smpb "intrinsic/skills/proto/skill_manifest_go_proto"
 
@@ -31,10 +28,6 @@ func LoadManifestAndFileDescriptorSets(ctx context.Context, manifestPath string,
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to populate the types registry: %v", err)
 	}
-	files, err := protodesc.NewFiles(fds)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to populate the files registry: %v", err)
-	}
 	m := new(smpb.SkillManifest)
 	// Try loading as binary first.
 	if err := protoio.ReadBinaryProto(manifestPath, m); err != nil {
@@ -43,13 +36,8 @@ func LoadManifestAndFileDescriptorSets(ctx context.Context, manifestPath string,
 			return nil, nil, fmt.Errorf("failed to read manifest as binary or text: %v", err)
 		}
 	}
-	if err := skillvalidate.SkillManifest(ctx, m,
-		skillvalidate.WithFiles(files),
-		skillvalidate.WithIncompatibleDisallowManifestDependencies(incompatibleDisallowManifestDependencies),
-		// Skip platform services check as the manifest is incomplete at this stage and will be augmented later.
-		skillvalidate.WithSkipPlatformServicesCheck(true),
-	); err != nil {
-		return nil, nil, fmt.Errorf("failed to validate manifest: %v", err)
+	if incompatibleDisallowManifestDependencies && len(m.GetDependencies().GetRequiredEquipment()) > 0 {
+		return nil, nil, fmt.Errorf("failed to validate manifest: dependencies declared in the manifest's dependencies field but --incompatible_disallow_manifest_dependencies is true")
 	}
 	if err := skillmanifest.PruneSourceCodeInfo(m, fds); err != nil {
 		return nil, nil, fmt.Errorf("failed to prune source code info: %v", err)

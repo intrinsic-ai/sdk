@@ -1,0 +1,33 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.pubsub.connect.v1alpha1;
+
+option go_package = "intrinsic/platform/pubsub/connect/cloud/proto/v1alpha1/endpoint_spec_go_proto";
+
+// Connection specification for a workcell on the local network.
+message LocalConnectionSpec {}
+
+// Connection specification for a remote workcell.
+message RemoteConnectionSpec {}
+
+// EndpointSpec contains information required for connecting to the Zenoh router
+// in a workcell.
+message EndpointSpec {
+  // Workcell name.
+  // Used for computation of Zenoh router's zid.
+  // Also used for computation of URLs of workcells in the local network.
+  string workcell_name = 1;
+
+  oneof connection_spec {
+    // Indicates that the workcell is on the local network.
+    LocalConnectionSpec local = 2;
+
+    // Indicates that the workcell or VM is remote.
+    RemoteConnectionSpec remote = 3;
+
+    // Explicit URL of the Zenoh router.
+    string url = 4;
+  }
+}
