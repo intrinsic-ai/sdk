@@ -70,7 +70,7 @@ func run(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to populate the registry: %w", err)
 	}
-	if err := skillvalidate.SkillManifest(cmd.Context(), m, skillvalidate.WithFiles(files)); err != nil {
+	if err := skillvalidate.SkillManifest(cmd.Context(), m, files); err != nil {
 		return fmt.Errorf("invalid SkillManifest: %w", err)
 	}
 

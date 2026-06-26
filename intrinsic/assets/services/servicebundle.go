@@ -106,10 +106,7 @@ func Write(ctx context.Context, m *smpb.ServiceManifest, w io.Writer, options ..
 			return fmt.Errorf("failed to create proto files: %w", err)
 		}
 	}
-	if err := servicevalidate.ServiceManifest(ctx, m,
-		servicevalidate.WithFiles(files),
-		servicevalidate.WithDefaultConfig(opts.defaultConfig),
-	); err != nil {
+	if err := servicevalidate.ServiceManifest(ctx, m, files, opts.defaultConfig); err != nil {
 		return fmt.Errorf("invalid ServiceManifest: %w", err)
 	}
 

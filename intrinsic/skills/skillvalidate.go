@@ -25,32 +25,13 @@ import (
 )
 
 
-type skillManifestOptions struct {
-	files *protoregistry.Files
-}
-
-// SkillManifestOption is an option for validating a SkillManifest.
-type SkillManifestOption func(*skillManifestOptions)
-
-// WithFiles provides a Files for validating proto messages.
-func WithFiles(files *protoregistry.Files) SkillManifestOption {
-	return func(opts *skillManifestOptions) {
-		opts.files = files
-	}
-}
-
 // SkillManifest validates a SkillManifest.
-func SkillManifest(ctx context.Context, m *smpb.SkillManifest, options ...SkillManifestOption) error {
-	opts := &skillManifestOptions{}
-	for _, opt := range options {
-		opt(opts)
-	}
-	if opts.files == nil {
-		return fmt.Errorf("files option must be specified")
-	}
-
+func SkillManifest(ctx context.Context, m *smpb.SkillManifest, files *protoregistry.Files) error {
 	if m == nil {
 		return fmt.Errorf("SkillManifest must not be nil")
+	}
+	if files == nil {
+		return fmt.Errorf("files registry must not be nil")
 	}
 
 	if err := metadatautils.ValidateManifestMetadata(m); err != nil {
@@ -64,7 +45,7 @@ func SkillManifest(ctx context.Context, m *smpb.SkillManifest, options ...SkillM
 		Parameter:     m.GetParameter(),
 		ExecuteResult: m.GetReturnType(),
 	}
-	if err := validateSkillDetails(sd, opts.files); err != nil {
+	if err := validateSkillDetails(sd, files); err != nil {
 		return fmt.Errorf("invalid Skill details for %q: %w", id, err)
 	}
 
@@ -72,7 +53,7 @@ func SkillManifest(ctx context.Context, m *smpb.SkillManifest, options ...SkillM
 		return fmt.Errorf("invalid Skill details for %q: %w", id, err)
 	}
 	for _, iface := range platform.ProvidedBySkillManifest(m) {
-		if err := validatePlatformProvideInFiles(iface, opts.files); err != nil {
+		if err := validatePlatformProvideInFiles(iface, files); err != nil {
 			return fmt.Errorf("invalid platform provided interfaces for Skill %q: %w", id, err)
 		}
 	}

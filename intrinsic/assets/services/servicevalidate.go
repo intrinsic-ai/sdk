@@ -46,37 +46,8 @@ var (
 	errContainsSkillAnnotations = errors.New("config message for the Service must not contain Skill-specific dependency annotations")
 )
 
-type serviceManifestOptions struct {
-	files         *protoregistry.Files
-	defaultConfig *anypb.Any
-}
-
-// ServiceManifestOption is an option for validating a ServiceManifest.
-type ServiceManifestOption func(*serviceManifestOptions)
-
-// WithDefaultConfig adds the Service's default config to the validation options.
-//
-// If specified, Validate verifies that the default config is of the type specified in the manifest.
-func WithDefaultConfig(defaultConfig *anypb.Any) ServiceManifestOption {
-	return func(opts *serviceManifestOptions) {
-		opts.defaultConfig = defaultConfig
-	}
-}
-
-// WithFiles provides a Files for validating proto messages.
-func WithFiles(files *protoregistry.Files) ServiceManifestOption {
-	return func(opts *serviceManifestOptions) {
-		opts.files = files
-	}
-}
-
 // ServiceManifest validates a ServiceManifest.
-func ServiceManifest(ctx context.Context, m *smpb.ServiceManifest, options ...ServiceManifestOption) error {
-	opts := &serviceManifestOptions{}
-	for _, opt := range options {
-		opt(opts)
-	}
-
+func ServiceManifest(ctx context.Context, m *smpb.ServiceManifest, files *protoregistry.Files, defaultConfig *anypb.Any) error {
 	if m == nil {
 		return fmt.Errorf("ServiceManifest must not be nil")
 	}
@@ -86,7 +57,7 @@ func ServiceManifest(ctx context.Context, m *smpb.ServiceManifest, options ...Se
 	}
 	id := idutils.IDFromProtoUnchecked(m.GetMetadata().GetId())
 
-	expectedImagePaths, err := validateServiceDef(m.GetServiceDef(), opts.files)
+	expectedImagePaths, err := validateServiceDef(m.GetServiceDef(), files)
 	if err != nil {
 		return fmt.Errorf("invalid service_def for Service %q: %w", id, err)
 	}
@@ -105,14 +76,14 @@ func ServiceManifest(ctx context.Context, m *smpb.ServiceManifest, options ...Se
 
 	if err := validateServiceConfig(
 		m.GetServiceDef().GetConfigMessageFullName(),
-		opts.defaultConfig,
+		defaultConfig,
 		m.GetAssets().GetDefaultConfigurationFilename() != "",
-		opts.files,
+		files,
 	); err != nil {
 		return fmt.Errorf("invalid service config for Service %q: %w", id, err)
 	}
 	for _, iface := range platform.ProvidedByServiceManifest(m) {
-		if err := validatePlatformProvideInFiles(iface, opts.files); err != nil {
+		if err := validatePlatformProvideInFiles(iface, files); err != nil {
 			return fmt.Errorf("invalid platform provided interfaces for Service %q: %w", id, err)
 		}
 	}

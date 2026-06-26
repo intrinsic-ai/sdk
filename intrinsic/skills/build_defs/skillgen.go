@@ -44,7 +44,7 @@ func CreateSkillBundle(ctx context.Context, opts *CreateSkillBundleOptions) erro
 	if err != nil {
 		return fmt.Errorf("failed to populate the registry: %w", err)
 	}
-	if err := skillvalidate.SkillManifest(ctx, m, skillvalidate.WithFiles(files)); err != nil {
+	if err := skillvalidate.SkillManifest(ctx, m, files); err != nil {
 		return fmt.Errorf("invalid SkillManifest: %w", err)
 	}
 
