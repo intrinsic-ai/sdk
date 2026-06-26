@@ -36,7 +36,6 @@ import warnings
 
 from cel.expr import syntax_pb2
 from google.protobuf import any_pb2
-from google.protobuf import descriptor_pb2
 from google.protobuf import message as protobuf_message
 import graphviz
 
@@ -61,7 +60,6 @@ from intrinsic.solutions import ipython
 from intrinsic.solutions import proto_building
 from intrinsic.solutions import utils
 from intrinsic.solutions.internal import actions
-from intrinsic.solutions.internal import skill_generation
 from intrinsic.solutions.internal import skill_utils
 from intrinsic.solutions.internal.bt import bt_util
 from intrinsic.solutions.internal.bt import world_query as _world_query_internal
@@ -718,6 +716,11 @@ class Node(abc.ABC):
     self._node_id = value
 
   @property
+  def failure_settings(self) -> Node.FailureSettings | None:
+    """Retrieves failure settings if any have been configured."""
+    return self._failure_settings
+
+  @property
   def state(self) -> NodeState | None:
     return self._state
 
@@ -1299,6 +1302,11 @@ class ExtendedStatusMatch(Condition):
     ) -> None:
       proto.status_code.CopyFrom(self._proto)
 
+    @property
+    def proto(self) -> extended_status_pb2.StatusCode:
+      """Returns the underlying StatusCode proto."""
+      return self._proto
+
     def __repr__(self) -> str:
       return (
           f'{type(self).__name__}("{self._proto.component}",'
@@ -1318,6 +1326,16 @@ class ExtendedStatusMatch(Condition):
         f'{type(self).__name__}("{self._blackboard_key}",'
         f' {type(self).__name__}.{self._matcher!r})'
     )
+
+  @property
+  def blackboard_key(self) -> str:
+    """Returns the blackboard key to match status against."""
+    return self._blackboard_key
+
+  @property
+  def matcher(self) -> StatusMatcherDeclaration:
+    """Returns the status matcher declaration."""
+    return self._matcher
 
   @property
   def proto(self) -> behavior_tree_pb2.BehaviorTree.Condition:
@@ -3865,6 +3883,35 @@ class BehaviorTree:
     self._metadata.CopyFrom(metadata)
     self._name = metadata.display_name
     self._sync_skill_proto_from_metadata()
+
+  @property
+  def return_value_expression(self) -> cel.CelExpression | None:
+    """Returns the return value expression of this behavior tree."""
+    return (
+        cel.CelExpression(self._return_value_expression)
+        if self._return_value_expression is not None
+        else None
+    )
+
+  @return_value_expression.setter
+  def return_value_expression(
+      self,
+      value: blackboard_value.BlackboardValue | cel.CelExpression | str | None,
+  ):
+    """Sets the return value expression of this behavior tree."""
+    if value is None:
+      self._return_value_expression = None
+    elif isinstance(value, blackboard_value.BlackboardValue):
+      self._return_value_expression = value.value_access_path()
+    elif isinstance(value, cel.CelExpression):
+      self._return_value_expression = str(value)
+    elif isinstance(value, str):
+      self._return_value_expression = value
+    else:
+      raise TypeError(
+          'return_value_expression must be BlackboardValue, CelExpression,'
+          f' str, or None, got {type(value)}'
+      )
 
   @property
   def proto(self) -> behavior_tree_pb2.BehaviorTree:

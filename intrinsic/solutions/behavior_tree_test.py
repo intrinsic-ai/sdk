@@ -39,7 +39,6 @@ from intrinsic.solutions.internal import skill_providing
 from intrinsic.solutions.testing import compare
 from intrinsic.solutions.testing import skill_test_utils
 from intrinsic.solutions.testing import test_skill_params_pb2
-from intrinsic.util.path_resolver import path_resolver
 from intrinsic.util.proto import descriptors
 from intrinsic.util.status import extended_status_pb2
 from intrinsic.world.proto import object_world_refs_pb2
@@ -347,6 +346,39 @@ class BehaviorTreeMadeParametrizableTest(parameterized.TestCase):
               'extension.json_name',
           ],
       )
+
+  def test_return_value_expression(self):
+    tree = bt.BehaviorTree('test')
+    self.assertIsNone(tree.return_value_expression)
+
+    # Test setting with str
+    tree.return_value_expression = 'my_str_expr'
+    self.assertIsInstance(tree.return_value_expression, cel.CelExpression)
+    self.assertEqual(str(tree.return_value_expression), 'my_str_expr')
+
+    # Test setting with CelExpression
+    tree.return_value_expression = cel.CelExpression('my_cel_expr')
+    self.assertIsInstance(tree.return_value_expression, cel.CelExpression)
+    self.assertEqual(str(tree.return_value_expression), 'my_cel_expr')
+
+    # Test setting with BlackboardValue
+    bb_val = blackboard_value.BlackboardValue(
+        fields={},
+        name='my_bb_val',
+        toplevel_value_type=None,
+        parent=None,
+    )
+    tree.return_value_expression = bb_val
+    self.assertIsInstance(tree.return_value_expression, cel.CelExpression)
+    self.assertEqual(str(tree.return_value_expression), 'my_bb_val')
+
+    # Test setting with None
+    tree.return_value_expression = None
+    self.assertIsNone(tree.return_value_expression)
+
+    # Test invalid type
+    with self.assertRaises(TypeError):
+      tree.return_value_expression = 123
 
   def test_to_proto_and_from_proto(self):
     """Tests if behavior tree conversion to/from proto representation works."""
