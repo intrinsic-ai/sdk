@@ -60,6 +60,19 @@ std::string DisplayEntryMarkdown(const Content::Entry& entry) {
   const bool has_realtime_signals =
       (signature.realtime_signal_infos_size() > 0);
 
+  std::vector<intrinsic_proto::icon::v1::BehaviorOverrideRequest>
+      supported_behavior_overrides;
+  for (const auto& override_req : signature.supported_behavior_overrides()) {
+    if (override_req !=
+        intrinsic_proto::icon::v1::BEHAVIOR_OVERRIDE_REQUEST_UNKNOWN) {
+      supported_behavior_overrides.push_back(
+          static_cast<intrinsic_proto::icon::v1::BehaviorOverrideRequest>(
+              override_req));
+    }
+  }
+  const bool has_supported_behavior_overrides =
+      !supported_behavior_overrides.empty();
+
   absl::StrAppend(&out, signature.text_description(), "\n");
 
   // Briefly summarize what this action _does not_ have. E.g. "This action does
@@ -79,6 +92,9 @@ std::string DisplayEntryMarkdown(const Content::Entry& entry) {
   }
   if (!has_realtime_signals) {
     does_not_have.emplace_back("real-time signals");
+  }
+  if (!has_supported_behavior_overrides) {
+    does_not_have.emplace_back("supported behavior overrides");
   }
   if (!does_not_have.empty()) {
     absl::StrAppend(
@@ -152,6 +168,16 @@ std::string DisplayEntryMarkdown(const Content::Entry& entry) {
           absl::StrAppend(&out, "(unknown type)\n");
       }
       absl::StrAppend(&out, state_var.text_description(), "\n");
+    }
+  }
+
+  if (has_supported_behavior_overrides) {
+    absl::StrAppend(&out, "\n### Supported Behavior Overrides\n\n");
+    for (const auto& override_req : supported_behavior_overrides) {
+      absl::StrAppend(
+          &out, "- `",
+          intrinsic_proto::icon::v1::BehaviorOverrideRequest_Name(override_req),
+          "`\n");
     }
   }
   return out;

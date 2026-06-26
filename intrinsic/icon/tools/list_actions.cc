@@ -44,7 +44,7 @@ intrinsic.joint_jogging
 
 Add `--show_details` to also show details in markdown format which include the
 action's description text, compatible parts, fixed parameters, streaming inputs,
-streaming outputs, and state variables.
+streaming outputs, state variables, and supported behavior overrides.
 
     list_actions --show_details
 
