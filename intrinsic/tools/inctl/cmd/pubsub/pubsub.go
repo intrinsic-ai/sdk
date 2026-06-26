@@ -45,7 +45,7 @@ func newPubSubClient(ctx context.Context, v *viper.Viper) (pubsubpb.PubSubConnec
 
 // waitForOperation continuously polls the long running operation using client.GetOperation
 // until it reaches the completed state, per requirement.
-func waitForOperation(ctx context.Context, client pubsubpb.PubSubConnectServiceClient, op *lropb.Operation, out io.Writer) (*lropb.Operation, error) {
+func waitForOperation(ctx context.Context, client lropb.OperationsClient, op *lropb.Operation, out io.Writer) (*lropb.Operation, error) {
 	if op == nil {
 		return nil, fmt.Errorf("no operation to wait for")
 	}
