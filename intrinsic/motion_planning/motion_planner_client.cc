@@ -64,6 +64,8 @@ CreateMotionPlanningRequest(
          ->mutable_lock_motion_configuration() =
         options.lock_motion_configuration.value();
   }
+  request.mutable_motion_planner_config()->set_skip_fuzzy_cache_check(
+      options.skip_fuzzy_cache_check);
   request.mutable_motion_planner_config()
       ->set_shortcutting_combine_collinear_segments(
           options.shortcutting_combine_collinear_segments);
@@ -88,6 +90,12 @@ MotionPlannerClient::MotionPlanningOptions::Defaults() {
       .shortcutting_combine_collinear_segments = false,
   };
 
+  return *defaults;
+}
+
+const MotionPlannerClient::IkOptions&
+MotionPlannerClient::IkOptions::Defaults() {
+  static const auto* defaults = new MotionPlannerClient::IkOptions();
   return *defaults;
 }
 
@@ -154,7 +162,8 @@ MotionPlannerClient::PlanPath(
   return result;
 }
 
-absl::StatusOr<std::vector<eigenmath::VectorXd>> MotionPlannerClient::ComputeIk(
+absl::StatusOr<MotionPlannerClient::ComputeIkResult>
+MotionPlannerClient::ComputeIk(
     const world::KinematicObject& robot,
     const intrinsic_proto::motion_planning::CartesianMotionTarget&
         cartesian_target,
@@ -173,7 +182,8 @@ absl::StatusOr<std::vector<eigenmath::VectorXd>> MotionPlannerClient::ComputeIk(
   return ComputeIk(robot, geometric_target, options);
 }
 
-absl::StatusOr<std::vector<eigenmath::VectorXd>> MotionPlannerClient::ComputeIk(
+absl::StatusOr<MotionPlannerClient::ComputeIkResult>
+MotionPlannerClient::ComputeIk(
     const world::KinematicObject& robot,
     const intrinsic_proto::motion_planning::v1::GeometricConstraint&
         geometric_target,
@@ -203,12 +213,29 @@ absl::StatusOr<std::vector<eigenmath::VectorXd>> MotionPlannerClient::ComputeIk(
 
   request.set_prefer_same_branch(options.prefer_same_branch);
 
+  request.set_disable_error_on_collisions(options.disable_error_on_collisions);
+
+  if (options.collision_checker_config.has_value()) {
+    *request.mutable_collision_checker_config() =
+        *options.collision_checker_config;
+  }
+
+  if (options.context.has_value()) {
+    *request.mutable_context() = *options.context;
+  }
+
+  request.set_disable_logging(options.disable_logging);
+
   intrinsic_proto::motion_planning::v1::IkResponse response;
   grpc::ClientContext ctx;
   INTR_RETURN_IF_ERROR(ToAbslStatus(
       motion_planner_service_->ComputeIk(&ctx, request, &response)));
 
-  return ToVectorXds(response.solutions());
+  ComputeIkResult result;
+  result.solutions = ToVectorXds(response.solutions());
+  result.ik_debug_information = response.ik_debug_information();
+  result.logging_id = response.logging_id();
+  return result;
 }
 
 namespace {

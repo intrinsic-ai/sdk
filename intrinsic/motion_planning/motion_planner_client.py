@@ -20,10 +20,13 @@ import grpc
 
 from intrinsic.assets.dependencies import utils as dep_utils
 from intrinsic.assets.proto.v1 import resolved_dependency_pb2
+from intrinsic.geometry.proto import transformed_geometry_storage_refs_pb2
 from intrinsic.icon.proto import joint_space_pb2
+from intrinsic.logging.proto import context_pb2
 from intrinsic.math.python import data_types
 from intrinsic.math.python import proto_conversion as math_proto_conversion
 from intrinsic.motion_planning.proto import motion_target_pb2
+from intrinsic.motion_planning.proto.v1 import compute_ik_pb2
 from intrinsic.motion_planning.proto.v1 import geometric_constraints_pb2
 from intrinsic.motion_planning.proto.v1 import motion_planner_config_pb2
 from intrinsic.motion_planning.proto.v1 import motion_planner_service_pb2
@@ -31,6 +34,7 @@ from intrinsic.motion_planning.proto.v1 import motion_planner_service_pb2_grpc
 from intrinsic.motion_planning.proto.v1 import motion_planning_pb2
 from intrinsic.motion_planning.proto.v1 import motion_specification_pb2
 from intrinsic.motion_planning.proto.v1 import robot_specification_pb2
+from intrinsic.world.proto import collision_checker_config_pb2
 from intrinsic.world.proto import collision_settings_pb2
 from intrinsic.world.python import object_world_ids
 
@@ -68,6 +72,13 @@ class IKOptions:
       branch as the starting joints of the robot.
     prefer_same_branch:  Flag that will prefer solutions on the same kinematic
       branch over those close to the starting_joints configuration.
+    disable_error_on_collisions: If True, does not return an error when a
+      starting state is in collision or when the robot cannot escape a
+      collision.
+    collision_checker_config: Configuration override for the collision checker.
+    context: The logging context for the skill sending the request.
+    disable_logging: If True, disables logging of the ComputeIk request data.
+    caller_id: Optional caller ID to correlate the IKRequest logs with its caller.
   """
 
   max_num_solutions: int = 0
@@ -75,6 +86,13 @@ class IKOptions:
   collision_settings: collision_settings_pb2.CollisionSettings | None = None
   ensure_same_branch: bool = False
   prefer_same_branch: bool = False
+  disable_error_on_collisions: bool = False
+  collision_checker_config: (
+      collision_checker_config_pb2.CollisionCheckerConfig | None
+  ) = None
+  context: context_pb2.Context | None = None
+  disable_logging: bool = False
+  caller_id: str | None = None
 
 
 @dataclasses.dataclass
@@ -82,11 +100,18 @@ class MotionPlanningOptions:
   """Options for Motion Planning.
 
   Attributes:
-    path_planning_time_out: Timeout for path planning algorithms.
-    path_planning_step_size: Maximum step size deployed during path planning.
+    path_planning_time_out: Timeout for path planning algorithms in seconds.
+    path_planning_step_size: Maximum step size deployed during path planning. If
+      not specified, a default step size is used.
     lock_motion_configuration: Optional configuration for saving or loading a
       motion.
     skip_fuzzy_cache_check: If true, the cache will not check for fuzzy matches.
+    compute_swept_volume: Optionally generate and return the swept volume for
+      the computed path.
+    shortcutting_combine_collinear_segments: If true, the joint_shortcutter will
+      combine multiple collinear segments into a single segment. This speeds up
+      planning time, but can result in longer paths and trajectories.
+    collision_checker_config: Configuration override for the collision checker.
   """
 
   path_planning_time_out: int = 30
@@ -95,6 +120,64 @@ class MotionPlanningOptions:
       motion_planner_config_pb2.LockMotionConfiguration | None
   ) = None
   skip_fuzzy_cache_check: bool = False
+  compute_swept_volume: bool = False
+  shortcutting_combine_collinear_segments: bool = False
+  collision_checker_config: (
+      collision_checker_config_pb2.CollisionCheckerConfig | None
+  ) = None
+
+
+@dataclasses.dataclass
+class PlanTrajectoryResult:
+  """Wrapped result from calling plan_trajectory.
+
+  Attributes:
+    trajectory: The computed joint trajectory containing position, velocity,
+      and acceleration.
+    swept_volume: An optional list of shapes that correspond to the swept
+      volume of the trajectory.
+    lock_motion_id: If the motion is locked based on the request, this is the ID
+      of the motion for loading later. Note this field is not set if this
+      response is from loading a locked motion.
+  """
+
+  trajectory: joint_space_pb2.JointTrajectoryPVA
+  swept_volume: list[
+      transformed_geometry_storage_refs_pb2.TransformedGeometryStorageRefs
+  ]
+  lock_motion_id: Optional[str] = None
+  logging_id: str = ""
+
+@dataclasses.dataclass
+class PlanPathResult:
+  """Wrapped result from calling plan_path."""
+
+  path: motion_planning_pb2.Path
+  swept_volume: list[
+      transformed_geometry_storage_refs_pb2.TransformedGeometryStorageRefs
+  ]
+  logging_id: str = ""
+
+@dataclasses.dataclass
+class ComputeIkResult:
+  """Wrapped result from calling compute_ik.
+
+  Attributes:
+    solutions: The computed IK solutions (joint configurations).
+    ik_debug_information: Detailed internal diagnostics and metrics from the IK
+      solver. NOTE: Unintuitively, the `ik_solutions` list within this debug
+      structure contains all candidate configurations generated and evaluated
+      during the search, including those that were ultimately REJECTED (e.g.,
+      due to collisions, joint limit violations, or constraint failures).
+    logging_id: Unique identifier generated by the service for tracing log
+      entries.
+  """
+
+  solutions: list[list[float]]
+  ik_debug_information: Optional[compute_ik_pb2.ComputeIkDebugInformation] = (
+      None
+  )
+  logging_id: str = ""
 
 
 class MotionPlannerClientBase:
@@ -130,7 +213,7 @@ class MotionPlannerClient(MotionPlannerClientBase):
       motion_specification: motion_specification_pb2.MotionSpecification,
       options: MotionPlanningOptions = MotionPlanningOptions(),
       caller_id: str = "Anonymous",
-  ) -> joint_space_pb2.JointTrajectoryPVA:
+  ) -> PlanTrajectoryResult:
     """Plan trajectory for a given motion planning problem and robot.
 
     This method calls the Plan trajectory rpc.
@@ -155,6 +238,7 @@ class MotionPlannerClient(MotionPlannerClientBase):
     request.motion_planner_config.timeout_sec.seconds = (
         options.path_planning_time_out
     )
+    request.compute_swept_volume = options.compute_swept_volume
 
     if options.path_planning_step_size is not None:
       request.motion_planner_config.path_planning_step_size = (
@@ -164,8 +248,29 @@ class MotionPlannerClient(MotionPlannerClientBase):
       request.motion_planner_config.lock_motion_configuration.CopyFrom(
           options.lock_motion_configuration
       )
+    if options.skip_fuzzy_cache_check:
+      request.motion_planner_config.skip_fuzzy_cache_check = (
+          options.skip_fuzzy_cache_check
+      )
+    if options.shortcutting_combine_collinear_segments:
+      request.motion_planner_config.shortcutting_combine_collinear_segments = (
+          options.shortcutting_combine_collinear_segments
+      )
+    if options.collision_checker_config is not None:
+      request.motion_planner_config.collision_checker_config.CopyFrom(
+          options.collision_checker_config
+      )
     response = self._stub.PlanTrajectory(request)
-    return response.discretized
+    swept_volume = list(response.swept_volume)
+    lock_motion_id = (
+        response.lock_motion_id if response.HasField("lock_motion_id") else None
+    )
+    return PlanTrajectoryResult(
+        trajectory=response.discretized,
+        swept_volume=swept_volume,
+        lock_motion_id=lock_motion_id,
+        logging_id=response.logging_id,
+    )
 
   def plan_path(
       self,
@@ -173,7 +278,7 @@ class MotionPlannerClient(MotionPlannerClientBase):
       motion_specification: motion_specification_pb2.MotionSpecification,
       options: MotionPlanningOptions = MotionPlanningOptions(),
       caller_id: str = "Anonymous",
-  ) -> motion_planning_pb2.Path:
+  ) -> PlanPathResult:
     """Plan path for a given motion planning problem and robot.
 
     This method calls the Plan Path rpc.
@@ -198,6 +303,7 @@ class MotionPlannerClient(MotionPlannerClientBase):
     request.motion_planner_config.timeout_sec.seconds = (
         options.path_planning_time_out
     )
+    request.compute_swept_volume = options.compute_swept_volume
 
     if options.path_planning_step_size is not None:
       request.motion_planner_config.path_planning_step_size = (
@@ -207,8 +313,25 @@ class MotionPlannerClient(MotionPlannerClientBase):
       request.motion_planner_config.lock_motion_configuration.CopyFrom(
           options.lock_motion_configuration
       )
+    if options.skip_fuzzy_cache_check:
+      request.motion_planner_config.skip_fuzzy_cache_check = (
+          options.skip_fuzzy_cache_check
+      )
+    if options.shortcutting_combine_collinear_segments:
+      request.motion_planner_config.shortcutting_combine_collinear_segments = (
+          options.shortcutting_combine_collinear_segments
+      )
+    if options.collision_checker_config is not None:
+      request.motion_planner_config.collision_checker_config.CopyFrom(
+          options.collision_checker_config
+      )
     response = self._stub.PlanPath(request)
-    return response.path
+    swept_volume = list(response.swept_volume)
+    return PlanPathResult(
+        path=response.path,
+        swept_volume=swept_volume,
+        logging_id=response.logging_id,
+    )
 
   def compute_ik(
       self,
@@ -219,7 +342,7 @@ class MotionPlannerClient(MotionPlannerClientBase):
       ),
       starting_joints: Optional[list[float]] = None,
       options: Optional[IKOptions] = None,
-  ) -> list[list[float]]:
+  ) -> ComputeIkResult:
     """Calls the ComputeIk rpc, doing argument conversion as necessary.
 
     Args:
@@ -256,10 +379,28 @@ class MotionPlannerClient(MotionPlannerClientBase):
         request.prefer_same_branch = options.prefer_same_branch
       if options.max_num_solutions:
         request.max_num_solutions = options.max_num_solutions
+      if options.disable_error_on_collisions:
+        request.disable_error_on_collisions = (
+            options.disable_error_on_collisions
+        )
+      if options.collision_checker_config:
+        request.collision_checker_config.CopyFrom(
+            options.collision_checker_config
+        )
+      if options.context:
+        request.context.CopyFrom(options.context)
+      if options.disable_logging:
+        request.disable_logging = options.disable_logging
+      if options.caller_id:
+        request.caller_id = options.caller_id
 
     # Make the rpc.
     response = self._stub.ComputeIk(request)
-    return _repeated_vec_to_list_of_floats(response.solutions)
+    return ComputeIkResult(
+        solutions=_repeated_vec_to_list_of_floats(response.solutions),
+        ik_debug_information=response.ik_debug_information,
+        logging_id=response.logging_id,
+    )
 
   def compute_fk(
       self,
