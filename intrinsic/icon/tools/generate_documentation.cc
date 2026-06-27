@@ -60,14 +60,12 @@ std::string DisplayEntryMarkdown(const Content::Entry& entry) {
   const bool has_realtime_signals =
       (signature.realtime_signal_infos_size() > 0);
 
-  std::vector<intrinsic_proto::icon::v1::BehaviorOverrideRequest>
+  std::vector<intrinsic_proto::icon::v1::ActionSignature::BehaviorOverrideInfo>
       supported_behavior_overrides;
-  for (const auto& override_req : signature.supported_behavior_overrides()) {
-    if (override_req !=
+  for (const auto& info : signature.behavior_override_infos()) {
+    if (info.override_request() !=
         intrinsic_proto::icon::v1::BEHAVIOR_OVERRIDE_REQUEST_UNKNOWN) {
-      supported_behavior_overrides.push_back(
-          static_cast<intrinsic_proto::icon::v1::BehaviorOverrideRequest>(
-              override_req));
+      supported_behavior_overrides.push_back(info);
     }
   }
   const bool has_supported_behavior_overrides =
@@ -173,11 +171,14 @@ std::string DisplayEntryMarkdown(const Content::Entry& entry) {
 
   if (has_supported_behavior_overrides) {
     absl::StrAppend(&out, "\n### Supported Behavior Overrides\n\n");
-    for (const auto& override_req : supported_behavior_overrides) {
-      absl::StrAppend(
-          &out, "- `",
-          intrinsic_proto::icon::v1::BehaviorOverrideRequest_Name(override_req),
-          "`\n");
+    for (const auto& info : supported_behavior_overrides) {
+      absl::StrAppend(&out, "#### ",
+                      intrinsic_proto::icon::v1::BehaviorOverrideRequest_Name(
+                          info.override_request()),
+                      "\n");
+      if (!info.text_description().empty()) {
+        absl::StrAppend(&out, info.text_description(), "\n");
+      }
     }
   }
   return out;

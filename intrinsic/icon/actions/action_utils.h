@@ -170,6 +170,7 @@ class ActionSignatureBuilder {
   // Returns AlreadyExistsError if a supported `behavior` is already registered.
   absl::Status AddSupportedBehaviorOverride(
       intrinsic_proto::icon::v1::BehaviorOverrideRequest behavior_override,
+      absl::string_view description,
       intrinsic::SourceLocation loc = intrinsic::SourceLocation::current());
 
   intrinsic_proto::icon::v1::ActionSignature Finish() const {

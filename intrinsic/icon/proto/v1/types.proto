@@ -116,6 +116,16 @@ message ActionSignature {
     string text_description = 2;
   }
 
+  // BehaviorOverrideInfo describes how an action handles a specific
+  // BehaviorOverrideRequest.
+  message BehaviorOverrideInfo {
+    // The behavior override type supported by this action.
+    BehaviorOverrideRequest override_request = 1;
+
+    // Description of how the action handles this override request.
+    string text_description = 2;
+  }
+
   // Unique name of the action type, e.g. "xfa.joint_move".
   string action_type_name = 1;
 
@@ -151,9 +161,9 @@ message ActionSignature {
 
   // List of `BehaviorOverride`s that can be sent to the action to trigger
   // special behavior.
-  repeated BehaviorOverrideRequest supported_behavior_overrides = 11;
+  repeated BehaviorOverrideInfo behavior_override_infos = 12;
 
-  reserved 6;
+  reserved 6, 11;
 }
 
 // Server-wide configuration values.

@@ -103,7 +103,7 @@ absl::Status ActionSignatureBuilder::AddRealtimeSignal(
 
 absl::Status ActionSignatureBuilder::AddSupportedBehaviorOverride(
     intrinsic_proto::icon::v1::BehaviorOverrideRequest behavior_override,
-    intrinsic::SourceLocation loc) {
+    absl::string_view description, intrinsic::SourceLocation loc) {
   if (supported_behavior_overrides_.contains(behavior_override)) {
     return absl::AlreadyExistsError(
         absl::StrCat(loc.file_name(), ":", loc.line(),
@@ -112,8 +112,9 @@ absl::Status ActionSignatureBuilder::AddSupportedBehaviorOverride(
                          behavior_override),
                      "\""));
   }
-  // Add the new override to the repeated field.
-  signature_.add_supported_behavior_overrides(behavior_override);
+  auto* info = signature_.add_behavior_override_infos();
+  info->set_override_request(behavior_override);
+  info->set_text_description(std::string(description));
 
   // Store the override to check for duplicates later.
   supported_behavior_overrides_.insert(behavior_override);
