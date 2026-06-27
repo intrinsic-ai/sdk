@@ -91,15 +91,12 @@ func DialClusterFromInctl(ctx context.Context, flags *cmdutils.CmdFlags) (contex
 
 // DialCatalogFromInctl creates a connection to an asset catalog service from an inctl command.
 func DialCatalogFromInctl(cmd *cobra.Command, flags *cmdutils.CmdFlags) (context.Context, *grpc.ClientConn, error) {
-
-	return DialCatalog(
-		cmd.Context(), DialCatalogOptions{
-			Address: "",
-			APIKey: "",
-			Org:     flags.GetFlagOrganization(),
-			Project: flags.GetFlagProject(),
-		},
-	)
+	return DialCatalog(cmd.Context(), DialCatalogOptions{
+		Address: "",
+		APIKey: "",
+		Org:     flags.GetFlagOrganization(),
+		Project: flags.GetFlagProject(),
+	})
 }
 
 // DialCatalogOptions specifies the options for DialCatalog.
