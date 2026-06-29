@@ -978,7 +978,10 @@ class SubTreeCondition(Condition):
   @property
   def proto(self) -> behavior_tree_pb2.BehaviorTree.Condition:
     proto_object = behavior_tree_pb2.BehaviorTree.Condition()
-    proto_object.behavior_tree.CopyFrom(self.tree.proto)
+    # Do not validate sub-tree. Only top-level calls to BehaviorTree.proto
+    # should trigger validation once.
+    # pylint: disable-next=protected-access
+    proto_object.behavior_tree.CopyFrom(self.tree._to_proto(validate=False))
     return proto_object
 
   @property
@@ -1634,7 +1637,12 @@ class SubTree(Node):
           'A SubTree node has not been set. Please call '
           'sub_tree_node_instance.set_behavior_tree(tree_instance).'
       )
-    proto_object.sub_tree.tree.CopyFrom(self.behavior_tree.proto)
+    # Do not validate sub-tree. Only top-level calls to BehaviorTree.proto
+    # should trigger validation once.
+    # pylint: disable=protected-access
+    proto_object.sub_tree.tree.CopyFrom(
+        self.behavior_tree._to_proto(validate=False)
+    )
     return proto_object
 
   @utils.classproperty
@@ -3752,10 +3760,12 @@ class BehaviorTree:
     return f'BehaviorTree({self._name_repr()}root={repr(self.root)})'
 
   def __eq__(self, other: BehaviorTree) -> bool:
-    return self.proto == other.proto
+    return self._to_proto(validate=False) == other._to_proto(validate=False)
 
   def __hash__(self) -> int:
-    return hash(self.proto.SerializeToString(deterministic=True))
+    return hash(
+        self._to_proto(validate=False).SerializeToString(deterministic=True)
+    )
 
   def _name_repr(self) -> str:
     """Returns a snippet for the name attribute to be used in __repr__."""
@@ -3931,6 +3941,12 @@ class BehaviorTree:
   @property
   def proto(self) -> behavior_tree_pb2.BehaviorTree:
     """Returns the proto representation of the BehaviorTree."""
+    return self._to_proto(validate=True)
+
+  def _to_proto(self, validate: bool = True) -> behavior_tree_pb2.BehaviorTree:
+    if validate:
+      self.validate_id_uniqueness()
+
     proto_object = behavior_tree_pb2.BehaviorTree(name=self.name)
     if self.root is not None:
       proto_object.root.CopyFrom(self.root.proto)

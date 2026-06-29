@@ -1380,6 +1380,44 @@ user_data {
     ):
       my_bt.validate_id_uniqueness()
 
+  def test_proto_property_validates_id_uniqueness(self):
+    my_bt = bt.BehaviorTree('my_bt')
+    my_bt.set_root(
+        bt.Sequence(node_id=1, children=[bt.Sequence(node_id=1, children=[])])
+    )
+    # This tree has duplicate node IDs (1).
+    with self.assertRaises(solutions_errors.InvalidArgumentError):
+      _ = my_bt.proto
+
+  def test_proto_property_validates_id_uniqueness_once(self):
+    my_bt = bt.BehaviorTree('my_bt')
+    my_bt.set_root(
+        bt.SubTree(
+            behavior_tree=bt.BehaviorTree(
+                name='subtree',
+                root=bt.Sequence(children=[]),
+            )
+        ).set_decorators(
+            bt.Decorators(
+                condition=bt.SubTreeCondition(
+                    tree=bt.BehaviorTree(
+                        name='condition_tree',
+                        root=bt.Sequence(children=[]),
+                    )
+                )
+            )
+        )
+    )
+
+    with mock.patch.object(
+        bt.BehaviorTree, 'validate_id_uniqueness', autospec=True
+    ) as mock_validate:
+      _ = my_bt.proto
+
+      # It should be called exactly once, on the top level tree. Subtrees should
+      # not re-trigger validation.
+      mock_validate.assert_called_once_with(my_bt)
+
   def test_finds_node(self):
     my_bt = bt.BehaviorTree('my_bt', tree_id='tree')
     my_bt.set_root(

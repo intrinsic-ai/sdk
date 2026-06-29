@@ -1018,7 +1018,6 @@ class Executive:
 
     request = executive_service_pb2.CreateOperationRequest()
     if behavior_tree is not None:
-      behavior_tree.validate_id_uniqueness()
       request.behavior_tree.CopyFrom(behavior_tree.proto)
     elif isinstance(behavior_tree_or_action, id_pb2.Id):
       request.process_id.CopyFrom(behavior_tree_or_action)
