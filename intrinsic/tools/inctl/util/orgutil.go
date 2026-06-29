@@ -176,12 +176,12 @@ func preRunOrganizationOptional(cmd *cobra.Command, vipr *viper.Viper, enableOrg
 	return nil
 }
 
-// PreRunOrganization checks organization/project flags as PersistentPreRunE of a cobra command.
-// This is done automatically with the WrapCmd() function. PreRunOrganization() doesn't call
+// preRunOrganization checks organization/project flags as PersistentPreRunE of a cobra command.
+// This is done automatically with the WrapCmd() function. preRunOrganization() doesn't call
 // preRunOrganizationOptional() itself.
 //
 // It enforces that exactly one of --project or --org is set.
-func PreRunOrganization(cmd *cobra.Command, vipr *viper.Viper) (noOrg bool, err error) {
+func preRunOrganization(cmd *cobra.Command, vipr *viper.Viper) (noOrg bool, err error) {
 	org := vipr.GetString(KeyOrganization)
 	project := vipr.GetString(KeyProject)
 
@@ -279,7 +279,7 @@ func WrapCmd(cmd *cobra.Command, vipr *viper.Viper, options ...WrapCmdOption) *c
 		// the flag handling here.
 		if !c.DisableFlagParsing {
 			var err error
-			noOrg, err = PreRunOrganization(cmd, vipr)
+			noOrg, err = preRunOrganization(cmd, vipr)
 			if err != nil {
 				return err
 			}
@@ -306,7 +306,7 @@ func WrapCmd(cmd *cobra.Command, vipr *viper.Viper, options ...WrapCmdOption) *c
 }
 
 // QualifiedOrg returns a "unique" org name, adding an @project suffix for orgs that are present in
-// multiple projects. This undoes the "cleaning" applied by PreRunOrganization when using WrapCmd().
+// multiple projects. This undoes the "cleaning" applied by preRunOrganization when using WrapCmd().
 func QualifiedOrg(projectName, orgName string) string {
 	if orgName == "" { // fallback, not sure if this is really required
 		return fmt.Sprintf("intrinsic@%s", projectName)
