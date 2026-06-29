@@ -197,7 +197,7 @@ func init() {
 	cmdFlags.AddFlagsProjectOrg()
 
 	showLogs.Flags().String(keySolution, "", "Solution ID from which logs will be read.")
-	showLogs.Flags().String(keyContext, "", fmt.Sprintf("The Kubernetes cluster to use or localhost if used with --%s", cmdutils.KeyAddress))
+	showLogs.Flags().String(keyContext, "", "The Kubernetes cluster to use")
 	showLogs.Flags().String(keyTimeout, "300s", "Absolute wall-clock time that the command will run for before terminating (e.g. 300s, 1h). Note: this terminates the command even if logs are still actively streaming. Increase the --timeout or use --timeout=0 for infinite streaming.")
 	showLogs.Flags().Bool(keyPrefixType, false, "Prefix each log line with the asset type, e.g., '[Skill]' or '[Service]'.")
 	showLogs.Flags().Bool(keyPrefixID, false, "Prefix each log line with the asset ID, e.g., '[my-skill-id]'. Enabled for multiple targets are provided.")

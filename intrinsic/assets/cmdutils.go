@@ -23,8 +23,8 @@ import (
 )
 
 const (
-	// KeyAddress is the name of the address flag.
-	KeyAddress = "address"
+	// keyAddress is the name of the address flag.
+	keyAddress = "address"
 	// keyAPIKey is the name of the arg to specify the api-key to use.
 	keyAPIKey = "api_key"
 	// keyAssetTypes is the name of the asset types flag.
@@ -201,7 +201,7 @@ func (cf *CmdFlags) GetFlagImageUploadParallelism() int {
 // AddFlagsAddressClusterSolution adds flags for the address, cluster, and solution when installing
 // or working with installed assets.
 func (cf *CmdFlags) AddFlagsAddressClusterSolution() {
-	cf.OptionalString(KeyAddress, "", "Internal flag to directly set the API server address. Normally, you should use --org instead, which tells inctl to connect via the cloud.")
+	cf.OptionalString(keyAddress, "", "Internal flag to directly set the API server address. Normally, you should use --org instead, which tells inctl to connect via the cloud.")
 	cf.optionalEnvString(KeyCluster, "", "The target Kubernetes cluster ID. If you set this, you must not set --solution.")
 	cf.optionalEnvString(keySolution, "", "The target solution. Must be running. If you set this, you must not set --cluster.")
 
@@ -211,12 +211,12 @@ func (cf *CmdFlags) AddFlagsAddressClusterSolution() {
 // GetFlagsAddressClusterSolution gets the values of the address, cluster, and solution flags added
 // by AddFlagsAddressClusterSolution.
 func (cf *CmdFlags) GetFlagsAddressClusterSolution() (string, string, string, error) {
-	address := cf.GetString(KeyAddress)
+	address := cf.GetString(keyAddress)
 	cluster := cf.GetString(KeyCluster)
 	solution := cf.GetString(keySolution)
 
 	if address == "" && cluster == "" && solution == "" {
-		return "", "", "", fmt.Errorf("at least one of `--%s`, `--%s` or `--%s` must be set", KeyAddress, KeyCluster, keySolution)
+		return "", "", "", fmt.Errorf("at least one of `--%s`, `--%s` or `--%s` must be set", keyAddress, KeyCluster, keySolution)
 	}
 	// This matches these flags being marked as mutually exclusive above.  That
 	// does not prevent two environment variables being provided or a
