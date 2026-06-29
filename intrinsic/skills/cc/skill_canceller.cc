@@ -44,6 +44,13 @@ absl::Status SkillCancellationManager::Cancel() {
   return absl::OkStatus();
 }
 
+void SkillCancellationManager::Ready() {
+  absl::MutexLock lock(&mutex_);
+  if (!ready_.HasBeenNotified()) {
+    ready_.Notify();
+  }
+}
+
 absl::Status SkillCancellationManager::RegisterCallback(
     absl::AnyInvocable<absl::Status() const> callback) {
   absl::MutexLock lock(&mutex_);

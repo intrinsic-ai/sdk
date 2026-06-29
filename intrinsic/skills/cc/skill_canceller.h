@@ -59,6 +59,8 @@ class SkillCanceller {
   virtual bool cancelled() const = 0;
 
   // Signals that the skill is ready to be cancelled.
+  //
+  // This method must be idempotent and safe to call multiple times.
   virtual void Ready() = 0;
 
   // Sets a callback that will be invoked when a cancellation is requested.
@@ -103,7 +105,7 @@ class SkillCancellationManager : public SkillCanceller {
   // set.
   absl::Status Cancel() ABSL_LOCKS_EXCLUDED(mutex_);
 
-  void Ready() override { ready_.Notify(); };
+  void Ready() override ABSL_LOCKS_EXCLUDED(mutex_);
 
   absl::Status RegisterCallback(
       absl::AnyInvocable<absl::Status() const> callback) override;

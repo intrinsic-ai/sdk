@@ -68,7 +68,10 @@ class SkillCanceller(abc.ABC):
 
   @abc.abstractmethod
   def ready(self) -> None:
-    """Signals that the skill is ready to be cancelled."""
+    """Signals that the skill is ready to be cancelled.
+
+    This method must be idempotent and safe to call multiple times.
+    """
 
   @abc.abstractmethod
   def register_callback(self, callback: Callable[[], None]):
