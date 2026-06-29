@@ -342,6 +342,99 @@ class PythonScriptTest(absltest.TestCase):
 
     self.assertIsNone(script.result)
 
+  def test_python_script_unique_copy(self):
+    sig_with_args = proto_building.Signature(
+        parameter_message_full_name='gen.sbl.Params',
+        return_value_message_full_name='gen.sbl.ReturnValue',
+        file_descriptor_set=text_format.Parse(
+            """
+            file {
+                name: "gen/sbl/signature.proto"
+                package: "gen.sbl"
+                message_type {
+                    name: "Params"
+                    field {
+                        name: "int_in"
+                        number: 1
+                        label: LABEL_OPTIONAL
+                        type: TYPE_INT64
+                    }
+                }
+                message_type {
+                    name: "ReturnValue"
+                    field {
+                        name: "int_out"
+                        number: 3
+                        label: LABEL_OPTIONAL
+                        type: TYPE_INT64
+                    }
+                }
+                syntax: "proto3"
+            }""",
+            descriptor_pb2.FileDescriptorSet(),
+        ),
+    ).with_args(int_in=42)
+
+    script = code_execution.PythonScript(
+        signature_with_args=sig_with_args,
+        function_body='return node_pb2.ReturnValue(int_out=params.int_in)',
+        return_value_key='my_result',
+    )
+
+    # Mock the UUID for the unique copy creation
+    with mock.patch(
+        'uuid.uuid4',
+        return_value=uuid.UUID('99999999-9999-9999-9999-999999999999'),
+    ):
+      copy = script.unique_copy()
+
+    # Verify they are different instances
+    self.assertIsNot(script, copy)
+    compare.assertProto2Equal(
+        self,
+        copy.proto,
+        """
+        python_code {
+            function_body: "  return node_pb2.ReturnValue(int_out=params.int_in)"
+        }
+        parameters {
+            proto {
+                type_url: "type.googleapis.com/gen.sbl_99999999999999999999999999999999.Params"
+                # field 1 with int value 42
+                value: "\\010*"
+            }
+        }
+        return_value_key: "my_result"
+        parameter_message_full_name: "gen.sbl_99999999999999999999999999999999.Params"
+        return_value_message_full_name: "gen.sbl_99999999999999999999999999999999.ReturnValue"
+        file_descriptor_set {
+            file {
+                name: "gen/sbl_99999999999999999999999999999999/node.proto"
+                package: "gen.sbl_99999999999999999999999999999999"
+                message_type {
+                name: "Params"
+                    field {
+                        name: "int_in"
+                        number: 1
+                        label: LABEL_OPTIONAL
+                        type: TYPE_INT64
+                    }
+                }
+                message_type {
+                name: "ReturnValue"
+                    field {
+                        name: "int_out"
+                        number: 3
+                        label: LABEL_OPTIONAL
+                        type: TYPE_INT64
+                    }
+                }
+                syntax: "proto3"
+            }
+        }
+        """,
+    )
+
 
 if __name__ == '__main__':
   absltest.main()
