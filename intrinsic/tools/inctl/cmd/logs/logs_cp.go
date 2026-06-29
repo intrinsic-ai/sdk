@@ -100,7 +100,7 @@ func getLogsFromCloud(ctx context.Context, eventSource string, dir string) error
 	if err != nil {
 		return errors.Wrap(err, "newLogDispatcherClient")
 	}
-	orgID := cmdFlags.GetString(cmdutils.KeyOrganization)
+	orgID := cmdFlags.GetFlagOrganization()
 	if orgID == "" {
 		return errors.Wrap(err, "org should be specificied")
 	}

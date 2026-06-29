@@ -49,8 +49,8 @@ const (
 	keyImageUploadParallelism = "image_upload_parallelism"
 	// keyOrgPrivate is the name of the org-private flag.
 	keyOrgPrivate = "org_private"
-	// KeyOrganization is used as central flag name for passing an organization name to inctl.
-	KeyOrganization = orgutil.KeyOrganization
+	// keyOrganization is used as central flag name for passing an organization name to inctl.
+	keyOrganization = orgutil.KeyOrganization
 	// keyPolicy defines the flag used to specify the policy option when
 	// interacting with the installed asset service.
 	keyPolicy = "policy"
@@ -270,12 +270,12 @@ func (cf *CmdFlags) GetFlagPolicy() (iapb.UpdatePolicy, error) {
 
 // AddFlagOrganizationOptional adds an optional flag for the organization.
 func (cf *CmdFlags) AddFlagOrganizationOptional() {
-	cf.optionalEnvString(KeyOrganization, "", "The Intrinsic organization to use.")
+	cf.optionalEnvString(keyOrganization, "", "The Intrinsic organization to use.")
 }
 
 // GetFlagOrganization gets the value of the organization flag added by AddFlagOrganizationOptional.
 func (cf *CmdFlags) GetFlagOrganization() string {
-	return cf.GetString(KeyOrganization)
+	return cf.GetString(keyOrganization)
 }
 
 // AddFlagsProjectOrg adds both the project and org flag, including the necessary handling.
