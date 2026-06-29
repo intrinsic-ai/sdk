@@ -83,6 +83,7 @@ py_test(
     srcs = ["code_execution_test.py"],
     deps = [
         ":code_execution",
+        "//intrinsic/executive/proto:code_execution_py_pb2",
         "//intrinsic/solutions:cel",
         "//intrinsic/solutions:proto_building",
         "//intrinsic/solutions/testing:compare",

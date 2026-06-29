@@ -45,14 +45,15 @@ class PythonScript(CodeExecution):
       *,
       function_body: str,
       return_value_key: str | None = None,
+      create_unique_signature: bool = True,
   ):
     """Creates a PythonScript.
 
-    The signature of the new script node is initialized to a unique copy of the
-    given signature by renaming the "main" proto file of the file descriptor set
-    (in which the parameter message and the return value message are defined) to
-    `<random path>/node.proto`, so the given code can assume the module name
-    `node_pb2` to be defined.
+    The signature of the new script node is (by default) initialized to a unique
+    copy of the given signature by renaming the "main" proto file of the file
+    descriptor set (in which the parameter message and the return value message
+    are defined) to `<random path>/node.proto`, so the given code can assume the
+    module name `node_pb2` to be defined.
 
     The given code to be executed is the body of a function and must not contain
     a function signature. It can assume the following template:
@@ -70,18 +71,24 @@ class PythonScript(CodeExecution):
     ```
 
     Args:
-      signature_with_args: Signature and arguments for the script node. A unique
-        copy of the given object will be created and used - the given object
-        itself will not be stored or modified.
+      signature_with_args: Signature and arguments for the script node. By
+        default, a unique copy of the given object will be created and used -
+        the given object itself will not be stored or modified.
       function_body: Function body of the Python code to execute. Can be passed
         with arbitrary indentation (as long at it is consistent for all lines).
       return_value_key: Optional blackboard key under which to store the return
         value. If not provided, a unique key will be generated if the signature
         defines a return value message.
+      create_unique_signature: If True (default), a unique copy of the
+        signature will be created and used. If False (advanced), the signature
+        will be used as is.
     """
-    self._signature_with_args = signature_with_args.unique_copy(
-        _DEFAULT_SCRIPT_NODE_PROTO_FILE
-    )
+    if create_unique_signature:
+      self._signature_with_args = signature_with_args.unique_copy(
+          _DEFAULT_SCRIPT_NODE_PROTO_FILE
+      )
+    else:
+      self._signature_with_args = signature_with_args
     if not function_body.strip():
       raise ValueError("function_body must not be empty")
     # Normalize indentation. The code execution service expects indented code.
@@ -119,8 +126,12 @@ class PythonScript(CodeExecution):
         return_value_message_full_name=(
             self._signature_with_args.return_value_message_full_name
         ),
-        file_descriptor_set=self._signature_with_args.file_descriptor_set,
     )
+
+    if self._signature_with_args.file_descriptor_set.file:
+      result.file_descriptor_set.CopyFrom(
+          self._signature_with_args.file_descriptor_set
+      )
 
     if self._signature_with_args.params_message is not None:
       result.parameters.proto.Pack(self._signature_with_args.params_message)
@@ -171,4 +182,61 @@ class PythonScript(CodeExecution):
         signature_with_args=self._signature_with_args,
         function_body=self._function_body,
         return_value_key=self._return_value_key,
+        create_unique_signature=True,
     )
+
+  @classmethod
+  def _create_from_proto(
+      cls, proto_object: code_execution_pb2.CodeExecution
+  ) -> PythonScript:
+    """Creates a PythonScript instance from a proto."""
+    # Reconstruct Signature
+    signature = proto_building.Signature(
+        parameter_message_full_name=proto_object.parameter_message_full_name,
+        return_value_message_full_name=proto_object.return_value_message_full_name,
+        file_descriptor_set=proto_object.file_descriptor_set,
+    )
+
+    # Reconstruct SignatureWithArgs
+    if proto_object.parameter_message_full_name:
+      params_message = skill_utils.create_message_from_file_descriptor_set(
+          proto_object.file_descriptor_set,
+          proto_object.parameter_message_full_name,
+      )
+      if proto_object.parameters.proto.type_url:
+        proto_object.parameters.proto.Unpack(params_message)
+
+      signature_with_args = proto_building.SignatureWithArgs(
+          signature=signature,
+          params_message=params_message,
+          blackboard_params={
+              assignment.path: assignment.cel_expression
+              for assignment in proto_object.parameters.assign
+          },
+      )
+    else:
+      signature_with_args = signature.with_args()
+
+    return_value_key = (
+        proto_object.return_value_key if proto_object.return_value_key else None
+    )
+
+    return cls(
+        signature_with_args=signature_with_args,
+        function_body=proto_object.python_code.function_body,
+        return_value_key=return_value_key,
+        create_unique_signature=False,
+    )
+
+
+def create_from_proto(
+    proto_object: code_execution_pb2.CodeExecution,
+) -> CodeExecution:
+  """Creates a CodeExecution instance from a proto."""
+  match proto_object.WhichOneof("code"):
+    case "python_code":
+      return PythonScript._create_from_proto(proto_object)
+    case _:
+      raise ValueError(
+          f"Unsupported code execution type: {proto_object.WhichOneof('code')}"
+      )

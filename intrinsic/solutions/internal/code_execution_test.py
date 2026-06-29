@@ -9,6 +9,7 @@ from absl.testing import absltest
 from google.protobuf import descriptor_pb2
 from google.protobuf import text_format
 
+from intrinsic.executive.proto import code_execution_pb2
 from intrinsic.solutions import cel
 from intrinsic.solutions import proto_building
 from intrinsic.solutions.internal import code_execution
@@ -431,6 +432,110 @@ class PythonScriptTest(absltest.TestCase):
                 }
                 syntax: "proto3"
             }
+        }
+        """,
+    )
+
+  def test_python_script_create_from_proto(self):
+    proto = text_format.Parse(
+        """
+        python_code {
+            function_body: "  result = script_node_pb2.ReturnValue(int_out=params.int_in)"
+        }
+        parameters {
+            proto {
+                type_url: "type.googleapis.com/my_package.Params"
+                # field 1 with int value 42
+                value: "\\010*"
+            }
+            assign {
+                path: "str_in"
+                cel_expression: "some.cel.expression"
+            }
+        }
+        return_value_key: "my_result"
+        parameter_message_full_name: "my_package.Params"
+        return_value_message_full_name: "my_package.ReturnValue"
+        file_descriptor_set {
+            file {
+                name: "my_package/script_node.proto"
+                package: "my_package"
+                message_type {
+                name: "Params"
+                    field {
+                        name: "int_in"
+                        number: 1
+                        label: LABEL_OPTIONAL
+                        type: TYPE_INT64
+                    }
+                    field {
+                        name: "str_in"
+                        number: 2
+                        label: LABEL_OPTIONAL
+                        type: TYPE_STRING
+                    }
+                }
+                message_type {
+                name: "ReturnValue"
+                    field {
+                        name: "int_out"
+                        number: 3
+                        label: LABEL_OPTIONAL
+                        type: TYPE_INT64
+                    }
+                }
+                syntax: "proto3"
+            }
+        }
+        """,
+        code_execution_pb2.CodeExecution(),
+    )
+
+    script = code_execution.create_from_proto(proto)
+
+    self.assertIsInstance(script, code_execution.PythonScript)
+    # Verify roundtrip is lossless
+    compare.assertProto2Equal(self, script.proto, proto)
+
+  def test_python_script_create_from_proto_no_params(self):
+    proto = text_format.Parse(
+        """
+        python_code {
+          function_body: "  pass"
+        }
+        """,
+        code_execution_pb2.CodeExecution(),
+    )
+
+    script = code_execution.create_from_proto(proto)
+
+    self.assertIsInstance(script, code_execution.PythonScript)
+    # Verify roundtrip is lossless
+    compare.assertProto2Equal(self, script.proto, proto)
+
+  # This test documents behavior which is not absolutely required. We can change
+  # it if necessary.
+  def test_python_script_create_from_proto_normalizes_code(self):
+    proto = text_format.Parse(
+        """
+        python_code {
+          function_body: "    print('hello')\\n"
+        }
+        """,
+        code_execution_pb2.CodeExecution(),
+    )
+
+    script = code_execution.create_from_proto(proto)
+
+    self.assertIsInstance(script, code_execution.PythonScript)
+    # Verify roundtrip is "functionally lossless"
+    compare.assertProto2Equal(
+        self,
+        script.proto,
+        """
+        python_code {
+          # Indentation has changed (4 -> 2) and trailing newline is gone
+          function_body: "  print('hello')"
         }
         """,
     )
