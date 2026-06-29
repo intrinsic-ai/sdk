@@ -37,8 +37,6 @@ const (
 	keyCatalogAddress = "catalog_address"
 	// KeyCluster is the name of the cluster flag.
 	KeyCluster = "cluster"
-	// KeyContext is the name of the context flag.
-	KeyContext = "context"
 	// keyDefault is the name of the default flag.
 	keyDefault = "default"
 	// keyDryRun is the name of the dry run flag.
@@ -66,10 +64,10 @@ const (
 	keySkipDirectUpload = "skip_direct_upload"
 	// keySkipPrompts is the name of the flag to skip user prompts.
 	keySkipPrompts = "skip_prompts"
-	// KeySolution is the name of the solution flag.
-	KeySolution = "solution"
-	// KeyTimeout is the name of the timeout flag.
-	KeyTimeout = "timeout"
+	// keySolution is the name of the solution flag.
+	keySolution = "solution"
+	// keyTimeout is the name of the timeout flag.
+	keyTimeout = "timeout"
 	// keyVersion is the name of the version flag.
 	keyVersion = "version"
 	// keyView is the name of the view flag.
@@ -205,9 +203,9 @@ func (cf *CmdFlags) GetFlagImageUploadParallelism() int {
 func (cf *CmdFlags) AddFlagsAddressClusterSolution() {
 	cf.OptionalString(KeyAddress, "", "Internal flag to directly set the API server address. Normally, you should use --org instead, which tells inctl to connect via the cloud.")
 	cf.optionalEnvString(KeyCluster, "", "The target Kubernetes cluster ID. If you set this, you must not set --solution.")
-	cf.optionalEnvString(KeySolution, "", "The target solution. Must be running. If you set this, you must not set --cluster.")
+	cf.optionalEnvString(keySolution, "", "The target solution. Must be running. If you set this, you must not set --cluster.")
 
-	cf.cmd.MarkFlagsMutuallyExclusive(KeyCluster, KeySolution)
+	cf.cmd.MarkFlagsMutuallyExclusive(KeyCluster, keySolution)
 }
 
 // GetFlagsAddressClusterSolution gets the values of the address, cluster, and solution flags added
@@ -215,10 +213,10 @@ func (cf *CmdFlags) AddFlagsAddressClusterSolution() {
 func (cf *CmdFlags) GetFlagsAddressClusterSolution() (string, string, string, error) {
 	address := cf.GetString(KeyAddress)
 	cluster := cf.GetString(KeyCluster)
-	solution := cf.GetString(KeySolution)
+	solution := cf.GetString(keySolution)
 
 	if address == "" && cluster == "" && solution == "" {
-		return "", "", "", fmt.Errorf("at least one of `--%s`, `--%s` or `--%s` must be set", KeyAddress, KeyCluster, KeySolution)
+		return "", "", "", fmt.Errorf("at least one of `--%s`, `--%s` or `--%s` must be set", KeyAddress, KeyCluster, keySolution)
 	}
 	// This matches these flags being marked as mutually exclusive above.  That
 	// does not prevent two environment variables being provided or a
@@ -229,7 +227,7 @@ func (cf *CmdFlags) GetFlagsAddressClusterSolution() (string, string, string, er
 	// autodetect the kind.  If this is too strict, then we can override the
 	// check in clientutils that triggers a lookup if solution is set.
 	if cluster != "" && solution != "" {
-		return "", "", "", fmt.Errorf("both `--%s=%q` and `--%s=%q` were provided by a flags and/or environment variables, which could be ambiguous", KeyCluster, cluster, KeySolution, solution)
+		return "", "", "", fmt.Errorf("both `--%s=%q` and `--%s=%q` were provided by a flags and/or environment variables, which could be ambiguous", KeyCluster, cluster, keySolution, solution)
 	}
 
 	return address, cluster, solution, nil
@@ -361,17 +359,17 @@ func (cf *CmdFlags) GetFlagReleaseNotes() string {
 
 // AddFlagSideloadStartTimeout adds a flag for the timeout when starting an asset.
 func (cf *CmdFlags) AddFlagSideloadStartTimeout(assetType string) {
-	cf.OptionalString(KeyTimeout, "180s", fmt.Sprintf(`Maximum time to wait for the %s to
+	cf.OptionalString(keyTimeout, "180s", fmt.Sprintf(`Maximum time to wait for the %s to
 become available in the cluster after starting it. Can be set to any valid duration
 (\"60s\", \"5m\", ...) or to \"0\" to disable waiting.`, assetType))
 }
 
 // GetFlagSideloadStartTimeout gets the value of the flag added by AddFlagSideloadStartTimeout.
 func (cf *CmdFlags) GetFlagSideloadStartTimeout() (time.Duration, string, error) {
-	timeoutStr := cf.GetString(KeyTimeout)
+	timeoutStr := cf.GetString(keyTimeout)
 	timeout, err := parseNonNegativeDuration(timeoutStr)
 	if err != nil {
-		return timeout, timeoutStr, errors.Wrapf(err, "invalid value passed for --%s", KeyTimeout)
+		return timeout, timeoutStr, errors.Wrapf(err, "invalid value passed for --%s", keyTimeout)
 	}
 
 	return timeout, timeoutStr, nil

@@ -37,6 +37,9 @@ const (
 	keyTypeAsset     = "asset"
 	keyHiddenDebug   = "debug"
 	keyOnpremAddress = "onprem_address"
+	keyContext       = "context"
+	keyTimeout       = "timeout"
+	keySolution      = "solution"
 )
 
 const (
@@ -120,8 +123,8 @@ func runLogsCmd(cmd *cobra.Command, args []string) error {
 				timestamps:    cmdFlags.GetBool(keyTimestamps),
 				tailLines:     cmdFlags.GetInt(keyTailLines),
 				projectName:   cmdFlags.GetString(cmdutils.KeyProject),
-				context:       cmdFlags.GetString(cmdutils.KeyContext),
-				solution:      cmdFlags.GetString(cmdutils.KeySolution),
+				context:       cmdFlags.GetString(keyContext),
+				solution:      cmdFlags.GetString(keySolution),
 				org:           cmdFlags.GetFlagOrganization(),
 				onpremAddress: cmdFlags.GetString(keyOnpremAddress),
 				resourceType:  target.resourceType,
@@ -193,9 +196,9 @@ func init() {
 
 	cmdFlags.AddFlagsProjectOrg()
 
-	showLogs.Flags().String(cmdutils.KeySolution, "", "Solution ID from which logs will be read.")
-	showLogs.Flags().String(cmdutils.KeyContext, "", fmt.Sprintf("The Kubernetes cluster to use or localhost if used with --%s", cmdutils.KeyAddress))
-	showLogs.Flags().String(cmdutils.KeyTimeout, "300s", "Absolute wall-clock time that the command will run for before terminating (e.g. 300s, 1h). Note: this terminates the command even if logs are still actively streaming. Increase the --timeout or use --timeout=0 for infinite streaming.")
+	showLogs.Flags().String(keySolution, "", "Solution ID from which logs will be read.")
+	showLogs.Flags().String(keyContext, "", fmt.Sprintf("The Kubernetes cluster to use or localhost if used with --%s", cmdutils.KeyAddress))
+	showLogs.Flags().String(keyTimeout, "300s", "Absolute wall-clock time that the command will run for before terminating (e.g. 300s, 1h). Note: this terminates the command even if logs are still actively streaming. Increase the --timeout or use --timeout=0 for infinite streaming.")
 	showLogs.Flags().Bool(keyPrefixType, false, "Prefix each log line with the asset type, e.g., '[Skill]' or '[Service]'.")
 	showLogs.Flags().Bool(keyPrefixID, false, "Prefix each log line with the asset ID, e.g., '[my-skill-id]'. Enabled for multiple targets are provided.")
 	showLogs.Flags().Bool(keyFollow, false, "Whether to follow the solution logs.")
@@ -214,5 +217,5 @@ func init() {
 		showLogs.PrintErrln("Internal error: ", err)
 	}
 
-	cmdFlags.MarkHidden(cmdutils.KeyContext, cmdutils.KeyProject, keyTypeAsset)
+	cmdFlags.MarkHidden(keyContext, cmdutils.KeyProject, keyTypeAsset)
 }
