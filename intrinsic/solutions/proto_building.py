@@ -50,6 +50,59 @@ def _find_file_defining_top_level_message_or_raise(
   )
 
 
+def _update_type_names_in_file(
+    file: descriptor_pb2.FileDescriptorProto, old_package: str, new_package: str
+):
+  """Replaces type names in the given file following a package name change.
+
+  Replaces in the given file all type name references in message fields to types
+  **defined in the same file** according to the given old and new package name.
+
+  - old_package.MessageFromSameFile -> new_package.MessageFromSameFile
+  - old_package.MessageFromOtherFile (no change)
+  - other_package.MessageFromOtherFile (no change)
+  """
+
+  # Maps old full name to new full name
+  type_name_replacements: dict[str, str] = {}
+
+  def add_replacement(name: str):
+    # Support full name type notations with and without leading '.'
+    type_name_replacements[f"{old_package}.{name}"] = f"{new_package}.{name}"
+    type_name_replacements[f".{old_package}.{name}"] = f".{new_package}.{name}"
+
+  def collect_replacements_in_message(
+      message_type: descriptor_pb2.DescriptorProto, prefix: str
+  ):
+    add_replacement(prefix + message_type.name)
+    for nested_type in message_type.nested_type:
+      collect_replacements_in_message(
+          nested_type, f"{prefix}{message_type.name}."
+      )
+    for nested_enum in message_type.enum_type:
+      add_replacement(f"{prefix}{message_type.name}.{nested_enum.name}")
+
+  def apply_replacements_in_message(
+      message_type: descriptor_pb2.DescriptorProto,
+  ):
+    for field in message_type.field:
+      if field.type_name in type_name_replacements:
+        field.type_name = type_name_replacements[field.type_name]
+
+    for nested_type in message_type.nested_type:
+      apply_replacements_in_message(nested_type)
+
+  # Pass 1: Collect replacements for all names in the file
+  for message_type in file.message_type:
+    collect_replacements_in_message(message_type, "")
+  for enum_type in file.enum_type:
+    add_replacement(enum_type.name)
+
+  # Pass 2: Apply type name replacements
+  for message_type in file.message_type:
+    apply_replacements_in_message(message_type)
+
+
 @dataclasses.dataclass(kw_only=True, frozen=True)
 class FieldSpec:
   """Specifies a singular or repeated field in a proto message.
@@ -307,8 +360,10 @@ class Signature:
 
     for file_proto in new_fds.file:
       if file_proto.name == main_file.name:
+        old_package = file_proto.package
         file_proto.name = new_filename
         file_proto.package = new_package
+        _update_type_names_in_file(file_proto, old_package, new_package)
 
     # Determine new message full names.
     new_parameter_message_full_name = ""
