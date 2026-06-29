@@ -7,6 +7,7 @@ import datetime
 from typing import Optional
 
 from intrinsic.executive.proto import behavior_call_pb2
+from intrinsic.solutions import blackboard_value
 
 
 class ActionBase(abc.ABC):
@@ -32,7 +33,11 @@ class ActionBase(abc.ABC):
     Raises:
       NoImplementedError if the class fails to override method.
     """
-    raise NotImplementedError
+
+  @property
+  @abc.abstractmethod
+  def result(self) -> blackboard_value.BlackboardValue | None:
+    """Returns a BlackboardValue representing the result of the action."""
 
   @property
   def execute_timeout(self) -> Optional[datetime.timedelta]:

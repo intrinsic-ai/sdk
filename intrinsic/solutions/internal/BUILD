@@ -98,6 +98,7 @@ py_library(
     deps = [
         ":actions",
         "//intrinsic/executive/proto:behavior_call_py_pb2",
+        "//intrinsic/solutions:blackboard_value",
     ],
 )
 

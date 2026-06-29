@@ -5,6 +5,7 @@
 from typing import Optional
 
 from intrinsic.executive.proto import behavior_call_pb2
+from intrinsic.solutions import blackboard_value
 from intrinsic.solutions.internal import actions
 
 
@@ -47,6 +48,10 @@ class Action(actions.ActionBase):
   @proto.setter
   def proto(self, proto) -> None:
     self._proto = proto
+
+  @property
+  def result(self) -> blackboard_value.BlackboardValue | None:
+    return None
 
   def __repr__(self) -> str:
     """Converts Action to Python (pseudocode) representation."""

@@ -59,7 +59,8 @@ from intrinsic.solutions import errors as solutions_errors
 from intrinsic.solutions import ipython
 from intrinsic.solutions import proto_building
 from intrinsic.solutions import utils
-from intrinsic.solutions.internal import actions
+from intrinsic.solutions.internal import actions as _actions_internal
+from intrinsic.solutions.internal import code_execution as _code_execution_internal
 from intrinsic.solutions.internal import skill_utils
 from intrinsic.solutions.internal.bt import bt_util
 from intrinsic.solutions.internal.bt import world_query as _world_query_internal
@@ -127,15 +128,21 @@ NodeInTreeType = Union[
 
 generate_unique_node_id = bt_util.generate_unique_node_id
 
+ActionBase = _actions_internal.ActionBase
+CodeExecution = _code_execution_internal.CodeExecution
+PythonScript = _code_execution_internal.PythonScript
+WorldQueryObject = _world_query_internal.WorldQueryObject
+WorldQuery = _world_query_internal.WorldQuery
 
-def _transform_to_node(node: Union[Node, actions.ActionBase]) -> Node:
-  if isinstance(node, actions.ActionBase):
+
+def _transform_to_node(node: Node | ActionBase | CodeExecution) -> Node:
+  if isinstance(node, (ActionBase, CodeExecution)):
     return Task(node)
   return node
 
 
 def _transform_to_optional_node(
-    node: Optional[Union[Node, actions.ActionBase]],
+    node: Node | ActionBase | CodeExecution | None,
 ) -> Optional[Node]:
   if node is None:
     return None
@@ -213,10 +220,6 @@ def _dot_append_children(
         child_node,
         parent_node_id_suffix + '_' + str(i + node_id_suffix_offset),
     )
-
-
-WorldQueryObject = _world_query_internal.WorldQueryObject
-WorldQuery = _world_query_internal.WorldQuery
 
 
 @utils.protoenum(
@@ -957,11 +960,11 @@ class SubTreeCondition(Condition):
 
   tree: BehaviorTree
 
-  def __init__(self, tree: Union[BehaviorTree, Node, actions.ActionBase]):
+  def __init__(self, tree: BehaviorTree | Node | ActionBase | CodeExecution):
     if tree is None:
       raise ValueError(
           'SubTreeCondition requires `tree` to be set to either a BehaviorTree,'
-          ' Node, or a skill.'
+          ' Node, ActionBase or CodeExecution.'
       )
     if not isinstance(tree, BehaviorTree):
       node = _transform_to_optional_node(tree)
@@ -1393,32 +1396,36 @@ class Task(Node):
     solutions_errors.InvalidArgumentError: Unknown action specification.
   """
 
-  _action: Optional[actions.ActionBase]
-  _behavior_call_proto: Optional[behavior_call_pb2.BehaviorCall]
-  _code_execution_proto: Optional[code_execution_pb2.CodeExecution]
+  _action: ActionBase | None
+  _behavior_call_proto: behavior_call_pb2.BehaviorCall | None
+  _code_execution: CodeExecution | None
   _task_state: behavior_tree_pb2.BehaviorTree.TaskNode.State | None
 
   def __init__(
       self,
-      action: Union[
-          actions.ActionBase,
-          behavior_call_pb2.BehaviorCall,
-          code_execution_pb2.CodeExecution,
-      ],
-      name: Optional[str] = None,
+      action: (
+          ActionBase
+          | CodeExecution
+          | behavior_call_pb2.BehaviorCall
+          | code_execution_pb2.CodeExecution
+      ),
+      name: str | None = None,
       node_id: int | None = None,
       task_state: behavior_tree_pb2.BehaviorTree.TaskNode.state | None = None,
   ):
     super().__init__(name, node_id)
+    self._action = None
+    self._code_execution = None
     self._behavior_call_proto = None
-    self._code_execution_proto = None
-    if isinstance(action, actions.ActionBase):
+    if isinstance(action, ActionBase):
       self._behavior_call_proto = action.proto
       self._action = action
+    elif isinstance(action, CodeExecution):
+      self._code_execution = action
     elif isinstance(action, behavior_call_pb2.BehaviorCall):
       self._behavior_call_proto = action
     elif isinstance(action, code_execution_pb2.CodeExecution):
-      self._code_execution_proto = action
+      self._code_execution = _code_execution_internal.create_from_proto(action)
     else:
       raise solutions_errors.InvalidArgumentError(
           f'Unknown action specification: {action}'
@@ -1427,15 +1434,15 @@ class Task(Node):
 
   def __repr__(self) -> str:
     """Returns a compact, human-readable string representation."""
-    action_str = ''
-    if self._behavior_call_proto:
-      action_str = f'skill_id="{self._behavior_call_proto.skill_id}"'
-    elif self._code_execution_proto:
-      action_str = 'CodeExecution()'
-    return (
-        f'{type(self).__name__}({self._name_repr()}'
-        + f'action=behavior_call.Action({action_str}))'
-    )
+    args = self._name_repr()
+    if self._behavior_call_proto is not None:
+      args += (
+          'action=behavior_call.Action('
+          f'skill_id="{self._behavior_call_proto.skill_id}")'
+      )
+    elif self._code_execution is not None:
+      args += 'action=code_execution.PythonScript(...)'
+    return f'{type(self).__name__}({args})'
 
   @property
   def task_state(self) -> TaskNodeState | None:
@@ -1444,10 +1451,10 @@ class Task(Node):
   @property
   def proto(self) -> behavior_tree_pb2.BehaviorTree.Node:
     proto_object = super().proto
-    if self._behavior_call_proto:
+    if self._behavior_call_proto is not None:
       proto_object.task.call_behavior.CopyFrom(self._behavior_call_proto)
-    if self._code_execution_proto:
-      proto_object.task.execute_code.CopyFrom(self._code_execution_proto)
+    if self._code_execution is not None:
+      proto_object.task.execute_code.CopyFrom(self._code_execution.proto)
     if self._task_state is not None:
       proto_object.task.state = self._task_state
     return proto_object
@@ -1460,7 +1467,9 @@ class Task(Node):
   @property
   def code_execution_proto(self) -> code_execution_pb2.CodeExecution | None:
     """CodeExecution proto (if this node was initialized for code execution)."""
-    return self._code_execution_proto
+    return (
+        self._code_execution.proto if self._code_execution is not None else None
+    )
 
   def update_behavior_call(
       self, behavior_call_proto: behavior_call_pb2.BehaviorCall
@@ -1477,7 +1486,7 @@ class Task(Node):
       raise TypeError(
           f'Task node {self.node_id} was not initialized from a behavior call.'
       )
-
+    self._action = None
     self._behavior_call_proto = behavior_call_proto
 
   def update_code_execution(
@@ -1491,21 +1500,24 @@ class Task(Node):
     Raises:
       TypeError: This task node was not initialized for code execution.
     """
-    if self._code_execution_proto is None:
+    if self._code_execution is None:
       raise TypeError(
           f'Task node {self.node_id} was not initialized for code execution.'
       )
-
-    self._code_execution_proto = code_execution_proto
+    self._code_execution = _code_execution_internal.create_from_proto(
+        code_execution_proto
+    )
 
   @utils.classproperty
   def node_type(cls) -> str:  # pylint:disable=no-self-argument
     return 'task'
 
   @property
-  def result(self) -> Optional[blackboard_value.BlackboardValue]:
-    if self._action and hasattr(self._action, 'result'):
+  def result(self) -> blackboard_value.BlackboardValue | None:
+    if self._action is not None:
       return self._action.result
+    if self._code_execution is not None:
+      return self._code_execution.result
     return None
 
   def has_child(self, node_id: int) -> bool:
@@ -1536,7 +1548,7 @@ class Task(Node):
           node_label += f' ({self._behavior_call_proto.skill_id})'
         else:
           node_label += f'Skill {self._behavior_call_proto.skill_id}'
-      if self._code_execution_proto:
+      if self._code_execution is not None:
         if node_label:
           node_label += ' (CodeExecution)'
         else:
@@ -1844,7 +1856,7 @@ class NodeWithChildren(Node):
 
   def __init__(
       self,
-      children: Optional[SequenceType[Union[Node, actions.ActionBase]]],
+      children: SequenceType[Node | ActionBase | CodeExecution] | None,
       name: str | None,
       node_id: int | None,
   ):
@@ -1917,8 +1929,8 @@ class Sequence(NodeWithChildren):
 
   def __init__(
       self,
-      children: Optional[SequenceType[Union[Node, actions.ActionBase]]] = None,
-      name: Optional[str] = None,
+      children: SequenceType[Node | ActionBase | CodeExecution] | None = None,
+      name: str | None = None,
       *,
       node_id: int | None = None,
   ):
@@ -1966,8 +1978,8 @@ class Parallel(NodeWithChildren):
 
   def __init__(
       self,
-      children: Optional[SequenceType[Union[Node, actions.ActionBase]]] = None,
-      name: Optional[str] = None,
+      children: SequenceType[Node | ActionBase | CodeExecution] | None = None,
+      name: str | None = None,
       *,
       node_id: int | None = None,
   ):
@@ -2053,12 +2065,13 @@ class Selector(NodeWithChildren):
 
   def __init__(
       self,
-      branches: Optional[
-          SequenceType[Union[Node, actions.ActionBase, Selector.Branch]]
-      ] = None,
-      name: Optional[str] = None,
+      branches: (
+          SequenceType[Union[Node, ActionBase, CodeExecution, Selector.Branch]]
+          | None
+      ) = None,
+      name: str | None = None,
       *,
-      children: Optional[SequenceType[Union[Node, actions.ActionBase]]] = None,
+      children: SequenceType[Node | ActionBase | CodeExecution] | None = None,
       node_id: int | None = None,
   ):
     if branches and children:
@@ -2210,10 +2223,10 @@ class Retry(Node):
   def __init__(
       self,
       max_tries: int = 0,
-      child: Optional[Union[Node, actions.ActionBase]] = None,
-      recovery: Optional[Union[Node, actions.ActionBase]] = None,
-      name: Optional[str] = None,
-      retry_counter_key: Optional[str] = None,
+      child: Node | ActionBase | CodeExecution | None = None,
+      recovery: Node | ActionBase | CodeExecution | None = None,
+      name: str | None = None,
+      retry_counter_key: str | None = None,
       *,
       node_id: int | None = None,
   ):
@@ -2225,7 +2238,7 @@ class Retry(Node):
         uuid.uuid4()
     ).replace('-', '_')
 
-  def set_child(self, child: Union[Node, actions.ActionBase]) -> Retry:
+  def set_child(self, child: Node | ActionBase | CodeExecution) -> Retry:
     self.child = _transform_to_optional_node(child)
     return self
 
@@ -2244,7 +2257,7 @@ class Retry(Node):
 
     self.child = None
 
-  def set_recovery(self, recovery: Union[Node, actions.ActionBase]) -> Retry:
+  def set_recovery(self, recovery: Node | ActionBase | CodeExecution) -> Retry:
     self.recovery = _transform_to_optional_node(recovery)
     return self
 
@@ -2376,10 +2389,12 @@ class Fallback(Node):
 
   def __init__(
       self,
-      children: list[Node | actions.ActionBase] | None = None,
+      children: list[Node | ActionBase | CodeExecution] | None = None,
       name: str | None = None,
       *,
-      tries: list[Node | actions.ActionBase | Fallback.Try] | None = None,
+      tries: (
+          list[Node | ActionBase | CodeExecution | Fallback.Try] | None
+      ) = None,
       node_id: int | None = None,
   ):
     super().__init__(name, node_id)
@@ -2565,7 +2580,7 @@ class Loop(Node):
   def __init__(
       self,
       max_times: int = 0,
-      do_child: Optional[Union[Node, actions.ActionBase]] = None,
+      do_child: Node | ActionBase | CodeExecution | None = None,
       while_condition: Optional[Condition] = None,
       name: Optional[str] = None,
       loop_counter_key: Optional[str] = None,
@@ -2607,7 +2622,7 @@ class Loop(Node):
           ' instead.'
       )
 
-  def set_do_child(self, do_child: Union[Node, actions.ActionBase]) -> Loop:
+  def set_do_child(self, do_child: Node | ActionBase | CodeExecution) -> Loop:
     self.do_child = _transform_to_optional_node(do_child)
     return self
 
@@ -3052,10 +3067,10 @@ class Branch(Node):
 
   def __init__(
       self,
-      if_condition: Optional[Condition] = None,
-      then_child: Optional[Union[Node, actions.ActionBase]] = None,
-      else_child: Optional[Union[Node, actions.ActionBase]] = None,
-      name: Optional[str] = None,
+      if_condition: Condition | None = None,
+      then_child: Node | ActionBase | CodeExecution | None = None,
+      else_child: Node | ActionBase | CodeExecution | None = None,
+      name: str | None = None,
       *,
       node_id: int | None = None,
   ):
@@ -3065,13 +3080,13 @@ class Branch(Node):
     self.if_condition: Optional[Condition] = if_condition
 
   def set_then_child(
-      self, then_child: Union[Node, actions.ActionBase]
+      self, then_child: Node | ActionBase | CodeExecution
   ) -> Branch:
     self.then_child = _transform_to_optional_node(then_child)
     return self
 
   def set_else_child(
-      self, else_child: Union[Node, actions.ActionBase]
+      self, else_child: Node | ActionBase | CodeExecution
   ) -> Branch:
     self.else_child = _transform_to_optional_node(else_child)
     return self
@@ -3676,9 +3691,9 @@ class BehaviorTree:
 
   def __init__(
       self,
-      name: Optional[str] = None,
-      root: Optional[Union[Node, actions.ActionBase]] = None,
-      bt: Union[BehaviorTree, behavior_tree_pb2.BehaviorTree, None] = None,
+      name: str | None = None,
+      root: Node | ActionBase | CodeExecution | None = None,
+      bt: BehaviorTree | behavior_tree_pb2.BehaviorTree | None = None,
       *,
       tree_id: str | None = None,
   ):
@@ -3749,7 +3764,7 @@ class BehaviorTree:
       name_snippet = f'name="{self.name}", '
     return name_snippet
 
-  def set_root(self, root: Union[Node, actions.ActionBase]) -> Node:
+  def set_root(self, root: Node | ActionBase | CodeExecution) -> Node:
     """Sets the root member to the given Node instance."""
     self.root = _transform_to_node(root)
     return self.root

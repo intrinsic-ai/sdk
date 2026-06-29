@@ -34,7 +34,9 @@ from intrinsic.solutions import blackboard_value
 from intrinsic.solutions import cel
 from intrinsic.solutions import errors as solutions_errors
 from intrinsic.solutions import proto_building
+from intrinsic.solutions.internal import actions
 from intrinsic.solutions.internal import behavior_call
+from intrinsic.solutions.internal import code_execution
 from intrinsic.solutions.internal import skill_providing
 from intrinsic.solutions.testing import compare
 from intrinsic.solutions.testing import skill_test_utils
@@ -483,6 +485,25 @@ class BehaviorTreeTest(parameterized.TestCase):
     compare.assertProto2Equal(
         self, bt1.proto, bt_pb1, ignored_fields=['tree_id']
     )
+
+  def test_init_with_code_execution(self):
+    script = code_execution.PythonScript(
+        proto_building.Signature().with_args(), function_body='print("1")'
+    )
+    other_script = code_execution.PythonScript(
+        proto_building.Signature().with_args(), function_body='print("2")'
+    )
+
+    # Test constructor with code execution
+    bt1 = bt.BehaviorTree(name='my_bt', root=script)
+    expected_tree_proto = behavior_tree_pb2.BehaviorTree(name='my_bt')
+    expected_tree_proto.root.task.execute_code.CopyFrom(script.proto)
+    compare.assertProto2Equal(self, bt1.proto, expected_tree_proto)
+
+    # Test set_root() with code execution
+    bt1.set_root(other_script)
+    expected_tree_proto.root.task.execute_code.CopyFrom(other_script.proto)
+    compare.assertProto2Equal(self, bt1.proto, expected_tree_proto)
 
   def test_init_both_root_and_proto_arguments_given(self):
     """Tests if BehaviorTree is correctly constructed."""
@@ -2557,6 +2578,15 @@ class BehaviorTreeTaskTest(absltest.TestCase):
     node_proto.task.call_behavior.skill_id = 'ai.intrinsic.skill-0'
     compare.assertProto2Equal(self, node.proto, node_proto)
 
+  def test_init_with_code_execution(self):
+    script = code_execution.PythonScript(
+        proto_building.Signature().with_args(), function_body='pass'
+    )
+    node = bt.Task(script, name='py script')
+    expected_node_proto = behavior_tree_pb2.BehaviorTree.Node(name='py script')
+    expected_node_proto.task.execute_code.CopyFrom(script.proto)
+    compare.assertProto2Equal(self, node.proto, expected_node_proto)
+
   def test_str_conversion(self):
     """Tests if conversion to string works."""
     node = bt.Task(behavior_call.Action(skill_id='ai.intrinsic.skill-0'))
@@ -2569,6 +2599,36 @@ class BehaviorTreeTaskTest(absltest.TestCase):
     self.assertEqual(bt.Task.node_type, 'task')
     node = bt.Task(behavior_call.Action(skill_id='ai.intrinsic.skill-0'))
     self.assertEqual(node.node_type, 'task')
+
+  def test_result_with_action(self):
+    bb_value = blackboard_value.BlackboardValue({}, 'bar', None, None)
+    action = mock.MagicMock(spec=actions.ActionBase)
+    action.result = bb_value
+    node = bt.Task(action)
+
+    self.assertIs(node.result, bb_value)
+
+  def test_result_with_code_execution(self):
+    script = code_execution.PythonScript(
+        proto_building.Signature(
+            return_value_message_full_name=(
+                'intrinsic_proto.test_data.TestMessage'
+            ),
+            file_descriptor_set=descriptors.gen_file_descriptor_set(
+                test_skill_params_pb2.TestMessage.DESCRIPTOR
+            ),
+        ).with_args(),
+        function_body='pass',
+        return_value_key='the_result',
+    )
+    node = bt.Task(script)
+
+    bb_value = node.result
+
+    self.assertEqual(bb_value.value_access_path(), 'the_result')
+    self.assertEqual(
+        bb_value.my_double.value_access_path(), 'the_result.my_double'
+    )
 
   def test_to_proto_and_from_proto(self):
     """Tests if conversion to and from a proto representation works."""
@@ -2626,7 +2686,7 @@ class BehaviorTreeTaskTest(absltest.TestCase):
     This tests the specific case of using the execute_code oneof option.
     """
     node_proto = behavior_tree_pb2.BehaviorTree.Node(name='foo')
-    node_proto.task.execute_code.python_code.function_body = 'test_code()'
+    node_proto.task.execute_code.python_code.function_body = '  test_code()'
 
     compare.assertProto2Equal(
         self,
@@ -3213,16 +3273,35 @@ class BehaviorTreeSequenceTest(absltest.TestCase):
 
     compare.assertProto2Equal(self, node.proto, node_proto)
 
+  def test_init_with_code_execution(self):
+    script = code_execution.PythonScript(
+        proto_building.Signature().with_args(), function_body='pass'
+    )
+    node = bt.Sequence([script])
+
+    expected_node_proto = behavior_tree_pb2.BehaviorTree.Node()
+    expected_node_proto.sequence.children.add().task.execute_code.CopyFrom(
+        script.proto
+    )
+
+    compare.assertProto2Equal(self, node.proto, expected_node_proto)
+
     node.set_children(
         bt.Task(behavior_call.Action(skill_id='skill_1')),
         bt.Task(behavior_call.Action(skill_id='skill_2')),
     )
 
-    node_proto.sequence.CopyFrom(behavior_tree_pb2.BehaviorTree.SequenceNode())
-    node_proto.sequence.children.add().task.call_behavior.skill_id = 'skill_1'
-    node_proto.sequence.children.add().task.call_behavior.skill_id = 'skill_2'
+    expected_node_proto.sequence.CopyFrom(
+        behavior_tree_pb2.BehaviorTree.SequenceNode()
+    )
+    expected_node_proto.sequence.children.add().task.call_behavior.skill_id = (
+        'skill_1'
+    )
+    expected_node_proto.sequence.children.add().task.call_behavior.skill_id = (
+        'skill_2'
+    )
 
-    compare.assertProto2Equal(self, node.proto, node_proto)
+    compare.assertProto2Equal(self, node.proto, expected_node_proto)
 
   def test_str_conversion(self):
     """Tests if conversion to string works."""
@@ -3477,6 +3556,19 @@ class BehaviorTreeParallelTest(absltest.TestCase):
 
     compare.assertProto2Equal(self, node.proto, node_proto)
 
+  def test_init_with_code_execution(self):
+    script = code_execution.PythonScript(
+        proto_building.Signature().with_args(), function_body='pass'
+    )
+    node = bt.Parallel(children=[script])
+
+    expected_node_proto = behavior_tree_pb2.BehaviorTree.Node()
+    expected_node_proto.parallel.children.add().task.execute_code.CopyFrom(
+        script.proto
+    )
+
+    compare.assertProto2Equal(self, node.proto, expected_node_proto)
+
   def test_str_conversion(self):
     """Tests if conversion to string works."""
     node = bt.Parallel()
@@ -3726,6 +3818,19 @@ class BehaviorTreeSelectorTest(absltest.TestCase):
     node2.node.task.call_behavior.skill_id = 'skill_2'
     compare.assertProto2Equal(self, node.proto, node_proto)
 
+  def test_init_with_code_execution(self):
+    script = code_execution.PythonScript(
+        proto_building.Signature().with_args(), function_body='pass'
+    )
+    node = bt.Selector([script])
+
+    expected_node_proto = behavior_tree_pb2.BehaviorTree.Node()
+    expected_node_proto.selector.children.add().task.execute_code.CopyFrom(
+        script.proto
+    )
+
+    compare.assertProto2Equal(self, node.proto, expected_node_proto)
+
   def test_str_conversion(self):
     """Tests if conversion to string works."""
     node = bt.Selector()
@@ -3940,6 +4045,53 @@ class BehaviorTreeRetryTest(absltest.TestCase):
     node_proto.retry.child.task.call_behavior.skill_id = 'skill_1'
 
     compare.assertProto2Equal(self, node.proto, node_proto)
+
+  def test_init_with_code_execution(self):
+    script = code_execution.PythonScript(
+        proto_building.Signature().with_args(), function_body='print("script")'
+    )
+    recovery_script = code_execution.PythonScript(
+        proto_building.Signature().with_args(),
+        function_body='print("recovery")',
+    )
+    # Test constructor with code execution
+    node = bt.Retry(2, script, recovery_script)
+
+    expected_node_proto = behavior_tree_pb2.BehaviorTree.Node()
+    expected_node_proto.retry.max_tries = 2
+    expected_node_proto.retry.child.task.execute_code.CopyFrom(script.proto)
+    expected_node_proto.retry.recovery.task.execute_code.CopyFrom(
+        recovery_script.proto
+    )
+    expected_node_proto.retry.retry_counter_blackboard_key = node.retry_counter
+
+    compare.assertProto2Equal(self, node.proto, expected_node_proto)
+
+    # Test set_child with code execution
+    other_script = code_execution.PythonScript(
+        proto_building.Signature().with_args(),
+        function_body='print("other_script")',
+    )
+
+    node.set_child(other_script)
+    expected_node_proto.retry.child.task.execute_code.CopyFrom(
+        other_script.proto
+    )
+
+    compare.assertProto2Equal(self, node.proto, expected_node_proto)
+
+    # Test set_recovery with code execution
+    other_recovery_script = code_execution.PythonScript(
+        proto_building.Signature().with_args(),
+        function_body='print("other_recovery")',
+    )
+
+    node.set_recovery(other_recovery_script)
+    expected_node_proto.retry.recovery.task.execute_code.CopyFrom(
+        other_recovery_script.proto
+    )
+
+    compare.assertProto2Equal(self, node.proto, expected_node_proto)
 
   def test_str_conversion(self):
     """Tests if conversion to string works."""
@@ -4192,6 +4344,19 @@ class BehaviorTreeFallbackTest(absltest.TestCase):
 
     compare.assertProto2Equal(self, node.proto, node_proto)
 
+  def test_init_with_code_execution(self):
+    script = code_execution.PythonScript(
+        proto_building.Signature().with_args(), function_body='pass'
+    )
+    node = bt.Fallback([script])
+
+    node_proto = behavior_tree_pb2.BehaviorTree.Node()
+    node_proto.fallback.tries.add().node.task.execute_code.CopyFrom(
+        script.proto
+    )
+
+    compare.assertProto2Equal(self, node.proto, node_proto)
+
   def test_str_conversion(self):
     """Tests if conversion to string works."""
     node = bt.Fallback()
@@ -4398,6 +4563,30 @@ class BehaviorTreeLoopTest(absltest.TestCase):
     node_proto.loop.do.task.call_behavior.skill_id = 'skill_1'
 
     compare.assertProto2Equal(self, node.proto, node_proto)
+
+  def test_init_with_code_execution(self):
+    script = code_execution.PythonScript(
+        proto_building.Signature().with_args(), function_body='print("script")'
+    )
+    # Test constructor with code execution
+    node = bt.Loop(max_times=2, do_child=script)
+
+    expected_node_proto = behavior_tree_pb2.BehaviorTree.Node()
+    expected_node_proto.loop.max_times = 2
+    expected_node_proto.loop.do.task.execute_code.CopyFrom(script.proto)
+    expected_node_proto.loop.loop_counter_blackboard_key = node.loop_counter
+
+    compare.assertProto2Equal(self, node.proto, expected_node_proto)
+
+    # Test constructor with code execution
+    other_script = code_execution.PythonScript(
+        proto_building.Signature().with_args(),
+        function_body='print("other_script")',
+    )
+    node.set_do_child(other_script)
+    expected_node_proto.loop.do.task.execute_code.CopyFrom(other_script.proto)
+
+    compare.assertProto2Equal(self, node.proto, expected_node_proto)
 
   def test_str_conversion(self):
     """Tests if conversion to string works."""
@@ -4833,6 +5022,50 @@ class BehaviorTreeBranchTest(absltest.TestCase):
     condition.CopyFrom(condition_proto)
 
     compare.assertProto2Equal(self, node.proto, node_proto)
+
+  def test_init_with_code_execution(self):
+    script_1 = code_execution.PythonScript(
+        proto_building.Signature().with_args(), function_body='print("1")'
+    )
+    script_2 = code_execution.PythonScript(
+        proto_building.Signature().with_args(), function_body='print("2")'
+    )
+    script_3 = code_execution.PythonScript(
+        proto_building.Signature().with_args(), function_body='print("3")'
+    )
+    script_4 = code_execution.PythonScript(
+        proto_building.Signature().with_args(), function_body='print("4")'
+    )
+
+    # Test constructor with code execution
+    node = bt.Branch(
+        then_child=script_1,
+        else_child=script_2,
+        if_condition=bt.Blackboard('bar'),
+    )
+
+    expected_node_proto = behavior_tree_pb2.BehaviorTree.Node()
+    expected_node_proto.branch.then.task.execute_code.CopyFrom(script_1.proto)
+    getattr(expected_node_proto.branch, 'else').task.execute_code.CopyFrom(
+        script_2.proto
+    )
+    getattr(expected_node_proto.branch, 'if').blackboard.cel_expression = 'bar'
+
+    compare.assertProto2Equal(self, node.proto, expected_node_proto)
+
+    # Test set_then_child with code execution
+    node.set_then_child(script_3)
+    expected_node_proto.branch.then.task.execute_code.CopyFrom(script_3.proto)
+
+    compare.assertProto2Equal(self, node.proto, expected_node_proto)
+
+    # Test set_else_child with code execution
+    node.set_else_child(script_4)
+    getattr(expected_node_proto.branch, 'else').task.execute_code.CopyFrom(
+        script_4.proto
+    )
+
+    compare.assertProto2Equal(self, node.proto, expected_node_proto)
 
   def test_str_conversion(self):
     """Tests if conversion to string works."""
@@ -5476,6 +5709,21 @@ class BehaviorTreeSubTreeConditionTest(absltest.TestCase):
         condition.proto,
         condition_proto,
         ignored_fields=['behavior_tree.tree_id'],
+    )
+
+  def test_init_from_code_execution(self):
+    script = code_execution.PythonScript(
+        proto_building.Signature().with_args(), function_body='pass'
+    )
+    condition = bt.SubTreeCondition(script)
+    expected_condition_proto = behavior_tree_pb2.BehaviorTree.Condition()
+    expected_condition_proto.behavior_tree.root.task.execute_code.CopyFrom(
+        script.proto
+    )
+    compare.assertProto2Equal(
+        self,
+        condition.proto,
+        expected_condition_proto,
     )
 
   def test_str_conversion(self):

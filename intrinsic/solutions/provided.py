@@ -26,7 +26,6 @@ from google.protobuf import struct_pb2
 from intrinsic.resources.proto import resource_handle_pb2
 from intrinsic.scene.proto.v1 import scene_object_pb2
 from intrinsic.skills.proto import equipment_pb2
-from intrinsic.skills.proto import skills_pb2
 from intrinsic.solutions import blackboard_value
 from intrinsic.solutions import cel
 from intrinsic.solutions import utils
@@ -369,11 +368,6 @@ class SkillBase(actions.ActionBase):
     Returns:
       Result key on blackboard.
     """
-    ...
-
-  @property
-  @abc.abstractmethod
-  def result(self) -> blackboard_value.BlackboardValue:
     ...
 
   @abc.abstractmethod
