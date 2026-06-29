@@ -5,6 +5,7 @@ syntax = "proto3";
 package intrinsic_proto.test_data;
 
 import "google/protobuf/duration.proto";
+import "intrinsic/assets/proto/v1/resolved_dependency.proto";
 import "intrinsic/executive/proto/test_message.proto";
 import "intrinsic/icon/proto/joint_space.proto";
 import "intrinsic/math/proto/pose.proto";
@@ -170,6 +171,11 @@ message PoseEstimatorSkill {
 
 message RobotPayloadSkill {
   optional intrinsic_proto.world.RobotPayload payload = 1;
+}
+
+message ResolvedDependencySkill {
+  optional intrinsic_proto.assets.v1.ResolvedDependency
+      param_resolved_dependency = 1;
 }
 
 message CombinedSkillParams {

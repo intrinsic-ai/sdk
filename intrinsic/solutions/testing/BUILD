@@ -15,6 +15,7 @@ proto_library(
     testonly = True,
     srcs = ["test_skill_params.proto"],
     deps = [
+        "//intrinsic/assets/proto/v1:resolved_dependency_proto",
         "//intrinsic/executive/proto:test_message_proto",
         "//intrinsic/icon/proto:joint_space_proto",
         "//intrinsic/math/proto:pose_proto",

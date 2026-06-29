@@ -179,6 +179,7 @@ py_library(
     name = "skill_utils",
     srcs = ["skill_utils.py"],
     deps = [
+        "//intrinsic/assets/proto/v1:resolved_dependency_py_pb2",
         "//intrinsic/icon/proto:joint_space_py_pb2",
         "//intrinsic/math/proto:pose_py_pb2",
         "//intrinsic/math/python:data_types",
@@ -186,6 +187,7 @@ py_library(
         "//intrinsic/math/python:ros_proto_conversion",
         "//intrinsic/motion_planning/proto:motion_target_py_pb2",
         "//intrinsic/perception/proto/v1:pose_estimator_id_py_pb2",
+        "//intrinsic/resources/proto:resource_handle_py_pb2",
         "//intrinsic/skills/client:skill_registry_client",
         "//intrinsic/solutions:blackboard_value",
         "//intrinsic/solutions:cel",

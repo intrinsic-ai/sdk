@@ -32,6 +32,7 @@ from google.protobuf import message
 from google.protobuf import message_factory
 import grpc
 
+from intrinsic.assets.proto.v1 import resolved_dependency_pb2
 from intrinsic.icon.proto import joint_space_pb2
 from intrinsic.math.proto import pose_pb2
 from intrinsic.math.python import data_types
@@ -39,6 +40,7 @@ from intrinsic.math.python import proto_conversion as math_proto_conversion
 from intrinsic.math.python import ros_proto_conversion
 from intrinsic.motion_planning.proto import motion_target_pb2
 from intrinsic.perception.proto.v1 import pose_estimator_id_pb2
+from intrinsic.resources.proto import resource_handle_pb2
 from intrinsic.skills.client import skill_registry_client
 from intrinsic.solutions import blackboard_value
 from intrinsic.solutions import cel
@@ -358,6 +360,22 @@ def _field_to_robot_payload(
   return robot_payload.payload_to_proto(field_value)
 
 
+def _field_to_resolved_dependency(
+    field_value: Union[
+        provided.ResourceHandle,
+        resource_handle_pb2.ResourceHandle,
+    ],
+) -> resolved_dependency_pb2.ResolvedDependency:
+  """Converts a resource handle to a ResolvedDependency proto."""
+  if isinstance(field_value, provided.ResourceHandle):
+    return resolved_dependency_pb2.ResolvedDependency(name=field_value.name)
+  elif isinstance(field_value, resource_handle_pb2.ResourceHandle):
+    return resolved_dependency_pb2.ResolvedDependency(name=field_value.name)
+  raise TypeError(
+      f"Value: {field_value} is not convertible to a ResolvedDependency."
+  )
+
+
 @dataclasses.dataclass
 class _AutoConversion:
   """Encapsulates an auto-conversion function together with metadata about it.
@@ -419,6 +437,9 @@ _PYTHONIC_TO_MESSAGE_AUTO_CONVERSIONS = {
     ),
     robot_payload_pb2.RobotPayload.DESCRIPTOR.full_name: _AutoConversion(
         _field_to_robot_payload
+    ),
+    resolved_dependency_pb2.ResolvedDependency.DESCRIPTOR.full_name: (
+        _AutoConversion(_field_to_resolved_dependency)
     ),
 }
 
