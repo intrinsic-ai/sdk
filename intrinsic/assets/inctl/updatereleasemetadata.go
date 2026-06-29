@@ -41,7 +41,8 @@ func GetCommand() *cobra.Command {
 				return fmt.Errorf("failed to parse id_version: %v", err)
 			}
 
-			ctx, conn, err := clientutils.DialCatalogFromInctl(cmd, flags)
+			ctx := cmd.Context()
+			ctx, conn, err := clientutils.DialCatalogFromInctl(ctx, flags)
 			if err != nil {
 				return fmt.Errorf("failed to create client connection: %v", err)
 			}

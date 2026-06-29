@@ -30,7 +30,8 @@ func GetCommand() *cobra.Command {
 		Short: "List versions of a released asset in the catalog",
 		Args:  cobra.ExactArgs(1), // id
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, conn, err := clientutils.DialCatalogFromInctl(cmd, flags)
+			ctx := cmd.Context()
+			ctx, conn, err := clientutils.DialCatalogFromInctl(ctx, flags)
 			if err != nil {
 				return errors.Wrap(err, "failed to create client connection")
 			}

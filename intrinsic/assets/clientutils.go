@@ -22,7 +22,6 @@ import (
 	solutiondiscoverypb "intrinsic/frontend/cloud/api/v1/solutiondiscovery_api_go_proto"
 
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
@@ -90,8 +89,8 @@ func DialClusterFromInctl(ctx context.Context, flags *cmdutils.CmdFlags) (contex
 }
 
 // DialCatalogFromInctl creates a connection to an asset catalog service from an inctl command.
-func DialCatalogFromInctl(cmd *cobra.Command, flags *cmdutils.CmdFlags) (context.Context, *grpc.ClientConn, error) {
-	return DialCatalog(cmd.Context(), DialCatalogOptions{
+func DialCatalogFromInctl(ctx context.Context, flags *cmdutils.CmdFlags) (context.Context, *grpc.ClientConn, error) {
+	return DialCatalog(ctx, DialCatalogOptions{
 		Address: "",
 		APIKey: "",
 		Org:     flags.GetFlagOrganization(),

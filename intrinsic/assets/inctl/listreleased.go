@@ -33,7 +33,8 @@ func GetCommand() *cobra.Command {
 		Short: "List assets from the catalog.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			ctx, conn, err := clientutils.DialCatalogFromInctl(cmd, flags)
+			ctx := cmd.Context()
+			ctx, conn, err := clientutils.DialCatalogFromInctl(ctx, flags)
 			if err != nil {
 				return fmt.Errorf("cannot create client connection: %w", err)
 			}
