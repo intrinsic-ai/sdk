@@ -67,8 +67,6 @@ type clusterInfo struct {
 // status queries the update status of a cluster
 func (c *client) status(ctx context.Context) (*clusterInfo, error) {
 	req := clustermanagerpb.GetClusterRequest{
-		Project:   c.project,
-		Org:       c.org,
 		ClusterId: c.cluster,
 	}
 	cluster, err := c.grpcClient.GetCluster(ctx, &req)
@@ -102,8 +100,6 @@ func (c *client) setMode(ctx context.Context, mode string) error {
 		return fmt.Errorf("invalid mode: %s", mode)
 	}
 	req := clustermanagerpb.UpdateClusterRequest{
-		Project: c.project,
-		Org:     c.org,
 		Cluster: &clustermanagerpb.Cluster{
 			ClusterName: c.cluster,
 			UpdateMode:  pbm,
@@ -173,8 +169,6 @@ func decodeUpdateState(state clustermanagerpb.UpdateState) string {
 // getMode runs a request to read the update mode
 func (c *client) getMode(ctx context.Context) (string, error) {
 	req := clustermanagerpb.GetClusterRequest{
-		Project:   c.project,
-		Org:       c.org,
 		ClusterId: c.cluster,
 	}
 	cluster, err := c.grpcClient.GetCluster(ctx, &req)
@@ -188,8 +182,6 @@ func (c *client) getMode(ctx context.Context) (string, error) {
 // getDisplayName runs a request to read the display name
 func (c *client) getDisplayName(ctx context.Context) (string, error) {
 	req := clustermanagerpb.GetClusterRequest{
-		Project:   c.project,
-		Org:       c.org,
 		ClusterId: c.cluster,
 	}
 	cluster, err := c.grpcClient.GetCluster(ctx, &req)
@@ -202,8 +194,6 @@ func (c *client) getDisplayName(ctx context.Context) (string, error) {
 // setDisplayName runs a request to set the display name
 func (c *client) setDisplayName(ctx context.Context, name string) error {
 	req := clustermanagerpb.UpdateClusterRequest{
-		Project: c.project,
-		Org:     c.org,
 		Cluster: &clustermanagerpb.Cluster{
 			ClusterName: c.cluster,
 			DisplayName: name,
@@ -220,8 +210,6 @@ func (c *client) setDisplayName(ctx context.Context, name string) error {
 // run runs an update if one is pending
 func (c *client) run(ctx context.Context) error {
 	req := clustermanagerpb.SchedulePlatformUpdateRequest{
-		Project:    c.project,
-		Org:        c.org,
 		ClusterId:  c.cluster,
 		UpdateType: clustermanagerpb.SchedulePlatformUpdateRequest_UPDATE_TYPE_FORWARD,
 	}

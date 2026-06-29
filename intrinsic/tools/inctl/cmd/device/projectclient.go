@@ -79,8 +79,6 @@ func (c *authedClient) close() error {
 
 func (c *authedClient) getStatusNetwork(ctx context.Context, clusterName, deviceID string) (map[string]shared.StatusInterface, error) {
 	req := &clustermanagerpb.GetStatusRequest{
-		Project:   c.projectName,
-		Org:       c.organization,
 		ClusterId: clusterName,
 		DeviceId:  deviceID,
 	}
@@ -154,8 +152,6 @@ func translateToNetworkConfig(n map[string]shared.Interface) *clustermanagerpb.I
 
 func (c *authedClient) getNetworkConfig(ctx context.Context, clusterName, deviceID string) (map[string]shared.Interface, error) {
 	req := &clustermanagerpb.GetNetworkConfigRequest{
-		Project: c.projectName,
-		Org:     c.organization,
 		Cluster: clusterName,
 		Device:  deviceID,
 	}

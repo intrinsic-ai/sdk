@@ -156,8 +156,8 @@ message IPCNode {
 }
 
 message ListClustersRequest {
-  string project = 1 [(google.api.field_behavior) = REQUIRED];
-  string org = 2 [(google.api.field_behavior) = REQUIRED];
+  reserved 1, 2;
+  reserved project, org;
 
   // by default, we filter out dev and test images, but setting
   // show_all to true will show those as well
@@ -170,8 +170,9 @@ message ListClustersResponse {
 }
 
 message UpdateClusterRequest {
-  string project = 1 [(google.api.field_behavior) = REQUIRED];
-  string org = 2 [(google.api.field_behavior) = REQUIRED];
+  reserved 1, 2;
+  reserved project, org;
+
   Cluster cluster = 4 [(google.api.field_behavior) = REQUIRED];
 
   google.protobuf.FieldMask update_mask = 5;
@@ -182,8 +183,8 @@ message UpdateClusterResponse {
 }
 
 message GetClusterRequest {
-  string project = 1 [(google.api.field_behavior) = REQUIRED];
-  string org = 2 [(google.api.field_behavior) = REQUIRED];
+  reserved 1, 2;
+  reserved project, org;
 
   string cluster_id = 3 [(google.api.field_behavior) = REQUIRED];
 }
@@ -208,10 +209,9 @@ message UpdateVersions {
 
 // Request message for `SchedulePlatformUpdate`.
 message SchedulePlatformUpdateRequest {
-  // The project ID that the cluster belongs to.
-  string project = 1 [(google.api.field_behavior) = REQUIRED];
-  // The organization ID that the cluster belongs to.
-  string org = 2 [(google.api.field_behavior) = REQUIRED];
+  reserved 1, 2;
+  reserved project, org;
+
   // The unique identifier of the cluster to update.
   string cluster_id = 3 [(google.api.field_behavior) = REQUIRED];
 
@@ -306,8 +306,9 @@ message CreateClusterInfo {
 }
 
 message CreateClusterRequest {
-  string project = 1 [(google.api.field_behavior) = REQUIRED];
-  string org = 2 [(google.api.field_behavior) = REQUIRED];
+  reserved 1, 2;
+  reserved project, org;
+
   CreateClusterInfo cluster_info = 3 [(google.api.field_behavior) = REQUIRED];
   bool preserve_versions = 4 [(google.api.field_behavior) = OPTIONAL];
   string copy_cluster = 5 [(google.api.field_behavior) = OPTIONAL];
@@ -322,8 +323,9 @@ message AddDeviceInfo {
 }
 
 message AddDeviceRequest {
-  string project = 1 [(google.api.field_behavior) = REQUIRED];
-  string org = 2 [(google.api.field_behavior) = REQUIRED];
+  reserved 1, 2;
+  reserved project, org;
+
   // The cluster the device should be added to.
   string cluster_id = 3 [(google.api.field_behavior) = REQUIRED];
   AddDeviceInfo device_info = 4 [(google.api.field_behavior) = REQUIRED];
@@ -406,15 +408,17 @@ message IntOSNetworkConfig {
 }
 
 message GetNetworkConfigRequest {
-  string project = 1 [(google.api.field_behavior) = REQUIRED];
-  string org = 2 [(google.api.field_behavior) = REQUIRED];
+  reserved 1, 2;
+  reserved project, org;
+
   string cluster = 3 [(google.api.field_behavior) = REQUIRED];
   string device = 4 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message UpdateNetworkConfigRequest {
-  string project = 1 [(google.api.field_behavior) = REQUIRED];
-  string org = 2 [(google.api.field_behavior) = REQUIRED];
+  reserved 1, 2;
+  reserved project, org;
+
   string cluster = 3 [(google.api.field_behavior) = REQUIRED];
   string device = 4 [(google.api.field_behavior) = OPTIONAL];
   IntOSNetworkConfig config = 5 [(google.api.field_behavior) = REQUIRED];
@@ -524,8 +528,9 @@ message IntOSStatus {
 }
 
 message GetStatusRequest {
-  string project = 1 [(google.api.field_behavior) = REQUIRED];
-  string org = 2 [(google.api.field_behavior) = REQUIRED];
+  reserved 1, 2;
+  reserved project, org;
+
   string cluster_id = 3 [(google.api.field_behavior) = REQUIRED];
   string device_id = 4 [(google.api.field_behavior) = OPTIONAL];
 }
@@ -540,8 +545,9 @@ message PingFromDeviceParams {
 }
 
 message PingFromDeviceRequest {
-  string project = 1 [(google.api.field_behavior) = REQUIRED];
-  string org = 2 [(google.api.field_behavior) = REQUIRED];
+  reserved 1, 2;
+  reserved project, org;
+
   string cluster_id = 3 [(google.api.field_behavior) = REQUIRED];
   string device_id = 4 [(google.api.field_behavior) = REQUIRED];
   PingFromDeviceParams params = 5 [(google.api.field_behavior) = OPTIONAL];
@@ -554,8 +560,8 @@ message PingFromDeviceResponse {
 message DeleteClusterRequest {
   // The unique name of the cluster within its project.
   string cluster_name = 1;
-  string project = 2 [(google.api.field_behavior) = REQUIRED];
-  string org = 3 [(google.api.field_behavior) = REQUIRED];
+  reserved 2, 3;
+  reserved project, org;
   // If this is set, the deletion will fail when the device is unreachable.
   // I.e. setting this makes sure that once the deletion is done, the device
   // is fully reset. We cannot do this on every deletion, because unreachable
@@ -587,14 +593,16 @@ message LogReceiver {
 }
 
 message GetLogReceiverRequest {
-  string project = 1 [(google.api.field_behavior) = REQUIRED];
-  string org = 2 [(google.api.field_behavior) = REQUIRED];
+  reserved 1, 2;
+  reserved project, org;
+
   string cluster_id = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
 message CreateLogReceiverUpdateRequest {
-  string project = 1 [(google.api.field_behavior) = REQUIRED];
-  string org = 2 [(google.api.field_behavior) = REQUIRED];
+  reserved 1, 2;
+  reserved project, org;
+
   string cluster_id = 3 [(google.api.field_behavior) = REQUIRED];
   LogReceiver log_receiver = 4 [(google.api.field_behavior) = REQUIRED];
 }
@@ -686,14 +694,15 @@ message ClusterHardware {
 
 message GetClusterHardwareRequest {
   string cluster_name = 1 [(google.api.field_behavior) = REQUIRED];
-  string project = 2 [(google.api.field_behavior) = REQUIRED];
-  string org = 3 [(google.api.field_behavior) = REQUIRED];
+  reserved 2, 3;
+  reserved project, org;
 }
 
 message UpdateNodeHardwareRequest {
   string cluster_name = 1 [(google.api.field_behavior) = REQUIRED];
-  string project = 2 [(google.api.field_behavior) = REQUIRED];
-  string org = 3 [(google.api.field_behavior) = REQUIRED];
+  reserved 2, 3;
+  reserved project, org;
+
   NodeHardware hardware = 4 [(google.api.field_behavior) = REQUIRED];
 }
 
@@ -705,7 +714,7 @@ service ClustersService {
   // ListClusters returns a list of clusters based on the provided filter.
   rpc ListClusters(ListClustersRequest) returns (ListClustersResponse) {
     option (google.api.http) = {
-      get: "/v1/project/{project}/org/{org}/clusters"
+      get: "/v1/project/*/org/*/clusters"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "ListClusters"
@@ -715,7 +724,7 @@ service ClustersService {
   // GetCluster returns a specific cluster.
   rpc GetCluster(GetClusterRequest) returns (Cluster) {
     option (google.api.http) = {
-      get: "/v1/project/{project}/org/{org}/clusters/{cluster_id}"
+      get: "/v1/project/*/org/*/clusters/{cluster_id}"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "GetCluster"
@@ -727,7 +736,7 @@ service ClustersService {
   // cluster.
   rpc UpdateCluster(UpdateClusterRequest) returns (UpdateClusterResponse) {
     option (google.api.http) = {
-      patch: "/v1/project/{project}/org/{org}/clusters/{cluster.cluster_name}"
+      patch: "/v1/project/*/org/*/clusters/{cluster.cluster_name}"
       body: "cluster"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
@@ -748,7 +757,7 @@ service ClustersService {
   rpc SchedulePlatformUpdate(SchedulePlatformUpdateRequest)
       returns (SchedulePlatformUpdateResponse) {
     option (google.api.http) = {
-      post: "/v1/project/{project}/org/{org}/clusters/{cluster_id}:scheduleUpdate"
+      post: "/v1/project/*/org/*/clusters/{cluster_id}:scheduleUpdate"
       body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
@@ -801,7 +810,7 @@ service ClustersService {
       metadata_type: "CreateOperationMetadata"
     };
     option (google.api.http) = {
-      post: "/v1/project/{project}/org/{org}/clusters"
+      post: "/v1/project/*/org/*/clusters"
       body: "cluster_info"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
@@ -812,7 +821,7 @@ service ClustersService {
   // AddDevice allows to add a worker node to an existing cluster.
   rpc AddDevice(AddDeviceRequest) returns (AddDeviceResponse) {
     option (google.api.http) = {
-      post: "/v1/project/{project}/org/{org}/clusters/{cluster_id}:addDevice"
+      post: "/v1/project/*/org/*/clusters/{cluster_id}:addDevice"
       body: "device_info"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
@@ -823,9 +832,9 @@ service ClustersService {
   // GetNetworkConfig retrieves the network configuration of a device.
   rpc GetNetworkConfig(GetNetworkConfigRequest) returns (IntOSNetworkConfig) {
     option (google.api.http) = {
-      get: "/v1/project/{project}/org/{org}/clusters/{cluster}/devices/{device}/config/network"
+      get: "/v1/project/*/org/*/clusters/{cluster}/devices/{device}/config/network"
       additional_bindings {
-        get: "/v1/project/{project}/org/{org}/clusters/{cluster}/config/network"
+        get: "/v1/project/*/org/*/clusters/{cluster}/config/network"
       }
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
@@ -843,10 +852,10 @@ service ClustersService {
       metadata_type: "UpdateNetworkConfigMetadata"
     };
     option (google.api.http) = {
-      post: "/v1/project/{project}/org/{org}/clusters/{cluster}/devices/{device}/config/network"
+      post: "/v1/project/*/org/*/clusters/{cluster}/devices/{device}/config/network"
       body: "config"
       additional_bindings {
-        post: "/v1/project/{project}/org/{org}/clusters/{cluster}/config/network"
+        post: "/v1/project/*/org/*/clusters/{cluster}/config/network"
         body: "config"
       }
     };
@@ -859,9 +868,9 @@ service ClustersService {
   // GetStatus retrieves the status of a device.
   rpc GetStatus(GetStatusRequest) returns (IntOSStatus) {
     option (google.api.http) = {
-      get: "/v1/project/{project}/org/{org}/clusters/{cluster_id}/status"
+      get: "/v1/project/*/org/*/clusters/{cluster_id}/status"
       additional_bindings {
-        get: "/v1/project/{project}/org/{org}/clusters/{cluster_id}/devices/{device_id}/status"
+        get: "/v1/project/*/org/*/clusters/{cluster_id}/devices/{device_id}/status"
       }
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
@@ -873,10 +882,10 @@ service ClustersService {
   // PingFromDevice retrieves the status of a device.
   rpc PingFromDevice(PingFromDeviceRequest) returns (PingFromDeviceResponse) {
     option (google.api.http) = {
-      post: "/v1/project/{project}/org/{org}/clusters/{cluster_id}:ping"
+      post: "/v1/project/*/org/*/clusters/{cluster_id}:ping"
       body: "params"
       additional_bindings {
-        post: "/v1/project/{project}/org/{org}/clusters/{cluster_id}/devices/{device_id}:ping"
+        post: "/v1/project/*/org/*/clusters/{cluster_id}/devices/{device_id}:ping"
         body: "params"
       }
     };
@@ -897,7 +906,7 @@ service ClustersService {
       // The proper path (http.MethodDelete instead of custom verb) collides
       // with the solutions service :(
       // v1 will have to use this for now. Once we have a v2, we can re-map.
-      post: "/v1/project/{project}/org/{org}/clusters/{cluster_name}:delete"
+      post: "/v1/project/*/org/*/clusters/{cluster_name}:delete"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "DeleteCluster"
@@ -930,7 +939,7 @@ service ClustersService {
   // cluster.
   rpc GetLogReceiver(GetLogReceiverRequest) returns (LogReceiver) {
     option (google.api.http) = {
-      get: "/v1/project/{project}/org/{org}/clusters/{cluster_id}/config/log_receiver"
+      get: "/v1/project/*/org/*/clusters/{cluster_id}/config/log_receiver"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "GetLogReceiver"
@@ -944,7 +953,7 @@ service ClustersService {
   rpc CreateLogReceiverUpdate(CreateLogReceiverUpdateRequest)
       returns (LogReceiverUpdate) {
     option (google.api.http) = {
-      post: "/v1/project/{project}/org/{org}/clusters/{cluster_id}/config/log_receiver_update"
+      post: "/v1/project/*/org/*/clusters/{cluster_id}/config/log_receiver_update"
       body: "log_receiver"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
@@ -955,7 +964,7 @@ service ClustersService {
 
   rpc GetClusterHardware(GetClusterHardwareRequest) returns (ClusterHardware) {
     option (google.api.http) = {
-      get: "/v1/project/{project}/org/{org}/clusters/{cluster_name}/hardware"
+      get: "/v1/project/*/org/*/clusters/{cluster_name}/hardware"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "GetClusterHardware"
@@ -968,7 +977,7 @@ service ClustersService {
   rpc UpdateNodeHardware(UpdateNodeHardwareRequest)
       returns (UpdateNodeHardwareResponse) {
     option (google.api.http) = {
-      put: "/v1/project/{project}/org/{org}/clusters/{cluster_name}/hardware"
+      put: "/v1/project/*/org/*/clusters/{cluster_name}/hardware"
       body: "hardware"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {

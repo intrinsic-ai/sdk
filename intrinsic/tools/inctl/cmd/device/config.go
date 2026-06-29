@@ -166,8 +166,6 @@ var configSetCmd = &cobra.Command{
 		}
 
 		req := &clustermanagerpb.UpdateNetworkConfigRequest{
-			Project: projectName,
-			Org:     orgName,
 			Cluster: clusterName,
 			Device:  deviceID,
 			Config:  translateToNetworkConfig(config),
