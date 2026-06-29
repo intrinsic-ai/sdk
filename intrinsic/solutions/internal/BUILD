@@ -61,7 +61,34 @@ py_test(
 py_library(
     name = "actions",
     srcs = ["actions.py"],
-    deps = ["//intrinsic/executive/proto:behavior_call_py_pb2"],
+    deps = [
+        "//intrinsic/executive/proto:behavior_call_py_pb2",
+        "//intrinsic/solutions:blackboard_value",
+    ],
+)
+
+py_library(
+    name = "code_execution",
+    srcs = ["code_execution.py"],
+    deps = [
+        ":skill_utils",
+        "//intrinsic/executive/proto:code_execution_py_pb2",
+        "//intrinsic/solutions:blackboard_value",
+        "//intrinsic/solutions:proto_building",
+    ],
+)
+
+py_test(
+    name = "code_execution_test",
+    srcs = ["code_execution_test.py"],
+    deps = [
+        ":code_execution",
+        "//intrinsic/solutions:cel",
+        "//intrinsic/solutions:proto_building",
+        "//intrinsic/solutions/testing:compare",
+        "@com_google_absl_py//absl/testing:absltest",
+        "@com_google_protobuf//:protobuf_python",
+    ],
 )
 
 py_library(

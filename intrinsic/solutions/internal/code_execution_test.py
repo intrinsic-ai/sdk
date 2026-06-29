@@ -1,0 +1,347 @@
+# Copyright 2023 Intrinsic Innovation LLC
+
+"""Tests for code_execution.py."""
+
+from unittest import mock
+import uuid
+
+from absl.testing import absltest
+from google.protobuf import descriptor_pb2
+from google.protobuf import text_format
+
+from intrinsic.solutions import cel
+from intrinsic.solutions import proto_building
+from intrinsic.solutions.internal import code_execution
+from intrinsic.solutions.testing import compare
+
+
+class PythonScriptTest(absltest.TestCase):
+
+  def test_python_script_empty_function_body(self):
+    sig_with_args = proto_building.Signature(
+        parameter_message_full_name='',
+        return_value_message_full_name='',
+        file_descriptor_set=None,
+    ).with_args()
+
+    with self.assertRaisesRegex(ValueError, 'function_body'):
+      code_execution.PythonScript(
+          signature_with_args=sig_with_args,
+          function_body='',
+      )
+    with self.assertRaisesRegex(ValueError, 'function_body'):
+      code_execution.PythonScript(
+          signature_with_args=sig_with_args,
+          function_body='   \n  ',
+      )
+
+  def test_python_script_empty_return_value_key(self):
+    sig_with_args = proto_building.Signature(
+        parameter_message_full_name='',
+        return_value_message_full_name='gen.sbl.ReturnValue',
+        file_descriptor_set=text_format.Parse(
+            """
+            file {
+                name: "gen/sbl/signature.proto"
+                package: "gen.sbl"
+                message_type {
+                    name: "ReturnValue"
+                    field {
+                        name: "int_out"
+                        number: 3
+                        label: LABEL_OPTIONAL
+                        type: TYPE_INT64
+                    }
+                }
+                syntax: "proto3"
+            }""",
+            descriptor_pb2.FileDescriptorSet(),
+        ),
+    ).with_args()
+
+    with self.assertRaisesRegex(ValueError, 'return_value_key.*empty'):
+      code_execution.PythonScript(
+          signature_with_args=sig_with_args,
+          function_body='pass',
+          return_value_key='',
+      )
+
+  def test_python_script_return_value_key_but_no_return_value_message(
+      self,
+  ):
+    sig_with_args = proto_building.Signature(
+        parameter_message_full_name='',
+        return_value_message_full_name='',
+        file_descriptor_set=None,
+    ).with_args()
+
+    with self.assertRaisesRegex(ValueError, 'return_value_key provided'):
+      code_execution.PythonScript(
+          signature_with_args=sig_with_args,
+          function_body='pass',
+          return_value_key='some_key',
+      )
+    with self.assertRaisesRegex(ValueError, 'return_value_key provided'):
+      code_execution.PythonScript(
+          signature_with_args=sig_with_args,
+          function_body='pass',
+          return_value_key='',
+      )
+
+  def test_python_script_proto(self):
+    sig_with_args = proto_building.Signature(
+        parameter_message_full_name='gen.sbl.Params',
+        return_value_message_full_name='gen.sbl.ReturnValue',
+        file_descriptor_set=text_format.Parse(
+            """
+            file {
+                name: "gen/sbl/signature.proto"
+                package: "gen.sbl"
+                message_type {
+                    name: "Params"
+                    field {
+                        name: "int_in"
+                        number: 1
+                        label: LABEL_OPTIONAL
+                        type: TYPE_INT64
+                    }
+                    field {
+                        name: "str_in"
+                        number: 2
+                        label: LABEL_OPTIONAL
+                        type: TYPE_STRING
+                    }
+                }
+                message_type {
+                    name: "ReturnValue"
+                    field {
+                        name: "int_out"
+                        number: 3
+                        label: LABEL_OPTIONAL
+                        type: TYPE_INT64
+                    }
+                }
+                syntax: "proto3"
+            }""",
+            descriptor_pb2.FileDescriptorSet(),
+        ),
+    ).with_args(int_in=42, str_in=cel.CelExpression('some.cel.expression'))
+
+    # Mock the UUID used in the creation of the unique signature copy
+    with mock.patch(
+        'uuid.uuid4',
+        return_value=uuid.UUID('11111111-aaaa-2222-bbbb-333333333333'),
+    ):
+      script = code_execution.PythonScript(
+          signature_with_args=sig_with_args,
+          function_body="""
+                result = node_pb2.ReturnValue(
+                    int_out = 2 * params.int_in
+                )
+                return result
+
+                """,
+          return_value_key='my_result',
+      )
+
+    proto = script.proto
+
+    compare.assertProto2Equal(
+        self,
+        proto,
+        """
+        python_code {
+            function_body: "  result = node_pb2.ReturnValue(\\n      int_out = 2 * params.int_in\\n  )\\n  return result"
+        }
+        parameters {
+            proto {
+                type_url: "type.googleapis.com/gen.sbl_11111111aaaa2222bbbb333333333333.Params"
+                # field 1 with int value 42
+                value: "\\010*"
+            }
+            assign {
+                path: "str_in"
+                cel_expression: "some.cel.expression"
+            }
+        }
+        return_value_key: "my_result"
+        parameter_message_full_name: "gen.sbl_11111111aaaa2222bbbb333333333333.Params"
+        return_value_message_full_name: "gen.sbl_11111111aaaa2222bbbb333333333333.ReturnValue"
+        file_descriptor_set {
+            file {
+                name: "gen/sbl_11111111aaaa2222bbbb333333333333/node.proto"
+                package: "gen.sbl_11111111aaaa2222bbbb333333333333"
+                message_type {
+                name: "Params"
+                    field {
+                        name: "int_in"
+                        number: 1
+                        label: LABEL_OPTIONAL
+                        type: TYPE_INT64
+                    }
+                    field {
+                        name: "str_in"
+                        number: 2
+                        label: LABEL_OPTIONAL
+                        type: TYPE_STRING
+                    }
+                }
+                message_type {
+                name: "ReturnValue"
+                    field {
+                        name: "int_out"
+                        number: 3
+                        label: LABEL_OPTIONAL
+                        type: TYPE_INT64
+                    }
+                }
+                syntax: "proto3"
+            }
+        }
+        """,
+    )
+
+  def test_python_script_proto_auto_generated_return_value_key(self):
+    sig_with_args = proto_building.Signature(
+        parameter_message_full_name='',
+        return_value_message_full_name='gen.sbl.ReturnValue',
+        file_descriptor_set=text_format.Parse(
+            """
+            file {
+                name: "gen/sbl/signature.proto"
+                package: "gen.sbl"
+                message_type {
+                    name: "ReturnValue"
+                    field {
+                        name: "int_out"
+                        number: 3
+                        label: LABEL_OPTIONAL
+                        type: TYPE_INT64
+                    }
+                }
+                syntax: "proto3"
+            }""",
+            descriptor_pb2.FileDescriptorSet(),
+        ),
+    ).with_args()
+
+    # Mock the UUIDs used for:
+    # - creation of the unique signature copy
+    # - return value key
+    with mock.patch(
+        'uuid.uuid4',
+        side_effect=[
+            uuid.UUID('11111111-aaaa-2222-bbbb-333333333333'),
+            uuid.UUID('77777777-eeee-8888-ffff-999999999999'),
+        ],
+    ):
+      script = code_execution.PythonScript(
+          signature_with_args=sig_with_args,
+          function_body='return node_pb2.ReturnValue(int_out=42)',
+          return_value_key=None,
+      )
+
+    proto = script.proto
+
+    compare.assertProto2Equal(
+        self,
+        proto,
+        """
+            python_code {
+                function_body: "  return node_pb2.ReturnValue(int_out=42)"
+            }
+            return_value_key: "pynode_77777777eeee8888ffff999999999999"
+            return_value_message_full_name: "gen.sbl_11111111aaaa2222bbbb333333333333.ReturnValue"
+            file_descriptor_set {
+                file {
+                    name: "gen/sbl_11111111aaaa2222bbbb333333333333/node.proto"
+                    package: "gen.sbl_11111111aaaa2222bbbb333333333333"
+                    message_type {
+                        name: "ReturnValue"
+                        field {
+                            name: "int_out"
+                            number: 3
+                            label: LABEL_OPTIONAL
+                            type: TYPE_INT64
+                        }
+                    }
+                    syntax: "proto3"
+                }
+            }
+            """,
+    )
+
+  def test_python_script_result(self):
+    sig_with_args = proto_building.Signature(
+        parameter_message_full_name='',
+        return_value_message_full_name='gen.sbl.ReturnValue',
+        file_descriptor_set=text_format.Parse(
+            """
+            file {
+                name: "gen/sbl/signature.proto"
+                package: "gen.sbl"
+                message_type {
+                    name: "ReturnValue"
+                    field {
+                        name: "int_out"
+                        number: 3
+                        label: LABEL_OPTIONAL
+                        type: TYPE_INT64
+                    }
+                }
+                syntax: "proto3"
+            }""",
+            descriptor_pb2.FileDescriptorSet(),
+        ),
+    ).with_args()
+
+    # Mock the UUIDs used for:
+    # - creation of the unique signature copy
+    # - return value key
+    with mock.patch(
+        'uuid.uuid4',
+        side_effect=[
+            uuid.UUID('11111111-aaaa-2222-bbbb-333333333333'),
+            uuid.UUID('77777777-eeee-8888-ffff-999999999999'),
+        ],
+    ):
+      script = code_execution.PythonScript(
+          signature_with_args=sig_with_args,
+          function_body='return node_pb2.ReturnValue(int_out=42)',
+          return_value_key=None,
+      )
+
+    result = script.result
+
+    self.assertTrue(result.is_toplevel_value)
+    self.assertEqual(
+        result.value_access_path(),
+        'pynode_77777777eeee8888ffff999999999999',
+    )
+    self.assertEqual(
+        result.value_type.DESCRIPTOR.full_name,
+        'gen.sbl_11111111aaaa2222bbbb333333333333.ReturnValue',
+    )
+    self.assertEqual(
+        result.int_out.value_access_path(),
+        'pynode_77777777eeee8888ffff999999999999.int_out',
+    )
+
+  def test_python_script_result_no_return_value_message(self):
+    sig_with_args = proto_building.Signature(
+        parameter_message_full_name='',
+        return_value_message_full_name='',
+        file_descriptor_set=None,
+    ).with_args()
+
+    script = code_execution.PythonScript(
+        signature_with_args=sig_with_args,
+        function_body='return node_pb2.ReturnValue(int_out=42)',
+        return_value_key=None,
+    )
+
+    self.assertIsNone(script.result)
+
+
+if __name__ == '__main__':
+  absltest.main()
