@@ -169,6 +169,19 @@ func loginCmdE(cmd *cobra.Command, _ []string) (err error) {
 	alias := auth.AliasDefaultToken
 	isBatch := loginParams.GetBool(keyBatch)
 
+	// If we are passed a pure org without a project, check if we can resolve it from stored credentials.
+	// If the short organization name matches multiple stored credentials, fail early with an ambiguity error
+	// BEFORE asking for the API Key and printing/generating a potentially broken key link.
+	if projectName == "" && orgName != "" {
+		resolved, resolveErr := orgutil.ResolveOrg(orgName)
+		if resolveErr == nil {
+			projectName = resolved.Project
+			org = orgutil.QualifiedOrg(projectName, orgName)
+		} else if strings.Contains(resolveErr.Error(), "ambiguous") {
+			return fmt.Errorf("your organization %q uses multiple projects. Please re-run login using the fully-qualified `inctl auth login --org=%s@<PROJECT_ID>` syntax", orgName, orgName)
+		}
+	}
+
 	apiKey, err := readAPIKeyFromPipe(in)
 	if err != nil {
 		return err

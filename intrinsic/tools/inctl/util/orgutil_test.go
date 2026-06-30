@@ -3,10 +3,10 @@
 package orgutil
 
 import (
-	"testing"
-
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/auth/authtest"
+	"strings"
+	"testing"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -291,7 +291,7 @@ func TestWrapCmdOptional(t *testing.T) {
 		authStore.WriteOrgInfo(&auth.OrgInfo{Project: "example-project", Organization: "otherorg"})
 
 		vi := viper.New()
-		cmd := WrapCmdOptional(&cobra.Command{
+		cmd := WrapCmd(&cobra.Command{
 			Run: func(*cobra.Command, []string) {
 				projectName := vi.GetString(KeyProject)
 				orgName := vi.GetString(KeyOrganization)
@@ -311,6 +311,98 @@ func TestWrapCmdOptional(t *testing.T) {
 			t.Errorf("Unexpected error during test-run: %v", err)
 		}
 	})
+
+	t.Run("org-simple-resolve-single", func(t *testing.T) {
+		authStore = authtest.NewStoreForTest(t)
+		authStore.WriteOrgInfo(&auth.OrgInfo{Project: "example-project", Organization: "intrinsic@example-project"})
+
+		vi := viper.New()
+		cmd := WrapCmd(&cobra.Command{
+			Run: func(*cobra.Command, []string) {
+				projectName := vi.GetString(KeyProject)
+				orgName := vi.GetString(KeyOrganization)
+
+				if projectName != "example-project" {
+					t.Errorf("Expected project to be example-project. Got: %q", projectName)
+				}
+
+				if orgName != "intrinsic" {
+					t.Errorf("Expect org to be intrinsic. Instead got: %q", orgName)
+				}
+			},
+		}, vi)
+
+		cmd.SetArgs([]string{"--org=intrinsic"})
+		if err := cmd.Execute(); err != nil {
+			t.Errorf("Unexpected error during test-run: %v", err)
+		}
+	})
+
+	t.Run("org-simple-resolve-ambiguous", func(t *testing.T) {
+		authStore = authtest.NewStoreForTest(t)
+		authStore.WriteOrgInfo(&auth.OrgInfo{Project: "project-1", Organization: "intrinsic@project-1"})
+		authStore.WriteOrgInfo(&auth.OrgInfo{Project: "project-2", Organization: "intrinsic@project-2"})
+
+		vi := viper.New()
+		cmd := WrapCmd(&cobra.Command{
+			Run: func(*cobra.Command, []string) {
+				t.Errorf("Did not expect Run to be called")
+			},
+		}, vi)
+
+		cmd.SetArgs([]string{"--org=intrinsic"})
+		err := cmd.Execute()
+		if err == nil {
+			t.Errorf("Expected ambiguity error but got nil")
+		} else if !strings.Contains(err.Error(), "ambiguous") {
+			t.Errorf("Expected ambiguity error, got: %v", err)
+		}
+	})
+
+	t.Run("org-fully-qualified-fallback", func(t *testing.T) {
+		authStore = authtest.NewStoreForTest(t)
+		authStore.WriteOrgInfo(&auth.OrgInfo{Project: "example-project", Organization: "intrinsic"})
+
+		vi := viper.New()
+		cmd := WrapCmd(&cobra.Command{
+			Run: func(*cobra.Command, []string) {
+				projectName := vi.GetString(KeyProject)
+				orgName := vi.GetString(KeyOrganization)
+
+				if projectName != "example-project" {
+					t.Errorf("Expected project to be example-project. Got: %q", projectName)
+				}
+
+				if orgName != "intrinsic" {
+					t.Errorf("Expect org to be intrinsic. Instead got: %q", orgName)
+				}
+			},
+		}, vi)
+
+		cmd.SetArgs([]string{"--org=intrinsic@example-project"})
+		if err := cmd.Execute(); err != nil {
+			t.Errorf("Unexpected error during test-run: %v", err)
+		}
+	})
+
+	t.Run("org-fully-qualified-fallback-mismatch", func(t *testing.T) {
+		authStore = authtest.NewStoreForTest(t)
+		authStore.WriteOrgInfo(&auth.OrgInfo{Project: "other-project", Organization: "intrinsic"})
+
+		vi := viper.New()
+		cmd := WrapCmd(&cobra.Command{
+			Run: func(*cobra.Command, []string) {
+				t.Errorf("Did not expect Run to be called")
+			},
+		}, vi)
+
+		cmd.SetArgs([]string{"--org=intrinsic@example-project"})
+		err := cmd.Execute()
+		if err == nil {
+			t.Errorf("Expected error but got nil")
+		}
+	})
+
 	t.Run("org-env", func(t *testing.T) {
 		// This one cannot be run in parallel as it touches the authStore
 		authStore = authtest.NewStoreForTest(t)

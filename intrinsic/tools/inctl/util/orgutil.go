@@ -5,12 +5,11 @@ package orgutil
 
 import (
 	"fmt"
-	"os"
-	"strings"
-
 	env "intrinsic/config/environments"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/viperutil"
+	"os"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -101,8 +100,14 @@ func makeOrgNotFound(inner error, org string) error {
 	orgs, err := auth.NewStore().ListOrgs()
 	// We can only do this, if there's NO error!
 	if err == nil {
+		hasAt := strings.Contains(org, "@")
 		for _, candidate := range orgs {
-			if editDistance(org, candidate) < 3 {
+			target := candidate
+			if !hasAt {
+				parts := strings.Split(candidate, "@")
+				target = parts[0]
+			}
+			if editDistance(org, target) < 3 {
 				candidates = append(candidates, candidate)
 			}
 		}
@@ -124,6 +129,65 @@ func ValidateEnvironment(vipr *viper.Viper) error {
 	default:
 		return fmt.Errorf("invalid --%s value %q. It must be one of %v", KeyEnvironment, e, strings.Join(env.All, ", "))
 	}
+}
+
+// ResolveOrg searches stored organization credentials to match the given short name.
+//
+// If a user inputs a short organization name (e.g. `--org=my-org`), this function will
+// look up all credentials in the local auth store. If it finds a unique matching
+// fully-qualified organization (e.g. `my-org@my-project`), it will return the OrgInfo.
+//
+// Returns:
+//   - auth.OrgInfo: The unique matching organization info, if found.
+//   - error: ErrOrgNotFound if no matching organization exists; an error listing the
+//     matching fully-qualified candidates if the short name is ambiguous (matches
+//     multiple stored credentials); or any filesystem read error.
+func ResolveOrg(requestedOrg string) (auth.OrgInfo, error) {
+	// First, try a direct lookup by the given org name.
+	if info, err := authStore.ReadOrgInfo(requestedOrg); err == nil {
+		return info, nil
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return auth.OrgInfo{}, err
+	}
+
+	// Try to resolve it as a short name by searching stored credentials.
+	orgs, err := authStore.ListOrgs()
+	if err != nil {
+		return auth.OrgInfo{}, fmt.Errorf("list orgs: %w", err)
+	}
+
+	reqShort := requestedOrg
+	var reqProject string
+	if strings.Contains(requestedOrg, "@") {
+		parts := strings.Split(requestedOrg, "@")
+		reqShort = parts[0]
+		reqProject = parts[1]
+	}
+
+	var matches []auth.OrgInfo
+	for _, candidate := range orgs {
+		parts := strings.Split(candidate, "@")
+		if parts[0] == reqShort {
+			info, err := authStore.ReadOrgInfo(candidate)
+			if err == nil {
+				if reqProject == "" || info.Project == reqProject {
+					matches = append(matches, info)
+				}
+			}
+		}
+	}
+
+	if len(matches) == 0 {
+		return auth.OrgInfo{}, makeOrgNotFound(os.ErrNotExist, requestedOrg)
+	}
+	if len(matches) > 1 {
+		var options []string
+		for _, m := range matches {
+			options = append(options, m.Organization)
+		}
+		return auth.OrgInfo{}, fmt.Errorf("organization %q is ambiguous. Please specify one of the following fully-qualified organizations: %s", requestedOrg, strings.Join(options, ", "))
+	}
+	return matches[0], nil
 }
 
 // preRunOrganizationOptional provides the organization/project flag handling as PersistentPreRunE
@@ -162,17 +226,14 @@ func preRunOrganizationOptional(cmd *cobra.Command, vipr *viper.Viper, enableOrg
 		return nil
 	}
 
-	// Look up the project that contains this org.
-	info, err := authStore.ReadOrgInfo(org)
+	// Resolve the organization (either direct lookup or fallback to short name matching).
+	resolved, err := ResolveOrg(org)
 	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return makeOrgNotFound(err, org)
-		}
-
 		return err
 	}
-	projectFlag.Value.Set(info.Project)
-	vipr.Set(KeyProject, info.Project)
+
+	projectFlag.Value.Set(resolved.Project)
+	vipr.Set(KeyProject, resolved.Project)
 	return nil
 }
 
