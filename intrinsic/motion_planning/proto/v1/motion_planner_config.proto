@@ -33,6 +33,13 @@ message MotionPlannerConfiguration {
   optional intrinsic_proto.world.CollisionCheckerConfig
       collision_checker_config = 7;
 
+  // Spacing between collision checks (in the joint space of the robot). If this
+  // value is unset, motion planning will use a default value of 0.01. If
+  // additional accuracy is required, this value can be set with a value smaller
+  // than the default. Setting this to a value greater than the default will
+  // result in a motion planning error.
+  optional double collision_check_spacing_override = 8;
+
   reserved 2;
   reserved "use_projection_onto_constraint_manifold";
 }

@@ -125,6 +125,7 @@ class MotionPlanningOptions:
   collision_checker_config: (
       collision_checker_config_pb2.CollisionCheckerConfig | None
   ) = None
+  collision_check_spacing_override: float | None = None
 
 
 @dataclasses.dataclass
@@ -260,6 +261,10 @@ class MotionPlannerClient(MotionPlannerClientBase):
       request.motion_planner_config.collision_checker_config.CopyFrom(
           options.collision_checker_config
       )
+    if options.collision_check_spacing_override is not None:
+      request.motion_planner_config.collision_check_spacing_override = (
+          options.collision_check_spacing_override
+      )
     response = self._stub.PlanTrajectory(request)
     swept_volume = list(response.swept_volume)
     lock_motion_id = (
@@ -324,6 +329,10 @@ class MotionPlannerClient(MotionPlannerClientBase):
     if options.collision_checker_config is not None:
       request.motion_planner_config.collision_checker_config.CopyFrom(
           options.collision_checker_config
+      )
+    if options.collision_check_spacing_override is not None:
+      request.motion_planner_config.collision_check_spacing_override = (
+          options.collision_check_spacing_override
       )
     response = self._stub.PlanPath(request)
     swept_volume = list(response.swept_volume)

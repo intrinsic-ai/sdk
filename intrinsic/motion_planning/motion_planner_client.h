@@ -62,7 +62,13 @@ class MotionPlannerClient {
     // longer paths and trajectories.
     bool shortcutting_combine_collinear_segments = false;
 
+    // Optionally overrides the default collision checker used by the motion
+    // planner.
     intrinsic_proto::world::CollisionCheckerConfig collision_checker_config;
+
+    // Optionally overrides the default collision check spacing used by the
+    // motion planner.
+    std::optional<double> collision_check_spacing_override = std::nullopt;
 
     // Returns the default set of options to use with the plan path requests.
     static const MotionPlanningOptions& Defaults();

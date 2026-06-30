@@ -71,6 +71,11 @@ CreateMotionPlanningRequest(
           options.shortcutting_combine_collinear_segments);
   *request.mutable_motion_planner_config()->mutable_collision_checker_config() =
       options.collision_checker_config;
+  if (options.collision_check_spacing_override.has_value()) {
+    request.mutable_motion_planner_config()
+        ->set_collision_check_spacing_override(
+            options.collision_check_spacing_override.value());
+  }
   request.set_caller_id(caller_id);
   *request.mutable_context() = context;
 

@@ -58,20 +58,8 @@ message CollisionSettings {
   // minimum margin and exclusion pairs for specific objects in the world.
   repeated CollisionRule collision_rules = 3;
 
-  // Spacing between collision checks (in the joint space of the
-  // robot). Increasing this value will speed up
-  // collision checking at the expense of possibly having small collisions on
-  // the path (in between the discrete points checked).
-  //
-  // The meaning of 'unset' may differ between use-cases. We are in the process
-  // of updating more callsites to use this parameter, so expect this list to
-  // evolve over time:
-  //   * For skills/code that produce a linear trajectory, collision checking
-  //     will be performed with a default spacing.
-  // Use-cases not listed will likely ignore this parameter in favor of some
-  // default behavior.
-  optional double collision_check_spacing = 4
-      [(intrinsic_proto.skills.skill_parameter_metadata).unit = "radians"];
+  reserved 4;
+  reserved "collision_check_spacing";
 }
 
 // Contains debug information related to the collision checking performed for a
