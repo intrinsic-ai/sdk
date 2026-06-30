@@ -36,8 +36,10 @@ type PubSub interface {
 	// Frees the resources and unsubscribes from all topics.
 	Close()
 
-	// CreateSubscription creates a subscription to the given topic, using the exemplar proto as the
-	// type expected to be called by the msg_callback.
+	// NewSubscription creates a subscription to the given topic, using the exemplar proto as the
+	// type expected to be called by the msgCallback.
+	// The errCallback is invoked when unmarshaling the payload fails; its first argument receives
+	// the raw packet bytes (as a string) and its second argument receives the unmarshal error.
 	NewSubscription(topic string, config TopicConfig, exemplar proto.Message,
 		msgCallback func(proto.Message), errCallback func(string, error)) (Subscription, error)
 

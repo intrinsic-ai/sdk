@@ -197,7 +197,9 @@ func (ps *Handle) NewPublisher(topic string, config pubsubinterface.TopicConfig)
 }
 
 // NewSubscription will create a subscription to the given topic, using the exemplar proto as the
-// type expected to be called by the msg_callback.
+// type expected to be called by the msgCallback.
+// The errCallback is invoked when unmarshaling the payload fails; its first argument receives
+// the raw packet bytes (as a string) and its second argument receives the unmarshal error.
 func (ps *Handle) NewSubscription(topic string, config pubsubinterface.TopicConfig, exemplar proto.Message, msgCallback func(proto.Message), errCallback func(string, error)) (pubsubinterface.Subscription, error) {
 	topicQos, err := topicConfigToZenohQos(config)
 	if err != nil {
