@@ -320,22 +320,25 @@ func getPerRPCCredentials(ctx context.Context, opts getPerRPCCredentialsOptions)
 		return nil, nil
 	}
 
+	var projectToken *auth.ProjectToken
+	// User-provided api-key.
 	if opts.APIKey != "" {
-		// User-provided api-key.
-		return &auth.ProjectToken{APIKey: opts.APIKey}, nil
+		projectToken = &auth.ProjectToken{APIKey: opts.APIKey}
 	}
-
-	if opts.CredProject != "" {
+	// If not user-provided, load from CredProject
+	if projectToken == nil && opts.CredProject != "" {
 		configuration, err := auth.NewStore().GetConfiguration(opts.CredProject)
 		if err != nil {
 			return nil, err
 		}
 
-		projectToken, err := configuration.GetDefaultCredentials()
+		projectToken, err = configuration.GetDefaultCredentials()
 		if err != nil {
 			return nil, err
 		}
-
+	}
+	// if provided or load from credentials, exchange API key for ID token
+	if projectToken != nil {
 		// Convert the API token to a Google ID token. With this conversion, the JWT is included in the
 		// credentials provided by the client (rather than requiring the auth-proxy to do it on
 		// ingress.)
@@ -349,7 +352,6 @@ func getPerRPCCredentials(ctx context.Context, opts getPerRPCCredentialsOptions)
 		if addressIsInsecure {
 			opts = append(opts, auth.WithAPIKeyTokenSourceOptions(auth.WithAllowInsecure()))
 		}
-
 		return projectToken.AsIDTokenCredentials(opts...)
 	}
 
