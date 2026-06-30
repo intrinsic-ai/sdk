@@ -1474,6 +1474,11 @@ class Task(Node):
         self._code_execution.proto if self._code_execution is not None else None
     )
 
+  @property
+  def code_execution(self) -> CodeExecution | None:
+    """CodeExecution object (if initialized for code execution)."""
+    return self._code_execution
+
   def update_behavior_call(
       self, behavior_call_proto: behavior_call_pb2.BehaviorCall
   ) -> None:
@@ -3946,6 +3951,7 @@ class BehaviorTree:
   def _to_proto(self, validate: bool = True) -> behavior_tree_pb2.BehaviorTree:
     if validate:
       self.validate_id_uniqueness()
+      self._validate_code_executions()
 
     proto_object = behavior_tree_pb2.BehaviorTree(name=self.name)
     if self.root is not None:
@@ -4575,6 +4581,73 @@ class BehaviorTree:
           ' (per tree):\n'
       ) + '\n'.join(violations)
       raise solutions_errors.InvalidArgumentError(violation_msg)
+
+  def _validate_code_executions(self) -> None:
+    """Validates code execution task nodes in the behavior tree.
+
+    Checks that no PythonScript object is used more than once in the behavior
+    tree (including subtrees). This ensures compatibility with process editors
+    that have no concept of sharing message definitions within a single process.
+    We effectively want to guarantee that each Python script node has a unique
+    file descriptor set with unique parameter and return messages.
+
+    This check is not strictly required for a successful execution of the
+    process and thus - to allow for advanced use cases - it is restricted to
+    PythonScript nodes which were created with the default mode
+    (create_unique_signature=True).
+
+    Raises:
+      ValueError: If reused PythonScript objects are detected.
+    """
+    scripts: list[PythonScript] = []
+
+    def collect_python_scripts(
+        containing_tree: BehaviorTree,
+        tree_object: Union[BehaviorTree, Node, Condition],
+    ) -> None:
+      del containing_tree  # unused
+      if (
+          isinstance(tree_object, Task)
+          and tree_object.code_execution is not None
+          and isinstance(tree_object.code_execution, PythonScript)
+          # pylint: disable-next=protected-access
+          and tree_object.code_execution._has_unique_signature
+      ):
+        scripts.append(tree_object.code_execution)
+
+    self.visit(collect_python_scripts)
+
+    # Conceptually, we could just assume that PythonScript(...,
+    # create_unique_signature=True) does the right thing and simply check for
+    # duplicate object ids to determine whether any PythonScript object was
+    # reused in the tree. But to prevent workarounds such as using
+    # copy.deepcopy(), we go a bit deeper and check the parameter/return value
+    # message names.
+    #
+    # We check for duplicate message names where "duplicate name" here means
+    # that a message name is used by two different nodes. If the parameter and
+    # return value message name are the same for a single node we allow it.
+    seen_message_names = set()
+    duplicate_names = set()
+    for script in scripts:
+      # Collect non-empty message names in a set.
+      message_names = {
+          script.signature_with_args.parameter_message_full_name,
+          script.signature_with_args.return_value_message_full_name,
+      } - {''}
+      for name in message_names:
+        if name in seen_message_names:
+          duplicate_names.add(name)
+        seen_message_names.add(name)
+
+    if duplicate_names:
+      raise ValueError(
+          'Found multiple PythonScript nodes reusing the same messages:'
+          f' {sorted(list(duplicate_names))}. This can lead to compatibility'
+          ' problems with other process editors. To avoid this problem, create'
+          ' a separate PythonScript instance for each task node or use'
+          ' PythonScript.create_unique_copy().'
+      )
 
   def _initialize_skill_proto_for_pbt(self, skill_id: str, display_name: str):
     """Initializes the Skill proto for the initialize_pbt* methods below."""

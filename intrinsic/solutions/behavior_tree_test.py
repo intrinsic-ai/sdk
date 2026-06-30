@@ -430,6 +430,45 @@ class BehaviorTreeMadeParametrizableTest(parameterized.TestCase):
     )
 
 
+def _make_python_script(
+    param_msg: str = '',
+    return_msg: str = '',
+    *,
+    create_unique_signature: bool,
+) -> bt.PythonScript:
+  fds = descriptor_pb2.FileDescriptorSet()
+  if param_msg or return_msg:
+    pkg = ''
+    if param_msg:
+      pkg = param_msg.rpartition('.')[0]
+    if return_msg:
+      pkg_return = return_msg.rpartition('.')[0]
+      if param_msg and pkg != pkg_return:
+        raise ValueError('param_msg and return_msg have different packages')
+      pkg = pkg_return
+
+    file_proto = descriptor_pb2.FileDescriptorProto(
+        name='node.proto',
+        package=pkg,
+    )
+    if param_msg:
+      file_proto.message_type.add(name=param_msg.rpartition('.')[2])
+    if return_msg and return_msg != param_msg:
+      file_proto.message_type.add(name=return_msg.rpartition('.')[2])
+    fds.file.append(file_proto)
+
+  sig = proto_building.Signature(
+      parameter_message_full_name=param_msg,
+      return_value_message_full_name=return_msg,
+      file_descriptor_set=fds,
+  )
+  return code_execution.PythonScript(
+      sig.with_args(),
+      function_body='pass',
+      create_unique_signature=create_unique_signature,
+  )
+
+
 class BehaviorTreeTest(parameterized.TestCase):
   """Tests the method functions of BehaviorTree."""
 
@@ -1417,6 +1456,118 @@ user_data {
       # It should be called exactly once, on the top level tree. Subtrees should
       # not re-trigger validation.
       mock_validate.assert_called_once_with(my_bt)
+
+  def test_proto_property_allows_multiple_unique_python_scripts(self):
+    script1 = _make_python_script(
+        'pkg1.Params', 'pkg1.Return', create_unique_signature=True
+    )
+    script2 = _make_python_script(
+        'pkg1.Params', 'pkg1.Return', create_unique_signature=True
+    )
+    script3 = script2.unique_copy()
+    script4 = _make_python_script(
+        'pkg2.OtherParams', '', create_unique_signature=True
+    )
+    script5 = _make_python_script(
+        'pkg2.OtherParams', '', create_unique_signature=True
+    )
+    my_bt = bt.BehaviorTree(
+        root=bt.Sequence(
+            children=[
+                bt.Task(action=script1),
+                bt.Task(action=script2),
+                bt.Task(action=script3),
+                bt.Task(action=script4),
+                bt.Task(action=script5),
+            ]
+        ),
+    )
+    # Should not raise
+    _ = my_bt.proto
+
+  @parameterized.named_parameters(
+      dict(
+          testcase_name='params_only',
+          script=_make_python_script(
+              param_msg='pkg.Params', create_unique_signature=True
+          ),
+      ),
+      dict(
+          testcase_name='return_only',
+          script=_make_python_script(
+              param_msg='',
+              return_msg='pkg.Return',
+              create_unique_signature=True,
+          ),
+      ),
+      dict(
+          testcase_name='params_and_return',
+          script=_make_python_script(
+              param_msg='pkg.Params',
+              return_msg='pkg.Return',
+              create_unique_signature=True,
+          ),
+      ),
+  )
+  def test_proto_property_detects_reused_python_script(self, script):
+    my_bt = bt.BehaviorTree(
+        root=bt.Sequence(
+            children=[
+                bt.Task(action=script),
+                bt.Task(action=script),
+            ]
+        ),
+    )
+    with self.assertRaisesRegex(ValueError, '.*reusing the same messages.*'):
+      _ = my_bt.proto
+
+  def test_proto_property_detects_deepcopied_python_script(self):
+    script1 = _make_python_script('pkg.Params', create_unique_signature=True)
+    script2 = copy.deepcopy(script1)
+    my_bt = bt.BehaviorTree(
+        root=bt.Sequence(
+            children=[
+                bt.Task(action=script1),
+                bt.Task(action=script2),
+            ]
+        ),
+    )
+    with self.assertRaisesRegex(ValueError, '.*reusing the same messages.*'):
+      _ = my_bt.proto
+
+  def test_proto_property_allows_same_parameter_and_return_name_on_single_node(
+      self,
+  ):
+    script = _make_python_script(
+        param_msg='pkg.Message',
+        return_msg='pkg.Message',
+        create_unique_signature=True,
+    )
+    my_bt = bt.BehaviorTree(root=bt.Task(action=script))
+
+    # Should not raise
+    _ = my_bt.proto
+
+  def test_proto_property_allows_reusing_non_unique_signature_scripts(
+      self,
+  ):
+    # Disabling 'create_unique_signature' is considered advanced use. Reusing
+    # the same PythonScript object twice will result in a BT with two identidal
+    # Python script nodes having the same file descriptor set and messages.
+    script = _make_python_script(
+        'pkg.Params', 'pkg.Return', create_unique_signature=False
+    )
+    my_bt = bt.BehaviorTree(
+        root=bt.Sequence(
+            children=[
+                bt.Task(action=script),
+                bt.Task(action=script),
+            ]
+        ),
+    )
+
+    # Should not raise, we assume the user knows what they are doing.
+    _ = my_bt.proto
 
   def test_finds_node(self):
     my_bt = bt.BehaviorTree('my_bt', tree_id='tree')

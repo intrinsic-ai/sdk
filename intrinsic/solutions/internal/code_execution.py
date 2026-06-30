@@ -38,6 +38,7 @@ class PythonScript(CodeExecution):
   _signature_with_args: proto_building.SignatureWithArgs
   _function_body: str
   _return_value_key: str
+  _has_unique_signature: bool
 
   def __init__(
       self,
@@ -87,8 +88,10 @@ class PythonScript(CodeExecution):
       self._signature_with_args = signature_with_args.unique_copy(
           _DEFAULT_SCRIPT_NODE_PROTO_FILE
       )
+      self._has_unique_signature = True
     else:
       self._signature_with_args = signature_with_args
+      self._has_unique_signature = False
     if not function_body.strip():
       raise ValueError("function_body must not be empty")
     # Normalize indentation. The code execution service expects indented code.
@@ -112,6 +115,11 @@ class PythonScript(CodeExecution):
             " value"
         )
       self._return_value_key = ""
+
+  @property
+  def signature_with_args(self) -> proto_building.SignatureWithArgs:
+    """Returns the SignatureWithArgs object for this Python script node."""
+    return self._signature_with_args
 
   @property
   def proto(self) -> code_execution_pb2.CodeExecution:
