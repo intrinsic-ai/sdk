@@ -120,74 +120,6 @@ SkillRegistryClient::GetSkillById(absl::string_view skill_id) const {
   return resp.skill();
 }
 
-namespace {
-
-intrinsic_proto::skills::GetInstanceRequest CreateGetInstanceRequest(
-    absl::string_view id, std::optional<absl::string_view> instance_id,
-    const EquipmentPack& equipment) {
-  ::intrinsic_proto::skills::GetInstanceRequest request;
-  request.set_id(id);
-  if (instance_id.has_value()) {
-    request.set_instance_id(*instance_id);
-  }
-  request.mutable_handles()->insert(equipment.begin(), equipment.end());
-  return request;
-}
-
-}  // namespace
-
-absl::StatusOr<intrinsic_proto::skills::SkillInstance>
-SkillRegistryClient::GetInstance(absl::string_view id,
-                                 const EquipmentPack& equipment) const {
-  return GetInstance(id, equipment, kClientDefaultTimeout);
-}
-
-absl::StatusOr<intrinsic_proto::skills::SkillInstance>
-SkillRegistryClient::GetInstance(absl::string_view id,
-                                 const EquipmentPack& equipment,
-                                 absl::Duration timeout) const {
-  ::grpc::ClientContext context;
-  context.set_deadline(absl::ToChronoTime(absl::Now() + timeout));
-  auto request = CreateGetInstanceRequest(id, std::nullopt, equipment);
-  ::intrinsic_proto::skills::GetInstanceResponse response;
-
-  ::grpc::Status status =
-      stub_internal_->GetInstance(&context, request, &response);
-  if (!status.ok()) {
-    return AnnotateError(ToAbslStatus(status),
-                         absl::StrCat("SkillRegistryClient::GetInstance(", id,
-                                      ") gRPC call failed"));
-  }
-  return response.instance();
-}
-
-absl::StatusOr<intrinsic_proto::skills::SkillInstance>
-SkillRegistryClient::GetInstanceWithId(absl::string_view id,
-                                       absl::string_view instance_id,
-                                       const EquipmentPack& equipment) const {
-  return GetInstanceWithId(id, instance_id, equipment, kClientDefaultTimeout);
-}
-
-absl::StatusOr<intrinsic_proto::skills::SkillInstance>
-SkillRegistryClient::GetInstanceWithId(absl::string_view id,
-                                       absl::string_view instance_id,
-                                       const EquipmentPack& equipment,
-                                       absl::Duration timeout) const {
-  ::grpc::ClientContext context;
-  context.set_deadline(absl::ToChronoTime(absl::Now() + timeout));
-  auto request = CreateGetInstanceRequest(id, instance_id, equipment);
-  ::intrinsic_proto::skills::GetInstanceResponse response;
-
-  ::grpc::Status status =
-      stub_internal_->GetInstance(&context, request, &response);
-  if (!status.ok()) {
-    return AnnotateError(ToAbslStatus(status),
-                         absl::StrCat("SkillRegistryClient::GetInstanceWithId(",
-                                      id, ") gRPC call failed"));
-  }
-  return response.instance();
-}
-
 absl::StatusOr<intrinsic_proto::executive::BehaviorTree>
 SkillRegistryClient::GetBehaviorTree(absl::string_view skill_id) const {
   return GetBehaviorTree(skill_id, kClientDefaultTimeout);
@@ -273,20 +205,6 @@ absl::Status SkillRegistryClient::UnregisterBehaviorTree(
   google::protobuf::Empty response;
   return ToAbslStatus(
       bt_stub_->UnregisterBehaviorTree(&context, request, &response));
-}
-
-absl::Status SkillRegistryClient::ResetInstanceIds() const {
-  return ResetInstanceIds(kClientDefaultTimeout);
-}
-
-absl::Status SkillRegistryClient::ResetInstanceIds(
-    absl::Duration timeout) const {
-  ::grpc::ClientContext context;
-  context.set_deadline(absl::ToChronoTime(absl::Now() + timeout));
-
-  google::protobuf::Empty response;
-  return ToAbslStatus(stub_internal_->ResetInstanceIDs(
-      &context, google::protobuf::Empty::default_instance(), &response));
 }
 
 }  // namespace skills

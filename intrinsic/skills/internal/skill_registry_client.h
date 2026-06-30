@@ -71,21 +71,6 @@ class SkillRegistryClient : public SkillRegistryClientInterface {
   absl::StatusOr<intrinsic_proto::skills::Skill> GetSkillById(
       absl::string_view skill_id) const final;
 
-  absl::StatusOr<intrinsic_proto::skills::SkillInstance> GetInstance(
-      absl::string_view id, const EquipmentPack& equipment) const final;
-
-  absl::StatusOr<intrinsic_proto::skills::SkillInstance> GetInstance(
-      absl::string_view id, const EquipmentPack& equipment,
-      absl::Duration timeout) const final;
-
-  absl::StatusOr<intrinsic_proto::skills::SkillInstance> GetInstanceWithId(
-      absl::string_view id, absl::string_view instance_id,
-      const EquipmentPack& equipment) const final;
-
-  absl::StatusOr<intrinsic_proto::skills::SkillInstance> GetInstanceWithId(
-      absl::string_view id, absl::string_view instance_id,
-      const EquipmentPack& equipment, absl::Duration timeout) const final;
-
   absl::StatusOr<intrinsic_proto::executive::BehaviorTree> GetBehaviorTree(
       absl::string_view skill_id) const final;
   absl::StatusOr<intrinsic_proto::executive::BehaviorTree> GetBehaviorTree(
@@ -108,9 +93,6 @@ class SkillRegistryClient : public SkillRegistryClientInterface {
   absl::Status UnregisterBehaviorTree(std::string skill_id) const final;
   absl::Status UnregisterBehaviorTree(std::string skill_id,
                                       absl::Duration timeout) const final;
-
-  absl::Status ResetInstanceIds() const final;
-  absl::Status ResetInstanceIds(absl::Duration timeout) const final;
 
  private:
   std::shared_ptr<::grpc::ChannelInterface> channel_;

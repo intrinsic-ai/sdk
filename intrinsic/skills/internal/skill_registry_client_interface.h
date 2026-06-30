@@ -50,42 +50,6 @@ class SkillRegistryClientInterface {
   virtual absl::StatusOr<intrinsic_proto::skills::Skill> GetSkillById(
       absl::string_view skill_id) const = 0;
 
-  // Fetches a skill instance matching the given request. `id` is the
-  // id of the skill to get an instance of. `equipment` describes which
-  // equipment should be used for which equipment slots.
-  //
-  // This makes a blocking gRPC request.
-  //
-  // Returns `DeadlineExceededError` if the request hasn't completed after
-  // `timeout`.
-  //
-  // Returns any errors from the GRPC invocation.
-  virtual absl::StatusOr<intrinsic_proto::skills::SkillInstance> GetInstance(
-      absl::string_view id, const EquipmentPack& equipment) const = 0;
-  virtual absl::StatusOr<intrinsic_proto::skills::SkillInstance> GetInstance(
-      absl::string_view id, const EquipmentPack& equipment,
-      absl::Duration timeout) const = 0;
-
-  // Fetches a skill instance matching the given request. `id` is the
-  // id of the skill to get an instance of. `instance_id` is the name of the
-  // instance and it must be unique for the lifetime of the skill registry
-  // server (unless ResetInstanceIds is called). `equipment` describes which
-  // equipment should be used for which equipment slots.
-  //
-  // This makes a blocking GRPC request.
-  //
-  // Returns `DeadlineExceededError` if the request hasn't completed after
-  // `timeout`.
-  //
-  // Returns any errors from the GRPC invocation.
-  virtual absl::StatusOr<intrinsic_proto::skills::SkillInstance>
-  GetInstanceWithId(absl::string_view id, absl::string_view instance_id,
-                    const EquipmentPack& equipment) const = 0;
-  virtual absl::StatusOr<intrinsic_proto::skills::SkillInstance>
-  GetInstanceWithId(absl::string_view id, absl::string_view instance_id,
-                    const EquipmentPack& equipment,
-                    absl::Duration timeout) const = 0;
-
   // Returns the BehaviorTree that is registered for a specific skill with
   // `skill_id`. The requested skill must be a parameterizable BehaviorTree.
   //
@@ -144,16 +108,6 @@ class SkillRegistryClientInterface {
   virtual absl::Status UnregisterBehaviorTree(std::string skill_id) const = 0;
   virtual absl::Status UnregisterBehaviorTree(std::string skill_id,
                                               absl::Duration timeout) const = 0;
-
-  // Resets the set of already-used instance ids. This allows clients to reuse
-  // an instance id that has already been assigned.
-  //
-  // This makes a blocking GRPC request.
-  //
-  // Returns any errors from the GRPC invocation; Returns any errors reported by
-  // the Skill Registry Service.
-  virtual absl::Status ResetInstanceIds() const = 0;
-  virtual absl::Status ResetInstanceIds(absl::Duration timeout) const = 0;
 };
 
 }  // namespace skills
