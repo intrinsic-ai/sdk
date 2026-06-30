@@ -80,6 +80,15 @@ TEST(TypeUrl, ParseTypeUrlPrefixEmptyPath) {
   EXPECT_EQ(pu.message_type, "");
 }
 
+TEST(TypeUrl, ParseTypeUrlPrefixNoTrailingSlashEmptyPath) {
+  ASSERT_OK_AND_ASSIGN(ParsedUrl pu,
+                       ParseTypeUrlPrefix("type.intrinsic.ai/area"));
+
+  EXPECT_EQ(pu.area, "area");
+  EXPECT_EQ(pu.path, "");
+  EXPECT_EQ(pu.message_type, "");
+}
+
 TEST(TypeUrl, ParseTypeUrlPrefixWithSlash) {
   ASSERT_OK_AND_ASSIGN(ParsedUrl pu,
                        ParseTypeUrlPrefix("type.intrinsic.ai/area/foo/bar/"));

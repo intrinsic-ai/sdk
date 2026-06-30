@@ -21,6 +21,7 @@ namespace intrinsic {
 // custom prefix: always type.intrinsic.ai
 // area: the designated resolver responsible, e.g., skill
 // path: the resolver/area-specific path, e.g., <id>/<version> for a skill.
+//       This part may be empty (e.g., for well-known types).
 // message type: a specific full name of a proto
 //
 // Note that resolvers must identify a particular file descriptor set only by
@@ -36,7 +37,7 @@ struct ParsedUrl {
   std::string type_url;
   std::string prefix;
   std::string area;
-  std::string path;
+  std::string path;  // May be empty.
   std::string message_type;
 };
 

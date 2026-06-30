@@ -23,7 +23,8 @@ namespace {
 
 // Parses a type_url or type_url_prefix up until and including the area part.
 // On success returns the partially filled ParsedUrl and the remainder of the
-// type_url starting after the '/' from the 'area' part.
+// type_url starting after the '/' from the 'area' part. The remainder may be
+// empty if there is no path or message type after the area.
 absl::StatusOr<std::pair<ParsedUrl, std::string_view>> ParseTypeUrlToArea(
     std::string_view type_url) {
   ParsedUrl parsed_url = {.type_url = std::string(type_url)};
@@ -47,10 +48,10 @@ absl::StatusOr<std::pair<ParsedUrl, std::string_view>> ParseTypeUrlToArea(
   std::pair<std::string_view, std::string_view> area_and_remainder =
       absl::StrSplit(type_url_parsed, absl::MaxSplits(kTypeUrlSeparator, 1));
 
-  // If no split has happened, the entire input ends up in the
-  // first element of the pair, and the second is empty.
-  if (area_and_remainder.first.length() == type_url_parsed.length() ||
-      area_and_remainder.first.empty()) {
+  // The first part contains the <area> and the second contains the remainder
+  // , <path>/<message-type>. `ParseTypeUrlToArea` may be called with a prefix
+  // of the full type-URL, so do not validate the <path> or <message-type> here.
+  if (area_and_remainder.first.empty()) {
     std::string message = absl::StrFormat(
         "Type URL '%s' is missing area after Intrinsic prefix", type_url);
     return (StatusBuilder(absl::StatusCode::kInvalidArgument) << message)
