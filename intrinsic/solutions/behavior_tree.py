@@ -131,6 +131,7 @@ generate_unique_node_id = bt_util.generate_unique_node_id
 ActionBase = _actions_internal.ActionBase
 CodeExecution = _code_execution_internal.CodeExecution
 PythonScript = _code_execution_internal.PythonScript
+get_function_body_as_str = _code_execution_internal.get_function_body_as_str
 WorldQueryObject = _world_query_internal.WorldQueryObject
 WorldQuery = _world_query_internal.WorldQuery
 

@@ -5,7 +5,12 @@
 from __future__ import annotations
 
 import abc
+import inspect
+import io
 import textwrap
+import tokenize
+from typing import Any
+from typing import Callable
 import uuid
 
 from intrinsic.executive.proto import code_execution_pb2
@@ -248,3 +253,102 @@ def create_from_proto(
       raise ValueError(
           f"Unsupported code execution type: {proto_object.WhichOneof('code')}"
       )
+
+
+def _find_def_header_colon_token(
+    tokens: list[tokenize.TokenInfo],
+    func: Callable[..., Any],
+) -> tokenize.TokenInfo:
+  """Returns the colon token finishing the "def" header."""
+
+  # Find the first "def" token
+  def_idx = -1
+  for i, token in enumerate(tokens):
+    if token.type == tokenize.NAME and token.string == "def":
+      def_idx = i
+      break
+  if def_idx == -1:
+    raise ValueError(f"Could not find def header for function {func}")
+
+  # Find the matching ":" for the "def" token. We need to count parens since ":"
+  # can also appear, e.g., in type annotations.
+  paren_depth = bracket_depth = brace_depth = 0
+  for i in range(def_idx + 1, len(tokens)):
+    token = tokens[i]
+    if token.type == tokenize.OP:
+      match token.string:
+        case "(":
+          paren_depth += 1
+        case "[":
+          bracket_depth += 1
+        case "{":
+          brace_depth += 1
+        case ")":
+          paren_depth -= 1
+        case "]":
+          bracket_depth -= 1
+        case "}":
+          brace_depth -= 1
+        case ":" if paren_depth == bracket_depth == brace_depth == 0:
+          return token
+  raise ValueError(f"Could not find colon in header for function {func}")
+
+
+def get_function_body_as_str(func: Callable[..., Any]) -> str:
+  """Returns the source code of the body of a function or method as a string.
+
+  This function can be used to generate a function body string to pass into a
+  PythonScript. E.g.:
+
+  ```
+  def compute(
+      params: node_pb2.Params,
+      context: basic_compute_context.BasicComputeContext,
+  ) -> node_pb2.ReturnValue:
+    # Some comment
+    print('hello')
+    return node_pb2.ReturnValue(y=params.x)
+
+  s = PythonScript(
+    signature_with_args=...,
+    function_body=get_function_body_as_str(compute),
+  )
+  ```
+
+  CAUTION: This will generate and pass the string
+    "# Some comment\nprint('hello')\nreturn node_pb2.ReturnValue(y=params.x)"
+  to PythonScript() for remote execution. This will NOT pass the function object
+  itself to the PythonScript. The function object is just a helper to generate
+  the code string in a readable way. The function won't get executed in the
+  local environment, it cannot access any variables from the local environment
+  and the function header (name and signature) gets completely ignored.
+
+  Args:
+    func: The Python function or method object to inspect.
+
+  Returns:
+    The source code of the body of the function as a string.
+
+  Raises:
+    ValueError: If the source code cannot be retrieved or parsed.
+  """
+  try:
+    source = inspect.getsource(func)
+  except (TypeError, OSError) as e:
+    raise ValueError(f"Could not get source code for {func}: {e}") from e
+
+  # Find the "header colon" in "... def x(...) ...: ..."
+  tokens = list(tokenize.generate_tokens(io.StringIO(source).readline))
+  header_colon_token = _find_def_header_colon_token(tokens, func)
+
+  # Return everything after the header colon
+  line_no, col_no = header_colon_token.start
+  lines = source.splitlines()
+  # line_no is 1-based, col_no is 0-based
+  first_line_remainder = lines[line_no - 1][col_no + 1 :]
+  if first_line_remainder.strip():
+    body_lines = [first_line_remainder] + lines[line_no:]
+  else:
+    body_lines = lines[line_no:]
+
+  return textwrap.dedent("\n".join(body_lines))

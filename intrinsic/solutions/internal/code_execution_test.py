@@ -541,5 +541,68 @@ class PythonScriptTest(absltest.TestCase):
     )
 
 
+class GetFunctionBodyAsStrTest(absltest.TestCase):
+
+  def test_simple_function(self):
+    def sample_func(a, b):
+      # Calculate sum
+      c = a + b
+      return c
+
+    body = code_execution.get_function_body_as_str(sample_func)
+    self.assertEqual(body, '# Calculate sum\nc = a + b\nreturn c')
+
+  def test_type_annotations(self):
+    def sample_func(
+        a: int = 1, b: str = 'test', c: dict[str, list[int]] = {}
+    ) -> str:
+      return f'{b}_{a}'
+
+    body = code_execution.get_function_body_as_str(sample_func)
+    self.assertEqual(body, "return f'{b}_{a}'")
+
+  def test_single_line(self):
+    # fmt: off
+    def sample_func(): return 42
+    # fmt: on
+
+    body = code_execution.get_function_body_as_str(sample_func)
+    self.assertEqual(body, 'return 42')
+
+  def test_multiline_header(self):
+    def sample_func(
+        parameter_one: int,
+        parameter_two: str,
+        parameter_three: bool,
+        parameter_four: float,
+    ) -> str:
+      print(42)
+      return """A long string value"""
+
+    body = code_execution.get_function_body_as_str(sample_func)
+    self.assertEqual(body, 'print(42)\nreturn """A long string value"""')
+
+  def test_class_method(self):
+    class Dummy:
+
+      def method(self):
+        val = 42
+        return val
+
+    body = code_execution.get_function_body_as_str(Dummy.method)
+    self.assertEqual(body, 'val = 42\nreturn val')
+
+    body = code_execution.get_function_body_as_str(Dummy().method)
+    self.assertEqual(body, 'val = 42\nreturn val')
+
+  def test_builtin(self):
+    with self.assertRaises(ValueError):
+      code_execution.get_function_body_as_str(len)
+
+  def test_lambda(self):
+    with self.assertRaises(ValueError):
+      code_execution.get_function_body_as_str(lambda x: x + 1)
+
+
 if __name__ == '__main__':
   absltest.main()
