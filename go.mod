@@ -35,7 +35,7 @@ require (
 	github.com/authzed/zed v0.30.2
 	github.com/bazelbuild/buildtools v0.0.0-20251112105957-8e68360eeafa
 	github.com/bazelbuild/remote-apis-sdks v0.0.0-20230919142202-aa1c266ae342
-	github.com/bazelbuild/rules_go v0.61.1
+	github.com/bazelbuild/rules_go v0.60.0
 	github.com/bits-and-blooms/bitset v1.20.0
 	github.com/caarlos0/env/v9 v9.0.0
 	github.com/cenkalti/backoff/v4 v4.3.0

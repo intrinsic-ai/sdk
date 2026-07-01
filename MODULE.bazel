@@ -11,17 +11,12 @@ non_module_deps = use_extension("//bazel:non_module_deps.bzl", "non_module_deps_
 # Go #
 ######
 
-bazel_dep(name = "rules_go", version = "0.61.1", repo_name = "io_bazel_rules_go")
+bazel_dep(name = "rules_go", version = "0.60.0", repo_name = "io_bazel_rules_go")
 
 go_sdk = use_extension("@io_bazel_rules_go//go:extensions.bzl", "go_sdk")
 go_sdk.download(version = "1.26.4")
 
-bazel_dep(name = "gazelle", version = "0.51.3", repo_name = "bazel_gazelle")
-git_override(
-    module_name = "gazelle",
-    commit = "8bfb6261fa4ed39b98bf0011fcaaf4edc1f649a5",
-    remote = "https://github.com/bazel-contrib/bazel-gazelle.git",
-)
+bazel_dep(name = "gazelle", version = "0.47.0", repo_name = "bazel_gazelle")
 
 go_deps = use_extension("@bazel_gazelle//:extensions.bzl", "go_deps")
 go_deps.from_file(go_mod = "//:go.mod")
