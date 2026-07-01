@@ -355,6 +355,18 @@ message NameserverConfig {
   repeated string addresses = 2;
 }
 
+// DNSRange encapsulates the configuration needed for hosting a DNS range.
+message DNSRange {
+  // Pool specifies the range of IP addresses to allocate.
+  string pool = 1 [(google.api.field_behavior) = OPTIONAL];
+
+  // Subnet specifies the network subnet for hosting the DNS range.
+  string subnet = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // SearchDomain specifies the DNS search domain.
+  string search_domain = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
 // EtherType lists IP or non-IP protocols that are or can be used on Ethernet
 // interfaces.
 enum EtherType {
@@ -398,6 +410,8 @@ message IntOSInterfaceConfig {
   string display_name = 10 [(google.api.field_behavior) = OPTIONAL];
   // Configure the interface as a PTP clock.
   bool ptp = 11 [(google.api.field_behavior) = OPTIONAL];
+  // Configure the interface to host a DNS range.
+  DNSRange dns_range = 12 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // IntOSNetworkConfig represents the full network configuration for a device
