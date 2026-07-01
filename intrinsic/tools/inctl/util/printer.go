@@ -548,9 +548,6 @@ func GetFlagOutputType(cmd *cobra.Command) OutputType {
 // NewPrinterOfType returns a new CommandPrinter of type OutputType
 // ignoring KeyOutput parameter of given command.
 func NewPrinterOfType(ot OutputType, cmd *cobra.Command, opts ...Option) (CommandPrinter, error) {
-	if ot == OutputTypeText {
-		return cmd, nil
-	}
 	return newPrinterFromType(ot, cmd.OutOrStdout(), cmd.OutOrStderr(), opts...)
 }
 
@@ -579,10 +576,15 @@ func newPrinterFromType(ot OutputType, outW, errW io.Writer, opts ...Option) (cp
 			w:   outW,
 			enc: json.NewEncoder(outW),
 		}
+	case OutputTypeText:
+		cp = &textPrinter{
+			errOutPrinter: errOutPrinter{
+				errW: errW,
+			},
+			w: outW,
+		}
 	default:
-		// this is not 100% correct, we can easily implement text printer, but
-		// we want to leverage standard cobra.Command implementation if possible.
-		return nil, fmt.Errorf("invalid output type, only TAB and JSON are supported")
+		return nil, fmt.Errorf("invalid output type, only text, TAB and JSON are supported")
 	}
 
 	for _, opt := range opts {
@@ -726,6 +728,23 @@ func (j *jsonPrinter) Println(i ...any) {
 // Printf ignores the first parameter to ensure each line is valid JSON text.
 func (j *jsonPrinter) Printf(_ string, i ...any) {
 	j.Println(i...)
+}
+
+type textPrinter struct {
+	errOutPrinter
+	w io.Writer
+}
+
+func (t *textPrinter) Print(i ...any) {
+	fmt.Fprint(t.w, i...)
+}
+
+func (t *textPrinter) Println(i ...any) {
+	fmt.Fprintln(t.w, i...)
+}
+
+func (t *textPrinter) Printf(format string, i ...any) {
+	fmt.Fprintf(t.w, format, i...)
 }
 
 // Prints values in rows of neatly formatted table. All Print methods
