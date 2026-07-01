@@ -53,17 +53,3 @@ py_grpc_library(
     grpc_library = requirement("grpcio"),
     deps = [":pubsub_connect_py_pb2"],
 )
-
-proto_library(
-    name = "endpoint_spec_proto",
-    srcs = ["endpoint_spec.proto"],
-)
-
-go_proto_library(
-    name = "endpoint_spec_go_proto",
-    compilers = [
-        "@io_bazel_rules_go//proto:go_proto",
-    ],
-    importpath = "intrinsic/platform/pubsub/connect/cloud/proto/v1alpha1/endpoint_spec_go_proto",
-    protos = [":endpoint_spec_proto"],
-)

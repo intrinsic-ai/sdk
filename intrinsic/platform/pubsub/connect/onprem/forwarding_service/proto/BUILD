@@ -14,7 +14,7 @@ proto_library(
     name = "forwarding_service_proto",
     srcs = ["forwarding_service.proto"],
     deps = [
-        "//intrinsic/platform/pubsub/connect/cloud/proto/v1alpha1:endpoint_spec_proto",
+        "//intrinsic/platform/pubsub/connect/onprem/relay_router_service/proto:endpoint_spec_proto",
     ],
 )
 
@@ -35,6 +35,6 @@ go_proto_library(
         "//intrinsic/tools/inctl/cmd/pubsub:__pkg__",
     ],
     deps = [
-        "//intrinsic/platform/pubsub/connect/cloud/proto/v1alpha1:endpoint_spec_go_proto",
+        "//intrinsic/platform/pubsub/connect/onprem/relay_router_service/proto:endpoint_spec_go_proto",
     ],
 )

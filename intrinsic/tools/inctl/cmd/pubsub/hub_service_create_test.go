@@ -21,7 +21,7 @@ import (
 	iagrpcpb "intrinsic/assets/proto/installed_assets_go_proto"
 	metadatapb "intrinsic/assets/proto/metadata_go_proto"
 	aigrpcpb "intrinsic/assets/proto/v1/asset_instances_go_proto"
-	endpointpb "intrinsic/platform/pubsub/connect/cloud/proto/v1alpha1/endpoint_spec_go_proto"
+	endpointpb "intrinsic/platform/pubsub/connect/onprem/relay_router_service/endpoint_spec_go_proto"
 	pubsubtesting "intrinsic/tools/inctl/cmd/pubsub/testing"
 )
 

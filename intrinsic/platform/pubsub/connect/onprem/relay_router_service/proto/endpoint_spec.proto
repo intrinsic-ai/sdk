@@ -2,9 +2,9 @@
 
 syntax = "proto3";
 
-package intrinsic_proto.pubsub.connect.v1alpha1;
+package line_orchestration_relay;
 
-option go_package = "intrinsic/platform/pubsub/connect/cloud/proto/v1alpha1/endpoint_spec_go_proto";
+option go_package = "intrinsic/platform/pubsub/connect/onprem/relay_router_service/endpoint_spec_go_proto";
 
 // Connection specification for a workcell on the local network.
 message LocalConnectionSpec {}

@@ -9,7 +9,7 @@ import (
 
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
-	endpointpb "intrinsic/platform/pubsub/connect/cloud/proto/v1alpha1/endpoint_spec_go_proto"
+	endpointpb "intrinsic/platform/pubsub/connect/onprem/relay_router_service/endpoint_spec_go_proto"
 	pb "intrinsic/platform/pubsub/connect/onprem/relay_router_service/relay_router_service_go_proto"
 
 	"github.com/spf13/cobra"
