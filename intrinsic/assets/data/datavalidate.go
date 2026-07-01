@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"intrinsic/assets/data/utils"
 	"intrinsic/assets/idutils"
@@ -221,7 +222,17 @@ func ReferencedData(ctx context.Context, ref *referenceddata.ReferencedData, opt
 			defer file.Close()
 			reader = file
 		case referenceddata.CASReferenceType:
-			return fmt.Errorf("cannot validate digest of CAS reference %q", ref.Reference())
+			if ref.Digest() != "" {
+				casID := strings.TrimPrefix(ref.Reference(), "intcas://")
+				parsed, err := utils.ParseDigest(ref.Digest())
+				if err != nil {
+					return fmt.Errorf("failed to parse digest %q: %w", ref.Digest(), err)
+				}
+				if casID != parsed.Hash {
+					return fmt.Errorf("CAS reference hash %q does not match digest hash %q", casID, parsed.Hash)
+				}
+			}
+			return nil
 		case referenceddata.InlinedReferenceType:
 			reader = bytes.NewReader(ref.Inlined())
 		default:
