@@ -22,20 +22,28 @@ import (
 )
 
 const (
-	hubServicePackage          = "ai.intrinsic"
-	hubServiceName             = "line_orchestration_relay"
-	defaultHubServiceVersion   = "0.0.1"
+	hubServicePackage        = "ai.intrinsic"
+	hubServiceName           = "line_orchestration_relay"
+	defaultHubServiceVersion = "0.0.1"
+
+	forwardingServicePackage        = "ai.intrinsic"
+	forwardingServiceName           = "line_orchestration_forwarder"
+	defaultForwardingServiceVersion = "0.0.1"
+
 	listAssetInstancesPageSize = 200
 )
 
-// HubServiceCmdRunnerBase is the base class for hub-service-* commands.
+// CmdRunnerBase is the base class for command runners related to
+// line orchestration.
 //
 // It provides functions for connecting to and calling gRPC services.
 // Those functions can be mocked in tests.
-type HubServiceCmdRunnerBase struct {
+type CmdRunnerBase struct {
 	outputWriter io.Writer
 
-	clusterId string
+	clusterId   string
+	packageName string
+	serviceName string
 
 	installedAssetsClient iagrpcpb.InstalledAssetsClient
 	assetInstancesClient  aigrpcpb.AssetInstancesClient
@@ -43,10 +51,12 @@ type HubServiceCmdRunnerBase struct {
 	operationsClient      lrogrpcpb.OperationsClient
 }
 
-func newHubServiceCmdRunnerBase(conn *grpc.ClientConn, outputWriter io.Writer, clusterId string) *HubServiceCmdRunnerBase {
-	return &HubServiceCmdRunnerBase{
+func newCmdRunnerBase(conn *grpc.ClientConn, outputWriter io.Writer, clusterId, packageName, serviceName string) *CmdRunnerBase {
+	return &CmdRunnerBase{
 		outputWriter:          outputWriter,
 		clusterId:             clusterId,
+		packageName:           packageName,
+		serviceName:           serviceName,
 		installedAssetsClient: iagrpcpb.NewInstalledAssetsClient(conn),
 		assetInstancesClient:  aigrpcpb.NewAssetInstancesClient(conn),
 		deploymentClient:      adgrpcpb.NewAssetDeploymentServiceClient(conn),
@@ -54,12 +64,12 @@ func newHubServiceCmdRunnerBase(conn *grpc.ClientConn, outputWriter io.Writer, c
 	}
 }
 
-// getInstalledRelayServiceAssetVersion returns the version of the relay service asset
+// getInstalledServiceAssetVersion returns the version of the service asset
 // installed in the current solution.
 //
 // If the asset is not installed, it returns an empty string and no error.
-func (r *HubServiceCmdRunnerBase) getInstalledRelayServiceAssetVersion(ctx context.Context) (string, error) {
-	idProto, err := idutils.IDProtoFrom(hubServicePackage, hubServiceName)
+func (r *CmdRunnerBase) getInstalledServiceAssetVersion(ctx context.Context) (string, error) {
+	idProto, err := idutils.IDProtoFrom(r.packageName, r.serviceName)
 	if err != nil {
 		return "", err
 	}
@@ -78,9 +88,9 @@ func (r *HubServiceCmdRunnerBase) getInstalledRelayServiceAssetVersion(ctx conte
 	return resp.Metadata.IdVersion.Version, nil
 }
 
-func (r *HubServiceCmdRunnerBase) deleteExistingRelayServiceInstances(ctx context.Context) (int, error) {
+func (r *CmdRunnerBase) deleteExistingServiceInstances(ctx context.Context) (int, error) {
 	numDeletedInstances := 0
-	idProto, err := idutils.IDProtoFrom(hubServicePackage, hubServiceName)
+	idProto, err := idutils.IDProtoFrom(r.packageName, r.serviceName)
 	if err != nil {
 		return 0, err
 	}
@@ -101,7 +111,7 @@ func (r *HubServiceCmdRunnerBase) deleteExistingRelayServiceInstances(ctx contex
 		}
 
 		for _, instance := range resp.AssetInstances {
-			if err := r.deleteRelayServiceInstance(ctx, instance.Name); err != nil {
+			if err := r.deleteServiceInstance(ctx, instance.Name); err != nil {
 				return numDeletedInstances, err
 			}
 			numDeletedInstances++
@@ -115,27 +125,27 @@ func (r *HubServiceCmdRunnerBase) deleteExistingRelayServiceInstances(ctx contex
 	return numDeletedInstances, nil
 }
 
-// deleteRelayServiceInstance deletes an instance of the relay service.
-func (r *HubServiceCmdRunnerBase) deleteRelayServiceInstance(ctx context.Context, instanceName string) error {
-	fmt.Fprintf(r.outputWriter, "Deleting an instance of the relay service named %q.\n", instanceName)
+// deleteServiceInstance deletes an instance of a service.
+func (r *CmdRunnerBase) deleteServiceInstance(ctx context.Context, instanceName string) error {
+	fmt.Fprintf(r.outputWriter, "Deleting an instance of the %v service named %q.\n", r.serviceName, instanceName)
 	op, err := r.deploymentClient.DeleteResource(ctx, &adpb.DeleteResourceRequest{
 		Name: instanceName,
 	})
 	if err != nil {
-		return fmt.Errorf("could not delete instance of the relay service: %v", err)
+		return fmt.Errorf("could not delete instance of the %v service: %w", r.serviceName, err)
 	}
 
 	if _, err := waitForOperation(ctx, r.operationsClient, op, r.outputWriter); err != nil {
 		return err
 	}
 
-	fmt.Fprintf(r.outputWriter, "Successfully deleted an instance of the relay service\n")
+	fmt.Fprintf(r.outputWriter, "Successfully deleted an instance of the %v service\n", r.serviceName)
 	return nil
 }
 
-// uninstallRelayServiceAsset uninstalls the relay service asset from the current solution.
-func (r *HubServiceCmdRunnerBase) uninstallRelayServiceAsset(ctx context.Context) error {
-	idProto, err := idutils.IDProtoFrom(hubServicePackage, hubServiceName)
+// uninstallServiceAsset uninstalls a service asset from the current solution.
+func (r *CmdRunnerBase) uninstallServiceAsset(ctx context.Context) error {
+	idProto, err := idutils.IDProtoFrom(r.packageName, r.serviceName)
 	if err != nil {
 		return err
 	}
@@ -143,11 +153,14 @@ func (r *HubServiceCmdRunnerBase) uninstallRelayServiceAsset(ctx context.Context
 		Asset:  idProto,
 		Policy: iagrpcpb.DeletePolicy_POLICY_REJECT_USED,
 	})
+	if err != nil {
+		return err
+	}
 
 	if _, err := waitForOperation(ctx, r.operationsClient, op, r.outputWriter); err != nil {
 		return err
 	}
 
-	fmt.Fprintf(r.outputWriter, "Successfully uninstalled the relay service asset\n")
+	fmt.Fprintf(r.outputWriter, "Successfully uninstalled the %v service asset\n", r.serviceName)
 	return nil
 }

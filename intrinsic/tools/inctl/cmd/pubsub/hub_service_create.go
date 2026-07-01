@@ -7,13 +7,8 @@ import (
 	"fmt"
 	"strings"
 
-	anypb "google.golang.org/protobuf/types/known/anypb"
-
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
-	"intrinsic/assets/idutils"
-	adpb "intrinsic/assets/proto/asset_deployment_go_proto"
-	iagrpcpb "intrinsic/assets/proto/installed_assets_go_proto"
 	endpointpb "intrinsic/platform/pubsub/connect/cloud/proto/v1alpha1/endpoint_spec_go_proto"
 	pb "intrinsic/platform/pubsub/connect/onprem/relay_router_service/relay_router_service_go_proto"
 
@@ -32,10 +27,9 @@ const (
 // HubServiceCreateCmdRunner handles execution of the hub-service-create command.
 // That subcommand installs or updates the relay service used for line orchestration.
 type HubServiceCreateCmdRunner struct {
-	HubServiceCmdRunnerBase
+	ServiceInstallingCmdRunner
 
-	spokeEndpoints   []string
-	requestedVersion string
+	spokeEndpoints []string
 }
 
 // parseEndpointSpec creates an EndpointSpec based on a spoke-endpoint command line flag.
@@ -95,120 +89,18 @@ func (r *HubServiceCreateCmdRunner) makeConfig() (*pb.RelayRouterServiceConfig, 
 	return config, nil
 }
 
-// installRelayServiceAsset installs the relay service asset to the current solution.
-func (r *HubServiceCreateCmdRunner) installRelayServiceAsset(ctx context.Context) error {
-	idVersion, err := idutils.IDVersionProtoFrom(hubServicePackage, hubServiceName, r.requestedVersion)
-	if err != nil {
-		return err
+// run creates a configuration proto for the relay service,
+// and triggers installation of that service.
+func (r *HubServiceCreateCmdRunner) run(ctx context.Context) error {
+	if len(r.spokeEndpoints) == 0 {
+		return fmt.Errorf("at least one spoke endpoint must be specified using --spoke-endpoint; cannot install or update the relay")
 	}
 
-	op, err := r.installedAssetsClient.CreateInstalledAsset(ctx, &iagrpcpb.CreateInstalledAssetRequest{
-		Asset: &iagrpcpb.CreateInstalledAssetRequest_Asset{
-			Variant: &iagrpcpb.CreateInstalledAssetRequest_Asset_Catalog{
-				Catalog: idVersion,
-			},
-		},
-	})
-	if err != nil {
-		return fmt.Errorf("could not install relay service asset: %w", err)
-	}
-
-	if _, err := waitForOperation(ctx, r.operationsClient, op, r.outputWriter); err != nil {
-		return err
-	}
-
-	fmt.Fprintf(r.outputWriter, "Successfully installed line orchestration relay service asset.\n")
-	return nil
-}
-
-// addRelayServiceInstance adds an instance of the relay service to the current solution.
-func (r *HubServiceCreateCmdRunner) addRelayServiceInstance(ctx context.Context) error {
 	config, err := r.makeConfig()
 	if err != nil {
 		return fmt.Errorf("failed to create service config from command line flags: %w", err)
 	}
-	wrappedConfig, err := anypb.New(config)
-	if err != nil {
-		return fmt.Errorf("failed to marshal config: %w", err)
-	}
-	typeIdVersion, err := idutils.IDVersionFrom(hubServicePackage, hubServiceName, r.requestedVersion)
-	if err != nil {
-		return fmt.Errorf("failed to create type id version: %w", err)
-	}
-
-	op, err := r.deploymentClient.CreateResourceFromCatalog(ctx, &adpb.CreateResourceFromCatalogRequest{
-		TypeIdVersion: typeIdVersion,
-		Configuration: &adpb.ResourceInstanceConfiguration{
-			Name:          hubServiceName,
-			Configuration: wrappedConfig,
-		},
-	})
-	if err != nil {
-		return fmt.Errorf("could not create resource: %v", err)
-	}
-
-	if _, err := waitForOperation(ctx, r.operationsClient, op, r.outputWriter); err != nil {
-		return err
-	}
-
-	fmt.Fprintf(r.outputWriter, "Successfully added an instance of the line orchestration relay service.\n")
-	return nil
-}
-
-// run implements the core logic of the command:
-//   - Deletes existing instances of the relay service.
-//   - Installs the requested version of the service asset.
-//   - Creates a new instance of the relay service.
-func (r *HubServiceCreateCmdRunner) run(ctx context.Context) error {
-	if len(r.spokeEndpoints) == 0 {
-		return fmt.Errorf("at least one spoke endpoint must be specified using --spoke-endpoint; cannot install or update the relay.")
-	}
-
-	fmt.Fprintf(
-		r.outputWriter,
-		"Deleting existing instances of the relay service in the current solution.\n")
-	numInstances, err := r.deleteExistingRelayServiceInstances(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to delete existing instances of the relay service: %w", err)
-	}
-	fmt.Fprintf(r.outputWriter, "%v instances have been deleted.\n", numInstances)
-
-	fmt.Fprintf(r.outputWriter, "Checking version of the relay service asset installed in the current solution.\n")
-	requestedVersion := r.requestedVersion
-	currentVersion, err := r.getInstalledRelayServiceAssetVersion(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to determine version of the relay service asset: %w", err)
-	}
-	var shouldInstallAsset bool
-	if len(currentVersion) == 0 {
-		fmt.Fprintf(r.outputWriter, "The relay service asset is currently not installed. Will install.\n")
-		shouldInstallAsset = true
-	} else if currentVersion != requestedVersion {
-		fmt.Fprintf(
-			r.outputWriter,
-			"Current version of the relay service asset is %v, requested version is %v. Will install the requested version.\n",
-			currentVersion, requestedVersion)
-		shouldInstallAsset = true
-	} else {
-		fmt.Fprintf(
-			r.outputWriter,
-			"Current version of the relay service asset is the same as the requested version (%v). Will use currently installed asset.\n",
-			currentVersion)
-		shouldInstallAsset = false
-	}
-
-	if shouldInstallAsset {
-		fmt.Fprintf(
-			r.outputWriter,
-			"Installing the relay service asset, version %v.\n",
-			requestedVersion)
-		if err = r.installRelayServiceAsset(ctx); err != nil {
-			return fmt.Errorf("failed to install relay service asset: %w", err)
-		}
-	}
-
-	fmt.Fprintf(r.outputWriter, "Adding instance of the relay service.\n")
-	return r.addRelayServiceInstance(ctx)
+	return r.updateInstalledServiceInstances(ctx, config)
 }
 
 // hubServiceCreateCmdEnvironment is the execution environment for the
@@ -227,10 +119,18 @@ func (e *hubServiceCreateCmdEnvironment) RunE(cmd *cobra.Command, _ []string) er
 	defer conn.Close()
 
 	runner := &HubServiceCreateCmdRunner{
-		HubServiceCmdRunnerBase: *newHubServiceCmdRunnerBase(conn, cmd.OutOrStdout(), e.cmdFlags.GetString(cmdutils.KeyCluster)),
-		requestedVersion:        e.cmdFlags.GetString(keyHubServiceVersion),
-		spokeEndpoints:          e.cmdFlags.GetStringSlice(keySpokeEndpoints),
+		ServiceInstallingCmdRunner: ServiceInstallingCmdRunner{
+			CmdRunnerBase: *newCmdRunnerBase(
+				conn,
+				cmd.OutOrStdout(),
+				e.cmdFlags.GetString(cmdutils.KeyCluster),
+				hubServicePackage,
+				hubServiceName),
+			requestedVersion: e.cmdFlags.GetString(keyHubServiceVersion),
+		},
+		spokeEndpoints: e.cmdFlags.GetStringSlice(keySpokeEndpoints),
 	}
+
 	return runner.run(ctx)
 }
 

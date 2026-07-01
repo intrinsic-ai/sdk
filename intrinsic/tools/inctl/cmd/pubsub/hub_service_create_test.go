@@ -63,8 +63,11 @@ func TestHubServiceCreateRunE(t *testing.T) {
 					return &lropb.Operation{Done: true, Name: "op2"}, nil
 				}
 			},
-			expectedOutput: []string{"Successfully installed line orchestration relay"},
-			expectErr:      false,
+			expectedOutput: []string{
+				fmt.Sprintf("Successfully installed %v", hubServiceName),
+				fmt.Sprintf("Successfully added an instance of the %v service", hubServiceName),
+			},
+			expectErr: false,
 		},
 		{
 			name:           "Successful Update",
@@ -101,10 +104,11 @@ func TestHubServiceCreateRunE(t *testing.T) {
 				}
 			},
 			expectedOutput: []string{
-				fmt.Sprintf("Deleting an instance of the relay service named %q", hubServiceName),
-				fmt.Sprintf("Deleting an instance of the relay service named %q", anotherHubServiceName),
-				"Successfully deleted an instance of the relay service",
-				"Successfully installed line orchestration relay",
+				fmt.Sprintf("Deleting an instance of the %v service named %q", hubServiceName, hubServiceName),
+				fmt.Sprintf("Deleting an instance of the %v service named %q", hubServiceName, anotherHubServiceName),
+				fmt.Sprintf("Successfully deleted an instance of the %v service", hubServiceName),
+				fmt.Sprintf("Successfully installed %v", hubServiceName),
+				fmt.Sprintf("Successfully added an instance of the %v service", hubServiceName),
 			},
 			expectErr: false,
 		},
@@ -165,7 +169,7 @@ func TestHubServiceCreateRunE(t *testing.T) {
 				}
 			},
 			expectErr:         true,
-			expectErrContains: "could not delete instance of the relay service",
+			expectErrContains: fmt.Sprintf("could not delete instance of the %v service", hubServiceName),
 		},
 		{
 			name:           "GetInstalledAsset Error",
@@ -181,7 +185,7 @@ func TestHubServiceCreateRunE(t *testing.T) {
 				}
 			},
 			expectErr:         true,
-			expectErrContains: "failed to determine version of the relay service asset",
+			expectErrContains: fmt.Sprintf("failed to determine version of the %v service asset", hubServiceName),
 		},
 		{
 			name:           "CreateInstalledAsset Error",
@@ -200,7 +204,7 @@ func TestHubServiceCreateRunE(t *testing.T) {
 				}
 			},
 			expectErr:         true,
-			expectErrContains: "could not install relay service asset",
+			expectErrContains: fmt.Sprintf("could not install %v service asset", hubServiceName),
 		},
 		{
 			name:           "CreateResource Wait Operation Error",
@@ -280,13 +284,19 @@ func TestHubServiceCreateRunE(t *testing.T) {
 
 			var buf bytes.Buffer
 			runner := &HubServiceCreateCmdRunner{
-				HubServiceCmdRunnerBase: *newHubServiceCmdRunnerBase(conn, &buf, "testcluster"),
-				requestedVersion:        defaultHubServiceVersion,
-				spokeEndpoints:          tt.spokeWorkcells,
+				ServiceInstallingCmdRunner: ServiceInstallingCmdRunner{
+					CmdRunnerBase: *newCmdRunnerBase(
+						conn,
+						&buf,
+						"testcluster",
+						hubServicePackage,
+						hubServiceName),
+					requestedVersion: defaultHubServiceVersion,
+				},
+				spokeEndpoints: tt.spokeWorkcells,
 			}
 
 			err = runner.run(ctx)
-
 			if tt.expectErr {
 				if err == nil {
 					t.Fatalf("expected error containing %q, got nil", tt.expectErrContains)
@@ -358,9 +368,16 @@ func TestMakeConfig(t *testing.T) {
 			var buf bytes.Buffer
 			outputWriter := bufio.NewWriter(&buf)
 			runner := &HubServiceCreateCmdRunner{
-				HubServiceCmdRunnerBase: *newHubServiceCmdRunnerBase(nil, outputWriter, "test-hub-workcell"),
-				requestedVersion:        defaultHubServiceVersion,
-				spokeEndpoints:          tt.spokeEndpoints,
+				ServiceInstallingCmdRunner: ServiceInstallingCmdRunner{
+					CmdRunnerBase: *newCmdRunnerBase(
+						nil, /* conn */
+						outputWriter,
+						"test-hub-workcell",
+						hubServicePackage,
+						hubServiceName),
+					requestedVersion: defaultHubServiceVersion,
+				},
+				spokeEndpoints: tt.spokeEndpoints,
 			}
 
 			config, err := runner.makeConfig()

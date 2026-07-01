@@ -1,0 +1,16 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package forwarding;
+
+option go_package = "intrinsic/platform/pubsub/connect/onprem/forwarding_service/forwarding_service_go_proto";
+
+// Configuration of the forwarding service used for line orchestration.
+message ForwardingServiceConfig {
+  // Internal PubSub topics that should be forwarded.
+  repeated string topics = 1;
+
+  // Keys in the workcell's local KV store that should be forwarded.
+  repeated string kv_store_keys = 2;
+}

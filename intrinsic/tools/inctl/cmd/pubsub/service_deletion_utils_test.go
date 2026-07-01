@@ -22,7 +22,7 @@ import (
 	pubsubtesting "intrinsic/tools/inctl/cmd/pubsub/testing"
 )
 
-func TestHubServiceDeleteRunE(t *testing.T) {
+func TestServiceDeletionCommand(t *testing.T) {
 	tests := []struct {
 		name                        string
 		setupFakeInstServer         func(s *pubsubtesting.FakeAssetInstancesServer)
@@ -33,9 +33,11 @@ func TestHubServiceDeleteRunE(t *testing.T) {
 		shouldUninstallServiceAsset bool
 		expectErr                   bool
 		expectErrContains           string
+		packageName                 string
+		serviceName                 string
 	}{
 		{
-			name: "Successful Uninstall",
+			name: "successful_uninstall",
 			setupFakeInstServer: func(s *pubsubtesting.FakeAssetInstancesServer) {
 				s.ListAssetInstancesFn = func(ctx context.Context, in *aigrpcpb.ListAssetInstancesRequest) (*aigrpcpb.ListAssetInstancesResponse, error) {
 					return &aigrpcpb.ListAssetInstancesResponse{
@@ -62,15 +64,52 @@ func TestHubServiceDeleteRunE(t *testing.T) {
 				}
 			},
 			expectedOutput: []string{
-				fmt.Sprintf("Deleting an instance of the relay service named %q", hubServiceName),
-				fmt.Sprintf("Deleting an instance of the relay service named %q", anotherHubServiceName),
-				"Successfully uninstalled the relay service asset",
+				fmt.Sprintf("Deleting an instance of the %v service named %q", hubServiceName, hubServiceName),
+				fmt.Sprintf("Deleting an instance of the %v service named %q", hubServiceName, anotherHubServiceName),
+				fmt.Sprintf("Successfully uninstalled the %v service asset", hubServiceName),
 			},
 			shouldUninstallServiceAsset: true,
 			expectErr:                   false,
+			packageName:                 hubServicePackage,
+			serviceName:                 hubServiceName,
 		},
 		{
-			name: "Remove instances but do not uninstall service asset",
+			name: "successful_uninstall_different_name",
+			setupFakeInstServer: func(s *pubsubtesting.FakeAssetInstancesServer) {
+				s.ListAssetInstancesFn = func(ctx context.Context, in *aigrpcpb.ListAssetInstancesRequest) (*aigrpcpb.ListAssetInstancesResponse, error) {
+					return &aigrpcpb.ListAssetInstancesResponse{
+						AssetInstances: []*aigrpcpb.AssetInstance{
+							{Name: forwardingServiceName},
+						},
+					}, nil
+				}
+			},
+			setupFakeDepServer: func(s *pubsubtesting.FakeAssetDeploymentServer) {
+				s.DeleteResourceFn = func(ctx context.Context, in *adgrpcpb.DeleteResourceRequest) (*lropb.Operation, error) {
+					return &lropb.Operation{Done: true, Name: "op1"}, nil
+				}
+			},
+			setupFakeOpServer: func(s *pubsubtesting.FakeOperationsServer) {
+				s.GetOperationFn = func(ctx context.Context, in *lropb.GetOperationRequest) (*lropb.Operation, error) {
+					return &lropb.Operation{Done: true, Name: "op1"}, nil
+				}
+			},
+			setupFakeIAServer: func(s *pubsubtesting.FakeInstalledAssetsServer) {
+				s.DeleteInstalledAssetFn = func(ctx context.Context, in *iagrpcpb.DeleteInstalledAssetRequest) (*lropb.Operation, error) {
+					return &lropb.Operation{Done: true, Name: "op1"}, nil
+				}
+			},
+			expectedOutput: []string{
+				fmt.Sprintf("Deleting an instance of the %v service named %q", forwardingServiceName, forwardingServiceName),
+				fmt.Sprintf("Successfully uninstalled the %v service asset", forwardingServiceName),
+			},
+			shouldUninstallServiceAsset: true,
+			expectErr:                   false,
+			packageName:                 forwardingServicePackage,
+			serviceName:                 forwardingServiceName,
+		},
+		{
+			name: "remove_instances_dont_uninstall_asset",
 			setupFakeInstServer: func(s *pubsubtesting.FakeAssetInstancesServer) {
 				s.ListAssetInstancesFn = func(ctx context.Context, in *aigrpcpb.ListAssetInstancesRequest) (*aigrpcpb.ListAssetInstancesResponse, error) {
 					return &aigrpcpb.ListAssetInstancesResponse{
@@ -92,15 +131,23 @@ func TestHubServiceDeleteRunE(t *testing.T) {
 				}
 			},
 			expectedOutput: []string{
-				fmt.Sprintf("Deleting an instance of the relay service named %q", hubServiceName),
-				fmt.Sprintf("Deleting an instance of the relay service named %q", anotherHubServiceName),
-				fmt.Sprintf("The %v option is disabled, won't try to uninstall the relay service asset.", keyUninstallServiceAsset),
+				fmt.Sprintf(
+					"Deleting an instance of the %v service named %q",
+					hubServiceName, hubServiceName),
+				fmt.Sprintf(
+					"Deleting an instance of the %v service named %q",
+					hubServiceName, anotherHubServiceName),
+				fmt.Sprintf(
+					"The %v option is disabled, won't try to uninstall the %v service asset.",
+					keyUninstallServiceAsset, hubServiceName),
 			},
 			shouldUninstallServiceAsset: false,
 			expectErr:                   false,
+			packageName:                 hubServicePackage,
+			serviceName:                 hubServiceName,
 		},
 		{
-			name: "Service Not Installed",
+			name: "service_not_installed",
 			setupFakeInstServer: func(s *pubsubtesting.FakeAssetInstancesServer) {
 				s.ListAssetInstancesFn = func(ctx context.Context, in *aigrpcpb.ListAssetInstancesRequest) (*aigrpcpb.ListAssetInstancesResponse, error) {
 					return &aigrpcpb.ListAssetInstancesResponse{}, nil
@@ -111,12 +158,16 @@ func TestHubServiceDeleteRunE(t *testing.T) {
 					return nil, grpcstatus.Error(codes.NotFound, "not found")
 				}
 			},
-			expectedOutput:              []string{"Relay service asset is not installed, nothing else to do."},
+			expectedOutput: []string{
+				fmt.Sprintf("%v service asset is not installed, nothing else to do.", hubServiceName),
+			},
 			shouldUninstallServiceAsset: true,
 			expectErr:                   false,
+			packageName:                 hubServicePackage,
+			serviceName:                 hubServiceName,
 		},
 		{
-			name: "GetAsset Error",
+			name: "get_asset_error",
 			setupFakeInstServer: func(s *pubsubtesting.FakeAssetInstancesServer) {
 				s.ListAssetInstancesFn = func(ctx context.Context, in *aigrpcpb.ListAssetInstancesRequest) (*aigrpcpb.ListAssetInstancesResponse, error) {
 					return nil, errors.New("backend down")
@@ -125,9 +176,11 @@ func TestHubServiceDeleteRunE(t *testing.T) {
 			expectErr:                   true,
 			shouldUninstallServiceAsset: true,
 			expectErrContains:           "backend down",
+			packageName:                 hubServicePackage,
+			serviceName:                 hubServiceName,
 		},
 		{
-			name: "DeleteResource Error",
+			name: "delete_resource_error",
 			setupFakeInstServer: func(s *pubsubtesting.FakeAssetInstancesServer) {
 				s.ListAssetInstancesFn = func(ctx context.Context, in *aigrpcpb.ListAssetInstancesRequest) (*aigrpcpb.ListAssetInstancesResponse, error) {
 					return &aigrpcpb.ListAssetInstancesResponse{AssetInstances: []*aigrpcpb.AssetInstance{{Name: hubServiceName}}}, nil
@@ -140,10 +193,12 @@ func TestHubServiceDeleteRunE(t *testing.T) {
 			},
 			expectErr:                   true,
 			shouldUninstallServiceAsset: true,
-			expectErrContains:           "could not delete instance of the relay service",
+			expectErrContains:           fmt.Sprintf("could not delete instance of the %v service", hubServiceName),
+			packageName:                 hubServicePackage,
+			serviceName:                 hubServiceName,
 		},
 		{
-			name: "GetInstalledAsset Error",
+			name: "get_installed_asset_error",
 			setupFakeInstServer: func(s *pubsubtesting.FakeAssetInstancesServer) {
 				s.ListAssetInstancesFn = func(ctx context.Context, in *aigrpcpb.ListAssetInstancesRequest) (*aigrpcpb.ListAssetInstancesResponse, error) {
 					return &aigrpcpb.ListAssetInstancesResponse{}, nil
@@ -156,10 +211,12 @@ func TestHubServiceDeleteRunE(t *testing.T) {
 			},
 			expectErr:                   true,
 			shouldUninstallServiceAsset: true,
-			expectErrContains:           "failed to determine whether the relay service is installed",
+			expectErrContains:           fmt.Sprintf("failed to determine whether the %v service is installed", hubServiceName),
+			packageName:                 hubServicePackage,
+			serviceName:                 hubServiceName,
 		},
 		{
-			name: "DeleteResource Wait Operation Error",
+			name: "delete_resource_wait_operation_error",
 			setupFakeInstServer: func(s *pubsubtesting.FakeAssetInstancesServer) {
 				s.ListAssetInstancesFn = func(ctx context.Context, in *aigrpcpb.ListAssetInstancesRequest) (*aigrpcpb.ListAssetInstancesResponse, error) {
 					return &aigrpcpb.ListAssetInstancesResponse{AssetInstances: []*aigrpcpb.AssetInstance{{Name: hubServiceName}}}, nil
@@ -178,9 +235,11 @@ func TestHubServiceDeleteRunE(t *testing.T) {
 			expectErr:                   true,
 			shouldUninstallServiceAsset: true,
 			expectErrContains:           "operation failed",
+			packageName:                 hubServicePackage,
+			serviceName:                 hubServiceName,
 		},
 		{
-			name: "UninstallRelayServiceAsset Error",
+			name: "uninstall_service_asset_error",
 			setupFakeInstServer: func(s *pubsubtesting.FakeAssetInstancesServer) {
 				s.ListAssetInstancesFn = func(ctx context.Context, in *aigrpcpb.ListAssetInstancesRequest) (*aigrpcpb.ListAssetInstancesResponse, error) {
 					return &aigrpcpb.ListAssetInstancesResponse{AssetInstances: []*aigrpcpb.AssetInstance{{Name: hubServiceName}}}, nil
@@ -203,10 +262,12 @@ func TestHubServiceDeleteRunE(t *testing.T) {
 			},
 			expectErr:                   true,
 			shouldUninstallServiceAsset: true,
-			expectErrContains:           "failed to uninstall relay service asset",
+			expectErrContains:           fmt.Sprintf("failed to uninstall %v service asset", hubServiceName),
+			packageName:                 hubServicePackage,
+			serviceName:                 hubServiceName,
 		},
 		{
-			name: "UninstallRelayServiceAsset Operation Error",
+			name: "uninstall_service_asset_operation_error",
 			setupFakeInstServer: func(s *pubsubtesting.FakeAssetInstancesServer) {
 				s.ListAssetInstancesFn = func(ctx context.Context, in *aigrpcpb.ListAssetInstancesRequest) (*aigrpcpb.ListAssetInstancesResponse, error) {
 					return &aigrpcpb.ListAssetInstancesResponse{AssetInstances: []*aigrpcpb.AssetInstance{{Name: hubServiceName}}}, nil
@@ -233,6 +294,8 @@ func TestHubServiceDeleteRunE(t *testing.T) {
 			expectErr:                   true,
 			shouldUninstallServiceAsset: true,
 			expectErrContains:           "uninstall op failed",
+			packageName:                 hubServicePackage,
+			serviceName:                 hubServiceName,
 		},
 	}
 
@@ -261,8 +324,13 @@ func TestHubServiceDeleteRunE(t *testing.T) {
 			defer conn.Close()
 
 			var buf bytes.Buffer
-			runner := &HubServiceDeleteCmdRunner{
-				HubServiceCmdRunnerBase:     *newHubServiceCmdRunnerBase(conn, &buf, "testcluster"),
+			runner := &ServiceDeleteCmdRunner{
+				CmdRunnerBase: *newCmdRunnerBase(
+					conn,
+					&buf,
+					"testcluster",
+					tt.packageName,
+					tt.serviceName),
 				shouldUninstallServiceAsset: tt.shouldUninstallServiceAsset,
 			}
 
