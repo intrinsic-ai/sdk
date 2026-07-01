@@ -96,6 +96,21 @@ type Interface struct {
 
 	// PTP specifies whether this interface provides a PTP clock to the network.
 	PTP bool `json:"ptp,omitempty"`
+
+	// DNSRange encapsulates the configuration for hosting a DNS range on this interface.
+	DNSRange *DNSRange `json:"dns_range,omitempty"`
+}
+
+// DNSRange encapsulates the configuration needed for hosting a DNS range.
+type DNSRange struct {
+	// Pool specifies the range of IP addresses to allocate.
+	Pool string `json:"pool,omitempty"`
+
+	// Subnet specifies the network subnet for hosting the DNS range.
+	Subnet string `json:"subnet,omitempty" jsonschema:"format=ipv4"`
+
+	// SearchDomain specifies the DNS search domain.
+	SearchDomain string `json:"search_domain,omitempty"`
 }
 
 // String implements fmt.Stringer for logging purposes.
