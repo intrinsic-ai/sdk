@@ -12,11 +12,9 @@ option go_package = "intrinsic/resources/proto/resource_registry_go_proto";
 
 service ResourceRegistry {
 
-
   // The resource registry is deprecated.  Use the asset instances service
   // instead.
   option deprecated = true;
-
 
   // Lists all resource instances in the currently deployed app.
   rpc ListResourceInstances(ListResourceInstanceRequest)
