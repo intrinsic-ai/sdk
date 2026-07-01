@@ -11,7 +11,7 @@ import "intrinsic/world/proto/object_world_refs.proto";
 option go_package = "intrinsic/manipulation/grasping/grasp_ranker_params_go_proto";
 
 message GraspRankersParams {
-  reserved 1;
+  reserved 1, 8;
 
   // Parameters for height based ranker.
   optional HeightRankerParams height_ranker_params = 2;
@@ -33,9 +33,6 @@ message GraspRankersParams {
   // same branch IK).
   optional StraightLineCheckerParams straight_line_checker_params = 6;
 
-  // Parameters for diversity grasp ranker.
-  optional DiversityRankerParams diversity_ranker_params = 8;
-
   // Parameters for placement constraint checker.
   optional PlacementConstraintCheckerParams
       placement_constraint_checker_params = 9;
@@ -45,29 +42,6 @@ message GraspRankersParams {
   // ranker's weight is set to 10, and others set to 1; if the map is empty
   // and no visibility rankers are used, then all weights are 1.
   map<string, float> ranker_weights = 7;
-}
-
-message DiversityRankerParams {
-  // The score to return if a grasp is too close to a recently
-  // failed grasp. Defaults to 0.001 when unspecified.
-  // Set this to 0 will effectively cause the grasp to be filtered.
-  optional float min_score = 1;
-
-  //  The translation distance used to decide
-  //  whether a grasp G1 is too close to a grasp G2 in `target_grasps`. If
-  //  `dist(G1,G2) < distance_threshold`, return a score of `min_score`.
-  // Defaults to 0.01.
-  optional float distance_threshold_in_meters = 2;
-
-  // Similar to distance_threshold, but only used to check
-  // the distance in the z axis. dist(G1_z, G2_z)) <
-  // distance_threshold_z must be true for returning
-  // `min_score` for a grasp.
-  // Defaults to +inf.
-  optional float distance_threshold_z_in_meters = 3;
-
-  // Name of the ranker. Default to diversity_grasp_ranker.
-  optional string name = 4;
 }
 
 message PinchGripperParams {
