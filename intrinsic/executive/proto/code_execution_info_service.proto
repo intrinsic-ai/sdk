@@ -10,6 +10,7 @@ option go_package = "intrinsic/executive/proto/code_execution_info_service_go_pr
 
 // Provides information on how code in task nodes gets executed.
 service CodeExecutionInfoService {
+
   // Returns a Python template which is equivalent to the code being executed
   // when a task node with Python code is processed. The template is dynamic and
   // depends on a subset of the properties of a given

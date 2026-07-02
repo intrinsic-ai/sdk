@@ -79,9 +79,7 @@ go_proto_library(
 proto_library(
     name = "code_execution_info_service_proto",
     srcs = ["code_execution_info_service.proto"],
-    deps = [
-        "@com_google_protobuf//:descriptor_proto",
-    ],
+    deps = ["@com_google_protobuf//:descriptor_proto"],
 )
 
 py_proto_library(
