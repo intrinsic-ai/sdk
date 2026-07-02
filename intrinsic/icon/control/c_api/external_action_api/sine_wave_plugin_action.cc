@@ -11,6 +11,7 @@
 #include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "absl/time/time.h"
 #include "google/protobuf/duration.pb.h"
@@ -60,15 +61,20 @@ absl::StatusOr<float> FloatFromProto(
 
 absl::StatusOr<SineWavePluginAction::SolvedParams>
 SineWavePluginAction::SolvedParams::FromProto(
-    const SineWavePluginAction::ParameterProto& proto_params) {
+    const SineWavePluginAction::ParameterProto& proto_params,
+    size_t expected_num_joints) {
   SineWavePluginAction::SolvedParams params;
+  params.amplitudes.reserve(proto_params.joints_size());
+  params.frequencies.reserve(proto_params.joints_size());
   for (const auto& joint_params : proto_params.joints()) {
     params.amplitudes.emplace_back(joint_params.amplitude_rad());
     params.frequencies.emplace_back(joint_params.frequency_hz());
   }
-  if (!params.IsValid(proto_params.joints_size())) {
-    return absl::InternalError(
-        "Params object has inconsistent number of values.");
+  if (!params.IsValid(expected_num_joints)) {
+    return absl::InvalidArgumentError(absl::StrCat(
+        "Input proto params (joints size: ", proto_params.joints_size(),
+        ") do not match robot's number of joints, which is ",
+        expected_num_joints));
   }
   return params;
 }
@@ -144,8 +150,10 @@ SineWavePluginAction::Create(const ParameterProto& parameters,
 
   // Convert the proto parameters to SolvedParams, which is safe to read in
   // realtime.
+  const size_t num_joints =
+      arm_info.config.generic_config().joint_position_config().num_joints();
   INTR_ASSIGN_OR_RETURN(SolvedParams params,
-                        SolvedParams::FromProto(parameters));
+                        SolvedParams::FromProto(parameters, num_joints));
 
   LOG(INFO) << "PUBLIC: Created SineWavePluginAction.";
   return std::make_unique<SineWavePluginAction>(

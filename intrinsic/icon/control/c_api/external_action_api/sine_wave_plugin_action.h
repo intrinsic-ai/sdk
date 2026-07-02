@@ -69,7 +69,7 @@ class SineWavePluginAction final : public IconActionInterface {
     std::vector<double> frequencies;
 
     static absl::StatusOr<SolvedParams> FromProto(
-        const ParameterProto& proto_params);
+        const ParameterProto& proto_params, size_t expected_num_joints);
     // Checks that all of the vectors above have ndof members.
     bool IsValid(size_t ndof) const;
   };
