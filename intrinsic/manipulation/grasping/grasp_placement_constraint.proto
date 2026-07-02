@@ -31,9 +31,8 @@ message PlacementPoseConstraint {
   // fulfill the purpose, as it increases planning time.
   optional intrinsic_proto.Point target_frame_margins = 3;
 
-  // Whether to require the IK of placement pose to have the same kinematic
-  // branch. Default to false.
-  optional bool disable_requiring_same_branch_ik = 4;
+  reserved 4;
+  reserved "disable_requiring_same_branch_ik";
 }
 
 // The insertion constraint to be satisfied at grasp planning.

@@ -69,12 +69,7 @@ message IkCollisionCheckerParams {
   // ignored between the eoat parts and the target object at grasp pose.
   optional bool check_collision_at_grasp_pose = 2;
 
-  // Whether to require grasp pose to have same kinematic branch as starting
-  // robot joint positions.
-  optional bool require_same_branch_ik = 3;
-
   // Passed to `MotionPlannerClient.compute_ik`.
-  // This has to be 1 if `require_same_branch_ik` is set to True.
   optional int32 max_num_solutions = 4;
 
   // Parameters for pinch gripper used for collision checks. If specified, pinch
@@ -82,8 +77,8 @@ message IkCollisionCheckerParams {
   // Do not set this field if the gripper is not a pinch gripper type.
   optional PinchGripperParams pinch_gripper_params = 9;
 
-  reserved 5, 7;
-  reserved "eoat_name";
+  reserved 3, 5, 7;
+  reserved "eoat_name", "require_same_branch_ik";
 }
 
 message StraightLineCheckerParams {
