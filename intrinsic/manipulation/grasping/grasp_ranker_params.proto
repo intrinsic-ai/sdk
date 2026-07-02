@@ -6,43 +6,10 @@ package intrinsic_proto.grasping;
 
 import "intrinsic/kinematics/types/joint_limits.proto";
 import "intrinsic/manipulation/grasping/grasp_placement_constraint.proto";
+import "intrinsic/world/proto/collision_settings.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 
 option go_package = "intrinsic/manipulation/grasping/grasp_ranker_params_go_proto";
-
-message GraspRankersParams {
-  reserved 1, 8;
-
-  // Parameters for height based ranker.
-  optional HeightRankerParams height_ranker_params = 2;
-
-  // Parameters for IK-collision checker. IK and collision parameters specified
-  // here are also used for the StraightLineChecker if the latter is enabled.
-  optional IkCollisionCheckerParams ik_collision_checker_params = 3;
-
-  // Parameters for visibility based ranker.
-  optional VisibilityRankerParams visibility_ranker_params = 4;
-
-  // Parameters for TopDownGraspRanker.
-  optional TopDownGraspRankerParams top_down_grasp_ranker_params = 5;
-
-  // Parameters for StraightLineChecker. This uses the same IK and
-  // collision settings specified in `ik_collision_checker_params`;
-  // if the latter is unspecified, then the default settings are used (checks
-  // collisions at pregrasp pose, allows collisions at grasp pose, and requires
-  // same branch IK).
-  optional StraightLineCheckerParams straight_line_checker_params = 6;
-
-  // Parameters for placement constraint checker.
-  optional PlacementConstraintCheckerParams
-      placement_constraint_checker_params = 9;
-
-  // Weights for the rankers. Weight values have to be non-negative.
-  // If the map is empty and a visibility ranker is used, then the visibility
-  // ranker's weight is set to 10, and others set to 1; if the map is empty
-  // and no visibility rankers are used, then all weights are 1.
-  map<string, float> ranker_weights = 7;
-}
 
 message PinchGripperParams {
   // Reference to the pinch gripper object.
@@ -53,71 +20,58 @@ message PinchGripperParams {
   repeated double close_position = 3;
 }
 
-message IkCollisionCheckerParams {
-  // Reference(s) to EOAT (end-of-arm tool) parts to allow collision with the
-  // target object at grasp pose. Has no effect if unspecified.
-  repeated world.ObjectReference collision_excluded_eoat_parts = 8;
-
-  // Name of the ranker. Default to ik_collision_checker.
-  optional string name = 6;
-
-  // Joint limits used in grasp/pregrasp pose IK checks.
+message GraspReachabilityParams {
+  // Robot's joint angle limits applied when calculating how to reach the grasp
+  // and pre-grasp poses. Must not exceed the robot's overall application
+  // limits. If not specified, the application limits are used.
   optional intrinsic_proto.JointLimitsUpdate joint_limits = 1;
 
-  // Whether to check collisions at grasp pose. On top of this, if
-  // `collision_excluded_eoat_parts` is specified, then collisions are
-  // ignored between the eoat parts and the target object at grasp pose.
-  optional bool check_collision_at_grasp_pose = 2;
-
-  // Passed to `MotionPlannerClient.compute_ik`.
-  optional int32 max_num_solutions = 4;
+  // Optional segment-specific collision settings to apply at the grasp pose.
+  // If not specified, standard default collision checks are performed.
+  // E.g., users can set `disable_collision_checking: true` to turn off grasp
+  // pose collision checks entirely, or specify collision exclusion rules
+  // for gripper parts.
+  optional intrinsic_proto.world.CollisionSettings
+      grasp_pose_collision_settings = 2;
 
   // Parameters for pinch gripper used for collision checks. If specified, pinch
   // gripper collisions will be checked at grasp pose.
   // Do not set this field if the gripper is not a pinch gripper type.
-  optional PinchGripperParams pinch_gripper_params = 9;
+  optional PinchGripperParams pinch_gripper_params = 3;
 
-  reserved 3, 5, 7;
-  reserved "eoat_name", "require_same_branch_ik";
-}
-
-message StraightLineCheckerParams {
-  // Name of the ranker. Default to straight_line_checker.
-  optional string name = 3;
-
-  // Time limit to compute trajectory. Default to 10 seconds.
-  optional int32 traj_planning_timeout_sec = 4;
+  // Whether to check if a continuous straight-line approach path between
+  // pregrasp and grasp poses exists and is collision-free. Disabled by default.
+  optional bool check_straight_line_approach = 4;
 
   // If true, check the full trajectory from the robot's current joint position
   // to pregrasp pose and then to grasp pose. Otherwise, only check the
   // straightline segment from pregrasp pose to grasp pose.
-  optional bool check_full_trajectory = 5;
+  optional bool check_full_trajectory = 6;
 
-  reserved 1;
-  reserved "cartesian_limits";
+  reserved 5;
 }
 
 message HeightRankerParams {
   // Minimum expected height (in meters) of an object when grasping, expressed
-  // in root frame.
-  float min_grasp_height = 1;
+  // in root frame. Defaults to 0.0 if unspecified.
+  optional float min_grasp_height = 1;
   // Maximum expected height (in meters) of an object when grasping, expressed
-  // in root frame.
-  float max_grasp_height = 2;
-  // Name of the ranker. Default to height_grasp_ranker.
-  optional string name = 3;
+  // in root frame. Defaults to 2.0 if unspecified.
+  optional float max_grasp_height = 2;
+
+  reserved 3;
+  reserved "name";
 }
 
 message VisibilityRankerParams {
-  // Minimum detection visibility in range [0,1] for a grasp to be considered
-  // valid.
+  // Minimum detection visibility threshold in range [0.0, 1.0] for a grasp
+  // to be considered valid.
+  // Visibility is estimated by the perception sensor: 0.0 means the object
+  // is completely occluded/not visible, and 1.0 means it is fully visible.
   float visibility_threshold = 2;
 
-  // Name of the ranker. Default to visibility_grasp_ranker.
-  optional string name = 3;
-
-  reserved 1;
-  reserved "use_visibility_ranker";
+  reserved 1, 3;
+  reserved "use_visibility_ranker", "name";
 }
 
 message TopDownGraspRankerParams {
@@ -125,18 +79,38 @@ message TopDownGraspRankerParams {
   // directions are. Grasps whose normalized top-down value is less
   // than this will have a score of 0. E.g., When this is 0.5, all horizontal
   // and bottom-up pointed grasps are scored 0; if 0.75, then all grasps lower
-  // than 45 degrees top-down are scored 0. See `TopDownGraspRanker` for
-  // details.
-  float top_down_score_threshold = 1;
+  // than 45 degrees top-down are scored 0.
+  // Defaults to 0.5 if unspecified.
+  optional float top_down_score_threshold = 1;
 
-  // Name of the ranker. Default to top_down_grasp_ranker.
-  optional string name = 2;
+  reserved 2;
+  reserved "name";
 }
 
 message PlacementConstraintCheckerParams {
   // Placement constraints to consider during grasp planning.
   intrinsic_proto.grasping.PlacementConstraints placement_constraints = 1;
 
-  // Name of the ranker. Default to placement_constraint_checker.
-  optional string name = 2;
+  reserved 2;
+  reserved "name";
+}
+
+message GraspScoringHeuristic {
+  oneof heuristic {
+    HeightRankerParams height_ranker = 1;
+    VisibilityRankerParams visibility_ranker = 2;
+    TopDownGraspRankerParams top_down_ranker = 3;
+    PlacementConstraintCheckerParams placement_constraint_checker = 4;
+  }
+  // The weight of this heuristic for computing the overall grasp score.
+  // Higher weight increases the relative importance of this heuristic.
+  // Must be non-negative (>= 0). Defaults to 1.0 (except visibility_ranker
+  // which defaults to 10.0 if others are left unspecified). All weights are
+  // dynamically normalized during planning to have an average value of 1.0.
+  optional float weight = 5;
+}
+
+message GraspScoringHeuristics {
+  // A list of heuristics used to score and rank candidate grasps.
+  repeated GraspScoringHeuristic heuristics = 1;
 }

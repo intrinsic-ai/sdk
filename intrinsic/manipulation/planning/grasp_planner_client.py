@@ -196,9 +196,14 @@ class GraspPlannerClient:
       grasps: Sequence[grasp_pb2.Grasp],
       robot_name: str,
       tool_frame: object_world_refs_pb2.TransformNodeReference,
-      rankers_params: grasp_ranker_params_pb2.GraspRankersParams,
       world_id: str,
       score_threshold: float,
+      reachability_params: (
+          grasp_ranker_params_pb2.GraspReachabilityParams | None
+      ) = None,
+      additional_scoring_heuristics: (
+          grasp_ranker_params_pb2.GraspScoringHeuristics | None
+      ) = None,
       recent_grasps: Sequence[grasp_pb2.AttemptedGrasp] | None = None,
       max_num_grasps: int | None = None,
       grasp_ranking_soft_timeout_in_sec: float = np.inf,
@@ -209,9 +214,10 @@ class GraspPlannerClient:
       grasps: The grasps to rank.
       robot_name: The name of the robot.
       tool_frame: The reference to the tool frame.
-      rankers_params: The parameters used to construct the grasp rankers.
       world_id: The id of the world.
       score_threshold: The threshold to filter out low scored grasps.
+      reachability_params: The reachability/collision checker params.
+      additional_scoring_heuristics: Additional scoring heuristics.
       recent_grasps: The recently executed grasps. If None, use an empty list.
       max_num_grasps: The maximum number of grasps to return.
       grasp_ranking_soft_timeout_in_sec: The soft timeout to return early if at
@@ -227,7 +233,8 @@ class GraspPlannerClient:
             grasps=grasps,
             robot_name=robot_name,
             tool_frame=tool_frame,
-            rankers_params=rankers_params,
+            reachability_params=reachability_params,
+            additional_scoring_heuristics=additional_scoring_heuristics,
             world_id=world_id,
             score_threshold=score_threshold,
             max_num_grasps=max_num_grasps,

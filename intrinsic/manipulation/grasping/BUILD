@@ -170,6 +170,7 @@ proto_library(
     deps = [
         ":grasp_placement_constraint_proto",
         "//intrinsic/kinematics/types:joint_limits_proto",
+        "//intrinsic/world/proto:collision_settings_proto",
         "//intrinsic/world/proto:object_world_refs_proto",
     ],
 )

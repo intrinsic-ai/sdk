@@ -105,8 +105,15 @@ message RankGraspsRequest {
   string robot_name = 2;
   // The tool frame to use for ranking.
   intrinsic_proto.world.TransformNodeReference tool_frame = 3;
-  // Parameters for grasp rankers.
-  intrinsic_proto.grasping.GraspRankersParams rankers_params = 4;
+  optional intrinsic_proto.grasping.GraspReachabilityParams
+      reachability_params = 10;
+  // Additional optional scoring heuristics to rank candidate grasps.
+  // These are added on top of the collision checker. If specified, these
+  // additional heuristics (e.g., height, top-down) are included in the
+  // scoring pipeline. Otherwise only the collision checker is included.
+  optional intrinsic_proto.grasping.GraspScoringHeuristics
+      additional_scoring_heuristics = 11;
+  reserved 4;
   // Recently attempted grasps. Includes both succeeded and failed ones.
   repeated intrinsic_proto.grasping.AttemptedGrasp recent_grasps = 5;
   // The world used to rank grasps.
