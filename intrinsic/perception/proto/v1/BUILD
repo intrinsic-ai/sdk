@@ -851,3 +851,101 @@ py_grpc_library(
     visibility = ["//intrinsic:public_api_users"],
     deps = [":train_service_py_pb2"],
 )
+
+proto_library(
+    name = "calibration_service_proto",
+    srcs = ["calibration_service.proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        ":camera_to_robot_calibration",
+        ":distortion_params_proto",
+        ":intrinsic_params_proto",
+        "//intrinsic/math/proto:pose_proto",
+        "//intrinsic/perception/proto:pattern_detection_config",
+        "//intrinsic/platform/pubsub:storage_location",
+        "//intrinsic/resources/proto:resource_handle_proto",
+        "//intrinsic/world/proto:object_world_refs_proto",
+        "@com_google_protobuf//:empty_proto",
+    ],
+)
+
+py_proto_library(
+    name = "calibration_service_py_pb2",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":calibration_service_proto"],
+)
+
+py_grpc_library(
+    name = "calibration_service_py_pb2_grpc",
+    srcs = [":calibration_service_proto"],
+    grpc_library = requirement("grpcio"),
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":calibration_service_py_pb2"],
+)
+
+cc_proto_library(
+    name = "calibration_service_cc_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":calibration_service_proto"],
+)
+
+cc_grpc_library(
+    name = "calibration_service_cc_grpc_proto",
+    srcs = [":calibration_service_proto"],
+    grpc_only = True,
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":calibration_service_cc_proto"],
+)
+
+go_proto_library(
+    name = "calibration_service_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+    ],
+    importpath = "intrinsic/perception/proto/v1/calibration_service_go_proto",
+    protos = [":calibration_service_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        ":camera_to_robot_calibration_go_proto",
+        ":distortion_params_go_proto",
+        ":intrinsic_params_go_proto",
+        "//intrinsic/math/proto:pose_go_proto",
+        "//intrinsic/perception/proto:pattern_detection_config_go_proto",
+        "//intrinsic/platform/pubsub:storage_location_go_proto",
+        "//intrinsic/resources/proto:resource_handle_go_proto",
+        "//intrinsic/world/proto:object_world_refs_go_proto",
+        "@org_golang_google_protobuf//types/known/emptypb",
+    ],
+)
+
+proto_library(
+    name = "camera_to_robot_calibration",
+    srcs = ["camera_to_robot_calibration.proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        "//intrinsic/math/proto:pose_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "camera_to_robot_calibration_cc_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = ["camera_to_robot_calibration"],
+)
+
+py_proto_library(
+    name = "camera_to_robot_calibration_py_pb2",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":camera_to_robot_calibration"],
+)
+
+go_proto_library(
+    name = "camera_to_robot_calibration_go_proto",
+    importpath = "intrinsic/perception/proto/v1/camera_to_robot_calibration_go_proto",
+    protos = [":camera_to_robot_calibration"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        "//intrinsic/math/proto:pose_go_proto",
+    ],
+)

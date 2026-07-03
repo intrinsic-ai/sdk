@@ -459,6 +459,13 @@ py_proto_library(
     deps = [":charuco_pattern_proto"],
 )
 
+go_proto_library(
+    name = "charuco_pattern_go_proto",
+    importpath = "intrinsic/perception/proto/charuco_pattern_go_proto",
+    protos = [":charuco_pattern_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+)
+
 proto_library(
     name = "pattern_detection_config",
     srcs = ["pattern_detection_config.proto"],
@@ -478,6 +485,14 @@ py_proto_library(
     name = "pattern_detection_config_py_pb2",
     visibility = ["//intrinsic:public_api_users"],
     deps = [":pattern_detection_config"],
+)
+
+go_proto_library(
+    name = "pattern_detection_config_go_proto",
+    importpath = "intrinsic/perception/proto/pattern_detection_config_go_proto",
+    protos = [":pattern_detection_config"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":charuco_pattern_go_proto"],
 )
 
 go_proto_library(
