@@ -16,3 +16,15 @@ message SolutionDiff {
   // the order specified in the mask.
   DiffMask mask = 2;
 }
+
+// OverlaidSolutionDiff represents the result of an additive merge between two
+// solutions. It contains the combined solution and a complete mask of all
+// differences evaluated, including the removals that were intentionally
+// ignored.
+message OverlaidSolutionDiff {
+  // A complete mask of the differences found between the two
+  // solutions. This tracks all evaluated changes (additions, updates, and
+  // removals), serving as an audit of the diff rather than an application
+  // guide.
+  DiffMask mask = 2;
+}
