@@ -1,0 +1,219 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.perception.v1;
+
+import "google/protobuf/empty.proto";
+import "intrinsic/math/proto/pose.proto";
+import "intrinsic/perception/proto/pattern_detection_config.proto";
+import "intrinsic/perception/proto/v1/camera_to_robot_calibration.proto";
+import "intrinsic/perception/proto/v1/distortion_params.proto";
+import "intrinsic/perception/proto/v1/intrinsic_params.proto";
+import "intrinsic/platform/pubsub/storage_location.proto";
+import "intrinsic/resources/proto/resource_handle.proto";
+import "intrinsic/world/proto/object_world_refs.proto";
+
+option go_package = "intrinsic/perception/proto/v1/calibration_service_go_proto";
+
+// Service for unified camera calibration, i.e., intrinsic camera calibration,
+// camera-to-camera, and camera-to-robot calibration.
+service CalibrationService {
+  // Initializes the calibration service with a pattern detection config and
+  // camera resource handles. The initialization call will remove all previously
+  // captured data and will reset the state of the service.
+  rpc Initialize(InitializeRequest) returns (InitializeResponse);
+
+  // Captures data for calibration, such as images of the calibration pattern.
+  rpc CaptureData(CaptureDataRequest) returns (CaptureDataResponse);
+
+  // Removes previously captured data by key.
+  rpc DeleteCapture(DeleteCaptureRequest) returns (google.protobuf.Empty);
+
+  // Calibrates the cameras with the captured data. In case of successful
+  // calibration, the poses of the cameras will be updated in the Execute world
+  // for the user to evaluate the calibration results.
+  rpc Calibrate(CalibrationRequest) returns (CalibrationResult);
+
+  // Saves the calibration results by updating the camera resource configuration
+  // with the computed intrinsic and distortion parameters for intrinsic
+  // calibration and by updating the camera poses in the Initial world  in case
+  // new camera poses were computed by `Calibrate`.
+  rpc Save(CalibrationResult) returns (google.protobuf.Empty);
+}
+
+message InitializeRequest {
+  // Pattern detection config to be used for calibration.
+  intrinsic_proto.perception.PatternDetectionConfig pattern_detection_config =
+      1;
+  // Camera resource handles to be used for calibration.
+  repeated intrinsic_proto.resources.ResourceHandle camera_resource_handles = 2;
+  // Name of the ICON arm part with respect to which camera poses are defined.
+  optional intrinsic_proto.world.ObjectReference arm_part = 3;
+  // Name of the object used for calibration (typically, a charuco board).
+  // This needs to be set when we wish to update the pose of the calibration
+  // object in the (Execute) world after calibration. For instance, if we
+  // perform a pre-calibration of a camera with respect to a robot, it's
+  // useful to update the pose of the calibration object before the data
+  // collection for the next calibration round starts, so that the actual
+  // pose of the calibration object is accounted for properly during motion
+  // planning. If this field is unset, the pose of the calibration object
+  // will be unaffected in the digital twin.
+  optional intrinsic_proto.world.ObjectReference calibration_object = 4;
+}
+
+message InitializeResponse {
+  // The topic names of the images showing 2d coverage of detected pattern
+  // points. The images will be cleared after each Initialize call and updated
+  // after each CaptureData and DeleteCapture call.
+  repeated string coverage_map_topic_names = 1;
+}
+
+message CaptureDataRequest {
+  optional intrinsic_proto.Pose base_t_flange = 1;
+  // Whether to detect redundant pattern poses by comparing the distance of
+  // corresponding image points. This is useful e.g. when continuously capturing
+  // images while manually moving a pattern for intrinsic camera calibration.
+  // If set to true, redundant patterns will return a
+  // `CAPTURE_DATA_STATUS_REDUNDANT_PATTERN_DETECTION`.
+  bool detect_redundant_pattern = 2;
+  // Whether to detect blurred images. This is useful e.g. when continuously
+  // capturing images while manually moving a pattern for intrinsic camera
+  // calibration. If set to true, blurred images will return a
+  // `CAPTURE_DATA_STATUS_BLURRED_IMAGE`.
+  bool detect_blurred_image = 3;
+}
+
+message CaptureDataResponse {
+  enum CaptureDataStatus {
+    CAPTURE_DATA_STATUS_NO_ERRORS = 0;
+    CAPTURE_DATA_STATUS_NO_DETECTIONS = 1;
+    CAPTURE_DATA_STATUS_MULTIPLE_DETECTIONS = 2;
+    CAPTURE_DATA_STATUS_INSUFFICIENT_MARKER_POINTS = 3;
+    CAPTURE_DATA_STATUS_REDUNDANT_PATTERN_DETECTION = 4;
+    CAPTURE_DATA_STATUS_BLURRED_IMAGE = 5;
+  }
+
+  // Status of the captured data per camera.
+  repeated CaptureDataStatus capture_data_status = 1;
+  // KV store locations to retrieve the annotated images with the detections
+  // overlaid from.
+  repeated kvstore.StorageLocation annotated_image_locations = 4;
+  // A unique identifier for the capture which can be used to remove it.
+  string capture_id = 3;
+
+  reserved 2;
+  reserved "annotated_image_keys";
+}
+
+message DeleteCaptureRequest {
+  string capture_id = 1;
+}
+
+message CalibrationRequest {
+  // Whether to calibrate the intrinsic camera parameters.
+  bool calibrate_intrinsics = 1;
+  // Whether to calibrate the camera(s)-to-robot pose.
+  bool calibrate_camera_to_robot = 2;
+  // The type of camera-to-robot calibration to perform. Only used if
+  // calibrate_camera_to_robot is true. Needs to be one of the following:
+  // - STATIONARY_CAMERA
+  // - MOVING_CAMERA
+  // Note that we define a single calibration type for all
+  // cameras that participate in the camera-to-robot calibration. This way, we
+  // enable parallel camera-to-robot calibrations, but restrict it to cameras
+  // of the same type (moving or stationary). Mixing camera types would be
+  // complicated and possibly unnecessary.
+  CameraToRobotCalibrationRequest.CameraToRobotCalibrationType
+      camera_to_robot_calibration_type = 3;
+  // Whether to calibrate the camera-to-camera(s) pose.
+  bool calibrate_camera_to_camera = 4;
+  // Whether to compute the transforms between all of the individual captures
+  // made in the calibration process. The transforms will all be reported
+  // relative to the first capture of the first camera. Typically only useful
+  // in the MOVING_CAMERA case.
+  bool calibrate_capture_to_capture = 5;
+  // A list of capture IDs that should be excluded from calibration processing.
+  // These captures will not be deleted from the server state, allowing them
+  // to be re-included in subsequent calibration requests.
+  repeated string exclude_capture_ids = 6;
+}
+
+message IntrinsicCalibrationResult {
+  // Intrinsic parameters of the camera.
+  intrinsic_proto.perception.v1.IntrinsicParams intrinsic_params = 1;
+  // Distortion parameters of the camera.
+  intrinsic_proto.perception.v1.DistortionParams distortion_params = 2;
+  // Reprojection error of the intrinsic calibration in pixels.
+  double error = 3;
+  // 3D error estimate in meters, computed for the previously calculated
+  // calibration, using the current set of captured images.
+  optional double error3d = 4;
+  // Display message to show to the user in case of an error.
+  optional string display_message = 5;
+  // Reprojection error for each individual capture ID.
+  map<string, double> reprojection_error_by_capture_id = 6;
+}
+
+message StereoCalibrationResult {
+  // Computed pose of a camera with respect to the reference camera.
+  intrinsic_proto.Pose cam_t_cam0 = 1;
+
+  // Calibration reprojection error. This should usually be well below 1
+  // pixel.
+  double error2d = 2;
+}
+
+message MultiCameraCalibrationResult {
+  // Result of stereo calibration (a pose) between the first initialized camera
+  // (reference camera) and all other cameras provided as part of the
+  // InitializeRequest - one for each camera except the reference camera, in
+  // the order they were provided in the InitializeRequest.
+  repeated StereoCalibrationResult stereo_calibration_results = 1;
+}
+
+message SingleCaptureCalibrationResult {
+  // Computed pose of a camera with respect to the reference camera.
+  intrinsic_proto.Pose capture_t_capture0 = 1;
+
+  // Calibration reprojection error. This should usually be well below 1
+  // pixel.
+  double error2d = 2;
+
+  // The transform between the base of the robot and its flange
+  // at the time of capture. Not set if this field wasn't set
+  // when this capture was requested.
+  optional intrinsic_proto.Pose robot_base_t_flange = 3;
+}
+message SingleCameraCaptureToCaptureCalibrationResult {
+  // The stereo calibrations between the captures of camera i
+  // to the first capture of camera 0 in the calibration process.
+  repeated SingleCaptureCalibrationResult single_capture_calibration_results =
+      1;
+}
+
+message CaptureToCaptureCalibrationResult {
+  // The stereo calibrations between all the captures made during the
+  // calibration capture process. This is typically only useful in
+  // the MOVING_CAMERA case. In the case of multiple cameras, each
+  // camera has its own SingleCameraCaptureToCaptureCalibrationResult
+  // which contains the transform between that camera's captures and
+  // the first camera's first capture.
+  repeated SingleCameraCaptureToCaptureCalibrationResult
+      camera_capture_to_capture_calibration_results = 1;
+}
+
+message CalibrationResult {
+  // Contains as many intrinsic calibration results as passed in camera
+  // handles in the InitializeRequest.
+  repeated IntrinsicCalibrationResult intrinsic_calibration_results = 1;
+  // Contains as many camera-to-robot calibration results as passed in camera
+  // handles in the InitializeRequest.
+  repeated CameraToRobotCalibrationResult camera_to_robot_calibration_results =
+      2;
+  // Contains the camera-to-camera calibration result.
+  optional MultiCameraCalibrationResult camera_to_camera_calibration_result = 3;
+  // Contains the capture-to-capture calibration result.
+  optional CaptureToCaptureCalibrationResult
+      capture_to_capture_calibration_result = 4;
+}

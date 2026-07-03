@@ -4,6 +4,7 @@ package behaviortree_test
 
 import (
 	"context"
+	"errors"
 	"slices"
 	"strings"
 	"testing"
@@ -49,8 +50,9 @@ func elementName(elem behaviortree.VisitElement) string {
 }
 
 type nodeNameCollector struct {
-	names      []string
-	stopOnName string
+	names     []string
+	err       error
+	errOnName string
 }
 
 func (c *nodeNameCollector) Visit(ctx context.Context, element behaviortree.VisitElement) error {
@@ -63,8 +65,8 @@ func (c *nodeNameCollector) Visit(ctx context.Context, element behaviortree.Visi
 	// Reverse from element>root to root>element.
 	slices.Reverse(namePath)
 	c.names = append(c.names, strings.Join(namePath, "/"))
-	if c.stopOnName != "" && elementName(element) == c.stopOnName {
-		return behaviortree.Stop
+	if c.errOnName != "" && elementName(element) == c.errOnName {
+		return c.err
 	}
 	return nil
 }
@@ -543,7 +545,7 @@ func TestContextCancellation(t *testing.T) {
 	}
 }
 
-func TestWalk_Stop(t *testing.T) {
+func TestWalk_ErrorPropagation(t *testing.T) {
 	tree := &btpb.BehaviorTree{
 		TreeId: proto.String("Tree_A"),
 		Root: &btpb.BehaviorTree_Node{
@@ -558,23 +560,64 @@ func TestWalk_Stop(t *testing.T) {
 			},
 		},
 	}
-	wantNames := []string{
-		"Tree_A",
-		"Tree_A/Sequence_1",
-		"Tree_A/Sequence_1/Child_1",
+	exampleErr := errors.New("example error")
+
+	tests := []struct {
+		name      string
+		errOnName string
+		err       error
+		wantNames []string
+		wantErr   error
+	}{
+		{
+			name:      "stop",
+			errOnName: "Child_1",
+			err:       behaviortree.Stop,
+			wantNames: []string{
+				"Tree_A",
+				"Tree_A/Sequence_1",
+				"Tree_A/Sequence_1/Child_1",
+			},
+			wantErr: nil,
+		},
+		{
+			name:      "arbitrary",
+			errOnName: "Sequence_1",
+			err:       exampleErr,
+			wantNames: []string{
+				"Tree_A",
+				"Tree_A/Sequence_1",
+			},
+			wantErr: exampleErr,
+		},
+		{
+			name: "none",
+			wantNames: []string{
+				"Tree_A",
+				"Tree_A/Sequence_1",
+				"Tree_A/Sequence_1/Child_1",
+				"Tree_A/Sequence_1/Child_2",
+			},
+		},
 	}
 
-	visitor := &nodeNameCollector{
-		stopOnName: "Child_1",
-	}
-	err := behaviortree.Walk(context.Background(), tree, visitor)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			visitor := &nodeNameCollector{
+				errOnName: tc.errOnName,
+				err:       tc.err,
+			}
+			err := behaviortree.Walk(context.Background(), tree, visitor)
 
-	if err != nil {
-		t.Errorf("behaviortree.Walk() got unexpected error %v, want nil", err)
+			if err != tc.wantErr {
+				t.Errorf("behaviortree.Walk() got unexpected error %v, want %v", err, tc.wantErr)
+			}
+			if !cmp.Equal(visitor.names, tc.wantNames) {
+				t.Errorf("behaviortree.Walk() got names %v, want %v", visitor.names, tc.wantNames)
+			}
+		})
 	}
-	if !cmp.Equal(visitor.names, wantNames) {
-		t.Errorf("behaviortree.Walk() got names %v, want %v", visitor.names, wantNames)
-	}
+
 }
 
 func TestVisitElement_Ancestors(t *testing.T) {

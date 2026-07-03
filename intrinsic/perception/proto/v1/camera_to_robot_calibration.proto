@@ -1,0 +1,120 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.perception.v1;
+
+import "intrinsic/math/proto/pose.proto";
+
+option go_package = "intrinsic/perception/proto/v1/camera_to_robot_calibration_go_proto";
+
+// Specifies a camera-to-robot-calibration setup to be solved for the missing,
+// unknown poses.
+//
+// In general, a camera-to-robot-calibration setup always corresponds to an
+// alternating cycle of four transformations/poses between four reference frames
+// A,B,C,D. Two of the poses are known (more precisely, various matching pairs
+// are given) and the other two are constant but unknown.
+//
+// A -?- B    "!": known poses (input)
+// !     !    "-?-": unknown poses (output)
+// D -?- C
+//
+// The camera-to-robot-calibration computes A_t_B and C_t_D from a sequence of
+// matching pairs ((D_t_A)_1, (B_t_C)_1),...,((D_t_A)_n, (B_t_C)_n) such that,
+// for all i:
+//   (A_t_D)_i ~= A_t_B * (B_t_C)_i * C_t_D
+message CameraToRobotCalibrationRequest {
+  enum CameraToRobotCalibrationType {
+    UNKNOWN = 0;
+    // The camera is stationary (fixed in world-space/relative to the robot's
+    // base). An object is attached (typically a calibration plate) to the
+    // robot's flange and was detected in the camera image from varying robot
+    // flange positions.
+    //
+    // Object -?- Flange   "!": known poses (input)
+    //   !         !       "-?-": unknown poses (output)
+    // Camera -?- Base
+    STATIONARY_CAMERA = 1;
+    // The camera is attached to the robot's flange. A stationary object (fixed
+    // in world-space/relative to the robot' base) was detected in the camera
+    // image from varying robot flange positions.
+    //
+    // Camera -?- Flange   "!": known poses (input)
+    //   !         !       "-?-": unknown poses (output)
+    // Object -?- Base
+    MOVING_CAMERA = 2;
+  }
+
+  // A pair of input poses corresponding to one possible state of the
+  // camera-to-robot-calibration setup.
+  message InputPosePair {
+    intrinsic_proto.Pose camera_t_object = 1;
+    intrinsic_proto.Pose base_t_flange = 2;
+  }
+
+  enum OptimizationAlgorithm {
+    // This will default to NONLINEAR.
+    AUTO = 0;
+    // NOTYPO Mili Shah (2013): "Solving the robot-world/hand-eye calibration
+    // problem using the kronecker product."
+    SHAH = 1;
+    // Aiguo Li, Lin Wang, and Defeng Wu (2010): "Simultaneous robot-world and
+    // hand-eye calibration using dual-quaternions and kronecker product."
+    LI = 2;
+    // Refines the solution from the SHAH algorithm by a Ceres-based non-linear
+    // optimization.
+    NONLINEAR = 3;
+    // R. Tsai, R. Lenz (1989): "A New Technique for Fully Autonomous and
+    // Efficient 3D Robotics Hand/Eye Calibration".
+    TSAI = 4;
+    // F. Park, B. Martin (1994): "Robot Sensor Calibration: Solving AX = XB on
+    // the Euclidean Group".
+    PARK = 5;
+    // R. Horaud, F. Dornaika (1995): "Hand-eye Calibration".
+    HORAUD = 6;
+    // N. Andreff, R. Horaud, B. Espiau (1999): "On-line Hand-Eye Calibration".
+    ANDREFF = 7;
+    // K. Daniilidis (1999): "Hand-Eye Calibration Using Dual Quaternions".
+    DANIILIDIS = 8;
+  }
+
+  // The type of calibration to perform. Depending on this type, the returned
+  // CameraToRobotCalibrationResult will contain a corresponding result type.
+  CameraToRobotCalibrationType type = 1;
+
+  // The pairs of input poses to be used for the camera-to-robot-calibration.
+  // These have to cover all six degrees of freedom sufficiently so that the
+  // calibration result can be accurate.
+  repeated InputPosePair input_pose_pairs = 2;
+
+  OptimizationAlgorithm algorithm = 3;
+}
+
+message CameraToRobotCalibrationResult {
+  // Returned poses if CameraToRobotCalibrationRequest.type ==
+  // 'STATIONARY_CAMERA'.
+  message StationaryCameraResultPoses {
+    intrinsic_proto.Pose flange_t_object = 1;
+    intrinsic_proto.Pose base_t_camera = 2;
+  }
+
+  // Returned poses if CameraToRobotCalibrationRequest.type == 'MOVING_CAMERA'.
+  message MovingCameraResultPoses {
+    intrinsic_proto.Pose flange_t_camera = 1;
+    intrinsic_proto.Pose base_t_object = 2;
+  }
+
+  // The poses resulting from the camera-to-robot-calibration.
+  oneof result_poses {
+    StationaryCameraResultPoses stationary_camera_result_poses = 1;
+    MovingCameraResultPoses moving_camera_result_poses = 2;
+  }
+
+  // The errors resulting from the camera-to-robot-calibration. The lower, the
+  // more accurate the calibration result is.
+  double translation_root_mean_square_error = 3;
+  double translation_maximum_error = 4;
+  double rotation_root_mean_square_error_in_degrees = 5;
+  double rotation_maximum_error_in_degrees = 6;
+}

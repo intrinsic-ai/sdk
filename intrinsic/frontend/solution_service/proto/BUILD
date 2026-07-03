@@ -15,10 +15,12 @@ proto_library(
     name = "solution_service_proto",
     srcs = ["solution_service.proto"],
     deps = [
+        ":sequence_list_proto",
         ":status_proto",
         "//intrinsic/executive/proto:behavior_tree_proto",
         "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_protobuf//:empty_proto",
+        "@com_google_protobuf//:timestamp_proto",
     ],
 )
 
@@ -62,10 +64,12 @@ go_proto_library(
     importpath = "intrinsic/frontend/solution_service/proto/solution_service_go_proto",
     protos = [":solution_service_proto"],
     deps = [
+        ":sequence_list_go_proto",
         ":status_go_proto",
         "//intrinsic/executive/proto:behavior_tree_go_proto",
         "@org_golang_google_genproto_googleapis_api//annotations",
         "@org_golang_google_protobuf//types/known/emptypb",
+        "@org_golang_google_protobuf//types/known/timestamppb",
     ],
 )
 
@@ -88,4 +92,33 @@ go_proto_library(
     name = "status_go_proto",
     importpath = "intrinsic/frontend/solution_service/proto/status_go_proto",
     protos = [":status_proto"],
+)
+
+proto_library(
+    name = "sequence_list_proto",
+    srcs = ["sequence_list.proto"],
+    deps = [
+        "//intrinsic/executive/proto:behavior_tree_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "sequence_list_cc_proto",
+    deps = [":sequence_list_proto"],
+)
+
+py_proto_library(
+    name = "sequence_list_py_pb2",
+    deps = [":sequence_list_proto"],
+)
+
+go_proto_library(
+    name = "sequence_list_go_proto",
+    importpath = "intrinsic/frontend/solution_service/proto/sequence_list_go_proto",
+    protos = [":sequence_list_proto"],
+    deps = [
+        "//intrinsic/executive/proto:behavior_tree_go_proto",
+        "@org_golang_google_protobuf//types/known/timestamppb",
+    ],
 )

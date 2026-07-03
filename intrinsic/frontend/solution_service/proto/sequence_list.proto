@@ -1,0 +1,46 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.solution.v1;
+
+import "google/protobuf/timestamp.proto";
+import "intrinsic/executive/proto/behavior_tree.proto";
+
+option go_package = "intrinsic/frontend/solution_service/proto/sequence_list_go_proto";
+
+message SkillDetails {
+  string skill_id = 1;
+}
+
+message CodeExecutionDetails {
+  repeated string stdout = 1;
+}
+
+message SequenceListItem {
+  // Unique identifier for the sequence list item.
+  uint64 id = 1;
+
+  // The name of the node.
+  string name = 2;
+
+  // The latest state of the action.
+  intrinsic_proto.executive.BehaviorTree.TaskNode.State state = 3;
+
+  oneof details {
+    // Details about skill associated with the item.
+    SkillDetails skill_details = 4;
+
+    // Details about the code execution associated with the item.
+    CodeExecutionDetails code_execution_details = 5;
+  }
+
+  // The acquisition time of the first log item for the action.
+  google.protobuf.Timestamp start_time = 6;
+
+  // The acquisition time of the last log item for the action.
+  google.protobuf.Timestamp end_time = 7;
+
+  // Nested sequence list items for subprocesses.
+  repeated SequenceListItem children = 8;
+}
