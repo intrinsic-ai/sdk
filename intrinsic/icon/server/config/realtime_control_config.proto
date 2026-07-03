@@ -47,18 +47,18 @@ message ExpectedSignal {
 // UNKNOWN < NOT_AVAILABLE < DISENGAGED < ENGAGED
 //
 // enable_button_status:
-// UNKNOWN < NOT_AVAILABLE < DISENGAGED < ENGAGED
+// UNKNOWN < NOT_AVAILABLE < ENGAGED < DISENGAGED
 //
 // Example:
 // S1: [mode_of_safe_operation: UNKNOWN, requested_behavior:
-// SAFE_STOP_2_TIME_MONITORED, enable_button_status: UNKNOWN, ...]
+// SAFE_STOP_2_TIME_MONITORED, enable_button_status: DISENGAGED, ...]
 //
 // S2: [mode_of_safe_operation: TEACH_PENDANT_2, requested_behavior:
 // NORMAL_OPERATION, enable_button_status: ENGAGED ...]
 //
 // Combined: [mode_of_safe_operation: TEACH_PENDANT_2,
 // requested_behavior: SAFE_STOP_2_TIME_MONITORED, enable_button_status:
-// ENGAGED , ...]
+// DISENGAGED , ...]
 message SafetyMessageHandlerConfig {
   repeated intrinsic_proto.icon.v1.HardwareInterface
       safety_hardware_interfaces = 1;
