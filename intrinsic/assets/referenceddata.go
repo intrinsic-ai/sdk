@@ -133,6 +133,13 @@ func (ref *ReferencedData) SetSourceProject(sourceProject string) *ReferencedDat
 	return ref
 }
 
+// ClearSourceProject clears the source project in the ReferencedData.
+func (ref *ReferencedData) ClearSourceProject() *ReferencedData {
+	ref.rd.SourceProject = nil
+	ref.modified = true
+	return ref
+}
+
 // SetInlined sets the inlined data in the ReferencedData.
 func (ref *ReferencedData) SetInlined(inlined []byte) *ReferencedData {
 	ref.rd.Data = &rdpb.ReferencedData_Inlined{
