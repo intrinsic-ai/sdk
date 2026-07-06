@@ -226,6 +226,12 @@ oci.pull(
     image = "gcr.io/distroless/python3",
     platforms = ["linux/amd64"],
 )
+oci.pull(
+    name = "zenohd",
+    digest = "sha256:93097910856ab45e6f870a6df162a7467e9087a01d7f0f33d0fc335fa0f3832e",
+    image = "gcr.io/cloud-robotics-releases/zenohd:1.7.1",
+    platforms = ["linux/amd64"],
+)
 
 # NOTE: Bazel reports wrong usage of the repos as a warning
 # BUG: https://github.com/bazel-contrib/rules_oci/issues/727
