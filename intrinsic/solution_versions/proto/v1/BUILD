@@ -273,6 +273,7 @@ go_proto_library(
     importpath = "intrinsic/solution_versions/proto/v1/solution_diff_go_proto",
     protos = [":solution_diff_proto"],
     visibility = [
+        "//intrinsic/frontend/cloud/portal_bridge:__subpackages__",
         "//intrinsic/solution_versions:__subpackages__",
     ],
     deps = [
