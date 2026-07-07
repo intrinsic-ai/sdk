@@ -143,7 +143,7 @@ register_toolchains(
     dev_dependency = True,
 )
 
-bazel_dep(name = "rules_cc", version = "0.2.19")
+bazel_dep(name = "rules_cc", version = "0.2.22")
 
 ########
 # Rust #
