@@ -50,6 +50,8 @@ constexpr static absl::Duration kHighConsistencySetTimeout = absl::Seconds(30);
 constexpr static absl::Duration kHighConsistencyGetTimeout =
     absl::Milliseconds(100);
 constexpr static absl::string_view kWorkcellInfoKey = "workcell_info";
+constexpr size_t kPayloadByteSizeWarningThreshold = 25 * 1024 * 1024;  // 25 MiB
+
 }  // namespace
 
 KeyValueStore::KeyValueStore(std::optional<std::string> prefix_override)
@@ -116,9 +118,16 @@ absl::Status KeyValueStore::Set(absl::string_view key,
   }
 
   std::string value_serialized = value.SerializeAsString();
-  imw_ret_t ret =
+  const size_t payload_size = value_serialized.size();
       Zenoh().imw_set(prefixed_name->c_str(), value_serialized.c_str(),
                       value_serialized.size());
+  if (payload_size > kPayloadByteSizeWarningThreshold) {
+    LOG(WARNING) << "Large KVStore SetRequest payload detected. Key: " << key
+                 << ", Size: " << payload_size << " bytes.";
+  }
+
+  imw_ret_t ret = Zenoh().imw_set(prefixed_name->c_str(),
+                                  value_serialized.c_str(), payload_size);
   if (ret != IMW_OK) {
     return absl::InternalError(
         absl::StrFormat("Error setting a key, return code: %d", ret));
