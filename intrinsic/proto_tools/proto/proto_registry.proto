@@ -42,9 +42,13 @@ message GetNamedFileDescriptorSetRequest {
     // descriptor set returned for the type URL may not contain any descriptors
     // for components the specified message does not transitively depend on.
     //
+    // Any message in the "common" area is also accessible through type URLs
+    // starting with `type.googleapis.com` that do not specify an area.
+    //
     // Examples:
     // * type.intrinsic.ai/assets/com.example.my_asset/my_package.MyMessage
-    // * type.intrinsic.ai/well-known/google.protobuf.Duration
+    // * type.intrinsic.ai/common/google.protobuf.Duration
+    // * type.googleapis.com/google.protobuf.Duration
     string type_url = 1;
 
     // Name of the requested file descriptor set in the proto registry, see

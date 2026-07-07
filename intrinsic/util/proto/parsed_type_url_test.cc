@@ -16,8 +16,36 @@ namespace intrinsic {
 namespace {
 
 TEST(ParsedTypeUrl, ParseTypeUrlGoogleSpec) {
-  EXPECT_THAT(ParseTypeUrl("type.googleapis.com/google.protobuf.Int64Value"),
-              StatusIs(absl::StatusCode::kInvalidArgument));
+  ASSERT_OK_AND_ASSIGN(
+      ParsedUrl pu,
+      ParseTypeUrl("type.googleapis.com/google.protobuf.Int64Value"));
+
+  EXPECT_EQ(pu.prefix, "type.intrinsic.ai/");
+  EXPECT_EQ(pu.area, "common");
+  EXPECT_EQ(pu.path, "");
+  EXPECT_EQ(pu.message_type, "google.protobuf.Int64Value");
+}
+
+TEST(ParsedTypeUrl, ParseTypeUrlCommon) {
+  ASSERT_OK_AND_ASSIGN(
+      ParsedUrl pu,
+      ParseTypeUrl("type.intrinsic.ai/common/google.protobuf.Int64Value"));
+
+  EXPECT_EQ(pu.prefix, "type.intrinsic.ai/");
+  EXPECT_EQ(pu.area, "common");
+  EXPECT_EQ(pu.path, "");
+  EXPECT_EQ(pu.message_type, "google.protobuf.Int64Value");
+}
+
+TEST(ParsedTypeUrl, ParseTypeUrlWellKnownAlias) {
+  ASSERT_OK_AND_ASSIGN(
+      ParsedUrl pu,
+      ParseTypeUrl("type.intrinsic.ai/well-known/google.protobuf.Int64Value"));
+
+  EXPECT_EQ(pu.prefix, "type.intrinsic.ai/");
+  EXPECT_EQ(pu.area, "common");
+  EXPECT_EQ(pu.path, "");
+  EXPECT_EQ(pu.message_type, "google.protobuf.Int64Value");
 }
 
 TEST(TypeUrl, ParseTypeUrl) {
@@ -39,12 +67,6 @@ TEST(TypeUrl, ParseTypeUrlEmptyPath) {
   EXPECT_EQ(pu.area, "area");
   EXPECT_EQ(pu.path, "");
   EXPECT_EQ(pu.message_type, "google.protobuf.Int64Value");
-}
-
-TEST(ParsedTypeUrl, ParseTypeUrlPrefixGoogleSpec) {
-  EXPECT_THAT(
-      ParseTypeUrlPrefix("type.googleapis.com/google.protobuf.Int64Value"),
-      StatusIs(absl::StatusCode::kInvalidArgument));
 }
 
 TEST(TypeUrl, ParseTypeUrlInvalid) {

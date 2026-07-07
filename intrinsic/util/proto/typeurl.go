@@ -18,6 +18,16 @@ const (
 	// type URLs for assets.
 	IntrinsicAreaAssets = "assets"
 
+	// IntrinsicAreaCommon is the area (=the first path element) used in Intrinsic
+	// type URLs for common types.
+	IntrinsicAreaCommon = "common"
+
+	// IntrinsicAreaWellKnown is the area (=the first path element) used in
+	// Intrinsic type URLs for well known types.
+	//
+	// Deprecated: Use [IntrinsicAreaCommon] instead.
+	IntrinsicAreaWellKnown = "well-known"
+
 	// Separator is the top-level separator used in type URLs.
 	Separator = "/"
 )

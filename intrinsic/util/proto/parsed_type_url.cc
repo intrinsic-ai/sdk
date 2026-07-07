@@ -29,7 +29,43 @@ absl::StatusOr<std::pair<ParsedUrl, std::string_view>> ParseTypeUrlToArea(
     std::string_view type_url) {
   ParsedUrl parsed_url = {.type_url = std::string(type_url)};
 
-  if (!type_url.starts_with(kIntrinsicTypeUrlPrefix)) {
+  std::string_view remainder;
+  if (type_url.starts_with(kIntrinsicTypeUrlPrefix)) {
+    parsed_url.prefix = std::string(kIntrinsicTypeUrlPrefix);
+    std::string_view type_url_parsed = type_url;
+    type_url_parsed.remove_prefix(kIntrinsicTypeUrlPrefix.length());
+
+    std::pair<std::string_view, std::string_view> area_and_remainder =
+        absl::StrSplit(type_url_parsed, absl::MaxSplits(kTypeUrlSeparator, 1));
+
+    if (area_and_remainder.first.empty()) {
+      std::string message = absl::StrFormat(
+          "Type URL '%s' is missing area after Intrinsic prefix", type_url);
+      return (StatusBuilder(absl::StatusCode::kInvalidArgument) << message)
+          .AttachExtendedStatus(
+              util::proto::kExtendedStatusComponent,
+              util::proto::kInvalidUrlCode,
+              {.title = util::proto::kInvalidUrlTitle,
+               .user_message = message,
+               .user_instructions = util::proto::kInvalidUrlInstructions});
+    }
+
+    parsed_url.area = std::string(area_and_remainder.first);
+    if (parsed_url.area == kIntrinsicTypeUrlAreaWellKnown) {
+      parsed_url.area = std::string(kIntrinsicTypeUrlAreaCommon);
+    }
+    remainder = area_and_remainder.second;
+  } else if (type_url.starts_with(kTypeUrlPrefix) ||
+             type_url == absl::StripSuffix(kTypeUrlPrefix, kTypeUrlSeparator)) {
+    parsed_url.prefix = std::string(kIntrinsicTypeUrlPrefix);
+    parsed_url.area = std::string(kIntrinsicTypeUrlAreaCommon);
+    remainder = type_url;
+    if (remainder.starts_with(kTypeUrlPrefix)) {
+      remainder.remove_prefix(kTypeUrlPrefix.length());
+    } else {
+      remainder = "";
+    }
+  } else {
     std::string message =
         absl::StrFormat("Type URL '%s' does not start with '%s'", type_url,
                         kIntrinsicTypeUrlPrefix);
@@ -41,30 +77,7 @@ absl::StatusOr<std::pair<ParsedUrl, std::string_view>> ParseTypeUrlToArea(
              .user_instructions = util::proto::kInvalidUrlInstructions});
   }
 
-  parsed_url.prefix = type_url.substr(0, kIntrinsicTypeUrlPrefix.length());
-  std::string_view type_url_parsed = type_url;
-  type_url_parsed.remove_prefix(kIntrinsicTypeUrlPrefix.length());
-
-  std::pair<std::string_view, std::string_view> area_and_remainder =
-      absl::StrSplit(type_url_parsed, absl::MaxSplits(kTypeUrlSeparator, 1));
-
-  // The first part contains the <area> and the second contains the remainder
-  // , <path>/<message-type>. `ParseTypeUrlToArea` may be called with a prefix
-  // of the full type-URL, so do not validate the <path> or <message-type> here.
-  if (area_and_remainder.first.empty()) {
-    std::string message = absl::StrFormat(
-        "Type URL '%s' is missing area after Intrinsic prefix", type_url);
-    return (StatusBuilder(absl::StatusCode::kInvalidArgument) << message)
-        .AttachExtendedStatus(
-            util::proto::kExtendedStatusComponent, util::proto::kInvalidUrlCode,
-            {.title = util::proto::kInvalidUrlTitle,
-             .user_message = message,
-             .user_instructions = util::proto::kInvalidUrlInstructions});
-  }
-
-  parsed_url.area = area_and_remainder.first;
-
-  return std::make_pair(std::move(parsed_url), area_and_remainder.second);
+  return std::make_pair(std::move(parsed_url), remainder);
 }
 
 }  // namespace

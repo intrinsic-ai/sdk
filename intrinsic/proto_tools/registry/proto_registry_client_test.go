@@ -75,7 +75,7 @@ type protoRegistryResolverFixture struct {
 	resolver      *ProtoRegistryResolver
 }
 
-func mustCreateProtoRegistryResolver(t *testing.T, defaultResolvers []Resolver) protoRegistryResolverFixture {
+func mustCreateProtoRegistryResolver(t *testing.T, fallbackResolvers []Resolver) protoRegistryResolverFixture {
 	t.Helper()
 
 	protoRegistry := NewMockProtoRegistry()
@@ -94,7 +94,7 @@ func mustCreateProtoRegistryResolver(t *testing.T, defaultResolvers []Resolver) 
 	resolver := NewProtoRegistryResolver(
 		context.Background(),
 		protoregistrypb.NewProtoRegistryClient(conn),
-		defaultResolvers,
+		fallbackResolvers,
 	)
 
 	return protoRegistryResolverFixture{
@@ -265,5 +265,41 @@ func TestProtoRegistryResolverResolvesNonIntrinsicTypeURL(t *testing.T) {
 	wantErr := protoregistry.NotFound
 	if diff := cmp.Diff(wantErr, err, cmpopts.EquateErrors()); diff != "" {
 		t.Fatalf("resolver.FindMessageByURL(%q) returned unexpected error diff (-want +got):\n%s", typeURL, diff)
+	}
+}
+
+func TestProtoRegistryResolverResolvesGoogleTypeURLViaProtoRegistry(t *testing.T) {
+	fallbackTypes := mustCreateTypesFromFileDescriptorSet(t,
+		fileDescriptorSetWithMessages(
+			"google.protobuf",
+			messageTypeWithNFields("Duration", 1),
+		),
+	)
+	fixture := mustCreateProtoRegistryResolver(t, []Resolver{fallbackTypes})
+
+	typeURL := "type.googleapis.com/google.protobuf.Duration"
+	msgName := "google.protobuf.Duration"
+	// Add to proto registry with 2 fields so we can verify it took precedence
+	// over fallback resolver's 1 field
+	fixture.protoRegistry.addFileDescriptorSet(
+		typeURL, fileDescriptorSetWithMessages("google.protobuf", messageTypeWithNFields("Duration", 2)),
+	)
+
+	msgType, err := fixture.resolver.FindMessageByURL(typeURL)
+	if err != nil {
+		t.Fatalf("Unexpected error from resolver.FindMessageByURL(%q) = %v, want nil", typeURL, err)
+	}
+
+	if msgType.Descriptor().FullName() != protoreflect.FullName(msgName) {
+		t.Errorf(
+			"Unexpected message type returned from resolver.FindMessageByURL(%q), got message name %v, want %q",
+			typeURL, msgType.Descriptor().FullName(), msgName,
+		)
+	}
+	if msgType.Descriptor().Fields().Len() != 2 {
+		t.Errorf(
+			"Unexpected message fields count from resolver.FindMessageByURL(%q), got %d fields, want 2 (from proto registry)",
+			typeURL, msgType.Descriptor().Fields().Len(),
+		)
 	}
 }

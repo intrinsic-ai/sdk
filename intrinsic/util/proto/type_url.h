@@ -17,6 +17,8 @@ namespace intrinsic {
 constexpr std::string_view kIntrinsicTypeUrlPrefix = "type.intrinsic.ai/";
 constexpr std::string_view kIntrinsicTypeUrlAreaSkills = "skills";
 constexpr std::string_view kIntrinsicTypeUrlAreaAssets = "assets";
+constexpr std::string_view kIntrinsicTypeUrlAreaCommon = "common";
+// Deprecated: Use `kIntrinsicTypeUrlAreaCommon` instead.
 constexpr std::string_view kIntrinsicTypeUrlAreaWellKnown = "well-known";
 
 constexpr std::string_view kTypeUrlPrefix = "type.googleapis.com/";
