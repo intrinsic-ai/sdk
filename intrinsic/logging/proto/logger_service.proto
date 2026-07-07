@@ -310,6 +310,18 @@ message GetLocalRecordingResponse {
   intrinsic_proto.data_logger.BagMetadata bag = 1;
 }
 
+// Request message for querying the logger's contextual configuration.
+message GetLoggerContextRequest {}
+
+// Response message containing the logger's contextual configuration.
+message GetLoggerContextResponse {
+  // The organization ID associated with the on-premise cluster.
+  string organization_id = 1;
+
+  // The cluster (workcell) name where the data logger is running.
+  string workcell_name = 2;
+}
+
 // Service to:
 // - Persistently store structured logging data on-prem
 // - Retrieve stored structued logging data on-prem
@@ -335,6 +347,15 @@ service DataLogger {
   rpc ListLogSources(google.protobuf.Empty) returns (ListLogSourcesResponse) {
     option (google.api.http) = {
       get: "/logger/v0/logSources"
+    };
+  }
+
+  // Returns the current logger's context, which contains common metadata that
+  // can be used to reason about where logs are sent to the cloud.
+  rpc GetLoggerContext(GetLoggerContextRequest)
+      returns (GetLoggerContextResponse) {
+    option (google.api.http) = {
+      get: "/logger/v0/context"
     };
   }
 
