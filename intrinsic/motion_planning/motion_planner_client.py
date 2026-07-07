@@ -38,6 +38,10 @@ from intrinsic.world.proto import collision_checker_config_pb2
 from intrinsic.world.proto import collision_settings_pb2
 from intrinsic.world.python import object_world_ids
 
+MOTION_PLANNER_SERVICE_INTERFACE = (
+    "grpc://intrinsic_proto.motion_planning.v1.MotionPlannerService"
+)
+
 
 def _repeated_vec_to_list_of_floats(
     vectors: list[joint_space_pb2.JointVec],
