@@ -91,7 +91,6 @@ use_repo(
 ##########
 # Python #
 ##########
-
 PYTHON_VERSION = "3.11"
 
 bazel_dep(name = "rules_python", version = "1.9.1")

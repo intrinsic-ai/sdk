@@ -6,6 +6,38 @@ load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@tar.bzl", "mtree_mutate", "mtree_spec", "tar")
 load("//bazel:container.bzl", "container_image")
 
+_INTERPRETER_SYMLINKS = {
+    "/bin/2to3": "2to3-3.11",
+    "/bin/idle3": "idle3.11",
+    "/bin/pip": "pip3.11",
+    "/bin/pip3": "pip3.11",
+    "/bin/pydoc3": "pydoc3.11",
+    "/bin/python": "python3.11",
+    "/bin/python3": "python3.11",
+    "/bin/python3-config": "python3.11-config",
+    "/libpython3.11.so": "libpython3.11.so.1.0",
+}
+
+# By default, py_binary runfiles manifests list aliases like /bin/python, /bin/python3,
+# and /libpython3.11.so as duplicate regular files (`type=file`) rather than true symlinks.
+# If archived without modification, the image tarball contains multiple 55+ MB copies of
+# identical binaries and shared libraries. Furthermore, using the standard `symlinks`
+# attribute on `container_image` only layers symlink entries on top of lower layers
+# without removing the physical duplicate files archived inside `_interpreter_layer`.
+# To prevent this bloating, we intercept and rewrite the mtree manifest lines with `sed`
+# before the tarball is built, converting duplicate file entries into lightweight `type=link`
+# symlink headers directly inside `_interpreter_layer`.
+def _build_interpreter_manifest_cmd(interpreter_regex):
+    """Returns the shell command to build the interpreter tar manifest with symlinks restored."""
+    sed_exprs = [
+        "-e 's|{path} uid=.*|{path} uid=0 gid=0 time=1672560000 mode=0777 type=link link={target}|'".format(
+            path = path,
+            target = target,
+        )
+        for path, target in _INTERPRETER_SYMLINKS.items()
+    ]
+    return "grep '{}' $< | sed {} >$@".format(interpreter_regex, " ".join(sed_exprs))
+
 def python_layers(name, binary, **kwargs):
     """Create list of layers for a py_binary target.
 
@@ -70,16 +102,15 @@ def python_layers(name, binary, **kwargs):
     )
 
     # One layer with only the python interpreter.
-    # WORKSPACE: ".runfiles/local_config_python_x86_64-unknown-linux-gnu/"
     # Bzlmod: "runfiles/rules_python~0.27.1~python~python_3_11_x86_64-unknown-linux-gnu/"
-    PY_INTERPRETER_REGEX = r"\.runfiles/\S*python\S*_x86_64-unknown-linux-gnu/"
+    PY_INTERPRETER_REGEX = "\\S*\\.runfiles/\\S*\\(rules_python\\S*_x86_64-unknown-linux-gnu/\\|.*rules_Upython++python+python.*libpython.*\\)"
 
     native.genrule(
         name = name + "_interpreter_tar_manifest",
         testonly = kwargs.get("testonly"),
         srcs = [":" + name + "_tar_manifest"],
         outs = [name + "_interpreter_tar_manifest.spec"],
-        cmd = "grep '{}' $< >$@".format(PY_INTERPRETER_REGEX),
+        cmd = _build_interpreter_manifest_cmd(PY_INTERPRETER_REGEX),
         compatible_with = kwargs.get("compatible_with"),
         tags = kwargs.get("tags"),
     )
