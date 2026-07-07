@@ -30,6 +30,7 @@ type ComparisonPreprocessor func(*dpb.FileDescriptorSet) (*dpb.FileDescriptorSet
 type mergeFileDescriptorSetsOptions struct {
 	keys                   []string
 	comparisonPreprocessor ComparisonPreprocessor
+	skipValidation         bool
 }
 
 // MergeFileDescriptorSetsOption is a functional option for MergeFileDescriptorSets.
@@ -71,6 +72,13 @@ func WithSourceCodePrunedComparison() MergeFileDescriptorSetsOption {
 		}
 		return fdsPruned, nil
 	})
+}
+
+// WithSkipValidation specifies whether to skip validation of the merged FileDescriptorSet.
+func WithSkipValidation(b bool) MergeFileDescriptorSetsOption {
+	return func(opts *mergeFileDescriptorSetsOptions) {
+		opts.skipValidation = b
+	}
 }
 
 func defaultMergedFileDescriptorSetsKeys(n int) []string {
@@ -139,10 +147,13 @@ func MergeFileDescriptorSets(fdss []*dpb.FileDescriptorSet, options ...MergeFile
 		}
 	}
 
-	// Check that the merged FileDescriptorSet is valid.
-	if _, err := protodesc.NewFiles(merged); err != nil {
-		return nil, fmt.Errorf("failed to generate a valid merged FileDescriptorSet (sets were likely built at different times): %w", err)
+	if !opts.skipValidation {
+		// Check that the merged FileDescriptorSet is valid.
+		if _, err := protodesc.NewFiles(merged); err != nil {
+			return nil, fmt.Errorf("failed to generate a valid merged FileDescriptorSet (sets were likely built at different times): %w", err)
+		}
 	}
+
 	return merged, nil
 }
 
