@@ -119,16 +119,24 @@ func makeOrgNotFound(inner error, org string) error {
 // ValidateEnvironment validates the environment value in a cobra command.
 func ValidateEnvironment(vipr *viper.Viper) error {
 	e := vipr.GetString(KeyEnvironment)
-	if e == "" {
-		// Ignore if not set.
-		return nil
-	}
+
 	switch e {
-	case env.Prod, env.Staging, env.Dev:
-		return nil
+	case env.Prod, env.Staging, env.Dev, "":
+		// Valid environments
 	default:
 		return fmt.Errorf("invalid --%s value %q. It must be one of %v", KeyEnvironment, e, strings.Join(env.All, ", "))
 	}
+
+	// If a project is explicitly set, check if it's a known central project
+	// and reject contradicting explicit environment values.
+	project := vipr.GetString(KeyProject)
+	if e != "" && project != "" {
+		if inferred := env.FromAnyProject(project); inferred != e && env.IsKnownProject(project) {
+			return fmt.Errorf("environment mismatch: explicitly provided environment %q contradicts environment %q inferred from project name %q", e, inferred, project)
+		}
+	}
+
+	return nil
 }
 
 // ResolveOrg searches stored organization credentials to match the given short name.
@@ -196,6 +204,18 @@ func ResolveOrg(requestedOrg string) (auth.OrgInfo, error) {
 // However, it lets the user skip setting --org in case they prefer --context with a local context /
 // alias.
 func preRunOrganizationOptional(cmd *cobra.Command, vipr *viper.Viper, enableOrgExistsCheck func() bool) error {
+	if err := validateProjectOrg(cmd, vipr, enableOrgExistsCheck); err != nil {
+		return fmt.Errorf("error validating project/org: %w", err)
+	}
+
+	if err := ValidateEnvironment(vipr); err != nil {
+		return fmt.Errorf("error validating environment: %w", err)
+	}
+
+	return nil
+}
+
+func validateProjectOrg(cmd *cobra.Command, vipr *viper.Viper, enableOrgExistsCheck func() bool) error {
 	projectFlag := cmd.PersistentFlags().Lookup(KeyProject)
 	orgFlag := cmd.PersistentFlags().Lookup(KeyOrganization)
 
@@ -229,11 +249,12 @@ func preRunOrganizationOptional(cmd *cobra.Command, vipr *viper.Viper, enableOrg
 	// Resolve the organization (either direct lookup or fallback to short name matching).
 	resolved, err := ResolveOrg(org)
 	if err != nil {
-		return err
+		return fmt.Errorf("error resolving org: %w", err)
 	}
 
 	projectFlag.Value.Set(resolved.Project)
 	vipr.Set(KeyProject, resolved.Project)
+
 	return nil
 }
 
@@ -300,7 +321,10 @@ func WrapCmdOptional(cmd *cobra.Command, vipr *viper.Viper, options ...WrapCmdOp
 	cmd.PersistentFlags().StringP(KeyOrganization, "", "",
 		`The Intrinsic organization to use. You can set the environment variable
 	INTRINSIC_ORG=organization to set a default organization.`)
-
+	envUsage := fmt.Sprintf("Auth environment to use. This should be one of %v. %q is used by default. "+
+		"Each cloud project is associated with exactly one environment.", strings.Join(env.All, ", "), env.Prod)
+	cmd.PersistentFlags().String(KeyEnvironment, "", envUsage)
+	_ = cmd.PersistentFlags().MarkHidden(KeyEnvironment)
 	oldPreRunE := cmd.PersistentPreRunE
 	cmd.PersistentPreRunE = func(c *cobra.Command, args []string) error {
 		// This is required to cooperate with cobrautil.
@@ -319,12 +343,12 @@ func WrapCmdOptional(cmd *cobra.Command, vipr *viper.Viper, options ...WrapCmdOp
 		return nil
 	}
 
-	viperutil.BindFlags(vipr, cmd.PersistentFlags(), viperutil.BindToListEnv(KeyOrganization))
+	viperutil.BindFlags(vipr, cmd.PersistentFlags(), viperutil.BindToListEnv(KeyOrganization, KeyEnvironment))
 
 	return cmd
 }
 
-// WrapCmd injects KeyProject and KeyOrganization as PersistentFlags into the command and sets up
+// WrapCmd injects KeyProject, KeyOrganization and KeyEnvironment as PersistentFlags into the command and sets up
 // shared handling for them.
 //
 // It enforces that exactly one of --project or --org is set.

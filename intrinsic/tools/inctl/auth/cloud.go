@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 
 	"intrinsic/config/environments"
@@ -22,6 +23,7 @@ import (
 
 // ConnectionOpts contains the options for creating a new gRPC connection to a cloud service.
 type ConnectionOpts struct {
+	env           string
 	project       string
 	targetProject string
 	org           string
@@ -41,6 +43,13 @@ type ConnectionOpts struct {
 func WithProject(p string) ConnectionOptsFunc {
 	return func(c *ConnectionOpts) {
 		c.project = p
+	}
+}
+
+// WithEnv sets environment to use for the connection.
+func WithEnv(e string) ConnectionOptsFunc {
+	return func(c *ConnectionOpts) {
+		c.env = e
 	}
 }
 
@@ -73,7 +82,7 @@ func WithDialOptions(opts ...grpc.DialOption) ConnectionOptsFunc {
 }
 
 // WithFlagValues sets the project, organization and cluster to use for the connection from the current inctl
-// CLI flags such as --project, --org and --cluster.
+// CLI flags such as --project, --org, --cluster and --env.
 func WithFlagValues(v *viper.Viper) ConnectionOptsFunc {
 	return func(opts *ConnectionOpts) {
 		if p := v.GetString(KeyProject); p != "" {
@@ -84,6 +93,9 @@ func WithFlagValues(v *viper.Viper) ConnectionOptsFunc {
 		}
 		if c := v.GetString(KeyCluster); c != "" {
 			opts.cluster = c
+		}
+		if env := v.GetString(KeyEnvironment); env != "" {
+			opts.env = env
 		}
 	}
 }
@@ -245,13 +257,13 @@ func newOrLoadTokenSource(ctx context.Context, optsFuncs ...ConnectionOptsFunc) 
 		return nil, nil, nil, nil, err
 	}
 
-	// Determine the environment from the project.
-	// The environment is important because the ID tokens issues by the
+	// The environment is either passed via options by the caller
+	// or derived from the project name.
+	// The environment is important because the ID tokens issued by the
 	// accounts service are tied to a specific environment.
-	env, err := environments.FromProject(opts.project)
-	if err != nil {
-		env = environments.FromComputeProject(opts.project)
-		// default to prod if we cannot determine the environment
+	env := opts.env
+	if env == "" {
+		env = environments.FromAnyProject(opts.project)
 	}
 	errDetails.Env = env
 
@@ -315,7 +327,7 @@ func loadAPIKey(opts *ConnectionOpts) (string, error) {
 		return opts.apiKey, nil
 	}
 	if opts.org != "" {
-		orgInfo, err := NewStore().ReadOrgInfo(opts.org)
+		orgInfo, err := DefaultStore.ReadOrgInfo(opts.org)
 		if err == nil { // if no error
 			// take the project from the org if WithProject was not set.
 			if opts.project == "" {
@@ -323,13 +335,29 @@ func loadAPIKey(opts *ConnectionOpts) (string, error) {
 			}
 		}
 	}
-	cfg, err := NewStore().GetConfiguration(opts.project)
+
+	var cfg *ProjectConfiguration
+	var err error
+
+	// If an explicit environment is provided, we prioritize loading the configuration
+	// specific to that environment. If there's no config for this environment,
+	// we fall back to the project's configuration. If no environment is specified,
+	// we rely entirely on the project's configuration.
+	if opts.env != "" {
+		cfg, err = DefaultStore.GetEnvConfiguration(opts.env)
+		if errors.Is(err, os.ErrNotExist) && opts.project != "" {
+			cfg, err = DefaultStore.GetProjectConfiguration(opts.project)
+		}
+	} else {
+		cfg, err = DefaultStore.GetConfiguration(opts.project)
+	}
+
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to load API key configuration: %w", err)
 	}
 	creds, err := cfg.GetDefaultCredentials()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to get default credentials: %w", err)
 	}
 	return creds.APIKey, nil
 }

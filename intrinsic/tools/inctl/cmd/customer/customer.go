@@ -8,7 +8,6 @@ import (
 	"slices"
 	"strings"
 
-	"intrinsic/config/environments"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/cobrautil"
 	"intrinsic/tools/inctl/util/orgutil"
@@ -35,7 +34,6 @@ var (
 )
 
 func init() {
-	customerCmd.PersistentFlags().StringVar(&flagEnvironment, orgutil.KeyEnvironment, environments.Prod, "The environment to use for the command.")
 	customerCmd.PersistentFlags().BoolVar(&flagDebugRequests, "debug-requests", false, "If true, print the full request and response for each API call.")
 	customerCmd = orgutil.WrapCmd(customerCmd, vipr)
 	root.RootCmd.AddCommand(customerCmd)

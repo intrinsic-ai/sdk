@@ -66,6 +66,9 @@ const (
 
 	// OpsProjectProd is the project for the ops cluster in prod.
 	OpsProjectProd = "intrinsic-ops"
+
+	devProject     = "b7219186c3255926d0c158c14b3e0363d6b386115d4c3f1d8e0c9723369ea3b4"
+	stagingProject = "bb46d3dc2d207a46a66397e36698c40b66d3c0c364cd3fd2d196f60f4b1d9fd9"
 )
 
 // All is the list of all environments.
@@ -113,14 +116,36 @@ func FromComputeProject(project string) string {
 	if strings.Contains(project, "-prod-") {
 		return Prod
 	}
+
 	switch hashProjectName(project) {
-	case "b7219186c3255926d0c158c14b3e0363d6b386115d4c3f1d8e0c9723369ea3b4":
+	case devProject:
 		return Dev
-	case "bb46d3dc2d207a46a66397e36698c40b66d3c0c364cd3fd2d196f60f4b1d9fd9":
+	case stagingProject:
 		return Staging
 	default:
 		return Prod
 	}
+}
+
+// IsGlobalProject returns true if the given project name matches a known global project
+// (e.g., portal, accounts, assets, or ops project).
+func IsGlobalProject(project string) bool {
+	_, err := FromProject(project)
+	return err == nil
+}
+
+// IsComputeProject returns true if the given project name matches a known compute project.
+func IsComputeProject(project string) bool {
+	switch hashProjectName(project) {
+	case devProject, stagingProject:
+		return true
+	}
+	return false
+}
+
+// IsKnownProject returns true if the given project name is a known global or compute project.
+func IsKnownProject(project string) bool {
+	return IsGlobalProject(project) || IsComputeProject(project)
 }
 
 // ArtifactsProjects returns the list of artifact projects to check for releases.
@@ -191,21 +216,13 @@ func AccountsProjectFromEnv(env string) string {
 // AccountsProjectFromProject returns the accounts project for the given project.
 // Accepts both portal and compute projects.
 func AccountsProjectFromProject(project string) string {
-	environment, err := FromProject(project)
-	if err != nil {
-		environment = FromComputeProject(project)
-	}
-	return AccountsProjectFromEnv(environment)
+	return AccountsProjectFromEnv(FromAnyProject(project))
 }
 
 // AccountsDomainFromProject returns the accounts domain for the given project.
 // Accepts both portal and compute projects.
 func AccountsDomainFromProject(project string) string {
-	environment, err := FromProject(project)
-	if err != nil {
-		environment = FromComputeProject(project)
-	}
-	return AccountsDomain(environment)
+	return AccountsDomain(FromAnyProject(project))
 }
 
 // AssetsDomain returns the assets domain for the given environment.

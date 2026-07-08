@@ -9,6 +9,8 @@ import (
 	"slices"
 	"strings"
 	"testing"
+
+	"encoding/json"
 	"time"
 
 	"github.com/google/go-cmp/cmp"
@@ -175,6 +177,38 @@ func TestStore_GetConfiguration(t *testing.T) {
 		} else if err == nil && !test.isValid {
 			t.Errorf("expecting invalid credentials for alias '%s' but got valid", test.alias)
 		}
+	}
+
+	// Test environment fallback behavior
+	envName := "prod"
+	envConfig := NewConfiguration(envName)
+	filename, err := store.getEnvConfigurationFilename(envName)
+	if err != nil {
+		t.Fatalf("failed to get env config filename: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Dir(filename), 0700); err != nil {
+		t.Fatalf("failed to create env config dir: %v", err)
+	}
+	b, err := json.MarshalIndent(envConfig, "", "  ")
+	if err != nil {
+		t.Fatalf("failed to marshal env config: %v", err)
+	}
+	if err := os.WriteFile(filename, b, 0600); err != nil {
+		t.Fatalf("failed to write env config: %v", err)
+	}
+
+	got, err := store.GetConfiguration(projectName)
+	if err != nil {
+		t.Fatalf("GetConfiguration failed: %v", err)
+	}
+	if got.Name != envName {
+		t.Errorf("got config for %q, want %q", got.Name, envName)
+	}
+
+	// Test error when neither exists
+	emptyStore := newStoreForTest(t)
+	if _, err := emptyStore.GetConfiguration("missing-project"); err == nil {
+		t.Errorf("expected error for missing configuration, got nil")
 	}
 }
 

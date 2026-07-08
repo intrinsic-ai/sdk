@@ -5,7 +5,6 @@ package auth
 import (
 	"fmt"
 	"net/http"
-	"strings"
 
 	env "intrinsic/config/environments"
 	"intrinsic/tools/inctl/auth/auth"
@@ -22,14 +21,6 @@ func init() {
 
 	authCmd.AddCommand(printAccessTokenCmd)
 	printAccessTokenCmd.Flags().MarkHidden(orgutil.KeyProject)
-	printAccessTokenCmd.Flags().String(
-		orgutil.KeyEnvironment,
-		"",
-		fmt.Sprintf("Auth environment to use. This should be one of %v. %q is used by default. See http://go/intrinsic-users#environments for the compatible environment corresponding to a cloud project.",
-			strings.Join(env.All, ", "),
-			env.Prod,
-		),
-	)
 	printAccessTokenCmd.Flags().MarkHidden(orgutil.KeyEnvironment)
 	viperutil.BindFlags(printAccessTokenParams, printAccessTokenCmd.Flags(), viperutil.BindToListEnv(orgutil.KeyEnvironment))
 }

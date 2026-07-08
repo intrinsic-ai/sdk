@@ -525,6 +525,7 @@ func TestValidateEnvironmentErrors(t *testing.T) {
 	tests := []struct {
 		desc    string
 		env     string
+		project string
 		wantErr bool
 	}{
 		{
@@ -551,12 +552,31 @@ func TestValidateEnvironmentErrors(t *testing.T) {
 			env:     "foo",
 			wantErr: true,
 		},
+		{
+			desc:    "contradiction",
+			env:     "staging",
+			project: "intrinsic-assets-dev",
+			wantErr: true,
+		},
+		{
+			desc:    "match",
+			env:     "dev",
+			project: "intrinsic-assets-dev",
+			wantErr: false,
+		},
+		{
+			desc:    "unknown project fallback mismatch",
+			env:     "staging",
+			project: "my-customer-test",
+			wantErr: false,
+		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.desc, func(t *testing.T) {
 			v := viper.New()
 			v.Set(KeyEnvironment, tc.env)
+			v.Set(KeyProject, tc.project)
 			if err := ValidateEnvironment(v); err != nil {
 				if !tc.wantErr {
 					t.Errorf("Expected no error, but got %v", err)

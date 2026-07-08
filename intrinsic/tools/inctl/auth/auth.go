@@ -6,6 +6,7 @@ package auth
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/fs"
 	"net/http"
@@ -13,6 +14,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"intrinsic/config/environments"
 
 	log "github.com/golang/glog"
 	"google.golang.org/grpc/metadata"
@@ -25,6 +28,7 @@ const (
 
 	storeDirectory      = "intrinsic/projects"
 	orgStoreDirectory   = "intrinsic/organizations"
+	envStoreDirectory   = "intrinsic/environments"
 	authConfigExtension = ".user-token"
 
 	directoryMode  os.FileMode = 0o700
@@ -259,16 +263,16 @@ func (s *Store) getStoreLocation() (string, error) {
 	return filepath.Join(configDir, storeDirectory), err
 }
 
-func (s *Store) getConfigurationFilename(name string) (string, error) {
-	if name == "" {
-		return "", fmt.Errorf("name name is required")
+func (s *Store) getConfigurationFilename(projectName string) (string, error) {
+	if projectName == "" {
+		return "", fmt.Errorf("project name is required")
 	}
 	storeDir, err := s.getStoreLocation()
 	if err != nil {
 		return "", fmt.Errorf("cannot find configurations: %w", err)
 	}
-	projectFile := fmt.Sprintf("%s%s", name, authConfigExtension)
-	return filepath.Join(storeDir, projectFile), nil
+	projectFilename := projectName + authConfigExtension
+	return filepath.Join(storeDir, projectFilename), nil
 }
 
 // NewConfiguration returns a new, empty ProjectConfiguration for the given
@@ -281,14 +285,34 @@ func NewConfiguration(name string) *ProjectConfiguration {
 	}
 }
 
-// GetConfiguration reads configuration with given name from persistent storage
-// or returns error if such configuration is not found or cannot be opened.
-func (s *Store) GetConfiguration(name string) (*ProjectConfiguration, error) {
-	filename, err := s.getConfigurationFilename(name)
-	if err != nil {
-		return nil, fmt.Errorf("cannot open configuration for name '%s': %w", name, err)
+// GetConfiguration infers environment of the project from the project name.
+// If there's no configuration for this environment, it returns
+// configuration for the given project.
+func (s *Store) GetConfiguration(projectName string) (*ProjectConfiguration, error) {
+	env := environments.FromAnyProject(projectName)
+	if cfg, err := s.GetEnvConfiguration(env); err == nil {
+		return cfg, nil
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return nil, fmt.Errorf("failed to load environment configuration for %q: %w", env, err)
 	}
+	return s.GetProjectConfiguration(projectName)
+}
 
+// GetProjectConfiguration reads the configuration for a given project from persistent storage.
+// It explicitly does not fall back to environment configurations.
+func (s *Store) GetProjectConfiguration(projectName string) (*ProjectConfiguration, error) {
+	filename, err := s.getConfigurationFilename(projectName)
+	if err != nil {
+		return nil, fmt.Errorf("cannot open configuration for project name %q: %w", projectName, err)
+	}
+	cfg, err := readConfigurationFromFile(filename)
+	if err != nil {
+		return nil, fmt.Errorf("cannot read project configuration: %w", err)
+	}
+	return cfg, nil
+}
+
+func readConfigurationFromFile(filename string) (*ProjectConfiguration, error) {
 	file, err := os.Open(filename)
 	if err != nil {
 		return nil, fmt.Errorf("cannot open configuration file: %w", err)
@@ -296,15 +320,14 @@ func (s *Store) GetConfiguration(name string) (*ProjectConfiguration, error) {
 	defer file.Close()
 
 	var result ProjectConfiguration
-	err = json.NewDecoder(file).Decode(&result)
-	if err != nil {
-		err = fmt.Errorf("cannot read name configuration: %w", err)
+	if err := json.NewDecoder(file).Decode(&result); err != nil {
+		return nil, fmt.Errorf("cannot read configuration: %w", err)
 	}
 	// ensure that tokens are always populated
 	if result.Tokens == nil {
 		result.Tokens = map[string]*ProjectToken{}
 	}
-	return &result, err
+	return &result, nil
 }
 
 // WriteConfiguration will always return config supplied as parameter. Any error
@@ -368,16 +391,6 @@ func (s *Store) ListConfigurations() ([]string, error) {
 	}
 
 	return result, nil
-}
-
-func (s *Store) removeAlias(configurationName string, alias string) error {
-	configuration, err := s.GetConfiguration(configurationName)
-	if err != nil {
-		return err
-	}
-	delete(configuration.Tokens, alias)
-	_, err = s.WriteConfiguration(configuration)
-	return err
 }
 
 // RemoveConfiguration removes the stored configuration for the given project
@@ -573,7 +586,7 @@ func (s *Store) RemoveOrganization(name string) error {
 	return nil
 }
 
-// RemoveAllKnownCredentials removes all known organizations and projects
+// RemoveAllKnownCredentials removes all known organizations, environments, and projects
 // from authorization store. It operates on filesystem and does not attempt
 // to read credentials. Use for full removal of credentials.
 func (s *Store) RemoveAllKnownCredentials() error {
@@ -586,6 +599,16 @@ func (s *Store) RemoveAllKnownCredentials() error {
 		return err
 	}
 	location, err = s.orgStoreLocation()
+	if err != nil {
+		return err
+	}
+
+	err = filepath.WalkDir(location, s.deleteFiles)
+	if err != nil {
+		return err
+	}
+
+	location, err = s.getEnvStoreLocation()
 	if err != nil {
 		return err
 	}
@@ -609,4 +632,45 @@ func (s *Store) deleteFiles(path string, de fs.DirEntry, err error) error {
 		}
 	}
 	return nil
+}
+
+func (s *Store) GetEnvConfiguration(env string) (*ProjectConfiguration, error) {
+	filename, err := s.getEnvConfigurationFilename(env)
+	if err != nil {
+		return nil, fmt.Errorf("cannot open configuration for environment %q: %w", env, err)
+	}
+	cfg, err := readConfigurationFromFile(filename)
+	if err != nil {
+		return nil, fmt.Errorf("cannot read env configuration: %w", err)
+	}
+	return cfg, nil
+}
+
+// HasEnvConfiguration check if a configuration exists for a given environment.
+func (s *Store) HasEnvConfiguration(env string) bool {
+	filename, err := s.getEnvConfigurationFilename(env)
+	if err != nil {
+		return false
+	}
+	_, err = os.Stat(filename)
+	return !errors.Is(err, os.ErrNotExist)
+}
+
+func (s *Store) getEnvConfigurationFilename(env string) (string, error) {
+	if env == "" {
+		return "", fmt.Errorf("environment name is required")
+	}
+
+	storeDir, err := s.getEnvStoreLocation()
+	if err != nil {
+		return "", fmt.Errorf("cannot find env configurations: %w", err)
+	}
+
+	envFilename := env + authConfigExtension
+	return filepath.Join(storeDir, envFilename), nil
+}
+
+func (s *Store) getEnvStoreLocation() (string, error) {
+	configDir, err := s.getConfigDir()
+	return filepath.Join(configDir, envStoreDirectory), err
 }
