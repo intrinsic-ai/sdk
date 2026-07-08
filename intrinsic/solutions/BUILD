@@ -306,6 +306,9 @@ py_library(
         ":deployments",
         ":execution",
         ":utils",
+        # The calibration service API is exposed without client at the moment.
+        "//intrinsic/perception/proto/v1:calibration_service_py_pb2",
+        "//intrinsic/perception/proto/v1:calibration_service_py_pb2_grpc",
         "//intrinsic/perception/client/v1/python/camera:_camera_utils",
         "//intrinsic/perception/client/v1/python/camera:camera_client",
         "//intrinsic/perception/client/v1/python/camera:data_classes",

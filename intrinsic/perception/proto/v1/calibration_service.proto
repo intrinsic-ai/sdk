@@ -124,8 +124,7 @@ message CalibrationRequest {
   // enable parallel camera-to-robot calibrations, but restrict it to cameras
   // of the same type (moving or stationary). Mixing camera types would be
   // complicated and possibly unnecessary.
-  CameraToRobotCalibrationRequest.CameraToRobotCalibrationType
-      camera_to_robot_calibration_type = 3;
+  CameraToRobotCalibrationType camera_to_robot_calibration_type = 3;
   // Whether to calibrate the camera-to-camera(s) pose.
   bool calibrate_camera_to_camera = 4;
   // Whether to compute the transforms between all of the individual captures

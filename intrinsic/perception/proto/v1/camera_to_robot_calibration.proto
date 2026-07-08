@@ -8,6 +8,28 @@ import "intrinsic/math/proto/pose.proto";
 
 option go_package = "intrinsic/perception/proto/v1/camera_to_robot_calibration_go_proto";
 
+// The type of camera-to-robot calibration.
+enum CameraToRobotCalibrationType {
+  CAMERA_TO_ROBOT_CALIBRATION_TYPE_UNSPECIFIED = 0;
+  // The camera is stationary (fixed in world-space/relative to the robot's
+  // base). An object is attached (typically a calibration plate) to the
+  // robot's flange and was detected in the camera image from varying robot
+  // flange positions.
+  //
+  // Object -?- Flange   "!": known poses (input)
+  //   !         !       "-?-": unknown poses (output)
+  // Camera -?- Base
+  CAMERA_TO_ROBOT_CALIBRATION_TYPE_STATIONARY_CAMERA = 1;
+  // The camera is attached to the robot's flange. A stationary object (fixed
+  // in world-space/relative to the robot' base) was detected in the camera
+  // image from varying robot flange positions.
+  //
+  // Camera -?- Flange   "!": known poses (input)
+  //   !         !       "-?-": unknown poses (output)
+  // Object -?- Base
+  CAMERA_TO_ROBOT_CALIBRATION_TYPE_MOVING_CAMERA = 2;
+}
+
 // Specifies a camera-to-robot-calibration setup to be solved for the missing,
 // unknown poses.
 //
@@ -25,27 +47,6 @@ option go_package = "intrinsic/perception/proto/v1/camera_to_robot_calibration_g
 // for all i:
 //   (A_t_D)_i ~= A_t_B * (B_t_C)_i * C_t_D
 message CameraToRobotCalibrationRequest {
-  enum CameraToRobotCalibrationType {
-    UNKNOWN = 0;
-    // The camera is stationary (fixed in world-space/relative to the robot's
-    // base). An object is attached (typically a calibration plate) to the
-    // robot's flange and was detected in the camera image from varying robot
-    // flange positions.
-    //
-    // Object -?- Flange   "!": known poses (input)
-    //   !         !       "-?-": unknown poses (output)
-    // Camera -?- Base
-    STATIONARY_CAMERA = 1;
-    // The camera is attached to the robot's flange. A stationary object (fixed
-    // in world-space/relative to the robot' base) was detected in the camera
-    // image from varying robot flange positions.
-    //
-    // Camera -?- Flange   "!": known poses (input)
-    //   !         !       "-?-": unknown poses (output)
-    // Object -?- Base
-    MOVING_CAMERA = 2;
-  }
-
   // A pair of input poses corresponding to one possible state of the
   // camera-to-robot-calibration setup.
   message InputPosePair {
