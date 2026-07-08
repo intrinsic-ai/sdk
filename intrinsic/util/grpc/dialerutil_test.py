@@ -1,5 +1,7 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
+"""Tests for dialerutil."""
+
 from unittest import mock
 
 from absl.testing import absltest
@@ -54,7 +56,7 @@ class DialerutilTest(absltest.TestCase):
         name="test-project",
         tokens={"default": auth.ProjectToken("test-token", None)},
     )
-    channel = dialerutil._create_channel(
+    channel = dialerutil.create_channel_from_cluster(
         org_info=auth.OrgInfo(organization="test-org", project="test-project"),
         cluster="test-cluster",
     )
@@ -69,6 +71,7 @@ class DialerutilTest(absltest.TestCase):
       mock_metadata_call_credentials: mock.MagicMock,
       mock_secure_channel: mock.MagicMock,
   ):
+    # pylint: disable=protected-access
     mock_parse_info_from_string.return_value = auth.OrgInfo(
         organization="test-org", project="test-project"
     )
@@ -87,6 +90,45 @@ class DialerutilTest(absltest.TestCase):
             for c in mock_metadata_call_credentials.call_args_list
         ),
         "grpc.metadata_call_credentials was not called with _AuthProxy",
+    )
+    self.assertTrue(mock_secure_channel.called)
+
+  @mock.patch.object(grpc, "secure_channel", autospec=True)
+  @mock.patch.object(grpc, "metadata_call_credentials", autospec=True)
+  @mock.patch.object(auth, "parse_info_from_string", autospec=True)
+  def test_create_channel_from_token_with_no_cluster(
+      self,
+      mock_parse_info_from_string: mock.MagicMock,
+      mock_metadata_call_credentials: mock.MagicMock,
+      mock_secure_channel: mock.MagicMock,
+  ):
+    # pylint: disable=protected-access
+    mock_parse_info_from_string.return_value = auth.OrgInfo(
+        organization="test-org", project="test-project"
+    )
+    mock_metadata_call_credentials.return_value = mock.MagicMock()
+
+    dialerutil.create_channel_from_token(
+        auth_token="test-auth-token",
+        org="test-org",
+        cluster=None,
+    )
+
+    mock_parse_info_from_string.assert_called_with("test-org")
+    self.assertTrue(
+        any(
+            isinstance(c.args[0], dialerutil._AuthProxy)
+            for c in mock_metadata_call_credentials.call_args_list
+        ),
+        "grpc.metadata_call_credentials was not called with _AuthProxy",
+    )
+    self.assertFalse(
+        any(
+            isinstance(c.args[0], dialerutil._ServerName)
+            for c in mock_metadata_call_credentials.call_args_list
+        ),
+        "grpc.metadata_call_credentials was called with _ServerName when"
+        " cluster is None",
     )
     self.assertTrue(mock_secure_channel.called)
 

@@ -153,7 +153,7 @@ def create_channel_from_solution(
 def create_channel_from_token(
     auth_token: str,
     org: str,
-    cluster: str,
+    cluster: str | None,
     grpc_options: list[tuple[str, Any]] | None = None,
 ) -> grpc.Channel:
   """Creates a gRPC channel based on the provided token.
