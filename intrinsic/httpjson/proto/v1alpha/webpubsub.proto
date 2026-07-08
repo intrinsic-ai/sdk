@@ -7,7 +7,9 @@ package intrinsic.httpjson.v1alpha;
 option go_package = "intrinsic/httpjson/proto/v1alpha/webpubsub_go_proto";
 
 import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
 import "google/protobuf/empty.proto";
+import "intrinsic/httpjson/proto/v1alpha/controlplane.proto";
 
 service WebPubSub {
   // Generates transient WebRTC TURN credentials.
@@ -16,6 +18,12 @@ service WebPubSub {
     option (google.api.http) = {
       post: "/webpubsub/v1alpha:generateTurnCredentials"
       body: "*"
+    };
+  }
+  rpc ListConnectedClients(ListConnectedClientsRequest)
+      returns (ListConnectedClientsResponse) {
+    option (google.api.http) = {
+      get: "/webpubsub/v1alpha/clients"
     };
   }
 }
@@ -31,4 +39,67 @@ message GenerateTurnCredentialsResponse {
 
   // A transient password.
   string password = 3;
+}
+
+message ListConnectedClientsRequest {
+  int32 page_size = 1 [(google.api.field_behavior) = OPTIONAL];
+  string page_token = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message ListConnectedClientsResponse {
+  repeated ConnectedClient clients = 1;
+  string next_page_token = 2;
+}
+
+message ControlPlaneStatistics {
+  // The number of control plane messages sent to the client.
+  uint64 messages_to_client_count = 1;
+
+  // The number of control plane messages received from the client.
+  uint64 messages_from_client_count = 2;
+
+  // The number of control plane error messages sent to the client.
+  uint64 errors_to_client_count = 3;
+
+  // The number of explicit control plane error messages received from the
+  // client.
+  uint64 errors_from_client_count = 4;
+}
+
+message DataPlaneStatistics {
+  // The number of data plane messages sent to the client.
+  uint64 messages_to_client_count = 1;
+
+  // The number of data plane messages received from the client.
+  uint64 messages_from_client_count = 2;
+
+  // The number of data plane error messages sent to the client.
+  uint64 errors_to_client_count = 3;
+
+  // The number of explicit data plane error messages received from the client.
+  uint64 errors_from_client_count = 4;
+}
+
+message SubscriptionStatistics {
+  // Number of messages dropped because the payload type did not match expected
+  // type.
+  uint64 type_mismatch_drops_count = 1;
+  // Number of messages dropped due to rate limiting (token bucket exhaustion).
+  uint64 rate_limit_drops_count = 2;
+  // Number of messages successfully forwarded to the WebRTC data channel.
+  uint64 messages_forwarded_count = 3;
+}
+
+message ActiveSubscription {
+  // The original subscription request from the client.
+  intrinsic.httpjson.v1alpha.Subscribe spec = 1;
+  // Live runtime statistics for this subscription.
+  SubscriptionStatistics statistics = 2;
+}
+
+message ConnectedClient {
+  repeated ActiveSubscription active_subscriptions = 1;
+  repeated intrinsic.httpjson.v1alpha.AdvertisePublisher active_publishers = 2;
+  ControlPlaneStatistics control_plane_statistics = 3;
+  DataPlaneStatistics data_plane_statistics = 4;
 }

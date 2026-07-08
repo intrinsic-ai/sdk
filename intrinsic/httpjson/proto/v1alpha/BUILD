@@ -8,7 +8,9 @@ proto_library(
     srcs = ["webpubsub.proto"],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
+        ":controlplane_proto",
         "@com_google_googleapis//google/api:annotations_proto",
+        "@com_google_googleapis//google/api:field_behavior_proto",
         "@com_google_protobuf//:empty_proto",
     ],
 )
@@ -26,6 +28,71 @@ go_proto_library(
     ],
     visibility = ["//intrinsic:public_api_users"],
     deps = [
+        ":controlplane_go_proto",
         "@org_golang_google_genproto_googleapis_api//annotations",
+    ],
+)
+
+proto_library(
+    name = "signalling_proto",
+    srcs = ["signalling.proto"],
+    visibility = ["//intrinsic:public_api_users"],
+)
+
+go_proto_library(
+    name = "signalling_go_proto",
+    compilers = ["@io_bazel_rules_go//proto:go_proto"],
+    importpath = "intrinsic/httpjson/proto/v1alpha/signalling_go_proto",
+    protos = [
+        ":signalling_proto",
+    ],
+    visibility = ["//intrinsic:public_api_users"],
+)
+
+proto_library(
+    name = "controlplane_proto",
+    srcs = ["controlplane.proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        ":signalling_proto",
+        "@com_google_googleapis//google/rpc:status_proto",
+    ],
+)
+
+go_proto_library(
+    name = "controlplane_go_proto",
+    compilers = ["@io_bazel_rules_go//proto:go_proto"],
+    importpath = "intrinsic/httpjson/proto/v1alpha/controlplane_go_proto",
+    protos = [
+        ":controlplane_proto",
+    ],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        ":signalling_go_proto",
+        "@org_golang_google_genproto_googleapis_rpc//status",
+    ],
+)
+
+proto_library(
+    name = "dataplane_proto",
+    srcs = ["dataplane.proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        "//intrinsic/platform/pubsub/adapters:pubsub_proto",
+        "@com_google_googleapis//google/rpc:status_proto",
+    ],
+)
+
+go_proto_library(
+    name = "dataplane_go_proto",
+    compilers = ["@io_bazel_rules_go//proto:go_proto"],
+    importpath = "intrinsic/httpjson/proto/v1alpha/dataplane_go_proto",
+    protos = [
+        ":dataplane_proto",
+    ],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        "//intrinsic/platform/pubsub/adapters:pubsub_go_proto",
+        "@org_golang_google_genproto_googleapis_rpc//status",
     ],
 )
