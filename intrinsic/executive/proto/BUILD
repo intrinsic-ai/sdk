@@ -79,7 +79,10 @@ go_proto_library(
 proto_library(
     name = "code_execution_info_service_proto",
     srcs = ["code_execution_info_service.proto"],
-    deps = ["@com_google_protobuf//:descriptor_proto"],
+    deps = [
+        ":code_execution_proto",
+        "@com_google_protobuf//:descriptor_proto",
+    ],
 )
 
 py_proto_library(
@@ -115,7 +118,10 @@ go_proto_library(
     ],
     importpath = "intrinsic/executive/proto/code_execution_info_service_go_proto",
     protos = [":code_execution_info_service_proto"],
-    deps = ["@org_golang_google_protobuf//types/descriptorpb:go_default_library"],
+    deps = [
+        ":code_execution_go_proto",
+        "@org_golang_google_protobuf//types/descriptorpb:go_default_library",
+    ],
 )
 
 # executive_service

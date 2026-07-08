@@ -10,14 +10,24 @@ import "intrinsic/executive/proto/any_with_assignments.proto";
 
 option go_package = "intrinsic/executive/proto/code_execution_go_proto";
 
-// Python code to be executed. Not a self-contained Python script - must fit
-// into the Python template provided by the code execution service.
-// The function body follows this signature:
-// def compute(
-//       params: run_python_code_pb2.Parameters,
-//       context: run_python_code.BasicComputeContext,
-//     ) -> Optional[run_python_code_pb2.ReturnValue]:
+// Python code to be executed. Not a self-contained Python script - must match
+// the Python template provided by the code execution service (see
+// [intrinsic_proto.executive.CodeExecutionInfoService.GetPythonTemplate]).
 message PythonCode {
+  // Source code of the function body to be executed in the form of a multiline
+  // string which must be indented by at least one whitespace character.
+  //
+  // The function body follows a prescribed signature like this:
+  //
+  // ```
+  // def compute(
+  //     params: node_pb2.Parameters | None,
+  //     context: basic_compute_context.BasicComputeContext,
+  // ) -> node_pb2.ReturnValue | None:
+  // ```
+  //
+  // To get the exact signature use
+  // [intrinsic_proto.executive.CodeExecutionInfoService.GetPythonTemplate].
   string function_body = 1;
 }
 

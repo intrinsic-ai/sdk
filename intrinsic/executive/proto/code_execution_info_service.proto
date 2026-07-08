@@ -5,6 +5,7 @@ syntax = "proto3";
 package intrinsic_proto.executive;
 
 import "google/protobuf/descriptor.proto";
+import "intrinsic/executive/proto/code_execution.proto";
 
 option go_package = "intrinsic/executive/proto/code_execution_info_service_go_proto";
 
@@ -40,11 +41,17 @@ message GetPythonTemplateRequest {
   // returned. This should be the same as
   // [CodeExecution.file_descriptor_set][intrinsic_proto.executive.CodeExecution.file_descriptor_set].
   google.protobuf.FileDescriptorSet file_descriptor_set = 6;
+
+  // The Python code to be executed (optional). If left unset, the returned
+  // template string will contain the placeholder "{compute_body}" to mark the
+  // location where the user provided code (see [PythonCode.function_body]) will
+  // be inserted.
+  PythonCode python_code = 7;
 }
 
 message GetPythonTemplateResponse {
-  // A template string containing the placeholder "{compute_body}" for the
-  // user's python code. When expanded, produces a full, valid Python script
-  // Also see [PythonCode][intrinsic_proto.executive.PythonCode].
+  // A Python script showing the code that would be executed based on the given
+  // input parameters. Contains the user's PythonCode - if given in the request
+  // - or else the placeholder string "{compute_body}".
   string code_template = 1;
 }
