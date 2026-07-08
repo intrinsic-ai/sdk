@@ -1,0 +1,43 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic.httpjson.v1alpha;
+
+option go_package = "intrinsic/httpjson/proto/v1alpha/dataplane_go_proto";
+
+import "google/rpc/status.proto";
+import "intrinsic/platform/pubsub/adapters/pubsub.proto";
+
+// Publishes a message to a topic.
+message PubSubMessage {
+  // Identifies the topic to publish to.
+  string topic = 1;
+  // Carries the published message payload.
+  intrinsic_proto.pubsub.PubSubPacket pubsub_packet = 2;
+}
+
+// Transmits a chunk of a fragmented data packet.
+message DataPacketChunk {
+  // Identifies the reassembled packet uniquely. Maximum 64 characters.
+  string id = 1;
+  // Holds a partial serialized data packet.
+  string data = 2;
+  // Indicates the 1-based chunk sequence number.
+  uint32 num = 3;
+  // Specifies the total number of chunks.
+  uint32 total = 4;
+}
+
+// Encapsulates a data plane payload or chunk.
+message DataPacket {
+  // Carries one data plane payload.
+  oneof payload {
+    // Returns a data plane error using standard Google RPC status.
+    google.rpc.Status error = 1;
+    // Publishes a topic message.
+    PubSubMessage message = 2;
+    // Delivers a fragmented packet chunk.
+    DataPacketChunk chunk = 3;
+  }
+}

@@ -127,15 +127,6 @@ proto_library(
 )
 
 proto_library(
-    name = "camera_to_robot_calibration_with_metadata",
-    srcs = ["camera_to_robot_calibration_with_metadata.proto"],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [
-        ":hand_eye_calibration",
-    ],
-)
-
-proto_library(
     name = "image_buffer_proto",
     srcs = ["image_buffer.proto"],
     visibility = ["//intrinsic:public_api_users"],
@@ -549,28 +540,6 @@ go_proto_library(
         "//intrinsic/math/proto:pose_go_proto",
         "//intrinsic/math/proto:quaternion_go_proto",
         "//intrinsic/perception/proto:pattern_detection_result_go_proto",
-    ],
-)
-
-cc_proto_library(
-    name = "camera_to_robot_calibration_with_metadata_cc_proto",
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":camera_to_robot_calibration_with_metadata"],
-)
-
-py_proto_library(
-    name = "camera_to_robot_calibration_with_metadata_py_pb2",
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":camera_to_robot_calibration_with_metadata"],
-)
-
-go_proto_library(
-    name = "camera_to_robot_calibration_with_metadata_go_proto",
-    importpath = "intrinsic/perception/proto/camera_to_robot_calibration_with_metadata_go_proto",
-    protos = [":camera_to_robot_calibration_with_metadata"],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [
-        ":hand_eye_calibration_go_proto",
     ],
 )
 

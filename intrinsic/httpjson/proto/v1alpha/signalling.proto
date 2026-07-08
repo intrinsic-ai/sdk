@@ -1,0 +1,43 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic.httpjson.v1alpha;
+
+option go_package = "intrinsic/httpjson/proto/v1alpha/signalling_go_proto";
+
+// Matches the RtcSessionDescription structure when converted to ProtoJSON
+// format https://w3c.github.io/webrtc-pc/#dom-rtcsessiondescription-tojson
+message RtcSessionDescription {
+  // Defines the allowed string values for the "type" field in WebRTC.
+  // Values must be lowercase to match standard JSON serialization of
+  // RTCSdpType.
+  enum SdpType {
+    SDP_TYPE_UNSPECIFIED = 0;  // Proto3 enums must start with a 0 default
+    offer = 1;
+    pranswer = 2;
+    answer = 3;
+    rollback = 4;
+  }
+
+  SdpType type = 1;
+  string sdp = 2;
+}
+
+// Matches the RtcIceCandidate structure when converted to ProtoJSON format
+// https://w3c.github.io/webrtc-pc/#dom-rtcicecandidate-tojson
+message RtcIceCandidate {
+  // The raw candidate attribute string
+  string candidate = 1;
+
+  // The media stream identification-tag.
+  // marked optional so it can be omitted or read as null if absent in JSON
+  optional string sdp_mid = 2;
+
+  // The zero-based index of the m-line in the SDP.
+  // ProtoJSON automatically camelCases sdp_m_line_index to "sdpMLineIndex"
+  optional int32 sdp_m_line_index = 3;
+
+  // The ICE username fragment
+  optional string username_fragment = 4;
+}

@@ -1,0 +1,76 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic.httpjson.v1alpha;
+
+option go_package = "intrinsic/httpjson/proto/v1alpha/controlplane_go_proto";
+
+import "google/rpc/status.proto";
+import "intrinsic/httpjson/proto/v1alpha/signalling.proto";
+
+// Throttles message throughput using a token bucket.
+message RateLimit {
+  // Limits steady-state messages per second.
+  uint32 messages_per_second = 1;
+  // Limits instantaneous message burst volume.
+  uint32 token_bucket_capacity = 2;
+}
+
+// Subscribes to a topic.
+message Subscribe {
+  // Identifies the topic to subscribe to.
+  string topic = 1;
+  // Specifies the expected protobuf message type.
+  optional string type = 2;
+  // Routes messages through this WebRTC data channel.
+  string data_channel = 3;
+  // Enforces message rate limits.
+  optional RateLimit rate_limit = 4;
+}
+
+// Unsubscribes from a topic.
+message Unsubscribe {
+  // Identifies the topic to unsubscribe from.
+  string topic = 1;
+  // Specifies the expected protobuf message type.
+  optional string type = 2;
+}
+
+// Advertises a publisher on a topic.
+message AdvertisePublisher {
+  // Identifies the topic to publish to.
+  string topic = 1;
+  // Specifies the advertised protobuf message type for introspection.
+  // This field is only used for introspection purposes.
+  optional string type = 2;
+}
+
+// Unadvertises a publisher on a topic.
+message UnadvertisePublisher {
+  // Identifies the topic to unadvertise.
+  string topic = 1;
+  // This field is only used for introspection purposes.
+  optional string type = 2;
+}
+
+// Encapsulates a WebRTC signaling or control instruction.
+message ControlPacket {
+  // Carries one signaling or control instruction.
+  oneof payload {
+    // Negotiates WebRTC connection parameters.
+    RtcSessionDescription session_description = 1;
+    // Provides a WebRTC ICE candidate.
+    RtcIceCandidate ice_candidate = 2;
+    // Returns a control plane error.
+    google.rpc.Status error = 3;
+    // Subscribes to a topic.
+    Subscribe subscribe = 4;
+    // Unsubscribes from a topic.
+    Unsubscribe unsubscribe = 5;
+    // Advertises a publisher on a topic.
+    AdvertisePublisher advertise_publisher = 6;
+    // Unadvertises a publisher on a topic.
+    UnadvertisePublisher unadvertise_publisher = 7;
+  }
+}
