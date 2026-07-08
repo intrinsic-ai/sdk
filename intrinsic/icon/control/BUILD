@@ -75,5 +75,8 @@ cc_library(
     srcs = ["logging_mode.cc"],
     hdrs = ["logging_mode.h"],
     visibility = ["//intrinsic/icon:__subpackages__"],
-    deps = ["//intrinsic/icon/proto:logging_mode_cc_proto"],
+    deps = [
+        "//intrinsic/icon/proto:logging_mode_cc_proto",
+        "@abseil-cpp//absl/status",
+    ],
 )
