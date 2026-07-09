@@ -3,6 +3,7 @@
 """Bazel rules for Data assets."""
 
 load("@bazel_lib//lib:paths.bzl", "to_rlocation_path")
+load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@com_google_protobuf//bazel/common:proto_info.bzl", "ProtoInfo")
 load("//intrinsic/assets/build_defs:asset.bzl", "AssetInfo", "AssetLocalInfo")
 load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "ProtoSourceCodeInfo", "gen_source_code_info_descriptor_set")
@@ -36,17 +37,18 @@ def _intrinsic_data_impl(ctx):
         before_each = "--file_descriptor_set_path",
         uniquify = True,
     ).add_all(
-        ctx.files.data,
-        before_each = "--referenced_file_path",
-    ).add_all(
-        ctx.files.exclude_data_from_bundle,
-        before_each = "--excluded_referenced_file_path",
+        # Map manifest-relative paths to execroot paths so datagen can locate generated files.
+        [
+            paths.relativize(f.short_path, paths.dirname(ctx.file.manifest.short_path)) + "=" + f.path
+            for f in ctx.files.data
+        ],
+        before_each = "--reference_to_path",
     ).add_all(
         [
-            to_rlocation_path(ctx, f)
+            f.path + "=" + to_rlocation_path(ctx, f)
             for f in ctx.files.exclude_data_from_bundle
         ],
-        before_each = "--remapped_referenced_file_path",
+        before_each = "--replace_with_external_reference",
     )
 
     ctx.actions.run(
@@ -115,21 +117,10 @@ def _intrinsic_data_impl(ctx):
 
 intrinsic_data = rule(
     attrs = {
-        "manifest": attr.label(
-            allow_single_file = [".textproto"],
-            doc = "A manifest that provides the data payload and metadata.",
-            mandatory = True,
-        ),
         "data": attr.label_list(
             allow_empty = True,
             allow_files = True,
             doc = "Data files that are referenced via ReferencedData in the data payload.",
-            mandatory = False,
-        ),
-        "exclude_data_from_bundle": attr.label_list(
-            allow_empty = True,
-            allow_files = True,
-            doc = "Referenced data files to exclude from the output tar bundle.",
             mandatory = False,
         ),
         "deps": attr.label_list(
@@ -138,14 +129,25 @@ intrinsic_data = rule(
             mandatory = True,
             providers = [ProtoInfo],
         ),
-        "_datagen": attr.label(
-            cfg = "exec",
-            default = Label("//intrinsic/assets/data/build_defs:datagen_main"),
-            executable = True,
+        "exclude_data_from_bundle": attr.label_list(
+            allow_empty = True,
+            allow_files = True,
+            doc = "Referenced data files to exclude from the output tar bundle.",
+            mandatory = False,
+        ),
+        "manifest": attr.label(
+            allow_single_file = [".textproto"],
+            doc = "A manifest that provides the data payload and metadata.",
+            mandatory = True,
         ),
         "_assetlocalinfogen": attr.label(
             cfg = "exec",
             default = Label("//intrinsic/assets/build_defs:assetlocalinfogen"),
+            executable = True,
+        ),
+        "_datagen": attr.label(
+            cfg = "exec",
+            default = Label("//intrinsic/assets/data/build_defs:datagen_main"),
             executable = True,
         ),
     },

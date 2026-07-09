@@ -29,15 +29,22 @@ import (
 type CreateDataBundleOptions struct {
 	// ManifestPath is the path to a DataManifest .textproto file.
 	ManifestPath string
-	// ReferencedFilePaths is a list of paths to files that are referenced in the Data Asset.
-	ReferencedFilePaths []string
-	// ExternalReferencedFilePaths is a map specifying the referenced files to exclude from the .tar
-	// bundle and the paths to which to remap those references in the payload.
+	// ReferenceToPath is a map of file references as specified in a manifest to file paths
+	// relative to the current working directory. Data Asset manifests specify file references
+	// as paths relative to the manifest. However, the intrinsic_data Bazel rule invokes the
+	// datagen tool from a Bazel action. Bazel will run the tool in that action's execroot,
+	// and it has its own conventions about where in the execroot it places files. This mapping
+	// allows people to specify paths in the manifest that make sense in the source tree, while
+	// letting intrinsic_data tell datagen where Bazel actually put the files when the Bazel
+	// action runs this tool.
+	ReferenceToPath map[string]string
+	// ExternalReferencedFilePaths is a map specifying files on disk to exclude from
+	// the .tar bundle, and external references to replace those files with.
 	//
-	// Keys are paths to referenced files to exclude.
-	// Values are remapped paths for references in the output payload.
+	// Keys are paths to files relative to the current working directory.
+	// Values are external references to put in the Data Asset instead of those files.
 	//
-	// Excluded files are left out of the .tar bundle and are kept as external references in the
+	// Files excluded here are left out of the .tar bundle and are kept as external references in the
 	// payload along with digests to ensure the data are not modified after bundle creation.
 	ExternalReferencedFilePaths map[string]string
 	// FileDescriptorSetPaths is the paths to binary file descriptor set protos to be used to resolve
@@ -88,13 +95,16 @@ func CreateDataBundle(ctx context.Context, opts *CreateDataBundleOptions) error 
 		},
 	}
 
-	// Resolve relative file path references (that should be relative to the manifest directory).
-	manifestDir := filepath.Dir(opts.ManifestPath)
 	if payload, err := utils.ExtractPayload(da); err != nil {
 		return fmt.Errorf("failed to extract data payload: %w", err)
 	} else if payloadOut, err := referenceddata.WalkUnique(payload, func(ref *referenceddata.ReferencedData) error {
 		if ref.Type() == referenceddata.FileReferenceType && !filepath.IsAbs(ref.Reference()) {
-			ref.SetReference(filepath.Join(manifestDir, ref.Reference()))
+			// Translate file references to their actual locations on disk
+			execPath, ok := opts.ReferenceToPath[ref.Reference()]
+			if !ok {
+				return fmt.Errorf("referenced file %q not found in ReferenceToPath; check that the file is included in the data attribute of intrinsic_data", ref.Reference())
+			}
+			ref.SetReference(execPath)
 		}
 		return nil
 	}); err != nil {

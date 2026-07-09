@@ -6,6 +6,7 @@ package main
 import (
 	"context"
 	"flag"
+	"strings"
 
 	"intrinsic/assets/data/build_defs/datagen"
 	"intrinsic/production/intrinsic"
@@ -15,26 +16,39 @@ import (
 )
 
 var (
-	manifestPath                = flag.String("manifest_path", "", "Path to the DataManifest textproto file.")
-	referencedFilePaths         = intrinsicflag.MultiString("referenced_file_path", nil, "Path to a file that is referenced in the Data Asset. Can be repeated.")
-	excludedReferencedFilePaths = intrinsicflag.MultiString("excluded_referenced_file_path", nil, "Path to a referenced file that should not be copied into the bundle. Can be repeated.")
-	remappedReferencedFilePaths = intrinsicflag.MultiString("remapped_referenced_file_path", nil, "For each excluded referenced path, a remapped referenced path for the output .tar bundle. Can be repeated.")
-	fileDescriptorSetPaths      = intrinsicflag.MultiString("file_descriptor_set_path", nil, "Path to a binary file descriptor set proto to be used to resolve the data payload. Can be repeated.")
-	outputBundlePath            = flag.String("output_bundle_path", "", "Output path for the .tar bundle.")
+	manifestPath                 = flag.String("manifest_path", "", "Path to the DataManifest textproto file.")
+	referenceToPath              = intrinsicflag.MultiString("reference_to_path", nil, "Map a file reference in a manifest to a file path relative to the current working directory 'file_reference=path'. Can be repeated.")
+	replaceWithExternalReference = intrinsicflag.MultiString("replace_with_external_reference", nil, "Replace all references to a file on disk with an external reference in the payload as 'path=external_ref'. Can be repeated.")
+	fileDescriptorSetPaths       = intrinsicflag.MultiString("file_descriptor_set_path", nil, "Path to a binary file descriptor set proto to be used to resolve the data payload. Can be repeated.")
+	outputBundlePath             = flag.String("output_bundle_path", "", "Output path for the .tar bundle.")
 )
 
 func main() {
 	intrinsic.Init()
 
-	externalReferencedFilePaths := make(map[string]string)
-	for i, excludedFilePath := range *excludedReferencedFilePaths {
-		externalReferencedFilePaths[excludedFilePath] = (*remappedReferencedFilePaths)[i]
+	externalReferencedFilePaths := make(map[string]string, len(*replaceWithExternalReference))
+	for _, entry := range *replaceWithExternalReference {
+		parts := strings.SplitN(entry, "=", 2)
+		if len(parts) != 2 {
+			log.Exitf("invalid --replace_with_external_reference flag %q: expected path=external_ref", entry)
+		}
+		externalReferencedFilePaths[parts[0]] = parts[1]
+	}
+
+	// Resolve file references to their real locations on disk
+	referenceToPathMap := make(map[string]string, len(*referenceToPath))
+	for _, entry := range *referenceToPath {
+		parts := strings.SplitN(entry, "=", 2)
+		if len(parts) != 2 {
+			log.Exitf("invalid --reference_to_path flag %q: expected file_reference=path", entry)
+		}
+		referenceToPathMap[parts[0]] = parts[1]
 	}
 
 	ctx := context.Background()
 	if err := datagen.CreateDataBundle(ctx, &datagen.CreateDataBundleOptions{
 		ManifestPath:                *manifestPath,
-		ReferencedFilePaths:         *referencedFilePaths,
+		ReferenceToPath:             referenceToPathMap,
 		ExternalReferencedFilePaths: externalReferencedFilePaths,
 		FileDescriptorSetPaths:      *fileDescriptorSetPaths,
 		OutputBundlePath:            *outputBundlePath,
