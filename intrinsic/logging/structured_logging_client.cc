@@ -17,6 +17,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
+#include "absl/synchronization/mutex.h"
 #include "absl/time/time.h"
 #include "absl/types/span.h"
 #include "grpcpp/channel.h"
@@ -28,6 +29,7 @@
 #include "intrinsic/util/proto_time.h"
 #include "intrinsic/util/status/status_conversion_grpc.h"
 #include "intrinsic/util/status/status_macros.h"
+#include "intrinsic/util/status/status_macros_grpc.h"
 
 namespace intrinsic {
 
@@ -46,6 +48,10 @@ struct StructuredLoggingClient::StructuredLoggingClientImpl {
   // is thread-safe and should be re-used for multiple (concurrent) RPCs".
   // https://github.com/grpc/grpc/issues/5649
   std::unique_ptr<intrinsic_proto::data_logger::DataLogger::StubInterface> stub;
+
+  mutable absl::Mutex logger_context_mu;
+  std::optional<intrinsic_proto::data_logger::GetLoggerContextResponse>
+      logger_context ABSL_GUARDED_BY(logger_context_mu);
 };
 
 absl::StatusOr<StructuredLoggingClient> StructuredLoggingClient::Create(
@@ -144,8 +150,8 @@ StructuredLoggingClient::ListLogSources() const {
   grpc::ClientContext context;
   google::protobuf::Empty request;
   intrinsic_proto::data_logger::ListLogSourcesResponse response;
-  INTR_RETURN_IF_ERROR(
-      ToAbslStatus(impl_->stub->ListLogSources(&context, request, &response)));
+  INTR_RETURN_IF_ERROR_GRPC(
+      impl_->stub->ListLogSources(&context, request, &response));
   std::vector<std::string> log_sources(response.event_sources().begin(),
                                        response.event_sources().end());
   return log_sources;
@@ -194,8 +200,8 @@ StructuredLoggingClient::GetLogItems(
 
   grpc::ClientContext context;
   intrinsic_proto::data_logger::GetLogItemsResponse response;
-  INTR_RETURN_IF_ERROR(
-      ToAbslStatus(impl_->stub->GetLogItems(&context, request, &response)));
+  INTR_RETURN_IF_ERROR_GRPC(
+      impl_->stub->GetLogItems(&context, request, &response));
   std::vector<intrinsic_proto::data_logger::LogItem> log_items(
       std::make_move_iterator(response.log_items().begin()),
       std::make_move_iterator(response.log_items().end()));
@@ -221,8 +227,8 @@ StructuredLoggingClient::GetLogItems(int page_size,
 
   grpc::ClientContext context;
   intrinsic_proto::data_logger::GetLogItemsResponse response;
-  INTR_RETURN_IF_ERROR(
-      ToAbslStatus(impl_->stub->GetLogItems(&context, request, &response)));
+  INTR_RETURN_IF_ERROR_GRPC(
+      impl_->stub->GetLogItems(&context, request, &response));
   std::vector<intrinsic_proto::data_logger::LogItem> log_items(
       std::make_move_iterator(response.log_items().begin()),
       std::make_move_iterator(response.log_items().end()));
@@ -243,8 +249,8 @@ StructuredLoggingClient::GetMostRecentItem(absl::string_view event_source,
 
   grpc::ClientContext context;
   intrinsic_proto::data_logger::GetMostRecentItemResponse response;
-  INTR_RETURN_IF_ERROR(ToAbslStatus(
-      impl_->stub->GetMostRecentItem(&context, request, &response)));
+  INTR_RETURN_IF_ERROR_GRPC(
+      impl_->stub->GetMostRecentItem(&context, request, &response));
   return std::move(response.item());
 }
 
@@ -258,8 +264,8 @@ absl::Status StructuredLoggingClient::SetLogOptions(
 
   grpc::ClientContext context;
   intrinsic_proto::data_logger::SetLogOptionsResponse response;
-  INTR_RETURN_IF_ERROR(
-      ToAbslStatus(impl_->stub->SetLogOptions(&context, request, &response)));
+  INTR_RETURN_IF_ERROR_GRPC(
+      impl_->stub->SetLogOptions(&context, request, &response));
   return absl::OkStatus();
 }
 
@@ -270,9 +276,32 @@ absl::StatusOr<LogOptions> StructuredLoggingClient::GetLogOptions(
 
   grpc::ClientContext context;
   intrinsic_proto::data_logger::GetLogOptionsResponse response;
-  INTR_RETURN_IF_ERROR(
-      ToAbslStatus(impl_->stub->GetLogOptions(&context, request, &response)));
+  INTR_RETURN_IF_ERROR_GRPC(
+      impl_->stub->GetLogOptions(&context, request, &response));
   return response.log_options();
+}
+
+absl::StatusOr<intrinsic_proto::data_logger::GetLoggerContextResponse>
+StructuredLoggingClient::GetLoggerContext() const {
+  {
+    absl::MutexLock lock(&impl_->logger_context_mu);
+    if (impl_->logger_context.has_value()) {
+      return *impl_->logger_context;
+    }
+  }
+
+  grpc::ClientContext context;
+  intrinsic_proto::data_logger::GetLoggerContextRequest request;
+  intrinsic_proto::data_logger::GetLoggerContextResponse response;
+  INTR_RETURN_IF_ERROR_GRPC(
+      impl_->stub->GetLoggerContext(&context, request, &response));
+
+  // The organization ID and workcell name are not expected to change during
+  // the lifetime of a deployment, so we cache the successful response to avoid
+  // spamming the logger.
+  absl::MutexLock lock(&impl_->logger_context_mu);
+  impl_->logger_context = response;
+  return response;
 }
 
 absl::StatusOr<std::vector<std::string>>
@@ -285,8 +314,8 @@ StructuredLoggingClient::SyncAndRotateLogs(
 
   grpc::ClientContext context;
   intrinsic_proto::data_logger::SyncResponse response;
-  INTR_RETURN_IF_ERROR(ToAbslStatus(
-      impl_->stub->SyncAndRotateLogs(&context, request, &response)));
+  INTR_RETURN_IF_ERROR_GRPC(
+      impl_->stub->SyncAndRotateLogs(&context, request, &response));
   std::vector<std::string> synced_event_sources{
       std::make_move_iterator(response.event_sources().begin()),
       std::make_move_iterator(response.event_sources().end())};
@@ -300,8 +329,8 @@ StructuredLoggingClient::SyncAndRotateLogs() const {
 
   grpc::ClientContext context;
   intrinsic_proto::data_logger::SyncResponse response;
-  INTR_RETURN_IF_ERROR(ToAbslStatus(
-      impl_->stub->SyncAndRotateLogs(&context, request, &response)));
+  INTR_RETURN_IF_ERROR_GRPC(
+      impl_->stub->SyncAndRotateLogs(&context, request, &response));
   std::vector<std::string> synced_event_sources{
       std::make_move_iterator(response.event_sources().begin()),
       std::make_move_iterator(response.event_sources().end())};
@@ -321,8 +350,8 @@ StructuredLoggingClient::CreateLocalRecording(
 
   grpc::ClientContext context;
   intrinsic_proto::data_logger::CreateLocalRecordingResponse response;
-  INTR_RETURN_IF_ERROR(ToAbslStatus(
-      impl_->stub->CreateLocalRecording(&context, request, &response)));
+  INTR_RETURN_IF_ERROR_GRPC(
+      impl_->stub->CreateLocalRecording(&context, request, &response));
   return response.bag();
 }
 
@@ -345,8 +374,8 @@ StructuredLoggingClient::ListLocalRecordings(
 
   grpc::ClientContext context;
   intrinsic_proto::data_logger::ListLocalRecordingsResponse response;
-  INTR_RETURN_IF_ERROR(ToAbslStatus(
-      impl_->stub->ListLocalRecordings(&context, request, &response)));
+  INTR_RETURN_IF_ERROR_GRPC(
+      impl_->stub->ListLocalRecordings(&context, request, &response));
   std::vector<intrinsic_proto::data_logger::BagMetadata> bags{
       std::make_move_iterator(response.bags().begin()),
       std::make_move_iterator(response.bags().end())};
@@ -362,8 +391,8 @@ StructuredLoggingClient::GetLocalRecording(absl::string_view bag_id,
 
   grpc::ClientContext context;
   intrinsic_proto::data_logger::GetLocalRecordingResponse response;
-  INTR_RETURN_IF_ERROR(ToAbslStatus(
-      impl_->stub->GetLocalRecording(&context, request, &response)));
+  INTR_RETURN_IF_ERROR_GRPC(
+      impl_->stub->GetLocalRecording(&context, request, &response));
   return response.bag();
 }
 

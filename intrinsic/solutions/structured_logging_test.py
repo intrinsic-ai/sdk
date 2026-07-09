@@ -190,6 +190,26 @@ blob_payload <
     # Receives the expected buffer size
     self.assertEqual(result.log_options.max_buffer_byte_size, 10)
 
+  def test_get_logger_context(self):
+    stub = mock.MagicMock()
+    response = logger_service_pb2.GetLoggerContextResponse()
+    response.organization_id = 'test_org'
+    response.workcell_name = 'test_workcell'
+    stub.GetLoggerContext.return_value = response
+
+    logs = structured_logging.StructuredLogs(stub)
+
+    # First call: Should fetch from the server.
+    context1 = logs.get_logger_context()
+    self.assertEqual(context1.organization_id, 'test_org')
+    self.assertEqual(context1.workcell_name, 'test_workcell')
+    stub.GetLoggerContext.assert_called_once()
+
+    # Second call: Should return from cache.
+    context2 = logs.get_logger_context()
+    self.assertEqual(context2, context1)
+    stub.GetLoggerContext.assert_called_once()
+
   def test_peek(self):
     stub = mock.MagicMock()
     list_log_sources_response = logger_service_pb2.ListLogSourcesResponse()
@@ -385,7 +405,7 @@ payload <
     logs = structured_logging.StructuredLogs(stub)
 
     self.assertCountEqual(
-        logs.__dir__(),
+        dir(logs),
         [
             'LogOptions',
             'connect',
@@ -402,6 +422,7 @@ payload <
             'sync_and_rotate_logs',
             'create_local_recording',
             'list_local_recordings',
+            'get_logger_context',
         ],
     )
 
@@ -444,12 +465,15 @@ blob_payload <
 
     self.assertEqual(items.num_events, 2)
     get_request = stub.GetLogItems.call_args.args[0]
+    interval_time = (
+        get_request.get_query.downsampler_options.sampling_interval_time
+    )
     self.assertEqual(
-        get_request.get_query.downsampler_options.sampling_interval_time.ToMicroseconds(),
+        interval_time.ToMicroseconds(),
         100 * 1000,
     )
     self.assertEqual(
-        get_request.get_query.downsampler_options.sampling_interval_time.ToMilliseconds(),
+        interval_time.ToMilliseconds(),
         100,
     )
 

@@ -31,10 +31,7 @@ import logging
 import re
 from typing import Any
 from typing import Callable
-from typing import Dict
-from typing import Optional
 from typing import Type
-from typing import Union
 
 from google.protobuf import empty_pb2
 from google.protobuf import json_format
@@ -179,10 +176,10 @@ class PartStatusSource(DataSource):
         log_items: list[log_item_pb2.LogItem],
         payload_accessor: Callable[
             [part_status_pb2.PartStatus],
-            Union[proto_message.Message, list[proto_message.Message]],
+            proto_message.Message | list[proto_message.Message],
         ],
         part_name: str,
-        field_name: Optional[str] = None,
+        field_name: str | None = None,
     ):
       """Init the _CallablePayloadMethod.
 
@@ -202,7 +199,7 @@ class PartStatusSource(DataSource):
         self,
         payload_accessor: Callable[
             [part_status_pb2.PartStatus],
-            Union[proto_message.Message, list[proto_message.Message]],
+            proto_message.Message | list[proto_message.Message],
         ],
         every_n: int = 1,
     ) -> pd.DataFrame:
@@ -249,7 +246,7 @@ class PartStatusSource(DataSource):
         self,
         payload_accessor: Callable[
             [part_status_pb2.PartStatus],
-            Union[proto_message.Message, list[proto_message.Message]],
+            proto_message.Message | list[proto_message.Message],
         ],
         every_n: int = 1,
     ) -> pd.DataFrame:
@@ -369,7 +366,7 @@ class RobotStatusSource(DataSource):
           f'Found {len(selected_parts)} parts matching the selector, expected'
           ' one.'
       )
-    return self.__getattr__(selected_parts[0])
+    return getattr(self, selected_parts[0])
 
   def get_single_arm_part(self) -> PartStatusSource:
     """Gets the logs for the arm part.
@@ -509,11 +506,11 @@ class EventSourceReader:
   def read(
       self,
       *,
-      seconds_to_read: Optional[int] = None,
-      time_window: Optional[EventSourceWindow] = None,
+      seconds_to_read: int | None = None,
+      time_window: EventSourceWindow | None = None,
       sampling_period_ms: int = 0,
       max_num_items: int = 10000,
-      filter_labels: Optional[dict[str, str]] = None,
+      filter_labels: dict[str, str] | None = None,
       only_metadata: bool = False,
   ) -> DataSource:
     """Read the last `seconds_to_read` of onprem logs for this event source.
@@ -576,7 +573,7 @@ class EventSourceReader:
       window: EventSourceWindow,
       sampling_period_ms: int = 0,
       max_num_items: int = 10000,
-      filter_labels: Optional[dict[str, str]] = None,
+      filter_labels: dict[str, str] | None = None,
       only_metadata: bool = False,
   ):
     """Read the onprem logs for a given time window for this event source.
@@ -778,6 +775,9 @@ class StructuredLogs:
   def __init__(self, stub: logger_service_pb2_grpc.DataLoggerStub):
     self._stub: logger_service_pb2_grpc.DataLoggerStub = stub
     self._cached_event_sources: list[str] = []
+    self._cached_logger_context: (
+        logger_service_pb2.GetLoggerContextResponse | None
+    ) = None
 
   def __getattr__(self, event_source: str) -> EventSourceReader:
     return self.get_event_source(event_source)
@@ -874,6 +874,28 @@ class StructuredLogs:
     return cls.connect(solution.grpc_channel)
 
   @error_handling.retry_on_grpc_transient_errors
+  def get_logger_context(self) -> logger_service_pb2.GetLoggerContextResponse:
+    """Returns the logger context containing deployment metadata.
+
+    The organization ID and workcell name are not expected to change during
+    the lifetime of a deployment, so we cache the successful response.
+
+    Returns:
+      The logger context response containing the organization ID and
+      workcell name.
+
+    Raises:
+      grpc.RpcError: If the grpc call fails with a non-transient error.
+    """
+    if self._cached_logger_context is not None:
+      return self._cached_logger_context
+
+    request = logger_service_pb2.GetLoggerContextRequest()
+    response = self._stub.GetLoggerContext(request)
+    self._cached_logger_context = response
+    return response
+
+  @error_handling.retry_on_grpc_transient_errors
   def get_event_sources(self) -> list[str]:
     """Returns all event sources logged. Mainly useful for debugging."""
     self._cached_event_sources = list(
@@ -884,7 +906,7 @@ class StructuredLogs:
   @error_handling.retry_on_grpc_transient_errors
   def set_log_options(
       self,
-      log_options: Dict[str, Union[LogOptions, logger_service_pb2.LogOptions]],
+      log_options: dict[str, LogOptions | logger_service_pb2.LogOptions],
   ) -> None:
     """Configures log options for an event_source."""
     log_options_request = logger_service_pb2.SetLogOptionsRequest(
@@ -903,8 +925,8 @@ class StructuredLogs:
   def get_log_options(
       self,
       *,
-      event_source: Optional[str] = None,
-      key: Optional[str] = None,
+      event_source: str | None = None,
+      key: str | None = None,
   ) -> LogOptions:
     """Returns the log options for an event source.
 
@@ -1034,7 +1056,7 @@ class StructuredLogs:
 
   @error_handling.retry_on_grpc_transient_errors
   def sync_and_rotate_logs(
-      self, event_sources: Optional[list[str]] = None
+      self, event_sources: list[str] | None = None
   ) -> logger_service_pb2.SyncResponse:
     """Syncs remaining logs to GCS and rotates log files.
 
@@ -1093,8 +1115,8 @@ class StructuredLogs:
   @error_handling.retry_on_grpc_unavailable
   def list_local_recordings(
       self,
-      start_time: Optional[datetime.datetime],
-      end_time: Optional[datetime.datetime],
+      start_time: datetime.datetime | None,
+      end_time: datetime.datetime | None,
       only_summary_metadata: bool,
       bag_ids: list[str],
   ) -> list[bag_metadata_pb2.BagMetadata]:

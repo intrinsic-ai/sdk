@@ -162,6 +162,11 @@ class StructuredLoggingClient {
   absl::StatusOr<LogOptions> GetLogOptions(
       absl::string_view event_source) const;
 
+  // Returns the current logger's context, which contains common metadata that
+  // can be used to reason about how the data will be referenced.
+  absl::StatusOr<intrinsic_proto::data_logger::GetLoggerContextResponse>
+  GetLoggerContext() const;
+
   // Writes all log files of the specified 'event_sources' to GCS.
   // Might be throttled per-event-source if called too frequently.
   //
