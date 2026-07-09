@@ -9,6 +9,7 @@ import "intrinsic/assets/proto/documentation.proto";
 import "intrinsic/assets/proto/id.proto";
 import "intrinsic/assets/proto/vendor.proto";
 import "intrinsic/executive/proto/behavior_tree.proto";
+import "intrinsic/assets/proto/v1/reference.proto";
 
 option go_package = "intrinsic/assets/processes/proto/process_manifest_go_proto";
 
@@ -49,4 +50,30 @@ message ProcessManifest {
   // populated from their counterparts in 'metadata' when the manifest is
   // processed.
   intrinsic_proto.executive.BehaviorTree behavior_tree = 2;
+
+  // Representation of an Asset referenced within the definition of a Process.
+  // Transformed into `ProcessAsset.ProcessedAsset` during manifest processing.
+  message Asset {
+    oneof variant {
+      intrinsic_proto.assets.v1.CatalogAsset catalog = 1;
+    }
+  }
+
+  // A map from asset IDs to Assets that are referenced within the definition of
+  // this Process. Process authors should use this field to specify recommended
+  // Assets for references within the Process. Any Assets in this map that are
+  // not already installed will be installed automatically when this Process is
+  // installed in a Solution.
+  //
+  // Process authors should provide an entry for every Asset directly referenced
+  // within this Process. This ensures that all required Assets are
+  // automatically installed when a user installs the Process.
+  //
+  // Any Asset that is already installed in the Solution will remain at its
+  // installed version. All valid Assets in this map will be available, but not
+  // necessarily at the specified version. Invalid Assets (e.g., those not
+  // available in the catalog) will be skipped during automatic installation.
+  // Any version mismatches or invalid Assets will be reported during
+  // installation.
+  map<string, Asset> assets = 3;
 }

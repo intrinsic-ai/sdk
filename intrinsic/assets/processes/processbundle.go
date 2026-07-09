@@ -93,6 +93,22 @@ func ManifestFromAsset(pa *processassetpb.ProcessAsset) (*processmanifestpb.Proc
 		BehaviorTree: pa.GetBehaviorTree(),
 	}
 
+	if len(pa.GetAssets()) > 0 {
+		manifest.Assets = make(map[string]*processmanifestpb.ProcessManifest_Asset, len(pa.GetAssets()))
+		for refID, refAsset := range pa.GetAssets() {
+			switch v := refAsset.GetVariant().(type) {
+			case *processassetpb.ProcessAsset_ProcessedAsset_Catalog:
+				manifest.Assets[refID] = &processmanifestpb.ProcessManifest_Asset{
+					Variant: &processmanifestpb.ProcessManifest_Asset_Catalog{
+						Catalog: v.Catalog,
+					},
+				}
+			default:
+				return nil, fmt.Errorf("unsupported Asset variant for Asset %q: %T", refID, v)
+			}
+		}
+	}
+
 	// Clear the ID version from the Skill metadata in the BehaviorTree. The manifest does not contain
 	// a version and the behavior tree on it should not be referencing one either for consistency.
 	// This can be seen as the counterpart of [processmanifest.FillInSkillMetadataFromAssetMetadata]
@@ -232,6 +248,22 @@ func Process(ctx context.Context, r io.Reader, options ...ProcessOption) (*proce
 			AssetTag:      manifest.GetMetadata().GetAssetTag(),
 		},
 		BehaviorTree: manifest.GetBehaviorTree(),
+	}
+
+	if len(manifest.GetAssets()) > 0 {
+		asset.Assets = make(map[string]*processassetpb.ProcessAsset_ProcessedAsset, len(manifest.GetAssets()))
+		for refID, refAsset := range manifest.GetAssets() {
+			switch v := refAsset.GetVariant().(type) {
+			case *processmanifestpb.ProcessManifest_Asset_Catalog:
+				asset.Assets[refID] = &processassetpb.ProcessAsset_ProcessedAsset{
+					Variant: &processassetpb.ProcessAsset_ProcessedAsset_Catalog{
+						Catalog: v.Catalog,
+					},
+				}
+			default:
+				return nil, fmt.Errorf("unsupported Asset variant for Asset %q: %T", refID, v)
+			}
+		}
 	}
 
 	// Update the Skill metadata in the BehaviorTree to match the Process asset's metadata. In the

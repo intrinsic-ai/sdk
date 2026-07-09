@@ -6,6 +6,7 @@ package intrinsic_proto.processes;
 
 import "intrinsic/assets/proto/metadata.proto";
 import "intrinsic/executive/proto/behavior_tree.proto";
+import "intrinsic/assets/proto/v1/reference.proto";
 
 option go_package = "intrinsic/assets/processes/proto/process_asset_go_proto";
 
@@ -29,4 +30,29 @@ message ProcessAsset {
   // - [Skill.id_version] has to match [Metadata.id_version]. It has to be empty
   //   if [Metadata.id_version.version] is empty.
   intrinsic_proto.executive.BehaviorTree behavior_tree = 2;
+
+  // Post-processing representation of an Asset referenced within the definition
+  // of a Process. The corresponding pre-processing representation is
+  // `ProcessManifest.Asset`.
+  message ProcessedAsset {
+    oneof variant {
+      intrinsic_proto.assets.v1.CatalogAsset catalog = 1;
+    }
+  }
+
+  // A map from asset IDs to Assets that are referenced within the definition of
+  // this Process. Any Assets in this map that are not already installed will be
+  // installed automatically when this Process is installed in a Solution.
+  //
+  // This field should contain an entry for every Asset directly referenced
+  // within this Process. This ensures that all required Assets are
+  // automatically installed when a user installs the Process. Both the
+  // graphical Flowstate Process editor and the Python Solution Building Library
+  // (SBL) will automatically populate this field with all Assets referenced in
+  // the Process using the version installed in the Solution. For Processes
+  // built using Bazel, this field will be populated by processing the
+  // corresponding `assets` field in `ProcessManifest`.
+  //
+  // See `ProcessManifest.assets` for more details on automatic installation.
+  map<string, ProcessedAsset> assets = 3;
 }

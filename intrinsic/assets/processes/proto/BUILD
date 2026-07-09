@@ -11,6 +11,7 @@ proto_library(
     srcs = ["process_asset.proto"],
     deps = [
         "//intrinsic/assets/proto:metadata_proto",
+        "//intrinsic/assets/proto/v1:reference_proto",
         "//intrinsic/executive/proto:behavior_tree_proto",
     ],
 )
@@ -26,6 +27,7 @@ go_proto_library(
     protos = [":process_asset_proto"],
     deps = [
         "//intrinsic/assets/proto:metadata_go_proto",
+        "//intrinsic/assets/proto/v1:reference_go_proto",
         "//intrinsic/executive/proto:behavior_tree_go_proto",
     ],
 )
@@ -38,6 +40,7 @@ proto_library(
         "//intrinsic/assets/proto:documentation_proto",
         "//intrinsic/assets/proto:id_proto",
         "//intrinsic/assets/proto:vendor_proto",
+        "//intrinsic/assets/proto/v1:reference_proto",
         "//intrinsic/executive/proto:behavior_tree_proto",
     ],
 )
@@ -56,6 +59,7 @@ go_proto_library(
         "//intrinsic/assets/proto:documentation_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
         "//intrinsic/assets/proto:vendor_go_proto",
+        "//intrinsic/assets/proto/v1:reference_go_proto",
         "//intrinsic/executive/proto:behavior_tree_go_proto",
     ],
 )
