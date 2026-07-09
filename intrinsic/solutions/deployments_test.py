@@ -254,6 +254,7 @@ class SolutionTest(absltest.TestCase):
     self._simulation = simulation
     self._errors = errors
     self._pose_estimators = pose_estimators
+    self._code_execution_info = mock.MagicMock()
 
   def init_solution(self) -> deployments.Solution:
     is_simulated = True
@@ -270,6 +271,7 @@ class SolutionTest(absltest.TestCase):
         self._errors,
         self._pose_estimators,
         self._asset_config_client,
+        self._code_execution_info,
         proto_registry=self._proto_registry,
     )
 
@@ -280,6 +282,7 @@ class SolutionTest(absltest.TestCase):
     self.assertIsNotNone(solution.executive)
     self.assertIsNotNone(solution.skills)
     self.assertIsNotNone(solution.resources)
+    self.assertIsNotNone(solution.code_execution_info)
     self.assertIsNotNone(solution.simulator)
     self.assertIsInstance(solution.world, worlds.ObjectWorld)
     self.assertIsNotNone(solution.pose_estimators)

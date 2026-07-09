@@ -42,6 +42,7 @@ from intrinsic.solutions import proto_building
 from intrinsic.solutions import providers
 from intrinsic.solutions import simulation
 from intrinsic.solutions import worlds
+from intrinsic.solutions.internal import code_execution_client
 from intrinsic.solutions.internal import process_providing
 from intrinsic.solutions.internal import resources as resources_mod
 from intrinsic.solutions.internal import skill_providing
@@ -87,6 +88,8 @@ class Solution:
     world: The execute belief world from the world service.
     pbt_registry: gRPC wrapper to sideload PBTs
     proto_builder: service to build proto FileDescriptorSets from proto schemas
+    code_execution_info: Provides access to information about code execution for
+      PythonScript nodes.
   """
 
   class HealthStatus(enum.Enum):
@@ -110,9 +113,11 @@ class Solution:
   skills: providers.SkillProvider
   errors: error_processing.ErrorsLoader
   pose_estimators: pose_estimation.PoseEstimators | None
+  _asset_config_client: asset_configuration_client.AssetConfigurationClient
   _solution_service: solution_service_pb2_grpc.SolutionServiceStub
   _skill_registry: skill_registry_client.SkillRegistryClient
   _resource_registry: resource_registry_client.ResourceRegistryClient
+  code_execution_info: code_execution_client.InfoClient
   pbt_registry: pbt_registration.BehaviorTreeRegistry | None
   proto_builder: proto_building.ProtoBuilder | None
   _proto_registry: proto_registry_client.ProtoRegistryClient
@@ -131,6 +136,7 @@ class Solution:
       errors: error_processing.ErrorsLoader,
       pose_estimators: pose_estimation.PoseEstimators | None,
       asset_config_client: asset_configuration_client.AssetConfigurationClient,
+      code_execution_info: code_execution_client.InfoClient,
       pbt_registry: pbt_registration.BehaviorTreeRegistry | None = None,
       proto_builder: proto_building.ProtoBuilder | None = None,
       proto_registry: proto_registry_client.ProtoRegistryClient | None = None,
@@ -161,6 +167,7 @@ class Solution:
 
     self.pose_estimators = pose_estimators
     self.errors = errors
+    self.code_execution_info = code_execution_info
     self.pbt_registry = pbt_registry
     self.proto_builder = proto_builder
     self._proto_registry = proto_registry
@@ -235,6 +242,7 @@ class Solution:
 
     pbt_registry = pbt_registration.BehaviorTreeRegistry.connect(grpc_channel)
     proto_builder = proto_building.ProtoBuilder.connect(grpc_channel)
+    code_execution_info = code_execution_client.InfoClient.connect(grpc_channel)
 
     logger.info(
         "Connected successfully to %s (%s) at %s.",
@@ -255,6 +263,7 @@ class Solution:
         error_loader,
         pose_estimators,
         asset_config_client,
+        code_execution_info,
         pbt_registry,
         proto_builder,
         proto_registry,

@@ -93,6 +93,35 @@ py_test(
 )
 
 py_library(
+    name = "code_execution_client",
+    srcs = ["code_execution_client.py"],
+    deps = [
+        "//intrinsic/executive/proto:code_execution_info_service_py_pb2",
+        "//intrinsic/executive/proto:code_execution_info_service_py_pb2_grpc",
+        "//intrinsic/executive/proto:code_execution_py_pb2",
+        "//intrinsic/solutions:behavior_tree",
+        "//intrinsic/util/grpc:error_handling",
+        requirement("grpcio"),
+    ],
+)
+
+py_test(
+    name = "code_execution_client_test",
+    srcs = ["code_execution_client_test.py"],
+    deps = [
+        ":code_execution_client",
+        "//intrinsic/executive/proto:behavior_call_py_pb2",
+        "//intrinsic/executive/proto:code_execution_info_service_py_pb2",
+        "//intrinsic/executive/proto:code_execution_py_pb2",
+        "//intrinsic/solutions:behavior_tree",
+        "//intrinsic/solutions:proto_building",
+        requirement("grpcio"),
+        "@com_google_absl_py//absl/testing:absltest",
+        "@com_google_protobuf//:protobuf_python",
+    ],
+)
+
+py_library(
     name = "behavior_call",
     srcs = ["behavior_call.py"],
     deps = [

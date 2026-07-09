@@ -58,11 +58,12 @@ class PythonScript(CodeExecution):
     The signature of the new script node is (by default) initialized to a unique
     copy of the given signature by renaming the "main" proto file of the file
     descriptor set (in which the parameter message and the return value message
-    are defined) to `<random path>/node.proto`, so the given code can assume the
-    module name `node_pb2` to be defined.
+    are defined) to `<random path>/node.proto`.
 
-    The given code to be executed is the body of a function and must not contain
-    a function signature. It can assume the following template:
+    The given code to be executed ('function_body') is the body of a function
+    and must not contain a function header. It can assume the module name
+    `node_pb2` to be defined and typically has to fit into the following
+    template:
 
     ```
     import numpy as np
@@ -76,6 +77,17 @@ class PythonScript(CodeExecution):
       {function_body}
     ```
 
+    Some details in the template depend on the final signature of the
+    PythonScript which is only available after the PythonScript instance has
+    been created. You can get a preview of the exact code that will be executed
+    for a PythonScript by querying the code execution backend, e.g.:
+
+    ```
+    # Pass a placeholder function body if necessary
+    script = bt.PythonScript(signature_with_args=..., function_body="pass")
+    print(solution.code_execution_info.preview_executed_code(script))
+    ```
+
     Args:
       signature_with_args: Signature and arguments for the script node. By
         default, a unique copy of the given object will be created and used -
@@ -85,9 +97,9 @@ class PythonScript(CodeExecution):
       return_value_key: Optional blackboard key under which to store the return
         value. If not provided, a unique key will be generated if the signature
         defines a return value message.
-      create_unique_signature: If True (default), a unique copy of the
-        signature will be created and used. If False (advanced), the signature
-        will be used as is.
+      create_unique_signature: If True (default), a unique copy of the signature
+        will be created and used. If False (advanced), the signature will be
+        used as is.
     """
     if create_unique_signature:
       self._signature_with_args = signature_with_args.unique_copy(
@@ -125,6 +137,11 @@ class PythonScript(CodeExecution):
   def signature_with_args(self) -> proto_building.SignatureWithArgs:
     """Returns the SignatureWithArgs object for this Python script node."""
     return self._signature_with_args
+
+  @property
+  def fuction_body(self) -> str:
+    """Returns the function body string for this Python script node."""
+    return self._function_body
 
   @property
   def proto(self) -> code_execution_pb2.CodeExecution:
