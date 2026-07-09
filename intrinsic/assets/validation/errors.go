@@ -5,10 +5,23 @@ package errors
 
 import (
 	"errors"
+	"fmt"
 )
 
 // Code represents a unique identifier for a validation error.
 type Code uint32
+
+// Error codes defined here can also be used as status codes for ExtendedStatus errors.
+//
+// A starting error code of 2000 is arbitrarily chosen here. Codes greater than 10000
+// are reserved for errors not originating as part of the system (or platform).
+const (
+	// CodeErrUnknownDependency is used when a node has a dependency on a non-existent node.
+	CodeErrUnknownDependency Code = iota + 2000
+
+	// CodeErrInterfaceMismatch is used when a node has a dependency on an Asset that does not satisfy the dependency.
+	CodeErrInterfaceMismatch
+)
 
 // Error is a structured validation error that implements the error interface.
 type Error interface {
@@ -124,4 +137,99 @@ func (r *Report) Add(err error) error {
 // Warnings returns all accumulated warnings.
 func (r *Report) Warnings() []Error {
 	return r.warnings
+}
+
+type unknownDependencyError struct {
+	source        string
+	target        string
+	sourceAssetID string
+	err           error
+	code          Code
+}
+
+// UnknownDependencyErrorDetails contains additional optional details that can be provided for
+// an [Error] specific to unknown dependency validation.
+type UnknownDependencyErrorDetails struct {
+	// SourceAssetID is the Asset ID of the dependent Asset or Asset Instance.
+	SourceAssetID string
+}
+
+func (e *unknownDependencyError) Error() string {
+	return e.err.Error()
+}
+
+func (e *unknownDependencyError) Code() Code {
+	return e.code
+}
+
+func (e *unknownDependencyError) Unwrap() error {
+	return e.err
+}
+
+// NewUnknownDependencyError creates a new [Error] for unknown dependency validation.
+//
+// `source` is the identifier of the dependent Asset or Asset Instance.
+// For Services and HardwareDevices, this is the instance name. For Processes, this is
+// the Asset ID.
+//
+// `target` is the identifier of the Asset or Asset Instance being depended on.
+// If the depended on entity is an Asset Instance of a Service, HardwareDevice or
+// SceneObject, this is the instance name. If it is a DataAsset, this is the Asset ID.
+func NewUnknownDependencyError(source, target string, err error, opts *UnknownDependencyErrorDetails) Error {
+	return &unknownDependencyError{
+		source:        source,
+		target:        target,
+		sourceAssetID: opts.SourceAssetID,
+		err:           err,
+		code:          CodeErrUnknownDependency,
+	}
+}
+
+type interfaceMismatchError struct {
+	source        string
+	target        string
+	sourceAssetID string
+	targetAssetID string
+	err           error
+	code          Code
+}
+
+// InterfaceMismatchErrorDetails contains additional optional details that can be provided for
+// an [Error] specific to interface mismatch validation.
+type InterfaceMismatchErrorDetails struct {
+	// SourceAssetID is the Asset ID of the dependent Asset or Asset Instance.
+	SourceAssetID string
+	// TargetAssetID is the Asset ID of the Asset or Asset Instance being depended on.
+	TargetAssetID string
+}
+
+func (e *interfaceMismatchError) Code() Code {
+	return e.code
+}
+
+func (e *interfaceMismatchError) Error() string {
+	if e.err == nil {
+		return fmt.Sprintf("%q has an interface that is incompatible with %q", e.source, e.target)
+	}
+	return fmt.Sprintf("%q has an interface that is incompatible with %q: %v", e.source, e.target, e.err)
+}
+
+// NewInterfaceMismatchError creates a new [Error] for interface mismatch.
+//
+// `source` is the identifier of the dependent Asset or Asset Instance.
+// For Services and HardwareDevices, this is the instance name. For Processes, this is
+// the Asset ID.
+//
+// `target` is the identifier of the Asset or Asset Instance being depended on.
+// If the depended on entity is an Asset Instance of a Service, HardwareDevice or
+// SceneObject, this is the instance name. If it is a DataAsset, this is the Asset ID.
+func NewInterfaceMismatchError(source, target string, err error, opts *InterfaceMismatchErrorDetails) Error {
+	return &interfaceMismatchError{
+		source:        source,
+		target:        target,
+		err:           err,
+		code:          CodeErrInterfaceMismatch,
+		sourceAssetID: opts.SourceAssetID,
+		targetAssetID: opts.TargetAssetID,
+	}
 }
