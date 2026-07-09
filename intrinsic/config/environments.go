@@ -59,6 +59,13 @@ const (
 	// AssetsDomainProd is the domain for the asset service in prod.
 	AssetsDomainProd = "assets.intrinsic.ai"
 
+	// DsmProjectDev is the project for the dsm service in dev.
+	DsmProjectDev = "intrinsic-dsm-dev"
+	// DsmProjectStaging is the project for the dsm service in staging.
+	DsmProjectStaging = "intrinsic-dsm-staging"
+	// DsmProjectProd is the project for the dsm service in prod.
+	DsmProjectProd = "intrinsic-dsm-prod"
+
 	// ArtifactsProjectProd is the project for artifacts in prod.
 	ArtifactsProjectProd = "intrinsic-artifacts-prod"
 	// ArtifactsProjectDev is the project for artifacts in dev.
@@ -100,11 +107,11 @@ func FromDomain(domain string) (string, error) {
 // FromProject returns the environment for the given portal, accounts or assets project.
 func FromProject(project string) (string, error) {
 	switch project {
-	case PortalProjectProd, AccountsProjectProd, AssetsProjectProd, OpsProjectProd:
+	case PortalProjectProd, AccountsProjectProd, AssetsProjectProd, DsmProjectProd, OpsProjectProd:
 		return Prod, nil
-	case PortalProjectStaging, AccountsProjectStaging, AssetsProjectStaging:
+	case PortalProjectStaging, AccountsProjectStaging, AssetsProjectStaging, DsmProjectStaging:
 		return Staging, nil
-	case PortalProjectDev, AccountsProjectDev, AssetsProjectDev:
+	case PortalProjectDev, AccountsProjectDev, AssetsProjectDev, DsmProjectDev:
 		return Dev, nil
 	default:
 		return "", fmt.Errorf("unknown project %q", project)

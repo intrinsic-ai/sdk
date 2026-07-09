@@ -39,6 +39,11 @@ ASSETS_DOMAIN_DEV = "assets-dev.intrinsic.ai"
 ASSETS_DOMAIN_STAGING = "assets-qa.intrinsic.ai"
 ASSETS_DOMAIN_PROD = "assets.intrinsic.ai"
 
+# DSM project constants
+DSM_PROJECT_DEV = "intrinsic-dsm-dev"
+DSM_PROJECT_STAGING = "intrinsic-dsm-staging"
+DSM_PROJECT_PROD = "intrinsic-dsm-prod"
+
 # Ops project constants
 OPS_PROJECT_PROD = "intrinsic-ops"
 
@@ -67,6 +72,7 @@ def from_project(project: str) -> str:
       ACCOUNTS_PROJECT_PROD,
       PORTAL_PROJECT_PROD,
       ASSETS_PROJECT_PROD,
+      DSM_PROJECT_PROD,
       OPS_PROJECT_PROD,
   ):
     return PROD
@@ -74,12 +80,14 @@ def from_project(project: str) -> str:
       ACCOUNTS_PROJECT_STAGING,
       PORTAL_PROJECT_STAGING,
       ASSETS_PROJECT_STAGING,
+      DSM_PROJECT_STAGING,
   ):
     return STAGING
   if project in (
       ACCOUNTS_PROJECT_DEV,
       PORTAL_PROJECT_DEV,
       ASSETS_PROJECT_DEV,
+      DSM_PROJECT_DEV,
   ):
     return DEV
   raise ValueError(f"Unknown project: {project}")
