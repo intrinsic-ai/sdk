@@ -34,9 +34,8 @@ func Description(r *http.Request) string {
 	return "forwarded-host/original-uri=" + fromHostAndURI(r)
 }
 
-// extractOriginalURL returns the original URL or path from proxy headers.
-// url.Parse(u).Path strips any scheme/host in X-Original-Url, normalizing it to match X-Envoy-Original-Path.
-func extractOriginalURL(r *http.Request) string {
+// ExtractOriginalURL returns the original URL or path from proxy headers.
+func ExtractOriginalURL(r *http.Request) string {
 	if u := r.Header.Get("X-Original-Url"); u != "" {
 		return u
 	}
@@ -45,7 +44,7 @@ func extractOriginalURL(r *http.Request) string {
 
 // URL returns the address of the request origin.
 func URL(r *http.Request) string {
-	if u := extractOriginalURL(r); u != "" {
+	if u := ExtractOriginalURL(r); u != "" {
 		return u
 	}
 	return fromHostAndURI(r)
