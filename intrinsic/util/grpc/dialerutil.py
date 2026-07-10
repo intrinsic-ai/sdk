@@ -7,6 +7,7 @@ This file implements a subset of the
 """
 
 from typing import Any
+from typing import Callable
 
 import grpc
 from intrinsic.frontend.cloud.api.v1 import solutiondiscovery_api_pb2
@@ -20,13 +21,17 @@ from intrinsic.util.grpc import auth
 class _AuthProxy(grpc.AuthMetadataPlugin):
   """gRPC Metadata Plugin that adds an auth-proxy cookie."""
 
-  _token: str
+  _token: str | Callable[[], str | None]
 
-  def __init__(self, token: str):
+  def __init__(self, token: str | Callable[[], str | None]):
     self._token = token
 
   def __call__(self, context, callback):
-    callback((("cookie", f"auth-proxy={self._token}"),), None)
+    token_val = self._token() if callable(self._token) else self._token
+    if token_val:
+      callback((("cookie", f"auth-proxy={token_val}"),), None)
+    else:
+      callback((), None)
 
 
 class _ServerName(grpc.AuthMetadataPlugin):
@@ -151,7 +156,7 @@ def create_channel_from_solution(
 
 
 def create_channel_from_token(
-    auth_token: str,
+    auth_token: str | Callable[[], str | None],
     org: str,
     cluster: str | None,
     grpc_options: list[tuple[str, Any]] | None = None,
@@ -159,7 +164,10 @@ def create_channel_from_token(
   """Creates a gRPC channel based on the provided token.
 
   Args:
-    auth_token: The auth-proxy token to use for authentication.
+    auth_token: Token of the authenticated user. Can be a specific token (str),
+      or a function that returns the token as str. The function will be used by
+      gRPC interceptors, and can thus be used to inject updated tokens to
+      existing Solution objects.
     org: The organization and project in the format <org>@<project>.
     cluster: The name of the cluster.
     grpc_options: List of gRPC channel options.
@@ -179,7 +187,7 @@ def _create_channel(
     org_info: auth.OrgInfo,
     cluster: str | None = None,
     grpc_options: list[tuple[str, Any]] | None = None,
-    auth_token: str | None = None,
+    auth_token: str | Callable[[], str | None] | None = None,
 ) -> grpc.Channel:
   """Creates a gRPC channel based on the provided connection parameters.
 
@@ -187,7 +195,10 @@ def _create_channel(
     org_info: The organization and project information.
     cluster: The name of the cluster.
     grpc_options: List of gRPC channel options.
-    auth_token: The auth-proxy token to use for authentication.
+    auth_token: Token of the authenticated user. Can be a specific token (str),
+      or a function that returns the token as str. The function will be used by
+      gRPC interceptors, and can thus be used to inject updated tokens to
+      existing Solution objects.
 
   Returns:
     A gRPC channel to the cluster.

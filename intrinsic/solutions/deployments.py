@@ -20,6 +20,7 @@ import enum
 import inspect
 import logging
 import sys
+from typing import Callable
 import warnings
 
 import grpc
@@ -379,7 +380,7 @@ def connect(
     org: str | None = None,
     solution: str | None = None,
     cluster: str | None = None,
-    auth_token: str | None = None,
+    auth_token: str | Callable[[], str | None] | None = None,
 ) -> "Solution":
   """Connects to a deployed solution.
 
@@ -399,7 +400,10 @@ def connect(
     org: Organization of the solution to connect to.
     solution: Id (not display name!) of the solution to connect to.
     cluster: Name of cluster to connect to (instead of specifying 'solution').
-    auth_token: Token of the authenticated user. Requires cluster and org.
+    auth_token: Token of the authenticated user. Requires cluster and org. Can
+      be a specific token (str), or a function that returns the token as str.
+      The function will be used by gRPC interceptors, and can thus be used to
+      inject updated tokens to existing Solution objects.
 
   Raises:
     ValueError: if parameter combination is incorrect.
@@ -511,7 +515,7 @@ def _create_grpc_channel(
     org: str | None = None,
     solution: str | None = None,
     cluster: str | None = None,
-    auth_token: str | None = None,
+    auth_token: str | Callable[[], str | None] | None = None,
 ) -> grpc.Channel:
   """Creates a gRPC channel to a deployed solution.
 

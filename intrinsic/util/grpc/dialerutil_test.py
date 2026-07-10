@@ -86,7 +86,7 @@ class DialerutilTest(absltest.TestCase):
     mock_parse_info_from_string.assert_called_with("test-org")
     self.assertTrue(
         any(
-            isinstance(c.args[0], dialerutil._AuthProxy)
+            isinstance(c.args[0], getattr(dialerutil, "_AuthProxy"))
             for c in mock_metadata_call_credentials.call_args_list
         ),
         "grpc.metadata_call_credentials was not called with _AuthProxy",
@@ -131,6 +131,27 @@ class DialerutilTest(absltest.TestCase):
         " cluster is None",
     )
     self.assertTrue(mock_secure_channel.called)
+
+  def test_auth_proxy_dynamic_token(self):
+    current_token = "token1"
+    proxy = getattr(dialerutil, "_AuthProxy")(lambda: current_token)
+
+    # First call with token1
+    callback1 = mock.MagicMock()
+    proxy(None, callback1)
+    callback1.assert_called_once_with((("cookie", "auth-proxy=token1"),), None)
+
+    # Mutate token without recreating proxy
+    current_token = "token2"
+    callback2 = mock.MagicMock()
+    proxy(None, callback2)
+    callback2.assert_called_once_with((("cookie", "auth-proxy=token2"),), None)
+
+    # Mutate to None
+    current_token = None
+    callback3 = mock.MagicMock()
+    proxy(None, callback3)
+    callback3.assert_called_once_with((), None)
 
 
 if __name__ == "__main__":
