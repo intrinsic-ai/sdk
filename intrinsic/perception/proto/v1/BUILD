@@ -853,6 +853,68 @@ py_grpc_library(
 )
 
 proto_library(
+    name = "pattern_detection_config_proto",
+    srcs = ["pattern_detection_config.proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        ":charuco_pattern_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "pattern_detection_config_cc_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":pattern_detection_config_proto"],
+)
+
+py_proto_library(
+    name = "pattern_detection_config_py_pb2",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":pattern_detection_config_proto"],
+)
+
+go_proto_library(
+    name = "pattern_detection_config_go_proto",
+    importpath = "intrinsic/perception/proto/v1/pattern_detection_config_go_proto",
+    protos = [":pattern_detection_config_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        ":charuco_pattern_go_proto",
+    ],
+)
+
+proto_library(
+    name = "pattern_detection_result_proto",
+    srcs = ["pattern_detection_result.proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        "//intrinsic/perception/proto:vector_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "pattern_detection_result_cc_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":pattern_detection_result_proto"],
+)
+
+py_proto_library(
+    name = "pattern_detection_result_py_pb2",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":pattern_detection_result_proto"],
+)
+
+go_proto_library(
+    name = "pattern_detection_result_go_proto",
+    importpath = "intrinsic/perception/proto/v1/pattern_detection_result_go_proto",
+    protos = [":pattern_detection_result_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        "//intrinsic/perception/proto:vector_go_proto",
+    ],
+)
+
+proto_library(
     name = "calibration_service_proto",
     srcs = ["calibration_service.proto"],
     visibility = ["//intrinsic:public_api_users"],
@@ -860,8 +922,8 @@ proto_library(
         ":camera_to_robot_calibration",
         ":distortion_params_proto",
         ":intrinsic_params_proto",
+        ":pattern_detection_config_proto",
         "//intrinsic/math/proto:pose_proto",
-        "//intrinsic/perception/proto:pattern_detection_config",
         "//intrinsic/platform/pubsub:storage_location",
         "//intrinsic/resources/proto:resource_handle_proto",
         "//intrinsic/world/proto:object_world_refs_proto",
@@ -910,8 +972,8 @@ go_proto_library(
         ":camera_to_robot_calibration_go_proto",
         ":distortion_params_go_proto",
         ":intrinsic_params_go_proto",
+        ":pattern_detection_config_go_proto",
         "//intrinsic/math/proto:pose_go_proto",
-        "//intrinsic/perception/proto:pattern_detection_config_go_proto",
         "//intrinsic/platform/pubsub:storage_location_go_proto",
         "//intrinsic/resources/proto:resource_handle_go_proto",
         "//intrinsic/world/proto:object_world_refs_go_proto",

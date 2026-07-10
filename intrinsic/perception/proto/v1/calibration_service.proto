@@ -6,7 +6,7 @@ package intrinsic_proto.perception.v1;
 
 import "google/protobuf/empty.proto";
 import "intrinsic/math/proto/pose.proto";
-import "intrinsic/perception/proto/pattern_detection_config.proto";
+import "intrinsic/perception/proto/v1/pattern_detection_config.proto";
 import "intrinsic/perception/proto/v1/camera_to_robot_calibration.proto";
 import "intrinsic/perception/proto/v1/distortion_params.proto";
 import "intrinsic/perception/proto/v1/intrinsic_params.proto";
@@ -44,8 +44,8 @@ service CalibrationService {
 
 message InitializeRequest {
   // Pattern detection config to be used for calibration.
-  intrinsic_proto.perception.PatternDetectionConfig pattern_detection_config =
-      1;
+  intrinsic_proto.perception.v1.PatternDetectionConfig
+      pattern_detection_config = 1;
   // Camera resource handles to be used for calibration.
   repeated intrinsic_proto.resources.ResourceHandle camera_resource_handles = 2;
   // Name of the ICON arm part with respect to which camera poses are defined.

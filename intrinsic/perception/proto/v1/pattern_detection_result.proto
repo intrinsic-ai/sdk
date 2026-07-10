@@ -1,0 +1,25 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.perception.v1;
+
+import "intrinsic/perception/proto/vector.proto";
+
+option go_package = "intrinsic/perception/proto/v1/pattern_detection_result_go_proto";
+
+// Contains the results of a pattern detection.
+message PatternDetection {
+  // The detected 2D image points.
+  repeated Vector2f image_points = 1;
+  // The corresponding 3D model points.
+  repeated Vector3f marker_points = 2;
+  // The corresponding marker id. Optional. Only needed for visualization
+  // purposes for Charuco boards.
+  repeated int32 marker_ids = 3;
+}
+
+message PatternDetectionResult {
+  // Pattern detections.
+  repeated PatternDetection pattern_detections = 1;
+}
