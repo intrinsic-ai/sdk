@@ -8,21 +8,14 @@ import (
 	"testing"
 	"time"
 
-	pubsubpb "intrinsic/platform/pubsub/connect/cloud/proto/v1alpha1/pubsub_connect_go_proto"
-
 	"google.golang.org/grpc"
 
 	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 )
 
 type mockPubSubClient struct {
-	pubsubpb.PubSubConnectServiceClient
-	configureSpokeFn func(context.Context, *pubsubpb.ConfigureSpokeRequest, ...grpc.CallOption) (*lropb.Operation, error)
-	getOperationFn   func(context.Context, *lropb.GetOperationRequest, ...grpc.CallOption) (*lropb.Operation, error)
-}
-
-func (m *mockPubSubClient) ConfigureSpoke(ctx context.Context, in *pubsubpb.ConfigureSpokeRequest, opts ...grpc.CallOption) (*lropb.Operation, error) {
-	return m.configureSpokeFn(ctx, in, opts...)
+	lropb.OperationsClient
+	getOperationFn func(context.Context, *lropb.GetOperationRequest, ...grpc.CallOption) (*lropb.Operation, error)
 }
 
 func (m *mockPubSubClient) GetOperation(ctx context.Context, in *lropb.GetOperationRequest, opts ...grpc.CallOption) (*lropb.Operation, error) {

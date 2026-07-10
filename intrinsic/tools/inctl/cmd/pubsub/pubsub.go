@@ -9,13 +9,9 @@ import (
 	"io"
 	"time"
 
-	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/cmd/root"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-
-	pubsubpb "intrinsic/platform/pubsub/connect/cloud/proto/v1alpha1/pubsub_connect_go_proto"
 
 	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 )
@@ -32,15 +28,6 @@ var PubsubCmd = &cobra.Command{
 
 func init() {
 	root.RootCmd.AddCommand(PubsubCmd)
-}
-
-// newPubSubClient establishes an authenticated connection to the PubSub Connect Service.
-func newPubSubClient(ctx context.Context, v *viper.Viper) (pubsubpb.PubSubConnectServiceClient, error) {
-	conn, err := auth.NewCloudConnection(ctx, auth.WithFlagValues(v))
-	if err != nil {
-		return nil, err
-	}
-	return pubsubpb.NewPubSubConnectServiceClient(conn), nil
 }
 
 // waitForOperation continuously polls the long running operation using client.GetOperation
