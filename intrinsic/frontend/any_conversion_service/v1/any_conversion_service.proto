@@ -34,6 +34,18 @@ message DescriptorSource {
   }
 }
 
+message ResolvedDescriptorSource {
+  // File descriptor set resolved from the descriptor source. The file
+  // descriptor set is guaranteed to enable encoding/decoding when passed as the
+  // `DescriptorSource` on a subsequent request for the same message. Beyond
+  // this guarantee, the file descriptor set may change over time. In
+  // particular, the descriptor set may or may not include messages that the
+  // message does NOT transitively depend on. As such, this may, but is not
+  // guaranteed to, match a file descriptor set passed directly in the
+  // descriptor source.
+  google.protobuf.FileDescriptorSet file_descriptor_set = 1;
+}
+
 enum Encoding {
   // Unspecified/default encoding is treated the same as `ENCODING_JSON`.
   ENCODING_UNSPECIFIED = 0;
@@ -53,11 +65,20 @@ message EncodeRequest {
 
   // Emit unpopulated fields. Only applicable for ENCODING_JSON.
   bool emit_unpopulated_fields = 4;
+
+  // Whether to include the resolved descriptor source in the response. The
+  // resolved descriptor source contains the information that was actually used
+  // for encoding.
+  bool include_resolved = 5;
 }
 
 message EncodeResponse {
   // The encoded string representation of the Any proto.
   string encoded_any = 1;
+
+  // Contains the information that was actually used for encoding. Only
+  // populated when `include_resolved` is set to `true` on the request.
+  ResolvedDescriptorSource resolved_descriptor_source = 2;
 }
 
 message DecodeRequest {
@@ -69,9 +90,18 @@ message DecodeRequest {
 
   // The encoding of the `encoded_any` string.
   Encoding encoding = 3;
+
+  // Whether to include the resolved descriptor source in the response. The
+  // resolved descriptor source contains the information that was actually used
+  // for decoding.
+  bool include_resolved = 4;
 }
 
 message DecodeResponse {
   // The decoded Any proto.
   google.protobuf.Any any = 1;
+
+  // Contains the information that was actually used for decoding. Only
+  // populated when `include_resolved` is set to `true` on the request.
+  ResolvedDescriptorSource resolved_descriptor_source = 2;
 }
