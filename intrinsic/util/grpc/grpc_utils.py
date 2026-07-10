@@ -104,13 +104,33 @@ def create_cloud_channel() -> grpc.Channel:
 
 
 def create_ingress_channel() -> grpc.Channel:
-  """Creates a gRPC channel for in-cluster calls with an IPC ID auth header.
+  """Creates a gRPC channel for in-cluster calls.
+
+  This method is preferred for in-cluster communication when authentication
+  is not required, as it avoids the overhead of retrieving an IPC identity
+  (which requires an internet connection).
 
   Returns:
     The gRPC channel for in-cluster calls.
   """
-  ingress_channel = grpc.insecure_channel(
+  return grpc.insecure_channel(
       "istio-ingressgateway.app-ingress.svc.cluster.local:80",
       options=[("grpc.max_receive_message_length", -1)],
   )
-  return _add_auth_header(ingress_channel, _shared_ipc_identity)
+
+
+def create_ingress_channel_with_ipc_identity() -> grpc.Channel:
+  """Creates a gRPC channel for in-cluster calls with an IPC identity auth header.
+
+  Use of this method is discouraged. Typically, services should communicate
+  directly: use `create_ingress_channel` for in-cluster communication, and
+  `create_cloud_channel` to communicate directly with the cloud.
+
+  This method is only necessary when a service must communicate with another
+  in-cluster service that proxies the request to the cloud, requiring the
+  original caller's IPC identity to be forwarded to authenticate with the cloud.
+
+  Returns:
+    The gRPC channel for in-cluster calls.
+  """
+  return _add_auth_header(create_ingress_channel(), _shared_ipc_identity)

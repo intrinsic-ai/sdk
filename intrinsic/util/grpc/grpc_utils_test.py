@@ -175,6 +175,37 @@ class GrpcUtilsTest(absltest.TestCase):
         ('x-intrinsic-org', 'test_org'), modified_call_details.metadata
     )
 
+  @mock.patch.object(grpc, 'insecure_channel', autospec=True)
+  def test_create_ingress_channel(self, mock_insecure_channel):
+    """Tests that create_ingress_channel creates an insecure channel."""
+    mock_insecure_channel.return_value = mock.MagicMock()
+
+    channel = grpc_utils.create_ingress_channel()
+
+    mock_insecure_channel.assert_called_once_with(
+        'istio-ingressgateway.app-ingress.svc.cluster.local:80',
+        options=[('grpc.max_receive_message_length', -1)],
+    )
+    self.assertEqual(channel, mock_insecure_channel.return_value)
+
+  @mock.patch.object(grpc_utils, 'create_ingress_channel', autospec=True)
+  @mock.patch.object(grpc_utils, '_add_auth_header', autospec=True)
+  def test_create_ingress_channel_with_ipc_identity(
+      self, mock_add_auth_header, mock_create_ingress_channel
+  ):
+    """Tests that create_ingress_channel_with_ipc_identity adds auth header to anonymous channel."""
+    mock_create_ingress_channel.return_value = mock.MagicMock()
+    mock_add_auth_header.return_value = mock.MagicMock()
+
+    channel = grpc_utils.create_ingress_channel_with_ipc_identity()
+
+    mock_create_ingress_channel.assert_called_once()
+    mock_add_auth_header.assert_called_once_with(
+        mock_create_ingress_channel.return_value,
+        grpc_utils._shared_ipc_identity,
+    )
+    self.assertEqual(channel, mock_add_auth_header.return_value)
+
 
 if __name__ == '__main__':
   absltest.main()
