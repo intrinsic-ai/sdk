@@ -18,21 +18,11 @@ import (
 type mockPubSubClient struct {
 	pubsubpb.PubSubConnectServiceClient
 	configureSpokeFn func(context.Context, *pubsubpb.ConfigureSpokeRequest, ...grpc.CallOption) (*lropb.Operation, error)
-	createHubFn      func(context.Context, *pubsubpb.CreateHubRequest, ...grpc.CallOption) (*lropb.Operation, error)
-	deleteHubFn      func(context.Context, *pubsubpb.DeleteHubRequest, ...grpc.CallOption) (*lropb.Operation, error)
 	getOperationFn   func(context.Context, *lropb.GetOperationRequest, ...grpc.CallOption) (*lropb.Operation, error)
 }
 
 func (m *mockPubSubClient) ConfigureSpoke(ctx context.Context, in *pubsubpb.ConfigureSpokeRequest, opts ...grpc.CallOption) (*lropb.Operation, error) {
 	return m.configureSpokeFn(ctx, in, opts...)
-}
-
-func (m *mockPubSubClient) CreateHub(ctx context.Context, in *pubsubpb.CreateHubRequest, opts ...grpc.CallOption) (*lropb.Operation, error) {
-	return m.createHubFn(ctx, in, opts...)
-}
-
-func (m *mockPubSubClient) DeleteHub(ctx context.Context, in *pubsubpb.DeleteHubRequest, opts ...grpc.CallOption) (*lropb.Operation, error) {
-	return m.deleteHubFn(ctx, in, opts...)
 }
 
 func (m *mockPubSubClient) GetOperation(ctx context.Context, in *lropb.GetOperationRequest, opts ...grpc.CallOption) (*lropb.Operation, error) {

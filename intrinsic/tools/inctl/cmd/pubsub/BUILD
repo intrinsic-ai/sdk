@@ -9,8 +9,6 @@ go_library(
     srcs = [
         "cmd_runner_base.go",
         "forward.go",
-        "hub_create.go",
-        "hub_delete.go",
         "hub_service_create.go",
         "hub_service_delete.go",
         "pubsub.go",
@@ -52,8 +50,6 @@ go_test(
     name = "pubsub_test",
     srcs = [
         "forward_test.go",
-        "hub_create_test.go",
-        "hub_delete_test.go",
         "hub_service_create_test.go",
         "hub_service_test_utils.go",
         "pubsub_test.go",
