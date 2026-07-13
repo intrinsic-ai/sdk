@@ -308,7 +308,7 @@ py_proto_library(
 
 cc_proto_library(
     name = "vendor_cc_proto",
-    visibility = ["//intrinsic/perception/service:__pkg__"],
+    visibility = ["//intrinsic/perception/public:__pkg__"],
     deps = [":vendor_proto"],
 )
 
