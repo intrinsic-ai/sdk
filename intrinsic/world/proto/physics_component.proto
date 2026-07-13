@@ -30,10 +30,10 @@ message PhysicsComponent {
   Torsional torsional = 6;
 
   // Dynamically "stiffness"-equivalent coefficient for contact joints.
-  double contact_kp = 7;
+  optional double contact_kp = 7;
 
   // Dynamically "damping"-equivalent coefficient for contact joints.
-  double contact_kd = 8;
+  optional double contact_kd = 8;
 
   reserved 2, 3, 4;
   reserved "this_t_center_of_mass_old", "inertia_old", "is_static";
