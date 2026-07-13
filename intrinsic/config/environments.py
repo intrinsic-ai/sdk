@@ -93,6 +93,14 @@ def from_project(project: str) -> str:
   raise ValueError(f"Unknown project: {project}")
 
 
+def from_any_project(project: str) -> str:
+  """Infers environment of the project from the project name."""
+  try:
+    return from_project(project)
+  except ValueError:
+    return from_compute_project(project)
+
+
 def from_compute_project(project: str) -> str:
   """Returns the environment for a given compute project."""
   if "-prod-" in project:
@@ -157,11 +165,7 @@ def accounts_project_from_env(env: str) -> str:
 
 def accounts_project_from_project(project: str) -> str:
   """Returns the accounts project for a given project."""
-  try:
-    env = from_project(project)
-  except ValueError:
-    env = from_compute_project(project)
-  return accounts_project_from_env(env)
+  return accounts_project_from_env(from_any_project(project))
 
 
 def assets_domain(env: str) -> str:

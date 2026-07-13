@@ -65,6 +65,7 @@ inline constexpr absl::Span<const absl::string_view> kAll =
 absl::StatusOr<std::string> FromDomain(absl::string_view domain);
 absl::StatusOr<std::string> FromProject(absl::string_view project);
 std::string FromComputeProject(absl::string_view project);
+std::string FromAnyProject(absl::string_view project);
 
 std::string PortalDomain(absl::string_view env);
 std::string PortalProject(absl::string_view env);

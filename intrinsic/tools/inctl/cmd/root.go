@@ -132,7 +132,7 @@ func (e *executionContext) RewriteError(err error, cmdNames []string) string {
 	var credErr *dialerutil.ErrCredentialsNotFound
 	if errors.As(cause, &credErr) {
 		return fmt.Sprintf("%v\nCredentials for given project not found. Run "+
-			"'inctl auth login --project %s'.", err, credErr.CredentialName)
+			"'inctl auth login --org <org_name>@%s'.", err, credErr.CredentialName)
 	}
 
 	return err.Error()

@@ -16,6 +16,7 @@ import os.path
 import threading
 from typing import Dict
 from typing import Optional
+from typing import TextIO
 from typing import Tuple
 import urllib.error
 import urllib.request
@@ -23,12 +24,14 @@ import urllib.request
 import grpc
 import retrying
 
+from intrinsic.config import environments
 from intrinsic.kubernetes.acl.py import jwt
 from intrinsic.util.grpc import userconfig
 ALIAS_DEFAULT_TOKEN = "default"
 AUTH_CONFIG_EXTENSION = ".user-token"
 STORE_DIRECTORY = "intrinsic/projects"
 ORG_STORE_DIRECTORY = "intrinsic/organizations"
+ENV_STORE_DIRECTORY = "intrinsic/environments"
 
 _MIN_TOKEN_LIFETIME = datetime.timedelta(minutes=1)
 
@@ -157,14 +160,18 @@ class ProjectConfiguration:
 
 
 class CredentialsNotFoundError(ValueError):
-  """Thrown in case the lookup for a given credential name failed.
+  """Thrown in case the lookup for a given project failed.
 
   Attributes:
     message: the error message
     project_name: GCP project name for which the credentials were not found.
   """
 
-  def __init__(self, message: str, project_name: str) -> None:
+  def __init__(
+      self,
+      message: str,
+      project_name: str,
+  ) -> None:
     super().__init__(message)
     self.project_name = project_name
 
@@ -173,40 +180,80 @@ class CredentialsNotFoundError(ValueError):
 
 
 def get_configuration(name: str) -> ProjectConfiguration:
-  """Reads the local project configuration for the provided project name.
+  """
+  Retrieves the configuration for project `project_name`.
+  It first infers the environment of the project from its name and tries to
+  get the configuration for the environment.
+  If there's no configuration for the environment, it falls back to the project.
 
   Args:
     name: name of the GCP project
 
   Raises:
-    CredentialsNotFoundError: if configuration for the project could not be
-    found.
+    CredentialsNotFoundError: if configuration could not be found.
 
   Returns:
-    configuration for the project.
+   configuration for the project or environment.
   """
-  file_name = os.path.join(
+
+  env_name = environments.from_any_project(name)
+
+  env_config_file_name = os.path.join(
+      userconfig.get_user_config_dir(),
+      ENV_STORE_DIRECTORY,
+      env_name + AUTH_CONFIG_EXTENSION,
+  )
+  try:
+    with open(env_config_file_name, "r", encoding="utf-8") as f:
+      return parse_config(f, env_name)
+  except FileNotFoundError:
+    pass
+
+  project_config_file_name = os.path.join(
       userconfig.get_user_config_dir(),
       STORE_DIRECTORY,
       name + AUTH_CONFIG_EXTENSION,
   )
-
   try:
-    with open(file_name, "r") as f:
-      config = json.load(f)
-      tokens = {}
-      for alias, token in config["tokens"].items():
-        tokens[alias] = ProjectToken(
-            api_key=token["apiKey"],
-            valid_until=(
-                datetime.datetime.fromisoformat(token["validUntil"])
-                if "validUntil" in token
-                else None
-            ),
-        )
-      return ProjectConfiguration(name=name, tokens=tokens)
-  except FileNotFoundError as e:
-    raise CredentialsNotFoundError(message=e.strerror, project_name=name) from e
+    with open(project_config_file_name, "r", encoding="utf-8") as f:
+      return parse_config(f, name)
+  except FileNotFoundError:
+    pass
+
+  raise CredentialsNotFoundError(
+      message="Configuration not found.", project_name=name
+  )
+
+
+def parse_config(f: TextIO, name: str) -> ProjectConfiguration:
+  config = json.load(f)
+  tokens = {
+      alias: ProjectToken(
+          api_key=token["apiKey"],
+          valid_until=(
+              datetime.datetime.fromisoformat(token["validUntil"])
+              if "validUntil" in token
+              else None
+          ),
+      )
+      for alias, token in config["tokens"].items()
+  }
+  return ProjectConfiguration(name=name, tokens=tokens)
+
+
+def get_api_key(project: str) -> str:
+  """Get the API key from the user's system or from the environment fallback.
+
+  Provides the raw API key explicitly resolving the given GCP project.
+  """
+  try:
+    config = get_configuration(project)
+    return config.get_default_credentials().api_key
+  except (CredentialsNotFoundError, FileNotFoundError) as e:
+    raise ValueError(
+        "API key not found in system. Run `inctl auth login --org"
+        f" <org_name>@{project}` or explicitly supply one."
+    ) from e
 
 
 @dataclasses.dataclass()

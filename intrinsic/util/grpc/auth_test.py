@@ -74,6 +74,58 @@ class AuthTest(absltest.TestCase):
     result = auth.get_configuration("test-project")
     self.assertEqual(gold, result)
 
+  @mock.patch.object(userconfig, "get_user_config_dir", autospec=True)
+  @mock.patch("intrinsic.config.environments.from_any_project")
+  def test_get_configuration_returns_env_configuration_if_exists(
+      self, mock_from_any_project, mock_user_config_dir
+  ):
+    mock_from_any_project.return_value = "test-env"
+    testdir = self.create_tempdir()
+    testfile = pathlib.Path(
+        testdir.full_path,
+        auth.ENV_STORE_DIRECTORY,
+        f"test-env{auth.AUTH_CONFIG_EXTENSION}",
+    )
+    testfile.parent.mkdir(exist_ok=True, parents=True)
+    testfile.write_text("""{
+  "name": "test-env",
+  "tokens": {
+    "default": {
+      "apiKey": "ink_env_000000000000000000000000000000000000000000000000000000000000",
+      "validUntil": "2023-06-01T00:00:00.000000+00:00"
+    }
+  },
+  "lastUpdated": "2023-05-24T09:22:26Z"
+}""")
+
+    gold = auth.ProjectConfiguration(
+        "test-env",
+        tokens={
+            "default": auth.ProjectToken(
+                "ink_env_000000000000000000000000000000000000000000000000000000000000",
+                datetime.datetime.fromisoformat(
+                    "2023-06-01T00:00:00.000000+00:00"
+                ),
+            ),
+        },
+    )
+    mock_user_config_dir.return_value = testdir.full_path
+    result = auth.get_configuration("test-project")
+    self.assertEqual(gold, result)
+
+  @mock.patch.object(auth, "get_configuration")
+  def test_get_api_key_calls_get_configuration(self, mock_get_configuration):
+    mock_config = mock.Mock()
+    mock_creds = mock.Mock()
+    mock_creds.api_key = "fake_api_key"
+    mock_config.get_default_credentials.return_value = mock_creds
+    mock_get_configuration.return_value = mock_config
+
+    api_key = auth.get_api_key("my-project")
+
+    self.assertEqual(api_key, "fake_api_key")
+    mock_get_configuration.assert_called_once_with("my-project")
+
   def test_project_token_validate(self):
     token = auth.ProjectToken("ink_00000")
 

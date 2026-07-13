@@ -207,8 +207,8 @@ def _create_channel(
   call_credentials = []
 
   if auth_token is None:
+    env = environments.from_any_project(org_info.project)
     token = auth.get_configuration(org_info.project).get_default_credentials()
-    env = environments.from_compute_project(org_info.project)
     portal = environments.portal_domain(env)
 
     token_source = token.as_id_token_credentials(portal_domain=portal)

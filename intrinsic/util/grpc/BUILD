@@ -26,6 +26,7 @@ cc_library(
     srcs = ["auth.cc"],
     hdrs = ["auth.h"],
     deps = [
+        "//intrinsic/config:environments_cc",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
         "@abseil-cpp//absl/strings",
@@ -38,6 +39,7 @@ py_library(
     srcs = ["auth.py"],
     deps = [
         ":userconfig",
+        "//intrinsic/config:environments_py",
         "//intrinsic/kubernetes/acl/py:jwt",
         "@ai_intrinsic_sdks_pip_deps//retrying",
         requirement("grpcio"),

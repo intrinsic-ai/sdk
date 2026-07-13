@@ -48,6 +48,14 @@ std::string FromComputeProject(absl::string_view project) {
     return kProd;
 }
 
+std::string FromAnyProject(absl::string_view project) {
+  auto result = FromProject(project);
+  if (result.ok()) {
+    return *std::move(result);
+  }
+  return FromComputeProject(project);
+}
+
 std::string PortalDomain(absl::string_view env) {
   if (env == kProd) {
     return kPortalDomainProd;
@@ -85,12 +93,7 @@ std::string AccountsProjectFromEnv(absl::string_view env) {
 }
 
 std::string AccountsProjectFromProject(absl::string_view project) {
-  auto result = FromProject(project);
-  if (result.ok()) {
-    return AccountsProjectFromEnv(result.value());
-  } else {
-    return AccountsProjectFromEnv(FromComputeProject(project));
-  }
+  return AccountsProjectFromEnv(FromAnyProject(project));
 }
 
 std::string AssetsDomain(absl::string_view env) {
