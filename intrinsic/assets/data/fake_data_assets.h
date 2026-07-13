@@ -57,6 +57,9 @@ class FakeDataAssetsService
   std::unique_ptr<intrinsic_proto::data::v1::DataAssets::Stub>
   NewInternalStub();
 
+  // Returns the address of the service.
+  std::string address() const { return address_; }
+
  private:
   // Private constructor, called only by the Create factory.
   explicit FakeDataAssetsService(

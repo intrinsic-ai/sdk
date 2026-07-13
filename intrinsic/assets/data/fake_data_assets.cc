@@ -55,15 +55,15 @@ FakeDataAssetsService::FakeDataAssetsService(
     const absl::flat_hash_map<
         std::string, intrinsic_proto::data::v1::DataAsset>& data_assets,
     int port)
-    : data_assets_(data_assets),
-      port_(port),
-      address_(absl::StrCat("dns:///localhost:", port_)) {
-  server_ =
-      grpc::ServerBuilder()
-          .RegisterService(this)
-          .AddListeningPort(
-              address_, grpc::InsecureServerCredentials())  // NOLINT (insecure)
-          .BuildAndStart();
+    : data_assets_(data_assets) {
+  server_ = grpc::ServerBuilder()
+                .RegisterService(this)
+                .AddListeningPort(
+                    absl::StrCat("[::1]:", port),
+                    grpc::InsecureServerCredentials(),  // NOLINT (insecure)
+                    &port_)
+                .BuildAndStart();
+  address_ = absl::StrCat("[::1]:", port_);
 }
 
 grpc::Status FakeDataAssetsService::ListDataAssets(
