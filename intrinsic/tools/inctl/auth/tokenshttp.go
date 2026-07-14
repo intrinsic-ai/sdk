@@ -36,6 +36,7 @@ type GetIDTokenResponse struct {
 // NewTokensServiceClient creates a new client for the accounts tokens service.
 // addr is typically "flowstate.intrinsic.ai".
 func NewTokensServiceClient(client *http.Client, addr string) (*TokensServiceClient, error) {
+	authDebug("AUTH_TOKEN_ADDR=%s", addr)
 	return &TokensServiceClient{client: client, addr: addr}, nil
 }
 

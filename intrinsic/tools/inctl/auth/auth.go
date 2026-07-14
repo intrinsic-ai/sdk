@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -41,7 +42,12 @@ const (
 
 	// NoLoginHint is the hint shown when the user does not have an API key configured.
 	NoLoginHint = "\n\tIt seems like you don't have an API key configured. Did you run 'inctl auth login --org <org>@%s'?\n\n"
+
+	// envInDebugAuthStore is the environment variable used to trigger debug logging when reading from the auth store.
+	envInDebugAuthStore = "INDEBUG_AUTHSTORE"
 )
+
+var debugAuthStore, _ = strconv.ParseBool(os.Getenv(envInDebugAuthStore))
 
 const (
 	// KeyProject is used as central flag name for passing a project name to inctl.
@@ -296,7 +302,14 @@ func (s *Store) GetProjectConfiguration(projectName string) (*ProjectConfigurati
 	return cfg, nil
 }
 
+func authDebug(format string, args ...any) {
+	if debugAuthStore {
+		fmt.Fprintf(os.Stderr, format+"\n", args...)
+	}
+}
+
 func readConfigurationFromFile(filename string) (*ProjectConfiguration, error) {
+	authDebug("AUTHSTORE_READ_ATTEMPT=%s", filename)
 	file, err := os.Open(filename)
 	if err != nil {
 		return nil, fmt.Errorf("cannot open configuration file: %w", err)
@@ -311,6 +324,8 @@ func readConfigurationFromFile(filename string) (*ProjectConfiguration, error) {
 	if result.Tokens == nil {
 		result.Tokens = map[string]*ProjectToken{}
 	}
+
+	authDebug("AUTHSTORE_READ_KEY_FILE=%s", filename)
 	return &result, nil
 }
 
@@ -478,6 +493,8 @@ func (s *Store) ReadOrgInfo(orgName string) (OrgInfo, error) {
 	if err != nil {
 		return OrgInfo{}, err
 	}
+
+	authDebug("AUTHSTORE_READ_ATTEMPT=%s", filename)
 
 	file, err := os.Open(filename)
 	if err != nil {
