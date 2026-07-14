@@ -20,6 +20,8 @@ proto_library(
         ":motion_planning_proto",
         ":motion_specification_proto",
         ":robot_specification_proto",
+        "//intrinsic/assets/proto:field_metadata_proto",
+        "//intrinsic/assets/proto/v1:resolved_dependency_proto",
         "//intrinsic/geometry/proto:transformed_geometry_storage_refs_proto",
         "//intrinsic/icon/proto:joint_space_proto",
         "//intrinsic/kinematics/types:joint_limits_proto",

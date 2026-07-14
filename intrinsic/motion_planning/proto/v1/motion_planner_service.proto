@@ -5,6 +5,8 @@ syntax = "proto3";
 package intrinsic_proto.motion_planning.v1;
 
 import "google/protobuf/empty.proto";
+import "intrinsic/assets/proto/field_metadata.proto";
+import "intrinsic/assets/proto/v1/resolved_dependency.proto";
 import "intrinsic/geometry/proto/transformed_geometry_storage_refs.proto";
 import "intrinsic/icon/proto/joint_space.proto";
 import "intrinsic/logging/proto/context.proto";
@@ -21,7 +23,13 @@ import "intrinsic/world/proto/object_world_refs.proto";
 
 option go_package = "intrinsic/motion_planning/proto/v1/motion_planner_service_go_proto";
 
-message MotionPlannerServiceConfig {}
+message MotionPlannerServiceConfig {
+  // The resolved dependency for the Intrinsic runtime.
+  intrinsic_proto.assets.v1.ResolvedDependency intrinsic_runtime = 1
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "grpc://intrinsic_proto.assets.v1.InstalledAssetsReader"
+      }];
+}
 
 message MotionPlanningRequest {
   // The id of the world to be used for motion planning.
