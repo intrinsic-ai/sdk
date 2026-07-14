@@ -122,8 +122,8 @@ class SkillsTest(parameterized.TestCase):
     )
 
   @parameterized.parameters(
-      {'parameter': {'my_double': 2}},
-      {'parameter': {'my_float': 1}},
+      {'parameter': {'my_double': 2j}},
+      {'parameter': {'my_float': 1j}},
       {'parameter': {'my_int32': 1.0}},
       {'parameter': {'my_int64': 2.0}},
       {'parameter': {'my_uint32': 1.1}},
@@ -139,9 +139,9 @@ class SkillsTest(parameterized.TestCase):
           }
       },
       {'parameter': {'my_repeated_doubles': [data_types.Pose3()]}},
-      {'parameter': {'my_repeated_doubles': [True, False]}},
-      {'parameter': {'my_repeated_doubles': [1.0, False]}},
-      {'parameter': {'repeated_submessages': [1.0, False]}},
+      {'parameter': {'my_repeated_doubles': ['foo', 'bar']}},
+      {'parameter': {'my_repeated_doubles': [1.0, 'foo']}},
+      {'parameter': {'repeated_submessages': [1.0, 'bar']}},
       {
           'parameter': {
               'repeated_submessages': [data_types.Pose3(), data_types.Pose3()]

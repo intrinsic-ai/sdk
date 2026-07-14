@@ -624,6 +624,13 @@ def set_fields_in_msg(
             map_field[k] = v
 
       else:
+        if not isinstance(arg_value, Iterable):
+          raise TypeError(
+              f"Field {field_name} is a repeated field and expects a list of"
+              f" values, got {type(arg_value)}. Consider wrapping it in a list"
+              " if you want to pass a single value."
+          )
+
         repeated_field = getattr(msg, field_name)
         del repeated_field[:]  # clear field default since value was provided
         for value in arg_value:
@@ -648,18 +655,19 @@ def set_fields_in_msg(
             repeated_field.append(
                 _pythonic_to_proto_enum_value(value, field_enum_type)
             )
-
-          elif field_type in _PYTHONIC_SCALAR_FIELD_TYPE and isinstance(
-              value, _PYTHONIC_SCALAR_FIELD_TYPE[field_type]
-          ):
-            repeated_field.append(value)
-
           else:
-            raise TypeError(
-                f"arg: {field_name}, with value {fields[field_name]} is of type"
-                f" {type(arg_value)}. Must be of type"
-                f" {type(getattr(msg, field_name))}"
-            )
+            try:
+              # Leave assignment to the underlying message. This automatically
+              # handles possible type-conversions (e.g., passing an int to a
+              # float field) and type-mismatches (e.g., passing a str to an
+              # integer field will raise a TypeError).
+              repeated_field.append(value)
+            except TypeError as e:
+              raise TypeError(
+                  f"field: {field_name}, with values {fields[field_name]}"
+                  f" contained an invalid value: '{value}' ({e})"
+              ) from e
+
     elif field_type == descriptor.FieldDescriptor.TYPE_MESSAGE:
       submessage = getattr(msg, field_name)
       submessage.ParseFromString(
@@ -670,19 +678,17 @@ def set_fields_in_msg(
     elif field_type == descriptor.FieldDescriptor.TYPE_ENUM:
       enum_value = _pythonic_to_proto_enum_value(arg_value, field_enum_type)
       setattr(msg, field_name, enum_value)
-    elif field_type in _PYTHONIC_SCALAR_FIELD_TYPE and isinstance(
-        arg_value, _PYTHONIC_SCALAR_FIELD_TYPE[field_type]
-    ):
-      setattr(msg, field_name, arg_value)
     else:
-      raise TypeError(
-          "arg: {}, with value {} is of type {}. Must be of type {}".format(
-              field_name,
-              arg_value,
-              type(arg_value),
-              type(getattr(msg, field_name)),
-          )
-      )
+      try:
+        # Leave assignment to the underlying message. This automatically handles
+        # possible type-conversions (e.g., passing an int to a float field) and
+        # type-mismatches (e.g., passing a str to an integer field will raise a
+        # TypeError).
+        setattr(msg, field_name, arg_value)
+      except TypeError as e:
+        raise TypeError(
+            f"value '{arg_value}' for field '{field_name}' ({e})"
+        ) from e
     consumed_fields.append(field_name)
   return consumed_fields
 
