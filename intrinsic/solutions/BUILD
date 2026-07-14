@@ -298,6 +298,8 @@ py_library(
         ":scene_object_import",
         ":simulation",
         ":worlds",
+        # Useful for building Python script nodes
+        "//intrinsic/skills/python:basic_compute_context",
     ],
 )
 
