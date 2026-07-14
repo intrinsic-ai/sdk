@@ -72,7 +72,27 @@ func init() {
 	vmCmd.AddCommand(vmExpireInCmd)
 }
 
-func newConn(ctx context.Context) (*grpc.ClientConn, error) {
+// leaseRetryPolicy is the gRPC retry policy for VMPoolLeaseService.
+// It retries on UNAVAILABLE errors up to 5 times.
+const leaseRetryPolicy = `{
+  "methodConfig": [{
+    "name": [{"service": "intrinsic_proto.vmpoolleaseapi.v1.VMPoolLeaseService"}],
+    "retryPolicy": {
+      "maxAttempts": 5,
+      "initialBackoff": "1s",
+      "maxBackoff": "10s",
+      "backoffMultiplier": 2.0,
+      "retryableStatusCodes": ["UNAVAILABLE"]
+    }
+  }]
+}`
+
+// withLeaseRetry returns a ConnectionOptsFunc that configures retry policy for lease service.
+func withLeaseRetry() auth.ConnectionOptsFunc {
+	return auth.WithDialOptions(grpc.WithDefaultServiceConfig(leaseRetryPolicy))
+}
+
+func newConn(ctx context.Context, opts ...auth.ConnectionOptsFunc) (*grpc.ClientConn, error) {
 	// warn that those projects most probably have no VM pool
 	noPools := []string{"intrinsic-portal", "intrinsic-assets", "intrinsic-accounts"}
 	for _, p := range noPools {
@@ -80,7 +100,13 @@ func newConn(ctx context.Context) (*grpc.ClientConn, error) {
 			fmt.Fprintf(os.Stderr, "Warning: Project %q has most probably no VM pool. You probably meant to target a compute/backend project like intrinsic-prod-us instead.", vmCmdFlags.GetFlagProject())
 		}
 	}
-	return auth.NewCloudConnection(ctx, auth.WithFlagValues(viperLocal))
+	if len(opts) == 0 {
+		return auth.NewCloudConnection(ctx, auth.WithFlagValues(viperLocal))
+	}
+	allOpts := make([]auth.ConnectionOptsFunc, 0, 1+len(opts))
+	allOpts = append(allOpts, auth.WithFlagValues(viperLocal))
+	allOpts = append(allOpts, opts...)
+	return auth.NewCloudConnection(ctx, allOpts...)
 }
 
 func newVmpoolsClient(ctx context.Context) (vmpoolsgrpcpb.VMPoolServiceClient, error) {
@@ -91,8 +117,8 @@ func newVmpoolsClient(ctx context.Context) (vmpoolsgrpcpb.VMPoolServiceClient, e
 	return vmpoolsgrpcpb.NewVMPoolServiceClient(conn), nil
 }
 
-func newLeaseClient(ctx context.Context) (leaseapigrpcpb.VMPoolLeaseServiceClient, error) {
-	conn, err := newConn(ctx)
+func newLeaseClient(ctx context.Context, opts ...auth.ConnectionOptsFunc) (leaseapigrpcpb.VMPoolLeaseServiceClient, error) {
+	conn, err := newConn(ctx, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("could not create VM lease client: %v", err)
 	}
