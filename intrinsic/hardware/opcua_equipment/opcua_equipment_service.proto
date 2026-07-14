@@ -6,6 +6,8 @@ package intrinsic_proto.hardware.opcua_equipment;
 
 import "google/protobuf/any.proto";
 import "google/protobuf/duration.proto";
+import "intrinsic/assets/proto/field_metadata.proto";
+import "intrinsic/assets/proto/v1/resolved_dependency.proto";
 import "intrinsic/hardware/gpio/v1/gpio_service.proto";
 import "intrinsic/hardware/gpio/v1/signal.proto";
 import "intrinsic/resources/proto/resource_handle.proto";
@@ -175,6 +177,12 @@ message OpcuaEquipmentConfig {
 }
 
 message OpcuaEquipmentGpioConfig {
+  // The resolved dependency for the Intrinsic runtime.
+  intrinsic_proto.assets.v1.ResolvedDependency intrinsic_runtime = 3
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "grpc://intrinsic_proto.world.ObjectWorldService"
+      }];
+
   GpioServiceConfig gpio_config = 1;
   OpcuaEquipmentConfig opcua_equipment_config = 2;
 }
