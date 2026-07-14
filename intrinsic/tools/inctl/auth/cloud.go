@@ -254,7 +254,9 @@ func newOrLoadTokenSource(ctx context.Context, optsFuncs ...ConnectionOptsFunc) 
 
 	ak, err := loadAPIKey(&opts)
 	if err != nil {
-		return nil, nil, nil, nil, err
+		errDetails.Message = "unable to load API key"
+		errDetails.Help = "Please run `inctl auth login` and follow the instructions."
+		return nil, nil, nil, nil, errors.Join(err, errDetails)
 	}
 
 	// The environment is either passed via options by the caller
