@@ -13,10 +13,10 @@ import (
 
 	"intrinsic/assets/dependencies/platform"
 	deputils "intrinsic/assets/dependencies/utils"
+	"intrinsic/assets/errors/report"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/interfaceutils"
 	"intrinsic/assets/metadatautils"
-	validationerrors "intrinsic/assets/validation/errors"
 	"intrinsic/util/go/validate"
 	"intrinsic/util/proto/names"
 
@@ -92,7 +92,7 @@ func ServiceManifest(ctx context.Context, m *smpb.ServiceManifest, files *protor
 }
 
 type processedServiceManifestOptions struct {
-	report                         *validationerrors.Report
+	report                         *report.Report
 	requiredRegistry               string
 	skipPlatformServicesCheckInFDS bool
 }
@@ -116,7 +116,7 @@ func WithSkipPlatformServicesCheckInFDS(skip bool) ProcessedServiceManifestOptio
 }
 
 // WithReport sets the shared validation Report to use for collecting warnings.
-func WithReport(report *validationerrors.Report) ProcessedServiceManifestOption {
+func WithReport(report *report.Report) ProcessedServiceManifestOption {
 	return func(opts *processedServiceManifestOptions) {
 		opts.report = report
 	}
@@ -125,7 +125,7 @@ func WithReport(report *validationerrors.Report) ProcessedServiceManifestOption 
 // ProcessedServiceManifest validates a ProcessedServiceManifest.
 func ProcessedServiceManifest(ctx context.Context, m *smpb.ProcessedServiceManifest, options ...ProcessedServiceManifestOption) error {
 	opts := &processedServiceManifestOptions{}
-	WithReport(validationerrors.NewReport())(opts)
+	WithReport(report.New())(opts)
 	for _, opt := range options {
 		opt(opts)
 	}

@@ -14,6 +14,7 @@ go_library(
     deps = [
         "//intrinsic/assets:idutils",
         "//intrinsic/assets/data:datavalidate",
+        "//intrinsic/assets/errors:report",
         "//intrinsic/assets/hardware_devices:hardwaredevicevalidate",
         "//intrinsic/assets/processes:processvalidate",
         "//intrinsic/assets/proto:asset_type_go_proto",
@@ -22,7 +23,6 @@ go_library(
         "//intrinsic/assets/proto/v1:reference_go_proto",
         "//intrinsic/assets/scene_objects:sceneobjectvalidate",
         "//intrinsic/assets/services:servicevalidate",
-        "//intrinsic/assets/validation:errors",
         "//intrinsic/skills:skillvalidate",
     ],
 )

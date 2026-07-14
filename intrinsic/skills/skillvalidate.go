@@ -10,10 +10,10 @@ import (
 	"strings"
 
 	"intrinsic/assets/dependencies/platform"
+	"intrinsic/assets/errors/report"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/interfaceutils"
 	"intrinsic/assets/metadatautils"
-	validationerrors "intrinsic/assets/validation/errors"
 
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -62,7 +62,7 @@ func SkillManifest(ctx context.Context, m *smpb.SkillManifest, files *protoregis
 }
 
 type processedSkillManifestOptions struct {
-	report                            *validationerrors.Report
+	report                            *report.Report
 	requiredPlatformSkillDependencies []string
 	requiredRegistry                  string
 }
@@ -78,7 +78,7 @@ func WithRequiredRegistry(registry string) ProcessedSkillManifestOption {
 }
 
 // WithReport sets the shared validation Report to use for collecting warnings.
-func WithReport(report *validationerrors.Report) ProcessedSkillManifestOption {
+func WithReport(report *report.Report) ProcessedSkillManifestOption {
 	return func(opts *processedSkillManifestOptions) {
 		opts.report = report
 	}
@@ -97,7 +97,7 @@ func WithRequiredProvidedToPlatformInterfaces(required ...string) ProcessedSkill
 // ProcessedSkillManifest validates a ProcessedSkillManifest.
 func ProcessedSkillManifest(ctx context.Context, m *psmpb.ProcessedSkillManifest, options ...ProcessedSkillManifestOption) error {
 	opts := &processedSkillManifestOptions{}
-	WithReport(validationerrors.NewReport())(opts)
+	WithReport(report.New())(opts)
 	for _, opt := range options {
 		opt(opts)
 	}

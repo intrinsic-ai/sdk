@@ -44,6 +44,7 @@ go_library(
         "//intrinsic/assets:idutils",
         "//intrinsic/assets:metadatautils",
         "//intrinsic/assets/data:datavalidate",
+        "//intrinsic/assets/errors:report",
         "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",
         "//intrinsic/assets/proto:asset_type_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
@@ -51,6 +52,5 @@ go_library(
         "//intrinsic/assets/proto/v1:reference_go_proto",
         "//intrinsic/assets/scene_objects:sceneobjectvalidate",
         "//intrinsic/assets/services:servicevalidate",
-        "//intrinsic/assets/validation:errors",
     ],
 )

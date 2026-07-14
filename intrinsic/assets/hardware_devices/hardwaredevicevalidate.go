@@ -9,11 +9,11 @@ import (
 	"os"
 
 	"intrinsic/assets/data/datavalidate"
+	"intrinsic/assets/errors/report"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/metadatautils"
 	"intrinsic/assets/scene_objects/sceneobjectvalidate"
 	"intrinsic/assets/services/servicevalidate"
-	validationerrors "intrinsic/assets/validation/errors"
 
 	hdmpb "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest_go_proto"
 	atpb "intrinsic/assets/proto/asset_type_go_proto"
@@ -99,7 +99,7 @@ func HardwareDeviceManifest(ctx context.Context, m *hdmpb.HardwareDeviceManifest
 
 type processedHardwareDeviceManifestOptions struct {
 	dataAssetOptions         []datavalidate.DataAssetOption
-	report                   *validationerrors.Report
+	report                   *report.Report
 	sceneObjectOptions       []sceneobjectvalidate.ProcessedSceneObjectManifestOption
 	serviceOptions           []servicevalidate.ProcessedServiceManifestOption
 	verifyCatalogAssetsExist VerifyCatalogAssetsExist
@@ -138,7 +138,7 @@ func WithVerifyProcessedCatalogAssetsExist(f VerifyCatalogAssetsExist) Processed
 }
 
 // WithReport sets the shared validation Report to use for collecting warnings.
-func WithReport(report *validationerrors.Report) ProcessedHardwareDeviceManifestOption {
+func WithReport(report *report.Report) ProcessedHardwareDeviceManifestOption {
 	return func(opts *processedHardwareDeviceManifestOptions) {
 		opts.report = report
 		WithDataAssetOptions(datavalidate.WithReport(report))(opts)
@@ -155,7 +155,7 @@ func WithReport(report *validationerrors.Report) ProcessedHardwareDeviceManifest
 // - Verify that configuration edges have matching source and target nodes.
 func ProcessedHardwareDeviceManifest(ctx context.Context, pm *hdmpb.ProcessedHardwareDeviceManifest, options ...ProcessedHardwareDeviceManifestOption) error {
 	opts := &processedHardwareDeviceManifestOptions{}
-	WithReport(validationerrors.NewReport())(opts)
+	WithReport(report.New())(opts)
 	for _, opt := range options {
 		opt(opts)
 	}
