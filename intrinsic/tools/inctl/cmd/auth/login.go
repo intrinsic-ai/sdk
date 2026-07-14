@@ -134,7 +134,7 @@ func queryProjectsForAPIKey(ctx context.Context, apiKey string, optionalOrg stri
 		e = env.Prod
 	}
 	accProject := env.AccountsProjectFromEnv(e)
-	conn, err := auth.NewCloudConnection(ctx, auth.WithProject(accProject), auth.WithAPIKey(apiKey))
+	conn, err := auth.NewCloudConnection(ctx, auth.WithProject(accProject), auth.WithAPIKey(apiKey), auth.WithEnv(e))
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +163,7 @@ func loginCmdE(cmd *cobra.Command, _ []string) (err error) {
 	writer := cmd.OutOrStdout()
 	projectName := loginParams.GetString(orgutil.KeyProject)
 	orgName := loginParams.GetString(orgutil.KeyOrganization)
-	org := orgutil.QualifiedOrg(projectName, orgName)
+	org := orgutil.QualifiedOrg(projectName, orgName) // org@project
 	in := bufio.NewReader(cmd.InOrStdin())
 	// In the future multiple aliases should be supported for one project.
 	alias := auth.AliasDefaultToken
@@ -222,23 +222,19 @@ func loginCmdE(cmd *cobra.Command, _ []string) (err error) {
 		}
 	}
 
-	var config *auth.ProjectConfiguration
-	if authStore.HasConfiguration(projectName) {
-		if config, err = authStore.GetConfiguration(projectName); err != nil {
-			return fmt.Errorf("cannot load '%s' configuration: %w", projectName, err)
-		}
-	} else {
-		config = auth.NewConfiguration(projectName)
+	// API keys are stored per environment.
+	envName := loginParams.GetString(orgutil.KeyEnvironment)
+	if envName == "" {
+		envName = env.FromAnyProject(projectName)
+	}
+	if err := authStore.UpsertEnvConfig(envName, alias, apiKey); err != nil {
+		return fmt.Errorf("error upserting env config: %w", err)
+	}
+	if err := authStore.UpsertProjectConfig(projectName, alias, apiKey); err != nil {
+		return fmt.Errorf("error upserting project config: %w", err)
 	}
 
-	config, err = config.SetCredentials(alias, apiKey)
-	if err != nil {
-		return fmt.Errorf("aborting, invalid credentials: %w", err)
-	}
-
-	_, err = authStore.WriteConfiguration(config)
-
-	return err
+	return nil
 }
 
 func init() {
@@ -248,9 +244,8 @@ func init() {
 	// we will use viper to fetch data, we do not need local variables
 	flags.Bool(keyNoBrowser, false, "Disables attempt to open login URL in browser automatically")
 	flags.Bool(keyBatch, false, "Suppresses command prompts and assume Yes or default as an answer. Use with shell scripts.")
-	flags.String(orgutil.KeyEnvironment, "", fmt.Sprintf("Auth environment to use. This should be one of %v. %q is used by default. See http://go/intrinsic-users#environments for the compatible environment corresponding to a cloud project.", strings.Join(env.All, ", "), env.Prod))
-	flags.MarkHidden(orgutil.KeyEnvironment)
+
 	flags.MarkHidden(orgutil.KeyProject)
 
-	viperutil.BindFlags(loginParams, flags, viperutil.BindToListEnv(orgutil.KeyEnvironment))
+	viperutil.BindFlags(loginParams, flags, nil)
 }

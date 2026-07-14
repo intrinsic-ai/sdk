@@ -9,8 +9,6 @@ import (
 	"slices"
 	"strings"
 	"testing"
-
-	"encoding/json"
 	"time"
 
 	"github.com/google/go-cmp/cmp"
@@ -61,45 +59,6 @@ func TestRFC3339Time_Marshaling(t *testing.T) {
 	}
 }
 
-func TestStore_HasConfiguration(t *testing.T) {
-	store := newStoreForTest(t)
-	mustPrepareDirectoryStructure(t, store)
-
-	tests := []struct {
-		project    string
-		setMode    os.FileMode
-		skipCreate bool
-		wants      bool
-	}{
-		{project: "hello-dolly-1", setMode: 0o124, wants: false},
-		{project: "hello-dolly-2", setMode: fileMode, wants: true},
-		{project: "hello-dolly-3", setMode: directoryMode, wants: true},
-		{project: "hello-dolly-4", setMode: 0o200, wants: false},
-		{project: "hello-dolly-5", setMode: 0o277, wants: false},
-		{project: "hello-dolly-6", setMode: 0o777, wants: true},
-		{project: "hello-dolly-7", setMode: 0o100, wants: false},
-		{project: "hello-dolly-8", setMode: 0o400, wants: false},
-		{project: "this-file-does-not-exists", skipCreate: true, wants: false},
-	}
-
-	for _, test := range tests {
-		filename, err := store.getConfigurationFilename(test.project)
-		if err != nil {
-			t.Errorf("cannot get filename for project: %s", err)
-		}
-		if !test.skipCreate {
-			err = os.WriteFile(filename, []byte(test.project), test.setMode)
-			if err != nil {
-				t.Errorf("cannot create mock credentials file: %s", err)
-			}
-		}
-		result := store.HasConfiguration(test.project)
-		if result != test.wants {
-			t.Errorf("unexpected output: got %t; wants %t", result, test.wants)
-		}
-	}
-}
-
 func mustPrepareDirectoryStructure(t *testing.T, store *Store) {
 	t.Helper()
 	// throw away to establish directory structure
@@ -135,21 +94,17 @@ func TestStore_GetConfiguration(t *testing.T) {
 			"nil-value":   nil,
 		},
 	}
-	goldConfig, err := store.WriteConfiguration(config)
+	err := store.WriteConfiguration(config)
 	if err != nil {
 		t.Errorf("error writing configuration to persistent store: %v", err)
 	}
 
-	if !store.HasConfiguration(projectName) {
-		t.Errorf("project configuration expected but not found")
-	}
-
-	config, err = store.GetConfiguration(projectName)
+	readConfig, err := store.GetConfiguration(projectName)
 	if err != nil {
 		t.Errorf("cannot load project configuration: %v", err)
 	}
 
-	diff := cmp.Diff(goldConfig, config, cmpopts.IgnoreUnexported(RFC3339Time{}))
+	diff := cmp.Diff(config, readConfig, cmpopts.IgnoreUnexported(RFC3339Time{}))
 
 	if diff != "" {
 		t.Errorf("unexpected configuration value: %s", diff)
@@ -167,7 +122,7 @@ func TestStore_GetConfiguration(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		credentials, err := config.GetCredentials(test.alias)
+		credentials, err := readConfig.GetCredentials(test.alias)
 		if err != nil {
 			t.Errorf("cannot get credentials for alias '%s': %v", test.alias, err)
 		}
@@ -182,18 +137,7 @@ func TestStore_GetConfiguration(t *testing.T) {
 	// Test environment fallback behavior
 	envName := "prod"
 	envConfig := NewConfiguration(envName)
-	filename, err := store.getEnvConfigurationFilename(envName)
-	if err != nil {
-		t.Fatalf("failed to get env config filename: %v", err)
-	}
-	if err := os.MkdirAll(filepath.Dir(filename), 0700); err != nil {
-		t.Fatalf("failed to create env config dir: %v", err)
-	}
-	b, err := json.MarshalIndent(envConfig, "", "  ")
-	if err != nil {
-		t.Fatalf("failed to marshal env config: %v", err)
-	}
-	if err := os.WriteFile(filename, b, 0600); err != nil {
+	if err := store.WriteEnvConfiguration(envConfig); err != nil {
 		t.Fatalf("failed to write env config: %v", err)
 	}
 
@@ -343,7 +287,7 @@ func TestStore_AuthorizeContext(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			store := newStoreForTest(t)
 
-			if _, err := store.WriteConfiguration(tc.givenProjectConfiguration); err != nil {
+			if err := store.WriteConfiguration(tc.givenProjectConfiguration); err != nil {
 				t.Fatalf("WriteConfiguration(%v) returned an unexpected error: %v", tc.givenProjectConfiguration, err)
 			}
 
@@ -449,7 +393,7 @@ func TestStore_RemoveOrganization(t *testing.T) {
 			s := newStoreForTest(t)
 
 			for _, project := range tt.fields.projects {
-				_, err := s.WriteConfiguration(&project)
+				err := s.WriteConfiguration(&project)
 				if err != nil {
 					t.Errorf("cannot write project %v: %s", project, err)
 				}
@@ -518,7 +462,7 @@ func TestStore_RemoveAllKnownCredentials(t *testing.T) {
 			s := newStoreForTest(t)
 
 			for _, project := range tt.fields.projects {
-				_, err := s.WriteConfiguration(&project)
+				err := s.WriteConfiguration(&project)
 				if err != nil {
 					t.Errorf("cannot write project %v: %s", project, err)
 				}
@@ -550,5 +494,97 @@ func TestStore_RemoveAllKnownCredentials(t *testing.T) {
 				t.Errorf("unexpected organizations found: %q", strings.Join(orgs, ", "))
 			}
 		})
+	}
+}
+
+func TestStore_UpsertEnvConfig(t *testing.T) {
+	store := newStoreForTest(t)
+	envName := "test-env"
+	alias := "default"
+	apiKey := "test-api-key"
+
+	// 1. Upsert should create a new configuration if it doesn't exist
+	if err := store.UpsertEnvConfig(envName, alias, apiKey); err != nil {
+		t.Fatalf("UpsertEnvConfig returned unexpected error: %v", err)
+	}
+
+	config, err := store.GetEnvConfiguration(envName)
+	if err != nil {
+		t.Fatalf("GetEnvConfiguration returned unexpected error: %v", err)
+	}
+
+	creds, err := config.GetCredentials(alias)
+	if err != nil {
+		t.Fatalf("GetCredentials returned unexpected error: %v", err)
+	}
+
+	if creds.APIKey != apiKey {
+		t.Errorf("got APIKey %q, want %q", creds.APIKey, apiKey)
+	}
+
+	// 2. Upsert should update existing configuration
+	newAPIKey := "new-test-api-key"
+	if err := store.UpsertEnvConfig(envName, alias, newAPIKey); err != nil {
+		t.Fatalf("UpsertEnvConfig returned unexpected error: %v", err)
+	}
+
+	config, err = store.GetEnvConfiguration(envName)
+	if err != nil {
+		t.Fatalf("GetEnvConfiguration returned unexpected error: %v", err)
+	}
+
+	creds, err = config.GetCredentials(alias)
+	if err != nil {
+		t.Fatalf("GetCredentials returned unexpected error: %v", err)
+	}
+
+	if creds.APIKey != newAPIKey {
+		t.Errorf("got APIKey %q, want %q", creds.APIKey, newAPIKey)
+	}
+}
+
+func TestStore_UpsertProjectConfig(t *testing.T) {
+	store := newStoreForTest(t)
+	projectName := "test-project"
+	alias := "default"
+	apiKey := "test-api-key"
+
+	// 1. Upsert should create a new configuration if it doesn't exist
+	if err := store.UpsertProjectConfig(projectName, alias, apiKey); err != nil {
+		t.Fatalf("UpsertProjectConfig returned unexpected error: %v", err)
+	}
+
+	config, err := store.GetProjectConfiguration(projectName)
+	if err != nil {
+		t.Fatalf("GetProjectConfiguration returned unexpected error: %v", err)
+	}
+
+	creds, err := config.GetCredentials(alias)
+	if err != nil {
+		t.Fatalf("GetCredentials returned unexpected error: %v", err)
+	}
+
+	if creds.APIKey != apiKey {
+		t.Errorf("got APIKey %q, want %q", creds.APIKey, apiKey)
+	}
+
+	// 2. Upsert should update existing configuration
+	newAPIKey := "new-test-api-key"
+	if err := store.UpsertProjectConfig(projectName, alias, newAPIKey); err != nil {
+		t.Fatalf("UpsertProjectConfig returned unexpected error: %v", err)
+	}
+
+	config, err = store.GetProjectConfiguration(projectName)
+	if err != nil {
+		t.Fatalf("GetProjectConfiguration returned unexpected error: %v", err)
+	}
+
+	creds, err = config.GetCredentials(alias)
+	if err != nil {
+		t.Fatalf("GetCredentials returned unexpected error: %v", err)
+	}
+
+	if creds.APIKey != newAPIKey {
+		t.Errorf("got APIKey %q, want %q", creds.APIKey, newAPIKey)
 	}
 }

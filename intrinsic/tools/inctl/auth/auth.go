@@ -242,22 +242,6 @@ func (s *Store) getConfigDir() (string, error) {
 	return s.GetConfigDirFx()
 }
 
-// HasConfiguration check if configuration with given name exists. Name usually
-// matches name of cloud project.
-func (s *Store) HasConfiguration(name string) bool {
-	filename, err := s.getConfigurationFilename(name)
-	if err != nil {
-		return false
-	}
-	// we need to open filename to ensure we have read rights to it.
-	info, err := os.Stat(filename)
-	if err != nil {
-		return false
-	}
-	// validate minimal required access permissions
-	return (info.Mode().Perm() & fileMode) == fileMode
-}
-
 func (s *Store) getStoreLocation() (string, error) {
 	configDir, err := s.getConfigDir()
 	return filepath.Join(configDir, storeDirectory), err
@@ -330,22 +314,28 @@ func readConfigurationFromFile(filename string) (*ProjectConfiguration, error) {
 	return &result, nil
 }
 
-// WriteConfiguration will always return config supplied as parameter. Any error
-// returned from this method indicates unsuccessful write to persistent storage.
-func (s *Store) WriteConfiguration(config *ProjectConfiguration) (*ProjectConfiguration, error) {
+// WriteConfiguration writes the given project configuration to the store.
+func (s *Store) WriteConfiguration(config *ProjectConfiguration) error {
 	filename, err := s.getConfigurationFilename(config.Name)
 	if err != nil {
-		return config, err
+		return fmt.Errorf("error getting configuration filename: %w", err)
 	}
+	if err := writeConfigToFile(config, filename); err != nil {
+		return fmt.Errorf("failed to write configuration: %w", err)
+	}
+	return nil
+}
+
+func writeConfigToFile(config *ProjectConfiguration, filename string) error {
 	// we make sure we have whole directory structure before we create file.
 	// os.MkdirAll() calls os.Stat() on path, so there is no point to do it here.
-	if err = os.MkdirAll(filepath.Dir(filename), directoryMode); err != nil {
-		return config, fmt.Errorf("cannot create target directory: %w", err)
+	if err := os.MkdirAll(filepath.Dir(filename), directoryMode); err != nil {
+		return fmt.Errorf("cannot create target directory: %w", err)
 	}
 
 	file, err := os.OpenFile(filename, writeFileFlags, fileMode)
 	if err != nil {
-		return config, fmt.Errorf("cannot open configuration file: %w", err)
+		return fmt.Errorf("cannot open configuration file: %w", err)
 	}
 
 	defer file.Close()
@@ -356,12 +346,12 @@ func (s *Store) WriteConfiguration(config *ProjectConfiguration) (*ProjectConfig
 
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "  ")
-	if err = encoder.Encode(config); err != nil {
-		return config, fmt.Errorf("cannot serialize configuration: %w", err)
+	if err := encoder.Encode(config); err != nil {
+		return fmt.Errorf("cannot serialize configuration: %w", err)
 	}
 
 	// if sync fails, we did not write into store.
-	return config, file.Sync()
+	return file.Sync()
 }
 
 // ListConfigurations gives a list of known configurations. It works on
@@ -646,16 +636,6 @@ func (s *Store) GetEnvConfiguration(env string) (*ProjectConfiguration, error) {
 	return cfg, nil
 }
 
-// HasEnvConfiguration check if a configuration exists for a given environment.
-func (s *Store) HasEnvConfiguration(env string) bool {
-	filename, err := s.getEnvConfigurationFilename(env)
-	if err != nil {
-		return false
-	}
-	_, err = os.Stat(filename)
-	return !errors.Is(err, os.ErrNotExist)
-}
-
 func (s *Store) getEnvConfigurationFilename(env string) (string, error) {
 	if env == "" {
 		return "", fmt.Errorf("environment name is required")
@@ -673,4 +653,68 @@ func (s *Store) getEnvConfigurationFilename(env string) (string, error) {
 func (s *Store) getEnvStoreLocation() (string, error) {
 	configDir, err := s.getConfigDir()
 	return filepath.Join(configDir, envStoreDirectory), err
+}
+
+// WriteEnvConfiguration writes the given environment configuration to the store.
+func (s *Store) WriteEnvConfiguration(config *ProjectConfiguration) error {
+	filename, err := s.getEnvConfigurationFilename(config.Name)
+	if err != nil {
+		return fmt.Errorf("error getting env config filename: %w", err)
+	}
+	if err := writeConfigToFile(config, filename); err != nil {
+		return fmt.Errorf("failed to write environment configuration: %w", err)
+	}
+	return nil
+}
+
+// UpsertEnvConfig sets the given apiKey to the given alias in the environment
+// configuration and writes it to the store.
+func (s *Store) UpsertEnvConfig(envName, alias, apiKey string) error {
+	var config *ProjectConfiguration
+	var err error
+
+	config, err = s.GetEnvConfiguration(envName)
+	if err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
+			return fmt.Errorf("cannot load '%s' configuration: %w", envName, err)
+		}
+		config = NewConfiguration(envName)
+	}
+
+	config, err = config.SetCredentials(alias, apiKey)
+	if err != nil {
+		return fmt.Errorf("aborting, invalid credentials: %w", err)
+	}
+
+	if err = s.WriteEnvConfiguration(config); err != nil {
+		return fmt.Errorf("error writing env config: %w", err)
+	}
+
+	return nil
+}
+
+// UpsertProjectConfig sets the given apiKey to the given alias in the project
+// configuration and writes it to the store.
+func (s *Store) UpsertProjectConfig(projectName, alias, apiKey string) error {
+	var config *ProjectConfiguration
+	var err error
+
+	config, err = s.GetProjectConfiguration(projectName)
+	if err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
+			return fmt.Errorf("cannot load '%s' configuration: %w", projectName, err)
+		}
+		config = NewConfiguration(projectName)
+	}
+
+	config, err = config.SetCredentials(alias, apiKey)
+	if err != nil {
+		return fmt.Errorf("aborting, invalid credentials: %w", err)
+	}
+
+	if err = s.WriteConfiguration(config); err != nil {
+		return fmt.Errorf("error writing project config: %w", err)
+	}
+
+	return nil
 }

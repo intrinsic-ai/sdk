@@ -321,7 +321,7 @@ func WrapCmdOptional(cmd *cobra.Command, vipr *viper.Viper, options ...WrapCmdOp
 	cmd.PersistentFlags().StringP(KeyOrganization, "", "",
 		`The Intrinsic organization to use. You can set the environment variable
 	INTRINSIC_ORG=organization to set a default organization.`)
-	envUsage := fmt.Sprintf("Auth environment to use. This should be one of %v. %q is used by default. "+
+	envUsage := fmt.Sprintf("Auth environment to use. This should be one of %v. The environment is automatically inferred from the project by default, or explicitly defaults to %q if the project is unknown. "+
 		"Each cloud project is associated with exactly one environment.", strings.Join(env.All, ", "), env.Prod)
 	cmd.PersistentFlags().String(KeyEnvironment, "", envUsage)
 	_ = cmd.PersistentFlags().MarkHidden(KeyEnvironment)
