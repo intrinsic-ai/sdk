@@ -9,6 +9,16 @@ package(default_visibility = [
 ])
 
 cc_library(
+    name = "pose_estimator_id_utils",
+    srcs = ["pose_estimator_id_utils.cc"],
+    hdrs = ["pose_estimator_id_utils.h"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        "//intrinsic/perception/proto/v1:pose_estimator_id_cc_proto",
+    ],
+)
+
+cc_library(
     name = "calibration_service_utils",
     srcs = ["calibration_service_utils.cc"],
     hdrs = ["calibration_service_utils.h"],
