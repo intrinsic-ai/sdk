@@ -60,6 +60,14 @@ message InitializeRequest {
   // planning. If this field is unset, the pose of the calibration object
   // will be unaffected in the digital twin.
   optional intrinsic_proto.world.ObjectReference calibration_object = 4;
+
+  // Optional ID of the execute/belief world (digital twin). Defaults to "world"
+  // if omitted.
+  optional string belief_world_id = 5;
+
+  // Optional ID of the initial/edit world (base scene). Defaults to
+  // "init_world" if omitted.
+  optional string edit_world_id = 6;
 }
 
 message InitializeResponse {
