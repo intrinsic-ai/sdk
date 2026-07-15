@@ -40,12 +40,12 @@ var vmReturnCmd = &cobra.Command{
 			return err
 		}
 
-		return Return(ctx, cl, args[0], vmCmdFlags.GetFlagProject())
+		return Return(ctx, cl, args[0], vmCmdFlags.GetFlagProject(), flagServiceTag)
 	},
 }
 
 // Return returns a leased VM back to the pool.
-func Return(ctx context.Context, cl leaseapigrpcpb.VMPoolLeaseServiceClient, vmArg, project string) error {
+func Return(ctx context.Context, cl leaseapigrpcpb.VMPoolLeaseServiceClient, vmArg, project string, serviceTag string) error {
 	vmID := vmalias.ResolvePrint(vmArg, project)
 	if _, err := cl.Return(ctx, &leasepb.ReturnRequest{Instance: vmID, ServiceTag: serviceTag}); err != nil {
 		return fmt.Errorf("return failed with: %v", err)

@@ -44,12 +44,12 @@ var vmExpireInCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		return ExpireIn(ctx, cl, args[0], args[1], vmCmdFlags.GetFlagProject(), flagExtendOnly)
+		return ExpireIn(ctx, cl, args[0], args[1], vmCmdFlags.GetFlagProject(), flagExtendOnly, flagServiceTag)
 	},
 }
 
 // ExpireIn extends the expiration time of a lease by a duration relative to now.
-func ExpireIn(ctx context.Context, cl leaseapigrpcpb.VMPoolLeaseServiceClient, vmArg, byStr, project string, extendOnly bool) error {
+func ExpireIn(ctx context.Context, cl leaseapigrpcpb.VMPoolLeaseServiceClient, vmArg, byStr, project string, extendOnly bool, serviceTag string) error {
 	vm := vmalias.ResolvePrint(vmArg, project)
 	byDur, err := time.ParseDuration(byStr)
 	if err != nil {

@@ -30,8 +30,6 @@ var (
 	vmCmd      = cobrautil.ParentOfNestedSubcommands("vm", "Administer and work with virtual machines")
 )
 
-const serviceTag string = "inctl"
-
 var (
 	flagUserEmail     string
 	flagContextAlias  string
@@ -45,6 +43,7 @@ var (
 	flagSilent        bool
 	flagSetContext    bool
 	flagExtendOnly    bool
+	flagServiceTag    string
 )
 
 func init() {
@@ -70,6 +69,7 @@ func init() {
 
 	vmExpireInCmd.PersistentFlags().BoolVar(&flagExtendOnly, "extend-only", false, "Only update the lease expiration time if it is longer than the current one.")
 	vmCmd.AddCommand(vmExpireInCmd)
+
 }
 
 // leaseRetryPolicy is the gRPC retry policy for VMPoolLeaseService.

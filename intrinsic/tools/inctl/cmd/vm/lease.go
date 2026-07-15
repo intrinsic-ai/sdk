@@ -92,6 +92,7 @@ var vmLeaseCmd = &cobra.Command{
 			IntrinsicOS:   flagIntrinsicOS,
 			Silent:        flagSilent,
 			Stderr:        os.Stderr,
+			ServiceTag:    flagServiceTag,
 		})
 		if err != nil {
 			// If the context of RunE (which intercepts SIGINT/SIGTERM) was cancelled,
@@ -119,6 +120,7 @@ type LeaseOptions struct {
 	IntrinsicOS   string
 	Silent        bool
 	Stderr        io.Writer
+	ServiceTag    string
 }
 
 // Lease leases a VM from a pool of VMs.
@@ -227,7 +229,12 @@ func optionalExpiresIn(optDuration time.Duration) *tpb.Timestamp {
 func requestLease(ctx context.Context, duration time.Duration, leaseClient leaseapigrpcpb.VMPoolLeaseServiceClient, opts *LeaseOptions) (*leaseResult, error) {
 	var l *leasepb.Lease
 	for l == nil { // retry until lease successful or retry not set
-		req := &leasepb.LeaseRequest{Pool: opts.Pool, Expires: optionalExpiresIn(duration), ServiceTag: serviceTag, ReservationId: &opts.ReservationID}
+		req := &leasepb.LeaseRequest{
+			Pool:          opts.Pool,
+			Expires:       optionalExpiresIn(duration),
+			ServiceTag:    opts.ServiceTag,
+			ReservationId: &opts.ReservationID,
+		}
 		lResp, err := leaseClient.Lease(ctx, req)
 		if err != nil {
 			if status.Code(err) == codes.PermissionDenied {
@@ -358,7 +365,11 @@ func requestAdhocLease(ctx context.Context, duration time.Duration, leaseClient 
 
 	var l *leasepb.Lease
 	for l == nil { // retry until lease successful or retry not set
-		req := &leasepb.LeaseRequest{Pool: opts.Pool, Expires: optionalExpiresIn(duration), ServiceTag: serviceTag}
+		req := &leasepb.LeaseRequest{
+			Pool:       opts.Pool,
+			Expires:    optionalExpiresIn(duration),
+			ServiceTag: opts.ServiceTag,
+		}
 		if reservationUUID != "" {
 			req.ReservationId = &reservationUUID
 		}
