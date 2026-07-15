@@ -47,6 +47,13 @@ DSM_PROJECT_PROD = "intrinsic-dsm-prod"
 # Ops project constants
 OPS_PROJECT_PROD = "intrinsic-ops"
 
+_DEV_PROJECT = (
+    "b7219186c3255926d0c158c14b3e0363d6b386115d4c3f1d8e0c9723369ea3b4"
+)
+_STAGING_PROJECT = (
+    "bb46d3dc2d207a46a66397e36698c40b66d3c0c364cd3fd2d196f60f4b1d9fd9"
+)
+
 # All environments
 ALL = [PROD, STAGING, DEV]
 
@@ -105,16 +112,11 @@ def from_compute_project(project: str) -> str:
   """Returns the environment for a given compute project."""
   if "-prod-" in project:
     return PROD
+
   hashed = _hash_project_name(project)
-  if (
-      hashed
-      == "b7219186c3255926d0c158c14b3e0363d6b386115d4c3f1d8e0c9723369ea3b4"
-  ):
+  if hashed == _DEV_PROJECT:
     return DEV
-  if (
-      hashed
-      == "bb46d3dc2d207a46a66397e36698c40b66d3c0c364cd3fd2d196f60f4b1d9fd9"
-  ):
+  if hashed == _STAGING_PROJECT:
     return STAGING
   return PROD
 
