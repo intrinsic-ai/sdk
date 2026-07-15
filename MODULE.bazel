@@ -236,6 +236,13 @@ oci.pull(
     platforms = ["linux/amd64"],
 )
 
+oci.pull(
+    name = "zenohd",
+    digest = "sha256:9a8195c927169365e516309d55753b9c3a7484a59825cf4fbefb9125cfbdb01d",
+    image = "us-central1-docker.pkg.dev/intrinsic-mirror/intrinsic-build-images/zenohd:1.7.2",
+    platforms = ["linux/amd64"],
+)
+
 # NOTE: Bazel reports wrong usage of the repos as a warning
 # BUG: https://github.com/bazel-contrib/rules_oci/issues/727
 use_repo(
