@@ -93,3 +93,27 @@ cc_library(
         "@abseil-cpp//absl/strings:str_format",
     ],
 )
+
+cc_library(
+    name = "position_part_util",
+    srcs = ["position_part_util.cc"],
+    hdrs = ["position_part_util.h"],
+    visibility = [
+        "//intrinsic/icon/skills:__subpackages__",
+        "//intrinsic/motion_planning/skills:__pkg__",
+        "//intrinsic/motion_planning/skills:__subpackages__",
+        "//intrinsic/perception/skills:__subpackages__",
+    ],
+    deps = [
+        "//intrinsic/icon/equipment:icon_equipment_cc_proto",
+        "//intrinsic/util/status:status_macros",
+        "//intrinsic/world/objects:object_world_client",
+        "//intrinsic/world/objects:world_object",
+        "//intrinsic/world/proto:object_world_refs_cc_proto",
+        "//intrinsic/world/util:object_reference_utils",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/strings:string_view",
+    ],
+)
