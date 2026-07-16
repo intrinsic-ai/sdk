@@ -53,7 +53,6 @@ from intrinsic.solutions import ipython
 from intrinsic.solutions import provided
 from intrinsic.solutions import utils
 from intrinsic.solutions import worlds
-from intrinsic.solutions.internal import actions
 from intrinsic.solutions.internal import blackboard as blackboard_internal
 from intrinsic.solutions.internal import skill_utils
 from intrinsic.util.grpc import error_handling
@@ -73,14 +72,19 @@ _PROCESS_TREE_SCOPE = "PROCESS_TREE"
 
 Blackboard = blackboard_internal.Blackboard
 
-BehaviorTreeOrActionType = Union[
-    bt.BehaviorTree,
-    bt.Node,
-    List[Union[actions.ActionBase, List[actions.ActionBase]]],
-    actions.ActionBase,
-    id_pb2.Id,  # Must refer to a process id to load
-    str,  # Must refer to a process id to load
-]
+BehaviorTreeOrActionType = (
+    bt.BehaviorTree
+    | bt.Node
+    | list[
+        bt.ActionBase
+        | bt.CodeExecution
+        | list[bt.ActionBase | bt.CodeExecution]
+    ]
+    | bt.ActionBase
+    | bt.CodeExecution
+    | id_pb2.Id  # Must refer to a process id to load
+    | str  # Must refer to a process id to load
+)
 
 
 def _flatten_list(list_to_flatten: List[Any]) -> List[Any]:
@@ -662,7 +666,7 @@ class Executive:
 
   def run_async(
       self,
-      plan_or_action: Optional[BehaviorTreeOrActionType] = None,
+      plan_or_action: BehaviorTreeOrActionType | None = None,
       *,
       parameters: protobuf_message.Message | None = None,
       resources: Mapping[str, str | provided.ResourceHandle] | None = None,
@@ -675,7 +679,7 @@ class Executive:
       start_from_world_state: worlds.EditWorldId | None = None,
       keep_blackboard: bool = False,
   ):
-    """Requests execution of an action or plan and returns immediately.
+    """Requests execution of an action, code execution, or plan and returns immediately.
 
     Note that an action can be a general action or any skill obtained through
     Skills.
@@ -684,8 +688,9 @@ class Executive:
     Kubernetes template.
 
     Args:
-      plan_or_action: A behavior tree, list of actions, a single action or
-        skill, or an asset id of an installed process asset to run.
+      plan_or_action: A behavior tree, list of actions or code executions, a
+        single action, code execution, or skill, or an asset id of an installed
+        process asset to run.
       parameters: Parameter proto if the operation's behavior tree is
         parameterizable.
       resources: Maps from resource references in a PBT to the actual resource
@@ -741,7 +746,7 @@ class Executive:
   # pylint doesn't understand the copybara transforms for the params
   def run(
       self,
-      plan_or_action: Optional[BehaviorTreeOrActionType],
+      plan_or_action: BehaviorTreeOrActionType | None,
       *,
       parameters: protobuf_message.Message | None = None,
       resources: Mapping[str, str | provided.ResourceHandle] | None = None,
@@ -754,7 +759,7 @@ class Executive:
       start_from_world_state: worlds.EditWorldId | None = None,
       keep_blackboard: bool = False,
   ):
-    """Executes an action or plan and blocks until completion.
+    """Executes an action, code execution, or plan and blocks until completion.
 
     This corresponds to running load and start after one another.
 
@@ -765,9 +770,9 @@ class Executive:
     Kubernetes template.
 
     Args:
-      plan_or_action: A behavior tree, a list of actions (can be nested one
-        level), or a single action, or an asset id of an installed process asset
-        to run.
+      plan_or_action: A behavior tree, a list of actions or code executions (can
+        be nested one level), a single action or code execution, or an asset id
+        of an installed process asset to run.
       parameters: Parameter proto if the operation's behavior tree is
         parameterizable.
       resources: Maps from resource references in a PBT to the actual resource
@@ -833,7 +838,7 @@ class Executive:
 
   def _run(
       self,
-      plan_or_action: Union[BehaviorTreeOrActionType],
+      plan_or_action: BehaviorTreeOrActionType | None,
       blocking: bool,
       silence_outputs: bool,
       parameters: protobuf_message.Message | None,
@@ -849,9 +854,9 @@ class Executive:
     """Implementation of run and run_async.
 
     Args:
-      plan_or_action: A behavior tree, list of actions (can be nested one
-        level), or a single action, or an asset id of an installed process asset
-        to run.
+      plan_or_action: A behavior tree, list of actions or code executions (can
+        be nested one level), a single action or code execution, or an asset id
+        of an installed process asset to run.
       blocking: If True, waits until execution finishes. Otherwise, returns
         immediately after starting.
       silence_outputs: If true, do not show success or error outputs of the
@@ -978,18 +983,18 @@ class Executive:
 
   def load(
       self,
-      behavior_tree_or_action: Optional[BehaviorTreeOrActionType],
+      behavior_tree_or_action: BehaviorTreeOrActionType | None,
       keep_blackboard: bool = False,
   ) -> None:
-    """Loads an action or behavior tree into the executive.
+    """Loads an action, code execution, or behavior tree into the executive.
 
     Note that an action can be a general action or any skill obtained through
     skills.
 
     Args:
-      behavior_tree_or_action: A behavior tree, a list of actions (can be nested
-        one level), or a single action, or an asset id of an installed process
-        asset to run.
+      behavior_tree_or_action: A behavior tree, a list of actions or code
+        executions (can be nested one level), a single action or code execution,
+        or an asset id of an installed process asset to run.
       keep_blackboard: If True, keep the blackboard values from the current
         active operation (if any) and load them into the new operation.
 
@@ -998,16 +1003,22 @@ class Executive:
       grpc.RpcError: On any other gRPC error.
     """
     behavior_tree = None
-    if isinstance(behavior_tree_or_action, actions.ActionBase):
+    if isinstance(behavior_tree_or_action, (bt.ActionBase, bt.CodeExecution)):
       behavior_tree = bt.BehaviorTree(
-          root=bt.Task(cast(actions.ActionBase, behavior_tree_or_action))
+          root=bt.Task(
+              cast(
+                  bt.ActionBase | bt.CodeExecution,
+                  behavior_tree_or_action,
+              )
+          )
       )
     elif isinstance(behavior_tree_or_action, list):
       action_list = _flatten_list(behavior_tree_or_action)
       behavior_tree = bt.BehaviorTree(
           root=bt.Sequence(
               children=[
-                  bt.Task(cast(actions.ActionBase, a)) for a in action_list
+                  bt.Task(cast(bt.ActionBase | bt.CodeExecution, a))
+                  for a in action_list
               ]
           )
       )

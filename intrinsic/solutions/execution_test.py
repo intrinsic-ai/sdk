@@ -28,6 +28,7 @@ from intrinsic.solutions import blackboard_value
 from intrinsic.solutions import error_processing
 from intrinsic.solutions import errors as solutions_errors
 from intrinsic.solutions import execution
+from intrinsic.solutions import proto_building
 from intrinsic.solutions import provided
 from intrinsic.solutions import worlds
 from intrinsic.solutions.internal import behavior_call
@@ -261,6 +262,44 @@ class ExecutiveTest(parameterized.TestCase):
         operations_pb2.DeleteOperationRequest(name=_OPERATION_NAME)
     )
 
+  def test_load_works_on_code_execution(self):
+    self._setup_create_operation()
+
+    script = bt.PythonScript(
+        proto_building.Signature().with_args(), function_body='pass'
+    )
+
+    self._executive.load(script)
+
+    create_request = executive_service_pb2.CreateOperationRequest()
+    create_request.behavior_tree.root.task.execute_code.CopyFrom(script.proto)
+    self._executive_service_stub.CreateOperation.assert_called_once_with(
+        create_request
+    )
+
+  def test_load_works_on_code_execution_nested_list(self):
+    self._setup_create_operation()
+
+    node1 = bt.PythonScript(
+        proto_building.Signature().with_args(), function_body="print('node1')"
+    )
+    node2 = bt.PythonScript(
+        proto_building.Signature().with_args(), function_body="print('node2')"
+    )
+    node3 = bt.PythonScript(
+        proto_building.Signature().with_args(), function_body="print('node3')"
+    )
+
+    self._executive.load([node1, [node2, node3]])
+
+    create_request = executive_service_pb2.CreateOperationRequest()
+    for script in (node1, node2, node3):
+      child = create_request.behavior_tree.root.sequence.children.add()
+      child.task.execute_code.CopyFrom(script.proto)
+    self._executive_service_stub.CreateOperation.assert_called_once_with(
+        create_request
+    )
+
   def test_load_from_process_id_works(self):
     """Tests if executive.load() calls CreateOperation with a process id."""
     list_response = operations_pb2.ListOperationsResponse()
@@ -380,6 +419,21 @@ class ExecutiveTest(parameterized.TestCase):
     create_request.behavior_tree.root.task.call_behavior.CopyFrom(
         my_action.proto
     )
+    self._executive_service_stub.CreateOperation.assert_called_once_with(
+        create_request
+    )
+
+  def test_run_async_works_on_code_execution(self):
+    self._setup_create_operation()
+
+    script = bt.PythonScript(
+        proto_building.Signature().with_args(), function_body='pass'
+    )
+
+    self._executive.run_async(script)
+
+    create_request = executive_service_pb2.CreateOperationRequest()
+    create_request.behavior_tree.root.task.execute_code.CopyFrom(script.proto)
     self._executive_service_stub.CreateOperation.assert_called_once_with(
         create_request
     )
@@ -511,6 +565,30 @@ class ExecutiveTest(parameterized.TestCase):
     create_request.behavior_tree.root.task.call_behavior.CopyFrom(
         my_action.proto
     )
+    self._executive_service_stub.CreateOperation.assert_called_once_with(
+        create_request
+    )
+    self._executive_service_stub.GetOperation.assert_called_with(
+        operations_pb2.GetOperationRequest(name=_OPERATION_NAME)
+    )
+
+  def test_run_works_on_code_execution(self):
+    self._setup_create_operation()
+    self._setup_start_operation()
+    self._setup_get_operation_sequence([
+        run_metadata_pb2.RunMetadata.RUNNING,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+        run_metadata_pb2.RunMetadata.SUCCEEDED,
+    ])
+
+    script = bt.PythonScript(
+        proto_building.Signature().with_args(), function_body='pass'
+    )
+
+    self._executive.run(script)
+
+    create_request = executive_service_pb2.CreateOperationRequest()
+    create_request.behavior_tree.root.task.execute_code.CopyFrom(script.proto)
     self._executive_service_stub.CreateOperation.assert_called_once_with(
         create_request
     )
@@ -970,7 +1048,6 @@ class ExecutiveTest(parameterized.TestCase):
     self._executive_service_stub.StartOperation.assert_called_once_with(
         start_request
     )
-
 
   @parameterized.named_parameters(
       dict(
