@@ -1,6 +1,7 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
 load("@ai_intrinsic_sdks_pip_deps//:requirements.bzl", "requirement")
+load("@com_github_grpc_grpc//bazel:cc_grpc_library.bzl", "cc_grpc_library")
 load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
@@ -495,4 +496,23 @@ py_grpc_library(
         "//intrinsic/solutions:__pkg__",
     ],
     deps = [":installed_assets_py_pb2"],
+)
+
+cc_proto_library(
+    name = "installed_assets_cc_proto",
+    visibility = [
+        "//intrinsic:public_api_users",
+    ],
+    deps = [":installed_assets_proto"],
+)
+
+cc_grpc_library(
+    name = "installed_assets_cc_grpc_proto",
+    srcs = [":installed_assets_proto"],
+    generate_mocks = True,
+    grpc_only = True,
+    visibility = [
+        "//intrinsic:public_api_users",
+    ],
+    deps = [":installed_assets_cc_proto"],
 )
