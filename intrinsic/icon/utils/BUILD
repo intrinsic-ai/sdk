@@ -72,6 +72,16 @@ cc_library(
 )
 
 cc_library(
+    name = "arm_utils",
+    srcs = ["arm_utils.cc"],
+    hdrs = ["arm_utils.h"],
+    deps = [
+        "//intrinsic/eigenmath",
+        "//intrinsic/icon/proto:part_status_cc_proto",
+    ],
+)
+
+cc_library(
     name = "sensor_utils",
     srcs = ["sensor_utils.cc"],
     hdrs = ["sensor_utils.h"],
