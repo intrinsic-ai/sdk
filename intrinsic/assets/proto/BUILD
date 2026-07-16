@@ -309,7 +309,9 @@ py_proto_library(
 
 cc_proto_library(
     name = "vendor_cc_proto",
-    visibility = ["//intrinsic/perception/public:__pkg__"],
+    visibility = [
+        "//intrinsic:intrinsic_internal",
+    ],
     deps = [":vendor_proto"],
 )
 

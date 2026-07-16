@@ -37,3 +37,22 @@ cc_library(
         "@com_github_grpc_grpc//:grpc++",
     ],
 )
+
+cc_library(
+    name = "asset_utils",
+    srcs = ["asset_utils.cc"],
+    hdrs = ["asset_utils.h"],
+    deps = [
+        "//intrinsic/assets/data/proto/v1:data_asset_cc_proto",
+        "//intrinsic/assets/data/proto/v1:data_assets_cc_grpc_proto",
+        "//intrinsic/assets/data/proto/v1:data_assets_cc_proto",
+        "//intrinsic/assets/proto:id_cc_proto",
+        "//intrinsic/perception/proto/v1:perception_model_cc_proto",
+        "//intrinsic/util/status:status_macros_grpc",
+        "@abseil-cpp//absl/base:nullability",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings:str_format",
+        "@com_github_grpc_grpc//:grpc++",
+    ],
+)
