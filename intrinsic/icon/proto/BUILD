@@ -1,5 +1,6 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
+load("@com_github_grpc_grpc//bazel:cc_grpc_library.bzl", "cc_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
@@ -385,6 +386,43 @@ py_proto_library(
     deps = [":logging_mode_proto"],
 )
 
+proto_library(
+    name = "limit_provider_service_proto",
+    srcs = ["limit_provider_service.proto"],
+    deps = ["//intrinsic/kinematics/types:joint_limits_proto"],
+)
+
+cc_proto_library(
+    name = "limit_provider_service_cc_proto",
+    deps = [":limit_provider_service_proto"],
+)
+
+cc_grpc_library(
+    name = "limit_provider_service_cc_grpc_proto",
+    srcs = [":limit_provider_service_proto"],
+    generate_mocks = True,
+    grpc_only = True,
+    deps = [":limit_provider_service_cc_proto"],
+)
+
+go_proto_library(
+    name = "limit_provider_service_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+    ],
+    importpath = "intrinsic/icon/proto/limit_provider_service_go_proto",
+    protos = [":limit_provider_service_proto"],
+    deps = [
+        "//intrinsic/kinematics/types:joint_limits_go_proto",
+    ],
+)
+
+py_proto_library(
+    name = "limit_provider_service_py_pb2",
+    deps = [":limit_provider_service_proto"],
+)
+
 # Convenience proto library to add icon protos to icon python wheel
 proto_library(
     name = "icon_protos",
@@ -394,6 +432,7 @@ proto_library(
         ":ik_options_proto",
         ":io_block_proto",
         ":joint_space_proto",
+        ":limit_provider_service_proto",
         ":matrix_proto",
         ":part_status_proto",
         ":safety_status_proto",

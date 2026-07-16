@@ -1,0 +1,49 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.icon;
+
+import "intrinsic/kinematics/types/joint_limits.proto";
+
+option go_package = "intrinsic/icon/proto/limit_provider_service_go_proto";
+
+message GetAllowedLimitsRequest {
+  // The maximum allowed TCP spped for which the limits are computed. If unset,
+  // the default maximum TCP speed is used.
+  //
+  // The TCP speed can exceed the configured maximum TCP speed. In this case,
+  // the limits are lowered accordingly.
+  //
+  // Adjusting the limits to the TCP speed is an experimental feature and may
+  // not be supported by all hardware modules. Do not use this field.
+  optional double max_tcp_speed = 1;
+  // The payload for which the limits should be computed. If unset the
+  // maximum payload mass is used.
+  //
+  // If the returned limits should be used, the robot payload must be set
+  // accordingly.
+  optional double payload_mass_kg = 2;
+}
+
+message GetAllowedLimitsResponse {
+  // The maximum allowed system limits for the robot for the payload in
+  // `payload_mass_kg`.
+  intrinsic_proto.JointLimitsUpdate system_limits = 1;
+  // The maximum allowed application limits for the robot for the payload in
+  // `payload_mass_kg`.
+  intrinsic_proto.JointLimitsUpdate application_limits = 2;
+
+  // The TCP speed that was used to compute the limits. Unit is m/s.
+  double max_tcp_speed = 3;
+  // The payload mass that was used to compute the limits. Unit is kg.
+  double payload_mass_kg = 4;
+}
+
+// This service may be implemented by a robot hardware module resource and
+// provides calibrated data information for the resource.
+service LimitProviderService {
+  // Gets the calibrated robot kinematics data.
+  rpc GetAllowedLimits(GetAllowedLimitsRequest)
+      returns (GetAllowedLimitsResponse);
+}
