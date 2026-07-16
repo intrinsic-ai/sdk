@@ -10,6 +10,7 @@
 
 #include "absl/log/check.h"
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
 #include "google/protobuf/message.h"
 #include "grpcpp/impl/service_type.h"
@@ -54,6 +55,15 @@ absl::Status ExecuteSkill(SkillExecuteInterface& skill,
                           const ExecuteRequest& request,
                           ExecuteContext& context);
 
+template <typename TResult>
+absl::StatusOr<TResult> ExecuteSkill(SkillExecuteInterface& skill,
+                                     const ExecuteRequest& request,
+                                     ExecuteContext& context) {
+  TResult result;
+  INTR_RETURN_IF_ERROR(ExecuteSkill(skill, request, context, &result));
+  return result;
+}
+
 // Calls a skill's Preview() method and optionally assigns its output to the
 // specified result parameter.
 template <typename TResult>
@@ -81,6 +91,15 @@ absl::Status PreviewSkill(SkillExecuteInterface& skill,
 absl::Status PreviewSkill(SkillExecuteInterface& skill,
                           const PreviewRequest& request,
                           PreviewContext& context);
+
+template <typename TResult>
+absl::StatusOr<TResult> PreviewSkill(SkillExecuteInterface& skill,
+                                     const PreviewRequest& request,
+                                     PreviewContext& context) {
+  TResult result;
+  INTR_RETURN_IF_ERROR(PreviewSkill(skill, request, context, &result));
+  return result;
+}
 
 // Creates objects needed to unit test skills.
 //
@@ -177,6 +196,12 @@ class SkillTestFactory final {
  public:
   SkillTestFactory();
   ~SkillTestFactory() = default;
+
+  // Enable move construction and assignment.
+  SkillTestFactory(const SkillTestFactory&) = delete;
+  SkillTestFactory& operator=(const SkillTestFactory&) = delete;
+  SkillTestFactory(SkillTestFactory&&) = default;
+  SkillTestFactory& operator=(SkillTestFactory&&) = default;
 
   // Runs a service that allows connections from localhost and returns a
   // ResourceHandle that can be used to connect to the service.
