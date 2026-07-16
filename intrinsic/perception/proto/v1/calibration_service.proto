@@ -5,6 +5,8 @@ syntax = "proto3";
 package intrinsic_proto.perception.v1;
 
 import "google/protobuf/empty.proto";
+import "intrinsic/assets/proto/field_metadata.proto";
+import "intrinsic/assets/proto/v1/resolved_dependency.proto";
 import "intrinsic/math/proto/pose.proto";
 import "intrinsic/perception/proto/v1/pattern_detection_config.proto";
 import "intrinsic/perception/proto/v1/camera_to_robot_calibration.proto";
@@ -15,6 +17,17 @@ import "intrinsic/resources/proto/resource_handle.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 
 option go_package = "intrinsic/perception/proto/v1/calibration_service_go_proto";
+
+message CalibrationServiceConfig {
+  // The resolved dependency for the Intrinsic runtime.
+  intrinsic_proto.assets.v1.ResolvedDependency intrinsic_runtime = 1
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "grpc://google.longrunning.Operations"
+        requires: "grpc://intrinsic_proto.assets.v1.AssetInstances"
+        requires: "grpc://intrinsic_proto.data_logger.DataLogger"
+        requires: "grpc://intrinsic_proto.world.ObjectWorldService"
+      }];
+}
 
 // Service for unified camera calibration, i.e., intrinsic camera calibration,
 // camera-to-camera, and camera-to-robot calibration.
