@@ -5,7 +5,32 @@ package report
 
 import (
 	"errors"
+	"fmt"
+
+	"intrinsic/util/status/extstatus"
 )
+
+const (
+	// defaultComponentName is the name that will be used as the component name for ExtendedStatus
+	// errors unless overridden. This is arbitrarily chosen, and deviates from the official
+	// guidelines that specifies providing a component name following an ID format
+	// (e.g. <package>.<name>), since the component is not specific to any Asset.
+	defaultComponentName = "assets_errors"
+	// defaultStatusCode is the status code that will be used for ExtendedStatus errors unless
+	// overridden.
+	defaultStatusCode = 2000
+)
+
+// ExtendedStatusConverter is implemented by error types that can define their own ExtendedStatus representation.
+//
+// When a Report is converted to an ExtendedStatus (via ToExtendedStatus), any errors implementing
+// this interface will be converted using their custom implementation. This allows custom error types to
+// preserve specific error codes, components, or contexts instead of falling back to the default
+// component name, status code, and generic error message.
+type ExtendedStatusConverter interface {
+	// ToExtendedStatus converts the error to a customized ExtendedStatus representation.
+	ToExtendedStatus() *extstatus.ExtendedStatus
+}
 
 // warningRule defines a function that returns true if an error should be
 // collected as a warning rather than returned as an error.
@@ -119,4 +144,78 @@ func (r *Report) Add(err error) error {
 // Warnings returns the slice of all collected warning errors.
 func (r *Report) Warnings() []error {
 	return r.warnings
+}
+
+// ReportExtendedStatusOption is a functional option to configure the ExtendedStatus generation for Report.
+type ReportExtendedStatusOption func(*reportExtendedStatusOpts)
+
+type reportExtendedStatusOpts struct {
+	code        uint32
+	component   string
+	titlePrefix string
+}
+
+// WithCode sets the status code for the ExtendedStatus.
+func WithCode(code uint32) ReportExtendedStatusOption {
+	return func(opts *reportExtendedStatusOpts) {
+		opts.code = code
+	}
+}
+
+// WithComponentName sets the component name for the ExtendedStatus.
+func WithComponentName(name string) ReportExtendedStatusOption {
+	return func(opts *reportExtendedStatusOpts) {
+		opts.component = name
+	}
+}
+
+// WithTitlePrefix sets a custom prefix for the title of the returned ExtendedStatus.
+func WithTitlePrefix(prefix string) ReportExtendedStatusOption {
+	return func(opts *reportExtendedStatusOpts) {
+		opts.titlePrefix = prefix
+	}
+}
+
+// ToExtendedStatus converts all warnings in the report to a combined ExtendedStatus,
+// where each warning is included as a context in the returned ExtendedStatus.
+//
+// For each warning, it determines its ExtendedStatus representation by checking:
+//   - If the error has an associated ExtendedStatus (e.g., created via extstatus.NewError or wrapped),
+//     it extracts the status directly using extstatus.FromError.
+//   - If the error implements ExtendedStatusConverter, it delegates conversion to the custom implementation.
+//   - Otherwise, it falls back to creating a default ExtendedStatus using the default component name,
+//     default status code, and the error's string message as the title.
+func (r *Report) ToExtendedStatus(opts ...ReportExtendedStatusOption) *extstatus.ExtendedStatus {
+	if r == nil || len(r.warnings) == 0 {
+		return nil
+	}
+	o := &reportExtendedStatusOpts{
+		component: defaultComponentName,
+		code:      defaultStatusCode,
+	}
+	for _, opt := range opts {
+		opt(o)
+	}
+	contexts := make([]*extstatus.ExtendedStatus, 0, len(r.warnings))
+	for _, w := range r.warnings {
+		if es, ok := extstatus.FromError(w); ok {
+			contexts = append(contexts, es)
+		} else if converter, ok := w.(ExtendedStatusConverter); ok {
+			contexts = append(contexts, converter.ToExtendedStatus())
+		} else {
+			contexts = append(contexts, extstatus.New(defaultComponentName,
+				uint32(defaultStatusCode),
+				extstatus.WithTitle(w.Error()),
+			))
+		}
+	}
+	title := fmt.Sprintf("%d error(s) found", len(contexts))
+	if o.titlePrefix != "" {
+		title = o.titlePrefix + ": " + title
+	}
+	return extstatus.New(o.component,
+		uint32(o.code),
+		extstatus.WithTitle(title),
+		extstatus.WithContexts(contexts),
+	)
 }
