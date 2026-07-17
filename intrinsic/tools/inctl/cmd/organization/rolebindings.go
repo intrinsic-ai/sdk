@@ -1,6 +1,6 @@
 // Copyright 2023 Intrinsic Innovation LLC
 
-package customer
+package organization
 
 import (
 	"bytes"
@@ -19,21 +19,22 @@ import (
 	pb "intrinsic/kubernetes/accounts/service/api/accesscontrol/v1/accesscontrol_go_proto"
 )
 
+// roleBindingOpTimeout is the timeout for waiting on role binding create/delete operations.
+// Role binding propagation typically completes within a few seconds; 10 minutes provides
+// ample buffer for Spanner replication or temporary backend delays without failing prematurely.
+const roleBindingOpTimeout = 10 * time.Minute
+
 var rolebindingsCmd = cobrautil.ParentOfNestedSubcommands("role-bindings", "List the role bindings on a given resource.")
 
 func init() {
-	customerCmd.AddCommand(rolebindingsCmd)
+	organizationCmd.AddCommand(rolebindingsCmd)
 	rolebindingsInit(rolebindingsCmd)
 }
 
 func rolebindingsInit(root *cobra.Command) {
-	listRoleBindingsCmd.Flags().StringVar(&flagCustomer, "customer", "", "The customer organization to list role-bindings for.")
-	listRoleBindingsCmd.MarkFlagRequired("customer")
 	root.AddCommand(listRoleBindingsCmd)
-	grantRoleBindingCmd.Flags().StringVar(&flagCustomer, "customer", "", "The customer organization to attach the role-binding to.")
 	grantRoleBindingCmd.Flags().StringVar(&flagEmail, "email", "", "The email address of the user to grant the role to.")
 	grantRoleBindingCmd.Flags().StringVar(&flagRole, "role", "", "The role to grant.")
-	grantRoleBindingCmd.MarkFlagRequired("customer")
 	grantRoleBindingCmd.MarkFlagRequired("email")
 	grantRoleBindingCmd.MarkFlagRequired("role")
 	root.AddCommand(grantRoleBindingCmd)
@@ -43,27 +44,30 @@ func rolebindingsInit(root *cobra.Command) {
 }
 
 var grantRoleBindingCmdHelp = `
-Grant a user a role on a given resource and all its descendants.
+Grant a user a role on an organization and all its descendants.
 
-		inctl customer role-bindings grant --customer=exampleorg --email=user@example.com --role=admin
+Example:
+
+		inctl organization role-bindings grant --org=exampleorg --email=user@example.com --role=admin
 `
 
 var grantRoleBindingCmd = &cobra.Command{
 	Use:   "grant",
-	Short: "Grant a user a role on a given resource.",
+	Short: "Grant a user a role on an organization.",
 	Long:  grantRoleBindingCmdHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if err := checkOrgCustomer(); err != nil {
+		org, err := processOrgFlag()
+		if err != nil {
 			return err
 		}
 		ctx := cmd.Context()
-		cl, err := accounts.NewAccessControlV1Client(ctx, vipr)
+		cl, err := newAccessControlV1Client(ctx)
 		if err != nil {
 			return err
 		}
 		req := &pb.CreateRoleBindingRequest{
 			RoleBinding: &pb.RoleBinding{
-				Resource: addPrefix(flagCustomer, "organizations/"),
+				Resource: addPrefix(org, "organizations/"),
 				Role:     addPrefix(flagRole, "roles/"),
 				Subject:  addPrefix(flagEmail, "users/"),
 			},
@@ -78,7 +82,7 @@ var grantRoleBindingCmd = &cobra.Command{
 		if flagDebugRequests {
 			protoPrint(lrop)
 		}
-		lrop, err = accounts.WaitForOperation(ctx, cl.GetOperation, lrop, 10*time.Minute)
+		lrop, err = accounts.WaitForOperation(ctx, cl.GetOperation, lrop, roleBindingOpTimeout)
 		if err != nil {
 			return fmt.Errorf("failed to wait for operation: %w", err)
 		}
@@ -90,21 +94,23 @@ var grantRoleBindingCmd = &cobra.Command{
 }
 
 var revokeRoleBindingCmdHelp = `
-Revoke a given role binding.
+Revoke a role binding by its resource name.
 
-		inctl customer role-bindings revoke --name=rolebindings/7iawfQMYZAMkx6XdmQdtqJfW+gCZeoT83PcYw0daIrg=
+Example:
+
+		inctl organization role-bindings revoke --name=rolebindings/7iawfQMYZAMkx6XdmQdtqJfW+gCZeoT83PcYw0daIrg=
 `
 
 var revokeRoleBindingCmd = &cobra.Command{
 	Use:   "revoke",
-	Short: "Revoke a given role binding.",
+	Short: "Revoke a role binding by its resource name.",
 	Long:  revokeRoleBindingCmdHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if err := checkOrgCustomer(); err != nil {
+		if err := checkOrgNotIntrinsic(); err != nil {
 			return err
 		}
 		ctx := cmd.Context()
-		cl, err := accounts.NewAccessControlV1Client(ctx, vipr)
+		cl, err := newAccessControlV1Client(ctx)
 		if err != nil {
 			return err
 		}
@@ -121,7 +127,7 @@ var revokeRoleBindingCmd = &cobra.Command{
 		if flagDebugRequests {
 			protoPrint(lrop)
 		}
-		lrop, err = accounts.WaitForOperation(ctx, cl.GetOperation, lrop, 10*time.Minute)
+		lrop, err = accounts.WaitForOperation(ctx, cl.GetOperation, lrop, roleBindingOpTimeout)
 		if err != nil {
 			return fmt.Errorf("failed to wait for operation: %w", err)
 		}
@@ -147,22 +153,25 @@ func (r printableRoleBindings) String() string {
 }
 
 var listRoleBindingsCmdHelp = `
-List the role bindings on a given resource.
+List the role bindings on an organization.
 
-		inctl customer role-bindings list --customer=exampleorg
+Example:
+
+		inctl organization role-bindings list --org=exampleorg
 `
 
 var listRoleBindingsCmd = &cobra.Command{
 	Use:   "list",
-	Short: "List the role bindings on a given resource.",
+	Short: "List the role bindings on an organization.",
 	Long:  listRoleBindingsCmdHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if err := checkOrgCustomer(); err != nil {
+		org, err := processOrgFlag()
+		if err != nil {
 			return err
 		}
 		ctx := cmd.Context()
-		cOrg := addPrefix(flagCustomer, "organizations/")
-		cl, err := accounts.NewAccessControlV1Client(ctx, vipr)
+		cOrg := addPrefix(org, "organizations/")
+		cl, err := newAccessControlV1Client(ctx)
 		if err != nil {
 			return err
 		}

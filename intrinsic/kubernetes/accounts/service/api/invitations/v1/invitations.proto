@@ -1,0 +1,50 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.invitations.v1;
+
+import "google/api/annotations.proto";
+import "google/longrunning/operations.proto";
+import "google/protobuf/empty.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option go_package = "intrinsic/kubernetes/accounts/service/api/invitations/v1/invitations_go_proto";
+
+message PingResponse {}
+
+message ApplyInvitationRequest {
+  string token = 1;
+}
+
+message ApplyInvitationResponse {}
+message ApplyInvitationMetadata {}
+
+service InvitationsService {
+  // Ping can be used for latency and health checks.
+  rpc Ping(google.protobuf.Empty) returns (PingResponse) {
+    option (google.api.http) = {
+      get: "/v1/accountsinvitations:ping"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "Ping"
+    };
+  }
+
+  // ApplyInvitation applies an invitation to the current user.
+  // The call requires a jwt token to be present in the context.
+  rpc ApplyInvitation(ApplyInvitationRequest)
+      returns (google.longrunning.Operation) {
+    option (google.longrunning.operation_info) = {
+      response_type: "ApplyInvitationResponse"
+      metadata_type: "ApplyInvitationMetadata"
+    };
+    option (google.api.http) = {
+      post: "/v1/accountsinvitations/invitations/{token}:apply"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "ApplyInvitation"
+    };
+  }
+}
