@@ -41,6 +41,36 @@ go_proto_library(
     ],
 )
 
+# intrinsic:asset_artifacts:strip_begin
+proto_library(
+    name = "asset_artifacts_proto",
+    srcs = ["asset_artifacts.proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        "//intrinsic/assets/data/proto/v1:referenced_data_proto",
+        "@com_google_googleapis//google/api:annotations_proto",
+        "@com_google_googleapis//google/longrunning:operations_proto",
+    ],
+)
+
+go_proto_library(
+    name = "asset_artifacts_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+        "//bazel:go_gen_grpc_gateway",
+    ],
+    importpath = "intrinsic/assets/proto/v1/asset_artifacts_go_proto",
+    protos = [":asset_artifacts_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        "//intrinsic/assets/data/proto/v1:referenced_data_go_proto",
+        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
+        "@org_golang_google_genproto_googleapis_api//annotations",
+    ],
+)
+# intrinsic:asset_artifacts:strip_end
+
 proto_library(
     name = "asset_graph_proto",
     srcs = ["asset_graph.proto"],

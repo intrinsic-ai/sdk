@@ -1,0 +1,154 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.assets.v1;
+
+import "google/api/annotations.proto";
+import "google/longrunning/operations.proto";
+import "intrinsic/assets/data/proto/v1/referenced_data.proto";
+
+option go_package = "intrinsic/assets/proto/v1/asset_artifacts_go_proto";
+
+// Manages artifacts associated with Assets.
+//
+// Processing local, non-inlined artifacts requires a two-phase upload:
+// 1. Establish an upload session using `StartUpload`.
+// 2. Upload chunks sequentially using `UploadChunk`.
+// 3. Commit the upload using `FinalizeUpload`, which returns a ReferencedData.
+// 4. Call the unary `Process` RPC with the reference.
+//
+// Inlined artifacts and remote references can be processed directly via
+// `Process`.
+//
+// Upload sessions are stateful and time out if inactive for longer than the
+// server-configured idle timeout (typically 60 seconds). When a session times
+// out or is aborted, all temporary data uploaded so far are discarded. It is
+// not possible to resume a timed-out session; clients must call `StartUpload`
+// to start a new upload from the beginning.
+service AssetArtifacts {
+
+  // Processes an artifact for inclusion in an Asset.
+  //
+  // The artifact must be either inlined in the request (if small) or already
+  // uploaded via the chunked upload RPCs.
+  //
+  // The response from the returned operation provides the processed artifact to
+  // include in the Asset.
+  rpc Process(ProcessRequest) returns (google.longrunning.Operation) {
+    option (google.longrunning.operation_info) = {
+      metadata_type: "ProcessMetadata"
+      response_type: "ProcessResponse"
+    };
+    option (google.api.http) = {
+      post: "/v1/assetArtifacts:process"
+      body: "*"
+    };
+  }
+
+  // Starts a chunked upload session.
+  //
+  // The client specifies the total size of the artifact to be uploaded, and the
+  // server returns a unique upload identifier.
+  rpc StartUpload(StartUploadRequest) returns (StartUploadResponse) {
+    option (google.api.http) = {
+      post: "/v1/assetArtifacts:startUpload"
+      body: "*"
+    };
+  }
+
+  // Uploads a chunk of data for an active upload session.
+  //
+  // Chunks must be uploaded sequentially. The server validates that the offset
+  // matches the expected next offset for the session.
+  rpc UploadChunk(UploadChunkRequest) returns (UploadChunkResponse) {
+    option (google.api.http) = {
+      post: "/v1/assetArtifacts:uploadChunk"
+      body: "*"
+    };
+  }
+
+  // Finalizes a chunked upload session.
+  //
+  // Commits the data, performs an integrity check against the optional
+  // expected_digest, and returns a ReferencedData containing a reference to the
+  // data and the final digest.
+  rpc FinalizeUpload(FinalizeUploadRequest) returns (FinalizeUploadResponse) {
+    option (google.api.http) = {
+      post: "/v1/assetArtifacts:finalizeUpload"
+      body: "*"
+    };
+  }
+}
+
+message ProcessRequest {
+  // The artifact to process.
+  oneof artifact {
+    // A URI with one of the following prefixes:
+    //  "intcas://" A CAS object reference.
+    //  "data:,": Inlined data as a byte string.
+    string uri = 1;
+
+    intrinsic_proto.data.v1.ReferencedData referenced_data = 2;
+  }
+}
+
+message ProcessResponse {
+  // The processed form of the artifact.
+  //
+  // The oneof type will be the same as that specified in the request.
+  oneof artifact {
+    string uri = 1;
+    intrinsic_proto.data.v1.ReferencedData referenced_data = 2;
+  }
+
+  // A digest of the processed artifact, prefixed with the hashing algorithm
+  // (e.g., "sha256:<hash>").
+  string digest = 3;
+}
+
+message ProcessMetadata {}
+
+message StartUploadRequest {}
+
+message StartUploadResponse {
+  // A unique identifier for the created upload session. This ID must be
+  // passed to all subsequent UploadChunk and FinalizeUpload calls.
+  string upload_id = 1;
+}
+
+message UploadChunkRequest {
+  // The identifier of the active upload session returned by StartUpload.
+  string upload_id = 1;
+
+  // The byte offset of this chunk. Must match the total bytes successfully sent
+  // so far (i.e., sequential writes only).
+  int64 offset = 2;
+
+  // The raw bytes of the chunk.
+  bytes data = 3;
+}
+
+message UploadChunkResponse {
+  // The next expected byte offset (equal to request offset + request data
+  // length). Can be used by the client to verify that the chunk was received
+  // and acknowledged.
+  int64 ack_offset = 1;
+}
+
+message FinalizeUploadRequest {
+  // The identifier of the active upload session.
+  string upload_id = 1;
+
+  // The expected final digest of the uploaded asset (e.g., "sha512:<hash>").
+  // If provided, the server will verify that the uploaded data matches this
+  // digest, returning InvalidArgument if there is a mismatch. If empty, the
+  // check is skipped.
+  string expected_digest = 2;
+}
+
+message FinalizeUploadResponse {
+  // The reference to the finalized data. This ReferencedData can be passed to
+  // Process to process the artifact.
+  intrinsic_proto.data.v1.ReferencedData referenced_data = 1;
+}
