@@ -68,7 +68,7 @@ MakeDefaultDataAssetsClient() {
 
 absl::StatusOr<std::shared_ptr<grpc::Channel>> Connect(
     grpc::ClientContext& context, const ResolvedDependency& dep,
-    absl::string_view iface) {
+    absl::string_view iface, const ::grpc::ChannelArguments& channel_args) {
   INTR_ASSIGN_OR_RETURN(const auto* iface_proto, FindInterface(dep, iface));
   if (!iface_proto->has_grpc() || !iface_proto->grpc().has_connection()) {
     return absl::InvalidArgumentError(absl::StrCat(
@@ -81,9 +81,10 @@ absl::StatusOr<std::shared_ptr<grpc::Channel>> Connect(
     context.AddMetadata(metadata.key(), metadata.value());
   }
 
-  return ::grpc::CreateChannel(
+  return ::grpc::CreateCustomChannel(
       iface_proto->grpc().connection().address(),
-      grpc::InsecureChannelCredentials());  // NOLINT(insecure)
+      grpc::InsecureChannelCredentials(),  // NOLINT(insecure)
+      channel_args);
 }
 
 absl::StatusOr<google::protobuf::Any> GetDataPayload(

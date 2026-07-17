@@ -64,6 +64,7 @@ cc_library(
         "//intrinsic/assets/proto/v1:dependency_cc_proto",
         "//intrinsic/assets/proto/v1:grpc_connection_cc_proto",
         "//intrinsic/assets/proto/v1:resolved_dependency_cc_proto",
+        "//intrinsic/connect/cc/grpc:channel",
         "//intrinsic/util/status:status_conversion_grpc",
         "//intrinsic/util/status:status_macros",
         "@abseil-cpp//absl/container:flat_hash_set",
