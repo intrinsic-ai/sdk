@@ -231,6 +231,84 @@ py_grpc_library(
 )
 
 proto_library(
+    name = "export_proto",
+    srcs = ["export.proto"],
+    deps = [
+        ":scene_object_proto",
+        "@com_google_protobuf//:descriptor_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "export_cc_proto",
+    deps = [":export_proto"],
+)
+
+go_proto_library(
+    name = "export_go_proto",
+    importpath = "intrinsic/scene/proto/v1/export_go_proto",
+    protos = [":export_proto"],
+    deps = [
+        ":scene_object_go_proto",
+        "@org_golang_google_protobuf//types/descriptorpb",
+    ],
+)
+
+py_proto_library(
+    name = "export_py_pb2",
+    deps = [":export_proto"],
+)
+
+proto_library(
+    name = "scene_object_export_proto",
+    srcs = ["scene_object_export.proto"],
+    deps = [
+        ":export_proto",
+        "@com_google_googleapis//google/api:annotations_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "scene_object_export_cc_proto",
+    deps = [":scene_object_export_proto"],
+)
+
+go_proto_library(
+    name = "scene_object_export_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+        "//bazel:go_gen_grpc_gateway",
+    ],
+    importpath = "intrinsic/scene/proto/v1/scene_object_export_go_proto",
+    protos = [":scene_object_export_proto"],
+    deps = [
+        ":export_go_proto",
+        "@org_golang_google_genproto_googleapis_api//annotations",
+    ],
+)
+
+py_proto_library(
+    name = "scene_object_export_py_pb2",
+    deps = [":scene_object_export_proto"],
+)
+
+cc_grpc_library(
+    name = "scene_object_export_cc_grpc_proto",
+    srcs = [":scene_object_export_proto"],
+    generate_mocks = True,
+    grpc_only = True,
+    deps = [":scene_object_export_cc_proto"],
+)
+
+py_grpc_library(
+    name = "scene_object_export_py_pb2_grpc",
+    srcs = [":scene_object_export_proto"],
+    grpc_library = requirement("grpcio"),
+    deps = [":scene_object_export_py_pb2"],
+)
+
+proto_library(
     name = "simulation_spec_proto",
     srcs = ["simulation_spec.proto"],
 )
