@@ -25,4 +25,6 @@ message Geometry {
     Renderable generated_renderable = 3;
   }
 
+  reserved 1;
+  reserved "shape";
 }
