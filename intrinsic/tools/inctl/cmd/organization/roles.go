@@ -49,6 +49,10 @@ func (r printableRoles) String() string {
 	return strings.TrimSuffix(b.String(), "\n")
 }
 
+func (r printableRoles) MarshalJSON() ([]byte, error) {
+	return marshalProtoSlice(r)
+}
+
 var listRolesCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List available roles.",

@@ -139,7 +139,7 @@ func (il *invitationsList) String() string {
 	b := new(bytes.Buffer)
 	w := tabwriter.NewWriter(b,
 		/*minwidth=*/ 1 /*tabwidth=*/, 1 /*padding=*/, 1 /*padchar=*/, ' ' /*flags=*/, 0)
-	fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", "Email", "Roles", "Status", "Invitation")
+	fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", "Email", "Roles", "Status", "Token")
 	slices.SortFunc(il.is, func(a, b *pb.OrganizationInvitation) int {
 		return strings.Compare(a.GetEmail(), b.GetEmail())
 	})
@@ -148,6 +148,10 @@ func (il *invitationsList) String() string {
 	}
 	w.Flush()
 	return strings.TrimSuffix(b.String(), "\n")
+}
+
+func (il *invitationsList) MarshalJSON() ([]byte, error) {
+	return marshalProtoSlice(il.is)
 }
 
 func listInvitations(ctx context.Context, cl accounts.AccessControlV1Client, org string) ([]*pb.OrganizationInvitation, error) {

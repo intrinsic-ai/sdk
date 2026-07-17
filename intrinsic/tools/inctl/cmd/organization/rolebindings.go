@@ -152,6 +152,10 @@ func (r printableRoleBindings) String() string {
 	return strings.TrimSuffix(b.String(), "\n")
 }
 
+func (r printableRoleBindings) MarshalJSON() ([]byte, error) {
+	return marshalProtoSlice(r)
+}
+
 var listRoleBindingsCmdHelp = `
 List the role bindings on an organization.
 

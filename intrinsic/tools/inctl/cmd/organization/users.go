@@ -168,17 +168,21 @@ func (ml *membersList) String() string {
 	b := new(bytes.Buffer)
 	w := tabwriter.NewWriter(b,
 		/*minwidth=*/ 1 /*tabwidth=*/, 1 /*padding=*/, 1 /*padchar=*/, ' ' /*flags=*/, 0)
-	fmt.Fprintf(w, "%s\t%s\t%s\n", "Email", "Roles", "Status")
+	fmt.Fprintf(w, "%s\t%s\n", "Email", "Roles")
 	slices.SortFunc(ml.ms, func(a, b *pb.OrganizationMembership) int {
 		return strings.Compare(a.GetEmail(), b.GetEmail())
 	})
 	urs := userRoles(ml.rs)
 	for _, m := range ml.ms {
 		roles := urs[m.GetEmail()]
-		fmt.Fprintf(w, "%s\t%s\t%s\n", m.GetEmail(), formatRoles(roles), "active")
+		fmt.Fprintf(w, "%s\t%s\n", m.GetEmail(), formatRoles(roles))
 	}
 	w.Flush()
 	return strings.TrimSuffix(b.String(), "\n")
+}
+
+func (ml *membersList) MarshalJSON() ([]byte, error) {
+	return marshalProtoSlice(ml.ms)
 }
 
 func listMemberships(ctx context.Context, cl accounts.AccessControlV1Client, org string) ([]*pb.OrganizationMembership, error) {

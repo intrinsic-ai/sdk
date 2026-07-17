@@ -4,6 +4,7 @@
 package organization
 
 import (
+	"bytes"
 	"fmt"
 	"slices"
 	"strings"
@@ -109,4 +110,24 @@ func protoPrint(p proto.Message) {
 		fmt.Println(err)
 	}
 	fmt.Println(string(ms))
+}
+
+// marshalProtoSlice marshals a slice of protobuf messages directly to JSON array bytes
+// using protojson so all proto fields are serialized with their official proto names.
+func marshalProtoSlice[T proto.Message](items []T) ([]byte, error) {
+	mo := protojson.MarshalOptions{UseProtoNames: true}
+	var buf bytes.Buffer
+	buf.WriteByte('[')
+	for i, item := range items {
+		if i > 0 {
+			buf.WriteByte(',')
+		}
+		b, err := mo.Marshal(item)
+		if err != nil {
+			return nil, err
+		}
+		buf.Write(b)
+	}
+	buf.WriteByte(']')
+	return buf.Bytes(), nil
 }

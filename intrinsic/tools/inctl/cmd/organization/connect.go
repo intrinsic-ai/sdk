@@ -21,8 +21,6 @@ import (
 	accaccesscontrolgrpcpb "intrinsic/kubernetes/accounts/service/api/accesscontrol/v1/accesscontrol_go_proto"
 	accinvitationsgrpcpb "intrinsic/kubernetes/accounts/service/api/invitations/v1/invitations_go_proto"
 	accresourcemanagergrpcpb "intrinsic/kubernetes/accounts/service/api/resourcemanager/v1/resourcemanager_go_proto"
-
-	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 )
 
 func connectInit() {
@@ -56,13 +54,13 @@ func newAccessControlV1Client(ctx context.Context) (accaccesscontrolgrpcpb.Acces
 	return accaccesscontrolgrpcpb.NewAccessControlServiceClient(conn), nil
 }
 
-// newInvitationsV1Client creates a new secure InvitationsServiceClient and long-running OperationsClient for organization commands.
-func newInvitationsV1Client(ctx context.Context) (accinvitationsgrpcpb.InvitationsServiceClient, lropb.OperationsClient, error) {
+// newInvitationsV1Client creates a new secure InvitationsServiceClient for organization commands.
+func newInvitationsV1Client(ctx context.Context) (accinvitationsgrpcpb.InvitationsServiceClient, error) {
 	conn, err := newConn(ctx)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	return accinvitationsgrpcpb.NewInvitationsServiceClient(conn), lropb.NewOperationsClient(conn), nil
+	return accinvitationsgrpcpb.NewInvitationsServiceClient(conn), nil
 }
 
 // newConn creates a new secure connection to the accounts service for organization commands.

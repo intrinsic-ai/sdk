@@ -3,14 +3,18 @@
 package organization
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"intrinsic/tools/inctl/util/accounts/accounts"
 
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
 
 	pb "intrinsic/kubernetes/accounts/service/api/invitations/v1/invitations_go_proto"
+
+	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 )
 
 func init() {
@@ -38,7 +42,7 @@ var joinCmd = &cobra.Command{
 			return err
 		}
 		ctx := cmd.Context()
-		cl, lroCl, err := newInvitationsV1Client(ctx)
+		cl, err := newInvitationsV1Client(ctx)
 		if err != nil {
 			return err
 		}
@@ -56,7 +60,17 @@ var joinCmd = &cobra.Command{
 		if flagDebugRequests {
 			protoPrint(lrop)
 		}
-		lrop, err = accounts.WaitForOperation(ctx, lroCl.GetOperation, lrop, 2*time.Minute)
+		// The service does not expose a GetOperation method; calling ApplyInvitation again polls operation status.
+		// Note: ApplyInvitation can be flaky when repeatedly invoked for the same invitation while pending.
+		// If ApplyInvitation returns an error during polling, swallow the transient error and return an unfinished operation.
+		getOp := func(ctx context.Context, _ *lropb.GetOperationRequest, opts ...grpc.CallOption) (*lropb.Operation, error) {
+			op, err := cl.ApplyInvitation(ctx, req, opts...)
+			if err != nil {
+				return &lropb.Operation{Name: lrop.GetName(), Done: false}, nil
+			}
+			return op, nil
+		}
+		lrop, err = accounts.WaitForOperation(ctx, getOp, lrop, 2*time.Minute)
 		if err != nil {
 			return fmt.Errorf("failed to wait for operation: %w", err)
 		}
