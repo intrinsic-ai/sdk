@@ -21,6 +21,7 @@
 #include "intrinsic/motion_planning/proto/v1/motion_planner_service.grpc.pb.h"
 #include "intrinsic/motion_planning/proto/v1/motion_planner_service.pb.h"
 #include "intrinsic/motion_planning/proto/v1/motion_specification.pb.h"
+#include "intrinsic/util/grpc/channel_interface.h"
 #include "intrinsic/world/objects/kinematic_object.h"
 #include "intrinsic/world/objects/transform_node.h"
 #include "intrinsic/world/proto/collision_checker_config.pb.h"
@@ -34,11 +35,18 @@ namespace motion_planning {
 // world service.
 class MotionPlannerClient {
  public:
-  // Creates a client for the world with the given id.
+  // Creates a client for the world with the given id using a
+  // `ChannelInterface`.
+  MotionPlannerClient(absl::string_view world_id,
+                      std::shared_ptr<ChannelInterface> channel);
+
+  // Creates a client wrapping a motion_planner_service stub (e.g. for testing).
   MotionPlannerClient(absl::string_view world_id,
                       std::shared_ptr<intrinsic_proto::motion_planning::v1::
                                           MotionPlannerService::StubInterface>
-                          motion_planner_service);
+                          motion_planner_service,
+                      ClientContextFactory client_context_factory =
+                          DefaultClientContextFactory);
 
   // Options for motion planning.
   struct MotionPlanningOptions {
@@ -251,6 +259,7 @@ class MotionPlannerClient {
   std::shared_ptr<
       intrinsic_proto::motion_planning::v1::MotionPlannerService::StubInterface>
       motion_planner_service_;
+  ClientContextFactory client_context_factory_;
 };
 
 }  // namespace motion_planning

@@ -105,12 +105,22 @@ MotionPlannerClient::IkOptions::Defaults() {
 }
 
 MotionPlannerClient::MotionPlannerClient(
+    absl::string_view world_id, std::shared_ptr<ChannelInterface> channel)
+    : world_id_(world_id),
+      motion_planner_service_(
+          intrinsic_proto::motion_planning::v1::MotionPlannerService::NewStub(
+              channel->GetChannel())),
+      client_context_factory_(channel->GetClientContextFactory()) {}
+
+MotionPlannerClient::MotionPlannerClient(
     absl::string_view world_id,
     std::shared_ptr<intrinsic_proto::motion_planning::v1::MotionPlannerService::
                         StubInterface>
-        motion_planner_service)
+        motion_planner_service,
+    ClientContextFactory client_context_factory)
     : world_id_(world_id),
-      motion_planner_service_(std::move(motion_planner_service)) {}
+      motion_planner_service_(std::move(motion_planner_service)),
+      client_context_factory_(std::move(client_context_factory)) {}
 
 absl::StatusOr<MotionPlannerClient::PlanTrajectoryResult>
 MotionPlannerClient::PlanTrajectory(
@@ -125,9 +135,9 @@ MotionPlannerClient::PlanTrajectory(
                                   options, caller_id, context, world_id_);
 
   intrinsic_proto::motion_planning::v1::TrajectoryPlanningResponse response;
-  grpc::ClientContext ctx;
+  std::unique_ptr<::grpc::ClientContext> ctx = client_context_factory_();
   INTR_RETURN_IF_ERROR(ToAbslStatus(
-      motion_planner_service_->PlanTrajectory(&ctx, request, &response)));
+      motion_planner_service_->PlanTrajectory(ctx.get(), request, &response)));
 
   MotionPlannerClient::PlanTrajectoryResult result;
   result.trajectory = response.discretized();
@@ -154,9 +164,9 @@ MotionPlannerClient::PlanPath(
                                   options, caller_id, context, world_id_);
 
   intrinsic_proto::motion_planning::v1::PathPlanningResponse response;
-  grpc::ClientContext ctx;
+  std::unique_ptr<::grpc::ClientContext> ctx = client_context_factory_();
   INTR_RETURN_IF_ERROR(ToAbslStatus(
-      motion_planner_service_->PlanPath(&ctx, request, &response)));
+      motion_planner_service_->PlanPath(ctx.get(), request, &response)));
 
   MotionPlannerClient::PlanPathResult result;
   result.path = response.path();
@@ -232,9 +242,9 @@ MotionPlannerClient::ComputeIk(
   request.set_disable_logging(options.disable_logging);
 
   intrinsic_proto::motion_planning::v1::IkResponse response;
-  grpc::ClientContext ctx;
+  std::unique_ptr<::grpc::ClientContext> ctx = client_context_factory_();
   INTR_RETURN_IF_ERROR(ToAbslStatus(
-      motion_planner_service_->ComputeIk(&ctx, request, &response)));
+      motion_planner_service_->ComputeIk(ctx.get(), request, &response)));
 
   ComputeIkResult result;
   result.solutions = ToVectorXds(response.solutions());
@@ -253,7 +263,8 @@ absl::StatusOr<Pose3d> ComputeFkInternal(
     const intrinsic_proto::world::TransformNodeReference& target,
     const std::string& world_id,
     intrinsic_proto::motion_planning::v1::MotionPlannerService::StubInterface&
-        motion_planner_service) {
+        motion_planner_service,
+    const ClientContextFactory& client_context_factory) {
   intrinsic_proto::motion_planning::v1::FkRequest request;
   request.set_world_id(world_id);
   request.mutable_robot_reference()->mutable_object_id()->set_id(
@@ -265,9 +276,9 @@ absl::StatusOr<Pose3d> ComputeFkInternal(
   *request.mutable_target() = target;
 
   intrinsic_proto::motion_planning::v1::FkResponse response;
-  grpc::ClientContext ctx;
-  INTR_RETURN_IF_ERROR(
-      ToAbslStatus(motion_planner_service.ComputeFk(&ctx, request, &response)));
+  std::unique_ptr<::grpc::ClientContext> ctx = client_context_factory();
+  INTR_RETURN_IF_ERROR(ToAbslStatus(
+      motion_planner_service.ComputeFk(ctx.get(), request, &response)));
 
   return FromProto(response.reference_t_target());
 }
@@ -284,7 +295,8 @@ absl::StatusOr<Pose3d> MotionPlannerClient::ComputeFk(
   intrinsic_proto::world::TransformNodeReference target_proto;
   *target_proto.mutable_by_name() = target;
   return ComputeFkInternal(robot, joint_values, reference_proto, target_proto,
-                           world_id_, *motion_planner_service_);
+                           world_id_, *motion_planner_service_,
+                           client_context_factory_);
 }
 
 absl::StatusOr<Pose3d> MotionPlannerClient::ComputeFk(
@@ -296,7 +308,8 @@ absl::StatusOr<Pose3d> MotionPlannerClient::ComputeFk(
   intrinsic_proto::world::TransformNodeReference target_proto;
   target_proto.set_id(target.Id().value());
   return ComputeFkInternal(robot, joint_values, reference_proto, target_proto,
-                           world_id_, *motion_planner_service_);
+                           world_id_, *motion_planner_service_,
+                           client_context_factory_);
 }
 
 absl::StatusOr<intrinsic_proto::motion_planning::v1::CheckCollisionsResponse>
@@ -315,17 +328,17 @@ MotionPlannerClient::CheckCollisions(
   }
 
   intrinsic_proto::motion_planning::v1::CheckCollisionsResponse response;
-  grpc::ClientContext ctx;
+  std::unique_ptr<::grpc::ClientContext> ctx = client_context_factory_();
   INTR_RETURN_IF_ERROR(ToAbslStatus(
-      motion_planner_service_->CheckCollisions(&ctx, request, &response)));
+      motion_planner_service_->CheckCollisions(ctx.get(), request, &response)));
   return response;
 }
 
 absl::StatusOr<google::protobuf::Empty> MotionPlannerClient::ClearCache() {
   google::protobuf::Empty response;
-  grpc::ClientContext ctx;
+  std::unique_ptr<::grpc::ClientContext> ctx = client_context_factory_();
   INTR_RETURN_IF_ERROR(ToAbslStatus(motion_planner_service_->ClearCache(
-      &ctx, google::protobuf::Empty(), &response)));
+      ctx.get(), google::protobuf::Empty(), &response)));
   return response;
 }
 

@@ -24,6 +24,7 @@ cc_library(
         "//intrinsic/motion_planning/proto/v1:motion_planner_service_cc_proto",
         "//intrinsic/motion_planning/proto/v1:motion_specification_cc_proto",
         "//intrinsic/util:eigen",
+        "//intrinsic/util/grpc:channel_interface",
         "//intrinsic/util/status:status_conversion_grpc",
         "//intrinsic/util/status:status_macros",
         "//intrinsic/world/objects:kinematic_object",
