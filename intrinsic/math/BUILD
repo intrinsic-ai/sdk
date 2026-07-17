@@ -29,15 +29,22 @@ cc_library(
     deps = [
         ":almost_equals",
         ":pose3",
+        ":twist",
         "//intrinsic/eigenmath",
+        "//intrinsic/math/proto:accel_cc_proto",
+        "//intrinsic/math/proto:affine_cc_proto",
         "//intrinsic/math/proto:matrix_cc_proto",
         "//intrinsic/math/proto:point_cc_proto",
         "//intrinsic/math/proto:pose_cc_proto",
         "//intrinsic/math/proto:quaternion_cc_proto",
+        "//intrinsic/math/proto:twist_cc_proto",
+        "//intrinsic/math/proto:vector3_cc_proto",
         "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/algorithm:container",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
         "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/strings:str_format",
     ],
 )
 

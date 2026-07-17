@@ -4,6 +4,7 @@
 
 #include <cmath>
 
+#include "absl/algorithm/container.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
@@ -11,6 +12,10 @@
 #include "intrinsic/eigenmath/types.h"
 #include "intrinsic/math/almost_equals.h"
 #include "intrinsic/math/pose3.h"
+#include "intrinsic/math/proto/affine.pb.h"
+#include "intrinsic/math/proto/twist.pb.h"
+#include "intrinsic/math/proto/vector3.pb.h"
+#include "intrinsic/math/twist.h"
 #include "intrinsic/util/status/status_macros.h"
 
 namespace intrinsic_proto {
@@ -43,6 +48,24 @@ absl::StatusOr<intrinsic::eigenmath::MatrixXd> FromProto(
   }
   absl::c_copy(proto_matrix.values(), eigen_matrix.reshaped().begin());
   return eigen_matrix;
+}
+
+absl::StatusOr<intrinsic::eigenmath::AffineTransform3d> FromProto(
+    const Affine3d& affine3d) {
+  intrinsic::eigenmath::AffineTransform3d eigen_affine;
+  INTR_ASSIGN_OR_RETURN(eigen_affine.linear(), FromProto(affine3d.linear()));
+  eigen_affine.translation() = FromProto(affine3d.translation());
+  return eigen_affine;
+}
+
+intrinsic::Twist FromProto(const intrinsic_proto::Twist& twist) {
+  return {twist.linear().x(),  twist.linear().y(),  twist.linear().z(),
+          twist.angular().x(), twist.angular().y(), twist.angular().z()};
+}
+
+intrinsic::Acceleration FromProto(const intrinsic_proto::Accel& accel) {
+  return {accel.linear().x(),  accel.linear().y(),  accel.linear().z(),
+          accel.angular().x(), accel.angular().y(), accel.angular().z()};
 }
 
 }  // namespace intrinsic_proto
@@ -119,6 +142,10 @@ absl::StatusOr<intrinsic::Pose> FromProtoNormalized(const Pose& pose) {
                          intrinsic::eigenmath::kDoNotNormalize);
 }
 
+intrinsic::eigenmath::Vector3d FromProto(const Vector3& vec3) {
+  return {vec3.x(), vec3.y(), vec3.z()};
+}
+
 }  // namespace intrinsic_proto
 
 namespace intrinsic {
@@ -153,6 +180,15 @@ intrinsic_proto::Quaternion ToProto(const eigenmath::Quaterniond& quaternion) {
   return proto_quaternion;
 }
 
+intrinsic_proto::Affine3d ToProto(
+    const eigenmath::AffineTransform3d& affine_transform) {
+  intrinsic_proto::Affine3d proto_affine3d;
+  const eigenmath::Matrix3d& eigen_linear = affine_transform.linear();
+  const eigenmath::Vector3d& eigen_position = affine_transform.translation();
+  *proto_affine3d.mutable_linear() = ToProto(eigen_linear);
+  *proto_affine3d.mutable_translation() = ToProto(eigen_position);
+  return proto_affine3d;
+}
 namespace {
 template <typename MatrixType>
 absl::StatusOr<intrinsic_proto::Matrixd> ToProtoImpl(
@@ -186,4 +222,40 @@ absl::StatusOr<intrinsic_proto::Matrixd> ToProtoImpl(
 intrinsic_proto::Matrixd ToProto(const eigenmath::Matrix3d& matrix) {
   return ToProtoImpl(matrix).value();
 }
+absl::StatusOr<intrinsic_proto::Matrixd> ToProto(
+    const eigenmath::MatrixXd& matrix) {
+  return ToProtoImpl(matrix);
+}
+
+intrinsic_proto::Matrixd ToProto(const eigenmath::Matrix4d& matrix) {
+  return ToProtoImpl(matrix).value();
+}
+intrinsic_proto::Matrixd ToProto(const eigenmath::Matrix4dAligned& matrix) {
+  return ToProtoImpl(matrix).value();
+}
+intrinsic_proto::Matrixd ToProto(const eigenmath::Matrix6d& matrix) {
+  return ToProtoImpl(matrix).value();
+}
+
+intrinsic_proto::Twist ToProto(const Twist& twist) {
+  intrinsic_proto::Twist proto_twist;
+  proto_twist.mutable_linear()->set_x(twist[0]);
+  proto_twist.mutable_linear()->set_y(twist[1]);
+  proto_twist.mutable_linear()->set_z(twist[2]);
+  proto_twist.mutable_angular()->set_x(twist[3]);
+  proto_twist.mutable_angular()->set_y(twist[4]);
+  proto_twist.mutable_angular()->set_z(twist[5]);
+  return proto_twist;
+}
+intrinsic_proto::Accel ToProto(const intrinsic::Acceleration& accel) {
+  intrinsic_proto::Accel proto_accel;
+  proto_accel.mutable_linear()->set_x(accel[0]);
+  proto_accel.mutable_linear()->set_y(accel[1]);
+  proto_accel.mutable_linear()->set_z(accel[2]);
+  proto_accel.mutable_angular()->set_x(accel[3]);
+  proto_accel.mutable_angular()->set_y(accel[4]);
+  proto_accel.mutable_angular()->set_z(accel[5]);
+  return proto_accel;
+}
+
 }  // namespace intrinsic
