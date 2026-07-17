@@ -119,6 +119,20 @@ go_proto_library(
     ],
 )
 
+py_proto_library(
+    name = "asset_instances_py_pb2",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":asset_instances_proto"],
+)
+
+py_grpc_library(
+    name = "asset_instances_py_pb2_grpc",
+    srcs = [":asset_instances_proto"],
+    grpc_library = requirement("grpcio"),
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":asset_instances_py_pb2"],
+)
+
 proto_library(
     name = "grpc_connection_proto",
     srcs = ["grpc_connection.proto"],
