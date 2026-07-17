@@ -1,0 +1,51 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.scene_object.v1;
+
+import "google/protobuf/descriptor.proto";
+import "intrinsic/scene/proto/v1/scene_object.proto";
+
+option go_package = "intrinsic/scene/proto/v1/export_go_proto";
+
+// Request to export SceneObject to a given format.
+message ExportRequest {
+  message SceneObjectPayload {
+    intrinsic_proto.scene_object.v1.SceneObject proto = 1;
+  }
+
+  oneof input {
+    SceneObjectPayload scene_object = 1;
+  }
+
+  enum ExportFormat {
+    EXPORT_FORMAT_UNSPECIFIED = 0;
+    // Export to SDF. If `include_geometries` is set to true, then the response
+    // will be a zip archive. Otherwise, it would be plain text SDF.
+    EXPORT_FORMAT_SDF = 1;
+  }
+  // The format to export the SceneObject to.
+  ExportFormat format = 2;
+
+  // Whether to include geometries.
+  bool include_geometries = 3;
+
+  // Whether to include user data.
+  bool include_user_data = 4;
+
+  // FileDescriptorSet containing the type definitions for user data.
+  // Should be provided if `include_user_data` is set to true.
+  google.protobuf.FileDescriptorSet fds = 5;
+}
+
+// Response containing the exported SceneObject.
+message ExportResponse {
+  oneof data {
+    // Zip archive with `include_geometries=true`.
+    bytes zip_archive = 1;
+
+    // Plain text SDF for `EXPORT_FORMAT_SDF` and `include_geometries=false`.
+    string sdf = 2;
+  }
+}

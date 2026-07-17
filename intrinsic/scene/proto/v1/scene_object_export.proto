@@ -1,0 +1,23 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.scene_object.v1;
+
+import "google/api/annotations.proto";
+import "intrinsic/scene/proto/v1/export.proto";
+
+option go_package = "intrinsic/scene/proto/v1/scene_object_export_go_proto";
+
+// SceneObjectExport service provides APIs to export Intrinsic SceneObject proto
+// to external formats like SDF and others.
+service SceneObjectExport {
+
+  // Exports a SceneObject proto message to the specified format.
+  rpc Export(ExportRequest) returns (ExportResponse) {
+    option (google.api.http) = {
+      post: "/sceneObjectExport/v1:export"
+      body: "*"
+    };
+  }
+}
