@@ -1,0 +1,28 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.icon.v1;
+
+option go_package = "intrinsic/icon/hal/proto/v1/digital_input_output_go_proto";
+
+// Collection of digital inputs/outputs.
+// This information is not purely for simulation, it should represent the real
+// hardware as well.
+message DigitalInputOutput {
+  message DigitalInputBlock {
+    // The number of input bits in this block. Must be greater than zero.
+    int32 num_bits = 1;
+  }
+  // Input blocks by name. The map key is also the name of the corresponding
+  // hardware interface for each block.
+  map<string, DigitalInputBlock> digital_input_blocks = 1;
+
+  message DigitalOutputBlock {
+    // The number of output bits in this block. Must be greater than zero.
+    int32 num_bits = 1;
+  }
+  // Output blocks by name. The map key is also the name of the corresponding
+  // hardware interface for each block.
+  map<string, DigitalOutputBlock> digital_output_blocks = 2;
+}
