@@ -363,15 +363,28 @@ type Reader struct {
 	Size int64
 }
 
+// ProcessOptions contains call-specific options for Processor.Process.
+type ProcessOptions struct {
+	// InlineThreshold overrides the default inline threshold of the processor.
+	InlineThreshold *int64
+}
+
 // ProcessOption is an option for Process.
-type ProcessOption func(*Reader)
+type ProcessOption func(*Reader, *ProcessOptions)
 
 // WithReader specifies a custom io.Reader to provide for the referenced data along with the size
 // of the reference data, in bytes.
 func WithReader(r io.Reader, sz int64) ProcessOption {
-	return func(rdr *Reader) {
+	return func(rdr *Reader, opts *ProcessOptions) {
 		rdr.Reader = r
 		rdr.Size = sz
+	}
+}
+
+// WithInlineThresholdOverride overrides the default inline threshold of the processor for this call.
+func WithInlineThresholdOverride(threshold int64) ProcessOption {
+	return func(rdr *Reader, opts *ProcessOptions) {
+		opts.InlineThreshold = &threshold
 	}
 }
 
@@ -382,8 +395,9 @@ func Process(ctx context.Context, ref *ReferencedData, processor Processor, opti
 	rdr := &Reader{
 		Ref: ref,
 	}
+	opts := &ProcessOptions{}
 	for _, opt := range options {
-		opt(rdr)
+		opt(rdr, opts)
 	}
 
 	// Construct a default reader, if possible.
@@ -415,7 +429,7 @@ func Process(ctx context.Context, ref *ReferencedData, processor Processor, opti
 		}
 	}
 
-	return processor.Process(ctx, rdr)
+	return processor.Process(ctx, rdr, opts)
 }
 
 // Progress represents the current progress of processing a ReferencedData.
@@ -456,7 +470,7 @@ type Processor interface {
 	NeedsReaderFor(ReferenceType) bool
 
 	// Process processes a ReferencedData. The processor should modify the ReferencedData in place.
-	Process(context.Context, *Reader) error
+	Process(context.Context, *Reader, *ProcessOptions) error
 }
 
 type inlineProcessor struct{}
@@ -467,7 +481,7 @@ func (p *inlineProcessor) NeedsReaderFor(rt ReferenceType) bool {
 }
 
 // Process inlines the data referenced by the given ReferencedData.
-func (p *inlineProcessor) Process(ctx context.Context, rdr *Reader) error {
+func (p *inlineProcessor) Process(ctx context.Context, rdr *Reader, opts *ProcessOptions) error {
 	// Nothing to do for already inlined data.
 	if rdr.Ref.Reference() == "" {
 		return nil
@@ -517,7 +531,7 @@ func (p *legacyCatalogProcessor) NeedsReaderFor(rt ReferenceType) bool {
 
 // Process prepares the given ReferencedData for inclusion in an Asset that will be released to the
 // AssetCatalog.
-func (p *legacyCatalogProcessor) Process(ctx context.Context, rdr *Reader) error {
+func (p *legacyCatalogProcessor) Process(ctx context.Context, rdr *Reader, opts *ProcessOptions) error {
 	if rdr.Ref.Reference() != "" {
 		log.Infof("Preparing reference %v", rdr.Ref.Reference())
 	}
@@ -601,7 +615,7 @@ func (p *defaultFallbackProcessor) NeedsReaderFor(rt ReferenceType) bool {
 	return false
 }
 
-func (p *defaultFallbackProcessor) Process(ctx context.Context, rdr *Reader) error {
+func (p *defaultFallbackProcessor) Process(ctx context.Context, rdr *Reader, opts *ProcessOptions) error {
 	switch rdr.Ref.Type() {
 	case CASReferenceType, InlinedReferenceType:
 		// Already in CAS or inlined, nothing to do for old servers.
@@ -705,7 +719,7 @@ func (p *artifactsProcessor) NeedsReaderFor(rt ReferenceType) bool {
 }
 
 // Process processes the referenced data.
-func (p *artifactsProcessor) Process(ctx context.Context, rdr *Reader) error {
+func (p *artifactsProcessor) Process(ctx context.Context, rdr *Reader, opts *ProcessOptions) error {
 	if !p.dryRun {
 		if p.aaClient == nil {
 			return fmt.Errorf("aaClient must be non-nil")
@@ -721,8 +735,13 @@ func (p *artifactsProcessor) Process(ctx context.Context, rdr *Reader) error {
 		})
 	}
 
+	threshold := p.inlineThreshold
+	if opts != nil && opts.InlineThreshold != nil {
+		threshold = *opts.InlineThreshold
+	}
+
 	// Inline small files locally (both dry-run and normal mode).
-	if (rdr.Ref.Type() == FileReferenceType || rdr.Ref.Type() == InlinedReferenceType) && rdr.Size <= p.inlineThreshold {
+	if (rdr.Ref.Type() == FileReferenceType || rdr.Ref.Type() == InlinedReferenceType) && rdr.Size <= threshold {
 		b, err := io.ReadAll(rdr.Reader)
 		if err != nil {
 			return fmt.Errorf("failed to read data for inlining: %w", err)
@@ -752,7 +771,7 @@ func (p *artifactsProcessor) Process(ctx context.Context, rdr *Reader) error {
 	}
 
 	if p.useFallback {
-		return p.fallback.Process(ctx, rdr)
+		return p.fallback.Process(ctx, rdr, opts)
 	}
 
 	origRefName := rdr.Ref.Reference()
