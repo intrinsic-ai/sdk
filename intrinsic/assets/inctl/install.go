@@ -109,7 +109,7 @@ func GetCommand() *cobra.Command {
 			authCtx := clientutils.AuthInsecureConn(ctx, address, flags.GetFlagProject())
 
 			processor := &bundle.Processor{
-				ImageProcessor:          bundleimages.CreateImageProcessor(transfer),
+				ImageProcessor: bundleimages.CreateImageProcessor(transfer),
 				ReferencedDataProcessor: referenceddata.NewProcessor(
 					assetartifactspb.NewAssetArtifactsClient(conn),
 					lropb.NewOperationsClient(conn),
