@@ -375,8 +375,12 @@ go_library(
     deps = [
         "//intrinsic/assets/catalog/proto/v1:asset_catalog_go_proto",
         "//intrinsic/assets/data/proto/v1:referenced_data_go_proto",
+        "//intrinsic/assets/proto/v1:asset_artifacts_go_proto",
         "//intrinsic/util/proto:walkmessages",
         "@com_github_golang_glog//:go_default_library",
+        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
+        "@org_golang_google_grpc//codes:go_default_library",
+        "@org_golang_google_grpc//status:go_default_library",
         "@org_golang_google_protobuf//proto",
         "@org_golang_google_protobuf//types/known/anypb",
     ],

@@ -25,6 +25,7 @@ import (
 
 	iagrpcpb "intrinsic/assets/proto/installed_assets_go_proto"
 	iapb "intrinsic/assets/proto/installed_assets_go_proto"
+	assetartifactspb "intrinsic/assets/proto/v1/asset_artifacts_go_proto"
 	rpb "intrinsic/assets/proto/v1/reference_go_proto"
 
 	lrogrpcpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
@@ -109,10 +110,14 @@ func GetCommand() *cobra.Command {
 
 			processor := &bundle.Processor{
 				ImageProcessor:          bundleimages.CreateImageProcessor(transfer),
-				ProcessReferencedData:   referenceddata.SolutionProcessor(),
+				ReferencedDataProcessor: referenceddata.NewProcessor(
+					assetartifactspb.NewAssetArtifactsClient(conn),
+					lropb.NewOperationsClient(conn),
+					referenceddata.WithProgressWriter(cmd.OutOrStdout()),
+				),
 			}
 
-			asset, err := assetFromTarget(ctx, target, processor.ProcessFile)
+			asset, err := assetFromTarget(authCtx, target, processor.ProcessFile)
 			if err != nil {
 				return err
 			}

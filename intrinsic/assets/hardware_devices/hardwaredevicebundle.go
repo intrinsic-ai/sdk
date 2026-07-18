@@ -219,9 +219,9 @@ func PassThrough(ctx context.Context, a *hdmpb.HardwareDeviceManifest_Asset) (*h
 // LocalAssetInlinerOptions contains options for LocalAssetInliner.
 type LocalAssetInlinerOptions struct {
 	imageutils.ImageProcessor
-	// ProcessReferencedData is the referenceddata.Processor to use for Data assets (see
+	// ReferencedDataProcessor is the referenceddata.Processor to use for Data assets (see
 	// databundle.Read).
-	ProcessReferencedData referenceddata.Processor
+	ReferencedDataProcessor referenceddata.Processor
 }
 
 // LocalAssetInliner processes local Assets in a HardwareDevice by inlining them.
@@ -250,8 +250,8 @@ func (p *LocalAssetInliner) Process(ctx context.Context, a *hdmpb.HardwareDevice
 			}, nil
 		case atpb.AssetType_ASSET_TYPE_DATA:
 			var opts []databundle.ReadOption
-			if p.opts.ProcessReferencedData != nil {
-				opts = append(opts, databundle.WithProcessReferencedData(p.opts.ProcessReferencedData))
+			if p.opts.ReferencedDataProcessor != nil {
+				opts = append(opts, databundle.WithReferencedDataProcessor(p.opts.ReferencedDataProcessor))
 			}
 			da, err := databundle.ProcessFile(ctx, a.GetLocal().GetBundlePath(),
 				databundle.WithReadOptions(opts...),

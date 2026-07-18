@@ -164,23 +164,23 @@ type DataBundle struct {
 type ExternalFilePathProposal func(reference string) (string, error)
 
 type readOptions struct {
-	processReferencedData referenceddata.Processor
-	pathProposals         []ExternalFilePathProposal
+	referencedDataProcessor referenceddata.Processor
+	pathProposals           []ExternalFilePathProposal
 }
 
 // ReadOption is a functional option for Read.
 type ReadOption func(*readOptions)
 
-// WithProcessReferencedData specifies a referenceddata.Processor to call for each unique
+// WithReferencedDataProcessor specifies a referenceddata.Processor to call for each unique
 // ReferencedData value in the Data Asset as it is read.
 //
 // (Note that all inlined ReferencedData are considered unique.)
 //
 // If a non-nil ReferencedData is returned by the processor, the return value replaces all of the
 // matching ReferencedData values in the Data Asset.
-func WithProcessReferencedData(f referenceddata.Processor) ReadOption {
+func WithReferencedDataProcessor(f referenceddata.Processor) ReadOption {
 	return func(opts *readOptions) {
-		opts.processReferencedData = f
+		opts.referencedDataProcessor = f
 	}
 }
 
@@ -237,11 +237,11 @@ func Read(ctx context.Context, reader io.Reader, options ...ReadOption) (*DataBu
 						Reference: tarPath,
 					},
 				})
-				if opts.processReferencedData != nil {
-					if err := referenceddata.Process(ctx, ref, opts.processReferencedData,
+				if opts.referencedDataProcessor != nil {
+					if err := referenceddata.Process(ctx, ref, opts.referencedDataProcessor,
 						referenceddata.WithReader(tr, hdr.Size),
 					); err != nil {
-						return nil, fmt.Errorf("failed to process ReferencedData: %w", err)
+						return nil, fmt.Errorf("failed to process in-tar reference %q: %w", tarPath, err)
 					}
 				}
 				processedReferences[tarPath] = ref
@@ -273,7 +273,7 @@ func Read(ctx context.Context, reader io.Reader, options ...ReadOption) (*DataBu
 
 		// Find the reference (see function comment about relative paths).
 		if err := findReference(ref, opts.pathProposals); err != nil {
-			return fmt.Errorf("failed to resolve reference: %w", err)
+			return fmt.Errorf("failed to find reference: %w", err)
 		}
 
 		// Validate the ReferencedData (e.g., verify its digest).
@@ -282,16 +282,16 @@ func Read(ctx context.Context, reader io.Reader, options ...ReadOption) (*DataBu
 		}
 
 		// Optionally process the ReferencedData.
-		if opts.processReferencedData != nil {
-			if err := referenceddata.Process(ctx, ref, opts.processReferencedData); err != nil {
-				return fmt.Errorf("failed to process ReferencedData: %w", err)
+		if opts.referencedDataProcessor != nil {
+			if err := referenceddata.Process(ctx, ref, opts.referencedDataProcessor); err != nil {
+				return fmt.Errorf("failed to process reference: %w", err)
 			}
 		}
 
 		return nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to walk referenced data: %w", err)
+		return nil, fmt.Errorf("failed to walk payload: %w", err)
 	}
 
 	if payloadOutAny, err := anypb.New(payloadOut); err != nil {

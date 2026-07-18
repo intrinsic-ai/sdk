@@ -41,7 +41,6 @@ go_proto_library(
     ],
 )
 
-# intrinsic:asset_artifacts:strip_begin
 proto_library(
     name = "asset_artifacts_proto",
     srcs = ["asset_artifacts.proto"],
@@ -69,7 +68,6 @@ go_proto_library(
         "@org_golang_google_genproto_googleapis_api//annotations",
     ],
 )
-# intrinsic:asset_artifacts:strip_end
 
 proto_library(
     name = "asset_graph_proto",

@@ -5,6 +5,7 @@ package utils
 
 import (
 	"bytes"
+	"crypto/sha512"
 	"fmt"
 	"io"
 	"strings"
@@ -46,6 +47,8 @@ type HashAlgorithm string
 const (
 	// HighwayHash128 is the HighwayHash-128 algorithm.
 	HighwayHash128 HashAlgorithm = "highwayhash128"
+	// Sha512 is the SHA-512 algorithm.
+	Sha512 HashAlgorithm = "sha512"
 )
 
 // DigestOptions contains options for a call to Digest.
@@ -74,6 +77,13 @@ func Digest(reader io.Reader, options ...DigestOption) (string, error) {
 	}
 
 	switch opts.Algorithm {
+	case Sha512:
+		h := sha512.New()
+		if _, err := io.Copy(h, reader); err != nil {
+			return "", err
+		}
+		digest := fmt.Sprintf("%s:%x", opts.Algorithm, h.Sum(nil))
+		return digest, nil
 	default:
 		return "", fmt.Errorf("unknown hash algorithm: %v", opts.Algorithm)
 	}

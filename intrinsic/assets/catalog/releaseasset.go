@@ -6,6 +6,7 @@ package releaseasset
 import (
 	"context"
 	"fmt"
+	"io"
 
 	"intrinsic/assets/bundle"
 	"intrinsic/assets/idutils"
@@ -19,6 +20,9 @@ import (
 
 	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_proto"
 	rmpb "intrinsic/assets/catalog/proto/v1/release_metadata_go_proto"
+	assetartifactspb "intrinsic/assets/proto/v1/asset_artifacts_go_proto"
+
+	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 )
 
 const (
@@ -28,19 +32,29 @@ const (
 type Printer func(format string, a ...any)
 
 type fromBundleOptions struct {
+	aaClient        assetartifactspb.AssetArtifactsClient
 	acClient        acpb.AssetCatalogClient
 	dryRun          bool
 	flagDefault     bool
 	flagOrgPrivate  bool
 	ignoreExisting  bool
 	imageTransferer imagetransfer.Transferer
+	lroClient       lropb.OperationsClient
 	printer         Printer
+	progressWriter  io.Writer
 	releaseNotes    string
 	version         string
 }
 
 // FromBundleOption is an option for FromBundle.
 type FromBundleOption func(*fromBundleOptions)
+
+// WithAssetArtifactsClient specifies the AssetArtifactsClient to use.
+func WithAssetArtifactsClient(client assetartifactspb.AssetArtifactsClient) FromBundleOption {
+	return func(opts *fromBundleOptions) {
+		opts.aaClient = client
+	}
+}
 
 // WithAssetCatalogClient specifies the client to use for catalog requests.
 func WithAssetCatalogClient(acc acpb.AssetCatalogClient) FromBundleOption {
@@ -52,7 +66,9 @@ func WithAssetCatalogClient(acc acpb.AssetCatalogClient) FromBundleOption {
 // WithConnection specifies the connection to use for all gRPC clients.
 func WithConnection(conn *grpc.ClientConn) FromBundleOption {
 	return func(opts *fromBundleOptions) {
+		opts.aaClient = assetartifactspb.NewAssetArtifactsClient(conn)
 		opts.acClient = acpb.NewAssetCatalogClient(conn)
+		opts.lroClient = lropb.NewOperationsClient(conn)
 	}
 }
 
@@ -92,9 +108,23 @@ func WithImageTransferer(transferer imagetransfer.Transferer) FromBundleOption {
 	}
 }
 
+// WithOperationsClient specifies the OperationsClient to use.
+func WithOperationsClient(client lropb.OperationsClient) FromBundleOption {
+	return func(opts *fromBundleOptions) {
+		opts.lroClient = client
+	}
+}
+
 func WithPrinter(printer Printer) FromBundleOption {
 	return func(opts *fromBundleOptions) {
 		opts.printer = printer
+	}
+}
+
+// WithProgressWriter specifies a writer to output progress updates during Asset release.
+func WithProgressWriter(w io.Writer) FromBundleOption {
+	return func(opts *fromBundleOptions) {
+		opts.progressWriter = w
 	}
 }
 
@@ -120,8 +150,8 @@ func FromBundle(ctx context.Context, path string, options ...FromBundleOption) e
 		opt(opts)
 	}
 
-	if opts.acClient == nil {
-		return fmt.Errorf("acClient must not be nil")
+	if !opts.dryRun && opts.acClient == nil {
+		return fmt.Errorf("acClient must not be nil in non-dry-run mode")
 	}
 	if opts.imageTransferer == nil {
 		return fmt.Errorf("transferer must not be nil")
@@ -130,14 +160,15 @@ func FromBundle(ctx context.Context, path string, options ...FromBundleOption) e
 		return fmt.Errorf("version must not be empty")
 	}
 
-	referencedDataProcessor := referenceddata.NoOpProcessor()
-	if !opts.dryRun {
-		referencedDataProcessor = referenceddata.CatalogProcessor(opts.acClient)
-	}
-
 	processor := bundle.Processor{
-		ImageProcessor:          bundleimages.CreateImageProcessor(opts.imageTransferer),
-		ProcessReferencedData:   referencedDataProcessor,
+		ImageProcessor: bundleimages.CreateImageProcessor(opts.imageTransferer),
+		ReferencedDataProcessor: referenceddata.NewProcessor(
+			opts.aaClient,
+			opts.lroClient,
+			referenceddata.WithDryRun(opts.dryRun),
+			referenceddata.WithFallbackCatalogClient(opts.acClient),
+			referenceddata.WithProgressWriter(opts.progressWriter),
+		),
 	}
 
 	processedBundle, err := processor.ProcessFile(ctx, path)

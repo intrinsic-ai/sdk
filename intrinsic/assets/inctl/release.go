@@ -64,6 +64,7 @@ func GetCommand() *cobra.Command {
 				releaseasset.WithPrinter(printer.PrintSf),
 				releaseasset.WithReleaseNotes(flags.GetFlagReleaseNotes()),
 				releaseasset.WithVersion(flags.GetFlagVersion()),
+				releaseasset.WithProgressWriter(cmd.OutOrStdout()),
 			)
 		},
 	}

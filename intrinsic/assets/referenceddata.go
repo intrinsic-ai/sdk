@@ -6,20 +6,28 @@ package referenceddata
 import (
 	"bytes"
 	"context"
+	"crypto/sha512"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
+	"time"
 
 	"intrinsic/util/proto/walkmessages"
 
 	log "github.com/golang/glog"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 
 	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_proto"
 	rdpb "intrinsic/assets/data/proto/v1/referenced_data_go_proto"
+	assetartifactspb "intrinsic/assets/proto/v1/asset_artifacts_go_proto"
+
+	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 )
 
 // ReferenceType is an enum for the type of reference in a ReferencedData.
@@ -32,6 +40,22 @@ const (
 	CASReferenceType
 	// InlinedReferenceType is an inlined reference.
 	InlinedReferenceType
+)
+
+// Stage specifies the current stage of processing a ReferencedData.
+type Stage string
+
+const (
+	// StageUploadStart indicates that the upload process has started.
+	StageUploadStart Stage = "UploadStart"
+	// StageUploadProgress indicates that an upload chunk has been sent successfully.
+	StageUploadProgress Stage = "UploadProgress"
+	// StageUploadFinalize indicates that the upload has finished and is being finalized.
+	StageUploadFinalize Stage = "UploadFinalize"
+	// StageProcessStart indicates that processing of the reference has started.
+	StageProcessStart Stage = "ProcessStart"
+	// StageProcessDone indicates that the processing the reference has completed.
+	StageProcessDone Stage = "ProcessDone"
 )
 
 const (
@@ -91,6 +115,18 @@ func (ref *ReferencedData) Modified() bool {
 // Reference returns the reference in the ReferencedData.
 func (ref *ReferencedData) Reference() string {
 	return ref.rd.GetReference()
+}
+
+// Name returns a name that can be used to refer to the reference (e.g., in logs).
+func (ref *ReferencedData) Name() string {
+	name := ref.Reference()
+	if name == "" {
+		name = ref.Digest()
+	}
+	if name == "" {
+		name = "<unknown>"
+	}
+	return name
 }
 
 // SourceProject returns the source project in the ReferencedData.
@@ -206,14 +242,15 @@ func (ref *ReferencedData) ToProto() *rdpb.ReferencedData {
 	return proto.Clone(ref.rd).(*rdpb.ReferencedData)
 }
 
-// WalkUnique walks through a proto message, processing any unique ReferencedData it finds.
+// WalkUnique walks through a proto message, calling the specified function on any unique
+// ReferencedData it finds.
 //
 // Note that all inlined ReferencedData are considered unique.
 //
-// The function does not walk into Any protos.
+// This function does not walk into Any protos.
 //
-// If the specified processing function modifies a ReferencedData, it replaces all instances of the
-// original value in the message that is being walked.
+// If the specified function modifies a ReferencedData, we replace all instances of the original
+// value in the message that is being walked.
 //
 // The input message may be mutated, and the processed message is returned.
 func WalkUnique(msg proto.Message, f func(*ReferencedData) error) (proto.Message, error) {
@@ -227,7 +264,7 @@ func WalkUnique(msg proto.Message, f func(*ReferencedData) error) (proto.Message
 	return walkmessages.Recursively(msg, func(msg proto.Message) (proto.Message, bool, error) {
 		rd, ok, err := ToReferencedData(msg)
 		if err != nil {
-			return nil, false, fmt.Errorf("cannot convert message to ReferencedData: %w", err)
+			return nil, false, fmt.Errorf("failed to convert message to ReferencedData: %w", err)
 		}
 		if !ok { // Not ReferencedData. Walk into the message.
 			return nil, true, nil
@@ -239,19 +276,19 @@ func WalkUnique(msg proto.Message, f func(*ReferencedData) error) (proto.Message
 		refKey := ref.Reference()
 		if v, ok := visitedReferencedData[refKey]; ok {
 			if v.ref.Digest() != "" && ref.Digest() != "" && v.ref.Digest() != ref.Digest() {
-				return nil, false, fmt.Errorf("digest mismatch for reference %q: %q != %q", ref.Reference(), v.ref.Digest(), ref.Digest())
+				return nil, false, fmt.Errorf("digest mismatch for reference %q: %q != %q", ref.Name(), v.ref.Digest(), ref.Digest())
 			}
 			return v.returned, false, nil
 		}
 
 		if err := f(ref); err != nil {
-			return nil, false, fmt.Errorf("cannot process ReferencedData: %w", err)
+			return nil, false, fmt.Errorf("failed to walk reference %q: %w", ref.Name(), err)
 		}
 
 		var msgOut proto.Message
 		if ref.Modified() {
 			if msgOut, err = fromReferencedData(ref.rd, msg); err != nil {
-				return nil, false, fmt.Errorf("cannot convert ReferencedData to target message: %w", err)
+				return nil, false, fmt.Errorf("failed to convert reference %q to target message: %w", ref.Name(), err)
 			}
 		}
 
@@ -381,6 +418,38 @@ func Process(ctx context.Context, ref *ReferencedData, processor Processor, opti
 	return processor.Process(ctx, rdr)
 }
 
+// Progress represents the current progress of processing a ReferencedData.
+type Progress struct {
+	BytesUploaded int64
+	ReferenceName string // e.g. file path
+	Stage         Stage
+	TotalBytes    int64
+}
+
+// ProgressCallback is a function that receives progress updates while processing a ReferencedData.
+type ProgressCallback func(*Progress)
+
+func (p Progress) String() string {
+	switch p.Stage {
+	case StageUploadStart:
+		return fmt.Sprintf("Uploading %s (%s)...", p.ReferenceName, formatBytes(p.TotalBytes))
+	case StageUploadProgress:
+		if p.TotalBytes > 0 {
+			percent := p.BytesUploaded * 100 / p.TotalBytes
+			return fmt.Sprintf("Uploading: %d%% (%s/%s)", percent, formatBytes(p.BytesUploaded), formatBytes(p.TotalBytes))
+		}
+		return fmt.Sprintf("Uploading: %s", formatBytes(p.BytesUploaded))
+	case StageUploadFinalize:
+		return "Finalizing upload..."
+	case StageProcessStart:
+		return "Processing reference..."
+	case StageProcessDone:
+		return "Reference processing completed."
+	default:
+		return ""
+	}
+}
+
 // Processor is an interface for processing ReferencedData via a Reader.
 type Processor interface {
 	// NeedsReaderFor returns true if the processor needs an io.Reader for the given reference type.
@@ -388,25 +457,6 @@ type Processor interface {
 
 	// Process processes a ReferencedData. The processor should modify the ReferencedData in place.
 	Process(context.Context, *Reader) error
-}
-
-type noOpProcessor struct{}
-
-// NeedsReaderFor returns false for all reference types.
-func (p *noOpProcessor) NeedsReaderFor(rt ReferenceType) bool {
-	return false
-}
-
-// Process does not modify the given reference data.
-func (p *noOpProcessor) Process(ctx context.Context, rdr *Reader) error {
-	return nil
-}
-
-// NoOpProcessor returns a Processor that does nothing.
-//
-// This processor is only valid for dry runs.
-func NoOpProcessor() Processor {
-	return &noOpProcessor{}
 }
 
 type inlineProcessor struct{}
@@ -445,29 +495,29 @@ func InlineProcessor() Processor {
 	return &inlineProcessor{}
 }
 
-type catalogProcessor struct {
+type legacyCatalogProcessor struct {
 	acClient  acpb.AssetCatalogClient
 	chunkSize int
 }
 
-// CatalogProcessorOption is an option for CatalogProcessor.
-type CatalogProcessorOption func(*catalogProcessor)
+// legacyCatalogProcessorOption is an option for legacyCatalogProcessor.
+type legacyCatalogProcessorOption func(*legacyCatalogProcessor)
 
-// WithChunkSize sets the chunk size for CatalogProcessor.
-func WithChunkSize(size int) CatalogProcessorOption {
-	return func(opts *catalogProcessor) {
+// withLegacyChunkSize sets the chunk size for legacyCatalogProcessor.
+func withLegacyChunkSize(size int) legacyCatalogProcessorOption {
+	return func(opts *legacyCatalogProcessor) {
 		opts.chunkSize = size
 	}
 }
 
 // NeedsReaderFor returns true for file references.
-func (p *catalogProcessor) NeedsReaderFor(rt ReferenceType) bool {
+func (p *legacyCatalogProcessor) NeedsReaderFor(rt ReferenceType) bool {
 	return rt == FileReferenceType
 }
 
 // Process prepares the given ReferencedData for inclusion in an Asset that will be released to the
 // AssetCatalog.
-func (p *catalogProcessor) Process(ctx context.Context, rdr *Reader) error {
+func (p *legacyCatalogProcessor) Process(ctx context.Context, rdr *Reader) error {
 	if rdr.Ref.Reference() != "" {
 		log.Infof("Preparing reference %v", rdr.Ref.Reference())
 	}
@@ -519,13 +569,22 @@ func (p *catalogProcessor) Process(ctx context.Context, rdr *Reader) error {
 	// Replace the referenced data with the updated referenced data from the catalog.
 	rdr.Ref.Replace(FromProto(response.GetReferencedData()))
 
+	// If the catalog returned a sha512 digest, but we are running in fallback mode,
+	// it means the runtime might not support sha512 yet. We strip it to ensure
+	// compatibility with older runtimes.
+	if strings.HasPrefix(rdr.Ref.Digest(), "sha512:") {
+		rdr.Ref.SetDigest("")
+	}
+
 	return nil
 }
 
-// CatalogProcessor returns a Processor that prepares ReferencedData for inclusion in an Asset that
-// will be released to the AssetCatalog.
-func CatalogProcessor(client acpb.AssetCatalogClient, options ...CatalogProcessorOption) Processor {
-	p := &catalogProcessor{
+// newLegacyCatalogProcessor returns a Processor that prepares ReferencedData for inclusion in an
+// Asset that will be released to the AssetCatalog.
+//
+// It is only kept as a fallback until all Asset cloud deployments start serving AssetArtifacts.
+func newLegacyCatalogProcessor(client acpb.AssetCatalogClient, options ...legacyCatalogProcessorOption) Processor {
+	p := &legacyCatalogProcessor{
 		acClient:  client,
 		chunkSize: defaultChunkSize,
 	}
@@ -536,38 +595,323 @@ func CatalogProcessor(client acpb.AssetCatalogClient, options ...CatalogProcesso
 	return p
 }
 
-type solutionProcessor struct{}
+type defaultFallbackProcessor struct{}
 
-func (p *solutionProcessor) NeedsReaderFor(rt ReferenceType) bool {
+func (p *defaultFallbackProcessor) NeedsReaderFor(rt ReferenceType) bool {
+	return false
+}
+
+func (p *defaultFallbackProcessor) Process(ctx context.Context, rdr *Reader) error {
+	switch rdr.Ref.Type() {
+	case CASReferenceType, InlinedReferenceType:
+		// Already in CAS or inlined, nothing to do for old servers.
+		return nil
+	case FileReferenceType:
+		// We cannot upload large files to old servers during install.
+		return fmt.Errorf("large file references cannot be processed; server does not support AssetArtifacts and no fallback is available")
+	default:
+		return fmt.Errorf("unknown reference type: %v", rdr.Ref.Type())
+	}
+}
+
+type artifactsProcessor struct {
+	aaClient         assetartifactspb.AssetArtifactsClient
+	chunkSize        int
+	dryRun           bool
+	inlineThreshold  int64
+	lroClient        lropb.OperationsClient
+	progressCallback ProgressCallback
+
+	// A fallback Processor to use in case the AssetArtifacts service is not available).
+	fallback    Processor
+	probeAAOnce sync.Once
+	useFallback bool
+}
+
+// ProcessorOption is an option for NewProcessor.
+type ProcessorOption func(*artifactsProcessor)
+
+// WithChunkSize sets the chunk size for uploading.
+func WithChunkSize(size int) ProcessorOption {
+	return func(opts *artifactsProcessor) {
+		opts.chunkSize = size
+	}
+}
+
+// WithDryRun specifies whether to run the processor in dry-run mode.
+func WithDryRun(dryRun bool) ProcessorOption {
+	return func(opts *artifactsProcessor) {
+		opts.dryRun = dryRun
+	}
+}
+
+// WithFallbackCatalogClient sets a fallback AssetCatalogClient to use if the AssetArtifacts service
+// is unavailable.
+func WithFallbackCatalogClient(client acpb.AssetCatalogClient) ProcessorOption {
+	return func(p *artifactsProcessor) {
+		p.fallback = newLegacyCatalogProcessor(client)
+	}
+}
+
+// WithInlineThreshold sets the threshold below which files are inlined.
+func WithInlineThreshold(threshold int64) ProcessorOption {
+	return func(opts *artifactsProcessor) {
+		opts.inlineThreshold = threshold
+	}
+}
+
+// WithProgressCallback sets a callback to receive progress updates during processing.
+func WithProgressCallback(cb ProgressCallback) ProcessorOption {
+	return func(p *artifactsProcessor) {
+		p.progressCallback = cb
+	}
+}
+
+// WithProgressWriter sets a writer to output progress updates in a default console-friendly format.
+func WithProgressWriter(w io.Writer) ProcessorOption {
+	return func(p *artifactsProcessor) {
+		if w == nil {
+			return
+		}
+		var lastPercent int64 = -1
+		p.progressCallback = func(prg *Progress) {
+			switch prg.Stage {
+			case StageUploadProgress:
+				if prg.TotalBytes > 0 {
+					// Use integer division to calculate progress percentage (0-100).
+					percent := prg.BytesUploaded * 100 / prg.TotalBytes
+					// Only write to the console when the integer percentage increases, to reduce console
+					// output spam.
+					if percent > lastPercent {
+						fmt.Fprintf(w, "\r%s", prg)
+						lastPercent = percent
+					}
+				} else {
+					// If total size is unknown, print progress updates for every chunk.
+					fmt.Fprintf(w, "\r%s", prg)
+				}
+			case StageUploadFinalize:
+				fmt.Fprintf(w, "\n%s\n", prg)
+			default:
+				fmt.Fprintln(w, prg)
+			}
+		}
+	}
+}
+
+// NeedsReaderFor returns true for file references.
+func (p *artifactsProcessor) NeedsReaderFor(rt ReferenceType) bool {
 	return rt == FileReferenceType
 }
 
-func (p *solutionProcessor) Process(ctx context.Context, rdr *Reader) error {
-	switch rdr.Ref.Type() {
-	case FileReferenceType:
-		// If the file is below the size threshold, inline it. Otherwise, upload it to CAS.
-		if rdr.Size <= InlineReferenceFileSizeThresholdBytes {
-			b, err := io.ReadAll(rdr.Reader)
-			if err != nil {
-				return fmt.Errorf("failed to read data file: %w", err)
-			}
-			rdr.Ref.SetInlined(b)
-		} else {
-			return fmt.Errorf("file upload is not supported: %v", rdr.Ref)
+// Process processes the referenced data.
+func (p *artifactsProcessor) Process(ctx context.Context, rdr *Reader) error {
+	if !p.dryRun {
+		if p.aaClient == nil {
+			return fmt.Errorf("aaClient must be non-nil")
 		}
-	case CASReferenceType:
-	case InlinedReferenceType:
-		// Nothing to do.
-	default:
-		return fmt.Errorf("unknown referenced data: %v", rdr.Ref)
+		if p.lroClient == nil {
+			return fmt.Errorf("lroClient must be non-nil")
+		}
+
+		// We temporarily need to support some fallback behaviors for communicating with remote clusters
+		// that do not yet serve AssetArtifacts.
+		p.probeAAOnce.Do(func() {
+			p.useFallback = !probeAssetArtifacts(ctx, p.aaClient)
+		})
 	}
+
+	// Inline small files locally (both dry-run and normal mode).
+	if (rdr.Ref.Type() == FileReferenceType || rdr.Ref.Type() == InlinedReferenceType) && rdr.Size <= p.inlineThreshold {
+		b, err := io.ReadAll(rdr.Reader)
+		if err != nil {
+			return fmt.Errorf("failed to read data for inlining: %w", err)
+		}
+		rdr.Ref.SetInlined(b)
+
+		// Do not set digest for inlined files to maintain backward compatibility with old platforms.
+		rdr.Ref.SetDigest("")
+
+		return nil
+	}
+
+	if p.dryRun {
+		if rdr.Ref.Type() == CASReferenceType {
+			return nil
+		}
+
+		hasher := sha512.New()
+		if _, err := io.Copy(hasher, rdr.Reader); err != nil {
+			return fmt.Errorf("failed to hash data for dry-run: %w", err)
+		}
+		hash := fmt.Sprintf("%x", hasher.Sum(nil))
+		rdr.Ref.SetReference("intcas://" + hash)
+		rdr.Ref.SetDigest("sha512:" + hash)
+
+		return nil
+	}
+
+	if p.useFallback {
+		return p.fallback.Process(ctx, rdr)
+	}
+
+	origRefName := rdr.Ref.Reference()
+	var processedRef *rdpb.ReferencedData
+	switch rt := rdr.Ref.Type(); rt {
+	case CASReferenceType:
+		processedRef = rdr.Ref.ToProto()
+	case FileReferenceType, InlinedReferenceType:
+		// Start upload session.
+		p.update(&Progress{
+			Stage:         StageUploadStart,
+			ReferenceName: origRefName,
+			TotalBytes:    rdr.Size,
+		})
+		startResp, err := p.aaClient.StartUpload(ctx, &assetartifactspb.StartUploadRequest{})
+		if err != nil {
+			return fmt.Errorf("failed to start upload: %w", err)
+		}
+		uploadID := startResp.GetUploadId()
+
+		// Stream the data chunks.
+		buf := make([]byte, p.chunkSize)
+		var offset int64 = 0
+		for {
+			n, err := rdr.Reader.Read(buf)
+			if err != io.EOF && err != nil {
+				return fmt.Errorf("failed to read data: %w", err)
+			}
+			if n > 0 {
+				_, err := p.aaClient.UploadChunk(ctx, &assetartifactspb.UploadChunkRequest{
+					UploadId: uploadID,
+					Offset:   offset,
+					Data:     buf[:n],
+				})
+				if err != nil {
+					return fmt.Errorf("failed to upload chunk: %w", err)
+				}
+				offset += int64(n)
+				p.update(&Progress{
+					Stage:         StageUploadProgress,
+					ReferenceName: origRefName,
+					BytesUploaded: offset,
+					TotalBytes:    rdr.Size,
+				})
+			}
+			if err == io.EOF {
+				break
+			}
+		}
+
+		// Finalize the upload.
+		p.update(&Progress{
+			Stage:         StageUploadFinalize,
+			ReferenceName: origRefName,
+			TotalBytes:    rdr.Size,
+		})
+		finalizeResp, err := p.aaClient.FinalizeUpload(ctx, &assetartifactspb.FinalizeUploadRequest{
+			UploadId:       uploadID,
+			ExpectedDigest: rdr.Ref.Digest(),
+		})
+		if err != nil {
+			return fmt.Errorf("failed to finalize upload: %w", err)
+		}
+		processedRef = finalizeResp.GetReferencedData()
+	default:
+		return fmt.Errorf("unknown reference type: %v", rt)
+	}
+
+	// Process the referenced data.
+	p.update(&Progress{
+		Stage:         StageProcessStart,
+		ReferenceName: origRefName,
+	})
+	op, err := p.aaClient.Process(ctx, &assetartifactspb.ProcessRequest{
+		Artifact: &assetartifactspb.ProcessRequest_ReferencedData{
+			ReferencedData: processedRef,
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("failed to call Process: %w", err)
+	}
+	if op == nil {
+		return fmt.Errorf("server returned success but nil operation")
+	}
+
+	// Wait for the LRO to complete.
+	for !op.GetDone() {
+		op, err = p.lroClient.WaitOperation(ctx, &lropb.WaitOperationRequest{
+			Name: op.GetName(),
+		})
+		if err != nil {
+			return fmt.Errorf("failed to wait for operation: %w", err)
+		}
+	}
+
+	if errProto := op.GetError(); errProto != nil {
+		return fmt.Errorf("processing operation failed: %v", status.FromProto(errProto).Err())
+	}
+
+	resp := &assetartifactspb.ProcessResponse{}
+	if err := op.GetResponse().UnmarshalTo(resp); err != nil {
+		return fmt.Errorf("failed to unmarshal response: %w", err)
+	}
+
+	rdr.Ref.Replace(FromProto(resp.GetReferencedData()))
+
+	p.update(&Progress{
+		Stage:         StageProcessDone,
+		ReferenceName: origRefName,
+	})
 
 	return nil
 }
 
-// SolutionProcessor returns a Processor that prepares ReferencedData for inclusion in a Solution.
-//
-// File references below a size threshold are inlined. Otherwise, they are uploaded to CAS.
-func SolutionProcessor() Processor {
-	return &solutionProcessor{}
+func (p *artifactsProcessor) update(progress *Progress) {
+	if p.progressCallback != nil {
+		p.progressCallback(progress)
+	}
+}
+
+// NewProcessor returns a Processor that prepares ReferencedData using AssetArtifacts.
+func NewProcessor(aaClient assetartifactspb.AssetArtifactsClient, lroClient lropb.OperationsClient, options ...ProcessorOption) Processor {
+	p := &artifactsProcessor{
+		aaClient:        aaClient,
+		lroClient:       lroClient,
+		inlineThreshold: InlineReferenceFileSizeThresholdBytes,
+		chunkSize:       defaultChunkSize,
+		fallback:        &defaultFallbackProcessor{},
+	}
+	for _, opt := range options {
+		opt(p)
+	}
+
+	return p
+}
+
+// probeAssetArtifacts checks whether the AssetArtifacts service is available.
+func probeAssetArtifacts(ctx context.Context, client assetartifactspb.AssetArtifactsClient) bool {
+	if client == nil {
+		return false
+	}
+	probeCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+
+	_, err := client.FinalizeUpload(probeCtx, &assetartifactspb.FinalizeUploadRequest{
+		UploadId: "dummy",
+	})
+	return status.Code(err) != codes.Unimplemented
+}
+
+func formatBytes(b int64) string {
+	const unit = 1024
+	if b < unit {
+		return fmt.Sprintf("%d B", b)
+	}
+	div, exp := int64(unit), 0
+	for n := b / unit; n >= unit; n /= unit {
+		div *= unit
+		exp++
+	}
+	return fmt.Sprintf("%.1f %cB", float64(b)/float64(div), "KMGTPE"[exp])
 }

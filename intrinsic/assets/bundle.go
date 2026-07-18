@@ -107,9 +107,9 @@ func detectBundleType(ctx context.Context, path string) (bundleType, error) {
 // should be for use across many bundles.
 type Processor struct {
 	imageutils.ImageProcessor
-	// ProcessReferencedData is the referenceddata.Processor to use for Data assets (see
+	// ReferencedDataProcessor is the referenceddata.Processor to use for Data assets (see
 	// ReadDataBundle).
-	ProcessReferencedData referenceddata.Processor
+	ReferencedDataProcessor referenceddata.Processor
 }
 
 // VersionDetails provides the specific details about a version when it is
@@ -347,7 +347,7 @@ func (p *Processor) ProcessFile(ctx context.Context, path string) (ProcessedBund
 	switch bundleType {
 	case bundleTypeData:
 		da, err := databundle.ProcessFile(ctx, path,
-			databundle.WithReadOptions(databundle.WithProcessReferencedData(p.ProcessReferencedData)),
+			databundle.WithReadOptions(databundle.WithReferencedDataProcessor(p.ReferencedDataProcessor)),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to process Data Asset bundle: %w", err)
@@ -356,7 +356,7 @@ func (p *Processor) ProcessFile(ctx context.Context, path string) (ProcessedBund
 	case bundleTypeHardwareDevice:
 		assetInliner := hardwaredevicebundle.NewLocalAssetInliner(hardwaredevicebundle.LocalAssetInlinerOptions{
 			ImageProcessor:          p.ImageProcessor,
-			ProcessReferencedData:   p.ProcessReferencedData,
+			ReferencedDataProcessor: p.ReferencedDataProcessor,
 		})
 
 		localAssetsDir, err := os.MkdirTemp("", "local-assets")
