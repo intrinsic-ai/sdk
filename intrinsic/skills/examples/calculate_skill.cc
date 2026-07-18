@@ -39,10 +39,9 @@ CalculateSkill::Execute(const ExecuteRequest& request,
             << " and y: " << params.y();
 
   // Connect to the Calculator service.
-  ::grpc::ClientContext ctx;
-  INTR_ASSIGN_OR_RETURN(std::shared_ptr<grpc::Channel> channel,
-                        assets::dependencies::Connect(ctx, params.calculator(),
-                                                      kCalculatorInterface));
+  INTR_ASSIGN_OR_RETURN(
+      std::shared_ptr<grpc::Channel> channel,
+      assets::dependencies::Connect(params.calculator(), kCalculatorInterface));
   auto stub = intrinsic_proto::services::Calculator::NewStub(channel);
 
   // Create the request.
@@ -53,6 +52,7 @@ CalculateSkill::Execute(const ExecuteRequest& request,
 
   // Call the Calculator service.
   LOG(INFO) << "Calling the Calculator service";
+  ::grpc::ClientContext ctx;
   intrinsic_proto::services::CalculatorResponse response;
   INTR_RETURN_IF_ERROR(
       ToAbslStatus(stub->Calculate(&ctx, calculator_request, &response)));

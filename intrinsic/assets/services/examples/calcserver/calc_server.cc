@@ -88,10 +88,9 @@ grpc::Status CalculatorServiceImpl::Calculate(
       break;
     case intrinsic_proto::services::CALCULATOR_OPERATION_CUSTOM: {
       // Connect to the CustomCalculation service.
-      ::grpc::ClientContext ctx;
       INTR_ASSIGN_OR_RETURN_GRPC(
           std::shared_ptr<grpc::Channel> channel,
-          assets::dependencies::Connect(ctx, config_.custom_calculation(),
+          assets::dependencies::Connect(config_.custom_calculation(),
                                         kCustomCalculationInterface));
       auto stub =
           intrinsic_proto::services::CustomCalculation::NewStub(channel);
@@ -102,6 +101,7 @@ grpc::Status CalculatorServiceImpl::Calculate(
       custom_request.set_y(b);
 
       // Call the CustomCalculation service.
+      ::grpc::ClientContext ctx;
       intrinsic_proto::services::CalculatorResponse custom_response;
       INTR_RETURN_IF_ERROR_GRPC(
           stub->Calculate(&ctx, custom_request, &custom_response));

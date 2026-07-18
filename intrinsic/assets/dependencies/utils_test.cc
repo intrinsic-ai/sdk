@@ -116,9 +116,8 @@ TEST_P(ParameterizedConnectTest, Connect) {
   const ResolvedDependency dep = ParseTextProtoOrDie(
       absl::StrReplaceAll(param.dep_textproto, {{"%s", server_address}}));
 
-  grpc::ClientContext context;
   absl::StatusOr<std::shared_ptr<grpc::Channel>> channel_or =
-      Connect(context, dep, param.iface);
+      Connect(dep, param.iface);
 
   if (param.expected_code != absl::StatusCode::kOk) {
     EXPECT_THAT(
@@ -130,6 +129,7 @@ TEST_P(ParameterizedConnectTest, Connect) {
     TestRequest request;
     TestResponse response;
 
+    grpc::ClientContext context;
     ASSERT_TRUE(stub->Test(&context, request, &response).ok());
 
     const auto& metadata = response.context_metadata();
