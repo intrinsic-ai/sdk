@@ -908,6 +908,45 @@ func NewProcessor(aaClient assetartifactspb.AssetArtifactsClient, lroClient lrop
 	return p
 }
 
+type solutionReleaseProcessor struct{}
+
+func (p *solutionReleaseProcessor) NeedsReaderFor(rt ReferenceType) bool {
+	return rt == FileReferenceType
+}
+
+func (p *solutionReleaseProcessor) Process(ctx context.Context, rdr *Reader, opts *ProcessOptions) error {
+	switch rdr.Ref.Type() {
+	case FileReferenceType:
+		// If the file is below the size threshold, inline it. Otherwise, the caller must process the
+		// reference on their own manually before releasing the Solution.
+		if rdr.Size <= InlineReferenceFileSizeThresholdBytes {
+			b, err := io.ReadAll(rdr.Reader)
+			if err != nil {
+				return fmt.Errorf("failed to read data file: %w", err)
+			}
+			rdr.Ref.SetInlined(b)
+		} else {
+			return fmt.Errorf("large file references cannot be processed: %v", rdr.Ref)
+		}
+	case CASReferenceType:
+	case InlinedReferenceType:
+		// Nothing to do.
+	default:
+		return fmt.Errorf("unknown referenced data: %v", rdr.Ref)
+	}
+
+	return nil
+}
+
+// NewSolutionReleaseProcessor returns a Processor that prepares ReferencedData for inclusion in a
+// Solution template to be released.
+//
+// File references below a size threshold are inlined. Otherwise, they must be processed manually
+// before releasing the Solution.
+func NewSolutionReleaseProcessor() Processor {
+	return &solutionReleaseProcessor{}
+}
+
 // probeAssetArtifacts checks whether the AssetArtifacts service is available.
 func probeAssetArtifacts(ctx context.Context, client assetartifactspb.AssetArtifactsClient) bool {
 	if client == nil {
