@@ -175,8 +175,7 @@ var vmpoolsUpdateCmd = &cobra.Command{
 		if flagWaitTimeout > 0 {
 			waitCtx, cancel := context.WithTimeout(ctx, flagWaitTimeout)
 			defer cancel()
-			// For update, resp contains the new desired spec.
-			if err := waitForPoolReady(waitCtx, cmd, resp.GetName(), resp.GetSpec()); err != nil {
+			if err := waitForPoolUpdateReady(waitCtx, cmd, cl, getUpdatePoolRequest(cmd)); err != nil {
 				return fmt.Errorf("failed to wait for pool readiness: %w", err)
 			}
 		}

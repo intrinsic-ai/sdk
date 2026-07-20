@@ -52,8 +52,39 @@ func waitForPoolReady(ctx context.Context, cmd *cobra.Command, poolName string, 
 		status := found.GetCurrentStatus()
 		spec := found.GetSpec()
 
-		if status == "RUNNING" && specsEqual(spec, desiredSpec) {
+		if status == "RUNNING" && !found.GetReconciling() && specsEqual(spec, desiredSpec) {
 			prtr.Printf("\nVM pool %q is ready.\n", poolName)
+			return nil
+		}
+
+		prtr.Printf(".")
+		time.Sleep(pollInterval)
+	}
+}
+
+// waitForPoolUpdateReady polls UpdatePool repeatedly until the pool is no longer reconciling
+// and reports a RUNNING status, or until the context times out.
+func waitForPoolUpdateReady(ctx context.Context, cmd *cobra.Command, cl vmpoolspb.VMPoolServiceClient, req *vmpoolspb.UpdatePoolRequest) error {
+	prtr := printer.GetDefaultPrinter(cmd)
+	prtr.Printf("Waiting for VM pool %q to become ready ", req.GetName())
+
+	for {
+		select {
+		case <-ctx.Done():
+			prtr.Println()
+			return ctx.Err()
+		default:
+		}
+
+		resp, err := cl.UpdatePool(ctx, req)
+		if err != nil {
+			prtr.Printf("? (error querying pool status: %v, retrying)", err)
+			time.Sleep(pollInterval)
+			continue
+		}
+
+		if resp.GetCurrentStatus() == "RUNNING" && !resp.GetReconciling() {
+			prtr.Printf("\nVM pool %q is ready.\n", req.GetName())
 			return nil
 		}
 
