@@ -913,13 +913,16 @@ func probeAssetArtifacts(ctx context.Context, client assetartifactspb.AssetArtif
 	if client == nil {
 		return false
 	}
-	probeCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	probeCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	_, err := client.FinalizeUpload(probeCtx, &assetartifactspb.FinalizeUploadRequest{
 		UploadId: "dummy",
 	})
-	return status.Code(err) != codes.Unimplemented
+
+	code := status.Code(err)
+
+	return code == codes.OK || code == codes.NotFound || code == codes.InvalidArgument
 }
 
 func formatBytes(b int64) string {
