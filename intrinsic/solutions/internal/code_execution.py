@@ -139,7 +139,7 @@ class PythonScript(CodeExecution):
     return self._signature_with_args
 
   @property
-  def fuction_body(self) -> str:
+  def function_body(self) -> str:
     """Returns the function body string for this Python script node."""
     return self._function_body
 

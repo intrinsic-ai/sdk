@@ -4647,7 +4647,7 @@ class BehaviorTree:
           f' {sorted(list(duplicate_names))}. This can lead to compatibility'
           ' problems with other process editors. To avoid this problem, create'
           ' a separate PythonScript instance for each task node or use'
-          ' PythonScript.create_unique_copy().'
+          ' PythonScript.unique_copy().'
       )
 
   def _initialize_skill_proto_for_pbt(self, skill_id: str, display_name: str):

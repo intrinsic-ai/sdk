@@ -88,7 +88,7 @@ class InfoClient:
         return_value_message_full_name=sig.return_value_message_full_name,
         file_descriptor_set=sig.file_descriptor_set,
         python_code=code_execution_pb2.PythonCode(
-            function_body=python_script.fuction_body
+            function_body=python_script.function_body
         ),
     )
 
