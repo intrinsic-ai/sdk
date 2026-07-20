@@ -247,6 +247,7 @@ class SolutionTest(absltest.TestCase):
 
     pose_estimators = mock.MagicMock()
 
+    self._proto_builder = mock.MagicMock()
     self._proto_registry = mock.MagicMock()
 
     self._executive = executive
@@ -272,6 +273,7 @@ class SolutionTest(absltest.TestCase):
         self._pose_estimators,
         self._asset_config_client,
         self._code_execution_info,
+        self._proto_builder,
         proto_registry=self._proto_registry,
     )
 

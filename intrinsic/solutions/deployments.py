@@ -120,7 +120,7 @@ class Solution:
   _resource_registry: resource_registry_client.ResourceRegistryClient
   code_execution_info: code_execution_client.InfoClient
   pbt_registry: pbt_registration.BehaviorTreeRegistry | None
-  proto_builder: proto_building.ProtoBuilder | None
+  proto_builder: proto_building.ProtoBuilder
   _proto_registry: proto_registry_client.ProtoRegistryClient
 
   def __init__(
@@ -138,8 +138,8 @@ class Solution:
       pose_estimators: pose_estimation.PoseEstimators | None,
       asset_config_client: asset_configuration_client.AssetConfigurationClient,
       code_execution_info: code_execution_client.InfoClient,
+      proto_builder: proto_building.ProtoBuilder,
       pbt_registry: pbt_registration.BehaviorTreeRegistry | None = None,
-      proto_builder: proto_building.ProtoBuilder | None = None,
       proto_registry: proto_registry_client.ProtoRegistryClient | None = None,
   ):
     self.grpc_channel: grpc.Channel = grpc_channel
@@ -265,8 +265,8 @@ class Solution:
         pose_estimators,
         asset_config_client,
         code_execution_info,
-        pbt_registry,
         proto_builder,
+        pbt_registry,
         proto_registry,
     )
 
