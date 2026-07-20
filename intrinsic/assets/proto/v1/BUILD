@@ -324,7 +324,6 @@ proto_library(
     deps = [
         "//intrinsic/assets/proto:id_proto",
         "//intrinsic/assets/proto/v1:grpc_connection_proto",
-        "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_googleapis//google/api:field_behavior_proto",
     ],
 )
