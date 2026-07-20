@@ -34,6 +34,10 @@ message Snapshot {
   // Optional commit message that can be provided during the creation of the
   // snapshot.
   CommitMessage commit_message = 6;
+
+  // The version branch id from which the secondary parent snapshot (parents[1])
+  // was merged into the primary parent snapshot (parents[0]).
+  string secondary_parent_branch_id = 7;
 }
 
 message CommitMessage {
