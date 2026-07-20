@@ -235,7 +235,6 @@ oci.pull(
     image = "gcr.io/distroless/python3",
     platforms = ["linux/amd64"],
 )
-
 oci.pull(
     name = "zenohd",
     digest = "sha256:9a8195c927169365e516309d55753b9c3a7484a59825cf4fbefb9125cfbdb01d",
