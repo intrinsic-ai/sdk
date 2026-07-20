@@ -79,7 +79,10 @@ message CollisionRules {
   // third rule says "base" entity and "target" entity have a margin of 3cm.
   // When we eveluate these rules and calculate collisions for the "base" and
   // "target" entities, the most restrictive rule (the 1cm rule) will apply.
-  repeated CollisionMarginRule margin_rules = 1;
+  //
+  // DEPRECATED: setting this field as no effect. Use world level collision
+  // settings instead.
+  repeated CollisionMarginRule margin_rules = 1 [deprecated = true];
 
   // The exclusion rules for this instance. We can specify rules that define  if
   // a specific entity pair should be treated as collidable.
