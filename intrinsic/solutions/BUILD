@@ -279,30 +279,6 @@ py_test(
     ],
 )
 
-# Collection of all "public" modules for packaging.
-py_library(
-    name = "solutions_lib",
-    deps = [
-        ":behavior_tree",
-        ":blackboard_value",
-        ":cel",
-        ":deployments",
-        ":errors",
-        ":execution",
-        ":installed_assets",
-        ":kvstore",
-        ":motion_planning",
-        ":perception",
-        ":pose_estimation",
-        ":providers",
-        ":scene_object_import",
-        ":simulation",
-        ":worlds",
-        # Useful for building Python script nodes
-        "//intrinsic/skills/python:basic_compute_context",
-    ],
-)
-
 py_library(
     name = "perception",
     srcs = ["perception.py"],
@@ -584,6 +560,30 @@ py_test(
         "//intrinsic/world/proto:object_world_service_py_pb2",
         "//intrinsic/world/proto:object_world_service_py_pb2_grpc",
         "@com_google_absl_py//absl/testing:absltest",
+    ],
+)
+
+# Collection of all "public" modules for packaging.
+py_library(
+    name = "solutions_lib",
+    deps = [
+        ":behavior_tree",
+        ":blackboard_value",
+        ":cel",
+        ":deployments",
+        ":errors",
+        ":execution",
+        ":installed_assets",
+        ":kvstore",
+        ":motion_planning",
+        ":perception",
+        ":pose_estimation",
+        ":providers",
+        ":scene_object_import",
+        ":simulation",
+        ":worlds",
+        # Useful for building Python script nodes
+        "//intrinsic/skills/python:basic_compute_context",
     ],
 )
 
