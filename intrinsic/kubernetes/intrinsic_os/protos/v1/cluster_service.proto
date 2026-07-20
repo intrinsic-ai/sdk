@@ -1,0 +1,74 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.cluster.v1;
+
+import "google/api/annotations.proto";
+import "intrinsic/kubernetes/intrinsic_os/protos/v1/cluster.proto";
+import "intrinsic/kubernetes/intrinsic_os/protos/v1/shutdown.proto";
+
+option go_package = "intrinsic/kubernetes/intrinsic_os/protos/v1/cluster_service_go_proto";
+
+// ClusterService runs on IPCs and provides administrative functionality.
+//
+// It is accessible via the cluster ingress at
+// ```
+// istio-ingressgateway.app-ingress.svc.cluster.local:80
+// ```
+// or directly at the IP address of the IPC at port 2464.
+// It is available on IPCs running IntrinsicOS 20250814.RC01 or later.
+service ClusterService {
+  // GetCluster returns the cluster information.
+  rpc GetCluster(GetClusterRequest) returns (Cluster) {
+    option (google.api.http) = {
+      get: "/cluster/v1/cluster"
+    };
+  }
+
+  // Shutdown shuts down the cluster.
+  rpc Shutdown(ShutdownRequest) returns (ShutdownResponse) {
+    option (google.api.http) = {
+      post: "/cluster/v1/cluster:shutdown"
+      body: "*"
+    };
+  }
+
+  // Reboot reboots the cluster.
+  rpc Reboot(RebootRequest) returns (RebootResponse) {
+    option (google.api.http) = {
+      post: "/cluster/v1/cluster:reboot"
+      body: "*"
+    };
+  }
+
+  // GetUptime returns the uptime of the cluster.
+  rpc GetUptime(GetUptimeRequest) returns (Uptime) {
+    option (google.api.http) = {
+      get: "/cluster/v1/cluster/uptime"
+    };
+  }
+
+  // Reset resets the cluster.
+  rpc Reset(ResetRequest) returns (ResetResponse) {
+    option (google.api.http) = {
+      post: "/cluster/v1/cluster:reset"
+      body: "*"
+    };
+  }
+
+  rpc GetRemoteAccessSettings(GetRemoteAccessSettingsRequest)
+      returns (RemoteAccessSettings) {
+    option (google.api.http) = {
+      get: "/cluster/v1/cluster/remoteAccessSettings"
+    };
+  }
+
+  rpc UpdateRemoteAccessSettings(UpdateRemoteAccessSettingsRequest)
+      returns (UpdateRemoteAccessSettingsResponse) {
+    option (google.api.http) = {
+      post: "/cluster/v1/cluster/remoteAccessSettings"
+      body: "*"
+    };
+  }
+}
