@@ -6,6 +6,7 @@ package intrinsic_proto.cluster.v1;
 
 import "google/api/annotations.proto";
 import "intrinsic/kubernetes/intrinsic_os/protos/v1/cluster.proto";
+import "intrinsic/kubernetes/intrinsic_os/protos/v1/dns_leases.proto";
 import "intrinsic/kubernetes/intrinsic_os/protos/v1/shutdown.proto";
 
 option go_package = "intrinsic/kubernetes/intrinsic_os/protos/v1/cluster_service_go_proto";
@@ -69,6 +70,16 @@ service ClusterService {
     option (google.api.http) = {
       post: "/cluster/v1/cluster/remoteAccessSettings"
       body: "*"
+    };
+  }
+
+  rpc GetDNSLeases(GetDNSLeasesRequest) returns (GetDNSLeasesResponse) {
+    option (google.api.http) = {
+      post: "/cluster/v1/cluster/dns_leases"
+
+      additional_bindings {
+        get: "/cluster/v1/cluster/dns_leases/interface/{interface}"
+      }
     };
   }
 }

@@ -49,6 +49,7 @@ proto_library(
     ],
     deps = [
         ":cluster_proto",
+        ":dns_leases_proto",
         ":shutdown_proto",
         "@com_google_googleapis//google/api:annotations_proto",
     ],
@@ -65,6 +66,7 @@ go_proto_library(
     proto = ":cluster_service_proto",
     deps = [
         ":cluster_go_proto",
+        ":dns_leases_go_proto",
         ":shutdown_go_proto",
         "@org_golang_google_genproto_googleapis_api//annotations",
     ],
@@ -88,4 +90,17 @@ py_proto_library(
 py_proto_library(
     name = "shutdown_py_pb2",
     deps = [":shutdown_proto"],
+)
+
+proto_library(
+    name = "dns_leases_proto",
+    srcs = ["dns_leases.proto"],
+    deps = ["@com_google_googleapis//google/api:field_behavior_proto"],
+)
+
+go_proto_library(
+    name = "dns_leases_go_proto",
+    importpath = "intrinsic/kubernetes/intrinsic_os/protos/v1/dns_leases_go_proto",
+    proto = ":dns_leases_proto",
+    deps = ["@org_golang_google_genproto_googleapis_api//annotations"],
 )
