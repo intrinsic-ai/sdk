@@ -1,0 +1,13 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.data.test;
+
+import "intrinsic/assets/data/proto/v1/referenced_data.proto";
+
+option go_package = "intrinsic/tools/inbuild/cmd/data/test_data/custom_data_go_proto";
+
+message CustomDataPayload {
+  intrinsic_proto.data.v1.ReferencedData my_data = 1;
+}

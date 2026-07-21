@@ -10,6 +10,7 @@ go_library(
     importpath = "intrinsic/tools/inbuild/cmd/root",
     deps = [
         "//intrinsic/production:intrinsic",
+        "//intrinsic/tools/inbuild/cmd/data",
         "//intrinsic/tools/inbuild/cmd/httpjson",
         "//intrinsic/tools/inbuild/cmd/service",
         "//intrinsic/tools/inbuild/cmd/skill",

@@ -2,6 +2,7 @@
 
 """inbuild.bzl contains rules that invoke inbuild to build assets for Flowstate."""
 
+load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@com_google_protobuf//bazel/common:proto_info.bzl", "ProtoInfo")
 
 InbuildSkillManifestInfo = provider(
@@ -181,12 +182,12 @@ def _inbuild_skill_generate_entrypoint_cc_impl(ctx):
 
 inbuild_skill_generate_entrypoint_cc = rule(
     attrs = {
+        "cc_header": attr.string(
+            mandatory = True,
+        ),
         "manifest": attr.label(
             mandatory = True,
             providers = [InbuildSkillManifestInfo],
-        ),
-        "cc_header": attr.string(
-            mandatory = True,
         ),
         "_inbuild": attr.label(
             cfg = "exec",
@@ -241,8 +242,7 @@ def _inbuild_service_bundle_impl(ctx):
     args = ctx.actions.args()
     args.add("service").add("bundle")
     args.add("--manifest", ctx.file.manifest)
-    for fds in ctx.attr.proto[ProtoInfo].transitive_descriptor_sets.to_list():
-        args.add("--file_descriptor_set", fds.path)
+    args.add_all(ctx.attr.proto[ProtoInfo].transitive_descriptor_sets, before_each = "--file_descriptor_set")
     args.add("--oci_image", ctx.file.oci_image.path)
     args.add("--default_config", ctx.file.default_config)
     args.add("--output", output_file.path)
@@ -259,19 +259,19 @@ def _inbuild_service_bundle_impl(ctx):
 
 inbuild_service_bundle = rule(
     attrs = {
+        "default_config": attr.label(
+            allow_single_file = True,
+        ),
         "manifest": attr.label(
             allow_single_file = True,
             mandatory = True,
-        ),
-        "proto": attr.label(
-            providers = [ProtoInfo],
         ),
         "oci_image": attr.label(
             allow_single_file = True,
             mandatory = True,
         ),
-        "default_config": attr.label(
-            allow_single_file = True,
+        "proto": attr.label(
+            providers = [ProtoInfo],
         ),
         "_inbuild": attr.label(
             cfg = "exec",
@@ -282,4 +282,59 @@ inbuild_service_bundle = rule(
     },
     doc = "Generates the final service bundle",
     implementation = _inbuild_service_bundle_impl,
+)
+
+def _inbuild_data_bundle_impl(ctx):
+    output_file = ctx.actions.declare_file(ctx.label.name + ".bundle.tar")
+    args = ctx.actions.args()
+    args.add("data").add("bundle")
+    args.add("--manifest", ctx.file.manifest)
+
+    input_files = [ctx.file.manifest]
+    transitive_inputs = []
+
+    if ctx.attr.proto:
+        args.add_all(ctx.attr.proto[ProtoInfo].transitive_descriptor_sets, before_each = "--file_descriptor_set")
+        transitive_inputs.append(ctx.attr.proto[ProtoInfo].transitive_descriptor_sets)
+
+    if ctx.files.data:
+        for f in ctx.files.data:
+            rel_path = paths.relativize(f.short_path, paths.dirname(ctx.file.manifest.short_path))
+            args.add("--reference_to_path", rel_path + "=" + f.path)
+        input_files.extend(ctx.files.data)
+
+    args.add("--output", output_file.path)
+    ctx.actions.run(
+        arguments = [args],
+        executable = ctx.executable._inbuild,
+        inputs = depset(input_files, transitive = transitive_inputs),
+        outputs = [output_file],
+    )
+
+    return [
+        DefaultInfo(files = depset([output_file])),
+    ]
+
+inbuild_data_bundle = rule(
+    attrs = {
+        "data": attr.label_list(
+            allow_files = True,
+            doc = "Data files to map via reference_to_path.",
+        ),
+        "manifest": attr.label(
+            allow_single_file = True,
+            mandatory = True,
+        ),
+        "proto": attr.label(
+            providers = [ProtoInfo],
+        ),
+        "_inbuild": attr.label(
+            cfg = "exec",
+            default = Label("//intrinsic/tools/inbuild:inbuild"),
+            doc = "The inbuild executable.",
+            executable = True,
+        ),
+    },
+    doc = "Generates the Data Asset bundle using inbuild data bundle",
+    implementation = _inbuild_data_bundle_impl,
 )

@@ -1,0 +1,33 @@
+# Copyright 2023 Intrinsic Innovation LLC
+
+# proto-file: intrinsic/assets/data/proto/v1/data_manifest.proto
+# proto-message: DataManifest
+
+metadata {
+  id {
+    package: "ai.intrinsic"
+    name: "test_data_mapped"
+  }
+  display_name: "Test Data Mapped"
+  vendor {
+    display_name: "Intrinsic"
+  }
+}
+data {
+  [type.googleapis.com/intrinsic_proto.data.v1.ReferencedDataStruct] {
+    fields {
+      key: "item"
+      value {
+        string_value: "hello mapped"
+      }
+    }
+    fields {
+      key: "file_ref"
+      value {
+        referenced_data_value: {
+          reference: "mapped_data.json"
+        }
+      }
+    }
+  }
+}

@@ -20,7 +20,10 @@ go_library(
     name = "datagen",
     srcs = ["datagen.go"],
     importpath = "intrinsic/assets/data/build_defs/datagen",
-    visibility = ["//visibility:private"],
+    visibility = [
+        "//intrinsic/assets/data:__subpackages__",
+        "//intrinsic/tools/inbuild:__subpackages__",
+    ],
     deps = [
         "//intrinsic/assets:referenceddata",
         "//intrinsic/assets/data:databundle",
@@ -34,6 +37,7 @@ go_library(
         "//intrinsic/util/proto:protoio",
         "//intrinsic/util/proto:registryutil",
         "@org_golang_google_protobuf//reflect/protodesc:go_default_library",
+        "@org_golang_google_protobuf//types/descriptorpb:go_default_library",
         "@org_golang_google_protobuf//types/known/anypb",
     ],
 )
@@ -47,6 +51,7 @@ go_binary(
         ":datagen",
         "//intrinsic/production:intrinsic",
         "//intrinsic/util:flag",
+        "//intrinsic/util/proto:registryutil",
         "@com_github_golang_glog//:go_default_library",
     ],
 )

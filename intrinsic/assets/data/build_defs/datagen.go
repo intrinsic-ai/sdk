@@ -22,13 +22,14 @@ import (
 	mpb "intrinsic/assets/proto/metadata_go_proto"
 
 	"google.golang.org/protobuf/reflect/protodesc"
+	descriptorpb "google.golang.org/protobuf/types/descriptorpb"
 	anypb "google.golang.org/protobuf/types/known/anypb"
 )
 
 // CreateDataBundleOptions provides the data needed to create a Data Asset bundle.
 type CreateDataBundleOptions struct {
-	// ManifestPath is the path to a DataManifest .textproto file.
-	ManifestPath string
+	// Manifest is the DataManifest message for the bundle.
+	Manifest *dmpb.DataManifest
 	// ReferenceToPath is a map of file references as specified in a manifest to file paths
 	// relative to the current working directory. Data Asset manifests specify file references
 	// as paths relative to the manifest. However, the intrinsic_data Bazel rule invokes the
@@ -47,34 +48,27 @@ type CreateDataBundleOptions struct {
 	// Files excluded here are left out of the .tar bundle and are kept as external references in the
 	// payload along with digests to ensure the data are not modified after bundle creation.
 	ExternalReferencedFilePaths map[string]string
-	// FileDescriptorSetPaths is the paths to binary file descriptor set protos to be used to resolve
+	// FileDescriptorSet is the binary file descriptor set proto to be used to resolve
 	// the data payload message.
-	FileDescriptorSetPaths []string
+	FileDescriptorSet *descriptorpb.FileDescriptorSet
 	// OutputBundlePath is the output path for the tar bundle.
 	OutputBundlePath string
 }
 
 // CreateDataBundle creates a Data Asset bundle on disk.
 func CreateDataBundle(ctx context.Context, opts *CreateDataBundleOptions) error {
-	fds, err := registryutil.LoadFileDescriptorSets(opts.FileDescriptorSetPaths)
-	if err != nil {
-		return fmt.Errorf("failed to load FileDescriptorSets: %w", err)
+	if opts.Manifest == nil {
+		return fmt.Errorf("opts.Manifest is required")
+	}
+	if opts.FileDescriptorSet == nil {
+		return fmt.Errorf("opts.FileDescriptorSet is required")
 	}
 
-	files, err := protodesc.NewFiles(fds)
+	files, err := protodesc.NewFiles(opts.FileDescriptorSet)
 	if err != nil {
 		return fmt.Errorf("failed to populate registry: %w", err)
 	}
-	types, err := registryutil.NewTypesFromFileDescriptorSet(fds)
-	if err != nil {
-		return fmt.Errorf("failed to populate registry types: %w", err)
-	}
-
-	m := &dmpb.DataManifest{}
-	if err := protoio.ReadTextProto(opts.ManifestPath, m, protoio.WithResolver(types)); err != nil {
-		return fmt.Errorf("failed to read manifest: %w", err)
-	}
-	if err := datavalidate.DataManifest(ctx, m,
+	if err := datavalidate.DataManifest(ctx, opts.Manifest,
 		datavalidate.WithFiles(files),
 		datavalidate.WithAllowDataManifestRuntimeAssetID(),
 	); err != nil {
@@ -82,16 +76,16 @@ func CreateDataBundle(ctx context.Context, opts *CreateDataBundleOptions) error 
 	}
 
 	da := &dapb.DataAsset{
-		Data:              m.GetData(),
-		FileDescriptorSet: fds,
+		Data:              opts.Manifest.GetData(),
+		FileDescriptorSet: opts.FileDescriptorSet,
 		Metadata: &mpb.Metadata{
 			AssetType:   atypepb.AssetType_ASSET_TYPE_DATA,
-			DisplayName: m.GetMetadata().GetDisplayName(),
+			DisplayName: opts.Manifest.GetMetadata().GetDisplayName(),
 			IdVersion: &idpb.IdVersion{
-				Id: m.GetMetadata().GetId(),
+				Id: opts.Manifest.GetMetadata().GetId(),
 			},
-			Documentation: m.GetMetadata().GetDocumentation(),
-			Vendor:        m.GetMetadata().GetVendor(),
+			Documentation: opts.Manifest.GetMetadata().GetDocumentation(),
+			Vendor:        opts.Manifest.GetMetadata().GetVendor(),
 		},
 	}
 
@@ -122,4 +116,18 @@ func CreateDataBundle(ctx context.Context, opts *CreateDataBundleOptions) error 
 	}
 
 	return nil
+}
+
+// ReadDataAssetManifest reads a DataManifest textproto from disk and resolves its dynamic types
+// using the provided FileDescriptorSet.
+func ReadDataAssetManifest(manifestPath string, fds *descriptorpb.FileDescriptorSet) (*dmpb.DataManifest, error) {
+	types, err := registryutil.NewTypesFromFileDescriptorSet(fds)
+	if err != nil {
+		return nil, fmt.Errorf("failed to populate registry types: %w", err)
+	}
+	m := &dmpb.DataManifest{}
+	if err := protoio.ReadTextProto(manifestPath, m, protoio.WithResolver(types)); err != nil {
+		return nil, fmt.Errorf("failed to read manifest %q: %w", manifestPath, err)
+	}
+	return m, nil
 }

@@ -7,8 +7,9 @@ load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 load("//bazel:container.bzl", "container_image")
+load("//bazel:go_macros.bzl", "go_test")
 load("//bazel:python_oci_image.bzl", "python_oci_image")
-load("//intrinsic/tools/inbuild/integration_tests:inbuild.bzl", "inbuild_service_bundle", "inbuild_skill_bundle", "inbuild_skill_generate_config", "inbuild_skill_generate_entrypoint_cc", "inbuild_skill_generate_entrypoint_py", "inbuild_skill_manifest")
+load("//intrinsic/tools/inbuild/integration_tests:inbuild.bzl", "inbuild_data_bundle", "inbuild_service_bundle", "inbuild_skill_bundle", "inbuild_skill_generate_config", "inbuild_skill_generate_entrypoint_cc", "inbuild_skill_generate_entrypoint_py", "inbuild_skill_manifest")
 
 proto_library(
     name = "inbuild_skill_proto",
@@ -258,4 +259,33 @@ inbuild_service_bundle(
     oci_image = "inbuild_service_cc_image.tar",
     proto = ":inbuild_service_proto",
     visibility = ["//intrinsic:internal_api_users"],
+)
+
+###################
+# Data Asset
+###################
+
+inbuild_data_bundle(
+    name = "inbuild_data_mapped",
+    data = ["mapped_data.json"],
+    manifest = "inbuild_data_mapped.manifest.textproto",
+)
+
+go_test(
+    name = "inbuild_data_test",
+    srcs = ["inbuild_data_test.go"],
+    data = [
+        ":inbuild_data_mapped",
+    ],
+    importpath = "intrinsic/tools/inbuild/integration_tests/inbuild_data_test",
+    deps = [
+        "//intrinsic/assets:referenceddata",
+        "//intrinsic/assets/data:databundle",
+        "//intrinsic/assets/data:utils",
+        "//intrinsic/assets/data/proto/v1:referenced_data_go_proto",
+        "//intrinsic/assets/data/proto/v1:referenced_data_struct_go_proto",
+        "//intrinsic/util/testing:testio",
+        "@com_github_google_go_cmp//cmp:go_default_library",
+        "@org_golang_google_protobuf//testing/protocmp:go_default_library",
+    ],
 )

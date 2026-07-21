@@ -11,6 +11,7 @@ import (
 	"intrinsic/assets/data/build_defs/datagen"
 	"intrinsic/production/intrinsic"
 	intrinsicflag "intrinsic/util/flag"
+	"intrinsic/util/proto/registryutil"
 
 	log "github.com/golang/glog"
 )
@@ -45,12 +46,22 @@ func main() {
 		referenceToPathMap[parts[0]] = parts[1]
 	}
 
+	fds, err := registryutil.LoadFileDescriptorSets(*fileDescriptorSetPaths)
+	if err != nil {
+		log.Exitf("failed to load FileDescriptorSets: %v", err)
+	}
+
+	manifest, err := datagen.ReadDataAssetManifest(*manifestPath, fds)
+	if err != nil {
+		log.Exitf("failed to read DataManifest: %v", err)
+	}
+
 	ctx := context.Background()
 	if err := datagen.CreateDataBundle(ctx, &datagen.CreateDataBundleOptions{
-		ManifestPath:                *manifestPath,
+		Manifest:                    manifest,
 		ReferenceToPath:             referenceToPathMap,
 		ExternalReferencedFilePaths: externalReferencedFilePaths,
-		FileDescriptorSetPaths:      *fileDescriptorSetPaths,
+		FileDescriptorSet:           fds,
 		OutputBundlePath:            *outputBundlePath,
 	}); err != nil {
 		log.Exitf("failed to create Data Asset bundle: %v", err)
