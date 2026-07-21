@@ -432,10 +432,10 @@ message UpdateEntityPropertiesRequest {
   // component.
   intrinsic_proto.world.GeometryComponent geometry_component = 4;
 
-  // If set, updates the object's physics component to the given one. It is an
-  // error to set this if the associated entity does not already have a physics
-  // component.
-  intrinsic_proto.world.PhysicsComponent physics_component = 3;
+  // DEPRECATED. Physics properties should not be set at runtime. If they need
+  // to be changed, then they should be changed at the type level of the
+  // underlying asset.
+  intrinsic_proto.world.PhysicsComponent physics_component = 3 [deprecated = true];
 
 }
 
