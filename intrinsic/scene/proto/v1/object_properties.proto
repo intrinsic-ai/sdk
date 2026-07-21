@@ -15,6 +15,9 @@ message Kinematics {
   // Optional cartesian limits.
   optional CartesianLimits limits = 1;
 
+  // Optional IK solvers that should ideally be real-time safe.
+  repeated IkSolver ik_solvers = 2;
+
   // A set of named configurations for the robot. Can be used to specify
   // interesting robot configurations that may have some human meaning.
   // For example, "home" or "maintenance".

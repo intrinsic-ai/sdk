@@ -14,6 +14,7 @@ option go_package = "intrinsic/world/proto/kinematics_component_go_proto";
 message KinematicsComponent {
   // Pose of the inboard coordinate frame in the parent object's space.
   intrinsic_proto.Pose parent_t_inboard = 10;
+  intrinsic_proto.Pose outboard_t_child = 13;
 
   // Type of joint.
   enum MotionType {
@@ -36,4 +37,32 @@ message KinematicsComponent {
 
   // GetDof() and SetDof()-style functions operate on this value.
   optional double raw_value = 3;
+  // Next tag: 6
+  message Limits {
+    double velocity = 1;
+    double acceleration = 2;
+    double jerk = 3;
+    double effort = 5;
+
+    // A pair of lower and upper limits.
+    message LimitPair {
+      double lower = 1;
+      double upper = 2;
+    }
+
+    // Optional limits on raw_value. If none of these options are set, no limits
+    // are enforced on raw_value.
+    oneof raw_value_limits_type {
+      LimitPair fixed_limits = 4;
+
+      // In the future, we could have other types of value limits.
+    }
+  }
+
+  // System limits of this joint.
+  Limits system_limits = 5;
+
+  // Application limits of this joint.
+  Limits application_limits = 12;
+
 }
