@@ -47,7 +47,7 @@ class PythonScript(CodeExecution):
 
   def __init__(
       self,
-      signature_with_args: proto_building.SignatureWithArgs,
+      signature_with_args: proto_building.SignatureWithArgs | None = None,
       *,
       function_body: str,
       return_value_key: str | None = None,
@@ -89,9 +89,10 @@ class PythonScript(CodeExecution):
     ```
 
     Args:
-      signature_with_args: Signature and arguments for the script node. By
-        default, a unique copy of the given object will be created and used -
-        the given object itself will not be stored or modified.
+      signature_with_args: Signature and arguments for the script node. If not
+        set, an empty signature will be created (=no parameter and return value
+        message). By default, a unique copy of the given object will be created
+        and used - the given object itself will not be stored or modified.
       function_body: Function body of the Python code to execute. Can be passed
         with arbitrary indentation (as long at it is consistent for all lines).
       return_value_key: Optional blackboard key under which to store the return
@@ -101,6 +102,9 @@ class PythonScript(CodeExecution):
         will be created and used. If False (advanced), the signature will be
         used as is.
     """
+    if signature_with_args is None:
+      signature_with_args = proto_building.Signature().with_args()
+
     if create_unique_signature:
       self._signature_with_args = signature_with_args.unique_copy(
           _DEFAULT_SCRIPT_NODE_PROTO_FILE
@@ -109,6 +113,7 @@ class PythonScript(CodeExecution):
     else:
       self._signature_with_args = signature_with_args
       self._has_unique_signature = False
+
     if not function_body.strip():
       raise ValueError("function_body must not be empty")
     # Normalize indentation. The code execution service expects indented code.

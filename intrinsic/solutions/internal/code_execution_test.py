@@ -202,6 +202,21 @@ class PythonScriptTest(absltest.TestCase):
         """,
     )
 
+  def test_python_script_proto_no_signature(self):
+    script = code_execution.PythonScript(function_body="print('foo')")
+
+    proto = script.proto
+
+    compare.assertProto2Equal(
+        self,
+        proto,
+        """
+        python_code {
+            function_body: "  print('foo')"
+        }
+        """,
+    )
+
   def test_python_script_proto_auto_generated_return_value_key(self):
     sig_with_args = proto_building.Signature(
         parameter_message_full_name='',
