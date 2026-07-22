@@ -26,6 +26,7 @@ proto_library(
         "//intrinsic/icon/proto:streaming_output_proto",
         "//intrinsic/logging/proto:context_proto",
         "//intrinsic/world/proto:robot_payload_proto",
+        "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_googleapis//google/rpc:status_proto",
         "@com_google_protobuf//:any_proto",
         "@com_google_protobuf//:duration_proto",
@@ -43,6 +44,7 @@ go_proto_library(
     name = "service_go_proto",
     compilers = [
         "@io_bazel_rules_go//proto:go_grpc_v2",
+        "//bazel:go_gen_grpc_gateway",
         "@io_bazel_rules_go//proto:go_proto",
     ],
     importpath = "intrinsic/icon/proto/v1/service_go_proto",
@@ -56,6 +58,7 @@ go_proto_library(
         "//intrinsic/icon/proto/v1:types_go_proto",
         "//intrinsic/logging/proto:context_go_proto",
         "//intrinsic/world/proto:robot_payload_go_proto",
+        "@org_golang_google_genproto_googleapis_api//annotations",
         "@org_golang_google_genproto_googleapis_rpc//status",
         "@org_golang_google_protobuf//types/known/anypb",
         "@org_golang_google_protobuf//types/known/durationpb",
@@ -143,6 +146,7 @@ proto_library(
         "//intrinsic/icon/proto:cart_space_proto",
         "//intrinsic/kinematics/types:joint_limits_proto",
         "//intrinsic/world/proto:object_world_refs_proto",
+        "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_protobuf//:duration_proto",
     ],
 )
@@ -164,6 +168,7 @@ go_proto_library(
     name = "jogging_service_go_proto",
     compilers = [
         "@io_bazel_rules_go//proto:go_grpc_v2",
+        "//bazel:go_gen_grpc_gateway",
         "@io_bazel_rules_go//proto:go_proto",
     ],
     importpath = "intrinsic/icon/proto/v1/jogging_service_go_proto",
@@ -172,6 +177,7 @@ go_proto_library(
         "//intrinsic/icon/proto:cart_space_go_proto",
         "//intrinsic/kinematics/types:joint_limits_go_proto",
         "//intrinsic/world/proto:object_world_refs_go_proto",
+        "@org_golang_google_genproto_googleapis_api//annotations",
         "@org_golang_google_protobuf//types/known/durationpb",
     ],
 )

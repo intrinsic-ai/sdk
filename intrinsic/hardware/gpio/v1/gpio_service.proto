@@ -7,6 +7,7 @@ package intrinsic_proto.gpio.v1;
 import "google/protobuf/timestamp.proto";
 import "google/rpc/status.proto";
 import "intrinsic/hardware/gpio/v1/signal.proto";
+import "google/api/annotations.proto";
 
 option go_package = "intrinsic/hardware/gpio/v1/gpio_service_go_proto";
 
@@ -85,16 +86,32 @@ message OpenWriteSessionResponse {
 service GPIOService {
   // Returns metadata about the signals available on this server.
   rpc GetSignalDescriptions(GetSignalDescriptionsRequest)
-      returns (GetSignalDescriptionsResponse) {}
+      returns (GetSignalDescriptionsResponse) {
+    option (google.api.http) = {
+      get: "/v1/signals"
+    };
+  }
 
   // Returns the values of the requested signals.
-  rpc ReadSignals(ReadSignalsRequest) returns (ReadSignalsResponse) {}
+  rpc ReadSignals(ReadSignalsRequest) returns (ReadSignalsResponse) {
+    option (google.api.http) = {
+      // signal_names as repeated query parameter
+      get: "/v1/signals:read"
+    };
+  }
 
   // Blocks until the specified condition is met.
   // Set the gRPC deadline if you do not want the request to block for too long.
   // Implementations must monitor the server context for cancellation, and abort
   // immediately if cancelled.
-  rpc WaitForValue(WaitForValueRequest) returns (WaitForValueResponse) {}
+  rpc WaitForValue(WaitForValueRequest) returns (WaitForValueResponse) {
+    option (google.api.http) = {
+      // The parameters that decide what (combination of) value(s) to wait for
+      // are nested protos and go into the request body.
+      post: "/v1/signals:waitForSignalValues"
+      body: "*"
+    };
+  }
 
   // Starts a write session. The claimed signals will be exclusively available
   // for writing by this session for the duration of the stream.

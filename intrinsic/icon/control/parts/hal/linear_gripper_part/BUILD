@@ -20,7 +20,6 @@ go_proto_library(
     name = "hal_linear_gripper_part_config_go_proto",
     importpath = "intrinsic/icon/control/parts/hal/linear_gripper_part/hal_linear_gripper_part_config_go_proto",
     protos = [":hal_linear_gripper_part_config_proto"],
-    visibility = ["//visibility:private"],
     deps = [
         "//intrinsic/icon/control/parts/hal/v1:hal_part_config_go_proto",
     ],

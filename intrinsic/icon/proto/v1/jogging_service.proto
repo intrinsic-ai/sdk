@@ -8,6 +8,7 @@ import "google/protobuf/duration.proto";
 import "intrinsic/icon/proto/cart_space.proto";
 import "intrinsic/kinematics/types/joint_limits.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
+import "google/api/annotations.proto";
 
 option go_package = "intrinsic/icon/proto/v1/jogging_service_go_proto";
 
@@ -190,5 +191,10 @@ service JoggingService {
 
   // GetAvailableJoggingParts returns a list of available jogging parts and the
   // information about the part's capabilities.
-  rpc GetAvailableParts(AvailablePartsRequest) returns (AvailablePartsResponse);
+  rpc GetAvailableParts(AvailablePartsRequest)
+      returns (AvailablePartsResponse) {
+    option (google.api.http) = {
+      get: "/v1/availableParts"
+    };
+  }
 }

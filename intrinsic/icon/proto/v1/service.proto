@@ -26,6 +26,7 @@ import "intrinsic/icon/proto/streaming_output.proto";
 import "intrinsic/icon/proto/v1/types.proto";
 import "intrinsic/logging/proto/context.proto";
 import "intrinsic/world/proto/robot_payload.proto";
+import "google/api/annotations.proto";
 
 option go_package = "intrinsic/icon/proto/v1/service_go_proto";
 
@@ -59,18 +60,18 @@ message GetStatusRequest {}
 // GetStatus() response.
 message GetStatusResponse {
   message SessionStatus {
-    // The Parts claimed by this Session for write access. No other Session can
-    // claim any of the Parts in this group.
+    // The parts claimed by this session for write access. No other session can
+    // claim any of the parts in this group.
     PartGroup part_group = 1;
-    // A list of the actions in this Session. Note that this includes *all*
+    // A list of the actions in this session. Note that this includes *all*
     // actions that a user has added and not removed. In particular, the list is
     // not limited to the *running* actions.
     repeated int64 action_ids = 2;
   }
   // The current status (i.e. dynamic data, as opposed to the static data in
-  // `PartConfig`) for all Parts on this server.
+  // `PartConfig`) for all parts on this server.
   map<string, intrinsic_proto.icon.PartStatus> part_status = 1;
-  // Information about all currently active Sessions.
+  // Information about all currently active sessions.
   map<uint64, SessionStatus> sessions = 2;
   // The current speed override value, see SetSpeedOverride for more details.
   double current_speed_override = 3;
@@ -198,7 +199,7 @@ message OpenSessionRequest {
     // Examples of problems that can cause a failure:
     // * Any action_instance_id or reaction_instance_id in the
     //   ActionsAndReactions proto is already in use
-    // * Any Reaction refers to an action_instance_id that is not present in
+    // * Any reaction refers to an action_instance_id that is not present in
     //   either the existing action state machine or the ActionsAndReactions
     //   proto
     ActionsAndReactions add_actions_and_reactions = 5;
@@ -280,7 +281,7 @@ message WatchReactionsRequest {
 }
 
 message WatchReactionsResponse {
-  // The time when the Reaction occurred.
+  // The time when the reaction occurred.
   google.protobuf.Timestamp timestamp = 1;
 
   // The reaction that occurred. This is empty for the first message sent to the
@@ -378,7 +379,7 @@ message GetOperationalStatusResponse {
 }
 
 message GetLatestStreamingOutputRequest {
-  // The ID of the session that the Action we're querying belongs to.
+  // The ID of the session that the action we're querying belongs to.
   int64 session_id = 1;
   // The action whose streaming output we're interested in.
   uint64 action_id = 2;
@@ -389,7 +390,7 @@ message GetLatestStreamingOutputResponse {
 }
 
 message GetPlannedTrajectoryRequest {
-  // The ID of the session that the Action we're querying belongs to.
+  // The ID of the session that the action we're querying belongs to.
   int64 session_id = 1;
   // The action whose planned trajectory we're interested in.
   uint64 action_id = 2;
@@ -467,39 +468,71 @@ service IconApi {
   // Gets details of an action type by name. The response's `action_signature`
   // field is unset if the requested action type is not found.
   rpc GetActionSignatureByName(GetActionSignatureByNameRequest)
-      returns (GetActionSignatureByNameResponse);
+      returns (GetActionSignatureByNameResponse) {
+    option (google.api.http) = {
+      get: "/v1/actionTypes/{name}"
+    };
+  }
 
   // Gets server configuration, including part-specific configuration info for
   // all parts (e.g. a robot arm might report its number of DOFs).
-  rpc GetConfig(GetConfigRequest) returns (GetConfigResponse);
+  rpc GetConfig(GetConfigRequest) returns (GetConfigResponse) {
+    option (google.api.http) = {
+      get: "/v1/config"
+    };
+  }
 
-  // Gets a snapshot of the server's status, including part-specific status info
-  // for all parts. For instance, a robot arm might report its joint angles.
-  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
+  // Gets a snapshot of the server's status, including part-specific status
+  // info for all parts. For instance, a robot arm might report its joint
+  // angles.
+  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse) {
+    option (google.api.http) = {
+      get: "/v1/status"
+    };
+  }
 
   // Reports whether an action is compatible with a part or a group of parts.
   rpc IsActionCompatible(IsActionCompatibleRequest)
-      returns (IsActionCompatibleResponse);
+      returns (IsActionCompatibleResponse) {
+    option (google.api.http) = {
+      // part_name / slot_part_map go into the body
+      post: "/v1/actionTypes/{action_type_name}:isCompatible"
+      body: "*"
+    };
+  }
 
   // Lists details of all available action types.
   rpc ListActionSignatures(ListActionSignaturesRequest)
-      returns (ListActionSignaturesResponse);
+      returns (ListActionSignaturesResponse) {
+    option (google.api.http) = {
+      get: "/v1/actionTypes"
+    };
+  }
 
   // Lists all parts that are compatible with a list of action types. Each
   // returned part is compatible with all listed action types.
   // If the list of action types is empty, returns all parts.
   rpc ListCompatibleParts(ListCompatiblePartsRequest)
-      returns (ListCompatiblePartsResponse);
+      returns (ListCompatiblePartsResponse) {
+    option (google.api.http) = {
+      // provide action_type_names as one or more query parameters
+      get: "/v1/parts:listCompatible"
+    };
+  }
 
   // Lists all available parts.
-  rpc ListParts(ListPartsRequest) returns (ListPartsResponse);
+  rpc ListParts(ListPartsRequest) returns (ListPartsResponse) {
+    option (google.api.http) = {
+      get: "/v1/parts"
+    };
+  }
 
   // Starts an action session. This is the main entrypoint into the ICON APIs.
   // ICON allows users to interact with a realtime control system using a few
   // key abstractions:
   // * Parts: Each part is a collection of sensors and actuators that form a
-  //          logical unit. Each part offers a number of feature interfaces that
-  //          Actions can interact with.
+  //          logical unit. Each part offers a number of feature interfaces
+  //          that actions can interact with.
   //   Examples include:
   //   * A robot arm
   //   * A gripper
@@ -509,7 +542,7 @@ service IconApi {
   //   on a part. Actions can also
   //   * accept zero or more streaming inputs (see `OpenWriteStream`)
   //   * publish a single optional streaming output (see
-  //   `GetLatestStreamingOutput`)
+  //     `GetLatestStreamingOutput`)
   //   * report state variables, which can trigger reactions
   // * Reactions: Users can set up custom reactions that trigger based on the
   //   state variables of a running action. ICON evaluates reactions in hard
@@ -522,10 +555,11 @@ service IconApi {
   //   * Trigger a signal on the running action, so that it can change its
   //     behavior.
   //
-  // Each session can claim zero or more parts. A session without parts can not
-  // run actions, but can still register reactions based on part status. Parts
-  // claimed by one session are claimed until that session ends. Users can start
-  // multiple sessions, but only one session can claim each part at a time.
+  // Each session can claim zero or more parts. A session without parts can
+  // not run actions, but can still register reactions based on part status.
+  // Parts claimed by one session are claimed until that session ends. Users
+  // can start multiple sessions, but only one session can claim each part at
+  // a time.
   //
   // The parts that a session claims remain stopped until
   // * the user explicitly starts an action, or
@@ -541,8 +575,8 @@ service IconApi {
   // the same session.
   //
   // If an action session ends for any reason, including the client or server
-  // dropping the call, or a request to end the session, the server discards the
-  // session, including all actions and reactions. This stops all parts
+  // dropping the call, or a request to end the session, the server discards
+  // the session, including all actions and reactions. This stops all parts
   // associated with the session and activates their safety actions.
   //
   // Publishes an `OpenSessionResponse` when
@@ -555,9 +589,8 @@ service IconApi {
   //
   // Each write stream can send streaming input values to its action. Callers
   // can find information about the streaming inputs offered by an action by
-  // calling `ListActionSignatures()` and inspecting the signature of an action
-  // type.
-  // The signature's `streaming_input_infos` field includes:
+  // calling `ListActionSignatures()` and inspecting the signature of an
+  // action type. The signature's `streaming_input_infos` field includes:
   // * The name of the input.
   // * A description that explains how the action reacts to input values.
   // * The proto message type name of the input.
@@ -573,17 +606,21 @@ service IconApi {
   rpc OpenWriteStream(stream OpenWriteStreamRequest)
       returns (stream OpenWriteStreamResponse);
 
-  // Requests the latest streaming output value for a given action. Make sure to
-  // set the gRPC deadline if you do not want the request to block for too long!
+  // Requests the latest streaming output value for a given action. Make sure
+  // to set the gRPC deadline if you do not want the request to block for too
+  // long!
   //
   // Similar to streaming _inputs_ (see `OpenWriteStream()` above), callers
   // can find information about the streaming output (if any) offered by an
-  // action by calling `ListActionSignatures()` and inspecting the signature of
-  // an action type. The signature's `streaming_output_info` field includes:
+  // action by calling `ListActionSignatures()` and inspecting the signature
+  // of an action type. The signature's `streaming_output_info` field
+  // includes:
   // * The name of the output.
-  // * A description that explains when and how the action populates the output.
+  // * A description that explains when and how the action populates the
+  // output.
   // * The proto message type name of the output.
-  // * A FileDescriptorSet with detailed information about the output's message
+  // * A FileDescriptorSet with detailed information about the output's
+  // message
   //   type, including all sub-messages. If the client does not have the
   //   information about the proto in question itself, it can use this
   //   FileDescriptorSet for introspection, and determine the structure of the
@@ -593,21 +630,24 @@ service IconApi {
   // deadline expires), but returns an error immediately if the corresponding
   // action does not exist at all.
   rpc GetLatestStreamingOutput(GetLatestStreamingOutputRequest)
-      returns (GetLatestStreamingOutputResponse);
+      returns (GetLatestStreamingOutputResponse) {
+    option (google.api.http) = {
+      get: "/v1/sessions/{session_id}/actions/{action_id}/latestStreamingOutput"
+    };
+  }
 
-  // Requests the planned trajectory for a given Action.
-  // Returns a kFailedPrecondition if the requested Action/Session combination
-  // does not exist, and a kNotFound one if there's no trajectory for an Action
-  // existing in the given Session.
+  // Requests the planned trajectory for a given action.
+  // Returns a kFailedPrecondition if the requested action/Session combination
+  // does not exist, and a kNotFound one if there's no trajectory for an
+  // action existing in the given session.
   rpc GetPlannedTrajectory(GetPlannedTrajectoryRequest)
       returns (stream GetPlannedTrajectoryResponse);
 
   // Watches reactions that occur during a particular action session.
   //
-  // The server stops sending responses and ends the stream when the associated
-  // action session ends.
-  // One can only call `WatchReactions` while there is an active OpenSession
-  // stream with the same session ID.
+  // The server stops sending responses and ends the stream when the
+  // associated action session ends. One can only call `WatchReactions` while
+  // there is an active OpenSession stream with the same session ID.
   //
   // When the server finishes setting up the reaction watcher, it sends a
   // single, empty WatchReactionsResponse to indicate readiness.
@@ -621,16 +661,25 @@ service IconApi {
   // It is not necessary to call this on startup, because the server
   // automatically enables.
   // Typical use case is to re-enable after a manual call the Disable().
-  rpc Enable(EnableRequest) returns (EnableResponse) {}
+  rpc Enable(EnableRequest) returns (EnableResponse) {
+    option (google.api.http) = {
+      post: "/v1/operationalStatus:enable"
+    };
+  }
 
   // By default, disables all parts on the server and cancels all sessions
   // except read-only sessions. If `OPERATIONAL_HARDWARE_ONLY` is set, parts
   // that only use cell control hardware modules will keep their status
   // (typically staying enabled).
   //
-  // Remember to set up adequate safety systems and conduct all risk assessments
-  // before deploying to real hardware.
-  rpc Disable(DisableRequest) returns (DisableResponse) {}
+  // Remember to set up adequate safety systems and conduct all risk
+  // assessments before deploying to real hardware.
+  rpc Disable(DisableRequest) returns (DisableResponse) {
+    option (google.api.http) = {
+      post: "/v1/operationalStatus:disable"
+      body: "*"
+    };
+  }
 
   // Clears all faults. If successful, ICON automatically enables all parts
   // after this finishes.
@@ -638,70 +687,117 @@ service IconApi {
   // enabled. Returns `ResourceExhausted` when a fatal fault is being cleared,
   // which is not completed yet and involves a process restart. In this case,
   // the client should retry until receiving `OkStatus`.
-  rpc ClearFaults(ClearFaultsRequest) returns (ClearFaultsResponse);
+  rpc ClearFaults(ClearFaultsRequest) returns (ClearFaultsResponse) {
+    option (google.api.http) = {
+      post: "/v1/operationalStatus:clearFaults"
+    };
+  }
 
   // Returns the summarized status of the server.
   // It contains the `operational_status` of the all hardware
   // and the `cell_control_hardware_status` of cell control hardware.
   // Cell control hardware is marked with
   // `IconMainConfig.hardware_config.cell_control_hardware`. It is a group of
-  // hardware modules that does not inherit faults from operational hardware, so
-  // it is generally kept enabled (unless any cell control hardware module
+  // hardware modules that does not inherit faults from operational hardware,
+  // so it is generally kept enabled (unless any cell control hardware module
   // faults).
   rpc GetOperationalStatus(GetOperationalStatusRequest)
-      returns (GetOperationalStatusResponse);
+      returns (GetOperationalStatusResponse) {
+    option (google.api.http) = {
+      get: "/v1/operationalStatus"
+    };
+  }
 
   // Requests restarting the entire server.
   // Clears faults and enables as a side effect.
   // This should not be needed, use ClearFaults() instead.
-  rpc RestartServer(google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc RestartServer(google.protobuf.Empty) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/server:restart"
+    };
+  }
 
-  // Updates the speed override value. The speed override factor must be between
-  // 0 and 1. That is, no "fast-forward" or "rewind", but "pausing" with an
-  // override factor of 0 is possible.
+  // Updates the speed override value. The speed override factor must be
+  // between 0 and 1. That is, no "fast-forward" or "rewind", but "pausing"
+  // with an override factor of 0 is possible.
   //
-  // The speed override value acts as a multiplier to the "nominal" velocity of
-  // compatible actions. If an action is compatible, it will adjust its motion
-  // (even during execution) accordingly when the speed override changes. For
-  // example, setting a speed override value of 0.1 means that all compatible
-  // actions move at 10% of their original velocity.
+  // The speed override value acts as a multiplier to the "nominal" velocity
+  // of compatible actions. If an action is compatible, it will adjust its
+  // motion (even during execution) accordingly when the speed override
+  // changes. For example, setting a speed override value of 0.1 means that
+  // all compatible actions move at 10% of their original velocity.
   //
   // Note that actions may not apply the new value instantaneously. This is
   // because instantaneous changes in velocity would violate acceleration and
   // jerk limits. Instead, actions will adjust their velocity as quickly as
   // allowed within the robot's limits.
   rpc SetSpeedOverride(SetSpeedOverrideRequest)
-      returns (SetSpeedOverrideResponse);
+      returns (SetSpeedOverrideResponse) {
+    option (google.api.http) = {
+      patch: "/v1/speedOverride"
+      body: "*"
+    };
+  }
 
   // Returns the current speed override value.
   rpc GetSpeedOverride(GetSpeedOverrideRequest)
-      returns (GetSpeedOverrideResponse);
+      returns (GetSpeedOverrideResponse) {
+    option (google.api.http) = {
+      get: "/v1/speedOverride"
+    };
+  }
 
   // Configures the logging mode. The logging mode defines which robot-status
   // logs are logged to the cloud. ICON only logs to the cloud if a session is
   // active. Pubsub and local logging are not influenced by this setting.
-  rpc SetLoggingMode(SetLoggingModeRequest) returns (SetLoggingModeResponse);
+  rpc SetLoggingMode(SetLoggingModeRequest) returns (SetLoggingModeResponse) {
+    option (google.api.http) = {
+      patch: "/v1/loggingMode"
+      body: "*"
+    };
+  }
 
   // Returns the current logging mode.
-  rpc GetLoggingMode(GetLoggingModeRequest) returns (GetLoggingModeResponse);
+  rpc GetLoggingMode(GetLoggingModeRequest) returns (GetLoggingModeResponse) {
+    option (google.api.http) = {
+      get: "/v1/loggingMode"
+    };
+  }
 
   // Returns the current values of all part properties.
   // Note that all values are collected at the same point in time.
   rpc GetPartProperties(GetPartPropertiesRequest)
-      returns (GetPartPropertiesResponse);
+      returns (GetPartPropertiesResponse) {
+    option (google.api.http) = {
+      get: "/v1/parts/properties"
+    };
+  }
 
-  // Sets the part properties defined in the request. Use this to set parameters
-  // on parts.
-  // Guarantees that all values in the request are applied on the server at the
-  // same time.
+  // Sets the part properties defined in the request. Use this to set
+  // parameters on parts. Guarantees that all values in the request are
+  // applied on the server at the same time.
   rpc SetPartProperties(SetPartPropertiesRequest)
-      returns (SetPartPropertiesResponse);
+      returns (SetPartPropertiesResponse) {
+    option (google.api.http) = {
+      patch: "/v1/parts/properties"
+      body: "*"
+    };
+  }
 
   // Sets a payload on a part. Fails if the part does not exist or the payload
   // contains invalid values.
-  rpc SetPayload(SetPayloadRequest) returns (SetPayloadResponse);
+  rpc SetPayload(SetPayloadRequest) returns (SetPayloadResponse) {
+    option (google.api.http) = {
+      patch: "/v1/parts/{part_name}/payloads/{payload_name}"
+      body: "*"
+    };
+  }
 
   // Gets a payload stored in a part. Fails if the part does not exist or the
   // requested payload does not exist.
-  rpc GetPayload(GetPayloadRequest) returns (GetPayloadResponse);
+  rpc GetPayload(GetPayloadRequest) returns (GetPayloadResponse) {
+    option (google.api.http) = {
+      get: "/v1/parts/{part_name}/payloads/{payload_name}"
+    };
+  }
 }

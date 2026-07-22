@@ -2,6 +2,7 @@
 
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
+load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = [
     "//visibility:public",
@@ -16,4 +17,15 @@ proto_library(
 cc_proto_library(
     name = "hal_laser_tracker_part_config_cc_proto",
     deps = [":hal_laser_tracker_part_config_proto"],
+)
+
+go_proto_library(
+    name = "hal_laser_tracker_part_config_go_proto",
+    importpath = "intrinsic/icon/control/parts/hal/laser_tracker_part/hal_laser_tracker_part_config_go_proto",
+    protos = [
+        ":hal_laser_tracker_part_config_proto",
+    ],
+    deps = [
+        "//intrinsic/icon/control/parts/hal/v1:hal_part_config_go_proto",
+    ],
 )

@@ -38,6 +38,7 @@ proto_library(
     srcs = ["gpio_service.proto"],
     deps = [
         ":signal_proto",
+        "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_googleapis//google/rpc:status_proto",
         "@com_google_protobuf//:timestamp_proto",
     ],
@@ -53,11 +54,13 @@ go_proto_library(
     compilers = [
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
+        "//bazel:go_gen_grpc_gateway",
     ],
     importpath = "intrinsic/hardware/gpio/v1/gpio_service_go_proto",
     protos = [":gpio_service_proto"],
     deps = [
         "//intrinsic/hardware/gpio/v1:signal_go_proto",
+        "@org_golang_google_genproto_googleapis_api//annotations",
         "@org_golang_google_genproto_googleapis_rpc//status",
     ],
 )

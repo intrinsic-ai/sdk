@@ -95,6 +95,13 @@ go_proto_library(
     importpath = "intrinsic/icon/server/config/realtime_control_config_go_proto",
     protos = [":realtime_control_config_proto"],
     deps = [
+        "//intrinsic/icon/control/parts/hal/adio_part:hal_adio_part_config_go_proto",  # buildcleaner: keep
+        "//intrinsic/icon/control/parts/hal/arm_part:hal_arm_part_config_go_proto",  # buildcleaner: keep
+        "//intrinsic/icon/control/parts/hal/force_torque_sensor_part:hal_force_torque_sensor_part_config_go_proto",  # buildcleaner: keep
+        "//intrinsic/icon/control/parts/hal/imu_part:hal_imu_part_config_go_proto",  # buildcleaner: keep
+        "//intrinsic/icon/control/parts/hal/laser_tracker_part:hal_laser_tracker_part_config_go_proto",  # buildcleaner: keep
+        "//intrinsic/icon/control/parts/hal/linear_gripper_part:hal_linear_gripper_part_config_go_proto",  # buildcleaner: keep
+        "//intrinsic/icon/control/parts/hal/rangefinder_part:hal_rangefinder_part_config_go_proto",  # buildcleaner: keep
         "//intrinsic/icon/control/parts/hal/v1:hal_part_config_go_proto",
         "//intrinsic/icon/control/parts/proto/v1:realtime_part_config_go_proto",
         "//intrinsic/icon/hal/lib/fieldbus/v1:value_parsing_go_proto",
