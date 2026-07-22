@@ -183,6 +183,12 @@ message OpcuaEquipmentGpioConfig {
         requires: "grpc://intrinsic_proto.world.ObjectWorldService"
       }];
 
+  // Dependency on Gazebo simulator asset for simulation functionality.
+  intrinsic_proto.assets.v1.ResolvedDependency gazebo_simulator = 4
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "grpc://intrinsic_proto.simulation.v1.GazeboService",
+      }];
+
   GpioServiceConfig gpio_config = 1;
   OpcuaEquipmentConfig opcua_equipment_config = 2;
 }
