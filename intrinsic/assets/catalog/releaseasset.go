@@ -160,15 +160,17 @@ func FromBundle(ctx context.Context, path string, options ...FromBundleOption) e
 		return fmt.Errorf("version must not be empty")
 	}
 
+	rdProcessor := referenceddata.NewProcessor(
+		opts.aaClient,
+		opts.lroClient,
+		referenceddata.WithDryRun(opts.dryRun),
+		referenceddata.WithFallbackCatalogClient(opts.acClient),
+		referenceddata.WithProgressWriter(opts.progressWriter),
+	)
+
 	processor := bundle.Processor{
-		ImageProcessor: bundleimages.CreateImageProcessor(opts.imageTransferer),
-		ReferencedDataProcessor: referenceddata.NewProcessor(
-			opts.aaClient,
-			opts.lroClient,
-			referenceddata.WithDryRun(opts.dryRun),
-			referenceddata.WithFallbackCatalogClient(opts.acClient),
-			referenceddata.WithProgressWriter(opts.progressWriter),
-		),
+		ImageProcessor:          bundleimages.CreateImageProcessor(opts.imageTransferer),
+		ReferencedDataProcessor: rdProcessor,
 	}
 
 	processedBundle, err := processor.ProcessFile(ctx, path)

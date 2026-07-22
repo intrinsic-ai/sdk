@@ -108,13 +108,14 @@ func GetCommand() *cobra.Command {
 			client := iagrpcpb.NewInstalledAssetsClient(conn)
 			authCtx := clientutils.AuthInsecureConn(ctx, address, flags.GetFlagProject())
 
+			rdProcessor := referenceddata.NewProcessor(
+				assetartifactspb.NewAssetArtifactsClient(conn),
+				lropb.NewOperationsClient(conn),
+				referenceddata.WithProgressWriter(cmd.OutOrStdout()),
+			)
 			processor := &bundle.Processor{
-				ImageProcessor: bundleimages.CreateImageProcessor(transfer),
-				ReferencedDataProcessor: referenceddata.NewProcessor(
-					assetartifactspb.NewAssetArtifactsClient(conn),
-					lropb.NewOperationsClient(conn),
-					referenceddata.WithProgressWriter(cmd.OutOrStdout()),
-				),
+				ImageProcessor:          bundleimages.CreateImageProcessor(transfer),
+				ReferencedDataProcessor: rdProcessor,
 			}
 
 			asset, err := assetFromTarget(authCtx, target, processor.ProcessFile)
