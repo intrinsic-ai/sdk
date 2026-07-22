@@ -27,6 +27,7 @@
 #include "intrinsic/util/status/status_conversion_grpc.h"
 #include "intrinsic/util/status/status_macros.h"
 #include "intrinsic/util/time/clock.h"
+#include "intrinsic/util/time/deadline_timeout.h"
 #include "src/proto/grpc/health/v1/health.grpc.pb.h"
 #include "src/proto/grpc/health/v1/health.pb.h"
 
@@ -36,6 +37,12 @@ namespace {
 
 using ::grpc::health::v1::HealthCheckRequest;
 using ::grpc::health::v1::HealthCheckResponse;
+
+// Default timeout when invoking CheckChannelHealth.
+constexpr absl::Duration kCheckChannelHealthTimeout = absl::Seconds(1);
+// Pause duration when retrying after a failed CheckChannelHealth call.
+constexpr absl::Duration kCheckChannelHealthRetryPause =
+    absl::Milliseconds(200);
 
 // Returns OK if the server responds to a noop RPC. This ensures that the
 // channel can be used for other RPCs.
@@ -79,37 +86,68 @@ absl::Status CheckChannelHealth(
   return absl::OkStatus();
 }
 
+absl::string_view ConnectivityStateToString(grpc_connectivity_state state) {
+  switch (state) {
+    case GRPC_CHANNEL_READY:
+      return "GRPC_CHANNEL_READY";
+    case GRPC_CHANNEL_IDLE:
+      return "GRPC_CHANNEL_IDLE";
+    case GRPC_CHANNEL_CONNECTING:
+      return "GRPC_CHANNEL_CONNECTING";
+    case GRPC_CHANNEL_TRANSIENT_FAILURE:
+      return "GRPC_CHANNEL_TRANSIENT_FAILURE";
+    case GRPC_CHANNEL_SHUTDOWN:
+      return "GRPC_CHANNEL_SHUTDOWN";
+  }
+  return "UNKNOWN";
+}
+
 }  // namespace
 
 absl::Status WaitForChannelConnected(absl::string_view address,
                                      std::shared_ptr<::grpc::Channel> channel,
                                      absl::Time deadline) {
-  if (channel->GetState(true) == GRPC_CHANNEL_READY) {
+  if (channel->GetState(/*try_to_connect=*/true) == GRPC_CHANNEL_READY) {
     return absl::OkStatus();
-  } else {
-    channel->WaitForConnected(absl::ToChronoTime(deadline));
-    grpc_connectivity_state channel_state = channel->GetState(false);
-    std::string channel_state_string;
-    switch (channel_state) {
-      case GRPC_CHANNEL_READY:
-        return absl::OkStatus();
-      case GRPC_CHANNEL_IDLE:
-        channel_state_string = "GRPC_CHANNEL_IDLE";
-        break;
-      case GRPC_CHANNEL_CONNECTING:
-        channel_state_string = "GRPC_CHANNEL_CONNECTING";
-        break;
-      case GRPC_CHANNEL_TRANSIENT_FAILURE:
-        channel_state_string = "GRPC_CHANNEL_TRANSIENT_FAILURE";
-        break;
-      case GRPC_CHANNEL_SHUTDOWN:
-        channel_state_string = "GRPC_CHANNEL_SHUTDOWN";
-        break;
-    }
-    return absl::UnavailableError(absl::StrCat("gRPC channel to ", address,
-                                               " is unavailable.  State is ",
-                                               channel_state_string));
   }
+  channel->WaitForConnected(absl::ToChronoTime(deadline));
+  grpc_connectivity_state channel_state =
+      channel->GetState(/*try_to_connect=*/false);
+  if (channel_state == GRPC_CHANNEL_READY) {
+    return absl::OkStatus();
+  }
+  return absl::UnavailableError(
+      absl::StrCat("gRPC channel to ", address, " is unavailable.  State is ",
+                   ConnectivityStateToString(channel_state)));
+}
+
+absl::Status WaitForChannelReady(std::shared_ptr<::grpc::Channel> channel,
+                                 absl::Duration timeout) {
+  const absl::Time deadline = intrinsic::ToDeadline(timeout);
+  while (absl::Now() < deadline) {
+    if (channel->GetState(/*try_to_connect=*/true) != GRPC_CHANNEL_READY) {
+      channel->WaitForConnected(absl::ToChronoTime(deadline));
+    }
+    grpc_connectivity_state state = channel->GetState(/*try_to_connect=*/false);
+    if (state != GRPC_CHANNEL_READY) {
+      LOG(WARNING) << "Channel not ready: state is "
+                   << ConnectivityStateToString(state);
+      continue;
+    }
+    absl::Status status =
+        CheckChannelHealth(channel, kCheckChannelHealthTimeout,
+                           /*server_instance_name=*/std::nullopt);
+    if (status.ok()) {
+      return absl::OkStatus();
+    }
+    LOG(ERROR) << "Unhealthy channel: " << status;
+    // Sleep to prevent busy-looping if CheckChannelHealth returns immediately.
+    absl::SleepFor(kCheckChannelHealthRetryPause);
+  }
+
+  return absl::UnavailableError(
+      "gRPC channel is unavailable. Deadline exceeded waiting for gRPC channel "
+      "to be ready.");
 }
 
 ::grpc::ChannelArguments DefaultGrpcChannelArgs() {
@@ -246,10 +284,13 @@ absl::StatusOr<std::shared_ptr<grpc::Channel>> GrpcChannel::Connect() {
     // For some reason, WaitForChannelConnected can return "ok" even when the
     // server is not yet running. When checking for this case, use a short
     // timeout to allow time to retry after.
-    status = CheckChannelHealth(channel, /*timeout=*/absl::Seconds(1),
+    status = CheckChannelHealth(channel, kCheckChannelHealthTimeout,
                                 check_channel_health_->server_instance_name);
     if (!status.ok()) {
       LOG(ERROR) << "Unhealthy channel for " << address_ << ": " << status;
+      // Sleep to prevent busy-looping if CheckChannelHealth returns
+      // immediately.
+      absl::SleepFor(kCheckChannelHealthRetryPause);
       continue;
     }
 

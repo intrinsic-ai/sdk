@@ -14,6 +14,7 @@ cc_library(
         "//intrinsic/util/status:status_conversion_grpc",
         "//intrinsic/util/status:status_macros",
         "//intrinsic/util/time:clock",
+        "//intrinsic/util/time:deadline_timeout",
         "@abseil-cpp//absl/log",
         "@abseil-cpp//absl/log:die_if_null",
         "@abseil-cpp//absl/status",

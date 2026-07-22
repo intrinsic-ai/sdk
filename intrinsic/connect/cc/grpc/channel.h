@@ -28,6 +28,16 @@ absl::Status WaitForChannelConnected(absl::string_view address,
                                      std::shared_ptr<::grpc::Channel> channel,
                                      absl::Time deadline = absl::Now());
 
+// Waits for a newly created gRPC channel to be connected and ready.
+//
+// Performs a health check by pinging the gRPC service. Use for platform
+// services behind an Ingress without header-matching constraints, or for
+// channels created via ::intrinsic::assets::dependencies::Connect which
+// automatically inject headers into every request.
+absl::Status WaitForChannelReady(
+    std::shared_ptr<::grpc::Channel> channel,
+    absl::Duration timeout = kGrpcClientConnectDefaultTimeout);
+
 // Get recommended default gRPC channel arguments.
 ::grpc::ChannelArguments DefaultGrpcChannelArgs();
 
