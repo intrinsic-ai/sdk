@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"intrinsic/assets/cmdutils"
 	"intrinsic/kubernetes/vmpool/service/pkg/defaults"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/cobrautil"
+	"intrinsic/tools/inctl/util/orgutil"
 
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
@@ -23,10 +23,9 @@ import (
 )
 
 var (
-	viperLocal   = viper.New()
-	poolCmdFlags = cmdutils.NewCmdFlagsWithViper(viperLocal)
+	viperLocal = viper.New()
 	// PoolCmd is the parent command for all VM pool commands.
-	PoolCmd = cobrautil.ParentOfNestedSubcommands("pool", "Create and manage pools of virtual machines")
+	PoolCmd = orgutil.WrapCmd(cobrautil.ParentOfNestedSubcommands("pool", "Create and manage pools of virtual machines"), viperLocal)
 )
 
 const (
@@ -50,9 +49,6 @@ var (
 )
 
 func init() {
-	poolCmdFlags.SetCommand(PoolCmd)
-	poolCmdFlags.AddFlagsProjectOrg()
-
 	vmpoolsCreateCmd.Flags().StringVar(&flagPool, "pool", "", poolFlagDesc)
 	vmpoolsCreateCmd.MarkFlagRequired("pool")
 	vmpoolsCreateCmd.Flags().StringVar(&flagRuntime, "runtime", "", runtimeFlagDesc)
@@ -101,8 +97,8 @@ func newConn(ctx context.Context) (*grpc.ClientConn, error) {
 	// warn that those projects most probably have no VM pool
 	noPools := []string{"intrinsic-portal", "intrinsic-assets", "intrinsic-accounts"}
 	for _, p := range noPools {
-		if strings.HasPrefix(poolCmdFlags.GetFlagProject(), p) {
-			fmt.Fprintf(os.Stderr, "Warning: Project %q has most probably no VM pool. You probably meant to target a compute/backend project like intrinsic-prod-us instead.", poolCmdFlags.GetFlagProject())
+		if strings.HasPrefix(viperLocal.GetString(orgutil.KeyProject), p) {
+			fmt.Fprintf(os.Stderr, "Warning: Project %q has most probably no VM pool. You probably meant to target a compute/backend project like intrinsic-prod-us instead.", viperLocal.GetString(orgutil.KeyProject))
 		}
 	}
 	return auth.NewCloudConnection(ctx, auth.WithFlagValues(viperLocal))
