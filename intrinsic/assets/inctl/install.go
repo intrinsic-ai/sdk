@@ -114,7 +114,7 @@ func GetCommand() *cobra.Command {
 				referenceddata.WithProgressWriter(cmd.OutOrStdout()),
 			)
 			processor := &bundle.Processor{
-				ImageProcessor:          bundleimages.CreateImageProcessor(transfer),
+				ImageProcessor: bundleimages.CreateImageProcessor(transfer),
 				ReferencedDataProcessor: rdProcessor,
 			}
 
