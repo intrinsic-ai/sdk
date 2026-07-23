@@ -52,8 +52,8 @@ const (
 	// keyPolicy defines the flag used to specify the policy option when
 	// interacting with the installed asset service.
 	keyPolicy = "policy"
-	// KeyProject is used as central flag name for passing a project name to inctl.
-	KeyProject = orgutil.KeyProject
+	// keyProject is used as central flag name for passing a project name to inctl.
+	keyProject = orgutil.KeyProject
 	// KeyProvides is the name of the provided interfaces flag.
 	KeyProvides = "provides"
 	// keyRegistry is the name of the registry flag.
@@ -280,27 +280,29 @@ func (cf *CmdFlags) GetFlagOrganization() string {
 func (cf *CmdFlags) AddFlagsProjectOrg(opts ...orgutil.WrapCmdOption) {
 	// While WrapCmd returns the pointer to make it inline, it's modifying, so we can use it here.
 	orgutil.WrapCmd(cf.cmd, cf.viperLocal, opts...)
+	cf.MarkHidden(orgutil.KeyProject)
 }
 
 // AddFlagsProjectOrgOptional adds both the project and org flag as optional, including the necessary handling.
 func (cf *CmdFlags) AddFlagsProjectOrgOptional(opts ...orgutil.WrapCmdOption) {
 	// While WrapCmd returns the pointer to make it inline, it's modifying, so we can use it here.
 	orgutil.WrapCmdOptional(cf.cmd, cf.viperLocal, opts...)
+	cf.MarkHidden(orgutil.KeyProject)
 }
 
 // AddFlagProject adds a flag for the GCP project.
 func (cf *CmdFlags) AddFlagProject() {
-	cf.requiredEnvString(KeyProject, "", "The Google Cloud Project (GCP) project to use.")
+	cf.requiredEnvString(keyProject, "", "The Google Cloud Project (GCP) project to use.")
 }
 
 // AddFlagCatalogProjectOptional adds an optional flag for the GCP project to use for the catalog.
 func (cf *CmdFlags) AddFlagCatalogProjectOptional() {
-	cf.optionalEnvString(KeyProject, "", "The Google Cloud Project (GCP) project to use for the catalog.")
+	cf.optionalEnvString(keyProject, "", "The Google Cloud Project (GCP) project to use for the catalog.")
 }
 
 // GetFlagProject gets the value of the project flag added by AddFlagProject.
 func (cf *CmdFlags) GetFlagProject() string {
-	return cf.GetString(KeyProject)
+	return cf.GetString(keyProject)
 }
 
 // AddFlagProvides adds a flag for specifying provided interfaces.

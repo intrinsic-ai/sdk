@@ -122,7 +122,7 @@ func runLogsCmd(cmd *cobra.Command, args []string) error {
 				follow:        cmdFlags.GetBool(keyFollow),
 				timestamps:    cmdFlags.GetBool(keyTimestamps),
 				tailLines:     cmdFlags.GetInt(keyTailLines),
-				projectName:   cmdFlags.GetString(cmdutils.KeyProject),
+				projectName:   cmdFlags.GetFlagProject(),
 				context:       cmdFlags.GetString(keyContext),
 				solution:      cmdFlags.GetString(keySolution),
 				org:           cmdFlags.GetFlagOrganization(),
@@ -217,5 +217,5 @@ func init() {
 		showLogs.PrintErrln("Internal error: ", err)
 	}
 
-	cmdFlags.MarkHidden(keyContext, cmdutils.KeyProject, keyTypeAsset)
+	cmdFlags.MarkHidden(keyContext, keyTypeAsset)
 }

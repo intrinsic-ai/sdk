@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"intrinsic/assets/cmdutils"
 	"intrinsic/tools/inctl/auth/auth"
 
 	"github.com/pkg/errors"
@@ -44,7 +43,7 @@ var (
 )
 
 func newConn(ctx context.Context) (*grpc.ClientConn, error) {
-	project := cmdFlags.GetString(cmdutils.KeyProject)
+	project := cmdFlags.GetFlagProject()
 	addr := "www.endpoints." + project + ".cloud.goog:443"
 
 	cfg, err := auth.NewStore().GetConfiguration(project)
