@@ -246,7 +246,6 @@ message CheckCollisionsResponse {
   // be more collisions.
   string collision_debug_msg = 2;
 }
-
 // The Motion Planner Service provides motion planning and related operations,
 // such as kinematics and collision checking. It is used by skills such as
 // `Move Robot` and is available by thid party skills and services.
@@ -284,9 +283,7 @@ service MotionPlannerService {
   // Collision-checks a specified path.
   rpc CheckCollisions(CheckCollisionsRequest)
       returns (CheckCollisionsResponse) {}
-
   // PlanTrajectory uses caching to speed up repeated similar planning calls.
   // Clear cache for PlanTrajectory.
   rpc ClearCache(google.protobuf.Empty) returns (google.protobuf.Empty) {}
-
 }
