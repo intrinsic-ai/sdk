@@ -27,9 +27,12 @@
 #include "absl/strings/str_join.h"
 #include "absl/strings/string_view.h"
 #include "grpc/grpc.h"
+#include "grpcpp/client_context.h"
 #include "grpcpp/security/server_credentials.h"
 #include "grpcpp/server.h"
 #include "grpcpp/server_builder.h"
+#include "intrinsic/assets/dependencies/utils.h"
+#include "intrinsic/connect/cc/grpc/channel.h"
 #include "intrinsic/icon/hal/hardware_module_health_service.h"
 #include "intrinsic/icon/hal/hardware_module_runtime.h"
 #include "intrinsic/icon/hal/hardware_module_util.h"
@@ -40,6 +43,8 @@
 #include "intrinsic/icon/utils/clock.h"
 #include "intrinsic/icon/utils/duration.h"
 #include "intrinsic/icon/utils/shutdown_signals.h"
+#include "intrinsic/logging/data_logger_client.h"
+#include "intrinsic/logging/proto/logger_service.grpc.pb.h"
 #include "intrinsic/resources/proto/runtime_context.pb.h"
 #include "intrinsic/util/proto/any.h"
 #include "intrinsic/util/proto/get_text_proto.h"
@@ -48,6 +53,29 @@
 #include "intrinsic/util/thread/util.h"
 
 namespace intrinsic::icon {
+
+absl::Status InitDataLogger(
+    const intrinsic_proto::icon::HardwareModuleConfig& module_config,
+    absl::Duration connection_timeout) {
+  if (connection_timeout <= absl::ZeroDuration()) {
+    return absl::InvalidArgumentError(
+        "data logger connection timeout must be greater than zero");
+  }
+  INTR_ASSIGN_OR_RETURN(
+      auto channel,
+      intrinsic::assets::dependencies::Connect(
+          module_config.intrinsic_runtime(),
+          "grpc://intrinsic_proto.data_logger.DataLogger",
+          connect::UnlimitedMessageSizeGrpcChannelArgs()));
+
+  INTR_RETURN_IF_ERROR(
+      intrinsic::connect::WaitForChannelReady(channel, connection_timeout));
+
+  auto data_logger_stub =
+      intrinsic_proto::data_logger::DataLogger::NewStub(std::move(channel));
+  return intrinsic::data_logger::StartUpIntrinsicLoggerViaStub(
+      std::move(data_logger_stub));
+}
 
 namespace {
 

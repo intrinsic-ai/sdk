@@ -41,7 +41,6 @@ def hardware_module_binary(
             Label("//intrinsic/icon/release/portable:init_intrinsic"),
             Label("//intrinsic/icon/release:file_helpers"),
             Label("//intrinsic/icon/utils:shutdown_signals"),
-            Label("//intrinsic/logging:data_logger_client"),
             Label("//intrinsic/resources/proto:resource_registry_cc_proto"),
             Label("//intrinsic/resources/proto:runtime_context_cc_proto"),
             Label("//intrinsic/util/proto:any"),

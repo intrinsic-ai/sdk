@@ -11,7 +11,9 @@
 #include "absl/container/flat_hash_set.h"
 #include "absl/log/check.h"
 #include "absl/log/log.h"
+#include "absl/status/status.h"
 #include "absl/strings/string_view.h"
+#include "absl/time/time.h"
 #include "google/protobuf/any.pb.h"
 #include "intrinsic/icon/hal/hardware_module_runtime.h"
 #include "intrinsic/icon/hal/hardware_module_util.h"
@@ -34,6 +36,12 @@ struct HardwareModuleMainConfig {
   // HWM realtime threads.
   bool use_realtime_scheduling;
 };
+
+// Initializes the Intrinsic Data Logger singleton using the runtime asset
+// configured in module_config.
+absl::Status InitDataLogger(
+    const intrinsic_proto::icon::HardwareModuleConfig& module_config,
+    absl::Duration connection_timeout);
 
 // Loads in and updates the HardwareModuleConfig from disk.  This is expected to
 // be in the resource's configuration, unless --module_config_file is specified,

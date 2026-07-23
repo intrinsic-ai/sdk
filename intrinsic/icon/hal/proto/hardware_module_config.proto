@@ -5,12 +5,19 @@ syntax = "proto3";
 package intrinsic_proto.icon;
 
 import "google/protobuf/any.proto";
+import "intrinsic/assets/proto/field_metadata.proto";
+import "intrinsic/assets/proto/v1/resolved_dependency.proto";
 import "intrinsic/icon/hardware_modules/sim_bus/sim_bus_hardware_module.proto";
 
 option go_package = "intrinsic/icon/hal/hardware_module_config_go_proto";
 
-// Next ID: 11
+// Next ID: 12
 message HardwareModuleConfig {
+  // The resolved dependency for the Intrinsic runtime.
+  intrinsic_proto.assets.v1.ResolvedDependency intrinsic_runtime = 11
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "grpc://intrinsic_proto.data_logger.DataLogger"
+      }];
   // The name will be automatically deduced from the resource context and set to
   // the resource instance name. It should not be set manually.
   // If set, this name has to be unique across all hardware module instances

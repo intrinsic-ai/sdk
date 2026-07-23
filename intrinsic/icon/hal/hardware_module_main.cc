@@ -33,7 +33,6 @@
 #include "intrinsic/icon/interprocess/shared_memory_manager/shared_memory_manager.h"
 #include "intrinsic/icon/release/portable/init_intrinsic.h"
 #include "intrinsic/icon/utils/shutdown_signals.h"
-#include "intrinsic/logging/data_logger_client.h"
 #include "intrinsic/util/memory_lock.h"
 #include "intrinsic/util/status/status_macros.h"
 
@@ -70,38 +69,29 @@ If --realtime is specified, the update loop runs in a thread with realtime
 priority. Otherwise, it runs in a normal thread.
 )";
 
-constexpr char kLoggerAddress[] =
-    "istio-ingressgateway.app-ingress.svc.cluster.local:80";
-
 absl::StatusOr<HardwareModuleExitCode> ModuleMain(int argc, char** argv) {
   // Handle SIGTERM, sent by Kubernetes to shut down.
   std::signal(SIGTERM, ShutdownSignalHandler);
   // Handle Ctrl+C to shut down.
   std::signal(SIGINT, ShutdownSignalHandler);
 
-  const absl::Duration logger_connection_timeout =
-      absl::GetFlag(FLAGS_logger_connection_timeout);
-
-  LOG(INFO) << "Trying to connect to the Intrinsic Logger at " << kLoggerAddress
-            << " for " << absl::FormatDuration(logger_connection_timeout);
-  const auto logger_start = absl::Now();
-  if (absl::Status status =
-          intrinsic::data_logger::StartUpIntrinsicLoggerViaGrpc(
-              kLoggerAddress, logger_connection_timeout);
-      !status.ok()) {
-    LOG(WARNING) << "Failed to connect to the Intrinsic Logger within "
-                 << absl::FormatDuration(logger_connection_timeout)
-                 << ", robot metadata will not "
-                    "be published. Error: "
-                 << status;
-  } else {
-    LOG(INFO) << "Connected to the Intrinsic Logger at " << kLoggerAddress
-              << " after " << absl::FormatDuration(absl::Now() - logger_start);
-  }
   std::string runtime_context_file = absl::GetFlag(FLAGS_runtime_context_file);
   absl::StatusOr<HardwareModuleMainConfig> hwm_main_config =
       LoadConfig(absl::GetFlag(FLAGS_module_config_file), runtime_context_file,
                  absl::GetFlag(FLAGS_realtime));
+
+  if (hwm_main_config.ok()) {
+    absl::Duration logger_connection_timeout =
+        absl::GetFlag(FLAGS_logger_connection_timeout);
+    if (absl::Status status = InitDataLogger(hwm_main_config->module_config,
+                                             logger_connection_timeout);
+        !status.ok()) {
+      LOG(WARNING) << "Failed to connect to the Intrinsic Logger within "
+                   << logger_connection_timeout << ": " << status;
+    } else {
+      LOG(INFO) << "Connected to the Intrinsic Logger";
+    }
+  }
 
   absl::StatusOr<
       absl_nonnull std::unique_ptr<intrinsic::icon::HardwareModuleRuntime>>

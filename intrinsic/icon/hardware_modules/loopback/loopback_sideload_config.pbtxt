@@ -3,6 +3,9 @@
 # proto-file: intrinsic/icon/hal/proto/hardware_module_config.proto
 # proto-message: intrinsic_proto.icon.HardwareModuleConfig
 
+intrinsic_runtime {
+  name: "intrinsic_runtime"
+}
 name: "loopback_hardware_module"
 module_config {
   [type.googleapis.com/intrinsic_proto.icon.LoopbackConfig] {

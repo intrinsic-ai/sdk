@@ -4,6 +4,9 @@
 # proto-message: google.protobuf.Any
 
 [type.googleapis.com/intrinsic_proto.icon.HardwareModuleConfig] {
+  intrinsic_runtime {
+    name: "intrinsic_runtime"
+  }
   module_config {
     [type.googleapis.com/intrinsic_proto.icon.LoopbackConfig] {
       # Empty, but needs to be there and have the correct type
