@@ -9,6 +9,7 @@ import "google/protobuf/any.proto";
 import "intrinsic/assets/proto/id.proto";
 import "intrinsic/math/proto/pose.proto";
 import "intrinsic/scene/proto/v1/scene_object_config.proto";
+import "intrinsic/util/status/extended_status.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 
 option go_package = "intrinsic/assets/proto/asset_deployment_go_proto";
@@ -32,6 +33,7 @@ service AssetDeploymentService {
       returns (google.longrunning.Operation) {
     option (google.longrunning.operation_info) = {
       response_type: "google.protobuf.Empty"
+      metadata_type: "DeleteResourceMetadata"
     };
   }
 
@@ -130,6 +132,11 @@ message DeleteResourceRequest {
 
   reserved 2;
   reserved "deletion_strategy";
+}
+
+message DeleteResourceMetadata {
+  // Dependency validation errors caused by the deletion of the resource.
+  intrinsic_proto.status.ExtendedStatus dependency_validation_errors = 1;
 }
 
 message UpdateResourceRequest {
