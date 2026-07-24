@@ -5,6 +5,8 @@
 package sceneobjectfix
 
 import (
+
+
 	sompb "intrinsic/assets/scene_objects/proto/scene_object_manifest_go_proto"
 
 	descriptorpb "google.golang.org/protobuf/types/descriptorpb"

@@ -5,6 +5,8 @@
 package processfix
 
 import (
+
+
 	papb "intrinsic/assets/processes/proto/process_asset_go_proto"
 	pmpb "intrinsic/assets/processes/proto/process_manifest_go_proto"
 )
@@ -14,7 +16,7 @@ func Manifest(manifest *pmpb.ProcessManifest) error {
 	return nil
 }
 
-// DataAsset updates a ProcessAsset to meet the requirements of the latest platform version.
+// ProcessAsset updates a ProcessAsset to meet the requirements of the latest platform version.
 func ProcessAsset(pa *papb.ProcessAsset) error {
 	// The metadata in an Asset definition shouldn't specify a version.
 	if pa.GetMetadata().GetIdVersion().GetVersion() != "" {

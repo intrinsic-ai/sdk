@@ -7,6 +7,7 @@ package servicefix
 import (
 	"slices"
 
+
 	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
 	drpb "intrinsic/assets/services/proto/v1/dynamic_reconfiguration_go_proto"
 	sspb "intrinsic/assets/services/proto/v1/service_state_go_proto"
