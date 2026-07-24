@@ -444,6 +444,7 @@ def cc_skill(
         deps,
         manifest,
         base_image = None,
+        malloc = None,
         **kwargs):
     """Creates cpp skill targets.
 
@@ -459,12 +460,15 @@ def cc_skill(
       manifest: A target that provides a SkillManifestInfo provider for the skill. This is normally
                 a skill_manifest() target.
       base_image: The base container_image target to use for the skill service image.
+      malloc: Override the default dependency on malloc. Optional. Refer to the cc_binary docs for
+              more information.
       **kwargs: additional arguments passed to the container_image rule, such as visibility.
     """
     binary_name = "_%s_binary" % name
     _cc_skill_service(
         name = binary_name,
         testonly = kwargs.get("testonly"),
+        malloc = malloc,
         manifest = manifest,
         tags = ["avoid_dep", "manual"],
         visibility = ["//visibility:private"],
