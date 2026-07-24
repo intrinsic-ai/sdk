@@ -17,6 +17,8 @@ import (
 	"intrinsic/assets/imageutils"
 	"intrinsic/assets/ioutils"
 	"intrinsic/assets/referenceddata"
+	"intrinsic/assets/scene_objects/gzfprocessor"
+	"intrinsic/assets/scene_objects/sceneobjectbundle"
 	"intrinsic/assets/services/servicebundle"
 	"intrinsic/util/archive/tartooling"
 
@@ -219,6 +221,7 @@ func PassThrough(ctx context.Context, a *hdmpb.HardwareDeviceManifest_Asset) (*h
 // LocalAssetInlinerOptions contains options for LocalAssetInliner.
 type LocalAssetInlinerOptions struct {
 	imageutils.ImageProcessor
+	gzfprocessor.GZFProcessor
 	// ReferencedDataProcessor is the referenceddata.Processor to use for Data assets (see
 	// databundle.Read).
 	ReferencedDataProcessor referenceddata.Processor
@@ -248,6 +251,20 @@ func (p *LocalAssetInliner) Process(ctx context.Context, a *hdmpb.HardwareDevice
 					Service: psm,
 				},
 			}, nil
+
+		case atpb.AssetType_ASSET_TYPE_SCENE_OBJECT:
+			psom, err := sceneobjectbundle.ProcessFile(ctx, a.GetLocal().GetBundlePath(),
+				sceneobjectbundle.WithGZFProcessor(p.opts.GZFProcessor),
+			)
+			if err != nil {
+				return nil, fmt.Errorf("failed to process SceneObject %s: %w", idutils.IDFromProtoUnchecked(a.GetLocal().GetId()), err)
+			}
+			return &hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset{
+				Variant: &hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset_SceneObject{
+					SceneObject: psom,
+				},
+			}, nil
+
 		case atpb.AssetType_ASSET_TYPE_DATA:
 			var opts []databundle.ReadOption
 			if p.opts.ReferencedDataProcessor != nil {

@@ -16,6 +16,8 @@ import (
 	"intrinsic/assets/ioutils"
 	"intrinsic/assets/processes/processbundle"
 	"intrinsic/assets/referenceddata"
+	"intrinsic/assets/scene_objects/gzfprocessor"
+	"intrinsic/assets/scene_objects/sceneobjectbundle"
 	"intrinsic/assets/services/servicebundle"
 	"intrinsic/skills/skillbundle"
 
@@ -32,6 +34,7 @@ import (
 	idpb "intrinsic/assets/proto/id_go_proto"
 	iapb "intrinsic/assets/proto/installed_assets_go_proto"
 	metadatapb "intrinsic/assets/proto/metadata_go_proto"
+	sompb "intrinsic/assets/scene_objects/proto/scene_object_manifest_go_proto"
 	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
 	psmpb "intrinsic/skills/proto/processed_skill_manifest_go_proto"
 
@@ -42,6 +45,7 @@ const (
 	dataAssetFileName = "data_asset.binpb"
 	hardwareDeviceManifestFileName = "hardware_device_manifest.binpb"
 	processManifestFileName = "process_manifest.binpb"
+	sceneObjectManifestPathInTar = "scene_object_manifest.binarypb"
 	serviceManifestPathInTar = "service_manifest.binarypb"
 	skillManifestPathInTar = "skill_manifest.binpb"
 )
@@ -54,6 +58,7 @@ const (
 	bundleTypeData bundleType = iota
 	bundleTypeHardwareDevice
 	bundleTypeProcess
+	bundleTypeSceneObject
 	bundleTypeService
 	bundleTypeSkill
 )
@@ -77,6 +82,7 @@ func detectBundleType(ctx context.Context, path string) (bundleType, error) {
 		dataAssetFileName:              bundleTypeData,
 		hardwareDeviceManifestFileName: bundleTypeHardwareDevice,
 		processManifestFileName:        bundleTypeProcess,
+		sceneObjectManifestPathInTar:   bundleTypeSceneObject,
 		serviceManifestPathInTar:       bundleTypeService,
 		skillManifestPathInTar:         bundleTypeSkill,
 	}
@@ -107,6 +113,7 @@ func detectBundleType(ctx context.Context, path string) (bundleType, error) {
 // should be for use across many bundles.
 type Processor struct {
 	imageutils.ImageProcessor
+	gzfprocessor.GZFProcessor
 	// ReferencedDataProcessor is the referenceddata.Processor to use for Data assets (see
 	// ReadDataBundle).
 	ReferencedDataProcessor referenceddata.Processor
@@ -254,6 +261,48 @@ func (b processedProcessBundle) FileDescriptorSet() *dpb.FileDescriptorSet {
 	return nil
 }
 
+type processedSceneObjectBundle struct {
+	manifest *sompb.ProcessedSceneObjectManifest
+}
+
+func (b processedSceneObjectBundle) Install() *iapb.CreateInstalledAssetRequest_Asset {
+	return &iapb.CreateInstalledAssetRequest_Asset{
+		Variant: &iapb.CreateInstalledAssetRequest_Asset_SceneObject{
+			SceneObject: cloneOf(b.manifest),
+		},
+	}
+}
+
+func (b processedSceneObjectBundle) Release(details VersionDetails) *acpb.Asset {
+	manifest := cloneOf(b.manifest)
+	return &acpb.Asset{
+		Metadata: &metadatapb.Metadata{
+			IdVersion: &idpb.IdVersion{
+				Id:      manifest.GetMetadata().GetId(),
+				Version: details.Version,
+			},
+			AssetType:     assettypepb.AssetType_ASSET_TYPE_SCENE_OBJECT,
+			DisplayName:   manifest.GetMetadata().GetDisplayName(),
+			Documentation: manifest.GetMetadata().GetDocumentation(),
+			Vendor:        manifest.GetMetadata().GetVendor(),
+			AssetTag:      manifest.GetMetadata().GetAssetTag(),
+			ReleaseNotes:  details.ReleaseNotes,
+		},
+		ReleaseMetadata: details.ReleaseMetadata,
+		DeploymentData: &acpb.Asset_AssetDeploymentData{
+			AssetSpecificDeploymentData: &acpb.Asset_AssetDeploymentData_SceneObjectSpecificDeploymentData{
+				SceneObjectSpecificDeploymentData: &acpb.Asset_SceneObjectDeploymentData{
+					Manifest: manifest,
+				},
+			},
+		},
+	}
+}
+
+func (b processedSceneObjectBundle) FileDescriptorSet() *dpb.FileDescriptorSet {
+	return cloneOf(b.manifest.GetAssets().GetFileDescriptorSet())
+}
+
 type processedServiceBundle struct {
 	manifest *smpb.ProcessedServiceManifest
 }
@@ -357,6 +406,7 @@ func (p *Processor) ProcessFile(ctx context.Context, path string) (ProcessedBund
 		assetInliner := hardwaredevicebundle.NewLocalAssetInliner(hardwaredevicebundle.LocalAssetInlinerOptions{
 			ImageProcessor:          p.ImageProcessor,
 			ReferencedDataProcessor: p.ReferencedDataProcessor,
+			GZFProcessor:            p.GZFProcessor,
 		})
 
 		localAssetsDir, err := os.MkdirTemp("", "local-assets")
@@ -379,6 +429,16 @@ func (p *Processor) ProcessFile(ctx context.Context, path string) (ProcessedBund
 			return nil, fmt.Errorf("failed to process Process bundle: %w", err)
 		}
 		return processedProcessBundle{process}, nil
+
+	case bundleTypeSceneObject:
+		sceneObject, err := sceneobjectbundle.ProcessFile(ctx, path,
+			sceneobjectbundle.WithGZFProcessor(p.GZFProcessor),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to process SceneObject bundle: %w", err)
+		}
+		return &processedSceneObjectBundle{sceneObject}, nil
+
 	case bundleTypeService:
 		service, err := servicebundle.ProcessFile(ctx, path,
 			servicebundle.WithImageProcessor(p.ImageProcessor),

@@ -16,6 +16,7 @@ import (
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/imagetransfer"
 	"intrinsic/assets/referenceddata"
+	"intrinsic/assets/scene_objects/gzfprocessor"
 	"intrinsic/assets/services/bundleimages"
 	"intrinsic/kubernetes/acl/identity"
 	"intrinsic/skills/tools/skill/cmd/directupload/directupload"
@@ -116,8 +117,12 @@ func GetCommand() *cobra.Command {
 				referenceddata.WithProgressWriter(cmd.OutOrStdout()),
 			)
 			processor := &bundle.Processor{
-				ImageProcessor: bundleimages.CreateImageProcessor(transfer),
+				ImageProcessor:          bundleimages.CreateImageProcessor(transfer),
 				ReferencedDataProcessor: rdProcessor,
+				GZFProcessor: gzfprocessor.New(
+					rdProcessor,
+					gzfprocessor.WithConcurrencyLimit(numGeoUploadWorkers),
+				),
 			}
 
 			asset, err := assetFromTarget(authCtx, target, processor.ProcessFile)

@@ -16,6 +16,8 @@ go_library(
         "//intrinsic/assets/data:databundle",
         "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",
         "//intrinsic/assets/proto:asset_type_go_proto",
+        "//intrinsic/assets/scene_objects:gzfprocessor",
+        "//intrinsic/assets/scene_objects:sceneobjectbundle",
         "//intrinsic/assets/services:servicebundle",
         "//intrinsic/util/archive:tartooling",
         "@com_github_google_safearchive//tar",

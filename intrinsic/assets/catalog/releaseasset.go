@@ -12,6 +12,7 @@ import (
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/imagetransfer"
 	"intrinsic/assets/referenceddata"
+	"intrinsic/assets/scene_objects/gzfprocessor"
 	"intrinsic/assets/services/bundleimages"
 
 	"google.golang.org/grpc"
@@ -174,6 +175,10 @@ func FromBundle(ctx context.Context, path string, options ...FromBundleOption) e
 	processor := bundle.Processor{
 		ImageProcessor:          bundleimages.CreateImageProcessor(opts.imageTransferer),
 		ReferencedDataProcessor: rdProcessor,
+		GZFProcessor: gzfprocessor.New(
+			rdProcessor,
+			gzfprocessor.WithConcurrencyLimit(numGeoUploadWorkers),
+		),
 	}
 
 	processedBundle, err := processor.ProcessFile(ctx, path)

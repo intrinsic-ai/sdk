@@ -35,6 +35,7 @@ go_library(
         "//intrinsic/assets/catalog/proto/v1:asset_catalog_go_proto",
         "//intrinsic/assets/catalog/proto/v1:release_metadata_go_proto",
         "//intrinsic/assets/proto/v1:asset_artifacts_go_proto",
+        "//intrinsic/assets/scene_objects:gzfprocessor",
         "//intrinsic/assets/services:bundleimages",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
         "@org_golang_google_grpc//:go_default_library",

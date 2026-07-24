@@ -6,10 +6,13 @@ package sceneobjectvalidate
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"intrinsic/assets/errors/report"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/metadatautils"
+	"intrinsic/assets/scene_objects/gzffile"
+	"intrinsic/scene/validate/go/sceneobjectvalidation"
 
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoregistry"
@@ -71,10 +74,15 @@ func SceneObjectManifest(ctx context.Context, m *sompb.SceneObjectManifest, opti
 	// Verify that any user data in the associated SceneObjects is in the FileDescriptorSet.
 	var sceneObjects []*sopb.SceneObject
 	for _, gzfManifestPath := range m.GetAssets().GetGzfGeometryFilenames() {
-		_, ok := opts.gzfPaths[gzfManifestPath]
+		gzfPath, ok := opts.gzfPaths[gzfManifestPath]
 		if !ok {
 			return fmt.Errorf("gzf file %q specified in manifest, but no on disk path provided", gzfManifestPath)
 		}
+		sceneObject, err := extractSceneObjectFromGZF(gzfPath)
+		if err != nil {
+			return fmt.Errorf("failed to extract scene object from gzf file %q: %w", gzfPath, err)
+		}
+		sceneObjects = append(sceneObjects, sceneObject)
 	}
 	for _, sceneObject := range sceneObjects {
 		for key, userData := range sceneObject.GetUserData() {
@@ -131,6 +139,11 @@ func ProcessedSceneObjectManifest(ctx context.Context, m *sompb.ProcessedSceneOb
 		return fmt.Errorf("failed to populate registry for %q: %v", id, err)
 	}
 
+	// Validate the SceneObject.
+	if err := sceneobjectvalidation.ValidateSceneObject(m.GetAssets().GetSceneObjectModel()); err != nil {
+		return fmt.Errorf("invalid SceneObject for %q: %w", id, err)
+	}
+
 	// Verify that any user data in the SceneObject is in the FileDescriptorSet.
 	for key, userData := range m.GetAssets().GetSceneObjectModel().GetUserData() {
 		if name := userData.MessageName(); name == "" {
@@ -141,4 +154,14 @@ func ProcessedSceneObjectManifest(ctx context.Context, m *sompb.ProcessedSceneOb
 	}
 
 	return nil
+}
+
+func extractSceneObjectFromGZF(gzfPath string) (*sopb.SceneObject, error) {
+	tempDir, err := os.MkdirTemp("", "scene_object_")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create temporary directory: %w", err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	return gzffile.ExtractSceneObject(gzfPath, tempDir)
 }
