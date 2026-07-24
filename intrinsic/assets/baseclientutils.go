@@ -21,12 +21,26 @@ import (
 
 const (
 	maxMsgSize = math.MaxInt64
-	// policy for retrying failed gRPC requests as documented here:
-	// https://pkg.go.dev/google.golang.org/grpc/examples/features/retry
-	// Note that the Ingress will return UNIMPLEMENTED if the server it wants to forward to is
-	// unavailable, so we also check for UNIMPLEMENTED.
+	// Policies for retrying failed gRPC requests (as documented in
+	// https://pkg.go.dev/google.golang.org/grpc/examples/features/retry):
 	//
-	// Policy specific to CAS copies the default, but adds retries on "UNKNOWN", see b/292473318.
+	// 1. Wildcard (default): Retries on UNAVAILABLE, RESOURCE_EXHAUSTED, UNIMPLEMENTED.
+	//    Note that the Ingress will return UNIMPLEMENTED if the server it wants to forward to is
+	//    unavailable, so we also check for UNIMPLEMENTED.
+	//
+	// 2. AssetArtifacts: Custom policy for heavy geometry/artifact uploads.
+	//    Uses a patient retry window (6 attempts, max 10s backoff, total ~25s) to survive server
+	//    restarts (which take 10-15s) and Nginx rate-limiting blocks under parallel release load.
+	//    We EXCLUDE 'UNIMPLEMENTED' from the retry list here to ensure the client-side
+	//    'probeAssetArtifacts' call fails fast, rather than hanging for 25s.
+	//
+	// 3. AssetCatalog / AssetCatalogInternal: Custom policy for catalog interaction.
+	//    Retries on database transaction conflicts ('ABORTED') which are transient, but keeps the
+	//    retry window short (max 2s backoff) to fail-fast on permanent errors.
+	//
+	// 4. ContentAddressableStorageService: Copies default but adds retries on UNKNOWN; see b/292473318.
+	//
+	// 5. ArtifactServiceApi: Custom policy; see TODO(b/512180682).
 	retryPolicy = `{
 		"methodConfig": [{
 				"name": [{}],
@@ -37,6 +51,29 @@ const (
 						"MaxBackoff": ".5s",
 						"BackoffMultiplier": 1.5,
 						"RetryableStatusCodes": [ "UNAVAILABLE", "RESOURCE_EXHAUSTED", "UNIMPLEMENTED"]
+				}
+		}, {
+				"name": [{"service": "intrinsic_proto.assets.v1.AssetArtifacts"}],
+				"waitForReady": true,
+				"retryPolicy": {
+						"MaxAttempts": 6,
+						"InitialBackoff": "1s",
+						"MaxBackoff": "10s",
+						"BackoffMultiplier": 2.0,
+						"RetryableStatusCodes": [ "UNAVAILABLE", "RESOURCE_EXHAUSTED" ]
+				}
+		}, {
+				"name": [
+					{"service": "intrinsic_proto.catalog.v1.AssetCatalog"},
+					{"service": "intrinsic_proto.catalog.v1.AssetCatalogInternal"}
+				],
+				"waitForReady": true,
+				"retryPolicy": {
+						"MaxAttempts": 5,
+						"InitialBackoff": ".5s",
+						"MaxBackoff": "2s",
+						"BackoffMultiplier": 1.5,
+						"RetryableStatusCodes": [ "UNAVAILABLE", "RESOURCE_EXHAUSTED", "ABORTED"]
 				}
 		}, {
 				"name": [{"service": "intrinsic_proto.content_addressable_storage.v1.ContentAddressableStorageService"}],

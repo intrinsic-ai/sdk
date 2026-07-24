@@ -26,6 +26,9 @@ import (
 )
 
 const (
+	// Asset releases may be run in parallel, so we can't introduce additional parallelization for
+	// geometry uploads without potentially violating concurrency limits in the AssetArtifacts server.
+	numGeoUploadWorkers = 1
 )
 
 // Printer is a function that prints a formatted status message about the release.

@@ -39,6 +39,8 @@ import (
 var solutionAssetRegex = regexp.MustCompile(`^(?P<branch>[A-Za-z0-9_\-]+)/(?P<asset>[a-z0-9_\.]+)$`)
 
 const (
+	// numGeoUploadWorkers enables parallelization of geometry uploads while processing the Asset.
+	numGeoUploadWorkers = 8
 )
 
 // GetCommand returns a command to install an asset.

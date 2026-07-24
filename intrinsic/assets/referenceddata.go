@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha512"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -609,7 +610,9 @@ func newLegacyCatalogProcessor(client acpb.AssetCatalogClient, options ...legacy
 	return p
 }
 
-type defaultFallbackProcessor struct{}
+type defaultFallbackProcessor struct {
+	fallbackError error
+}
 
 func (p *defaultFallbackProcessor) NeedsReaderFor(rt ReferenceType) bool {
 	return false
@@ -622,7 +625,7 @@ func (p *defaultFallbackProcessor) Process(ctx context.Context, rdr *Reader, opt
 		return nil
 	case FileReferenceType:
 		// We cannot upload large files to old servers during install.
-		return fmt.Errorf("large file references cannot be processed; server does not support AssetArtifacts and no fallback is available")
+		return fmt.Errorf("large file references cannot be processed; AssetArtifacts is unavailable: %w", p.fallbackError)
 	default:
 		return fmt.Errorf("unknown reference type: %v", rdr.Ref.Type())
 	}
@@ -636,10 +639,13 @@ type artifactsProcessor struct {
 	lroClient        lropb.OperationsClient
 	progressCallback ProgressCallback
 
-	// A fallback Processor to use in case the AssetArtifacts service is not available).
-	fallback    Processor
-	probeAAOnce sync.Once
-	useFallback bool
+	// fallbackFactory is a factory for a fallback Processor to use in case the AssetArtifacts service
+	// is not available).
+	//
+	// The factory is passed the error that led to the fallback being needed.
+	fallbackFactory func(error) Processor
+	fallbackError   error
+	probeAAOnce     sync.Once
 }
 
 // ProcessorOption is an option for NewProcessor.
@@ -663,7 +669,9 @@ func WithDryRun(dryRun bool) ProcessorOption {
 // is unavailable.
 func WithFallbackCatalogClient(client acpb.AssetCatalogClient) ProcessorOption {
 	return func(p *artifactsProcessor) {
-		p.fallback = newLegacyCatalogProcessor(client)
+		p.fallbackFactory = func(_ error) Processor {
+			return newLegacyCatalogProcessor(client)
+		}
 	}
 }
 
@@ -731,7 +739,7 @@ func (p *artifactsProcessor) Process(ctx context.Context, rdr *Reader, opts *Pro
 		// We temporarily need to support some fallback behaviors for communicating with remote clusters
 		// that do not yet serve AssetArtifacts.
 		p.probeAAOnce.Do(func() {
-			p.useFallback = !probeAssetArtifacts(ctx, p.aaClient)
+			p.fallbackError = probeAssetArtifacts(ctx, p.aaClient)
 		})
 	}
 
@@ -770,8 +778,8 @@ func (p *artifactsProcessor) Process(ctx context.Context, rdr *Reader, opts *Pro
 		return nil
 	}
 
-	if p.useFallback {
-		return p.fallback.Process(ctx, rdr, opts)
+	if p.fallbackError != nil {
+		return p.fallbackFactory(p.fallbackError).Process(ctx, rdr, opts)
 	}
 
 	origRefName := rdr.Ref.Reference()
@@ -899,7 +907,11 @@ func NewProcessor(aaClient assetartifactspb.AssetArtifactsClient, lroClient lrop
 		lroClient:       lroClient,
 		inlineThreshold: InlineReferenceFileSizeThresholdBytes,
 		chunkSize:       defaultChunkSize,
-		fallback:        &defaultFallbackProcessor{},
+		fallbackFactory: func(err error) Processor {
+			return &defaultFallbackProcessor{
+				fallbackError: err,
+			}
+		},
 	}
 	for _, opt := range options {
 		opt(p)
@@ -926,7 +938,7 @@ func (p *solutionReleaseProcessor) Process(ctx context.Context, rdr *Reader, opt
 			}
 			rdr.Ref.SetInlined(b)
 		} else {
-			return fmt.Errorf("large file references cannot be processed: %v", rdr.Ref)
+			return status.Errorf(codes.Unimplemented, "large file references cannot be processed: %v", rdr.Ref)
 		}
 	case CASReferenceType:
 	case InlinedReferenceType:
@@ -948,9 +960,11 @@ func NewSolutionReleaseProcessor() Processor {
 }
 
 // probeAssetArtifacts checks whether the AssetArtifacts service is available.
-func probeAssetArtifacts(ctx context.Context, client assetartifactspb.AssetArtifactsClient) bool {
+//
+// If the service is not available, it returns the error from the attempt.
+func probeAssetArtifacts(ctx context.Context, client assetartifactspb.AssetArtifactsClient) error {
 	if client == nil {
-		return false
+		return status.Errorf(codes.Unimplemented, "no AssetArtifacts client provided")
 	}
 	probeCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
@@ -960,8 +974,19 @@ func probeAssetArtifacts(ctx context.Context, client assetartifactspb.AssetArtif
 	})
 
 	code := status.Code(err)
+	if code == codes.OK || code == codes.NotFound || code == codes.InvalidArgument {
+		return nil
+	}
 
-	return code == codes.OK || code == codes.NotFound || code == codes.InvalidArgument
+	// Convert raw context errors to gRPC status errors so they wrap and unwrap correctly.
+	if errors.Is(err, context.DeadlineExceeded) {
+		return status.Error(codes.DeadlineExceeded, err.Error())
+	}
+	if errors.Is(err, context.Canceled) {
+		return status.Error(codes.Canceled, err.Error())
+	}
+
+	return err
 }
 
 func formatBytes(b int64) string {
