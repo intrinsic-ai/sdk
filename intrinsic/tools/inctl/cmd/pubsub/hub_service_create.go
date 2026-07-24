@@ -118,12 +118,17 @@ func (e *hubServiceCreateCmdEnvironment) RunE(cmd *cobra.Command, _ []string) er
 	}
 	defer conn.Close()
 
+	_, cluster, _, err := e.cmdFlags.GetFlagsAddressClusterSolution()
+	if err != nil {
+		return fmt.Errorf("could not get flags: %w", err)
+	}
+
 	runner := &HubServiceCreateCmdRunner{
 		ServiceInstallingCmdRunner: ServiceInstallingCmdRunner{
 			CmdRunnerBase: *newCmdRunnerBase(
 				conn,
 				cmd.OutOrStdout(),
-				e.cmdFlags.GetString(cmdutils.KeyCluster),
+				cluster,
 				hubServicePackage,
 				hubServiceName),
 			requestedVersion: e.cmdFlags.GetString(keyHubServiceVersion),

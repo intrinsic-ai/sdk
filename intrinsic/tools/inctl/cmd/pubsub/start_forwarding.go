@@ -60,12 +60,17 @@ func (e *StartForwardingCmdEnvironment) RunE(cmd *cobra.Command, _ []string) err
 	}
 	defer conn.Close()
 
+	_, cluster, _, err := e.cmdFlags.GetFlagsAddressClusterSolution()
+	if err != nil {
+		return fmt.Errorf("could not get flags: %w", err)
+	}
+
 	runner := &StartForwardingCmdRunner{
 		ServiceInstallingCmdRunner: ServiceInstallingCmdRunner{
 			CmdRunnerBase: *newCmdRunnerBase(
 				conn,
 				cmd.OutOrStdout(),
-				e.cmdFlags.GetString(cmdutils.KeyCluster),
+				cluster,
 				forwardingServicePackage,
 				forwardingServiceName,
 			),

@@ -35,8 +35,8 @@ const (
 	keyAuthPassword = "auth_password"
 	// keyCatalogAddress is the name of the catalog address flag.
 	keyCatalogAddress = "catalog_address"
-	// KeyCluster is the name of the cluster flag.
-	KeyCluster = "cluster"
+	// keyCluster is the name of the cluster flag.
+	keyCluster = "cluster"
 	// keyDefault is the name of the default flag.
 	keyDefault = "default"
 	// keyDryRun is the name of the dry run flag.
@@ -202,21 +202,21 @@ func (cf *CmdFlags) GetFlagImageUploadParallelism() int {
 // or working with installed assets.
 func (cf *CmdFlags) AddFlagsAddressClusterSolution() {
 	cf.OptionalString(keyAddress, "", "Internal flag to directly set the API server address. Normally, you should use --org instead, which tells inctl to connect via the cloud.")
-	cf.optionalEnvString(KeyCluster, "", "The target Kubernetes cluster ID. If you set this, you must not set --solution.")
+	cf.optionalEnvString(keyCluster, "", "The target Kubernetes cluster ID. If you set this, you must not set --solution.")
 	cf.optionalEnvString(keySolution, "", "The target solution. Must be running. If you set this, you must not set --cluster.")
 
-	cf.cmd.MarkFlagsMutuallyExclusive(KeyCluster, keySolution)
+	cf.cmd.MarkFlagsMutuallyExclusive(keyCluster, keySolution)
 }
 
 // GetFlagsAddressClusterSolution gets the values of the address, cluster, and solution flags added
 // by AddFlagsAddressClusterSolution.
 func (cf *CmdFlags) GetFlagsAddressClusterSolution() (string, string, string, error) {
 	address := cf.GetString(keyAddress)
-	cluster := cf.GetString(KeyCluster)
+	cluster := cf.GetString(keyCluster)
 	solution := cf.GetString(keySolution)
 
 	if address == "" && cluster == "" && solution == "" {
-		return "", "", "", fmt.Errorf("at least one of `--%s`, `--%s` or `--%s` must be set", keyAddress, KeyCluster, keySolution)
+		return "", "", "", fmt.Errorf("at least one of `--%s`, `--%s` or `--%s` must be set", keyAddress, keyCluster, keySolution)
 	}
 	// This matches these flags being marked as mutually exclusive above.  That
 	// does not prevent two environment variables being provided or a
@@ -227,7 +227,7 @@ func (cf *CmdFlags) GetFlagsAddressClusterSolution() (string, string, string, er
 	// autodetect the kind.  If this is too strict, then we can override the
 	// check in clientutils that triggers a lookup if solution is set.
 	if cluster != "" && solution != "" {
-		return "", "", "", fmt.Errorf("both `--%s=%q` and `--%s=%q` were provided by a flags and/or environment variables, which could be ambiguous", KeyCluster, cluster, keySolution, solution)
+		return "", "", "", fmt.Errorf("both `--%s=%q` and `--%s=%q` were provided by a flags and/or environment variables, which could be ambiguous", keyCluster, cluster, keySolution, solution)
 	}
 
 	return address, cluster, solution, nil

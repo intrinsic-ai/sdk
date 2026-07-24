@@ -116,11 +116,16 @@ func (e *serviceDeleteCmdEnvironment) RunE(cmd *cobra.Command, _ []string) error
 	}
 	defer conn.Close()
 
+	_, cluster, _, err := e.cmdFlags.GetFlagsAddressClusterSolution()
+	if err != nil {
+		return fmt.Errorf("could not get flags: %w", err)
+	}
+
 	runner := &ServiceDeleteCmdRunner{
 		CmdRunnerBase: *newCmdRunnerBase(
 			conn,
 			cmd.OutOrStdout(),
-			e.cmdFlags.GetString(cmdutils.KeyCluster),
+			cluster,
 			e.packageName,
 			e.serviceName),
 		shouldUninstallServiceAsset: e.cmdFlags.GetBool(keyUninstallServiceAsset),
