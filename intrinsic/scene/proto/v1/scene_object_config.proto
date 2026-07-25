@@ -4,15 +4,12 @@ syntax = "proto3";
 
 package intrinsic_proto.scene_object.v1;
 
-import "google/protobuf/any.proto";
 
 option go_package = "intrinsic/scene/proto/v1/scene_object_config_go_proto";
 
 // Configuration message for a scene object.
 message SceneObjectConfig {
   // Opaque user-supplied data for this scene object.
-  google.protobuf.Any user_data = 3 [deprecated = true];
-
-  reserved 9, 10;
-  reserved "collision_margin_rules", "collision_exclusion_pairs";
+  reserved 3, 9, 10;
+  reserved "user_data", "collision_margin_rules", "collision_exclusion_pairs";
 }
