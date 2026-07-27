@@ -9,6 +9,7 @@ go_library(
     srcs = ["report.go"],
     importpath = "intrinsic/assets/errors/report",
     deps = [
+        "//intrinsic/util/status:extended_status_go_proto",
         "//intrinsic/util/status:extstatus",
     ],
 )

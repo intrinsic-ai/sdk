@@ -8,6 +8,8 @@ import (
 	"fmt"
 
 	"intrinsic/util/status/extstatus"
+
+	espb "intrinsic/util/status/extended_status_go_proto"
 )
 
 const (
@@ -185,6 +187,8 @@ func WithTitlePrefix(prefix string) ReportExtendedStatusOption {
 //   - If the error implements ExtendedStatusConverter, it delegates conversion to the custom implementation.
 //   - Otherwise, it falls back to creating a default ExtendedStatus using the default component name,
 //     default status code, and the error's string message as the title.
+//
+// The severity of the returned ExtendedStatus is set to the highest severity among all warnings.
 func (r *Report) ToExtendedStatus(opts ...ReportExtendedStatusOption) *extstatus.ExtendedStatus {
 	if r == nil || len(r.warnings) == 0 {
 		return nil
@@ -197,16 +201,24 @@ func (r *Report) ToExtendedStatus(opts ...ReportExtendedStatusOption) *extstatus
 		opt(o)
 	}
 	contexts := make([]*extstatus.ExtendedStatus, 0, len(r.warnings))
+	severity := espb.ExtendedStatus_DEFAULT
 	for _, w := range r.warnings {
-		if es, ok := extstatus.FromError(w); ok {
-			contexts = append(contexts, es)
+		var es *extstatus.ExtendedStatus
+		if e, ok := extstatus.FromError(w); ok {
+			es = e
 		} else if converter, ok := w.(ExtendedStatusConverter); ok {
-			contexts = append(contexts, converter.ToExtendedStatus())
+			es = converter.ToExtendedStatus()
 		} else {
-			contexts = append(contexts, extstatus.New(defaultComponentName,
+			es = extstatus.New(defaultComponentName,
 				uint32(defaultStatusCode),
 				extstatus.WithTitle(w.Error()),
-			))
+			)
+		}
+		contexts = append(contexts, es)
+
+		// Keep track of the highest severity among all warnings.
+		if s := es.Proto().GetSeverity(); s > severity {
+			severity = s
 		}
 	}
 	title := fmt.Sprintf("%d error(s) found", len(contexts))
@@ -215,6 +227,7 @@ func (r *Report) ToExtendedStatus(opts ...ReportExtendedStatusOption) *extstatus
 	}
 	return extstatus.New(o.component,
 		uint32(o.code),
+		extstatus.WithSeverity(severity),
 		extstatus.WithTitle(title),
 		extstatus.WithContexts(contexts),
 	)
