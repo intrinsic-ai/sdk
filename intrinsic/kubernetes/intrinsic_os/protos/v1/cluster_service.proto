@@ -6,7 +6,7 @@ package intrinsic_proto.cluster.v1;
 
 import "google/api/annotations.proto";
 import "intrinsic/kubernetes/intrinsic_os/protos/v1/cluster.proto";
-import "intrinsic/kubernetes/intrinsic_os/protos/v1/dns_leases.proto";
+import "intrinsic/kubernetes/intrinsic_os/protos/v1/dhcp_leases.proto";
 import "intrinsic/kubernetes/intrinsic_os/protos/v1/shutdown.proto";
 
 option go_package = "intrinsic/kubernetes/intrinsic_os/protos/v1/cluster_service_go_proto";
@@ -73,12 +73,12 @@ service ClusterService {
     };
   }
 
-  rpc GetDNSLeases(GetDNSLeasesRequest) returns (GetDNSLeasesResponse) {
+  rpc GetDHCPLeases(GetDHCPLeasesRequest) returns (GetDHCPLeasesResponse) {
     option (google.api.http) = {
-      post: "/cluster/v1/cluster/dns_leases"
+      post: "/cluster/v1/cluster/dhcp_leases"
 
       additional_bindings {
-        get: "/cluster/v1/cluster/dns_leases/interface/{interface}"
+        get: "/cluster/v1/cluster/dhcp_leases/interface/{interface}"
       }
     };
   }

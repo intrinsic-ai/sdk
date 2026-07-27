@@ -1,0 +1,28 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.cluster.v1;
+
+import "google/api/field_behavior.proto";
+
+option go_package = "intrinsic/kubernetes/intrinsic_os/protos/v1/dhcp_leases_go_proto";
+
+message DHCPLease {
+  string hw_addr = 1 [(google.api.field_behavior) = REQUIRED];
+  string ip_addr = 2 [(google.api.field_behavior) = REQUIRED];
+  string hostname = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message GetDHCPLeasesRequest {
+  string interface = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message InterfaceDHCPLeases {
+  string interface_name = 1;
+  repeated DHCPLease leases = 2;
+}
+
+message GetDHCPLeasesResponse {
+  repeated InterfaceDHCPLeases interfaces = 1;
+}
