@@ -13,6 +13,7 @@ import "google/protobuf/empty.proto";
 import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
 import "intrinsic/kubernetes/intrinsic_os/protos/v1/cluster.proto";
+import "intrinsic/kubernetes/intrinsic_os/protos/v1/dhcp_leases.proto";
 import "intrinsic/util/status/extended_status.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
@@ -729,6 +730,23 @@ message UpdateNodeHardwareRequest {
 
 message UpdateNodeHardwareResponse {}
 
+message GetClusterDHCPLeasesRequest {
+  string cluster_name = 1 [(google.api.field_behavior) = REQUIRED];
+  reserved 2, 3;
+  reserved project, org;
+}
+
+message UpdateClusterDHCPLeasesRequest {
+  string cluster_name = 1 [(google.api.field_behavior) = REQUIRED];
+  reserved 2, 3;
+  reserved project, org;
+
+  intrinsic_proto.cluster.v1.GetDHCPLeasesResponse dhcp_leases = 4
+      [(google.api.field_behavior) = REQUIRED];
+}
+
+message UpdateClusterDHCPLeasesResponse {}
+
 // ClustersService holds a set of methods to interact with clusters.
 service ClustersService {
 
@@ -1015,6 +1033,30 @@ service ClustersService {
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "UpdateNodeHardware"
+    };
+    option (aclType) = "can_configure";
+  }
+
+  rpc GetClusterDHCPLeases(GetClusterDHCPLeasesRequest)
+      returns (intrinsic_proto.cluster.v1.GetDHCPLeasesResponse) {
+    option (google.api.http) = {
+      get: "/v1/project/*/org/*/clusters/{cluster_name}/dhcp_leases"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "GetClusterDHCPLeases"
+    };
+    option (aclType) = "has_access";
+  }
+
+  // UpdateClusterDHCPLeases is used to update the DHCP leases of a cluster.
+  rpc UpdateClusterDHCPLeases(UpdateClusterDHCPLeasesRequest)
+      returns (UpdateClusterDHCPLeasesResponse) {
+    option (google.api.http) = {
+      put: "/v1/project/*/org/*/clusters/{cluster_name}/dhcp_leases"
+      body: "dhcp_leases"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "UpdateClusterDHCPLeases"
     };
     option (aclType) = "can_configure";
   }

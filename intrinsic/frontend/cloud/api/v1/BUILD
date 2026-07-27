@@ -73,6 +73,7 @@ proto_library(
     srcs = ["clustermanager_api.proto"],
     deps = [
         "//intrinsic/kubernetes/intrinsic_os/protos/v1:cluster_proto",
+        "//intrinsic/kubernetes/intrinsic_os/protos/v1:dhcp_leases_proto",
         "//intrinsic/util/status:extended_status_proto",
         "@com_github_grpc_ecosystem_grpc_gateway_v2//protoc-gen-openapiv2/options:options_proto",
         "@com_google_googleapis//google/api:annotations_proto",
@@ -97,6 +98,7 @@ go_proto_library(
     protos = [":clustermanager_api_proto"],
     deps = [
         "//intrinsic/kubernetes/intrinsic_os/protos/v1:cluster_go_proto",
+        "//intrinsic/kubernetes/intrinsic_os/protos/v1:dhcp_leases_go_proto",
         "//intrinsic/util/status:extended_status_go_proto",
         "@com_github_grpc_ecosystem_grpc_gateway_v2//protoc-gen-openapiv2/options",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
