@@ -9,6 +9,7 @@ from typing import Iterable
 from typing import Type
 from typing import Union
 
+from intrinsic.assets import id_utils
 from intrinsic.assets.configuration import asset_configuration_client
 from intrinsic.assets.install import installed_assets_client
 from intrinsic.assets.proto import asset_tag_pb2
@@ -410,11 +411,24 @@ class Skills(providers.SkillProvider):
       self,
       skill: skills_pb2.Skill,
   ) -> provided.SkillInfo:
-    # Manually decompose the 'id_version' here. We cannot use 'idutils'
-    # since PBTs from the skill registry can still have invalid package
-    # names (empty or with only a single period). See b/512066439.
+    # Manually decompose the 'id_version' here. We cannot use
+    # `id_utils.version_from` since PBTs from the skill registry can still have
+    # invalid package names (empty or with only a single period).
+    # See b/512066439.
     package, _, name = skill.id.rpartition(".")
-    version = skill.id_version.removeprefix(skill.id + ".")
+
+    # We first attempt to extract the version using `id_utils.is_version` to
+    # handle cases where the ID name in `id_version` differs from `skill.id`. If
+    # that fails, we fallback to simple prefix removal.
+    version = None
+    parts = skill.id_version.split(".")
+    for i in range(1, len(parts)):
+      candidate = ".".join(parts[-i:])
+      if id_utils.is_version(candidate):
+        version = candidate
+        break
+    if version is None:
+      version = skill.id_version.removeprefix(skill.id + ".")
     id_version = id_pb2.IdVersion(
         id=id_pb2.Id(package=package, name=name), version=version
     )

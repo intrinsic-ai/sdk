@@ -25,6 +25,7 @@ from intrinsic.math.python import proto_conversion as math_proto_conversion
 from intrinsic.resources.proto import resource_handle_pb2
 from intrinsic.skills.client import skill_registry_client
 from intrinsic.skills.proto import equipment_pb2
+from intrinsic.skills.proto import skills_pb2
 from intrinsic.solutions import blackboard_value
 from intrinsic.solutions import cel
 from intrinsic.solutions import provided
@@ -213,6 +214,33 @@ class SkillsTest(parameterized.TestCase):
     )
     self.assertEqual(dir(skills.foo), ['bar', 'foo', 'foo_pbt'])
     self.assertEqual(dir(skills.foo.bar), ['bar', 'bar_pbt', 'bar_skill'])
+
+  def test_list_skills_with_mismatching_id_version(self):
+    skill = skill_test_utils.create_legacy_process(skill_id='ai.intrinsic.name')
+    skill.id_version = (
+        'ai.intrinsic.other_name.0.0.1+4DDD59E0-E50B-46A7-BC2D-10E7745682E2'
+    )
+    skills = skill_providing.Skills(
+        skill_test_utils.create_skill_registry_for_skill_infos([skill]),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([]),
+        skill_test_utils.create_asset_configuration_client(),
+    )
+
+    self.assertEqual(
+        dir(skills.ai.intrinsic),
+        ['name'],
+    )
+
+    skill_class = skills.ai.intrinsic.name
+    self.assertEqual(
+        skill_class.skill_info.version,
+        '0.0.1+4DDD59E0-E50B-46A7-BC2D-10E7745682E2',
+    )
+    self.assertEqual(
+        skill_class.skill_info.id,
+        'ai.intrinsic.name',
+    )
 
   def test_skills_attribute_access(self):
     """Tests attribute-based access (skills.<skill_id>)."""
