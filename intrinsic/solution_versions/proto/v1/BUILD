@@ -22,6 +22,7 @@ go_proto_library(
     importpath = "intrinsic/solution_versions/proto/v1/snapshot_go_proto",
     protos = [":snapshot_proto"],
     visibility = [
+        "//intrinsic/frontend/cloud/portal_bridge:__subpackages__",
         "//intrinsic/solution_copy:__subpackages__",
         "//intrinsic/solution_versions:__subpackages__",
         "//intrinsic/tools/inctl/cmd:__subpackages__",
