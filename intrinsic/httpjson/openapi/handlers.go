@@ -15,7 +15,7 @@ import (
 // MakeOpenAPIHandlerFromRunfiles initializes a runfiles instance with the caller's repo
 // context and resolves the rlocation before passing it to the path-based constructor.
 func MakeOpenAPIHandlerFromRunfiles(rlocationPath string) (runtime.HandlerFunc, error) {
-	slog.Info("Creating runfiles object for caller repository '%s'", runfiles.CallerRepository())
+	slog.Info("Creating runfiles object for caller repository", "repository", runfiles.CallerRepository())
 	// Initialize runfiles with SourceRepo set to the caller's repository.
 	// This ensures correct repo-mapping resolution in Bzlmod environments.
 	rf, err := runfiles.New(runfiles.SourceRepo(runfiles.CallerRepository()))
