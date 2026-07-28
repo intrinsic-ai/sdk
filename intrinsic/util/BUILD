@@ -10,6 +10,15 @@ package(
 )
 
 cc_library(
+    name = "hash",
+    hdrs = ["hash.h"],
+    deps = [
+        "//third_party/thorough_hash",
+        "@abseil-cpp//absl/strings",
+    ],
+)
+
+cc_library(
     name = "aggregate_type",
     hdrs = ["aggregate_type.h"],
 )
