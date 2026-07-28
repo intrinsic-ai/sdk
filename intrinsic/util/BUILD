@@ -127,6 +127,18 @@ cc_library(
 )
 
 cc_library(
+    name = "cloud",
+    srcs = ["cloud.cc"],
+    hdrs = ["cloud.h"],
+    deps = [
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+        "@google_cloud_cpp//:common",
+    ],
+)
+
+cc_library(
     name = "log_lines",
     srcs = ["log_lines.cc"],
     hdrs = ["log_lines.h"],
@@ -141,4 +153,27 @@ go_library(
     name = "flag",
     srcs = ["flag.go"],
     importpath = "intrinsic/util/flag",
+)
+
+cc_library(
+    name = "version",
+    srcs = ["version.cc"],
+    hdrs = ["version.h"],
+    deps = [
+        "//intrinsic/util/status:status_builder",
+        "//third_party/strings_numbers:sort",
+        "@abseil-cpp//absl/algorithm:container",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+        "@com_googlesource_code_re2//:re2",
+    ],
+)
+
+cc_test(
+    name = "version_test",
+    srcs = ["version_test.cc"],
+    deps = [
+        ":version",
+        "//intrinsic/util/testing:gtest_wrapper_main",
+    ],
 )

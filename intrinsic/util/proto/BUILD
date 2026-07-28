@@ -9,6 +9,14 @@ load("//bazel:go_macros.bzl", "go_library", "go_test")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
+    name = "repeated_field_util",
+    hdrs = ["repeated_field_util.h"],
+    deps = [
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_library(
     name = "any",
     hdrs = ["any.h"],
     deps = [

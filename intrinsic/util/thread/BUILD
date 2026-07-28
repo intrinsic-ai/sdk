@@ -156,3 +156,55 @@ cc_test(
         "@abseil-cpp//absl/time",
     ],
 )
+
+cc_library(
+    name = "concurrent_queue",
+    hdrs = ["concurrent_queue.h"],
+    deps = [
+        "@abseil-cpp//absl/base:core_headers",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/synchronization",
+        "@abseil-cpp//absl/time",
+    ],
+)
+
+cc_test(
+    name = "concurrent_queue_test",
+    srcs = ["concurrent_queue_test.cc"],
+    deps = [
+        ":concurrent_queue",
+        ":thread",
+        "//intrinsic/util/testing:gtest_wrapper_main",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/time",
+    ],
+)
+
+cc_library(
+    name = "thread_pool",
+    srcs = ["thread_pool.cc"],
+    hdrs = ["thread_pool.h"],
+    deps = [
+        ":concurrent_queue",
+        ":stop_token",
+        ":thread",
+        "@abseil-cpp//absl/functional:any_invocable",
+        "@abseil-cpp//absl/log",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/time",
+    ],
+)
+
+cc_test(
+    name = "thread_pool_test",
+    srcs = ["thread_pool_test.cc"],
+    deps = [
+        ":stop_token",
+        ":thread_pool",
+        "//intrinsic/util/testing:gtest_wrapper_main",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/synchronization",
+        "@abseil-cpp//absl/time",
+    ],
+)
