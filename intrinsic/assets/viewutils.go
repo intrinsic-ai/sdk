@@ -14,8 +14,16 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
+	dataassetpb "intrinsic/assets/data/proto/v1/data_asset_go_proto"
+	hardwaredevicemanifestpb "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest_go_proto"
+	processassetpb "intrinsic/assets/processes/proto/process_asset_go_proto"
 	metadatapb "intrinsic/assets/proto/metadata_go_proto"
+	assetpb "intrinsic/assets/proto/v1/asset_go_proto"
+	processedassetpb "intrinsic/assets/proto/v1/processed_asset_go_proto"
 	viewpb "intrinsic/assets/proto/view_go_proto"
+	sceneobjectmanifestpb "intrinsic/assets/scene_objects/proto/scene_object_manifest_go_proto"
+	servicemanifestpb "intrinsic/assets/services/proto/service_manifest_go_proto"
+	processedskillmanifestpb "intrinsic/skills/proto/processed_skill_manifest_go_proto"
 
 	dpb "google.golang.org/protobuf/types/descriptorpb"
 )
@@ -325,4 +333,92 @@ func copyOneOfFieldValue[T proto.Message](src T, dst T, name string) error {
 
 func newMessage[T proto.Message](m T) T {
 	return m.ProtoReflect().New().Interface().(T)
+}
+
+// BasicAssetView returns a basic view of an [assetpb.Asset] that only contains
+// basic metadata (such as the ID).
+func BasicAssetView(asset *assetpb.Asset) *assetpb.Asset {
+	if asset == nil {
+		return nil
+	}
+	switch source := asset.GetSource().(type) {
+	case *assetpb.Asset_Catalog:
+		return asset
+	case *assetpb.Asset_Local:
+		return &assetpb.Asset{
+			Source: &assetpb.Asset_Local{
+				Local: basicProcessedAssetView(source.Local),
+			},
+		}
+	}
+	return nil
+}
+
+func basicProcessedAssetView(processedAsset *processedassetpb.ProcessedAsset) *processedassetpb.ProcessedAsset {
+	if processedAsset == nil {
+		return nil
+	}
+	switch v := processedAsset.GetVariant().(type) {
+	case *processedassetpb.ProcessedAsset_Data:
+		return &processedassetpb.ProcessedAsset{
+			Variant: &processedassetpb.ProcessedAsset_Data{
+				Data: &dataassetpb.DataAsset{
+					Metadata: &metadatapb.Metadata{
+						IdVersion: v.Data.GetMetadata().GetIdVersion(),
+					},
+				},
+			},
+		}
+	case *processedassetpb.ProcessedAsset_HardwareDevice:
+		return &processedassetpb.ProcessedAsset{
+			Variant: &processedassetpb.ProcessedAsset_HardwareDevice{
+				HardwareDevice: &hardwaredevicemanifestpb.ProcessedHardwareDeviceManifest{
+					Metadata: &hardwaredevicemanifestpb.HardwareDeviceMetadata{
+						Id: v.HardwareDevice.GetMetadata().GetId(),
+					},
+				},
+			},
+		}
+	case *processedassetpb.ProcessedAsset_Process:
+		return &processedassetpb.ProcessedAsset{
+			Variant: &processedassetpb.ProcessedAsset_Process{
+				Process: &processassetpb.ProcessAsset{
+					Metadata: &metadatapb.Metadata{
+						IdVersion: v.Process.GetMetadata().GetIdVersion(),
+					},
+				},
+			},
+		}
+	case *processedassetpb.ProcessedAsset_SceneObject:
+		return &processedassetpb.ProcessedAsset{
+			Variant: &processedassetpb.ProcessedAsset_SceneObject{
+				SceneObject: &sceneobjectmanifestpb.ProcessedSceneObjectManifest{
+					Metadata: &sceneobjectmanifestpb.SceneObjectMetadata{
+						Id: v.SceneObject.GetMetadata().GetId(),
+					},
+				},
+			},
+		}
+	case *processedassetpb.ProcessedAsset_Service:
+		return &processedassetpb.ProcessedAsset{
+			Variant: &processedassetpb.ProcessedAsset_Service{
+				Service: &servicemanifestpb.ProcessedServiceManifest{
+					Metadata: &servicemanifestpb.ServiceMetadata{
+						Id: v.Service.GetMetadata().GetId(),
+					},
+				},
+			},
+		}
+	case *processedassetpb.ProcessedAsset_Skill:
+		return &processedassetpb.ProcessedAsset{
+			Variant: &processedassetpb.ProcessedAsset_Skill{
+				Skill: &processedskillmanifestpb.ProcessedSkillManifest{
+					Metadata: &processedskillmanifestpb.SkillMetadata{
+						Id: v.Skill.GetMetadata().GetId(),
+					},
+				},
+			},
+		}
+	}
+	return nil
 }
