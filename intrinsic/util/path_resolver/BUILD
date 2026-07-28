@@ -1,9 +1,38 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
 load("//bazel:go_macros.bzl", "go_library", "go_test")
 
 package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "path_resolver",
+    srcs = [
+        "path_resolver.cc",
+    ],
+    hdrs = [
+        "path_resolver.h",
+    ],
+    deps = [
+        "@abseil-cpp//absl/debugging:leak_check",
+        "@abseil-cpp//absl/log",
+        "@abseil-cpp//absl/strings",
+        "@bazel_tools//tools/cpp/runfiles",
+        "@or_tools//ortools/base:path",
+    ],
+)
+
+cc_test(
+    name = "path_resolver_test",
+    srcs = ["path_resolver_test.cc"],
+    data = ["path_resolver_test.cc"],
+    deps = [
+        ":path_resolver",
+        "//intrinsic/util/testing:gtest_wrapper_main",
+    ],
+)
 
 py_library(
     name = "path_resolver_py",
