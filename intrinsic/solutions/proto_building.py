@@ -25,6 +25,14 @@ _DEFAULT_SIGNATURE_PROTO_FILENAME = "gen/sbl/signature.proto"
 # Expected to be filled with a UUID and a custom filename.
 _UNIQUE_MAIN_PROTO_FILENAME_PATTERN = "gen/sbl_%s/%s"
 
+_RESOLVED_DEPENDENCY_FILE = (
+    "intrinsic/assets/proto/v1/resolved_dependency.proto"
+)
+_RESOLVED_DEPENDENCY_TYPE = "intrinsic_proto.assets.v1.ResolvedDependency"
+
+_FIELD_METADATA_FILE = "intrinsic/assets/proto/field_metadata.proto"
+_FIELD_METADATA_OPTION = "intrinsic_proto.assets.field_metadata"
+
 
 def _partition_message_full_name(full_name: str) -> tuple[str, str]:
   package, _, name = full_name.rpartition(".")
@@ -104,7 +112,34 @@ def _update_type_names_in_file(
 
 
 @dataclasses.dataclass(kw_only=True, frozen=True)
-class FieldSpec:
+class FieldSpecBase:
+  """Base class for all field specs.
+
+  Attributes:
+    name: Name of the field in the message.
+    number: Number of the field in the message. To ensure backwards
+      compatibility and follow Protobuf best practices always use new field
+      numbers and never reuse field numbers, e.g., of removed fields.
+    description: Description of the field. Can be a multi-line string.
+  """
+
+  name: str
+  number: int
+  description: str = ""
+
+  def __new__(cls, *args, **kwargs):
+    del args, kwargs  # unused
+    if cls == FieldSpecBase:
+      raise TypeError("Cannot instantiate abstract class.")
+    return super().__new__(cls)
+
+  def __post_init__(self):
+    if self.number is not None and self.number <= 0:
+      raise ValueError("Field numbers must be positive")
+
+
+@dataclasses.dataclass(kw_only=True, frozen=True)
+class FieldSpec(FieldSpecBase):
   """Specifies a singular or repeated field in a proto message.
 
   Attributes:
@@ -112,15 +147,10 @@ class FieldSpec:
       value type (see https://protobuf.dev/programming-guides/proto3/#scalar) or
       the full name of a well-known message type (see
       ProtoBuilder.get_well_known_types()).
-    name: Name of the field in the message.
     repeated: True if the field should be repeated (cannot be combined with
       'optional').
     optional: True if the field should be optional (cannot be combined with
       'repeated').
-    number: Number of the field in the message. To ensure backwards
-      compatibility and follow Protobuf best practices always use new field
-      numbers and never reuse field numbers, e.g., of removed fields.
-    description: Description of the field. Can be a multi-line string.
     arg: Value or parameter assignment to be applied to this field (see
       Signature.with_args() for a of list accepted values). Passing arguments is
       only applicable in some contexts, in other contexts setting this will
@@ -128,20 +158,16 @@ class FieldSpec:
   """
 
   type: str
-  name: str
-  number: int
   repeated: bool = False
   optional: bool = False
-  description: str | None = None
   arg: Any | provided.ParamAssignment | None = None
 
   def __post_init__(self):
+    super().__post_init__()
     if self.repeated and self.optional:
       raise ValueError(
           "A field cannot be repeated and optional at the same time"
       )
-    if self.number is not None and self.number <= 0:
-      raise ValueError("Field numbers must be positive")
     if any(c.isspace() for c in self.type):
       raise ValueError(f"Field type '{self.type}' cannot contain whitespace")
     if self.type.startswith("map<"):
@@ -152,7 +178,7 @@ class FieldSpec:
 
 
 @dataclasses.dataclass(kw_only=True, frozen=True)
-class MapFieldSpec:
+class MapFieldSpec(FieldSpecBase):
   """Specifies a map field in a proto message.
 
   Attributes:
@@ -163,11 +189,6 @@ class MapFieldSpec:
       file. Can be a scalar value type (see
       https://protobuf.dev/programming-guides/proto3/#scalar) or the full name
         of a well-known message type (see ProtoBuilder.get_well_known_types()).
-    name: Name of the field in the message.
-    number: Number of the field in the message. To ensure backwards
-      compatibility and follow Protobuf best practices always use new field
-      numbers and never reuse field numbers, e.g., of removed fields.
-    description: Description of the field. Can be a multi-line string.
     arg: Value or parameter assignment to be applied to this field (see
       Signature.with_args() for a of list accepted values). Passing arguments is
       only applicable in some contexts, in other contexts setting this will
@@ -176,19 +197,50 @@ class MapFieldSpec:
 
   key_type: str
   value_type: str
-  name: str
-  number: int
-  description: str | None = None
   arg: Any | provided.ParamAssignment | None = None
 
   def __post_init__(self):
-    if self.number is not None and self.number <= 0:
-      raise ValueError("Field numbers must be positive")
+    super().__post_init__()
     if any(c.isspace() for c in self.key_type):
       raise ValueError(f"Key type '{self.key_type}' cannot contain whitespace")
     if any(c.isspace() for c in self.value_type):
       raise ValueError(
           f"Value type '{self.value_type}' cannot contain whitespace"
+      )
+
+
+@dataclasses.dataclass(kw_only=True, frozen=True)
+class DependencySpec(FieldSpecBase):
+  """Specifies a ResolvedDependency field in a proto message.
+
+  Attributes:
+    repeated: True if the field should be repeated (cannot be combined with
+      'optional').
+    optional: True if the field should be optional (cannot be combined with
+      'repeated').
+    requires: List of interface URIs which the dependency (instance or Asset)
+      must provide. For example
+      "grpc://intrinsic_proto.motion_planning.MotionPlannerService" or
+      "data://intrinsic_proto.perception.v1.PoseEstimationConfig".
+    requires_object: True if an an object from the world is required to satisfy
+      this dependency.
+  """
+
+  repeated: bool = False
+  optional: bool = False
+  requires: list[str] = dataclasses.field(default_factory=lambda: [])
+  requires_object: bool = False
+
+  def __post_init__(self):
+    super().__post_init__()
+    if self.repeated and self.optional:
+      raise ValueError(
+          "A dependency field cannot be repeated and optional at the same time"
+      )
+    if not self.requires and not self.requires_object:
+      raise ValueError(
+          "A dependency field needs to have at least one requirement (via"
+          " 'requires' or 'requires_object')"
       )
 
 
@@ -200,7 +252,7 @@ class MessageSpec:
     fields: The fields in the proto message.
   """
 
-  fields: list[FieldSpec | MapFieldSpec]
+  fields: list[FieldSpec | MapFieldSpec | DependencySpec]
 
 
 class Signature:
@@ -681,7 +733,8 @@ class ProtoBuilder:
       self,
       *specs: MessageSpec | None,
   ) -> list[str]:
-    used_types = set()
+    used_types: set[str] = set()
+    imports_to_add: set[str] = set()
     for spec in specs:
       if spec is not None:
         for field in spec.fields:
@@ -689,15 +742,16 @@ class ProtoBuilder:
             used_types.add(field.type)
           elif isinstance(field, MapFieldSpec):
             used_types.add(field.value_type)
+          elif isinstance(field, DependencySpec):
+            imports_to_add.add(_RESOLVED_DEPENDENCY_FILE)
+            imports_to_add.add(_FIELD_METADATA_FILE)
 
-    if not used_types:
-      return []
+    if used_types:
+      self._load_well_known_types()
 
-    self._load_well_known_types()
-    imports_to_add = set()
-    for used_type in used_types:
-      if used_type in self._well_known_types_imports:
-        imports_to_add.add(self._well_known_types_imports[used_type])
+      for used_type in used_types:
+        if used_type in self._well_known_types_imports:
+          imports_to_add.add(self._well_known_types_imports[used_type])
 
     return [f'import "{imp}";' for imp in sorted(imports_to_add)]
 
@@ -722,6 +776,21 @@ class ProtoBuilder:
             f"map<{field.key_type}, {field.value_type}> {field.name} ="
             f" {field.number};"
         )
+      elif isinstance(field, DependencySpec):
+        if field.repeated:
+          field_line += "repeated "
+        elif field.optional:
+          field_line += "optional "
+        field_line += (
+            f"{_RESOLVED_DEPENDENCY_TYPE} {field.name} = {field.number}"
+            f" [({_FIELD_METADATA_OPTION}).dependency = {{"
+        )
+        for requirement in field.requires:
+          field_line += f' requires: "{requirement}"'
+        if field.requires_object:
+          field_line += " requires_object: {}"
+        field_line += "}];"
+
       lines.append(field_line)
     lines.append("}")
     return lines
@@ -792,7 +861,10 @@ class ProtoBuilder:
     # Check that the passed specs do not define any args
     if parameters is not None:
       for field in parameters.fields:
-        if field.arg is not None:
+        if (
+            isinstance(field, (FieldSpec, MapFieldSpec))
+            and field.arg is not None
+        ):
           raise ValueError(
               f"Parameter field '{field.name}' has arg set. Use"
               " create_signature_with_args() to directly create a"
@@ -800,7 +872,10 @@ class ProtoBuilder:
           )
     if return_value is not None:
       for field in return_value.fields:
-        if field.arg is not None:
+        if (
+            isinstance(field, (FieldSpec, MapFieldSpec))
+            and field.arg is not None
+        ):
           raise ValueError(f"Return value field '{field.name}' has arg set")
 
     if parameters is None and return_value is None:
