@@ -25,18 +25,17 @@ var (
 // makeIconClient is a variable instead of a regular function to allow tests
 // to override it and inject a mock client (e.g., connecting via a Unix domain socket).
 var makeIconClient = func(ctx context.Context) (context.Context, icon.Client, error) {
-	ctx, conn, address, err := clientutils.DialClusterFromInctl(ctx, flags)
+	ctx, conn, _, err := clientutils.DialClusterFromInctl(ctx, flags)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to dial cluster")
 	}
 
-	authCtx := clientutils.AuthInsecureConn(ctx, address, flags.GetFlagProject())
 	if flagInstanceName != "" {
-		authCtx = metadata.AppendToOutgoingContext(authCtx, "x-resource-instance-name", flagInstanceName)
+		ctx = metadata.AppendToOutgoingContext(ctx, "x-resource-instance-name", flagInstanceName)
 	}
 	client := icon.InitClientFromConn(conn)
 
-	return authCtx, client, nil
+	return ctx, client, nil
 }
 
 var iconCmd = cobrautil.ParentOfNestedSubcommands("icon", "Introspect and operate ICON")

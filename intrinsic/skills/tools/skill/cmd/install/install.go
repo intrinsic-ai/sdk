@@ -57,7 +57,7 @@ $ inctl skill install abc/skill.bundle.tar --solution=my-solution
 				return err
 			}
 
-			ctx, conn, address, err := clientutils.DialClusterFromInctl(ctx, flags)
+			ctx, conn, _, err := clientutils.DialClusterFromInctl(ctx, flags)
 			if err != nil {
 				return err
 			}
@@ -93,10 +93,8 @@ $ inctl skill install abc/skill.bundle.tar --solution=my-solution
 			log.Printf("Installing skill %q", id)
 
 			client := iagrpcpb.NewInstalledAssetsClient(conn)
-			authCtx := clientutils.AuthInsecureConn(ctx, address, flags.GetFlagProject())
-
 			// This needs an authorized context to pull from the catalog if not available.
-			op, err := client.CreateInstalledAsset(authCtx, &iapb.CreateInstalledAssetRequest{
+			op, err := client.CreateInstalledAsset(ctx, &iapb.CreateInstalledAssetRequest{
 				Policy: policy,
 				Asset: &iapb.CreateInstalledAssetRequest_Asset{
 					Variant: &iapb.CreateInstalledAssetRequest_Asset_Skill{

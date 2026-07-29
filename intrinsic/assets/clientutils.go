@@ -10,7 +10,6 @@ import (
 	"regexp"
 	"strings"
 
-
 	"intrinsic/assets/baseclientutils"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/config/environments"
@@ -118,11 +117,10 @@ func dialCatalogOptions(ctx context.Context, opts DialCatalogOptions) (context.C
 	}
 
 	optsOpts := getDialContextOptionsOptions{
-		Address:                     address,
-		APIKey:                      opts.APIKey,
-		ClusterProject:              catalogProject,
-		CredOrg:                     opts.Org,
-		SkipCredsForInsecureAddress: false,
+		Address:        address,
+		APIKey:         opts.APIKey,
+		ClusterProject: catalogProject,
+		CredOrg:        opts.Org,
 	}
 	dialCtx, dialOpts, err := getDialContextOptions(ctx, optsOpts)
 	if err != nil {
@@ -223,10 +221,9 @@ type getDialContextOptionsOptions struct {
 	APIKey  string
 	// ClusterProject is the project in which the cluster being contacted is running. Used for
 	// resolving the address that the cluster will use to contact the token exchange service.
-	ClusterProject              string
-	CredOrg                     string
-	CredProject                 string
-	SkipCredsForInsecureAddress bool
+	ClusterProject string
+	CredOrg        string
+	CredProject    string
 }
 
 // getDialContextOptions returns metadata for dialing a gRPC connection to a cloud/on-prem cluster.
@@ -257,11 +254,10 @@ func getDialContextOptions(ctx context.Context, opts getDialContextOptionsOption
 	dialOpts := baseclientutils.BaseDialOptions()
 
 	creds, err := getPerRPCCredentials(ctx, getPerRPCCredentialsOptions{
-		Address:                     opts.Address,
-		APIKey:                      opts.APIKey,
-		ClusterProject:              opts.ClusterProject,
-		CredProject:                 credProject,
-		SkipCredsForInsecureAddress: opts.SkipCredsForInsecureAddress,
+		Address:        opts.Address,
+		APIKey:         opts.APIKey,
+		ClusterProject: opts.ClusterProject,
+		CredProject:    credProject,
 	})
 	if err != nil {
 		return nil, nil, err
@@ -313,16 +309,10 @@ type getPerRPCCredentialsOptions struct {
 	// resolving the address that the cluster will use to contact the token exchange service.
 	ClusterProject string
 	CredProject    string
-	// SkipCredsForInsecureAddress is a flag to skip adding credentials to the connection if the
-	// address is a candidate for an insecure connection.
-	SkipCredsForInsecureAddress bool
 }
 
 func getPerRPCCredentials(ctx context.Context, opts getPerRPCCredentialsOptions) (credentials.PerRPCCredentials, error) {
 	addressIsInsecure := baseclientutils.UseInsecureCredentials(opts.Address) || baseclientutils.IsLocalAddress(opts.Address)
-	if addressIsInsecure && opts.SkipCredsForInsecureAddress {
-		return nil, nil
-	}
 
 	var projectToken *auth.ProjectToken
 	// User-provided api-key.
@@ -381,12 +371,11 @@ func dialConnectionCtx(ctx context.Context, params dialInfoParams) (context.Cont
 	}
 
 	ctx, dialOpts, err := getDialContextOptions(ctx, getDialContextOptionsOptions{
-		Address:                     address,
-		APIKey:                      params.CredToken,
-		ClusterProject:              params.Project,
-		CredOrg:                     params.CredOrg,
-		CredProject:                 params.Project,
-		SkipCredsForInsecureAddress: true,
+		Address:        address,
+		APIKey:         params.CredToken,
+		ClusterProject: params.Project,
+		CredOrg:        params.CredOrg,
+		CredProject:    params.Project,
 	})
 	if err != nil {
 		return ctx, nil, "", fmt.Errorf("cannot get dial context options for cluster: %w", err)
@@ -419,13 +408,6 @@ func remoteAccessErrorContextInterceptor() grpc.UnaryClientInterceptor {
 		}
 		return err
 	}
-}
-
-// AuthInsecureConn returns a context with authentication information if the address is insecure.
-func AuthInsecureConn(ctx context.Context, address string, project string) context.Context {
-	authCtx := ctx
-
-	return authCtx
 }
 
 func resolveClusterAddress(address string, project string) (string, error) {

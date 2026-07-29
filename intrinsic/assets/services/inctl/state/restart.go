@@ -53,17 +53,15 @@ func Command() *cobra.Command {
 				}
 			}
 
-			ctx, conn, address, err := clientutils.DialClusterFromInctl(ctx, flags)
+			ctx, conn, _, err := clientutils.DialClusterFromInctl(ctx, flags)
 			if err != nil {
 				return fmt.Errorf("could not create connection to cluster: %w", err)
 			}
 			defer conn.Close()
 
 			client := systemservicestategrpcpb.NewSystemServiceStateClient(conn)
-			authCtx := clientutils.AuthInsecureConn(ctx, address, flags.GetFlagProject())
-
 			name := args[0]
-			if _, err := client.RestartService(authCtx, &systemservicestatepb.RestartServiceRequest{
+			if _, err := client.RestartService(ctx, &systemservicestatepb.RestartServiceRequest{
 				Name: name,
 			}); err != nil {
 				return fmt.Errorf("could not restart service: %w", err)

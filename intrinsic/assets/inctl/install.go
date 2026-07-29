@@ -86,7 +86,7 @@ func GetCommand() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("failed to add org information to context: %w", err)
 			}
-			ctx, conn, address, err := clientutils.DialClusterFromInctl(ctx, flags)
+			ctx, conn, _, err := clientutils.DialClusterFromInctl(ctx, flags)
 			if err != nil {
 				return err
 			}
@@ -109,7 +109,6 @@ func GetCommand() *cobra.Command {
 				return fmt.Errorf("--registry must be specified if --skip-direct-upload is used")
 			}
 			client := iagrpcpb.NewInstalledAssetsClient(conn)
-			authCtx := clientutils.AuthInsecureConn(ctx, address, flags.GetFlagProject())
 
 			rdProcessor := referenceddata.NewProcessor(
 				assetartifactspb.NewAssetArtifactsClient(conn),
@@ -125,12 +124,12 @@ func GetCommand() *cobra.Command {
 				),
 			}
 
-			asset, err := assetFromTarget(authCtx, target, processor.ProcessFile)
+			asset, err := assetFromTarget(ctx, target, processor.ProcessFile)
 			if err != nil {
 				return err
 			}
 
-			op, err := client.CreateInstalledAsset(authCtx, &iapb.CreateInstalledAssetRequest{
+			op, err := client.CreateInstalledAsset(ctx, &iapb.CreateInstalledAssetRequest{
 				Policy: policy,
 				Asset:  asset,
 			})

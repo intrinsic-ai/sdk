@@ -54,7 +54,6 @@ go_library(
         "//intrinsic/frontend/cloud/api/v1:solutiondiscovery_api_go_proto",
         "//intrinsic/kubernetes/acl:identity",
         "//intrinsic/tools/inctl/auth",
-        "@com_github_golang_glog//:go_default_library",
         "@com_github_google_go_containerregistry//pkg/authn:go_default_library",
         "@com_github_google_go_containerregistry//pkg/v1/google:go_default_library",
         "@com_github_google_go_containerregistry//pkg/v1/remote:go_default_library",

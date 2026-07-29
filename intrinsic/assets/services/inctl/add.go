@@ -75,7 +75,7 @@ $ inctl service add ai.intrinsic.basler_camera \
 				}
 			}
 
-			ctx, conn, address, err := clientutils.DialClusterFromInctl(ctx, flags)
+			ctx, conn, _, err := clientutils.DialClusterFromInctl(ctx, flags)
 			if err != nil {
 				return fmt.Errorf("could not create connection to cluster: %w", err)
 			}
@@ -91,10 +91,8 @@ $ inctl service add ai.intrinsic.basler_camera \
 
 			log.Printf("Requesting %q be added as a service instance", name)
 			client := adgrpcpb.NewAssetDeploymentServiceClient(conn)
-			authCtx := clientutils.AuthInsecureConn(ctx, address, flags.GetFlagProject())
-
 			// This needs an authorized context to pull from the catalog if not available.
-			op, err := client.CreateResourceFromCatalog(authCtx, &adpb.CreateResourceFromCatalogRequest{
+			op, err := client.CreateResourceFromCatalog(ctx, &adpb.CreateResourceFromCatalogRequest{
 				TypeIdVersion: idVersion,
 				Configuration: &adpb.ResourceInstanceConfiguration{
 					Name:          name,
