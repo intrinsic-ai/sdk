@@ -28,6 +28,7 @@ message MotionPlannerServiceConfig {
   intrinsic_proto.assets.v1.ResolvedDependency intrinsic_runtime = 1
       [(intrinsic_proto.assets.field_metadata).dependency = {
         requires: "grpc://intrinsic_proto.assets.v1.InstalledAssetsReader"
+        requires: "grpc://intrinsic_proto.data_logger.DataLogger"
       }];
 }
 
