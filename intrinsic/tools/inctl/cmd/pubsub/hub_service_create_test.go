@@ -25,6 +25,10 @@ import (
 	pubsubtesting "intrinsic/tools/inctl/cmd/pubsub/testing"
 )
 
+const (
+	testHubServiceVersion = "0.0.1"
+)
+
 func TestHubServiceCreateRunE(t *testing.T) {
 	tests := []struct {
 		name                string
@@ -147,7 +151,7 @@ func TestHubServiceCreateRunE(t *testing.T) {
 					// Simulate already installed with the correct version so it bypasses install and goes to create resource directly
 					return &iagrpcpb.InstalledAsset{
 						Metadata: &metadatapb.Metadata{
-							IdVersion: &idpb.IdVersion{Version: defaultHubServiceVersion},
+							IdVersion: &idpb.IdVersion{Version: testHubServiceVersion},
 						},
 					}, nil
 				}
@@ -228,7 +232,7 @@ func TestHubServiceCreateRunE(t *testing.T) {
 				s.GetInstalledAssetFn = func(ctx context.Context, in *iagrpcpb.GetInstalledAssetRequest) (*iagrpcpb.InstalledAsset, error) {
 					return &iagrpcpb.InstalledAsset{
 						Metadata: &metadatapb.Metadata{
-							IdVersion: &idpb.IdVersion{Version: defaultHubServiceVersion},
+							IdVersion: &idpb.IdVersion{Version: testHubServiceVersion},
 						},
 					}, nil
 				}
@@ -248,7 +252,7 @@ func TestHubServiceCreateRunE(t *testing.T) {
 				s.GetInstalledAssetFn = func(ctx context.Context, in *iagrpcpb.GetInstalledAssetRequest) (*iagrpcpb.InstalledAsset, error) {
 					return &iagrpcpb.InstalledAsset{
 						Metadata: &metadatapb.Metadata{
-							IdVersion: &idpb.IdVersion{Version: defaultHubServiceVersion},
+							IdVersion: &idpb.IdVersion{Version: testHubServiceVersion},
 						},
 					}, nil
 				}
@@ -291,7 +295,7 @@ func TestHubServiceCreateRunE(t *testing.T) {
 						"testcluster",
 						hubServicePackage,
 						hubServiceName),
-					requestedVersion: defaultHubServiceVersion,
+					requestedVersion: testHubServiceVersion,
 				},
 				spokeEndpoints: tt.spokeWorkcells,
 			}
@@ -375,7 +379,7 @@ func TestMakeConfig(t *testing.T) {
 						"test-hub-workcell",
 						hubServicePackage,
 						hubServiceName),
-					requestedVersion: defaultHubServiceVersion,
+					requestedVersion: testHubServiceVersion,
 				},
 				spokeEndpoints: tt.spokeEndpoints,
 			}

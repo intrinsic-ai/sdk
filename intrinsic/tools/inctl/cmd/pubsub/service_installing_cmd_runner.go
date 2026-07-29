@@ -5,13 +5,21 @@ package pubsub
 import (
 	"context"
 	"fmt"
+	"io"
 
+	"intrinsic/assets/clientutils"
+	"intrinsic/assets/cmdutils"
+	"intrinsic/assets/idutils"
+
+	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 	anypb "google.golang.org/protobuf/types/known/anypb"
 
-	"intrinsic/assets/idutils"
+	acgrpcpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_proto"
+	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_proto"
 	adpb "intrinsic/assets/proto/asset_deployment_go_proto"
 	iagrpcpb "intrinsic/assets/proto/installed_assets_go_proto"
+	viewpb "intrinsic/assets/proto/view_go_proto"
 )
 
 // ServiceInstallingCmdRunner is the base class for command runners
@@ -136,4 +144,40 @@ func (r *ServiceInstallingCmdRunner) updateInstalledServiceInstances(ctx context
 		return fmt.Errorf("failed to marshal config: %w", err)
 	}
 	return r.addServiceInstance(ctx, wrappedConfig)
+}
+
+// getDefaultVersion fetches the default version of the given service from the asset catalog.
+func getDefaultVersion(ctx context.Context, cmdFlags *cmdutils.CmdFlags, outputWriter io.Writer, packageName, serviceName string) (string, error) {
+	fmt.Fprintf(outputWriter, "Connecting to the catalog.\n")
+	ctx, conn, err := clientutils.DialCatalogFromInctl(ctx, cmdFlags)
+	if err != nil {
+		return "", err
+	}
+	defer conn.Close()
+
+	return getDefaultVersionFromCatalog(ctx, conn, outputWriter, packageName, serviceName)
+}
+
+// getDefaultVersion fetches the default version of the given service from the asset catalog.
+func getDefaultVersionFromCatalog(ctx context.Context, catalogConn *grpc.ClientConn, outputWriter io.Writer, packageName, serviceName string) (string, error) {
+	fmt.Fprintf(outputWriter, "Checking which version of %v is the default.\n", serviceName)
+	assetIDProto, err := idutils.IDProtoFrom(packageName, serviceName)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate asset id proto: %w", err)
+	}
+
+	client := acgrpcpb.NewAssetCatalogClient(catalogConn)
+	resp, err := client.GetAsset(ctx, &acgrpcpb.GetAssetRequest{
+		AssetId: &acpb.GetAssetRequest_Id{
+			Id: assetIDProto,
+		},
+		View: viewpb.AssetViewType_ASSET_VIEW_TYPE_VERSIONS,
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to fetch %v from catalog: %w", serviceName, err)
+	}
+
+	result := resp.Metadata.IdVersion.Version
+	fmt.Fprintf(outputWriter, "The default version is %v.\n", result)
+	return result, nil
 }

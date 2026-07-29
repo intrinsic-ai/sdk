@@ -65,6 +65,22 @@ func (e *StartForwardingCmdEnvironment) RunE(cmd *cobra.Command, _ []string) err
 		return fmt.Errorf("could not get flags: %w", err)
 	}
 
+	versionToInstall := e.cmdFlags.GetString(keyForwardingServiceVersion)
+	if len(versionToInstall) == 0 {
+		versionToInstall, err = getDefaultVersion(
+			ctx,
+			e.cmdFlags,
+			cmd.OutOrStdout(),
+			forwardingServicePackage,
+			forwardingServiceName)
+		if err != nil {
+			return fmt.Errorf(
+				"failed to determine which version of %v to install: %w",
+				hubServiceName,
+				err)
+		}
+	}
+
 	runner := &StartForwardingCmdRunner{
 		ServiceInstallingCmdRunner: ServiceInstallingCmdRunner{
 			CmdRunnerBase: *newCmdRunnerBase(
@@ -74,7 +90,7 @@ func (e *StartForwardingCmdEnvironment) RunE(cmd *cobra.Command, _ []string) err
 				forwardingServicePackage,
 				forwardingServiceName,
 			),
-			requestedVersion: e.cmdFlags.GetString(keyForwardingServiceVersion),
+			requestedVersion: versionToInstall,
 		},
 		topics:       e.cmdFlags.GetStringSlice(keyForwardedTopics),
 		kvStorePaths: e.cmdFlags.GetStringSlice(keyForwardedKvStorePaths),
@@ -97,7 +113,8 @@ func NewStartForwardingCmd() *cobra.Command {
 	flags.SetCommand(cmd)
 
 	flags.AddFlagsAddressClusterSolution()
-	flags.AddFlagsProjectOrg()
+	flags.AddFlagOrganizationOptional()
+
 	flags.StringSlice(
 		keyForwardedTopics,
 		[]string{},
@@ -108,10 +125,8 @@ func NewStartForwardingCmd() *cobra.Command {
 		"List of KV store paths to forward")
 	flags.OptionalString(
 		keyForwardingServiceVersion,
-		defaultForwardingServiceVersion,
-		fmt.Sprintf(
-			"Version of the service asset to install. The default value is %v",
-			defaultForwardingServiceVersion))
+		"",
+		"Version of the service asset to install. If not specified, the current default version will be installed.")
 
 	return cmd
 }

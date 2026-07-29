@@ -123,6 +123,22 @@ func (e *hubServiceCreateCmdEnvironment) RunE(cmd *cobra.Command, _ []string) er
 		return fmt.Errorf("could not get flags: %w", err)
 	}
 
+	versionToInstall := e.cmdFlags.GetString(keyHubServiceVersion)
+	if len(versionToInstall) == 0 {
+		versionToInstall, err = getDefaultVersion(
+			ctx,
+			e.cmdFlags,
+			cmd.OutOrStdout(),
+			hubServicePackage,
+			hubServiceName)
+		if err != nil {
+			return fmt.Errorf(
+				"failed to determine which version of %v to install: %w",
+				hubServiceName,
+				err)
+		}
+	}
+
 	runner := &HubServiceCreateCmdRunner{
 		ServiceInstallingCmdRunner: ServiceInstallingCmdRunner{
 			CmdRunnerBase: *newCmdRunnerBase(
@@ -131,7 +147,7 @@ func (e *hubServiceCreateCmdEnvironment) RunE(cmd *cobra.Command, _ []string) er
 				cluster,
 				hubServicePackage,
 				hubServiceName),
-			requestedVersion: e.cmdFlags.GetString(keyHubServiceVersion),
+			requestedVersion: versionToInstall,
 		},
 		spokeEndpoints: e.cmdFlags.GetStringSlice(keySpokeEndpoints),
 	}
@@ -154,17 +170,16 @@ func NewHubServiceCreateCmd() *cobra.Command {
 	flags.SetCommand(cmd)
 
 	flags.AddFlagsAddressClusterSolution()
-	flags.AddFlagsProjectOrg()
+	flags.AddFlagOrganizationOptional()
+
 	flags.StringSlice(
 		keySpokeEndpoints,
 		[]string{},
 		"Spoke endpoint specifications (<workcell_name>@{local|remote|url})")
 	flags.OptionalString(
 		keyHubServiceVersion,
-		defaultHubServiceVersion,
-		fmt.Sprintf(
-			"Version of the service asset to install. The default value is %v",
-			defaultHubServiceVersion))
+		"",
+		"Version of the service asset to install. If not specified, the current default version will be installed.")
 
 	return cmd
 }

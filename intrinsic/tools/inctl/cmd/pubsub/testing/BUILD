@@ -7,6 +7,7 @@ package(default_visibility = ["//visibility:public"])
 go_library(
     name = "testing",
     srcs = [
+        "fake_asset_catalog_server.go",
         "fake_asset_deployment_server.go",
         "fake_asset_instances_server.go",
         "fake_installed_assets_server.go",
@@ -14,6 +15,7 @@ go_library(
     ],
     importpath = "intrinsic/tools/inctl/cmd/pubsub/testing",
     deps = [
+        "//intrinsic/assets/catalog/proto/v1:asset_catalog_go_proto",
         "//intrinsic/assets/proto:asset_deployment_go_proto",
         "//intrinsic/assets/proto:installed_assets_go_proto",
         "//intrinsic/assets/proto/v1:asset_instances_go_proto",

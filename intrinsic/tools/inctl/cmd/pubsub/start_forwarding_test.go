@@ -21,6 +21,10 @@ import (
 	pubsubtesting "intrinsic/tools/inctl/cmd/pubsub/testing"
 )
 
+const (
+	testForwardingServiceVersion = "0.0.1"
+)
+
 func TestStartForwarding(t *testing.T) {
 	tests := []struct {
 		name                string
@@ -201,7 +205,7 @@ func TestStartForwarding(t *testing.T) {
 						"testcluster",
 						forwardingServicePackage,
 						forwardingServiceName),
-					requestedVersion: defaultForwardingServiceVersion,
+					requestedVersion: testForwardingServiceVersion,
 				},
 				topics:       tt.topics,
 				kvStorePaths: tt.kvStorePaths,

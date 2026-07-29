@@ -22,13 +22,11 @@ import (
 )
 
 const (
-	hubServicePackage        = "ai.intrinsic"
-	hubServiceName           = "line_orchestration_relay"
-	defaultHubServiceVersion = "0.0.1"
+	hubServicePackage = "ai.intrinsic"
+	hubServiceName    = "line_orchestration_relay"
 
-	forwardingServicePackage        = "ai.intrinsic"
-	forwardingServiceName           = "line_orchestration_forwarder"
-	defaultForwardingServiceVersion = "0.0.1"
+	forwardingServicePackage = "ai.intrinsic"
+	forwardingServiceName    = "line_orchestration_forwarder"
 
 	listAssetInstancesPageSize = 200
 )
