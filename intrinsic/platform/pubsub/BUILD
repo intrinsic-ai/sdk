@@ -69,6 +69,28 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "pubsub_ros",
+    srcs = ["pubsub_ros.cc"],
+    hdrs = ["pubsub_ros.h"],
+    copts = [
+        "-fexceptions",
+    ],
+    features = ["-use_header_modules"],
+    deps = [
+        ":pubsub",
+        "//intrinsic/middleware/zenoh:imw_zenoh",
+        "//intrinsic/platform/pubsub/zenoh_util:zenoh_handle",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/synchronization",
+        "@abseil-cpp//absl/time",
+        "@abseil-cpp//absl/types:span",
+        "@ros2_rclcpp//:rclcpp",
+    ],
+)
+
 # PubSub API library. The user-facing API providing access to
 # publish-subscribe system.
 cc_library(

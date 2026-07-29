@@ -164,10 +164,12 @@ bazel_dep(name = "boringssl", version = "0.20260713.0")
 bazel_dep(name = "cel-cpp", version = "0.14.0", repo_name = "com_google_cel_cpp")
 bazel_dep(name = "cel-spec", version = "0.25.1", repo_name = "com_google_cel_spec")
 bazel_dep(name = "ceres-solver", version = "2.2.0", repo_name = "com_google_ceres_solver")
+bazel_dep(name = "com_github_mvukov_rules_ros2", version = "0.0.0-20260118-78d85ff")
 bazel_dep(name = "dumb-init", version = "1.2.5")
 bazel_dep(name = "eigen", version = "5.0.1.bcr.2", repo_name = "com_gitlab_libeigen_eigen")
 bazel_dep(name = "etherlab-ethercat", version = "1.6.7.bcr.1")
 bazel_dep(name = "flatbuffers", version = "25.12.19", repo_name = "com_github_google_flatbuffers")
+bazel_dep(name = "fmt", version = "12.2.0")
 bazel_dep(name = "fuzztest", version = "20250805.0", repo_name = "com_google_fuzztest")
 bazel_dep(name = "google_benchmark", version = "1.9.5", repo_name = "com_google_benchmark")
 bazel_dep(name = "google_cloud_cpp", version = "3.0.0-rc1")
@@ -188,10 +190,13 @@ bazel_dep(name = "protobuf", version = "32.1", repo_name = "com_google_protobuf"
 bazel_dep(name = "re2", version = "2024-07-02.bcr.1", repo_name = "com_googlesource_code_re2")
 bazel_dep(name = "rules_license", version = "1.0.0")
 bazel_dep(name = "rules_pkg", version = "1.2.0")
+bazel_dep(name = "rules_swift", version = "2.1.1")  # bumping transitive dependency to resolve compatibility level conflict with flatbuffers
 bazel_dep(name = "sdformat", version = "16.1.0")
+bazel_dep(name = "soplex", version = "7.1.4.bcr.5")  # bumping transitive dependency to update boost to 1.89.0
 bazel_dep(name = "tar.bzl", version = "0.10.7")
 bazel_dep(name = "tcmalloc", version = "0.0.0-20250927-12f2552")
 bazel_dep(name = "tinyxml2", version = "10.0.0")
+bazel_dep(name = "websocketpp", version = "0.8.2.bcr.6")  # bumping transitive dependency to update boost to 1.89.0
 bazel_dep(name = "zenoh-c", version = "1.7.2.bcr.1")
 bazel_dep(name = "zenoh-cpp", version = "1.7.2.bcr.1")
 
@@ -258,6 +263,31 @@ use_repo(
 
 use_repo(
     non_module_deps,
+)
+
+# Needed to build rules_ros2 messages and tf2
+extension_for_rules_ros2 = use_extension("@com_github_mvukov_rules_ros2//ros2:extensions.bzl", "non_module_deps")
+use_repo(
+    extension_for_rules_ros2,
+    "ros2_common_interfaces",
+    "ros2_geometry2",
+    "ros2_rcl_interfaces",
+    "ros2_rclcpp",
+    "ros2_rclpy",
+    "ros2_rcutils",
+    "ros2_rmw",
+    "ros2_rosbag2",
+    "ros2_rosidl",
+    "ros2_rosidl_typesupport",
+)
+
+# Temporary patch to make rclpy compatible with our LLVM toolchain.
+# Can be removed when https://github.com/bazelbuild/bazel-central-registry/pull/9746
+# is merged and the new version is available in the BCR.
+single_version_override(
+    module_name = "com_github_mvukov_rules_ros2",
+    patch_strip = 1,
+    patches = ["//third_party/rules_ros2:rules_ros2_atomic.patch"],
 )
 
 single_version_override(
