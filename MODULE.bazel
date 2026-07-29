@@ -190,7 +190,7 @@ bazel_dep(name = "protobuf", version = "32.1", repo_name = "com_google_protobuf"
 bazel_dep(name = "re2", version = "2024-07-02.bcr.1", repo_name = "com_googlesource_code_re2")
 bazel_dep(name = "rules_license", version = "1.0.0")
 bazel_dep(name = "rules_pkg", version = "1.2.0")
-bazel_dep(name = "rules_swift", version = "2.1.1")  # bumping transitive dependency to resolve compatibility level conflict with flatbuffers
+bazel_dep(name = "rules_swift", version = "2.9.0")  # bumping transitive dependency to resolve compatibility level conflict with flatbuffers
 bazel_dep(name = "sdformat", version = "16.1.0")
 bazel_dep(name = "soplex", version = "7.1.4.bcr.5")  # bumping transitive dependency to update boost to 1.89.0
 bazel_dep(name = "tar.bzl", version = "0.10.7")
