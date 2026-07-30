@@ -5,7 +5,6 @@ package create
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"intrinsic/assets/cmdutils"
@@ -114,16 +113,16 @@ func createSolution(ctx context.Context, svsC solutionversionservicepb.SolutionV
 }
 
 func printResult(cmd *cobra.Command, result *createResult) error {
+	prtr, err := printer.NewPrinterFromCommand(cmd)
+	if err != nil {
+		return err
+	}
 	ot := printer.GetFlagOutputType(cmd)
 	if ot == printer.OutputTypeJSON {
-		b, err := json.Marshal(result)
-		if err != nil {
-			return err
-		}
-		cmd.Println(string(b))
+		prtr.Println(result)
 	} else {
-		color.C.Blue().Printf("Successfully created version branch %q with ID %q\n", result.VersionBranch.DisplayName, result.VersionBranch.ID)
-		color.C.Blue().Printf("Successfully created deployment branch %q with ID %q\n", result.DeploymentBranch.DisplayName, result.DeploymentBranch.ID)
+		color.C.Blue().Fprintf(cmd.OutOrStdout(), "Successfully created version branch %q with ID %q\n", result.VersionBranch.DisplayName, result.VersionBranch.ID)
+		color.C.Blue().Fprintf(cmd.OutOrStdout(), "Successfully created deployment branch %q with ID %q\n", result.DeploymentBranch.DisplayName, result.DeploymentBranch.ID)
 	}
 	return nil
 }
