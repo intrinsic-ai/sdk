@@ -16,13 +16,13 @@ from intrinsic.assets.install import installed_assets_client
 from intrinsic.assets.processes.proto import process_asset_pb2
 from intrinsic.assets.proto import asset_type_pb2
 from intrinsic.assets.proto import installed_assets_pb2
-from intrinsic.assets.proto import metadata_pb2
 from intrinsic.assets.proto import view_pb2
 from intrinsic.executive.proto import behavior_tree_pb2
 from intrinsic.frontend.solution_service.proto import solution_service_pb2
 from intrinsic.frontend.solution_service.proto import solution_service_pb2_grpc
 from intrinsic.solutions import behavior_tree
 from intrinsic.solutions import providers
+from intrinsic.solutions.internal import referenced_assets
 from intrinsic.util.grpc import error_handling
 
 _INSTALLED_ASSETS_MAX_PAGE_SIZE = 200
@@ -32,21 +32,15 @@ _WAIT_OPERATION_TIMEOUT = duration_pb2.Duration(seconds=10)
 
 @dataclasses.dataclass
 class _Process:
-  metadata_proto: metadata_pb2.Metadata | None
-  behavior_tree_proto: behavior_tree_pb2.BehaviorTree
+  asset_proto: process_asset_pb2.ProcessAsset
 
   def create_behavior_tree(self) -> behavior_tree.BehaviorTree:
-    if self.metadata_proto is None:
+    if not self.asset_proto.HasField('metadata'):
       return behavior_tree.BehaviorTree.create_from_proto(
-          self.behavior_tree_proto
+          self.asset_proto.behavior_tree
       )
     else:
-      return behavior_tree.BehaviorTree.create_from_proto(
-          process_asset_pb2.ProcessAsset(
-              metadata=self.metadata_proto,
-              behavior_tree=self.behavior_tree_proto,
-          )
-      )
+      return behavior_tree.BehaviorTree.create_from_proto(self.asset_proto)
 
 
 class Processes(providers.ProcessProvider):
@@ -131,12 +125,11 @@ class Processes(providers.ProcessProvider):
   def _get_process_asset(self, identifier: str) -> _Process | None:
     try:
       asset = self._installed_assets.get_installed_asset(identifier)
-      return _Process(
-          metadata_proto=asset.deployment_data.process.process.metadata,
-          behavior_tree_proto=(
-              asset.deployment_data.process.process.behavior_tree
-          ),
-      )
+      pa = asset.deployment_data.process.process
+      # Use metadata from the `InstalledAsset` as metadata in the deployment
+      # data may be less complete (e.g., omits the version).
+      pa.metadata.CopyFrom(asset.metadata)
+      return _Process(asset_proto=pa)
     except grpc.RpcError as e:
       if hasattr(e, 'code') and e.code() == grpc.StatusCode.NOT_FOUND:
         return None
@@ -148,7 +141,9 @@ class Processes(providers.ProcessProvider):
       bt_proto = self._solution.GetBehaviorTree(
           solution_service_pb2.GetBehaviorTreeRequest(name=identifier)
       )
-      return _Process(metadata_proto=None, behavior_tree_proto=bt_proto)
+      return _Process(
+          asset_proto=process_asset_pb2.ProcessAsset(behavior_tree=bt_proto),
+      )
     except grpc.RpcError as e:
       if cast(grpc.Call, e).code() == grpc.StatusCode.NOT_FOUND:
         return None
@@ -195,14 +190,11 @@ class Processes(providers.ProcessProvider):
       if keys_only:
         result[id_str] = None
       else:
-        result[id_str] = _Process(
-            metadata_proto=(
-                installed_asset.deployment_data.process.process.metadata
-            ),
-            behavior_tree_proto=(
-                installed_asset.deployment_data.process.process.behavior_tree
-            ),
-        )
+        pa = installed_asset.deployment_data.process.process
+        # Use metadata from the `InstalledAsset` as metadata in the deployment
+        # data may be less complete (e.g., omits the version).
+        pa.metadata.CopyFrom(installed_asset.metadata)
+        result[id_str] = _Process(asset_proto=pa)
 
     return result
 
@@ -232,7 +224,9 @@ class Processes(providers.ProcessProvider):
         result[bt.name] = (
             None
             if keys_only
-            else _Process(metadata_proto=None, behavior_tree_proto=bt)
+            else _Process(
+                asset_proto=process_asset_pb2.ProcessAsset(behavior_tree=bt),
+            )
         )
       if not response.next_page_token:
         break
@@ -261,13 +255,24 @@ class Processes(providers.ProcessProvider):
     bt_for_saving = bt.proto
     bt_for_saving.description.ClearField('id_version')
 
+    process_for_saving = process_asset_pb2.ProcessAsset(
+        metadata=metadata_for_saving,
+        behavior_tree=bt_for_saving,
+        assets=bt.referenced_assets,
+    )
+
+    referenced_assets.update_referenced_assets(
+        process_for_saving,
+        self._installed_assets,
+    )
+
+    # Propagate the updated list back to the BehaviorTree instance.
+    bt.referenced_assets = dict(process_for_saving.assets)
+
     try:
       saved_asset = self._installed_assets.create_installed_asset(
           asset=installed_assets_pb2.CreateInstalledAssetRequest.Asset(
-              process=process_asset_pb2.ProcessAsset(
-                  metadata=metadata_for_saving,
-                  behavior_tree=bt_for_saving,
-              ),
+              process=process_for_saving,
           ),
       )
     except installed_assets_client.OperationError as e:

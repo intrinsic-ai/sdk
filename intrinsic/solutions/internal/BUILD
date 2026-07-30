@@ -15,6 +15,7 @@ py_library(
     name = "process_providing",
     srcs = ["process_providing.py"],
     deps = [
+        ":referenced_assets",
         "//intrinsic/assets:id_utils_py",
         "//intrinsic/assets/install:installed_assets_client",
         "//intrinsic/assets/processes/proto:process_asset_py_pb2",
@@ -39,6 +40,7 @@ py_test(
     deps = [
         ":behavior_call",
         ":process_providing",
+        ":referenced_assets",
         "//intrinsic/assets/install:installed_assets_client",
         "//intrinsic/assets/processes/proto:process_asset_py_pb2",
         "//intrinsic/assets/proto:asset_type_py_pb2",
@@ -46,6 +48,7 @@ py_test(
         "//intrinsic/assets/proto:installed_assets_py_pb2",
         "//intrinsic/assets/proto:metadata_py_pb2",
         "//intrinsic/assets/proto:view_py_pb2",
+        "//intrinsic/assets/proto/v1:reference_py_pb2",
         "//intrinsic/executive/proto:behavior_tree_py_pb2",
         "//intrinsic/frontend/solution_service/proto:solution_service_py_pb2",
         "//intrinsic/skills/proto:skills_py_pb2",
@@ -55,6 +58,46 @@ py_test(
         "@com_google_googleapis//google/rpc:code_py_proto",
         "@com_google_googleapis//google/rpc:status_py_proto",
         "@com_google_protobuf//:protobuf_python",
+    ],
+)
+
+py_library(
+    name = "referenced_assets",
+    srcs = ["referenced_assets.py"],
+    deps = [
+        "//intrinsic/assets:id_utils_py",
+        "//intrinsic/assets/install:installed_assets_client",
+        "//intrinsic/assets/processes/proto:process_asset_py_pb2",
+        "//intrinsic/assets/proto:asset_type_py_pb2",
+        "//intrinsic/assets/proto:installed_assets_py_pb2",
+        "//intrinsic/assets/proto:view_py_pb2",
+        "//intrinsic/assets/proto/v1:reference_py_pb2",
+        "//intrinsic/executive/proto:behavior_tree_py_pb2",
+        "//intrinsic/executive/py:behavior_tree_visitor",
+        "//intrinsic/solutions:behavior_tree",
+        requirement("grpcio"),
+    ],
+)
+
+py_test(
+    name = "referenced_assets_test",
+    srcs = ["referenced_assets_test.py"],
+    deps = [
+        ":referenced_assets",
+        "//intrinsic/assets:id_utils_py",
+        "//intrinsic/assets/install:installed_assets_client",
+        "//intrinsic/assets/processes/proto:process_asset_py_pb2",
+        "//intrinsic/assets/proto:asset_type_py_pb2",
+        "//intrinsic/assets/proto:id_py_pb2",
+        "//intrinsic/assets/proto:installed_assets_py_pb2",
+        "//intrinsic/assets/proto:metadata_py_pb2",
+        "//intrinsic/assets/proto:view_py_pb2",
+        "//intrinsic/assets/proto/v1:reference_py_pb2",
+        "//intrinsic/executive/proto:behavior_call_py_pb2",
+        "//intrinsic/executive/proto:behavior_tree_py_pb2",
+        "//intrinsic/solutions:behavior_tree",
+        requirement("grpcio"),
+        "@com_google_absl_py//absl/testing:absltest",
     ],
 )
 

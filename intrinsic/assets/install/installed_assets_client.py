@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 import logging
 
 from google.longrunning import operations_pb2
@@ -108,6 +109,31 @@ class InstalledAssetsClient:
             id=_to_id_proto(id), view=view
         )
     )
+
+  def batch_get_installed_assets(
+      self,
+      ids: Iterable[str | id_pb2.Id],
+      view: view_pb2.AssetViewType = view_pb2.AssetViewType.ASSET_VIEW_TYPE_FULL,
+  ) -> list[installed_assets_pb2.InstalledAsset]:
+    """Calls the BatchGetInstalledAssets method of the InstalledAssets service.
+
+    Args:
+      ids: The Asset IDs to get.
+      view: The view of the Assets to return.
+
+    Returns:
+      The list of installed Assets.
+    """
+    id_list = [_to_id_proto(asset_id) for asset_id in ids]
+    if not id_list:
+      return []
+
+    response = self._batch_get_installed_assets_with_retry(
+        installed_assets_pb2.BatchGetInstalledAssetsRequest(
+            ids=id_list, view=view
+        )
+    )
+    return list(response.installed_assets)
 
   def list_all_installed_assets(
       self,
@@ -238,6 +264,13 @@ class InstalledAssetsClient:
       request: installed_assets_pb2.GetInstalledAssetRequest,
   ) -> installed_assets_pb2.InstalledAsset:
     return self._installed_assets.GetInstalledAsset(request)
+
+  @error_handling.retry_on_grpc_unavailable
+  def _batch_get_installed_assets_with_retry(
+      self,
+      request: installed_assets_pb2.BatchGetInstalledAssetsRequest,
+  ) -> installed_assets_pb2.BatchGetInstalledAssetsResponse:
+    return self._installed_assets.BatchGetInstalledAssets(request)
 
   @error_handling.retry_on_grpc_unavailable
   def _list_installed_assets_with_retry(

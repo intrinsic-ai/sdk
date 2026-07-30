@@ -133,6 +133,68 @@ class InstalledAssetsClientTest(parameterized.TestCase):
 
     self.assertEqual(e.exception.code(), grpc.StatusCode.PERMISSION_DENIED)
 
+  def test_batch_get_installed_assets(self):
+    proto1 = _installed_asset_with_id("ai.intrinsic.process1")
+    proto2 = _installed_asset_with_id("ai.intrinsic.process2")
+    self._installed_assets.BatchGetInstalledAssets.return_value = (
+        installed_assets_pb2.BatchGetInstalledAssetsResponse(
+            installed_assets=[proto1, proto2]
+        )
+    )
+
+    result = self._client.batch_get_installed_assets([
+        "ai.intrinsic.process1",
+        id_pb2.Id(package="ai.intrinsic", name="process2"),
+    ])
+
+    self.assertEqual(result, [proto1, proto2])
+    self._installed_assets.BatchGetInstalledAssets.assert_called_once_with(
+        installed_assets_pb2.BatchGetInstalledAssetsRequest(
+            ids=[
+                id_pb2.Id(package="ai.intrinsic", name="process1"),
+                id_pb2.Id(package="ai.intrinsic", name="process2"),
+            ],
+            view=view_pb2.AssetViewType.ASSET_VIEW_TYPE_FULL,
+        )
+    )
+
+  def test_batch_get_installed_assets_empty_ids(self):
+    result = self._client.batch_get_installed_assets([])
+
+    self.assertEqual(result, [])
+    self._installed_assets.BatchGetInstalledAssets.assert_not_called()
+
+  def test_batch_get_installed_assets_with_view(self):
+    proto = _installed_asset_with_id("ai.intrinsic.process")
+    self._installed_assets.BatchGetInstalledAssets.return_value = (
+        installed_assets_pb2.BatchGetInstalledAssetsResponse(
+            installed_assets=[proto]
+        )
+    )
+
+    result = self._client.batch_get_installed_assets(
+        ["ai.intrinsic.process"],
+        view=view_pb2.AssetViewType.ASSET_VIEW_TYPE_DETAIL,
+    )
+
+    self.assertEqual(result, [proto])
+    self._installed_assets.BatchGetInstalledAssets.assert_called_once_with(
+        installed_assets_pb2.BatchGetInstalledAssetsRequest(
+            ids=[id_pb2.Id(package="ai.intrinsic", name="process")],
+            view=view_pb2.AssetViewType.ASSET_VIEW_TYPE_DETAIL,
+        )
+    )
+
+  def test_batch_get_installed_assets_returns_error(self):
+    self._installed_assets.BatchGetInstalledAssets.side_effect = _MockGrpcError(
+        code=grpc.StatusCode.PERMISSION_DENIED
+    )
+
+    with self.assertRaises(grpc.RpcError) as e:
+      self._client.batch_get_installed_assets(["ai.intrinsic.process"])
+
+    self.assertEqual(e.exception.code(), grpc.StatusCode.PERMISSION_DENIED)
+
   def test_list_installed_assets(self):
     proto1 = _installed_asset_with_id("ai.intrinsic.process1")
     proto2 = _installed_asset_with_id("ai.intrinsic.process2")

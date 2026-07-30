@@ -17,19 +17,22 @@ from intrinsic.assets.proto import id_pb2
 from intrinsic.assets.proto import installed_assets_pb2
 from intrinsic.assets.proto import metadata_pb2
 from intrinsic.assets.proto import view_pb2
+from intrinsic.assets.proto.v1 import reference_pb2
+from intrinsic.executive.proto import behavior_call_pb2
 from intrinsic.executive.proto import behavior_tree_pb2
 from intrinsic.frontend.solution_service.proto import solution_service_pb2
 from intrinsic.skills.proto import skills_pb2
 from intrinsic.solutions import behavior_tree
 from intrinsic.solutions.internal import behavior_call
 from intrinsic.solutions.internal import process_providing
+from intrinsic.solutions.internal import referenced_assets
 
 
 def _behavior_tree_with_name(name: str):
   bt = behavior_tree_pb2.BehaviorTree()
   bt.name = name
-  bt.root.task.call_behavior.skill_id = "ai.intrinsic.skill-0"
-  bt.root.name = "ai.intrinsic.skill-0"
+  bt.root.task.call_behavior.skill_id = "ai.intrinsic.skill_0"
+  bt.root.name = "ai.intrinsic.skill_0"
   bt.root.id = 1
   bt.root.state = behavior_tree_pb2.BehaviorTree.State.ACCEPTED
   return bt
@@ -65,7 +68,7 @@ def _installed_asset_with_id(
 
 def _default_task() -> behavior_tree.Task:
   return behavior_tree.Task(
-      behavior_call.Action(skill_id="ai.intrinsic.skill-0")
+      behavior_call.Action(skill_id="ai.intrinsic.skill_0")
   )
 
 
@@ -92,6 +95,8 @@ class ProcessProvidingTest(absltest.TestCase):
             next_page_token=None,
         )
     )
+    self._installed_assets.list_all_installed_assets.return_value = []
+    self._installed_assets.batch_get_installed_assets.return_value = []
 
   # Tests keys(), items(), values(), __iter__() at the same time.
   def test_iterables_empty(self):
@@ -575,6 +580,234 @@ class ProcessProvidingTest(absltest.TestCase):
     cause = e.exception.__cause__
     self.assertIsInstance(cause, RuntimeError)
     self.assertIn("some error", str(cause))
+
+  def test_save_process_asset_populates_referenced_assets(self):
+    bt_proto = behavior_tree_pb2.BehaviorTree(
+        name="My tree",
+        description=skills_pb2.Skill(
+            id="ai.intrinsic.my_process",
+            id_version="ai.intrinsic.my_process.0.0.1",
+            skill_name="ai.intrinsic.my_process",
+            package_name="ai.intrinsic",
+            display_name="My tree",
+        ),
+        root=behavior_tree_pb2.BehaviorTree.Node(
+            task=behavior_tree_pb2.BehaviorTree.TaskNode(
+                call_behavior=behavior_call_pb2.BehaviorCall(
+                    skill_id="ai.intrinsic.skill_0"
+                )
+            )
+        ),
+    )
+    metadata_proto = metadata_pb2.Metadata(
+        id_version=id_pb2.IdVersion(
+            id=id_pb2.Id(package="ai.intrinsic", name="my_process"),
+            version="0.0.1",
+        ),
+        display_name="My tree",
+    )
+    bt = behavior_tree.BehaviorTree.create_from_proto(
+        process_asset_pb2.ProcessAsset(
+            metadata=metadata_proto,
+            behavior_tree=bt_proto,
+        )
+    )
+    installed = installed_assets_pb2.InstalledAsset(
+        metadata=metadata_pb2.Metadata(
+            id_version=id_pb2.IdVersion(
+                id=id_pb2.Id(package="ai.intrinsic", name="skill_0"),
+                version="1.0.0",
+            ),
+            asset_type=asset_type_pb2.ASSET_TYPE_SKILL,
+        ),
+    )
+    installed.asset.catalog.asset_type = asset_type_pb2.ASSET_TYPE_SKILL
+    installed.asset.catalog.id_version.id.package = "ai.intrinsic"
+    installed.asset.catalog.id_version.id.name = "skill_0"
+    installed.asset.catalog.id_version.version = "1.0.0"
+    self._installed_assets.batch_get_installed_assets.return_value = [installed]
+
+    def _mock_create_asset(asset):
+      return installed_assets_pb2.InstalledAsset(
+          metadata=metadata_proto,
+          deployment_data=installed_assets_pb2.InstalledAsset.DeploymentData(
+              process=installed_assets_pb2.InstalledAsset.ProcessDeploymentData(
+                  process=asset.process
+              )
+          ),
+      )
+
+    self._installed_assets.create_installed_asset.side_effect = (
+        _mock_create_asset
+    )
+
+    self._processes.save(bt)
+
+    self.assertIn("ai.intrinsic.skill_0", bt.referenced_assets)
+    self.assertEqual(
+        bt.referenced_assets["ai.intrinsic.skill_0"].catalog.id_version.version,
+        "1.0.0",
+    )
+    self._installed_assets.batch_get_installed_assets.assert_called_once_with(
+        ["ai.intrinsic.skill_0"],
+        view=view_pb2.AssetViewType.ASSET_VIEW_TYPE_BASIC,
+    )
+    self._installed_assets.get_installed_asset.assert_not_called()
+    _, kwargs = self._installed_assets.create_installed_asset.call_args
+    process_saved = kwargs["asset"].process
+    self.assertIn("ai.intrinsic.skill_0", process_saved.assets)
+    self.assertEqual(
+        process_saved.assets["ai.intrinsic.skill_0"].catalog.id_version.version,
+        "1.0.0",
+    )
+
+  def test_get_process_asset_preserves_assets(self):
+    asset_proto = _process_asset_with_id("ai.intrinsic.process")
+    asset_proto.assets["ai.intrinsic.dep"].catalog.CopyFrom(
+        reference_pb2.CatalogAsset(
+            asset_type=asset_type_pb2.ASSET_TYPE_SKILL,
+            id_version=id_pb2.IdVersion(
+                id=id_pb2.Id(package="ai.intrinsic", name="dep"),
+                version="2.0.0",
+            ),
+        )
+    )
+    installed = installed_assets_pb2.InstalledAsset(
+        metadata=asset_proto.metadata,
+        deployment_data=installed_assets_pb2.InstalledAsset.DeploymentData(
+            process=installed_assets_pb2.InstalledAsset.ProcessDeploymentData(
+                process=asset_proto
+            )
+        ),
+    )
+    self._installed_assets.get_installed_asset.return_value = installed
+
+    bt = self._processes["ai.intrinsic.process"]
+
+    self.assertIn("ai.intrinsic.dep", bt.referenced_assets)
+    self.assertEqual(
+        bt.referenced_assets["ai.intrinsic.dep"].catalog.id_version.version,
+        "2.0.0",
+    )
+
+  def test_save_process_asset_preserves_fallback_when_uninstalled(self):
+    bt_proto = behavior_tree_pb2.BehaviorTree(
+        name="My tree",
+        description=skills_pb2.Skill(
+            id="ai.intrinsic.my_process",
+            id_version="ai.intrinsic.my_process.0.0.1",
+            skill_name="ai.intrinsic.my_process",
+            package_name="ai.intrinsic",
+            display_name="My tree",
+        ),
+        root=behavior_tree_pb2.BehaviorTree.Node(
+            task=behavior_tree_pb2.BehaviorTree.TaskNode(
+                call_behavior=behavior_call_pb2.BehaviorCall(
+                    skill_id="ai.intrinsic.missing_skill"
+                )
+            )
+        ),
+    )
+    metadata_proto = metadata_pb2.Metadata(
+        id_version=id_pb2.IdVersion(
+            id=id_pb2.Id(package="ai.intrinsic", name="my_process"),
+            version="0.0.1",
+        ),
+        display_name="My tree",
+    )
+    bt = behavior_tree.BehaviorTree.create_from_proto(
+        process_asset_pb2.ProcessAsset(
+            metadata=metadata_proto,
+            behavior_tree=bt_proto,
+        )
+    )
+    fallback = process_asset_pb2.ProcessAsset.ProcessedAsset()
+    fallback.catalog.asset_type = asset_type_pb2.ASSET_TYPE_SKILL
+    fallback.catalog.id_version.id.package = "ai.intrinsic"
+    fallback.catalog.id_version.id.name = "missing_skill"
+    fallback.catalog.id_version.version = "0.5.0"
+    bt.referenced_assets = {"ai.intrinsic.missing_skill": fallback}
+
+    error = grpc.RpcError("skill not found")
+    error.code = lambda: grpc.StatusCode.NOT_FOUND
+    self._installed_assets.batch_get_installed_assets.side_effect = error
+
+    def _mock_create_asset(asset):
+      return installed_assets_pb2.InstalledAsset(
+          metadata=metadata_proto,
+          deployment_data=installed_assets_pb2.InstalledAsset.DeploymentData(
+              process=installed_assets_pb2.InstalledAsset.ProcessDeploymentData(
+                  process=asset.process
+              )
+          ),
+      )
+
+    self._installed_assets.create_installed_asset.side_effect = (
+        _mock_create_asset
+    )
+
+    self._processes.save(bt)
+
+    self.assertIn("ai.intrinsic.missing_skill", bt.referenced_assets)
+    self.assertEqual(
+        bt.referenced_assets[
+            "ai.intrinsic.missing_skill"
+        ].catalog.id_version.version,
+        "0.5.0",
+    )
+    self._installed_assets.batch_get_installed_assets.assert_called_once_with(
+        ["ai.intrinsic.missing_skill"],
+        view=view_pb2.AssetViewType.ASSET_VIEW_TYPE_BASIC,
+    )
+    _, kwargs = self._installed_assets.create_installed_asset.call_args
+    process_saved = kwargs["asset"].process
+    self.assertIn("ai.intrinsic.missing_skill", process_saved.assets)
+    self.assertEqual(
+        process_saved.assets[
+            "ai.intrinsic.missing_skill"
+        ].catalog.id_version.version,
+        "0.5.0",
+    )
+
+  def test_save_process_asset_batch_error_non_not_found_raises(self):
+    bt_proto = behavior_tree_pb2.BehaviorTree(
+        name="My tree",
+        description=skills_pb2.Skill(
+            id="ai.intrinsic.my_process",
+            id_version="ai.intrinsic.my_process.0.0.1",
+            skill_name="ai.intrinsic.my_process",
+            package_name="ai.intrinsic",
+            display_name="My tree",
+        ),
+        root=behavior_tree_pb2.BehaviorTree.Node(
+            task=behavior_tree_pb2.BehaviorTree.TaskNode(
+                call_behavior=behavior_call_pb2.BehaviorCall(
+                    skill_id="ai.intrinsic.skill_0"
+                )
+            )
+        ),
+    )
+    metadata_proto = metadata_pb2.Metadata(
+        id_version=id_pb2.IdVersion(
+            id=id_pb2.Id(package="ai.intrinsic", name="my_process"),
+            version="0.0.1",
+        ),
+        display_name="My tree",
+    )
+    bt = behavior_tree.BehaviorTree.create_from_proto(
+        process_asset_pb2.ProcessAsset(
+            metadata=metadata_proto,
+            behavior_tree=bt_proto,
+        )
+    )
+
+    error = grpc.RpcError("permission denied")
+    error.code = lambda: grpc.StatusCode.PERMISSION_DENIED
+    self._installed_assets.batch_get_installed_assets.side_effect = error
+
+    with self.assertRaises(grpc.RpcError) as e:
+      self._processes.save(bt)
+    self.assertEqual(e.exception.code(), grpc.StatusCode.PERMISSION_DENIED)
 
 
 if __name__ == "__main__":

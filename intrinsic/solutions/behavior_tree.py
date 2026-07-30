@@ -3700,6 +3700,7 @@ class BehaviorTree:
   _description: skills_pb2.Skill | None
   _return_value_expression: str | None
   _metadata: metadata_pb2.Metadata | None
+  _referenced_assets: dict[str, process_asset_pb2.ProcessAsset.ProcessedAsset]
   _user_data_protos: dict[str, any_pb2.Any]
   _user_data_bytes: dict[str, bytes]
 
@@ -3731,7 +3732,9 @@ class BehaviorTree:
         else:
           bt_copy = self.create_from_proto(
               process_asset_pb2.ProcessAsset(
-                  behavior_tree=bt.proto, metadata=bt.asset_metadata_proto
+                  behavior_tree=bt.proto,
+                  metadata=bt.asset_metadata_proto,
+                  assets=bt.referenced_assets,
               )
           )
       elif isinstance(bt, behavior_tree_pb2.BehaviorTree):
@@ -3744,8 +3747,9 @@ class BehaviorTree:
       self._description = bt_copy._description
       self._return_value_expression = bt_copy._return_value_expression
       self._metadata = bt_copy._metadata
-      self._user_data_protos = bt_copy._user_data_protos.copy()
-      self._user_data_bytes = bt_copy._user_data_bytes.copy()
+      self._referenced_assets = bt_copy._referenced_assets
+      self._user_data_protos = bt_copy._user_data_protos
+      self._user_data_bytes = bt_copy._user_data_bytes
       return
 
     self.root = root
@@ -3754,6 +3758,7 @@ class BehaviorTree:
     self._description = None
     self._return_value_expression = None
     self._metadata = None
+    self._referenced_assets = {}
     self._user_data_protos = {}
     self._user_data_bytes = {}
 
@@ -3916,6 +3921,43 @@ class BehaviorTree:
     self._sync_skill_proto_from_metadata()
 
   @property
+  def referenced_assets(
+      self,
+  ) -> dict[str, process_asset_pb2.ProcessAsset.ProcessedAsset]:
+    """Returns a copy of the referenced Assets map of the BehaviorTree.
+
+    Always returns an empty dictionary if this BehaviorTree instance does not
+    represent a Process Asset.
+    """
+    if self.asset_metadata_proto is None:
+      return dict()
+    return self._referenced_assets.copy()
+
+  @referenced_assets.setter
+  def referenced_assets(
+      self,
+      referenced_assets: dict[
+          str, process_asset_pb2.ProcessAsset.ProcessedAsset
+      ],
+  ):
+    """Sets the referenced Assets map of the BehaviorTree.
+
+    Only allowed on BehaviorTree instances that represent a Process Asset.
+    Throws an error if this instance does not represent a Process Asset.
+
+    Args:
+      referenced_assets: New map of referenced Assets.
+
+    Raises:
+      TypeError: When the BehaviorTree does not represent a Process Asset.
+    """
+    if self.asset_metadata_proto is None:
+      raise TypeError(
+          'Cannot set referenced Assets on a non-Asset BehaviorTree'
+      )
+    self._referenced_assets = referenced_assets.copy()
+
+  @property
   def return_value_expression(self) -> cel.CelExpression | None:
     """Returns the return value expression of this behavior tree."""
     return (
@@ -4003,9 +4045,11 @@ class BehaviorTree:
         )
       bt_proto = proto_object.behavior_tree
       metadata_proto = proto_object.metadata
+      assets_map = dict(proto_object.assets)
     elif isinstance(proto_object, behavior_tree_pb2.BehaviorTree):
       bt_proto = proto_object
       metadata_proto = None
+      assets_map = {}
     else:
       raise TypeError(
           'proto_object must be a BehaviorTree proto or a ProcessAsset proto'
@@ -4028,6 +4072,7 @@ class BehaviorTree:
       for k, b in bt_proto.user_data.data_bytes.items():
         bt.set_user_data_bytes(k, b)
     bt._metadata = metadata_proto
+    bt._referenced_assets = assets_map
 
     return bt
 

@@ -16,6 +16,7 @@ from google.protobuf import descriptor
 from google.protobuf import descriptor_pb2
 from google.protobuf import text_format
 
+from intrinsic.assets import id_utils
 from intrinsic.assets.processes.proto import process_asset_pb2
 from intrinsic.assets.proto import asset_tag_pb2
 from intrinsic.assets.proto import asset_type_pb2
@@ -56,6 +57,16 @@ def _create_test_decorator(
 
 def _default_task() -> bt.Task:
   return bt.Task(behavior_call.Action(skill_id='ai.intrinsic.skill-0'))
+
+
+def _create_test_referenced_asset(
+    id_version: id_pb2.IdVersion,
+    asset_type=asset_type_pb2.AssetType.ASSET_TYPE_SKILL,
+) -> process_asset_pb2.ProcessAsset.ProcessedAsset:
+  a = process_asset_pb2.ProcessAsset.ProcessedAsset()
+  a.catalog.asset_type = asset_type
+  a.catalog.id_version.CopyFrom(id_version)
+  return a
 
 
 class BehaviorTreeBreakpointTypeTest(absltest.TestCase):
@@ -1051,6 +1062,122 @@ user_data {
         self, my_bt.asset_metadata_proto, my_proto.metadata
     )
     compare.assertProto2Equal(self, my_bt.proto, my_proto.behavior_tree)
+
+  def test_referenced_assets_getter_setter_with_metadata(self):
+    my_bt = bt.BehaviorTree('my_bt', root=_default_task())
+    my_bt.set_asset_metadata(id='ai.intrinsic.my_bt', vendor='intrinsic')
+
+    self.assertEmpty(my_bt.referenced_assets)
+
+    example_asset = _create_test_referenced_asset(
+        id_utils.id_version_proto_from(
+            package='ai.intrinsic',
+            name='example_asset',
+            version='4.0.0',
+        ),
+    )
+
+    referenced = {'ai.intrinsic.copied_skill': example_asset}
+    my_bt.referenced_assets = referenced
+
+    self.assertEqual(my_bt.referenced_assets, referenced)
+
+  def test_referenced_assets_getter_setter_without_metadata(self):
+    my_bt = bt.BehaviorTree('my_bt')
+    self.assertEmpty(my_bt.referenced_assets)
+
+    example_asset = _create_test_referenced_asset(
+        id_utils.id_version_proto_from(
+            package='ai.intrinsic',
+            name='example_asset',
+            version='4.0.0',
+        ),
+    )
+
+    # Setter should throw
+    with self.assertRaises(TypeError):
+      my_bt.referenced_assets = {'ai.intrinsic.copied_skill': example_asset}
+
+  def test_referenced_assets_getter_returns_copy(self):
+    my_bt = bt.BehaviorTree('my_bt', root=_default_task())
+    my_bt.set_asset_metadata(id='ai.intrinsic.my_bt', vendor='intrinsic')
+
+    self.assertEmpty(my_bt.referenced_assets)
+
+    # Assigns directly into the dict returned by the getter. This should NOT
+    # change the stored referenced Assets.
+    my_bt.referenced_assets['another'] = _create_test_referenced_asset(
+        id_utils.id_version_proto_from(
+            package='ai.intrinsic',
+            name='example_asset',
+            version='4.0.0',
+        ),
+    )
+
+    self.assertEmpty(my_bt.referenced_assets)
+
+  def test_behavior_tree_copy_preserves_assets_with_metadata(self):
+    my_bt = bt.BehaviorTree('my_bt', root=_default_task())
+    my_bt.set_asset_metadata(id='ai.intrinsic.my_bt', vendor='intrinsic')
+    metadata = my_bt.asset_metadata_proto
+
+    example_asset = _create_test_referenced_asset(
+        id_utils.id_version_proto_from(
+            package='ai.intrinsic',
+            name='example_asset',
+            version='4.0.0',
+        ),
+    )
+
+    referenced = {'ai.intrinsic.copied_skill': example_asset}
+    my_bt.referenced_assets = referenced
+
+    bt_copy = bt.BehaviorTree(bt=my_bt)
+
+    self.assertEqual(bt_copy.referenced_assets, referenced)
+    compare.assertProto2Equal(self, bt_copy.asset_metadata_proto, metadata)
+
+  def test_create_from_proto_with_process_asset_and_assets(self):
+    my_proto = text_format.Parse(
+        """
+        metadata {
+          id_version {
+            id {
+              package: "ai.intrinsic"
+              name: "my_bt"
+            }
+          }
+        }
+        behavior_tree {
+          name: "My tree"
+        }
+        assets {
+          key: "ai.intrinsic.skill-0"
+          value {
+            catalog {
+              asset_type: ASSET_TYPE_SKILL
+              id_version {
+                id {
+                  package: "ai.intrinsic"
+                  name: "skill-0"
+                }
+                version: "1.2.3"
+              }
+            }
+          }
+        }
+        """,
+        process_asset_pb2.ProcessAsset(),
+    )
+
+    my_bt = bt.BehaviorTree.create_from_proto(my_proto)
+
+    self.assertIn('ai.intrinsic.skill-0', my_bt.referenced_assets)
+    processed = my_bt.referenced_assets['ai.intrinsic.skill-0']
+    self.assertEqual(processed.catalog.id_version.version, '1.2.3')
+    self.assertEqual(
+        processed.catalog.asset_type, asset_type_pb2.AssetType.ASSET_TYPE_SKILL
+    )
 
   def test_behavior_tree_user_data(self):
     """Tests if behavior tree user data works."""
