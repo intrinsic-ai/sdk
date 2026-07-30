@@ -119,8 +119,6 @@ absl::Status KeyValueStore::Set(absl::string_view key,
 
   std::string value_serialized = value.SerializeAsString();
   const size_t payload_size = value_serialized.size();
-      Zenoh().imw_set(prefixed_name->c_str(), value_serialized.c_str(),
-                      value_serialized.size());
   if (payload_size > kPayloadByteSizeWarningThreshold) {
     LOG(WARNING) << "Large KVStore SetRequest payload detected. Key: " << key
                  << ", Size: " << payload_size << " bytes.";
