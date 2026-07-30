@@ -42,16 +42,31 @@ func New(r io.Reader, maxInMemorySize int64) (Opener, Cleanup, error) {
 	// For larger data we write it out to disk to avoid out-of-memory errors.
 	f, err := os.CreateTemp(os.TempDir(), "read-opener-")
 	if err != nil {
-		return nil, nil, fmt.Errorf("could not create temp file %q: %v", f.Name(), err)
+		return nil, nil, fmt.Errorf("could not create temp file: %w", err)
 	}
-	io.Copy(f, bb)
-	io.Copy(f, r)
+
+	cleanup := func() {
+		os.Remove(f.Name())
+	}
+	cancellableCleanup := cleanup
+	defer func() {
+		if cancellableCleanup != nil {
+			cancellableCleanup()
+		}
+	}()
+	defer f.Close()
+
+	if _, err := io.Copy(f, bb); err != nil {
+		return nil, nil, fmt.Errorf("failed to write buffered data to temp file: %w", err)
+	}
+	if _, err := io.Copy(f, r); err != nil {
+		return nil, nil, fmt.Errorf("failed to write reader data to temp file: %w", err)
+	}
+
+	cancellableCleanup = nil
 
 	opener := func() (io.ReadCloser, error) {
 		return os.Open(f.Name())
-	}
-	cleanup := func() {
-		os.Remove(f.Name())
 	}
 	return opener, cleanup, nil
 }
