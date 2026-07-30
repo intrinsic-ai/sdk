@@ -5,6 +5,7 @@ package cmdutils
 
 import (
 	"fmt"
+	"intrinsic/assets/platformlevelswitch"
 	"intrinsic/assets/typeutils"
 	"intrinsic/assets/viewutils"
 	"intrinsic/tools/inctl/util/orgutil"
@@ -277,16 +278,16 @@ func (cf *CmdFlags) GetFlagOrganization() string {
 }
 
 // AddFlagsProjectOrg adds both the project and org flag, including the necessary handling.
-func (cf *CmdFlags) AddFlagsProjectOrg(opts ...orgutil.WrapCmdOption) {
+func (cf *CmdFlags) AddFlagsProjectOrg() {
 	// While WrapCmd returns the pointer to make it inline, it's modifying, so we can use it here.
-	orgutil.WrapCmd(cf.cmd, cf.viperLocal, opts...)
+	platformlevelswitch.WrapCmd(cf.cmd, cf.viperLocal)
 	cf.MarkHidden(orgutil.KeyProject)
 }
 
 // AddFlagsProjectOrgOptional adds both the project and org flag as optional, including the necessary handling.
-func (cf *CmdFlags) AddFlagsProjectOrgOptional(opts ...orgutil.WrapCmdOption) {
+func (cf *CmdFlags) AddFlagsProjectOrgOptional() {
 	// While WrapCmd returns the pointer to make it inline, it's modifying, so we can use it here.
-	orgutil.WrapCmdOptional(cf.cmd, cf.viperLocal, opts...)
+	platformlevelswitch.WrapCmdOptional(cf.cmd, cf.viperLocal)
 	cf.MarkHidden(orgutil.KeyProject)
 }
 

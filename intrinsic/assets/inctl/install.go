@@ -15,10 +15,10 @@ import (
 	"intrinsic/assets/cmdutils"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/imagetransfer"
+	"intrinsic/assets/platformlevelswitch"
 	"intrinsic/assets/referenceddata"
 	"intrinsic/assets/scene_objects/gzfprocessor"
 	"intrinsic/assets/services/bundleimages"
-	"intrinsic/kubernetes/acl/identity"
 	"intrinsic/skills/tools/skill/cmd/directupload/directupload"
 
 	"github.com/spf13/cobra"
@@ -82,7 +82,7 @@ func GetCommand() *cobra.Command {
 				return err
 			}
 
-			ctx, err = identity.AppendToOutgoingContext(ctx, identity.WithOrg(flags.GetFlagOrganization()))
+			ctx, err = platformlevelswitch.AppendOrgToOutgoingContext(ctx, flags.GetFlagOrganization())
 			if err != nil {
 				return fmt.Errorf("failed to add org information to context: %w", err)
 			}

@@ -14,6 +14,7 @@ go_library(
     importpath = "intrinsic/tools/inctl/cmd/process/process",
     deps = [
         "//intrinsic/assets:idutils",
+        "//intrinsic/assets/platformlevelswitch",
         "//intrinsic/assets/processes:processbundle",
         "//intrinsic/assets/proto:installed_assets_go_proto",
         "//intrinsic/assets/proto:view_go_proto",
