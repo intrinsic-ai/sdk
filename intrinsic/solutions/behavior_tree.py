@@ -4631,7 +4631,7 @@ class BehaviorTree:
   def _validate_code_executions(self) -> None:
     """Validates code execution task nodes in the behavior tree.
 
-    Checks that no PythonScript object is used more than once in the behavior
+    Checks that no Signature object is used more than once in the behavior
     tree (including subtrees). This ensures compatibility with process editors
     that have no concept of sharing message definitions within a single process.
     We effectively want to guarantee that each Python script node has a unique
@@ -4639,11 +4639,10 @@ class BehaviorTree:
 
     This check is not strictly required for a successful execution of the
     process and thus - to allow for advanced use cases - it is restricted to
-    PythonScript nodes which were created with the default mode
-    (create_unique_signature=True).
+    signatures which were generated with the ProtoBuilder class.
 
     Raises:
-      ValueError: If reused PythonScript objects are detected.
+      ValueError: If reused Signature objects are detected.
     """
     scripts: list[PythonScript] = []
 
@@ -4657,18 +4656,18 @@ class BehaviorTree:
           and tree_object.code_execution is not None
           and isinstance(tree_object.code_execution, PythonScript)
           # pylint: disable-next=protected-access
-          and tree_object.code_execution._has_unique_signature
+          and proto_building._is_file_descriptor_set_from_generated_signature(
+              tree_object.code_execution.signature_with_args.file_descriptor_set
+          )
       ):
         scripts.append(tree_object.code_execution)
 
     self.visit(collect_python_scripts)
 
-    # Conceptually, we could just assume that PythonScript(...,
-    # create_unique_signature=True) does the right thing and simply check for
-    # duplicate object ids to determine whether any PythonScript object was
-    # reused in the tree. But to prevent workarounds such as using
-    # copy.deepcopy(), we go a bit deeper and check the parameter/return value
-    # message names.
+    # A simple approach would be to collect the object ids of all Signature
+    # objects in the tree and check for duplicates. But to prevent workarounds
+    # such as using copy.deepcopy(), we go a bit deeper and check the
+    # parameter/return value message names.
     #
     # We check for duplicate message names where "duplicate name" here means
     # that a message name is used by two different nodes. If the parameter and
@@ -4688,11 +4687,11 @@ class BehaviorTree:
 
     if duplicate_names:
       raise ValueError(
-          'Found multiple PythonScript nodes reusing the same messages:'
-          f' {sorted(list(duplicate_names))}. This can lead to compatibility'
-          ' problems with other process editors. To avoid this problem, create'
-          ' a separate PythonScript instance for each task node or use'
-          ' PythonScript.unique_copy().'
+          'Found multiple PythonScript nodes reusing the same signature'
+          f' messages: {sorted(list(duplicate_names))}. This can lead to'
+          ' compatibility problems with other process editors. To avoid this'
+          ' problem, create a separate SignatureWithArgs instance for each task'
+          ' node or use PythonScript.unique_copy().'
       )
 
   def _initialize_skill_proto_for_pbt(self, skill_id: str, display_name: str):

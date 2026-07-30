@@ -441,42 +441,46 @@ class BehaviorTreeMadeParametrizableTest(parameterized.TestCase):
     )
 
 
-def _make_python_script(
+def _make_python_script_with_generated_signature(
     param_msg: str = '',
     return_msg: str = '',
-    *,
-    create_unique_signature: bool,
 ) -> bt.PythonScript:
+  """Creates a PythonScript.
+
+  The signature of the returned PythonScript mimicks a signature created with
+  the ProtoBuilder, i.e., the parameter and return value message are defined in
+  a proto file and package with a randomized name.
+  """
   fds = descriptor_pb2.FileDescriptorSet()
+  param_full_name = ''
+  return_full_name = ''
   if param_msg or return_msg:
-    pkg = ''
+    # pylint: disable-next=protected-access
+    filename, pkg = proto_building._generate_proto_filename_and_package()
     if param_msg:
-      pkg = param_msg.rpartition('.')[0]
+      param_full_name = f'{pkg}.{param_msg}'
     if return_msg:
-      pkg_return = return_msg.rpartition('.')[0]
-      if param_msg and pkg != pkg_return:
-        raise ValueError('param_msg and return_msg have different packages')
-      pkg = pkg_return
+      return_full_name = f'{pkg}.{return_msg}'
 
     file_proto = descriptor_pb2.FileDescriptorProto(
-        name='node.proto',
+        name=filename,
         package=pkg,
     )
     if param_msg:
-      file_proto.message_type.add(name=param_msg.rpartition('.')[2])
+      file_proto.message_type.add(name=param_msg)
     if return_msg and return_msg != param_msg:
-      file_proto.message_type.add(name=return_msg.rpartition('.')[2])
+      file_proto.message_type.add(name=return_msg)
     fds.file.append(file_proto)
 
   sig = proto_building.Signature(
-      parameter_message_full_name=param_msg,
-      return_value_message_full_name=return_msg,
+      parameter_message_full_name=param_full_name,
+      return_value_message_full_name=return_full_name,
       file_descriptor_set=fds,
   )
+
   return code_execution.PythonScript(
       sig.with_args(),
       function_body='pass',
-      create_unique_signature=create_unique_signature,
   )
 
 
@@ -1585,19 +1589,11 @@ user_data {
       mock_validate.assert_called_once_with(my_bt)
 
   def test_proto_property_allows_multiple_unique_python_scripts(self):
-    script1 = _make_python_script(
-        'pkg1.Params', 'pkg1.Return', create_unique_signature=True
-    )
-    script2 = _make_python_script(
-        'pkg1.Params', 'pkg1.Return', create_unique_signature=True
-    )
+    script1 = _make_python_script_with_generated_signature('Params', 'Return')
+    script2 = _make_python_script_with_generated_signature('Params', 'Return')
     script3 = script2.unique_copy()
-    script4 = _make_python_script(
-        'pkg2.OtherParams', '', create_unique_signature=True
-    )
-    script5 = _make_python_script(
-        'pkg2.OtherParams', '', create_unique_signature=True
-    )
+    script4 = _make_python_script_with_generated_signature('OtherParams', '')
+    script5 = _make_python_script_with_generated_signature('OtherParams', '')
     my_bt = bt.BehaviorTree(
         root=bt.Sequence(
             children=[
@@ -1615,24 +1611,21 @@ user_data {
   @parameterized.named_parameters(
       dict(
           testcase_name='params_only',
-          script=_make_python_script(
-              param_msg='pkg.Params', create_unique_signature=True
+          script=_make_python_script_with_generated_signature(
+              param_msg='Params'
           ),
       ),
       dict(
           testcase_name='return_only',
-          script=_make_python_script(
-              param_msg='',
-              return_msg='pkg.Return',
-              create_unique_signature=True,
+          script=_make_python_script_with_generated_signature(
+              return_msg='Return'
           ),
       ),
       dict(
           testcase_name='params_and_return',
-          script=_make_python_script(
-              param_msg='pkg.Params',
-              return_msg='pkg.Return',
-              create_unique_signature=True,
+          script=_make_python_script_with_generated_signature(
+              param_msg='Params',
+              return_msg='Return',
           ),
       ),
   )
@@ -1645,11 +1638,11 @@ user_data {
             ]
         ),
     )
-    with self.assertRaisesRegex(ValueError, '.*reusing the same messages.*'):
+    with self.assertRaisesRegex(ValueError, '.*reusing the same signature.*'):
       _ = my_bt.proto
 
   def test_proto_property_detects_deepcopied_python_script(self):
-    script1 = _make_python_script('pkg.Params', create_unique_signature=True)
+    script1 = _make_python_script_with_generated_signature('Params')
     script2 = copy.deepcopy(script1)
     my_bt = bt.BehaviorTree(
         root=bt.Sequence(
@@ -1659,16 +1652,15 @@ user_data {
             ]
         ),
     )
-    with self.assertRaisesRegex(ValueError, '.*reusing the same messages.*'):
+    with self.assertRaisesRegex(ValueError, '.*reusing the same signature.*'):
       _ = my_bt.proto
 
   def test_proto_property_allows_same_parameter_and_return_name_on_single_node(
       self,
   ):
-    script = _make_python_script(
-        param_msg='pkg.Message',
-        return_msg='pkg.Message',
-        create_unique_signature=True,
+    script = _make_python_script_with_generated_signature(
+        param_msg='Message',
+        return_msg='Message',
     )
     my_bt = bt.BehaviorTree(root=bt.Task(action=script))
 
@@ -1678,11 +1670,25 @@ user_data {
   def test_proto_property_allows_reusing_non_unique_signature_scripts(
       self,
   ):
-    # Disabling 'create_unique_signature' is considered advanced use. Reusing
-    # the same PythonScript object twice will result in a BT with two identidal
-    # Python script nodes having the same file descriptor set and messages.
-    script = _make_python_script(
-        'pkg.Params', 'pkg.Return', create_unique_signature=False
+    # Scripts with user-defined signatures (not generated with the ProtoBuilder)
+    # can be reused in a single tree. We assume the user knows what they are
+    # doing.
+    fds = descriptor_pb2.FileDescriptorSet()
+    file_proto = descriptor_pb2.FileDescriptorProto(
+        name='node.proto',
+        package='pkg',
+    )
+    file_proto.message_type.add(name='Params')
+    file_proto.message_type.add(name='Return')
+    fds.file.append(file_proto)
+    sig = proto_building.Signature(
+        parameter_message_full_name='pkg.Params',
+        return_value_message_full_name='pkg.Return',
+        file_descriptor_set=fds,
+    )
+    script = code_execution.PythonScript(
+        sig.with_args(),
+        function_body='pass',
     )
     my_bt = bt.BehaviorTree(
         root=bt.Sequence(
@@ -1693,7 +1699,7 @@ user_data {
         ),
     )
 
-    # Should not raise, we assume the user knows what they are doing.
+    # Should not raise
     _ = my_bt.proto
 
   def test_finds_node(self):

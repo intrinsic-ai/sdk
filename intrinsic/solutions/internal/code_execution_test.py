@@ -43,7 +43,7 @@ class PythonScriptTest(absltest.TestCase):
         file_descriptor_set=text_format.Parse(
             """
             file {
-                name: "gen/sbl/signature.proto"
+                name: "gen/sbl/node.proto"
                 package: "gen.sbl"
                 message_type {
                     name: "ReturnValue"
@@ -96,7 +96,7 @@ class PythonScriptTest(absltest.TestCase):
         file_descriptor_set=text_format.Parse(
             """
             file {
-                name: "gen/sbl/signature.proto"
+                name: "gen/sbl/node.proto"
                 package: "gen.sbl"
                 message_type {
                     name: "Params"
@@ -128,22 +128,17 @@ class PythonScriptTest(absltest.TestCase):
         ),
     ).with_args(int_in=42, str_in=cel.CelExpression('some.cel.expression'))
 
-    # Mock the UUID used in the creation of the unique signature copy
-    with mock.patch(
-        'uuid.uuid4',
-        return_value=uuid.UUID('11111111-aaaa-2222-bbbb-333333333333'),
-    ):
-      script = code_execution.PythonScript(
-          signature_with_args=sig_with_args,
-          function_body="""
-                result = node_pb2.ReturnValue(
-                    int_out = 2 * params.int_in
-                )
-                return result
+    script = code_execution.PythonScript(
+        signature_with_args=sig_with_args,
+        function_body="""
+              result = node_pb2.ReturnValue(
+                  int_out = 2 * params.int_in
+              )
+              return result
 
-                """,
-          return_value_key='my_result',
-      )
+              """,
+        return_value_key='my_result',
+    )
 
     proto = script.proto
 
@@ -156,7 +151,7 @@ class PythonScriptTest(absltest.TestCase):
         }
         parameters {
             proto {
-                type_url: "type.googleapis.com/gen.sbl_11111111aaaa2222bbbb333333333333.Params"
+                type_url: "type.googleapis.com/gen.sbl.Params"
                 # field 1 with int value 42
                 value: "\\010*"
             }
@@ -166,12 +161,12 @@ class PythonScriptTest(absltest.TestCase):
             }
         }
         return_value_key: "my_result"
-        parameter_message_full_name: "gen.sbl_11111111aaaa2222bbbb333333333333.Params"
-        return_value_message_full_name: "gen.sbl_11111111aaaa2222bbbb333333333333.ReturnValue"
+        parameter_message_full_name: "gen.sbl.Params"
+        return_value_message_full_name: "gen.sbl.ReturnValue"
         file_descriptor_set {
             file {
-                name: "gen/sbl_11111111aaaa2222bbbb333333333333/node.proto"
-                package: "gen.sbl_11111111aaaa2222bbbb333333333333"
+                name: "gen/sbl/node.proto"
+                package: "gen.sbl"
                 message_type {
                 name: "Params"
                     field {
@@ -224,7 +219,7 @@ class PythonScriptTest(absltest.TestCase):
         file_descriptor_set=text_format.Parse(
             """
             file {
-                name: "gen/sbl/signature.proto"
+                name: "gen/sbl/node.proto"
                 package: "gen.sbl"
                 message_type {
                     name: "ReturnValue"
@@ -241,15 +236,10 @@ class PythonScriptTest(absltest.TestCase):
         ),
     ).with_args()
 
-    # Mock the UUIDs used for:
-    # - creation of the unique signature copy
-    # - return value key
+    # Mock the UUID used for the return value key
     with mock.patch(
         'uuid.uuid4',
-        side_effect=[
-            uuid.UUID('11111111-aaaa-2222-bbbb-333333333333'),
-            uuid.UUID('77777777-eeee-8888-ffff-999999999999'),
-        ],
+        return_value=uuid.UUID('77777777-eeee-8888-ffff-999999999999'),
     ):
       script = code_execution.PythonScript(
           signature_with_args=sig_with_args,
@@ -267,11 +257,11 @@ class PythonScriptTest(absltest.TestCase):
                 function_body: "  return node_pb2.ReturnValue(int_out=42)"
             }
             return_value_key: "pynode_77777777eeee8888ffff999999999999"
-            return_value_message_full_name: "gen.sbl_11111111aaaa2222bbbb333333333333.ReturnValue"
+            return_value_message_full_name: "gen.sbl.ReturnValue"
             file_descriptor_set {
                 file {
-                    name: "gen/sbl_11111111aaaa2222bbbb333333333333/node.proto"
-                    package: "gen.sbl_11111111aaaa2222bbbb333333333333"
+                    name: "gen/sbl/node.proto"
+                    package: "gen.sbl"
                     message_type {
                         name: "ReturnValue"
                         field {
@@ -294,7 +284,7 @@ class PythonScriptTest(absltest.TestCase):
         file_descriptor_set=text_format.Parse(
             """
             file {
-                name: "gen/sbl/signature.proto"
+                name: "gen/sbl/node.proto"
                 package: "gen.sbl"
                 message_type {
                     name: "ReturnValue"
@@ -311,15 +301,10 @@ class PythonScriptTest(absltest.TestCase):
         ),
     ).with_args()
 
-    # Mock the UUIDs used for:
-    # - creation of the unique signature copy
-    # - return value key
+    # Mock the UUID used for the return value key
     with mock.patch(
         'uuid.uuid4',
-        side_effect=[
-            uuid.UUID('11111111-aaaa-2222-bbbb-333333333333'),
-            uuid.UUID('77777777-eeee-8888-ffff-999999999999'),
-        ],
+        return_value=uuid.UUID('77777777-eeee-8888-ffff-999999999999'),
     ):
       script = code_execution.PythonScript(
           signature_with_args=sig_with_args,
@@ -336,7 +321,7 @@ class PythonScriptTest(absltest.TestCase):
     )
     self.assertEqual(
         result.value_type.DESCRIPTOR.full_name,
-        'gen.sbl_11111111aaaa2222bbbb333333333333.ReturnValue',
+        'gen.sbl.ReturnValue',
     )
     self.assertEqual(
         result.int_out.value_access_path(),
@@ -365,7 +350,7 @@ class PythonScriptTest(absltest.TestCase):
         file_descriptor_set=text_format.Parse(
             """
             file {
-                name: "gen/sbl/signature.proto"
+                name: "gen/sbl/node.proto"
                 package: "gen.sbl"
                 message_type {
                     name: "Params"

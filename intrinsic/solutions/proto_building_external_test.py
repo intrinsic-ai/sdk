@@ -7,6 +7,7 @@ on internal fake implementations.
 """
 
 from unittest import mock
+import uuid
 
 from absl.testing import absltest
 from google.protobuf import descriptor_pb2
@@ -150,30 +151,36 @@ class ProtoBuildingExternalTest(absltest.TestCase):
         file_descriptor_set=expected_fds
     )
 
-    sig = self.proto_builder.create_signature(
-        parameters=proto_building.MessageSpec(
-            fields=[proto_building.FieldSpec(name='x', type='int64', number=1)]
-        ),
-        return_value=proto_building.MessageSpec(
-            fields=[
-                proto_building.FieldSpec(name='y', type='string', number=42)
-            ]
-        ),
-    )
+    with mock.patch(
+        'uuid.uuid4',
+        return_value=uuid.UUID('11111111-aaaa-2222-bbbb-333333333333'),
+    ):
+      sig = self.proto_builder.create_signature(
+          parameters=proto_building.MessageSpec(
+              fields=[
+                  proto_building.FieldSpec(name='x', type='int64', number=1)
+              ]
+          ),
+          return_value=proto_building.MessageSpec(
+              fields=[
+                  proto_building.FieldSpec(name='y', type='string', number=42)
+              ]
+          ),
+      )
 
     self.assertEqual(
         sig.parameter_message_full_name,
-        f'gen.sbl.{proto_building._DEFAULT_PARAM_MSG_NAME}',
+        f'gen.sbl_11111111aaaa2222bbbb333333333333.{proto_building._DEFAULT_PARAM_MSG_NAME}',
     )
     self.assertEqual(
         sig.return_value_message_full_name,
-        f'gen.sbl.{proto_building._DEFAULT_RETURN_MSG_NAME}',
+        f'gen.sbl_11111111aaaa2222bbbb333333333333.{proto_building._DEFAULT_RETURN_MSG_NAME}',
     )
     compare.assertProto2Equal(self, sig.file_descriptor_set, expected_fds)
 
     expected_schema = (
         'syntax = "proto3";\n'
-        'package gen.sbl;\n'
+        'package gen.sbl_11111111aaaa2222bbbb333333333333;\n'
         '\n'
         '\n'
         f'message {proto_building._DEFAULT_PARAM_MSG_NAME} {{\n'
@@ -186,7 +193,9 @@ class ProtoBuildingExternalTest(absltest.TestCase):
     )
     self.stub.Compile.assert_called_once_with(
         proto_builder_pb2.ProtoCompileRequest(
-            proto_filename=proto_building._DEFAULT_SIGNATURE_PROTO_FILENAME,
+            proto_filename=(
+                'gen/sbl_11111111aaaa2222bbbb333333333333/node.proto'
+            ),
             proto_schema=expected_schema,
         )
     )

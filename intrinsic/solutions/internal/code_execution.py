@@ -43,7 +43,6 @@ class PythonScript(CodeExecution):
   _signature_with_args: proto_building.SignatureWithArgs
   _function_body: str
   _return_value_key: str
-  _has_unique_signature: bool
 
   def __init__(
       self,
@@ -51,24 +50,21 @@ class PythonScript(CodeExecution):
       *,
       function_body: str,
       return_value_key: str | None = None,
-      create_unique_signature: bool = True,
   ):
     """Creates a PythonScript.
 
-    The signature of the new script node is (by default) initialized to a unique
-    copy of the given signature by renaming the "main" proto file of the file
-    descriptor set (in which the parameter message and the return value message
-    are defined) to `<random path>/node.proto`.
-
     The given code to be executed ('function_body') is the body of a function
-    and must not contain a function header. It can assume the module name
-    `node_pb2` to be defined and typically has to fit into the following
-    template:
+    and must not contain a function header. For inputs and outputs, it can
+    assume a proto module corresponding to the "main proto file" of the given
+    signature (the file in which parameter and return value message are defined)
+    to be already imported. For example, if the signature was created with the
+    help of `solution.proto_builder`, the code can assume `node_pb2` to be
+    defined. The code has to fit into a template similar to the following:
 
     ```
     import numpy as np
     from intrinsic.skills.python import basic_compute_context
-    from <random module path> import node_pb2
+    from <node_pb2 parent module> import node_pb2
 
     def compute(
         params: node_pb2.Params,
@@ -77,10 +73,9 @@ class PythonScript(CodeExecution):
       {function_body}
     ```
 
-    Some details in the template depend on the final signature of the
-    PythonScript which is only available after the PythonScript instance has
-    been created. You can get a preview of the exact code that will be executed
-    for a PythonScript by querying the code execution backend, e.g.:
+    Several details in the template depend on the given signature. You can get a
+    preview of the exact code that will be executed for a PythonScript by
+    querying the code execution backend, e.g.:
 
     ```
     # Pass a placeholder function body if necessary
@@ -91,28 +86,17 @@ class PythonScript(CodeExecution):
     Args:
       signature_with_args: Signature and arguments for the script node. If not
         set, an empty signature will be created (=no parameter and return value
-        message). By default, a unique copy of the given object will be created
-        and used - the given object itself will not be stored or modified.
+        message).
       function_body: Function body of the Python code to execute. Can be passed
         with arbitrary indentation (as long at it is consistent for all lines).
       return_value_key: Optional blackboard key under which to store the return
         value. If not provided, a unique key will be generated if the signature
         defines a return value message.
-      create_unique_signature: If True (default), a unique copy of the signature
-        will be created and used. If False (advanced), the signature will be
-        used as is.
     """
     if signature_with_args is None:
       signature_with_args = proto_building.Signature().with_args()
 
-    if create_unique_signature:
-      self._signature_with_args = signature_with_args.unique_copy(
-          _DEFAULT_SCRIPT_NODE_PROTO_FILE
-      )
-      self._has_unique_signature = True
-    else:
-      self._signature_with_args = signature_with_args
-      self._has_unique_signature = False
+    self._signature_with_args = signature_with_args
 
     if not function_body.strip():
       raise ValueError("function_body must not be empty")
@@ -206,18 +190,15 @@ class PythonScript(CodeExecution):
     `<random path>/node.proto`.
 
     This is useful, e.g., to "reuse" a single PythonScript inside a behavior
-    tree since using the same PythonScript instance more than once in a single
-    behavior tree is not allowed. Each PythonScript in a behavior tree must have
-    a different file descriptor set with a different parameter and/or return
-    value message name.
+    tree since reusing the same signature more than once in a single behavior
+    tree is not allowed. Each PythonScript in a behavior tree must have a
+    different file descriptor set with a different parameter and/or return value
+    message name.
     """
-    # The constructor internally creates a unique copy of the signature so we
-    # don't really have to do anything here.
     return PythonScript(
-        signature_with_args=self._signature_with_args,
+        signature_with_args=self._signature_with_args.unique_copy(),
         function_body=self._function_body,
         return_value_key=self._return_value_key,
-        create_unique_signature=True,
     )
 
   @classmethod
@@ -260,7 +241,6 @@ class PythonScript(CodeExecution):
         signature_with_args=signature_with_args,
         function_body=proto_object.python_code.function_body,
         return_value_key=return_value_key,
-        create_unique_signature=False,
     )
 
 

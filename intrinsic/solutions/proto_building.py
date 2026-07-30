@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import dataclasses
+import re
 from typing import Any
 import uuid
 
@@ -21,9 +22,13 @@ from intrinsic.util.grpc import error_handling
 
 _DEFAULT_PARAM_MSG_NAME = "Params"
 _DEFAULT_RETURN_MSG_NAME = "ReturnValue"
-_DEFAULT_SIGNATURE_PROTO_FILENAME = "gen/sbl/signature.proto"
-# Expected to be filled with a UUID and a custom filename.
-_UNIQUE_MAIN_PROTO_FILENAME_PATTERN = "gen/sbl_%s/%s"
+
+# Expected to be filled with a UUID (32 hex digits without '-' separators).
+_UNIQUE_MAIN_PROTO_FILENAME_PATTERN = "gen/sbl_%s/node.proto"
+# Matches file names generated with the above pattern.
+_UNIQUE_MAIN_PROTO_FILENAME_REGEX = re.compile(
+    r"gen/sbl_[0-9A-Fa-f]{32}/node.proto"
+)
 
 _RESOLVED_DEPENDENCY_FILE = (
     "intrinsic/assets/proto/v1/resolved_dependency.proto"
@@ -32,6 +37,33 @@ _RESOLVED_DEPENDENCY_TYPE = "intrinsic_proto.assets.v1.ResolvedDependency"
 
 _FIELD_METADATA_FILE = "intrinsic/assets/proto/field_metadata.proto"
 _FIELD_METADATA_OPTION = "intrinsic_proto.assets.field_metadata"
+
+
+def _generate_proto_filename_and_package() -> tuple[str, str]:
+  filename = _UNIQUE_MAIN_PROTO_FILENAME_PATTERN % uuid.uuid4().hex
+  package = filename.rpartition("/")[0].replace("/", ".")
+  return filename, package
+
+
+def _is_generated_proto_filename(filename: str):
+  return re.match(_UNIQUE_MAIN_PROTO_FILENAME_REGEX, filename)
+
+
+def _is_file_descriptor_set_from_generated_signature(
+    file_descriptor_set: descriptor_pb2.FileDescriptorSet,
+) -> bool:
+  """Indicates whether the file descriptor set is from a generated signature.
+
+  Returns True if the given file descriptor set can be assumed to be from a
+  Signature which was generated with the ProtoBuilder class (see
+  ProtoBuilder.create_signature() and
+  ProtoBuilder.create_signature_with_args()).
+  """
+
+  for file in file_descriptor_set.file:
+    if _is_generated_proto_filename(file.name):
+      return True
+  return False
 
 
 def _partition_message_full_name(full_name: str) -> tuple[str, str]:
@@ -379,22 +411,18 @@ class Signature:
         blackboard_params=blackboard_params,
     )
 
-  def unique_copy(self, main_file_basename: str) -> Signature:
+  def unique_copy(self) -> Signature:
     """Creates a unique copy of the signature.
 
     This method assumes that there is a single "main" file in the file
     descriptor set which defines both the parameter and the return value
-    message. This file is renamed to the given 'main_file_basename' and "moved"
-    to a folder with a unique, randomized name. The package of the file is
-    adapted to the path of the folder.
+    message. This file is renamed to 'node.proto' and "moved" to a folder with a
+    unique, randomized name. The package of the file is adapted to the path of
+    the folder.
 
     This method can be used to re-use one Signature object multiple times within
     a single process while ensuring compatibility with process editors that
     have no concept of sharing message definitions within a single process.
-
-    Args:
-      main_file_basename: The new basename of the main proto file (e.g.
-        'script_node.proto').
 
     Returns:
       A new Signature object with a unique main file name and package.
@@ -432,12 +460,8 @@ class Signature:
     main_file = param_file or return_file
     assert main_file
 
-    # Generate new main file name and package.
-    new_filename = _UNIQUE_MAIN_PROTO_FILENAME_PATTERN % (
-        uuid.uuid4().hex,
-        main_file_basename,
-    )
-    new_package = new_filename.rpartition("/")[0].replace("/", ".")
+    # Generate new unique main file name and package.
+    new_filename, new_package = _generate_proto_filename_and_package()
 
     # Create file descriptor set copy with changed main file name and package.
     new_fds = descriptor_pb2.FileDescriptorSet()
@@ -504,7 +528,7 @@ class SignatureWithArgs:
     """Returns signature.file_descriptor_set."""
     return self.signature.file_descriptor_set
 
-  def unique_copy(self, main_file_basename: str) -> SignatureWithArgs:
+  def unique_copy(self) -> SignatureWithArgs:
     """Creates a unique copy of the signature and its arguments.
 
     Calls Signature.unique_copy() to create a unique copy of the
@@ -516,15 +540,11 @@ class SignatureWithArgs:
     editors which have no concept of sharing message definitions within a single
     process.
 
-    Args:
-      main_file_basename: The new basename of the main proto file (e.g.
-        'script_node.proto').
-
     Returns:
       A new SignatureWithArgs object with a unique main file name, package,
       and a new version of the parameter message.
     """
-    new_signature = self.signature.unique_copy(main_file_basename)
+    new_signature = self.signature.unique_copy()
 
     if self.params_message is None:
       return SignatureWithArgs(
@@ -926,11 +946,8 @@ class ProtoBuilder:
     if parameters is None and return_value is None:
       return Signature()
 
-    # Use a fixed file and package name. This can be changed to something unique
-    # later when using the signature in a behavior tree - we don't know here
-    # where and how often the same signature object will be used.
-    proto_filename = _DEFAULT_SIGNATURE_PROTO_FILENAME
-    package_name = proto_filename.rpartition("/")[0].replace("/", ".")
+    # Generate a unique file and package name.
+    proto_filename, package_name = _generate_proto_filename_and_package()
     proto_schema = self._proto_schema_for_signature(
         package_name, parameters, return_value
     )
