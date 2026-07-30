@@ -11,8 +11,10 @@
 #include <vector>
 
 #include "absl/log/check.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
+#include "absl/strings/substitute.h"
 #include "absl/types/span.h"
 #include "google/protobuf/repeated_field.h"
 #include "intrinsic/eigenmath/types.h"
@@ -134,6 +136,27 @@ inline void VectorDoubleToRepeatedDouble(
     const std::vector<double>& values,
     google::protobuf::RepeatedField<double>* output) {
   eigen_details::ToRepeatedDouble(values, output);
+}
+
+// Validates the shape of matrix and converts the input MatrixXd to a
+// affine transform Matrix4d type
+// Returns an error if matrix's size is not valid for an affine transform
+inline absl::StatusOr<eigenmath::Matrix4d> toAffineMatrix4d(
+    const eigenmath::MatrixXd& matrix) {
+  if (matrix.cols() != 4) {
+    return absl::InvalidArgumentError(
+        absl::Substitute("3D affine transform matrix must have 4 columns but "
+                         "input has $0 columns",
+                         matrix.cols()));
+  }
+  if (matrix.rows() != 4) {
+    return absl::InvalidArgumentError(absl::Substitute(
+        "3D affine transform matrix must have 4 rows but input has $0 rows",
+        matrix.rows()));
+  }
+  eigenmath::Matrix4d affine_matrix(matrix);
+  affine_matrix.row(3) << 0, 0, 0, 1;
+  return affine_matrix;
 }
 
 }  // namespace intrinsic
