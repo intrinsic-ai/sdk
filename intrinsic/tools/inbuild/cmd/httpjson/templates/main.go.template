@@ -12,12 +12,12 @@ import (
 	"net/http"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc"
 
 	// Internal Intrinsic dependencies
 	"intrinsic/httpjson/any"
+	"intrinsic/httpjson/serialization"
 	oah "intrinsic/httpjson/openapi/handlers"
 	rcpb "intrinsic/resources/proto/runtime_context_go_proto"
 	"intrinsic/util/proto/protoio"
@@ -46,15 +46,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to create AnyResolver: %v", err)
 	}
-	jsonMarshaller := runtime.JSONPb{
-		MarshalOptions: protojson.MarshalOptions{Resolver: resolver},
-		UnmarshalOptions: protojson.UnmarshalOptions{Resolver: resolver},
-	}
-
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	mux := runtime.NewServeMux(runtime.WithMarshalerOption(runtime.MIMEWildcard, &jsonMarshaller))
+	mux := runtime.NewServeMux(serialization.NewGatewayMarshalerOptions(resolver)...)
 
 	// Setup /openapi.yaml handler
 	decodedOpenAPI, err := base64.StdEncoding.DecodeString(openAPIContentBase64)
