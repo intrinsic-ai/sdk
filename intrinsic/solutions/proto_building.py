@@ -151,6 +151,15 @@ class FieldSpec(FieldSpecBase):
       'optional').
     optional: True if the field should be optional (cannot be combined with
       'repeated').
+    unit: Unit of the field (e.g., "m" for meters or "rad" for radian). If
+      empty, the field is treated as unitless.
+    is_icon2_position_part: True if the field holds an Icon2PositionPart
+      reference. This can be used to designate a particular field in the UI that
+      should be used to select a part name.
+    is_installed_scene_object_asset: True if a field of type
+      "intrinsic_proto.assets.Id" holds an installed scene object asset. This
+      can be used to designate a particular field in the UI that should be used
+      to select a scene object asset.
     arg: Value or parameter assignment to be applied to this field (see
       Signature.with_args() for a of list accepted values). Passing arguments is
       only applicable in some contexts, in other contexts setting this will
@@ -160,6 +169,12 @@ class FieldSpec(FieldSpecBase):
   type: str
   repeated: bool = False
   optional: bool = False
+
+  # Attributes for field metadata
+  unit: str = ""
+  is_icon2_position_part: bool = False
+  is_installed_scene_object_asset: bool = False
+
   arg: Any | provided.ParamAssignment | None = None
 
   def __post_init__(self):
@@ -175,6 +190,22 @@ class FieldSpec(FieldSpecBase):
           f"FieldSpec cannot be used for map type '{self.type}'. "
           "Use MapFieldSpec instead."
       )
+    if (
+        self.is_installed_scene_object_asset
+        and self.type != "intrinsic_proto.assets.Id"
+    ):
+      raise ValueError(
+          "'is_installed_scene_object_asset' can only be set for fields of type"
+          " 'intrinsic_proto.assets.Id' (type is '{self.type}')"
+      )
+
+  @property
+  def has_field_metadata(self) -> bool:
+    return (
+        bool(self.unit)
+        or self.is_icon2_position_part
+        or self.is_installed_scene_object_asset
+    )
 
 
 @dataclasses.dataclass(kw_only=True, frozen=True)
@@ -228,6 +259,8 @@ class DependencySpec(FieldSpecBase):
 
   repeated: bool = False
   optional: bool = False
+
+  # Attributes for dependency requirements
   requires: list[str] = dataclasses.field(default_factory=lambda: [])
   requires_object: bool = False
 
@@ -739,6 +772,8 @@ class ProtoBuilder:
       if spec is not None:
         for field in spec.fields:
           if isinstance(field, FieldSpec):
+            if field.has_field_metadata:
+              imports_to_add.add(_FIELD_METADATA_FILE)
             used_types.add(field.type)
           elif isinstance(field, MapFieldSpec):
             used_types.add(field.value_type)
@@ -770,7 +805,17 @@ class ProtoBuilder:
           field_line += "repeated "
         elif field.optional:
           field_line += "optional "
-        field_line += f"{field.type} {field.name} = {field.number};"
+        field_line += f"{field.type} {field.name} = {field.number}"
+        if field.has_field_metadata:
+          field_line += f" [({_FIELD_METADATA_OPTION}) = {{"
+          if field.unit:
+            field_line += f'unit: "{field.unit}"'
+          if field.is_icon2_position_part:
+            field_line += " is_icon2_position_part: true"
+          if field.is_installed_scene_object_asset:
+            field_line += " is_installed_scene_object_asset: true"
+          field_line += "}]"
+        field_line += ";"
       elif isinstance(field, MapFieldSpec):
         field_line += (
             f"map<{field.key_type}, {field.value_type}> {field.name} ="
