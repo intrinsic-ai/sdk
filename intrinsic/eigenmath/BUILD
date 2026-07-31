@@ -24,6 +24,14 @@ cc_library(
 )
 
 cc_library(
+    name = "eigen_matrix_hash",
+    hdrs = ["eigen_matrix_hash.h"],
+    deps = [
+        "@com_gitlab_libeigen_eigen//:eigen",
+    ],
+)
+
+cc_library(
     name = "manifolds",
     hdrs = [
         "manifolds.h",

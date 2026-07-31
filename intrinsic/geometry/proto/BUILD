@@ -255,6 +255,27 @@ go_proto_library(
 )
 
 proto_library(
+    name = "mesh_proto",
+    srcs = ["mesh.proto"],
+)
+
+cc_proto_library(
+    name = "mesh_cc_proto",
+    deps = [":mesh_proto"],
+)
+
+py_proto_library(
+    name = "mesh_py_pb2",
+    deps = [":mesh_proto"],
+)
+
+go_proto_library(
+    name = "mesh_go_proto",
+    importpath = "intrinsic/geometry/proto/mesh_go_proto",
+    protos = [":mesh_proto"],
+)
+
+proto_library(
     name = "mesh_octree_wrapping_proto",
     srcs = ["mesh_octree_wrapping.proto"],
     deps = [":octree_proto"],

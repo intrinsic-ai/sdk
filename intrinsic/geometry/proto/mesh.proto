@@ -1,0 +1,27 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.geometry;
+
+option go_package = "intrinsic/geometry/proto/mesh_go_proto";
+
+message Mesh {
+  // Vertices are stored row major.
+  bool vertices_stored_row_major = 2 [deprecated = true];
+
+  // The vertices as a flat array
+  repeated double vertices = 3;
+
+  // Faces are stored row major.
+  bool faces_stored_row_major = 5 [deprecated = true];
+
+  // The faces as a flat array
+  repeated int32 faces = 6;
+
+  // Deprecated:
+  reserved 1;
+  reserved "vertex_dimensions";
+  reserved 4;
+  reserved "face_vertex_count";
+}

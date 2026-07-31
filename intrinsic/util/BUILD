@@ -10,6 +10,15 @@ package(
 )
 
 cc_library(
+    name = "demangle",
+    srcs = ["demangle.cc"],
+    hdrs = ["demangle.h"],
+    deps = [
+        "@abseil-cpp//absl/cleanup",
+    ],
+)
+
+cc_library(
     name = "hash",
     hdrs = ["hash.h"],
     deps = [
@@ -54,6 +63,16 @@ cc_library(
 )
 
 cc_library(
+    name = "macros",
+    hdrs = ["macros.h"],
+    deps = [
+        "//intrinsic/util/status:status_builder",
+        "@abseil-cpp//absl/base:core_headers",
+        "@abseil-cpp//absl/log",
+    ],
+)
+
+cc_library(
     name = "page_fault_info",
     srcs = ["page_fault_info.cc"],
     hdrs = ["page_fault_info.h"],
@@ -91,6 +110,16 @@ cc_test(
         "//intrinsic/math:pose3",
         "//intrinsic/util/testing:gtest_wrapper_main",
         "@com_google_protobuf//:protobuf_lite",
+    ],
+)
+
+cc_library(
+    name = "lru_cache",
+    hdrs = ["lru_cache.h"],
+    deps = [
+        "//third_party/simple_lru_cache",
+        "@abseil-cpp//absl/container:flat_hash_map",
+        "@abseil-cpp//absl/log",
     ],
 )
 

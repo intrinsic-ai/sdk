@@ -15,4 +15,9 @@ message GeometryOptions {
   // ExactGeometry proto.
   optional bool fill_inside_for_distance_queries = 1;
 
+  // Optional parameter to specify the resolution for convex decomposition.
+  // This parameter only affects how the geometry is simulated in Gazebo and is
+  // typically used for optimizing collision meshes.
+  // If the associated geometry is not a mesh type, this field has no effect.
+  optional uint32 simulation_convex_decomposition_resolution = 2;
 }
