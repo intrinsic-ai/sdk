@@ -360,6 +360,128 @@ class BehaviorTreeMadeParametrizableTest(parameterized.TestCase):
           ],
       )
 
+  def test_set_signature(self):
+    fds = text_format.Parse(
+        """
+        file {
+            name: "gen/sbl/node.proto"
+            package: "gen.sbl"
+            message_type { name: "Params" }
+            message_type { name: "ReturnValue" }
+        }
+        """,
+        descriptor_pb2.FileDescriptorSet(),
+    )
+    sig = proto_building.Signature(
+        parameter_message_full_name='gen.sbl.Params',
+        return_value_message_full_name='gen.sbl.ReturnValue',
+        file_descriptor_set=fds,
+    )
+    tree = bt.BehaviorTree('My Process')
+    tree.set_asset_metadata(id='ai.intrinsic.my_process', vendor='Intrinsic')
+
+    tree.set_signature(sig)
+
+    description = tree.proto.description
+    compare.assertProto2Equal(
+        self,
+        description.parameter_description.parameter_descriptor_fileset,
+        fds,
+    )
+    self.assertEqual(
+        description.parameter_description.parameter_message_full_name,
+        'gen.sbl.Params',
+    )
+    compare.assertProto2Equal(
+        self,
+        description.return_value_description.descriptor_fileset,
+        fds,
+    )
+    self.assertEqual(
+        description.return_value_description.return_value_message_full_name,
+        'gen.sbl.ReturnValue',
+    )
+
+    tree.set_signature(None)
+
+    description = tree.proto.description
+    self.assertFalse(description.HasField('parameter_description'))
+    self.assertFalse(description.HasField('return_value_description'))
+
+  def test_set_signature_params_only(self):
+    fds = text_format.Parse(
+        """
+          file {
+              name: "gen/sbl/node.proto"
+              package: "gen.sbl"
+              message_type { name: "Params" }
+          }
+          """,
+        descriptor_pb2.FileDescriptorSet(),
+    )
+    sig = proto_building.Signature(
+        parameter_message_full_name='gen.sbl.Params',
+        return_value_message_full_name='',
+        file_descriptor_set=fds,
+    )
+    tree = bt.BehaviorTree('My Process')
+    tree.set_asset_metadata(id='ai.intrinsic.my_process', vendor='Intrinsic')
+
+    tree.set_signature(sig)
+
+    description = tree.proto.description
+    compare.assertProto2Equal(
+        self,
+        description.parameter_description.parameter_descriptor_fileset,
+        fds,
+    )
+    self.assertEqual(
+        description.parameter_description.parameter_message_full_name,
+        'gen.sbl.Params',
+    )
+    self.assertFalse(description.HasField('return_value_description'))
+
+  def test_set_signature_return_value_only(self):
+    fds = text_format.Parse(
+        """
+            file {
+                name: "gen/sbl/node.proto"
+                package: "gen.sbl"
+                message_type { name: "ReturnValue" }
+            }
+            """,
+        descriptor_pb2.FileDescriptorSet(),
+    )
+    sig = proto_building.Signature(
+        parameter_message_full_name='',
+        return_value_message_full_name='gen.sbl.ReturnValue',
+        file_descriptor_set=fds,
+    )
+    tree = bt.BehaviorTree('My Process')
+    tree.set_asset_metadata(id='ai.intrinsic.my_process', vendor='Intrinsic')
+
+    tree.set_signature(sig)
+
+    description = tree.proto.description
+    self.assertFalse(description.HasField('parameter_description'))
+    compare.assertProto2Equal(
+        self,
+        description.return_value_description.descriptor_fileset,
+        fds,
+    )
+    self.assertEqual(
+        description.return_value_description.return_value_message_full_name,
+        'gen.sbl.ReturnValue',
+    )
+
+  def test_set_signature_without_asset_metadata_raises(self):
+    sig = proto_building.Signature()
+    tree = bt.BehaviorTree('My Process')
+    # Not calling tree.set_asset_metadata() before calling tree.set_signature()
+    # should lead to an error.
+    with self.assertRaisesRegex(TypeError, 'set_asset_metadata()'):
+      tree.set_signature(sig)
+
   def test_return_value_expression(self):
     tree = bt.BehaviorTree('test')
     self.assertIsNone(tree.return_value_expression)

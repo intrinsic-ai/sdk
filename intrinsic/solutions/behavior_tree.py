@@ -4853,6 +4853,50 @@ class BehaviorTree:
       rd.descriptor_fileset.CopyFrom(return_value_file_descriptor_set)
       self._description.return_value_description.CopyFrom(rd)
 
+  def set_signature(
+      self, signature: proto_building.Signature | None = None
+  ) -> None:
+    """Sets the signature of the behavior tree.
+
+    Sets the parameter and/or return value message of the behavior tree from the
+    given signature.
+
+    Args:
+      signature: The signature defining the parameter and return value message.
+        If set to None, an empty signature will be used (=no parameter and
+        return value message).
+
+    Raises:
+      TypeError: If set_asset_metadata() has not been called beforehand.
+    """
+    if self._description is None:
+      raise TypeError(
+          'set_asset_metadata() must be called before set_signature()'
+      )
+
+    if signature is None:
+      signature = proto_building.Signature()
+
+    if signature.parameter_message_full_name:
+      self._description.parameter_description.parameter_message_full_name = (
+          signature.parameter_message_full_name
+      )
+      self._description.parameter_description.parameter_descriptor_fileset.CopyFrom(
+          signature.file_descriptor_set
+      )
+    else:
+      self._description.ClearField('parameter_description')
+
+    if signature.return_value_message_full_name:
+      self._description.return_value_description.return_value_message_full_name = (
+          signature.return_value_message_full_name
+      )
+      self._description.return_value_description.descriptor_fileset.CopyFrom(
+          signature.file_descriptor_set
+      )
+    else:
+      self._description.ClearField('return_value_description')
+
   @property
   def params(self) -> blackboard_value.BlackboardValue:
     """Returns the blackboard value for the parameters of this behavior tree.
