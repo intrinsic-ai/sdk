@@ -13,8 +13,8 @@ import "intrinsic/perception/proto/v1/camera_drivers.proto";
 // Each driver uses a different underlying implementation and within each driver
 // a specific hardware ID binds the identifier to a single physical camera.
 message CameraIdentifier {
-  reserved 50;
-  reserved "generic";
+  reserved 2, 50;
+  reserved "file_multi_sensor_camera", "generic";
 
   oneof drivers {
     CameraDrivers.GenICam genicam = 3;
