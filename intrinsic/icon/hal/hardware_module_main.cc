@@ -87,7 +87,9 @@ absl::StatusOr<HardwareModuleExitCode> ModuleMain(int argc, char** argv) {
                                              logger_connection_timeout);
         !status.ok()) {
       LOG(WARNING) << "Failed to connect to the Intrinsic Logger within "
-                   << logger_connection_timeout << ": " << status;
+                   << absl::FormatDuration(logger_connection_timeout)
+                   << ", robot metadata will not be published. Error: "
+                   << status;
     } else {
       LOG(INFO) << "Connected to the Intrinsic Logger";
     }
