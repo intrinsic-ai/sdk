@@ -258,4 +258,12 @@ intrinsic_proto::Accel ToProto(const intrinsic::Acceleration& accel) {
   return proto_accel;
 }
 
+intrinsic_proto::Vector3 ToVectorProto(const eigenmath::Vector3d& vector) {
+  intrinsic_proto::Vector3 proto_vector;
+  proto_vector.set_x(vector.x());
+  proto_vector.set_y(vector.y());
+  proto_vector.set_z(vector.z());
+  return proto_vector;
+}
+
 }  // namespace intrinsic

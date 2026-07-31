@@ -72,6 +72,8 @@ intrinsic_proto::Matrixd ToProto(const eigenmath::Matrix6d& matrix);
 intrinsic_proto::Twist ToProto(const Twist& twist);
 intrinsic_proto::Accel ToProto(const intrinsic::Acceleration& acceleration);
 
+intrinsic_proto::Vector3 ToVectorProto(const eigenmath::Vector3d& vector);
+
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_MATH_PROTO_CONVERSION_H_
