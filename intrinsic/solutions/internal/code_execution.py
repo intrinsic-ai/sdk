@@ -181,26 +181,6 @@ class PythonScript(CodeExecution):
         None,
     )
 
-  def unique_copy(self) -> PythonScript:
-    """Creates a unique copy of the PythonScript.
-
-    Returns a copy that uses a unique copy of the underlying signature with an
-    equivalent file descriptor set whose "main" proto file (in which the
-    parameter message and the return value message are defined) is renamed to
-    `<random path>/node.proto`.
-
-    This is useful, e.g., to "reuse" a single PythonScript inside a behavior
-    tree since reusing the same signature more than once in a single behavior
-    tree is not allowed. Each PythonScript in a behavior tree must have a
-    different file descriptor set with a different parameter and/or return value
-    message name.
-    """
-    return PythonScript(
-        signature_with_args=self._signature_with_args.unique_copy(),
-        function_body=self._function_body,
-        return_value_key=self._return_value_key,
-    )
-
   @classmethod
   def _create_from_proto(
       cls, proto_object: code_execution_pb2.CodeExecution

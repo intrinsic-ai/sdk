@@ -1591,9 +1591,10 @@ user_data {
   def test_proto_property_allows_multiple_unique_python_scripts(self):
     script1 = _make_python_script_with_generated_signature('Params', 'Return')
     script2 = _make_python_script_with_generated_signature('Params', 'Return')
-    script3 = script2.unique_copy()
+    script3 = _make_python_script_with_generated_signature('OtherParams', '')
     script4 = _make_python_script_with_generated_signature('OtherParams', '')
-    script5 = _make_python_script_with_generated_signature('OtherParams', '')
+    script5 = _make_python_script_with_generated_signature('', 'OtherReturn')
+    script6 = _make_python_script_with_generated_signature('', 'OtherReturn')
     my_bt = bt.BehaviorTree(
         root=bt.Sequence(
             children=[
@@ -1602,6 +1603,7 @@ user_data {
                 bt.Task(action=script3),
                 bt.Task(action=script4),
                 bt.Task(action=script5),
+                bt.Task(action=script6),
             ]
         ),
     )

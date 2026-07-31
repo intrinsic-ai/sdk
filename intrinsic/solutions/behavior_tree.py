@@ -4691,7 +4691,7 @@ class BehaviorTree:
           f' messages: {sorted(list(duplicate_names))}. This can lead to'
           ' compatibility problems with other process editors. To avoid this'
           ' problem, create a separate SignatureWithArgs instance for each task'
-          ' node or use PythonScript.unique_copy().'
+          ' node.'
       )
 
   def _initialize_skill_proto_for_pbt(self, skill_id: str, display_name: str):
