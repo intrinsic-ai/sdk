@@ -296,3 +296,21 @@ single_version_override(
     patch_strip = 1,
     patches = ["//third_party/zenohc:static.patch"],
 )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
