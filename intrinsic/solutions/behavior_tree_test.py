@@ -656,15 +656,16 @@ class BehaviorTreeMadeParametrizableTest(parameterized.TestCase):
     )
 
 
-def _make_python_script_with_generated_signature(
+def _make_generated_signature(
     param_msg: str = '',
     return_msg: str = '',
-) -> bt.PythonScript:
-  """Creates a PythonScript.
+) -> proto_building.Signature:
+  """Creates a Signature that mimicks a signature created with ProtoBuilder.
 
-  The signature of the returned PythonScript mimicks a signature created with
-  the ProtoBuilder, i.e., the parameter and return value message are defined in
-  a proto file and package with a randomized name.
+  The parameter and return value message of the signature are defined in a proto
+  file and package with a randomized name. We don't use ProtoBuilder here
+  because that requires a proto builder service (the fake does not work
+  externally and a mock requires complicated setup).
   """
   fds = descriptor_pb2.FileDescriptorSet()
   param_full_name = ''
@@ -687,12 +688,24 @@ def _make_python_script_with_generated_signature(
       file_proto.message_type.add(name=return_msg)
     fds.file.append(file_proto)
 
-  sig = proto_building.Signature(
+  return proto_building.Signature(
       parameter_message_full_name=param_full_name,
       return_value_message_full_name=return_full_name,
       file_descriptor_set=fds,
   )
 
+
+def _make_python_script_with_generated_signature(
+    param_msg: str = '',
+    return_msg: str = '',
+) -> bt.PythonScript:
+  """Creates a PythonScript.
+
+  The signature of the returned PythonScript mimicks a signature created with
+  the ProtoBuilder, i.e., the parameter and return value message are defined in
+  a proto file and package with a randomized name.
+  """
+  sig = _make_generated_signature(param_msg=param_msg, return_msg=return_msg)
   return code_execution.PythonScript(
       sig.with_args(),
       function_body='pass',
@@ -1803,7 +1816,7 @@ user_data {
       # not re-trigger validation.
       mock_validate.assert_called_once_with(my_bt)
 
-  def test_proto_property_allows_multiple_unique_python_scripts(self):
+  def test_proto_property_allows_multiple_unique_signatures(self):
     script1 = _make_python_script_with_generated_signature('Params', 'Return')
     script2 = _make_python_script_with_generated_signature('Params', 'Return')
     script3 = _make_python_script_with_generated_signature('OtherParams', '')
@@ -1811,6 +1824,7 @@ user_data {
     script5 = _make_python_script_with_generated_signature('', 'OtherReturn')
     script6 = _make_python_script_with_generated_signature('', 'OtherReturn')
     my_bt = bt.BehaviorTree(
+        name='My BT',
         root=bt.Sequence(
             children=[
                 bt.Task(action=script1),
@@ -1822,6 +1836,9 @@ user_data {
             ]
         ),
     )
+    my_bt.set_asset_metadata(id='ai.intrinsic.my_bt', vendor='Intrinsic')
+    my_bt.set_signature(_make_generated_signature('Params', 'Return'))
+
     # Should not raise
     _ = my_bt.proto
 
@@ -1850,12 +1867,31 @@ user_data {
     my_bt = bt.BehaviorTree(
         root=bt.Sequence(
             children=[
-                bt.Task(action=script),
-                bt.Task(action=script),
+                bt.Task(name='Script1', action=script),
+                bt.Task(name='Script2', action=script),
             ]
         ),
     )
-    with self.assertRaisesRegex(ValueError, '.*reusing the same signature.*'):
+    with self.assertRaisesRegex(
+        ValueError, 'Reused signatures found.*Script1.*Script2'
+    ):
+      _ = my_bt.proto
+
+  def test_proto_property_detects_reused_signature_tree_and_script(self):
+    sig = _make_generated_signature('Params', 'Return')
+    script = code_execution.PythonScript(
+        sig.with_args(),
+        function_body='pass',
+    )
+    my_bt = bt.BehaviorTree(
+        name='My BT', root=bt.Task(name='Script1', action=script)
+    )
+    my_bt.set_asset_metadata(id='ai.intrinsic.my_bt', vendor='Intrinsic')
+    my_bt.set_signature(sig)
+
+    with self.assertRaisesRegex(
+        ValueError, 'Reused signatures found.*main behavior tree.*Script1'
+    ):
       _ = my_bt.proto
 
   def test_proto_property_detects_deepcopied_python_script(self):
@@ -1869,7 +1905,7 @@ user_data {
             ]
         ),
     )
-    with self.assertRaisesRegex(ValueError, '.*reusing the same signature.*'):
+    with self.assertRaisesRegex(ValueError, 'Reused signatures found'):
       _ = my_bt.proto
 
   def test_proto_property_allows_same_parameter_and_return_name_on_single_node(
@@ -1884,12 +1920,11 @@ user_data {
     # Should not raise
     _ = my_bt.proto
 
-  def test_proto_property_allows_reusing_non_unique_signature_scripts(
+  def test_proto_property_allows_reusing_non_unique_signatures(
       self,
   ):
-    # Scripts with user-defined signatures (not generated with the ProtoBuilder)
-    # can be reused in a single tree. We assume the user knows what they are
-    # doing.
+    # User-defined signatures (not generated with the ProtoBuilder) can be
+    # reused in a single tree. We assume the user knows what they are doing.
     fds = descriptor_pb2.FileDescriptorSet()
     file_proto = descriptor_pb2.FileDescriptorProto(
         name='node.proto',
@@ -1908,6 +1943,7 @@ user_data {
         function_body='pass',
     )
     my_bt = bt.BehaviorTree(
+        name='My BT',
         root=bt.Sequence(
             children=[
                 bt.Task(action=script),
@@ -1915,6 +1951,8 @@ user_data {
             ]
         ),
     )
+    my_bt.set_asset_metadata(id='ai.intrinsic.my_bt', vendor='Intrinsic')
+    my_bt.set_signature(sig)
 
     # Should not raise
     _ = my_bt.proto

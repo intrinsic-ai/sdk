@@ -49,18 +49,15 @@ def _is_generated_proto_filename(filename: str):
   return re.match(_UNIQUE_MAIN_PROTO_FILENAME_REGEX, filename)
 
 
-def _is_file_descriptor_set_from_generated_signature(
-    file_descriptor_set: descriptor_pb2.FileDescriptorSet,
-) -> bool:
-  """Indicates whether the file descriptor set is from a generated signature.
+def _is_generated_signature(signature: Signature) -> bool:
+  """Indicates whether the signature is a generated signature.
 
-  Returns True if the given file descriptor set can be assumed to be from a
-  Signature which was generated with the ProtoBuilder class (see
-  ProtoBuilder.create_signature() and
+  Returns True if the given signature can be assumed to have been generated with
+  the ProtoBuilder class (see ProtoBuilder.create_signature() and
   ProtoBuilder.create_signature_with_args()).
   """
 
-  for file in file_descriptor_set.file:
+  for file in signature.file_descriptor_set.file:
     if _is_generated_proto_filename(file.name):
       return True
   return False

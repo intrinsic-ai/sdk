@@ -3996,7 +3996,7 @@ class BehaviorTree:
   def _to_proto(self, validate: bool = True) -> behavior_tree_pb2.BehaviorTree:
     if validate:
       self.validate_id_uniqueness()
-      self._validate_code_executions()
+      self._validate_signatures()
 
     proto_object = behavior_tree_pb2.BehaviorTree(name=self.name)
     if self.root is not None:
@@ -4630,25 +4630,31 @@ class BehaviorTree:
       ) + '\n'.join(violations)
       raise solutions_errors.InvalidArgumentError(violation_msg)
 
-  def _validate_code_executions(self) -> None:
-    """Validates code execution task nodes in the behavior tree.
+  def _validate_signatures(self) -> None:
+    """Validates signatures in the behavior tree.
 
-    Checks that no Signature object is used more than once in the behavior
-    tree (including subtrees). This ensures compatibility with process editors
-    that have no concept of sharing message definitions within a single process.
-    We effectively want to guarantee that each Python script node has a unique
-    file descriptor set with unique parameter and return messages.
+    Checks that signatures are not used more than once in the behavior tree. The
+    check includes the top-level signature of the BehaviorTree itself and all
+    Python script node signatures in the tree. This ensures compatibility with
+    process editors which have no concept of sharing message definitions within
+    a single process.
 
     This check is not strictly required for a successful execution of the
     process and thus - to allow for advanced use cases - it is restricted to
     signatures which were generated with the ProtoBuilder class.
 
     Raises:
-      ValueError: If reused Signature objects are detected.
+      ValueError: If reused signatures are found.
     """
-    scripts: list[PythonScript] = []
+    src_names_and_signatures: list[tuple[str, proto_building.Signature]] = []
 
-    def collect_python_scripts(
+    if self._description is not None:
+      sig = self.get_signature()
+      # pylint: disable-next=protected-access
+      if proto_building._is_generated_signature(sig):
+        src_names_and_signatures.append(('main behavior tree', sig))
+
+    def collect_task_node_signatures(
         containing_tree: BehaviorTree,
         tree_object: Union[BehaviorTree, Node, Condition],
     ) -> None:
@@ -4658,42 +4664,59 @@ class BehaviorTree:
           and tree_object.code_execution is not None
           and isinstance(tree_object.code_execution, PythonScript)
           # pylint: disable-next=protected-access
-          and proto_building._is_file_descriptor_set_from_generated_signature(
-              tree_object.code_execution.signature_with_args.file_descriptor_set
+          and proto_building._is_generated_signature(
+              tree_object.code_execution.signature_with_args.signature
           )
       ):
-        scripts.append(tree_object.code_execution)
+        src_name = (
+            f"node '{tree_object.name}'"
+            if tree_object.name is not None
+            else 'node <unnamed>'
+        )
+        src_names_and_signatures.append(
+            (src_name, tree_object.code_execution.signature_with_args.signature)
+        )
 
-    self.visit(collect_python_scripts)
+    self.visit(collect_task_node_signatures)
 
-    # A simple approach would be to collect the object ids of all Signature
-    # objects in the tree and check for duplicates. But to prevent workarounds
-    # such as using copy.deepcopy(), we go a bit deeper and check the
-    # parameter/return value message names.
-    #
-    # We check for duplicate message names where "duplicate name" here means
-    # that a message name is used by two different nodes. If the parameter and
-    # return value message name are the same for a single node we allow it.
-    seen_message_names = set()
-    duplicate_names = set()
-    for script in scripts:
+    # It's not enough to check for reused instances of Signature objects. The
+    # user might have used, e.g., copy.deepcopy(), and the Signature object from
+    # the BehaviorTree get's created on-the-fly and is always unique. Instead,
+    # we check for duplicate message names where "duplicate name" means that a
+    # message name is used by two different signatures. If the parameter and
+    # return value message name are the same for a single signature we allow it.
+    seen_message_names: dict[str, str] = {}
+    colliding_sources: list[str] = []
+    for source_name, sig in src_names_and_signatures:
       # Collect non-empty message names in a set.
       message_names = {
-          script.signature_with_args.parameter_message_full_name,
-          script.signature_with_args.return_value_message_full_name,
+          sig.parameter_message_full_name,
+          sig.return_value_message_full_name,
       } - {''}
       for name in message_names:
         if name in seen_message_names:
-          duplicate_names.add(name)
-        seen_message_names.add(name)
+          prev_source = seen_message_names[name]
+          if prev_source not in colliding_sources:
+            colliding_sources.append(prev_source)
+          if source_name not in colliding_sources:
+            colliding_sources.append(source_name)
+        else:
+          seen_message_names[name] = source_name
 
-    if duplicate_names:
+    if colliding_sources:
+      max_sources_to_display = 3
+      if len(colliding_sources) > max_sources_to_display:
+        first_n_str = ', '.join(colliding_sources[:max_sources_to_display])
+        remaining = len(colliding_sources) - max_sources_to_display
+        sources_str = f'{first_n_str}, ... <{remaining} more>'
+      else:
+        sources_str = ', '.join(colliding_sources)
       raise ValueError(
-          'Found multiple PythonScript nodes reusing the same signature'
-          f' messages: {sorted(list(duplicate_names))}. This can lead to'
-          ' compatibility problems with other process editors. To avoid this'
-          ' problem, create a separate SignatureWithArgs instance for each task'
-          ' node.'
+          f'Reused signatures found. The signatures of [{sources_str}] have'
+          ' messages that are reused at least once in the tree. This can lead'
+          ' to compatibility problems with other process editors. To avoid'
+          ' this problem, create a separate signature object for each task node'
+          ' and/or the behavior tree itself.'
       )
 
   def _initialize_skill_proto_for_pbt(self, skill_id: str, display_name: str):
