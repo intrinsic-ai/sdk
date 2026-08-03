@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import dataclasses
 import re
+import typing
 from typing import Any
 import uuid
 
@@ -298,6 +299,7 @@ class Signature:
     The parameter message and/or parameter assignments are created from the
     given key-value pairs (similar to skill constructors). The keys are the
     field names of the parameter message and each value can be one of:
+
      - A Python value matching the scalar type of the corresponding field
      - A proto message matching the message type of the corresponding field
      - A provided.ParamAssignment (= BlackboardValue or CelExpression) for
@@ -339,6 +341,74 @@ class Signature:
         params_message=params_message,
         blackboard_params=blackboard_params,
     )
+
+  def create_params_message(self, **kwargs) -> protobuf_message.Message:
+    """Creates a parameter message for the signature.
+
+    The parameter message is created from the given key-value pairs (similar to
+    skill constructors). The keys are the field names of the parameter message
+    and each value can be one of:
+
+     - A Python value matching the scalar type of the corresponding field
+     - A proto message matching the message type of the corresponding field
+
+    The values must be fixed values, so provided.ParamAssignment values (=
+    BlackboardValue or CelExpression) for dynamically assigning a value from the
+    blackboard are not supported.
+
+    This method can be used, e.g., to create a fixed parameter message for
+    testing a behavior tree with parameters:
+
+    ```
+    params = behavior_tree.get_signature().create_params_message(x=42)
+    solution.executive.run(behavior_tree, parameters=params)
+    ```
+
+    Args:
+      **kwargs: Arguments matching the fields of the parameter message.
+
+    Returns:
+      A protobuf message populated with the given key-value pairs.
+
+    Raises:
+      ValueError: If the signature has no parameter message, or if kwargs
+        contains parameter assignments.
+      TypeError: If kwargs contains keys that do not match fields of the
+        parameter message.
+    """
+    if not self.parameter_message_full_name:
+      raise ValueError(
+          "Cannot create parameter message for a signature without parameters"
+      )
+
+    params_message = skill_utils.create_message_from_file_descriptor_set(
+        self.file_descriptor_set, self.parameter_message_full_name
+    )
+
+    # We technically don't need to create blackboard_params but it allows us to
+    # raise a specific error below if the user tries to pass a parameter
+    # assignment.
+    blackboard_params: dict[str, str] = {}
+    consumed = skill_utils.set_params(params_message, blackboard_params, kwargs)
+
+    unconsumed = set(kwargs) - set(consumed)
+    if unconsumed:
+      # A TypeError on unsupported kwargs is idiomatic Python.
+      raise TypeError(
+          f"Unexpected keyword arguments: {', '.join(sorted(unconsumed))}"
+      )
+
+    if blackboard_params:
+      param_assignment_types = " or ".join(
+          cls.__name__ for cls in typing.get_args(provided.ParamAssignment)
+      )
+      raise ValueError(
+          f"Dynamic parameter assignments ({param_assignment_types}) cannot be"
+          " used to create a fixed params message. Got parameter assignments"
+          f" for paths: {', '.join(sorted(blackboard_params))}"
+      )
+
+    return params_message
 
 
 @dataclasses.dataclass(frozen=True)
