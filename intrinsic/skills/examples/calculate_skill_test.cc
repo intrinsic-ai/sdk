@@ -6,8 +6,11 @@
 #include <gtest/gtest.h>
 
 #include <memory>
+#include <string>
 
+#include "absl/strings/str_cat.h"
 #include "google/protobuf/message_lite.h"
+#include "intrinsic/assets/interface_utils.h"
 #include "intrinsic/assets/proto/v1/resolved_dependency.pb.h"
 #include "intrinsic/assets/services/examples/calcserver/calc_server.h"
 #include "intrinsic/assets/services/examples/calcserver/calc_server.pb.h"
@@ -40,8 +43,11 @@ TEST(CalculateSkillTest, CalculatesSum) {
       });
   intrinsic_proto::assets::v1::ResolvedDependency::Interface interface =
       skill_test_factory.RunService(&calculator_service, "calculator");
-  params.mutable_calculator()->mutable_interfaces()->insert(
-      {"grpc://intrinsic_proto.services.Calculator", interface});
+  const std::string calculator_interface_uri =
+      absl::StrCat(::intrinsic::assets::kGrpcUriPrefix,
+                   intrinsic_proto::services::Calculator::service_full_name());
+  (*params.mutable_calculator()
+        ->mutable_interfaces())[calculator_interface_uri] = interface;
 
   auto request = skill_test_factory.MakeExecuteRequest(params);
   auto context = skill_test_factory.MakeExecuteContext({});

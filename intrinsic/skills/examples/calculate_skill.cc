@@ -3,13 +3,16 @@
 #include "intrinsic/skills/examples/calculate_skill.h"
 
 #include <memory>
+#include <string>
 
 #include "absl/log/log.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/str_cat.h"
 #include "google/protobuf/message.h"
 #include "grpcpp/channel.h"
 #include "grpcpp/client_context.h"
 #include "intrinsic/assets/dependencies/utils.h"
+#include "intrinsic/assets/interface_utils.h"
 #include "intrinsic/assets/proto/v1/resolved_dependency.pb.h"
 #include "intrinsic/assets/services/examples/calcserver/calc_server.grpc.pb.h"
 #include "intrinsic/assets/services/examples/calcserver/calc_server.pb.h"
@@ -24,7 +27,11 @@ namespace skills {
 
 namespace {
 
-char kCalculatorInterface[] = "grpc://intrinsic_proto.services.Calculator";
+std::string CalculatorInterfaceUri() {
+  return absl::StrCat(
+      ::intrinsic::assets::kGrpcUriPrefix,
+      intrinsic_proto::services::Calculator::service_full_name());
+}
 
 }  // namespace
 
@@ -39,9 +46,9 @@ CalculateSkill::Execute(const ExecuteRequest& request,
             << " and y: " << params.y();
 
   // Connect to the Calculator service.
-  INTR_ASSIGN_OR_RETURN(
-      std::shared_ptr<grpc::Channel> channel,
-      assets::dependencies::Connect(params.calculator(), kCalculatorInterface));
+  INTR_ASSIGN_OR_RETURN(std::shared_ptr<grpc::Channel> channel,
+                        assets::dependencies::Connect(
+                            params.calculator(), CalculatorInterfaceUri()));
   auto stub = intrinsic_proto::services::Calculator::NewStub(channel);
 
   // Create the request.
