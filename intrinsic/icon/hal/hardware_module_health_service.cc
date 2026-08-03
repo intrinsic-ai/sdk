@@ -17,6 +17,12 @@
 namespace intrinsic::icon {
 namespace {
 
+// Maps the internal hardware module state code to the ServiceState StateCode.
+// All non-faulted/non-error operational states (including initial states like
+// kDeactivated or kActivated prior to robot controller connection) are reported
+// as STATE_CODE_ENABLED so users are not confused by seeing the service shown
+// as disabled, since the hardware module state is managed automatically by the
+// realtime control service.
 intrinsic_proto::services::v1::SelfState::StateCode GetServiceStateCode(
     const intrinsic_fbs::HardwareModuleState& fb_state) {
   ::intrinsic_proto::services::v1::SelfState::StateCode state =
@@ -26,10 +32,10 @@ intrinsic_proto::services::v1::SelfState::StateCode GetServiceStateCode(
     case intrinsic_fbs::StateCode::kDeactivating:
     case intrinsic_fbs::StateCode::kActivated:
     case intrinsic_fbs::StateCode::kActivating:
+    case intrinsic_fbs::StateCode::kPreparing:
+    case intrinsic_fbs::StateCode::kPrepared:
     case intrinsic_fbs::StateCode::kMotionDisabling:
     case intrinsic_fbs::StateCode::kMotionEnabling:
-      state = intrinsic_proto::services::v1::SelfState::STATE_CODE_DISABLED;
-      break;
     case intrinsic_fbs::StateCode::kMotionEnabled:
       state = intrinsic_proto::services::v1::SelfState::STATE_CODE_ENABLED;
       break;
@@ -99,6 +105,16 @@ void HardwareModuleHealthService::NotifyWithExitCode(
     if (!message.empty()) {
       response->mutable_extended_status()->mutable_user_report()->set_message(
           message);
+    } else if (fb_state.code() == intrinsic_fbs::StateCode::kDeactivated ||
+               fb_state.code() == intrinsic_fbs::StateCode::kDeactivating) {
+      // In kDeactivated, ICON (the robot controller) is not connected yet. We
+      // set an extended status message to inform the user that the hardware
+      // module initialized successfully and is waiting for ICON connection.
+      // Once ICON connects (kActivating and subsequent states), we do not set
+      // an extended status message to avoid unnecessary UI clutter/spam.
+      response->mutable_extended_status()->mutable_user_report()->set_message(
+          "Hardware module initialized successfully and is waiting for a "
+          "connection by a realtime control service.");
     }
   }
   return ::grpc::Status::OK;
@@ -135,15 +151,8 @@ void HardwareModuleHealthService::NotifyWithExitCode(
         "Cannot use enable to clear runtime faults directly on hardware "
         "modules. Clear the error on the realtime control service or in the "
         "robot control panel."));
-  } else if (state.code() == intrinsic_fbs::StateCode::kMotionEnabled ||
-             state.code() == intrinsic_fbs::StateCode::kMotionEnabling) {
-    return ::grpc::Status::OK;
   }
-
-  return ToGrpcStatus(absl::UnavailableError(
-      "Cannot enable hardware module directly. Hardware modules are enabled "
-      "automatically via the realtime control service when no hardware "
-      "module has an error."));
+  return ::grpc::Status::OK;
 }
 
 ::grpc::Status HardwareModuleHealthService::Disable(
