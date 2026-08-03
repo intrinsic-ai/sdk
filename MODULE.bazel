@@ -158,6 +158,7 @@ register_toolchains("@rust_toolchains//:all")
 
 bazel_dep(name = "abseil-cpp", version = "20250814.2")
 bazel_dep(name = "abseil-py", version = "2.1.0", repo_name = "com_google_absl_py")
+bazel_dep(name = "assimp", version = "6.0.3")
 bazel_dep(name = "bazel_lib", version = "3.5.0")
 bazel_dep(name = "bazel_skylib", version = "1.9.0")
 bazel_dep(name = "boringssl", version = "0.20260713.0")
@@ -198,6 +199,7 @@ bazel_dep(name = "sdformat", version = "16.1.0")
 bazel_dep(name = "soplex", version = "7.1.4.bcr.5")  # bumping transitive dependency to update boost to 1.89.0
 bazel_dep(name = "tar.bzl", version = "0.10.7")
 bazel_dep(name = "tcmalloc", version = "0.0.0-20250927-12f2552")
+bazel_dep(name = "tinygltf", version = "2.9.6")
 bazel_dep(name = "tinyxml2", version = "10.0.0")
 bazel_dep(name = "websocketpp", version = "0.8.2.bcr.6")  # bumping transitive dependency to update boost to 1.89.0
 bazel_dep(name = "zenoh-c", version = "1.7.2.bcr.1")

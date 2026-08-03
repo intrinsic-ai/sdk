@@ -175,6 +175,7 @@ proto_library(
     deps = [
         ":geometry_options_proto",
         ":octree_wrapping_proto",
+        ":point_cloud_proto",
         ":transformed_primitive_shape_set_proto",
         ":triangle_mesh_proto",
     ],
@@ -197,6 +198,7 @@ go_proto_library(
     deps = [
         ":geometry_options_go_proto",
         ":octree_wrapping_go_proto",
+        ":point_cloud_go_proto",
         ":transformed_primitive_shape_set_go_proto",
         ":triangle_mesh_go_proto",
     ],

@@ -6,6 +6,7 @@ package intrinsic_proto.geometry.v1;
 
 import "intrinsic/geometry/proto/v1/geometry_options.proto";
 import "intrinsic/geometry/proto/v1/octree_wrapping.proto";
+import "intrinsic/geometry/proto/v1/point_cloud.proto";
 import "intrinsic/geometry/proto/v1/transformed_primitive_shape_set.proto";
 import "intrinsic/geometry/proto/v1/triangle_mesh.proto";
 
@@ -20,6 +21,8 @@ message ExactGeometry {
     // The mesh representation of this Geometry.
     TriangleMesh triangle_mesh = 2;
 
+    // Point cloud data for this geometry instance.
+    PointCloud point_cloud = 3;
   }
 
   // An optional Octree based wrapping that segments the raw data into an octree

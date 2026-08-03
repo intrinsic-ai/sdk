@@ -18,6 +18,22 @@ exports_files(
 )
 
 cc_library(
+    name = "pts_to_ai_scene",
+    srcs = ["pts_to_ai_scene.cc"],
+    hdrs = ["pts_to_ai_scene.h"],
+    visibility = ["//intrinsic/geometry/internal/legacy:__subpackages__"],
+    deps = [
+        "//intrinsic/eigenmath",
+        "//intrinsic/geometry/shapes",
+        "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+        "@assimp",
+    ],
+)
+
+cc_library(
     name = "point_cloud_riegeli_coder",
     srcs = ["point_cloud_riegeli_coder.cc"],
     hdrs = ["point_cloud_riegeli_coder.h"],

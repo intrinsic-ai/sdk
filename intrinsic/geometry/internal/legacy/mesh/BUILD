@@ -23,6 +23,65 @@ cc_library(
 )
 
 cc_library(
+    name = "load_mesh_file_with_scale",
+    srcs = ["load_mesh_file_with_scale.cc"],
+    hdrs = ["load_mesh_file_with_scale.h"],
+    copts = ["-fexceptions"] + select({
+        "@platforms//cpu:x86_32": ["-frounding-math"],
+        "@platforms//cpu:x86_64": ["-frounding-math"],
+        "//conditions:default": [],
+    }),
+    deps = [
+        ":mesh",
+        "//intrinsic/eigenmath",
+        "//intrinsic/geometry/internal/legacy/mesh/io:load_mesh_from_file",
+        "//intrinsic/scene/sdf:sdf_path_resolver",
+        "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/log:check",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings:string_view",
+    ],
+)
+
+cc_library(
+    name = "triangle_mesh_riegeli_coder",
+    srcs = ["triangle_mesh_riegeli_coder.cc"],
+    hdrs = ["triangle_mesh_riegeli_coder.h"],
+    copts = ["-fexceptions"] + select({
+        "@platforms//cpu:x86_32": ["-frounding-math"],
+        "@platforms//cpu:x86_64": ["-frounding-math"],
+        "//conditions:default": [],
+    }),
+    deps = [
+        "//intrinsic/eigenmath",
+        "//intrinsic/geometry/proto/v1:triangle_mesh_cc_proto",
+        "//intrinsic/geometry/shapes",
+        "//intrinsic/marshal:riegeli_proto_coder",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+    ],
+)
+
+cc_library(
+    name = "memoized_mesh_from_triangle_mesh",
+    srcs = ["memoized_mesh_from_triangle_mesh.cc"],
+    hdrs = ["memoized_mesh_from_triangle_mesh.h"],
+    copts = ["-fexceptions"] + select({
+        "@platforms//cpu:x86_32": ["-frounding-math"],
+        "@platforms//cpu:x86_64": ["-frounding-math"],
+        "//conditions:default": [],
+    }),
+    deps = [
+        ":mesh",
+        ":mesh_from_triangle_mesh",
+        ":triangle_mesh_riegeli_coder",
+        "//intrinsic/geometry/shapes",
+        "//intrinsic/util/object_store:memoize",
+        "//intrinsic/util/object_store:object_ref",
+    ],
+)
+
+cc_library(
     name = "mesh",
     srcs = ["mesh.cc"],
     hdrs = ["mesh.h"],
@@ -49,6 +108,22 @@ cc_library(
         "@abseil-cpp//absl/log:check",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
+    ],
+)
+
+cc_library(
+    name = "mesh_from_triangle_mesh",
+    srcs = ["mesh_from_triangle_mesh.cc"],
+    hdrs = ["mesh_from_triangle_mesh.h"],
+    copts = ["-fexceptions"] + select({
+        "@platforms//cpu:x86_32": ["-frounding-math"],
+        "@platforms//cpu:x86_64": ["-frounding-math"],
+        "//conditions:default": [],
+    }),
+    deps = [
+        ":mesh",
+        "//intrinsic/geometry/shapes",
+        "@com_gitlab_libeigen_eigen//:eigen",
     ],
 )
 

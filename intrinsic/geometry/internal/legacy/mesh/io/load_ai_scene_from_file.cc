@@ -1,0 +1,95 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+#include "intrinsic/geometry/internal/legacy/mesh/io/load_ai_scene_from_file.h"
+
+#include <assimp/Importer.hpp>
+// Note that we have to include assimp in this way since this is how it is
+// included in blue/shared. Using the google version of the build results in
+// a redefinition of the assimp importer class.
+#include <assimp/postprocess.h>
+
+#include <memory>
+#include <string>
+
+#include "absl/log/check.h"
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "absl/strings/ascii.h"
+#include "absl/strings/str_cat.h"
+#include "assimp/IOSystem.hpp"
+#include "assimp/SceneCombiner.h"
+#include "assimp/config.h"
+#include "assimp/mesh.h"
+#include "assimp/scene.h"
+#include "intrinsic/eigenmath/types.h"
+#include "intrinsic/geometry/internal/legacy/point_cloud/pts_to_ai_scene.h"
+#include "intrinsic/util/status/status_macros.h"
+#include "ortools/base/helpers.h"
+#include "ortools/base/options.h"
+#include "ortools/base/path.h"
+
+namespace intrinsic {
+namespace geometry_legacy {
+namespace {
+
+// Note that the returned `scene` is owned by `importer`.
+absl::StatusOr<const aiScene*> LoadAiSceneFromFile(const std::string& filename,
+                                                   Assimp::Importer& importer,
+                                                   bool remove_point_clouds) {
+  // Make sure no extra transform is added by assimp.
+  importer.SetPropertyInteger(AI_CONFIG_IMPORT_COLLADA_IGNORE_UP_DIRECTION, 1);
+  if (remove_point_clouds) {
+    importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE,
+                                aiPrimitiveType_POINT | aiPrimitiveType_LINE);
+  } else {
+    importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_LINE);
+  }
+
+  auto read_options = aiProcess_CalcTangentSpace | aiProcess_Triangulate |
+                      aiProcess_JoinIdenticalVertices | aiProcess_SortByPType |
+                      aiProcess_FindDegenerates | aiProcess_EmbedTextures;
+  if (remove_point_clouds) {
+    read_options |= aiProcess_PreTransformVertices;
+  }
+
+  const aiScene* scene = importer.ReadFile(filename, read_options);
+  if (scene == nullptr) {
+    return absl::InternalError(absl::StrCat("Failed to load mesh ", filename,
+                                            ". Error is\n",
+                                            importer.GetErrorString()));
+  }
+  return scene;
+}
+
+}  // namespace
+
+absl::StatusOr<std::unique_ptr<aiScene>> LoadAiSceneFromFile(
+    const std::string& filename, const eigenmath::Vector3d& scale) {
+  const std::string extension =
+      absl::AsciiStrToLower(file::Extension(filename));
+
+  bool remove_point_clouds = true;
+  if (extension == "pts") {
+    std::string file_content;
+    INTR_RETURN_IF_ERROR(
+        file::GetContents(filename, &file_content, file::Defaults()));
+
+    return PtsFileToAiScene(file_content, scale);
+  } else if (extension == "ply") {
+    remove_point_clouds = false;
+  }
+
+  aiScene* scene = nullptr;
+  Assimp::Importer importer;
+  INTR_ASSIGN_OR_RETURN(
+      const aiScene* tmp_scene,
+      LoadAiSceneFromFile(filename, importer, remove_point_clouds));
+  Assimp::SceneCombiner::CopyScene(&scene, tmp_scene);
+  scene->mRootNode->mTransformation[0][0] *= scale[0];
+  scene->mRootNode->mTransformation[1][1] *= scale[1];
+  scene->mRootNode->mTransformation[2][2] *= scale[2];
+  return std::unique_ptr<aiScene>(scene);
+}
+
+}  // namespace geometry_legacy
+}  // namespace intrinsic
