@@ -7,6 +7,8 @@ package origin
 
 import (
 	"net/http"
+
+	"github.com/golang/glog"
 )
 
 func fromHostAndURI(r *http.Request) string {
@@ -36,10 +38,16 @@ func Description(r *http.Request) string {
 
 // ExtractOriginalURL returns the original URL or path from proxy headers.
 func ExtractOriginalURL(r *http.Request) string {
-	if u := r.Header.Get("X-Original-Url"); u != "" {
+	u := r.Header.Get("X-Original-Url")
+	p := r.Header.Get("X-Envoy-Original-Path")
+	if u != "" && p != "" {
+		glog.Warningf("Ambiguous request headers: both X-Original-Url (%q) and X-Envoy-Original-Path (%q) are set", u, p)
+		return ""
+	}
+	if u != "" {
 		return u
 	}
-	return r.Header.Get("X-Envoy-Original-Path")
+	return p
 }
 
 // URL returns the address of the request origin.
