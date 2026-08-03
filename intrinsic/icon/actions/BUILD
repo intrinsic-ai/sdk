@@ -155,6 +155,19 @@ cc_library(
     deps = [":simple_gripper_cc_proto"],
 )
 
+cc_library(
+    name = "empty_action_signature",
+    srcs = ["empty_action_signature.cc"],
+    hdrs = ["empty_action_signature.h"],
+    deps = [
+        ":action_utils",
+        "//intrinsic/icon/common:builtins",
+        "//intrinsic/icon/proto/v1:types_cc_proto",
+        "@abseil-cpp//absl/log:check",
+        "@abseil-cpp//absl/strings",
+    ],
+)
+
 proto_library(
     name = "trajectory_tracking_action_proto",
     srcs = ["trajectory_tracking_action.proto"],
