@@ -39,6 +39,7 @@ py_library(
         "//intrinsic/solutions/internal:skill_utils",
         "//intrinsic/solutions/internal/bt:bt_util",
         "//intrinsic/solutions/internal/bt:world_query",
+        "//intrinsic/util/proto:descriptors_py",
         "//intrinsic/util/status:extended_status_py_pb2",
         "//intrinsic/world/python:object_world_resources",
         "@ai_intrinsic_sdks_pip_deps//graphviz",

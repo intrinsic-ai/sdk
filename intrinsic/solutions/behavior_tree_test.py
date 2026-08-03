@@ -482,6 +482,99 @@ class BehaviorTreeMadeParametrizableTest(parameterized.TestCase):
     with self.assertRaisesRegex(TypeError, 'set_asset_metadata()'):
       tree.set_signature(sig)
 
+  def test_get_signature(self):
+    fds = text_format.Parse(
+        """
+            file {
+                name: "gen/sbl/node.proto"
+                package: "gen.sbl"
+                message_type { name: "Params" }
+                message_type { name: "ReturnValue" }
+            }
+            """,
+        descriptor_pb2.FileDescriptorSet(),
+    )
+    tree_asset = text_format.Parse(
+        """
+        metadata {
+            id_version {
+                id {
+                    package: "ai.intrinsic"
+                    name: "my_tree"
+                }
+            }
+            display_name: "My tree"
+            asset_type: ASSET_TYPE_PROCESS
+        }
+        behavior_tree {
+            name: "My tree"
+            root { sequence {} }
+            description {
+                id: "ai.intrinsic.my_tree"
+                id_version: "ai.intrinsic.my_tree.0.0.1"
+                parameter_description {
+                    parameter_message_full_name: "gen.sbl.Params"
+                    # parameter_descriptor_fileset: filled in below
+                }
+                return_value_description {
+                    return_value_message_full_name: "gen.sbl.ReturnValue"
+                    # descriptor_fileset: filled in below
+                }
+            }
+        }
+        """,
+        process_asset_pb2.ProcessAsset(),
+    )
+    description = tree_asset.behavior_tree.description
+    description.parameter_description.parameter_descriptor_fileset.CopyFrom(fds)
+    description.return_value_description.descriptor_fileset.CopyFrom(fds)
+    tree = bt.BehaviorTree.create_from_proto(tree_asset)
+
+    sig = tree.get_signature()
+
+    self.assertEqual(sig.parameter_message_full_name, 'gen.sbl.Params')
+    self.assertEqual(sig.return_value_message_full_name, 'gen.sbl.ReturnValue')
+    compare.assertProto2Equal(self, sig.file_descriptor_set, fds)
+
+  def test_get_signature_empty_signature(self):
+    tree_asset = text_format.Parse(
+        """
+        metadata {
+            id_version {
+                id {
+                    package: "ai.intrinsic"
+                    name: "my_tree"
+                }
+            }
+            display_name: "My tree"
+            asset_type: ASSET_TYPE_PROCESS
+        }
+        behavior_tree {
+            name: "My tree"
+            root { sequence {} }
+            description {
+                id: "ai.intrinsic.my_tree"
+                id_version: "ai.intrinsic.my_tree.0.0.1"
+                # parameter_description: unset
+                # return_value_description: unset
+            }
+        }
+        """,
+        process_asset_pb2.ProcessAsset(),
+    )
+    tree = bt.BehaviorTree.create_from_proto(tree_asset)
+
+    sig = tree.get_signature()
+
+    self.assertEqual(sig.parameter_message_full_name, '')
+    self.assertEqual(sig.return_value_message_full_name, '')
+    compare.assertProto2Equal(self, sig.file_descriptor_set, '')
+
+  def test_get_signature_without_description_raises(self):
+    tree = bt.BehaviorTree('My Process')
+    with self.assertRaisesRegex(TypeError, 'has no.*signature'):
+      tree.get_signature()
+
   def test_return_value_expression(self):
     tree = bt.BehaviorTree('test')
     self.assertIsNone(tree.return_value_expression)

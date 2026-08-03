@@ -36,6 +36,7 @@ import warnings
 
 from cel.expr import syntax_pb2
 from google.protobuf import any_pb2
+from google.protobuf import descriptor_pb2
 from google.protobuf import message as protobuf_message
 import graphviz
 
@@ -64,6 +65,7 @@ from intrinsic.solutions.internal import code_execution as _code_execution_inter
 from intrinsic.solutions.internal import skill_utils
 from intrinsic.solutions.internal.bt import bt_util
 from intrinsic.solutions.internal.bt import world_query as _world_query_internal
+from intrinsic.util.proto import descriptors
 from intrinsic.util.status import extended_status_pb2
 from intrinsic.world.python import object_world_resources
 
@@ -4896,6 +4898,36 @@ class BehaviorTree:
       )
     else:
       self._description.ClearField('return_value_description')
+
+  def get_signature(self) -> proto_building.Signature:
+    """Returns the signature of the behavior tree.
+
+    Also see set_signature().
+
+    Returns:
+      The signature as a proto_building.Signature object.
+
+    Raises:
+      TypeError: If the behavior tree has no signature.
+    """
+    if self._description is None:
+      raise TypeError('BehaviorTree has no description with a signature')
+
+    return proto_building.Signature(
+        # The message names can be empty.
+        parameter_message_full_name=(
+            self._description.parameter_description.parameter_message_full_name
+        ),
+        return_value_message_full_name=(
+            self._description.return_value_description.return_value_message_full_name
+        ),
+        # The file descriptor sets can be unset/empty and hence the merged set
+        # can also be emtpy.
+        file_descriptor_set=descriptors.merge_file_descriptor_sets([
+            self._description.parameter_description.parameter_descriptor_fileset,
+            self._description.return_value_description.descriptor_fileset,
+        ]),
+    )
 
   @property
   def params(self) -> blackboard_value.BlackboardValue:
