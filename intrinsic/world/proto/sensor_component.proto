@@ -229,10 +229,18 @@ message SensorComponent {
         [deprecated = true];
   }
 
+  // If true the sensor will always be updated.
+  bool always_on = 1;
+
+  // The frequency (in Hz) at which the sensor data is generated for simulation.
+  double update_rate = 2;
   oneof type_oneof {
     Camera camera = 4;
     DepthCamera depth_camera = 5;
     ForceTorque force_torque = 6;
     Lidar lidar = 9;
   }
+  // Name of the topic where the sensor data is published in Gazebo simulation.
+  string topic = 10;
+
 }

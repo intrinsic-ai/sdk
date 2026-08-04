@@ -1,0 +1,117 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto2";
+
+package blue.messages_proto;
+
+option go_package = "intrinsic/messages/messages_go_proto";
+option java_outer_classname = "GeometryTypesProtos";
+
+// Serializes blue::vec2
+message Vec2 {
+  // X-position.
+  optional double x = 2;
+  // Y-position.
+  optional double y = 3;
+
+  reserved 1;
+  reserved "header";
+}
+
+// Serializes blue::vec3
+message Vec3 {
+  // DEPRECATED: Use intrinsic_proto::Point in
+  // //intrinsic/math/proto/point.proto instead.
+  option deprecated = true;
+
+  // X-position.
+  optional double x = 2;
+  // Y-position.
+  optional double y = 3;
+  // Z-position.
+  optional double z = 4;
+
+  reserved 1;
+  reserved "header";
+}
+
+message VectorXd {
+  optional int32 rows = 2;
+  repeated double values = 3 [packed = true];
+
+  reserved 1;
+  reserved "header";
+}
+
+// Serializes blue::quat
+message Quat {
+  // DEPRECATED: Use intrinsic_proto::Quaternion in
+  // //intrinsic/math/proto/quaternion.proto instead.
+  option deprecated = true;
+
+  // X-value.
+  optional double x = 2;
+  // Y-value.
+  optional double y = 3;
+  // Z-value.
+  optional double z = 4;
+  // W-value.
+  optional double w = 5;
+
+  reserved 1;
+  reserved "header";
+}
+
+// Serializes blue::messages::Pose2D
+message Pose2D {
+  // The (x, y) component of the pose.
+  optional Vec2 position = 2;
+  // The rotational component of the pose.
+  optional double orientation = 3;
+
+  reserved 1;
+  reserved "header";
+}
+
+// Serializes blue::messages::Pose3D
+message Pose3D {
+  // DEPRECATED: Use intrinsic_proto::Pose in //intrinsic/math/proto/pose.proto
+  // instead.
+  option deprecated = true;
+
+  optional Vec3 position = 2;
+  optional Quat orientation = 3;
+
+  reserved 1;
+  reserved "header";
+}
+
+// Serializes blue::messages::Twist3D
+message Twist3D {
+  optional Vec3 linear = 2;
+  optional Vec3 angular = 3;
+
+  reserved 1;
+  reserved "header";
+}
+
+message Wrench3D {
+  optional Vec3 force = 2;
+  optional Vec3 torque = 3;
+
+  reserved 1;
+  reserved "header";
+}
+
+message Matrixd {
+  // DEPRECATED: Use intrinsic_proto::Matrix in
+  // //intrinsic/math/proto/matrix.proto instead.
+  option deprecated = true;
+
+  optional int32 rows = 2;
+  optional int32 cols = 3;
+  repeated double values = 4 [packed = true];
+
+  reserved 1;
+  reserved "header";
+}

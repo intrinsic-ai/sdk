@@ -65,4 +65,10 @@ message KinematicsComponent {
   // Application limits of this joint.
   Limits application_limits = 12;
 
+  // The physical velocity dependent viscous damping coefficient of the joint.
+  double damping = 8;
+
+  // The physical static friction value of the joint.
+  double friction = 9;
+
 }
