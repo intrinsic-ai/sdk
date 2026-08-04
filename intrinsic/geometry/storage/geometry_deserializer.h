@@ -8,7 +8,6 @@
 #include "absl/status/statusor.h"
 #include "intrinsic/geometry/api/geometry.h"
 #include "intrinsic/geometry/api/geometry_options.h"
-#include "intrinsic/geometry/proto/geometry_storage_refs.pb.h"
 #include "intrinsic/geometry/proto/v1/geometry_storage_refs.pb.h"
 
 namespace intrinsic {
@@ -20,13 +19,6 @@ namespace intrinsic {
 class GeometryDeserializer {
  public:
   virtual ~GeometryDeserializer() = default;
-
-  // DEPRECATED: `GetGeometry` with
-  // `intrinsic_proto::geometry::GeometryStorageRefs` exists primarily for
-  // backwards compatibility. Use v1::GeometryStorageRefs version below instead.
-  virtual absl::StatusOr<Geometry> GetGeometry(
-      const intrinsic_proto::geometry::GeometryStorageRefs& geo_storage_refs,
-      const GeometryOptions& options) const = 0;
 
   // Retrieves a shape and renderable for the given `geo_storage_refs`. One way
   // to get a valid `GeometryStorageRef` is to save the return value of

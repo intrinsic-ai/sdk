@@ -5,7 +5,6 @@
 
 #include "absl/status/statusor.h"
 #include "intrinsic/geometry/api/geometry.h"
-#include "intrinsic/geometry/proto/geometry_storage_refs.pb.h"
 #include "intrinsic/geometry/proto/v1/geometry_storage_refs.pb.h"
 
 namespace intrinsic {
@@ -17,11 +16,6 @@ namespace intrinsic {
 class GeometrySerializer {
  public:
   virtual ~GeometrySerializer() = default;
-
-  // DEPRECATED: this interface exists only for backwards compatibility. Use
-  // `v1::GeometryStorageRefs` API below instead.
-  virtual absl::StatusOr<intrinsic_proto::geometry::GeometryStorageRefs>
-  SaveGeometry(const Geometry& geometry) = 0;
 
   // Stores the given geometry object and returns its storage refs. The
   // storage refs can be used with a GeometryDeserializer configured to the same

@@ -1,0 +1,76 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+#ifndef INTRINSIC_GEOMETRY_STORAGE_IN_MEMORY_STORAGE_H_
+#define INTRINSIC_GEOMETRY_STORAGE_IN_MEMORY_STORAGE_H_
+
+#include <memory>
+#include <optional>
+#include <string>
+
+#include "absl/base/thread_annotations.h"
+#include "absl/status/statusor.h"
+#include "absl/synchronization/mutex.h"
+#include "intrinsic/geometry/api/exact_geometry.h"
+#include "intrinsic/geometry/api/geometry.h"
+#include "intrinsic/geometry/api/geometry_options.h"
+#include "intrinsic/geometry/api/renderable.h"
+#include "intrinsic/geometry/proto/geometry_storage_refs.pb.h"
+#include "intrinsic/geometry/proto/v1/geometry_storage_refs.pb.h"
+#include "intrinsic/geometry/storage/geometry_deserializer.h"
+#include "intrinsic/geometry/storage/geometry_library.h"
+#include "intrinsic/geometry/storage/geometry_serializer.h"
+#include "intrinsic/world/hashing/hashing.h"
+
+namespace intrinsic {
+
+// A GeometryLibrary backed by an in-memory hash map.
+class MapGeometryLibrary : public GeometryLibrary,
+                           private GeometrySerializer,
+                           private GeometryDeserializer {
+ public:
+  struct RawMaps {
+    WorldHashMap<std::string, Geometry> geometry_map;
+    WorldHashMap<std::string, ExactGeometry> exact_geometry_map;
+    WorldHashMap<std::string, std::shared_ptr<const Renderable>> renderable_map;
+  };
+
+  MapGeometryLibrary() = default;
+  explicit MapGeometryLibrary(RawMaps initial_geometry_maps);
+
+  const GeometryDeserializer& Deserializer() const override { return *this; }
+  GeometrySerializer& Serializer() override { return *this; }
+
+  // Returns a copy of the internal geometry maps. Useful for test
+  // introspection.
+  RawMaps GetMaps() const;
+
+  absl::StatusOr<Geometry> GetGeometry(
+      const intrinsic_proto::geometry::v1::GeometryStorageRefs&
+          geo_storage_refs,
+      std::optional<intrinsic_proto::geometry::v1::MaterialProperties>
+          material_properties) const override;
+
+  absl::StatusOr<intrinsic_proto::geometry::v1::GeometryStorageRefs>
+  SaveGeometryV1(const Geometry& geometry) override;
+
+ private:
+  mutable absl::Mutex geometry_mutex_;
+  WorldHashMap<std::string, Geometry> geometry_map_
+      ABSL_GUARDED_BY(geometry_mutex_);
+  WorldHashMap<std::string, ExactGeometry> exact_geometry_map_
+      ABSL_GUARDED_BY(geometry_mutex_);
+  WorldHashMap<std::string, std::shared_ptr<const Renderable>> renderable_map_
+      ABSL_GUARDED_BY(geometry_mutex_);
+};
+
+// Returns a GeometryLibrary backed by an in-memory hash map.
+std::unique_ptr<MapGeometryLibrary> GetMapGeometryLibrary();
+// Returns a GeometryLibrary backed by an in-memory hash map that is
+// initialized to the contents of `initial_geometry_map`. Takes
+// `initial_geometry_map` by value to allow move semantics where possible.
+std::unique_ptr<MapGeometryLibrary> GetMapGeometryLibrary(
+    MapGeometryLibrary::RawMaps initial_geometry_maps);
+
+}  // namespace intrinsic
+
+#endif  // INTRINSIC_GEOMETRY_STORAGE_IN_MEMORY_STORAGE_H_
