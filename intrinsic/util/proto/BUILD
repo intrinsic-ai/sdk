@@ -43,6 +43,22 @@ cc_test(
     ],
 )
 
+cc_library(
+    name = "dynamic_message_parser",
+    srcs = ["dynamic_message_parser.cc"],
+    hdrs = ["dynamic_message_parser.h"],
+    deps = [
+        ":descriptor_pools",
+        ":descriptors",
+        ":parse_text_proto",
+        "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/memory",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings:string_view",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
 go_library(
     name = "descriptor",
     srcs = ["descriptor.go"],
@@ -68,6 +84,19 @@ cc_library(
         "@abseil-cpp//absl/container:flat_hash_map",
         "@abseil-cpp//absl/container:flat_hash_set",
         "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/strings:str_format",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_library(
+    name = "descriptor_pools",
+    srcs = ["descriptor_pools.cc"],
+    hdrs = ["descriptor_pools.h"],
+    deps = [
+        "@abseil-cpp//absl/memory",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
         "@abseil-cpp//absl/strings:str_format",
         "@com_google_protobuf//:protobuf",
     ],
