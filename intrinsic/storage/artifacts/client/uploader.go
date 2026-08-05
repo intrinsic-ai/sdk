@@ -17,6 +17,7 @@ import (
 	"github.com/google/go-containerregistry/pkg/v1/types"
 	"github.com/pborman/uuid"
 	"golang.org/x/sync/errgroup"
+	"golang.org/x/sync/singleflight"
 	"google.golang.org/grpc/metadata"
 
 	artifactgrpcpb "intrinsic/storage/artifacts/proto/v1/artifact_go_proto"
@@ -129,7 +130,23 @@ func NewUploader(client artifactgrpcpb.ArtifactServiceApiClient, opts ...Uploade
 
 type defaultHelper struct {
 	uploaderOptions
-	client artifactgrpcpb.ArtifactServiceApiClient
+	client      artifactgrpcpb.ArtifactServiceApiClient
+	uploadGroup singleflight.Group
+}
+
+func (h *defaultHelper) uploadBlob(ctx context.Context, named namedObject, reader itemReader, maxUpdateSize int32) error {
+	ref, err := named.Name()
+	if err != nil {
+		return err
+	}
+	_, err, _ = h.uploadGroup.Do(ref, func() (any, error) {
+		task, err := newTask(ctx, h.strategy, h.client, maxUpdateSize, named, reader)
+		if err != nil {
+			return nil, err
+		}
+		return nil, task.runWithCtx(ctx)
+	})
+	return err
 }
 
 func (h *defaultHelper) UploadImageFromArchive(ctx context.Context, imageName string, reader ContentReader) error {
@@ -209,11 +226,10 @@ func (h *defaultHelper) uploadImageParts(ctx context.Context, image crv1.Image, 
 				mediaType, _ := layer.MediaType()
 				log.InfoContextf(ctx, "uploading layer %s (%s) ", digest, mediaType)
 				delete(missingRefs, digest.String())
-				task, err := newTask(ctx, h.strategy, h.client, maxUpdateSize, asDigestNamed(layer), reader)
-				if err != nil {
-					return err
-				}
-				taskGroup.Go(runWithContext(ctx, task))
+				namedLayer := asDigestNamed(layer)
+				taskGroup.Go(func() error {
+					return h.uploadBlob(ctx, namedLayer, reader, maxUpdateSize)
+				})
 			}
 		}
 
@@ -226,11 +242,10 @@ func (h *defaultHelper) uploadImageParts(ctx context.Context, image crv1.Image, 
 		if _, missing := missingRefs[configRef]; missing || fullUpload {
 			log.InfoContextf(ctx, "uploading config for %s: ", response.Ref)
 			delete(missingRefs, configRef)
-			task, err := newTask(ctx, h.strategy, h.client, maxUpdateSize, asDigestNamed(descWrap{value: manifest.Config}), bytesReader(image.RawConfigFile))
-			if err != nil {
-				return err
-			}
-			taskGroup.Go(runWithContext(ctx, task))
+			namedConfig := asDigestNamed(descWrap{value: manifest.Config})
+			taskGroup.Go(func() error {
+				return h.uploadBlob(ctx, namedConfig, bytesReader(image.RawConfigFile), maxUpdateSize)
+			})
 		}
 	}
 
@@ -250,11 +265,7 @@ func (h *defaultHelper) uploadImageParts(ctx context.Context, image crv1.Image, 
 	}
 
 	for _, named := range manifestNames {
-		task, err := newTask(ctx, h.strategy, h.client, maxUpdateSize, named, bytesReader(image.RawManifest))
-		if err != nil {
-			return err
-		}
-		if err = task.runWithCtx(ctx); err != nil {
+		if err := h.uploadBlob(ctx, named, bytesReader(image.RawManifest), maxUpdateSize); err != nil {
 			reference, _ := named.Name()
 			return fmt.Errorf("error uploading manifest (%s): %w", reference, err)
 		}
