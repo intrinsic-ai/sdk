@@ -170,7 +170,7 @@ func NewHubServiceCreateCmd() *cobra.Command {
 	flags.SetCommand(cmd)
 
 	flags.AddFlagsAddressClusterSolution()
-	flags.AddFlagOrganizationOptional()
+	flags.AddFlagsProjectOrg()
 
 	flags.StringSlice(
 		keySpokeEndpoints,

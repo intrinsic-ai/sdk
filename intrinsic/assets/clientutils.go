@@ -167,6 +167,17 @@ func ResolveCatalogProject(project string) string {
 	return project
 }
 
+// GetAssetCatalogProject returns the AssetCatalog project that the specified project uses.
+func GetAssetCatalogProject(project string) (string, error) {
+	// Check whether this is an asset project.
+	if strings.HasPrefix(project, "intrinsic-assets-") {
+		return project, nil
+	}
+
+	// No custom address and not an asset project, so the project is using the prod asset project.
+	return defaultCatalogProject, nil
+}
+
 type resolveCatalogAddressOptions struct {
 	Address string
 	Project string
