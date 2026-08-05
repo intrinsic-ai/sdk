@@ -11,6 +11,7 @@ import (
 	"slices"
 	"strings"
 
+	log "github.com/golang/glog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
@@ -47,6 +48,13 @@ func Connect(ctx context.Context, dep *rdpb.ResolvedDependency, iface string) (*
 	if connection == nil {
 		return nil, nil, fmt.Errorf("%w: %q", errNotGRPC, iface)
 	}
+
+	var metadataStrs []string
+	for _, m := range connection.GetMetadata() {
+		metadataStrs = append(metadataStrs, fmt.Sprintf("%s=%s", m.GetKey(), m.GetValue()))
+	}
+	log.Infof("Connecting to interface %q (address: %s) with headers added to context: [%s]",
+		iface, connection.GetAddress(), strings.Join(metadataStrs, ", "))
 
 	conn, err := grpc.NewClient(connection.GetAddress(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {

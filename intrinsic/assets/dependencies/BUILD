@@ -15,6 +15,7 @@ go_library(
         "//intrinsic/assets/data/proto/v1:data_assets_go_proto",
         "//intrinsic/assets/proto:field_metadata_go_proto",
         "//intrinsic/assets/proto/v1:resolved_dependency_go_proto",
+        "@com_github_golang_glog//:go_default_library",
         "@org_golang_google_grpc//:go_default_library",
         "@org_golang_google_grpc//credentials/insecure:go_default_library",
         "@org_golang_google_grpc//metadata:go_default_library",
@@ -67,6 +68,7 @@ cc_library(
         "//intrinsic/util/status:status_conversion_grpc",
         "//intrinsic/util/status:status_macros",
         "@abseil-cpp//absl/container:flat_hash_set",
+        "@abseil-cpp//absl/log",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
         "@abseil-cpp//absl/strings",
@@ -109,6 +111,7 @@ py_library(
         "//intrinsic/assets/proto/v1:resolved_dependency_py_pb2",
         "//intrinsic/util/grpc:interceptor",
         requirement("grpcio"),
+        "@com_google_absl_py//absl/logging",
         "@com_google_protobuf//:protobuf_python",
     ],
 )

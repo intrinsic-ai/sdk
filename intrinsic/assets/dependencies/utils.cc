@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "absl/container/flat_hash_set.h"
+#include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
@@ -98,6 +99,18 @@ absl::StatusOr<std::shared_ptr<grpc::Channel>> Connect(
         "Interface is not gRPC or no connection information is available: ",
         iface));
   }
+
+  std::vector<std::string> metadata_strs;
+  metadata_strs.reserve(iface_proto->grpc().connection().metadata_size());
+  for (const auto& metadata_proto :
+       iface_proto->grpc().connection().metadata()) {
+    metadata_strs.push_back(
+        absl::StrCat(metadata_proto.key(), "=", metadata_proto.value()));
+  }
+  LOG(INFO) << "Connecting to interface \"" << iface << "\""
+            << " (address: " << iface_proto->grpc().connection().address()
+            << ") with headers injected by MetadataCredentialsPlugin: ["
+            << absl::StrJoin(metadata_strs, ", ") << "]";
 
   auto channel_creds = grpc::InsecureChannelCredentials();  // NOLINT(insecure)
   if (iface_proto->grpc().connection().metadata_size() > 0) {

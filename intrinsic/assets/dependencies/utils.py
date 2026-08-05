@@ -6,6 +6,7 @@ import contextlib
 from typing import Any
 from typing import Sequence
 
+from absl import logging
 from google.protobuf import any_pb2
 import grpc
 
@@ -61,6 +62,15 @@ def connect(
     )
 
   metadata = iface_proto.grpc.connection.metadata
+  headers = [f"{m.key}={m.value}" for m in metadata]
+  logging.info(
+      'Connecting to interface "%s" (address: %s) with headers injected through'
+      " HeaderAdderInterceptor: [%s]",
+      iface,
+      iface_proto.grpc.connection.address,
+      ", ".join(headers),
+  )
+
   channel = grpc.intercept_channel(
       grpc.insecure_channel(iface_proto.grpc.connection.address, grpc_options),
       interceptor.HeaderAdderInterceptor(
