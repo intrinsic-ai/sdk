@@ -124,16 +124,6 @@ cc_proto_library(
     deps = [":get_text_proto_test_proto"],
 )
 
-proto_library(
-    name = "config_node_to_proto_test_proto",
-    srcs = ["config_node_to_proto_test.proto"],
-)
-
-cc_proto_library(
-    name = "config_node_to_proto_test_cc_proto",
-    deps = [":config_node_to_proto_test_proto"],
-)
-
 # A, B, C, and D for a diamond dependency.
 #
 #    A
