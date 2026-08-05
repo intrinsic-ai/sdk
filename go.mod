@@ -69,6 +69,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.1
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.29.0
 	github.com/hashicorp/golang-lru v1.0.2
+	github.com/hashicorp/terraform-json v0.28.0
 	github.com/instrumenta/kubeval v0.16.1
 	github.com/jedib0t/go-pretty/v6 v6.6.7
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
@@ -197,6 +198,7 @@ require (
 	github.com/andydunstall/yamux v0.1.5 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect
 	github.com/apache/arrow/go/v15 v15.0.2 // indirect
+	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/argoproj/argo-events v1.9.6 // indirect
 	github.com/argoproj/pkg v0.13.7-0.20240704113442-a69fd34a8117 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
@@ -331,6 +333,7 @@ require (
 	github.com/hashicorp/go-memdb v1.3.5 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
+	github.com/hashicorp/go-version v1.9.0 // indirect
 	github.com/huandu/xstrings v1.5.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
@@ -458,6 +461,7 @@ require (
 	github.com/xlab/treeprint v1.2.0 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
+	github.com/zclconf/go-cty v1.16.4 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/contrib/detectors/gcp v1.39.0 // indirect
