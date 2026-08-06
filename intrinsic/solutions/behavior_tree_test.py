@@ -4598,7 +4598,7 @@ class BehaviorTreeRetryTest(absltest.TestCase):
     node_proto = behavior_tree_pb2.BehaviorTree.Node(name='foo')
     node_proto.retry.max_tries = 2
     node_proto.retry.child.task.call_behavior.skill_id = 'skill_0'
-    node_proto.retry.retry_counter_blackboard_key = node.retry_counter
+    node_proto.retry.retry_counter_blackboard_key = str(node.retry_counter)
 
     compare.assertProto2Equal(self, node.proto, node_proto)
 
@@ -4614,7 +4614,7 @@ class BehaviorTreeRetryTest(absltest.TestCase):
     node_proto = behavior_tree_pb2.BehaviorTree.Node()
     node_proto.retry.max_tries = 2
     node_proto.retry.child.task.call_behavior.skill_id = 'skill_0'
-    node_proto.retry.retry_counter_blackboard_key = node.retry_counter
+    node_proto.retry.retry_counter_blackboard_key = str(node.retry_counter)
 
     compare.assertProto2Equal(self, node.proto, node_proto)
     node.set_child(behavior_call.Action(skill_id='skill_1'))
@@ -4640,7 +4640,9 @@ class BehaviorTreeRetryTest(absltest.TestCase):
     expected_node_proto.retry.recovery.task.execute_code.CopyFrom(
         recovery_script.proto
     )
-    expected_node_proto.retry.retry_counter_blackboard_key = node.retry_counter
+    expected_node_proto.retry.retry_counter_blackboard_key = str(
+        node.retry_counter
+    )
 
     compare.assertProto2Equal(self, node.proto, expected_node_proto)
 
@@ -4708,7 +4710,7 @@ class BehaviorTreeRetryTest(absltest.TestCase):
     node_proto.retry.max_tries = 2
     node_proto.retry.child.task.call_behavior.skill_id = 'skill_0'
     node_proto.retry.recovery.task.call_behavior.skill_id = 'skill_1'
-    node_proto.retry.retry_counter_blackboard_key = node.retry_counter
+    node_proto.retry.retry_counter_blackboard_key = str(node.retry_counter)
 
     compare.assertProto2Equal(self, node.proto, node_proto)
     compare.assertProto2Equal(
@@ -4775,7 +4777,7 @@ class BehaviorTreeRetryTest(absltest.TestCase):
     my_proto = behavior_tree_pb2.BehaviorTree.Node(name='foo', id=42)
     my_proto.retry.max_tries = 2
     my_proto.retry.child.task.call_behavior.skill_id = 'skill_0'
-    my_proto.retry.retry_counter_blackboard_key = my_node.retry_counter
+    my_proto.retry.retry_counter_blackboard_key = str(my_node.retry_counter)
 
     compare.assertProto2Equal(self, my_node.proto, my_proto)
     compare.assertProto2Equal(
@@ -4844,6 +4846,26 @@ class BehaviorTreeRetryTest(absltest.TestCase):
     self.assertIsNotNone(node.child)
     node.remove_child(node.child.node_id)
     self.assertIsNone(node.child)
+
+  def test_retry_counter_string_coercion(self):
+    """Tests if retry_counter works with string concatenations and CEL expressions."""
+    node = bt.Retry()
+
+    self.assertEqual(
+        f'prefix_{node.retry_counter}',
+        f'prefix_{node.retry_counter.value_access_path()}',
+    )
+    self.assertEqual(
+        'prefix_' + node.retry_counter,
+        f'prefix_{node.retry_counter.value_access_path()}',
+    )
+    self.assertEqual(
+        node.retry_counter + '_suffix',
+        f'{node.retry_counter.value_access_path()}_suffix',
+    )
+
+    expr = cel.CelExpression(node.retry_counter)
+    self.assertEqual(str(expr), node.retry_counter.value_access_path())
 
 
 class BehaviorTreeFallbackTest(absltest.TestCase):
@@ -5114,7 +5136,7 @@ class BehaviorTreeLoopTest(absltest.TestCase):
     node_proto = behavior_tree_pb2.BehaviorTree.Node(name='foo')
     node_proto.loop.max_times = 2
     node_proto.loop.do.task.call_behavior.skill_id = 'skill_0'
-    node_proto.loop.loop_counter_blackboard_key = node.loop_counter
+    node_proto.loop.loop_counter_blackboard_key = str(node.loop_counter)
 
     compare.assertProto2Equal(self, node.proto, node_proto)
 
@@ -5132,7 +5154,7 @@ class BehaviorTreeLoopTest(absltest.TestCase):
     node_proto = behavior_tree_pb2.BehaviorTree.Node()
     node_proto.loop.max_times = 2
     node_proto.loop.do.task.call_behavior.skill_id = 'skill_0'
-    node_proto.loop.loop_counter_blackboard_key = node.loop_counter
+    node_proto.loop.loop_counter_blackboard_key = str(node.loop_counter)
 
     compare.assertProto2Equal(self, node.proto, node_proto)
     node.set_do_child(behavior_call.Action(skill_id='skill_1'))
@@ -5151,7 +5173,9 @@ class BehaviorTreeLoopTest(absltest.TestCase):
     expected_node_proto = behavior_tree_pb2.BehaviorTree.Node()
     expected_node_proto.loop.max_times = 2
     expected_node_proto.loop.do.task.execute_code.CopyFrom(script.proto)
-    expected_node_proto.loop.loop_counter_blackboard_key = node.loop_counter
+    expected_node_proto.loop.loop_counter_blackboard_key = str(
+        node.loop_counter
+    )
 
     compare.assertProto2Equal(self, node.proto, expected_node_proto)
 
@@ -5232,7 +5256,7 @@ class BehaviorTreeLoopTest(absltest.TestCase):
     node_proto = behavior_tree_pb2.BehaviorTree.Node(name='foo')
     node_proto.loop.max_times = 2
     node_proto.loop.do.task.call_behavior.skill_id = 'skill_0'
-    node_proto.loop.loop_counter_blackboard_key = node.loop_counter
+    node_proto.loop.loop_counter_blackboard_key = str(node.loop_counter)
 
     compare.assertProto2Equal(self, node.proto, node_proto)
     compare.assertProto2Equal(
@@ -5286,7 +5310,7 @@ class BehaviorTreeLoopTest(absltest.TestCase):
     """,
         behavior_tree_pb2.BehaviorTree.Node(),
     )
-    node_proto.loop.loop_counter_blackboard_key = node.loop_counter
+    node_proto.loop.loop_counter_blackboard_key = str(node.loop_counter)
     node_proto.loop.for_each.value_blackboard_key = node.for_each_value_key
 
     compare.assertProto2Equal(self, node.proto, node_proto)
@@ -5326,7 +5350,7 @@ class BehaviorTreeLoopTest(absltest.TestCase):
     """,
         behavior_tree_pb2.BehaviorTree.Node(),
     )
-    node_proto.loop.loop_counter_blackboard_key = node.loop_counter
+    node_proto.loop.loop_counter_blackboard_key = str(node.loop_counter)
     node_proto.loop.for_each.value_blackboard_key = node.for_each_value_key
 
     compare.assertProto2Equal(self, node.proto, node_proto)
@@ -5413,7 +5437,7 @@ class BehaviorTreeLoopTest(absltest.TestCase):
     """,
         behavior_tree_pb2.BehaviorTree.Node(),
     )
-    node_proto.loop.loop_counter_blackboard_key = node.loop_counter
+    node_proto.loop.loop_counter_blackboard_key = str(node.loop_counter)
     node_proto.loop.for_each.value_blackboard_key = node.for_each_value_key
 
     compare.assertProto2Equal(
@@ -5474,7 +5498,7 @@ class BehaviorTreeLoopTest(absltest.TestCase):
     my_proto = behavior_tree_pb2.BehaviorTree.Node(name='foo', id=42)
     my_proto.loop.max_times = 2
     my_proto.loop.do.task.call_behavior.skill_id = 'skill_0'
-    my_proto.loop.loop_counter_blackboard_key = my_node.loop_counter
+    my_proto.loop.loop_counter_blackboard_key = str(my_node.loop_counter)
 
     compare.assertProto2Equal(self, my_node.proto, my_proto)
     compare.assertProto2Equal(
@@ -5558,6 +5582,26 @@ class BehaviorTreeLoopTest(absltest.TestCase):
     self.assertIsNotNone(node.do_child)
     node.remove_child(node.do_child.node_id)
     self.assertIsNone(node.do_child)
+
+  def test_loop_counter_string_coercion(self):
+    """Tests if loop_counter works with string concatenations and CEL expressions."""
+    node = bt.Loop()
+
+    self.assertEqual(
+        f'prefix_{node.loop_counter}',
+        f'prefix_{node.loop_counter.value_access_path()}',
+    )
+    self.assertEqual(
+        'prefix_' + node.loop_counter,
+        f'prefix_{node.loop_counter.value_access_path()}',
+    )
+    self.assertEqual(
+        node.loop_counter + '_suffix',
+        f'{node.loop_counter.value_access_path()}_suffix',
+    )
+
+    expr = cel.CelExpression(node.loop_counter)
+    self.assertEqual(str(expr), node.loop_counter.value_access_path())
 
 
 class BehaviorTreeBranchTest(absltest.TestCase):

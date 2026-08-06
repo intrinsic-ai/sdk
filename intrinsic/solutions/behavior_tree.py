@@ -38,6 +38,7 @@ from cel.expr import syntax_pb2
 from google.protobuf import any_pb2
 from google.protobuf import descriptor_pb2
 from google.protobuf import message as protobuf_message
+from google.protobuf import wrappers_pb2
 import graphviz
 
 from intrinsic.assets import id_utils
@@ -2302,8 +2303,13 @@ class Retry(Node):
     return proto_object
 
   @property
-  def retry_counter(self) -> str:
-    return self._retry_counter_key
+  def retry_counter(self) -> blackboard_value.BlackboardValue:
+    return blackboard_value.BlackboardValue(
+        fields=wrappers_pb2.Int64Value.DESCRIPTOR.fields_by_name,
+        name=self._retry_counter_key,
+        toplevel_value_type=wrappers_pb2.Int64Value,
+        parent=None,
+    )
 
   @utils.classproperty
   def node_type(cls) -> str:  # pylint:disable=no-self-argument
@@ -2965,8 +2971,13 @@ class Loop(Node):
     return proto_object
 
   @property
-  def loop_counter(self) -> str:
-    return self._loop_counter_key
+  def loop_counter(self) -> blackboard_value.BlackboardValue:
+    return blackboard_value.BlackboardValue(
+        fields=wrappers_pb2.Int64Value.DESCRIPTOR.fields_by_name,
+        name=self._loop_counter_key,
+        toplevel_value_type=wrappers_pb2.Int64Value,
+        parent=None,
+    )
 
   @property
   def for_each_value_key(self) -> Optional[str]:

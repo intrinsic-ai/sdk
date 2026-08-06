@@ -148,6 +148,16 @@ class BlackboardValue:
       return BlackboardValue(self._fields, f"[{key}]", None, self, False)
     raise ValueError("Not a repeated field.")
 
+  def __str__(self) -> str:
+    """Fallback to the blackboard key when used in string interpolation."""
+    return self.value_access_path()
+
+  def __add__(self, other: str) -> str:
+    return self.value_access_path() + str(other)
+
+  def __radd__(self, other: str) -> str:
+    return str(other) + self.value_access_path()
+
   def set_root_value_access_path(self, cel_path: str):
     """Make this BlackboardValue referred to by cel_path.
 

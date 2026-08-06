@@ -2,6 +2,8 @@
 
 """Helpers for the Common Expression Language (CEL)."""
 
+from intrinsic.solutions.blackboard_value import BlackboardValue
+
 
 class CelExpression:
   """A CEL expression.
@@ -12,8 +14,8 @@ class CelExpression:
 
   _expression: str
 
-  def __init__(self, expression: str):
-    self._expression = expression
+  def __init__(self, expression: str | BlackboardValue):
+    self._expression = str(expression)
 
   def __str__(self) -> str:
     return self._expression
