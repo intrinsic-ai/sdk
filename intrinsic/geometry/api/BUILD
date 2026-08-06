@@ -155,6 +155,7 @@ cc_library(
         ":exact_geometry",
         ":geometry",
         "//intrinsic/geometry/internal/legacy/mesh",
+        "//intrinsic/geometry/internal/legacy/point_cloud:get_bounding_box_from_point_cloud",
         "//intrinsic/geometry/shapes",
         "//intrinsic/math:pose3",
         "//intrinsic/util/object_store:object_ref",

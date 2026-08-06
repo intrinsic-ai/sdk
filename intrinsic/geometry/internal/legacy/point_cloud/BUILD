@@ -18,6 +18,21 @@ exports_files(
 )
 
 cc_library(
+    name = "get_bounding_box_from_point_cloud",
+    srcs = ["get_bounding_box_from_point_cloud.cc"],
+    hdrs = ["get_bounding_box_from_point_cloud.h"],
+    copts = ["-fexceptions"] + select({
+        "@platforms//cpu:x86_32": ["-frounding-math"],
+        "@platforms//cpu:x86_64": ["-frounding-math"],
+        "//conditions:default": [],
+    }),
+    deps = [
+        "//intrinsic/geometry/api:axis_aligned_bounding_box_3d",
+        "//intrinsic/geometry/shapes",
+    ],
+)
+
+cc_library(
     name = "pts_to_ai_scene",
     srcs = ["pts_to_ai_scene.cc"],
     hdrs = ["pts_to_ai_scene.h"],

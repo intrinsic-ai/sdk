@@ -371,6 +371,10 @@ absl::StatusOr<intrinsic_proto::geometry::v1::ExactGeometry> ToProto(
           ToTriangleMeshProtoV1(exact_geo.GetMesh()->Value()));
     }
 
+    if (exact_geo.HasPointCloud()) {
+      INTR_ASSIGN_OR_RETURN(*result.mutable_point_cloud(),
+                            ToProto(exact_geo.GetPointCloud()->Value()));
+    }
   }
 
   const auto& options = exact_geo.options();

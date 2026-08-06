@@ -10,6 +10,7 @@
 #include "intrinsic/geometry/api/exact_geometry.h"
 #include "intrinsic/geometry/api/geometry.h"
 #include "intrinsic/geometry/internal/legacy/mesh/mesh.h"
+#include "intrinsic/geometry/internal/legacy/point_cloud/get_bounding_box_from_point_cloud.h"
 #include "intrinsic/geometry/shapes/point_cloud.h"
 #include "intrinsic/math/pose3.h"
 #include "intrinsic/util/object_store/object_ref.h"
@@ -18,6 +19,7 @@
 namespace intrinsic {
 namespace {
 
+using geometry_legacy::GetBoundingBoxFromPointCloud;
 using geometry_legacy::Mesh;
 class ComputeAxisAlignedBoundingBox3dFunctor {
  public:
@@ -41,6 +43,12 @@ class ComputeAxisAlignedBoundingBox3dFunctor {
       result.ExtendBy(v);
     }
     return result;
+  }
+
+  template <>
+  absl::StatusOr<AxisAlignedBoundingBox3d> operator()(
+      const ObjectRef<shapes::PointCloud>& geo) const {
+    return GetBoundingBoxFromPointCloud(geo.Value());
   }
 
 };
