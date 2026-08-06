@@ -350,6 +350,28 @@ absl::StatusOr<eigenmath::Matrix4d> ToAffineTransform(
       }
       return eigenmath::Matrix4d(result);
     }
+    case intrinsic_proto::geometry::v1::GeometricTransform::kTrs: {
+      const auto& trs = proto.trs();
+      eigenmath::AffineTransform3d transform =
+          eigenmath::AffineTransform3d::Identity();
+      // Compose T * R * S with right apply functions.
+      if (trs.has_translation()) {
+        eigenmath::Vector3d translation = FromProto(trs.translation());
+        transform.translate(translation);
+      }
+      if (trs.has_rotation_rpy()) {
+        const auto& rpy = trs.rotation_rpy();
+        eigenmath::Quaterniond quat =
+            eigenmath::QuaternionFromRPY(rpy.r(), rpy.p(), rpy.y());
+        transform.rotate(quat);
+      }
+      if (trs.has_scale()) {
+        eigenmath::Vector3d scale = FromProto(trs.scale());
+        transform.scale(scale);
+      }
+
+      return transform.matrix();
+    }
     case intrinsic_proto::geometry::v1::GeometricTransform::DATA_NOT_SET:
       return absl::InvalidArgumentError("GeometricTransform.data not set");
     default:
