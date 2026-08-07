@@ -1,0 +1,28 @@
+# Copyright 2023 Intrinsic Innovation LLC
+
+# proto-file: intrinsic/skills/proto/skill_manifest.proto
+# proto-message: intrinsic_proto.skills.SkillManifest
+
+id {
+  package: "ai.intrinsic"
+  name: "kv_store_get_string"
+}
+display_name: "KVStore Get String"
+vendor {
+  display_name: "Intrinsic"
+}
+documentation {
+  description: "Gets a string value from the Intrinsic Runtime KVStore service."
+}
+options {
+  supports_cancellation: false
+  cc_config {
+    create_skill: "::intrinsic::skills::KvStoreGetStringSkill::CreateSkill"
+  }
+}
+parameter {
+  message_full_name: "intrinsic_proto.skills.KvStoreGetStringParams"
+}
+return_type {
+  message_full_name: "intrinsic_proto.skills.KvStoreGetStringResult"
+}

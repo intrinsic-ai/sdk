@@ -1,0 +1,26 @@
+// Copyright 2023 Intrinsic Innovation LLC
+
+syntax = "proto3";
+
+package intrinsic_proto.skills;
+
+import "google/protobuf/wrappers.proto";
+import "intrinsic/assets/proto/field_metadata.proto";
+import "intrinsic/assets/proto/v1/resolved_dependency.proto";
+
+option go_package = "intrinsic/skills/examples/kv_store_get_string_skill_go_proto";
+
+message KvStoreGetStringParams {
+  // The resolved dependency for the Intrinsic Runtime.
+  intrinsic_proto.assets.v1.ResolvedDependency intrinsic_runtime = 1
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "grpc://intrinsic_proto.kvstore.KVStore"
+      }];
+
+  // The key of the string value to fetch from the KVStore.
+  string key = 2;
+}
+
+message KvStoreGetStringResult {
+  google.protobuf.StringValue value = 1;
+}

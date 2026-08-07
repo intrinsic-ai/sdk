@@ -80,3 +80,147 @@ cc_skill(
         ":calculate_skill_cc_proto",
     ],
 )
+
+proto_library(
+    name = "kv_store_get_string_skill_proto",
+    srcs = ["kv_store_get_string_skill.proto"],
+    deps = [
+        "//intrinsic/assets/proto:field_metadata_proto",
+        "//intrinsic/assets/proto/v1:resolved_dependency_proto",
+        "@com_google_protobuf//:wrappers_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "kv_store_get_string_skill_cc_proto",
+    deps = [":kv_store_get_string_skill_proto"],
+)
+
+cc_library(
+    name = "kv_store_get_string_skill_cc",
+    srcs = ["kv_store_get_string_skill.cc"],
+    hdrs = ["kv_store_get_string_skill.h"],
+    deps = [
+        ":kv_store_get_string_skill_cc_proto",
+        "//intrinsic/assets:interface_utils",
+        "//intrinsic/assets/dependencies:utils_cc",
+        "//intrinsic/assets/proto/v1:resolved_dependency_cc_proto",
+        "//intrinsic/platform/pubsub/kvstore_grpc:kvstore_cc_grpc_proto",
+        "//intrinsic/platform/pubsub/kvstore_grpc:kvstore_cc_proto",
+        "//intrinsic/skills/cc:skill_interface",
+        "//intrinsic/skills/proto:skill_service_cc_proto",
+        "//intrinsic/util/status:status_conversion_grpc",
+        "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/log",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+        "@com_github_grpc_grpc//:grpc++",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_test(
+    name = "kv_store_get_string_skill_test",
+    srcs = ["kv_store_get_string_skill_test.cc"],
+    deps = [
+        ":kv_store_get_string_skill_cc",
+        ":kv_store_get_string_skill_cc_proto",
+        "//intrinsic/assets:interface_utils",
+        "//intrinsic/assets/proto/v1:resolved_dependency_cc_proto",
+        "//intrinsic/platform/pubsub/kvstore_grpc:kvstore_cc_grpc_proto",
+        "//intrinsic/platform/pubsub/kvstore_grpc:kvstore_cc_proto",
+        "//intrinsic/skills/cc:skill_interface",
+        "//intrinsic/skills/testing:skill_test_utils_cc",
+        "//intrinsic/util/testing:gtest_wrapper_main",
+        "@abseil-cpp//absl/container:flat_hash_map",
+        "@abseil-cpp//absl/strings",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+skill_manifest(
+    name = "kv_store_get_string_skill_manifest",
+    src = "kv_store_get_string_skill_manifest.textproto",
+    deps = [":kv_store_get_string_skill_proto"],
+)
+
+cc_skill(
+    name = "kv_store_get_string_skill",
+    manifest = ":kv_store_get_string_skill_manifest",
+    deps = [
+        ":kv_store_get_string_skill_cc",
+        ":kv_store_get_string_skill_cc_proto",
+    ],
+)
+
+proto_library(
+    name = "kv_store_set_string_skill_proto",
+    srcs = ["kv_store_set_string_skill.proto"],
+    deps = [
+        "//intrinsic/assets/proto:field_metadata_proto",
+        "//intrinsic/assets/proto/v1:resolved_dependency_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "kv_store_set_string_skill_cc_proto",
+    deps = [":kv_store_set_string_skill_proto"],
+)
+
+cc_library(
+    name = "kv_store_set_string_skill_cc",
+    srcs = ["kv_store_set_string_skill.cc"],
+    hdrs = ["kv_store_set_string_skill.h"],
+    deps = [
+        ":kv_store_set_string_skill_cc_proto",
+        "//intrinsic/assets:interface_utils",
+        "//intrinsic/assets/dependencies:utils_cc",
+        "//intrinsic/assets/proto/v1:resolved_dependency_cc_proto",
+        "//intrinsic/platform/pubsub/kvstore_grpc:kvstore_cc_grpc_proto",
+        "//intrinsic/platform/pubsub/kvstore_grpc:kvstore_cc_proto",
+        "//intrinsic/skills/cc:skill_interface",
+        "//intrinsic/skills/proto:skill_service_cc_proto",
+        "//intrinsic/util/status:status_conversion_grpc",
+        "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/log",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+        "@com_github_grpc_grpc//:grpc++",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_test(
+    name = "kv_store_set_string_skill_test",
+    srcs = ["kv_store_set_string_skill_test.cc"],
+    deps = [
+        ":kv_store_set_string_skill_cc",
+        ":kv_store_set_string_skill_cc_proto",
+        "//intrinsic/assets:interface_utils",
+        "//intrinsic/assets/proto/v1:resolved_dependency_cc_proto",
+        "//intrinsic/platform/pubsub/kvstore_grpc:kvstore_cc_grpc_proto",
+        "//intrinsic/platform/pubsub/kvstore_grpc:kvstore_cc_proto",
+        "//intrinsic/skills/cc:skill_interface",
+        "//intrinsic/skills/testing:skill_test_utils_cc",
+        "//intrinsic/util/testing:gtest_wrapper_main",
+        "@abseil-cpp//absl/container:flat_hash_map",
+        "@abseil-cpp//absl/strings",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+skill_manifest(
+    name = "kv_store_set_string_skill_manifest",
+    src = "kv_store_set_string_skill_manifest.textproto",
+    deps = [":kv_store_set_string_skill_proto"],
+)
+
+cc_skill(
+    name = "kv_store_set_string_skill",
+    manifest = ":kv_store_set_string_skill_manifest",
+    deps = [
+        ":kv_store_set_string_skill_cc",
+        ":kv_store_set_string_skill_cc_proto",
+    ],
+)
