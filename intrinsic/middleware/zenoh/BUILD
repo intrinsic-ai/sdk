@@ -8,6 +8,7 @@ cc_library(
         "imw_zenoh.cc",
         "imw_zenoh_data_callback_context.cc",
         "imw_zenoh_globals.cc",
+        "imw_zenoh_liveliness_subscription.cc",
         "imw_zenoh_publisher.cc",
         "imw_zenoh_queryable.cc",
         "imw_zenoh_queryable_context.cc",
@@ -16,6 +17,8 @@ cc_library(
     hdrs = [
         "imw_zenoh.h",
         "imw_zenoh_data_callback_context.h",
+        "imw_zenoh_liveliness_subscription.h",
+        "imw_zenoh_liveliness_token.h",
         "imw_zenoh_publisher.h",
         "imw_zenoh_query_context.h",
         "imw_zenoh_queryable.h",

@@ -13,6 +13,7 @@ typedef enum imw_ret {
   IMW_ERROR = 1,
   IMW_NOT_INITIALIZED = 2,
   IMW_UNDEFINED = 3,
+  IMW_ALREADY_EXISTS = 4,
 } imw_ret_t;
 
 typedef void imw_subscription_callback_fn(const char* keyexpr,
@@ -25,6 +26,9 @@ typedef void imw_queryable_callback_fn(const char* keyexpr,
                                        const size_t query_bytes_len,
                                        const void* query_context,
                                        void* user_context);
+
+typedef void imw_liveliness_callback_fn(const char* keyexpr, bool alive,
+                                        void* user_context);
 
 // This struct must be assignable, as it will be copied by assignment by
 // imw_create_queryable() for later use.
@@ -81,6 +85,14 @@ imw_ret_t imw_query(const char* keyexpr, imw_query_callback_fn* callback,
 imw_ret_t imw_set(const char* keyexpr, const void* bytes,
                   const size_t bytes_len);
 imw_ret_t imw_delete_keyexpr(const char* keyexpr);
+imw_ret_t imw_create_liveliness_subscription(
+    const char* keyexpr, imw_liveliness_callback_fn* callback,
+    bool notify_about_existing_tokens, void* user_context);
+imw_ret_t imw_destroy_liveliness_subscription(
+    const char* keyexpr, imw_liveliness_callback_fn* callback,
+    const void* user_context);
+imw_ret_t imw_declare_liveliness_token(const char* keyexpr);
+imw_ret_t imw_drop_liveliness_token(const char* keyexpr);
 const char* const imw_version();
 
 }  // namespace intrinsic

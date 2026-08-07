@@ -7,12 +7,15 @@
 #include <memory>
 #include <string>
 #include <thread>
+#include <unordered_map>
 #include <vector>
 
 #include "absl/base/internal/sysinfo.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
 #include "intrinsic/middleware/imw.h"
+#include "intrinsic/middleware/zenoh/imw_zenoh_liveliness_subscription.h"
+#include "intrinsic/middleware/zenoh/imw_zenoh_liveliness_token.h"
 #include "intrinsic/middleware/zenoh/imw_zenoh_publisher.h"
 #include "intrinsic/middleware/zenoh/imw_zenoh_queryable.h"
 #include "intrinsic/middleware/zenoh/imw_zenoh_subscription.h"
@@ -49,6 +52,7 @@ class IMWZenoh {
   imw_ret_t create_subscription(const char* keyexpr,
                                 imw_subscription_callback_fn* callback,
                                 const char* qos, void* user_context);
+
   imw_ret_t destroy_subscription(const char* keyexpr,
                                  imw_subscription_callback_fn* callback,
                                  const void* user_context);
@@ -75,6 +79,16 @@ class IMWZenoh {
 
   imw_ret_t delete_keyexpr(const char* keyexpr);
 
+  imw_ret_t create_liveliness_subscription(const char* keyexpr,
+                                           imw_liveliness_callback_fn* callback,
+                                           bool notify_about_existing_tokens,
+                                           void* user_context);
+  imw_ret_t destroy_liveliness_subscription(
+      const char* keyexpr, imw_liveliness_callback_fn* callback,
+      const void* user_context);
+  imw_ret_t declare_liveliness_token(const char* keyexpr);
+  imw_ret_t drop_liveliness_token(const char* keyexpr);
+
   static void static_data_callback(z_loaned_sample_t* sample, void* arg);
   static void static_closure_drop(void* context);
 
@@ -88,6 +102,8 @@ class IMWZenoh {
   static int keyexpr_intersects(const char* left, const char* right);
   static int keyexpr_is_canon(const char* keyexpr);
 
+  static void static_liveliness_callback(z_loaned_sample_t* sample, void* arg);
+
   static const char* const version();
 
  private:
@@ -98,6 +114,8 @@ class IMWZenoh {
   void query_callback(const char* keyexpr, imw_query_callback_fn* user_callback,
                       z_loaned_reply_t* reply, void* user_context,
                       const imw_query_options_t* options);
+  void liveliness_callback(const std::string& subscription_keyexpr,
+                           const z_loaned_sample_t* sample);
 
   // Creates any pending publishers and destroys publishers marked for deletion.
   // Returns the publisher matching the given keyexpr if one exists, otherwise
@@ -111,7 +129,27 @@ class IMWZenoh {
       ABSL_SHARED_LOCKS_REQUIRED(publishers_mutex_);
 
   void destroy_empty_subscriptions()
-      ABSL_SHARED_LOCKS_REQUIRED(subscriptions_mutex_);
+      ABSL_SHARED_LOCKS_REQUIRED(subscriptions_mutex_) {
+    destroy_empty_subscriptions(subscriptions_);
+  }
+
+  void destroy_empty_liveliness_subscriptions()
+      ABSL_SHARED_LOCKS_REQUIRED(liveliness_subscriptions_mutex_) {
+    destroy_empty_subscriptions(liveliness_subscriptions_);
+  }
+
+  template <typename T>
+  void destroy_empty_subscriptions(
+      std::list<std::shared_ptr<T>>& subscriptions) {
+    for (auto it = subscriptions.begin(); it != subscriptions.end();) {
+      if ((*it)->is_empty()) {
+        z_undeclare_subscriber(z_move((*it)->get_zenoh_sub()));
+        it = subscriptions.erase(it);
+      } else {
+        ++it;
+      }
+    }
+  }
 
   z_owned_session_t session_;
   z_id_t zenoh_id_;
@@ -129,8 +167,16 @@ class IMWZenoh {
   std::list<std::shared_ptr<IMWZenohSubscription>> subscriptions_;
   absl::Mutex subscriptions_mutex_;
 
+  std::list<std::shared_ptr<IMWZenohLivelinessSubscription>>
+      liveliness_subscriptions_;
+  absl::Mutex liveliness_subscriptions_mutex_;
+
   std::list<std::unique_ptr<IMWZenohQueryable>> queryables_;
   absl::Mutex queryables_mutex_;
+
+  std::unordered_map<std::string, std::unique_ptr<IMWZenohLivelinessToken>>
+      liveliness_tokens_;
+  absl::Mutex liveliness_tokens_mutex_;
 
   std::string introspection_keyexpr_;
   std::thread introspection_thread_;

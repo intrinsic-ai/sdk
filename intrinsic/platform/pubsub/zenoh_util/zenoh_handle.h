@@ -18,6 +18,9 @@ namespace intrinsic {
 typedef std::function<void(const char*, const void*, const size_t)>
     imw_callback_functor_t;
 
+typedef std::function<void(const char*, bool)>
+    imw_liveliness_callback_functor_t;
+
 typedef std::function<void(const char*)> imw_on_done_functor_t;
 
 struct QueryContext {
@@ -27,6 +30,9 @@ struct QueryContext {
 
 void zenoh_static_callback(const char* keyexpr, const void* blob,
                            size_t blob_len, void* fptr);
+
+void zenoh_static_liveliness_callback(const char* keyexpr, bool alive,
+                                      void* fptr);
 
 void zenoh_query_static_callback(const char* keyexpr, const void* blob,
                                  size_t blob_len, void* fptr);
@@ -100,6 +106,19 @@ struct ZenohHandle {
       imw_query;
 
   std::add_pointer_t<imw_ret_t(const char* keyexp)> imw_delete_keyexpr;
+
+  std::add_pointer_t<imw_ret_t(
+      const char* keyexpr, imw_liveliness_callback_fn* callback,
+      bool notify_about_existing_tokens, void* user_context)>
+      imw_create_liveliness_subscription;
+  std::add_pointer_t<imw_ret_t(const char* keyexpr,
+                               imw_liveliness_callback_fn* callback,
+                               const void* user_context)>
+      imw_destroy_liveliness_subscription;
+
+  std::add_pointer_t<imw_ret_t(const char* keyexpr)>
+      imw_declare_liveliness_token;
+  std::add_pointer_t<imw_ret_t(const char* keyexpr)> imw_drop_liveliness_token;
 
   std::add_pointer_t<const char* const()> imw_version;
 

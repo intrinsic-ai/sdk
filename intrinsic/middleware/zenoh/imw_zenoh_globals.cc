@@ -21,6 +21,15 @@ void IMWZenoh::static_data_callback(z_loaned_sample_t* sample,
       zenoh_context->get_subscription_keyexpr(), sample);
 }
 
+void IMWZenoh::static_liveliness_callback(z_loaned_sample_t* sample,
+                                          void* untyped_context) {
+  IMWZenohDataCallbackContext* zenoh_context =
+      static_cast<IMWZenohDataCallbackContext*>(untyped_context);
+
+  zenoh_context->get_imw_zenoh_instance()->liveliness_callback(
+      zenoh_context->get_subscription_keyexpr(), sample);
+}
+
 void IMWZenoh::static_closure_drop(void* untyped_context) {
   // This callback is run by Zenoh during a call to z_undeclare_subscriber().
   // The intent is to use it to free the user_context memory that was allocated
@@ -183,6 +192,36 @@ imw_ret_t imw_set(const char* keyexpr, const void* bytes,
 imw_ret_t imw_delete_keyexpr(const char* keyexpr) {
   if (g_imw_zenoh_singleton == nullptr) return IMW_NOT_INITIALIZED;
   return g_imw_zenoh_singleton->delete_keyexpr(keyexpr);
+}
+
+imw_ret_t imw_create_liveliness_subscription(
+    const char* keyexpr, imw_liveliness_callback_fn* callback,
+    bool notify_about_existing_tokens, void* user_context) {
+  if (g_imw_zenoh_singleton == nullptr) return IMW_NOT_INITIALIZED;
+
+  return g_imw_zenoh_singleton->create_liveliness_subscription(
+      keyexpr, callback, notify_about_existing_tokens, user_context);
+}
+
+imw_ret_t imw_destroy_liveliness_subscription(
+    const char* keyexpr, imw_liveliness_callback_fn* callback,
+    const void* user_context) {
+  if (g_imw_zenoh_singleton == nullptr) return IMW_NOT_INITIALIZED;
+
+  return g_imw_zenoh_singleton->destroy_liveliness_subscription(
+      keyexpr, callback, user_context);
+}
+
+imw_ret_t imw_declare_liveliness_token(const char* keyexpr) {
+  if (g_imw_zenoh_singleton == nullptr) return IMW_NOT_INITIALIZED;
+
+  return g_imw_zenoh_singleton->declare_liveliness_token(keyexpr);
+}
+
+imw_ret_t imw_drop_liveliness_token(const char* keyexpr) {
+  if (g_imw_zenoh_singleton == nullptr) return IMW_NOT_INITIALIZED;
+
+  return g_imw_zenoh_singleton->drop_liveliness_token(keyexpr);
 }
 
 const char* const imw_version() { return IMWZenoh::version(); }

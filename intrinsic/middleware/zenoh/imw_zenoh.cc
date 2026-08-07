@@ -16,6 +16,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/time/time.h"
 #include "intrinsic/middleware/zenoh/imw_zenoh_data_callback_context.h"
+#include "intrinsic/middleware/zenoh/imw_zenoh_liveliness_token.h"
 #include "intrinsic/middleware/zenoh/imw_zenoh_query_context.h"
 #include "intrinsic/middleware/zenoh/imw_zenoh_queryable_context.h"
 #include "intrinsic/middleware/zenoh/imw_zenoh_reply_context.h"
@@ -236,6 +237,15 @@ imw_ret_t IMWZenoh::destroy_session() {
       (*it)->clear_callbacks();
     }
     destroy_empty_subscriptions();
+  }
+
+  {
+    absl::MutexLock lock(&liveliness_subscriptions_mutex_);
+    for (auto it = liveliness_subscriptions_.begin();
+         it != liveliness_subscriptions_.end(); ++it) {
+      (*it)->clear_callbacks();
+    }
+    destroy_empty_liveliness_subscriptions();
   }
 
   {
@@ -473,6 +483,61 @@ imw_ret_t IMWZenoh::create_subscription(const char* keyexpr,
   return IMW_OK;
 }
 
+imw_ret_t IMWZenoh::create_liveliness_subscription(
+    const char* keyexpr, imw_liveliness_callback_fn* callback,
+    bool notify_about_existing_tokens, void* user_context) {
+  if (!z_internal_check(session_)) {
+    LOG(ERROR) << "Invalid session in IMWZenoh::create_liveliness_subscription";
+    return IMW_ERROR;
+  }
+
+  const string keyexpr_s(keyexpr);
+
+  absl::MutexLock lock(&liveliness_subscriptions_mutex_);
+
+  // First iterate through our existing subscribers to see if this is a
+  // repeat subscription that we should add to an existing subscription
+  for (auto it = liveliness_subscriptions_.begin();
+       it != liveliness_subscriptions_.end(); ++it) {
+    if ((*it)->get_keyexpr() == keyexpr_s) {
+      (*it)->add_callback(callback, user_context);
+      return IMW_OK;
+    }
+  }
+
+  z_view_keyexpr_t view_keyexpr;
+  if (Z_OK != z_view_keyexpr_from_str(&view_keyexpr, keyexpr)) {
+    LOG(ERROR) << "unable to create key expression from: " << keyexpr_s;
+    return IMW_ERROR;
+  }
+
+  // If we get here, we didn't find an existing subscription for this keyexpr,
+  // so we need to create one.
+  z_owned_closure_sample_t closure;
+  z_closure_sample(&closure, IMWZenoh::static_liveliness_callback,
+                   IMWZenoh::static_closure_drop,
+                   new IMWZenohDataCallbackContext(this, keyexpr_s));
+  z_liveliness_subscriber_options_t sub_opts;
+  z_liveliness_subscriber_options_default(&sub_opts);
+  sub_opts.history = notify_about_existing_tokens;
+
+  z_owned_subscriber_t zenoh_sub;
+  z_result_t result = z_liveliness_declare_subscriber(
+      z_loan(session_), &zenoh_sub, z_loan(view_keyexpr), z_move(closure),
+      &sub_opts);
+
+  if (result < 0) {
+    LOG(ERROR) << "z_liveliness_declare_subscriber failed for " << keyexpr_s;
+    return IMW_ERROR;
+  }
+
+  liveliness_subscriptions_.emplace_back(
+      std::make_unique<IMWZenohLivelinessSubscription>(
+          keyexpr_s, callback, zenoh_sub, user_context));
+
+  return IMW_OK;
+}
+
 imw_ret_t IMWZenoh::destroy_subscription(const char* keyexpr,
                                          imw_subscription_callback_fn* callback,
                                          const void* user_context) {
@@ -498,6 +563,35 @@ imw_ret_t IMWZenoh::destroy_subscription(const char* keyexpr,
 
   // If we get here, that means we didn't find a matching subscriber. Bad.
   LOG(ERROR) << "Could not find a subscription for " << keyexpr_s;
+  return IMW_ERROR;
+}
+
+imw_ret_t IMWZenoh::destroy_liveliness_subscription(
+    const char* keyexpr, imw_liveliness_callback_fn* callback,
+    const void* user_context) {
+  if (!z_internal_check(session_)) {
+    LOG(ERROR) << "Invalid session in IMWZenoh::destroy_subscription";
+    return IMW_ERROR;
+  }
+
+  const string keyexpr_s(keyexpr);
+  absl::MutexLock lock(&liveliness_subscriptions_mutex_);
+  for (auto it = liveliness_subscriptions_.begin();
+       it != liveliness_subscriptions_.end(); ++it) {
+    if ((*it)->get_keyexpr() != keyexpr_s) continue;
+
+    // We've found the subscription for the requested keyexpr, so we need to
+    // remove this callback, and potentially also undeclare the Zenoh
+    // subscriber if there are no additional callbacks left
+    if (!(*it)->remove_callback(callback, user_context)) {
+      LOG(ERROR) << "Could not remove callback for " << keyexpr_s;
+      return IMW_ERROR;
+    }
+    return IMW_OK;
+  }
+
+  // If we get here, that means we didn't find a matching subscriber. Bad.
+  LOG(ERROR) << "Could not find a liveliness subscription for " << keyexpr_s;
   return IMW_ERROR;
 }
 
@@ -568,6 +662,44 @@ void IMWZenoh::data_callback(const std::string& subscription_keyexpr,
   }
 }
 
+void IMWZenoh::liveliness_callback(const std::string& subscription_keyexpr,
+                                   const z_loaned_sample_t* sample) {
+  z_view_string_t sample_keyexpr;
+  z_keyexpr_as_view_string(z_sample_keyexpr(sample), &sample_keyexpr);
+  const string sample_keyexpr_str(
+      std::string_view(z_string_data(z_loan(sample_keyexpr)),
+                       z_string_len(z_loan(sample_keyexpr))));
+
+  std::list<std::shared_ptr<IMWZenohLivelinessSubscription>> matches;
+  {
+    absl::MutexLock lock(&liveliness_subscriptions_mutex_);
+
+    for (auto it = liveliness_subscriptions_.begin();
+         it != liveliness_subscriptions_.end(); ++it) {
+      if ((*it)->get_keyexpr() == subscription_keyexpr) {
+        matches.push_back(*it);
+      }
+    }
+  }
+
+  if (!matches.empty()) {
+    // This is the only part that's different from data_callback.
+    bool alive = (z_sample_kind(sample) == Z_SAMPLE_KIND_PUT);
+    for (auto match : matches) {
+      match->invoke_callbacks(sample_keyexpr_str.c_str(), alive);
+    }
+  } else {
+    LOG(ERROR) << "No liveliness subscriber for sample_keyexpr "
+               << sample_keyexpr_str << " with subscription_keyexpr "
+               << subscription_keyexpr;
+  }
+
+  {
+    absl::MutexLock lock(&liveliness_subscriptions_mutex_);
+    destroy_empty_liveliness_subscriptions();
+  }
+}
+
 void IMWZenoh::destroy_publishers_marked_for_deletion() {
   // This function assumes that publishers_mutex_ is already locked!
   // remove any publishers marked for deletion
@@ -580,17 +712,6 @@ void IMWZenoh::destroy_publishers_marked_for_deletion() {
     } else {
       z_undeclare_publisher(z_move((*it)->get_zenoh_pub()));
       it = publishers_.erase(it);
-    }
-  }
-}
-
-void IMWZenoh::destroy_empty_subscriptions() {
-  for (auto it = subscriptions_.begin(); it != subscriptions_.end();) {
-    if ((*it)->is_empty()) {
-      z_undeclare_subscriber(z_move((*it)->get_zenoh_sub()));
-      it = subscriptions_.erase(it);
-    } else {
-      ++it;
     }
   }
 }
@@ -1062,6 +1183,69 @@ imw_ret_t IMWZenoh::queryable_reply(const void* untyped_reply_context,
     return IMW_ERROR;
   else
     return IMW_OK;
+}
+
+imw_ret_t IMWZenoh::declare_liveliness_token(const char* keyexpr) {
+  if (!z_internal_check(session_)) {
+    LOG(ERROR) << "Invalid session in IMWZenoh::declare_liveliness_token";
+    return IMW_ERROR;
+  }
+
+  std::string keyexpr_str(keyexpr);
+
+  absl::MutexLock lock(&liveliness_tokens_mutex_);
+  auto it = liveliness_tokens_.find(keyexpr_str);
+  if (it != liveliness_tokens_.end()) {
+    // Found existing token. Returning the "already exists" error.
+    return IMW_ALREADY_EXISTS;
+  }
+
+  z_owned_keyexpr_t zenoh_keyexpr;
+  z_result_t result = z_keyexpr_from_str(&zenoh_keyexpr, keyexpr);
+  if (result < 0) {
+    LOG(ERROR) << "Unable to create publisher keyexpr ("
+               << static_cast<int>(result) << ") from: " << keyexpr;
+    return IMW_ERROR;
+  }
+
+  z_liveliness_token_options_t opts;
+  z_liveliness_token_options_default(&opts);
+
+  z_owned_liveliness_token_t token;
+
+  result = z_liveliness_declare_token(z_loan(session_), &token,
+                                      z_loan(zenoh_keyexpr), &opts);
+  if (result < 0) {
+    LOG(ERROR) << "z_liveliness_declare_token failed: ("
+               << static_cast<int>(result) << "): " << keyexpr;
+    return IMW_ERROR;
+  }
+
+  liveliness_tokens_.emplace(keyexpr_str,
+                             std::make_unique<IMWZenohLivelinessToken>(token));
+  return IMW_OK;
+}
+
+imw_ret_t IMWZenoh::drop_liveliness_token(const char* keyexpr) {
+  if (!z_internal_check(session_)) {
+    LOG(ERROR) << "Invalid session in IMWZenoh::declare_liveliness_token";
+    return IMW_ERROR;
+  }
+
+  std::string keyexpr_str(keyexpr);
+
+  absl::MutexLock lock(&liveliness_tokens_mutex_);
+  auto it = liveliness_tokens_.find(keyexpr_str);
+  if (it == liveliness_tokens_.end()) {
+    LOG(WARNING) << "No liveliness tokens for " << keyexpr;
+    return IMW_UNDEFINED;
+  }
+
+  // The token has zero references. Removing it.
+  z_liveliness_token_drop(z_move(it->second->get_token()));
+  liveliness_tokens_.erase(it);
+
+  return IMW_OK;
 }
 
 const char* const IMWZenoh::version() { return kImwZenohVersion; }

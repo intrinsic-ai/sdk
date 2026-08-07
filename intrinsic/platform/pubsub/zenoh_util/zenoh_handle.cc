@@ -23,6 +23,11 @@ void zenoh_static_callback(const char* keyexpr, const void* blob,
   (*static_cast<imw_callback_functor_t*>(fptr))(keyexpr, blob, blob_len);
 }
 
+void zenoh_static_liveliness_callback(const char* keyexpr, bool alive,
+                                      void* fptr) {
+  (*static_cast<imw_liveliness_callback_functor_t*>(fptr))(keyexpr, alive);
+}
+
 void zenoh_query_static_callback(const char* keyexpr, const void* blob,
                                  const size_t blob_len, void* fptr) {
   QueryContext* query_context = static_cast<QueryContext*>(fptr);
@@ -60,6 +65,13 @@ void ZenohHandle::Initialize() {
   this->imw_query = ::intrinsic::imw_query;
   this->imw_set = ::intrinsic::imw_set;
   this->imw_delete_keyexpr = ::intrinsic::imw_delete_keyexpr;
+  this->imw_create_liveliness_subscription =
+      ::intrinsic::imw_create_liveliness_subscription;
+  this->imw_destroy_liveliness_subscription =
+      ::intrinsic::imw_destroy_liveliness_subscription;
+  this->imw_declare_liveliness_token =
+      ::intrinsic::imw_declare_liveliness_token;
+  this->imw_drop_liveliness_token = ::intrinsic::imw_drop_liveliness_token;
 }
 
 absl::StatusOr<std::string> ZenohHandle::add_topic_prefix(
