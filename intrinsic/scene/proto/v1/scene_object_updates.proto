@@ -15,6 +15,26 @@ import "intrinsic/world/proto/physics_component.proto";
 
 option go_package = "intrinsic/scene/proto/v1/scene_object_updates_go_proto";
 
+message SceneObjectUpdate {
+  // The type of update to apply.
+  oneof update {
+    EntityPoseUpdate entity_pose = 1;
+    CreateFrameUpdate create_frame = 2;
+    DeleteEntityUpdate delete_entity = 3;
+    SetNamedConfigurationsUpdate set_named_configurations = 4;
+    UpdateJointsRequest update_joints = 5;
+    CartesianLimitsUpdate cartesian_limits = 6;
+    RenameEntityUpdate rename_entity = 7;
+    UpdateCollisionRules update_collision_rules = 8;
+    UpdateUserData update_user_data = 9;
+    SetIKSolversUpdate set_ik_solvers = 10;
+    ReparentEntityUpdate reparent_entity = 11;
+    UpdateFrameProperties update_frame_properties = 12;
+    GeometryUpdate update_geometry = 13;
+    UpdatePhysicsProperties update_physics_properties = 14;
+  }
+}
+
 // Similar to SceneObjectUpdate but restricted in the types of updates that can
 // be performed.
 message SceneObjectInstanceUpdate {
@@ -32,6 +52,12 @@ message SceneObjectInstanceUpdate {
 
   reserved 3, 7, 8;
   reserved "delete_entity", "rename_entity", "update_collision_rules";
+}
+
+// A list of updates to apply to a scene object.
+message SceneObjectUpdates {
+  // The updates to apply in order.
+  repeated SceneObjectUpdate updates = 1;
 }
 
 // A list of updates to apply to a scene object instance.

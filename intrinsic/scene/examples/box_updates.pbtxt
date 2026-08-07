@@ -1,0 +1,29 @@
+# Copyright 2023 Intrinsic Innovation LLC
+
+updates {
+  entity_pose {
+    entity_name: "intrinsic_frame"
+    parent_t_this {
+      position {
+        x: 2
+      }
+      orientation {
+        w: 1
+      }
+    }
+  }
+}
+updates {
+  create_frame {
+    parent_name: "box_link"
+    new_frame_name: "new_frame"
+    parent_t_new_frame {
+      position {
+        y: 2
+      }
+      orientation {
+        w: 1
+      }
+    }
+  }
+}

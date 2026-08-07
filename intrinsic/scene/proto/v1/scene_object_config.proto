@@ -53,8 +53,6 @@ message SceneObjectConfig {
   // Additional updates to the scene object type that are specific to this
   // particular instantiation of the scene object, defined in order. This is
   // mostly used for backwards compatibility.
-  SceneObjectInstanceUpdates updates = 1 [deprecated = true];
-
 
   // Opaque user-supplied data for this scene object.
 

@@ -7,6 +7,31 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
+    name = "dummy_storage",
+    srcs = ["dummy_storage.cc"],
+    hdrs = ["dummy_storage.h"],
+    copts = ["-fexceptions"] + select({
+        "@platforms//cpu:x86_32": ["-frounding-math"],
+        "@platforms//cpu:x86_64": ["-frounding-math"],
+        "//conditions:default": [],
+    }),
+    deps = [
+        ":geometry_deserializer",
+        ":geometry_library",
+        ":geometry_serializer",
+        "//intrinsic/geometry/api:exact_geometry",
+        "//intrinsic/geometry/api:geometry",
+        "//intrinsic/geometry/api:geometry_fingerprint",
+        "//intrinsic/geometry/api:geometry_options",
+        "//intrinsic/geometry/proto:geometry_storage_refs_cc_proto",
+        "//intrinsic/geometry/proto/v1:geometry_storage_refs_cc_proto",
+        "//intrinsic/geometry/proto/v1:material_cc_proto",
+        "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/status:statusor",
+    ],
+)
+
+cc_library(
     name = "geometry_deserializer",
     hdrs = ["geometry_deserializer.h"],
     copts = ["-fexceptions"] + select({

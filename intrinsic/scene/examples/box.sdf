@@ -1,0 +1,27 @@
+<!--
+Copyright 2023 Intrinsic Innovation LLC
+-->
+<sdf version="1.6" xmlns:intrinsic="intrinsic">
+  <model name="simple_box">
+    <static>true</static>
+    <link name="box_link">
+      <collision name="box_collision">
+        <geometry>
+          <box>
+            <size>1 1 1</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="box_visual">
+        <geometry>
+          <box>
+            <size>1 1 1</size>
+          </box>
+        </geometry>
+      </visual>
+    </link>
+    <frame name="intrinsic_frame" attached_to="box_link" intrinsic:create_entity="true">
+      <pose>1 0 0 0 0 0</pose>
+    </frame>
+  </model>
+</sdf>

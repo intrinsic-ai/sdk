@@ -16,7 +16,6 @@
 #include "intrinsic/scene/sdf/sdf_sensor_pose.h"
 #include "intrinsic/scene/sdf/sdf_util.h"
 #include "intrinsic/scene/sdf/xml_utils.h"
-#include "intrinsic/simulation/world/sim_plugins.h"
 #include "intrinsic/util/status/status_macros.h"
 #include "intrinsic/world/component/sensor_component.h"
 #include "intrinsic/world/hashing/hashing.h"
@@ -405,48 +404,6 @@ absl::StatusOr<ParseSensorResult> ParseSensor(const ::sdf::Sensor& sdf_sensor) {
     case ::sdf::SensorType::AIR_SPEED: {
       LOG(WARNING) << "Sensor type '" << sdf_sensor.TypeStr()
                    << "' is not supported by World.";
-    }
-  }
-
-  // Process optional <plugin>s.
-  for (const ::sdf::ElementConstPtr& plugin :
-       GetChildrenByTag(sdf_sensor.Element(), "plugin")) {
-    INTR_ASSIGN_OR_RETURN(std::string xml, GetCompactXml(plugin));
-    INTR_ASSIGN_OR_RETURN(
-        auto filename, GetAttributeAsString(plugin, "filename"),
-        _ << "Required attribute 'filename' is not set for plugin instance: "
-          << xml);
-    if (simulation::FilenameMatchesPluginSpec<ForceTorqueDevicePluginSpec>(
-            filename)) {
-      LOG(WARNING) << "ForceTorqueDevicePlugin is deprecated. Please remove "
-                      "the plugin tag from your .sdf file.";
-    } else if (simulation::FilenameMatchesPluginSpec<CameraPluginSpec>(
-                   filename)) {
-      if (auto camera_spec = result.sensor_component->GetCameraSpec();
-          camera_spec.ok()) {
-        INTR_ASSIGN_OR_RETURN(
-            *camera_spec->mutable_camera_plugin(),
-            simulation::PluginSdfTrait<CameraPluginSpec>::Parse(xml));
-        result.sensor_component->SetCameraSpec(*camera_spec);
-      } else if (auto depth_spec =
-                     result.sensor_component->GetDepthCameraSpec();
-                 depth_spec.ok()) {
-        INTR_ASSIGN_OR_RETURN(
-            *depth_spec->mutable_camera_plugin(),
-            simulation::PluginSdfTrait<CameraPluginSpec>::Parse(xml));
-        result.sensor_component->SetDepthCameraSpec(*depth_spec);
-      } else {
-        LOG(WARNING) << "CameraPlugin is attached to a sensor that is neither "
-                        "a rgb or depth camera.";
-      }
-    } else if (simulation::FilenameMatchesPluginSpec<
-                   RangeFinderDevicePluginSpec>(filename)) {
-      LOG(WARNING) << "RangeFinderDevicePlugin is deprecated. Please remove "
-                      "the plugin tag from your .sdf file.";
-    } else {
-      LOG(WARNING) << "Unrecognized Plugin with filename '" << filename
-                   << "' found under <sensor>. The plugin might not work with "
-                      "Gazebo simulator.";
     }
   }
 

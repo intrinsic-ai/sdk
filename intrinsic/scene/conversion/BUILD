@@ -26,3 +26,29 @@ cc_library(
         "@abseil-cpp//absl/strings",
     ],
 )
+
+cc_library(
+    name = "scene_object_model_utils",
+    srcs = ["scene_object_model_utils.cc"],
+    hdrs = ["scene_object_model_utils.h"],
+    deps = [
+        "//intrinsic/scene/proto/v1:entity_cc_proto",
+        "//intrinsic/world/proto:kinematics_component_cc_proto",
+        "@abseil-cpp//absl/container:flat_hash_set",
+    ],
+)
+
+cc_library(
+    name = "user_data",
+    srcs = ["user_data.cc"],
+    hdrs = ["user_data.h"],
+    deps = [
+        "//intrinsic/scene/proto/v1:scene_object_cc_proto",
+        "//intrinsic/util/proto:descriptors",
+        "//intrinsic/util/proto:dynamic_message_parser",
+        "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@com_google_protobuf//:protobuf",
+    ],
+)

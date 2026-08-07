@@ -39,7 +39,6 @@
 #include "intrinsic/scene/sdf/sdf_path_resolver.h"
 #include "intrinsic/scene/sdf/separators.h"
 #include "intrinsic/simulation/gazebo/type_conversion.h"
-#include "intrinsic/util/eigen.h"
 #include "intrinsic/util/status/status_builder.h"
 #include "intrinsic/util/status/status_macros.h"
 #include "ortools/base/filesystem.h"
@@ -222,8 +221,8 @@ absl::StatusOr<eigenmath::Vector3d> ParseSize3(
   eigenmath::Vector3d result =
       GzToIntrinsic(element->Get<gz::math::Vector3d>());
   if (result[0] <= 0 || result[1] <= 0 || result[2] <= 0) {
-    return absl::InvalidArgumentError(
-        absl::StrCat("Invalid scale: ", toString(result)));
+    return ::intrinsic::InvalidArgumentErrorBuilder()
+           << "Invalid scale: " << result;
   }
   return result;
 }
@@ -269,7 +268,7 @@ absl::StatusOr<intrinsic::shapes::Box> ParseBox(const ::sdf::Box& box_sdf) {
   if (size.minCoeff() <= 0) {
     return ::intrinsic::InvalidArgumentErrorBuilder()
            << "Smallest dimension of a box should be bigger than zero, got: "
-           << toString(size);
+           << size;
   }
   return intrinsic::shapes::Box(size);
 }
@@ -308,8 +307,8 @@ absl::StatusOr<intrinsic::shapes::Ellipsoid> ParseEllipsoid(
     const ::sdf::Ellipsoid& ellipsoid_sdf) {
   const eigenmath::Vector3d radii = GzToIntrinsic(ellipsoid_sdf.Radii());
   if (radii.minCoeff() <= 0) {
-    return absl::InvalidArgumentError(absl::Substitute(
-        "<ellipsoid> has non positive <radii> $0", toString(radii)));
+    return ::intrinsic::InvalidArgumentErrorBuilder()
+           << "<ellipsoid> has non positive <radii> " << radii;
   }
 
   return intrinsic::shapes::Ellipsoid(radii);

@@ -37,3 +37,8 @@ cc_library(
         "@abseil-cpp//absl/strings",
     ],
 )
+
+cc_library(
+    name = "geometry_types",
+    hdrs = ["geometry_types.h"],
+)

@@ -29,15 +29,6 @@ class DummyGeometryLibrary : public GeometryLibrary,
   const GeometryDeserializer& Deserializer() const override { return *this; }
 
   absl::StatusOr<Geometry> GetGeometry(
-      const intrinsic_proto::geometry::GeometryStorageRefs& geo_storage_refs,
-      const GeometryOptions& options) const override {
-    return Geometry(ExactGeometry(result_.GetExactGeometry(), options),
-                    result_.GetRenderable(),
-                    result_.KeepRenderableForSerialization(),
-                    result_.material_properties(), /*provenance=*/std::nullopt);
-  }
-
-  absl::StatusOr<Geometry> GetGeometry(
       const intrinsic_proto::geometry::v1::GeometryStorageRefs&
           geo_storage_refs,
       std::optional<intrinsic_proto::geometry::v1::MaterialProperties>
@@ -45,15 +36,6 @@ class DummyGeometryLibrary : public GeometryLibrary,
     return Geometry(
         ExactGeometry(result_.GetExactGeometry()), result_.GetRenderable(),
         result_.KeepRenderableForSerialization(), material_properties);
-  }
-
-  absl::StatusOr<intrinsic_proto::geometry::GeometryStorageRefs> SaveGeometry(
-      const Geometry& geometry) override {
-    intrinsic_proto::geometry::GeometryStorageRefs geo_storage_refs;
-    INTR_ASSIGN_OR_RETURN(std::string fingerprint,
-                          GenerateFingerprint(geometry));
-    geo_storage_refs.set_fingerprint(fingerprint);
-    return geo_storage_refs;
   }
 
   absl::StatusOr<intrinsic_proto::geometry::v1::GeometryStorageRefs>

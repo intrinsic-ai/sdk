@@ -100,27 +100,12 @@ class WriteOnlyMapAndOtherGeometryLibrary : public GeometryLibrary,
   const GeometryDeserializer& Deserializer() const override { return *this; }
 
   absl::StatusOr<Geometry> GetGeometry(
-      const intrinsic_proto::geometry::GeometryStorageRefs& geo_storage_refs,
-      const GeometryOptions& options) const override {
-    return map_library_->Deserializer().GetGeometry(geo_storage_refs, options);
-  }
-
-  absl::StatusOr<Geometry> GetGeometry(
       const intrinsic_proto::geometry::v1::GeometryStorageRefs&
           geo_storage_refs,
       std::optional<intrinsic_proto::geometry::v1::MaterialProperties>
           material_properties) const override {
     return map_library_->Deserializer().GetGeometry(geo_storage_refs,
                                                     material_properties);
-  }
-
-  absl::StatusOr<intrinsic_proto::geometry::GeometryStorageRefs> SaveGeometry(
-      const Geometry& geometry) override {
-    if (other_library_) {
-      INTR_RETURN_IF_ERROR(
-          other_library_->Serializer().SaveGeometry(geometry).status());
-    }
-    return map_library_->Serializer().SaveGeometry(geometry);
   }
 
   absl::StatusOr<intrinsic_proto::geometry::v1::GeometryStorageRefs>
