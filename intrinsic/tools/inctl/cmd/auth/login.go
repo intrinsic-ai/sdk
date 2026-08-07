@@ -230,6 +230,9 @@ func loginCmdE(cmd *cobra.Command, _ []string) (err error) {
 	if err := authStore.UpsertEnvConfig(envName, alias, apiKey); err != nil {
 		return fmt.Errorf("error upserting env config: %w", err)
 	}
+	if err := authStore.UpsertProjectConfig(projectName, alias, apiKey); err != nil {
+		return fmt.Errorf("error upserting project config: %w", err)
+	}
 
 	return nil
 }

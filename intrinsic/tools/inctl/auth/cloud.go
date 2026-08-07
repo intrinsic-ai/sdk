@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 
 	"intrinsic/config/environments"
@@ -341,10 +342,14 @@ func loadAPIKey(opts *ConnectionOpts) (string, error) {
 	var err error
 
 	// If an explicit environment is provided, we prioritize loading the configuration
-	// specific to that environment. If no environment is specified,
-	// we infer the environment from the project.
+	// specific to that environment. If there's no config for this environment,
+	// we fall back to the project's configuration. If no environment is specified,
+	// we rely entirely on the project's configuration.
 	if opts.env != "" {
 		cfg, err = DefaultStore.GetEnvConfiguration(opts.env)
+		if errors.Is(err, os.ErrNotExist) && opts.project != "" {
+			cfg, err = DefaultStore.GetProjectConfiguration(opts.project)
+		}
 	} else {
 		cfg, err = DefaultStore.GetConfiguration(opts.project)
 	}

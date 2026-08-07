@@ -27,11 +27,10 @@ const (
 	// AliasDefaultToken is the alias under which the default token is stored.
 	AliasDefaultToken = "default"
 
-	projectStoreDirectory = "intrinsic/projects"
-	orgStoreDirectory     = "intrinsic/organizations"
-	envStoreDirectory     = "intrinsic/environments"
-	authConfigExtension   = ".user-token"
-	envJSONExtension      = ".env.json"
+	storeDirectory      = "intrinsic/projects"
+	orgStoreDirectory   = "intrinsic/organizations"
+	envStoreDirectory   = "intrinsic/environments"
+	authConfigExtension = ".user-token"
 
 	directoryMode  os.FileMode = 0o700
 	fileMode       os.FileMode = 0o600
@@ -40,6 +39,9 @@ const (
 	// tokenExchangeServer is the address of the token exchange server.
 	// Points to the GRPC gateway.
 	tokenExchangeServer = "flowstate.intrinsic.ai"
+
+	// NoLoginHint is the hint shown when the user does not have an API key configured.
+	NoLoginHint = "\n\tIt seems like you don't have an API key configured. Did you run 'inctl auth login --org <org>@%s'?\n\n"
 
 	// envInDebugAuthStore is the environment variable used to trigger debug logging when reading from the auth store.
 	envInDebugAuthStore = "INDEBUG_AUTHSTORE"
@@ -224,11 +226,9 @@ func (p *ProjectConfiguration) GetDefaultCredentials() (*ProjectToken, error) {
 	return p.GetCredentials(AliasDefaultToken)
 }
 
-// Store provides access to a collection of environment configurations stored as
+// Store provides access to a collection of ProjectConfigurations stored as
 // files in the users config directory.
 type Store struct {
-	EnvironmentResolver EnvironmentResolver
-
 	// GetConfigDirFx is an indirection allowing to use custom config dirs in tests.
 	GetConfigDirFx func() (string, error)
 }
@@ -238,9 +238,7 @@ var DefaultStore = NewStore()
 
 // NewStore returns a new Store instance.
 func NewStore() *Store {
-	return &Store{
-		EnvironmentResolver: &defaultEnvironmentResolver{},
-	}
+	return &Store{}
 }
 
 func (s *Store) getConfigDir() (string, error) {
@@ -248,6 +246,23 @@ func (s *Store) getConfigDir() (string, error) {
 		return os.UserConfigDir()
 	}
 	return s.GetConfigDirFx()
+}
+
+func (s *Store) getStoreLocation() (string, error) {
+	configDir, err := s.getConfigDir()
+	return filepath.Join(configDir, storeDirectory), err
+}
+
+func (s *Store) getConfigurationFilename(projectName string) (string, error) {
+	if projectName == "" {
+		return "", fmt.Errorf("project name is required")
+	}
+	storeDir, err := s.getStoreLocation()
+	if err != nil {
+		return "", fmt.Errorf("cannot find configurations: %w", err)
+	}
+	projectFilename := projectName + authConfigExtension
+	return filepath.Join(storeDir, projectFilename), nil
 }
 
 // NewConfiguration returns a new, empty ProjectConfiguration for the given
@@ -260,118 +275,31 @@ func NewConfiguration(name string) *ProjectConfiguration {
 	}
 }
 
-// environments returns a list of environments
-// for which a user is logged into (i.e. has a configuration in the local auth storage).
-func (s *Store) environments() ([]string, error) {
-	storeLocation, err := s.envStoreLocation()
-	if err != nil {
-		return nil, fmt.Errorf("cannot find env store: %w", err)
-	}
-
-	globPattern := filepath.Join(storeLocation, "*"+authConfigExtension)
-	matches, err := filepath.Glob(globPattern)
-	if err != nil {
-		return nil, fmt.Errorf("invalid glob pattern: %w", err)
-	}
-
-	envs := make([]string, len(matches))
-	for i, match := range matches {
-		filename := filepath.Base(match)
-		envs[i] = strings.TrimSuffix(filename, authConfigExtension)
-	}
-
-	return envs, nil
-}
-
-// WriteProjectEnvironment caches the environment of the project,
-// so that a user doesn't have to request it again.
-// A project doesn't change its environment.
-func (s *Store) WriteProjectEnvironment(project, env string) error {
-	filename, err := s.projectToEnvFilename(project)
-	if err != nil {
-		return fmt.Errorf("project to env filename: %w", err)
-	}
-
-	if err = os.MkdirAll(filepath.Dir(filename), directoryMode); err != nil {
-		return fmt.Errorf("create target directory: %w", err)
-	}
-
-	authDebug("AUTHSTORE_WRITE_ATTEMPT=%s", filename)
-	f, err := os.OpenFile(filename, writeFileFlags, fileMode)
-	if err != nil {
-		return fmt.Errorf("open: %w", err)
-	}
-
-	defer f.Close()
-
-	if err := json.NewEncoder(f).Encode(&projectToEnv{
-		Environment: env,
-	}); err != nil {
-		return fmt.Errorf("encode: %w", err)
-	}
-
-	return nil
-}
-
-// GetConfiguration checks the local auth storage for the environment matching the project
-// and returns the token for this environment. The token works for any project
-// in the matching environment a user identity has access to.
-// If there's no data about the matching environment,
-// it tries to guess it from the environments a user is logged into.
-// If none of them match the project, a user is asked to relogin.
+// GetConfiguration infers environment of the project from the project name.
+// If there's no configuration for this environment, it returns
+// configuration for the given project.
 func (s *Store) GetConfiguration(projectName string) (*ProjectConfiguration, error) {
-	env, err := s.projectEnvironment(projectName)
-	if err != nil {
-		if !errors.Is(err, os.ErrNotExist) {
-			return nil, fmt.Errorf("project environment: %w", err)
-		}
-
-		env, err = s.discoverProjectEnvironment(projectName)
-		if err != nil {
-			return nil, fmt.Errorf("discover project environment: %w", err)
-		}
+	env := environments.FromAnyProject(projectName)
+	if cfg, err := s.GetEnvConfiguration(env); err == nil {
+		return cfg, nil
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return nil, fmt.Errorf("failed to load environment configuration for %q: %w", env, err)
 	}
-
-	cfg, err := s.GetEnvConfiguration(env)
-	if err != nil {
-		return nil, fmt.Errorf("get env configuration: %w; please run `inctl auth login --org=<your_org>@%s`", err, projectName)
-	}
-
-	return cfg, nil
+	return s.GetProjectConfiguration(projectName)
 }
 
-// discoverProjectEnvironment checks if a project belongs
-// to one of environments a user is logged into and caches this data.
-// If the project doesn't belong to any of them, a user is asked to login.
-func (s *Store) discoverProjectEnvironment(projectName string) (string, error) {
-	envs, err := s.environments()
+// GetProjectConfiguration reads the configuration for a given project from persistent storage.
+// It explicitly does not fall back to environment configurations.
+func (s *Store) GetProjectConfiguration(projectName string) (*ProjectConfiguration, error) {
+	filename, err := s.getConfigurationFilename(projectName)
 	if err != nil {
-		return "", fmt.Errorf("get user envs: %w", err)
+		return nil, fmt.Errorf("cannot open configuration for project name %q: %w", projectName, err)
 	}
-
-	var checkErrs []error
-	for _, assumedEnv := range envs {
-		ok, err := s.EnvironmentResolver.HasProject(assumedEnv, projectName)
-		if err != nil {
-			checkErrs = append(checkErrs, fmt.Errorf("check project env %q: %w", assumedEnv, err))
-			continue
-		}
-
-		if ok {
-			if err := s.WriteProjectEnvironment(projectName, assumedEnv); err != nil {
-				return "", fmt.Errorf("write project environment: %w", err)
-			}
-			return assumedEnv, nil
-		}
+	cfg, err := readConfigurationFromFile(filename)
+	if err != nil {
+		return nil, fmt.Errorf("cannot read project configuration: %w", err)
 	}
-
-	errMsg := "project %q is not found in any of your environments, please run `inctl auth login --org=<your_org>@%s`"
-	errArgs := []any{projectName, projectName}
-	if len(checkErrs) > 0 {
-		errMsg += " (also encountered check errors: %v)"
-		errArgs = append(errArgs, errors.Join(checkErrs...))
-	}
-	return "", fmt.Errorf(errMsg, errArgs...)
+	return cfg, nil
 }
 
 func authDebug(format string, args ...any) {
@@ -380,37 +308,37 @@ func authDebug(format string, args ...any) {
 	}
 }
 
-func readAndDecodeFile(filename string, v any) error {
+func readConfigurationFromFile(filename string) (*ProjectConfiguration, error) {
 	authDebug("AUTHSTORE_READ_ATTEMPT=%s", filename)
 	file, err := os.Open(filename)
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("cannot open configuration file: %w", err)
 	}
 	defer file.Close()
 
-	if err := json.NewDecoder(file).Decode(v); err != nil {
-		// remove it and treat it as non-existent if it's corrupted.
-		_ = file.Close()
-		authDebug("FILE IS CORRUPTED, AUTHSTORE_DELETE_ATTEMPT=%s", filename)
-		_ = os.Remove(filename)
-		return os.ErrNotExist
+	var result ProjectConfiguration
+	if err := json.NewDecoder(file).Decode(&result); err != nil {
+		return nil, fmt.Errorf("cannot read configuration: %w", err)
 	}
-
-	return nil
-}
-
-func readConfigurationFromFile(filename string) (*ProjectConfiguration, error) {
-	result := &ProjectConfiguration{}
-	if err := readAndDecodeFile(filename, result); err != nil {
-		return nil, fmt.Errorf("cannot open configuration file: %w", err)
-	}
-
 	// ensure that tokens are always populated
 	if result.Tokens == nil {
 		result.Tokens = map[string]*ProjectToken{}
 	}
 
-	return result, nil
+	authDebug("AUTHSTORE_READ_KEY_FILE=%s", filename)
+	return &result, nil
+}
+
+// WriteConfiguration writes the given project configuration to the store.
+func (s *Store) WriteConfiguration(config *ProjectConfiguration) error {
+	filename, err := s.getConfigurationFilename(config.Name)
+	if err != nil {
+		return fmt.Errorf("error getting configuration filename: %w", err)
+	}
+	if err := writeConfigToFile(config, filename); err != nil {
+		return fmt.Errorf("failed to write configuration: %w", err)
+	}
+	return nil
 }
 
 func writeConfigToFile(config *ProjectConfiguration, filename string) error {
@@ -420,7 +348,6 @@ func writeConfigToFile(config *ProjectConfiguration, filename string) error {
 		return fmt.Errorf("cannot create target directory: %w", err)
 	}
 
-	authDebug("AUTHSTORE_WRITE_ATTEMPT=%s", filename)
 	file, err := os.OpenFile(filename, writeFileFlags, fileMode)
 	if err != nil {
 		return fmt.Errorf("cannot open configuration file: %w", err)
@@ -448,12 +375,12 @@ func writeConfigToFile(config *ProjectConfiguration, filename string) error {
 // exists. Results is not sorted and is returned in same order as blobbed on
 // filesystem.
 func (s *Store) ListConfigurations() ([]string, error) {
-	storeLocation, err := s.projectStoreLocation()
+	storeLocation, err := s.getStoreLocation()
 	if err != nil {
 		return nil, fmt.Errorf("cannot find configuration store: %w", err)
 	}
 
-	globPattern := filepath.Join(storeLocation, "*"+envJSONExtension)
+	globPattern := filepath.Join(storeLocation, "*"+authConfigExtension)
 	matches, err := filepath.Glob(globPattern)
 	if err != nil {
 		panic(fmt.Errorf("invalid glob pattern, programmer error: %w", err))
@@ -465,7 +392,7 @@ func (s *Store) ListConfigurations() ([]string, error) {
 	result := make([]string, 0, len(matches))
 	for _, match := range matches {
 		filename := filepath.Base(match)
-		result = append(result, strings.TrimSuffix(filename, envJSONExtension))
+		result = append(result, strings.TrimSuffix(filename, authConfigExtension))
 	}
 
 	return result, nil
@@ -474,11 +401,10 @@ func (s *Store) ListConfigurations() ([]string, error) {
 // RemoveConfiguration removes the stored configuration for the given project
 // name. Returns nil if no such configuration exists.
 func (s *Store) RemoveConfiguration(name string) error {
-	filename, err := s.projectToEnvFilename(name)
+	filename, err := s.getConfigurationFilename(name)
 	if err != nil {
 		return fmt.Errorf("cannot remove configuration: %w", err)
 	}
-	authDebug("AUTHSTORE_DELETE_ATTEMPT=%s", filename)
 	return os.Remove(filename)
 }
 
@@ -544,7 +470,6 @@ func (s *Store) WriteOrgInfo(o *OrgInfo) error {
 		return fmt.Errorf("create target directory: %w", err)
 	}
 
-	authDebug("AUTHSTORE_WRITE_ATTEMPT=%s", filename)
 	file, err := os.OpenFile(filename, writeFileFlags, fileMode)
 	if err != nil {
 		return fmt.Errorf("open configuration file: %w", err)
@@ -672,7 +597,7 @@ func (s *Store) RemoveOrganization(name string) error {
 // from authorization store. It operates on filesystem and does not attempt
 // to read credentials. Use for full removal of credentials.
 func (s *Store) RemoveAllKnownCredentials() error {
-	location, err := s.projectStoreLocation()
+	location, err := s.getStoreLocation()
 	if err != nil {
 		return err
 	}
@@ -690,7 +615,7 @@ func (s *Store) RemoveAllKnownCredentials() error {
 		return err
 	}
 
-	location, err = s.envStoreLocation()
+	location, err = s.getEnvStoreLocation()
 	if err != nil {
 		return err
 	}
@@ -708,7 +633,6 @@ func (s *Store) deleteFiles(path string, de fs.DirEntry, err error) error {
 
 	// we are retaining directory structure.
 	if !de.IsDir() {
-		authDebug("AUTHSTORE_DELETE_ATTEMPT=%s", path)
 		if err = os.Remove(path); err != nil {
 			// if we fail to remove a file, we just move on.
 			log.Warningf("cannot remove %s: %s", path, err)
@@ -722,21 +646,10 @@ func (s *Store) GetEnvConfiguration(env string) (*ProjectConfiguration, error) {
 	if err != nil {
 		return nil, fmt.Errorf("cannot open configuration for environment %q: %w", env, err)
 	}
-
 	cfg, err := readConfigurationFromFile(filename)
 	if err != nil {
 		return nil, fmt.Errorf("cannot read env configuration: %w", err)
 	}
-
-	pToken, err := cfg.GetDefaultCredentials()
-	if err != nil {
-		return nil, fmt.Errorf("get default credentials: %w", err)
-	}
-
-	if err := pToken.Validate(); err != nil {
-		return nil, fmt.Errorf("validate credentials: %w", err)
-	}
-
 	return cfg, nil
 }
 
@@ -745,7 +658,7 @@ func (s *Store) getEnvConfigurationFilename(env string) (string, error) {
 		return "", fmt.Errorf("environment name is required")
 	}
 
-	storeDir, err := s.envStoreLocation()
+	storeDir, err := s.getEnvStoreLocation()
 	if err != nil {
 		return "", fmt.Errorf("cannot find env configurations: %w", err)
 	}
@@ -754,7 +667,7 @@ func (s *Store) getEnvConfigurationFilename(env string) (string, error) {
 	return filepath.Join(storeDir, envFilename), nil
 }
 
-func (s *Store) envStoreLocation() (string, error) {
+func (s *Store) getEnvStoreLocation() (string, error) {
 	configDir, err := s.getConfigDir()
 	return filepath.Join(configDir, envStoreDirectory), err
 }
@@ -774,12 +687,10 @@ func (s *Store) WriteEnvConfiguration(config *ProjectConfiguration) error {
 // UpsertEnvConfig sets the given apiKey to the given alias in the environment
 // configuration and writes it to the store.
 func (s *Store) UpsertEnvConfig(envName, alias, apiKey string) error {
-	filename, err := s.getEnvConfigurationFilename(envName)
-	if err != nil {
-		return fmt.Errorf("cannot get env filename: %w", err)
-	}
+	var config *ProjectConfiguration
+	var err error
 
-	config, err := readConfigurationFromFile(filename)
+	config, err = s.GetEnvConfiguration(envName)
 	if err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
 			return fmt.Errorf("cannot load '%s' configuration: %w", envName, err)
@@ -799,52 +710,28 @@ func (s *Store) UpsertEnvConfig(envName, alias, apiKey string) error {
 	return nil
 }
 
-type projectToEnv struct {
-	Environment string `json:"environment"`
-}
+// UpsertProjectConfig sets the given apiKey to the given alias in the project
+// configuration and writes it to the store.
+func (s *Store) UpsertProjectConfig(projectName, alias, apiKey string) error {
+	var config *ProjectConfiguration
+	var err error
 
-// projectEnvironment returns the cached environment value from
-// $XDG_CONFIG_HOME/.intrinsic/projectStoreDirectory/<project>.env.json
-func (s *Store) projectEnvironment(project string) (string, error) {
-	filename, err := s.projectToEnvFilename(project)
+	config, err = s.GetProjectConfiguration(projectName)
 	if err != nil {
-		return "", fmt.Errorf("project to env filename: %w", err)
+		if !errors.Is(err, os.ErrNotExist) {
+			return fmt.Errorf("cannot load '%s' configuration: %w", projectName, err)
+		}
+		config = NewConfiguration(projectName)
 	}
 
-	var envData projectToEnv
-	if err := readAndDecodeFile(filename, &envData); err != nil {
-		return "", fmt.Errorf("open: %w", err)
-	}
-
-	return envData.Environment, nil
-}
-
-func (s *Store) projectToEnvFilename(project string) (string, error) {
-	if project == "" {
-		return "", fmt.Errorf("empty project name")
-	}
-
-	storeDir, err := s.projectStoreLocation()
+	config, err = config.SetCredentials(alias, apiKey)
 	if err != nil {
-		return "", fmt.Errorf("cannot find configurations: %w", err)
+		return fmt.Errorf("aborting, invalid credentials: %w", err)
 	}
-	projectToEnvFilename := project + envJSONExtension
-	return filepath.Join(storeDir, projectToEnvFilename), nil
-}
 
-// EnvironmentResolver checks if a project
-// belongs to an environment.
-type EnvironmentResolver interface {
-	HasProject(env, project string) (bool, error)
-}
+	if err = s.WriteConfiguration(config); err != nil {
+		return fmt.Errorf("error writing project config: %w", err)
+	}
 
-type defaultEnvironmentResolver struct{}
-
-func (r *defaultEnvironmentResolver) HasProject(env, project string) (bool, error) {
-	return environments.FromAnyProject(project) == env, nil
-}
-
-func (s *Store) projectStoreLocation() (string, error) {
-	configDir, err := s.getConfigDir()
-	return filepath.Join(configDir, projectStoreDirectory), err
+	return nil
 }
