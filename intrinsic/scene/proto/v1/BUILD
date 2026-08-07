@@ -309,6 +309,49 @@ py_grpc_library(
 )
 
 proto_library(
+    name = "scene_object_updates_proto",
+    srcs = ["scene_object_updates.proto"],
+    deps = [
+        ":collision_rules_proto",
+        ":object_properties_proto",
+        "//intrinsic/geometry/proto/v1:transformed_geometry_proto",
+        "//intrinsic/kinematics/types:joint_limits_proto",
+        "//intrinsic/math/proto:matrix_proto",
+        "//intrinsic/math/proto:pose_proto",
+        "//intrinsic/world/proto:physics_component_proto",
+        "@com_google_protobuf//:any_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "scene_object_updates_cc_proto",
+    deps = [":scene_object_updates_proto"],
+)
+
+go_proto_library(
+    name = "scene_object_updates_go_proto",
+    importpath = "intrinsic/scene/proto/v1/scene_object_updates_go_proto",
+    protos = [":scene_object_updates_proto"],
+    deps = [
+        ":collision_rules_go_proto",
+        ":object_properties_go_proto",
+        "//intrinsic/geometry/proto/v1:transformed_geometry_go_proto",
+        "//intrinsic/kinematics/types:joint_limits_go_proto",
+        "//intrinsic/math/proto:matrix_go_proto",
+        "//intrinsic/math/proto:pose_go_proto",
+        "//intrinsic/world/proto:physics_component_go_proto",
+    ],
+)
+
+py_proto_library(
+    name = "scene_object_updates_py_pb2",
+    visibility = [
+        "//visibility:public",
+    ],
+    deps = [":scene_object_updates_proto"],
+)
+
+proto_library(
     name = "simulation_spec_proto",
     srcs = ["simulation_spec.proto"],
 )
@@ -328,6 +371,8 @@ proto_library(
     name = "scene_object_config_proto",
     srcs = ["scene_object_config.proto"],
     deps = [
+        ":collision_rules_proto",
+        ":scene_object_updates_proto",
         "@com_google_protobuf//:any_proto",
     ],
 )
@@ -341,6 +386,10 @@ go_proto_library(
     name = "scene_object_config_go_proto",
     importpath = "intrinsic/scene/proto/v1/scene_object_config_go_proto",
     protos = [":scene_object_config_proto"],
+    deps = [
+        ":collision_rules_go_proto",
+        ":scene_object_updates_go_proto",
+    ],
 )
 
 py_proto_library(

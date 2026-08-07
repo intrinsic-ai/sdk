@@ -4,12 +4,63 @@ syntax = "proto3";
 
 package intrinsic_proto.scene_object.v1;
 
+import "intrinsic/scene/proto/v1/scene_object_updates.proto"; 
 
 option go_package = "intrinsic/scene/proto/v1/scene_object_config_go_proto";
 
 // Configuration message for a scene object.
+
+//
+// This message contains geometric configuration data common to all scene
+// objects. Object configuration is restricted to updates to the scene object
+// that do not manipulate the kinematic structure of the object or the baseline
+// data defined at the type level (e.g. the presence of a frame).
+//
+// The object is configured by applying the updates in the order they are
+// defined in this proto message.
+
 message SceneObjectConfig {
+
+  // Updates the parent_t_this for the named entity. If provided for the root
+  // entity, this has no effect.
+  repeated EntityPoseUpdate entity_pose_updates = 4;
+
+  // Updates for creating additional frames. The names for new frames must
+  // remain unique. Frame parents may reference other entities (even newly
+  // created frames).
+  repeated CreateFrameUpdate new_frames = 5;
+
+  // Updates for adding or removing joint name configs for this object.
+  SetNamedConfigurationsUpdate named_joint_configs = 6;
+
+  // Sets the initial joint configurations (values and limits) for this object.
+  UpdateJointsRequest initial_joint_settings = 7;
+
+  // Sets the initial cartesian limits for this kinematic object.
+  CartesianLimitsUpdate initial_cartesian_limits = 8;
+
+  // The initial IK solvers provided for this kinematic object.
+  SetIKSolversUpdate initial_ik_solvers = 11;
+
+  // Simulation properties for this object (e.g. static, disabled).
+  UpdateSimulationProperties simulation_properties = 12;
+
+  // Geometry changes that should be included with this scene object. Maps from
+  // entity names to geometry updates. Entity name in each GeometryUpdate is
+  // ignored.
+  map<string, GeometryUpdate> geometry_overrides = 13;
+
+  // Additional updates to the scene object type that are specific to this
+  // particular instantiation of the scene object, defined in order. This is
+  // mostly used for backwards compatibility.
+  SceneObjectInstanceUpdates updates = 1 [deprecated = true];
+
+
   // Opaque user-supplied data for this scene object.
+
+  // Specify `user_data` via SceneObjectUpdate instead.
+
+
   reserved 3, 9, 10;
   reserved "user_data", "collision_margin_rules", "collision_exclusion_pairs";
 }
