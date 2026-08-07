@@ -16,10 +16,13 @@ import grpc
 
 from intrinsic.executive.proto import proto_builder_pb2
 from intrinsic.executive.proto import proto_builder_pb2_grpc
+from intrinsic.solutions import blackboard_value
+from intrinsic.solutions import cel
 from intrinsic.solutions import errors as solutions_errors
 from intrinsic.solutions import provided
 from intrinsic.solutions.internal import skill_utils
 from intrinsic.util.grpc import error_handling
+from intrinsic.util.proto import descriptors
 
 _DEFAULT_PARAM_MSG_NAME = "Params"
 _DEFAULT_RETURN_MSG_NAME = "ReturnValue"
@@ -409,6 +412,82 @@ class Signature:
       )
 
     return params_message
+
+  def create_return_value_expression(self, **kwargs) -> cel.CelExpression:
+    """Creates a CEL expression for the return value message.
+
+    Creates a CEL expression which generates an instance of the return value
+    message from values on the blackboard (e.g. skill results). This is useful
+    for setting 'BehaviorTree.return_value_expression' for a behavior tree with
+    a return value. Example:
+
+    ```
+    sig = solution.proto_builder.create_signature(
+        return_value=pb.MessageSpec(fields=[
+            pb.FieldSpec(type="string", name="str_out", number=1),
+            pb.FieldSpec(
+                type="intrinsic_proto.Pose", name="poses_out", number=2),
+    ]))
+
+    skill = solution.skills.ai.intrinsic.my_skill(...)
+    tree = bt.BehaviorTree(..., root=skill)
+    tree.set_asset_metadata(...)
+    tree.set_signature(sig)
+
+    tree.return_value_expression = sig.create_return_value_expression(
+      str_out = my_skill.result.string_result,
+      poses_out = [my_skill.result.poses[3], my_skill.result.another_pose],
+    )
+    ```
+
+    Args:
+      **kwargs: Mapping from field name to CEL expression (or equivalent). The
+        keys must be field names of the return value message specified by the
+        signature. Each value can be a CelExpression, BlackboardValue, a plain
+        string representing a CEL expression or a list thereof.
+
+    Returns:
+      A CEL expression which generates an instance of the return value message
+      from the given CEL expressions.
+
+    Raises:
+      ValueError: If the signature does not specify a return value message.
+      TypeError: If kwargs contains keys that do not match fields of the return
+        value message, or if any value is not a CelExpression (or equivalent).
+    """
+    if not self.return_value_message_full_name:
+      raise ValueError("Signature has no return value message")
+
+    pool = descriptors.create_descriptor_pool(self.file_descriptor_set)
+    descriptor = pool.FindMessageTypeByName(self.return_value_message_full_name)
+    unexpected = set(kwargs) - set(descriptor.fields_by_name)
+    if unexpected:
+      raise TypeError(
+          "Unexpected keyword arguments (not matching field names in the"
+          f" return value message): {', '.join(sorted(unexpected))}"
+      )
+
+    # Converts 'value' to a CEL expression, recursing into lists.
+    def to_expr(value: Any, key: str) -> str:
+      if isinstance(
+          value, (blackboard_value.BlackboardValue, cel.CelExpression, str)
+      ):
+        return str(value)
+      elif isinstance(value, list):
+        return f"[{', '.join(to_expr(item, key) for item in value)}]"
+      else:
+        raise TypeError(
+            "Expected BlackboardValue, CelExpression, str, or list thereof,"
+            f" got {type(value).__name__} for '{key}'"
+        )
+
+    field_exprs = [
+        f"{key}: {to_expr(value, key)}" for key, value in kwargs.items()
+    ]
+
+    return cel.CelExpression(
+        f"{self.return_value_message_full_name}{{{', '.join(field_exprs)}}}"
+    )
 
 
 @dataclasses.dataclass(frozen=True)
