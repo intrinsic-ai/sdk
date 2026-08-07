@@ -13,17 +13,12 @@ namespace intrinsic {
 struct GeometryOptions {
   static const GeometryOptions& Default() {
     static GeometryOptions options = {
-        .fill_inside_for_distance_queries = true,
         .simulation_convex_decomposition_resolution = std::nullopt,
     };
     return options;
   }
 
   void MergeWith(const GeometryOptions& other) {
-    // If either option requires filling on the inside, then we need to fill on
-    // the inside.
-    fill_inside_for_distance_queries |= other.fill_inside_for_distance_queries;
-
     // If convex decomposition resolution is set for either option, then use
     // that in the merged option. If the parameter is set for both options, then
     // use the higher value.
@@ -38,15 +33,9 @@ struct GeometryOptions {
   }
 
   bool operator==(const GeometryOptions& other) const {
-    return fill_inside_for_distance_queries ==
-               other.fill_inside_for_distance_queries &&
-           simulation_convex_decomposition_resolution ==
-               other.simulation_convex_decomposition_resolution;
+    return simulation_convex_decomposition_resolution ==
+           other.simulation_convex_decomposition_resolution;
   }
-
-  // Used to determine if the octree needs to be filled on the inside when
-  // constructing the octree for distance queries.
-  bool fill_inside_for_distance_queries = true;
 
   // Optional parameter to specify the voxel resolution for convex
   // decomposition. This parameter only affects how the geometry is simulated

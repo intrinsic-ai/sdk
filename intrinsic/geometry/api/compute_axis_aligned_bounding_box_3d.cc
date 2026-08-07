@@ -21,6 +21,7 @@ namespace {
 
 using geometry_legacy::GetBoundingBoxFromPointCloud;
 using geometry_legacy::Mesh;
+
 class ComputeAxisAlignedBoundingBox3dFunctor {
  public:
   template <typename Geo>
@@ -50,7 +51,6 @@ class ComputeAxisAlignedBoundingBox3dFunctor {
       const ObjectRef<shapes::PointCloud>& geo) const {
     return GetBoundingBoxFromPointCloud(geo.Value());
   }
-
 };
 
 }  // namespace

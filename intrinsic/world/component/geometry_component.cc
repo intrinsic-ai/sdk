@@ -95,9 +95,6 @@ absl::StatusOr<MigrationGeometry> UpdateGeometryOptions(
             ->mutable_inline_geometry_data()
             ->mutable_exact_geometry()
             ->mutable_options();
-
-    result_options->set_fill_inside_for_distance_queries(
-        options.fill_inside_for_distance_queries);
     if (options.simulation_convex_decomposition_resolution.has_value()) {
       result_options->set_simulation_convex_decomposition_resolution(
           options.simulation_convex_decomposition_resolution.value());
@@ -503,10 +500,6 @@ absl::StatusOr<std::unique_ptr<GeometryComponent>> GeometryComponent::FromProto(
 
 void ApplyOverrides(GeometryOptions& options,
                     const intrinsic_proto::world::GeometryOptions& proto) {
-  if (proto.has_fill_inside_for_distance_queries()) {
-    options.fill_inside_for_distance_queries =
-        proto.fill_inside_for_distance_queries();
-  }
 }
 
 GeometryOptions FromProto(
@@ -518,8 +511,6 @@ GeometryOptions FromProto(
 
 intrinsic_proto::world::GeometryOptions ToProto(const GeometryOptions& shape) {
   intrinsic_proto::world::GeometryOptions proto;
-  proto.set_fill_inside_for_distance_queries(
-      shape.fill_inside_for_distance_queries);
   return proto;
 }
 

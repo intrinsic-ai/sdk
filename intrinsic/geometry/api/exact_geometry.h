@@ -38,13 +38,10 @@ class ExactGeometry : public std::enable_shared_from_this<ExactGeometry> {
  public:
   using Shape = std::variant<std::vector<TransformedPrimitiveShapePtr>,
                              ObjectRef<geometry_legacy::Mesh>,
-                             ObjectRef<shapes::PointCloud>
-                             >;
+                             ObjectRef<shapes::PointCloud>>;
 
-  using ComputedShape =
-      std::variant<ObjectRef<geometry_legacy::Mesh>,
-                   ObjectRef<shapes::PointCloud>
-                   >;
+  using ComputedShape = std::variant<ObjectRef<geometry_legacy::Mesh>,
+                                     ObjectRef<shapes::PointCloud>>;
 
   // Default constructor with an empty mesh.
   ExactGeometry() = delete;
@@ -77,6 +74,7 @@ class ExactGeometry : public std::enable_shared_from_this<ExactGeometry> {
                          GeometryOptions options = GeometryOptions::Default());
   explicit ExactGeometry(ObjectRef<shapes::PointCloud> point_cloud,
                          GeometryOptions options = GeometryOptions::Default());
+
   // Create an ExactGeometry from the given transformed shape. A mesh will be
   // computed from the shape (accounting for the transform).
   static absl::StatusOr<ExactGeometry> Create(
@@ -99,15 +97,14 @@ class ExactGeometry : public std::enable_shared_from_this<ExactGeometry> {
   }
 
   bool HasMesh() const;
-  bool HasMeshOctree() const;
   bool HasPointCloud() const;
-  bool HasPointCloudOctree() const;
   bool HasPrimitiveShapes() const;
 
   const std::vector<TransformedPrimitiveShapePtr>& GetPrimitiveShapes() const;
 
   absl::StatusOr<ObjectRef<geometry_legacy::Mesh>> GetMesh() const;
   absl::StatusOr<ObjectRef<shapes::PointCloud>> GetPointCloud() const;
+
   // Returns the runtime options for this geometry.
   const GeometryOptions& options() const;
 
@@ -124,11 +121,10 @@ class ExactGeometry : public std::enable_shared_from_this<ExactGeometry> {
   std::vector<TransformedPrimitiveShapePtr> primitive_shapes_;
 
   // We have a mesh or point cloud and an optional primitive set.
-  // If the primivite set is present, we use the mesh/mesh_octree as a fallback.
+  // If the primivite set is present, we use the mesh as a fallback.
   ComputedShape shape_;
 
-  // Runtime options for the shape, including things like if the octree needs to
-  // be filled on the inside when constructing the octree for distance queries.
+  // Runtime options for the shape.
   GeometryOptions options_;
 };
 

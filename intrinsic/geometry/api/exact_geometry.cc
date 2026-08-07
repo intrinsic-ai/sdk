@@ -200,14 +200,13 @@ absl::StatusOr<ExactGeometry> ExactGeometry::Create(
 }
 
 bool ExactGeometry::HasMesh() const {
-  return
-      std::holds_alternative<ObjectRef<geometry_legacy::Mesh>>(shape_);
+  return std::holds_alternative<ObjectRef<geometry_legacy::Mesh>>(shape_);
 }
 
 bool ExactGeometry::HasPointCloud() const {
-  return
-      std::holds_alternative<ObjectRef<shapes::PointCloud>>(shape_);
+  return std::holds_alternative<ObjectRef<shapes::PointCloud>>(shape_);
 }
+
 bool ExactGeometry::HasPrimitiveShapes() const {
   return !primitive_shapes_.empty();
 }

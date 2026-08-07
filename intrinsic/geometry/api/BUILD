@@ -88,7 +88,6 @@ cc_library(
         ":geometry_options",
         ":renderable",
         "//intrinsic/eigenmath",
-        "//intrinsic/geometry/internal/legacy/mesh",
         "//intrinsic/geometry/internal/legacy/utils:export_as_gltf",
         "//intrinsic/math:pose3",
         "//intrinsic/util/object_store",

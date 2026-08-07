@@ -400,8 +400,6 @@ absl::StatusOr<intrinsic_proto::geometry::v1::ExactGeometry> ToProto(
   }
 
   const auto& options = exact_geo.options();
-  result.mutable_options()->set_fill_inside_for_distance_queries(
-      options.fill_inside_for_distance_queries);
   return std::move(result);
 }
 
@@ -421,15 +419,11 @@ absl::StatusOr<ExactGeometry> ToGeometry(
     } break;
     case intrinsic_proto::geometry::v1::ExactGeometry::kTriangleMesh: {
       INTR_ASSIGN_OR_RETURN(auto mesh, FromProto(proto.triangle_mesh()));
-      auto mesh_ref = DeDuplicate(std::move(mesh));
-
-      primary_shape = mesh_ref;
+      primary_shape = DeDuplicate(std::move(mesh));
     } break;
     case intrinsic_proto::geometry::v1::ExactGeometry::kPointCloud: {
       INTR_ASSIGN_OR_RETURN(auto point_cloud, ToShape(proto.point_cloud()));
-      auto point_cloud_ref = DeDuplicate(std::move(point_cloud));
-      primary_shape = point_cloud_ref;
-
+      primary_shape = DeDuplicate(std::move(point_cloud));
     } break;
     case intrinsic_proto::geometry::v1::ExactGeometry::DATA_NOT_SET:
       return absl::InvalidArgumentError("ExactGeometry.data not set");
@@ -438,8 +432,6 @@ absl::StatusOr<ExactGeometry> ToGeometry(
   }
 
   GeometryOptions options;
-  options.fill_inside_for_distance_queries =
-      proto.options().fill_inside_for_distance_queries();
   return ExactGeometry::Create(std::move(primary_shape), std::move(options));
 }
 

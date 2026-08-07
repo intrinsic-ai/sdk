@@ -27,6 +27,7 @@ namespace intrinsic {
 namespace {
 
 using ::intrinsic::geometry_legacy::Mesh;
+
 class ApplyTransformFunctor {
  public:
   explicit ApplyTransformFunctor(const Pose3d& ref_t_geo)

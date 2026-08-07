@@ -90,19 +90,14 @@ class Mesh {
   Triangle TriangleForFace(unsigned int face_index,
                            const eigenmath::AffineTransform3d& ref_t_geo) const;
 
-  template <class OIT>
-  OIT StreamTriangles(OIT oit) const {
-    for (const auto& face : faces()) {
-      *oit++ = Triangle{vertex(face[0]), vertex(face[1]), vertex(face[2])};
-    }
-    return oit;
-  }
-
   // Returns all faces as triangles.
   inline std::vector<Triangle> ExtractTriangles() const {
     std::vector<Triangle> result;
     result.reserve(face_count());
-    this->StreamTriangles(std::back_inserter(result));
+    for (const auto& face : faces()) {
+      result.push_back(
+          Triangle{vertex(face[0]), vertex(face[1]), vertex(face[2])});
+    }
     return result;
   }
 
