@@ -259,3 +259,21 @@ cc_proto_library(
     name = "param_message_cc_proto",
     deps = [":param_message_proto"],
 )
+
+proto_library(
+    name = "field_behavior_test_proto",
+    srcs = ["field_behavior_test.proto"],
+    deps = [
+        "@com_google_googleapis//google/api:field_behavior_proto",
+        "@com_google_protobuf//:any_proto",
+    ],
+)
+
+go_proto_library(
+    name = "field_behavior_test_go_proto",
+    importpath = "intrinsic/util/proto/testing/field_behavior_test_go_proto",
+    protos = [":field_behavior_test_proto"],
+    deps = [
+        "@org_golang_google_genproto_googleapis_api//annotations",
+    ],
+)

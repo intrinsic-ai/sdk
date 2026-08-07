@@ -351,3 +351,30 @@ go_library(
         "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
     ],
 )
+
+go_library(
+    name = "fieldbehavior",
+    srcs = ["field_behavior.go"],
+    importpath = "intrinsic/util/proto/fieldbehavior",
+    deps = [
+        "@org_golang_google_genproto_googleapis_api//annotations",
+        "@org_golang_google_protobuf//proto",
+        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
+        "@org_golang_google_protobuf//types/descriptorpb",
+    ],
+)
+
+go_test(
+    name = "fieldbehavior_test",
+    size = "small",
+    srcs = ["field_behavior_test.go"],
+    embed = [":fieldbehavior"],
+    importpath = "intrinsic/util/proto/fieldbehavior_test",
+    deps = [
+        "//intrinsic/util/proto/testing:field_behavior_test_go_proto",
+        "//intrinsic/util/proto/testing:prototestutil",
+        "@com_github_google_go_cmp//cmp:go_default_library",
+        "@org_golang_google_protobuf//proto",
+        "@org_golang_google_protobuf//testing/protocmp:go_default_library",
+    ],
+)

@@ -17,12 +17,12 @@ import (
 	"intrinsic/skills/tools/skill/cmd/solutionutil"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/cobrautil"
+	"intrinsic/util/proto/fieldbehavior"
 	"intrinsic/util/proto/registryutil"
 
 	longrunningpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	annotationspb "google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
@@ -53,61 +53,27 @@ var (
 	flagProcessFormat string
 )
 
-var (
-	protoNameBehaviorTree     = proto.MessageName(new(behaviortreepb.BehaviorTree))
-	protoNameBehaviorTreeNode = proto.MessageName(new(behaviortreepb.BehaviorTree_Node))
-)
+type nodeIDCleaner struct{}
 
-func clearField(fieldName string, refl protoreflect.Message) {
-	field := refl.Descriptor().Fields().ByTextName(fieldName)
-	if refl.Has(field) {
-		refl.Clear(field)
+func (c *nodeIDCleaner) Visit(ctx context.Context, element behaviortree.VisitElement) error {
+	if node := element.Node(); node != nil {
+		node.Id = nil
 	}
+	return nil
 }
 
 func clearTree(m proto.Message, clearTreeID bool, clearNodeIDs bool) error {
-	refl := m.ProtoReflect()
-
-	n := proto.MessageName(m)
-	if clearTreeID && n == protoNameBehaviorTree {
-		clearField("tree_id", refl)
-	}
-	if clearNodeIDs && n == protoNameBehaviorTreeNode {
-		clearField("id", refl)
-	}
-
-	for i := 0; i < refl.Descriptor().Fields().Len(); i++ {
-		field := refl.Descriptor().Fields().Get(i)
-		if !refl.Has(field) {
-			continue
+	if bt, ok := m.(*behaviortreepb.BehaviorTree); ok && bt != nil {
+		if clearTreeID {
+			bt.TreeId = nil
 		}
-		options := field.Options().(*descriptorpb.FieldOptions)
-		if proto.HasExtension(options, annotationspb.E_FieldBehavior) {
-			behaviors := proto.GetExtension(
-				options, annotationspb.E_FieldBehavior).([]annotationspb.FieldBehavior)
-			for _, behavior := range behaviors {
-				if behavior == annotationspb.FieldBehavior_OUTPUT_ONLY {
-					refl.Clear(field)
-				}
-			}
-		}
-
-		if field.Kind() == protoreflect.MessageKind {
-			if field.IsList() {
-				list := refl.Get(field).List()
-				for j := 0; j < list.Len(); j++ {
-					if err := clearTree(list.Get(j).Message().Interface(), clearTreeID, clearNodeIDs); err != nil {
-						return err
-					}
-				}
-			} else if !field.IsMap() {
-				if err := clearTree(refl.Get(field).Message().Interface(), clearTreeID, clearNodeIDs); err != nil {
-					return err
-				}
+		if clearNodeIDs {
+			if err := behaviortree.Walk(context.Background(), bt, &nodeIDCleaner{}); err != nil {
+				return err
 			}
 		}
 	}
-	return nil
+	return fieldbehavior.ClearOutputOnly(m)
 }
 
 func connectToCluster(ctx context.Context, projectName string, orgName string, address string, solutionName string, clusterName string) (context.Context, *grpc.ClientConn, error) {
