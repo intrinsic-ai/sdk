@@ -38,7 +38,6 @@
 #include "intrinsic/scene/sdf/sdf_util.h"
 #include "intrinsic/scene/sdf/sim_spec_from_sdf.h"
 #include "intrinsic/scene/user_data_keys.h"
-#include "intrinsic/scene/util/scene_object_updates.h"
 #include "intrinsic/util/proto/descriptors.h"
 #include "intrinsic/util/status/status_macros.h"
 #include "intrinsic/world/conversion/sdf/joint_conversion.h"
@@ -73,49 +72,6 @@ bool IsBallSdfJointType(::sdf::JointType joint_type) {
 // Return true if the sdf joint type is FIXED.
 bool IsFixedSdfJointType(::sdf::JointType joint_type) {
   return joint_type == ::sdf::JointType::FIXED;
-}
-
-// Applies simulation spec from SDF Model to the given scene object.
-// The scene object is expected to be fully valid (e.g. it should contain
-// entities) except for the simulation spec.
-absl::Status ApplySimulationSpecFromSdf(
-    const ::sdf::Model& model, SceneObject& scene_object,
-    UnsupportedPluginsProcessing unsupported_plugins) {
-  INTR_ASSIGN_OR_RETURN(
-      std::optional<SimulationSpec> sim_spec,
-      ExtractSimulationSpecFromSdf(model, AsVector(scene_object.entities()),
-                                   unsupported_plugins),
-      _.LogError() << absl::Substitute(
-          "Failed to extract simulation spec from SDF Model: '$0'.",
-          scene_object.name()));
-
-  if (!sim_spec.has_value()) {
-    return absl::OkStatus();
-  }
-
-  *scene_object.mutable_simulation_spec() = std::move(*sim_spec);
-  intrinsic_proto::scene_object::v1::SceneObjectUpdates updates;
-  google::protobuf::Map<std::string, double>& update_joints =
-      *updates.add_updates()
-           ->mutable_update_joints()
-           ->mutable_joint_positions();
-  for (const intrinsic_proto::scene_object::v1::RobotSimPluginSpec_DeviceSpec&
-           device : scene_object.simulation_spec().robot().device_specs()) {
-    if (!device.has_joint_entity() || !device.has_initial_state()) {
-      continue;
-    }
-    update_joints[device.joint_entity()] = device.initial_state();
-  }
-  if (!update_joints.empty()) {
-    auto opts = SceneObjectUpdateOptions::Default();
-    opts.validate_original_scene_object = false;
-    INTR_ASSIGN_OR_RETURN(
-        SceneObjectUpdateResult result,
-        ProcessSceneObjectUpdates(scene_object, updates, opts),
-        _ << "error applying robot sim plugin spec!");
-    scene_object = result.result;
-  }
-  return absl::OkStatus();
 }
 
 }  // namespace
@@ -319,8 +275,17 @@ SceneObjectFromSdfModel(const ::sdf::Model& sdf_model,
   }
 
   // Parse and apply sim plugins.
-  INTR_RETURN_IF_ERROR(ApplySimulationSpecFromSdf(sdf_model, scene_object_model,
-                                                  options.unsupported_plugins));
+  INTR_ASSIGN_OR_RETURN(
+      std::optional<SimulationSpec> sim_spec,
+      ExtractSimulationSpecFromSdf(sdf_model,
+                                   AsVector(scene_object_model.entities()),
+                                   options.unsupported_plugins),
+      _.LogError() << absl::Substitute(
+          "Failed to extract simulation spec from SDF Model: '$0'.",
+          scene_object_model.name()));
+  if (sim_spec.has_value()) {
+    *scene_object_model.mutable_simulation_spec() = std::move(*sim_spec);
+  }
 
   // Ball joints are treated as fixed joints in the scene object and World.
   // However, we keep the <joint> SDF element in the scene object's user data

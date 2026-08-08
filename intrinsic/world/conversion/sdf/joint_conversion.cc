@@ -37,7 +37,21 @@ absl::StatusOr<ParseJointResult> ParseJoint(const ::sdf::Joint& sdf_joint) {
     INTR_ASSIGN_OR_RETURN(
         Pose3d parent_t_joint,
         ParseSemanticPose(sdf_joint.SemanticPose(), sdf_joint.ParentName()));
-    result.parent_t_child = parent_t_joint * result.child_t_joint.inverse();
+    double theta = result.kinematics_component->GetRawValue();
+    Pose3d inboard_t_outboard = Pose3d::Identity();
+    if (result.kinematics_component->GetMotionType() ==
+        intrinsic_proto::world::KinematicsComponent::MOTION_TYPE_REVOLUTE) {
+      inboard_t_outboard.setQuaternion(
+          eigenmath::Quaterniond(eigenmath::AngleAxisd(
+              theta, result.kinematics_component->GetAxis())));
+    } else if (result.kinematics_component->GetMotionType() ==
+               intrinsic_proto::world::KinematicsComponent::
+                   MOTION_TYPE_PRISMATIC) {
+      inboard_t_outboard.translation() =
+          theta * result.kinematics_component->GetAxis();
+    }
+    result.parent_t_child =
+        parent_t_joint * inboard_t_outboard * result.child_t_joint.inverse();
     result.kinematics_component->SetParentTInboard(parent_t_joint);
   }
 

@@ -118,6 +118,21 @@ KinematicsComponentFromSdfJoint(const ::sdf::Joint& sdf_joint) {
   INTR_RETURN_IF_ERROR(kinematics_component->SetSystemRawValueFixedLimits(
       lower_position, upper_position, /*enforce_limits=*/true));
 
+  // Default raw value to 0.0, or midpoint if 0.0 is invalid.
+  double default_raw_value = 0.0;
+  if (!(default_raw_value <= upper_position &&
+        default_raw_value >= lower_position)) {
+    if (std::isfinite(lower_position) && std::isfinite(upper_position)) {
+      default_raw_value =
+          lower_position + (upper_position - lower_position) * 0.5;
+    } else if (std::isfinite(lower_position)) {
+      default_raw_value = lower_position;
+    } else if (std::isfinite(upper_position)) {
+      default_raw_value = upper_position;
+    }
+  }
+  kinematics_component->SetRawValue(default_raw_value);
+
   // Process optional <velocity>. Default is -1, meaning unenforced/infinity.
   const double velocity = sdf_joint_axis.MaxVelocity();
   if (std::isfinite(velocity) && velocity >= 0) {
