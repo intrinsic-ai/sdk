@@ -17,7 +17,6 @@ proto_library(
     name = "skill_registry_internal_proto",
     srcs = ["skill_registry_internal.proto"],
     deps = [
-        "//intrinsic/resources/proto:resource_handle_proto",
         "//intrinsic/skills/proto:skill_registry_config_proto",
         "//intrinsic/skills/proto:skills_proto",
         "@com_google_protobuf//:empty_proto",
