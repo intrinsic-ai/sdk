@@ -28,6 +28,7 @@
 #include "google/rpc/status.pb.h"
 #include "intrinsic/platform/pubsub/adapters/pubsub.pb.h"
 #include "intrinsic/platform/pubsub/kvstore.h"
+#include "intrinsic/platform/pubsub/liveliness_subscription.h"
 #include "intrinsic/platform/pubsub/publisher.h"
 #include "intrinsic/platform/pubsub/pubsub_callbacks.h"
 #include "intrinsic/platform/pubsub/queryable.h"
@@ -410,6 +411,87 @@ class PubSub {
   template <typename... ResponseT>
   absl::StatusOr<std::vector<GetResult>> Get(absl::string_view keyexpr,
                                              const QueryOptions& options = {});
+
+  // Creates a subscription to liveliness notifications.
+  //
+  // Liveliness is a feature of Zenoh that allows participants of a Zenoh
+  // network to keep track of each other's availability. Participants announce
+  // their availability by declaring a liveliness token on a key expression
+  // (see `DeclareLivelinessToken` method). Other participants can subscribe
+  // to notifications about changes in the availability status by invoking
+  // `CreateLivelinessSubscription`. Subscribers will receive notifications
+  // when the following events occur:
+  //  - The participant that declared a liveliness token becomes unavailable
+  //    for any reason, such as a network partition or a process crash.
+  //  - The participant that declared a liveliness token drops that token
+  //    (see `DropLivelinessToken` method).
+  //  - The participant that was unavailable becomes available again.
+  //
+  // Parameters:
+  //  - keyexpr: Key expression for matching liveliness tokens. May contain
+  //      wildcards. Subscribers will receive notifications about tokens
+  //      declared on all key expressions that match `keyexpr`.
+  //  - notify_about_existing_tokens: whether to notify subscribers about
+  //      liveliness tokens that were declared before the subscription was
+  //      created.
+  //  - liveliness_callback: called when status of a liveliness token changes.
+  //
+  // Subscribing to liveliness notifications:
+  // ----------------------------------------
+  //
+  // INTR_ASSIGN_OR_RETURN(
+  //   LivelinessSubscription subscription,
+  //   pubsub.CreateLivelinessSubscription(
+  //     "workcells/**",
+  //     true,
+  //     [](std::string_view key, bool alive) {
+  //       LOG(INFO) << "Key: " << key << "; alive: " << alive;
+  //     }));
+  //
+  // This subscription will receive notifications when availability of
+  // any liveliness token that matches "workcells/**" changes. Because the
+  // `notify_about_existing_tokens` parameter is true, the subscription will
+  // also receive notifications about currently available tokens that match
+  // "workcells/**".
+  //
+  // Unsubscribing from notifications:
+  // ---------------------------------
+  //
+  //  subscription.Unsubscribe();
+  //
+  absl::StatusOr<LivelinessSubscription> CreateLivelinessSubscription(
+      absl::string_view keyexpr, bool notify_about_existing_tokens,
+      LivelinessCallback liveliness_callback) const;
+
+  // Declares a liveliness token on the given key expression.
+  //
+  // Liveliness tokens allow participants of a Zenoh network to announce their
+  // availability to other participants.
+  //
+  // Declaring a liveliness token:
+  // -----------------------------
+  //
+  //  INTR_RETURN_IF_ERROR(pubsub.DeclareLivelinessToken("workcells/node-123"));
+  //
+  // Once the token is declared, participants who subscribed to
+  // "workcells/node-123" or a broader key expression (such as "workcells/**"),
+  // will receive notifications about availability of this participant.
+  absl::Status DeclareLivelinessToken(absl::string_view keyexpr);
+
+  // Drops previously declared liveliness token on the given key expression.
+  //
+  // Subscribers to any key expression that matches `keyexpr` will be notified
+  // that `keyexpr` is no longer available. More specifically, their
+  // `LivelinessCallback` will be called with the following parameters:
+  //  - key: same as `keyexpr`
+  //  - alive: false.
+  //
+  // Dropping a liveliness token:
+  // -----------------------------
+  //
+  //  INTR_RETURN_IF_ERROR(pubsub.DropLivelinessToken("workcells/node-123"));
+  //
+  absl::Status DropLivelinessToken(absl::string_view keyexpr);
 
  private:
   static void HandleError(const SubscriptionErrorCallback& error_callback,

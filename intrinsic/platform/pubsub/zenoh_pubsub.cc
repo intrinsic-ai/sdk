@@ -22,6 +22,8 @@
 #include "absl/types/span.h"
 #include "intrinsic/platform/pubsub/adapters/pubsub.pb.h"
 #include "intrinsic/platform/pubsub/kvstore.h"
+#include "intrinsic/platform/pubsub/liveliness_subscription.h"
+#include "intrinsic/platform/pubsub/liveliness_subscription_data.h"
 #include "intrinsic/platform/pubsub/publisher.h"
 #include "intrinsic/platform/pubsub/pubsub.h"
 #include "intrinsic/platform/pubsub/pubsub_callbacks.h"
@@ -148,6 +150,46 @@ absl::StatusOr<Subscription> PubSub::CreateSubscription(
     return absl::InternalError("Error creating a subscription");
   }
   return Subscription(topic_name, std::move(subscription_data));
+}
+
+absl::StatusOr<LivelinessSubscription> PubSub::CreateLivelinessSubscription(
+    absl::string_view keyexpr, bool notify_about_existing_tokens,
+    LivelinessCallback liveliness_callback) const {
+  std::string keyexpr_str = std::string(keyexpr);
+
+  auto subscription_data = std::make_unique<LivelinessSubscriptionData>();
+  subscription_data->key_expression = keyexpr_str;
+  auto callback = std::make_unique<imw_liveliness_callback_functor_t>(
+      [liveliness_callback](const char* keyexpr, bool alive) {
+        liveliness_callback(keyexpr, alive);
+      });
+  subscription_data->callback_functor = std::move(callback);
+
+  imw_ret_t ret = Zenoh().imw_create_liveliness_subscription(
+      keyexpr_str.c_str(), zenoh_static_liveliness_callback,
+      notify_about_existing_tokens, subscription_data->callback_functor.get());
+  if (ret != IMW_OK) {
+    return absl::InternalError("Error creating a subscription");
+  }
+  return LivelinessSubscription(keyexpr, std::move(subscription_data));
+}
+
+absl::Status PubSub::DeclareLivelinessToken(absl::string_view keyexpr) {
+  imw_ret_t ret =
+      Zenoh().imw_declare_liveliness_token(std::string(keyexpr).c_str());
+  if (ret != IMW_OK) {
+    return absl::InternalError("Error declaring a liveliness token");
+  }
+  return absl::OkStatus();
+}
+
+absl::Status PubSub::DropLivelinessToken(absl::string_view keyexpr) {
+  imw_ret_t ret =
+      Zenoh().imw_drop_liveliness_token(std::string(keyexpr).c_str());
+  if (ret != IMW_OK) {
+    return absl::InternalError("Error dropping a liveliness token");
+  }
+  return absl::OkStatus();
 }
 
 bool PubSub::KeyexprIsCanon(absl::string_view keyexpr) const {

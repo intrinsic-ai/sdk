@@ -35,6 +35,14 @@ using SubscriptionErrorCallback =
 using SubscriptionErrorExpandedCallback = std::function<void(
     absl::string_view topic, absl::string_view packet, absl::Status error)>;
 
+// LivelinessCallback is called when status of a liveliness token changes.
+//
+// Parameters:
+//  - key: Key whose liveliness status changed.
+//  - alive: Current liveliness status.
+using LivelinessCallback =
+    std::function<void(std::string_view key, bool alive)>;
+
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_PLATFORM_PUBSUB_PUBSUB_CALLBACKS_H_

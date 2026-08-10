@@ -42,6 +42,7 @@ cc_library(
     features = ["-use_header_modules"],
     deps = [
         ":kvstore",
+        ":liveliness_subscription",
         ":publisher",
         ":pubsub_callbacks",
         ":queryable",
@@ -252,6 +253,33 @@ cc_library(
     features = ["-use_header_modules"],
     deps = [
         ":zenoh_subscription_data",
+        "//intrinsic/platform/pubsub/zenoh_util:zenoh_handle",
+        "@abseil-cpp//absl/strings",
+    ],
+)
+
+cc_library(
+    name = "liveliness_subscription_data",
+    hdrs = ["liveliness_subscription_data.h"],
+    deps = [
+        "//intrinsic/platform/pubsub/zenoh_util:zenoh_handle",
+    ],
+)
+
+cc_library(
+    name = "liveliness_subscription",
+    srcs = [
+        "liveliness_subscription.cc",
+    ],
+    hdrs = [
+        "liveliness_subscription.h",
+    ],
+    copts = [
+        "-fexceptions",
+    ],
+    features = ["-use_header_modules"],
+    deps = [
+        ":liveliness_subscription_data",
         "//intrinsic/platform/pubsub/zenoh_util:zenoh_handle",
         "@abseil-cpp//absl/strings",
     ],
