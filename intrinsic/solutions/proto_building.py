@@ -426,7 +426,9 @@ class Signature:
         return_value=pb.MessageSpec(fields=[
             pb.FieldSpec(type="string", name="str_out", number=1),
             pb.FieldSpec(
-                type="intrinsic_proto.Pose", name="poses_out", number=2),
+                type="intrinsic_proto.Pose", name="poses_out", number=2,
+                repeated=True
+            ),
     ]))
 
     skill = solution.skills.ai.intrinsic.my_skill(...)
