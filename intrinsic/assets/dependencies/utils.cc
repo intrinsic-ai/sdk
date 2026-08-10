@@ -179,6 +179,13 @@ bool IsDependencyWithConditionsFound(
       !RequiresDependencyAnnotationCheck(options)) {
     return true;
   }
+
+  if (options.treat_any_as_true &&
+      descriptor.full_name() ==
+          google::protobuf::Any::descriptor()->full_name()) {
+    return true;
+  }
+
   if (RequiresDependencyAnnotationCheck(options)) {
     for (int i = 0; i < descriptor.field_count(); ++i) {
       const google::protobuf::FieldDescriptor* field = descriptor.field(i);

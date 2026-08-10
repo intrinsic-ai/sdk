@@ -17,14 +17,14 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	descriptorpb "google.golang.org/protobuf/types/descriptorpb"
+	anypb "google.golang.org/protobuf/types/known/anypb"
+
 
 	dasgrpcpb "intrinsic/assets/data/proto/v1/data_assets_go_proto"
 	daspb "intrinsic/assets/data/proto/v1/data_assets_go_proto"
 	fieldmetadatapb "intrinsic/assets/proto/field_metadata_go_proto"
 	rdpb "intrinsic/assets/proto/v1/resolved_dependency_go_proto"
-
-	descriptorpb "google.golang.org/protobuf/types/descriptorpb"
-	anypb "google.golang.org/protobuf/types/known/anypb"
 )
 
 const ingressAddress = "istio-ingressgateway.app-ingress.svc.cluster.local:80"
@@ -150,6 +150,7 @@ func makeDefaultDataAssetsClient() (dasgrpcpb.DataAssetsClient, *grpc.ClientConn
 type resolvedDepsIntrospectionOptions struct {
 	checkDependencyAnnotation bool
 	checkSkillAnnotations     bool
+	treatAnyAsTrue            bool
 }
 
 // ResolvedDepsIntrospectionOption is an option for configuring [HasResolvedDependency].
@@ -177,6 +178,17 @@ func WithSkillAnnotations() ResolvedDepsIntrospectionOption {
 	}
 }
 
+// WithTreatAnyAsTrue returns an option that treats Any as true for the purpose of
+// checking if a dependency is found.
+//
+// If this option is not provided, the [HasResolvedDependency] function will treat Any as
+// false for the purpose of checking if a dependency is found.
+func WithTreatAnyAsTrue() ResolvedDepsIntrospectionOption {
+	return func(opts *resolvedDepsIntrospectionOptions) {
+		opts.treatAnyAsTrue = true
+	}
+}
+
 func (r *resolvedDepsIntrospectionOptions) requiresDependencyAnnotationCheck() bool {
 	// Skill annotation check can only be performed after the dependency annotation check.
 	return r.checkDependencyAnnotation || r.checkSkillAnnotations
@@ -186,6 +198,11 @@ func isDependencyWithConditionsFound(md protoreflect.MessageDescriptor, r *resol
 	resolvedDependencyDescriptor := (&rdpb.ResolvedDependency{}).ProtoReflect().Descriptor()
 
 	if md.FullName() == resolvedDependencyDescriptor.FullName() && !r.requiresDependencyAnnotationCheck() {
+		return true
+	}
+
+	anyMessageDescriptor := (&anypb.Any{}).ProtoReflect().Descriptor()
+	if r.treatAnyAsTrue && md.FullName() == anyMessageDescriptor.FullName() {
 		return true
 	}
 

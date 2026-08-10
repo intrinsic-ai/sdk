@@ -37,8 +37,9 @@ absl::StatusOr<google::protobuf::Any> GetDataPayload(
 
 // Options for HasResolvedDependency.
 struct ResolvedDepsIntrospectionOptions {
-  bool check_dependency_annotation;
-  bool check_skill_annotations;
+  bool check_dependency_annotation = false;
+  bool check_skill_annotations = false;
+  bool treat_any_as_true = false;
 };
 
 // Checks if the given proto has any ResolvedDependency fields.

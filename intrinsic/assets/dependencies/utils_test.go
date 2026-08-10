@@ -9,16 +9,18 @@ import (
 	"strings"
 	"testing"
 
-	"intrinsic/assets/data/fakedataassets"
-	"intrinsic/testing/grpctest"
-	"intrinsic/util/proto/descriptor"
-	"intrinsic/util/proto/testing/prototestutil"
-
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/testing/protocmp"
+	anypb "google.golang.org/protobuf/types/known/anypb"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
+
+	"intrinsic/assets/data/fakedataassets"
+	"intrinsic/testing/grpctest"
+	"intrinsic/util/proto/descriptor"
+	"intrinsic/util/proto/testing/prototestutil"
 
 	dapb "intrinsic/assets/data/proto/v1/data_asset_go_proto"
 	tcpb "intrinsic/assets/dependencies/testing/test_configs_go_proto"
@@ -29,9 +31,6 @@ import (
 	mpb "intrinsic/assets/proto/metadata_go_proto"
 	gcpb "intrinsic/assets/proto/v1/grpc_connection_go_proto"
 	rdpb "intrinsic/assets/proto/v1/resolved_dependency_go_proto"
-
-	anypb "google.golang.org/protobuf/types/known/anypb"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 type testService struct{}
@@ -380,6 +379,24 @@ func TestHasDependencies(t *testing.T) {
 			desc:       "config_with_any_proto",
 			descriptor: (&tcpb.WithAnyProto{}).ProtoReflect().Descriptor(),
 			want:       false,
+		},
+		{
+			desc:       "config_with_any_proto_treat_any_as_true",
+			descriptor: (&tcpb.WithAnyProto{}).ProtoReflect().Descriptor(),
+			options:    []ResolvedDepsIntrospectionOption{WithTreatAnyAsTrue()},
+			want:       true,
+		},
+		{
+			desc:       "config_with_list_of_any_proto_treat_any_as_true",
+			descriptor: (&tcpb.WithListOfAnyProto{}).ProtoReflect().Descriptor(),
+			options:    []ResolvedDepsIntrospectionOption{WithTreatAnyAsTrue()},
+			want:       true,
+		},
+		{
+			desc:       "config_with_map_of_any_proto_treat_any_as_true",
+			descriptor: (&tcpb.WithMapOfAnyProto{}).ProtoReflect().Descriptor(),
+			options:    []ResolvedDepsIntrospectionOption{WithTreatAnyAsTrue()},
+			want:       true,
 		},
 		{
 			desc:       "skill_with_annotations_dependency_check",

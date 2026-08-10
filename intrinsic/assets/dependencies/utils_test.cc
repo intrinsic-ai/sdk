@@ -486,6 +486,39 @@ INSTANTIATE_TEST_SUITE_P(
             false,
         },
         HasDependenciesTestParam{
+            "ConfigWithAnyProtoTreatAnyAsTrue",
+            ::intrinsic_proto::assets::dependencies::testing::WithAnyProto::
+                descriptor(),
+            ResolvedDepsIntrospectionOptions{
+                .check_dependency_annotation = false,
+                .check_skill_annotations = false,
+                .treat_any_as_true = true,
+            },
+            true,
+        },
+        HasDependenciesTestParam{
+            "ConfigWithListOfAnyProtoTreatAnyAsTrue",
+            ::intrinsic_proto::assets::dependencies::testing::
+                WithListOfAnyProto::descriptor(),
+            ResolvedDepsIntrospectionOptions{
+                .check_dependency_annotation = false,
+                .check_skill_annotations = false,
+                .treat_any_as_true = true,
+            },
+            true,
+        },
+        HasDependenciesTestParam{
+            "ConfigWithMapOfAnyProtoTreatAnyAsTrue",
+            ::intrinsic_proto::assets::dependencies::testing::
+                WithMapOfAnyProto::descriptor(),
+            ResolvedDepsIntrospectionOptions{
+                .check_dependency_annotation = false,
+                .check_skill_annotations = false,
+                .treat_any_as_true = true,
+            },
+            true,
+        },
+        HasDependenciesTestParam{
             "SkillWithAnnotationsDependencyCheck",
             ::intrinsic_proto::assets::dependencies::testing::
                 WithAlwaysProvideConnectionInfo::descriptor(),
