@@ -3,11 +3,22 @@
 # Shared Bazel macros for use in external workspaces and general Bazel helpers.
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@io_bazel_rules_go//proto:compiler.bzl", "go_proto_compiler")
 load("//bazel:go_macros.bzl", "go_binary")
 load(":exec_properties.bzl", "DEFAULT")
 
 package(default_visibility = ["//visibility:public"])
+
+# If True, forces downstream dependencies (like Aravis) to link against the
+# host system's glib libraries rather than the hermetic @glib//glib target.
+# This prevents GLib version conflicts and SIGABRTs when mixing hermetic glib
+# targets with tools that must use the host system's libraries (e.g. Qt6 or
+# system-linked OpenCV).
+bool_flag(
+    name = "use_host_glib",
+    build_setting_default = False,
+)
 
 exports_files(glob(["content_mirror/*"]))
 
