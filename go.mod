@@ -137,6 +137,7 @@ require (
 	golang.org/x/term v0.41.0
 	golang.org/x/text v0.36.0
 	golang.org/x/time v0.14.0
+	// renovate: datasource=go dep_name=golang.org/x/tools
 	golang.org/x/tools v0.43.0
 	gonum.org/v1/gonum v0.17.0
 	google.golang.org/api v0.256.0
