@@ -86,6 +86,16 @@ message BehaviorCall {
 
     reserved "skill_metadata";
     reserved 3;
+
+    // intrinsic:enable_executive_skill_conflict_resolution_mode:strip_begin
+    enum ConflictHandlingMode {
+      CONFLICT_HANDLING_MODE_UNSPECIFIED = 0;
+      FAIL = 1;
+      WAIT = 2;
+    }
+    // Experimental: This field might change or be removed in the future.
+    ConflictHandlingMode conflict_handling_mode = 4;
+    // intrinsic:enable_executive_skill_conflict_resolution_mode:strip_end
   }
   optional SkillExecutionOptions skill_execution_options = 7;
 

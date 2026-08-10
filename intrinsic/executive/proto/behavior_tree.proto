@@ -353,6 +353,9 @@ message BehaviorTree {
       CANCELED = 11;
       SUCCEEDED = 8;
       FAILED = 9;
+      // intrinsic:enable_executive_skill_conflict_resolution_mode:strip_begin
+      FOOTPRINT_CONFLICT_WAITING = 14;
+      // intrinsic:enable_executive_skill_conflict_resolution_mode:strip_end
     }
 
     // This is only set by the executive on retrieval. It is ignored when
