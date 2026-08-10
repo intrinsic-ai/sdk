@@ -155,6 +155,11 @@ class FieldSpec(FieldSpecBase):
           f"FieldSpec cannot be used for map type '{self.type}'. "
           "Use MapFieldSpec instead."
       )
+    if self.type == _RESOLVED_DEPENDENCY_TYPE:
+      raise ValueError(
+          f"FieldSpec cannot be used for {_RESOLVED_DEPENDENCY_TYPE}. "
+          "Use DependencySpec instead."
+      )
     if (
         self.is_installed_scene_object_asset
         and self.type != "intrinsic_proto.assets.Id"
