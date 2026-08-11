@@ -6,14 +6,11 @@ package client
 import (
 	"context"
 	"fmt"
-	"io"
-	"os"
 	"time"
 
 	log "github.com/golang/glog"
 	"github.com/google/go-containerregistry/pkg/name"
 	crv1 "github.com/google/go-containerregistry/pkg/v1"
-	"github.com/google/go-containerregistry/pkg/v1/tarball"
 	"github.com/google/go-containerregistry/pkg/v1/types"
 	"github.com/pborman/uuid"
 	"golang.org/x/sync/errgroup"
@@ -94,22 +91,8 @@ func WithAlignForK8sDeployments(align bool) UploaderOption {
 	}
 }
 
-// ContentReader allows access to the underlying reader. Every time this
-// function is called, new fresh io.ReaderCloser is expected by caller.
-type ContentReader tarball.Opener
-
-// ContentFromPath creates ContentReader from local filesystem path
-func ContentFromPath(path string) ContentReader {
-	return func() (io.ReadCloser, error) {
-		return os.Open(path)
-	}
-}
-
 // Uploader is an interface for the Artifact Service client.
 type Uploader interface {
-	// UploadImageFromArchive reads image from local tar file and uploads it to server
-	UploadImageFromArchive(ctx context.Context, imageName string, reader ContentReader) error
-
 	// UploadImage reads provided image object and uploads required components.
 	//
 	// Returns error on any failure
@@ -147,17 +130,6 @@ func (h *defaultHelper) uploadBlob(ctx context.Context, named namedObject, reade
 		return nil, task.runWithCtx(ctx)
 	})
 	return err
-}
-
-func (h *defaultHelper) UploadImageFromArchive(ctx context.Context, imageName string, reader ContentReader) error {
-	// tar file will have only ONE manifest, so we are going to load it
-	// while ignoring its originating tag.
-	image, err := tarball.Image(tarball.Opener(reader), nil)
-	if err != nil {
-		return fmt.Errorf("invalid image tar: %w", err)
-	}
-
-	return h.UploadImage(ctx, imageName, image)
 }
 
 func (h *defaultHelper) UploadImage(ctx context.Context, imageName string, image crv1.Image) error {
