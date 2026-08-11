@@ -21,6 +21,7 @@
 #include "grpcpp/create_channel.h"
 #include "grpcpp/security/credentials.h"
 #include "intrinsic/assets/data/proto/v1/data_assets.grpc.pb.h"
+#include "intrinsic/assets/instances/connect/connect.h"
 #include "intrinsic/assets/proto/field_metadata.pb.h"
 #include "intrinsic/assets/proto/v1/dependency.pb.h"
 #include "intrinsic/assets/proto/v1/grpc_connection.pb.h"
@@ -66,28 +67,6 @@ MakeDefaultDataAssetsClient() {
       grpc::InsecureChannelCredentials()));  // NOLINT(insecure)
 }
 
-// A gRPC MetadataCredentialsPlugin that attaches a fixed set of key-value
-// metadata headers to every gRPC request made on a channel.
-class HeaderMetadataPlugin : public grpc::MetadataCredentialsPlugin {
- public:
-  explicit HeaderMetadataPlugin(
-      std::vector<std::pair<std::string, std::string>> metadata)
-      : metadata_(std::move(metadata)) {}
-
-  grpc::Status GetMetadata(
-      grpc::string_ref service_url, grpc::string_ref method_name,
-      const grpc::AuthContext& channel_auth_context,
-      std::multimap<grpc::string, std::string>* metadata) override {
-    for (const auto& md : metadata_) {
-      metadata->insert({md.first, md.second});
-    }
-    return grpc::Status::OK;
-  }
-
- private:
-  std::vector<std::pair<std::string, std::string>> metadata_;
-};
-
 }  // namespace
 
 absl::StatusOr<std::shared_ptr<grpc::Channel>> Connect(
@@ -100,42 +79,9 @@ absl::StatusOr<std::shared_ptr<grpc::Channel>> Connect(
         iface));
   }
 
-  std::vector<std::string> metadata_strs;
-  metadata_strs.reserve(iface_proto->grpc().connection().metadata_size());
-  for (const auto& metadata_proto :
-       iface_proto->grpc().connection().metadata()) {
-    metadata_strs.push_back(
-        absl::StrCat(metadata_proto.key(), "=", metadata_proto.value()));
-  }
-  LOG(INFO) << "Connecting to interface \"" << iface << "\""
-            << " (address: " << iface_proto->grpc().connection().address()
-            << ") with headers injected by MetadataCredentialsPlugin: ["
-            << absl::StrJoin(metadata_strs, ", ") << "]";
-
-  auto channel_creds = grpc::InsecureChannelCredentials();  // NOLINT(insecure)
-  if (iface_proto->grpc().connection().metadata_size() > 0) {
-    std::vector<std::pair<std::string, std::string>> metadata;
-    metadata.reserve(iface_proto->grpc().connection().metadata_size());
-    for (const auto& metadata_proto :
-         iface_proto->grpc().connection().metadata()) {
-      metadata.emplace_back(metadata_proto.key(), metadata_proto.value());
-    }
-    // Permitting GRPC_SECURITY_NONE is safe because this plugin only attaches
-    // non-sensitive routing metadata headers rather than auth credentials.
-    auto call_creds = grpc::experimental::MetadataCredentialsFromPlugin(
-        std::make_unique<HeaderMetadataPlugin>(std::move(metadata)),
-        /*min_security_level=*/GRPC_SECURITY_NONE);
-    auto composite_creds =
-        grpc::CompositeChannelCredentials(channel_creds, call_creds);
-    return ::grpc::CreateCustomChannel(
-        iface_proto->grpc().connection().address(), composite_creds,
-        channel_args);
-  }
-
-  return ::grpc::CreateCustomChannel(
-      iface_proto->grpc().connection().address(),
-      grpc::InsecureChannelCredentials(),  // NOLINT(insecure)
-      channel_args);
+  LOG(INFO) << "Connecting to interface \"" << iface << "\"";
+  return ::intrinsic::assets::instances::connect::Connect(
+      iface_proto->grpc().connection(), channel_args);
 }
 
 absl::StatusOr<google::protobuf::Any> GetDataPayload(

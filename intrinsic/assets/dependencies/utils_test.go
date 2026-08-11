@@ -24,8 +24,8 @@ import (
 
 	dapb "intrinsic/assets/data/proto/v1/data_asset_go_proto"
 	tcpb "intrinsic/assets/dependencies/testing/test_configs_go_proto"
-	tsgrpcpb "intrinsic/assets/dependencies/testing/test_service_go_proto"
-	tspb "intrinsic/assets/dependencies/testing/test_service_go_proto"
+	tsgrpcpb "intrinsic/assets/instances/connect/testing/test_service_go_proto"
+	tspb "intrinsic/assets/instances/connect/testing/test_service_go_proto"
 	atpb "intrinsic/assets/proto/asset_type_go_proto"
 	idpb "intrinsic/assets/proto/id_go_proto"
 	mpb "intrinsic/assets/proto/metadata_go_proto"
@@ -78,7 +78,7 @@ func TestConnect(t *testing.T) {
 			desc: "success",
 			dep: &rdpb.ResolvedDependency{
 				Interfaces: map[string]*rdpb.ResolvedDependency_Interface{
-					"grpc://intrinsic_proto.assets.dependencies.testing.TestService": {
+					"grpc://intrinsic_proto.assets.testing.TestService": {
 						Protocol: &rdpb.ResolvedDependency_Interface_Grpc_{
 							Grpc: &rdpb.ResolvedDependency_Interface_Grpc{
 								Connection: &gcpb.GrpcConnection{
@@ -99,7 +99,7 @@ func TestConnect(t *testing.T) {
 					},
 				},
 			},
-			iface: "grpc://intrinsic_proto.assets.dependencies.testing.TestService",
+			iface: "grpc://intrinsic_proto.assets.testing.TestService",
 			wantMetadata: map[string][]string{
 				"test_key": {"test_value1", "test_value2"},
 			},
@@ -107,7 +107,7 @@ func TestConnect(t *testing.T) {
 		{
 			desc:          "no interfaces",
 			dep:           &rdpb.ResolvedDependency{},
-			iface:         "grpc://intrinsic_proto.assets.dependencies.testing.TestService",
+			iface:         "grpc://intrinsic_proto.assets.testing.TestService",
 			wantErrorType: errMissingInterface,
 			wantError:     "no interfaces provided",
 		},
@@ -124,7 +124,7 @@ func TestConnect(t *testing.T) {
 					},
 				},
 			},
-			iface:         "grpc://intrinsic_proto.assets.dependencies.testing.TestService",
+			iface:         "grpc://intrinsic_proto.assets.testing.TestService",
 			wantErrorType: errMissingInterface,
 			wantError:     "got interfaces: data://google.protobuf.Empty",
 		},

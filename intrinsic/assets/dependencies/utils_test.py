@@ -16,8 +16,8 @@ from grpc.framework.foundation import logging_pool
 from intrinsic.assets.data import fake_data_assets
 from intrinsic.assets.data.proto.v1 import data_asset_pb2
 from intrinsic.assets.dependencies import utils
-from intrinsic.assets.dependencies.testing import test_service_pb2
-from intrinsic.assets.dependencies.testing import test_service_pb2_grpc
+from intrinsic.assets.instances.connect.testing import test_service_pb2
+from intrinsic.assets.instances.connect.testing import test_service_pb2_grpc
 from intrinsic.assets.proto import asset_type_pb2
 from intrinsic.assets.proto import id_pb2
 from intrinsic.assets.proto import metadata_pb2
@@ -70,7 +70,7 @@ _CONNECT_TEST_CASES = [
         desc="success",
         dep=resolved_dependency_pb2.ResolvedDependency(
             interfaces={
-                "grpc://intrinsic_proto.assets.dependencies.testing.TestService": resolved_dependency_pb2.ResolvedDependency.Interface(
+                "grpc://intrinsic_proto.assets.testing.TestService": resolved_dependency_pb2.ResolvedDependency.Interface(
                     grpc=resolved_dependency_pb2.ResolvedDependency.Interface.Grpc(
                         connection=grpc_connection_pb2.GrpcConnection(
                             address="localhost:12345",
@@ -89,7 +89,7 @@ _CONNECT_TEST_CASES = [
                 ),
             },
         ),
-        iface="grpc://intrinsic_proto.assets.dependencies.testing.TestService",
+        iface="grpc://intrinsic_proto.assets.testing.TestService",
         want_metadata={
             "test_key": ["test_value1", "test_value2"],
         },
@@ -97,7 +97,7 @@ _CONNECT_TEST_CASES = [
     ConnectTestCase(
         desc="no interfaces",
         dep=resolved_dependency_pb2.ResolvedDependency(),
-        iface="grpc://intrinsic_proto.assets.dependencies.testing.TestService",
+        iface="grpc://intrinsic_proto.assets.testing.TestService",
         want_error=utils.MissingInterfaceError,
     ),
     ConnectTestCase(
@@ -111,7 +111,7 @@ _CONNECT_TEST_CASES = [
                 ),
             },
         ),
-        iface="grpc://intrinsic_proto.assets.dependencies.testing.TestService",
+        iface="grpc://intrinsic_proto.assets.testing.TestService",
         want_error=utils.MissingInterfaceError,
         want_error_message_regex="got interfaces: data://google.protobuf.Empty",
     ),
@@ -159,7 +159,7 @@ _GET_DATA_PAYLOAD_TEST_CASES = [
         desc="wrong interface type",
         dep=resolved_dependency_pb2.ResolvedDependency(
             interfaces={
-                "grpc://intrinsic_proto.assets.dependencies.testing.TestService": resolved_dependency_pb2.ResolvedDependency.Interface(
+                "grpc://intrinsic_proto.assets.testing.TestService": resolved_dependency_pb2.ResolvedDependency.Interface(
                     grpc=resolved_dependency_pb2.ResolvedDependency.Interface.Grpc(
                         connection=grpc_connection_pb2.GrpcConnection(
                             address="localhost:12345",
@@ -171,15 +171,14 @@ _GET_DATA_PAYLOAD_TEST_CASES = [
         iface="data://google.protobuf.Empty",
         want_error=utils.MissingInterfaceError,
         want_error_message_regex=(
-            "got interfaces:"
-            " grpc://intrinsic_proto.assets.dependencies.testing.TestService"
+            "got interfaces: grpc://intrinsic_proto.assets.testing.TestService"
         ),
     ),
     GetDataPayloadTestCase(
         desc="not data",
         dep=resolved_dependency_pb2.ResolvedDependency(
             interfaces={
-                "grpc://intrinsic_proto.assets.dependencies.testing.TestService": resolved_dependency_pb2.ResolvedDependency.Interface(
+                "grpc://intrinsic_proto.assets.testing.TestService": resolved_dependency_pb2.ResolvedDependency.Interface(
                     grpc=resolved_dependency_pb2.ResolvedDependency.Interface.Grpc(
                         connection=grpc_connection_pb2.GrpcConnection(
                             address="localhost:12345",
@@ -188,7 +187,7 @@ _GET_DATA_PAYLOAD_TEST_CASES = [
                 ),
             },
         ),
-        iface="grpc://intrinsic_proto.assets.dependencies.testing.TestService",
+        iface="grpc://intrinsic_proto.assets.testing.TestService",
         want_error=utils.NotDataError,
     ),
 ]

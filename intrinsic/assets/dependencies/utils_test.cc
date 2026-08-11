@@ -27,7 +27,7 @@
 #include "intrinsic/assets/data/fake_data_assets.h"
 #include "intrinsic/assets/data/proto/v1/data_asset.pb.h"
 #include "intrinsic/assets/dependencies/testing/test_configs.pb.h"
-#include "intrinsic/assets/dependencies/testing/test_service.grpc.pb.h"
+#include "intrinsic/assets/instances/connect/testing/test_service.grpc.pb.h"
 #include "intrinsic/assets/proto/v1/resolved_dependency.pb.h"
 #include "intrinsic/util/proto/parse_text_proto.h"
 #include "intrinsic/util/status/status_macros.h"
@@ -39,9 +39,9 @@ namespace {
 using ::absl_testing::StatusIs;
 using ::intrinsic::ParseTextProtoOrDie;
 using ::intrinsic::testing::EqualsProto;
-using ::intrinsic_proto::assets::dependencies::testing::TestRequest;
-using ::intrinsic_proto::assets::dependencies::testing::TestResponse;
-using ::intrinsic_proto::assets::dependencies::testing::TestService;
+using ::intrinsic_proto::assets::testing::TestRequest;
+using ::intrinsic_proto::assets::testing::TestResponse;
+using ::intrinsic_proto::assets::testing::TestService;
 using ::intrinsic_proto::assets::v1::ResolvedDependency;
 using ::intrinsic_proto::data::v1::DataAsset;
 using ::testing::HasSubstr;
@@ -148,7 +148,7 @@ INSTANTIATE_TEST_SUITE_P(
         ConnectTestParam{
             "Success",
             R"pb(interfaces: {
-                   key: "grpc://intrinsic_proto.assets.dependencies.testing.TestService"
+                   key: "grpc://intrinsic_proto.assets.testing.TestService"
                    value: {
                      grpc: {
                        connection: {
@@ -159,23 +159,24 @@ INSTANTIATE_TEST_SUITE_P(
                      }
                    }
                  })pb",
-            "grpc://intrinsic_proto.assets.dependencies.testing.TestService",
+            "grpc://intrinsic_proto.assets.testing.TestService",
             {{"test_key", {"test_value1", "test_value2"}}},
             absl::StatusCode::kOk},
-        ConnectTestParam{"NoInterfaces",
-                         "",
-                         "grpc://intrinsic_proto.assets.dependencies.testing."
-                         "TestService",
-                         {},
-                         absl::StatusCode::kNotFound,
-                         "no interfaces provided"},
+        ConnectTestParam{
+            "NoInterfaces",
+            "",
+            "grpc://intrinsic_proto.assets.instances.connect.testing."
+            "TestService",
+            {},
+            absl::StatusCode::kNotFound,
+            "no interfaces provided"},
         ConnectTestParam{
             "WrongInterfaceType",
             R"pb(interfaces: {
                    key: "data://google.protobuf.Empty"
                    value: { data: { id: { package: "foo", name: "bar" } } }
                  })pb",
-            "grpc://intrinsic_proto.assets.dependencies.testing.TestService",
+            "grpc://intrinsic_proto.assets.testing.TestService",
             {},
             absl::StatusCode::kNotFound,
             "got interfaces: data://google.protobuf.Empty"},

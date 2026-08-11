@@ -11,15 +11,14 @@ import (
 	"slices"
 	"strings"
 
-	log "github.com/golang/glog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	descriptorpb "google.golang.org/protobuf/types/descriptorpb"
 	anypb "google.golang.org/protobuf/types/known/anypb"
 
+	"intrinsic/assets/instances/connect"
 
 	dasgrpcpb "intrinsic/assets/data/proto/v1/data_assets_go_proto"
 	daspb "intrinsic/assets/data/proto/v1/data_assets_go_proto"
@@ -49,24 +48,7 @@ func Connect(ctx context.Context, dep *rdpb.ResolvedDependency, iface string) (*
 		return nil, nil, fmt.Errorf("%w: %q", errNotGRPC, iface)
 	}
 
-	var metadataStrs []string
-	for _, m := range connection.GetMetadata() {
-		metadataStrs = append(metadataStrs, fmt.Sprintf("%s=%s", m.GetKey(), m.GetValue()))
-	}
-	log.Infof("Connecting to interface %q (address: %s) with headers added to context: [%s]",
-		iface, connection.GetAddress(), strings.Join(metadataStrs, ", "))
-
-	conn, err := grpc.NewClient(connection.GetAddress(), grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create gRPC client for interface %q: %w", iface, err)
-	}
-
-	// Add any needed metadata to the context.
-	for _, m := range connection.GetMetadata() {
-		ctx = metadata.AppendToOutgoingContext(ctx, m.GetKey(), m.GetValue())
-	}
-
-	return conn, ctx, nil
+	return connect.Connect(ctx, connection)
 }
 
 type getDataOptions struct {

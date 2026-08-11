@@ -12,6 +12,7 @@ import grpc
 
 from intrinsic.assets.data.proto.v1 import data_assets_pb2
 from intrinsic.assets.data.proto.v1 import data_assets_pb2_grpc
+from intrinsic.assets.instances.connect import connect as connect_module
 from intrinsic.assets.proto.v1 import resolved_dependency_pb2
 from intrinsic.util.grpc import interceptor
 
@@ -61,24 +62,7 @@ def connect(
         f" {iface}"
     )
 
-  metadata = iface_proto.grpc.connection.metadata
-  headers = [f"{m.key}={m.value}" for m in metadata]
-  logging.info(
-      'Connecting to interface "%s" (address: %s) with headers injected through'
-      " HeaderAdderInterceptor: [%s]",
-      iface,
-      iface_proto.grpc.connection.address,
-      ", ".join(headers),
-  )
-
-  channel = grpc.intercept_channel(
-      grpc.insecure_channel(iface_proto.grpc.connection.address, grpc_options),
-      interceptor.HeaderAdderInterceptor(
-          lambda: [(m.key, m.value) for m in metadata]
-      ),
-  )
-
-  return channel
+  return connect_module.connect(iface_proto.grpc.connection, grpc_options)
 
 
 
