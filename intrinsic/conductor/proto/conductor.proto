@@ -20,7 +20,7 @@ service ConductorService {
 }
 
 message ResetRequest {
-  // The world in the world service that we will restore the resource set to.
+  // The world in the world service that we will restore the worlds to.
   string edit_world_id = 1;
 
   reserved "sim_world_id", "belief_world_id";

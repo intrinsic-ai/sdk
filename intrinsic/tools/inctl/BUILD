@@ -30,5 +30,6 @@ go_binary(
         "//intrinsic/tools/inctl/cmd/solution_version:solutionversion",
         "//intrinsic/tools/inctl/cmd/version",
         "//intrinsic/tools/inctl/cmd/vm",
+        "//intrinsic/tools/inctl/cmd/world",
     ],
 )
