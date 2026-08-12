@@ -23,6 +23,83 @@ import "intrinsic/world/proto/object_world_refs.proto";
 
 option go_package = "intrinsic/motion_planning/proto/v1/motion_planner_service_go_proto";
 
+// MotionPlannerFlags contains flags that are used for the motion
+// planning pipeline.
+message MotionPlannerFlags {
+  reserved 1;
+  reserved "enable_jerk_limited_topp";
+
+  reserved 2;
+  reserved "enable_topp_structured_analytical_integrals";
+
+  reserved 3;
+  reserved "enable_adaptive_sampling_and_topp_integrals";
+
+  reserved 4;
+  reserved "enable_conversion_to_knot_via_single_approximation";
+
+  // Enable a validation step in the motion planning pipeline for
+  // `PlanTrajectory()`, executed after path refinement. Each path sample
+  // produced at path refinement is validated against the settings (joint
+  // limits, collision, uniform path constraints) of the motion segment it has
+  // originated from. See go/intrinsic-topp-validation-step for details.
+  bool enable_path_refinement_validation_step = 5;
+
+  // If enable_path_refinement_validation_step==true, we validate the final
+  // trajectory using slightly relaxed collision margins. For each margin, we
+  // compute two candidate relaxations:
+  //
+  // (1) margin * path_refinement_validation_margin_relative_factor
+  //
+  // (2) max(0, margin - path_refinement_validation_margin_absolute_factor)
+  //
+  // We use the _minimum_ of the above 2 candidates.
+  double path_refinement_validation_margin_relative_factor = 6;
+
+  // See comment for `path_refinement_validation_margin_relative_factor`.
+  double path_refinement_validation_margin_absolute_factor = 7;
+  // Enables the Debug Mode of the motion planner. In Debug Mode, the
+  // motion planner will fill-in and/or publish (via `PubSub`) additional
+  // information regarding statistics (e.g. timing statistics) of some of the
+  // motion planning computations for debugging and/or Quality Assurance (QA)
+  // monitoring (e.g. to monitor software regressions).
+  bool enable_motion_planning_debug_mode = 12;
+
+  // Enables the collection of collision checking statistics for the motion
+  // planner.
+  bool enable_distance_check_statistics = 13;
+
+  // Enables using a multithreaded `ConcurrentProxy` for edge validation in path
+  // planning.
+  bool enable_concurrent_collision_checking = 14;
+
+  // If `enable_concurrent_collision_checking == true`, then this flag controls
+  // how many threads to use for multithreading.
+  int32 concurrent_collision_checking_thread_count = 15;
+
+  // Address of the parameterization service. This is used to create a channel
+  // to the parameterization service, get a stub and construct a
+  // parameterization client, used to solve parameterization problems required
+  // by the jerk-limited algorithm.
+  string parameterization_service_address = 16;
+
+  // If true: if output trajectory fails refinement validation, we generate a
+  // new trajectory with reduced joint blending tightness and try again. If
+  // false, we return the refinement validation error.
+  bool enable_fallback_trajectory = 17;
+
+  // Applies only when `enable_fallback_trajectory == true`.
+  // If true: if the output trajectory fails refinement validation, we generate
+  // a new trajectory by locally tightening the joint blending only around
+  // waypoints that are close to collisions. If false, we tighten the blending
+  // radius across all waypoints.
+  bool enable_fallback_trajectory_local_adjust = 18;
+  // This is the collision check spacing (specified in radians) used for
+  // collision checking motions. This can be overridden in
+  // `MotionPlannerConfiguration`.
+  double default_collision_check_spacing = 19;
+}
+
 message MotionPlannerServiceConfig {
   // The resolved dependency for the Intrinsic runtime.
   intrinsic_proto.assets.v1.ResolvedDependency intrinsic_runtime = 1
@@ -30,6 +107,19 @@ message MotionPlannerServiceConfig {
         requires: "grpc://intrinsic_proto.assets.v1.InstalledAssetsReader"
         requires: "grpc://intrinsic_proto.data_logger.DataLogger"
       }];
+
+  MotionPlannerFlags flags = 2;
+
+  bool enable_motion_planner_service_caching = 3;
+  bool enable_motion_planner_service_caching_fuzzy_check = 4;
+  int32 cache_size = 5;
+  double joint_tolerance_in_rad = 6;
+  double pose_linear_tolerance_in_m = 7;
+  double pose_angular_tolerance_in_rad = 8;
+  bool enable_motion_planner_service_nonvolatile_cache = 9;
+  int32 geometry_service_cache_size = 10;
+  bool enable_motion_planning_inspector = 11;
+  bool save_debug_data = 12;
 }
 
 message MotionPlanningRequest {
