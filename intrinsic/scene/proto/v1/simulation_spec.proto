@@ -32,6 +32,11 @@ message MultiCameraPluginSpec {
   message Sensor {
     int64 id = 1;
     string name = 2;
+
+    // Optional pixel image type for the sensor (e.g., "intensity", "depth",
+    // "point", "normal"). If not set, standard camera sensors default to
+    // "intensity".
+    optional string image_type = 3;
   }
   repeated Sensor sensors = 1;
   string device_id = 2 [deprecated = true];
