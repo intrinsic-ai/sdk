@@ -16,6 +16,7 @@ import (
 	crv1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/pkg/errors"
 	"go.uber.org/atomic"
+	"golang.org/x/sync/singleflight"
 
 	ipb "intrinsic/kubernetes/workcell_spec/proto/image_go_proto"
 	artifactgrpcpb "intrinsic/storage/artifacts/proto/v1/artifact_go_proto"
@@ -123,10 +124,21 @@ type directTransfer struct {
 	parallelism int
 	uploadType  client.UploaderOption
 	registry    string
+	uploadGroup singleflight.Group
 }
 
 func (dt *directTransfer) Write(ctx context.Context, nameStr string, tag string, img crv1.Image) (*ipb.Image, error) {
 	dst := fmt.Sprintf("%s/%s:%s", dt.registry, nameStr, tag)
+	res, err, _ := dt.uploadGroup.Do(dst, func() (any, error) {
+		return dt.writeInternal(ctx, dst, nameStr, tag, img)
+	})
+	if err != nil {
+		return nil, err
+	}
+	return res.(*ipb.Image), nil
+}
+
+func (dt *directTransfer) writeInternal(ctx context.Context, dst string, nameStr string, tag string, img crv1.Image) (*ipb.Image, error) {
 	ref, err := name.NewTag(dst)
 	if err != nil {
 		return nil, fmt.Errorf("name.NewTag(%q): %w", dst, err)

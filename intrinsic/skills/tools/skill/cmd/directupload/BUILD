@@ -24,6 +24,7 @@ go_library(
         "@com_github_google_go_containerregistry//pkg/v1:go_default_library",
         "@com_github_pkg_errors//:go_default_library",
         "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_x_sync//singleflight:go_default_library",
         "@org_uber_go_atomic//:go_default_library",
     ],
 )
