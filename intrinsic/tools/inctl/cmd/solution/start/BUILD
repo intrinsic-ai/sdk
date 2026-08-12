@@ -13,6 +13,8 @@ go_library(
         "//intrinsic/assets/proto/v1:solution_deployment_go_proto",
         "//intrinsic/config:operationmode",
         "//intrinsic/config/proto:operation_mode_go_proto",
+        "//intrinsic/frontend/cloud/api/v1:clusterdiscovery_api_go_proto",
+        "//intrinsic/frontend/cloud/api/v1:solutiondiscovery_api_go_proto",
         "//intrinsic/kubernetes/workcell_spec/proto:deploy_go_proto",
         "//intrinsic/tools/inctl/util:printer",
         "@com_github_spf13_cobra//:go_default_library",

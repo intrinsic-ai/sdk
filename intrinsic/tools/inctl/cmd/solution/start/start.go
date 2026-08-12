@@ -36,11 +36,17 @@ func startSolution(ctx context.Context, conn *grpc.ClientConn, solutionID string
 		SolutionId:    solutionID,
 		OperationMode: opMode,
 	})
+	if status.Code(err) == codes.FailedPrecondition {
+		return fmt.Errorf("cannot start solution %q: %w", solutionID, err)
+	}
 	if status.Code(err) == codes.Unimplemented {
 		if _, err := deploygrpcpb.NewDeployServiceClient(conn).StartSolution(ctx, &deploypb.StartSolutionRequest{
 			SolutionId:    solutionID,
 			OperationMode: opMode,
 		}); err != nil {
+			if status.Code(err) == codes.FailedPrecondition {
+				return fmt.Errorf("cannot start solution %q: %w", solutionID, err)
+			}
 			return fmt.Errorf("failed to start solution (fallback): %w", err)
 		}
 		return nil
