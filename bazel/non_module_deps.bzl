@@ -6,7 +6,9 @@ Module extension for non-module dependencies
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-def _non_module_deps_impl(ctx):
+# Module extension function signatures include a ctx variable, which should not be removed.
+def _non_module_deps_impl(
+        ctx):  # @unused
     http_archive(
         name = "intrinsic_llvm_sysroot",
         build_file_content = """
