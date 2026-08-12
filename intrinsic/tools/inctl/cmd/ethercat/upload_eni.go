@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/lestrrat-go/libxml2/parser"
 	"github.com/spf13/cobra"
 	"google.golang.org/protobuf/types/known/anypb"
 
@@ -155,18 +154,6 @@ func runUploadENI(cmd *cobra.Command, args []string, flags *cmdutils.CmdFlags) e
 	}
 
 	fmt.Printf("Successfully installed ENI asset %q\n", assetIDStr)
-	return nil
-}
-
-func validateENI(content []byte) error {
-	// Parse with options to prevent XML bomb / Entity Expansion vulnerabilities
-	p := parser.New(parser.XMLParseNoEnt | parser.XMLParseNoNet)
-	eniDoc, err := p.Parse(content)
-	if err != nil {
-		return fmt.Errorf("failed to parse ENI file: %w", err)
-	}
-	defer eniDoc.Free()
-
 	return nil
 }
 

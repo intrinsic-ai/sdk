@@ -39,9 +39,8 @@ func TestUploadEniEmptyArgs(t *testing.T) {
 	}
 }
 
-func TestUploadEni(t *testing.T) {
-	ctx := context.Background()
-	minimalEni := `<?xml version="1.0" encoding="UTF-8"?>
+var (
+	minimalEni = `<?xml version="1.0" encoding="UTF-8"?>
 	<EtherCATConfig Version="1.5">
 		<Config>
 			<Master>
@@ -54,18 +53,36 @@ func TestUploadEni(t *testing.T) {
 		</Config>
 	</EtherCATConfig>`
 
-	tests := []struct {
-		desc             string
-		fileContent      string
-		assetID          string
-		displayName      string
-		vendor           string
-		wantDisplayName  string
-		wantVendor       string
-		wantErrMsg       string
-		createAssetErr   bool
-		waitOperationErr bool
-	}{
+	minimalEniMissingSourceChild = `<?xml version="1.0" encoding="UTF-8"?>
+	<EtherCATConfig Version="1.5">
+		<Config>
+			<Master>
+				<Info>
+					<Name>MyMaster</Name>
+					<Destination>001122334455</Destination>
+				</Info>
+			</Master>
+		</Config>
+	</EtherCATConfig>`
+)
+
+type uploadEniTestCase struct {
+	desc             string
+	fileContent      string
+	assetID          string
+	displayName      string
+	vendor           string
+	wantDisplayName  string
+	wantVendor       string
+	wantErrMsg       string
+	createAssetErr   bool
+	waitOperationErr bool
+}
+
+func TestUploadEni(t *testing.T) {
+	ctx := context.Background()
+
+	tests := []uploadEniTestCase{
 		{
 			desc:            "success with defaults",
 			fileContent:     minimalEni,
