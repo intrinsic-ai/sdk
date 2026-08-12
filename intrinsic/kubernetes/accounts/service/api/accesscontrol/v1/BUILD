@@ -1,6 +1,7 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "proto_source_code_info_transitive_descriptor_set")
 
@@ -18,6 +19,11 @@ proto_library(
         "@com_google_googleapis//google/longrunning:operations_proto",
         "@com_google_protobuf//:empty_proto",
     ],
+)
+
+js_library(
+    name = "accesscontrol_jspb_proto",
+    deps = [":accesscontrol_proto"],
 )
 
 proto_source_code_info_transitive_descriptor_set(

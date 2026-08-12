@@ -5,6 +5,7 @@
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
@@ -21,6 +22,11 @@ cc_proto_library(
 
 py_proto_library(
     name = "array_py_pb2",
+    deps = [":array_proto"],
+)
+
+js_library(
+    name = "array_jspb_proto",
     deps = [":array_proto"],
 )
 
@@ -45,6 +51,11 @@ py_proto_library(
     deps = [":point_proto"],
 )
 
+js_library(
+    name = "point_jspb_proto",
+    deps = [":point_proto"],
+)
+
 go_proto_library(
     name = "point_go_proto",
     importpath = "intrinsic/math/proto/point_go_proto",
@@ -63,6 +74,11 @@ cc_proto_library(
 
 py_proto_library(
     name = "quaternion_py_pb2",
+    deps = [":quaternion_proto"],
+)
+
+js_library(
+    name = "quaternion_jspb_proto",
     deps = [":quaternion_proto"],
 )
 
@@ -88,6 +104,11 @@ cc_proto_library(
 
 py_proto_library(
     name = "pose_py_pb2",
+    deps = [":pose_proto"],
+)
+
+js_library(
+    name = "pose_jspb_proto",
     deps = [":pose_proto"],
 )
 
@@ -120,6 +141,11 @@ py_proto_library(
     deps = [":affine_proto"],
 )
 
+js_library(
+    name = "affine_jspb_proto",
+    deps = [":affine_proto"],
+)
+
 go_proto_library(
     name = "affine_go_proto",
     importpath = "intrinsic/math/proto/affine_go_proto",
@@ -142,6 +168,11 @@ cc_proto_library(
 
 py_proto_library(
     name = "matrix_py_pb2",
+    deps = [":matrix_proto"],
+)
+
+js_library(
+    name = "matrix_jspb_proto",
     deps = [":matrix_proto"],
 )
 
@@ -205,6 +236,11 @@ cc_proto_library(
     deps = [":twist_proto"],
 )
 
+js_library(
+    name = "twist_jspb_proto",
+    deps = [":twist_proto"],
+)
+
 proto_library(
     name = "vector2_proto",
     srcs = ["vector2.proto"],
@@ -247,6 +283,11 @@ py_proto_library(
     deps = [":vector3_proto"],
 )
 
+js_library(
+    name = "vector3_jspb_proto",
+    deps = [":vector3_proto"],
+)
+
 proto_library(
     name = "math_protos",
     deps = [
@@ -282,6 +323,11 @@ py_proto_library(
     deps = [":header_proto"],
 )
 
+js_library(
+    name = "header_jspb_proto",
+    deps = [":header_proto"],
+)
+
 go_proto_library(
     name = "header_go_proto",
     importpath = "intrinsic/math/proto/header_go_proto",
@@ -304,6 +350,11 @@ cc_proto_library(
 
 py_proto_library(
     name = "transform_py_pb2",
+    deps = [":transform_proto"],
+)
+
+js_library(
+    name = "transform_jspb_proto",
     deps = [":transform_proto"],
 )
 
@@ -336,6 +387,11 @@ py_proto_library(
     deps = [":transform_stamped_proto"],
 )
 
+js_library(
+    name = "transform_stamped_jspb_proto",
+    deps = [":transform_stamped_proto"],
+)
+
 go_proto_library(
     name = "transform_stamped_go_proto",
     importpath = "intrinsic/math/proto/transform_stamped_go_proto",
@@ -361,6 +417,11 @@ cc_proto_library(
 
 py_proto_library(
     name = "tf_message_py_pb2",
+    deps = [":tf_message_proto"],
+)
+
+js_library(
+    name = "tf_message_jspb_proto",
     deps = [":tf_message_proto"],
 )
 

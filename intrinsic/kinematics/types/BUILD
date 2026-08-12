@@ -3,6 +3,7 @@
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
@@ -65,6 +66,11 @@ go_proto_library(
     protos = [":joint_limits_proto"],
 )
 
+js_library(
+    name = "joint_limits_jspb_proto",
+    deps = [":joint_limits_proto"],
+)
+
 proto_library(
     name = "dynamic_limits_check_mode_proto",
     srcs = ["dynamic_limits_check_mode.proto"],
@@ -103,6 +109,11 @@ go_proto_library(
     name = "dynamic_limits_check_mode_go_proto",
     importpath = "intrinsic/kinematics/types/dynamic_limits_check_mode_go_proto",
     protos = [":dynamic_limits_check_mode_proto"],
+)
+
+js_library(
+    name = "dynamic_limits_check_mode_jspb_proto",
+    deps = [":dynamic_limits_check_mode_proto"],
 )
 
 cc_library(

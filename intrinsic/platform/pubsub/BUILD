@@ -6,6 +6,7 @@
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("//bazel:go_macros.bzl", "go_proto_library")
@@ -171,6 +172,11 @@ go_proto_library(
     name = "storage_location_go_proto",
     importpath = "intrinsic/platform/pubsub/storage_location_go_proto",
     protos = [":storage_location"],
+)
+
+js_library(
+    name = "storage_location_jspb_proto",
+    deps = [":storage_location"],
 )
 
 cc_library(

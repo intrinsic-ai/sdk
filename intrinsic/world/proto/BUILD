@@ -6,6 +6,7 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 proto_library(
@@ -23,6 +24,12 @@ cc_proto_library(
 py_proto_library(
     name = "collision_action_py_pb2",
     visibility = ["//intrinsic:public_api_users"],
+    deps = [":collision_action_proto"],
+)
+
+js_library(
+    name = "collision_action_jspb_proto",
+    visibility = ["//intrinsic:internal_api_users"],
     deps = [":collision_action_proto"],
 )
 
@@ -53,6 +60,12 @@ cc_proto_library(
 py_proto_library(
     name = "collision_settings_py_pb2",
     visibility = ["//intrinsic:public_api_users"],
+    deps = [":collision_settings_proto"],
+)
+
+js_library(
+    name = "collision_settings_jspb_proto",
+    visibility = ["//intrinsic:internal_api_users"],
     deps = [":collision_settings_proto"],
 )
 
@@ -91,6 +104,12 @@ py_proto_library(
     deps = [":geometry_component_proto"],
 )
 
+js_library(
+    name = "geometry_component_jspb_proto",
+    visibility = ["//intrinsic:internal_api_users"],
+    deps = [":geometry_component_proto"],
+)
+
 go_proto_library(
     name = "geometry_component_go_proto",
     importpath = "intrinsic/world/proto/geometry_component_go_proto",
@@ -117,6 +136,12 @@ proto_library(
 cc_proto_library(
     name = "kinematics_component_cc_proto",
     visibility = ["//intrinsic:public_api_users"],
+    deps = [":kinematics_component_proto"],
+)
+
+js_library(
+    name = "kinematics_component_jspb_proto",
+    visibility = ["//intrinsic:internal_api_users"],
     deps = [":kinematics_component_proto"],
 )
 
@@ -154,6 +179,12 @@ go_proto_library(
     importpath = "intrinsic/world/proto/object_world_refs_go_proto",
     protos = [":object_world_refs_proto"],
     visibility = ["//intrinsic:public_api_users"],
+)
+
+js_library(
+    name = "object_world_refs_jspb_proto",
+    visibility = ["//intrinsic:internal_api_users"],
+    deps = [":object_world_refs_proto"],
 )
 
 proto_library(
@@ -212,6 +243,12 @@ py_grpc_library(
     deps = [":object_world_service_py_pb2"],
 )
 
+js_library(
+    name = "object_world_service_jspb_proto",
+    visibility = ["//intrinsic:internal_api_users"],
+    deps = [":object_world_service_proto"],
+)
+
 proto_library(
     name = "object_world_updates_proto",
     srcs = ["object_world_updates.proto"],
@@ -243,6 +280,12 @@ cc_proto_library(
 py_proto_library(
     name = "object_world_updates_py_pb2",
     visibility = ["//intrinsic:public_api_users"],
+    deps = [":object_world_updates_proto"],
+)
+
+js_library(
+    name = "object_world_updates_jspb_proto",
+    visibility = ["//intrinsic:internal_api_users"],
     deps = [":object_world_updates_proto"],
 )
 
@@ -291,6 +334,12 @@ cc_proto_library(
     deps = [":physics_component_proto"],
 )
 
+js_library(
+    name = "physics_component_jspb_proto",
+    visibility = ["//intrinsic:internal_api_users"],
+    deps = [":physics_component_proto"],
+)
+
 go_proto_library(
     name = "physics_component_go_proto",
     importpath = "intrinsic/world/proto/physics_component_go_proto",
@@ -328,6 +377,12 @@ go_proto_library(
     visibility = ["//intrinsic:public_api_users"],
 )
 
+js_library(
+    name = "simulation_component_jspb_proto",
+    visibility = ["//intrinsic:internal_api_users"],
+    deps = [":simulation_component_proto"],
+)
+
 proto_library(
     name = "sensor_component_proto",
     srcs = ["sensor_component.proto"],
@@ -345,6 +400,12 @@ go_proto_library(
     importpath = "intrinsic/world/proto/sensor_component_go_proto",
     protos = ["sensor_component_proto"],
     visibility = ["//intrinsic:public_api_users"],
+)
+
+js_library(
+    name = "sensor_component_jspb_proto",
+    visibility = ["//intrinsic:internal_api_users"],
+    deps = [":sensor_component_proto"],
 )
 
 proto_library(
@@ -393,6 +454,12 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "robot_payload_jspb_proto",
+    visibility = ["//intrinsic:internal_api_users"],
+    deps = [":robot_payload_proto"],
+)
+
 cc_proto_library(
     name = "robot_payload_cc_proto",
     visibility = ["//intrinsic:public_api_users"],
@@ -423,6 +490,12 @@ go_proto_library(
         "//intrinsic/math/proto:matrix_go_proto",
         "//intrinsic/math/proto:pose_go_proto",
     ],
+)
+
+js_library(
+    name = "user_data_jspb_proto",
+    visibility = ["//intrinsic:internal_api_users"],
+    deps = [":user_data_proto"],
 )
 
 cc_proto_library(
@@ -486,4 +559,10 @@ py_proto_library(
     name = "entity_search_py_pb2",
     visibility = ["//intrinsic:public_api_users"],
     deps = [":entity_search_proto"],
+)
+
+js_library(
+    name = "collision_checker_config_jspb_proto",
+    visibility = ["//intrinsic:internal_api_users"],
+    deps = [":collision_checker_config_proto"],
 )

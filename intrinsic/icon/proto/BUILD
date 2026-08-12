@@ -4,6 +4,7 @@ load("@com_github_grpc_grpc//bazel:cc_grpc_library.bzl", "cc_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
@@ -13,6 +14,11 @@ package(
     default_visibility = [
         "//visibility:public",
     ],
+)
+
+js_library(
+    name = "types_jspb_proto",
+    deps = ["//intrinsic/icon/proto/v1:types_proto"],
 )
 
 proto_library(
@@ -28,6 +34,11 @@ proto_library(
 
 cc_proto_library(
     name = "generic_part_config_cc_proto",
+    deps = [":generic_part_config_proto"],
+)
+
+js_library(
+    name = "generic_part_config_jspb_proto",
     deps = [":generic_part_config_proto"],
 )
 
@@ -85,6 +96,11 @@ go_proto_library(
         "//intrinsic/math/proto:quaternion_go_proto",
         "//intrinsic/math/proto:vector3_go_proto",
     ],
+)
+
+js_library(
+    name = "part_status_jspb_proto",
+    deps = [":part_status_proto"],
 )
 
 proto_library(
@@ -182,6 +198,11 @@ go_proto_library(
     protos = [":cart_space_proto"],
 )
 
+js_library(
+    name = "cart_space_jspb_proto",
+    deps = [":cart_space_proto"],
+)
+
 cc_library(
     name = "cart_space_conversion",
     srcs = ["cart_space_conversion.cc"],
@@ -243,6 +264,11 @@ go_proto_library(
         "//intrinsic/kinematics/types:dynamic_limits_check_mode_go_proto",
         "//intrinsic/skills/proto:skill_parameter_metadata_go_proto",
     ],
+)
+
+js_library(
+    name = "joint_space_jspb_proto",
+    deps = [":joint_space_proto"],
 )
 
 proto_library(
@@ -365,6 +391,11 @@ go_proto_library(
     protos = [":safety_status_proto"],
 )
 
+js_library(
+    name = "safety_status_jspb_proto",
+    deps = [":safety_status_proto"],
+)
+
 proto_library(
     name = "logging_mode_proto",
     srcs = ["logging_mode.proto"],
@@ -420,6 +451,11 @@ go_proto_library(
 
 py_proto_library(
     name = "limit_provider_service_py_pb2",
+    deps = [":limit_provider_service_proto"],
+)
+
+js_library(
+    name = "limit_provider_service_jspb_proto",
     deps = [":limit_provider_service_proto"],
 )
 

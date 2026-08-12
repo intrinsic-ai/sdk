@@ -6,6 +6,7 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
@@ -13,6 +14,11 @@ package(default_visibility = ["//visibility:public"])
 proto_library(
     name = "clusterdiscovery_api_proto",
     srcs = ["clusterdiscovery_api.proto"],
+)
+
+js_library(
+    name = "clusterdiscovery_api_jspb_proto",
+    deps = [":clusterdiscovery_api_proto"],
 )
 
 go_proto_library(
@@ -29,6 +35,11 @@ proto_library(
     name = "solutiondiscovery_api_proto",
     srcs = ["solutiondiscovery_api.proto"],
     deps = [":clusterdiscovery_api_proto"],
+)
+
+js_library(
+    name = "solutiondiscovery_api_jspb_proto",
+    deps = [":solutiondiscovery_api_proto"],
 )
 
 cc_proto_library(
@@ -84,6 +95,13 @@ proto_library(
         "@com_google_protobuf//:empty_proto",
         "@com_google_protobuf//:field_mask_proto",
         "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+js_library(
+    name = "clustermanager_api_jspb_proto",
+    deps = [
+        ":clustermanager_api_proto",
     ],
 )
 

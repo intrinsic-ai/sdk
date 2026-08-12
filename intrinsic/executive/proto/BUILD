@@ -6,6 +6,7 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "proto_source_code_info_transitive_descriptor_set")
 
@@ -31,6 +32,11 @@ py_proto_library(
 
 cc_proto_library(
     name = "behavior_call_cc_proto",
+    deps = [":behavior_call_proto"],
+)
+
+js_library(
+    name = "behavior_call_jspb_proto",
     deps = [":behavior_call_proto"],
 )
 
@@ -62,6 +68,11 @@ py_proto_library(
 
 cc_proto_library(
     name = "code_execution_cc_proto",
+    deps = [":code_execution_proto"],
+)
+
+js_library(
+    name = "code_execution_jspb_proto",
     deps = [":code_execution_proto"],
 )
 
@@ -108,6 +119,11 @@ cc_grpc_library(
     generate_mocks = True,
     grpc_only = True,
     deps = [":code_execution_info_service_cc_proto"],
+)
+
+js_library(
+    name = "code_execution_info_service_jspb_proto",
+    deps = [":code_execution_info_service_proto"],
 )
 
 go_proto_library(
@@ -193,6 +209,11 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "executive_service_jspb_proto",
+    deps = [":executive_service_proto"],
+)
+
 # run_metadata
 proto_library(
     name = "run_metadata_proto",
@@ -214,6 +235,11 @@ py_proto_library(
 
 cc_proto_library(
     name = "run_metadata_cc_proto",
+    deps = [":run_metadata_proto"],
+)
+
+js_library(
+    name = "run_metadata_jspb_proto",
     deps = [":run_metadata_proto"],
 )
 
@@ -245,6 +271,11 @@ py_proto_library(
 
 cc_proto_library(
     name = "run_response_cc_proto",
+    deps = [":run_response_proto"],
+)
+
+js_library(
+    name = "run_response_jspb_proto",
     deps = [":run_response_proto"],
 )
 
@@ -315,6 +346,11 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "blackboard_service_jspb_proto",
+    deps = [":blackboard_service_proto"],
+)
+
 # executive_execution_mode
 proto_library(
     name = "executive_execution_mode_proto",
@@ -328,6 +364,11 @@ py_proto_library(
 
 cc_proto_library(
     name = "executive_execution_mode_cc_proto",
+    deps = [":executive_execution_mode_proto"],
+)
+
+js_library(
+    name = "executive_execution_mode_jspb_proto",
     deps = [":executive_execution_mode_proto"],
 )
 
@@ -356,6 +397,11 @@ go_proto_library(
     deps = [
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
     ],
+)
+
+js_library(
+    name = "log_items_jspb_proto",
+    deps = [":log_items_proto"],
 )
 
 # behavior tree
@@ -400,6 +446,11 @@ go_proto_library(
         "@com_google_cel_spec//:expr",
         "@org_golang_google_genproto_googleapis_api//annotations",
     ],
+)
+
+js_library(
+    name = "behavior_tree_jspb_proto",
+    deps = [":behavior_tree_proto"],
 )
 
 # WorldQuery
@@ -470,6 +521,11 @@ py_proto_library(
 
 cc_proto_library(
     name = "any_with_assignments_cc_proto",
+    deps = [":any_with_assignments_proto"],
+)
+
+js_library(
+    name = "any_with_assignments_jspb_proto",
     deps = [":any_with_assignments_proto"],
 )
 
@@ -573,4 +629,9 @@ go_proto_library(
         "@org_golang_google_genproto_googleapis_api//annotations",
         "@org_golang_google_protobuf//types/descriptorpb:go_default_library",
     ],
+)
+
+js_library(
+    name = "proto_builder_jspb_proto",
+    deps = [":proto_builder_proto"],
 )

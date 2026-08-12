@@ -6,6 +6,7 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "proto_source_code_info_transitive_descriptor_set")
 
@@ -94,6 +95,15 @@ go_proto_library(
     protos = [":status_proto"],
 )
 
+js_library(
+    name = "status_jspb_proto",
+    visibility = [
+        "//intrinsic/frontend:__subpackages__",
+        "//intrinsic/frontend/sdk:__subpackages__",
+    ],
+    deps = [":status_proto"],
+)
+
 proto_library(
     name = "sequence_list_proto",
     srcs = ["sequence_list.proto"],
@@ -121,4 +131,22 @@ go_proto_library(
         "//intrinsic/executive/proto:behavior_tree_go_proto",
         "@org_golang_google_protobuf//types/known/timestamppb",
     ],
+)
+
+js_library(
+    name = "sequence_list_jspb_proto",
+    visibility = [
+        "//intrinsic/frontend:__subpackages__",
+        "//intrinsic/frontend/sdk:__subpackages__",
+    ],
+    deps = [":sequence_list_proto"],
+)
+
+js_library(
+    name = "solution_service_jspb_proto",
+    visibility = [
+        "//intrinsic/frontend:__subpackages__",
+        "//intrinsic/frontend/sdk:__subpackages__",
+    ],
+    deps = [":solution_service_proto"],
 )

@@ -8,6 +8,7 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
@@ -123,6 +124,11 @@ py_grpc_library(
     deps = [":geometry_service_py_pb2"],
 )
 
+js_library(
+    name = "geometry_service_jspb_proto",
+    deps = [":geometry_service_proto"],
+)
+
 go_proto_library(
     name = "geometry_service_go_proto",
     compilers = [
@@ -192,6 +198,11 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "geometry_service_types_jspb_proto",
+    deps = [":geometry_service_types_proto"],
+)
+
 proto_library(
     name = "geometry_storage_refs_proto",
     srcs = ["geometry_storage_refs.proto"],
@@ -211,6 +222,11 @@ go_proto_library(
     name = "geometry_storage_refs_go_proto",
     importpath = "intrinsic/geometry/proto/geometry_storage_refs_go_proto",
     protos = [":geometry_storage_refs_proto"],
+)
+
+js_library(
+    name = "geometry_storage_refs_jspb_proto",
+    deps = [":geometry_storage_refs_proto"],
 )
 
 go_proto_library(
@@ -252,6 +268,11 @@ go_proto_library(
         ":primitives_go_proto",
         ":triangle_mesh_go_proto",
     ],
+)
+
+js_library(
+    name = "lazy_exact_geometry_jspb_proto",
+    deps = [":lazy_exact_geometry_proto"],
 )
 
 proto_library(
@@ -350,6 +371,11 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "primitives_jspb_proto",
+    deps = [":primitives_proto"],
+)
+
 proto_library(
     name = "renderable_proto",
     srcs = ["renderable.proto"],
@@ -392,6 +418,11 @@ go_proto_library(
         ":geometry_storage_refs_go_proto",
         "//intrinsic/math/proto:matrix_go_proto",
     ],
+)
+
+js_library(
+    name = "transformed_geometry_storage_refs_jspb_proto",
+    deps = [":transformed_geometry_storage_refs_proto"],
 )
 
 go_proto_library(

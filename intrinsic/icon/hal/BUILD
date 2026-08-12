@@ -2,6 +2,7 @@
 
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 load("//intrinsic/icon/hal/bzl:hardware_module_binary.bzl", "hardware_module_binary")
@@ -51,6 +52,12 @@ proto_library(
         "//intrinsic/assets/services/proto/v1:service_inspection_proto",  # buildcleaner: keep
         "//intrinsic/icon/proto:safety_status_proto",
     ],
+)
+
+js_library(
+    name = "hardware_module_inspection_jspb_proto",
+    visibility = ["//intrinsic/frontend/onprem/proto_custom_fields:__subpackages__"],
+    deps = [":hardware_module_inspection_proto"],
 )
 
 cc_proto_library(

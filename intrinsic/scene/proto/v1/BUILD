@@ -6,6 +6,7 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(
@@ -28,6 +29,11 @@ go_proto_library(
     name = "collision_rules_go_proto",
     importpath = "intrinsic/scene/proto/v1/collision_rules_go_proto",
     protos = [":collision_rules_proto"],
+)
+
+js_library(
+    name = "collision_rules_jspb_proto",
+    deps = [":collision_rules_proto"],
 )
 
 py_proto_library(
@@ -70,6 +76,11 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "entity_jspb_proto",
+    deps = [":entity_proto"],
+)
+
 py_proto_library(
     name = "entity_py_pb2",
     visibility = [
@@ -92,6 +103,11 @@ go_proto_library(
     name = "object_properties_go_proto",
     importpath = "intrinsic/scene/proto/v1/object_properties_go_proto",
     protos = [":object_properties_proto"],
+)
+
+js_library(
+    name = "object_properties_jspb_proto",
+    deps = [":object_properties_proto"],
 )
 
 py_proto_library(
@@ -131,6 +147,11 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "geometry_stats_jspb_proto",
+    deps = [":geometry_stats_proto"],
+)
+
 proto_library(
     name = "scene_object_proto",
     srcs = ["scene_object.proto"],
@@ -159,6 +180,11 @@ go_proto_library(
         ":object_properties_go_proto",
         ":simulation_spec_go_proto",
     ],
+)
+
+js_library(
+    name = "scene_object_jspb_proto",
+    deps = [":scene_object_proto"],
 )
 
 py_proto_library(
@@ -230,6 +256,11 @@ py_grpc_library(
     deps = [":scene_object_import_py_pb2"],
 )
 
+js_library(
+    name = "scene_object_import_jspb_proto",
+    deps = [":scene_object_import_proto"],
+)
+
 proto_library(
     name = "export_proto",
     srcs = ["export.proto"],
@@ -252,6 +283,11 @@ go_proto_library(
         ":scene_object_go_proto",
         "@org_golang_google_protobuf//types/descriptorpb",
     ],
+)
+
+js_library(
+    name = "export_jspb_proto",
+    deps = [":export_proto"],
 )
 
 py_proto_library(
@@ -308,6 +344,11 @@ py_grpc_library(
     deps = [":scene_object_export_py_pb2"],
 )
 
+js_library(
+    name = "scene_object_export_jspb_proto",
+    deps = [":scene_object_export_proto"],
+)
+
 proto_library(
     name = "scene_object_updates_proto",
     srcs = ["scene_object_updates.proto"],
@@ -343,6 +384,11 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "scene_object_updates_jspb_proto",
+    deps = [":scene_object_updates_proto"],
+)
+
 py_proto_library(
     name = "scene_object_updates_py_pb2",
     visibility = [
@@ -365,6 +411,11 @@ go_proto_library(
     name = "simulation_spec_go_proto",
     importpath = "intrinsic/scene/proto/v1/simulation_spec_go_proto",
     protos = [":simulation_spec_proto"],
+)
+
+js_library(
+    name = "simulation_spec_jspb_proto",
+    deps = [":simulation_spec_proto"],
 )
 
 proto_library(
@@ -390,6 +441,11 @@ go_proto_library(
         ":collision_rules_go_proto",
         ":scene_object_updates_go_proto",
     ],
+)
+
+js_library(
+    name = "scene_object_config_jspb_proto",
+    deps = [":scene_object_config_proto"],
 )
 
 py_proto_library(

@@ -5,6 +5,7 @@
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
@@ -38,6 +39,11 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "axis_aligned_bounding_box_jspb_proto",
+    deps = [":axis_aligned_bounding_box_proto"],
+)
+
 proto_library(
     name = "geometric_transform_proto",
     srcs = ["geometric_transform.proto"],
@@ -65,6 +71,11 @@ go_proto_library(
         "//intrinsic/math/proto:matrix_go_proto",
         "//intrinsic/math/proto:vector3_go_proto",
     ],
+)
+
+js_library(
+    name = "geometric_transform_jspb_proto",
+    deps = [":geometric_transform_proto"],
 )
 
 proto_library(
@@ -98,6 +109,11 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "geometry_jspb_proto",
+    deps = [":geometry_proto"],
+)
+
 proto_library(
     name = "geometry_options_proto",
     srcs = ["geometry_options.proto"],
@@ -119,6 +135,11 @@ go_proto_library(
     protos = [":geometry_options_proto"],
 )
 
+js_library(
+    name = "geometry_options_jspb_proto",
+    deps = [":geometry_options_proto"],
+)
+
 proto_library(
     name = "geometry_storage_refs_proto",
     srcs = ["geometry_storage_refs.proto"],
@@ -138,6 +159,11 @@ go_proto_library(
     name = "geometry_storage_refs_go_proto",
     importpath = "intrinsic/geometry/proto/v1/geometry_storage_refs_go_proto",
     protos = [":geometry_storage_refs_proto"],
+)
+
+js_library(
+    name = "geometry_storage_refs_jspb_proto",
+    deps = [":geometry_storage_refs_proto"],
 )
 
 proto_library(
@@ -167,6 +193,11 @@ go_proto_library(
         ":exact_geometry_go_proto",
         ":renderable_go_proto",
     ],
+)
+
+js_library(
+    name = "inline_geometry_jspb_proto",
+    deps = [":inline_geometry_proto"],
 )
 
 proto_library(
@@ -204,6 +235,11 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "exact_geometry_jspb_proto",
+    deps = [":exact_geometry_proto"],
+)
+
 proto_library(
     name = "material_proto",
     srcs = ["material.proto"],
@@ -227,6 +263,11 @@ go_proto_library(
     deps = [
         "@org_golang_google_genproto//googleapis/type/color",
     ],
+)
+
+js_library(
+    name = "material_jspb_proto",
+    deps = [":material_proto"],
 )
 
 proto_library(
@@ -256,6 +297,11 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "octree_jspb_proto",
+    deps = [":octree_proto"],
+)
+
 proto_library(
     name = "octree_wrapping_proto",
     srcs = ["octree_wrapping.proto"],
@@ -283,6 +329,11 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "octree_wrapping_jspb_proto",
+    deps = [":octree_wrapping_proto"],
+)
+
 proto_library(
     name = "point_cloud_proto",
     srcs = ["point_cloud.proto"],
@@ -302,6 +353,11 @@ go_proto_library(
     name = "point_cloud_go_proto",
     importpath = "intrinsic/geometry/proto/v1/point_cloud_go_proto",
     protos = [":point_cloud_proto"],
+)
+
+js_library(
+    name = "point_cloud_jspb_proto",
+    deps = [":point_cloud_proto"],
 )
 
 proto_library(
@@ -331,6 +387,11 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "primitive_shape_jspb_proto",
+    deps = [":primitive_shape_proto"],
+)
+
 proto_library(
     name = "primitives_proto",
     srcs = ["primitives.proto"],
@@ -358,6 +419,11 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "primitives_jspb_proto",
+    deps = [":primitives_proto"],
+)
+
 proto_library(
     name = "renderable_proto",
     srcs = ["renderable.proto"],
@@ -377,6 +443,11 @@ go_proto_library(
     name = "renderable_go_proto",
     importpath = "intrinsic/geometry/proto/v1/renderable_go_proto",
     protos = [":renderable_proto"],
+)
+
+js_library(
+    name = "renderable_jspb_proto",
+    deps = [":renderable_proto"],
 )
 
 proto_library(
@@ -408,6 +479,11 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "transformed_geometry_jspb_proto",
+    deps = [":transformed_geometry_proto"],
+)
+
 proto_library(
     name = "transformed_primitive_shape_proto",
     srcs = ["transformed_primitive_shape.proto"],
@@ -437,6 +513,11 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "transformed_primitive_shape_jspb_proto",
+    deps = [":transformed_primitive_shape_proto"],
+)
+
 proto_library(
     name = "transformed_primitive_shape_set_proto",
     srcs = ["transformed_primitive_shape_set.proto"],
@@ -464,6 +545,11 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "transformed_primitive_shape_set_jspb_proto",
+    deps = [":transformed_primitive_shape_set_proto"],
+)
+
 proto_library(
     name = "triangle_mesh_proto",
     srcs = ["triangle_mesh.proto"],
@@ -483,4 +569,9 @@ go_proto_library(
     name = "triangle_mesh_go_proto",
     importpath = "intrinsic/geometry/proto/v1/triangle_mesh_go_proto",
     protos = [":triangle_mesh_proto"],
+)
+
+js_library(
+    name = "triangle_mesh_jspb_proto",
+    deps = [":triangle_mesh_proto"],
 )

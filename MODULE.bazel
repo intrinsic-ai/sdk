@@ -152,6 +152,38 @@ use_repo(rust, "rust_toolchains")
 
 register_toolchains("@rust_toolchains//:all")
 
+
+#########
+# JS/TS #
+#########
+
+bazel_dep(name = "rules_nodejs", version = "6.7.5", dev_dependency = True)
+bazel_dep(name = "aspect_rules_js", version = "3.4.0", dev_dependency = True)
+bazel_dep(name = "aspect_rules_ts", version = "3.10.0", dev_dependency = True)
+bazel_dep(name = "aspect_rules_esbuild", version = "0.27.0", dev_dependency = True)
+
+node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node", dev_dependency = True)
+node.toolchain(
+    node_repositories = {
+        "24.19.0-linux_amd64": [
+            "node-v24.19.0-linux-x64.tar.xz",
+            "node-v24.19.0-linux-x64",
+            "14b342e71204f811bde6153be8e04b62aef63c236fef92b55f9c83154b409647",
+        ],
+    },
+    node_version_from_nvmrc = "//:.nvmrc",
+)
+
+npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm", dev_dependency = True)
+
+rules_ts_ext = use_extension("@aspect_rules_ts//ts:extensions.bzl", "ext", dev_dependency = True)
+
+pnpm = use_extension("@aspect_rules_js//npm:extensions.bzl", "pnpm", dev_dependency = True)
+
+js_rules = use_extension("//bazel:js_rules.bzl", "js_rules")
+use_repo(js_rules, "intrinsic_js_rules")
+
+
 ######################
 # Bazel dependencies #
 ######################
@@ -206,6 +238,21 @@ bazel_dep(name = "tinyxml2", version = "10.0.0")
 bazel_dep(name = "websocketpp", version = "0.8.2.bcr.6")  # bumping transitive dependency to update boost to 1.89.0
 bazel_dep(name = "zenoh-c", version = "1.7.2.bcr.1")
 bazel_dep(name = "zenoh-cpp", version = "1.7.2.bcr.1")
+
+
+# We require an override to support a single patch for compatibility with aspect_rules_js v3. The
+# patch is merged upstream but has not been released.
+archive_override(
+    module_name = "flatbuffers",
+    integrity = "sha256-+BwxYrEEb+i4S5oNvdOD4k/bz4hYO5y2Ao+Q0E2QaWo=",
+    remote_patch_strip = 1,
+    remote_patches = {
+        "https://github.com/google/flatbuffers/commit/c21bda16493fbf3586820c2f5f952399329f674a.patch": "sha256-e7vj8dq4BP14xUIl7AonJbVMCFgDVkV5xN+QqXq+1ts=",
+    },
+    strip_prefix = "flatbuffers-25.12.19",
+    url = "https://github.com/google/flatbuffers/archive/refs/tags/v25.12.19.tar.gz",
+)
+
 
 ##############
 # Containers #
@@ -302,21 +349,21 @@ single_version_override(
     patch_strip = 1,
     patches = ["//third_party/zenohc:static.patch"],
 )
+npm.npm_translate_lock(
+    name = "npm",
+    data = [
+        "//intrinsic/frontend/sdk:package.json",
+        "//intrinsic/frontend/sdk:pnpm-workspace.yaml",
+    ],
+    pnpm_lock = "//intrinsic/frontend/sdk:pnpm-lock.yaml",
+)
+use_repo(npm, "npm")
+rules_ts_ext.deps(
+    name = "npm_typescript",
+    ts_version_from = "//intrinsic/frontend/sdk:package.json",
+)
+use_repo(rules_ts_ext, "npm_typescript")
+pnpm.pnpm(pnpm_version_from = "//intrinsic/frontend/sdk:package.json")
+use_repo(pnpm, "pnpm")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+register_toolchains("//intrinsic/frontend/sdk:gen_es_toolchain_toolchain", dev_dependency = True)

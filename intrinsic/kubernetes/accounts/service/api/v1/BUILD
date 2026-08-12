@@ -1,6 +1,7 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = [
@@ -14,6 +15,11 @@ proto_library(
         "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_protobuf//:empty_proto",
     ],
+)
+
+js_library(
+    name = "discoveryapi_jspb_proto",
+    deps = [":discoveryapi_proto"],
 )
 
 go_proto_library(

@@ -5,6 +5,7 @@
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -21,5 +22,10 @@ py_proto_library(
 
 cc_proto_library(
     name = "gripper_cc_proto",
+    deps = [":gripper_proto"],
+)
+
+js_library(
+    name = "gripper_jspb_proto",
     deps = [":gripper_proto"],
 )

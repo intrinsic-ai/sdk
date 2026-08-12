@@ -6,6 +6,7 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 proto_library(
@@ -32,6 +33,12 @@ go_proto_library(
     deps = [
         "//intrinsic/assets/proto/v1:dependency_go_proto",
     ],
+)
+
+js_library(
+    name = "field_metadata_jspb_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":field_metadata_proto"],
 )
 
 py_proto_library(
@@ -75,6 +82,14 @@ go_proto_library(
     deps = [
         ":asset_type_go_proto",
     ],
+)
+
+js_library(
+    name = "asset_tag_jspb_proto",
+    visibility = [
+        "//intrinsic:intrinsic_internal",
+    ],
+    deps = [":asset_tag_proto"],
 )
 
 filegroup(
@@ -121,6 +136,14 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "asset_type_jspb_proto",
+    visibility = [
+        "//intrinsic:intrinsic_internal",
+    ],
+    deps = [":asset_type_proto"],
+)
+
 proto_library(
     name = "documentation_proto",
     srcs = ["documentation.proto"],
@@ -152,6 +175,14 @@ go_proto_library(
     visibility = [
         "//intrinsic:intrinsic_internal",
     ],
+)
+
+js_library(
+    name = "documentation_jspb_proto",
+    visibility = [
+        "//intrinsic:intrinsic_internal",
+    ],
+    deps = [":documentation_proto"],
 )
 
 proto_library(
@@ -187,6 +218,14 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "status_spec_jspb_proto",
+    visibility = [
+        "//intrinsic:intrinsic_internal",
+    ],
+    deps = [":status_spec_proto"],
+)
+
 proto_library(
     name = "id_proto",
     srcs = ["id.proto"],
@@ -219,6 +258,14 @@ go_proto_library(
     visibility = [
         "//intrinsic:intrinsic_internal",
     ],
+)
+
+js_library(
+    name = "id_jspb_proto",
+    visibility = [
+        "//intrinsic:intrinsic_internal",
+    ],
+    deps = [":id_proto"],
 )
 
 proto_library(
@@ -274,6 +321,14 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "metadata_jspb_proto",
+    visibility = [
+        "//intrinsic:intrinsic_internal",
+    ],
+    deps = [":metadata_proto"],
+)
+
 proto_library(
     name = "release_tag_proto",
     srcs = ["release_tag.proto"],
@@ -289,6 +344,14 @@ go_proto_library(
     visibility = [
         "//intrinsic:intrinsic_internal",
     ],
+)
+
+js_library(
+    name = "release_tag_jspb_proto",
+    visibility = [
+        "//intrinsic:intrinsic_internal",
+    ],
+    deps = [":release_tag_proto"],
 )
 
 proto_library(
@@ -324,6 +387,14 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "vendor_jspb_proto",
+    visibility = [
+        "//intrinsic:intrinsic_internal",
+    ],
+    deps = [":vendor_proto"],
+)
+
 proto_library(
     name = "view_proto",
     srcs = ["view.proto"],
@@ -347,6 +418,14 @@ go_proto_library(
     visibility = [
         "//intrinsic:intrinsic_internal",
     ],
+)
+
+js_library(
+    name = "view_jspb_proto",
+    visibility = [
+        "//intrinsic:intrinsic_internal",
+    ],
+    deps = [":view_proto"],
 )
 
 py_proto_library(
@@ -418,6 +497,14 @@ go_proto_library(
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
         "@org_golang_google_protobuf//types/known/anypb",
     ],
+)
+
+js_library(
+    name = "asset_deployment_jspb_proto",
+    visibility = [
+        "//intrinsic/frontend:__subpackages__",
+    ],
+    deps = [":asset_deployment_proto"],
 )
 
 proto_library(
@@ -519,4 +606,14 @@ cc_grpc_library(
         "//intrinsic:public_api_users",
     ],
     deps = [":installed_assets_cc_proto"],
+)
+
+js_library(
+    name = "installed_assets_jspb_proto",
+    visibility = [
+        "//intrinsic/assets/dependencies:__pkg__",
+        "//intrinsic/assets/dependencies/build_defs:__pkg__",
+        "//intrinsic/frontend:__subpackages__",
+    ],
+    deps = [":installed_assets_proto"],
 )

@@ -9,6 +9,7 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = ["//intrinsic:public_api_users"])
@@ -60,6 +61,15 @@ go_proto_library(
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
         "@org_golang_google_protobuf//types/known/emptypb",
     ],
+)
+
+js_library(
+    name = "symmetry_service_jspb_proto",
+    visibility = [
+        "//intrinsic/frontend/onprem/perception/services:__pkg__",
+        "//intrinsic/frontend/onprem/perception/views:__pkg__",
+    ],
+    deps = [":symmetry_service_proto"],
 )
 
 cc_grpc_library(

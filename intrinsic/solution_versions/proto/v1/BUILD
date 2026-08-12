@@ -4,6 +4,7 @@ load("@ai_intrinsic_sdks_pip_deps//:requirements.bzl", "requirement")
 load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 proto_library(
@@ -29,9 +30,27 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "solution_version_service_jspb_proto",
+    visibility = [
+        "//intrinsic/frontend:__subpackages__",
+        "//intrinsic/portal/frontend/projects/portal:__pkg__",
+    ],
+    deps = [":solution_version_service_proto"],
+)
+
 py_proto_library(
     name = "snapshot_py_pb2",
     visibility = ["//visibility:public"],
+    deps = [":snapshot_proto"],
+)
+
+js_library(
+    name = "snapshot_jspb_proto",
+    visibility = [
+        "//intrinsic/frontend:__subpackages__",
+        "//intrinsic/portal/frontend/projects/portal:__pkg__",
+    ],
     deps = [":snapshot_proto"],
 )
 
@@ -58,6 +77,15 @@ go_proto_library(
 py_proto_library(
     name = "snapshot_source_py_pb2",
     visibility = ["//visibility:public"],
+    deps = [":snapshot_source_proto"],
+)
+
+js_library(
+    name = "snapshot_source_jspb_proto",
+    visibility = [
+        "//intrinsic/frontend:__subpackages__",
+        "//intrinsic/portal/frontend/projects/portal:__pkg__",
+    ],
     deps = [":snapshot_source_proto"],
 )
 
@@ -92,6 +120,14 @@ go_proto_library(
 py_proto_library(
     name = "branch_py_pb2",
     visibility = ["//visibility:public"],
+    deps = [":branch_proto"],
+)
+
+js_library(
+    name = "branch_jspb_proto",
+    visibility = [
+        "//intrinsic/frontend:__subpackages__",
+    ],
     deps = [":branch_proto"],
 )
 
@@ -181,6 +217,15 @@ py_proto_library(
     deps = [":diff_mask_proto"],
 )
 
+js_library(
+    name = "diff_mask_jspb_proto",
+    visibility = [
+        "//intrinsic/frontend:__subpackages__",
+        "//intrinsic/portal/frontend/projects/portal:__pkg__",
+    ],
+    deps = [":diff_mask_proto"],
+)
+
 proto_library(
     name = "conflict_proto",
     srcs = ["conflict.proto"],
@@ -205,6 +250,15 @@ py_proto_library(
     deps = [":conflict_proto"],
 )
 
+js_library(
+    name = "conflict_jspb_proto",
+    visibility = [
+        "//intrinsic/frontend:__subpackages__",
+        "//intrinsic/portal/frontend/projects/portal:__pkg__",
+    ],
+    deps = [":conflict_proto"],
+)
+
 proto_library(
     name = "conflict_resolution_proto",
     srcs = ["conflict_resolution.proto"],
@@ -226,6 +280,15 @@ go_proto_library(
 py_proto_library(
     name = "conflict_resolution_py_pb2",
     visibility = ["//visibility:public"],
+    deps = [":conflict_resolution_proto"],
+)
+
+js_library(
+    name = "conflict_resolution_jspb_proto",
+    visibility = [
+        "//intrinsic/frontend:__subpackages__",
+        "//intrinsic/portal/frontend/projects/portal:__pkg__",
+    ],
     deps = [":conflict_resolution_proto"],
 )
 
@@ -259,6 +322,15 @@ py_proto_library(
     deps = [":warning_proto"],
 )
 
+js_library(
+    name = "warning_jspb_proto",
+    visibility = [
+        "//intrinsic/frontend:__subpackages__",
+        "//intrinsic/portal/frontend/projects/portal:__pkg__",
+    ],
+    deps = [":warning_proto"],
+)
+
 proto_library(
     name = "solution_diff_proto",
     srcs = ["solution_diff.proto"],
@@ -285,5 +357,14 @@ go_proto_library(
 py_proto_library(
     name = "solution_diff_py_pb2",
     visibility = ["//visibility:public"],
+    deps = [":solution_diff_proto"],
+)
+
+js_library(
+    name = "solution_diff_jspb_proto",
+    visibility = [
+        "//intrinsic/frontend:__subpackages__",
+        "//intrinsic/portal/frontend/projects/portal:__pkg__",
+    ],
     deps = [":solution_diff_proto"],
 )

@@ -3,6 +3,7 @@
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 
 proto_library(
     name = "motion_target_proto",
@@ -24,5 +25,11 @@ cc_proto_library(
 py_proto_library(
     name = "motion_target_py_pb2",
     visibility = ["//intrinsic:public_api_users"],
+    deps = [":motion_target_proto"],
+)
+
+js_library(
+    name = "motion_target_jspb_proto",
+    visibility = ["//intrinsic:internal_api_users"],
     deps = [":motion_target_proto"],
 )

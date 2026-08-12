@@ -6,6 +6,7 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
@@ -62,6 +63,11 @@ cc_proto_library(
     deps = [":motion_blending_parameter_proto"],
 )
 
+js_library(
+    name = "motion_blending_parameter_jspb_proto",
+    deps = [":motion_blending_parameter_proto"],
+)
+
 py_proto_library(
     name = "motion_blending_parameter_py_pb2",
     deps = [":motion_blending_parameter_proto"],
@@ -78,6 +84,11 @@ proto_library(
 
 cc_proto_library(
     name = "motion_planning_limits_cc_proto",
+    deps = [":motion_planning_limits_proto"],
+)
+
+js_library(
+    name = "motion_planning_limits_jspb_proto",
     deps = [":motion_planning_limits_proto"],
 )
 
@@ -100,6 +111,16 @@ py_proto_library(
 cc_proto_library(
     name = "motion_planning_cc_proto",
     deps = [":motion_planning_proto"],
+)
+
+js_library(
+    name = "motion_planning_jspb_proto",
+    deps = [":motion_planning_proto"],
+)
+
+js_library(
+    name = "motion_planner_service_jspb_proto",
+    deps = [":motion_planner_service_proto"],
 )
 
 py_proto_library(
@@ -147,6 +168,11 @@ cc_proto_library(
     deps = [":motion_planning_error_proto"],
 )
 
+js_library(
+    name = "motion_planning_error_jspb_proto",
+    deps = [":motion_planning_error_proto"],
+)
+
 proto_library(
     name = "motion_planner_config_proto",
     srcs = ["motion_planner_config.proto"],
@@ -189,6 +215,11 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "compute_ik_jspb_proto",
+    deps = [":compute_ik_proto"],
+)
+
 py_proto_library(
     name = "compute_ik_py_pb2",
     deps = [":compute_ik_proto"],
@@ -201,6 +232,11 @@ cc_proto_library(
 
 py_proto_library(
     name = "robot_specification_py_pb2",
+    deps = [":robot_specification_proto"],
+)
+
+js_library(
+    name = "robot_specification_jspb_proto",
     deps = [":robot_specification_proto"],
 )
 
@@ -225,6 +261,11 @@ go_proto_library(
 
 cc_proto_library(
     name = "motion_specification_cc_proto",
+    deps = [":motion_specification_proto"],
+)
+
+js_library(
+    name = "motion_specification_jspb_proto",
     deps = [":motion_specification_proto"],
 )
 
@@ -254,6 +295,11 @@ cc_proto_library(
 
 py_proto_library(
     name = "geometric_constraints_py_pb2",
+    deps = [":geometric_constraints_proto"],
+)
+
+js_library(
+    name = "geometric_constraints_jspb_proto",
     deps = [":geometric_constraints_proto"],
 )
 

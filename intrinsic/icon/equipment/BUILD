@@ -3,6 +3,7 @@
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_python//python:defs.bzl", "py_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
@@ -57,6 +58,11 @@ cc_proto_library(
     deps = [":icon_equipment_proto"],
 )
 
+js_library(
+    name = "icon_equipment_jspb_proto",
+    deps = [":icon_equipment_proto"],
+)
+
 py_proto_library(
     name = "icon_equipment_py_pb2",
     deps = [":icon_equipment_proto"],
@@ -66,6 +72,11 @@ proto_library(
     name = "force_control_settings_proto",
     srcs = ["force_control_settings.proto"],
     deps = ["//intrinsic/icon/proto:cart_space_proto"],
+)
+
+js_library(
+    name = "force_control_settings_jspb_proto",
+    deps = [":force_control_settings_proto"],
 )
 
 go_proto_library(

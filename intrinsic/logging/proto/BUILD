@@ -6,6 +6,7 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("//bazel:go_macros.bzl", "go_library", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
@@ -27,6 +28,11 @@ go_proto_library(
     name = "bag_metadata_go_proto",
     importpath = "intrinsic/logging/proto/bag_metadata_go_proto",
     protos = [":bag_metadata_proto"],
+)
+
+js_library(
+    name = "bag_metadata_jspb_proto",
+    deps = [":bag_metadata_proto"],
 )
 
 py_proto_library(
@@ -79,6 +85,11 @@ py_grpc_library(
     deps = [":bag_packager_service_py_pb2"],
 )
 
+js_library(
+    name = "bag_packager_service_jspb_proto",
+    deps = [":bag_packager_service"],
+)
+
 proto_library(
     name = "blob_proto",
     srcs = ["blob.proto"],
@@ -93,6 +104,11 @@ go_proto_library(
     name = "blob_go_proto",
     importpath = "intrinsic/logging/proto/blob_go_proto",
     protos = [":blob_proto"],
+)
+
+js_library(
+    name = "blob_jspb_proto",
+    deps = [":blob_proto"],
 )
 
 py_proto_library(
@@ -115,6 +131,11 @@ go_proto_library(
     importpath = "intrinsic/logging/proto/context_go_proto",
     protos = [":context_proto"],
     visibility = ["//intrinsic:intrinsic_internal"],
+)
+
+js_library(
+    name = "context_jspb_proto",
+    deps = [":context_proto"],
 )
 
 py_proto_library(
@@ -164,6 +185,11 @@ go_proto_library(
     protos = [":downsampler_proto"],
 )
 
+js_library(
+    name = "downsampler_jspb_proto",
+    deps = [":downsampler_proto"],
+)
+
 py_proto_library(
     name = "downsampler_py_pb2",
     deps = [":downsampler_proto"],
@@ -184,6 +210,11 @@ go_proto_library(
     name = "flowstate_event_go_proto",
     importpath = "intrinsic/logging/proto/flowstate_event_go_proto",
     protos = [":flowstate_event"],
+)
+
+js_library(
+    name = "flowstate_event_jspb_proto",
+    deps = [":flowstate_event"],
 )
 
 py_proto_library(
@@ -331,6 +362,11 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "log_item_jspb_proto",
+    deps = [":log_item_proto"],
+)
+
 py_proto_library(
     name = "log_item_py_pb2",
     deps = [":log_item_proto"],
@@ -377,6 +413,11 @@ go_proto_library(
         ":log_item_go_proto",
         "@org_golang_google_genproto_googleapis_api//annotations",
     ],
+)
+
+js_library(
+    name = "logger_service_jspb_proto",
+    deps = [":logger_service"],
 )
 
 py_proto_library(
@@ -434,6 +475,11 @@ go_proto_library(
     name = "recording_data_categories_go_proto",
     importpath = "intrinsic/logging/proto/recording_data_categories_go_proto",
     protos = [":recording_data_categories_proto"],
+)
+
+js_library(
+    name = "recording_data_categories_jspb_proto",
+    deps = [":recording_data_categories_proto"],
 )
 
 py_proto_library(
@@ -496,6 +542,11 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "replay_service_jspb_proto",
+    deps = [":replay_service"],
+)
+
 py_proto_library(
     name = "replay_service_py_pb2",
     deps = [":replay_service"],
@@ -526,6 +577,11 @@ go_proto_library(
     name = "replay_service_options_go_proto",
     importpath = "intrinsic/logging/proto/replay_service_options_go_proto",
     protos = [":replay_service_options"],
+)
+
+js_library(
+    name = "replay_service_options_jspb_proto",
+    deps = [":replay_service_options"],
 )
 
 py_proto_library(
@@ -559,6 +615,11 @@ go_proto_library(
         "//intrinsic/geometry/proto/v1:renderable_go_proto",
         "//intrinsic/world/proto:geometry_component_go_proto",
     ],
+)
+
+js_library(
+    name = "visualization_context_jspb_proto",
+    deps = [":visualization_context_proto"],
 )
 
 py_proto_library(

@@ -8,6 +8,7 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 
 package(default_visibility = [
     "//visibility:public",
@@ -48,6 +49,11 @@ py_grpc_library(
     deps = [":skill_registry_internal_py_pb2"],
 )
 
+js_library(
+    name = "skill_registry_internal_jspb_proto",
+    deps = [":skill_registry_internal_proto"],
+)
+
 proto_library(
     name = "behavior_tree_registry_internal_proto",
     srcs = ["behavior_tree_registry_internal.proto"],
@@ -77,4 +83,9 @@ py_grpc_library(
     srcs = [":behavior_tree_registry_internal_proto"],
     grpc_library = requirement("grpcio"),
     deps = [":behavior_tree_registry_internal_py_pb2"],
+)
+
+js_library(
+    name = "behavior_tree_registry_internal_jspb_proto",
+    deps = [":behavior_tree_registry_internal_proto"],
 )

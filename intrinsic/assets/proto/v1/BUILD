@@ -6,6 +6,7 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 proto_library(
@@ -39,6 +40,12 @@ go_proto_library(
         ":processed_asset_go_proto",
         ":reference_go_proto",
     ],
+)
+
+js_library(
+    name = "asset_jspb_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":asset_proto"],
 )
 
 proto_library(
@@ -94,6 +101,12 @@ go_proto_library(
     visibility = ["//intrinsic:public_api_users"],
 )
 
+js_library(
+    name = "asset_graph_jspb_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":asset_graph_proto"],
+)
+
 proto_library(
     name = "asset_instances_proto",
     srcs = ["asset_instances.proto"],
@@ -147,6 +160,12 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "asset_instances_jspb_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":asset_instances_proto"],
+)
+
 py_proto_library(
     name = "asset_instances_py_pb2",
     visibility = ["//intrinsic:public_api_users"],
@@ -186,6 +205,12 @@ py_proto_library(
     deps = [":grpc_connection_proto"],
 )
 
+js_library(
+    name = "grpc_connection_jspb_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":grpc_connection_proto"],
+)
+
 proto_library(
     name = "instance_config_proto",
     srcs = ["instance_config.proto"],
@@ -210,6 +235,12 @@ go_proto_library(
     deps = [
         "//intrinsic/scene/proto/v1:scene_object_config_go_proto",
     ],
+)
+
+js_library(
+    name = "instance_config_jspb_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":instance_config_proto"],
 )
 
 py_proto_library(
@@ -259,6 +290,12 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "processed_asset_jspb_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":processed_asset_proto"],
+)
+
 proto_library(
     name = "reference_proto",
     srcs = ["reference.proto"],
@@ -286,6 +323,12 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "reference_jspb_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":reference_proto"],
+)
+
 py_proto_library(
     name = "reference_py_pb2",
     visibility = ["//intrinsic:public_api_users"],
@@ -300,6 +343,12 @@ proto_library(
 
 py_proto_library(
     name = "search_py_pb2",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":search_proto"],
+)
+
+js_library(
+    name = "search_jspb_proto",
     visibility = ["//intrinsic:public_api_users"],
     deps = [":search_proto"],
 )
@@ -352,6 +401,12 @@ py_proto_library(
     deps = [":resolved_dependency_proto"],
 )
 
+js_library(
+    name = "resolved_dependency_jspb_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":resolved_dependency_proto"],
+)
+
 proto_library(
     name = "solution_proto",
     srcs = ["solution.proto"],
@@ -385,6 +440,12 @@ go_proto_library(
         ":asset_instances_go_proto",
         "//intrinsic/world/proto:object_world_updates_go_proto",
     ],
+)
+
+js_library(
+    name = "solution_jspb_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":solution_proto"],
 )
 
 proto_library(
@@ -428,6 +489,12 @@ py_proto_library(
     deps = [":solution_deployment_proto"],
 )
 
+js_library(
+    name = "solution_deployment_jspb_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":solution_deployment_proto"],
+)
+
 proto_library(
     name = "dependency_proto",
     srcs = ["dependency.proto"],
@@ -449,6 +516,12 @@ cc_proto_library(
 
 py_proto_library(
     name = "dependency_py_pb2",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":dependency_proto"],
+)
+
+js_library(
+    name = "dependency_jspb_proto",
     visibility = ["//intrinsic:public_api_users"],
     deps = [":dependency_proto"],
 )
@@ -496,6 +569,12 @@ go_proto_library(
     deps = ["@org_golang_google_genproto_googleapis_api//annotations"],
 )
 
+js_library(
+    name = "asset_configuration_jspb_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":asset_configuration_proto"],
+)
+
 proto_library(
     name = "recommended_configuration_config_proto",
     srcs = ["recommended_configuration_config.proto"],
@@ -519,4 +598,10 @@ go_proto_library(
     importpath = "intrinsic/assets/proto/v1/recommended_configuration_config_go_proto",
     protos = [":recommended_configuration_config_proto"],
     visibility = ["//intrinsic:public_api_users"],
+)
+
+js_library(
+    name = "recommended_configuration_config_jspb_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":recommended_configuration_config_proto"],
 )

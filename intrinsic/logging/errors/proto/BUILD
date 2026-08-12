@@ -6,6 +6,7 @@
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = [
@@ -39,4 +40,9 @@ go_proto_library(
         "//intrinsic/executive/proto:clips_snapshot_go_proto",
         "@org_golang_google_genproto_googleapis_rpc//status",
     ],
+)
+
+js_library(
+    name = "error_report_jspb_proto",
+    deps = [":error_report_proto"],
 )

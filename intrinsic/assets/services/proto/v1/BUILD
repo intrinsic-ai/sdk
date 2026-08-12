@@ -6,6 +6,7 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = [
@@ -101,6 +102,11 @@ py_grpc_library(
     deps = [":service_state_py_pb2"],
 )
 
+js_library(
+    name = "service_state_jspb_proto",
+    deps = [":service_state_proto"],
+)
+
 proto_library(
     name = "service_inspection_proto",
     srcs = ["service_inspection.proto"],
@@ -112,6 +118,11 @@ proto_library(
 
 cc_proto_library(
     name = "service_inspection_cc_proto",
+    deps = [":service_inspection_proto"],
+)
+
+js_library(
+    name = "service_inspection_jspb_proto",
     deps = [":service_inspection_proto"],
 )
 
@@ -159,4 +170,9 @@ py_grpc_library(
     srcs = [":system_service_state_proto"],
     grpc_library = requirement("grpcio"),
     deps = [":system_service_state_py_proto"],
+)
+
+js_library(
+    name = "system_service_state_jspb_proto",
+    deps = [":system_service_state_proto"],
 )

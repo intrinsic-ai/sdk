@@ -2,6 +2,7 @@
 
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = [
@@ -56,6 +57,11 @@ cc_proto_library(
     deps = [":icon_main_config_proto"],
 )
 
+js_library(
+    name = "icon_main_config_jspb_proto",
+    deps = [":icon_main_config_proto"],
+)
+
 go_proto_library(
     name = "icon_main_config_go_proto",
     importpath = "intrinsic/icon/server/config/icon_main_config_go_proto",
@@ -87,6 +93,11 @@ proto_library(
 
 cc_proto_library(
     name = "realtime_control_config_cc_proto",
+    deps = [":realtime_control_config_proto"],
+)
+
+js_library(
+    name = "realtime_control_config_jspb_proto",
     deps = [":realtime_control_config_proto"],
 )
 

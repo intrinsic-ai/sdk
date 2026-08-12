@@ -2,6 +2,7 @@
 
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "proto_source_code_info_transitive_descriptor_set")
 
@@ -15,6 +16,11 @@ proto_library(
     deps = [
         "//intrinsic/util/status:extended_status_proto",
     ],
+)
+
+js_library(
+    name = "cluster_jspb_proto",
+    deps = [":cluster_proto"],
 )
 
 go_proto_library(
@@ -96,6 +102,11 @@ proto_library(
     name = "dhcp_leases_proto",
     srcs = ["dhcp_leases.proto"],
     deps = ["@com_google_googleapis//google/api:field_behavior_proto"],
+)
+
+js_library(
+    name = "dhcp_leases_jspb_proto",
+    deps = [":dhcp_leases_proto"],
 )
 
 go_proto_library(

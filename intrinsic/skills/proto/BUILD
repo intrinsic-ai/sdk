@@ -6,6 +6,7 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
@@ -31,6 +32,11 @@ go_proto_library(
     importpath = "intrinsic/skills/proto/equipment_go_proto",
     protos = [":equipment_proto"],
     deps = [":footprint_go_proto"],
+)
+
+js_library(
+    name = "equipment_jspb_proto",
+    deps = [":equipment_proto"],
 )
 
 proto_library(
@@ -62,6 +68,11 @@ go_proto_library(
         ":equipment_go_proto",
         "//intrinsic/resources/proto:resource_handle_go_proto",
     ],
+)
+
+js_library(
+    name = "skills_jspb_proto",
+    deps = [":skills_proto"],
 )
 
 proto_library(
@@ -107,6 +118,11 @@ go_proto_library(
     importpath = "intrinsic/skills/proto/skill_registry_go_proto",
     protos = [":skill_registry_proto"],
     deps = [":skills_go_proto"],
+)
+
+js_library(
+    name = "skill_registry_jspb_proto",
+    deps = [":skill_registry_proto"],
 )
 
 proto_library(
@@ -155,6 +171,11 @@ go_proto_library(
         ":skill_registry_config_go_proto",
         ":skills_go_proto",
     ],
+)
+
+js_library(
+    name = "behavior_tree_registry_jspb_proto",
+    deps = [":behavior_tree_registry_proto"],
 )
 
 proto_library(
@@ -275,6 +296,11 @@ go_proto_library(
         ":skills_go_proto",
         "//intrinsic/executive/proto:behavior_tree_go_proto",
     ],
+)
+
+js_library(
+    name = "skill_registry_config_jspb_proto",
+    deps = [":skill_registry_config_proto"],
 )
 
 proto_library(
@@ -438,6 +464,11 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "processed_skill_manifest_jspb_proto",
+    deps = [":processed_skill_manifest_proto"],
+)
+
 py_proto_library(
     name = "processed_skill_manifest_py_pb2",
     deps = [":processed_skill_manifest_proto"],
@@ -458,6 +489,11 @@ go_proto_library(
     name = "skill_parameter_metadata_go_proto",
     importpath = "intrinsic/skills/proto/skill_parameter_metadata_go_proto",
     protos = [":skill_parameter_metadata_proto"],
+)
+
+js_library(
+    name = "skill_parameter_metadata_jspb_proto",
+    deps = [":skill_parameter_metadata_proto"],
 )
 
 py_proto_library(

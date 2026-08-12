@@ -5,6 +5,7 @@
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
@@ -36,5 +37,11 @@ go_proto_library(
 
 py_proto_library(
     name = "pubsub_py_pb2",
+    deps = [":pubsub_proto"],
+)
+
+js_library(
+    name = "pubsub_jspb_proto",
+    visibility = ["//visibility:public"],
     deps = [":pubsub_proto"],
 )

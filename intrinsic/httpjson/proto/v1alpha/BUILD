@@ -1,6 +1,7 @@
 # Copyright 2023 Intrinsic Innovation LLC
 
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 proto_library(
@@ -33,6 +34,12 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "webpubsub_jspb_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":webpubsub_proto"],
+)
+
 proto_library(
     name = "signalling_proto",
     srcs = ["signalling.proto"],
@@ -47,6 +54,12 @@ go_proto_library(
         ":signalling_proto",
     ],
     visibility = ["//intrinsic:public_api_users"],
+)
+
+js_library(
+    name = "signalling_jspb_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":signalling_proto"],
 )
 
 proto_library(
@@ -73,6 +86,12 @@ go_proto_library(
     ],
 )
 
+js_library(
+    name = "controlplane_jspb_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":controlplane_proto"],
+)
+
 proto_library(
     name = "dataplane_proto",
     srcs = ["dataplane.proto"],
@@ -95,4 +114,10 @@ go_proto_library(
         "//intrinsic/platform/pubsub/adapters:pubsub_go_proto",
         "@org_golang_google_genproto_googleapis_rpc//status",
     ],
+)
+
+js_library(
+    name = "dataplane_jspb_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":dataplane_proto"],
 )

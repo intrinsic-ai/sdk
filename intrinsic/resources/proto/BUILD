@@ -6,6 +6,7 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = [
@@ -64,6 +65,11 @@ cc_grpc_library(
     deps = [":resource_registry_cc_proto"],
 )
 
+js_library(
+    name = "resource_registry_jspb_proto",
+    deps = [":resource_registry_proto"],
+)
+
 proto_library(
     name = "resource_handle_proto",
     srcs = ["resource_handle.proto"],
@@ -86,6 +92,11 @@ go_proto_library(
     name = "resource_handle_go_proto",
     importpath = "intrinsic/resources/proto/resource_handle_go_proto",
     protos = [":resource_handle_proto"],
+)
+
+js_library(
+    name = "resource_handle_jspb_proto",
+    deps = [":resource_handle_proto"],
 )
 
 proto_library(

@@ -3,6 +3,7 @@
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 proto_library(
@@ -48,6 +49,12 @@ py_proto_library(
 
 cc_proto_library(
     name = "hardware_device_manifest_cc_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":hardware_device_manifest_proto"],
+)
+
+js_library(
+    name = "hardware_device_manifest_jspb_proto",
     visibility = ["//intrinsic:public_api_users"],
     deps = [":hardware_device_manifest_proto"],
 )
