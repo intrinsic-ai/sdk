@@ -21,6 +21,7 @@ go_library(
         "//intrinsic/kubernetes/accounts/service/api/v1:discoveryapi_go_proto",
         "//intrinsic/tools/inctl/auth",
         "//intrinsic/tools/inctl/cmd:root",
+        "//intrinsic/tools/inctl/util:agents",
         "//intrinsic/tools/inctl/util:orgutil",
         "//intrinsic/tools/inctl/util:printer",
         "//intrinsic/tools/inctl/util:viperutil",

@@ -15,6 +15,7 @@ import (
 
 	env "intrinsic/config/environments"
 	"intrinsic/tools/inctl/auth/auth"
+	"intrinsic/tools/inctl/util/agents"
 	"intrinsic/tools/inctl/util/orgutil"
 	"intrinsic/tools/inctl/util/viperutil"
 
@@ -160,6 +161,7 @@ func queryProjectsForAPIKey(ctx context.Context, apiKey string, optionalOrg stri
 }
 
 func loginCmdE(cmd *cobra.Command, _ []string) (err error) {
+	agents.CheckAndExit(cmd)
 	writer := cmd.OutOrStdout()
 	projectName := loginParams.GetString(orgutil.KeyProject)
 	orgName := loginParams.GetString(orgutil.KeyOrganization)

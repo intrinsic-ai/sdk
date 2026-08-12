@@ -8,6 +8,7 @@ import (
 
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
+	"intrinsic/tools/inctl/util/agents"
 
 	"github.com/spf13/cobra"
 )
@@ -108,6 +109,7 @@ type serviceDeleteCmdEnvironment struct {
 
 // RunE sets up the execution environment and invokes ServiceDeleteCmdRunner.run.
 func (e *serviceDeleteCmdEnvironment) RunE(cmd *cobra.Command, _ []string) error {
+	agents.CheckAndExit(cmd)
 	ctx := cmd.Context()
 
 	ctx, conn, _, err := clientutils.DialClusterFromInctl(ctx, e.cmdFlags)

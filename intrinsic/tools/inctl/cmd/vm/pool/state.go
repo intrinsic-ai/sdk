@@ -5,6 +5,8 @@ package pool
 import (
 	"context"
 	"fmt"
+
+	"intrinsic/tools/inctl/util/agents"
 	"intrinsic/tools/inctl/util/printer"
 
 	"github.com/spf13/cobra"
@@ -60,6 +62,7 @@ var vmpoolsDeleteCmd = &cobra.Command{
 	Short: "Delete a VM pool.",
 	Long:  deleteDesc,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		agents.CheckAndExit(cmd)
 		ctx := cmd.Context()
 		ctx, span := trace.StartSpan(ctx, "inctl.vmpools.delete")
 		defer span.End()

@@ -14,6 +14,7 @@ import (
 
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
+	"intrinsic/tools/inctl/util/agents"
 
 	"github.com/spf13/cobra"
 
@@ -36,6 +37,7 @@ $ inctl service delete --project=my_project --cluster=some_cluster my_instance
 `,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			agents.CheckAndExit(cmd)
 			// Generally try to cancel calls if the user hits ctrl-c
 			ctx, stop := signal.NotifyContext(cmd.Context(), os.Interrupt)
 			defer stop()

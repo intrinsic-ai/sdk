@@ -22,6 +22,7 @@ go_library(
         "//intrinsic/kubernetes/vmpool/service/api/v1:vmpool_api_go_proto",
         "//intrinsic/kubernetes/vmpool/service/pkg/defaults",
         "//intrinsic/tools/inctl/auth",
+        "//intrinsic/tools/inctl/util:agents",
         "//intrinsic/tools/inctl/util:cobrautil",
         "//intrinsic/tools/inctl/util:orgutil",
         "//intrinsic/tools/inctl/util:printer",

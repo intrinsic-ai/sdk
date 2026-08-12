@@ -44,6 +44,7 @@ go_library(
         "//intrinsic/assets:clientutils",
         "//intrinsic/assets:cmdutils",
         "//intrinsic/assets/proto:asset_deployment_go_proto",
+        "//intrinsic/tools/inctl/util:agents",
         "@com_github_spf13_cobra//:go_default_library",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
     ],

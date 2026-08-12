@@ -6,6 +6,8 @@ import (
 	"context"
 	"fmt"
 
+	"intrinsic/tools/inctl/util/agents"
+
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 
@@ -43,6 +45,7 @@ var clusterDeleteCmd = &cobra.Command{
 	Long:  deleteDesc,
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, argv []string) error {
+		agents.CheckAndExit(cmd)
 		ctx := cmd.Context()
 		conn, err := NewCloudConn(ctx)
 		if err != nil {

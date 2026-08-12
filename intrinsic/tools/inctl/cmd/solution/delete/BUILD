@@ -12,6 +12,7 @@ go_library(
     deps = [
         "//intrinsic/solution_versions/proto/v1:solution_version_service_go_proto",
         "//intrinsic/tools/inctl/auth",
+        "//intrinsic/tools/inctl/util:agents",
         "//intrinsic/tools/inctl/util:color",
         "//intrinsic/tools/inctl/util:orgutil",
         "@com_github_spf13_cobra//:go_default_library",

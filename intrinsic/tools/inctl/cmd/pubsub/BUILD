@@ -31,6 +31,7 @@ go_library(
         "//intrinsic/platform/pubsub/connect/onprem/relay_router_service/proto:relay_router_service_go_proto",
         "//intrinsic/tools/inctl/auth",
         "//intrinsic/tools/inctl/cmd:root",
+        "//intrinsic/tools/inctl/util:agents",
         "//intrinsic/tools/inctl/util:orgutil",
         "@com_github_spf13_cobra//:go_default_library",
         "@com_github_spf13_viper//:go_default_library",
