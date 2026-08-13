@@ -9,6 +9,9 @@ from google.protobuf import empty_pb2
 import grpc
 import numpy as np
 
+from intrinsic.assets import interface_utils
+from intrinsic.assets.dependencies import utils
+from intrinsic.assets.proto.v1 import resolved_dependency_pb2
 from intrinsic.manipulation.grasping import grasp_execution_planner_params_pb2
 from intrinsic.manipulation.grasping import grasp_pb2
 from intrinsic.manipulation.grasping import grasp_planner_params_pb2
@@ -24,28 +27,37 @@ DEFAULT_GRASP_PLANNER_SERVICE_ADDRESS = (
 DEFAULT_GRASP_PLANNER_SERVICE_INSTANCE_NAME = "grasp_planner_service"
 
 
+def _grasp_planner_service_interface_uri() -> str:
+  return (
+      f"{interface_utils.GRPC_URI_PREFIX}"
+      f"{grasp_planner_service_pb2.DESCRIPTOR.services_by_name['GraspPlannerService'].full_name}"
+  )
+
+
 class GraspPlannerClient:
   """Helper class for calling the rpcs in the GraspPlannerService."""
 
   def __init__(
       self,
       stub: grasp_planner_service_pb2_grpc.GraspPlannerServiceStub,
-      instance_name: str = DEFAULT_GRASP_PLANNER_SERVICE_INSTANCE_NAME,
+      instance_name: str | None = DEFAULT_GRASP_PLANNER_SERVICE_INSTANCE_NAME,
   ):
     """Constructor.
 
     Args:
       stub: The GraspPlannerService stub.
       instance_name: The service instance name of the grasp planner service.
-        This is the name defined in `intrinsic_resource_instance`.
+        This is the name defined in `intrinsic_resource_instance`. Defaults to
+        `DEFAULT_GRASP_PLANNER_SERVICE_INSTANCE_NAME` if omitted. If set to
+        None or empty string, connection params will not be set in RPC calls.
     """
     self._stub: grasp_planner_service_pb2_grpc.GraspPlannerServiceStub = stub
-    self._connection_params = {
-        "metadata": [(
-            "x-resource-instance-name",
-            instance_name,
-        )]
-    }
+    self._connection_params = {}
+    if instance_name:
+      self._connection_params["metadata"] = [(
+          "x-resource-instance-name",
+          instance_name,
+      )]
 
   @classmethod
   def connect(
@@ -70,6 +82,25 @@ class GraspPlannerClient:
     return channel, GraspPlannerClient(
         stub=grasp_planner_service_pb2_grpc.GraspPlannerServiceStub(channel),
         instance_name=instance_name,
+    )
+
+  @classmethod
+  def connect_dependency(
+      cls,
+      dep: resolved_dependency_pb2.ResolvedDependency,
+  ) -> tuple[grpc.Channel, "GraspPlannerClient"]:
+    """Connects to the grasp planner service via a ResolvedDependency.
+
+    Args:
+      dep: The resolved dependency for the grasp planner service.
+
+    Returns:
+      gRPC channel, grasp planner client
+    """
+    channel = utils.connect(dep, _grasp_planner_service_interface_uri())
+    return channel, GraspPlannerClient(
+        stub=grasp_planner_service_pb2_grpc.GraspPlannerServiceStub(channel),
+        instance_name=None,
     )
 
   def register_grasp_planner(

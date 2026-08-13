@@ -11,6 +11,9 @@ py_library(
     name = "grasp_planner_client",
     srcs = ["grasp_planner_client.py"],
     deps = [
+        "//intrinsic/assets:interface_utils_py",
+        "//intrinsic/assets/dependencies:utils_py",
+        "//intrinsic/assets/proto/v1:resolved_dependency_py_pb2",
         "//intrinsic/manipulation/grasping:grasp_execution_planner_params_py_pb2",
         "//intrinsic/manipulation/grasping:grasp_planner_params_py_pb2",
         "//intrinsic/manipulation/grasping:grasp_planning_interfaces",
