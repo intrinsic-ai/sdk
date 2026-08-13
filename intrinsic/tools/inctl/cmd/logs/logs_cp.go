@@ -45,6 +45,7 @@ var (
 	flagHistoricStartTimestamp string
 	flagHistoricEndTimestamp   string
 	flagQuiet                  bool
+	flagRecordingID            string
 )
 
 func newConn(ctx context.Context) (*grpc.ClientConn, error) {
@@ -202,6 +203,9 @@ func getLogsFromCloud(ctx context.Context, cmd *cobra.Command, eventSource strin
 		EndTime:        timestamppb.New(endTime),
 		OrganizationId: orgID,
 	}
+	if flagRecordingID != "" {
+		loadRequest.BagId = proto.String(flagRecordingID)
+	}
 	loadResp, err := client.LoadCloudLogItems(ctx, loadRequest)
 	if err != nil {
 		spinner.Stop("")
@@ -309,6 +313,9 @@ var logsCpCmd = &cobra.Command{
 		}()
 
 		ctx := cmd.Context()
+		if flagRecordingID != "" && !flagHistoric {
+			return errors.New("--recording_id can only be used with --historic")
+		}
 		if err = os.MkdirAll(args[1], os.ModePerm); err != nil {
 			return errors.Wrapf(err, "os.MkdirAll %s", args[1])
 		}
@@ -346,9 +353,11 @@ func init() {
 	logsCpCmd.Flags().BoolVar(&flagHistoric, "historic", false, "Uses the cloud to fetch historical logs.")
 	logsCpCmd.Flags().StringVar(&flagHistoricStartTimestamp, "historic_start_timestamp", "", "Start timestamp in RFC3339 format for fetching historical logs. eg. 2024-08-20T12:00:00Z")
 	logsCpCmd.Flags().StringVar(&flagHistoricEndTimestamp, "historic_end_timestamp", "", "End timestamp in RFC3339 format for fetching historical logs. eg. 2024-08-20T12:00:00Z")
+	logsCpCmd.Flags().StringVar(&flagRecordingID, "recording_id", "", "The ID of a specific recording to pull logs from.")
 	logsCpCmd.Flags().BoolVarP(&flagQuiet, "quiet", "q", false, "Suppress the best-effort pipeline reminder message")
 	logsCpCmd.MarkFlagRequired("context")
 
 	logsCpCmd.MarkFlagsRequiredTogether("historic", "historic_start_timestamp", "historic_end_timestamp")
 	logsCpCmd.MarkFlagsMutuallyExclusive("historic", "lookback")
+	logsCpCmd.MarkFlagsMutuallyExclusive("lookback", "recording_id")
 }

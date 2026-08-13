@@ -31,6 +31,12 @@ message PutLogItemsRequest {
   // The organization ID prefixes the bucket that logs are uploaded into.
   string organization_id = 3;
 
+  // If populated, the log items will be uploaded to a directory for a specific
+  // bag instead.
+  //
+  // They will be pushed into a bag-only pipeline that is separate
+  // from the standard structured logging pipeline.
+  optional string bag_id = 4;
 }
 
 message PutLogItemsResponse {
@@ -64,6 +70,9 @@ message PutBlobRequest {
   // Used to further prefix the blob ID to prevent collisions between blobs from
   // different event sources.
   string event_source = 4;
+
+  // If populated, the blob will be uploaded to a directory for a specific
+  // bag instead.
   optional string bag_id = 5;
 }
 
@@ -193,6 +202,9 @@ message LoadCloudLogItemsRequest {
   // Session is bound to organization ID.
   string organization_id = 6;
 
+  // If populated, the log items will be pulled from a directory for a specific
+  // bag instead.
+  optional string bag_id = 7;
 }
 
 message LoadCloudLogItemsResponse {
