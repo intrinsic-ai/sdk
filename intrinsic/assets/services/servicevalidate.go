@@ -23,6 +23,11 @@ import (
 	"slices"
 	"strings"
 
+	"google.golang.org/protobuf/reflect/protodesc"
+	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/reflect/protoregistry"
+	anypb "google.golang.org/protobuf/types/known/anypb"
+
 	"intrinsic/assets/dependencies/platform"
 	deputils "intrinsic/assets/dependencies/utils"
 	"intrinsic/assets/errors/report"
@@ -32,17 +37,11 @@ import (
 	"intrinsic/util/go/validate"
 	"intrinsic/util/proto/names"
 
-	"google.golang.org/protobuf/reflect/protodesc"
-	"google.golang.org/protobuf/reflect/protoreflect"
-	"google.golang.org/protobuf/reflect/protoregistry"
-
 	metadatapb "intrinsic/assets/proto/metadata_go_proto"
 	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
 	svpb "intrinsic/assets/services/proto/service_volume_go_proto"
 	drpb "intrinsic/assets/services/proto/v1/dynamic_reconfiguration_go_proto"
 	sspb "intrinsic/assets/services/proto/v1/service_state_go_proto"
-
-	anypb "google.golang.org/protobuf/types/known/anypb"
 )
 
 var (
@@ -210,6 +209,12 @@ func Volume(volume *svpb.Volume) error {
 	case *svpb.Volume_HostPath:
 		if err := validate.UserString(volume.GetHostPath().GetPath()); err != nil {
 			return fmt.Errorf("invalid host path %q: %w", volume.GetHostPath().GetPath(), err)
+		}
+		switch volume.GetHostPath().GetType() {
+		case svpb.HostPathVolumeSourceType_HOST_PATH_VOLUME_SOURCE_TYPE_UNSPECIFIED,
+			svpb.HostPathVolumeSourceType_HOST_PATH_VOLUME_SOURCE_TYPE_CHAR_DEVICE:
+		default:
+			return fmt.Errorf("unsupported host path type %v for volume %q", volume.GetHostPath().GetType(), volume.GetName())
 		}
 	case *svpb.Volume_EmptyDir:
 	case nil:

@@ -54,10 +54,19 @@ message Volume {
 // other Service that requests the same host path. These paths should therefore
 // not be used for sensitive data.
 //
-// See: https://kubernetes.io/docs/concepts/storage/volumes/#hostpath
+// HostPath volume source type determines the type of host path volume.
+enum HostPathVolumeSourceType {
+  // Unspecified host path type (default Kubernetes behavior).
+  HOST_PATH_VOLUME_SOURCE_TYPE_UNSPECIFIED = 0;
+  // A character device path (e.g. /dev/EtherCAT0).
+  HOST_PATH_VOLUME_SOURCE_TYPE_CHAR_DEVICE = 2;
+}
+
 message HostPathVolumeSource {
   // The path on the host to make available.
   string path = 1;
+  // The type of file to be mounted.
+  optional HostPathVolumeSourceType type = 2;
 }
 
 // Empty dir medium determines where the empty dir volume is stored.
