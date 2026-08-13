@@ -287,6 +287,7 @@ func (ps *Handle) NewRawSubscription(topic string, config pubsubinterface.TopicC
 //   - When the value corresponding to the given key changes, this function expects to receive `anypb.Any`,
 //     not `pubsubpb.PubSubPacket`.
 func (ps *Handle) NewKVStoreSubscription(key string, config pubsubinterface.TopicConfig, msgCallback func(string, *anypb.Any), deletionCallback func(string)) (pubsubinterface.Subscription, error) {
+	log.Infof("KVStore Subscribe for key: %s", key)
 	topicQos, err := topicConfigToZenohQos(config)
 	if err != nil {
 		return nil, err
@@ -466,6 +467,8 @@ func (kv *kvStoreHandle) Set(key string, value proto.Message, highConsistency bo
 }
 
 func (kv *kvStoreHandle) SetAny(key string, valueAny *anypb.Any, highConsistency bool) error {
+	prefixedKey := kv.addKeyPrefix(key)
+	log.Infof("KVStore Set for key: %s", prefixedKey)
 	valueBytes, err := proto.Marshal(valueAny)
 	if err != nil {
 		return err
@@ -660,7 +663,9 @@ func intrinsic_ImwQueryDoneStaticCallback(keyexpr unsafe.Pointer, userContext un
 }
 
 func (kv *kvStoreHandle) Get(key string, timeout *time.Duration) (*anypb.Any, error) {
-	return kv.getRaw(kv.addKeyPrefix(key), timeout)
+	prefixedKey := kv.addKeyPrefix(key)
+	log.Infof("KVStore Get for key: %s", prefixedKey)
+	return kv.getRaw(prefixedKey, timeout)
 }
 
 // getRaw returns the value for the given key.
@@ -745,6 +750,7 @@ func (kv *kvStoreHandle) getRaw(rawKey string, timeout *time.Duration) (*anypb.A
 
 func (kv *kvStoreHandle) Delete(key string) error {
 	prefixedKey := kv.addKeyPrefix(key)
+	log.Infof("KVStore Delete for key: %s", prefixedKey)
 
 	cPrefixedKey := C.CString(prefixedKey)
 	defer C.free(unsafe.Pointer(cPrefixedKey))

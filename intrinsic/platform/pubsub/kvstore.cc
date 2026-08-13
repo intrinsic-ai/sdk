@@ -119,6 +119,7 @@ absl::Status KeyValueStore::Set(absl::string_view key,
     // Should not happen since ValidKeyexpr was called before this.
     return prefixed_name.status();
   }
+  LOG(INFO) << "KVStore Set for key: " << *prefixed_name;
 
   // Get the initial value if high consistency is requested.
   std::optional<std::string> initial_value;
@@ -195,6 +196,7 @@ absl::StatusOr<google::protobuf::Any> KeyValueStore::GetAny(
   INTR_RETURN_IF_ERROR(intrinsic::ValidZenohKey(key));
   INTR_ASSIGN_OR_RETURN(absl::StatusOr<std::string> raw_key,
                         ZenohHandle::add_key_prefix(key, key_prefix_));
+  LOG(INFO) << "KVStore Get for key: " << *raw_key;
   return GetAnyWithRawKey(*raw_key, timeout);
 }
 
@@ -328,6 +330,7 @@ absl::Status KeyValueStore::Delete(absl::string_view key) {
   INTR_RETURN_IF_ERROR(intrinsic::ValidZenohKey(key));
   INTR_ASSIGN_OR_RETURN(absl::StatusOr<std::string> prefixed_name,
                         ZenohHandle::add_key_prefix(key, key_prefix_));
+  LOG(INFO) << "KVStore Delete for key: " << *prefixed_name;
   imw_ret_t ret = Zenoh().imw_delete_keyexpr(prefixed_name->c_str());
   if (ret != IMW_OK) {
     return absl::InternalError(
@@ -448,6 +451,7 @@ absl::StatusOr<Subscription> KeyValueStore::CreateSubscription(
   INTR_ASSIGN_OR_RETURN(
       std::string prefixed_key_expression,
       ZenohHandle::add_key_prefix(key_expression, key_prefix_));
+  LOG(INFO) << "KVStore Subscribe for key: " << prefixed_key_expression;
   auto subscription_data = std::make_unique<SubscriptionData>();
   subscription_data->prefixed_name = prefixed_key_expression;
   auto callback = std::make_unique<imw_callback_functor_t>(
