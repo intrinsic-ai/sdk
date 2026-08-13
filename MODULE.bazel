@@ -244,7 +244,7 @@ bazel_dep(name = "rules_pkg", version = "1.2.0")
 bazel_dep(name = "rules_swift", version = "2.9.0")  # bumping transitive dependency to resolve compatibility level conflict with flatbuffers
 bazel_dep(name = "sdformat", version = "16.1.0")
 bazel_dep(name = "soplex", version = "7.1.4.bcr.5")  # bumping transitive dependency to update boost to 1.89.0
-bazel_dep(name = "tar.bzl", version = "0.10.7")
+bazel_dep(name = "tar.bzl", version = "0.10.8")
 bazel_dep(name = "tcmalloc", version = "0.0.0-20250927-12f2552")
 bazel_dep(name = "tinygltf", version = "2.9.6")
 bazel_dep(name = "tinyxml2", version = "10.0.0")
