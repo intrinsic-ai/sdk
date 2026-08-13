@@ -145,6 +145,7 @@ cc_library(
         "//intrinsic/scene/service:__pkg__",
         "//intrinsic/scene/util:__pkg__",
         "//intrinsic/scene/validate:__pkg__",
+        "//intrinsic/world/collision/util:__pkg__",
         "//intrinsic/world/conversion/sdf:__pkg__",
         "//intrinsic/world/util:__pkg__",
     ],
