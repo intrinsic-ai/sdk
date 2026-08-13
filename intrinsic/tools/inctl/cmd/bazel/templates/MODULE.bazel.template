@@ -24,6 +24,10 @@ local_path_override(
     module_name = "ai_intrinsic_sdks",
     path = "{{.LocalSDKPath}}",
 )
+local_path_override(
+    module_name = "intrinsic_apis",
+    path = "{{.LocalSDKPath}}/intrinsic/intrinsic_apis",
+)
 {{- end }}
 
 # Direct dependencies
