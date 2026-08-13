@@ -20,6 +20,8 @@ from absl.testing import absltest
 from intrinsic.platform.common.proto import test_pb2
 from intrinsic.platform.pubsub.python import pubsub
 
+_LIVELINESS_KEYEXPR = 'key1'
+
 
 class SegfaultReproductionTest(absltest.TestCase):
 
@@ -46,6 +48,30 @@ class SegfaultReproductionTest(absltest.TestCase):
 
     # Wait for the callback to execute
     self.assertTrue(event.wait(timeout=5.0), 'Callback was not called in time')
+
+  def test_exception_in_liveliness_subscription_callback(self):
+    self.pubsub = pubsub.PubSub()
+    event = threading.Event()
+
+    self.pubsub.DeclareLivelinessToken(_LIVELINESS_KEYEXPR)
+
+    def msg_callback(key: str, alive: bool):
+      logging.info(
+          'Liveliness callback called with key=%s, alive=%s', key, alive
+      )
+      event.set()
+      raise RuntimeError('This should not cause any issues')
+
+    sub = self.pubsub.CreateLivelinessSubscription(
+        _LIVELINESS_KEYEXPR,
+        True,
+        msg_callback,
+    )
+
+    self.assertTrue(event.wait(timeout=5.0), 'Callback was not called in time')
+    logging.info('Unsubscribing and dropping the liveliness token')
+    sub.Unsubscribe()
+    self.pubsub.DropLivelinessToken(_LIVELINESS_KEYEXPR)
 
 
 if __name__ == '__main__':

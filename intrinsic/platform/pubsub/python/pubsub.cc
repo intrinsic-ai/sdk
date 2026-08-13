@@ -181,6 +181,22 @@ OnDoneCallback WrapOnDoneCallback(pybind11::object cb) {
   };
 }
 
+LivelinessCallback WrapLivelinessCallback(pybind11::object msg_callback) {
+  LivelinessCallback message_callback = {};
+  if (msg_callback && !msg_callback.is_none()) {
+    message_callback = [py_msg_cb = std::move(msg_callback)](
+                           absl::string_view key, bool alive) {
+      pybind11::gil_scoped_acquire gil;
+      try {
+        py_msg_cb(key, alive);
+      } catch (const pybind11::error_already_set& e) {
+        LOG(ERROR) << "Exception in liveliness callback: " << e.what();
+      }
+    };
+  }
+  return message_callback;
+}
+
 absl::StatusOr<Subscription> CreateSubscriptionWithConfig(
     PubSub* self, absl::string_view topic, const TopicConfig& config,
     const google::protobuf::Message& exemplar, pybind11::object msg_callback,
@@ -315,6 +331,21 @@ std::string MakeKey(pybind11::args args) {
   return KeyValueStore::MakeKeyFromVector(parts);
 }
 
+absl::Status DeclareLivelinessToken(PubSub* self, absl::string_view keyexpr) {
+  return self->DeclareLivelinessToken(keyexpr);
+}
+
+absl::Status DropLivelinessToken(PubSub* self, absl::string_view keyexpr) {
+  return self->DropLivelinessToken(keyexpr);
+}
+
+absl::StatusOr<LivelinessSubscription> CreateLivelinessSubscription(
+    PubSub* self, absl::string_view keyexpr, bool notify_about_existing_tokens,
+    pybind11::object callback) {
+  return self->CreateLivelinessSubscription(
+      keyexpr, notify_about_existing_tokens, WrapLivelinessCallback(callback));
+}
+
 void ParseCommandLine(const std::vector<std::string>& args) {
   std::vector<char*> argv_c;
   for (const auto& arg : args) {
@@ -328,6 +359,28 @@ void ParseCommandLine(const std::vector<std::string>& args) {
 
 struct PySubscriptionDeleter {
   void operator()(Subscription* s) {
+    // To avoid deadlock, the call to Zenoh.imw_destroy_subscription() needs
+    // to happen with the GIL released. Otherwise, the GIL and the internal
+    // callback mutex are potentially locked in opposite order by this thread
+    // and the Zenoh callback thread pool, which can deadlock, especially on
+    // high-frequency topics.
+    {
+      pybind11::gil_scoped_release release_gil;
+      s->Unsubscribe();
+    }
+
+    // The Python GIL will be re-acquired now that the previous scoped_release
+    // has disappeared. With the re-acquired GIL, we can safely delete the
+    // subscription_data_ struct in Subscription, which contains the Python
+    // callback object. A deadlock can no longer occur, because a message
+    // callback will no longer occur because the remainder of the destruction
+    // call chain is holding the GIL.
+    delete s;
+  }
+};
+
+struct PyLivelinessSubscriptionDeleter {
+  void operator()(LivelinessSubscription* s) {
     // To avoid deadlock, the call to Zenoh.imw_destroy_subscription() needs
     // to happen with the GIL released. Otherwise, the GIL and the internal
     // callback mutex are potentially locked in opposite order by this thread
@@ -384,7 +437,10 @@ PYBIND11_MODULE(pubsub, m) {
            pybind11::arg("error_callback") = nullptr)
       .def("KeyValueStore", &CreateKeyValueStore,
            pybind11::arg("prefix_override") = std::nullopt)
-      .def("ReplicationKeyValueStore", &CreateReplicationKVStore);
+      .def("ReplicationKeyValueStore", &CreateReplicationKVStore)
+      .def("DeclareLivelinessToken", &DeclareLivelinessToken)
+      .def("DropLivelinessToken", &DropLivelinessToken)
+      .def("CreateLivelinessSubscription", &CreateLivelinessSubscription);
 
   pybind11::class_<Publisher>(m, "Publisher")
       .def("Publish",
@@ -436,6 +492,17 @@ PYBIND11_MODULE(pubsub, m) {
       m, "Subscription")
       .def("TopicName", &Subscription::TopicName)
       .def("Unsubscribe", &Subscription::Unsubscribe);
+
+  // The python GIL does not need to be locked during the entire destructor
+  // of this class. Instead, the custom deleter provided during its
+  // construction will acquire the GIL only during the deletion of the
+  // SubscriptionData object, which holds the Python callback.
+  pybind11::class_<
+      LivelinessSubscription,
+      std::unique_ptr<LivelinessSubscription, PyLivelinessSubscriptionDeleter>>(
+      m, "LivelinessSubscription")
+      .def("KeyExpression", &LivelinessSubscription::KeyExpression)
+      .def("Unsubscribe", &LivelinessSubscription::Unsubscribe);
 
   // Helper function for passing command line flags from Python code
   // to C++. Can be used in Python tests which start their own Zenoh routers,
