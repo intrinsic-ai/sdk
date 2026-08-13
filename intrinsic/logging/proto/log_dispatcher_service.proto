@@ -116,6 +116,14 @@ message ListLogEventSourcesRequest {
   message Query {
     string workcell_name = 1;
     optional string match_glob = 2;  // Filter results by glob pattern.
+
+    // Look within a specific bag instead of standard structured logs.
+    // Use the BagPackagerService to list or get the available bags.
+    // If provided along with match_glob, both conditions must be met (AND
+    // logic).
+    oneof bag_query {
+      string bag_id = 3;
+    }
   }
 
   oneof query {
@@ -148,6 +156,14 @@ message ListLogBatchesRequest {
     LogSource log_source = 1;
     google.protobuf.Timestamp start_time = 2;
     google.protobuf.Timestamp end_time = 3;
+
+    // Look within a specific bag instead of standard structured logs.
+    // Use the BagPackagerService to list or get the available bags.
+    // If provided, the batches must fall within the start and end time
+    // AND belong to the specified bag (AND logic).
+    oneof bag_query {
+      string bag_id = 4;
+    }
   }
 
   oneof query {
