@@ -242,6 +242,13 @@ message SyncRequest {
 
   // If true, requests to sync and rotate logs of all event sources
   bool sync_all = 2;
+
+  // If true, the RPC will wait for the background flushes to complete
+  // before returning the response.
+  //
+  // By default, this is false, meaning the RPC will return immediately
+  // while flushes happen in the background.
+  bool wait_for_flush = 3;
 }
 
 message SyncResponse {
