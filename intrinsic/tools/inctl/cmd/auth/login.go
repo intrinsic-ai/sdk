@@ -17,6 +17,7 @@ package auth
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/url"
@@ -25,7 +26,7 @@ import (
 	"slices"
 	"strings"
 
-	env "intrinsic/config/environments"
+	envs "intrinsic/config/environments"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/agents"
 	"intrinsic/tools/inctl/util/orgutil"
@@ -33,7 +34,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"golang.org/x/exp/maps"
 
 	accdiscoverv1grpcpb "intrinsic/kubernetes/accounts/service/api/v1/discoveryapi_go_proto"
 
@@ -41,7 +41,8 @@ import (
 )
 
 const (
-	keyNoBrowser = "no_browser"
+	keyNoBrowser             = "no_browser"
+	keyInternalMockDiscovery = "internal-mock-discovery"
 
 	orgTokenURLFmt     = "https://%s/o/%s/generate-keys"
 	projectTokenURLFmt = "https://%s/project/%s/generate-keys"
@@ -54,7 +55,7 @@ const (
 
 // Exposed for testing
 var (
-	queryProjects = queryProjectsForAPIKey
+	discoverOrgsFunc = discoverOrganizations
 )
 
 var (
@@ -97,14 +98,10 @@ func readAPIKeyFromPipe(reader *bufio.Reader) (string, error) {
 	return "", nil
 }
 
-func queryForAPIKey(ctx context.Context, writer io.Writer, in *bufio.Reader, organization, project string) (string, error) {
-	e := loginParams.GetString(orgutil.KeyEnvironment)
-	if e == "" {
-		e = env.FromComputeProject(project)
-	}
-	portal := env.PortalDomain(e)
+func queryForAPIKey(ctx context.Context, writer io.Writer, in *bufio.Reader, organization, project, env string) (string, error) {
+	portal := envs.PortalDomain(env)
 	if portal == "" {
-		return "", fmt.Errorf("unknown environment %q", e)
+		return "", fmt.Errorf("unknown environment %q", env)
 	}
 	authorizationURL := fmt.Sprintf(projectTokenURLFmt, portal, project)
 	if organization != "" {
@@ -138,16 +135,22 @@ func queryForAPIKey(ctx context.Context, writer io.Writer, in *bufio.Reader, org
 	return strings.TrimSpace(apiKey), nil
 }
 
-// queryProjectsForAPIKey discovers the projects the given API key has access to.
-// If optionalOrg is set, it will be used as a filter to only return projects the given organization
-// is part of.
-func queryProjectsForAPIKey(ctx context.Context, apiKey string, optionalOrg string) ([]string, error) {
-	e := loginParams.GetString(orgutil.KeyEnvironment)
-	if e == "" {
-		e = env.Prod
+func loadMockDiscovery(mockPath string) (map[string][]string, error) {
+	data, err := os.ReadFile(mockPath)
+	if err != nil {
+		return nil, fmt.Errorf("read mock discovery file: %w", err)
 	}
-	accProject := env.AccountsProjectFromEnv(e)
-	conn, err := auth.NewCloudConnection(ctx, auth.WithProject(accProject), auth.WithAPIKey(apiKey), auth.WithEnv(e))
+	var mockResp map[string][]string
+	if err := json.Unmarshal(data, &mockResp); err != nil {
+		return nil, fmt.Errorf("unmarshal mock discovery response: %w", err)
+	}
+	return mockResp, nil
+}
+
+// discoverOrganizations discovers orgs and projects the given API key has access to.
+func discoverOrganizations(ctx context.Context, apiKey, env string) (map[string][]string, error) {
+	accProject := envs.AccountsProjectFromEnv(env)
+	conn, err := auth.NewCloudConnection(ctx, auth.WithProject(accProject), auth.WithAPIKey(apiKey), auth.WithEnv(env))
 	if err != nil {
 		return nil, err
 	}
@@ -159,17 +162,14 @@ func queryProjectsForAPIKey(ctx context.Context, apiKey string, optionalOrg stri
 		fmt.Println("Could not find the project for this token. Please restart the login process and make sure to provide the exact key shown by the portal.")
 		return nil, fmt.Errorf("failed to list organizations: %w", err)
 	}
-	orgs := resp.GetOrganizations()
-	projects := map[string]struct{}{}
-	// determine unique project names
-	for _, org := range orgs {
-		// filter by org if specified
-		if optionalOrg != "" && optionalOrg != org.GetName() {
-			continue
-		}
-		projects[org.GetProject()] = struct{}{}
+
+	orgToProjects := make(map[string][]string)
+
+	for _, o := range resp.GetOrganizations() {
+		orgToProjects[o.GetName()] = append(orgToProjects[o.GetName()], o.GetProject())
 	}
-	return maps.Keys(projects), nil
+
+	return orgToProjects, nil
 }
 
 func loginCmdE(cmd *cobra.Command, _ []string) (err error) {
@@ -177,10 +177,8 @@ func loginCmdE(cmd *cobra.Command, _ []string) (err error) {
 	writer := cmd.OutOrStdout()
 	projectName := loginParams.GetString(orgutil.KeyProject)
 	orgName := loginParams.GetString(orgutil.KeyOrganization)
-	org := orgutil.QualifiedOrg(projectName, orgName) // org@project
+	org := orgutil.QualifiedOrg(projectName, orgName)
 	in := bufio.NewReader(cmd.InOrStdin())
-	// In the future multiple aliases should be supported for one project.
-	alias := auth.AliasDefaultToken
 	isBatch := loginParams.GetBool(keyBatch)
 
 	// If we are passed a pure org without a project, check if we can resolve it from stored credentials.
@@ -196,13 +194,18 @@ func loginCmdE(cmd *cobra.Command, _ []string) (err error) {
 		}
 	}
 
+	env := loginParams.GetString(orgutil.KeyEnvironment)
+	if env == "" {
+		env = envs.FromComputeProject(projectName)
+	}
+
 	apiKey, err := readAPIKeyFromPipe(in)
 	if err != nil {
 		return err
 	}
 
 	if apiKey == "" && !isBatch {
-		apiKey, err = queryForAPIKey(cmd.Context(), writer, in, org, projectName)
+		apiKey, err = queryForAPIKey(cmd.Context(), writer, in, org, projectName, env)
 		if err != nil {
 			return err
 		}
@@ -212,42 +215,159 @@ func loginCmdE(cmd *cobra.Command, _ []string) (err error) {
 		return fmt.Errorf("API key is empty. Please provide an API key")
 	}
 
-	// If we are passed a pure org, we don't know the project yet
-	if projectName == "" {
-		projects, err := queryProjects(cmd.Context(), apiKey, orgName)
-		if err != nil {
-			return fmt.Errorf("query project: %w", err)
-		}
-		if len(projects) == 0 {
-			return fmt.Errorf("no project found for API key. Please double check the value of the -org flag for typos" +
-				".")
-		}
-		// For a given orgName the subsequent code expects only a single project as a result.
-		if len(projects) > 1 {
-			slices.Sort(projects)
-			return fmt.Errorf("multiple projects found for API key (and org %q): %+v", org, projects)
-		}
-		// exactly one found
-		projectName = projects[0]
+	var orgToProjects map[string][]string
+	if mockPath := loginParams.GetString(keyInternalMockDiscovery); mockPath != "" {
+		orgToProjects, err = loadMockDiscovery(mockPath)
+	} else {
+		orgToProjects, err = discoverOrgsFunc(cmd.Context(), apiKey, env)
 	}
-	if org != "" {
-		if err := authStore.WriteOrgInfo(&auth.OrgInfo{Organization: org, Project: projectName}); err != nil {
-			return fmt.Errorf("store org info: %w", err)
-		}
+	if err != nil {
+		return fmt.Errorf("query project: %w", err)
 	}
 
-	// API keys are stored per environment.
-	envName := loginParams.GetString(orgutil.KeyEnvironment)
-	if envName == "" {
-		envName = env.FromAnyProject(projectName)
+	if len(orgToProjects) == 0 {
+		fmt.Fprintln(writer, "\nWarning: No organizations were found associated with this API key")
+	} else if (orgName != "" || projectName != "") && !hasRequestedAccess(orgToProjects, orgName, projectName) {
+		requested := orgName
+		if requested == "" {
+			requested = projectName
+		} else if projectName != "" {
+			requested += "@" + projectName
+		}
+		fmt.Fprintf(writer, "\nWarning: The requested target %q was not found among the organizations associated with your API key. Please double check for typos", requested)
+		fmt.Fprintln(writer)
 	}
-	if err := authStore.UpsertEnvConfig(envName, alias, apiKey); err != nil {
+
+	if err := writeOrganizations(orgToProjects, apiKey); err != nil {
+		return fmt.Errorf("write organizations: %w", err)
+	}
+
+	if err := reconcileInvalidOrgConfigs(writer, authStore, orgName, orgToProjects); err != nil {
+		return fmt.Errorf("reconcile invalid org configs: %w", err)
+	}
+
+	if err := authStore.UpsertEnvConfig(env, auth.AliasDefaultToken, apiKey); err != nil {
 		return fmt.Errorf("error upserting env config: %w", err)
 	}
-	if err := authStore.UpsertProjectConfig(projectName, alias, apiKey); err != nil {
-		return fmt.Errorf("error upserting project config: %w", err)
+
+	if len(orgToProjects) > 0 {
+		fmt.Fprintln(writer, "Successfully logged in!")
+		// most of 3P users have acces to just one org-project, so it doesn't make sense
+		// to leak implementation details about projects here.
+		if len(orgToProjects) == 1 {
+			return
+		}
+		fmt.Fprintln(writer, "Wrote credentials for the following:")
+
+		var targets []string
+		for o, ps := range orgToProjects {
+			if len(ps) == 1 {
+				targets = append(targets, o)
+			} else {
+				for _, p := range ps {
+					targets = append(targets, fmt.Sprintf("%s@%s", o, p))
+				}
+			}
+		}
+		slices.Sort(targets)
+
+		for _, t := range targets {
+			fmt.Fprintf(writer, "  - %s\n", t)
+		}
+	}
+	return nil
+}
+
+// hasRequestedAccess checks if the org/project given by a user match the data on the backend.
+// it's used to print a warning if user-supplied arguments to login don't match the discovered
+// orgs.
+func hasRequestedAccess(orgToProjects map[string][]string, org, project string) bool {
+	switch {
+	case org != "" && project != "":
+		// Case 1: Both org and project specified (qualified org)
+		return slices.Contains(orgToProjects[org], project)
+	case org != "":
+		// Case 2: Only org specified
+		return len(orgToProjects[org]) > 0
+	case project != "":
+		// Case 3: Only project specified
+		for _, ps := range orgToProjects {
+			if slices.Contains(ps, project) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// writeOrganizations saves org to project mapping to the local auth storage.
+func writeOrganizations(orgToProjects map[string][]string, apiKey string) error {
+	for o, ps := range orgToProjects {
+		for _, p := range ps {
+			name := o + "@" + p
+			if len(ps) == 1 {
+				name = o
+			}
+			if err := authStore.WriteOrgInfo(&auth.OrgInfo{
+				Organization: name,
+				Project:      p,
+			}); err != nil {
+				return fmt.Errorf("write org info: %w", err)
+			}
+			if err := authStore.UpsertProjectConfig(p, auth.AliasDefaultToken, apiKey); err != nil {
+				return fmt.Errorf("error upserting project config: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+// reconcileInvalidOrgConfigs cleans up stale or ambiguous organization configurations.
+func reconcileInvalidOrgConfigs(writer io.Writer, store *auth.Store, orgName string, orgToProjects map[string][]string) error {
+	hasRemoved := false
+	// 1. Clean up stale config for discovered orgs
+	for o, ps := range orgToProjects {
+		if len(ps) > 1 {
+			// Multi-project org. Delete legacy short-name config if it is stale (points to a project they lost access to).
+			orgInfo, err := store.ReadOrgInfo(o)
+			if err != nil {
+				// the file either doesn't exist, unreadable or corrupted
+				_ = store.RemoveOrgInfo(o)
+				continue
+			}
+
+			if slices.Contains(ps, orgInfo.Project) {
+				continue
+			}
+
+			if err := store.RemoveOrgInfo(o); err != nil {
+				return fmt.Errorf("remove stale org config %q: %w", o, err)
+			}
+			if !hasRemoved {
+				fmt.Fprintln(writer, "\nCleaned up configurations:")
+				hasRemoved = true
+			}
+			fmt.Fprintf(writer, "  - Removed stale organization default %q (was pointing to %q)\n", o, orgInfo.Project)
+		}
 	}
 
+	// 2. Clean up requested org if it was not discovered at all
+	if orgName != "" {
+		if _, discovered := orgToProjects[orgName]; !discovered {
+			// Requested org was not found. Delete its single-project config if it exists.
+			if err := store.RemoveOrgInfo(orgName); err != nil {
+				return fmt.Errorf("remove stale requested org config %q: %w", orgName, err)
+			}
+			if !hasRemoved {
+				fmt.Fprintln(writer, "\nCleaned up configurations:")
+				hasRemoved = true
+			}
+			fmt.Fprintf(writer, "  - Removed stale requested organization configuration %q\n", orgName)
+		}
+	}
+	if hasRemoved {
+		fmt.Fprintln(writer) // trailing newline
+	}
 	return nil
 }
 
@@ -258,8 +378,10 @@ func init() {
 	// we will use viper to fetch data, we do not need local variables
 	flags.Bool(keyNoBrowser, false, "Disables attempt to open login URL in browser automatically")
 	flags.Bool(keyBatch, false, "Suppresses command prompts and assume Yes or default as an answer. Use with shell scripts.")
+	flags.String(keyInternalMockDiscovery, "", "Internal use only: path to JSON file containing mock discovery response")
 
 	flags.MarkHidden(orgutil.KeyProject)
+	flags.MarkHidden(keyInternalMockDiscovery)
 
 	viperutil.BindFlags(loginParams, flags, nil)
 }

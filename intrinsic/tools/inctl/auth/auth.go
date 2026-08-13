@@ -522,6 +522,21 @@ func (s *Store) ReadOrgInfo(orgName string) (OrgInfo, error) {
 	return ret, nil
 }
 
+// RemoveOrgInfo deletes the organization configuration file.
+// Note that if a user still has access to this organization,
+// this configuration will be recreated on the next `inctl auth login`.
+func (s *Store) RemoveOrgInfo(org string) error {
+	filename, err := s.orgFilename(org)
+	if err != nil {
+		return fmt.Errorf("org filename: %w", err)
+	}
+	authDebug("AUTHSTORE_REMOVE_ATTEMPT=%s", filename)
+	if err := os.Remove(filename); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("remove: %w", err)
+	}
+	return nil
+}
+
 // ListOrgs gives a list of known organizations. It works on
 // filesystem level and does not attempt to read the content of configuration.
 // Results are not sorted and the order may change at any time.

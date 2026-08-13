@@ -17,11 +17,12 @@ package orgutil
 
 import (
 	"fmt"
+	"os"
+	"strings"
+
 	env "intrinsic/config/environments"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/viperutil"
-	"os"
-	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
