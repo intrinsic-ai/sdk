@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"intrinsic/tools/inctl/auth/auth"
+	"intrinsic/tools/inctl/util"
+	"intrinsic/tools/inctl/util/color"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -59,15 +61,24 @@ var logsSyncCmd = &cobra.Command{
 
 		client := pb.NewDataLoggerClient(conn)
 
-		fmt.Fprintln(cmd.OutOrStdout(), "Triggering log sync. This may take a while...")
+		msg := "Triggering log sync. This may take a while..."
+		if wait {
+			msg = "Triggering log sync and waiting for flush. This may take a while..."
+		}
+
+		spinner := util.NewSpinner(connectCtx, cmd.OutOrStdout(), 100*time.Millisecond, util.PositionFront, util.StyleDotsUpload, util.ColorRGB, util.DirectionForward)
+		spinner.Start(msg)
 
 		resp, err := client.SyncAndRotateLogs(connectCtx, req)
 		if err != nil {
+			spinner.Stop("")
 			if status.Code(err) == codes.DeadlineExceeded || errors.Is(err, context.DeadlineExceeded) {
-				fmt.Fprintln(cmd.OutOrStderr(), "\nWARNING: The operation timed out. It is likely that the IPC's internet connectivity is down.")
+				color.C.Yellow().Fprintf(cmd.OutOrStderr(), "\nWARNING: The operation timed out. This can happen when the IPC's internet connectivity is slow or down.\n")
 			}
 			return errors.Wrap(err, "failed to sync and rotate logs")
 		}
+
+		spinner.Stop("Done triggering log sync!")
 
 		if len(resp.EventSources) > 0 {
 			fmt.Fprintln(cmd.OutOrStdout(), "Successfully synced event sources:")
@@ -79,11 +90,11 @@ var logsSyncCmd = &cobra.Command{
 		}
 
 		if len(resp.ThrottledEventSources) > 0 {
-			fmt.Fprintln(cmd.OutOrStderr(), "\nWARNING: The following event sources were throttled by the backend and were NOT synced:")
+			color.C.Yellow().Fprintf(cmd.OutOrStderr(), "\nWARNING: The following event sources were throttled by the backend and were NOT synced:\n")
 			for _, es := range resp.ThrottledEventSources {
-				fmt.Fprintf(cmd.OutOrStderr(), "  - %s\n", es)
+				color.C.Yellow().Fprintf(cmd.OutOrStderr(), "  - %s\n", es)
 			}
-			fmt.Fprintln(cmd.OutOrStderr(), "Please wait before attempting to manually sync these sources again.")
+			color.C.Yellow().Fprintf(cmd.OutOrStderr(), "Please wait before attempting to manually sync these sources again.\n")
 		}
 
 		return nil

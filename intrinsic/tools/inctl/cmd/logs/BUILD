@@ -27,6 +27,8 @@ go_library(
         "//intrinsic/skills/tools/skill/cmd:solutionutil",
         "//intrinsic/tools/inctl/auth",
         "//intrinsic/tools/inctl/cmd:root",
+        "//intrinsic/tools/inctl/util",
+        "//intrinsic/tools/inctl/util:color",
         "//intrinsic/tools/inctl/util:orgutil",
         "@com_github_cenkalti_backoff_v4//:go_default_library",
         "@com_github_golang_glog//:go_default_library",

@@ -6,12 +6,15 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"math"
 	"os"
 	"path"
 	"strings"
 	"time"
 
 	"intrinsic/tools/inctl/auth/auth"
+	"intrinsic/tools/inctl/util"
+	"intrinsic/tools/inctl/util/color"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -24,6 +27,8 @@ import (
 	bpb "intrinsic/logging/proto/blob_go_proto"
 	dgrpcpb "intrinsic/logging/proto/log_dispatcher_service_go_proto"
 	dpb "intrinsic/logging/proto/log_dispatcher_service_go_proto"
+	lgrpcpb "intrinsic/logging/proto/logger_service_go_proto"
+	lpb "intrinsic/logging/proto/logger_service_go_proto"
 
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -75,7 +80,8 @@ func newLogDispatcherClient(ctx context.Context) (dgrpcpb.LogDispatcherClient, e
 	return dgrpcpb.NewLogDispatcherClient(conn), nil
 }
 
-func writeBlob(blob *bpb.Blob, localDir string) error {
+// writeBlob writes the blob data to disk and clears the data field in the protobuf.
+func writeBlob(blob *bpb.Blob, localDir string, spinner *util.Spinner) error {
 	dir := path.Join(localDir, path.Dir(blob.BlobId))
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 		return errors.Wrapf(err, "os.MkdirAll %s", dir)
@@ -86,33 +92,103 @@ func writeBlob(blob *bpb.Blob, localDir string) error {
 	}
 	// Clear the blob data so we can write the rest of the response as a textproto.
 	blob.Data = []byte{}
-	fmt.Printf("file://%s\n", p)
+	if spinner != nil {
+		spinner.Interrupt(fmt.Sprintf("file://%s", p))
+	}
 	return nil
 }
 
-func getLogsOnprem(ctx context.Context, eventSource string, dir string) error {
-	return errors.New("not implemented")
+func getLogsOnprem(ctx context.Context, cmd *cobra.Command, eventSource string, dir string) error {
+	clusterName, err := getClusterName(ctx, &cmdParams{
+		projectName: cmdFlags.GetFlagProject(),
+		org:         cmdFlags.GetFlagOrganization(),
+		context:     flagContext,
+	})
+	if err != nil {
+		return errors.Wrap(err, "could not resolve cluster name")
+	}
+
+	conn, err := auth.NewCloudConnection(ctx, auth.WithFlagValues(localViper), auth.WithCluster(clusterName))
+	if err != nil {
+		return errors.Wrap(err, "failed to create cloud connection")
+	}
+	defer conn.Close()
+
+	client := lgrpcpb.NewDataLoggerClient(conn)
+	request := &lpb.GetLogItemsRequest{
+		Query: &lpb.GetLogItemsRequest_GetQuery{
+			GetQuery: &lpb.GetLogItemsRequest_Query{
+				EventSource: eventSource,
+				StartTime:   timestamppb.New(time.Now().Add(flagLookBack * -1)),
+			},
+		},
+	}
+
+	spinner := util.NewSpinner(ctx, cmd.OutOrStdout(), 100*time.Millisecond, util.PositionFront, util.StyleDotsUpload, util.ColorRGB, util.DirectionReverse)
+	spinner.Start("Getting local logs from the IPC...")
+
+	for true {
+		response, err := client.GetLogItems(context.Background(), request, grpc.MaxCallRecvMsgSize(math.MaxInt64), grpc.WaitForReady(true))
+		if err != nil {
+			spinner.Stop("")
+			return errors.Wrap(err, "client.GetLogItems")
+		}
+		for _, item := range response.LogItems {
+			blob := item.BlobPayload
+			if blob != nil {
+				writeBlob(blob, dir, spinner)
+			}
+		}
+		nextPageCursor := response.GetNextPageCursor()
+		truncationCause := response.GetTruncationCause()
+		responseFilename := fmt.Sprintf("response_%d.pbtxt", time.Now().UnixNano())
+		p := path.Join(dir, responseFilename)
+		response.NextPageCursor = nil
+		response.TruncationCause = nil
+		if err = os.WriteFile(p, []byte(prototext.Format(response)), 0o644); err != nil {
+			spinner.Stop("")
+			return errors.Wrapf(err, "os.WriteFile of response to %s", p)
+		}
+		if len(truncationCause) == 0 {
+			spinner.Stop(color.C.Green().Sprintf("Done getting local logs from the IPC."))
+			return nil
+		}
+		if len(nextPageCursor) == 0 {
+			break
+		}
+		request.Query = &lpb.GetLogItemsRequest_Cursor{
+			Cursor: nextPageCursor,
+		}
+	}
+	spinner.Stop(color.C.Green().Sprintf("Done getting local logs from the IPC."))
+	return nil
 }
 
-func getLogsFromCloud(ctx context.Context, eventSource string, dir string) error {
+func getLogsFromCloud(ctx context.Context, cmd *cobra.Command, eventSource string, dir string) error {
+	orgID := cmdFlags.GetFlagOrganization()
+	if orgID == "" {
+		return errors.New("org should be specified")
+	}
+	if flagHistoricStartTimestamp == "" || flagHistoricEndTimestamp == "" {
+		return errors.New("historic start timestamp and historic end timestamp should be specified")
+	}
+
 	client, err := newLogDispatcherClient(ctx)
 	if err != nil {
 		return errors.Wrap(err, "newLogDispatcherClient")
 	}
-	orgID := cmdFlags.GetFlagOrganization()
-	if orgID == "" {
-		return errors.Wrap(err, "org should be specificied")
-	}
-	if flagHistoricStartTimestamp == "" || flagHistoricEndTimestamp == "" {
-		return errors.Wrap(err, "historic start timestamp and historic end timestamp should be specified")
-	}
-	fmt.Println("Creating cloud cache and loading logs...This may take a while.")
+
+	spinner := util.NewSpinner(ctx, cmd.OutOrStdout(), 100*time.Millisecond, util.PositionFront, util.StyleDotsUpload, util.ColorRGB, util.DirectionReverse)
+	spinner.Start("Creating cloud cache and loading logs...This may take a while.")
+
 	startTime, err := time.Parse(time.RFC3339, flagHistoricStartTimestamp)
 	if err != nil {
+		spinner.Stop("")
 		return errors.Wrapf(err, "invalid start timestamp: %s", flagHistoricStartTimestamp)
 	}
 	endTime, err := time.Parse(time.RFC3339, flagHistoricEndTimestamp)
 	if err != nil {
+		spinner.Stop("")
 		return errors.Wrapf(err, "invalid end timestamp: %s", flagHistoricEndTimestamp)
 	}
 	loadRequest := &dpb.LoadCloudLogItemsRequest{
@@ -128,14 +204,17 @@ func getLogsFromCloud(ctx context.Context, eventSource string, dir string) error
 	}
 	loadResp, err := client.LoadCloudLogItems(ctx, loadRequest)
 	if err != nil {
+		spinner.Stop("")
 		return errors.Wrap(err, "client.LoadCloudLogItems")
 	}
 	if loadResp.Metadata.NumItems == 0 {
-		fmt.Println("No logs found matched the query")
+		spinner.Stop("")
+		fmt.Fprintln(cmd.OutOrStdout(), "No logs found matched the query")
 		return errors.Wrapf(err, "no logs found matched the query")
 	}
-	fmt.Println("Finished creating cloud cache.")
-	fmt.Println("Getting logs from cloud cache and writing to disk...This may take a while.")
+
+	spinner.UpdateMessage("Finished creating cloud cache. Getting logs from cloud cache and writing to disk...This may take a while.")
+
 	getReq := &dpb.GetCloudLogItemsRequest{
 		Query: &dpb.GetCloudLogItemsRequest_GetQuery{
 			GetQuery: &dpb.GetCloudLogItemsRequest_Query{
@@ -161,22 +240,27 @@ func getLogsFromCloud(ctx context.Context, eventSource string, dir string) error
 		if err != nil {
 			if waitAttemptsForLogs > 0 && strings.Contains(err.Error(), "NotFound") {
 				waitAttemptsForLogs--
-				fmt.Println("No logs found, waiting again for logs to be loaded...")
+				spinner.UpdateMessage("No logs found in cache yet, waiting again for logs to be loaded...")
 				time.Sleep(waitTimeForLogs)
 				continue
 			}
+			spinner.Stop("")
 			return errors.Wrap(err, "client.GetCloudLogItems")
 		}
 		numDownloadedLogItems += uint64(len(getResp.GetItems()))
-		fmt.Printf(
-			"It took %s to load a page of %v items. Total number of items downloaded so far: %d\n",
-			time.Since(getStartTime), len(getResp.GetItems()), numDownloadedLogItems)
+
+		spinner.Interrupt(fmt.Sprintf(
+			"It took %s to load a page of %v items. Total number of items downloaded so far: %d",
+			time.Since(getStartTime), len(getResp.GetItems()), numDownloadedLogItems))
+
 		for _, item := range getResp.GetItems() {
 			totalLogItemSize += uint64(proto.Size(item))
 			blob := item.GetBlobPayload()
 			if blob != nil {
-				writeBlob(blob, dir)
+				writeBlob(blob, dir, spinner)
 			}
+			// Clear the blob payload from the item before it's written as textproto below,
+			// to avoid duplicating large binary payloads in the metadata files.
 			item.BlobPayload = nil
 		}
 
@@ -186,12 +270,13 @@ func getLogsFromCloud(ctx context.Context, eventSource string, dir string) error
 		getResp.NextPageCursor = nil
 		getResp.NextPageCursorExpiry = nil
 		if err = os.WriteFile(p, []byte(prototext.Format(getResp)), 0o644); err != nil {
+			spinner.Stop("")
 			return errors.Wrapf(err, "os.WriteFile of response to %s", p)
 		}
 		if len(nextPageCursor) == 0 {
 			break
 		}
-		fmt.Println("Downloading next page...")
+		spinner.UpdateMessage("Downloading next page...")
 		getReq = &dpb.GetCloudLogItemsRequest{
 			Query: &dpb.GetCloudLogItemsRequest_Cursor{
 				Cursor: nextPageCursor,
@@ -201,7 +286,8 @@ func getLogsFromCloud(ctx context.Context, eventSource string, dir string) error
 			OrganizationId:     orgID,
 		}
 	}
-	fmt.Printf("Download complete. Total number of items: %d. Total size: %d bytes\n", numDownloadedLogItems, totalLogItemSize)
+
+	spinner.Stop(color.C.Green().Sprintf("Download complete. Total number of items: %d. Total size: %d bytes", numDownloadedLogItems, totalLogItemSize))
 	return nil
 }
 
@@ -210,33 +296,46 @@ var logsCpCmd = &cobra.Command{
 	Short: "Copies recently logged blobs & logs to a local folder",
 	Long:  "Copies recently logged blobs & logs to a local folder",
 	Args:  cobra.ExactArgs(2),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		startTime := time.Now()
 		defer func() {
-			fmt.Printf("Download took %s\n", time.Since(startTime))
+			if err == nil {
+				if !flagQuiet {
+					color.C.Green().Fprintf(cmd.OutOrStdout(), "Download took %s\n", time.Since(startTime))
+				} else {
+					fmt.Fprintf(cmd.OutOrStdout(), "Download took %s\n", time.Since(startTime))
+				}
+			}
 		}()
 
-		if !flagQuiet {
-			fmt.Fprintln(os.Stderr, "Reminder: this command retrieves logs that were recorded using a best effort pipeline.")
-			fmt.Fprintln(os.Stderr, "For more information about log retention, please review https://flowstate.intrinsic.ai/docs/operate/store_transmit_and_access_data/structured_logging/overview/#data-flow .")
-			fmt.Fprintln(os.Stderr, "If your use case has stricter requirements about reliability, we recommend using the Recordings feature, documented at https://flowstate.intrinsic.ai/docs/operate/store_transmit_and_access_data/structured_logging/solution_recordings/")
-			fmt.Fprintln(os.Stderr, "Pass --quiet to suppress this notice.")
-		}
-
-		if flagContext == "minikube" && !flagUseLocalhost {
-			fmt.Printf("Context is set to \"minikube\". Setting --use_localhost.\n")
-			flagUseLocalhost = true
-		}
-
 		ctx := cmd.Context()
-		if err := os.MkdirAll(args[1], os.ModePerm); err != nil {
+		if err = os.MkdirAll(args[1], os.ModePerm); err != nil {
 			return errors.Wrapf(err, "os.MkdirAll %s", args[1])
 		}
 
 		if flagHistoric {
-			return getLogsFromCloud(ctx, args[0], args[1])
+			if !flagQuiet {
+				color.C.Cyan().Fprintf(cmd.OutOrStdout(), "Pulling logs from the Cloud...\n")
+				color.C.Yellow().Fprintf(cmd.ErrOrStderr(), "Reminder: this command retrieves logs that were recorded using a best effort pipeline.\n")
+				color.C.Yellow().Fprintf(cmd.ErrOrStderr(), "For more information about log retention, please review https://flowstate.intrinsic.ai/docs/operate/store_transmit_and_access_data/structured_logging/overview/#data-flow .\n")
+				color.C.Yellow().Fprintf(cmd.ErrOrStderr(), "If your use case has stricter requirements about reliability, we recommend using the Recordings feature, documented at https://flowstate.intrinsic.ai/docs/operate/store_transmit_and_access_data/structured_logging/solution_recordings/\n")
+				color.C.Yellow().Fprintf(cmd.ErrOrStderr(), "Pass --quiet to suppress this notice.\n")
+			}
+			err = getLogsFromCloud(ctx, cmd, args[0], args[1])
+			return err
 		}
-		return getLogsOnprem(ctx, args[0], args[1])
+
+		if !flagQuiet {
+			color.C.Green().Fprintf(cmd.OutOrStdout(), "Pulling logs from the local IPC...\n")
+		}
+		err = getLogsOnprem(ctx, cmd, args[0], args[1])
+		if err != nil {
+			if !flagQuiet {
+				color.C.Yellow().Fprintf(cmd.ErrOrStderr(), "Warning: Failed to connect to IPC. The IPC may be offline or connectivity is bad. Try pulling historic logs instead using --historic.\n")
+			}
+			return err
+		}
+		return nil
 	},
 }
 
@@ -244,10 +343,12 @@ func init() {
 	showLogs.AddCommand(logsCpCmd)
 	logsCpCmd.Flags().DurationVar(&flagLookBack, "lookback", defaultLookback, "The time window to copy logs from")
 	logsCpCmd.Flags().StringVarP(&flagContext, "context", "c", "", "The Kubernetes cluster to use.")
-	logsCpCmd.Flags().BoolVar(&flagUseLocalhost, "use_localhost", false, "Connect to localhost instead of using SSH to connecting to the cluster.")
 	logsCpCmd.Flags().BoolVar(&flagHistoric, "historic", false, "Uses the cloud to fetch historical logs.")
 	logsCpCmd.Flags().StringVar(&flagHistoricStartTimestamp, "historic_start_timestamp", "", "Start timestamp in RFC3339 format for fetching historical logs. eg. 2024-08-20T12:00:00Z")
 	logsCpCmd.Flags().StringVar(&flagHistoricEndTimestamp, "historic_end_timestamp", "", "End timestamp in RFC3339 format for fetching historical logs. eg. 2024-08-20T12:00:00Z")
 	logsCpCmd.Flags().BoolVarP(&flagQuiet, "quiet", "q", false, "Suppress the best-effort pipeline reminder message")
 	logsCpCmd.MarkFlagRequired("context")
+
+	logsCpCmd.MarkFlagsRequiredTogether("historic", "historic_start_timestamp", "historic_end_timestamp")
+	logsCpCmd.MarkFlagsMutuallyExclusive("historic", "lookback")
 }

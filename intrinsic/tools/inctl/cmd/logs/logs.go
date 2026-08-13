@@ -48,8 +48,7 @@ const (
 )
 
 var (
-	flagContext      string
-	flagUseLocalhost bool
+	flagContext string
 )
 
 var (
