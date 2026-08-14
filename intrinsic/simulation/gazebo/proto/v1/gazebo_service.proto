@@ -1,0 +1,116 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.simulation.v1;
+
+// GazeboService defines the API for clients to initialize a connection with
+// Gazebo and introspect Gz Transport topics and services with metadata.
+service GazeboService {
+  // Returns connection information to set up a Gz Transport relay to this
+  // Gazebo server. See the `GazeboClient` class in the Gazebo client library
+  // for more details.
+  rpc GetIPForTransportRelay(GetIPRequest) returns (GetIPResponse) {}
+
+  // Get the topics currently advertised in the sim server.
+  // Only topics associated with model-scope or world-scope System plugins, and
+  // topics associated with sensors will be returned. In particular, topics
+  // advertised by the sim server itself will not be returned. Clients should
+  // avoid publishing/ calling Gz Transport services directly on topics
+  // advertised by the sim server itself. Instead, use platform APIs to control
+  // process execution.
+  rpc ListTopics(ListTopicsRequest) returns (Topics) {}
+}
+
+message GetIPRequest {}
+
+message GetIPResponse {
+  // The IP address of the Gazebo node in the cluster.
+  string ip_address = 1;
+
+  // The Gz Transport partition on which Gazebo is publishing.
+  string partition = 2;
+}
+
+enum TopicEntityTypeFilter {
+  TOPIC_ENTITY_TYPE_FILTER_UNSPECIFIED = 0;
+  ALL = 1;
+  // Topics associated with plugins attached to a model.
+  MODELS = 2;
+  // Topics associated with sensors.
+  SENSORS = 3;
+}
+
+message ListTopicsRequest {
+  // If specified, only topics associated with System plugins or sensors
+  // attached to this object will be listed.
+  // If not specified, all topics, both associated with objects as well as with
+  // world-scope System plugins will be returned.
+  optional string object_name = 1;
+  // Optionally, filter topics by entity type. Default is ALL.
+  TopicEntityTypeFilter entity_type_filter = 2;
+}
+
+// Metadata for a Gz Transport topic in Gazebo simulation.
+message TopicInfo {
+  // Information about the object to which this topic belongs.
+  message ObjectInfo {
+    string name = 1;
+  }
+  // See https://sdformat.org/spec/1.12/sensor/ for detailed explanation.
+  message SensorInfo {
+    string name = 1;
+    string type = 2;
+    bool is_trigger_topic = 3;
+    int64 update_rate = 4;
+  }
+  // See https://sdformat.org/spec/1.12/model/#include_plugin for detailed
+  // explanation.
+  message PluginInfo {
+    string name = 1;
+    string filename = 2;
+  }
+  // See https://sdformat.org/spec/1.12/joint/ for detailed explanation.
+  message JointInfo {
+    string name = 1;
+    // Will be either 0 or 1 if set. If unset, the topic is not associated with
+    // a particular joint axis.
+    optional uint32 axis_index = 2;
+  }
+  // Fully qualified topic name.
+  string topic_name = 1;
+  // Object info, only specified if the topic is associated with a specific
+  // object. If not set, plugin_info.name identifies the world plugin with
+  // which the topic is associated.
+  optional ObjectInfo object_info = 2;
+  // Sensor info, only specified if the topic is associated with a sensor.
+  optional SensorInfo sensor_info = 3;
+  // Plugin info, only specified if the topic is associated with a plugin.
+  optional PluginInfo plugin_info = 4;
+  // Joint info, only specified if the topic is associated with a joint.
+  optional JointInfo joint_info = 5;
+  // Whether the topic is advertised by the sim server. If false, the topic is
+  // subscribed by the sim server.
+  bool is_sim_server_advertised = 6;
+  // Whether the topic is associated with a Gz Transport Service. If false, it
+  // is a Gz Transport pubsub topic.
+  bool is_service_topic = 7;
+  // Additional server-implementation specific metadata about this topic.
+  string metadata = 8;
+}
+
+message Topics {
+  repeated TopicInfo topics = 1;
+}

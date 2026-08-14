@@ -71,3 +71,32 @@ py_grpc_library(
     grpc_library = requirement("grpcio"),
     deps = [":simulation_service_py_pb2"],
 )
+
+# intrinsic:gazebo_client:strip_begin
+proto_library(
+    name = "simulator_world_sync_proto",
+    srcs = [
+        "simulator_world_sync.proto",
+    ],
+    deps = [
+        "//intrinsic/math/proto:pose_proto",
+        "//third_party/ros2/ros_interfaces/jazzy/sensor_msgs/msg:joint_state_proto",
+        "//third_party/ros2/ros_interfaces/jazzy/tf2_msgs/msg:tf_message_proto",
+        "@com_google_googleapis//google/rpc:status_proto",
+        "@com_google_protobuf//:empty_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "simulator_world_sync_cc_proto",
+    deps = [":simulator_world_sync_proto"],
+)
+
+cc_grpc_library(
+    name = "simulator_world_sync_cc_grpc_proto",
+    srcs = [":simulator_world_sync_proto"],
+    generate_mocks = True,
+    grpc_only = True,
+    deps = [":simulator_world_sync_cc_proto"],
+)
+# intrinsic:gazebo_client:strip_end

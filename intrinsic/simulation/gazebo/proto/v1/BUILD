@@ -12,29 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@com_github_grpc_grpc//bazel:cc_grpc_library.bzl", "cc_grpc_library")
+load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
+load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 
-# Simulation tools built on top of Gazebo simulation engine.
 package(default_visibility = ["//visibility:public"])
 
-cc_library(
-    name = "type_conversion",
-    srcs = ["type_conversion.cc"],
-    hdrs = ["type_conversion.h"],
-    deps = [
-        "//intrinsic/eigenmath",
-        "//intrinsic/math:pose3",
-        "//intrinsic/util/status:status_builder",
-        "@abseil-cpp//absl/status:statusor",
-        "@gz-math",
-    ],
+proto_library(
+    name = "gazebo_service_proto",
+    srcs = ["gazebo_service.proto"],
 )
 
-# intrinsic:gazebo_client:strip_begin
-
-cc_library(
-    name = "gz_topic_constants",
-    hdrs = ["gz_topic_constants.h"],
+cc_proto_library(
+    name = "gazebo_service_cc_proto",
+    deps = [":gazebo_service_proto"],
 )
 
-# intrinsic:gazebo_client:strip_end
+cc_grpc_library(
+    name = "gazebo_service_cc_grpc_proto",
+    srcs = [":gazebo_service_proto"],
+    generate_mocks = True,
+    grpc_only = True,
+    deps = [":gazebo_service_cc_proto"],
+)
