@@ -25,6 +25,7 @@ import (
 
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/accounts/accounts"
+	"intrinsic/tools/inctl/util/agents"
 	"intrinsic/tools/inctl/util/cobrautil"
 	"intrinsic/tools/inctl/util/printer"
 
@@ -100,6 +101,7 @@ var removeUser = &cobra.Command{
 	Short: "Remove a user from an organization by email address.",
 	Long:  removeUserHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		agents.CheckAndExit(cmd)
 		org, err := processOrgFlag()
 		if err != nil {
 			return err

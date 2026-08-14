@@ -24,6 +24,7 @@ import (
 
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/accounts/accounts"
+	"intrinsic/tools/inctl/util/agents"
 	"intrinsic/tools/inctl/util/cobrautil"
 	"intrinsic/tools/inctl/util/printer"
 
@@ -78,6 +79,7 @@ var createInvitationCmd = &cobra.Command{
 }
 
 func runCreateInvitation(cmd *cobra.Command, args []string) error {
+	agents.CheckAndExit(cmd)
 	org, err := processOrgFlag()
 	if err != nil {
 		return err
