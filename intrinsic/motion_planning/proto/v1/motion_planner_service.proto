@@ -55,7 +55,7 @@ message MotionPlannerFlags {
   // produced at path refinement is validated against the settings (joint
   // limits, collision, uniform path constraints) of the motion segment it has
   // originated from. See go/intrinsic-topp-validation-step for details.
-  bool enable_path_refinement_validation_step = 5;
+  optional bool enable_path_refinement_validation_step = 5;
 
   // If enable_path_refinement_validation_step==true, we validate the final
   // trajectory using slightly relaxed collision margins. For each margin, we
@@ -66,50 +66,50 @@ message MotionPlannerFlags {
   // (2) max(0, margin - path_refinement_validation_margin_absolute_factor)
   //
   // We use the _minimum_ of the above 2 candidates.
-  double path_refinement_validation_margin_relative_factor = 6;
+  optional double path_refinement_validation_margin_relative_factor = 6;
 
   // See comment for `path_refinement_validation_margin_relative_factor`.
-  double path_refinement_validation_margin_absolute_factor = 7;
+  optional double path_refinement_validation_margin_absolute_factor = 7;
   // Enables the Debug Mode of the motion planner. In Debug Mode, the
   // motion planner will fill-in and/or publish (via `PubSub`) additional
   // information regarding statistics (e.g. timing statistics) of some of the
   // motion planning computations for debugging and/or Quality Assurance (QA)
   // monitoring (e.g. to monitor software regressions).
-  bool enable_motion_planning_debug_mode = 12;
+  optional bool enable_motion_planning_debug_mode = 12;
 
   // Enables the collection of collision checking statistics for the motion
   // planner.
-  bool enable_distance_check_statistics = 13;
+  optional bool enable_distance_check_statistics = 13;
 
   // Enables using a multithreaded `ConcurrentProxy` for edge validation in path
   // planning.
-  bool enable_concurrent_collision_checking = 14;
+  optional bool enable_concurrent_collision_checking = 14;
 
   // If `enable_concurrent_collision_checking == true`, then this flag controls
   // how many threads to use for multithreading.
-  int32 concurrent_collision_checking_thread_count = 15;
+  optional int32 concurrent_collision_checking_thread_count = 15;
 
   // Address of the parameterization service. This is used to create a channel
   // to the parameterization service, get a stub and construct a
   // parameterization client, used to solve parameterization problems required
   // by the jerk-limited algorithm.
-  string parameterization_service_address = 16;
+  optional string parameterization_service_address = 16;
 
   // If true: if output trajectory fails refinement validation, we generate a
   // new trajectory with reduced joint blending tightness and try again. If
   // false, we return the refinement validation error.
-  bool enable_fallback_trajectory = 17;
+  optional bool enable_fallback_trajectory = 17;
 
   // Applies only when `enable_fallback_trajectory == true`.
   // If true: if the output trajectory fails refinement validation, we generate
   // a new trajectory by locally tightening the joint blending only around
   // waypoints that are close to collisions. If false, we tighten the blending
   // radius across all waypoints.
-  bool enable_fallback_trajectory_local_adjust = 18;
+  optional bool enable_fallback_trajectory_local_adjust = 18;
   // This is the collision check spacing (specified in radians) used for
   // collision checking motions. This can be overridden in
   // `MotionPlannerConfiguration`.
-  double default_collision_check_spacing = 19;
+  optional double default_collision_check_spacing = 19;
 }
 
 message MotionPlannerServiceConfig {
