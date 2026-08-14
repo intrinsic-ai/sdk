@@ -54,9 +54,12 @@ ABSL_FLAG(std::string, motion_planner_service_address,
           "motion-planner-service.app-intrinsic-app-chart.svc.cluster.local:"
           "8080",
           "gRpc target for the motion planner service");
+// Deprecated: gRPC target for the skill registry service.
+// This flag is a no-op and only kept to maintain compatibility with deployment
+// templates that still pass it.
 ABSL_FLAG(std::string, skill_registry_service_address,
           "skill-registry.app-intrinsic-app-chart.svc.cluster.local:8080",
-          "gRpc target for the skill registry service");
+          "gRPC target for the skill registry service (deprecated/no-op)");
 ABSL_FLAG(int32_t, grpc_connect_timeout_secs,
           absl::ToInt64Seconds(kGrpcClientConnectDefaultTimeout),
           "Time to wait for other grpc services to become available.");
@@ -108,7 +111,6 @@ int main(int argc, char** argv) {
       absl::GetFlag(FLAGS_world_service_address),
       absl::GetFlag(FLAGS_geometry_service_address),
       absl::GetFlag(FLAGS_motion_planner_service_address),
-      absl::GetFlag(FLAGS_skill_registry_service_address),
       absl::GetFlag(FLAGS_port),
       absl::Seconds(absl::GetFlag(FLAGS_grpc_connect_timeout_secs)),
       skill_factory))

@@ -457,6 +457,7 @@ SkillExecutorServiceImpl::SkillExecutorServiceImpl(
       world_service_channel_(std::move(world_service_channel)),
       object_world_service_(std::move(object_world_service)),
       motion_planner_service_(std::move(motion_planner_service)),
+
       request_watcher_(request_watcher),
       message_factory_(google::protobuf::MessageFactory::generated_factory()) {}
 

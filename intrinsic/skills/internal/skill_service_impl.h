@@ -318,6 +318,7 @@ class SkillExecutorServiceImpl
       std::shared_ptr<ObjectWorldService::StubInterface> object_world_service,
       std::shared_ptr<MotionPlannerService::StubInterface>
           motion_planner_service,
+
       RequestWatcher* request_watcher = nullptr);
 
   ~SkillExecutorServiceImpl() override;
@@ -360,6 +361,7 @@ class SkillExecutorServiceImpl
   std::shared_ptr<grpc::Channel> world_service_channel_;
   std::shared_ptr<ObjectWorldService::StubInterface> object_world_service_;
   std::shared_ptr<MotionPlannerService::StubInterface> motion_planner_service_;
+
   RequestWatcher* request_watcher_;
 
   absl::Mutex message_mutex_;

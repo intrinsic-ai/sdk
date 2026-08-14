@@ -73,6 +73,7 @@ class ExecuteContextImpl : public ExecuteContext {
   SkillLoggingContext logging_context_;
   motion_planning::MotionPlannerClient motion_planner_;
   world::ObjectWorldClient object_world_;
+
   std::shared_ptr<grpc::Channel> world_service_channel_;
 };
 

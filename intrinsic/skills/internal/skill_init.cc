@@ -37,7 +37,6 @@
 #include "intrinsic/connect/cc/grpc/channel.h"
 #include "intrinsic/logging/data_logger_client.h"
 #include "intrinsic/motion_planning/proto/v1/motion_planner_service.grpc.pb.h"
-#include "intrinsic/skills/internal/skill_registry_client.h"
 #include "intrinsic/skills/internal/skill_repository.h"
 #include "intrinsic/skills/internal/skill_service_impl.h"
 #include "intrinsic/skills/proto/skill_service_config.pb.h"
@@ -72,7 +71,6 @@ absl::Status SkillInit(
     absl::string_view world_service_address,
     absl::string_view geometry_service_address,
     absl::string_view motion_planner_service_address,
-    absl::string_view skill_registry_service_address,
     int32_t skill_service_port, absl::Duration connection_timeout,
     SkillRepository& skill_repository) {
   // Start DataLogger if the endpoint is configured by flags. Do not fail if
@@ -100,11 +98,6 @@ absl::Status SkillInit(
       CreateMotionPlannerServiceStub(motion_planner_service_address,
                                      connection_timeout));
 
-  // Set up the skill registry client.
-  INTR_ASSIGN_OR_RETURN(
-      std::unique_ptr<SkillRegistryClient> skill_registry_client,
-      CreateSkillRegistryClient(skill_registry_service_address));
-
   SkillProjectorServiceImpl project_service(
       skill_repository,
       object_world_service, motion_planner_service);
@@ -112,6 +105,7 @@ absl::Status SkillInit(
       skill_repository,
       world_service_channel, object_world_service,
       motion_planner_service
+
   );
 
   std::string server_address = absl::StrCat("0.0.0.0:", skill_service_port);

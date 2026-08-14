@@ -60,11 +60,13 @@ _GEOMETRY_SERVICE_ADDRESS = flags.DEFINE_string(
     "geomservice.app-intrinsic-base.svc.cluster.local:8080",
     "gRPC target for the Geometry service",
 )
+# Deprecated: gRPC target for the skill registry service.
+# This flag is a no-op and only kept to maintain compatibility with deployment
+# templates that still pass it.
 _SKILL_REGISTRY_SERVICE_ADDRESS = flags.DEFINE_string(
     "skill_registry_service_address",
     "skill-registry.app-intrinsic-app-chart.svc.cluster.local:8080",
-    "gRPC target for the skill registry service. (deprecated, present to match"
-    " cpp skill service)",
+    "gRPC target for the skill registry service (deprecated/no-op)",
 )
 _GRPC_CONNECT_TIMEOUT = flags.DEFINE_integer(
     "grpc_connect_timeout_secs",

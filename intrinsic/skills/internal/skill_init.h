@@ -48,7 +48,6 @@ absl::Status SkillInit(
     absl::string_view world_service_address,
     absl::string_view geometry_service_address,
     absl::string_view motion_planner_service_address,
-    absl::string_view skill_registry_service_address,
     int32_t skill_service_port, absl::Duration connection_timeout,
     SkillRepository& skill_repository);
 
