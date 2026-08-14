@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@aspect_rules_js//npm:defs.bzl", "npm_package")
+load("@aspect_rules_js//npm:defs.bzl", "npm_package", "stamped_package_json")
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 
@@ -24,11 +24,16 @@ copy_file(
     out = "LICENSE",
 )
 
-npm_package(
+stamped_package_json(
     name = "package",
+    stamp_var = "STABLE_SEMVER",
+)
+
+npm_package(
+    name = "types_package",
     srcs = [
-        "package.json",
         ":license",
+        ":package",
         "//intrinsic/assets/proto/v1:asset_configuration_jspb_proto",
         "//intrinsic/executive/proto:blackboard_service_jspb_proto",
         "//intrinsic/executive/proto:executive_service_jspb_proto",
@@ -53,8 +58,9 @@ npm_package(
 
 pkg_tar(
     name = "intrinsic-ai-types",
-    srcs = [":package"],
+    srcs = [":types_package"],
     extension = "tgz",
+    strip_prefix = "types_package",
 )
 
 alias(
