@@ -30,11 +30,7 @@ cc_library(
     ],
 )
 
-# intrinsic:gazebo_client:strip_begin
-
 cc_library(
     name = "gz_topic_constants",
     hdrs = ["gz_topic_constants.h"],
 )
-
-# intrinsic:gazebo_client:strip_end
