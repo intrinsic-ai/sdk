@@ -132,6 +132,10 @@ message MotionPlannerServiceConfig {
   int32 geometry_service_cache_size = 10;
   bool enable_motion_planning_inspector = 11;
   bool save_debug_data = 12;
+
+  // If true, creates a recording for all motion planning calls.
+  // If false (default), restricts automated recordings to only failed plans.
+  optional bool log_all_recordings = 13;
 }
 
 message MotionPlanningRequest {
