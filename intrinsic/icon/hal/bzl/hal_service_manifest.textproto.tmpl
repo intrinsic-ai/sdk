@@ -67,6 +67,7 @@ service_def {
         name: "etherlab"
         host_path {
           path: "/dev/EtherCAT0"
+          type: HOST_PATH_VOLUME_SOURCE_TYPE_CHAR_DEVICE # Required so that no directory is created by k8s if the device is not available.
         }
       }
       {{- end }}
