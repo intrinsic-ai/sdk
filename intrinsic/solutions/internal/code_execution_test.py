@@ -459,6 +459,31 @@ class PythonScriptTest(absltest.TestCase):
         """,
     )
 
+  def test_python_script_create_from_proto_with_file_descriptor_set_no_params(
+      self,
+  ):
+    proto = text_format.Parse(
+        """
+        python_code {
+          function_body: "  output = None\\n  return output"
+        }
+        file_descriptor_set {
+          file {
+            name: "node.proto"
+            package: "gen.default_pkg"
+            syntax: "proto3"
+          }
+        }
+        """,
+        code_execution_pb2.CodeExecution(),
+    )
+
+    script = code_execution.create_from_proto(proto)
+
+    self.assertIsInstance(script, code_execution.PythonScript)
+    # Verify roundtrip is lossless
+    compare.assertProto2Equal(self, script.proto, proto)
+
 
 class GetFunctionBodyAsStrTest(absltest.TestCase):
 

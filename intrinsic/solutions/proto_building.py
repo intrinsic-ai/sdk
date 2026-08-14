@@ -303,13 +303,11 @@ class Signature:
         )
       self.file_descriptor_set = file_descriptor_set
     else:
-      if file_descriptor_set is not None and file_descriptor_set.file:
-        raise ValueError(
-            "'file_descriptor_set' non-empty but neither"
-            " 'parameter_message_full_name' nor"
-            " 'return_value_message_full_name' is set"
-        )
-      self.file_descriptor_set = descriptor_pb2.FileDescriptorSet()
+      self.file_descriptor_set = (
+          file_descriptor_set
+          if file_descriptor_set is not None
+          else descriptor_pb2.FileDescriptorSet()
+      )
     self.parameter_message_full_name = parameter_message_full_name
     self.return_value_message_full_name = return_value_message_full_name
 
