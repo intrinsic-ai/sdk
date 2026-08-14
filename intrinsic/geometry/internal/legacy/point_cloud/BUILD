@@ -16,7 +16,9 @@
 
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
-package(default_visibility = ["//intrinsic/geometry:__subpackages__"])
+package(default_visibility = [
+    "//intrinsic/geometry:__subpackages__",
+])
 
 exports_files(
     srcs = [
@@ -48,7 +50,9 @@ cc_library(
     name = "pts_to_ai_scene",
     srcs = ["pts_to_ai_scene.cc"],
     hdrs = ["pts_to_ai_scene.h"],
-    visibility = ["//intrinsic/geometry/internal/legacy:__subpackages__"],
+    visibility = [
+        "//intrinsic/geometry/internal/legacy:__subpackages__",
+    ],
     deps = [
         "//intrinsic/eigenmath",
         "//intrinsic/geometry/shapes",

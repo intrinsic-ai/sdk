@@ -25,7 +25,9 @@ cc_library(
         "@platforms//cpu:x86_64": ["-frounding-math"],
         "//conditions:default": [],
     }),
-    visibility = ["//intrinsic/geometry:__subpackages__"],
+    visibility = [
+        "//intrinsic/geometry:__subpackages__",
+    ],
     deps = [
         "//intrinsic/geometry/internal/legacy/mesh",
         "//intrinsic/geometry/internal/legacy/mesh:concatenate_meshes",
@@ -131,7 +133,9 @@ cc_library(
         "@platforms//cpu:x86_64": ["-frounding-math"],
         "//conditions:default": [],
     }),
-    visibility = ["//intrinsic/geometry/internal/legacy/utils:__pkg__"],
+    visibility = [
+        "//intrinsic/geometry/internal/legacy/utils:__pkg__",
+    ],
     deps = [
         "//intrinsic/geometry/api:material",
         "//intrinsic/geometry/internal/legacy/mesh",

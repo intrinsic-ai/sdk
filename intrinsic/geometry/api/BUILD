@@ -345,10 +345,10 @@ cc_library(
         "//conditions:default": [],
     }),
     deps = [
+        ":apply_material_properties",
         ":geometry",
         ":material_properties",
         ":renderable",
-        "//intrinsic/geometry/api:apply_material_properties",
         "//intrinsic/geometry/internal/legacy/utils:export_as_gltf",
         "//intrinsic/util/status:ret_check",
         "//intrinsic/util/status:status_macros",
