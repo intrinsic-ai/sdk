@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" Intrinsic package geometry/legacy/point_cloud. """
+""" Intrinsic package geometry/internal/legacy/point_cloud. """
 
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
@@ -35,11 +35,6 @@ cc_library(
     name = "get_bounding_box_from_point_cloud",
     srcs = ["get_bounding_box_from_point_cloud.cc"],
     hdrs = ["get_bounding_box_from_point_cloud.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
     deps = [
         "//intrinsic/geometry/api:axis_aligned_bounding_box_3d",
         "//intrinsic/geometry/shapes",
@@ -51,7 +46,7 @@ cc_library(
     srcs = ["pts_to_ai_scene.cc"],
     hdrs = ["pts_to_ai_scene.h"],
     visibility = [
-        "//intrinsic/geometry/internal/legacy:__subpackages__",
+        "//intrinsic/geometry:__subpackages__",
     ],
     deps = [
         "//intrinsic/eigenmath",
@@ -85,11 +80,6 @@ cc_library(
     name = "point_cloud_riegeli_coder",
     srcs = ["point_cloud_riegeli_coder.cc"],
     hdrs = ["point_cloud_riegeli_coder.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
     deps = [
         "//intrinsic/eigenmath",
         "//intrinsic/geometry/proto/v1:point_cloud_cc_proto",

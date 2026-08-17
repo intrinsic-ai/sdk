@@ -38,7 +38,7 @@
 #include "intrinsic/geometry/api/geometry.h"
 #include "intrinsic/geometry/api/geometry_options.h"
 #include "intrinsic/geometry/api/material.h"
-#include "intrinsic/geometry/compatibility/shapes.h"
+#include "intrinsic/geometry/api/shapes.h"
 #include "intrinsic/geometry/shapes/box.h"
 #include "intrinsic/geometry/shapes/capsule.h"
 #include "intrinsic/geometry/shapes/cylinder.h"
@@ -362,22 +362,19 @@ absl::StatusOr<std::optional<TransformedGeometry>> ParseGeometry(
     case ::sdf::GeometryType::BOX: {
       const auto* box_sdf = geometry.BoxShape();
       INTR_ASSIGN_OR_RETURN(const auto box_intrinsic, ParseBox(*box_sdf));
-      return compatibility::ToGeometry(box_intrinsic, material,
-                                       check_for_transparency);
+      return ToGeometry(box_intrinsic, material, check_for_transparency);
     }
     case ::sdf::GeometryType::CYLINDER: {
       const auto* cylinder_sdf = geometry.CylinderShape();
       INTR_ASSIGN_OR_RETURN(const auto cylinder_intrinsic,
                             ParseCylinder(*cylinder_sdf));
-      return compatibility::ToGeometry(cylinder_intrinsic, material,
-                                       check_for_transparency);
+      return ToGeometry(cylinder_intrinsic, material, check_for_transparency);
     }
     case ::sdf::GeometryType::SPHERE: {
       const auto* sphere_sdf = geometry.SphereShape();
       INTR_ASSIGN_OR_RETURN(const auto sphere_intrinsic,
                             ParseSphere(*sphere_sdf));
-      return compatibility::ToGeometry(sphere_intrinsic, material,
-                                       check_for_transparency);
+      return ToGeometry(sphere_intrinsic, material, check_for_transparency);
     }
     case ::sdf::GeometryType::PLANE: {
       // Infinite collision geometry is not supported.
@@ -389,15 +386,13 @@ absl::StatusOr<std::optional<TransformedGeometry>> ParseGeometry(
       const auto* capsule_sdf = geometry.CapsuleShape();
       INTR_ASSIGN_OR_RETURN(const auto capsule_intrinsic,
                             ParseCapsule(*capsule_sdf));
-      return compatibility::ToGeometry(capsule_intrinsic, material,
-                                       check_for_transparency);
+      return ToGeometry(capsule_intrinsic, material, check_for_transparency);
     }
     case ::sdf::GeometryType::ELLIPSOID: {
       const auto* ellipsoid_sdf = geometry.EllipsoidShape();
       INTR_ASSIGN_OR_RETURN(const auto ellipsoid_intrinsic,
                             ParseEllipsoid(*ellipsoid_sdf));
-      return compatibility::ToGeometry(ellipsoid_intrinsic, material,
-                                       check_for_transparency);
+      return ToGeometry(ellipsoid_intrinsic, material, check_for_transparency);
     }
     case ::sdf::GeometryType::MESH: {
       const auto* mesh_sdf = geometry.MeshShape();
@@ -414,8 +409,8 @@ absl::StatusOr<std::optional<TransformedGeometry>> ParseGeometry(
 
       INTR_ASSIGN_OR_RETURN(
           auto geo,
-          compatibility::ToGeometry(mesh_intrinsic, material,
-                                    check_for_transparency, geo_options),
+          ToGeometry(mesh_intrinsic, material, check_for_transparency,
+                     geo_options),
           _ << absl::Substitute("Please validate mesh file '$0'",
                                 mesh_sdf->FilePath()));
       if (auto mesh = geo.shape().GetExactGeometry().GetMesh(); mesh.ok()) {

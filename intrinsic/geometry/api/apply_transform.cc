@@ -29,7 +29,7 @@
 #include "intrinsic/geometry/api/geometry_options.h"
 #include "intrinsic/geometry/api/renderable.h"
 #include "intrinsic/geometry/internal/legacy/mesh/mesh.h"
-#include "intrinsic/geometry/internal/legacy/utils/export_as_gltf.h"
+#include "intrinsic/geometry/internal/util/export_as_gltf.h"
 #include "intrinsic/math/pose3.h"
 #include "intrinsic/util/object_store/object_ref.h"
 #include "intrinsic/util/object_store/object_store.h"
@@ -107,9 +107,9 @@ absl::StatusOr<Geometry> ApplyTransform(const Geometry& geo,
   std::shared_ptr<const Renderable> renderable;
   auto original_renderable = geo.GetRenderable();
   if (geo.KeepRenderableForSerialization() && original_renderable != nullptr) {
-    INTR_ASSIGN_OR_RETURN(std::string updated_glb_string,
-                          geometry_legacy::ExportAsGltf(
-                              original_renderable->GetGLBString(), ref_t_geo));
+    INTR_ASSIGN_OR_RETURN(
+        std::string updated_glb_string,
+        ExportAsGltf(original_renderable->GetGLBString(), ref_t_geo));
     renderable = std::make_shared<Renderable>(std::move(updated_glb_string));
   }
 

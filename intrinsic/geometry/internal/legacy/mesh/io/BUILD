@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" Intrinsic package geometry/legacy/mesh/io. """
+""" Intrinsic package geometry/internal/legacy/mesh/io. """
 
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
@@ -20,11 +20,6 @@ cc_library(
     name = "ai_scene_to_mesh",
     srcs = ["ai_scene_to_mesh.cc"],
     hdrs = ["ai_scene_to_mesh.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
     visibility = [
         "//intrinsic/geometry:__subpackages__",
     ],
@@ -41,11 +36,6 @@ cc_library(
     name = "load_ai_scene_from_buffer",
     srcs = ["load_ai_scene_from_buffer.cc"],
     hdrs = ["load_ai_scene_from_buffer.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
     visibility = [
         "//intrinsic/geometry/api:__pkg__",
         "//intrinsic/geometry/internal/legacy/mesh:__pkg__",
@@ -68,14 +58,8 @@ cc_library(
     name = "load_ai_scene_from_file",
     srcs = ["load_ai_scene_from_file.cc"],
     hdrs = ["load_ai_scene_from_file.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
     visibility = [
         "//intrinsic/geometry/api:__pkg__",
-        "//intrinsic/geometry/compatibility:__pkg__",
         "//intrinsic/geometry/internal/legacy/mesh:__pkg__",
         "//intrinsic/geometry/internal/legacy/point_cloud:__pkg__",
     ],
@@ -98,11 +82,6 @@ cc_library(
     name = "load_mesh_from_file",
     srcs = ["load_mesh_from_file.cc"],
     hdrs = ["load_mesh_from_file.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
     visibility = [
         "//intrinsic/geometry/benchmarks:__pkg__",
         "//intrinsic/geometry/internal/distance:__pkg__",
@@ -128,13 +107,8 @@ cc_library(
     name = "mesh_to_ai_scene",
     srcs = ["mesh_to_ai_scene.cc"],
     hdrs = ["mesh_to_ai_scene.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
     visibility = [
-        "//intrinsic/geometry/internal/legacy/utils:__pkg__",
+        "//intrinsic/geometry/internal/util:__pkg__",
     ],
     deps = [
         "//intrinsic/geometry/api:material",

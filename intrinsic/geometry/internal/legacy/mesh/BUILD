@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" Intrinsic package geometry/legacy/mesh. """
+""" Intrinsic package geometry/internal/legacy/mesh. """
 
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
@@ -24,11 +24,6 @@ cc_library(
     name = "concatenate_meshes",
     srcs = ["concatenate_meshes.cc"],
     hdrs = ["concatenate_meshes.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
     deps = [
         ":mesh",
         ":remove_duplicate_vertices_from_mesh",
@@ -40,11 +35,6 @@ cc_library(
     name = "load_mesh_file_with_scale",
     srcs = ["load_mesh_file_with_scale.cc"],
     hdrs = ["load_mesh_file_with_scale.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
     deps = [
         ":mesh",
         "//intrinsic/eigenmath",
@@ -61,11 +51,6 @@ cc_library(
     name = "triangle_mesh_riegeli_coder",
     srcs = ["triangle_mesh_riegeli_coder.cc"],
     hdrs = ["triangle_mesh_riegeli_coder.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
     deps = [
         "//intrinsic/eigenmath",
         "//intrinsic/geometry/proto/v1:triangle_mesh_cc_proto",
@@ -80,11 +65,6 @@ cc_library(
     name = "memoized_mesh_from_triangle_mesh",
     srcs = ["memoized_mesh_from_triangle_mesh.cc"],
     hdrs = ["memoized_mesh_from_triangle_mesh.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
     deps = [
         ":mesh",
         ":mesh_from_triangle_mesh",
@@ -99,11 +79,6 @@ cc_library(
     name = "mesh",
     srcs = ["mesh.cc"],
     hdrs = ["mesh.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
     visibility = [
         "//intrinsic/geometry:__subpackages__",
         "//intrinsic/scene/service:__pkg__",
@@ -129,11 +104,6 @@ cc_library(
     name = "mesh_from_triangle_mesh",
     srcs = ["mesh_from_triangle_mesh.cc"],
     hdrs = ["mesh_from_triangle_mesh.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
     deps = [
         ":mesh",
         "//intrinsic/geometry/shapes",
@@ -145,11 +115,6 @@ cc_library(
     name = "mesh_primitives",
     srcs = ["mesh_primitives.cc"],
     hdrs = ["mesh_primitives.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
     visibility = [
         "//intrinsic/geometry:__subpackages__",
         "//intrinsic/scene:__subpackages__",
@@ -170,16 +135,32 @@ cc_library(
     name = "remove_duplicate_vertices_from_mesh",
     srcs = ["remove_duplicate_vertices_from_mesh.cc"],
     hdrs = ["remove_duplicate_vertices_from_mesh.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
     deps = [
         ":mesh",
         "//intrinsic/eigenmath:eigen_matrix_hash",
         "@abseil-cpp//absl/container:flat_hash_map",
         "@abseil-cpp//absl/meta:type_traits",
         "@com_gitlab_libeigen_eigen//:eigen",
+    ],
+)
+
+cc_library(
+    name = "mesh_from_primitives",
+    srcs = ["mesh_from_primitives.cc"],
+    hdrs = ["mesh_from_primitives.h"],
+    deps = [
+        ":concatenate_meshes",
+        ":mesh",
+        ":mesh_primitives",
+        "//intrinsic/geometry/api:affine_transform_of",
+        "//intrinsic/geometry/shapes",
+        "//intrinsic/geometry/shapes:geometry_shape",
+        "//intrinsic/math:pose3",
+        "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/base:core_headers",
+        "@abseil-cpp//absl/log",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
     ],
 )

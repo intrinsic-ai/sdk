@@ -27,7 +27,7 @@
 #include "intrinsic/geometry/api/apply_material_properties.h"
 #include "intrinsic/geometry/api/geometry.h"
 #include "intrinsic/geometry/api/renderable.h"
-#include "intrinsic/geometry/internal/legacy/utils/export_as_gltf.h"
+#include "intrinsic/geometry/internal/util/export_as_gltf.h"
 #include "intrinsic/util/status/ret_check.h"
 #include "intrinsic/util/status/status_macros.h"
 
@@ -37,8 +37,8 @@ absl::StatusOr<std::shared_ptr<const Renderable>> GetOrGenerateRenderable(
     const Geometry& geo) {
   std::shared_ptr<const Renderable> renderable = geo.GetRenderable();
   if (renderable == nullptr) {
-    INTR_ASSIGN_OR_RETURN(std::string glb_string, geometry_legacy::ExportAsGltf(
-                                                      geo.GetExactGeometry()));
+    INTR_ASSIGN_OR_RETURN(std::string glb_string,
+                          ExportAsGltf(geo.GetExactGeometry()));
     renderable = std::make_shared<const Renderable>(std::move(glb_string));
   }
 
@@ -68,8 +68,7 @@ GenerateRenderableForExactGeometry(
     const ExactGeometry& exact_geometry,
     const std::optional<intrinsic_proto::geometry::v1::MaterialProperties>&
         material_properties) {
-  INTR_ASSIGN_OR_RETURN(std::string glb_string,
-                        geometry_legacy::ExportAsGltf(exact_geometry));
+  INTR_ASSIGN_OR_RETURN(std::string glb_string, ExportAsGltf(exact_geometry));
   if (material_properties.has_value()) {
     INTR_ASSIGN_OR_RETURN(
         glb_string,
@@ -84,7 +83,7 @@ absl::StatusOr<Geometry> EnsureRenderableIsAvailable(Geometry geo) {
   }
 
   INTR_ASSIGN_OR_RETURN(std::string glb_string,
-                        geometry_legacy::ExportAsGltf(geo.GetExactGeometry()));
+                        ExportAsGltf(geo.GetExactGeometry()));
   auto renderable = std::make_shared<const Renderable>(std::move(glb_string));
 
   // Because we are just generating the renderable, we don't need to change the
@@ -199,9 +198,9 @@ RenderableGenerator::Finish() {
     scene.mRootNode->mMeshes[i] = i;
   }
 
-  INTR_ASSIGN_OR_RETURN(auto glb_string,
-                        geometry_legacy::ExportAiSceneAsGltf(
-                            &scene, Eigen::Matrix4d::Identity()));
+  INTR_ASSIGN_OR_RETURN(
+      auto glb_string,
+      ExportAiSceneAsGltf(&scene, Eigen::Matrix4d::Identity()));
   return std::make_shared<const Renderable>(std::move(glb_string));
 }
 

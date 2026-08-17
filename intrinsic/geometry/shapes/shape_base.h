@@ -110,7 +110,6 @@ inline const char* ToString(ShapeType shape_type) {
 }
 
 }  //  namespace shapes
-
 }  //  namespace intrinsic
 
 #endif  // INTRINSIC_GEOMETRY_SHAPES_SHAPE_BASE_H_

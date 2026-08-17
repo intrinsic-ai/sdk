@@ -91,7 +91,7 @@ cc_library(
         "//intrinsic/geometry/api:geometry",
         "//intrinsic/geometry/api:geometry_options",
         "//intrinsic/geometry/api:material",
-        "//intrinsic/geometry/compatibility:shapes",
+        "//intrinsic/geometry/api:shapes",
         "//intrinsic/geometry/shapes",
         "//intrinsic/kinematics/types:cartesian_limits",
         "//intrinsic/math:pose3",

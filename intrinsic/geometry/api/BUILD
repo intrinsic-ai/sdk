@@ -21,11 +21,6 @@ package(default_visibility = ["//visibility:public"])
 cc_library(
     name = "affine_transform_of",
     hdrs = ["affine_transform_of.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
     deps = [
         "//intrinsic/eigenmath",
         "//intrinsic/math:pose3",
@@ -35,11 +30,6 @@ cc_library(
 cc_library(
     name = "affine_transform_of_geometry",
     hdrs = ["affine_transform_of_geometry.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
     deps = [
         ":affine_transform_of",
         ":geometry",
@@ -50,11 +40,6 @@ cc_library(
     name = "apply_material_properties",
     srcs = ["apply_material_properties.cc"],
     hdrs = ["apply_material_properties.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
     deps = [
         ":material",
         ":renderable",
@@ -74,11 +59,6 @@ cc_library(
     name = "material_properties",
     srcs = ["material_properties.cc"],
     hdrs = ["material_properties.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
     deps = [
         "//intrinsic/eigenmath",
         "//intrinsic/geometry/proto/v1:material_cc_proto",
@@ -89,18 +69,18 @@ cc_library(
     name = "apply_transform",
     srcs = ["apply_transform.cc"],
     hdrs = ["apply_transform.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
+    copts = [
+        "-fexceptions",
+        "-frounding-math",
+    ],
     deps = [
         ":exact_geometry",
         ":geometry",
         ":geometry_options",
         ":renderable",
         "//intrinsic/eigenmath",
-        "//intrinsic/geometry/internal/legacy/utils:export_as_gltf",
+        "//intrinsic/geometry/internal/legacy/mesh",
+        "//intrinsic/geometry/internal/util:export_as_gltf",
         "//intrinsic/math:pose3",
         "//intrinsic/util/object_store",
         "//intrinsic/util/object_store:object_ref",
@@ -123,11 +103,6 @@ cc_library(
     name = "axis_aligned_bounding_box_3d",
     srcs = ["axis_aligned_bounding_box_3d.cc"],
     hdrs = ["axis_aligned_bounding_box_3d.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
     deps = [
         ":triangle",
         "//intrinsic/eigenmath",
@@ -145,21 +120,9 @@ cc_library(
     name = "compute_axis_aligned_bounding_box_3d",
     srcs = ["compute_axis_aligned_bounding_box_3d.cc"],
     hdrs = ["compute_axis_aligned_bounding_box_3d.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
-    visibility = [
-        "//intrinsic/scene/conversion:__pkg__",
-        "//intrinsic/scene/mesh:__pkg__",
-        "//intrinsic/scene/sdf:__pkg__",
-        "//intrinsic/scene/service:__pkg__",
-        "//intrinsic/scene/util:__pkg__",
-        "//intrinsic/scene/validate:__pkg__",
-        "//intrinsic/world/collision/util:__pkg__",
-        "//intrinsic/world/conversion/sdf:__pkg__",
-        "//intrinsic/world/util:__pkg__",
+    copts = [
+        "-fexceptions",
+        "-frounding-math",
     ],
     deps = [
         ":apply_transform",
@@ -182,18 +145,13 @@ cc_library(
     name = "exact_geometry",
     srcs = ["exact_geometry.cc"],
     hdrs = ["exact_geometry.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
     deps = [
         ":affine_transform_of",
         ":geometry_options",
         "//intrinsic/geometry/internal/legacy/mesh",
+        "//intrinsic/geometry/internal/legacy/mesh:mesh_from_primitives",
         "//intrinsic/geometry/internal/legacy/mesh:remove_duplicate_vertices_from_mesh",
         "//intrinsic/geometry/internal/legacy/point_cloud:point_cloud_riegeli_coder",
-        "//intrinsic/geometry/internal/legacy/shape:mesh_from_primitives",
         "//intrinsic/geometry/proto:mesh_cc_proto",
         "//intrinsic/geometry/shapes",
         "//intrinsic/geometry/shapes:geometry_shape",
@@ -212,11 +170,6 @@ cc_library(
     name = "geometry",
     srcs = ["geometry.cc"],
     hdrs = ["geometry.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
     deps = [
         ":exact_geometry",
         ":renderable",
@@ -234,11 +187,6 @@ cc_library(
     name = "geometry_fingerprint",
     srcs = ["geometry_fingerprint.cc"],
     hdrs = ["geometry_fingerprint.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
     deps = [
         ":exact_geometry",
         ":geometry",
@@ -256,22 +204,12 @@ cc_library(
 cc_library(
     name = "geometry_options",
     hdrs = ["geometry_options.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
 )
 
 cc_library(
     name = "io",
     srcs = ["io.cc"],
     hdrs = ["io.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
     deps = [
         ":affine_transform_of_geometry",
         ":exact_geometry",
@@ -317,42 +255,61 @@ cc_library(
 cc_library(
     name = "material",
     hdrs = ["material.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
 )
 
 cc_library(
     name = "renderable",
     srcs = ["renderable.cc"],
     hdrs = ["renderable.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
 )
 
 cc_library(
     name = "renderable_generation",
     srcs = ["renderable_generation.cc"],
     hdrs = ["renderable_generation.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
     deps = [
         ":apply_material_properties",
         ":geometry",
         ":material_properties",
         ":renderable",
-        "//intrinsic/geometry/internal/legacy/utils:export_as_gltf",
+        "//intrinsic/geometry/internal/util:export_as_gltf",
         "//intrinsic/util/status:ret_check",
         "//intrinsic/util/status:status_macros",
         "@abseil-cpp//absl/status:statusor",
+    ],
+)
+
+cc_library(
+    name = "shapes",
+    srcs = ["shapes.cc"],
+    hdrs = ["shapes.h"],
+    deps = [
+        ":affine_transform_of_geometry",
+        ":apply_material_properties",
+        ":exact_geometry",
+        ":geometry",
+        ":geometry_options",
+        ":material",
+        ":renderable",
+        "//intrinsic/eigenmath",
+        "//intrinsic/geometry/internal/legacy/mesh:load_mesh_file_with_scale",
+        "//intrinsic/geometry/internal/legacy/mesh:memoized_mesh_from_triangle_mesh",
+        "//intrinsic/geometry/internal/legacy/mesh/io:load_ai_scene_from_file",
+        "//intrinsic/geometry/internal/legacy/point_cloud:pts_to_point_cloud",
+        "//intrinsic/geometry/internal/util:export_as_gltf",
+        "//intrinsic/geometry/proto/v1:material_cc_proto",
+        "//intrinsic/geometry/shapes",
+        "//intrinsic/geometry/shapes:geometry_shape",
+        "//intrinsic/math:pose3",
+        "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/base:core_headers",
+        "@abseil-cpp//absl/log:check",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+        "@assimp",
+        "@or_tools//ortools/base:file",
+        "@or_tools//ortools/base:path",
     ],
 )
 

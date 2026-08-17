@@ -22,11 +22,6 @@ cc_library(
     name = "dummy_storage",
     srcs = ["dummy_storage.cc"],
     hdrs = ["dummy_storage.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
     deps = [
         ":geometry_deserializer",
         ":geometry_library",
@@ -46,11 +41,6 @@ cc_library(
 cc_library(
     name = "geometry_deserializer",
     hdrs = ["geometry_deserializer.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
     deps = [
         "//intrinsic/geometry/api:geometry",
         "//intrinsic/geometry/api:geometry_options",
@@ -63,11 +53,6 @@ cc_library(
 cc_library(
     name = "geometry_serializer",
     hdrs = ["geometry_serializer.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
     deps = [
         "//intrinsic/geometry/api:geometry",
         "//intrinsic/geometry/proto:geometry_storage_refs_cc_proto",
@@ -80,11 +65,10 @@ cc_library(
     name = "gzf_storage",
     srcs = ["gzf_storage.cc"],
     hdrs = ["gzf_storage.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
+    copts = [
+        "-fexceptions",
+        "-frounding-math",
+    ],
     deps = [
         ":geometry_deserializer",
         ":geometry_library",
@@ -114,11 +98,6 @@ cc_library(
     name = "in_memory_storage",
     srcs = ["in_memory_storage.cc"],
     hdrs = ["in_memory_storage.h"],
-    copts = ["-fexceptions"] + select({
-        "@platforms//cpu:x86_32": ["-frounding-math"],
-        "@platforms//cpu:x86_64": ["-frounding-math"],
-        "//conditions:default": [],
-    }),
     deps = [
         ":geometry_deserializer",
         ":geometry_library",
