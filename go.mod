@@ -71,7 +71,7 @@ require (
 	github.com/google/go-containerregistry v0.20.3
 	github.com/google/safearchive v0.0.0-20241025131057-f7ce9d7b6f9c
 	github.com/google/safehtml v0.1.0
-	github.com/google/safetext v0.0.0-20240722112252-5a72de7e7962
+	github.com/google/safetext v0.0.0-20260330151545-1fb717a317c5
 	github.com/google/subcommands v1.2.0
 	github.com/google/uuid v1.6.0
 	github.com/googleapis/gax-go/v2 v2.15.0
