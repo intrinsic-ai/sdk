@@ -372,7 +372,7 @@ func reconcileInvalidOrgConfigs(writer io.Writer, store *auth.Store, orgName str
 }
 
 func init() {
-	authCmd.AddCommand(loginCmd)
+	AuthCmd.AddCommand(loginCmd)
 
 	flags := loginCmd.Flags()
 	// we will use viper to fetch data, we do not need local variables

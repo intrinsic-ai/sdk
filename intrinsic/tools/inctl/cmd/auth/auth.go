@@ -45,7 +45,8 @@ func setPrinterFromOutputFlag(command *cobra.Command, args []string) (err error)
 	return
 }
 
-var authCmd = &cobra.Command{
+// AuthCmd is the `inctl auth` command.
+var AuthCmd = &cobra.Command{
 	Use:   "auth",
 	Short: "Manages user authorization",
 	Long:  "Manages user authorization for accessing solutions in the project.",
@@ -84,5 +85,5 @@ func newReadWriterForCmd(cmd *cobra.Command) *bufio.ReadWriter {
 }
 
 func init() {
-	root.RootCmd.AddCommand(authCmd)
+	root.RootCmd.AddCommand(AuthCmd)
 }

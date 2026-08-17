@@ -28,10 +28,10 @@ import (
 )
 
 func init() {
-	authCmd.AddCommand(printAPIKeyCmd)
+	AuthCmd.AddCommand(printAPIKeyCmd)
 	printAPIKeyCmd.Flags().MarkHidden(orgutil.KeyProject)
 
-	authCmd.AddCommand(printAccessTokenCmd)
+	AuthCmd.AddCommand(printAccessTokenCmd)
 	printAccessTokenCmd.Flags().MarkHidden(orgutil.KeyProject)
 	printAccessTokenCmd.Flags().MarkHidden(orgutil.KeyEnvironment)
 	viperutil.BindFlags(printAccessTokenParams, printAccessTokenCmd.Flags(), viperutil.BindToListEnv(orgutil.KeyEnvironment))

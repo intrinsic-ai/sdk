@@ -48,7 +48,7 @@ var listCmd = &cobra.Command{
 	`,
 	Args: cobra.NoArgs,
 	RunE: listCredentialsE,
-	// This is required because authCmd PersistentPreRunE would throw error if neither
+	// This is required because AuthCmd PersistentPreRunE would throw error if neither
 	// project nor org is set. And we want to allow listCmd to run without any flags set.
 	PersistentPreRunE: func(command *cobra.Command, _ []string) error {
 		out, err := printer.NewPrinter(root.FlagOutput)
@@ -160,7 +160,7 @@ func mapToKeysArray[K comparable, V any](in map[K]V) []K {
 }
 
 func init() {
-	authCmd.AddCommand(listCmd)
+	AuthCmd.AddCommand(listCmd)
 	listCmdFlags.SetCommand(listCmd)
 	listCmdFlags.OptionalString(keyPrefixSearch, "", "Prefix to search for in the list of credentials.")
 }

@@ -87,7 +87,7 @@ func getConfigurationName() (name string, isOrg bool) {
 }
 
 func init() {
-	authCmd.AddCommand(revokeCmd)
+	AuthCmd.AddCommand(revokeCmd)
 
 	revokeCmdFlags.SetCommand(revokeCmd)
 	revokeCmdFlags.AddFlagsProjectOrgOptional()

@@ -40,7 +40,7 @@ import (
 var printDebugInfoParams = viper.New()
 
 func init() {
-	authCmd.AddCommand(printDebugInfoCmd)
+	AuthCmd.AddCommand(printDebugInfoCmd)
 }
 
 var domains = []string{
