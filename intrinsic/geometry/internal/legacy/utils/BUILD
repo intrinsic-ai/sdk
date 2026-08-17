@@ -37,7 +37,6 @@ cc_library(
         "//intrinsic/geometry/internal/legacy/mesh",
         "//intrinsic/geometry/internal/legacy/mesh/io:mesh_to_ai_scene",
         "//intrinsic/geometry/internal/legacy/point_cloud:pts_to_ai_scene",
-        "//intrinsic/geometry/internal/legacy/renderable_info",
         "//intrinsic/util/object_store:object_ref",
         "//intrinsic/util/status:status_macros",
         "@abseil-cpp//absl/log",

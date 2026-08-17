@@ -22,7 +22,6 @@
 #include "assimp/scene.h"
 #include "intrinsic/geometry/api/exact_geometry.h"
 #include "intrinsic/geometry/api/material.h"
-#include "intrinsic/geometry/internal/legacy/renderable_info/renderable_info.h"
 
 namespace intrinsic {
 namespace geometry_legacy {
@@ -31,11 +30,6 @@ namespace geometry_legacy {
 // aiScene.
 absl::StatusOr<std::string> ExportAiSceneAsGltf(const aiScene* scene,
                                                 const Eigen::Matrix4d& trans);
-
-// Returns a string representing the serialized glb data present in the given
-// RenderableInfoData.
-absl::StatusOr<std::string> ExportAsGltf(
-    const RenderableInfoData& renderable_data);
 
 // Returns a string representing the serialized glb given data with the applied
 // transform.
