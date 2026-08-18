@@ -48,11 +48,16 @@ bool AxisAlignedBoundingBox3d::DoOverlap(
 
 bool AxisAlignedBoundingBox3d::IsDistanceSmaller(
     const AxisAlignedBoundingBox3d& other, double distance) const {
+  if (IsEmpty() || other.IsEmpty()) {
+    return false;
+  }
+  const double max_sq_dist = distance * distance;
+  double sq_dist = 0.0;
   for (int i = 0; i < 3; ++i) {
-    if (GetMin(i) > other.GetMax(i) + distance) {
-      return false;
-    }
-    if (GetMax(i) + distance < other.GetMin(i)) {
+    const double d = std::max(
+        {0.0, GetMin(i) - other.GetMax(i), other.GetMin(i) - GetMax(i)});
+    sq_dist += d * d;
+    if (sq_dist > max_sq_dist) {
       return false;
     }
   }
