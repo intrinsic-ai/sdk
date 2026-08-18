@@ -34,6 +34,7 @@ import "intrinsic/assets/scene_objects/proto/scene_object_manifest.proto";
 import "intrinsic/assets/services/proto/service_manifest.proto";
 import "intrinsic/assets/services/proto/v1/service_inspection.proto";
 import "intrinsic/skills/proto/processed_skill_manifest.proto";
+import "intrinsic/util/status/extended_status.proto";
 
 option go_package = "intrinsic/assets/proto/installed_assets_go_proto";
 
@@ -303,7 +304,11 @@ message CreateInstalledAssetRequest {
   UpdatePolicy policy = 2;
 }
 
-message CreateInstalledAssetMetadata {}
+message CreateInstalledAssetMetadata {
+  // Warnings associated with the installation of the Asset, including any
+  // associated dependency validation errors.
+  intrinsic_proto.status.ExtendedStatus warnings = 1;
+}
 
 message CreateInstalledAssetsRequest {
   message Asset {
@@ -334,7 +339,11 @@ message CreateInstalledAssetsRequest {
   UpdatePolicy policy = 2;
 }
 
-message CreateInstalledAssetsMetadata {}
+message CreateInstalledAssetsMetadata {
+  // Warnings associated with the installation of the Assets, including any
+  // associated dependency validation errors.
+  intrinsic_proto.status.ExtendedStatus warnings = 1;
+}
 
 message CreateInstalledAssetsResponse {
   // The description of the installed assets, in the order requested for
