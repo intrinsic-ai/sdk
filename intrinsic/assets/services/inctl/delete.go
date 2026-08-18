@@ -27,6 +27,8 @@ import (
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/tools/inctl/util/agents"
+	"intrinsic/tools/inctl/util/color"
+	"intrinsic/util/status/extstatus"
 
 	"github.com/spf13/cobra"
 
@@ -99,6 +101,16 @@ $ inctl service delete --project=my_project --cluster=some_cluster my_instance
 			}
 
 			log.Printf("Deleted service %q", name)
+
+			if op.GetMetadata() != nil {
+				metadata := &adpb.DeleteResourceMetadata{}
+				if err := op.GetMetadata().UnmarshalTo(metadata); err != nil {
+					log.Printf("failed to check for warnings: failed to unmarshal operation metadata: %v", err)
+				} else if metadata.GetWarnings() != nil {
+					ext := extstatus.FromProto(metadata.GetWarnings())
+					color.C.Yellow().Printf("\nWARNING: Deletion of %q succeeded with warnings:\n%v\n", name, ext)
+				}
+			}
 			return nil
 		},
 	}
