@@ -308,6 +308,34 @@ message GetCloudLogItemsResponse {
   Metadata metadata = 3;
 }
 
+/// GetCloudBlob.
+
+// A request to fetch a Blob from the cloud.
+message GetCloudBlobRequest {
+  BlobReference blob_reference = 1;
+
+  // If true, returns a signed URL to download the blob, alongside its metadata.
+  optional bool with_signed_url = 2;
+}
+
+message BlobMetadata {
+  string blob_id = 1;
+  int64 size_bytes = 2;
+  google.protobuf.Timestamp update_time = 3;
+}
+
+message GetCloudBlobResponse {
+  // Metadata for the requested blob.
+  BlobMetadata metadata = 1;
+
+  // Signed URL to download the blob with, if requested.
+  // https://cloud.google.com/storage/docs/access-control/signed-urls
+  optional string signed_url = 2;
+
+  // When the signed url is valid until.
+  optional google.protobuf.Timestamp signed_url_expiry_time = 3;
+}
+
 // Service to relay and dispatch CRUD operations on behalf of users for items
 // relating to structured logs.
 // (e.g., putting logs, uploading blobs, etc.)
@@ -337,4 +365,7 @@ service LogDispatcher {
   // cache.
   rpc GetCloudLogItems(GetCloudLogItemsRequest)
       returns (GetCloudLogItemsResponse) {}
+
+  // Fetch a Blob from the cloud.
+  rpc GetCloudBlob(GetCloudBlobRequest) returns (GetCloudBlobResponse) {}
 }
