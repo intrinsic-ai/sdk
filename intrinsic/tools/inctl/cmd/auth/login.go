@@ -304,15 +304,21 @@ func hasRequestedAccess(orgToProjects map[string][]string, org, project string) 
 func writeOrganizations(orgToProjects map[string][]string, apiKey string) error {
 	for o, ps := range orgToProjects {
 		for _, p := range ps {
-			name := o + "@" + p
-			if len(ps) == 1 {
-				name = o
-			}
+			// Always write the fully-qualified name: org@project.json
 			if err := authStore.WriteOrgInfo(&auth.OrgInfo{
-				Organization: name,
+				Organization: o + "@" + p,
 				Project:      p,
 			}); err != nil {
 				return fmt.Errorf("write org info: %w", err)
+			}
+			// For single-project orgs, also write the short-name alias: org.json
+			if len(ps) == 1 {
+				if err := authStore.WriteOrgInfo(&auth.OrgInfo{
+					Organization: o,
+					Project:      p,
+				}); err != nil {
+					return fmt.Errorf("write org info: %w", err)
+				}
 			}
 			if err := authStore.UpsertProjectConfig(p, auth.AliasDefaultToken, apiKey); err != nil {
 				return fmt.Errorf("error upserting project config: %w", err)
