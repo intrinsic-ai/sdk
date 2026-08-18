@@ -21,4 +21,4 @@ bazel_dep(name = "protobuf", version = "32.1", repo_name = "com_google_protobuf"
 bazel_dep(name = "googleapis", version = "0.0.0-20260422-20ac242a", repo_name = "com_google_googleapis")
 bazel_dep(name = "rules_go", version = "0.62.0", repo_name = "io_bazel_rules_go")
 bazel_dep(name = "rules_python", version = "1.9.2")
-bazel_dep(name = "aspect_rules_js", version = "3.2.3")
+bazel_dep(name = "aspect_rules_js", version = "3.4.0")
