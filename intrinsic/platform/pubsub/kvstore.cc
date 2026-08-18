@@ -58,10 +58,9 @@ namespace intrinsic {
 using platform::proto::WorkcellInfo;
 
 namespace {
-constexpr static absl::Duration kHighConsistencySetTimeout = absl::Seconds(30);
-constexpr static absl::Duration kHighConsistencyGetTimeout =
-    absl::Milliseconds(100);
-constexpr static absl::string_view kWorkcellInfoKey = "workcell_info";
+constexpr absl::Duration kHighConsistencySetTimeout = absl::Seconds(30);
+constexpr absl::Duration kHighConsistencyGetTimeout = absl::Milliseconds(100);
+constexpr absl::string_view kWorkcellInfoKey = "workcell_info";
 constexpr size_t kPayloadByteSizeWarningThreshold = 25 * 1024 * 1024;  // 25 MiB
 
 }  // namespace

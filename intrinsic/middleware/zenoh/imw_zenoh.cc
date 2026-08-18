@@ -1010,6 +1010,8 @@ imw_ret_t IMWZenoh::set(const char* keyexpr, const void* bytes,
 
   z_put_options_t opts;
   z_put_options_default(&opts);
+  opts.reliability = Z_RELIABILITY_RELIABLE;
+  opts.congestion_control = Z_CONGESTION_CONTROL_BLOCK;
   const int8_t result =
       z_put(z_loan(session_), z_loan(view_keyexpr), z_move(payload), &opts);
 
