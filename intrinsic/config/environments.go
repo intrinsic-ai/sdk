@@ -99,9 +99,10 @@ const (
 	ComponentsPlayground = "components-playground"
 	// VMGrafana is the Grafana instance bundled with the VictoriaMetrics migration chart, distinct from the existing Prometheus-backed Grafana so both can be reachable during the parallel-deploy transition period. See go/intrinsic-metrics-backend-migration.
 	VMGrafana = "vm-grafana"
+	Workflows = "workflows"
 )
 
-var CloudPortalInternalObservabilityServices = []string{Prometheus, Grafana, Alertmanager, VMGrafana}
+var CloudPortalInternalObservabilityServices = []string{Prometheus, Grafana, Alertmanager, VMGrafana, Workflows}
 var CloudPortalInternalComputeServices = []string{ComponentsPlayground}
 
 // FromDomain returns the environment for the given domain of portal, accounts or assets projects.
