@@ -108,6 +108,7 @@ blob_payload <
         structured_logging.StructuredLogs.LogOptions()
         .set_event_source(event_source)
         .set_max_buffer_byte_size(10)
+        .set_retain_on_disk_retention_duration(datetime.timedelta(seconds=60))
     )
     logs = structured_logging.StructuredLogs(stub)
 
@@ -124,6 +125,12 @@ blob_payload <
         .log_options[event_source]
         .max_buffer_byte_size,
         10,
+    )
+    self.assertEqual(
+        stub.SetLogOptions.call_args.args[0]
+        .log_options[event_source]
+        .retain_on_disk_retention_duration.seconds,
+        60,
     )
     # Receives the expected return value
     self.assertIsNone(result)
@@ -737,6 +744,21 @@ payload:<
     pd.testing.assert_frame_equal(joint_states, joint_state_from_part)
     pd.testing.assert_frame_equal(joint_states, joint_state_from_part_by_name)
 
+  def test_get_event_source_raises_attribute_error_on_mangled_name_collision(
+      self,
+  ):
+    stub = mock.MagicMock()
+    list_log_sources_response = logger_service_pb2.ListLogSourcesResponse()
+    list_log_sources_response.event_sources.extend(['foo.bar', 'foo-bar'])
+    stub.ListLogSources.return_value = list_log_sources_response
+
+    logs = structured_logging.StructuredLogs(stub)
+    with self.assertRaisesRegex(
+        AttributeError,
+        r'"foo_bar" matches multiple event sources',
+    ):
+      _ = logs.foo_bar
+
   def test_get_event_source(self):
     data = [
         text_format.Parse(
@@ -1307,7 +1329,7 @@ payload:<
     items = logs.robot_status.read(seconds_to_read=10)
 
     self.assertCountEqual(
-        items.my_robot.__dir__(),
+        dir(items.my_robot),
         [
             'get_joint_states',
             'get_timestamp_ns',

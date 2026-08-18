@@ -36,6 +36,8 @@ the datetime object is "aware", the conversion to google.protobuf.Timestamp will
 take it into account.
 """
 
+from __future__ import annotations
+
 from collections.abc import Iterable
 import dataclasses
 import datetime
@@ -497,8 +499,14 @@ def format_event_source(event_source: str) -> str:
 # UTC.
 @dataclasses.dataclass
 class EventSourceWindow:
-  start_time: datetime.datetime = datetime.datetime.fromtimestamp(0)
-  end_time: datetime.datetime = datetime.datetime.now(datetime.timezone.utc)
+  start_time: datetime.datetime = dataclasses.field(
+      default_factory=lambda: datetime.datetime.fromtimestamp(
+          0, tz=datetime.timezone.utc
+      )
+  )
+  end_time: datetime.datetime = dataclasses.field(
+      default_factory=lambda: datetime.datetime.now(datetime.timezone.utc)
+  )
 
 
 class EventSourceReader:
@@ -528,7 +536,7 @@ class EventSourceReader:
     """Read the last `seconds_to_read` of onprem logs for this event source.
 
     The time range to read the data can be either defined by the last seconds in
-    the past using seconds_to_read or by the start and endtime using
+    the past using seconds_to_read or by the start and end time using
     time_window.
 
     Args:
@@ -598,14 +606,14 @@ class EventSourceReader:
       filter_labels: Dictionary of label to value to filter the query.
       only_metadata: If true, payload and blob_payload will not be returned.
         Other fields like metadata and context are preserved.
-        Other fields like metadata and context are preserved.
 
     Returns:
       The DataSource for the read items.
     """
     # If the datetimes in the window are naive (i.e. do not specify a timezone),
     # we assume they are utc, and make this explicit.
-    tz_aware_window = window
+    # We create a copy to avoid mutating the caller's window object.
+    tz_aware_window = dataclasses.replace(window)
     if not _is_timezone_aware(tz_aware_window.start_time):
       tz_aware_window.start_time = _interpret_as_utc(tz_aware_window.start_time)
     if not _is_timezone_aware(tz_aware_window.end_time):
@@ -701,9 +709,7 @@ class StructuredLogs:
     def __init__(self):
       self._log_options = logger_service_pb2.LogOptions()
 
-    def set_event_source(
-        self, event_source: str
-    ) -> 'StructuredLogs.LogOptions':
+    def set_event_source(self, event_source: str) -> StructuredLogs.LogOptions:
       """Sets the event source for the log options.
 
       Args:
@@ -719,7 +725,7 @@ class StructuredLogs:
 
     def set_log_options_precedence_value(
         self, log_options_precedence_value: int
-    ) -> 'StructuredLogs.LogOptions':
+    ) -> StructuredLogs.LogOptions:
       """Sets the log options precedence value for the log options.
 
       If there are multiple log options that match a given event source,
@@ -745,38 +751,46 @@ class StructuredLogs:
       )
       return self
 
-    def set_sync_active(self, sync_active: bool) -> 'StructuredLogs.LogOptions':
+    def set_sync_active(self, sync_active: bool) -> StructuredLogs.LogOptions:
       self._log_options.sync_active = sync_active
       return self
 
     def set_max_buffer_byte_size(
         self, max_buffer_byte_size: int
-    ) -> 'StructuredLogs.LogOptions':
+    ) -> StructuredLogs.LogOptions:
       self._log_options.max_buffer_byte_size = max_buffer_byte_size
       return self
 
     def set_token_bucket_options(
         self, refresh: int, burst: int
-    ) -> 'StructuredLogs.LogOptions':
+    ) -> StructuredLogs.LogOptions:
       param = logger_service_pb2.TokenBucketOptions(
           refresh=refresh, burst=burst
       )
       self._log_options.logging_budget.CopyFrom(param)
       return self
 
-    def set_priority(self, priority: int) -> 'StructuredLogs.LogOptions':
+    def set_priority(self, priority: int) -> StructuredLogs.LogOptions:
       self._log_options.priority = priority
       return self
 
     def set_retain_on_disk(
         self, retain_on_disk: bool
-    ) -> 'StructuredLogs.LogOptions':
+    ) -> StructuredLogs.LogOptions:
       self._log_options.retain_on_disk = retain_on_disk
+      return self
+
+    def set_retain_on_disk_retention_duration(
+        self, duration: datetime.timedelta
+    ) -> StructuredLogs.LogOptions:
+      self._log_options.retain_on_disk_retention_duration.FromTimedelta(
+          duration
+      )
       return self
 
     def set_retain_buffer_on_disk(
         self, retain_buffer_on_disk: bool
-    ) -> 'StructuredLogs.LogOptions':
+    ) -> StructuredLogs.LogOptions:
       self._log_options.retain_buffer_on_disk = retain_buffer_on_disk
       return self
 
@@ -824,31 +838,51 @@ class StructuredLogs:
     #
     # Since listing event sources is expensive, we first check against the
     # cached list of event sources.
-    for source in self._cached_event_sources:
-      # We do our comparison by re-creating the mangling.
-      if format_event_source(source) == event_source:
-        try:
-          # The event source string to use for the reader must be an exact match
-          # of the event source name in the logger service.
-          event_source_reader = EventSourceReader(self._stub, source)
-          # We peek to check if the event source exists, since the cache might
-          # have gotten stale.
-          #
-          # We peek instead of listing the event sources because it is cheaper.
-          event_source_reader.peek()
-          return event_source_reader
-        except grpc.RpcError as exc:
-          logging.warning(
-              'Failed to read from event source %s: %s, refreshing event source'
-              ' cache',
-              source,
-              exc,
-          )
+    cached_matches = [
+        s
+        for s in self._cached_event_sources
+        if format_event_source(s) == event_source
+    ]
+
+    if len(cached_matches) > 1:
+      raise AttributeError(
+          f'Ambiguous event source access. The property name "{event_source}" '
+          f'matches multiple event sources: {cached_matches}. '
+          'Please use the `query()` method with the exact event source name.'
+      )
+    elif len(cached_matches) == 1:
+      source = cached_matches[0]
+      try:
+        # The event source string to use for the reader must be an exact match
+        # of the event source name in the logger service.
+        event_source_reader = EventSourceReader(self._stub, source)
+        # We peek to check if the event source exists, since the cache might
+        # have gotten stale.
+        #
+        # We peek instead of listing the event sources because it is cheaper.
+        event_source_reader.peek()
+        return event_source_reader
+      except grpc.RpcError as exc:
+        logging.warning(
+            'Failed to read from event source %s: %s, refreshing event source'
+            ' cache',
+            source,
+            exc,
+        )
 
     event_sources = self.get_event_sources()
-    for source in event_sources:
-      if format_event_source(source) == event_source:
-        return EventSourceReader(self._stub, source)
+    matches = [
+        s for s in event_sources if format_event_source(s) == event_source
+    ]
+    if len(matches) > 1:
+      raise AttributeError(
+          f'Ambiguous event source access. The property name "{event_source}" '
+          f'matches multiple event sources: {matches}. '
+          'Please use the `query()` method with the exact event source name.'
+      )
+    elif len(matches) == 1:
+      return EventSourceReader(self._stub, matches[0])
+
     raise AttributeError(
         f'Event source "{event_source}" not found. Available sources'
         f' ["{event_sources}"]'
@@ -860,7 +894,7 @@ class StructuredLogs:
     ] + _list_public_methods(self)
 
   @classmethod
-  def connect(cls, grpc_channel: grpc.Channel) -> 'StructuredLogs':
+  def connect(cls, grpc_channel: grpc.Channel) -> StructuredLogs:
     """Connect to a running data logger service.
 
     To allow retrieving large LogItems (blobs) remove the max gRPC response size
@@ -874,7 +908,7 @@ class StructuredLogs:
     """
     return cls(logger_service_pb2_grpc.DataLoggerStub(grpc_channel))
   @classmethod
-  def for_solution(cls, solution: Any) -> 'StructuredLogs':
+  def for_solution(cls, solution: Any) -> StructuredLogs:
     """Connect to the data logger service of a running solution.
 
     Args:
@@ -968,20 +1002,9 @@ class StructuredLogs:
     )
 
     ret = self._stub.GetLogOptions(log_options_request).log_options
-    return (
-        self.LogOptions()
-        .set_event_source(ret.event_source)
-        .set_log_options_precedence_value(ret.log_options_precedence_value)
-        .set_sync_active(ret.sync_active)
-        .set_max_buffer_byte_size(ret.max_buffer_byte_size)
-        .set_token_bucket_options(
-            ret.logging_budget.refresh,
-            ret.logging_budget.burst,
-        )
-        .set_priority(ret.priority)
-        .set_retain_on_disk(ret.retain_on_disk)
-        .set_retain_buffer_on_disk(ret.retain_buffer_on_disk)
-    )
+    options = self.LogOptions()
+    options.log_options.CopyFrom(ret)
+    return options
 
   @error_handling.retry_on_grpc_transient_errors
   def query(
@@ -991,6 +1014,7 @@ class StructuredLogs:
       max_num_items: int = 10000,
       filter_labels: dict[str, str] | None = None,
       only_metadata: bool = False,
+      sampling_period_ms: int = 0,
   ) -> list[log_item_pb2.LogItem]:
     """Queries the data logs.
 
@@ -1003,6 +1027,8 @@ class StructuredLogs:
         logs that match all of the provided labels will be returned.
       only_metadata: If true, payload and blob_payload will not be returned.
         Other fields like metadata and context are preserved.
+      sampling_period_ms: An optional downsampling parameter representing the
+        minimum time in milliseconds between successive samples.
 
     Returns:
       Log items from the given event source
@@ -1015,6 +1041,9 @@ class StructuredLogs:
     get_request.get_query.event_source = event_source
     get_request.get_query.start_time.FromDatetime(window_start)
     get_request.get_query.end_time.FromDatetime(now)
+    if sampling_period_ms > 0:
+      options = get_request.get_query.downsampler_options
+      options.sampling_interval_time.FromMilliseconds(sampling_period_ms)
     if filter_labels is not None:
       get_request.get_query.filter_labels.update(filter_labels)
     get_response = self._stub.GetLogItems(get_request)
@@ -1030,6 +1059,7 @@ class StructuredLogs:
       end_time: datetime.datetime,
       max_num_items: int = 10000,
       only_metadata: bool = False,
+      sampling_period_ms: int = 0,
   ) -> list[log_item_pb2.LogItem]:
     """Queries the data logs for a given time range.
 
@@ -1041,6 +1071,8 @@ class StructuredLogs:
         range.
       only_metadata: If true, payload and blob_payload will not be returned.
         Other fields like metadata and context are preserved.
+      sampling_period_ms: An optional downsampling parameter representing the
+        minimum time in milliseconds between successive samples.
 
     Returns:
       Log items from the given event source within the specified time range.
@@ -1051,6 +1083,9 @@ class StructuredLogs:
     get_request.get_query.event_source = event_source
     get_request.get_query.start_time.FromDatetime(start_time)
     get_request.get_query.end_time.FromDatetime(end_time)
+    if sampling_period_ms > 0:
+      options = get_request.get_query.downsampler_options
+      options.sampling_interval_time.FromMilliseconds(sampling_period_ms)
     get_response = self._stub.GetLogItems(get_request)
     if get_response.HasField('truncation_cause'):
       logging.warning(get_response.truncation_cause)
