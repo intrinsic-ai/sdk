@@ -33,9 +33,4 @@ filegroup(
         urls = ["https://storage.googleapis.com/intrinsic-mirror/bazel/sysroot-2025-07-22-845e86b8.tar.zst"],
     )
 
-    ################################
-    # Google OSS replacement files #
-    #      go/insrc-g3-to-oss      #
-    ################################
-
 non_module_deps_ext = module_extension(implementation = _non_module_deps_impl)
