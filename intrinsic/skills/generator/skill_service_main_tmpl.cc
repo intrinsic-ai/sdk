@@ -57,8 +57,7 @@ ABSL_FLAG(std::string, motion_planner_service_address,
 // Deprecated: gRPC target for the skill registry service.
 // This flag is a no-op and only kept to maintain compatibility with deployment
 // templates that still pass it.
-ABSL_FLAG(std::string, skill_registry_service_address,
-          "skill-registry.app-intrinsic-app-chart.svc.cluster.local:8080",
+ABSL_FLAG(std::string, skill_registry_service_address, "",
           "gRPC target for the skill registry service (deprecated/no-op)");
 ABSL_FLAG(int32_t, grpc_connect_timeout_secs,
           absl::ToInt64Seconds(kGrpcClientConnectDefaultTimeout),
