@@ -147,8 +147,11 @@ message DeleteResourceRequest {
 }
 
 message DeleteResourceMetadata {
-  // Dependency validation errors caused by the deletion of the resource.
-  intrinsic_proto.status.ExtendedStatus dependency_validation_errors = 1;
+  // Warnings caused by the deletion of the resource.
+  intrinsic_proto.status.ExtendedStatus warnings = 2;
+
+  reserved 1;
+  reserved "dependency_validation_errors";
 }
 
 message UpdateResourceRequest {
