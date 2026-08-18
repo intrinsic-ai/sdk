@@ -32,6 +32,8 @@ import (
 	"intrinsic/assets/scene_objects/gzfprocessor"
 	"intrinsic/assets/services/bundleimages"
 	"intrinsic/skills/tools/skill/cmd/directupload/directupload"
+	"intrinsic/tools/inctl/util/color"
+	"intrinsic/util/status/extstatus"
 
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc/status"
@@ -168,6 +170,15 @@ func GetCommand() *cobra.Command {
 				return fmt.Errorf("unable to parse result from successful installation: %w", err)
 			}
 			log.Printf("Finished installing %q", idutils.IDVersionFromProtoUnchecked(installed.GetMetadata().GetIdVersion()))
+			if op.GetMetadata() != nil {
+				metadata := &iapb.CreateInstalledAssetMetadata{}
+				if err := op.GetMetadata().UnmarshalTo(metadata); err != nil {
+					log.Printf("failed to check for warnings: failed to unmarshal operation metadata: %v", err)
+				} else if metadata.GetWarnings() != nil {
+					ext := extstatus.FromProto(metadata.GetWarnings())
+					color.C.Yellow().Printf("\nWARNING: Installation of %q succeeded with warnings:\n%v\n", idutils.IDVersionFromProtoUnchecked(installed.GetMetadata().GetIdVersion()), ext)
+				}
+			}
 			return nil
 		},
 	}

@@ -95,6 +95,8 @@ go_library(
         "//intrinsic/assets/scene_objects:gzfprocessor",
         "//intrinsic/assets/services:bundleimages",
         "//intrinsic/skills/tools/skill/cmd/directupload",
+        "//intrinsic/tools/inctl/util:color",
+        "//intrinsic/util/status:extstatus",
         "@com_github_spf13_cobra//:go_default_library",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
         "@org_golang_google_grpc//status:go_default_library",
