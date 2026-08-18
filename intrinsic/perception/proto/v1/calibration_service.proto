@@ -60,6 +60,10 @@ service CalibrationService {
   // for the user to evaluate the calibration results.
   rpc Calibrate(CalibrationRequest) returns (CalibrationResult);
 
+  // Validates the camera calibration by calculating error metrics on a small
+  // validation dataset, without running the full solver.
+  rpc Validate(ValidateRequest) returns (ValidationResult);
+
   // Saves the calibration results by updating the camera resource configuration
   // with the computed intrinsic and distortion parameters for intrinsic
   // calibration and by updating the camera poses in the Initial world  in case
@@ -171,6 +175,20 @@ message CalibrationRequest {
   repeated string exclude_capture_ids = 6;
 }
 
+message ValidateRequest {
+  // Whether to validate the intrinsic camera parameters.
+  bool validate_intrinsics = 1;
+  // Whether to validate the camera(s)-to-robot pose.
+  bool validate_camera_to_robot = 2;
+  // The type of camera-to-robot calibration to perform. Only used if
+  // validate_camera_to_robot is true. Needs to be one of the following:
+  // - STATIONARY_CAMERA
+  // - MOVING_CAMERA
+  CameraToRobotCalibrationType camera_to_robot_calibration_type = 3;
+  // Whether to validate the camera-to-camera(s) pose.
+  bool validate_camera_to_camera = 4;
+}
+
 message IntrinsicCalibrationResult {
   // Intrinsic parameters of the camera.
   intrinsic_proto.perception.v1.IntrinsicParams intrinsic_params = 1;
@@ -194,6 +212,30 @@ message StereoCalibrationResult {
   // Calibration reprojection error. This should usually be well below 1
   // pixel.
   double error2d = 2;
+}
+
+message StereoValidationResult {
+}
+
+message MultiCameraValidationResult {
+  repeated StereoValidationResult stereo_validation_results = 1;
+}
+
+message IntrinsicValidationResult {
+}
+
+message CameraToRobotValidationResult {
+}
+
+message ValidationResult {
+  // Contains as many intrinsic validation results as passed in camera
+  // handles in the InitializeRequest.
+  repeated IntrinsicValidationResult intrinsic_validation_results = 1;
+  // Contains as many camera-to-robot validation results as passed in camera
+  // handles in the InitializeRequest.
+  repeated CameraToRobotValidationResult camera_to_robot_validation_results = 2;
+  // Contains the camera-to-camera validation result.
+  optional MultiCameraValidationResult camera_to_camera_validation_result = 3;
 }
 
 message MultiCameraCalibrationResult {
