@@ -68,6 +68,8 @@ const (
 	EtherTypeIP = 0
 	// EtherTypeEtherCAT is the EtherCAT protocol.
 	EtherTypeEtherCAT = 1
+	// EtherTypeIPNoRT is the IP protocl (realtime not supported).
+	EtherTypeIPNoRT = 2
 )
 
 // Interface represents a network interface configuration.
@@ -162,6 +164,7 @@ type StatusInterface struct {
 	DefaultGateway  string   `json:"default_gateway"`
 	// If empty / not present, this is an older OS that doesn't report compatibility.
 	SupportedEtherType []int64 `json:"supported_ether_types"`
+	Driver             string  `json:"driver"`
 }
 
 // PingCommand allows to trigger an ICMP ping from the device.

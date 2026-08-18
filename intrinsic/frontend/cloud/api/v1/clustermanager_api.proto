@@ -705,6 +705,7 @@ message NodeHardware {
     string logical_name = 4;
     string display_name = 5;
     string pci_address = 6;
+    string driver = 7;
   }
 
   message GPU {
