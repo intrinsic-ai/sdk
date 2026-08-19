@@ -31,7 +31,7 @@ constexpr std::array<absl::string_view, kSceneObjectNumReservedUserDataKeys>
         sdf::kGazeboCollisionSurface,
         sdf::kGazeboJointPhysics,
         sdf::kSdfLights,
-    };
+};
 constexpr double kMaxApplicationLimitsMultiplier = 0.95;
 
 }  // namespace scene_object

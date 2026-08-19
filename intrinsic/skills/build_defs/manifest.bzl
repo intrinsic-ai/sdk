@@ -20,8 +20,8 @@ load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "ProtoSourceCodeInf
 SkillManifestInfo = provider(
     "Info about a binary skill manifest",
     fields = {
-        "manifest_binary_file": "The binary manifest File.",
         "file_descriptor_set": "The file descriptor set with source information",
+        "manifest_binary_file": "The binary manifest File.",
     },
 )
 
@@ -77,10 +77,6 @@ def _skill_manifest_impl(ctx):
 
 skill_manifest = rule(
     attrs = {
-        "src": attr.label(
-            allow_single_file = True,
-            doc = "textproto specifying an intrinsic_proto.skills.SkillManifest",
-        ),
         "deps": attr.label_list(
             aspects = [gen_source_code_info_descriptor_set],
             doc = "proto deps of the manifest textproto for this skill. " +
@@ -92,6 +88,10 @@ skill_manifest = rule(
             default = False,
             doc = "whether this manifest is prevented from using the old dependency model. " +
                   "This is a temporary attribute to allow a safe migration to the new model.",
+        ),
+        "src": attr.label(
+            allow_single_file = True,
+            doc = "textproto specifying an intrinsic_proto.skills.SkillManifest",
         ),
         "_skillmanifestgen": attr.label(
             cfg = "exec",

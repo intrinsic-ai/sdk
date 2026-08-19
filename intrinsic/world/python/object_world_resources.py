@@ -690,21 +690,27 @@ class KinematicObject(WorldObject):
   def joint_positions(self) -> list[float]:
     return [
         float(joint_position)
-        for joint_position in self._proto.kinematic_object_component.joint_positions
+        for joint_position in (
+            self._proto.kinematic_object_component.joint_positions
+        )
     ]
 
   @property
   def joint_entity_ids(self) -> list[str]:
     return [
         str(joint_entity_id)
-        for joint_entity_id in self._proto.kinematic_object_component.joint_entity_ids
+        for joint_entity_id in (
+            self._proto.kinematic_object_component.joint_entity_ids
+        )
     ]
 
   @property
   def joint_entity_names(self) -> list[str]:
     return [
         self._proto.entities[joint_entity_id].name
-        for joint_entity_id in self._proto.kinematic_object_component.joint_entity_ids
+        for joint_entity_id in (
+            self._proto.kinematic_object_component.joint_entity_ids
+        )
     ]
 
   @property
@@ -725,14 +731,18 @@ class KinematicObject(WorldObject):
   ) -> list[object_world_ids.ObjectWorldResourceId]:
     return [
         object_world_ids.ObjectWorldResourceId(id_and_name.id)
-        for id_and_name in self._proto.kinematic_object_component.iso_flange_frames
+        for id_and_name in (
+            self._proto.kinematic_object_component.iso_flange_frames
+        )
     ]
 
   @property
   def iso_flange_frame_names(self) -> list[object_world_ids.FrameName]:
     return [
         object_world_ids.FrameName(id_and_name.name)
-        for id_and_name in self._proto.kinematic_object_component.iso_flange_frames
+        for id_and_name in (
+            self._proto.kinematic_object_component.iso_flange_frames
+        )
     ]
 
   @property
@@ -780,7 +790,9 @@ class KinematicObject(WorldObject):
   def joint_configurations(self) -> JointConfigurations:
     return JointConfigurations({
         target.name: JointConfiguration(list(target.joint_positions))
-        for target in self._proto.kinematic_object_component.named_joint_configurations
+        for target in (
+            self._proto.kinematic_object_component.named_joint_configurations
+        )
     })
 
 

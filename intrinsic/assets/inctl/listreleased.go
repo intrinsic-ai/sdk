@@ -17,6 +17,9 @@ package listreleased
 
 import (
 	"fmt"
+	"sort"
+	"strings"
+
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/assets/idutils"
@@ -24,8 +27,6 @@ import (
 	"intrinsic/assets/listutils"
 	"intrinsic/tools/inctl/cmd/root"
 	"intrinsic/tools/inctl/util/printer"
-	"sort"
-	"strings"
 
 	"github.com/spf13/cobra"
 	"google.golang.org/protobuf/proto"

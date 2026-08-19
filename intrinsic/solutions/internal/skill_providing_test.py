@@ -24,6 +24,9 @@ from google.protobuf import any_pb2
 from google.protobuf import descriptor_pb2
 from google.protobuf import text_format
 import grpc
+from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import point_pb2 as ros_point_pb2
+from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import pose_pb2 as ros_pose_pb2
+from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import quaternion_pb2 as ros_quaternion_pb2
 
 from intrinsic.assets.configuration import asset_configuration_client
 from intrinsic.assets.proto import id_pb2
@@ -48,9 +51,6 @@ from intrinsic.solutions.testing import compare
 from intrinsic.solutions.testing import skill_test_utils
 from intrinsic.solutions.testing import test_skill_params_pb2
 from intrinsic.util.path_resolver import path_resolver
-from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import point_pb2 as ros_point_pb2
-from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import pose_pb2 as ros_pose_pb2
-from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import quaternion_pb2 as ros_quaternion_pb2
 
 _DEFAULT_TEST_MESSAGE = test_skill_params_pb2.TestMessage(
     my_double=2.5,

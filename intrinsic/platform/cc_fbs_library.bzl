@@ -65,6 +65,7 @@ def use_cpp_toolchain():
 # to be depended on by C++, the rule should wrap the CcInfo in some other
 # provider.")
 FbsCcInfo = provider(
+    doc = "Wraps a CcInfo with C++ generated sources for FbsInfo.",
     fields = ["ccinfo"],
 )
 
@@ -172,13 +173,13 @@ def _gen_flatbuffers_cc_aspect_impl(target, ctx):
 _gen_flatbuffers_cc = aspect(
     attr_aspects = ["deps"],
     attrs = {
+        "_flatbuffers_lib": attr.label(default = Label("//third_party/flatbuffers:runtime_cc")),
         "_flatc": attr.label(
             allow_single_file = True,
             cfg = "exec",
             default = Label("//third_party/flatbuffers:flatc"),
             executable = True,
         ),
-        "_flatbuffers_lib": attr.label(default = Label("//third_party/flatbuffers:runtime_cc")),
     },
     fragments = [
         "google_cpp",

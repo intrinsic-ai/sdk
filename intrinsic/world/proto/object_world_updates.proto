@@ -447,7 +447,8 @@ message UpdateEntityPropertiesRequest {
   // DEPRECATED. Physics properties should not be set at runtime. If they need
   // to be changed, then they should be changed at the type level of the
   // underlying asset.
-  intrinsic_proto.world.PhysicsComponent physics_component = 3 [deprecated = true];
+  intrinsic_proto.world.PhysicsComponent physics_component = 3
+      [deprecated = true];
 
 }
 

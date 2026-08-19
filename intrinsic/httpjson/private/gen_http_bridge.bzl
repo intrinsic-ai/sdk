@@ -47,15 +47,15 @@ def _gen_http_bridge_impl(ctx):
 # gen_http_bridge calls `inbuild httpjson generatemain` for the intrinsic_http_image Bazel macro.
 gen_http_bridge = rule(
     attrs = {
-        "services": attr.label_keyed_string_dict(
-            doc = "A map from go_proto_library targets to their gRPC service FQNs.",
-            mandatory = True,
-            providers = [GoInfo],
-        ),
         "openapi_path": attr.label(
             allow_single_file = True,
             doc = "The path to an OpenAPI file whose content will be inserted into main.go, and which will be returned from the /openapi.yaml endpoint.",
             mandatory = True,
+        ),
+        "services": attr.label_keyed_string_dict(
+            doc = "A map from go_proto_library targets to their gRPC service FQNs.",
+            mandatory = True,
+            providers = [GoInfo],
         ),
         "_inbuild": attr.label(
             cfg = "exec",

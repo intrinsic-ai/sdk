@@ -139,6 +139,10 @@ intrinsic_service = rule(
             unspecified, the default configuration will be an empty message of the type specified in
             the manifest's ServiceDef.config_message_full_name.""",
         ),
+        "deps": attr.label_list(
+            aspects = [gen_source_code_info_descriptor_set],
+            providers = [ProtoInfo],
+        ),
         "images": attr.label_list(
             allow_empty = True,
             allow_files = [".tar"],
@@ -151,18 +155,14 @@ intrinsic_service = rule(
             ),
             mandatory = True,
         ),
-        "deps": attr.label_list(
-            aspects = [gen_source_code_info_descriptor_set],
-            providers = [ProtoInfo],
+        "_assetlocalinfogen": attr.label(
+            cfg = "exec",
+            default = Label("//intrinsic/assets/build_defs:assetlocalinfogen"),
+            executable = True,
         ),
         "_servicegen": attr.label(
             cfg = "exec",
             default = Label("//intrinsic/assets/services/build_defs:servicegen_main"),
-            executable = True,
-        ),
-        "_assetlocalinfogen": attr.label(
-            cfg = "exec",
-            default = Label("//intrinsic/assets/build_defs:assetlocalinfogen"),
             executable = True,
         ),
     },

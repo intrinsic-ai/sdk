@@ -20,10 +20,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"intrinsic/assets/dependencies/utils"
 	"path"
 	"regexp"
 	"strings"
+
+	"intrinsic/assets/dependencies/utils"
 
 	log "github.com/golang/glog"
 

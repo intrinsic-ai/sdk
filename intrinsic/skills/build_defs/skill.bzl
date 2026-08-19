@@ -91,13 +91,13 @@ def _gen_cc_skill_service_main_impl(ctx):
 
 _gen_cc_skill_service_main = rule(
     attrs = {
-        "manifest": attr.label(
-            mandatory = True,
-            providers = [SkillManifestInfo],
-        ),
         "deps": attr.label_list(
             doc = "The cpp deps for the skill. This is normally the cc_proto_library target for the skill's schema, and the skill cc_library where skill interface is implemented.",
             providers = [CcInfo],
+        ),
+        "manifest": attr.label(
+            mandatory = True,
+            providers = [SkillManifestInfo],
         ),
         "_skill_service_gen": attr.label(
             cfg = "exec",
@@ -198,13 +198,13 @@ def _gen_py_skill_service_main_impl(ctx):
 
 _gen_py_skill_service_main = rule(
     attrs = {
-        "manifest": attr.label(
-            mandatory = True,
-            providers = [SkillManifestInfo],
-        ),
         "deps": attr.label_list(
             doc = "The python deps for the skill. This is normally the py_proto_library target for the skill's schema, and the skill py_library where skill interface is implemented.",
             providers = [PyInfo],
+        ),
+        "manifest": attr.label(
+            mandatory = True,
+            providers = [SkillManifestInfo],
         ),
         "_skill_service_gen": attr.label(
             cfg = "exec",
@@ -284,14 +284,14 @@ def _skill_service_config_manifest_impl(ctx):
 
 _skill_service_config_manifest = rule(
     attrs = {
+        "manifest": attr.label(
+            mandatory = True,
+            providers = [SkillManifestInfo],
+        ),
         "_skill_service_config_gen": attr.label(
             cfg = "exec",
             default = Label("//intrinsic/skills/build_defs:skillserviceconfiggen_main"),
             executable = True,
-        ),
-        "manifest": attr.label(
-            mandatory = True,
-            providers = [SkillManifestInfo],
         ),
     },
     implementation = _skill_service_config_manifest_impl,
@@ -401,14 +401,14 @@ _intrinsic_skill_rule = rule(
             mandatory = True,
             providers = [SkillManifestInfo],
         ),
-        "_skillgen": attr.label(
-            cfg = "exec",
-            default = Label("//intrinsic/skills/build_defs:skillgen_main"),
-            executable = True,
-        ),
         "_assetlocalinfogen": attr.label(
             cfg = "exec",
             default = Label("//intrinsic/assets/build_defs:assetlocalinfogen"),
+            executable = True,
+        ),
+        "_skillgen": attr.label(
+            cfg = "exec",
+            default = Label("//intrinsic/skills/build_defs:skillgen_main"),
             executable = True,
         ),
     },

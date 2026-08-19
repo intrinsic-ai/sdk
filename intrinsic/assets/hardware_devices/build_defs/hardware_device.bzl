@@ -129,11 +129,6 @@ def _intrinsic_hardware_device_impl(ctx):
 
 intrinsic_hardware_device = rule(
     attrs = {
-        "manifest": attr.label(
-            allow_single_file = [".textproto"],
-            doc = "A manifest that provides the HardwareDevice definition.",
-            mandatory = True,
-        ),
         "assets": attr.label_list(
             doc = """Assets to add to the HardwareDeviceManifest saved in the bundle. These assets
                   must not already be listed in the manifest.""",
@@ -148,14 +143,19 @@ intrinsic_hardware_device = rule(
                 ],
             ],
         ),
-        "_hardwaredevicegen": attr.label(
-            cfg = "exec",
-            default = Label("//intrinsic/assets/hardware_devices/build_defs:hardwaredevicegen_main"),
-            executable = True,
+        "manifest": attr.label(
+            allow_single_file = [".textproto"],
+            doc = "A manifest that provides the HardwareDevice definition.",
+            mandatory = True,
         ),
         "_assetlocalinfogen": attr.label(
             cfg = "exec",
             default = Label("//intrinsic/assets/build_defs:assetlocalinfogen"),
+            executable = True,
+        ),
+        "_hardwaredevicegen": attr.label(
+            cfg = "exec",
+            default = Label("//intrinsic/assets/hardware_devices/build_defs:hardwaredevicegen_main"),
             executable = True,
         ),
     },

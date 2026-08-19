@@ -17,13 +17,14 @@ package identity
 import (
 	"context"
 	"fmt"
-	"intrinsic/kubernetes/acl/cookies"
-	"intrinsic/kubernetes/acl/org"
-	"intrinsic/kubernetes/acl/testing/jwttesting"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"intrinsic/kubernetes/acl/cookies"
+	"intrinsic/kubernetes/acl/org"
+	"intrinsic/kubernetes/acl/testing/jwttesting"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"

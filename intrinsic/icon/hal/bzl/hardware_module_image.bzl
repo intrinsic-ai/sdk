@@ -17,6 +17,7 @@
 load("//bazel:container.bzl", "container_image", "container_layer")
 load("//intrinsic/icon/hal/bzl:hardware_module_binary.bzl", hardware_module_binary_macro = "hardware_module_binary")
 
+# buildifier: disable=external-path
 def _path_in_container(target):
     """Calculates the absolute path to the executable of a Bazel target.
 

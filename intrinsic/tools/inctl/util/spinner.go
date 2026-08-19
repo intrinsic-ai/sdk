@@ -17,10 +17,11 @@ package util
 import (
 	"context"
 	"fmt"
-	"intrinsic/tools/inctl/util/color"
 	"io"
 	"math"
 	"time"
+
+	"intrinsic/tools/inctl/util/color"
 )
 
 // hsvToRGB converts an HSV color (0-360, 0-1, 0-1) to an RGB color (0-255).

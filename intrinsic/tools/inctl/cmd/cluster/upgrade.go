@@ -20,21 +20,23 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
+	"strings"
+	"text/tabwriter"
+
 	"intrinsic/assets/clientutils"
 	"intrinsic/skills/tools/skill/cmd/dialerutil"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/util/orgutil"
 	"intrinsic/tools/inctl/util/printer"
-	"os"
-	"strings"
-	"text/tabwriter"
 
-	"intrinsic/cloud/devicemanager/version"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	grpcstatus "google.golang.org/grpc/status"
 	fmpb "google.golang.org/protobuf/types/known/fieldmaskpb"
+
+	"intrinsic/cloud/devicemanager/version"
 
 	assetCataloggrpcpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_proto"
 	assetCatalogpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_proto"

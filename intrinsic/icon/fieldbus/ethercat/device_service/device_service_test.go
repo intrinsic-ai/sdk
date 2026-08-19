@@ -19,10 +19,11 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"intrinsic/assets/data/fakedataassets"
 	"os"
 	"strings"
 	testing "testing"
+
+	"intrinsic/assets/data/fakedataassets"
 
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/protobuf/proto"

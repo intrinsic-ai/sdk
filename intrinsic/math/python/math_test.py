@@ -214,8 +214,9 @@ def make_named_rotations() -> List[NamedRotationType]:
   """Creates a list of (name, Rotation3) pairs."""
   return [
       (name, rotation3.Rotation3(quat))
-      for name, quat in make_named_unit_quaternions()
-      + make_named_nonunit_quaternions()
+      for name, quat in (
+          make_named_unit_quaternions() + make_named_nonunit_quaternions()
+      )
   ]
 
 

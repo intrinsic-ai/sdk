@@ -17,6 +17,7 @@ package pool
 import (
 	"context"
 	"fmt"
+
 	"intrinsic/tools/inctl/util/printer"
 
 	"github.com/spf13/cobra"

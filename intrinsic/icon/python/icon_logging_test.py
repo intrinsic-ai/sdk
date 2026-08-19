@@ -36,8 +36,8 @@ class IconLoggingTest(absltest.TestCase):
     streamed_output.output.payload.Pack(expected_payload)
     item.payload.any.Pack(streamed_output)
 
-    (unpacked_payload, timestamp) = (
-        icon_logging.unpack_streaming_output_logitem(item, vector3_pb2.Vector3)
+    unpacked_payload, timestamp = icon_logging.unpack_streaming_output_logitem(
+        item, vector3_pb2.Vector3
     )
 
     compare.assertProto2Equal(self, expected_payload, unpacked_payload)

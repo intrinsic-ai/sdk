@@ -73,12 +73,14 @@ absl::Status InitDataLogger(
     return absl::InvalidArgumentError(
         "data logger connection timeout must be greater than zero");
   }
+  // clang-format off
   INTR_ASSIGN_OR_RETURN(
       auto channel,
-      intrinsic::assets::dependencies::Connect(
-          module_config.intrinsic_runtime(),
-          "grpc://intrinsic_proto.data_logger.DataLogger",
-          connect::UnlimitedMessageSizeGrpcChannelArgs()));
+  intrinsic::assets::dependencies::Connect(
+  module_config.intrinsic_runtime(),
+  "grpc://intrinsic_proto.data_logger.DataLogger",
+  connect::UnlimitedMessageSizeGrpcChannelArgs()));
+  // clang-format on
 
   INTR_RETURN_IF_ERROR(
       intrinsic::connect::WaitForChannelReady(channel, connection_timeout));

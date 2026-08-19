@@ -221,14 +221,16 @@ Ds402BusComponent::ProcessVariableInterpretationProvider::Create(
 
 Ds402BusComponent::Ds402BusComponent(
     absl::string_view device_name, fieldbus::ProcessVariable status_word,
-    std::optional<fieldbus::ProcessVariable> error_code, fieldbus::ProcessVariable control_word,
+    std::optional<fieldbus::ProcessVariable> error_code,
+    fieldbus::ProcessVariable control_word,
     std::optional<fieldbus::ProcessVariable> digital_outputs,
     bool treat_internal_limits_active_as_error,
     UnexpectedStateTransitionConfiguration
         unexpected_state_transition_configuration,
     int64_t enable_delay_cycles, Ds402State initial_goal_state,
     Ds402State enabled_goal_state,
-    std::unique_ptr<ProcessVariableInterpretationProvider> process_variable_interpretation,
+    std::unique_ptr<ProcessVariableInterpretationProvider>
+        process_variable_interpretation,
     std::unique_ptr<HomingTask> homing_task, uint32_t brake_release_bit_value)
     : device_state_{
           .status_word = 0,
@@ -254,7 +256,8 @@ Ds402BusComponent::Ds402BusComponent(
       digital_outputs_(digital_outputs),
       enable_delay_cycles_(enable_delay_cycles),
       remaining_enable_delay_cycles_(enable_delay_cycles),
-      process_variable_interpretation_provider_(std::move(process_variable_interpretation)),
+      process_variable_interpretation_provider_(
+          std::move(process_variable_interpretation)),
       homing_task_(std::move(homing_task)),
       brake_release_bit_value_(brake_release_bit_value) {}
 

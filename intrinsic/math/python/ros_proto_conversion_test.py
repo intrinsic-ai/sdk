@@ -17,13 +17,13 @@
 from absl.testing import absltest
 from absl.testing import parameterized
 import numpy as np
-
-from intrinsic.math.python import data_types
-from intrinsic.math.python import ros_proto_conversion
 from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import point_pb2
 from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import pose_pb2
 from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import quaternion_pb2
 from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import vector3_pb2
+
+from intrinsic.math.python import data_types
+from intrinsic.math.python import ros_proto_conversion
 
 _rng = np.random.RandomState(seed=0)
 

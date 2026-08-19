@@ -39,11 +39,11 @@ _convert_text_proto_to_binary = rule(
             allow_single_file = True,
             doc = "The text proto to convert to binary.",
         ),
-        "out_binary_proto": attr.output(
-            doc = "The binary proto to generate.",
-        ),
         "message_full_name": attr.string(
             doc = "The full name of the proto message to convert, e.g., 'intrinsic_proto.Pose3d'.",
+        ),
+        "out_binary_proto": attr.output(
+            doc = "The binary proto to generate.",
         ),
         "transitive_descriptor_set": attr.label(
             allow_single_file = True,

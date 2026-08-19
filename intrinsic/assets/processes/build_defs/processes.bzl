@@ -133,17 +133,17 @@ def _intrinsic_process_impl(ctx):
 
 intrinsic_process = rule(
     attrs = {
-        "manifest": attr.label(
-            allow_single_file = [".txtpb"],
-            doc = "A ProcessManifest message that provides the metadata and process definition.",
-            mandatory = True,
-        ),
         "behavior_tree": attr.label(
             allow_single_file = [
                 ".txtpb",
             ],
             doc = "An optional BehaviorTree representing the process " +
                   "(if the manifest does not contain a behavior tree).",
+        ),
+        "manifest": attr.label(
+            allow_single_file = [".txtpb"],
+            doc = "A ProcessManifest message that provides the metadata and process definition.",
+            mandatory = True,
         ),
         "textproto_deps": attr.label_list(
             aspects = [gen_source_code_info_descriptor_set],
@@ -154,14 +154,14 @@ intrinsic_process = rule(
                   "input, you can safely omit this attribute.",
             providers = [ProtoInfo],
         ),
-        "_processgen": attr.label(
-            cfg = "exec",
-            default = Label("//intrinsic/assets/processes/build_defs:processgen_main"),
-            executable = True,
-        ),
         "_assetlocalinfogen": attr.label(
             cfg = "exec",
             default = Label("//intrinsic/assets/build_defs:assetlocalinfogen"),
+            executable = True,
+        ),
+        "_processgen": attr.label(
+            cfg = "exec",
+            default = Label("//intrinsic/assets/processes/build_defs:processgen_main"),
             executable = True,
         ),
     },

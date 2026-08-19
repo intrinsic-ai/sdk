@@ -28,7 +28,7 @@ def intrinsic_eni_data(
 
     The content of the eni_file is embedded in an intrinsic_proto.fieldbus.ethercat.device_service.v1.Eni
     message, which is then packed into the DataManifest's 'data' Any field. See
-    @@ai_intrinsic_sdks+/intrinsic/assets/data/proto/v1/data_manifest.proto for details.
+    @ai_intrinsic_sdks//intrinsic/assets/data/proto/v1/data_manifest.proto for details.
 
     Args:
       name: The name of the intrinsic_data target to generate.

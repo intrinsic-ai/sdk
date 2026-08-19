@@ -41,6 +41,7 @@ fbs_library(
 """
 
 FbsInfo = provider(
+    doc = "Encapsulates flatbuffer schema files and include paths.",
     fields = [
         "direct_fbs_srcs",
         "indirect_fbs_srcs",
@@ -77,15 +78,24 @@ def _fbs_library_impl(ctx):
 
 fbs_library = rule(
     attrs = {
-        "srcs": attr.label_list(allow_files = True),
-        "gen_mutable": attr.bool(default = True),
         "deps": attr.label_list(),
+        "gen_mutable": attr.bool(default = True),
+        "srcs": attr.label_list(allow_files = True),
     },
     provides = [FbsInfo],
     implementation = _fbs_library_impl,
 )
 
 def make_flatc_include_args(fbs_info, ctx):
+    """Creates include directory arguments for flatc.
+
+    Args:
+      fbs_info: The FbsInfo provider.
+      ctx: The rule context.
+
+    Returns:
+      Args object with include directories.
+    """
     args = ctx.actions.args()
     args.add("-I", ".")  # need working dir
 

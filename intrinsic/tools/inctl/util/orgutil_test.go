@@ -15,10 +15,11 @@
 package orgutil
 
 import (
-	"intrinsic/tools/inctl/auth/auth"
-	"intrinsic/tools/inctl/auth/authtest"
 	"strings"
 	"testing"
+
+	"intrinsic/tools/inctl/auth/auth"
+	"intrinsic/tools/inctl/auth/authtest"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"

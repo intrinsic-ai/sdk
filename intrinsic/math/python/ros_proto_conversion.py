@@ -15,12 +15,12 @@
 """Converters from intrinsic math protos to commonly used in-memory representations."""
 
 import numpy as np
-
-from intrinsic.math.python import data_types
 from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import point_pb2
 from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import pose_pb2
 from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import quaternion_pb2
 from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import vector3_pb2
+
+from intrinsic.math.python import data_types
 
 _QUATERNION_UNITY_TOLERANCE = np.finfo(np.float64).eps * 32
 

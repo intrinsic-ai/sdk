@@ -42,8 +42,8 @@ AssetCatalogRefInfo = provider(
 AssetInstanceInfo = provider(
     "An asset instance.",
     fields = {
-        "instance_info": "An AssetInstanceInfo proto",
         "config": "Optional any proto text file of the asset's configuration",
+        "instance_info": "An AssetInstanceInfo proto",
     },
 )
 
@@ -100,19 +100,19 @@ def _intrinsic_asset_reference_impl(ctx):
 
 intrinsic_asset_reference = rule(
     attrs = {
-        "type": attr.string(),
-        "id": attr.string(
-            mandatory = True,
-        ),
-        "version": attr.string(
-            mandatory = True,
-        ),
         "deps": attr.label_list(
             doc = "Proto dependencies that are compatible with the catalog " +
                   "asset. These are optional but required to parse config " +
                   "files. Note that version skew or other errors may happen " +
                   "if the wrong protos are used.",
             providers = [ProtoInfo],
+        ),
+        "id": attr.string(
+            mandatory = True,
+        ),
+        "type": attr.string(),
+        "version": attr.string(
+            mandatory = True,
         ),
         "_assetcatalogrefinfogen": attr.label(
             cfg = "exec",
@@ -177,21 +177,12 @@ def _intrinsic_asset_instance_impl(ctx):
 
 intrinsic_asset_instance = rule(
     attrs = {
-        "id": attr.string(
-            mandatory = True,
-        ),
-        "instance_name": attr.string(
-            doc = "Name of the instance, if it should be different than 'name'",
-        ),
         "config": attr.label(
             allow_single_file = [
                 ".pbtxt",
                 ".txtpb",
                 ".textproto",
             ],
-        ),
-        "required_node_hostname": attr.string(
-            mandatory = False,
         ),
         "_assetinstancegen": attr.label(
             cfg = "exec",

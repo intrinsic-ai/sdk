@@ -38,19 +38,19 @@ def _init_flatbuffers_info(*, direct_sources = [], direct_schemas = [], transiti
         fail("transitive_schemas must be a depset (got %s)" % type(transitive_schemas))
 
     return {
-        "direct_sources": direct_sources,
         "direct_schemas": direct_schemas,
-        "transitive_sources": transitive_sources,
+        "direct_sources": direct_sources,
         "transitive_schemas": transitive_schemas,
+        "transitive_sources": transitive_sources,
     }
 
 FlatBuffersInfo, _ = provider(
     doc = "Encapsulates information provided by flatbuffers_library.",
     fields = {
-        "direct_sources": "FlatBuffers sources (i.e. .fbs) from the \"srcs\" attribute that contain text-based schema.",
         "direct_schemas": "The binary serialized schema files (i.e. .bfbs) of the direct sources.",
-        "transitive_sources": "FlatBuffers sources (i.e. .fbs) for this and all its dependent FlatBuffers targets.",
+        "direct_sources": "FlatBuffers sources (i.e. .fbs) from the \"srcs\" attribute that contain text-based schema.",
         "transitive_schemas": "A set of binary serialized schema files (i.e. .bfbs) for this and all its dependent FlatBuffers targets.",
+        "transitive_sources": "FlatBuffers sources (i.e. .fbs) for this and all its dependent FlatBuffers targets.",
     },
     init = _init_flatbuffers_info,
 )
@@ -83,15 +83,15 @@ def _merge_flatbuffers_infos(infos):
 
 def _init_flatbuffers_binary_info(*, src, deps = []):
     return {
-        "src": src,
         "schema": _merge_flatbuffers_infos([dep[FlatBuffersInfo] for dep in deps]),
+        "src": src,
     }
 
 FlatBuffersBinaryInfo, _flatbuffers_binary_info = provider(
     doc = "Provides information about a binary FlatBuffers file.",
     fields = {
-        "src": "A binary FlatBuffers file.",
         "schema": "A FlatBuffersInfo with the schema for the file.",
+        "src": "A binary FlatBuffers file.",
     },
     init = _init_flatbuffers_binary_info,
 )
@@ -170,11 +170,11 @@ def _flatbuffers_library_impl(ctx):
 flatbuffers_library = rule(
     attrs = dicts.add(
         {
-            "srcs": attr.label_list(
-                allow_files = [".fbs"],
-            ),
             "deps": attr.label_list(
                 providers = [FlatBuffersInfo],
+            ),
+            "srcs": attr.label_list(
+                allow_files = [".fbs"],
             ),
         },
         _flatc,
@@ -316,13 +316,9 @@ def _make_cc_flatbuffers_aspect(*, suffix = "", generate_object_api, generate_co
     return aspect(
         attr_aspects = ["deps"],
         attrs = dicts.add({
-            "_suffix": attr.string(
-                default = suffix,
-                doc = "An optional suffix used in all targets that this aspect is applied to.",
-            ),
-            "_generate_object_api": attr.bool(
-                default = generate_object_api,
-                doc = "Whether to generate additional object-based API.",
+            "_flatbuffers_headers": attr.label(
+                default = Label("@com_github_google_flatbuffers//:flatbuffers"),
+                providers = [CcInfo],
             ),
             "_generate_compare": attr.bool(
                 default = generate_compare,
@@ -332,6 +328,10 @@ def _make_cc_flatbuffers_aspect(*, suffix = "", generate_object_api, generate_co
                 default = generate_mutable,
                 doc = "Whether to generate accessors that can mutate buffers in-place.",
             ),
+            "_generate_object_api": attr.bool(
+                default = generate_object_api,
+                doc = "Whether to generate additional object-based API.",
+            ),
             "_generate_reflection": attr.bool(
                 default = generate_reflection,
                 doc = "Whether to add minimal type/name reflection.",
@@ -340,9 +340,9 @@ def _make_cc_flatbuffers_aspect(*, suffix = "", generate_object_api, generate_co
                 default = Label("@com_github_google_flatbuffers//:runtime_cc"),
                 providers = [CcInfo],
             ),
-            "_flatbuffers_headers": attr.label(
-                default = Label("@com_github_google_flatbuffers//:flatbuffers"),
-                providers = [CcInfo],
+            "_suffix": attr.string(
+                default = suffix,
+                doc = "An optional suffix used in all targets that this aspect is applied to.",
             ),
         }, _flatc),
         fragments = ["google_cpp", "cpp"],
@@ -512,8 +512,8 @@ _PyFlatbuffersInfo = provider(
     doc = "An internal provider used to pass information from py_flatbuffers_aspect to py_flatbuffers_library.",
     fields = {
         "direct_py_sources": "A list of all .py files generated for this flatbuffers_library.",
-        "transitive_py_sources": "A transitive closure of all .py files generated for this library all all its dependencies.",
         "direct_pyi_sources": "A list of all .pyi files generated for this flatbuffers_library.",
+        "transitive_py_sources": "A transitive closure of all .py files generated for this library all all its dependencies.",
         "transitive_pyi_sources": "A transitive closure of all .pyi files generated for this library all all its dependencies.",
     },
 )

@@ -100,15 +100,15 @@ def _sdf_scene_object_impl(ctx):
 
 _sdf_scene_object = rule(
     attrs = {
-        "src": attr.label(allow_single_file = True),
-        "sdf_assets": attr.label_list(allow_files = True),
-        "updates_pbtxts": attr.label_list(allow_files = True),
         "deps": attr.label_list(
             aspects = [gen_source_code_info_descriptor_set],
             providers = [ProtoInfo],
         ),
         "large_mesh_checks_max_mesh_diagonal": attr.bool(),
+        "sdf_assets": attr.label_list(allow_files = True),
         "skip_validate_referenced_geos": attr.bool(default = False),
+        "src": attr.label(allow_single_file = True),
+        "updates_pbtxts": attr.label_list(allow_files = True),
         "_sdf_to_scene_object": attr.label(
             allow_single_file = True,
             cfg = "exec",
