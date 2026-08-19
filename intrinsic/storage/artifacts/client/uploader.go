@@ -159,7 +159,11 @@ func (h *defaultHelper) UploadImage(ctx context.Context, imageName string, image
 		return fmt.Errorf("check image failed: %w", err)
 	}
 
-	ctx = metadata.AppendToOutgoingContext(ctx, extraHeaderIntrinsicClientID, h.clientIDHeader)
+	// Per image session header. This is used by server to manage uploaders isolation.
+	// If this client is concurrently uploading multiple images with same layers,
+	// we can still run into locking issue in the server writer.
+	// See go/insrc/pull/50844 for more details.
+	ctx = metadata.AppendToOutgoingContext(ctx, extraHeaderIntrinsicClientID, h.clientIDHeader+"/"+uuid.New())
 	ctx = attachImageName(ctx, imageName)
 	return h.uploadImageParts(ctx, image, response)
 }
