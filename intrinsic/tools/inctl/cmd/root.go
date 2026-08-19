@@ -150,54 +150,6 @@ func (e *executionContext) RewriteError(err error, cmdNames []string) string {
 	return err.Error()
 }
 
-func projectFromOrg(org string) string {
-	if idx := strings.Index(org, "@"); idx != -1 && idx+1 < len(org) {
-		return org[idx+1:]
-	}
-	return ""
-}
-
-func getProjectFromInvocation() string {
-	if cmd, _, err := RootCmd.Find(flag.Args()); err == nil && cmd != nil {
-		if f := cmd.Flag(orgutil.KeyProject); f != nil && f.Value.String() != "" {
-			return f.Value.String()
-		}
-		if f := cmd.Flag(orgutil.KeyOrganization); f != nil {
-			if p := projectFromOrg(f.Value.String()); p != "" {
-				return p
-			}
-		}
-	}
-	if p := os.Getenv("INTRINSIC_PROJECT"); p != "" {
-		return p
-	}
-	if p := projectFromOrg(os.Getenv("INTRINSIC_ORG")); p != "" {
-		return p
-	}
-	for i, arg := range flag.Args() {
-		if strings.HasPrefix(arg, "--project=") {
-			return strings.TrimPrefix(arg, "--project=")
-		}
-		if (arg == "--project" || arg == "-p") && i+1 < len(flag.Args()) {
-			return flag.Args()[i+1]
-		}
-		if strings.HasPrefix(arg, "-p=") {
-			return strings.TrimPrefix(arg, "-p=")
-		}
-		if strings.HasPrefix(arg, "--org=") {
-			if p := projectFromOrg(strings.TrimPrefix(arg, "--org=")); p != "" {
-				return p
-			}
-		}
-		if arg == "--org" && i+1 < len(flag.Args()) {
-			if p := projectFromOrg(flag.Args()[i+1]); p != "" {
-				return p
-			}
-		}
-	}
-	return ""
-}
-
 // getCommandNames returns a vector of subcommand names - e.g. ["app", "status"]
 // for "inctl app status" or [] for "inctl". Returns an error if there is no
 // matching command, e.g. because the user misspelled the command name(s).

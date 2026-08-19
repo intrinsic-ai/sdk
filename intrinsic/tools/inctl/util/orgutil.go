@@ -416,3 +416,56 @@ func QualifiedOrg(projectName, orgName string) string {
 	// for organizations with multiple projects
 	return fmt.Sprintf("%s@%s", orgName, projectName)
 }
+
+// ProjectFromOrg extracts the project name from an organization string in the
+// format "org@project". Returns an empty string if no project is specified.
+func ProjectFromOrg(org string) string {
+	if idx := strings.Index(org, "@"); idx != -1 && idx+1 < len(org) {
+		return org[idx+1:]
+	}
+	return ""
+}
+
+// GetProject determines the GCP project from flags, environment variables, or CLI arguments.
+// If cmd is non-nil, it checks the command's flags first.
+// If no project is found, it returns an empty string.
+func GetProject(cmd *cobra.Command, args []string) string {
+	if cmd != nil {
+		if f := cmd.Flag(KeyProject); f != nil && f.Value.String() != "" {
+			return f.Value.String()
+		}
+		if f := cmd.Flag(KeyOrganization); f != nil {
+			if p := ProjectFromOrg(f.Value.String()); p != "" {
+				return p
+			}
+		}
+	}
+	if p := os.Getenv("INTRINSIC_PROJECT"); p != "" {
+		return p
+	}
+	if p := ProjectFromOrg(os.Getenv("INTRINSIC_ORG")); p != "" {
+		return p
+	}
+	for i, arg := range args {
+		if strings.HasPrefix(arg, "--project=") {
+			return strings.TrimPrefix(arg, "--project=")
+		}
+		if (arg == "--project" || arg == "-p") && i+1 < len(args) {
+			return args[i+1]
+		}
+		if strings.HasPrefix(arg, "-p=") {
+			return strings.TrimPrefix(arg, "-p=")
+		}
+		if strings.HasPrefix(arg, "--org=") {
+			if p := ProjectFromOrg(strings.TrimPrefix(arg, "--org=")); p != "" {
+				return p
+			}
+		}
+		if arg == "--org" && i+1 < len(args) {
+			if p := ProjectFromOrg(args[i+1]); p != "" {
+				return p
+			}
+		}
+	}
+	return ""
+}

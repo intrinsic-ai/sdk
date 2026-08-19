@@ -600,3 +600,100 @@ func TestValidateEnvironmentErrors(t *testing.T) {
 		})
 	}
 }
+
+func TestProjectFromOrg(t *testing.T) {
+	tests := []struct {
+		input string
+		want  string
+	}{
+		{input: "myorg@myproject", want: "myproject"},
+		{input: "intrinsic@xfa-prod-left-leather", want: "xfa-prod-left-leather"},
+		{input: "myorg", want: ""},
+		{input: "myorg@", want: ""},
+		{input: "", want: ""},
+	}
+
+	for _, tc := range tests {
+		if got := ProjectFromOrg(tc.input); got != tc.want {
+			t.Errorf("ProjectFromOrg(%q) = %q, want %q", tc.input, got, tc.want)
+		}
+	}
+}
+
+func TestGetProject(t *testing.T) {
+	t.Run("from cmd flag project", func(t *testing.T) {
+		cmd := &cobra.Command{Use: "test"}
+		cmd.Flags().String(KeyProject, "flag-project", "")
+		got := GetProject(cmd, nil)
+		if got != "flag-project" {
+			t.Errorf("GetProject() = %q, want %q", got, "flag-project")
+		}
+	})
+
+	t.Run("from cmd flag org", func(t *testing.T) {
+		cmd := &cobra.Command{Use: "test"}
+		cmd.Flags().String(KeyOrganization, "org@org-project", "")
+		got := GetProject(cmd, nil)
+		if got != "org-project" {
+			t.Errorf("GetProject() = %q, want %q", got, "org-project")
+		}
+	})
+
+	t.Run("from args --project=", func(t *testing.T) {
+		got := GetProject(nil, []string{"--project=arg-project"})
+		if got != "arg-project" {
+			t.Errorf("GetProject() = %q, want %q", got, "arg-project")
+		}
+	})
+
+	t.Run("from args --project value", func(t *testing.T) {
+		got := GetProject(nil, []string{"--project", "arg-project"})
+		if got != "arg-project" {
+			t.Errorf("GetProject() = %q, want %q", got, "arg-project")
+		}
+	})
+
+	t.Run("from args -p value", func(t *testing.T) {
+		got := GetProject(nil, []string{"-p", "arg-project"})
+		if got != "arg-project" {
+			t.Errorf("GetProject() = %q, want %q", got, "arg-project")
+		}
+	})
+
+	t.Run("from args --org=org@project", func(t *testing.T) {
+		got := GetProject(nil, []string{"--org=myorg@arg-project"})
+		if got != "arg-project" {
+			t.Errorf("GetProject() = %q, want %q", got, "arg-project")
+		}
+	})
+
+	t.Run("from args --org org@project", func(t *testing.T) {
+		got := GetProject(nil, []string{"--org", "myorg@arg-project"})
+		if got != "arg-project" {
+			t.Errorf("GetProject() = %q, want %q", got, "arg-project")
+		}
+	})
+
+	t.Run("from INTRINSIC_PROJECT env", func(t *testing.T) {
+		t.Setenv("INTRINSIC_PROJECT", "env-project")
+		got := GetProject(nil, nil)
+		if got != "env-project" {
+			t.Errorf("GetProject() = %q, want %q", got, "env-project")
+		}
+	})
+
+	t.Run("from INTRINSIC_ORG env", func(t *testing.T) {
+		t.Setenv("INTRINSIC_ORG", "myorg@env-project")
+		got := GetProject(nil, nil)
+		if got != "env-project" {
+			t.Errorf("GetProject() = %q, want %q", got, "env-project")
+		}
+	})
+
+	t.Run("empty when not found", func(t *testing.T) {
+		got := GetProject(nil, []string{"status"})
+		if got != "" {
+			t.Errorf("GetProject() = %q, want empty string", got)
+		}
+	})
+}
