@@ -24,6 +24,13 @@ cc_library(
     hdrs = [
         "binary_futex.h",
     ],
+    visibility = [
+        "//intrinsic/hardware:__subpackages__",
+        "//intrinsic/icon:__subpackages__",
+        "//intrinsic/platform/common/buffers:__pkg__",
+        "//intrinsic/platform/common/buffers:__subpackages__",
+        "//intrinsic/util/thread:__subpackages__",
+    ],
     deps = [
         "//intrinsic/icon/testing:realtime_annotations",
         "//intrinsic/icon/utils:realtime_status",
@@ -36,6 +43,13 @@ cc_library(
     name = "lockable_binary_futex",
     hdrs = [
         "lockable_binary_futex.h",
+    ],
+    visibility = [
+        "//intrinsic/hardware:__subpackages__",
+        "//intrinsic/icon:__subpackages__",
+        "//intrinsic/platform/common/buffers:__pkg__",
+        "//intrinsic/platform/common/buffers:__subpackages__",
+        "//intrinsic/util/thread:__subpackages__",
     ],
     deps = [
         ":binary_futex",

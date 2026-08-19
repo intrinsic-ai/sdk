@@ -1,0 +1,102 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#include "intrinsic/skills/cc/skill_canceller.h"
+
+#include <memory>
+#include <utility>
+
+#include "absl/functional/any_invocable.h"
+#include "absl/status/status.h"
+#include "absl/strings/string_view.h"
+#include "absl/strings/substitute.h"
+#include "absl/synchronization/mutex.h"
+#include "absl/time/time.h"
+#include "intrinsic/util/status/status_macros.h"
+
+namespace intrinsic {
+namespace skills {
+
+SkillCancellationManager::SkillCancellationManager(
+    const absl::Duration ready_timeout, const absl::string_view operation_name)
+    : ready_timeout_(ready_timeout), operation_name_(operation_name) {}
+
+absl::Status SkillCancellationManager::Cancel() {
+  INTR_RETURN_IF_ERROR(WaitForReady());
+
+  // Calling the user callback with the lock held would lead to a deadlock if
+  // the callback never returns, so we only keep the lock for the notification.
+  std::unique_ptr<absl::AnyInvocable<absl::Status() const>> callback;
+  {
+    absl::MutexLock lock(&mutex_);
+    if (cancelled_) {
+      return absl::FailedPreconditionError(
+          absl::Substitute("$0 was already cancelled.", operation_name_));
+    }
+    cancelled_ = true;
+    callback = std::move(callback_);
+    callback_ = nullptr;
+  }
+
+  if (callback != nullptr) {
+    INTR_RETURN_IF_ERROR((*callback)());
+  }
+
+  return absl::OkStatus();
+}
+
+void SkillCancellationManager::Ready() {
+  absl::MutexLock lock(&mutex_);
+  if (!ready_.HasBeenNotified()) {
+    ready_.Notify();
+  }
+}
+
+absl::Status SkillCancellationManager::RegisterCallback(
+    absl::AnyInvocable<absl::Status() const> callback) {
+  absl::MutexLock lock(&mutex_);
+  if (ready_.HasBeenNotified()) {
+    return absl::FailedPreconditionError(
+        absl::Substitute("A callback cannot be registered after"
+                         "$0 is ready for cancellation.",
+                         operation_name_));
+  }
+  if (callback_ != nullptr) {
+    return absl::AlreadyExistsError("A callback was already registered.");
+  }
+  callback_ = std::make_unique<absl::AnyInvocable<absl::Status() const>>(
+      std::move(callback));
+
+  return absl::OkStatus();
+}
+
+bool SkillCancellationManager::Wait(absl::Duration timeout) {
+  absl::MutexLock lock(&mutex_);
+  mutex_.AwaitWithTimeout(
+      absl::Condition(this, &SkillCancellationManager::CancelledOrStopWait),
+      timeout);
+  return cancelled_;
+}
+
+absl::Status SkillCancellationManager::WaitForReady() {
+  if (!ready_.WaitForNotificationWithTimeout(ready_timeout_)) {
+    return absl::DeadlineExceededError(absl::Substitute(
+        "Timed out waiting for $0 to be ready for cancellation.",
+        operation_name_));
+  }
+  return absl::OkStatus();
+}
+
+}  // namespace skills
+}  // namespace intrinsic
