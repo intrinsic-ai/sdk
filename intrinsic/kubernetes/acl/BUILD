@@ -24,9 +24,9 @@ go_library(
     srcs = ["cookies.go"],
     importpath = "intrinsic/kubernetes/acl/cookies",
     visibility = [
+        "//intrinsic/datasilo/access/examples:__subpackages__",
         "//intrinsic/frontend/experiments/mapping_provider:__subpackages__",
         "//intrinsic/kubernetes/acl:__subpackages__",
-        "//intrinsic/kubernetes/datasilo/examples:__subpackages__",
         "//intrinsic/kubernetes/vmpool/manager/internal:__subpackages__",
         "//intrinsic/skills/tools/skill/cmd:__subpackages__",
         "//intrinsic/storage/content_addressable_storage/internal/service:__subpackages__",
