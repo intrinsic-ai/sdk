@@ -1,0 +1,95 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.simulation.v1;
+
+option go_package = "intrinsic/simulation/gazebo/plugins/sim_inputs/v1/set_simulated_inputs_go_proto";
+
+message SetSimulatedInputsRequest {
+  message SetInput {
+    // Data for setting a single digital input bit.
+    //
+    // Make a call to ListSimulatedInputs to discover which scene objects have
+    // simulated inputs (their names are the keys in the
+    // scene_objects_with_inputs map), and what the names and sizes of their
+    // input blocks are.
+    message SetDigitalInputBit {
+      string block_name = 1;
+      int32 bit_index = 2;
+      bool value = 3;
+    }
+    string scene_object_name = 1;
+    oneof input_type {
+      // In the future, this could also hold analog input values.
+      SetDigitalInputBit digital_input_bit = 2;
+    }
+  }
+  // The service processes all entries in this list in the same simulation step.
+  // That is, from the perspective of the simulated system, any changes that
+  // come from a single request happen at the same instant.
+  repeated SetInput inputs = 1;
+}
+
+message SetSimulatedInputsResponse {}
+
+message ListSimulatedInputsRequest {}
+
+// This contains information about each simulated input block.
+message ListSimulatedInputsResponse {
+  message SceneObjectWithInputBlocks {
+    message InputBlockDescription {
+      // For digital input blocks, we report the values of each input bit (in
+      // index order).
+      //
+      // Note that a robot control service can in theory reorder input bits, so
+      // make sure that you know which bit does what.
+      message DigitalInputBlockInfo {
+        repeated bool values = 1;
+      }
+      oneof input_block_info {
+        DigitalInputBlockInfo digital_input_block = 1;
+      }
+    }
+    map<string, InputBlockDescription> input_blocks = 1;
+  }
+  // Map from scene object name to a list of each scene object's inputs.
+  //
+  // Each scene object in this map has at least one block.
+  map<string, SceneObjectWithInputBlocks> scene_objects_with_inputs = 1;
+}
+
+service SetSimulatedInputsService {
+  // Sets one or more simulated inputs (for example, to make it appear as though
+  // a user has pressed a button).
+  rpc SetSimulatedInputs(SetSimulatedInputsRequest)
+      returns (SetSimulatedInputsResponse) {}
+  // Returns information about the available input blocks, ordered by the name
+  // of the scene object that exposes them.
+  // These object names are also what callers should put into the
+  // `scene_object_name` field of a SetSimulatedInputsRequest.
+  //
+  // There is no way to continually track the values of input blocks.
+  // The intended use is to for a caller to
+  // 1. Request the list of available inputs
+  // 2. Present a user with options to update input values, using locally cached
+  //    values for the inputs
+  // 3. Update the simulated inputs with a call to SetSimulatedInputs
+  //
+  // In particular, we do not expect multiple clients to set simulated inputs at
+  // the same time.
+  rpc ListSimulatedInputs(ListSimulatedInputsRequest)
+      returns (ListSimulatedInputsResponse) {}
+}
