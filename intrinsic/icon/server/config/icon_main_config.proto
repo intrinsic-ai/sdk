@@ -16,6 +16,8 @@ syntax = "proto3";
 
 package intrinsic_proto.icon;
 
+import "intrinsic/assets/proto/field_metadata.proto";
+import "intrinsic/assets/proto/v1/resolved_dependency.proto";
 import "intrinsic/icon/proto/logging_mode.proto";
 import "intrinsic/icon/server/config/realtime_control_config.proto";
 import "intrinsic/icon/server/config/services_config.proto";
@@ -52,6 +54,14 @@ message DeactivatedHardwareConfiguration {
 
 // Top-level config for MainLoop and real-time control servers.
 message IconMainConfig {
+  // The resolved dependency for the Intrinsic runtime.
+  intrinsic_proto.assets.v1.ResolvedDependency intrinsic_runtime = 17
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "grpc://intrinsic_proto.data_logger.DataLogger"
+        requires: "grpc://intrinsic_proto.geometry.GeometryService"
+        requires: "grpc://intrinsic_proto.world.ObjectWorldService"
+      }];
+
   // ICON main loop frequency.
   double control_frequency_hz = 1;
   // If true, the server will fault if a cycle overrun occurs.
