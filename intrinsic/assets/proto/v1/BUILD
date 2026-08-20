@@ -467,6 +467,7 @@ proto_library(
     deps = [
         ":solution_proto",
         "//intrinsic/config/proto:operation_mode_proto",
+        "//intrinsic/util/status:extended_status_proto",
         "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_googleapis//google/longrunning:operations_proto",
     ],
@@ -484,6 +485,7 @@ go_proto_library(
     deps = [
         ":solution_go_proto",
         "//intrinsic/config/proto:operation_mode_go_proto",
+        "//intrinsic/util/status:extended_status_go_proto",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
         "@org_golang_google_genproto_googleapis_api//annotations",
     ],

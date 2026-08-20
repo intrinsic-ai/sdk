@@ -40,6 +40,7 @@ go_proto_library(
     protos = [":test_configs_proto"],
     visibility = [
         "//intrinsic/assets:__subpackages__",
+        "//intrinsic/kubernetes/workcell_spec:__pkg__",
     ],
     deps = [
         "//intrinsic/assets/proto:field_metadata_go_proto",
