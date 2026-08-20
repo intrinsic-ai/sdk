@@ -96,7 +96,7 @@ message GetBagRequest {
   string bag_id = 1;
 
   // If true, generates a signed url to download the bag with.
-  bool with_url = 2;
+  bool with_signed_url = 2;
 }
 
 // Response includes registered and actual metadata, and
@@ -106,10 +106,10 @@ message GetBagResponse {
 
   // Signed url to download the bag with, if available.
   // https://cloud.google.com/storage/docs/access-control/signed-urls
-  optional string url = 2;
+  optional string signed_url = 2;
 
-  // Till when the signed url be valid.
-  optional google.protobuf.Timestamp url_expiry_time = 3;
+  // When the signed url is valid until.
+  optional google.protobuf.Timestamp signed_url_expiry_time = 3;
 }
 
 service BagPackager {

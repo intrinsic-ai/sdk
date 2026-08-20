@@ -43,8 +43,8 @@ func (r *GetCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 		return fail(err)
 	}
 	req := &pb.GetBagRequest{
-		BagId:   flagBagID,
-		WithUrl: flagURL,
+		BagId:         flagBagID,
+		WithSignedUrl: flagURL,
 	}
 	resp, err := client.GetBag(cmd.Context(), req)
 	if err != nil {
@@ -85,7 +85,7 @@ func NewGetCmd(runner *GetCmdRunner) *cobra.Command {
 	}
 	flags := cmd.Flags()
 	flags.StringVar(&flagBagID, "recording_id", "", "The recording id to get ROS bag for.")
-	flags.BoolVar(&flagURL, "with_url", false, "If present, generates a signed url to download the bag with.")
+	flags.BoolVar(&flagURL, "with_signed_url", false, "If present, generates a signed url to download the bag with.")
 	cmd.MarkFlagRequired("recording_id")
 
 	return orgutil.WrapCmd(cmd, getParams, orgutil.WithOrgExistsCheck(func() bool { return checkOrgExists }))

@@ -61,11 +61,11 @@ func TestGetRecordingE(t *testing.T) {
 	}{
 		{
 			name: "Successful get with URL",
-			args: []string{"--recording_id", testBagID, "--with_url", "--org", testOrg},
+			args: []string{"--recording_id", testBagID, "--with_signed_url", "--org", testOrg},
 			getBagFunc: func(ctx context.Context, in *pb.GetBagRequest, opts ...grpc.CallOption) (*pb.GetBagResponse, error) {
 				url := testURL
 				return &pb.GetBagResponse{
-					Url: &url,
+					SignedUrl: &url,
 				}, nil
 			},
 			wantOut: testURL,
@@ -85,7 +85,7 @@ func TestGetRecordingE(t *testing.T) {
 		},
 		{
 			name: "URL requested but file not generated",
-			args: []string{"--recording_id", testBagID, "--with_url", "--org", testOrg},
+			args: []string{"--recording_id", testBagID, "--with_signed_url", "--org", testOrg},
 			getBagFunc: func(ctx context.Context, in *pb.GetBagRequest, opts ...grpc.CallOption) (*pb.GetBagResponse, error) {
 				return nil, errors.New("file does not exist")
 			},
@@ -93,11 +93,11 @@ func TestGetRecordingE(t *testing.T) {
 		},
 		{
 			name: "JSON output returns correctly structured data",
-			args: []string{"--recording_id", testBagID, "--with_url", "--org", testOrg},
+			args: []string{"--recording_id", testBagID, "--with_signed_url", "--org", testOrg},
 			getBagFunc: func(ctx context.Context, in *pb.GetBagRequest, opts ...grpc.CallOption) (*pb.GetBagResponse, error) {
 				url := testURL
 				return &pb.GetBagResponse{
-					Url: &url,
+					SignedUrl: &url,
 				}, nil
 			},
 			wantOut: `"status": "success"`,
@@ -161,7 +161,7 @@ func TestGetRecordingE(t *testing.T) {
 					assert.Equal(t, "success", parsed["status"])
 					data, ok := parsed["data"].(map[string]interface{})
 					assert.True(t, ok, "Data should be a map")
-					assert.Equal(t, testURL, data["url"])
+					assert.Equal(t, testURL, data["signed_url"])
 				} else {
 					assert.Contains(t, out.String(), tc.wantOut)
 				}

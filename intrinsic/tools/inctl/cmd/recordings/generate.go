@@ -92,8 +92,8 @@ func (r *GenerateCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 
 	// Fetch to validate.
 	getReq := &pb.GetBagRequest{
-		BagId:   flagBagID,
-		WithUrl: false,
+		BagId:         flagBagID,
+		WithSignedUrl: false,
 	}
 	getResp, err := client.GetBag(cmd.Context(), getReq)
 	if err != nil {
@@ -175,7 +175,7 @@ func (r *GenerateCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 	fmt.Fprintln(out, "")
 	color.C.Blue().Fprintf(out, "Next steps:\n")
 	color.C.Blue().Fprintf(out, "  Download the recording:\n")
-	color.C.Blue().Fprintf(out, fmt.Sprintf("    inctl recordings get --recording_id %s --with_url --org %s@%s\n", flagBagID, generateParam.GetString(orgutil.KeyOrganization), generateParam.GetString(orgutil.KeyProject)))
+	color.C.Blue().Fprintf(out, fmt.Sprintf("    inctl recordings get --recording_id %s --with_signed_url --org %s@%s\n", flagBagID, generateParam.GetString(orgutil.KeyOrganization), generateParam.GetString(orgutil.KeyProject)))
 	color.C.Blue().Fprintf(out, "\n")
 	color.C.Blue().Fprintf(out, "  Visualize the recording in your browser:\n")
 	color.C.Blue().Fprintf(out, fmt.Sprintf("    inctl recordings visualize create --recording_id %s --duration 1h --org %s@%s\n", flagBagID, generateParam.GetString(orgutil.KeyOrganization), generateParam.GetString(orgutil.KeyProject)))
