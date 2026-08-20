@@ -62,10 +62,10 @@ FixedString<kRtErrorStacktraceStringSize> GenerateRtErrorStackTrace(
 // #08: '_start' (0x55d39402a4ea).
 // ```
 FixedString<kRtErrorStacktraceStringSize> GenerateRtErrorStackTrace(
-    absl::Span<const void* const> frames);
+    std::span<const void* const> frames);
 // Non-const overload for convenience. See other overload for more information.
 FixedString<kRtErrorStacktraceStringSize> GenerateRtErrorStackTrace(
-    absl::Span<void*> frames);
+    std::span<void*> frames);
 
 }  // namespace intrinsic::icon
 
