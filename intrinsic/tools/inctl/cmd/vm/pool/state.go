@@ -74,7 +74,9 @@ var vmpoolsDeleteCmd = &cobra.Command{
 	Short: "Delete a VM pool.",
 	Long:  deleteDesc,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		agents.CheckAndExit(cmd)
+		if err := agents.Check(cmd); err != nil {
+			return err
+		}
 		ctx := cmd.Context()
 		ctx, span := trace.StartSpan(ctx, "inctl.vmpools.delete")
 		defer span.End()

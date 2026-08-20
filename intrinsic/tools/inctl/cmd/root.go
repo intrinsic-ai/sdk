@@ -22,20 +22,18 @@ import (
 	"os"
 	"strings"
 
-
-	intrinsic "intrinsic/production/intrinsic"
-	"intrinsic/skills/tools/skill/cmd/dialerutil"
-	"intrinsic/tools/inctl/util/orgutil"
-	"intrinsic/tools/inctl/util/printer"
-
 	log "github.com/golang/glog"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"go.opencensus.io/trace"
 	"golang.org/x/exp/slices"
-
 	grpccodes "google.golang.org/grpc/codes"
 	grpcstatus "google.golang.org/grpc/status"
+
+	intrinsic "intrinsic/production/intrinsic"
+	"intrinsic/skills/tools/skill/cmd/dialerutil"
+	"intrinsic/tools/inctl/util/orgutil"
+	"intrinsic/tools/inctl/util/printer"
 )
 
 const (
@@ -185,6 +183,7 @@ func Execute(ec executionContext) bool {
 		cmdNames, _ := getCommandNames() // ignore error, cmdNames will simply be nil
 		RootCmd.PrintErrln("Error:", ec.RewriteError(err, cmdNames), "TraceID:", span.SpanContext().TraceID)
 		success = false
+
 	}
 
 	return success

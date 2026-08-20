@@ -101,7 +101,9 @@ var removeUser = &cobra.Command{
 	Short: "Remove a user from an organization by email address.",
 	Long:  removeUserHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		agents.CheckAndExit(cmd)
+		if err := agents.Check(cmd); err != nil {
+			return err
+		}
 		org, err := processOrgFlag()
 		if err != nil {
 			return err

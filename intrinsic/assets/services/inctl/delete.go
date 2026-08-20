@@ -51,7 +51,9 @@ $ inctl service delete --project=my_project --cluster=some_cluster my_instance
 `,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			agents.CheckAndExit(cmd)
+			if err := agents.Check(cmd); err != nil {
+				return err
+			}
 			// Generally try to cancel calls if the user hits ctrl-c
 			ctx, stop := signal.NotifyContext(cmd.Context(), os.Interrupt)
 			defer stop()

@@ -173,7 +173,9 @@ func discoverOrganizations(ctx context.Context, apiKey, env string) (map[string]
 }
 
 func loginCmdE(cmd *cobra.Command, _ []string) (err error) {
-	agents.CheckAndExit(cmd)
+	if err := agents.Check(cmd); err != nil {
+		return err
+	}
 	writer := cmd.OutOrStdout()
 	projectName := loginParams.GetString(orgutil.KeyProject)
 	orgName := loginParams.GetString(orgutil.KeyOrganization)

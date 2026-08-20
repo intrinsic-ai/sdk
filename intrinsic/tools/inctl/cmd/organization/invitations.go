@@ -79,7 +79,9 @@ var createInvitationCmd = &cobra.Command{
 }
 
 func runCreateInvitation(cmd *cobra.Command, args []string) error {
-	agents.CheckAndExit(cmd)
+	if err := agents.Check(cmd); err != nil {
+		return err
+	}
 	org, err := processOrgFlag()
 	if err != nil {
 		return err

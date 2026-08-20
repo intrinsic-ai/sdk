@@ -150,7 +150,9 @@ var deleteCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		agents.CheckAndExit(cmd)
+		if err := agents.Check(cmd); err != nil {
+			return err
+		}
 		ctx := cmd.Context()
 		cl, err := newResourceManagerV1Client(ctx)
 		if err != nil {
