@@ -18,11 +18,14 @@ package start
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
 	"intrinsic/config/operationmode"
+	"intrinsic/tools/inctl/util/color"
 	"intrinsic/tools/inctl/util/printer"
+	"intrinsic/util/status/extstatus"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -81,6 +84,15 @@ func startSolution(ctx context.Context, conn *grpc.ClientConn, solutionID string
 		return fmt.Errorf("solution start operation %q failed: %w", name, err)
 	}
 
+	if op.GetMetadata() != nil {
+		metadata := &solutiondeploymentpb.CreateSolutionDeploymentFromVersionedSolutionMetadata{}
+		if err := op.GetMetadata().UnmarshalTo(metadata); err != nil {
+			log.Printf("failed to check for warnings: failed to unmarshal operation metadata: %v", err)
+		} else if metadata.GetWarnings() != nil {
+			ext := extstatus.FromProto(metadata.GetWarnings())
+			color.C.Yellow().Printf("\nWARNING: Solution started with warnings:\n%v\n", ext)
+		}
+	}
 	return nil
 }
 
