@@ -472,6 +472,42 @@ py_library(
 )
 
 py_library(
+    name = "structured_logging",
+    srcs = ["structured_logging.py"],
+    deps = [
+        "//intrinsic/icon/proto:part_status_py_pb2",
+        "//intrinsic/icon/proto:streaming_output_py_pb2",
+        "//intrinsic/icon/python:icon_logging",
+        "//intrinsic/logging/proto:bag_metadata_py_pb2",
+        "//intrinsic/logging/proto:log_item_py_pb2",
+        "//intrinsic/logging/proto:logger_service_py_pb2",
+        "//intrinsic/logging/proto:logger_service_py_pb2_grpc",
+        "//intrinsic/util/grpc:error_handling",
+        "@ai_intrinsic_sdks_pip_deps//pandas",
+        requirement("grpcio"),
+        "@com_google_protobuf//:protobuf_python",
+    ],
+)
+
+py_test(
+    name = "structured_logging_test",
+    srcs = ["structured_logging_test.py"],
+    deps = [
+        ":structured_logging",
+        "//intrinsic/icon/proto:streaming_output_py_pb2",
+        "//intrinsic/logging/proto:bag_metadata_py_pb2",
+        "//intrinsic/logging/proto:log_item_py_pb2",
+        "//intrinsic/logging/proto:logger_service_py_pb2",
+        "//intrinsic/math/proto:pose_py_pb2",
+        "//intrinsic/math/proto:vector3_py_pb2",
+        "@ai_intrinsic_sdks_pip_deps//pandas",
+        "@com_google_absl_py//absl/testing:absltest",
+        "@com_google_absl_py//absl/testing:parameterized",
+        "@com_google_protobuf//:protobuf_python",
+    ],
+)
+
+py_library(
     name = "auth",
     srcs = ["auth.py"],
     deps = ["//intrinsic/util/grpc:auth_py"],
