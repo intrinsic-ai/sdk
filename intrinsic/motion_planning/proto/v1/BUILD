@@ -44,6 +44,7 @@ proto_library(
         "//intrinsic/world/proto:collision_checker_config_proto",
         "//intrinsic/world/proto:collision_settings_proto",
         "//intrinsic/world/proto:object_world_refs_proto",
+        "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_protobuf//:duration_proto",
         "@com_google_protobuf//:empty_proto",
     ],
@@ -80,6 +81,15 @@ js_library(
     deps = [":motion_blending_parameter_proto"],
 )
 
+go_proto_library(
+    name = "motion_blending_parameter_go_proto",
+    importpath = "intrinsic/motion_planning/proto/v1/motion_blending_parameter_go_proto",
+    protos = [":motion_blending_parameter_proto"],
+    deps = [
+        "//intrinsic/skills/proto:skill_parameter_metadata_go_proto",
+    ],
+)
+
 py_proto_library(
     name = "motion_blending_parameter_py_pb2",
     deps = [":motion_blending_parameter_proto"],
@@ -102,6 +112,16 @@ cc_proto_library(
 js_library(
     name = "motion_planning_limits_jspb_proto",
     deps = [":motion_planning_limits_proto"],
+)
+
+go_proto_library(
+    name = "motion_planning_limits_go_proto",
+    importpath = "intrinsic/motion_planning/proto/v1/motion_planning_limits_go_proto",
+    protos = [":motion_planning_limits_proto"],
+    deps = [
+        "//intrinsic/kinematics/types:joint_limits_go_proto",
+        "//intrinsic/skills/proto:skill_parameter_metadata_go_proto",
+    ],
 )
 
 py_proto_library(
@@ -128,6 +148,65 @@ cc_proto_library(
 js_library(
     name = "motion_planning_jspb_proto",
     deps = [":motion_planning_proto"],
+)
+
+go_proto_library(
+    name = "robot_specification_go_proto",
+    importpath = "intrinsic/motion_planning/proto/v1/robot_specification_go_proto",
+    protos = [":robot_specification_proto"],
+    deps = [
+        "//intrinsic/geometry/proto:geometry_storage_refs_go_proto",
+        "//intrinsic/icon/proto:cart_space_go_proto",
+        "//intrinsic/icon/proto:joint_space_go_proto",
+        "//intrinsic/world/proto:object_world_refs_go_proto",
+    ],
+)
+
+go_proto_library(
+    name = "motion_planning_go_proto",
+    importpath = "intrinsic/motion_planning/proto/v1/motion_planning_go_proto",
+    protos = [":motion_planning_proto"],
+    deps = [
+        "//intrinsic/icon/proto:joint_space_go_proto",
+    ],
+)
+
+go_proto_library(
+    name = "motion_planner_service_go_proto",
+    compilers = [
+        "//bazel:go_gen_grpc_gateway",
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+    ],
+    importpath = "intrinsic/motion_planning/proto/v1/motion_planner_service_go_proto",
+    protos = [":motion_planner_service_proto"],
+    visibility = ["//intrinsic:intrinsic_internal"],
+    deps = [
+        ":compute_ik_go_proto",
+        ":motion_planner_config_go_proto",
+        ":motion_planning_go_proto",
+        ":robot_specification_go_proto",
+        "//intrinsic/assets/proto:field_metadata_go_proto",
+        "//intrinsic/assets/proto/v1:resolved_dependency_go_proto",
+        "//intrinsic/geometry/proto:geometry_storage_refs_go_proto",
+        "//intrinsic/geometry/proto:transformed_geometry_storage_refs_go_proto",
+        "//intrinsic/icon/proto:cart_space_go_proto",
+        "//intrinsic/icon/proto:joint_space_go_proto",
+        "//intrinsic/kinematics/types:joint_limits_go_proto",
+        "//intrinsic/logging/proto:context_go_proto",
+        "//intrinsic/math/proto:matrix_go_proto",
+        "//intrinsic/math/proto:point_go_proto",
+        "//intrinsic/math/proto:pose_go_proto",
+        "//intrinsic/math/proto:vector3_go_proto",
+        "//intrinsic/motion_planning/proto/v1:geometric_constraints_go_proto",
+        "//intrinsic/motion_planning/proto/v1:motion_planning_error_go_proto",
+        "//intrinsic/motion_planning/proto/v1:motion_specification_go_proto",
+        "//intrinsic/world/proto:collision_action_go_proto",
+        "//intrinsic/world/proto:collision_checker_config_go_proto",
+        "//intrinsic/world/proto:collision_settings_go_proto",
+        "//intrinsic/world/proto:object_world_refs_go_proto",
+        "@org_golang_google_genproto_googleapis_api//annotations",
+    ],
 )
 
 js_library(
@@ -286,6 +365,32 @@ py_proto_library(
     deps = [":motion_specification_proto"],
 )
 
+go_proto_library(
+    name = "motion_specification_go_proto",
+    importpath = "intrinsic/motion_planning/proto/v1/motion_specification_go_proto",
+    protos = [":motion_specification_proto"],
+    deps = [
+        ":motion_blending_parameter_go_proto",
+        ":motion_planning_limits_go_proto",
+        "//intrinsic/motion_planning/proto/v1:geometric_constraints_go_proto",
+        "//intrinsic/world/proto:collision_settings_go_proto",
+    ],
+)
+
+go_proto_library(
+    name = "motion_planning_error_go_proto",
+    importpath = "intrinsic/motion_planning/proto/v1/motion_planning_error_go_proto",
+    protos = [":motion_planning_error_proto"],
+    deps = [
+        "//intrinsic/icon/proto:joint_space_go_proto",
+        "//intrinsic/kinematics/types:joint_limits_go_proto",
+        "//intrinsic/math/proto:pose_go_proto",
+        "//intrinsic/motion_planning/proto/v1:geometric_constraints_go_proto",
+        "//intrinsic/world/proto:collision_settings_go_proto",
+        "//intrinsic/world/proto:object_world_refs_go_proto",
+    ],
+)
+
 proto_library(
     name = "geometric_constraints_proto",
     srcs = ["geometric_constraints.proto"],
@@ -313,6 +418,21 @@ py_proto_library(
 js_library(
     name = "geometric_constraints_jspb_proto",
     deps = [":geometric_constraints_proto"],
+)
+
+go_proto_library(
+    name = "geometric_constraints_go_proto",
+    importpath = "intrinsic/motion_planning/proto/v1/geometric_constraints_go_proto",
+    protos = [":geometric_constraints_proto"],
+    deps = [
+        "//intrinsic/icon/proto:joint_space_go_proto",
+        "//intrinsic/math/proto:point_go_proto",
+        "//intrinsic/math/proto:pose_go_proto",
+        "//intrinsic/math/proto:quaternion_go_proto",
+        "//intrinsic/math/proto:vector3_go_proto",
+        "//intrinsic/skills/proto:skill_parameter_metadata_go_proto",
+        "//intrinsic/world/proto:object_world_refs_go_proto",
+    ],
 )
 
 proto_library(

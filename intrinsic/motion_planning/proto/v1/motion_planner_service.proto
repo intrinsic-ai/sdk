@@ -16,6 +16,7 @@ syntax = "proto3";
 
 package intrinsic_proto.motion_planning.v1;
 
+import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 import "intrinsic/assets/proto/field_metadata.proto";
 import "intrinsic/assets/proto/v1/resolved_dependency.proto";
@@ -364,7 +365,12 @@ service MotionPlannerService {
   // solutions. The cache can be cleared by either restarting the service or
   // calling `ClearCache`.
   rpc PlanTrajectory(MotionPlanningRequest)
-      returns (TrajectoryPlanningResponse) {}
+      returns (TrajectoryPlanningResponse) {
+    option (google.api.http) = {
+      post: "/v1/plan:trajectory"
+      body: "*"
+    };
+  }
 
   // Plans a path that fulfills the defined motion specification in the
   // MotionPlannerRequest. In contrast to PlanTrajectory, this rpc call creates
@@ -376,21 +382,46 @@ service MotionPlannerService {
   // and its associated controls and kinematics, but only interested in the
   // geometric path. It saves computation times and is therefore preferred
   // over PlanTrajectory for non-trajectory planning purposes.
-  rpc PlanPath(MotionPlanningRequest) returns (PathPlanningResponse) {}
+  rpc PlanPath(MotionPlanningRequest) returns (PathPlanningResponse) {
+    option (google.api.http) = {
+      post: "/v1/plan:path"
+      body: "*"
+    };
+  }
 
   // Computes the Inverse Kinematics (IK) for the robot, i.e. the robots joint
   // configuration that satisfy the set of Cartesian constraints.
-  rpc ComputeIk(IkRequest) returns (IkResponse) {}
+  rpc ComputeIk(IkRequest) returns (IkResponse) {
+    option (google.api.http) = {
+      post: "/v1/kinematics:computeIk"
+      body: "*"
+    };
+  }
 
   // Computes the Forward Kinematic (FK), i.e., the Cartesian pose of a target
   // frame with respect to a reference, for a given joint configuration of a
   // robot.
-  rpc ComputeFk(FkRequest) returns (FkResponse) {}
+  rpc ComputeFk(FkRequest) returns (FkResponse) {
+    option (google.api.http) = {
+      post: "/v1/kinematics:computeFk"
+      body: "*"
+    };
+  }
 
   // Collision-checks a specified path.
   rpc CheckCollisions(CheckCollisionsRequest)
-      returns (CheckCollisionsResponse) {}
+      returns (CheckCollisionsResponse) {
+    option (google.api.http) = {
+      post: "/v1/collisions:check"
+      body: "*"
+    };
+  }
   // PlanTrajectory uses caching to speed up repeated similar planning calls.
   // Clear cache for PlanTrajectory.
-  rpc ClearCache(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc ClearCache(google.protobuf.Empty) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/cache:clear"
+      body: "*"
+    };
+  }
 }
