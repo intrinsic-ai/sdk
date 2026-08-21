@@ -60,6 +60,7 @@ pkg_tar(
     name = "intrinsic-ai-types",
     srcs = [":types_package"],
     extension = "tgz",
+    package_dir = "package",
     strip_prefix = "types_package",
 )
 
