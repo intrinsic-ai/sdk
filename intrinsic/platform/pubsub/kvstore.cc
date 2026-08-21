@@ -129,15 +129,21 @@ absl::Status KeyValueStore::Set(absl::string_view key,
     }
   }
 
-  std::string value_serialized = value.SerializeAsString();
+  std::string value_serialized;
+  {
+    value_serialized = value.SerializeAsString();
+  }
   const size_t payload_size = value_serialized.size();
   if (payload_size > kPayloadByteSizeWarningThreshold) {
     LOG(WARNING) << "Large KVStore SetRequest payload detected. Key: " << key
                  << ", Size: " << payload_size << " bytes.";
   }
 
-  imw_ret_t ret = Zenoh().imw_set(prefixed_name->c_str(),
-                                  value_serialized.c_str(), payload_size);
+  imw_ret_t ret;
+  {
+    ret = Zenoh().imw_set(prefixed_name->c_str(), value_serialized.c_str(),
+                          payload_size);
+  }
   if (ret != IMW_OK) {
     return absl::InternalError(
         absl::StrFormat("Error setting a key, return code: %d", ret));
@@ -227,15 +233,18 @@ absl::StatusOr<google::protobuf::Any> KeyValueStore::GetAnyWithRawKey(
 
   imw_query_options_t query_options{
       .timeout_ms = static_cast<uint64_t>(timeout / absl::Milliseconds(1))};
-  imw_ret ret = Zenoh().imw_query(raw_key.c_str(), zenoh_query_static_callback,
-                                  zenoh_query_static_on_done, nullptr, 0,
-                                  query.GetContext(), &query_options);
-  if (ret != IMW_OK) {
-    return absl::InternalError(
-        absl::StrFormat("Error getting a key, return code: %d", ret));
+  imw_ret ret;
+  bool returned = false;
+  {
+    ret = Zenoh().imw_query(raw_key.c_str(), zenoh_query_static_callback,
+                            zenoh_query_static_on_done, nullptr, 0,
+                            query.GetContext(), &query_options);
+    if (ret != IMW_OK) {
+      return absl::InternalError(
+          absl::StrFormat("Error getting a key, return code: %d", ret));
+    }
+    returned = notif.WaitForNotificationWithTimeout(timeout + absl::Seconds(1));
   }
-  bool returned =
-      notif.WaitForNotificationWithTimeout(timeout + absl::Seconds(1));
   if (!returned) {
     return absl::DeadlineExceededError("Timeout waiting for key");
   }
