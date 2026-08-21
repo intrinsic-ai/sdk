@@ -222,6 +222,18 @@ message MultiCameraValidationResult {
 }
 
 message IntrinsicValidationResult {
+  // Root mean square (RMS) reprojection error of the intrinsic calibration in
+  // pixels.
+  double rms_error_2d = 1;
+  // Mean 3D error estimate in meters, computed for the previously calculated
+  // calibration, using the validation set of captured images.
+  optional double mean_error_3d = 2;
+  // Maximum reprojection error of the intrinsic calibration in pixels.
+  optional double max_error_2d = 3;
+  // Maximum 3D error estimate in meters.
+  optional double max_error_3d = 4;
+  // Name of the camera this validation result applies to.
+  string camera_name = 5;
 }
 
 message CameraToRobotValidationResult {
