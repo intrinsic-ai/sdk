@@ -9,7 +9,7 @@ on:
         type: string
   push:
     tags:
-      - '*'
+      - 'v*'
       - 'candidate/*'
 
 jobs:
@@ -22,7 +22,13 @@ jobs:
       prerelease: ${{ steps.checkout_ref.outputs.prerelease }}
       is_tag: ${{ steps.checkout_ref.outputs.is_tag }}
       should_run: ${{ steps.checkout_ref.outputs.should_run }}
+      semver: ${{ steps.version.outputs.version }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          fetch-depth: 0 # fetch all tags/history for git describe to work
+
       - name: Determine Checkout Ref
         id: checkout_ref
         env:
@@ -51,6 +57,13 @@ jobs:
           echo "prerelease=${PRERELEASE}" >> $GITHUB_OUTPUT 
           echo "is_tag=${IS_TAG}" >> $GITHUB_OUTPUT 
           echo "should_run=${SHOULD_RUN}" >> $GITHUB_OUTPUT
+
+      - name: Calculate Semver Version
+        id: version
+        run: |
+          VERSION=$(python3 .github/ci/semver_gen.py --ref "${{ steps.checkout_ref.outputs.ref }}")
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
 
   package-sdk:
     runs-on: ubuntu-22.04
@@ -224,8 +237,11 @@ jobs:
         working-directory: sdk_build
         run: |
           CANDIDATE_NAME="${{ needs.determine-checkout-ref.outputs.checkout_ref }}"
+          SEMVER="${{ needs.determine-checkout-ref.outputs.semver }}"
           echo "build --stamp" >> .bazelrc
           echo "build --workspace_status_command=\"echo STABLE_SDK_VERSION ${CANDIDATE_NAME}\""  >> .bazelrc
+          echo "build --workspace_status_command=\"echo STABLE_SEMVER ${SEMVER}\""  >> .bazelrc
+
 
       - name: Build inctl and inbuild
         working-directory: sdk_build
@@ -236,14 +252,17 @@ jobs:
             //intrinsic/tools/inctl:inctl_external \
             //intrinsic/tools/inbuild:inbuild \
             //intrinsic/solutions:solutions_wheel \
-            //intrinsic/executive/code:code_execution_wheel
+            //intrinsic/executive/code:code_execution_wheel \
+            //intrinsic/frontend/sdk/types:pack
 
           mkdir release
           cp "$(bazel cquery --output=files //intrinsic/tools/inctl:inctl_external)" release/inctl-linux-amd64
           cp "$(bazel cquery --output=files //intrinsic/tools/inbuild:inbuild)" release/inbuild-linux-amd64
           cp "$(bazel cquery --output=files //intrinsic/solutions:solutions_wheel)" release/solutions-0.0.1-py3-none-any.whl
           cp "$(bazel cquery --output=files //intrinsic/executive/code:code_execution_wheel)" release/code_execution-0.0.1-py3-none-any.whl
+          cp "$(bazel cquery --output=files //intrinsic/frontend/sdk/types:pack)" release/intrinsic-ai-types-${{ needs.determine-checkout-ref.outputs.semver }}.tgz
           ls -la release
+
 
       - name: Save build artifacts 
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # 4.6.2
