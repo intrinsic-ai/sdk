@@ -33,6 +33,10 @@ typedef std::function<void(const char*, const void*, const size_t)>
 typedef std::function<void(const char*, bool)>
     imw_liveliness_callback_functor_t;
 
+typedef std::function<void(const char*)> imw_liveliness_get_callback_functor_t;
+
+typedef std::function<void(const char*)> imw_liveliness_get_on_done_functor_t;
+
 typedef std::function<void(const char*)> imw_on_done_functor_t;
 
 struct QueryContext {
@@ -40,11 +44,25 @@ struct QueryContext {
   imw_on_done_functor_t* on_done;
 };
 
+struct LivelinessGetContext {
+  LivelinessGetContext(imw_liveliness_get_callback_functor_t* callback,
+                       imw_liveliness_get_on_done_functor_t* on_done)
+      : callback_(callback), on_done_(on_done) {}
+
+  imw_liveliness_get_callback_functor_t* callback_ = nullptr;
+  imw_liveliness_get_on_done_functor_t* on_done_ = nullptr;
+};
+
 void zenoh_static_callback(const char* keyexpr, const void* blob,
                            size_t blob_len, void* fptr);
 
 void zenoh_static_liveliness_callback(const char* keyexpr, bool alive,
                                       void* fptr);
+
+void zenoh_static_liveliness_get_callback(const char* keyexpr, void* fptr);
+
+void zenoh_static_liveliness_get_on_done_callback(const char* keyexpr,
+                                                  void* fptr);
 
 void zenoh_query_static_callback(const char* keyexpr, const void* blob,
                                  size_t blob_len, void* fptr);
@@ -131,6 +149,10 @@ struct ZenohHandle {
   std::add_pointer_t<imw_ret_t(const char* keyexpr)>
       imw_declare_liveliness_token;
   std::add_pointer_t<imw_ret_t(const char* keyexpr)> imw_drop_liveliness_token;
+  std::add_pointer_t<imw_ret_t(
+      const char* keyexpr, imw_liveliness_get_callback_fn* callback,
+      imw_liveliness_get_on_done_callback_fn* on_done, void* user_context)>
+      imw_liveliness_get;
 
   std::add_pointer_t<const char* const()> imw_version;
 

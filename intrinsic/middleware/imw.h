@@ -42,6 +42,12 @@ typedef void imw_queryable_callback_fn(const char* keyexpr,
 typedef void imw_liveliness_callback_fn(const char* keyexpr, bool alive,
                                         void* user_context);
 
+typedef void imw_liveliness_get_callback_fn(const char* keyexpr,
+                                            void* user_context);
+
+typedef void imw_liveliness_get_on_done_callback_fn(const char* keyexpr,
+                                                    void* user_context);
+
 // This struct must be assignable, as it will be copied by assignment by
 // imw_create_queryable() for later use.
 struct imw_queryable_options_t {
@@ -105,6 +111,10 @@ imw_ret_t imw_destroy_liveliness_subscription(
     const void* user_context);
 imw_ret_t imw_declare_liveliness_token(const char* keyexpr);
 imw_ret_t imw_drop_liveliness_token(const char* keyexpr);
+imw_ret_t imw_liveliness_get(const char* keyexpr,
+                             imw_liveliness_get_callback_fn* callback,
+                             imw_liveliness_get_on_done_callback_fn* on_done,
+                             void* user_context);
 const char* const imw_version();
 
 }  // namespace intrinsic

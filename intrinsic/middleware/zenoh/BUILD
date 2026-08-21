@@ -29,6 +29,7 @@ cc_library(
     hdrs = [
         "imw_zenoh.h",
         "imw_zenoh_data_callback_context.h",
+        "imw_zenoh_liveliness_get_context.h",
         "imw_zenoh_liveliness_subscription.h",
         "imw_zenoh_liveliness_token.h",
         "imw_zenoh_publisher.h",

@@ -19,7 +19,6 @@
 #include <cstdlib>
 #include <string>
 
-#include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/match.h"
@@ -38,6 +37,17 @@ void zenoh_static_callback(const char* keyexpr, const void* blob,
 void zenoh_static_liveliness_callback(const char* keyexpr, bool alive,
                                       void* fptr) {
   (*static_cast<imw_liveliness_callback_functor_t*>(fptr))(keyexpr, alive);
+}
+
+void zenoh_static_liveliness_get_callback(const char* keyexpr, void* fptr) {
+  LivelinessGetContext* context = static_cast<LivelinessGetContext*>(fptr);
+  (*(context->callback_))(keyexpr);
+}
+
+void zenoh_static_liveliness_get_on_done_callback(const char* keyexpr,
+                                                  void* fptr) {
+  LivelinessGetContext* context = static_cast<LivelinessGetContext*>(fptr);
+  (*(context->on_done_))(keyexpr);
 }
 
 void zenoh_query_static_callback(const char* keyexpr, const void* blob,
@@ -84,6 +94,7 @@ void ZenohHandle::Initialize() {
   this->imw_declare_liveliness_token =
       ::intrinsic::imw_declare_liveliness_token;
   this->imw_drop_liveliness_token = ::intrinsic::imw_drop_liveliness_token;
+  this->imw_liveliness_get = ::intrinsic::imw_liveliness_get;
 }
 
 absl::StatusOr<std::string> ZenohHandle::add_topic_prefix(

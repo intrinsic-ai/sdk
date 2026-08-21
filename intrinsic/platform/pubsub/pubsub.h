@@ -505,6 +505,29 @@ class PubSub {
   //
   absl::Status DropLivelinessToken(absl::string_view keyexpr);
 
+  // Fetches a list of currently available liveliness tokens that match the
+  // given key expression.
+  //
+  // Parameters:
+  //  - keyexpr: key expression for matching liveliness tokens.
+  //
+  // Returns a list of available liveliness tokens, or
+  // absl::DeadlineExceededError if the timeout expires.
+  //
+  // Example:
+  // --------
+  //
+  // INTR_ASSIGN_OR_RETURN(
+  //   std::vector<std::string> tokens,
+  //   pubsub.LivelinessGetAllSynchronous("workcells/**", absl::Seconds(10)));
+  //
+  // This call will return a list of liveliness tokens that meet the following
+  // requirements:
+  //  - Were declared before `LivelinessGetAllSynchronous` was called.
+  //  - Currently available to the caller of `LivelinessGetAllSynchronous`.
+  absl::StatusOr<std::vector<std::string>> LivelinessGetAllSynchronous(
+      absl::string_view keyexpr);
+
  private:
   static void HandleError(const SubscriptionErrorCallback& error_callback,
                           const intrinsic_proto::pubsub::PubSubPacket& packet,

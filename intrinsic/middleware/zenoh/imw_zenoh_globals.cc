@@ -15,6 +15,7 @@
 #include "intrinsic/middleware/imw.h"
 #include "intrinsic/middleware/zenoh/imw_zenoh.h"
 #include "intrinsic/middleware/zenoh/imw_zenoh_data_callback_context.h"
+#include "intrinsic/middleware/zenoh/imw_zenoh_liveliness_get_context.h"
 #include "intrinsic/middleware/zenoh/imw_zenoh_query_context.h"
 #include "intrinsic/middleware/zenoh/imw_zenoh_queryable_context.h"
 
@@ -84,6 +85,24 @@ void IMWZenoh::static_query_drop(void* untyped_context) {
       static_cast<IMWZenohQueryContext*>(untyped_context);
   if (typed_context != nullptr && typed_context->on_done_ != nullptr) {
     typed_context->on_done_(typed_context->keyexpr_,
+                            typed_context->user_context_);
+  }
+  delete typed_context;
+}
+
+void IMWZenoh::static_liveliness_get_callback(z_loaned_reply_t* reply,
+                                              void* untyped_context) {
+  IMWLivelinessGetContext* context =
+      static_cast<IMWLivelinessGetContext*>(untyped_context);
+  context->imw_zenoh_instance_->liveliness_get_callback(
+      reply, context->callback_, context->user_context_);
+}
+
+void IMWZenoh::static_liveliness_get_drop(void* untyped_context) {
+  IMWLivelinessGetContext* typed_context =
+      static_cast<IMWLivelinessGetContext*>(untyped_context);
+  if (typed_context != nullptr && typed_context->on_done_ != nullptr) {
+    typed_context->on_done_(typed_context->keyexpr_.c_str(),
                             typed_context->user_context_);
   }
   delete typed_context;
@@ -234,6 +253,16 @@ imw_ret_t imw_drop_liveliness_token(const char* keyexpr) {
   if (g_imw_zenoh_singleton == nullptr) return IMW_NOT_INITIALIZED;
 
   return g_imw_zenoh_singleton->drop_liveliness_token(keyexpr);
+}
+
+imw_ret_t imw_liveliness_get(const char* keyexpr,
+                             imw_liveliness_get_callback_fn* callback,
+                             imw_liveliness_get_on_done_callback_fn* on_done,
+                             void* user_context) {
+  if (g_imw_zenoh_singleton == nullptr) return IMW_NOT_INITIALIZED;
+
+  return g_imw_zenoh_singleton->liveliness_get(keyexpr, callback, on_done,
+                                               user_context);
 }
 
 const char* const imw_version() { return IMWZenoh::version(); }

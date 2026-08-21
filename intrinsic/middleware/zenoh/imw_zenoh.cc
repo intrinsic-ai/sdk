@@ -28,6 +28,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/time/time.h"
 #include "intrinsic/middleware/zenoh/imw_zenoh_data_callback_context.h"
+#include "intrinsic/middleware/zenoh/imw_zenoh_liveliness_get_context.h"
 #include "intrinsic/middleware/zenoh/imw_zenoh_liveliness_token.h"
 #include "intrinsic/middleware/zenoh/imw_zenoh_query_context.h"
 #include "intrinsic/middleware/zenoh/imw_zenoh_queryable_context.h"
@@ -40,6 +41,8 @@ using std::string;
 namespace intrinsic {
 
 static constexpr char kImwZenohVersion[] = "2.1.3";
+static constexpr absl::Duration kDefaultLivelinessGetTimeout =
+    absl::Minutes(10);
 
 IMWZenoh::IMWZenoh() {
   z_internal_session_null(&session_);
@@ -712,6 +715,23 @@ void IMWZenoh::liveliness_callback(const std::string& subscription_keyexpr,
   }
 }
 
+void IMWZenoh::liveliness_get_callback(z_loaned_reply_t* reply,
+                                       imw_liveliness_get_callback_fn* callback,
+                                       void* untyped_context) {
+  if (!z_reply_is_ok(reply)) {
+    LOG(ERROR) << "IMWZenoh::liveliness_get_callback() received an error";
+    return;
+  }
+
+  const z_loaned_sample_t* sample = z_reply_ok(reply);
+  z_view_string_t reply_keyexpr;
+  z_keyexpr_as_view_string(z_sample_keyexpr(sample), &reply_keyexpr);
+  const std::string reply_keyexpr_str(
+      std::string_view(z_string_data(z_loan(reply_keyexpr)),
+                       z_string_len(z_loan(reply_keyexpr))));
+  callback(reply_keyexpr_str.c_str(), untyped_context);
+}
+
 void IMWZenoh::destroy_publishers_marked_for_deletion() {
   // This function assumes that publishers_mutex_ is already locked!
   // remove any publishers marked for deletion
@@ -1259,6 +1279,38 @@ imw_ret_t IMWZenoh::drop_liveliness_token(const char* keyexpr) {
   z_liveliness_token_drop(z_move(it->second->get_token()));
   liveliness_tokens_.erase(it);
 
+  return IMW_OK;
+}
+
+imw_ret_t IMWZenoh::liveliness_get(
+    const char* keyexpr, imw_liveliness_get_callback_fn* callback,
+    imw_liveliness_get_on_done_callback_fn* on_done, void* user_context) {
+  if (!z_internal_check(session_)) {
+    LOG(ERROR) << "Invalid session in IMWZenoh::liveliness_get";
+    return IMW_ERROR;
+  }
+
+  z_view_keyexpr_t view_keyexpr;
+  if (Z_OK != z_view_keyexpr_from_str(&view_keyexpr, keyexpr)) {
+    LOG(ERROR) << "Invalid keyexpr for liveliness_get: " << keyexpr;
+    return IMW_ERROR;
+  }
+
+  z_owned_closure_reply_t reply_closure;
+  z_closure_reply(&reply_closure, static_liveliness_get_callback,
+                  static_liveliness_get_drop,
+                  new IMWLivelinessGetContext(this, keyexpr, callback, on_done,
+                                              user_context));
+  z_liveliness_get_options_t opts;
+  z_liveliness_get_options_default(&opts);
+  opts.timeout_ms = absl::ToInt64Milliseconds(kDefaultLivelinessGetTimeout);
+
+  const z_result_t result = z_liveliness_get(
+      z_loan(session_), z_loan(view_keyexpr), z_move(reply_closure), &opts);
+  if (result < 0) {
+    LOG(ERROR) << "z_liveliness_get() returned an error";
+    return IMW_ERROR;
+  }
   return IMW_OK;
 }
 

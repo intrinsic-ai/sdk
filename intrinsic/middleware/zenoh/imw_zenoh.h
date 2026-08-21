@@ -100,6 +100,10 @@ class IMWZenoh {
       const void* user_context);
   imw_ret_t declare_liveliness_token(const char* keyexpr);
   imw_ret_t drop_liveliness_token(const char* keyexpr);
+  imw_ret_t liveliness_get(const char* keyexpr,
+                           imw_liveliness_get_callback_fn* callback,
+                           imw_liveliness_get_on_done_callback_fn* on_done,
+                           void* user_context);
 
   static void static_data_callback(z_loaned_sample_t* sample, void* arg);
   static void static_closure_drop(void* context);
@@ -115,6 +119,9 @@ class IMWZenoh {
   static int keyexpr_is_canon(const char* keyexpr);
 
   static void static_liveliness_callback(z_loaned_sample_t* sample, void* arg);
+  static void static_liveliness_get_callback(z_loaned_reply_t* reply,
+                                             void* untyped_context);
+  static void static_liveliness_get_drop(void* untyped_context);
 
   static const char* const version();
 
@@ -128,6 +135,9 @@ class IMWZenoh {
                       const imw_query_options_t* options);
   void liveliness_callback(const std::string& subscription_keyexpr,
                            const z_loaned_sample_t* sample);
+  void liveliness_get_callback(z_loaned_reply_t* reply,
+                               imw_liveliness_get_callback_fn* callback,
+                               void* untyped_context);
 
   // Creates any pending publishers and destroys publishers marked for deletion.
   // Returns the publisher matching the given keyexpr if one exists, otherwise
