@@ -1,3 +1,6 @@
+# proto-file: intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest.proto
+# proto-message: intrinsic_proto.hardware_devices.v1.HardwareDeviceManifest
+
 # Copyright 2026 Intrinsic Innovation LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,8 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# proto-file: intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest.proto
-# proto-message: intrinsic_proto.hardware_devices.v1.HardwareDeviceManifest
 metadata {
   id {
     package: "ai.intrinsic"

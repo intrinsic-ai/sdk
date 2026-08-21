@@ -1,3 +1,6 @@
+# proto-file: google/protobuf/any.proto
+# proto-message: google.protobuf.Any
+
 # Copyright 2026 Intrinsic Innovation LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,8 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# proto-file: google/protobuf/any.proto
-# proto-message: google.protobuf.Any
 
 [type.googleapis.com/intrinsic_proto.icon.HardwareModuleConfig] {
   intrinsic_runtime {
