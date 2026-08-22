@@ -21,7 +21,6 @@ import (
 	"os"
 	"regexp"
 
-	"intrinsic/assets/idutils"
 	"intrinsic/production/intrinsic"
 	"intrinsic/util/proto/protoio"
 
@@ -32,7 +31,7 @@ import (
 
 var (
 	configPath           = flag.String("config_path", "", "The asset's configuration file path.")
-	id                   = flag.String("id", "", "The id of the asset.")
+	asset                = flag.String("asset", "", "The asset in the solution.  By convention this is the id (some.package.name).")
 	instanceName         = flag.String("instance_name", "", "The asset's instance name.")
 	requiredNodeHostname = flag.String("required_node_hostname", "", "The node's hostname where asset is required to be run (only applicable for services).")
 	outputAssetInstance  = flag.String("output_asset_instance", "", "Output AssetInstance proto path.")
@@ -53,10 +52,6 @@ func main() {
 		log.Exitf("--output_asset_instance is required")
 	}
 
-	idp, err := idutils.IDProtoFromString(*id)
-	if err != nil {
-		log.Exitf("invalid asset id: %v", err)
-	}
 	if err := validateInstanceName(*instanceName); err != nil {
 		log.Exitf("invalid asset instance name: %v", err)
 	}
@@ -65,7 +60,7 @@ func main() {
 	if *configPath != "" {
 		b, err := os.ReadFile(*configPath)
 		if err != nil {
-			log.Exitf("could not read asset instance config for %q: %v", *id, err)
+			log.Exitf("could not read asset instance config for %q: %v", *asset, err)
 		}
 		config = &assetpb.AssetInstanceInfo_TextProto{
 			TextProto: string(b),
@@ -77,7 +72,7 @@ func main() {
 	}
 
 	instance := &assetpb.AssetInstanceInfo{
-		Id:                   idp,
+		Asset:                *asset,
 		InstanceName:         *instanceName,
 		Config:               config,
 		RequiredNodeHostname: requiredNodeHostname,

@@ -102,7 +102,6 @@ go_binary(
     importpath = "intrinsic/assets/build_defs/assetinstancegen",
     deps = [
         ":asset_go_proto",
-        "//intrinsic/assets:idutils",
         "//intrinsic/production:intrinsic",
         "//intrinsic/util/proto:protoio",
         "@com_github_golang_glog//:go_default_library",

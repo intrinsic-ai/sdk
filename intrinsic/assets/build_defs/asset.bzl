@@ -131,7 +131,7 @@ def _intrinsic_asset_instance_impl(ctx):
     name = ctx.attr.instance_name if ctx.attr.instance_name else ctx.label.name
     asset_instance_output = ctx.actions.declare_file(ctx.label.name + ".binpb")
     args = ctx.actions.args().add(
-        "--id",
+        "--asset",
         ctx.attr.id,
     ).add(
         "--instance_name",

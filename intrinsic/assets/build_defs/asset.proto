@@ -62,7 +62,7 @@ message AssetCatalogRefInfo {
 
 message AssetInstanceInfo {
   // The asset ID.
-  intrinsic_proto.assets.Id id = 1;
+  string asset = 1;
   // The name of this assent instance.
   string instance_name = 2;
   // The name of the node in which the service asset must run on. This option is
