@@ -40,6 +40,7 @@
 #include "google/rpc/status.pb.h"
 #include "intrinsic/platform/pubsub/adapters/pubsub.pb.h"
 #include "intrinsic/platform/pubsub/kvstore.h"
+#include "intrinsic/platform/pubsub/liveliness_query.h"
 #include "intrinsic/platform/pubsub/liveliness_subscription.h"
 #include "intrinsic/platform/pubsub/publisher.h"
 #include "intrinsic/platform/pubsub/pubsub_callbacks.h"
@@ -103,7 +104,7 @@ class PubSub {
   PubSub& operator=(const PubSub&) = delete;
   PubSub(PubSub&&) = default;
   PubSub& operator=(PubSub&&) = default;
-  ~PubSub();
+  virtual ~PubSub();
 
   absl::StatusOr<Publisher> CreatePublisher(absl::string_view topic,
                                             const TopicConfig& config) const;
@@ -506,13 +507,41 @@ class PubSub {
   absl::Status DropLivelinessToken(absl::string_view keyexpr);
 
   // Fetches a list of currently available liveliness tokens that match the
-  // given key expression.
+  // given key expression. Returns immediately. Tokens are passed to the
+  // caller via callbacks.
+  //
+  // Callbacks are called on different threads. Tokens are received in arbitrary
+  // order (not necessarily in the order they were declared).
+  //
+  // Parameters:
+  //  - keyexpr: key expression for matching liveliness tokens.
+  //  - callback: called for each matching token. Takes the key expression on
+  //      which the token was declared.
+  //  - on_done: called when all matching tokens are found. Takes `keyexpr` as
+  //      a parameter.
+  //
+  // Returns:
+  //  On success, returns a `LivelinessQuery` object. The caller must keep it
+  //  alive until `on_done` returns.
+  //
+  // WARNING: both callbacks (`callback` and `on_done`) must return as quickly
+  // as possible. Long-running callbacks may affect results of this
+  // `LivelinessGet` call (some callbacks may be skipped). They may also affect
+  // other clients of the PubSub API (e.g. PubSub may start dropping messages).
+  // If the total duration of callbacks invoked by the same `LivelinessGet`
+  // query exceeds 10 minutes, then no more callbacks will be called after 10
+  // minutes.
+  absl::StatusOr<LivelinessQuery> LivelinessGet(
+      absl::string_view keyexpr, LivelinessGetCallback callback,
+      LivelinessGetOnDoneCallback on_done);
+
+  // Synchronously fetches a list of currently available liveliness tokens that
+  // match the given key expression.
   //
   // Parameters:
   //  - keyexpr: key expression for matching liveliness tokens.
   //
-  // Returns a list of available liveliness tokens, or
-  // absl::DeadlineExceededError if the timeout expires.
+  // Returns a list of available liveliness tokens.
   //
   // Example:
   // --------
@@ -529,6 +558,13 @@ class PubSub {
       absl::string_view keyexpr);
 
  private:
+  // A helper function invoked by LivelinessGetAllSynchronous when it
+  // needs to wait for liveliness tokens. Can be overriden by subclasses
+  // that need to perform additional actions before or after wait.
+  virtual void WaitForLivelinessTokens(std::function<void()> wait_fn) {
+    wait_fn();
+  }
+
   static void HandleError(const SubscriptionErrorCallback& error_callback,
                           const intrinsic_proto::pubsub::PubSubPacket& packet,
                           const google::protobuf::Message& payload) {

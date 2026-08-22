@@ -34,6 +34,7 @@ cc_library(
         "//intrinsic/platform/pubsub:__subpackages__",
     ],
     deps = [
+        ":liveliness_get_context",
         ":zenoh_helpers",
         "//intrinsic/middleware/zenoh:imw_zenoh",
         "@abseil-cpp//absl/log",
@@ -50,6 +51,15 @@ cc_test(
     deps = [
         ":zenoh_handle",
         "//intrinsic/util/testing:gtest_wrapper_main",
+    ],
+)
+
+cc_library(
+    name = "liveliness_get_context",
+    hdrs = ["liveliness_get_context.h"],
+    visibility = ["//intrinsic/platform/pubsub:__subpackages__"],
+    deps = [
+        "@abseil-cpp//absl/strings:string_view",
     ],
 )
 

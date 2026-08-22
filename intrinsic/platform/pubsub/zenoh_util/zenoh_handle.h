@@ -21,6 +21,7 @@
 #include <string>
 #include <type_traits>
 
+#include "absl/log/log.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
 #include "intrinsic/middleware/imw.h"
@@ -33,24 +34,13 @@ typedef std::function<void(const char*, const void*, const size_t)>
 typedef std::function<void(const char*, bool)>
     imw_liveliness_callback_functor_t;
 
-typedef std::function<void(const char*)> imw_liveliness_get_callback_functor_t;
-
-typedef std::function<void(const char*)> imw_liveliness_get_on_done_functor_t;
-
 typedef std::function<void(const char*)> imw_on_done_functor_t;
+
+typedef void (*imw_on_done_callback_ptr_t)(const char*, void*);
 
 struct QueryContext {
   imw_callback_functor_t* callback;
   imw_on_done_functor_t* on_done;
-};
-
-struct LivelinessGetContext {
-  LivelinessGetContext(imw_liveliness_get_callback_functor_t* callback,
-                       imw_liveliness_get_on_done_functor_t* on_done)
-      : callback_(callback), on_done_(on_done) {}
-
-  imw_liveliness_get_callback_functor_t* callback_ = nullptr;
-  imw_liveliness_get_on_done_functor_t* on_done_ = nullptr;
 };
 
 void zenoh_static_callback(const char* keyexpr, const void* blob,

@@ -14,7 +14,8 @@
 
 # Python wrapper for the intrinsic pubsub c++ library.
 
-load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
+load("@pybind11_bazel//:build_defs.bzl", "PYBIND_DEPS", "pybind_extension")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_python//python:defs.bzl", "py_test")
 
 package(default_visibility = ["//visibility:public"])
@@ -23,10 +24,13 @@ pybind_extension(
     name = "pubsub",
     srcs = ["pubsub.cc"],
     deps = [
+        ":gil_aware_pubsub",
         "//intrinsic/platform/pubsub",
         "//intrinsic/platform/pubsub:kvstore",
+        "//intrinsic/platform/pubsub:liveliness_query",
         "//intrinsic/platform/pubsub:publisher",
         "//intrinsic/platform/pubsub:subscription",
+        "//intrinsic/platform/pubsub/zenoh_util:zenoh_handle",
         "@abseil-cpp//absl/container:flat_hash_map",
         "@abseil-cpp//absl/flags:parse",
         "@abseil-cpp//absl/status",
@@ -38,6 +42,17 @@ pybind_extension(
         "@pybind11_abseil//pybind11_abseil:no_throw_status",
         "@pybind11_abseil//pybind11_abseil:status_casters",
         "@pybind11_protobuf//pybind11_protobuf:native_proto_caster",
+    ],
+)
+
+cc_library(
+    name = "gil_aware_pubsub",
+    srcs = ["gil_aware_pubsub.cc"],
+    hdrs = ["gil_aware_pubsub.h"],
+    deps = PYBIND_DEPS + [
+        "//intrinsic/platform/pubsub",
+        "//intrinsic/platform/pubsub/zenoh_util:zenoh_handle",
+        "@abseil-cpp//absl/strings",
     ],
 )
 

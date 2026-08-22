@@ -55,6 +55,7 @@ cc_library(
     features = ["-use_header_modules"],
     deps = [
         ":kvstore",
+        ":liveliness_query",
         ":liveliness_subscription",
         ":publisher",
         ":pubsub_callbacks",
@@ -65,6 +66,7 @@ cc_library(
         ":zenoh_pubsub_data",
         ":zenoh_subscription_data",
         "//intrinsic/platform/pubsub/adapters:pubsub_cc_proto",
+        "//intrinsic/platform/pubsub/zenoh_util:liveliness_get_context",
         "//intrinsic/platform/pubsub/zenoh_util:zenoh_handle",
         "//intrinsic/util/proto:type_url",
         "//intrinsic/util/status:status_conversion_rpc",
@@ -80,6 +82,15 @@ cc_library(
         "@abseil-cpp//absl/types:span",
         "@com_google_googleapis//google/rpc:status_cc_proto",
         "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_library(
+    name = "liveliness_query",
+    hdrs = ["liveliness_query.h"],
+    deps = [
+        "//intrinsic/platform/pubsub/zenoh_util:liveliness_get_context",
+        "@abseil-cpp//absl/strings",
     ],
 )
 

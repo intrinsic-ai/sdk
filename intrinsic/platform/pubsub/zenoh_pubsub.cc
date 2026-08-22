@@ -35,6 +35,7 @@
 #include "intrinsic/middleware/imw.h"
 #include "intrinsic/platform/pubsub/adapters/pubsub.pb.h"
 #include "intrinsic/platform/pubsub/kvstore.h"
+#include "intrinsic/platform/pubsub/liveliness_query.h"
 #include "intrinsic/platform/pubsub/liveliness_subscription.h"
 #include "intrinsic/platform/pubsub/liveliness_subscription_data.h"
 #include "intrinsic/platform/pubsub/publisher.h"
@@ -205,6 +206,23 @@ absl::Status PubSub::DropLivelinessToken(absl::string_view keyexpr) {
   return absl::OkStatus();
 }
 
+absl::StatusOr<LivelinessQuery> PubSub::LivelinessGet(
+    absl::string_view keyexpr, LivelinessGetCallback callback,
+    LivelinessGetOnDoneCallback on_done) {
+  LivelinessQuery query(std::move(callback), std::move(on_done));
+  std::string keyexpr_str(keyexpr);
+  LOG(INFO) << "[PubSub::LivelinessGet] Calling imw_liveliness_get";
+  imw_ret_t ret = Zenoh().imw_liveliness_get(
+      keyexpr_str.c_str(), zenoh_static_liveliness_get_callback,
+      zenoh_static_liveliness_get_on_done_callback, query.GetContext());
+  LOG(INFO) << "[PubSub::LivelinessGet] imw_liveliness_get returned " << ret;
+
+  if (ret != IMW_OK) {
+    return absl::InternalError("Internal error in LivelinessGet");
+  }
+  return query;
+}
+
 absl::StatusOr<std::vector<std::string>> PubSub::LivelinessGetAllSynchronous(
     absl::string_view keyexpr) {
   std::vector<std::string> result;
@@ -212,36 +230,28 @@ absl::StatusOr<std::vector<std::string>> PubSub::LivelinessGetAllSynchronous(
   absl::Mutex mutex;
   bool done_called = false;
 
-  imw_liveliness_get_callback_functor_t callback_functor =
-      [&result, &mutex](const char* key) {
-        LOG(INFO) << "[LivelinessGetAllSynchronous] In callback(" << key << ")";
-        absl::MutexLock lock(&mutex);
-        result.push_back(std::string(key));
-      };
+  LivelinessGetCallback callback = [&result, &mutex](absl::string_view key) {
+    absl::MutexLock lock(&mutex);
+    result.push_back(std::string(key));
+  };
 
-  // This callback will be called when all liveliness tokens are found,
-  // OR when the timeout expires.
-  imw_liveliness_get_on_done_functor_t on_done_functor =
-      [&done_called, &cv, &mutex](const char* key) {
-        LOG(INFO) << "[LivelinessGetAllSynchronous] In on_done(" << key << ")";
-        absl::MutexLock lock(&mutex);
-        done_called = true;
-        cv.Signal();
-      };
+  LivelinessGetOnDoneCallback on_done = [&done_called, &cv,
+                                         &mutex](absl::string_view key) {
+    absl::MutexLock lock(&mutex);
+    done_called = true;
+    cv.Signal();
+  };
 
-  LivelinessGetContext context(&callback_functor, &on_done_functor);
-
-  std::string keyexpr_str(keyexpr);
-  imw_ret_t ret = Zenoh().imw_liveliness_get(
-      keyexpr_str.c_str(), zenoh_static_liveliness_get_callback,
-      zenoh_static_liveliness_get_on_done_callback, &context);
-
-  if (ret != IMW_OK) {
-    return absl::InternalError("imw_liveliness_get failed");
+  absl::StatusOr<LivelinessQuery> query =
+      LivelinessGet(keyexpr, callback, on_done);
+  if (!query.ok()) {
+    LOG(ERROR) << "LivelinessGet returned an error: "
+               << query.status().message();
+    return query.status();
   }
 
   LOG(INFO) << "[LivelinessGetAllSynchronous] Waiting for on_done to be called";
-  {
+  WaitForLivelinessTokens([&mutex, &cv, &done_called]() {
     // Timeout is enforced by Zenoh. So, we are using a condition variable here
     // instead of an absl::Notification and its WaitForNotificationWithTimeout
     // method. Use of WaitForNotificationWithTimeout may lead to race
@@ -251,7 +261,8 @@ absl::StatusOr<std::vector<std::string>> PubSub::LivelinessGetAllSynchronous(
     while (!done_called) {
       cv.Wait(&mutex);
     }
-  }
+  });
+
   LOG(INFO) << "[LivelinessGetAllSynchronous] Done waiting";
   return result;
 }

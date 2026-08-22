@@ -36,7 +36,9 @@
 #include "google/protobuf/any.pb.h"
 #include "google/protobuf/message.h"
 #include "intrinsic/platform/pubsub/kvstore.h"
+#include "intrinsic/platform/pubsub/liveliness_query.h"
 #include "intrinsic/platform/pubsub/publisher.h"
+#include "intrinsic/platform/pubsub/python/gil_aware_pubsub.h"
 #include "intrinsic/platform/pubsub/subscription.h"
 #include "pybind11/cast.h"
 #include "pybind11_abseil/absl_casters.h"
@@ -197,8 +199,42 @@ LivelinessCallback WrapLivelinessCallback(pybind11::object msg_callback) {
   return message_callback;
 }
 
+LivelinessGetCallback WrapLivelinessGetCallback(pybind11::object msg_callback) {
+  LivelinessGetCallback message_callback = {};
+  if (msg_callback && !msg_callback.is_none()) {
+    message_callback = [py_msg_cb =
+                            std::move(msg_callback)](absl::string_view key) {
+      pybind11::gil_scoped_acquire gil;
+      try {
+        py_msg_cb(key);
+      } catch (const pybind11::error_already_set& e) {
+        LOG(ERROR) << "Exception in liveliness get callback: " << e.what();
+      }
+    };
+  }
+  return message_callback;
+}
+
+LivelinessGetCallback WrapLivelinessGetOnDoneCallback(
+    pybind11::object msg_callback) {
+  LivelinessGetCallback message_callback = {};
+  if (msg_callback && !msg_callback.is_none()) {
+    message_callback = [py_msg_cb =
+                            std::move(msg_callback)](absl::string_view key) {
+      pybind11::gil_scoped_acquire gil;
+      try {
+        py_msg_cb(key);
+      } catch (const pybind11::error_already_set& e) {
+        LOG(ERROR) << "Exception in liveliness get on_done callback: "
+                   << e.what();
+      }
+    };
+  }
+  return message_callback;
+}
+
 absl::StatusOr<Subscription> CreateSubscriptionWithConfig(
-    PubSub* self, absl::string_view topic, const TopicConfig& config,
+    GilAwarePubSub* self, absl::string_view topic, const TopicConfig& config,
     const google::protobuf::Message& exemplar, pybind11::object msg_callback,
     pybind11::object err_callback) {
   return self->CreateSubscription(
@@ -208,7 +244,7 @@ absl::StatusOr<Subscription> CreateSubscriptionWithConfig(
 }
 
 absl::StatusOr<Subscription> CreateSubscription(
-    PubSub* self, absl::string_view topic,
+    GilAwarePubSub* self, absl::string_view topic,
     const google::protobuf::Message& exemplar, pybind11::object msg_callback,
     pybind11::object err_callback) {
   return CreateSubscriptionWithConfig(self, topic, TopicConfig{}, exemplar,
@@ -217,7 +253,7 @@ absl::StatusOr<Subscription> CreateSubscription(
 }
 
 absl::StatusOr<Subscription> CreateRawSubscription(
-    PubSub* self, absl::string_view topic, const TopicConfig& config,
+    GilAwarePubSub* self, absl::string_view topic, const TopicConfig& config,
     pybind11::object msg_callback) {
   // The callback passed to the adapter must be able to be copied in a
   // separate thread without copying the msg_callback.
@@ -269,11 +305,11 @@ absl::StatusOr<Subscription> CreateKVStoreSubscription(
 }
 
 absl::StatusOr<KeyValueStore> CreateKeyValueStore(
-    PubSub* self, std::optional<std::string> prefix_override) {
+    GilAwarePubSub* self, std::optional<std::string> prefix_override) {
   return self->KeyValueStore(prefix_override);
 }
 
-absl::StatusOr<KeyValueStore> CreateReplicationKVStore(PubSub* self) {
+absl::StatusOr<KeyValueStore> CreateReplicationKVStore(GilAwarePubSub* self) {
   return self->KeyValueStore(std::string(intrinsic::kReplicationPrefix));
 }
 
@@ -331,19 +367,34 @@ std::string MakeKey(pybind11::args args) {
   return KeyValueStore::MakeKeyFromVector(parts);
 }
 
-absl::Status DeclareLivelinessToken(PubSub* self, absl::string_view keyexpr) {
+absl::Status DeclareLivelinessToken(GilAwarePubSub* self,
+                                    absl::string_view keyexpr) {
   return self->DeclareLivelinessToken(keyexpr);
 }
 
-absl::Status DropLivelinessToken(PubSub* self, absl::string_view keyexpr) {
+absl::Status DropLivelinessToken(GilAwarePubSub* self,
+                                 absl::string_view keyexpr) {
   return self->DropLivelinessToken(keyexpr);
 }
 
 absl::StatusOr<LivelinessSubscription> CreateLivelinessSubscription(
-    PubSub* self, absl::string_view keyexpr, bool notify_about_existing_tokens,
-    pybind11::object callback) {
+    GilAwarePubSub* self, absl::string_view keyexpr,
+    bool notify_about_existing_tokens, pybind11::object callback) {
   return self->CreateLivelinessSubscription(
       keyexpr, notify_about_existing_tokens, WrapLivelinessCallback(callback));
+}
+
+absl::StatusOr<LivelinessQuery> LivelinessGet(GilAwarePubSub* self,
+                                              absl::string_view keyexpr,
+                                              pybind11::object callback,
+                                              pybind11::object on_done) {
+  return self->LivelinessGet(keyexpr, WrapLivelinessGetCallback(callback),
+                             WrapLivelinessGetOnDoneCallback(on_done));
+}
+
+absl::StatusOr<std::vector<std::string>> LivelinessGetAllSynchronous(
+    GilAwarePubSub* self, absl::string_view keyexpr) {
+  return self->LivelinessGetAllSynchronous(keyexpr);
 }
 
 void ParseCommandLine(const std::vector<std::string>& args) {
@@ -416,7 +467,9 @@ PYBIND11_MODULE(pubsub, m) {
       .def(pybind11::init<>())
       .def_readwrite("topic_qos", &TopicConfig::topic_qos);
 
-  pybind11::class_<PubSub>(m, "PubSub")
+  pybind11::class_<LivelinessQuery>(m, "LivelinessQuery");
+
+  pybind11::class_<GilAwarePubSub>(m, "PubSub")
       .def(pybind11::init<>())
       .def(pybind11::init<std::string_view>(),
            pybind11::arg("participant_name"))
@@ -424,8 +477,8 @@ PYBIND11_MODULE(pubsub, m) {
            pybind11::arg("participant_name"), pybind11::arg("config"))
       // Cast required for overloaded methods:
       // https://pybind11.readthedocs.io/en/stable/classes.html#overloaded-methods
-      .def("CreatePublisher", &PubSub::CreatePublisher, pybind11::arg("topic"),
-           pybind11::arg("config") = TopicConfig{})
+      .def("CreatePublisher", &GilAwarePubSub::CreatePublisher,
+           pybind11::arg("topic"), pybind11::arg("config") = TopicConfig{})
       .def("CreateSubscription", &CreateRawSubscription, pybind11::arg("topic"),
            pybind11::arg("config"), pybind11::arg("msg_callback") = nullptr)
       .def("CreateSubscription", &CreateSubscriptionWithConfig,
@@ -440,7 +493,11 @@ PYBIND11_MODULE(pubsub, m) {
       .def("ReplicationKeyValueStore", &CreateReplicationKVStore)
       .def("DeclareLivelinessToken", &DeclareLivelinessToken)
       .def("DropLivelinessToken", &DropLivelinessToken)
-      .def("CreateLivelinessSubscription", &CreateLivelinessSubscription);
+      .def("CreateLivelinessSubscription", &CreateLivelinessSubscription)
+      .def("LivelinessGet", &LivelinessGet, pybind11::arg("keyexpr"),
+           pybind11::arg("callback"), pybind11::arg("on_done"))
+      .def("LivelinessGetAllSynchronous", &LivelinessGetAllSynchronous,
+           pybind11::arg("keyexpr"));
 
   pybind11::class_<Publisher>(m, "Publisher")
       .def("Publish",

@@ -25,6 +25,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "intrinsic/middleware/imw.h"
+#include "intrinsic/platform/pubsub/zenoh_util/liveliness_get_context.h"
 #include "intrinsic/platform/pubsub/zenoh_util/zenoh_helpers.h"
 
 namespace intrinsic {
@@ -41,13 +42,13 @@ void zenoh_static_liveliness_callback(const char* keyexpr, bool alive,
 
 void zenoh_static_liveliness_get_callback(const char* keyexpr, void* fptr) {
   LivelinessGetContext* context = static_cast<LivelinessGetContext*>(fptr);
-  (*(context->callback_))(keyexpr);
+  (context->callback_)(std::string(keyexpr));
 }
 
 void zenoh_static_liveliness_get_on_done_callback(const char* keyexpr,
                                                   void* fptr) {
   LivelinessGetContext* context = static_cast<LivelinessGetContext*>(fptr);
-  (*(context->on_done_))(keyexpr);
+  (context->on_done_)(std::string(keyexpr));
 }
 
 void zenoh_query_static_callback(const char* keyexpr, const void* blob,

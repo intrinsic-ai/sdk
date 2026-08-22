@@ -55,6 +55,20 @@ using SubscriptionErrorExpandedCallback = std::function<void(
 using LivelinessCallback =
     std::function<void(std::string_view key, bool alive)>;
 
+// LivelinessGetCallback is called when a currently alive token is found
+// by `LivelinessGet`.
+//
+// Parameters:
+//  - key: Key expression on which the token was declared.
+using LivelinessGetCallback = std::function<void(absl::string_view key)>;
+
+// LivelinessGetOnDoneCallback is called by `LivelinessGet` after all currently
+// alive tokens are found.
+//
+// Parameters:
+//  - key: Key expression passed to `LivelinessGet`.
+using LivelinessGetOnDoneCallback = std::function<void(absl::string_view key)>;
+
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_PLATFORM_PUBSUB_PUBSUB_CALLBACKS_H_

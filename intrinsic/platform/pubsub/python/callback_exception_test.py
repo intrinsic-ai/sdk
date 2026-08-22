@@ -73,6 +73,62 @@ class SegfaultReproductionTest(absltest.TestCase):
     sub.Unsubscribe()
     self.pubsub.DropLivelinessToken(_LIVELINESS_KEYEXPR)
 
+  def test_exception_in_liveliness_get_callback(self):
+    self.pubsub = pubsub.PubSub()
+    event = threading.Event()
+
+    self.pubsub.DeclareLivelinessToken(_LIVELINESS_KEYEXPR)
+
+    def callback(key: str):
+      logging.info('Liveliness get callback called with key=%s', key)
+      raise RuntimeError('This should not cause any issues')
+
+    def on_done(keyexpr: str):
+      logging.info(
+          'Liveliness on_done callback called with keyexpr=%s', keyexpr
+      )
+      event.set()
+
+    self.pubsub.LivelinessGet(
+        _LIVELINESS_KEYEXPR,
+        callback=callback,
+        on_done=on_done,
+    )
+
+    self.assertTrue(
+        event.wait(timeout=5.0), 'on_done callback was not called in time'
+    )
+    logging.info('Dropping the liveliness token')
+    self.pubsub.DropLivelinessToken(_LIVELINESS_KEYEXPR)
+
+  def test_exception_in_liveliness_on_done_callback(self):
+    self.pubsub = pubsub.PubSub()
+    event = threading.Event()
+
+    self.pubsub.DeclareLivelinessToken(_LIVELINESS_KEYEXPR)
+
+    def callback(key: str):
+      logging.info('Liveliness get callback called with key=%s', key)
+
+    def on_done(keyexpr: str):
+      logging.info(
+          'Liveliness on_done callback called with keyexpr=%s', keyexpr
+      )
+      event.set()
+      raise RuntimeError('This should not cause any issues')
+
+    self.pubsub.LivelinessGet(
+        _LIVELINESS_KEYEXPR,
+        callback=callback,
+        on_done=on_done,
+    )
+
+    self.assertTrue(
+        event.wait(timeout=5.0), 'on_done callback was not called in time'
+    )
+    logging.info('Dropping the liveliness token')
+    self.pubsub.DropLivelinessToken(_LIVELINESS_KEYEXPR)
+
 
 if __name__ == '__main__':
   absltest.main()
