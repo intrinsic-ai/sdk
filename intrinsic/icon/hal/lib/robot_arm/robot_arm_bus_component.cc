@@ -49,23 +49,42 @@ RobotArmBusComponent::Create(
     fieldbus::DeviceInitContext& init_context,
     const intrinsic_proto::icon::v1::RobotArmBusComponentConfig& config) {
   const auto number_of_joints = config.position_command_variables_size();
-  if (number_of_joints != config.position_state_variables_size() ||
-      (config.velocity_state_variables_size() > 0 &&
-       number_of_joints != config.velocity_state_variables_size()) ||
-      (config.acceleration_state_variables_size() > 0 &&
-       number_of_joints != config.acceleration_state_variables_size()) ||
-      (config.feedforward_velocity_command_variables_size() > 0 &&
-       number_of_joints !=
-           config.feedforward_velocity_command_variables_size())) {
+  if (number_of_joints == 0) {
+    return absl::InvalidArgumentError(
+        "Number of joints must be greater than 0: `position_command_variables` "
+        "is empty.");
+  }
+  if (number_of_joints != config.position_state_variables_size()) {
+    return absl::InvalidArgumentError(absl::StrCat(
+        "Number of joints mismatch: `position_command_variables` has ",
+        number_of_joints, " joint(s), but `position_state_variables` has ",
+        config.position_state_variables_size(), " joint(s)."));
+  }
+  if (config.velocity_state_variables_size() > 0 &&
+      number_of_joints != config.velocity_state_variables_size()) {
     return absl::InvalidArgumentError(absl::StrCat(
         "Number of joints mismatch: Size of `velocity_state_variables` (",
         config.velocity_state_variables_size(),
-        ") and `acceleration_state_variables` (",
+        ") must either be zero or identical to `position_command_variables` (",
+        number_of_joints, ")."));
+  }
+  if (config.acceleration_state_variables_size() > 0 &&
+      number_of_joints != config.acceleration_state_variables_size()) {
+    return absl::InvalidArgumentError(absl::StrCat(
+        "Number of joints mismatch: Size of `acceleration_state_variables` (",
         config.acceleration_state_variables_size(),
-        ") and `feedforward_velocity_command_variables` (",
+        ") must either be zero or identical to `position_command_variables` (",
+        number_of_joints, ")."));
+  }
+  if (config.feedforward_velocity_command_variables_size() > 0 &&
+      number_of_joints !=
+          config.feedforward_velocity_command_variables_size()) {
+    return absl::InvalidArgumentError(absl::StrCat(
+        "Number of joints mismatch: Size of "
+        "`feedforward_velocity_command_variables` (",
         config.feedforward_velocity_command_variables_size(),
-        ") must either be zero or identical to `position_state_variables` (",
-        config.position_state_variables_size(), ")."));
+        ") must either be zero or identical to `position_command_variables` (",
+        number_of_joints, ")."));
   }
 
   std::string joint_position_command_name = "joint_position_command";

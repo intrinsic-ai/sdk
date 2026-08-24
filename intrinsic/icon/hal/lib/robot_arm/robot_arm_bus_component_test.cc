@@ -218,9 +218,11 @@ TEST_F(RobotArmBusComponentTestFixture, CreateFailsWithMissingPositionStates) {
   device_config.mutable_position_state_variables()->Clear();
   fieldbus::DeviceInitContext init_context(*interface_registry_,
                                            variable_registry);
-  EXPECT_THAT(RobotArmBusComponent::Create(init_context, device_config),
-              StatusIs(absl::StatusCode::kInvalidArgument,
-                       HasSubstr("Number of joints mismatch")));
+  EXPECT_THAT(
+      RobotArmBusComponent::Create(init_context, device_config),
+      StatusIs(absl::StatusCode::kInvalidArgument,
+               HasSubstr("`position_command_variables` has 3 joint(s), but "
+                         "`position_state_variables` has 0 joint(s)")));
 }
 
 TEST_F(RobotArmBusComponentTestFixture,
@@ -247,13 +249,17 @@ TEST_F(RobotArmBusComponentTestFixture, CreateFailsWithIllsizedVelocityStates) {
 
   RobotArmBusComponentConfig device_config =
       ParseTextProtoOrDie(kTypical3DofDeviceConfig);
-  // Remove the state variables, so that the number of joints mismatch.
+  // Remove one velocity state variable so the count mismatches position
+  // commands.
   device_config.mutable_velocity_state_variables()->DeleteSubrange(0, 1);
   fieldbus::DeviceInitContext init_context(*interface_registry_,
                                            variable_registry);
-  EXPECT_THAT(RobotArmBusComponent::Create(init_context, device_config),
-              StatusIs(absl::StatusCode::kInvalidArgument,
-                       HasSubstr("Number of joints mismatch")));
+  EXPECT_THAT(
+      RobotArmBusComponent::Create(init_context, device_config),
+      StatusIs(absl::StatusCode::kInvalidArgument,
+               HasSubstr("Size of `velocity_state_variables` (2) must either "
+                         "be zero or identical to `position_command_variables` "
+                         "(3)")));
 }
 
 TEST_F(RobotArmBusComponentTestFixture, CreateFailsWithMissingPositionCommand) {
@@ -264,13 +270,77 @@ TEST_F(RobotArmBusComponentTestFixture, CreateFailsWithMissingPositionCommand) {
 
   RobotArmBusComponentConfig device_config =
       ParseTextProtoOrDie(kTypical3DofDeviceConfig);
-  // Remove the command variables, so that the number of joints mismatch.
+  // Remove the command variables, so that the number of joints is 0.
   device_config.mutable_position_command_variables()->Clear();
   fieldbus::DeviceInitContext init_context(*interface_registry_,
                                            variable_registry);
   EXPECT_THAT(RobotArmBusComponent::Create(init_context, device_config),
               StatusIs(absl::StatusCode::kInvalidArgument,
-                       HasSubstr("Number of joints mismatch")));
+                       HasSubstr("Number of joints must be greater than 0")));
+}
+
+TEST_F(RobotArmBusComponentTestFixture,
+       CreateFailsWithPositionCommandStateMismatch) {
+  LoopbackFakeVariableRegistry<double, 3> variable_registry =
+      LoopbackFakeVariableRegistry<double, 3>(
+          /*joint_states=*/{2, 4, 8}, /*position_commands=*/{0, 0, 0},
+          /*ff_velocity_commands=*/{0, 0, 0});
+
+  RobotArmBusComponentConfig device_config =
+      ParseTextProtoOrDie(kTypical3DofDeviceConfig);
+  // Remove one position command variable so that the count mismatches position
+  // states.
+  device_config.mutable_position_command_variables()->DeleteSubrange(0, 1);
+  fieldbus::DeviceInitContext init_context(*interface_registry_,
+                                           variable_registry);
+  EXPECT_THAT(
+      RobotArmBusComponent::Create(init_context, device_config),
+      StatusIs(absl::StatusCode::kInvalidArgument,
+               HasSubstr("`position_command_variables` has 2 joint(s), but "
+                         "`position_state_variables` has 3 joint(s)")));
+}
+
+TEST_F(RobotArmBusComponentTestFixture,
+       CreateFailsWithAccelerationStateMismatch) {
+  LoopbackFakeVariableRegistry<double, 3> variable_registry =
+      LoopbackFakeVariableRegistry<double, 3>(
+          /*joint_states=*/{2, 4, 8}, /*position_commands=*/{0, 0, 0},
+          /*ff_velocity_commands=*/{0, 0, 0});
+
+  RobotArmBusComponentConfig device_config =
+      ParseTextProtoOrDie(kTypical3DofDeviceConfig);
+  // Remove one acceleration state variable so the count mismatches.
+  device_config.mutable_acceleration_state_variables()->DeleteSubrange(0, 1);
+  fieldbus::DeviceInitContext init_context(*interface_registry_,
+                                           variable_registry);
+  EXPECT_THAT(
+      RobotArmBusComponent::Create(init_context, device_config),
+      StatusIs(absl::StatusCode::kInvalidArgument,
+               HasSubstr("Size of `acceleration_state_variables` (2) must "
+                         "either be zero or identical to "
+                         "`position_command_variables` (3)")));
+}
+
+TEST_F(RobotArmBusComponentTestFixture,
+       CreateFailsWithFeedforwardVelocityCommandMismatch) {
+  LoopbackFakeVariableRegistry<double, 3> variable_registry =
+      LoopbackFakeVariableRegistry<double, 3>(
+          /*joint_states=*/{2, 4, 8}, /*position_commands=*/{0, 0, 0},
+          /*ff_velocity_commands=*/{0, 0, 0});
+
+  RobotArmBusComponentConfig device_config =
+      ParseTextProtoOrDie(kTypical3DofDeviceConfig);
+  // Remove one feedforward velocity command variable so the count mismatches.
+  device_config.mutable_feedforward_velocity_command_variables()
+      ->DeleteSubrange(0, 1);
+  fieldbus::DeviceInitContext init_context(*interface_registry_,
+                                           variable_registry);
+  EXPECT_THAT(
+      RobotArmBusComponent::Create(init_context, device_config),
+      StatusIs(absl::StatusCode::kInvalidArgument,
+               HasSubstr("Size of `feedforward_velocity_command_variables` (2) "
+                         "must either be zero or identical to "
+                         "`position_command_variables` (3)")));
 }
 
 TEST_F(RobotArmBusComponentTestFixture,
