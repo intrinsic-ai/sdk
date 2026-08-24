@@ -28,6 +28,9 @@
 #include "intrinsic/icon/utils/realtime_status_macro.h"
 #include "intrinsic/icon/utils/realtime_status_or.h"
 #include "intrinsic/util/testing/gtest_wrapper.h"
+#if INTRINSIC_MALLOC_TEST
+#include "intrinsic/icon/utils/malloc_guard.h"
+#endif
 
 // Status matchers for RealtimeStatus and RealtimeStatusOr.
 //
@@ -215,23 +218,27 @@ class RealtimeIsOkAndHoldsMatcher {
 
 }  // namespace internal
 
-constexpr int kNumExpectAssertMalloc = 2;
-
 #if INTRINSIC_MALLOC_TEST
-#define INTRINSIC_RT_ASSERT_OK(expression)                    \
-  ASSERT_THAT(expression, ::intrinsic::icon::RealtimeIsOk()); \
-  ::intrinsic::icon::MallocCounterSubtract(                   \
-      ::intrinsic::icon::kNumExpectAssertMalloc);
+#define INTRINSIC_RT_ASSERT_OK(expression)                               \
+  do {                                                                   \
+    auto&& _result = (expression);                                       \
+    ::intrinsic::icon::ScopedMallocGuardIgnore _ignore_malloc_for_gtest; \
+    ASSERT_THAT(_result, ::intrinsic::icon::RealtimeIsOk())              \
+        << "when evaluating " #expression;                               \
+  } while (0);
 #else
 #define INTRINSIC_RT_ASSERT_OK(expression) \
   ASSERT_THAT(expression, ::intrinsic::icon::RealtimeIsOk());
 #endif
 
 #if INTRINSIC_MALLOC_TEST
-#define INTRINSIC_RT_EXPECT_OK(expression)                    \
-  EXPECT_THAT(expression, ::intrinsic::icon::RealtimeIsOk()); \
-  ::intrinsic::icon::MallocCounterSubtract(                   \
-      ::intrinsic::icon::kNumExpectAssertMalloc);
+#define INTRINSIC_RT_EXPECT_OK(expression)                               \
+  do {                                                                   \
+    auto&& _result = (expression);                                       \
+    ::intrinsic::icon::ScopedMallocGuardIgnore _ignore_malloc_for_gtest; \
+    EXPECT_THAT(_result, ::intrinsic::icon::RealtimeIsOk())              \
+        << "when evaluating " #expression;                               \
+  } while (0);
 #else
 #define INTRINSIC_RT_EXPECT_OK(expression) \
   EXPECT_THAT(expression, ::intrinsic::icon::RealtimeIsOk());
