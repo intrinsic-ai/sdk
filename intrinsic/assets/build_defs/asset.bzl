@@ -132,7 +132,7 @@ def _intrinsic_asset_instance_impl(ctx):
     asset_instance_output = ctx.actions.declare_file(ctx.label.name + ".binpb")
     args = ctx.actions.args().add(
         "--asset",
-        ctx.attr.id,
+        ctx.attr.asset,
     ).add(
         "--instance_name",
         name,
@@ -177,6 +177,9 @@ def _intrinsic_asset_instance_impl(ctx):
 
 intrinsic_asset_instance = rule(
     attrs = {
+        "asset": attr.string(
+            mandatory = True,
+        ),
         "config": attr.label(
             allow_single_file = [
                 ".pbtxt",
