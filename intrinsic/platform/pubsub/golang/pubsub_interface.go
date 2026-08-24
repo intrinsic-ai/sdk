@@ -60,6 +60,56 @@ type PubSub interface {
 
 	// NewPublisher creates a new publisher used for publishing messages.
 	NewPublisher(topic string, config TopicConfig) (Publisher, error)
+
+	// DeclareLivelinessToken declares a liveliness token on the given key expression.
+	DeclareLivelinessToken(keyExpr string) error
+
+	// DropLivelinessToken drops the previously declared liveliness token on the given key expression.
+	DropLivelinessToken(keyExpr string) error
+
+	// NewLivelinessSubscription subscribes to liveliness notifications matching
+	// the given key expression.
+	//
+	// Parameters:
+	//  - keyExpr: key expression to subscribe to. May contain wildcards.
+	//  - notifyAboutExistingTokens: whether to receive notifications about tokens
+	//      that were declared before the subscription was created.
+	//  - msgCallback: called when liveliness status changes.
+	//
+	// Callback parameters:
+	//  - key expression whose liveliness token's status changed.
+	//  - boolean value for the liveliness status (true means alive).
+	NewLivelinessSubscription(keyExpr string, notifyAboutExistingTokens bool, msgCallback func(string, bool)) (LivelinessSubscription, error)
+
+	// LivelinessGet searches for currently available liveliness tokens matching the given key expression.
+	// Returns immediately. Callbacks are called in different goroutines.
+	//
+	// Parameters:
+	//  - keyExpr: key expression for matching liveliness tokens. May contain wildcards.
+	//  - callback: called when a liveliness token is found.
+	//     - Takes the key expression that the token was declared on.
+	//  - onDone: called when all tokens matching `keyExpr` have been found.
+	//     - Takes the original key expression (same as `keyExpr`).
+	//
+	// WARNING: both callbacks (`callback` and `onDone`) must return as quickly
+	// as possible. Long-running callbacks may affect results of this
+	// `LivelinessGet` call (some callbacks may be skipped). They may also affect
+	// other clients of the PubSub API (e.g. PubSub may start dropping messages).
+	// If the total duration of callbacks invoked by the same `LivelinessGet`
+	// query exceeds 10 minutes, then no more callbacks will be called after 10
+	// minutes.
+	LivelinessGet(keyExpr string, callback func(string), onDone func(string)) (LivelinessGetQuery, error)
+
+	// LivelinessGetAllSynchronous searches for currently available liveliness tokens matching the given
+	// key expression.
+	// Blocks until all matching tokens are found.
+	//
+	// Parameters:
+	//  - keyExpr: key expression for matching liveliness tokens. May contain wildcards.
+	//
+	// On success, LivelinessGetAllSynchronous returns a list of all found liveliness tokens
+	// in _arbitrary_ order.
+	LivelinessGetAllSynchronous(keyExpr string) ([]string, error)
 }
 
 // Subscription is a handle for a created PubSub subscription
@@ -67,6 +117,22 @@ type Subscription interface {
 	// TopicName returns the name of the topic for the subscription.
 	TopicName() string
 	// Close closes out the subscription
+	Close()
+}
+
+// LivelinessSubscription represents a subscription to liveliness
+// notifications.
+type LivelinessSubscription interface {
+	// Close closes the subscription
+	Close()
+}
+
+// LivelinessQuery is a handle for the LivelinessGet query.
+// Keep it alive until the query completes.
+type LivelinessGetQuery interface {
+
+	// Closes the query and frees up underlying resources.
+	// Call this method after the query's onDone callback returns.
 	Close()
 }
 

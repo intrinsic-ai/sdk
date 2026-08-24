@@ -72,6 +72,9 @@ void intrinsic_ImwSubscriptionCallback(void*, void*, size_t, void*);
 void intrinsic_ImwQueryStaticCallback(void*, void*, size_t, void*);
 void intrinsic_ImwQueryDoneStaticCallback(void*, void*);
 void intrinsic_ImwQueryableStaticCallback(void*, void*, size_t, void*, void*);
+void intrinsic_ImwLivelinessSubscriptionCallback(void*, bool, void*);
+void intrinsic_ImwLivelinessGetCallback(void*, void*);
+void intrinsic_ImwLivelinessOnDoneCallback(void*, void*);
 */
 import "C"
 
@@ -135,6 +138,10 @@ func errorFromImwRet(imwRet C.int) error {
 		return fmt.Errorf("imw returned an error")
 	case 2:
 		return fmt.Errorf("imw is not initialized")
+	case 3:
+		return fmt.Errorf("undefined")
+	case 4:
+		return fmt.Errorf("already exists")
 	default:
 		return fmt.Errorf("unknown error from imw")
 	}
@@ -280,6 +287,119 @@ func (ps *Handle) NewRawSubscription(topic string, config pubsubinterface.TopicC
 	return subscription, nil
 }
 
+// DeclareLivelinessToken declares a liveliness token on the given key expression.
+//
+// Liveliness is a feature of Zenoh that allows participants of a Zenoh
+// network to keep track of each other's availability. Participants announce
+// their availability by declaring a liveliness token on a key expression.
+// Other participants can subscribe to notifications about changes in the
+// availability status by calling `CreateLivelinessSubscription`.
+// Subscribers will receive notifications when the following events occur:
+//   - The participant that declared a liveliness token becomes unavailable
+//     for any reason, such as a network partition or a process crash.
+//   - The participant that declared a liveliness token drops that token
+//     (see `DropLivelinessToken` method).
+//   - The participant that was unavailable becomes available again.
+func (ps *Handle) DeclareLivelinessToken(keyExpr string) error {
+	return ps.zenohHandle.ImwDeclareLivelinessToken(keyExpr)
+}
+
+// DropLivelinessToken drops the liveliness token that was declared on the given key expression.
+func (ps *Handle) DropLivelinessToken(keyExpr string) error {
+	return ps.zenohHandle.ImwDropLivelinessToken(keyExpr)
+}
+
+// NewLivelinessSubscription subscribes to liveliness notifications matching the given key expression.
+//
+// Parameters:
+//   - keyExpr - key expression to subscribe to.
+//   - notifyAboutExistingTokens - whether to receive notifications about tokens that had been declared before NewLivelinessSubscription was called.
+//   - msgCallback - called when state of a liveliness token declared on a matching key expression changes.
+//     Callback parameters:
+//   - key - key expression whose liveliness token's state has changed.
+//   - alive - whether that token is currently alive.
+func (ps *Handle) NewLivelinessSubscription(keyExpr string, notifyAboutExistingTokens bool, msgCallback func(string, bool)) (pubsubinterface.LivelinessSubscription, error) {
+	subscription := &livelinessSubscriptionHandle{
+		keyExpr:     keyExpr,
+		zenohHandle: ps.zenohHandle,
+		callback: func(sub *livelinessSubscriptionHandle, key string, alive bool) {
+			msgCallback(key, alive)
+		},
+	}
+	subh := cgo.NewHandle(subscription)
+	subscription.subHandle = subh
+
+	if err := ps.zenohHandle.ImwCreateLivelinessSubscription(subscription.keyExpr, notifyAboutExistingTokens, subscription); err != nil {
+		return nil, err
+	}
+
+	return subscription, nil
+}
+
+func (q *livelinessQueryHandle) Close() {
+	q.queryHandle.Delete()
+}
+
+// LivelinessGet fetches currently available liveliness tokens matching the given key expression.
+// Returns immediately. Liveliness tokens are passed to the caller via callbacks.
+//
+// Parameters:
+//   - keyExpr - key expression for matching liveliness tokens.
+//   - callback - function that is called when Zenoh finds a liveliness token.
+//     It is called once for each token, and may be called in a different goroutine.
+//     The function takes the key expression on which the token was declared.
+//   - onDone - function that is called when Zenoh finds all liveliness tokens.
+//     It may be called in a different goroutine, but it will be called after all
+//     currently running callbacks complete.
+//     The function's argument is the key expression that was passed to LivelinessGet.
+func (ps *Handle) LivelinessGet(keyExpr string, callback func(string), onDone func(string)) (pubsubinterface.LivelinessGetQuery, error) {
+	query := &livelinessQueryHandle{
+		callback: callback,
+		onDone:   onDone,
+	}
+	qh := cgo.NewHandle(query)
+	query.queryHandle = qh
+
+	if err := ps.zenohHandle.ImwLivelinessGet(keyExpr, query); err != nil {
+		return nil, err
+	}
+
+	return query, nil
+}
+
+// LivelinessGetAllSynchronous fetches currently available liveliness tokens matching the given key expression.
+// Blocks until all tokens are found.
+//
+// Parameters:
+//   - keyExpr - key expression for matching liveliness tokens.
+func (ps *Handle) LivelinessGetAllSynchronous(keyExpr string) ([]string, error) {
+	result := []string{}
+	doneCh := make(chan struct{})
+
+	callback := func(key string) {
+		result = append(result, key)
+	}
+
+	onDone := func(keyexpr string) {
+		doneCh <- struct{}{}
+	}
+
+	query, err := ps.LivelinessGet(keyExpr, callback, onDone)
+	if err != nil {
+		return nil, err
+	}
+	defer query.Close()
+
+	// Waiting for the `onDone` callback to be called.
+	// Since the timeout is enforced by Zenoh, we don't need context.WithTimeout.
+	// We can simply wait for a value to appear in doneCh.
+	log.Info("[LivelinessGetAllSynchronous] Waiting for the onDone callback")
+	<-doneCh
+	log.Info("[LivelinessGetAllSynchronous] Done waiting")
+
+	return result, nil
+}
+
 // NewKVStoreSubscription creates a subscription to the given key that is stored in the KV store.
 //
 // This function differs from other NewXXXXSubscription functions in the following ways:
@@ -387,6 +507,34 @@ func (s *subscriptionHandle) Close() {
 		panic(err)
 	}
 	s.subHandle.Delete()
+}
+
+// livelinessSubscriptionHandle is a handle for a subscription to
+// liveliness notifications.
+type livelinessSubscriptionHandle struct {
+	keyExpr     string
+	zenohHandle zenohHandle
+	callback    func(sub *livelinessSubscriptionHandle, key string, alive bool)
+
+	callbackPtr unsafe.Pointer
+
+	subHandle cgo.Handle
+}
+
+// Close unsubscribes from liveliness notifications.
+func (s *livelinessSubscriptionHandle) Close() {
+	if err := s.zenohHandle.ImwDestroyLivelinessSubscription(s.keyExpr, s); err != nil {
+		panic(err)
+	}
+	s.subHandle.Delete()
+}
+
+// livelinessQueryHandle is a handle for LivelinessGet queries.
+type livelinessQueryHandle struct {
+	callback func(key string)
+	onDone   func(keyexpr string)
+
+	queryHandle cgo.Handle
 }
 
 type publisherHandle struct {
@@ -863,6 +1011,11 @@ type zenohHandle interface {
 	ImwPublisherHasMatchingSubscribers(keyExpr string) (bool, error)
 	ImwCreateSubscription(keyExpr string, sub *subscriptionHandle, qos string) error
 	ImwDestroySubscription(keyExpr string, sub *subscriptionHandle) error
+	ImwDeclareLivelinessToken(keyExpr string) error
+	ImwDropLivelinessToken(keyExpr string) error
+	ImwCreateLivelinessSubscription(keyExpr string, notifyAboutExistingTokens bool, sub *livelinessSubscriptionHandle) error
+	ImwDestroyLivelinessSubscription(keyExpr string, sub *livelinessSubscriptionHandle) error
+	ImwLivelinessGet(keyExpr string, query *livelinessQueryHandle) error
 	ImwSet(keyExpr string, value []byte) error
 	ImwQuery(keyExpr string, query *queryHandle) error
 	ImwCreateQueryable(keyExpr string, queryable *queryableHandle, isRosService bool) error
@@ -1016,6 +1169,105 @@ func (z *zenohHandleImpl) ImwDestroySubscription(keyExpr string, sub *subscripti
 	defer C.free(unsafe.Pointer(inKeyExprString))
 
 	if res := C.ZenohHandleImwDestroySubscription(z.ptr, inKeyExprString, C.zenoh_handle_imw_subscription_callback_fn(C.intrinsic_ImwSubscriptionCallback), unsafe.Pointer(&sub.subHandle)); res != 0 {
+		return errorFromImwRet(res)
+	}
+
+	return nil
+}
+
+func (z *zenohHandleImpl) ImwDeclareLivelinessToken(keyExpr string) error {
+	inKeyExprString := C.CString(keyExpr)
+	defer C.free(unsafe.Pointer(inKeyExprString))
+
+	if res := C.ZenohHandleImwDeclareLivelinessToken(z.ptr, inKeyExprString); res != 0 {
+		return errorFromImwRet(res)
+	}
+
+	return nil
+}
+
+func (z *zenohHandleImpl) ImwDropLivelinessToken(keyExpr string) error {
+	inKeyExprString := C.CString(keyExpr)
+	defer C.free(unsafe.Pointer(inKeyExprString))
+
+	if res := C.ZenohHandleImwDropLivelinessToken(z.ptr, inKeyExprString); res != 0 {
+		return errorFromImwRet(res)
+	}
+
+	return nil
+}
+
+//export intrinsic_ImwLivelinessSubscriptionCallback
+func intrinsic_ImwLivelinessSubscriptionCallback(keyexpr unsafe.Pointer, alive C.bool, userContext unsafe.Pointer) {
+	if userContext == nil {
+		return
+	}
+	h := *(*cgo.Handle)(userContext)
+	sub := h.Value().(*livelinessSubscriptionHandle)
+	sub.callback(sub, C.GoString((*C.char)(keyexpr)), bool(alive))
+}
+
+func (z *zenohHandleImpl) ImwCreateLivelinessSubscription(keyExpr string, notifyAboutExistingTokens bool, sub *livelinessSubscriptionHandle) error {
+	inKeyExprString := C.CString(keyExpr)
+	defer C.free(unsafe.Pointer(inKeyExprString))
+
+	if res := C.ZenohHandleImwCreateLivelinessSubscription(
+		z.ptr,
+		inKeyExprString,
+		C.zenoh_handle_imw_liveliness_callback_fn(C.intrinsic_ImwLivelinessSubscriptionCallback),
+		C.bool(notifyAboutExistingTokens),
+		unsafe.Pointer(&sub.subHandle)); res != 0 {
+		return errorFromImwRet(res)
+	}
+
+	return nil
+}
+
+func (z *zenohHandleImpl) ImwDestroyLivelinessSubscription(keyExpr string, sub *livelinessSubscriptionHandle) error {
+	inKeyExprString := C.CString(keyExpr)
+	defer C.free(unsafe.Pointer(inKeyExprString))
+
+	if res := C.ZenohHandleImwDestroyLivelinessSubscription(
+		z.ptr,
+		inKeyExprString,
+		C.zenoh_handle_imw_liveliness_callback_fn(C.intrinsic_ImwLivelinessSubscriptionCallback),
+		unsafe.Pointer(&sub.subHandle)); res != 0 {
+		return errorFromImwRet(res)
+	}
+
+	return nil
+}
+
+//export intrinsic_ImwLivelinessGetCallback
+func intrinsic_ImwLivelinessGetCallback(key unsafe.Pointer, userContext unsafe.Pointer) {
+	if userContext == nil {
+		return
+	}
+	h := *(*cgo.Handle)(userContext)
+	q := h.Value().(*livelinessQueryHandle)
+	q.callback(C.GoString((*C.char)(key)))
+}
+
+//export intrinsic_ImwLivelinessOnDoneCallback
+func intrinsic_ImwLivelinessOnDoneCallback(keyexpr unsafe.Pointer, userContext unsafe.Pointer) {
+	if userContext == nil {
+		return
+	}
+	h := *(*cgo.Handle)(userContext)
+	q := h.Value().(*livelinessQueryHandle)
+	q.onDone(C.GoString((*C.char)(keyexpr)))
+}
+
+func (z *zenohHandleImpl) ImwLivelinessGet(keyExpr string, query *livelinessQueryHandle) error {
+	inKeyExprString := C.CString(keyExpr)
+	defer C.free(unsafe.Pointer(inKeyExprString))
+
+	if res := C.ZenohHandleImwLivelinessGet(
+		z.ptr,
+		inKeyExprString,
+		C.zenoh_handle_imw_liveliness_get_callback_fn(C.intrinsic_ImwLivelinessGetCallback),
+		C.zenoh_handle_imw_liveliness_on_done_callback_fn(C.intrinsic_ImwLivelinessOnDoneCallback),
+		unsafe.Pointer(&query.queryHandle)); res != 0 {
 		return errorFromImwRet(res)
 	}
 

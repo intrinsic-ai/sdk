@@ -106,6 +106,50 @@ ABSL_ATTRIBUTE_UNUSED int ZenohHandleImwDestroySubscription(
                                                 user_context);
 }
 
+ABSL_ATTRIBUTE_UNUSED int ZenohHandleImwDeclareLivelinessToken(
+    void* handle, const char* keyexpr) {
+  intrinsic::ZenohHandle* zenoh_handle =
+      static_cast<intrinsic::ZenohHandle*>(handle);
+  return zenoh_handle->imw_declare_liveliness_token(keyexpr);
+}
+
+ABSL_ATTRIBUTE_UNUSED int ZenohHandleImwDropLivelinessToken(
+    void* handle, const char* keyexpr) {
+  intrinsic::ZenohHandle* zenoh_handle =
+      static_cast<intrinsic::ZenohHandle*>(handle);
+  return zenoh_handle->imw_drop_liveliness_token(keyexpr);
+}
+
+ABSL_ATTRIBUTE_UNUSED int ZenohHandleImwCreateLivelinessSubscription(
+    void* handle, const char* keyexpr,
+    zenoh_handle_imw_liveliness_callback_fn callback,
+    bool notify_about_existing_tokens, void* user_context) {
+  intrinsic::ZenohHandle* zenoh_handle =
+      static_cast<intrinsic::ZenohHandle*>(handle);
+  return zenoh_handle->imw_create_liveliness_subscription(
+      keyexpr, callback, notify_about_existing_tokens, user_context);
+}
+
+ABSL_ATTRIBUTE_UNUSED int ZenohHandleImwDestroyLivelinessSubscription(
+    void* handle, const char* keyexpr,
+    zenoh_handle_imw_liveliness_callback_fn callback, void* user_context) {
+  intrinsic::ZenohHandle* zenoh_handle =
+      static_cast<intrinsic::ZenohHandle*>(handle);
+  return zenoh_handle->imw_destroy_liveliness_subscription(keyexpr, callback,
+                                                           user_context);
+}
+
+ABSL_ATTRIBUTE_UNUSED int ZenohHandleImwLivelinessGet(
+    void* handle, const char* keyexpr,
+    zenoh_handle_imw_liveliness_get_callback_fn callback,
+    zenoh_handle_imw_liveliness_on_done_callback_fn on_done,
+    void* user_context) {
+  intrinsic::ZenohHandle* zenoh_handle =
+      static_cast<intrinsic::ZenohHandle*>(handle);
+  return zenoh_handle->imw_liveliness_get(keyexpr, callback, on_done,
+                                          user_context);
+}
+
 ABSL_ATTRIBUTE_UNUSED int ZenohHandleImwCreateQueryable(
     void* handle, const char* keyexpr,
     zenoh_handle_imw_queryable_callback_fn callback, void* user_context,

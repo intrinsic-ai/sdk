@@ -54,6 +54,33 @@ ABSL_ATTRIBUTE_UNUSED int ZenohHandleImwCreateSubscription(
 ABSL_ATTRIBUTE_UNUSED int ZenohHandleImwDestroySubscription(
     void* handle, const char* keyexpr,
     zenoh_handle_imw_subscription_callback_fn callback, void* user_context);
+ABSL_ATTRIBUTE_UNUSED int ZenohHandleImwDeclareLivelinessToken(
+    void* handle, const char* keyexpr);
+ABSL_ATTRIBUTE_UNUSED int ZenohHandleImwDropLivelinessToken(
+    void* handle, const char* keyexpr);
+
+typedef void (*zenoh_handle_imw_liveliness_callback_fn)(const char* keyexpr,
+                                                        bool alive,
+                                                        void* user_context);
+
+ABSL_ATTRIBUTE_UNUSED int ZenohHandleImwCreateLivelinessSubscription(
+    void* handle, const char* keyexpr,
+    zenoh_handle_imw_liveliness_callback_fn callback,
+    bool notify_about_existing_tokens, void* user_context);
+ABSL_ATTRIBUTE_UNUSED int ZenohHandleImwDestroyLivelinessSubscription(
+    void* handle, const char* keyexpr,
+    zenoh_handle_imw_liveliness_callback_fn callback, void* user_context);
+
+typedef void (*zenoh_handle_imw_liveliness_get_callback_fn)(const char* keyexpr,
+                                                            void* user_context);
+typedef void (*zenoh_handle_imw_liveliness_on_done_callback_fn)(
+    const char* keyexpr, void* user_context);
+
+ABSL_ATTRIBUTE_UNUSED int ZenohHandleImwLivelinessGet(
+    void* handle, const char* keyexpr,
+    zenoh_handle_imw_liveliness_get_callback_fn callback,
+    zenoh_handle_imw_liveliness_on_done_callback_fn on_done,
+    void* user_context);
 
 typedef void (*zenoh_handle_imw_queryable_callback_fn)(
     const char* keyexpr, const void* query_bytes, const size_t query_bytes_len,
