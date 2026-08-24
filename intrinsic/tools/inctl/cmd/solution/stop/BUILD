@@ -18,7 +18,10 @@ go_library(
     name = "stop",
     srcs = ["stop.go"],
     importpath = "intrinsic/tools/inctl/cmd/solution/stop/stop",
-    visibility = ["//intrinsic/tools/inctl/cmd/solution:__pkg__"],
+    visibility = [
+        "//intrinsic/tools/inctl/cmd:__pkg__",
+        "//intrinsic/tools/inctl/cmd/solution:__pkg__",
+    ],
     deps = [
         "//intrinsic/assets:clientutils",
         "//intrinsic/assets:cmdutils",
