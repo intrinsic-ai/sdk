@@ -14,6 +14,8 @@
 
 #include "intrinsic/util/path_resolver/path_resolver.h"
 
+#include <unistd.h>
+
 #include <cstdlib>
 #include <string>
 
