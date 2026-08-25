@@ -131,3 +131,15 @@ message CameraToRobotCalibrationResult {
   double rotation_root_mean_square_error_in_degrees = 5;
   double rotation_maximum_error_in_degrees = 6;
 }
+
+// The error metrics resulting from validating a camera-to-robot calibration.
+message CameraToRobotValidationResult {
+  // Mean translation error.
+  double translation_root_mean_square_error = 1;
+  // Maximum translation error.
+  double translation_maximum_error = 2;
+  // Mean rotation error in degrees.
+  double rotation_root_mean_square_error_in_degrees = 3;
+  // Maximum rotation error in degrees.
+  double rotation_maximum_error_in_degrees = 4;
+}

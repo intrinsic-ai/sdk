@@ -236,9 +236,6 @@ message IntrinsicValidationResult {
   string camera_name = 5;
 }
 
-message CameraToRobotValidationResult {
-}
-
 message ValidationResult {
   // Contains as many intrinsic validation results as passed in camera
   // handles in the InitializeRequest.
