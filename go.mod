@@ -66,7 +66,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/golang/glog v1.2.5
 	github.com/google/brotli/go/cbrotli v1.1.0
-	github.com/google/gnostic v0.6.9
+	github.com/google/gnostic v0.7.2-0.20260810211321-baf14b9600b0
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-containerregistry v0.20.3
 	github.com/google/safearchive v0.0.0-20241025131057-f7ce9d7b6f9c
@@ -117,7 +117,7 @@ require (
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.20.0
-	github.com/stoewer/go-strcase v1.3.0
+	github.com/stoewer/go-strcase v1.3.1
 	github.com/stretchr/testify v1.11.1
 	github.com/stripe/stripe-go/v74 v74.30.0
 	github.com/stripe/stripe-go/v79 v79.12.0
