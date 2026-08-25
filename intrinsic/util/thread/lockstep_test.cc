@@ -12,10 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Confidential and proprietary property of Intrinsic, a secret project of X,
-// The Moonshot Factory.  Please note the project associated with this code is
-// not publicly disclosed.  Please do not use this code without first contacting
-// intrinsic-tech@.
 #include "intrinsic/util/thread/lockstep.h"
 
 #include <gmock/gmock.h>
