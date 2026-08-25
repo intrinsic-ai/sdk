@@ -37,7 +37,6 @@ from intrinsic.solutions import providers
 from intrinsic.solutions.internal import referenced_assets
 from intrinsic.util.grpc import error_handling
 
-_INSTALLED_ASSETS_MAX_PAGE_SIZE = 200
 _SOLUTION_SERVICE_MAX_PAGE_SIZE = 50
 _WAIT_OPERATION_TIMEOUT = duration_pb2.Duration(seconds=10)
 
