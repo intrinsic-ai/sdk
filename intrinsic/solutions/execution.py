@@ -32,6 +32,7 @@ my_executive.reset()
 
 import datetime
 import enum
+import sys
 import time
 from typing import Any
 from typing import cast
@@ -44,6 +45,8 @@ import warnings
 from google.longrunning import operations_pb2
 from google.protobuf import any_pb2
 from google.protobuf import message as protobuf_message
+from google.protobuf.internal import api_implementation
+from google.protobuf.internal import decoder
 import grpc
 
 from intrinsic.assets import id_utils
@@ -139,6 +142,51 @@ class OperationNotFoundError(Error):
   """Thrown in case that a specific operation was not available."""
 
 
+def _unpack_run_metadata(
+    any_proto: any_pb2.Any,
+    target: run_metadata_pb2.RunMetadata,
+    recursion_limit: int = 10_000,
+) -> None:
+  """Unpacks RunMetadata, temporarily elevating recursion limits on deep trees.
+
+  Deep behavior trees can exceed the default wire recursion limit (100).
+  On decode failure, this temporarily enables oversize proto parsing in
+  C++/upb and elevates Python limits without permanently mutating global state.
+  """
+  # Fast path: Try standard unpack first for normal-depth trees.
+  try:
+    if any_proto.Unpack(target):
+      return
+  except (protobuf_message.DecodeError, RecursionError):
+    pass
+
+  # Fallback: Enable oversize proto parsing and elevated recursion limits.
+  # If there's not _c_module we are in pure python and don't need
+  # SetAllowOversizeProtos
+  c_module = getattr(api_implementation, "_c_module", None)
+  has_c_hook = c_module is not None and hasattr(
+      c_module, "SetAllowOversizeProtos"
+  )
+  if has_c_hook:
+    c_module.SetAllowOversizeProtos(True)
+
+  old_sys_limit = sys.getrecursionlimit()
+  old_proto_limit = getattr(decoder, "_recursion_limit", 100)
+
+  if recursion_limit > old_sys_limit:
+    sys.setrecursionlimit(recursion_limit)
+  decoder.SetRecursionLimit(recursion_limit)
+
+  try:
+    any_proto.Unpack(target)
+  finally:
+    # Always restore original C and Python limits to prevent global side effects.
+    if has_c_hook:
+      c_module.SetAllowOversizeProtos(False)
+    sys.setrecursionlimit(old_sys_limit)
+    decoder.SetRecursionLimit(old_proto_limit)
+
+
 class Operation:
   """Class representing an active operation in the executive.
 
@@ -181,7 +229,7 @@ class Operation:
     """Update information from a proto."""
     self._operation_proto = proto
     self._metadata = run_metadata_pb2.RunMetadata()
-    self._operation_proto.metadata.Unpack(self._metadata)
+    _unpack_run_metadata(self._operation_proto.metadata, self._metadata)
     self._response = None
     if self._operation_proto.HasField("response"):
       self._response = run_response_pb2.RunResponse()
