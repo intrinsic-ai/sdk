@@ -172,7 +172,7 @@ register_toolchains("@rust_toolchains//:all")
 
 bazel_dep(name = "rules_nodejs", version = "6.7.5", dev_dependency = True)
 bazel_dep(name = "aspect_rules_js", version = "3.4.1", dev_dependency = True)
-bazel_dep(name = "aspect_rules_ts", version = "3.10.0", dev_dependency = True)
+bazel_dep(name = "aspect_rules_ts", version = "3.10.1", dev_dependency = True)
 bazel_dep(name = "aspect_rules_esbuild", version = "0.27.0", dev_dependency = True)
 
 node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node", dev_dependency = True)
