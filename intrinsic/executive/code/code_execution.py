@@ -15,6 +15,7 @@
 """Utilities for executing code from the code execution service."""
 
 import importlib
+import logging
 import sys
 import types
 
@@ -30,6 +31,63 @@ from intrinsic.skills.internal import basic_compute_context_impl
 from intrinsic.skills.python import basic_compute_context
 from intrinsic.world.proto import object_world_service_pb2_grpc
 from intrinsic.world.python import object_world_client
+
+# Raw container logger.
+_container_logger = logging.getLogger(__name__)
+_container_logger.propagate = False
+
+# Configure a direct stdout handler if not already present (persists across
+# module reloads).
+if not _container_logger.handlers:
+  # Use sys.__stdout__ which writes directly to the container's log stream,
+  # rather than sys.stdout which is captured and redirected by IPython to the
+  # notebook/execution client.
+  _logging_handler = logging.StreamHandler(sys.__stdout__)
+  _container_logger.addHandler(_logging_handler)
+
+
+class FileDescriptorDivergenceTracker:
+  """Tracks loaded proto file descriptors to detect divergence across requests.
+
+  When reusing a persistent Jupyter kernel across multiple execution requests,
+  a user might send an updated file descriptor set with altered fields under
+  an existing name. Because Protobuf's descriptor pool and sys.modules cannot
+  mutate descriptors in-place, the runtime will continue using the previously
+  loaded version. We track descriptor checksums to detect and log this
+  divergence. In case this actually happens, we could trigger an error in the
+  future and restart the kernel.
+  """
+
+  def __init__(self) -> None:
+    self._checksums: dict[str, int] = {}
+
+  def track_file_descriptor(
+      self, file_descriptor_proto: descriptor_pb2.FileDescriptorProto
+  ) -> None:
+    if not file_descriptor_proto.name in self._checksums:
+      self._checksums[file_descriptor_proto.name] = hash(
+          file_descriptor_proto.SerializeToString(deterministic=True)
+      )
+
+  def log_warning_if_divergent(
+      self, file_descriptor_proto: descriptor_pb2.FileDescriptorProto
+  ) -> None:
+    current_checksum = hash(
+        file_descriptor_proto.SerializeToString(deterministic=True)
+    )
+    if (
+        file_descriptor_proto.name in self._checksums
+        and self._checksums[file_descriptor_proto.name] != current_checksum
+    ):
+      _container_logger.warning(
+          "Proto file descriptor set received with %r having a modified "
+          "checksum. The kernel will continue using the previously loaded "
+          "descriptor definition.",
+          file_descriptor_proto.name,
+      )
+
+
+_file_descriptor_tracker = FileDescriptorDivergenceTracker()
 
 
 # Converts "foo/bar/baz.proto" -> "foo.bar.baz_pb2"
@@ -196,11 +254,107 @@ def _create_compatible_file_descriptor_set(
   return compatible_file_descriptor_set
 
 
-def import_from_file_descriptor_set(
+def _migrate_file_descriptor_set_to_new_default_path_structure(
+    file_descriptor_set: descriptor_pb2.FileDescriptorSet,
+) -> descriptor_pb2.FileDescriptorSet:
+  symbol_to_file = _create_symbol_to_file(file_descriptor_set)
+
+  path_to_default_path = _create_default_paths(
+      file_descriptor_set, symbol_to_file
+  )
+
+  # Before adding this descriptor set: Modify all paths (file names and
+  # dependencies) if the same symbols are present in the default pool, but under
+  # another file name. If it is, use the file name of the proto file in the
+  # default pool. This assumes that the definitions are compatible.
+  file_descriptor_set = _create_compatible_file_descriptor_set(
+      file_descriptor_set, path_to_default_path
+  )
+
+  return file_descriptor_set
+
+
+def _get_file_descriptor_proto_from_set(
     module_name: str,
     file_descriptor_set: descriptor_pb2.FileDescriptorSet,
-    symbol_to_file: dict[str, str] | None = None,
-    path_to_default_path: dict[str, str] | None = None,
+) -> descriptor_pb2.FileDescriptorProto | None:
+  file_name = _to_proto_filename(module_name)
+
+  return next(
+      (file for file in file_descriptor_set.file if file.name == file_name),
+      None,
+  )
+
+
+def _import_from_compatible_file_descriptor_set(
+    module_name: str,
+    compat_file_descriptor_set: descriptor_pb2.FileDescriptorSet,
+) -> types.ModuleType:
+  if not module_name.endswith("_pb2"):
+    raise ValueError(f"Module name must end with _pb2, but got {module_name}")
+
+  # First try a regular import (from the sys.modules cache or "from file"). Note
+  # that if this function is called a second time with the same arguments, we
+  # will get a cache hit here.
+  try:
+    module = importlib.import_module(module_name)
+
+    file_descriptor_proto = _get_file_descriptor_proto_from_set(
+        module_name, compat_file_descriptor_set
+    )
+    if file_descriptor_proto is not None:
+      _file_descriptor_tracker.log_warning_if_divergent(file_descriptor_proto)
+
+    return module
+  except ModuleNotFoundError:
+    # Regular import failed, import from the file descriptor set.
+    pass
+
+  file_descriptor_proto = _get_file_descriptor_proto_from_set(
+      module_name, compat_file_descriptor_set
+  )
+
+  if file_descriptor_proto is None:
+    raise ValueError(
+        f"Could not find file descriptor for module {module_name} in file"
+        " descriptor set"
+    )
+
+  _file_descriptor_tracker.track_file_descriptor(file_descriptor_proto)
+
+  # Import all proto module dependencies (just like in a generated "*_pb2.py"
+  # file).
+  for dependency_file_name in file_descriptor_proto.dependency:
+    _import_from_compatible_file_descriptor_set(
+        _to_proto_module(dependency_file_name), compat_file_descriptor_set
+    )
+
+  # Add file descriptor to the default descriptor pool (just like in a generated
+  # "*_pb2.py" file).
+  descriptor_pool.Default().Add(file_descriptor_proto)
+  file_descriptor = descriptor_pool.Default().FindFileByName(
+      file_descriptor_proto.name
+  )
+
+  # Generate message classes etc. (just like in a generated "*_pb2.py" file).
+  module = types.ModuleType(name=module_name)
+  setattr(module, "DESCRIPTOR", file_descriptor)
+  builder.BuildMessageAndEnumDescriptors(file_descriptor, module.__dict__)
+  builder.BuildTopDescriptorsAndMessages(
+      file_descriptor, module.__name__, module.__dict__
+  )
+
+  # Add the module to the sys.modules cache. Technically, we would also need to
+  # load and add all parent modules here (e.g., "import foo.bar" loads "foo" and
+  # then "foo.bar"). But we avoid this additional complexity as long as we don't
+  # strictly need it.
+  sys.modules[module.__name__] = module
+
+  return module
+
+
+def import_from_file_descriptor_set(
+    module_name: str, file_descriptor_set: descriptor_pb2.FileDescriptorSet
 ) -> types.ModuleType:
   """Imports a proto module from the given file descriptor set.
 
@@ -227,16 +381,9 @@ def import_from_file_descriptor_set(
   environment must be equivalent or else things can break when importing "a_pb2"
   from the file descriptor set.
 
-  It is OK to leave symbol_to_file and path_to_default_path empty for the
-  initial call on the input file_descriptor_set. In that case these will be
-  created.
-
   Args:
     module_name: The name of the proto module to import. Must end with "_pb2".
     file_descriptor_set: The file descriptor set to import missing modules from.
-    symbol_to_file: A map from proto symbol full name to the file name it is in
-    path_to_default_path: Mapping from a file name to the respective file in the
-      default pool
 
   Returns:
     The imported module.
@@ -244,74 +391,15 @@ def import_from_file_descriptor_set(
   if not module_name.endswith("_pb2"):
     raise ValueError(f"Module name must end with _pb2, but got {module_name}")
 
-  # First try a regular import (from the sys.modules cache or "from file"). Note
-  # that if this function is called a second time with the same arguments, we
-  # will get a cache hit here.
-  try:
-    module = importlib.import_module(module_name)
-    return module
-  except ModuleNotFoundError:
-    # Regular import failed, import from the file descriptor set.
-    pass
-
-  if symbol_to_file is None:
-    symbol_to_file = _create_symbol_to_file(file_descriptor_set)
-  if path_to_default_path is None:
-    path_to_default_path = _create_default_paths(
-        file_descriptor_set, symbol_to_file
-    )
-
-  # Before adding this descriptor set: Modify all paths (file names and
-  # dependencies) if the same symbols are present in the default pool, but under
-  # another file name. If it is, use the file name of the proto file in the
-  # default pool. This assumes that the definitions are compatible.
-  file_descriptor_set = _create_compatible_file_descriptor_set(
-      file_descriptor_set, path_to_default_path
+  compat_file_descriptor_set = (
+      _migrate_file_descriptor_set_to_new_default_path_structure(
+          file_descriptor_set
+      )
   )
 
-  file_name = _to_proto_filename(module_name)
-
-  try:
-    file_descriptor_proto = next(
-        file for file in file_descriptor_set.file if file.name == file_name
-    )
-  except StopIteration as e:
-    raise ValueError(
-        f"Could not find file {file_name} in file descriptor set"
-    ) from e
-
-  # Import all proto module dependencies (just like in a generated "*_pb2.py"
-  # file).
-  for dependency_file_name in file_descriptor_proto.dependency:
-    import_from_file_descriptor_set(
-        _to_proto_module(dependency_file_name),
-        file_descriptor_set,
-        symbol_to_file,
-        path_to_default_path,
-    )
-
-  # Add file descriptor to the default descriptor pool (just like in a generated
-  # "*_pb2.py" file).
-  descriptor_pool.Default().Add(file_descriptor_proto)
-  file_descriptor = descriptor_pool.Default().FindFileByName(
-      file_descriptor_proto.name
+  return _import_from_compatible_file_descriptor_set(
+      module_name, compat_file_descriptor_set
   )
-
-  # Generate message classes etc. (just like in a generated "*_pb2.py" file).
-  module = types.ModuleType(name=module_name)
-  setattr(module, "DESCRIPTOR", file_descriptor)
-  builder.BuildMessageAndEnumDescriptors(file_descriptor, module.__dict__)
-  builder.BuildTopDescriptorsAndMessages(
-      file_descriptor, module.__name__, module.__dict__
-  )
-
-  # Add the module to the sys.modules cache. Technically, we would also need to
-  # load and add all parent modules here (e.g., "import foo.bar" loads "foo" and
-  # then "foo.bar"). But we avoid this additional complexity as long as we don't
-  # strictly need it.
-  sys.modules[module.__name__] = module
-
-  return module
 
 
 def _find_module_containing_message(

@@ -39,6 +39,7 @@ class CodeExecutionTest(absltest.TestCase):
     super().setUp()
     # Reset import cache between tests to the "initial state".
     sys.modules = _SYS_MODULES_BACKUP.copy()
+    code_execution._file_descriptor_tracker._checksums.clear()
 
   def test_import_from_file_descriptor_set(self):
     file_descriptor_set = text_format.Parse(
@@ -89,6 +90,62 @@ class CodeExecutionTest(absltest.TestCase):
     #  - my_proto_pb2 and point_pb2 must be using the same descriptor pool since
     #    otherwise the message creation would fail.
     my_proto_pb2.MyParams(my_str="foo", my_point=point_pb2.Point(x=1, y=2, z=3))
+
+  def test_import_from_file_descriptor_set_warns_on_modified_checksum(self):
+    file_descriptor_set_1 = text_format.Parse(
+        """
+        file {
+          name: "checksum_test/checksum_proto.proto"
+          package: "checksum_protos"
+          message_type {
+            name: "ChecksumParams"
+            field {
+              name: "my_str"
+              number: 1
+              label: LABEL_OPTIONAL
+              type: TYPE_STRING
+            }
+          }
+          syntax: "proto3"
+        }""",
+        descriptor_pb2.FileDescriptorSet(),
+    )
+
+    file_descriptor_set_2 = text_format.Parse(
+        """
+        file {
+          name: "checksum_test/checksum_proto.proto"
+          package: "checksum_protos"
+          message_type {
+            name: "ChecksumParams"
+            field {
+              name: "my_str"
+              number: 1
+              label: LABEL_OPTIONAL
+              type: TYPE_INT32
+            }
+          }
+          syntax: "proto3"
+        }""",
+        descriptor_pb2.FileDescriptorSet(),
+    )
+
+    code_execution.import_from_file_descriptor_set(
+        "checksum_test.checksum_proto_pb2", file_descriptor_set_1
+    )
+
+    with self.assertLogs(
+        code_execution._container_logger, level="WARNING"
+    ) as context_manager:
+      code_execution.import_from_file_descriptor_set(
+          "checksum_test.checksum_proto_pb2", file_descriptor_set_2
+      )
+
+    self.assertLen(context_manager.output, 1)
+    self.assertIn(
+        "checksum_test/checksum_proto.proto", context_manager.output[0]
+    )
+    self.assertIn("modified checksum", context_manager.output[0])
 
   def test_import_from_file_descriptor_set_imports_well_known_types(self):
     file_descriptor_set = text_format.Parse(
@@ -210,7 +267,7 @@ class CodeExecutionTest(absltest.TestCase):
       )
 
     with self.assertRaisesRegex(
-        ValueError, "Could not find file not/in/file_descriptor_set.proto"
+        ValueError, "Could not find.*not.in.file_descriptor_set_pb2.*"
     ):
       code_execution.import_from_file_descriptor_set(
           "not.in.file_descriptor_set_pb2", file_descriptor_set
