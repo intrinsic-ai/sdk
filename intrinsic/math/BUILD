@@ -35,6 +35,14 @@ cc_library(
 )
 
 cc_library(
+    name = "ipow",
+    hdrs = ["ipow.h"],
+    deps = [
+        "@abseil-cpp//absl/numeric:bits",
+    ],
+)
+
+cc_library(
     name = "proto_conversion",
     srcs = ["proto_conversion.cc"],
     hdrs = ["proto_conversion.h"],
