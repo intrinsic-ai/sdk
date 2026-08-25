@@ -383,4 +383,3 @@ pnpm.pnpm(pnpm_version_from = "//intrinsic/frontend/sdk:package.json")
 use_repo(pnpm, "pnpm")
 
 register_toolchains("//intrinsic/frontend/sdk:gen_es_toolchain_toolchain", dev_dependency = True)
-
