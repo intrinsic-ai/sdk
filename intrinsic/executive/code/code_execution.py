@@ -246,9 +246,20 @@ def _create_compatible_file_descriptor_set(
   compatible_file_descriptor_set = descriptor_pb2.FileDescriptorSet()
   compatible_file_descriptor_set.CopyFrom(new_file_descriptor_set)
   for file in compatible_file_descriptor_set.file:
+    if file.name != path_to_default_path[file.name]:
+      _container_logger.warning(
+          "Adapted default file path for %s to %s",
+          file.name,
+          path_to_default_path[file.name],
+      )
     file.name = path_to_default_path[file.name]
     for i, dep in enumerate(file.dependency):
       if dep != path_to_default_path[dep]:
+        _container_logger.warning(
+            "Adapted default dependency file path for %s to %s",
+            dep,
+            path_to_default_path[dep],
+        )
         file.dependency[i] = path_to_default_path[dep]
 
   return compatible_file_descriptor_set
