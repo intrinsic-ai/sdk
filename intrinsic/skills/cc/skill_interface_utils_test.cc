@@ -25,10 +25,12 @@
 
 #include "absl/log/check.h"
 #include "absl/status/status.h"
+#include "absl/status/status_matchers.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
 #include "google/protobuf/duration.pb.h"
 #include "google/protobuf/message.h"
+#include "internal/testing.h"
 #include "intrinsic/skills/cc/skill_interface.h"
 #include "intrinsic/skills/internal/preview_context_impl.h"
 #include "intrinsic/skills/proto/prediction.pb.h"
@@ -36,7 +38,7 @@
 #include "intrinsic/skills/testing/echo_skill.pb.h"
 #include "intrinsic/skills/testing/skill_test_utils.h"
 #include "intrinsic/util/status/status_macros.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
+#include "protobuf-matchers/protocol-buffer-matchers.h"
 
 namespace intrinsic {
 namespace skills {

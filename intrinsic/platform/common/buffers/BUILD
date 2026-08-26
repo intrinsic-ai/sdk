@@ -112,5 +112,7 @@ cc_test(
         "//intrinsic/util/testing:gtest_wrapper_main",
         "//intrinsic/util/thread",
         "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:status_matchers",
+        "@com_google_cel_cpp//internal:testing_no_main",
     ],
 )

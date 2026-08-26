@@ -24,10 +24,10 @@
 #include <utility>
 
 #include "absl/status/status.h"
+#include "internal/testing.h"
 #include "intrinsic/icon/utils/realtime_status.h"
 #include "intrinsic/icon/utils/realtime_status_macro.h"
 #include "intrinsic/icon/utils/realtime_status_or.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
 #if INTRINSIC_MALLOC_TEST
 #include "intrinsic/icon/utils/malloc_guard.h"
 #endif

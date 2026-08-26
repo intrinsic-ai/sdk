@@ -236,8 +236,11 @@ cc_test(
         "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/log:check",
         "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:status_matchers",
         "@abseil-cpp//absl/status:statusor",
         "@abseil-cpp//absl/strings:string_view",
+        "@com_github_inazarenko_protobuf_matchers//protobuf-matchers",
+        "@com_google_cel_cpp//internal:testing_no_main",
         "@com_google_protobuf//:protobuf",
     ],
 )

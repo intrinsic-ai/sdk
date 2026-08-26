@@ -22,9 +22,11 @@
 
 #include "absl/log/check.h"
 #include "absl/status/status.h"
+#include "absl/status/status_matchers.h"
 #include "absl/status/statusor.h"
 #include "absl/time/time.h"
 #include "grpcpp/support/status.h"
+#include "internal/testing.h"
 #include "intrinsic/assets/id_utils.h"
 #include "intrinsic/logging/proto/context.pb.h"
 #include "intrinsic/motion_planning/motion_planner_client.h"
@@ -37,7 +39,6 @@
 #include "intrinsic/skills/proto/skill_manifest.pb.h"
 #include "intrinsic/skills/testing/echo_skill.h"
 #include "intrinsic/skills/testing/echo_skill.pb.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
 #include "intrinsic/world/objects/object_world_client.h"
 #include "intrinsic/world/proto/object_world_service_mock.grpc.pb.h"
 

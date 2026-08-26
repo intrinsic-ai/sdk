@@ -28,7 +28,6 @@
 #include "intrinsic/util/status/status_builder.h"
 #include "intrinsic/util/status/status_builder_grpc.h"
 #include "intrinsic/util/status/status_conversion_grpc.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
 
 namespace intrinsic {
 namespace {

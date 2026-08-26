@@ -47,8 +47,10 @@ cc_test(
         "//intrinsic/util:proto_time",
         "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:status_matchers",
         "@abseil-cpp//absl/strings:string_view",
         "@abseil-cpp//absl/time",
+        "@com_google_cel_cpp//internal:testing_no_main",
     ],
 )
 
@@ -76,6 +78,8 @@ cc_test(
         "//intrinsic/logging/proto:downsampler_cc_proto",
         "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:status_matchers",
         "@abseil-cpp//absl/time",
+        "@com_google_cel_cpp//internal:testing_no_main",
     ],
 )

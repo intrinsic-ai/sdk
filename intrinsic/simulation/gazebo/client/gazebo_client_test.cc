@@ -23,16 +23,17 @@
 #include "grpcpp/server_builder.h"
 #include "grpcpp/server_context.h"
 #include "gz/transport/Node.hh"
+#include "internal/testing.h"
 #include "intrinsic/assets/proto/v1/resolved_dependency.pb.h"
 #include "intrinsic/simulation/gazebo/client/gazebo_client_test_env.h"
 #include "intrinsic/util/proto/parse_text_proto.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
+#include "protobuf-matchers/protocol-buffer-matchers.h"
 
 namespace intrinsic {
 namespace simulation {
 namespace {
 
-using ::intrinsic::testing::EqualsProto;
+using ::protobuf_matchers::EqualsProto;
 using ::testing::_;
 using ::testing::DoAll;
 using ::testing::Pointee;

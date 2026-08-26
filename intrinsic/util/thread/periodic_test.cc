@@ -24,10 +24,11 @@
 
 #include "absl/functional/any_invocable.h"
 #include "absl/status/status.h"
+#include "absl/status/status_matchers.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
+#include "internal/testing.h"
 
 namespace intrinsic {
 namespace {

@@ -20,10 +20,12 @@
 #include <cstddef>
 
 #include "absl/status/status.h"
+#include "absl/status/status_matchers.h"
 #include "google/protobuf/repeated_field.h"
+#include "internal/testing.h"
 #include "intrinsic/eigenmath/types.h"
 #include "intrinsic/icon/proto/matrix.pb.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
+#include "protobuf-matchers/protocol-buffer-matchers.h"
 
 namespace intrinsic::icon {
 
@@ -31,7 +33,7 @@ namespace {
 
 using ::absl_testing::IsOkAndHolds;
 using ::absl_testing::StatusIs;
-using ::intrinsic::testing::EqualsProto;
+using ::protobuf_matchers::EqualsProto;
 using ::testing::ElementsAreArray;
 using ::testing::Eq;
 using ::testing::HasSubstr;

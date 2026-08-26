@@ -20,10 +20,11 @@
 #include <optional>
 
 #include "absl/status/status.h"
+#include "absl/status/status_matchers.h"
 #include "absl/time/time.h"
+#include "internal/testing.h"
 #include "intrinsic/logging/proto/downsampler.pb.h"
 #include "intrinsic/logging/utils/downsampler/downsampler.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
 
 namespace intrinsic {
 namespace {

@@ -26,7 +26,6 @@
 
 #include "absl/hash/hash_testing.h"
 #include "intrinsic/util/aggregate_type.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
 #include "intrinsic/world/hashing/hashing.h"
 
 namespace intrinsic {

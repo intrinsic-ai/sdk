@@ -20,17 +20,19 @@
 #include <string>
 
 #include "absl/status/status.h"
+#include "absl/status/status_matchers.h"
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
+#include "internal/testing.h"
 #include "intrinsic/assets/services/proto/v1/service_inspection.pb.h"
 #include "intrinsic/icon/hal/proto/hardware_module_inspection.pb.h"
 #include "intrinsic/platform/pubsub/pubsub.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
+#include "protobuf-matchers/protocol-buffer-matchers.h"
 
 using ::absl_testing::StatusIs;
-using ::intrinsic::testing::EqualsProto;
+using ::protobuf_matchers::EqualsProto;
 
 namespace intrinsic::icon {
 

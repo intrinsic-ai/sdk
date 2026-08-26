@@ -171,7 +171,8 @@ cc_test(
         ":fake_kvstore",
         "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/status",
-        "@com_google_googletest//:gtest",
+        "@abseil-cpp//absl/status:status_matchers",
+        "@com_google_cel_cpp//internal:testing_no_main",
         "@com_google_protobuf//:protobuf",
     ],
 )

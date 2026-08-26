@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/status/status_matchers.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_replace.h"
@@ -36,6 +37,7 @@
 #include "grpcpp/server.h"
 #include "grpcpp/server_builder.h"
 #include "grpcpp/server_context.h"
+#include "internal/testing.h"
 #include "intrinsic/assets/data/fake_data_assets.h"
 #include "intrinsic/assets/data/proto/v1/data_asset.pb.h"
 #include "intrinsic/assets/dependencies/testing/test_configs.pb.h"
@@ -43,19 +45,19 @@
 #include "intrinsic/assets/proto/v1/resolved_dependency.pb.h"
 #include "intrinsic/util/proto/parse_text_proto.h"
 #include "intrinsic/util/status/status_macros.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
+#include "protobuf-matchers/protocol-buffer-matchers.h"
 
 namespace intrinsic::assets::dependencies {
 namespace {
 
 using ::absl_testing::StatusIs;
 using ::intrinsic::ParseTextProtoOrDie;
-using ::intrinsic::testing::EqualsProto;
 using ::intrinsic_proto::assets::testing::TestRequest;
 using ::intrinsic_proto::assets::testing::TestResponse;
 using ::intrinsic_proto::assets::testing::TestService;
 using ::intrinsic_proto::assets::v1::ResolvedDependency;
 using ::intrinsic_proto::data::v1::DataAsset;
+using ::protobuf_matchers::EqualsProto;
 using ::testing::HasSubstr;
 
 DataAsset MakeEmptyDataAsset(absl::string_view name = "data_asset") {

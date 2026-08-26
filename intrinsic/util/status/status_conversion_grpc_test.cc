@@ -25,7 +25,6 @@
 #include "google/rpc/code.pb.h"
 #include "grpcpp/support/status.h"
 #include "intrinsic/util/proto/type_url.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
 
 namespace intrinsic {
 namespace {

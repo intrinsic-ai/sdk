@@ -287,7 +287,9 @@ cc_test(
         "//intrinsic/util/testing:status_payload_matchers",
         "@abseil-cpp//absl/log:check",
         "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:status_matchers",
         "@abseil-cpp//absl/time",
+        "@com_github_inazarenko_protobuf_matchers//protobuf-matchers",
     ],
 )
 
@@ -305,6 +307,7 @@ cc_test(
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
         "@com_github_grpc_grpc//:grpc++",
+        "@com_github_inazarenko_protobuf_matchers//protobuf-matchers",
         "@com_google_googleapis//google/rpc:code_cc_proto",
         "@com_google_googleapis//google/rpc:status_cc_proto",
     ],
@@ -351,10 +354,12 @@ cc_test(
         "@abseil-cpp//absl/log:log_sink",
         "@abseil-cpp//absl/log:scoped_mock_log",
         "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:status_matchers",
         "@abseil-cpp//absl/status:statusor",
         "@abseil-cpp//absl/strings",
         "@abseil-cpp//absl/strings:cord",
         "@abseil-cpp//absl/time",
+        "@com_github_inazarenko_protobuf_matchers//protobuf-matchers",
         "@com_google_protobuf//:protobuf",
     ],
 )

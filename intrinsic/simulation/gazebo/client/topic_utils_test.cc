@@ -20,12 +20,13 @@
 #include <memory>
 
 #include "absl/status/status.h"
+#include "absl/status/status_matchers.h"
+#include "internal/testing.h"
 #include "intrinsic/simulation/gazebo/client/gazebo_client.h"
 #include "intrinsic/simulation/gazebo/client/gazebo_client_test_env.h"
 #include "intrinsic/simulation/gazebo/client/joint_control.h"
 #include "intrinsic/simulation/gazebo/client/joint_state.h"
 #include "intrinsic/simulation/gazebo/gz_topic_constants.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
 
 using ::absl_testing::StatusIs;
 

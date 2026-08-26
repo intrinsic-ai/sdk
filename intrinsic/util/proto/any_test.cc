@@ -20,18 +20,20 @@
 #include <string>
 
 #include "absl/status/status.h"
+#include "absl/status/status_matchers.h"
 #include "google/protobuf/any.pb.h"
 #include "google/protobuf/wrappers.pb.h"
+#include "internal/testing.h"
 #include "intrinsic/util/proto/parse_text_proto.h"
 #include "intrinsic/util/proto/testing/param_message.pb.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
+#include "protobuf-matchers/protocol-buffer-matchers.h"
 
 namespace intrinsic {
 namespace {
 
 using ::absl_testing::IsOkAndHolds;
 using ::absl_testing::StatusIs;
-using ::intrinsic::testing::EqualsProto;
+using ::protobuf_matchers::EqualsProto;
 using ::testing::AllOf;
 using ::testing::HasSubstr;
 

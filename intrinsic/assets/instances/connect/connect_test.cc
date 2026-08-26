@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/status/status_matchers.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "grpc/grpc_security_constants.h"
@@ -31,9 +32,9 @@
 #include "grpcpp/server.h"
 #include "grpcpp/server_builder.h"
 #include "grpcpp/server_context.h"
+#include "internal/testing.h"
 #include "intrinsic/assets/instances/connect/testing/test_service.grpc.pb.h"
 #include "intrinsic/assets/proto/v1/grpc_connection.pb.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
 
 namespace intrinsic::assets::instances::connect {
 namespace {

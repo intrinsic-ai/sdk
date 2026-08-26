@@ -19,8 +19,8 @@
 
 #include <string>
 
+#include "absl/status/status_matchers.h"
 #include "intrinsic/util/path_resolver/path_resolver.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
 #include "ortools/base/path.h"
 
 namespace intrinsic {

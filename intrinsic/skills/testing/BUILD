@@ -281,7 +281,6 @@ cc_library(
         "//intrinsic/skills/internal:preview_context_impl",
         "//intrinsic/skills/proto:skill_manifest_cc_proto",
         "//intrinsic/util/status:status_macros",
-        "//intrinsic/util/testing:gtest_wrapper",  # buildcleaner: keep
         "//intrinsic/world/objects:object_world_client",
         "//intrinsic/world/proto:object_world_service_cc_grpc_proto",
         "@abseil-cpp//absl/log:check",
@@ -290,6 +289,8 @@ cc_library(
         "@abseil-cpp//absl/time",
         "@com_github_grpc_grpc//:grpc++",
         "@com_github_grpc_grpc//:grpc_security_base",
+        "@com_google_cel_cpp//internal:testing_no_main",
+        "@com_google_googletest//:gtest",  # buildcleaner: keep
         "@com_google_protobuf//:protobuf",
     ],
 )
@@ -316,9 +317,11 @@ cc_test(
         "//intrinsic/world/proto:object_world_service_cc_grpc_proto",
         "@abseil-cpp//absl/log:check",
         "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:status_matchers",
         "@abseil-cpp//absl/status:statusor",
         "@abseil-cpp//absl/time",
         "@com_github_grpc_grpc//:grpc++",
+        "@com_google_cel_cpp//internal:testing_no_main",
     ],
 )
 

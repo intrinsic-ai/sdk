@@ -18,17 +18,19 @@
 #include <gtest/gtest.h>
 
 #include "absl/status/status.h"
+#include "absl/status/status_matchers.h"
 #include "absl/status/statusor.h"
 #include "google/protobuf/type.pb.h"
 #include "google/protobuf/wrappers.pb.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
+#include "internal/testing.h"
+#include "protobuf-matchers/protocol-buffer-matchers.h"
 
 namespace intrinsic {
 namespace {
 
 using ::absl_testing::IsOkAndHolds;
 using ::absl_testing::StatusIs;
-using ::intrinsic::testing::EqualsProto;
+using ::protobuf_matchers::EqualsProto;
 using ::testing::AllOf;
 using ::testing::Eq;
 using ::testing::HasSubstr;

@@ -29,6 +29,7 @@
 #include "grpcpp/server.h"
 #include "intrinsic/assets/proto/v1/resolved_dependency.pb.h"
 #include "intrinsic/motion_planning/proto/v1/motion_planner_service.grpc.pb.h"
+#include "internal/testing.h"
 #include "intrinsic/skills/cc/equipment_pack.h"
 #include "intrinsic/skills/cc/skill_canceller.h"
 #include "intrinsic/skills/cc/skill_interface.h"

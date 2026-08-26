@@ -137,8 +137,9 @@ cc_library(
         ":realtime_status",
         ":realtime_status_macro",
         ":realtime_status_or",
-        "//intrinsic/util/testing:gtest_wrapper",
         "@abseil-cpp//absl/status",
+        "@com_google_cel_cpp//internal:testing_no_main",
+        "@com_google_googletest//:gtest",
     ],
 )
 
@@ -280,6 +281,7 @@ cc_test_and_malloc_test(
     deps = [
         ":log_internal",
         "@abseil-cpp//absl/time",
+        "@com_google_googletest//:gtest",
     ],
 )
 
@@ -305,6 +307,7 @@ cc_test_and_malloc_test(
         "//intrinsic/icon/release:source_location",
         "//intrinsic/util/thread",
         "@abseil-cpp//absl/strings",
+        "@com_google_googletest//:gtest",
     ],
 )
 
@@ -378,6 +381,7 @@ cc_test_and_malloc_test(
     deps = [
         ":realtime_guard",
         ":realtime_stack_trace",
+        "@com_google_googletest//:gtest",
     ],
 )
 
@@ -432,7 +436,9 @@ cc_test(
         ":multiple_producer_single_consumer_async_buffer",
         "//intrinsic/util/testing:gtest_wrapper_main",
         "//intrinsic/util/thread",
+        "@abseil-cpp//absl/status:status_matchers",
         "@abseil-cpp//absl/synchronization",
+        "@com_google_cel_cpp//internal:testing_no_main",
     ],
 )
 
@@ -516,8 +522,11 @@ cc_test(
         "//intrinsic/platform/pubsub",
         "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:status_matchers",
         "@abseil-cpp//absl/strings",
         "@abseil-cpp//absl/synchronization",
         "@abseil-cpp//absl/time",
+        "@com_github_inazarenko_protobuf_matchers//protobuf-matchers",
+        "@com_google_cel_cpp//internal:testing_no_main",
     ],
 )

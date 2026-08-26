@@ -20,10 +20,11 @@
 #include <memory>
 
 #include "absl/status/status.h"
+#include "absl/status/status_matchers.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
+#include "internal/testing.h"
 #include "intrinsic/util/thread/stop_token.h"
 
 namespace intrinsic {

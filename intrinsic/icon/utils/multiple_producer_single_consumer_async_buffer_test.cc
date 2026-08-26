@@ -22,8 +22,9 @@
 #include <utility>
 #include <vector>
 
+#include "absl/status/status_matchers.h"
 #include "absl/synchronization/notification.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
+#include "internal/testing.h"
 #include "intrinsic/util/thread/thread.h"
 
 namespace intrinsic {

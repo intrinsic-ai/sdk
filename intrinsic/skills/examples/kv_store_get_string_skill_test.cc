@@ -27,6 +27,7 @@
 #include "google/protobuf/wrappers.pb.h"
 #include "grpcpp/server_context.h"
 #include "grpcpp/support/status.h"
+#include "internal/testing.h"
 #include "intrinsic/assets/interface_utils.h"
 #include "intrinsic/assets/proto/v1/resolved_dependency.pb.h"
 #include "intrinsic/platform/pubsub/kvstore_grpc/kvstore.grpc.pb.h"
@@ -34,7 +35,6 @@
 #include "intrinsic/skills/cc/skill_interface.h"
 #include "intrinsic/skills/examples/kv_store_get_string_skill.pb.h"
 #include "intrinsic/skills/testing/skill_test_utils.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
 
 namespace intrinsic {
 namespace skills {

@@ -29,6 +29,7 @@
 #include "absl/log/log_sink.h"
 #include "absl/log/scoped_mock_log.h"
 #include "absl/status/status.h"
+#include "absl/status/status_matchers.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/cord.h"
 #include "absl/strings/match.h"
@@ -40,8 +41,8 @@
 #include "intrinsic/icon/release/source_location.h"
 #include "intrinsic/util/proto/type_url.h"
 #include "intrinsic/util/status/extended_status.pb.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
 #include "intrinsic/util/testing/status_payload_matchers.h"
+#include "protobuf-matchers/protocol-buffer-matchers.h"
 
 namespace intrinsic {
 namespace {
@@ -49,9 +50,9 @@ namespace {
 using ::absl::LogSeverity;
 using ::absl::ScopedMockLog;
 using ::absl_testing::StatusIs;
-using ::intrinsic::testing::EqualsProto;
 using ::intrinsic::testing::StatusHasGenericPayload;
 using ::intrinsic::testing::StatusHasProtoPayload;
+using ::protobuf_matchers::EqualsProto;
 using ::testing::_;
 using ::testing::AllOf;
 using ::testing::AnyOf;

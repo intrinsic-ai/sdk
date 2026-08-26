@@ -23,11 +23,12 @@
 #include <string>
 #include <vector>
 
+#include "absl/status/status_matchers.h"
 #include "google/protobuf/repeated_field.h"
+#include "internal/testing.h"
 #include "intrinsic/eigenmath/rotation_utils.h"
 #include "intrinsic/eigenmath/types.h"
 #include "intrinsic/math/pose3.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
 
 namespace intrinsic {
 

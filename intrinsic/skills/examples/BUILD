@@ -74,6 +74,7 @@ cc_test(
         "//intrinsic/skills/testing:skill_test_utils_cc",
         "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/strings",
+        "@com_google_cel_cpp//internal:testing_no_main",
         "@com_google_protobuf//:protobuf_lite",
     ],
 )
@@ -147,6 +148,7 @@ cc_test(
         "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/container:flat_hash_map",
         "@abseil-cpp//absl/strings",
+        "@com_google_cel_cpp//internal:testing_no_main",
         "@com_google_protobuf//:protobuf",
     ],
 )
@@ -218,6 +220,7 @@ cc_test(
         "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/container:flat_hash_map",
         "@abseil-cpp//absl/strings",
+        "@com_google_cel_cpp//internal:testing_no_main",
         "@com_google_protobuf//:protobuf",
     ],
 )

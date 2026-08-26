@@ -18,13 +18,14 @@
 #include <gtest/gtest.h>
 
 #include "absl/status/status.h"
+#include "absl/status/status_matchers.h"
 #include "absl/strings/string_view.h"
 #include "absl/time/time.h"
+#include "internal/testing.h"
 #include "intrinsic/logging/proto/downsampler.pb.h"
 #include "intrinsic/logging/proto/log_item.pb.h"
 #include "intrinsic/logging/proto/logger_service.pb.h"
 #include "intrinsic/util/proto_time.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
 
 namespace intrinsic::data_logger {
 namespace {

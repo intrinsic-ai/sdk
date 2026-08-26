@@ -26,8 +26,10 @@
 #include <string>
 
 #include "absl/status/status.h"
+#include "absl/status/status_matchers.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
+#include "internal/testing.h"
 #include "intrinsic/icon/hal/hardware_interface_handle.h"
 #include "intrinsic/icon/hal/hardware_interface_registry.h"
 #include "intrinsic/icon/hal/icon_state_register.h"
@@ -44,7 +46,6 @@
 #include "intrinsic/icon/utils/current_cycle.h"
 #include "intrinsic/icon/utils/realtime_status_matchers.h"
 #include "intrinsic/util/proto/parse_text_proto.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
 
 namespace intrinsic::robot_arm {
 namespace {

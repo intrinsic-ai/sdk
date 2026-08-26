@@ -22,12 +22,13 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/status/status_matchers.h"
 #include "flatbuffers/buffer.h"
 #include "flatbuffers/flatbuffer_builder.h"
 #include "flatbuffers/vector.h"
+#include "internal/testing.h"
 #include "intrinsic/icon/flatbuffers/transform_types.fbs.h"
 #include "intrinsic/icon/interprocess/shared_memory_manager/segment_info.fbs.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
 
 namespace intrinsic_fbs {
 namespace {

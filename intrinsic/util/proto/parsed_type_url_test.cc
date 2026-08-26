@@ -18,7 +18,8 @@
 #include <gtest/gtest.h>
 
 #include "absl/status/status.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
+#include "absl/status/status_matchers.h"
+#include "internal/testing.h"
 
 using ::absl_testing::StatusIs;
 using ::testing::HasSubstr;

@@ -23,6 +23,7 @@
 
 #include "absl/log/check.h"
 #include "absl/status/status.h"
+#include "absl/status/status_matchers.h"
 #include "absl/time/civil_time.h"
 #include "absl/time/time.h"
 #include "intrinsic/assets/proto/status_spec.pb.h"
@@ -30,17 +31,17 @@
 #include "intrinsic/util/status/extended_status.pb.h"
 #include "intrinsic/util/status/status_builder.h"
 #include "intrinsic/util/status/status_macros.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
 #include "intrinsic/util/testing/status_payload_matchers.h"
+#include "protobuf-matchers/protocol-buffer-matchers.h"
 
 namespace intrinsic {
 namespace {
 
 using ::absl_testing::StatusIs;
 using ::intrinsic::ParseTextProtoOrDie;
-using ::intrinsic::testing::EqualsProto;
-using ::intrinsic::testing::Partially;
 using ::intrinsic::testing::StatusHasProtoPayload;
+using ::protobuf_matchers::EqualsProto;
+using ::protobuf_matchers::proto::Partially;
 using ::testing::Eq;
 using ::testing::HasSubstr;
 using ::testing::Property;

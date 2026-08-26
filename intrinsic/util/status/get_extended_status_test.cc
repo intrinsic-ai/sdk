@@ -30,13 +30,13 @@
 #include "intrinsic/util/status/status_builder.h"
 #include "intrinsic/util/status/status_conversion_grpc.h"
 #include "intrinsic/util/status/status_conversion_rpc.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
+#include "protobuf-matchers/protocol-buffer-matchers.h"
 
 namespace intrinsic {
 namespace {
 
 using ::intrinsic::ParseTextOrDie;
-using ::intrinsic::testing::EqualsProto;
+using ::protobuf_matchers::EqualsProto;
 using ::testing::Optional;
 
 TEST(GetExtendedStatus, FromAbslStatus) {

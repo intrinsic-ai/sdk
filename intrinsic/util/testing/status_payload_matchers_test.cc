@@ -24,10 +24,12 @@
 #include "absl/strings/cord.h"
 #include "google/protobuf/wrappers.pb.h"
 #include "intrinsic/util/proto/type_url.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
+#include "protobuf-matchers/protocol-buffer-matchers.h"
 
-using ::intrinsic::testing::EqualsProto;
-using ::intrinsic::testing::WhenDeserializedAs;
+using ::intrinsic::testing::StatusHasGenericPayload;
+using ::intrinsic::testing::StatusHasProtoPayload;
+using ::protobuf_matchers::EqualsProto;
+using ::protobuf_matchers::proto::WhenDeserializedAs;
 
 namespace intrinsic::testing {
 namespace {

@@ -28,7 +28,6 @@
 #include "intrinsic/icon/control/c_api/external_action_api/testing/action_test_helper.h"
 #include "intrinsic/icon/control/c_api/external_action_api/testing/loopback_fake_arm.h"
 #include "intrinsic/icon/utils/realtime_status_or.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
 
 namespace intrinsic::icon {
 namespace {

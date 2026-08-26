@@ -52,11 +52,12 @@ cc_library(
     srcs = ["gtest_wrapper_main.cc"],
     visibility = ["//visibility:public"],
     deps = [
-        ":gtest_wrapper",
         "@abseil-cpp//absl/debugging:failure_signal_handler",
         "@abseil-cpp//absl/debugging:symbolize",
         "@abseil-cpp//absl/flags:parse",
+        "@com_google_benchmark//:benchmark",
         "@com_google_fuzztest//fuzztest:init_fuzztest",
+        "@com_google_googletest//:gtest",
     ],
 )
 
@@ -86,6 +87,7 @@ cc_test(
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
         "@abseil-cpp//absl/strings:cord",
+        "@com_github_inazarenko_protobuf_matchers//protobuf-matchers",
         "@com_google_protobuf//:protobuf",
     ],
 )

@@ -22,6 +22,7 @@
 
 #include "absl/strings/str_cat.h"
 #include "google/protobuf/message_lite.h"
+#include "internal/testing.h"
 #include "intrinsic/assets/interface_utils.h"
 #include "intrinsic/assets/proto/v1/resolved_dependency.pb.h"
 #include "intrinsic/assets/services/examples/calcserver/calc_server.h"
@@ -29,7 +30,6 @@
 #include "intrinsic/skills/cc/skill_interface.h"
 #include "intrinsic/skills/examples/calculate_skill.pb.h"
 #include "intrinsic/skills/testing/skill_test_utils.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
 
 namespace intrinsic {
 namespace skills {

@@ -64,6 +64,7 @@ cc_test(
         "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/synchronization",
         "@abseil-cpp//absl/time",
+        "@com_google_cel_cpp//internal:testing_no_main",
     ],
 )
 
@@ -132,9 +133,11 @@ cc_test(
         "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/container:flat_hash_set",
         "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:status_matchers",
         "@abseil-cpp//absl/strings",
         "@abseil-cpp//absl/synchronization",
         "@abseil-cpp//absl/time",
+        "@com_google_cel_cpp//internal:testing_no_main",
         "@or_tools//ortools/base:file",
         "@or_tools//ortools/base:path",
     ],
@@ -164,8 +167,10 @@ cc_test(
         "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/log:check",
         "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:status_matchers",
         "@abseil-cpp//absl/synchronization",
         "@abseil-cpp//absl/time",
+        "@com_google_cel_cpp//internal:testing_no_main",
     ],
 )
 
@@ -189,7 +194,9 @@ cc_test(
         ":thread",
         "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:status_matchers",
         "@abseil-cpp//absl/time",
+        "@com_google_cel_cpp//internal:testing_no_main",
     ],
 )
 
@@ -216,7 +223,9 @@ cc_test(
         ":thread_pool",
         "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:status_matchers",
         "@abseil-cpp//absl/synchronization",
         "@abseil-cpp//absl/time",
+        "@com_google_cel_cpp//internal:testing_no_main",
     ],
 )

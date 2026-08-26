@@ -24,15 +24,16 @@
 #include <string>
 
 #include "absl/status/status.h"
+#include "absl/status/status_matchers.h"
 #include "absl/status/statusor.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "gz/msgs/MessageTypes.hh"
 #include "gz/transport/Node.hh"
+#include "internal/testing.h"
 #include "intrinsic/simulation/gazebo/client/gazebo_client.h"
 #include "intrinsic/simulation/gazebo/client/gazebo_client_test_env.h"
-#include "intrinsic/util/testing/gtest_wrapper.h"
 #include "intrinsic/util/thread/stop_token.h"
 #include "intrinsic/util/thread/thread.h"
 
