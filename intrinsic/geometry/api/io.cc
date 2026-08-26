@@ -40,8 +40,6 @@
 #include "intrinsic/geometry/proto/v1/geometry_options.pb.h"
 #include "intrinsic/geometry/proto/v1/geometry_storage_refs.pb.h"
 #include "intrinsic/geometry/proto/v1/inline_geometry.pb.h"
-#include "intrinsic/geometry/proto/v1/octree.pb.h"
-#include "intrinsic/geometry/proto/v1/octree_wrapping.pb.h"
 #include "intrinsic/geometry/proto/v1/point_cloud.pb.h"
 #include "intrinsic/geometry/proto/v1/primitive_shape.pb.h"
 #include "intrinsic/geometry/proto/v1/primitives.pb.h"
@@ -424,10 +422,6 @@ absl::StatusOr<ExactGeometry> ToGeometry(
       INTR_ASSIGN_OR_RETURN(primary_shape, geometry_details::ToPrimitiveSet(
                                                proto.primitive_set()));
 
-      if (proto.has_octree_wrapping()) {
-        LOG(WARNING)
-            << "Octree wrapping is not supported for primitive set, ignoring";
-      }
     } break;
     case intrinsic_proto::geometry::v1::ExactGeometry::kTriangleMesh: {
       INTR_ASSIGN_OR_RETURN(auto mesh, FromProto(proto.triangle_mesh()));

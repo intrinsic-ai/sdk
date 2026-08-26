@@ -17,7 +17,6 @@ syntax = "proto3";
 package intrinsic_proto.geometry.v1;
 
 import "intrinsic/geometry/proto/v1/geometry_options.proto";
-import "intrinsic/geometry/proto/v1/octree_wrapping.proto";
 import "intrinsic/geometry/proto/v1/point_cloud.proto";
 import "intrinsic/geometry/proto/v1/transformed_primitive_shape_set.proto";
 import "intrinsic/geometry/proto/v1/triangle_mesh.proto";
@@ -37,9 +36,9 @@ message ExactGeometry {
     PointCloud point_cloud = 3;
   }
 
-  // An optional Octree based wrapping that segments the raw data into an octree
-  optional OctreeWrapping octree_wrapping = 4;
-
   // Runtime options for this geometry.
   GeometryOptions options = 5;
+
+  reserved 4;
+  reserved "octree_wrapping";
 }

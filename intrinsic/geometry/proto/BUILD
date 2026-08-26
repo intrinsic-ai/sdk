@@ -255,7 +255,6 @@ proto_library(
     name = "lazy_exact_geometry_proto",
     srcs = ["lazy_exact_geometry.proto"],
     deps = [
-        ":mesh_octree_wrapping_proto",
         ":primitives_proto",
         ":triangle_mesh_proto",
     ],
@@ -276,7 +275,6 @@ go_proto_library(
     importpath = "intrinsic/geometry/proto/lazy_exact_geometry_go_proto",
     protos = [":lazy_exact_geometry_proto"],
     deps = [
-        ":mesh_octree_wrapping_go_proto",
         ":primitives_go_proto",
         ":triangle_mesh_go_proto",
     ],

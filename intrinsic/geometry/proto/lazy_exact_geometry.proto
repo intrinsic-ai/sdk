@@ -16,7 +16,6 @@ syntax = "proto3";
 
 package intrinsic_proto.geometry;
 
-import "intrinsic/geometry/proto/mesh_octree_wrapping.proto";
 import "intrinsic/geometry/proto/primitives.proto";
 import "intrinsic/geometry/proto/triangle_mesh.proto";
 
@@ -27,12 +26,11 @@ message LazyExactGeometry {
   // The mesh representation of this Geometry.
     TriangleMesh triangle_mesh = 6;
 
-  // An optional Octree based wrapping that segments the mesh into an octree
-  MeshOctreeWrapping mesh_octree_wrapping = 4;
-
   // An optional set of primitives that represent the geometry.
   PrimitiveShapeSet primitive_set = 5;
 
+  reserved 2, 4;
+  reserved "mesh_octree", "mesh_octree_wrapping";
 }
 
 // A primitives based representation of a geometric shape.
