@@ -21,6 +21,7 @@ load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 load("//intrinsic/httpjson:intrinsic_http_image.bzl", "intrinsic_http_image")
+load("//intrinsic/httpjson/openapi:protoc_gen_openapi.bzl", "protoc_gen_openapi")
 
 package(
     default_visibility = [
@@ -75,9 +76,17 @@ py_grpc_library(
     deps = [":grasp_annotator_service_py_pb2"],
 )
 
+protoc_gen_openapi(
+    name = "grasp_annotator_service_openapi",
+    protos = [
+        ":grasp_annotator_service_proto",
+    ],
+)
+
 intrinsic_http_image(
     name = "grasp_annotator_service_httpjson_bridge",
-    go_proto = ":grasp_annotator_service_go_proto",
-    grpc_service = "intrinsic_proto.grasping.service.grasp_annotator_service.v1.GraspAnnotator",
-    proto = ":grasp_annotator_service_proto",
+    openapi_yaml = ":grasp_annotator_service_openapi",
+    services = {
+        ":grasp_annotator_service_go_proto": "intrinsic_proto.grasping.service.grasp_annotator_service.v1.GraspAnnotator",
+    },
 )
