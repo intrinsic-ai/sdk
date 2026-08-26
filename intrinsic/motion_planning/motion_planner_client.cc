@@ -88,6 +88,11 @@ CreateMotionPlanningRequest(
         ->set_collision_check_spacing_override(
             options.collision_check_spacing_override.value());
   }
+  if (options.enable_strict_trajectory_fallback.has_value()) {
+    request.mutable_motion_planner_config()
+        ->set_enable_strict_trajectory_fallback(
+            options.enable_strict_trajectory_fallback.value());
+  }
   request.set_caller_id(caller_id);
   *request.mutable_context() = context;
 

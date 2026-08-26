@@ -142,6 +142,7 @@ class MotionPlanningOptions:
       collision_checker_config_pb2.CollisionCheckerConfig | None
   ) = None
   collision_check_spacing_override: float | None = None
+  enable_strict_trajectory_fallback: bool | None = None
 
 
 @dataclasses.dataclass
@@ -280,6 +281,10 @@ class MotionPlannerClient(MotionPlannerClientBase):
     if options.collision_check_spacing_override is not None:
       request.motion_planner_config.collision_check_spacing_override = (
           options.collision_check_spacing_override
+      )
+    if options.enable_strict_trajectory_fallback is not None:
+      request.motion_planner_config.enable_strict_trajectory_fallback = (
+          options.enable_strict_trajectory_fallback
       )
     response = self._stub.PlanTrajectory(request)
     swept_volume = list(response.swept_volume)

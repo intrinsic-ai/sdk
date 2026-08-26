@@ -52,6 +52,13 @@ message MotionPlannerConfiguration {
   // result in a motion planning error.
   optional double collision_check_spacing_override = 8;
 
+  // By default, if the motion planner detects that a trajectory would get too
+  // close to an obstacle, the planner will generate a highly accurate, but
+  // slow, fallback trajectory. But if this option is set to `false`, this
+  // situation will instead cause the motion planner to return an error. It may
+  // be useful to disable this option while designing a process.
+  optional bool enable_strict_trajectory_fallback = 9;
+
   reserved 2;
   reserved "use_projection_onto_constraint_manifold";
 }

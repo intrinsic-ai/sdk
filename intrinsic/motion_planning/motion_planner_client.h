@@ -90,6 +90,9 @@ class MotionPlannerClient {
     // motion planner.
     std::optional<double> collision_check_spacing_override = std::nullopt;
 
+    // Optionally override the default strict trajectory fallback setting.
+    std::optional<bool> enable_strict_trajectory_fallback = std::nullopt;
+
     // Returns the default set of options to use with the plan path requests.
     static const MotionPlanningOptions& Defaults();
   };
