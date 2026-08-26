@@ -73,6 +73,7 @@ cc_library(
         "//intrinsic/util/status:status_macros",
         "//intrinsic/world:geometry_types",
         "//intrinsic/world/proto:kinematics_component_cc_proto",
+        "//intrinsic/world/proto:physics_component_cc_proto",
         "@abseil-cpp//absl/algorithm:container",
         "@abseil-cpp//absl/base:core_headers",
         "@abseil-cpp//absl/container:flat_hash_map",
