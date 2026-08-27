@@ -14,10 +14,10 @@
 
 syntax = "proto3";
 
-import "google/protobuf/any.proto";
-import "google/api/annotations.proto";
-
 package intrinsic_proto.assets.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/any.proto";
 
 option go_package = "intrinsic/assets/proto/v1/asset_configuration_go_proto";
 
@@ -40,6 +40,17 @@ service AssetConfigurationService {
       returns (RecommendAssetConfigurationResponse) {
     option (google.api.http) = {
       post: "/v1/assetConfiguration/{name}:recommendConfiguration"
+      body: "*"
+    };
+  }
+
+  // Batch version of `RecommendAssetConfiguration` which can be used to get
+  // multiple recommended Asset configurations efficiently.
+  rpc BatchRecommendAssetConfigurations(
+      BatchRecommendAssetConfigurationsRequest)
+      returns (BatchRecommendAssetConfigurationsResponse) {
+    option (google.api.http) = {
+      post: "/assetConfiguration/v1:batchRecommendConfigurations"
       body: "*"
     };
   }
@@ -71,6 +82,16 @@ message RecommendAssetConfigurationRequest {
 
   // Input configuration on which to base the recommendation.
   optional google.protobuf.Any input_configuration = 2;
+}
+
+message BatchRecommendAssetConfigurationsRequest {
+  // The individual recommendation requests to fulfill in a batch.
+  repeated RecommendAssetConfigurationRequest requests = 1;
+}
+
+message BatchRecommendAssetConfigurationsResponse {
+  // The individual responses for each request (in the same order).
+  repeated RecommendAssetConfigurationResponse responses = 1;
 }
 
 // Information on whether an Asset has configuration recommendations.

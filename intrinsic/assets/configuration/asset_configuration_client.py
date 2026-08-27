@@ -16,6 +16,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 import warnings
 
 from google.protobuf import any_pb2
@@ -47,6 +48,20 @@ class AssetConfigurationClient:
       name: str,
       input_configuration: any_pb2.Any | None = None,
   ) -> asset_configuration_pb2.RecommendAssetConfigurationResponse:
+    """Recommends a configuration for a given Asset.
+
+    Args:
+      name: The name of the Asset instance or Skill ID to configure.
+      input_configuration: Optional input configuration to use as a starting
+        point for the recommendation.
+
+    Returns:
+      The RecommendAssetConfigurationResponse containing the recommended
+      configuration.
+
+    Raises:
+      grpc.RpcError: If the RPC fails with a status other than UNAVAILABLE.
+    """
     request = asset_configuration_pb2.RecommendAssetConfigurationRequest(
         name=name, input_configuration=input_configuration
     )
@@ -55,13 +70,63 @@ class AssetConfigurationClient:
     except grpc.RpcError as e:
       if error_handling.is_unavailable_grpc_status(e):
         warnings.warn(
-            "Failed to get asset recommendation for asset: "
+            "Failed to get Asset recommendation for Asset: "
             f"{name}. Returning input configuration instead.",
             RuntimeWarning,
         )
         return asset_configuration_pb2.RecommendAssetConfigurationResponse(
             config=input_configuration
         )
+      raise
+
+  def batch_recommend_asset_configurations(
+      self,
+      names_and_input_configs: Sequence[tuple[str, any_pb2.Any | None]],
+  ) -> list[asset_configuration_pb2.RecommendAssetConfigurationResponse]:
+    """Recommends configurations for a batch of Assets.
+
+    Prefer this method over sequential or parallel calls to
+    `recommend_asset_configuration()` for performance reasons.
+
+    Args:
+      names_and_input_configs: A sequence of tuples containing Asset names (or
+        Skill IDs) and optional input configurations.
+
+    Returns:
+      A list of RecommendAssetConfigurationResponse containing the recommended
+      configurations for all input Assets in order.
+
+    Raises:
+      grpc.RpcError: If the RPC fails with a status other than UNAVAILABLE.
+    """
+    if not names_and_input_configs:
+      return []
+
+    sub_requests = [
+        asset_configuration_pb2.RecommendAssetConfigurationRequest(
+            name=name, input_configuration=input_config
+        )
+        for name, input_config in names_and_input_configs
+    ]
+    request = asset_configuration_pb2.BatchRecommendAssetConfigurationsRequest(
+        requests=sub_requests
+    )
+    try:
+      response = self._stub.BatchRecommendAssetConfigurations(request)
+      return list(response.responses)
+    except grpc.RpcError as e:
+      if error_handling.is_unavailable_grpc_status(e):
+        warnings.warn(
+            "Failed to get batch Asset recommendations. Returning input"
+            " configurations instead.",
+            RuntimeWarning,
+        )
+        return [
+            asset_configuration_pb2.RecommendAssetConfigurationResponse(
+                config=input_config
+            )
+            for _, input_config in names_and_input_configs
+        ]
       raise
 
   def get_asset_recommendation_info(

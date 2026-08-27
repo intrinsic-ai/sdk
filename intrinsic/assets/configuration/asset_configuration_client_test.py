@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests of AssetConfigurationClient."""
-
 from unittest import mock
 
 from absl.testing import absltest
@@ -57,6 +55,74 @@ class AssetConfigurationClientTest(absltest.TestCase):
             name="test_asset", input_configuration=input_config
         )
     )
+
+  def test_batch_recommend_asset_configurations(self):
+    output_config_1 = any_pb2.Any(type_url="type.googleapis.com/MyConfig1")
+    output_config_2 = any_pb2.Any(type_url="type.googleapis.com/MyConfig2")
+    expected_response = (
+        asset_configuration_pb2.BatchRecommendAssetConfigurationsResponse(
+            responses=[
+                asset_configuration_pb2.RecommendAssetConfigurationResponse(
+                    config=output_config_1
+                ),
+                asset_configuration_pb2.RecommendAssetConfigurationResponse(
+                    config=output_config_2
+                ),
+            ]
+        )
+    )
+    self._stub.BatchRecommendAssetConfigurations.return_value = (
+        expected_response
+    )
+
+    input_config_1 = any_pb2.Any(type_url="type.googleapis.com/MyConfig1")
+    names_and_input_configs = [
+        ("test_asset_1", input_config_1),
+        ("test_asset_2", None),
+    ]
+
+    response = self._client.batch_recommend_asset_configurations(
+        names_and_input_configs=names_and_input_configs
+    )
+
+    expected_return = [
+        asset_configuration_pb2.RecommendAssetConfigurationResponse(
+            config=output_config_1
+        ),
+        asset_configuration_pb2.RecommendAssetConfigurationResponse(
+            config=output_config_2
+        ),
+    ]
+    self.assertEqual(response, expected_return)
+    self._stub.BatchRecommendAssetConfigurations.assert_called_once_with(
+        asset_configuration_pb2.BatchRecommendAssetConfigurationsRequest(
+            requests=[
+                asset_configuration_pb2.RecommendAssetConfigurationRequest(
+                    name="test_asset_1", input_configuration=input_config_1
+                ),
+                asset_configuration_pb2.RecommendAssetConfigurationRequest(
+                    name="test_asset_2", input_configuration=None
+                ),
+            ]
+        )
+    )
+
+  def test_batch_recommend_asset_configurations_empty(self):
+    response = self._client.batch_recommend_asset_configurations(
+        names_and_input_configs=[]
+    )
+    self.assertEqual(response, [])
+    self._stub.BatchRecommendAssetConfigurations.assert_not_called()
+
+  def test_batch_recommend_asset_configurations_raises_rpc_error(self):
+    self._stub.BatchRecommendAssetConfigurations.side_effect = grpc.RpcError(
+        "Mock RPC error"
+    )
+
+    with self.assertRaises(grpc.RpcError):
+      self._client.batch_recommend_asset_configurations(
+          names_and_input_configs=[("unknown_asset", None)]
+      )
 
   def test_get_asset_recommendation_info(self):
     expected_response = asset_configuration_pb2.AssetRecommendationInfo(
