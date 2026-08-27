@@ -14,7 +14,7 @@
 
 #include "intrinsic/geometry/api/material_properties.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 intrinsic_proto::geometry::v1::MaterialProperties MaterialProperties::ToProto()
     const {
@@ -54,4 +54,4 @@ bool operator==(const MaterialProperties& a, const MaterialProperties& b) {
          a.roughness == b.roughness && a.transmission == b.transmission;
 }
 
-}  // namespace intrinsic
+}  // namespace intrinsic::geo

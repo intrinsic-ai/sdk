@@ -27,7 +27,7 @@
 #include "intrinsic/util/macros.h"
 #include "intrinsic/util/status/status_macros.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 absl::StatusOr<std::string> GenerateFingerprint(const Geometry& geometry) {
   absl::MutexLock lock(geometry.fingerprint_mutex_);
@@ -62,4 +62,4 @@ std::string GenerateFingerprint(const Renderable& renderable) {
       absl::Hex(intrinsic::Fingerprint(renderable.GetGLBString())));
 }
 
-}  // namespace intrinsic
+}  // namespace intrinsic::geo

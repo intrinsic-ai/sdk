@@ -21,7 +21,7 @@
 #include "absl/strings/string_view.h"
 #include "intrinsic/eigenmath/types.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 // Validates a mesh file (STL, GLB, DAE, etc.) to ensure it is valid and all its
 // dependencies (e.g. textures) are present.
@@ -35,6 +35,11 @@ absl::Status ValidateMeshData(absl::string_view mesh_data,
                               absl::string_view extension,
                               const eigenmath::Vector3d& scale);
 
+}  // namespace intrinsic::geo
+
+namespace intrinsic {
+using ::intrinsic::geo::ValidateMeshData;
+using ::intrinsic::geo::ValidateMeshFile;
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_GEOMETRY_API_VALIDATE_MESH_H_

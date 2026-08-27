@@ -17,7 +17,7 @@
 #include <string>
 #include <utility>
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 Renderable::Renderable(std::string glb_string)
     : glb_string_(std::move(glb_string)) {}
@@ -32,4 +32,4 @@ bool Renderable::operator!=(const Renderable& other) const {
   return !(*this == other);
 }
 
-}  // namespace intrinsic
+}  // namespace intrinsic::geo

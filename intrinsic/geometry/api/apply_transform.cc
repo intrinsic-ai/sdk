@@ -28,17 +28,15 @@
 #include "intrinsic/geometry/api/geometry.h"
 #include "intrinsic/geometry/api/geometry_options.h"
 #include "intrinsic/geometry/api/renderable.h"
-#include "intrinsic/geometry/internal/legacy/mesh/mesh.h"
+#include "intrinsic/geometry/internal/mesh/mesh.h"
 #include "intrinsic/geometry/internal/util/export_as_gltf.h"
 #include "intrinsic/math/pose3.h"
 #include "intrinsic/util/object_store/object_ref.h"
 #include "intrinsic/util/object_store/object_store.h"
 #include "intrinsic/util/status/status_macros.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 namespace {
-
-using ::intrinsic::geometry_legacy::Mesh;
 
 class ApplyTransformFunctor {
  public:
@@ -123,4 +121,4 @@ absl::StatusOr<Geometry> ApplyTransform(const Geometry& geo,
                   geo.material_properties(), std::move(provenance));
 }
 
-}  // namespace intrinsic
+}  // namespace intrinsic::geo

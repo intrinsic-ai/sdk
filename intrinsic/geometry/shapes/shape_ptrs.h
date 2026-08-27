@@ -20,12 +20,17 @@
 #include "intrinsic/geometry/api/affine_transform_of.h"
 #include "intrinsic/geometry/shapes/shape_base.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 // Helper aliases for some common shape pointer types
-using PrimitiveShapePtr = std::shared_ptr<const shapes::ShapeBase>;
+using PrimitiveShapePtr = std::shared_ptr<const ShapeBase>;
 using TransformedPrimitiveShapePtr = AffineTransformOf<PrimitiveShapePtr>;
 
-}  // namespace intrinsic
+}  // namespace intrinsic::geo
+
+namespace intrinsic::shapes {
+using ::intrinsic::geo::PrimitiveShapePtr;
+using ::intrinsic::geo::TransformedPrimitiveShapePtr;
+}  // namespace intrinsic::shapes
 
 #endif  // INTRINSIC_GEOMETRY_SHAPES_SHAPE_PTRS_H_

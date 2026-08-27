@@ -21,7 +21,7 @@
 #include "intrinsic/math/pose3.h"
 
 // AffineTransformOf attaches a 3D affine transform to a geometric object.
-namespace intrinsic {
+namespace intrinsic::geo {
 
 template <typename Shape>
 class AffineTransformOf {
@@ -74,6 +74,10 @@ class AffineTransformOf {
   eigenmath::Matrix4d ref_t_shape_;
 };
 
+}  // namespace intrinsic::geo
+
+namespace intrinsic {
+using ::intrinsic::geo::AffineTransformOf;
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_GEOMETRY_API_AFFINE_TRANSFORM_OF_H_

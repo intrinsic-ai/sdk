@@ -21,18 +21,15 @@
 #include "intrinsic/geometry/api/axis_aligned_bounding_box_3d.h"
 #include "intrinsic/geometry/api/exact_geometry.h"
 #include "intrinsic/geometry/api/geometry.h"
-#include "intrinsic/geometry/internal/legacy/mesh/mesh.h"
-#include "intrinsic/geometry/internal/legacy/point_cloud/get_bounding_box_from_point_cloud.h"
+#include "intrinsic/geometry/internal/mesh/mesh.h"
+#include "intrinsic/geometry/internal/point_cloud/get_bounding_box_from_point_cloud.h"
 #include "intrinsic/geometry/shapes/point_cloud.h"
 #include "intrinsic/math/pose3.h"
 #include "intrinsic/util/object_store/object_ref.h"
 #include "intrinsic/util/status/status_macros.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 namespace {
-
-using geometry_legacy::GetBoundingBoxFromPointCloud;
-using geometry_legacy::Mesh;
 
 class ComputeAxisAlignedBoundingBox3dFunctor {
  public:
@@ -60,7 +57,7 @@ class ComputeAxisAlignedBoundingBox3dFunctor {
 
   template <>
   absl::StatusOr<AxisAlignedBoundingBox3d> operator()(
-      const ObjectRef<shapes::PointCloud>& geo) const {
+      const ObjectRef<PointCloud>& geo) const {
     return GetBoundingBoxFromPointCloud(geo.Value());
   }
 };
@@ -82,4 +79,4 @@ absl::StatusOr<AxisAlignedBoundingBox3d> ComputeAxisAlignedBoundingBox3d(
   return ComputeAxisAlignedBoundingBox3d(transformed_hull);
 }
 
-}  // namespace intrinsic
+}  // namespace intrinsic::geo

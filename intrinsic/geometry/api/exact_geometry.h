@@ -30,7 +30,7 @@
 #include "absl/status/statusor.h"
 #include "intrinsic/geometry/api/affine_transform_of.h"
 #include "intrinsic/geometry/api/geometry_options.h"
-#include "intrinsic/geometry/internal/legacy/mesh/mesh.h"
+#include "intrinsic/geometry/internal/mesh/mesh.h"
 #include "intrinsic/geometry/shapes/box.h"
 #include "intrinsic/geometry/shapes/capsule.h"
 #include "intrinsic/geometry/shapes/cylinder.h"
@@ -42,18 +42,16 @@
 #include "intrinsic/geometry/shapes/shapes.h"
 #include "intrinsic/util/object_store/object_ref.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 // ExactGeometry is a collection of supported shapes that are common within the
 // intrinsic codebase.
 class ExactGeometry : public std::enable_shared_from_this<ExactGeometry> {
  public:
   using Shape = std::variant<std::vector<TransformedPrimitiveShapePtr>,
-                             ObjectRef<geometry_legacy::Mesh>,
-                             ObjectRef<shapes::PointCloud>>;
+                             ObjectRef<Mesh>, ObjectRef<PointCloud>>;
 
-  using ComputedShape = std::variant<ObjectRef<geometry_legacy::Mesh>,
-                                     ObjectRef<shapes::PointCloud>>;
+  using ComputedShape = std::variant<ObjectRef<Mesh>, ObjectRef<PointCloud>>;
 
   // Default constructor with an empty mesh.
   ExactGeometry() = delete;
@@ -66,25 +64,25 @@ class ExactGeometry : public std::enable_shared_from_this<ExactGeometry> {
   ExactGeometry& operator=(const ExactGeometry& other) = default;
   ExactGeometry& operator=(ExactGeometry&& other) = default;
 
-  explicit ExactGeometry(const shapes::Box& shape,
+  explicit ExactGeometry(const Box& shape,
                          GeometryOptions options = GeometryOptions::Default());
-  explicit ExactGeometry(const shapes::Capsule& shape,
+  explicit ExactGeometry(const Capsule& shape,
                          GeometryOptions options = GeometryOptions::Default());
-  explicit ExactGeometry(const shapes::Cylinder& shape,
+  explicit ExactGeometry(const Cylinder& shape,
                          GeometryOptions options = GeometryOptions::Default());
-  explicit ExactGeometry(const shapes::Ellipsoid& shape,
+  explicit ExactGeometry(const Ellipsoid& shape,
                          GeometryOptions options = GeometryOptions::Default());
-  explicit ExactGeometry(const shapes::Sphere& shape,
+  explicit ExactGeometry(const Sphere& shape,
                          GeometryOptions options = GeometryOptions::Default());
-  explicit ExactGeometry(const shapes::Frustum& shape,
+  explicit ExactGeometry(const Frustum& shape,
                          GeometryOptions options = GeometryOptions::Default());
-  explicit ExactGeometry(geometry_legacy::Mesh mesh,
+  explicit ExactGeometry(Mesh mesh,
                          GeometryOptions options = GeometryOptions::Default());
-  explicit ExactGeometry(shapes::PointCloud point_cloud,
+  explicit ExactGeometry(PointCloud point_cloud,
                          GeometryOptions options = GeometryOptions::Default());
-  explicit ExactGeometry(ObjectRef<geometry_legacy::Mesh> mesh,
+  explicit ExactGeometry(ObjectRef<Mesh> mesh,
                          GeometryOptions options = GeometryOptions::Default());
-  explicit ExactGeometry(ObjectRef<shapes::PointCloud> point_cloud,
+  explicit ExactGeometry(ObjectRef<PointCloud> point_cloud,
                          GeometryOptions options = GeometryOptions::Default());
 
   // Create an ExactGeometry from the given transformed shape. A mesh will be
@@ -114,8 +112,8 @@ class ExactGeometry : public std::enable_shared_from_this<ExactGeometry> {
 
   const std::vector<TransformedPrimitiveShapePtr>& GetPrimitiveShapes() const;
 
-  absl::StatusOr<ObjectRef<geometry_legacy::Mesh>> GetMesh() const;
-  absl::StatusOr<ObjectRef<shapes::PointCloud>> GetPointCloud() const;
+  absl::StatusOr<ObjectRef<Mesh>> GetMesh() const;
+  absl::StatusOr<ObjectRef<PointCloud>> GetPointCloud() const;
 
   // Returns the runtime options for this geometry.
   const GeometryOptions& options() const;
@@ -140,6 +138,10 @@ class ExactGeometry : public std::enable_shared_from_this<ExactGeometry> {
   GeometryOptions options_;
 };
 
+}  // namespace intrinsic::geo
+
+namespace intrinsic {
+using ::intrinsic::geo::ExactGeometry;
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_GEOMETRY_API_EXACT_GEOMETRY_H_

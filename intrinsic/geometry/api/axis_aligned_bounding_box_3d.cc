@@ -28,7 +28,7 @@
 #include "intrinsic/geometry/proto/v1/axis_aligned_bounding_box.pb.h"
 #include "intrinsic/math/proto/vector3.pb.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 bool AxisAlignedBoundingBox3d::DoesContain(const eigenmath::Vector3d& p) const {
   if (p.x() < eigen_aabb_.min().x()) return false;
@@ -228,4 +228,4 @@ absl::StatusOr<AxisAlignedBoundingBox3d> FromProto(
   }
 }
 
-}  // namespace intrinsic
+}  // namespace intrinsic::geo

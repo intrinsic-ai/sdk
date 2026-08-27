@@ -33,8 +33,8 @@
 #include "intrinsic/geometry/api/geometry.h"
 #include "intrinsic/geometry/api/geometry_options.h"
 #include "intrinsic/geometry/api/renderable.h"
-#include "intrinsic/geometry/internal/legacy/mesh/mesh.h"
-#include "intrinsic/geometry/internal/legacy/point_cloud/point_cloud_riegeli_coder.h"
+#include "intrinsic/geometry/internal/mesh/mesh.h"
+#include "intrinsic/geometry/internal/point_cloud/point_cloud_riegeli_coder.h"
 #include "intrinsic/geometry/proto/v1/exact_geometry.pb.h"
 #include "intrinsic/geometry/proto/v1/geometry.pb.h"
 #include "intrinsic/geometry/proto/v1/geometry_options.pb.h"
@@ -64,12 +64,11 @@
 #include "intrinsic/util/object_store/object_store.h"
 #include "intrinsic/util/status/status_macros.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 namespace {
 
-absl::StatusOr<shapes::Box> ToShape(
-    const intrinsic_proto::geometry::v1::Box& proto) {
+absl::StatusOr<Box> ToShape(const intrinsic_proto::geometry::v1::Box& proto) {
   eigenmath::Vector3d size(proto.size().x(), proto.size().y(),
                            proto.size().z());
   if (!size.allFinite()) {
@@ -78,10 +77,10 @@ absl::StatusOr<shapes::Box> ToShape(
   if (size.minCoeff() <= 0) {
     return absl::InvalidArgumentError("Box dimensions must be positive");
   }
-  return shapes::Box(size);
+  return Box(size);
 }
 
-absl::StatusOr<shapes::Cylinder> ToShape(
+absl::StatusOr<Cylinder> ToShape(
     const intrinsic_proto::geometry::v1::Cylinder& proto) {
   if (!std::isfinite(proto.length())) {
     return absl::InvalidArgumentError("Cylinder length must be finite");
@@ -96,11 +95,11 @@ absl::StatusOr<shapes::Cylinder> ToShape(
   if (proto.radius() <= 0) {
     return absl::InvalidArgumentError("Cylinder radius must be positive");
   }
-  return shapes::Cylinder(/*length=*/proto.length(),
-                          /*radius=*/proto.radius());
+  return Cylinder(/*length=*/proto.length(),
+                  /*radius=*/proto.radius());
 }
 
-absl::StatusOr<shapes::Sphere> ToShape(
+absl::StatusOr<Sphere> ToShape(
     const intrinsic_proto::geometry::v1::Sphere& proto) {
   if (!std::isfinite(proto.radius())) {
     return absl::InvalidArgumentError("Sphere radius must be finite");
@@ -108,10 +107,10 @@ absl::StatusOr<shapes::Sphere> ToShape(
   if (proto.radius() <= 0) {
     return absl::InvalidArgumentError("Sphere radius must be positive");
   }
-  return shapes::Sphere(proto.radius());
+  return Sphere(proto.radius());
 }
 
-absl::StatusOr<shapes::Ellipsoid> ToShape(
+absl::StatusOr<Ellipsoid> ToShape(
     const intrinsic_proto::geometry::v1::Ellipsoid& proto) {
   eigenmath::Vector3d radii(proto.radii().x(), proto.radii().y(),
                             proto.radii().z());
@@ -121,10 +120,10 @@ absl::StatusOr<shapes::Ellipsoid> ToShape(
   if (radii.minCoeff() <= 0) {
     return absl::InvalidArgumentError("Ellipsoid radii must be positive");
   }
-  return shapes::Ellipsoid(radii);
+  return Ellipsoid(radii);
 }
 
-absl::StatusOr<shapes::Capsule> ToShape(
+absl::StatusOr<Capsule> ToShape(
     const intrinsic_proto::geometry::v1::Capsule& proto) {
   if (!std::isfinite(proto.length())) {
     return absl::InvalidArgumentError("Capsule length must be finite");
@@ -139,13 +138,13 @@ absl::StatusOr<shapes::Capsule> ToShape(
   if (proto.radius() <= 0) {
     return absl::InvalidArgumentError("Capsule radius must be positive");
   }
-  return shapes::Capsule(/*length=*/proto.length(),
-                         /*radius=*/proto.radius());
+  return Capsule(/*length=*/proto.length(),
+                 /*radius=*/proto.radius());
 }
 
-absl::StatusOr<shapes::Frustum> ToShape(
+absl::StatusOr<Frustum> ToShape(
     const intrinsic_proto::geometry::v1::Frustum& proto) {
-  return shapes::Frustum::Create(
+  return Frustum::Create(
       /*x_angle=*/proto.x_angle(),
       /*y_angle=*/proto.y_angle(),
       /*min_z_distance=*/proto.min_z_distance(),
@@ -448,38 +447,38 @@ absl::StatusOr<intrinsic_proto::geometry::v1::PrimitiveShape> ToProto(
   intrinsic_proto::geometry::v1::PrimitiveShape primitive;
 
   switch (shape->getType()) {
-    case shapes::ShapeType::BOX: {
-      const auto& shape_type = shape->get<shapes::Box>();
+    case ShapeType::BOX: {
+      const auto& shape_type = shape->get<Box>();
       *primitive.mutable_box()->mutable_size() =
           ToVectorProto(shape_type.getSize());
       break;
     }
-    case shapes::ShapeType::CAPSULE: {
-      const auto& shape_type = shape->get<shapes::Capsule>();
+    case ShapeType::CAPSULE: {
+      const auto& shape_type = shape->get<Capsule>();
       primitive.mutable_capsule()->set_length(shape_type.getLength());
       primitive.mutable_capsule()->set_radius(shape_type.getRadius());
       break;
     }
-    case shapes::ShapeType::CYLINDER: {
-      const auto& shape_type = shape->get<shapes::Cylinder>();
+    case ShapeType::CYLINDER: {
+      const auto& shape_type = shape->get<Cylinder>();
       primitive.mutable_cylinder()->set_length(shape_type.getLength());
       primitive.mutable_cylinder()->set_radius(shape_type.getRadius());
       break;
     }
-    case shapes::ShapeType::ELLIPSOID: {
-      const auto& shape_type = shape->get<shapes::Ellipsoid>();
+    case ShapeType::ELLIPSOID: {
+      const auto& shape_type = shape->get<Ellipsoid>();
       *primitive.mutable_ellipsoid()->mutable_radii() =
           ToVectorProto(shape_type.getRadii());
 
       break;
     }
-    case shapes::ShapeType::SPHERE: {
-      const auto& shape_type = shape->get<shapes::Sphere>();
+    case ShapeType::SPHERE: {
+      const auto& shape_type = shape->get<Sphere>();
       primitive.mutable_sphere()->set_radius(shape_type.getRadius());
       break;
     }
-    case shapes::ShapeType::FRUSTUM: {
-      const auto& shape_type = shape->get<shapes::Frustum>();
+    case ShapeType::FRUSTUM: {
+      const auto& shape_type = shape->get<Frustum>();
       primitive.mutable_frustum()->set_x_angle(shape_type.getXAngle());
       primitive.mutable_frustum()->set_y_angle(shape_type.getYAngle());
       primitive.mutable_frustum()->set_min_z_distance(
@@ -500,30 +499,28 @@ absl::StatusOr<PrimitiveShapePtr> ToPrimitive(
     const intrinsic_proto::geometry::v1::PrimitiveShape& proto) {
   switch (proto.shape_case()) {
     case intrinsic_proto::geometry::v1::PrimitiveShape::kBox: {
-      INTR_ASSIGN_OR_RETURN(shapes::Box box, ToShape(proto.box()));
-      return std::make_shared<shapes::Box>(box);
+      INTR_ASSIGN_OR_RETURN(Box box, ToShape(proto.box()));
+      return std::make_shared<Box>(box);
     }
     case intrinsic_proto::geometry::v1::PrimitiveShape::kCylinder: {
-      INTR_ASSIGN_OR_RETURN(shapes::Cylinder cylinder,
-                            ToShape(proto.cylinder()));
-      return std::make_shared<shapes::Cylinder>(cylinder);
+      INTR_ASSIGN_OR_RETURN(Cylinder cylinder, ToShape(proto.cylinder()));
+      return std::make_shared<Cylinder>(cylinder);
     }
     case intrinsic_proto::geometry::v1::PrimitiveShape::kSphere: {
-      INTR_ASSIGN_OR_RETURN(shapes::Sphere sphere, ToShape(proto.sphere()));
-      return std::make_shared<shapes::Sphere>(sphere);
+      INTR_ASSIGN_OR_RETURN(Sphere sphere, ToShape(proto.sphere()));
+      return std::make_shared<Sphere>(sphere);
     }
     case intrinsic_proto::geometry::v1::PrimitiveShape::kEllipsoid: {
-      INTR_ASSIGN_OR_RETURN(shapes::Ellipsoid ellipsoid,
-                            ToShape(proto.ellipsoid()));
-      return std::make_shared<shapes::Ellipsoid>(ellipsoid);
+      INTR_ASSIGN_OR_RETURN(Ellipsoid ellipsoid, ToShape(proto.ellipsoid()));
+      return std::make_shared<Ellipsoid>(ellipsoid);
     }
     case intrinsic_proto::geometry::v1::PrimitiveShape::kCapsule: {
-      INTR_ASSIGN_OR_RETURN(shapes::Capsule capsule, ToShape(proto.capsule()));
-      return std::make_shared<shapes::Capsule>(capsule);
+      INTR_ASSIGN_OR_RETURN(Capsule capsule, ToShape(proto.capsule()));
+      return std::make_shared<Capsule>(capsule);
     }
     case intrinsic_proto::geometry::v1::PrimitiveShape::kFrustum: {
-      INTR_ASSIGN_OR_RETURN(shapes::Frustum frustum, ToShape(proto.frustum()));
-      return std::make_shared<shapes::Frustum>(frustum);
+      INTR_ASSIGN_OR_RETURN(Frustum frustum, ToShape(proto.frustum()));
+      return std::make_shared<Frustum>(frustum);
     }
     case intrinsic_proto::geometry::v1::PrimitiveShape::SHAPE_NOT_SET: {
       return absl::InvalidArgumentError("Unset primitive shape type");
@@ -661,4 +658,4 @@ absl::StatusOr<intrinsic_proto::geometry::v1::GeometryProvenance> ToProto(
 
 }  // namespace geometry_details
 
-}  // namespace intrinsic
+}  // namespace intrinsic::geo

@@ -19,8 +19,7 @@
 #include "intrinsic/eigenmath/types.h"
 #include "intrinsic/geometry/shapes/shape_base.h"
 
-namespace intrinsic {
-namespace shapes {
+namespace intrinsic::geo {
 
 /** A Box shape */
 class Box : public ShapeBase {
@@ -50,7 +49,10 @@ class Box : public ShapeBase {
   eigenmath::Vector3d size_;
 };
 
-}  //  namespace shapes
-}  //  namespace intrinsic
+}  // namespace intrinsic::geo
+
+namespace intrinsic::shapes {
+using ::intrinsic::geo::Box;
+}  // namespace intrinsic::shapes
 
 #endif  // INTRINSIC_GEOMETRY_SHAPES_BOX_H_

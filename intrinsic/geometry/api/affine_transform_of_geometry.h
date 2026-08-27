@@ -18,7 +18,7 @@
 #include "intrinsic/geometry/api/affine_transform_of.h"
 #include "intrinsic/geometry/api/geometry.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 // A AffineTransformedGeometry is essentially a pair of Geometry and a affine
 // transformation. This allows explicit separation of the Geometry while
@@ -27,6 +27,10 @@ namespace intrinsic {
 // different transforms.
 using TransformedGeometry = AffineTransformOf<Geometry>;
 
+}  // namespace intrinsic::geo
+
+namespace intrinsic {
+using ::intrinsic::geo::TransformedGeometry;
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_GEOMETRY_API_AFFINE_TRANSFORM_OF_GEOMETRY_H_

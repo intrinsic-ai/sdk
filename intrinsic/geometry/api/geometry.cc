@@ -27,7 +27,7 @@
 #include "intrinsic/geometry/proto/v1/material.pb.h"
 #include "intrinsic/util/object_store/object_ref.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 namespace {
 
 std::shared_ptr<const ExactGeometry> SharedFromRef(
@@ -189,4 +189,4 @@ std::optional<Geometry::Provenance> Geometry::provenance() const {
   return provenance_;
 }
 
-}  // namespace intrinsic
+}  // namespace intrinsic::geo

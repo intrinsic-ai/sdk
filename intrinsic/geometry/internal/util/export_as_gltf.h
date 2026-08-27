@@ -23,7 +23,7 @@
 #include "intrinsic/geometry/api/exact_geometry.h"
 #include "intrinsic/geometry/api/material.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 // Returns a string representing the serialized glb data present in the given
 // aiScene.
@@ -40,6 +40,11 @@ absl::StatusOr<std::string> ExportAsGltf(std::string glb_bytes,
 absl::StatusOr<std::string> ExportAsGltf(const ExactGeometry& geometry,
                                          const Material& material = Material());
 
+}  // namespace intrinsic::geo
+
+namespace intrinsic {
+using ::intrinsic::geo::ExportAiSceneAsGltf;
+using ::intrinsic::geo::ExportAsGltf;
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_GEOMETRY_INTERNAL_UTIL_EXPORT_AS_GLTF_H_

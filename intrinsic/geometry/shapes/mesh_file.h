@@ -19,8 +19,7 @@
 #include "intrinsic/eigenmath/types.h"
 #include "intrinsic/geometry/shapes/shape_base.h"
 
-namespace intrinsic {
-namespace shapes {
+namespace intrinsic::geo {
 
 class MeshFile : public ShapeBase {
  public:
@@ -65,7 +64,10 @@ class MeshFile : public ShapeBase {
   eigenmath::Vector3d scale_;
 };
 
-}  //  namespace shapes
-}  //  namespace intrinsic
+}  // namespace intrinsic::geo
+
+namespace intrinsic::shapes {
+using ::intrinsic::geo::MeshFile;
+}  // namespace intrinsic::shapes
 
 #endif  // INTRINSIC_GEOMETRY_SHAPES_MESH_FILE_H_

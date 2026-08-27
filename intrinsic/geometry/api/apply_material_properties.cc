@@ -36,7 +36,7 @@
 #include "intrinsic/util/status/status_macros.h"
 #include "tiny_gltf.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 using ::intrinsic_proto::geometry::v1::MaterialProperties;
 
@@ -175,4 +175,4 @@ absl::Status ApplyMaterialToAiScene(aiScene& scene, const Material& material) {
   return absl::OkStatus();
 }
 
-}  // namespace intrinsic
+}  // namespace intrinsic::geo

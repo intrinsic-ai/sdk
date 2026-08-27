@@ -19,7 +19,7 @@
 #include <cstdint>
 #include <optional>
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 // A set of options that can be used when processing a Geometry instance.
 struct GeometryOptions {
@@ -57,6 +57,10 @@ struct GeometryOptions {
       std::nullopt;
 };
 
+}  // namespace intrinsic::geo
+
+namespace intrinsic {
+using ::intrinsic::geo::GeometryOptions;
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_GEOMETRY_API_GEOMETRY_OPTIONS_H_

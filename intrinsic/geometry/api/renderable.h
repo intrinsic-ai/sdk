@@ -17,7 +17,7 @@
 
 #include <string>
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 class Renderable {
  public:
@@ -33,6 +33,10 @@ class Renderable {
   std::string glb_string_;
 };
 
+}  // namespace intrinsic::geo
+
+namespace intrinsic {
+using ::intrinsic::geo::Renderable;
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_GEOMETRY_API_RENDERABLE_H_

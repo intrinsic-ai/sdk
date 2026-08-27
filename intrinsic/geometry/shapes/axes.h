@@ -19,8 +19,7 @@
 #include "intrinsic/eigenmath/types.h"
 #include "intrinsic/geometry/shapes/shape_base.h"
 
-namespace intrinsic {
-namespace shapes {
+namespace intrinsic::geo {
 
 /** Represents a set of a coordinate axes: X, Y, and Z. */
 class Axes : public ShapeBase {
@@ -47,7 +46,10 @@ class Axes : public ShapeBase {
   double length_;
 };
 
-}  //  namespace shapes
-}  //  namespace intrinsic
+}  // namespace intrinsic::geo
+
+namespace intrinsic::shapes {
+using ::intrinsic::geo::Axes;
+}  // namespace intrinsic::shapes
 
 #endif  // INTRINSIC_GEOMETRY_SHAPES_AXES_H_

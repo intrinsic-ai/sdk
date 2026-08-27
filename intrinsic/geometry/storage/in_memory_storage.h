@@ -33,7 +33,7 @@
 #include "intrinsic/geometry/storage/geometry_serializer.h"
 #include "intrinsic/world/hashing/hashing.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 // A GeometryLibrary backed by an in-memory hash map.
 class MapGeometryLibrary : public GeometryLibrary,
@@ -83,6 +83,11 @@ std::unique_ptr<MapGeometryLibrary> GetMapGeometryLibrary();
 std::unique_ptr<MapGeometryLibrary> GetMapGeometryLibrary(
     MapGeometryLibrary::RawMaps initial_geometry_maps);
 
+}  // namespace intrinsic::geo
+
+namespace intrinsic {
+using ::intrinsic::geo::GetMapGeometryLibrary;
+using ::intrinsic::geo::MapGeometryLibrary;
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_GEOMETRY_STORAGE_IN_MEMORY_STORAGE_H_

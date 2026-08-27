@@ -20,7 +20,7 @@
 #include "intrinsic/geometry/api/geometry.h"
 #include "intrinsic/math/pose3.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 // These modifiers change the underlying representation.
 
@@ -38,6 +38,10 @@ absl::StatusOr<Geometry> ApplyTransform(const Geometry& geo,
 absl::StatusOr<Geometry> ApplyTransform(const Geometry& geo,
                                         const eigenmath::Matrix4d& ref_t_geo);
 
+}  // namespace intrinsic::geo
+
+namespace intrinsic {
+using ::intrinsic::geo::ApplyTransform;
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_GEOMETRY_API_APPLY_TRANSFORM_H_

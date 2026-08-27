@@ -36,7 +36,7 @@
 #include "intrinsic/util/status/status_macros.h"
 #include "intrinsic/world/hashing/hashing.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 MapGeometryLibrary::MapGeometryLibrary(RawMaps initial_geometry_maps) {
   absl::MutexLock l(geometry_mutex_);
@@ -118,4 +118,4 @@ std::unique_ptr<MapGeometryLibrary> GetMapGeometryLibrary(
   return std::make_unique<MapGeometryLibrary>(std::move(initial_geometry_maps));
 }
 
-}  // namespace intrinsic
+}  // namespace intrinsic::geo

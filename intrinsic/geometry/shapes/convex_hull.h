@@ -20,8 +20,7 @@
 #include "intrinsic/eigenmath/types.h"
 #include "intrinsic/geometry/shapes/shape_base.h"
 
-namespace intrinsic {
-namespace shapes {
+namespace intrinsic::geo {
 
 /** A Convex Hull shape */
 class ConvexHull : public ShapeBase {
@@ -53,7 +52,10 @@ class ConvexHull : public ShapeBase {
   std::vector<eigenmath::Vector3d> vertices_;
 };
 
-}  //  namespace shapes
-}  //  namespace intrinsic
+}  // namespace intrinsic::geo
+
+namespace intrinsic::shapes {
+using ::intrinsic::geo::ConvexHull;
+}  // namespace intrinsic::shapes
 
 #endif  // INTRINSIC_GEOMETRY_SHAPES_CONVEX_HULL_H_

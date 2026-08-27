@@ -30,58 +30,54 @@
 #include "intrinsic/geometry/shapes/sphere.h"
 #include "intrinsic/util/status/status_macros.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
-absl::StatusOr<std::unique_ptr<shapes::ShapeBase>> ScaleShape(
-    const shapes::ShapeBase& shape, const eigenmath::Vector3d& scale) {
+absl::StatusOr<std::unique_ptr<ShapeBase>> ScaleShape(
+    const ShapeBase& shape, const eigenmath::Vector3d& scale) {
   switch (shape.getType()) {
-    case shapes::ShapeType::BOX: {
-      const auto& box = shape.get<shapes::Box>();
-      return std::make_unique<shapes::Box>(box.getSize().array() *
-                                           scale.array());
+    case ShapeType::BOX: {
+      const auto& box = shape.get<Box>();
+      return std::make_unique<Box>(box.getSize().array() * scale.array());
     }
-    case shapes::ShapeType::ELLIPSOID: {
-      const auto& ellipsoid = shape.get<shapes::Ellipsoid>();
-      return std::make_unique<shapes::Ellipsoid>(ellipsoid.getRadii().array() *
-                                                 scale.array());
+    case ShapeType::ELLIPSOID: {
+      const auto& ellipsoid = shape.get<Ellipsoid>();
+      return std::make_unique<Ellipsoid>(ellipsoid.getRadii().array() *
+                                         scale.array());
     }
-    case shapes::ShapeType::SPHERE: {
-      const auto& sphere = shape.get<shapes::Sphere>();
+    case ShapeType::SPHERE: {
+      const auto& sphere = shape.get<Sphere>();
       if (scale.x() == scale.y() && scale.y() == scale.z()) {
-        return std::make_unique<shapes::Sphere>(scale.x() * sphere.getRadius());
+        return std::make_unique<Sphere>(scale.x() * sphere.getRadius());
       } else {
-        return std::make_unique<shapes::Ellipsoid>(scale * sphere.getRadius());
+        return std::make_unique<Ellipsoid>(scale * sphere.getRadius());
       }
     }
-    case shapes::ShapeType::CYLINDER: {
+    case ShapeType::CYLINDER: {
       // We only scale if the scale vector is uniform across the axis.
       if (scale.x() == scale.y() && scale.y() == scale.z()) {
         const auto scale_value = scale.x();
-        const auto& cylinder = shape.get<shapes::Cylinder>();
-        return std::make_unique<shapes::Cylinder>(
-            cylinder.getLength() * scale_value,
-            cylinder.getRadius() * scale_value);
+        const auto& cylinder = shape.get<Cylinder>();
+        return std::make_unique<Cylinder>(cylinder.getLength() * scale_value,
+                                          cylinder.getRadius() * scale_value);
       }
       break;
     }
-    case shapes::ShapeType::CAPSULE: {
+    case ShapeType::CAPSULE: {
       // We only scale if the scale vector is uniform across the axis.
       if (scale.x() == scale.y() && scale.y() == scale.z()) {
         const auto scale_value = scale.x();
-        const auto& capsule = shape.get<shapes::Capsule>();
-        return std::make_unique<shapes::Capsule>(
-            capsule.getLength() * scale_value,
-            capsule.getRadius() * scale_value);
+        const auto& capsule = shape.get<Capsule>();
+        return std::make_unique<Capsule>(capsule.getLength() * scale_value,
+                                         capsule.getRadius() * scale_value);
       }
       break;
     }
     default:
-      return absl::InvalidArgumentError(
-          absl::Substitute("Cannot scale blue shape type $0",
-                           shapes::ToString(shape.getType())));
+      return absl::InvalidArgumentError(absl::Substitute(
+          "Cannot scale blue shape type $0", ToString(shape.getType())));
   }
   return absl::InvalidArgumentError(absl::Substitute(
-      "Cannot scale blue shape type $0", shapes::ToString(shape.getType())));
+      "Cannot scale blue shape type $0", ToString(shape.getType())));
 }
 
 absl::StatusOr<PrimitiveShapePtr> ScaleShape(PrimitiveShapePtr primitive,
@@ -106,4 +102,4 @@ absl::StatusOr<TransformedPrimitiveShapePtr> ScaleShape(
                                       primitive.ref_t_shape());
 }
 
-}  // namespace intrinsic
+}  // namespace intrinsic::geo

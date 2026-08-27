@@ -17,7 +17,7 @@
 
 #include <array>
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 // Material parameters similar to those found in fixed-pipeline OpenGL.
 // https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glMaterial.xml
@@ -29,6 +29,10 @@ struct Material {
   float shininess = 0;
 };
 
+}  // namespace intrinsic::geo
+
+namespace intrinsic {
+using ::intrinsic::geo::Material;
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_GEOMETRY_API_MATERIAL_H_

@@ -31,7 +31,7 @@
 #include "intrinsic/util/status/ret_check.h"
 #include "intrinsic/util/status/status_macros.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 absl::StatusOr<std::shared_ptr<const Renderable>> GetOrGenerateRenderable(
     const Geometry& geo) {
@@ -97,7 +97,7 @@ absl::Status RenderableGenerator::AddGeometry(
     const ExactGeometry& exact_geometry,
     const std::optional<MaterialProperties>& material_properties) {
   INTR_ASSIGN_OR_RETURN(auto mesh_ref, exact_geometry.GetMesh());
-  if (const geometry_legacy::Mesh& mesh = mesh_ref.Value(); !mesh.empty()) {
+  if (const Mesh& mesh = mesh_ref.Value(); !mesh.empty()) {
     AddMesh(mesh, material_properties);
   } else {
     return absl::InvalidArgumentError("The given mesh is empty");
@@ -106,7 +106,7 @@ absl::Status RenderableGenerator::AddGeometry(
 }
 
 void RenderableGenerator::AddMesh(
-    const geometry_legacy::Mesh& mesh,
+    const Mesh& mesh,
     const std::optional<MaterialProperties>& material_properties) {
   // Copy vertices
   auto new_ai_mesh = std::make_unique<aiMesh>();
@@ -204,4 +204,4 @@ RenderableGenerator::Finish() {
   return std::make_shared<const Renderable>(std::move(glb_string));
 }
 
-}  // namespace intrinsic
+}  // namespace intrinsic::geo

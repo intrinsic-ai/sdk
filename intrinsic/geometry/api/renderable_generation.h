@@ -25,7 +25,7 @@
 #include "intrinsic/geometry/api/material_properties.h"
 #include "intrinsic/geometry/api/renderable.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 // Recommended usage of these functions:
 //
@@ -90,7 +90,7 @@ class RenderableGenerator {
   absl::StatusOr<std::shared_ptr<const Renderable>> Finish();
 
  private:
-  void AddMesh(const geometry_legacy::Mesh& mesh,
+  void AddMesh(const Mesh& mesh,
                const std::optional<MaterialProperties>& material_properties);
   size_t GetOrAddMaterial(const MaterialProperties& material);
 
@@ -99,6 +99,14 @@ class RenderableGenerator {
   absl::flat_hash_map<MaterialProperties, size_t> material_to_index_;
 };
 
+}  // namespace intrinsic::geo
+
+namespace intrinsic {
+using ::intrinsic::geo::EnsureRenderableIsAvailable;
+using ::intrinsic::geo::GenerateRenderableForExactGeometry;
+using ::intrinsic::geo::GenerateRenderableWithMaterialOverrides;
+using ::intrinsic::geo::GetOrGenerateRenderable;
+using ::intrinsic::geo::RenderableGenerator;
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_GEOMETRY_API_RENDERABLE_GENERATION_H_

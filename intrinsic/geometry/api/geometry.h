@@ -27,7 +27,7 @@
 #include "intrinsic/geometry/api/renderable.h"
 #include "intrinsic/geometry/proto/v1/material.pb.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 // Geometry is an abstraction for use by the intrinsic codebase that allows the
 // geometry package as a whole to evolve its internal representations without
@@ -123,6 +123,10 @@ class Geometry {
   std::optional<Provenance> provenance_;
 };
 
+}  // namespace intrinsic::geo
+
+namespace intrinsic {
+using ::intrinsic::geo::Geometry;
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_GEOMETRY_API_GEOMETRY_H_

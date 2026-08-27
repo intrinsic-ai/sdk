@@ -38,7 +38,7 @@
 #include "intrinsic/geometry/storage/geometry_deserializer.h"
 #include "intrinsic/geometry/storage/geometry_serializer.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 // Geometry proto conversions.
 absl::StatusOr<intrinsic_proto::geometry::v1::Geometry> ToProto(
@@ -119,6 +119,15 @@ inline constexpr int kMaxGeometryProtoSize = 100 * 1024 * 1024;  // 100 MB;
 
 }  // namespace geometry_details
 
+}  // namespace intrinsic::geo
+
+namespace intrinsic {
+using ::intrinsic::geo::ToAffineTransform;
+using ::intrinsic::geo::ToGeometricTransform;
+using ::intrinsic::geo::ToGeometry;
+using ::intrinsic::geo::ToInlinedProto;
+using ::intrinsic::geo::ToProto;
+using ::intrinsic::geo::ToRenderable;
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_GEOMETRY_API_IO_H_

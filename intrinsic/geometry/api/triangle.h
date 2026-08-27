@@ -17,7 +17,7 @@
 
 #include "intrinsic/eigenmath/types.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 // Triangle types used with Mesh types.
 struct Triangle {
@@ -26,6 +26,10 @@ struct Triangle {
   eigenmath::Vector3d v2;
 };
 
+}  // namespace intrinsic::geo
+
+namespace intrinsic {
+using ::intrinsic::geo::Triangle;
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_GEOMETRY_API_TRIANGLE_H_

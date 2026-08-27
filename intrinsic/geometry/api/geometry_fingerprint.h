@@ -22,7 +22,7 @@
 #include "intrinsic/geometry/api/geometry.h"
 #include "intrinsic/geometry/api/renderable.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 // Computes the fingerprint of the given input geometry.
 absl::StatusOr<std::string> GenerateFingerprint(const Geometry& geometry);
@@ -39,6 +39,11 @@ std::string GenerateFingerprintOrDie(const ExactGeometry& exact_geo);
 // Computes the fingerprint of the given input geometry.
 std::string GenerateFingerprint(const Renderable& renderable);
 
+}  // namespace intrinsic::geo
+
+namespace intrinsic {
+using ::intrinsic::geo::GenerateFingerprint;
+using ::intrinsic::geo::GenerateFingerprintOrDie;
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_GEOMETRY_API_GEOMETRY_FINGERPRINT_H_

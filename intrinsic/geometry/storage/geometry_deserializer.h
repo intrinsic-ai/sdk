@@ -22,7 +22,7 @@
 #include "intrinsic/geometry/api/geometry_options.h"
 #include "intrinsic/geometry/proto/v1/geometry_storage_refs.pb.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 // The GeometryDeserializer is responsible for reading geometry data from some
 // source based on the given id. The exact details of where the data is stored
@@ -42,6 +42,10 @@ class GeometryDeserializer {
           material_properties) const = 0;
 };
 
+}  // namespace intrinsic::geo
+
+namespace intrinsic {
+using ::intrinsic::geo::GeometryDeserializer;
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_GEOMETRY_STORAGE_GEOMETRY_DESERIALIZER_H_

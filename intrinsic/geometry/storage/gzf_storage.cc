@@ -44,7 +44,7 @@
 #include "intrinsic/world/gzfile/chunk_entry.h"
 #include "intrinsic/world/gzfile/gzfile.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 namespace {
 
 const ChunkId::ValueType kGeometryChunkId = 'GEOM';
@@ -221,4 +221,4 @@ std::unique_ptr<GeometryLibrary> GetReadOnlyGzfGeometryLibrary(
   return std::make_unique<ReadOnlyGzfGeometryLibrary>(gzfile);
 }
 
-}  // namespace intrinsic
+}  // namespace intrinsic::geo

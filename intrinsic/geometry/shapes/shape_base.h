@@ -20,8 +20,7 @@
 #include "absl/log/check.h"
 #include "intrinsic/math/pose3.h"
 
-namespace intrinsic {
-namespace shapes {
+namespace intrinsic::geo {
 
 /** Supported shapes */
 enum class ShapeType {
@@ -109,7 +108,12 @@ inline const char* ToString(ShapeType shape_type) {
   return "Invalid ShapeType value";
 }
 
-}  //  namespace shapes
-}  //  namespace intrinsic
+}  // namespace intrinsic::geo
+
+namespace intrinsic::shapes {
+using ::intrinsic::geo::ShapeBase;
+using ::intrinsic::geo::ShapeType;
+using ::intrinsic::geo::ToString;
+}  // namespace intrinsic::shapes
 
 #endif  // INTRINSIC_GEOMETRY_SHAPES_SHAPE_BASE_H_

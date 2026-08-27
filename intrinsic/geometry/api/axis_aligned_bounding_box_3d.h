@@ -29,7 +29,7 @@
 #include "intrinsic/geometry/proto/v1/axis_aligned_bounding_box.pb.h"
 #include "intrinsic/marshal/riegeli_proto_coder.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 class AxisAlignedBoundingBox3d {
  public:
@@ -174,10 +174,18 @@ ToProtoV1(const AxisAlignedBoundingBox3d& bbox);
 absl::StatusOr<AxisAlignedBoundingBox3d> FromProto(
     const intrinsic_proto::geometry::v1::AxisAlignedBoundingBox3& proto);
 
-REGISTER_RIEGELI_PROTO_CODER_EXPLICIT(
-    AxisAlignedBoundingBox3d,
-    intrinsic_proto::geometry::AxisAlignedBoundingBox3, ToProto, FromProto);
+}  // namespace intrinsic::geo
 
+namespace intrinsic {
+REGISTER_RIEGELI_PROTO_CODER_EXPLICIT(
+    geo::AxisAlignedBoundingBox3d,
+    intrinsic_proto::geometry::AxisAlignedBoundingBox3, geo::ToProto,
+    geo::FromProto);
+
+using ::intrinsic::geo::AxisAlignedBoundingBox3d;
+using ::intrinsic::geo::FromProto;
+using ::intrinsic::geo::ToProto;
+using ::intrinsic::geo::ToProtoV1;
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_GEOMETRY_API_AXIS_ALIGNED_BOUNDING_BOX_3D_H_

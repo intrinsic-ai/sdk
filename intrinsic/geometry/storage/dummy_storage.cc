@@ -31,7 +31,7 @@
 #include "intrinsic/geometry/storage/geometry_serializer.h"
 #include "intrinsic/util/status/status_macros.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 namespace {
 
 class DummyGeometryLibrary : public GeometryLibrary,
@@ -77,4 +77,4 @@ std::unique_ptr<GeometryLibrary> GetDummyGeometryLibrary() {
   return std::make_unique<DummyGeometryLibrary>();
 }
 
-}  // namespace intrinsic
+}  // namespace intrinsic::geo

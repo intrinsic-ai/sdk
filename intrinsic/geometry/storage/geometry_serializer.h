@@ -19,7 +19,7 @@
 #include "intrinsic/geometry/api/geometry.h"
 #include "intrinsic/geometry/proto/v1/geometry_storage_refs.pb.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 // The GeometrySerializer is responsible for writing geometry to some storage
 // backend for a given geometry.
@@ -36,6 +36,10 @@ class GeometrySerializer {
   SaveGeometryV1(const Geometry& geometry) = 0;
 };
 
+}  // namespace intrinsic::geo
+
+namespace intrinsic {
+using ::intrinsic::geo::GeometrySerializer;
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_GEOMETRY_STORAGE_GEOMETRY_SERIALIZER_H_

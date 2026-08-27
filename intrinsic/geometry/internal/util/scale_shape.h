@@ -22,13 +22,13 @@
 #include "intrinsic/geometry/api/exact_geometry.h"
 #include "intrinsic/geometry/shapes/shape_base.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 // Applies the given scale factor to the input blue_shape and return a scaled
 // blue_shape (which could be different types). If the scale request can't
 // result in a valid blue shape, return an error.
-absl::StatusOr<std::unique_ptr<shapes::ShapeBase>> ScaleShape(
-    const shapes::ShapeBase& blue_shape, const eigenmath::Vector3d& scale);
+absl::StatusOr<std::unique_ptr<ShapeBase>> ScaleShape(
+    const ShapeBase& blue_shape, const eigenmath::Vector3d& scale);
 
 // Applies the given scale factor to the input primitive and return a scaled
 // primitive (which could be different types). If the scale request can't
@@ -42,6 +42,10 @@ absl::StatusOr<PrimitiveShapePtr> ScaleShape(PrimitiveShapePtr primitive,
 absl::StatusOr<TransformedPrimitiveShapePtr> ScaleShape(
     TransformedPrimitiveShapePtr primitive, const eigenmath::Vector3d& scale);
 
+}  // namespace intrinsic::geo
+
+namespace intrinsic {
+using ::intrinsic::geo::ScaleShape;
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_GEOMETRY_INTERNAL_UTIL_SCALE_SHAPE_H_

@@ -32,13 +32,13 @@
 #include "intrinsic/eigenmath/types.h"
 #include "intrinsic/geometry/api/exact_geometry.h"
 #include "intrinsic/geometry/api/material.h"
-#include "intrinsic/geometry/internal/legacy/mesh/io/mesh_to_ai_scene.h"
-#include "intrinsic/geometry/internal/legacy/mesh/mesh.h"
-#include "intrinsic/geometry/internal/legacy/point_cloud/pts_to_ai_scene.h"
+#include "intrinsic/geometry/internal/mesh/io/mesh_to_ai_scene.h"
+#include "intrinsic/geometry/internal/mesh/mesh.h"
+#include "intrinsic/geometry/internal/point_cloud/pts_to_ai_scene.h"
 #include "intrinsic/util/object_store/object_ref.h"
 #include "intrinsic/util/status/status_macros.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 absl::StatusOr<std::string> ExportAiSceneAsGltf(const aiScene* scene,
                                                 const Eigen::Matrix4d& trans) {
@@ -107,18 +107,17 @@ absl::StatusOr<std::string> ExportAsGltf(const ExactGeometry& geometry,
   // We skip the conversion to mesh for point clouds.
   if (geometry.HasPointCloud()) {
     INTR_ASSIGN_OR_RETURN(auto point_cloud, geometry.GetPointCloud());
-    INTR_ASSIGN_OR_RETURN(
-        auto scene, geometry_legacy::PointCloudToAiScene(point_cloud.Value()));
+    INTR_ASSIGN_OR_RETURN(auto scene, PointCloudToAiScene(point_cloud.Value()));
     return ExportAiSceneAsGltf(scene.get(), eigenmath::Matrix4d::Identity());
   }
 
   aiScene scene;
   INTR_ASSIGN_OR_RETURN(auto mesh_ref, geometry.GetMesh());
-  if (const geometry_legacy::Mesh& mesh = mesh_ref.Value(); !mesh.empty()) {
-    geometry_legacy::MeshToAiScene(mesh, material, &scene);
+  if (const Mesh& mesh = mesh_ref.Value(); !mesh.empty()) {
+    MeshToAiScene(mesh, material, &scene);
   }
 
   return ExportAiSceneAsGltf(&scene, Eigen::Matrix4d::Identity());
 }
 
-}  // namespace intrinsic
+}  // namespace intrinsic::geo

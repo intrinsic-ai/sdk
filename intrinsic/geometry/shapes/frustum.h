@@ -22,8 +22,7 @@
 #include "absl/status/statusor.h"
 #include "intrinsic/geometry/shapes/shape_base.h"
 
-namespace intrinsic {
-namespace shapes {
+namespace intrinsic::geo {
 
 /** A Frustum shape */
 class Frustum : public ShapeBase {
@@ -125,7 +124,10 @@ class Frustum : public ShapeBase {
   double max_z_distance_;
 };
 
-}  //  namespace shapes
-}  //  namespace intrinsic
+}  // namespace intrinsic::geo
+
+namespace intrinsic::shapes {
+using ::intrinsic::geo::Frustum;
+}  // namespace intrinsic::shapes
 
 #endif  // INTRINSIC_GEOMETRY_SHAPES_FRUSTUM_H_

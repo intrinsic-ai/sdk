@@ -26,10 +26,10 @@
 #include "absl/status/statusor.h"
 #include "intrinsic/geometry/api/affine_transform_of.h"
 #include "intrinsic/geometry/api/geometry_options.h"
-#include "intrinsic/geometry/internal/legacy/mesh/mesh.h"
-#include "intrinsic/geometry/internal/legacy/mesh/mesh_from_primitives.h"
-#include "intrinsic/geometry/internal/legacy/mesh/remove_duplicate_vertices_from_mesh.h"
-#include "intrinsic/geometry/internal/legacy/point_cloud/point_cloud_riegeli_coder.h"
+#include "intrinsic/geometry/internal/mesh/mesh.h"
+#include "intrinsic/geometry/internal/mesh/mesh_from_primitives.h"
+#include "intrinsic/geometry/internal/mesh/remove_duplicate_vertices_from_mesh.h"
+#include "intrinsic/geometry/internal/point_cloud/point_cloud_riegeli_coder.h"
 #include "intrinsic/geometry/proto/mesh.pb.h"
 #include "intrinsic/geometry/shapes/box.h"
 #include "intrinsic/geometry/shapes/capsule.h"
@@ -46,22 +46,19 @@
 #include "intrinsic/util/status/status_builder.h"
 #include "intrinsic/util/status/status_macros.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 namespace {
 
-absl::StatusOr<ObjectRef<geometry_legacy::Mesh>> MeshFromBlueShape(
+absl::StatusOr<ObjectRef<Mesh>> MeshFromBlueShape(
     const std::vector<TransformedPrimitiveShapePtr>& shapes) {
-  INTR_ASSIGN_OR_RETURN(auto mesh, geometry_legacy::MeshFromPrimitives(shapes));
-  return DeDuplicate(
-      geometry_legacy::RemoveDuplicateVerticesFromMesh(*mesh, std::nullopt));
+  INTR_ASSIGN_OR_RETURN(auto mesh, MeshFromPrimitives(shapes));
+  return DeDuplicate(RemoveDuplicateVerticesFromMesh(*mesh, std::nullopt));
 }
 
-ObjectRef<geometry_legacy::Mesh> MeshFromBlueShapeOrDie(
-    const shapes::ShapeBase& shape) {
-  ASSIGN_OR_DIE(auto mesh, geometry_legacy::MeshFromPrimitive(shape));
-  return DeDuplicate(
-      geometry_legacy::RemoveDuplicateVerticesFromMesh(mesh, std::nullopt));
+ObjectRef<Mesh> MeshFromBlueShapeOrDie(const ShapeBase& shape) {
+  ASSIGN_OR_DIE(auto mesh, MeshFromPrimitive(shape));
+  return DeDuplicate(RemoveDuplicateVerticesFromMesh(mesh, std::nullopt));
 }
 
 absl::Status ValidatePrimitiveShapes(
@@ -72,10 +69,9 @@ absl::Status ValidatePrimitiveShapes(
   // sphere, or box. With a sphere or box we revert to mesh when doing a lot of
   // checks, but with a point cloud we would not revert to mesh, we would use
   // the point cloud directly in those scenarios.
-  static const std::set<shapes::ShapeType>* allowed_shapes = new std::set{
-      shapes::ShapeType::BOX,     shapes::ShapeType::CYLINDER,
-      shapes::ShapeType::SPHERE,  shapes::ShapeType::ELLIPSOID,
-      shapes::ShapeType::CAPSULE, shapes::ShapeType::FRUSTUM,
+  static const std::set<ShapeType>* allowed_shapes = new std::set{
+      ShapeType::BOX,       ShapeType::CYLINDER, ShapeType::SPHERE,
+      ShapeType::ELLIPSOID, ShapeType::CAPSULE,  ShapeType::FRUSTUM,
   };
 
   for (const auto& shape : primitive_shapes) {
@@ -95,65 +91,55 @@ absl::Status ValidatePrimitiveShapes(
 
 }  // namespace
 
-ExactGeometry ExactGeometry::CreateEmpty() {
-  return ExactGeometry(geometry_legacy::Mesh());
-}
+ExactGeometry ExactGeometry::CreateEmpty() { return ExactGeometry(Mesh()); }
 
-ExactGeometry::ExactGeometry(const shapes::Box& shape, GeometryOptions options)
+ExactGeometry::ExactGeometry(const Box& shape, GeometryOptions options)
     : primitive_shapes_(
-          {TransformedPrimitiveShapePtr(std::make_shared<shapes::Box>(shape))}),
+          {TransformedPrimitiveShapePtr(std::make_shared<Box>(shape))}),
       shape_(MeshFromBlueShapeOrDie(shape)),
       options_(std::move(options)) {}
 
-ExactGeometry::ExactGeometry(const shapes::Capsule& shape,
-                             GeometryOptions options)
-    : primitive_shapes_({TransformedPrimitiveShapePtr(
-          std::make_shared<shapes::Capsule>(shape))}),
+ExactGeometry::ExactGeometry(const Capsule& shape, GeometryOptions options)
+    : primitive_shapes_(
+          {TransformedPrimitiveShapePtr(std::make_shared<Capsule>(shape))}),
       shape_(MeshFromBlueShapeOrDie(shape)),
       options_(std::move(options)) {}
 
-ExactGeometry::ExactGeometry(const shapes::Cylinder& shape,
-                             GeometryOptions options)
-    : primitive_shapes_({TransformedPrimitiveShapePtr(
-          std::make_shared<shapes::Cylinder>(shape))}),
+ExactGeometry::ExactGeometry(const Cylinder& shape, GeometryOptions options)
+    : primitive_shapes_(
+          {TransformedPrimitiveShapePtr(std::make_shared<Cylinder>(shape))}),
       shape_(MeshFromBlueShapeOrDie(shape)),
       options_(std::move(options)) {}
 
-ExactGeometry::ExactGeometry(const shapes::Ellipsoid& shape,
-                             GeometryOptions options)
-    : primitive_shapes_({TransformedPrimitiveShapePtr(
-          std::make_shared<shapes::Ellipsoid>(shape))}),
+ExactGeometry::ExactGeometry(const Ellipsoid& shape, GeometryOptions options)
+    : primitive_shapes_(
+          {TransformedPrimitiveShapePtr(std::make_shared<Ellipsoid>(shape))}),
       shape_(MeshFromBlueShapeOrDie(shape)),
       options_(std::move(options)) {}
 
-ExactGeometry::ExactGeometry(const shapes::Sphere& shape,
-                             GeometryOptions options)
-    : primitive_shapes_({TransformedPrimitiveShapePtr(
-          std::make_shared<shapes::Sphere>(shape))}),
+ExactGeometry::ExactGeometry(const Sphere& shape, GeometryOptions options)
+    : primitive_shapes_(
+          {TransformedPrimitiveShapePtr(std::make_shared<Sphere>(shape))}),
       shape_(MeshFromBlueShapeOrDie(shape)),
       options_(std::move(options)) {}
 
-ExactGeometry::ExactGeometry(const shapes::Frustum& shape,
-                             GeometryOptions options)
-    : primitive_shapes_({TransformedPrimitiveShapePtr(
-          std::make_shared<shapes::Frustum>(shape))}),
+ExactGeometry::ExactGeometry(const Frustum& shape, GeometryOptions options)
+    : primitive_shapes_(
+          {TransformedPrimitiveShapePtr(std::make_shared<Frustum>(shape))}),
       shape_(MeshFromBlueShapeOrDie(shape)),
       options_(std::move(options)) {}
 
-ExactGeometry::ExactGeometry(geometry_legacy::Mesh mesh,
-                             GeometryOptions options)
+ExactGeometry::ExactGeometry(Mesh mesh, GeometryOptions options)
     : shape_(DeDuplicate(std::move(mesh))), options_(std::move(options)) {}
 
-ExactGeometry::ExactGeometry(shapes::PointCloud point_cloud,
-                             GeometryOptions options)
+ExactGeometry::ExactGeometry(PointCloud point_cloud, GeometryOptions options)
     : shape_(DeDuplicate(std::move(point_cloud))),
       options_(std::move(options)) {}
 
-ExactGeometry::ExactGeometry(ObjectRef<geometry_legacy::Mesh> mesh,
-                             GeometryOptions options)
+ExactGeometry::ExactGeometry(ObjectRef<Mesh> mesh, GeometryOptions options)
     : shape_(std::move(mesh)), options_(std::move(options)) {}
 
-ExactGeometry::ExactGeometry(ObjectRef<shapes::PointCloud> point_cloud,
+ExactGeometry::ExactGeometry(ObjectRef<PointCloud> point_cloud,
                              GeometryOptions options)
     : shape_(std::move(point_cloud)), options_(std::move(options)) {}
 
@@ -183,11 +169,10 @@ absl::StatusOr<ExactGeometry> ExactGeometry::Create(ExactGeometry::Shape shape,
                           MeshFromBlueShape(primitive_shapes));
     return ExactGeometry(std::move(primitive_shapes), std::move(computed_shape),
                          std::move(options));
-  } else if (std::holds_alternative<ObjectRef<geometry_legacy::Mesh>>(shape)) {
-    return ExactGeometry(std::get<ObjectRef<geometry_legacy::Mesh>>(shape),
-                         std::move(options));
-  } else if (std::holds_alternative<ObjectRef<shapes::PointCloud>>(shape)) {
-    return ExactGeometry(std::get<ObjectRef<shapes::PointCloud>>(shape),
+  } else if (std::holds_alternative<ObjectRef<Mesh>>(shape)) {
+    return ExactGeometry(std::get<ObjectRef<Mesh>>(shape), std::move(options));
+  } else if (std::holds_alternative<ObjectRef<PointCloud>>(shape)) {
+    return ExactGeometry(std::get<ObjectRef<PointCloud>>(shape),
                          std::move(options));
   }
 
@@ -198,7 +183,7 @@ absl::StatusOr<ExactGeometry> ExactGeometry::Create(
     std::vector<TransformedPrimitiveShapePtr> primitive_shapes,
     ExactGeometry::ComputedShape computed_shape, GeometryOptions options) {
   const bool has_point_cloud =
-      std::holds_alternative<ObjectRef<shapes::PointCloud>>(computed_shape);
+      std::holds_alternative<ObjectRef<PointCloud>>(computed_shape);
 
   if (has_point_cloud && !primitive_shapes.empty()) {
     return absl::InvalidArgumentError(
@@ -212,11 +197,11 @@ absl::StatusOr<ExactGeometry> ExactGeometry::Create(
 }
 
 bool ExactGeometry::HasMesh() const {
-  return std::holds_alternative<ObjectRef<geometry_legacy::Mesh>>(shape_);
+  return std::holds_alternative<ObjectRef<Mesh>>(shape_);
 }
 
 bool ExactGeometry::HasPointCloud() const {
-  return std::holds_alternative<ObjectRef<shapes::PointCloud>>(shape_);
+  return std::holds_alternative<ObjectRef<PointCloud>>(shape_);
 }
 
 bool ExactGeometry::HasPrimitiveShapes() const {
@@ -228,20 +213,18 @@ ExactGeometry::GetPrimitiveShapes() const {
   return primitive_shapes_;
 }
 
-absl::StatusOr<ObjectRef<geometry_legacy::Mesh>> ExactGeometry::GetMesh()
-    const {
-  if (std::holds_alternative<ObjectRef<geometry_legacy::Mesh>>(shape_)) {
-    return std::get<ObjectRef<geometry_legacy::Mesh>>(shape_);
+absl::StatusOr<ObjectRef<Mesh>> ExactGeometry::GetMesh() const {
+  if (std::holds_alternative<ObjectRef<Mesh>>(shape_)) {
+    return std::get<ObjectRef<Mesh>>(shape_);
   }
   return intrinsic::NotFoundErrorBuilder()
          << "Can't find a Mesh in ExactGeometry with internal type index:"
          << shape_.index();
 }
 
-absl::StatusOr<ObjectRef<shapes::PointCloud>> ExactGeometry::GetPointCloud()
-    const {
-  if (std::holds_alternative<ObjectRef<shapes::PointCloud>>(shape_)) {
-    return std::get<ObjectRef<shapes::PointCloud>>(shape_);
+absl::StatusOr<ObjectRef<PointCloud>> ExactGeometry::GetPointCloud() const {
+  if (std::holds_alternative<ObjectRef<PointCloud>>(shape_)) {
+    return std::get<ObjectRef<PointCloud>>(shape_);
   }
   return intrinsic::NotFoundErrorBuilder()
          << "Can't find a PointCloud in ExactGeometry with internal type "
@@ -264,4 +247,4 @@ ExactGeometry::ExactGeometry(const ExactGeometry& other,
     : ExactGeometry(other.primitive_shapes_, other.shape_, std::move(options)) {
 }
 
-}  // namespace intrinsic
+}  // namespace intrinsic::geo

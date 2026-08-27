@@ -19,7 +19,7 @@
 
 #include "intrinsic/geometry/storage/geometry_library.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 // Returns a geometry deserializer instance that always returns an empty Mesh.
 // Returns a GeometryLibrary that doesn't do anything:
@@ -28,6 +28,10 @@ namespace intrinsic {
 // * Its Serializer() does not actually save anything.
 std::unique_ptr<GeometryLibrary> GetDummyGeometryLibrary();
 
+}  // namespace intrinsic::geo
+
+namespace intrinsic {
+using ::intrinsic::geo::GetDummyGeometryLibrary;
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_GEOMETRY_STORAGE_DUMMY_STORAGE_H_

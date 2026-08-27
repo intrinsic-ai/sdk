@@ -21,7 +21,7 @@
 #include "intrinsic/geometry/storage/geometry_library.h"
 #include "intrinsic/world/gzfile/gzfile.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 // Returns a GeometryLibrary instance that is backed by `gzfile`.
 //
@@ -39,6 +39,11 @@ std::unique_ptr<GeometryLibrary> GetGzfGeometryLibrary(
 std::unique_ptr<GeometryLibrary> GetReadOnlyGzfGeometryLibrary(
     const GZFile& gzfile ABSL_ATTRIBUTE_LIFETIME_BOUND);
 
+}  // namespace intrinsic::geo
+
+namespace intrinsic {
+using ::intrinsic::geo::GetGzfGeometryLibrary;
+using ::intrinsic::geo::GetReadOnlyGzfGeometryLibrary;
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_GEOMETRY_STORAGE_GZF_STORAGE_H_

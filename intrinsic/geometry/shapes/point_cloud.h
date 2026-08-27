@@ -23,8 +23,7 @@
 #include "intrinsic/eigenmath/types.h"
 #include "intrinsic/geometry/shapes/shape_base.h"
 
-namespace intrinsic {
-namespace shapes {
+namespace intrinsic::geo {
 
 /** A Point cloud shape */
 class PointCloud : public ShapeBase {
@@ -101,7 +100,10 @@ class PointCloud : public ShapeBase {
   std::vector<eigenmath::Vector3d> normals_;
 };
 
-}  //  namespace shapes
-}  //  namespace intrinsic
+}  // namespace intrinsic::geo
+
+namespace intrinsic::shapes {
+using ::intrinsic::geo::PointCloud;
+}  // namespace intrinsic::shapes
 
 #endif  // INTRINSIC_GEOMETRY_SHAPES_POINT_CLOUD_H_

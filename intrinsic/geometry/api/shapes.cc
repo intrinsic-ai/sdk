@@ -36,10 +36,10 @@
 #include "intrinsic/geometry/api/geometry_options.h"
 #include "intrinsic/geometry/api/material.h"
 #include "intrinsic/geometry/api/renderable.h"
-#include "intrinsic/geometry/internal/legacy/mesh/io/load_ai_scene_from_file.h"
-#include "intrinsic/geometry/internal/legacy/mesh/load_mesh_file_with_scale.h"
-#include "intrinsic/geometry/internal/legacy/mesh/memoized_mesh_from_triangle_mesh.h"
-#include "intrinsic/geometry/internal/legacy/point_cloud/pts_to_point_cloud.h"
+#include "intrinsic/geometry/internal/mesh/io/load_ai_scene_from_file.h"
+#include "intrinsic/geometry/internal/mesh/load_mesh_file_with_scale.h"
+#include "intrinsic/geometry/internal/mesh/memoized_mesh_from_triangle_mesh.h"
+#include "intrinsic/geometry/internal/point_cloud/pts_to_point_cloud.h"
 #include "intrinsic/geometry/internal/util/export_as_gltf.h"
 #include "intrinsic/geometry/proto/v1/material.pb.h"
 #include "intrinsic/geometry/shapes/shape_base.h"
@@ -50,18 +50,8 @@
 #include "ortools/base/options.h"
 #include "ortools/base/path.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 namespace {
-
-using ::intrinsic::shapes::Box;
-using ::intrinsic::shapes::Capsule;
-using ::intrinsic::shapes::Cylinder;
-using ::intrinsic::shapes::Ellipsoid;
-using ::intrinsic::shapes::Frustum;
-using ::intrinsic::shapes::MeshFile;
-using ::intrinsic::shapes::ShapeBase;
-using ::intrinsic::shapes::ShapeType;
-using ::intrinsic::shapes::TriangleMesh;
 
 absl::StatusOr<ExactGeometry> FromShapeBaseImpl(const ShapeBase& shape,
                                                 GeometryOptions options) {
@@ -79,8 +69,7 @@ absl::StatusOr<ExactGeometry> FromShapeBaseImpl(const ShapeBase& shape,
       return ExactGeometry{shape.get<Ellipsoid>(), std::move(options)};
     }
     case ShapeType::SPHERE: {
-      return ExactGeometry{shape.get<intrinsic::shapes::Sphere>(),
-                           std::move(options)};
+      return ExactGeometry{shape.get<Sphere>(), std::move(options)};
     }
     case ShapeType::FRUSTUM: {
       return ExactGeometry{shape.get<Frustum>(), std::move(options)};
@@ -93,22 +82,21 @@ absl::StatusOr<ExactGeometry> FromShapeBaseImpl(const ShapeBase& shape,
         INTR_ASSIGN_OR_RETURN(
             const auto file_content,
             file::GetContents(mesh_file.getFilename(), file::Defaults()));
-        INTR_ASSIGN_OR_RETURN(auto points,
-                              geometry_legacy::PtsFileToPointCloud(
-                                  file_content, mesh_file.getScale()));
+        INTR_ASSIGN_OR_RETURN(
+            auto points,
+            PtsFileToPointCloud(file_content, mesh_file.getScale()));
         return ExactGeometry{std::move(points), std::move(options)};
       } else {
-        INTR_ASSIGN_OR_RETURN(
-            auto mesh, geometry_legacy::LoadMeshFileWithScale(
-                           mesh_file.getFilename(), mesh_file.getScale()));
+        INTR_ASSIGN_OR_RETURN(auto mesh,
+                              LoadMeshFileWithScale(mesh_file.getFilename(),
+                                                    mesh_file.getScale()));
         return ExactGeometry{std::move(mesh), std::move(options)};
       }
     }
     case ShapeType::TRIANGLE_MESH: {
       const auto& triangle_mesh = shape.get<TriangleMesh>();
-      return ExactGeometry{
-          geometry_legacy::MemoizedMeshFromTriangleMesh(triangle_mesh),
-          std::move(options)};
+      return ExactGeometry{MemoizedMeshFromTriangleMesh(triangle_mesh),
+                           std::move(options)};
     }
     case ShapeType::LINE_STRIP:
       ABSL_FALLTHROUGH_INTENDED;
@@ -161,7 +149,7 @@ bool IsAiSceneFullyTransparent(const aiScene* scene) {
 }  // namespace
 
 absl::StatusOr<TransformedGeometry> ToGeometry(
-    const shapes::ShapeBase& shape, std::optional<Material> material_opt,
+    const ShapeBase& shape, std::optional<Material> material_opt,
     bool check_for_transparency, GeometryOptions options) {
   INTR_ASSIGN_OR_RETURN(ExactGeometry updated_shape,
                         FromShapeBaseImpl(shape, std::move(options)));
@@ -173,13 +161,13 @@ absl::StatusOr<TransformedGeometry> ToGeometry(
         "Specified material is fully transparent.");
   }
 
-  if (shape.getType() == shapes::ShapeType::MESHFILE) {
+  if (shape.getType() == ShapeType::MESHFILE) {
     // Since we have a mesh file we want to read the contents of the file and
     // store that as part of the renderable info.
-    const auto& mesh_file = shape.get<shapes::MeshFile>();
-    INTR_ASSIGN_OR_RETURN(auto ai_scene,
-                          geometry_legacy::LoadAiSceneFromFile(
-                              mesh_file.getFilename(), mesh_file.getScale()));
+    const auto& mesh_file = shape.get<MeshFile>();
+    INTR_ASSIGN_OR_RETURN(
+        auto ai_scene,
+        LoadAiSceneFromFile(mesh_file.getFilename(), mesh_file.getScale()));
     if (check_for_transparency && IsAiSceneFullyTransparent(ai_scene.get())) {
       return absl::InvalidArgumentError(absl::StrCat(
           "Following mesh is fully transparent and cannot be rendered: ",
@@ -211,4 +199,4 @@ absl::StatusOr<TransformedGeometry> ToGeometry(
                std::move(material_properties), /*provenance=*/std::nullopt)};
 }
 
-}  // namespace intrinsic
+}  // namespace intrinsic::geo

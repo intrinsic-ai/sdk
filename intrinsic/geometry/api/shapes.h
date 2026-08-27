@@ -23,15 +23,18 @@
 #include "intrinsic/geometry/api/material.h"
 #include "intrinsic/geometry/shapes/shape_base.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 // Returns a TransformedGeometry instance from the given ShapeBase instance.
 absl::StatusOr<TransformedGeometry> ToGeometry(
-    const shapes::ShapeBase& shape,
-    std::optional<Material> material_opt = std::nullopt,
+    const ShapeBase& shape, std::optional<Material> material_opt = std::nullopt,
     bool check_for_transparency = false,
     GeometryOptions options = GeometryOptions::Default());
 
+}  // namespace intrinsic::geo
+
+namespace intrinsic {
+using ::intrinsic::geo::ToGeometry;
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_GEOMETRY_API_SHAPES_H_

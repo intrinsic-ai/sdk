@@ -21,8 +21,7 @@
 #include "intrinsic/geometry/shapes/shape_base.h"
 #include "intrinsic/geometry/shapes/sphere.h"
 
-namespace intrinsic {
-namespace shapes {
+namespace intrinsic::geo {
 
 /** A shape composed of a set of spheres */
 class Spheres : public ShapeBase {
@@ -47,7 +46,10 @@ class Spheres : public ShapeBase {
   std::vector<Sphere> spheres_;
 };
 
-}  //  namespace shapes
-}  //  namespace intrinsic
+}  // namespace intrinsic::geo
+
+namespace intrinsic::shapes {
+using ::intrinsic::geo::Spheres;
+}  // namespace intrinsic::shapes
 
 #endif  // INTRINSIC_GEOMETRY_SHAPES_SPHERES_H_

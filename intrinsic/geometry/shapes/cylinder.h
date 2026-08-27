@@ -18,8 +18,7 @@
 #include "absl/log/check.h"
 #include "intrinsic/geometry/shapes/shape_base.h"
 
-namespace intrinsic {
-namespace shapes {
+namespace intrinsic::geo {
 
 // A Cylinder shape
 // The cylinder is centered at the origin and aligned with the Z-axis
@@ -61,7 +60,10 @@ class Cylinder : public ShapeBase {
   double radius_;
 };
 
-}  //  namespace shapes
-}  //  namespace intrinsic
+}  // namespace intrinsic::geo
+
+namespace intrinsic::shapes {
+using ::intrinsic::geo::Cylinder;
+}  // namespace intrinsic::shapes
 
 #endif  // INTRINSIC_GEOMETRY_SHAPES_CYLINDER_H_

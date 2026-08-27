@@ -26,7 +26,7 @@
 #include "intrinsic/geometry/api/renderable.h"
 #include "intrinsic/geometry/proto/v1/material.pb.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 absl::StatusOr<std::shared_ptr<const Renderable>> ApplyMaterialProperties(
     std::shared_ptr<const Renderable> geo,
@@ -40,6 +40,12 @@ absl::StatusOr<std::string> ApplyMaterialPropertiesToGlb(
 
 absl::Status ApplyMaterialToAiScene(aiScene& scene, const Material& material);
 
+}  // namespace intrinsic::geo
+
+namespace intrinsic {
+using ::intrinsic::geo::ApplyMaterialProperties;
+using ::intrinsic::geo::ApplyMaterialPropertiesToGlb;
+using ::intrinsic::geo::ApplyMaterialToAiScene;
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_GEOMETRY_API_APPLY_MATERIAL_PROPERTIES_H_

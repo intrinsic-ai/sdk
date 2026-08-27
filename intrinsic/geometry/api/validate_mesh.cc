@@ -24,15 +24,15 @@
 #include "assimp/material.h"
 #include "assimp/scene.h"
 #include "intrinsic/eigenmath/types.h"
-#include "intrinsic/geometry/internal/legacy/mesh/io/load_ai_scene_from_buffer.h"
-#include "intrinsic/geometry/internal/legacy/mesh/io/load_ai_scene_from_file.h"
+#include "intrinsic/geometry/internal/mesh/io/load_ai_scene_from_buffer.h"
+#include "intrinsic/geometry/internal/mesh/io/load_ai_scene_from_file.h"
 #include "intrinsic/util/status/status_macros.h"
 #include "ortools/base/filesystem.h"
 #include "ortools/base/helpers.h"
 #include "ortools/base/options.h"
 #include "ortools/base/path.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 namespace {
 
@@ -102,8 +102,8 @@ absl::Status ValidateAiSceneTextures(const aiScene& ai_scene,
 
 absl::Status ValidateMeshFile(absl::string_view filename,
                               const eigenmath::Vector3d& scale) {
-  INTR_ASSIGN_OR_RETURN(auto ai_scene, geometry_legacy::LoadAiSceneFromFile(
-                                           std::string(filename), scale));
+  INTR_ASSIGN_OR_RETURN(auto ai_scene,
+                        LoadAiSceneFromFile(std::string(filename), scale));
 
   return ValidateAiSceneTextures(*ai_scene, filename);
 }
@@ -111,10 +111,10 @@ absl::Status ValidateMeshFile(absl::string_view filename,
 absl::Status ValidateMeshData(absl::string_view mesh_data,
                               absl::string_view extension,
                               const eigenmath::Vector3d& scale) {
-  INTR_ASSIGN_OR_RETURN(auto ai_scene, geometry_legacy::LoadAiSceneFromBuffer(
-                                           std::string(mesh_data),
-                                           std::string(extension), scale));
+  INTR_ASSIGN_OR_RETURN(auto ai_scene,
+                        LoadAiSceneFromBuffer(std::string(mesh_data),
+                                              std::string(extension), scale));
   return ValidateAiSceneTextures(*ai_scene, "");
 }
 
-}  // namespace intrinsic
+}  // namespace intrinsic::geo

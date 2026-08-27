@@ -18,7 +18,7 @@
 #include "intrinsic/geometry/storage/geometry_deserializer.h"
 #include "intrinsic/geometry/storage/geometry_serializer.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 // Provides read and write access to a single form of geometry storage.
 //
@@ -40,6 +40,10 @@ class GeometryLibrary {
   virtual GeometrySerializer& Serializer() = 0;
 };
 
+}  // namespace intrinsic::geo
+
+namespace intrinsic {
+using ::intrinsic::geo::GeometryLibrary;
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_GEOMETRY_STORAGE_GEOMETRY_LIBRARY_H_

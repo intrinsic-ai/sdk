@@ -19,8 +19,7 @@
 #include "intrinsic/eigenmath/types.h"
 #include "intrinsic/geometry/shapes/shape_base.h"
 
-namespace intrinsic {
-namespace shapes {
+namespace intrinsic::geo {
 
 /** A Ellipsoid shape */
 class Ellipsoid : public ShapeBase {
@@ -51,7 +50,10 @@ class Ellipsoid : public ShapeBase {
   eigenmath::Vector3d radii_;
 };
 
-}  //  namespace shapes
-}  //  namespace intrinsic
+}  // namespace intrinsic::geo
+
+namespace intrinsic::shapes {
+using ::intrinsic::geo::Ellipsoid;
+}  // namespace intrinsic::shapes
 
 #endif  // INTRINSIC_GEOMETRY_SHAPES_ELLIPSOID_H_

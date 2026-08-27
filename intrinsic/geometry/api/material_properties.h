@@ -18,7 +18,7 @@
 #include "intrinsic/eigenmath/types.h"
 #include "intrinsic/geometry/proto/v1/material.pb.h"
 
-namespace intrinsic {
+namespace intrinsic::geo {
 
 // Simple PBR MaterialProperties struct, meant to make working with
 // the v1 MaterialProperties proto easier. See the MaterialProperties proto
@@ -46,6 +46,11 @@ H AbslHashValue(H h, const MaterialProperties& m) {
                     m.metalness, m.roughness, m.transmission);
 }
 
+}  // namespace intrinsic::geo
+
+namespace intrinsic {
+using ::intrinsic::geo::AbslHashValue;
+using ::intrinsic::geo::MaterialProperties;
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_GEOMETRY_API_MATERIAL_PROPERTIES_H_
