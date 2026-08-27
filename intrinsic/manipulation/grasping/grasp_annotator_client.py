@@ -94,7 +94,7 @@ class GraspAnnotatorClient:
       max_num_annotations: int | None = None,
       constraint: grasp_annotator_pb2.GraspAnnotationConstraint | None = None,
       sampling_options: grasp_annotator_pb2.SamplingOptions | None = None,
-  ) -> grasp_annotations_pb2.GraspAnnotations:
+  ) -> grasp_annotator_service_pb2.GraspAnnotatorResponse:
     """Annotates grasps.
 
     Args:
@@ -110,7 +110,8 @@ class GraspAnnotatorClient:
       sampling_options: Sampling parameters for generating annotations.
 
     Returns:
-      The annotated grasps as a `GraspAnnotations` proto.
+      The response as a `GraspAnnotatorResponse` proto, which includes
+      the annotated grasps and the logging ID.
     """
     request = grasp_annotator_service_pb2.GraspAnnotatorRequest(
         mesh_data=grasp_annotator_pb2.MeshData(triangle_mesh_v1=triangle_mesh),
@@ -128,7 +129,7 @@ class GraspAnnotatorClient:
     response: grasp_annotator_service_pb2.GraspAnnotatorResponse = (
         self._stub.Annotate(request, **self._connection_params)
     )
-    return response.annotations
+    return response
 
   def generate_grasps(
       self,
