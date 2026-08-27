@@ -203,7 +203,7 @@ use_repo(js_rules, "intrinsic_js_rules")
 
 bazel_dep(name = "abseil-cpp", version = "20250814.2")
 bazel_dep(name = "abseil-py", version = "2.1.0", repo_name = "com_google_absl_py")
-bazel_dep(name = "assimp", version = "6.0.3")
+bazel_dep(name = "assimp", version = "6.0.5")
 bazel_dep(name = "bazel_lib", version = "3.7.1")
 bazel_dep(name = "bazel_skylib", version = "1.9.2")
 bazel_dep(name = "boringssl", version = "0.20260813.0")
