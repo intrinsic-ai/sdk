@@ -318,7 +318,7 @@ func (c *client) run(ctx context.Context) error {
 		if st, ok := grpcstatus.FromError(err); ok {
 			switch st.Code() {
 			case codes.FailedPrecondition:
-				return fmt.Errorf("Cannot Upgrade due to current settings: %s", st.Message())
+				return fmt.Errorf("Cannot upgrade due to current settings: %s", st.Message())
 			case codes.NotFound:
 				if req.UpdateType == clustermanagerpb.SchedulePlatformUpdateRequest_UPDATE_TYPE_FORWARD {
 					return fmt.Errorf("Cluster does not exist, or doesn't have an update pending: %s", st.Message())
@@ -336,6 +336,13 @@ func (c *client) run(ctx context.Context) error {
 			}
 		}
 		return fmt.Errorf("cluster upgrade run: %w", err)
+	}
+	mode, err := c.getMode(ctx)
+	if err != nil {
+		fmt.Println("The upgrade got scheduled but failed to check the upgrade mode.")
+	}
+	if mode == "off" {
+		fmt.Println("This upgrade won't start until you run `inctl cluster upgrade mode on`.")
 	}
 	return nil
 }
