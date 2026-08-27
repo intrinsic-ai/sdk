@@ -299,6 +299,45 @@ class OrgTest(absltest.TestCase):
         'my-organization',
     )
 
+  def test_clear_metadata_empty(self):
+    self.assertEqual(identity.ClearMetadata(None), [])
+    self.assertEqual(identity.ClearMetadata([]), [])
+
+  def test_clear_metadata_strips_auth_headers_and_cookies(self):
+    input_metadata = [
+        ('authorization', f'Bearer {TOKEN}'),
+        ('APIKEY-TOKEN', 'api-key-value'),
+        ('x-intrinsic-org', 'my-org'),
+        ('org-id', 'my-org'),
+        ('x-intrinsic-compute-project', 'my-project'),
+        (
+            'cookie',
+            (
+                f'auth-proxy={TOKEN}; portal-token={TOKEN};'
+                f' onprem-token={TOKEN}; org-id=my-org; custom-cookie=keep-me'
+            ),
+        ),
+        ('custom-header', 'keep-header-value'),
+    ]
+
+    cleared = identity.ClearMetadata(input_metadata)
+
+    self.assertEqual(
+        cleared,
+        [
+            ('cookie', 'custom-cookie=keep-me'),
+            ('custom-header', 'keep-header-value'),
+        ],
+    )
+
+  def test_clear_metadata_removes_empty_cookie_header(self):
+    input_metadata = [
+        ('cookie', f'auth-proxy={TOKEN}; org-id=my-org'),
+        ('authorization', f'Bearer {TOKEN}'),
+    ]
+    cleared = identity.ClearMetadata(input_metadata)
+    self.assertEqual(cleared, [])
+
 
 class CanonicalizationTest(parameterized.TestCase):
 

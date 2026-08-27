@@ -33,6 +33,70 @@ AUTH_HEADER_NAME = 'authorization'
 ORG_ID_COOKIE = 'org-id'
 ORG_ID_HEADER = 'x-intrinsic-org'
 
+AUTH_COOKIES = {
+    AUTH_PROXY_COOKIE_NAME,
+    PORTAL_TOKEN_COOKIE_NAME,
+    ONPREM_TOKEN_COOKIE_NAME,
+    ORG_ID_COOKIE,
+}
+
+AUTH_HEADERS = {
+    AUTH_HEADER_NAME,
+    APIKEY_TOKEN_HEADER_NAME,
+    ORG_ID_HEADER,
+    ORG_ID_COOKIE,
+    'x-intrinsic-compute-project',
+}
+
+
+def ClearMetadata(
+    metadata: Optional[list[tuple[str, str]]],
+) -> list[tuple[str, str]]:
+  """Removes user identity credentials and auth cookies from gRPC metadata.
+
+  Strips user authentication headers (authorization, apikey-token,
+  x-intrinsic-org, org-id) and authentication cookies (auth-proxy,
+  portal-token, onprem-token, org-id) from the metadata list while preserving
+  other non-auth headers and cookies.
+
+  Args:
+    metadata: The incoming metadata sequence to clean.
+
+  Returns:
+    A list of (key, value) pairs with auth credentials removed.
+  """
+  if not metadata:
+    return []
+
+  result = []
+  for key, value in metadata:
+    key_lower = key.lower()
+    if key_lower in AUTH_HEADERS:
+      continue
+
+    if key_lower == COOKIE_KEY:
+      cks = http.cookies.SimpleCookie()
+      val_str = (
+          bytes(value).decode('utf-8')
+          if isinstance(value, (bytes, bytearray, memoryview))
+          else str(value)
+      )
+      cks.load(val_str)
+      remaining = '; '.join(
+          [f'{k}={v.value}' for k, v in cks.items() if k not in AUTH_COOKIES]
+      )
+      if remaining:
+        result.append((COOKIE_KEY, remaining))
+    else:
+      val_str = (
+          bytes(value).decode('utf-8')
+          if isinstance(value, (bytes, bytearray, memoryview))
+          else str(value)
+      )
+      result.append((key, val_str))
+
+  return result
+
 
 def _metadata_dict(metadata) -> dict:
   """Converts metadata sequence to a dict, merging duplicate 'cookie' headers."""
