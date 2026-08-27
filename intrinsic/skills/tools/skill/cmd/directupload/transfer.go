@@ -100,7 +100,7 @@ func WithRegistry(registry string) Option {
 	}
 }
 
-const directUploadRegistry = "localhost:17127"
+const directUploadRegistry = "direct.upload.local"
 
 // NewTransferer create a new instance of direct upload Transferer implementation
 // and applies options if specified.
