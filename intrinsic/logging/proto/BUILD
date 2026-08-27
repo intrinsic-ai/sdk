@@ -367,7 +367,6 @@ go_proto_library(
         "//intrinsic/world/proto:collision_action_go_proto",
         "//intrinsic/world/proto:collision_settings_go_proto",
         "//intrinsic/world/proto:geometry_component_go_proto",
-        "//intrinsic/world/proto:gripper_component_go_proto",
         "//intrinsic/world/proto:object_world_refs_go_proto",
         "//intrinsic/world/proto:object_world_updates_go_proto",
         "//third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg:marker_array_go_proto",

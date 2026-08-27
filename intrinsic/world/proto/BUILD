@@ -206,7 +206,6 @@ proto_library(
     deps = [
         ":collision_settings_proto",
         ":geometry_component_proto",
-        ":gripper_component_proto",
         ":kinematics_component_proto",
         ":object_world_refs_proto",
         ":object_world_updates_proto",
@@ -310,7 +309,6 @@ go_proto_library(
         ":collision_action_go_proto",
         ":collision_settings_go_proto",
         ":geometry_component_go_proto",
-        ":gripper_component_go_proto",
         ":object_world_refs_go_proto",
         ":physics_component_go_proto",
         ":robot_payload_go_proto",
@@ -418,25 +416,6 @@ js_library(
     name = "sensor_component_jspb_proto",
     visibility = ["//intrinsic:internal_api_users"],
     deps = [":sensor_component_proto"],
-)
-
-proto_library(
-    name = "gripper_component_proto",
-    srcs = ["gripper_component.proto"],
-    visibility = ["//intrinsic:public_api_users"],
-)
-
-cc_proto_library(
-    name = "gripper_component_cc_proto",
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":gripper_component_proto"],
-)
-
-go_proto_library(
-    name = "gripper_component_go_proto",
-    importpath = "intrinsic/world/proto/gripper_component_go_proto",
-    protos = ["gripper_component_proto"],
-    visibility = ["//intrinsic:public_api_users"],
 )
 
 proto_library(
