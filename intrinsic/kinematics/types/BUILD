@@ -16,8 +16,8 @@ load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@intrinsic_js_rules//:defs.bzl", "js_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
-load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = [
     "//visibility:public",
@@ -57,75 +57,14 @@ cc_library(
     ],
 )
 
-proto_library(
-    name = "joint_limits_proto",
-    srcs = ["joint_limits.proto"],
-)
-
-cc_proto_library(
-    name = "joint_limits_cc_proto",
-    deps = [":joint_limits_proto"],
-)
-
-py_proto_library(
-    name = "joint_limits_py_pb2",
-    deps = [":joint_limits_proto"],
-)
-
-go_proto_library(
-    name = "joint_limits_go_proto",
-    importpath = "intrinsic/kinematics/types/joint_limits_go_proto",
-    protos = [":joint_limits_proto"],
-)
-
 js_library(
     name = "joint_limits_jspb_proto",
-    deps = [":joint_limits_proto"],
-)
-
-proto_library(
-    name = "dynamic_limits_check_mode_proto",
-    srcs = ["dynamic_limits_check_mode.proto"],
-)
-
-proto_library(
-    name = "rotational_limits_proto",
-    srcs = ["rotational_limits.proto"],
-    deps = [
-        "//intrinsic/math/proto:quaternion_proto",
-        "//intrinsic/math/proto:vector3_proto",
-    ],
-)
-
-cc_proto_library(
-    name = "rotational_limits_cc_proto",
-    deps = [":rotational_limits_proto"],
-)
-
-py_proto_library(
-    name = "rotational_limits_py_pb2",
-    deps = [":rotational_limits_proto"],
-)
-
-cc_proto_library(
-    name = "dynamic_limits_check_mode_cc_proto",
-    deps = [":dynamic_limits_check_mode_proto"],
-)
-
-py_proto_library(
-    name = "dynamic_limits_check_mode_py_pb2",
-    deps = [":dynamic_limits_check_mode_proto"],
-)
-
-go_proto_library(
-    name = "dynamic_limits_check_mode_go_proto",
-    importpath = "intrinsic/kinematics/types/dynamic_limits_check_mode_go_proto",
-    protos = [":dynamic_limits_check_mode_proto"],
+    deps = ["//intrinsic/kinematics/types:joint_limits_proto"],
 )
 
 js_library(
     name = "dynamic_limits_check_mode_jspb_proto",
-    deps = [":dynamic_limits_check_mode_proto"],
+    deps = ["//intrinsic/kinematics/types:dynamic_limits_check_mode_proto"],
 )
 
 cc_library(
@@ -133,12 +72,12 @@ cc_library(
     srcs = ["joint_limits.cc"],
     hdrs = ["joint_limits.h"],
     deps = [
-        ":joint_limits_cc_proto",
         "//intrinsic/eigenmath",
         "//intrinsic/icon/proto:eigen_conversion",
         "//intrinsic/icon/utils:realtime_status",
         "//intrinsic/icon/utils:realtime_status_macro",
         "//intrinsic/icon/utils:realtime_status_or",
+        "//intrinsic/kinematics/types:joint_limits_cc_proto",
         "//intrinsic/util/status:status_macros",
         "@abseil-cpp//absl/log:check",
         "@abseil-cpp//absl/status",
@@ -153,10 +92,10 @@ cc_library(
     hdrs = ["joint_limits_xd.h"],
     deps = [
         ":joint_limits",
-        ":joint_limits_cc_proto",
         "//intrinsic/eigenmath",
         "//intrinsic/icon/proto:eigen_conversion",
         "//intrinsic/icon/testing:realtime_annotations",
+        "//intrinsic/kinematics/types:joint_limits_cc_proto",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
         "@abseil-cpp//absl/strings",
@@ -168,7 +107,7 @@ cc_library(
     srcs = ["dynamic_limits_check_mode.cc"],
     hdrs = ["dynamic_limits_check_mode.h"],
     deps = [
-        ":dynamic_limits_check_mode_cc_proto",
+        "//intrinsic/kinematics/types:dynamic_limits_check_mode_cc_proto",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
     ],
@@ -188,4 +127,68 @@ cc_library(
     srcs = ["to_string.cc"],
     hdrs = ["to_string.h"],
     deps = ["//intrinsic/eigenmath"],
+)
+
+proto_library(
+    name = "dynamic_limits_check_mode_proto",
+    srcs = ["dynamic_limits_check_mode.proto"],
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "joint_limits_proto",
+    srcs = ["joint_limits.proto"],
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "rotational_limits_proto",
+    srcs = ["rotational_limits.proto"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//intrinsic/math/proto:quaternion_proto",
+        "//intrinsic/math/proto:vector3_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "dynamic_limits_check_mode_cc_proto",
+    deps = [":dynamic_limits_check_mode_proto"],
+)
+
+go_proto_library(
+    name = "dynamic_limits_check_mode_go_proto",
+    importpath = "intrinsic/kinematics/types/dynamic_limits_check_mode_go_proto",
+    protos = [":dynamic_limits_check_mode_proto"],
+)
+
+py_proto_library(
+    name = "dynamic_limits_check_mode_py_pb2",
+    deps = [":dynamic_limits_check_mode_proto"],
+)
+
+cc_proto_library(
+    name = "joint_limits_cc_proto",
+    deps = [":joint_limits_proto"],
+)
+
+go_proto_library(
+    name = "joint_limits_go_proto",
+    importpath = "intrinsic/kinematics/types/joint_limits_go_proto",
+    protos = [":joint_limits_proto"],
+)
+
+py_proto_library(
+    name = "joint_limits_py_pb2",
+    deps = [":joint_limits_proto"],
+)
+
+cc_proto_library(
+    name = "rotational_limits_cc_proto",
+    deps = [":rotational_limits_proto"],
+)
+
+py_proto_library(
+    name = "rotational_limits_py_pb2",
+    deps = [":rotational_limits_proto"],
 )
