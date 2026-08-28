@@ -165,8 +165,6 @@ cc_library(
         "//intrinsic/skills/cc:skill_logging_context",
         "//intrinsic/world/objects:object_world_client",
         "@abseil-cpp//absl/status",
-        "@abseil-cpp//absl/status:statusor",
-        "@com_github_grpc_grpc//:grpc++",
     ],
 )
 

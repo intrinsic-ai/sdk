@@ -41,10 +41,6 @@ from intrinsic.logging.proto import context_pb2
 from intrinsic.motion_planning import motion_planner_client
 from intrinsic.motion_planning.proto.v1 import motion_planner_service_pb2_grpc
 
-# isort: off
-
-# isort: on
-
 from intrinsic.skills.internal import default_parameters
 from intrinsic.skills.internal import error_bindings
 from intrinsic.skills.internal import error_utils
@@ -287,7 +283,6 @@ class SkillExecutorServicer(skill_service_pb2_grpc.ExecutorServicer):
     self._object_world_service = object_world_service
     self._motion_planner_service = motion_planner_service
     self._geometry_service = geometry_service
-
     self._operations = _SkillOperations()
 
   def StartExecute(
