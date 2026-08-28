@@ -56,6 +56,11 @@ npm_package(
     publishable = True,
 )
 
+alias(
+    name = "pkg",
+    actual = ":types_package",
+)
+
 pkg_tar(
     name = "intrinsic-ai-types",
     srcs = [":types_package"],
