@@ -52,6 +52,7 @@ go_library(
         "//intrinsic/platform/common/proto:workcell_info_go_proto",
         "//intrinsic/platform/pubsub/adapters:pubsub_go_proto",
         "//intrinsic/platform/pubsub/admin_set_grpc/v1:admin_set_go_proto",
+        "@com_github_cenkalti_backoff_v4//:backoff",
         "@com_github_golang_glog//:go_default_library",
         "@org_golang_google_grpc//:go_default_library",
         "@org_golang_google_grpc//credentials/insecure:go_default_library",

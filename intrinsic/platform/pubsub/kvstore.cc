@@ -34,6 +34,7 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "google/protobuf/any.pb.h"
+#include "google/protobuf/util/message_differencer.h"
 #include "grpcpp/client_context.h"
 #include "grpcpp/create_channel.h"
 #include "grpcpp/security/credentials.h"
@@ -58,11 +59,42 @@ namespace intrinsic {
 using platform::proto::WorkcellInfo;
 
 namespace {
+constexpr absl::Duration kHighConsistencyInitialGetTimeout = absl::Seconds(10);
 constexpr absl::Duration kHighConsistencySetTimeout = absl::Seconds(30);
 constexpr absl::Duration kHighConsistencyGetTimeout = absl::Milliseconds(100);
+constexpr absl::Duration kHighConsistencyRetryDelayMin = absl::Milliseconds(10);
+constexpr absl::Duration kHighConsistencyRetryDelayMax =
+    absl::Milliseconds(2500);
+constexpr double kHighConsistencyRetryDelayFactor = 5.0;
 constexpr absl::string_view kWorkcellInfoKey = "workcell_info";
 constexpr size_t kPayloadByteSizeWarningThreshold = 25 * 1024 * 1024;  // 25 MiB
 
+bool IsStateEqual(const std::optional<google::protobuf::Any>& a,
+                  const std::optional<google::protobuf::Any>& b) {
+  if (a.has_value() != b.has_value()) return false;
+  if (!a.has_value()) return true;  // Implicitly, both unset.
+  return google::protobuf::util::MessageDifferencer::Equals(*a, *b);
+}
+
+absl::StatusOr<std::optional<google::protobuf::Any>> FetchCurrentState(
+    absl::StatusOr<google::protobuf::Any> get_result, absl::string_view key) {
+  switch (get_result.status().code()) {
+    case absl::StatusCode::kOk:
+      // Value exists.
+      return std::move(get_result.value());
+    case absl::StatusCode::kNotFound:
+      // Value does not exist (unset).
+      return std::nullopt;
+    case absl::StatusCode::kDeadlineExceeded:
+      // Transient network timeout reading value. Propagate to retry.
+      return get_result.status();
+    default:
+      return absl::InternalError(
+          absl::StrFormat("Unexpected error while waiting for high "
+                          "consistency check when setting key '%s': %s",
+                          key, get_result.status().ToString()));
+  }
+}
 }  // namespace
 
 KeyValueStore::KeyValueStore(std::optional<std::string> prefix_override)
@@ -96,11 +128,11 @@ std::string KeyValueStore::MakeKeyImpl(
 /* static */
 void KeyValueStore::StripSlashesAndAppend(std::string& result,
                                           absl::string_view part) {
-  auto start = part.find_first_not_of('/');
+  size_t start = part.find_first_not_of('/');
   if (start == absl::string_view::npos) {
     return;
   }
-  auto end = part.find_last_not_of('/');
+  size_t end = part.find_last_not_of('/');
   absl::string_view trimmed = part.substr(start, end - start + 1);
   if (!result.empty()) {
     result.push_back('/');
@@ -112,20 +144,28 @@ absl::Status KeyValueStore::Set(absl::string_view key,
                                 const google::protobuf::Any& value,
                                 std::optional<bool> high_consistency) {
   INTR_RETURN_IF_ERROR(intrinsic::ValidZenohKeyexpr(key));
-  absl::StatusOr<std::string> prefixed_name =
-      ZenohHandle::add_key_prefix(key, key_prefix_);
-  if (!prefixed_name.ok()) {
-    // Should not happen since ValidKeyexpr was called before this.
-    return prefixed_name.status();
-  }
-  LOG(INFO) << "KVStore Set for key: " << *prefixed_name;
+  // Should not happen since ValidKeyexpr was called before this.
+  INTR_ASSIGN_OR_RETURN(std::string prefixed_name,
+                        ZenohHandle::add_key_prefix(key, key_prefix_));
+  LOG(INFO) << "KVStore Set for key: " << prefixed_name;
 
   // Get the initial value if high consistency is requested.
-  std::optional<std::string> initial_value;
-  if (high_consistency.has_value() && *high_consistency) {
-    auto initial_result = GetAny(key, absl::Seconds(10));
+  std::optional<google::protobuf::Any> initial_state;
+  if (high_consistency.value_or(false)) {
+    absl::StatusOr<google::protobuf::Any> initial_result =
+        GetAny(key, kHighConsistencyInitialGetTimeout);
     if (initial_result.ok()) {
-      initial_value = initial_result.value().SerializeAsString();
+      initial_state = std::move(initial_result.value());
+    } else if (!absl::IsNotFound(initial_result.status())) {
+      // If the initial read fails due to a transient error (e.g. deadline
+      // exceeded), we intentionally leave initial_state empty (nullopt). This
+      // ensures that if the key was already populated, our conflict check later
+      // will see the pre-existing value and abort the operation. The caller can
+      // then retry the set idempotently. This is preferred over skipping the
+      // conflict check.
+      LOG_EVERY_N_SEC(WARNING, 1)
+          << "Initial read failed during high consistency check for key '"
+          << key << "': " << initial_result.status();
     }
   }
 
@@ -141,7 +181,7 @@ absl::Status KeyValueStore::Set(absl::string_view key,
 
   imw_ret_t ret;
   {
-    ret = Zenoh().imw_set(prefixed_name->c_str(), value_serialized.c_str(),
+    ret = Zenoh().imw_set(prefixed_name.c_str(), value_serialized.c_str(),
                           payload_size);
   }
   if (ret != IMW_OK) {
@@ -150,50 +190,49 @@ absl::Status KeyValueStore::Set(absl::string_view key,
   }
   // If high consistency is set, we need to block until the key value is
   // committed.
-  if (high_consistency.has_value() && *high_consistency) {
-    absl::Time deadline = absl::Now() + kHighConsistencySetTimeout;
-    while (true) {
-      auto get_result = GetAny(key, kHighConsistencyGetTimeout);
-      if (get_result.ok()) {
-        std::string current_value = get_result.value().SerializeAsString();
-        if (current_value == value_serialized) {
-          // Key value is committed.
-          return absl::OkStatus();
-        }
-
-        // If the value is different from both the value we set and the initial
-        // value, then it means another process has changed it.
-        if (initial_value.has_value()) {
-          if (current_value != *initial_value) {
-            return absl::AbortedError(absl::StrFormat(
-                "Value for key '%s' was changed by another process while "
-                "waiting for high consistency",
-                key));
-          }
-        } else {
-          // If there was no initial value, then any value that is not our
-          // value is a "new value".
-          return absl::AbortedError(absl::StrFormat(
-              "Value for key '%s' was set by another process while "
-              "waiting for high consistency",
-              key));
-        }
-      } else {
-        if (get_result.status() != absl::NotFoundError("Key not found")) {
-          return absl::InternalError(
-              absl::StrFormat("Unexpected error, return code: %d", ret));
-        }
-      }
-
-      if (absl::Now() > deadline) {
-        return absl::DeadlineExceededError(
-            "Timeout waiting for high consistency");
-      }
-      // Small wait before retrying.
-      absl::SleepFor(absl::Milliseconds(100));
-    }
+  if (high_consistency.value_or(false)) {
+    return WaitForHighConsistency(key, value, initial_state);
   }
   return absl::OkStatus();
+}
+
+absl::Status KeyValueStore::WaitForHighConsistency(
+    absl::string_view key, const google::protobuf::Any& value,
+    const std::optional<google::protobuf::Any>& initial_state) {
+  const absl::Time deadline = absl::Now() + kHighConsistencySetTimeout;
+  absl::Duration current_delay = kHighConsistencyRetryDelayMin;
+  while (true) {
+    absl::StatusOr<std::optional<google::protobuf::Any>> current_state =
+        FetchCurrentState(GetAny(key, kHighConsistencyGetTimeout), key);
+
+    if (!absl::IsDeadlineExceeded(current_state.status())) {
+      INTR_RETURN_IF_ERROR(current_state.status());
+
+      if (current_state->has_value() &&
+          google::protobuf::util::MessageDifferencer::Equals(
+              current_state->value(), value)) {
+        // Key value is committed.
+        return absl::OkStatus();
+      }
+
+      if (!IsStateEqual(*current_state, initial_state)) {
+        return absl::AbortedError(absl::StrFormat(
+            "Value for key '%s' was modified by another process while "
+            "waiting for high consistency",
+            key));
+      }
+    }
+
+    if (absl::Now() > deadline) {
+      return absl::DeadlineExceededError(absl::StrFormat(
+          "Timeout waiting for high consistency for key '%s'", key));
+    }
+
+    // Exponential backoff before retrying.
+    absl::SleepFor(current_delay);
+    current_delay = std::min(current_delay * kHighConsistencyRetryDelayFactor,
+                             kHighConsistencyRetryDelayMax);
+  }
 }
 
 absl::StatusOr<google::protobuf::Any> KeyValueStore::GetAny(

@@ -48,6 +48,7 @@ import (
 	"intrinsic/platform/pubsub/golang/kvstore"
 	"intrinsic/platform/pubsub/golang/pubsubinterface"
 
+	"github.com/cenkalti/backoff/v4"
 	log "github.com/golang/glog"
 	"google.golang.org/protobuf/proto"
 
@@ -90,12 +91,16 @@ var (
 )
 
 const (
-	highConsistencyTimeout     = 30 * time.Second
-	highConsistencyGetTimeout  = 10 * time.Second
-	defaultKeyPrefix           = "kv_store"
-	replicationKeyPrefix       = "kv_store_repl"
-	workcellInfoKey            = "workcell_info"
-	globalReplicationNamespace = "global"
+	highConsistencyTimeout           = 30 * time.Second
+	highConsistencyInitialGetTimeout = 10 * time.Second
+	highConsistencyGetTimeout        = 100 * time.Millisecond
+	highConsistencyRetryDelayMin     = 10 * time.Millisecond
+	highConsistencyRetryDelayMax     = 2500 * time.Millisecond
+	highConsistencyRetryDelayFactor  = 5
+	defaultKeyPrefix                 = "kv_store"
+	replicationKeyPrefix             = "kv_store_repl"
+	workcellInfoKey                  = "workcell_info"
+	globalReplicationNamespace       = "global"
 )
 
 // NewPubSub creates a new PubSub adapter if possible. Returns either a valid handle
@@ -624,11 +629,17 @@ func (kv *kvStoreHandle) SetAny(key string, valueAny *anypb.Any, highConsistency
 
 	var initialValue *anypb.Any
 	if highConsistency {
-		timeout := highConsistencyGetTimeout
+		timeout := highConsistencyInitialGetTimeout
 		var err error
 		initialValue, err = kv.Get(key, &timeout)
 		if err != nil && !errors.Is(err, kvstore.ErrNotFound) {
-			return err
+			// If the initial read fails due to a transient error (e.g. deadline exceeded),
+			// we intentionally leave initialValue empty (nil). This ensures that if
+			// the key was already populated, our conflict check later will see the pre-existing
+			// value and abort the operation. The caller can then retry the set idempotently.
+			// This is preferred over skipping the conflict check.
+			log.Warningf("Initial read failed during high consistency check for key %q: %v", key, err)
+			initialValue = nil
 		}
 	}
 
@@ -637,46 +648,87 @@ func (kv *kvStoreHandle) SetAny(key string, valueAny *anypb.Any, highConsistency
 	}
 
 	if highConsistency {
-		ctx, cancel := context.WithTimeout(context.Background(), highConsistencyTimeout)
-		defer cancel()
+		return kv.waitForHighConsistency(context.Background(), key, valueAny, initialValue)
+	}
+	return nil
+}
 
-	loopUntilWritten:
-		for {
-			select {
-			case <-ctx.Done():
-				// timeout
-				return fmt.Errorf("timeout waiting for high consistency: %w", kvstore.ErrDeadlineExceeded)
-			default:
-				timeout := highConsistencyGetTimeout
-				currentValue, err := kv.Get(key, &timeout)
-				if err != nil {
-					// Small wait before retrying.
-					time.Sleep(100 * time.Millisecond)
-					continue
-				}
+// fetchCurrentState returns the current state of a key based on the output of a Get operation.
+// Returning (nil, nil) represents an unset key (kvstore.ErrNotFound), while returning
+// a non-nil error indicates a transient failure or unexpected state.
+func fetchCurrentState(key string, currentValue *anypb.Any, err error) (*anypb.Any, error) {
+	switch {
+	case err == nil:
+		// Value exists.
+		return currentValue, nil
+	case errors.Is(err, kvstore.ErrNotFound):
+		// Value does not exist (unset).
+		return nil, nil
+	case errors.Is(err, kvstore.ErrDeadlineExceeded):
+		// Transient network timeout reading value. Propagate to retry.
+		return nil, err
+	default:
+		return nil, fmt.Errorf("failed to read current state for key %q during high consistency check: %w", key, err)
+	}
+}
 
-				// We read back the written value, so the write has applied.
-				if proto.Equal(currentValue, valueAny) {
-					break loopUntilWritten
-				}
+// waitForHighConsistency polls the KVStore until the specified key converges to the given valueAny.
+//
+// It uses exponential backoff internally via the backoff library and fails if the operation
+// takes longer than highConsistencyTimeout.
+// It aborts with kvstore.ErrAborted if the value changes to a value other than the newly-written
+// valueAny, indicating a race condition with other writers (using initialValue to know what the
+// key started with).
+//
+// Returns kvstore.ErrDeadlineExceeded if the value did not converge in time.
+func (kv *kvStoreHandle) waitForHighConsistency(parentCtx context.Context, key string, valueAny *anypb.Any, initialValue *anypb.Any) error {
+	if parentCtx == nil {
+		parentCtx = context.Background()
+	}
+	ctx, cancel := context.WithTimeout(parentCtx, highConsistencyTimeout)
+	defer cancel()
 
-				// If there was no initial value, then any value that is not our
-				// value is a "new value".
-				if initialValue == nil {
-					return fmt.Errorf("value for key %q was set by another process while waiting for high consistency: %w", key, kvstore.ErrAborted)
-				}
+	b := backoff.NewExponentialBackOff()
+	b.InitialInterval = highConsistencyRetryDelayMin
+	b.MaxInterval = highConsistencyRetryDelayMax
+	b.Multiplier = highConsistencyRetryDelayFactor
+	b.MaxElapsedTime = 0 // Handled by ctx timeout
 
-				// If the value is different from both the value we set and the initial
-				// value, then it means another process has changed it.
-				if !proto.Equal(currentValue, initialValue) {
-					return fmt.Errorf("value for key %q was changed by another process while waiting for high consistency: %w", key, kvstore.ErrAborted)
-				}
+	operation := func() error {
+		timeout := highConsistencyGetTimeout
+		currentValue, err := kv.Get(key, &timeout)
 
-				// Small wait before retrying.
-				time.Sleep(10 * time.Millisecond)
-				continue
+		currentState, err := fetchCurrentState(key, currentValue, err)
+		if err != nil {
+			if errors.Is(err, kvstore.ErrDeadlineExceeded) {
+				return err // Retryable
 			}
+			return backoff.Permanent(err)
 		}
+
+		if proto.Equal(currentState, valueAny) {
+			// Key value is committed.
+			return nil
+		}
+
+		if !proto.Equal(currentState, initialValue) {
+			return backoff.Permanent(fmt.Errorf("value for key %q was modified by another process while waiting for high consistency: %w", key, kvstore.ErrAborted))
+		}
+
+		return kvstore.ErrDeadlineExceeded
+	}
+
+	if err := backoff.Retry(operation, backoff.WithContext(b, ctx)); err != nil {
+		// Check for permanent errors first before overriding with the timeout error,
+		// as described in http://go/go-style/decisions#handle-errors.
+		if !errors.Is(err, kvstore.ErrDeadlineExceeded) && !errors.Is(err, context.DeadlineExceeded) {
+			return err
+		}
+
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) || errors.Is(err, context.DeadlineExceeded) || errors.Is(err, kvstore.ErrDeadlineExceeded) {
+			return fmt.Errorf("timeout waiting for high consistency for key %q: %w", key, kvstore.ErrDeadlineExceeded)
+		}
+		return err
 	}
 	return nil
 }

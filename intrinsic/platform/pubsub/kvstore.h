@@ -296,6 +296,21 @@ class KeyValueStore {
   absl::StatusOr<google::protobuf::Any> GetAnyWithRawKey(
       const std::string& raw_key, absl::Duration timeout);
 
+  // Polls the KVStore until the specified `key` converges to the given `value`.
+  // Wait loops use exponential backoff, failing if the operation takes longer
+  // than `kHighConsistencySetTimeout`.
+  // Aborts if the value changes to a value other than the newly-written
+  // `value`, detecting race conditions with other writers (using
+  // `initial_state` to know what value the key started with). Returns:
+  //  - absl::OkStatus() when the key's value successfully matches `value`.
+  //  - absl::AbortedError if another process wrote a different value during the
+  //  wait.
+  //  - absl::DeadlineExceededError if the value did not converge in time.
+  //  - Other internal errors if zenoh queries fail non-transiently.
+  absl::Status WaitForHighConsistency(
+      absl::string_view key, const google::protobuf::Any& value,
+      const std::optional<google::protobuf::Any>& initial_state);
+
   template <typename T>
   absl::StatusOr<T> ExtractFromAny(absl::string_view key,
                                    const google::protobuf::Any& any_value)
