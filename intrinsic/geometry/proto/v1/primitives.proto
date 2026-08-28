@@ -1,0 +1,57 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.geometry.v1;
+
+import "intrinsic/math/proto/vector3.proto";
+
+option go_package = "intrinsic/geometry/proto/v1/primitives_go_proto";
+
+message Box {
+  intrinsic_proto.Vector3 size = 1;
+}
+
+message Cylinder {
+  double length = 1;
+  double radius = 2;
+}
+
+message Sphere {
+  double radius = 1;
+}
+
+message Ellipsoid {
+  intrinsic_proto.Vector3 radii = 1;
+}
+
+message Capsule {
+  double length = 1;
+  double radius = 2;
+}
+
+// A pyramid frustum extending in the +z direction with its tip at the origin
+message Frustum {
+  // The angle in radians between the x-z plane and two the frustum planes that
+  // intersect the x-axis
+  double x_angle = 1;
+  // The angle in radians between the y-z plane and the frustum planes that
+  // intersect the y-axis.
+  double y_angle = 2;
+  // Distance in meters from the origin to the frustum cut plane near the tip
+  double min_z_distance = 3;
+  // Distance in meters from the origin to the frustum base plane
+  double max_z_distance = 4;
+}

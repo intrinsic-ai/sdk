@@ -220,6 +220,7 @@ bazel_dep(name = "fuzztest", version = "20250805.0", repo_name = "com_google_fuz
 bazel_dep(name = "google_benchmark", version = "1.9.5", repo_name = "com_google_benchmark")
 bazel_dep(name = "google_cloud_cpp", version = "3.0.0-rc1")
 bazel_dep(name = "googleapis-cc", version = "1.1.5")
+bazel_dep(name = "googleapis-go", version = "1.1.5")
 bazel_dep(name = "googleapis-grpc-cc", version = "1.1.5")
 bazel_dep(name = "googleapis-python", version = "1.1.5")
 bazel_dep(name = "googleapis", version = "0.0.0-20260728-b8486a2f", repo_name = "com_google_googleapis")
