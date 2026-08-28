@@ -24,11 +24,9 @@ package(default_visibility = ["//visibility:public"])
 npm_package(
     name = "pkg",
     srcs = glob(["**/*"]),
-    visibility = ["//visibility:public"],
 )
 
 alias(
     name = "intrinsic_apis",
     actual = ":pkg",
-    visibility = ["//visibility:public"],
 )

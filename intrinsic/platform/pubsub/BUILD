@@ -19,9 +19,9 @@ load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@intrinsic_js_rules//:defs.bzl", "js_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
-load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -177,30 +177,9 @@ cc_test(
     ],
 )
 
-proto_library(
-    name = "storage_location",
-    srcs = ["storage_location.proto"],
-)
-
-py_proto_library(
-    name = "storage_location_py_pb2",
-    deps = [":storage_location"],
-)
-
-cc_proto_library(
-    name = "storage_location_cc_proto",
-    deps = [":storage_location"],
-)
-
-go_proto_library(
-    name = "storage_location_go_proto",
-    importpath = "intrinsic/platform/pubsub/storage_location_go_proto",
-    protos = [":storage_location"],
-)
-
 js_library(
     name = "storage_location_jspb_proto",
-    deps = [":storage_location"],
+    deps = ["//intrinsic/platform/pubsub:storage_location"],
 )
 
 cc_library(
@@ -380,4 +359,25 @@ cc_library(
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/strings:string_view",
     ],
+)
+
+proto_library(
+    name = "storage_location",
+    srcs = ["storage_location.proto"],
+)
+
+cc_proto_library(
+    name = "storage_location_cc_proto",
+    deps = [":storage_location"],
+)
+
+go_proto_library(
+    name = "storage_location_go_proto",
+    importpath = "intrinsic/platform/pubsub/storage_location_go_proto",
+    protos = [":storage_location"],
+)
+
+py_proto_library(
+    name = "storage_location_py_pb2",
+    deps = [":storage_location"],
 )

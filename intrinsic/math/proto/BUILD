@@ -22,13 +22,11 @@ package(default_visibility = ["//visibility:public"])
 proto_library(
     name = "vector3_proto",
     srcs = ["vector3.proto"],
-    visibility = ["//visibility:public"],
 )
 
 proto_library(
     name = "accel_proto",
     srcs = ["accel.proto"],
-    visibility = ["//visibility:public"],
     deps = [":vector3_proto"],
 )
 
@@ -69,7 +67,6 @@ py_proto_library(
 
 proto_library(
     name = "math_protos",
-    visibility = ["//visibility:public"],
     deps = [
         ":array_proto",
         ":header_proto",
@@ -88,19 +85,16 @@ proto_library(
 proto_library(
     name = "matrix_proto",
     srcs = ["matrix.proto"],
-    visibility = ["//visibility:public"],
 )
 
 proto_library(
     name = "point_proto",
     srcs = ["point.proto"],
-    visibility = ["//visibility:public"],
 )
 
 proto_library(
     name = "affine_proto",
     srcs = ["affine.proto"],
-    visibility = ["//visibility:public"],
     deps = [
         ":matrix_proto",
         ":point_proto",
@@ -110,26 +104,22 @@ proto_library(
 proto_library(
     name = "array_proto",
     srcs = ["array.proto"],
-    visibility = ["//visibility:public"],
 )
 
 proto_library(
     name = "header_proto",
     srcs = ["header.proto"],
-    visibility = ["//visibility:public"],
     deps = ["@com_google_protobuf//:timestamp_proto"],
 )
 
 proto_library(
     name = "quaternion_proto",
     srcs = ["quaternion.proto"],
-    visibility = ["//visibility:public"],
 )
 
 proto_library(
     name = "pose_proto",
     srcs = ["pose.proto"],
-    visibility = ["//visibility:public"],
     deps = [
         ":point_proto",
         ":quaternion_proto",
@@ -139,7 +129,6 @@ proto_library(
 proto_library(
     name = "transform_proto",
     srcs = ["transform.proto"],
-    visibility = ["//visibility:public"],
     deps = [
         ":quaternion_proto",
         ":vector3_proto",
@@ -149,7 +138,6 @@ proto_library(
 proto_library(
     name = "transform_stamped_proto",
     srcs = ["transform_stamped.proto"],
-    visibility = ["//visibility:public"],
     deps = [
         ":header_proto",
         ":transform_proto",
@@ -159,21 +147,18 @@ proto_library(
 proto_library(
     name = "tf_message_proto",
     srcs = ["tf_message.proto"],
-    visibility = ["//visibility:public"],
     deps = [":transform_stamped_proto"],
 )
 
 proto_library(
     name = "twist_proto",
     srcs = ["twist.proto"],
-    visibility = ["//visibility:public"],
     deps = [":vector3_proto"],
 )
 
 proto_library(
     name = "vector2_proto",
     srcs = ["vector2.proto"],
-    visibility = ["//visibility:public"],
 )
 
 cc_proto_library(

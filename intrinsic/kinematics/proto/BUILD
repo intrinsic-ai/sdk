@@ -22,7 +22,6 @@ package(default_visibility = ["//visibility:public"])
 proto_library(
     name = "kinematics_proto",
     srcs = ["kinematics.proto"],
-    visibility = ["//visibility:public"],
     deps = [
         "//intrinsic/math/proto:matrix_proto",
         "//intrinsic/math/proto:point_proto",
@@ -33,7 +32,6 @@ proto_library(
 proto_library(
     name = "skeleton_proto",
     srcs = ["skeleton.proto"],
-    visibility = ["//visibility:public"],
     deps = [
         ":kinematics_proto",
         "//intrinsic/math/proto:pose_proto",

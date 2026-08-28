@@ -132,19 +132,16 @@ cc_library(
 proto_library(
     name = "dynamic_limits_check_mode_proto",
     srcs = ["dynamic_limits_check_mode.proto"],
-    visibility = ["//visibility:public"],
 )
 
 proto_library(
     name = "joint_limits_proto",
     srcs = ["joint_limits.proto"],
-    visibility = ["//visibility:public"],
 )
 
 proto_library(
     name = "rotational_limits_proto",
     srcs = ["rotational_limits.proto"],
-    visibility = ["//visibility:public"],
     deps = [
         "//intrinsic/math/proto:quaternion_proto",
         "//intrinsic/math/proto:vector3_proto",
