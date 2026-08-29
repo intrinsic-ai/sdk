@@ -68,6 +68,10 @@ message Target {
 
   // Stores symmetry type and related parameters such as symmetry axis.
   repeated intrinsic_proto.perception.v1.Symmetry symmetry = 5;
+
+  // Determines whether mesh textures should be parsed and passed to pose
+  // estimators.
+  optional bool enable_texture_parsing = 7;
 }
 
 // Defines a list of targets.
