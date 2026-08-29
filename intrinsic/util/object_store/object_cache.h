@@ -132,6 +132,7 @@ class ObjectCache {
    public:
     explicit ObjectStoreLruCache(size_t cache_size);
   };
+
   mutable std::recursive_mutex mutex_;
   // Required to be mutable in order to be able to be able to pretend that
   // Lookup() is a const operation (technically it is not, since it would modify

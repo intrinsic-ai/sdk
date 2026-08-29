@@ -17,7 +17,7 @@ syntax = "proto3";
 package intrinsic_proto.fieldbus.ethercat.device_service.v1;
 
 option go_package = "intrinsic/icon/fieldbus/ethercat/device_service/v1/esi_go_proto";
-option java_multiple_files = true;  // See http://go/proto-best-practices-checkers#java_features
+option java_multiple_files = true;
 option java_outer_classname = "EsiOuterClass";
 
 // Represents the content of an EtherCAT SubDevice Information (ESI) file.
