@@ -184,7 +184,6 @@ absl::Status MainImpl() {
   INTR_ASSIGN_OR_RETURN(const auto fds, GetDescriptorSetFromFlags());
 
   SceneObjectFromSdfOptions options = {
-      .unsupported_plugins = UnsupportedPluginsProcessing::kInline,
       .user_data_fds = fds,
   };
 

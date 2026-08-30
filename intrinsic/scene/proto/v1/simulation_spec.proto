@@ -27,12 +27,12 @@ message SimulationSpec {
   // simulation.).
   bool is_static = 2;
 
-  // Scene multi camera plugin specification.
-  MultiCameraPluginSpec multi_camera_plugin = 3;
+  // Deprecated. The MultiCameraPlugin xml should be inlined in
+  // extra_inlined_plugins below.
+  MultiCameraPluginSpec multi_camera_plugin = 3 [deprecated = true];
 
   // These are extra plugin definitions that we did not parse directly but need
-  // to be carried forward to the sdf generation. Ideally this would be always
-  // empty, but we still have a few users.
+  // to be carried forward to the sdf generation.
   repeated string extra_inlined_plugins = 4;
 
   // If true, the entity or object is disabled in the simulated world.

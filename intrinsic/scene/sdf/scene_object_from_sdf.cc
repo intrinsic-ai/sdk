@@ -289,9 +289,7 @@ SceneObjectFromSdfModel(const ::sdf::Model& sdf_model,
   // Parse and apply sim plugins.
   INTR_ASSIGN_OR_RETURN(
       std::optional<SimulationSpec> sim_spec,
-      ExtractSimulationSpecFromSdf(sdf_model,
-                                   AsVector(scene_object_model.entities()),
-                                   options.unsupported_plugins),
+      ExtractSimulationSpecFromSdf(sdf_model),
       _.LogError() << absl::Substitute(
           "Failed to extract simulation spec from SDF Model: '$0'.",
           scene_object_model.name()));

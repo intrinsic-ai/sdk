@@ -36,9 +36,6 @@ namespace scene_object {
 
 // Options for converting a SDF file to a scene object.
 struct SceneObjectFromSdfOptions {
-  UnsupportedPluginsProcessing unsupported_plugins =
-      UnsupportedPluginsProcessing::kFail;
-
   // File descriptor set to convert user_data from its text representation.
   google::protobuf::FileDescriptorSet user_data_fds = {};
 };

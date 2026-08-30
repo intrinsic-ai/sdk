@@ -271,8 +271,6 @@ cc_library(
         "//intrinsic/scene/proto/v1:scene_object_cc_proto",
         "//intrinsic/scene/proto/v1:simulation_spec_cc_proto",
         "//intrinsic/util/status:status_macros",
-        "//intrinsic/world/proto:kinematics_component_cc_proto",
-        "@abseil-cpp//absl/container:flat_hash_set",
         "@abseil-cpp//absl/log",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
