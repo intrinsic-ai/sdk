@@ -34,6 +34,28 @@ bazel_dep(name = "gazelle_cc", version = "0.6.0")
 go_deps = use_extension("@bazel_gazelle//:extensions.bzl", "go_deps")
 go_deps.from_file(go_mod = "//:go.mod")
 
+# Marking as dev_dependency ensures gazelle_override tags are evaluated when this repository
+# is the root module (or standalone exported ioc), but ignored when consumed downstream.
+go_deps_dev = use_extension("@bazel_gazelle//:extensions.bzl", "go_deps", dev_dependency = True)
+go_deps_dev.gazelle_override(
+    path = "github.com/grpc-ecosystem/grpc-gateway",
+)
+go_deps_dev.gazelle_override(
+    path = "github.com/cncf/xds/go",
+)
+
+# The googlecloudrobotics is causing a build issues in latest update
+go_deps_dev.gazelle_override(
+    # Force Gazelle to ignore existing BUILD files and generate its own
+    build_file_generation = "on",
+    directives = [
+        # Explicitly set the prefix so Gazelle maps labels to //go/pkg/...
+        "gazelle:prefix github.com/googlecloudrobotics/core/src",
+    ],
+    # Use the exact module path from go.mod
+    path = "github.com/googlecloudrobotics/core/src",
+)
+
 # This can be updated with buildozer
 # https://github.com/bazelbuild/buildtools/blob/master/buildozer/README.md
 use_repo(
