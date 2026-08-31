@@ -244,3 +244,34 @@ cc_test(
         "@com_google_protobuf//:protobuf",
     ],
 )
+
+cc_library(
+    name = "skill_data",
+    srcs = ["skill_data.cc"],
+    hdrs = ["skill_data.h"],
+    deps = [
+        "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/base:core_headers",
+        "@abseil-cpp//absl/container:flat_hash_map",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/strings:str_format",
+        "@abseil-cpp//absl/synchronization",
+    ],
+)
+
+cc_test(
+    name = "skill_data_test",
+    srcs = ["skill_data_test.cc"],
+    deps = [
+        ":skill_data",
+        "//intrinsic/util/status:status_macros",
+        "//intrinsic/util/testing:gtest_wrapper_main",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:status_matchers",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/synchronization",
+        "@com_google_googletest//:gtest",
+    ],
+)
