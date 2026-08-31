@@ -66,6 +66,29 @@ js_library(
 )
 
 proto_library(
+    name = "camera_config_service_proto",
+    srcs = ["camera_config_service.proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        ":camera_config_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "camera_config_service_cc_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":camera_config_service_proto"],
+)
+
+cc_grpc_library(
+    name = "camera_config_service_cc_grpc",
+    srcs = [":camera_config_service_proto"],
+    grpc_only = True,
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":camera_config_service_cc_proto"],
+)
+
+proto_library(
     name = "camera_drivers_proto",
     srcs = ["camera_drivers.proto"],
     visibility = ["//intrinsic:public_api_users"],
