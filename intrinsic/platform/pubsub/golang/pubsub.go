@@ -719,8 +719,7 @@ func (kv *kvStoreHandle) waitForHighConsistency(parentCtx context.Context, key s
 	}
 
 	if err := backoff.Retry(operation, backoff.WithContext(b, ctx)); err != nil {
-		// Check for permanent errors first before overriding with the timeout error,
-		// as described in http://go/go-style/decisions#handle-errors.
+		// Check for permanent errors first before overriding with the timeout error.
 		if !errors.Is(err, kvstore.ErrDeadlineExceeded) && !errors.Is(err, context.DeadlineExceeded) {
 			return err
 		}
