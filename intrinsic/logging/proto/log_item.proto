@@ -30,7 +30,6 @@ option go_package = "intrinsic/logging/proto/log_item_go_proto";
 import "intrinsic/logging/errors/proto/error_report.proto";
 import "intrinsic/logging/proto/blob.proto";
 import "intrinsic/logging/proto/context.proto";
-
 import "intrinsic/skills/proto/skill_service.proto";
 
 // Represents an event. Payload can be structured data and/or blobs.
