@@ -35,9 +35,9 @@ cc_test(
     deps = [
         ":entity_id",
         "//intrinsic/util:aggregate_type",
-        "//intrinsic/util/testing:gtest_wrapper_main",
         "//intrinsic/world/hashing",
         "@abseil-cpp//absl/hash:hash_testing",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 

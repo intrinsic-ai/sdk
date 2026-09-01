@@ -22,7 +22,7 @@ def cc_test_and_malloc_test(name, deps = [], local_defines = [], tags = [], **kw
         local_defines = local_defines,
         tags = tags,
         deps = deps + [
-            "//intrinsic/util/testing:gtest_wrapper_main",
+            "@com_google_googletest//:gtest_main",
         ],
         **kwargs
     )

@@ -33,7 +33,7 @@ cc_test(
     srcs = ["bitset_test.cc"],
     deps = [
         ":bitset",
-        "//intrinsic/util/testing:gtest_wrapper_main",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
@@ -411,9 +411,9 @@ cc_test(
     deps = [
         ":async_buffer",
         "//intrinsic/icon/release:source_location",
-        "//intrinsic/util/testing:gtest_wrapper_main",
         "//intrinsic/util/thread",
         "@abseil-cpp//absl/strings",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
@@ -434,11 +434,11 @@ cc_test(
     srcs = ["multiple_producer_single_consumer_async_buffer_test.cc"],
     deps = [
         ":multiple_producer_single_consumer_async_buffer",
-        "//intrinsic/util/testing:gtest_wrapper_main",
         "//intrinsic/util/thread",
         "@abseil-cpp//absl/status:status_matchers",
         "@abseil-cpp//absl/synchronization",
         "@com_google_cel_cpp//internal:testing_no_main",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
@@ -520,7 +520,6 @@ cc_test(
         "//intrinsic/assets/services/proto/v1:service_inspection_cc_proto",
         "//intrinsic/icon/hal:hardware_module_inspection_cc_proto",
         "//intrinsic/platform/pubsub",
-        "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:status_matchers",
         "@abseil-cpp//absl/strings",
@@ -528,5 +527,6 @@ cc_test(
         "@abseil-cpp//absl/time",
         "@com_github_inazarenko_protobuf_matchers//protobuf-matchers",
         "@com_google_cel_cpp//internal:testing_no_main",
+        "@com_google_googletest//:gtest_main",
     ],
 )

@@ -233,7 +233,6 @@ cc_test(
         "//intrinsic/skills/testing:echo_skill_cc_proto",
         "//intrinsic/skills/testing:skill_test_utils_cc",
         "//intrinsic/util/status:status_macros",
-        "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/log:check",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:status_matchers",
@@ -241,6 +240,7 @@ cc_test(
         "@abseil-cpp//absl/strings:string_view",
         "@com_github_inazarenko_protobuf_matchers//protobuf-matchers",
         "@com_google_cel_cpp//internal:testing_no_main",
+        "@com_google_googletest//:gtest_main",
         "@com_google_protobuf//:protobuf",
     ],
 )
@@ -267,11 +267,10 @@ cc_test(
     deps = [
         ":skill_data",
         "//intrinsic/util/status:status_macros",
-        "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:status_matchers",
         "@abseil-cpp//absl/strings",
         "@abseil-cpp//absl/synchronization",
-        "@com_google_googletest//:gtest",
+        "@com_google_googletest//:gtest_main",
     ],
 )

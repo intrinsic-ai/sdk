@@ -70,7 +70,6 @@ cc_test(
         ":connect_cc",
         "//intrinsic/assets/instances/connect/testing:test_service_cc_grpc_proto",
         "//intrinsic/assets/proto/v1:grpc_connection_cc_proto",
-        "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:status_matchers",
         "@abseil-cpp//absl/status:statusor",
@@ -79,6 +78,7 @@ cc_test(
         "@com_github_grpc_grpc//:grpc++",
         "@com_github_grpc_grpc//:grpc_security_base",
         "@com_google_cel_cpp//internal:testing_no_main",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 

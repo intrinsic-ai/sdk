@@ -45,12 +45,12 @@ cc_test(
         "//intrinsic/logging/proto:log_item_cc_proto",
         "//intrinsic/logging/proto:logger_service_cc_proto",
         "//intrinsic/util:proto_time",
-        "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:status_matchers",
         "@abseil-cpp//absl/strings:string_view",
         "@abseil-cpp//absl/time",
         "@com_google_cel_cpp//internal:testing_no_main",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
@@ -76,10 +76,10 @@ cc_test(
         ":downsampler",
         ":proto_conversion",
         "//intrinsic/logging/proto:downsampler_cc_proto",
-        "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:status_matchers",
         "@abseil-cpp//absl/time",
         "@com_google_cel_cpp//internal:testing_no_main",
+        "@com_google_googletest//:gtest_main",
     ],
 )

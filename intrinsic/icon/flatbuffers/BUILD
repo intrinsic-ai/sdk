@@ -120,11 +120,11 @@ cc_test(
         ":flatbuffer_utils",
         ":transform_types_fbs_cc",
         "//intrinsic/icon/interprocess/shared_memory_manager:segment_info_fbs_cc",
-        "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:status_matchers",
         "@com_github_google_flatbuffers//:runtime_cc",
         "@com_google_cel_cpp//internal:testing_no_main",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 

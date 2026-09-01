@@ -50,7 +50,7 @@ cc_test(
     srcs = ["zenoh_handle_test.cc"],
     deps = [
         ":zenoh_handle",
-        "//intrinsic/util/testing:gtest_wrapper_main",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
@@ -100,8 +100,8 @@ cc_test(
     srcs = ["zenoh_config_test.cc"],
     deps = [
         ":zenoh_config",
-        "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/flags:flag",
         "@com_github_nlohmann_json//:json",
+        "@com_google_googletest//:gtest_main",
     ],
 )

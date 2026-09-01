@@ -49,11 +49,11 @@ cc_test(
         ":any",
         ":parse_text_proto",
         "//intrinsic/util/proto/testing:param_message_cc_proto",
-        "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:status_matchers",
         "@com_github_inazarenko_protobuf_matchers//protobuf-matchers",
         "@com_google_cel_cpp//internal:testing_no_main",
+        "@com_google_googletest//:gtest_main",
         "@com_google_protobuf//:protobuf",
     ],
 )
@@ -236,8 +236,8 @@ cc_test(
     srcs = ["type_url_test.cc"],
     deps = [
         ":type_url",
-        "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/strings:string_view",
+        "@com_google_googletest//:gtest_main",
         "@com_google_protobuf//:protobuf",
     ],
 )
@@ -291,10 +291,10 @@ cc_test(
     srcs = ["parsed_type_url_test.cc"],
     deps = [
         ":parsed_type_url",
-        "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:status_matchers",
         "@com_google_cel_cpp//internal:testing_no_main",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
@@ -321,12 +321,12 @@ cc_test(
     srcs = ["parse_text_proto_test.cc"],
     deps = [
         ":parse_text_proto",
-        "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:status_matchers",
         "@abseil-cpp//absl/status:statusor",
         "@com_github_inazarenko_protobuf_matchers//protobuf-matchers",
         "@com_google_cel_cpp//internal:testing_no_main",
+        "@com_google_googletest//:gtest_main",
         "@com_google_protobuf//:protobuf",
     ],
 )

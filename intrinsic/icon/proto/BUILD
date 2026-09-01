@@ -162,11 +162,11 @@ cc_test(
         ":eigen_conversion",
         ":matrix_cc_proto",
         "//intrinsic/eigenmath",
-        "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:status_matchers",
         "@com_github_inazarenko_protobuf_matchers//protobuf-matchers",
         "@com_google_cel_cpp//internal:testing_no_main",
+        "@com_google_googletest//:gtest_main",
         "@com_google_protobuf//:protobuf_lite",
     ],
 )

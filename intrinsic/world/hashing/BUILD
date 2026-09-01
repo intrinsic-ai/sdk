@@ -35,8 +35,8 @@ cc_test(
     srcs = ["hashing_test.cc"],
     deps = [
         ":hashing",
-        "//intrinsic/util/testing:gtest_wrapper_main",
         "//intrinsic/world:entity_id",
         "//intrinsic/world:labels",
+        "@com_google_googletest//:gtest_main",
     ],
 )

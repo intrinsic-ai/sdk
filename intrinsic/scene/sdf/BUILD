@@ -48,8 +48,8 @@ cc_test(
     deps = [
         ":sdf_path_resolver",
         "//intrinsic/util/path_resolver",
-        "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/status:status_matchers",
+        "@com_google_googletest//:gtest_main",
         "@or_tools//ortools/base:path",
     ],
 )

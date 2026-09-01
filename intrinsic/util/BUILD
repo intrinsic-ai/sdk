@@ -50,7 +50,7 @@ cc_test(
     deps = [
         ":aggregate_type",
         "//intrinsic/eigenmath",
-        "//intrinsic/util/testing:gtest_wrapper_main",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
@@ -120,9 +120,9 @@ cc_test(
         "//intrinsic/eigenmath",
         "//intrinsic/eigenmath:rotation_utils",
         "//intrinsic/math:pose3",
-        "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/status:status_matchers",
         "@com_google_cel_cpp//internal:testing_no_main",
+        "@com_google_googletest//:gtest_main",
         "@com_google_protobuf//:protobuf_lite",
     ],
 )
@@ -220,6 +220,6 @@ cc_test(
     srcs = ["version_test.cc"],
     deps = [
         ":version",
-        "//intrinsic/util/testing:gtest_wrapper_main",
+        "@com_google_googletest//:gtest_main",
     ],
 )

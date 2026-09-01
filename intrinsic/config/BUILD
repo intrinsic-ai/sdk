@@ -43,9 +43,9 @@ cc_test(
     srcs = ["environments_test.cc"],
     deps = [
         ":environments_cc",
-        "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 

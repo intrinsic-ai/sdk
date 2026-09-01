@@ -83,11 +83,11 @@ cc_test(
     deps = [
         ":status_payload_matchers",
         "//intrinsic/util/proto:type_url",
-        "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
         "@abseil-cpp//absl/strings:cord",
         "@com_github_inazarenko_protobuf_matchers//protobuf-matchers",
+        "@com_google_googletest//:gtest_main",
         "@com_google_protobuf//:protobuf",
     ],
 )

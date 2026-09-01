@@ -85,9 +85,9 @@ cc_test(
     srcs = ["rt_queue_buffer_test.cc"],
     deps = [
         ":rt_queue_buffer",
-        "//intrinsic/util/testing:gtest_wrapper_main",
         "//intrinsic/util/thread",
         "@abseil-cpp//absl/time",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
@@ -109,10 +109,10 @@ cc_test(
     deps = [
         ":rt_queue",
         ":rt_queue_multi_writer",
-        "//intrinsic/util/testing:gtest_wrapper_main",
         "//intrinsic/util/thread",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:status_matchers",
         "@com_google_cel_cpp//internal:testing_no_main",
+        "@com_google_googletest//:gtest_main",
     ],
 )

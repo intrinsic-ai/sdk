@@ -49,7 +49,7 @@ cc_test(
     srcs = ["sort_test.cc"],
     deps = [
         ":sort",
-        "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/container:btree",
+        "@com_google_googletest//:gtest_main",
     ],
 )

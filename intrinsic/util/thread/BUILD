@@ -61,10 +61,10 @@ cc_test(
         ":thread",
         ":thread_options",
         ":thread_utils",
-        "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/synchronization",
         "@abseil-cpp//absl/time",
         "@com_google_cel_cpp//internal:testing_no_main",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
@@ -92,7 +92,7 @@ cc_test(
     srcs = ["stop_token_test.cc"],
     deps = [
         ":stop_token",
-        "//intrinsic/util/testing:gtest_wrapper_main",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
@@ -130,7 +130,6 @@ cc_test(
     deps = [
         ":thread",
         ":util",
-        "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/container:flat_hash_set",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:status_matchers",
@@ -138,6 +137,7 @@ cc_test(
         "@abseil-cpp//absl/synchronization",
         "@abseil-cpp//absl/time",
         "@com_google_cel_cpp//internal:testing_no_main",
+        "@com_google_googletest//:gtest_main",
         "@or_tools//ortools/base:file",
         "@or_tools//ortools/base:path",
     ],
@@ -164,13 +164,13 @@ cc_test(
         ":thread",
         "//intrinsic/icon/utils:realtime_status",
         "//intrinsic/icon/utils:realtime_status_matchers",
-        "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/log:check",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:status_matchers",
         "@abseil-cpp//absl/synchronization",
         "@abseil-cpp//absl/time",
         "@com_google_cel_cpp//internal:testing_no_main",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
@@ -192,11 +192,11 @@ cc_test(
     deps = [
         ":concurrent_queue",
         ":thread",
-        "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:status_matchers",
         "@abseil-cpp//absl/time",
         "@com_google_cel_cpp//internal:testing_no_main",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
@@ -221,11 +221,11 @@ cc_test(
     deps = [
         ":stop_token",
         ":thread_pool",
-        "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:status_matchers",
         "@abseil-cpp//absl/synchronization",
         "@abseil-cpp//absl/time",
         "@com_google_cel_cpp//internal:testing_no_main",
+        "@com_google_googletest//:gtest_main",
     ],
 )

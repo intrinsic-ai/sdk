@@ -169,10 +169,10 @@ cc_test(
     srcs = ["fake_kvstore_test.cc"],
     deps = [
         ":fake_kvstore",
-        "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:status_matchers",
         "@com_google_cel_cpp//internal:testing_no_main",
+        "@com_google_googletest//:gtest_main",
         "@com_google_protobuf//:protobuf",
     ],
 )
