@@ -15,7 +15,7 @@
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
-load("//bazel:go_macros.bzl", "go_proto_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 
 package(default_visibility = [
     "//visibility:public",
@@ -30,35 +30,34 @@ proto_library(
     ],
 )
 
-py_proto_library(
-    name = "event_py_pb2",
-    deps = ["//intrinsic/performance/analysis/proto:event_proto"],
-)
-
-cc_proto_library(
-    name = "event_cc_proto",
-    deps = ["//intrinsic/performance/analysis/proto:event_proto"],
-)
-
 proto_library(
     name = "performance_metrics_proto",
     srcs = ["performance_metrics.proto"],
     deps = ["@com_google_protobuf//:struct_proto"],
 )
 
+cc_proto_library(
+    name = "event_cc_proto",
+    deps = [":event_proto"],
+)
+
 py_proto_library(
-    name = "performance_metrics_py_pb2",
-    deps = [":performance_metrics_proto"],
+    name = "event_py_pb2",
+    deps = [":event_proto"],
 )
 
 cc_proto_library(
     name = "performance_metrics_cc_proto",
-    visibility = ["//intrinsic:intrinsic_internal"],
-    deps = ["//intrinsic/performance/analysis/proto:performance_metrics_proto"],
+    deps = [":performance_metrics_proto"],
 )
 
 go_proto_library(
     name = "performance_metrics_go_proto",
     importpath = "intrinsic/performance/analysis/proto/performance_metrics_go_proto",
-    protos = ["//intrinsic/performance/analysis/proto:performance_metrics_proto"],
+    protos = [":performance_metrics_proto"],
+)
+
+py_proto_library(
+    name = "performance_metrics_py_pb2",
+    deps = [":performance_metrics_proto"],
 )
