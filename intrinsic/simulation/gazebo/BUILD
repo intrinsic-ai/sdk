@@ -14,7 +14,6 @@
 
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
-# Simulation tools built on top of Gazebo simulation engine.
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
