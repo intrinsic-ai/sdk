@@ -12,16 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Helpers for dealing with the rules_docker->rules_oci transition.
-."""
+"""Helpers for dealing with the rules_docker->rules_oci transition."""
 
-load("@container_structure_test//:defs.bzl", "container_structure_test")
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load(
     "@rules_oci//oci:defs.bzl",
     "oci_image",
     "oci_load",
 )
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+load("//bazel:container_structure_test.bzl", "container_structure_test")
 
 def _container_import_impl(ctx):
     output = ctx.actions.declare_directory(ctx.label.name)
@@ -111,6 +111,7 @@ def container_image(
         files = None,
         symlinks = None,
         labels = None,
+        test_layers = None,
         **kwargs):
     """Wrapper for creating an oci_image from a rules_docker container_image target.
 
@@ -189,12 +190,20 @@ def container_image(
         visibility = kwargs.get("visibility"),
     )
 
+    if test_layers == None:
+        test_layers = list(layers)
+        if base != None:
+            test_layers.append(base)
+    else:
+        test_layers = list(test_layers)
+
     path_under_test = None
     if entrypoint != None and len(entrypoint) > 0 and (entrypoint[0].startswith("/") or entrypoint[0].startswith("intrinsic")):
         path_under_test = entrypoint[0]
     if cmd != None and len(cmd) > 0 and (cmd[0].startswith("/") or cmd[0].startswith("intrinsic")):
         path_under_test = cmd[0]
-    if path_under_test != None:
+
+    if test_layers and path_under_test != None:
         test_config_name = "_%s_test_config" % name
         test_config_template = """schemaVersion: "2.0.0"
 
@@ -203,20 +212,22 @@ fileExistenceTests:
   path: "{}"
   shouldExist: true
   isExecutableBy: "owner"
-        """.format(path_under_test)
-        native.genrule(
+""".format(path_under_test)
+        write_file(
             name = test_config_name,
-            srcs = [],
-            outs = ["_%s_test_config.yaml" % name],
-            cmd = "echo '{}' > $@".format(test_config_template),
+            testonly = kwargs.get("testonly"),
+            out = "_%s_test_config.yaml" % name,
+            compatible_with = kwargs.get("compatible_with"),
+            content = [test_config_template],
             tags = kwargs.get("tags"),
-            tools = [],
+            target_compatible_with = kwargs.get("target_compatible_with"),
         )
         container_structure_test(
             name = "_%s_test" % name,
-            timeout = "eternal",
+            testonly = kwargs.get("testonly"),
+            compatible_with = kwargs.get("compatible_with"),
             configs = [test_config_name],
-            driver = "tar",
-            image = "%s.tar" % name,
+            layers = test_layers,
             tags = kwargs.get("tags"),
+            target_compatible_with = kwargs.get("target_compatible_with"),
         )

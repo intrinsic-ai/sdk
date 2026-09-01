@@ -420,3 +420,59 @@ commandTests:
 		t.Errorf("expected error to mention unsupported test types, got: %v", err)
 	}
 }
+
+func TestCheckFileExistenceUnresolvedSymlink(t *testing.T) {
+	cfs := newContainerFS()
+	cfs.symlinks["app/bin/runner"] = []string{"usr/local/lib/python3.10/site-packages/runner"}
+
+	trueVal := true
+	err := checkFileExistence(fileExistenceTest{
+		Path:        "/app/bin/runner",
+		ShouldExist: &trueVal,
+	}, cfs)
+	if err == nil {
+		t.Fatalf("expected error for unresolved symlink")
+	}
+	if !strings.Contains(err.Error(), "was resolved as a symlink pointing to") {
+		t.Errorf("expected error to mention that path is a symlink with missing destination, got: %v", err)
+	}
+}
+
+func TestRunFailureOutputsDiagnosticHint(t *testing.T) {
+	tempDir := t.TempDir()
+	configFile := filepath.Join(tempDir, "config.yaml")
+	configContent := `
+fileExistenceTests:
+- name: "missing binary test"
+  path: "/usr/local/bin/gunicorn"
+  shouldExist: true
+`
+	if err := os.WriteFile(configFile, []byte(configContent), 0o644); err != nil {
+		t.Fatalf("write config file: %v", err)
+	}
+
+	layerFile := filepath.Join(tempDir, "app_layer.tar")
+	createTarArchive(t, layerFile, map[string][]byte{
+		"app/binary": []byte("bin"),
+	}, nil, false)
+
+	var stdout, stderr bytes.Buffer
+	err := run([]string{
+		"-configs", configFile,
+		"-layers", layerFile,
+		"-target", "//my/package:my_image_test",
+	}, &stdout, &stderr)
+	if err == nil {
+		t.Fatalf("expected run() to fail for missing file")
+	}
+	errOutput := stderr.String()
+	if !strings.Contains(errOutput, "Scanned layer(s)") {
+		t.Errorf("expected stderr to include scanned layers list, got: %s", errOutput)
+	}
+	if !strings.Contains(errOutput, "Hint: This test ran with layer streaming") {
+		t.Errorf("expected stderr to include layer streaming diagnostic hint, got: %s", errOutput)
+	}
+	if !strings.Contains(errOutput, "test_layers = []") {
+		t.Errorf("expected stderr to mention test_layers = [] opt-out, got: %s", errOutput)
+	}
+}

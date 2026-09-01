@@ -274,6 +274,9 @@ func checkFileExistence(test fileExistenceTest, cfs *containerFS) error {
 	mode, exists := findFile(targetPath, cfs, visited)
 
 	if shouldExist && !exists {
+		if targets, isSymlink := cfs.symlinks[targetPath]; isSymlink {
+			return fmt.Errorf("path %q was resolved as a symlink pointing to %v, but target destination was not found in any scanned layer", targetPath, targets)
+		}
 		return fmt.Errorf("path %q was not found in any layer", targetPath)
 	}
 	if !shouldExist && exists {
@@ -341,12 +344,14 @@ func run(args []string, stdout, stderr io.Writer) error {
 
 	cfs := newContainerFS()
 	var failureMessages []string
+	var scannedLayers []string
 
 	for _, layer := range strings.Split(*layersFlag, ",") {
 		layer = strings.TrimSpace(layer)
 		if layer == "" {
 			continue
 		}
+		scannedLayers = append(scannedLayers, layer)
 		if err := scanPath(layer, cfs); err != nil {
 			fmt.Fprintf(stderr, "Error scanning layer %q: %v\n", layer, err)
 			return fmt.Errorf("scan layer %q: %w", layer, err)
@@ -398,6 +403,16 @@ func run(args []string, stdout, stderr io.Writer) error {
 		for _, failure := range failureMessages {
 			fmt.Fprintf(stderr, "  * %s\n", failure)
 		}
+		if len(scannedLayers) > 0 {
+			fmt.Fprintf(stderr, "\nScanned layer(s) (%d):\n", len(scannedLayers))
+			for _, layer := range scannedLayers {
+				fmt.Fprintf(stderr, "  - %s\n", layer)
+			}
+		}
+		fmt.Fprintln(stderr, "\n💡 Hint: This test ran with layer streaming (only a subset of image layers was inspected).")
+		fmt.Fprintln(stderr, "  * If the missing file or symlink target is provided by third-party packages (e.g. pip wheels) or base image:")
+		fmt.Fprintln(stderr, "    Add the layer to test_layers, e.g. test_layers = [\":<name>_packages_layer\", ...]")
+		fmt.Fprintln(stderr, "  * To disable container structure tests for this target, pass test_layers = []")
 		return errors.New("container structure tests failed")
 	}
 

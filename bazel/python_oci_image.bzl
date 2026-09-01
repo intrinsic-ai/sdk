@@ -199,6 +199,7 @@ def python_oci_image(
         base = None,
         extra_tars = None,
         symlinks = None,
+        test_layers = None,
         **kwargs):
     """Wrapper for creating a oci_image from a py_binary target.
 
@@ -212,6 +213,9 @@ def python_oci_image(
       binary: the py_binary target.
       extra_tars: additional layers to add to the image with e.g. supporting files.
       symlinks: if specified, symlinks to add to the final image (analogous to rules_docker container_image#sylinks).
+      test_layers: optional list of layers to test with container_structure_test.
+        Defaults to [':' + name + '_app_layer', ':' + name + '_interpreter_layer']
+        (plus extra_tars), skipping the heavy pip packages layer for fast testing.
       **kwargs: extra arguments to pass on to the oci_image target.
     """
 
@@ -241,6 +245,21 @@ def python_oci_image(
             binary_path + ".runfiles": binary_runfiles_path,
         }
 
+    if test_layers == None:
+        test_layers = [":" + name + "_app_layer", ":" + name + "_interpreter_layer"]
+        if extra_tars:
+            test_layers.extend(extra_tars)
+        _pkg = native.package_name()
+
+        if symlinks and ":" + name + "_symlink_layer" not in test_layers:
+            test_layers.append(":" + name + "_symlink_layer")
+        if kwargs.get("files"):
+            test_layers.append(":" + name + "_files_layer")
+        if kwargs.get("tars"):
+            test_layers.append(":" + name + "_tar_layer")
+    else:
+        test_layers = list(test_layers)
+
     if extra_tars:
         layers.extend(extra_tars)
 
@@ -249,5 +268,6 @@ def python_oci_image(
         base = base,
         layers = layers,
         symlinks = symlinks,
+        test_layers = test_layers,
         **kwargs
     )
