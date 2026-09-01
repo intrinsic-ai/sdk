@@ -226,8 +226,6 @@ cc_library(
         "//intrinsic/geometry/proto/v1:geometry_options_cc_proto",
         "//intrinsic/geometry/proto/v1:geometry_storage_refs_cc_proto",
         "//intrinsic/geometry/proto/v1:inline_geometry_cc_proto",
-        "//intrinsic/geometry/proto/v1:octree_cc_proto",
-        "//intrinsic/geometry/proto/v1:octree_wrapping_cc_proto",
         "//intrinsic/geometry/proto/v1:point_cloud_cc_proto",
         "//intrinsic/geometry/proto/v1:primitive_shape_cc_proto",
         "//intrinsic/geometry/proto/v1:primitives_cc_proto",
