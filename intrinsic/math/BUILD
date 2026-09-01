@@ -112,3 +112,8 @@ cc_library(
         "@com_gitlab_libeigen_eigen//:eigen",
     ],
 )
+
+cc_library(
+    name = "units",
+    hdrs = ["units.h"],
+)
