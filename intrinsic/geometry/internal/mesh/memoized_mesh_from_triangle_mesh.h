@@ -25,9 +25,4 @@ namespace intrinsic::geo {
 ObjectRef<Mesh> MemoizedMeshFromTriangleMesh(const TriangleMesh& triangle_mesh);
 
 }  // namespace intrinsic::geo
-
-namespace intrinsic {
-using ::intrinsic::geo::MemoizedMeshFromTriangleMesh;
-}  // namespace intrinsic
-
 #endif  // INTRINSIC_GEOMETRY_INTERNAL_LEGACY_MESH_MEMOIZED_MESH_FROM_TRIANGLE_MESH_H_

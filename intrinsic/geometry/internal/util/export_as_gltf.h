@@ -41,10 +41,4 @@ absl::StatusOr<std::string> ExportAsGltf(const ExactGeometry& geometry,
                                          const Material& material = Material());
 
 }  // namespace intrinsic::geo
-
-namespace intrinsic {
-using ::intrinsic::geo::ExportAiSceneAsGltf;
-using ::intrinsic::geo::ExportAsGltf;
-}  // namespace intrinsic
-
 #endif  // INTRINSIC_GEOMETRY_INTERNAL_UTIL_EXPORT_AS_GLTF_H_

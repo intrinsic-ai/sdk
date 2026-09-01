@@ -36,10 +36,8 @@ absl::Status ValidateMeshData(absl::string_view mesh_data,
                               const eigenmath::Vector3d& scale);
 
 }  // namespace intrinsic::geo
-
 namespace intrinsic {
 using ::intrinsic::geo::ValidateMeshData;
-using ::intrinsic::geo::ValidateMeshFile;
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_GEOMETRY_API_VALIDATE_MESH_H_

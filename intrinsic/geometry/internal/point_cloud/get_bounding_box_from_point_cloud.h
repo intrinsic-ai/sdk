@@ -25,9 +25,4 @@ AxisAlignedBoundingBox3d GetBoundingBoxFromPointCloud(
     const PointCloud& point_cloud);
 
 }  // namespace intrinsic::geo
-
-namespace intrinsic {
-using ::intrinsic::geo::GetBoundingBoxFromPointCloud;
-}  // namespace intrinsic
-
 #endif  // INTRINSIC_GEOMETRY_INTERNAL_LEGACY_POINT_CLOUD_GET_BOUNDING_BOX_FROM_POINT_CLOUD_H_

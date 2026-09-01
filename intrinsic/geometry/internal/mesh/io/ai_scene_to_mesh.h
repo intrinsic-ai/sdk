@@ -24,9 +24,4 @@ namespace intrinsic::geo {
 absl::StatusOr<Mesh> AiSceneToMesh(const aiScene& scene);
 
 }  // namespace intrinsic::geo
-
-namespace intrinsic {
-using intrinsic::geo::AiSceneToMesh;
-}  // namespace intrinsic
-
 #endif  // INTRINSIC_GEOMETRY_INTERNAL_LEGACY_MESH_IO_AI_SCENE_TO_MESH_H_

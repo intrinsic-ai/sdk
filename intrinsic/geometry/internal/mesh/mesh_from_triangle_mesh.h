@@ -24,9 +24,4 @@ namespace intrinsic::geo {
 Mesh MeshFromTriangleMesh(const TriangleMesh& triangle_mesh);
 
 }  // namespace intrinsic::geo
-
-namespace intrinsic {
-using ::intrinsic::geo::MeshFromTriangleMesh;
-}  // namespace intrinsic
-
 #endif  // INTRINSIC_GEOMETRY_INTERNAL_LEGACY_MESH_MESH_FROM_TRIANGLE_MESH_H_

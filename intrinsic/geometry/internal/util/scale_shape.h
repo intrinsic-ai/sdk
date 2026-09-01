@@ -43,9 +43,4 @@ absl::StatusOr<TransformedPrimitiveShapePtr> ScaleShape(
     TransformedPrimitiveShapePtr primitive, const eigenmath::Vector3d& scale);
 
 }  // namespace intrinsic::geo
-
-namespace intrinsic {
-using ::intrinsic::geo::ScaleShape;
-}  // namespace intrinsic
-
 #endif  // INTRINSIC_GEOMETRY_INTERNAL_UTIL_SCALE_SHAPE_H_

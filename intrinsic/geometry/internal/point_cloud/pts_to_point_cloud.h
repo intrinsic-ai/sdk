@@ -29,9 +29,4 @@ absl::StatusOr<PointCloud> PtsFileToPointCloud(
     const std::string& file_content, const eigenmath::Vector3d& scale);
 
 }  // namespace intrinsic::geo
-
-namespace intrinsic {
-using ::intrinsic::geo::PtsFileToPointCloud;
-}  // namespace intrinsic
-
 #endif  // INTRINSIC_GEOMETRY_INTERNAL_LEGACY_POINT_CLOUD_PTS_TO_POINT_CLOUD_H_

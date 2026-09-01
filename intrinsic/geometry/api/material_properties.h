@@ -52,5 +52,4 @@ namespace intrinsic {
 using ::intrinsic::geo::AbslHashValue;
 using ::intrinsic::geo::MaterialProperties;
 }  // namespace intrinsic
-
 #endif  // INTRINSIC_GEOMETRY_API_MATERIAL_PROPERTIES_H_

@@ -32,9 +32,4 @@ Mesh RemoveDuplicateVerticesFromMesh(
     const Mesh& mesh, std::optional<double> maybe_epsilon = 1e-6);
 
 }  // namespace intrinsic::geo
-
-namespace intrinsic {
-using ::intrinsic::geo::RemoveDuplicateVerticesFromMesh;
-}  // namespace intrinsic
-
 #endif  // INTRINSIC_GEOMETRY_INTERNAL_LEGACY_MESH_REMOVE_DUPLICATE_VERTICES_FROM_MESH_H_

@@ -103,10 +103,7 @@ class RenderableGenerator {
 
 namespace intrinsic {
 using ::intrinsic::geo::EnsureRenderableIsAvailable;
-using ::intrinsic::geo::GenerateRenderableForExactGeometry;
 using ::intrinsic::geo::GenerateRenderableWithMaterialOverrides;
-using ::intrinsic::geo::GetOrGenerateRenderable;
 using ::intrinsic::geo::RenderableGenerator;
 }  // namespace intrinsic
-
 #endif  // INTRINSIC_GEOMETRY_API_RENDERABLE_GENERATION_H_

@@ -25,9 +25,4 @@ void MeshToAiScene(const Mesh& mesh, const Material& material,
                    aiScene* aiscene);
 
 }  // namespace intrinsic::geo
-
-namespace intrinsic {
-using intrinsic::geo::MeshToAiScene;
-}  // namespace intrinsic
-
 #endif  // INTRINSIC_GEOMETRY_INTERNAL_LEGACY_MESH_IO_MESH_TO_AI_SCENE_H_

@@ -42,10 +42,4 @@ absl::StatusOr<std::unique_ptr<const Mesh>> MeshFromPrimitives(
     const std::vector<TransformedPrimitiveShapePtr>& geometry);
 
 }  // namespace intrinsic::geo
-
-namespace intrinsic {
-using ::intrinsic::geo::MeshFromPrimitive;
-using ::intrinsic::geo::MeshFromPrimitives;
-}  // namespace intrinsic
-
 #endif  // INTRINSIC_GEOMETRY_INTERNAL_LEGACY_MESH_MESH_FROM_PRIMITIVES_H_

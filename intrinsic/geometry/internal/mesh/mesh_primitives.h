@@ -75,14 +75,7 @@ absl::StatusOr<Mesh> CreateFrustumMesh(double x_angle, double y_angle,
                                        double max_z_distance);
 
 }  // namespace intrinsic::geo
-
 namespace intrinsic {
-using ::intrinsic::geo::CreateCapsule;
-using ::intrinsic::geo::CreateCuboid;
-using ::intrinsic::geo::CreateCylinder;
-using ::intrinsic::geo::CreateEllipsoid;
-using ::intrinsic::geo::CreateFrustumMesh;
-using ::intrinsic::geo::CreatePartialCuboid;
 using ::intrinsic::geo::CreateSphere;
 }  // namespace intrinsic
 

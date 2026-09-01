@@ -47,9 +47,4 @@ class Axes : public ShapeBase {
 };
 
 }  // namespace intrinsic::geo
-
-namespace intrinsic::shapes {
-using ::intrinsic::geo::Axes;
-}  // namespace intrinsic::shapes
-
 #endif  // INTRINSIC_GEOMETRY_SHAPES_AXES_H_

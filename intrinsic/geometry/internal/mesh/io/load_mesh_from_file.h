@@ -44,10 +44,4 @@ inline Mesh LoadMeshFromFileOrDie(
 }
 
 }  // namespace intrinsic::geo
-
-namespace intrinsic {
-using intrinsic::geo::LoadMeshFromFile;
-using intrinsic::geo::LoadMeshFromFileOrDie;
-}  // namespace intrinsic
-
 #endif  // INTRINSIC_GEOMETRY_INTERNAL_LEGACY_MESH_IO_LOAD_MESH_FROM_FILE_H_

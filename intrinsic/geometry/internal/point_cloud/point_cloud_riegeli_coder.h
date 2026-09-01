@@ -38,7 +38,5 @@ REGISTER_RIEGELI_PROTO_CODER_EXPLICIT(geo::PointCloud,
                                       geo::ToProto, geo::ToShape);
 
 using ::intrinsic::geo::ToProto;
-using ::intrinsic::geo::ToShape;
 }  // namespace intrinsic
-
 #endif  // INTRINSIC_GEOMETRY_INTERNAL_LEGACY_POINT_CLOUD_POINT_CLOUD_RIEGELI_CODER_H_

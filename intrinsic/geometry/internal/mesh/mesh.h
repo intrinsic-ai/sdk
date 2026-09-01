@@ -169,8 +169,5 @@ namespace intrinsic {
 using ::intrinsic::geo::FromProto;
 using ::intrinsic::geo::Mesh;
 using ::intrinsic::geo::ToProto;
-using ::intrinsic::geo::ToTriangleMeshProto;
-using ::intrinsic::geo::ToTriangleMeshProtoV1;
 }  // namespace intrinsic
-
 #endif  // INTRINSIC_GEOMETRY_INTERNAL_LEGACY_MESH_MESH_H_

@@ -40,7 +40,5 @@ REGISTER_RIEGELI_PROTO_CODER_EXPLICIT(
 
 namespace intrinsic {
 using ::intrinsic::geo::ToProto;
-using ::intrinsic::geo::ToShape;
 }  // namespace intrinsic
-
 #endif  // INTRINSIC_GEOMETRY_INTERNAL_LEGACY_MESH_TRIANGLE_MESH_RIEGELI_CODER_H_

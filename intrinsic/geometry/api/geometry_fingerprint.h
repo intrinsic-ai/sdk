@@ -40,10 +40,4 @@ std::string GenerateFingerprintOrDie(const ExactGeometry& exact_geo);
 std::string GenerateFingerprint(const Renderable& renderable);
 
 }  // namespace intrinsic::geo
-
-namespace intrinsic {
-using ::intrinsic::geo::GenerateFingerprint;
-using ::intrinsic::geo::GenerateFingerprintOrDie;
-}  // namespace intrinsic
-
 #endif  // INTRINSIC_GEOMETRY_API_GEOMETRY_FINGERPRINT_H_

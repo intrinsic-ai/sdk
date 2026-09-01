@@ -32,9 +32,4 @@ Mesh ConcatenateMeshes(const std::vector<const Mesh*>& meshes);
 Mesh ConcatenateMeshes(const std::vector<Mesh>& meshes);
 
 }  // namespace intrinsic::geo
-
-namespace intrinsic {
-using ::intrinsic::geo::ConcatenateMeshes;
-}  // namespace intrinsic
-
 #endif  // INTRINSIC_GEOMETRY_INTERNAL_LEGACY_MESH_CONCATENATE_MESHES_H_

@@ -41,11 +41,8 @@ absl::StatusOr<std::string> ApplyMaterialPropertiesToGlb(
 absl::Status ApplyMaterialToAiScene(aiScene& scene, const Material& material);
 
 }  // namespace intrinsic::geo
-
 namespace intrinsic {
-using ::intrinsic::geo::ApplyMaterialProperties;
 using ::intrinsic::geo::ApplyMaterialPropertiesToGlb;
-using ::intrinsic::geo::ApplyMaterialToAiScene;
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_GEOMETRY_API_APPLY_MATERIAL_PROPERTIES_H_

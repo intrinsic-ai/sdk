@@ -27,10 +27,4 @@ using PrimitiveShapePtr = std::shared_ptr<const ShapeBase>;
 using TransformedPrimitiveShapePtr = AffineTransformOf<PrimitiveShapePtr>;
 
 }  // namespace intrinsic::geo
-
-namespace intrinsic::shapes {
-using ::intrinsic::geo::PrimitiveShapePtr;
-using ::intrinsic::geo::TransformedPrimitiveShapePtr;
-}  // namespace intrinsic::shapes
-
 #endif  // INTRINSIC_GEOMETRY_SHAPES_SHAPE_PTRS_H_

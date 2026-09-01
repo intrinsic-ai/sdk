@@ -27,9 +27,4 @@ absl::StatusOr<Mesh> LoadMeshFileWithScale(absl::string_view path,
                                            const eigenmath::Vector3d& scale);
 
 }  // namespace intrinsic::geo
-
-namespace intrinsic {
-using ::intrinsic::geo::LoadMeshFileWithScale;
-}  // namespace intrinsic
-
 #endif  // INTRINSIC_GEOMETRY_INTERNAL_LEGACY_MESH_LOAD_MESH_FILE_WITH_SCALE_H_

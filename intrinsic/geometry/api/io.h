@@ -125,9 +125,6 @@ namespace intrinsic {
 using ::intrinsic::geo::ToAffineTransform;
 using ::intrinsic::geo::ToGeometricTransform;
 using ::intrinsic::geo::ToGeometry;
-using ::intrinsic::geo::ToInlinedProto;
 using ::intrinsic::geo::ToProto;
-using ::intrinsic::geo::ToRenderable;
 }  // namespace intrinsic
-
 #endif  // INTRINSIC_GEOMETRY_API_IO_H_

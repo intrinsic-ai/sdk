@@ -36,10 +36,4 @@ absl::StatusOr<std::unique_ptr<aiScene>> PointCloudToAiScene(
     eigenmath::Vector3d scale = eigenmath::Vector3d::Ones());
 
 }  // namespace intrinsic::geo
-
-namespace intrinsic {
-using ::intrinsic::geo::PointCloudToAiScene;
-using ::intrinsic::geo::PtsFileToAiScene;
-}  // namespace intrinsic
-
 #endif  // INTRINSIC_GEOMETRY_INTERNAL_LEGACY_POINT_CLOUD_PTS_TO_AI_SCENE_H_

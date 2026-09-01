@@ -86,9 +86,4 @@ class Discs : public ShapeBase {
 };
 
 }  // namespace intrinsic::geo
-
-namespace intrinsic::shapes {
-using ::intrinsic::geo::Discs;
-}  // namespace intrinsic::shapes
-
 #endif  // INTRINSIC_GEOMETRY_SHAPES_DISCS_H_

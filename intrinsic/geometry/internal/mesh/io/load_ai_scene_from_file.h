@@ -33,9 +33,4 @@ absl::StatusOr<std::unique_ptr<aiScene>> LoadAiSceneFromFile(
     const eigenmath::Vector3d& scale = eigenmath::Vector3d::Ones());
 
 }  // namespace intrinsic::geo
-
-namespace intrinsic {
-using intrinsic::geo::LoadAiSceneFromFile;
-}  // namespace intrinsic
-
 #endif  // INTRINSIC_GEOMETRY_INTERNAL_LEGACY_MESH_IO_LOAD_AI_SCENE_FROM_FILE_H_
