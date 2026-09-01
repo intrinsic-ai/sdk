@@ -14,12 +14,22 @@
 
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@intrinsic_js_rules//:defs.bzl", "js_library")
-load("//bazel:go_macros.bzl", "go_proto_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "proto_source_code_info_transitive_descriptor_set")
 
 package(default_visibility = [
     "//visibility:public",
 ])
+
+js_library(
+    name = "accesscontrol_jspb_proto",
+    deps = ["//intrinsic/kubernetes/accounts/service/api/accesscontrol/v1:accesscontrol_proto"],
+)
+
+proto_source_code_info_transitive_descriptor_set(
+    name = "accesscontrol_proto_descriptor_set",
+    deps = ["//intrinsic/kubernetes/accounts/service/api/accesscontrol/v1:accesscontrol_proto"],
+)
 
 proto_library(
     name = "accesscontrol_proto",
@@ -33,22 +43,12 @@ proto_library(
     ],
 )
 
-js_library(
-    name = "accesscontrol_jspb_proto",
-    deps = [":accesscontrol_proto"],
-)
-
-proto_source_code_info_transitive_descriptor_set(
-    name = "accesscontrol_proto_descriptor_set",
-    deps = [":accesscontrol_proto"],
-)
-
 go_proto_library(
     name = "accesscontrol_go_proto",
     compilers = [
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
-        "//bazel:go_gen_grpc_gateway",
+        "@com_github_grpc_ecosystem_grpc_gateway_v2//protoc-gen-grpc-gateway:go_gen_grpc_gateway",
     ],
     importpath = "intrinsic/kubernetes/accounts/service/api/accesscontrol/v1/accesscontrol_go_proto",
     protos = [":accesscontrol_proto"],

@@ -17,11 +17,16 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@intrinsic_js_rules//:defs.bzl", "js_library")
-load("//bazel:go_macros.bzl", "go_proto_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 
 package(default_visibility = [
     "//visibility:public",
 ])
+
+js_library(
+    name = "tokens_jspb_proto",
+    deps = ["//intrinsic/kubernetes/accounts/service/api/tokens/v2:tokens_proto"],
+)
 
 proto_library(
     name = "tokens_proto",
@@ -33,9 +38,18 @@ proto_library(
     ],
 )
 
-js_library(
-    name = "tokens_jspb_proto",
-    deps = [":tokens_proto"],
+go_proto_library(
+    name = "tokens_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+        "@com_github_grpc_ecosystem_grpc_gateway_v2//protoc-gen-grpc-gateway:go_gen_grpc_gateway",
+    ],
+    importpath = "intrinsic/kubernetes/accounts/service/api/tokens/v2/tokens_go_proto",
+    protos = [":tokens_proto"],
+    deps = [
+        "@org_golang_google_genproto_googleapis_api//annotations",
+    ],
 )
 
 py_proto_library(
@@ -47,21 +61,7 @@ py_proto_library(
 
 py_grpc_library(
     name = "tokens_py_pb2_grpc",
-    srcs = [":tokens_proto"],
+    srcs = ["//intrinsic/kubernetes/accounts/service/api/tokens/v2:tokens_proto"],
     grpc_library = requirement("grpcio"),
     deps = [":tokens_py_pb2"],
-)
-
-go_proto_library(
-    name = "tokens_go_proto",
-    compilers = [
-        "@io_bazel_rules_go//proto:go_grpc_v2",
-        "@io_bazel_rules_go//proto:go_proto",
-        "//bazel:go_gen_grpc_gateway",
-    ],
-    importpath = "intrinsic/kubernetes/accounts/service/api/tokens/v2/tokens_go_proto",
-    protos = [":tokens_proto"],
-    deps = [
-        "@org_golang_google_genproto_googleapis_api//annotations",
-    ],
 )
