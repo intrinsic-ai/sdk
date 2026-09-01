@@ -394,6 +394,9 @@ enum EtherType {
   ETHER_TYPE_UNSPECIFIED = 0;
   // ETHERCAT is used for EtherCAT interfaces.
   ETHER_TYPE_ETHERCAT = 1;
+  // REALTIME is used for realtime interfaces.
+  // To ensure backward/downgrade compatibility, this is not in the config file.
+  ETHER_TYPE_REALTIME = 2;
 }
 
 // IntOSInterfaceConfig represents the configuration of a single on-prem
@@ -404,6 +407,10 @@ message IntOSInterfaceConfig {
     ETHER_TYPE_UNSPECIFIED = 0;
     // ETHERCAT is used for EtherCAT interfaces.
     ETHER_TYPE_ETHERCAT = 1;
+    // REALTIME is used for realtime interfaces.
+    // To ensure backward/downgrade compatibility, this is not in the config
+    // file.
+    ETHER_TYPE_REALTIME = 2;
   }
   // Enable automatic configuration via DHCP for IPv4
   bool dhcp4 = 1 [(google.api.field_behavior) = OPTIONAL];

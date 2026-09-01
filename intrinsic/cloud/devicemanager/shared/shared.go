@@ -68,8 +68,8 @@ const (
 	EtherTypeIP = 0
 	// EtherTypeEtherCAT is the EtherCAT protocol.
 	EtherTypeEtherCAT = 1
-	// EtherTypeIPNoRT is the IP protocl (realtime not supported).
-	EtherTypeIPNoRT = 2
+	// EtherTypeIPRealtime is the IP protocol (realtime).
+	EtherTypeIPRealtime = 2
 )
 
 // Interface represents a network interface configuration.
@@ -113,6 +113,14 @@ type Interface struct {
 
 	// DNSRange encapsulates the configuration for hosting a DNS range on this interface.
 	DNSRange *DNSRange `json:"dns_range,omitempty"`
+}
+
+func (i *Interface) isIP() bool {
+	return i.EtherType == EtherTypeIP || i.EtherType == EtherTypeIPRealtime
+}
+
+func (i *Interface) isIPRealtime() bool {
+	return i.EtherType == EtherTypeIPRealtime || (i.EtherType == EtherTypeIP && i.Realtime)
 }
 
 // DNSRange encapsulates the configuration needed for hosting a DNS range.
