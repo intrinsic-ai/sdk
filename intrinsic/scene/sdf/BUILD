@@ -176,6 +176,7 @@ cc_library(
     hdrs = ["scene_object_from_sdf.h"],
     visibility = [
         "//intrinsic/scene/service:__subpackages__",
+        "//intrinsic/world/conversion:__subpackages__",
     ],
     deps = [
         ":custom_tags",
