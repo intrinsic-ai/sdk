@@ -43,7 +43,6 @@ from google.protobuf import duration_pb2
 from google.protobuf import message
 from google.protobuf import message_factory
 import grpc
-from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import pose_pb2 as ros_pose_pb2
 
 from intrinsic.assets.proto.v1 import resolved_dependency_pb2
 from intrinsic.icon.proto import joint_space_pb2
@@ -67,6 +66,7 @@ from intrinsic.world.proto import object_world_refs_pb2
 from intrinsic.world.proto import robot_payload_pb2
 from intrinsic.world.python import object_world_resources
 from intrinsic.world.robot_payload.python import robot_payload
+from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import pose_pb2 as ros_pose_pb2
 
 _PYTHON_PACKAGE_SEPARATOR = "."
 _PROTO_PACKAGE_SEPARATOR = "."

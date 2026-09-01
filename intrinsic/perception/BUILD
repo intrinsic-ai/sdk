@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Perception capabilities that are exprosed to clients of Intrinsic perception.
+# Perception capabilities that are exposed to clients of Intrinsic perception.
 
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 

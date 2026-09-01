@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INTRINSIC_PERCEPTION_PUBLIC_ASSET_UTILS_H_
-#define INTRINSIC_PERCEPTION_PUBLIC_ASSET_UTILS_H_
+#ifndef INTRINSIC_PERCEPTION_ASSET_UTILS_H_
+#define INTRINSIC_PERCEPTION_ASSET_UTILS_H_
 
 #include "absl/base/nullability.h"
 #include "absl/status/statusor.h"
@@ -32,4 +32,4 @@ GetPerceptionModelFromDataAsset(
 
 }  // namespace intrinsic::perception
 
-#endif  // INTRINSIC_PERCEPTION_PUBLIC_ASSET_UTILS_H_
+#endif  // INTRINSIC_PERCEPTION_ASSET_UTILS_H_

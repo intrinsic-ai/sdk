@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INTRINSIC_PERCEPTION_PUBLIC_CALIBRATION_SERVICE_UTILS_H_
-#define INTRINSIC_PERCEPTION_PUBLIC_CALIBRATION_SERVICE_UTILS_H_
+#ifndef INTRINSIC_PERCEPTION_CALIBRATION_SERVICE_UTILS_H_
+#define INTRINSIC_PERCEPTION_CALIBRATION_SERVICE_UTILS_H_
 
 #include <memory>
 
@@ -38,4 +38,4 @@ CreateCalibrationServiceContext(const skills::EquipmentPack& equipment);
 
 }  // namespace intrinsic::perception
 
-#endif  // INTRINSIC_PERCEPTION_PUBLIC_CALIBRATION_SERVICE_UTILS_H_
+#endif  // INTRINSIC_PERCEPTION_CALIBRATION_SERVICE_UTILS_H_

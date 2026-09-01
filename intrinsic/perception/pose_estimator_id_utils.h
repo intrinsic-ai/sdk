@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INTRINSIC_PERCEPTION_PUBLIC_POSE_ESTIMATOR_ID_UTILS_H_
-#define INTRINSIC_PERCEPTION_PUBLIC_POSE_ESTIMATOR_ID_UTILS_H_
+#ifndef INTRINSIC_PERCEPTION_POSE_ESTIMATOR_ID_UTILS_H_
+#define INTRINSIC_PERCEPTION_POSE_ESTIMATOR_ID_UTILS_H_
 
 #include "intrinsic/perception/proto/v1/pose_estimator_id.pb.h"
 
@@ -26,4 +26,4 @@ intrinsic_proto::perception::v1::PoseEstimatorId WithDefaultPackageIfUnset(
 
 }  // namespace intrinsic::perception
 
-#endif  // INTRINSIC_PERCEPTION_PUBLIC_POSE_ESTIMATOR_ID_UTILS_H_
+#endif  // INTRINSIC_PERCEPTION_POSE_ESTIMATOR_ID_UTILS_H_

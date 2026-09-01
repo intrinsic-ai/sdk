@@ -65,7 +65,9 @@ go_proto_library(
     ],
     importpath = "intrinsic/perception/proto/v1alpha1/symmetry_service_go_proto",
     protos = [":symmetry_service_proto"],
-    visibility = ["//intrinsic/frontend/go:__subpackages__"],
+    visibility = [
+        "//intrinsic/frontend/go:__subpackages__",
+    ],
     deps = [
         "//intrinsic/geometry/proto/v1:transformed_geometry_go_proto",
         "//intrinsic/perception/proto/v1:symmetry_go_proto",
