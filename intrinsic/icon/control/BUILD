@@ -79,7 +79,9 @@ cc_library(
 cc_library(
     name = "realtime_signal_types",
     hdrs = ["realtime_signal_types.h"],
-    deps = ["@or_tools//ortools/base:strong_int"],
+    deps = [
+        "@or_tools//ortools/base:strong_int",
+    ],
 )
 
 cc_library(

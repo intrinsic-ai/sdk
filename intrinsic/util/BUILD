@@ -120,6 +120,7 @@ cc_test(
         "//intrinsic/eigenmath",
         "//intrinsic/eigenmath:rotation_utils",
         "//intrinsic/math:pose3",
+        "//intrinsic/util/testing:gtest_wrapper_main",
         "@abseil-cpp//absl/status:status_matchers",
         "@com_google_cel_cpp//internal:testing_no_main",
         "@com_google_googletest//:gtest_main",

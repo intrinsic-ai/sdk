@@ -155,7 +155,9 @@ proto_library(
 
 cc_proto_library(
     name = "sine_wave_action_cc_proto",
-    deps = [":sine_wave_action_proto"],
+    deps = [
+        ":sine_wave_action_proto",
+    ],
 )
 
 cc_library(
