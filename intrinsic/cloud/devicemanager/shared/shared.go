@@ -115,11 +115,11 @@ type Interface struct {
 	DNSRange *DNSRange `json:"dns_range,omitempty"`
 }
 
-func (i *Interface) isIP() bool {
+func (i *Interface) IsIP() bool {
 	return i.EtherType == EtherTypeIP || i.EtherType == EtherTypeIPRealtime
 }
 
-func (i *Interface) isIPRealtime() bool {
+func (i *Interface) IsIPRealtime() bool {
 	return i.EtherType == EtherTypeIPRealtime || (i.EtherType == EtherTypeIP && i.Realtime)
 }
 
