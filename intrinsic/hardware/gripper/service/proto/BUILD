@@ -21,6 +21,7 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
@@ -43,15 +44,15 @@ cc_grpc_library(
     deps = [":generic_gripper_cc_proto"],
 )
 
-py_proto_library(
-    name = "generic_gripper_py_pb2",
-    deps = [":generic_gripper_proto"],
-)
-
 go_proto_library(
     name = "generic_gripper_go_proto",
     importpath = "intrinsic/hardware/gripper/service/proto/generic_gripper_go_proto",
     protos = [":generic_gripper_proto"],
+)
+
+py_proto_library(
+    name = "generic_gripper_py_pb2",
+    deps = [":generic_gripper_proto"],
 )
 
 py_grpc_library(

@@ -15,28 +15,11 @@
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
 package(
     default_visibility = ["//visibility:public"],
-)
-
-proto_library(
-    name = "gpio_service_equipment_proto",
-    srcs = ["gpio_service_equipment.proto"],
-    visibility = ["//intrinsic:intrinsic_internal"],
-)
-
-py_proto_library(
-    name = "gpio_service_equipment_py_pb2",
-    visibility = ["//intrinsic:intrinsic_internal"],
-    deps = [":gpio_service_equipment_proto"],
-)
-
-cc_proto_library(
-    name = "gpio_service_equipment_cc_proto",
-    visibility = ["//intrinsic:intrinsic_internal"],
-    deps = [":gpio_service_equipment_proto"],
 )
 
 cc_library(
@@ -80,4 +63,25 @@ cc_library(
         "@abseil-cpp//absl/time",
         "@com_github_grpc_grpc//:grpc++",
     ],
+)
+
+proto_library(
+    name = "gpio_service_equipment_proto",
+    srcs = ["gpio_service_equipment.proto"],
+)
+
+cc_proto_library(
+    name = "gpio_service_equipment_cc_proto",
+    deps = [":gpio_service_equipment_proto"],
+)
+
+go_proto_library(
+    name = "gpio_service_equipment_go_proto",
+    importpath = "intrinsic/hardware/gpio/gpio_service_equipment_go_proto",
+    protos = [":gpio_service_equipment_proto"],
+)
+
+py_proto_library(
+    name = "gpio_service_equipment_py_pb2",
+    deps = [":gpio_service_equipment_proto"],
 )
