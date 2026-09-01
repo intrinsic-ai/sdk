@@ -17,7 +17,7 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@io_bazel_rules_go//proto:compiler.bzl", "go_proto_compiler")
-load("//bazel:go_macros.bzl", "go_binary")
+load("//bazel:go_macros.bzl", "go_binary", "go_test")
 load(":exec_properties.bzl", "DEFAULT")
 
 package(default_visibility = ["//visibility:public"])
@@ -30,6 +30,22 @@ package(default_visibility = ["//visibility:public"])
 bool_flag(
     name = "use_host_glib",
     build_setting_default = False,
+)
+
+go_binary(
+    name = "container_structure_test_runner",
+    srcs = ["container_structure_test_runner.go"],
+    visibility = ["//visibility:public"],
+    deps = ["@in_gopkg_yaml_v3//:yaml_v3"],
+)
+
+go_test(
+    name = "container_structure_test_runner_test",
+    srcs = [
+        "container_structure_test_runner.go",
+        "container_structure_test_runner_test.go",
+    ],
+    deps = ["@in_gopkg_yaml_v3//:yaml_v3"],
 )
 
 exports_files(glob(["content_mirror/*"]))
