@@ -31,6 +31,7 @@ go_library(
         "//intrinsic/assets/proto:id_go_proto",
         "//intrinsic/assets/proto:metadata_go_proto",
         "//intrinsic/util/archive:tartooling",
+        "//intrinsic/util/proto:fieldbehavior",
         "@com_github_google_safearchive//tar",
     ],
 )
@@ -71,9 +72,7 @@ go_library(
         "//intrinsic/assets/proto:asset_type_go_proto",
         "//intrinsic/assets/proto:documentation_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
-        "//intrinsic/assets/proto:metadata_go_proto",
         "//intrinsic/executive/proto:behavior_tree_go_proto",
-        "//intrinsic/skills/proto:skills_go_proto",
         "@org_golang_google_grpc//codes:go_default_library",
         "@org_golang_google_grpc//status:go_default_library",
     ],

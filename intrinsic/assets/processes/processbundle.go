@@ -25,6 +25,7 @@ import (
 	"intrinsic/assets/processes/processmanifest"
 	"intrinsic/assets/processes/processvalidate"
 	"intrinsic/util/archive/tartooling"
+	"intrinsic/util/proto/fieldbehavior"
 
 	"github.com/google/safearchive/tar"
 
@@ -54,6 +55,9 @@ func Write(ctx context.Context, manifest *processmanifestpb.ProcessManifest, w i
 
 	if manifest == nil {
 		return fmt.Errorf("ProcessManifest must not be nil")
+	}
+	if err := fieldbehavior.ClearOutputOnly(manifest); err != nil {
+		return fmt.Errorf("failed to clear output-only fields: %w", err)
 	}
 	err := processvalidate.ProcessManifest(ctx, manifest)
 	if err != nil {
