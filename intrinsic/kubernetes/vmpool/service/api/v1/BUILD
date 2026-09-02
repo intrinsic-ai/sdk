@@ -52,7 +52,7 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_proto",
     ],
     importpath = "intrinsic/kubernetes/vmpool/service/api/v1/vmpool_api_go_proto",
-    proto = "//intrinsic/kubernetes/vmpool/service/api/v1:vmpool_api_proto",
+    proto = ":vmpool_api_proto",
     deps = ["@org_golang_google_genproto_googleapis_api//annotations"],
 )
 
@@ -63,7 +63,7 @@ py_proto_library(
 
 py_grpc_library(
     name = "vmpool_api_py_pb2_grpc",
-    srcs = ["//intrinsic/kubernetes/vmpool/service/api/v1:vmpool_api_proto"],
+    srcs = [":vmpool_api_proto"],
     grpc_library = requirement("grpcio"),
     deps = [":vmpool_api_py_pb2"],
 )

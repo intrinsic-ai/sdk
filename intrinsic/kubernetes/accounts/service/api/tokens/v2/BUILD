@@ -61,7 +61,7 @@ py_proto_library(
 
 py_grpc_library(
     name = "tokens_py_pb2_grpc",
-    srcs = ["//intrinsic/kubernetes/accounts/service/api/tokens/v2:tokens_proto"],
+    srcs = [":tokens_proto"],
     grpc_library = requirement("grpcio"),
     deps = [":tokens_py_pb2"],
 )

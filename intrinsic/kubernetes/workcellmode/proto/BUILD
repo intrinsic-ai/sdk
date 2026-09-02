@@ -52,14 +52,14 @@ py_proto_library(
 
 cc_grpc_library(
     name = "workcellmode_service_cc_grpc_proto",
-    srcs = ["//intrinsic/kubernetes/workcellmode/proto:workcellmode_service_proto"],
+    srcs = [":workcellmode_service_proto"],
     grpc_only = True,
     deps = [":workcellmode_service_cc_proto"],
 )
 
 py_grpc_library(
     name = "workcellmodea_service_py_pb2_grpc",
-    srcs = ["//intrinsic/kubernetes/workcellmode/proto:workcellmode_service_proto"],
+    srcs = [":workcellmode_service_proto"],
     grpc_library = requirement("grpcio"),
     deps = [":workcellmode_service_py_pb2"],
 )

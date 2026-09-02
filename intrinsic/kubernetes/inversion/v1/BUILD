@@ -50,7 +50,7 @@ go_proto_library(
 
 cc_grpc_library(
     name = "inversion_cc_grpc_proto",
-    srcs = ["//intrinsic/kubernetes/inversion/v1:inversion_proto"],
+    srcs = [":inversion_proto"],
     grpc_only = True,
     deps = [":inversion_cc_proto"],
 )

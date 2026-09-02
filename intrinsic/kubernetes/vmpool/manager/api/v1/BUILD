@@ -65,7 +65,7 @@ py_proto_library(
 
 py_grpc_library(
     name = "lease_api_py_pb2_grpc",
-    srcs = ["//intrinsic/kubernetes/vmpool/manager/api/v1:lease_api_proto"],
+    srcs = [":lease_api_proto"],
     grpc_library = requirement("grpcio"),
     deps = [":lease_api_py_pb2"],
 )

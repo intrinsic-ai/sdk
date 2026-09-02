@@ -16,6 +16,7 @@ load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@intrinsic_js_rules//:defs.bzl", "js_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
 load("//bazel:go_macros.bzl", "go_proto_library")
@@ -70,25 +71,10 @@ cc_library(
     ],
 )
 
-proto_library(
-    name = "tare_force_torque_sensor_proto",
-    srcs = ["tare_force_torque_sensor.proto"],
-)
-
-cc_proto_library(
-    name = "tare_force_torque_sensor_cc_proto",
-    deps = [":tare_force_torque_sensor_proto"],
-)
-
-py_proto_library(
-    name = "tare_force_torque_sensor_py_pb2",
-    deps = [":tare_force_torque_sensor_proto"],
-)
-
 cc_library(
     name = "tare_force_torque_sensor_info",
     hdrs = ["tare_force_torque_sensor_info.h"],
-    deps = [":tare_force_torque_sensor_cc_proto"],
+    deps = ["//intrinsic/icon/actions:tare_force_torque_sensor_cc_proto"],
 )
 
 proto_library(
@@ -125,52 +111,16 @@ cc_library(
     ],
 )
 
-proto_library(
-    name = "adio_proto",
-    srcs = ["adio.proto"],
-)
-
-py_proto_library(
-    name = "adio_py_pb2",
-    deps = [":adio_proto"],
-)
-
-cc_proto_library(
-    name = "adio_cc_proto",
-    deps = [":adio_proto"],
-)
-
-go_proto_library(
-    name = "adio_go_proto",
-    importpath = "intrinsic/icon/actions/adio_go_proto",
-    protos = [":adio_proto"],
-)
-
 cc_library(
     name = "adio_info",
     hdrs = ["adio_info.h"],
-    deps = [":adio_cc_proto"],
-)
-
-proto_library(
-    name = "simple_gripper_proto",
-    srcs = ["simple_gripper.proto"],
-)
-
-cc_proto_library(
-    name = "simple_gripper_cc_proto",
-    deps = [":simple_gripper_proto"],
-)
-
-py_proto_library(
-    name = "simple_gripper_py_pb2",
-    deps = [":simple_gripper_proto"],
+    deps = ["//intrinsic/icon/actions:adio_cc_proto"],
 )
 
 cc_library(
     name = "simple_gripper_info",
     hdrs = ["simple_gripper_info.h"],
-    deps = [":simple_gripper_cc_proto"],
+    deps = ["//intrinsic/icon/actions:simple_gripper_cc_proto"],
 )
 
 cc_library(
@@ -230,7 +180,7 @@ py_library(
     srcs = ["tare_force_torque_sensor_utils.py"],
     visibility = ["//intrinsic/icon/python:__subpackages__"],
     deps = [
-        ":tare_force_torque_sensor_py_pb2",
+        "//intrinsic/icon/actions:tare_force_torque_sensor_py_pb2",
         "//intrinsic/icon/python:icon",
     ],
 )
@@ -259,7 +209,7 @@ py_library(
     srcs = ["wait_for_settling_utils.py"],
     visibility = ["//intrinsic/icon/python:__subpackages__"],
     deps = [
-        ":wait_for_settling_action_py_pb2",
+        "//intrinsic/icon/actions:wait_for_settling_action_py_pb2",
         "//intrinsic/icon/python:icon",
     ],
 )
@@ -268,7 +218,7 @@ py_library(
     name = "adio_utils",
     srcs = ["adio_utils.py"],
     deps = [
-        ":adio_py_pb2",
+        "//intrinsic/icon/actions:adio_py_pb2",
         "//intrinsic/icon/python:icon",
     ],
 )
@@ -277,8 +227,8 @@ py_test(
     name = "adio_utils_test",
     srcs = ["adio_utils_test.py"],
     deps = [
-        ":adio_py_pb2",
         ":adio_utils",
+        "//intrinsic/icon/actions:adio_py_pb2",
         "@com_google_absl_py//absl/testing:absltest",
     ],
 )
@@ -287,8 +237,8 @@ py_test(
     name = "wait_for_settling_utils_test",
     srcs = ["wait_for_settling_utils_test.py"],
     deps = [
-        ":wait_for_settling_action_py_pb2",
         ":wait_for_settling_utils",
+        "//intrinsic/icon/actions:wait_for_settling_action_py_pb2",
         "@com_google_absl_py//absl/testing:absltest",
     ],
 )
@@ -320,8 +270,8 @@ py_test(
     name = "tare_force_torque_sensor_utils_test",
     srcs = ["tare_force_torque_sensor_utils_test.py"],
     deps = [
-        ":tare_force_torque_sensor_py_pb2",
         ":tare_force_torque_sensor_utils",
+        "//intrinsic/icon/actions:tare_force_torque_sensor_py_pb2",
         "@com_google_absl_py//absl/testing:absltest",
     ],
 )
@@ -336,27 +286,12 @@ py_test(
     ],
 )
 
-proto_library(
-    name = "wait_for_settling_action_proto",
-    srcs = ["wait_for_settling_action.proto"],
-)
-
-cc_proto_library(
-    name = "wait_for_settling_action_cc_proto",
-    deps = [":wait_for_settling_action_proto"],
-)
-
-py_proto_library(
-    name = "wait_for_settling_action_py_pb2",
-    deps = [":wait_for_settling_action_proto"],
-)
-
 cc_library(
     name = "wait_for_settling_action_info",
     srcs = [],
     hdrs = ["wait_for_settling_action_info.h"],
     deps = [
-        ":wait_for_settling_action_cc_proto",
+        "//intrinsic/icon/actions:wait_for_settling_action_cc_proto",
     ],
 )
 
@@ -364,4 +299,83 @@ cc_library(
     name = "force_stop_action_info",
     hdrs = ["force_stop_action_info.h"],
     visibility = ["//intrinsic/icon/control/actions:__pkg__"],
+)
+
+proto_library(
+    name = "adio_proto",
+    srcs = ["adio.proto"],
+    visibility = ["//visibility:public"],
+)
+
+cc_proto_library(
+    name = "adio_cc_proto",
+    visibility = ["//visibility:public"],
+    deps = [":adio_proto"],
+)
+
+go_proto_library(
+    name = "adio_go_proto",
+    importpath = "intrinsic/icon/actions/adio_go_proto",
+    protos = [":adio_proto"],
+    visibility = ["//visibility:public"],
+)
+
+py_proto_library(
+    name = "adio_py_pb2",
+    visibility = ["//visibility:public"],
+    deps = [":adio_proto"],
+)
+
+proto_library(
+    name = "simple_gripper_proto",
+    srcs = ["simple_gripper.proto"],
+    visibility = ["//visibility:public"],
+)
+
+cc_proto_library(
+    name = "simple_gripper_cc_proto",
+    visibility = ["//visibility:public"],
+    deps = [":simple_gripper_proto"],
+)
+
+py_proto_library(
+    name = "simple_gripper_py_pb2",
+    visibility = ["//visibility:public"],
+    deps = [":simple_gripper_proto"],
+)
+
+proto_library(
+    name = "tare_force_torque_sensor_proto",
+    srcs = ["tare_force_torque_sensor.proto"],
+    visibility = ["//visibility:public"],
+)
+
+cc_proto_library(
+    name = "tare_force_torque_sensor_cc_proto",
+    visibility = ["//visibility:public"],
+    deps = [":tare_force_torque_sensor_proto"],
+)
+
+py_proto_library(
+    name = "tare_force_torque_sensor_py_pb2",
+    visibility = ["//visibility:public"],
+    deps = [":tare_force_torque_sensor_proto"],
+)
+
+proto_library(
+    name = "wait_for_settling_action_proto",
+    srcs = ["wait_for_settling_action.proto"],
+    visibility = ["//visibility:public"],
+)
+
+cc_proto_library(
+    name = "wait_for_settling_action_cc_proto",
+    visibility = ["//visibility:public"],
+    deps = [":wait_for_settling_action_proto"],
+)
+
+py_proto_library(
+    name = "wait_for_settling_action_py_pb2",
+    visibility = ["//visibility:public"],
+    deps = [":wait_for_settling_action_proto"],
 )

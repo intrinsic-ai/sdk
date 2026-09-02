@@ -16,6 +16,7 @@ load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@intrinsic_js_rules//:defs.bzl", "js_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = [
@@ -23,46 +24,14 @@ package(default_visibility = [
 ])
 
 proto_library(
-    name = "dio_config_proto",
-    srcs = ["dio_config.proto"],
-)
-
-cc_proto_library(
-    name = "dio_config_cc_proto",
-    deps = [":dio_config_proto"],
-)
-
-go_proto_library(
-    name = "dio_config_go_proto",
-    importpath = "intrinsic/icon/server/config/dio_config_go_proto",
-    protos = [":dio_config_proto"],
-)
-
-proto_library(
-    name = "services_config_proto",
-    srcs = ["services_config.proto"],
-)
-
-cc_proto_library(
-    name = "services_config_cc_proto",
-    deps = [":services_config_proto"],
-)
-
-go_proto_library(
-    name = "services_config_go_proto",
-    importpath = "intrinsic/icon/server/config/services_config_go_proto",
-    protos = [":services_config_proto"],
-)
-
-proto_library(
     name = "icon_main_config_proto",
     srcs = ["icon_main_config.proto"],
     deps = [
         ":realtime_control_config_proto",
-        ":services_config_proto",
         "//intrinsic/assets/proto:field_metadata_proto",
         "//intrinsic/assets/proto/v1:resolved_dependency_proto",
         "//intrinsic/icon/proto:logging_mode_proto",
+        "//intrinsic/icon/server/config:services_config_proto",
         "@com_google_protobuf//:duration_proto",
     ],
 )
@@ -88,10 +57,10 @@ go_proto_library(
     protos = [":icon_main_config_proto"],
     deps = [
         ":realtime_control_config_go_proto",
-        ":services_config_go_proto",
         "//intrinsic/assets/proto:field_metadata_go_proto",
         "//intrinsic/assets/proto/v1:resolved_dependency_go_proto",
         "//intrinsic/icon/proto:logging_mode_go_proto",
+        "//intrinsic/icon/server/config:services_config_go_proto",
     ],
 )
 
@@ -139,4 +108,42 @@ go_proto_library(
         "//intrinsic/icon/control/parts/proto/v1:realtime_part_config_go_proto",
         "//intrinsic/icon/hal/lib/fieldbus/v1:value_parsing_go_proto",
     ],
+)
+
+proto_library(
+    name = "dio_config_proto",
+    srcs = ["dio_config.proto"],
+    visibility = ["//visibility:public"],
+)
+
+cc_proto_library(
+    name = "dio_config_cc_proto",
+    visibility = ["//visibility:public"],
+    deps = [":dio_config_proto"],
+)
+
+go_proto_library(
+    name = "dio_config_go_proto",
+    importpath = "intrinsic/icon/server/config/dio_config_go_proto",
+    protos = [":dio_config_proto"],
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "services_config_proto",
+    srcs = ["services_config.proto"],
+    visibility = ["//visibility:public"],
+)
+
+cc_proto_library(
+    name = "services_config_cc_proto",
+    visibility = ["//visibility:public"],
+    deps = [":services_config_proto"],
+)
+
+go_proto_library(
+    name = "services_config_go_proto",
+    importpath = "intrinsic/icon/server/config/services_config_go_proto",
+    protos = [":services_config_proto"],
+    visibility = ["//visibility:public"],
 )
