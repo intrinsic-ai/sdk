@@ -32,36 +32,6 @@ go_library(
 )
 
 cc_library(
-    name = "gtest_wrapper",
-    testonly = 1,
-    hdrs = ["gtest_wrapper.h"],
-    visibility = ["//visibility:public"],
-    deps = [
-        ":status_payload_matchers",
-        "@abseil-cpp//absl/status:status_matchers",
-        "@com_github_inazarenko_protobuf_matchers//protobuf-matchers",
-        "@com_google_benchmark//:benchmark",
-        "@com_google_cel_cpp//internal:testing",
-        "@com_google_googletest//:gtest",
-    ],
-)
-
-cc_library(
-    name = "gtest_wrapper_main",
-    testonly = 1,
-    srcs = ["gtest_wrapper_main.cc"],
-    visibility = ["//visibility:public"],
-    deps = [
-        "@abseil-cpp//absl/debugging:failure_signal_handler",
-        "@abseil-cpp//absl/debugging:symbolize",
-        "@abseil-cpp//absl/flags:parse",
-        "@com_google_benchmark//:benchmark",
-        "@com_google_fuzztest//fuzztest:init_fuzztest",
-        "@com_google_googletest//:gtest",
-    ],
-)
-
-cc_library(
     name = "status_payload_matchers",
     testonly = 1,
     hdrs = ["status_payload_matchers.h"],
