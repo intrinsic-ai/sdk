@@ -26,12 +26,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	solutiondeploymentpb "intrinsic/assets/proto/v1/solution_deployment_go_proto"
-	deploygrpcpb "intrinsic/kubernetes/workcell_spec/proto/deploy_go_proto"
-	deploypb "intrinsic/kubernetes/workcell_spec/proto/deploy_go_proto"
 
 	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 )
@@ -39,12 +36,7 @@ import (
 func stopSolution(ctx context.Context, conn *grpc.ClientConn) error {
 	client := solutiondeploymentpb.NewSolutionDeploymentServiceClient(conn)
 	op, err := client.DeleteSolutionDeployment(ctx, &solutiondeploymentpb.DeleteSolutionDeploymentRequest{})
-	if status.Code(err) == codes.Unimplemented {
-		if _, err := deploygrpcpb.NewDeployServiceClient(conn).StopSolution(ctx, &deploypb.StopSolutionRequest{}); err != nil {
-			return fmt.Errorf("failed to stop solution (fallback): %w", err)
-		}
-		return nil
-	} else if err != nil {
+	if err != nil {
 		return fmt.Errorf("failed to stop solution: %w", err)
 	}
 

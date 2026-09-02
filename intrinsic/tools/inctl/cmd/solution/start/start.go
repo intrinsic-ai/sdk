@@ -35,8 +35,6 @@ import (
 
 	solutiondeploymentpb "intrinsic/assets/proto/v1/solution_deployment_go_proto"
 	opmodepb "intrinsic/config/proto/operation_mode_go_proto"
-	deploygrpcpb "intrinsic/kubernetes/workcell_spec/proto/deploy_go_proto"
-	deploypb "intrinsic/kubernetes/workcell_spec/proto/deploy_go_proto"
 
 	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 )
@@ -54,18 +52,7 @@ func startSolution(ctx context.Context, conn *grpc.ClientConn, solutionID string
 	if status.Code(err) == codes.FailedPrecondition {
 		return fmt.Errorf("cannot start solution %q: %w", solutionID, err)
 	}
-	if status.Code(err) == codes.Unimplemented {
-		if _, err := deploygrpcpb.NewDeployServiceClient(conn).StartSolution(ctx, &deploypb.StartSolutionRequest{
-			SolutionId:    solutionID,
-			OperationMode: opMode,
-		}); err != nil {
-			if status.Code(err) == codes.FailedPrecondition {
-				return fmt.Errorf("cannot start solution %q: %w", solutionID, err)
-			}
-			return fmt.Errorf("failed to start solution (fallback): %w", err)
-		}
-		return nil
-	} else if err != nil {
+	if err != nil {
 		return fmt.Errorf("failed to start solution: %w", err)
 	}
 

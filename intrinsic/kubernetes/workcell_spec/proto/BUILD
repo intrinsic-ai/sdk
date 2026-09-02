@@ -45,7 +45,6 @@ js_library(
 proto_library(
     name = "deploy_proto",
     srcs = ["deploy.proto"],
-    deps = ["//intrinsic/config/proto:operation_mode_proto"],
 )
 
 go_proto_library(
@@ -56,5 +55,4 @@ go_proto_library(
     ],
     importpath = "intrinsic/kubernetes/workcell_spec/proto/deploy_go_proto",
     protos = [":deploy_proto"],
-    deps = ["//intrinsic/config/proto:operation_mode_go_proto"],
 )
