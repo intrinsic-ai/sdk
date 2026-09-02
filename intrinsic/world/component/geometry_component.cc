@@ -26,7 +26,6 @@
 #include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "absl/strings/numbers.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "absl/strings/substitute.h"
@@ -65,36 +64,6 @@ struct MigrationGeometry {
 using NamedMigrationGeometrySet = WorldHashMap<std::string, MigrationGeometry>;
 using MigrationGeometryMap =
     WorldHashMap<std::string, NamedMigrationGeometrySet>;
-
-// Returns a sorted list of keys for the given named geometry set so that keys
-// created from std::vector<TransformedGeometry> are sorted as the original
-// vector at the beginning of the list
-template <typename T>
-std::vector<std::string> GetSortedGeometrySetKeys(
-    const WorldHashMap<std::string, T>& geo_set) {
-  std::vector<size_t> numbered_keys;
-  std::vector<std::string> non_numbered_keys;
-  for (const auto& [key, _] : geo_set) {
-    size_t key_int;
-    if (absl::SimpleAtoi(key, &key_int)) {
-      numbered_keys.push_back(key_int);
-    } else {
-      non_numbered_keys.push_back(key);
-    }
-  }
-  std::sort(numbered_keys.begin(), numbered_keys.end());
-  std::sort(non_numbered_keys.begin(), non_numbered_keys.end());
-
-  std::vector<std::string> sorted_geo_set_keys;
-  sorted_geo_set_keys.reserve(numbered_keys.size() + non_numbered_keys.size());
-  for (const auto& key : numbered_keys) {
-    sorted_geo_set_keys.push_back(absl::StrCat(key));
-  }
-  for (auto&& key : non_numbered_keys) {
-    sorted_geo_set_keys.push_back(std::move(key));
-  }
-  return sorted_geo_set_keys;
-}
 
 absl::StatusOr<MigrationGeometry> UpdateGeometryOptions(
     MigrationGeometry geo, const GeometryOptions& options) {
@@ -215,7 +184,6 @@ GeometryComponentImpl::ToProto(GeometrySerializer* geolib) const {
                << "]' has neither proto nor geo";
       }
     }
-
   }
 
   return result;

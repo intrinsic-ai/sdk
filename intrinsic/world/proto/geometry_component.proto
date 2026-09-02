@@ -53,8 +53,9 @@ message GeometryComponent {
     // Deprecated. We are in the process of migrating from this field to the
     // named_geometries field below. On deserialization, if both geometries and
     // named_geometries are populated, the named_geometries field will be used.
-    // On serialization, both fields will be populated such that readers of this
-    // field can still access the geometric data.
+    // We are still deserializing old assets containing this field, but are no
+    // longer serializing this field in gRPC responses and new assets (use
+    // named_geometries instead).
     // Note: Do not modify this field from a GeometryComponent received from the
     // ObjectWorldService and reuse it in another request. If you need to modify
     // in place, consider modifying named_geometries instead.
