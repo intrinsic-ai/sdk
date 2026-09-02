@@ -18,8 +18,11 @@ from __future__ import annotations
 
 from typing import Any
 from typing import Iterable
+from typing import Sequence
 from typing import Type
 from typing import Union
+
+from google.protobuf import any_pb2
 
 from intrinsic.assets import id_utils
 from intrinsic.assets.configuration import asset_configuration_client
@@ -46,7 +49,6 @@ def _create_skill_packages(
     relative_child_package_names: set[str],
     skill_infos: list[skill_generation.SkillInfoImpl],
     compatible_resources_by_id: dict[str, dict[str, provided.ResourceList]],
-    asset_config_client: asset_configuration_client.AssetConfigurationClient,
 ) -> dict[str, _SkillPackageImpl]:
   """Recursively creates a hierarchy of skill packages.
 
@@ -80,7 +82,6 @@ def _create_skill_packages(
         relative_child_package_names_of_child,
         skill_infos,
         compatible_resources_by_id,
-        asset_config_client,
     )
 
   return skill_packages
@@ -105,7 +106,6 @@ class _SkillPackageImpl(provided.SkillPackage):
       relative_child_package_names: set[str],
       skill_infos: list[skill_generation.SkillInfoImpl],
       compatible_resources_by_id: dict[str, dict[str, provided.ResourceList]],
-      asset_config_client: asset_configuration_client.AssetConfigurationClient,
   ):
     """Creates a new skills package including all child packages.
 
@@ -120,7 +120,6 @@ class _SkillPackageImpl(provided.SkillPackage):
     """
 
     self._package_name = package_name
-    self._asset_config_client = asset_config_client
     self._skills_by_name = {
         info.skill_name: info
         for info in skill_infos
@@ -136,7 +135,6 @@ class _SkillPackageImpl(provided.SkillPackage):
         relative_child_package_names,
         skill_infos,
         compatible_resources_by_id,
-        asset_config_client,
     )
 
   @property
@@ -161,7 +159,6 @@ class _SkillPackageImpl(provided.SkillPackage):
       self._skill_type_classes_by_name[name] = skill_generation.gen_skill_class(
           self._skills_by_name[name],
           self._compatible_resources_by_name[name],
-          self._asset_config_client,
       )
     return self._skill_type_classes_by_name[name]
 
@@ -276,7 +273,6 @@ class Skills(providers.SkillProvider):
         package_names,
         skill_infos,
         self._compatible_resources_by_id,
-        self._asset_config_client,
     )
 
   def __getattr__(self, name: str) -> Union[Type[Any], provided.SkillPackage]:
@@ -296,7 +292,6 @@ class Skills(providers.SkillProvider):
           skill_generation.gen_skill_class(
               self._global_skills_by_name[name],
               self._global_compatible_resources_by_name[name],
-              self._asset_config_client,
           )
       )
     return self._global_skill_type_classes_by_name[name]
@@ -316,7 +311,6 @@ class Skills(providers.SkillProvider):
             skill_generation.gen_skill_class(
                 self._skills_by_id[skill_id],
                 self._compatible_resources_by_id[skill_id],
-                self._asset_config_client,
             )
         )
       return self._skill_type_classes_by_id[skill_id]
@@ -352,7 +346,6 @@ class Skills(providers.SkillProvider):
             skill_generation.gen_skill_class(
                 self._skills_by_id[skill_id],
                 self._compatible_resources_by_id[skill_id],
-                self._asset_config_client,
             )
         )
 
@@ -383,6 +376,7 @@ class Skills(providers.SkillProvider):
         skill.return_value_description.return_value_message_full_name,
         file_descriptor_set,
         default_value,
+        None,  # recommended_config
         dict(skill.resource_selectors),
         proto_comments,
         provided.SkillType.PROCESS,
@@ -392,6 +386,7 @@ class Skills(providers.SkillProvider):
   def _skill_asset_to_skill_info(
       self,
       asset: installed_assets_pb2.InstalledAsset,
+      recommended_config: any_pb2.Any | None = None,
   ) -> provided.SkillInfo:
     details = asset.skill_specific_metadata.details
 
@@ -413,11 +408,60 @@ class Skills(providers.SkillProvider):
         details.execute_result.message_full_name,
         asset.metadata.file_descriptor_set,
         default_value,
+        recommended_config,
         dict(details.dependencies.required_equipment),
         proto_comments,
         provided.SkillType.REGULAR_SKILL,
         skill_utils.INTRINSIC_TYPE_URL_AREA_ASSETS,
     )
+
+  def _skill_assets_to_skill_infos(
+      self, skill_assets: Sequence[installed_assets_pb2.InstalledAsset]
+  ) -> list[provided.SkillInfo]:
+    assets_with_recommended_config = [
+        asset
+        for asset in skill_assets
+        if asset.skill_specific_metadata.details.parameter.message_full_name
+    ]
+
+    # For each skill with a parameter message fetch and cache a basic
+    # recommended config which is based on the default value (if provided by the
+    # skill) or an empty parameter message.
+    recommended_configs: dict[str, any_pb2.Any | None] = {}
+    if assets_with_recommended_config:
+      names_and_input_configs = [
+          (
+              id_utils.id_from_proto(asset.metadata.id_version.id),
+              (
+                  asset.skill_specific_metadata.details.parameter.default_value
+                  if asset.skill_specific_metadata.details.parameter.HasField(
+                      "default_value"
+                  )
+                  else None
+              ),
+          )
+          for asset in assets_with_recommended_config
+      ]
+      responses = (
+          self._asset_config_client.batch_recommend_asset_configurations(
+              names_and_input_configs
+          )
+      )
+      for asset, resp in zip(assets_with_recommended_config, responses):
+        skill_id = id_utils.id_from_proto(asset.metadata.id_version.id)
+        recommended_configs[skill_id] = (
+            resp.config if resp.HasField("config") else None
+        )
+
+    return [
+        self._skill_asset_to_skill_info(
+            asset,
+            recommended_configs.get(
+                id_utils.id_from_proto(asset.metadata.id_version.id)
+            ),
+        )
+        for asset in skill_assets
+    ]
 
   def _legacy_process_from_skill_registry_to_skill_info(
       self,
@@ -465,6 +509,7 @@ class Skills(providers.SkillProvider):
         skill.return_value_description.return_value_message_full_name,
         file_descriptor_set,
         default_value,
+        None,  # recommended_config
         dict(skill.resource_selectors),
         proto_comments,
         provided.SkillType.PROCESS,
@@ -490,11 +535,12 @@ class Skills(providers.SkillProvider):
       infos[info.id] = info
 
     # Add all Skill assets.
-    for asset in self._installed_assets.list_all_installed_assets(
-        asset_types=[asset_type_pb2.AssetType.ASSET_TYPE_SKILL],
-        view=view_pb2.AssetViewType.ASSET_VIEW_TYPE_ALL_METADATA,
+    for info in self._skill_assets_to_skill_infos(
+        self._installed_assets.list_all_installed_assets(
+            asset_types=[asset_type_pb2.AssetType.ASSET_TYPE_SKILL],
+            view=view_pb2.AssetViewType.ASSET_VIEW_TYPE_ALL_METADATA,
+        )
     ):
-      info = self._skill_asset_to_skill_info(asset)
       infos[info.id] = info
 
     # Add legacy processes which have been side-loaded to the skill registry and

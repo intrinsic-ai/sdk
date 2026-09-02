@@ -14,6 +14,7 @@
 
 """Utilities for testing skills in the solution building library."""
 
+from collections.abc import Sequence
 from typing import cast
 from unittest import mock
 
@@ -566,23 +567,37 @@ def create_asset_configuration_client(
     if name not in recommendations:
       raise LookupError(f'No recommendations defined for {name}')
 
-    for input_config_canditate, output_config_candidate in recommendations[
+    for input_config_candidate, output_config_candidate in recommendations[
         name
     ]:
-      if (input_config_canditate is None and input_configuration is None) or (
-          input_config_canditate.SerializeToString()
+      if (input_config_candidate is None and input_configuration is None) or (
+          input_config_candidate is not None
+          and input_configuration is not None
+          and input_config_candidate.SerializeToString()
           == input_configuration.value
       ):
         response = asset_configuration_pb2.RecommendAssetConfigurationResponse()
-        response.config.Pack(output_config_candidate)
+        if output_config_candidate is not None:
+          response.config.Pack(output_config_candidate)
         return response
 
     raise LookupError(
         f'No defined recommendation for {name} matches the input config'
     )
 
+  def mock_batch_recommend_asset_configurations(
+      names_and_input_configs: Sequence[tuple[str, any_pb2.Any | None]],
+  ) -> list[asset_configuration_pb2.RecommendAssetConfigurationResponse]:
+    return [
+        mock_recommend_asset_configuration(name, input_config)
+        for name, input_config in names_and_input_configs
+    ]
+
   client = mock.MagicMock()
   client.recommend_asset_configuration.side_effect = (
       mock_recommend_asset_configuration
+  )
+  client.batch_recommend_asset_configurations.side_effect = (
+      mock_batch_recommend_asset_configurations
   )
   return client

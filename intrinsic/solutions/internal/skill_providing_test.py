@@ -24,9 +24,6 @@ from google.protobuf import any_pb2
 from google.protobuf import descriptor_pb2
 from google.protobuf import text_format
 import grpc
-from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import point_pb2 as ros_point_pb2
-from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import pose_pb2 as ros_pose_pb2
-from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import quaternion_pb2 as ros_quaternion_pb2
 
 from intrinsic.assets.configuration import asset_configuration_client
 from intrinsic.assets.proto import id_pb2
@@ -51,6 +48,9 @@ from intrinsic.solutions.testing import compare
 from intrinsic.solutions.testing import skill_test_utils
 from intrinsic.solutions.testing import test_skill_params_pb2
 from intrinsic.util.path_resolver import path_resolver
+from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import point_pb2 as ros_point_pb2
+from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import pose_pb2 as ros_pose_pb2
+from third_party.ros2.ros_interfaces.jazzy.geometry_msgs.msg import quaternion_pb2 as ros_quaternion_pb2
 
 _DEFAULT_TEST_MESSAGE = test_skill_params_pb2.TestMessage(
     my_double=2.5,
@@ -1306,6 +1306,7 @@ class SkillsTest(parameterized.TestCase):
 
   def test_skill_skips_recommended_config(self):
     default_params = test_skill_params_pb2.TestMessage(my_double=2.5)
+    recommended_params = test_skill_params_pb2.TestMessage(my_double=5.0)
     asset = skill_test_utils.create_skill_asset(
         'ai.intrinsic.my_skill',
         parameter_message=test_skill_params_pb2.TestMessage,
@@ -1315,10 +1316,8 @@ class SkillsTest(parameterized.TestCase):
         skill_test_utils.create_empty_skill_registry(),
         skill_test_utils.create_empty_resource_registry(),
         skill_test_utils.create_installed_assets([asset]),
-        # Configure no recommendations for my_skill. This causes an error if the
-        # asset configuration client is called in any form.
         skill_test_utils.create_asset_configuration_client({
-            'ai.intrinsic.my_skill': [],
+            'ai.intrinsic.my_skill': [(default_params, recommended_params)],
         }),
     )
 
@@ -1331,6 +1330,7 @@ class SkillsTest(parameterized.TestCase):
         return_value_name=skill.proto.return_value_name,
     )
     expected_proto.parameters.Pack(
+        # Expect the default parameters, not the recommended parameters
         default_params,
         type_url_prefix='type.intrinsic.ai/assets/ai.intrinsic.my_skill',
     )
@@ -1404,7 +1404,9 @@ class SkillsTest(parameterized.TestCase):
         return 'Asset configuration service is temporarily down.'
 
     stub = mock.MagicMock()
-    stub.RecommendAssetConfiguration.side_effect = FakeUnavailableGrpcError()
+    stub.BatchRecommendAssetConfigurations.side_effect = (
+        FakeUnavailableGrpcError()
+    )
     asset_config_client = asset_configuration_client.AssetConfigurationClient(
         stub
     )
@@ -1425,7 +1427,7 @@ class SkillsTest(parameterized.TestCase):
 
     skill = skills.ai.intrinsic.my_skill()
 
-    stub.RecommendAssetConfiguration.assert_called_once()
+    stub.BatchRecommendAssetConfigurations.assert_called_once()
     expected_proto = behavior_call_pb2.BehaviorCall(
         skill_id='ai.intrinsic.my_skill',
         return_value_name=skill.proto.return_value_name,
@@ -2190,6 +2192,7 @@ Returns:
         return_value_message_full_name='',
         file_descriptor_set=descriptor_pb2.FileDescriptorSet(),
         default_params=None,
+        recommended_config=None,
         resource_selectors={},
         proto_comments={},
         skill_type=provided.SkillType.REGULAR_SKILL,
@@ -2211,6 +2214,7 @@ Returns:
         return_value_message_full_name='',
         file_descriptor_set=descriptor_pb2.FileDescriptorSet(),
         default_params=None,
+        recommended_config=None,
         resource_selectors={},
         proto_comments={},
         skill_type=provided.SkillType.REGULAR_SKILL,
@@ -2232,6 +2236,7 @@ Returns:
         return_value_message_full_name='',
         file_descriptor_set=descriptor_pb2.FileDescriptorSet(),
         default_params=None,
+        recommended_config=None,
         resource_selectors={},
         proto_comments={},
         skill_type=provided.SkillType.REGULAR_SKILL,
@@ -2250,14 +2255,28 @@ Returns:
                 name='my_skill.proto',
                 package='my_package',
                 message_type=[
-                    descriptor_pb2.DescriptorProto(name='MySkillParams'),
+                    descriptor_pb2.DescriptorProto(
+                        name='MySkillParams',
+                        field=[
+                            descriptor_pb2.FieldDescriptorProto(
+                                name='value',
+                                number=1,
+                                type=descriptor_pb2.FieldDescriptorProto.TYPE_STRING,
+                            )
+                        ],
+                    ),
                     descriptor_pb2.DescriptorProto(name='MySkillResult'),
                 ],
             )
         ]
     )
     defaults_any = any_pb2.Any(
-        type_url='type.intrinsic.ai/assets/ai.intrinsic.my_skill/my_package.MySkillParams'
+        type_url='type.intrinsic.ai/assets/ai.intrinsic.my_skill/my_package.MySkillParams',
+        value=b'\n\x03foo',
+    )
+    recommended_config_any = any_pb2.Any(
+        type_url='type.intrinsic.ai/assets/ai.intrinsic.my_skill/my_package.MySkillParams',
+        value=b'\n\x03bar',
     )
 
     info = skill_generation.SkillInfoImpl(
@@ -2270,6 +2289,7 @@ Returns:
         return_value_message_full_name='my_package.MySkillResult',
         file_descriptor_set=file_descriptor_set,
         default_params=defaults_any,
+        recommended_config=recommended_config_any,
         resource_selectors={},
         proto_comments={},
         skill_type=provided.SkillType.REGULAR_SKILL,
@@ -2284,6 +2304,7 @@ Returns:
     )
     self.assertEqual(info.file_descriptor_set, file_descriptor_set)
     self.assertEqual(info.default_params, defaults_any)
+    self.assertEqual(info._recommended_config, recommended_config_any)
 
   def test_construct_skill_info_incomplete_fileset(self):
     file_descriptor_set = descriptor_pb2.FileDescriptorSet()
@@ -2302,6 +2323,7 @@ Returns:
           return_value_message_full_name='',
           file_descriptor_set=file_descriptor_set,
           default_params=None,
+          recommended_config=None,
           resource_selectors={},
           proto_comments={},
           skill_type=provided.SkillType.REGULAR_SKILL,
@@ -2322,6 +2344,7 @@ Returns:
         return_value_message_full_name='',
         file_descriptor_set=descriptor_pb2.FileDescriptorSet(),
         default_params=None,
+        recommended_config=None,
         resource_selectors=resource_selectors,
         proto_comments={},
         skill_type=provided.SkillType.REGULAR_SKILL,
@@ -2341,6 +2364,7 @@ Returns:
         return_value_message_full_name='',
         file_descriptor_set=descriptor_pb2.FileDescriptorSet(),
         default_params=None,
+        recommended_config=None,
         resource_selectors={},
         proto_comments={},
         skill_type=provided.SkillType.REGULAR_SKILL,
@@ -2361,6 +2385,7 @@ Returns:
         return_value_message_full_name='',
         file_descriptor_set=descriptor_pb2.FileDescriptorSet(),
         default_params=None,
+        recommended_config=None,
         resource_selectors={},
         proto_comments={
             'intrinsic_proto.MyMessage': 'MyMessage comment\n',

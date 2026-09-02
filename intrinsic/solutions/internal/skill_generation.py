@@ -27,17 +27,14 @@ from typing import Optional
 from typing import Set
 from typing import Type
 import uuid
-import warnings
 
 from google.protobuf import any_pb2
 from google.protobuf import descriptor
 from google.protobuf import descriptor_pb2
 from google.protobuf import descriptor_pool
 from google.protobuf import message
-import grpc
 
 from intrinsic.assets import id_utils
-from intrinsic.assets.configuration import asset_configuration_client
 from intrinsic.assets.proto import id_pb2
 from intrinsic.executive.proto import behavior_call_pb2
 from intrinsic.skills.proto import equipment_pb2
@@ -88,6 +85,7 @@ class SkillInfoImpl(provided.SkillInfo):
   _return_value_message_full_name: str
   _file_descriptor_set: descriptor_pb2.FileDescriptorSet
   _default_params: any_pb2.Any | None
+  _recommended_config: any_pb2.Any | None
   _resource_selectors: dict[str, equipment_pb2.ResourceSelector]
 
   _skill_type: provided.SkillType
@@ -107,6 +105,7 @@ class SkillInfoImpl(provided.SkillInfo):
       return_value_message_full_name: str,
       file_descriptor_set: descriptor_pb2.FileDescriptorSet,
       default_params: any_pb2.Any | None,
+      recommended_config: any_pb2.Any | None,
       resource_selectors: dict[str, equipment_pb2.ResourceSelector],
       proto_comments: dict[str, str],
       skill_type: provided.SkillType,
@@ -125,6 +124,10 @@ class SkillInfoImpl(provided.SkillInfo):
         the skill's parameter and return value message.
       default_params: Default value for the skill parameters or None if the
         skill does not provide a default value proto.
+      recommended_config: A basic recommended configuration for the skill
+        parameters based on the default value proto (if the skill provides one)
+        or an empty parameter proto. None if the skill does not have a parameter
+        message.
       resource_selectors: Resource selectors for the skill.
       proto_comments: Message/field/enum comments from the parameter and return
         value file descriptor set (combined) as a mapping from full name to
@@ -150,6 +153,7 @@ class SkillInfoImpl(provided.SkillInfo):
     self._return_value_message_full_name = return_value_message_full_name
     self._file_descriptor_set = file_descriptor_set
     self._default_params = default_params
+    self._recommended_config = recommended_config
     self._resource_selectors = resource_selectors
     self._skill_type = skill_type
     self._type_url_area = type_url_area
@@ -291,6 +295,12 @@ class SkillInfoImpl(provided.SkillInfo):
           f"{{\n{textwrap.indent(str(self.default_params), '  ')}}}"
       )
 
+    recommended_config = None
+    if self._recommended_config is not None:
+      recommended_config = (
+          f"{{\n{textwrap.indent(str(self.recommended_config), '  ')}}}"
+      )
+
     # fmt: off
     output = (
         f"id_version: '{self.id_version}'\n"
@@ -299,6 +309,7 @@ class SkillInfoImpl(provided.SkillInfo):
         f"return_value_message_full_name: '{self.return_value_message_full_name}'\n"
         f"file_descriptor_set (summary): \n{fds_summary}\n"
         f"default_params: {default_params}\n"
+        f"recommended_config: {recommended_config}\n"
         f"resource_selectors: {str(self.resource_selectors)}\n"
         f"type_url_area: '{self.type_url_area}'\n"
         f"proto_comments (summary): <{len(self._proto_comments)} comments>\n"
@@ -583,30 +594,15 @@ def _gen_init_fun(
       self._param_message = self._info.create_param_message()
       self._param_message.CopyFrom(param_defaults)
 
+    # Use cached recommended config, mainly to auto-fill ResolvedDependency
+    # parameters for which there is a unique matching choice in the solution.
     if (
         is_regular_skill
         and _with_recommended_config
         and self._param_message is not None
+        and self._info._recommended_config is not None
     ):
-      input_config = any_pb2.Any()
-      input_config.Pack(self._param_message)
-      try:
-        recommended_config = (
-            self._asset_config_client.recommend_asset_configuration(
-                name=self._info.id, input_configuration=input_config
-            )
-        )
-        if recommended_config.HasField("config"):
-          recommended_config.config.Unpack(self._param_message)
-      except grpc.RpcError as e:
-        if e.code() == grpc.StatusCode.NOT_FOUND:
-          warnings.warn(
-              f"Could not get recommended parameters for '{self._info.id}': "
-              f"{e.details()}. This may occur if the Skill is not installed.",
-              RuntimeWarning,
-          )
-        else:
-          raise
+      self._info._recommended_config.Unpack(self._param_message)
 
     params_set = self._set_params(**kwargs)
     resource_set = self._set_resources(**kwargs)
@@ -639,7 +635,6 @@ def _gen_init_fun(
 def gen_skill_class(
     info: provided.SkillInfo,
     compatible_resources: dict[str, provided.ResourceList],
-    asset_config_client: asset_configuration_client.AssetConfigurationClient,
 ) -> Type[Any]:
   """This generates a new skill wrapper class type.
 
@@ -653,8 +648,6 @@ def gen_skill_class(
   Args:
     info: Skill information.
     compatible_resources: Map with compatible resources.
-    asset_config_client: Asset configuration client to fetch dynamic
-      evaluated defaults recommendations.
 
   Returns:
     A new type for a GeneratedSkill sub-class.
@@ -685,7 +678,6 @@ def gen_skill_class(
           "_compatible_resources": provided.SkillCompatibleResourcesMap(
               compatible_resources
           ),
-          "_asset_config_client": asset_config_client,
           # We use the __init__ documentation because that is shown in the
           # auto-completion tooltip, not __init__.__doc__.
           "__doc__": _gen_class_docstring(info),
