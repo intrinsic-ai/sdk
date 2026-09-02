@@ -249,7 +249,7 @@ bazel_dep(name = "googleapis", version = "0.0.0-20260728-b8486a2f", repo_name = 
 bazel_dep(name = "googletest", version = "1.17.0.bcr.2", repo_name = "com_google_googletest")
 bazel_dep(name = "grpc_ecosystem_grpc_gateway", version = "2.29.0.bcr.3", repo_name = "com_github_grpc_ecosystem_grpc_gateway_v2")
 bazel_dep(name = "grpc", version = "1.74.0", repo_name = "com_github_grpc_grpc")
-bazel_dep(name = "gz-math", version = "9.2.0")
+bazel_dep(name = "gz-math", version = "9.3.0")
 bazel_dep(name = "gz-msgs", version = "12.0.2")
 bazel_dep(name = "gz-transport", version = "15.1.0")
 bazel_dep(name = "libxml2-go", version = "0.0.0-20250331-c934e3f.bcr.1")
