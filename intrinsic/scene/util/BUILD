@@ -36,6 +36,7 @@ cc_library(
     srcs = ["geometry_update_util.cc"],
     hdrs = ["geometry_update_util.h"],
     deps = [
+        "//intrinsic/geometry/api:apply_material_properties",
         "//intrinsic/scene/proto/v1:scene_object_updates_cc_proto",
         "//intrinsic/util/status:status_macros",
         "//intrinsic/world:geometry_types",

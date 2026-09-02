@@ -19,6 +19,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/substitute.h"
 #include "intrinsic/eigenmath/types.h"
+#include "intrinsic/geometry/api/apply_material_properties.h"
 #include "intrinsic/geometry/api/geometry.h"
 #include "intrinsic/geometry/api/renderable.h"
 #include "intrinsic/geometry/api/validate_mesh.h"
@@ -36,6 +37,7 @@ namespace scene_object {
 
 namespace {
 
+using ::intrinsic::geo::ValidateMaterialProperties;
 using DataCase = intrinsic_proto::geometry::v1::Geometry::DataCase;
 using intrinsic_proto::scene_object::v1::Entity;
 using intrinsic_proto::scene_object::v1::SceneObject;
@@ -53,6 +55,10 @@ absl::Status ValidateTransformedGeometry(
     const GeometryDeserializer& geolib) {
   const auto& geo = transformed_geo.geometry();
   const eigenmath::Vector3d scale = GetScale(transformed_geo.ref_t_shape());
+
+  if (geo.has_material_overrides()) {
+    INTR_RETURN_IF_ERROR(ValidateMaterialProperties(geo.material_overrides()));
+  }
 
   switch (geo.data_case()) {
     case DataCase::kGeoRef: {

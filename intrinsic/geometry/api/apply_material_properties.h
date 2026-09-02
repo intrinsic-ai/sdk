@@ -28,6 +28,15 @@
 
 namespace intrinsic::geo {
 
+// Validates that MaterialProperties fields (if set) are within valid ranges:
+// - base_color: red, green, blue in [0.0, 1.0]; alpha is not supported.
+// - metalness: in [0.0, 1.0].
+// - transmission: in [0.0, 1.0].
+// - roughness: in [0.0, 1.0].
+absl::Status ValidateMaterialProperties(
+    const intrinsic_proto::geometry::v1::MaterialProperties&
+        material_properties);
+
 absl::StatusOr<std::shared_ptr<const Renderable>> ApplyMaterialProperties(
     std::shared_ptr<const Renderable> geo,
     const intrinsic_proto::geometry::v1::MaterialProperties&
@@ -43,6 +52,7 @@ absl::Status ApplyMaterialToAiScene(aiScene& scene, const Material& material);
 }  // namespace intrinsic::geo
 namespace intrinsic {
 using ::intrinsic::geo::ApplyMaterialPropertiesToGlb;
+using ::intrinsic::geo::ValidateMaterialProperties;
 }  // namespace intrinsic
 
 #endif  // INTRINSIC_GEOMETRY_API_APPLY_MATERIAL_PROPERTIES_H_

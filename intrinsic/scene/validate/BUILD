@@ -66,6 +66,7 @@ cc_library(
     hdrs = ["scene_object_validate_geo.h"],
     deps = [
         "//intrinsic/eigenmath",
+        "//intrinsic/geometry/api:apply_material_properties",
         "//intrinsic/geometry/api:geometry",
         "//intrinsic/geometry/api:renderable",
         "//intrinsic/geometry/api:validate_mesh",

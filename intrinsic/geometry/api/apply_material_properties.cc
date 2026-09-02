@@ -47,10 +47,50 @@ constexpr double kDefaultRoughness = 1.0;
 constexpr double kDefaultTransmission = 0.0;
 }  // namespace
 
+absl::Status ValidateMaterialProperties(
+    const MaterialProperties& material_properties) {
+  if (material_properties.has_base_color()) {
+    const auto& base_color = material_properties.base_color();
+    if (base_color.red() < 0.0 || base_color.red() > 1.0 ||
+        base_color.green() < 0.0 || base_color.green() > 1.0 ||
+        base_color.blue() < 0.0 || base_color.blue() > 1.0) {
+      return absl::InvalidArgumentError(absl::Substitute(
+          "Base color must be in the range of [0, 1]. Got [r=$0, g=$1, b=$2]",
+          base_color.red(), base_color.green(), base_color.blue()));
+    }
+    if (base_color.has_alpha() && base_color.alpha().value() != 1.0) {
+      return absl::InvalidArgumentError(
+          "Base color alpha is not supported. Please use transmission in "
+          "material properties instead.");
+    }
+  }
+  if (material_properties.has_metalness()) {
+    const double metalness = material_properties.metalness();
+    if (metalness < 0.0 || metalness > 1.0) {
+      return absl::InvalidArgumentError(absl::Substitute(
+          "Metalness must be in the range of [0, 1]. Got $0", metalness));
+    }
+  }
+  if (material_properties.has_transmission()) {
+    const double transmission = material_properties.transmission();
+    if (transmission < 0.0 || transmission > 1.0) {
+      return absl::InvalidArgumentError(absl::Substitute(
+          "Transmission must be in the range of [0, 1]. Got $0", transmission));
+    }
+  }
+  if (material_properties.has_roughness()) {
+    const double roughness = material_properties.roughness();
+    if (roughness < 0.0 || roughness > 1.0) {
+      return absl::InvalidArgumentError(absl::Substitute(
+          "Roughness must be in the range of [0, 1]. Got $0", roughness));
+    }
+  }
+  return absl::OkStatus();
+}
+
 absl::StatusOr<std::shared_ptr<const Renderable>> ApplyMaterialProperties(
     std::shared_ptr<const Renderable> geo,
-    const intrinsic_proto::geometry::v1::MaterialProperties&
-        material_properties) {
+    const MaterialProperties& material_properties) {
   std::string glb_bytes = geo->GetGLBString();
   INTR_ASSIGN_OR_RETURN(
       glb_bytes, ApplyMaterialPropertiesToGlb(glb_bytes, material_properties));
@@ -60,6 +100,8 @@ absl::StatusOr<std::shared_ptr<const Renderable>> ApplyMaterialProperties(
 absl::StatusOr<std::string> ApplyMaterialPropertiesToGlb(
     absl::string_view glb_bytes,
     const MaterialProperties& material_properties) {
+  INTR_RETURN_IF_ERROR(ValidateMaterialProperties(material_properties));
+
   // Parse the original glTF model.
   tinygltf::TinyGLTF gltf_parser;
   tinygltf::Model model;
@@ -77,18 +119,6 @@ absl::StatusOr<std::string> ApplyMaterialPropertiesToGlb(
   std::vector<double> base_color_factor;
   if (material_properties.has_base_color()) {
     const auto& base_color = material_properties.base_color();
-    if (base_color.red() < 0.0 || base_color.red() > 1.0 ||
-        base_color.green() < 0.0 || base_color.green() > 1.0 ||
-        base_color.blue() < 0.0 || base_color.blue() > 1.0) {
-      return absl::InvalidArgumentError(absl::Substitute(
-          "Base color must be in the range of [0, 1]. Got [r=$0, g=$1, b=$2]",
-          base_color.red(), base_color.green(), base_color.blue()));
-    }
-    if (base_color.has_alpha() && base_color.alpha().value() != 1.0) {
-      return absl::InvalidArgumentError(
-          "Base color alpha is not supported. Please use transmission in "
-          "material properties instead.");
-    }
     base_color_factor = {base_color.red(), base_color.green(),
                          base_color.blue(), 1.0};
   } else {
@@ -97,24 +127,12 @@ absl::StatusOr<std::string> ApplyMaterialPropertiesToGlb(
   const double metalness = material_properties.has_metalness()
                                ? material_properties.metalness()
                                : kDefaultMetalness;
-  if (metalness < 0.0 || metalness > 1.0) {
-    return absl::InvalidArgumentError(absl::Substitute(
-        "Metalness must be in the range of [0, 1]. Got $0", metalness));
-  }
   const double transmission = material_properties.has_transmission()
                                   ? material_properties.transmission()
                                   : kDefaultTransmission;
-  if (transmission < 0.0 || transmission > 1.0) {
-    return absl::InvalidArgumentError(absl::Substitute(
-        "Transmission must be in the range of [0, 1]. Got $0", transmission));
-  }
   const double roughness = material_properties.has_roughness()
                                ? material_properties.roughness()
                                : kDefaultRoughness;
-  if (roughness < 0.0 || roughness > 1.0) {
-    return absl::InvalidArgumentError(absl::Substitute(
-        "Roughness must be in the range of [0, 1]. Got $0", roughness));
-  }
 
   // Clears existing materials and creates a new material. Replace all mesh
   // primitives to use this new material.

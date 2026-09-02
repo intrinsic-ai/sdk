@@ -21,6 +21,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
+#include "intrinsic/geometry/api/apply_material_properties.h"
 #include "intrinsic/util/status/status_macros.h"
 #include "intrinsic/world/geometry_types.h"
 
@@ -28,6 +29,7 @@ namespace intrinsic::scene_object {
 
 namespace {
 
+using ::intrinsic::geo::ValidateMaterialProperties;
 using ::intrinsic_proto::scene_object::v1::GeometryUpdate;
 
 absl::StatusOr<std::string> GetGeometryTypeKey(
@@ -116,6 +118,12 @@ absl::Status ApplyGeometryUpdate(
       INTR_RETURN_IF_ERROR(
           RemoveGeometry(top_named_geometries, type_key, set.geometry_name()));
       continue;
+    }
+
+    if (set.geometry().has_geometry() &&
+        set.geometry().geometry().has_material_overrides()) {
+      INTR_RETURN_IF_ERROR(ValidateMaterialProperties(
+          set.geometry().geometry().material_overrides()));
     }
 
     intrinsic_proto::world::GeometryComponent::GeometrySet& geo_set =
