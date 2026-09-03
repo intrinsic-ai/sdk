@@ -139,6 +139,13 @@ ProcessSceneObjectUpdate(
     const intrinsic_proto::scene_object::v1::UpdateSimulationProperties&
         update);
 
+// Will add a new joint between two attached links in the scene object.
+absl::StatusOr<intrinsic_proto::scene_object::v1::SceneObject>
+ProcessSceneObjectUpdate(
+    intrinsic_proto::scene_object::v1::SceneObject&& object,
+    const intrinsic_proto::scene_object::v1::CreateJointUpdate& update,
+    UpdateType update_type);
+
 }  // namespace internal
 }  // namespace scene_object
 }  // namespace intrinsic

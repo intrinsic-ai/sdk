@@ -366,6 +366,7 @@ proto_library(
     srcs = ["scene_object_updates.proto"],
     deps = [
         ":collision_rules_proto",
+        ":entity_proto",
         ":object_properties_proto",
         "//intrinsic/geometry/proto/v1:transformed_geometry_proto",
         "//intrinsic/kinematics/types:joint_limits_proto",
@@ -387,6 +388,7 @@ go_proto_library(
     protos = [":scene_object_updates_proto"],
     deps = [
         ":collision_rules_go_proto",
+        ":entity_go_proto",
         ":object_properties_go_proto",
         "//intrinsic/geometry/proto/v1:transformed_geometry_go_proto",
         "//intrinsic/kinematics/types:joint_limits_go_proto",

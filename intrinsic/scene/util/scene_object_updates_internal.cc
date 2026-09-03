@@ -60,10 +60,12 @@ using ::intrinsic_proto::scene_object::v1::CartesianLimitsUpdate;
 using ::intrinsic_proto::scene_object::v1::CollisionEntityPair;
 using ::intrinsic_proto::scene_object::v1::CollisionExclusionRule;
 using ::intrinsic_proto::scene_object::v1::CreateFrameUpdate;
+using ::intrinsic_proto::scene_object::v1::CreateJointUpdate;
 using ::intrinsic_proto::scene_object::v1::DeleteEntityUpdate;
 using ::intrinsic_proto::scene_object::v1::Entity;
 using ::intrinsic_proto::scene_object::v1::EntityPoseUpdate;
 using ::intrinsic_proto::scene_object::v1::GeometryUpdate;
+using ::intrinsic_proto::scene_object::v1::NamedConfiguration;
 using ::intrinsic_proto::scene_object::v1::RenameEntityUpdate;
 using ::intrinsic_proto::scene_object::v1::ReparentEntityUpdate;
 using ::intrinsic_proto::scene_object::v1::SceneObject;
@@ -76,6 +78,7 @@ using ::intrinsic_proto::scene_object::v1::UpdateFrameProperties;
 using ::intrinsic_proto::scene_object::v1::UpdateJointsRequest;
 using ::intrinsic_proto::scene_object::v1::UpdatePhysicsProperties;
 using ::intrinsic_proto::scene_object::v1::UpdateUserData;
+using ::intrinsic_proto::world::KinematicsComponent;
 
 absl::StatusOr<SceneObject> ProcessSceneObjectUpdates(
     SceneObject&& object, const SceneObjectUpdate& update,
@@ -123,6 +126,9 @@ absl::StatusOr<SceneObject> ProcessSceneObjectUpdates(
     case SceneObjectUpdate::kUpdatePhysicsProperties:
       return ProcessSceneObjectUpdate(std::move(object),
                                       update.update_physics_properties());
+    case SceneObjectUpdate::kCreateJoint:
+      return ProcessSceneObjectUpdate(std::move(object), update.create_joint(),
+                                      update_type);
     case SceneObjectUpdate::UPDATE_NOT_SET:
       return absl::InvalidArgumentError(
           "Update not set within SceneObjectUpdate proto.");
@@ -1414,6 +1420,160 @@ absl::StatusOr<SceneObject> ProcessSceneObjectUpdate(
   if (update.has_is_disabled()) {
     object.mutable_simulation_spec()->set_disabled(update.is_disabled());
   }
+  return std::move(object);
+}
+
+absl::StatusOr<SceneObject> ProcessSceneObjectUpdate(
+    SceneObject&& object, const CreateJointUpdate& update,
+    UpdateType update_type) {
+  if (update_type == UpdateType::kObjectInstance) {
+    return absl::PermissionDeniedError(
+        "CreateJointUpdate updates are not allowed within instance "
+        "configuration.");
+  }
+
+  if (update.new_joint_name().empty()) {
+    return absl::InvalidArgumentError("Missing new_joint_name");
+  }
+  if (update.parent_link_name().empty()) {
+    return absl::InvalidArgumentError("Missing parent_link_name");
+  }
+  if (update.child_link_name().empty()) {
+    return absl::InvalidArgumentError("Missing child_link_name");
+  }
+  if (update.parent_link_name() == update.child_link_name()) {
+    return absl::InvalidArgumentError(
+        "Parent and child link cannot be the same link.");
+  }
+
+  if (!update.has_joint()) {
+    return absl::InvalidArgumentError("Missing joint definition.");
+  }
+
+  const KinematicsComponent& kinematics = update.joint().kinematics_component();
+  if (kinematics.motion_type() == KinematicsComponent::MOTION_TYPE_UNDEFINED) {
+    return absl::InvalidArgumentError(
+        absl::Substitute("Joint entity '$0' must have a motion type defined.",
+                         update.new_joint_name()));
+  }
+  if (std::isnan(kinematics.raw_value()) ||
+      std::isinf(kinematics.raw_value())) {
+    return absl::InvalidArgumentError(
+        absl::Substitute("Invalid non-finite raw_value for joint '$0'",
+                         update.new_joint_name()));
+  }
+  INTR_RETURN_IF_ERROR(ValidateJointLimits(kinematics));
+
+  const Entity* parent_entity = nullptr;
+  Entity* child_entity = nullptr;
+
+  for (Entity& entity : *object.mutable_entities()) {
+    if (entity.name() == update.new_joint_name()) {
+      return absl::InvalidArgumentError(absl::StrCat(
+          "Found existing entity with name: ", update.new_joint_name()));
+    }
+    if (entity.name() == update.parent_link_name()) {
+      parent_entity = &entity;
+    }
+    if (entity.name() == update.child_link_name()) {
+      child_entity = &entity;
+    }
+  }
+
+  if (parent_entity == nullptr) {
+    return absl::NotFoundError(absl::StrCat(
+        "Parent link entity could not be found: ", update.parent_link_name()));
+  }
+  if (!parent_entity->has_link()) {
+    return absl::InvalidArgumentError(absl::StrCat(
+        "Parent entity '", update.parent_link_name(), "' is not a link."));
+  }
+
+  if (child_entity == nullptr) {
+    return absl::NotFoundError(absl::StrCat(
+        "Child link entity could not be found: ", update.child_link_name()));
+  }
+  if (!child_entity->has_link()) {
+    return absl::InvalidArgumentError(absl::StrCat(
+        "Child entity '", update.child_link_name(), "' is not a link."));
+  }
+
+  if (child_entity->parent_name() != update.parent_link_name()) {
+    return absl::InvalidArgumentError(
+        absl::Substitute("Child link '$0' is not parented to parent link '$1'.",
+                         update.child_link_name(), update.parent_link_name()));
+  }
+
+  if (kinematics.motion_type() == KinematicsComponent::MOTION_TYPE_FIXED) {
+    return std::move(object);
+  }
+
+  Pose3d parent_t_inboard = Pose3d::Identity();
+  if (kinematics.has_parent_t_inboard()) {
+    INTR_ASSIGN_OR_RETURN(parent_t_inboard,
+                          FromProtoNormalized(kinematics.parent_t_inboard()));
+  }
+  Pose3d outboard_t_child = Pose3d::Identity();
+  if (kinematics.has_outboard_t_child()) {
+    INTR_ASSIGN_OR_RETURN(outboard_t_child,
+                          FromProtoNormalized(kinematics.outboard_t_child()));
+  }
+
+  eigenmath::Vector3d axis = eigenmath::Vector3d::UnitZ();
+  if (kinematics.has_axis()) {
+    axis = FromProto(kinematics.axis());
+    if (!axis.allFinite() || axis.squaredNorm() < 1e-12) {
+      return absl::InvalidArgumentError(absl::Substitute(
+          "Joint axis must be finite and non-zero for joint '$0'",
+          update.new_joint_name()));
+    }
+    axis.normalize();
+  }
+
+  Pose3d inboard_t_outboard = Pose3d::Identity();
+  switch (kinematics.motion_type()) {
+    case KinematicsComponent::MOTION_TYPE_REVOLUTE:
+      inboard_t_outboard = CreateAngleAxisPose(kinematics.raw_value(), axis);
+      break;
+    case KinematicsComponent::MOTION_TYPE_PRISMATIC:
+      inboard_t_outboard =
+          Pose3d(eigenmath::Vector3d(kinematics.raw_value() * axis));
+      break;
+    default:
+      return absl::InvalidArgumentError(absl::Substitute(
+          "Unsupported motion type for joint '$0'", update.new_joint_name()));
+  }
+
+  Pose3d new_parent_t_this =
+      parent_t_inboard * inboard_t_outboard * outboard_t_child;
+
+  // Update child link's parent and pose first.
+  child_entity->set_parent_name(update.new_joint_name());
+  *child_entity->mutable_parent_t_this() = ToProto(Pose3d::Identity());
+
+  // Add the new joint entity.
+  Entity* joint_entity = object.add_entities();
+  joint_entity->set_name(update.new_joint_name());
+  joint_entity->set_parent_name(update.parent_link_name());
+  *joint_entity->mutable_parent_t_this() = ToProto(new_parent_t_this);
+  *joint_entity->mutable_joint() = update.joint();
+  if (kinematics.has_axis()) {
+    *joint_entity->mutable_joint()
+         ->mutable_kinematics_component()
+         ->mutable_axis() = ToVectorProto(axis);
+  }
+
+  // Keep existing named configurations consistent by inserting the new joint's
+  // position.
+  if (object.has_properties() && object.properties().has_kinematics()) {
+    for (NamedConfiguration& config : *object.mutable_properties()
+                                           ->mutable_kinematics()
+                                           ->mutable_named_configurations()) {
+      (*config.mutable_joint_positions())[update.new_joint_name()] =
+          kinematics.raw_value();
+    }
+  }
+
   return std::move(object);
 }
 

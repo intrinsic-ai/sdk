@@ -19,9 +19,10 @@ package intrinsic_proto.scene_object.v1;
 import "google/protobuf/any.proto";
 import "intrinsic/geometry/proto/v1/transformed_geometry.proto";
 import "intrinsic/kinematics/types/joint_limits.proto";
+import "intrinsic/math/proto/matrix.proto";
 import "intrinsic/math/proto/pose.proto";
 import "intrinsic/scene/proto/v1/collision_rules.proto";
-import "intrinsic/math/proto/matrix.proto";
+import "intrinsic/scene/proto/v1/entity.proto";
 import "intrinsic/scene/proto/v1/object_properties.proto";
 import "intrinsic/world/proto/physics_component.proto";
 
@@ -44,6 +45,7 @@ message SceneObjectUpdate {
     UpdateFrameProperties update_frame_properties = 12;
     GeometryUpdate update_geometry = 13;
     UpdatePhysicsProperties update_physics_properties = 14;
+    CreateJointUpdate create_joint = 15;
   }
 }
 
@@ -337,4 +339,19 @@ message UpdatePhysicsProperties {
   optional intrinsic_proto.world.Torsional torsional = 6;
   optional double contact_kp = 7;
   optional double contact_kd = 8;
+}
+
+// Create a new joint entity between existing attached links.
+message CreateJointUpdate {
+  // Name of the parent link entity.
+  string parent_link_name = 1;
+
+  // Name of the child link entity.
+  string child_link_name = 2;
+
+  // Name of the new joint entity to be created.
+  string new_joint_name = 3;
+
+  // Joint definition for the new joint entity.
+  Joint joint = 4;
 }
