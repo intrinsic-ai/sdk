@@ -23,14 +23,17 @@ from intrinsic.assets.services.examples.calcserver import calc_server_pb2_grpc
 from intrinsic.logging.proto import log_item_pb2
 
 # isort: off
-# isort: on
+from python.runfiles import runfiles
+
 from intrinsic.skills.proto import skill_manifest_pb2
 from intrinsic.skills.python import skill_logging_context
 from intrinsic.skills.testing import echo_skill_pb2
 from intrinsic.skills.testing import skill_test_utils
 from intrinsic.solutions.testing import compare
 
-_MANIFEST_PATH = 'intrinsic/skills/testing/echo_skill_py_manifest.pbbin'
+_MANIFEST_PATH = runfiles.Create().Rlocation(
+    'ai_intrinsic_sdks/intrinsic/skills/testing/echo_skill_py_manifest.pbbin'
+)
 
 
 class SkillTestUtilsTest(parameterized.TestCase):

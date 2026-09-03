@@ -23,7 +23,6 @@ from intrinsic.solutions.internal import skill_providing
 from intrinsic.solutions.internal import stubs
 from intrinsic.solutions.internal import stubs_test_pb2
 from intrinsic.solutions.testing import skill_test_utils
-from intrinsic.util.path_resolver import path_resolver
 
 
 def _read_tmp_file(tmp_dir: absltest._TempDir, relative_path: str) -> str:

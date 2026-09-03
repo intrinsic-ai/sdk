@@ -179,12 +179,12 @@ py_test(
         ":calc_server_py_pb2_grpc",
         ":two_dimensional_function_data_py_pb2",
         "//intrinsic/assets/data/proto/v1:data_manifest_py_pb2",
-        "//intrinsic/util/path_resolver:path_resolver_py",
         "@ai_intrinsic_sdks_pip_deps//numpy",
         requirement("grpcio"),
         "@com_google_absl_py//absl/testing:absltest",
         "@com_google_absl_py//absl/testing:parameterized",
         "@com_google_protobuf//:protobuf_python",
+        "@rules_python//python/runfiles",
     ],
 )
 

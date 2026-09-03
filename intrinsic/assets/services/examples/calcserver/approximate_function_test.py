@@ -22,15 +22,15 @@ from google.protobuf import text_format
 import grpc
 from grpc.framework.foundation import logging_pool
 import numpy as np
+from python.runfiles import runfiles
 
 from intrinsic.assets.data.proto.v1 import data_manifest_pb2
 from intrinsic.assets.services.examples.calcserver import approximate_function
 from intrinsic.assets.services.examples.calcserver import calc_server_pb2
 from intrinsic.assets.services.examples.calcserver import calc_server_pb2_grpc
 from intrinsic.assets.services.examples.calcserver import two_dimensional_function_data_pb2
-from intrinsic.util.path_resolver import path_resolver
 
-_INVERTED_PYRAMID_DATA_MANIFEST_PATH = "intrinsic/assets/services/examples/calcserver/inverted_pyramid_function_data.textproto"
+_INVERTED_PYRAMID_DATA_MANIFEST_PATH = "ai_intrinsic_sdks/intrinsic/assets/services/examples/calcserver/inverted_pyramid_function_data.textproto"
 
 
 def _make_linear_data(
@@ -65,9 +65,8 @@ def _load_inverted_pyramid_data() -> (
     two_dimensional_function_data_pb2.TwoDimensionalFunctionData
 ):
   """Loads the inverted pyramid function data."""
-  manifest_path = path_resolver.resolve_runfiles_path(
-      _INVERTED_PYRAMID_DATA_MANIFEST_PATH
-  )
+  r = runfiles.Create()
+  manifest_path = r.Rlocation(_INVERTED_PYRAMID_DATA_MANIFEST_PATH)
   with open(manifest_path, "r") as f:
     manifest = text_format.Parse(f.read(), data_manifest_pb2.DataManifest())
 

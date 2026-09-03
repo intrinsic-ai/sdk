@@ -491,6 +491,7 @@ py_test(
         "//intrinsic/assets/proto:status_spec_py_pb2",
         "//intrinsic/solutions/testing:compare",
         "@com_google_absl_py//absl/testing:absltest",
+        "@rules_python//python/runfiles",
     ],
 )
 

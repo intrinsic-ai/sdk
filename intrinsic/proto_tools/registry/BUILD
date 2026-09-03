@@ -40,9 +40,9 @@ py_test(
         ":proto_registry_client",
         "//intrinsic/proto_tools/proto:proto_registry_py_pb2",
         "//intrinsic/proto_tools/proto:proto_registry_py_pb2_grpc",
-        "//intrinsic/util/path_resolver:path_resolver_py",
         "@com_google_absl_py//absl/testing:absltest",
         "@com_google_protobuf//:protobuf_python",
+        "@rules_python//python/runfiles",
     ],
 )
 

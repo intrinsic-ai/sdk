@@ -13,12 +13,15 @@
 # limitations under the License.
 
 from absl.testing import absltest
+from python.runfiles import runfiles
 
 from intrinsic.skills.testing import echo_skill
 from intrinsic.skills.testing import echo_skill_pb2
 from intrinsic.skills.testing import skill_test_utils
 
-_MANIFEST_PATH = "intrinsic/skills/testing/echo_skill_py_manifest.pbbin"
+_MANIFEST_PATH = runfiles.Create().Rlocation(
+    "ai_intrinsic_sdks/intrinsic/skills/testing/echo_skill_py_manifest.pbbin"
+)
 
 
 class EchoSkillTest(absltest.TestCase):

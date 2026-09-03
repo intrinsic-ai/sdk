@@ -73,6 +73,7 @@ py_test(
         ":echo_skill_py_pb2",
         ":skill_test_utils",
         "@com_google_absl_py//absl/testing:absltest",
+        "@rules_python//python/runfiles",
     ],
 )
 
@@ -255,6 +256,7 @@ py_test(
         requirement("grpcio"),
         "@com_google_absl_py//absl/testing:absltest",
         "@com_google_absl_py//absl/testing:parameterized",
+        "@rules_python//python/runfiles",
     ],
 )
 
