@@ -19,76 +19,19 @@ load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@intrinsic_js_rules//:defs.bzl", "js_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
 
-proto_library(
-    name = "clusterdiscovery_api_proto",
-    srcs = ["clusterdiscovery_api.proto"],
-)
-
 js_library(
     name = "clusterdiscovery_api_jspb_proto",
-    deps = [":clusterdiscovery_api_proto"],
-)
-
-go_proto_library(
-    name = "clusterdiscovery_api_go_proto",
-    compilers = [
-        "@io_bazel_rules_go//proto:go_grpc_v2",
-        "@io_bazel_rules_go//proto:go_proto",
-    ],
-    importpath = "intrinsic/frontend/cloud/api/v1/clusterdiscovery_api_go_proto",
-    protos = [":clusterdiscovery_api_proto"],
-)
-
-proto_library(
-    name = "solutiondiscovery_api_proto",
-    srcs = ["solutiondiscovery_api.proto"],
-    deps = [":clusterdiscovery_api_proto"],
+    deps = ["//intrinsic/frontend/cloud/api/v1:clusterdiscovery_api_proto"],
 )
 
 js_library(
     name = "solutiondiscovery_api_jspb_proto",
-    deps = [":solutiondiscovery_api_proto"],
-)
-
-cc_proto_library(
-    name = "solutiondiscovery_api_cc_proto",
-    deps = [":solutiondiscovery_api_proto"],
-)
-
-cc_grpc_library(
-    name = "solutiondiscovery_api_cc_grpc_proto",
-    srcs = [":solutiondiscovery_api_proto"],
-    grpc_only = True,
-    deps = [":solutiondiscovery_api_cc_proto"],
-)
-
-py_proto_library(
-    name = "solutiondiscovery_api_py_pb2",
-    deps = [":solutiondiscovery_api_proto"],
-)
-
-py_grpc_library(
-    name = "solutiondiscovery_api_py_pb2_grpc",
-    srcs = [":solutiondiscovery_api_proto"],
-    grpc_library = requirement("grpcio"),
-    deps = [":solutiondiscovery_api_py_pb2"],
-)
-
-go_proto_library(
-    name = "solutiondiscovery_api_go_proto",
-    compilers = [
-        "@io_bazel_rules_go//proto:go_grpc_v2",
-        "@io_bazel_rules_go//proto:go_proto",
-    ],
-    importpath = "intrinsic/frontend/cloud/api/v1/solutiondiscovery_api_go_proto",
-    protos = [
-        ":solutiondiscovery_api_proto",
-    ],
-    deps = ["//intrinsic/frontend/cloud/api/v1:clusterdiscovery_api_go_proto"],
+    deps = ["//intrinsic/frontend/cloud/api/v1:solutiondiscovery_api_proto"],
 )
 
 proto_library(
@@ -134,4 +77,60 @@ go_proto_library(
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
         "@org_golang_google_genproto_googleapis_api//annotations",
     ],
+)
+
+proto_library(
+    name = "clusterdiscovery_api_proto",
+    srcs = ["clusterdiscovery_api.proto"],
+)
+
+go_proto_library(
+    name = "clusterdiscovery_api_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+    ],
+    importpath = "intrinsic/frontend/cloud/api/v1/clusterdiscovery_api_go_proto",
+    protos = [":clusterdiscovery_api_proto"],
+)
+
+proto_library(
+    name = "solutiondiscovery_api_proto",
+    srcs = ["solutiondiscovery_api.proto"],
+    deps = [":clusterdiscovery_api_proto"],
+)
+
+cc_proto_library(
+    name = "solutiondiscovery_api_cc_proto",
+    deps = [":solutiondiscovery_api_proto"],
+)
+
+cc_grpc_library(
+    name = "solutiondiscovery_api_cc_grpc_proto",
+    srcs = [":solutiondiscovery_api_proto"],
+    grpc_only = True,
+    deps = [":solutiondiscovery_api_cc_proto"],
+)
+
+py_proto_library(
+    name = "solutiondiscovery_api_py_pb2",
+    deps = [":solutiondiscovery_api_proto"],
+)
+
+py_grpc_library(
+    name = "solutiondiscovery_api_py_pb2_grpc",
+    srcs = [":solutiondiscovery_api_proto"],
+    grpc_library = requirement("grpcio"),
+    deps = [":solutiondiscovery_api_py_pb2"],
+)
+
+go_proto_library(
+    name = "solutiondiscovery_api_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+    ],
+    importpath = "intrinsic/frontend/cloud/api/v1/solutiondiscovery_api_go_proto",
+    protos = [":solutiondiscovery_api_proto"],
+    deps = [":clusterdiscovery_api_go_proto"],
 )
