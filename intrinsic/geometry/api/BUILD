@@ -329,3 +329,17 @@ cc_library(
         "@or_tools//ortools/base:path",
     ],
 )
+
+cc_library(
+    name = "shape_factory",
+    srcs = ["shape_factory.cc"],
+    hdrs = ["shape_factory.h"],
+    deps = [
+        ":affine_transform_of_geometry",
+        ":exact_geometry",
+        ":geometry",
+        "//intrinsic/eigenmath",
+        "//intrinsic/geometry/shapes",
+        "//intrinsic/math:pose3",
+    ],
+)
