@@ -50,14 +50,13 @@ message SkillDetails {
   ParameterMetadata parameter = 3;
   // A description of the execute result for a skill invocation.
   optional ReturnMetadata execute_result = 4;
-  // intrinsic:skills_pubsub:strip_begin(b/224840414)
-  // A description of the published topics of the skill.
-  repeated PubTopicMetadata pub_topics = 5;
-  // intrinsic:skills_pubsub:strip_end
   // List of status codes which the specific skill may return. Codes are
   // specific to the skill's ID (<package>.<name>), i.e., different skills can
   // have the same numeric ID representing different errors.
   repeated intrinsic_proto.assets.StatusSpec status_info = 7;
+
+  reserved 5;
+  reserved "pub_topics";
 }
 
 message ProcessedSkillAssets {

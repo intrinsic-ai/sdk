@@ -257,7 +257,6 @@ func Process(ctx context.Context, r io.ReadSeeker, options ...ProcessOption) (*p
 		Dependencies:  manifest.GetDependencies(),
 		Parameter:     manifest.GetParameter(),
 		ExecuteResult: manifest.GetReturnType(),
-		PubTopics:     manifest.GetPubTopics(), // intrinsic:skills_pubsub:strip(b/224840414)
 		StatusInfo:    manifest.GetStatusInfo(),
 	}
 	// We do this to avoid adding empty sub messages.

@@ -33,11 +33,6 @@ func PruneSourceCodeInfo(m *smpb.SkillManifest, fds *dpb.FileDescriptorSet) erro
 	if name := m.GetReturnType().GetMessageFullName(); name != "" {
 		fullNames = append(fullNames, name)
 	}
-	// intrinsic:skills_pubsub:strip_begin(b/224840414)
-	for _, pt := range m.GetPubTopics() {
-		fullNames = append(fullNames, pt.GetMessageFullName())
-	}
-	// intrinsic:skills_pubsub:strip_end
 	return sourcecodeinfoview.PruneSourceCodeInfo(fds,
 		sourcecodeinfoview.WithExcludeNames(fullNames),
 	)

@@ -29,7 +29,6 @@ package(
     default_testonly = True,
 )
 
-# intrinsic:skills_pubsub:strip_begin(b/224840414)
 proto_library(
     name = "skill_proto_utils_test_proto",
     srcs = ["skill_proto_utils_test.proto"],
@@ -63,7 +62,6 @@ proto_source_code_info_transitive_descriptor_set(
     deps = [":skill_proto_utils_test_proto"],
 )
 
-# intrinsic:skills_pubsub:strip_end
 proto_library(
     name = "echo_skill_proto",
     srcs = ["echo_skill.proto"],
