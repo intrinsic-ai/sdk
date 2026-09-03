@@ -61,7 +61,6 @@
 #include "intrinsic/icon/utils/fixed_string.h"
 #include "intrinsic/icon/utils/inspection_publisher.h"
 #include "intrinsic/icon/utils/log.h"
-#include "intrinsic/icon/utils/metrics_logger.h"
 #include "intrinsic/icon/utils/realtime_metrics.h"
 #include "intrinsic/icon/utils/realtime_status.h"
 #include "intrinsic/icon/utils/realtime_status_macro.h"
@@ -82,8 +81,6 @@ INTRINSIC_ADD_HARDWARE_INTERFACE(intrinsic_fbs::HardwareModuleState,
                                  intrinsic_fbs::BuildHardwareModuleState,
                                  "intrinsic_fbs.HardwareModuleState")
 }  // namespace hardware_interface_traits
-
-static constexpr absl::Duration kMetricsExportInterval = absl::Seconds(1);
 
 class HardwareModuleRuntime::CallbackHandler final {
   struct AsyncRequestData {
@@ -111,10 +108,6 @@ class HardwareModuleRuntime::CallbackHandler final {
         << "CallbackHandler destroyed while an action is still "
            "ongoing - this is likely a bug in the "
            "HardwareModuleRuntime shutdown logic.";
-  }
-
-  void SetMetricsLogger(MetricsLogger* metrics_logger) {
-    metrics_logger_ = metrics_logger;
   }
 
   void SetCycleTimeMetricsHelper(CycleTimeMetricsHelper* metrics_helper) {
@@ -302,16 +295,6 @@ class HardwareModuleRuntime::CallbackHandler final {
       }
     }
 
-    // Export the current metrics to non-realtime every Second.
-    if (absl::Now() >= next_metrics_export_) {
-      if (metrics_logger_ && metrics_helper_ &&
-          !metrics_logger_->AddCycleTimeMetrics(metrics_helper_->Metrics())) {
-        INTRINSIC_RT_LOG_THROTTLED(WARNING)
-            << "Failed to add cycle time metrics to "
-               "metrics logger. Is the queue full?";
-      }
-      next_metrics_export_ = absl::Now() + kMetricsExportInterval;
-    }
   }
 
   // Server callback for trigger `ApplyCommand` on the hardware module.
@@ -681,9 +664,7 @@ class HardwareModuleRuntime::CallbackHandler final {
   std::list<std::unique_ptr<intrinsic::RealtimeFuture<icon::RealtimeStatus>>>
       future_hospice_ ABSL_GUARDED_BY(non_rt_buffer_lock_);
 
-  intrinsic::icon::MetricsLogger* metrics_logger_ = nullptr;
   CycleTimeMetricsHelper* metrics_helper_ = nullptr;
-  absl::Time next_metrics_export_ = absl::InfinitePast();
 };
 
 absl::StatusOr<absl_nonnull std::unique_ptr<HardwareModuleRuntime>>
@@ -991,22 +972,14 @@ absl::Status HardwareModuleRuntime::Run(
     }
 
     if (cycle_time_metrics_helper_ != nullptr) {
-      metrics_logger_ =
-          std::make_unique<MetricsLogger>(hardware_module_.config.GetName());
-      if (const auto status = metrics_logger_->Start(); !status.ok()) {
-        LOG(WARNING) << "Failed to start metrics logger: " << status;
-        metrics_logger_ = nullptr;
-      } else {
-        callback_handler_->SetMetricsLogger(metrics_logger_.get());
-        callback_handler_->SetCycleTimeMetricsHelper(
-            cycle_time_metrics_helper_.get());
-        LOG(INFO) << "Cycle time metrics gathering is enabled with a cycle "
-                     "duration of "
-                  << cycle_duration << ". Cycle time warnings are "
-                  << (init_context.AreCycleTimeWarningsEnabled() ? "enabled"
-                                                                 : "disabled ")
-                  << ".";
-      }
+      callback_handler_->SetCycleTimeMetricsHelper(
+          cycle_time_metrics_helper_.get());
+      LOG(INFO) << "Cycle time metrics gathering is enabled with a cycle "
+                   "duration of "
+                << cycle_duration << ". Cycle time warnings are "
+                << (init_context.AreCycleTimeWarningsEnabled() ? "enabled"
+                                                               : "disabled ")
+                << ".";
     }
   }
 

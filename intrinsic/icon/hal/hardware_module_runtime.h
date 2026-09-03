@@ -40,7 +40,6 @@
 #include "intrinsic/icon/interprocess/shared_memory_manager/domain_socket_server.h"
 #include "intrinsic/icon/interprocess/shared_memory_manager/shared_memory_manager.h"
 #include "intrinsic/icon/utils/inspection_publisher.h"
-#include "intrinsic/icon/utils/metrics_logger.h"
 #include "intrinsic/icon/utils/realtime_metrics.h"
 #include "intrinsic/util/thread/thread.h"
 
@@ -194,7 +193,6 @@ class HardwareModuleRuntime final {
   intrinsic::Thread state_change_thread_;
   intrinsic::Thread inspection_thread_;
 
-  std::unique_ptr<MetricsLogger> metrics_logger_;
   std::unique_ptr<CycleTimeMetricsHelper> cycle_time_metrics_helper_;
 };
 

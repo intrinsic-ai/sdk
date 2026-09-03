@@ -297,7 +297,6 @@ cc_library(
         "//intrinsic/icon/utils:core_time",
         "//intrinsic/icon/utils:fixed_string",
         "//intrinsic/icon/utils:inspection_publisher",
-        "//intrinsic/icon/utils:metrics_logger",
         "//intrinsic/icon/utils:realtime_guard",
         "//intrinsic/icon/utils:realtime_metrics",
         "//intrinsic/icon/utils:realtime_status",
