@@ -201,9 +201,17 @@ class ObjectWorldClient {
 
   // Changes the name of the given object to the given name. Returns an error if
   // the new name is already used for another object.
-  absl::Status UpdateObjectName(
-      const WorldObject& object, const WorldObjectName& new_name,
-      WorldObjectNameType name_type = WorldObjectNameType::kNameIsGlobalAlias);
+  absl::Status UpdateObjectName(const WorldObject& object,
+                                const WorldObjectName& new_name);
+
+  // Deprecated: All object names are global aliases. Use
+  // UpdateObjectName(object, new_name) instead.
+  ABSL_DEPRECATED(
+      "The name_type parameter is deprecated and ignored. All object names are "
+      "global aliases; omit name_type.")
+  absl::Status UpdateObjectName(const WorldObject& object,
+                                const WorldObjectName& new_name,
+                                WorldObjectNameType name_type);
 
   // Changes the name of the given frame to the given name. Returns an error if
   // the new name is already used for another frame under the same object.

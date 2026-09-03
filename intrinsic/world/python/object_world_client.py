@@ -611,19 +611,26 @@ class ObjectWorldClient:
       object_to_update: object_world_resources.WorldObject,
       new_name: object_world_ids.WorldObjectName,
       *,
-      name_is_global_alias: bool = True,
+      name_is_global_alias: Optional[bool] = None,
   ) -> None:
     """Changes the name of the given object to the given name.
 
     Args:
       object_to_update: The object that should be updated.
       new_name: The new name of the object.
-      name_is_global_alias: If True, new_name is globally unique. If False,
-        new_name is only unique in its namespace
+      name_is_global_alias: Deprecated and ignored. All object names are global
+        aliases.
 
     Raises:
       InvalidArgumentError: The new name is already used for another object.
     """
+    if name_is_global_alias is not None:
+      warnings.warn(
+          'The `name_is_global_alias` parameter in `update_object_name` is'
+          ' deprecated and ignored. All object names are global aliases.',
+          category=DeprecationWarning,
+          stacklevel=2,
+      )
     self._stub.UpdateObjectName(
         object_world_updates_pb2.UpdateObjectNameRequest(
             world_id=self._world_id,
@@ -632,7 +639,7 @@ class ObjectWorldClient:
             ),
             name=new_name,
             view=object_world_updates_pb2.ObjectView.BASIC,
-            name_is_global_alias=name_is_global_alias,
+            name_is_global_alias=True,
         )
     )
 

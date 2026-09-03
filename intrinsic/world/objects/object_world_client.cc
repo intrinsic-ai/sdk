@@ -60,9 +60,12 @@ namespace intrinsic {
 namespace world {
 
 using ::intrinsic_proto::world::FrameReference;
+using ::intrinsic_proto::world::Object;
 using ::intrinsic_proto::world::ObjectReference;
+using ::intrinsic_proto::world::ObjectView;
 using ::intrinsic_proto::world::TransformNodeReference;
 using ::intrinsic_proto::world::TransformNodeReferenceByName;
+using ::intrinsic_proto::world::UpdateObjectNameRequest;
 
 namespace {
 
@@ -470,21 +473,25 @@ absl::Status ObjectWorldClient::CreateFrame(const FrameName& new_frame_name,
 }
 
 absl::Status ObjectWorldClient::UpdateObjectName(
-    const WorldObject& object, const WorldObjectName& new_name,
-    WorldObjectNameType name_type) {
+    const WorldObject& object, const WorldObjectName& new_name) {
   grpc::ClientContext ctx;
-  intrinsic_proto::world::UpdateObjectNameRequest request;
+  UpdateObjectNameRequest request;
   request.set_world_id(world_id_);
   request.mutable_object()->set_id(object.Id().value());
   request.set_name(new_name.value());
   // Use minimalistic view since we are ignoring the response.
-  request.set_view(intrinsic_proto::world::ObjectView::BASIC);
-  request.set_name_is_global_alias(name_type ==
-                                   WorldObjectNameType::kNameIsGlobalAlias);
-  intrinsic_proto::world::Object response;
+  request.set_view(ObjectView::BASIC);
+  request.set_name_is_global_alias(true);
+  Object response;
   INTR_RETURN_IF_ERROR(ToAbslStatus(
       object_world_service_->UpdateObjectName(&ctx, request, &response)));
   return absl::OkStatus();
+}
+
+absl::Status ObjectWorldClient::UpdateObjectName(
+    const WorldObject& object, const WorldObjectName& new_name,
+    WorldObjectNameType /*name_type*/) {
+  return UpdateObjectName(object, new_name);
 }
 
 absl::Status ObjectWorldClient::UpdateFrameName(const Frame& frame,

@@ -15,6 +15,7 @@
 """Tests for the externalized object_world_client."""
 
 from unittest import mock
+import warnings
 
 from absl.testing import absltest
 from google.protobuf import any_pb2
@@ -121,6 +122,52 @@ class ObjectWorldClientTest(absltest.TestCase):
         geometry_component=geometry_component_pb2.GeometryComponent(),
         user_data={'my_key': my_user_data_any},
     )
+
+  def test_update_object_name(self):
+    my_object = self._create_object_proto(
+        name='my_object', object_id='15', world_id='world'
+    )
+    self._stub.GetObject.return_value = my_object
+    world_client = object_world_client.ObjectWorldClient(
+        'world', self._stub, self._geometry_service_stub
+    )
+
+    obj = world_client.get_object(object_world_ids.WorldObjectName('my_object'))
+    with warnings.catch_warnings(record=True) as recorded_warnings:
+      warnings.simplefilter('always')
+      world_client.update_object_name(obj, 'new_name')
+
+    self._stub.UpdateObjectName.assert_called_once()
+    request = self._stub.UpdateObjectName.call_args[0][0]
+    self.assertEqual(request.name, 'new_name')
+    self.assertTrue(request.name_is_global_alias)
+    self.assertEmpty(recorded_warnings)
+
+  def test_update_object_name_with_name_is_global_alias_warns_deprecation(self):
+    my_object = self._create_object_proto(
+        name='my_object', object_id='15', world_id='world'
+    )
+    self._stub.GetObject.return_value = my_object
+    world_client = object_world_client.ObjectWorldClient(
+        'world', self._stub, self._geometry_service_stub
+    )
+
+    obj = world_client.get_object(object_world_ids.WorldObjectName('my_object'))
+    with warnings.catch_warnings(record=True) as recorded_warnings:
+      warnings.simplefilter('always')
+      world_client.update_object_name(
+          obj, 'new_name', name_is_global_alias=False
+      )
+
+    self._stub.UpdateObjectName.assert_called_once()
+    request = self._stub.UpdateObjectName.call_args[0][0]
+    self.assertEqual(request.name, 'new_name')
+    self.assertTrue(request.name_is_global_alias)
+    self.assertLen(recorded_warnings, 1)
+    self.assertTrue(
+        issubclass(recorded_warnings[0].category, DeprecationWarning)
+    )
+    self.assertIn('name_is_global_alias', str(recorded_warnings[0].message))
 
 
 if __name__ == '__main__':
