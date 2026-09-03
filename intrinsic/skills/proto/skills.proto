@@ -74,39 +74,6 @@ message ReturnValueDescription {
   map<string, string> return_value_field_comments = 5;
 }
 
-// intrinsic:skills_pubsub:strip_begin(b/224840414)
-message PubTopic {
-  // Used to construct a unique topic name for publishing. Instances of this
-  // skill will publish to topic /skill/<skill_name>/<instance_id>/<data_id>.
-  string data_id = 1;
-
-  // Optional documentation that can be shown to users of the skill. It may
-  // include information about the data published on this topic.
-  string description = 2;
-
-  // The published proto's full message name.
-  string message_full_name = 3;
-
-  // (b/191723009): Remove this when we can use pybind11 in the workcell API.
-  //
-  // New users of the Skill APIs should prefer to retrieve comments from the
-  // `descriptor_fileset` instead of from the `message_field_comments`.
-  //
-  // The leading comments of the fields in the published message. The key is
-  // the full name of the field.
-  map<string, string> message_field_comments = 4;
-}
-
-message PubTopicDescription {
-  // A list containing topic information for all data published by this skill.
-  repeated PubTopic pub_topics = 1;
-
-  // The set of FileDescriptors needed to dynamically create any proto message
-  // published by this skill from a factory.
-  google.protobuf.FileDescriptorSet file_descriptor_set = 2;
-}
-// intrinsic:skills_pubsub:strip_end
-
 // Message to carry information about a Parameterizable Behavior Tree.
 // Currently used as an indicator, may get additional information later.
 message BehaviorTreeDescription {}
@@ -141,12 +108,6 @@ message Skill {
   // This is only present if a Skill utilizes return values.
   ReturnValueDescription return_value_description = 7;
 
-  // intrinsic:skills_pubsub:strip_begin(b/224840414)
-  // Description information for published topics. This is only present if a
-  // skill publishes messages using Intrinsic's Pub/Sub library.
-  PubTopicDescription pub_topic_description = 8;
-  // intrinsic:skills_pubsub:strip_end
-
   // Maps resource slot name to a selector describing handles that can satisfy
   // the implementation's requirements for that slot.
   map<string, intrinsic_proto.skills.ResourceSelector> resource_selectors = 4;
@@ -164,8 +125,8 @@ message Skill {
   // Display name of the skill.
   string display_name = 14;
 
-  reserved 2, 3;
-  reserved "params", "results";
+  reserved 2, 3, 8;
+  reserved "params", "results", "pub_topic_description";
 }
 
 message SkillHandle {
