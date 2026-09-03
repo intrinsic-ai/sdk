@@ -64,32 +64,6 @@ proto_source_code_info_transitive_descriptor_set(
 )
 
 # intrinsic:skills_pubsub:strip_end
-# intrinsic:skills_pubsub:strip_begin(b/224840414)
-cc_library(
-    name = "test_skill_pubsub",
-    hdrs = ["test_skill_pubsub.h"],
-    visibility = [
-        "//intrinsic:public_api_users",
-    ],
-    deps = [
-        "//intrinsic/skills:skill_pubsub",
-    ],
-)
-
-py_library(
-    name = "test_skill_pubsub_py",
-    srcs = ["test_skill_pubsub.py"],
-    visibility = [
-        "//intrinsic:public_api_users",
-    ],
-    deps = [
-        "//intrinsic/platform/pubsub/python:pubsub",
-        "//intrinsic/skills:skill_pubsub_py",
-        "//intrinsic/skills:skills_pub_topic",
-    ],
-)
-# intrinsic:skills_pubsub:strip_end
-
 proto_library(
     name = "echo_skill_proto",
     srcs = ["echo_skill.proto"],
@@ -279,10 +253,6 @@ py_library(
         "//intrinsic/motion_planning:motion_planner_client_py",
         "//intrinsic/motion_planning/proto/v1:motion_planner_service_py_pb2_grpc",
         "//intrinsic/resources/proto:resource_handle_py_pb2",
-        # intrinsic:skills_pubsub:strip_begin(b/224840414)
-        "//intrinsic/skills:skill_pubsub_py",
-        "//intrinsic/skills:skills_pub_topic",
-        # intrinsic:skills_pubsub:strip_end
         "//intrinsic/skills/internal:execute_context_impl_py",
         "//intrinsic/skills/internal:get_footprint_context_impl_py",
         "//intrinsic/skills/internal:preview_context_impl_py",
@@ -315,7 +285,6 @@ py_test(
         "//intrinsic/assets/services/examples/calcserver:calc_server_py_pb2",
         "//intrinsic/assets/services/examples/calcserver:calc_server_py_pb2_grpc",
         "//intrinsic/logging/proto:log_item_py_pb2",
-        "//intrinsic/skills:skill_pubsub_py",  # intrinsic:skills_pubsub:strip(b/224840414)
         "//intrinsic/skills/proto:skill_manifest_py_pb2",
         "//intrinsic/skills/python:skill_logging_context",
         "//intrinsic/solutions/testing:compare",

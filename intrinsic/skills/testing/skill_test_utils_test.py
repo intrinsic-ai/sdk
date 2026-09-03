@@ -15,19 +15,13 @@
 from absl.testing import absltest
 from absl.testing import parameterized
 import grpc
+from python.runfiles import runfiles
 
 from intrinsic.assets import id_utils
 from intrinsic.assets.services.examples.calcserver import calc_server
 from intrinsic.assets.services.examples.calcserver import calc_server_pb2
 from intrinsic.assets.services.examples.calcserver import calc_server_pb2_grpc
 from intrinsic.logging.proto import log_item_pb2
-
-# isort: off
-# intrinsic:skills_pubsub:strip_begin(b/224840414)
-from intrinsic.skills import skill_pubsub
-# intrinsic:skills_pubsub:strip_end
-from python.runfiles import runfiles
-
 from intrinsic.skills.proto import skill_manifest_pb2
 from intrinsic.skills.python import skill_logging_context
 from intrinsic.skills.testing import echo_skill_pb2
@@ -95,43 +89,6 @@ class SkillTestUtilsTest(parameterized.TestCase):
         manifest.return_type.message_full_name,
         'intrinsic_proto.skills.EchoSkillReturn',
     )
-
-  # intrinsic:skills_pubsub:strip_begin(b/224840414)
-  def test_make_pub_sub_instance_from_manifest(self):
-    manifest = skill_test_utils.get_skill_manifest(_MANIFEST_PATH)
-    # add some pub sub info
-    data_id0 = 'foo'
-    data_id1 = 'bar'
-    manifest.pub_topics.append(
-        skill_manifest_pb2.PubTopicMetadata(
-            data_id=data_id0,
-            description='hello',
-            message_full_name=echo_skill_pb2.EchoSkillParams.DESCRIPTOR.full_name,
-        )
-    )
-    manifest.pub_topics.append(
-        skill_manifest_pb2.PubTopicMetadata(
-            data_id=data_id1,
-            description='world_logger',
-            message_full_name=log_item_pb2.LogItem.DESCRIPTOR.full_name,
-        )
-    )
-
-    # test success
-    pubsub_instance = skill_test_utils.make_pub_sub_instance_from_manifest(
-        manifest
-    )
-    self.assertIsInstance(pubsub_instance, skill_pubsub.SkillPubSubInstance)
-    self.assertEqual(
-        pubsub_instance.get_full_topic_name(data_id0),
-        f'/skill/{manifest.id.name}/{data_id0}',
-    )
-    self.assertEqual(
-        pubsub_instance.get_full_topic_name(data_id1),
-        f'/skill/{manifest.id.name}/{data_id1}',
-    )
-
-    # intrinsic:skills_pubsub:strip_end
 
   def test_make_skill_logging_context_from_manifest(self):
     manifest = skill_test_utils.get_skill_manifest(_MANIFEST_PATH)

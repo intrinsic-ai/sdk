@@ -369,7 +369,6 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         "//intrinsic/assets/proto:status_spec_cc_proto",
-        "//intrinsic/skills:skill_pub_topic",  # intrinsic:skills_pubsub:strip
         "//intrinsic/skills/cc:client_common",
         "//intrinsic/skills/proto:equipment_cc_proto",
         "//intrinsic/skills/proto:skill_service_config_cc_proto",

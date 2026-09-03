@@ -34,13 +34,6 @@ from intrinsic.logging.proto import context_pb2
 from intrinsic.motion_planning import motion_planner_client
 from intrinsic.motion_planning.proto.v1 import motion_planner_service_pb2_grpc
 from intrinsic.resources.proto import resource_handle_pb2
-
-# isort: off
-# intrinsic:skills_pubsub:strip_begin(b/224840414)
-from intrinsic.skills import skill_pubsub
-from intrinsic.skills import skills_pub_topic
-# intrinsic:skills_pubsub:strip_end
-# isort: on
 from intrinsic.skills.internal import execute_context_impl
 from intrinsic.skills.internal import get_footprint_context_impl
 
@@ -353,33 +346,6 @@ def get_skill_manifest(path: str) -> skill_manifest_pb2.SkillManifest:
   manifest = skill_manifest_pb2.SkillManifest()
   file_helpers.load_binary_proto(path, manifest)
   return manifest
-
-
-# intrinsic:skills_pubsub:strip_begin(b/224840414)
-def make_pub_sub_instance_from_manifest(
-    manifest: skill_manifest_pb2.SkillManifest,
-) -> skill_pubsub.SkillPubSubInstance:
-  """Makes a SkillPubSubInstance from a skill manifest.
-
-  Args:
-    manifest: The skill manifest.
-
-  Returns:
-    The skill's pubsub instance.
-  """
-  pub_topics = [
-      skills_pub_topic.SkillPubTopic(
-          data_id=manifest_pub_topic.data_id,
-          description=manifest_pub_topic.description,
-          message_full_name=manifest_pub_topic.message_full_name,
-      )
-      for manifest_pub_topic in manifest.pub_topics
-  ]
-
-  return skill_pubsub.SkillPubSub().get_instance(pub_topics, manifest.id.name)
-
-
-# intrinsic:skills_pubsub:strip_end
 
 
 def make_test_skill_logging_context_from_manifest(
