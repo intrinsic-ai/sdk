@@ -17,6 +17,7 @@ load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@intrinsic_js_rules//:defs.bzl", "js_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
@@ -37,7 +38,7 @@ proto_library(
     name = "generic_part_config_proto",
     srcs = ["generic_part_config.proto"],
     deps = [
-        ":cart_space_proto",
+        "//intrinsic/icon/proto:cart_space_proto",
         "//intrinsic/kinematics/proto:skeleton_proto",
         "//intrinsic/kinematics/types:joint_limits_proto",
         "//intrinsic/math/proto:pose_proto",
@@ -59,7 +60,7 @@ go_proto_library(
     importpath = "intrinsic/icon/proto/generic_part_config_go_proto",
     protos = [":generic_part_config_proto"],
     deps = [
-        ":cart_space_go_proto",
+        "//intrinsic/icon/proto:cart_space_go_proto",
         "//intrinsic/kinematics/proto:skeleton_go_proto",
         "//intrinsic/kinematics/types:joint_limits_go_proto",
         "//intrinsic/math/proto:pose_go_proto",
@@ -75,9 +76,9 @@ proto_library(
     name = "part_status_proto",
     srcs = ["part_status.proto"],
     deps = [
-        ":cart_space_proto",
-        ":io_block_proto",
-        ":safety_status_proto",
+        "//intrinsic/icon/proto:cart_space_proto",
+        "//intrinsic/icon/proto:io_block_proto",
+        "//intrinsic/icon/proto:safety_status_proto",
         "//intrinsic/icon/proto/v1:types_proto",
         "//intrinsic/math/proto:pose_proto",
         "//intrinsic/math/proto:quaternion_proto",
@@ -100,9 +101,9 @@ go_proto_library(
     importpath = "intrinsic/icon/proto/part_status_go_proto",
     protos = [":part_status_proto"],
     deps = [
-        ":cart_space_go_proto",
-        ":io_block_go_proto",
-        ":safety_status_go_proto",
+        "//intrinsic/icon/proto:cart_space_go_proto",
+        "//intrinsic/icon/proto:io_block_go_proto",
+        "//intrinsic/icon/proto:safety_status_go_proto",
         "//intrinsic/icon/proto/v1:types_go_proto",
         "//intrinsic/math/proto:pose_go_proto",
         "//intrinsic/math/proto:quaternion_go_proto",
@@ -115,39 +116,15 @@ js_library(
     deps = [":part_status_proto"],
 )
 
-proto_library(
-    name = "streaming_output_proto",
-    srcs = ["streaming_output.proto"],
-    deps = [
-        "@com_google_protobuf//:any_proto",
-    ],
-)
-
-cc_proto_library(
-    name = "streaming_output_cc_proto",
-    deps = [":streaming_output_proto"],
-)
-
-go_proto_library(
-    name = "streaming_output_go_proto",
-    importpath = "intrinsic/icon/proto/streaming_output_go_proto",
-    protos = [":streaming_output_proto"],
-)
-
-py_proto_library(
-    name = "streaming_output_py_pb2",
-    deps = [":streaming_output_proto"],
-)
-
 cc_library(
     name = "eigen_conversion",
     srcs = ["eigen_conversion.cc"],
     hdrs = ["eigen_conversion.h"],
     deps = [
-        ":cart_space_cc_proto",
         ":joint_space_cc_proto",
-        ":matrix_cc_proto",
         "//intrinsic/eigenmath",
+        "//intrinsic/icon/proto:cart_space_cc_proto",
+        "//intrinsic/icon/proto:matrix_cc_proto",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
         "@abseil-cpp//absl/strings",
@@ -160,8 +137,8 @@ cc_test(
     srcs = ["eigen_conversion_test.cc"],
     deps = [
         ":eigen_conversion",
-        ":matrix_cc_proto",
         "//intrinsic/eigenmath",
+        "//intrinsic/icon/proto:matrix_cc_proto",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:status_matchers",
         "@com_github_inazarenko_protobuf_matchers//protobuf-matchers",
@@ -171,51 +148,9 @@ cc_test(
     ],
 )
 
-proto_library(
-    name = "matrix_proto",
-    srcs = ["matrix.proto"],
-)
-
-cc_proto_library(
-    name = "matrix_cc_proto",
-    deps = [":matrix_proto"],
-)
-
-py_proto_library(
-    name = "matrix_py_pb2",
-    deps = [":matrix_proto"],
-)
-
-go_proto_library(
-    name = "matrix_go_proto",
-    importpath = "intrinsic/icon/proto/matrix_go_proto",
-    protos = [":matrix_proto"],
-)
-
-proto_library(
-    name = "cart_space_proto",
-    srcs = ["cart_space.proto"],
-)
-
-cc_proto_library(
-    name = "cart_space_cc_proto",
-    deps = [":cart_space_proto"],
-)
-
-py_proto_library(
-    name = "cart_space_py_pb2",
-    deps = [":cart_space_proto"],
-)
-
-go_proto_library(
-    name = "cart_space_go_proto",
-    importpath = "intrinsic/icon/proto/cart_space_go_proto",
-    protos = [":cart_space_proto"],
-)
-
 js_library(
     name = "cart_space_jspb_proto",
-    deps = [":cart_space_proto"],
+    deps = ["//intrinsic/icon/proto:cart_space_proto"],
 )
 
 cc_library(
@@ -223,9 +158,9 @@ cc_library(
     srcs = ["cart_space_conversion.cc"],
     hdrs = ["cart_space_conversion.h"],
     deps = [
-        ":cart_space_cc_proto",
         ":eigen_conversion",
         "//intrinsic/eigenmath",
+        "//intrinsic/icon/proto:cart_space_cc_proto",
         "//intrinsic/kinematics/types:cartesian_limits",
         "//intrinsic/math:pose3",
         "//intrinsic/math:twist",
@@ -286,47 +221,11 @@ js_library(
     deps = [":joint_space_proto"],
 )
 
-proto_library(
-    name = "ik_options_proto",
-    srcs = ["ik_options.proto"],
-)
-
-cc_proto_library(
-    name = "ik_options_cc_proto",
-    deps = [":ik_options_proto"],
-)
-
-py_proto_library(
-    name = "ik_options_py_pb2",
-    deps = [":ik_options_proto"],
-)
-
-proto_library(
-    name = "io_block_proto",
-    srcs = ["io_block.proto"],
-)
-
-py_proto_library(
-    name = "io_block_py_pb2",
-    deps = [":io_block_proto"],
-)
-
-go_proto_library(
-    name = "io_block_go_proto",
-    importpath = "intrinsic/icon/proto/io_block_go_proto",
-    protos = [":io_block_proto"],
-)
-
-cc_proto_library(
-    name = "io_block_cc_proto",
-    deps = [":io_block_proto"],
-)
-
 py_library(
     name = "matrix_conversions",
     srcs = ["matrix_conversions.py"],
     deps = [
-        ":matrix_py_pb2",
+        "//intrinsic/icon/proto:matrix_py_pb2",
         "@ai_intrinsic_sdks_pip_deps//numpy",
     ],
 )
@@ -336,100 +235,10 @@ py_test(
     srcs = ["matrix_conversions_test.py"],
     deps = [
         ":matrix_conversions",
-        ":matrix_py_pb2",
+        "//intrinsic/icon/proto:matrix_py_pb2",
         "@ai_intrinsic_sdks_pip_deps//numpy",
         "@com_google_absl_py//absl/testing:absltest",
     ],
-)
-
-proto_library(
-    name = "linear_joint_acceleration_filter_config_proto",
-    srcs = [
-        "linear_joint_acceleration_filter_config.proto",
-    ],
-)
-
-cc_proto_library(
-    name = "linear_joint_acceleration_filter_config_cc_proto",
-    deps = [":linear_joint_acceleration_filter_config_proto"],
-)
-
-go_proto_library(
-    name = "linear_joint_acceleration_filter_config_go_proto",
-    importpath = "intrinsic/icon/proto/linear_joint_acceleration_filter_config_go_proto",
-    protos = [":linear_joint_acceleration_filter_config_proto"],
-)
-
-proto_library(
-    name = "joint_position_pid_torque_controller_config_proto",
-    srcs = [
-        "joint_position_pid_torque_controller_config.proto",
-    ],
-)
-
-go_proto_library(
-    name = "joint_position_pid_torque_controller_config_go_proto",
-    importpath = "intrinsic/icon/proto/joint_position_pid_torque_controller_config_go_proto",
-    protos = [":joint_position_pid_torque_controller_config_proto"],
-)
-
-proto_library(
-    name = "joint_position_pid_velocity_controller_config_proto",
-    srcs = [
-        "joint_position_pid_velocity_controller_config.proto",
-    ],
-)
-
-cc_proto_library(
-    name = "joint_position_pid_velocity_controller_config_cc_proto",
-    deps = [":joint_position_pid_velocity_controller_config_proto"],
-)
-
-proto_library(
-    name = "safety_status_proto",
-    srcs = ["safety_status.proto"],
-)
-
-cc_proto_library(
-    name = "safety_status_cc_proto",
-    deps = [":safety_status_proto"],
-)
-
-py_proto_library(
-    name = "safety_status_py_pb2",
-    deps = [":safety_status_proto"],
-)
-
-go_proto_library(
-    name = "safety_status_go_proto",
-    importpath = "intrinsic/icon/proto/safety_status_go_proto",
-    protos = [":safety_status_proto"],
-)
-
-js_library(
-    name = "safety_status_jspb_proto",
-    deps = [":safety_status_proto"],
-)
-
-proto_library(
-    name = "logging_mode_proto",
-    srcs = ["logging_mode.proto"],
-)
-
-go_proto_library(
-    name = "logging_mode_go_proto",
-    importpath = "intrinsic/icon/proto/logging_mode_go_proto",
-    protos = [":logging_mode_proto"],
-)
-
-cc_proto_library(
-    name = "logging_mode_cc_proto",
-    deps = [":logging_mode_proto"],
-)
-
-py_proto_library(
-    name = "logging_mode_py_pb2",
-    deps = [":logging_mode_proto"],
 )
 
 proto_library(
@@ -478,17 +287,230 @@ js_library(
 proto_library(
     name = "icon_protos",
     deps = [
-        ":cart_space_proto",
         ":generic_part_config_proto",
-        ":ik_options_proto",
-        ":io_block_proto",
         ":joint_space_proto",
         ":limit_provider_service_proto",
-        ":matrix_proto",
         ":part_status_proto",
-        ":safety_status_proto",
-        ":streaming_output_proto",
+        "//intrinsic/icon/proto:cart_space_proto",
+        "//intrinsic/icon/proto:ik_options_proto",
+        "//intrinsic/icon/proto:io_block_proto",
+        "//intrinsic/icon/proto:matrix_proto",
+        "//intrinsic/icon/proto:safety_status_proto",
+        "//intrinsic/icon/proto:streaming_output_proto",
         "//intrinsic/icon/proto/v1:service_proto",
         "//intrinsic/icon/proto/v1:types_proto",
     ],
+)
+
+proto_library(
+    name = "cart_space_proto",
+    srcs = ["cart_space.proto"],
+    visibility = ["//visibility:public"],
+)
+
+cc_proto_library(
+    name = "cart_space_cc_proto",
+    visibility = ["//visibility:public"],
+    deps = [":cart_space_proto"],
+)
+
+go_proto_library(
+    name = "cart_space_go_proto",
+    importpath = "intrinsic/icon/proto/cart_space_go_proto",
+    protos = [":cart_space_proto"],
+    visibility = ["//visibility:public"],
+)
+
+py_proto_library(
+    name = "cart_space_py_pb2",
+    visibility = ["//visibility:public"],
+    deps = [":cart_space_proto"],
+)
+
+proto_library(
+    name = "ik_options_proto",
+    srcs = ["ik_options.proto"],
+    visibility = ["//visibility:public"],
+)
+
+cc_proto_library(
+    name = "ik_options_cc_proto",
+    visibility = ["//visibility:public"],
+    deps = [":ik_options_proto"],
+)
+
+py_proto_library(
+    name = "ik_options_py_pb2",
+    visibility = ["//visibility:public"],
+    deps = [":ik_options_proto"],
+)
+
+proto_library(
+    name = "io_block_proto",
+    srcs = ["io_block.proto"],
+    visibility = ["//visibility:public"],
+)
+
+cc_proto_library(
+    name = "io_block_cc_proto",
+    visibility = ["//visibility:public"],
+    deps = [":io_block_proto"],
+)
+
+go_proto_library(
+    name = "io_block_go_proto",
+    importpath = "intrinsic/icon/proto/io_block_go_proto",
+    protos = [":io_block_proto"],
+    visibility = ["//visibility:public"],
+)
+
+py_proto_library(
+    name = "io_block_py_pb2",
+    visibility = ["//visibility:public"],
+    deps = [":io_block_proto"],
+)
+
+proto_library(
+    name = "joint_position_pid_torque_controller_config_proto",
+    srcs = ["joint_position_pid_torque_controller_config.proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "joint_position_pid_torque_controller_config_go_proto",
+    importpath = "intrinsic/icon/proto/joint_position_pid_torque_controller_config_go_proto",
+    protos = [":joint_position_pid_torque_controller_config_proto"],
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "joint_position_pid_velocity_controller_config_proto",
+    srcs = ["joint_position_pid_velocity_controller_config.proto"],
+    visibility = ["//visibility:public"],
+)
+
+cc_proto_library(
+    name = "joint_position_pid_velocity_controller_config_cc_proto",
+    visibility = ["//visibility:public"],
+    deps = [":joint_position_pid_velocity_controller_config_proto"],
+)
+
+proto_library(
+    name = "linear_joint_acceleration_filter_config_proto",
+    srcs = ["linear_joint_acceleration_filter_config.proto"],
+    visibility = ["//visibility:public"],
+)
+
+cc_proto_library(
+    name = "linear_joint_acceleration_filter_config_cc_proto",
+    visibility = ["//visibility:public"],
+    deps = [":linear_joint_acceleration_filter_config_proto"],
+)
+
+go_proto_library(
+    name = "linear_joint_acceleration_filter_config_go_proto",
+    importpath = "intrinsic/icon/proto/linear_joint_acceleration_filter_config_go_proto",
+    protos = [":linear_joint_acceleration_filter_config_proto"],
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "logging_mode_proto",
+    srcs = ["logging_mode.proto"],
+    visibility = ["//visibility:public"],
+)
+
+cc_proto_library(
+    name = "logging_mode_cc_proto",
+    visibility = ["//visibility:public"],
+    deps = [":logging_mode_proto"],
+)
+
+go_proto_library(
+    name = "logging_mode_go_proto",
+    importpath = "intrinsic/icon/proto/logging_mode_go_proto",
+    protos = [":logging_mode_proto"],
+    visibility = ["//visibility:public"],
+)
+
+py_proto_library(
+    name = "logging_mode_py_pb2",
+    visibility = ["//visibility:public"],
+    deps = [":logging_mode_proto"],
+)
+
+proto_library(
+    name = "matrix_proto",
+    srcs = ["matrix.proto"],
+    visibility = ["//visibility:public"],
+)
+
+cc_proto_library(
+    name = "matrix_cc_proto",
+    visibility = ["//visibility:public"],
+    deps = [":matrix_proto"],
+)
+
+go_proto_library(
+    name = "matrix_go_proto",
+    importpath = "intrinsic/icon/proto/matrix_go_proto",
+    protos = [":matrix_proto"],
+    visibility = ["//visibility:public"],
+)
+
+py_proto_library(
+    name = "matrix_py_pb2",
+    visibility = ["//visibility:public"],
+    deps = [":matrix_proto"],
+)
+
+proto_library(
+    name = "safety_status_proto",
+    srcs = ["safety_status.proto"],
+    visibility = ["//visibility:public"],
+)
+
+cc_proto_library(
+    name = "safety_status_cc_proto",
+    visibility = ["//visibility:public"],
+    deps = [":safety_status_proto"],
+)
+
+go_proto_library(
+    name = "safety_status_go_proto",
+    importpath = "intrinsic/icon/proto/safety_status_go_proto",
+    protos = [":safety_status_proto"],
+    visibility = ["//visibility:public"],
+)
+
+py_proto_library(
+    name = "safety_status_py_pb2",
+    visibility = ["//visibility:public"],
+    deps = [":safety_status_proto"],
+)
+
+proto_library(
+    name = "streaming_output_proto",
+    srcs = ["streaming_output.proto"],
+    visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:any_proto"],
+)
+
+cc_proto_library(
+    name = "streaming_output_cc_proto",
+    visibility = ["//visibility:public"],
+    deps = [":streaming_output_proto"],
+)
+
+go_proto_library(
+    name = "streaming_output_go_proto",
+    importpath = "intrinsic/icon/proto/streaming_output_go_proto",
+    protos = [":streaming_output_proto"],
+    visibility = ["//visibility:public"],
+)
+
+py_proto_library(
+    name = "streaming_output_py_pb2",
+    visibility = ["//visibility:public"],
+    deps = [":streaming_output_proto"],
 )
