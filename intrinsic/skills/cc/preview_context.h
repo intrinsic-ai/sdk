@@ -42,6 +42,11 @@ class PreviewContext {
  public:
   virtual ~PreviewContext() = default;
 
+  // A unique identifier shared across all interactions with the Skill for a
+  // single activation of a Skill node in a Process (including any preparation,
+  // planning, or execution calls).
+  virtual absl::string_view context_id() const = 0;
+
   // Supports cooperative cancellation of the skill.
   virtual SkillCanceller& canceller() const = 0;
 

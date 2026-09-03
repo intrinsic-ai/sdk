@@ -31,9 +31,16 @@ class GetFootprintContextImpl(get_footprint_context.GetFootprintContext):
   and other services that a skill may use.
 
   Attributes:
+    context_id: A unique identifier shared across all interactions with the
+      Skill for a single activation of a Skill node in a Process (including any
+      preparation, planning, or execution calls).
     motion_planner: A client for the motion planning service.
     object_world: A client for interacting with the object world.
   """
+
+  @property
+  def context_id(self) -> str:
+    return self._context_id
 
   @property
   def motion_planner(self) -> motion_planner_client.MotionPlannerClient:
@@ -48,10 +55,12 @@ class GetFootprintContextImpl(get_footprint_context.GetFootprintContext):
       motion_planner: motion_planner_client.MotionPlannerClient,
       object_world: object_world_client.ObjectWorldClient,
       resource_handles: dict[str, resource_handle_pb2.ResourceHandle],
+      context_id: str,
   ):
     self._motion_planner = motion_planner
     self._object_world = object_world
     self._resource_handles = resource_handles
+    self._context_id = context_id
 
   def get_frame_for_equipment(
       self, equipment_name: str, frame_name: object_world_ids.FrameName

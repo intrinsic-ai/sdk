@@ -196,10 +196,13 @@ class SkillProjectorServicer(skill_service_pb2_grpc.ProjectorServicer):
         footprint_request.world_id, self._motion_planner_service
     )
 
+    context_id = str(footprint_request.context.executive_plan_action_id)
+
     footprint_context = get_footprint_context_impl.GetFootprintContextImpl(
         motion_planner=motion_planner,
         object_world=object_world,
         resource_handles=dict(footprint_request.instance.resource_handles),
+        context_id=context_id,
     )
 
     try:
@@ -339,6 +342,8 @@ class SkillExecutorServicer(skill_service_pb2_grpc.ExecutorServicer):
         skill_id=operation.runtime_data.skill_id,
     )
 
+    context_id = str(request.context.executive_plan_action_id)
+
     skill_context = execute_context_impl.ExecuteContextImpl(
         canceller=operation.canceller,
         logging_context=logging_context,
@@ -349,6 +354,7 @@ class SkillExecutorServicer(skill_service_pb2_grpc.ExecutorServicer):
             request.world_id, self._object_world_service, self._geometry_service
         ),
         resource_handles=dict(request.instance.resource_handles),
+        context_id=context_id,
     )
 
     def execute() -> skill_service_pb2.ExecuteResult:
@@ -430,6 +436,8 @@ class SkillExecutorServicer(skill_service_pb2_grpc.ExecutorServicer):
         skill_id=operation.runtime_data.skill_id,
     )
 
+    context_id = str(request.context.executive_plan_action_id)
+
     skill_context = preview_context_impl.PreviewContextImpl(
         canceller=operation.canceller,
         logging_context=logging_context,
@@ -440,6 +448,7 @@ class SkillExecutorServicer(skill_service_pb2_grpc.ExecutorServicer):
             request.world_id, self._object_world_service, self._geometry_service
         ),
         resource_handles=dict(request.instance.resource_handles),
+        context_id=context_id,
     )
 
     def preview() -> skill_service_pb2.PreviewResult:

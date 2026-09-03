@@ -16,6 +16,7 @@
 #define INTRINSIC_SKILLS_INTERNAL_EXECUTE_CONTEXT_IMPL_H_
 
 #include <memory>
+#include <string>
 #include <utility>
 
 #include "absl/status/status.h"
@@ -40,13 +41,17 @@ class ExecuteContextImpl : public ExecuteContext {
                      SkillLoggingContext logging_context,
                      motion_planning::MotionPlannerClient motion_planner,
                      world::ObjectWorldClient object_world,
-                     std::shared_ptr<grpc::Channel> world_service_channel)
+                     std::shared_ptr<grpc::Channel> world_service_channel,
+                     std::string context_id)
       : canceller_(canceller),
         equipment_(std::move(equipment)),
         logging_context_(logging_context),
         motion_planner_(std::move(motion_planner)),
         object_world_(std::move(object_world)),
-        world_service_channel_(std::move(world_service_channel)) {}
+        world_service_channel_(std::move(world_service_channel)),
+        context_id_(std::move(context_id)) {}
+
+  absl::string_view context_id() const override { return context_id_; }
 
   SkillCanceller& canceller() const override { return *canceller_; }
 
@@ -75,6 +80,7 @@ class ExecuteContextImpl : public ExecuteContext {
   world::ObjectWorldClient object_world_;
 
   std::shared_ptr<grpc::Channel> world_service_channel_;
+  std::string context_id_;
 };
 
 }  // namespace skills

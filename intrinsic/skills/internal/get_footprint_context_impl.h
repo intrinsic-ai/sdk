@@ -39,11 +39,15 @@ class GetFootprintContextImpl : public GetFootprintContext {
   GetFootprintContextImpl(EquipmentPack equipment,
                           motion_planning::MotionPlannerClient motion_planner,
                           world::ObjectWorldClient object_world
-                          )
+                          ,
+                          std::string context_id)
       : equipment_(std::move(equipment)),
         motion_planner_(std::move(motion_planner)),
         object_world_(std::move(object_world))
-  {}
+        ,
+        context_id_(std::move(context_id)) {}
+
+  absl::string_view context_id() const override { return context_id_; }
 
   motion_planning::MotionPlannerClient& motion_planner() override {
     return motion_planner_;
@@ -62,6 +66,7 @@ class GetFootprintContextImpl : public GetFootprintContext {
   EquipmentPack equipment_;
   motion_planning::MotionPlannerClient motion_planner_;
   world::ObjectWorldClient object_world_;
+  std::string context_id_;
 };
 
 }  // namespace skills

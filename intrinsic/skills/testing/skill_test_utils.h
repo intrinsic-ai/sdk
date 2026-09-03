@@ -294,6 +294,7 @@ class SkillTestFactory final {
         motion_planner_service;
     std::shared_ptr<intrinsic_proto::world::ObjectWorldService::StubInterface>
         object_world_service;
+    std::optional<std::string> context_id = std::nullopt;
   };
 
   // Creates an `ExecuteContext` for testing a skill's Execute() method.
@@ -318,6 +319,7 @@ class SkillTestFactory final {
         motion_planner_service;
     std::shared_ptr<intrinsic_proto::world::ObjectWorldService::StubInterface>
         object_world_service;
+    std::optional<std::string> context_id = std::nullopt;
   };
 
   // Creates a `PreviewContext` for testing a skill's Preview() method.
@@ -340,6 +342,7 @@ class SkillTestFactory final {
         motion_planner_service;
     std::shared_ptr<intrinsic_proto::world::ObjectWorldService::StubInterface>
         object_world_service;
+    std::optional<std::string> context_id = std::nullopt;
   };
 
   // Creates a `GetFootprintContext` for testing a skill's GetFootprint()

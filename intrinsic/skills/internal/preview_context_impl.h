@@ -16,6 +16,7 @@
 #define INTRINSIC_SKILLS_INTERNAL_PREVIEW_CONTEXT_IMPL_H_
 
 #include <memory>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -48,13 +49,17 @@ class PreviewContextImpl : public PreviewContext {
                      SkillLoggingContext logging_context,
                      motion_planning::MotionPlannerClient motion_planner,
                      world::ObjectWorldClient object_world
-                     )
+                     ,
+                     std::string context_id)
       : canceller_(canceller),
         equipment_(std::move(equipment)),
         logging_context_(logging_context),
         motion_planner_(std::move(motion_planner)),
         object_world_(std::move(object_world))
-  {}
+        ,
+        context_id_(std::move(context_id)) {}
+
+  absl::string_view context_id() const override { return context_id_; }
 
   SkillCanceller& canceller() const override { return *canceller_; }
 
@@ -92,6 +97,7 @@ class PreviewContextImpl : public PreviewContext {
   world::ObjectWorldClient object_world_;
 
   std::vector<intrinsic_proto::skills::TimedWorldUpdate> world_updates_;
+  std::string context_id_;
 
   EquipmentPack& equipment() override { return equipment_; }
 };

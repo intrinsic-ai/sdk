@@ -86,5 +86,6 @@ def preview_to_execute_context(
       motion_planner=context.motion_planner,
       object_world=context.object_world,
       resource_handles=resource_handles,
+      context_id=context.context_id,
   )
 

@@ -38,6 +38,9 @@ class PreviewContextImpl(preview_context.PreviewContext):
 
   Attributes:
     canceller: Supports cooperative cancellation of the skill.
+    context_id: A unique identifier shared across all interactions with the
+      Skill for a single activation of a Skill node in a Process (including any
+      preparation, planning, or execution calls).
     logging_context: The logging context of the execution.
     motion_planner: A client for the motion planning service.
     object_world: A client for interacting with the object world.
@@ -52,6 +55,10 @@ class PreviewContextImpl(preview_context.PreviewContext):
   @property
   def canceller(self) -> skill_canceller.SkillCanceller:
     return self._canceller
+
+  @property
+  def context_id(self) -> str:
+    return self._context_id
 
   @property
   def logging_context(self) -> skill_logging_context.SkillLoggingContext:
@@ -76,12 +83,14 @@ class PreviewContextImpl(preview_context.PreviewContext):
       motion_planner: motion_planner_client.MotionPlannerClient,
       object_world: object_world_client.ObjectWorldClient,
       resource_handles: dict[str, resource_handle_pb2.ResourceHandle],
+      context_id: str,
   ):
     self._canceller = canceller
     self._logging_context = logging_context
     self._motion_planner = motion_planner
     self._object_world = object_world
     self._resource_handles = resource_handles
+    self._context_id = context_id
 
     self._world_updates: list[prediction_pb2.TimedWorldUpdate] = []
 

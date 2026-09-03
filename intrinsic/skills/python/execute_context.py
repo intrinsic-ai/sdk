@@ -43,6 +43,9 @@ class ExecuteContext(abc.ABC):
 
   Attributes:
     canceller: Supports cooperative cancellation of the skill.
+    context_id: A unique identifier shared across all interactions with the
+      Skill for a single activation of a Skill node in a Process (including any
+      preparation, planning, or execution calls).
     logging_context: The skill's logging context.
     motion_planner: A client for the motion planning service.
     object_world: A client for interacting with the object world.
@@ -52,6 +55,11 @@ class ExecuteContext(abc.ABC):
   @property
   @abc.abstractmethod
   def canceller(self) -> skill_canceller.SkillCanceller:
+    pass
+
+  @property
+  @abc.abstractmethod
+  def context_id(self) -> str:
     pass
 
   @property

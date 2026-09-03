@@ -14,6 +14,7 @@
 
 #include "intrinsic/skills/testing/skill_test_utils.h"
 
+#include <atomic>
 #include <memory>
 #include <utility>
 
@@ -48,6 +49,15 @@
 
 namespace intrinsic {
 namespace skills {
+
+namespace {
+
+std::string GenerateDefaultTestContextId() {
+  static std::atomic<uint64_t> counter{0};
+  return absl::StrCat("test-context-", ++counter);
+}
+
+}  // namespace
 
 using intrinsic_proto::motion_planning::v1::MockMotionPlannerServiceStub;
 using intrinsic_proto::motion_planning::v1::MotionPlannerService;
@@ -140,7 +150,8 @@ std::unique_ptr<ExecuteContext> SkillTestFactory::MakeExecuteContext(
                                            motion_planner_service),
       world::ObjectWorldClient(initializer.world_id,
                                object_world_service),
-      nullptr);
+      nullptr,
+      initializer.context_id.value_or(GenerateDefaultTestContextId()));
   // clang-format on
 }
 
@@ -165,6 +176,7 @@ std::unique_ptr<PreviewContext> SkillTestFactory::MakePreviewContext(
                                            motion_planner_service),
       world::ObjectWorldClient(initializer.world_id,
                                object_world_service)
+      , initializer.context_id.value_or(GenerateDefaultTestContextId())
   );
   // clang-format on
 }
@@ -186,6 +198,7 @@ std::unique_ptr<GetFootprintContext> SkillTestFactory::MakeGetFootprintContext(
                                           motion_planner_service),
       world::ObjectWorldClient(initializer.world_id,
                               object_world_service)
+      , initializer.context_id.value_or(GenerateDefaultTestContextId())
   );
   // clang-format on
 }

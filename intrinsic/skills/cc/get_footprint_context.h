@@ -36,6 +36,11 @@ class GetFootprintContext {
  public:
   virtual ~GetFootprintContext() = default;
 
+  // A unique identifier shared across all interactions with the Skill for a
+  // single activation of a Skill node in a Process (including any preparation,
+  // planning, or execution calls).
+  virtual absl::string_view context_id() const = 0;
+
   // A client for the motion planning service.
   virtual motion_planning::MotionPlannerClient& motion_planner() = 0;
 

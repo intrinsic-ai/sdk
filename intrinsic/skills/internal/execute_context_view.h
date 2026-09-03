@@ -15,6 +15,8 @@
 #ifndef INTRINSIC_SKILLS_INTERNAL_EXECUTE_CONTEXT_VIEW_H_
 #define INTRINSIC_SKILLS_INTERNAL_EXECUTE_CONTEXT_VIEW_H_
 
+#include <string>
+
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "intrinsic/logging/proto/context.pb.h"
@@ -38,13 +40,17 @@ class ExecuteContextView : public ExecuteContext {
                      const SkillLoggingContext& logging_context,
                      motion_planning::MotionPlannerClient& motion_planner,
                      world::ObjectWorldClient& object_world
-                     )
+                     ,
+                     std::string context_id)
       : canceller_(canceller),
         equipment_(equipment),
         logging_context_(logging_context),
         motion_planner_(motion_planner),
         object_world_(object_world)
-  {}
+        ,
+        context_id_(std::move(context_id)) {}
+
+  absl::string_view context_id() const override { return context_id_; }
 
   SkillCanceller& canceller() const override { return canceller_; }
 
@@ -66,6 +72,7 @@ class ExecuteContextView : public ExecuteContext {
   const SkillLoggingContext& logging_context_;
   motion_planning::MotionPlannerClient& motion_planner_;
   world::ObjectWorldClient& object_world_;
+  std::string context_id_;
 };
 
 }  // namespace skills

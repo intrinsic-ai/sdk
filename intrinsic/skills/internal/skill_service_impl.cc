@@ -387,6 +387,9 @@ grpc::Status SkillProjectorServiceImpl::GetFootprint(
   INTR_ASSIGN_OR_RETURN_GRPC(EquipmentPack equipment,
                              EquipmentPack::GetEquipmentPack(*request));
 
+  const std::string context_id =
+      std::to_string(request->context().executive_plan_action_id());
+
   GetFootprintContextImpl footprint_context(
       std::move(equipment),
       /*motion_planner=*/
@@ -394,7 +397,8 @@ grpc::Status SkillProjectorServiceImpl::GetFootprint(
                                            motion_planner_service_),
       /*object_world=*/
       world::ObjectWorldClient(request->world_id(), object_world_service_)
-  );
+      ,
+      context_id);
 
   INTR_ASSIGN_OR_RETURN_GRPC(internal::SkillRuntimeData runtime_data,
                              skill_repository_.GetSkillRuntimeData(skill_name));
@@ -502,6 +506,9 @@ grpc::Status SkillExecutorServiceImpl::StartExecute(
       .skill_id = operation->runtime_data().GetId(),
   };
 
+  const std::string context_id =
+      std::to_string(request->context().executive_plan_action_id());
+
   auto skill_context = std::make_unique<ExecuteContextImpl>(
       /*canceller=*/operation->canceller(), std::move(equipment),
       /*logging_context=*/logging_context,
@@ -510,7 +517,7 @@ grpc::Status SkillExecutorServiceImpl::StartExecute(
                                            motion_planner_service_),
       /*object_world=*/
       world::ObjectWorldClient(request->world_id(), object_world_service_),
-      world_service_channel_);
+      world_service_channel_, context_id);
 
   std::optional<intrinsic_proto::data_logger::Context> log_context;
   if (request->has_context()) {
@@ -580,6 +587,9 @@ grpc::Status SkillExecutorServiceImpl::StartPreview(
       .skill_id = operation->runtime_data().GetId(),
   };
 
+  const std::string preview_context_id =
+      std::to_string(request->context().executive_plan_action_id());
+
   auto skill_context = std::make_unique<PreviewContextImpl>(
       /*canceller=*/operation->canceller(),
       /*equipment=*/std::move(equipment),
@@ -590,7 +600,8 @@ grpc::Status SkillExecutorServiceImpl::StartPreview(
       /*object_world=*/
       world::ObjectWorldClient(request->world_id(), object_world_service_)
 
-  );
+      ,
+      preview_context_id);
 
   std::optional<intrinsic_proto::data_logger::Context> log_context;
   if (request->has_context()) {

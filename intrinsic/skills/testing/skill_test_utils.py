@@ -20,6 +20,7 @@ import concurrent.futures
 from typing import cast
 from typing import Optional
 from unittest import mock
+import uuid
 
 from google.protobuf import empty_pb2
 import grpc
@@ -145,6 +146,7 @@ def make_test_execute_context(
     resource_handles: Optional[
         dict[str, resource_handle_pb2.ResourceHandle]
     ] = None,
+    context_id: Optional[str] = None,
 ) -> skill_interface.ExecuteContext:
   """Makes an ExecuteContext for testing.
 
@@ -154,6 +156,8 @@ def make_test_execute_context(
   Returns:
     The testing ExecuteContext.
   """
+  if context_id is None:
+    context_id = str(uuid.uuid4())
   if canceller is None:
     canceller = skill_canceller.SkillCancellationManager(ready_timeout=30.0)
   if logging_context is None:
@@ -187,6 +191,7 @@ def make_test_execute_context(
       motion_planner=motion_planner,
       object_world=object_world,
       resource_handles=resource_handles,
+      context_id=context_id,
   )
 
 
@@ -217,6 +222,7 @@ def make_test_preview_context(
     resource_handles: Optional[
         dict[str, resource_handle_pb2.ResourceHandle]
     ] = None,
+    context_id: Optional[str] = None,
 ) -> skill_interface.PreviewContext:
   """Makes a PreviewContext for testing.
 
@@ -226,6 +232,8 @@ def make_test_preview_context(
   Returns:
     The testing PreviewContext.
   """
+  if context_id is None:
+    context_id = str(uuid.uuid4())
   if canceller is None:
     canceller = skill_canceller.SkillCancellationManager(ready_timeout=30.0)
   if logging_context is None:
@@ -258,6 +266,7 @@ def make_test_preview_context(
       motion_planner=motion_planner,
       object_world=object_world,
       resource_handles=resource_handles,
+      context_id=context_id,
   )
 
 
@@ -287,6 +296,7 @@ def make_test_get_footprint_context(
     resource_handles: Optional[
         dict[str, resource_handle_pb2.ResourceHandle]
     ] = None,
+    context_id: Optional[str] = None,
 ) -> skill_interface.GetFootprintContext:
   """Makes a GetFootprintContext for testing.
 
@@ -296,6 +306,8 @@ def make_test_get_footprint_context(
   Returns:
     The testing GetFootprintContext.
   """
+  if context_id is None:
+    context_id = str(uuid.uuid4())
   if motion_planner is None:
     motion_planner = motion_planner_client.MotionPlannerClient(
         world_id=_TEST_WORLD_ID,
@@ -319,6 +331,7 @@ def make_test_get_footprint_context(
       motion_planner=motion_planner,
       object_world=object_world,
       resource_handles=resource_handles,
+      context_id=context_id,
   )
 
 

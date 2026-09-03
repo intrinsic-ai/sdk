@@ -31,9 +31,17 @@ class GetFootprintContext(abc.ABC):
   and other services that a skill may use.
 
   Attributes:
+    context_id: A unique identifier shared across all interactions with the
+      Skill for a single activation of a Skill node in a Process (including any
+      preparation, planning, or execution calls).
     motion_planner: A client for the motion planning service.
     object_world: A client for interacting with the object world.
   """
+
+  @property
+  @abc.abstractmethod
+  def context_id(self) -> str:
+    pass
 
   @property
   @abc.abstractmethod
