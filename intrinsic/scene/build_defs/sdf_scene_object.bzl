@@ -139,6 +139,7 @@ def sdf_scene_object(
         large_mesh_checks_max_mesh_diagonal = None,
         skip_validate_referenced_geos = False,
         compatible_with = [],
+        target_compatible_with = [],
         testonly = False,
         visibility = None):
     """Creates SceneObject from SDF file and optionally SceneObjectUpdates proto file.
@@ -160,6 +161,8 @@ def sdf_scene_object(
         ValidateReferencedGeos check. Defaults to False.
       compatible_with: The list of environments this target can be built for,
         in addition to default-supported environments.
+      target_compatible_with: The list of target platforms that are compatible
+        with this target.
       testonly: If true, only testonly targets can depend on this target.
       visibility: Visibility of the build rule.
     """
@@ -176,6 +179,7 @@ def sdf_scene_object(
         large_mesh_checks_max_mesh_diagonal = large_mesh_checks_max_mesh_diagonal,
         sdf_assets = sdf_assets,
         skip_validate_referenced_geos = skip_validate_referenced_geos,
+        target_compatible_with = target_compatible_with,
         updates_pbtxts = updates_pbtxts,
         visibility = visibility,
         deps = deps,
