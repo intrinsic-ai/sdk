@@ -227,7 +227,6 @@ py_library(
         "//intrinsic/skills/python:skill_canceller",
         "//intrinsic/skills/python:skill_interface",
         "//intrinsic/skills/python:skill_logging_context",
-        "//intrinsic/util/path_resolver:path_resolver_py",
         "//intrinsic/world/proto:object_world_service_py_pb2_grpc",
         "//intrinsic/world/python:object_world_client",
         requirement("grpcio"),
