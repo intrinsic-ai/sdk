@@ -28,7 +28,6 @@
 #include "intrinsic/skills/cc/skill_interface.h"
 #include "intrinsic/skills/internal/execute_context_view.h"
 #include "intrinsic/skills/proto/skill_service.pb.h"
-#include "intrinsic/skills/skill_pubsub.h"  // intrinsic:skills_pubsub:strip(b/224840414)
 #include "intrinsic/util/proto_time.h"
 #include "intrinsic/util/status/status_macros.h"
 #include "intrinsic/world/proto/object_world_updates.pb.h"
@@ -41,24 +40,10 @@ absl::StatusOr<std::unique_ptr<::google::protobuf::Message>> PreviewViaExecute(
     PreviewContext& context) {
   EquipmentPack equipment;
 
-  // intrinsic:skills_pubsub:strip_begin(b/224840414)
-  INTR_ASSIGN_OR_RETURN(std::unique_ptr<SkillPubSub> skill_pub_sub,
-                        SkillPubSub::Create());
-  INTR_ASSIGN_OR_RETURN(std::unique_ptr<SkillPubSubInstance> pub_sub_instance,
-                        skill_pub_sub->GetInstance({}, "preview_via_execute"));
-  // intrinsic:skills_pubsub:strip_end
-
   INTR_ASSIGN_OR_RETURN(ExecuteRequest execute_request,
                         PreviewToExecuteRequest(request));
   INTR_ASSIGN_OR_RETURN(ExecuteContextView execute_context,
-                        PreviewToExecuteContext(
-                            context,
-                            equipment
-                            // intrinsic:skills_pubsub:strip_begin(b/224840414)
-                            ,
-                            *pub_sub_instance
-                            // intrinsic:skills_pubsub:strip_end
-                            ));
+                        PreviewToExecuteContext(context, equipment));
 
   return skill.Execute(execute_request, execute_context);
 }
@@ -71,20 +56,10 @@ absl::StatusOr<ExecuteRequest> PreviewToExecuteRequest(
 }
 
 absl::StatusOr<ExecuteContextView> PreviewToExecuteContext(
-    PreviewContext& context,
-    const EquipmentPack& equipment
-    // intrinsic:skills_pubsub:strip_begin(b/224840414)
-    ,
-    SkillPubSubInstance& pub_sub_instance
-    // intrinsic:skills_pubsub:strip_end
-) {
+    PreviewContext& context, const EquipmentPack& equipment) {
   return ExecuteContextView(context.canceller(), equipment,
                             context.logging_context(), context.motion_planner(),
                             context.object_world()
-                            // intrinsic:skills_pubsub:strip_begin(b/224840414)
-                            ,
-                            pub_sub_instance
-                            // intrinsic:skills_pubsub:strip_end
                             ,
                             std::string(context.context_id()));
 }

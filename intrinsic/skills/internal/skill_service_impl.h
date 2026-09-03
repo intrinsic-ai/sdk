@@ -46,7 +46,6 @@
 #include "intrinsic/skills/proto/skill_service.grpc.pb.h"
 #include "intrinsic/skills/proto/skill_service.pb.h"
 #include "intrinsic/skills/proto/skills.pb.h"
-#include "intrinsic/skills/skill_pubsub.h"  // intrinsic:skills_pubsub:strip(b/224840414)
 #include "intrinsic/util/thread/thread.h"
 #include "intrinsic/world/proto/object_world_service.grpc.pb.h"
 
@@ -319,10 +318,6 @@ class SkillExecutorServiceImpl
       std::shared_ptr<ObjectWorldService::StubInterface> object_world_service,
       std::shared_ptr<MotionPlannerService::StubInterface>
           motion_planner_service,
-
-      // intrinsic:skills_pubsub:strip_begin(b/224840414)
-      SkillPubSub& skill_pub_sub_,
-      // intrinsic:skills_pubsub:strip_end
       RequestWatcher* request_watcher = nullptr);
 
   ~SkillExecutorServiceImpl() override;
@@ -366,7 +361,6 @@ class SkillExecutorServiceImpl
   std::shared_ptr<ObjectWorldService::StubInterface> object_world_service_;
   std::shared_ptr<MotionPlannerService::StubInterface> motion_planner_service_;
 
-  SkillPubSub& skill_pub_sub_;  // intrinsic:skills_pubsub:strip(b/224840414)
   RequestWatcher* request_watcher_;
 
   absl::Mutex message_mutex_;

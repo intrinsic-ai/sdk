@@ -29,51 +29,13 @@
 #include "absl/time/time.h"
 #include "absl/types/span.h"
 #include "google/protobuf/any.pb.h"
-#include "google/protobuf/descriptor.h"
-#include "google/protobuf/descriptor.pb.h"
-#include "google/protobuf/descriptor_database.h"
 #include "intrinsic/assets/proto/status_spec.pb.h"
 #include "intrinsic/skills/proto/equipment.pb.h"
-#include "intrinsic/skills/proto/skill_service_config.pb.h"
 #include "intrinsic/skills/proto/skills.pb.h"
-#include "intrinsic/skills/skill_pub_topic.h"  // intrinsic:skills_pubsub:strip(b/224840414)
 #include "intrinsic/util/proto_time.h"
 #include "intrinsic/util/status/status_macros.h"
 
 namespace intrinsic::skills::internal {
-namespace {
-// intrinsic:skills_pubsub:strip_begin(b/224840414)
-absl::StatusOr<std::vector<SkillPubTopic>> GetSkillPubTopic(
-    const intrinsic_proto::skills::PubTopicDescription& description) {
-  google::protobuf::SimpleDescriptorDatabase descriptor_database;
-  google::protobuf::DescriptorPool descriptor_pool(&descriptor_database);
-  for (const auto& file : description.file_descriptor_set().file()) {
-    if (!descriptor_database.Add(file)) {
-      return absl::InvalidArgumentError(
-          "`file_descriptor_set` contains duplicate files.");
-    }
-  }
-
-  std::vector<SkillPubTopic> pub_topics;
-  pub_topics.reserve(description.pub_topics().size());
-  for (const auto& pub_topic_proto : description.pub_topics()) {
-    if (!descriptor_pool.FindMessageTypeByName(
-            pub_topic_proto.message_full_name())) {
-      return absl::InvalidArgumentError(absl::StrFormat(
-          "missing pub_topic_descriptor for topic with data_id: %s. expected "
-          "descriptor for message: %s",
-          pub_topic_proto.data_id(), pub_topic_proto.message_full_name()));
-    }
-    pub_topics.push_back(SkillPubTopic{
-        .data_id = pub_topic_proto.data_id(),
-        .description = pub_topic_proto.description(),
-        .message_full_name = pub_topic_proto.message_full_name(),
-    });
-  }
-  return pub_topics;
-}
-// intrinsic:skills_pubsub:strip_end
-}  // namespace
 
 ParameterData::ParameterData(const google::protobuf::Any& default_value)
     : default_(default_value) {}
@@ -105,33 +67,19 @@ StatusSpecs::StatusSpecs(
                     });
 }
 
-// intrinsic:skills_pubsub:strip_begin(b/224840414)
-TopicData::TopicData(absl::Span<const SkillPubTopic> pub_topics)
-    : pub_topics_(pub_topics.begin(), pub_topics.end()) {}
-// intrinsic:skills_pubsub:strip_end
-
-SkillRuntimeData::SkillRuntimeData(
-    const ParameterData& parameter_data,
-    const ExecutionOptions& execution_options,
-    const ResourceData& resource_data, const StatusSpecs& status_specs,
-    const TopicData& topic_data,  // intrinsic:skills_pubsub:strip(b/224840414)
-    absl::string_view id)
+SkillRuntimeData::SkillRuntimeData(const ParameterData& parameter_data,
+                                   const ExecutionOptions& execution_options,
+                                   const ResourceData& resource_data,
+                                   const StatusSpecs& status_specs,
+                                   absl::string_view id)
     : parameter_data_(parameter_data),
       execution_options_(execution_options),
       resource_data_(resource_data),
       status_specs_(status_specs),
-      topic_data_(topic_data),  // intrinsic:skills_pubsub:strip(b/224840414)
       id_(id) {}
 
 absl::StatusOr<SkillRuntimeData> GetRuntimeDataFrom(
     const intrinsic_proto::skills::SkillServiceConfig& skill_service_config) {
-  // intrinsic:skills_pubsub:strip_begin(b/224840414)
-  INTR_ASSIGN_OR_RETURN(
-      std::vector<SkillPubTopic> pub_topics,
-      GetSkillPubTopic(
-          skill_service_config.skill_description().pub_topic_description()));
-  // intrinsic:skills_pubsub:strip_end
-
   std::optional<absl::Duration> cancellation_ready_timeout;
   if (skill_service_config.execution_service_options()
           .has_cancellation_ready_timeout()) {
@@ -167,9 +115,6 @@ absl::StatusOr<SkillRuntimeData> GetRuntimeDataFrom(
                         .end()}),
       StatusSpecs({skill_service_config.status_info().begin(),
                    skill_service_config.status_info().end()}),
-      // intrinsic:skills_pubsub:strip_begin(b/224840414)
-      TopicData(pub_topics),
-      // intrinsic:skills_pubsub:strip_end
       skill_service_config.skill_description().id());
 }
 

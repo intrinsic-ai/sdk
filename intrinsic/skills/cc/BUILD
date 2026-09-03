@@ -53,7 +53,6 @@ cc_library(
         ":preview_context",
         ":preview_request",
         "//intrinsic/logging/proto:context_cc_proto",
-        "//intrinsic/skills:skill_pub_topic",  # intrinsic:skills_pubsub:strip(b/224840414)
         "//intrinsic/skills/proto:equipment_cc_proto",
         "//intrinsic/skills/proto:footprint_cc_proto",
         "//intrinsic/skills/proto:skill_service_cc_proto",
@@ -74,7 +73,6 @@ cc_library(
     deps = [
         ":equipment_pack",
         ":skill_interface",
-        "//intrinsic/skills:skill_pubsub",  # intrinsic:skills_pubsub:strip(b/224840414)
         "//intrinsic/skills/internal:execute_context_view",
         "//intrinsic/skills/proto:prediction_cc_proto",
         "//intrinsic/skills/proto:skill_service_cc_proto",
@@ -127,7 +125,6 @@ cc_library(
         ":skill_logging_context",
         "//intrinsic/logging/proto:context_cc_proto",
         "//intrinsic/motion_planning:motion_planner_client",
-        "//intrinsic/skills:skill_pubsub",  # intrinsic:skills_pubsub:strip(b/224840414)
         "//intrinsic/skills/internal:skill_registry_client_interface",
         "//intrinsic/skills/proto:skill_service_cc_proto",
         "//intrinsic/world/objects:object_world_client",

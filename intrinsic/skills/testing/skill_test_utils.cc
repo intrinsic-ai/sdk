@@ -43,8 +43,6 @@
 #include "intrinsic/skills/internal/get_footprint_context_impl.h"
 #include "intrinsic/skills/internal/preview_context_impl.h"
 #include "intrinsic/skills/proto/skill_manifest.pb.h"
-#include "intrinsic/skills/skill_pubsub.h"  // intrinsic:skills_pubsub:strip(b/224840414)
-#include "intrinsic/skills/testing/test_skill_pubsub.h"  // intrinsic:skills_pubsub:strip(b/224840414)
 #include "intrinsic/world/objects/object_world_client.h"
 #include "intrinsic/world/proto/object_world_service.grpc.pb.h"
 #include "intrinsic/world/proto/object_world_service_mock.grpc.pb.h"
@@ -131,25 +129,6 @@ std::shared_ptr<ServiceT> MaybeMock(const std::shared_ptr<ServiceT>& stub) {
   }
 }
 
-// intrinsic:skills_pubsub:strip_begin(b/224840414)
-std::unique_ptr<SkillPubSubInstance> MakePubSub(PubSub* pubsub) {
-  std::unique_ptr<SkillPubSub> skill_pub_sub;
-  if (pubsub) {
-    // TestSkillPubSub exposes SkillPubSub's protected non-owning constructor
-    // so the skill under test shares the test fixture's existing message bus
-    // rather than connecting to an isolated bus.
-    skill_pub_sub = std::make_unique<TestSkillPubSub>(pubsub);
-  } else {
-    auto pub_sub_or = SkillPubSub::Create();
-    CHECK_OK(pub_sub_or);
-    skill_pub_sub = std::move(*pub_sub_or);
-  }
-  auto instance = skill_pub_sub->GetInstance({}, "SkillTestFactory");
-  CHECK_OK(instance);
-  return std::move(*instance);
-}
-// intrinsic:skills_pubsub:strip_end
-
 std::unique_ptr<ExecuteContext> SkillTestFactory::MakeExecuteContext(
     const ExecuteContextInitializer& initializer) {
   std::shared_ptr<SkillCanceller> canceller =
@@ -163,11 +142,6 @@ std::unique_ptr<ExecuteContext> SkillTestFactory::MakeExecuteContext(
       MaybeMock<ObjectWorldService::StubInterface, MockObjectWorldServiceStub>(
           initializer.object_world_service);
 
-  // intrinsic:skills_pubsub:strip_begin(b/224840414)
-  std::unique_ptr<SkillPubSubInstance> pub_sub_instance =
-      MakePubSub(initializer.pubsub);
-  // intrinsic:skills_pubsub:strip_end
-
   // clang-format off
   return std::make_unique<ExecuteContextImpl>(
       canceller, initializer.equipment_pack.value_or(EquipmentPack()),
@@ -176,9 +150,6 @@ std::unique_ptr<ExecuteContext> SkillTestFactory::MakeExecuteContext(
                                            motion_planner_service),
       world::ObjectWorldClient(initializer.world_id,
                                object_world_service),
-      // intrinsic:skills_pubsub:strip_begin(b/224840414)
-      std::move(pub_sub_instance),
-      // intrinsic:skills_pubsub:strip_end
       nullptr,
       initializer.context_id.value_or(GenerateDefaultTestContextId()));
   // clang-format on

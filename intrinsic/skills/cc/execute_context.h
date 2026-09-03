@@ -27,7 +27,6 @@
 #include "intrinsic/skills/cc/skill_canceller.h"
 #include "intrinsic/skills/cc/skill_logging_context.h"
 #include "intrinsic/skills/proto/skill_service.pb.h"
-#include "intrinsic/skills/skill_pubsub.h"  // intrinsic:skills_pubsub:strip(b/224840414)
 #include "intrinsic/world/objects/object_world_client.h"
 
 namespace intrinsic {
@@ -66,10 +65,6 @@ class ExecuteContext {
 
   // A client for interacting with the object world.
   virtual world::ObjectWorldClient& object_world() = 0;
-
-  // intrinsic:skills_pubsub:strip_begin(b/224840414)
-  virtual SkillPubSubInstance& pub_sub_instance() const = 0;
-  // intrinsic:skills_pubsub:strip_end
 
  protected:
   // Returns a `grpc::Channel` that can be used to connect to the World service.

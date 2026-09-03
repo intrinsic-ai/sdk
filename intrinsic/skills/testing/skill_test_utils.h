@@ -27,12 +27,9 @@
 #include "google/protobuf/message.h"
 #include "grpcpp/impl/service_type.h"
 #include "grpcpp/server.h"
+#include "internal/testing.h"
 #include "intrinsic/assets/proto/v1/resolved_dependency.pb.h"
 #include "intrinsic/motion_planning/proto/v1/motion_planner_service.grpc.pb.h"
-// intrinsic:skills_pubsub:strip_begin(b/224840414)
-#include "intrinsic/platform/pubsub/pubsub.h"
-// intrinsic:skills_pubsub:strip_end
-#include "internal/testing.h"
 #include "intrinsic/skills/cc/equipment_pack.h"
 #include "intrinsic/skills/cc/skill_canceller.h"
 #include "intrinsic/skills/cc/skill_interface.h"
@@ -297,9 +294,6 @@ class SkillTestFactory final {
         motion_planner_service;
     std::shared_ptr<intrinsic_proto::world::ObjectWorldService::StubInterface>
         object_world_service;
-    // intrinsic:skills_pubsub:strip_begin(b/224840414)
-    PubSub* pubsub = nullptr;
-    // intrinsic:skills_pubsub:strip_end
     std::optional<std::string> context_id = std::nullopt;
   };
 
@@ -325,9 +319,6 @@ class SkillTestFactory final {
         motion_planner_service;
     std::shared_ptr<intrinsic_proto::world::ObjectWorldService::StubInterface>
         object_world_service;
-    // intrinsic:skills_pubsub:strip_begin(b/224840414)
-    PubSub* pubsub = nullptr;
-    // intrinsic:skills_pubsub:strip_end
     std::optional<std::string> context_id = std::nullopt;
   };
 

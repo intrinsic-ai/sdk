@@ -40,13 +40,6 @@ from intrinsic.geometry.proto import geometry_service_pb2_grpc
 from intrinsic.logging.proto import context_pb2
 from intrinsic.motion_planning import motion_planner_client
 from intrinsic.motion_planning.proto.v1 import motion_planner_service_pb2_grpc
-
-# intrinsic:skills_pubsub:strip_begin
-# isort: off
-from intrinsic.skills import skill_pubsub
-# isort: on
-# intrinsic:skills_pubsub:strip_end
-
 from intrinsic.skills.internal import default_parameters
 from intrinsic.skills.internal import error_bindings
 from intrinsic.skills.internal import error_utils
@@ -287,17 +280,11 @@ class SkillExecutorServicer(skill_service_pb2_grpc.ExecutorServicer):
           motion_planner_service_pb2_grpc.MotionPlannerServiceStub
       ),
       geometry_service: geometry_service_pb2_grpc.GeometryServiceStub,
-      # intrinsic:skills_pubsub:strip_begin
-      skill_pub_sub: skill_pubsub.SkillPubSub,
-      # intrinsic:skills_pubsub:strip_end
   ):
     self._skill_repository = skill_repository
     self._object_world_service = object_world_service
     self._motion_planner_service = motion_planner_service
     self._geometry_service = geometry_service
-    # intrinsic:skills_pubsub:strip_begin
-    self._skill_pub_sub = skill_pub_sub
-    # intrinsic:skills_pubsub:strip_end
 
     self._operations = _SkillOperations()
 
@@ -350,13 +337,6 @@ class SkillExecutorServicer(skill_service_pb2_grpc.ExecutorServicer):
           ),
       )
 
-    # intrinsic:skills_pubsub:strip_begin(b/227338653)
-    pub_sub_instance = self._skill_pub_sub.get_instance(
-        list(operation.runtime_data.topic_data.pub_topics),
-        request.instance.instance_name,
-    )
-    # intrinsic:skills_pubsub:strip_end
-
     logging_context = skill_logging_context.SkillLoggingContext(
         data_logger_context=request.context,
         skill_id=operation.runtime_data.skill_id,
@@ -373,7 +353,6 @@ class SkillExecutorServicer(skill_service_pb2_grpc.ExecutorServicer):
         object_world=object_world_client.ObjectWorldClient(
             request.world_id, self._object_world_service, self._geometry_service
         ),
-        pub_sub_instance=pub_sub_instance,  # intrinsic:skills_pubsub:strip(b/227338653)
         resource_handles=dict(request.instance.resource_handles),
         context_id=context_id,
     )

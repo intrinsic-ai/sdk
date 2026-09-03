@@ -335,12 +335,10 @@ cc_library(
         "//intrinsic:public_api_users",
     ],
     deps = [
-        ":test_skill_pubsub",  # intrinsic:skills_pubsub:strip(b/224840414)
         "//intrinsic/assets/proto/v1:grpc_connection_cc_proto",
         "//intrinsic/assets/proto/v1:resolved_dependency_cc_proto",
         "//intrinsic/motion_planning:motion_planner_client",
         "//intrinsic/motion_planning/proto/v1:motion_planner_service_cc_grpc_proto",
-        "//intrinsic/skills:skill_pubsub",  # intrinsic:skills_pubsub:strip(b/224840414)
         "//intrinsic/skills/cc:equipment_pack",
         "//intrinsic/skills/cc:execute_request",
         "//intrinsic/skills/cc:skill_canceller",

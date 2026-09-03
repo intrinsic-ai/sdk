@@ -28,12 +28,6 @@ from google.protobuf import any_pb2
 from google.protobuf import descriptor as proto_descriptor
 
 from intrinsic.assets.proto import status_spec_pb2
-
-# isort: off
-# intrinsic:skills_pubsub:strip_begin(b/224840414)
-from intrinsic.skills import skills_pub_topic
-# intrinsic:skills_pubsub:strip_end
-# isort: on
 from intrinsic.skills.proto import equipment_pb2
 from intrinsic.skills.proto import skill_service_config_pb2
 from intrinsic.skills.proto import skills_pb2
@@ -105,21 +99,6 @@ class StatusSpecs:
   specs: Mapping[int, status_spec_pb2.StatusSpec]
 
 
-# intrinsic:skills_pubsub:strip_begin(b/224840414)
-@dataclasses.dataclass(frozen=True)
-class TopicData:
-  """Data about the topics that skills publish.
-
-  Attributes:
-    pub_topics: The topics that the skill publishes to.
-  """
-
-  pub_topics: Sequence[skills_pub_topic.SkillPubTopic]
-
-
-# intrinsic:skills_pubsub:strip_end
-
-
 @dataclasses.dataclass(frozen=True)
 class SkillRuntimeData:
   """Data about skills that are relevant to the skills services.
@@ -130,7 +109,6 @@ class SkillRuntimeData:
     execution_options: The execution options.
     resource_data: The resource data.
     status_specs: Expected status code definitions from manifest.
-    topic_data: The topic data.  # intrinsic:skills_pubsub:strip(b/224840414)
     skill_id: The skill id.
   """
 
@@ -139,7 +117,6 @@ class SkillRuntimeData:
   execution_options: ExecutionOptions
   resource_data: ResourceData
   status_specs: StatusSpecs
-  topic_data: TopicData  # intrinsic:skills_pubsub:strip(b/224840414)
   skill_id: str
 
 
@@ -162,12 +139,6 @@ def get_runtime_data_from(
     Constructed SkillRuntimeData from given args.
   """
   # pyformat: enable
-  # intrinsic:skills_pubsub:strip_begin(b/224840414)
-  pub_topics = _get_skill_pub_topic(
-      skill_service_config.skill_description.pub_topic_description.pub_topics,
-  )
-  # intrinsic:skills_pubsub:strip_end
-
   execution_service_options_kwargs = {}
   if skill_service_config.execution_service_options.HasField(
       'cancellation_ready_timeout'
@@ -230,26 +201,5 @@ def get_runtime_data_from(
       execution_options=execute_opts,
       resource_data=ResourceData(resource_data),
       status_specs=StatusSpecs(status_specs),
-      # intrinsic:skills_pubsub:strip_begin(b/224840414)
-      topic_data=TopicData(pub_topics),
-      # intrinsic:skills_pubsub:strip_end
       skill_id=skill_service_config.skill_description.id,
   )
-
-
-# intrinsic:skills_pubsub:strip_begin(b/224840414)
-def _get_skill_pub_topic(
-    pub_topic_protos: Sequence[skills_pb2.PubTopic],
-) -> Sequence[skills_pub_topic.SkillPubTopic]:
-  """Get the skill's pub topics."""
-  return [
-      skills_pub_topic.SkillPubTopic(
-          data_id=pub_topic_proto.data_id,
-          description=pub_topic_proto.description,
-          message_full_name=pub_topic_proto.message_full_name,
-      )
-      for pub_topic_proto in pub_topic_protos
-  ]
-
-
-# intrinsic:skills_pubsub:strip_end

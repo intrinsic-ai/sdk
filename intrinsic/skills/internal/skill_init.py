@@ -22,12 +22,6 @@ import grpc
 
 from intrinsic.geometry.proto import geometry_service_pb2_grpc
 from intrinsic.motion_planning.proto.v1 import motion_planner_service_pb2_grpc
-
-# intrinsic:skills_pubsub:strip_begin
-# isort: off
-from intrinsic.skills import skill_pubsub
-# isort: on
-# intrinsic:skills_pubsub:strip_end
 from intrinsic.skills.internal import skill_repository as skill_repo
 from intrinsic.skills.internal import skill_service_impl
 from intrinsic.skills.proto import skill_service_config_pb2
@@ -133,15 +127,11 @@ def skill_init(
   )
 
   # Initialize the executor service.
-  # intrinsic:skills_pubsub:strip_begin
-  pub_sub = skill_pubsub.SkillPubSub()
-  # intrinsic:skills_pubsub:strip_end
   executor_servicer = skill_service_impl.SkillExecutorServicer(
       skill_repository=skill_repository,
       object_world_service=object_world_service,
       motion_planner_service=motion_planner_service,
       geometry_service=geometry_service,
-      skill_pub_sub=pub_sub,  # intrinsic:skills_pubsub:strip
   )
   skill_service_pb2_grpc.add_ExecutorServicer_to_server(
       executor_servicer, server

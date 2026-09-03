@@ -159,7 +159,6 @@ cc_library(
     deps = [
         "//intrinsic/logging/proto:context_cc_proto",
         "//intrinsic/motion_planning:motion_planner_client",
-        "//intrinsic/skills:skill_pubsub",  # intrinsic:skills_pubsub:strip
         "//intrinsic/skills/cc:equipment_pack",
         "//intrinsic/skills/cc:skill_canceller",
         "//intrinsic/skills/cc:skill_interface",
@@ -176,7 +175,6 @@ py_library(
         "//intrinsic/geometry/proto:geometry_service_py_pb2_grpc",
         "//intrinsic/motion_planning:motion_planner_client_py",
         "//intrinsic/resources/proto:resource_handle_py_pb2",
-        "//intrinsic/skills:skill_pubsub_py",  # intrinsic:skills_pubsub:strip
         "//intrinsic/skills/python:execute_context",
         "//intrinsic/skills/python:skill_canceller",
         "//intrinsic/skills/python:skill_logging_context",
@@ -209,7 +207,6 @@ cc_library(
     deps = [
         "//intrinsic/logging/proto:context_cc_proto",
         "//intrinsic/motion_planning:motion_planner_client",
-        "//intrinsic/skills:skill_pubsub",  # intrinsic:skills_pubsub:strip
         "//intrinsic/skills/cc:equipment_pack",
         "//intrinsic/skills/cc:skill_canceller",
         "//intrinsic/skills/cc:skill_interface",
@@ -307,7 +304,6 @@ py_library(
         "//intrinsic/logging/proto:context_py_pb2",
         "//intrinsic/motion_planning:motion_planner_client_py",
         "//intrinsic/motion_planning/proto/v1:motion_planner_service_py_pb2_grpc",
-        "//intrinsic/skills:skill_pubsub_py",  # intrinsic:skills_pubsub:strip
         "//intrinsic/skills/proto:error_py_pb2",
         "//intrinsic/skills/proto:footprint_py_pb2",
         "//intrinsic/skills/proto:prediction_py_pb2",
@@ -398,7 +394,6 @@ py_library(
     visibility = ["//visibility:public"],
     deps = [
         "//intrinsic/assets/proto:status_spec_py_pb2",
-        "//intrinsic/skills:skills_pub_topic",  # intrinsic:skills_pubsub:strip
         "//intrinsic/skills/proto:equipment_py_pb2",
         "//intrinsic/skills/proto:skill_service_config_py_pb2",
         "//intrinsic/skills/proto:skills_py_pb2",
@@ -451,7 +446,6 @@ cc_library(
         "//intrinsic/connect/cc/grpc:channel",
         "//intrinsic/logging:data_logger_client",
         "//intrinsic/motion_planning/proto/v1:motion_planner_service_cc_grpc_proto",
-        "//intrinsic/skills:skill_pubsub",  # intrinsic:skills_pubsub:strip
         "//intrinsic/skills/proto:skill_service_config_cc_proto",
         "//intrinsic/skills/proto:skills_cc_proto",
         "//intrinsic/util/status:status_macros",
@@ -478,7 +472,6 @@ py_library(
         ":skill_service_impl_py",
         "//intrinsic/geometry/proto:geometry_service_py_pb2_grpc",
         "//intrinsic/motion_planning/proto/v1:motion_planner_service_py_pb2_grpc",
-        "//intrinsic/skills:skill_pubsub_py",  # intrinsic:skills_pubsub:strip
         "//intrinsic/skills/proto:skill_service_config_py_pb2",
         "//intrinsic/skills/proto:skill_service_py_pb2_grpc",
         "//intrinsic/world/proto:object_world_service_py_pb2_grpc",
@@ -536,8 +529,6 @@ cc_library(
         "//intrinsic/logging/proto:context_cc_proto",
         "//intrinsic/motion_planning:motion_planner_client",
         "//intrinsic/motion_planning/proto/v1:motion_planner_service_cc_grpc_proto",
-        "//intrinsic/skills:skill_pub_topic",  # intrinsic:skills_pubsub:strip
-        "//intrinsic/skills:skill_pubsub",  # intrinsic:skills_pubsub:strip
         "//intrinsic/skills/cc:equipment_pack",
         "//intrinsic/skills/cc:skill_canceller",
         "//intrinsic/skills/cc:skill_interface",
