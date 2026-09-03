@@ -71,6 +71,36 @@ func createReturnDescription(metadata *smpb.ReturnMetadata, skillProtoDescriptor
 	return description, nil
 }
 
+// intrinsic:skills_pubsub:strip_begin(b/224840414)
+func createPubTopicDescription(metadatas []*smpb.PubTopicMetadata, skillProtoDescriptor *dpb.FileDescriptorSet) (*spb.PubTopicDescription, error) {
+	if metadatas == nil {
+		return nil, nil
+	}
+	description := new(spb.PubTopicDescription)
+
+	for _, metadata := range metadatas {
+		pubTopic := new(spb.PubTopic)
+		pubTopic.DataId = metadata.GetDataId()
+		pubTopic.MessageFullName = metadata.GetMessageFullName()
+		pubTopic.Description = metadata.GetDescription()
+
+		var err error
+		pubTopic.MessageFieldComments, err = sciv.NestedFieldCommentMap(skillProtoDescriptor, metadata.GetMessageFullName())
+		if err != nil {
+			return nil, err
+		}
+
+		description.PubTopics = append(description.GetPubTopics(), pubTopic)
+	}
+
+	description.FileDescriptorSet = proto.Clone(skillProtoDescriptor).(*dpb.FileDescriptorSet)
+	stripSourceCodeInfo(description.FileDescriptorSet)
+
+	return description, nil
+}
+
+// intrinsic:skills_pubsub:strip_end
+
 func buildSkillProto(manifest *smpb.SkillManifest, skillProtoDescriptor *dpb.FileDescriptorSet) (*spb.Skill, error) {
 	skill := new(spb.Skill)
 	skill.SkillName = manifest.GetId().GetName()
@@ -101,6 +131,12 @@ func buildSkillProto(manifest *smpb.SkillManifest, skillProtoDescriptor *dpb.Fil
 	if err != nil {
 		return nil, err
 	}
+	// intrinsic:skills_pubsub:strip_begin(b/224840414)
+	skill.PubTopicDescription, err = createPubTopicDescription(manifest.GetPubTopics(), skillProtoDescriptor)
+	if err != nil {
+		return nil, err
+	}
+	// intrinsic:skills_pubsub:strip_end
 	return skill, nil
 }
 

@@ -56,6 +56,7 @@ func SkillManifest(ctx context.Context, m *smpb.SkillManifest, files *protoregis
 		Dependencies:  m.GetDependencies(),
 		Parameter:     m.GetParameter(),
 		ExecuteResult: m.GetReturnType(),
+		PubTopics:     m.GetPubTopics(), // intrinsic:skills_pubsub:strip(b/224840414)
 	}
 	if err := validateSkillDetails(sd, files); err != nil {
 		return fmt.Errorf("invalid Skill details for %q: %w", id, err)
@@ -174,6 +175,15 @@ func validateSkillDetails(sd *psmpb.SkillDetails, files *protoregistry.Files) er
 			return fmt.Errorf("cannot find return type message %q: %w", name, err)
 		}
 	}
+	// intrinsic:skills_pubsub:strip_begin(b/224840414)
+	for _, pt := range sd.GetPubTopics() {
+		name := pt.GetMessageFullName()
+		if _, err := files.FindDescriptorByName(protoreflect.FullName(name)); err != nil {
+			return fmt.Errorf("cannot find pub topic message %q: %w", name, err)
+		}
+	}
+	// intrinsic:skills_pubsub:strip_end
+
 	return nil
 }
 

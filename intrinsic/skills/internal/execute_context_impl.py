@@ -22,6 +22,9 @@ from intrinsic.motion_planning import motion_planner_client
 from intrinsic.resources.proto import resource_handle_pb2
 
 # isort: off
+# intrinsic:skills_pubsub:strip_begin
+from intrinsic.skills import skill_pubsub
+# intrinsic:skills_pubsub:strip_end
 # isort: on
 from intrinsic.skills.python import execute_context
 from intrinsic.skills.python import skill_canceller
@@ -63,6 +66,13 @@ class ExecuteContextImpl(execute_context.ExecuteContext):
   def object_world(self) -> object_world_client.ObjectWorldClient:
     return self._object_world
 
+  # intrinsic:skills_pubsub:strip_begin
+  @property
+  def pub_sub_instance(self) -> skill_pubsub.SkillPubSubInstance:  # pylint: disable=g-missing-from-attributes
+    return self._pub_sub_instance
+
+  # intrinsic:skills_pubsub:strip_end
+
   @property
   def resource_handles(
       self,
@@ -75,6 +85,9 @@ class ExecuteContextImpl(execute_context.ExecuteContext):
       logging_context: skill_logging_context.SkillLoggingContext,
       motion_planner: motion_planner_client.MotionPlannerClient,
       object_world: object_world_client.ObjectWorldClient,
+      # intrinsic:skills_pubsub:strip_begin
+      pub_sub_instance: skill_pubsub.SkillPubSubInstance,
+      # intrinsic:skills_pubsub:strip_end
       resource_handles: dict[str, resource_handle_pb2.ResourceHandle],
       context_id: str,
   ):
@@ -82,5 +95,8 @@ class ExecuteContextImpl(execute_context.ExecuteContext):
     self._logging_context = logging_context
     self._motion_planner = motion_planner
     self._object_world = object_world
+    # intrinsic:skills_pubsub:strip_begin
+    self._pub_sub_instance = pub_sub_instance
+    # intrinsic:skills_pubsub:strip_end
     self._resource_handles = resource_handles
     self._context_id = context_id

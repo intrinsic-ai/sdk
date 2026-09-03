@@ -24,6 +24,7 @@
 #include "intrinsic/skills/cc/equipment_pack.h"
 #include "intrinsic/skills/cc/skill_interface.h"
 #include "intrinsic/skills/internal/execute_context_view.h"
+#include "intrinsic/skills/skill_pubsub.h"  // intrinsic:skills_pubsub:strip
 #include "intrinsic/util/proto/any.h"
 #include "intrinsic/util/status/status_macros.h"
 
@@ -60,6 +61,10 @@ absl::StatusOr<ExecuteRequest> PreviewToExecuteRequest(
 absl::StatusOr<ExecuteContextView> PreviewToExecuteContext(
     PreviewContext& context,
     const EquipmentPack& equipment
+    // intrinsic:skills_pubsub:strip_begin(b/224840414)
+    ,
+    SkillPubSubInstance& pub_sub_instance
+    // intrinsic:skills_pubsub:strip_end
 );
 
 }  // namespace skills

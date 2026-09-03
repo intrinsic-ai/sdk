@@ -19,6 +19,9 @@ from __future__ import annotations
 from intrinsic.resources.proto import resource_handle_pb2
 
 # isort: off
+# intrinsic:skills_pubsub:strip_begin
+from intrinsic.skills import skill_pubsub
+# intrinsic:skills_pubsub:strip_end
 # isort: on
 from intrinsic.skills.internal import execute_context_impl
 
@@ -60,6 +63,11 @@ def preview_via_execute(
       preview_to_execute_request(request),
       preview_to_execute_context(
           context=context,
+          # intrinsic:skills_pubsub:strip_begin
+          pub_sub_instance=skill_pubsub.SkillPubSub().get_instance(
+              topics=[], instance_name="preview_via_execute"
+          ),
+          # intrinsic:skills_pubsub:strip_end
           resource_handles={},
       ),
   )
@@ -77,6 +85,9 @@ def preview_to_execute_request(
 
 def preview_to_execute_context(
     context: skill_interface.PreviewContext,
+    # intrinsic:skills_pubsub:strip_begin
+    pub_sub_instance: skill_pubsub.SkillPubSubInstance,
+    # intrinsic:skills_pubsub:strip_end
     resource_handles: dict[str, resource_handle_pb2.ResourceHandle],
 ) -> skill_interface.ExecuteContext:
   """Converts a PreviewContext to an ExecuteContext."""
@@ -85,6 +96,9 @@ def preview_to_execute_context(
       logging_context=context.logging_context,
       motion_planner=context.motion_planner,
       object_world=context.object_world,
+      # intrinsic:skills_pubsub:strip_begin
+      pub_sub_instance=pub_sub_instance,
+      # intrinsic:skills_pubsub:strip_end
       resource_handles=resource_handles,
       context_id=context.context_id,
   )

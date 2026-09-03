@@ -23,6 +23,9 @@ from intrinsic.motion_planning import motion_planner_client
 from intrinsic.resources.proto import resource_handle_pb2
 
 # isort: off
+# intrinsic:skills_pubsub:strip_begin
+from intrinsic.skills import skill_pubsub
+# intrinsic:skills_pubsub:strip_end
 # isort: on
 from intrinsic.skills.python import skill_canceller
 from intrinsic.skills.python import skill_logging_context
@@ -83,3 +86,11 @@ class ExecuteContext(abc.ABC):
       self,
   ) -> Mapping[str, resource_handle_pb2.ResourceHandle]:
     pass
+
+  # intrinsic:skills_pubsub:strip_begin
+  @property
+  @abc.abstractmethod
+  def pub_sub_instance(self) -> skill_pubsub.SkillPubSubInstance:  # pylint: disable=g-missing-from-attributes
+    pass
+
+  # intrinsic:skills_pubsub:strip_end

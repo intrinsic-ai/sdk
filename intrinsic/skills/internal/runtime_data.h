@@ -36,6 +36,7 @@
 #include "intrinsic/skills/cc/client_common.h"
 #include "intrinsic/skills/proto/equipment.pb.h"
 #include "intrinsic/skills/proto/skill_service_config.pb.h"
+#include "intrinsic/skills/skill_pub_topic.h"  // intrinsic:skills_pubsub:strip(b/224840414)
 
 namespace intrinsic::skills::internal {
 
@@ -117,6 +118,24 @@ class ResourceData {
       resources_required_ = {};
 };
 
+// intrinsic:skills_pubsub:strip_begin(b/224840414)
+// Contains data about the topics that skills publish.
+class TopicData {
+ public:
+  TopicData() = default;
+
+  explicit TopicData(absl::Span<const SkillPubTopic> pub_topics);
+
+  TopicData(const TopicData& other) = default;
+  TopicData& operator=(const TopicData& other) = default;
+
+  absl::Span<const SkillPubTopic> GetPubTopics() const { return pub_topics_; }
+
+ private:
+  std::vector<SkillPubTopic> pub_topics_ = {};
+};
+// intrinsic:skills_pubsub:strip_end
+
 // Contains information about the status codes that are documented in the
 // manifest that the skill may raise.
 class StatusSpecs {
@@ -149,6 +168,9 @@ class SkillRuntimeData {
                    const ExecutionOptions& execution_options,
                    const ResourceData& resource_data,
                    const StatusSpecs& status_specs,
+                   // intrinsic:skills_pubsub:strip_begin(b/224840414)
+                   const TopicData& topic_data,
+                   // intrinsic:skills_pubsub:strip_end
                    absl::string_view id);
 
   SkillRuntimeData(const SkillRuntimeData& other) = default;
@@ -164,6 +186,10 @@ class SkillRuntimeData {
 
   const StatusSpecs& GetStatusSpecs() const { return status_specs_; }
 
+  // intrinsic:skills_pubsub:strip_begin(b/224840414)
+  const TopicData& GetTopicData() const { return topic_data_; }
+  // intrinsic:skills_pubsub:strip_end
+
   absl::string_view GetId() const { return id_; }
 
  private:
@@ -171,6 +197,7 @@ class SkillRuntimeData {
   ExecutionOptions execution_options_;
   ResourceData resource_data_;
   StatusSpecs status_specs_;
+  TopicData topic_data_;  // intrinsic:skills_pubsub:strip(b/224840414)
   std::string id_;
 };
 

@@ -1,0 +1,80 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic.skills.testing;
+
+option go_package = "intrinsic/skills/testing/skill_proto_utils_test_go_proto";
+
+import "intrinsic/assets/proto/field_metadata.proto";
+import "intrinsic/assets/proto/v1/resolved_dependency.proto";
+
+message DummySkillParameters {
+  intrinsic_proto.assets.v1.ResolvedDependency device = 4
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "grpc://intrinsic_proto.services.Speaker",
+      }];
+
+  // This is a comment about a bool.
+  bool my_bool = 1;
+  // This is a comment about a uint64.
+  uint64 my_uint64 = 2;
+
+  // A field comment for a message field.
+  TestMessageWithMap my_map = 3;
+}
+
+// Nested message
+message Foo {
+  // name
+  string name = 1;
+}
+
+// Test message
+message Bar {
+  // test parameter
+  bool test = 1;
+
+  // nested message
+  Foo name = 2;
+}
+
+// A comment for TestMessageWithMap message.
+message TestMessageWithMap {
+  // A comment for the actual map.
+  map<string, Foo> foos = 1;
+}
+
+message DummySkillReturnValues {
+  // Nested message
+  message Test {
+    // string comment
+    string name = 1;
+  }
+
+  // This is a comment about a float.
+  float my_float = 1;
+  // This is a comment about a uint64.
+  uint64 my_uint64 = 2;
+  // This is a comment about a message.
+  Bar bar = 3;
+  // This is a comment about a Test message.
+  Test foo = 4;
+}
+
+message DummySkillPublishedValue {
+  // This is a comment about a string.
+  string my_string = 1;
+}

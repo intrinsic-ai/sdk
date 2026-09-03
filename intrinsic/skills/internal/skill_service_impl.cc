@@ -54,6 +54,8 @@
 #include "intrinsic/skills/internal/skill_repository.h"
 #include "intrinsic/skills/proto/skill_service.pb.h"
 #include "intrinsic/skills/proto/skills.pb.h"
+#include "intrinsic/skills/skill_pub_topic.h"  // intrinsic:skills_pubsub:strip(b/224840414)
+#include "intrinsic/skills/skill_pubsub.h"  // intrinsic:skills_pubsub:strip(b/224840414)
 #include "intrinsic/util/proto_time.h"
 #include "intrinsic/util/status/extended_status.pb.h"
 #include "intrinsic/util/status/status_conversion_grpc.h"
@@ -456,12 +458,16 @@ SkillExecutorServiceImpl::SkillExecutorServiceImpl(
     std::shared_ptr<grpc::Channel> world_service_channel,
     std::shared_ptr<ObjectWorldService::StubInterface> object_world_service,
     std::shared_ptr<MotionPlannerService::StubInterface> motion_planner_service,
+    SkillPubSub& skill_pub_sub,  // intrinsic:skills_pubsub:strip(b/224840414)
     RequestWatcher* request_watcher)
     : skill_repository_(skill_repository),
       world_service_channel_(std::move(world_service_channel)),
       object_world_service_(std::move(object_world_service)),
       motion_planner_service_(std::move(motion_planner_service)),
 
+      // intrinsic:skills_pubsub:strip_begin(b/224840414)
+      skill_pub_sub_(skill_pub_sub),
+      // intrinsic:skills_pubsub:strip_end
       request_watcher_(request_watcher),
       message_factory_(google::protobuf::MessageFactory::generated_factory()) {}
 
@@ -498,6 +504,16 @@ grpc::Status SkillExecutorServiceImpl::StartExecute(
       /*param_defaults=*/
       operation->runtime_data().GetParameterData().GetDefault());
 
+  // intrinsic:skills_pubsub:strip_begin(b/224840414)
+  INTR_ASSIGN_OR_RETURN_GRPC(
+      std::unique_ptr<SkillPubSubInstance> pub_sub_instance,
+      skill_pub_sub_.GetInstance(
+          std::vector<SkillPubTopic>(
+              operation->runtime_data().GetTopicData().GetPubTopics().begin(),
+              operation->runtime_data().GetTopicData().GetPubTopics().end()),
+          request->instance().instance_name()));
+  // intrinsic:skills_pubsub:strip_end
+
   INTR_ASSIGN_OR_RETURN_GRPC(EquipmentPack equipment,
                              EquipmentPack::GetEquipmentPack(*request));
 
@@ -517,6 +533,9 @@ grpc::Status SkillExecutorServiceImpl::StartExecute(
                                            motion_planner_service_),
       /*object_world=*/
       world::ObjectWorldClient(request->world_id(), object_world_service_),
+      // intrinsic:skills_pubsub:strip_begin(b/224840414)
+      std::move(pub_sub_instance),
+      // intrinsic:skills_pubsub:strip_end
       world_service_channel_, context_id);
 
   std::optional<intrinsic_proto::data_logger::Context> log_context;

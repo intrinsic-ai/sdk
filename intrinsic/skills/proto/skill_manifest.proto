@@ -230,6 +230,11 @@ message SkillManifest {
   // A description of the return type for Execution of the skill.
   optional ReturnMetadata return_type = 7;
 
+  // intrinsic:skills_pubsub:strip_begin(b/224840414)
+  // A description of the published topics of the skill.
+  repeated PubTopicMetadata pub_topics = 8;
+  // intrinsic:skills_pubsub:strip_end
+
   // The display name of the skill to be shown in the UI.
   string display_name = 9;
 

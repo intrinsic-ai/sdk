@@ -109,12 +109,45 @@ CreateReturnDescription(
   return description;
 }
 
+// intrinsic:skills_pubsub:strip_begin(b/224840414)
+// Add file descriptor set for a skill's published topics.
+absl::StatusOr<intrinsic_proto::skills::PubTopicDescription>
+CreatePubTopicDescription(
+    const google::protobuf::RepeatedPtrField<
+        intrinsic_proto::skills::PubTopicMetadata>& metadata,
+    const google::protobuf::FileDescriptorSet& file_descriptor_set) {
+  intrinsic_proto::skills::PubTopicDescription description;
+
+  *description.mutable_file_descriptor_set() = file_descriptor_set;
+  StripSourceCodeInfo(*description.mutable_file_descriptor_set());
+
+  for (const auto& skill_pub_topic : metadata) {
+    intrinsic_proto::skills::PubTopic& pub_topic =
+        *description.add_pub_topics();
+    pub_topic.set_data_id(skill_pub_topic.data_id());
+    pub_topic.set_message_full_name(skill_pub_topic.message_full_name());
+    pub_topic.set_description(skill_pub_topic.description());
+
+    SourceCodeInfoView source_code_info;
+    INTR_RETURN_IF_ERROR(source_code_info.Init(file_descriptor_set));
+    INTR_ASSIGN_OR_RETURN(*pub_topic.mutable_message_field_comments(),
+                          source_code_info.GetNestedFieldCommentMap(
+                              pub_topic.message_full_name()));
+  }
+
+  return description;
+}
+// intrinsic:skills_pubsub:strip_end
+
 }  // namespace
 
 absl::StatusOr<intrinsic_proto::skills::Skill> BuildSkillProto(
     const intrinsic_proto::skills::SkillManifest& manifest,
     const google::protobuf::FileDescriptorSet& parameter_file_descriptor_set,
     const google::protobuf::FileDescriptorSet& return_value_file_descriptor_set,
+    // intrinsic:skills_pubsub:strip_begin(b/224840414)
+    const google::protobuf::FileDescriptorSet& pub_topic_file_descriptor_set,
+    // intrinsic:skills_pubsub:strip_end
     std::optional<absl::string_view> semver_version) {
   intrinsic_proto::skills::Skill skill;
   skill.set_skill_name(manifest.id().name());
@@ -150,6 +183,15 @@ absl::StatusOr<intrinsic_proto::skills::Skill> BuildSkillProto(
         CreateReturnDescription(manifest.return_type(),
                                 return_value_file_descriptor_set));
   }
+  // intrinsic:skills_pubsub:strip_begin(b/224840414)
+  if (manifest.pub_topics_size() > 0) {
+    INTR_ASSIGN_OR_RETURN(
+        *skill.mutable_pub_topic_description(),
+        CreatePubTopicDescription(manifest.pub_topics(),
+                                  pub_topic_file_descriptor_set));
+  }
+  // intrinsic:skills_pubsub:strip_end
+
   return skill;
 }
 
@@ -159,6 +201,7 @@ absl::StatusOr<intrinsic_proto::skills::Skill> BuildSkillProto(
     std::optional<absl::string_view> semver_version) {
   return BuildSkillProto(
       manifest, file_descriptor_set, file_descriptor_set,
+      file_descriptor_set,  // intrinsic:skills_pubsub:strip(b/224840414)
       semver_version);
 }
 

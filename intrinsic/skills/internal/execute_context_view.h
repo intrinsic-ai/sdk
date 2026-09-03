@@ -25,6 +25,7 @@
 #include "intrinsic/skills/cc/skill_canceller.h"
 #include "intrinsic/skills/cc/skill_interface.h"
 #include "intrinsic/skills/cc/skill_logging_context.h"
+#include "intrinsic/skills/skill_pubsub.h"  // intrinsic:skills_pubsub:strip(b/224840414)
 #include "intrinsic/world/objects/object_world_client.h"
 
 namespace intrinsic {
@@ -40,6 +41,10 @@ class ExecuteContextView : public ExecuteContext {
                      const SkillLoggingContext& logging_context,
                      motion_planning::MotionPlannerClient& motion_planner,
                      world::ObjectWorldClient& object_world
+                     // intrinsic:skills_pubsub:strip_begin(b/224840414)
+                     ,
+                     SkillPubSubInstance& pub_sub_instance
+                     // intrinsic:skills_pubsub:strip_end
                      ,
                      std::string context_id)
       : canceller_(canceller),
@@ -47,6 +52,10 @@ class ExecuteContextView : public ExecuteContext {
         logging_context_(logging_context),
         motion_planner_(motion_planner),
         object_world_(object_world)
+        // intrinsic:skills_pubsub:strip_begin(b/224840414)
+        ,
+        pub_sub_instance_(pub_sub_instance)
+        // intrinsic:skills_pubsub:strip_end
         ,
         context_id_(std::move(context_id)) {}
 
@@ -66,12 +75,21 @@ class ExecuteContextView : public ExecuteContext {
 
   world::ObjectWorldClient& object_world() override { return object_world_; }
 
+  // intrinsic:skills_pubsub:strip_begin(b/224840414)
+  SkillPubSubInstance& pub_sub_instance() const override {
+    return pub_sub_instance_;
+  };
+  // intrinsic:skills_pubsub:strip_end
+
  private:
   SkillCanceller& canceller_;
   const EquipmentPack& equipment_;
   const SkillLoggingContext& logging_context_;
   motion_planning::MotionPlannerClient& motion_planner_;
   world::ObjectWorldClient& object_world_;
+  // intrinsic:skills_pubsub:strip_begin(b/224840414)
+  SkillPubSubInstance& pub_sub_instance_;
+  // intrinsic:skills_pubsub:strip_end
   std::string context_id_;
 };
 

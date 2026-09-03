@@ -30,6 +30,9 @@ absl::StatusOr<intrinsic_proto::skills::Skill> BuildSkillProto(
     const intrinsic_proto::skills::SkillManifest& manifest,
     const google::protobuf::FileDescriptorSet& parameter_file_descriptor_set,
     const google::protobuf::FileDescriptorSet& return_value_file_descriptor_set,
+    // intrinsic:skills_pubsub:strip_begin(b/224840414)
+    const google::protobuf::FileDescriptorSet& pub_topic_file_descriptor_set,
+    // intrinsic:skills_pubsub:strip_end
     std::optional<absl::string_view> semver_version = std::nullopt);
 
 // A convenience wrapper for the above when all file_descriptor_sets are the

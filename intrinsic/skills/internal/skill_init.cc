@@ -41,6 +41,7 @@
 #include "intrinsic/skills/internal/skill_service_impl.h"
 #include "intrinsic/skills/proto/skill_service_config.pb.h"
 #include "intrinsic/skills/proto/skills.pb.h"
+#include "intrinsic/skills/skill_pubsub.h"  // intrinsic:skills_pubsub:strip(b/224840414)
 #include "intrinsic/util/status/status_macros.h"
 #include "intrinsic/world/proto/object_world_service.grpc.pb.h"
 
@@ -98,6 +99,11 @@ absl::Status SkillInit(
       CreateMotionPlannerServiceStub(motion_planner_service_address,
                                      connection_timeout));
 
+  // intrinsic:skills_pubsub:strip_begin(b/224840414)
+  INTR_ASSIGN_OR_RETURN(std::unique_ptr<SkillPubSub> skill_pub_sub,
+                        SkillPubSub::Create());
+  // intrinsic:skills_pubsub:strip_end
+
   SkillProjectorServiceImpl project_service(
       skill_repository,
       object_world_service, motion_planner_service);
@@ -106,6 +112,10 @@ absl::Status SkillInit(
       world_service_channel, object_world_service,
       motion_planner_service
 
+      // intrinsic:skills_pubsub:strip_begin(b/224840414)
+      ,
+      *skill_pub_sub
+      // intrinsic:skills_pubsub:strip_end
   );
 
   std::string server_address = absl::StrCat("0.0.0.0:", skill_service_port);

@@ -23,10 +23,72 @@ load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
 load("//bazel:go_macros.bzl", "go_library", "go_proto_library")
 load("//intrinsic/skills/build_defs:skill.bzl", "py_skill", "skill_manifest")
+load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "proto_source_code_info_transitive_descriptor_set")
 
 package(
     default_testonly = True,
 )
+
+# intrinsic:skills_pubsub:strip_begin(b/224840414)
+proto_library(
+    name = "skill_proto_utils_test_proto",
+    srcs = ["skill_proto_utils_test.proto"],
+    visibility = ["//intrinsic/skills/internal:__pkg__"],
+    deps = [
+        "//intrinsic/assets/proto:field_metadata_proto",
+        "//intrinsic/assets/proto/v1:resolved_dependency_proto",
+    ],
+)
+
+py_proto_library(
+    name = "skill_proto_utils_test_py_pb2",
+    visibility = [
+        "//intrinsic/skills:__pkg__",
+        "//intrinsic/skills/internal:__pkg__",
+    ],
+    deps = [":skill_proto_utils_test_proto"],
+)
+
+cc_proto_library(
+    name = "skill_proto_utils_test_cc_proto",
+    visibility = [
+        "//intrinsic/skills:__pkg__",
+        "//intrinsic/skills/internal:__pkg__",
+    ],
+    deps = [":skill_proto_utils_test_proto"],
+)
+
+proto_source_code_info_transitive_descriptor_set(
+    name = "skill_proto_utils_test_proto_descriptors",
+    deps = [":skill_proto_utils_test_proto"],
+)
+
+# intrinsic:skills_pubsub:strip_end
+# intrinsic:skills_pubsub:strip_begin(b/224840414)
+cc_library(
+    name = "test_skill_pubsub",
+    hdrs = ["test_skill_pubsub.h"],
+    visibility = [
+        "//intrinsic:public_api_users",
+    ],
+    deps = [
+        "//intrinsic/skills:skill_pubsub",
+    ],
+)
+
+py_library(
+    name = "test_skill_pubsub_py",
+    srcs = ["test_skill_pubsub.py"],
+    visibility = [
+        "//intrinsic:public_api_users",
+    ],
+    deps = [
+        "//intrinsic/platform/pubsub/python:pubsub",
+        "//intrinsic/skills:skill_pubsub_py",
+        "//intrinsic/skills:skills_pub_topic",
+    ],
+)
+# intrinsic:skills_pubsub:strip_end
 
 proto_library(
     name = "echo_skill_proto",
@@ -217,6 +279,10 @@ py_library(
         "//intrinsic/motion_planning:motion_planner_client_py",
         "//intrinsic/motion_planning/proto/v1:motion_planner_service_py_pb2_grpc",
         "//intrinsic/resources/proto:resource_handle_py_pb2",
+        # intrinsic:skills_pubsub:strip_begin(b/224840414)
+        "//intrinsic/skills:skill_pubsub_py",
+        "//intrinsic/skills:skills_pub_topic",
+        # intrinsic:skills_pubsub:strip_end
         "//intrinsic/skills/internal:execute_context_impl_py",
         "//intrinsic/skills/internal:get_footprint_context_impl_py",
         "//intrinsic/skills/internal:preview_context_impl_py",
@@ -249,6 +315,7 @@ py_test(
         "//intrinsic/assets/services/examples/calcserver:calc_server_py_pb2",
         "//intrinsic/assets/services/examples/calcserver:calc_server_py_pb2_grpc",
         "//intrinsic/logging/proto:log_item_py_pb2",
+        "//intrinsic/skills:skill_pubsub_py",  # intrinsic:skills_pubsub:strip(b/224840414)
         "//intrinsic/skills/proto:skill_manifest_py_pb2",
         "//intrinsic/skills/python:skill_logging_context",
         "//intrinsic/solutions/testing:compare",
@@ -268,10 +335,12 @@ cc_library(
         "//intrinsic:public_api_users",
     ],
     deps = [
+        ":test_skill_pubsub",  # intrinsic:skills_pubsub:strip(b/224840414)
         "//intrinsic/assets/proto/v1:grpc_connection_cc_proto",
         "//intrinsic/assets/proto/v1:resolved_dependency_cc_proto",
         "//intrinsic/motion_planning:motion_planner_client",
         "//intrinsic/motion_planning/proto/v1:motion_planner_service_cc_grpc_proto",
+        "//intrinsic/skills:skill_pubsub",  # intrinsic:skills_pubsub:strip(b/224840414)
         "//intrinsic/skills/cc:equipment_pack",
         "//intrinsic/skills/cc:execute_request",
         "//intrinsic/skills/cc:skill_canceller",

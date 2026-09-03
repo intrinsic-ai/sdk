@@ -58,6 +58,11 @@ def proto_from_skill_manifest(
   add_param_file_descriptor_set_without_source_code_from_manifest(
       manifest, file_descriptor_set, skill_proto
   )
+  # intrinsic:skills_pubsub:strip_begin
+  _add_pub_topic_description_from_manifest(
+      manifest, file_descriptor_set, skill_proto
+  )
+  # intrinsic:skills_pubsub:strip_end
   if manifest.HasField('return_type'):
     add_return_file_descriptor_set_without_source_code_from_manifest(
         manifest, file_descriptor_set, skill_proto
@@ -74,6 +79,58 @@ def proto_from_skill_manifest(
       )
 
   return skill_proto
+
+
+# intrinsic:skills_pubsub:strip_begin
+def _add_pub_topic_description_from_manifest(
+    manifest: skill_manifest_pb2.SkillManifest,
+    pub_topic_file_descriptor_set: descriptor_pb2.FileDescriptorSet,
+    skill_proto: skills_pb2.Skill,
+):
+  """Adds file descriptor set to each skill's publish topics from a manifest.
+
+  Args:
+    manifest: A skill's manifest.
+    pub_topic_file_descriptor_set: A file descriptor set for the skill's pub
+      topics.
+    skill_proto: A skill proto to which this function adds pub topic
+      descriptors.
+
+  Raises:
+    ValueError if the skill proto contains an id that was not provided by the
+    skill implementation.
+  """
+  skill_proto.pub_topic_description.file_descriptor_set.CopyFrom(
+      pub_topic_file_descriptor_set
+  )
+  descriptor_map = {}
+  for pub_topic in manifest.pub_topics:
+    descriptor_map[pub_topic.data_id] = pub_topic.DESCRIPTOR
+    proto_pub_topic = skills_pb2.PubTopic(
+        data_id=pub_topic.data_id,
+        description=pub_topic.description,
+        message_full_name=pub_topic.message_full_name,
+    )
+    skill_proto.pub_topic_description.pub_topics.append(proto_pub_topic)
+
+  for pub_topic in skill_proto.pub_topic_description.pub_topics:
+    if pub_topic.data_id not in descriptor_map:
+      raise ValueError(
+          'The skill proto contains a published data id not given by the '
+          'skill implementation: {}'.format(pub_topic.data_id)
+      )
+    sci_view = source_code_info_view_py.SourceCodeInfoView()
+    sci_view.Init(pub_topic_file_descriptor_set)
+    for key, value in sci_view.GetNestedFieldCommentMap(
+        pub_topic.message_full_name
+    ).items():
+      pub_topic.message_field_comments[key] = value
+
+  for file in skill_proto.pub_topic_description.file_descriptor_set.file:
+    file.ClearField('source_code_info')
+
+
+# intrinsic:skills_pubsub:strip_end
 def add_return_file_descriptor_set_without_source_code_from_manifest(
     manifest: skill_manifest_pb2.SkillManifest,
     return_file_descriptor_set: descriptor_pb2.FileDescriptorSet,
