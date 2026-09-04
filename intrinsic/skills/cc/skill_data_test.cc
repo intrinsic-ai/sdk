@@ -67,6 +67,128 @@ TEST(SkillDataTest, CacheHitReturnsCachedWithoutRecomputing) {
   EXPECT_THAT(compute_count, Eq(1));
 }
 
+TEST(SkillDataTest, GetCacheMissReturnsNullopt) {
+  SkillData skill_data(10);
+
+  // Missing context and key
+  auto result1 = skill_data.Get<std::string>("ctx_missing", "key_missing");
+  ASSERT_TRUE(result1.ok()) << result1.status();
+  EXPECT_FALSE(result1->has_value());
+
+  // Existing context, missing key
+  ASSERT_TRUE(skill_data
+                  .GetOrCompute<int>("ctx_1", "key_1",
+                                     []() -> absl::StatusOr<int> { return 10; })
+                  .ok());
+  auto result2 = skill_data.Get<int>("ctx_1", "key_missing");
+  ASSERT_TRUE(result2.ok()) << result2.status();
+  EXPECT_FALSE(result2->has_value());
+}
+
+TEST(SkillDataTest, GetCacheHitReturnsValue) {
+  SkillData skill_data(10);
+
+  ASSERT_TRUE(
+      skill_data
+          .GetOrCompute<std::string>(
+              "ctx_1", "plan",
+              []() -> absl::StatusOr<std::string> { return "trajectory_xyz"; })
+          .ok());
+
+  auto result = skill_data.Get<std::string>("ctx_1", "plan");
+  ASSERT_TRUE(result.ok()) << result.status();
+  ASSERT_TRUE(result->has_value());
+  EXPECT_THAT(**result, Eq("trajectory_xyz"));
+}
+
+TEST(SkillDataTest, GetTypeMismatchReturnsError) {
+  SkillData skill_data(10);
+
+  ASSERT_TRUE(skill_data
+                  .GetOrCompute<std::string>(
+                      "ctx_1", "key_1",
+                      []() -> absl::StatusOr<std::string> { return "value"; })
+                  .ok());
+
+  auto result = skill_data.Get<int>("ctx_1", "key_1");
+  EXPECT_TRUE(absl::IsInvalidArgument(result.status()));
+  EXPECT_THAT(result.status().message(), HasSubstr("Type mismatch"));
+}
+
+TEST(SkillDataTest, GetValidateFnAcceptsAndRejects) {
+  SkillData skill_data(10);
+
+  ASSERT_TRUE(skill_data
+                  .GetOrCompute<int>("ctx_1", "key_1",
+                                     []() -> absl::StatusOr<int> { return 42; })
+                  .ok());
+
+  // Validator accepts
+  auto accept_result = skill_data.Get<int>(
+      "ctx_1", "key_1",
+      [](const int& v) -> absl::StatusOr<bool> { return v == 42; });
+  ASSERT_TRUE(accept_result.ok());
+  ASSERT_TRUE(accept_result->has_value());
+  EXPECT_THAT(**accept_result, Eq(42));
+
+  // Validator rejects -> returns nullopt
+  auto reject_result = skill_data.Get<int>(
+      "ctx_1", "key_1",
+      [](const int& v) -> absl::StatusOr<bool> { return v != 42; });
+  ASSERT_TRUE(reject_result.ok());
+  EXPECT_FALSE(reject_result->has_value());
+}
+
+TEST(SkillDataTest, GetValidateFnErrorPropagatesImmediately) {
+  SkillData skill_data(10);
+
+  ASSERT_TRUE(skill_data
+                  .GetOrCompute<int>("ctx_1", "key_1",
+                                     []() -> absl::StatusOr<int> { return 42; })
+                  .ok());
+
+  auto error_result = skill_data.Get<int>(
+      "ctx_1", "key_1", [](const int&) -> absl::StatusOr<bool> {
+        return absl::FailedPreconditionError("validation check failed");
+      });
+  EXPECT_TRUE(absl::IsFailedPrecondition(error_result.status()));
+  EXPECT_THAT(error_result.status().message(),
+              HasSubstr("validation check failed"));
+}
+
+TEST(SkillDataTest, GetRefreshesLruRecency) {
+  constexpr size_t kMaxContexts = 2;
+  SkillData skill_data(kMaxContexts);
+
+  auto compute_val = [](int v) {
+    return [v]() -> absl::StatusOr<int> { return v; };
+  };
+
+  // Populate ctx_1 and ctx_2
+  ASSERT_TRUE(skill_data.GetOrCompute<int>("ctx_1", "k", compute_val(1)).ok());
+  ASSERT_TRUE(skill_data.GetOrCompute<int>("ctx_2", "k", compute_val(2)).ok());
+
+  // Calling Get on ctx_1 should refresh its LRU recency to most recent
+  auto get_res = skill_data.Get<int>("ctx_1", "k");
+  ASSERT_TRUE(get_res.ok());
+  ASSERT_TRUE(get_res->has_value());
+  EXPECT_THAT(**get_res, Eq(1));
+
+  // Insert ctx_3 -> Should evict ctx_2 (least recently used), NOT ctx_1!
+  ASSERT_TRUE(skill_data.GetOrCompute<int>("ctx_3", "k", compute_val(3)).ok());
+
+  // ctx_1 should still be present
+  auto ctx1_res = skill_data.Get<int>("ctx_1", "k");
+  ASSERT_TRUE(ctx1_res.ok());
+  ASSERT_TRUE(ctx1_res->has_value());
+  EXPECT_THAT(**ctx1_res, Eq(1));
+
+  // ctx_2 should have been evicted
+  auto ctx2_res = skill_data.Get<int>("ctx_2", "k");
+  ASSERT_TRUE(ctx2_res.ok());
+  EXPECT_FALSE(ctx2_res->has_value());
+}
+
 TEST(SkillDataTest, MultipleKeysUnderSameContext) {
   SkillData skill_data(10);
 

@@ -52,6 +52,41 @@ class SkillData {
   SkillData(const SkillData&) = delete;
   SkillData& operator=(const SkillData&) = delete;
 
+  // Returns the cached value for (context_id, key), or std::nullopt if not
+  // found.
+  //
+  // If `validate_fn` is provided and a cached value exists:
+  // - Returns cached value if `validate_fn` returns true.
+  // - Returns std::nullopt if `validate_fn` returns false.
+  // - Returns error status immediately if `validate_fn` returns an error
+  // status.
+  //
+  // Returns an InvalidArgumentError if the cached value's type does not match
+  // T.
+  template <typename T>
+  absl::StatusOr<std::optional<T>> Get(
+      absl::string_view context_id, absl::string_view key,
+      std::function<absl::StatusOr<bool>(const T&)> validate_fn = nullptr) {
+    if (auto cached = cache_.Get(context_id, key)) {
+      const T* val = std::any_cast<T>(&(*cached));
+      if (val == nullptr) {
+        return absl::InvalidArgumentError(absl::StrFormat(
+            "Type mismatch for context_id '%s' and key '%s'", context_id, key));
+      }
+
+      if (validate_fn == nullptr) {
+        return *val;
+      }
+
+      INTR_ASSIGN_OR_RETURN(bool is_valid, validate_fn(*val));
+      if (is_valid) {
+        return *val;
+      }
+    }
+
+    return std::nullopt;
+  }
+
   // Returns the cached value for (context_id, key) or computes, stores, and
   // returns the result of `compute_fn`.
   //
@@ -73,21 +108,10 @@ class SkillData {
       return absl::InvalidArgumentError("compute_fn must not be null.");
     }
 
-    if (auto cached = cache_.Get(context_id, key)) {
-      const T* val = std::any_cast<T>(&(*cached));
-      if (val == nullptr) {
-        return absl::InvalidArgumentError(absl::StrFormat(
-            "Type mismatch for context_id '%s' and key '%s'", context_id, key));
-      }
-
-      if (validate_fn == nullptr) {
-        return *val;
-      }
-
-      INTR_ASSIGN_OR_RETURN(bool is_valid, validate_fn(*val));
-      if (is_valid) {
-        return *val;
-      }
+    INTR_ASSIGN_OR_RETURN(std::optional<T> cached,
+                          Get<T>(context_id, key, validate_fn));
+    if (cached.has_value()) {
+      return std::move(*cached);
     }
 
     INTR_ASSIGN_OR_RETURN(T fresh_value, compute_fn());
