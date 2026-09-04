@@ -591,6 +591,43 @@ cc_proto_library(
 )
 
 proto_library(
+    name = "pose_estimate_proto",
+    srcs = ["pose_estimate.proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        "//intrinsic/math/proto:pose_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "pose_estimate_cc_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":pose_estimate_proto"],
+)
+
+py_proto_library(
+    name = "pose_estimate_py_pb2",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":pose_estimate_proto"],
+)
+
+go_proto_library(
+    name = "pose_estimate_go_proto",
+    importpath = "intrinsic/perception/proto/v1/pose_estimate_go_proto",
+    protos = [":pose_estimate_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        "//intrinsic/math/proto:pose_go_proto",
+    ],
+)
+
+js_library(
+    name = "pose_estimate_jspb_proto",
+    visibility = ["//intrinsic:internal_api_users"],
+    deps = [":pose_estimate_proto"],
+)
+
+proto_library(
     name = "pose_estimate_in_root_proto",
     srcs = ["pose_estimate_in_root.proto"],
     visibility = ["//intrinsic:public_api_users"],
@@ -668,6 +705,86 @@ js_library(
 )
 
 proto_library(
+    name = "pose_estimation_service_proto",
+    srcs = ["pose_estimation_service.proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        ":capture_data_proto",
+        ":capture_result_proto",
+        ":pose_estimate_proto",
+        ":pose_priors_proto",
+        "//intrinsic/assets/proto:id_proto",
+        "//intrinsic/logging/proto:context_proto",
+        "@com_google_protobuf//:any_proto",
+        "@com_google_protobuf//:duration_proto",
+        "@com_google_protobuf//:empty_proto",
+    ],
+)
+
+proto_source_code_info_transitive_descriptor_set(
+    name = "pose_estimation_service_proto_descriptor_set",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":pose_estimation_service_proto"],
+)
+
+cc_proto_library(
+    name = "pose_estimation_service_cc_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":pose_estimation_service_proto"],
+)
+
+cc_grpc_library(
+    name = "pose_estimation_service_cc_grpc_proto",
+    srcs = [":pose_estimation_service_proto"],
+    grpc_only = True,
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":pose_estimation_service_cc_proto"],
+)
+
+py_proto_library(
+    name = "pose_estimation_service_py_pb2",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":pose_estimation_service_proto"],
+)
+
+py_grpc_library(
+    name = "pose_estimation_service_py_pb2_grpc",
+    srcs = [":pose_estimation_service_proto"],
+    grpc_library = requirement("grpcio"),
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":pose_estimation_service_py_pb2"],
+)
+
+go_proto_library(
+    name = "pose_estimation_service_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+        "//bazel:go_gen_grpc_gateway",
+    ],
+    importpath = "intrinsic/perception/proto/v1/pose_estimation_service_go_proto",
+    protos = [":pose_estimation_service_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        ":capture_data_go_proto",
+        ":capture_result_go_proto",
+        ":pose_estimate_go_proto",
+        ":pose_priors_go_proto",
+        "//intrinsic/assets/proto:id_go_proto",
+        "//intrinsic/logging/proto:context_go_proto",
+        "@org_golang_google_protobuf//types/known/anypb",
+        "@org_golang_google_protobuf//types/known/durationpb",
+        "@org_golang_google_protobuf//types/known/emptypb",
+    ],
+)
+
+js_library(
+    name = "pose_estimation_service_jspb_proto",
+    visibility = ["//intrinsic:internal_api_users"],
+    deps = [":pose_estimation_service_proto"],
+)
+
+proto_library(
     name = "pose_estimator_id_proto",
     srcs = ["pose_estimator_id.proto"],
     visibility = ["//intrinsic:public_api_users"],
@@ -696,6 +813,47 @@ go_proto_library(
     importpath = "intrinsic/perception/proto/v1/pose_estimator_id_go_proto",
     protos = [":pose_estimator_id_proto"],
     visibility = ["//intrinsic:public_api_users"],
+)
+
+proto_library(
+    name = "pose_priors_proto",
+    srcs = ["pose_priors.proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        ":pose_estimate_proto",
+        "//intrinsic/geometry/proto:oriented_bounding_box_proto",
+        "//intrinsic/math/proto:pose_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "pose_priors_cc_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":pose_priors_proto"],
+)
+
+py_proto_library(
+    name = "pose_priors_py_pb2",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":pose_priors_proto"],
+)
+
+go_proto_library(
+    name = "pose_priors_go_proto",
+    importpath = "intrinsic/perception/proto/v1/pose_priors_go_proto",
+    protos = [":pose_priors_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        ":pose_estimate_go_proto",
+        "//intrinsic/geometry/proto:oriented_bounding_box_go_proto",
+        "//intrinsic/math/proto:pose_go_proto",
+    ],
+)
+
+js_library(
+    name = "pose_priors_jspb_proto",
+    visibility = ["//intrinsic:internal_api_users"],
+    deps = [":pose_priors_proto"],
 )
 
 proto_library(

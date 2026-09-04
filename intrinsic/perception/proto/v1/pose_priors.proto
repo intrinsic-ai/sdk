@@ -1,0 +1,43 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.perception.v1;
+
+import "intrinsic/geometry/proto/oriented_bounding_box.proto";
+import "intrinsic/math/proto/pose.proto";
+import "intrinsic/perception/proto/v1/pose_estimate.proto";
+
+option go_package = "intrinsic/perception/proto/v1/pose_priors_go_proto";
+
+// Pose priors to constrain the search space during pose estimation.
+// Note: Not all pose estimators implement all pose priors. Consult the
+// documentation of the respective pose estimator to check whether a
+// specific prior will be ignored.
+message PosePriors {
+  // Initial pose estimates which provide a hint to the pose estimator. Note
+  // that most pose estimator will ignore these initial pose estimates.
+  repeated PoseEstimate initial_pose_estimates = 1;
+
+  // If set, the underlying algorithm may choose to restrict the search space
+  // to the region of interest, or it may ignore it.
+  optional intrinsic_proto.geometry.OrientedBoundingBox3 region_of_interest = 2;
+
+  // Ground plane parameterized as a pose in camera frame with z defining the
+  // normal vector of the plane.
+  // Pose estimator may use this information to assume the object is placed on
+  // the ground plane.
+  optional intrinsic_proto.Pose camera_t_ground_plane = 3;
+}
