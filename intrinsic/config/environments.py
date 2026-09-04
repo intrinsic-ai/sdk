@@ -204,6 +204,33 @@ def assets_project(env: str) -> str:
   raise ValueError(f"Unknown environment: {env}")
 
 
+def domain(project: str) -> str:
+  """Returns the domain name for a project.
+
+  Mirrors Go's Domain(project) function in
+  //intrinsic/config/environments.go.
+  """
+  if project == PORTAL_PROJECT_PROD:
+    return PORTAL_DOMAIN_PROD
+  if project == PORTAL_PROJECT_STAGING:
+    return PORTAL_DOMAIN_STAGING
+  if project == PORTAL_PROJECT_DEV:
+    return PORTAL_DOMAIN_DEV
+  if project == ACCOUNTS_PROJECT_PROD:
+    return ACCOUNTS_DOMAIN_PROD
+  if project == ACCOUNTS_PROJECT_STAGING:
+    return ACCOUNTS_DOMAIN_STAGING
+  if project == ACCOUNTS_PROJECT_DEV:
+    return ACCOUNTS_DOMAIN_DEV
+  if project == ASSETS_PROJECT_DEV:
+    return ASSETS_DOMAIN_DEV
+  if project == ASSETS_PROJECT_STAGING:
+    return ASSETS_DOMAIN_STAGING
+  if project == ASSETS_PROJECT_PROD:
+    return ASSETS_DOMAIN_PROD
+  return f"www.endpoints.{project}.cloud.goog"
+
+
 _PROJECT_NAME_SALT = "2lJEUX97RpOzOvXQJhN+NRt0+KJ4z1KyPXtfe7"
 
 
