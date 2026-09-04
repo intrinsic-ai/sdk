@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"intrinsic/tools/inctl/auth/auth"
+	"intrinsic/tools/inctl/util"
 	"intrinsic/tools/inctl/util/cobrautil"
 	"intrinsic/tools/inctl/util/color"
 	"intrinsic/tools/inctl/util/orgutil"
@@ -55,6 +56,29 @@ var (
 	flagDuration    string
 )
 
+type visualizationTarget interface {
+	GetClusterName() string
+	PrintSuccessOutput(out io.Writer, recordingID string)
+	GetJSONMap(url string) map[string]interface{}
+}
+
+type leasedVisualizationTarget struct {
+	ClusterName string
+	Expires     time.Time
+}
+
+func (t *leasedVisualizationTarget) GetClusterName() string { return t.ClusterName }
+func (t *leasedVisualizationTarget) PrintSuccessOutput(out io.Writer, recordingID string) {
+	fmt.Fprintf(out, "Visualization created successfully for recording %s\n", recordingID)
+	fmt.Fprintf(out, "- Visualization valid for %s, expires at %s\n", time.Until(t.Expires).Round(time.Second), t.Expires.Format(time.RFC3339))
+}
+func (t *leasedVisualizationTarget) GetJSONMap(url string) map[string]interface{} {
+	return map[string]interface{}{
+		"url":        url,
+		"expires_at": t.Expires.Format(time.RFC3339),
+	}
+}
+
 // VisualizeCmdRunner contains the business logic for the visualize command.
 // It is a separate struct to allow for dependency injection and easier testing.
 type VisualizeCmdRunner struct {
@@ -70,6 +94,9 @@ func (r *VisualizeCmdRunner) leaseVM(cmd *cobra.Command, v *viper.Viper, duratio
 	if IsJSON(cmd) {
 		out = io.Discard
 	}
+	spinner := util.NewSpinner(cmd.Context(), out, 100*time.Millisecond, util.PositionFront, util.StyleArc, util.ColorRGB, util.DirectionForward)
+	spinner.Start("Leasing visualization host...")
+
 	reservationUUID := uuid.New()
 	for { // retry until lease successful.
 		expires := time.Now().Add(duration)
@@ -79,15 +106,16 @@ func (r *VisualizeCmdRunner) leaseVM(cmd *cobra.Command, v *viper.Viper, duratio
 		leaseResp, err := leaseClient.Lease(cmd.Context(), leaseReq)
 		if err != nil {
 			if status.Code(err) == codes.PermissionDenied {
+				spinner.Stop("")
 				return nil, fmt.Errorf("visualization host create request failed: %v\n. Your api-key might have expired, run `inctl auth login` to refresh it and retry", err)
 			}
-			fmt.Fprintf(out, "visualization host create request failed, retrying soon: %v\n", err)
+			spinner.Interrupt(fmt.Sprintf("visualization host create request failed, retrying soon: %v\n", err))
 			time.Sleep(leaseRetryInterval)
 			continue
 		}
 
 		lease := leaseResp.GetLease()
-		fmt.Fprintf(out, "Visualization host started successfully: %s\n", lease.GetInstance())
+		spinner.Stop(fmt.Sprintf("Visualization host started successfully: %s\n", lease.GetInstance()))
 		return lease, nil
 	}
 }
@@ -169,18 +197,40 @@ func buildDenylist(cmd *cobra.Command, eventSources []string) []string {
 	return denylist
 }
 
+func (r *VisualizeCmdRunner) createLeasedTarget(cmd *cobra.Command, v *viper.Viper, fail func(error) error) (*leasedVisualizationTarget, error) {
+	duration, err := time.ParseDuration(flagDuration)
+	if err != nil {
+		return nil, fail(fmt.Errorf("Duration '%v' entered is not valid, use something like '30m' or '1h': %v", flagDuration, err))
+	}
+
+	leaseClient, err := r.NewLeaseClient(cmd)
+	if err != nil {
+		return nil, fail(fmt.Errorf("could not create visualization host client: %v", err))
+	}
+
+	lease, err := r.leaseVM(cmd, v, duration, leaseClient)
+	if err != nil {
+		return nil, fail(fmt.Errorf("visualization host creation failed: %v", err))
+	}
+	return &leasedVisualizationTarget{
+		ClusterName: lease.GetInstance(),
+		Expires:     lease.GetExpires().AsTime(),
+	}, nil
+}
+
 // RunE executes the visualize command.
 func (r *VisualizeCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 	v := visualizeCreateParam
 	out := cmd.OutOrStdout()
+
 	if IsJSON(cmd) {
 		out = io.Discard
 	}
 	fail := JSONFailFunc(cmd)
 
-	duration, err := time.ParseDuration(flagDuration)
+	target, err := r.createLeasedTarget(cmd, v, fail)
 	if err != nil {
-		return fail(fmt.Errorf("Duration '%v' entered is not valid, use something like '30m' or '1h': %v", flagDuration, err))
+		return err
 	}
 
 	bagPackagerClient, err := r.NewBagPackagerClient(cmd)
@@ -199,9 +249,9 @@ func (r *VisualizeCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 	}
 	denylist := buildDenylist(cmd, eventSources)
 
-	var vizOpts *replayoptionspb.VisualizationOptions
+	var visualizationOpts *replayoptionspb.VisualizationOptions
 	if len(denylist) > 0 {
-		vizOpts = &replayoptionspb.VisualizationOptions{
+		visualizationOpts = &replayoptionspb.VisualizationOptions{
 			DefaultVisualizerFilters: &replayoptionspb.FilterOptions{
 				EventSources: &replayoptionspb.FilterOptions_RegexFilterOptions{
 					DenylistRegexes: denylist,
@@ -210,18 +260,7 @@ func (r *VisualizeCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 		}
 	}
 
-	leaseClient, err := r.NewLeaseClient(cmd)
-	if err != nil {
-		return fail(fmt.Errorf("could not create visualization host client: %v", err))
-	}
-
-	lease, err := r.leaseVM(cmd, v, duration, leaseClient)
-	if err != nil {
-		return fail(fmt.Errorf("visualization host creation failed: %v", err))
-	}
-	clusterName := lease.GetInstance()
-
-	replayClient, closer, err := r.ReplayClientFactory(cmd.Context(), v, clusterName)
+	replayClient, closer, err := r.ReplayClientFactory(cmd.Context(), v, target.GetClusterName())
 	if err != nil {
 		return fail(err)
 	}
@@ -231,11 +270,15 @@ func (r *VisualizeCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 
 	req := &replaypb.VisualizeRecordingRequest{
 		RecordingId:          flagRecordingID,
-		VisualizationOptions: vizOpts,
+		VisualizationOptions: visualizationOpts,
 	}
+
+	spinner := util.NewSpinner(cmd.Context(), out, 100*time.Millisecond, util.PositionFront, util.StyleWaveThrough, util.ColorRGB, util.DirectionForward)
+	spinner.Start("Loading visualization onto host...")
 
 	resp, err := replayClient.VisualizeRecording(cmd.Context(), req)
 	if err != nil {
+		spinner.Stop("")
 		if status.Code(err) == codes.AlreadyExists {
 			return fail(fmt.Errorf("%w", err))
 		}
@@ -243,17 +286,13 @@ func (r *VisualizeCmdRunner) RunE(cmd *cobra.Command, _ []string) error {
 	}
 
 	if IsJSON(cmd) {
-		emitJSONSuccess(cmd.OutOrStdout(), map[string]interface{}{
-			"url":        resp.GetUrl(),
-			"expires_at": lease.GetExpires().AsTime().Format(time.RFC3339),
-		})
+		emitJSONSuccess(cmd.OutOrStdout(), target.GetJSONMap(resp.GetUrl()))
 		return nil
 	}
+	spinner.Stop("Visualization loaded successfully")
 
 	fmt.Fprintln(out, "")
-	fmt.Fprintf(out, "Visualization created successfully for recording %s", flagRecordingID)
-	fmt.Fprintln(out, "")
-	fmt.Fprintf(out, "- Visualization valid for %s, expires at %s\n", time.Until(lease.GetExpires().AsTime()), lease.GetExpires().AsTime().Format(time.RFC3339))
+	target.PrintSuccessOutput(out, flagRecordingID)
 	fmt.Fprintln(out, "")
 	fmt.Fprintln(out, "Data will load into the visualization over the next few minutes. You will know it is done when data stops appearing in the timeline.")
 	color.C.BlueBackground().White().Fprintf(out, "\nLink to visualization: %s", resp.GetUrl())
@@ -304,7 +343,9 @@ func NewVisualizeCmd(runner *VisualizeCmdRunner) *cobra.Command {
 	}
 
 	cmd.MarkFlagRequired("recording_id")
+
 	cmd.MarkFlagRequired("duration")
+
 	return orgutil.WrapCmd(cmd, visualizeCreateParam, orgutil.WithOrgExistsCheck(func() bool { return checkOrgExists }))
 }
 

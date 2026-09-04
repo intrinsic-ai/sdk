@@ -82,7 +82,7 @@ func TestVisualizeRecordingE(t *testing.T) {
 		testOrg         = "test-org"
 	)
 
-	tests := []struct {
+	type testCase struct {
 		name                   string
 		args                   []string
 		leaseFunc              func(ctx context.Context, in *leasegrpcpb.LeaseRequest, opts ...grpc.CallOption) (*leasegrpcpb.LeaseResponse, error)
@@ -90,7 +90,9 @@ func TestVisualizeRecordingE(t *testing.T) {
 		getBagFunc             func(ctx context.Context, in *bagpackagerpb.GetBagRequest, opts ...grpc.CallOption) (*bagpackagerpb.GetBagResponse, error)
 		wantErr                string
 		wantOut                string
-	}{
+	}
+
+	tests := []testCase{
 		{
 			name: "creates visualization host and generates URL on success",
 			args: []string{"--recording_id", testRecordingID, "--duration", testDuration, "--org", testOrg},
@@ -124,11 +126,6 @@ func TestVisualizeRecordingE(t *testing.T) {
 			name:    "returns error when recording_id flag is missing",
 			args:    []string{"--duration", testDuration, "--org", testOrg},
 			wantErr: `required flag(s) "recording_id" not set`,
-		},
-		{
-			name:    "returns error when duration flag is missing",
-			args:    []string{"--recording_id", testRecordingID, "--org", testOrg},
-			wantErr: `required flag(s) "duration" not set`,
 		},
 		{
 			name: "returns error when lease creation fails",
@@ -222,6 +219,12 @@ func TestVisualizeRecordingE(t *testing.T) {
 		},
 	}
 
+	tests = append(tests, testCase{
+		name:    "returns error when duration flag is missing",
+		args:    []string{"--recording_id", testRecordingID, "--org", testOrg},
+		wantErr: `required flag(s) "duration" not set`,
+	})
+
 	// We disable the org check in tests because the test environment does not have
 	// the necessary home directory configuration.
 	originalCheckOrgExists := checkOrgExists
@@ -259,6 +262,9 @@ func TestVisualizeRecordingE(t *testing.T) {
 				}
 			}
 
+			originalFlagClusterName := flagClusterName
+			t.Cleanup(func() { flagClusterName = originalFlagClusterName })
+			flagClusterName = ""
 			runner := &VisualizeCmdRunner{
 				NewLeaseClient: func(cmd *cobra.Command) (leasegrpcpb.VMPoolLeaseServiceClient, error) {
 					return &mockLeaseClient{LeaseFunc: tc.leaseFunc}, nil
