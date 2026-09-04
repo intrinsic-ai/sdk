@@ -15,31 +15,15 @@
 #ifndef INTRINSIC_UTIL_OBJECT_STORE_MULTI_MUTEX_H_
 #define INTRINSIC_UTIL_OBJECT_STORE_MULTI_MUTEX_H_
 
-// Prevent conflicts with QT and concurrent hashmap.
-// See macro definitions in qobjectdefs.h for details.
 #include <cstdint>
 #include <memory>
 #include <string>
 #include <utility>
-#ifdef QOBJECTDEFS_H
-#pragma push_macro("emit")
-#undef emit
-#pragma push_macro("slots")
-#undef slots
-#pragma push_macro("signals")
-#undef signals
-#endif
 
 #include "absl/base/thread_annotations.h"
 #include "absl/strings/string_view.h"
 #include "absl/synchronization/mutex.h"
 #include "tbb/concurrent_hash_map.h"
-
-#ifdef QOBJECTDEFS_H
-#pragma pop_macro("emit")
-#pragma pop_macro("slots")
-#pragma pop_macro("signals")
-#endif
 
 namespace intrinsic {
 
