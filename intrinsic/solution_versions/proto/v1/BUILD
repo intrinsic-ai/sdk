@@ -360,6 +360,7 @@ go_proto_library(
     visibility = [
         "//intrinsic/frontend/cloud/portal_bridge:__subpackages__",
         "//intrinsic/solution_versions:__subpackages__",
+        "//intrinsic/tools/inctl/cmd/solution_version:__pkg__",
     ],
     deps = [
         ":diff_mask_go_proto",

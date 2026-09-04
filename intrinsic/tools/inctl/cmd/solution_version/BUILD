@@ -24,8 +24,10 @@ go_library(
     visibility = ["//intrinsic/tools/inctl:__subpackages__"],
     deps = [
         "//intrinsic/solution_versions/proto/v1:branch_go_proto",
+        "//intrinsic/solution_versions/proto/v1:diff_mask_go_proto",
         "//intrinsic/solution_versions/proto/v1:snapshot_go_proto",
         "//intrinsic/solution_versions/proto/v1:snapshot_source_go_proto",
+        "//intrinsic/solution_versions/proto/v1:solution_diff_go_proto",
         "//intrinsic/solution_versions/proto/v1:solution_version_service_go_proto",
         "//intrinsic/tools/inctl/auth",
         "//intrinsic/tools/inctl/cmd:root",
@@ -37,6 +39,7 @@ go_library(
         "@com_github_spf13_viper//:go_default_library",
         "@org_golang_google_grpc//codes:go_default_library",
         "@org_golang_google_grpc//status:go_default_library",
+        "@org_golang_google_protobuf//encoding/protojson:go_default_library",
         "@org_golang_google_protobuf//encoding/prototext:go_default_library",
         "@org_golang_google_protobuf//proto",
     ],
