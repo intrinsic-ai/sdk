@@ -51,7 +51,7 @@ py_package(
         "intrinsic",
     ],
     deps = [
-        "//intrinsic/executive/code:code_execution",
+        ":code_execution",
     ],
 )
 
