@@ -1,0 +1,50 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.perception.v1;
+
+option go_package = "intrinsic/perception/proto/v1/settings_go_proto";
+
+message FloatSettingProperties {
+  message FloatRange {
+    double minimum = 1;
+    double maximum = 2;
+  }
+  // The range of allowed floating point values.
+  FloatRange range = 1;
+  // The increment (or delta) between two neighboring allowed values.
+  double increment = 2;
+  // The unit corresponding to the value. We typically default to SI units.
+  optional string unit = 3;
+}
+
+message IntegerSettingProperties {
+  message IntegerRange {
+    int64 minimum = 1;
+    int64 maximum = 2;
+  }
+  // The range of allowed integer values.
+  IntegerRange range = 1;
+  // The increment (or delta) between two neighboring allowed values.
+  int64 increment = 2;
+  // The unit corresponding to the value. We typically use SI units.
+  optional string unit = 3;
+}
+
+message EnumSettingProperties {
+  // The allowed values for the enum.
+  repeated string values = 1;
+}

@@ -1,0 +1,29 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.perception.v1;
+
+option go_package = "intrinsic/perception/proto/v1/pose_estimator_id_go_proto";
+
+// Encapsulates pose estimator id.
+// This message type allows the UI to interpret the field as a pose estimator
+// and automatically hook it up to the available pose estimators.
+message PoseEstimatorId {
+  // The name of the pose estimator. This needs to correspond to the asset id.
+  string id = 1;
+  // The asset package of the pose estimator.
+  string package = 2;
+}
