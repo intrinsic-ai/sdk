@@ -16,17 +16,25 @@ load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@intrinsic_js_rules//:defs.bzl", "js_library")
-load("//bazel:go_macros.bzl", "go_proto_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
 
 licenses(["unencumbered"])
 
+js_library(
+    name = "messages_jspb_proto",
+    deps = ["//intrinsic/messages:messages_proto"],
+)
+
 proto_library(
     name = "messages_proto",
-    srcs = [
-        "geometry_types.proto",
-    ],
+    srcs = ["geometry_types.proto"],
+)
+
+cc_proto_library(
+    name = "messages_cc_proto",
+    deps = [":messages_proto"],
 )
 
 go_proto_library(
@@ -37,15 +45,5 @@ go_proto_library(
 
 py_proto_library(
     name = "messages_py_pb2",
-    deps = [":messages_proto"],
-)
-
-cc_proto_library(
-    name = "messages_cc_proto",
-    deps = [":messages_proto"],
-)
-
-js_library(
-    name = "messages_jspb_proto",
     deps = [":messages_proto"],
 )

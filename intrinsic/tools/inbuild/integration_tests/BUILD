@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
-load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
-load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
@@ -23,31 +20,18 @@ load("//bazel:go_macros.bzl", "go_test")
 load("//bazel:python_oci_image.bzl", "python_oci_image")
 load("//intrinsic/tools/inbuild/integration_tests:inbuild.bzl", "inbuild_data_bundle", "inbuild_service_bundle", "inbuild_skill_bundle", "inbuild_skill_generate_config", "inbuild_skill_generate_entrypoint_cc", "inbuild_skill_generate_entrypoint_py", "inbuild_skill_manifest")
 
-proto_library(
-    name = "inbuild_skill_proto",
-    srcs = ["inbuild_skill.proto"],
-    visibility = ["//intrinsic:internal_api_users"],
-)
-
-proto_library(
-    name = "inbuild_service_proto",
-    srcs = ["inbuild_service.proto"],
-    visibility = ["//intrinsic:internal_api_users"],
-)
-
 ###################
 # Python Skill
 ###################
-py_proto_library(
-    name = "inbuild_skill_py_pb2",
-    visibility = ["//intrinsic:internal_api_users"],
-    deps = [":inbuild_skill_proto"],
-)
+
+load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
+load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
+load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 
 inbuild_skill_manifest(
     name = "skill_manifest_py",
     manifest = "inbuild_skill_py.manifest.pbtxt",
-    proto = ":inbuild_skill_proto",
+    proto = "//intrinsic/tools/inbuild/integration_tests:inbuild_skill_proto",
 )
 
 inbuild_skill_generate_entrypoint_py(
@@ -64,8 +48,8 @@ py_library(
     name = "inbuild_skill_py_lib",
     srcs = ["inbuild_skill.py"],
     deps = [
-        ":inbuild_skill_py_pb2",
         "//intrinsic/skills/python:skill_interface",
+        "//intrinsic/tools/inbuild/integration_tests:inbuild_skill_py_pb2",
         "//intrinsic/util:decorators",
     ],
 )
@@ -76,13 +60,13 @@ py_binary(
     main = ":skill_service_py.py",
     deps = [
         ":inbuild_skill_py_lib",
-        ":inbuild_skill_py_pb2",
         "//intrinsic/skills/generator:app",
         "//intrinsic/skills/internal:runtime_data_py",
         "//intrinsic/skills/internal:single_skill_factory_py",
         "//intrinsic/skills/internal:skill_init_py",
         "//intrinsic/skills/internal:skill_service_config_utils_py",
         "//intrinsic/skills/proto:skill_service_config_py_pb2",
+        "//intrinsic/tools/inbuild/integration_tests:inbuild_skill_py_pb2",
         "//intrinsic/util/status:status_specs_py",
         "@com_google_absl_py//absl/flags",
     ],
@@ -112,23 +96,18 @@ inbuild_skill_bundle(
 ###################
 # C++ Skill
 ###################
-cc_proto_library(
-    name = "inbuild_skill_cc_proto",
-    visibility = ["//intrinsic:internal_api_users"],
-    deps = [":inbuild_skill_proto"],
-)
 
 cc_library(
     name = "inbuild_skill_cc_lib",
     srcs = ["inbuild_skill.cc"],
     hdrs = ["inbuild_skill.h"],
     deps = [
-        ":inbuild_skill_cc_proto",
         "//intrinsic/skills/cc:execute_context",
         "//intrinsic/skills/cc:skill_interface",
         "//intrinsic/skills/cc:skill_interface_utils",
         "//intrinsic/skills/proto:equipment_cc_proto",
         "//intrinsic/skills/proto:skill_service_cc_proto",
+        "//intrinsic/tools/inbuild/integration_tests:inbuild_skill_cc_proto",
         "//intrinsic/util/status:status_macros",
         "@abseil-cpp//absl/log",
         "@abseil-cpp//absl/status:statusor",
@@ -139,7 +118,7 @@ cc_library(
 inbuild_skill_manifest(
     name = "skill_manifest_cc",
     manifest = "inbuild_skill_cc.manifest.pbtxt",
-    proto = ":inbuild_skill_proto",
+    proto = "//intrinsic/tools/inbuild/integration_tests:inbuild_skill_proto",
 )
 
 inbuild_skill_generate_entrypoint_cc(
@@ -196,19 +175,13 @@ inbuild_skill_bundle(
 # Python Service
 ###################
 
-py_proto_library(
-    name = "inbuild_service_py_pb2",
-    visibility = ["//intrinsic:internal_api_users"],
-    deps = [":inbuild_service_proto"],
-)
-
 py_binary(
     name = "inbuild_service_py_bin",
     srcs = ["inbuild_service.py"],
     main = "inbuild_service.py",
     deps = [
-        ":inbuild_service_py_pb2",
         "//intrinsic/resources/proto:runtime_context_py_pb2",
+        "//intrinsic/tools/inbuild/integration_tests:inbuild_service_py_pb2",
     ],
 )
 
@@ -224,7 +197,7 @@ inbuild_service_bundle(
     default_config = "inbuild_service_default_config.textproto",
     manifest = "inbuild_service_py.manifest.textproto",
     oci_image = "inbuild_service_py_image.tar",
-    proto = ":inbuild_service_proto",
+    proto = "//intrinsic/tools/inbuild/integration_tests:inbuild_service_proto",
     visibility = ["//intrinsic:internal_api_users"],
 )
 
@@ -232,20 +205,14 @@ inbuild_service_bundle(
 # C++ Service
 ###################
 
-cc_proto_library(
-    name = "inbuild_service_cc_proto",
-    visibility = ["//intrinsic:internal_api_users"],
-    deps = [":inbuild_service_proto"],
-)
-
 cc_binary(
     name = "inbuild_service_cc_bin",
     srcs = ["inbuild_service.cc"],
     deps = [
-        ":inbuild_service_cc_proto",
         "//intrinsic/icon/release:file_helpers",
         "//intrinsic/icon/release/portable:init_intrinsic",
         "//intrinsic/resources/proto:runtime_context_cc_proto",
+        "//intrinsic/tools/inbuild/integration_tests:inbuild_service_cc_proto",
         "//intrinsic/util/proto:any",
         "//intrinsic/util/status:status_macros",
         "@abseil-cpp//absl/log",
@@ -269,7 +236,7 @@ inbuild_service_bundle(
     default_config = "inbuild_service_default_config.textproto",
     manifest = "inbuild_service_cc.manifest.textproto",
     oci_image = "inbuild_service_cc_image.tar",
-    proto = ":inbuild_service_proto",
+    proto = "//intrinsic/tools/inbuild/integration_tests:inbuild_service_proto",
     visibility = ["//intrinsic:internal_api_users"],
 )
 
@@ -300,4 +267,34 @@ go_test(
         "@com_github_google_go_cmp//cmp:go_default_library",
         "@org_golang_google_protobuf//testing/protocmp:go_default_library",
     ],
+)
+
+proto_library(
+    name = "inbuild_service_proto",
+    srcs = ["inbuild_service.proto"],
+)
+
+cc_proto_library(
+    name = "inbuild_service_cc_proto",
+    deps = [":inbuild_service_proto"],
+)
+
+py_proto_library(
+    name = "inbuild_service_py_pb2",
+    deps = [":inbuild_service_proto"],
+)
+
+proto_library(
+    name = "inbuild_skill_proto",
+    srcs = ["inbuild_skill.proto"],
+)
+
+cc_proto_library(
+    name = "inbuild_skill_cc_proto",
+    deps = [":inbuild_skill_proto"],
+)
+
+py_proto_library(
+    name = "inbuild_skill_py_pb2",
+    deps = [":inbuild_skill_proto"],
 )

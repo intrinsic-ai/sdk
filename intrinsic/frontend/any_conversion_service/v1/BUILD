@@ -14,9 +14,14 @@
 
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@intrinsic_js_rules//:defs.bzl", "js_library")
-load("//bazel:go_macros.bzl", "go_proto_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 
 package(default_visibility = ["//intrinsic:public_api_users"])
+
+js_library(
+    name = "any_conversion_service_jspb_proto",
+    deps = ["//intrinsic/frontend/any_conversion_service/v1:any_conversion_service_proto"],
+)
 
 proto_library(
     name = "any_conversion_service_proto",
@@ -25,11 +30,6 @@ proto_library(
         "@com_google_protobuf//:any_proto",
         "@com_google_protobuf//:descriptor_proto",
     ],
-)
-
-js_library(
-    name = "any_conversion_service_jspb_proto",
-    deps = [":any_conversion_service_proto"],
 )
 
 go_proto_library(
