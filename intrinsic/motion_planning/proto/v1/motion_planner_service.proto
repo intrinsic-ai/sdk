@@ -1,0 +1,427 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.motion_planning.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "intrinsic/assets/proto/field_metadata.proto";
+import "intrinsic/assets/proto/v1/resolved_dependency.proto";
+import "intrinsic/geometry/proto/transformed_geometry_storage_refs.proto";
+import "intrinsic/icon/proto/joint_space.proto";
+import "intrinsic/logging/proto/context.proto";
+import "intrinsic/math/proto/pose.proto";
+import "intrinsic/motion_planning/proto/v1/compute_ik.proto";
+import "intrinsic/motion_planning/proto/v1/geometric_constraints.proto";
+import "intrinsic/motion_planning/proto/v1/motion_planner_config.proto";
+import "intrinsic/motion_planning/proto/v1/motion_planning.proto";
+import "intrinsic/motion_planning/proto/v1/motion_specification.proto";
+import "intrinsic/motion_planning/proto/v1/robot_specification.proto";
+import "intrinsic/world/proto/collision_checker_config.proto";
+import "intrinsic/world/proto/collision_settings.proto";
+import "intrinsic/world/proto/object_world_refs.proto";
+
+option go_package = "intrinsic/motion_planning/proto/v1/motion_planner_service_go_proto";
+
+// MotionPlannerFlags contains flags that are used for the motion
+// planning pipeline.
+message MotionPlannerFlags {
+  reserved 1;
+  reserved "enable_jerk_limited_topp";
+
+  reserved 2;
+  reserved "enable_topp_structured_analytical_integrals";
+
+  reserved 3;
+  reserved "enable_adaptive_sampling_and_topp_integrals";
+
+  reserved 4;
+  reserved "enable_conversion_to_knot_via_single_approximation";
+
+  // Enable a validation step in the motion planning pipeline for
+  // `PlanTrajectory()`, executed after path refinement. Each path sample
+  // produced at path refinement is validated against the settings (joint
+  // limits, collision, uniform path constraints) of the motion segment it has
+  // originated from. See go/intrinsic-topp-validation-step for details.
+  optional bool enable_path_refinement_validation_step = 5;
+
+  // If enable_path_refinement_validation_step==true, we validate the final
+  // trajectory using slightly relaxed collision margins. For each margin, we
+  // compute two candidate relaxations:
+  //
+  // (1) margin * path_refinement_validation_margin_relative_factor
+  //
+  // (2) max(0, margin - path_refinement_validation_margin_absolute_factor)
+  //
+  // We use the _minimum_ of the above 2 candidates.
+  optional double path_refinement_validation_margin_relative_factor = 6;
+
+  // See comment for `path_refinement_validation_margin_relative_factor`.
+  optional double path_refinement_validation_margin_absolute_factor = 7;
+  // Enables the Debug Mode of the motion planner. In Debug Mode, the
+  // motion planner will fill-in and/or publish (via `PubSub`) additional
+  // information regarding statistics (e.g. timing statistics) of some of the
+  // motion planning computations for debugging and/or Quality Assurance (QA)
+  // monitoring (e.g. to monitor software regressions).
+  optional bool enable_motion_planning_debug_mode = 12;
+
+  // Enables the collection of collision checking statistics for the motion
+  // planner.
+  optional bool enable_distance_check_statistics = 13;
+
+  // Enables using a multithreaded `ConcurrentProxy` for edge validation in path
+  // planning.
+  optional bool enable_concurrent_collision_checking = 14;
+
+  // If `enable_concurrent_collision_checking == true`, then this flag controls
+  // how many threads to use for multithreading.
+  optional int32 concurrent_collision_checking_thread_count = 15;
+
+  // Address of the parameterization service. This is used to create a channel
+  // to the parameterization service, get a stub and construct a
+  // parameterization client, used to solve parameterization problems required
+  // by the jerk-limited algorithm.
+  optional string parameterization_service_address = 16;
+
+  // If true: if output trajectory fails refinement validation, we generate a
+  // new trajectory with reduced joint blending tightness and try again. If
+  // false, we return the refinement validation error.
+  optional bool enable_fallback_trajectory = 17;
+
+  // Applies only when `enable_fallback_trajectory == true`.
+  // If true: if the output trajectory fails refinement validation, we generate
+  // a new trajectory by locally tightening the joint blending only around
+  // waypoints that are close to collisions. If false, we tighten the blending
+  // radius across all waypoints.
+  optional bool enable_fallback_trajectory_local_adjust = 18;
+  // This is the collision check spacing (specified in radians) used for
+  // collision checking motions. This can be overridden in
+  // `MotionPlannerConfiguration`.
+  optional double default_collision_check_spacing = 19;
+}
+
+message MotionPlannerServiceConfig {
+  // The resolved dependency for the Intrinsic runtime.
+  intrinsic_proto.assets.v1.ResolvedDependency intrinsic_runtime = 1
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "grpc://intrinsic_proto.assets.v1.InstalledAssetsReader"
+        requires: "grpc://intrinsic_proto.data_logger.DataLogger"
+      }];
+
+  MotionPlannerFlags flags = 2;
+
+  bool enable_motion_planner_service_caching = 3;
+  bool enable_motion_planner_service_caching_fuzzy_check = 4;
+  int32 cache_size = 5;
+  double joint_tolerance_in_rad = 6;
+  double pose_linear_tolerance_in_m = 7;
+  double pose_angular_tolerance_in_rad = 8;
+  bool enable_motion_planner_service_nonvolatile_cache = 9;
+  int32 geometry_service_cache_size = 10;
+  bool enable_motion_planning_inspector = 11;
+  bool save_debug_data = 12;
+
+  // If true, creates a recording for all motion planning calls.
+  // If false (default), restricts automated recordings to only failed plans.
+  optional bool log_all_recordings = 13;
+}
+
+message MotionPlanningRequest {
+  // The id of the world to be used for motion planning.
+  string world_id = 1;
+
+  // Defines the robot for which the motion is planned and its parameters.
+  RobotSpecification robot_specification = 2;
+
+  // Specifies the motion planning problem to be solved.
+  MotionSpecification motion_specification = 3;
+
+  // Planner specific configuration. Default will set a timeout of 90 seconds
+  // for the motion planning request.
+  optional MotionPlannerConfiguration motion_planner_config = 4;
+
+  // If set, a successful plan will also include the swept volume occupied by
+  // the robot while performing the motion.
+  bool compute_swept_volume = 5;
+
+  // This id should be set ONLY by the motion planning service, and ONLY for the
+  // purpose of logging.
+  // As worlds are mutable, we should not assume that the world of `world_id`
+  // will be in the same state that it was at the time of this
+  // motion planning call. If logging is turned on, the
+  // MotionPlannerService will clone the world `world_id` and the id of the
+  // cloned world will be stored here. Assuming nothing else mutates the
+  // cloned world, that world can be used as a reliable way to replicate
+  // this planning call.
+  string snapshot_world_id = 10;
+
+  // An ID for identifying which skill/service sends this request.
+  optional string caller_id = 6;
+
+  // The logging context for the skill sending the request.
+  optional intrinsic_proto.data_logger.Context context = 7;
+}
+message TrajectoryPlanningResponse {
+  oneof trajectory {
+    // The computed discretized trajectory that can be executed by the input
+    // robot.
+    intrinsic_proto.icon.JointTrajectoryPVA discretized = 1;
+  }
+
+  // If requested, these shapes represent the swept volume generated by the
+  // input robot performing the computed trajectory.
+  repeated intrinsic_proto.geometry.TransformedGeometryStorageRefs
+      swept_volume = 2;
+  // If the motion is locked based on the request, this is the id of the motion
+  // for loading later. Note this field is not set if this response is from
+  // loading a locked motion.
+  optional string lock_motion_id = 3;
+
+  // Logging id generated for this request. Can be used to retrieve details
+  // about the request for debugging.
+  string logging_id = 4;
+}
+
+message PathPlanningResponse {
+  // The computed path that can be executed by the input robot.
+  Path path = 1;
+
+  // If requested, these shapes represent the swept volume generated by the
+  // input robot performing the computed path.
+  repeated intrinsic_proto.geometry.TransformedGeometryStorageRefs
+      swept_volume = 2;
+
+  // Logging id generated for this request. Can be used to retrieve details
+  // about the request for debugging.
+  string logging_id = 3;
+}
+
+message IkRequest {
+  // The id of the world to be used for Inverse Kinemetics (IK) computation.
+  string world_id = 1;
+
+  // The Cartesian motion target constraint for which we want to compute a joint
+  // configuration that satisfies those constraints.
+  intrinsic_proto.motion_planning.v1.GeometricConstraint target = 2;
+
+  // [Optional] Joint configuration, used to seed the Ik. If not set,
+  // the current position in the world will be used.
+  intrinsic_proto.icon.JointVec starting_joints = 3;
+
+  // Specification of what robot is being controlled.
+  RobotReference robot_reference = 4;
+
+  // The maximum number of solutions to be returned. If not set (== 0), the
+  // underlying implementation has the freedom to choose. Negative values are
+  // invalid.
+  // Choosing a smaller value may make some implementations faster, but this
+  // depends on the underlying implementation and is not guaranteed.
+  int32 max_num_solutions = 5;
+
+  // If this field is left unset, no collision checking will take place.
+  // Otherwise, only collision-free solutions are returned.
+  intrinsic_proto.world.CollisionSettings collision_settings = 6;
+
+  // Specify whether to compute an IK solution which is on the same kinematic
+  // branch as the `starting_joints` configuration of the robot. Defaults to
+  // false.
+  optional bool ensure_same_branch = 7;
+
+  // Optional same branch Ik flag that will prefer solutions on the same
+  // kinematic branch over those close to the `starting_joints` configuration.
+  // Defaults to false.
+  optional bool prefer_same_branch = 9;
+
+  // Optional flag to disable setting the error status when there are no valid
+  // solutions due to collisions. When false, the request will fail if no
+  // collision free solution is found. When true, the request will succeed even
+  // if no collision free solution is found. This is useful when accessing the
+  // collision debug information. Defaults to false.
+  optional bool disable_error_on_collisions = 10;
+
+  // Optional override for default collision checker configuration.
+  optional intrinsic_proto.world.CollisionCheckerConfig
+      collision_checker_config = 11;
+
+  // Optional caller id to correlate the IKRequest logs with it's caller.
+  optional string caller_id = 12;
+
+  // The logging context for the skill sending the request.
+  optional intrinsic_proto.data_logger.Context context = 13;
+
+  // Optional boolean flag to disable logging of the ComputeIk request data.
+  bool disable_logging = 14;
+}
+
+message IkResponse {
+  // Robot joint configuration that satisfy the Cartesian target constraint
+  // specified in the request. Solutions will be sorted by distance away from
+  // the joint values in the request. If `prefer_same_branch` is set, the first
+  // solution will correspond to the soluiton on the same branch, if such
+  // solution exists.
+  repeated intrinsic_proto.icon.JointVec solutions = 1;
+
+  // Contains the debug information from the IK call. This includes all
+  // solutions generated from the IK solver and their validation results. It
+  // informs a user why specific configurations were excluded from the results.
+  // In case of collision, it also provides the collision information to
+  // identify the objects in collision.
+  intrinsic_proto.motion_planning.v1.ComputeIkDebugInformation
+      ik_debug_information = 2;
+
+  // Logging id to correlate with the corresponding IkRequest log
+  // This field will only be set if the disable_logging field is set to
+  // false (default) in the corresponding IkRequest.
+  optional string logging_id = 3;
+}
+
+message FkRequest {
+  // The id of the world to be used for the Forward Kinematic (FK) computation.
+  string world_id = 1;
+
+  // Joints to set for the robot. If not set, the current position in the world
+  // will be used.
+  intrinsic_proto.icon.JointVec joints = 2;
+
+  // Specification of what robot is being controlled.
+  RobotReference robot_reference = 3;
+
+  // The reference frame for which the Cartesian pose is computed. The returned
+  // transform is reference_t_target, i.e. the frame of `target` in the frame
+  // of `reference`. Typically, some of the joints of `robot_reference` should
+  // lie in between these two frames, otherwise you wouldn't see any changes
+  // to the returned transform.
+  // As an example, `reference` could be the base link of a robot, and target
+  // might be the robot's end-effector.
+  intrinsic_proto.world.TransformNodeReference reference = 4;
+
+  // The target frame for which the Cartesian pose is computed. The returned
+  // transform is reference_t_target, i.e. the frame of `target` in the frame
+  // of `reference`. Typically, some of the joints of `robot_reference` should
+  // lie inbetween the these two frames, otherwise you wouldn't see any changes
+  // to the returned transform.
+  // As an example, `reference` could be the base link of a robot, and target
+  // might be the robot's end-effector.
+  intrinsic_proto.world.TransformNodeReference target = 5;
+}
+
+message FkResponse {
+  // Cartesian pose of the `target` frame expressed in the `reference` frame.
+  intrinsic_proto.Pose reference_t_target = 3;
+}
+
+message CheckCollisionsRequest {
+  // The id of the world to be used for the collision check.
+  string world_id = 1;
+
+  // Specification of what robot is being controlled.
+  RobotReference robot_reference = 2;
+
+  // The path of the robot specified in `robot_reference` to be collision
+  // checked. We assume the robot travels linearly (in joint space) between each
+  // of the specified waypoints. If you want to collision check a
+  // non-point-to-point trajectory with this function, you must discritize it
+  // finely enough.
+  repeated intrinsic_proto.icon.JointVec waypoint = 3;
+
+  // Collision settings to applied during collision checking. If not defined,
+  // the default setting with zero margin will be applied.
+  intrinsic_proto.world.CollisionSettings collision_settings = 4;
+
+  // Optional override for default collision checker configuration.
+  optional intrinsic_proto.world.CollisionCheckerConfig
+      collision_checker_config = 5;
+}
+
+message CheckCollisionsResponse {
+  // Whether the checked path is in collision or not.
+  bool has_collision = 1;
+  // Message to help the caller understand the collision that occurred. Note,
+  // that this message only lists the first collision encountered. There may
+  // be more collisions.
+  string collision_debug_msg = 2;
+}
+// The Motion Planner Service provides motion planning and related operations,
+// such as kinematics and collision checking. It is used by skills such as
+// `Move Robot` and is available by thid party skills and services.
+service MotionPlannerService {
+
+  // Plans a trajectory that fulfills the defined motion specification in the
+  // MotionPlannerRequest. Requests are cached in a volatile cache, if the
+  // service encounters identical requests it will return previously cached
+  // solutions. The cache can be cleared by either restarting the service or
+  // calling `ClearCache`.
+  rpc PlanTrajectory(MotionPlanningRequest)
+      returns (TrajectoryPlanningResponse) {
+    option (google.api.http) = {
+      post: "/v1/plan:trajectory"
+      body: "*"
+    };
+  }
+
+  // Plans a path that fulfills the defined motion specification in the
+  // MotionPlannerRequest. In contrast to PlanTrajectory, this rpc call creates
+  // only the geometric path, not the full trajectory. As a consequence, it does
+  // not support all the motion planning features like Motion Events. In
+  // contrast to PlanTrajectory, this call does currently not support
+  // non-volatile and volatile caching.
+  // This call can be useful if you are not interested in the full trajectory
+  // and its associated controls and kinematics, but only interested in the
+  // geometric path. It saves computation times and is therefore preferred
+  // over PlanTrajectory for non-trajectory planning purposes.
+  rpc PlanPath(MotionPlanningRequest) returns (PathPlanningResponse) {
+    option (google.api.http) = {
+      post: "/v1/plan:path"
+      body: "*"
+    };
+  }
+
+  // Computes the Inverse Kinematics (IK) for the robot, i.e. the robots joint
+  // configuration that satisfy the set of Cartesian constraints.
+  rpc ComputeIk(IkRequest) returns (IkResponse) {
+    option (google.api.http) = {
+      post: "/v1/kinematics:computeIk"
+      body: "*"
+    };
+  }
+
+  // Computes the Forward Kinematic (FK), i.e., the Cartesian pose of a target
+  // frame with respect to a reference, for a given joint configuration of a
+  // robot.
+  rpc ComputeFk(FkRequest) returns (FkResponse) {
+    option (google.api.http) = {
+      post: "/v1/kinematics:computeFk"
+      body: "*"
+    };
+  }
+
+  // Collision-checks a specified path.
+  rpc CheckCollisions(CheckCollisionsRequest)
+      returns (CheckCollisionsResponse) {
+    option (google.api.http) = {
+      post: "/v1/collisions:check"
+      body: "*"
+    };
+  }
+  // PlanTrajectory uses caching to speed up repeated similar planning calls.
+  // Clear cache for PlanTrajectory.
+  rpc ClearCache(google.protobuf.Empty) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/cache:clear"
+      body: "*"
+    };
+  }
+}

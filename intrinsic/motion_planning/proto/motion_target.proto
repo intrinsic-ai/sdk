@@ -1,0 +1,66 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.motion_planning;
+
+import "intrinsic/icon/proto/joint_space.proto";
+import "intrinsic/math/proto/pose.proto";
+import "intrinsic/world/proto/object_world_refs.proto";
+
+option go_package = "intrinsic/motion_planning/proto/motion_target_go_proto";
+
+// Defines a cartesian target for a motion.
+message CartesianMotionTarget {
+  // The tool which you want to move.
+  intrinsic_proto.world.TransformNodeReference tool = 1;
+  // The frame with which you want to align the tool.
+  intrinsic_proto.world.TransformNodeReference frame = 2;
+  // Optional, you can place an offset between frame and tool. Defaults to the
+  // Identity pose.
+  //
+  // This is frame_t_tool.
+  intrinsic_proto.Pose offset = 3;
+}
+
+message CartesianWaypoints {
+  // The frame on the tool that you want to move such that it aligns with the
+  // waypoints.
+  intrinsic_proto.world.TransformNodeReference tool = 1;
+  // The frame in which the waypoints are specified.
+  // Note that the frame is ignored if waypoints are only specified as joint
+  // position vectors.
+  intrinsic_proto.world.TransformNodeReference frame = 2;
+
+  message Waypoint {
+    oneof waypoint_kind {
+      // Cartesian tool pose with respect to frame.
+      intrinsic_proto.Pose frame_t_tool_offset = 1;
+
+      // Joint position vector corresponding to the waypoint tool pose.
+      intrinsic_proto.icon.JointVec joint_positions = 2;
+    }
+  }
+
+  // A list of waypoints to pass through.
+  repeated Waypoint waypoints = 6;
+
+  // Radii of the circular blend around an intermediate waypoint in position
+  // and rotation respectively. Both parameters should be positive and >= 0.001.
+  // Default values of 0.001m and 0.01rad are used if these parameters are not
+  // specified.
+  optional double translational_rounding_m = 4;
+  optional double rotational_rounding_rad = 5;
+}
