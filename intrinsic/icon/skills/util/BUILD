@@ -112,8 +112,8 @@ cc_library(
     hdrs = ["position_part_util.h"],
     visibility = [
         "//intrinsic/icon/skills:__subpackages__",
-        "//intrinsic/intrinsic_motion_planning/intrinsic/motion_planning/skills:__subpackages__",
         "//intrinsic/motion_planning/skills:__pkg__",
+        "//intrinsic/motion_planning/skills:__subpackages__",
         "//intrinsic/perception/skills:__subpackages__",
     ],
     deps = [
