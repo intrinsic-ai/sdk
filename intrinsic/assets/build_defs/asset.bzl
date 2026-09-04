@@ -144,8 +144,6 @@ def _intrinsic_asset_instance_impl(ctx):
         asset_instance_output,
     )
     inputs = []
-    transitive_inputs = []
-    transitive_runfiles = []
     if ctx.file.config:
         args.add(
             "--config_path",
@@ -156,7 +154,7 @@ def _intrinsic_asset_instance_impl(ctx):
     ctx.actions.run(
         arguments = [args],
         executable = ctx.executable._assetinstancegen,
-        inputs = depset(inputs, transitive = transitive_inputs),
+        inputs = inputs,
         mnemonic = "AssetInstance",
         outputs = [asset_instance_output],
         progress_message = "Writing %{output} for %{label}",
@@ -165,9 +163,6 @@ def _intrinsic_asset_instance_impl(ctx):
         DefaultInfo(
             executable = asset_instance_output,
             files = depset([asset_instance_output]),
-            runfiles = ctx.runfiles(
-                transitive_files = depset(transitive = transitive_runfiles),
-            ),
         ),
         AssetInstanceInfo(
             config = ctx.file.config,
@@ -186,6 +181,12 @@ intrinsic_asset_instance = rule(
                 ".txtpb",
                 ".textproto",
             ],
+        ),
+        "instance_name": attr.string(
+            doc = "Name of the instance, if it should be different than 'name'",
+        ),
+        "required_node_hostname": attr.string(
+            mandatory = False,
         ),
         "_assetinstancegen": attr.label(
             cfg = "exec",
