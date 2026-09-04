@@ -55,7 +55,10 @@ cc_grpc_library(
 
 py_proto_library(
     name = "cas_service_py_pb2",
-    visibility = ["//intrinsic:public_api_users"],
+    visibility = [
+        "//intrinsic:public_api_users",
+        "//intrinsic/perception/assets:__subpackages__",
+    ],
     deps = [":cas_service_proto"],
 )
 
