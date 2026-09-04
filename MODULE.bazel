@@ -136,6 +136,9 @@ pip.parse(
     hub_name = "ai_intrinsic_sdks_pip_deps",
     python_version = PYTHON_VERSION,
     requirements_lock = "//:requirements.txt",
+    target_platforms = [
+        "linux_x86_64",
+    ],
 )
 use_repo(pip, "ai_intrinsic_sdks_pip_deps")
 
